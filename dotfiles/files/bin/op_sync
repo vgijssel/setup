@@ -1,0 +1,256 @@
+#!/usr/bin/env ruby
+
+require 'open3'
+require 'optparse'
+require 'logger'
+require 'json'
+require 'time'
+
+require 'pry'
+
+Options = Struct.new(:vault, :verbose)
+args = Options.new("Workstation")
+
+opt_parser = OptionParser.new do |opts|
+  opts.banner = "NAME:"
+  opts.separator("")
+  opts.separator("op_sync")
+  opts.separator("")
+
+  opts.separator("DESCRIPTION:")
+  opts.separator("")
+  opts.separator(
+    "Tools to keep local filesystem and 1password vault in sync.\n" \
+      "Makes use of the `op` command line tool."
+  )
+  opts.separator("")
+
+  opts.separator("COMMANDS:")
+  opts.separator("")
+  opts.separator("sync         Sync files in the vault to the local filesystem")
+  opts.separator("add [file]   Add a file to the vault")
+  opts.separator("")
+
+  opts.separator("GLOBAL OPTIONS:")
+  opts.separator("")
+
+  opts.on("--vault VAULT", "1password vault to sync") do |n|
+    args.vault = n
+  end
+
+  opts.on("-v", "--[no-]verbose [FLAG]", TrueClass, "Run verbosely") do |v|
+    args.verbose = v.nil? ? true : v
+  end
+
+  opts.on("-h", "--help", "Prints this help") do
+    puts opt_parser.to_s
+    exit 0
+  end
+end
+
+opt_parser.parse! ARGV
+
+class FileStat
+  def self.from_file(file_name)
+    stat = File.stat(file_name)
+
+    new(
+      mtime: Time.parse(stat.mtime.to_s),
+      mode: stat.mode.to_i,
+    )
+  end
+
+  def self.from_tags(tags)
+    stat = {}
+
+    tags.each do |tag|
+      case tag
+      when /^mtime:/
+        mtime = tag.gsub(/^mtime:/, '')
+        stat[:mtime] = Time.parse(mtime)
+
+      when /^mode:/
+        mode = tag.gsub(/^mode:/, '')
+        stat[:mode] = mode.to_i
+
+      else
+        raise 'no friendo'
+      end
+    end
+
+    stat
+
+    new(**stat)
+  end
+
+  attr_reader :mtime, :mode
+
+  def initialize(mtime:, mode:)
+    @mtime = mtime
+    @mode = mode
+  end
+
+  def to_tags
+    ["'mtime:#{mtime}'", "'mode:#{mode}'"]
+  end
+
+  def ==(other)
+    return false unless other.class == self.class
+
+    mode == other.mode && mtime == other.mtime
+  end
+
+  def >(other)
+    return false unless other.class == self.class
+
+    mtime > other.mtime
+  end
+end
+
+class OpSync
+  attr_reader :options
+
+  def initialize(options)
+    @options = options
+  end
+
+  def documents
+    @documents ||= begin
+                     docs = JSON.parse run("op list documents --vault=#{options.vault}")
+                     docs.select do |doc|
+                       doc.fetch('trashed') == 'N'
+                     end
+                   end
+  end
+
+  def run(command)
+    logger.debug("Executing: `#{command}`")
+    stdout_str, stderr_str, status = Open3.capture3(command)
+
+    if status.exitstatus.zero?
+      return stdout_str
+    else
+      logger.error(stderr_str)
+      exit 1
+    end
+  end
+
+  def logger
+    @logger ||= begin
+                  _logger = Logger.new(STDOUT)
+                  _logger.level = options.verbose ? Logger::DEBUG : Logger::WARN
+                  _logger
+                end
+  end
+
+  def sync
+    stats = {
+      remote_updates: 0,
+      local_updates: 0,
+      total_updates: 0,
+      skipped: 0,
+      total_files: documents.length,
+    }
+
+    documents.each do |document|
+      remote_file = document.fetch('overview').fetch('title')
+      remote_id = document.fetch('uuid')
+      local_file = File.expand_path(remote_file)
+
+      if File.exists?(local_file)
+        local_stat = FileStat.from_file(local_file)
+
+        remote_tags = document.fetch('overview').fetch('tags')
+        remote_stat = FileStat.from_tags(remote_tags)
+
+        if local_stat == remote_stat
+          logger.info("`#{remote_file}` is the same as the local file. Skipped.")
+          stats[:skipped] += 1
+          next
+        end
+
+        # has local changes, update remote
+        if local_stat > remote_stat
+          delete_remote_file remote_id
+          create_remote_file local_file, remote_file
+          logger.info("Remote `#{remote_file}` updated.")
+          stats[:remote_updates] += 1
+
+        # has remote changes, update local
+        else
+          download_remote_to_local_file local_file, document
+          logger.info("Local `#{local_file}` updated.")
+          stats[:local_updates] += 1
+
+        end
+      else
+        download_remote_to_local_file local_file, document
+        logger.info("Local `#{local_file}` updated.")
+        stats[:local_updates] += 1
+      end
+    end
+
+    stats[:total_updates] = stats[:local_updates] + stats[:remote_updates]
+
+    puts JSON.pretty_generate(stats)
+  end
+
+  def add(file_names)
+    file_names.each do |file_name|
+      local_file = File.expand_path(file_name)
+      remote_file = local_file.gsub(/^#{Dir.home}/, '~')
+
+      if remote_file_exists?(remote_file)
+        logger.warn("`#{remote_file}` already exists in vault `#{options.vault}`. Skipping.")
+        next
+      end
+
+      create_remote_file(local_file, remote_file)
+
+      logger.info "Added `#{file_name}` to vault `#{options.vault}` as `#{remote_file}`"
+    end
+  end
+
+  private
+
+  def remote_file_exists?(file_name)
+    documents.any? do |document|
+      document.fetch('overview').fetch('title') == file_name
+    end
+  end
+
+  def create_remote_file(local_file, remote_file)
+    tags = FileStat.from_file(local_file).to_tags
+    run("op create document #{local_file} --title='#{remote_file}' --vault=#{options.vault} --tags=#{tags.join(',')}")
+  end
+
+  def delete_remote_file(remote_id)
+    run("op delete item #{remote_id} --vault=#{options.vault}")
+  end
+
+  def download_remote_to_local_file(local_file, remote_document)
+    stat = FileStat.from_tags(remote_document.fetch('overview').fetch('tags'))
+    remote_id = remote_document.fetch('uuid')
+
+    dir = File.dirname(local_file)
+    FileUtils.mkdir_p(dir)
+
+    run "op get document '#{remote_id}' --vault=#{options.vault} > #{local_file}"
+
+    FileUtils.touch local_file, mtime: stat.mtime
+  end
+end
+
+op_sync = OpSync.new args
+
+if ARGV == ['sync']
+  op_sync.sync
+
+elsif ARGV[0] == 'add' && !ARGV[1..].empty?
+  op_sync.add ARGV[1..]
+  exit 0
+
+else
+  puts "Unknown options: `#{ARGV.join(', ')}`. Use --help for more information"
+  exit 1
+end
