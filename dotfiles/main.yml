@@ -1,0 +1,81 @@
+---
+- hosts: all
+  connection: local
+
+  vars_files:
+    - config.yml
+
+  roles:
+    - role: geerlingguy.homebrew
+      tags: ['homebrew']
+
+    - role: geerlingguy.mas
+      tags: ['mas']
+
+  tasks:
+    - import_role:
+        name: markosamuli.asdf
+      tags: ['lang']
+      vars:
+        asdf_plugins:
+        - name: "golang"
+          versions:
+            - 1.12
+          global: 1.12
+
+        - name: "ruby"
+          versions:
+            - 2.6.5
+            - 2.5.3
+          global: 2.6.5
+
+        - name: "python"
+          versions:
+            - 2.7.17
+          global: 2.7.17
+
+        - name: "nodejs"
+          versions:
+            - 10.16.3
+            - 12.0.0
+          global: 10.16.3
+
+    - name: "Global NPM packages"
+      tags: ['lang']
+      npm:
+        name: "{{ item }}"
+        global: yes
+        state: present
+      loop:
+        - yarn # package manager
+        - tern # for spacemacs
+        - eslint_d # fast eslint
+        - fx # json viewer for the terminal
+
+    - name: "Global Ruby gems"
+      tags: ['lang']
+      gem:
+        name: "{{ item.name }}"
+        version: "{{ item.version | default(None) }}"
+        state: present
+      loop:
+        - { name: bundler, version: 1.17.3 }
+        - { name: mailcatcher }
+
+    - name: "Create directories for all files"
+      tags: ['files']
+      file: path="~/{{ item.path }}" state=directory
+      when: item.state == 'directory'
+      with_filetree: "."
+
+    - name: "Link all files"
+      tags: ['files']
+      file: src="{{ item.src }}" dest="~/{{ item.path }}" state=link
+      when: item.state == 'file'
+      with_filetree: "."
+
+    - name: "Sync secrets stored in 1password"
+      tags: ['secrets']
+      command: op_sync sync
+      register: op_sync
+      changed_when: (op_sync.stdout | from_json)['total_updates'] > 0

@@ -1,0 +1,86 @@
+---
+homebrew_installed_packages:
+  - windmilleng/tap/tilt
+  - docker-machine-driver-hyperkit
+  - kubernetes-cli
+  - ansible
+
+  - exiftool
+
+  - git
+  - gpg2
+  - git-crypt
+
+  - mas
+  - redis
+
+  # Terminal
+  - direnv
+  - fzf
+
+  - v8@3.15 # the ruby racer gem
+  - imagemagick # otherwise Rails image upload no work
+
+  - lastpass-cli
+
+  - dnsmasq
+
+  # Emacs
+  - aspell # spellchecking
+  - ag # silversearcher
+  - ripgrep # search
+  - ack # search
+  - pt # the platinum searcher
+  - cmake # for loading vterm
+  - libvterm # vterm shell inside emacs
+  - shellcheck # lint shell-script files
+
+  # Networking tools
+  - nmap
+  - iperf
+
+  # For generating and reading graphs using `dot` tool
+  - graphviz
+
+  # GNU tools instead of macos ones
+  - coreutils
+  - diffutils
+  - findutils
+  - gawk
+  - gnu-indent
+  - gnu-sed
+  - gnu-tar
+  - gnu-which
+  - gnutls
+  - grep
+  - gzip
+  - screen
+  - watch
+  - wdiff
+  - wget
+
+homebrew_taps:
+  - homebrew/core
+  - homebrew/cask
+  - homebrew/services
+  - d12frosted/emacs-plus
+  - windmilleng/tap
+
+homebrew_cask_appdir: /Applications
+homebrew_cask_apps:
+  - minikube
+  - multipass
+  - ngrok
+  - virtualbox
+  - gpg-suite
+  - 1password-cli
+
+# Use `mas search <<appname>>` to get the id and name
+mas_installed_apps:
+  - { id: 1147396723, name: "WhatsApp Desktop" }
+  - { id: 585829637, name: "Todoist: To-Do List & Tasks" }
+  - { id: 747648890, name: "Telegram" }
+  - { id: 1404231964, name: "UPRIGHT GO Desktop" }
+
+mas_upgrade_all_apps: true
+mas_signin_dialog: true
