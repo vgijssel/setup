@@ -62,17 +62,27 @@
         - { name: bundler, version: 1.17.3 }
         - { name: mailcatcher }
 
-    - name: "Create directories for all files"
+    - name: "Generate a list of files"
+      tags: ['files']
+      set_fact:
+        files: |
+          {{
+            lookup('filetree', '.', wantlist=true) |
+            rejectattr('path', 'match', '.*\.DS_Store') |
+            list
+          }}
+
+    - name: "Create directory for file"
       tags: ['files']
       file: path="~/{{ item.path }}" state=directory
       when: item.state == 'directory'
-      with_filetree: "."
+      loop: "{{ files }}"
 
-    - name: "Link all files"
+    - name: "Link file"
       tags: ['files']
       file: src="{{ item.src }}" dest="~/{{ item.path }}" state=link
       when: item.state == 'file'
-      with_filetree: "."
+      loop: "{{ files }}"
 
     - name: "Sync secrets stored in 1password"
       tags: ['secrets']
