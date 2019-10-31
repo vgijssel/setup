@@ -11,8 +11,10 @@ fi
 # Essential
 source ~/.zplug/init.zsh
 
-zplug mafredri/zsh-async, from:github
-zplug sindresorhus/pure, use:pure.zsh, from:github, as:theme
+zplug "mafredri/zsh-async", from:github
+zplug "sindresorhus/pure", use:"pure.zsh", from:github, as:theme
+zplug "nicodebo/base16-fzf", use:"bash/base16-snazzy.config", defer:3, as:theme
+
 zplug "zsh-users/zsh-completions",              defer:0
 zplug "zsh-users/zsh-autosuggestions",          defer:2, on:"zsh-users/zsh-completions"
 zplug "zsh-users/zsh-syntax-highlighting",      defer:3, on:"zsh-users/zsh-autosuggestions"
