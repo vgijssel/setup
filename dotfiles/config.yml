@@ -74,6 +74,7 @@ homebrew_cask_apps:
   - virtualbox
   - gpg-suite
   - 1password-cli
+  - steam
 
 # Use `mas search <<appname>>` to get the id and name
 mas_installed_apps:
