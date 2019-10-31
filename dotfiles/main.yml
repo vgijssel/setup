@@ -84,16 +84,12 @@
       when: item.state == 'file'
       loop: "{{ files }}"
 
-    # - name: "Backup GPG public key"
-
-    # - name: "Backup GPG private key"
-
     - name: "Sync secrets stored in 1password"
       tags: ['secrets']
       command: op_sync sync
       register: op_sync
       changed_when: (op_sync.stdout | from_json)['total_updates'] > 0
 
-    # - name: "Restart gpg-agent"
-
-    # - name: "Restart ssh-agent"
+    - name: "Restart gpg-agent"
+      tags: ['secrets']
+      command: gpgconf --reload gpg-agent
