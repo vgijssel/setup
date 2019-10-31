@@ -89,3 +89,7 @@
       command: op_sync sync
       register: op_sync
       changed_when: (op_sync.stdout | from_json)['total_updates'] > 0
+
+    - name: "Restart gpg-agent"
+      tags: ['secrets']
+      command: gpgconf --reload gpg-agent

@@ -93,3 +93,6 @@ if [ "${HOME}/.zsh"(NF) ]; then
     source $file
   done
 fi
+
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+gpgconf --launch gpg-agent
