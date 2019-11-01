@@ -27,6 +27,9 @@ zplugin snippet ~/.zsh/fzf.zsh
 zplugin ice wait'1'
 zplugin snippet ~/.zsh/gpg.zsh
 
+zplugin ice wait'1'
+zplugin snippet ~/.zsh/direnv.zsh
+
 zplugin ice wait blockf atpull'zplugin creinstall -q .'
 zplugin light zsh-users/zsh-completions
 
@@ -35,8 +38,6 @@ zplugin light zdharma/fast-syntax-highlighting
 
 zplugin ice wait atload"_zsh_autosuggest_start"
 zplugin light zsh-users/zsh-autosuggestions
-
-# eval "$(direnv hook zsh)"
 
 # # (NF) checks if the directory is not empty (entries besides . and ..)
 # if [ "${HOME}/.zsh"(NF) ]; then
