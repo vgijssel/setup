@@ -9,6 +9,14 @@ zplugin ice pick"async.zsh" src"pure.zsh"
 zplugin light sindresorhus/pure
 # zplugin light "nicodebo/base16-fzf", use:"bash/base16-snazzy.config", defer:3, as:theme
 
+# z
+# NOTE: blockf blocks the loading of auto completion in favour of fz
+zplugin ice wait blockf lucid
+zplugin light rupa/z
+
+# z fuzzy tab completion
+zplugin ice wait lucid
+zplugin light changyuheng/fz
 # TODO: does not automatically detect changes
 zplugin ice wait'1'
 zplugin snippet ~/.zsh/asdf.zsh
@@ -77,11 +85,5 @@ export HISTFILESIZE=100000
 export HISTSIZE=100000
 
 alias ll="ls -lah"
-alias dotf="cd ~/Development/setup/dotfiles"
-alias core="cd ~/Development/hackerone/core"
-alias pain="cd ~/Development/hackerone/payments"
-alias hack="cd ~/Development/hackerone"
-alias dev="cd ~/Development"
-alias ddc="docker-compose"
 alias emacsclient="emacsclient -s $HOME/.emacs.d/server/server"
 alias edit="emacsclient -s $HOME/.emacs.d/server/server"
