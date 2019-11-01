@@ -12,12 +12,19 @@ zplugin light sindresorhus/pure
 # z
 # NOTE: blockf blocks the loading of auto completion in favour of fz
 zplugin ice wait blockf lucid
+# use https://github.com/agkozak/zsh-z?
 zplugin light rupa/z
 
 # z fuzzy tab completion
 zplugin ice wait lucid
 zplugin light changyuheng/fz
-# TODO: does not automatically detect changes
+
+# TODO: is little bit broken with tail
+# z / fzf (ctrl-g)
+# zplugin ice wait lucid
+# zplugin light andrewferrier/fzf-z
+
+# TODO: snippet does not automatically detect changes
 zplugin ice wait'1'
 zplugin snippet ~/.zsh/asdf.zsh
 
@@ -33,18 +40,12 @@ zplugin snippet ~/.zsh/direnv.zsh
 zplugin ice wait blockf atpull'zplugin creinstall -q .'
 zplugin light zsh-users/zsh-completions
 
+# TODO: does not work in Ruby terminal, does another plugin work?
 zplugin ice wait atinit"zpcompinit; zpcdreplay"
 zplugin light zdharma/fast-syntax-highlighting
 
 zplugin ice wait atload"_zsh_autosuggest_start"
 zplugin light zsh-users/zsh-autosuggestions
-
-# # (NF) checks if the directory is not empty (entries besides . and ..)
-# if [ "${HOME}/.zsh"(NF) ]; then
-#   for file in ~/.zsh/*; do
-#     source $file
-#   done
-# fi
 
 setopt extended_history       # record timestamp of command in HISTFILE
 setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
