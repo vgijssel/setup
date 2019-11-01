@@ -53,10 +53,8 @@ GNU_SED="${BREW_PREFIX}/opt/gnu-sed/libexec/gnubin"
 GNU_TAR="${BREW_PREFIX}/opt/gnu-tar/libexec/gnubin"
 GNU_WHICH="${BREW_PREFIX}/opt/gnu-which/libexec/gnubin"
 GNU_GREP="${BREW_PREFIX}/opt/grep/libexec/gnubin"
-CUSTOM_TILT="${HOME}/.asdf/installs/golang/1.12/packages/bin"
 
 export PATH=\
-"${CUSTOM_TILT}:"\
 "/usr/local/bin/:"\
 "${HOME}/bin:"\
 "/Applications/Postgres.app/Contents/Versions/latest/bin:"\
