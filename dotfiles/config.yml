@@ -62,6 +62,7 @@ homebrew_installed_packages:
 homebrew_taps:
   - homebrew/core
   - homebrew/cask
+  - homebrew/cask-fonts
   - homebrew/services
   - d12frosted/emacs-plus
   - windmilleng/tap
@@ -75,6 +76,12 @@ homebrew_cask_apps:
   - gpg-suite
   - 1password-cli
   - steam
+
+  # TODO: force reload of the installed fonts (by manually installing one)
+  # will make these fonts available
+  - font-source-code-pro
+  - font-source-code-pro-for-powerline
+  - font-menlo-for-powerline
 
 # Use `mas search <<appname>>` to get the id and name
 mas_installed_apps:
