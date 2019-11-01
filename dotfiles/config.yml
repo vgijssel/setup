@@ -76,6 +76,7 @@ homebrew_cask_apps:
   - gpg-suite
   - 1password-cli
   - steam
+  - iterm2
 
   # TODO: force reload of the installed fonts (by manually installing one)
   # will make these fonts available
