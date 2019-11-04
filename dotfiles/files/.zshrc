@@ -64,7 +64,11 @@ GNU_TAR="${BREW_PREFIX}/opt/gnu-tar/libexec/gnubin"
 GNU_WHICH="${BREW_PREFIX}/opt/gnu-which/libexec/gnubin"
 GNU_GREP="${BREW_PREFIX}/opt/grep/libexec/gnubin"
 
+# TODO: prettier way to not hardcode the asdf path here?
+# currently necessary for spacemacs to have the paths in front on /usr/bin
+# so spacemacs does not call the system ruby but asdf ruby
 export PATH=\
+"${HOME}/.asdf/shims:${HOME}/.asdf/bin:"\
 "/usr/local/bin/:"\
 "${HOME}/bin:"\
 "/Applications/Postgres.app/Contents/Versions/latest/bin:"\
