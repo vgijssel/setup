@@ -25,16 +25,16 @@ zplugin light changyuheng/fz
 # zplugin light andrewferrier/fzf-z
 
 # TODO: snippet does not automatically detect changes
-zplugin ice wait'1'
+zplugin ice wait
 zplugin snippet ~/.zsh/asdf.zsh
 
-zplugin ice wait'1'
+zplugin ice wait
 zplugin snippet ~/.zsh/fzf.zsh
 
-zplugin ice wait'1'
+zplugin ice wait
 zplugin snippet ~/.zsh/gpg.zsh
 
-zplugin ice wait'1'
+zplugin ice wait
 zplugin snippet ~/.zsh/direnv.zsh
 
 zplugin ice wait blockf atpull'zplugin creinstall -q .'
