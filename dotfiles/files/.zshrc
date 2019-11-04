@@ -7,7 +7,9 @@ source ~/.zplugin/bin/zplugin.zsh
 
 zplugin ice pick"async.zsh" src"pure.zsh"
 zplugin light sindresorhus/pure
-# zplugin light "nicodebo/base16-fzf", use:"bash/base16-snazzy.config", defer:3, as:theme
+
+zplugin ice pick"bash/base16-snazzy.config"
+zplugin light "nicodebo/base16-fzf"
 
 # z
 # NOTE: blockf blocks the loading of auto completion in favour of fz
