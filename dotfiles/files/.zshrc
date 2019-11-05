@@ -11,7 +11,8 @@ setopt hist_verify            # show command with history expansion to user befo
 setopt inc_append_history     # add commands to HISTFILE in order of execution
 setopt share_history          # share command history data
 
-BREW_PREFIX=$(brew --prefix)
+# BREW_PREFIX is output from `brew --prefix`
+BREW_PREFIX="/usr/local"
 GNU_CORE_UTILS="${BREW_PREFIX}/opt/coreutils/libexec/gnubin"
 GNU_FIND_UTILS="${BREW_PREFIX}/opt/findutils/libexec/gnubin"
 GNU_INDENT="${BREW_PREFIX}/opt/gnu-indent/libexec/gnubin"
