@@ -517,6 +517,28 @@ before packages are loaded."
   (global-set-key (kbd "H-U") 'winner-redo)
   (global-set-key (kbd "H-f") 'spacemacs/toggle-maximize-buffer)
 
+  ;; Register another lsp client for Ruby which does not have the multi-root set to t
+  ;; https://github.com/emacs-lsp/lsp-mode/blob/716f9ceaa7f7cc8da93afa14e35482674a994842/lsp-solargraph.el#L136
+  ;; This means a new lsp client is started for each Ruby project and is not shared
+  ;; This to prevent custom linters / rules to blend between projects
+  ;; Priority 100 means it will always be chosen over the default client (-1 priority)
+  (require 'lsp-mode)
+  (lsp-register-client
+   (let ((lsp-command '("solargraph" "stdio")))
+     (make-lsp-client
+      :new-connection (lsp-stdio-connection
+                       (if lsp-solargraph-use-bundler
+                           (append '("bundle" "exec") lsp-command)
+                         lsp-command))
+      :major-modes '(ruby-mode enh-ruby-mode)
+      :priority 100
+      :multi-root nil
+      :server-id 'ruby-ls-single-root
+      :initialized-fn (lambda (workspace)
+                        (with-lsp-workspace workspace
+                          (lsp--set-configuration
+                           (lsp-configuration-section "solargraph")))))))
+
   (direnv-mode)
   (setq direnv-always-show-summary t)
 
