@@ -65,7 +65,6 @@ homebrew_taps:
   - homebrew/cask
   - homebrew/cask-fonts
   - homebrew/services
-  - d12frosted/emacs-plus
   - windmilleng/tap
 
 homebrew_cask_appdir: /Applications
@@ -78,6 +77,7 @@ homebrew_cask_apps:
   - 1password-cli
   - steam
   - iterm2
+  - emacs
 
   # TODO: force reload of the installed fonts (by manually installing one)
   # will make these fonts available
