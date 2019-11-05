@@ -71,7 +71,7 @@ This function should only modify configuration layer settings."
      ;; org
      (shell :variables
             shell-default-height 30
-            shell-default-shell 'shell
+            shell-default-shell 'vterm
             shell-default-position 'bottom)
      spell-checking
      syntax-checking
@@ -544,15 +544,6 @@ before packages are loaded."
 
   ;; set the fill column indicator (vertical line) at 100 characters
   (setq fci-rule-column 100)
-
-  ;; Open ansi-term with Super+Return
-  (global-set-key (kbd "s-<return>") 'multi-term)
-
-  ;; Clear shell buffer using C-l
-  (defun my-shell-hook ()
-    (local-set-key "\C-l" 'comint-clear-buffer))
-
-  (add-hook 'shell-mode-hook 'my-shell-hook)
 
   ;; don't show warning for large files
   (setq large-file-warning-threshold nil)
