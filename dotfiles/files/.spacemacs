@@ -481,7 +481,7 @@ This function defines the environment variables for your Emacs session. By
 default it calls `spacemacs/load-spacemacs-env' which loads the environment
 variables declared in `~/.spacemacs.env' or `~/.spacemacs.d/.spacemacs.env'.
 See the header of this file for more information."
-  (spacemacs/load-spacemacs-env))
+  )
 
 (defun dotspacemacs/user-init ()
   "Initialization for user code:
@@ -499,7 +499,8 @@ dump."
   )
 
 (defun dotspacemacs/user-config ()
-  ;; TODO: hack to get SSH_AUTH_SOCK into spacemacs as it's ignored in the regular spacemacs.env file
+  ;; Not using the
+  (exec-path-from-shell-initialize)
   (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")
 
   "Configuration for user code:
