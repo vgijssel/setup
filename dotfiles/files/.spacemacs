@@ -499,8 +499,11 @@ dump."
   )
 
 (defun dotspacemacs/user-config ()
-  ;; Not using the
+  ;; Not using the (spacemacs/load-spacemacs-env) method in user-env
+  ;; To always have up-to-date environment variables
   (exec-path-from-shell-initialize)
+
+  ;; Copy SSH_AUTH_SOCKET from the env to make magit work with the gpg key authentication
   (exec-path-from-shell-copy-env "SSH_AUTH_SOCK")
 
   "Configuration for user code:
