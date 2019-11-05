@@ -45,6 +45,7 @@ export DOCKER_BUILDKIT=1
 export HISTFILE=~/.zsh_history
 export HISTFILESIZE=100000
 export HISTSIZE=100000
+export SSH_AUTH_SOCK="$HOME/.gnupg/S.gpg-agent.ssh"
 
 alias ll="ls -lah"
 alias emacsclient="emacsclient -s $HOME/.emacs.d/server/server"
