@@ -5,49 +5,47 @@ fi
 
 source ~/.zplugin/bin/zplugin.zsh
 
-zplugin ice pick"async.zsh" src"pure.zsh"
-zplugin light sindresorhus/pure
+# https://github.com/zdharma/zplugin#plugin-output
+# controls how verbose the loading messages are
+zplugin_plugin_output=lucid
 
-zplugin ice pick"bash/base16-snazzy.config"
-zplugin light "nicodebo/base16-fzf"
+# https://github.com/zdharma/zplugin#loading-and-unloading
+# controls how many features loading a plugin has: load,light
+# $zplugin_load is faster, load allows for reporting
+zplugin_load=light
 
-# z
+zplugin ice $zplugin_plugin_output pick"async.zsh" src"pure.zsh"
+zplugin $zplugin_load sindresorhus/pure
+
+zplugin ice $zplugin_plugin_output pick"bash/base16-snazzy.config"
+zplugin $zplugin_load "nicodebo/base16-fzf"
+
+# z: for quickly jumping to recently used directories
 # NOTE: blockf blocks the loading of auto completion in favour of fz
-zplugin ice wait blockf lucid
-# use https://github.com/agkozak/zsh-z?
-zplugin light rupa/z
+zplugin ice $zplugin_plugin_output wait blockf
+zplugin $zplugin_load rupa/z
 
 # z fuzzy tab completion
-zplugin ice wait lucid
-zplugin light changyuheng/fz
+zplugin ice $zplugin_plugin_output wait
+zplugin $zplugin_load changyuheng/fz
 
 # TODO: is little bit broken with tail
 # z / fzf (ctrl-g)
 # zplugin ice wait lucid
-# zplugin light andrewferrier/fzf-z
+# zplugin $zplugin_load andrewferrier/fzf-z
 
-# TODO: snippet does not automatically detect changes
-zplugin ice wait
-zplugin snippet ~/.zsh/asdf.zsh
+zplugin ice $zplugin_plugin_output wait multisrc'asdf.zsh fzf.zsh gpg.zsh direnv.zsh'
+zplugin $zplugin_load ~/.zsh
 
-zplugin ice wait
-zplugin snippet ~/.zsh/fzf.zsh
+zplugin ice $zplugin_plugin_output wait blockf atpull'zplugin creinstall -q .'
+zplugin $zplugin_load zsh-users/zsh-completions
 
-zplugin ice wait
-zplugin snippet ~/.zsh/gpg.zsh
+# TODO: colors do not work in Ruby terminal, does another plugin work?
+zplugin ice $zplugin_plugin_output wait atinit"zpcompinit; zpcdreplay"
+zplugin $zplugin_load zdharma/fast-syntax-highlighting
 
-zplugin ice wait
-zplugin snippet ~/.zsh/direnv.zsh
-
-zplugin ice wait blockf atpull'zplugin creinstall -q .'
-zplugin light zsh-users/zsh-completions
-
-# TODO: does not work in Ruby terminal, does another plugin work?
-zplugin ice wait atinit"zpcompinit; zpcdreplay"
-zplugin light zdharma/fast-syntax-highlighting
-
-zplugin ice wait atload"_zsh_autosuggest_start"
-zplugin light zsh-users/zsh-autosuggestions
+zplugin ice $zplugin_plugin_output wait atload"_zsh_autosuggest_start"
+zplugin $zplugin_load zsh-users/zsh-autosuggestions
 
 setopt extended_history       # record timestamp of command in HISTFILE
 setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
