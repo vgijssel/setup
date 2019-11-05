@@ -21,7 +21,6 @@ GNU_TAR="${BREW_PREFIX}/opt/gnu-tar/libexec/gnubin"
 GNU_WHICH="${BREW_PREFIX}/opt/gnu-which/libexec/gnubin"
 GNU_GREP="${BREW_PREFIX}/opt/grep/libexec/gnubin"
 
-# TODO: prettier way to not hardcode the asdf path here?
 # currently necessary for spacemacs to have the paths in front on /usr/bin
 # so spacemacs does not call the system ruby but asdf ruby
 export PATH=\
@@ -74,7 +73,7 @@ zplugin ice $zplugin_plugin_output pick"bash/base16-snazzy.config"
 zplugin $zplugin_load "nicodebo/base16-fzf"
 
 # z: for quickly jumping to recently used directories
-# NOTE: blockf blocks the loading of auto completion in favour of fz
+# blockf blocks the loading of auto completion in favour of fz
 zplugin ice $zplugin_plugin_output wait blockf
 zplugin $zplugin_load rupa/z
 
@@ -82,18 +81,12 @@ zplugin $zplugin_load rupa/z
 zplugin ice $zplugin_plugin_output wait
 zplugin $zplugin_load changyuheng/fz
 
-# TODO: is little bit broken with tail
-# z / fzf (ctrl-g)
-# zplugin ice wait lucid
-# zplugin $zplugin_load andrewferrier/fzf-z
-
-zplugin ice $zplugin_plugin_output wait multisrc'asdf.zsh fzf.zsh gpg.zsh direnv.zsh'
+zplugin ice $zplugin_plugin_output wait multisrc'asdf.zsh fzf.zsh gpg.zsh direnv.zsh benchmark.zsh'
 zplugin $zplugin_load ~/.zsh
 
 zplugin ice $zplugin_plugin_output wait blockf atpull'zplugin creinstall -q .'
 zplugin $zplugin_load zsh-users/zsh-completions
 
-# TODO: colors do not work in Ruby terminal, does another plugin work?
 zplugin ice $zplugin_plugin_output wait atinit"zpcompinit; zpcdreplay"
 zplugin $zplugin_load zdharma/fast-syntax-highlighting
 
