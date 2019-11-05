@@ -1,3 +1,8 @@
+# start profiling in ZSH
+if [[ "$ZPROF" = true ]]; then
+  zmodload zsh/zprof
+fi
+
 setopt extended_history       # record timestamp of command in HISTFILE
 setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
 setopt hist_ignore_dups       # ignore duplicated commands history list
@@ -94,4 +99,7 @@ zplugin $zplugin_load zdharma/fast-syntax-highlighting
 zplugin ice $zplugin_plugin_output wait atload"_zsh_autosuggest_start"
 zplugin $zplugin_load zsh-users/zsh-autosuggestions
 
-
+# stop ZSH profiling and print profiling information
+if [[ "$ZPROF" = true ]]; then
+  zprof
+fi
