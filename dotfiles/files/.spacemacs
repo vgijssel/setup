@@ -51,6 +51,7 @@ This function should only modify configuration layer settings."
      react
      ;; yarn global add vmd
      (markdown :variables markdown-live-preview-engine 'vmd)
+     lsp
      auto-completion
      sql
      yaml
@@ -80,7 +81,7 @@ This function should only modify configuration layer settings."
      osx
      ;; flow-type
      (ruby :variables
-           ruby-version-manager 'rbenv
+           ruby-backend 'lsp
            ruby-test-runner 'rspec)
      )
    ;; List of additional packages that will be installed without being

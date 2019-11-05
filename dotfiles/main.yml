@@ -52,6 +52,7 @@
         - eslint_d # fast eslint
         - fx # json viewer for the terminal
 
+    # Do this for each ruby version installed by asdf
     - name: "Global Ruby gems"
       tags: ['lang']
       gem:
@@ -60,7 +61,15 @@
         state: present
       loop:
         - { name: bundler, version: 1.17.3 }
-        - { name: mailcatcher }
+        - { name: pry }
+        - { name: pry-doc }
+        - { name: ruby_parser }
+        - { name: rubocop, version: 0.73.0 }
+        - { name: seeing_is_believing }
+        - { name: solargraph }
+
+    # TODO: generate documentation with solargraph
+    # TODO: make sure all gems are installed with extra docs `yard gems`
 
     - name: "Generate a list of files"
       tags: ['files']
