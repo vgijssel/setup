@@ -543,7 +543,11 @@ before packages are loaded."
                           (lsp--set-configuration
                            (lsp-configuration-section "solargraph")))))))
 
-  (direnv-mode)        
+
+  ;; Make sure helm-ag searches hidden (dot)files
+  (setq helm-ag-base-command "ag --nocolor --nogroup --hidden --ignore git")
+
+  (direnv-mode)
   (setq direnv-always-show-summary t)
 
   ;; Disable warning TAGS file is too big
