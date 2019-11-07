@@ -596,7 +596,7 @@ This function is called at the very end of Spacemacs initialization."
  ;; If there is more than one, they won't work right.
  '(dap-ruby-debug-program
    (quote
-    ("node" "/Users/maarten/.emacs.d/.extension/vscode/rebornix.Ruby/extension/dist/debugger/main.js")))
+    ("node" "~/.emacs.d/.extension/vscode/rebornix.Ruby/extension/dist/debugger/main.js")))
  '(evil-want-Y-yank-to-eol nil)
  '(package-selected-packages
    (quote
