@@ -59,6 +59,7 @@
         name: "{{ item.name }}"
         version: "{{ item.version | default(None) }}"
         state: present
+      # executable: <<- use executable for all asdf installed versions
       loop:
         - { name: bundler, version: 1.17.3 }
         - { name: pry }
@@ -67,6 +68,8 @@
         - { name: rubocop, version: 0.73.0 }
         - { name: seeing_is_believing }
         - { name: solargraph }
+        - { name: ruby-debug-ide }
+        - { name: debase }
 
     # TODO: generate documentation with solargraph
     # TODO: make sure all gems are installed with extra docs `yard gems`
