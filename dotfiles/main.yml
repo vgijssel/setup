@@ -51,6 +51,7 @@
         - tern # for spacemacs
         - eslint_d # fast eslint
         - fx # json viewer for the terminal
+        - vmd # spacemacs markdown layer
 
     # Do this for each ruby version installed by asdf
     - name: "Global Ruby gems"
