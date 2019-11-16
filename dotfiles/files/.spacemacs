@@ -558,8 +558,6 @@ before packages are loaded."
   ;; disable tags generation for node_modules
   (push "node_modules" projectile-globally-ignored-directories)
 
-  ;; (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode))
-
   ;; Try to speed up projectile search
   (setq projectile-enable-caching t)
 
