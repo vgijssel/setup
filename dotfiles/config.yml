@@ -27,6 +27,7 @@ homebrew_installed_packages:
   - dnsmasq
 
   # Emacs
+  - emacs-plus
   - aspell # spellchecking
   - ag # silversearcher
   - ripgrep # search
@@ -65,8 +66,8 @@ homebrew_taps:
   - homebrew/cask
   - homebrew/cask-fonts
   - homebrew/services
-  - d12frosted/emacs-plus
   - windmilleng/tap
+  - d12frosted/emacs-plus
 
 homebrew_cask_appdir: /Applications
 homebrew_cask_apps:
@@ -94,3 +95,45 @@ mas_installed_apps:
 
 mas_upgrade_all_apps: true
 mas_signin_dialog: true
+
+languages:
+  nodejs:
+    packages:
+      - name: yarn # package manager
+      - name: tern # spacemacs javascript layer
+      - name: eslint_d # daemon for eslint
+      - name: eslint # linting in javascript
+      - name: prettier # spacemacs javascript autofixer
+      - name: fx # json viewer for the terminal
+      - name: vmd # spacemacs markdown layer
+      - name: import-js # spacemacs automatic import helper
+      - name: typescript-language-server # lsp for javascript
+      - name: typescript # typescript
+    global: 12.13.0
+    versions:
+      - version: 12.13.0
+        packages: []
+      - version: 12.0.0
+        packages: []
+      - version: 10.16.3
+        packages: []
+
+  ruby:
+    gems:
+      - name: pry
+      - name: pry-doc
+      - name: ruby_parser
+      - name: seeing_is_believing
+      - name: solargraph
+      - name: ruby-debug-ide
+      - name: debase
+    global: 2.6.5
+    versions:
+      - version: 2.6.5
+        gems:
+          - { name: bundler, version: 1.17.3 }
+          - { name: rubocop, version: 0.73.0 }
+      - version: 2.5.3
+        gems:
+          - { name: bundler, version: 2.0.1 }
+          - { name: rubocop }
