@@ -47,6 +47,7 @@ This function should only modify configuration layer settings."
      neotree
 
      html
+     import-js
      (javascript :variables
                  javascript-fmt-tool 'prettier
                  javascript-fmt-on-save t
