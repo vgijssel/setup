@@ -33,23 +33,32 @@
           global: 2.7.17
 
         - name: "nodejs"
-          versions:
-            - 10.16.3
-            - 12.0.0
-          global: 10.16.3
+          versions: "{{ languages.nodejs.versions | map(attribute='version') | list }}"
+          global: "{{ languages.nodejs.global }}"
 
-    - name: "Global NPM packages"
+    - name: "Install Nodejs packages for all versions"
       tags: ['lang']
+      environment:
+        ASDF_NODEJS_VERSION: '{{ item[1] }}'
       npm:
-        name: "{{ item }}"
+        name: "{{ item[0].name }}"
+        state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
         global: yes
-        state: present
-      loop:
-        - yarn # package manager
-        - tern # for spacemacs
-        - eslint_d # fast eslint
-        - fx # json viewer for the terminal
-        - vmd # spacemacs markdown layer
+      with_nested:
+        - "{{ languages.nodejs.packages }}"
+        - "{{ languages.nodejs.versions | map(attribute='version') | list }}"
+
+    - name: "Install Nodejs packages specific for version"
+      tags: ['lang']
+      environment:
+        ASDF_NODEJS_VERSION: '{{ item[0].version }}'
+      npm:
+        name: "{{ item[1].name }}"
+        state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
+        global: yes
+      with_subelements:
+        - "{{ languages.nodejs.versions }}"
+        - packages
 
     - name: "Install Ruby gems for all versions"
       tags: ['lang']

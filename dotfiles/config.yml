@@ -97,6 +97,27 @@ mas_upgrade_all_apps: true
 mas_signin_dialog: true
 
 languages:
+  nodejs:
+    packages:
+      - name: yarn # package manager
+      - name: tern # spacemacs javascript layer
+      - name: eslint_d # daemon for eslint
+      - name: eslint # linting in javascript
+      - name: prettier # spacemacs javascript autofixer
+      - name: fx # json viewer for the terminal
+      - name: vmd # spacemacs markdown layer
+      - name: import-js # spacemacs automatic import helper
+      - name: typescript-language-server # lsp for javascript
+      - name: typescript # typescript
+    global: 12.13.0
+    versions:
+      - version: 12.13.0
+        packages: []
+      - version: 12.0.0
+        packages: []
+      - version: 10.16.3
+        packages: []
+
   ruby:
     gems:
       - name: pry
