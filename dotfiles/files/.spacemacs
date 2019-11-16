@@ -41,7 +41,6 @@ This function should only modify configuration layer settings."
 
      shell-scripts
 
-     ;; ansible
      nixos
 
      neotree
@@ -53,7 +52,6 @@ This function should only modify configuration layer settings."
                  javascript-fmt-on-save t
                  javascript-import-tool 'import-js)
      react
-     ;; yarn global add vmd
      (markdown :variables markdown-live-preview-engine 'vmd)
      lsp
      dap               
@@ -73,7 +71,6 @@ This function should only modify configuration layer settings."
      (git :variables
           git-magit-status-fullscreen t)
 
-     ;; markdown
      ;; org
      (shell :variables
             shell-default-height 30
