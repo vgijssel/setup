@@ -24,10 +24,8 @@
           global: 1.12
 
         - name: "ruby"
-          versions:
-            - 2.6.5
-            - 2.5.3
-          global: 2.6.5
+          versions: "{{ languages.ruby.versions | map(attribute='version') | list }}"
+          global: "{{ languages.ruby.global }}"
 
         - name: "python"
           versions:
@@ -35,32 +33,64 @@
           global: 2.7.17
 
         - name: "nodejs"
-          versions:
-            - 10.16.3
-            - 12.0.0
-          global: 10.16.3
+          versions: "{{ languages.nodejs.versions | map(attribute='version') | list }}"
+          global: "{{ languages.nodejs.global }}"
 
-    - name: "Global NPM packages"
+    - name: "Install Nodejs packages for all versions"
       tags: ['lang']
+      environment:
+        ASDF_NODEJS_VERSION: '{{ item[1] }}'
       npm:
-        name: "{{ item }}"
+        name: "{{ item[0].name }}"
+        state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
         global: yes
-        state: present
-      loop:
-        - yarn # package manager
-        - tern # for spacemacs
-        - eslint_d # fast eslint
-        - fx # json viewer for the terminal
+      with_nested:
+        - "{{ languages.nodejs.packages }}"
+        - "{{ languages.nodejs.versions | map(attribute='version') | list }}"
 
-    - name: "Global Ruby gems"
+    - name: "Install Nodejs packages specific for version"
       tags: ['lang']
+      environment:
+        ASDF_NODEJS_VERSION: '{{ item[0].version }}'
+      npm:
+        name: "{{ item[1].name }}"
+        state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
+        global: yes
+      with_subelements:
+        - "{{ languages.nodejs.versions }}"
+        - packages
+
+    - name: "Install Ruby gems for all versions"
+      tags: ['lang']
+      environment:
+        ASDF_RUBY_VERSION: '{{ item[1] }}'
       gem:
-        name: "{{ item.name }}"
-        version: "{{ item.version | default(None) }}"
-        state: present
-      loop:
-        - { name: bundler, version: 1.17.3 }
-        - { name: mailcatcher }
+        name: "{{ item[0].name }}"
+        state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
+        user_install: false
+      with_nested:
+        - "{{ languages.ruby.gems }}"
+        - "{{ languages.ruby.versions | map(attribute='version') | list }}"
+
+    - name: "Install Ruby gems specific for version"
+      tags: ['lang']
+      environment:
+        ASDF_RUBY_VERSION: '{{ item[0].version }}'
+      gem:
+        name: "{{ item[1].name }}"
+        state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
+        user_install: false
+      with_subelements:
+        - "{{ languages.ruby.versions }}"
+        - gems
+
+    - name: "Reshim asdf"
+      tags: ['lang']
+      command: asdf reshim
+      changed_when: False
+
+    # TODO: generate documentation with solargraph
+    # TODO: make sure all gems are installed with extra docs `yard gems`
 
     - name: "Generate a list of files"
       tags: ['files']
