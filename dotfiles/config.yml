@@ -5,7 +5,8 @@ homebrew_installed_packages:
   - kubernetes-cli
   - ansible
 
-  - exiftool
+  - exiftool # show/mutate EXIF information of documents
+  - pstree # show parent/child relationship of processes
 
   - git
   - gpg2
