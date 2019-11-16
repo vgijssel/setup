@@ -46,12 +46,13 @@ This function should only modify configuration layer settings."
      neotree
 
      html
-     import-js
      (javascript :variables
                  javascript-fmt-tool 'prettier
                  javascript-fmt-on-save t
                  javascript-import-tool 'import-js)
      react
+     import-js
+     prettier
      (markdown :variables markdown-live-preview-engine 'vmd)
      lsp
      dap               
