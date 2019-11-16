@@ -131,10 +131,13 @@ languages:
     global: 2.6.5
     versions:
       - version: 2.6.5
+        # There is no 2.6.5 available in `solargraph available-cores`
+        solargraph: 2.6.1
         gems:
           - { name: bundler, version: 1.17.3 }
           - { name: rubocop, version: 0.73.0 }
       - version: 2.5.3
+        solargraph: 2.5.3
         gems:
           - { name: bundler, version: 2.0.1 }
           - { name: rubocop }
