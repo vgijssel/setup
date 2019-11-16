@@ -18,6 +18,7 @@ homebrew_installed_packages:
   - direnv
   - fzf
   - fd # fast alternative to find (https://github.com/sharkdp/fd)
+  - zsh # brew version of zsh
 
   - v8@3.15 # the ruby racer gem
   - imagemagick # otherwise Rails image upload no work
