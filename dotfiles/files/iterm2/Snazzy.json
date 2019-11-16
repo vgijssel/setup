@@ -16,7 +16,7 @@
     "Alpha Component" : 1,
     "Green Component" : 0.72887319326400757
   },
-  "Guid" : "7E075E0A-5AA8-4993-A359-87B9C6012359",
+  "Guid" : "E8E20B00-AB95-4907-ADFB-7FE2FE8D6D92",
   "Ansi 7 Color" : {
     "Red Component" : 0.93123704195022583,
     "Color Space" : "Calibrated",
@@ -101,7 +101,7 @@
   "Sync Title" : false,
   "Prompt Before Closing 2" : false,
   "BM Growl" : true,
-  "Command" : "",
+  "Command" : "\/usr\/local\/bin\/zsh",
   "Description" : "Default",
   "Mouse Reporting" : true,
   "Screen" : -1,
@@ -121,7 +121,7 @@
     "Alpha Component" : 1,
     "Green Component" : 0.29879066348075867
   },
-  "Custom Command" : "No",
+  "Custom Command" : "Yes",
   "ASCII Anti Aliased" : true,
   "Non Ascii Font" : "Monaco 12",
   "Vertical Spacing" : 1,
@@ -156,10 +156,11 @@
   },
   "Window Type" : 12,
   "Semantic History" : {
-    "text" : "",
     "action" : "best editor",
+    "text" : "",
     "editor" : "com.sublimetext.3"
   },
+  "Initial Text" : "",
   "Background Image Location" : "",
   "Blur" : false,
   "Badge Color" : {
@@ -183,6 +184,7 @@
     "Alpha Component" : 1,
     "Green Component" : 0.91508829593658447
   },
+  "Unicode Version" : 9,
   "Name" : "Snazzy",
   "Cursor Text Color" : {
     "Red Component" : 0.1176580935716629,
@@ -231,7 +233,7 @@
   "Set Local Environment Vars" : false,
   "Use Non-ASCII Font" : false,
   "Right Option Key Sends" : 0,
-  "Normal Font" : "Menlo-Bold 13",
+  "Normal Font" : "Menlo-Regular 14",
   "Ansi 6 Color" : {
     "Red Component" : 0.54558646678924561,
     "Color Space" : "Calibrated",
