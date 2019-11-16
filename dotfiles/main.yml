@@ -84,6 +84,10 @@
         - "{{ languages.ruby.versions }}"
         - gems
 
+    - name: "Reshim asdf"
+      tags: ['lang']
+      command: asdf reshim
+      changed_when: False
 
     # TODO: generate documentation with solargraph
     # TODO: make sure all gems are installed with extra docs `yard gems`
