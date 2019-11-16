@@ -24,10 +24,8 @@
           global: 1.12
 
         - name: "ruby"
-          versions:
-            - 2.6.5
-            - 2.5.3
-          global: 2.6.5
+          versions: "{{ languages.ruby.versions | map(attribute='version') | list }}"
+          global: "{{ languages.ruby.global }}"
 
         - name: "python"
           versions:
@@ -53,24 +51,30 @@
         - fx # json viewer for the terminal
         - vmd # spacemacs markdown layer
 
-    # Do this for each ruby version installed by asdf
-    - name: "Global Ruby gems"
+    - name: "Install Ruby gems for all versions"
       tags: ['lang']
+      environment:
+        ASDF_RUBY_VERSION: '{{ item[1] }}'
       gem:
-        name: "{{ item.name }}"
-        version: "{{ item.version | default(None) }}"
-        state: present
-      # executable: <<- use executable for all asdf installed versions
-      loop:
-        - { name: bundler, version: 1.17.3 }
-        - { name: pry }
-        - { name: pry-doc }
-        - { name: ruby_parser }
-        - { name: rubocop, version: 0.73.0 }
-        - { name: seeing_is_believing }
-        - { name: solargraph }
-        - { name: ruby-debug-ide }
-        - { name: debase }
+        name: "{{ item[0].name }}"
+        state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
+        user_install: false
+      with_nested:
+        - "{{ languages.ruby.gems }}"
+        - "{{ languages.ruby.versions | map(attribute='version') | list }}"
+
+    - name: "Install Ruby gems specific for version"
+      tags: ['lang']
+      environment:
+        ASDF_RUBY_VERSION: '{{ item[0].version }}'
+      gem:
+        name: "{{ item[1].name }}"
+        state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
+        user_install: false
+      with_subelements:
+        - "{{ languages.ruby.versions }}"
+        - gems
+
 
     # TODO: generate documentation with solargraph
     # TODO: make sure all gems are installed with extra docs `yard gems`
