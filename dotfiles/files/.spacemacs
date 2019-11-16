@@ -80,7 +80,8 @@ This function should only modify configuration layer settings."
      spell-checking
      syntax-checking
      treemacs
-     ;; version-control
+     (version-control :variables
+                      version-control-diff-tool 'diff-hl)
 
      osx
      ;; flow-type
