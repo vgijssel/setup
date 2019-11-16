@@ -84,13 +84,26 @@
         - "{{ languages.ruby.versions }}"
         - gems
 
+    - name: "Install solargraph documentation"
+      tags: ['lang']
+      environment:
+        ASDF_RUBY_VERSION: '{{ item.version }}'
+      command: solargraph download-core {{ item.solargraph }}
+      changed_when: False
+      loop: "{{ languages.ruby.versions }}"
+
+    - name: "Generate YARD documentation for all Ruby versions"
+      tags: ['lang']
+      environment:
+        ASDF_RUBY_VERSION: '{{ item }}'
+      command: yard gems
+      changed_when: False
+      loop: "{{ languages.ruby.versions | map(attribute='version') | list }}"
+
     - name: "Reshim asdf"
       tags: ['lang']
       command: asdf reshim
       changed_when: False
-
-    # TODO: generate documentation with solargraph
-    # TODO: make sure all gems are installed with extra docs `yard gems`
 
     - name: "Generate a list of files"
       tags: ['files']
