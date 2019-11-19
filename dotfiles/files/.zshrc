@@ -3,14 +3,6 @@ if [[ "$ZPROF" = true ]]; then
   zmodload zsh/zprof
 fi
 
-setopt extended_history       # record timestamp of command in HISTFILE
-setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
-setopt hist_ignore_dups       # ignore duplicated commands history list
-setopt hist_ignore_space      # ignore commands that start with space
-setopt hist_verify            # show command with history expansion to user before running it
-setopt inc_append_history     # add commands to HISTFILE in order of execution
-setopt share_history          # share command history data
-
 # BREW_PREFIX is output from `brew --prefix`
 BREW_PREFIX="/usr/local"
 GNU_CORE_UTILS="${BREW_PREFIX}/opt/coreutils/libexec/gnubin"
@@ -45,9 +37,16 @@ if [ -f "${HOME}/.dockerenv" ]; then
 fi
 
 export HISTFILE=~/.zsh_history
-export HISTFILESIZE=100000
-export HISTSIZE=100000
+export HISTSIZE=100000 # number of lines loaded into the shell when started
+export SAVEHIST=100000 # number of lines of the .zsh_history file, will be trimmed when exceeded
 
+setopt extended_history       # record timestamp of command in HISTFILE
+setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
+setopt hist_ignore_dups       # ignore duplicated commands history list
+setopt hist_ignore_space      # ignore commands that start with space
+setopt hist_verify            # show command with history expansion to user before running it
+setopt inc_append_history     # add commands to HISTFILE in order of execution
+setopt share_history          # share command history data
 
 alias ll="ls -lah"
 alias emacsclient="emacsclient -s ${HOME}/.emacs.d/server/server"
@@ -55,8 +54,8 @@ alias edit="emacsclient -s ${HOME}/.emacs.d/server/server"
 alias editn="emacsclient -s ${HOME}/.emacs.d/server/server --no-wait"
 
 if [[ ! -d ~/.zplugin ]]; then
-    mkdir ~/.zplugin
-    git clone https://github.com/zdharma/zplugin.git ~/.zplugin/bin
+  mkdir ~/.zplugin
+  git clone https://github.com/zdharma/zplugin.git ~/.zplugin/bin
 fi
 
 source ~/.zplugin/bin/zplugin.zsh
