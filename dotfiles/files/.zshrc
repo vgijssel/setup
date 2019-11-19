@@ -23,6 +23,7 @@ GNU_GREP="${BREW_PREFIX}/opt/grep/libexec/gnubin"
 
 export PATH=\
 "/usr/local/bin/:"\
+"${HOME}/bin:"\
 "/Applications/Postgres.app/Contents/Versions/latest/bin:"\
 "${GNU_CORE_UTILS}:"\
 "${GNU_CORE_UTILS}:"\
