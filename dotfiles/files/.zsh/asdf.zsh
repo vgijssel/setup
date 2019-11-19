@@ -3,5 +3,6 @@ if [ -e "$HOME/.asdf/asdf.sh" ]; then
   source $HOME/.asdf/completions/asdf.bash
 fi
 
-# NOTE: make sure brew is in front of asdf
+# Make sure brew is in front of asdf, otherwise the Tilt gem will have precendence
+# over the Tilt homebrew package.
 export PATH="/usr/local/bin/:${PATH}"

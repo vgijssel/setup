@@ -21,12 +21,8 @@ GNU_TAR="${BREW_PREFIX}/opt/gnu-tar/libexec/gnubin"
 GNU_WHICH="${BREW_PREFIX}/opt/gnu-which/libexec/gnubin"
 GNU_GREP="${BREW_PREFIX}/opt/grep/libexec/gnubin"
 
-# currently necessary for spacemacs to have the paths in front on /usr/bin
-# so spacemacs does not call the system ruby but asdf ruby
 export PATH=\
-"${HOME}/.asdf/shims:${HOME}/.asdf/bin:"\
 "/usr/local/bin/:"\
-"${HOME}/bin:"\
 "/Applications/Postgres.app/Contents/Versions/latest/bin:"\
 "${GNU_CORE_UTILS}:"\
 "${GNU_CORE_UTILS}:"\
@@ -39,18 +35,18 @@ export PATH=\
 "${PATH}"
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
-export EDITOR="emacsclient -s $HOME/.emacs.d/server/server"
-export VISUAL="emacsclient -s $HOME/.emacs.d/server/server"
+export EDITOR="emacsclient -s ${HOME}/.emacs.d/server/server"
+export VISUAL="emacsclient -s ${HOME}/.emacs.d/server/server"
 export DOCKER_BUILDKIT=1
 export HISTFILE=~/.zsh_history
 export HISTFILESIZE=100000
 export HISTSIZE=100000
-export SSH_AUTH_SOCK="$HOME/.gnupg/S.gpg-agent.ssh"
+
 
 alias ll="ls -lah"
-alias emacsclient="emacsclient -s $HOME/.emacs.d/server/server"
-alias edit="emacsclient -s $HOME/.emacs.d/server/server"
-alias editn="emacsclient -s $HOME/.emacs.d/server/server --no-wait"
+alias emacsclient="emacsclient -s ${HOME}/.emacs.d/server/server"
+alias edit="emacsclient -s ${HOME}/.emacs.d/server/server"
+alias editn="emacsclient -s ${HOME}/.emacs.d/server/server --no-wait"
 
 if [[ ! -d ~/.zplugin ]]; then
     mkdir ~/.zplugin
