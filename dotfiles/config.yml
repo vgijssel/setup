@@ -28,6 +28,8 @@ homebrew_installed_packages:
 
   - dnsmasq
 
+  - packer # creating images for Vagrant
+
   # Emacs
   - emacs-plus
   - aspell # spellchecking
