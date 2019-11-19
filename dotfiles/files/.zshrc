@@ -39,6 +39,11 @@ export LC_ALL=en_US.UTF-8
 export EDITOR="emacsclient -s ${HOME}/.emacs.d/server/server"
 export VISUAL="emacsclient -s ${HOME}/.emacs.d/server/server"
 export DOCKER_BUILDKIT=1
+
+if [ -f "${HOME}/.dockerenv" ]; then
+  source "${HOME}/.dockerenv"
+fi
+
 export HISTFILE=~/.zsh_history
 export HISTFILESIZE=100000
 export HISTSIZE=100000

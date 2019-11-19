@@ -1,0 +1,5 @@
+#!/bin/bash
+
+minikube start
+echo $(minikube docker-env) > ~/.dockerenv
+source ~/.dockerenv
