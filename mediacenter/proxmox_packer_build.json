@@ -3,34 +3,19 @@
         {
             "vboxmanage": [
                 [
-                    "setextradata",
-                    "{{.Name}}",
-                    "VBoxInternal2/EfiGraphicsResolution",
-                    "1024x768"
+                    "setextradata", "{{.Name}}", "VBoxInternal2/EfiGraphicsResolution", "1024x768"
                 ],
                 [
-                    "setextradata",
-                    "{{.Name}}",
-                    "GUI/ScaleFactor",
-                    "2.0"
+                    "setextradata", "{{.Name}}", "GUI/ScaleFactor", "2.0"
                 ],
                 [
-                    "modifyvm",
-                    "{{.Name}}",
-                    "--vram",
-                    "64"
+                    "modifyvm", "{{.Name}}", "--vram", "64"
                 ],
                 [
-                    "modifyvm",
-                    "{{.Name}}",
-                    "--graphicscontroller",
-                    "vmsvga"
+                    "modifyvm", "{{.Name}}", "--graphicscontroller", "vmsvga"
                 ],
                 [
-                    "modifyvm",
-                    "{{.Name}}",
-                    "--firmware",
-                    "efi"
+                    "modifyvm", "{{.Name}}", "--firmware", "efi"
                 ]
             ],
             "boot_command": [
