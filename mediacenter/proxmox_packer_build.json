@@ -6,22 +6,7 @@
                     "setextradata",
                     "{{.Name}}",
                     "VBoxInternal2/EfiGraphicsResolution",
-                    "1440x900"
-                ],
-                [
-                    "setextradata",
-                    "{{.Name}}",
-                    "VBoxInternal2/EfiHorizontalResolution",
-                    "1440"
-                ],
-                [
-                    "setextradata",
-                    "{{.Name}}",
-                    "VBoxInternal2/EfiVerticalResolution",
-                    "900"
-                ],
-                [
-                    "setextradata", "{{.Name}}", "VBoxInternal2/EfiGopMode", "4"
+                    "1024x768"
                 ],
                 [
                     "setextradata",
