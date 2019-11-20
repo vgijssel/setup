@@ -6,7 +6,7 @@
               "auto url=http://{{ .HTTPIP }}:{{.HTTPPort}}/preseed.cfg<return>"
             ],
             "boot_wait": "5s",
-            "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
+            "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
             "ssh_password": "vagrant",
             "ssh_username": "vagrant",
             "ssh_port": 22,
