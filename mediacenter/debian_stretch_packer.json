@@ -30,5 +30,10 @@
             "script": "hello.sh"
         }
     ],
-    "post-processors": ["vagrant"]
+    "post-processors": [
+        {
+            "type": "vagrant",
+            "output": "debian_stretch.box"
+        }
+    ]
 }
