@@ -1,4 +1,7 @@
 {
+    "variables": {
+        "hello": "friend"
+    },
     "builders": [
         {
             "boot_command": [
@@ -21,9 +24,6 @@
             "memory": "4096"
         }
     ],
-    "variables": {
-        "hello": "friend"
-    },
     "provisioners": [
         {
             "type": "shell",
