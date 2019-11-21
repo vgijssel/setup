@@ -19,7 +19,7 @@
             "iso_url": "https://cdimage.debian.org/cdimage/archive/9.11.0/amd64/iso-cd/debian-9.11.0-amd64-netinst.iso",
             "guest_os_type": "Debian_64",
             "keep_registered": true,
-            "http_directory": "./preseed",
+            "http_directory": "./http",
             "type": "virtualbox-iso",
             "memory": "4096"
         }
