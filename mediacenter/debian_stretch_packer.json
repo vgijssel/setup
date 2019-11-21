@@ -33,7 +33,8 @@
     "post-processors": [
         {
             "type": "vagrant",
-            "output": "debian_stretch.box"
+            "output": "debian_stretch.box",
+            "keep_input_artifact": true
         }
     ]
 }
