@@ -27,7 +27,8 @@
     "provisioners": [
         {
             "type": "shell",
-            "script": "hello.sh"
+            "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+            "script": "scripts/setup.sh"
         }
     ],
     "post-processors": [
