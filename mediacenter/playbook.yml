@@ -27,3 +27,9 @@
       regexp: '^(Defaults\s+requiretty)$'
       replace: '# \1'
       validate: "/usr/sbin/visudo -cf %s"
+
+  - name: Set authorized_keys for "vagrant" user
+    authorized_key:
+      user: vagrant
+      state: present
+      key: https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub
