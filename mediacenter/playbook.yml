@@ -28,6 +28,7 @@
       replace: '# \1'
       validate: "/usr/sbin/visudo -cf %s"
 
+  # https://www.vagrantup.com/docs/boxes/base.html#quot-vagrant-quot-user
   - name: Set authorized_keys for "vagrant" user
     authorized_key:
       user: vagrant
