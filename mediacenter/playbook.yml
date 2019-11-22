@@ -1,0 +1,29 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: Set includedir in sudoers
+    lineinfile:
+      dest: /etc/sudoers
+      line: "#includedir /etc/sudoers.d"
+      state: present
+      validate: "/usr/sbin/visudo -cf %s"
+
+  # https://www.vagrantup.com/docs/boxes/base.html#password-less-sudo
+  - name: Add user "vagrant" to sudo
+    lineinfile:
+      dest: /etc/sudoers.d/vagrant
+      line: "vagrant ALL=(ALL) NOPASSWD: ALL"
+      state: present
+      create: true
+      mode: "0440"
+      validate: "/usr/sbin/visudo -cf %s"
+
+  # https://www.vagrantup.com/docs/boxes/base.html#password-less-sudo
+  - name: Disable requiretty in sudoers
+    replace:
+      path: /etc/sudoers
+      regexp: '^(Defaults\s+requiretty)$'
+      replace: '# \1'
+      validate: "/usr/sbin/visudo -cf %s"
