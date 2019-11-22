@@ -10,6 +10,9 @@ homebrew_installed_packages:
 
   - git
   - gpg2
+  # for using SSH password authentication with ansible
+  # It's an url, because homebrew does not allow you to install it as it's considered unsafe
+  - http://git.io/sshpass.rb
   - git-crypt
 
   - mas
