@@ -42,11 +42,14 @@
     apt:
       force_apt_get: true
       pkg:
-        - bzip2
-        - dkms
-        - gcc
-        - make
+        - build-essential
+        - module-assistant
       state: present
+
+  - name: Install kernel headers for VBoxGuestAdditions
+    tags: ['virtualbox']
+    # Make sure we do --non-inter to not wait for user input
+    command: module-assistant prepare --non-inter
 
   - name: Create VboxGuestAdditions directory
     tags: ['virtualbox']
