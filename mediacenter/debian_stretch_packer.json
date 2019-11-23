@@ -37,7 +37,7 @@
     {
       "type": "ansible",
       "playbook_file": "./playbook.yml",
-      "extra_arguments": ["-vvvv"]
+      "extra_arguments": ["-v", "--extra-vars", "ansible_become_pass=vagrant"]
     }
   ],
   "post-processors": [
