@@ -1,49 +1,42 @@
 {
-    "builders": [
-        {
-            "vboxmanage": [
-                [
-                    "setextradata", "{{.Name}}", "VBoxInternal2/EfiGraphicsResolution", "1024x768"
-                ],
-                [
-                    "setextradata", "{{.Name}}", "GUI/ScaleFactor", "2.0"
-                ],
-                [
-                    "modifyvm", "{{.Name}}", "--vram", "64"
-                ],
-                [
-                    "modifyvm", "{{.Name}}", "--graphicscontroller", "vmsvga"
-                ],
-                [
-                    "modifyvm", "{{.Name}}", "--firmware", "efi"
-                ]
-            ],
-            "boot_command": [
-                "<enter><wait>"
-            ],
-            "boot_wait": "10s",
-            "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
-            "ssh_password": "packer",
-            "ssh_username": "packer",
-            "iso_checksum_type": "sha256",
-            "hard_drive_interface": "sata",
-            "iso_interface": "sata",
-            "iso_checksum": "e39315b1fc5c27ab76cbdb69a138507c19dacf1ca46cde02bea48e17791d1d50",
-            "iso_url": "http://download.proxmox.com/iso/proxmox-ve_6.0-1.iso",
-            "guest_os_type": "Debian_64",
-            "http_directory": "./preseed",
-            "hard_drive_interface": "ide",
-            "type": "virtualbox-iso",
-            "memory": "4096"
-        }
-    ],
-    "variables": {
-        "hello": "friend"
-    },
-    "provisioners": [
-        {
-            "type": "shell",
-            "script": "hello.sh"
-        }
-    ]
+  "builders": [
+    {
+      "vboxmanage": [
+        [
+          "setextradata",
+          "{{.Name}}",
+          "VBoxInternal2/EfiGraphicsResolution",
+          "1024x768"
+        ],
+        ["setextradata", "{{.Name}}", "GUI/ScaleFactor", "2.0"],
+        ["modifyvm", "{{.Name}}", "--vram", "64"],
+        ["modifyvm", "{{.Name}}", "--graphicscontroller", "vmsvga"],
+        ["modifyvm", "{{.Name}}", "--firmware", "efi"]
+      ],
+      "boot_command": ["<enter><wait>"],
+      "boot_wait": "10s",
+      "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
+      "ssh_password": "packer",
+      "ssh_username": "packer",
+      "iso_checksum_type": "sha256",
+      "hard_drive_interface": "sata",
+      "iso_interface": "sata",
+      "iso_checksum": "e39315b1fc5c27ab76cbdb69a138507c19dacf1ca46cde02bea48e17791d1d50",
+      "iso_url": "http://download.proxmox.com/iso/proxmox-ve_6.0-1.iso",
+      "guest_os_type": "Debian_64",
+      "http_directory": "./preseed",
+      "hard_drive_interface": "ide",
+      "type": "virtualbox-iso",
+      "memory": "4096"
+    }
+  ],
+  "variables": {
+    "hello": "friend"
+  },
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "hello.sh"
+    }
+  ]
 }
