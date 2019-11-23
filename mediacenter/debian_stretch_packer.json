@@ -13,6 +13,7 @@
       "memory": "{{user `memory`}}",
       "cpus": "{{user `cpus`}}",
       "disk_size": "{{user `disk_size`}}",
+      "guest_additions_mode": "disable",
       "vm_name": "{{user `vm_name`}}",
       "output_directory": "packer_output",
       "boot_command": [

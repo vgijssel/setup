@@ -2,6 +2,8 @@
 - hosts: all
   become: yes
   become_method: sudo
+  vars:
+    virtualbox_version: 5.2.34
   tasks:
   - name: Set includedir in sudoers
     lineinfile:
@@ -34,3 +36,64 @@
       user: vagrant
       state: present
       key: https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub
+
+  - name: Install necessary packages for VBoxGuestAdditions
+    tags: ['virtualbox']
+    apt:
+      force_apt_get: true
+      pkg:
+        - bzip2
+        - dkms
+        - gcc
+        - make
+      state: present
+
+  - name: Create VboxGuestAdditions directory
+    tags: ['virtualbox']
+    file:
+      path: /tmp/vbox
+      state: directory
+
+  - name: Download VBoxGuestAdditions
+    tags: ['virtualbox']
+    get_url:
+      url: http://download.virtualbox.org/virtualbox/{{ virtualbox_version }}/VBoxGuestAdditions_{{ virtualbox_version }}.iso
+      dest: /tmp/vbox/VBoxGuestAdditions.iso
+
+  - name: Mount VBoxGuestAdditions
+    tags: ['virtualbox']
+    mount:
+      path: /tmp/vbox/mount
+      src: /tmp/vbox/VBoxGuestAdditions.iso
+      fstype: iso9660
+      opts: noauto
+      state: mounted
+      # Using a separate fstab file so we're not touching the real one at /etc/fstab
+      # https://github.com/ansible/ansible/issues/48134
+      fstab: /tmp/vbox/fake_fstab
+
+  - name: Install VBoxGuestAdditions
+    tags: ['virtualbox']
+    command: /tmp/vbox/mount/VBoxLinuxAdditions.run
+    # The exitcode is unreliable of the installer, so we're ignoring errors
+    ignore_errors: yes
+
+  - name: Verify VBoxGuestAdditions
+    tags: ['virtualbox']
+    command: /usr/sbin/VBoxService --version
+    changed_when: False
+
+  - name: Unmount VBoxGuestAdditions
+    tags: ['virtualbox']
+    mount:
+      path: /tmp/vbox/mount
+      src: /tmp/vbox/VBoxGuestAdditions.iso
+      fstype: iso9660
+      state: unmounted
+      fstab: /tmp/vbox/fake_fstab
+
+  - name: Cleanup VboxGuestAdditions
+    tags: ['virtualbox']
+    file:
+      path: /tmp/vbox
+      state: absent
