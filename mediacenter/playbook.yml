@@ -74,7 +74,7 @@
 
   - name: Install VBoxGuestAdditions
     tags: ['virtualbox']
-    command: /tmp/vbox/mount/VBoxLinuxAdditions.run
+    command: /tmp/vbox/mount/VBoxLinuxAdditions.run --nox11
     # The exitcode is unreliable of the installer, so we're ignoring errors
     ignore_errors: yes
 
