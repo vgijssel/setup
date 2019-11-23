@@ -84,6 +84,7 @@ homebrew_cask_apps:
   - virtualbox
   - vagrant
   - vagrant-manager
+  - vmware-fusion
   - gpg-suite
   - 1password-cli
   - steam
