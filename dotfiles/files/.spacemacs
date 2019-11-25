@@ -488,7 +488,15 @@ See the header of this file for more information."
   (setenv "PATH" "")
   (setq exec-path ())
   (spacemacs/load-spacemacs-env)
+
+  ;; Make sure the SSH_AUTH_SOCK environment variable is expanded
   (setenv "SSH_AUTH_SOCK" (expand-file-name (getenv "SSH_AUTH_SOCK")))
+
+  ;; Map all the items in exec-path, call expand-file-name and store it back in exec-path
+  (setq exec-path (map 'list (lambda (x) (expand-file-name x)) exec-path))
+
+  ;; Set the PATH environment variable by joining the items from `exec-path` with `:`
+  (setenv "PATH" (mapconcat 'identity exec-path path-separator))
   )
 
 (defun dotspacemacs/user-init ()
