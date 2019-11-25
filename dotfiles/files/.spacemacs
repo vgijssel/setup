@@ -556,6 +556,9 @@ before packages are loaded."
   ;; disable tags generation for node_modules
   (push "node_modules" projectile-globally-ignored-directories)
 
+  ;; Enable prettier-js-mode for JSON files
+  (add-hook 'json-mode-hook 'prettier-js-mode)
+
   ;; Try to speed up projectile search
   (setq projectile-enable-caching t)
 
