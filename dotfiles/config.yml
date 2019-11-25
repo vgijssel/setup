@@ -111,6 +111,7 @@ languages:
       - name: import-js # spacemacs automatic import helper
       - name: typescript-language-server # lsp for javascript
       - name: typescript # typescript
+      - name: speedscope # profiling presentation
     global: 12.13.0
     versions:
       - version: 12.13.0
