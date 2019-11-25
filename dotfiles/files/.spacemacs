@@ -483,6 +483,10 @@ This function defines the environment variables for your Emacs session. By
 default it calls `spacemacs/load-spacemacs-env' which loads the environment
 variables declared in `~/.spacemacs.env' or `~/.spacemacs.d/.spacemacs.env'.
 See the header of this file for more information."
+  ;; Here we're making sure only the .spacemacs.env settings matter
+  ;; by clearing the initial values of PATH and exec-path
+  (setenv "PATH" "")
+  (setq exec-path ())
   (spacemacs/load-spacemacs-env)
   (setenv "SSH_AUTH_SOCK" (expand-file-name (getenv "SSH_AUTH_SOCK")))
   )
