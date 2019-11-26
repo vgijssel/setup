@@ -2,6 +2,7 @@
 homebrew_installed_packages:
   - windmilleng/tap/tilt
   - docker-machine-driver-hyperkit
+  - docker-machine-driver-vmware
   - kubernetes-cli
   - ansible
 
@@ -32,6 +33,7 @@ homebrew_installed_packages:
   - dnsmasq
 
   - packer # creating images for Vagrant
+  - qemu # qemu-img tool to convert disk images from qcow to vmdk
 
   # Emacs
   - emacs-plus
