@@ -39,7 +39,9 @@ RUN --mount=type=cache,target=/var/cache/apt \
 WORKDIR /app
 
 # For some reason python 2 takes a huge amount of time to install
-# due to it compiling everything from source
+# Like `apt-get install python-xdg` hangs for a huge amount of time
+# Looks like it's compiling everything from source, but still it's
+# strange that docker also becomes unresponsive
 ENV DIB_PYTHON_VERSION 3
 
 RUN pip3 install diskimage-builder
