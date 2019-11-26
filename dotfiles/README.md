@@ -37,30 +37,6 @@ ansible-playbook main.yml -i inventory -K
     - Upload the vagrant box to Vagrant cloud
 - Install libnss-mdns into VMs to have local bonjour lookup of VMs
 
-### Image builder machine
-
-- squashfs-tools
-- curl
-- sudo
-- python-pip
-- qemu-utils
-- kpartx
-- build-essential
-- module-assistant
-- debootstrap
-- libguestfs-tools # to navigate the created image
-- git
-
-- simple-init # used to initialize basic networking
-- devuser # creates a user to use for login
-
-- module-assistant prepare --non-inter
-- pip install disk-image-create
-- DIB_DEV_USER_USERNAME=vagrant DIB_DEV_USER_PWDLESS_SUDO=yes DIB_DEV_USER_PASSWORD=vagrant DIB_DEV_USER_SHELL=/bin/bash disk-image-create debian vm devuser simple-init
-- qemu-img convert -f qcow2 -O vmdk image.qcow2 image.vmdk # Convert qcow2 to vmdk (vmware)
-- scp root@192.168.46.129:/root/image.vmdk ./image.vmdk
-
-
 ### General
 
 - use regular homebrew https://docs.ansible.com/ansible/latest/modules/homebrew_module.html instead of ansible galaxy role
