@@ -36,6 +36,12 @@ RUN --mount=type=cache,target=/var/cache/apt \
     libguestfs-tools \
     git
 
+WORKDIR /app
+
+# For some reason python 2 takes a huge amount of time to install
+# due to it compiling everything from source
 ENV DIB_PYTHON_VERSION 3
 
 RUN pip3 install diskimage-builder
+
+COPY scripts scripts
