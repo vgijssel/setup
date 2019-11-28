@@ -85,6 +85,7 @@ homebrew_cask_apps:
   - ngrok
   - virtualbox
   - vagrant
+  - vagrant-vmware-utility
   - vagrant-manager
   - vmware-fusion
   - gpg-suite
