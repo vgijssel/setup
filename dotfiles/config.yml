@@ -92,6 +92,7 @@ homebrew_cask_apps:
   - 1password-cli
   - steam
   - iterm2
+  - rubymine
 
   # TODO: force reload of the installed fonts (by manually installing one)
   # will make these fonts available
@@ -123,6 +124,7 @@ languages:
       - name: typescript-language-server # lsp for javascript
       - name: typescript # typescript
       - name: speedscope # profiling presentation
+      - name: depcheck # tool for checking used dependencies in a JS project
     global: 12.13.0
     versions:
       - version: 12.13.0
