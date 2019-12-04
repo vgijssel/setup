@@ -113,6 +113,7 @@ languages:
       - name: typescript-language-server # lsp for javascript
       - name: typescript # typescript
       - name: speedscope # profiling presentation
+      - name: depcheck # tool for checking used dependencies in a JS project
     global: 12.13.0
     versions:
       - version: 12.13.0
