@@ -1,11 +1,11 @@
 {
-    "cpus": 6,
+    "cpus": 12,
     "dashboard": false,
-    "disable-driver-mounts": true,
+    "disable-driver-mounts": false,
     "disk-size": "50G",
-    "ingress": true,
+    "ingress": false,
     "memory": 16384,
     "profile": "development",
     "registry": true,
-    "vm-driver": "hyperkit"
+    "vm-driver": "vmware"
 }
