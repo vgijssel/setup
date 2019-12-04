@@ -46,6 +46,8 @@ homebrew_installed_packages:
   # For generating and reading graphs using `dot` tool
   - graphviz
 
+  - rbspy # for inspecting and profiling Ruby programs
+
   # GNU tools instead of macos ones
   - coreutils
   - diffutils
