@@ -23,8 +23,10 @@ ansible-playbook main.yml -i inventory -K
 
 ### mediacenter
 
+https://github.com/viralpoetry/packer-bare-metal
+
 - setup no subscription sources proxmox (https://pve.proxmox.com/wiki/Package_Repositories)
-- OpenStack, FAI, foreman, cobbler, razor, MAAS for PXE based unattended installation
+- OpenStack, FOG, FAI, foreman, cobbler, razor, MAAS for PXE based unattended installation
 - all-in-one PXE boot which works with existing DHCP
   https://github.com/danderson/netboot/tree/master/pixiecore
 - V2P (virtual 2 physical)
