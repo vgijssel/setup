@@ -26,20 +26,23 @@ RUN --mount=id=${DISTRO},type=cache,target=/var/cache/apt \
 
 RUN --mount=id=${DISTRO},type=cache,target=/var/cache/apt \
     --mount=id=${DISTRO},type=cache,target=/var/lib/apt \
-    apt-get install -y wget ca-certificates \
+    apt-get install -y curl wget ca-certificates \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" >> /etc/apt/sources.list.d/pgdg.list \
     && wget -O razor-server.deb https://apt.puppetlabs.com/puppetlabs-release-pc1-${DISTRO}.deb \
     && dpkg -i razor-server.deb \
-    && apt-get update && apt-get install -y postgresql-10 razor-server
+    && apt-get update && apt-get install -y postgresql-10 razor-server dnsmasq
 
 ENV PATH "/opt/puppetlabs/bin/:${PATH}"
 
 RUN mkdir -p /repo
-
 RUN wget -O microkernel.tar http://pup.pt/razor-microkernel-latest \
     && tar -xf microkernel.tar -C /repo \
     && rm microkernel.tar
+
+ADD dnsmasq.conf /etc/dnsmasq.conf
+RUN mkdir -p /tftpboot
+RUN wget -O /tftpboot/undionly.kpxe http://boot.ipxe.org/undionly.kpxe
 
 USER postgres
 RUN /etc/init.d/postgresql start \
@@ -52,5 +55,10 @@ USER root
 ADD config.yaml /etc/puppetlabs/razor-server/config.yaml
 ADD start.sh ./
 
+# razor-server
 EXPOSE 8150
+
+# dhcp dnsmasq
+EXPOSE 67
+
 CMD ["./start.sh"]
