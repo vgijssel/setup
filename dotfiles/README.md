@@ -40,6 +40,25 @@ https://github.com/viralpoetry/packer-bare-metal
 - Upload the Vagrant.box file to GitHub releases?
     - Upload the vagrant box to Vagrant cloud
 - Install libnss-mdns into VMs to have local bonjour lookup of VMs
+- http://manpages.ubuntu.com/manpages/bionic/man1/virt-dib.1.html
+
+
+### Make deploy image
+
+Try to discover how an image is created which boots, runs a command and then restarts.
+
+
+- disk-image-create -o /images/deploy/debian debian baremetal
+- pixiecore boot /images/deploy/debian.vmlinuz /images/deploy/debian.initrd
+
+- disk-image-create -o /images/deploy2/debian debian deploy-baremetal
+- pixiecore boot /images/deploy2/debian.vmlinuz /images/deploy/debian.initrd
+
+- export DIB_IMAGE_ROOT_FS_UUID=$(uuidgen -r)
+- disk-image-create -o /images/deploy3/debian debian baremetal iso
+- pixiecore boot /images/deploy3/debian.vmlinuz /images/deploy3/debian.initrd
+
+### Make user image
 
 ### General
 
