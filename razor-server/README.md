@@ -1,6 +1,7 @@
 ```
+eval $(minikube docker-env)
 minikube mount $PWD:$PWD
-docker run --rm -it -v $PWD/tasks:/tasks --name razor-server --net=host razor-server /bin/bash
+docker run --rm -it -v $PWD/tasks:/tasks -v $PWD/etc/dnsmasq.conf:/etc/dnsmasq.conf -v $PWD/tftpboot/bootstrap.ipxe.0:/tftpboot/bootstrap.ipxe.0 --name razor-server --net=host razor-server
 ```
 
 TODO
