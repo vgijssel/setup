@@ -5,7 +5,7 @@ set +x
 
 /etc/init.d/postgresql start
 
-dnsmasq
+# dnsmasq
 
 razor-admin -e production migrate-database
 
