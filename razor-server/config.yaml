@@ -83,7 +83,7 @@ all:
   checkin_interval: 15
   # Colon-separated list of paths; each entry must be a directory in which
   # we should look for tasks
-  task_path: tasks
+  task_path: tasks:/tasks
   repo_store_root: /repo
   # The *broker_path* is a colon separated list of directories containing
   # broker types

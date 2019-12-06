@@ -1,0 +1,11 @@
+{
+  "name": "test1",
+  "repo": "test1",
+  "task": "noop",
+  "broker": "noop",
+  "enabled": true,
+  "hostname": "host${id}.example.com",
+  "root_password": "secret",
+  "max_count": 20,
+  "tags": ["small"]
+}

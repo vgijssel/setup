@@ -1,0 +1,8 @@
+# https://github.com/puppetlabs/razor-server/wiki/Tasks
+os_version: testOS
+description: My test task for testOS
+boot_sequence:
+  default: do_it
+  # boot_local is stored in the common folder at
+  # /opt/puppetlabs/server/apps/razor-server/share/razor-server/tasks/common
+  # default: boot_local
