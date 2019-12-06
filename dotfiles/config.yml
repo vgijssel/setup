@@ -143,6 +143,7 @@ languages:
       - name: solargraph
       - name: ruby-debug-ide
       - name: debase
+      - name: razor-client # for communication with the razor-server
     global: 2.6.5
     versions:
       - version: 2.6.5
