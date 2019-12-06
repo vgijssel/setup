@@ -5,6 +5,8 @@ set +x
 
 /etc/init.d/postgresql start
 
+dnsmasq
+
 razor-admin -e production migrate-database
 
 source /opt/puppetlabs/server/apps/razor-server/share/razor-server/razor-server.env

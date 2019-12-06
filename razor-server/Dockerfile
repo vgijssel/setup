@@ -40,7 +40,6 @@ RUN wget -O microkernel.tar http://pup.pt/razor-microkernel-latest \
     && tar -xf microkernel.tar -C /repo \
     && rm microkernel.tar
 
-ADD dnsmasq.conf /etc/dnsmasq.conf
 RUN mkdir -p /tftpboot
 RUN wget -O /tftpboot/undionly.kpxe http://boot.ipxe.org/undionly.kpxe
 
@@ -54,6 +53,7 @@ USER root
 
 ADD config.yaml /etc/puppetlabs/razor-server/config.yaml
 ADD start.sh ./
+ADD dnsmasq.conf /etc/dnsmasq.conf
 
 # razor-server
 EXPOSE 8150
