@@ -1,11 +1,10 @@
 {
-  "name": "test1",
-  "repo": "test1",
-  "task": "noop",
-  "broker": "noop",
+  "name": "my_policy",
+  "repo": "test",
   "enabled": true,
   "hostname": "host${id}.example.com",
-  "root_password": "secret",
   "max_count": 20,
+  "root_password": "root_password",
+  "broker": "noop",
   "tags": ["small"]
 }
