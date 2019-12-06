@@ -54,7 +54,7 @@ USER root
 
 ADD config.yaml /etc/puppetlabs/razor-server/config.yaml
 ADD start.sh ./
-ADD dnsmasq.conf /etc/dnsmasq.conf
+ADD etc /etc
 ADD tasks /tasks
 ADD tftpboot /tftpboot
 
