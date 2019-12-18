@@ -8,11 +8,6 @@ docker build --tag image-builder .
 docker run --rm -it --privileged image-builder /bin/bash
 ```
 
-
-Failing command:
-```
-sudo sh -c 'http_proxy= no_proxy= debootstrap --verbose         --variant=minbase         --components=main         --arch=amd64                           stable         /tmp/dib_build.uR63orHB/mnt         http://deb.debian.org/debian         '
-```
   
 export DIB_DEV_USER_AUTHORIZED_KEYS=/keys
 ```
@@ -21,8 +16,7 @@ export DIB_DEV_USER_SHELL=/bin/bash
 export DIB_DEV_USER_PWDLESS_SUDO=yes
 export DIB_DEV_USER_PASSWORD=devuser
 export DIB_DEV_USER_USERNAME=devuser
-export DIB_PYTHON_VERSION=3
-disk-image-create debian vm
+disk-image-create debian debian-systemd dhcp-all-interfaces vm devuser
 ```  
 
  

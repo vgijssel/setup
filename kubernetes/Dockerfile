@@ -34,7 +34,7 @@ RUN --mount=id=${DISTRO},type=cache,target=/var/cache/apt \
     curl \
     wget \
     sudo \
-    python3-pip \
+    python-pip \
     qemu-utils \
     kpartx \
     build-essential \
@@ -47,12 +47,4 @@ RUN --mount=id=${DISTRO},type=cache,target=/var/cache/apt \
     isolinux \
     syslinux-common
 
-# Install kernel headers
-RUN module-assistant prepare --non-inter
-
-# For some reason python 2 takes a huge amount of time to install
-# Like `apt-get install python-xdg` hangs for a huge amount of time
-# Looks like it's compiling everything from source, but still it's
-# strange that docker also becomes unresponsive
-ENV DIB_PYTHON_VERSION 3
-RUN pip3 install diskimage-builder
+RUN pip install diskimage-builder
