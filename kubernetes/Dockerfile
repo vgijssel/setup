@@ -47,4 +47,6 @@ RUN --mount=id=${DISTRO},type=cache,target=/var/cache/apt \
     isolinux \
     syslinux-common
 
+RUN mkdir -p /elements /images
+ENV ELEMENTS_PATH '/elements'
 RUN pip install diskimage-builder

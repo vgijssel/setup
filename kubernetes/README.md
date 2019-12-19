@@ -5,7 +5,7 @@ docker build --tag image-builder:bionic .
 ```
   
 ```
-docker run --rm -it --privileged -v $PWD/images:/app image-builder:bionic /bin/bash
+docker run --rm -it --privileged -v $PWD/images:/app -v $PWD/elements:/elements image-builder:bionic /bin/bash
 ```
 
 Useful elements for debugging
@@ -21,7 +21,7 @@ export DIB_DEV_USER_PWDLESS_SUDO=yes
 export DIB_DEV_USER_PASSWORD=devuser
 export DIB_DEV_USER_USERNAME=devuser
 
-disk-image-create -o test_debian_grow_root debian dhcp-all-interfaces vm devuser debian-systemd growroot
+disk-image-create -o test_debian_kubernetes debian dhcp-all-interfaces vm devuser debian-systemd growroot kubernetes
 ```  
 
 
