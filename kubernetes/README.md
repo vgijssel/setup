@@ -14,24 +14,30 @@ journal-to-console
 devuser
 ```
 
-TODO: debian stretch needs the buster cloud-init package, otherwise setting password does not work:
-https://forum.proxmox.com/threads/install-latest-cloudinit-version-on-debian-stretch.46302/#post-246644
-
 ```
 disk-image-create -o stretch_1 debian vm debian-systemd growroot kubernetes cloud-init
 
+export break=after-error
 export DIB_RELEASE=stretch
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o stretch_1 debian vm cloud-init
 
+export break=after-error
+export DIB_RELEASE=stretch
+export DIB_APT_MINIMAL_CREATE_INTERFACES=0
+disk-image-create -o stretch_2 debian vm cloud-init debian-networking-fix cloud-init-fix
+
+export break=after-error
 export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o buster_1 debian vm cloud-init 
 
+export break=after-error
 export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o buster_2 debian vm cloud-init debian-networking-fix
 
+export break=after-error
 export DIB_RELEASE=bionic
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o bionic_1 ubuntu vm cloud-init
