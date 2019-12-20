@@ -14,16 +14,28 @@ journal-to-console
 devuser
 ```
 
+TODO: debian stretch needs the buster cloud-init package, otherwise setting password does not work:
+https://forum.proxmox.com/threads/install-latest-cloudinit-version-on-debian-stretch.46302/#post-246644
+
 ```
+disk-image-create -o stretch_1 debian vm debian-systemd growroot kubernetes cloud-init
+
+export DIB_RELEASE=stretch
+export DIB_APT_MINIMAL_CREATE_INTERFACES=0
+disk-image-create -o stretch_1 debian vm cloud-init
+
 export DIB_RELEASE=buster
-export DIB_DEV_USER_SHELL=/bin/bash
-export DIB_DEV_USER_PWDLESS_SUDO=yes
-export DIB_DEV_USER_PASSWORD=devuser
-export DIB_DEV_USER_USERNAME=devuser
+export DIB_APT_MINIMAL_CREATE_INTERFACES=0
+disk-image-create -o buster_1 debian vm cloud-init 
 
-disk-image-create -o test_debian_kubernetes debian dhcp-all-interfaces vm devuser debian-systemd growroot kubernetes
-```  
+export DIB_RELEASE=buster
+export DIB_APT_MINIMAL_CREATE_INTERFACES=0
+disk-image-create -o buster_2 debian vm cloud-init debian-networking-fix
 
+export DIB_RELEASE=bionic
+export DIB_APT_MINIMAL_CREATE_INTERFACES=0
+disk-image-create -o bionic_1 ubuntu vm cloud-init
+```
 
 - Boot image with vmware
 
@@ -36,6 +48,7 @@ qemu-img convert -f qcow2 -O vmdk image.qcow2 image.vmdk
   - HAXM is enabled on GitHub Actions macos nodes
     which can be used to boot vms
 
+TODO: change this to match kvm (vga, serial, etc)
 ```
  qemu-system-x86_64 \
   -m 2048 \
@@ -63,7 +76,10 @@ qm rescan
 
 - Create new VM in proxmox
   - 32 GB disk
-- Replace qcow2 disk with our created disk
+  - Serial Port
+  - CloudInit Drive
+  - VGA to serial0
+  - Replace qcow2 disk with our created disk
 
 ```
 mv -v /data/images/image.qcow2 /data/images/images/100/vm-100-disk-0.qcow2
