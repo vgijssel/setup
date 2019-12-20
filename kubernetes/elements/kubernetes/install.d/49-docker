@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ ${DIB_DEBUG_TRACE:-1} -gt 0 ]; then
+    set -x
+fi
+set -eu
+set -o pipefail
+
+echo "INSTALLING DOCKER"
+
+# https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository
+curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+
+cat <<EOF | tee /etc/apt/sources.list.d/docker.list
+deb [arch=amd64] https://download.docker.com/linux/debian $DIB_RELEASE stable
+EOF
+
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io

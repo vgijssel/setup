@@ -1,3 +1,5 @@
 curl:
 apt-transport-https:
 ca-certificates:
+gnupg2:
+software-properties-common:
