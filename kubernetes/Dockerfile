@@ -38,8 +38,8 @@ RUN --mount=id=${DISTRO},type=cache,target=/var/cache/apt \
     qemu-utils \
     kpartx \
     build-essential \
-    module-assistant \
     debian-keyring \
+    linux-virtual \
     libguestfs-tools \
     debootstrap \
     shim-signed \

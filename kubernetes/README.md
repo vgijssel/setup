@@ -14,6 +14,17 @@ journal-to-console
 devuser
 ```
 
+Checking contents of /tmp folder of created qcow image:
+
+```
+guestfish
+add stretch_2.qcow2
+run
+list-filesystems
+mount /dev/sda1 /
+ls /tmp
+```
+
 ```
 disk-image-create -o stretch_1 debian vm debian-systemd growroot kubernetes cloud-init
 
