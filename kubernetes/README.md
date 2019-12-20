@@ -39,6 +39,11 @@ export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o stretch_2 debian vm cloud-init debian-networking-fix cloud-init-fix
 
 export break=after-error
+export DIB_RELEASE=stretch
+export DIB_APT_MINIMAL_CREATE_INTERFACES=0
+disk-image-create -o stretch_3 debian vm cloud-init debian-networking-fix cloud-init-fix kubernetes
+
+export break=after-error
 export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o buster_1 debian vm cloud-init 

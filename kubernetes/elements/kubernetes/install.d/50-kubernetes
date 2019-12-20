@@ -16,3 +16,16 @@ EOF
 apt-get update
 apt-get install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
+
+if [ "$DISTRO_NAME" == "debian" ]; then
+  if [ "$DIB_RELEASE" == "buster" ]; then
+    echo "ENSURING NOT USING NFTABLES BACKEND"
+
+    # Ensure iptables tooling does not use nftables backend
+    # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#ensure-iptables-tooling-does-not-use-the-nftables-backend
+    update-alternatives --set iptables /usr/sbin/iptables-legacy
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+    update-alternatives --set arptables /usr/sbin/arptables-legacy
+    update-alternatives --set ebtables /usr/sbin/ebtables-legacy
+  fi
+fi

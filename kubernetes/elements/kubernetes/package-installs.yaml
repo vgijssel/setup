@@ -1,0 +1,3 @@
+curl:
+apt-transport-https:
+ca-certificates:
