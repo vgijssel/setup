@@ -15,6 +15,7 @@ mkisofs \
   -joliet \
   -rock {cloud-init/user-data,cloud-init/meta-data}
 
+# `-nographic` can be used for the CI
 qemu-system-x86_64 \
   -m 2048 \
   -serial stdio \
