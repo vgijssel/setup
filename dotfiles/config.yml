@@ -34,6 +34,7 @@ homebrew_installed_packages:
 
   - packer # creating images for Vagrant
   - qemu # qemu-img tool to convert disk images from qcow to vmdk
+  - cdrtools # contains mkisofs for making cloud-init images
 
   # Emacs
   - emacs-plus
@@ -146,6 +147,7 @@ languages:
       - name: ruby-debug-ide
       - name: debase
       - name: razor-client # for communication with the razor-server
+      - name: mkpasswd # for generating password hashes for cloud-init
     global: 2.6.5
     versions:
       - version: 2.6.5
