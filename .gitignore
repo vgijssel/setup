@@ -3,3 +3,4 @@ packer_cache
 packer_output
 vagrant_boxes
 images
+cloud-init.iso
