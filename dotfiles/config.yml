@@ -88,6 +88,8 @@ homebrew_cask_apps:
   - vagrant-vmware-utility
   - vagrant-manager
   - vmware-fusion
+  - vnc-viewer # to show qemu running hosts
+  - intel-haxm # qemu accelerator which also works on GitHub Actons
   - gpg-suite
   - 1password-cli
   - steam
