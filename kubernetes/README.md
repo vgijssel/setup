@@ -65,24 +65,22 @@ disk-image-create -o bionic_1 ubuntu vm cloud-init
 qemu-img convert -f qcow2 -O vmdk image.qcow2 image.vmdk
 ```
 
-- Boot image with qemu
-  - run tests to see if the image is OK
-  - HAXM is enabled on GitHub Actions macos nodes
-    which can be used to boot vms
+- Create `cloud-init` config
 
-TODO: change this to match kvm (vga, serial, etc)
 ```
- qemu-system-x86_64 \
-  -m 2048 \
-  -vga virtio \
-  -show-cursor \
-  -usb \
-  -device usb-tablet \
-  -enable-kvm \
-  -drive file=vm-100-disk-0.qcow2,if=virtio \
-  -accel hvf \
-  -cpu host
+mkisofs -output cloud-init.iso -volid cidata -joliet -rock {cloud-init/user-data,cloud-init/meta-data}
 ```
+
+- Boot image with qemu `-nographic` can also be used instead of `-serial stdio`
+
+```
+./boot_qemu.sh images/stretch_3.qcow2
+```
+
+- Run tests to see if the image is OK
+  - root partition is grown to 32G
+  - kubelet service
+  - kubectl, kubeadm, kubelet same versions
 
 - Sync image to /var/lib/vz/template in proxmox
 

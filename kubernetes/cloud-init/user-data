@@ -1,0 +1,16 @@
+#cloud-config
+# openssl passwd -1 -salt SaltSalt debian
+# mkpasswd --method=sha-512 --rounds=4096 debian
+
+users:
+  - name: debian1
+    lock_passwd: false
+    passwd: $6$rounds=4096$c.246lcMbCKnFOi8$rezCjvhgMhUzvmXFBhFRxDoYhqzfFP8N387Rb31xJObH5DszXLmiIRGedf8.H80PAJo82NPtv7aWfMpN9Rh9V.
+
+  - name: debian2
+    lock_passwd: false
+    passwd: $1$SaltSalt$Qvt.8U8RAzf/1DoDIIUx01
+
+  - name: debian3
+    lock_passwd: false
+    plain_text_passwd: debian
