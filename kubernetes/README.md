@@ -59,6 +59,7 @@ https://bugs.launchpad.net/cloud-images/+bug/1573095
 Immediate fix is to add a serial console to the VM
 - Create new VM in proxmox
   - 32 GB disk
+  - 2 CPUs
   - Serial Port
   - CloudInit Drive
   - VGA to serial0
