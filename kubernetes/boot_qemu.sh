@@ -8,6 +8,9 @@ echo "Booting image: '$@'"
 # Make sure we copy the harddisk, to not change the existing one
 cp -v "$@" images/testing.qcow2
 
+# Resize the image
+qemu-img resize images/testing.qcow2 32G
+
 # Generate cloud-init image
 mkisofs \
   -output cloud-init.iso \
