@@ -2,20 +2,6 @@ ls -la /dev/disk/by-id
 lsblk
 zpool create -o ashift=12 new_data disk1 disk2 disk3
 
-zfs get compression
-zfs set compression=lz4 new_data
-
-zfs create new_data/docs
-zfs set dedup=on new_data/docs
-
-zfs create new_data/proxmox
-zfs set dedup=on new_data/proxmox
-
-zfs create new_data/media
-zfs set dedup=on new_data/media
-
-zfs create new_data/downloads
-zfs set dedup=on new_data/downloads
 
 apt-get install -y pv
 https://unix.stackexchange.com/questions/263677/how-to-one-way-mirror-an-entire-zfs-pool-to-another-zfs-pool
@@ -41,10 +27,40 @@ zfs destroy new_data/migrate
 - Destroy the migrate snapshot of the zpool dataset
 zfs destroy new_data@migrate
 
+- zfs unmount old pool
+zfs unmount tank0
+
+- Update the old pool mountpoint
+zfs set mountpoint=/old_data tank0
+
+- Update the new pool mountpoint
+zfs set mountpoint=/data new_data
+
 - Mount the filesystem
 zfs mount new_data
 
-zfs snapshot -r new_data/downloads@test
-zfs send -vR new_data/downloads@test | zfs receive -Fuv new_data
-zfs list -t snapshot
-zfs destroy new_data/downloads@test
+
+zfs get compression
+zfs set compression=lz4 new_data
+zfs snapshot -r new_data@initial
+
+mv -v /data/docs /data/docs2
+zfs create new_data/docs
+zfs set dedup=on new_data/docs
+screen
+rsync --info=progress2 -avz /data/docs2/ /data/docs
+
+mv -v /data/media /data/media2
+zfs create new_data/media
+zfs set dedup=on new_data/media
+screen
+rsync --info=progress2 -avz /data/media2/ /data/media
+
+zfs create new_data/proxmox
+zfs set dedup=on new_data/proxmox
+
+zfs create new_data/media
+zfs set dedup=on new_data/media
+
+zfs create new_data/downloads
+zfs set dedup=on new_data/downloads
