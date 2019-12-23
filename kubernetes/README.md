@@ -58,6 +58,7 @@ qemu-img resize /data/images/images/100/vm-100-disk-0.qcow2 32G
   - root partition is grown to 32G
   - kubelet service
   - kubectl, kubeadm, kubelet same versions
+  - docker daemon uses systemd as cgroup driver
 
 NOTE: Proxmox KVM will hang at 100% CPU when there is no serial port configured for a diskimage-create image.
 https://bugs.launchpad.net/cloud-images/+bug/1573095
