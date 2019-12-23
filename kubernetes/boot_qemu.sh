@@ -18,10 +18,14 @@ mkisofs \
   -joliet \
   -rock {cloud-init/user-data,cloud-init/meta-data}
 
+# -serial stdio \
+# -nographic \
+
 qemu-system-x86_64 \
   -m 2048 \
   -smp 2 \
   -nographic \
+  -nic user \
   -drive file=images/testing.qcow2,if=virtio \
   -drive file=cloud-init.iso,if=virtio \
   -accel hax
