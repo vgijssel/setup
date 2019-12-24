@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ ${DIB_DEBUG_TRACE:-1} -gt 0 ]; then
+    set -x
+fi
+set -eu
+set -o pipefail
+
+# https://www.linode.com/docs/networking/nfs/how-to-mount-nfs-shares-on-debian-9/#nfs-client-setup
+echo "SETTING UP NFS"
+
+mkdir -p /data
+
+# Can be manually mounted with:
+# mount -t nfs4 mediacenter:/data /data
+
+echo "mediacenter:/data /data nfs4 rw,async,hard,intr 0 0" >> /etc/fstab

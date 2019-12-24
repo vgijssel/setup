@@ -34,6 +34,11 @@ export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o stretch_5 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest
 
 export break=after-error
+export DIB_RELEASE=stretch
+export DIB_APT_MINIMAL_CREATE_INTERFACES=0
+disk-image-create -o stretch_6 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs
+
+export break=after-error
 export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o buster_1 debian vm cloud-init 
@@ -64,6 +69,7 @@ qemu-img resize /data/images/images/100/vm-100-disk-0.qcow2 32G
   - kubelet service
   - kubectl, kubeadm, kubelet same versions
   - docker daemon uses systemd as cgroup driver
+  - nfs works
 
 NOTE: Proxmox KVM will hang at 100% CPU when there is no serial port configured for a diskimage-create image.
 https://bugs.launchpad.net/cloud-images/+bug/1573095
