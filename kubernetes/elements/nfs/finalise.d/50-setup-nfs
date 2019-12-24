@@ -7,7 +7,7 @@ set -eu
 set -o pipefail
 
 # https://www.linode.com/docs/networking/nfs/how-to-mount-nfs-shares-on-debian-9/#nfs-client-setup
-echo "SETTING UP NFS"
+echo "SETTING UP NFS FSTAB"
 
 mkdir -p /data
 
