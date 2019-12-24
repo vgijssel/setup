@@ -90,7 +90,34 @@ cp -v /data/images/image.qcow2 /data/images/images/100/vm-100-disk-0.qcow2
 qm rescan
 ```
 
-- Boot VM
+- Boot VMs
+
+|hostname|ip         |gateway    |dns         |
+|--------|-----------|-----------|------------|
+|master  |192.168.1.3|192.168.1.1|192.168.1.1 |
+|worker1 |192.168.1.4|192.168.1.1|192.168.1.1 |
+|worker2 |192.168.1.5|192.168.1.1|192.168.1.1 |
+|worker3 |192.168.1.6|192.168.1.1|192.168.1.1 |
+
+- Initialize kubeadm (with flannel https://github.com/coreos/flannel/)
+
+```
+sudo su
+kubeadm config images pull
+kubeadm init --pod-network-cidr=10.244.0.0/16
+exit
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+```
+
+- Join workers
+
+```
+sudo su
+kubeadm join 192.168.1.3:6443 --token xxx --discovery-token-ca-cert-hash xxx
+```
 
 ---
 
