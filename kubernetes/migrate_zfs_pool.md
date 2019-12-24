@@ -64,3 +64,20 @@ zfs set dedup=on new_data/media
 
 zfs create new_data/downloads
 zfs set dedup=on new_data/downloads
+
+## Performance tuning
+apt-get install bonnie++
+https://calomel.org/zfs_raid_speed_capacity.html
+
+bonnie++ -u root -r 1024 -s 16384 -d /storage -f -b -n 1 -c 4
+
+zfs set sync=disabled new_data
+zfs set dedup=off new_data/media
+
+zpool add new_data cache ata-SAMSUNG_SSD_830_Series_S0XXNYAC300558
+zpool remove new_data cache ata-SAMSUNG_SSD_830_Series_S0XXNYAC300558
+zpool add new_data log ata-SAMSUNG_SSD_830_Series_S0XXNYAC300558
+zpool remove new_data ata-SAMSUNG_SSD_830_Series_S0XXNYAC300558
+
+arc_summary
+zpool iostat
