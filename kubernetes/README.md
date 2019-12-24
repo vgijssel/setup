@@ -29,6 +29,11 @@ export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o stretch_4 debian vm cloud-init debian-networking-fix cloud-init-fix kubernetes growroot
 
 export break=after-error
+export DIB_RELEASE=stretch
+export DIB_APT_MINIMAL_CREATE_INTERFACES=0
+disk-image-create -o stretch_5 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest
+
+export break=after-error
 export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 disk-image-create -o buster_1 debian vm cloud-init 
@@ -70,6 +75,7 @@ Immediate fix is to add a serial console to the VM
   - CloudInit Drive
   - VGA to serial0
   - Replace qcow2 disk with our created disk
+  - Enable qemu-agent
 
 - Sync image to proxmox
 ```
@@ -102,4 +108,3 @@ ls /tmp
 ```
 qemu-img convert -f qcow2 -O vmdk image.qcow2 image.vmdk
 ```
-
