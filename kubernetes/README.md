@@ -6,52 +6,21 @@ docker run --rm -it --privileged -v $PWD/images:/app -v $PWD/elements:/elements 
 
 - Create the image disk
 ```
-disk-image-create -o stretch_1 debian vm debian-systemd growroot kubernetes cloud-init
 
 export break=after-error
 export DIB_RELEASE=stretch
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o stretch_1 debian vm cloud-init
-
-export break=after-error
-export DIB_RELEASE=stretch
-export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o stretch_2 debian vm cloud-init debian-networking-fix cloud-init-fix
-
-export break=after-error
-export DIB_RELEASE=stretch
-export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o stretch_3 debian vm cloud-init debian-networking-fix cloud-init-fix kubernetes
-
-export break=after-error
-export DIB_RELEASE=stretch
-export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o stretch_4 debian vm cloud-init debian-networking-fix cloud-init-fix kubernetes growroot
-
-export break=after-error
-export DIB_RELEASE=stretch
-export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o stretch_5 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest
-
-export break=after-error
-export DIB_RELEASE=stretch
-export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o stretch_6 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs
+disk-image-create -o stretch_1 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs
 
 export break=after-error
 export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o buster_1 debian vm cloud-init 
-
-export break=after-error
-export DIB_RELEASE=buster
-export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o buster_2 debian vm cloud-init debian-networking-fix
+disk-image-create -o buster debian vm cloud-init debian-networking-fix
 
 export break=after-error
 export DIB_RELEASE=bionic
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o bionic_1 ubuntu vm cloud-init
+disk-image-create -o bionic ubuntu vm cloud-init
 ```
 
 - Resize qcow2 disk to 32 GB
@@ -70,6 +39,7 @@ qemu-img resize /data/images/images/100/vm-100-disk-0.qcow2 32G
   - kubectl, kubeadm, kubelet same versions
   - docker daemon uses systemd as cgroup driver
   - nfs works
+  - check internet connectivity (with static ip)
 
 NOTE: Proxmox KVM will hang at 100% CPU when there is no serial port configured for a diskimage-create image.
 https://bugs.launchpad.net/cloud-images/+bug/1573095
@@ -109,7 +79,8 @@ exit
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
 ```
 
 - Join workers
