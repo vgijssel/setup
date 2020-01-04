@@ -10,7 +10,7 @@ docker run --rm -it --privileged -v $PWD/images:/app -v $PWD/elements:/elements 
 export break=after-error
 export DIB_RELEASE=stretch
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o stretch_1 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf
+disk-image-create -o stretch_1 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
 
 export break=after-error
 export DIB_RELEASE=buster
@@ -34,12 +34,7 @@ qemu-img resize /data/images/images/100/vm-100-disk-0.qcow2 32G
 ```
 
 - Run tests to see if the image is OK
-  - root partition is grown to 32G
-  - kubelet service
-  - kubectl, kubeadm, kubelet same versions
-  - docker daemon uses systemd as cgroup driver
   - nfs works
-  - check internet connectivity (with static ip)
 
 NOTE: Proxmox KVM will hang at 100% CPU when there is no serial port configured for a diskimage-create image.
 https://bugs.launchpad.net/cloud-images/+bug/1573095
