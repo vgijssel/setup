@@ -10,7 +10,7 @@ docker run --rm -it --privileged -v $PWD/images:/app -v $PWD/elements:/elements 
 export break=after-error
 export DIB_RELEASE=stretch
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o stretch_1 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs
+disk-image-create -o stretch_1 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf
 
 export break=after-error
 export DIB_RELEASE=buster
