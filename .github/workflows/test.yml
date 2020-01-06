@@ -12,6 +12,11 @@ jobs:
       run: |
         qemu-img --help
 
+    - name: Test brew
+      if: always()
+      run: |
+        brew info
+
     - name: Test docker
       if: always()
       run: |
