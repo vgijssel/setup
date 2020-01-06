@@ -9,9 +9,22 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
 
-    - name: Test action
+    # - name: Test action
+    #   if: always()
+    #   uses: ./.github/actions/create_disk_image.yml
+
+    - name: Build
       if: always()
-      uses: ./.github/actions/create_disk_image.yml
+      run: |
+        docker build
+        --tag image-builder:bionic
+        -f kubernetes/Dockerfile
+        kubernetes
+
+    - name: Run
+      if: always()
+      run: |
+        docker run --rm -it --privileged -v $PWD/kubernetes/images:/app -v $PWD/kubernetes/elements:/elements image-builder:bionic
 
     # - name: Test kvm
     #   if: always()
