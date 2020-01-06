@@ -14,6 +14,8 @@ jobs:
     #   uses: ./.github/actions/create_disk_image.yml
 
     - name: Build
+      env:
+        DOCKER_BUILDKIT: 1
       if: always()
       run: |
         docker build \
@@ -22,6 +24,8 @@ jobs:
           kubernetes
 
     - name: Run
+      env:
+        DOCKER_BUILDKIT: 1
       if: always()
       run: |
         docker run \
@@ -34,6 +38,8 @@ jobs:
           env
 
     - name: Run
+      env:
+        DOCKER_BUILDKIT: 1
       if: always()
       run: |
         docker run \
