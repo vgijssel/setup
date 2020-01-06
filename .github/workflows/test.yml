@@ -2,22 +2,28 @@ name: Test
 on: [push]
 
 jobs:
-  test0:
-    name: Test Linux
+  image_builder:
+    name: Build image
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
+      uses: actions/checkout@v1
 
-    - name: Test kvm
+    - name: Test action
       if: always()
-      run: kvm-ok
+      uses: ./
 
-    - name: Test CPU info
-      if: always()
-      run: egrep -c '(vmx|svm)' /proc/cpuinfo
+    # - name: Test kvm
+    #   if: always()
+    #   run: kvm-ok
 
-    - name: Test CPU info
-      if: always()
-      run: cat /sys/hypervisor/properties/capabilities
+    # - name: Test CPU info
+    #   if: always()
+    #   run: egrep -c '(vmx|svm)' /proc/cpuinfo
+
+    # - name: Test CPU info
+    #   if: always()
+    #   run: cat /sys/hypervisor/properties/capabilities
 
   test1:
     name: Test 1
