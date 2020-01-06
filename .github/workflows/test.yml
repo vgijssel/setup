@@ -11,7 +11,7 @@ jobs:
 
     - name: Test action
       if: always()
-      uses: .github/actions/create_disk_image.yml
+      uses: ./.github/actions/create_disk_image.yml
 
     # - name: Test kvm
     #   if: always()
