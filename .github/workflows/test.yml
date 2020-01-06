@@ -1,0 +1,22 @@
+name: Test
+on: [push]
+
+jobs:
+  test1:
+    name: Test 1
+    runs-on: macos-latest
+    steps:
+
+    - name: Test qemu
+      if: always()
+      run: |
+        qemu-img --help
+
+    - name: Test docker
+      if: always()
+      run: |
+        docker info
+
+    - uses: actions/checkout@v1
+      with:
+        ref: ${{ matrix.ref }}
