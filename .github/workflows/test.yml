@@ -16,15 +16,34 @@ jobs:
     - name: Build
       if: always()
       run: |
-        docker build
-        --tag image-builder:bionic
-        -f kubernetes/Dockerfile
-        kubernetes
+        docker build \
+          --tag image-builder:bionic \
+          --file kubernetes/Dockerfile \
+          kubernetes
 
     - name: Run
       if: always()
       run: |
-        docker run --rm -it --privileged -v $PWD/kubernetes/images:/app -v $PWD/kubernetes/elements:/elements image-builder:bionic
+        docker run \
+          --rm -it --privileged \
+          --volume $PWD/kubernetes/images:/app \
+          --volume $PWD/kubernetes/elements:/elements \
+          --env DIB_RELEASE=stretch \
+          --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
+          image-builder:bionic \
+          env
+
+    - name: Run
+      if: always()
+      run: |
+        docker run \
+          --rm -it --privileged \
+          --volume $PWD/kubernetes/images:/app \
+          --volume $PWD/kubernetes/elements:/elements \
+          --env DIB_RELEASE=stretch \
+          --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
+          image-builder:bionic \
+          disk-image-create -o stretch_1 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
 
     # - name: Test kvm
     #   if: always()
