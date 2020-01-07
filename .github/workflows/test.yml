@@ -22,10 +22,8 @@ jobs:
         env
 
     - name: Login
-      env:
-        TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        docker login -u mvgijssel -p $TOKEN docker.pkg.github.com
+        docker login -u mvgijssel -p ${{ secrets.GITHUB_TOKEN }} docker.pkg.github.com
 
     # - name: Test action
     #   if: always()
