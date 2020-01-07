@@ -9,6 +9,24 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
 
+    - env:
+        GITHUB: ${{ toJson(github) }}
+        ENV: ${{ toJson(env) }}
+        JOB: ${{ toJson(job) }}
+        STEPS: ${{ toJson(steps) }}
+        RUNNER: ${{ toJson(runner) }}
+        SECRETS: ${{ toJson(secrets) }}
+        STRATEGY: ${{ toJson(strategy) }}
+        MATRIX: ${{ toJson(matrix) }}
+      run: |
+        env
+
+    - name: Login
+      env:
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        docker login -u mvgijssel -p $TOKEN docker.pkg.github.com
+
     # - name: Test action
     #   if: always()
     #   uses: ./.github/actions/create_disk_image.yml
@@ -43,7 +61,8 @@ jobs:
       if: always()
       run: |
         docker run \
-          --rm -it --privileged \
+          --rm \
+          --privileged \
           --volume $PWD/kubernetes/images:/app \
           --volume $PWD/kubernetes/elements:/elements \
           --env DIB_RELEASE=stretch \
