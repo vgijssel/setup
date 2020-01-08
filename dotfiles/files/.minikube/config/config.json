@@ -5,7 +5,6 @@
     "disk-size": "50G",
     "ingress": false,
     "memory": 16384,
-    "profile": "development",
     "registry": true,
     "vm-driver": "vmware"
 }
