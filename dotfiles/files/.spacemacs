@@ -493,6 +493,7 @@ See the header of this file for more information."
   (setenv "SSH_AUTH_SOCK" (expand-file-name (getenv "SSH_AUTH_SOCK")))
 
   ;; Map all the items in exec-path, call expand-file-name and store it back in exec-path
+  (require 'cl)
   (setq exec-path (map 'list (lambda (x) (expand-file-name x)) exec-path))
 
   ;; Set the PATH environment variable by joining the items from `exec-path` with `:`
