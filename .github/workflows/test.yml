@@ -6,7 +6,6 @@ jobs:
     name: Build image
     env:
       IMAGE_BUILDER_IMAGE: image-builder
-      IMAGE_BRANCH_TAG: ${{ github.ref }}
       IMAGE_SHA_TAG: ${{ github.sha }}
       DOCKER_BUILDKIT: 1
     runs-on: ubuntu-latest
@@ -32,12 +31,13 @@ jobs:
 
     - name: Build the image builder
       run: |
+        export IMAGE_BRANCH_TAG=$(echo ${{ github.ref }} | tr "/" _)
+
         docker pull ${IMAGE_BUILDER_IMAGE}:latest || true
         docker pull ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} || true
 
         echo ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
         echo ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}
-
 
         docker build \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
