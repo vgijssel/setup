@@ -5,7 +5,7 @@ jobs:
   image_builder:
     name: Build image
     env:
-      IMAGE_BUILDER_IMAGE: image-builder
+      IMAGE_BUILDER_IMAGE: docker.pkg.github.com/mvgijssel/setup/image-builder
       IMAGE_SHA_TAG: ${{ github.sha }}
       DOCKER_BUILDKIT: 1
     runs-on: ubuntu-latest
