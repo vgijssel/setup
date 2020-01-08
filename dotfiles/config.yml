@@ -89,6 +89,7 @@ homebrew_cask_apps:
   - vmware-fusion
   - vnc-viewer # to show qemu running hosts
   - intel-haxm # qemu accelerator which also works on GitHub Actons
+  - tuntap # creates tap interfaces for qemu bridge networking
   - gpg-suite
   - 1password-cli
   - steam
