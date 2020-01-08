@@ -35,6 +35,7 @@ qemu-img resize /data/images/images/100/vm-100-disk-0.qcow2 32G
 
 - Run tests to see if the image is OK
   - nfs works
+  - firewall works and has proper ports open
 
 NOTE: Proxmox KVM will hang at 100% CPU when there is no serial port configured for a diskimage-create image.
 https://bugs.launchpad.net/cloud-images/+bug/1573095
