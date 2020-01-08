@@ -7,3 +7,30 @@ Changes:
 
 TODO:
 - periodically check for folders with large number of files, like crashplan logs
+
+## Copy public key into authorized keys
+- List public keys in OpenSSH format
+```
+ssh -L
+```
+
+- Add the key to `/etc/pve/priv/authorized_keys`
+
+## Setup internal network
+
+
+## Setup NFS
+
+- Install packages
+```
+apt-get install nfs-kernel-server nfs-common
+```
+
+- Update config `/etc/exports`
+```
+```
+
+- Restart NFS
+```
+systemctl restart nfs-kernel-server
+```
