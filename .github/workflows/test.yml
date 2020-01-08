@@ -4,6 +4,11 @@ on: [push]
 jobs:
   image_builder:
     name: Build image
+    env:
+      IMAGE_BUILDER_IMAGE: image-builder
+      IMAGE_BRANCH_TAG: ${{ github.ref }}
+      IMAGE_SHA_TAG: ${{ github.sha }}
+      DOCKER_BUILDKIT: 1
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -25,37 +30,21 @@ jobs:
       run: |
         docker login -u mvgijssel -p ${{ secrets.GITHUB_TOKEN }} docker.pkg.github.com
 
-    # - name: Test action
-    #   if: always()
-    #   uses: ./.github/actions/create_disk_image.yml
-
-    - name: Build
-      env:
-        DOCKER_BUILDKIT: 1
-      if: always()
+    - name: Build the image builder
       run: |
+        docker pull ${IMAGE_BUILDER_IMAGE}:latest || true
+        docker pull ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} || true
+
         docker build \
-          --tag image-builder:bionic \
+          --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
+          --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
           --file kubernetes/Dockerfile \
           kubernetes
 
-    - name: Run
-      env:
-        DOCKER_BUILDKIT: 1
-      if: always()
-      run: |
-        docker run \
-          --rm -it --privileged \
-          --volume $PWD/kubernetes/images:/app \
-          --volume $PWD/kubernetes/elements:/elements \
-          --env DIB_RELEASE=stretch \
-          --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
-          image-builder:bionic \
-          env
+        docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
+        docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}
 
     - name: Run
-      env:
-        DOCKER_BUILDKIT: 1
       if: always()
       run: |
         docker run \
@@ -65,7 +54,20 @@ jobs:
           --volume $PWD/kubernetes/elements:/elements \
           --env DIB_RELEASE=stretch \
           --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
-          image-builder:bionic \
+          ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
+          env
+
+    - name: Run
+      if: always()
+      run: |
+        docker run \
+          --rm \
+          --privileged \
+          --volume $PWD/kubernetes/images:/app \
+          --volume $PWD/kubernetes/elements:/elements \
+          --env DIB_RELEASE=stretch \
+          --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
+          ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
           disk-image-create -o stretch_1 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
 
     # - name: Test kvm
