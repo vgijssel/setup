@@ -25,7 +25,12 @@ jobs:
       run: |
         env
 
-    - name: Login
+    - name: Test qemu
+      if: always()
+      run: |
+        qemu-img --help
+
+    - name: Login to GitHub docker registry
       run: |
         docker login -u mvgijssel -p ${{ secrets.GITHUB_TOKEN }} docker.pkg.github.com
 
@@ -36,9 +41,6 @@ jobs:
         docker pull ${IMAGE_BUILDER_IMAGE}:latest || true
         docker pull ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} || true
 
-        echo ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
-        echo ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}
-
         docker build \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
@@ -48,8 +50,7 @@ jobs:
         docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
         docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}
 
-    - name: Run
-      if: always()
+    - name: Build the Kubernetes image
       run: |
         docker run \
           --rm \
@@ -59,32 +60,11 @@ jobs:
           --env DIB_RELEASE=stretch \
           --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
           ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
-          env
+          disk-image-create -o kubernetes_stretch debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
 
-    - name: Run
-      if: always()
+    - name: Test the Kubernetes image
       run: |
-        docker run \
-          --rm \
-          --privileged \
-          --volume $PWD/kubernetes/images:/app \
-          --volume $PWD/kubernetes/elements:/elements \
-          --env DIB_RELEASE=stretch \
-          --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
-          ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
-          disk-image-create -o stretch_1 debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
-
-    # - name: Test kvm
-    #   if: always()
-    #   run: kvm-ok
-
-    # - name: Test CPU info
-    #   if: always()
-    #   run: egrep -c '(vmx|svm)' /proc/cpuinfo
-
-    # - name: Test CPU info
-    #   if: always()
-    #   run: cat /sys/hypervisor/properties/capabilities
+        kubernetes/boot_qemu.sh
 
   test1:
     name: Test 1
