@@ -28,8 +28,6 @@ homebrew_installed_packages:
   - v8@3.15 # the ruby racer gem
   - imagemagick # otherwise Rails image upload no work
 
-  - lastpass-cli
-
   - dnsmasq
 
   - packer # creating images for Vagrant
@@ -96,6 +94,7 @@ homebrew_cask_apps:
   - steam
   - iterm2
   - rubymine
+  - adobe-creative-cloud
 
   # TODO: force reload of the installed fonts (by manually installing one)
   # will make these fonts available
