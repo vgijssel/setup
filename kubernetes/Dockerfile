@@ -32,6 +32,7 @@ RUN --mount=id=${CACHE_KEY},type=cache,target=/var/cache/apt \
 
 WORKDIR /app
 
+# TODO: maybe only qemu-utils and qemu-system-x86_64
 RUN --mount=id=${CACHE_KEY},type=cache,target=/var/cache/apt \
     --mount=id=${CACHE_KEY},type=cache,target=/var/lib/apt \
     apt-get install -y \
@@ -40,7 +41,7 @@ RUN --mount=id=${CACHE_KEY},type=cache,target=/var/cache/apt \
     wget \
     sudo \
     python-pip \
-    qemu-utils \
+    qemu \
     kpartx \
     build-essential \
     debian-keyring \

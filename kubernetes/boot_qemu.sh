@@ -20,12 +20,11 @@ mkisofs \
 
 # -serial stdio \
 # -nographic \
+# -nic user \
 
 qemu-system-x86_64 \
   -m 2048 \
   -smp 2 \
   -nographic \
-  -nic user \
   -drive file=images/testing.qcow2,if=virtio \
-  -drive file=cloud-init.iso,if=virtio \
-  -accel hax
+  -drive file=cloud-init.iso,if=virtio

@@ -25,11 +25,6 @@ jobs:
       run: |
         env
 
-    - name: Test qemu
-      if: always()
-      run: |
-        qemu-img --help
-
     - name: Login to GitHub docker registry
       run: |
         docker login -u mvgijssel -p ${{ secrets.GITHUB_TOKEN }} docker.pkg.github.com
@@ -55,16 +50,24 @@ jobs:
         docker run \
           --rm \
           --privileged \
-          --volume $PWD/kubernetes/images:/app \
+          --volume $PWD/kubernetes:/app \
           --volume $PWD/kubernetes/elements:/elements \
           --env DIB_RELEASE=stretch \
           --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
           ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
-          disk-image-create -o kubernetes_stretch debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
+          disk-image-create -o images/kubernetes_stretch debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
 
     - name: Test the Kubernetes image
       run: |
-        kubernetes/boot_qemu.sh
+        docker run \
+          --rm \
+          --privileged \
+          --volume $PWD/kubernetes:/app \
+          --volume $PWD/kubernetes/elements:/elements \
+          --env DIB_RELEASE=stretch \
+          --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
+          ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
+          ./boot_qemu.sh images/kubernetes_stretch.qcow2
 
   test1:
     name: Test 1
