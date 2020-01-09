@@ -67,7 +67,7 @@ jobs:
           --env DIB_RELEASE=stretch \
           --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
           ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
-          ./boot_qemu.sh images/kubernetes_stretch.qcow2
+          ./tests.exp
 
   test1:
     name: Test 1

@@ -42,6 +42,7 @@ RUN --mount=id=${CACHE_KEY},type=cache,target=/var/cache/apt \
     sudo \
     python-pip \
     qemu \
+    expect \
     kpartx \
     build-essential \
     debian-keyring \
