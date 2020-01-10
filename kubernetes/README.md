@@ -88,6 +88,12 @@ sudo su
 kubeadm join 192.168.1.3:6443 --token xxx --discovery-token-ca-cert-hash xxx
 ```
 
+- Install metallb
+
+```
+kubectl --kubeconfig ./admin.conf apply -f https://raw.githubusercontent.com/google/metallb/v0.8.3/manifests/metallb.yaml
+```
+
 ---
 
 - Useful elements for debugging
