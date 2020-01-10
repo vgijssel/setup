@@ -32,6 +32,7 @@ homebrew_installed_packages:
 
   - packer # creating images for Vagrant
   - qemu # qemu-img tool to convert disk images from qcow to vmdk
+  - expect # automating testing of interactive applications
   - cdrtools # contains mkisofs for making cloud-init images
 
   # Emacs
