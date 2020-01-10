@@ -78,6 +78,8 @@ https://calomel.org/zfs_raid_speed_capacity.html
 bonnie++ -u root -r 1024 -s 65536 -d /data -f -b -n 1 -c 4
 
 
+time dd if=/dev/zero of=/mnt/nfs/testfile bs=16k count=128k
+
 apt-get install fio
 https://martin.heiland.io/2018/02/23/zfs-tuning/
 https://jrs-s.net/2018/03/13/zvol-vs-qcow2-with-kvm/
