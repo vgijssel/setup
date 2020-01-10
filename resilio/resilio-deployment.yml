@@ -22,10 +22,10 @@ spec:
           limits:
             memory: 1Gi
         ports:
-        - name: ui
+        - name: resilio-ui
           containerPort: 8888
           protocol: TCP
-        - name: sync
+        - name: resilio-sync
           containerPort: 55555
           protocol: TCP
         volumeMounts:
