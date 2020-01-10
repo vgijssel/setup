@@ -65,6 +65,9 @@ zfs set dedup=on new_data/media
 zfs create new_data/downloads
 zfs set dedup=on new_data/downloads
 
+Enable NFS sharing of ZFS datasets
+zfs set sharenfs=on new_data/docs
+
 ## Performance tuning
 
 Watch zpool performance:
