@@ -66,10 +66,26 @@ zfs create new_data/downloads
 zfs set dedup=on new_data/downloads
 
 ## Performance tuning
+
+Watch zpool performance:
+zpool iostat -n 1
+
 apt-get install bonnie++
 https://calomel.org/zfs_raid_speed_capacity.html
 
-bonnie++ -u root -r 1024 -s 16384 -d /storage -f -b -n 1 -c 4
+
+65536 is double the ram
+bonnie++ -u root -r 1024 -s 65536 -d /data -f -b -n 1 -c 4
+
+
+apt-get install fio
+https://martin.heiland.io/2018/02/23/zfs-tuning/
+https://jrs-s.net/2018/03/13/zvol-vs-qcow2-with-kvm/
+
+Use iozone to benchmark ZFS
+Make sure to enable non-free sources https://serverfault.com/a/240921
+apt-get update
+apt-get install iozone3
 
 zfs set sync=disabled new_data
 zfs set dedup=off new_data/media
