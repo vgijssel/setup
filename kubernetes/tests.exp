@@ -6,7 +6,7 @@
 set timeout 600
 
 # Print debug information
-exp_internal 1
+exp_internal 0
 
 # Start the guest VM
 # spawn qemu-system-x86_64 -serial stdio wheezy.qcow2
@@ -18,7 +18,7 @@ send "debian\n"
 expect "Password: "
 send "debian\n"
 
-expect "debian@myhost:~\$"
+expect "debian@myhost:~"
 send "goss --gossfile /etc/goss/goss.yaml validate\n"
 
 expect "debian@myhost:~$"
