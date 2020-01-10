@@ -57,17 +57,17 @@ jobs:
           ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
           disk-image-create -o images/kubernetes_stretch debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
 
-    - name: Test the Kubernetes image
-      run: |
-        docker run \
-          --rm \
-          --privileged \
-          --volume $PWD/kubernetes:/app \
-          --volume $PWD/kubernetes/elements:/elements \
-          --env DIB_RELEASE=stretch \
-          --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
-          ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
-          ./tests.exp
+    # - name: Test the Kubernetes image
+    #   run: |
+    #     docker run \
+    #       --rm \
+    #       --privileged \
+    #       --volume $PWD/kubernetes:/app \
+    #       --volume $PWD/kubernetes/elements:/elements \
+    #       --env DIB_RELEASE=stretch \
+    #       --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
+    #       ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
+    #       ./tests.exp
 
   test1:
     name: Test 1
