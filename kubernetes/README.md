@@ -42,7 +42,8 @@ https://bugs.launchpad.net/cloud-images/+bug/1573095
 Immediate fix is to add a serial console to the VM
 - Create new VM in proxmox
   - 32 GB disk
-  - 2 CPUs
+  - 2 CPU cores
+  - 4096 MB
   - Serial Port
   - CloudInit Drive
   - VGA to serial0
@@ -58,12 +59,12 @@ qm rescan
 
 - Boot VMs
 
-|hostname|ip         |gateway    |dns         |
-|--------|-----------|-----------|------------|
-|master  |192.168.1.3|192.168.1.1|192.168.1.1 |
-|worker1 |192.168.1.4|192.168.1.1|192.168.1.1 |
-|worker2 |192.168.1.5|192.168.1.1|192.168.1.1 |
-|worker3 |192.168.1.6|192.168.1.1|192.168.1.1 |
+|hostname|ip            |gateway    |dns         |
+|--------|--------------|-----------|------------|
+|master  |192.168.1.3/24|192.168.1.1|192.168.1.1 |
+|worker1 |192.168.1.4/24|192.168.1.1|192.168.1.1 |
+|worker2 |192.168.1.5/24|192.168.1.1|192.168.1.1 |
+|worker3 |192.168.1.6/24|192.168.1.1|192.168.1.1 |
 
 - Initialize kubeadm (with flannel https://github.com/coreos/flannel/)
 
@@ -77,6 +78,7 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
+
 ```
 
 - Join workers
