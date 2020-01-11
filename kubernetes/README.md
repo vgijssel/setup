@@ -116,3 +116,6 @@ ls /tmp
 ```
 qemu-img convert -f qcow2 -O vmdk image.qcow2 image.vmdk
 ```
+
+- Repository with a lot of kubernetes configs
+https://github.com/hyperbolic2346/kubernetes
