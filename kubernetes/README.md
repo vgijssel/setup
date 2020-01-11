@@ -110,7 +110,7 @@ devuser
 - Checking contents of /tmp folder of created qcow image:
 ```
 guestfish
-add stretch_2.qcow2
+add kubernetes_buster.qcow2
 run
 list-filesystems
 mount /dev/sda1 /
