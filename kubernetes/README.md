@@ -25,6 +25,8 @@ qemu-img resize /data/images/images/100/vm-100-disk-0.qcow2 32G
 - Run tests to see if the image is OK
   - nfs works
   - firewall works and has proper ports open (https://wiki.debian.org/Uncomplicated%20Firewall%20%28ufw%29)
+  - sysctl net.bridge.bridge-nf-call-iptables=1 /proc/sys/net/bridge/bridge-nf-call-iptables to 1 (https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
+  - DNS resolution works within a kubernetes pod for external addresses (internet connectivity)
 
 NOTE: Proxmox KVM will hang at 100% CPU when there is no serial port configured for a diskimage-create image.
 https://bugs.launchpad.net/cloud-images/+bug/1573095
@@ -38,6 +40,7 @@ Immediate fix is to add a serial console to the VM
   - VGA to serial0
   - Replace qcow2 disk with our created disk
   - Enable qemu-agent
+  - Extra network adapter attached to private network for NFS
 
 - Sync image to proxmox
 ```
@@ -60,14 +63,18 @@ qm rescan
 ```
 sudo su
 kubeadm config images pull
-kubeadm init --pod-network-cidr=10.244.0.0/16
+kubeadm init --apiserver-advertise-address=192.168.1.3 --pod-network-cidr=10.244.0.0/16
 exit
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
+```
 
+- Copy kubernetes config
+```
+scp debian@192.168.1.3:/home/debian/.kube/config admin.conf
 ```
 
 - Join workers
@@ -82,6 +89,15 @@ kubeadm join 192.168.1.3:6443 --token xxx --discovery-token-ca-cert-hash xxx
 ```
 kubectl --kubeconfig ./admin.conf apply -f https://raw.githubusercontent.com/google/metallb/v0.8.3/manifests/metallb.yaml
 ```
+
+- Service ips
+
+|hostname |ip             |
+|---------|---------------|
+|resilio-1|192.168.1.10/24|
+|resilio-2|192.168.1.11/24|
+|plex     |192.168.1.12/24|
+|radarr   |192.168.1.13/24|
 
 ---
 
