@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+    spec:
+      containers:
+      - name: radarr
+        image: linuxserver/radarr
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: 1Gi
+          limits:
+            memory: 1Gi
+
+        ports:
+        - name: radarr-ui
+          containerPort: 7878
+          protocol: TCP
+
+        env:
+        - name: PGID
+          value: "0"
+        - name: PUID
+          value: "0"
+        - name: TZ
+          value: Europe/Amsterdam
+
+        volumeMounts:
+        - name: radarr-config
+          mountPath: /config
+        - name: radarr-movies
+          mountPath: /movies
+        - name: radarr-downloads
+          mountPath: /downloads
+
+      volumes:
+      - name: radarr-config
+        nfs:
+          server: 192.168.1.2
+          path: /data/TESTRADARR
+      - name: radarr-movies
+        nfs:
+          server: 192.168.1.2
+          path: /data/media/movies
+      - name: radarr-downloads
+        nfs:
+          server: 192.168.1.2
+          path: /data/downloads
