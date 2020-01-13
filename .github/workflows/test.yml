@@ -37,6 +37,7 @@ jobs:
         docker pull ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} || true
 
         echo ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
+        docker info
 
         docker build \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
