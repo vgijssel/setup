@@ -38,7 +38,6 @@ jobs:
 
         docker build \
           --cache-from ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
-          --cache-from ${IMAGE_BUILDER_IMAGE}:latest \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
           --file kubernetes/Dockerfile \
@@ -70,34 +69,3 @@ jobs:
     #       --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
     #       ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
     #       ./tests.exp
-
-  test1:
-    name: Test 1
-    runs-on: macos-latest
-    steps:
-
-    - name: Checkout
-      uses: actions/checkout@v1
-
-    - name: Test action
-      if: always()
-      uses: ./
-
-    - name: Test qemu
-      if: always()
-      run: |
-        qemu-img --help
-
-    - name: Test brew
-      if: always()
-      run: |
-        brew info
-
-    - name: Test docker
-      if: always()
-      run: |
-        docker info
-
-    - uses: actions/checkout@v1
-      with:
-        ref: ${{ matrix.ref }}
