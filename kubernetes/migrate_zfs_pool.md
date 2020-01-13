@@ -68,37 +68,25 @@ zfs set dedup=on new_data/downloads
 Enable NFS sharing of ZFS datasets
 zfs set sharenfs=on new_data/docs
 
-## Performance tuning
+## Migrating stripe to raid10
 
-Watch zpool performance:
-zpool iostat -n 1
+raid1:
+ata-TOSHIBA_HDWN180_89E5K11IFAVG
+ata-TOSHIBA_HDWN180_89E3K14GFAVG
 
-apt-get install bonnie++
-https://calomel.org/zfs_raid_speed_capacity.html
+nothing:
+ata-TOSHIBA_HDWN180_Y9PPK11BFAVG
 
+- remove drives from stripe
+zpool remove new_data ata-TOSHIBA_HDWN180_89E3K14GFAVG
+zpool remove new_data ata-TOSHIBA_HDWN180_Y9PPK11BFAVG
 
-65536 is double the ram
-bonnie++ -u root -r 1024 -s 65536 -d /data -f -b -n 1 -c 4
+- create new mirror from removed disk
+zpool attach new_data ata-TOSHIBA_HDWN180_89E5K11IFAVG ata-TOSHIBA_HDWN180_89E3K14GFAVG
 
+- after resilvering scrub the tank to check for errors
+zpool scrub tank
 
-time dd if=/dev/zero of=/mnt/nfs/testfile bs=16k count=128k
-
-apt-get install fio
-https://martin.heiland.io/2018/02/23/zfs-tuning/
-https://jrs-s.net/2018/03/13/zvol-vs-qcow2-with-kvm/
-
-Use iozone to benchmark ZFS
-Make sure to enable non-free sources https://serverfault.com/a/240921
+- problem with freezing / crashing https://forum.proxmox.com/threads/proxmox-v6-servers-freeze-zvol-blocked-for-more-than-120s.57765/page-3
 apt-get update
-apt-get install iozone3
-
-zfs set sync=disabled new_data
-zfs set dedup=off new_data/media
-
-zpool add new_data cache ata-SAMSUNG_SSD_830_Series_S0XXNYAC300558
-zpool remove new_data cache ata-SAMSUNG_SSD_830_Series_S0XXNYAC300558
-zpool add new_data log ata-SAMSUNG_SSD_830_Series_S0XXNYAC300558
-zpool remove new_data ata-SAMSUNG_SSD_830_Series_S0XXNYAC300558
-
-arc_summary
-zpool iostat
+apt dist-upgrade

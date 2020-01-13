@@ -54,3 +54,10 @@ systemctl restart nfs-kernel-server
 ```
 mount 172.16.0.1:/data /data
 ```
+
+- Upgrade OS
+
+```
+apt-get update
+apt dist-upgrade
+```
