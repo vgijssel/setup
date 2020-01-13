@@ -39,6 +39,7 @@ jobs:
         echo ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
 
         docker build \
+          --build-arg BUILDKIT_INLINE_CACHE=1 \
           --cache-from ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
