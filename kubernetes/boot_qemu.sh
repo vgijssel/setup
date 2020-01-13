@@ -21,6 +21,7 @@ mkisofs \
 # -serial stdio \
 # -nographic \
 # -nic user \
+# -accel hax \
 
 qemu-system-x86_64 \
   -m 2048 \
