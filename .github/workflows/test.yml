@@ -7,7 +7,6 @@ jobs:
     env:
       IMAGE_BUILDER_IMAGE: docker.pkg.github.com/mvgijssel/setup/image-builder
       IMAGE_SHA_TAG: ${{ github.sha }}
-      DOCKER_BUILDKIT: 1
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -25,9 +24,8 @@ jobs:
       run: |
         env
 
-    - name: Login to GitHub docker registry
-      run: |
-        docker login -u mvgijssel -p ${{ secrets.GITHUB_TOKEN }} docker.pkg.github.com
+    - run: docker info
+    - run: docker login -u mvgijssel -p ${{ secrets.GITHUB_TOKEN }} docker.pkg.github.com
 
     - name: Build the image builder
       run: |
@@ -37,10 +35,8 @@ jobs:
         docker pull ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} || true
 
         echo ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
-        docker info
 
         docker build \
-          --build-arg BUILDKIT_INLINE_CACHE=1 \
           --cache-from ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
