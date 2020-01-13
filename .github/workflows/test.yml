@@ -34,11 +34,9 @@ jobs:
         docker pull ${IMAGE_BUILDER_IMAGE}:latest || true
         docker pull ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} || true
 
-        echo ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
-
-        # TODO: also cache from latest
         docker build \
           --cache-from ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
+          --cache-from ${IMAGE_BUILDER_IMAGE}:latest \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
           --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
           --file kubernetes/Dockerfile \
