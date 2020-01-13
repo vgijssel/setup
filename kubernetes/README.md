@@ -33,14 +33,14 @@ https://bugs.launchpad.net/cloud-images/+bug/1573095
 Immediate fix is to add a serial console to the VM
 - Create new VM in proxmox
   - 32 GB disk
-  - 2 CPU cores
+  - 2 CPU cores (host cpu enabled, not kvm)
   - 4096 MB
   - Serial Port
   - CloudInit Drive
   - VGA to serial0
   - Replace qcow2 disk with our created disk
   - Enable qemu-agent
-  - Extra network adapter attached to private network for NFS
+  - Extra VIRTIO (for performance) network adapter attached to private network for NFS
 
 - Sync image to proxmox
 ```
