@@ -34,6 +34,7 @@ homebrew_installed_packages:
   - qemu # qemu-img tool to convert disk images from qcow to vmdk
   - expect # automating testing of interactive applications
   - cdrtools # contains mkisofs for making cloud-init images
+  - minikube # for running kubernetes locally
 
   # Emacs
   - emacs-plus
@@ -80,7 +81,6 @@ homebrew_taps:
 
 homebrew_cask_appdir: /Applications
 homebrew_cask_apps:
-  - minikube
   - multipass
   - ngrok
   - virtualbox
