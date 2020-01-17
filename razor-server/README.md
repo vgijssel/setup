@@ -15,7 +15,7 @@ TODO
 - razor hooks to start installation of qcow image?
 
 
-Commands
+
 
 ```
 razor create-repo --name=centos-6.4 --iso-url http://some.where/centos.iso --task centos
@@ -29,3 +29,25 @@ razor create-broker --name=noop --broker-type=noop
 razor create-policy --json policy.json
 ```
 
+
+## Booting a diskimage-builder created ramdisk with pixiecore
+1. Create the ramdisk
+```
+tox -e venv -- ramdisk-image-create -x -o ../images/deploy-image ramdisk debian hwburnin-new
+```
+
+2. Boot pixiecore
+```
+minikube start --vm-driver=vmware
+eval $(minikube docker-env)
+
+docker run \
+  --rm \
+  -it \
+  --net=host \
+  -v /mnt/hgfs/Users/maarten/Development/setup/kubernetes/images:/images \
+  danderson/pixiecore \
+    boot /images/deploy-image.kernel /images/deploy-image.initramfs
+```
+
+3. Boot vmware machine
