@@ -32,21 +32,11 @@ RUN apt-get install -y \
     curl \
     wget \
     sudo \
-    python-pip \
-
-    tox \
-    git \
-    apt-transport-https \
-    gnupg2 \
-    inetutils-ping \
-    python-lzma \
-    rpm \
-    uuid-runtime \
-    yum-utils \
-
     qemu \
     expect \
     kpartx \
+    git \
+    python-pip \
     build-essential \
     debian-keyring \
     linux-virtual \
@@ -61,10 +51,4 @@ RUN mkdir -p /app/elements /app/images
 ENV ELEMENTS_PATH '/app/elements'
 
 RUN git clone -b '2.33.0' --single-branch --depth 1 https://github.com/openstack/diskimage-builder.git
-
-# Check if all dependencies installed
-RUN cd diskimage-builder && tox -e bindep;
-
-# Make sure all the necessary dependencies are available
-# running a noop command
-RUN cd diskimage-builder && tox -e venv -- ramdisk-image-create --help
+RUN pip install -e diskimage-builder
