@@ -1,0 +1,1 @@
+nat on en0 from bridge1:network to any -> (en0)
