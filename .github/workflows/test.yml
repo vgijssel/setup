@@ -21,11 +21,6 @@ jobs:
         MATRIX: ${{ toJson(matrix) }}
       run: |
         env
-    - run: docker info
-    - run: apt-get update
-    - run: apt-cache madison docker-ce
-    - run: apt-get install docker-ce
-    - run: docker info
     - uses: actions/checkout@v1
     - run: .github/scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
 
@@ -36,6 +31,14 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: .github/scripts/docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+
+  razor-server:
+    name: Build razor server image
+    runs-on: ubuntu-latest
+    needs: base-image
+    steps:
+    - uses: actions/checkout@v1
+    - run: .github/scripts/docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
 
   # image_builder:
   #   name: Build image

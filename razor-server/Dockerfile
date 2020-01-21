@@ -1,23 +1,7 @@
-FROM ubuntu:xenial
+ARG IMAGE_SHA_TAG=latest
+FROM docker.pkg.github.com/mvgijssel/setup/razor-server:${IMAGE_SHA_TAG}
 
 WORKDIR /app
-
-ENV DISTRO xenial
-
-RUN apt-get update \
-    && apt-get install -y locales \
-    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
-
-ENV LANG en_US.utf8
-
-# Setup the timezone
-ENV TZ 'Europe/Amsterdam'
-
-RUN echo $TZ > /etc/timezone \
-    && apt-get install -y tzdata \
-    && rm /etc/localtime \
-    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
-    && dpkg-reconfigure -f noninteractive tzdata
 
 RUN apt-get install -y curl wget ca-certificates \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
