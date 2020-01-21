@@ -85,6 +85,8 @@ bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
 - spectacle.app
 - resiliosync
 - spacemacs
+- macports
+  - qemu +ssh +vnc
 
 ### Tests
 
