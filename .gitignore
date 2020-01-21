@@ -5,3 +5,5 @@ vagrant_boxes
 images
 cloud-init.iso
 *.temp
+
+kubernetes/diskimage-builder
