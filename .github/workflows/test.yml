@@ -1,14 +1,13 @@
 name: Test
 on: [push]
+env:
+  GITHUB_REF: ${{ github.ref }}
+  GITHUB_TOKEN: ${{ github.token }}
+  DOCKER_REGISTRY: docker.pkg.github.com/mvgijssel/setup
+  IMAGE_SHA_TAG: ${{ github.sha }}
+  BASE_IMAGE: "${DOCKER_REGISTRY}/base-image"
 
 jobs:
-  env:
-    GITHUB_REF: ${{ github.ref }}
-    GITHUB_TOKEN: ${{ github.token }}
-    DOCKER_REGISTRY: docker.pkg.github.com/mvgijssel/setup
-    IMAGE_SHA_TAG: ${{ github.sha }}
-    BASE_IMAGE: "${DOCKER_REGISTRY}/base-image"
-
   base-image:
     name: Build docker base image
     runs-on: ubuntu-latest
