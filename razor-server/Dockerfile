@@ -3,13 +3,15 @@ FROM docker.pkg.github.com/mvgijssel/setup/base-image:${IMAGE_SHA_TAG}
 
 WORKDIR /app
 
-RUN apt-get install -y curl wget ca-certificates \
+RUN apt-get update && \
+    apt-get install -y curl wget ca-certificates gnupg \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" >> /etc/apt/sources.list.d/pgdg.list \
-    && wget -O razor-server.deb https://apt.puppetlabs.com/puppetlabs-release-pc1-${DISTRO}.deb \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${RELEASE}-pgdg main" >> /etc/apt/sources.list.d/pgdg.list \
+    && wget -O razor-server.deb https://apt.puppetlabs.com/puppetlabs-release-pc1-xenial.deb \
     && dpkg -i razor-server.deb \
     && rm razor-server.deb \
-    && apt-get update && apt-get install -y postgresql-10 razor-server dnsmasq
+    && apt-get update && apt-get install -y postgresql-10 razor-server dnsmasq \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV PATH "/opt/puppetlabs/bin/:${PATH}"
 

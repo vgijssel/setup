@@ -22,7 +22,8 @@ RUN apt-get install -y \
     shim-signed \
     syslinux \
     isolinux \
-    syslinux-common
+    syslinux-common \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app/elements /app/images
 ENV ELEMENTS_PATH '/app/elements'
