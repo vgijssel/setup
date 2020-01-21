@@ -1,13 +1,10 @@
-# syntax = docker/dockerfile:experimental
 FROM ubuntu:xenial
 
 WORKDIR /app
 
 ENV DISTRO xenial
 
-RUN --mount=id=${DISTRO},type=cache,target=/var/cache/apt \
-    --mount=id=${DISTRO},type=cache,target=/var/lib/apt \
-    apt-get update \
+RUN apt-get update \
     && apt-get install -y locales \
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 
@@ -16,17 +13,13 @@ ENV LANG en_US.utf8
 # Setup the timezone
 ENV TZ 'Europe/Amsterdam'
 
-RUN --mount=id=${DISTRO},type=cache,target=/var/cache/apt \
-    --mount=id=${DISTRO},type=cache,target=/var/lib/apt \
-    echo $TZ > /etc/timezone \
+RUN echo $TZ > /etc/timezone \
     && apt-get install -y tzdata \
     && rm /etc/localtime \
     && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
     && dpkg-reconfigure -f noninteractive tzdata
 
-RUN --mount=id=${DISTRO},type=cache,target=/var/cache/apt \
-    --mount=id=${DISTRO},type=cache,target=/var/lib/apt \
-    apt-get install -y curl wget ca-certificates \
+RUN apt-get install -y curl wget ca-certificates \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" >> /etc/apt/sources.list.d/pgdg.list \
     && wget -O razor-server.deb https://apt.puppetlabs.com/puppetlabs-release-pc1-${DISTRO}.deb \
