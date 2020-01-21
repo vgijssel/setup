@@ -20,7 +20,7 @@ docker pull "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}" || true
 docker build \
        --cache-from "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}" \
        --cache-from "${IMAGE_NAME}:latest" \
-       --build-arg "${IMAGE_SHA_TAG}" \
+       --build-arg IMAGE_SHA_TAG="${IMAGE_SHA_TAG}" \
        --tag "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}" \
        --tag "${IMAGE_NAME}:${IMAGE_SHA_TAG}" \
        --file "${IMAGE_DIRECTORY}/Dockerfile" \

@@ -3,7 +3,7 @@ on: [push]
 env:
   GITHUB_TOKEN: ${{ github.token }}
   BASE_IMAGE: docker.pkg.github.com/mvgijssel/setup/base-image
-  IMAGE_BUILDER: docker.pkg.github.com/mvgijssel/setup/image-builder
+  IMAGE_BUILDER_IMAGE: docker.pkg.github.com/mvgijssel/setup/image-builder
 
 jobs:
   base-image:
