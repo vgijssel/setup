@@ -67,6 +67,13 @@ jobs:
   #         --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
   #         --file kubernetes/Dockerfile \
   #         kubernetes
+  kubernetes:
+    name: Build kubernetes image
+    runs-on: ubuntu-latest
+    needs: image-builder
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./kubernetes/build-image.sh
 
   #       docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
   #       docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}

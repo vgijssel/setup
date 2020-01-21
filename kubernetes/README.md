@@ -1,15 +1,12 @@
 - Create the image builder
 ```
-docker build --tag image-builder:bionic .
-docker run --rm -it --privileged -v $PWD/images:/app -v $PWD/elements:/elements image-builder:bionic /bin/bash
+.github/scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
+.github/scripts/docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 ```
 
 - Create the image disk
 ```
-export break=after-error
-export DIB_RELEASE=buster
-export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-disk-image-create -o images/kubernetes_buster debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
+kubernetes/build-image.sh
 ```
 
 - Resize qcow2 disk to 32 GB
