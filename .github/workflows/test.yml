@@ -2,16 +2,17 @@ name: Test
 on: [push]
 
 jobs:
-  image_builder:
-    name: Build image
-    env:
-      IMAGE_BUILDER_IMAGE: docker.pkg.github.com/mvgijssel/setup/image-builder
-      IMAGE_SHA_TAG: ${{ github.sha }}
+  env:
+    GITHUB_REF: ${{ github.ref }}
+    GITHUB_TOKEN: ${{ github.token }}
+    DOCKER_REGISTRY: docker.pkg.github.com/mvgijssel/setup
+    IMAGE_SHA_TAG: ${{ github.sha }}
+    BASE_IMAGE: "${DOCKER_REGISTRY}/base-image"
+
+  base-image:
+    name: Build docker base image
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-
     - env:
         GITHUB: ${{ toJson(github) }}
         ENV: ${{ toJson(env) }}
@@ -23,39 +24,51 @@ jobs:
         MATRIX: ${{ toJson(matrix) }}
       run: |
         env
+    - run: git --help
+    - uses: actions/checkout@v1
+    - run: .github/scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
 
-    - run: docker info
-    - run: docker login -u mvgijssel -p ${{ secrets.GITHUB_TOKEN }} docker.pkg.github.com
+  # image_builder:
+  #   name: Build image
+  #   env:
+  #     IMAGE_BUILDER_IMAGE: docker.pkg.github.com/mvgijssel/setup/image-builder
+  #     IMAGE_SHA_TAG: ${{ github.sha }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v1
 
-    - name: Build the image builder
-      run: |
-        export IMAGE_BRANCH_TAG=$(echo ${{ github.ref }} | tr "/" _)
+  #   - run: docker info
+  #   - run: docker login -u mvgijssel -p ${{ secrets.GITHUB_TOKEN }} docker.pkg.github.com
 
-        docker pull ${IMAGE_BUILDER_IMAGE}:latest || true
-        docker pull ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} || true
+  #   - name: Build the image builder
+  #     run: |
+  #       export IMAGE_BRANCH_TAG=$(echo ${{ github.ref }} | tr "/" _)
 
-        docker build \
-          --cache-from ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
-          --cache-from ${IMAGE_BUILDER_IMAGE}:latest \
-          --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
-          --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
-          --file kubernetes/Dockerfile \
-          kubernetes
+  #       docker pull ${IMAGE_BUILDER_IMAGE}:latest || true
+  #       docker pull ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} || true
 
-        docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
-        docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}
+  #       docker build \
+  #         --cache-from ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
+  #         --cache-from ${IMAGE_BUILDER_IMAGE}:latest \
+  #         --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG} \
+  #         --tag ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
+  #         --file kubernetes/Dockerfile \
+  #         kubernetes
 
-    - name: Build the Kubernetes image
-      run: |
-        docker run \
-          --rm \
-          --privileged \
-          --volume $PWD/kubernetes:/app \
-          --volume $PWD/kubernetes/elements:/elements \
-          --env DIB_RELEASE=buster \
-          --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
-          ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
-          disk-image-create -o images/kubernetes_buster debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
+  #       docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_BRANCH_TAG}
+  #       docker push ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}
+
+  #   - name: Build the Kubernetes image
+  #     run: |
+  #       docker run \
+  #         --rm \
+  #         --privileged \
+  #         --volume $PWD/kubernetes:/app \
+  #         --volume $PWD/kubernetes/elements:/elements \
+  #         --env DIB_RELEASE=buster \
+  #         --env DIB_APT_MINIMAL_CREATE_INTERFACES=0 \
+  #         ${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG} \
+  #         disk-image-create -o images/kubernetes_buster debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
 
     # - name: Test the Kubernetes image
     #   run: |
