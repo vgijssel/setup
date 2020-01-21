@@ -6,7 +6,7 @@ set -Eeoux pipefail
 IMAGE_NAME="$1"
 IMAGE_DIRECTORY="$2"
 
-GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+GIT_BRANCH="${GITHUB_REF}"
 GIT_SHA=$(git rev-parse HEAD)
 
 IMAGE_BRANCH_TAG=$(echo "${GIT_BRANCH}" | tr "/" _)
