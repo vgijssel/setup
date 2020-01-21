@@ -5,7 +5,12 @@ set -Eeoux pipefail
 
 IMAGE_NAME="$1"
 IMAGE_DIRECTORY="$2"
-IMAGE_BRANCH_TAG=$(echo "${GITHUB_REF}" | tr "/" _)
+
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+GIT_SHA=$(git rev-parse HEAD)
+
+IMAGE_BRANCH_TAG=$(echo "${GIT_BRANCH}" | tr "/" _)
+IMAGE_SHA_TAG="${GIT_SHA}"
 
 docker login -u mvgijssel -p "${GITHUB_TOKEN}" docker.pkg.github.com
 
