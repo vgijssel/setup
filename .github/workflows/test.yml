@@ -3,6 +3,7 @@ on: [push]
 env:
   GITHUB_TOKEN: ${{ github.token }}
   BASE_IMAGE: docker.pkg.github.com/mvgijssel/setup/base-image
+  IMAGE_BUILDER: docker.pkg.github.com/mvgijssel/setup/image-builder
 
 jobs:
   base-image:
@@ -20,9 +21,16 @@ jobs:
         MATRIX: ${{ toJson(matrix) }}
       run: |
         env
-    - run: git --help
     - uses: actions/checkout@v1
     - run: .github/scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
+
+  image-builder:
+    name: Build image builder image
+    runs-on: ubuntu-latest
+    needs: base-image
+    steps:
+    - uses: actions/checkout@v1
+    - run: .github/scripts/docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
   # image_builder:
   #   name: Build image

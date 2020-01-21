@@ -25,5 +25,5 @@ docker build \
        --file "${IMAGE_DIRECTORY}/Dockerfile" \
        "${IMAGE_DIRECTORY}"
 
-docker push "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}"
 docker push "${IMAGE_NAME}:${IMAGE_SHA_TAG}"
+docker push "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}"

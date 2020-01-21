@@ -1,4 +1,4 @@
-FROM docker.pkg.github.com/mvgijssel/setup/base-image:feature_mediacenter-proxmox
+FROM docker.pkg.github.com/mvgijssel/setup/base-image:
 
 WORKDIR /app
 
