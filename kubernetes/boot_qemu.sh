@@ -16,7 +16,8 @@ mkisofs \
   -output cloud-init.iso \
   -volid cidata \
   -joliet \
-  -rock {cloud-init/user-data,cloud-init/meta-data}
+  -rock {cloud-init/user-data,cloud-init/meta-data,cloud-init/network-config}
+
 
 # -serial stdio \
 # -nographic \
@@ -29,8 +30,9 @@ qemu-system-x86_64 \
   -m 2048 \
   -smp 2 \
   -nographic \
+  -accel hax \
   -netdev tap,id=mynet0,script=qemu-ifup.sh,downscript=qemu-ifdown.sh \
-  -device virtio-net,netdev=mynet0 \
+  -device virtio-net,mac=52:54:00:0e:e0:65,netdev=mynet0 \
   -device virtio-rng-pci \
   -drive file=images/testing.qcow2,if=virtio \
   -drive file=cloud-init.iso,if=virtio
