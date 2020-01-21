@@ -3,7 +3,7 @@ on: [push]
 env:
   GITHUB_TOKEN: ${{ github.token }}
   DOCKER_REGISTRY: docker.pkg.github.com/mvgijssel/setup
-  BASE_IMAGE: "${DOCKER_REGISTRY}/base-image"
+  BASE_IMAGE: ${{ github.env.DOCKER_REGISTRY }}/base-image
 
 jobs:
   base-image:
