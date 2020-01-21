@@ -21,6 +21,9 @@ jobs:
         MATRIX: ${{ toJson(matrix) }}
       run: |
         env
+    - run: docker info
+    - run: apt-get upgrade docker
+    - run: docker info
     - uses: actions/checkout@v1
     - run: .github/scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
 
