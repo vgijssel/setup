@@ -29,6 +29,17 @@ razor create-broker --name=noop --broker-type=noop
 razor create-policy --json policy.json
 ```
 
+## Setup macos (https://blog.san-ss.com.ar/2016/04/setup-nat-network-for-qemu-macosx)
+
+Make sure that qemu can use tap and ifconfig without entering password
+```
+sudo chown $(whoami):staff tun*
+sudo chown $(whoami):staff tap*
+
+cat <<EOF | tee /private/etc/sudoers.d/ifconfig_sudoers
+%staff ALL = NOPASSWD: /sbin/ifconfig
+EOF
+```
 
 ## Booting a diskimage-builder created ramdisk with pixiecore
 1. Create the ramdisk
