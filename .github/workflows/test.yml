@@ -22,7 +22,9 @@ jobs:
       run: |
         env
     - run: docker info
-    - run: apt-get upgrade docker
+    - run: apt-get update
+    - run: apt-cache madison docker-ce
+    - run: apt-get install docker-ce
     - run: docker info
     - uses: actions/checkout@v1
     - run: .github/scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
