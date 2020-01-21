@@ -23,11 +23,14 @@ mkisofs \
 # -nic user \
 # -accel hax \
 
+# Added -device virtio-rng-pci to prevent "random: crng init done" from taking long
+
 qemu-system-x86_64 \
   -m 2048 \
   -smp 2 \
   -nographic \
   -netdev tap,id=mynet0,script=qemu-ifup.sh,downscript=qemu-ifdown.sh \
   -device virtio-net,netdev=mynet0 \
+  -device virtio-rng-pci \
   -drive file=images/testing.qcow2,if=virtio \
   -drive file=cloud-init.iso,if=virtio
