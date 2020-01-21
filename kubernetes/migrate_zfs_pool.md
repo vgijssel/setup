@@ -68,7 +68,7 @@ zfs set dedup=on new_data/downloads
 Enable NFS sharing of ZFS datasets
 zfs set sharenfs=on new_data/docs
 
-## Migrating stripe to raid10
+## Migrating stripe to raid1
 
 raid1:
 ata-TOSHIBA_HDWN180_89E5K11IFAVG
@@ -86,6 +86,12 @@ zpool attach new_data ata-TOSHIBA_HDWN180_89E5K11IFAVG ata-TOSHIBA_HDWN180_89E3K
 
 - after resilvering scrub the tank to check for errors
 zpool scrub tank
+
+## Migrating raid1 to raid10
+
+- Use -n to get dry run information
+zpool add -n new_data mirror ata-TOSHIBA_HDWN180_Y9PPK11BFAVG ata-TOSHIBA_HDWN180_Y9SAK1FCFAVG
+zpool add new_data mirror ata-TOSHIBA_HDWN180_Y9PPK11BFAVG ata-TOSHIBA_HDWN180_Y9SAK1FCFAVG
 
 - problem with freezing / crashing https://forum.proxmox.com/threads/proxmox-v6-servers-freeze-zvol-blocked-for-more-than-120s.57765/page-3
 apt-get update
