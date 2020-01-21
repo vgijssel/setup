@@ -1,4 +1,5 @@
-FROM docker.pkg.github.com/mvgijssel/setup/base-image:
+ARG IMAGE_SHA_TAG=latest
+FROM docker.pkg.github.com/mvgijssel/setup/base-image:${IMAGE_SHA_TAG}
 
 WORKDIR /app
 
