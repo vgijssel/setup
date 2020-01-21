@@ -9,7 +9,6 @@ IMAGE_SHA_TAG=$(git rev-parse HEAD)
 
 docker run \
        --rm \
-       -it \
        --privileged \
        -v "${DEPLOY_IMAGE_DIR}/images:/app/images" \
        -v "${DEPLOY_IMAGE_DIR}/elements:/app/elements" \

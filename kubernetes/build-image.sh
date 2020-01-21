@@ -9,7 +9,6 @@ IMAGE_SHA_TAG=$(git rev-parse HEAD)
 
 docker run \
        --rm \
-       -it \
        --privileged \
        -v "${KUBERNETES_DIR}/images:/app/images" \
        -v "${KUBERNETES_DIR}/elements:/app/elements" \
