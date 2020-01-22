@@ -29,5 +29,5 @@ RUN apt-get update && \
 RUN mkdir -p /app/elements /app/images
 ENV ELEMENTS_PATH '/app/elements'
 
-RUN git clone -b '2.33.0' --single-branch --depth 1 https://github.com/openstack/diskimage-builder.git
+RUN git clone -b 'bug/fix-ramdisk-building' --single-branch --depth 1 https://github.com/mvgijssel/diskimage-builder.git
 RUN pip install -e diskimage-builder
