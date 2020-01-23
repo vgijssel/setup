@@ -2,15 +2,15 @@ package:
   kubeadm:
     installed: true
     versions:
-    - 1.17.0-00
+    - 1.17.2-00
   kubectl:
     installed: true
     versions:
-    - 1.17.0-00
+    - 1.17.2-00
   kubelet:
     installed: true
     versions:
-    - 1.17.0-00
+    - 1.17.2-00
 service:
   docker:
     enabled: true
@@ -31,15 +31,13 @@ group:
   docker:
     exists: true
     gid: 999
+matching:
+  check_disk_usage:
+    title: Check if the root disk "/" has a total capacity >= 25 GiB
+    content: {{ (index .Vars.mountpoints "/").size_bytes }}
+    matches:
+      ge: 26843545600
 command:
-  df -h /dev/sda1 --output=size:
-    title: Make sure the root disk has grown to 31 gigabytes
-    exit-status: 0
-    stdout:
-    - Size
-    - 31G
-    stderr: []
-    timeout: 10000
   docker.cgroup:
     title: Make sure docker uses systemd as cgroup driver
     meta:
@@ -72,7 +70,7 @@ mount:
     opts:
     - rw
     - relatime
-    source: /dev/sda1
+    source: {{ (index .Vars.mountpoints "/").device }}
     filesystem: ext4
     usage:
       lt: 90

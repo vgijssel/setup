@@ -24,7 +24,7 @@ send "debian\n"
 expect -ex "debian@worker-test:~$"
 
 # Run the goss validator
-send "goss --gossfile /etc/goss/goss.yaml validate\n"
+send "sudo goss --gossfile /etc/goss/goss.yaml --vars <(facter -j) validate\n"
 
 # expect eof
 expect "Count: 31"
