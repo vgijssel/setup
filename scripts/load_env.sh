@@ -1,22 +1,8 @@
 #!/bin/bash
 
-set -Eeoux pipefail
-
-# echo "---------- BEFORE ---------"
-# compgen -v
-# echo "---------- BEFORE ---------"
+set -Eeou pipefail
 
 source .envrc
-
-# echo "---------- AFTER ---------"
-# compgen -v
-# echo "---------- AFTER ---------"
-
-# echo "---------- AFTER ---------"
-# echo $BASE_IMAGE
-# echo $IMAGE_BUILDER_IMAGE
-# echo $RAZOR_SERVER_IMAGE
-# echo "---------- AFTER ---------"
 
 VARS=$(compgen -v)
 
