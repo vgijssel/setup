@@ -3,14 +3,13 @@ FROM docker.pkg.github.com/mvgijssel/setup/base-image:${IMAGE_SHA_TAG}
 
 WORKDIR /app
 
-# TODO: maybe only qemu-utils and qemu-system-x86_64
 RUN apt-get update && \
     apt-get install -y \
     squashfs-tools \
     curl \
     wget \
     sudo \
-    qemu \
+    qemu-utils \
     expect \
     kpartx \
     git \
