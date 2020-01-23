@@ -80,14 +80,28 @@ jobs:
   #   - run: brew install qemu expect cdrtools
   #   - run: ./kubernetes/tests.exp
 
+
+  # How to install tuntap on macstadium
   macos-test:
     name: Testing macos installs
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
+    - run: spctl kext-consent status
+       if: always()
+
+    - run: spctl kext-consent disable
+       if: always()
+
+    - run: spctl kext-consent status
+       if: always()
+
     - run: brew cask install tuntap
+       if: always()
+
     - run: brew install qemu expect cdrtools
+       if: always()
 
   #   - name: Build the Kubernetes image
   #     run: |
