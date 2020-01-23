@@ -20,13 +20,10 @@ jobs:
       run: |
         env
     - uses: actions/checkout@v1
-    - run: |
-        env;
-        ./scripts/load_env.sh;
 
-        echo "ENV SET??"
+    - run: ./scripts/load_env.sh;
+    - run: |
         echo $BASE_IMAGE;
-        echo "ENV SET DONE"
 
         docker_build.sh "${BASE_IMAGE}" "./base-image"
 

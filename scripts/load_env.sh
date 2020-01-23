@@ -2,4 +2,6 @@
 
 set -Eeoux pipefail
 
-source .envrc
+# source .envrc
+
+echo "::set-env name=BASE_IMAGE::yellow"
