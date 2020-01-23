@@ -5,6 +5,12 @@ env:
   GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
+  macos-test:
+    name: Testing macos installs
+    runs-on: macos-latest
+    steps:
+    - run: sudo brew install qemu tuntap expect
+
   base-image:
     name: Build docker base image
     runs-on: ubuntu-latest
