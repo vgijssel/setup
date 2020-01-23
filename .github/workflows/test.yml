@@ -82,6 +82,7 @@ jobs:
 
 
   # How to install tuntap on macstadium
+  # Gatekeeper security feature in macos
   macos-test:
     name: Testing macos installs
     runs-on: macos-latest
@@ -89,19 +90,19 @@ jobs:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
     - run: spctl kext-consent status
-       if: always()
+      if: always()
 
     - run: spctl kext-consent disable
-       if: always()
+      if: always()
 
     - run: spctl kext-consent status
-       if: always()
+      if: always()
 
     - run: brew cask install tuntap
-       if: always()
+      if: always()
 
     - run: brew install qemu expect cdrtools
-       if: always()
+      if: always()
 
   #   - name: Build the Kubernetes image
   #     run: |
