@@ -71,6 +71,7 @@ jobs:
     needs: kubernetes
     steps:
     - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes-image
