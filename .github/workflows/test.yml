@@ -74,6 +74,7 @@ jobs:
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes-image
+        path: ./kubernetes/images/kubernetes_buster.qcow2
     - run: ls -la ./kubernetes/images
     - run: brew install qemu expect
     - run: ./kubernetes/tests.exp
