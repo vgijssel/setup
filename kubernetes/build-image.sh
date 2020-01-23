@@ -17,4 +17,4 @@ docker run \
        --env DIB_RELEASE \
        --env DIB_APT_MINIMAL_CREATE_INTERFACES \
        "${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}" \
-       echo "kerk" > images/kubernetes_buster.qcow2
+       /bin/bash -c 'echo "kerk" > images/kubernetes_buster.qcow2'
