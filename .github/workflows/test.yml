@@ -21,6 +21,8 @@ jobs:
         env
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
+      run: |
+        env
     - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
 
   image-builder:
