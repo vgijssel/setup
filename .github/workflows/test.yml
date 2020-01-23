@@ -20,12 +20,8 @@ jobs:
       run: |
         env
     - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh;
-    - run: |
-        echo $BASE_IMAGE;
-        echo $SETUP_SCRIPT_DIR;
-
-        docker_build.sh "${BASE_IMAGE}" "./base-image"
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
 
   image-builder:
     name: Build image builder image
@@ -33,9 +29,8 @@ jobs:
     needs: base-image
     steps:
     - uses: actions/checkout@v1
-    - run: |
-        ./scripts/load_env.sh;
-        docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
   razor-server:
     name: Build razor server image
@@ -43,9 +38,8 @@ jobs:
     needs: base-image
     steps:
     - uses: actions/checkout@v1
-    - run: |
-        ./scripts/load_env.sh;
-        docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
 
   deploy-image:
     name: Build deploy image
@@ -53,9 +47,8 @@ jobs:
     needs: image-builder
     steps:
     - uses: actions/checkout@v1
-    - run: |
-        ./scripts/load_env.sh;
-        ./deploy-image/build-image.sh
+    - run: ./scripts/load_env.sh
+    - run: ./deploy-image/build-image.sh
 
   kubernetes:
     name: Build kubernetes image
@@ -63,9 +56,9 @@ jobs:
     needs: image-builder
     steps:
     - uses: actions/checkout@v1
-    - run: |
-        ./scripts/load_env.sh;
-        ./kubernetes/build-image.sh
+    - run: ./scripts/load_env.sh
+    - run: ./kubernetes/build-image.sh
+
 
   #   - name: Build the Kubernetes image
   #     run: |
