@@ -21,6 +21,11 @@ jobs:
       run: |
         env
     - uses: actions/checkout@v1
+    - run: ls -la
+    - uses: actions/upload-artifact@v1
+      with:
+        name: test-file
+        path: ./kubernetes/migrate_zfs_pool.md
     - run: ./scripts/load_env.sh
     - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
 
@@ -67,6 +72,7 @@ jobs:
   macos-test:
     name: Testing macos installs
     runs-on: macos-latest
+    needs: kubernetes
     steps:
     - uses: actions/checkout@v1
     - uses: actions/download-artifact@v1
