@@ -21,11 +21,6 @@ jobs:
       run: |
         env
     - uses: actions/checkout@v1
-    - run: ls -la
-    - uses: actions/upload-artifact@v1
-      with:
-        name: test-file
-        path: ./kubernetes/migrate_zfs_pool.md
     - run: ./scripts/load_env.sh
     - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
 
@@ -64,10 +59,11 @@ jobs:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
     - run: ./kubernetes/build-image.sh
+    - run: ls -la ./kubernetes/images
     - uses: actions/upload-artifact@v1
       with:
         name: kubernetes-image
-        path: ./kubernetes/images/kubernetes_stretch.qcow2
+        path: ./kubernetes/images/kubernetes_buster.qcow2
 
   macos-test:
     name: Testing macos installs
@@ -78,6 +74,7 @@ jobs:
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes-image
+    - run: ls -la ./kubernetes/images
     - run: brew install qemu expect
     - run: ./kubernetes/tests.exp
 

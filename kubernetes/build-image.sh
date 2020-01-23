@@ -17,4 +17,4 @@ docker run \
        --env DIB_RELEASE \
        --env DIB_APT_MINIMAL_CREATE_INTERFACES \
        "${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}" \
-       disk-image-create -x -o images/kubernetes_buster debian vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
+       echo "kerk" > images/kubernetes_buster.qcow2
