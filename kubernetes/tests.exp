@@ -1,7 +1,7 @@
 #!/usr/bin/expect -f
 
-# Wait upto 5 minutes per statement
-set timeout 300
+# Wait upto 60 seconds per statement
+set timeout 60
 
 # Prints debug information to specified file
 # without this running expect scripts seem to stop at random with "spawn id exp6 not open"
@@ -23,10 +23,14 @@ send "debian\n"
 # Check for the prompt
 expect -ex "debian@worker-test:~$"
 
+# Change to root
+send "sudo su\n"
+expect -ex "root@worker-test:/home/debian#"
+
 # Run the goss validator
-send "sudo goss --gossfile /etc/goss/goss.yaml --vars <(facter -j) validate\n"
+send "goss --gossfile /etc/goss/goss.yaml --vars <(facter -j) validate\n"
 
 # expect eof
-expect "Count: 31"
+expect "Count: 30"
 
 close $spawn_id
