@@ -4,6 +4,7 @@ set -Eeou pipefail
 
 source .envrc
 
+# get a list of all the environment variable names
 VARS=$(compgen -v)
 
 # from: https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions#set-an-environment-variable-set-env
@@ -22,7 +23,7 @@ for var in $VARS; do
 done
 
 if [[ $GITHUB_REF = "refs/heads/HEAD" ]]; then
-  echo "GITHUB_REF value is not correct: `$GITHUB_REF`, " \
+  echo "GITHUB_REF value is not correct: '$GITHUB_REF', " \
        "please check if .envrc sourcing is done correctly."
 
   exit 1
