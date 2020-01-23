@@ -9,7 +9,7 @@ jobs:
     name: Testing macos installs
     runs-on: macos-latest
     steps:
-    - run: brew cask install tuntap
+    # - run: brew cask install tuntap
     - run: brew install qemu expect
 
   base-image:
