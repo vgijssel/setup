@@ -12,60 +12,60 @@ jobs:
     # - run: brew cask install tuntap
     - run: brew install qemu expect
 
-  base-image:
-    name: Build docker base image
-    runs-on: ubuntu-latest
-    steps:
-    - env:
-        GITHUB: ${{ toJson(github) }}
-        ENV: ${{ toJson(env) }}
-        JOB: ${{ toJson(job) }}
-        STEPS: ${{ toJson(steps) }}
-        RUNNER: ${{ toJson(runner) }}
-        SECRETS: ${{ toJson(secrets) }}
-        STRATEGY: ${{ toJson(strategy) }}
-        MATRIX: ${{ toJson(matrix) }}
-      run: |
-        env
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
+  # base-image:
+  #   name: Build docker base image
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - env:
+  #       GITHUB: ${{ toJson(github) }}
+  #       ENV: ${{ toJson(env) }}
+  #       JOB: ${{ toJson(job) }}
+  #       STEPS: ${{ toJson(steps) }}
+  #       RUNNER: ${{ toJson(runner) }}
+  #       SECRETS: ${{ toJson(secrets) }}
+  #       STRATEGY: ${{ toJson(strategy) }}
+  #       MATRIX: ${{ toJson(matrix) }}
+  #     run: |
+  #       env
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/load_env.sh
+  #   - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
 
-  image-builder:
-    name: Build image builder image
-    runs-on: ubuntu-latest
-    needs: base-image
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+  # image-builder:
+  #   name: Build image builder image
+  #   runs-on: ubuntu-latest
+  #   needs: base-image
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/load_env.sh
+  #   - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
-  razor-server:
-    name: Build razor server image
-    runs-on: ubuntu-latest
-    needs: base-image
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
+  # razor-server:
+  #   name: Build razor server image
+  #   runs-on: ubuntu-latest
+  #   needs: base-image
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/load_env.sh
+  #   - run: docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
 
-  deploy-image:
-    name: Build deploy image
-    runs-on: ubuntu-latest
-    needs: image-builder
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: ./deploy-image/build-image.sh
+  # deploy-image:
+  #   name: Build deploy image
+  #   runs-on: ubuntu-latest
+  #   needs: image-builder
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/load_env.sh
+  #   - run: ./deploy-image/build-image.sh
 
-  kubernetes:
-    name: Build kubernetes image
-    runs-on: ubuntu-latest
-    needs: image-builder
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: ./kubernetes/build-image.sh
+  # kubernetes:
+  #   name: Build kubernetes image
+  #   runs-on: ubuntu-latest
+  #   needs: image-builder
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/load_env.sh
+  #   - run: ./kubernetes/build-image.sh
 
 
   #   - name: Build the Kubernetes image
