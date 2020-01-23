@@ -2,5 +2,4 @@
 packer_cache
 packer_output
 vagrant_boxes
-cloud-init.iso
 *.temp
