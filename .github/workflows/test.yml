@@ -77,7 +77,7 @@ jobs:
         name: kubernetes_buster.qcow2
         path: ./kubernetes/images
     - run: ls -la ./kubernetes/images
-    - run: brew install qemu expect
+    - run: brew install qemu expect cdrtools
     - run: ./kubernetes/tests.exp
 
   #   - name: Build the Kubernetes image
