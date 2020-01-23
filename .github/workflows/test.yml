@@ -23,10 +23,11 @@ jobs:
     - run: |
         env;
         ./scripts/load_env.sh;
-        echo "NEW ENV";
-        env;
-        echo "BEFORE BUILD LE PATH:";
-        echo $PATH;
+
+        echo "ENV SET??"
+        echo $BASE_IMAGE;
+        echo "ENV SET DONE"
+
         docker_build.sh "${BASE_IMAGE}" "./base-image"
 
   image-builder:
