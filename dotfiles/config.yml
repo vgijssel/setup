@@ -128,9 +128,11 @@ languages:
       - name: typescript # typescript
       - name: speedscope # profiling presentation
       - name: depcheck # tool for checking used dependencies in a JS project
-    global: 12.13.0
+    global: 12.14.0
     versions:
       - version: 12.13.0
+        packages: []
+      - version: 12.14.0
         packages: []
       - version: 12.0.0
         packages: []
@@ -155,6 +157,7 @@ languages:
         solargraph: 2.6.1
         gems:
           - { name: bundler, version: 1.17.3 }
+          - { name: bundler, version: 2.1.4 }
           - { name: rubocop, version: 0.73.0 }
       - version: 2.5.3
         solargraph: 2.5.3
