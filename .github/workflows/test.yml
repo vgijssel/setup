@@ -2,9 +2,6 @@ name: Test
 on: [push]
 env:
   GITHUB_TOKEN: ${{ github.token }}
-  BASE_IMAGE: docker.pkg.github.com/mvgijssel/setup/base-image
-  IMAGE_BUILDER_IMAGE: docker.pkg.github.com/mvgijssel/setup/image-builder
-  RAZOR_SERVER_IMAGE: docker.pkg.github.com/mvgijssel/setup/razor-server
 
 jobs:
   base-image:
@@ -23,7 +20,8 @@ jobs:
       run: |
         env
     - uses: actions/checkout@v1
-    - run: ./scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
 
   image-builder:
     name: Build image builder image
@@ -31,7 +29,8 @@ jobs:
     needs: base-image
     steps:
     - uses: actions/checkout@v1
-    - run: ./scripts/docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
   razor-server:
     name: Build razor server image
@@ -39,7 +38,8 @@ jobs:
     needs: base-image
     steps:
     - uses: actions/checkout@v1
-    - run: ./scripts/docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
 
   deploy-image:
     name: Build deploy image
@@ -47,6 +47,7 @@ jobs:
     needs: image-builder
     steps:
     - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
     - run: ./deploy-image/build-image.sh
 
   kubernetes:
@@ -55,8 +56,8 @@ jobs:
     needs: image-builder
     steps:
     - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
     - run: ./kubernetes/build-image.sh
-
 
   #   - name: Build the Kubernetes image
   #     run: |
