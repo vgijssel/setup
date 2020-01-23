@@ -1,7 +1,8 @@
 #!/bin/bash
 
-set -e
-set +x
+set -Eeoux pipefail
+
+IMAGE_NAME="$1"
 
 echo "Booting image: '$@'"
 

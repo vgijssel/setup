@@ -23,7 +23,7 @@ jobs:
       run: |
         env
     - uses: actions/checkout@v1
-    - run: .github/scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
+    - run: ./scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
 
   image-builder:
     name: Build image builder image
@@ -31,7 +31,7 @@ jobs:
     needs: base-image
     steps:
     - uses: actions/checkout@v1
-    - run: .github/scripts/docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+    - run: ./scripts/docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
   razor-server:
     name: Build razor server image
@@ -39,7 +39,7 @@ jobs:
     needs: base-image
     steps:
     - uses: actions/checkout@v1
-    - run: .github/scripts/docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
+    - run: ./scripts/docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
 
   deploy-image:
     name: Build deploy image
