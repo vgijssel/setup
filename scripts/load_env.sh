@@ -21,4 +21,7 @@ for var in $VARS; do
   fi
 done
 
-echo $GITHUB_REF
+if [[ $GITHUB_REF = "refs/heads/HEAD" ]]; then
+  echo "GITHUB_REF value is not correct, please check if .envrc sourcing is done correctly."
+  exit 1
+fi
