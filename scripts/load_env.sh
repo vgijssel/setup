@@ -20,3 +20,5 @@ for var in $VARS; do
       echo "::set-env name=$var::${!var}"
   fi
 done
+
+echo $GITHUB_REF
