@@ -92,6 +92,12 @@ jobs:
     - run: spctl kext-consent status
       if: always()
 
+    - run: spctl --master-disable
+      if: always()
+
+    - run: sudo spctl --master-disable
+      if: always()
+
     - run: spctl kext-consent disable
       if: always()
 
