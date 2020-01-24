@@ -10,6 +10,9 @@ RUN apt-get update && \
     wget \
     sudo \
     qemu-utils \
+    qemu-system-x86 \
+    dnsmasq \
+    iptables \
     expect \
     kpartx \
     git \
@@ -30,3 +33,6 @@ ENV ELEMENTS_PATH '/app/elements'
 
 RUN git clone -b 'bug/fix-ramdisk-building' --single-branch --depth 1 https://github.com/mvgijssel/diskimage-builder.git
 RUN pip install -e diskimage-builder
+
+ADD setup-network.sh /bin/setup-network.sh
+ENTRYPOINT ["/bin/setup-network.sh"]

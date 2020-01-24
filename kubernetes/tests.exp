@@ -1,7 +1,9 @@
 #!/usr/bin/expect -f
 
-# Wait upto 60 seconds per statement
-set timeout 60
+# TODO: can we write the test output to a different serial port? Including exit status?
+
+# each operation takes up to 300 seconds
+set timeout 300
 
 # Prints debug information to specified file
 # without this running expect scripts seem to stop at random with "spawn id exp6 not open"
@@ -13,6 +15,10 @@ spawn qemu_run.sh worker-test $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_bus
 # Press ENTER in the grub boot menu
 expect "GNU GRUB"
 send "\n"
+
+# Wait for cloud-init to finish to not get mixed stdout messages
+expect -ex "Cloud-init v. 18.3 finished at"
+send "\n\n\n"
 
 expect -ex "worker-test login: "
 send "debian\n"

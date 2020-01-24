@@ -48,7 +48,7 @@ cat <<EOF | tee $IMAGE_FILE_COPY_DIR/network-config
 version: 1
 config:
 - type: physical
-  name: ens3
+  name: ens2
   subnets:
     - type: dhcp
 EOF
@@ -66,15 +66,20 @@ mkisofs \
 # -serial mon:stdio
 #         In this mode, the virtual serial port and QEMU monitor are multiplexed onto stdio.
 #         And Ctrl+c is handled, i.e. QEMU won’t be terminated, and the signal will be passed to the guest.
+#
+# -nodefaults disables the default devices like floppy drive
+#
+# -accel hax
+#        enables hardware acceleration on macos local and github
 
 qemu-system-x86_64 \
   -m 2048 \
   -smp 2 \
   -serial mon:stdio \
   -display none \
-  -accel hax \
+  -nodefaults \
   -netdev tap,id=mynet0,script="$QEMU_IFUP",downscript="$QEMU_IFDOWN" \
   -device virtio-net,mac="$QEMU_MAC",netdev=mynet0 \
   -device virtio-rng-pci \
   -drive file="$IMAGE_FILE_COPY_FILE",if=virtio \
-  -drive file="$CLOUD_INIT_FILE",if=virtio
+  -drive file="$CLOUD_INIT_FILE",format=raw,if=virtio
