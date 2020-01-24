@@ -98,7 +98,7 @@ jobs:
     - run: sudo spctl --master-disable
       if: always()
 
-    - ru: sudo defaults write /Library/Preferences/com.apple.security GKAutoRearm -bool false
+    - run: sudo defaults write /Library/Preferences/com.apple.security GKAutoRearm -bool false
       if: always()
 
     - run: spctl kext-consent disable
