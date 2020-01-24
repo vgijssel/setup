@@ -18,6 +18,6 @@ iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -i qemu-bridge -o eth0 -j ACCEPT
 
 # Boot dnsmasq
-dnsmasq --log-queries --log-dhcp --log-facility=/dev/stdout --dhcp-range=192.168.100.10,192.168.100.50,1h
+dnsmasq --log-dhcp --log-facility=/dev/stdout --dhcp-range=192.168.100.10,192.168.100.50,1h
 
 exec "$@"
