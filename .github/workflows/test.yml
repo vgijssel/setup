@@ -5,6 +5,22 @@ env:
   GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
+  macos-test:
+    name: Testing macos installs
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: spctl kext-consent status
+    - run: sudo spctl --master-disable
+    - run: sudo defaults write /Library/Preferences/com.apple.security GKAutoRearm -bool false
+    - run: sudo spctl kext-consent disable
+      if: always()
+    - run: spctl kext-consent status
+      if: always()
+    - run: brew cask install tuntap
+      if: always()
+
   base-image:
     name: Build docker base image
     runs-on: ubuntu-latest
