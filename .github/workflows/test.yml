@@ -10,7 +10,6 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
     - run: spctl kext-consent status
     - run: sudo spctl --master-disable
     - run: sudo defaults write /Library/Preferences/com.apple.security GKAutoRearm -bool false
