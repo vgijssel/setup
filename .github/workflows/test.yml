@@ -15,6 +15,14 @@ jobs:
     - run: sudo defaults write /Library/Preferences/com.apple.security GKAutoRearm -bool false
     - run: sudo spctl kext-consent disable
       if: always()
+    - run: spctl kext-consent add KS8XL6T9FZ
+      if: always()
+    - run: sudo spctl kext-consent add KS8XL6T9FZ
+      if: always()
+    - run: spctl kext-consent list
+      if: always()
+    - run: sudo spctl kext-consent list
+      if: always()
     - run: spctl kext-consent status
       if: always()
     - run: brew cask install tuntap
