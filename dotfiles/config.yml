@@ -28,12 +28,13 @@ homebrew_installed_packages:
   - v8@3.15 # the ruby racer gem
   - imagemagick # otherwise Rails image upload no work
 
-  - dnsmasq
+  - dnsmasq # dhcp / dns server
 
   - packer # creating images for Vagrant
   - expect # automating testing of interactive applications
   - cdrtools # contains mkisofs for making cloud-init images
   - minikube # for running kubernetes locally
+  - qemu # running virtual machines using an emulator for testing
 
   # Emacs
   - emacs-plus
@@ -89,7 +90,6 @@ homebrew_cask_apps:
   - vmware-fusion
   - vnc-viewer # to show qemu running hosts
   - intel-haxm # qemu accelerator which also works on GitHub Actons
-  - tuntap # creates tap interfaces for qemu bridge networking
   - gpg-suite
   - 1password-cli
   - steam

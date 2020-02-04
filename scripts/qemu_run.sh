@@ -3,13 +3,14 @@
 set -Eeoux pipefail
 
 IMAGE_NAME="$1"
-IMAGE_FILE="$2"
+MACHINE_NUMBER="$2"
+IMAGE_FILE="$3"
 IMAGE_FILE_COPY_DIR="$SETUP_TMP_DIR/$IMAGE_NAME"
 IMAGE_FILE_COPY_FILE="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.qcow2"
 CLOUD_INIT_FILE="$IMAGE_FILE_COPY_DIR/cloud-init.iso"
 QEMU_IFUP="$SETUP_SCRIPT_DIR/qemu-ifup.sh"
 QEMU_IFDOWN="$SETUP_SCRIPT_DIR/qemu-ifdown.sh"
-QEMU_MAC=52:54:00:0e:e0:65
+QEMU_MAC="52:54:00:0e:e0:6${MACHINE_NUMBER}"
 
 echo "Booting '$IMAGE_NAME' with disk '$IMAGE_FILE'"
 
@@ -51,6 +52,11 @@ config:
   name: ens2
   subnets:
     - type: dhcp
+- type: physical
+  name: ens3
+  subnets:
+     - type: static
+       address: 192.168.100.1${MACHINE_NUMBER}/24
 EOF
 
 # Generate cloud-init image
@@ -77,9 +83,12 @@ qemu-system-x86_64 \
   -smp 2 \
   -serial mon:stdio \
   -display none \
+  -vga none \
   -nodefaults \
-  -netdev tap,id=mynet0,script="$QEMU_IFUP",downscript="$QEMU_IFDOWN" \
-  -device virtio-net,mac="$QEMU_MAC",netdev=mynet0 \
+  -accel hax \
+  -nic user,model=e1000 \
+  -net nic,macaddr="$QEMU_MAC",model=e1000 \
+  -net vde,sock=/tmp/qemu_vde_switch \
   -device virtio-rng-pci \
   -drive file="$IMAGE_FILE_COPY_FILE",if=virtio \
   -drive file="$CLOUD_INIT_FILE",format=raw,if=virtio
