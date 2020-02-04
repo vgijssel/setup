@@ -4,7 +4,8 @@ set -Eeoux pipefail
 
 IMAGE_NAME="$1"
 MACHINE_NUMBER="$2"
-IMAGE_FILE="$3"
+SOCKET_MODE="$3"
+IMAGE_FILE="$4"
 IMAGE_FILE_COPY_DIR="$SETUP_TMP_DIR/$IMAGE_NAME"
 IMAGE_FILE_COPY_FILE="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.qcow2"
 CLOUD_INIT_FILE="$IMAGE_FILE_COPY_DIR/cloud-init.iso"
@@ -88,7 +89,7 @@ qemu-system-x86_64 \
   -accel hax \
   -netdev user,id=mynet0 \
   -device virtio-net-pci,netdev=mynet0 \
-  -netdev socket,id=vlan,mcast=239.192.0.1:1235 \
+  -netdev socket,id=vlan,"${SOCKET_MODE}"=127.0.0.1:1234 \
   -device virtio-net-pci,netdev=vlan,mac="${QEMU_MAC}" \
   -device virtio-rng-pci \
   -drive file="$IMAGE_FILE_COPY_FILE",if=virtio \
