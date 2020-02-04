@@ -5,84 +5,75 @@ env:
   GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
-  macos-test:
-    name: Testing macos installs
-    runs-on: macos-latest
+  base-image:
+    name: Build docker base image
+    runs-on: ubuntu-latest
+    steps:
+    - env:
+        GITHUB: ${{ toJson(github) }}
+        ENV: ${{ toJson(env) }}
+        JOB: ${{ toJson(job) }}
+        STEPS: ${{ toJson(steps) }}
+        RUNNER: ${{ toJson(runner) }}
+        SECRETS: ${{ toJson(secrets) }}
+        STRATEGY: ${{ toJson(strategy) }}
+        MATRIX: ${{ toJson(matrix) }}
+      run: |
+        env
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
+
+  image-builder:
+    name: Build image builder image
+    runs-on: ubuntu-latest
+    needs: base-image
     steps:
     - uses: actions/checkout@v1
-    - run: spctl kext-consent status
-    - run: sudo spctl --master-disable
-    - run: sudo defaults write /Library/Preferences/com.apple.security GKAutoRearm -bool false
-    - run: sudo spctl kext-consent disable
-      if: always()
-    - run: sudo spctl kext-consent add KS8XL6T9FZ
-      if: always()
-    - run: sudo spctl kext-consent list
-      if: always()
-    - run: sudo spctl kext-consent status
-      if: always()
-    - run: screencapture test.jpg
-      if: always()
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+
+  razor-server:
+    name: Build razor server image
+    runs-on: ubuntu-latest
+    needs: base-image
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
+
+  deploy-image:
+    name: Build deploy image
+    runs-on: ubuntu-latest
+    needs: image-builder
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: ./deploy-image/build-image.sh
+
+  build-kubernetes:
+    name: Build kubernetes image
+    runs-on: ubuntu-latest
+    needs: image-builder
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: ./kubernetes/build-image.sh
     - uses: actions/upload-artifact@v1
-      if: always()
       with:
-        name: test.jpg
-        path: test.jpg
-    - run: brew cask install tuntap
-      if: always()
+        name: kubernetes_buster.qcow2
+        path: ./kubernetes/images/kubernetes_buster.qcow2
 
-  # base-image:
-  #   name: Build docker base image
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - env:
-  #       GITHUB: ${{ toJson(github) }}
-  #       ENV: ${{ toJson(env) }}
-  #       JOB: ${{ toJson(job) }}
-  #       STEPS: ${{ toJson(steps) }}
-  #       RUNNER: ${{ toJson(runner) }}
-  #       SECRETS: ${{ toJson(secrets) }}
-  #       STRATEGY: ${{ toJson(strategy) }}
-  #       MATRIX: ${{ toJson(matrix) }}
-  #     run: |
-  #       env
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
-
-  # image-builder:
-  #   name: Build image builder image
-  #   runs-on: ubuntu-latest
-  #   needs: base-image
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
-
-  # razor-server:
-  #   name: Build razor server image
-  #   runs-on: ubuntu-latest
-  #   needs: base-image
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
-
-  # deploy-image:
-  #   name: Build deploy image
-  #   runs-on: ubuntu-latest
-  #   needs: image-builder
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: ./deploy-image/build-image.sh
-
-  # kubernetes:
-  #   name: Build kubernetes image
-  #   runs-on: ubuntu-latest
-  #   needs: image-builder
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: ./kubernetes/build-image.sh
-  #   - run: ./kubernetes/test-image.sh
+  test-kubernetes:
+    name: Test kubernetes image
+    runs-on: macos-latest
+    needs: build-kubernetes
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: brew install qemu cdrtools
+    - uses: actions/download-artifact@v1
+      with:
+        name: kubernetes_buster.qcow2
+        path: ./kubernetes/images/kubernetes_buster.qcow2
+    - run: ./kubernetes/tests.exp
