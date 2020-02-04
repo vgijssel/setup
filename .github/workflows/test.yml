@@ -75,5 +75,5 @@ jobs:
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes_buster.qcow2
-        path: ./kubernetes/images/kubernetes_buster.qcow2
+        path: ./kubernetes/images
     - run: ./kubernetes/tests.exp
