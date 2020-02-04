@@ -91,7 +91,7 @@ qemu-system-x86_64 \
   -vga none \
   -nodefaults \
   -accel hax \
-  -netdev user,id=mynet0,hostfwd=tcp::220"${MACHINE_NUMBER}"-:22 \
+  -netdev user,id=mynet0,hostfwd=tcp:127.0.0.1:220"${MACHINE_NUMBER}"-:22 \
   -device virtio-net-pci,netdev=mynet0 \
   -netdev socket,id=vlan,"${SOCKET_MODE}"=127.0.0.1:1234 \
   -device virtio-net-pci,netdev=vlan,mac="${QEMU_MAC}" \
