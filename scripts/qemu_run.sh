@@ -86,9 +86,10 @@ qemu-system-x86_64 \
   -vga none \
   -nodefaults \
   -accel hax \
-  -nic user,model=e1000 \
-  -net nic,macaddr="$QEMU_MAC",model=e1000 \
-  -net vde,sock=/tmp/qemu_vde_switch \
+  -netdev user,id=mynet0 \
+  -device virtio-net-pci,netdev=mynet0 \
+  -netdev socket,id=vlan,mcast=239.192.0.1:1235 \
+  -device virtio-net-pci,netdev=vlan \
   -device virtio-rng-pci \
   -drive file="$IMAGE_FILE_COPY_FILE",if=virtio \
   -drive file="$CLOUD_INIT_FILE",format=raw,if=virtio
