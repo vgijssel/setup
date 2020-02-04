@@ -9,8 +9,6 @@ IMAGE_FILE="$4"
 IMAGE_FILE_COPY_DIR="$SETUP_TMP_DIR/$IMAGE_NAME"
 IMAGE_FILE_COPY_FILE="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.qcow2"
 CLOUD_INIT_FILE="$IMAGE_FILE_COPY_DIR/cloud-init.iso"
-QEMU_IFUP="$SETUP_SCRIPT_DIR/qemu-ifup.sh"
-QEMU_IFDOWN="$SETUP_SCRIPT_DIR/qemu-ifdown.sh"
 QEMU_MAC="52:54:00:0e:e0:6${MACHINE_NUMBER}"
 
 echo "Booting '$IMAGE_NAME' with disk '$IMAGE_FILE'"
@@ -32,11 +30,17 @@ manage_etc_hosts: true
 users:
   - name: debian
     plain_text_passwd: debian
+
     # So we can login at the console
     lock_passwd: false
+
     shell: /bin/bash
+
     # Unrestricted sudo access
     sudo: ALL=(ALL) NOPASSWD:ALL
+
+    ssh_authorized_keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCn4TA0w3azvSkj0N8fDVeXKdXybpWK8QyWQOsSV69lBjN9weF2oq1/r55AC+zVbLeHdhUYcMFOhKnzCCT/QqaA53LJ8WQ5n3a8vY0z3r1URiBj8hXsUZ4tonRGPl9TtmHA2cFvU1yqD/OVN8zQQUSgmwib7BS9nQANbZNv/cTG1Jq44A+NSA8wY6dkfdOhRd1XISZGSuYAEdScv2OKqehWDquxksJ8xmQJw7OBpkk7idm6sDKj+aSAkjNZCcE9WaLQghDzvrUC2dhaPXbTC/m1L/PfBe0ohqV1BAPMAF+gRHGTGRIZEDEJHeaSOt23f01kn2froYiAfYgaTZUzbucB test-keys@localhost
 EOF
 
 # Create cloud-init meta-data
@@ -87,7 +91,7 @@ qemu-system-x86_64 \
   -vga none \
   -nodefaults \
   -accel hax \
-  -netdev user,id=mynet0 \
+  -netdev user,id=mynet0,hostfwd=tcp::220"${MACHINE_NUMBER}"-:22 \
   -device virtio-net-pci,netdev=mynet0 \
   -netdev socket,id=vlan,"${SOCKET_MODE}"=127.0.0.1:1234 \
   -device virtio-net-pci,netdev=vlan,mac="${QEMU_MAC}" \

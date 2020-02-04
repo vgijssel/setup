@@ -1,7 +1,5 @@
 #!/usr/bin/expect -f
 
-# TODO: can we write the test output to a different serial port? Including exit status?
-
 # each operation takes up to 300 seconds
 set timeout 300
 
@@ -9,34 +7,98 @@ set timeout 300
 # without this running expect scripts seem to stop at random with "spawn id exp6 not open"
 exp_internal -f $::env(SETUP_TMP_DIR)/kubernetes_tests.log 0
 
-# Start the kubernetes worker vm
-spawn qemu_run.sh worker-test $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
+proc ssh { PORT PROGRAM } {
+  return "ssh debian@localhost -p $PORT -i $::env(SETUP_SCRIPTS_DIR)/keys/id_rsa -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile /dev/null\" $PROGRAM"
+}
 
-# Press ENTER in the grub boot menu
-expect "GNU GRUB"
-send "\n"
+set TOKEN "b0f7b8.8d1767876297d85c"
+set MASTER_IP "192.168.100.11"
 
-# Wait for cloud-init to finish to not get mixed stdout messages
-expect -ex "Cloud-init v. 18.3 finished at"
-send "\n\n\n"
+# NOTE the \\\, this is because we need to escape the TCL variable
+# and the shell variable. This makes sure the variables will be executed on
+# the SSH session and not in TCL or macos.
+set INIT_SCRIPT "<< EOF
+  sudo kubeadm init \
+    --apiserver-advertise-address=$MASTER_IP \
+    --pod-network-cidr=10.244.0.0/16 \
+    --token $TOKEN;
+  echo \\\$HOME;
+  echo \\\$(id -u);
+  mkdir -p \\\$HOME/.kube;
+  sudo cp -v -i /etc/kubernetes/admin.conf \\\$HOME/.kube/config;
+  sudo chown \\\$(id -u):\\\$(id -g) \\\$HOME/.kube/config;
+  kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml;
+"
 
-expect -ex "worker-test login: "
-send "debian\n"
+set JOIN_SCRIPT "<< EOF
+  sudo kubeadm join \
+    $MASTER_IP:6443 \
+    --token $TOKEN \
+    --discovery-token-unsafe-skip-ca-verification;
+"
 
-expect -ex "Password: "
-send "debian\n"
+# Boot kubernetes master
+spawn qemu_run.sh master 1 listen $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
+set master_id $spawn_id
 
-# Check for the prompt
-expect -ex "debian@worker-test:~$"
+# Skip the grub menu by pressing enter
+expect -i $master_id "GNU GRUB"
+send -i $master_id "\n"
 
-# Change to root
-send "sudo su\n"
-expect -ex "root@worker-test:/home/debian#"
+# Wait for the prompt
+expect -i $master_id -ex "master login: "
 
-# Run the goss validator
-send "goss --gossfile /etc/goss/goss.yaml --vars <(facter -j) validate\n"
+# Initialize kubernetes master
+system [ssh 2201 $INIT_SCRIPT]
 
-# expect eof
-expect "Count: 30"
+# Boot kubernetes worker
+spawn qemu_run.sh worker 2 connect $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
+set worker_id $spawn_id
 
-close $spawn_id
+# Skip the grub menu by pressing enter
+expect -i $worker_id "GNU GRUB"
+send -i $worker_id "\n"
+
+# Wait for the prompt
+expect -i $worker_id -ex "worker login: "
+
+# Join the kubernetes cluster
+system [ssh 2202 $JOIN_SCRIPT]
+
+# # Start
+
+# # Start the kubernetes worker
+# # spawn qemu_run.sh worker 2 connect $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
+# # set worker $spawn_id
+
+# # expect -i $worker "GNU GRUB"
+# # send -i $worker "\n"
+
+# # expect -i $worker -ex "worker login: "
+# # send -i $worker "debian\n"
+
+# # expect -i $worker -ex "Password: "
+# # send -i $worker "debian\n"
+
+# # Press ENTER in the grub boot menu
+
+# # # Wait for cloud-init to finish to not get mixed stdout messages
+# # expect -ex "Cloud-init v. 18.3 finished at"
+# # send "\n\n\n"
+
+
+# # # Check for the prompt
+# # expect -ex "debian@worker-test:~$"
+
+# # # Change to root
+# # send "sudo su\n"
+# # expect -ex "root@worker-test:/home/debian#"
+
+# # # Run the goss validator
+# # send "goss --gossfile /etc/goss/goss.yaml --vars <(facter -j) validate\n"
+
+# # # expect eof
+# # expect "Count: 30"
+
+# close $master_id
+# close $worker
