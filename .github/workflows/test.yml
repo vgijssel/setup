@@ -69,6 +69,8 @@ jobs:
     runs-on: macos-latest
     steps:
     - run: sudo pfctl -sa
+    - run: sudo pfctl -a '*' -Fa
+    - run: sudo pfctl -sa
     - run: ssh -V
 
   test-kubernetes:
@@ -81,6 +83,7 @@ jobs:
     - run: brew install qemu cdrtools
     # Disable the firewall
     - run: sudo /usr/bin/defaults write /Library/Preferences/com.apple.alf globalstate -int 0
+    - run: chmod 0400 scripts/keys/id_rsa
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes_buster.qcow2
