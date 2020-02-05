@@ -45,10 +45,11 @@ set master_id $spawn_id
 expect -i $master_id "GNU GRUB"
 send -i $master_id "\n"
 
+# Wait for cloud init to finish
+expect -i $master_id -ex "Cloud-init v. 18.3 finished"
+
 # Wait for the prompt
 expect -i $master_id -ex "master login: "
-
-system "sleep 60"
 
 # Initialize kubernetes master
 system [ssh 2201 $INIT_SCRIPT]
