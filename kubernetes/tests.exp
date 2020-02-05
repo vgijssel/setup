@@ -48,6 +48,8 @@ send -i $master_id "\n"
 # Wait for the prompt
 expect -i $master_id -ex "master login: "
 
+system "sleep 60"
+
 # Initialize kubernetes master
 system [ssh 2201 $INIT_SCRIPT]
 
