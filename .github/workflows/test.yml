@@ -86,6 +86,7 @@ jobs:
         name: kubernetes_buster.qcow2
         path: ./kubernetes/images
     # Disable the firewall
+    - run: sudo pfctl -a '*' -Fa
     - run: sudo /usr/bin/defaults write /Library/Preferences/com.apple.alf globalstate -int 0
     - run: chmod 0400 scripts/keys/id_rsa
     - run: ./kubernetes/tests.exp
