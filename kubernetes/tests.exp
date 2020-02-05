@@ -8,7 +8,7 @@ set timeout 300
 exp_internal -f $::env(SETUP_TMP_DIR)/kubernetes_tests.log 0
 
 proc ssh { PORT PROGRAM } {
-  return "ssh -v debian@0.0.0.0 -p $PORT -i $::env(SETUP_SCRIPTS_DIR)/keys/id_rsa -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile /dev/null\" $PROGRAM"
+  return "ssh -v debian@127.0.0.1 -p $PORT -i $::env(SETUP_SCRIPTS_DIR)/keys/id_rsa -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile /dev/null\" $PROGRAM"
 }
 
 set TOKEN "b0f7b8.8d1767876297d85c"
