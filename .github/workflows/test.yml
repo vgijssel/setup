@@ -69,6 +69,7 @@ jobs:
     runs-on: macos-latest
     steps:
     - run: sudo pfctl -sa
+    - run: ssh -V
 
   test-kubernetes:
     name: Test kubernetes image
