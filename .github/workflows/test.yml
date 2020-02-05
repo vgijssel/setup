@@ -64,6 +64,12 @@ jobs:
         name: kubernetes_buster.qcow2
         path: ./kubernetes/images/kubernetes_buster.qcow2
 
+  debug-macos:
+    name: Debug Macos
+    runs-on: macos-latest
+    steps:
+    - run: sudo pfctl -sa
+
   test-kubernetes:
     name: Test kubernetes image
     runs-on: macos-latest
