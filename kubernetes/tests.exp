@@ -8,7 +8,14 @@ set timeout 300
 exp_internal -f $::env(SETUP_TMP_DIR)/kubernetes_tests.log 0
 
 proc ssh { PORT PROGRAM } {
-  return "ssh -v debian@127.0.0.1 -p $PORT -i $::env(SETUP_SCRIPTS_DIR)/keys/id_rsa -o \"StrictHostKeyChecking no\" -o \"UserKnownHostsFile /dev/null\" $PROGRAM"
+  return "ssh -v debian@127.0.0.1 -p $PORT -i $::env(SETUP_SCRIPTS_DIR)/keys/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $PROGRAM"
+}
+
+proc test { ID EXPECT } {
+  expect {
+    timeout { puts "Expect timeout, exiting with code 1."; exit 1 }
+    -i $ID -ex "$EXPECT"
+  }
 }
 
 set TOKEN "b0f7b8.8d1767876297d85c"
@@ -42,14 +49,14 @@ spawn qemu_run.sh master 1 listen $::env(SETUP_KUBERNETES_DIR)/images/kubernetes
 set master_id $spawn_id
 
 # Skip the grub menu by pressing enter
-expect -i $master_id "GNU GRUB"
+test $master_id "GNU GRUB"
 send -i $master_id "\n"
 
 # Wait for cloud init to finish
-expect -i $master_id -ex "Cloud-init v. 18.3 finished"
+test $master_id "Cloud-init v. 18.3 finished"
 
 # Wait for the prompt
-expect -i $master_id -ex "master login: "
+test $master_id "master login: "
 
 # Initialize kubernetes master
 system [ssh 2201 $INIT_SCRIPT]
@@ -59,11 +66,11 @@ spawn qemu_run.sh worker 2 connect $::env(SETUP_KUBERNETES_DIR)/images/kubernete
 set worker_id $spawn_id
 
 # Skip the grub menu by pressing enter
-expect -i $worker_id "GNU GRUB"
+test $worker_id "GNU GRUB"
 send -i $worker_id "\n"
 
 # Wait for the prompt
-expect -i $worker_id -ex "worker login: "
+test $worker_id "worker login: "
 
 # Join the kubernetes cluster
 system [ssh 2202 $JOIN_SCRIPT]
