@@ -86,7 +86,7 @@ mkisofs \
 qemu-system-x86_64 \
   -m 2048 \
   -smp 2 \
-  -serial mon:stdio \
+  -serial stdio \
   -display none \
   -vga none \
   -nodefaults \
