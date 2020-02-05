@@ -71,6 +71,8 @@ jobs:
     - run: sudo pfctl -sa
     - run: sudo pfctl -a '*' -Fa
     - run: sudo pfctl -sa
+    - run: ifconfig
+    - run: cat /etc/hosts
     - run: ssh -V
 
   test-kubernetes:
