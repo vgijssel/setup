@@ -89,8 +89,8 @@ qemu-system-x86_64 \
   -m 2048 \
   -smp 2 \
   -chardev stdio,id=char0,mux=on,logfile="${QEMU_LOG_FILE}",signal=off \
-  -serial chardev:char0 \
-  -mon chardev=char0 \
+  -mon chardev=char0,mode=readline \
+  -device isa-serial,chardev=char0 \
   -display none \
   -vga none \
   -accel hax \

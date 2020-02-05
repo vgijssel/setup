@@ -59,7 +59,7 @@ set VALIDATE_SCRIPT "<< EOF
 "
 
 # Boot kubernetes master
-spawn qemu_run.sh master 1 listen $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
+spawn screen -S master qemu_run.sh master 1 listen $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
 set master_id $spawn_id
 
 # Skip the grub menu by pressing enter
@@ -76,7 +76,7 @@ test $master_id "master login: "
 system [ssh 2201 $INIT_SCRIPT]
 
 # Boot kubernetes worker
-spawn qemu_run.sh worker 2 connect $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
+spawn screen -S worker qemu_run.sh worker 2 connect $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
 set worker_id $spawn_id
 
 # Skip the grub menu by pressing enter
