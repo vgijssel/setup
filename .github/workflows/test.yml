@@ -68,12 +68,14 @@ jobs:
     name: Debug Macos
     runs-on: macos-latest
     steps:
-    - run: sudo pfctl -sa
-    - run: sudo pfctl -a '*' -Fa
-    - run: sudo pfctl -sa
-    - run: ifconfig
-    - run: cat /etc/hosts
-    - run: ssh -V
+    - run: expect -v
+    - run: brew info expect
+    - run: brew install expect
+      if: always()
+    - run: brew info expect
+      if: always()
+    - run: expect -v
+      if: always()
 
   test-kubernetes:
     name: Test kubernetes image
@@ -82,7 +84,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: brew install qemu cdrtools
+    - run: brew install qemu cdrtools expect
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes_buster.qcow2
