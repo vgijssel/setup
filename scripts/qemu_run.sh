@@ -9,6 +9,7 @@ IMAGE_FILE="$4"
 IMAGE_FILE_COPY_DIR="$SETUP_TMP_DIR/$IMAGE_NAME"
 IMAGE_FILE_COPY_FILE="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.qcow2"
 CLOUD_INIT_FILE="$IMAGE_FILE_COPY_DIR/cloud-init.iso"
+QEMU_LOG_FILE="$IMAGE_FILE_COPY_DIR/stdout.log"
 QEMU_MAC="52:54:00:0e:e0:6${MACHINE_NUMBER}"
 
 echo "Booting '$IMAGE_NAME' with disk '$IMAGE_FILE'"
@@ -84,12 +85,14 @@ mkisofs \
 #        enables hardware acceleration on macos local and github
 
 qemu-system-x86_64 \
+  -nodefaults \
   -m 2048 \
   -smp 2 \
-  -serial stdio \
+  -chardev stdio,id=char0,mux=on,logfile="${QEMU_LOG_FILE}",signal=off \
+  -serial chardev:char0 \
+  -mon chardev=char0 \
   -display none \
   -vga none \
-  -nodefaults \
   -accel hax \
   -netdev user,id=mynet0,hostfwd=tcp:127.0.0.1:220"${MACHINE_NUMBER}"-:22 \
   -device virtio-net-pci,netdev=mynet0 \
