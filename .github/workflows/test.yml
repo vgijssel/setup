@@ -81,11 +81,11 @@ jobs:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
     - run: brew install qemu cdrtools
-    # Disable the firewall
-    - run: sudo /usr/bin/defaults write /Library/Preferences/com.apple.alf globalstate -int 0
-    - run: chmod 0400 scripts/keys/id_rsa
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes_buster.qcow2
         path: ./kubernetes/images
+    # Disable the firewall
+    - run: sudo /usr/bin/defaults write /Library/Preferences/com.apple.alf globalstate -int 0
+    - run: chmod 0400 scripts/keys/id_rsa
     - run: ./kubernetes/tests.exp
