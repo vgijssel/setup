@@ -19,8 +19,8 @@ proc test { ID EXPECT } {
     }
 
     eof {
-      send_user "EOF. Retrying test."
-      exp_continue
+      send_user "EOF, exiting with code 1."
+      exit 1
     }
 
     -i $ID -ex "$EXPECT"
