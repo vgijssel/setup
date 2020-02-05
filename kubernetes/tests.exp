@@ -53,6 +53,11 @@ set JOIN_SCRIPT "<< EOF
     --discovery-token-unsafe-skip-ca-verification;
 "
 
+set VALIDATE_SCRIPT "<< EOF
+  sudo su;
+  goss --gossfile /etc/goss/goss.yaml --vars <(facter -j) validate
+"
+
 # Boot kubernetes master
 spawn qemu_run.sh master 1 listen $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
 set master_id $spawn_id
@@ -84,40 +89,8 @@ test $worker_id "worker login: "
 # Join the kubernetes cluster
 system [ssh 2202 $JOIN_SCRIPT]
 
-# # Start
+# Validate the worker using goss
+system [ssh 2202 $VALIDATE_SCRIPT]
 
-# # Start the kubernetes worker
-# # spawn qemu_run.sh worker 2 connect $::env(SETUP_KUBERNETES_DIR)/images/kubernetes_buster.qcow2
-# # set worker $spawn_id
-
-# # expect -i $worker "GNU GRUB"
-# # send -i $worker "\n"
-
-# # expect -i $worker -ex "worker login: "
-# # send -i $worker "debian\n"
-
-# # expect -i $worker -ex "Password: "
-# # send -i $worker "debian\n"
-
-# # Press ENTER in the grub boot menu
-
-# # # Wait for cloud-init to finish to not get mixed stdout messages
-# # expect -ex "Cloud-init v. 18.3 finished at"
-# # send "\n\n\n"
-
-
-# # # Check for the prompt
-# # expect -ex "debian@worker-test:~$"
-
-# # # Change to root
-# # send "sudo su\n"
-# # expect -ex "root@worker-test:/home/debian#"
-
-# # # Run the goss validator
-# # send "goss --gossfile /etc/goss/goss.yaml --vars <(facter -j) validate\n"
-
-# # # expect eof
-# # expect "Count: 30"
-
-# close $master_id
-# close $worker
+close $master_id
+close $worker_id
