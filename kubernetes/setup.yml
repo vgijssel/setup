@@ -1,0 +1,14 @@
+---
+- hosts: master
+  gather_facts: yes
+  become: yes
+  tasks:
+    - name: "Test master"
+      command: hostname
+
+- hosts: worker
+  gather_facts: yes
+  become: yes
+  tasks:
+    - name: "Test worker"
+      command: hostname
