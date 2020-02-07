@@ -3,9 +3,21 @@
 set -Eeoux pipefail
 
 IMAGE_NAME="$1"
-MACHINE_NUMBER="$2"
-SOCKET_MODE="$3"
+SOCKET_MODE="$2"
+SOCKET_PORT="$3"
 IMAGE_FILE="$4"
+
+if [ $SOCKET_MODE == "listen" ]; then
+    MACHINE_NUMBER=1
+
+elif [ $SOCKET_MODE == "connect" ]; then
+    MACHINE_NUMBER=2
+
+else
+    echo "'$SOCKET_MODE' needs to be listen or connect"
+    exit 1
+fi
+
 IMAGE_FILE_COPY_DIR="$SETUP_TMP_DIR/$IMAGE_NAME"
 IMAGE_FILE_COPY_FILE="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.qcow2"
 CLOUD_INIT_FILE="$IMAGE_FILE_COPY_DIR/cloud-init.iso"
@@ -88,15 +100,15 @@ qemu-system-x86_64 \
   -nodefaults \
   -m 2048 \
   -smp 2 \
-  -chardev stdio,id=char0,mux=on,logfile="${QEMU_LOG_FILE}",signal=off \
+  -chardev stdio,id=char0,mux=on,logfile="${QEMU_LOG_FILE}",signal=on \
   -mon chardev=char0,mode=readline \
   -device isa-serial,chardev=char0 \
   -display none \
   -vga none \
   -accel hax \
-  -netdev user,id=mynet0,hostfwd=tcp:127.0.0.1:220"${MACHINE_NUMBER}"-:22 \
+  -netdev user,id=mynet0,hostfwd=tcp:127.0.0.1:"${MACHINE_NUMBER}${SOCKET_PORT}"-:22 \
   -device virtio-net-pci,netdev=mynet0 \
-  -netdev socket,id=vlan,"${SOCKET_MODE}"=127.0.0.1:1234 \
+  -netdev socket,id=vlan,"${SOCKET_MODE}"=127.0.0.1:"${SOCKET_PORT}" \
   -device virtio-net-pci,netdev=vlan,mac="${QEMU_MAC}" \
   -device virtio-rng-pci \
   -drive file="$IMAGE_FILE_COPY_FILE",if=virtio \
