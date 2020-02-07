@@ -84,7 +84,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: brew install qemu cdrtools expect
+    - run: brew install qemu cdrtools hivemind ansible
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes_buster.qcow2
