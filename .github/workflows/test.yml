@@ -90,9 +90,3 @@ jobs:
         name: kubernetes_buster.qcow2
         path: ./kubernetes/images
     - run: chmod 0400 scripts/keys/id_rsa
-    - run: ./kubernetes/tests.exp
-    - uses: actions/upload-artifact@v1
-      if: always()
-      with:
-        name: kubernetes_tests.log
-        path: ./tmp/kubernetes_tests.log
