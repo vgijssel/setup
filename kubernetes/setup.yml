@@ -56,7 +56,7 @@
       register: master_status
       until:
         - '"Ready=True" in master_status.stdout'
-      retries: 10
+      retries: 60
       delay: 2
 
 - hosts: worker
