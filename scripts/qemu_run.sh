@@ -100,7 +100,7 @@ qemu-system-x86_64 \
   -nodefaults \
   -m 2048 \
   -smp 2 \
-  -chardev stdio,id=char0,mux=on,logfile="${QEMU_LOG_FILE}",signal=on \
+  -chardev stdio,id=char0,mux=on,logfile="${QEMU_LOG_FILE}",signal=off \
   -mon chardev=char0,mode=readline \
   -device isa-serial,chardev=char0 \
   -display none \
