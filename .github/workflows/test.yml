@@ -90,8 +90,10 @@ jobs:
         name: kubernetes_buster.qcow2
         path: ./kubernetes/images
     - run: chmod 0400 scripts/keys/id_rsa
-    - run: echo "127.0.0.1 master.localhost" | sudo tee -a /etc/hosts
-    - run: echo "127.0.0.1 worker.localhost" | sudo tee -a /etc/hosts
+    - run: echo "127.0.0.1 master-test.localhost" | sudo tee -a /etc/hosts
+    - run: echo "127.0.0.1 worker-test.localhost" | sudo tee -a /etc/hosts
     - run: cat /etc/hosts
-    - run: hivemind ./kubernetes/Procfile.tests &
-    - run: ansible-playbook -i ./kubernetes/hosts_test.ini ./kubernetes/setup.yml
+    - run: |
+        cd ./kubernetes;
+        hivemind Procfile.tests &;
+        ansible-playbook -i hosts_test.ini setup.yml
