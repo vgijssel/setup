@@ -1,8 +1,14 @@
 ---
 - hosts: master
-  gather_facts: yes
+  gather_facts: no
   become_method: sudo
   tasks:
+    - name: Wait 600 seconds for target connection to become reachable/usable
+      wait_for_connection:
+
+    - name: Gathering facts
+      setup:
+
     - name: Reset Kubernetes cluster
       become: yes
       command: |
@@ -42,9 +48,15 @@
         kubectl apply -f {{ flannel_manifest }}
 
 - hosts: worker
-  gather_facts: yes
+  gather_facts: no
   become_method: sudo
   tasks:
+    - name: Wait 600 seconds for target connection to become reachable/usable
+      wait_for_connection:
+
+    - name: Gathering facts
+      setup:
+
     - name: Reset Kubernetes cluster
       become: yes
       command: |
