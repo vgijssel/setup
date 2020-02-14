@@ -92,5 +92,6 @@ jobs:
     - run: chmod 0400 scripts/keys/id_rsa
     - run: echo "127.0.0.1 master.localhost" | sudo tee -a /etc/hosts
     - run: echo "127.0.0.1 worker.localhost" | sudo tee -a /etc/hosts
-    - run: hivemind Procfile.tests &
-    - run: ansible-playbook -i hosts_test.ini setup.yml
+    - run: cat /etc/hosts
+    - run: hivemind ./kubernetes/Procfile.tests &
+    - run: ansible-playbook -i ./kubernetes/hosts_test.ini ./kubernetes/setup.yml
