@@ -47,6 +47,18 @@
       command: |
         kubectl apply -f {{ flannel_manifest }}
 
+    - name: Wait for master to be ready
+      tags: ['yes']
+      environment:
+        # https://kubernetes.io/docs/reference/kubectl/cheatsheet/#viewing-finding-resources
+        JSONPATH: '{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
+      command: "kubectl get nodes -o jsonpath=$JSONPATH"
+      register: master_status
+      until:
+        - '"Ready=True" in master_status.stdout'
+      retries: 10
+      delay: 2
+
 - hosts: worker
   gather_facts: no
   become_method: sudo
