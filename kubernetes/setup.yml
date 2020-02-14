@@ -48,7 +48,6 @@
         kubectl apply -f {{ flannel_manifest }}
 
     - name: Wait for master to be ready
-      tags: ['yes']
       environment:
         # https://kubernetes.io/docs/reference/kubectl/cheatsheet/#viewing-finding-resources
         JSONPATH: '{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'
