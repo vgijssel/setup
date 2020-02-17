@@ -64,19 +64,6 @@ jobs:
         name: kubernetes_buster.qcow2
         path: ./kubernetes/images/kubernetes_buster.qcow2
 
-  debug-macos:
-    name: Debug Macos
-    runs-on: macos-latest
-    steps:
-    - run: expect -v
-    - run: brew info expect
-    - run: brew install expect
-      if: always()
-    - run: brew info expect
-      if: always()
-    - run: expect -v
-      if: always()
-
   test-kubernetes:
     name: Test kubernetes image
     runs-on: macos-latest
