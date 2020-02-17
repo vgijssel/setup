@@ -95,5 +95,5 @@ jobs:
     - run: cat /etc/hosts
     - run: |
         cd ./kubernetes;
-        hivemind Procfile.tests &;
+        hivemind Procfile.tests &
         ansible-playbook -i hosts_test.ini setup.yml
