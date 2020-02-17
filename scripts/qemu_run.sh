@@ -70,11 +70,6 @@ config:
   name: ens2
   subnets:
     - type: dhcp
-- type: physical
-  name: ens3
-  subnets:
-     - type: static
-       address: 192.168.100.1${MACHINE_NUMBER}/24
 EOF
 
 # Generate cloud-init image
@@ -108,8 +103,6 @@ qemu-system-x86_64 \
   -accel hax \
   -netdev user,id=mynet0,hostfwd=tcp:127.0.0.1:"${MACHINE_NUMBER}${SOCKET_PORT}"-:22 \
   -device virtio-net-pci,netdev=mynet0 \
-  -netdev socket,id=vlan,"${SOCKET_MODE}"=127.0.0.1:"${SOCKET_PORT}" \
-  -device virtio-net-pci,netdev=vlan,mac="${QEMU_MAC}" \
   -device virtio-rng-pci \
   -drive file="$IMAGE_FILE_COPY_FILE",if=virtio \
   -drive file="$CLOUD_INIT_FILE",format=raw,if=virtio
