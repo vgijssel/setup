@@ -4,7 +4,11 @@ set -Eeoux pipefail
 
 IMAGE_NAME="$1"
 MACHINE_NUMBER="$2"
-IMAGE_FILE="$3"
+IMAGE_TARGET="$3"
+
+IMAGE_FILE="$IMAGE_TARGET.qcow2"
+KERNEL_FILE="$IMAGE_TARGET.vmlinuz"
+INITRD_FILE="$IMAGE_TARGET.initrd"
 
 IMAGE_FILE_COPY_DIR="$SETUP_TMP_DIR/$IMAGE_NAME"
 IMAGE_FILE_COPY_FILE="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.qcow2"
@@ -82,10 +86,8 @@ IMG_CD="-s 2:1,ahci-cd,$CLOUD_INIT_FILE"
 RND_DEV="-s 4,virtio-rnd"
 LPC_DEV="-l com1,stdio"
 
-KERNEL="images/kubernetes_buster.vmlinuz"
-INITRD="images/kubernetes_buster.initrd"
 # Copied from cat /boot/syslinux/syslinux.cfg from inside the image
 # these are the kernel parameters the image normally uses
 CMDLINE="ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset vga=normal hw_rng_model=virtio"
 
-sudo hyperkit $ACPI $MEM $SMP $PCI_DEV $NET $IMG_HDD $IMG_CD $RND_DEV $LPC_DEV -f kexec,$KERNEL,$INITRD,"$CMDLINE"
+sudo hyperkit $ACPI $MEM $SMP $PCI_DEV $NET $IMG_HDD $IMG_CD $RND_DEV $LPC_DEV -f kexec,$KERNEL_FILE,$INITRD_FILE,"$CMDLINE"
