@@ -35,7 +35,8 @@ homebrew_installed_packages:
   - cdrtools # contains mkisofs for making cloud-init images
   - minikube # for running kubernetes locally
   - qemu # running virtual machines using an emulator for testing
-  - hivemind # for running multiple qemu machines from procfile
+  - hyperkit # running virtual machines on macos for testing
+  - hivemind # for running multiple virtual machines from procfile
 
   # Emacs
   - emacs-plus
