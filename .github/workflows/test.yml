@@ -61,8 +61,8 @@ jobs:
     - run: ./kubernetes/build-image.sh
     - uses: actions/upload-artifact@v1
       with:
-        name: kubernetes_buster.qcow2
-        path: ./kubernetes/images/kubernetes_buster.qcow2
+        name: kubernetes
+        path: ./kubernetes/images/kubernetes
 
   debug-macos:
     name: Debug Macos
@@ -87,8 +87,8 @@ jobs:
     - run: brew install qemu cdrtools hivemind hyperkit ansible
     - uses: actions/download-artifact@v1
       with:
-        name: kubernetes_buster.qcow2
-        path: ./kubernetes/images
+        name: kubernetes
+        path: ./kubernetes/images/kubernetes
     - run: chmod 0400 scripts/keys/id_rsa
     - run: |
         cd ./kubernetes;

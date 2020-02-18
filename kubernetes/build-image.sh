@@ -20,4 +20,4 @@ docker run \
        --env DIB_APT_MINIMAL_CREATE_INTERFACES \
        --env DIB_EXTLINUX \
        "${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}" \
-       disk-image-create -x -o images/kubernetes_buster debian baremetal vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
+       disk-image-create -x -o images/kubernetes/kubernetes_buster debian baremetal vm debian-networking-fix cloud-init-fix kubernetes growroot qemu-guest nfs resolvconf goss
