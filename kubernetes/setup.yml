@@ -48,11 +48,11 @@
       command: |
         kubectl apply -f {{ flannel_manifest }}
 
-    - name: "Wait for master '{{ inventory_hostname_short }} to be ready"
+    - name: "Wait for master '{{ ansible_hostname }}' to be ready"
       environment:
         # https://kubernetes.io/docs/reference/kubectl/cheatsheet/#viewing-finding-resources
         JSONPATH: '{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}'
-      command: "kubectl get node {{ inventory_hostname_short }} -o jsonpath=$JSONPATH"
+      command: "kubectl get node {{ ansible_hostname }} -o jsonpath=$JSONPATH"
       register: kubernetes_master_status
       until:
         - '"Ready=True" in kubernetes_master_status.stdout'
@@ -92,7 +92,7 @@
       environment:
         # https://kubernetes.io/docs/reference/kubectl/cheatsheet/#viewing-finding-resources
         JSONPATH: '{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}'
-      command: "kubectl get node {{ hostvars[item]['inventory_hostname_short'] }} -o jsonpath=$JSONPATH"
+      command: "kubectl get node {{ hostvars[item]['ansible_hostname'] }} -o jsonpath=$JSONPATH"
       register: kubernetes_node_status
       until:
         - '"Ready=True" in kubernetes_node_status.stdout'
