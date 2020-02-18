@@ -84,15 +84,12 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: brew install qemu cdrtools hivemind ansible
+    - run: brew install qemu cdrtools hivemind hyperkit ansible
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes_buster.qcow2
         path: ./kubernetes/images
     - run: chmod 0400 scripts/keys/id_rsa
-    - run: echo "127.0.0.1 master-test.localhost" | sudo tee -a /etc/hosts
-    - run: echo "127.0.0.1 worker-test.localhost" | sudo tee -a /etc/hosts
-    - run: cat /etc/hosts
     - run: |
         cd ./kubernetes;
         hivemind Procfile.tests &

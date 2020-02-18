@@ -1,2 +1,2 @@
-master-test: qemu_run.sh master-test listen 1236 "${SETUP_KUBERNETES_DIR}"/images/kubernetes_buster.qcow2
-worker-test: qemu_run.sh worker-test connect 1236 "${SETUP_KUBERNETES_DIR}"/images/kubernetes_buster.qcow2
+master-test: hyperkit_run.sh master-test 1 "${SETUP_KUBERNETES_DIR}"/images/kubernetes_buster.qcow2
+worker-test: hyperkit_run.sh worker-test 2 "${SETUP_KUBERNETES_DIR}"/images/kubernetes_buster.qcow2
