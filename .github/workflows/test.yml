@@ -109,8 +109,9 @@ jobs:
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
-    - run: chmod 0400 scripts/keys/id_rsa
+    - run: gem install bundler:2.1.4
     - run: cd kubernetes && bundle install
+    - run: chmod 0400 scripts/keys/id_rsa
     - run: |
         cd ./kubernetes;
         hivemind Procfile.tests &
