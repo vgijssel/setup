@@ -74,6 +74,17 @@ jobs:
     - run: ruby --version
       if: always()
 
+    - uses: actions/setup-ruby@v1
+      if: always()
+      with:
+        ruby-version: '2.6'
+
+    - run: bundle version
+      if: always()
+
+    - run: ruby --version
+      if: always()
+
     - run: hostinfo
       if: always()
 
