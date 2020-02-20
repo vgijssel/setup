@@ -109,5 +109,6 @@ jobs:
     - run: chmod 0400 scripts/keys/id_rsa
     - run: |
         cd ./kubernetes;
-        bundle install
+        bundle install;
+        hivemind Procfile.tests &
         bundle exec rspec
