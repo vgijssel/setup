@@ -2,30 +2,28 @@ package:
   kubeadm:
     installed: true
     versions:
-    - 1.17.2-00
+    - 1.17.3-00
   kubectl:
     installed: true
     versions:
-    - 1.17.2-00
+    - 1.17.3-00
   kubelet:
     installed: true
     versions:
-    - 1.17.2-00
+    - 1.17.3-00
 service:
   docker:
     enabled: true
     running: true
-  kubelet:
-    enabled: true
-    running: true
 user:
-  debian:
+  kube:
     exists: true
     uid: 1000
     gid: 1000
     groups:
-    - debian
-    home: /home/debian
+    - kube
+    - docker
+    home: /home/kube
     shell: /bin/bash
 group:
   docker:
