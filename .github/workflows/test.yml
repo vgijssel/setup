@@ -106,9 +106,12 @@ jobs:
       with:
         name: kubernetes
         path: ./kubernetes/images/kubernetes
+    - uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.6'
     - run: chmod 0400 scripts/keys/id_rsa
+    - run: cd kubernetes && bundle install
     - run: |
         cd ./kubernetes;
-        bundle install;
         hivemind Procfile.tests &
         bundle exec rspec
