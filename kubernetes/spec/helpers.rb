@@ -26,6 +26,8 @@ def run(command, timeout:)
         # note we can also do Bundler.clean_env to remove bundler variables from the env
         environment = Bundler.original_env
 
+        puts "Starting process: #{command}"
+
         result = Async::Process.spawn(
           environment,
           command,
@@ -37,9 +39,9 @@ def run(command, timeout:)
         Result.new(result.exitstatus)
       end
     rescue Async::TimeoutError => e
-      Result.new(status.exitstatus, e)
+      Result.new(nil, e)
     rescue Async::Wrapper::Cancelled => e
-      Result.new(status.exitstatus, e)
+      Result.new(nil, e)
     end
   end
 end
@@ -54,7 +56,7 @@ end
 
 def ssh(command, host, timeout:)
   id_rsa_path = "#{ENV.fetch('SETUP_SCRIPTS_DIR')}/keys/id_rsa"
-  ssh_command = "ssh debian@#{host} -i #{id_rsa_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null #{command}"
+  ssh_command = "ssh kube@#{host} -i #{id_rsa_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null #{command}"
 
   run(ssh_command, timeout: timeout)
 end
