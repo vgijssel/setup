@@ -68,6 +68,12 @@ jobs:
     name: Debug Macos
     runs-on: macos-latest
     steps:
+    - run: bundle version
+      if: always()
+
+    - run: ruby --version
+      if: always()
+
     - run: hostinfo
       if: always()
 
@@ -92,5 +98,5 @@ jobs:
     - run: chmod 0400 scripts/keys/id_rsa
     - run: |
         cd ./kubernetes;
-        hivemind Procfile.tests &
-        ansible-playbook -i hosts_test.ini setup.yml
+        bundle install
+        bundle exec rspec
