@@ -1,7 +1,5 @@
 - Run tests to see if the image is OK
-  - nfs works
   - firewall works and has proper ports open (https://wiki.debian.org/Uncomplicated%20Firewall%20%28ufw%29)
-  - sysctl net.bridge.bridge-nf-call-iptables=1 /proc/sys/net/bridge/bridge-nf-call-iptables to 1 (https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
   - DNS resolution works within a kubernetes pod for external addresses (internet connectivity)
 
 NOTE: Proxmox KVM will hang at 100% CPU when there is no serial port configured for a diskimage-create image.
