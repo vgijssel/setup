@@ -113,11 +113,13 @@ languages:
       - name: typescript # typescript
       - name: speedscope # profiling presentation
       - name: depcheck # tool for checking used dependencies in a JS project
-    global: 12.14.0
+    global: 12.15.0
     versions:
       - version: 12.13.0
         packages: []
       - version: 12.14.0
+        packages: []
+      - version: 12.15.0
         packages: []
       - version: 12.0.0
         packages: []
