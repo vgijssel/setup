@@ -4,6 +4,7 @@ require 'async'
 require 'async/process'
 require 'bundler'
 
+
 class Result
   attr_reader :exitstatus
   attr_reader :error
@@ -59,4 +60,24 @@ def ssh(command, host, timeout:)
   ssh_command = "ssh kube@#{host} -i #{id_rsa_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null #{command}"
 
   run(ssh_command, timeout: timeout)
+end
+
+reactor = Async::Reactor.new
+
+# To make sure processes started with Async::Process within the reactor are stopped!
+# For some reason the reactor.stop method needs to be called twice, which will happen
+# when force quitting RSpec.
+Signal.trap('INT') do
+  reactor.stop
+  RSpec::Core::Runner.handle_interrupt
+end
+
+RSpec.configure do |config|
+  config.around(:each) do |example|
+    rspec_task = reactor.async do
+      example.run
+    end
+    reactor.run
+    reactor.stop
+  end
 end

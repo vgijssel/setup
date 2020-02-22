@@ -12,7 +12,7 @@ describe 'Kubernetes cluster setup' do
   end
 
   it 'successfully starts a kubernetes cluster with the master and worker' do
-    result = run("ansible-playbook -i hosts_test.ini setup.yml", timeout: 300).wait
+    result = run("ansible-playbook -i hosts_test.ini setup_cluster.yml", timeout: 300).wait
 
     expect(result.exitstatus).to eq 0
   end
