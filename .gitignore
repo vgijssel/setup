@@ -1,5 +1,2 @@
 .vagrant
-packer_cache
-packer_output
-vagrant_boxes
 *.temp
