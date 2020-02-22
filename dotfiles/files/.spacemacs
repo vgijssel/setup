@@ -539,10 +539,7 @@ before packages are loaded."
   (lsp-register-client
    (let ((lsp-command '("solargraph" "stdio")))
      (make-lsp-client
-      :new-connection (lsp-stdio-connection
-                       (if lsp-solargraph-use-bundler
-                           (append '("bundle" "exec") lsp-command)
-                         lsp-command))
+      :new-connection (lsp-stdio-connection lsp-command)
       :major-modes '(ruby-mode enh-ruby-mode)
       :priority 100
       :multi-root nil
