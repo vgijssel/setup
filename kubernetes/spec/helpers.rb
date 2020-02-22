@@ -4,7 +4,6 @@ require 'async'
 require 'async/process'
 require 'bundler'
 
-
 class Result
   attr_reader :exitstatus
   attr_reader :error
@@ -15,7 +14,7 @@ class Result
   end
 
   def success?
-    exitstatus.zero?
+    !exitstatus.nil? && exitstatus.zero?
   end
 end
 
@@ -47,11 +46,30 @@ def run(command, timeout:)
   end
 end
 
+def wait_for_ssh(host, timeout:)
+  Async do |wait_task|
+    wait_task.with_timeout(timeout) do
+      loop do
+        result = ssh('true', host, timeout: 2).wait
+
+        if result.success?
+          break
+        else
+          puts "SSH failed, retrying in 1s..."
+          wait_task.sleep(1)
+        end
+      end
+    end
+  end.wait
+end
+
 def ssh_master(command, timeout:)
+  wait_for_ssh '192.168.64.101', timeout: timeout
   ssh command, '192.168.64.101', timeout: timeout
 end
 
 def ssh_worker(command, timeout:)
+  wait_for_ssh '192.168.64.101', timeout: timeout
   ssh command, '192.168.64.102', timeout: timeout
 end
 
@@ -75,7 +93,9 @@ end
 RSpec.configure do |config|
   config.around(:each) do |example|
     rspec_task = reactor.async do
-      example.run
+      aggregate_failures do
+        example.run
+      end
     end
     reactor.run
     reactor.stop
