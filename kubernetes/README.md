@@ -1,24 +1,3 @@
-- Create the image builder
-```
-.github/scripts/docker_build.sh "${BASE_IMAGE}" "./base-image"
-.github/scripts/docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
-```
-
-- Create the image disk
-```
-kubernetes/build-image.sh
-```
-
-- Resize qcow2 disk to 32 GB
-```
-qemu-img resize /data/images/images/100/vm-100-disk-0.qcow2 32G
-```
-
-- Boot image with qemu 
-```
-./boot_qemu.sh images/stretch_3.qcow2
-```
-
 - Run tests to see if the image is OK
   - nfs works
   - firewall works and has proper ports open (https://wiki.debian.org/Uncomplicated%20Firewall%20%28ufw%29)
@@ -54,32 +33,6 @@ qm rescan
 |worker1 |192.168.1.4/24|192.168.1.1|192.168.1.1 |
 |worker2 |192.168.1.5/24|192.168.1.1|192.168.1.1 |
 |worker3 |192.168.1.6/24|192.168.1.1|192.168.1.1 |
-
-- Initialize kubeadm (with flannel https://github.com/coreos/flannel/)
-
-```
-sudo su
-kubeadm config images pull
-kubeadm init --apiserver-advertise-address=192.168.1.3 --pod-network-cidr=10.244.0.0/16
-exit
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
-```
-
-- Copy kubernetes config
-```
-scp debian@192.168.1.3:/home/debian/.kube/config admin.conf
-```
-
-- Join workers
-
-```
-sudo su
-kubeadm join 192.168.1.3:6443 --token xxx --discovery-token-ca-cert-hash xxx
-```
 
 - Install metallb
 

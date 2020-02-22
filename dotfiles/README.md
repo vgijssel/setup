@@ -20,46 +20,6 @@ ansible-playbook main.yml -i inventory -K
 
 ## TODOs
 
-
-### mediacenter
-
-https://github.com/viralpoetry/packer-bare-metal
-
-- setup no subscription sources proxmox (https://pve.proxmox.com/wiki/Package_Repositories)
-- OpenStack, FOG, FAI, foreman, cobbler, razor, MAAS for PXE based unattended installation
-- all-in-one PXE boot which works with existing DHCP
-  https://github.com/danderson/netboot/tree/master/pixiecore
-- V2P (virtual 2 physical)
-- cloud-init
-- Immutable infrastructure bare metal
-- https://github.com/hashicorp/packer/issues/955
-- https://github.com/inovex/fluffy-unicorn
-- IPMI BMC
-- debootstrap debian/ubuntu
-- diskimage-builder OpenStack (https://docs.openstack.org/diskimage-builder/latest/)
-- Upload the Vagrant.box file to GitHub releases?
-    - Upload the vagrant box to Vagrant cloud
-- Install libnss-mdns into VMs to have local bonjour lookup of VMs
-- http://manpages.ubuntu.com/manpages/bionic/man1/virt-dib.1.html
-
-
-### Make deploy image
-
-Try to discover how an image is created which boots, runs a command and then restarts.
-
-
-- disk-image-create -o /images/deploy/debian debian baremetal
-- pixiecore boot /images/deploy/debian.vmlinuz /images/deploy/debian.initrd
-
-- disk-image-create -o /images/deploy2/debian debian deploy-baremetal
-- pixiecore boot /images/deploy2/debian.vmlinuz /images/deploy/debian.initrd
-
-- export DIB_IMAGE_ROOT_FS_UUID=$(uuidgen -r)
-- disk-image-create -o /images/deploy3/debian debian baremetal iso
-- pixiecore boot /images/deploy3/debian.vmlinuz /images/deploy3/debian.initrd
-
-### Make user image
-
 ### General
 
 - use regular homebrew https://docs.ansible.com/ansible/latest/modules/homebrew_module.html instead of ansible galaxy role
@@ -85,8 +45,6 @@ bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
 - spectacle.app
 - resiliosync
 - spacemacs
-- macports
-  - qemu +ssh +vnc
 
 ### Tests
 

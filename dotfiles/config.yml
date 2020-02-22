@@ -11,9 +11,6 @@ homebrew_installed_packages:
 
   - git
   - gpg2
-  # for using SSH password authentication with ansible
-  # It's an url, because homebrew does not allow you to install it as it's considered unsafe
-  - http://git.io/sshpass.rb
   - git-crypt
 
   - mas
@@ -28,13 +25,8 @@ homebrew_installed_packages:
   - v8@3.15 # the ruby racer gem
   - imagemagick # otherwise Rails image upload no work
 
-  - dnsmasq # dhcp / dns server
-
-  - packer # creating images for Vagrant
-  - expect # automating testing of interactive applications
   - cdrtools # contains mkisofs for making cloud-init images
   - minikube # for running kubernetes locally
-  - qemu # running virtual machines using an emulator for testing
   - hyperkit # running virtual machines on macos for testing
   - hivemind # for running multiple virtual machines from procfile
 
@@ -86,12 +78,6 @@ homebrew_cask_apps:
   - multipass
   - ngrok
   - virtualbox
-  - vagrant
-  - vagrant-vmware-utility
-  - vagrant-manager
-  - vmware-fusion
-  - vnc-viewer # to show qemu running hosts
-  - intel-haxm # qemu accelerator which also works on GitHub Actons
   - gpg-suite
   - 1password-cli
   - steam
