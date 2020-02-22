@@ -92,7 +92,7 @@ end
 
 RSpec.configure do |config|
   config.around(:each) do |example|
-    rspec_task = reactor.async do
+    reactor.async do
       aggregate_failures do
         example.run
       end
