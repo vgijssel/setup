@@ -2,4 +2,4 @@
 
 set -Eeoux pipefail
 
-goss --gossfile /etc/goss/master.yaml --vars <(facter -j) validate
+goss --gossfile /etc/goss/master.yaml --vars <(facter -j) validate --format documentation --color
