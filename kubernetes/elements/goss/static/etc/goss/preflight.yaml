@@ -1,3 +1,16 @@
+file:
+  /proc/sys/net/bridge/bridge-nf-call-iptables:
+    title: Pass bridged IPv4 traffic to iptables’ chains
+    meta:
+      desc: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
+    exists: true
+    mode: "0644"
+    size: 0
+    owner: root
+    group: root
+    filetype: file
+    contains:
+    - "1"
 package:
   kubeadm:
     installed: true
@@ -11,6 +24,10 @@ package:
     installed: true
     versions:
     - 1.17.3-00
+  nfs-common:
+    installed: true
+    versions:
+    - 1:1.3.4-2.5
 service:
   docker:
     enabled: true
