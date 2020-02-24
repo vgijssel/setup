@@ -64,36 +64,6 @@ jobs:
         name: kubernetes
         path: ./kubernetes/images/kubernetes
 
-  debug-macos:
-    name: Debug Macos
-    runs-on: macos-latest
-    steps:
-    - run: bundle version
-      if: always()
-
-    - run: ruby --version
-      if: always()
-
-    - uses: actions/setup-ruby@v1
-      if: always()
-      with:
-        ruby-version: '2.6'
-
-    - run: bundle version
-      if: always()
-
-    - run: ruby --version
-      if: always()
-
-    - run: hostinfo
-      if: always()
-
-    - run: vm_stat
-      if: always()
-
-    - run: system_profiler
-      if: always()
-
   test-kubernetes:
     name: Test kubernetes image
     runs-on: macos-latest
