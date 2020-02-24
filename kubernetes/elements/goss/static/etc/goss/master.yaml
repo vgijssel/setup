@@ -15,4 +15,4 @@ command:
     - 'Name:	dns.msftncsi.com'
     - 'Address: 131.107.255.255'
     stderr: []
-    timeout: 10000
+    timeout: 30000 # ms, 30s. kubectl run needs to download the Docker image etc
