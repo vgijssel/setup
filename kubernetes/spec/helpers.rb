@@ -69,7 +69,7 @@ def ssh_master(command, timeout:)
 end
 
 def ssh_worker(command, timeout:)
-  wait_for_ssh '192.168.64.101', timeout: timeout
+  wait_for_ssh '192.168.64.102', timeout: timeout
   ssh command, '192.168.64.102', timeout: timeout
 end
 
