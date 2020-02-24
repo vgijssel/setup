@@ -2,7 +2,6 @@
 homebrew_installed_packages:
   - windmilleng/tap/tilt
   - docker-machine-driver-hyperkit
-  - docker-machine-driver-vmware
   - kubernetes-cli
   - ansible
 
@@ -29,6 +28,7 @@ homebrew_installed_packages:
   - minikube # for running kubernetes locally
   - hyperkit # running virtual machines on macos for testing
   - hivemind # for running multiple virtual machines from procfile
+  - dnsmasq # for custom DNS / DHCP
 
   # Emacs
   - emacs-plus
