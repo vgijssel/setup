@@ -11,7 +11,6 @@ RUN apt-get update && \
     sudo \
     qemu-utils \
     iptables \
-    expect \
     kpartx \
     git \
     python-pip \
