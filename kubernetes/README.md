@@ -1,6 +1,5 @@
 - Run tests to see if the image is OK
   - firewall works and has proper ports open (https://wiki.debian.org/Uncomplicated%20Firewall%20%28ufw%29)
-  - DNS resolution works within a kubernetes pod for external addresses (internet connectivity)
 
 NOTE: Proxmox KVM will hang at 100% CPU when there is no serial port configured for a diskimage-create image.
 https://bugs.launchpad.net/cloud-images/+bug/1573095
