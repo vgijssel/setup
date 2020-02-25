@@ -33,14 +33,14 @@ service:
     enabled: true
     running: true
 user:
-  kube:
+  debian:
     exists: true
-    uid: 1001
-    gid: 1001
+    uid: 1000
+    gid: 1000
     groups:
-    - kube
+    - debian
     - docker
-    home: /home/kube
+    home: /home/debian
     shell: /bin/bash
 group:
   docker:

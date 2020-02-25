@@ -34,10 +34,8 @@ cat <<EOF | tee $IMAGE_FILE_COPY_DIR/user-data
 
 manage_etc_hosts: true
 users:
-  - name: kube
-    plain_text_passwd: kube
-    groups:
-      - docker
+  - name: debian
+    plain_text_passwd: debian
 
     # So we can login at the console
     lock_passwd: false

@@ -17,3 +17,8 @@ EOF
 
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io
+
+# Add the debian user to the docker group. Assigning the docker group
+# cannot be done through cloud-init because the debian already exists on the system
+# See diskimage_builder/elements/debian/install.d/10-cloud-opinions:27
+usermod -a -G docker debian

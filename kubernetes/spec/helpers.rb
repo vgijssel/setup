@@ -73,7 +73,7 @@ end
 
 def ssh(command, host, timeout:)
   id_rsa_path = "#{ENV.fetch('SETUP_SCRIPTS_DIR')}/keys/id_rsa"
-  ssh_command = "ssh kube@#{host} -i #{id_rsa_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null #{command}"
+  ssh_command = "ssh debian@#{host} -i #{id_rsa_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null #{command}"
 
   run(ssh_command, timeout: timeout)
 end
