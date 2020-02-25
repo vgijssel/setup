@@ -1,15 +1,9 @@
 ---
 - name: Start kubernetes cluster on master
   hosts: master
-  gather_facts: no
+  gather_facts: yes
   become_method: sudo
   tasks:
-    - name: Wait 600 seconds for target connection to become reachable/usable
-      wait_for_connection:
-
-    - name: Gathering facts
-      setup:
-
     - name: Reset Kubernetes cluster
       become: yes
       command: |
@@ -61,15 +55,9 @@
 
 - name: Join workers to kubernetes cluster
   hosts: worker
-  gather_facts: no
+  gather_facts: yes
   become_method: sudo
   tasks:
-    - name: Wait 600 seconds for target connection to become reachable/usable
-      wait_for_connection:
-
-    - name: Gathering facts
-      setup:
-
     - name: Reset Kubernetes cluster
       become: yes
       command: |
@@ -85,7 +73,7 @@
 
 - name: Wait till kubernetes workers are ready
   hosts: master
-  gather_facts: no
+  gather_facts: yes
   become_method: sudo
   tasks:
     - name: "Wait for workers to be ready"

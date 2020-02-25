@@ -64,12 +64,10 @@ def wait_for_ssh(host, timeout:)
 end
 
 def ssh_master(command, timeout:)
-  wait_for_ssh '192.168.64.101', timeout: timeout
   ssh command, '192.168.64.101', timeout: timeout
 end
 
 def ssh_worker(command, timeout:)
-  wait_for_ssh '192.168.64.102', timeout: timeout
   ssh command, '192.168.64.102', timeout: timeout
 end
 
@@ -91,6 +89,11 @@ Signal.trap('INT') do
 end
 
 RSpec.configure do |config|
+  config.before(:suite) do
+    wait_for_ssh '192.168.64.101', timeout: 60
+    wait_for_ssh '192.168.64.102', timeout: 60
+  end
+
   config.around(:each) do |example|
     reactor.async do
       aggregate_failures do
