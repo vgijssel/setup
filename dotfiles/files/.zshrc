@@ -80,7 +80,11 @@ zplugin $zplugin_load rupa/z
 zplugin ice $zplugin_plugin_output wait
 zplugin $zplugin_load changyuheng/fz
 
-zplugin ice $zplugin_plugin_output wait multisrc'asdf.zsh fzf.zsh gpg.zsh direnv.zsh benchmark.zsh'
+# load direnv and github immediately
+zplugin ice $zplugin_plugin_output multisrc'direnv.zsh github.zsh'
+zplugin $zplugin_load ~/.zsh
+
+zplugin ice $zplugin_plugin_output wait multisrc'asdf.zsh fzf.zsh gpg.zsh benchmark.zsh'
 zplugin $zplugin_load ~/.zsh
 
 zplugin ice $zplugin_plugin_output wait blockf atpull'zplugin creinstall -q .'

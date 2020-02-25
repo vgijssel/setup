@@ -2,7 +2,7 @@ name: Test
 on: [push]
 env:
   CI: true
-  GITHUB_TOKEN: ${{ github.token }}
+  REGISTRY_GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
   base-image:

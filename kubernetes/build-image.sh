@@ -9,7 +9,7 @@ export DIB_EXTLINUX=1
 export KUBERNETES_DIR=$(readlink -f $(dirname "$0"))
 IMAGE_SHA_TAG=$(git rev-parse HEAD)
 
-docker login -u mvgijssel -p "${GITHUB_TOKEN}" docker.pkg.github.com
+docker login -u mvgijssel -p "${REGISTRY_GITHUB_TOKEN}" docker.pkg.github.com
 
 docker run \
        --rm \
