@@ -4,24 +4,33 @@ set -Eeoux pipefail
 
 IMAGE_NAME="$1"
 MACHINE_NUMBER="$2"
-IMAGE_TARGET="$3"
+KERNEL_FILE="$3"
+INITRD_FILE="$4"
 
-IMAGE_FILE="$IMAGE_TARGET.qcow2"
-KERNEL_FILE="$IMAGE_TARGET.vmlinuz"
-INITRD_FILE="$IMAGE_TARGET.initrd"
 
 IMAGE_FILE_COPY_DIR="$SETUP_TMP_DIR/$IMAGE_NAME"
 IMAGE_FILE_COPY_FILE="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.qcow2"
 IMAGE_FILE_COPY_FILE_RAW="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.raw"
 CLOUD_INIT_FILE="$IMAGE_FILE_COPY_DIR/cloud-init.iso"
 
-echo "Booting '$IMAGE_NAME' with disk '$IMAGE_FILE'"
-
-# Make sure we copy the harddisk, to not change the existing one
 mkdir -p $IMAGE_FILE_COPY_DIR
-cp -v $IMAGE_FILE $IMAGE_FILE_COPY_FILE
 
-qemu-img resize $IMAGE_FILE_COPY_FILE 32G
+# If $5 does not exist
+if [ -z "${5+x}" ]; then
+    echo "Booting '$IMAGE_NAME' with empty disk"
+
+    # Create an empty qcow disk image
+    qemu-img create -f qcow2 $IMAGE_FILE_COPY_FILE 32G
+else
+    IMAGE_FILE="$5"
+
+    echo "Booting '$IMAGE_NAME' with disk '$IMAGE_FILE'"
+
+    # Make sure we copy the harddisk, to not change the existing one
+    cp -v $IMAGE_FILE $IMAGE_FILE_COPY_FILE
+
+    qemu-img resize $IMAGE_FILE_COPY_FILE 32G
+fi
 
 # Conver to raw
 qemu-img convert -f qcow2 -O raw $IMAGE_FILE_COPY_FILE $IMAGE_FILE_COPY_FILE_RAW
