@@ -7,7 +7,6 @@ MACHINE_NUMBER="$2"
 KERNEL_FILE="$3"
 INITRD_FILE="$4"
 
-
 IMAGE_FILE_COPY_DIR="$SETUP_TMP_DIR/$IMAGE_NAME"
 IMAGE_FILE_COPY_FILE="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.qcow2"
 IMAGE_FILE_COPY_FILE_RAW="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.raw"
@@ -95,8 +94,18 @@ IMG_CD="-s 2:1,ahci-cd,$CLOUD_INIT_FILE"
 RND_DEV="-s 4,virtio-rnd"
 LPC_DEV="-l com1,stdio"
 
+UUID="-U 5813dd85-86d0-4f67-b485-05de3254d61$MACHINE_NUMBER"
+
+# Get the mac address associated with the UUID
+VM_MAC=$(sudo hyperkit -M $ACPI $MEM $SMP $PCI_DEV $NET $UUID $IMG_HDD $IMG_CD $RND_DEV $LPC_DEV -f kexec,$KERNEL_FILE,$INITRD_FILE,"")
+
+# Remove `MAC: ` from the start of the returned mac address
+VM_MAC=$(echo $VM_MAC | sed 's/^MAC: //')
+
+echo $VM_MAC
+
 # Copied from cat /boot/syslinux/syslinux.cfg from inside the image
 # these are the kernel parameters the image normally uses
-CMDLINE="ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset vga=normal hw_rng_model=virtio"
+CMDLINE="ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset vga=normal hw_rng_model=virtio BOOTIF=$VM_MAC"
 
-sudo hyperkit $ACPI $MEM $SMP $PCI_DEV $NET $IMG_HDD $IMG_CD $RND_DEV $LPC_DEV -f kexec,$KERNEL_FILE,$INITRD_FILE,"$CMDLINE"
+sudo hyperkit $ACPI $MEM $SMP $PCI_DEV $NET $UUID $IMG_HDD $IMG_CD $RND_DEV $LPC_DEV -f kexec,$KERNEL_FILE,$INITRD_FILE,"$CMDLINE"
