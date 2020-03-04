@@ -3,6 +3,7 @@ on: [push]
 env:
   CI: true
   REGISTRY_GITHUB_TOKEN: ${{ github.token }}
+  RUN_ID: ${{ github.run_id }}
 
 jobs:
   base-image:
@@ -95,6 +96,7 @@ jobs:
     - run: cat run_artifacts.json
     - run: |
         URL=$(cat run_artifacts.json | jq --raw-output '.artifacts | .[] | select(.name == "kubernetes") | .archive_download_url')
+
         curl -v -L -u mvgijssel:$REGISTRY_GITHUB_TOKEN $URL -o kubernetes.zip
     - run: ls -la
 
@@ -106,13 +108,14 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: brew install qemu cdrtools hivemind hyperkit
+    - run: brew install qemu cdrtools hivemind hyperkit jq
     - uses: actions/download-artifact@v1
       with:
         name: deploy-image
         path: ./deploy-image/images/deploy-image
     - run: |
         cd ./deploy-image;
+        export ARTIFACT_URL=$(github_artifact_url.sh $RUN_ID kubernetes)
         hivemind Procfile.tests
 
   build-kubernetes:
