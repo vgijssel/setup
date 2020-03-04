@@ -110,11 +110,16 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: brew install qemu cdrtools hivemind hyperkit jq
+    - run: brew install qemu cdrtools hivemind hyperkit
     - uses: actions/download-artifact@v1
       with:
         name: deploy-image
         path: ./deploy-image/images/deploy-image
+    - uses: actions/download-artifact@v1
+      with:
+        name: kubernetes
+        path: ./deploy-image/images/kubernetes
+    - run: ls -la ./deploy-image/images
     - run: |
         cd ./deploy-image;
         export ARTIFACT_URL=http://$IP_ADDRESS:8000/images/kubernetes/kubernetes.zip
