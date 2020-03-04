@@ -11,5 +11,3 @@ echo "Deploying artifact: $ARTIFACT_URL"
 curl -v -L -u mvgijssel:$GITHUB_TOKEN $ARTIFACT_URL -o kubernetes.zip
 
 ls -la
-
-exit 0
