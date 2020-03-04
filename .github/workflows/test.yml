@@ -131,7 +131,7 @@ jobs:
 
   test-kubernetes:
     name: Test kubernetes image
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: macos-latest
     needs: build-kubernetes
     steps:
