@@ -1,6 +1,12 @@
+set -Eeoux pipefail
+
 echo "Starting to deploy from GitHub artifact"
 
 ARTIFACT_URL=$(get_kernel_parameter ARTIFACT_URL)
 GITHUB_TOKEN=$(get_kernel_parameter GITHUB_TOKEN)
 
 echo "Deploying artifact: $ARTIFACT_URL"
+
+curl -v -L -u mvgijssel:$GITHUB_TOKEN $ARTIFACT_URL -o kubernetes.zip
+
+ls -la
