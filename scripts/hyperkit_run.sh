@@ -106,6 +106,7 @@ echo $VM_MAC
 
 # Copied from cat /boot/syslinux/syslinux.cfg from inside the image
 # these are the kernel parameters the image normally uses
-CMDLINE="ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset vga=normal hw_rng_model=virtio BOOTIF=$VM_MAC"
+# Use `noapic` to prevent "MP-BIOS bug: 8254 timer not connected to IO-APIC" kernel panic
+CMDLINE="ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset noapic vga=normal hw_rng_model=virtio BOOTIF=$VM_MAC"
 
 sudo hyperkit $ACPI $MEM $SMP $PCI_DEV $NET $UUID $IMG_HDD $IMG_CD $RND_DEV $LPC_DEV -f kexec,$KERNEL_FILE,$INITRD_FILE,"$CMDLINE"
