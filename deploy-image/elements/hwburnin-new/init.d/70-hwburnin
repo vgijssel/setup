@@ -8,6 +8,6 @@ GITHUB_TOKEN=$(get_kernel_parameter GITHUB_TOKEN)
 
 echo "Deploying artifact: $ARTIFACT_URL"
 
-curl -v -L -u mvgijssel:$GITHUB_TOKEN $ARTIFACT_URL -o kubernetes.zip
+curl -v -L -u mvgijssel:$GITHUB_TOKEN $ARTIFACT_URL -o kubernetes.qcow2
 
-ls -la
+ls -lh
