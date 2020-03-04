@@ -1,4 +1,5 @@
-set -Eeoux pipefail
+# NOTE: no -e flag here, because that will result in a kernel panic
+set -Eoux pipefail
 
 echo "Starting to deploy from GitHub artifact"
 
@@ -10,3 +11,5 @@ echo "Deploying artifact: $ARTIFACT_URL"
 curl -v -L -u mvgijssel:$GITHUB_TOKEN $ARTIFACT_URL -o kubernetes.zip
 
 ls -la
+
+exit 0
