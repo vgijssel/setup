@@ -28,7 +28,7 @@ RUN apt-get update && \
 RUN mkdir -p /app/elements /app/images /app/diskimage-builder
 ENV ELEMENTS_PATH '/app/elements'
 
-ENV DISK_IMAGE_SHA '41c9f247e733bda0a9da5fb339d2c5209aaa5125'
+ENV DISK_IMAGE_SHA '5a49bab1edb979b9ad6de4f7a80af52a196f458e'
 
 RUN cd diskimage-builder && \
   git init && \
