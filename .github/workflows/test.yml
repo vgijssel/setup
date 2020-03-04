@@ -104,7 +104,7 @@ jobs:
     name: Test deploy image
     timeout-minutes: 10
     runs-on: macos-latest
-    needs: build-deploy-image
+    needs: [build-deploy-image, build-kubernetes]
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
