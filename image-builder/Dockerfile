@@ -28,10 +28,12 @@ RUN apt-get update && \
 RUN mkdir -p /app/elements /app/images /app/diskimage-builder
 ENV ELEMENTS_PATH '/app/elements'
 
+ENV DISK_IMAGE_SHA '41c9f247e733bda0a9da5fb339d2c5209aaa5125'
+
 RUN cd diskimage-builder && \
   git init && \
   git remote add origin https://github.com/mvgijssel/diskimage-builder.git && \
-  git fetch --depth 1 origin '5a49bab1edb979b9ad6de4f7a80af52a196f458e' && \
+  git fetch --depth 1 origin $DISK_IMAGE_SHA && \
   git checkout FETCH_HEAD
 
 RUN pip install -e diskimage-builder
