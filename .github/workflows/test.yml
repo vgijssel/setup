@@ -89,6 +89,7 @@ jobs:
       env:
         MATRIX_CONTEXT: ${{ toJson(matrix) }}
       run: echo "$MATRIX_CONTEXT"
+    - run: python --version
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
     - run: brew install jq
