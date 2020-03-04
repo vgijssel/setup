@@ -6,6 +6,7 @@ IMAGE_NAME="$1"
 MACHINE_NUMBER="$2"
 KERNEL_FILE="$3"
 INITRD_FILE="$4"
+EXTRA_KERNEL_PARAMS="$5"
 
 IMAGE_FILE_COPY_DIR="$SETUP_TMP_DIR/$IMAGE_NAME"
 IMAGE_FILE_COPY_FILE="$IMAGE_FILE_COPY_DIR/$IMAGE_NAME.qcow2"
@@ -15,13 +16,13 @@ CLOUD_INIT_FILE="$IMAGE_FILE_COPY_DIR/cloud-init.iso"
 mkdir -p $IMAGE_FILE_COPY_DIR
 
 # If $5 does not exist
-if [ -z "${5+x}" ]; then
+if [ -z "${6+x}" ]; then
     echo "Booting '$IMAGE_NAME' with empty disk"
 
     # Create an empty qcow disk image
     qemu-img create -f qcow2 $IMAGE_FILE_COPY_FILE 32G
 else
-    IMAGE_FILE="$5"
+    IMAGE_FILE="$6"
 
     echo "Booting '$IMAGE_NAME' with disk '$IMAGE_FILE'"
 
@@ -107,6 +108,6 @@ echo $VM_MAC
 # Copied from cat /boot/syslinux/syslinux.cfg from inside the image
 # these are the kernel parameters the image normally uses
 # Use `noapic` to prevent "MP-BIOS bug: 8254 timer not connected to IO-APIC" kernel panic
-CMDLINE="ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset noapic vga=normal hw_rng_model=virtio BOOTIF=$VM_MAC"
+CMDLINE="ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset noapic vga=normal hw_rng_model=virtio BOOTIF=$VM_MAC $EXTRA_KERNEL_PARAMS"
 
 sudo hyperkit $ACPI $MEM $SMP $PCI_DEV $NET $UUID $IMG_HDD $IMG_CD $RND_DEV $LPC_DEV -f kexec,$KERNEL_FILE,$INITRD_FILE,"$CMDLINE"
