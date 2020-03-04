@@ -117,7 +117,7 @@ jobs:
         path: ./deploy-image/images/deploy-image
     - run: |
         cd ./deploy-image;
-        export ARTIFACT_URL=$(github_artifact_url.sh $RUN_ID kubernetes)
+        export ARTIFACT_URL=http://$IP_ADDRESS:8000/images/kubernetes/kubernetes.zip
         hivemind Procfile.tests
 
   build-kubernetes:
