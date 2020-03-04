@@ -4,11 +4,3 @@ ARTIFACT_URL=$(get_kernel_parameter ARTIFACT_URL)
 GITHUB_TOKEN=$(get_kernel_parameter GITHUB_TOKEN)
 
 echo "Deploying artifact: $ARTIFACT_URL"
-
-# echo "Starting debug console"
-
-# exec /bin/bash
-
-# echo "nameserver 8.8.8.8 8.8.4.4" > /etc/resolv.conf
-# echo "hosts:      files dns" > /etc/nsswitch.conf
-# echo "127.0.0.1 localhost" > /etc/hosts
