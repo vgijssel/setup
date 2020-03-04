@@ -1,2 +1,4 @@
-spew
-memtester
+bash
+curl
+wget
+getent

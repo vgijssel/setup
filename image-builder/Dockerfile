@@ -25,8 +25,13 @@ RUN apt-get update && \
     syslinux-common \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /app/elements /app/images
+RUN mkdir -p /app/elements /app/images /app/diskimage-builder
 ENV ELEMENTS_PATH '/app/elements'
 
-RUN git clone -b 'bug/fix-ramdisk-building' --single-branch --depth 1 https://github.com/mvgijssel/diskimage-builder.git
+RUN cd diskimage-builder && \
+  git init && \
+  git remote add origin https://github.com/mvgijssel/diskimage-builder.git && \
+  git fetch --depth 1 origin '5a49bab1edb979b9ad6de4f7a80af52a196f458e' && \
+  git checkout FETCH_HEAD
+
 RUN pip install -e diskimage-builder

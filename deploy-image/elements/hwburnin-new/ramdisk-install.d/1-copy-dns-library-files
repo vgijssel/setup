@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ ${DIB_DEBUG_TRACE:-1} -gt 0 ]; then
+    set -x
+fi
+set -eu
+set -o pipefail
+
+cp -Ln /lib/x86_64-linux-gnu/libnss_dns.so.2 $TMP_MOUNT_PATH/lib/libnss_dns.so.2
+cp -Ln /lib/x86_64-linux-gnu/libnss_files.so.2 $TMP_MOUNT_PATH/lib/libnss_files.so.2
