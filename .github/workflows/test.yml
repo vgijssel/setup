@@ -119,7 +119,7 @@ jobs:
       with:
         name: kubernetes
         path: ./deploy-image/images/kubernetes
-    - run: ls -la ./deploy-image/images
+    - run: find ./deploy-image
     - run: |
         cd ./deploy-image;
         export ARTIFACT_URL=http://$IP_ADDRESS:8000/images/kubernetes/kubernetes.zip
