@@ -1,2 +1,2 @@
-deploy-image-test: hyperkit_run.sh deploy-image-test 1 "${SETUP_DEPLOY_IMAGE_DIR}"/images/deploy-image/deploy-image.kernel "${SETUP_DEPLOY_IMAGE_DIR}"/images/deploy-image/deploy-image.initramfs "DISK_URL=$DISK_URL"
+deploy-image-test: hyperkit_run.sh deploy-image-test 1 "${SETUP_DEPLOY_IMAGE_DIR}"/images/deploy-image/deploy-image.kernel "${SETUP_DEPLOY_IMAGE_DIR}"/images/deploy-image/deploy-image.initramfs "DISK_URL=$DISK_URL TARGET_DISK=$TARGET_DISK"
 file-server: miniserve  -p 8000 -v  .

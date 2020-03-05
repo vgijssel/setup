@@ -133,7 +133,11 @@ jobs:
     - run: |
         cd ./deploy-image
         export DISK_URL=http://$IP_ADDRESS:8000/images/kubernetes/kubernetes_buster.qcow2
+        export TARGET_DISK=/dev/vda
         hivemind Procfile.tests
+    - run: |
+        cd ./deploy-image
+        hivemind Procfile.provisioned
 
   build-kubernetes:
     name: Build kubernetes image

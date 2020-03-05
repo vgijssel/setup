@@ -27,13 +27,17 @@ else
     echo "Booting '$IMAGE_NAME' with disk '$IMAGE_FILE'"
 
     # Make sure we copy the harddisk, to not change the existing one
-    cp -v $IMAGE_FILE $IMAGE_FILE_COPY_FILE
+    if [[ $IMAGE_FILE =~ \.raw$ ]]; then
+        cp -v $IMAGE_FILE $IMAGE_FILE_COPY_FILE_RAW
+    else
+        cp -v $IMAGE_FILE $IMAGE_FILE_COPY_FILE
 
-    qemu-img resize $IMAGE_FILE_COPY_FILE 32G
+        qemu-img resize $IMAGE_FILE_COPY_FILE 32G
+
+        # Convert disk to raw
+        qemu-img convert -f qcow2 -O raw $IMAGE_FILE_COPY_FILE $IMAGE_FILE_COPY_FILE_RAW
+    fi
 fi
-
-# Conver to raw
-qemu-img convert -f qcow2 -O raw $IMAGE_FILE_COPY_FILE $IMAGE_FILE_COPY_FILE_RAW
 
 # Create cloud-init user-data
 cat <<EOF | tee $IMAGE_FILE_COPY_DIR/user-data
@@ -84,7 +88,7 @@ mkisofs \
   -rock {$IMAGE_FILE_COPY_DIR/user-data,$IMAGE_FILE_COPY_DIR/meta-data,$IMAGE_FILE_COPY_DIR/network-config}
 
 ACPI="-A"
-MEM="-m 1G"
+MEM="-m 3G"
 SMP="-c 2"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 NET="-s 1:0,virtio-net"
