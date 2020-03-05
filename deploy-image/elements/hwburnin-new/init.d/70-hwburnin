@@ -1,13 +1,12 @@
 # NOTE: no -e flag here, because that will result in a kernel panic
 set -Eoux pipefail
 
-echo "Starting to deploy from GitHub artifact"
+echo "Start remote disk deploy"
 
-ARTIFACT_URL=$(get_kernel_parameter ARTIFACT_URL)
-GITHUB_TOKEN=$(get_kernel_parameter GITHUB_TOKEN)
+DISK_URL=$(get_kernel_parameter DISK_URL)
 
-echo "Deploying artifact: $ARTIFACT_URL"
+echo "Starting to download disk: $DISK_URL"
 
-curl -v -L -u mvgijssel:$GITHUB_TOKEN $ARTIFACT_URL -o kubernetes.qcow2
+curl -v -L $DISK_URL -o disk.qcow2
 
 ls -lh

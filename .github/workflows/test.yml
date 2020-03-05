@@ -115,7 +115,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: brew install qemu cdrtools hivemind hyperkit
+    - run: brew install qemu cdrtools hivemind hyperkit miniserve
     - uses: actions/download-artifact@v1
       with:
         name: deploy-image
@@ -126,8 +126,8 @@ jobs:
         path: ./deploy-image/images/kubernetes
     - run: find ./deploy-image
     - run: |
-        cd ./deploy-image;
-        export ARTIFACT_URL=http://$IP_ADDRESS:8000/images/kubernetes/kubernetes_buster.qcow2
+        cd ./deploy-image
+        export DISK_URL=http://$IP_ADDRESS:8000/images/kubernetes/kubernetes_buster.qcow2
         hivemind Procfile.tests
 
   build-kubernetes:
