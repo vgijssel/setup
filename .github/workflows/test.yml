@@ -115,10 +115,10 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: brew install qemu cdrtools hivemind hyperkit miniserve
+    - run: brew install qemu cdrtools hivemind hyperkit miniserve coreutils
     # Allow miniserve in the macos firewall
     - run: |
-        APP=$(readlink -f `which miniserve`)
+        APP=$(greadlink -f `which miniserve`)
         sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add $APP
         sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp $APP
     - uses: actions/download-artifact@v1
