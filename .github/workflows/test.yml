@@ -116,6 +116,11 @@ jobs:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
     - run: brew install qemu cdrtools hivemind hyperkit miniserve
+    # Allow miniserve in the macos firewall
+    - run: |
+        APP=$(readlink -f `which miniserve`)
+        sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add $APP
+        sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp $APP
     - uses: actions/download-artifact@v1
       with:
         name: deploy-image
