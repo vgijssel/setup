@@ -112,6 +112,8 @@ jobs:
     timeout-minutes: 10
     runs-on: macos-latest
     needs: [build-deploy-image, build-kubernetes]
+    env:
+      TARGET_DIR: './deploy-image'
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
@@ -121,6 +123,9 @@ jobs:
         APP=$(greadlink -f `which miniserve`)
         sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add $APP
         sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp $APP
+    - uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.6'
     - uses: actions/download-artifact@v1
       with:
         name: deploy-image
@@ -129,15 +134,24 @@ jobs:
       with:
         name: kubernetes
         path: ./deploy-image/images/kubernetes
-    - run: find ./deploy-image
-    - run: |
-        cd ./deploy-image
-        export DISK_URL=http://$IP_ADDRESS:8000/images/kubernetes/kubernetes_buster.qcow2
-        export TARGET_DISK=/dev/vda
-        hivemind Procfile.tests
-    - run: |
-        cd ./deploy-image
-        hivemind Procfile.provisioned
+
+    # - working-directory: $TARGET_DIR
+    #   run: gem install bundler:2.1.4
+
+    # - working-directory: $TARGET_DIR
+    #   run: bundle install
+
+    - working-directory: $TARGET_DIR
+      env:
+        DISK_URL: http://$IP_ADDRESS:8000/images/kubernetes/kubernetes_buster.qcow2
+        TARGET_DISK: /dev/vda
+      run: hivemind Procfile.tests
+
+    - working-directory: $TARGET_DIR
+      run: |
+        hivemind Procfile.provisioned &
+        sleep 20
+        exit 1
 
   build-kubernetes:
     name: Build kubernetes image
@@ -173,6 +187,6 @@ jobs:
     - run: cd kubernetes && bundle install
     - run: chmod 0400 scripts/keys/id_rsa
     - run: |
-        cd ./kubernetes;
+        cd ./kubernetes
         hivemind Procfile.tests &
         bundle exec rspec
