@@ -24,6 +24,7 @@ homebrew_installed_packages:
   - jq # Tool for filtering JSON on the command line
   - v8@3.15 # the ruby racer gem
   - imagemagick # otherwise Rails image upload no work
+  - miniserve # CLI tool to serve files over HTTP
 
   - cdrtools # contains mkisofs for making cloud-init images
   - minikube # for running kubernetes locally

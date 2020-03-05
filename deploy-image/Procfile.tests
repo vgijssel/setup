@@ -1,2 +1,3 @@
 deploy-image-test: hyperkit_run.sh deploy-image-test 1 "${SETUP_DEPLOY_IMAGE_DIR}"/images/deploy-image/deploy-image.kernel "${SETUP_DEPLOY_IMAGE_DIR}"/images/deploy-image/deploy-image.initramfs "ARTIFACT_URL=$ARTIFACT_URL GITHUB_TOKEN=$REGISTRY_GITHUB_TOKEN"
 file-server: python -m SimpleHTTPServer 8000
+file-server: miniserve  -p 8000 -v  .

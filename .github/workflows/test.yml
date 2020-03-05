@@ -92,12 +92,13 @@ jobs:
     - run: ifconfig
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
+    - run: brew install jq miniserve
     - run: python --version
     - run: |
-        python -m SimpleHTTPServer 8000 &
+        miniserve  -p 8000 -v  . &
+        sleep 5
         curl -v http://localhost:8000
         curl -v http://$IP_ADDRESS:8000
-    - run: brew install jq
     - run: curl -v -L -u mvgijssel:$REGISTRY_GITHUB_TOKEN https://api.github.com/repos/mvgijssel/setup/actions/runs/49462227/artifacts -o run_artifacts.json
     - run: cat run_artifacts.json
     - run: |
