@@ -126,6 +126,7 @@ jobs:
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
+
     - uses: actions/download-artifact@v1
       with:
         name: deploy-image
@@ -135,19 +136,19 @@ jobs:
         name: kubernetes
         path: ./deploy-image/images/kubernetes
 
-    # - working-directory: $TARGET_DIR
+    # - working-directory: ${{ env.TARGET_DIR }}
     #   run: gem install bundler:2.1.4
 
-    # - working-directory: $TARGET_DIR
+    # - working-directory: ${{ env.TARGET_DIR }}
     #   run: bundle install
 
-    - working-directory: $TARGET_DIR
+    - working-directory: ${{ env.TARGET_DIR }}
       env:
         DISK_URL: http://$IP_ADDRESS:8000/images/kubernetes/kubernetes_buster.qcow2
         TARGET_DISK: /dev/vda
       run: hivemind Procfile.tests
 
-    - working-directory: $TARGET_DIR
+    - working-directory: ${{ env.TARGET_DIR }}
       run: |
         hivemind Procfile.provisioned &
         sleep 20
