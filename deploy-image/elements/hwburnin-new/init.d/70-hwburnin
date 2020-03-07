@@ -20,7 +20,7 @@ qemu-img convert -f qcow2 -O raw $DISK_QCOW $DISK_RAW
 
 ls -lh
 
-echo "Writing $DISK_RAW to disk '$TARGET_DISK'"
+echo "Writing '$DISK_RAW' to disk '$TARGET_DISK'"
 
 dd if=$DISK_RAW ibs=1M | pv | dd of=$TARGET_DISK obs=1M
 
