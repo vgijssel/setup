@@ -91,7 +91,7 @@ mkisofs \
   -rock {$IMAGE_FILE_COPY_DIR/user-data,$IMAGE_FILE_COPY_DIR/meta-data,$IMAGE_FILE_COPY_DIR/network-config}
 
 ACPI="-A"
-MEM="-m 3G"
+MEM="-m 4G"
 SMP="-c 2"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 NET="-s 1:0,virtio-net"
