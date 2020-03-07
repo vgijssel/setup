@@ -12,6 +12,8 @@ describe 'Provision' do
     result = task.wait
 
     expect(result.success?).to eq true
+    expect(result.error).to be_nil
+
     expect(result.stdout.include?("Start remote disk deploy")).to eq true
     expect(result.stdout.include?("Starting to download disk from '#{disk_url}'")).to eq true
     expect(result.stdout.include?("Writing 'disk.raw' to disk '#{target_disk}'")).to eq true

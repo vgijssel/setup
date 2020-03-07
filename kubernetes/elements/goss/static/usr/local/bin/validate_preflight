@@ -2,4 +2,4 @@
 
 set -Eeoux pipefail
 
-goss --gossfile /etc/goss/preflight.yaml --vars <(facter -j) validate --format documentation --color --retry-timeout 60s --sleep value 1s
+goss --gossfile /etc/goss/preflight.yaml --vars <(facter -j) validate --format documentation --color --retry-timeout 60s --sleep 1s
