@@ -13,13 +13,15 @@ echo "Starting to download disk from '$DISK_URL'"
 # Download the disk
 curl -v -L $DISK_URL -o $DISK_QCOW
 
+ls -lh
+
 # Convert the qcow2 image to raw
 qemu-img convert -f qcow2 -O raw $DISK_QCOW $DISK_RAW
+
+ls -lh
 
 echo "Writing $DISK_RAW to disk '$TARGET_DISK'"
 
 dd if=$DISK_RAW ibs=1M | pv | dd of=$TARGET_DISK obs=1M
-
-ls -lh
 
 echo "Done writing disk!"
