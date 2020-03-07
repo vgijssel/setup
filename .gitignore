@@ -1,2 +1,3 @@
 .vagrant
 *.temp
+**/spec/examples.txt
