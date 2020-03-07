@@ -144,7 +144,7 @@ jobs:
 
     - working-directory: ${{ env.TARGET_DIR }}
       env:
-        DISK_URL: http://$IP_ADDRESS:8000/images/kubernetes/kubernetes_buster.qcow2
+        DISK_URL: http://${{ env.IP_ADDRESS }}:8000/images/kubernetes/kubernetes_buster.qcow2
         TARGET_DISK: /dev/vda
       run: hivemind Procfile.tests
 
