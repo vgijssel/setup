@@ -57,7 +57,14 @@ mount 172.16.0.1:/data /data
 
 - Upgrade OS
 
+
+## Problem with crashing/freezing ZFS:
+
 ```
 apt-get update
 apt dist-upgrade
 ```
+
+- problem with freezing / crashing https://forum.proxmox.com/threads/proxmox-v6-servers-freeze-zvol-blocked-for-more-than-120s.57765/page-3
+apt-get update
+apt dist-upgrade
