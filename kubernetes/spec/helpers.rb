@@ -89,11 +89,6 @@ Signal.trap('INT') do
 end
 
 RSpec.configure do |config|
-  config.before(:suite) do
-    wait_for_ssh '192.168.64.101', timeout: 60
-    wait_for_ssh '192.168.64.102', timeout: 60
-  end
-
   config.around(:each) do |example|
     reactor.async do
       aggregate_failures do

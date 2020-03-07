@@ -1,4 +1,9 @@
 describe 'Kubernetes cluster setup' do
+  before(:all) do
+    wait_for_ssh '192.168.64.101', timeout: 60
+    wait_for_ssh '192.168.64.102', timeout: 60
+  end
+
   it 'passes all tests on the master before creating a cluster' do
     result = ssh_master('validate_preflight', timeout: 60).wait
 
