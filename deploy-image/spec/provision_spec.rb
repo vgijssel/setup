@@ -18,38 +18,14 @@ describe 'Provision' do
     expect(result.stdout).to include("Done writing disk!")
   end
 
-  # it 'passes all tests on the master before creating a cluster' do
-  #   result = ssh_master('validate_preflight', timeout: 60).wait
+  it 'is able to boot the provisioned disk' do
+    server_task = run 'hivemind Procfile.provisioned', timeout: 300
+    wait_for_ssh '192.168.64.101', timeout: 60
 
-  #   expect(result.exitstatus).to eq 0
-  #   expect(result.error).to be_nil
-  # end
+    result = ssh('validate_preflight', '192.168.64.101', timeout: 60).wait
+    server_task.stop
 
-  # it 'passes all tests on the worker before creating a cluster' do
-  #   result = ssh_worker('validate_preflight', timeout: 60).wait
-
-  #   expect(result.exitstatus).to eq 0
-  #   expect(result.error).to be_nil
-  # end
-
-  # it 'successfully starts a kubernetes cluster with the master and worker' do
-  #   result = run("ansible-playbook -i hosts_test.ini setup_cluster.yml", timeout: 300).wait
-
-  #   expect(result.exitstatus).to eq 0
-  #   expect(result.error).to be_nil
-  # end
-
-  # it 'passes all tests on the master after creating a cluster' do
-  #   result = ssh_master('validate_master', timeout: 60).wait
-
-  #   expect(result.exitstatus).to eq 0
-  #   expect(result.error).to be_nil
-  # end
-
-  # it 'passes all tests on the worker after creating a cluster' do
-  #   result = ssh_worker('validate_worker', timeout: 60).wait
-
-  #   expect(result.exitstatus).to eq 0
-  #   expect(result.error).to be_nil
-  # end
+    expect(result.exitstatus).to eq 0
+    expect(result.error).to be_nil
+  end
 end
