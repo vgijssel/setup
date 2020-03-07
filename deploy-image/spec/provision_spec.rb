@@ -15,7 +15,7 @@ describe 'Provision' do
     expect(result.stdout.include?("Start remote disk deploy")).to eq true
     expect(result.stdout.include?("Starting to download disk from '#{disk_url}'")).to eq true
     expect(result.stdout.include?("Writing 'disk.raw' to disk '#{target_disk}'")).to eq true
-    expect(result.stdout.include?("Done writing disk!")
+    expect(result.stdout.include?("Done writing disk!")).to eq true
   end
 
   it 'is able to boot the provisioned disk' do
