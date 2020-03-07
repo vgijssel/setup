@@ -21,6 +21,9 @@ if [ -z "${6+x}" ]; then
 
     # Create an empty qcow disk image
     qemu-img create -f qcow2 $IMAGE_FILE_COPY_FILE 32G
+
+    # Convert disk to raw
+    qemu-img convert -f qcow2 -O raw $IMAGE_FILE_COPY_FILE $IMAGE_FILE_COPY_FILE_RAW
 else
     IMAGE_FILE="$6"
 
