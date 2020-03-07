@@ -12,6 +12,8 @@ module Async
         loop do
           character = read(1)
 
+          return if character.nil?
+
           line << character
 
           break if character == "\n"
@@ -31,9 +33,10 @@ module RSpec
           read_io, write_io = Async::IO.pipe
           stdout_string = String.new('')
 
-          Async do
+          logger_task = Async do
             loop do
               line = read_io.read_line
+              break if line.nil?
               stdout_string << line
               puts line
             end
@@ -64,6 +67,8 @@ module RSpec
           rescue Async::Wrapper::Cancelled => e
             write_io.close
             Result.new(nil, stdout_string, e)
+          ensure
+            logger_task.stop
           end
         end
       end
