@@ -1,4 +1,12 @@
 describe 'Kubernetes cluster setup' do
+  def ssh_master(command, timeout:)
+    ssh command, '192.168.64.101', timeout: timeout
+  end
+
+  def ssh_worker(command, timeout:)
+    ssh command, '192.168.64.102', timeout: timeout
+  end
+
   before(:all) do
     wait_for_ssh '192.168.64.101', timeout: 60
     wait_for_ssh '192.168.64.102', timeout: 60

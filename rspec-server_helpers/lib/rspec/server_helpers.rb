@@ -72,14 +72,6 @@ module RSpec
         end.wait
       end
 
-      def ssh_master(command, timeout:)
-        ssh command, '192.168.64.101', timeout: timeout
-      end
-
-      def ssh_worker(command, timeout:)
-        ssh command, '192.168.64.102', timeout: timeout
-      end
-
       def ssh(command, host, timeout:)
         id_rsa_path = "#{ENV.fetch('SETUP_SCRIPTS_DIR')}/keys/id_rsa"
         ssh_command = "ssh debian@#{host} -i #{id_rsa_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null #{command}"
