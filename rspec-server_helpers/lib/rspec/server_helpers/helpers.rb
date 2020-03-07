@@ -119,6 +119,9 @@ module RSpec
       end
 
       def wait_for_ssh(host, timeout:)
+        total_attempts = (timeout / (2 + 1)).floor
+        current_attempt = 1
+
         Async do |wait_task|
           wait_task.with_timeout(timeout) do
             loop do
@@ -127,8 +130,9 @@ module RSpec
               if result.success?
                 break
               else
-                puts 'SSH failed, retrying in 1s...'
+                puts "[#{current_attempt}/#{total_attempts}] SSH failed, retrying in 1s..."
                 wait_task.sleep(1)
+                current_attempt += 1
               end
             end
           end
