@@ -1,4 +1,7 @@
 describe 'Provision' do
+  it 'kerk' do
+  end
+
   # it 'passes all tests on the master before creating a cluster' do
   #   result = ssh_master('validate_preflight', timeout: 60).wait
 

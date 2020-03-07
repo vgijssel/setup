@@ -2,7 +2,7 @@ require 'pry'
 require 'json'
 require 'logger'
 
-require_relative './helpers'
+require 'rspec-server_helpers'
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
