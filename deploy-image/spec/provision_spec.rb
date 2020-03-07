@@ -6,7 +6,7 @@ describe 'Provision' do
     target_disk = '/dev/vda'
 
     task = run 'hivemind Procfile.tests',
-               timeout: 60,
+               timeout: 120,
                extra_env: { DISK_URL: disk_url, TARGET_DISK: target_disk }
 
     result = task.wait
