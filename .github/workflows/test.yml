@@ -116,6 +116,7 @@ jobs:
       TARGET_DIR: './deploy-image'
     steps:
     - uses: actions/checkout@v1
+    - run: chmod 0400 scripts/keys/id_rsa
     - run: ./scripts/load_env.sh
     - run: brew install qemu cdrtools hivemind hyperkit miniserve coreutils
     # Allow miniserve in the macos firewall
@@ -136,11 +137,11 @@ jobs:
         name: kubernetes
         path: ./deploy-image/images/kubernetes
 
-    # - working-directory: ${{ env.TARGET_DIR }}
-    #   run: gem install bundler:2.1.4
+    - working-directory: ${{ env.TARGET_DIR }}
+      run: gem install bundler:2.1.4
 
-    # - working-directory: ${{ env.TARGET_DIR }}
-    #   run: bundle install
+    - working-directory: ${{ env.TARGET_DIR }}
+      run: bundle install
 
     - working-directory: ${{ env.TARGET_DIR }}
       env:
@@ -175,6 +176,7 @@ jobs:
     needs: build-kubernetes
     steps:
     - uses: actions/checkout@v1
+    - run: chmod 0400 scripts/keys/id_rsa
     - run: ./scripts/load_env.sh
     - run: brew install qemu cdrtools hivemind hyperkit ansible
     - uses: actions/download-artifact@v1
@@ -186,7 +188,6 @@ jobs:
         ruby-version: '2.6'
     - run: gem install bundler:2.1.4
     - run: cd kubernetes && bundle install
-    - run: chmod 0400 scripts/keys/id_rsa
     - run: |
         cd ./kubernetes
         hivemind Procfile.tests &
