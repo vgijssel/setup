@@ -12,10 +12,10 @@ describe 'Provision' do
     result = task.wait
 
     expect(result.success?).to eq true
-    expect(result.stdout).to include("Start remote disk deploy")
-    expect(result.stdout).to include("Starting to download disk from '#{disk_url}'")
-    expect(result.stdout).to include("Writing 'disk.raw' to disk '#{target_disk}'")
-    expect(result.stdout).to include("Done writing disk!")
+    expect(result.stdout.include?("Start remote disk deploy")).to eq true
+    expect(result.stdout.include?("Starting to download disk from '#{disk_url}'")).to eq true
+    expect(result.stdout.include?("Writing 'disk.raw' to disk '#{target_disk}'")).to eq true
+    expect(result.stdout.include?("Done writing disk!")
   end
 
   it 'is able to boot the provisioned disk' do
