@@ -20,7 +20,7 @@ describe 'Provision' do
 
   it 'is able to boot the provisioned disk' do
     server_task = run 'hivemind Procfile.provisioned', timeout: 300
-    wait_for_ssh '192.168.64.101', timeout: 60
+    wait_for_ssh '192.168.64.101', timeout: 120
 
     result = ssh('validate_preflight', '192.168.64.101', timeout: 60).wait
     server_task.stop
