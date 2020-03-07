@@ -30,5 +30,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'async', '~> 1.24.2'
   spec.add_dependency 'async-process', '~> 1.2.0'
   spec.add_dependency 'async-io', '~> 1.27.3'
+  spec.add_dependency 'activesupport', '~> 6.0.2'
   spec.add_development_dependency 'pry', '~> 0.12.2'
 end
