@@ -2,4 +2,4 @@
 
 set -Eeoux pipefail
 
-goss --gossfile /etc/goss/worker.yaml --vars <(facter -j) validate --format documentation --color
+goss --gossfile /etc/goss/worker.yaml --vars <(facter -j) validate --format documentation --color --retry-timeout 60s --sleep value 1s
