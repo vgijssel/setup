@@ -8,7 +8,7 @@ TARGET_DISK=$(get_kernel_parameter TARGET_DISK)
 DISK_QCOW="disk.qcow2"
 DISK_RAW="disk.raw"
 
-echo "Starting to download disk: $DISK_URL"
+echo "Starting to download disk from '$DISK_URL'"
 
 # Download the disk
 curl -v -L $DISK_URL -o $DISK_QCOW
