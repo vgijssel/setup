@@ -3,11 +3,42 @@
 require 'async'
 require 'async/process'
 
+module Async
+  module IO
+    class Generic
+      def read_line
+        line = String.new('')
+
+        loop do
+          character = read(1)
+
+          line << character
+
+          break if character == "\n"
+        end
+
+        line
+      end
+    end
+  end
+end
+
 module RSpec
   module ServerHelpers
     module Helpers
       def run(command, timeout:, extra_env: {})
         Async do |process_wrapper_task|
+          read_io, write_io = Async::IO.pipe
+          stdout_string = String.new('')
+
+          Async do
+            loop do
+              line = read_io.read_line
+              stdout_string << line
+              puts line
+            end
+          end
+
           begin
             process_wrapper_task.with_timeout(timeout) do
               # Get the environment before applying bundler
@@ -20,17 +51,19 @@ module RSpec
               result = Async::Process.spawn(
                 environment,
                 command,
-                out: STDOUT,
+                out: write_io,
                 err: %i[child out],
                 unsetenv_others: true
               )
-
-              Result.new(result.exitstatus)
+              write_io.close
+              Result.new(result.exitstatus, stdout_string)
             end
           rescue Async::TimeoutError => e
-            Result.new(nil, e)
+            write_io.close
+            Result.new(nil, stdout_string, e)
           rescue Async::Wrapper::Cancelled => e
-            Result.new(nil, e)
+            write_io.close
+            Result.new(nil, stdout_string, e)
           end
         end
       end

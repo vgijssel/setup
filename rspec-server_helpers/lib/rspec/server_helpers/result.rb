@@ -3,9 +3,11 @@ module RSpec
     class Result
       attr_reader :exitstatus
       attr_reader :error
+      attr_reader :stdout
 
-      def initialize(exitstatus, error = nil)
+      def initialize(exitstatus, stdout, error = nil)
         @exitstatus = exitstatus
+        @stdout = stdout
         @error = error
       end
 
