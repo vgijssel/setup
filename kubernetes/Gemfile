@@ -6,8 +6,5 @@ git_source(:github) do |repo_name|
 end
 
 # Specify your gem's dependencies in arel_toolkit.gemspec
-gem 'rspec', '~> 3.9.0'
-gem 'async', '~> 1.24.2'
-gem 'async-process', '~> 1.2.0'
-gem 'async-io', '~> 1.27.3'
-gem 'pry', '~> 0.12.2'
+gem 'rspec-server_helpers', path: '../rspec-server_helpers'
+gem 'pry'
