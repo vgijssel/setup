@@ -25,6 +25,51 @@ module Async
   end
 end
 
+module Async
+  module Process
+    class Child
+			private
+
+			def wait_thread
+				@input.read(1)
+
+			ensure
+				# If the user stops this task, we kill the process:
+				if @exit_status.nil?
+          clean_kill
+				end
+
+				@thread.join
+
+				# We are done with the notification pipe:
+				@input.close
+				@output.close
+			end
+
+      def clean_kill
+        puts "Clean killing #{@pid}"
+        ::Process.kill(:INT, @pid)
+
+        loop do
+          break unless process_running?(@pid)
+        end
+
+        puts "Properly killed #{@pid}"
+      end
+
+      # Copied from https://github.com/wilsonsilva/process_exists/blob/master/lib/process_exists/core_ext/process.rb
+      def process_running?(pid)
+        ::Process.kill(0, pid.to_i)
+        true
+      rescue Errno::ESRCH # No such process
+        false
+      rescue Errno::EPERM # The process exists, but you dont have permission to send the signal to it.
+        true
+      end
+    end
+  end
+end
+
 module RSpec
   module ServerHelpers
     module Helpers
