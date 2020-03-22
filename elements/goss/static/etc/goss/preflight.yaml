@@ -15,15 +15,21 @@ package:
   kubeadm:
     installed: true
     versions:
-    - 1.17.3-00
+      contain-element:
+        # Ensure 1.17.*
+        match-regexp: "1\\.17\\.\\d+-00"
   kubectl:
     installed: true
     versions:
-    - 1.17.3-00
+      contain-element:
+        # Ensure 1.17.*
+        match-regexp: "1\\.17\\.\\d+-00"
   kubelet:
     installed: true
     versions:
-    - 1.17.3-00
+      contain-element:
+        # Ensure 1.17.*
+        match-regexp: "1\\.17\\.\\d+-00"
   nfs-common:
     installed: true
     versions:
