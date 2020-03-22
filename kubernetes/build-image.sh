@@ -6,7 +6,7 @@ export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 # Force extlinux instead of grub2
 export DIB_EXTLINUX=1
-export KUBERNETES_DIR=$(readlink -f $(dirname "$0"))
+
 IMAGE_SHA_TAG=$(git rev-parse HEAD)
 
 docker login -u mvgijssel -p "${REGISTRY_GITHUB_TOKEN}" docker.pkg.github.com
@@ -14,8 +14,9 @@ docker login -u mvgijssel -p "${REGISTRY_GITHUB_TOKEN}" docker.pkg.github.com
 docker run \
        --rm \
        --privileged \
-       -v "${KUBERNETES_DIR}/images:/app/images" \
-       -v "${KUBERNETES_DIR}/elements:/app/elements" \
+       -v "${SETUP_KUBERNETES_DIR}/images:/app/images" \
+       -v "${SETUP_KUBERNETES_DIR}/elements:/app/local_elements" \
+       -v "${SETUP_ELEMENTS_DIR}:/app/global_elements" \
        --env DIB_RELEASE \
        --env DIB_APT_MINIMAL_CREATE_INTERFACES \
        --env DIB_EXTLINUX \

@@ -25,8 +25,8 @@ RUN apt-get update && \
     syslinux-common \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /app/elements /app/images /app/diskimage-builder
-ENV ELEMENTS_PATH '/app/elements'
+RUN mkdir -p /app/local_elements /app/global_elements /app/images /app/diskimage-builder
+ENV ELEMENTS_PATH '/app/local_elements:/app/global_elements'
 
 ENV DISK_IMAGE_SHA '41c9f247e733bda0a9da5fb339d2c5209aaa5125'
 
