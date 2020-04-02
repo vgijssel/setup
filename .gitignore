@@ -1,3 +1,6 @@
 .vagrant
 *.temp
 **/spec/examples.txt
+terraform.tfstate
+terraform.tfstate.backup
+.terraform

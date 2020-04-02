@@ -80,6 +80,7 @@ homebrew_cask_apps:
   - multipass
   - ngrok
   - virtualbox
+  - vagrant
   - gpg-suite
   - 1password-cli
   - steam

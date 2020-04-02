@@ -1,0 +1,4 @@
+qemu-kvm:
+libvirt-clients:
+libvirt-daemon-system:
+netcat-openbsd:
