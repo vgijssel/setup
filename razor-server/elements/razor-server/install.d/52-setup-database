@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ ${DIB_DEBUG_TRACE:-1} -gt 0 ]; then
+    set -x
+fi
+set -eu
+set -o pipefail
+
+echo "SETTING UP POSTGRES DATABASE"
+
+/etc/init.d/postgresql start
+
+sudo -u postgres psql --command "CREATE USER razor WITH SUPERUSER PASSWORD 'razor';"
+
+sudo -u postgres createdb -O razor razor_prd
+
+sudo -u razor /opt/puppetlabs/bin/razor-admin -e production migrate-database
+
+/etc/init.d/postgresql stop

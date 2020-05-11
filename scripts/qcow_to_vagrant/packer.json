@@ -1,0 +1,37 @@
+{
+  "variables": {
+    "source_path": "",
+    "output_directory": "",
+    "provisioners_dir": "",
+    "output": ""
+  },
+  "builders": [
+    {
+      "type": "virtualbox-ovf",
+      "format": "ovf",
+      "output_directory": "packer_output",
+      "source_path": "{{user `source_path`}}",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
+      "guest_additions_mode": "attach",
+      "guest_additions_interface": "IDE",
+      "vboxmanage": [["modifyvm", "{{.Name}}", "--memory", "2048"]],
+      "headless": true,
+      "disable_shutdown": false,
+      "shutdown_timeout": "5m"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "{{user `provisioners_dir`}}/install-virtualbox-guest-additions.sh"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "output": "{{user `output`}}"
+    }
+  ]
+}

@@ -1,10 +1,8 @@
 {
   "name": "my_policy",
-  "repo": "test",
+  "repo": "deploy-image",
   "enabled": true,
   "hostname": "host${id}.example.com",
-  "max_count": 20,
   "root_password": "root_password",
-  "broker": "noop",
-  "tags": ["small"]
+  "broker": "noop"
 }

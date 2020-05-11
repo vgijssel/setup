@@ -1,1 +1,4 @@
 images
+packer_cache
+empty.box
+razor-server.box

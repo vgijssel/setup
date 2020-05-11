@@ -1,3 +1,63 @@
+## Setup
+
+1. Boot razor-server
+```
+vagrant up
+```
+
+2. Copy deploy-image to proper folder
+
+Test urls:
+```
+razor nodes
+=> copy dhcp_mac
+http://razor-server:8150/svc/boot?net0=08:00:27:7c:ae:4d
+
+razor nodes node2 facts
+http://razor-server:8150/svc/repo/deploy-image/deploy-image.kernel
+http://razor-server:8150/svc/repo/libvirt/libvirt_buster.qcow2
+```
+
+3. Boot network only VM
+```
+vagrant up pxe
+```
+
+4. Set razor url
+```
+export RAZOR_API=http://razor-server:8150/api
+```
+
+5. Setup the razor-server policy
+
+```
+razor create-repo deploy-image --task deploy-image --no_content
+razor create-broker --name=noop --broker-type=noop
+razor create-policy --json policy.json
+```
+
+5. Wait for the networking machine to reboot and boot into the deploy-image
+
+6. Set the node metadata 
+```
+razor update-node-metadata --node node2 --key TARGET_DISK --value /dev/sda
+razor update-node-metadata --node node2 --key DISK_URL --value http://razor-server:8150/svc/repo/libvirt/libvirt_buster.qcow2
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```
 eval $(minikube docker-env)
 export RAZOR_API=http://minikube:8150/api

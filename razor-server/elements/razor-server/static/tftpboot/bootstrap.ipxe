@@ -35,7 +35,7 @@ set dhcp_mac net3$${net3/mac:hexhyp}
 
 
 :chain_boot
-chain http://192.168.100.43:8150/svc/boot?net0=${net0/mac:hexhyp}&net1=${net1/mac:hexhyp}&net2=${net2/mac:hexhyp}&net3=${net3/mac:hexhyp}&dhcp_mac=${dhcp_mac}&serial=${serial}&asset=${asset}&uuid=${uuid}&fact_boot_type=${platform} || goto error
+chain http://razor-server:8150/svc/boot?net0=${net0/mac:hexhyp}&net1=${net1/mac:hexhyp}&net2=${net2/mac:hexhyp}&net3=${net3/mac:hexhyp}&dhcp_mac=${dhcp_mac}&serial=${serial}&asset=${asset}&uuid=${uuid}&fact_boot_type=${platform} || goto error
 echo successfully completed the chain-loaded script; booting locally with 'exit'
 exit
 

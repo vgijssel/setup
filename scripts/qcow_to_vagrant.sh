@@ -5,18 +5,23 @@ set -Eeoux pipefail
 IMAGE_FILE="$1"
 VAGRANT_FILE="$2"
 
-OVF_FILE="$SETUP_SCRIPTS_DIR/virtualbox.ovf"
+QCOW_TO_VAGRANT_DIR="$SETUP_SCRIPTS_DIR/qcow_to_vagrant"
+PROVISIONERS_DIR="$QCOW_TO_VAGRANT_DIR/provisioners"
+
+OVF_FILE="$QCOW_TO_VAGRANT_DIR/box.ovf"
 
 # Create a temp dir within /tmp
 TMP_DIR=$(TMPDIR=/tmp mktemp -d -t qcow_to_vagrant-XXXXXXXXXXXXX)
 
+TMP_PACKER_OUTPUT_DIR="$TMP_DIR/packer_output"
+
 TMP_QCOW_FILE="$TMP_DIR/image.qcow2"
 
-CLOUD_INIT_FILE="box-disk001.iso"
-TMP_CLOUD_INIT="$TMP_DIR/$CLOUD_INIT_FILE"
-
-VMDK_FILE="box-disk002.vmdk"
+VMDK_FILE="box-disk001.vmdk"
 TMP_VMDK_FILE="$TMP_DIR/$VMDK_FILE"
+
+CLOUD_INIT_FILE="box-disk002.iso"
+TMP_CLOUD_INIT="$TMP_DIR/$CLOUD_INIT_FILE"
 
 TMP_BOX_FILE="$TMP_DIR/image.box"
 
@@ -37,13 +42,6 @@ qemu-img convert -f qcow2 -O vmdk $TMP_QCOW_FILE $TMP_VMDK_FILE
 
 # Copy virtualbox export config file
 cp -v $OVF_FILE $TMP_OVF
-
-# Create Vagrant metadata
-cat <<EOF | tee $TMP_METADATA
-{
-  "provider": "virtualbox"
-}
-EOF
 
 # Create cloud-init user-data
 cat <<EOF | tee $TMP_DIR/user-data
@@ -86,8 +84,12 @@ mkisofs \
     -joliet \
     -rock {$TMP_DIR/user-data,$TMP_DIR/meta-data}
 
-tar -C $TMP_DIR -cvzf $TMP_BOX_FILE $VMDK_FILE $CLOUD_INIT_FILE $METADATA_FILE $NEW_OVF_FILE
-
-mv -v $TMP_BOX_FILE $VAGRANT_FILE
+packer build \
+       -var "provisioners_dir=$PROVISIONERS_DIR" \
+       -var "source_path=$TMP_OVF" \
+       -var "output=$VAGRANT_FILE" \
+       -var "output_directory=$TMP_PACKER_OUTPUT_DIR" \
+       -force \
+       $QCOW_TO_VAGRANT_DIR/packer.json
 
 rm -rf $TMP_DIR

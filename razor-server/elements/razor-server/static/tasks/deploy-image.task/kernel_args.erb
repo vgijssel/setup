@@ -1,0 +1,1 @@
+ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset noapic vga=normal hw_rng_model=virtio BOOTIF=${netX/mac} DISK_URL=<%= node.metadata['DISK_URL'] %> TARGET_DISK=<%= node.metadata['TARGET_DISK'] %>
