@@ -1,8 +1,8 @@
 {
-  "name": "my_policy",
+  "name": "deploy-image-policy",
   "repo": "deploy-image",
   "enabled": true,
   "hostname": "host${id}.example.com",
-  "root_password": "root_password",
-  "broker": "noop"
+  "broker": "noop",
+  "root_password": "root_password"
 }

@@ -6,7 +6,7 @@ fi
 set -eu
 set -o pipefail
 
-echo "SETTING UP POSTGRES DATABASE"
+echo "SETTING UP RAZOR DATABASE IN POSTGRES"
 
 /etc/init.d/postgresql start
 
@@ -15,5 +15,19 @@ sudo -u postgres psql --command "CREATE USER razor WITH SUPERUSER PASSWORD 'razo
 sudo -u postgres createdb -O razor razor_prd
 
 sudo -u razor /opt/puppetlabs/bin/razor-admin -e production migrate-database
+
+echo "SETTING UP INITIAL RAZOR SEED"
+
+/etc/init.d/razor-server start
+
+gem install razor-client
+
+razor create-repo deploy-image --task deploy-image --no_content
+razor create-broker --name=noop --broker-type=noop
+razor create-policy --json /etc/razor/deploy-image-policy.json
+
+echo "STOPPING RAZOR SERVICES"
+
+/etc/init.d/razor-server stop
 
 /etc/init.d/postgresql stop

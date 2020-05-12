@@ -23,4 +23,4 @@ docker run \
        --env DIB_EXTLINUX \
        --env break \
        "${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}" \
-       disk-image-create -x -o images/razor-server/razor-server_buster debian baremetal vm debian-networking-fix cloud-init-fix razor-server growroot resolvconf goss
+       disk-image-create -x -o images/razor-server/razor-server_buster debian vm debian-networking-fix cloud-init-fix razor-server growroot resolvconf goss
