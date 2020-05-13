@@ -4,5 +4,6 @@
   "enabled": true,
   "hostname": "host${id}.example.com",
   "broker": "noop",
-  "root_password": "root_password"
+  "root_password": "root_password",
+  "tags": ["deploy-target-set"]
 }
