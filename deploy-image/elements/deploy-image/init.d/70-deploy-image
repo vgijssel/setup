@@ -1,0 +1,12 @@
+# NOTE: no -e flag here, because that will result in a kernel panic
+set -Eoux pipefail
+
+DEPLOY_SCRIPT_URL=$(get_kernel_parameter DEPLOY_SCRIPT_URL)
+
+curl -v $DEPLOY_SCRIPT_URL -o deploy_script.sh
+
+bash deploy_script.sh
+
+rm -rf deploy_script.sh
+
+

@@ -1,3 +1,13 @@
+## Debugging:
+
+Extract created ramdisk
+
+```
+zcat deploy-image.initramfs | cpio -idmv
+```
+
+## Notes
+
 Final state PXE will look like:
 
 set cmdline image=https://github.com/mvgijssel/setup/archive/proxmox.tar.gz disk=/dev/sda4
