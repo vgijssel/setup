@@ -16,6 +16,7 @@ Vagrant.configure('2') do |config|
 
     razor.vm.synced_folder "../deploy-image/images/deploy-image", "/repo/deploy-image"
     razor.vm.synced_folder "../libvirt/images/libvirt", "/repo/libvirt"
+    razor.vm.synced_folder "./elements/razor-server/static/tasks/deploy-image.task", "/tasks/deploy-image.task"
     razor.vm.synced_folder "../ipxe", "/tftpboot/ipxe"
 
     razor.vm.hostname = 'razor-server'
