@@ -39,7 +39,7 @@ all:
 
   microkernel:
     debug_level: debug
-    kernel_args:
+    kernel_args: 'console=tty0 console=ttyS0 edd=off'
     # If this value is present, and points to a zip file, it will be
     # downloaded and unpacked by the MK client prior to checkin.  This allows
     # for custom facts and other code to be shipped to the client without
