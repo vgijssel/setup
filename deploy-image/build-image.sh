@@ -18,4 +18,4 @@ docker run \
        --env DIB_RELEASE \
        --env DIB_APT_MINIMAL_CREATE_INTERFACES \
        "${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}" \
-       ramdisk-image-create -x -o images/deploy-image/deploy-image ramdisk debian hwburnin-new
+       ramdisk-image-create -x -o images/deploy-image/deploy-image ramdisk debian deploy-image
