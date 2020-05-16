@@ -1,4 +1,4 @@
 images
 packer_cache
-empty.box
+pxe.box
 razor-server.box

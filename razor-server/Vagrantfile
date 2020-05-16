@@ -30,21 +30,27 @@ Vagrant.configure('2') do |config|
   end
 
   config.vm.define "pxe", autostart: false do |pxe|
-    pxe.vm.box = 'file://empty.box'
+    pxe.vm.box = 'file://pxe.box'
     pxe.vm.graceful_halt_timeout = 0
 
     pxe.vm.provider 'virtualbox' do |vb|
-      # Make sure the bridged network adapter is used for PXE
-      # 0 is the lowest priority, 1 is the highest priority
-      vb.customize ["modifyvm", :id, "--nicbootprio1", "0"]
-      vb.customize ["modifyvm", :id, "--nicbootprio2", "1"]
 
       vb.gui = false
 
       # We need a lot of memory here because a disk is downloaded and extracted into ram
       vb.memory = "4096"
+
+      # Setup the serial port for logging
       vb.customize ["modifyvm", :id, "--uart1", "0x3f8", "4"]
       vb.customize ["modifyvm", :id, "--uartmode1", "file", "/tmp/pxe.log"]
+
+      # Make sure the bridged network adapter is used for PXE
+      # 0 is the lowest priority, 1 is the highest priority
+      vb.customize ["modifyvm", :id, "--nicbootprio1", "0"]
+      vb.customize ["modifyvm", :id, "--nicbootprio2", "1"]
+
+      # Attach iPXE to the Floppy controller to enable network booting
+      vb.customize ["storageattach", :id, "--storagectl", "Floppy", "--port", 0, "--device", 0, "--type", "fdd", "--medium", "../ipxe/ipxe.dsk"]
     end
   end
 end

@@ -4,6 +4,7 @@ set -Eeoux pipefail
 
 IMAGE_FILE="$1"
 VAGRANT_FILE="$2"
+USE_PACKER="$3"
 
 QCOW_TO_VAGRANT_DIR="$SETUP_SCRIPTS_DIR/qcow_to_vagrant"
 PROVISIONERS_DIR="$QCOW_TO_VAGRANT_DIR/provisioners"
@@ -77,6 +78,11 @@ cat <<EOF | tee $TMP_DIR/meta-data
 # Auto-Generated - DO NOT CHANGE THIS
 EOF
 
+# Create Vagrantfile metadata
+cat <<EOF | tee $TMP_DIR/metadata.json
+{"provider":"virtualbox"}
+EOF
+
 # Generate cloud-init image
 mkisofs \
     -output $TMP_CLOUD_INIT \
@@ -84,12 +90,16 @@ mkisofs \
     -joliet \
     -rock {$TMP_DIR/user-data,$TMP_DIR/meta-data}
 
-packer build \
-       -var "provisioners_dir=$PROVISIONERS_DIR" \
-       -var "source_path=$TMP_OVF" \
-       -var "output=$VAGRANT_FILE" \
-       -var "output_directory=$TMP_PACKER_OUTPUT_DIR" \
-       -force \
-       $QCOW_TO_VAGRANT_DIR/packer.json
+if [[ "$USE_PACKER" = true ]]; then
+  packer build \
+    -var "provisioners_dir=$PROVISIONERS_DIR" \
+    -var "source_path=$TMP_OVF" \
+    -var "output=$VAGRANT_FILE" \
+    -var "output_directory=$TMP_PACKER_OUTPUT_DIR" \
+    -force \
+    $QCOW_TO_VAGRANT_DIR/packer.json
+else
+    tar cvzf "${VAGRANT_FILE}" -C "${TMP_DIR}" ./metadata.json ./box.ovf ./box-disk001.vmdk ./box-disk002.iso
+fi
 
 rm -rf $TMP_DIR
