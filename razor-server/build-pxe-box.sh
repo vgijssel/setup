@@ -9,4 +9,4 @@ mkdir -p "${PXE_IMAGE_DIR}"
 
 qemu-img create -f qcow2 "${PXE_QCOW}" 32G
 
-qcow_to_vagrant.sh "${PXE_QCOW}" pxe.box false
+qcow_to_vagrant.sh "${PXE_QCOW}" "${SETUP_RAZOR_SERVER_DIR}/pxe.box" false
