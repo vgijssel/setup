@@ -20,7 +20,7 @@ echo "SETTING UP INITIAL RAZOR SEED"
 
 /etc/init.d/razor-server start
 
-gem install razor-client
+gem install razor-client:1.9.6
 
 razor create-repo deploy-image --task deploy-image --no_content
 razor create-broker --name=noop --broker-type=noop
