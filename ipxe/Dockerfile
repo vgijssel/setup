@@ -21,4 +21,4 @@ ADD console.h /app/ipxe/src/config/console.h
 
 ADD embed.ipxe /app/ipxe/src/embed.ipxe
 
-RUN cd /app/ipxe/src && make DEBUG=dhcp,intel,undinet EMBED=embed.ipxe
+RUN cd /app/ipxe/src && make DEBUG=dhcp EMBED=embed.ipxe
