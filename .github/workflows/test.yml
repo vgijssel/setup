@@ -51,7 +51,7 @@ jobs:
         path: ./deploy-image/images/deploy-image
 
   build-libvirt:
-    name: Build libvirt
+    name: Build libvirt image
     timeout-minutes: 10
     runs-on: ubuntu-latest
     needs: image-builder
