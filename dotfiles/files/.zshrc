@@ -31,6 +31,7 @@ export LC_ALL=en_US.UTF-8
 export EDITOR="emacsclient -s ${HOME}/.emacs.d/server/server"
 export VISUAL="emacsclient -s ${HOME}/.emacs.d/server/server"
 export DOCKER_BUILDKIT=1
+export RAZOR_API=http://razor-server:8150/api
 
 export HISTFILE=~/.zsh_history
 export HISTSIZE=100000 # number of lines loaded into the shell when started
