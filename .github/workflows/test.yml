@@ -36,117 +36,7 @@ jobs:
     - run: ./scripts/load_env.sh
     - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
-  razor-server:
-    name: Build razor server image
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    needs: base-image
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: docker_build.sh "${RAZOR_SERVER_IMAGE}" "./razor-server"
-
-  build-deploy-image:
-    name: Build deploy image
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    needs: image-builder
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: ./deploy-image/build-image.sh
-    - uses: actions/upload-artifact@v1
-      with:
-        name: deploy-image
-        path: ./deploy-image/images/deploy-image
-
-  test-download-artifact:
-    name: Test deploy image
-    timeout-minutes: 10
-    runs-on: macos-latest
-    steps:
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
-    - name: Dump job context
-      env:
-        JOB_CONTEXT: ${{ toJson(job) }}
-      run: echo "$JOB_CONTEXT"
-    - name: Dump steps context
-      env:
-        STEPS_CONTEXT: ${{ toJson(steps) }}
-      run: echo "$STEPS_CONTEXT"
-    - name: Dump runner context
-      env:
-        RUNNER_CONTEXT: ${{ toJson(runner) }}
-      run: echo "$RUNNER_CONTEXT"
-    - name: Dump strategy context
-      env:
-        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-      run: echo "$STRATEGY_CONTEXT"
-    - name: Dump matrix context
-      env:
-        MATRIX_CONTEXT: ${{ toJson(matrix) }}
-      run: echo "$MATRIX_CONTEXT"
-    - run: ifconfig
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: brew install jq miniserve
-    - run: python --version
-    - run: |
-        miniserve  -p 8000 -v  . &
-        sleep 5
-        curl -v http://localhost:8000
-        curl -v http://$IP_ADDRESS:8000
-    - run: curl -v -L -u mvgijssel:$REGISTRY_GITHUB_TOKEN https://api.github.com/repos/mvgijssel/setup/actions/runs/49462227/artifacts -o run_artifacts.json
-    - run: cat run_artifacts.json
-    - run: |
-        URL=$(cat run_artifacts.json | jq --raw-output '.artifacts | .[] | select(.name == "kubernetes") | .archive_download_url')
-
-        curl -v -L -u mvgijssel:$REGISTRY_GITHUB_TOKEN $URL -o kubernetes.zip
-    - run: ls -la
-
-  test-deploy-image:
-    name: Test deploy image
-    timeout-minutes: 10
-    runs-on: macos-latest
-    needs: [build-deploy-image, build-kubernetes]
-    env:
-      TARGET_DIR: './deploy-image'
-    steps:
-    - uses: actions/checkout@v1
-    - run: chmod 0400 scripts/keys/id_rsa
-    - run: ./scripts/load_env.sh
-    - run: brew install qemu cdrtools hivemind hyperkit miniserve coreutils
-    # Allow miniserve in the macos firewall
-    - run: |
-        APP=$(greadlink -f `which miniserve`)
-        sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add $APP
-        sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp $APP
-    - uses: actions/setup-ruby@v1
-      with:
-        ruby-version: '2.6'
-
-    - uses: actions/download-artifact@v1
-      with:
-        name: deploy-image
-        path: ./deploy-image/images/deploy-image
-    - uses: actions/download-artifact@v1
-      with:
-        name: kubernetes
-        path: ./deploy-image/images/kubernetes
-
-    - working-directory: ${{ env.TARGET_DIR }}
-      run: gem install bundler:2.1.4
-
-    - working-directory: ${{ env.TARGET_DIR }}
-      run: bundle install
-
-    - working-directory: ${{ env.TARGET_DIR }}
-      run: bundle exec rspec
-
-  build-kubernetes:
+  build-razor-server:
     name: Build kubernetes image
     timeout-minutes: 10
     runs-on: ubuntu-latest
@@ -154,32 +44,171 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: ./kubernetes/build-image.sh
+    - run: ./razor-server/build-image.sh
     - uses: actions/upload-artifact@v1
       with:
-        name: kubernetes
-        path: ./kubernetes/images/kubernetes
+        name: razor-server
+        path: ./razor-server/images/razor-server
 
-  test-kubernetes:
-    name: Test kubernetes image
+  test-razor-server:
+    name: Test razor-server
     timeout-minutes: 20
     runs-on: macos-latest
-    needs: build-kubernetes
+    needs: build-razor-server
+    env:
+      TARGET_DIR: './razor-server'
     steps:
     - uses: actions/checkout@v1
-    - run: chmod 0400 scripts/keys/id_rsa
     - run: ./scripts/load_env.sh
-    - run: brew install qemu cdrtools hivemind hyperkit ansible
     - uses: actions/download-artifact@v1
       with:
-        name: kubernetes
-        path: ./kubernetes/images/kubernetes
+        name: razor-server
+        path: ./razor-server/images/razor-server
+    - run: ./razor-server/build-box.sh
+    - run: ./razor-server/build-pxe-box.sh
+    - working-directory: ${{ env.TARGET_DIR }}
+      run: vagrant up
+    - working-directory: ${{ env.TARGET_DIR }}
+      run: vagrant up pxe
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
-    - run: gem install bundler:2.1.4
-    - run: cd kubernetes && bundle install
-    - run: |
-        cd ./kubernetes
-        hivemind Procfile.tests &
-        bundle exec rspec
+    - run: gem install razor-client:1.9.6
+
+  # build-deploy-image:
+  #   name: Build deploy image
+  #   timeout-minutes: 10
+  #   runs-on: ubuntu-latest
+  #   needs: image-builder
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/load_env.sh
+  #   - run: ./deploy-image/build-image.sh
+  #   - uses: actions/upload-artifact@v1
+  #     with:
+  #       name: deploy-image
+  #       path: ./deploy-image/images/deploy-image
+
+  # test-download-artifact:
+  #   name: Test deploy image
+  #   timeout-minutes: 10
+  #   runs-on: macos-latest
+  #   steps:
+  #   - name: Dump GitHub context
+  #     env:
+  #       GITHUB_CONTEXT: ${{ toJson(github) }}
+  #     run: echo "$GITHUB_CONTEXT"
+  #   - name: Dump job context
+  #     env:
+  #       JOB_CONTEXT: ${{ toJson(job) }}
+  #     run: echo "$JOB_CONTEXT"
+  #   - name: Dump steps context
+  #     env:
+  #       STEPS_CONTEXT: ${{ toJson(steps) }}
+  #     run: echo "$STEPS_CONTEXT"
+  #   - name: Dump runner context
+  #     env:
+  #       RUNNER_CONTEXT: ${{ toJson(runner) }}
+  #     run: echo "$RUNNER_CONTEXT"
+  #   - name: Dump strategy context
+  #     env:
+  #       STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+  #     run: echo "$STRATEGY_CONTEXT"
+  #   - name: Dump matrix context
+  #     env:
+  #       MATRIX_CONTEXT: ${{ toJson(matrix) }}
+  #     run: echo "$MATRIX_CONTEXT"
+  #   - run: ifconfig
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/load_env.sh
+  #   - run: brew install jq miniserve
+  #   - run: python --version
+  #   - run: |
+  #       miniserve  -p 8000 -v  . &
+  #       sleep 5
+  #       curl -v http://localhost:8000
+  #       curl -v http://$IP_ADDRESS:8000
+  #   - run: curl -v -L -u mvgijssel:$REGISTRY_GITHUB_TOKEN https://api.github.com/repos/mvgijssel/setup/actions/runs/49462227/artifacts -o run_artifacts.json
+  #   - run: cat run_artifacts.json
+  #   - run: |
+  #       URL=$(cat run_artifacts.json | jq --raw-output '.artifacts | .[] | select(.name == "kubernetes") | .archive_download_url')
+
+  #       curl -v -L -u mvgijssel:$REGISTRY_GITHUB_TOKEN $URL -o kubernetes.zip
+  #   - run: ls -la
+
+  # test-deploy-image:
+  #   name: Test deploy image
+  #   timeout-minutes: 10
+  #   runs-on: macos-latest
+  #   needs: [build-deploy-image, build-kubernetes]
+  #   env:
+  #     TARGET_DIR: './deploy-image'
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: chmod 0400 scripts/keys/id_rsa
+  #   - run: ./scripts/load_env.sh
+  #   - run: brew install qemu cdrtools hivemind hyperkit miniserve coreutils
+  #   # Allow miniserve in the macos firewall
+  #   - run: |
+  #       APP=$(greadlink -f `which miniserve`)
+  #       sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add $APP
+  #       sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp $APP
+  #   - uses: actions/setup-ruby@v1
+  #     with:
+  #       ruby-version: '2.6'
+
+  #   - uses: actions/download-artifact@v1
+  #     with:
+  #       name: deploy-image
+  #       path: ./deploy-image/images/deploy-image
+  #   - uses: actions/download-artifact@v1
+  #     with:
+  #       name: kubernetes
+  #       path: ./deploy-image/images/kubernetes
+
+  #   - working-directory: ${{ env.TARGET_DIR }}
+  #     run: gem install bundler:2.1.4
+
+  #   - working-directory: ${{ env.TARGET_DIR }}
+  #     run: bundle install
+
+  #   - working-directory: ${{ env.TARGET_DIR }}
+  #     run: bundle exec rspec
+
+  # build-kubernetes:
+  #   name: Build kubernetes image
+  #   timeout-minutes: 10
+  #   runs-on: ubuntu-latest
+  #   needs: image-builder
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/load_env.sh
+  #   - run: ./kubernetes/build-image.sh
+  #   - uses: actions/upload-artifact@v1
+  #     with:
+  #       name: kubernetes
+  #       path: ./kubernetes/images/kubernetes
+
+  # test-kubernetes:
+  #   name: Test kubernetes image
+  #   timeout-minutes: 20
+  #   runs-on: macos-latest
+  #   needs: build-kubernetes
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: chmod 0400 scripts/keys/id_rsa
+  #   - run: ./scripts/load_env.sh
+  #   - run: brew install qemu cdrtools hivemind hyperkit ansible
+  #   - uses: actions/download-artifact@v1
+  #     with:
+  #       name: kubernetes
+  #       path: ./kubernetes/images/kubernetes
+  #   - uses: actions/setup-ruby@v1
+  #     with:
+  #       ruby-version: '2.6'
+  #   - run: gem install bundler:2.1.4
+  #   - run: cd kubernetes && bundle install
+  #   - run: |
+  #       cd ./kubernetes
+  #       hivemind Procfile.tests &
+  #       bundle exec rspec
