@@ -13,7 +13,6 @@ docker login -u mvgijssel -p "${REGISTRY_GITHUB_TOKEN}" docker.pkg.github.com
 
 docker run \
        --rm \
-       -it \
        --privileged \
        -v "${SETUP_RAZOR_SERVER_DIR}/images:/app/images" \
        -v "${SETUP_RAZOR_SERVER_DIR}/elements:/app/local_elements" \

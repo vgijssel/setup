@@ -37,7 +37,7 @@ jobs:
     - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
   build-razor-server:
-    name: Build kubernetes image
+    name: Build razor-server image
     timeout-minutes: 10
     runs-on: ubuntu-latest
     needs: image-builder
