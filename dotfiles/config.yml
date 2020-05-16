@@ -4,6 +4,7 @@ homebrew_installed_packages:
   - docker-machine-driver-hyperkit
   - kubernetes-cli
   - ansible
+  - packer # creating machine images
 
   - exiftool # show/mutate EXIF information of documents
   - pstree # show parent/child relationship of processes
