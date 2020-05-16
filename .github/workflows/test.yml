@@ -64,6 +64,7 @@ jobs:
       with:
         name: razor-server
         path: ./razor-server/images/razor-server
+    - run: brew install qemu cdrtools
     - run: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh
     - working-directory: ${{ env.TARGET_DIR }}
