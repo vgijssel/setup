@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+log_dir = ENV.fetch('SETUP_LOG_DIR')
+
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
@@ -25,7 +27,7 @@ Vagrant.configure('2') do |config|
       vb.gui = false
       vb.memory = "1024"
       vb.customize ["modifyvm", :id, "--uart1", "0x3f8", "4"]
-      vb.customize ["modifyvm", :id, "--uartmode1", "file", "/tmp/razor-server.log"]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "razor-server.log")]
     end
   end
 
@@ -42,7 +44,7 @@ Vagrant.configure('2') do |config|
 
       # Setup the serial port for logging
       vb.customize ["modifyvm", :id, "--uart1", "0x3f8", "4"]
-      vb.customize ["modifyvm", :id, "--uartmode1", "file", "/tmp/pxe.log"]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "pxe.log")]
 
       # Make sure the bridged network adapter is used for PXE
       # 0 is the lowest priority, 1 is the highest priority

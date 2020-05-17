@@ -93,7 +93,7 @@ jobs:
 
   test-razor-server:
     name: Test razor-server
-    timeout-minutes: 20
+    timeout-minutes: 30
     runs-on: macos-latest
     needs: [build-razor-server, build-deploy-image, build-libvirt, build-ipxe]
     env:
@@ -120,17 +120,20 @@ jobs:
     - run: brew install qemu cdrtools
     - run: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh
-
     - working-directory: ${{ env.TARGET_DIR }}
       run: vagrant up
-
     - working-directory: ${{ env.TARGET_DIR }}
       run: vagrant up pxe
-
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
     - run: gem install razor-client:1.9.6
+
+    - uses: actions/upload-artifact@v1
+      if: ${{ always() }}
+      with:
+        name: test-razor-server-log
+        path: ./log
 
   # test-download-artifact:
   #   name: Test deploy image
