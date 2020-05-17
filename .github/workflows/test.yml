@@ -141,6 +141,7 @@ jobs:
       run: |
         env
     - uses: actions/checkout@v1
+    - run: ls -la
     - run: ifconfig
     - run: VBoxManage list bridgedifs | grep ^Name
 
