@@ -24,17 +24,6 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-    - env:
-        GITHUB: ${{ toJson(github) }}
-        ENV: ${{ toJson(env) }}
-        JOB: ${{ toJson(job) }}
-        STEPS: ${{ toJson(steps) }}
-        RUNNER: ${{ toJson(runner) }}
-        SECRETS: ${{ toJson(secrets) }}
-        STRATEGY: ${{ toJson(strategy) }}
-        MATRIX: ${{ toJson(matrix) }}
-      run: |
-        env
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
     - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
@@ -135,52 +124,25 @@ jobs:
         name: test-razor-server-log
         path: ./log
 
-  # test-download-artifact:
-  #   name: Test deploy image
-  #   timeout-minutes: 10
-  #   runs-on: macos-latest
-  #   steps:
-  #   - name: Dump GitHub context
-  #     env:
-  #       GITHUB_CONTEXT: ${{ toJson(github) }}
-  #     run: echo "$GITHUB_CONTEXT"
-  #   - name: Dump job context
-  #     env:
-  #       JOB_CONTEXT: ${{ toJson(job) }}
-  #     run: echo "$JOB_CONTEXT"
-  #   - name: Dump steps context
-  #     env:
-  #       STEPS_CONTEXT: ${{ toJson(steps) }}
-  #     run: echo "$STEPS_CONTEXT"
-  #   - name: Dump runner context
-  #     env:
-  #       RUNNER_CONTEXT: ${{ toJson(runner) }}
-  #     run: echo "$RUNNER_CONTEXT"
-  #   - name: Dump strategy context
-  #     env:
-  #       STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-  #     run: echo "$STRATEGY_CONTEXT"
-  #   - name: Dump matrix context
-  #     env:
-  #       MATRIX_CONTEXT: ${{ toJson(matrix) }}
-  #     run: echo "$MATRIX_CONTEXT"
-  #   - run: ifconfig
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: brew install jq miniserve
-  #   - run: python --version
-  #   - run: |
-  #       miniserve  -p 8000 -v  . &
-  #       sleep 5
-  #       curl -v http://localhost:8000
-  #       curl -v http://$IP_ADDRESS:8000
-  #   - run: curl -v -L -u mvgijssel:$REGISTRY_GITHUB_TOKEN https://api.github.com/repos/mvgijssel/setup/actions/runs/49462227/artifacts -o run_artifacts.json
-  #   - run: cat run_artifacts.json
-  #   - run: |
-  #       URL=$(cat run_artifacts.json | jq --raw-output '.artifacts | .[] | select(.name == "kubernetes") | .archive_download_url')
-
-  #       curl -v -L -u mvgijssel:$REGISTRY_GITHUB_TOKEN $URL -o kubernetes.zip
-  #   - run: ls -la
+  macos-info:
+    name: Print macos vm information
+    timeout-minutes: 5
+    runs-on: macos-latest
+    steps:
+    - env:
+        GITHUB: ${{ toJson(github) }}
+        ENV: ${{ toJson(env) }}
+        JOB: ${{ toJson(job) }}
+        STEPS: ${{ toJson(steps) }}
+        RUNNER: ${{ toJson(runner) }}
+        SECRETS: ${{ toJson(secrets) }}
+        STRATEGY: ${{ toJson(strategy) }}
+        MATRIX: ${{ toJson(matrix) }}
+      run: |
+        env
+    - uses: actions/checkout@v1
+    - run: ifconfig
+    - run: VBoxManage list bridgedifs | grep ^Name
 
   # test-deploy-image:
   #   name: Test deploy image
