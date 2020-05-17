@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 log_dir = ENV.fetch('SETUP_LOG_DIR')
-bridge_adapter = "en0: Wi-Fi (Wireless)"
+bridge_adapter = ENV.fetch('VAGRANT_BRIDGE_ADAPTER')
 
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
