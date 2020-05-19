@@ -114,6 +114,8 @@ jobs:
     - run: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh
     - run: ./razor-server/ci-dhcp-server.sh
+    - run: ifconfig
+    - run: ps aux | grep dnsmasq
     - working-directory: ${{ env.TARGET_DIR }}
       run: vagrant up
     - working-directory: ${{ env.TARGET_DIR }}
