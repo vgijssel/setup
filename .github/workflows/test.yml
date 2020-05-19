@@ -106,13 +106,14 @@ jobs:
       with:
         name: ipxe
         path: ./ipxe/output
-    - run: brew install qemu cdrtools
+    - run: brew install qemu cdrtools dnsmasq
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
     - run: gem install razor-client:1.9.6
     - run: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh
+    - run: ./razor-server/ci-dhcp-server.sh
     - working-directory: ${{ env.TARGET_DIR }}
       run: vagrant up
     - working-directory: ${{ env.TARGET_DIR }}

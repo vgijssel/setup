@@ -37,3 +37,9 @@ razor nodes node2 facts
 http://razor-server:8150/svc/repo/deploy-image/deploy-image.kernel
 http://razor-server:8150/svc/repo/libvirt/libvirt_buster.qcow2
 ```
+
+Login Centos microkernel
+```
+username: root
+password: thincrust
+```
