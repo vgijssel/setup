@@ -15,7 +15,6 @@ sudo ifconfig "${BRIDGE_INTERFACE}" "${DNS_IP}" netmask 255.255.255.0 up
 
 sudo dnsmasq \
   --interface="${BRIDGE_INTERFACE}" \
-  --listen-address=127.0.0.1 \
   --bind-interfaces \
   --dhcp-range=192.168.1.100,192.168.1.200,255.255.255.0,12h \
   --dhcp-leasefile="${SETUP_TMP_DIR}"/dnsmasq.leases \
