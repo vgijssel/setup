@@ -4,6 +4,8 @@ log_dir = ENV.fetch('SETUP_LOG_DIR')
 bridge_adapter = ENV.fetch('VAGRANT_BRIDGE_ADAPTER')
 ipxe_dir = ENV.fetch('SETUP_IPXE_DIR')
 
+puts "THE BRIDGE ADAPTER: #{bridge_adapter}"
+
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
