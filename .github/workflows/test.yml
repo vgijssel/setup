@@ -16,7 +16,7 @@ jobs:
     - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
 
   build-ipxe:
-    name: Build image builder image
+    name: Build ipxe
     timeout-minutes: 10
     runs-on: ubuntu-latest
     needs: build-base-image
