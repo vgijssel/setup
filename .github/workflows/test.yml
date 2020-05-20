@@ -147,6 +147,8 @@ jobs:
     - run: ls -la
     - run: ifconfig
     - run: VBoxManage list bridgedifs | grep ^Name
+    - run: vboxmanage --version
+
 
   # test-deploy-image:
   #   name: Test deploy image
