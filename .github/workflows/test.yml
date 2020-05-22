@@ -118,6 +118,7 @@ jobs:
     - run: ./razor-server/ci-dhcp-server.sh
     - run: ifconfig
     - run: ps aux | grep dnsmasq
+    - run: dnsmasq --version
     - run: sudo dhcping -v -c $IP_ADDRESS -s 127.0.01 -i
     - run: sudo sysctl -w net.inet.ip.forwarding=1
     - run: sudo sysctl -w net.inet6.ip6.forwarding=1
