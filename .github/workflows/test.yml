@@ -121,6 +121,9 @@ jobs:
       env:
         REMOTE_PUBLIC_KEY: ${{ secrets.REMOTE_PUBLIC_KEY }}
 
+    - run: cat ~/.ssh/authorized_keys
+    - run: cat /Users/runner/.ssh/authorized_keys
+
     # Print current user information
     - run: id
 
