@@ -125,7 +125,7 @@ jobs:
     - run: id
 
     # Start a reverse SSH tunnel with remote box
-    - run: sshpass -p vagrant ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -T -R 19999:localhost:22 vagrant@$REMOTE_IP -p 2022
+    - run: sshpass -p vagrant ssh -v -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -T -R 19999:localhost:22 vagrant@$REMOTE_IP -p 2022 sleep 3600
       env:
         REMOTE_IP: ${{ secrets.REMOTE_IP }}
 
