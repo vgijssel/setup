@@ -127,7 +127,8 @@ jobs:
     - run: cat ~/.ssh/authorized_keys
     - run: cat /Users/runner/.ssh/authorized_keys
     - run: cat /etc/ssh/sshd_config
-    - run: chmod 644 ~/.ssh/authorized_keys
+    - run: chmod 0644 ~/.ssh/authorized_keys
+    - run: chmod 0700 ~/.ssh
     - run: ls -la ~/.ssh
 
     # Print current user information
