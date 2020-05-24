@@ -125,7 +125,7 @@ jobs:
     - run: id
 
     # Start a reverse SSH tunnel with remote box
-    - run: sshpass -p vagrant ssh -R 19999:localhost:22 vagrant@$REMOTE_IP -p 2022
+    - run: sshpass -p vagrant ssh -T -R 19999:localhost:22 vagrant@$REMOTE_IP -p 2022
       env:
         REMOTE_IP: ${{ secrets.REMOTE_IP }}
 
