@@ -113,6 +113,9 @@ jobs:
     # install sshpass which allows you to pass password to ssh
     - run: brew install https://raw.githubusercontent.com/kadwanev/bigboybrew/master/Library/Formula/sshpass.rb
 
+    # Force password for the CI user
+    - run: sudo /usr/bin/dscl . -passwd /Users/runner runner
+
     # Enable remote access to the macos CI machine
     - run: sudo systemsetup -setremotelogin on
 
@@ -123,6 +126,7 @@ jobs:
 
     - run: cat ~/.ssh/authorized_keys
     - run: cat /Users/runner/.ssh/authorized_keys
+    - run: cat /etc/ssh/sshd_config
     - run: chmod 644 ~/.ssh/authorized_keys
     - run: ls -la ~/.ssh
 
