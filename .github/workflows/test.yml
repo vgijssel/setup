@@ -123,6 +123,8 @@ jobs:
 
     - run: cat ~/.ssh/authorized_keys
     - run: cat /Users/runner/.ssh/authorized_keys
+    - run: chmod 644 ~/.ssh/authorized_keys
+    - run: ls -la ~/.ssh
 
     # Print current user information
     - run: id
