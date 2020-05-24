@@ -83,7 +83,7 @@ jobs:
 
   test-razor-server:
     name: Test razor-server
-    timeout-minutes: 30
+    timeout-minutes: 120
     runs-on: macos-latest
     # needs: [build-razor-server, build-deploy-image, build-libvirt, build-ipxe]
     needs: [build-ipxe]
@@ -135,7 +135,7 @@ jobs:
     - run: id
 
     # Start a reverse SSH tunnel with remote box
-    - run: sshpass -p vagrant ssh -v -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -T -R 19999:localhost:22 vagrant@$REMOTE_IP -p 2022 sleep 3600
+    - run: sshpass -p vagrant ssh -v -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -T -R 19999:localhost:22 vagrant@$REMOTE_IP -p 2022 sleep 7200
       env:
         REMOTE_IP: ${{ secrets.REMOTE_IP }}
 
@@ -150,7 +150,7 @@ jobs:
     - run: ps aux | grep dnsmasq
     - run: dnsmasq --version
       # test
-    - run: sudo dhcping -v -c $IP_ADDRESS -s 127.0.01 -i
+    - run: sudo dhcping -v -c 192.168.1.1 -s 127.0.01 -i
     - run: sudo sysctl -w net.inet.ip.forwarding=1
     - run: sudo sysctl -w net.inet6.ip6.forwarding=1
     - run: sudo dhcping -v -c $IP_ADDRESS -s 127.0.01 -i
