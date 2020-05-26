@@ -29,139 +29,96 @@ jobs:
         name: ipxe
         path: ./ipxe/output
 
-  # build-image-builder:
-  #   name: Build image builder image
-  #   timeout-minutes: 10
-  #   runs-on: ubuntu-latest
-  #   needs: build-base-image
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+  build-image-builder:
+    name: Build image builder image
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: build-base-image
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
-  # build-deploy-image:
-  #   name: Build deploy image
-  #   timeout-minutes: 10
-  #   runs-on: ubuntu-latest
-  #   needs: build-image-builder
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: ./deploy-image/build-image.sh
-  #   - uses: actions/upload-artifact@v1
-  #     with:
-  #       name: deploy-image
-  #       path: ./deploy-image/images/deploy-image
+  build-deploy-image:
+    name: Build deploy image
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: build-image-builder
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: ./deploy-image/build-image.sh
+    - uses: actions/upload-artifact@v1
+      with:
+        name: deploy-image
+        path: ./deploy-image/images/deploy-image
 
-  # build-libvirt:
-  #   name: Build libvirt image
-  #   timeout-minutes: 10
-  #   runs-on: ubuntu-latest
-  #   needs: build-image-builder
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: ./libvirt/build-image.sh
-  #   - uses: actions/upload-artifact@v1
-  #     with:
-  #       name: libvirt
-  #       path: ./libvirt/images/libvirt
+  build-libvirt:
+    name: Build libvirt image
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: build-image-builder
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: ./libvirt/build-image.sh
+    - uses: actions/upload-artifact@v1
+      with:
+        name: libvirt
+        path: ./libvirt/images/libvirt
 
-  # build-razor-server:
-  #   name: Build razor-server image
-  #   timeout-minutes: 10
-  #   runs-on: ubuntu-latest
-  #   needs: build-image-builder
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: ./razor-server/build-image.sh
-  #   - uses: actions/upload-artifact@v1
-  #     with:
-  #       name: razor-server
-  #       path: ./razor-server/images/razor-server
+  build-razor-server:
+    name: Build razor-server image
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: build-image-builder
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: ./razor-server/build-image.sh
+    - uses: actions/upload-artifact@v1
+      with:
+        name: razor-server
+        path: ./razor-server/images/razor-server
 
   test-razor-server:
     name: Test razor-server
     timeout-minutes: 120
     runs-on: macos-latest
-    # needs: [build-razor-server, build-deploy-image, build-libvirt, build-ipxe]
-    needs: [build-ipxe]
+    needs: [build-razor-server, build-deploy-image, build-libvirt, build-ipxe]
     env:
       TARGET_DIR: './razor-server'
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    # - uses: actions/download-artifact@v1
-    #   with:
-    #     name: razor-server
-    #     path: ./razor-server/images/razor-server
-    # - uses: actions/download-artifact@v1
-    #   with:
-    #     name: deploy-image
-    #     path: ./deploy-image/images/deploy-image
-    # - uses: actions/download-artifact@v1
-    #   with:
-    #     name: libvirt
-    #     path: ./libvirt/images/libvirt
+    - uses: actions/download-artifact@v1
+      with:
+        name: razor-server
+        path: ./razor-server/images/razor-server
+    - uses: actions/download-artifact@v1
+      with:
+        name: deploy-image
+        path: ./deploy-image/images/deploy-image
+    - uses: actions/download-artifact@v1
+      with:
+        name: libvirt
+        path: ./libvirt/images/libvirt
     - uses: actions/download-artifact@v1
       with:
         name: ipxe
         path: ./ipxe/output
-    # - run: brew install qemu cdrtools dnsmasq dhcping
-
-    # install sshpass which allows you to pass password to ssh
-    - run: brew install https://raw.githubusercontent.com/kadwanev/bigboybrew/master/Library/Formula/sshpass.rb
-
-    # Force password for the CI user
-    # - run: sudo /usr/bin/dscl . -passwd /Users/runner runner
-
-    # Enable remote access to the macos CI machine
-    - run: sudo systemsetup -setremotelogin on
-
-    # Add public key of remote machine to authorized_keys
-    - run: echo $REMOTE_PUBLIC_KEY >> ~/.ssh/authorized_keys
-      env:
-        REMOTE_PUBLIC_KEY: ${{ secrets.REMOTE_PUBLIC_KEY }}
-
-    - run: cat ~/.ssh/authorized_keys
-    - run: cat /Users/runner/.ssh/authorized_keys
-    - run: cat /etc/ssh/sshd_config
-    - run: chmod 0644 ~/.ssh/authorized_keys
-    - run: chmod 0700 ~/.ssh
-    - run: ls -la ~/.ssh
-
-    # Print current user information
-    - run: id
-
-    # Start a reverse SSH tunnel with remote box
-    - run: sshpass -p vagrant ssh -v -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -T -R 19999:localhost:22 vagrant@$REMOTE_IP -p 2022 sleep 7200
-      env:
-        REMOTE_IP: ${{ secrets.REMOTE_IP }}
-
-    # - uses: actions/setup-ruby@v1
-    #   with:
-    #     ruby-version: '2.6'
-    # - run: gem install razor-client:1.9.6
-    # - run: ./razor-server/build-box.sh
+    - run: brew install qemu cdrtools dnsmasq dhcping
+    - uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.6'
+    - run: gem install razor-client:1.9.6
+    - run: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh
-    - run: ./razor-server/ci-dhcp-server.sh
-    - run: ifconfig
-    - run: ps aux | grep dnsmasq
-    - run: dnsmasq --version
-      # test
-    - run: sudo dhcping -v -c 192.168.1.1 -s 127.0.01 -i
-    - run: sudo sysctl -w net.inet.ip.forwarding=1
-    - run: sudo sysctl -w net.inet6.ip6.forwarding=1
-    - run: sudo dhcping -v -c $IP_ADDRESS -s 127.0.01 -i
 
-    # - working-directory: ${{ env.TARGET_DIR }}
-    #   run: vagrant up
-    - run: |
-        touch log/pxe.log
-        tail -f log/pxe.log &
-        cd razor-server
-        vagrant up pxe
+    - working-directory: ${{ env.TARGET_DIR }}
+      run: vagrant up
+    - working-directory: ${{ env.TARGET_DIR }}
+      run: vagrant up pxe
 
     - uses: actions/upload-artifact@v1
       if: ${{ always() }}
