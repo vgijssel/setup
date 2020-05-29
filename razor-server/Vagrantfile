@@ -1,7 +1,11 @@
 # frozen_string_literal: true
+# https://www.thomas-krenn.com/en/wiki/Network_Configuration_in_VirtualBox
 
 log_dir = ENV.fetch('SETUP_LOG_DIR')
 ipxe_dir = ENV.fetch('SETUP_IPXE_DIR')
+dnsmasq_dir = ENV.fetch('SETUP_DNSMASQ_DIR')
+libvirt_dir = ENV.fetch('SETUP_LIBVIRT_DIR')
+deploy_image_dir = ENV.fetch('SETUP_DEPLOY_IMAGE_DIR')
 
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
@@ -14,22 +18,22 @@ Vagrant.configure('2') do |config|
   config.vm.synced_folder '.', '/vagrant', disabled: true
 
   config.vm.define "razor-server", primary: true do |razor|
+    razor.trigger.after [:up, :reload] do |t|
+      t.info = "Set network interface"
+      t.run_remote = { inline: "sudo ifconfig enp0s8 up; sudo dhclient enp0s8" }
+    end
+
     razor.vm.network "forwarded_port", guest: 8150, host: 8150
-
-    # TODO: disable dhcp on private network, let this be handled by dhcp server
-    razor.vm.network "private_network", mac: vbox_bridge_mac
-
-    # TODO add public_network for local execution
+    razor.vm.network "private_network", auto_config: false, virtualbox__intnet: true
+    razor.vm.hostname = 'razor-server'
     # razor.vm.network "public_network"
 
     razor.vm.box = 'file://razor-server.box'
 
-    razor.vm.synced_folder "../deploy-image/images/deploy-image", "/repo/deploy-image"
-    razor.vm.synced_folder "../libvirt/images/libvirt", "/repo/libvirt"
+    razor.vm.synced_folder File.join(deploy_image_dir, "images/deploy-image"), "/repo/deploy-image"
+    razor.vm.synced_folder File.join(libvirt_dir, "images/libvirt"), "/repo/libvirt"
     razor.vm.synced_folder "./elements/razor-server/static/tasks/deploy-image.task", "/tasks/deploy-image.task"
     razor.vm.synced_folder File.join(ipxe_dir, "output"), "/tftpboot/ipxe"
-
-    razor.vm.hostname = 'razor-server'
 
     razor.vm.provider 'virtualbox' do |vb|
       vb.gui = false
@@ -39,12 +43,58 @@ Vagrant.configure('2') do |config|
     end
   end
 
+  config.vm.define "dnsmasq", autostart: false do |dnsmasq|
+    dnsmasq.vm.network "private_network", auto_config: false, virtualbox__intnet: true
+    dnsmasq.vm.box = "file://#{File.join(dnsmasq_dir, 'dnsmasq.box')}"
+    dnsmasq.vm.hostname = 'dnsmasq'
+
+    dnsmasq.trigger.after [:up, :reload] do |t|
+      t.info = "Set network interface"
+      t.run_remote = { inline: "sudo ifconfig enp0s8 192.168.2.10 netmask 255.255.255.0 up" }
+    end
+
+    dnsmasq.trigger.after [:up, :reload] do |t|
+      t.info = "Set dnsmasq nameserver"
+      t.run_remote = { inline: "echo 192.168.2.10 | tee /etc/resolv.conf" }
+    end
+
+    dnsmasq.vm.provider 'virtualbox' do |vb|
+      vb.gui = false
+      vb.memory = "1024"
+
+      # Setup the serial port for logging
+      vb.customize ["modifyvm", :id, "--uart1", "0x3f8", "4"]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "dnsmasq.log")]
+
+      # Make sure the bridged network adapter is used for DNSMASQ
+      # 0 is the lowest priority, 1 is the highest priority
+      vb.customize ["modifyvm", :id, "--nicbootprio1", "0"]
+      vb.customize ["modifyvm", :id, "--nicbootprio2", "1"]
+
+      # Don't pass the domain name of the host DNS
+      vb.customize ["modifyvm", :id, "--natdnspassdomain1", "off"]
+    end
+  end
+
   config.vm.define "pxe", autostart: false do |pxe|
+    # Hardcoding the mac address of the adapter and sending it to the razor client
+    # makes sure the node is registered correctly and immediately starts provisioning
     bridge_mac = '08:00:27:cf:12:58'
     vbox_bridge_mac = bridge_mac.split(':').join
 
-    # TODO: disable dhcp on private network, let this be handled by dhcp server
-    pxe.vm.network "private_network", mac: vbox_bridge_mac
+    # Setting adapter: 1 here makes sure the default Vagrant adapter is overwritten
+    # This is done, otherwise the microkernel has multiple nameservers in the /etc/resolv.conf
+    # 1 of the host-only network and 1 of the internal dnsmasq network
+    # If the nameserver of the host-only network is used then the DNS "razor-server" does not resolve
+    pxe.vm.network "private_network", mac: vbox_bridge_mac, virtualbox__intnet: true, adapter: 1, auto_config: false
+
+    # Using the dnsmasq machine as a jumphost to communicate to pxe machine
+    # This means that we're first connecting to the dnsmasq machine with SSH
+    # and afterwards through that connection connect to the pxe machine.
+    pxe.ssh.password = 'vagrant'
+    pxe.ssh.host = 'debian'
+    pxe.ssh.guest_port = 22
+    pxe.ssh.proxy_command = "sshpass -p vagrant ssh -q -l vagrant -p 2222 -W '[%h]:%p' 127.0.0.1"
 
     pxe.trigger.before :up do |t|
       t.info = "Registring PXE machine with razor-server"
