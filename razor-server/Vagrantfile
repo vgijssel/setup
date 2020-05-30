@@ -102,7 +102,7 @@ Vagrant.configure('2') do |config|
     end
 
     pxe.vm.box = 'file://pxe.box'
-    pxe.vm.graceful_halt_timeout = 0
+    pxe.vm.boot_timeout = 600
 
     pxe.vm.provider 'virtualbox' do |vb|
       vb.gui = false
