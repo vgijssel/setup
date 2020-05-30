@@ -1,10 +1,15 @@
 #!/bin/bash
 
-set -Eeoux pipefail
+set -Eeou pipefail
 
 # Unsetting the GEM_PATH, as this is set by Vagrant to the Vagrant internal gems
 # which does not have the razor-client gem installed.
 unset GEM_PATH
+
+until razor nodes; do
+    echo "Razor not yet ready"
+    sleep 2
+done
 
 MAC="${1}"
 
