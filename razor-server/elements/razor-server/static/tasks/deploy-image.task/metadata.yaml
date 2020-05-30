@@ -4,4 +4,3 @@ description: Install OS using deploy image system
 boot_sequence:
   1: boot_install
   default: boot_local
-  # default: boot_local
