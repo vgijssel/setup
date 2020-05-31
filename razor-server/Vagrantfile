@@ -1,82 +1,95 @@
 # frozen_string_literal: true
 # https://www.thomas-krenn.com/en/wiki/Network_Configuration_in_VirtualBox
 
+require 'open3'
+
+TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
 ipxe_dir = ENV.fetch('SETUP_IPXE_DIR')
 dnsmasq_dir = ENV.fetch('SETUP_DNSMASQ_DIR')
 libvirt_dir = ENV.fetch('SETUP_LIBVIRT_DIR')
 deploy_image_dir = ENV.fetch('SETUP_DEPLOY_IMAGE_DIR')
+razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
+bridge_adapter = ENV.fetch('BRIDGE_ADAPTER')
 
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+def build_cloud_init_iso(iso_name, user_data_file, network_config_file)
+  iso_location = File.join(TMP_DIR, iso_name)
 
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
-Vagrant.configure('2') do |config|
-  config.vm.synced_folder '.', '/vagrant', disabled: true
+  Dir.mktmpdir(nil, "/tmp") do |local_tmp_dir|
+    user_data = File.join(local_tmp_dir, 'user-data')
+    meta_data = File.join(local_tmp_dir, 'meta-data')
+    network_config = File.join(local_tmp_dir, 'network-config')
 
-  config.vm.define "razor-server", primary: true do |razor|
-    razor.trigger.after [:up, :reload] do |t|
-      t.info = "Set network interface"
-      t.run_remote = { inline: "sudo ifconfig enp0s8 up; sudo dhclient enp0s8" }
-    end
+    File.write(user_data, File.read(user_data_file))
+    File.write(meta_data, "# Auto-Generated - DO NOT CHANGE THIS")
+    File.write(network_config, File.read(network_config_file))
 
-    razor.vm.network "forwarded_port", guest: 8150, host: 8150
-    razor.vm.network "private_network", auto_config: false, virtualbox__intnet: true
-    razor.vm.hostname = 'razor-server'
-    # razor.vm.network "public_network"
+    stdout, stderr, status = Open3.capture3("mkisofs -output #{iso_location} -volid cidata -joliet -rock {#{user_data},#{meta_data},#{network_config}}")
 
-    razor.vm.box = 'file://razor-server.box'
+    unless status.success?
+      puts stdout
+      puts stderr
 
-    razor.vm.synced_folder File.join(deploy_image_dir, "images/deploy-image"), "/repo/deploy-image"
-    razor.vm.synced_folder File.join(libvirt_dir, "images/libvirt"), "/repo/libvirt"
-    razor.vm.synced_folder "./elements/razor-server/static/tasks/deploy-image.task", "/tasks/deploy-image.task"
-    razor.vm.synced_folder File.join(ipxe_dir, "output"), "/tftpboot/ipxe"
-
-    razor.vm.provider 'virtualbox' do |vb|
-      vb.gui = false
-      vb.memory = "1024"
-      vb.customize ["modifyvm", :id, "--uart1", "0x3f8", "4"]
-      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "razor-server.log")]
+      raise "Unable to create cloud-init iso '#{name}'"
     end
   end
 
-  config.vm.define "dnsmasq", autostart: false do |dnsmasq|
-    dnsmasq.vm.network "private_network", auto_config: false, virtualbox__intnet: true
+  iso_location
+end
+
+Vagrant.configure('2') do |config|
+  config.vm.synced_folder '.', '/vagrant', disabled: true
+
+  config.vm.define "dnsmasq" do |dnsmasq|
+    dnsmasq.vm.network "private_network", auto_config: false, adapter: 2, virtualbox__intnet: true
     dnsmasq.vm.box = "file://#{File.join(dnsmasq_dir, 'dnsmasq.box')}"
     dnsmasq.vm.hostname = 'dnsmasq'
-
-    dnsmasq.trigger.after [:up, :reload] do |t|
-      t.info = "Set network interface"
-      t.run_remote = { inline: "sudo ifconfig enp0s8 192.168.2.10 netmask 255.255.255.0 up" }
-    end
-
-    dnsmasq.trigger.after [:up, :reload] do |t|
-      t.info = "Set dnsmasq nameserver"
-      t.run_remote = { inline: "echo 192.168.2.10 | tee /etc/resolv.conf" }
-    end
 
     dnsmasq.vm.provider 'virtualbox' do |vb|
       vb.gui = false
       vb.memory = "1024"
 
       # Setup the serial port for logging
-      vb.customize ["modifyvm", :id, "--uart1", "0x3f8", "4"]
       vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "dnsmasq.log")]
 
-      # Make sure the bridged network adapter is used for DNSMASQ
-      # 0 is the lowest priority, 1 is the highest priority
-      vb.customize ["modifyvm", :id, "--nicbootprio1", "0"]
-      vb.customize ["modifyvm", :id, "--nicbootprio2", "1"]
-
-      # Don't pass the domain name of the host DNS
-      vb.customize ["modifyvm", :id, "--natdnspassdomain1", "off"]
+      dnsmasq_cloud_init = build_cloud_init_iso(
+        "dnsmasq-cloud-init.iso",
+        File.join(razor_server_dir, "dnsmasq-user-data.yml"),
+        File.join(razor_server_dir, "dnsmasq-network-config.yml"),
+      )
+      vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", dnsmasq_cloud_init]
     end
   end
 
-  config.vm.define "pxe", autostart: false do |pxe|
+  config.vm.define "razor-server", primary: true do |razor|
+    razor.vm.network "forwarded_port", guest: 8150, host: 8150
+    razor.vm.network "private_network", auto_config: false, virtualbox__intnet: true
+    razor.vm.hostname = 'razor-server'
+    razor.vm.box = "file://#{File.join(razor_server_dir, "razor-server.box")}"
+    # TODO: first make it work without the bridge adapter
+    # razor.vm.network "public_network", auto_config: false, bridge: bridge_adapter
+
+    razor.vm.synced_folder File.join(deploy_image_dir, "images/deploy-image"), "/repo/deploy-image"
+    razor.vm.synced_folder File.join(libvirt_dir, "images/libvirt"), "/repo/libvirt"
+    razor.vm.synced_folder File.join(razor_server_dir, "elements/razor-server/static/tasks/deploy-image.task"), "/tasks/deploy-image.task"
+    razor.vm.synced_folder File.join(ipxe_dir, "output"), "/tftpboot/ipxe"
+
+    razor.vm.provider 'virtualbox' do |vb|
+      vb.gui = false
+      vb.memory = "1024"
+      # Setup log file
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "razor-server.log")]
+
+      razor_cloud_init = build_cloud_init_iso(
+        "razor-cloud-init.iso",
+        File.join(razor_server_dir, "razor-user-data.yml"),
+        File.join(razor_server_dir, "razor-network-config.yml"),
+      )
+      vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", razor_cloud_init]
+    end
+  end
+
+  config.vm.define "pxe" do |pxe|
     # Hardcoding the mac address of the adapter and sending it to the razor client
     # makes sure the node is registered correctly and immediately starts provisioning
     bridge_mac = '08:00:27:cf:12:58'
@@ -87,6 +100,7 @@ Vagrant.configure('2') do |config|
     # 1 of the host-only network and 1 of the internal dnsmasq network
     # If the nameserver of the host-only network is used then the DNS "razor-server" does not resolve
     pxe.vm.network "private_network", mac: vbox_bridge_mac, virtualbox__intnet: true, adapter: 1, auto_config: false
+    pxe.vm.box = "file://#{File.join(razor_server_dir, "pxe.box")}"
 
     # Using the dnsmasq machine as a jumphost to communicate to pxe machine
     # This means that we're first connecting to the dnsmasq machine with SSH
@@ -101,9 +115,6 @@ Vagrant.configure('2') do |config|
       t.run = { inline: "./razor-register-pxe.sh '#{bridge_mac}'" }
     end
 
-    pxe.vm.box = 'file://pxe.box'
-    pxe.vm.boot_timeout = 600
-
     pxe.vm.provider 'virtualbox' do |vb|
       vb.gui = false
 
@@ -111,16 +122,7 @@ Vagrant.configure('2') do |config|
       vb.memory = "4096"
 
       # Setup the serial port for logging
-      vb.customize ["modifyvm", :id, "--uart1", "0x3f8", "4"]
       vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "pxe.log")]
-
-      # Make sure the bridged network adapter is used for PXE
-      # 0 is the lowest priority, 1 is the highest priority
-      vb.customize ["modifyvm", :id, "--nicbootprio1", "0"]
-      vb.customize ["modifyvm", :id, "--nicbootprio2", "1"]
-
-      # Don't pass the domain name of the host DNS
-      vb.customize ["modifyvm", :id, "--natdnspassdomain1", "off"]
 
       # Attach iPXE to the Floppy controller to enable network booting
       vb.customize ["storageattach", :id, "--storagectl", "Floppy", "--port", 0, "--device", 0, "--type", "fdd", "--medium", File.join(ipxe_dir, "output/ipxe.dsk")]
