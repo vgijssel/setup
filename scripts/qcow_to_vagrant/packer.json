@@ -26,6 +26,10 @@
     {
       "type": "shell",
       "script": "{{user `provisioners_dir`}}/install-virtualbox-guest-additions.sh"
+    },
+    {
+      "type": "shell",
+      "script": "{{user `provisioners_dir`}}/reset-cloud-init.sh"
     }
   ],
   "post-processors": [
