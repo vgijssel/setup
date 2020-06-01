@@ -134,14 +134,8 @@ jobs:
     - run: ./dnsmasq/build-box.sh
     - run: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh
-
     - working-directory: ${{ env.TARGET_DIR }}
-      run: vagrant up dnsmasq
-    - working-directory: ${{ env.TARGET_DIR }}
-      run: vagrant up razor-server
-    - working-directory: ${{ env.TARGET_DIR }}
-      run: vagrant up pxe
-
+      run: vagrant up
     - uses: actions/upload-artifact@v1
       if: ${{ always() }}
       with:
