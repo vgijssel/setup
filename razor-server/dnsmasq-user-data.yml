@@ -10,6 +10,8 @@ manage_resolv_conf: true
 resolv_conf:
   nameservers: [192.168.2.1]
 
+hostname: dnsmasq
+
 users:
   - name: vagrant
     plain_text_passwd: vagrant
