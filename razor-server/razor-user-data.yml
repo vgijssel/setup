@@ -1,6 +1,7 @@
 #cloud-config
 
 hostname: razor-server
+manage_etc_hosts: localhost
 
 users:
   - name: vagrant

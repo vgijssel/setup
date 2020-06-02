@@ -6,6 +6,7 @@ cloud_config_modules:
 unverified_modules: [resolv_conf]
 
 manage_resolv_conf: true
+manage_etc_hosts: localhost
 
 resolv_conf:
   nameservers: [192.168.2.1]
