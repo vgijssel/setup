@@ -1,6 +1,0 @@
-version: 2
-ethernets:
-  # VirtualBox Internal Network served by own dnsmasq
-  # 192.168.2.X/24
-  enp0s3:
-    dhcp4: true

@@ -1,7 +1,7 @@
 #cloud-config
 
-hostname: debian
 manage_etc_hosts: localhost
+hostname: libvirt
 
 users:
   - name: vagrant

@@ -81,10 +81,11 @@ Vagrant.configure('2') do |config|
     # TODO: first make it work without the bridge adapter
     # razor.vm.network "public_network", auto_config: false, bridge: bridge_adapter
 
-    razor.vm.synced_folder File.join(deploy_image_dir, "images/deploy-image"), "/repo/deploy-image"
-    razor.vm.synced_folder File.join(libvirt_dir, "images/libvirt"), "/repo/libvirt"
+    razor.vm.synced_folder File.join(deploy_image_dir, "images/deploy-image"), "/repo/deploy-image/deploy-image"
+    razor.vm.synced_folder File.join(libvirt_dir, "images/libvirt"), "/repo/deploy-image/libvirt"
     razor.vm.synced_folder File.join(razor_server_dir, "elements/razor-server/static/tasks/deploy-image.task"), "/tasks/deploy-image.task"
     razor.vm.synced_folder File.join(ipxe_dir, "output"), "/tftpboot/ipxe"
+    razor.vm.synced_folder File.join(razor_server_dir, "cloud-init"), "/repo/deploy-image/cloud-init"
 
     razor.vm.provider 'virtualbox' do |vb|
       vb.gui = false
@@ -121,9 +122,10 @@ Vagrant.configure('2') do |config|
     # Using the dnsmasq machine as a jumphost to communicate to pxe machine
     # This means that we're first connecting to the dnsmasq machine with SSH
     # and afterwards through that connection connect to the pxe machine.
+    # the hostname of the deployed machine will be "libvirt"
     pxe.ssh.private_key_path = ssh_private_key_path
     pxe.ssh.proxy_command = ssh_proxy_command
-    pxe.ssh.host = 'debian'
+    pxe.ssh.host = 'libvirt'
     pxe.ssh.port = 22
 
     pxe.trigger.before :up do |t|
@@ -143,12 +145,8 @@ Vagrant.configure('2') do |config|
       # Attach iPXE to the Floppy controller to enable network booting
       vb.customize ["storageattach", :id, "--storagectl", "Floppy", "--port", 0, "--device", 0, "--type", "fdd", "--medium", File.join(ipxe_dir, "output/ipxe.dsk")]
 
-      pxe_cloud_init = build_cloud_init_iso(
-        "pxe-cloud-init.iso",
-        File.join(razor_server_dir, "pxe-user-data.yml"),
-        File.join(razor_server_dir, "pxe-network-config.yml"),
-      )
-      vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", pxe_cloud_init]
+      # Disconnect previously connected cloud-init iso
+      vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--medium", "none"]
     end
   end
 end
