@@ -1,6 +1,6 @@
 #cloud-config
 
-hostname: razor-server
+hostname: debian
 manage_etc_hosts: localhost
 
 users:
