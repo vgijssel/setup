@@ -126,7 +126,6 @@ jobs:
         name: ipxe
         path: ./ipxe/output
     - run: brew install qemu cdrtools dnsmasq dhcping
-    - run: brew install https://raw.githubusercontent.com/kadwanev/bigboybrew/master/Library/Formula/sshpass.rb
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
