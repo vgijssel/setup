@@ -100,6 +100,10 @@ Vagrant.configure('2') do |config|
     pxe.vm.network "private_network", mac: vbox_bridge_mac, virtualbox__intnet: true, adapter: 1, auto_config: false
     pxe.vm.box = "file://#{File.join(razor_server_dir, "pxe.box")}"
 
+    # Set the boot_timeout to 600 seconds (10 minutes) as it can take a long
+    # to provision and boot the vm
+    pxe.vm.boot_timeout = 600
+
     # Using the dnsmasq machine as a jumphost to communicate to pxe machine
     # This means that we're first connecting to the dnsmasq machine with SSH
     # and afterwards through that connection connect to the pxe machine.
