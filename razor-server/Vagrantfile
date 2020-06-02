@@ -12,7 +12,7 @@ deploy_image_dir = ENV.fetch('SETUP_DEPLOY_IMAGE_DIR')
 razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 
 ssh_private_key_path = File.join(razor_server_dir, 'keys', 'id_rsa')
-ssh_proxy_command = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i #{ssh_private_key_path} -l vagrant -p 2222 -W '[%h]:%p' 127.0.0.1"
+ssh_proxy_command = "ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i #{ssh_private_key_path} -l vagrant -p 2222 -W '[%h]:%p' 127.0.0.1"
 
 bridge_adapter = ENV.fetch('BRIDGE_ADAPTER')
 
