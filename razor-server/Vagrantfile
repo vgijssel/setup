@@ -142,6 +142,13 @@ Vagrant.configure('2') do |config|
 
       # Attach iPXE to the Floppy controller to enable network booting
       vb.customize ["storageattach", :id, "--storagectl", "Floppy", "--port", 0, "--device", 0, "--type", "fdd", "--medium", File.join(ipxe_dir, "output/ipxe.dsk")]
+
+      pxe_cloud_init = build_cloud_init_iso(
+        "pxe-cloud-init.iso",
+        File.join(razor_server_dir, "pxe-user-data.yml"),
+        File.join(razor_server_dir, "pxe-network-config.yml"),
+      )
+      vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", pxe_cloud_init]
     end
   end
 end
