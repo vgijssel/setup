@@ -24,7 +24,14 @@ gem install razor-client:1.9.6
 
 razor create-repo deploy-image --task deploy-image --no_content
 razor create-broker --name=noop --broker-type=noop
-razor create-tag --name deploy-target-set  --rule '["and", ["str", ["metadata", "TARGET_DISK"]], ["str", ["metadata", "DISK_URL"]]]'
+razor create-tag --name deploy-target-set  --rule '["and",'\
+'["str", ["metadata", "TARGET_DISK"]],'\
+'["str", ["metadata", "DISK_URL"]],'\
+'["str", ["metadata", "DISK_VMLINUZ_URL"]],'\
+'["str", ["metadata", "DISK_INITRD_URL"]],'\
+'["str", ["metadata", "CLOUD_CONFIG_URL"]]'\
+']'
+
 razor create-policy --json /etc/razor/deploy-image-policy.json
 
 echo "STOPPING RAZOR SERVICES"
