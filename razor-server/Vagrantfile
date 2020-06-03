@@ -14,7 +14,7 @@ razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 ssh_private_key_path = File.join(razor_server_dir, 'keys', 'id_rsa')
 ssh_proxy_command = "ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i #{ssh_private_key_path} -l vagrant -p 2222 -W '[%h]:%p' 127.0.0.1"
 
-bridge_adapter = ENV.fetch('BRIDGE_ADAPTER')
+bridge_interface = ENV.fetch('BRIDGE_INTERFACE')
 
 def build_cloud_init_iso(iso_name, user_data_file, network_config_file)
   iso_location = File.join(TMP_DIR, iso_name)
@@ -58,8 +58,8 @@ Vagrant.configure('2') do |config|
 
       dnsmasq_cloud_init = build_cloud_init_iso(
         "dnsmasq-cloud-init.iso",
-        File.join(razor_server_dir, "dnsmasq-user-data.yml"),
-        File.join(razor_server_dir, "dnsmasq-network-config.yml"),
+        File.join(razor_server_dir, "cloud-init/dnsmasq-user-data.yml"),
+        File.join(razor_server_dir, "cloud-init/dnsmasq-network-config.yml"),
       )
       vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", dnsmasq_cloud_init]
     end
@@ -68,6 +68,7 @@ Vagrant.configure('2') do |config|
   config.vm.define "razor-server", primary: true do |razor|
     razor.vm.network "forwarded_port", guest: 8150, host: 8150
     razor.vm.network "private_network", auto_config: false, virtualbox__intnet: true
+    razor.vm.network "public_network", auto_config: false, bridge: bridge_interface
     razor.vm.box = "file://#{File.join(razor_server_dir, "razor-server.box")}"
 
     # Using the dnsmasq machine as a jumphost to communicate to pxe machine
@@ -77,9 +78,6 @@ Vagrant.configure('2') do |config|
     razor.ssh.proxy_command = ssh_proxy_command
     razor.ssh.host = 'razor-server'
     razor.ssh.port = 22
-
-    # TODO: first make it work without the bridge adapter
-    # razor.vm.network "public_network", auto_config: false, bridge: bridge_adapter
 
     razor.vm.synced_folder File.join(deploy_image_dir, "images/deploy-image"), "/repo/deploy-image/deploy-image"
     razor.vm.synced_folder File.join(libvirt_dir, "images/libvirt"), "/repo/deploy-image/libvirt"
@@ -95,8 +93,8 @@ Vagrant.configure('2') do |config|
 
       razor_cloud_init = build_cloud_init_iso(
         "razor-cloud-init.iso",
-        File.join(razor_server_dir, "razor-user-data.yml"),
-        File.join(razor_server_dir, "razor-network-config.yml"),
+        File.join(razor_server_dir, "cloud-init/razor-user-data.yml"),
+        File.join(razor_server_dir, "cloud-init/razor-network-config.yml"),
       )
       vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", razor_cloud_init]
     end

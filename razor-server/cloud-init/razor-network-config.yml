@@ -11,3 +11,8 @@ ethernets:
   # 192.168.2.X/24
   enp0s8:
     dhcp4: true
+
+  # Public LAN network
+  # 192.168.1.X/24
+  enp0s9:
+    dhcp4: true
