@@ -4,7 +4,7 @@ echo Installation node: <%= node_url  %>
 echo Installation repo: <%= repo_url %>
 sleep 3
 
-kernel <%= node.metadata['DISK_VMLINUZ_URL'] %> <%= render_template("local_kernel_args") %>.strip %> || goto error
+kernel <%= node.metadata['DISK_VMLINUZ_URL'] %> <%= render_template("local_kernel_args").strip %> || goto error
 initrd <%= node.metadata['DISK_INITRD_URL'] %> || goto error
 
 boot
