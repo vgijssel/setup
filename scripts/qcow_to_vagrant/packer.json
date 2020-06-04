@@ -3,7 +3,8 @@
     "source_path": "",
     "output_directory": "",
     "provisioners_dir": "",
-    "output": ""
+    "output": "",
+    "cloud_init_iso": ""
   },
   "builders": [
     {
@@ -16,7 +17,37 @@
       "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
       "guest_additions_mode": "attach",
       "guest_additions_interface": "IDE",
-      "vboxmanage": [["modifyvm", "{{.Name}}", "--memory", "2048"]],
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "2048"],
+        [
+          "storageattach",
+          "{{.Name}}",
+          "--storagectl",
+          "IDE Controller",
+          "--port",
+          "0",
+          "--device",
+          "0",
+          "--type",
+          "dvddrive",
+          "--medium",
+          "{{user `cloud_init_iso`}}"
+        ]
+      ],
+      "vboxmanage_post": [
+        [
+          "storageattach",
+          "{{.Name}}",
+          "--storagectl",
+          "IDE Controller",
+          "--port",
+          "0",
+          "--device",
+          "0",
+          "--medium",
+          "none"
+        ]
+      ],
       "headless": true,
       "disable_shutdown": false,
       "shutdown_timeout": "5m"

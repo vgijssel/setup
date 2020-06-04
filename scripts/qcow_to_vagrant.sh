@@ -96,6 +96,7 @@ if [[ "$USE_PACKER" = true ]]; then
     -var "source_path=$TMP_OVF" \
     -var "output=$VAGRANT_FILE" \
     -var "output_directory=$TMP_PACKER_OUTPUT_DIR" \
+    -var "cloud_init_iso=$TMP_CLOUD_INIT" \
     -force \
     $QCOW_TO_VAGRANT_DIR/packer.json
 else
