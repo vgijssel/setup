@@ -1,1 +1,1 @@
-ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset vga=normal cloud-config-url=<%= node.metadata['CLOUD_CONFIG_URL'] %>
+ro root=LABEL=cloudimg-rootfs console=tty0 console=ttyS0,115200 nofb nomodeset vga=normal ds=nocloud-net;[s=<%= node.metadata['CLOUD_CONFIG_URL'] %>] cloud-config-url=<%= node.metadata['CLOUD_CONFIG_URL'] %>
