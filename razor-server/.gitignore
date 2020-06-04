@@ -1,4 +1,5 @@
 images
 packer_cache
+packer_output
 pxe.box
 razor-server.box
