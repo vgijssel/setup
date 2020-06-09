@@ -1,0 +1,6 @@
+version: 2
+ethernets:
+  # VirtualBox NAT adapter
+  # 10.0.2.15/24
+  enp0s3:
+    dhcp4: true

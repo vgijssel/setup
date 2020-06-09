@@ -125,7 +125,7 @@ jobs:
       with:
         name: ipxe
         path: ./ipxe/output
-    - run: brew install qemu cdrtools dnsmasq dhcping
+    - run: brew install qemu cdrtools
     - run: ./dnsmasq/build-box.sh
     - run: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh
@@ -135,6 +135,32 @@ jobs:
       if: ${{ always() }}
       with:
         name: test-razor-server-log
+        path: ./log
+
+  test-libvirt:
+    name: Test libvirt
+    timeout-minutes: 30
+    runs-on: macos-latest
+    needs: [build-libvirt]
+    env:
+      TARGET_DIR: './libvirt'
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - uses: actions/download-artifact@v1
+      with:
+        name: libvirt
+        path: ./libvirt/images/libvirt
+    - run: brew install qemu cdrtools
+    - run: ./libvirt/build-box.sh
+    - working-directory: ${{ env.TARGET_DIR }}
+      run: vagrant up
+    - working-directory: ${{ env.TARGET_DIR }}
+      run: terraform apply -auto-approve
+    - uses: actions/upload-artifact@v1
+      if: ${{ always() }}
+      with:
+        name: test-libvirt-log
         path: ./log
 
   macos-info:
