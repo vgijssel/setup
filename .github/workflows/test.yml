@@ -97,7 +97,7 @@ jobs:
 
   test-razor-server:
     name: Test razor-server
-    timeout-minutes: 120
+    timeout-minutes: 30
     runs-on: macos-latest
     needs: [build-razor-server, build-deploy-image, build-libvirt, build-ipxe, build-dnsmasq]
     env:
@@ -126,10 +126,6 @@ jobs:
         name: ipxe
         path: ./ipxe/output
     - run: brew install qemu cdrtools dnsmasq dhcping
-    - uses: actions/setup-ruby@v1
-      with:
-        ruby-version: '2.6'
-    - run: gem install razor-client:1.9.6
     - run: ./dnsmasq/build-box.sh
     - run: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh

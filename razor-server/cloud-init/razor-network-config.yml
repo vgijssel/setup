@@ -1,18 +1,11 @@
 version: 2
 ethernets:
-  # VirtualBox Vagrant NAT adapter
-  # 10.0.2.15/24
-  enp0s3:
-    gateway4: 10.0.2.2
-    addresses:
-      - 10.0.2.15/24
-
   # VirtualBox Internal Network served by own dnsmasq
   # 192.168.2.X/24
-  enp0s8:
+  enp0s3:
     dhcp4: true
 
   # Public LAN network
   # 192.168.1.X/24
-  enp0s9:
+  enp0s8:
     dhcp4: true

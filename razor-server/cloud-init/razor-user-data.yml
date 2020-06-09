@@ -36,7 +36,17 @@ write_files:
       netbios-name-servers, netbios-scope, interface-mtu,
       rfc3442-classless-static-routes, ntp-servers;
 
-    interface "enp0s9" {
+    interface "enp0s8" {
+      # Empty request removes all previous entries
+      request;
+
+      # Do not request the dns / nameservers from the LAN interface
+      request subnet-mask, broadcast-address, time-offset, routers,
+        host-name,
+        dhcp6.fqdn, dhcp6.sntp-servers,
+        netbios-name-servers, netbios-scope, interface-mtu,
+        rfc3442-classless-static-routes, ntp-servers;
+
       supersede domain-name-servers 192.168.2.1;
     }
 

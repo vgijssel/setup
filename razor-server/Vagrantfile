@@ -66,8 +66,7 @@ Vagrant.configure('2') do |config|
   end
 
   config.vm.define "razor-server", primary: true do |razor|
-    razor.vm.network "forwarded_port", guest: 8150, host: 8150
-    razor.vm.network "private_network", auto_config: false, virtualbox__intnet: true
+    razor.vm.network "private_network", auto_config: false, virtualbox__intnet: true, adapter: 1
     razor.vm.network "public_network", auto_config: false, bridge: bridge_interface
     razor.vm.box = "file://#{File.join(razor_server_dir, "razor-server.box")}"
 
