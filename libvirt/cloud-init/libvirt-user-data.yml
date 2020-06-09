@@ -12,3 +12,8 @@ users:
     groups: libvirt
     ssh_authorized_keys:
     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC6z3EzufNOqkC9M4cAhzusOPb+mX5IXDCCBVuWg8wnjbgneKQLehVtG3Yp1XB+baU2HzNr6o3+ulumx4fo5fuPiYoOIpplazaSx7b3zmTeYLCx0mdViZjftv/7lKui+XMwmDC/AhdDEBiG3f6HTifow0SQ3Df9xNFzkrgTm61v9QXVKZUgmSJvOUxIr/kvYSPzgWFjl9EztM60myPhpfjW3jlRwyjtBJYYFyHnXGA6qDflS4PALpAVotTzVTMhXSs0vJe+chgLXGPVMsL+CwRJjtE/pZ0cBQOLXuDV82AaS3GRrexFVe0G+9ap8fglc/DVP1c6u9+LBXcafLO7A5TN4Fu/CRDvzcDMXXxUOOSDmkdtynpnK4Ah2S65q8SUz67VDovU6XSpQc2Ys41uGFllLleSpsIaQOZcXrqg8RsQZ2PXRid+UYIl6j/iAsE2XYuomJYPS2Am1moEA8Orbw64y+ZJ3iMEQGPpkMdJlTiASWorYSwareV4Vaof7YWCob8= public-key
+
+# the user groups are not updated because the user already exists
+# so force adding the group libvirt to the vagrant user
+runcmd:
+  - [usermod, -a, -G, libvirt, vagrant]
