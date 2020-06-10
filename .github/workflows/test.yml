@@ -170,6 +170,8 @@ jobs:
     - working-directory: ${{ env.TARGET_DIR }}
       run: vagrant up
     - working-directory: ${{ env.TARGET_DIR }}
+      run: terraform init
+    - working-directory: ${{ env.TARGET_DIR }}
       run: terraform apply -auto-approve
     - uses: actions/upload-artifact@v1
       if: ${{ always() }}
