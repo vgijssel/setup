@@ -165,6 +165,7 @@ jobs:
         export GOFLAGS=-mod=vendor
         cd terraform-provider-libvirt
         make install
+        cp -v $GOROOT/bin/terraform-provider-libvirt ~/.terraform.d/plugins/darwin_amd64/terraform-provider-libvirt
     - run: ./dnsmasq/build-box.sh
     - run: ./libvirt/build-box.sh
     - working-directory: ${{ env.TARGET_DIR }}
