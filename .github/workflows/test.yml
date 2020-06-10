@@ -141,7 +141,7 @@ jobs:
     name: Test libvirt
     timeout-minutes: 30
     runs-on: macos-latest
-    needs: [build-libvirt]
+    needs: [build-libvirt, build-dnsmasq]
     env:
       TARGET_DIR: './libvirt'
     steps:
