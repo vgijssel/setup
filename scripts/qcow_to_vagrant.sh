@@ -10,6 +10,8 @@ QCOW_TO_VAGRANT_DIR="$SETUP_SCRIPTS_DIR/qcow_to_vagrant"
 PROVISIONERS_DIR="$QCOW_TO_VAGRANT_DIR/provisioners"
 
 OVF_FILE="$QCOW_TO_VAGRANT_DIR/box.ovf"
+BASE_VAGRANT_FILE="$(basename $VAGRANT_FILE)"
+VM_LOG_FILE="$SETUP_LOG_DIR/$BASE_VAGRANT_FILE.log"
 
 # Create a temp dir within /tmp
 TMP_DIR=$(TMPDIR=/tmp mktemp -d -t qcow_to_vagrant-XXXXXXXXXXXXX)
@@ -23,11 +25,6 @@ TMP_VMDK_FILE="$TMP_DIR/$VMDK_FILE"
 
 CLOUD_INIT_FILE="box-disk002.iso"
 TMP_CLOUD_INIT="$TMP_DIR/$CLOUD_INIT_FILE"
-
-TMP_BOX_FILE="$TMP_DIR/image.box"
-
-METADATA_FILE="metadata.json"
-TMP_METADATA="$TMP_DIR/$METADATA_FILE"
 
 NEW_OVF_FILE="box.ovf"
 TMP_OVF="$TMP_DIR/$NEW_OVF_FILE"
@@ -97,6 +94,7 @@ if [[ "$USE_PACKER" = true ]]; then
     -var "output=$VAGRANT_FILE" \
     -var "output_directory=$TMP_PACKER_OUTPUT_DIR" \
     -var "cloud_init_iso=$TMP_CLOUD_INIT" \
+    -var "vm_log_file=$VM_LOG_FILE" \
     -force \
     $QCOW_TO_VAGRANT_DIR/packer.json
 else

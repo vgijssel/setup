@@ -4,7 +4,8 @@
     "output_directory": "",
     "provisioners_dir": "",
     "output": "",
-    "cloud_init_iso": ""
+    "cloud_init_iso": "",
+    "vm_log_file": ""
   },
   "builders": [
     {
@@ -19,6 +20,13 @@
       "guest_additions_interface": "IDE",
       "vboxmanage": [
         ["modifyvm", "{{.Name}}", "--memory", "2048"],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--uartmode1",
+          "file",
+          "{{user `vm_log_file`}}"
+        ],
         [
           "storageattach",
           "{{.Name}}",
@@ -35,6 +43,7 @@
         ]
       ],
       "vboxmanage_post": [
+        ["modifyvm", "{{.Name}}", "--uartmode1", "disconnected"],
         [
           "storageattach",
           "{{.Name}}",
