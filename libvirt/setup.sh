@@ -17,8 +17,6 @@ pushd terraform-provider-libvirt
 LDFLAGS="-w" make install
 popd
 
-find ~ -name "terraform-provider-libvirt"
-
 cp -v $GOPATH/bin/terraform-provider-libvirt ~/.terraform.d/plugins/darwin_amd64/terraform-provider-libvirt
 
 terraform init
