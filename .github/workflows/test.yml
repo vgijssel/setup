@@ -152,6 +152,14 @@ jobs:
         name: libvirt
         path: ./libvirt/images/libvirt
     - run: brew install qemu cdrtools terraform
+    - uses: actions/setup-go@v2
+      with:
+        go-version: 1.12
+    - run: |
+        git clone https://github.com/dmacvicar/terraform-provider-libvirt.git
+        export GO111MODULE=on
+        export GOFLAGS=-mod=vendor
+        make install
     - run: ./libvirt/build-box.sh
     - working-directory: ${{ env.TARGET_DIR }}
       run: vagrant up
