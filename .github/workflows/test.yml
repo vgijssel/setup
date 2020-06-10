@@ -151,7 +151,7 @@ jobs:
       with:
         name: libvirt
         path: ./libvirt/images/libvirt
-    - run: brew install qemu cdrtools terraform pkg-config
+    - run: brew install qemu cdrtools terraform libvirt pkg-config
     - uses: actions/setup-go@v2
       with:
         go-version: 1.12
