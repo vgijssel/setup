@@ -159,14 +159,8 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: 1.12
-    - run: |
-        git clone https://github.com/dmacvicar/terraform-provider-libvirt.git
-        export GO111MODULE=on
-        export GOFLAGS=-mod=vendor
-        cd terraform-provider-libvirt
-        make install
-        cp -v $GOROOT/bin/terraform-provider-libvirt ~/.terraform.d/plugins/darwin_amd64/terraform-provider-libvirt
     - run: ./dnsmasq/build-box.sh
+    - run: ./libvirt/setup.sh
     - run: ./libvirt/build-box.sh
     - working-directory: ${{ env.TARGET_DIR }}
       run: vagrant up
