@@ -149,6 +149,10 @@ jobs:
     - run: ./scripts/load_env.sh
     - uses: actions/download-artifact@v1
       with:
+        name: dnsmasq
+        path: ./dnsmasq/images/dnsmasq
+    - uses: actions/download-artifact@v1
+      with:
         name: libvirt
         path: ./libvirt/images/libvirt
     - run: brew install qemu cdrtools terraform libvirt pkg-config
