@@ -1,6 +1,10 @@
 version: 2
 ethernets:
-  # VirtualBox NAT adapter
-  # 10.0.2.15/24
   enp0s3:
+    # specifying default mtu here, because the enp0s3 cannot be empty
+    mtu: 1500
+
+bridges:
+  kube_network_br:
+    interfaces: [enp0s3]
     dhcp4: true
