@@ -159,6 +159,7 @@ jobs:
         git clone https://github.com/dmacvicar/terraform-provider-libvirt.git
         export GO111MODULE=on
         export GOFLAGS=-mod=vendor
+        cd terraform-provider-libvirt
         make install
     - run: ./dnsmasq/build-box.sh
     - run: ./libvirt/build-box.sh
