@@ -160,6 +160,7 @@ jobs:
         export GO111MODULE=on
         export GOFLAGS=-mod=vendor
         make install
+    - run: ./dnsmasq/build-box.sh
     - run: ./libvirt/build-box.sh
     - working-directory: ${{ env.TARGET_DIR }}
       run: vagrant up
