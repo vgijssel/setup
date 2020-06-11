@@ -8,7 +8,7 @@ env:
 jobs:
   build-base-image:
     name: Build docker base image
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -17,7 +17,7 @@ jobs:
 
   build-ipxe:
     name: Build ipxe
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: build-base-image
     steps:
@@ -31,7 +31,7 @@ jobs:
 
   build-image-builder:
     name: Build image builder image
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: build-base-image
     steps:
@@ -41,7 +41,7 @@ jobs:
 
   build-deploy-image:
     name: Build deploy image
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: build-image-builder
     steps:
@@ -55,7 +55,7 @@ jobs:
 
   build-dnsmasq:
     name: Build dnsmasq image
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: build-image-builder
     steps:
@@ -69,7 +69,7 @@ jobs:
 
   build-libvirt:
     name: Build libvirt image
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: build-image-builder
     steps:
@@ -83,7 +83,7 @@ jobs:
 
   build-razor-server:
     name: Build razor-server image
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: build-image-builder
     steps:
@@ -97,7 +97,7 @@ jobs:
 
   build-kubernetes:
     name: Build kubernetes image
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: build-image-builder
     steps:
@@ -175,7 +175,7 @@ jobs:
 
   test-libvirt:
     name: Test libvirt
-    timeout-minutes: 30
+    timeout-minutes: 60
     runs-on: macos-latest
     needs: [build-libvirt, build-dnsmasq, build-kubernetes]
     env:
