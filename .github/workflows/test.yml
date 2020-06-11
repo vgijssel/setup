@@ -111,7 +111,7 @@ jobs:
 
   test-razor-server:
     name: Test razor-server
-    timeout-minutes: 30
+    timeout-minutes: 60
     runs-on: macos-latest
     needs: [build-razor-server, build-deploy-image, build-libvirt, build-ipxe, build-dnsmasq]
     env:
@@ -141,10 +141,20 @@ jobs:
         path: ./ipxe/output
     - run: brew install qemu cdrtools
     - run: ./dnsmasq/build-box.sh
-    - run: ./razor-server/build-box.sh
+    # Steps takes normally aound 5 minutes
+    - uses: nick-invision/retry@v1
+      with:
+        timeout_minutes: 8
+        max_attempts: 3
+        command: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh
-    - working-directory: ${{ env.TARGET_DIR }}
-      run: vagrant up
+    # Step takes normally around 10 minutes
+    - uses: nick-invision/retry@v1
+      working-directory: ${{ env.TARGET_DIR }}
+      with:
+        timeout_minutes: 15
+        max_attempts: 2
+        command: vagrant up
     - uses: actions/upload-artifact@v1
       if: ${{ always() }}
       with:
