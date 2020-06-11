@@ -95,6 +95,20 @@ jobs:
         name: razor-server
         path: ./razor-server/images/razor-server
 
+  build-kubernetes:
+    name: Build kubernetes image
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: build-image-builder
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/load_env.sh
+    - run: ./kubernetes/build-image.sh
+    - uses: actions/upload-artifact@v1
+      with:
+        name: kubernetes
+        path: ./kubernetes/images/kubernetes
+
   test-razor-server:
     name: Test razor-server
     timeout-minutes: 30
@@ -155,6 +169,10 @@ jobs:
       with:
         name: libvirt
         path: ./libvirt/images/libvirt
+    - uses: actions/download-artifact@v1
+      with:
+        name: kubernetes
+        path: ./kubernetes/images/kubernetes
     - run: brew install qemu cdrtools terraform libvirt pkg-config
     - uses: actions/setup-go@v2
       with:
@@ -238,20 +256,6 @@ jobs:
 
   #   - working-directory: ${{ env.TARGET_DIR }}
   #     run: bundle exec rspec
-
-  # build-kubernetes:
-  #   name: Build kubernetes image
-  #   timeout-minutes: 10
-  #   runs-on: ubuntu-latest
-  #   needs: build-image-builder
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: ./scripts/load_env.sh
-  #   - run: ./kubernetes/build-image.sh
-  #   - uses: actions/upload-artifact@v1
-  #     with:
-  #       name: kubernetes
-  #       path: ./kubernetes/images/kubernetes
 
   # test-kubernetes:
   #   name: Test kubernetes image
