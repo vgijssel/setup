@@ -142,26 +142,26 @@ jobs:
     - run: brew install qemu cdrtools
     - run: ./dnsmasq/build-box.sh
     # regular runtime is half of the timeout
-    - name: ./razor-server/build-box.sh
+    - name: Run ./razor-server/build-box.sh
       uses: nick-invision/retry@v1
       with:
         timeout_minutes: 10
         max_attempts: 2
         command: ./razor-server/build-box.sh
     - run: ./razor-server/build-pxe-box.sh
-    - name: vagrant up dnsmasq
+    - name: Run vagrant up dnsmasq
       uses: nick-invision/retry@v1
       with:
         timeout_minutes: 2
         max_attempts: 2
         command: cd razor-server && vagrant destroy -f dnsmasq && vagrant up dnsmasq
-    - name: vagrant up razor-server
+    - name: Run vagrant up razor-server
       uses: nick-invision/retry@v1
       with:
         timeout_minutes: 6
         max_attempts: 2
         command: cd razor-server && vagrant destroy -f razor-server && vagrant up razor-server
-    - name: vagrant up pxe
+    - name: Run vagrant up pxe
       uses: nick-invision/retry@v1
       with:
         timeout_minutes: 10
