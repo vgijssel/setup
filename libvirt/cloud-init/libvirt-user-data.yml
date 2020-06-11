@@ -20,3 +20,7 @@ runcmd:
 
   # Restart networking only during first boot to fix the wrong hostname in dhcp server
   - [systemctl, restart, networking]
+
+  # Create placeholder folders for data
+  - [mkdir, -p, /data/vms/storage, /data/vms/logs]
+  - [chmod, -R, 0777, /data]

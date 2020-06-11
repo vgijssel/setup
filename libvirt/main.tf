@@ -5,7 +5,7 @@ provider "libvirt" {
 resource "libvirt_pool" "data" {
   name = "data"
   type = "dir"
-  path = "/data"
+  path = "/data/vms/storage"
 }
 
 resource "libvirt_cloudinit_disk" "commoninit" {
@@ -34,6 +34,24 @@ resource "libvirt_volume" "master" {
   name   = "master"
   pool   = libvirt_pool.data.name
   source = "../kubernetes/images/kubernetes/kubernetes_buster.qcow2"
+
+  # create associated log file because otherwise libvirt will cry :/
+  provisioner "file" {
+    content     = "file-provisioner-needs-some-content"
+    destination = "/data/vms/logs/master.log"
+
+    connection {
+      type     = "ssh"
+      user     = "vagrant"
+      password = "vagrant"
+      host     = "libvirt"
+
+      bastion_host     = "localhost"
+      bastion_port     = 2222
+      bastion_user     = "vagrant"
+      bastion_password = "vagrant"
+    }
+  }
 }
 
 resource "libvirt_domain" "master" {
@@ -56,8 +74,9 @@ resource "libvirt_domain" "master" {
   }
 
   console {
-    type        = "pty"
+    type        = "file"
     target_port = "0"
     target_type = "serial"
+    source_path = "/data/vms/logs/master.log"
   }
 }
