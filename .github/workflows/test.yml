@@ -150,11 +150,10 @@ jobs:
     - run: ./razor-server/build-pxe-box.sh
     # Step takes normally around 10 minutes
     - uses: nick-invision/retry@v1
-      working-directory: ${{ env.TARGET_DIR }}
       with:
         timeout_minutes: 15
         max_attempts: 2
-        command: vagrant up
+        command: cd razor-server && vagrant up
     - uses: actions/upload-artifact@v1
       if: ${{ always() }}
       with:
