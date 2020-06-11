@@ -154,19 +154,19 @@ jobs:
       with:
         timeout_minutes: 2
         max_attempts: 2
-        command: cd razor-server && vagrant up dnsmasq
+        command: cd razor-server && vagrant destroy -f dnsmasq && vagrant up dnsmasq
     - name: vagrant up razor-server
       uses: nick-invision/retry@v1
       with:
         timeout_minutes: 6
         max_attempts: 2
-        command: cd razor-server && vagrant up razor-server
+        command: cd razor-server && vagrant destroy -f razor-server && vagrant up razor-server
     - name: vagrant up pxe
       uses: nick-invision/retry@v1
       with:
         timeout_minutes: 10
         max_attempts: 2
-        command: cd razor-server && vagrant up pxe
+        command: cd razor-server && vagrant destroy -f pxe && vagrant up pxe
     - uses: actions/upload-artifact@v1
       if: ${{ always() }}
       with:
