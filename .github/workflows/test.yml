@@ -201,9 +201,24 @@ jobs:
         go-version: 1.12
     - run: ./dnsmasq/build-box.sh
     - run: ./libvirt/setup.sh
-    - run: ./libvirt/build-box.sh
-    - working-directory: ${{ env.TARGET_DIR }}
-      run: vagrant up
+    - name: Run ./libvirt/build-box.sh
+      uses: nick-invision/retry@v1
+      with:
+        timeout_minutes: 10
+        max_attempts: 2
+        command: ./libvirt/build-box.sh
+    - name: Run vagrant up dnsmasq
+      uses: nick-invision/retry@v1
+      with:
+        timeout_minutes: 2
+        max_attempts: 2
+        command: cd libvirt && vagrant destroy -f dnsmasq && vagrant up dnsmasq
+    - name: Run vagrant up libvirt
+      uses: nick-invision/retry@v1
+      with:
+        timeout_minutes: 6
+        max_attempts: 2
+        command: cd libvirt && vagrant destroy -f libvirt && vagrant up libvirt
     - working-directory: ${{ env.TARGET_DIR }}
       run: terraform init
     - working-directory: ${{ env.TARGET_DIR }}
