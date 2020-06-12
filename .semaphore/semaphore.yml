@@ -11,3 +11,4 @@ blocks:
         - name: 'Job #1'
           commands:
             - lscpu
+            - free -h
