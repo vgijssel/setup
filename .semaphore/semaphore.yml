@@ -10,7 +10,4 @@ blocks:
       jobs:
         - name: 'Job #1'
           commands:
-            - checkout
-        - name: 'Job #2'
-          commands:
-            - ls -la
+            - lscpu
