@@ -13,9 +13,7 @@ blocks:
             - checkout
         - name: load env
           commands:
-            - export KERK=1
-            - env
+            - ls -la
         - name: docker build
-          commands:
-            - env
+          commands: []
     dependencies: []
