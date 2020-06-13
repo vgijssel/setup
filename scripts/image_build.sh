@@ -4,11 +4,7 @@ set -Eeoux pipefail
 
 IMAGE_NAME="$1"
 LOCAL_ELEMENTS_DIR="$2"
-
-# remove the first two elements of the arguments, the rest of the arguments are the elements
-shift
-shift
-ELEMENTS="$@"
+ELEMENTS="$3"
 
 export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
