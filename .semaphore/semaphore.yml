@@ -8,7 +8,23 @@ blocks:
   - name: 'Block #1'
     task:
       jobs:
-        - name: 'Job #1'
+        - name: papi
           commands:
-            - lscpu
-            - free -h
+            - touch papi
+    dependencies: []
+  - name: 'Block #2'
+    dependencies: []
+    task:
+      jobs:
+        - name: chulo
+          commands:
+            - touch chulo
+  - name: 'Block #3'
+    dependencies:
+      - 'Block #1'
+      - 'Block #2'
+    task:
+      jobs:
+        - name: join
+          commands:
+            - ls -la
