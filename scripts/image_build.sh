@@ -25,4 +25,4 @@ docker run \
        --env DIB_APT_MINIMAL_CREATE_INTERFACES \
        --env DIB_EXTLINUX \
        "${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}" \
-       disk-image-create -x -o "${IMAGE_NAME}" "${ELEMENTS}"
+       disk-image-create -x -o "images/${IMAGE_NAME}" "${ELEMENTS}"

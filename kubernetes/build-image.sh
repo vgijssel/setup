@@ -3,7 +3,6 @@
 set -Eeoux pipefail
 
 # generate digest:
-# build-image.sh
 # image_build.sh
 # image builder digest
 # content of local element directory
