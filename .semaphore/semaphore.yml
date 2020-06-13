@@ -11,7 +11,8 @@ blocks:
         - name: checkout
           commands:
             - checkout
-            - ls -la
+            - export KERK=1
+            - env
         - name: load env
           commands:
             - ls -la
