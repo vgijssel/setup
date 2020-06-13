@@ -3,6 +3,7 @@ on: [push]
 env:
   CI: true
   GITHUB_DOCKER_REGISTRY_TOKEN: ${{ github.token }}
+  GITHUB_REF: ${{ github.ref }}
 
 jobs:
   build-base-image:

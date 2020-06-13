@@ -31,8 +31,8 @@ for var in $VARS; do
   fi
 done
 
-if [[ $GITHUB_REF = "refs/heads/HEAD" ]]; then
-  echo "GITHUB_REF value is not correct: '$GITHUB_REF', " \
+if [[ $GIT_REF = "refs/heads/HEAD" ]]; then
+  echo "GIT_REF value is not correct: '$GIT_REF', " \
        "please check if .envrc sourcing is done correctly."
 
   exit 1
