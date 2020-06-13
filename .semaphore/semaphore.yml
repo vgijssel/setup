@@ -1,0 +1,18 @@
+version: v1.0
+name: Initial Pipeline
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Test
+    task:
+      jobs:
+        - name: Test libvirt
+          commands:
+            - checkout
+            - source .envrc
+            - docker_build.sh "${BASE_IMAGE}" "./base-image"
+            - docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+            - ./kubernetes/build-image.sh
+    dependencies: []
