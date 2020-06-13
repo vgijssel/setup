@@ -5,26 +5,17 @@ agent:
     type: e1-standard-2
     os_image: ubuntu1804
 blocks:
-  - name: 'Block #1'
+  - name: Build docker base image
     task:
       jobs:
-        - name: papi
+        - name: checkout
           commands:
-            - touch papi
+            - checkout
+        - name: load env
+          commands:
+            - export KERK=1
+            - env
+        - name: docker build
+          commands:
+            - env
     dependencies: []
-  - name: 'Block #2'
-    dependencies: []
-    task:
-      jobs:
-        - name: chulo
-          commands:
-            - touch chulo
-  - name: 'Block #3'
-    dependencies:
-      - 'Block #1'
-      - 'Block #2'
-    task:
-      jobs:
-        - name: join
-          commands:
-            - ls -la
