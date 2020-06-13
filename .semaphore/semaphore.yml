@@ -11,6 +11,7 @@ blocks:
         - name: checkout
           commands:
             - checkout
+            - ls -la
         - name: load env
           commands:
             - ls -la
