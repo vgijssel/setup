@@ -16,4 +16,6 @@ blocks:
             - docker_build.sh "${BASE_IMAGE}" "./base-image"
             - docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
             - ./kubernetes/build-image.sh
+      secrets:
+        - name: GITHUB_DOCKER_REGISTRY_TOKEN
     dependencies: []
