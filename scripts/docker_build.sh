@@ -12,7 +12,7 @@ GIT_SHA=$(git rev-parse HEAD)
 IMAGE_BRANCH_TAG=$(echo "${GIT_BRANCH}" | tr "/" _)
 IMAGE_SHA_TAG="${GIT_SHA}"
 
-docker login -u mvgijssel -p "${REGISTRY_GITHUB_TOKEN}" docker.pkg.github.com
+docker login -u mvgijssel -p "${GITHUB_DOCKER_REGISTRY_TOKEN}" docker.pkg.github.com
 
 docker pull "${IMAGE_NAME}:latest" || true
 docker pull "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}" || true

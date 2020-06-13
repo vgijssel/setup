@@ -7,7 +7,7 @@ export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 
 IMAGE_SHA_TAG=$(git rev-parse HEAD)
 
-docker login -u mvgijssel -p "${REGISTRY_GITHUB_TOKEN}" docker.pkg.github.com
+docker login -u mvgijssel -p "${GITHUB_DOCKER_REGISTRY_TOKEN}" docker.pkg.github.com
 
 docker run \
        --rm \

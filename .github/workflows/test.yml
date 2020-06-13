@@ -2,8 +2,7 @@ name: Test
 on: [push]
 env:
   CI: true
-  REGISTRY_GITHUB_TOKEN: ${{ github.token }}
-  RUN_ID: ${{ github.run_id }}
+  GITHUB_DOCKER_REGISTRY_TOKEN: ${{ github.token }}
 
 jobs:
   build-base-image:
