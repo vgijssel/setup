@@ -13,8 +13,10 @@ IMAGE_SHA_TAG="${GIT_SHA}"
 
 docker login -u mvgijssel -p "${GITHUB_DOCKER_REGISTRY_TOKEN}" docker.pkg.github.com
 
-docker pull "${IMAGE_NAME}:latest" || true
-docker pull "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}" || true
+if [[ "$CI" = true ]]; then
+  docker pull "${IMAGE_NAME}:latest" || true
+  docker pull "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}" || true
+fi
 
 docker build \
        --cache-from "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}" \
@@ -25,5 +27,7 @@ docker build \
        --file "${IMAGE_DIRECTORY}/Dockerfile" \
        "${IMAGE_DIRECTORY}"
 
-docker push "${IMAGE_NAME}:${IMAGE_SHA_TAG}"
-docker push "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}"
+if [[ "$CI" = true ]]; then
+  docker push "${IMAGE_NAME}:${IMAGE_SHA_TAG}"
+  docker push "${IMAGE_NAME}:${IMAGE_BRANCH_TAG}"
+fi
