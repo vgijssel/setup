@@ -42,6 +42,7 @@ if [[ "${CI}" = true ]]; then
 fi
 
 docker buildx build \
+  --progress plain \
   --load \
   --cache-from "${LOCAL_IMAGE_NAME}:${IMAGE_BRANCH_TAG}" \
   --cache-from "${LOCAL_IMAGE_NAME}:latest" \
