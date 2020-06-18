@@ -1,5 +1,6 @@
 ARG IMAGE_SHA_TAG=latest
-FROM docker.pkg.github.com/mvgijssel/setup/base-image:${IMAGE_SHA_TAG}
+ARG DOCKER_REGISTRY
+FROM ${DOCKER_REGISTRY}/base-image:${IMAGE_SHA_TAG}
 
 WORKDIR /app
 

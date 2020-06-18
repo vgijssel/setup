@@ -2,27 +2,54 @@
 
 set -Eeoux pipefail
 
-IMAGE_NAME="$1"
-LOCAL_ELEMENTS_DIR="$2"
-ELEMENTS="$3"
+export IMAGE_NAME="$1"
+# NOTE: using realpath here to convert an absolute to a relative path
+export LOCAL_ELEMENTS_DIR=$(realpath --relative-to="${SETUP_ROOT_DIR}" "$2")
+export GLOBAL_ELEMENTS_DIR=$(realpath --relative-to="${SETUP_ROOT_DIR}" "${SETUP_ELEMENTS_DIR}")
+export CONTEXT_DIR="${SETUP_ROOT_DIR}"
 
 export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 # Force extlinux instead of grub2
 export DIB_EXTLINUX=1
 
-IMAGE_SHA_TAG=$(git rev-parse HEAD)
+# NOTE: exporting elements here as it contains spaces and spaces
+# break the extra arguments passed into docker_build.sh.
+# There doing --build-arg ELEMENTS so the build argument is plucked
+# from the environment!
+export ELEMENTS="$3"
 
-docker login -u mvgijssel -p "${GITHUB_DOCKER_REGISTRY_TOKEN}" docker.pkg.github.com
+# Run local registry
+# docker run -p 127.0.0.1:5000:5000 --name registry registry:2
 
-docker run \
-       --rm \
-       --privileged \
-       -v "${SETUP_IMAGE_DIR}:/app/images" \
-       -v "${LOCAL_ELEMENTS_DIR}:/app/local_elements" \
-       -v "${SETUP_ELEMENTS_DIR}:/app/global_elements" \
-       --env DIB_RELEASE \
-       --env DIB_APT_MINIMAL_CREATE_INTERFACES \
-       --env DIB_EXTLINUX \
-       "${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}" \
-       disk-image-create -x -o "images/${IMAGE_NAME}" "${ELEMENTS}"
+# building privileged
+# create buildkit builder with special daemon flag for privileged building
+# docker buildx create \
+#   --use \
+#   --buildkitd-flags "--allow-insecure-entitlement security.insecure" \
+#   --driver-opt network=host \
+#   --name "test"
+
+DOCKER_IMAGE_NAME=$(
+  docker_build.sh \
+    "${IMAGE_NAME}" \
+    "${CONTEXT_DIR}" \
+    --allow security.insecure \
+    --file "${SETUP_IMAGE_BUILDER_DIR}/Dockerfile.container" \
+    --build-arg LOCAL_ELEMENTS_DIR \
+    --build-arg GLOBAL_ELEMENTS_DIR \
+    --build-arg ELEMENTS \
+    --build-arg IMAGE_NAME \
+    --build-arg DIB_RELEASE \
+    --build-arg DIB_APT_MINIMAL_CREATE_INTERFACES \
+    --build-arg DIB_EXTLINUX
+)
+
+# Instantiate a container
+id=$(docker create "${DOCKER_IMAGE_NAME}")
+
+# Copy the image from the container into the image folder
+docker cp $id:"/app/images/${IMAGE_NAME}.qcow2" "${SETUP_IMAGE_DIR}"
+
+# Remove the container
+docker rm -v $id

@@ -2,10 +2,7 @@
 
 set -Eeoux pipefail
 
-# generate digest:
-# image_build.sh
-# image builder digest
-# content of local element directory
+# docker_build.sh $IMAGE_BUILDER_NAME ./image-builder
 
 image_build.sh \
   kubernetes_buster \
