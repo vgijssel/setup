@@ -19,17 +19,6 @@ export DIB_EXTLINUX=1
 # from the environment!
 export ELEMENTS="$3"
 
-# Run local registry
-# docker run -p 127.0.0.1:5000:5000 --name registry registry:2
-
-# building privileged
-# create buildkit builder with special daemon flag for privileged building
-# docker buildx create \
-#   --use \
-#   --buildkitd-flags "--allow-insecure-entitlement security.insecure" \
-#   --driver-opt network=host \
-#   --name "test"
-
 DOCKER_IMAGE_NAME=$(
   docker_build.sh \
     "${IMAGE_NAME}" \
