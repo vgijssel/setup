@@ -9,12 +9,11 @@ docker run -v "${SETUP_TMP_DIR}/registry":/var/lib/registry -d -p 127.0.0.1:5000
 
 # create buildkit builder with special daemon flag for privileged building
 # which allows "security=insecure" in RUN commands in Dockerfile
-docker buildx rm insecure || true
 docker buildx create \
   --use \
   --buildkitd-flags "--allow-insecure-entitlement security.insecure" \
   --driver-opt network=host \
-  --name "test"
+  --name "insecure" || true
 
 IMAGE_NAME="$1"
 IMAGE_DIRECTORY="$2"
@@ -44,7 +43,7 @@ if [[ "${CI}" = true ]]; then
 fi
 
 docker buildx build \
-  --push \
+  --load \
   --cache-from "${LOCAL_IMAGE_NAME}:${IMAGE_BRANCH_TAG}" \
   --cache-from "${LOCAL_IMAGE_NAME}:latest" \
   --build-arg IMAGE_SHA_TAG="${IMAGE_SHA_TAG}" \
@@ -53,6 +52,9 @@ docker buildx build \
   --tag "${LOCAL_IMAGE_NAME}:${IMAGE_SHA_TAG}" \
   $EXTRA_ARGS \
   "${IMAGE_DIRECTORY}"
+
+docker push "${LOCAL_IMAGE_NAME}:${IMAGE_BRANCH_TAG}"
+docker push "${LOCAL_IMAGE_NAME}:${IMAGE_SHA_TAG}"
 
 if [[ "${CI}" = true ]]; then
   # Now tag the local created image for the GitHub docker registry and push it there
