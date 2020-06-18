@@ -53,8 +53,8 @@ docker buildx build \
   $EXTRA_ARGS \
   "${IMAGE_DIRECTORY}"
 
-docker push "${LOCAL_IMAGE_NAME}:${IMAGE_BRANCH_TAG}"
-docker push "${LOCAL_IMAGE_NAME}:${IMAGE_SHA_TAG}"
+docker push "${LOCAL_IMAGE_NAME}:${IMAGE_BRANCH_TAG}" 1>&2
+docker push "${LOCAL_IMAGE_NAME}:${IMAGE_SHA_TAG}" 1>&2
 
 if [[ "${CI}" = true ]]; then
   # Now tag the local created image for the GitHub docker registry and push it there
