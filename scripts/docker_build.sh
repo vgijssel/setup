@@ -44,6 +44,7 @@ fi
 docker buildx build \
   --progress plain \
   --load \
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
   --cache-from "${LOCAL_IMAGE_NAME}:${IMAGE_BRANCH_TAG}" \
   --cache-from "${LOCAL_IMAGE_NAME}:latest" \
   --build-arg IMAGE_SHA_TAG="${IMAGE_SHA_TAG}" \
