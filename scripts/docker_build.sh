@@ -4,8 +4,7 @@
 set -Eeoux pipefail
 
 # Setup local docker registry
-docker rm -f registry 1>&2 || true
-docker run -v "${SETUP_TMP_DIR}/registry":/var/lib/registry -d -p 127.0.0.1:5000:5000 --name registry --rm registry:2 1>&2
+docker run -d -p 127.0.0.1:5000:5000 --name registry --rm registry:2 1>&2 || true
 
 # create buildkit builder with special daemon flag for privileged building
 # which allows "security=insecure" in RUN commands in Dockerfile
