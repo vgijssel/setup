@@ -5,3 +5,4 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform
 packer_cache
+packer_output

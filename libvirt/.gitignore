@@ -1,4 +1,2 @@
-packer_cache
-packer_output
 libvirt.box
 terraform-provider-libvirt
