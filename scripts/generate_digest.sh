@@ -12,9 +12,6 @@ LIST="${THIS_SCRIPT} ${LIST}"
 # which are part of git, others are ignored
 FILES=$(git ls-files $(echo "${LIST}"))
 
-# add this digest script to the list
-# LIST="${LIST} ${SETUP_SCRIPTS_DIR}/digest.sh"
-
 # Strategy generating digest from this answer
 # https://unix.stackexchange.com/a/35847
 
