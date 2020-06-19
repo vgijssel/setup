@@ -46,4 +46,4 @@ RESULT=($(echo $ARCHIVE | sha256sum))
 
 # sha256sum returns the checksum and a placeholder "-" to represent
 # that no file in the input. We're only interested in the checksum so only getting that at index 0
-echo "${RESULT[0]}"
+echo "${IMAGE_NAME}-${RESULT[0]}"
