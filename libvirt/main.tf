@@ -33,7 +33,7 @@ resource "libvirt_network" "kube_network" {
 resource "libvirt_volume" "master" {
   name   = "master"
   pool   = libvirt_pool.data.name
-  source = "../kubernetes/images/kubernetes/kubernetes_buster.qcow2"
+  source = "../image/kubernetes_buster.qcow2"
 
   # create associated log file because otherwise libvirt will cry :/
   provisioner "file" {
