@@ -30,7 +30,7 @@ fi
 docker run \
   --rm \
   --privileged \
-  -v "${SETUP_IMAGE_DIR}:/app/images" \
+  -v "${SETUP_IMAGE_DIR}:/app/image" \
   -v "${LOCAL_ELEMENTS_DIR}:/app/local_elements" \
   -v "${GLOBAL_ELEMENTS_DIR}:/app/global_elements" \
   --env DIB_RELEASE \
