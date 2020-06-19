@@ -47,7 +47,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: ./deploy-image/build-image.sh
+    - run: image_build.sh ./deploy-image/image.cfg
     - uses: actions/upload-artifact@v1
       with:
         name: deploy-image
@@ -61,7 +61,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: ./dnsmasq/build-image.sh
+    - run: image_build.sh ./dnsmasq/image.cfg
     - uses: actions/upload-artifact@v1
       with:
         name: dnsmasq
@@ -75,7 +75,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: ./libvirt/build-image.sh
+    - run: image_build.sh ./libvirt/image.cfg
     - uses: actions/upload-artifact@v1
       with:
         name: libvirt
@@ -89,7 +89,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: ./razor-server/build-image.sh
+    - run: image_build.sh ./razor-server/image.cfg
     - uses: actions/upload-artifact@v1
       with:
         name: razor-server
@@ -103,7 +103,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: ./kubernetes/build-image.sh
+    - run: image_build.sh ./kubernetes/image.cfg
     - uses: actions/upload-artifact@v1
       with:
         name: kubernetes
