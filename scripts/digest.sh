@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -Eeou pipefail
+set -Eeoux pipefail
 
 IMAGE_CONFIG_FILE="$1"
 source "${IMAGE_CONFIG_FILE}"
@@ -18,7 +18,7 @@ function convert_elements_to_local_dirs {
     fi
   done
 
-  echo "${RESULT[@]}"
+  echo ${RESULT[@]+"${RESULT[@]}"}
 }
 
 DIRS=()
