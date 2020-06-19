@@ -2,8 +2,6 @@
 
 set -Eeoux pipefail
 
-# docker_build.sh $IMAGE_BUILDER_NAME ./image-builder
-
 image_build.sh \
   kubernetes_buster \
   "${SETUP_KUBERNETES_DIR}/elements" \
