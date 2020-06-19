@@ -51,7 +51,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: deploy-image
-        path: ./deploy-image/images/deploy-image
+        path: ./image
 
   build-dnsmasq:
     name: Build dnsmasq image
@@ -65,7 +65,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: dnsmasq
-        path: ./dnsmasq/images/dnsmasq
+        path: ./image
 
   build-libvirt:
     name: Build libvirt image
@@ -79,7 +79,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: libvirt
-        path: ./libvirt/images/libvirt
+        path: ./image
 
   build-razor-server:
     name: Build razor-server image
@@ -93,7 +93,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: razor-server
-        path: ./razor-server/images/razor-server
+        path: ./image
 
   build-kubernetes:
     name: Build kubernetes image
@@ -107,7 +107,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: kubernetes
-        path: ./kubernetes/images/kubernetes
+        path: ./image
 
   test-razor-server:
     name: Test razor-server
@@ -122,19 +122,19 @@ jobs:
     - uses: actions/download-artifact@v1
       with:
         name: razor-server
-        path: ./razor-server/images/razor-server
+        path: ./image
     - uses: actions/download-artifact@v1
       with:
         name: deploy-image
-        path: ./deploy-image/images/deploy-image
+        path: ./image
     - uses: actions/download-artifact@v1
       with:
         name: libvirt
-        path: ./libvirt/images/libvirt
+        path: ./image
     - uses: actions/download-artifact@v1
       with:
         name: dnsmasq
-        path: ./dnsmasq/images/dnsmasq
+        path: ./image
     - uses: actions/download-artifact@v1
       with:
         name: ipxe
@@ -186,15 +186,15 @@ jobs:
     - uses: actions/download-artifact@v1
       with:
         name: dnsmasq
-        path: ./dnsmasq/images/dnsmasq
+        path: ./image
     - uses: actions/download-artifact@v1
       with:
         name: libvirt
-        path: ./libvirt/images/libvirt
+        path: ./image
     - uses: actions/download-artifact@v1
       with:
         name: kubernetes
-        path: ./kubernetes/images/kubernetes
+        path: ./image
     - run: brew install qemu cdrtools terraform libvirt pkg-config
     - uses: actions/setup-go@v2
       with:

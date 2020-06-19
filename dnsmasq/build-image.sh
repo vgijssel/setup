@@ -2,23 +2,7 @@
 
 set -Eeoux pipefail
 
-export DIB_RELEASE=buster
-export DIB_APT_MINIMAL_CREATE_INTERFACES=0
-# Force extlinux instead of grub2
-export DIB_EXTLINUX=1
-
-IMAGE_SHA_TAG=$(git rev-parse HEAD)
-
-docker login -u mvgijssel -p "${GITHUB_DOCKER_REGISTRY_TOKEN}" docker.pkg.github.com
-
-docker run \
-       --rm \
-       --privileged \
-       -v "${SETUP_DNSMASQ_DIR}/images:/app/images" \
-       -v "${SETUP_DNSMASQ_DIR}/elements:/app/local_elements" \
-       -v "${SETUP_ELEMENTS_DIR}:/app/global_elements" \
-       --env DIB_RELEASE \
-       --env DIB_APT_MINIMAL_CREATE_INTERFACES \
-       --env DIB_EXTLINUX \
-       "${IMAGE_BUILDER_IMAGE}:${IMAGE_SHA_TAG}" \
-       disk-image-create -x -o images/dnsmasq/dnsmasq_buster debian baremetal vm debian-networking-fix cloud-init-fix growroot qemu-guest resolvconf dnsmasq
+image_build.sh \
+    dnsmasq_buster \
+    "${SETUP_DNSMASQ_DIR}/elements" \
+    "debian baremetal vm debian-networking-fix cloud-init-fix growroot qemu-guest resolvconf dnsmasq"
