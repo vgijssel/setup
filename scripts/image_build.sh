@@ -9,6 +9,11 @@ DISK_IMAGE_DIR=$(digest.sh "${IMAGE_CONFIG_FILE}")
 DISK_IMAGE_HOST_DIR="${SETUP_ROOT_DIR}/${DISK_IMAGE_DIR}"
 DISK_IMAGE_DOCKER_PATH="${DISK_IMAGE_DIR}/${IMAGE_NAME}"
 
+# Try to restore the directory from cache
+if [[ "${CI_SEMAPHORE}" = true ]]; then
+  cache restore "${DISK_IMAGE_DIR}"
+fi
+
 if [[ -d "${DISK_IMAGE_HOST_DIR}" ]]; then
   echo "Already exists, exiting: ${DISK_IMAGE_HOST_DIR}"
   exit 0
@@ -38,3 +43,8 @@ docker run \
   --env DIB_EXTLINUX \
   "${IMAGE_BUILDER_NAME}:${IMAGE_SHA_TAG}" \
   disk-image-create -x -o "${DISK_IMAGE_DOCKER_PATH}" "${ELEMENTS}"
+
+# Store the directory in the cache
+if [[ "${CI_SEMAPHORE}" = true ]]; then
+  cache store "${DISK_IMAGE_DIR}" "${DISK_IMAGE_DIR}"
+fi
