@@ -5,12 +5,12 @@ set -Eeoux pipefail
 IMAGE_CONFIG_FILE="$1"
 source "${IMAGE_CONFIG_FILE}"
 
-DISK_IMAGE_NAME=$(digest.sh "${IMAGE_CONFIG_FILE}")
-DISK_IMAGE_DOCKER_PATH="images/${DISK_IMAGE_NAME}"
-DISK_IMAGE_HOST_PATH="${SETUP_IMAGE_DIR}/${DISK_IMAGE_NAME}.qcow2"
+DISK_IMAGE_DIR=$(digest.sh "${IMAGE_CONFIG_FILE}")
+DISK_IMAGE_HOST_DIR="${SETUP_ROOT_DIR}/${DISK_IMAGE_DIR}"
+DISK_IMAGE_DOCKER_PATH="${DISK_IMAGE_DIR}/${IMAGE_NAME}"
 
-if [[ -f "${DISK_IMAGE_HOST_PATH}" ]]; then
-  echo "Disk exists, exiting: ${DISK_IMAGE_HOST_PATH}"
+if [[ -d "${DISK_IMAGE_HOST_DIR}" ]]; then
+  echo "Already exists, exiting: ${DISK_IMAGE_HOST_DIR}"
   exit 0
 fi
 
