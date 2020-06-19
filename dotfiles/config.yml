@@ -33,6 +33,7 @@ homebrew_installed_packages:
   - hyperkit # running virtual machines on macos for testing
   - hivemind # for running multiple virtual machines from procfile
   - dnsmasq # for custom DNS / DHCP
+  - semaphoreci/tap/sem # Semaphore CI command line tool
 
   # Emacs
   - emacs-plus
