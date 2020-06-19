@@ -9,8 +9,9 @@ libvirt_dir = ENV.fetch('SETUP_LIBVIRT_DIR')
 razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 dnsmasq_dir = ENV.fetch('SETUP_DNSMASQ_DIR')
 
+dnsmasq_host_port = ENV.fetch('VAGRANT_BASTION_HOST_PORT')
 ssh_private_key_path = File.join(razor_server_dir, 'keys', 'id_rsa')
-ssh_proxy_command = "ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i #{ssh_private_key_path} -l vagrant -p 2222 -W '[%h]:%p' 127.0.0.1"
+ssh_proxy_command = "ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i #{ssh_private_key_path} -l vagrant -p #{dnsmasq_host_port} -W '[%h]:%p' 127.0.0.1"
 
 def build_cloud_init_iso(iso_name, user_data_file, network_config_file)
   iso_location = File.join(TMP_DIR, iso_name)
@@ -41,6 +42,8 @@ Vagrant.configure('2') do |config|
   config.vm.synced_folder '.', '/vagrant', disabled: true
 
   config.vm.define "dnsmasq" do |dnsmasq|
+    # Make sure the port is available, don't auto correct if not
+    dnsmasq.vm.network "forwarded_port", guest: 22, host: dnsmasq_host_port, id: 'ssh', auto_correct: false
     dnsmasq.vm.network "private_network", auto_config: false, adapter: 2, virtualbox__intnet: true
     dnsmasq.vm.box = "file://#{File.join(dnsmasq_dir, 'dnsmasq.box')}"
     dnsmasq.ssh.private_key_path = ssh_private_key_path
