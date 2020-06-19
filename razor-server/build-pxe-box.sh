@@ -2,7 +2,7 @@
 
 set -Eeoux pipefail
 
-PXE_IMAGE_DIR="${SETUP_RAZOR_SERVER_DIR}/images/pxe"
+PXE_IMAGE_DIR="${SETUP_IMAGE_DIR}"
 PXE_QCOW="${PXE_IMAGE_DIR}/pxe.qcow2"
 
 mkdir -p "${PXE_IMAGE_DIR}"
