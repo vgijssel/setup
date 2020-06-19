@@ -12,7 +12,6 @@ blocks:
           commands:
             - checkout
             - source .envrc
-            - env
             - docker_build.sh "${BASE_IMAGE}" "./base-image"
             - docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
             - image_build.sh ./kubernetes/image.cfg
