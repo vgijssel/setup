@@ -44,6 +44,9 @@ ARCHIVE=$(printf "%s\n" "${FILES[@]}" | LC_ALL=C sort | cpio -o)
 # generate the digest from the archive
 RESULT=($(echo $ARCHIVE | sha256sum))
 
+# calculating the relative dir path, the digest works for different systems
+RELATIVE_IMAGE_DIR=$(realpath --relative-to=$SETUP_ROOT_DIR $SETUP_IMAGE_DIR)
+
 # sha256sum returns the checksum and a placeholder "-" to represent
 # that no file in the input. We're only interested in the checksum so only getting that at index 0
-echo "${IMAGE_NAME}-${RESULT[0]}"
+echo "${RELATIVE_IMAGE_DIR}/${IMAGE_NAME}-${RESULT[0]}"
