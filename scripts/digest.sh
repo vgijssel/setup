@@ -39,7 +39,7 @@ LIST="${THIS_SCRIPT} ${LIST}"
 FILES=($(git ls-files $(echo "${LIST[@]}")))
 
 # sort them deterministicly and archive them using pax
-ARCHIVE=$(printf "%s\n" "${FILES[@]}" | LC_ALL=C sort | pax -w -d)
+ARCHIVE=$(printf "%s\n" "${FILES[@]}" | LC_ALL=C sort | cpio -o)
 
 # generate the digest from the archive
 RESULT=($(echo $ARCHIVE | sha256sum))
