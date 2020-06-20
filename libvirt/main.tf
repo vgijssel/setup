@@ -6,6 +6,10 @@ resource "libvirt_pool" "data" {
   name = "data"
   type = "dir"
   path = "/data/vms/storage"
+
+  xml {
+    xslt = file("storage_pool_permissions.xsl")
+  }
 }
 
 resource "libvirt_cloudinit_disk" "commoninit" {
