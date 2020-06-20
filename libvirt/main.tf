@@ -43,23 +43,23 @@ resource "libvirt_volume" "master" {
   pool   = libvirt_pool.data.name
   source = local.kubernetes_image
 
-  # create associated log file because otherwise libvirt will cry :/
-  provisioner "file" {
-    content     = "file-provisioner-needs-some-content"
-    destination = "/data/vms/logs/master.log"
+  # # create associated log file because otherwise libvirt will cry :/
+  # provisioner "file" {
+  #   content     = "file-provisioner-needs-some-content"
+  #   destination = "/data/vms/logs/master.log"
 
-    connection {
-      type     = "ssh"
-      user     = "vagrant"
-      password = "vagrant"
-      host     = "libvirt"
+  #   connection {
+  #     type     = "ssh"
+  #     user     = "vagrant"
+  #     password = "vagrant"
+  #     host     = "libvirt"
 
-      bastion_host     = "localhost"
-      bastion_port     = 2222
-      bastion_user     = "vagrant"
-      bastion_password = "vagrant"
-    }
-  }
+  #     bastion_host     = "localhost"
+  #     bastion_port     = 2222
+  #     bastion_user     = "vagrant"
+  #     bastion_password = "vagrant"
+  #   }
+  # }
 }
 
 resource "libvirt_domain" "master" {
@@ -82,9 +82,9 @@ resource "libvirt_domain" "master" {
   }
 
   console {
-    type        = "file"
+    type        = "pty"
     target_port = "0"
-    target_type = "serial"
-    source_path = "/data/vms/logs/master.log"
+    # target_type = "serial"
+    # source_path = "/data/vms/logs/master.log"
   }
 }
