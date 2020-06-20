@@ -21,8 +21,6 @@ blocks:
       epilogue:
         always:
           commands:
-            - env
-            - ls -la
             - artifact push job $SETUP_LOG_DIR
       secrets:
         - name: GITHUB_DOCKER_REGISTRY_TOKEN
