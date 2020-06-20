@@ -8,7 +8,7 @@ resource "libvirt_pool" "data" {
   path = "/data/vms/storage"
 
   xml {
-    xslt = file("storage_pool_permissions.xsl")
+    xslt = file("pool_permissions.xsl")
   }
 }
 
@@ -46,6 +46,10 @@ resource "libvirt_volume" "master" {
   name   = "master"
   pool   = libvirt_pool.data.name
   source = local.kubernetes_image
+
+  xml {
+    xslt = file("volume_permissions.xsl")
+  }
 
   # # create associated log file because otherwise libvirt will cry :/
   # provisioner "file" {
