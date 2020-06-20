@@ -45,7 +45,8 @@ FILES=($(git ls-files $(echo "${LIST[@]}") | LC_ALL=C sort ))
 # Make sure to make all the files have the same owner, group and modification time
 # --no-recursion ensures directories are not expanded as all files are already provided
 # --format=gnu to use the old deterministic format
-CHECKSUM=($(printf "%s\n" "${FILES[@]}" | tar --sort=name --owner=root:0 --group=root:0 --mtime='UTC 2019-01-01' --no-recursion --format=gnu -cf - -T - | sha256sum))
+# --mode=0600 normalises the file permissions as well
+CHECKSUM=($(printf "%s\n" "${FILES[@]}" | tar --sort=name --owner=root:0 --group=root:0 --mtime='UTC 2019-01-01' --mode=0600 --no-recursion --format=gnu -cf - -T - | sha256sum))
 
 # calculating the relative dir path, the digest works for different systems
 RELATIVE_IMAGE_DIR=$(realpath --relative-to=$SETUP_ROOT_DIR $SETUP_IMAGE_DIR)
