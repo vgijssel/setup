@@ -14,8 +14,9 @@
       <xsl:apply-templates select="@*|node()"/>
       <permissions>
         <mode>0777</mode>
-        <owner>0</owner>
-        <group>0</group>
+        <owner>64055</owner>
+        <group>64055</group>
+        <label>virt_image_t</label>
       </permissions>
     </xsl:copy>
   </xsl:template>
