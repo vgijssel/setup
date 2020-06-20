@@ -1,5 +1,5 @@
 provider "libvirt" {
-  uri = "qemu+ssh://vagrant@libvirt/system?socket=/run/libvirt/libvirt-sock&command=ssh_vagrant_jump.sh"
+  uri = var.qemu_uri
 }
 
 resource "libvirt_pool" "data" {
@@ -23,6 +23,14 @@ data "template_file" "network_config" {
   template = file("${path.module}/cloud-init/kubernetes-network-config.yml")
 }
 
+data "external" "kubernetes_digest" {
+  program = ["terraform_digest.sh", "${var.setup_kubernetes_dir}/image.cfg"]
+}
+
+locals {
+  kubernetes_image = "${var.setup_root_dir}/${data.external.kubernetes_digest.result.result}/kubernetes_buster.qcow2"
+}
+
 resource "libvirt_network" "kube_network" {
   name      = "kube_network"
   mode      = "bridge"
@@ -33,7 +41,7 @@ resource "libvirt_network" "kube_network" {
 resource "libvirt_volume" "master" {
   name   = "master"
   pool   = libvirt_pool.data.name
-  source = "../image/kubernetes_buster.qcow2"
+  source = local.kubernetes_image
 
   # create associated log file because otherwise libvirt will cry :/
   provisioner "file" {

@@ -23,7 +23,7 @@ ansible-playbook main.yml -i inventory -K
 ### General
 
 - use regular homebrew https://docs.ansible.com/ansible/latest/modules/homebrew_module.html instead of ansible galaxy role
-- fix ruby racer install of v8:
+- fix ruby racer install of v8 (https://stackoverflow.com/a/59315388)
 ```shell
 gem install therubyracer -- --with-v8-dir=/usr/local/Cellar/v8@3.15/3.15.11.18_1
 ```
@@ -45,6 +45,8 @@ bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
 - spectacle.app
 - resiliosync
 - spacemacs
+- Logitech G502 software
+- vagrant-libvirt (https://lunar.computer/posts/vagrant-libvirt-macos/)
 
 ### Tests
 
