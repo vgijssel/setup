@@ -50,7 +50,7 @@ sudo dnsmasq \
 # Update apparmor for libvirt to allow for reading/writing/locking volume to /data/vms/storage
 # Get apparmor related messages
 # sudo journalctl --boot _TRANSPORT=audit
-cat <<EOF | tee /etc/apparmor.d/libvirt/TEMPLATE.qemu
+cat <<EOF | sudo tee /etc/apparmor.d/libvirt/TEMPLATE.qemu
 #
 # This profile is for the domain whose UUID matches this file.
 #
