@@ -5,6 +5,6 @@ ethernets:
     mtu: 1500
 
 bridges:
-  kube_network_br:
+  kube_network:
     interfaces: [enp0s3]
     dhcp4: true

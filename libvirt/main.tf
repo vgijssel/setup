@@ -34,7 +34,7 @@ locals {
 resource "libvirt_network" "kube_network" {
   name      = "kube_network"
   mode      = "bridge"
-  bridge    = "kube_network_br"
+  bridge    = "kube_network"
   autostart = true
 }
 
