@@ -7,9 +7,9 @@ resource "libvirt_pool" "data" {
   type = "dir"
   path = "/data/vms/storage"
 
-  xml {
-    xslt = file("pool_permissions.xsl")
-  }
+  # xml {
+  #   xslt = file("pool_permissions.xsl")
+  # }
 }
 
 resource "libvirt_cloudinit_disk" "commoninit" {
@@ -47,9 +47,9 @@ resource "libvirt_volume" "master" {
   pool   = libvirt_pool.data.name
   source = local.kubernetes_image
 
-  xml {
-    xslt = file("volume_permissions.xsl")
-  }
+  # xml {
+  #   xslt = file("volume_permissions.xsl")
+  # }
 
   # # create associated log file because otherwise libvirt will cry :/
   # provisioner "file" {

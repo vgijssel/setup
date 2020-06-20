@@ -45,3 +45,23 @@ sudo dnsmasq \
   --log-queries \
   --user="$(id -un)" \
   --group="$(id -gn)"
+
+# Solution from https://unix.stackexchange.com/a/536571
+# Update apparmor for libvirt to allow for reading/writing/locking volume to /data/vms/storage
+# Get apparmor related messages
+# sudo journalctl --boot _TRANSPORT=audit
+cat <<EOF | tee /etc/apparmor.d/libvirt/TEMPLATE.qemu
+#
+# This profile is for the domain whose UUID matches this file.
+#
+
+#include <tunables/global>
+
+profile LIBVIRT_TEMPLATE flags=(attach_disconnected) {
+    #include <abstractions/libvirt-qemu>
+    /data/vms/storage/ wrk,
+    /data/vms/storage/** wrk,
+}
+EOF
+
+
