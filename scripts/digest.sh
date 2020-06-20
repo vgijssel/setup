@@ -34,19 +34,22 @@ LIST="${THIS_SCRIPT} ${LIST}"
 # Strategy generating digest from this answer
 # https://unix.stackexchange.com/a/35847
 
+# tar arguments to make it idempotent
+# https://stackoverflow.com/questions/32997526/how-to-create-a-tar-file-that-omits-timestamps-for-its-contents
+
 # Get the files from the files/directories passed in here
 # which are part of git, others are ignored
-FILES=($(git ls-files $(echo "${LIST[@]}")))
+# Sort the files in a consistent manner
+FILES=($(git ls-files $(echo "${LIST[@]}") | LC_ALL=C sort ))
 
-# sort them deterministicly and archive them using pax
-ARCHIVE=$(printf "%s\n" "${FILES[@]}" | LC_ALL=C sort | cpio -o)
-
-# generate the digest from the archive
-RESULT=($(echo $ARCHIVE | sha256sum))
+# Make sure to make all the files have the same owner, group and modification time
+# --no-recursion ensures directories are not expanded as all files are already provided
+# --format=gnu to use the old deterministic format
+CHECKSUM=($(printf "%s\n" "${FILES[@]}" | tar --sort=name --owner=root:0 --group=root:0 --mtime='UTC 2019-01-01' --no-recursion --format=gnu -cf - -T - | sha256sum))
 
 # calculating the relative dir path, the digest works for different systems
 RELATIVE_IMAGE_DIR=$(realpath --relative-to=$SETUP_ROOT_DIR $SETUP_IMAGE_DIR)
 
 # sha256sum returns the checksum and a placeholder "-" to represent
 # that no file in the input. We're only interested in the checksum so only getting that at index 0
-echo "${RELATIVE_IMAGE_DIR}/${IMAGE_NAME}-${RESULT[0]}"
+echo "${RELATIVE_IMAGE_DIR}/${IMAGE_NAME}-${CHECKSUM[0]}"
