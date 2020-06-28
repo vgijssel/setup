@@ -42,9 +42,7 @@ docker run \
   --env DIB_APT_MINIMAL_CREATE_INTERFACES \
   --env DIB_EXTLINUX \
   "${IMAGE_BUILDER_NAME}:${IMAGE_SHA_TAG}" \
-  disk-image-create -x -o "${DISK_IMAGE_DOCKER_PATH}" "${ELEMENTS}"
-
-qemu-img resize "${DISK_IMAGE_DOCKER_PATH}.qcow2" 32G
+  disk-image-create -x --image-size 32GB -o "${DISK_IMAGE_DOCKER_PATH}" "${ELEMENTS}"
 
 # Store the directory in the cache
 if [[ "${CI_SEMAPHORE}" = true ]]; then
