@@ -47,7 +47,7 @@ write_files:
         netbios-name-servers, netbios-scope, interface-mtu,
         rfc3442-classless-static-routes, ntp-servers;
 
-      supersede domain-name-servers 192.168.2.1;
+      supersede domain-name-servers 192.168.3.1;
     }
 
   path: /etc/dhcp/dhclient.conf

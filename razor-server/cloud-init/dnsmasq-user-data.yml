@@ -9,7 +9,7 @@ manage_resolv_conf: true
 manage_etc_hosts: localhost
 
 resolv_conf:
-  nameservers: [192.168.2.1]
+  nameservers: [192.168.3.1]
 
 hostname: dnsmasq
 
