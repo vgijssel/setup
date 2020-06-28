@@ -1,6 +1,5 @@
 #cloud-config
 
-hostname: master
 manage_etc_hosts: localhost
 
 users:
