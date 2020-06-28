@@ -44,6 +44,8 @@ docker run \
   "${IMAGE_BUILDER_NAME}:${IMAGE_SHA_TAG}" \
   disk-image-create -x -o "${DISK_IMAGE_DOCKER_PATH}" "${ELEMENTS}"
 
+qemu-img resize "${DISK_IMAGE_DOCKER_PATH}.qcow2" 32G
+
 # Store the directory in the cache
 if [[ "${CI_SEMAPHORE}" = true ]]; then
   cache store "${DISK_IMAGE_DIR}" "${DISK_IMAGE_DIR}"

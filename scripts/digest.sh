@@ -29,7 +29,7 @@ THIS_SCRIPT="$0"
 LIST="${DIRS[@]}"
 
 # Adding the digest.sh script into the file list as well
-LIST="${THIS_SCRIPT} ${LIST}"
+LIST="${THIS_SCRIPT} ${SETUP_SCRIPTS_DIR}/image_build.sh ${LIST}"
 
 # Strategy generating digest from this answer
 # https://unix.stackexchange.com/a/35847
