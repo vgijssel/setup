@@ -5,10 +5,9 @@ require 'open3'
 
 TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
+box_dir = ENV.fetch('SETUP_BOX_DIR')
 image_dir = ENV.fetch('SETUP_IMAGE_DIR')
 ipxe_dir = ENV.fetch('SETUP_IPXE_DIR')
-
-dnsmasq_dir = ENV.fetch('SETUP_DNSMASQ_DIR')
 razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 
 dnsmasq_host_port = ENV.fetch('VAGRANT_BASTION_HOST_PORT')
@@ -49,7 +48,7 @@ Vagrant.configure('2') do |config|
     # Make sure the port is available, don't auto correct if not
     dnsmasq.vm.network "forwarded_port", guest: 22, host: dnsmasq_host_port, id: 'ssh', auto_correct: false
     dnsmasq.vm.network "private_network", auto_config: false, adapter: 2, virtualbox__intnet: true
-    dnsmasq.vm.box = "file://#{File.join(dnsmasq_dir, 'dnsmasq.box')}"
+    dnsmasq.vm.box = "file://#{File.join(box_dir, 'dnsmasq_buster.box')}"
     dnsmasq.ssh.private_key_path = ssh_private_key_path
 
     dnsmasq.vm.provider 'virtualbox' do |vb|
@@ -57,7 +56,7 @@ Vagrant.configure('2') do |config|
       vb.memory = "1024"
 
       # Setup the serial port for logging
-      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "dnsmasq.log")]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "dnsmasq_buster.log")]
 
       dnsmasq_cloud_init = build_cloud_init_iso(
         "dnsmasq-cloud-init.iso",
@@ -71,7 +70,7 @@ Vagrant.configure('2') do |config|
   config.vm.define "razor-server", primary: true do |razor|
     razor.vm.network "private_network", auto_config: false, virtualbox__intnet: true, adapter: 1
     razor.vm.network "public_network", auto_config: false, bridge: bridge_interface
-    razor.vm.box = "file://#{File.join(razor_server_dir, "razor-server.box")}"
+    razor.vm.box = "file://#{File.join(box_dir, "razor-server_buster.box")}"
 
     # Using the dnsmasq machine as a jumphost to communicate to pxe machine
     # This means that we're first connecting to the dnsmasq machine with SSH
@@ -91,7 +90,7 @@ Vagrant.configure('2') do |config|
       vb.gui = false
       vb.memory = "1024"
       # Setup log file
-      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "razor-server.log")]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "razor-server_buster.log")]
 
       razor_cloud_init = build_cloud_init_iso(
         "razor-cloud-init.iso",
