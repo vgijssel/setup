@@ -18,10 +18,10 @@ blocks:
             - ./libvirt/setup_semaphoreci.sh
             - cd libvirt
             - terraform apply -auto-approve
-      epilogue:
-        always:
-          commands:
-            - artifact push job $SETUP_LOG_DIR
+      # epilogue:
+      #   always:
+      #     commands:
+      #       - artifact push job $SETUP_LOG_DIR
       secrets:
         - name: GITHUB_DOCKER_REGISTRY_TOKEN
     dependencies: []
