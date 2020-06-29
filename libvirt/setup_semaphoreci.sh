@@ -91,6 +91,5 @@ EOF
 sudo sysctl -p
 
 # Enable routing of packages between bridge and external nat
-sudo apt-get install -y iptables iptables-persistent
+sudo apt-get install -y iptables
 sudo iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -j MASQUERADE
-sudo iptables-save | sudo tee /etc/iptables/rules.v4
