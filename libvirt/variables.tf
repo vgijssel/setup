@@ -24,5 +24,5 @@ variable "workers_count" {
 
 variable "network_bridge" {
   type         = string
-  descriptioon = "Network bridge to attach vms to"
+  description = "Network bridge to attach vms to"
 }
