@@ -18,6 +18,7 @@ blocks:
             - ./libvirt/setup_semaphoreci.sh
             - cd libvirt
             - terraform apply -auto-approve
+            - terraform destroy -auto-approve
       # epilogue:
       #   always:
       #     commands:
