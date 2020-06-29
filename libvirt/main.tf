@@ -41,9 +41,9 @@ resource "libvirt_volume" "kubernetes" {
 resource "ansible_group" "all" {
   inventory_group_name = "all"
   vars = {
-    ansible_user     = "vagrant"
-    master_ip = libvirt_domain.master.network_interface[0].addresses[0]
-    ansible_ssh_private_key_file="/tmp/id_rsa"
+    ansible_user                 = "vagrant"
+    master_ip                    = libvirt_domain.master.network_interface[0].addresses[0]
+    ansible_ssh_private_key_file = "/tmp/id_rsa"
   }
 }
 
@@ -51,7 +51,7 @@ resource "libvirt_cloudinit_disk" "master" {
   name           = "master_cloudinit.iso"
   user_data      = data.template_file.user_data.rendered
   network_config = data.template_file.network_config.rendered
-  meta_data = "local-hostname: master"
+  meta_data      = "local-hostname: master"
   pool           = libvirt_pool.data.name
 }
 
@@ -97,20 +97,20 @@ resource "libvirt_cloudinit_disk" "worker" {
   name           = "worker${count.index}_cloudinit.iso"
   user_data      = data.template_file.user_data.rendered
   network_config = data.template_file.network_config.rendered
-  meta_data = "local-hostname: worker${count.index}"
+  meta_data      = "local-hostname: worker${count.index}"
   pool           = libvirt_pool.data.name
-  count = var.workers_count
+  count          = var.workers_count
 }
 
 resource "libvirt_volume" "worker" {
   name           = "worker${count.index}.qcow2"
   pool           = libvirt_pool.data.name
   base_volume_id = libvirt_volume.kubernetes.id
-  count = var.workers_count
+  count          = var.workers_count
 }
 
 resource "libvirt_domain" "worker" {
-  count = var.workers_count
+  count      = var.workers_count
   name       = "worker${count.index}"
   memory     = "1536"
   vcpu       = 1
@@ -138,5 +138,5 @@ resource "libvirt_domain" "worker" {
 resource "ansible_host" "worker" {
   inventory_hostname = libvirt_domain.worker[count.index].name
   groups             = ["worker"]
-  count = var.workers_count
+  count              = var.workers_count
 }
