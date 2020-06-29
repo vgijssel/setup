@@ -45,7 +45,7 @@ EOF
 
 # Start dnsmasq listening on the bridge setting upstream server
 # to server previously in /etc/resolv.conf
-sudo kill -9 $(cat "${SETUP_TMP_DIR}/dnsmasq.pid")
+sudo kill -9 $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
 sudo dnsmasq \
   --interface="${LIBVIRT_BRIDGE}" \
   --bind-interfaces \
