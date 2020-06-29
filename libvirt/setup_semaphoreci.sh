@@ -37,9 +37,6 @@ sudo brctl addbr $LIBVIRT_BRIDGE
 sudo ip addr add dev $LIBVIRT_BRIDGE $DNS_IP/24
 sudo ip link set dev $LIBVIRT_BRIDGE up
 
-# Stop the running dnsmasq service
-sudo systemctl stop dnsmasq
-
 # Forward all dnsrequests to the local running dnsmasq server
 # so we can resolve hostnames of the vms attached to this bridge
 cat <<EOF | sudo tee /etc/resolv.conf
