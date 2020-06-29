@@ -37,12 +37,6 @@ sudo brctl addbr $LIBVIRT_BRIDGE
 sudo ip addr add dev $LIBVIRT_BRIDGE $DNS_IP/24
 sudo ip link set dev $LIBVIRT_BRIDGE up
 
-# Forward all dnsrequests to the local running dnsmasq server
-# so we can resolve hostnames of the vms attached to this bridge
-cat <<EOF | sudo tee /etc/resolv.conf
-nameserver 127.0.0.1
-EOF
-
 # Start dnsmasq listening on the bridge setting upstream server
 # to server previously in /etc/resolv.conf
 sudo kill -9 $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
@@ -61,6 +55,12 @@ sudo dnsmasq \
   --log-queries \
   --user="$(id -un)" \
   --group="$(id -gn)"
+
+# Forward all dnsrequests to the local running dnsmasq server
+# so we can resolve hostnames of the vms attached to this bridge
+cat <<EOF | sudo tee /etc/resolv.conf
+nameserver 127.0.0.1
+EOF
 
 # Solution from https://unix.stackexchange.com/a/536571
 # Update apparmor for libvirt to allow for reading/writing/locking volume to /data/vms/storage
