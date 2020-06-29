@@ -45,8 +45,6 @@ sudo dnsmasq \
   --bind-interfaces \
   --dhcp-range=192.168.3.100,192.168.3.200,255.255.255.0,12h \
   --dhcp-leasefile="${SETUP_TMP_DIR}"/dnsmasq.leases \
-  --server="10.0.2.3" \
-  --no-resolv \
   --dhcp-option=3,"${DNS_IP}" \
   --dhcp-option=6,"${DNS_IP}" \
   --log-facility="${SETUP_LOG_DIR}"/dnsmasq.log \
@@ -56,40 +54,40 @@ sudo dnsmasq \
   --user="$(id -un)" \
   --group="$(id -gn)"
 
-# # Forward all dnsrequests to the local running dnsmasq server
-# # so we can resolve hostnames of the vms attached to this bridge
-cat <<EOF | sudo tee /etc/resolv.conf
-nameserver 127.0.0.1
+# Forward all dnsrequests to the local running dnsmasq server
+# so we can resolve hostnames of the vms attached to this bridge
+# Note we're prepending the 127.0.0.1 nameserver to the existing nameservers
+# Because we need a reference to the existing nameservers
+echo "nameserver 127.0.0.1" | cat - /etc/resolv.conf | sudo tee /etc/resolv.conf
+
+# Solution from https://unix.stackexchange.com/a/536571
+# Update apparmor for libvirt to allow for reading/writing/locking volume to /data/vms/storage
+# Get apparmor related messages
+# sudo journalctl --boot _TRANSPORT=audit
+cat <<EOF | sudo tee /etc/apparmor.d/libvirt/TEMPLATE.qemu
+#
+# This profile is for the domain whose UUID matches this file.
+#
+
+#include <tunables/global>
+
+profile LIBVIRT_TEMPLATE flags=(attach_disconnected) {
+    #include <abstractions/libvirt-qemu>
+    /data/vms/storage/ wrk,
+    /data/vms/storage/** wrk,
+}
 EOF
 
-# # Solution from https://unix.stackexchange.com/a/536571
-# # Update apparmor for libvirt to allow for reading/writing/locking volume to /data/vms/storage
-# # Get apparmor related messages
-# # sudo journalctl --boot _TRANSPORT=audit
-# cat <<EOF | sudo tee /etc/apparmor.d/libvirt/TEMPLATE.qemu
-# #
-# # This profile is for the domain whose UUID matches this file.
-# #
+# Make sure we have access to the mkisofs binary
+sudo ln -sf /usr/bin/genisoimage /usr/bin/mkisofs
 
-# #include <tunables/global>
+# Enable packet forwarding
+cat <<EOF | sudo tee /etc/sysctl.conf
+# Uncomment the next line to enable packet forwarding for IPv4
+net.ipv4.ip_forward=1
+EOF
+sudo sysctl -p
 
-# profile LIBVIRT_TEMPLATE flags=(attach_disconnected) {
-#     #include <abstractions/libvirt-qemu>
-#     /data/vms/storage/ wrk,
-#     /data/vms/storage/** wrk,
-# }
-# EOF
-
-# # Make sure we have access to the mkisofs binary
-# sudo ln -sf /usr/bin/genisoimage /usr/bin/mkisofs
-
-# # Enable packet forwarding
-# cat <<EOF | sudo tee /etc/sysctl.conf
-# # Uncomment the next line to enable packet forwarding for IPv4
-# net.ipv4.ip_forward=1
-# EOF
-# sudo sysctl -p
-
-# # Enable routing of packages between bridge and external nat
-# sudo apt-get install -y iptables
-# sudo iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -j MASQUERADE
+# Enable routing of packages between bridge and external nat
+sudo apt-get install -y iptables
+sudo iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -j MASQUERADE

@@ -13,15 +13,15 @@ blocks:
             - checkout
             - source .envrc
             - ./libvirt/setup_semaphoreci.sh
-            # - docker_build.sh "${BASE_IMAGE}" "./base-image"
-            # - docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
-            # - image_build.sh ./kubernetes/image.cfg
-            # - cd libvirt
-            # - terraform apply -auto-approve
-      # epilogue:
-      #   always:
-      #     commands:
-      #       - artifact push job $SETUP_LOG_DIR
+            - docker_build.sh "${BASE_IMAGE}" "./base-image"
+            - docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+            - image_build.sh ./kubernetes/image.cfg
+            - cd libvirt
+            - terraform apply -auto-approve
+      epilogue:
+        always:
+          commands:
+            - artifact push job $SETUP_LOG_DIR
       secrets:
         - name: GITHUB_DOCKER_REGISTRY_TOKEN
     dependencies: []
