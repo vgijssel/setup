@@ -2,6 +2,8 @@
 
 set -Eeoux pipefail
 
+sudo apt-get install -y iptables unzip git jq
+
 # Setup Terraform
 PLUGIN_DIR="${HOME}/.terraform.d/plugins"
 mkdir -p "${PLUGIN_DIR}"
@@ -26,7 +28,7 @@ terraform init
 popd
 
 LIBVIRT_BRIDGE="ci_network"
-DNS_IP="192.168.3.1"
+DNS_IP="192.168.4.1"
 
 # Setup a bridge device to which the libvirt machines attach
 sudo ip link set dev $LIBVIRT_BRIDGE down || true
@@ -43,7 +45,7 @@ sudo kill -9 $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
 sudo dnsmasq \
   --interface="${LIBVIRT_BRIDGE}" \
   --bind-interfaces \
-  --dhcp-range=192.168.3.100,192.168.3.200,255.255.255.0,12h \
+  --dhcp-range=192.168.4.100,192.168.4.200,255.255.255.0,12h \
   --dhcp-leasefile="${SETUP_TMP_DIR}"/dnsmasq.leases \
   --dhcp-option=3,"${DNS_IP}" \
   --dhcp-option=6,"${DNS_IP}" \
@@ -89,5 +91,4 @@ EOF
 sudo sysctl -p
 
 # Enable routing of packages between bridge and external nat
-sudo apt-get install -y iptables unzip git jq
 sudo iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -j MASQUERADE
