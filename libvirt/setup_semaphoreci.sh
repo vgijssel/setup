@@ -39,57 +39,57 @@ sudo ip link set dev $LIBVIRT_BRIDGE up
 
 # Start dnsmasq listening on the bridge setting upstream server
 # to server previously in /etc/resolv.conf
-sudo kill -9 $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
-sudo dnsmasq \
-  --interface="${LIBVIRT_BRIDGE}" \
-  --bind-interfaces \
-  --dhcp-range=192.168.3.100,192.168.3.200,255.255.255.0,12h \
-  --dhcp-leasefile="${SETUP_TMP_DIR}"/dnsmasq.leases \
-  --server="10.0.2.3" \
-  --no-resolv \
-  --dhcp-option=3,"${DNS_IP}" \
-  --dhcp-option=6,"${DNS_IP}" \
-  --log-facility="${SETUP_LOG_DIR}"/dnsmasq.log \
-  --pid-file="${SETUP_TMP_DIR}"/dnsmasq.pid \
-  --log-dhcp \
-  --log-queries \
-  --user="$(id -un)" \
-  --group="$(id -gn)"
+# sudo kill -9 $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
+# sudo dnsmasq \
+#   --interface="${LIBVIRT_BRIDGE}" \
+#   --bind-interfaces \
+#   --dhcp-range=192.168.3.100,192.168.3.200,255.255.255.0,12h \
+#   --dhcp-leasefile="${SETUP_TMP_DIR}"/dnsmasq.leases \
+#   --server="10.0.2.3" \
+#   --no-resolv \
+#   --dhcp-option=3,"${DNS_IP}" \
+#   --dhcp-option=6,"${DNS_IP}" \
+#   --log-facility="${SETUP_LOG_DIR}"/dnsmasq.log \
+#   --pid-file="${SETUP_TMP_DIR}"/dnsmasq.pid \
+#   --log-dhcp \
+#   --log-queries \
+#   --user="$(id -un)" \
+#   --group="$(id -gn)"
 
-# Forward all dnsrequests to the local running dnsmasq server
-# so we can resolve hostnames of the vms attached to this bridge
-cat <<EOF | sudo tee /etc/resolv.conf
-nameserver 127.0.0.1
-EOF
+# # Forward all dnsrequests to the local running dnsmasq server
+# # so we can resolve hostnames of the vms attached to this bridge
+# cat <<EOF | sudo tee /etc/resolv.conf
+# nameserver 127.0.0.1
+# EOF
 
-# Solution from https://unix.stackexchange.com/a/536571
-# Update apparmor for libvirt to allow for reading/writing/locking volume to /data/vms/storage
-# Get apparmor related messages
-# sudo journalctl --boot _TRANSPORT=audit
-cat <<EOF | sudo tee /etc/apparmor.d/libvirt/TEMPLATE.qemu
-#
-# This profile is for the domain whose UUID matches this file.
-#
+# # Solution from https://unix.stackexchange.com/a/536571
+# # Update apparmor for libvirt to allow for reading/writing/locking volume to /data/vms/storage
+# # Get apparmor related messages
+# # sudo journalctl --boot _TRANSPORT=audit
+# cat <<EOF | sudo tee /etc/apparmor.d/libvirt/TEMPLATE.qemu
+# #
+# # This profile is for the domain whose UUID matches this file.
+# #
 
-#include <tunables/global>
+# #include <tunables/global>
 
-profile LIBVIRT_TEMPLATE flags=(attach_disconnected) {
-    #include <abstractions/libvirt-qemu>
-    /data/vms/storage/ wrk,
-    /data/vms/storage/** wrk,
-}
-EOF
+# profile LIBVIRT_TEMPLATE flags=(attach_disconnected) {
+#     #include <abstractions/libvirt-qemu>
+#     /data/vms/storage/ wrk,
+#     /data/vms/storage/** wrk,
+# }
+# EOF
 
-# Make sure we have access to the mkisofs binary
-sudo ln -sf /usr/bin/genisoimage /usr/bin/mkisofs
+# # Make sure we have access to the mkisofs binary
+# sudo ln -sf /usr/bin/genisoimage /usr/bin/mkisofs
 
-# Enable packet forwarding
-cat <<EOF | sudo tee /etc/sysctl.conf
-# Uncomment the next line to enable packet forwarding for IPv4
-net.ipv4.ip_forward=1
-EOF
-sudo sysctl -p
+# # Enable packet forwarding
+# cat <<EOF | sudo tee /etc/sysctl.conf
+# # Uncomment the next line to enable packet forwarding for IPv4
+# net.ipv4.ip_forward=1
+# EOF
+# sudo sysctl -p
 
-# Enable routing of packages between bridge and external nat
-sudo apt-get install -y iptables
-sudo iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -j MASQUERADE
+# # Enable routing of packages between bridge and external nat
+# sudo apt-get install -y iptables
+# sudo iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -j MASQUERADE
