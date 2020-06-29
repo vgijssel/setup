@@ -29,7 +29,7 @@ LIBVIRT_BRIDGE="kube_network"
 DNS_IP="192.168.3.1"
 
 # Setup a bridge device to which the libvirt machines attach
-sudo ifconfig $LIBVIRT_BRIDGE down || true
+sudo ip link set dev $LIBVIRT_BRIDGE down || true
 sudo brctl delbr $LIBVIRT_BRIDGE || true
 sudo brctl addbr $LIBVIRT_BRIDGE
 # ip addr add 192.168.0.2/24 brd + dev br0
