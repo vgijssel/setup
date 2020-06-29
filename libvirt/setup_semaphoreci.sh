@@ -89,5 +89,5 @@ EOF
 sudo sysctl -p
 
 # Enable routing of packages between bridge and external nat
-sudo apt-get install -y iptables
+sudo apt-get install -y iptables unzip git jq
 sudo iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -j MASQUERADE
