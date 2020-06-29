@@ -139,7 +139,7 @@ jobs:
       with:
         name: ipxe
         path: ./ipxe/output
-    - run: brew install qemu cdrtools gnu-tar
+    - run: brew install qemu cdrtools gnu-tar coreutils
     - run: box_build.sh ./dnsmasq/image.cfg
     # regular runtime is half of the timeout
     - name: Run box_build.sh ./razor-server/image.cfg
@@ -196,7 +196,7 @@ jobs:
       with:
         name: kubernetes
         path: ./image
-    - run: brew install qemu cdrtools terraform libvirt pkg-config gnu-tar
+    - run: brew install qemu cdrtools terraform libvirt pkg-config gnu-tar coreutils
     - uses: actions/setup-go@v2
       with:
         go-version: 1.12
