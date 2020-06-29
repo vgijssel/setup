@@ -5,9 +5,10 @@ require 'open3'
 
 TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
+box_dir = ENV.fetch('SETUP_BOX_DIR')
+root_dir = ENV.fetch('SETUP_ROOT_DIR')
 libvirt_dir = ENV.fetch('SETUP_LIBVIRT_DIR')
 razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
-dnsmasq_dir = ENV.fetch('SETUP_DNSMASQ_DIR')
 
 dnsmasq_host_port = ENV.fetch('VAGRANT_BASTION_HOST_PORT')
 ssh_private_key_path = File.join(razor_server_dir, 'keys', 'id_rsa')
@@ -45,7 +46,7 @@ Vagrant.configure('2') do |config|
     # Make sure the port is available, don't auto correct if not
     dnsmasq.vm.network "forwarded_port", guest: 22, host: dnsmasq_host_port, id: 'ssh', auto_correct: false
     dnsmasq.vm.network "private_network", auto_config: false, adapter: 2, virtualbox__intnet: true
-    dnsmasq.vm.box = "file://#{File.join(dnsmasq_dir, 'dnsmasq.box')}"
+    dnsmasq.vm.box = "file://#{File.join(box_dir, 'dnsmasq_buster.box')}"
     dnsmasq.ssh.private_key_path = ssh_private_key_path
 
     dnsmasq.vm.provider 'virtualbox' do |vb|
@@ -66,8 +67,9 @@ Vagrant.configure('2') do |config|
 
   config.vm.define "libvirt", primary: true do |libvirt|
     libvirt.vm.network "private_network", virtualbox__intnet: true, adapter: 1, auto_config: false
-    libvirt.vm.box = "file://#{File.join(libvirt_dir, "libvirt.box")}"
-    libvirt.vm.synced_folder File.join(log_dir), "/data/vms/logs", mount_options: ["dmode=777,fmode=777"]
+    libvirt.vm.box = "file://#{File.join(box_dir, "libvirt_buster.box")}"
+    libvirt.vm.synced_folder log_dir, "/data/vms/logs", mount_options: ["dmode=755,fmode=744"]
+    libvirt.vm.synced_folder root_dir, "/home/vagrant/setup", mount_options: ["dmode=755,fmode=744"]
 
     libvirt.ssh.private_key_path = ssh_private_key_path
     libvirt.ssh.proxy_command = ssh_proxy_command
@@ -76,7 +78,8 @@ Vagrant.configure('2') do |config|
 
     libvirt.vm.provider 'virtualbox' do |vb|
       vb.gui = false
-      vb.memory = "8192"
+      vb.memory = "4096"
+      vb.cpus = 2
 
       # Enable promiscious mode on the network adapter to enable bridge networking in the vm
       vb.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
