@@ -58,9 +58,9 @@ sudo dnsmasq \
 
 # # Forward all dnsrequests to the local running dnsmasq server
 # # so we can resolve hostnames of the vms attached to this bridge
-# cat <<EOF | sudo tee /etc/resolv.conf
-# nameserver 127.0.0.1
-# EOF
+cat <<EOF | sudo tee /etc/resolv.conf
+nameserver 127.0.0.1
+EOF
 
 # # Solution from https://unix.stackexchange.com/a/536571
 # # Update apparmor for libvirt to allow for reading/writing/locking volume to /data/vms/storage
