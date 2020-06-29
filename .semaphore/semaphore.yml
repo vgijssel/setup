@@ -11,11 +11,11 @@ blocks:
         - name: Test libvirt
           commands:
             - checkout
-            # - source .envrc
+            - source .envrc
+            - ./libvirt/setup_semaphoreci.sh
             # - docker_build.sh "${BASE_IMAGE}" "./base-image"
             # - docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
             # - image_build.sh ./kubernetes/image.cfg
-            # - ./libvirt/setup_semaphoreci.sh
             # - cd libvirt
             # - terraform apply -auto-approve
       # epilogue:
