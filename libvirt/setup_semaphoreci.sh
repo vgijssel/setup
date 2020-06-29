@@ -39,22 +39,22 @@ sudo ip link set dev $LIBVIRT_BRIDGE up
 
 # Start dnsmasq listening on the bridge setting upstream server
 # to server previously in /etc/resolv.conf
-# sudo kill -9 $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
-# sudo dnsmasq \
-#   --interface="${LIBVIRT_BRIDGE}" \
-#   --bind-interfaces \
-#   --dhcp-range=192.168.3.100,192.168.3.200,255.255.255.0,12h \
-#   --dhcp-leasefile="${SETUP_TMP_DIR}"/dnsmasq.leases \
-#   --server="10.0.2.3" \
-#   --no-resolv \
-#   --dhcp-option=3,"${DNS_IP}" \
-#   --dhcp-option=6,"${DNS_IP}" \
-#   --log-facility="${SETUP_LOG_DIR}"/dnsmasq.log \
-#   --pid-file="${SETUP_TMP_DIR}"/dnsmasq.pid \
-#   --log-dhcp \
-#   --log-queries \
-#   --user="$(id -un)" \
-#   --group="$(id -gn)"
+sudo kill -9 $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
+sudo dnsmasq \
+  --interface="${LIBVIRT_BRIDGE}" \
+  --bind-interfaces \
+  --dhcp-range=192.168.3.100,192.168.3.200,255.255.255.0,12h \
+  --dhcp-leasefile="${SETUP_TMP_DIR}"/dnsmasq.leases \
+  --server="10.0.2.3" \
+  --no-resolv \
+  --dhcp-option=3,"${DNS_IP}" \
+  --dhcp-option=6,"${DNS_IP}" \
+  --log-facility="${SETUP_LOG_DIR}"/dnsmasq.log \
+  --pid-file="${SETUP_TMP_DIR}"/dnsmasq.pid \
+  --log-dhcp \
+  --log-queries \
+  --user="$(id -un)" \
+  --group="$(id -gn)"
 
 # # Forward all dnsrequests to the local running dnsmasq server
 # # so we can resolve hostnames of the vms attached to this bridge
