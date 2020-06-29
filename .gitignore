@@ -6,3 +6,6 @@ terraform.tfstate.backup
 .terraform
 packer_cache
 packer_output
+terraform.zip
+terraform-provider-ansible.zip
+terraform-provider-libvirt.tar.gz
