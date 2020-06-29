@@ -25,7 +25,7 @@ pushd "${SETUP_LIBVIRT_DIR}"
 terraform init
 popd
 
-LIBVIRT_BRIDGE="kube_network"
+LIBVIRT_BRIDGE="ci_network"
 DNS_IP="192.168.3.1"
 
 # Setup a bridge device to which the libvirt machines attach

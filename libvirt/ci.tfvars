@@ -1,1 +1,2 @@
-qemu_uri = "qemu:///system"
+qemu_uri       = "qemu:///system"
+network_bridge = "ci_network"
