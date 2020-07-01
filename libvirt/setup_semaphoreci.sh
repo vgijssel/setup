@@ -2,7 +2,12 @@
 
 set -Eeoux pipefail
 
-sudo apt-get install -y iptables unzip git jq
+# Add Ansible to the sources list
+echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" | sudo tee -a /etc/apt/sources.list
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+sudo apt update
+
+sudo apt-get install -y iptables unzip git jq ansible
 
 # Setup Terraform
 PLUGIN_DIR="${HOME}/.terraform.d/plugins"
@@ -41,11 +46,12 @@ sudo ip link set dev $LIBVIRT_BRIDGE up
 
 # Start dnsmasq listening on the bridge setting upstream server
 # to server previously in /etc/resolv.conf
-sudo kill -9 $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
+sudo kill $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
+wait $(cat "${SETUP_TMP_DIR}/dnsmasq.pid" || true) || true
 sudo dnsmasq \
   --interface="${LIBVIRT_BRIDGE}" \
   --bind-interfaces \
-  --dhcp-range=192.168.4.100,192.168.4.200,255.255.255.0,12h \
+  --dhcp-range=192.168.4.100,192.168.4.200,255.255.255.0,1h \
   --dhcp-leasefile="${SETUP_TMP_DIR}"/dnsmasq.leases \
   --dhcp-option=3,"${DNS_IP}" \
   --dhcp-option=6,"${DNS_IP}" \
@@ -91,4 +97,4 @@ EOF
 sudo sysctl -p
 
 # Enable routing of packages between bridge and external nat
-sudo iptables -t nat -A POSTROUTING -s 192.168.3.0/24 -j MASQUERADE
+sudo iptables -t nat -A POSTROUTING -s 192.168.4.0/24 -j MASQUERADE

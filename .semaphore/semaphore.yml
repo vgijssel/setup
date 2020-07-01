@@ -18,6 +18,7 @@ blocks:
             - image_build.sh ./kubernetes/image.cfg
             - cd libvirt
             - terraform apply -auto-approve
+            - ansible-playbook -i ../scripts/terraform.py ../kubernetes/setup_cluster.yml
       epilogue:
         always:
           commands:

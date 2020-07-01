@@ -11,6 +11,9 @@ resource "libvirt_pool" "data" {
 
 data "template_file" "user_data" {
   template = file("${path.module}/cloud-init/kubernetes-user-data.yml")
+  vars = {
+    public_key = file(local.key_pair_paths.public_key_path)
+  }
 }
 
 data "template_file" "network_config" {
@@ -43,7 +46,7 @@ resource "ansible_group" "all" {
   vars = {
     ansible_user                 = "vagrant"
     master_ip                    = libvirt_domain.master.network_interface[0].addresses[0]
-    ansible_ssh_private_key_file = "/tmp/id_rsa"
+    ansible_ssh_private_key_file = local.key_pair_paths.private_key_path
   }
 }
 
@@ -63,8 +66,8 @@ resource "libvirt_volume" "master" {
 
 resource "libvirt_domain" "master" {
   name       = "master"
-  memory     = "1536"
-  vcpu       = 1
+  memory     = var.master_memory
+  vcpu       = var.master_cpu_count
   qemu_agent = true
   autostart  = true
 
@@ -90,7 +93,7 @@ resource "libvirt_domain" "master" {
 
 resource "ansible_host" "master" {
   inventory_hostname = libvirt_domain.master.name
-  groups             = ["master"]
+  groups             = ["master_group"]
 }
 
 resource "libvirt_cloudinit_disk" "worker" {
@@ -99,21 +102,21 @@ resource "libvirt_cloudinit_disk" "worker" {
   network_config = data.template_file.network_config.rendered
   meta_data      = "local-hostname: worker${count.index}"
   pool           = libvirt_pool.data.name
-  count          = var.workers_count
+  count          = var.worker_count
 }
 
 resource "libvirt_volume" "worker" {
   name           = "worker${count.index}.qcow2"
   pool           = libvirt_pool.data.name
   base_volume_id = libvirt_volume.kubernetes.id
-  count          = var.workers_count
+  count          = var.worker_count
 }
 
 resource "libvirt_domain" "worker" {
-  count      = var.workers_count
+  count      = var.worker_count
   name       = "worker${count.index}"
-  memory     = "1536"
-  vcpu       = 1
+  memory     = var.worker_memory
+  vcpu       = var.worker_cpu_count
   qemu_agent = true
   autostart  = true
 
@@ -137,6 +140,6 @@ resource "libvirt_domain" "worker" {
 
 resource "ansible_host" "worker" {
   inventory_hostname = libvirt_domain.worker[count.index].name
-  groups             = ["worker"]
-  count              = var.workers_count
+  groups             = ["worker_group"]
+  count              = var.worker_count
 }

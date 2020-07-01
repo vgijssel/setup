@@ -5,6 +5,6 @@ pod_network_cidr: "10.244.0.0/16"
 # For example, on DigitalOcean, you would use eth1 as that is the default private network interface.
 network_interface: ""
 
-master_host: "{{ hostvars[groups['master'][0]] }}"
+master_host: "{{ hostvars[groups['master_group'][0]] }}"
 
 flannel_manifest: "https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml"

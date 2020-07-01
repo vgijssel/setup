@@ -7,6 +7,7 @@ TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
 box_dir = ENV.fetch('SETUP_BOX_DIR')
 root_dir = ENV.fetch('SETUP_ROOT_DIR')
+secrets_dir = ENV.fetch('SETUP_SECRETROOTS_DIR')
 libvirt_dir = ENV.fetch('SETUP_LIBVIRT_DIR')
 razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 
@@ -70,6 +71,7 @@ Vagrant.configure('2') do |config|
     libvirt.vm.box = "file://#{File.join(box_dir, "libvirt_buster.box")}"
     libvirt.vm.synced_folder log_dir, "/data/vms/logs", mount_options: ["dmode=755,fmode=744"]
     libvirt.vm.synced_folder root_dir, "/home/vagrant/setup", mount_options: ["dmode=755,fmode=744"]
+    libvirt.vm.synced_folder secrets_dir, "/home/vagrant/setup/secrets", mount_options: ["dmode=755,fmode=0600"]
 
     libvirt.ssh.private_key_path = ssh_private_key_path
     libvirt.ssh.proxy_command = ssh_proxy_command
