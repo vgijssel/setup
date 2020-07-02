@@ -98,3 +98,6 @@ sudo sysctl -p
 
 # Enable routing of packages between bridge and external nat
 sudo iptables -t nat -A POSTROUTING -s 192.168.4.0/24 -j MASQUERADE
+
+# Make sure the SSH keys have the right permissions
+chmod 0600 -vR $SETUP_SECRETS_DIR/*
