@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -Eeoux pipefail
+set -Eeou pipefail
 
 IMAGE_CONFIG_FILE="$1"
 source "${IMAGE_CONFIG_FILE}"
