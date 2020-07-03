@@ -7,7 +7,7 @@ TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
 box_dir = ENV.fetch('SETUP_BOX_DIR')
 root_dir = ENV.fetch('SETUP_ROOT_DIR')
-secrets_dir = ENV.fetch('SETUP_SECRETROOTS_DIR')
+secrets_dir = ENV.fetch('SETUP_SECRETS_DIR')
 libvirt_dir = ENV.fetch('SETUP_LIBVIRT_DIR')
 razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 
