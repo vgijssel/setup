@@ -3,10 +3,17 @@
 
 require 'open3'
 
+def image_dir(path)
+  digest = `digest.sh #{path}`
+  File.join(ENV.fetch('SETUP_ROOT_DIR'), digest).strip
+end
+
 TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
 box_dir = ENV.fetch('SETUP_BOX_DIR')
-image_dir = ENV.fetch('SETUP_IMAGE_DIR')
+deploy_image_image_dir = image_dir(File.join(ENV.fetch('SETUP_DEPLOY_IMAGE_DIR'), 'image.cfg'))
+libvirt_image_dir = image_dir(File.join(ENV.fetch('SETUP_LIBVIRT_DIR'), 'image.cfg'))
+
 ipxe_dir = ENV.fetch('SETUP_IPXE_DIR')
 razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 
@@ -80,8 +87,8 @@ Vagrant.configure('2') do |config|
     razor.ssh.host = 'razor-server'
     razor.ssh.port = 22
 
-    razor.vm.synced_folder image_dir, "/repo/deploy-image/deploy-image"
-    razor.vm.synced_folder image_dir, "/repo/deploy-image/libvirt"
+    razor.vm.synced_folder deploy_image_image_dir, "/repo/deploy-image/deploy-image"
+    razor.vm.synced_folder libvirt_image_dir, "/repo/deploy-image/libvirt"
     razor.vm.synced_folder File.join(razor_server_dir, "elements/razor-server/static/tasks/deploy-image.task"), "/tasks/deploy-image.task"
     razor.vm.synced_folder File.join(ipxe_dir, "output"), "/tftpboot/ipxe"
     razor.vm.synced_folder File.join(razor_server_dir, "cloud-init"), "/repo/deploy-image/cloud-init"
