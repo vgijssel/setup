@@ -8,6 +8,13 @@ until razor nodes; do
     sleep 2
 done
 
+# delete existing nodes
+EXISTING_NODES=\$(curl "http://localhost:8150/api/collections/nodes" | jq -r ".items[].name")
+
+while IFS= read -r line; do
+  razor delete-node \$line
+done <<< \$EXISTING_NODES
+
 MAC="${1}"
 
 NODE=\$(razor register-node --hw-info net0="\${MAC}" --installed false | head -n 1 | sed 's/.*\(node[0-9]*\):/\1/')

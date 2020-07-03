@@ -6,3 +6,4 @@ postgresql-10:
 dnsmasq:
 ruby:
 razor-server:
+jq:
