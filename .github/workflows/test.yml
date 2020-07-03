@@ -201,7 +201,7 @@ jobs:
       with:
         go-version: 1.12
     - run: box_build.sh ./dnsmasq/image.cfg
-    - run: ./libvirt/setup.sh
+    - run: ./libvirt/setup_github.sh
     - name: Run box_build.sh ./libvirt/image.cfg
       uses: nick-invision/retry@v1
       with:
