@@ -27,7 +27,7 @@ mkdir -p "${PLUGIN_DIR}"
 
 # Download and extract the latest terraform-provider-ansible
 # https://github.com/nbering/terraform-provider-ansible/releases
-wget -O terraform-provider-ansible.zip https://github.com/nbering/terraform-provider-ansible/releases/download/v1.0.3/terraform-provider-ansible-linux_amd64.zip
+wget -O terraform-provider-ansible.zip https://github.com/nbering/terraform-provider-ansible/releases/download/v1.0.3/terraform-provider-ansible-darwin_amd64.zip
 unzip -o terraform-provider-ansible.zip -d "${PLUGIN_DIR}"
 
 terraform init
