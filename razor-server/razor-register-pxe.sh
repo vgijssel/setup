@@ -11,9 +11,11 @@ done
 # delete existing nodes
 EXISTING_NODES=\$(curl "http://localhost:8150/api/collections/nodes" | jq -r ".items[].name")
 
-while IFS= read -r line; do
-  razor delete-node \$line
-done <<< \$EXISTING_NODES
+if [[ \$EXISTING_NODES ]]; then
+  while IFS= read -r line; do
+    razor delete-node \$line
+  done <<< \$EXISTING_NODES
+fi
 
 MAC="${1}"
 
