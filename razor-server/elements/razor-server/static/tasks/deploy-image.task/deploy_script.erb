@@ -17,10 +17,15 @@ curl -L $DISK_URL -o $DISK_QCOW
 
 curl <%= log_url("Downloaded disk successfully") %>
 
+ls -lh
+
 curl <%= log_url("Starting converting of the qcow to raw") %>
 
 # Convert the qcow2 image to raw
 qemu-img convert -f qcow2 -O raw $DISK_QCOW $DISK_RAW
+
+# delete qcow to save ram
+rm -fv $DISK_QCOW
 
 curl <%= log_url("Done converting qcow to raw") %>
 
