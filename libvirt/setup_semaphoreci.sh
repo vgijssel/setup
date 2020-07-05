@@ -96,6 +96,16 @@ net.ipv4.ip_forward=1
 EOF
 sudo sysctl -p
 
+# First clear all existing iptables rules
+# https://serverfault.com/a/200658
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+sudo iptables -t nat -F
+sudo iptables -t mangle -F
+sudo iptables -F
+sudo iptables -X
+
 # Enable routing of packages between bridge and external nat
 sudo iptables -t nat -A POSTROUTING -s 192.168.4.0/24 -j MASQUERADE
 
