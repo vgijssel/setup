@@ -21,7 +21,6 @@ mkdir -p ~/.terraform.d/plugins/darwin_amd64
 
 cp -v $GOPATH/bin/terraform-provider-libvirt ~/.terraform.d/plugins/darwin_amd64/terraform-provider-libvirt
 
-
 PLUGIN_DIR="${HOME}/.terraform.d/plugins"
 mkdir -p "${PLUGIN_DIR}"
 
