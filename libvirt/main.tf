@@ -45,7 +45,7 @@ resource "ansible_group" "all" {
   inventory_group_name = "all"
   vars = {
     ansible_user                 = "vagrant"
-    master_ip                    = libvirt_domain.master.network_interface[0].addresses[0]
+    control_plane_endpoint       = libvirt_domain.master.name
     ansible_ssh_private_key_file = local.key_pair_paths.private_key_path
   }
 }

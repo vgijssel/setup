@@ -14,7 +14,7 @@
       command: |
         kubeadm init --service-cidr {{ service_cidr }}
                      --pod-network-cidr {{ pod_network_cidr }}
-                     --apiserver-advertise-address {{ master_ip }}
+                     --control-plane-endpoint {{ control_plane_endpoint }}
                      --ignore-preflight-errors NumCPU
 
     - name: Generate Kubernetes join token
