@@ -13,7 +13,7 @@ echo "DOWNLOADING LATEST DEBIAN BUSTER CLOUD-INIT"
 
 # url copied from
 # https://packages.debian.org/buster/all/cloud-init/download
-URL=http://ftp.us.debian.org/debian/pool/main/c/cloud-init/cloud-init_18.3-6_all.deb
+URL=http://ftp.us.debian.org/debian/pool/main/c/cloud-init/cloud-init_20.2-2~deb10u1_all.deb
 
 TEMP_FILE=/tmp/cloud-init-buster.deb
 
