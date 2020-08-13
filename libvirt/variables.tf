@@ -23,16 +23,23 @@ variable "setup_secrets_dir" {
 variable "key_pair_files" {
   description = "Contains file names for the private/public key pair"
   type = object({
-    public_key_file= string
-    private_key_file= string
+    public_key_file  = string
+    private_key_file = string
   })
 }
 
 locals {
   key_pair_paths = {
-    public_key_path = "${var.setup_secrets_dir}/${var.key_pair_files.public_key_file}"
+    public_key_path  = "${var.setup_secrets_dir}/${var.key_pair_files.public_key_file}"
     private_key_path = "${var.setup_secrets_dir}/${var.key_pair_files.private_key_file}"
   }
+}
+
+variable "ssh_user" {
+  type = string
+  description  = "Username of user used to connect to vms"
+  default = "vagrant"
+
 }
 
 variable "worker_count" {
@@ -41,26 +48,26 @@ variable "worker_count" {
 }
 
 variable "worker_memory" {
-  type = number
+  type        = number
   description = "Amount of ram for a kubernetes worker vm"
 }
 
 variable "worker_cpu_count" {
-  type = number
+  type        = number
   description = "Number of vcpus for a kubernetes worker vm"
 }
 
 variable "master_memory" {
-  type = number
+  type        = number
   description = "Amount of ram for a kubernetes master vm"
 }
 
 variable "master_cpu_count" {
-  type = number
+  type        = number
   description = "Number of vcpus for a kubernetes master vm"
 }
 
 variable "network_bridge" {
-  type         = string
+  type        = string
   description = "Network bridge to attach vms to"
 }

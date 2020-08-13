@@ -39,6 +39,12 @@
         owner: "{{ ansible_user_uid }}"
         group: "{{ ansible_user_gid }}"
 
+    - name: Copy kubectl config to local machine
+      fetch:
+        src: "{{ ansible_user_dir }}/.kube/config"
+        dest: /tmp/config
+        flat: yes
+
     - name: Initialize flannel network
       command: |
         kubectl apply -f {{ flannel_manifest }}

@@ -15,8 +15,8 @@ mkdir -p "${PLUGIN_DIR}"
 
 # Download and unzip latest terraform
 # https://www.terraform.io/downloads.html
-wget -O terraform.zip https://releases.hashicorp.com/terraform/0.12.26/terraform_0.12.26_linux_amd64.zip
-unzip -o terraform.zip -d scripts
+wget -O terraform.zip https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+unzip -o terraform.zip -d "${SETUP_SCRIPTS_DIR}"
 
 # Download and extract the latest terraform-libvirt extension
 # https://github.com/dmacvicar/terraform-provider-libvirt/releases
