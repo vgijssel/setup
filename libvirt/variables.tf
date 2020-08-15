@@ -35,11 +35,27 @@ locals {
   }
 }
 
+variable "kubeadm_bootstrap_token" {
+  type = string
+  description = "Token used by master/worker machines to form a cluster"
+}
+
 variable "ssh_user" {
   type = string
   description  = "Username of user used to connect to vms"
   default = "vagrant"
+}
 
+variable "bastion_host" {
+  type = string
+  description = "Optional jump host to use when connecting to vms"
+  default = null
+}
+
+variable "bastion_port" {
+  type = number
+  description = "Optional jump host port to use when connecting to vms"
+  default = null
 }
 
 variable "worker_count" {

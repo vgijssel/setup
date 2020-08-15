@@ -3,6 +3,7 @@
 - dnsmasq expiring lease will break kubernetes
   - after expiring no new lease is requested and hostname resolution stops working?
 - dnsmasq expiring lease will break jump host
+- move ssh config into envrc + local ssh_config, to remove logic from Vagrant / terraform files
 
 ## Status nested virtualisation on GitHub actions:
 

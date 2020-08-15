@@ -5,7 +5,7 @@ set -Eeou pipefail
 
 source ../.envrc
 
-PRIVATE_KEY_PATH="${SETUP_RAZOR_SERVER_DIR}/keys/id_rsa"
+PRIVATE_KEY_PATH="${SETUP_SECRETS_DIR}/id_rsa.development"
 DISABLE_HOST_CHECKING="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 ARGS="$@"
 

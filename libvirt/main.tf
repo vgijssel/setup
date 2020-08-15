@@ -8,6 +8,13 @@ resource "libvirt_pool" "data" {
   path = "/data/vms/storage"
 }
 
+data "template_file" "kubeadm_init_sh" {
+  template = file("${path.module}/kubeadm_init.sh.tmpl")
+  vars = {
+    kubeadm_bootstrap_token = var.kubeadm_bootstrap_token
+    control_plane_endpoint = libvirt_domain.master.name
+  }
+}
 
 data "template_file" "user_data" {
   template = file("${path.module}/cloud-init/kubernetes-user-data.yml")
@@ -39,15 +46,6 @@ resource "libvirt_volume" "kubernetes" {
   name   = "kubernetes"
   pool   = libvirt_pool.data.name
   source = local.kubernetes_image
-}
-
-resource "ansible_group" "all" {
-  inventory_group_name = "all"
-  vars = {
-    ansible_user                 = "vagrant"
-    control_plane_endpoint       = libvirt_domain.master.name
-    ansible_ssh_private_key_file = local.key_pair_paths.private_key_path
-  }
 }
 
 resource "libvirt_cloudinit_disk" "master" {
@@ -91,9 +89,35 @@ resource "libvirt_domain" "master" {
   }
 }
 
-resource "ansible_host" "master" {
-  inventory_hostname = libvirt_domain.master.name
-  groups             = ["master_group"]
+resource "null_resource" "master" {
+  connection {
+    host = libvirt_domain.master.name
+    user = var.ssh_user
+    private_key = file(local.key_pair_paths.private_key_path)
+
+    bastion_host = var.bastion_host
+    bastion_port = var.bastion_port
+    bastion_user = var.ssh_user
+    bastion_private_key = file(local.key_pair_paths.private_key_path)
+  }
+
+  # Only re-run provisioner when the master changed or when the script changed
+  triggers = {
+    master_id = libvirt_domain.master.id
+    template = data.template_file.kubeadm_init_sh.rendered
+  }
+
+  provisioner "file" {
+    content      = data.template_file.kubeadm_init_sh.rendered
+    destination = "/tmp/kubeadm_init.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/kubeadm_init.sh",
+      "/tmp/kubeadm_init.sh",
+    ]
+  }
 }
 
 resource "libvirt_cloudinit_disk" "worker" {
@@ -136,10 +160,4 @@ resource "libvirt_domain" "worker" {
     type        = "pty"
     target_port = "0"
   }
-}
-
-resource "ansible_host" "worker" {
-  inventory_hostname = libvirt_domain.worker[count.index].name
-  groups             = ["worker_group"]
-  count              = var.worker_count
 }
