@@ -1,3 +1,19 @@
+terraform {
+  required_version = ">= 0.13.0"
+
+  required_providers {
+    libvirt = {
+      source = "local/setup/libvirt"
+      version = "0.0.1"
+    }
+
+    shell = {
+      source = "scottwinkler/shell"
+      version = "1.7.3"
+    }
+  }
+}
+
 provider "libvirt" {
   uri = var.qemu_uri
 }
@@ -10,6 +26,14 @@ resource "libvirt_pool" "data" {
 
 data "template_file" "kubeadm_init_sh" {
   template = file("${path.module}/kubeadm_init.sh.tmpl")
+  vars = {
+    kubeadm_bootstrap_token = var.kubeadm_bootstrap_token
+    control_plane_endpoint = libvirt_domain.master.name
+  }
+}
+
+data "template_file" "kubeadm_join_sh" {
+  template = file("${path.module}/kubeadm_join.sh.tmpl")
   vars = {
     kubeadm_bootstrap_token = var.kubeadm_bootstrap_token
     control_plane_endpoint = libvirt_domain.master.name
@@ -76,7 +100,7 @@ resource "libvirt_domain" "master" {
   cloudinit = libvirt_cloudinit_disk.master.id
 
   network_interface {
-    network_id     = libvirt_network.kube_network.id
+    hostname = "master.dev"
     wait_for_lease = true
     bridge         = libvirt_network.kube_network.bridge
   }
@@ -89,36 +113,42 @@ resource "libvirt_domain" "master" {
   }
 }
 
-resource "null_resource" "master" {
-  connection {
-    host = libvirt_domain.master.name
-    user = var.ssh_user
-    private_key = file(local.key_pair_paths.private_key_path)
+resource "shell_script" "master" {
+  depends_on = [
+    libvirt_domain.master
+  ]
 
-    bastion_host = var.bastion_host
-    bastion_port = var.bastion_port
-    bastion_user = var.ssh_user
-    bastion_private_key = file(local.key_pair_paths.private_key_path)
+  lifecycle_commands {
+    create = "echo CREATE"
+    # update = file("${path.module}/scripts/kubeadm_init.sh")
+    delete = "echo 'GONERS'"
   }
 
-  # Only re-run provisioner when the master changed or when the script changed
-  triggers = {
-    master_id = libvirt_domain.master.id
-    template = data.template_file.kubeadm_init_sh.rendered
-  }
-
-  provisioner "file" {
-    content      = data.template_file.kubeadm_init_sh.rendered
-    destination = "/tmp/kubeadm_init.sh"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/kubeadm_init.sh",
-      "/tmp/kubeadm_init.sh",
-    ]
+  environment = {
+    CONTROL_PLANE_ENDPOINT = "master.dev"
   }
 }
+
+# resource "null_resource" "master" {
+#   # Only re-run provisioner when the master changed or when the script changed
+#   triggers = {
+#     # TODO: use filemd5?
+#     master_id = libvirt_domain.master.id
+#     template = data.template_file.kubeadm_init_sh.rendered
+#   }
+
+#   # provisioner "file" {
+#   #   content      = data.template_file.kubeadm_init_sh.rendered
+#   #   destination = "/tmp/kubeadm_init.sh"
+#   # }
+
+#   # provisioner "remote-exec" {
+#   #   inline = [
+#   #     "chmod +x /tmp/kubeadm_init.sh",
+#   #     "/tmp/kubeadm_init.sh",
+#   #   ]
+#   # }
+# }
 
 resource "libvirt_cloudinit_disk" "worker" {
   name           = "worker${count.index}_cloudinit.iso"
@@ -151,7 +181,7 @@ resource "libvirt_domain" "worker" {
   cloudinit = libvirt_cloudinit_disk.worker[count.index].id
 
   network_interface {
-    network_id     = libvirt_network.kube_network.id
+    hostname = "worker.dev"
     wait_for_lease = true
     bridge         = libvirt_network.kube_network.bridge
   }
@@ -161,3 +191,35 @@ resource "libvirt_domain" "worker" {
     target_port = "0"
   }
 }
+
+# resource "null_resource" "worker" {
+#   count          = var.worker_count
+
+#   # We can only start joining worker nodes once the master node is ready!
+#   depends_on = [
+#     null_resource.master,
+#   ]
+
+#   connection {
+#     type = "ssh"
+#     host = "worker${count.index}.dev"
+#   }
+
+#   # Only re-run provisioner when the worker changed or when the script changed
+#   triggers = {
+#     worker_id = libvirt_domain.worker[count.index].id
+#     template = data.template_file.kubeadm_join_sh.rendered
+#   }
+
+#   provisioner "file" {
+#     content      = data.template_file.kubeadm_join_sh.rendered
+#     destination = "/tmp/kubeadm_join.sh"
+#   }
+
+#   provisioner "remote-exec" {
+#     inline = [
+#       "chmod +x /tmp/kubeadm_join.sh",
+#       "/tmp/kubeadm_join.sh",
+#     ]
+#   }
+# }

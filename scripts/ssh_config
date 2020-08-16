@@ -1,0 +1,30 @@
+Include ~/.ssh/config
+
+UserKnownHostsFile /dev/null
+StrictHostKeyChecking no
+
+# Need an absolute path here, relative doesn't work as expected
+IdentityFile ~/Development/setup/secrets/id_rsa.development
+
+Host dnsmasq.dev
+    HostName 127.0.0.1
+    Port 2222
+    User vagrant
+
+Host libvirt.dev
+    User vagrant
+    Port 22
+    HostName libvirt
+    ProxyJump dnsmasq.dev
+
+Host master.dev
+    User vagrant
+    Port 22
+    HostName master
+    ProxyJump dnsmasq.dev
+
+Host worker*.dev
+    User vagrant
+    Port 22
+    HostName worker*
+    ProxyJump dnsmasq.dev

@@ -1,4 +1,4 @@
-qemu_uri       = "qemu+ssh://vagrant@libvirt/system?socket=/run/libvirt/libvirt-sock&command=ssh_vagrant_jump.sh"
+qemu_uri       = "qemu+ssh://libvirt.dev/system?socket=/run/libvirt/libvirt-sock"
 network_bridge = "kube_network"
 key_pair_files = {
   public_key_file  = "id_rsa.development.pub"

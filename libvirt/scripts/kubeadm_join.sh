@@ -2,10 +2,9 @@
 
 set -Eeoux pipefail
 
-KUBEADM_BOOTSTRAP_TOKEN="${kubeadm_bootstrap_token}"
 CONTROL_PLANE_ENDPOINT="${control_plane_endpoint}"
 FLANNEL_MANIFEST="https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml"
-KUBE_CONFIG_DIR="$${HOME}/.kube"
+KUBE_CONFIG_DIR="${HOME}/.kube"
 USER_NAME="$(id -un)"
 GROUP_NAME="$(id -gn)"
 

@@ -2,18 +2,20 @@
 # https://www.thomas-krenn.com/en/wiki/Network_Configuration_in_VirtualBox
 
 require 'open3'
+require 'net/ssh'
 
 TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
 box_dir = ENV.fetch('SETUP_BOX_DIR')
 root_dir = ENV.fetch('SETUP_ROOT_DIR')
 secrets_dir = ENV.fetch('SETUP_SECRETS_DIR')
+scripts_dir = ENV.fetch('SETUP_SCRIPTS_DIR')
 libvirt_dir = ENV.fetch('SETUP_LIBVIRT_DIR')
 razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 
+ssh_config = File.join(scripts_dir, 'ssh_config')
+private_key_path = Net::SSH::Config.load(ssh_config, '*').fetch('identityfile')
 dnsmasq_host_port = ENV.fetch('VAGRANT_BASTION_HOST_PORT')
-ssh_private_key_path = File.join(secrets_dir, 'id_rsa.development')
-ssh_proxy_command = "ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i #{ssh_private_key_path} -l vagrant -p #{dnsmasq_host_port} -W '[%h]:%p' 127.0.0.1"
 
 def build_cloud_init_iso(iso_name, user_data_file, network_config_file)
   iso_location = File.join(TMP_DIR, iso_name)
@@ -42,13 +44,17 @@ end
 
 Vagrant.configure('2') do |config|
   config.vm.synced_folder '.', '/vagrant', disabled: true
+  config.ssh.config = ssh_config
+  # We need the private_key_path, because Net::SSH otherwise uses the wrong one breaking vagrant up
+  # Vagrant SSH works fine, using the config and ssh alias in scripts/
+  config.ssh.private_key_path = private_key_path
 
   config.vm.define "dnsmasq" do |dnsmasq|
     # Make sure the port is available, don't auto correct if not
     dnsmasq.vm.network "forwarded_port", guest: 22, host: dnsmasq_host_port, id: 'ssh', auto_correct: false
     dnsmasq.vm.network "private_network", auto_config: false, adapter: 2, virtualbox__intnet: true
     dnsmasq.vm.box = "file://#{File.join(box_dir, 'dnsmasq_buster.box')}"
-    dnsmasq.ssh.private_key_path = ssh_private_key_path
+    dnsmasq.ssh.host = 'dnsmasq.dev'
 
     dnsmasq.vm.provider 'virtualbox' do |vb|
       vb.gui = false
@@ -72,11 +78,7 @@ Vagrant.configure('2') do |config|
     libvirt.vm.synced_folder log_dir, "/data/vms/logs", mount_options: ["dmode=755,fmode=744"]
     libvirt.vm.synced_folder root_dir, "/home/vagrant/setup", mount_options: ["dmode=755,fmode=744"]
     libvirt.vm.synced_folder secrets_dir, "/home/vagrant/setup/secrets", mount_options: ["dmode=755,fmode=0600"]
-
-    libvirt.ssh.private_key_path = ssh_private_key_path
-    libvirt.ssh.proxy_command = ssh_proxy_command
-    libvirt.ssh.host = 'libvirt'
-    libvirt.ssh.port = 22
+    libvirt.ssh.host = 'libvirt.dev'
 
     libvirt.vm.provider 'virtualbox' do |vb|
       vb.gui = false
