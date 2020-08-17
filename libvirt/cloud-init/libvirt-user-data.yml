@@ -1,6 +1,5 @@
 #cloud-config
 
-hostname: libvirt
 manage_etc_hosts: localhost
 
 users:

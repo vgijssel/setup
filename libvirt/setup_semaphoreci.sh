@@ -15,18 +15,14 @@ mkdir -p "${PLUGIN_DIR}"
 
 # Download and unzip latest terraform
 # https://www.terraform.io/downloads.html
-wget -O terraform.zip https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+wget -O terraform.zip https://releases.hashicorp.com/terraform/0.13.0/terraform_0.13.0_linux_amd64.zip
 unzip -o terraform.zip -d "${SETUP_SCRIPTS_DIR}"
 
 # Download and extract the latest terraform-libvirt extension
 # https://github.com/dmacvicar/terraform-provider-libvirt/releases
 wget -O terraform-provider-libvirt.tar.gz https://github.com/dmacvicar/terraform-provider-libvirt/releases/download/v0.6.2/terraform-provider-libvirt-0.6.2+git.1585292411.8cbe9ad0.Ubuntu_18.04.amd64.tar.gz
-tar -C "${PLUGIN_DIR}" -xf terraform-provider-libvirt.tar.gz
 
-# Download and extract the latest terraform-provider-ansible
-# https://github.com/nbering/terraform-provider-ansible/releases
-wget -O terraform-provider-ansible.zip https://github.com/nbering/terraform-provider-ansible/releases/download/v1.0.3/terraform-provider-ansible-linux_amd64.zip
-unzip -o terraform-provider-ansible.zip -d "${PLUGIN_DIR}"
+tar -C "${PLUGIN_DIR}" -xf terraform-provider-libvirt.tar.gz
 
 pushd "${SETUP_LIBVIRT_DIR}"
 terraform init
