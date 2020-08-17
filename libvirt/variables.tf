@@ -1,8 +1,21 @@
-variable "qemu_uri" {
+variable "libvirt_fqdn" {
   type = string
-  # https://libvirt.org/uri.html#URI_remote
-  description = "Uri to connect to qemu"
+  description = "Fully Qualified Domain Name of the libvirt server"
 }
+
+variable "public_key_path" {
+  type        = string
+  description = "File path to public key to be added to node"
+}
+
+variable "parent_domain" {
+  type = string
+  description = "Suffix of the FQDN of hosts"
+}
+
+
+
+
 
 variable "setup_kubernetes_dir" {
   type = string
@@ -35,27 +48,10 @@ locals {
   }
 }
 
-variable "kubeadm_bootstrap_token" {
-  type = string
-  description = "Token used by master/worker machines to form a cluster"
-}
-
 variable "ssh_user" {
   type = string
   description  = "Username of user used to connect to vms"
   default = "vagrant"
-}
-
-variable "bastion_host" {
-  type = string
-  description = "Optional jump host to use when connecting to vms"
-  default = null
-}
-
-variable "bastion_port" {
-  type = number
-  description = "Optional jump host port to use when connecting to vms"
-  default = null
 }
 
 variable "worker_count" {
