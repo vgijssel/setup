@@ -8,6 +8,7 @@ set -Eeou pipefail
 # The env is lost when ssh is invoked through Terraform and libvirt
 
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+# shellcheck source=../.envrc
 source "$CURRENT_DIR/../.envrc"
 
 # https://unix.stackexchange.com/questions/108873/removing-a-directory-from-path/291611#291611
@@ -25,6 +26,5 @@ path_remove "$SETUP_SCRIPTS_DIR"
 ARGS=("$@")
 
 CONFIG_FILE="$SETUP_SCRIPTS_DIR/ssh_config"
-IDENTITY_FILE="$SETUP_SECRETS_DIR/id_rsa.development"
 
 ssh -F "${CONFIG_FILE}" "${ARGS[@]}"
