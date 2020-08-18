@@ -1,46 +1,46 @@
-terraform {
-  required_version = ">= 0.13.0"
+# rerraform {
+#   required_version = ">= 0.13.0"
 
-  required_providers {
-    # TODO: https://github.com/dmacvicar/terraform-provider-libvirt/issues/747
-    libvirt = {
-      source = "local/setup/libvirt"
-      version = "0.0.1"
-    }
-  }
-}
+#   required_providers {
+#     # TODO: https://github.com/dmacvicar/terraform-provider-libvirt/issues/747
+#     libvirt = {
+#       source = "local/setup/libvirt"
+#       version = "0.0.1"
+#     }
+#   }
+# }
 
-provider "libvirt" {
-  uri = "qemu+ssh://${var.libvirt_fqdn}/system?socket=/run/libvirt/libvirt-sock"
-}
+# provider "libvirt" {
+#   uri = "qemu+ssh://${var.libvirt_fqdn}/system?socket=/run/libvirt/libvirt-sock"
+# }
 
-resource "libvirt_pool" "data" {
-  name = "data"
-  type = "dir"
-  path = "/data/vms/storage"
-}
+# resource "libvirt_pool" "data" {
+#   name = "data"
+#   type = "dir"
+#   path = "/data/vms/storage"
+# }
 
-resource "libvirt_network" "kube_network" {
-  name      = "kube_network"
-  mode      = "bridge"
-  bridge    = var.network_bridge
-  autostart = true
-}
+# resource "libvirt_network" "kube_network" {
+#   name      = "kube_network"
+#   mode      = "bridge"
+#   bridge    = var.network_bridge
+#   autostart = true
+# }
 
-module "kubernetes" {
-  source = "../kubernetes"
+# module "kubernetes" {
+#   source = "../kubernetes"
 
-  public_key_path = var.public_key_path
-  parent_domain = var.parent_domain
-  libvirt_pool_name = libvirt_pool.data.name
-  network_bridge = var.network_bridge
+#   public_key_path = var.public_key_path
+#   parent_domain = var.parent_domain
+#   libvirt_pool_name = libvirt_pool.data.name
+#   network_bridge = var.network_bridge
 
-  worker_count = var.worker_count
-  worker_memory = var.worker_memory
-  worker_cpu_count = var.worker_cpu_count
-  master_cpu_count = var.master_cpu_count
-  master_memory = var.master_memory
-}
+#   worker_count = var.worker_count
+#   worker_memory = var.worker_memory
+#   worker_cpu_count = var.worker_cpu_count
+#   master_cpu_count = var.master_cpu_count
+#   master_memory = var.master_memory
+# }
 
 # data "template_file" "kubeadm_init_sh" {
 #   template = file("${path.module}/kubeadm_init.sh.tmpl")
