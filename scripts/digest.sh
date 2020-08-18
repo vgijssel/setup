@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -Eeoux pipefail
+set -Eeou pipefail
 
 IMAGE_CONFIG_FILE=$(realpath "$1")
 source "${IMAGE_CONFIG_FILE}"
@@ -21,7 +21,7 @@ function convert_elements_to_local_dirs {
   echo ${RESULT[@]+"${RESULT[@]}"}
 }
 
-pushd "$SETUP_ROOT_DIR"
+pushd "$SETUP_ROOT_DIR" > /dev/null
 
 DIRS=()
 DIRS+=($(convert_elements_to_local_dirs $LOCAL_ELEMENTS_DIR "${ELEMENTS}"))
@@ -55,6 +55,6 @@ RELATIVE_IMAGE_DIR=$(realpath --relative-to=$SETUP_ROOT_DIR $SETUP_IMAGE_DIR)
 
 # sha256sum returns the checksum and a placeholder "-" to represent
 # that no file in the input. We're only interested in the checksum so only getting that at index 0
-popd
+popd > /dev/null
 
 echo "${RELATIVE_IMAGE_DIR}/${IMAGE_NAME}-${CHECKSUM[0]}"
