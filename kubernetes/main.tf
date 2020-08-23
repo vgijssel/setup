@@ -47,15 +47,42 @@ module "master" {
   cpu_count = var.worker_cpu_count
 }
 
-# module "worker" {
-#   source = "./modules/node"
+resource "null_resource" "master" {
+  triggers = {
+    master_id = module.master.id
+  }
 
-#   count = var.worker_count
-#   name = "${var.worker_hostname}${count.index}.${var.parent_domain}"
-#   public_key_path = var.public_key_path
-#   image_path = local.kubernetes_image
-#   libvirt_pool_name = var.libvirt_pool_name
-#   network_bridge = var.network_bridge
-#   memory = var.worker_memory
-#   cpu_count = var.worker_cpu_count
-# }
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/kubeadm_init.sh ${module.master.fqdn}"
+  }
+}
+
+module "worker" {
+  source = "./modules/node"
+
+  count = var.worker_count
+  name = "${var.worker_hostname}${count.index}.${var.parent_domain}"
+  public_key_path = var.public_key_path
+  image_path = local.kubernetes_image
+  libvirt_pool_name = var.libvirt_pool_name
+  network_bridge = var.network_bridge
+  memory = var.worker_memory
+  cpu_count = var.worker_cpu_count
+}
+
+resource "null_resource" "worker" {
+  count = var.worker_count
+
+  # Only start worker provisioning when the master is ready
+  depends_on  = [
+    null_resource.master,
+  ]
+
+  triggers = {
+    worker_id = module.worker[count.index].id
+  }
+
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/kubeadm_join.sh ${module.master.fqdn} ${module.worker[count.index].fqdn}"
+  }
+}

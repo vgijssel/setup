@@ -19,6 +19,10 @@ if [[ -d "${DISK_IMAGE_HOST_DIR}" ]]; then
   exit 0
 fi
 
+if [[ "$CI" = false ]]; then
+  EXTRA_DOCKER_ARGS="-i"
+fi
+
 GLOBAL_ELEMENTS_DIR="${SETUP_ELEMENTS_DIR}"
 IMAGE_BUILDER_NAME="${DOCKER_REGISTRY_URL}/${IMAGE_BUILDER_IMAGE}"
 
@@ -35,6 +39,7 @@ fi
 docker run \
   --rm \
   --privileged \
+  $EXTRA_DOCKER_ARGS \
   -v "${SETUP_IMAGE_DIR}:/app/image" \
   -v "${LOCAL_ELEMENTS_DIR}:/app/local_elements" \
   -v "${GLOBAL_ELEMENTS_DIR}:/app/global_elements" \

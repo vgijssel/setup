@@ -19,7 +19,8 @@ sudo sysctl -w net.inet.ip.forwarding=1
 cat <<EOF | tee "$NAT_RULES_FILE"
 nat on $LOCAL_NETWORK_INTERNET_INTERFACE from $LOCAL_NETWORK_BRIDGE_INTERFACE:network to any -> ($LOCAL_NETWORK_INTERNET_INTERFACE)
 EOF
-sudo pfctl -f "$NAT_RULES_FILE" -e
+sudo pfctl -F all
+sudo pfctl -f "$NAT_RULES_FILE" -e || true
 
 # kill if exists and boot dnsmasq server on bridge interface
 # matching all dns requests to *.local_network_domain to bridge ip so Vagrant doesn't crash
