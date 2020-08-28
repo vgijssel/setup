@@ -4,7 +4,7 @@ terraform {
   required_providers {
     # TODO: https://github.com/dmacvicar/terraform-provider-libvirt/issues/747
     libvirt = {
-      source = "local/setup/libvirt"
+      source  = "local/setup/libvirt"
       version = "0.0.1"
     }
   }
@@ -38,13 +38,13 @@ resource "libvirt_network" "kube_network" {
 module "master" {
   source = "./modules/node"
 
-  name = "${var.master_hostname}.${var.parent_domain}"
-  public_key_path = var.public_key_path
-  image_path = local.kubernetes_image
+  name              = "${var.master_hostname}.${var.parent_domain}"
+  public_key_path   = var.public_key_path
+  image_path        = local.kubernetes_image
   libvirt_pool_name = libvirt_pool.data.name
-  network_bridge = libvirt_network.kube_network.bridge
-  memory = var.worker_memory
-  cpu_count = var.worker_cpu_count
+  network_bridge    = libvirt_network.kube_network.bridge
+  memory            = var.worker_memory
+  cpu_count         = var.worker_cpu_count
 }
 
 resource "null_resource" "master" {
@@ -60,21 +60,21 @@ resource "null_resource" "master" {
 module "worker" {
   source = "./modules/node"
 
-  count = var.worker_count
-  name = "${var.worker_hostname}${count.index}.${var.parent_domain}"
-  public_key_path = var.public_key_path
-  image_path = local.kubernetes_image
+  count             = var.worker_count
+  name              = "${var.worker_hostname}${count.index}.${var.parent_domain}"
+  public_key_path   = var.public_key_path
+  image_path        = local.kubernetes_image
   libvirt_pool_name = var.libvirt_pool_name
-  network_bridge = var.network_bridge
-  memory = var.worker_memory
-  cpu_count = var.worker_cpu_count
+  network_bridge    = var.network_bridge
+  memory            = var.worker_memory
+  cpu_count         = var.worker_cpu_count
 }
 
 resource "null_resource" "worker" {
   count = var.worker_count
 
   # Only start worker provisioning when the master is ready
-  depends_on  = [
+  depends_on = [
     null_resource.master,
   ]
 
