@@ -1,7 +1,0 @@
-Include ~/.ssh/config
-
-Host *.setup.dev
-  UserKnownHostsFile /dev/null
-  StrictHostKeyChecking no
-  User vagrant
-  IdentityFile ~/Development/setup/secrets/id_rsa.development
