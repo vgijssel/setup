@@ -20,7 +20,7 @@ if [[ -d "${DISK_IMAGE_HOST_DIR}" ]]; then
 fi
 
 if [[ "$CI" = false ]]; then
-  EXTRA_DOCKER_ARGS="-i"
+  EXTRA_DOCKER_ARGS="-it --env break=after-error"
 fi
 
 GLOBAL_ELEMENTS_DIR="${SETUP_ELEMENTS_DIR}"
@@ -36,17 +36,31 @@ if [[ "${CI}" = true ]]; then
   docker login -u mvgijssel -p "${GITHUB_DOCKER_REGISTRY_TOKEN}" docker.pkg.github.com
 fi
 
-docker run \
-  --rm \
-  --privileged \
+CONTAINER=$(
+  docker run \
+    --rm \
+    --privileged \
+    $EXTRA_DOCKER_ARGS \
+    -d \
+    -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+    -v "${SETUP_IMAGE_DIR}:/app/image" \
+    -v "${LOCAL_ELEMENTS_DIR}:/app/local_elements" \
+    -v "${GLOBAL_ELEMENTS_DIR}:/app/global_elements" \
+    --env DIB_RELEASE \
+    --env DIB_APT_MINIMAL_CREATE_INTERFACES \
+    --env DIB_EXTLINUX \
+    "${IMAGE_BUILDER_NAME}:${IMAGE_SHA_TAG}"
+)
+
+function cleanup {
+  docker rm -f "$CONTAINER"
+}
+
+trap cleanup EXIT HUP INT QUIT PIPE TERM
+
+docker exec \
   $EXTRA_DOCKER_ARGS \
-  -v "${SETUP_IMAGE_DIR}:/app/image" \
-  -v "${LOCAL_ELEMENTS_DIR}:/app/local_elements" \
-  -v "${GLOBAL_ELEMENTS_DIR}:/app/global_elements" \
-  --env DIB_RELEASE \
-  --env DIB_APT_MINIMAL_CREATE_INTERFACES \
-  --env DIB_EXTLINUX \
-  "${IMAGE_BUILDER_NAME}:${IMAGE_SHA_TAG}" \
+  $CONTAINER \
   disk-image-create -x --image-size "${IMAGE_SIZE}" -o "${DISK_IMAGE_DOCKER_PATH}" "${ELEMENTS}"
 
 # Store the directory in the cache

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ ${DIB_DEBUG_TRACE:-1} -gt 0 ]; then
+    set -x
+fi
+set -eu
+set -o pipefail
+
+MACHINE_DIR="$TMP_BUILD_DIR/built"
+MACHINE_NAME="image_build"
+
+function cleanup {
+    machinectl poweroff "$MACHINE_NAME"
+}
+
+trap cleanup EXIT HUP INT QUIT PIPE TERM
+
+systemd-run systemd-nspawn --machine="$MACHINE_NAME" -b -D "$MACHINE_DIR"
+
+# The machine needs a fraction of time to start so it not available immediately
+sleep 2
+
+machinectl shell "$MACHINE_NAME" /drp/full_install.sh

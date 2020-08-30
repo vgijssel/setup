@@ -1,0 +1,69 @@
+# frozen_string_literal: true
+
+# https://www.thomas-krenn.com/en/wiki/Network_Configuration_in_VirtualBox
+
+require 'open3'
+
+TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
+log_dir = ENV.fetch('SETUP_LOG_DIR')
+box_dir = ENV.fetch('SETUP_BOX_DIR')
+root_dir = ENV.fetch('SETUP_ROOT_DIR')
+digital_rebar_dir = ENV.fetch('SETUP_DIGITAL_REBAR_DIR')
+local_network_bridge_interface = ENV.fetch('LOCAL_NETWORK_BRIDGE_INTERFACE')
+digital_rebar_fqdn = ENV.fetch('DIGITAL_REBAR_FQDN')
+
+def build_cloud_init_iso(iso_name, user_data_file, network_config_file, hostname)
+  iso_location = File.join(TMP_DIR, iso_name)
+
+  Dir.mktmpdir(nil, "/tmp") do |local_tmp_dir|
+    user_data = File.join(local_tmp_dir, 'user-data')
+    meta_data = File.join(local_tmp_dir, 'meta-data')
+    network_config = File.join(local_tmp_dir, 'network-config')
+
+    File.write(user_data, File.read(user_data_file))
+    File.write(meta_data, "local-hostname: #{hostname}")
+    File.write(network_config, File.read(network_config_file))
+
+    stdout, stderr, status = Open3.capture3("mkisofs -output #{iso_location} -volid cidata -joliet -rock {#{user_data},#{meta_data},#{network_config}}")
+
+    unless status.success?
+      puts stdout
+      puts stderr
+
+      raise "Unable to create cloud-init iso '#{name}'"
+    end
+  end
+
+  iso_location
+end
+
+Vagrant.configure('2') do |config|
+  config.vm.define "digital_rebar" do |digital_rebar|
+    digital_rebar.vm.network "public_network", adapter: 1, auto_config: false, bridge: local_network_bridge_interface
+    digital_rebar.vm.box = "file://#{File.join(box_dir, "digital-rebar_buster.box")}"
+    digital_rebar.vm.synced_folder '.', '/vagrant', disabled: true
+    digital_rebar.vm.synced_folder log_dir, "/data/vms/logs", mount_options: ["dmode=755,fmode=744"]
+    digital_rebar.vm.synced_folder root_dir, "/home/vagrant/setup", mount_options: ["dmode=755,fmode=744"]
+    digital_rebar.ssh.host = digital_rebar_fqdn
+
+    digital_rebar.vm.provider 'virtualbox' do |vb|
+      vb.gui = false
+      vb.memory = "4096"
+      vb.cpus = 2
+
+      # # Enable promiscious mode on the network adapter to enable bridge networking in the vm
+      # vb.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
+
+      # Setup log file
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "digital-rebar_buster.log")]
+
+      digital_rebar_cloud_init = build_cloud_init_iso(
+        "digital_rebar-cloud-init.iso",
+        File.join(digital_rebar_dir, "cloud-init/digital-rebar-user-data.yml"),
+        File.join(digital_rebar_dir, "cloud-init/digital-rebar-network-config.yml"),
+        digital_rebar_fqdn,
+      )
+      vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", digital_rebar_cloud_init]
+    end
+  end
+end
