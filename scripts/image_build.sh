@@ -29,7 +29,6 @@ IMAGE_BUILDER_NAME="${DOCKER_REGISTRY_URL}/${IMAGE_BUILDER_IMAGE}"
 export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 # Force extlinux instead of grub2
-export DIB_EXTLINUX=1
 IMAGE_SHA_TAG=$(git rev-parse HEAD)
 
 if [[ "${CI}" = true ]]; then
@@ -48,7 +47,6 @@ CONTAINER=$(
     -v "${GLOBAL_ELEMENTS_DIR}:/app/global_elements" \
     --env DIB_RELEASE \
     --env DIB_APT_MINIMAL_CREATE_INTERFACES \
-    --env DIB_EXTLINUX \
     "${IMAGE_BUILDER_NAME}:${IMAGE_SHA_TAG}"
 )
 
@@ -61,7 +59,7 @@ trap cleanup EXIT HUP INT QUIT PIPE TERM
 docker exec \
   $EXTRA_DOCKER_ARGS \
   $CONTAINER \
-  disk-image-create -x --image-size "${IMAGE_SIZE}" -o "${DISK_IMAGE_DOCKER_PATH}" "${ELEMENTS}"
+  disk-image-create -t qcow2,tgz -x --image-size "${IMAGE_SIZE}" -o "${DISK_IMAGE_DOCKER_PATH}" "${ELEMENTS}"
 
 # Store the directory in the cache
 if [[ "${CI_SEMAPHORE}" = true ]]; then

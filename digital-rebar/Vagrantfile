@@ -7,10 +7,13 @@ require 'open3'
 TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
 box_dir = ENV.fetch('SETUP_BOX_DIR')
+ipxe_dir = ENV.fetch('SETUP_IPXE_DIR')
 root_dir = ENV.fetch('SETUP_ROOT_DIR')
 digital_rebar_dir = ENV.fetch('SETUP_DIGITAL_REBAR_DIR')
 local_network_bridge_interface = ENV.fetch('LOCAL_NETWORK_BRIDGE_INTERFACE')
 digital_rebar_fqdn = ENV.fetch('DIGITAL_REBAR_FQDN')
+libvirt_fqdn = ENV.fetch('LIBVIRT_FQDN')
+razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 
 def build_cloud_init_iso(iso_name, user_data_file, network_config_file, hostname)
   iso_location = File.join(TMP_DIR, iso_name)
@@ -38,7 +41,7 @@ def build_cloud_init_iso(iso_name, user_data_file, network_config_file, hostname
 end
 
 Vagrant.configure('2') do |config|
-  config.vm.define "digital_rebar" do |digital_rebar|
+  config.vm.define "digital-rebar", primary: true do |digital_rebar|
     digital_rebar.vm.network "public_network", adapter: 1, auto_config: false, bridge: local_network_bridge_interface
     digital_rebar.vm.box = "file://#{File.join(box_dir, "digital-rebar_buster.box")}"
     digital_rebar.vm.synced_folder '.', '/vagrant', disabled: true
@@ -51,8 +54,8 @@ Vagrant.configure('2') do |config|
       vb.memory = "4096"
       vb.cpus = 2
 
-      # # Enable promiscious mode on the network adapter to enable bridge networking in the vm
-      # vb.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
+      # # Enable promiscious mode on the network adapter??
+      vb.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
 
       # Setup log file
       vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "digital-rebar_buster.log")]
@@ -64,6 +67,53 @@ Vagrant.configure('2') do |config|
         digital_rebar_fqdn,
       )
       vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", digital_rebar_cloud_init]
+    end
+  end
+
+  config.vm.define "pxe" do |pxe|
+    # Hardcoding the mac address of the adapter and sending it to the razor client
+    # makes sure the node is registered correctly and immediately starts provisioning
+    bridge_mac = '08:00:27:cf:12:58'
+    vbox_bridge_mac = bridge_mac.split(':').join
+
+    pxe.vm.network "public_network", adapter: 1, auto_config: false, bridge: local_network_bridge_interface
+
+    # Setting adapter: 1 here makes sure the default Vagrant adapter is overwritten
+    # This is done, otherwise the microkernel has multiple nameservers in the /etc/resolv.conf
+    # 1 of the host-only network and 1 of the internal dnsmasq network
+    # If the nameserver of the host-only network is used then the DNS "razor-server" does not resolve
+    # pxe.vm.network "private_network", mac: vbox_bridge_mac, virtualbox__intnet: true, adapter: 1, auto_config: false
+    pxe.vm.box = "file://#{File.join(razor_server_dir, "pxe.box")}"
+
+    # Set the boot_timeout to 600 seconds (10 minutes) as it can take a long
+    # to provision and boot the vm
+    pxe.vm.boot_timeout = 600
+
+    # Using the dnsmasq machine as a jumphost to communicate to pxe machine
+    # This means that we're first connecting to the dnsmasq machine with SSH
+    # and afterwards through that connection connect to the pxe machine.
+    # the hostname of the deployed machine will be "libvirt"
+    # pxe.ssh.private_key_path = ssh_private_key_path
+    # pxe.ssh.proxy_command = ssh_proxy_command
+    pxe.ssh.host = libvirt_fqdn
+    # pxe.ssh.port = 22
+
+    # pxe.trigger.before :up do |t|
+    #   t.info = "Registring PXE machine with razor-server"
+    #   t.run = { inline: "./razor-register-pxe.sh '#{bridge_mac}'" }
+    # end
+
+    pxe.vm.provider 'virtualbox' do |vb|
+      vb.gui = false
+
+      # We need a lot of memory here because a disk is downloaded and extracted into ram
+      vb.memory = "4096"
+
+      # Setup the serial port for logging
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "pxe.log")]
+
+      # Attach iPXE to the Floppy controller to enable network booting
+      vb.customize ["storageattach", :id, "--storagectl", "Floppy", "--port", 0, "--device", 0, "--type", "fdd", "--medium", File.join(ipxe_dir, "output/ipxe.dsk")]
     end
   end
 end

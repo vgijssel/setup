@@ -31,7 +31,7 @@ sudo pfctl -f "$NAT_RULES_FILE" -e || true
 kill $(cat "$DNSMASQ_PID_FILE") || true
 sudo dnsmasq \
      --interface="${LOCAL_NETWORK_BRIDGE_INTERFACE}" \
-     --address="/$LOCAL_NETWORK_DOMAIN/$INGRESS_IP" \
+     --address="/$LOCAL_NETWORK_DOMAIN/$KUBERNETES_INGRESS_IP" \
      --bind-interfaces \
      --dhcp-range="$LOCAL_NETWORK_DHCP_START,$LOCAL_NETWORK_DHCP_END,$LOCAL_NETWORK_NETMASK,12h" \
      --dhcp-leasefile="$DNSMASQ_LEASE_FILE" \
