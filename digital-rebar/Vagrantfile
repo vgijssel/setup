@@ -106,7 +106,11 @@ Vagrant.configure('2') do |config|
     pxe.vm.provider 'virtualbox' do |vb|
       vb.gui = false
 
-      # We need a lot of memory here because a disk is downloaded and extracted into ram
+      # Enable promiscious mode on the network adapter to enable bridge networking in the vm
+      # Without this the kube_network bridge will not be able to get a dhcp lease for example
+      vb.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
+
+      # We need a lot of memory here because this will run vms inside of it
       vb.memory = "4096"
 
       # Setup the serial port for logging

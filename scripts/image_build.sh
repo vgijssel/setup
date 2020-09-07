@@ -26,7 +26,6 @@ fi
 GLOBAL_ELEMENTS_DIR="${SETUP_ELEMENTS_DIR}"
 IMAGE_BUILDER_NAME="${DOCKER_REGISTRY_URL}/${IMAGE_BUILDER_IMAGE}"
 
-export DIB_RELEASE=buster
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
 # Force extlinux instead of grub2
 IMAGE_SHA_TAG=$(git rev-parse HEAD)
@@ -34,6 +33,10 @@ IMAGE_SHA_TAG=$(git rev-parse HEAD)
 if [[ "${CI}" = true ]]; then
   docker login -u mvgijssel -p "${GITHUB_DOCKER_REGISTRY_TOKEN}" docker.pkg.github.com
 fi
+
+export DIB_DEV_USER_USERNAME=devuser
+export DIB_DEV_USER_PWDLESS_SUDO=true
+export DIB_DEV_USER_PASSWORD=devuser
 
 CONTAINER=$(
   docker run \
@@ -47,6 +50,9 @@ CONTAINER=$(
     -v "${GLOBAL_ELEMENTS_DIR}:/app/global_elements" \
     --env DIB_RELEASE \
     --env DIB_APT_MINIMAL_CREATE_INTERFACES \
+    --env DIB_DEV_USER_USERNAME \
+    --env DIB_DEV_USER_PWDLESS_SUDO \
+    --env DIB_DEV_USER_PASSWORD \
     "${IMAGE_BUILDER_NAME}:${IMAGE_SHA_TAG}"
 )
 
