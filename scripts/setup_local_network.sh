@@ -7,6 +7,14 @@ DNSMASQ_LOG_FILE="$SETUP_LOG_DIR/dnsmasq.log"
 DNSMASQ_PID_FILE="$SETUP_TMP_DIR/dnsmasq.pid"
 NAT_RULES_FILE="$SETUP_TMP_DIR/nat_rules"
 
+DNS_HEAVEN_PID=$(pgrep dns-heaven || true)
+
+if [ -z "$DNS_HEAVEN_PID" ]; then
+  echo "Please make sure dns-heaven is running to make golang DNS resolution work on macos."
+  echo "https://github.com/greenboxal/dns-heaven"
+  exit 1
+fi
+
 # NOTE: create bridge using macos network preferences, otherwise the bridge is constantly magically removed?
 # destroy if exists and create bridge interface
 # sudo ifconfig "$LOCAL_NETWORK_BRIDGE_INTERFACE" destroy || true
@@ -30,9 +38,9 @@ sudo pfctl -f "$NAT_RULES_FILE" -e || true
 # and kubernetes ingress dns resolution works
 kill $(cat "$DNSMASQ_PID_FILE") || true
 sudo dnsmasq \
-     --interface="${LOCAL_NETWORK_BRIDGE_INTERFACE}" \
-     --address="/$LOCAL_NETWORK_DOMAIN/$KUBERNETES_INGRESS_IP" \
      --bind-interfaces \
+     --listen-address="$LOCAL_NETWORK_BRIDGE_IP" \
+     --address="/$LOCAL_NETWORK_DOMAIN/$KUBERNETES_INGRESS_IP" \
      --dhcp-range="$LOCAL_NETWORK_DHCP_START,$LOCAL_NETWORK_DHCP_END,$LOCAL_NETWORK_NETMASK,12h" \
      --dhcp-leasefile="$DNSMASQ_LEASE_FILE" \
      --log-facility="$DNSMASQ_LOG_FILE" \
@@ -43,7 +51,6 @@ sudo dnsmasq \
      --user="$(id -un)" \
      --group="$(id -gn)"
 
-# TODO: look into using scutil instead of creating /etc/resolver file
 # create /etc/resolver entry pointing to bridge interface
 cat <<EOF | sudo tee "/etc/resolver/$LOCAL_NETWORK_DOMAIN"
 nameserver $LOCAL_NETWORK_BRIDGE_IP
