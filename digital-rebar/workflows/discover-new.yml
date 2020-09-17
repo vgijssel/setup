@@ -1,0 +1,7 @@
+Available: true
+Name: discover-new
+Description: Updated discover workflow
+Stages:
+  - discover
+  - register-hostname
+  - sledgehammer-wait
