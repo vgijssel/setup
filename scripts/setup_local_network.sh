@@ -56,10 +56,17 @@ cat <<EOF | sudo tee "/etc/resolver/$LOCAL_NETWORK_DOMAIN"
 nameserver $LOCAL_NETWORK_BRIDGE_IP
 EOF
 
+IFS=. read ip1 ip2 ip3 ip4 <<< "$LOCAL_NETWORK_BRIDGE_IP"
 # Create SSH config
 cat <<EOF | sudo tee "$LOCAL_NETWORK_SSH_CONFIG_PATH"
 Include ~/.ssh/config
 Host *.$LOCAL_NETWORK_DOMAIN
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  User vagrant
+  IdentityFile $PRIVATE_KEY_PATH
+
+Host $ip1.$ip2.$ip3.*
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   User vagrant
