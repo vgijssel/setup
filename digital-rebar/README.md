@@ -1,9 +1,8 @@
 TODO:
 
+- Print systemd to both console and serial https://github.com/systemd/systemd/issues/9899
 - The ApiUrl GO variable is pointing to the IP address of the instance, not the FQDN
-- curtin with OSSUBTYPE=ubuntu causes systemd / to not be printed to console
-  - maybe grub config thing?
-  - GRUB_TERMINAL to tty/ ?
+- /etc/resolv.conf not updated to dhcp settings in libvirt machine
   
 Libvirt settings profile
 ```
@@ -29,7 +28,8 @@ Libvirt settings profile
     "image-deploy/image-file": "files/images/libvirt.tgz",
     "image-deploy/image-os": "linux",
     "image-deploy/image-os-subtype": "ubuntu",
-    "image-deploy/image-type": "tgz"
+    "image-deploy/image-type": "tgz",
+    "kernel-console": "console=tty0 console=ttyS0,115200"
   },
   "Profiles": []
 }
