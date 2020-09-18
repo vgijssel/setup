@@ -15,9 +15,13 @@ function cleanup {
 
 trap cleanup EXIT HUP INT QUIT PIPE TERM
 
+
+# Copy the digital rebar base content packs to /drp inside the image
+cp -vR "$SETUP_DIGITAL_REBAR_DIR/base" "$MACHINE_DIR/drp"
+
 systemd-run systemd-nspawn --machine="$MACHINE_NAME" -b -D "$MACHINE_DIR"
 
 # The machine needs a fraction of time to start so it not available immediately
 sleep 2
 
-machinectl shell "$MACHINE_NAME" /drp/full_install.sh
+systemd-run --pty --machine "$MACHINE_NAME" --wait /drp/full_install.sh

@@ -12,14 +12,17 @@ bash ./install.sh install
 
 drpcli bootenvs uploadiso sledgehammer
 
-# drpcli prefs set defaultWorkflow discover-base unknownBootEnv ignore defaultBootEnv sledgehammer defaultStage discover
-
 # This makes sure that systemd output is sent to the serial port
 drpcli profiles set global param kernel-console to "console=tty0 console=ttyS0,115200"
 
 # Install Immutable Image Deployment
 drpcli catalog item install image-deploy
 
-# TODO: install discover-new workflow with associated stage and task!
+# Install base content pack
+pushd /drp/base
+drpcli contents bundle base.yml
+drpcli contents upload base.yml
+popd
 
-drpcli prefs set defaultWorkflow discover-new unknownBootEnv discovery defaultBootEnv sledgehammer defaultStage discover
+# Note we're setting the unknownBootEnv to ignore as we're pre-registering the machines in digital rebar.
+drpcli prefs set defaultWorkflow discover-new unknownBootEnv ignore defaultBootEnv sledgehammer defaultStage discover

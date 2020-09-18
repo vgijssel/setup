@@ -24,8 +24,10 @@ function convert_elements_to_local_dirs {
 pushd "$SETUP_ROOT_DIR" > /dev/null
 
 DIRS=()
-DIRS+=($(convert_elements_to_local_dirs $LOCAL_ELEMENTS_DIR "${ELEMENTS}"))
-DIRS+=($(convert_elements_to_local_dirs $SETUP_ELEMENTS_DIR "${ELEMENTS}"))
+
+for path in ${ELEMENTS_PATH//:/ }; do
+  DIRS+=($(convert_elements_to_local_dirs $path "${ELEMENTS}"))
+done
 
 THIS_SCRIPT="$0"
 LIST="${DIRS[@]}"

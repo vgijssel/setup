@@ -38,16 +38,17 @@ export DIB_DEV_USER_USERNAME=devuser
 export DIB_DEV_USER_PWDLESS_SUDO=true
 export DIB_DEV_USER_PASSWORD=devuser
 
+# TODO: maybe mount the global volume as read only?
 CONTAINER=$(
   docker run \
     --rm \
+    -w "$SETUP_ROOT_DIR" \
     --privileged \
     $EXTRA_DOCKER_ARGS \
     -d \
     -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-    -v "${SETUP_IMAGE_DIR}:/app/image" \
-    -v "${LOCAL_ELEMENTS_DIR}:/app/local_elements" \
-    -v "${GLOBAL_ELEMENTS_DIR}:/app/global_elements" \
+    -v "$SETUP_ROOT_DIR:$SETUP_ROOT_DIR" \
+    --env ELEMENTS_PATH \
     --env DIB_RELEASE \
     --env DIB_APT_MINIMAL_CREATE_INTERFACES \
     --env DIB_DEV_USER_USERNAME \
@@ -65,7 +66,7 @@ trap cleanup EXIT HUP INT QUIT PIPE TERM
 docker exec \
   $EXTRA_DOCKER_ARGS \
   $CONTAINER \
-  disk-image-create -t qcow2,tgz -x --image-size "${IMAGE_SIZE}" -o "${DISK_IMAGE_DOCKER_PATH}" "${ELEMENTS}"
+  load_env.sh disk-image-create -t qcow2,tgz -x --image-size "${IMAGE_SIZE}" -o "${DISK_IMAGE_DOCKER_PATH}" "${ELEMENTS}"
 
 # Store the directory in the cache
 if [[ "${CI_SEMAPHORE}" = true ]]; then
