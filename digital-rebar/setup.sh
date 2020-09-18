@@ -7,7 +7,6 @@ SUBNET_NAME=enp0s3
 SUBNET_CONFIG=$(cat <<EOF
 {
   "Validated": true,
-  "Available": true,
   "Errors": [],
   "ReadOnly": false,
   "Meta": {

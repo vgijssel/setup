@@ -1,4 +1,3 @@
-Available: true
 Name: restart-network
 Description: Restart networking on machine
 Templates:

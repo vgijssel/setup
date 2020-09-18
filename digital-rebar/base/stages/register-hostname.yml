@@ -1,4 +1,3 @@
-Available: true
 Name: register-hostname
 Description: Register hostname in dhcp server by reboot networking after setting hostname
 BootEnv: sledgehammer
