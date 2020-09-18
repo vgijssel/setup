@@ -26,8 +26,6 @@ VOLUME [ "/sys/fs/cgroup" ]
 
 CMD ["/lib/systemd/systemd"]
 
-WORKDIR /app
-
 RUN apt-get update && \
     apt-get install -y \
     squashfs-tools \
@@ -37,8 +35,8 @@ RUN apt-get update && \
     qemu-utils \
     iptables \
     kpartx \
+    python3-pip \
     git \
-    python-pip \
     build-essential \
     debian-keyring \
     linux-virtual \
@@ -50,15 +48,6 @@ RUN apt-get update && \
     syslinux-common \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /app/local_elements /app/global_elements /app/image /app/diskimage-builder
-ENV ELEMENTS_PATH '/app/local_elements:/app/global_elements'
+RUN pip3 install diskimage-builder
 
-ENV DISK_IMAGE_SHA '41c9f247e733bda0a9da5fb339d2c5209aaa5125'
-
-RUN cd diskimage-builder && \
-  git init && \
-  git remote add origin https://github.com/mvgijssel/diskimage-builder.git && \
-  git fetch --depth 1 origin $DISK_IMAGE_SHA && \
-  git checkout FETCH_HEAD
-
-RUN pip install -e diskimage-builder
+ADD load_env.sh /usr/local/sbin
