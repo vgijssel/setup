@@ -24,5 +24,6 @@ drpcli contents bundle base.yml
 drpcli contents upload base.yml
 popd
 
-# Note we're setting the unknownBootEnv to ignore as we're pre-registering the machines in digital rebar.
-drpcli prefs set defaultWorkflow discover-new unknownBootEnv ignore defaultBootEnv sledgehammer defaultStage discover
+# TODO: Note we're want to set the unknownBootEnv to ignore as we're pre-registering the machines in digital rebar.
+# But this prevents regular workflow even for pre-registered machines.
+drpcli prefs set defaultWorkflow discover-new unknownBootEnv discovery defaultBootEnv sledgehammer defaultStage discover
