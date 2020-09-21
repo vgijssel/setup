@@ -8,6 +8,9 @@ MACHINE_MAC="$2"
 MACHINE_CONFIG=$(cat <<EOF
 Available: true
 Name: $MACHINE_NAME
+Pool: base
+PoolAllocated: false
+PoolStatus: Free
 HardwareAddrs:
   - '$MACHINE_MAC'
 EOF

@@ -6,29 +6,12 @@ SUBNET_NAME=enp0s3
 
 SUBNET_CONFIG=$(cat <<EOF
 {
-  "Validated": true,
-  "Errors": [],
-  "ReadOnly": false,
-  "Meta": {
-    "color": "black",
-    "icon": "cloud",
-    "title": "User added"
-  },
-  "Endpoint": "",
-  "Bundle": "",
   "Name": "$SUBNET_NAME",
-  "Description": "",
-  "Documentation": "",
-  "Enabled": true,
   "Proxy": true,
-  "Unmanaged": false,
+  "Enabled": true,
   "Subnet": "$LOCAL_NETWORK_BRIDGE_IP/24",
-  "NextServer": "",
   "ActiveStart": "$LOCAL_NETWORK_DHCP_START",
   "ActiveEnd": "$LOCAL_NETWORK_DHCP_END",
-  "ActiveLeaseTime": 600,
-  "ReservedLeaseTime": 7200,
-  "OnlyReservations": false,
   "Options": [
     {
       "Code": 1,
@@ -51,20 +34,11 @@ SUBNET_CONFIG=$(cat <<EOF
       "Value": "$LOCAL_NETWORK_BROADCAST"
     },
     {
-      "Code": 42,
-      "Value": ""
-    },
-    {
       "Code": 67,
       "Value": "tftp://$DIGITAL_REBAR_FQDN/lpxelinux.0"
     }
   ],
   "Strategy": "MAC",
-  "Pickers": [
-    "hint",
-    "nextFree",
-    "mostExpired"
-  ]
 }
 EOF
 )
