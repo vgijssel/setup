@@ -1,4 +1,5 @@
 Name: register-hostname
+Bundle: base
 Description: Register hostname in dhcp server by reboot networking after setting hostname
 BootEnv: sledgehammer
 Tasks:

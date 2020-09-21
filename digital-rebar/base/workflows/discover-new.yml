@@ -1,4 +1,5 @@
 Name: discover-new
+Bundle: base
 Description: Updated discover workflow
 Stages:
   - discover
