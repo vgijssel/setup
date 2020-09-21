@@ -1,5 +1,4 @@
-Name: Libvirt Settings
-Bundle: base
+Name: deploy
 Params:
   curtin/debug: true
   curtin/network/template: network_config

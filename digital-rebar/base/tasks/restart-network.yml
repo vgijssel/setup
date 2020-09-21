@@ -1,5 +1,4 @@
 Name: restart-network
-Bundle: base
 Description: Restart networking on machine
 Templates:
   - Name: Restart networking
