@@ -37,6 +37,7 @@ fi
 export DIB_DEV_USER_USERNAME=devuser
 export DIB_DEV_USER_PWDLESS_SUDO=true
 export DIB_DEV_USER_PASSWORD=devuser
+export DIB_RELEASE="${DIB_RELEASE:-bionic}"
 
 # TODO: maybe mount the global volume as read only?
 CONTAINER=$(
