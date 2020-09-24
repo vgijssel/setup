@@ -8,13 +8,14 @@ TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
 box_dir = ENV.fetch('SETUP_BOX_DIR')
 ipxe_dir = ENV.fetch('SETUP_IPXE_DIR')
-root_dir = ENV.fetch('SETUP_ROOT_DIR')
 digital_rebar_dir = ENV.fetch('SETUP_DIGITAL_REBAR_DIR')
 local_network_bridge_interface = ENV.fetch('LOCAL_NETWORK_BRIDGE_INTERFACE')
 local_network_domain = ENV.fetch('LOCAL_NETWORK_DOMAIN')
 digital_rebar_fqdn = ENV.fetch('DIGITAL_REBAR_FQDN')
-razor_server_dir = ENV.fetch('SETUP_RAZOR_SERVER_DIR')
 private_key_path = ENV.fetch('PRIVATE_KEY_PATH')
+image_info = JSON.parse(`image_info.sh ./image.cfg`)
+digital_rebar_box_path = image_info.fetch('absolute_box_path')
+pxe_box_path = "#{box_dir}/pxe.box"
 
 def build_cloud_init_iso(iso_name, user_data_file, network_config_file, hostname)
   iso_location = File.join(TMP_DIR, iso_name)
@@ -46,9 +47,7 @@ Vagrant.configure('2') do |config|
 
   config.vm.define "digital-rebar", primary: true do |digital_rebar|
     digital_rebar.vm.network "public_network", adapter: 1, auto_config: false, bridge: local_network_bridge_interface
-    digital_rebar.vm.box = "file://#{File.join(box_dir, "digital-rebar_buster.box")}"
-    digital_rebar.vm.synced_folder log_dir, "/data/vms/logs", mount_options: ["dmode=755,fmode=744"]
-    digital_rebar.vm.synced_folder root_dir, "/home/vagrant/setup", mount_options: ["dmode=755,fmode=744"]
+    digital_rebar.vm.box = "file://#{digital_rebar_box_path}"
     digital_rebar.ssh.host = digital_rebar_fqdn
 
     digital_rebar.vm.provider 'virtualbox' do |vb|
@@ -60,7 +59,7 @@ Vagrant.configure('2') do |config|
       vb.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
 
       # Setup log file
-      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "digital-rebar_buster.log")]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "digital-rebar.log")]
 
       digital_rebar_cloud_init = build_cloud_init_iso(
         "digital_rebar-cloud-init.iso",
@@ -96,7 +95,7 @@ Vagrant.configure('2') do |config|
 
     pxe.vm.network "public_network", adapter: 1, auto_config: false, bridge: local_network_bridge_interface, mac: vbox_bridge_mac
 
-    pxe.vm.box = "file://#{File.join(razor_server_dir, "pxe.box")}"
+    pxe.vm.box = "file://#{pxe_box_path}"
 
     pxe.ssh.host = pxe_fqdn
     pxe.ssh.username = "root"
