@@ -8,17 +8,14 @@ set -o pipefail
 
 echo "INSTALLING DOCKER"
 
-# https://docs.docker.com/install/linux/docker-ce/debian/#install-using-the-repository
-curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+# https://docs.docker.com/engine/install/ubuntu/
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
 
-cat <<EOF | tee /etc/apt/sources.list.d/docker.list
-deb [arch=amd64] https://download.docker.com/linux/debian $DIB_RELEASE stable
-EOF
+sudo add-apt-repository \
+  "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+  $DIB_RELEASE \
+  stable"
 
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io
-
-# Add the debian user to the docker group. Assigning the docker group
-# cannot be done through cloud-init because the debian already exists on the system
-# See diskimage_builder/elements/debian/install.d/10-cloud-opinions:27
-usermod -a -G docker debian
