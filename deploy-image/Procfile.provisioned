@@ -1,1 +1,0 @@
-provisioned-test: hyperkit_run.sh provisioned-test 1 "${SETUP_DEPLOY_IMAGE_DIR}"/images/kubernetes/kubernetes_buster.vmlinuz "${SETUP_DEPLOY_IMAGE_DIR}"/images/kubernetes/kubernetes_buster.initrd "" "${SETUP_TMP_DIR}"/deploy-image-test/deploy-image-test.raw

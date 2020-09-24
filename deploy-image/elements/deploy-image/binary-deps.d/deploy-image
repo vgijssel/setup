@@ -1,8 +1,0 @@
-bash
-curl
-wget
-getent
-qemu-img
-lsblk
-dd
-pv

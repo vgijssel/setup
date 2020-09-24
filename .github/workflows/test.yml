@@ -39,20 +39,6 @@ jobs:
     - run: ./scripts/load_env.sh
     - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
-  build-deploy-image:
-    name: Build deploy image
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    needs: build-image-builder
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: image_build.sh ./deploy-image/image.cfg
-    - uses: actions/upload-artifact@v1
-      with:
-        name: deploy-image
-        path: ./image
-
   build-dnsmasq:
     name: Build dnsmasq image
     timeout-minutes: 15
@@ -81,20 +67,6 @@ jobs:
         name: libvirt
         path: ./image
 
-  build-razor-server:
-    name: Build razor-server image
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    needs: build-image-builder
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: image_build.sh ./razor-server/image.cfg
-    - uses: actions/upload-artifact@v1
-      with:
-        name: razor-server
-        path: ./image
-
   build-kubernetes:
     name: Build kubernetes image
     timeout-minutes: 15
@@ -108,71 +80,6 @@ jobs:
       with:
         name: kubernetes
         path: ./image
-
-  test-razor-server:
-    name: Test razor-server
-    timeout-minutes: 60
-    runs-on: macos-latest
-    needs: [build-razor-server, build-deploy-image, build-libvirt, build-ipxe, build-dnsmasq]
-    env:
-      TARGET_DIR: './razor-server'
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - uses: actions/download-artifact@v1
-      with:
-        name: razor-server
-        path: ./image
-    - uses: actions/download-artifact@v1
-      with:
-        name: deploy-image
-        path: ./image
-    - uses: actions/download-artifact@v1
-      with:
-        name: libvirt
-        path: ./image
-    - uses: actions/download-artifact@v1
-      with:
-        name: dnsmasq
-        path: ./image
-    - uses: actions/download-artifact@v1
-      with:
-        name: ipxe
-        path: ./ipxe/output
-    - run: brew install qemu cdrtools gnu-tar coreutils
-    - run: box_build.sh ./dnsmasq/image.cfg
-    # regular runtime is half of the timeout
-    - name: Run box_build.sh ./razor-server/image.cfg
-      timeout-minutes: 40
-      uses: nick-invision/retry@v1
-      with:
-        timeout_minutes: 10
-        max_attempts: 2
-        command: box_build.sh ./razor-server/image.cfg
-    - run: ./razor-server/build-pxe-box.sh
-    - name: Run vagrant up dnsmasq
-      uses: nick-invision/retry@v1
-      with:
-        timeout_minutes: 2
-        max_attempts: 2
-        command: cd razor-server && vagrant destroy -f dnsmasq && vagrant up dnsmasq
-    - name: Run vagrant up razor-server
-      uses: nick-invision/retry@v1
-      with:
-        timeout_minutes: 6
-        max_attempts: 2
-        command: cd razor-server && vagrant destroy -f razor-server && vagrant up razor-server
-    - name: Run vagrant up pxe
-      uses: nick-invision/retry@v1
-      with:
-        timeout_minutes: 10
-        max_attempts: 2
-        command: cd razor-server && vagrant destroy -f pxe && vagrant up pxe
-    - uses: actions/upload-artifact@v1
-      if: ${{ always() }}
-      with:
-        name: test-razor-server-log
-        path: ./log
 
   test-libvirt:
     name: Test libvirt
@@ -254,46 +161,6 @@ jobs:
     - run: vboxmanage --version
     - run: sudo pfctl -s all
     - run: sysctl -a
-
-
-  # test-deploy-image:
-  #   name: Test deploy image
-  #   timeout-minutes: 10
-  #   runs-on: macos-latest
-  #   needs: [build-deploy-image, build-kubernetes]
-  #   env:
-  #     TARGET_DIR: './deploy-image'
-  #   steps:
-  #   - uses: actions/checkout@v1
-  #   - run: chmod 0400 scripts/keys/id_rsa
-  #   - run: ./scripts/load_env.sh
-  #   - run: brew install qemu cdrtools hivemind hyperkit miniserve coreutils
-  #   # Allow miniserve in the macos firewall
-  #   - run: |
-  #       APP=$(greadlink -f `which miniserve`)
-  #       sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add $APP
-  #       sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp $APP
-  #   - uses: actions/setup-ruby@v1
-  #     with:
-  #       ruby-version: '2.6'
-
-  #   - uses: actions/download-artifact@v1
-  #     with:
-  #       name: deploy-image
-  #       path: ./deploy-image/images/deploy-image
-  #   - uses: actions/download-artifact@v1
-  #     with:
-  #       name: kubernetes
-  #       path: ./deploy-image/images/kubernetes
-
-  #   - working-directory: ${{ env.TARGET_DIR }}
-  #     run: gem install bundler:2.1.4
-
-  #   - working-directory: ${{ env.TARGET_DIR }}
-  #     run: bundle install
-
-  #   - working-directory: ${{ env.TARGET_DIR }}
-  #     run: bundle exec rspec
 
   # test-kubernetes:
   #   name: Test kubernetes image
