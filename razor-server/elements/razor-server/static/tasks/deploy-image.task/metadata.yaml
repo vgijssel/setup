@@ -1,6 +1,0 @@
-# https://github.com/puppetlabs/razor-server/wiki/Tasks
-os_version: Debian
-description: Install OS using deploy image system
-boot_sequence:
-  1: boot_install
-  default: boot_local

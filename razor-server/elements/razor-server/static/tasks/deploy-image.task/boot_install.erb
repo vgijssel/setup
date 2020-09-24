@@ -1,9 +1,0 @@
-#!ipxe
-echo Razor <%= task.label %> task boot_call
-echo Installation node: <%= node_url  %>
-echo Installation repo: <%= repo_url %>
-sleep 3
-
-kernel <%= repo_url("deploy-image/deploy-image.kernel") %> <%= render_template("kernel_args").strip %> || goto error
-initrd <%= repo_url("deploy-image/deploy-image.initramfs") %> || goto error
-boot

@@ -1,9 +1,0 @@
-curl:
-wget:
-apt-transport-https:
-ca-certificates:
-postgresql-10:
-dnsmasq:
-ruby:
-razor-server:
-jq:
