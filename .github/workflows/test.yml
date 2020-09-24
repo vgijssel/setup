@@ -25,20 +25,6 @@ jobs:
     - run: ./scripts/load_env.sh
     - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
 
-  build-dnsmasq:
-    name: Build dnsmasq image
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    needs: build-image-builder
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/load_env.sh
-    - run: image_build.sh ./dnsmasq/image.cfg
-    - uses: actions/upload-artifact@v1
-      with:
-        name: dnsmasq
-        path: ./image
-
   build-libvirt:
     name: Build libvirt image
     timeout-minutes: 15
@@ -67,61 +53,64 @@ jobs:
         name: kubernetes
         path: ./image
 
-  test-libvirt:
-    name: Test libvirt
-    timeout-minutes: 60
-    runs-on: macos-latest
-    needs: [build-libvirt, build-dnsmasq, build-kubernetes]
-    env:
-      TARGET_DIR: './libvirt'
+  build-digital-rebar:
+    name: Build digital rebar image
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    needs: build-image-builder
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - uses: actions/download-artifact@v1
-      with:
-        name: dnsmasq
-        path: ./image
-    - uses: actions/download-artifact@v1
-      with:
-        name: libvirt
-        path: ./image
-    - uses: actions/download-artifact@v1
-      with:
-        name: kubernetes
-        path: ./image
-    - run: brew install qemu cdrtools terraform libvirt pkg-config gnu-tar coreutils
-    - uses: actions/setup-go@v2
-      with:
-        go-version: 1.12
-    - run: box_build.sh ./dnsmasq/image.cfg
-    - run: ./libvirt/setup_github.sh
-    - name: Run box_build.sh ./libvirt/image.cfg
-      uses: nick-invision/retry@v1
-      with:
-        timeout_minutes: 10
-        max_attempts: 2
-        command: box_build.sh ./libvirt/image.cfg
-    - name: Run vagrant up dnsmasq
-      uses: nick-invision/retry@v1
-      with:
-        timeout_minutes: 2
-        max_attempts: 2
-        command: cd libvirt && vagrant destroy -f dnsmasq && vagrant up dnsmasq
-    - name: Run vagrant up libvirt
-      uses: nick-invision/retry@v1
-      with:
-        timeout_minutes: 6
-        max_attempts: 2
-        command: cd libvirt && vagrant destroy -f libvirt && vagrant up libvirt
-    - working-directory: ${{ env.TARGET_DIR }}
-      run: terraform init
-    - working-directory: ${{ env.TARGET_DIR }}
-      run: terraform apply -auto-approve
+    - run: image_build.sh ./digital-rebar/image.cfg
     - uses: actions/upload-artifact@v1
-      if: ${{ always() }}
       with:
-        name: test-libvirt-log
-        path: ./log
+        name: digital-rebar
+        path: ./image
+
+  # test-libvirt:
+  #   name: Test libvirt
+  #   timeout-minutes: 60
+  #   runs-on: macos-latest
+  #   needs: [build-libvirt, build-kubernetes]
+  #   env:
+  #     TARGET_DIR: './libvirt'
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/load_env.sh
+  #   - uses: actions/download-artifact@v1
+  #     with:
+  #       name: libvirt
+  #       path: ./image
+  #   - uses: actions/download-artifact@v1
+  #     with:
+  #       name: kubernetes
+  #       path: ./image
+  #   - run: brew install qemu cdrtools terraform libvirt pkg-config gnu-tar coreutils
+  #   - uses: actions/setup-go@v2
+  #     with:
+  #       go-version: 1.12
+  #   - run: ./libvirt/setup_github.sh
+  #   - name: Run box_build.sh ./libvirt/image.cfg
+  #     uses: nick-invision/retry@v1
+  #     with:
+  #       timeout_minutes: 10
+  #       max_attempts: 2
+  #       command: box_build.sh ./libvirt/image.cfg
+  #   - name: Run vagrant up libvirt
+  #     uses: nick-invision/retry@v1
+  #     with:
+  #       timeout_minutes: 6
+  #       max_attempts: 2
+  #       command: cd libvirt && vagrant destroy -f libvirt && vagrant up libvirt
+  #   - working-directory: ${{ env.TARGET_DIR }}
+  #     run: terraform init
+  #   - working-directory: ${{ env.TARGET_DIR }}
+  #     run: terraform apply -auto-approve
+  #   - uses: actions/upload-artifact@v1
+  #     if: ${{ always() }}
+  #     with:
+  #       name: test-libvirt-log
+  #       path: ./log
 
   macos-info:
     name: Print macos vm information
