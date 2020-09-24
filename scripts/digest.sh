@@ -52,11 +52,8 @@ FILES=($(git ls-files $(echo "${LIST[@]}") | LC_ALL=C sort ))
 # --mode=0600 normalises the file permissions as well
 CHECKSUM=($(printf "%s\n" "${FILES[@]}" | tar --sort=name --owner=root:0 --group=root:0 --mtime='UTC 2019-01-01' --mode=0600 --no-recursion --format=gnu -cf - -T - | sha256sum))
 
-# calculating the relative dir path, the digest works for different systems
-RELATIVE_IMAGE_DIR=$(realpath --relative-to=$SETUP_ROOT_DIR $SETUP_IMAGE_DIR)
-
 # sha256sum returns the checksum and a placeholder "-" to represent
 # that no file in the input. We're only interested in the checksum so only getting that at index 0
 popd > /dev/null
 
-echo "${RELATIVE_IMAGE_DIR}/${IMAGE_NAME}-${CHECKSUM[0]}"
+echo "${CHECKSUM[0]}"

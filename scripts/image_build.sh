@@ -5,9 +5,10 @@ set -Eeoux pipefail
 IMAGE_CONFIG_FILE="$1"
 source "${IMAGE_CONFIG_FILE}"
 
-DISK_IMAGE_DIR=$(digest.sh "${IMAGE_CONFIG_FILE}")
-DISK_IMAGE_HOST_DIR="${SETUP_ROOT_DIR}/${DISK_IMAGE_DIR}"
-DISK_IMAGE_DOCKER_PATH="${DISK_IMAGE_DIR}/${IMAGE_NAME}"
+IMAGE_INFO=$(image_info.sh "$IMAGE_CONFIG_FILE")
+DISK_IMAGE_DIR=$(echo "$IMAGE_INFO" | jq -r ".relative_dir")
+DISK_IMAGE_HOST_DIR=$(echo "$IMAGE_INFO" | jq -r ".absolute_dir")
+DISK_IMAGE_DOCKER_PATH=$(echo "$IMAGE_INFO" | jq -r ".relative_name")
 
 # Try to restore the directory from cache
 if [[ "${CI_SEMAPHORE}" = true ]]; then

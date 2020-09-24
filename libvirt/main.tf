@@ -17,12 +17,12 @@ provider "drp" {
 # TODO: how to recover machines in building state in resource pool?
 # TODO: failed machine does not show up as failing in terraform
 
-data "external" "libvirt_digest" {
-  program = ["terraform_digest.sh", "${path.module}/image.cfg"]
+data "external" "image_info" {
+  program = ["image_info.sh", "${path.module}/image.cfg"]
 }
 
 locals {
-  libvirt_image        = "../${data.external.libvirt_digest.result.result}/libvirt.tgz"
+  libvirt_image        = "../${data.external.image_info.result.relative_path_tgz}"
   remote_libvirt_image = "images/libvirt.tgz"
 }
 

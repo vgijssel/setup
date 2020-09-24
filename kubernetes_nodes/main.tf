@@ -10,12 +10,12 @@ terraform {
   }
 }
 
-data "external" "kubernetes_digest" {
-  program = ["terraform_digest.sh", "${path.module}/image.cfg"]
+data "external" "image_info" {
+  program = ["image_info.sh", "${path.module}/image.cfg"]
 }
 
 locals {
-  kubernetes_image = "../${data.external.kubernetes_digest.result.result}/kubernetes_buster.qcow2"
+  kubernetes_image = "../${data.external.image_info.result.relative_path_qcow}"
 }
 
 provider "libvirt" {
