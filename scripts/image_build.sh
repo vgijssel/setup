@@ -40,6 +40,8 @@ export DIB_DEV_USER_PASSWORD=devuser
 export DIB_RELEASE="${DIB_RELEASE:-bionic}"
 
 # TODO: maybe mount the global volume as read only?
+# TODO: mounting the cache directory in docker volume seems to make docker crash :')
+# --env DIB_IMAGE_CACHE="$SETUP_ROOT_DIR/tmp/cache_image_build" \
 CONTAINER=$(
   docker run \
     --rm \
