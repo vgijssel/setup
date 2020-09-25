@@ -45,8 +45,8 @@ cp -v $OVF_FILE $TMP_OVF
 cat <<EOF | tee $TMP_DIR/user-data
 #cloud-config
 users:
-  - name: debian
-    plain_text_passwd: debian
+  - name: ubuntu
+    plain_text_passwd: ubuntu
 
     # So we can login at the console
     lock_passwd: false
@@ -57,17 +57,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
 
     ssh_authorized_keys:
-    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzfw0T40U3c6+7M7yZ9M0cEJNUXcxgGN+pyVYNdaTFdSl6981EhkFRGWmXzPRs628dnz5agH66ZI6dFY/tnzl3/XBiDgCfNekk9C2fszKfXEaIWotroZhQUFdjSupW8wot/a5STHaNlkiJ9+n9T8wK+tWBmDQrW2o9AdcevRamYAy14bSNC0QKQCuN54wrd3slcBOMYMQVCc7gQWSBKXfgN7IpumhT7zjvxA7hzU8/yr9Voz2g7vh8KWcEohXmnojXXTS9xQ5GC+Fp6jWyF9DCEmJTHN1Qx+no91M0p6O9SBSxfKyK6f4jlY0Zop9B0cDKxHLc2iKxTpErEkl0mnWr test@localhost
-
-  - name: vagrant
-    plain_text_passwd: vagrant
-    lock_passwd: false
-    shell: /bin/bash
-    sudo: ALL=(ALL) NOPASSWD:ALL
-
-    ssh_authorized_keys:
-    - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key
-
+    - $(cat "$PUBLIC_KEY_PATH")
 EOF
 
 # Create cloud-init meta-data
@@ -87,14 +77,20 @@ mkisofs \
     -joliet \
     -rock {$TMP_DIR/user-data,$TMP_DIR/meta-data}
 
+if [[ "$CI" = false ]]; then
+    EXTRA_PACKER_ARGS="-on-error=ask"
+fi
+
 if [[ "$USE_PACKER" = true ]]; then
   packer build \
+    "$EXTRA_PACKER_ARGS" \
     -var "provisioners_dir=$PROVISIONERS_DIR" \
     -var "source_path=$TMP_OVF" \
     -var "output=$VAGRANT_FILE" \
     -var "output_directory=$TMP_PACKER_OUTPUT_DIR" \
     -var "cloud_init_iso=$TMP_CLOUD_INIT" \
     -var "vm_log_file=$VM_LOG_FILE" \
+    -var "private_key_path=$PRIVATE_KEY_PATH" \
     -force \
     $QCOW_TO_VAGRANT_DIR/packer.json
 else

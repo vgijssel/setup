@@ -5,7 +5,8 @@
     "provisioners_dir": "",
     "output": "",
     "cloud_init_iso": "",
-    "vm_log_file": ""
+    "vm_log_file": "",
+    "private_key_path": ""
   },
   "builders": [
     {
@@ -13,8 +14,8 @@
       "format": "ovf",
       "output_directory": "packer_output",
       "source_path": "{{user `source_path`}}",
-      "ssh_username": "vagrant",
-      "ssh_password": "vagrant",
+      "ssh_username": "ubuntu",
+      "ssh_private_key_file": "{{user `private_key_path`}}",
       "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
       "guest_additions_mode": "attach",
       "guest_additions_interface": "IDE",
