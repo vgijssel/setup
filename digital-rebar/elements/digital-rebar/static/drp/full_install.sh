@@ -27,3 +27,7 @@ popd
 # TODO: Note we're want to set the unknownBootEnv to ignore as we're pre-registering the machines in digital rebar.
 # But this prevents regular workflow even for pre-registered machines.
 drpcli prefs set defaultWorkflow discover-new unknownBootEnv discovery defaultBootEnv sledgehammer defaultStage discover
+
+# reset cloud-init after the systemd-run session
+rm -fv /var/log/cloud-init-output.log /var/log/cloud-init.log /etc/network/interfaces.d/50-cloud-init.cfg
+cloud-init clean
