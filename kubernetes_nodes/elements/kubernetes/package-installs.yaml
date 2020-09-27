@@ -6,3 +6,6 @@ software-properties-common:
 iptables:
 arptables:
 ebtables:
+kubelet:
+kubeadm:
+kubectl:
