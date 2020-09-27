@@ -30,7 +30,7 @@ for path in ${ELEMENTS_PATH//:/ }; do
 done
 
 THIS_SCRIPT="$0"
-LIST="${DIRS[@]}"
+LIST=${DIRS[@]+"${DIRS[@]}"}
 
 # Adding the digest.sh script into the file list as well
 LIST="${IMAGE_CONFIG_FILE} ${THIS_SCRIPT} ${SETUP_SCRIPTS_DIR}/image_build.sh ${LIST}"
