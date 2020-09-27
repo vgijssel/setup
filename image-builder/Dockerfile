@@ -33,6 +33,7 @@ RUN apt-get update && \
     wget \
     sudo \
     qemu-utils \
+    qemu-user-static \
     iptables \
     kpartx \
     python3-pip \
