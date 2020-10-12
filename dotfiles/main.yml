@@ -13,6 +13,14 @@
       tags: ['mas']
 
   tasks:
+    - name: "Update ASDF Ruby plugin"
+      tags: ['lang']
+      command: asdf plugin-update ruby
+
+    - name: "Update ASDF Nodejs plugin"
+      tags: ['lang']
+      command: asdf plugin-update nodejs
+
     - import_role:
         name: markosamuli.asdf
       tags: ['lang']

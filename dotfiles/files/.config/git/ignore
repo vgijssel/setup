@@ -1,3 +1,9 @@
 .DS_Store
 .tool-versions
 .tern-port
+
+# .log folder is created bytaged files match any configured task.
+.log
+
+# .cache folder is necessary for typescript lsp
+.cache
