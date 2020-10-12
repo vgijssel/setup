@@ -10,3 +10,5 @@ terraform.zip
 terraform-provider-ansible.zip
 terraform-provider-libvirt.tar.gz
 scripts/terraform
+scripts/drpcli
+unifi
