@@ -15,6 +15,7 @@ GNU_GREP="${BREW_PREFIX}/opt/grep/libexec/gnubin"
 
 export PATH=\
 "/usr/local/bin/:"\
+"/usr/local/sbin/:"\
 "${HOME}/bin:"\
 "/Applications/Postgres.app/Contents/Versions/latest/bin:"\
 "${GNU_CORE_UTILS}:"\
@@ -30,6 +31,9 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export EDITOR="emacsclient -s ${HOME}/.emacs.d/server/server"
 export VISUAL="emacsclient -s ${HOME}/.emacs.d/server/server"
+# TODO hardcoding GOPATH here as it's not set by asdf plugin
+# see https://github.com/kennyp/asdf-golang/issues/28
+export GOPATH="${HOME}/.asdf/installs/golang/1.13/packages"
 export DOCKER_BUILDKIT=1
 
 export HISTFILE=~/.zsh_history

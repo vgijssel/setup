@@ -2,7 +2,10 @@
 homebrew_installed_packages:
   - windmilleng/tap/tilt
   - docker-machine-driver-hyperkit
-  - kubernetes-cli
+
+  - kubernetes-cli # kubectl for interaction with kubernetes clusters
+  - kustomize # for building/handling/changing kubernetes manifests
+
   - ansible
 
   - exiftool # show/mutate EXIF information of documents
@@ -22,12 +25,24 @@ homebrew_installed_packages:
   - zsh # brew version of zsh
 
   - v8@3.15 # the ruby racer gem
+  - gcc # To be able to compile libv8 with libc++
+  - pkg-config # Helper tool for compiling applications
   - imagemagick # otherwise Rails image upload no work
 
   - dnsmasq
+  - cdrtools # contains mkisofs for making cloud-init images
+  - minikube # for running kubernetes locally
+  - hyperkit # running virtual machines on macos for testing
+  - hivemind # for running multiple virtual machines from procfile
+  - dnsmasq # for custom DNS / DHCP
+  - dhcping # for debugging DHCP responses
+
+  - nektos/tap/act # For running GitHub actions locally
+  - semaphoreci/tap/sem # Semaphore CI command line tool
 
   # Emacs
-  - emacs-plus
+  # TODO: install using these instructions https://github.com/koekeishiya/yabai/issues/86#issuecomment-529935058
+  - emacs-mac
   - aspell # spellchecking
   - ag # silversearcher
   - ripgrep # search
@@ -67,12 +82,14 @@ homebrew_taps:
   - homebrew/cask-fonts
   - homebrew/services
   - windmilleng/tap
-  - d12frosted/emacs-plus
+  - railwaycat/emacsmacport
 
 homebrew_cask_appdir: /Applications
 homebrew_cask_apps:
   - minikube
+  - visual-studio-code
   - multipass
+  - amethyst
   - ngrok
   - virtualbox
   - gpg-suite
@@ -81,12 +98,16 @@ homebrew_cask_apps:
   - iterm2
   - rubymine
   - adobe-creative-cloud
+  - alfred # advanced alternative to macos spotlight
+  - postman # for doing API calls
+  - balenaetcher # utility for flashing disk images to sd card for raspberry pi
 
   # TODO: force reload of the installed fonts (by manually installing one)
   # will make these fonts available
   - font-source-code-pro
   - font-source-code-pro-for-powerline
   - font-menlo-for-powerline
+  - font-fira-mono
 
 # Use `mas search <<appname>>` to get the id and name
 mas_installed_apps:
@@ -105,6 +126,7 @@ languages:
       - name: tern # spacemacs javascript layer
       - name: eslint_d # daemon for eslint
       - name: eslint # linting in javascript
+      - name: eslint-plugin-graphql # linting in javascript
       - name: prettier # spacemacs javascript autofixer
       - name: fx # json viewer for the terminal
       - name: vmd # spacemacs markdown layer
@@ -113,17 +135,9 @@ languages:
       - name: typescript # typescript
       - name: speedscope # profiling presentation
       - name: depcheck # tool for checking used dependencies in a JS project
-    global: 12.15.0
+    global: 12.18.4
     versions:
-      - version: 12.13.0
-        packages: []
-      - version: 12.14.0
-        packages: []
-      - version: 12.15.0
-        packages: []
-      - version: 12.0.0
-        packages: []
-      - version: 10.16.3
+      - version: 12.18.4
         packages: []
 
   ruby:
@@ -135,17 +149,15 @@ languages:
       - name: solargraph
       - name: ruby-debug-ide
       - name: debase
-    global: 2.6.5
+      - name: razor-client # for communication with the razor-server
+      - name: mkpasswd # for generating password hashes for cloud-init
+      - name: mailcatcher # email server to send local development emails to
+      - name: git-merge-structure-sql # good merge strategy for structure.sql files
+    global: 2.6.6
     versions:
-      - version: 2.6.5
-        # There is no 2.6.5 available in `solargraph available-cores`
-        solargraph: 2.6.1
+      - version: 2.6.6
+        # There is no 2.6.6 available in `solargraph available-cores`
+        solargraph: 2.6.5
         gems:
-          - { name: bundler, version: 1.17.3 }
           - { name: bundler, version: 2.1.4 }
-          - { name: rubocop, version: 0.73.0 }
-      - version: 2.5.3
-        solargraph: 2.5.3
-        gems:
-          - { name: bundler, version: 2.0.1 }
-          - { name: rubocop }
+          - { name: rubocop, version: 0.79.0 }
