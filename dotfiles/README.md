@@ -1,5 +1,15 @@
 # Bootstrap
 
+
+```bash
+ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mvgijssel/setup/feature/bootstrap-script/dotfiles/bootstrap.sh)" 
+```
+
+
+
+
+
+
 Copy things from https://github.com/elnappo/dotfiles/blob/master/init/setup.sh
 
 ```shell
