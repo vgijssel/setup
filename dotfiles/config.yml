@@ -98,7 +98,8 @@ homebrew_cask_apps:
   - multipass
   - amethyst
   - ngrok
-  - virtualbox
+  # First install of virtualbox will always fail because system extensions need to be approved
+  - { name: virtualbox, allow_failure: true }
   - gpg-suite
   - 1password-cli
   - steam

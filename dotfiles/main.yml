@@ -31,6 +31,10 @@
         state: present
       loop: "{{ homebrew_installed_packages }}"
       tags: ['homebrew']
+      register: result
+      failed_when:
+        - result.failed
+        - item.allow_failure | default(false)
 
     - name: Install Homebrew cask packages
       homebrew_cask:
@@ -39,6 +43,10 @@
         install_options: "{{ item.install_options | default('appdir=' + homebrew_cask_appdir) }}"
       loop: "{{ homebrew_cask_apps }}"
       tags: ['homebrew']
+      register: result
+      failed_when:
+        - result.failed
+        - item.allow_failure | default(false)
 
     - name: Install ASDF plugins
       command: "asdf plugin add {{ item.key }}"
