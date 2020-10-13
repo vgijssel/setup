@@ -48,6 +48,12 @@
         - result.failed
         - item.allow_failure | default(false)
 
+    - name: "Symlink all dotfiles"
+      tags: ['files']
+      command:  rcup -v
+      environment:
+        RCRC: "{{ lookup('env','HOME') }}/Development/setup/dotfiles/files/rcrc"
+
     - name: Install ASDF plugins
       command: "asdf plugin add {{ item.key }}"
       loop: "{{ languages | dict2items }}"
@@ -141,12 +147,6 @@
     - name: "Clone all repositories"
       tags: ['git']
       command: mr checkout
-
-    - name: "Symlink all dotfiles"
-      tags: ['files']
-      command:  rcup -v
-      environment:
-        RCRC: "{{ lookup('env','HOME') }}/Development/setup/dotfiles/files/rcrc"
 
     # - name: "Sync secrets stored in 1password"
     #   tags: ['secrets']
