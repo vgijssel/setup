@@ -12,6 +12,7 @@ homebrew_installed_packages:
   - pstree # show parent/child relationship of processes
 
   - git
+  - svn #necessary for pull in fonts
   - gpg2
   - git-crypt
 

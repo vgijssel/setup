@@ -24,20 +24,20 @@
       tags: ['homebrew']
       loop: "{{ homebrew_taps }}"
 
-    - name: Install Homebrew cask packages
-      homebrew_cask:
-        name: "{{ item.name | default(item) }}"
-        state: present
-        install_options: "{{ item.install_options | default('appdir=' + homebrew_cask_appdir) }}"
-      loop: "{{ homebrew_cask_apps }}"
-      tags: ['homebrew']
-
     - name: Install Homebrew packages
       homebrew:
         name: "{{ item.name | default(item) }}"
         install_options: "{{ item.install_options | default(omit) }}"
         state: present
       loop: "{{ homebrew_installed_packages }}"
+      tags: ['homebrew']
+
+    - name: Install Homebrew cask packages
+      homebrew_cask:
+        name: "{{ item.name | default(item) }}"
+        state: present
+        install_options: "{{ item.install_options | default('appdir=' + homebrew_cask_appdir) }}"
+      loop: "{{ homebrew_cask_apps }}"
       tags: ['homebrew']
 
     - name: Install ASDF plugins
