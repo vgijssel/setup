@@ -84,7 +84,11 @@ zplugin $zplugin_load rupa/z
 zplugin ice $zplugin_plugin_output wait
 zplugin $zplugin_load changyuheng/fz
 
-zplugin ice $zplugin_plugin_output wait multisrc'asdf.zsh fzf.zsh gpg.zsh direnv.zsh benchmark.zsh'
+# Load asdf synchronously to work with ansible setup script
+zplugin ice $zplugin_plugin_output multisrc'asdf.zsh'
+zplugin $zplugin_load ~/.zsh
+
+zplugin ice $zplugin_plugin_output wait multisrc'fzf.zsh gpg.zsh direnv.zsh benchmark.zsh'
 zplugin $zplugin_load ~/.zsh
 
 zplugin ice $zplugin_plugin_output wait blockf atpull'zplugin creinstall -q .'
