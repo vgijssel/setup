@@ -52,12 +52,21 @@
         - item.allow_failure | default(false)
 
     - name: Set the ZSH version from brew
-      tags: ['user']
+      tags: ['shell']
       become: yes
       become_user: root
       user:
         name: "{{ current_user }}"
         shell: /usr/local/bin/zsh
+
+    - name: Ensure proper permissions for ZSH
+      tags: ['shell']
+      become: yes
+      become_user: root
+      file:
+        path: /usr/local/share/zsh
+        recurse: yes
+        mode: '0755'
 
     - name: "Symlink all dotfiles"
       tags: ['files']
