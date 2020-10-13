@@ -91,6 +91,8 @@ homebrew_taps:
 homebrew_cask_appdir: /Applications
 
 homebrew_cask_apps:
+  - resilio-sync
+  - viscosity
   - visual-studio-code
   - multipass
   - amethyst
