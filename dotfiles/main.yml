@@ -7,12 +7,9 @@
   vars_files:
     - config.yml
 
-  # roles:
-  #   - role: geerlingguy.homebrew
-  #     tags: ['homebrew']
-
-  #   - role: geerlingguy.mas
-  #     tags: ['mas']
+  roles:
+    - role: geerlingguy.mas
+      tags: ['mas']
 
   tasks:
     - name: Update Homebrew
