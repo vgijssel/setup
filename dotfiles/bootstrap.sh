@@ -39,6 +39,9 @@ source .envrc
 # Navigate to the dotfiles directory
 cd "$SETUP_DOTFILES_DIR"
 
+# Install ansible dependencies
+ansible-galaxy install -r ./requirements.yml
+
 # Run the complete ansible playbook
 echo "$PASSWORD" | sudo -S ansible-playbook -i inventory main.yml
 
