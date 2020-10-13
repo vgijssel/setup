@@ -4,7 +4,7 @@ set -Eeou pipefail
 
 DEVELOPMENT_DIRECTORY="$HOME/Development"
 SETUP_DIRECTORY="$DEVELOPMENT_DIRECTORY/setup"
-CHECKOUT_BRANCH="$BRANCH"
+CHECKOUT_BRANCH="${BRANCH:-master}"
 
 echo "Password: "
 read -s PASSWORD
@@ -13,7 +13,7 @@ if test ! $(which brew); then
   echo "Installing homebrew..."
 
   # Doing a call with sudo before the homebrew installation makes sure that homebrew doesn't ask for a password
-  echo "$PASSWORD" | sudo -S exit 0
+  echo "$PASSWORD" | sudo -S whoami
 
   # The empty echo makes sure we don't need to press RETURN when installing homebrew
   echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
