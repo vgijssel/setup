@@ -201,11 +201,6 @@
         path: "{{ lookup('env','HOME') }}/.ssh/known_hosts"
         state: present
 
-    - name: Generate SSH key
-      tags: ['git']
-      openssh_keypair:
-        path: "{{ lookup('env','HOME') }}/.ssh/id_rsa"
-
     - name: Clone all repositories
       tags: ['git']
       command: mr checkout -j 8
