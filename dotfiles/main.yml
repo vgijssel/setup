@@ -73,7 +73,7 @@
 
     - name : Generate updated PATH
       shell: "source {{ lookup('env','HOME') }}/.zshrc; echo $PATH"
-      tags: ['shell']
+      tags: ['shell', 'lang']
       args:
          executable: /usr/local/bin/zsh
       register: updated_path
