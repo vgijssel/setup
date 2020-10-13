@@ -48,6 +48,12 @@
         - result.failed
         - item.allow_failure | default(false)
 
+    - name: Set the ZSH version from brew
+      tags: ['user']
+      user:
+        name: maarten
+        shell: /usr/local/bin/zsh
+
     - name: "Symlink all dotfiles"
       tags: ['files']
       command:  rcup -v
@@ -70,7 +76,7 @@
 
     - name: Install ASDF language versions
       include_tasks: asdf_install.yml
-      tags: ['lang', 'kerk']
+      tags: ['lang']
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
       loop_control:
         loop_var: language
