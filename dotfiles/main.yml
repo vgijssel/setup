@@ -104,7 +104,7 @@
       shell: "source {{ lookup('env','HOME') }}/.zshrc"
       tags: ['lang', 'test']
       args:
-         executable: /usr/local/share/zsh
+         executable: /usr/local/bin/zsh
       register: sourced
 
     - name: Show sourced output
