@@ -165,7 +165,9 @@ languages:
       - name: debase
       - name: razor-client # for communication with the razor-server
       - name: mkpasswd # for generating password hashes for cloud-init
+      # https://github.com/sj26/mailcatcher/issues/430
       - name: mailcatcher # email server to send local development emails to
+        build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
       - name: git-merge-structure-sql # good merge strategy for structure.sql files
     global: 2.6.6
     versions:

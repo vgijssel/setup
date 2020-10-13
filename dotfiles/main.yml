@@ -144,6 +144,7 @@
       gem:
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
+        build_flags: "{{ item[0].build_flags | default(None) }}"
         user_install: false
       with_nested:
         - "{{ languages.ruby.gems }}"
@@ -157,6 +158,7 @@
       gem:
         name: "{{ item[1].name }}"
         state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
+        build_flags: "{{ item[1].build_flags | default(None) }}"
         user_install: false
       with_subelements:
         - "{{ languages.ruby.versions }}"
