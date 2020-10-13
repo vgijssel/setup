@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -Eeoux pipefail
+set -Eeou pipefail
 
 DEVELOPMENT_DIRECTORY="$HOME/Development"
 SETUP_DIRECTORY="$DEVELOPMENT_DIRECTORY/setup"
@@ -22,14 +22,11 @@ else
 fi
 
 # Install git and ansible which we use to install the rest
-brew install git ansible
-
-# Create the Development directory
-mkdir -vp "$DEVELOPMENT_DIRECTORY"
+brew install git ansible || true
 
 if [[ ! -e "$SETUP_DIRECTORY" ]]; then
   echo "Setup directory not found, cloning."
-  git clone -b "$CHECKOUT_BRANCH" https://github.com/mvgijssel/setup.git "$DEVELOPMENT_DIRECTORY"
+  git clone -b "$CHECKOUT_BRANCH" https://github.com/mvgijssel/setup.git "$SETUP_DIRECTORY"
 else
   echo "Setup directory found '$SETUP_DIRECTORY'. Skipping clone"
 fi
@@ -44,3 +41,7 @@ cd "$SETUP_DOTFILES_DIR"
 
 # Run the complete ansible playbook
 echo "$PASSWORD" | sudo -S ansible-playbook -i inventory main.yml
+
+# Next steps
+echo "Now signin with 1password: 'eval \$(op signin my.1password.com)'"
+echo "And run: 'op_sync sync'"
