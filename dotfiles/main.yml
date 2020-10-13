@@ -2,7 +2,6 @@
 - hosts: all
   connection: local
   become: yes
-  become_user: maarten
 
   vars:
     current_user: "{{ ansible_user_id }}"
@@ -15,6 +14,10 @@
       tags: ['mas']
 
   tasks:
+    - name: Running playbook as user
+      debug:
+        msg: "Running as user: {{ current_user }}"
+
     - name: Update Homebrew
       homebrew:
         update_homebrew: yes

@@ -61,7 +61,7 @@ ansible-galaxy install -r ./requirements.yml
 
 # Run the complete ansible playbook
 set +x
-echo "$PASSWORD" | sudo -S ansible-playbook -i inventory main.yml
+echo "$PASSWORD" | sudo -S ansible-playbook -i inventory --become-user $(whoami) main.yml
 set -x
 
 # Next steps
