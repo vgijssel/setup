@@ -190,6 +190,8 @@
     - name: Clone all repositories
       tags: ['git']
       command: mr checkout
+      args:
+        chdir: "{{ lookup('env','HOME') }}"
 
     # - name: "Sync secrets stored in 1password"
     #   tags: ['secrets']
