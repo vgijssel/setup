@@ -9,6 +9,9 @@ CHECKOUT_BRANCH="${BRANCH:-master}"
 set +x
 echo "Password: "
 read -s PASSWORD
+
+# Immediately check if the password given is correct
+echo "$PASSWORD" | sudo -S whoami
 set -x
 
 if test ! $(which brew); then
