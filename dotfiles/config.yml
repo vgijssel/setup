@@ -20,6 +20,8 @@ homebrew_installed_packages:
 
   - asdf # language manager, Ruby/NodeJS/Golang/etc
 
+  - mr # myrepos tool to manage large number of repositories at the same time
+
   - rcm # tool for managing dotfiles
 
   # Terminal

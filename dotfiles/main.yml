@@ -130,27 +130,10 @@
       command: asdf reshim
       changed_when: False
 
-    # - name: "Generate a list of files"
-    #   tags: ['files']
-    #   set_fact:
-    #     files: |
-    #       {{
-    #         lookup('filetree', '.', wantlist=true) |
-    #         rejectattr('path', 'match', '.*\.DS_Store') |
-    #         list
-    #       }}
+    - name: "Clone all repositories"
+      tags: ['git']
+      command: mr checkout
 
-    # - name: "Create directory for file"
-    #   tags: ['files']
-    #   file: path="~/{{ item.path }}" state=directory
-    #   when: item.state == 'directory'
-    #   loop: "{{ files }}"
-
-    # - name: "Link file"
-    #   tags: ['files']
-    #   file: src="{{ item.src }}" dest="~/{{ item.path }}" state=link
-    #   when: item.state == 'file'
-    #   loop: "{{ files }}"
     - name: "Symlink all dotfiles"
       tags: ['files']
       command:  rcup -v
