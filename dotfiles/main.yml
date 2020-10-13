@@ -68,6 +68,18 @@
         recurse: yes
         mode: '0755'
 
+    - name : Generate updated PATH
+      shell: "source {{ lookup('env','HOME') }}/.zshrc; echo $PATH"
+      tags: ['shell', 'test']
+      args:
+         executable: /usr/local/bin/zsh
+      register: updated_path
+
+    - name: Show sourced output
+      tags: ['shell', 'test']
+      debug:
+        msg: '{{ updated_path }}'
+
     - name: "Symlink all dotfiles"
       tags: ['files']
       command:  rcup -v
@@ -100,22 +112,11 @@
       tags: ['lang']
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
 
-    - name : Source .zshrc
-      shell: "source {{ lookup('env','HOME') }}/.zshrc"
-      tags: ['lang', 'test']
-      args:
-         executable: /usr/local/bin/zsh
-      register: sourced
-
-    - name: Show sourced output
-      tags: ['lang', 'test']
-      debug:
-        msg: '{{sourced}}'
-
     - name: "Install Nodejs packages for all versions"
       tags: ['lang', 'test']
       environment:
         ASDF_NODEJS_VERSION: '{{ item[1] }}'
+        PATH: '{{ updated_path }}'
       npm:
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
