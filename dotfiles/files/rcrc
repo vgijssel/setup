@@ -1,0 +1,3 @@
+DOTFILES_DIRS="~/Development/setup/dotfiles/files"
+SYMLINK_DIRS="alfred iterm2"
+UNDOTTED="bin iterm2"

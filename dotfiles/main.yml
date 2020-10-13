@@ -151,6 +151,11 @@
     #   file: src="{{ item.src }}" dest="~/{{ item.path }}" state=link
     #   when: item.state == 'file'
     #   loop: "{{ files }}"
+    - name: "Symlink all dotfiles"
+      tags: ['files']
+      command:  rcup -v
+      environment:
+        RCRC: "{{ lookup('env','HOME') }}/Development/setup/dotfiles/files/rcrc"
 
     # - name: "Sync secrets stored in 1password"
     #   tags: ['secrets']
