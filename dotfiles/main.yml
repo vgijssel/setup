@@ -97,11 +97,23 @@
 
     - name: Set ASDF global versions
       command: "asdf global {{ item }} {{ languages[item].global }}"
-      tags: ['lang', 'kerk']
+      tags: ['lang']
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
 
+    - name : Source .zshrc
+      shell: source ~/.zshrc
+      tags: ['lang', 'test']
+      args:
+         executable: /usr/local/share/zsh
+      register: sourced
+
+    - name: Show sourced output
+      tags: ['lang', 'test']
+      debug:
+        msg: '{{sourced}}'
+
     - name: "Install Nodejs packages for all versions"
-      tags: ['lang']
+      tags: ['lang', 'test']
       environment:
         ASDF_NODEJS_VERSION: '{{ item[1] }}'
       npm:
