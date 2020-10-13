@@ -4,6 +4,7 @@ set -Eeoux pipefail
 
 DEVELOPMENT_DIRECTORY="$HOME/Development"
 SETUP_DIRECTORY="$DEVELOPMENT_DIRECTORY/setup"
+CHECKOUT_BRANCH="$BRANCH"
 
 echo "Password: "
 read -s PASSWORD
@@ -28,7 +29,7 @@ mkdir -vp "$DEVELOPMENT_DIRECTORY"
 
 if [[ ! -e "$SETUP_DIRECTORY" ]]; then
   echo "Setup directory not found, cloning."
-  git clone https://github.com/mvgijssel/setup.git "$DEVELOPMENT_DIRECTORY"
+  git clone -b "$CHECKOUT_BRANCH" https://github.com/mvgijssel/setup.git "$DEVELOPMENT_DIRECTORY"
 else
   echo "Setup directory found '$SETUP_DIRECTORY'. Skipping clone"
 fi

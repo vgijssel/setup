@@ -1,7 +1,7 @@
 # Bootstrap
 
 ```bash
- /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mvgijssel/setup/feature/bootstrap-script/dotfiles/bootstrap.sh)" 
+/bin/bash -c "$(export BRANCH=feature/bootstrap-script; curl -fsSL https://raw.githubusercontent.com/mvgijssel/setup/$BRANCH/dotfiles/bootstrap.sh)"
 ```
 
 ## TODOs
