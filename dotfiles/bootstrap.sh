@@ -40,7 +40,7 @@ else
 
   cd "$SETUP_DIRECTORY"
 
-  git pull
+  git pull origin "$CHECKOUT_BRANCH"
 fi
 
 cd "$SETUP_DIRECTORY"
