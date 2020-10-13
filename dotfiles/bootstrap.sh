@@ -31,8 +31,13 @@ brew install git ansible || true
 if [[ ! -e "$SETUP_DIRECTORY" ]]; then
   echo "Setup directory not found, cloning."
   git clone -b "$CHECKOUT_BRANCH" https://github.com/mvgijssel/setup.git "$SETUP_DIRECTORY"
+
 else
-  echo "Setup directory found '$SETUP_DIRECTORY'. Skipping clone"
+  echo "Setup directory found '$SETUP_DIRECTORY'. Pulling instead"
+
+  cd "$SETUP_DIRECTORY"
+
+  git pull
 fi
 
 cd "$SETUP_DIRECTORY"
@@ -42,6 +47,11 @@ source .envrc
 
 # Navigate to the dotfiles directory
 cd "$SETUP_DOTFILES_DIR"
+
+# Ensure that the ansible tmp directory is readable by removing it
+set +x
+echo "$PASSWORD" | sudo -S rm -vrf ~/.ansible/tmp
+set -x
 
 # Install ansible dependencies
 ansible-galaxy install -r ./requirements.yml
