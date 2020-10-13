@@ -189,7 +189,7 @@
 
     - name: Clone all repositories
       tags: ['git']
-      command: mr checkout
+      command: mr checkout -j 8
       args:
         chdir: "{{ lookup('env','HOME') }}"
 
