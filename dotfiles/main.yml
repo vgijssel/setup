@@ -187,6 +187,20 @@
       command: asdf reshim
       changed_when: False
 
+    - name: Get GitHub authorized key
+      tags: ['git']
+      command: ssh-keyscan -t rsa github.com
+      register: github_key
+
+    - name: Add GitHub authorized key to known hosts
+      tags: ['git']
+      known_hosts:
+        hash_host: false
+        name: github.com
+        key: "{{ github_key.stdout }}"
+        path: "{{ lookup('env','HOME') }}/.ssh/known_hosts"
+        state: present
+
     - name: Clone all repositories
       tags: ['git']
       command: mr checkout -j 8
