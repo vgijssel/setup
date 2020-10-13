@@ -18,6 +18,8 @@ homebrew_installed_packages:
   - mas
   - redis
 
+  - asdf # language manager, Ruby/NodeJS/Golang/etc
+
   # Terminal
   - direnv
   - fzf
@@ -40,9 +42,7 @@ homebrew_installed_packages:
   - nektos/tap/act # For running GitHub actions locally
   - semaphoreci/tap/sem # Semaphore CI command line tool
 
-  # Emacs
-  # TODO: install using these instructions https://github.com/koekeishiya/yabai/issues/86#issuecomment-529935058
-  - emacs-mac
+  - { name: emacs-plus@28, install_options: 'with-spacemacs-icon' }
   - aspell # spellchecking
   - ag # silversearcher
   - ripgrep # search
@@ -82,11 +82,11 @@ homebrew_taps:
   - homebrew/cask-fonts
   - homebrew/services
   - windmilleng/tap
-  - railwaycat/emacsmacport
+  - d12frosted/emacs-plus
 
 homebrew_cask_appdir: /Applications
+
 homebrew_cask_apps:
-  - minikube
   - visual-studio-code
   - multipass
   - amethyst
@@ -95,15 +95,15 @@ homebrew_cask_apps:
   - gpg-suite
   - 1password-cli
   - steam
-  - iterm2
+  - { name: iterm2, install_options: 'force' }
   - rubymine
   - adobe-creative-cloud
   - alfred # advanced alternative to macos spotlight
   - postman # for doing API calls
   - balenaetcher # utility for flashing disk images to sd card for raspberry pi
 
-  # TODO: force reload of the installed fonts (by manually installing one)
-  # will make these fonts available
+  # # TODO: force reload of the installed fonts (by manually installing one)
+  # # will make these fonts available
   - font-source-code-pro
   - font-source-code-pro-for-powerline
   - font-menlo-for-powerline
@@ -120,6 +120,12 @@ mas_upgrade_all_apps: true
 mas_signin_dialog: true
 
 languages:
+  golang:
+    global: 1.13
+    versions:
+      - version: 1.13
+        packages: []
+
   nodejs:
     packages:
       - name: yarn # package manager
