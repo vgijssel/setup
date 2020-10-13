@@ -78,7 +78,7 @@
          executable: /usr/local/bin/zsh
       register: updated_path
 
-    - name: "Symlink all dotfiles"
+    - name: Symlink all dotfiles
       tags: ['files']
       command:  rcup -v
       environment:
@@ -110,7 +110,7 @@
       tags: ['lang']
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
 
-    - name: "Install Nodejs packages for all versions"
+    - name: Install Nodejs packages for all versions
       tags: ['lang']
       environment:
         ASDF_NODEJS_VERSION: '{{ item[1] }}'
@@ -123,7 +123,7 @@
         - "{{ languages.nodejs.packages }}"
         - "{{ languages.nodejs.versions | map(attribute='version') | list }}"
 
-    - name: "Install Nodejs packages specific for version"
+    - name: Install Nodejs packages specific for version
       tags: ['lang']
       environment:
         ASDF_NODEJS_VERSION: '{{ item[0].version }}'
@@ -136,7 +136,7 @@
         - "{{ languages.nodejs.versions }}"
         - packages
 
-    - name: "Install Ruby gems for all versions"
+    - name: Install Ruby gems for all versions
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item[1] }}'
@@ -150,7 +150,7 @@
         - "{{ languages.ruby.gems }}"
         - "{{ languages.ruby.versions | map(attribute='version') | list }}"
 
-    - name: "Install Ruby gems specific for version"
+    - name: Install Ruby gems specific for version
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item[0].version }}'
@@ -164,7 +164,7 @@
         - "{{ languages.ruby.versions }}"
         - gems
 
-    - name: "Install solargraph documentation"
+    - name: Install solargraph documentation
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item.version }}'
@@ -173,7 +173,7 @@
       changed_when: False
       loop: "{{ languages.ruby.versions }}"
 
-    - name: "Generate YARD documentation for all Ruby versions"
+    - name: Generate YARD documentation for all Ruby versions
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item }}'
@@ -182,12 +182,12 @@
       changed_when: False
       loop: "{{ languages.ruby.versions | map(attribute='version') | list }}"
 
-    - name: "Reshim asdf"
+    - name: Reshim asdf
       tags: ['lang']
       command: asdf reshim
       changed_when: False
 
-    - name: "Clone all repositories"
+    - name: Clone all repositories
       tags: ['git']
       command: mr checkout
 
