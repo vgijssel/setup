@@ -95,6 +95,11 @@
       loop_control:
         loop_var: language
 
+    - name: Set ASDF global versions
+      command: "asdf global {{ item }} {{ languages[item].global }}"
+      tags: ['lang', 'kerk']
+      loop: "{{ languages | dict2items | map(attribute='key') | list }}"
+
     - name: "Install Nodejs packages for all versions"
       tags: ['lang']
       environment:
