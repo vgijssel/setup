@@ -101,7 +101,7 @@
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
 
     - name : Source .zshrc
-      shell: source ~/.zshrc
+      shell: "source {{ lookup('env','HOME') }}/.zshrc"
       tags: ['lang', 'test']
       args:
          executable: /usr/local/share/zsh
