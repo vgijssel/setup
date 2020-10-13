@@ -4,6 +4,9 @@
   become: yes
   become_user: maarten
 
+  vars:
+    current_user: "{{ ansible_user_id }}"
+
   vars_files:
     - config.yml
 
@@ -50,8 +53,10 @@
 
     - name: Set the ZSH version from brew
       tags: ['user']
+      become: yes
+      become_user: root
       user:
-        name: maarten
+        name: "{{ current_user }}"
         shell: /usr/local/bin/zsh
 
     - name: "Symlink all dotfiles"
