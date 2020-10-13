@@ -15,7 +15,7 @@ homebrew_installed_packages:
   - gpg2
   - git-crypt
 
-  - mas
+  - mas # cli tool to install Apple App Store apps
   - redis
 
   - asdf # language manager, Ruby/NodeJS/Golang/etc
