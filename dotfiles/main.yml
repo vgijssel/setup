@@ -1,43 +1,68 @@
 ---
 - hosts: all
   connection: local
+  become: yes
+  become_user: maarten
 
   vars_files:
     - config.yml
 
-  roles:
-    - role: geerlingguy.homebrew
-      tags: ['homebrew']
+  # roles:
+  #   - role: geerlingguy.homebrew
+  #     tags: ['homebrew']
 
-    - role: geerlingguy.mas
-      tags: ['mas']
+  #   - role: geerlingguy.mas
+  #     tags: ['mas']
 
   tasks:
-    - name: "Update ASDF Ruby plugin"
+    - name: Update Homebrew
+      homebrew:
+        update_homebrew: yes
+      tags: ['homebrew']
+
+    - name: Setup Homebrew taps
+      homebrew_tap:
+        name: "{{ item }}"
+        state: present
+      tags: ['homebrew']
+      loop: "{{ homebrew_taps }}"
+
+    - name: Install Homebrew cask packages
+      homebrew_cask:
+        name: "{{ item.name | default(item) }}"
+        state: present
+        install_options: "{{ item.install_options | default('appdir=' + homebrew_cask_appdir) }}"
+      loop: "{{ homebrew_cask_apps }}"
+      tags: ['homebrew']
+
+    - name: Install Homebrew packages
+      homebrew:
+        name: "{{ item.name | default(item) }}"
+        install_options: "{{ item.install_options | default(omit) }}"
+        state: present
+      loop: "{{ homebrew_installed_packages }}"
+      tags: ['homebrew']
+
+    - name: Install ASDF plugins
+      command: "asdf plugin add {{ item.key }}"
+      loop: "{{ languages | dict2items }}"
       tags: ['lang']
-      command: asdf plugin-update ruby
+      register: result
+      failed_when:
+        - result.rc != 0
+        - '"already added" not in result.stderr'
 
-    - name: "Update ASDF Nodejs plugin"
+    - name: Update ASDF plugins
+      command: "asdf plugin update {{ item.key }}"
+      loop: "{{ languages | dict2items }}"
       tags: ['lang']
-      command: asdf plugin-update nodejs
 
-    - import_role:
-        name: markosamuli.asdf
-      tags: ['lang']
-      vars:
-        asdf_plugins:
-        - name: "ruby"
-          versions: "{{ languages.ruby.versions | map(attribute='version') | list }}"
-          global: "{{ languages.ruby.global }}"
-
-        - name: "python"
-          versions:
-            - 2.7.17
-          global: 2.7.17
-
-        - name: "nodejs"
-          versions: "{{ languages.nodejs.versions | map(attribute='version') | list }}"
-          global: "{{ languages.nodejs.global }}"
+    - name: Install ASDF language versions
+      include_tasks: asdf_install.yml
+      tags: ['lang', 'kerk']
+      loop: "{{ languages | dict2items | map(attribute='key') | list }}"
+      loop_control:
+        loop_var: language
 
     - name: "Install Nodejs packages for all versions"
       tags: ['lang']
@@ -108,34 +133,34 @@
       command: asdf reshim
       changed_when: False
 
-    - name: "Generate a list of files"
-      tags: ['files']
-      set_fact:
-        files: |
-          {{
-            lookup('filetree', '.', wantlist=true) |
-            rejectattr('path', 'match', '.*\.DS_Store') |
-            list
-          }}
+    # - name: "Generate a list of files"
+    #   tags: ['files']
+    #   set_fact:
+    #     files: |
+    #       {{
+    #         lookup('filetree', '.', wantlist=true) |
+    #         rejectattr('path', 'match', '.*\.DS_Store') |
+    #         list
+    #       }}
 
-    - name: "Create directory for file"
-      tags: ['files']
-      file: path="~/{{ item.path }}" state=directory
-      when: item.state == 'directory'
-      loop: "{{ files }}"
+    # - name: "Create directory for file"
+    #   tags: ['files']
+    #   file: path="~/{{ item.path }}" state=directory
+    #   when: item.state == 'directory'
+    #   loop: "{{ files }}"
 
-    - name: "Link file"
-      tags: ['files']
-      file: src="{{ item.src }}" dest="~/{{ item.path }}" state=link
-      when: item.state == 'file'
-      loop: "{{ files }}"
+    # - name: "Link file"
+    #   tags: ['files']
+    #   file: src="{{ item.src }}" dest="~/{{ item.path }}" state=link
+    #   when: item.state == 'file'
+    #   loop: "{{ files }}"
 
-    - name: "Sync secrets stored in 1password"
-      tags: ['secrets']
-      command: op_sync sync
-      register: op_sync
-      changed_when: (op_sync.stdout | from_json)['total_updates'] > 0
+    # - name: "Sync secrets stored in 1password"
+    #   tags: ['secrets']
+    #   command: op_sync sync
+    #   register: op_sync
+    #   changed_when: (op_sync.stdout | from_json)['total_updates'] > 0
 
-    - name: "Restart gpg-agent"
-      tags: ['secrets']
-      command: gpgconf --reload gpg-agent
+    # - name: "Restart gpg-agent"
+    #   tags: ['secrets']
+    #   command: gpgconf --reload gpg-agent
