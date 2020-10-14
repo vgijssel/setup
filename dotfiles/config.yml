@@ -19,8 +19,6 @@ homebrew_installed_packages:
   - mas # cli tool to install Apple App Store apps
   - redis
 
-  - asdf # language manager, Ruby/NodeJS/Golang/etc
-
   - mr # myrepos tool to manage large number of repositories at the same time
 
   - rcm # tool for managing dotfiles

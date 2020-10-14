@@ -66,7 +66,7 @@ zplugin_plugin_output=lucid
 
 # https://github.com/zdharma/zplugin#loading-and-unloading
 # controls how many features loading a plugin has: load,light
-# $zplugin_load is faster, load allows for reporting
+# light is faster, load allows for reporting
 zplugin_load=light
 
 zplugin ice $zplugin_plugin_output pick"async.zsh" src"pure.zsh"
@@ -84,11 +84,13 @@ zplugin $zplugin_load rupa/z
 zplugin ice $zplugin_plugin_output wait
 zplugin $zplugin_load changyuheng/fz
 
-# Load asdf synchronously to work with ansible setup script
-zplugin ice $zplugin_plugin_output multisrc'asdf.zsh'
-zplugin $zplugin_load ~/.zsh
+source ~/.zsh/asdf.zsh
 
-zplugin ice $zplugin_plugin_output wait multisrc'fzf.zsh gpg.zsh direnv.zsh benchmark.zsh'
+if [ -e "$HOME/.zsh/github.zsh" ]; then
+  source $HOME/.zsh/github.zsh
+fi
+
+zplugin ice $zplugin_plugin_output wait multisrc'fzf.zsh direnv.zsh benchmark.zsh'
 zplugin $zplugin_load ~/.zsh
 
 zplugin ice $zplugin_plugin_output wait blockf atpull'zplugin creinstall -q .'

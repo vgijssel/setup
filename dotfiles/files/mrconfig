@@ -15,3 +15,6 @@ checkout = git clone 'https://github.com/laramies/theHarvester.git' 'theHarveste
 
 [Development/arel_toolkit]
 checkout = git clone 'https://github.com/mvgijssel/arel_toolkit.git' 'arel_toolkit'
+
+[.asdf]
+checkout = git clone 'https://github.com/asdf-vm/asdf.git' '.asdf'
