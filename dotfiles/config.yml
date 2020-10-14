@@ -92,6 +92,7 @@ homebrew_taps:
 homebrew_cask_appdir: /Applications
 
 homebrew_cask_apps:
+  - docker
   - resilio-sync
   - viscosity
   - visual-studio-code

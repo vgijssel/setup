@@ -65,5 +65,4 @@ echo "$PASSWORD" | sudo -S ansible-playbook -i inventory --become-user $(whoami)
 set -x
 
 # Next steps
-echo "Now signin with 1password: 'eval \$(op signin my.1password.com)'"
-echo "And run: 'op_sync sync'"
+echo "Sync vault secrets using: 'op_sync sync'"
