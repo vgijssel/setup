@@ -163,6 +163,8 @@
       loop: "{{ languages | dict2items }}"
       tags: ['lang']
       register: result
+      environment:
+        PATH: '{{ updated_path }}'
       failed_when:
         - result.rc != 0
         - '"already added" not in result.stderr'
@@ -171,6 +173,8 @@
       command: "asdf plugin update {{ item.key }}"
       loop: "{{ languages | dict2items }}"
       tags: ['lang']
+      environment:
+        PATH: '{{ updated_path }}'
 
     - name: Install ASDF language versions
       include_tasks: asdf_install.yml
@@ -178,11 +182,15 @@
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
       loop_control:
         loop_var: language
+      environment:
+        PATH: '{{ updated_path }}'
 
     - name: Set ASDF global versions
       command: "asdf global {{ item }} {{ languages[item].global }}"
       tags: ['lang']
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
+      environment:
+        PATH: '{{ updated_path }}'
 
     - name: Install Nodejs packages for all versions
       tags: ['lang']
@@ -260,6 +268,8 @@
       tags: ['lang']
       command: asdf reshim
       changed_when: False
+      environment:
+        PATH: '{{ updated_path }}'
 
     # - name: "Sync secrets stored in 1password"
     #   tags: ['secrets']

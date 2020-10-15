@@ -10,6 +10,7 @@ blocks:
     task:
       jobs:
         - name: Run bootstrap script
+          # TODO: uninstall brew/xcode
           commands:
             - checkout
             - source .envrc

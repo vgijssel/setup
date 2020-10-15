@@ -10,6 +10,7 @@ require 'spec_helper'
 # - check file limit
 # - check if services are NOT running on 0.0.0.0
 # - check if packer forwarding is enabled sysctl -w net.inet.ip.forwarding=1
+# - check memory usage for docker for mac
 
 describe package('git') do
   it { should be_installed }
