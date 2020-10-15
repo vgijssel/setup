@@ -6,11 +6,3 @@
 ```bash
 export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mvgijssel/setup/$BRANCH/dotfiles/bootstrap.sh)"
 ```
-
-## TODO: Tests
-
-- gpg
-- npm global packages
-- language versions
-- ...
-
