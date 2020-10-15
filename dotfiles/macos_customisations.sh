@@ -12,6 +12,7 @@ set -Eeoux pipefail
 # defaults write com.apple.universalaccess closeViewScrollWheelToggle -int 1
 # TODO: Enable "Night Shift" in Displays > Night Shift
 # TODO: Map Caps Lock to Escape for "Apple Internal Keyboard / Trackpad" in Keyboard > Modified Keys
+# TODO: Set "Secondary click" to "Click in bottom right corner" in Trackpad
 
 # Disable "Correct spelling automatically"
 defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -int 0
