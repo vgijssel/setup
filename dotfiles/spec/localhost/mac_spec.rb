@@ -9,11 +9,32 @@ require 'spec_helper'
 # - check how dns is resolved! Through dns-heaven? What about the .test domain?
 # - check file limit
 # - check if services are NOT running on 0.0.0.0
+# - check if packer forwarding is enabled sysctl -w net.inet.ip.forwarding=1
 
 describe package('git') do
   it { should be_installed }
 end
 
-describe host('development.server.test') do
-  it { should be_resolvable }
+describe host('google.com') do
+  it 'can resolve dns from the internet' do
+    should be_resolvable
+  end
+end
+
+# describe host('development.server.test') do
+#   it 'can resolve local development dns' do
+#     should be_resolvable
+#   end
+# end
+
+describe file('/etc/resolv.conf') do
+  its(:content) { should match /nameserver 127.0.0.1/ }
+end
+
+# describe file('/etc/resolver/test') do
+#   its(:content) { should match /nameserver 127.0.0.1/ }
+# end
+
+describe process("dns-heaven") do
+  it { should be_running }
 end
