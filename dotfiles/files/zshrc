@@ -90,7 +90,7 @@ if [ -e "$HOME/.zsh/github.zsh" ]; then
   source $HOME/.zsh/github.zsh
 fi
 
-zplugin ice $zplugin_plugin_output wait multisrc'fzf.zsh direnv.zsh benchmark.zsh'
+zplugin ice $zplugin_plugin_output wait multisrc'fzf.zsh direnv.zsh benchmark.zsh gpg.zsh'
 zplugin $zplugin_load ~/.zsh
 
 zplugin ice $zplugin_plugin_output wait blockf atpull'zplugin creinstall -q .'
