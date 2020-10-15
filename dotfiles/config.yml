@@ -14,6 +14,7 @@ homebrew_installed_packages:
   - git
   - svn #necessary for pull in fonts
   - gpg2
+  - pinentry-mac # tool to enter password into when using gpg
   - git-crypt
 
   - mas # cli tool to install Apple App Store apps
@@ -99,7 +100,6 @@ homebrew_cask_apps:
   - ngrok
   # First install of virtualbox will always fail because system extensions need to be approved
   - { name: virtualbox, allow_failure: true }
-  - gpg-suite
   - 1password-cli
   - steam
   - { name: iterm2, install_options: 'force' }
