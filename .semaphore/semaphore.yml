@@ -11,4 +11,6 @@ blocks:
       jobs:
         - name: Run bootstrap script
           commands:
-            - 'export BRANCH=''master''; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mvgijssel/setup/$BRANCH/dotfiles/bootstrap.sh)"'
+            - checkout
+            - source .envrc
+            - 'export BRANCH=''$GIT_BRANCH''; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mvgijssel/setup/$BRANCH/dotfiles/bootstrap.sh)"'
