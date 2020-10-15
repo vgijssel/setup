@@ -59,9 +59,15 @@ set -x
 # Install ansible dependencies
 ansible-galaxy install -r ./requirements.yml
 
+# We're disabling mas here, because that requires being signed in to the Apple Store
+# Which is not possible on the CI.
+if [[ "$CI" = true ]]; then
+  EXTRA_ANSIBLE_ARGS="--skip-tags mas"
+fi
+
 # Run the complete ansible playbook
 set +x
-echo "$PASSWORD" | sudo -S ansible-playbook -i inventory --become-user $(whoami) main.yml
+echo "$PASSWORD" | sudo -S ansible-playbook -i inventory $EXTRA_ANSIBLE_ARGS --become-user $(whoami) main.yml
 set -x
 
 # Next steps
