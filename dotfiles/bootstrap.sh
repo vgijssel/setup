@@ -46,7 +46,7 @@ fi
 cd "$SETUP_DIRECTORY"
 
 # Load the environment
-source .envrc
+source "$SETUP_DIRECTORY/.envrc"
 
 # Navigate to the dotfiles directory
 cd "$SETUP_DOTFILES_DIR"
