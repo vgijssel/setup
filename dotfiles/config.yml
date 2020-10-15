@@ -44,7 +44,9 @@ homebrew_installed_packages:
   - dhcping # for debugging DHCP responses
 
   - nektos/tap/act # For running GitHub actions locally
-  - semaphoreci/tap/sem # Semaphore CI command line tool
+
+  # Semaphore CI command line tool, super slow to install so disabled on the ci
+  - { name: semaphoreci/tap/sem, ci: false }
 
   - { name: emacs-plus@28, install_options: 'with-spacemacs-icon' }
   - aspell # spellchecking

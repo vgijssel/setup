@@ -17,7 +17,7 @@
     - name: Update Homebrew
       homebrew:
         update_homebrew: yes
-      tags: ['homebrew']
+      tags: ['homebrew', 'ci']
 
     - name: Setup Homebrew taps
       homebrew_tap:
@@ -46,12 +46,13 @@
       loop: "{{ homebrew_cask_apps }}"
       tags: ['homebrew']
       register: result
+      when: item.ci | default(True) | bool
       failed_when:
         - result.failed
         - item.allow_failure | default(false)
 
     - name: Install Macos App Store packages
-      tags: ['mas']
+      tags: ['mas', 'ci']
       include_role:
         name:  geerlingguy.mas
 

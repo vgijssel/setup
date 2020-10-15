@@ -62,7 +62,7 @@ ansible-galaxy install -r ./requirements.yml
 # We're disabling mas here, because that requires being signed in to the Apple Store
 # Which is not possible on the CI.
 if [[ "$CI" = true ]]; then
-  EXTRA_ANSIBLE_ARGS="--skip-tags mas"
+  EXTRA_ANSIBLE_ARGS="--skip-tags ci"
 fi
 
 # Run the complete ansible playbook
