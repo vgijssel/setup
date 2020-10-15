@@ -9,10 +9,6 @@
   vars_files:
     - config.yml
 
-  roles:
-    - role: geerlingguy.mas
-      tags: ['mas']
-
   tasks:
     - name: Running playbook as user
       debug:
@@ -53,6 +49,15 @@
       failed_when:
         - result.failed
         - item.allow_failure | default(false)
+
+    - name: Install Macos App Store packages
+      include_role:
+        name:  geerlingguy.mas
+        tags: ['mas']
+        # This step does not fail on the CI because we're not able to login to the App Store there
+        failed_when:
+          - result.failed
+          - lookup('env','CI') == "false"
 
     - name: Symlink all dotfiles
       tags: ['files']
