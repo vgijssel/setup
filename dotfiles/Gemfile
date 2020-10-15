@@ -1,0 +1,5 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'serverspec', '= 2.41.5'
