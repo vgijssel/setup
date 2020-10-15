@@ -69,6 +69,17 @@
       become_user: root
       shell: "{{ dns_heaven_install_script.content }}"
 
+    - name: Read SETUP_DOTFILES_DIR
+      tags: ['files']
+      set_fact:
+        dotfiles_dir: "{{ lookup('env', 'SETUP_DOTFILES_DIR') }}"
+
+    - name: Make sure the variable is set
+      tags: ['files']
+      fail:
+        msg: SETUP_DOTFILES_DIR is not set
+      when: not dotfiles_dir
+
     - name: Ensure rcm is installed
       tags: ['files']
       homebrew:
@@ -77,9 +88,15 @@
 
     - name: Symlink all dotfiles
       tags: ['files']
-      command:  rcup -v
+      command: rcup -v
+      register: rcm
       environment:
-        RCRC: "{{ lookup('env','SETUP_DOTFILES_DIR') }}/files/rcrc"
+        RCRC: "{{ dotfiles_dir }}/files/rcrc"
+
+    - name: Print rcm
+      tags: ['files']
+      debug:
+        msg: "{{ rcm.stdout_lines }}"
 
     - name: Apply macos customisations
       tags: ['macos']
@@ -243,7 +260,6 @@
       tags: ['lang']
       command: asdf reshim
       changed_when: False
-
 
     # - name: "Sync secrets stored in 1password"
     #   tags: ['secrets']
