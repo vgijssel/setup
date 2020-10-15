@@ -56,6 +56,19 @@
       include_role:
         name:  geerlingguy.mas
 
+    - name: Fetch dns-heaven install script
+      tags: ['dns-heaven']
+      register: dns_heaven_install_script
+      uri:
+        url: https://git.io/fix-my-dns-plz
+        return_content: yes
+
+    - name: Install dns-heaven
+      tags: ['dns-heaven']
+      become: yes
+      become_user: root
+      shell: "{{ dns_heaven_install_script.content }}"
+
     - name: Symlink all dotfiles
       tags: ['files']
       command:  rcup -v
