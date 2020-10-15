@@ -44,9 +44,9 @@ homebrew_installed_packages:
   - dnsmasq # for custom DNS / DHCP
   - dhcping # for debugging DHCP responses
 
-  - nektos/tap/act # For running GitHub actions locally
-
-  # Semaphore CI command line tool, super slow to install so disabled on the ci
+  # For running GitHub actions locally, slow so skipping on ci
+  - { name: nektos/tap/act, ci: false }
+  # Semaphore CI command line tool, slow so skipping on ci
   - { name: semaphoreci/tap/sem, ci: false }
 
   - { name: emacs-plus@28, install_options: 'with-spacemacs-icon' }
