@@ -93,6 +93,8 @@ homebrew_cask_appdir: /Applications
 homebrew_cask_apps:
   - docker
   - spotify
+  - telegram
+  - whatsapp
   - resilio-sync
   - viscosity
   - visual-studio-code
@@ -119,9 +121,7 @@ homebrew_cask_apps:
 
 # Use `mas search <<appname>>` to get the id and name
 mas_installed_apps:
-  - { id: 1147396723, name: "WhatsApp Desktop" }
   - { id: 585829637, name: "Todoist: To-Do List & Tasks" }
-  - { id: 747648890, name: "Telegram" }
   - { id: 1404231964, name: "UPRIGHT GO Desktop" }
 
 mas_upgrade_all_apps: true
