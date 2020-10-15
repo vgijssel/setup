@@ -69,11 +69,17 @@
       become_user: root
       shell: "{{ dns_heaven_install_script.content }}"
 
+    - name: Ensure rcm is installed
+      tags: ['files']
+      homebrew:
+        name: rcm
+        state: present
+
     - name: Symlink all dotfiles
       tags: ['files']
       command:  rcup -v
       environment:
-        RCRC: "{{ lookup('env','HOME') }}/Development/setup/dotfiles/files/rcrc"
+        RCRC: "{{ lookup('env','SETUP_DOTFILES_DIR') }}/files/rcrc"
 
     - name: Apply macos customisations
       tags: ['macos']
@@ -93,11 +99,23 @@
         path: "{{ lookup('env','HOME') }}/.ssh/known_hosts"
         state: present
 
+    - name: Ensure mr is installed
+      tags: ['git']
+      homebrew:
+        name: mr
+        state: present
+
     - name: Clone all repositories
       tags: ['git']
       command: mr checkout -j 8
       args:
         chdir: "{{ lookup('env','HOME') }}"
+
+    - name: Ensure zsh is installed
+      tags: ['shell']
+      homebrew:
+        name: zsh
+        state: present
 
     - name: Set the ZSH version from brew
       tags: ['shell']
