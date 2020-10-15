@@ -2,6 +2,7 @@
 homebrew_installed_packages:
   - windmilleng/tap/tilt
   - docker-machine-driver-hyperkit
+  - packer # Packer is a free and open source tool for creating golden images for multiple platforms from a single source configuration.
 
   - kubernetes-cli # kubectl for interaction with kubernetes clusters
   - kustomize # for building/handling/changing kubernetes manifests
@@ -94,6 +95,7 @@ homebrew_cask_appdir: /Applications
 
 homebrew_cask_apps:
   - docker
+  - vagrant # Vagrant enables users to create and configure lightweight, reproducible, and portable development environments.
   - spotify
   - telegram
   - whatsapp
