@@ -60,6 +60,10 @@
       environment:
         RCRC: "{{ lookup('env','HOME') }}/Development/setup/dotfiles/files/rcrc"
 
+    - name: Apply macos customisations
+      tags: ['macos']
+      command: "{{playbook_dir}}/macos_customisations.sh"
+
     - name: Get GitHub authorized key
       tags: ['git']
       command: ssh-keyscan -t rsa github.com
