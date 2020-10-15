@@ -136,6 +136,12 @@ languages:
       - version: 1.13
         packages: []
 
+  terraform:
+    global: 0.13.4
+    versions:
+      - version: 0.13.4
+        packages: []
+
   nodejs:
     packages:
       - name: yarn # package manager
