@@ -13,4 +13,5 @@ blocks:
           commands:
             - checkout
             - source .envrc
-            - 'export BRANCH=''$GIT_BRANCH''; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mvgijssel/setup/$BRANCH/dotfiles/bootstrap.sh)"'
+            - CI_PASSWORD=""
+            - echo $CI_PASSWORD | ./dotfiles/bootstrap.sh
