@@ -225,7 +225,7 @@
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>open -n -a  "Google Chrome" --args --"profile-directory"="Default"</string>
+				<string>open -n -a  "Google Chrome" --args --"profile-directory"="Profile 1"</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -246,7 +246,7 @@
 				<key>argumenttype</key>
 				<integer>1</integer>
 				<key>keyword</key>
-				<string>google_chrome_personal</string>
+				<string>chrome_personal</string>
 				<key>subtext</key>
 				<string></string>
 				<key>text</key>
@@ -269,7 +269,7 @@
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>open -n -a  "Google Chrome" --args --"profile-directory"="Profile 1"</string>
+				<string>open -n -a  "Google Chrome" --args --"profile-directory"="Default"</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -290,7 +290,7 @@
 				<key>argumenttype</key>
 				<integer>1</integer>
 				<key>keyword</key>
-				<string>google_chrome_hackerone</string>
+				<string>chrome_hackerone</string>
 				<key>subtext</key>
 				<string></string>
 				<key>text</key>
