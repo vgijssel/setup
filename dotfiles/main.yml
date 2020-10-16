@@ -182,8 +182,6 @@
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
       loop_control:
         loop_var: language
-      environment:
-        PATH: '{{ updated_path }}'
 
     - name: Set ASDF global versions
       command: "asdf global {{ item }} {{ languages[item].global }}"
