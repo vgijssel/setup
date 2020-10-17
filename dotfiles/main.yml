@@ -162,7 +162,7 @@
 
     - name : Log ZPlugin installation
       debug:
-        msg: "{{ zplugin_install }}"
+        msg: "{{ zplugin_install.stdout }}"
       tags: ['shell']
 
     - name: Check shell env
@@ -172,8 +172,14 @@
 
     - name: Print shell env
       debug:
-        msg: "{{ check_shell_env }}"
+        msg: "{{ check_shell_env.stdout_lines }}"
       tags: ['shell']
+
+    - name: Ensure gpg is installed to verify nodejs archives
+      tags: ['lang']
+      homebrew:
+        name: gpg2
+        state: present
 
     - name: Install ASDF plugins
       command: "asdf plugin add {{ item.key }}"
