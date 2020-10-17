@@ -3,5 +3,3 @@
   command: "asdf install {{ language }} {{ item }}"
   with_items: '{{ languages[language].versions | map(attribute="version") | list }}'
   tags: ['lang']
-  environment:
-    PATH: '{{ updated_path }}'

@@ -66,9 +66,8 @@ if [[ "$CI" = true ]]; then
 fi
 
 # Run the complete ansible playbook
-# -E is for using the existing environment variables
 set +x
-echo "$PASSWORD" | sudo -S -E ansible-playbook -i inventory $EXTRA_ANSIBLE_ARGS --become-user $(whoami) main.yml
+echo "$PASSWORD" | ansible-playbook -i inventory $EXTRA_ANSIBLE_ARGS --ask-become-pass main.yml
 set -x
 
 # Next steps

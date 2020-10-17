@@ -1,10 +1,14 @@
 ---
 - hosts: all
   connection: local
-  become: yes
 
   vars:
     current_user: "{{ ansible_user_id }}"
+    # Setting the shell executable to ZSH shipped with macos here
+    # to make sure the user environment is loaded through ~/.zshenv
+    # when using shell and command modules. Note we cannot use
+    # the brew ZSH binary as it might not be installed yet.
+    ansible_shell_executable: /bin/zsh
 
   vars_files:
     - config.yml
@@ -66,7 +70,6 @@
     - name: Install dns-heaven
       tags: ['dns-heaven']
       become: yes
-      become_user: root
       shell: "{{ dns_heaven_install_script.content }}"
 
     - name: Read SETUP_DOTFILES_DIR
@@ -137,7 +140,6 @@
     - name: Set the ZSH version from brew
       tags: ['shell']
       become: yes
-      become_user: root
       user:
         name: "{{ current_user }}"
         shell: /usr/local/bin/zsh
@@ -145,26 +147,39 @@
     - name: Ensure proper permissions for ZSH
       tags: ['shell']
       become: yes
-      become_user: root
       file:
         path: /usr/local/share/zsh
         recurse: yes
         mode: '0755'
 
-    - name : Generate updated PATH
-      shell: "source {{ lookup('env','HOME') }}/.zshrc; echo $PATH"
-      tags: ['shell', 'lang']
+        # TODO: maybe zsh -i
+    - name : Install ZPlugin
+      shell: "source {{ lookup('env','HOME') }}/.zshrc"
       args:
-         executable: /usr/local/bin/zsh
-      register: updated_path
+        executable: /usr/local/bin/zsh
+      tags: ['shell']
+      register: zplugin_install
+
+    - name : Log ZPlugin installation
+      debug:
+        msg: "{{ zplugin_install }}"
+      tags: ['shell']
+
+    - name: Check shell env
+      command: env
+      tags: ['shell']
+      register: check_shell_env
+
+    - name: Print shell env
+      debug:
+        msg: "{{ check_shell_env }}"
+      tags: ['shell']
 
     - name: Install ASDF plugins
       command: "asdf plugin add {{ item.key }}"
       loop: "{{ languages | dict2items }}"
       tags: ['lang']
       register: result
-      environment:
-        PATH: '{{ updated_path }}'
       failed_when:
         - result.rc != 0
         - '"already added" not in result.stderr'
@@ -173,8 +188,6 @@
       command: "asdf plugin update {{ item.key }}"
       loop: "{{ languages | dict2items }}"
       tags: ['lang']
-      environment:
-        PATH: '{{ updated_path }}'
 
     - name: Install ASDF language versions
       include_tasks: asdf_install.yml
@@ -187,14 +200,11 @@
       command: "asdf global {{ item }} {{ languages[item].global }}"
       tags: ['lang']
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
-      environment:
-        PATH: '{{ updated_path }}'
 
     - name: Install Nodejs packages for all versions
       tags: ['lang']
       environment:
         ASDF_NODEJS_VERSION: '{{ item[1] }}'
-        PATH: '{{ updated_path }}'
       npm:
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
@@ -207,7 +217,6 @@
       tags: ['lang']
       environment:
         ASDF_NODEJS_VERSION: '{{ item[0].version }}'
-        PATH: '{{ updated_path }}'
       npm:
         name: "{{ item[1].name }}"
         state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
@@ -220,7 +229,6 @@
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item[1] }}'
-        PATH: '{{ updated_path }}'
       gem:
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
@@ -234,7 +242,6 @@
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item[0].version }}'
-        PATH: '{{ updated_path }}'
       gem:
         name: "{{ item[1].name }}"
         state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
@@ -248,7 +255,6 @@
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item.version }}'
-        PATH: '{{ updated_path }}'
       command: solargraph download-core {{ item.solargraph }}
       changed_when: False
       loop: "{{ languages.ruby.versions }}"
@@ -257,7 +263,6 @@
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item }}'
-        PATH: '{{ updated_path }}'
       command: yard gems
       changed_when: False
       loop: "{{ languages.ruby.versions | map(attribute='version') | list }}"
@@ -267,7 +272,6 @@
       command: asdf reshim
       changed_when: False
       environment:
-        PATH: '{{ updated_path }}'
 
     # - name: "Sync secrets stored in 1password"
     #   tags: ['secrets']
