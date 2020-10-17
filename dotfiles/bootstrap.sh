@@ -5,6 +5,7 @@ set -Eeoux pipefail
 DEVELOPMENT_DIRECTORY="$HOME/Development"
 SETUP_DIRECTORY="$DEVELOPMENT_DIRECTORY/setup"
 CHECKOUT_BRANCH="${BRANCH:-master}"
+EXTRA_ANSIBLE_ARGS=''
 
 set +x
 echo "Password: "
