@@ -132,6 +132,12 @@ mas_upgrade_all_apps: true
 mas_signin_dialog: true
 
 languages:
+  postgres:
+    global: 12.2
+    versions:
+      - version: 12.2
+        packages: []
+
   golang:
     global: 1.13
     versions:
@@ -175,9 +181,16 @@ languages:
       - name: debase
       - name: razor-client # for communication with the razor-server
       - name: mkpasswd # for generating password hashes for cloud-init
-      # https://github.com/sj26/mailcatcher/issues/430
+
+      # https://github.com/sj26/mailcatcher/issues/430, XCode 12 issue
       - name: mailcatcher # email server to send local development emails to
         build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
+
+      # https://github.com/macournoyer/thin/issues/365, XCode 12 issue
+      - name: thin
+        build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
+        version: 1.7.2
+
       - name: git-merge-structure-sql # good merge strategy for structure.sql files
     global: 2.6.6
     versions:
