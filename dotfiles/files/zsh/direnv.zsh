@@ -1,1 +1,1 @@
-eval "$(direnv hook zsh)"
+eval "$(direnv hook $DIRENV_SHELL)"

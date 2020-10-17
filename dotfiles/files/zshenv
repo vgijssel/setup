@@ -30,6 +30,7 @@ export VISUAL="emacsclient -s ${HOME}/.emacs.d/server/server"
 # see https://github.com/kennyp/asdf-golang/issues/28
 export GOPATH="${HOME}/.asdf/installs/golang/1.13/packages"
 export DOCKER_BUILDKIT=1
+export DIRENV_SHELL="${DIRENV_SHELL:-zsh}"
 
 source ~/.zsh/asdf.zsh
 source ~/.zsh/direnv.zsh
