@@ -39,3 +39,39 @@ end
 describe process("dns-heaven") do
   it { should be_running }
 end
+
+def with_clean_env
+  "env -i HOME='#{ENV.fetch('HOME')}'"
+end
+
+describe command("#{with_clean_env} /bin/bash -c -i env") do
+  its(:stdout) { should match /PERSONAL_ENV_LOADED=true/ }
+  its(:stderr) { should match 'no job control in this shell' }
+end
+
+describe command("#{with_clean_env} /bin/bash -l -c env") do
+  its(:stdout) { should match /PERSONAL_ENV_LOADED=true/ }
+  its(:stderr) { should be_empty }
+end
+
+describe command("#{with_clean_env} /bin/sh -c -i env") do
+  it 'does NOT load the env when starting sh interactive' do
+    expect(subject.stdout).to_not match /PERSONAL_ENV_LOADED=true/
+  end
+  its(:stderr) { should match 'no job control in this shell' }
+end
+
+describe command("#{with_clean_env} /bin/sh -l -c env") do
+  its(:stdout) { should match /PERSONAL_ENV_LOADED=true/ }
+  its(:stderr) { should be_empty }
+end
+
+describe command("#{with_clean_env} /usr/local/bin/zsh -c env") do
+  its(:stdout) { should match /PERSONAL_ENV_LOADED=true/ }
+  its(:stderr) { should be_empty }
+end
+
+describe command("#{with_clean_env} /usr/local/bin/zsh -l -c env") do
+  its(:stdout) { should match /PERSONAL_ENV_LOADED=true/ }
+  its(:stderr) { should be_empty }
+end
