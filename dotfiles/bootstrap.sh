@@ -67,7 +67,7 @@ fi
 
 # Run the complete ansible playbook
 set +x
-echo "$PASSWORD" | ansible-playbook -i inventory $EXTRA_ANSIBLE_ARGS --ask-become-pass main.yml
+ansible-playbook -i inventory $EXTRA_ANSIBLE_ARGS --extra-vars "ansible_sudo_pass=$PASSWORD" main.yml
 set -x
 
 # Next steps
