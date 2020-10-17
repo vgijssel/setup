@@ -152,17 +152,10 @@
         recurse: yes
         mode: '0755'
 
-        # TODO: maybe zsh -i
     - name : Install ZPlugin
       shell: "source {{ lookup('env','HOME') }}/.zshrc"
       args:
         executable: /usr/local/bin/zsh
-      tags: ['shell']
-      register: zplugin_install
-
-    - name : Log ZPlugin installation
-      debug:
-        msg: "{{ zplugin_install.stdout }}"
       tags: ['shell']
 
     - name: Check shell env
