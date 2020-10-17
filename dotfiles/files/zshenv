@@ -32,11 +32,12 @@ export GOPATH="${HOME}/.asdf/installs/golang/1.13/packages"
 export DOCKER_BUILDKIT=1
 export DIRENV_SHELL="${DIRENV_SHELL:-zsh}"
 
-source ~/.zsh/asdf.zsh
-source ~/.zsh/direnv.zsh
+source "$HOME/.shell_snippets/asdf.sh"
+source "$HOME/.shell_snippets/direnv.sh"
+source "$HOME/.shell_snippets/gpg.sh"
 
-if [ -e "$HOME/.zsh/github.zsh" ]; then
-  source $HOME/.zsh/github.zsh
+if [ -e "$HOME/.shell_snippets/github.sh" ]; then
+  source $HOME/.shell_snippets/github.sh
 fi
 
 export PERSONAL_ENV_LOADED=true

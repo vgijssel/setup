@@ -51,8 +51,8 @@ zplugin $zplugin_load rupa/z
 zplugin ice $zplugin_plugin_output wait
 zplugin $zplugin_load changyuheng/fz
 
-zplugin ice $zplugin_plugin_output wait multisrc'fzf.zsh benchmark.zsh gpg.zsh'
-zplugin $zplugin_load ~/.zsh
+zplugin ice $zplugin_plugin_output wait multisrc'fzf.zsh benchmark.sh'
+zplugin $zplugin_load ~/.shell_snippets
 
 zplugin ice $zplugin_plugin_output wait blockf atpull'zplugin creinstall -q .'
 zplugin $zplugin_load zsh-users/zsh-completions
