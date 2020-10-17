@@ -208,6 +208,7 @@
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
         global: yes
+        version: "{{ item[0].version | default(None) }}"
       with_nested:
         - "{{ languages.nodejs.packages }}"
         - "{{ languages.nodejs.versions | map(attribute='version') | list }}"
@@ -220,6 +221,7 @@
         name: "{{ item[1].name }}"
         state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
         global: yes
+        version: "{{ item[1].version | default(None) }}"
       with_subelements:
         - "{{ languages.nodejs.versions }}"
         - packages
@@ -233,6 +235,7 @@
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
         build_flags: "{{ item[0].build_flags | default(None) }}"
         user_install: false
+        version: "{{ item[0].version | default(None) }}"
       with_nested:
         - "{{ languages.ruby.gems }}"
         - "{{ languages.ruby.versions | map(attribute='version') | list }}"
@@ -246,6 +249,7 @@
         state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
         build_flags: "{{ item[1].build_flags | default(None) }}"
         user_install: false
+        version: "{{ item[1].version | default(None) }}"
       with_subelements:
         - "{{ languages.ruby.versions }}"
         - gems
