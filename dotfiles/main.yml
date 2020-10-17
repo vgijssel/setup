@@ -91,7 +91,7 @@
 
     - name: Symlink all dotfiles
       tags: ['files']
-      command: rcup -v
+      command: rcup -vf
       register: rcm
       environment:
         RCRC: "{{ dotfiles_dir }}/files/rcrc"
