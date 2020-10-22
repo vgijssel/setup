@@ -77,11 +77,9 @@
       set_fact:
         dotfiles_dir: "{{ lookup('env', 'SETUP_DOTFILES_DIR') }}"
 
-    - name: Make sure the variable is set
-      tags: ['files']
-      fail:
-        msg: SETUP_DOTFILES_DIR is not set
-      when: not dotfiles_dir
+    - tags: ['files']
+      assert:
+        that: dotfiles_dir != ""
 
     - name: Ensure rcm is installed
       tags: ['files']
