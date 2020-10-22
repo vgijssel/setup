@@ -11,6 +11,7 @@ blocks:
       jobs:
         - name: Run bootstrap script
           # TODO: uninstall brew/xcode
+          # TODO: set password for the ci user to test if sudo is handled correctly
           commands:
             - checkout
             - source .envrc
