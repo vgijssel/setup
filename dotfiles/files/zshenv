@@ -40,4 +40,5 @@ if [ -e "$HOME/.shell_snippets/github.sh" ]; then
   source $HOME/.shell_snippets/github.sh
 fi
 
+export USING_ASDF=true
 export PERSONAL_ENV_LOADED=true
