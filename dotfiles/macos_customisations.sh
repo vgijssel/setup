@@ -38,8 +38,6 @@ defaults write com.apple.dock autohide-delay -float 1000
 
 # Disable "Animate opening applications"
 defaults write com.apple.dock no-bouncing -bool TRUE
-killall Dock
-killall Finder
 
 # Check for updates automatically, daily, and auto-install security updates
 defaults write com.apple.SoftwareUpdate AutomaticCheckEnabled -bool true
@@ -55,3 +53,7 @@ defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
 # Enable "Automatically rearrange Spaces based on most recent use" in Mission Control
 defaults delete com.apple.dock mru-spaces -bool false
+
+# Restart the necessary services
+killall Dock
+killall Finder
