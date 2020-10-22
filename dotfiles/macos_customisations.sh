@@ -52,7 +52,7 @@ defaults write com.apple.desktopservices DSDontWriteNetworkStores true
 defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
 # Enable "Automatically rearrange Spaces based on most recent use" in Mission Control
-defaults delete com.apple.dock mru-spaces -bool false
+defaults write com.apple.dock mru-spaces -bool false
 
 # Restart the necessary services
 killall Dock
