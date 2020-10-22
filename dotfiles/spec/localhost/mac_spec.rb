@@ -11,6 +11,7 @@ require 'spec_helper'
 # - check if services are NOT running on 0.0.0.0
 # - check if packer forwarding is enabled sysctl -w net.inet.ip.forwarding=1
 # - check memory usage for docker for mac
+# - check latest version for solargraph core
 
 describe package('git') do
   it { should be_installed }
@@ -38,6 +39,18 @@ end
 
 describe process("dns-heaven") do
   it { should be_running }
+end
+
+# Create launhctl job:
+# https://pnguyen.io/posts/launchd-service-management/
+# sudo launchctl limit maxfiles 65536 65536
+# check sysctl kern.maxfiles
+# check sysctl kern.maxfilesperproc
+# check ulimit -a
+# check ulimit -n (file descriptors)
+# check ulimit -u (processes open)
+describe command("launchctl limit maxfiles") do
+  its(:stdout) { should match(/maxfiles\s+256\s+unlimited/) }
 end
 
 def with_clean_env
