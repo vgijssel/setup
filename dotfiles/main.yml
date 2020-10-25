@@ -72,6 +72,16 @@
       become: yes
       shell: "{{ dns_heaven_install_script.content }}"
 
+    - name: Read DEVELOPMENT_DIR
+      tags: ['files']
+      set_fact:
+        development_dir: "{{ lookup('env', 'DEVELOPMENT_DIR') }}"
+
+    - name: Verify that the development dir is set for rcm
+      tags: ['files']
+      assert:
+        that: development_dir != ""
+
     - name: Ensure rcm is installed
       tags: ['files']
       homebrew:
