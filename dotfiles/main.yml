@@ -130,11 +130,14 @@
       args:
         chdir: "{{ lookup('env','HOME') }}"
 
-    - name: Ensure zsh is installed
+    - name: Ensure zsh and dependencies are installed
       tags: ['shell']
       homebrew:
-        name: zsh
+        name: "{{ item }}"
         state: present
+      loop:
+        - zsh
+        - fzf
 
     - name: Set the ZSH version from brew
       tags: ['shell']
