@@ -138,6 +138,7 @@
       loop:
         - zsh
         - fzf
+        - direnv
 
     - name: Set the ZSH version from brew
       tags: ['shell']
