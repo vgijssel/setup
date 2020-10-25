@@ -15,7 +15,6 @@ blocks:
           commands:
             - checkout
             - source .envrc
-            - exit 1
             - export CI_PASSWORD=""
             - export BRANCH="$GIT_BRANCH"
             - echo $CI_PASSWORD | ./dotfiles/bootstrap.sh
