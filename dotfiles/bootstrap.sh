@@ -1,9 +1,8 @@
 #!/bin/bash
 
 set -Eeoux pipefail
-
-DEVELOPMENT_DIRECTORY="$HOME/Development"
-SETUP_DIRECTORY="$DEVELOPMENT_DIRECTORY/setup"
+DEVELOPMENT_DIR="$HOME/Development"
+SETUP_DIR="$DEVELOPMENT_DIR/setup"
 CHECKOUT_BRANCH="${BRANCH:-master}"
 EXTRA_ANSIBLE_ARGS=''
 
@@ -32,22 +31,22 @@ fi
 # Install git and ansible which we use to install the rest
 brew install git ansible || true
 
-if [[ ! -e "$SETUP_DIRECTORY" ]]; then
+if [[ ! -e "$SETUP_DIR" ]]; then
   echo "Setup directory not found, cloning."
-  git clone -b "$CHECKOUT_BRANCH" https://github.com/mvgijssel/setup.git "$SETUP_DIRECTORY"
+  git clone -b "$CHECKOUT_BRANCH" https://github.com/mvgijssel/setup.git "$SETUP_DIR"
 
 else
-  echo "Setup directory found '$SETUP_DIRECTORY'. Pulling instead"
+  echo "Setup directory found '$SETUP_DIR'. Pulling instead"
 
-  cd "$SETUP_DIRECTORY"
+  cd "$SETUP_DIR"
 
   git pull origin "$CHECKOUT_BRANCH"
 fi
 
-cd "$SETUP_DIRECTORY"
+cd "$SETUP_DIR"
 
 # Load the environment
-source "$SETUP_DIRECTORY/.envrc"
+source "$SETUP_DIR/.envrc"
 
 # Navigate to the dotfiles directory
 cd "$SETUP_DOTFILES_DIR"
