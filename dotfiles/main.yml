@@ -202,6 +202,15 @@
       tags: ['lang']
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
 
+    - name: Remove existing yarn symlinks
+      tags: ['lang']
+      file:
+       path: "{{ item }}"
+       state: absent
+      loop:
+        - /usr/local/bin/yarn
+        - /usr/local/bin/yarnpkg
+
     - name: Install Nodejs packages for all versions
       tags: ['lang']
       environment:
