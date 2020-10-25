@@ -20,11 +20,10 @@ blocks:
           commands:
             - checkout
             - source .envrc
-            - exec /bin/zsh
-            - ls -la
-            # - export CI_PASSWORD=""
-            # - export BRANCH="$GIT_BRANCH"
-            # - echo $CI_PASSWORD | ./dotfiles/bootstrap.sh
-            # - cd $SETUP_DOTFILES_DIR
-            # - bundle install
-            # - rake spec
+            - export CI_PASSWORD=""
+            - export BRANCH="$GIT_BRANCH"
+            - echo $CI_PASSWORD | ./dotfiles/bootstrap.sh
+            - env
+            - cd $SETUP_DOTFILES_DIR
+            - bundle install
+            - rake spec

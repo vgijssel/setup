@@ -62,7 +62,8 @@ ansible-galaxy install -r ./requirements.yml
 # We're disabling mas here, because that requires being signed in to the Apple Store
 # Which is not possible on the CI.
 if [[ "$CI" = true ]]; then
-  EXTRA_ANSIBLE_ARGS="--skip-tags ci,homebrew"
+  # EXTRA_ANSIBLE_ARGS="--skip-tags ci,homebrew"
+  EXTRA_ANSIBLE_ARGS="-t git,files,shell"
 fi
 
 # Run the complete ansible playbook
@@ -70,8 +71,8 @@ set +x
 ansible-playbook -i inventory $EXTRA_ANSIBLE_ARGS --extra-vars "ansible_sudo_pass=$PASSWORD" main.yml
 set -x
 
-# Reload current shell
-exec /usr/local/bin/zsh
+# Load env for the current shell
+source "$HOME/.bash_profile"
 
 # Next steps
 echo "Sync vault secrets using: 'op_sync sync'"
