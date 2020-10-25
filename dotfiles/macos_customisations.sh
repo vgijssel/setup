@@ -54,6 +54,10 @@ defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 # Enable "Automatically rearrange Spaces based on most recent use" in Mission Control
 defaults write com.apple.dock mru-spaces -bool false
 
+# Set the time format to 24 instead of AM/PM
+defaults write com.apple.menuextra.clock DateFormat -string "EEE d MMM HH:mm"
+
 # Restart the necessary services
 killall Dock
 killall Finder
+killall SystemUIServer # for the clock
