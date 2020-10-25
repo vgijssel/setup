@@ -72,15 +72,6 @@
       become: yes
       shell: "{{ dns_heaven_install_script.content }}"
 
-    - name: Read SETUP_DOTFILES_DIR
-      tags: ['files']
-      set_fact:
-        dotfiles_dir: "{{ lookup('env', 'SETUP_DOTFILES_DIR') }}"
-
-    - tags: ['files']
-      assert:
-        that: dotfiles_dir != ""
-
     - name: Ensure rcm is installed
       tags: ['files']
       homebrew:
@@ -92,7 +83,7 @@
       command: rcup -vf
       register: rcm
       environment:
-        RCRC: "{{ dotfiles_dir }}/files/rcrc"
+        RCRC: "{{ playbook_dir }}/files/rcrc"
 
     - name: Print rcm
       tags: ['files']
