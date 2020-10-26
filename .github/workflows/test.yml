@@ -1,0 +1,20 @@
+name: Test
+on: [push]
+
+jobs:
+  test-dotfiles:
+    name: Test dotfiles
+    timeout-minutes: 60
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v1
+    - run: ./scripts/github_load_env.sh
+    - run: env
+    - run: |
+        export CI_PASSWORD=""
+        export BRANCH="$GIT_BRANCH"
+        eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
+    - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
+      run: bundle install
+    - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
+      run: rake spec
