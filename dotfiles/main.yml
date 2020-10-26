@@ -28,7 +28,7 @@
       tags: ['homebrew']
       command: brew bundle
       args:
-        chdir: "{{ lookup('env','HOME') }}"
+        chdir: "{{ playbook_dir }}"
 
     - name: Fetch dns-heaven install script
       tags: ['dns-heaven']
