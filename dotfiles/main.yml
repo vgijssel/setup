@@ -18,10 +18,10 @@
       debug:
         msg: "Running as user: {{ current_user }}"
 
-    - name: Update Homebrew
-      homebrew:
-        update_homebrew: yes
-      tags: ['homebrew']
+    # - name: Update Homebrew
+    #   homebrew:
+    #     update_homebrew: yes
+    #   tags: ['homebrew']
 
     - name: Installing Homebrew packages using Brewfile
       tags: ['homebrew']
