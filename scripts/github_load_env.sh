@@ -24,10 +24,10 @@ for var in $VARS; do
   # if the variable $var does not exist
   if [ -z ${!var+x} ]; then
       # set an empty environment variable
-      echo "::set-env name=$var::"
+      echo "$var=''" >> $GITHUB_ENV
   else
       # set the value of $var in the env
-      echo "::set-env name=$var::${!var}"
+      echo "$var=${!var}" >> $GITHUB_ENV
   fi
 done
 
