@@ -1215,14 +1215,39 @@
             }
           }
         }
+      },
+      "jq": {
+        "version": "1.6",
+        "bottle": {
+          "cellar": ":any",
+          "prefix": "/usr/local",
+          "files": {
+            "catalina": {
+              "url": "https://homebrew.bintray.com/bottles/jq-1.6.catalina.bottle.1.tar.gz",
+              "sha256": "820a3c85fcbb63088b160c7edf125d7e55fc2c5c1d51569304499c9cc4b89ce8"
+            },
+            "mojave": {
+              "url": "https://homebrew.bintray.com/bottles/jq-1.6.mojave.bottle.1.tar.gz",
+              "sha256": "71f0e76c5b22e5088426c971d5e795fe67abee7af6c2c4ae0cf4c0eb98ed21ff"
+            },
+            "high_sierra": {
+              "url": "https://homebrew.bintray.com/bottles/jq-1.6.high_sierra.bottle.1.tar.gz",
+              "sha256": "dffcffa4ea13e8f0f2b45c5121e529077e135ae9a47254c32182231662ee9b72"
+            },
+            "sierra": {
+              "url": "https://homebrew.bintray.com/bottles/jq-1.6.sierra.bottle.1.tar.gz",
+              "sha256": "bb4d19dc026c2d72c53eed78eaa0ab982e9fcad2cd2acc6d13e7a12ff658e877"
+            }
+          }
+        }
       }
     },
     "tap": {
       "homebrew/core": {
-        "revision": "2f98dac5a80a088a98062b9ac2217c68897e0cdd"
+        "revision": "cba702ebea6ebb033a64a93fd9e063d4138d1c7e"
       },
       "homebrew/cask": {
-        "revision": "3f4cf328362c03a72cf9839f295e7169ac95b2ee"
+        "revision": "8de20b54cdd486b74feb95203451901ad92537ac"
       },
       "homebrew/cask-fonts": {
         "revision": "a2af48fde7d0f0f4d8c096e9fd5f4e8eeaa8b881"
@@ -1347,7 +1372,7 @@
         }
       },
       "1password-cli": {
-        "version": "1.7.0",
+        "version": "1.8.0",
         "options": {
           "full_name": "1password-cli",
           "args": {
@@ -1454,6 +1479,22 @@
           },
           "full_name": "iterm2"
         }
+      },
+      "sublime-text": {
+        "version": "3.211",
+        "options": {
+          "full_name": "sublime-text",
+          "args": {
+            "appdir": "~/Applications"
+          }
+        }
+      }
+    },
+    "mas": {
+      "Todoist: To-Do List & Tasks": null,
+      "UPRIGHT GO Desktop": {
+        "id": "1404231964",
+        "version": "1.0.0"
       }
     }
   },
@@ -1462,7 +1503,7 @@
       "catalina": {
         "HOMEBREW_VERSION": "2.5.7",
         "HOMEBREW_PREFIX": "/usr/local",
-        "Homebrew/homebrew-core": "2f98dac5a80a088a98062b9ac2217c68897e0cdd",
+        "Homebrew/homebrew-core": "cba702ebea6ebb033a64a93fd9e063d4138d1c7e",
         "CLT": "12.0.32.2",
         "Xcode": "12.0",
         "macOS": "10.15.7"
