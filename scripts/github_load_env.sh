@@ -6,7 +6,7 @@ AFTER_VARS=
 BEFORE_VARS=
 BEFORE_VARS=$(compgen -v | tr '\n' ' ')
 
-source "$SETUP_DIR/.envrc"
+source .envrc
 
 AFTER_VARS=$(compgen -v | tr '\n' ' ')
 
