@@ -18,11 +18,10 @@
       debug:
         msg: "Running as user: {{ current_user }}"
 
-    # Do this via command?
-    # - name: Update Homebrew
-    #   homebrew:
-    #     update_homebrew: yes
-    #   tags: ['homebrew']
+    # Update brew before to fix this issue https://github.com/Homebrew/homebrew-bundle/issues/751
+    - name: Update Homebrew
+      tags: ['homebrew']
+      command: brew update --preinstall
 
     - name: Installing Homebrew packages using Brewfile
       tags: ['homebrew']
