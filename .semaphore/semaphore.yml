@@ -23,7 +23,6 @@ blocks:
             - export CI_PASSWORD=""
             - export BRANCH="$GIT_BRANCH"
             - eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
-            - env
             - cd $SETUP_DOTFILES_DIR
             - bundle install
             - rake spec
