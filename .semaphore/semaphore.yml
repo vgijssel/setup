@@ -22,7 +22,7 @@ blocks:
             - source .envrc
             - export CI_PASSWORD=""
             - export BRANCH="$GIT_BRANCH"
-            - echo $CI_PASSWORD | ./dotfiles/bootstrap.sh
+            - echo $CI_PASSWORD | eval "$(cat ./dotfiles/bootstrap.sh)"
             - env
             - cd $SETUP_DOTFILES_DIR
             - bundle install
