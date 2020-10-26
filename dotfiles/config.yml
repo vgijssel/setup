@@ -2,6 +2,7 @@
 homebrew_installed_packages:
   - windmilleng/tap/tilt
   - docker-machine-driver-hyperkit
+  - packer # Packer is a free and open source tool for creating golden images for multiple platforms from a single source configuration.
 
   - kubernetes-cli # kubectl for interaction with kubernetes clusters
   - kustomize # for building/handling/changing kubernetes manifests
@@ -12,11 +13,17 @@ homebrew_installed_packages:
   - pstree # show parent/child relationship of processes
 
   - git
+  - svn #necessary for pull in fonts
   - gpg2
+  - pinentry-mac # tool to enter password into when using gpg
   - git-crypt
 
-  - mas
+  - mas # cli tool to install Apple App Store apps
   - redis
+
+  - mr # myrepos tool to manage large number of repositories at the same time
+
+  - rcm # tool for managing dotfiles
 
   # Terminal
   - direnv
@@ -37,12 +44,12 @@ homebrew_installed_packages:
   - dnsmasq # for custom DNS / DHCP
   - dhcping # for debugging DHCP responses
 
-  - nektos/tap/act # For running GitHub actions locally
-  - semaphoreci/tap/sem # Semaphore CI command line tool
+  # For running GitHub actions locally, slow so skipping on ci
+  - { name: nektos/tap/act, ci: false }
+  # Semaphore CI command line tool, slow so skipping on ci
+  - { name: semaphoreci/tap/sem, ci: false }
 
-  # Emacs
-  # TODO: install using these instructions https://github.com/koekeishiya/yabai/issues/86#issuecomment-529935058
-  - emacs-mac
+  - { name: emacs-plus@28, install_options: 'with-spacemacs-icon' }
   - aspell # spellchecking
   - ag # silversearcher
   - ripgrep # search
@@ -82,28 +89,35 @@ homebrew_taps:
   - homebrew/cask-fonts
   - homebrew/services
   - windmilleng/tap
-  - railwaycat/emacsmacport
+  - d12frosted/emacs-plus
 
 homebrew_cask_appdir: /Applications
+
 homebrew_cask_apps:
-  - minikube
+  - docker
+  - vagrant # Vagrant enables users to create and configure lightweight, reproducible, and portable development environments.
+  - spotify
+  - telegram
+  - whatsapp
+  - resilio-sync
+  - viscosity
   - visual-studio-code
   - multipass
   - amethyst
   - ngrok
-  - virtualbox
-  - gpg-suite
+  # First install of virtualbox will always fail because system extensions need to be approved
+  - { name: virtualbox, allow_failure: true }
   - 1password-cli
   - steam
-  - iterm2
+  - { name: iterm2, install_options: 'force' }
   - rubymine
   - adobe-creative-cloud
   - alfred # advanced alternative to macos spotlight
   - postman # for doing API calls
   - balenaetcher # utility for flashing disk images to sd card for raspberry pi
 
-  # TODO: force reload of the installed fonts (by manually installing one)
-  # will make these fonts available
+  # # TODO: force reload of the installed fonts (by manually installing one)
+  # # will make these fonts available
   - font-source-code-pro
   - font-source-code-pro-for-powerline
   - font-menlo-for-powerline
@@ -111,15 +125,31 @@ homebrew_cask_apps:
 
 # Use `mas search <<appname>>` to get the id and name
 mas_installed_apps:
-  - { id: 1147396723, name: "WhatsApp Desktop" }
   - { id: 585829637, name: "Todoist: To-Do List & Tasks" }
-  - { id: 747648890, name: "Telegram" }
   - { id: 1404231964, name: "UPRIGHT GO Desktop" }
 
 mas_upgrade_all_apps: true
 mas_signin_dialog: true
 
 languages:
+  postgres:
+    global: 12.2
+    versions:
+      - version: 12.2
+        packages: []
+
+  golang:
+    global: 1.13
+    versions:
+      - version: 1.13
+        packages: []
+
+  terraform:
+    global: 0.13.4
+    versions:
+      - version: 0.13.4
+        packages: []
+
   nodejs:
     packages:
       - name: yarn # package manager
@@ -151,7 +181,16 @@ languages:
       - name: debase
       - name: razor-client # for communication with the razor-server
       - name: mkpasswd # for generating password hashes for cloud-init
+
+      # https://github.com/sj26/mailcatcher/issues/430, XCode 12 issue
       - name: mailcatcher # email server to send local development emails to
+        build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
+
+      # https://github.com/macournoyer/thin/issues/365, XCode 12 issue
+      - name: thin
+        build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
+        version: 1.7.2
+
       - name: git-merge-structure-sql # good merge strategy for structure.sql files
     global: 2.6.6
     versions:
