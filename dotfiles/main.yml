@@ -18,6 +18,7 @@
       debug:
         msg: "Running as user: {{ current_user }}"
 
+    # Do this via command?
     # - name: Update Homebrew
     #   homebrew:
     #     update_homebrew: yes
