@@ -20,7 +20,7 @@
 
     - name: Installing Homebrew packages using Brewfile
       tags: ['homebrew']
-      command: brew bundle install
+      command: brew bundle
       args:
         chdir: "{{ lookup('env','HOME') }}"
 
