@@ -139,6 +139,7 @@
         - zsh
         - fzf
         - direnv
+        - gpg2
 
     - name: Set the ZSH version from brew
       tags: ['shell']
