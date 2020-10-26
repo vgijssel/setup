@@ -17,3 +17,5 @@
 	driver = git-merge-structure-sql %A %O %B
 [core]
 	attributesfile = ~/.config/git/attributes
+[pull]
+	rebase = false

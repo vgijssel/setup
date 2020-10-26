@@ -557,7 +557,7 @@ before packages are loaded."
 
 
   ;; Make sure helm-ag searches hidden (dot)files
-  (setq helm-ag-base-command "ag --nocolor --nogroup --hidden --ignore git")
+  ;; (setq helm-ag-base-command "ag --nocolor --nogroup --hidden --ignore git")
 
   (direnv-mode)
   (setq direnv-always-show-summary t)
