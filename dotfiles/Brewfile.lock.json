@@ -1260,6 +1260,12 @@
       },
       "d12frosted/emacs-plus": {
         "revision": "422c14143b4ce15fc0d2675326ce4913b35491dd"
+      },
+      "nektos/tap": {
+        "revision": "4e3732dfa044fdd9cd675c95a4d540784170fa4b"
+      },
+      "semaphoreci/tap": {
+        "revision": "328169d5b5797bfe6f4b173b15d6d5757187278d"
       }
     },
     "cask": {
