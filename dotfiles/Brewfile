@@ -56,7 +56,7 @@ brew "dnsmasq" # for custom DNS / DHCP
 brew "dhcping" # for debugging DHCP responses
 
 brew "nektos/tap/act"
-brew "semaphoreci/tap/sem"
+brew "semaphoreci/tap/sem", conflicts_with: ["parallel"]
 
 brew "emacs-plus@28", args: ['with-spacemacs-icon']
 

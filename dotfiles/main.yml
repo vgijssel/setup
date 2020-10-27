@@ -25,7 +25,7 @@
 
     - name: Installing Homebrew packages using Brewfile
       tags: ['homebrew']
-      command: brew bundle
+      command: brew bundle install
       args:
         chdir: "{{ playbook_dir }}"
 
