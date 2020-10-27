@@ -12,6 +12,8 @@ jobs:
     - uses: actions/checkout@v1
     - run: ./scripts/github_load_env.sh
     - run: env
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - run: |
         export CI_PASSWORD=""
         export BRANCH="$GIT_BRANCH"
