@@ -9,7 +9,6 @@ jobs:
     defaults:
       run:
         shell: bash {0}
-    working-directory: scripts
     steps:
       # For debugging https://github.com/marketplace/actions/debugging-with-tmate
     - uses: actions/checkout@v1
