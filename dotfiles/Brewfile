@@ -125,5 +125,7 @@ cask "font-source-code-pro-for-powerline"
 cask "font-menlo-for-powerline"
 cask "font-fira-mono"
 
-mas "Todoist: To-Do List & Tasks", id: 585829637
-mas "UPRIGHT GO Desktop", id: 1404231964
+if ENV.fetch('CI', 'false') == 'false'
+  mas "Todoist: To-Do List & Tasks", id: 585829637
+  mas "UPRIGHT GO Desktop", id: 1404231964
+end
