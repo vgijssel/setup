@@ -2,11 +2,13 @@
 
 set -Eeou pipefail
 
+TARGET_ENV_FILE="$1"
+
 AFTER_VARS=
 BEFORE_VARS=
 BEFORE_VARS=$(compgen -v | tr '\n' ' ')
 
-source .envrc
+source "$TARGET_ENV_FILE"
 
 AFTER_VARS=$(compgen -v | tr '\n' ' ')
 

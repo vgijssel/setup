@@ -6,10 +6,14 @@ jobs:
     name: Test dotfiles
     timeout-minutes: 60
     runs-on: macos-latest
+    defaults:
+      run:
+        shell: bash {0}
+    working-directory: scripts
     steps:
       # For debugging https://github.com/marketplace/actions/debugging-with-tmate
     - uses: actions/checkout@v1
-    - run: ./scripts/github_load_env.sh
+    - run: ./scripts/github_load_env.sh .envrc
     - run: env
     - run: |
         export CI_PASSWORD=""
