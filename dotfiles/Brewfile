@@ -106,6 +106,7 @@ cask "visual-studio-code"
 cask "multipass"
 cask "amethyst"
 cask "ngrok"
+cask "figma" ## tool for sharing designs and workflows
 
 # First install of virtualbox will always fail because system extensions need to be approved
 cask "virtualbox"

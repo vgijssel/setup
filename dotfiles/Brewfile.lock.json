@@ -689,7 +689,13 @@
         }
       },
       "nektos/tap/act": null,
-      "semaphoreci/tap/sem": null,
+      "semaphoreci/tap/sem": {
+        "options": {
+          "conflicts_with": [
+            "parallel"
+          ]
+        }
+      },
       "emacs-plus@28": {
         "version": "28.0.50",
         "bottle": false,
@@ -1244,13 +1250,13 @@
     },
     "tap": {
       "homebrew/core": {
-        "revision": "cba702ebea6ebb033a64a93fd9e063d4138d1c7e"
+        "revision": "8a34acb309ba9d62b2d0377fe76c1a5731ddacc7"
       },
       "homebrew/cask": {
-        "revision": "8de20b54cdd486b74feb95203451901ad92537ac"
+        "revision": "593a364782a8c1c2c98f8b863ce7898e37988525"
       },
       "homebrew/cask-fonts": {
-        "revision": "a2af48fde7d0f0f4d8c096e9fd5f4e8eeaa8b881"
+        "revision": "1edb51d9775ba2c1287905d2e973156ed00dfeb2"
       },
       "homebrew/services": {
         "revision": "074649de74de9a4bf27b59ef85c909e0939da18e"
@@ -1494,6 +1500,15 @@
             "appdir": "~/Applications"
           }
         }
+      },
+      "figma": {
+        "version": "latest",
+        "options": {
+          "full_name": "figma",
+          "args": {
+            "appdir": "~/Applications"
+          }
+        }
       }
     },
     "mas": {
@@ -1509,7 +1524,7 @@
       "catalina": {
         "HOMEBREW_VERSION": "2.5.7",
         "HOMEBREW_PREFIX": "/usr/local",
-        "Homebrew/homebrew-core": "cba702ebea6ebb033a64a93fd9e063d4138d1c7e",
+        "Homebrew/homebrew-core": "8a34acb309ba9d62b2d0377fe76c1a5731ddacc7",
         "CLT": "12.0.32.2",
         "Xcode": "12.0",
         "macOS": "10.15.7"
