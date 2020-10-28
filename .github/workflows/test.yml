@@ -8,7 +8,7 @@ jobs:
     runs-on: macos-latest
     defaults:
       run:
-        shell: bash {0}
+        shell: bash -l {0}
     steps:
       # For debugging https://github.com/marketplace/actions/debugging-with-tmate
     - uses: actions/checkout@v1
@@ -18,6 +18,10 @@ jobs:
         export CI_PASSWORD=""
         export BRANCH="$GIT_BRANCH"
         eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
+    - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
+      run: env
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
       run: bundle install
     - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
