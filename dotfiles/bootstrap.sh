@@ -59,11 +59,9 @@ set -x
 # Install ansible dependencies
 ansible-galaxy install -r ./requirements.yml
 
-# We're disabling mas here, because that requires being signed in to the Apple Store
-# Which is not possible on the CI.
+# Not running homebrew on the CI because that takes too long
 if [[ "$CI" = true ]]; then
-  # EXTRA_ANSIBLE_ARGS="--skip-tags ci"
-  EXTRA_ANSIBLE_ARGS="-t files,git,shell"
+  EXTRA_ANSIBLE_ARGS="--skip-tags homebrew"
 fi
 
 # Run the complete ansible playbook

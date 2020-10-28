@@ -19,10 +19,6 @@ jobs:
         export BRANCH="$GIT_BRANCH"
         eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
     - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
-      run: env
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-    - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
       run: bundle install
     - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
       run: rake spec
