@@ -56,6 +56,9 @@ set +x
 echo "$PASSWORD" | sudo -S rm -vrf ~/.ansible/tmp
 set -x
 
+# Install ansible dependencies
+ansible-galaxy collection install -r ./requirements.yml
+
 # Not running homebrew on the CI because that takes too long
 if [[ "$CI" = true ]]; then
   EXTRA_ANSIBLE_ARGS="--skip-tags homebrew"

@@ -41,16 +41,12 @@ describe process("dns-heaven") do
   it { should be_running }
 end
 
-# Create launhctl job:
-# https://pnguyen.io/posts/launchd-service-management/
-# sudo launchctl limit maxfiles 65536 65536
-# check sysctl kern.maxfiles
-# check sysctl kern.maxfilesperproc
-# check ulimit -a
-# check ulimit -n (file descriptors)
-# check ulimit -u (processes open)
 describe command("launchctl limit maxfiles") do
-  its(:stdout) { should match(/maxfiles\s+256\s+unlimited/) }
+  its(:stdout) { should match(/maxfiles\s+524288\s+524288/) }
+end
+
+describe command("launchctl limit maxproc") do
+  its(:stdout) { should match(/maxproc\s+5568\s+8352/) }
 end
 
 def with_clean_env
