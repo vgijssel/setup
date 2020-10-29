@@ -18,6 +18,7 @@ jobs:
         export CI_PASSWORD=""
         export BRANCH="$GIT_BRANCH"
         eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
+    - run: env
     - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
       run: bundle install
     - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
