@@ -70,14 +70,14 @@
         msg: "{{ rcm.stdout_lines }}"
 
     - name: Copy maxfiles service
-      tags: ['macos', 'test']
+      tags: ['macos']
       become: yes
       template:
         src: limit.maxfiles.plist.j2
         dest: /Library/LaunchDaemons/limit.maxfiles.plist
 
     - name: Run maxfiles service
-      tags: ['macos', 'test']
+      tags: ['macos']
       become: yes
       community.general.launchd:
         name: limit.maxfiles
