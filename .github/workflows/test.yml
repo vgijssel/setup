@@ -46,57 +46,57 @@ jobs:
     - run: ./scripts/github_load_env.sh .envrc
     - run: docker_build.sh "${BASE_IMAGE}" "./base-image"
 
-  build-image-builder:
-    name: Build image builder image
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    needs: build-base-image
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/github_load_env.sh .envrc
-    - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" ./image-builder
+  # build-image-builder:
+  #   name: Build image builder image
+  #   timeout-minutes: 15
+  #   runs-on: ubuntu-latest
+  #   needs: build-base-image
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/github_load_env.sh .envrc
+  #   - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" ./image-builder
 
-  build-libvirt:
-    name: Build libvirt image
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    needs: build-image-builder
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/github_load_env.sh .envrc
-    - run: image_build.sh ./libvirt/image.cfg
-    - uses: actions/upload-artifact@v1
-      with:
-        name: libvirt
-        path: ./image
+  # build-libvirt:
+  #   name: Build libvirt image
+  #   timeout-minutes: 15
+  #   runs-on: ubuntu-latest
+  #   needs: build-image-builder
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/github_load_env.sh .envrc
+  #   - run: image_build.sh ./libvirt/image.cfg
+  #   - uses: actions/upload-artifact@v1
+  #     with:
+  #       name: libvirt
+  #       path: ./image
 
-  build-kubernetes:
-    name: Build kubernetes image
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    needs: build-image-builder
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/github_load_env.sh .envrc
-    - run: image_build.sh ./kubernetes/image.cfg
-    - uses: actions/upload-artifact@v1
-      with:
-        name: kubernetes
-        path: ./image
+  # build-kubernetes:
+  #   name: Build kubernetes image
+  #   timeout-minutes: 15
+  #   runs-on: ubuntu-latest
+  #   needs: build-image-builder
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/github_load_env.sh .envrc
+  #   - run: image_build.sh ./kubernetes/image.cfg
+  #   - uses: actions/upload-artifact@v1
+  #     with:
+  #       name: kubernetes
+  #       path: ./image
 
-  build-digital-rebar:
-    name: Build digital rebar image
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    needs: build-image-builder
-    steps:
-    - uses: actions/checkout@v1
-    - run: ./scripts/github_load_env.sh .envrc
-    - run: image_build.sh ./digital-rebar/image.cfg
-    - uses: actions/upload-artifact@v1
-      with:
-        name: digital-rebar
-        path: ./image
+  # build-digital-rebar:
+  #   name: Build digital rebar image
+  #   timeout-minutes: 15
+  #   runs-on: ubuntu-latest
+  #   needs: build-image-builder
+  #   steps:
+  #   - uses: actions/checkout@v1
+  #   - run: ./scripts/github_load_env.sh .envrc
+  #   - run: image_build.sh ./digital-rebar/image.cfg
+  #   - uses: actions/upload-artifact@v1
+  #     with:
+  #       name: digital-rebar
+  #       path: ./image
 
   # test-libvirt:
   #   name: Test libvirt
