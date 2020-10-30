@@ -1,0 +1,21 @@
+[color]
+  ui=true
+
+[push]
+  default=simple
+
+[include]
+	path = ~/.config/git/user_config
+
+[commit]
+	gpgsign = true
+
+[gpg]
+	program = gpg
+[merge "merge-structure-sql"]
+	name = Rails structure.sql merge driver
+	driver = git-merge-structure-sql %A %O %B
+[core]
+	attributesfile = ~/.config/git/attributes
+[pull]
+	rebase = false
