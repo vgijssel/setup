@@ -9,20 +9,4 @@ auto_cancel:
   running:
     when: "true"
 
-blocks:
-  - name: Test bootstrap script
-    dependencies: []
-    task:
-      jobs:
-        - name: Run bootstrap script
-          # TODO: uninstall brew/xcode
-          # TODO: set password for the ci user to test if sudo is handled correctly
-          commands:
-            - checkout
-            - source .envrc
-            - export CI_PASSWORD=""
-            - export BRANCH="$GIT_BRANCH"
-            - eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
-            - cd $SETUP_DOTFILES_DIR
-            - bundle install
-            - rake spec
+blocks: []
