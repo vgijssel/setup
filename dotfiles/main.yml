@@ -84,21 +84,6 @@
         enabled: yes
         state: restarted
 
-    - name: Copy maxproc service
-      tags: ['macos', 'test']
-      become: yes
-      template:
-        src: limit.maxproc.plist.j2
-        dest: /Library/LaunchDaemons/limit.maxproc.plist
-
-    - name: Run maxproc service
-      tags: ['macos', 'test']
-      become: yes
-      community.general.launchd:
-        name: limit.maxproc
-        enabled: yes
-        state: restarted
-
     - name: Apply macos customisations
       tags: ['macos']
       command: "{{playbook_dir}}/macos_customisations.sh"

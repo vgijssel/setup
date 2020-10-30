@@ -45,10 +45,6 @@ describe command("launchctl limit maxfiles") do
   its(:stdout) { should match(/maxfiles\s+524288\s+524288/) }
 end
 
-describe command("launchctl limit maxproc") do
-  its(:stdout) { should match(/maxproc\s+5568\s+8352/) }
-end
-
 def with_clean_env
   "env -i HOME='#{ENV.fetch('HOME')}'"
 end
