@@ -13,9 +13,9 @@ languages:
         packages: []
 
   terraform:
-    global: 0.13.4
+    global: 0.13.5
     versions:
-      - version: 0.13.4
+      - version: 0.13.5
         packages: []
 
   nodejs:
