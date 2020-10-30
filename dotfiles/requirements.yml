@@ -1,2 +1,3 @@
 ---
-- name: geerlingguy.mas
+collections:
+- name: community.general

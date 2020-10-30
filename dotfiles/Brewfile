@@ -1,0 +1,132 @@
+tap "nektos/tap"
+tap "semaphoreci/tap"
+tap "homebrew/core"
+tap "homebrew/cask"
+tap "homebrew/cask-fonts"
+tap "homebrew/services"
+tap "windmilleng/tap"
+tap "d12frosted/emacs-plus"
+
+cask_args appdir: "~/Applications"
+
+brew "windmilleng/tap/tilt"
+brew "docker-machine-driver-hyperkit"
+brew "packer" # Packer is a free and open source tool for creating golden images for multiple platforms from a single source configuration.
+
+brew "kubernetes-cli" # kubectl for interaction with kubernetes clusters
+brew "kustomize" # for building/handling/changing kubernetes manifests
+
+brew "ansible"
+
+brew "exiftool" # show/mutate EXIF information of documents
+brew "pstree" # show parent/child relationship of processes
+
+brew "git"
+brew "svn" #necessary for pull in fonts
+brew "gpg2"
+brew "pinentry-mac" # tool to enter password into when using gpg
+brew "git-crypt"
+
+brew "mas" # cli tool to install Apple App Store apps
+brew "redis"
+
+brew "mr" # myrepos tool to manage large number of repositories at the same time
+
+brew "rcm" # tool for managing dotfiles
+
+ # Terminal
+brew "direnv"
+brew "fzf"
+brew "fd" # fast alternative to find (https://github.com/sharkdp/fd)
+brew "zsh" # brew version of zsh
+brew "jq" # handling json on the command line
+
+brew "v8@3.15" # the ruby racer gem
+
+brew "gcc" # To be able to compile libv8 with libc++
+brew "pkg-config" # Helper tool for compiling applications
+brew "imagemagick" # otherwise Rails image upload no work
+
+brew "dnsmasq"
+brew "cdrtools" # contains mkisofs for making cloud-init images
+brew "minikube" # for running kubernetes locally
+brew "hyperkit" # running virtual machines on macos for testing
+brew "hivemind" # for running multiple virtual machines from procfile
+brew "dnsmasq" # for custom DNS / DHCP
+brew "dhcping" # for debugging DHCP responses
+
+brew "nektos/tap/act"
+brew "semaphoreci/tap/sem", conflicts_with: ["parallel"]
+
+brew "emacs-plus@28", args: ['with-spacemacs-icon']
+
+brew "aspell" # spellchecking
+brew "ag" # silversearcher
+brew "ripgrep" # search
+brew "ack" # search
+brew "pt" # the platinum searcher
+brew "cmake" # for loading vterm
+brew "libvterm" # vterm shell inside emacs
+brew "shellcheck" # lint shell-script files
+
+ # Networking tools
+brew "nmap"
+brew "iperf"
+
+ # For generating and reading graphs using `dot` tool
+brew "graphviz"
+
+ # GNU tools instead of macos ones
+brew "coreutils"
+brew "diffutils"
+brew "findutils"
+brew "gawk"
+brew "gnu-indent"
+brew "gnu-sed"
+brew "gnu-tar"
+brew "gnu-which"
+brew "gnutls"
+brew "grep"
+brew "gzip"
+brew "screen"
+brew "watch"
+brew "wdiff"
+brew "wget"
+
+
+
+cask "docker"
+cask "vagrant" # Vagrant enables users to create and configure lightweight, reproducible, and portable development environments.
+cask "spotify"
+cask "telegram"
+cask "whatsapp"
+cask "resilio-sync"
+cask "viscosity"
+cask "visual-studio-code"
+cask "multipass"
+cask "amethyst"
+cask "ngrok"
+cask "figma" ## tool for sharing designs and workflows
+
+# First install of virtualbox will always fail because system extensions need to be approved
+cask "virtualbox"
+
+cask "1password-cli"
+cask "steam"
+cask "iterm2", args: { force: true }
+cask "rubymine"
+cask "sublime-text"
+cask "adobe-creative-cloud"
+cask "alfred" # advanced alternative to macos spotlight
+cask "postman" # for doing API calls
+cask "balenaetcher" # utility for flashing disk images to sd card for raspberry pi
+
+cask "font-source-code-pro"
+cask "font-source-code-pro-for-powerline"
+cask "font-menlo-for-powerline"
+cask "font-fira-mono"
+
+if ENV.fetch('CI', 'false') == 'false'
+  mas "Todoist: To-Do List & Tasks", id: 585829637
+  mas "UPRIGHT GO Desktop", id: 1404231964
+end

@@ -37,8 +37,8 @@ source "$HOME/.shell_snippets/asdf.sh"
 source "$HOME/.shell_snippets/direnv.sh"
 source "$HOME/.shell_snippets/gpg.sh"
 
-if [ -e "$HOME/.shell_snippets/github.sh" ]; then
-  source $HOME/.shell_snippets/github.sh
+if [ -e "$HOME/.shell_snippets/tokens.sh" ]; then
+  source $HOME/.shell_snippets/tokens.sh
 fi
 
 export USING_ASDF=true
