@@ -20,11 +20,6 @@ if [[ -d "${DISK_IMAGE_HOST_DIR}" ]]; then
   exit 0
 fi
 
-if [[ "$CI" = false ]]; then
-  EXTRA_DOCKER_ARGS="-it --env break=after-error"
-fi
-
-GLOBAL_ELEMENTS_DIR="${SETUP_ELEMENTS_DIR}"
 IMAGE_BUILDER_NAME="${DOCKER_REGISTRY_URL}/${IMAGE_BUILDER_IMAGE}"
 
 export DIB_APT_MINIMAL_CREATE_INTERFACES=0
@@ -33,6 +28,9 @@ IMAGE_SHA_TAG=$(git rev-parse HEAD)
 
 if [[ "${CI}" = true ]]; then
   docker login -u mvgijssel -p "${GITHUB_DOCKER_REGISTRY_TOKEN}" docker.pkg.github.com
+  EXTRA_DOCKER_ARGS=""
+else
+  EXTRA_DOCKER_ARGS="-it --env break=after-error"
 fi
 
 export DIB_DEV_USER_USERNAME=devuser
