@@ -21,7 +21,7 @@ function convert_elements_to_local_dirs {
   echo ${RESULT[@]+"${RESULT[@]}"}
 }
 
-pushd "$SETUP_ROOT_DIR" > /dev/null
+pushd "$SETUP_DIR" > /dev/null
 
 DIRS=()
 

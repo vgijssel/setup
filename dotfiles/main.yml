@@ -2,36 +2,202 @@
 - hosts: all
   connection: local
 
+  vars:
+    current_user: "{{ ansible_user_id }}"
+    # Setting the shell executable to ZSH shipped with macos here
+    # to make sure the user environment is loaded through ~/.zshenv
+    # when using shell and command modules. Note we cannot use
+    # the brew ZSH binary as it might not be installed yet.
+    ansible_shell_executable: /bin/zsh
+
   vars_files:
     - config.yml
 
-  roles:
-    - role: geerlingguy.homebrew
-      tags: ['homebrew']
-
-    - role: geerlingguy.mas
-      tags: ['mas']
-
   tasks:
-    - import_role:
-        name: markosamuli.asdf
+    - name: Running playbook as user
+      debug:
+        msg: "Running as user: {{ current_user }}"
+
+    # Update brew before to fix this issue https://github.com/Homebrew/homebrew-bundle/issues/751
+    - name: Update Homebrew
+      tags: ['homebrew']
+      command: brew update --preinstall
+
+    - name: Installing Homebrew packages using Brewfile
+      tags: ['homebrew']
+      command: brew bundle install
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Fetch dns-heaven install script
+      tags: ['dns-heaven']
+      register: dns_heaven_install_script
+      uri:
+        url: https://git.io/fix-my-dns-plz
+        return_content: yes
+
+    - name: Install dns-heaven
+      tags: ['dns-heaven']
+      become: yes
+      shell: "{{ dns_heaven_install_script.content }}"
+
+    - name: Read DEVELOPMENT_DIR
+      tags: ['files']
+      set_fact:
+        development_dir: "{{ lookup('env', 'DEVELOPMENT_DIR') }}"
+
+    - name: Verify that the development dir is set for rcm
+      tags: ['files']
+      assert:
+        that: development_dir != ""
+
+    - name: Ensure rcm is installed
+      tags: ['files']
+      homebrew:
+        name: rcm
+        state: present
+
+    - name: Symlink all dotfiles
+      tags: ['files']
+      command: rcup -vf
+      register: rcm
+      environment:
+        RCRC: "{{ playbook_dir }}/files/rcrc"
+
+    - name: Print rcm
+      tags: ['files']
+      debug:
+        msg: "{{ rcm.stdout_lines }}"
+
+    - name: Copy maxfiles service
+      tags: ['macos']
+      become: yes
+      template:
+        src: limit.maxfiles.plist.j2
+        dest: /Library/LaunchDaemons/limit.maxfiles.plist
+
+    - name: Run maxfiles service
+      tags: ['macos']
+      become: yes
+      community.general.launchd:
+        name: limit.maxfiles
+        enabled: yes
+        state: restarted
+
+    - name: Apply macos customisations
+      tags: ['macos']
+      command: "{{playbook_dir}}/macos_customisations.sh"
+
+    - name: Get GitHub authorized key
+      tags: ['git']
+      command: ssh-keyscan -t rsa github.com
+      register: github_key
+
+    - name: Add GitHub authorized key to known hosts
+      tags: ['git']
+      known_hosts:
+        hash_host: false
+        name: github.com
+        key: "{{ github_key.stdout }}"
+        path: "{{ lookup('env','HOME') }}/.ssh/known_hosts"
+        state: present
+
+    - name: Ensure mr is installed
+      tags: ['git']
+      homebrew:
+        name: mr
+        state: present
+
+    - name: Clone all repositories
+      tags: ['git']
+      command: mr checkout -j 8
+      args:
+        chdir: "{{ lookup('env','HOME') }}"
+
+    - name: Ensure zsh and dependencies are installed
+      tags: ['shell']
+      homebrew:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - zsh
+        - fzf
+        - direnv
+        - gpg2
+
+    - name: Set the ZSH version from brew
+      tags: ['shell']
+      become: yes
+      user:
+        name: "{{ current_user }}"
+        shell: /usr/local/bin/zsh
+
+    - name: Ensure proper permissions for ZSH
+      tags: ['shell']
+      become: yes
+      file:
+        path: /usr/local/share/zsh
+        recurse: yes
+        mode: '0755'
+
+    - name : Install ZPlugin
+      shell: "source {{ lookup('env','HOME') }}/.zshrc"
+      args:
+        executable: /usr/local/bin/zsh
+      tags: ['shell']
+
+    - name: Check shell env
+      command: env
+      tags: ['shell']
+      register: check_shell_env
+
+    - name: Print shell env
+      debug:
+        msg: "{{ check_shell_env.stdout_lines }}"
+      tags: ['shell']
+
+    - name: Ensure gpg is installed to verify nodejs archives
       tags: ['lang']
-      vars:
-        asdf_plugins:
-        - name: "ruby"
-          versions: "{{ languages.ruby.versions | map(attribute='version') | list }}"
-          global: "{{ languages.ruby.global }}"
+      homebrew:
+        name: gpg2
+        state: present
 
-        - name: "python"
-          versions:
-            - 2.7.17
-          global: 2.7.17
+    - name: Install ASDF plugins
+      command: "asdf plugin add {{ item.key }}"
+      loop: "{{ languages | dict2items }}"
+      tags: ['lang']
+      register: result
+      failed_when:
+        - result.rc != 0
+        - '"already added" not in result.stderr'
 
-        - name: "nodejs"
-          versions: "{{ languages.nodejs.versions | map(attribute='version') | list }}"
-          global: "{{ languages.nodejs.global }}"
+    - name: Update ASDF plugins
+      command: "asdf plugin update {{ item.key }}"
+      loop: "{{ languages | dict2items }}"
+      tags: ['lang']
 
-    - name: "Install Nodejs packages for all versions"
+    - name: Install ASDF language versions
+      include_tasks: asdf_install.yml
+      tags: ['lang']
+      loop: "{{ languages | dict2items | map(attribute='key') | list }}"
+      loop_control:
+        loop_var: language
+
+    - name: Set ASDF global versions
+      command: "asdf global {{ item }} {{ languages[item].global }}"
+      tags: ['lang']
+      loop: "{{ languages | dict2items | map(attribute='key') | list }}"
+
+    - name: Remove existing yarn symlinks
+      tags: ['lang']
+      file:
+       path: "{{ item }}"
+       state: absent
+      loop:
+        - /usr/local/bin/yarn
+        - /usr/local/bin/yarnpkg
+
+    - name: Install Nodejs packages for all versions
       tags: ['lang']
       environment:
         ASDF_NODEJS_VERSION: '{{ item[1] }}'
@@ -39,11 +205,12 @@
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
         global: yes
+        version: "{{ item[0].version | default(None) }}"
       with_nested:
         - "{{ languages.nodejs.packages }}"
         - "{{ languages.nodejs.versions | map(attribute='version') | list }}"
 
-    - name: "Install Nodejs packages specific for version"
+    - name: Install Nodejs packages specific for version
       tags: ['lang']
       environment:
         ASDF_NODEJS_VERSION: '{{ item[0].version }}'
@@ -51,35 +218,40 @@
         name: "{{ item[1].name }}"
         state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
         global: yes
+        version: "{{ item[1].version | default(None) }}"
       with_subelements:
         - "{{ languages.nodejs.versions }}"
         - packages
 
-    - name: "Install Ruby gems for all versions"
+    - name: Install Ruby gems for all versions
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item[1] }}'
       gem:
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
+        build_flags: "{{ item[0].build_flags | default(None) }}"
         user_install: false
+        version: "{{ item[0].version | default(None) }}"
       with_nested:
         - "{{ languages.ruby.gems }}"
         - "{{ languages.ruby.versions | map(attribute='version') | list }}"
 
-    - name: "Install Ruby gems specific for version"
+    - name: Install Ruby gems specific for version
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item[0].version }}'
       gem:
         name: "{{ item[1].name }}"
         state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
+        build_flags: "{{ item[1].build_flags | default(None) }}"
         user_install: false
+        version: "{{ item[1].version | default(None) }}"
       with_subelements:
         - "{{ languages.ruby.versions }}"
         - gems
 
-    - name: "Install solargraph documentation"
+    - name: Install solargraph documentation
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item.version }}'
@@ -87,7 +259,7 @@
       changed_when: False
       loop: "{{ languages.ruby.versions }}"
 
-    - name: "Generate YARD documentation for all Ruby versions"
+    - name: Generate YARD documentation for all Ruby versions
       tags: ['lang']
       environment:
         ASDF_RUBY_VERSION: '{{ item }}'
@@ -95,39 +267,18 @@
       changed_when: False
       loop: "{{ languages.ruby.versions | map(attribute='version') | list }}"
 
-    - name: "Reshim asdf"
+    - name: Reshim asdf
       tags: ['lang']
       command: asdf reshim
       changed_when: False
+      environment:
 
-    - name: "Generate a list of files"
-      tags: ['files']
-      set_fact:
-        files: |
-          {{
-            lookup('filetree', '.', wantlist=true) |
-            rejectattr('path', 'match', '.*\.DS_Store') |
-            list
-          }}
+    # - name: "Sync secrets stored in 1password"
+    #   tags: ['secrets']
+    #   command: op_sync sync
+    #   register: op_sync
+    #   changed_when: (op_sync.stdout | from_json)['total_updates'] > 0
 
-    - name: "Create directory for file"
-      tags: ['files']
-      file: path="~/{{ item.path }}" state=directory
-      when: item.state == 'directory'
-      loop: "{{ files }}"
-
-    - name: "Link file"
-      tags: ['files']
-      file: src="{{ item.src }}" dest="~/{{ item.path }}" state=link
-      when: item.state == 'file'
-      loop: "{{ files }}"
-
-    - name: "Sync secrets stored in 1password"
-      tags: ['secrets']
-      command: op_sync sync
-      register: op_sync
-      changed_when: (op_sync.stdout | from_json)['total_updates'] > 0
-
-    - name: "Restart gpg-agent"
-      tags: ['secrets']
-      command: gpgconf --reload gpg-agent
+    # - name: "Restart gpg-agent"
+    #   tags: ['secrets']
+    #   command: gpgconf --reload gpg-agent

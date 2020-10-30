@@ -16,7 +16,7 @@
     "Alpha Component" : 1,
     "Green Component" : 0.72887319326400757
   },
-  "Guid" : "E8E20B00-AB95-4907-ADFB-7FE2FE8D6D92",
+  "Guid" : "22BFC854-898E-48F3-AD75-147CE6C08FF4",
   "Ansi 7 Color" : {
     "Red Component" : 0.93123704195022583,
     "Color Space" : "Calibrated",
@@ -176,7 +176,7 @@
   "Terminal Type" : "xterm-256color",
   "Visual Bell" : true,
   "Flashing Bell" : false,
-  "Silence Bell" : false,
+  "Silence Bell" : true,
   "Ansi 14 Color" : {
     "Red Component" : 0.54558646678924561,
     "Color Space" : "Calibrated",

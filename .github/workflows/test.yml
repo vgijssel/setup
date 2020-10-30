@@ -1,11 +1,35 @@
 name: Test
 on: [push]
 env:
-  CI: true
   GITHUB_DOCKER_REGISTRY_TOKEN: ${{ github.token }}
-  GITHUB_REF: ${{ github.ref }}
 
 jobs:
+  test-dotfiles:
+    name: Test dotfiles
+    timeout-minutes: 60
+    runs-on: macos-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      # For debugging https://github.com/marketplace/actions/debugging-with-tmate
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.6.0
+      with:
+        access_token: ${{ github.token }}
+    - uses: actions/checkout@v1
+    - run: ./scripts/github_load_env.sh .envrc
+    - run: env
+    - run: |
+        export CI_PASSWORD=''
+        export BRANCH="$GIT_BRANCH"
+        eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
+    - run: env
+    - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
+      run: bundle install
+    - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
+      run: rake spec
+
   build-base-image:
     name: Build docker base image
     timeout-minutes: 15
@@ -23,7 +47,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: ./scripts/load_env.sh
-    - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" "./image-builder"
+    - run: docker_build.sh "${IMAGE_BUILDER_IMAGE}" ./image-builder
 
   build-libvirt:
     name: Build libvirt image
@@ -160,3 +184,4 @@ jobs:
   #       cd ./kubernetes
   #       hivemind Procfile.tests &
   #       bundle exec rspec
+

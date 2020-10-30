@@ -1,119 +1,30 @@
 ---
-homebrew_installed_packages:
-  - windmilleng/tap/tilt
-  - docker-machine-driver-hyperkit
-  - kubernetes-cli
-  - ansible
-  - packer # creating machine images
-
-  - exiftool # show/mutate EXIF information of documents
-  - pstree # show parent/child relationship of processes
-
-  - git
-  - gpg2
-  - git-crypt
-
-  - mas
-  - redis
-
-  # Terminal
-  - direnv
-  - fzf
-  - fd # fast alternative to find (https://github.com/sharkdp/fd)
-  - zsh # brew version of zsh
-
-  - jq # Tool for filtering JSON on the command line
-  - v8@3.15 # the ruby racer gem
-  - pkg-config # Helper tool for compiling applications
-  - imagemagick # otherwise Rails image upload no work
-  - miniserve # CLI tool to serve files over HTTP
-
-  - cdrtools # contains mkisofs for making cloud-init images
-  - minikube # for running kubernetes locally
-  - hyperkit # running virtual machines on macos for testing
-  - hivemind # for running multiple virtual machines from procfile
-  - dnsmasq # for custom DNS / DHCP
-  - semaphoreci/tap/sem # Semaphore CI command line tool
-
-  # Emacs
-  - emacs-plus
-  - aspell # spellchecking
-  - ag # silversearcher
-  - ripgrep # search
-  - ack # search
-  - pt # the platinum searcher
-  - cmake # for loading vterm
-  - libvterm # vterm shell inside emacs
-  - shellcheck # lint shell-script files
-
-  # Networking tools
-  - nmap
-  - iperf
-
-  # For generating and reading graphs using `dot` tool
-  - graphviz
-
-  # GNU tools instead of macos ones
-  - coreutils
-  - diffutils
-  - findutils
-  - gawk
-  - gnu-indent
-  - gnu-sed
-  - gnu-tar
-  - gnu-which
-  - gnutls
-  - grep
-  - gzip
-  - screen
-  - watch
-  - wdiff
-  - wget
-
-homebrew_taps:
-  - homebrew/core
-  - homebrew/cask
-  - homebrew/cask-fonts
-  - homebrew/services
-  - windmilleng/tap
-  - d12frosted/emacs-plus
-
-homebrew_cask_appdir: /Applications
-homebrew_cask_apps:
-  - multipass
-  - ngrok
-  - virtualbox
-  - vagrant
-  - gpg-suite
-  - 1password-cli
-  - steam
-  - iterm2
-  - rubymine
-  - adobe-creative-cloud
-
-  # TODO: force reload of the installed fonts (by manually installing one)
-  # will make these fonts available
-  - font-source-code-pro
-  - font-source-code-pro-for-powerline
-  - font-menlo-for-powerline
-
-# Use `mas search <<appname>>` to get the id and name
-mas_installed_apps:
-  - { id: 1147396723, name: "WhatsApp Desktop" }
-  - { id: 585829637, name: "Todoist: To-Do List & Tasks" }
-  - { id: 747648890, name: "Telegram" }
-  - { id: 1404231964, name: "UPRIGHT GO Desktop" }
-
-mas_upgrade_all_apps: true
-mas_signin_dialog: true
-
 languages:
+  postgres:
+    global: 12.4
+    versions:
+      - version: 12.4
+        packages: []
+
+  golang:
+    global: 1.13
+    versions:
+      - version: 1.13
+        packages: []
+
+  terraform:
+    global: 0.13.4
+    versions:
+      - version: 0.13.4
+        packages: []
+
   nodejs:
     packages:
       - name: yarn # package manager
       - name: tern # spacemacs javascript layer
       - name: eslint_d # daemon for eslint
       - name: eslint # linting in javascript
+      - name: eslint-plugin-graphql # linting in javascript
       - name: prettier # spacemacs javascript autofixer
       - name: fx # json viewer for the terminal
       - name: vmd # spacemacs markdown layer
@@ -122,17 +33,9 @@ languages:
       - name: typescript # typescript
       - name: speedscope # profiling presentation
       - name: depcheck # tool for checking used dependencies in a JS project
-    global: 12.15.0
+    global: 12.18.4
     versions:
-      - version: 12.13.0
-        packages: []
-      - version: 12.14.0
-        packages: []
-      - version: 12.15.0
-        packages: []
-      - version: 12.0.0
-        packages: []
-      - version: 10.16.3
+      - version: 12.18.4
         packages: []
 
   ruby:
@@ -146,17 +49,22 @@ languages:
       - name: debase
       - name: razor-client # for communication with the razor-server
       - name: mkpasswd # for generating password hashes for cloud-init
-    global: 2.6.5
+
+      # https://github.com/sj26/mailcatcher/issues/430, XCode 12 issue
+      - name: mailcatcher # email server to send local development emails to
+        build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
+
+      # https://github.com/macournoyer/thin/issues/365, XCode 12 issue
+      - name: thin
+        build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
+        version: 1.7.2
+
+      - name: git-merge-structure-sql # good merge strategy for structure.sql files
+    global: 2.6.6
     versions:
-      - version: 2.6.5
-        # There is no 2.6.5 available in `solargraph available-cores`
-        solargraph: 2.6.1
+      - version: 2.6.6
+        # There is no 2.6.6 available in `solargraph available-cores`
+        solargraph: 2.6.5
         gems:
-          - { name: bundler, version: 1.17.3 }
           - { name: bundler, version: 2.1.4 }
-          - { name: rubocop, version: 0.73.0 }
-      - version: 2.5.3
-        solargraph: 2.5.3
-        gems:
-          - { name: bundler, version: 2.0.1 }
-          - { name: rubocop }
+          - { name: rubocop, version: 0.79.0 }

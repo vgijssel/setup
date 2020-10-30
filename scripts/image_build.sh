@@ -43,16 +43,16 @@ export SIZE="${SIZE:-}"
 
 # TODO: maybe mount the global volume as read only?
 # TODO: mounting the cache directory in docker volume seems to make docker crash :')
-# --env DIB_IMAGE_CACHE="$SETUP_ROOT_DIR/tmp/cache_image_build" \
+# --env DIB_IMAGE_CACHE="$SETUP_DIR/tmp/cache_image_build" \
 CONTAINER=$(
   docker run \
     --rm \
-    -w "$SETUP_ROOT_DIR" \
+    -w "$SETUP_DIR" \
     --privileged \
     $EXTRA_DOCKER_ARGS \
     -d \
     -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-    -v "$SETUP_ROOT_DIR:$SETUP_ROOT_DIR" \
+    -v "$SETUP_DIR:$SETUP_DIR" \
     --env ELEMENTS_PATH \
     --env DIB_EXTLINUX=0 \
     --env DIB_RELEASE \

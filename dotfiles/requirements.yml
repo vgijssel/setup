@@ -1,4 +1,3 @@
 ---
-- name: geerlingguy.homebrew
-- name: geerlingguy.mas
-- name: markosamuli.asdf
+collections:
+- name: community.general

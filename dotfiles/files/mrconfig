@@ -1,0 +1,20 @@
+[.emacs.d]
+checkout = git clone -b develop 'https://github.com/syl20bnr/spacemacs' '.emacs.d'
+
+[Development/dirsearch]
+checkout = git clone 'https://github.com/maurosoria/dirsearch.git' 'dirsearch'
+
+[Development/rEFInd-minimal]
+checkout = git clone 'https://github.com/EvanPurkhiser/rEFInd-minimal.git' 'rEFInd-minimal'
+
+[Development/subbrute]
+checkout = git clone 'https://github.com/TheRook/subbrute.git' 'subbrute'
+
+[Development/theHarvester]
+checkout = git clone 'https://github.com/laramies/theHarvester.git' 'theHarvester'
+
+[Development/arel_toolkit]
+checkout = git clone 'https://github.com/mvgijssel/arel_toolkit.git' 'arel_toolkit'
+
+[.asdf]
+checkout = git clone 'https://github.com/asdf-vm/asdf.git' '.asdf'

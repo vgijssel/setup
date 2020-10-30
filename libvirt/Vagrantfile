@@ -6,7 +6,7 @@ require 'open3'
 
 TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
-root_dir = ENV.fetch('SETUP_ROOT_DIR')
+root_dir = ENV.fetch('SETUP_DIR')
 secrets_dir = ENV.fetch('SETUP_SECRETS_DIR')
 libvirt_dir = ENV.fetch('SETUP_LIBVIRT_DIR')
 local_network_bridge_interface = ENV.fetch('LOCAL_NETWORK_BRIDGE_INTERFACE')
