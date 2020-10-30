@@ -11,6 +11,10 @@ jobs:
         shell: bash -l {0}
     steps:
       # For debugging https://github.com/marketplace/actions/debugging-with-tmate
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.6.0
+      with:
+        access_token: ${{ github.token }}
     - uses: actions/checkout@v1
     - run: ./scripts/github_load_env.sh .envrc
     - run: env
