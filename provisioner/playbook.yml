@@ -44,3 +44,16 @@
         - docker-ce
         - docker-ce-cli
         - containerd.io
+
+    - name: Reset cloud-init
+      tags: ['cloud-init']
+      command: cloud-init clean
+
+    - name: Copy cloud-init data
+      tags: ['cloud-init']
+      copy:
+        src: ./cloud-init/user-data
+        dest: /etc/cloud/cloud.cfg.d/99_provisioner.cfg
+        owner: root
+        group: root
+        mode: '0644'
