@@ -42,5 +42,13 @@ build {
 
   provisioner "ansible" {
     playbook_file = "./playbook.yml"
+    extra_arguments = [
+      "--extra-vars", "architecture=amd64"
+    ]
+  }
+
+  provisioner "breakpoint" {
+    disable = false
+    note    = "this is a breakpoint"
   }
 }

@@ -25,9 +25,8 @@
 
     - name: Add Docker Repository
       tags: ['docker']
-      # TODO: make focal a variable!
       apt_repository:
-        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        repo: "deb [arch={{ architecture }}] https://download.docker.com/linux/ubuntu focal stable"
         state: present
 
     - name: Update apt
