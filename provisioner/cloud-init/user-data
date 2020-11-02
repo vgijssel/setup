@@ -1,5 +1,7 @@
 #cloud-config
 
+datasource_list: [ NoCloud, None ]
+
 manage_etc_hosts: localhost
 
 fqdn: provisioner.setup.test

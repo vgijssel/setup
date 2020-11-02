@@ -23,7 +23,7 @@ source "qemu" "provisioner" {
   net_device        = "virtio-net"
   disk_interface    = "virtio"
 
-  cd_files = ["./user-data", "./meta-data"]
+  cd_files = ["./cloud-init/user-data", "./cloud-init/meta-data"]
   cd_label = "cidata"
 
   memory = 1024
