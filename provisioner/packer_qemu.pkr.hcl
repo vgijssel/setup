@@ -36,6 +36,10 @@ source "qemu" "provisioner" {
 build {
   sources = ["source.qemu.provisioner"]
 
+  provisioner "shell" {
+    inline = ["/usr/bin/cloud-init status --wait"]
+  }
+
   provisioner "ansible" {
     playbook_file = "./playbook.yml"
   }
