@@ -35,4 +35,8 @@ source "qemu" "provisioner" {
 
 build {
   sources = ["source.qemu.provisioner"]
+
+  provisioner "ansible" {
+    playbook_file = "./playbook.yml"
+  }
 }

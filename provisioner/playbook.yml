@@ -1,0 +1,46 @@
+---
+- name: 'Provision Provisioner'
+  hosts: default
+  become: true
+
+  tasks:
+    # https://docs.docker.com/engine/install/ubuntu/
+    - name: Install docker dependencies
+      tags: ['docker']
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+    - name: Add Docker GPG apt Key
+      tags: ['docker']
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      tags: ['docker']
+      # TODO: make focal a variable!
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Update apt
+      tags: ['docker']
+      apt:
+        update_cache: true
+
+    - name: Install docker-ce
+      tags: ['docker']
+      apt:
+        state: latest
+        name: "{{ item }}"
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
