@@ -110,6 +110,7 @@ cask "figma" ## tool for sharing designs and workflows
 
 # First install of virtualbox will always fail because system extensions need to be approved
 cask "virtualbox"
+cask "intel-haxm" #hardware accelerator for qemu
 
 cask "1password-cli"
 cask "steam"
