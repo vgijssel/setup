@@ -11,7 +11,6 @@ cask_args appdir: '~/Applications'
 
 brew 'windmilleng/tap/tilt'
 brew 'docker-machine-driver-hyperkit'
-brew 'packer' # Packer is a free and open source tool for creating golden images for multiple platforms from a single source configuration.
 brew 'qemu'
 
 brew 'kubernetes-cli' # kubectl for interaction with kubernetes clusters
