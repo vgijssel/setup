@@ -1,0 +1,73 @@
+# frozen_string_literal: true
+
+# https://www.thomas-krenn.com/en/wiki/Network_Configuration_in_VirtualBox
+
+require 'open3'
+
+# TODO: fail if local network is not running
+
+TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
+log_dir = ENV.fetch('SETUP_LOG_DIR')
+box_dir = ENV.fetch('SETUP_BOX_DIR')
+provisioner_dir = ENV.fetch('SETUP_PROVISIONER_DIR')
+local_network_bridge_interface = ENV.fetch('LOCAL_NETWORK_BRIDGE_INTERFACE')
+provisioner_fqdn = ENV.fetch('PROVISIONER_FQDN')
+provisioner_box_path = File.join(box_dir, 'provisioner.box')
+private_key_path = ENV.fetch('PRIVATE_KEY_PATH')
+
+def build_cloud_init_iso(iso_name, user_data_file, meta_data_file, vendor_data_file)
+  iso_location = File.join(TMP_DIR, iso_name)
+
+  Dir.mktmpdir(nil, "/tmp") do |local_tmp_dir|
+    user_data = File.join(local_tmp_dir, 'user-data')
+    meta_data = File.join(local_tmp_dir, 'meta-data')
+    vendor_data = File.join(local_tmp_dir, 'vendor-data')
+
+    File.write(user_data, File.read(user_data_file))
+    File.write(meta_data, File.read(meta_data_file))
+    File.write(vendor_data, File.read(vendor_data_file))
+
+    stdout, stderr, status = Open3.capture3("mkisofs -output #{iso_location} -volid cidata -joliet -rock {#{user_data},#{meta_data},#{vendor_data}}")
+
+    unless status.success?
+      puts stdout
+      puts stderr
+
+      raise "Unable to create cloud-init iso '#{name}'"
+    end
+  end
+
+  iso_location
+end
+
+Vagrant.configure('2') do |config|
+  config.vm.define "provisioner" do |provisioner|
+    provisioner.vm.network "public_network", adapter: 1, auto_config: false, bridge: local_network_bridge_interface
+    provisioner.vm.box = "file://#{provisioner_box_path}"
+    provisioner.vm.synced_folder '.', '/vagrant', disabled: true
+
+    provisioner.ssh.username = 'ubuntu'
+    provisioner.ssh.host = provisioner_fqdn
+    provisioner.ssh.private_key_path = private_key_path
+
+    provisioner.vm.provider 'virtualbox' do |vb|
+      vb.gui = false
+      vb.memory = "4096"
+      vb.cpus = 2
+
+      # Enable promiscious mode on the network adapter to enable bridge networking in the vm
+      vb.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
+
+      # Setup log file
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "provisioner.log")]
+
+      provisioner_cloud_init = build_cloud_init_iso(
+        "provisioner-cloud-init.iso",
+        File.join(provisioner_dir, "cloud-init/dev/user-data"),
+        File.join(provisioner_dir, "cloud-init/dev/meta-data"),
+        File.join(provisioner_dir, "cloud-init/dev/vendor-data"),
+      )
+      vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", "0", "--device", "0", "--type", "dvddrive", "--medium", provisioner_cloud_init]
+    end
+  end
+end

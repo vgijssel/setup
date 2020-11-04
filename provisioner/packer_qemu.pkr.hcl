@@ -13,7 +13,7 @@ variable "setup_box_dir" {
 
 source "qemu" "provisioner" {
   vm_name = "provisioner.qcow2"
-  iso_url           = "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64-disk-kvm.img"
+  iso_url           = "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
   iso_checksum      = "file:http://cloud-images.ubuntu.com/focal/current/SHA256SUMS"
 
   output_directory  = var.output_directory
@@ -37,7 +37,7 @@ source "qemu" "provisioner" {
   net_device        = "virtio-net"
   disk_interface    = "virtio"
 
-  cd_files = ["./cloud-init/user-data", "./cloud-init/meta-data"]
+  cd_files = ["./cloud-init/dev/user-data", "./cloud-init/dev/meta-data", "./cloud-init/dev/vendor-data"]
   cd_label = "cidata"
 
   memory = 512
@@ -61,6 +61,11 @@ build {
     ]
   }
 
+  # provisioner "breakpoint" {
+  #   disable = false
+  #   note    = "this is a breakpoint"
+  # }
+
   post-processors {
     post-processor "shell-local" {
       inline = ["cp -v ../scripts/qcow_to_vagrant/box.ovf ${var.output_directory}/box.ovf"]
@@ -77,6 +82,7 @@ build {
       ]
     }
 
+    # TODO: remove existing box from vagrant as well
     post-processor "vagrant" {
       keep_input_artifact = true
       provider_override = "virtualbox"

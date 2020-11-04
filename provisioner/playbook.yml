@@ -48,11 +48,31 @@
       tags: ['cloud-init']
       command: cloud-init clean
 
-    - name: Copy cloud-init data
+    - name: Cleanup files
+      tags: ['cloud-init']
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+      - /home/ubuntu/.ssh/authorized_keys
+      - /etc/netplan/50-cloud-init.yaml
+      - /var/log/cloud-init.log
+      - /var/log/cloud-init-output.log
+
+    - name: Create necessary seed directory
+      file:
+        path: /var/lib/cloud/seed/nocloud-net
+        state: directory
+
+    - name: Copy cloud-init user-data
       tags: ['cloud-init']
       copy:
-        src: ./cloud-init/user-data
-        dest: /etc/cloud/cloud.cfg.d/99_provisioner.cfg
+        src: "{{ item }}"
+        dest: /var/lib/cloud/seed/nocloud-net
         owner: root
         group: root
         mode: '0644'
+      loop:
+        - ./cloud-init/prod/user-data
+        - ./cloud-init/prod/meta-data
+        - ./cloud-init/prod/vendor-data

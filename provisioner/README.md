@@ -1,3 +1,19 @@
+### Debugging
+
+# https://www.virtualbox.org/ticket/11011
+
+vbox_socket-pty
+
+1. Configure host pipe in virtualbox, point to /tmp/vbox_socket
+2. Boot socat on the socket to create pty
+```
+socat UNIX-CONNECT:/tmp/vbox_socket PTY,link=/tmp/vbox_socket-pty &
+```
+3. Use screen to attach to the pty using
+```
+screen /tmp/vbox_socket-pty
+```
+
 ### Provisioner
 
 Responsibility of the provisioner is running the services to allow the rest of the servers to operate.

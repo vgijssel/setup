@@ -11,7 +11,8 @@ cask_args appdir: '~/Applications'
 
 brew 'windmilleng/tap/tilt'
 brew 'docker-machine-driver-hyperkit'
-brew 'qemu'
+brew 'qemu' # for running qcow2 based vms
+brew 'socat' # for creating screen accessible sockets for virtualbox
 
 brew 'kubernetes-cli' # kubectl for interaction with kubernetes clusters
 brew 'kustomize' # for building/handling/changing kubernetes manifests

@@ -63,13 +63,13 @@ Include ~/.ssh/config
 Host *.$LOCAL_NETWORK_DOMAIN
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
-  User vagrant
+  User ubuntu
   IdentityFile $PRIVATE_KEY_PATH
 
 Host $ip1.$ip2.$ip3.*
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
-  User vagrant
+  User ubuntu
   IdentityFile $PRIVATE_KEY_PATH
 EOF
 
