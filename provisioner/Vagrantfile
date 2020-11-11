@@ -4,7 +4,22 @@
 
 require 'open3'
 
-# TODO: fail if local network is not running
+def local_network_running?
+  local_network_dnsmasq_pid = ENV.fetch('LOCAL_NETWORK_DNSMASQ_PID')
+
+  return false unless File.exists?(local_network_dnsmasq_pid)
+
+  begin
+    Process.getpgid(File.read(local_network_dnsmasq_pid).to_i)
+    true
+  rescue Errno::ESRCH
+    false
+  end
+end
+
+unless local_network_running?
+  raise "Local network is not running, please call 'setup_local_network.sh' and try again."
+end
 
 TMP_DIR = ENV.fetch('SETUP_TMP_DIR')
 log_dir = ENV.fetch('SETUP_LOG_DIR')

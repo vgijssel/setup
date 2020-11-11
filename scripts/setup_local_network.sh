@@ -4,7 +4,6 @@ set -Eeoux pipefail
 
 DNSMASQ_LEASE_FILE="$SETUP_TMP_DIR/dnsmasq.leases"
 DNSMASQ_LOG_FILE="$SETUP_LOG_DIR/dnsmasq.log"
-DNSMASQ_PID_FILE="$SETUP_TMP_DIR/dnsmasq.pid"
 NAT_RULES_FILE="$SETUP_TMP_DIR/nat_rules"
 
 DNS_HEAVEN_PID=$(pgrep dns-heaven || true)
@@ -44,7 +43,7 @@ sudo dnsmasq \
      --dhcp-range="$LOCAL_NETWORK_DHCP_START,$LOCAL_NETWORK_DHCP_END,$LOCAL_NETWORK_NETMASK,12h" \
      --dhcp-leasefile="$DNSMASQ_LEASE_FILE" \
      --log-facility="$DNSMASQ_LOG_FILE" \
-     --pid-file="$DNSMASQ_PID_FILE" \
+     --pid-file="$LOCAL_NETWORK_DNSMASQ_PID" \
      --log-dhcp \
      --log-queries \
      --domain "$LOCAL_NETWORK_DOMAIN" \
