@@ -25,4 +25,8 @@ path_remove "$SETUP_SCRIPTS_DIR"
 
 ARGS=("$@")
 
-ssh -F "$LOCAL_NETWORK_SSH_CONFIG_PATH" "${ARGS[@]}"
+if [[ -f "$LOCAL_NETWORK_SSH_CONFIG_PATH" ]]; then
+    ssh -F "$LOCAL_NETWORK_SSH_CONFIG_PATH" "${ARGS[@]}"
+else
+    ssh "${ARGS[@]}"
+fi
