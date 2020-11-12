@@ -23,6 +23,6 @@ docker run \
        --privileged \
        -v /dev:/dev \
        -v "$SETUP_PROVISIONER_DIR":/build \
-       test build \
+       mkaczanowski/packer-builder-arm build \
        "$EXTRA_PACKER_ARGS" packer_arm.pkr.hcl \
        -extra-system-packages=ansible
