@@ -1,2 +1,3 @@
 terraform 0.13.5
 packer 1.6.3
+terraform-lsp 0.0.11-beta2

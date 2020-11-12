@@ -3,6 +3,9 @@
 manage_etc_hosts: localhost
 hostname: provisioner
 
+groups:
+  - docker: [ubuntu]
+
 # users:
 #   - name: ubuntu
 #     lock_passwd: false

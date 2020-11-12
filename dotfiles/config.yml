@@ -6,6 +6,12 @@ languages:
       - version: 12.4
         packages: []
 
+  packer:
+    global: 1.6.3
+    versions:
+      - version: 1.6.3
+        packages: []
+
   golang:
     global: 1.13
     versions:
@@ -16,6 +22,12 @@ languages:
     global: 0.13.5
     versions:
       - version: 0.13.5
+        packages: []
+
+  terraform-lsp:
+    global: 0.0.11-beta2
+    versions:
+      - version: 0.0.11-beta2
         packages: []
 
   nodejs:
