@@ -28,4 +28,5 @@ docker run \
        -v "$SETUP_DIR:$SETUP_DIR" \
        mkaczanowski/packer-builder-arm \
        build "$EXTRA_PACKER_ARGS" \
-       "$SETUP_PROVISIONER_DIR/packer_arm.pkr.hcl"
+       "$SETUP_PROVISIONER_DIR/packer_arm.pkr.hcl" \
+       -extra-system-packages=ansible
