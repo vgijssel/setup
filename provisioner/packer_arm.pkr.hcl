@@ -2,6 +2,10 @@ locals {
   image_mount_path = "/tmp/packer_mount_dir"
 }
 
+variable "setup_image_dir" {
+  type = string
+}
+
 source "arm" "provisioner" {
   file_urls = [
     "http://cdimage.ubuntu.com/releases/20.04.1/release/ubuntu-20.04.1-preinstalled-server-arm64+raspi.img.xz"
@@ -11,7 +15,7 @@ source "arm" "provisioner" {
   file_target_extension = "xz"
   file_unarchive_cmd = ["xz", "--decompress", "$ARCHIVE_PATH"]
   image_build_method = "reuse"
-  image_path = "ubuntu-20.04.img"
+  image_path = "${var.setup_image_dir}/provisioner.img"
   image_size = "3.1G"
   image_mount_path = local.image_mount_path
   image_type = "dos"

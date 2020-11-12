@@ -19,10 +19,13 @@ fi
 # TODO: remove extra system packages
 docker run \
        "$EXTRA_DOCKER_ARGS" \
+       -w "$SETUP_DIR" \
        --rm \
        --privileged \
+       --env "PKR_VAR_setup_image_dir" \
+       --env "PACKER_CACHE_DIR" \
        -v /dev:/dev \
-       -v "$SETUP_PROVISIONER_DIR":/build \
-       mkaczanowski/packer-builder-arm build \
-       "$EXTRA_PACKER_ARGS" packer_arm.pkr.hcl \
-       -extra-system-packages=ansible
+       -v "$SETUP_DIR:$SETUP_DIR" \
+       mkaczanowski/packer-builder-arm \
+       build "$EXTRA_PACKER_ARGS" \
+       "$SETUP_PROVISIONER_DIR/packer_arm.pkr.hcl"
