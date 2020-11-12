@@ -23,6 +23,7 @@ docker run \
        --rm \
        --privileged \
        --env "PKR_VAR_setup_image_dir" \
+       --env "PKR_VAR_setup_provisioner_dir" \
        --env "PACKER_CACHE_DIR" \
        -v /dev:/dev \
        -v "$SETUP_DIR:$SETUP_DIR" \

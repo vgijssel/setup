@@ -6,6 +6,10 @@ variable "setup_image_dir" {
   type = string
 }
 
+variable "setup_provisioner_dir" {
+  type = string
+}
+
 source "arm" "provisioner" {
   file_urls = [
     "http://cdimage.ubuntu.com/releases/20.04.1/release/ubuntu-20.04.1-preinstalled-server-arm64+raspi.img.xz"
@@ -64,7 +68,7 @@ build {
   }
 
   provisioner "ansible" {
-    playbook_file = "./playbook.yml"
+    playbook_file = "${var.setup_provisioner_dir}/playbook.yml"
     # NOTE: the trailing comma is really important in "inventory_file" otherwise all the files
     # and folders in the directory will be used as inventory hosts as described here
     # https://www.reddit.com/r/ansible/comments/8kc59a/how_to_use_the_chroot_connection_plugin/dz7nq3c/
