@@ -92,8 +92,14 @@ build {
       output = local.provisioner_box_path
     }
 
+    # Try to remove the locally box stored in Vagrant
+    # so the next time "vagrant up" is run the new box is being used.
     post-processor "shell-local" {
-      inline = ["vagrant box remove file:///${local.provisioner_box_path} || true"]
+      inline = ["vagrant box remove -f file://${local.provisioner_box_path}"]
+      valid_exit_codes = [
+        0,
+        1,
+      ]
     }
   }
 }
