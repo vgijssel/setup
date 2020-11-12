@@ -11,6 +11,10 @@ variable "setup_box_dir" {
   type = string
 }
 
+locals {
+  provisioner_box_path = "${var.setup_box_dir}/provisioner.box"
+}
+
 source "qemu" "provisioner" {
   vm_name = "provisioner.qcow2"
   iso_url           = "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
@@ -82,11 +86,14 @@ build {
       ]
     }
 
-    # TODO: remove existing box from vagrant as well
     post-processor "vagrant" {
       keep_input_artifact = true
       provider_override = "virtualbox"
-      output = "${var.setup_box_dir}/provisioner.box"
+      output = local.provisioner_box_path
+    }
+
+    post-processor "shell-local" {
+      inline = ["vagrant box remove file:///${local.provisioner_box_path} || true"]
     }
   }
 }
