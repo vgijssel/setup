@@ -1,0 +1,5 @@
+{
+  "experimental": false,
+  "features": { "buildkit": true },
+  "insecure-registries": ["registry.setup.test:5000"]
+}

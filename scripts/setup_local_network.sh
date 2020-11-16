@@ -35,10 +35,11 @@ sudo pfctl -f "$NAT_RULES_FILE" -e || true
 # kill if exists and boot dnsmasq server on bridge interface
 # matching all dns requests to *.local_network_domain to bridge ip so Vagrant doesn't crash
 # and kubernetes ingress dns resolution works
-kill $(cat "$DNSMASQ_PID_FILE") || true
+kill $(cat "$LOCAL_NETWORK_DNSMASQ_PID") || true
 sudo dnsmasq \
      --bind-interfaces \
      --listen-address="$LOCAL_NETWORK_BRIDGE_IP" \
+     --address="/$LOCAL_NETWORK_REGISTRY_FQDN/$LOCAL_NETWORK_BRIDGE_IP" \
      --address="/$LOCAL_NETWORK_DOMAIN/$KUBERNETES_INGRESS_IP" \
      --dhcp-range="$LOCAL_NETWORK_DHCP_START,$LOCAL_NETWORK_DHCP_END,$LOCAL_NETWORK_NETMASK,12h" \
      --dhcp-leasefile="$DNSMASQ_LEASE_FILE" \
@@ -71,6 +72,11 @@ Host $ip1.$ip2.$ip3.*
   User ubuntu
   IdentityFile $PRIVATE_KEY_PATH
 EOF
+
+# TODO: somehow make the registry https with a signed certificate prevents updating docker/daemon.json
+# (Re)start docker registry
+docker rm -f registry || true
+docker run -d -p "$LOCAL_NETWORK_BRIDGE_IP:5000:5000" --restart=always --name registry registry:2
 
 # reset dns cache
 dscacheutil -flushcache
