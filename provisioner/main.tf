@@ -2,23 +2,32 @@ provider "docker" {
   host = "ssh://${var.provisioner_fqdn}"
 }
 
-resource "docker_container" "digitalrebar" {
-  image        = docker_image.digitalrebar.latest
-  name         = "digitalrebar"
+resource "docker_container" "digital-rebar" {
+  image        = docker_image.digital-rebar.latest
+  name         = "digital-rebar"
   restart      = "always"
   start        = "true"
   network_mode = "host"
 
   volumes {
-    volume_name    = docker_volume.digitalrebar.name
+    volume_name    = docker_volume.digital-rebar.name
     container_path = "/provision/drp-data"
   }
 }
 
-resource "docker_image" "digitalrebar" {
-  name = "digitalrebar/provision:latest"
+data "external" "docker_build_info" {
+  program = ["docker_build_info.sh"]
 }
 
-resource "docker_volume" "digitalrebar" {
-  name = "digitalrebar"
+data "docker_registry_image" "digital-rebar" {
+  name = "${var.docker_registry}/${var.digital_rebar_image}:${data.external.docker_build_info.result.ref}"
+}
+
+resource "docker_image" "digital-rebar" {
+  name          = data.docker_registry_image.digital-rebar.name
+  pull_triggers = [data.docker_registry_image.digital-rebar.sha256_digest]
+}
+
+resource "docker_volume" "digital-rebar" {
+  name = "digital-rebar"
 }
