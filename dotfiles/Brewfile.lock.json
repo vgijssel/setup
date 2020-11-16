@@ -8,10 +8,10 @@
         "revision": "328169d5b5797bfe6f4b173b15d6d5757187278d"
       },
       "homebrew/core": {
-        "revision": "cae192fd2caa493a4b6ba7abab34989f2c8f1de3"
+        "revision": "9e49adabb79f457d48ebcf0de14ee5cff0859897"
       },
       "homebrew/cask": {
-        "revision": "a9b0e8c376a83fa847422444981782c6bb347bb3"
+        "revision": "97fabe195ae6b8b102c00a340ba5f2b9e62bf6ee"
       },
       "homebrew/cask-fonts": {
         "revision": "711d1405b999107d0ccd57f1d37ec28adc3ea5b4"
@@ -364,6 +364,10 @@
           "cellar": ":any_skip_relocation",
           "prefix": "/usr/local",
           "files": {
+            "big_sur": {
+              "url": "https://homebrew.bintray.com/bottles/mr-1.20180726.big_sur.bottle.tar.gz",
+              "sha256": "9b2f724c76a7b2a2504301eeb2dcd5d16d2b919e53fe7f43b404c79f56ce7c75"
+            },
             "catalina": {
               "url": "https://homebrew.bintray.com/bottles/mr-1.20180726.catalina.bottle.tar.gz",
               "sha256": "90ab23bd6811b507860b5ddcc7e9a181abd3f126fc2ab193739987d6d4b31612"
@@ -1523,6 +1527,27 @@
             }
           }
         }
+      },
+      "jinja2-cli": {
+        "version": "0.7.0_3",
+        "bottle": {
+          "cellar": ":any_skip_relocation",
+          "prefix": "/usr/local",
+          "files": {
+            "catalina": {
+              "url": "https://homebrew.bintray.com/bottles/jinja2-cli-0.7.0_3.catalina.bottle.tar.gz",
+              "sha256": "f87af5f900907686304e0937303eadeb5050d48e3ae85c340ec39e8918177d1e"
+            },
+            "mojave": {
+              "url": "https://homebrew.bintray.com/bottles/jinja2-cli-0.7.0_3.mojave.bottle.tar.gz",
+              "sha256": "a64bc73445720cf2a272854643c6f66aa0dfec769bd96f292b134054d5b1f84a"
+            },
+            "high_sierra": {
+              "url": "https://homebrew.bintray.com/bottles/jinja2-cli-0.7.0_3.high_sierra.bottle.tar.gz",
+              "sha256": "6ae50d5282b186cbf0a8b46b44a173a685a8798fec0606efc6d15bccae9b6a92"
+            }
+          }
+        }
       }
     },
     "cask": {
@@ -1784,7 +1809,7 @@
       "catalina": {
         "HOMEBREW_VERSION": "2.5.11",
         "HOMEBREW_PREFIX": "/usr/local",
-        "Homebrew/homebrew-core": "cae192fd2caa493a4b6ba7abab34989f2c8f1de3",
+        "Homebrew/homebrew-core": "9e49adabb79f457d48ebcf0de14ee5cff0859897",
         "CLT": "12.0.32.2",
         "Xcode": "12.0",
         "macOS": "10.15.7"
