@@ -14,6 +14,14 @@ if [ -z "$DNS_HEAVEN_PID" ]; then
   exit 1
 fi
 
+CA_ROOT=$(mkcert -CAROOT)
+
+if [[ ! -f "$CA_ROOT/rootCA.pem" ]]; then
+    echo "Please generate a development root CA first with mkcert"
+    echo "https://github.com/FiloSottile/mkcert"
+    exit 1
+fi
+
 # NOTE: create bridge using macos network preferences, otherwise the bridge is constantly magically removed?
 # destroy if exists and create bridge interface
 # sudo ifconfig "$LOCAL_NETWORK_BRIDGE_INTERFACE" destroy || true
@@ -73,10 +81,31 @@ Host $ip1.$ip2.$ip3.*
   IdentityFile $PRIVATE_KEY_PATH
 EOF
 
-# TODO: somehow make the registry https with a signed certificate prevents updating docker/daemon.json
+# Generate certificate
+CERT_DIR="$SETUP_TMP_DIR/certs"
+mkdir -p "$CERT_DIR"
+
+REGISTRY_KEY_FILE="$LOCAL_NETWORK_REGISTRY_FQDN-key.pem"
+REGISTRY_CERT_FILE="$LOCAL_NETWORK_REGISTRY_FQDN-cert.pem"
+
+# Create a self signed certificate
+mkcert \
+    -key-file "$CERT_DIR/$REGISTRY_KEY_FILE" \
+    -cert-file "$CERT_DIR/$REGISTRY_CERT_FILE" \
+   "$LOCAL_NETWORK_REGISTRY_FQDN"
+
 # (Re)start docker registry
 docker rm -f registry || true
-docker run -d -p "$LOCAL_NETWORK_BRIDGE_IP:5000:5000" --restart=always --name registry registry:2
+docker run \
+       -d \
+       -p "$LOCAL_NETWORK_BRIDGE_IP:443:443" \
+       --restart=always \
+       --name registry \
+       -v "$CERT_DIR:/certs" \
+       -e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
+       -e REGISTRY_HTTP_TLS_CERTIFICATE="/certs/$REGISTRY_CERT_FILE" \
+       -e REGISTRY_HTTP_TLS_KEY="/certs/$REGISTRY_KEY_FILE" \
+       registry:2
 
 # reset dns cache
 dscacheutil -flushcache

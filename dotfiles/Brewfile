@@ -14,6 +14,9 @@ brew 'docker-machine-driver-hyperkit'
 brew 'qemu' # for running qcow2 based vms
 brew 'socat' # for creating screen accessible sockets for virtualbox
 
+brew 'mkcert' # local trusted development certificates
+brew 'nss' # using locally trusted certificates
+
 brew 'kubernetes-cli' # kubectl for interaction with kubernetes clusters
 brew 'kustomize' # for building/handling/changing kubernetes manifests
 
