@@ -30,7 +30,7 @@ provisioner_fqdn = ENV.fetch('PROVISIONER_FQDN')
 provisioner_box_path = File.join(box_dir, 'provisioner.box')
 private_key_path = ENV.fetch('PRIVATE_KEY_PATH')
 
-def build_cloud_init_iso(iso_name, user_data_file, meta_data_file, vendor_data_file)
+def build_cloud_init_iso(iso_name, user_data_content, meta_data_file, vendor_data_file)
   iso_location = File.join(TMP_DIR, iso_name)
 
   Dir.mktmpdir(nil, "/tmp") do |local_tmp_dir|
@@ -38,7 +38,7 @@ def build_cloud_init_iso(iso_name, user_data_file, meta_data_file, vendor_data_f
     meta_data = File.join(local_tmp_dir, 'meta-data')
     vendor_data = File.join(local_tmp_dir, 'vendor-data')
 
-    File.write(user_data, File.read(user_data_file))
+    File.write(user_data, user_data_content)
     File.write(meta_data, File.read(meta_data_file))
     File.write(vendor_data, File.read(vendor_data_file))
 
@@ -78,7 +78,7 @@ Vagrant.configure('2') do |config|
 
       provisioner_cloud_init = build_cloud_init_iso(
         "provisioner-cloud-init.iso",
-        File.join(provisioner_dir, "cloud-init/dev/user-data"),
+        `#{File.join(provisioner_dir, "cloud-init/dev/user-data.sh")}`,
         File.join(provisioner_dir, "cloud-init/dev/meta-data"),
         File.join(provisioner_dir, "cloud-init/dev/vendor-data"),
       )
