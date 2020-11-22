@@ -8,6 +8,7 @@
       set_fact:
         provisioner_fqdn: "{{ lookup('env', 'PROVISIONER_FQDN') | not_falsy }}"
         scripts_dir: "{{ lookup('env', 'SETUP_SCRIPTS_DIR') | not_falsy }}"
+        public_key_path: "{{ lookup('env', 'PUBLIC_KEY_PATH') | not_falsy }}"
 
     - name: Install drpcli on provisioner
       tags: ['drpcli']
@@ -37,7 +38,7 @@
       command: drpcli bootenvs uploadiso sledgehammer
 
     - name: Set default workflow
-      command: drpcli prefs set defaultWorkflow discover-base unknownBootEnv discovery
+      command: drpcli prefs set defaultWorkflow discover-new unknownBootEnv discovery
 
     - name: Upload default content
       command: drpcli contents upload catalog:task-library-stable
@@ -45,8 +46,24 @@
     - name: Ensure logs are forwarded to console port
       command: drpcli profiles set global param kernel-console to "console=tty0 console=ttyS0,115200"
 
+    - name: Set default public key
+      command: drpcli profiles set global param access-keys to "$PUBLIC_KEY_JSON"
+
     - name: Install image deploy content pack
       command: drpcli catalog item install image-deploy
+
+    # TODO: replace with vault
+    - name: Get public key content
+      delegate_to: localhost
+      set_fact:
+        public_key: "{{ lookup('file', public_key_path) }}"
+
+    - name: Generate access keys param json
+      set_fact:
+        access_keys: "{{ lookup('template', './access_keys.json.j2') }}"
+
+    - name: Set public key in digital rebar
+      shell: "drpcli profiles set global param access-keys to \"{{ access_keys }}\""
 
     - name: Bundle our custom content pack
       delegate_to: localhost
