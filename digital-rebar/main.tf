@@ -13,6 +13,10 @@ resource "docker_container" "digital-rebar" {
     volume_name    = docker_volume.digital-rebar.name
     container_path = "/provision/drp-data"
   }
+
+  provisioner "local-exec" {
+    command = "ansible-playbook playbook.yml -i ${var.provisioner_fqdn},"
+  }
 }
 
 data "external" "docker_build_info" {
