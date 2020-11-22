@@ -1,1 +1,0 @@
-libvirt-test: hyperkit_run.sh libvirt-test 1 "${SETUP_LIBVIRT_DIR}"/images/libvirt/libvirt_buster.vmlinuz "${SETUP_LIBVIRT_DIR}"/images/libvirt/libvirt_buster.initrd "" "${SETUP_LIBVIRT_DIR}"/images/libvirt/libvirt_buster.qcow2

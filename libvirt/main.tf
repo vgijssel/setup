@@ -1,14 +1,3 @@
-terraform {
-  required_version = ">= 0.13.0"
-
-  required_providers {
-    drp = {
-      source  = "local/setup/drp"
-      version = "0.0.1"
-    }
-  }
-}
-
 provider "drp" {
   username = "rocketskates"
   password = "r0cketsk8ts"

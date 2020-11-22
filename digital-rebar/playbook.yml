@@ -37,6 +37,7 @@
     - name: Upload sledgehammer iso
       command: drpcli bootenvs uploadiso sledgehammer
 
+    # TODO: default workflow should be ignore, only if the machine is known we should handle it
     - name: Set default workflow
       command: drpcli prefs set defaultWorkflow discover-new unknownBootEnv discovery
 
