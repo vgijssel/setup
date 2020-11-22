@@ -31,7 +31,7 @@
         src: /tmp/drpcli.darwin
         dest: "{{ scripts_dir }}/drpcli"
 
-    - name: Install community content
+    - name: Install required community content
       command: drpcli catalog item install drp-community-content
 
     - name: Upload sledgehammer iso

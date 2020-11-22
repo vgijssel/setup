@@ -22,10 +22,8 @@ if [[ ! -f "$CA_ROOT/rootCA.pem" ]]; then
     exit 1
 fi
 
-# NOTE: create bridge using macos network preferences, otherwise the bridge is constantly magically removed?
-# destroy if exists and create bridge interface
-# sudo ifconfig "$LOCAL_NETWORK_BRIDGE_INTERFACE" destroy || true
-# sudo ifconfig "$LOCAL_NETWORK_BRIDGE_INTERFACE" create
+# NOTE: create bridge using macos network preferences one time,
+# otherwise the bridge is constantly removed by macos due to some unknown process.
 sudo ifconfig "$LOCAL_NETWORK_BRIDGE_INTERFACE" "$LOCAL_NETWORK_BRIDGE_IP" netmask "$LOCAL_NETWORK_NETMASK" up
 
 # Enable packet forwarding
@@ -44,6 +42,9 @@ EOF
 
 done
 
+# NOTE: If internet connectivity is not working inside the vm
+# it's likely that the local machine network adapter connected to the internet
+# is different than $LOCAL_NETWORK_INTERNET_INTERFACES.
 
 # Flush the existing pfctl firewall rules and load the new rules
 sudo pfctl -F all
@@ -104,6 +105,7 @@ mkcert \
    "$LOCAL_NETWORK_REGISTRY_FQDN"
 
 # (Re)start docker registry
+# TODO: add a volume mount so we don't constantly lose all data
 docker rm -f registry || true
 docker run \
        -d \
