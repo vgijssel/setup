@@ -44,12 +44,7 @@
     - name: Read DEVELOPMENT_DIR
       tags: ['files']
       set_fact:
-        development_dir: "{{ lookup('env', 'DEVELOPMENT_DIR') }}"
-
-    - name: Verify that the development dir is set for rcm
-      tags: ['files']
-      assert:
-        that: development_dir != ""
+        development_dir: "{{ lookup('env', 'DEVELOPMENT_DIR') | not_falsy }}"
 
     - name: Ensure rcm is installed
       tags: ['files']
@@ -162,6 +157,8 @@
         name: gpg2
         state: present
 
+    # TODO: install gems / nodejs packages based on globally installed versions
+    # and get the necessary plugins from the global asdf version file
     - name: Install ASDF plugins
       command: "asdf plugin add {{ item.key }}"
       loop: "{{ languages | dict2items }}"
