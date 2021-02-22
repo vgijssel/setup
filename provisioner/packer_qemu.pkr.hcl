@@ -11,22 +11,28 @@ variable "setup_box_dir" {
   type = string
 }
 
+variable "ubuntu_image" {
+  type = string
+}
+
+variable "ubuntu_checksum" {
+  type = string
+}
+
 locals {
   provisioner_box_path = "${var.setup_box_dir}/provisioner.box"
 }
 
 source "qemu" "provisioner" {
   vm_name = "provisioner.qcow2"
-  iso_url           = "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
-  iso_checksum      = "file:http://cloud-images.ubuntu.com/focal/current/SHA256SUMS"
+  iso_url           = var.ubuntu_image
+  iso_checksum      = "file:${var.ubuntu_checksum}"
 
   output_directory  = var.output_directory
   shutdown_command  = "sudo shutdown -P now"
-  # disk_size         = "5000M"
   format            = "qcow2"
   accelerator       = "hax"
 
-  # http_directory    = "path/to/httpdir"
   headless = true
   use_default_display = true
   display = "none"

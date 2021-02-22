@@ -6,6 +6,10 @@ provider "drp" {
 # TODO: how to recover machines in building state in resource pool?
 # TODO: failed machine does not show up as failing in terraform
 
+# TODO: convert image to using packer! Same as provisioner image
+# TODO: instead of uploading run a file server.
+# normally production will use github releases as well
+
 data "external" "image_info" {
   program = ["image_info.sh", "${path.module}/image.cfg"]
 }
