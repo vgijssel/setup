@@ -573,6 +573,10 @@ before packages are loaded."
   ;; Disable warning TAGS file is too big
   (add-to-list 'spacemacs-large-file-modes-list 'tags-table-mode)
 
+  ;; Speed up helm-projectile-find-file (p-f)
+  ;; https://github.com/syl20bnr/spacemacs/issues/4207
+  (setq projectile-enable-caching t)
+
   ;; disable tags generation for node_modules
   (push "node_modules" projectile-globally-ignored-directories)
 

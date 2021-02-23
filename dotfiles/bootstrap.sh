@@ -10,6 +10,7 @@ set +x
 echo "Password: "
 read -s PASSWORD
 
+# TODO: make the sudo session not expire?
 # Immediately check if the password given is correct
 echo "$PASSWORD" | sudo -S whoami
 set -x

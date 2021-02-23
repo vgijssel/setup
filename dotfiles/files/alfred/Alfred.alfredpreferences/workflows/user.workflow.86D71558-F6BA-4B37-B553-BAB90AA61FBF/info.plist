@@ -34,6 +34,19 @@
 				<false/>
 			</dict>
 		</array>
+		<key>299EB36A-A19A-4B2A-8E68-1BD08394C872</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>70D13C2F-F97E-482C-B61F-54C136B0FC16</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 		<key>69A445B4-D9AE-47A1-8776-E8A03DE9B9EE</key>
 		<array>
 			<dict>
@@ -47,11 +60,23 @@
 				<false/>
 			</dict>
 		</array>
-		<key>B4AAB128-E860-4F0E-8FC9-8A18A5CE41D7</key>
+		<key>70D13C2F-F97E-482C-B61F-54C136B0FC16</key>
 		<array>
 			<dict>
 				<key>destinationuid</key>
-				<string>DF418884-EC25-49AC-AE3A-EC65E5AD2E19</string>
+				<string>3C64EC32-E3E0-4CAA-80FE-B31AFDD22919</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>sourceoutputuid</key>
+				<string>9D122FC3-246E-41AC-9D63-06CFE02A96CE</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>FE972213-1D2C-4C51-B065-D0A0E267A49C</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
@@ -86,6 +111,19 @@
 				<false/>
 			</dict>
 		</array>
+		<key>F8373102-B280-449F-9E0B-6BF2E0666428</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>299EB36A-A19A-4B2A-8E68-1BD08394C872</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 	</dict>
 	<key>createdby</key>
 	<string></string>
@@ -100,54 +138,14 @@
 		<dict>
 			<key>config</key>
 			<dict>
-				<key>browser</key>
-				<string></string>
-				<key>spaces</key>
-				<string></string>
-				<key>url</key>
-				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/137?&amp;label_name[]=E&amp;label_name[]=Escalation&amp;label_name[]=Shine%20Squad</string>
-				<key>utf8</key>
-				<true/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.openurl</string>
-			<key>uid</key>
-			<string>DF418884-EC25-49AC-AE3A-EC65E5AD2E19</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
 				<key>argumenttype</key>
 				<integer>2</integer>
 				<key>keyword</key>
-				<string>she</string>
+				<string>hps</string>
 				<key>subtext</key>
 				<string></string>
 				<key>text</key>
-				<string>ShineSquad Escalations</string>
-				<key>withspace</key>
-				<false/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.input.keyword</string>
-			<key>uid</key>
-			<string>B4AAB128-E860-4F0E-8FC9-8A18A5CE41D7</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>argumenttype</key>
-				<integer>2</integer>
-				<key>keyword</key>
-				<string>shs</string>
-				<key>subtext</key>
-				<string></string>
-				<key>text</key>
-				<string>ShineSquad Sprint</string>
+				<string>Hacker Program Engagement Sprint</string>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -166,7 +164,7 @@
 				<key>spaces</key>
 				<string></string>
 				<key>url</key>
-				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/80?milestone_title=24.%20%F0%9F%97%9E%20Loempia%20-%20%E2%9C%A8Shine%20Sprint%20%5B2020-10-01%20-%202020-10-15%5D</string>
+				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/160?milestone_title=Kerk%20-%20Sprint%202%20(%23TestSprintAnother)&amp;&amp;label_name[]=HxPE%20Squad</string>
 				<key>utf8</key>
 				<true/>
 			</dict>
@@ -185,7 +183,7 @@
 				<key>spaces</key>
 				<string></string>
 				<key>url</key>
-				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/46?&amp;label_name[]=Shine%20Squad</string>
+				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/159?&amp;label_name[]=HxPE%20Squad</string>
 				<key>utf8</key>
 				<true/>
 			</dict>
@@ -202,11 +200,11 @@
 				<key>argumenttype</key>
 				<integer>2</integer>
 				<key>keyword</key>
-				<string>shw</string>
+				<string>hpw</string>
 				<key>subtext</key>
 				<string></string>
 				<key>text</key>
-				<string>ShineSquad Workboard</string>
+				<string>Hacker Program Engagement Workboard</string>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -349,6 +347,128 @@
 			<key>version</key>
 			<integer>2</integer>
 		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>/usr/local/bin/emacsclient -c -s $HOME/.emacs.d/server/server --no-wait</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>3C64EC32-E3E0-4CAA-80FE-B31AFDD22919</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>keyword</key>
+				<string>emacs</string>
+				<key>subtext</key>
+				<string></string>
+				<key>text</key>
+				<string>Emacs - New Window</string>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>F8373102-B280-449F-9E0B-6BF2E0666428</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>/usr/local/bin/emacsclient -s $HOME/.emacs.d/server/server -a false -e 't' &gt; /dev/null 2&gt;&amp;1
+
+printf $?</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>299EB36A-A19A-4B2A-8E68-1BD08394C872</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>conditions</key>
+				<array>
+					<dict>
+						<key>inputstring</key>
+						<string></string>
+						<key>matchcasesensitive</key>
+						<false/>
+						<key>matchmode</key>
+						<integer>0</integer>
+						<key>matchstring</key>
+						<string>0</string>
+						<key>outputlabel</key>
+						<string>new window</string>
+						<key>uid</key>
+						<string>9D122FC3-246E-41AC-9D63-06CFE02A96CE</string>
+					</dict>
+				</array>
+				<key>elselabel</key>
+				<string>open emacs</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.utility.conditional</string>
+			<key>uid</key>
+			<string>70D13C2F-F97E-482C-B61F-54C136B0FC16</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>open -a emacs</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>FE972213-1D2C-4C51-B065-D0A0E267A49C</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
 	</array>
 	<key>readme</key>
 	<string>Keywords are one of Alfred's most commonly used and most useful ways of launching actions. Set a keyword and connect it to the action(s) you want to perform.
@@ -384,12 +504,26 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<key>ypos</key>
 			<integer>335</integer>
 		</dict>
+		<key>299EB36A-A19A-4B2A-8E68-1BD08394C872</key>
+		<dict>
+			<key>xpos</key>
+			<integer>250</integer>
+			<key>ypos</key>
+			<integer>1040</integer>
+		</dict>
 		<key>39BDB198-1D79-4EB5-832A-E37DDF6C6571</key>
 		<dict>
 			<key>xpos</key>
 			<integer>265</integer>
 			<key>ypos</key>
 			<integer>500</integer>
+		</dict>
+		<key>3C64EC32-E3E0-4CAA-80FE-B31AFDD22919</key>
+		<dict>
+			<key>xpos</key>
+			<integer>705</integer>
+			<key>ypos</key>
+			<integer>955</integer>
 		</dict>
 		<key>69A445B4-D9AE-47A1-8776-E8A03DE9B9EE</key>
 		<dict>
@@ -398,14 +532,12 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<key>ypos</key>
 			<integer>500</integer>
 		</dict>
-		<key>B4AAB128-E860-4F0E-8FC9-8A18A5CE41D7</key>
+		<key>70D13C2F-F97E-482C-B61F-54C136B0FC16</key>
 		<dict>
-			<key>colorindex</key>
-			<integer>4</integer>
 			<key>xpos</key>
-			<integer>40</integer>
+			<integer>475</integer>
 			<key>ypos</key>
-			<integer>50</integer>
+			<integer>1060</integer>
 		</dict>
 		<key>BDEA1757-8686-49C5-8347-CD84BA7D93CD</key>
 		<dict>
@@ -423,13 +555,6 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<key>ypos</key>
 			<integer>835</integer>
 		</dict>
-		<key>DF418884-EC25-49AC-AE3A-EC65E5AD2E19</key>
-		<dict>
-			<key>xpos</key>
-			<integer>250</integer>
-			<key>ypos</key>
-			<integer>50</integer>
-		</dict>
 		<key>E6A5E051-4368-4D2A-828A-824162BA9EA6</key>
 		<dict>
 			<key>xpos</key>
@@ -445,6 +570,20 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<integer>45</integer>
 			<key>ypos</key>
 			<integer>190</integer>
+		</dict>
+		<key>F8373102-B280-449F-9E0B-6BF2E0666428</key>
+		<dict>
+			<key>xpos</key>
+			<integer>25</integer>
+			<key>ypos</key>
+			<integer>1040</integer>
+		</dict>
+		<key>FE972213-1D2C-4C51-B065-D0A0E267A49C</key>
+		<dict>
+			<key>xpos</key>
+			<integer>705</integer>
+			<key>ypos</key>
+			<integer>1145</integer>
 		</dict>
 	</dict>
 	<key>version</key>
