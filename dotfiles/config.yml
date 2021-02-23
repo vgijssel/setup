@@ -1,15 +1,10 @@
 ---
+# TODO: replace the language installations with global .tool-versions!!
 languages:
   postgres:
     global: 12.4
     versions:
       - version: 12.4
-        packages: []
-
-  packer:
-    global: 1.6.3
-    versions:
-      - version: 1.6.3
         packages: []
 
   golang:
@@ -22,6 +17,12 @@ languages:
     global: 0.13.5
     versions:
       - version: 0.13.5
+        packages: []
+
+  java:
+    global: adoptopenjdk-11.0.4+11.1
+    versions:
+      - version: adoptopenjdk-11.0.4+11.1
         packages: []
 
   terraform-lsp:
@@ -45,9 +46,10 @@ languages:
       - name: typescript # typescript
       - name: speedscope # profiling presentation
       - name: depcheck # tool for checking used dependencies in a JS project
-    global: 12.18.4
+      - name: firebase-tools # for working with firebase apps
+    global: 12.20.0
     versions:
-      - version: 12.18.4
+      - version: 12.20.0
         packages: []
 
   ruby:

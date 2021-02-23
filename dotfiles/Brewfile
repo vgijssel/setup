@@ -61,10 +61,13 @@ brew 'hivemind' # for running multiple virtual machines from procfile
 brew 'dnsmasq' # for custom DNS / DHCP
 brew 'dhcping' # for debugging DHCP responses
 
+brew 'overmind' # for running services in a procfile in the background
+
 brew 'nektos/tap/act'
 brew 'semaphoreci/tap/sem', conflicts_with: ['parallel']
 
 brew 'emacs-plus@28', args: ['with-spacemacs-icon']
+brew 'markdown'
 
 brew 'aspell' # spellchecking
 brew 'ag' # silversearcher
@@ -99,6 +102,8 @@ brew 'watch'
 brew 'wdiff'
 brew 'wget'
 
+cask 'microsoft-teams' # for video calling
+cask 'graphiql' # for running GraphQL queries against any GraphQL endpoint
 cask 'docker'
 cask 'vagrant' # Vagrant enables users to create and configure lightweight, reproducible, and portable development environments.
 cask 'spotify'
