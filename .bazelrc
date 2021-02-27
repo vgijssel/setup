@@ -1,0 +1,4 @@
+startup --output_user_root=~/.cache/bazel
+build --action_env=SETUP_DIR --action_env=BAZEL_OUTPUT_USER_ROOT
+run --action_env=SETUP_DIR --action_env=BAZEL_OUTPUT_USER_ROOT
+test --action_env=SETUP_DIR --action_env=BAZEL_OUTPUT_USER_ROOT

@@ -2,24 +2,29 @@ locals {
   image_mount_path = "/tmp/packer_mount_dir"
 }
 
-variable "setup_image_dir" {
+variable "base_image_absolute_path" {
   type = string
 }
 
-variable "setup_provisioner_dir" {
+variable "output_image" {
   type = string
 }
+
+# variable "setup_provisioner_dir" {
+#   type = string
+# }
 
 source "arm" "provisioner" {
+  # Use local file url: https://github.com/mkaczanowski/packer-builder-arm/issues/8
   file_urls = [
-    "http://cdimage.ubuntu.com/releases/20.04.1/release/ubuntu-20.04.1-preinstalled-server-arm64+raspi.img.xz"
+    "file://${var.base_image_absolute_path}"
   ]
-  file_checksum_url = "http://cdimage.ubuntu.com/releases/20.04.1/release/SHA256SUMS"
-  file_checksum_type = "sha256"
+  # file_checksum_url = "http://cdimage.ubuntu.com/releases/20.04.1/release/SHA256SUMS"
+  file_checksum_type = "none"
   file_target_extension = "xz"
   file_unarchive_cmd = ["xz", "--decompress", "$ARCHIVE_PATH"]
   image_build_method = "reuse"
-  image_path = "${var.setup_image_dir}/provisioner.img"
+  image_path = var.output_image
   image_size = "3.1G"
   image_mount_path = local.image_mount_path
   image_type = "dos"
@@ -67,17 +72,17 @@ build {
     ]
   }
 
-  provisioner "ansible" {
-    playbook_file = "${var.setup_provisioner_dir}/playbook.yml"
-    # NOTE: the trailing comma is really important in "inventory_file" otherwise all the files
-    # and folders in the directory will be used as inventory hosts as described here
-    # https://www.reddit.com/r/ansible/comments/8kc59a/how_to_use_the_chroot_connection_plugin/dz7nq3c/
-    inventory_file = "${local.image_mount_path},"
-    extra_arguments = [
-      "--connection=chroot",
-      "--extra-vars=architecture=arm64",
-    ]
-  }
+  # provisioner "ansible" {
+  #   playbook_file = "${var.setup_provisioner_dir}/playbook.yml"
+  #   # NOTE: the trailing comma is really important in "inventory_file" otherwise all the files
+  #   # and folders in the directory will be used as inventory hosts as described here
+  #   # https://www.reddit.com/r/ansible/comments/8kc59a/how_to_use_the_chroot_connection_plugin/dz7nq3c/
+  #   inventory_file = "${local.image_mount_path},"
+  #   extra_arguments = [
+  #     "--connection=chroot",
+  #     "--extra-vars=architecture=arm64",
+  #   ]
+  # }
 
   # Restore the temporary resolv.conf with the one from systemd-resolved
   provisioner "shell" {

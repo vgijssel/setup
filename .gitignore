@@ -12,3 +12,7 @@ terraform-provider-libvirt.tar.gz
 scripts/terraform
 scripts/drpcli
 unifi
+bazel-bin
+bazel-out
+bazel-setup
+bazel-testlogs
