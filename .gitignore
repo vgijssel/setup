@@ -16,3 +16,5 @@ bazel-bin
 bazel-out
 bazel-setup
 bazel-testlogs
+*.pyc
+__pycache__

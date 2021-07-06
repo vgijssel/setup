@@ -3,47 +3,96 @@
   hosts: all
   gather_facts: true
   become: true
+  collections:
+    - containers.podman
 
   tasks:
-    # https://docs.docker.com/engine/install/ubuntu/
-    - name: Install docker dependencies
-      tags: ['docker']
-      package:
+    - set_fact:
+        version_id: "{{ hostvars[inventory_hostname].ansible_distribution_version }}"
+
+    # From https://podman.io/getting-started/installation#linux-distributions
+    - name: Add kubic apt key
+      tags: ['podman']
+      ansible.builtin.apt_key:
+        url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/testing/xUbuntu_{{ version_id }}/Release.key"
+        state: present
+
+    - name: Add kubic repository
+      tags: ['podman']
+      ansible.builtin.apt_repository:
+        repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/testing/xUbuntu_{{ version_id }}/ /"
+        state: present
+        filename: devel:kubic:libcontainers:testing
+
+    - name: Update apt cache
+      tags: ['podman']
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Ensure CNI directory exists
+      tags: ['podman']
+      file:
+        path: /opt/cni/bin
+        state: directory
+
+    # From https://discuss.hashicorp.com/t/failed-to-find-plugin-bridge-in-path/3095
+    - name: Install CNI plugins
+      tags: ['podman']
+      ansible.builtin.unarchive:
+        src: https://github.com/containernetworking/plugins/releases/download/v0.9.1/cni-plugins-linux-amd64-v0.9.1.tgz
+        dest: /opt/cni/bin
+        remote_src: yes
+
+    - name: Install podman and dependencies
+      tags: ['podman']
+      package: 
         name: "{{ item }}"
         state: present
-      loop:
-        - apt-transport-https
-        - ca-certificates
-        - curl
-        - gnupg-agent
-        - software-properties-common
+      loop: 
+        - runc
+        - podman
 
-    - name: Add Docker GPG apt Key
-      tags: ['docker']
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
+    - name: Create volume for digitalrebar
+      tags: ['digitalrebar']
+      podman_volume:
         state: present
+        name: digitalrebar-data
 
-    - name: Add Docker Repository
-      tags: ['docker']
-      apt_repository:
-        repo: "deb [arch={{ architecture }}] https://download.docker.com/linux/ubuntu focal stable"
-        state: present
+    - name: Copy digitalrebar image tar into machine
+      tags: ['digitalrebar']
+      copy:
+        # TODO: this file is defined by bazel
+        src: ../digitalrebar/digitalrebar.tar
+        dest: /tmp/digitalrebar.tar
 
-    - name: Update apt
-      tags: ['docker']
-      apt:
-        update_cache: true
+    - name: Create digitalrebar image from tar
+      tags: ['digitalrebar']
+      command: podman image load -i /tmp/digitalrebar.tar
 
-    - name: Install docker-ce
-      tags: ['docker']
-      apt:
-        state: latest
-        name: "{{ item }}"
-      loop:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
+    - name: Create digitalrebar container
+      tags: ['digitalrebar']
+      podman_container:
+        name: digitalrebar
+        # TODO: the image name is defined by bazel
+        image: localhost/digitalrebar-test
+        network: host
+        log_driver: journald
+        state: created
+        recreate: yes
+        privileged: true
+        volume:
+          - digitalrebar-data:/provision/drp-data
+
+    - name: Create digitalrebar systemd entry
+      tags: ['digitalrebar']
+      command: podman generate systemd --files --name digitalrebar
+      args:
+        chdir: /usr/lib/systemd/system
+
+    - name: Enable digitalrebar service
+      tags: ['digitalrebar']
+      command: systemctl enable container-digitalrebar.service
 
     - name: Reset cloud-init
       tags: ['cloud-init']
