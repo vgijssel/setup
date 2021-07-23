@@ -1,0 +1,2 @@
+digitalrebar_tar_location: {{ digitalrebar_image.location }}
+digitalrebar_image: {{ digitalrebar_fqn.value() }}

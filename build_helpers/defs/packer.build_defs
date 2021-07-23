@@ -1,0 +1,55 @@
+def packer(
+    name:str,
+    deps:list = [], 
+    ansible_playbook:str,
+    ansible_arguments:list = [],
+    cd_files:list = [],
+  ) -> str:
+
+  ansible_arguments_json = json(ansible_arguments)
+
+  return genrule(
+      name = name,
+      srcs = {
+        "ansible_playbook": ansible_playbook,
+        "ansible_config": "//build_helpers/defs:ansible.cfg",
+        "template": "//build_helpers/defs:packer_qemu.pkr.hcl",
+        "deps": deps,
+        "iso": "//tools:ubuntu_iso",
+        "iso_checksum": "//tools:ubuntu_checksum",
+        "id_rsa": "//secrets:id_rsa",
+        "cd_files": cd_files,
+      },
+      outs = {
+        "log": [f"output/{name}.packer.log"],
+        "image": [f"output/{name}.qcow2"],
+      },
+      cmd = f"""
+      set -Eeou pipefail
+
+      # Can remove this if we define cd_files as a dir instead of a list of files
+      cd_files_array=($SRCS_CD_FILES)
+      cd_files_json=$(jq --compact-output --null-input '$ARGS.positional' --args "${cd_files_array[@]}")
+
+      export PKR_VAR_iso_file="$SRCS_ISO"
+      export PKR_VAR_iso_checksum="$SRCS_ISO_CHECKSUM"
+      export PKR_VAR_output_directory="output"
+      export PKR_VAR_ssh_private_key_file="$SRCS_ID_RSA"
+
+      export PKR_VAR_arch="$ARCH"
+
+      export ANSIBLE_CONFIG="$SRCS_ANSIBLE_CONFIG"
+      export PKR_VAR_ansible_playbook="$SRCS_ANSIBLE_PLAYBOOK"
+      export PKR_VAR_ansible_arguments='{ansible_arguments_json}'
+      export PKR_VAR_cd_files="$cd_files_json"
+
+      $TOOLS_PACKER build -force -on-error=ask "$SRCS_TEMPLATE"
+      """,
+      tools = {
+        "PACKER": "//tools:packer",
+      },
+      env = {
+        "PKR_VAR_vm_name": f"{name}",
+        "USER": "packer",
+      }
+  )

@@ -1,7 +1,7 @@
 python_binary(
     name = "jinja",
     main = "main.py",
-    visibility = ["//tools/template/..."],
+    visibility = ["PUBLIC"],
     deps = [
         "//third_party/python:Jinja2",
         "//third_party/python:MarkupSafe",

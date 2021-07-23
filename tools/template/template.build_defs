@@ -1,6 +1,6 @@
 JINJA_SCRIPT = '//tools/template:jinja'
 
-def template(name:str, subs:dict, srcs:list, deps:list = []):
+def template(name:str, subs:dict, srcs:list, deps:list, test_only:bool = False, visibility:list = None):
     """
     Generate a file using Jinja2 substitution.
     """
@@ -25,28 +25,37 @@ def template(name:str, subs:dict, srcs:list, deps:list = []):
     for src in sorted(srcs):
         return genrule(
             name = name,
-            srcs = [src],
+            srcs = {
+                "src": src,
+                # TODO: for some reason if we pass deps to deps of genrule only a 
+                # single dep is actually added to the build sandbox. Adding it here
+                # forces each file will be in the sandbox.
+                "deps": deps, 
+            },
             outs = [src],
-            deps = deps,
             tools = {
                 "JINJA_SCRIPT": JINJA_SCRIPT,
             },
             cmd = f"""
             DATA='{data}'
-            $TOOLS_JINJA_SCRIPT "$SRC" "$DATA" "$OUT"
-            """
+            $TOOLS_JINJA_SCRIPT "$SRCS_SRC" "$DATA" "$OUT"
+            """,
+            visibility = visibility,
+            test_only = test_only,
         )
     
     return filegroup(
         name = f"{name}_templated",
         srcs = srcs,
+        visibility = visibility,
+        test_only = test_only,
     )
 
 def template_value(name:str, value:str):
     return genrule(
         name = name,
         outs = [name],
-        cmd = f"printf '{value}' > $OUT",
+        cmd = f"echo -n '{value}' > $OUT",
     )
 
 def _is_build_label(string:str) -> bool:

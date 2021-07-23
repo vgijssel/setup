@@ -7,6 +7,32 @@
     - containers.podman
 
   tasks:
+    - name: Print some debug information 
+      debug: 
+        msg: |
+          Module Variables ("vars"):
+          --------------------------------
+          {{ vars | to_nice_json }} 
+
+    - name: Print some debug information 
+      debug: 
+        msg: |
+          Environment Variables ("environment"):
+          --------------------------------
+          {{ environment | to_nice_json }} 
+          
+          GROUP NAMES Variables ("group_names"):
+          --------------------------------
+          {{ group_names | to_nice_json }}
+          
+          GROUPS Variables ("groups"):
+          --------------------------------
+          {{ groups | to_nice_json }}
+          
+          HOST Variables ("hostvars"):
+          --------------------------------
+          {{ hostvars | to_nice_json }} 
+
     - set_fact:
         version_id: "{{ hostvars[inventory_hostname].ansible_distribution_version }}"
 
@@ -63,7 +89,8 @@
       tags: ['digitalrebar']
       copy:
         # TODO: this file is defined by bazel
-        src: ../digitalrebar/digitalrebar.tar
+        # src: ../digitalrebar/digitalrebar.tar
+        src: "{{ digitalrebar_tar_location }}"
         dest: /tmp/digitalrebar.tar
 
     - name: Create digitalrebar image from tar
@@ -75,7 +102,7 @@
       podman_container:
         name: digitalrebar
         # TODO: the image name is defined by bazel
-        image: localhost/digitalrebar-test
+        image: "{{ digitalrebar_image }}"
         network: host
         log_driver: journald
         state: created
