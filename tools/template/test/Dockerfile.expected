@@ -1,0 +1,4 @@
+FROM some:image
+ENV VERSION=10.0.0
+
+ADD plz-out/gen/tools/template/test/output_file /output

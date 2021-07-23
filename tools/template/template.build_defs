@@ -1,0 +1,53 @@
+JINJA_SCRIPT = '//tools/template:jinja'
+
+def template(name:str, subs:dict, srcs:list, deps:list = []):
+    """
+    Generate a file using Jinja2 substitution.
+    """
+
+    data_object = {}
+
+    for k,v in subs.items():
+        if _is_build_label(v):
+            data_object[k] = {
+                "is_build_label": True,
+                "out_location": f"$(out_location {v})",
+                "location": f"$(location {v})",
+            }
+        else:
+            data_object[k] = {
+                "is_build_label": False,
+                "value": v,
+            }
+
+    data = json(data_object)
+
+    for src in sorted(srcs):
+        return genrule(
+            name = name,
+            srcs = [src],
+            outs = [src],
+            deps = deps,
+            tools = {
+                "JINJA_SCRIPT": JINJA_SCRIPT,
+            },
+            cmd = f"""
+            DATA='{data}'
+            $TOOLS_JINJA_SCRIPT "$SRC" "$DATA" "$OUT"
+            """
+        )
+    
+    return filegroup(
+        name = f"{name}_templated",
+        srcs = srcs,
+    )
+
+def template_value(name:str, value:str):
+    return genrule(
+        name = name,
+        outs = [name],
+        cmd = f"printf '{value}' > $OUT",
+    )
+
+def _is_build_label(string:str) -> bool:
+    return string.startswith('//') or string.startswith(':')
