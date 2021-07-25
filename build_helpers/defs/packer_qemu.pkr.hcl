@@ -27,6 +27,11 @@ variable "ansible_arguments" {
   default = []
 }
 
+variable "awd" {
+  type = string
+  description = "The Ansible working directory defined by $PDW."
+}
+
 variable "cd_files" {
   type = list(string)
   default = []
@@ -83,6 +88,7 @@ build {
     playbook_file = var.ansible_playbook
     extra_arguments = concat([
       "--extra-vars", "architecture=${var.arch}",
+      "--extra-vars", "awd=${var.awd}",
     ], var.ansible_arguments)
   }
 

@@ -24,6 +24,10 @@ def packer(
         "log": [f"output/{name}.packer.log"],
         "image": [f"output/{name}.qcow2"],
       },
+      # TODO: instead of defining the variables in bash 
+      # create a separate variables.auto.pkrvars.hcl which is automatically
+      # loaded by packer. See
+      # https://www.packer.io/guides/hcl/variables
       cmd = f"""
       set -Eeou pipefail
 
@@ -41,6 +45,7 @@ def packer(
       export ANSIBLE_CONFIG="$SRCS_ANSIBLE_CONFIG"
       export PKR_VAR_ansible_playbook="$SRCS_ANSIBLE_PLAYBOOK"
       export PKR_VAR_ansible_arguments='{ansible_arguments_json}'
+      export PKR_VAR_awd="$PWD"
       export PKR_VAR_cd_files="$cd_files_json"
 
       $TOOLS_PACKER build -force -on-error=ask "$SRCS_TEMPLATE"

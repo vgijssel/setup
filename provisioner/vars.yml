@@ -1,2 +1,2 @@
-digitalrebar_tar_location: {{ digitalrebar_image.location }}
-digitalrebar_image: {{ digitalrebar_fqn.value() }}
+digitalrebar_tar_location: "{{ '{{ awd }}/' + digitalrebar_image.location }}"
+digitalrebar_image: "{{ digitalrebar_fqn.value() }}"
