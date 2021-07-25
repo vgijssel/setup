@@ -13,4 +13,8 @@ ENTRYPOINT ["/scripts/entrypoint.sh"]
 
 COPY ./scripts/seed_content.sh ./scripts/
 COPY ./base ./base
+
+# TODO: Instead of running digitalrebar and running the seed
+# can we also directly copy the seed files into the image?
+# Running the server is hackish and generates the ha-state.json file
 RUN ./scripts/with_seed_server.sh ./scripts/seed_content.sh
