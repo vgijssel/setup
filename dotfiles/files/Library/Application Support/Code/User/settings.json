@@ -85,7 +85,7 @@
         "editor.defaultFormatter": "dbaeumer.vscode-eslint"
     },
     "workbench.editorAssociations": {
-        "*.ipynb": "jupyter.notebook.ipynb"
+        "*.ipynb": "jupyter-notebook"
     },
     "workbench.colorTheme": "Visual Studio Dark",
     "window.zoomLevel": 1,
@@ -95,5 +95,16 @@
     "editor.lineNumbers": "on",
     "editor.wordSeparators": "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-",
     "editor.wordWrap": "off",
-    "explorer.confirmDelete": false
+    "explorer.confirmDelete": false,
+    "editor.inlineSuggest.enabled": true,
+    "notebook.cellToolbarLocation": {
+        "default": "right",
+        "jupyter-notebook": "left"
+    },
+    "github.copilot.enable": {
+        "*": true,
+        "yaml": true,
+        "plaintext": false,
+        "markdown": false
+    }
 }
