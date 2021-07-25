@@ -13,7 +13,6 @@ export PATH=\
 "/usr/local/sbin/:"\
 "${HOME}/.local/bin:"\
 "${HOME}/bin:"\
-"${HOME}/.poetry/bin:$PATH"\
 "/Applications/Postgres.app/Contents/Versions/latest/bin:"\
 "${GNU_CORE_UTILS}:"\
 "${GNU_CORE_UTILS}:"\
@@ -26,8 +25,9 @@ export PATH=\
 "${PATH}"
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
-export EDITOR="code -w"
-export VISUAL="code -w"
+export EDITOR="code --wait --new-window"
+export VISUAL="$EDITOR"
+export GIT_EDITOR="$EDITOR"
 
 # TODO hardcoding GOPATH here as it's not set by asdf plugin
 # see https://github.com/kennyp/asdf-golang/issues/28
