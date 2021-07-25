@@ -2,6 +2,8 @@ subinclude("//build_helpers/defs:packer")
 
 subinclude("//tools/template")
 
+subinclude("//tools/qcow_to_vagrant")
+
 template(
     name = "vars",
     srcs = ["vars.yml"],
@@ -36,4 +38,9 @@ packer(
         ":vars",
         "//digitalrebar:digitalrebar_build",
     ],
+)
+
+qcow_to_vagrant(
+    name = "box",
+    src = ":image|image",
 )

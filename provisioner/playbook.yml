@@ -107,6 +107,10 @@
       - /var/log/cloud-init.log
       - /var/log/cloud-init-output.log
 
+    - name: Clear tmp directory
+      tags: ['cloud-init']
+      command: rm -rf /tmp/*
+
     - name: Create necessary seed directory
       file:
         path: /var/lib/cloud/seed/nocloud-net

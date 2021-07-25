@@ -96,37 +96,4 @@ build {
   #   disable = false
   #   note    = "this is a breakpoint"
   # }
-
-  # post-processors {
-  #   # post-processor "shell-local" {
-  #   #   inline = ["cp -v ../scripts/qcow_to_vagrant/box.ovf ${var.output_directory}/box.ovf"]
-  #   # }
-
-  #   # post-processor "shell-local" {
-  #   #   inline = ["qemu-img convert -f qcow2 -O vmdk ${var.output_directory}/provisioner.qcow2 ${var.output_directory}/box-disk001.vmdk"]
-  #   # }
-
-  #   # post-processor "artifice" {
-  #   #   files = [
-  #   #     "${var.output_directory}/box-disk001.vmdk",
-  #   #     "${var.output_directory}/box.ovf",
-  #   #   ]
-  #   # }
-
-  #   # post-processor "vagrant" {
-  #   #   keep_input_artifact = true
-  #   #   provider_override = "virtualbox"
-  #   #   output = local.provisioner_box_path
-  #   # }
-
-  #   # Try to remove the locally box stored in Vagrant
-  #   # so the next time "vagrant up" is run the new box is being used.
-  #   post-processor "shell-local" {
-  #     inline = ["vagrant box remove -f file://${local.provisioner_box_path}"]
-  #     valid_exit_codes = [
-  #       0,
-  #       1,
-  #     ]
-  #   }
-  # }
 }
