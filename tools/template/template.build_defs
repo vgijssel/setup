@@ -1,6 +1,6 @@
 JINJA_SCRIPT = '//tools/template:jinja'
 
-def template(name:str, subs:dict, srcs:list, deps:list, test_only:bool = False, visibility:list = None):
+def template(name:str, subs:dict, srcs:list, deps:list = [], test_only:bool = False, visibility:list = None, transform:function = None):
     """
     Generate a file using Jinja2 substitution.
     """
@@ -8,21 +8,38 @@ def template(name:str, subs:dict, srcs:list, deps:list, test_only:bool = False, 
     data_object = {}
 
     for k,v in subs.items():
-        if _is_build_label(v):
-            data_object[k] = {
-                "is_build_label": True,
+        if k == 'data':
+            fail("data key for substitutions is reserved.") 
+
+        value = None
+
+        is_build_label = _is_build_label(v)
+        is_file = _is_file(v)
+
+        if is_build_label or is_file:
+            value = {
                 "out_location": f"$(out_location {v})",
                 "location": f"$(location {v})",
             }
         else:
-            data_object[k] = {
-                "is_build_label": False,
+            value = {
                 "value": v,
             }
 
+        value['is_build_label'] = is_build_label
+        value['is_file'] = is_file
+
+        if transform != None:
+            value = transform(k, v, value)
+
+        # fail(json(value))
+
+        data_object[k] = value
+
+
     data = json(data_object)
 
-    for src in sorted(srcs):
+    for src in srcs:
         return genrule(
             name = name,
             srcs = {
@@ -60,3 +77,6 @@ def template_value(name:str, value:str):
 
 def _is_build_label(string:str) -> bool:
     return string.startswith('//') or string.startswith(':')
+
+def _is_file(string:str) -> bool:
+    return string.startswith('/') or string.startswith('./') or string.startswith('../')

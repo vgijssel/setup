@@ -1,0 +1,1 @@
+provisioner_box_path = "{{ provisioner_box.file_name }}"

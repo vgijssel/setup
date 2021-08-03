@@ -14,3 +14,11 @@ default-docker-repo = localhost
 
 [python]
 moduledir = third_party.python
+
+[build]
+; to make sure we are using gnu-sed and not bsd sed
+; so we can make use of the pleasings terraform build defs
+path = /usr/local/opt/gnu-sed/libexec/gnubin
+
+; This is the default please PATH variable
+path = /usr/local/bin:/usr/bin:/bin

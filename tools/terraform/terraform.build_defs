@@ -1,0 +1,160 @@
+subinclude("//tools/template")
+
+PLEASE_ROOT_VAR = "please_root"
+
+def terraform_lock(name:str, providers_file: str, toolchain: str, visibility: list = None, test_only: bool = False):
+    """Build rule to generate a script which will generate a lockfile from the given providers file.
+
+    Idea is to run the lock script before building the terraform_providers rule so the build rule has the actual
+    lock file download the appropriate versions. It's setup this way so the lockfile can be commited into version control.
+    """
+    sh_cmd(
+        name = name,
+        expand_env_vars = False,
+        cmd = f"""
+        set -Eeou pipefail
+
+        TERRAFORM_BIN="$PWD/$(out_exe {toolchain})"
+        PROVIDERS_FILE="$(out_location {providers_file})"
+        PROVIDERS_DIR="$(dirname $PROVIDERS_FILE)"
+
+        # Terraform only works with files in the same dir
+        cd $PROVIDERS_DIR
+        $TERRAFORM_BIN providers lock
+        """,
+        data = [
+            toolchain,
+            providers_file,
+        ],
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+def terraform_providers(name: str, providers_file: str, lock_file: str, toolchain: str, visibility: list = None, test_only:bool = False):
+    """Build rule for downloading multiple terraform providers.
+    """
+    export_file(
+        name = f"{name}_tf",
+        src = providers_file,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+    genrule(
+        name = name,
+        srcs = [providers_file, lock_file],
+        tools = {
+            'terraform': toolchain,
+        },
+        outs = [f"{name}_mirror"],
+        cmd = """
+        # Terraform only works with files in the same dir
+        OUT_DIR="$HOME/$OUTS"
+        cd $PKG
+        $TOOLS_TERRAFORM providers mirror $OUT_DIR
+        """,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+def terraform_root(
+        name: str, tf_srcs:list, providers: list = [], modules: list = [],
+        files:list = [], toolchain: str, visibility: list = None,
+        test_only: bool = False
+    ):
+    """Build rule for creating scripts which runs Terraform against a configuration.
+    """
+
+    # Create a terraformrc file which contains a provider_installation section
+    # which for each provider will define a filesystem_mirror so files 
+    # can be loaded by the Terraform runtime without accessing the network.
+    # see https://www.terraform.io/docs/cli/config/config-file.html#provider_installation
+    provider_tfs = [f"{provider}_tf" for provider in providers]
+    terraformrc = genrule(
+        name = f"{name}_providers",
+        srcs = provider_tfs,
+        outs = [f"{name}_terraformrc"],
+        cmd = """
+        echo $SRCS > $OUT
+        """,
+    )
+
+    # Replace file paths in the source files with specially constructed absolute paths
+    # so we don't have to copy source files into the Terraform working directory
+    # which can be time consuming if the files are large (iso, disk images, etc).
+    # Secondly replace module paths with special constructured local urls
+    # which will resolve to modules built with Please.
+
+    # TODO: move the subs defining into the template build_def
+    subs = {}
+    deps = []
+
+    for file in files:
+        key = None
+
+        if _is_build_label(file):
+            target, label = decompose(canonicalise(file))
+            key = f":{label}"
+            deps.append(file)
+        else:
+            key = basename(file)
+
+        subs[key] = file
+
+    for module in modules:
+        target, label = decompose(canonicalise(module))
+        key = f":{label}"
+        subs[key] = module
+
+    templated_tf_srcs = template(
+        name = f"{name}_templated_tf_srcs",
+        subs = subs,
+        deps = deps + modules,
+        srcs = tf_srcs,
+        transform = _add_tf_location,
+    )
+
+    please_variables = text_file(
+        name = f"{name}_please_variables",
+        content = f"""
+        variable "{PLEASE_ROOT_VAR}" {{
+            type = string
+        }}
+        """,
+        out = f"{name}_please_variables.tf",
+    )
+
+    # Construct the Terraform working directory where all the Terraform source files
+    # will be on the same level. Terraform requires all source files to be in the same 
+    # directory.
+    wd_files = filegroup(
+        name = f"{name}_wd",
+        srcs = [templated_tf_srcs] + [terraformrc] + [please_variables],
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+    sh_cmd(
+        name = name, 
+        cmd = f"""
+        set -Eeou pipefail
+
+        export TERRAFORM_WD=$(out_dir {wd_files})
+        export TERRAFORM_BIN="$(out_exe {toolchain})"
+        export TF_VAR_{PLEASE_ROOT_VAR}="\\\$PWD"
+
+        \\\$TERRAFORM_BIN -chdir=\\\$TERRAFORM_WD init
+        \\\$TERRAFORM_BIN -chdir=\\\$TERRAFORM_WD apply
+        """,
+        expand_env_vars = True,
+        deps = [
+            toolchain,
+        ],
+        srcs = [wd_files],
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+def _add_tf_location(key, value, aggregate) -> dict:
+    aggregate["tf_location"] = f"${var.{PLEASE_ROOT_VAR}}/$(out_location {value})"
+    return aggregate

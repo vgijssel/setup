@@ -6,7 +6,6 @@ import os
 
 def create_value_method(value):
     def _value():
-        print(f"VALUE BEING CALLED WITH {value}")
         return value
 
     return _value
@@ -25,13 +24,14 @@ if __name__ == "__main__":
 
     data = json.loads(json_data)
 
+    print(data)
+
     for k, v in data.items():
-        if v["is_build_label"] == True:
+        if v["is_build_label"] == True or v["is_file"] == True:
             v["value"] = create_file_content_method(v["location"])
+            v["base_name"] = os.path.basename(v["location"])
         else:
             v["value"] = create_value_method(v["value"])
-
-    print(data)
 
     searchpath = os.path.dirname(os.path.abspath(target_file_path))
     target_file_name = os.path.basename(target_file_path)
@@ -39,6 +39,9 @@ if __name__ == "__main__":
     template_env = Environment(loader=loader)
     template_file = target_file_name
     template = template_env.get_template(template_file)
+    data["data"] = data
+
+    print(data)
 
     output = template.render(data)
 
