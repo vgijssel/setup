@@ -1,18 +1,14 @@
 export_file(
     name = "box.ovf",
     src = "box.ovf",
+    visibility = ["PUBLIC"],
 )
 
-filegroup(
+export_file(
     name = "qcow_to_vagrant_script",
-    srcs = [
-        "qcow_to_vagrant.sh",
-    ],
+    src = "qcow_to_vagrant.sh",
     binary = True,
     visibility = ["PUBLIC"],
-    deps = [
-        ":box.ovf",
-    ],
 )
 
 filegroup(

@@ -1,6 +1,8 @@
 subinclude("//tools/template")
 
 PLEASE_ROOT_VAR = "please_root"
+TERRAFORM_RC_TEMPLATE = ".terraformrc.templ"
+TERRAFORM_RC = ".terraformrc"
 
 def terraform_lock(name:str, providers_file: str, toolchain: str, visibility: list = None, test_only: bool = False):
     """Build rule to generate a script which will generate a lockfile from the given providers file.
@@ -70,13 +72,21 @@ def terraform_root(
     # can be loaded by the Terraform runtime without accessing the network.
     # see https://www.terraform.io/docs/cli/config/config-file.html#provider_installation
     provider_tfs = [f"{provider}_tf" for provider in providers]
-    terraformrc = genrule(
-        name = f"{name}_providers",
-        srcs = provider_tfs,
-        outs = [f"{name}_terraformrc"],
-        cmd = """
-        echo $SRCS > $OUT
+
+    filesystem_mirrors = ""
+
+    for provider in providers:
+        filesystem_mirrors += f"filesystem_mirror {{ path = \"$PLEASE_ROOT/$(out_location {provider})\" }}"
+
+    terraformrc = text_file(
+        name = f"{name}_terraformrc",
+        data = providers,
+        content = f"""
+        provider_installation {{
+            {filesystem_mirrors}
+        }
         """,
+        out = TERRAFORM_RC_TEMPLATE,
     )
 
     # Replace file paths in the source files with specially constructed absolute paths
@@ -129,7 +139,7 @@ def terraform_root(
     # directory.
     wd_files = filegroup(
         name = f"{name}_wd",
-        srcs = [templated_tf_srcs] + [terraformrc] + [please_variables],
+        srcs = [templated_tf_srcs] + [terraformrc] + [please_variables] + provider_tfs,
         visibility = visibility,
         test_only = test_only,
     )
@@ -139,14 +149,23 @@ def terraform_root(
         cmd = f"""
         set -Eeou pipefail
 
-        export TERRAFORM_WD=$(out_dir {wd_files})
-        export TERRAFORM_BIN="$(out_exe {toolchain})"
-        export TF_VAR_{PLEASE_ROOT_VAR}="\\\$PWD"
+        export PLEASE_ROOT="$PWD"
+        export TERRAFORM_WD="$PLEASE_ROOT/$(out_dir {wd_files})"
+        export TERRAFORM_BIN="$PLEASE_ROOT/$(out_exe {toolchain})"
 
-        \\\$TERRAFORM_BIN -chdir=\\\$TERRAFORM_WD init
-        \\\$TERRAFORM_BIN -chdir=\\\$TERRAFORM_WD apply
+        cd $TERRAFORM_WD
+
+        # This replaces the PLEASE_ROOT variable in the templated terraform rc file
+        # which is necessary to get absolute paths for the file mirrors during runtime.
+        cat {TERRAFORM_RC_TEMPLATE} | envsubst '$PLEASE_ROOT' > {TERRAFORM_RC}
+        export TF_CLI_CONFIG_FILE="$TERRAFORM_WD/{TERRAFORM_RC}"
+
+        export TF_VAR_{PLEASE_ROOT_VAR}="$PLEASE_ROOT"
+
+        $TERRAFORM_BIN init
+        $TERRAFORM_BIN apply
         """,
-        expand_env_vars = True,
+        expand_env_vars = False,
         deps = [
             toolchain,
         ],
