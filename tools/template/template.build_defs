@@ -1,72 +1,76 @@
 JINJA_SCRIPT = '//tools/template:jinja'
 
-def template(name:str, subs:dict, srcs:list, deps:list = [], test_only:bool = False, visibility:list = None, transform:function = None):
+def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibility:list = None, transform:function = None):
     """
     Generate a file using Jinja2 substitution.
     """
 
+    deps = []
     data_object = {}
 
-    for k,v in subs.items():
-        if k == 'data':
-            fail("data key for substitutions is reserved.") 
+    if isinstance(subs, dict):
+        for sub_key, sub_value in subs.items():
+            key, value = _create_key_value_pair(sub_key, sub_value)
 
-        value = None
+            data_object[key] = value
 
-        is_build_label = _is_build_label(v)
-        is_file = _is_file(v)
+            if transform != None:
+                transform(key, value, data_object)
 
-        if is_build_label or is_file:
-            value = {
-                "out_location": f"$(out_location {v})",
-                "location": f"$(location {v})",
-            }
-        else:
-            value = {
-                "value": v,
-            }
+            if value.is_build_label or value.is_file:
+                deps.append(sub_value)
 
-        value['is_build_label'] = is_build_label
-        value['is_file'] = is_file
+    else:
+        for sub_value in subs:
+            key, value = _create_key_value_pair(None, sub_value)
 
-        if transform != None:
-            value = transform(k, v, value)
+            data_object[key] = value
 
-        # fail(json(value))
+            if transform != None:
+                transform(key, value, data_object)
 
-        data_object[k] = value
-
+            if value.is_build_label or value.is_file:
+                deps.append(sub_value)
 
     data = json(data_object)
+    new_srcs = []
 
     for src in srcs:
-        return genrule(
-            name = name,
-            srcs = {
-                "src": src,
-                # TODO: for some reason if we pass deps to deps of genrule only a 
-                # single dep is actually added to the build sandbox. Adding it here
-                # forces each file will be in the sandbox.
-                "deps": deps, 
-            },
-            outs = [src],
-            tools = {
-                "JINJA_SCRIPT": JINJA_SCRIPT,
-            },
-            cmd = f"""
-            DATA='{data}'
-            $TOOLS_JINJA_SCRIPT "$SRCS_SRC" "$DATA" "$OUT"
-            """,
-            visibility = visibility,
-            test_only = test_only,
+        # The _ and # combination make this rule hidden from build output.
+        rule_name = "_" + name + "#" + basename(src)
+
+        new_srcs.append(
+            genrule(
+                name = rule_name,
+                srcs = {
+                    "src": src,
+                    # TODO: for some reason if we pass deps to deps of genrule only a 
+                    # single dep is actually added to the build sandbox. Adding it here
+                    # forces each file will be in the sandbox.
+                    "deps": deps, 
+                },
+                outs = [src],
+                tools = {
+                    "JINJA_SCRIPT": JINJA_SCRIPT,
+                },
+                cmd = f"""
+                DATA='{data}'
+                $TOOLS_JINJA_SCRIPT "$SRCS_SRC" "$DATA" "$OUT"
+                """,
+                visibility = visibility,
+                test_only = test_only,
+            )
         )
-    
-    return filegroup(
-        name = f"{name}_templated",
-        srcs = srcs,
+
+    # TODO: this file group should source the new_srcs
+    filegroup(
+        name = name,
+        srcs = new_srcs,
         visibility = visibility,
         test_only = test_only,
     )
+
+    return new_srcs
 
 def template_value(name:str, value:str):
     return genrule(
@@ -80,3 +84,39 @@ def _is_build_label(string:str) -> bool:
 
 def _is_file(string:str) -> bool:
     return string.startswith('/') or string.startswith('./') or string.startswith('../')
+
+def _create_key_value_pair(key:str, value:str) -> list:
+    new_value = None
+    is_build_label = _is_build_label(value)
+    is_file = _is_file(value)
+
+    if key == None:
+        if is_build_label:
+            target, label = decompose(canonicalise(value))
+            key = f":{label}"
+        elif is_file:
+            key = basename(value)
+        else:
+            key = value
+
+    if key == 'data':
+        fail("data key for substitutions is reserved.") 
+
+    if is_build_label or is_file:
+        new_value = {
+            "out_location": f"$(out_location {value})",
+            "location": f"$(location {value})",
+            "original_value": value,
+        }
+    else:
+        new_value = {
+            "value": value,
+        }
+
+    if is_build_label:
+        new_value['build_label'] = canonicalise(value)
+
+    new_value['is_build_label'] = is_build_label
+    new_value['is_file'] = is_file
+
+    return key, new_value

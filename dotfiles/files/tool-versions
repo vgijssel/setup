@@ -10,3 +10,4 @@ terraform-lsp 0.0.11-beta2
 bazel 4.0.0
 rust nightly
 python 3.7.9
+kubectl 1.22.0

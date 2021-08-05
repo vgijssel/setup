@@ -29,44 +29,20 @@ qcow_to_vagrant(
     src = ":image|image",
 )
 
-template(
-    name = "vars",
-    srcs = ["deploy.auto.tfvars"],
-    subs = {
-        "provisioner_box": ":box",
-    },
-    deps = [
-        ":box",
-    ],
-)
-
-# TODO: the vagrant box terraform module should set an environment variable for
-# VAGRANT_DOTFILE_PATH to not lose the vagrant state when rebuilding
-# see https://www.vagrantup.com/docs/other/environmental-variables
-# terraform_module(
-#     name = "vagrant_machine",
-#     srcs = [
-#         "Vagrantfile",
-#         "vagrant_machine.tf",
-#         ":box",
-#     ],
-# )
-
 terraform_root(
     name = "deploy",
     files = [
         "./Vagrantfile",
         ":box",
     ],
-    # modules = [
-    #     "//terraform/vagrant",
-    # ],
+    modules = [
+        "//terraform/vagrant",
+    ],
     providers = [
         "//third_party/terraform:providers",
     ],
     tf_srcs = [
         "./main.tf",
-        ":vars",
     ],
     toolchain = "//third_party/terraform:terraform_1_0_3",
 )

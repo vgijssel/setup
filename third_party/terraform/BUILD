@@ -26,25 +26,3 @@ terraform_providers(
     toolchain = ":terraform_1_0_3",
     visibility = ["PUBLIC"],
 )
-
-# terraform_provider(
-#     name = "null",
-#     version = "3.1.0",
-#     visibility = ["PUBLIC"],
-# )
-
-# terraform_provider(
-#     name = "vagrant",
-#     namespace = "bmatcuk",
-#     url = f"https://github.com/bmatcuk/terraform-provider-vagrant/releases/download/v4.0.0/terraform-provider-vagrant_4.0.0_{CONFIG.OS}_{CONFIG.ARCH}.zip",
-#     version = "4.0.0",
-#     visibility = ["PUBLIC"],
-# )
-
-# terraform_provider(
-#     name = "docker",
-#     namespace = "kreuzwerker",
-#     url = f"https://github.com/kreuzwerker/terraform-provider-docker/releases/download/v2.14.0/terraform-provider-docker_2.14.0_{CONFIG.OS}_{CONFIG.ARCH}.zip",
-#     version = "2.14.0",
-#     visibility = ["PUBLIC"],
-# )

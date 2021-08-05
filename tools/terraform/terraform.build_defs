@@ -3,6 +3,7 @@ subinclude("//tools/template")
 PLEASE_ROOT_VAR = "please_root"
 TERRAFORM_RC_TEMPLATE = ".terraformrc.templ"
 TERRAFORM_RC = ".terraformrc"
+TERRAFORM_MODULES = "modules.json"
 
 def terraform_lock(name:str, providers_file: str, toolchain: str, visibility: list = None, test_only: bool = False):
     """Build rule to generate a script which will generate a lockfile from the given providers file.
@@ -59,6 +60,23 @@ def terraform_providers(name: str, providers_file: str, lock_file: str, toolchai
         test_only = test_only,
     )
 
+def terraform_module(
+        name: str, tf_srcs:list, modules: list = [],
+        files:list = [], visibility: list = None,
+        test_only: bool = False
+    ):
+    """Terraform module which can be included by a terraform (root) module.
+    """
+
+    return template(
+        name = name,
+        subs = files + modules,
+        srcs = tf_srcs,
+        transform = _add_tf_locations,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
 def terraform_root(
         name: str, tf_srcs:list, providers: list = [], modules: list = [],
         files:list = [], toolchain: str, visibility: list = None,
@@ -72,7 +90,6 @@ def terraform_root(
     # can be loaded by the Terraform runtime without accessing the network.
     # see https://www.terraform.io/docs/cli/config/config-file.html#provider_installation
     provider_tfs = [f"{provider}_tf" for provider in providers]
-
     filesystem_mirrors = ""
 
     for provider in providers:
@@ -94,34 +111,13 @@ def terraform_root(
     # which can be time consuming if the files are large (iso, disk images, etc).
     # Secondly replace module paths with special constructured local urls
     # which will resolve to modules built with Please.
-
-    # TODO: move the subs defining into the template build_def
-    subs = {}
-    deps = []
-
-    for file in files:
-        key = None
-
-        if _is_build_label(file):
-            target, label = decompose(canonicalise(file))
-            key = f":{label}"
-            deps.append(file)
-        else:
-            key = basename(file)
-
-        subs[key] = file
-
-    for module in modules:
-        target, label = decompose(canonicalise(module))
-        key = f":{label}"
-        subs[key] = module
-
     templated_tf_srcs = template(
-        name = f"{name}_templated_tf_srcs",
-        subs = subs,
-        deps = deps + modules,
+        name = f"{name}_templated_root_tf_srcs",
+        # TODO: per module we only need the directory, not the individual files.
+        # TODO: lets try to reproduce in a simple example!
+        subs = files + modules,
         srcs = tf_srcs,
-        transform = _add_tf_location,
+        transform = _add_tf_locations,
     )
 
     please_variables = text_file(
@@ -139,7 +135,10 @@ def terraform_root(
     # directory.
     wd_files = filegroup(
         name = f"{name}_wd",
-        srcs = [templated_tf_srcs] + [terraformrc] + [please_variables] + provider_tfs,
+        srcs = [templated_tf_srcs] + 
+            [terraformrc] +
+            [please_variables] +
+            provider_tfs,
         visibility = visibility,
         test_only = test_only,
     )
@@ -174,6 +173,6 @@ def terraform_root(
         test_only = test_only,
     )
 
-def _add_tf_location(key, value, aggregate) -> dict:
-    aggregate["tf_location"] = f"${var.{PLEASE_ROOT_VAR}}/$(out_location {value})"
-    return aggregate
+def _add_tf_locations(key, value, aggregate):
+    original_value = value.original_value
+    value["tf_file_location"] = f"${var.{PLEASE_ROOT_VAR}}/$(out_location {original_value})"
