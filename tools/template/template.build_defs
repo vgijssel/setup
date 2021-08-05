@@ -62,15 +62,12 @@ def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibi
             )
         )
 
-    # TODO: this file group should source the new_srcs
-    filegroup(
+    return filegroup(
         name = name,
         srcs = new_srcs,
         visibility = visibility,
         test_only = test_only,
     )
-
-    return new_srcs
 
 def template_value(name:str, value:str):
     return genrule(
