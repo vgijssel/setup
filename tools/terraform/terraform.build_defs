@@ -68,14 +68,21 @@ def terraform_module(
     """Terraform module which can be included by a terraform (root) module.
     """
 
-    return template(
+    return filegroup(
         name = name,
-        subs = files + modules,
         srcs = tf_srcs,
-        transform = _add_tf_locations,
         visibility = visibility,
         test_only = test_only,
     )
+
+    # return template(
+    #     name = name,
+    #     subs = files + modules,
+    #     srcs = tf_srcs,
+    #     transform = _add_tf_locations,
+    #     visibility = visibility,
+    #     test_only = test_only,
+    # )
 
 def terraform_root(
         name: str, tf_srcs:list, providers: list = [], modules: list = [],
@@ -105,6 +112,11 @@ def terraform_root(
         """,
         out = TERRAFORM_RC_TEMPLATE,
     )
+
+    # We signal the template rule that a module consists of multiple outputs
+    # so the appropriate sequence replacement is used
+    # for example $(locations ...) instead of $(location ...)
+    modules = [template_build_label(src = module, has_multiple_outputs = True) for module in modules]
 
     # Replace file paths in the source files with specially constructed absolute paths
     # so we don't have to copy source files into the Terraform working directory
@@ -175,4 +187,4 @@ def terraform_root(
 
 def _add_tf_locations(key, value, aggregate):
     original_value = value.original_value
-    value["tf_file_location"] = f"${var.{PLEASE_ROOT_VAR}}/$(out_location {original_value})"
+    value["tf_file_location"] = f"${var.{PLEASE_ROOT_VAR}}/$(out_dir {original_value})"

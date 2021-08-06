@@ -5,35 +5,32 @@ def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibi
     Generate a file using Jinja2 substitution.
     """
 
-    deps = []
+    # Note that deps is an object instead of an array
+    # otherwise the iterate closure accessing deps
+    # will always access an empty array for whatever reason.
+    deps = {}
     data_object = {}
-
-    if isinstance(subs, dict):
-        for sub_key, sub_value in subs.items():
-            key, value = _create_key_value_pair(sub_key, sub_value)
-
-            data_object[key] = value
-
-            if transform != None:
-                transform(key, value, data_object)
-
-            if value.is_build_label or value.is_file:
-                deps.append(sub_value)
-
-    else:
-        for sub_value in subs:
-            key, value = _create_key_value_pair(None, sub_value)
-
-            data_object[key] = value
-
-            if transform != None:
-                transform(key, value, data_object)
-
-            if value.is_build_label or value.is_file:
-                deps.append(sub_value)
-
-    data = json(data_object)
     new_srcs = []
+
+    # NOTE: using inline function instead of lambda, because a function
+    # can span multiple lines.
+    def iterate(sub_key:str, sub_value:str|dict):
+        value_object = _create_value_object(sub_value)
+        key, value = _create_key_value_pair(sub_key, value_object)
+
+        data_object[key] = value
+
+        if transform != None:
+            transform(key, value, data_object)
+
+        if value.is_build_label or value.is_file:
+            deps[value.original_value] = True
+
+    _enumerate(subs, iterate)
+
+    # We are not interested in the values of the dict which are all True
+    deps = deps.keys()
+    data = json(data_object)
 
     for src in srcs:
         # The _ and # combination make this rule hidden from build output.
@@ -69,6 +66,15 @@ def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibi
         test_only = test_only,
     )
 
+def template_build_label(src:str, has_multiple_outputs:bool = False):
+    return {
+        "is_build_label": True,
+        "is_file": False,
+        "has_multiple_outputs": has_multiple_outputs,
+        "src": src,
+    }
+
+# TODO: remove this and replace with text_file
 def template_value(name:str, value:str):
     return genrule(
         name = name,
@@ -82,38 +88,66 @@ def _is_build_label(string:str) -> bool:
 def _is_file(string:str) -> bool:
     return string.startswith('/') or string.startswith('./') or string.startswith('../')
 
-def _create_key_value_pair(key:str, value:str) -> list:
+def _enumerate(iterable:list|dict, callback:function):
+    if isinstance(iterable, dict):
+        for key, value in iterable.items():
+            callback(key, value)
+    else:
+        for value in iterable:
+            callback(None, value)
+
+def _create_value_object(value:str|dict) -> dict:
+    if isinstance(value, dict):
+        return value
+
+    return {
+        "is_build_label": _is_build_label(value),
+        "is_file": _is_file(value),
+        "src": value,
+        "has_multiple_outputs": False,
+    }
+
+def _create_key_value_pair(key:str, value_object:dict) -> list:
     new_value = None
-    is_build_label = _is_build_label(value)
-    is_file = _is_file(value)
 
     if key == None:
-        if is_build_label:
-            target, label = decompose(canonicalise(value))
+        if value_object.is_build_label:
+            target, label = decompose(canonicalise(value_object.src))
             key = f":{label}"
-        elif is_file:
-            key = basename(value)
+        elif value_object.is_file:
+            key = basename(value_object.src)
         else:
-            key = value
+            key = value_object.src
 
     if key == 'data':
         fail("data key for substitutions is reserved.") 
 
-    if is_build_label or is_file:
-        new_value = {
-            "out_location": f"$(out_location {value})",
-            "location": f"$(location {value})",
-            "original_value": value,
-        }
+    if value_object.is_build_label or value_object.is_file:
+        src = value_object.src
+
+        if value_object.has_multiple_outputs:
+            new_value = {
+                "out_location": f"$(out_dir {src})",
+                "location": f"$(dir {src})",
+            }
+
+        else:
+            new_value = {
+                "out_location": f"$(out_location {src})",
+                "location": f"$(location {src})",
+            }
+        
+        new_value['original_value'] = src
+
     else:
         new_value = {
-            "value": value,
+            "value": value_object.src,
         }
 
-    if is_build_label:
-        new_value['build_label'] = canonicalise(value)
+    if value_object.is_build_label:
+        new_value['build_label'] = canonicalise(value_object.src)
 
-    new_value['is_build_label'] = is_build_label
-    new_value['is_file'] = is_file
+    new_value['is_build_label'] = value_object.is_build_label
+    new_value['is_file'] = value_object.is_file
 
     return key, new_value
