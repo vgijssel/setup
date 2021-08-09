@@ -149,5 +149,6 @@ def _create_key_value_pair(key:str, value_object:dict) -> list:
 
     new_value['is_build_label'] = value_object.is_build_label
     new_value['is_file'] = value_object.is_file
+    new_value['has_multiple_outputs'] = value_object.has_multiple_outputs
 
     return key, new_value

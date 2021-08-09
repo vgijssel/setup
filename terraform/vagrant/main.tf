@@ -18,7 +18,7 @@ locals {
   # see https://www.vagrantup.com/docs/other/environmental-variables
   environment = merge({
     VAGRANTFILE_SHA = local.vagrantfile_sha
-    BOX_PATH        = local.box_path
+    BOX_PATH        = var.box_path
   }, var.environment)
 }
 

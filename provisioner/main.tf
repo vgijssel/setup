@@ -16,7 +16,7 @@ locals {
 }
 
 module "vagrant" {
-  source           = "{{ data[':vagrant'].tf_file_location }}"
+  source           = "{{ data[':vagrant'].tf_module_location }}"
   box_path         = local.box_path
   vagrantfile_path = "{{ Vagrantfile.tf_file_location }}"
 }

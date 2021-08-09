@@ -35,9 +35,9 @@ terraform_root(
         "./Vagrantfile",
         ":box",
     ],
-    modules = [
-        "//terraform/vagrant",
-    ],
+    modules = {
+        "vagrant": "//terraform/vagrant",
+    },
     providers = [
         "//third_party/terraform:providers",
     ],
