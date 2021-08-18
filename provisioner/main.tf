@@ -21,4 +21,4 @@ module "vagrant" {
   vagrantfile_path = "{{ Vagrantfile.tf_file_location }}"
 }
 
-# TODO: provision docker on the vagrant box created (or hostname for pi)
+# TODO: provision docker on the vagrant box created using the vagrant created ssh credentials

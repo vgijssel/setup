@@ -79,6 +79,8 @@ def terraform_module(
 
 # TODO: figure out to handle multiple named modules to match the module "<<NAME>>"
 # in Terraform and how to include the files list into a single object for the template method.
+# TODO: use relative paths instead of the custom constructed local urls for modules
+# so we don't have the problem of module name having to match the name in the generated modules.json.
 def terraform_root(
         name: str, tf_srcs:list, providers: list = [], modules: dict = {},
         files:list = [], toolchain: str, visibility: list = None,
@@ -107,6 +109,34 @@ def terraform_root(
         """,
         out = TERRAFORM_RC_TEMPLATE,
     )
+
+    # module = modules.values()[0]
+
+    # TODO: make this work for multiple modules
+    # probably have to inline the _add_tf_locations function
+    # and call the genrule at that time
+    # genrule(
+    #     name = f"{name}_module_path",
+    #     deps = [
+    #         module,
+    #         f":{name}_terraformrc",
+    #     ],
+    #     cmd = f"""
+    #     ANCHOR="$(out_dir :{name}_terraformrc)"
+    #     MODULE="$(out_dir {module})"
+
+    #     mkdir -p "$ANCHOR"
+    #     mkdir -p "$MODULE"
+
+    #     $TOOLS_COREUTILS/realpath --relative-to="$ANCHOR" "$MODULE" > $OUTS
+    #     """,
+    #     outs = [f"{name}_module_path"],
+    #     visibility = visibility,
+    #     test_only = test_only,
+    #     tools = {
+    #         'coreutils': '//third_party/gnu:coreutils',
+    #     }
+    # )
 
     modules_json = _create_modules_json(name, modules)
 
@@ -187,13 +217,20 @@ def terraform_root(
         test_only = test_only,
     )
 
-def _add_tf_locations(key, value, aggregate):
-    original_value = value.original_value
+# TODO: implement me
+# get the out dir of //terraform/vagrant:vagrant
+# compare this to the out dir the terraformrc (just to pick a random file)
+# generate a relative path between the two 
+# store the result in a file
+# read this file using the template rule
+def _add_tf_locations(transform_object:dict):
+    values = transform_object.values
+    original_value = values.original_value.value
 
-    if value.has_multiple_outputs:
-        value["tf_module_location"] = _create_module_url(original_value)
+    if values.has_multiple_outputs.value:
+        values["tf_module_location"] = { "type": "string", "value": _create_module_url(original_value) }
     else:
-        value["tf_file_location"] = f"${var.{PLEASE_ROOT_VAR}}/$(out_location {original_value})"
+        values["tf_file_location"] = { "type": "string", "value": f"${var.{PLEASE_ROOT_VAR}}/$(out_location {original_value})" }
 
 def _create_modules_json(name:str, modules:dict) -> str:
     modules_data = [
