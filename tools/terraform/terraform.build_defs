@@ -219,7 +219,8 @@ def _create_relative_module(transform_object:dict):
         mkdir -p "$ANCHOR"
         mkdir -p "$MODULE"
 
-        $TOOLS_COREUTILS/realpath --relative-to="$ANCHOR" "$MODULE" > $OUTS
+        # echo without trailing newline
+        echo -n "$($TOOLS_COREUTILS/realpath --relative-to="$ANCHOR" "$MODULE")" > $OUTS
         """,
         outs = [f"{name}_module_path"],
         tools = {
