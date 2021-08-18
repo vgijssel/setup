@@ -25,7 +25,7 @@ def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibi
             deps[value_object.src] = True
 
         if transform != None:
-            transform(template_object)
+            transform(template_object, deps)
 
     _enumerate(subs, iterate)
 

@@ -15,7 +15,7 @@ def _create_value_boolean_method(value):
 
 def _create_value_file_method(value):
     @property
-    def value_method():
+    def value_method(self):
         with open(value) as f:
             return f.read()
 

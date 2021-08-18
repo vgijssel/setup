@@ -110,36 +110,6 @@ def terraform_root(
         out = TERRAFORM_RC_TEMPLATE,
     )
 
-    # module = modules.values()[0]
-
-    # TODO: make this work for multiple modules
-    # probably have to inline the _add_tf_locations function
-    # and call the genrule at that time
-    # genrule(
-    #     name = f"{name}_module_path",
-    #     deps = [
-    #         module,
-    #         f":{name}_terraformrc",
-    #     ],
-    #     cmd = f"""
-    #     ANCHOR="$(out_dir :{name}_terraformrc)"
-    #     MODULE="$(out_dir {module})"
-
-    #     mkdir -p "$ANCHOR"
-    #     mkdir -p "$MODULE"
-
-    #     $TOOLS_COREUTILS/realpath --relative-to="$ANCHOR" "$MODULE" > $OUTS
-    #     """,
-    #     outs = [f"{name}_module_path"],
-    #     visibility = visibility,
-    #     test_only = test_only,
-    #     tools = {
-    #         'coreutils': '//third_party/gnu:coreutils',
-    #     }
-    # )
-
-    modules_json = _create_modules_json(name, modules)
-
     # We signal the template rule that a module consists of multiple outputs
     # so the appropriate sequence replacement is used
     # for example $(locations ...) instead of $(location ...)
@@ -173,7 +143,6 @@ def terraform_root(
     wd_files = filegroup(
         name = f"{name}_wd",
         srcs = 
-            [modules_json] +
             [templated_tf_srcs] + 
             [terraformrc] +
             [please_variables] +
@@ -217,47 +186,43 @@ def terraform_root(
         test_only = test_only,
     )
 
-# TODO: implement me
-# get the out dir of //terraform/vagrant:vagrant
-# compare this to the out dir the terraformrc (just to pick a random file)
-# generate a relative path between the two 
-# store the result in a file
-# read this file using the template rule
-def _add_tf_locations(transform_object:dict):
+def _add_tf_locations(transform_object:dict, deps:dict):
     values = transform_object.values
     original_value = values.original_value.value
 
     if values.has_multiple_outputs.value:
-        values["tf_module_location"] = { "type": "string", "value": _create_module_url(original_value) }
+        relative_module = _create_relative_module(transform_object)
+        deps[relative_module] = True
+        values["tf_module_location"] = { "type": "file", "value": f"$(location {relative_module})" }
     else:
         values["tf_file_location"] = { "type": "string", "value": f"${var.{PLEASE_ROOT_VAR}}/$(out_location {original_value})" }
 
-def _create_modules_json(name:str, modules:dict) -> str:
-    modules_data = [
-        {
-            "Key": "",
-            "Source": "",
-            "Dir": ".",
-        },
-    ]
+def _create_relative_module(transform_object:dict):
+    module = transform_object.values.build_label.value
+    name = module.replace("/", "_").replace(":", "_")
 
-    for name, module_label in modules.items():
-        modules_data.append({
-            "Key": name,
-            "Source": _create_module_url(module_label),
-            "Dir": f"$PLEASE_ROOT/$(out_dir {module_label})",
-        })
-
-    modules_data = {
-        "Modules": modules_data,
-    }
-
-    return text_file(
-        name = f"{name}_modules_json",
-        content = json(modules_data),
-        out = TERRAFORM_MODULES_JSON,
-        data = modules,
+    anchor = text_file(
+        name = f"{name}_anchor",
+        content = "anchor",
     )
 
-def _create_module_url(module_label:str) -> str:
-    return f"https://localhost/$(out_dir {module_label})"
+    return genrule(
+        name = f"{name}_module_path",
+        deps = [
+            module,
+            anchor,
+        ],
+        cmd = f"""
+        ANCHOR="$(out_dir {anchor})"
+        MODULE="$(out_dir {module})"
+
+        mkdir -p "$ANCHOR"
+        mkdir -p "$MODULE"
+
+        $TOOLS_COREUTILS/realpath --relative-to="$ANCHOR" "$MODULE" > $OUTS
+        """,
+        outs = [f"{name}_module_path"],
+        tools = {
+            'coreutils': '//third_party/gnu:coreutils',
+        }
+    )
