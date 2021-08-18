@@ -3,7 +3,6 @@ subinclude("//tools/template")
 PLEASE_ROOT_VAR = "please_root"
 TERRAFORM_RC_TEMPLATE = ".terraformrc.templ"
 TERRAFORM_RC = ".terraformrc"
-TERRAFORM_MODULES_JSON = "modules.json"
 
 def terraform_lock(name:str, providers_file: str, toolchain: str, visibility: list = None, test_only: bool = False):
     """Build rule to generate a script which will generate a lockfile from the given providers file.
@@ -142,12 +141,10 @@ def terraform_root(
             [terraformrc] +
             [please_variables] +
             provider_tfs,
-        visibility = visibility,
-        test_only = test_only,
     )
 
-    sh_cmd(
-        name = name, 
+    executable = sh_cmd(
+        name = f"{name}_exe", 
         cmd = f"""
         set -Eeou pipefail
 
@@ -162,24 +159,37 @@ def terraform_root(
         cat {TERRAFORM_RC_TEMPLATE} | envsubst '$PLEASE_ROOT' > {TERRAFORM_RC}
         export TF_CLI_CONFIG_FILE="$TERRAFORM_WD/{TERRAFORM_RC}"
 
-        # Create modules.json file which is used as a lookup for our local module urls
-        # to folders on the local filesystem
-        mkdir -p .terraform/modules
-        cat {TERRAFORM_MODULES_JSON} | envsubst '$PLEASE_ROOT' > .terraform/modules/{TERRAFORM_MODULES_JSON}
-
+        # Finally set extra variables for Terraform runtime
         export TF_VAR_{PLEASE_ROOT_VAR}="$PLEASE_ROOT"
 
         $TERRAFORM_BIN init
-        $TERRAFORM_BIN apply
+        exec $TERRAFORM_BIN $@
         """,
         expand_env_vars = False,
         deps = [
             toolchain,
         ],
         srcs = [wd_files],
-        visibility = visibility,
-        test_only = test_only,
     )
+
+    def _create_callable_tf_command(command, args):
+        sh_cmd(
+            name = f"{name}_{command}",
+            deps = [executable],
+            cmd = f"""
+            set -Eeou pipefail
+
+            $(out_exe {executable}) {args} $@
+            """,
+            visibility = visibility,
+            test_only = test_only,
+            expand_env_vars = False,
+        )
+
+    _create_callable_tf_command("apply", "apply")
+    _create_callable_tf_command("plan", "plan")
+    _create_callable_tf_command("destroy", "destroy")
+    _create_callable_tf_command("bin", "")
 
 def _add_tf_locations(transform_object:dict, deps:dict):
     values = transform_object.values

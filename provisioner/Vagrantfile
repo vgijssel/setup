@@ -1,28 +1,21 @@
 # frozen_string_literal: true
 
-# TODO: provided by Bazel
-box_dir = ENV.fetch('SETUP_BOX_DIR')
+box_path = ENV.fetch('BOX_PATH')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
-provisioner_box_path = ENV.fetch('PROVISIONER_BOX_PATH')
 # pxe_box_path = File.join(box_dir, 'pxe.box')
-provisioner_dir = ENV.fetch('SETUP_PROVISIONER_DIR')
+
+# TODO: provided by Vault
+private_key_path = ENV.fetch('PRIVATE_KEY_PATH')
 
 # TODO: could leverage a metadata file to support automatic upgrading of Vagrant box files
 # see https://martincarstenbach.wordpress.com/2020/05/05/versioning-for-your-local-vagrant-boxes-adding-a-new-box/
 # and https://martincarstenbach.wordpress.com/2020/05/07/versioning-for-your-local-vagrant-boxes-handling-updates/
 
-# TODO: create run script using please build to run the Vagrant file so we can do
-# plz run //provisioner:dev which will build and run the vagrant box.
-# Modified Vagrantfile
-
-# TODO: provided by Vault
-private_key_path = ENV.fetch('PRIVATE_KEY_PATH')
-
 Vagrant.configure('2') do |config|
   config.vm.define "provisioner", primary: true do |provisioner|
     provisioner.vm.network "private_network", type: "dhcp", auto_config: false
 
-    provisioner.vm.box = "file://#{provisioner_box_path}"
+    provisioner.vm.box = "file://#{box_path}"
     provisioner.vm.synced_folder '.', '/vagrant', disabled: true
     provisioner.vm.network "forwarded_port", guest: 8091, host: 8091
     provisioner.vm.network "forwarded_port", guest: 8092, host: 8092
@@ -31,7 +24,7 @@ Vagrant.configure('2') do |config|
     provisioner.ssh.private_key_path = private_key_path
     # provisioner.ssh.host = provisioner_fqdn
 
-    provisioner.vm.cloud_init :user_data, content_type: "text/cloud-config", path: File.join(provisioner_dir, "cloud-init/dev/user-data")
+    provisioner.vm.cloud_init :user_data, content_type: "text/cloud-config", path: "./cloud-init/dev/user-data"
 
     provisioner.vm.provider 'virtualbox' do |vb|
       vb.gui = false
