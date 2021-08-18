@@ -77,12 +77,8 @@ def terraform_module(
         test_only = test_only,
     )
 
-# TODO: figure out to handle multiple named modules to match the module "<<NAME>>"
-# in Terraform and how to include the files list into a single object for the template method.
-# TODO: use relative paths instead of the custom constructed local urls for modules
-# so we don't have the problem of module name having to match the name in the generated modules.json.
 def terraform_root(
-        name: str, tf_srcs:list, providers: list = [], modules: dict = {},
+        name: str, tf_srcs:list, providers: list = [], modules: list = [],
         files:list = [], toolchain: str, visibility: list = None,
         test_only: bool = False
     ):
@@ -100,7 +96,7 @@ def terraform_root(
         filesystem_mirrors += f"filesystem_mirror {{ path = \"$PLEASE_ROOT/$(out_location {provider})\" }}"
 
     terraformrc = text_file(
-        name = f"{name}_terraformrc",
+        name = f"_{name}#terraformrc",
         data = providers,
         content = f"""
         provider_installation {{
@@ -113,22 +109,21 @@ def terraform_root(
     # We signal the template rule that a module consists of multiple outputs
     # so the appropriate sequence replacement is used
     # for example $(locations ...) instead of $(location ...)
-    modules = [template_build_label(src = module_label, has_multiple_outputs = True) for _, module_label in modules.items()]
+    modules = [template_build_label(src = module_label, has_multiple_outputs = True) for module_label in modules]
 
     # Replace file paths in the source files with specially constructed absolute paths
     # so we don't have to copy source files into the Terraform working directory
     # which can be time consuming if the files are large (iso, disk images, etc).
-    # Secondly replace module paths with special constructured local urls
-    # which will resolve to modules built with Please.
+    # Secondly replace module labels with relative paths within the out directory.
     templated_tf_srcs = template(
-        name = f"{name}_templated_root_tf_srcs",
+        name = f"_{name}#templated_root_tf_srcs",
         subs = files + modules,
         srcs = tf_srcs,
         transform = _add_tf_locations,
     )
 
     please_variables = text_file(
-        name = f"{name}_please_variables",
+        name = f"_{name}#please_variables",
         content = f"""
         variable "{PLEASE_ROOT_VAR}" {{
             type = string
@@ -202,12 +197,12 @@ def _create_relative_module(transform_object:dict):
     name = module.replace("/", "_").replace(":", "_")
 
     anchor = text_file(
-        name = f"{name}_anchor",
+        name = f"_{name}#anchor",
         content = "anchor",
     )
 
     return genrule(
-        name = f"{name}_module_path",
+        name = f"_{name}#module_path",
         deps = [
             module,
             anchor,
