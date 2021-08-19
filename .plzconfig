@@ -22,3 +22,6 @@ path = /usr/local/opt/gnu-sed/libexec/gnubin
 
 ; This is the default please PATH variable
 path = /usr/local/bin:/usr/bin:/bin
+
+[alias "ssh"]
+cmd = run //tools/ssh --
