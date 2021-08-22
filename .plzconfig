@@ -11,7 +11,8 @@
 [buildconfig]
 ; default-docker-repo = hub.docker.com
 default-docker-repo = localhost
-ssh-config-dir = tmp/vagrant/ssh_configs
+# TODO: can we define the same config multiple times to get an array?
+ssh-config-dir = ./tmp/vagrant/ssh_configs
 
 [python]
 moduledir = third_party.python

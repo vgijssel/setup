@@ -69,19 +69,21 @@ def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibi
         test_only = test_only,
     )
 
-def template_build_label(src:str, has_multiple_outputs:bool = False):
+def template_build_label(src:str, has_multiple_outputs:bool = False) -> dict:
     return {
         "is_build_label": True,
         "is_file": False,
+        "is_value": False,
         "has_multiple_outputs": has_multiple_outputs,
         "src": src,
         "keys": [],
     }
 
-def template_value(name:str, value:str):
+def template_value(name:str, value:str) -> dict:
     return {
         "is_build_label": False,
         "is_file": False,
+        "is_value": True,
         "has_multiple_outputs": False,
         "src": value,
         "keys": [name],
@@ -125,6 +127,9 @@ def _create_value_object(value:str|dict) -> dict:
 
     if "is_file" not in value_object:
         value_object["is_file"] = _is_file(src)
+
+    if "is_value" not in value_object:
+        value_object["is_value"] = not value_object["is_build_label"] and not value_object["is_file"]
     
     if "has_multiple_outputs" not in value_object:
         value_object["has_multiple_outputs"] = False
@@ -184,6 +189,7 @@ def _create_template_object(keys:list, value_object:dict) -> dict:
     values["original_value"] = { "type": "string", "value": value_object.src }
     values["is_build_label"] = { "type": "boolean", "value": value_object.is_build_label }
     values["is_file"] = { "type": "boolean", "value": value_object.is_file }
+    values["is_value"] = { "type": "boolean", "value": value_object.is_value }
     values["has_multiple_outputs"] = { "type": "boolean", "value": value_object.has_multiple_outputs }
 
     return template_object

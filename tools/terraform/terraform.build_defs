@@ -1,6 +1,5 @@
 subinclude("//tools/template")
 
-PLEASE_ROOT_VAR = "please_root"
 TERRAFORM_RC_TEMPLATE = ".terraformrc.templ"
 TERRAFORM_RC = ".terraformrc"
 
@@ -65,8 +64,6 @@ def terraform_module(
     """Terraform module which can be included by a terraform (root) module.
     """
 
-    please_variables = _create_please_variables(name)
-
     templated_tf_srcs = template(
         name = f"_{name}#templated",
         subs = files + modules + _subs_to_list(subs),
@@ -79,8 +76,7 @@ def terraform_module(
         test_only = test_only,
         name = name,
         srcs = 
-            [templated_tf_srcs] + 
-            [please_variables]
+            [templated_tf_srcs]
     )
 
 def terraform_root(
@@ -117,19 +113,15 @@ def terraform_root(
     # for example $(locations ...) instead of $(location ...)
     modules = [template_build_label(src = module_label, has_multiple_outputs = True) for module_label in modules]
 
-    # Replace file paths in the source files with specially constructed absolute paths
-    # so we don't have to copy source files into the Terraform working directory
+    # Use template to map files, modules and subs to paths relative to this rule.
+    # This prevents us from copying source files into the Terraform working directory
     # which can be time consuming if the files are large (iso, disk images, etc).
-    # Secondly replace module labels with relative paths within the out directory.
-    # TODO: make files use the same relative path trick as modules! No need for the please variables added in
     templated_tf_srcs = template(
         name = f"_{name}#templated_root_tf_srcs",
         subs = files + modules + _subs_to_list(subs),
         srcs = tf_srcs,
         transform = _add_tf_locations,
     )
-
-    please_variables = _create_please_variables(name)
 
     # Construct the Terraform working directory where all the Terraform source files
     # will be on the same level. Terraform requires all source files to be in the same 
@@ -139,7 +131,6 @@ def terraform_root(
         srcs = 
             [templated_tf_srcs] + 
             [terraformrc] +
-            [please_variables] +
             provider_tfs,
     )
 
@@ -148,6 +139,7 @@ def terraform_root(
         cmd = f"""
         # Make sure out custom SSH binary is in front of the PATH
         export PATH="$PLEASE_ROOT/$(out_dir //tools/ssh):$PATH"
+
         export TERRAFORM_WD="$PLEASE_ROOT/$(out_dir {wd_files})"
         export TERRAFORM_BIN="$PLEASE_ROOT/$(out_exe {toolchain})"
 
@@ -157,9 +149,6 @@ def terraform_root(
         # which is necessary to get absolute paths for the file mirrors during runtime.
         cat {TERRAFORM_RC_TEMPLATE} | envsubst '$PLEASE_ROOT' > {TERRAFORM_RC}
         export TF_CLI_CONFIG_FILE="$TERRAFORM_WD/{TERRAFORM_RC}"
-
-        # Finally set extra variables for Terraform runtime
-        export TF_VAR_{PLEASE_ROOT_VAR}="$PLEASE_ROOT"
 
         $TERRAFORM_BIN init
         exec $TERRAFORM_BIN $@
@@ -192,40 +181,50 @@ def terraform_root(
 def _add_tf_locations(transform_object:dict, deps:dict):
     values = transform_object.values
     original_value = values.original_value.value
+    name = original_value.replace("/", "_").replace(":", "_").replace(".", "_")
 
-    if values.has_multiple_outputs.value:
-        relative_module = _create_relative_module(transform_object)
-        deps[relative_module] = True
-        values["tf_module_location"] = { "type": "file", "value": f"$(location {relative_module})" }
+    if values.is_value.value:
+        location = original_value
+        src = None
+    elif values.is_build_label.value:
+        if values.has_multiple_outputs.value:
+            location = f"$(out_dir {original_value})"
+        else:
+            location = f"$(out_location {original_value})"
+        src = original_value
     else:
-        values["tf_file_location"] = { "type": "string", "value": f"${var.{PLEASE_ROOT_VAR}}/$(out_location {original_value})" }
+        location = f"$(out_location {original_value})"
+        src = original_value
 
-def _create_relative_module(transform_object:dict):
-    module = transform_object.values.build_label.value
-    name = module.replace("/", "_").replace(":", "_")
+    relative_path = _relative_path(name, src, location)
+    deps[relative_path] = True
+    values["tf_location"] = { "type": "file", "value": f"$(location {relative_path})" }
 
+def _relative_path(name:str, src:str, value_location:str):
+    # This generates a file in the same directory this is being called from
+    # this serves as the source or anchor of the relative path.
     anchor = text_file(
         name = f"_{name}#anchor",
         content = "anchor",
     )
 
     return genrule(
-        name = f"_{name}#module_path",
+        name = f"_{name}#relative_path",
         deps = [
-            module,
             anchor,
         ],
+        srcs = [src],
         cmd = f"""
         ANCHOR="$(out_dir {anchor})"
-        MODULE="$(out_dir {module})"
+        TARGET="{value_location}"
 
         mkdir -p "$ANCHOR"
-        mkdir -p "$MODULE"
+        mkdir -p "$TARGET"
 
-        # echo without trailing newline
-        echo -n "$($TOOLS_COREUTILS/realpath --relative-to="$ANCHOR" "$MODULE")" > $OUTS
+        # echo -n means without trailing newline
+        echo -n "$($TOOLS_COREUTILS/realpath --relative-to="$ANCHOR" "$TARGET")" > $OUTS
         """,
-        outs = [f"{name}_module_path"],
+        outs = [f"{name}_relative_path"],
         tools = {
             'coreutils': '//third_party/gnu:coreutils',
         }
@@ -241,15 +240,3 @@ def _subs_to_list(subs:dict) -> list:
         subs_list.append(template_value(key, value))
 
     return subs_list
-
-
-def _create_please_variables(name:str) -> str:
-    return text_file(
-        name = f"_{name}#please_variables",
-        content = f"""
-        variable "{PLEASE_ROOT_VAR}" {{
-            type = string
-        }}
-        """,
-        out = f"{name}_please_variables.tf",
-    )
