@@ -15,7 +15,6 @@ module "vagrant" {
   source           = "{{ data[':vagrant'].tf_location }}"
   box_path         = "{{ data[':box'].tf_location }}"
   vagrantfile_path = "{{ Vagrantfile.tf_location }}"
-  please_root      = var.please_root
 }
 
 resource "docker_image" "nginx" {
