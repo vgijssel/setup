@@ -1,0 +1,44 @@
+old_sh_cmd = sh_cmd
+
+def sh_cmd(name:str, cmd:str|dict|list, srcs:list|dict=[], data:list=[], out:str="", shell:str='/usr/bin/env bash',
+           labels:list&features&tags=[], deps:list=[], visibility:list=None, expand_env_vars:bool=True,
+           test_only:bool=False) -> str:
+
+    wrap_cmd = f"""
+    set -Eeou pipefail
+
+    # Store the out directory of the script
+    # e.g. plz-out/bin/tools/ssh
+    FILE_DIR="$(out_dir :{name})"
+
+    # Get the absolute directory of the current file
+    # From https://stackoverflow.com/a/4774063
+    # e.g. /home/user/setup/plz-out/bin/tools/ssh
+    ABSOLUTE_FILE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+    # Remove "/" + the out directory from the absolute path of the current file
+    # From https://stackoverflow.com/a/16623897
+    # e.g. /home/user/setup
+    export PLEASE_ROOT="${ABSOLUTE_FILE_DIR%"/$FILE_DIR"}"
+    """
+
+    if isinstance(cmd, list):
+        cmd = [wrap_cmd] + cmd
+    elif isinstance(cmd, dict):
+        cmd = wrap_cmd + cmd[CONFIG.BUILD_CONFIG]
+    else:
+        cmd = wrap_cmd + cmd
+    
+    return old_sh_cmd(
+        name = name,
+        cmd = cmd,
+        srcs = srcs,
+        data = data,
+        out = out,
+        shell = shell,
+        labels = labels,
+        deps = deps,
+        visibility = visibility,
+        expand_env_vars = expand_env_vars,
+        test_only = test_only,
+        )

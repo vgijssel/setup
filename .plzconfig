@@ -26,3 +26,6 @@ path = /usr/local/bin:/usr/bin:/bin
 
 [alias "ssh"]
 cmd = run //tools/ssh --
+
+[Parse]
+PreloadBuildDefs = ./tools/please/sh_rules.build_defs

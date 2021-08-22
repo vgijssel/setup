@@ -11,8 +11,6 @@ sh_cmd(
     name = "ssh",
     out = "ssh",
     cmd = f"""
-    set -Eeou pipefail
-
     # https://unix.stackexchange.com/questions/108873/removing-a-directory-from-path/291611#291611
     function path_remove {{
         # Delete path by parts so we can never accidentally remove sub paths
@@ -20,9 +18,6 @@ sh_cmd(
         PATH=${PATH/#"$1:"/} # delete any instance at the beginning
         PATH=${PATH/%":$1"/} # delete any instance in the at the end
     }}
-
-    # TODO: this is not a great way to make sure we have the right root
-    export PLEASE_ROOT="${{PLEASE_ROOT:-$PWD}}"
 
     SSH_CONFIG_TEMPL="$PLEASE_ROOT/$(out_location {ssh_config})"
     SSH_CONFIG_DIR="$PLEASE_ROOT/$(out_dir {ssh_config})"

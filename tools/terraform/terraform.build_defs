@@ -14,9 +14,7 @@ def terraform_lock(name:str, providers_file: str, toolchain: str, visibility: li
         name = name,
         expand_env_vars = False,
         cmd = f"""
-        set -Eeou pipefail
-
-        TERRAFORM_BIN="$PWD/$(out_exe {toolchain})"
+        TERRAFORM_BIN="$PLEASE_ROOT/$(out_exe {toolchain})"
         PROVIDERS_FILE="$(out_location {providers_file})"
         PROVIDERS_DIR="$(dirname $PROVIDERS_FILE)"
 
@@ -148,11 +146,8 @@ def terraform_root(
     executable = sh_cmd(
         name = f"{name}_exe", 
         cmd = f"""
-        set -Eeou pipefail
-
         # Make sure out custom SSH binary is in front of the PATH
-        export PATH="$PWD/$(out_dir //tools/ssh):$PATH"
-        export PLEASE_ROOT="$PWD"
+        export PATH="$PLEASE_ROOT/$(out_dir //tools/ssh):$PATH"
         export TERRAFORM_WD="$PLEASE_ROOT/$(out_dir {wd_files})"
         export TERRAFORM_BIN="$PLEASE_ROOT/$(out_exe {toolchain})"
 
@@ -182,8 +177,6 @@ def terraform_root(
             name = f"{name}_{command}",
             deps = [executable],
             cmd = f"""
-            set -Eeou pipefail
-
             $(out_exe {executable}) {args} $@
             """,
             visibility = visibility,
