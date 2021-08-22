@@ -7,5 +7,8 @@ terraform_module(
         "output.tf",
         "variables.tf",
     ],
+    subs = {
+        "ssh_config_dir": CONFIG.SSH_CONFIG_DIR,
+    },
     visibility = ["PUBLIC"],
 )

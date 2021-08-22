@@ -19,6 +19,7 @@ locals {
   environment = merge({
     VAGRANTFILE_SHA = local.vagrantfile_sha
     BOX_PATH        = var.box_path
+    SSH_CONFIG_PATH = "{{ ssh_config_dir.tf_file_location }}"
   }, var.environment)
 }
 

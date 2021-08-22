@@ -8,7 +8,7 @@ provider "vagrant" {
 }
 
 provider "docker" {
-  host = "ssh://${local.ssh_config.user}@${local.ssh_config.host}:${local.ssh_config.port}"
+  host = "ssh://provisioner"
 }
 
 locals {
@@ -17,6 +17,7 @@ locals {
 }
 
 module "vagrant" {
+  please_root      = var.please_root
   source           = "{{ data[':vagrant'].tf_module_location }}"
   box_path         = local.box_path
   vagrantfile_path = "{{ Vagrantfile.tf_file_location }}"

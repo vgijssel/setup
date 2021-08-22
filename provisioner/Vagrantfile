@@ -1,7 +1,15 @@
 # frozen_string_literal: true
 
+# To install pry into the vagrant embedded gems:
+# cd /opt/vagrant/embedded/gems/ 
+# chmod -R 0777 <<VERSION>>
+# gem install pry --install-dir /opt/vagrant/embedded/gems/<<VERSION>>
+
+require 'pry'
+
 box_path = ENV.fetch('BOX_PATH')
 log_dir = ENV.fetch('SETUP_LOG_DIR')
+ssh_config_path = ENV.fetch('SSH_CONFIG_PATH')
 # pxe_box_path = File.join(box_dir, 'pxe.box')
 
 # TODO: provided by Vault
@@ -37,6 +45,24 @@ Vagrant.configure('2') do |config|
 
       # Setup log file
       vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "provisioner.log")]
+    end
+
+    provisioner.trigger.after [:up, :resume, :reload] do |trigger|
+      trigger.info = "Writing out ssh_config file to: #{ssh_config_path}"
+      trigger.ruby do |env, machine|
+        ssh_config = <<~SSH_CONFIG
+Host #{machine.name}
+  Port #{machine.ssh_info.fetch(:port)}
+  Hostname #{machine.ssh_info.fetch(:host)}
+  User #{machine.ssh_info.fetch(:username)}
+  IdentityFile #{machine.ssh_info.fetch(:private_key_path).first}
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+        SSH_CONFIG
+
+        FileUtils.mkdir_p(ssh_config_path)
+        File.write(File.join(ssh_config_path, machine.name.to_s), ssh_config)
+      end
     end
   end
 

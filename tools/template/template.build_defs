@@ -75,15 +75,17 @@ def template_build_label(src:str, has_multiple_outputs:bool = False):
         "is_file": False,
         "has_multiple_outputs": has_multiple_outputs,
         "src": src,
+        "keys": [],
     }
 
-# TODO: remove this and replace with text_file
 def template_value(name:str, value:str):
-    return genrule(
-        name = name,
-        outs = [name],
-        cmd = f"echo -n '{value}' > $OUT",
-    )
+    return {
+        "is_build_label": False,
+        "is_file": False,
+        "has_multiple_outputs": False,
+        "src": value,
+        "keys": [name],
+    }
 
 def _is_build_label(string:str) -> bool:
     return string.startswith('//') or string.startswith(':')
@@ -126,11 +128,14 @@ def _create_value_object(value:str|dict) -> dict:
     
     if "has_multiple_outputs" not in value_object:
         value_object["has_multiple_outputs"] = False
+
+    if "keys" not in value_object:
+        value_object["keys"] = []
     
     return value_object
 
 def _create_keys(key:str, value_object:dict) -> list:
-    keys = []
+    keys = value_object.keys
 
     if key != None:
         keys.append(key)
