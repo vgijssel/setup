@@ -1,5 +1,5 @@
 ---
-- name: 'Provision Provisioner'
+- name: "Provision Provisioner"
   hosts: all
   gather_facts: true
   become: true
@@ -10,7 +10,7 @@
 
     # https://docs.docker.com/engine/install/ubuntu/
     - name: Install docker dependencies
-      tags: ['docker']
+      tags: ["docker"]
       package:
         name: "{{ item }}"
         state: present
@@ -22,24 +22,24 @@
         - software-properties-common
 
     - name: Add Docker GPG apt Key
-      tags: ['docker']
+      tags: ["docker"]
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
     - name: Add Docker Repository
-      tags: ['docker']
+      tags: ["docker"]
       apt_repository:
         repo: "deb [arch={{ architecture }}] https://download.docker.com/linux/ubuntu {{ ubuntu_release }} stable"
         state: present
 
     - name: Update apt
-      tags: ['docker']
+      tags: ["docker"]
       apt:
         update_cache: true
 
     - name: Install docker-ce
-      tags: ['docker']
+      tags: ["docker"]
       apt:
         state: latest
         name: "{{ item }}"
@@ -49,22 +49,22 @@
         - containerd.io
 
     - name: Reset cloud-init
-      tags: ['cloud-init']
+      tags: ["cloud-init"]
       command: cloud-init clean
 
     - name: Cleanup files
-      tags: ['cloud-init']
+      tags: ["cloud-init"]
       file:
         path: "{{ item }}"
         state: absent
       loop:
-      - /home/ubuntu/.ssh/authorized_keys
-      - /etc/netplan/50-cloud-init.yaml
-      - /var/log/cloud-init.log
-      - /var/log/cloud-init-output.log
+        - /home/ubuntu/.ssh/authorized_keys
+        - /etc/netplan/50-cloud-init.yaml
+        - /var/log/cloud-init.log
+        - /var/log/cloud-init-output.log
 
     - name: Clear tmp directory
-      tags: ['cloud-init']
+      tags: ["cloud-init"]
       command: rm -rf /tmp/*
 
     - name: Create necessary seed directory
@@ -73,14 +73,14 @@
         state: directory
 
     - name: Copy cloud-init user-data
-      tags: ['cloud-init']
+      tags: ["cloud-init"]
       copy:
         src: "{{ item }}"
         dest: /var/lib/cloud/seed/nocloud-net
         owner: root
         group: root
-        mode: '0644'
+        mode: "0644"
       loop:
         - ./cloud-init/prod/user-data
-        - ./cloud-init/prod/meta-data
-        - ./cloud-init/prod/vendor-data
+        - ./cloud-init/meta-data
+        - ./cloud-init/vendor-data

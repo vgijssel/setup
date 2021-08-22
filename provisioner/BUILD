@@ -15,8 +15,8 @@ packer(
     # maybe even random generate a SSH keypair.
     cd_files = [
         "./cloud-init/dev/user-data",
-        "./cloud-init/dev/meta-data",
-        "./cloud-init/dev/vendor-data",
+        "./cloud-init/meta-data",
+        "./cloud-init/vendor-data",
     ],
     deps = [
         "./cloud-init",

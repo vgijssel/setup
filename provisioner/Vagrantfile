@@ -8,11 +8,11 @@
 require 'pry'
 
 box_path = ENV.fetch('BOX_PATH')
-log_dir = ENV.fetch('SETUP_LOG_DIR')
 ssh_config_path = ENV.fetch('SSH_CONFIG_PATH')
 # pxe_box_path = File.join(box_dir, 'pxe.box')
 
-# TODO: provided by Vault
+# TODO: manage these variables with plz not direnv
+log_dir = ENV.fetch('SETUP_LOG_DIR')
 private_key_path = ENV.fetch('PRIVATE_KEY_PATH')
 
 # TODO: could leverage a metadata file to support automatic upgrading of Vagrant box files
@@ -30,7 +30,6 @@ Vagrant.configure('2') do |config|
 
     provisioner.ssh.username = 'ubuntu'
     provisioner.ssh.private_key_path = private_key_path
-    # provisioner.ssh.host = provisioner_fqdn
 
     provisioner.vm.cloud_init :user_data, content_type: "text/cloud-config", path: "./cloud-init/dev/user-data"
 

@@ -1,0 +1,10 @@
+#cloud-config
+
+manage_etc_hosts: localhost
+hostname: provisioner
+groups:
+  - docker
+
+runcmd:
+  # Ensure that the ubuntu user is member of the 'docker' group
+  - [usermod, -a, -G, docker, ubuntu]
