@@ -130,6 +130,7 @@ cask 'flixtools' # for downloading subtitles
 cask 'virtualbox'
 cask 'intel-haxm' # hardware accelerator for qemu
 
+cask 'brave-browser'
 cask '1password-cli'
 cask 'steam'
 cask 'iterm2', args: { force: true }

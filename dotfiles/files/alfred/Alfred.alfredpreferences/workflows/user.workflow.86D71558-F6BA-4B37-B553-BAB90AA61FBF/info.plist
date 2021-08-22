@@ -47,6 +47,19 @@
 				<false/>
 			</dict>
 		</array>
+		<key>3B9BCC18-CB22-4DC5-B569-0B9B8C6F1721</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>E49DFB72-DE42-4367-862E-84F8BA9BF847</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 		<key>69A445B4-D9AE-47A1-8776-E8A03DE9B9EE</key>
 		<array>
 			<dict>
@@ -90,6 +103,19 @@
 			<dict>
 				<key>destinationuid</key>
 				<string>AE9D66F0-2352-464A-ADFA-DE0357F06C37</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>98017E25-18A3-48B0-9CE2-795536261617</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>E7E0DE1E-AF5C-40EB-BFCB-15A3024739AE</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
@@ -190,6 +216,46 @@
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>browser</key>
+				<string></string>
+				<key>spaces</key>
+				<string></string>
+				<key>url</key>
+				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/189?milestone_title=4.%20Data%20Platform%20Sprint%20(%23Impala)&amp;&amp;label_name[]=Data%20Platform</string>
+				<key>utf8</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.openurl</string>
+			<key>uid</key>
+			<string>AFC33D51-2273-4065-A378-D234763811A8</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>2</integer>
+				<key>keyword</key>
+				<string>dps</string>
+				<key>subtext</key>
+				<string></string>
+				<key>text</key>
+				<string>Data Platform Sprint</string>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>D487159A-6511-4B29-B9E3-9BAECE04E3D0</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
 				<key>argumenttype</key>
 				<integer>2</integer>
 				<key>keyword</key>
@@ -230,6 +296,46 @@
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>argumenttype</key>
+				<integer>2</integer>
+				<key>keyword</key>
+				<string>dpw</string>
+				<key>subtext</key>
+				<string></string>
+				<key>text</key>
+				<string>Data Platform Workboard</string>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>F1C27888-9752-40F8-A502-C03AB6E7DAF8</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>browser</key>
+				<string></string>
+				<key>spaces</key>
+				<string></string>
+				<key>url</key>
+				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/188?milestone_title=No+Milestone&amp;&amp;label_name[]=Data%20Platform</string>
+				<key>utf8</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.openurl</string>
+			<key>uid</key>
+			<string>BB988F82-4DFC-4823-A71C-176C375CA3DD</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
 				<key>browser</key>
 				<string></string>
 				<key>spaces</key>
@@ -243,46 +349,6 @@
 			<string>alfred.workflow.action.openurl</string>
 			<key>uid</key>
 			<string>12E5E861-DD27-442C-982B-2FD2D38A4579</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>browser</key>
-				<string></string>
-				<key>spaces</key>
-				<string></string>
-				<key>url</key>
-				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/189?milestone_title=1.%20Data%20Engineering%20Sprint%20(%23Arvados)&amp;&amp;label_name[]=Data%20Engineering</string>
-				<key>utf8</key>
-				<true/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.openurl</string>
-			<key>uid</key>
-			<string>AFC33D51-2273-4065-A378-D234763811A8</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>argumenttype</key>
-				<integer>2</integer>
-				<key>keyword</key>
-				<string>des</string>
-				<key>subtext</key>
-				<string></string>
-				<key>text</key>
-				<string>Data Engineering Sprint</string>
-				<key>withspace</key>
-				<false/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.input.keyword</string>
-			<key>uid</key>
-			<string>D487159A-6511-4B29-B9E3-9BAECE04E3D0</string>
 			<key>version</key>
 			<integer>1</integer>
 		</dict>
@@ -304,86 +370,6 @@
 			<string>alfred.workflow.input.keyword</string>
 			<key>uid</key>
 			<string>E9C83478-0A41-4167-84AD-D9011FD90589</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>browser</key>
-				<string></string>
-				<key>spaces</key>
-				<string></string>
-				<key>url</key>
-				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/159?milestone_title=No+Milestone&amp;&amp;label_name[]=HYPE%20Squad</string>
-				<key>utf8</key>
-				<true/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.openurl</string>
-			<key>uid</key>
-			<string>228029D1-F4B2-4CEB-A63E-91CEF0010AE2</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>argumenttype</key>
-				<integer>2</integer>
-				<key>keyword</key>
-				<string>dew</string>
-				<key>subtext</key>
-				<string></string>
-				<key>text</key>
-				<string>Data Engineering Workboard</string>
-				<key>withspace</key>
-				<false/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.input.keyword</string>
-			<key>uid</key>
-			<string>F1C27888-9752-40F8-A502-C03AB6E7DAF8</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>browser</key>
-				<string></string>
-				<key>spaces</key>
-				<string></string>
-				<key>url</key>
-				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/188?&amp;label_name[]=Data%20Engineering</string>
-				<key>utf8</key>
-				<true/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.openurl</string>
-			<key>uid</key>
-			<string>BB988F82-4DFC-4823-A71C-176C375CA3DD</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>argumenttype</key>
-				<integer>2</integer>
-				<key>keyword</key>
-				<string>hpw</string>
-				<key>subtext</key>
-				<string></string>
-				<key>text</key>
-				<string>Hacker Program Engagement Workboard</string>
-				<key>withspace</key>
-				<false/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.input.keyword</string>
-			<key>uid</key>
-			<string>BDEA1757-8686-49C5-8347-CD84BA7D93CD</string>
 			<key>version</key>
 			<integer>1</integer>
 		</dict>
@@ -424,6 +410,46 @@
 			<string>alfred.workflow.action.openurl</string>
 			<key>uid</key>
 			<string>AE9D66F0-2352-464A-ADFA-DE0357F06C37</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>browser</key>
+				<string></string>
+				<key>spaces</key>
+				<string></string>
+				<key>url</key>
+				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/159?milestone_title=No+Milestone&amp;&amp;label_name[]=HYPE%20Squad</string>
+				<key>utf8</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.openurl</string>
+			<key>uid</key>
+			<string>228029D1-F4B2-4CEB-A63E-91CEF0010AE2</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>2</integer>
+				<key>keyword</key>
+				<string>hpw</string>
+				<key>subtext</key>
+				<string></string>
+				<key>text</key>
+				<string>Hacker Program Engagement Workboard</string>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>BDEA1757-8686-49C5-8347-CD84BA7D93CD</string>
 			<key>version</key>
 			<integer>1</integer>
 		</dict>
@@ -477,6 +503,50 @@
 				<key>argumenttype</key>
 				<integer>1</integer>
 				<key>keyword</key>
+				<string>brave_personal</string>
+				<key>subtext</key>
+				<string></string>
+				<key>text</key>
+				<string>Brave Browser - New Window (Personal)</string>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>98017E25-18A3-48B0-9CE2-795536261617</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>open -n -a  "Brave Browser" --args --"profile-directory"="Default"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>E7E0DE1E-AF5C-40EB-BFCB-15A3024739AE</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>keyword</key>
 				<string>chrome_hackerone</string>
 				<key>subtext</key>
 				<string></string>
@@ -514,6 +584,50 @@
 			<string>E6A5E051-4368-4D2A-828A-824162BA9EA6</string>
 			<key>version</key>
 			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>open -n -a  "Brave Browser" --args --"profile-directory"="Profile 1"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>E49DFB72-DE42-4367-862E-84F8BA9BF847</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>keyword</key>
+				<string>brave_hackerone</string>
+				<key>subtext</key>
+				<string></string>
+				<key>text</key>
+				<string>Brave Browser - New Window (HackerOne)</string>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.keyword</string>
+			<key>uid</key>
+			<string>3B9BCC18-CB22-4DC5-B569-0B9B8C6F1721</string>
+			<key>version</key>
+			<integer>1</integer>
 		</dict>
 		<dict>
 			<key>config</key>
@@ -737,6 +851,13 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<key>ypos</key>
 			<integer>500</integer>
 		</dict>
+		<key>3B9BCC18-CB22-4DC5-B569-0B9B8C6F1721</key>
+		<dict>
+			<key>xpos</key>
+			<integer>505</integer>
+			<key>ypos</key>
+			<integer>675</integer>
+		</dict>
 		<key>3C64EC32-E3E0-4CAA-80FE-B31AFDD22919</key>
 		<dict>
 			<key>xpos</key>
@@ -763,30 +884,37 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<key>colorindex</key>
 			<integer>4</integer>
 			<key>xpos</key>
-			<integer>430</integer>
+			<integer>485</integer>
 			<key>ypos</key>
-			<integer>480</integer>
+			<integer>315</integer>
+		</dict>
+		<key>98017E25-18A3-48B0-9CE2-795536261617</key>
+		<dict>
+			<key>xpos</key>
+			<integer>495</integer>
+			<key>ypos</key>
+			<integer>515</integer>
 		</dict>
 		<key>AE9D66F0-2352-464A-ADFA-DE0357F06C37</key>
 		<dict>
 			<key>xpos</key>
-			<integer>640</integer>
+			<integer>695</integer>
 			<key>ypos</key>
-			<integer>480</integer>
+			<integer>315</integer>
 		</dict>
 		<key>AFC33D51-2273-4065-A378-D234763811A8</key>
 		<dict>
 			<key>xpos</key>
-			<integer>640</integer>
+			<integer>695</integer>
 			<key>ypos</key>
-			<integer>190</integer>
+			<integer>25</integer>
 		</dict>
 		<key>BB988F82-4DFC-4823-A71C-176C375CA3DD</key>
 		<dict>
 			<key>xpos</key>
-			<integer>640</integer>
+			<integer>695</integer>
 			<key>ypos</key>
-			<integer>335</integer>
+			<integer>170</integer>
 		</dict>
 		<key>BDEA1757-8686-49C5-8347-CD84BA7D93CD</key>
 		<dict>
@@ -802,9 +930,9 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<key>colorindex</key>
 			<integer>4</integer>
 			<key>xpos</key>
-			<integer>430</integer>
+			<integer>485</integer>
 			<key>ypos</key>
-			<integer>190</integer>
+			<integer>25</integer>
 		</dict>
 		<key>D81C9268-5679-48F3-BA09-5BA1DB58E04C</key>
 		<dict>
@@ -812,6 +940,13 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<integer>260</integer>
 			<key>ypos</key>
 			<integer>835</integer>
+		</dict>
+		<key>E49DFB72-DE42-4367-862E-84F8BA9BF847</key>
+		<dict>
+			<key>xpos</key>
+			<integer>730</integer>
+			<key>ypos</key>
+			<integer>675</integer>
 		</dict>
 		<key>E6A5E051-4368-4D2A-828A-824162BA9EA6</key>
 		<dict>
@@ -829,6 +964,13 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<key>ypos</key>
 			<integer>35</integer>
 		</dict>
+		<key>E7E0DE1E-AF5C-40EB-BFCB-15A3024739AE</key>
+		<dict>
+			<key>xpos</key>
+			<integer>720</integer>
+			<key>ypos</key>
+			<integer>515</integer>
+		</dict>
 		<key>E9C83478-0A41-4167-84AD-D9011FD90589</key>
 		<dict>
 			<key>colorindex</key>
@@ -843,9 +985,9 @@ Type your keyword into Alfred, followed by your input text if needed, and you'll
 			<key>colorindex</key>
 			<integer>4</integer>
 			<key>xpos</key>
-			<integer>430</integer>
+			<integer>485</integer>
 			<key>ypos</key>
-			<integer>335</integer>
+			<integer>170</integer>
 		</dict>
 		<key>F8373102-B280-449F-9E0B-6BF2E0666428</key>
 		<dict>
