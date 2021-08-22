@@ -41,6 +41,9 @@ terraform_root(
     providers = [
         "//third_party/terraform:providers",
     ],
+    subs = {
+        "backend": CONFIG.TERRAFORM_BACKEND,
+    },
     tf_srcs = [
         "./main.tf",
     ],

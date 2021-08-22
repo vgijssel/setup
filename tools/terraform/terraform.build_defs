@@ -150,7 +150,6 @@ def terraform_root(
         cat {TERRAFORM_RC_TEMPLATE} | envsubst '$PLEASE_ROOT' > {TERRAFORM_RC}
         export TF_CLI_CONFIG_FILE="$TERRAFORM_WD/{TERRAFORM_RC}"
 
-        $TERRAFORM_BIN init
         exec $TERRAFORM_BIN $@
         """,
         expand_env_vars = False,
@@ -173,6 +172,7 @@ def terraform_root(
             expand_env_vars = False,
         )
 
+    _create_callable_tf_command("init", "init")
     _create_callable_tf_command("apply", "apply")
     _create_callable_tf_command("plan", "plan")
     _create_callable_tf_command("destroy", "destroy")
