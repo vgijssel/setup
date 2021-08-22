@@ -13,7 +13,8 @@
 default-docker-repo = localhost
 # TODO: can we define the same config multiple times to get an array?
 ssh-config-dir = ./tmp/vagrant/ssh_configs
-terraform-backend = ./tmp/terraform
+terraform-state = ./tmp/terraform/state
+terraform-data = ./tmp/terraform/data
 
 [python]
 moduledir = third_party.python
@@ -23,6 +24,9 @@ cmd = run //tools/ssh --
 
 [alias "tf_init"]
 cmd = run parallel //provisioner:deploy_init //provisioner-env:deploy_init
+
+[alias "deploy"]
+cmd = run sequential //provisioner:deploy_apply --arg="-auto-approve" //provisioner-env:deploy_apply --arg="-auto-approve"
 
 [Parse]
 PreloadBuildDefs = ./tools/please/sh_rules.build_defs

@@ -6,7 +6,7 @@ terraform_root(
         "//third_party/terraform:providers",
     ],
     subs = {
-        "backend": CONFIG.TERRAFORM_BACKEND,
+        "backend": CONFIG.TERRAFORM_STATE,
     },
     tf_srcs = [
         "./main.tf",

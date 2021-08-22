@@ -134,6 +134,8 @@ def terraform_root(
             provider_tfs,
     )
 
+    data_dir = _label_to_safe_string(canonicalise(f":{name}"))
+
     executable = sh_cmd(
         name = f"{name}_exe", 
         cmd = f"""
@@ -142,6 +144,7 @@ def terraform_root(
 
         export TERRAFORM_WD="$PLEASE_ROOT/$(out_dir {wd_files})"
         export TERRAFORM_BIN="$PLEASE_ROOT/$(out_exe {toolchain})"
+        export TF_DATA_DIR="$PLEASE_ROOT/{CONFIG.TERRAFORM_DATA}/{data_dir}"
 
         cd $TERRAFORM_WD
 
@@ -181,7 +184,7 @@ def terraform_root(
 def _add_tf_locations(transform_object:dict, deps:dict):
     values = transform_object.values
     original_value = values.original_value.value
-    name = original_value.replace("/", "_").replace(":", "_").replace(".", "_")
+    name = _label_to_safe_string(original_value)
 
     if values.is_value.value:
         location = original_value
@@ -240,3 +243,6 @@ def _subs_to_list(subs:dict) -> list:
         subs_list.append(template_value(key, value))
 
     return subs_list
+
+def _label_to_safe_string(label:str) -> str:
+    return label.replace("/", "_").replace(":", "_").replace(".", "_")
