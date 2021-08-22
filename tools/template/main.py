@@ -1,4 +1,4 @@
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 import sys
 import json
 import os
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     searchpath = os.path.dirname(os.path.abspath(target_file_path))
     target_file_name = os.path.basename(target_file_path)
     loader = FileSystemLoader(searchpath=searchpath)
-    template_env = Environment(loader=loader)
+    template_env = Environment(loader=loader, undefined=StrictUndefined)
     template_file = target_file_name
     template = template_env.get_template(template_file)
     template_data["data"] = template_data
