@@ -1,7 +1,7 @@
 old_sh_cmd = sh_cmd
 
 def sh_cmd(name:str, cmd:str|dict|list, srcs:list|dict=[], data:list=[], out:str="", shell:str='/usr/bin/env bash',
-           labels:list&features&tags=[], deps:list=[], visibility:list=None, expand_env_vars:bool=True,
+           labels:list&features&tags=[], deps:list=[], visibility:list=None,
            test_only:bool=False) -> str:
 
     wrap_cmd = f"""
@@ -39,6 +39,6 @@ def sh_cmd(name:str, cmd:str|dict|list, srcs:list|dict=[], data:list=[], out:str
         labels = labels,
         deps = deps,
         visibility = visibility,
-        expand_env_vars = expand_env_vars,
+        expand_env_vars = False,
         test_only = test_only,
         )

@@ -2,6 +2,10 @@ subinclude("//tools/terraform")
 
 terraform_root(
     name = "deploy",
+    files = [
+        "//digitalrebar:digitalrebar_build",
+        "//digitalrebar:digitalrebar_fqn",
+    ],
     providers = [
         "//third_party/terraform:providers",
     ],
@@ -13,4 +17,5 @@ terraform_root(
     ],
     toolchain = "//third_party/terraform:terraform_1_0_3",
 )
+
 

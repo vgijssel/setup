@@ -1,0 +1,10 @@
+---
+- name: "Provision Provisioner"
+  hosts: all
+  gather_facts: true
+  become: true
+
+  tasks:
+    - name: Init docker swarm
+      tags: ["docker"]
+      command: "docker swarm init"

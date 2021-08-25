@@ -11,7 +11,6 @@ def terraform_lock(name:str, providers_file: str, toolchain: str, visibility: li
     """
     sh_cmd(
         name = name,
-        expand_env_vars = False,
         cmd = f"""
         TERRAFORM_BIN="$PLEASE_ROOT/$(out_exe {toolchain})"
         PROVIDERS_FILE="$(out_location {providers_file})"
@@ -155,7 +154,6 @@ def terraform_root(
 
         exec $TERRAFORM_BIN $@
         """,
-        expand_env_vars = False,
         deps = [
             toolchain,
             "//tools/ssh"
@@ -172,7 +170,6 @@ def terraform_root(
             """,
             visibility = visibility,
             test_only = test_only,
-            expand_env_vars = False,
         )
 
     _create_callable_tf_command("init", "init")

@@ -8,11 +8,11 @@ subinclude("//tools/terraform")
 
 packer(
     name = "image",
-    ansible_playbook = "playbook.yml",
+    ansible_playbook = "build.yml",
     # TODO: we can just provide a directory!
     # TODO: maybe just inject these in packer since they are only
     # used for ssh access and removed later on. For security purposes
-    # maybe even random generate a SSH keypair.
+    # maybe even semi-random generate a SSH keypair.
     cd_files = [
         "./cloud-init/dev/user-data",
         "./cloud-init/meta-data",
@@ -20,7 +20,6 @@ packer(
     ],
     deps = [
         "./cloud-init",
-        "//digitalrebar:digitalrebar_build",
     ],
 )
 
@@ -33,6 +32,7 @@ terraform_root(
     name = "deploy",
     files = [
         "./Vagrantfile",
+        "./provision.yml",
         ":box",
     ],
     modules = [

@@ -1,5 +1,5 @@
 ---
-- name: "Provision Provisioner"
+- name: "Build Provisioner"
   hosts: all
   gather_facts: true
   become: true
@@ -48,6 +48,16 @@
         - docker-ce-cli
         - containerd.io
 
+    - name: Init docker swarm
+      tags: ["docker"]
+      apt:
+        state: latest
+        name: "{{ item }}"
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
     - name: Reset cloud-init
       tags: ["cloud-init"]
       command: cloud-init clean
@@ -68,6 +78,7 @@
       command: rm -rf /tmp/*
 
     - name: Create necessary seed directory
+      tags: ["cloud-init"]
       file:
         path: /var/lib/cloud/seed/nocloud-net
         state: directory

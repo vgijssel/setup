@@ -150,6 +150,7 @@ def _create_keys(key:str, value_object:dict) -> list:
         keys.append(full_label)
 
         target, label = decompose(full_label)
+        keys.append(label)
         keys.append(f":{label}")
 
     elif value_object.is_file:

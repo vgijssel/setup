@@ -39,7 +39,6 @@ sh_cmd(
 
     ssh $ARGS
     """,
-    expand_env_vars = False,
     shell = "/usr/bin/env bash",
     visibility = ["PUBLIC"],
     deps = [ssh_config],
