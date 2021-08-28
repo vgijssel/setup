@@ -81,7 +81,7 @@ def terraform_module(
 def terraform_root(
         name: str, tf_srcs:list, providers: list = [], modules: list = [],
         files:list = [], subs:dict = None, toolchain: str, visibility: list = None,
-        test_only: bool = False
+        test_only: bool = False, requires:list = []
     ):
     """Build rule for creating scripts which runs Terraform against a configuration.
     """
@@ -120,6 +120,7 @@ def terraform_root(
         subs = files + modules + _subs_to_list(subs),
         srcs = tf_srcs,
         transform = _add_tf_locations,
+        requires = requires,
     )
 
     # Construct the Terraform working directory where all the Terraform source files
@@ -178,7 +179,7 @@ def terraform_root(
     _create_callable_tf_command("destroy", "destroy")
     _create_callable_tf_command("bin", "")
 
-def _add_tf_locations(transform_object:dict, deps:dict):
+def _add_tf_locations(transform_object:dict, transform_context:dict):
     values = transform_object.values
     original_value = values.original_value.value
     name = _label_to_safe_string(original_value)
@@ -196,11 +197,12 @@ def _add_tf_locations(transform_object:dict, deps:dict):
         location = f"$(out_location {original_value})"
         src = original_value
 
-    relative_path = _relative_path(name, src, location)
+    relative_path = _relative_path(name, src, location, transform_context.requires)
+    deps = transform_context.deps
     deps[relative_path] = True
     values["tf_location"] = { "type": "file", "value": f"$(location {relative_path})" }
 
-def _relative_path(name:str, src:str, value_location:str):
+def _relative_path(name:str, src:str, value_location:str, requires:list):
     # This generates a file in the same directory this is being called from
     # this serves as the source or anchor of the relative path.
     anchor = text_file(
@@ -214,6 +216,7 @@ def _relative_path(name:str, src:str, value_location:str):
             anchor,
         ],
         srcs = [src],
+        requires = requires,
         cmd = f"""
         ANCHOR="$(out_dir {anchor})"
         TARGET="{value_location}"
@@ -242,4 +245,4 @@ def _subs_to_list(subs:dict) -> list:
     return subs_list
 
 def _label_to_safe_string(label:str) -> str:
-    return label.replace("/", "_").replace(":", "_").replace(".", "_")
+    return label.replace("/", "_").replace(":", "_").replace(".", "_").replace("|", "_")

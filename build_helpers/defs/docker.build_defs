@@ -1,5 +1,5 @@
 # Copied from https://github.com/thought-machine/pleasings/blob/master/docker/docker.build_defs
-def docker_build(name:str, srcs:list = [], dockerfile:str = "Dockerfile", test_only:bool = False, visibility:list = None):
+def docker_build(name:str, srcs:list = [], dockerfile:str = "Dockerfile", test_only:bool = False, visibility:list = None) -> str:
     """docker_build builds a Dockerfile and saves the result as a tarball
     Args:
       name: Name of the rule.
@@ -8,59 +8,43 @@ def docker_build(name:str, srcs:list = [], dockerfile:str = "Dockerfile", test_o
       test_only: If True, this can only be depended on by test rules.
     """
 
-    repo = check_config('DEFAULT_DOCKER_REPO', 'buildconfig', 'Docker', 'hub.docker.com')
+    def _docker_build(platform:str) -> str:
+        build_name = f"{name}_{platform}".replace('/', '_')
+        out_dir = build_name
+        tag_file = f"{out_dir}/{build_name}.sha"
+        archive_file = f"{out_dir}/{build_name}.tar"
 
-    tarball = _docker_tarball_rule(
+        return genrule(
+            name = build_name,
+            srcs = {
+                "dockerfile": dockerfile,
+                "srcs": srcs,
+            },
+            cmd = f"""
+            set -Eeou pipefail
+
+            mkdir -p {out_dir}
+            docker buildx build --platform {platform} --iidfile {tag_file} -f $SRCS_DOCKERFILE $PKG
+            IMAGE_NAME="$(cat {tag_file})"
+            docker save "$IMAGE_NAME" > {archive_file}
+            """,
+            entry_points = {
+                "archive": archive_file,
+                "tag": tag_file,
+            },
+            outs = [out_dir],
+            test_only = test_only,
+            visibility = visibility,
+        )
+
+    provides = {
+        "linux_amd64": _docker_build('linux/amd64'),
+        "darwin_amd64": _docker_build('darwin/amd64'),
+    }
+
+    return filegroup(
         name = name,
-        srcs = srcs,
-        dockerfile = dockerfile,
-        test_only = test_only,
-    )
-
-    # The FQN defines a unique hash for the image.
-    if CONFIG.HOSTOS == 'linux':
-        version = f'$(echo $(hash {tarball}) | sha256sum - | cut -f1 -d" ")'
-    elif CONFIG.HOSTOS == 'darwin':
-        version = f'$(echo $(hash {tarball}) | shasum -a 256 - | cut -f1 -d" ")'
-    else:
-        fail('no_idea_how_to_compute_version_on_this_host')
-
-    fqn = genrule(
-        name = f'{name}_fqn',
-        srcs = [tarball],
-        cmd = f'echo -n "{repo}/{name}:{version}" >> $OUT',
-        outs = [f'{name}_fqn'],
-        test_only = test_only,
+        provides = provides,
         visibility = visibility,
-    )
-
-    cmd = f"""
-    set -Eeou pipefail
-    image_name=$(cat $SRCS_FQN)
-    docker build -t "$image_name" -f $(basename $SRCS_DOCKERFILE) - < $SRCS_TARBALL
-    docker save "$image_name" > $OUT
-    """
-
-    genrule(
-        name = f"{name}_build",
-        srcs = {
-            "tarball": tarball,
-            "fqn": fqn,
-            "dockerfile": dockerfile,
-        },
-        cmd = cmd,
-        outs = [f"{name}_build.tar"],
-        test_only = test_only,
-        visibility = visibility,
-    )
-
-def _docker_tarball_rule(name, srcs, dockerfile, test_only):
-    """Defines the tarball rule containing all required data for generating the container.
-    The resulting tarball will contain the Dockerfile as well as any required artifacts.
-    This will then later on be fed into `docker build` as a docker context.
-    """
-    return tarball(
-        name = f"_{name}#context",
-        srcs = srcs + [dockerfile],
-        test_only = test_only,
+        test_only=test_only,
     )

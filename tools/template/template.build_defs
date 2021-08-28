@@ -1,6 +1,8 @@
 JINJA_SCRIPT = '//tools/template:jinja'
 
-def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibility:list = None, transform:function = None):
+# TODO: can we template a file and "carry" the dependencies
+# to another rule? So we don't have to specifiy the same dependencies twice?
+def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibility:list = None, transform:function = None, requires:list = []):
     """
     Generate a file using Jinja2 substitution.
     """
@@ -25,7 +27,14 @@ def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibi
             deps[value_object.src] = True
 
         if transform != None:
-            transform(template_object, deps)
+            transform_context = {
+                "deps": deps,
+                "requires": requires,
+                "visibility": visibility,
+                "test_only": test_only,
+                "name": name,
+            }
+            transform(template_object, transform_context)
 
     _enumerate(subs, iterate)
 
@@ -59,6 +68,7 @@ def template(name:str, subs:dict|list, srcs:list, test_only:bool = False, visibi
                 """,
                 visibility = visibility,
                 test_only = test_only,
+                requires = requires,
             )
         )
 
@@ -146,7 +156,7 @@ def _create_keys(key:str, value_object:dict) -> list:
         keys.append(key)
 
     if value_object.is_build_label:
-        full_label = canonicalise(value_object.src)
+        full_label = _full_build_label(value_object.src)
         keys.append(full_label)
 
         target, label = decompose(full_label)
@@ -185,7 +195,7 @@ def _create_template_object(keys:list, value_object:dict) -> dict:
 
 
     if value_object.is_build_label:
-        values["build_label"] = { "type": "string", "value": canonicalise(value_object.src) }
+        values["build_label"] = { "type": "string", "value": _full_build_label(value_object.src) }
 
     values["original_value"] = { "type": "string", "value": value_object.src }
     values["is_build_label"] = { "type": "boolean", "value": value_object.is_build_label }
@@ -194,3 +204,14 @@ def _create_template_object(keys:list, value_object:dict) -> dict:
     values["has_multiple_outputs"] = { "type": "boolean", "value": value_object.has_multiple_outputs }
 
     return template_object
+
+def _full_build_label(label:str) -> str:
+    # TODO: Bug that canonicalise does not work with | in the build label
+    # So we are removing it here and adding it back later
+    before, sep, after = label.partition("|")
+
+    full_label = canonicalise(before)
+
+    # here we glue back the | and the rest of the string
+    return f"{full_label}{sep}{after}"
+

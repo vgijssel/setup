@@ -9,15 +9,17 @@
 ; version = 16.2.1
 
 [buildconfig]
-; default-docker-repo = hub.docker.com
-default-docker-repo = localhost
 # TODO: can we define the same config multiple times to get an array?
 ssh-config-dir = ./tmp/vagrant/ssh_configs
 terraform-state = ./tmp/terraform/state
 terraform-data = ./tmp/terraform/data
+provisioner-platform = "linux_amd64"
 
 [python]
 moduledir = third_party.python
+
+[alias "skopeo"]
+cmd = run //third_party/skopeo:bin --
 
 [alias "ssh"]
 cmd = run //tools/ssh --

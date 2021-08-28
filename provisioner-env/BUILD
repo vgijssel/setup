@@ -3,12 +3,14 @@ subinclude("//tools/terraform")
 terraform_root(
     name = "deploy",
     files = [
-        "//digitalrebar:digitalrebar_build",
-        "//digitalrebar:digitalrebar_fqn",
+        "//digitalrebar|archive",
+        "//digitalrebar|tag",
+        "//third_party/skopeo:bin",
     ],
     providers = [
         "//third_party/terraform:providers",
     ],
+    requires = [CONFIG.PROVISIONER_PLATFORM],
     subs = {
         "backend": CONFIG.TERRAFORM_STATE,
     },
@@ -17,5 +19,3 @@ terraform_root(
     ],
     toolchain = "//third_party/terraform:terraform_1_0_3",
 )
-
-
