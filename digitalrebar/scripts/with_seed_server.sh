@@ -20,7 +20,7 @@ dr-provision \
 PID=$!
 
 # Wait for the server to be ready for a maximum of 10 seconds
-timeout 10s bash <<EOF
+timeout 30s bash <<EOF
 while ! ./scripts/is_healthy.sh; do
   echo "waiting for server to boot"
   sleep 1

@@ -24,7 +24,7 @@ def docker_build(name:str, srcs:list = [], dockerfile:str = "Dockerfile", test_o
             set -Eeou pipefail
 
             mkdir -p {out_dir}
-            docker buildx build --platform {platform} --iidfile {tag_file} -f $SRCS_DOCKERFILE $PKG
+            docker buildx build --platform {platform} --iidfile {tag_file} -f $SRCS_DOCKERFILE .
             IMAGE_NAME="$(cat {tag_file})"
             docker save "$IMAGE_NAME" > {archive_file}
             """,
@@ -39,7 +39,7 @@ def docker_build(name:str, srcs:list = [], dockerfile:str = "Dockerfile", test_o
 
     provides = {
         "linux_amd64": _docker_build('linux/amd64'),
-        "darwin_amd64": _docker_build('darwin/amd64'),
+        "linux_arm64": _docker_build('linux/arm64'),
     }
 
     return filegroup(

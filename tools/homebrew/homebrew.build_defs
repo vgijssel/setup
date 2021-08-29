@@ -1,11 +1,8 @@
 JQ = "//tools/homebrew:jq"
 REGCTL = "//tools/homebrew:regctl"
 
-# Alternative tools to download and extract docker/OCI images
-# - skopeo
-# - genuinetools/reg
-# - genuinetools/img
-# - umoci
+# TODO: allow to define entrypoints so these can be accessed directly from this build rule
+# if there is only one entrypoint (or none defined) export the single binary directly
 def homebrew_bottle(name:str, version:str, visibility:list = None, test_only:bool = False):
     """Build rule to download a binary (bottle) from Homebrew
 
