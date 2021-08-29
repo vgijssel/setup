@@ -9,7 +9,8 @@ provider "docker" {
 }
 
 resource "docker_image" "registry" {
-  name = "registry:latest"
+  name         = "registry:latest"
+  keep_locally = true
 }
 
 resource "docker_volume" "registry" {
@@ -91,13 +92,16 @@ resource "docker_service" "registry" {
 }
 
 locals {
-  docker_tag = file("{{ data[':digitalrebar|tag'].tf_location }}")
+  docker_tag     = file("{{ data[':digitalrebar|tag'].tf_location }}")
   docker_archive = abspath("{{ data[':digitalrebar|archive'].tf_location }}")
-  docker_image = "localhost:5000/digitalrebar:latest"
-  skopeo = abspath("{{ bin.tf_location }}")
+  docker_image   = "localhost:5000/digitalrebar:latest"
+  skopeo         = abspath("{{ bin.tf_location }}")
 }
 
 resource "null_resource" "push_digitalrebar" {
+  depends_on = [
+    docker_service.registry
+  ]
   triggers = {
     docker_tag = local.docker_tag
   }
@@ -107,110 +111,39 @@ resource "null_resource" "push_digitalrebar" {
   }
 }
 
+resource "docker_volume" "digitalrebar" {
+  name = "digitalrebar"
+}
+
+# TODO: The docker image is destroyed instead of updated
+# breaking because the docker service still depends on the image
 resource "docker_image" "digitalrebar" {
   depends_on = [
     null_resource.push_digitalrebar,
   ]
-  name = local.docker_image
+  name          = local.docker_image
+  pull_triggers = [local.docker_tag]
+  keep_locally  = true
 }
-
-# VOLUME ["/provision/drp-data"]
 
 data "docker_network" "host_network" {
   name = "host"
 }
 
-# resource "docker_service" "digitalrebar" {
-#   name = "digitalrebar"
+resource "docker_service" "digitalrebar" {
+  name = "digitalrebar"
 
-#   task_spec {
-#     networks = [data.docker_network.host_network.id]
+  task_spec {
+    networks = [data.docker_network.host_network.id]
 
-#     container_spec {
-#       image = docker_image.digitalrebar.latest
+    container_spec {
+      image = docker_image.digitalrebar.latest
 
-#       # mounts {
-#       #   target = "/var/lib/digitalrebar"
-#       #   source = docker_volume.digitalrebar.name
-#       #   type   = "volume"
-#       # }
-
-#       # secrets {
-#       #   file_name   = "/certs/domain.crt"
-#       #   secret_id   = docker_secret.domain-crt.id
-#       #   secret_name = docker_secret.domain-crt.name
-#       # }
-
-#       # secrets {
-#       #   file_name   = "/certs/domain.key"
-#       #   secret_id   = docker_secret.domain-key.id
-#       #   secret_name = docker_secret.domain-key.name
-#       # }
-
-#       # env = {
-#       #   REGISTRY_HTTP_TLS_CERTIFICATE = "/certs/domain.crt"
-#       #   REGISTRY_HTTP_TLS_KEY         = "/certs/domain.key"
-#       # }
-#     }
-#   }
-
-# endpoint_spec {
-#   ports {
-#     target_port    = 8091
-#     publish_mode   = "host"
-#     published_port = 8091
-#   }
-
-#   ports {
-#     target_port    = 8092
-#     publish_mode   = "host"
-#     published_port = 8092
-#   }
-# }
-# }
-
-# locals {
-#   kerk = "{{ data[':digitalrebar|tag'].content }}"
-# }
-
-
-# resource "docker_container" "digitalrebar" {
-#   name  = "digitalrebar"
-#   image = docker_image.digitalrebar.latest
-#   # ports {
-#   #   internal = 5000
-#   #   external = 5000
-#   # }
-# }
-
-# resource "null_resource" "push_digitalrebar" {
-#   triggers = {
-#     master_id = docker_container.registry.id,
-#   }
-
-#   connection {
-#     host = "provisioner"
-#   }
-
-#   provisioner "file" {
-#     source      = "{{ data[':digitalrebar|archive'].tf_location }}"
-#     destination = "/tmp/kerk"
-#   }
-
-#   # provisioner "local-exec" {
-#   #   command = "ls -la"
-#   # }
-# }
-
-# Create the buildkit builder
-# docker buildx create
-
-# Build the docker image using buildx
-# docker buildx --builder objective_merkle build -o type=oci,dest=digital-rebar-test.tar --platform linux/amd64,darwin/amd64 -t digital-rebar-test .
-
-# Following https://docs.docker.com/registry/insecure/
-# generate a self-signed certificate and mount in the registry container
-# should be done with Terraform
-
-# Push the linux/amd64 image to the registry
-# plz skopeo --override-os=linux copy --dest-tls-verify=false oci-archive:$PWD/digital-rebar-test.tar docker://localhost:5000/digital-rebar-test:latest
+      mounts {
+        target = "/provision/drp-data"
+        source = docker_volume.digitalrebar.name
+        type   = "volume"
+      }
+    }
+  }
+}
