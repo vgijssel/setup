@@ -3,7 +3,7 @@
 
 FROM debian:stable-slim as builder
 
-ARG DRP_VERSION={{ DIGITALREBAR_VERSION.value }}
+ARG DRP_VERSION={{ version.content }}
 
 ENV LANG=C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive

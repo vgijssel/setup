@@ -86,9 +86,9 @@ resource "docker_service" "registry" {
 }
 
 locals {
-  docker_tag     = file("{{ data[':digitalrebar|tag'].tf_location }}")
+  docker_tag     = replace(file("{{ data[':digitalrebar|tag'].tf_location }}"), ":", "_")
   docker_archive = abspath("{{ data[':digitalrebar|archive'].tf_location }}")
-  docker_image   = "localhost:5000/digitalrebar:latest"
+  docker_image   = "localhost:5000/digitalrebar:${local.docker_tag}"
   skopeo         = abspath("{{ bin.tf_location }}")
 }
 
@@ -109,14 +109,12 @@ resource "docker_volume" "digitalrebar" {
   name = "digitalrebar"
 }
 
-# TODO: The docker image is destroyed instead of updated
-# breaking because the docker service still depends on the image
 resource "docker_image" "digitalrebar" {
   depends_on = [
     null_resource.push_digitalrebar,
   ]
   name          = local.docker_image
-  pull_triggers = [local.docker_tag]
+  pull_triggers = [local.docker_image]
   keep_locally  = true
 }
 
@@ -131,7 +129,7 @@ resource "docker_service" "digitalrebar" {
     networks = [data.docker_network.host_network.id]
 
     container_spec {
-      image = docker_image.digitalrebar.latest
+      image = docker_image.digitalrebar.repo_digest
 
       mounts {
         target = "/provision/drp-data"
