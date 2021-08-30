@@ -1,5 +1,7 @@
 subinclude("//tools/terraform")
 
+subinclude("//tools/terragrunt")
+
 terraform_root(
     name = "deploy",
     files = [
@@ -11,11 +13,20 @@ terraform_root(
         "//third_party/terraform:providers",
     ],
     requires = [CONFIG.PROVISIONER_PLATFORM],
-    subs = {
-        "backend": CONFIG.TERRAFORM_STATE,
-    },
     tf_srcs = [
         "./main.tf",
     ],
     toolchain = "//third_party/terraform:terraform_1_0_3",
+)
+
+terragrunt_module(
+    name = "terragrunt",
+    dependencies = [
+        "//provisioner:terragrunt",
+    ],
+    includes = [
+        "//terragrunt:backend",
+    ],
+    terraform_root = ":deploy",
+    visibility = ["PUBLIC"],
 )

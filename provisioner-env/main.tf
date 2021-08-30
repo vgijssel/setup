@@ -1,9 +1,3 @@
-terraform {
-  backend "local" {
-    path = "{{ backend.tf_location }}/provisioner-env.tfstate"
-  }
-}
-
 provider "docker" {
   host = "ssh://provisioner"
 }

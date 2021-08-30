@@ -1,9 +1,3 @@
-terraform {
-  backend "local" {
-    path = "{{ backend.tf_location }}/provisioner.tfstate"
-  }
-}
-
 provider "vagrant" {
 }
 
@@ -19,6 +13,6 @@ resource "null_resource" "provision_docker_swarm" {
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook -i provisioner, {{ data['provision.yml'].tf_location }}"
+    command = "{{ provision.tf_location }}"
   }
 }

@@ -6,6 +6,8 @@ subinclude("//tools/qcow_to_vagrant")
 
 subinclude("//tools/terraform")
 
+subinclude("//tools/terragrunt")
+
 packer(
     name = "image",
     ansible_playbook = "build.yml",
@@ -28,12 +30,27 @@ qcow_to_vagrant(
     src = ":image|image",
 )
 
+sh_cmd(
+    name = "provision",
+    cmd = """
+    PLAYBOOK="$PLEASE_ROOT/$(out_location provision.yml)"
+
+    # Make sure out custom SSH binary is in front of the PATH
+    export PATH="$PLEASE_ROOT/$(out_dir //tools/ssh):$PATH"
+
+    ansible-playbook -i provisioner, $PLAYBOOK
+    """,
+    deps = [
+        "//tools/ssh",
+    ],
+)
+
 terraform_root(
     name = "deploy",
     files = [
         "./Vagrantfile",
-        "./provision.yml",
         ":box",
+        ":provision",
     ],
     modules = [
         "//terraform/vagrant",
@@ -41,12 +58,18 @@ terraform_root(
     providers = [
         "//third_party/terraform:providers",
     ],
-    subs = {
-        "backend": CONFIG.TERRAFORM_STATE,
-    },
     tf_srcs = [
         "./main.tf",
     ],
     toolchain = "//third_party/terraform:terraform_1_0_3",
+    visibility = ["PUBLIC"],
 )
 
+terragrunt_module(
+    name = "terragrunt",
+    includes = [
+        "//terragrunt:backend",
+    ],
+    terraform_root = ":deploy",
+    visibility = ["PUBLIC"],
+)

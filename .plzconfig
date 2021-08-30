@@ -25,13 +25,13 @@ cmd = run //third_party/skopeo:bin --
 cmd = run //tools/ssh --
 
 [alias "tf_init"]
-cmd = run parallel //provisioner:deploy_init //provisioner-env:deploy_init
+cmd = run //terragrunt:terragrunt_init
 
 [alias "deploy"]
-cmd = run sequential //provisioner:deploy_apply --arg="-auto-approve" //provisioner-env:deploy_apply --arg="-auto-approve"
+cmd = run //terragrunt:terragrunt_apply -- --terragrunt-non-interactive
 
 [alias "destroy"]
-cmd = run sequential //provisioner-env:deploy_destroy --arg="-auto-approve" //provisioner:deploy_destroy --arg="-auto-approve" 
+cmd = run //terragrunt:terragrunt_destroy -- --terragrunt-non-interactive
 
 [Parse]
 PreloadBuildDefs = ./tools/please/sh_rules.build_defs

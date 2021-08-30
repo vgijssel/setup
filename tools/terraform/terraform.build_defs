@@ -105,6 +105,8 @@ def terraform_root(
         }
         """,
         out = TERRAFORM_RC_TEMPLATE,
+        visibility = visibility,
+        test_only = test_only,
     )
 
     # We signal the template rule that a module consists of multiple outputs
@@ -121,6 +123,8 @@ def terraform_root(
         srcs = tf_srcs,
         transform = _add_tf_locations,
         requires = requires,
+        visibility = visibility,
+        test_only = test_only,
     )
 
     # Construct the Terraform working directory where all the Terraform source files
@@ -132,6 +136,8 @@ def terraform_root(
             [templated_tf_srcs] + 
             [terraformrc] +
             provider_tfs,
+        visibility = visibility,
+        test_only = test_only,
     )
 
     data_dir = _label_to_safe_string(canonicalise(f":{name}"))
@@ -160,6 +166,8 @@ def terraform_root(
             "//tools/ssh"
         ],
         srcs = [wd_files],
+        visibility = visibility,
+        test_only = test_only,
     )
 
     def _create_callable_tf_command(command, args):
@@ -167,7 +175,7 @@ def terraform_root(
             name = f"{name}_{command}",
             deps = [executable],
             cmd = f"""
-            $(out_exe {executable}) {args} $@
+            $PLEASE_ROOT/$(out_exe {executable}) {args} $@
             """,
             visibility = visibility,
             test_only = test_only,

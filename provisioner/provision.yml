@@ -5,6 +5,16 @@
   become: true
 
   tasks:
+    - name: Get docker swarm status
+      tags: ["docker"]
+      command: docker info --format {%raw%} '{{.Swarm.LocalNodeState}}' {%endraw%}
+      register: swarm_status
+
+    - name: Print swarm status
+      debug:
+        msg: "Swarm status: {{ swarm_status.stdout }}"
+
     - name: Init docker swarm
       tags: ["docker"]
+      when: swarm_status.stdout != "active"
       command: "docker swarm init"
