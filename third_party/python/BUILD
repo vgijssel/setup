@@ -1,5 +1,12 @@
 package(default_visibility = ["PUBLIC"])
 
+subinclude("//tools/python")
+
+python_toolchain(
+    name = "python",
+    version = "3.8.12",
+)
+
 pip_library(
     name = "Jinja2",
     version = "3.0.1",

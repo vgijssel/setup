@@ -13,6 +13,7 @@
 ssh-config-dir = ./tmp/vagrant/ssh_configs
 terraform-state = ./tmp/terraform/state
 terraform-data = ./tmp/terraform/data
+pex-cache-dir = ./tmp/cache/pex
 provisioner-platform = "linux_amd64"
 
 [python]
