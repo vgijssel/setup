@@ -17,13 +17,9 @@ brew 'socat' # for creating screen accessible sockets for virtualbox
 brew 'mkcert' # local trusted development certificates
 brew 'nss' # using locally trusted certificates
 
-brew 'jinja2-cli' # cli tool for parsing jinja templates
-
 brew 'kustomize' # for building/handling/changing kubernetes manifests
 
 brew 'buildifier'
-
-brew 'ansible'
 
 brew 'exiftool' # show/mutate EXIF information of documents
 brew 'pstree' # show parent/child relationship of processes
