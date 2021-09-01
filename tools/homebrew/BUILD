@@ -6,14 +6,6 @@ remote_file(
     visibility = ["PUBLIC"],
 )
 
-remote_file(
-    name = "jq",
-    binary = True,
-    extract = False,
-    url = "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-osx-amd64",
-    visibility = ["PUBLIC"],
-)
-
 filegroup(
     name = "homebrew",
     srcs = ["homebrew.build_defs"],

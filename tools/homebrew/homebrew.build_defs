@@ -1,4 +1,4 @@
-JQ = "//tools/homebrew:jq"
+JQ = "//third_party/jq"
 REGCTL = "//tools/homebrew:regctl"
 
 # TODO: allow to define entrypoints so these can be accessed directly from this build rule

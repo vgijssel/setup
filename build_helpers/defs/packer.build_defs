@@ -33,7 +33,7 @@ def packer(
 
       # Can remove this if we define cd_files as a dir instead of a list of files
       cd_files_array=($SRCS_CD_FILES)
-      cd_files_json=$(jq --compact-output --null-input '$ARGS.positional' --args "${cd_files_array[@]}")
+      cd_files_json=$($TOOLS_JQ --compact-output --null-input '$ARGS.positional' --args "${cd_files_array[@]}")
 
       export PKR_VAR_iso_file="$SRCS_ISO"
       export PKR_VAR_iso_checksum="$SRCS_ISO_CHECKSUM"
@@ -52,6 +52,7 @@ def packer(
       """,
       tools = {
         "PACKER": "//tools:packer",
+        "JQ": "//third_party/jq",
       },
       env = {
         "PKR_VAR_vm_name": f"{name}",

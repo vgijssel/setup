@@ -23,14 +23,17 @@ genrule(
     # From https://provision.readthedocs.io/en/latest/doc/operations/airgap.html
     wget -O - https://rebar-catalog.s3-us-west-2.amazonaws.com/rackn-catalog.json | gunzip -c > rackn-catalog.json
 
-    DRP_COMMUNITY_URL=$(cat rackn-catalog.json | jq -r '.sections.catalog_items."drp-community-content-v{DIGITALREBAR_VERSION}".Source')
+    DRP_COMMUNITY_URL=$(cat rackn-catalog.json | $TOOLS_JQ -r '.sections.catalog_items."drp-community-content-v{DIGITALREBAR_VERSION}".Source')
     wget $DRP_COMMUNITY_URL -O drp-community.json
 
-    SLEDGEHAMMER_URL=$(cat drp-community.json | jq -r '.sections.bootenvs.sledgehammer.OS.SupportedArchitectures.amd64.IsoUrl')
+    SLEDGEHAMMER_URL=$(cat drp-community.json | $TOOLS_JQ -r '.sections.bootenvs.sledgehammer.OS.SupportedArchitectures.amd64.IsoUrl')
     mkdir -p $OUTS
     cd $OUTS
     wget $SLEDGEHAMMER_URL
     """,
+    tools = {
+        "jq": "//third_party/jq",
+    },
 )
 
 genrule(
@@ -44,7 +47,7 @@ genrule(
     wget -O - https://rebar-catalog.s3-us-west-2.amazonaws.com/rackn-catalog.json | gunzip -c > rackn-catalog.json
 
     # From provision/tools/install.sh
-    DRP_URL=$(cat rackn-catalog.json | jq -r '.sections.catalog_items."drp-v{DIGITALREBAR_VERSION}".Source')
+    DRP_URL=$(cat rackn-catalog.json | $TOOLS_JQ -r '.sections.catalog_items."drp-v{DIGITALREBAR_VERSION}".Source')
     wget $DRP_URL -O dr-provision.zip
 
     mkdir -p out
@@ -52,4 +55,7 @@ genrule(
 
     cp out/bin/{CONFIG.HOSTOS}/{CONFIG.HOSTARCH}/drpcli $OUTS
     """,
+    tools = {
+        "jq": "//third_party/jq",
+    },
 )
