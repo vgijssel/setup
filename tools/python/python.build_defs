@@ -44,30 +44,47 @@ def pex_binary(name:str, packages:list, pex_toolchain:str, python_toolchain:str,
 
     entry_points = {}
     cmds = []
+    out = "out"
+    iterator = 0
 
     for script in scripts:
-        entry_points[script] = f"out/{script}"
-        cmd = f"""
-        COMMAND="PATH="$(dirname $(out_location {python_toolchain}|python)):\\\$PATH" PEX_SCRIPT={script} $(out_location {pex_binary}) \\\$@"
-        {{ cat > "$OUTS/{script}" << EOF\n#!/usr/bin/env bash\n$COMMAND\nEOF\n}}
-        """
-        cmds.append(cmd)
+        entry_points[script] = f"{out}/{script}"
+
+        header = shell_script_header(
+            script_build_label = f":{name}|{script}",
+            paths = [f"{python_toolchain}|python"],
+        )
+        
+        # NOTE: it's important that the HEREDOC is at the beginning of the line
+        # otherwise the end of the heredoc cannot be found therefore this script
+        # is indented all the way to the left.
+        cmds.append(
+            f"""
+cat <<'EOF{iterator}' > $OUTS/{script}
+#!/usr/bin/env bash
+{header}
+export PEX_SCRIPT={script}
+export PEX_ROOT="$PLEASE_ROOT/{CONFIG.PEX_CACHE_DIR}"
+# TODO: set the PEX_ROOT to a value otherwise the unpacking of the venv
+# takes a lot of time during invocations during builds
+$PLEASE_ROOT/$(out_location {pex_binary}) "$@"
+EOF{iterator}
+            """
+        )
+        iterator += 1
 
     cmds_string = "\n".join(cmds)
 
     genrule(
         name = name,
-        outs = ["out"],
+        outs = [out],
         binary = True,
         cmd = f"""
         mkdir -p $OUTS
         {cmds_string}
         """,
         entry_points = entry_points,
-        deps = [
-            pex_binary,
-            python_toolchain,
-        ],
+        deps = [pex_binary, python_toolchain],
     )
 
 def python_toolchain(name:str, version:str, visibility:list = None, test_only:bool = False) -> str:

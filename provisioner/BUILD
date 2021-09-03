@@ -35,13 +35,13 @@ sh_cmd(
     cmd = """
     PLAYBOOK="$PLEASE_ROOT/$(out_location provision.yml)"
 
-    # Make sure out custom SSH binary is in front of the PATH
-    export PATH="$PLEASE_ROOT/$(out_dir //tools/ssh):$PATH"
-
-    ansible-playbook -i provisioner, $PLAYBOOK
+    $PLEASE_ROOT/$(out_location //third_party/ansible|ansible-playbook) -i provisioner, $PLAYBOOK
     """,
-    deps = [
+    paths = [
         "//tools/ssh",
+    ],
+    deps = [
+        "//third_party/ansible",
     ],
 )
 

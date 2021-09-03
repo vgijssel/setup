@@ -36,3 +36,4 @@ cmd = run //terragrunt:terragrunt_destroy -- --terragrunt-non-interactive
 
 [Parse]
 PreloadBuildDefs = ./tools/please/sh_rules.build_defs
+PreloadBuildDefs = ./tools/please/helpers.build_defs

@@ -140,14 +140,11 @@ def terraform_root(
         test_only = test_only,
     )
 
-    data_dir = _label_to_safe_string(canonicalise(f":{name}"))
+    data_dir = build_label_encode(canonicalise(f":{name}"))
 
     executable = sh_cmd(
         name = f"{name}_exe", 
         cmd = f"""
-        # Make sure out custom SSH binary is in front of the PATH
-        export PATH="$PLEASE_ROOT/$(out_dir //tools/ssh):$PATH"
-
         export TERRAFORM_WD="$PLEASE_ROOT/$(out_dir {wd_files})"
         export TERRAFORM_BIN="$PLEASE_ROOT/$(out_exe {toolchain})"
         export TF_DATA_DIR="$PLEASE_ROOT/{CONFIG.TERRAFORM_DATA}/{data_dir}"
@@ -163,11 +160,13 @@ def terraform_root(
         """,
         deps = [
             toolchain,
-            "//tools/ssh"
         ],
         srcs = [wd_files],
         visibility = visibility,
         test_only = test_only,
+        paths = [
+            "//tools/ssh"
+        ]
     )
 
     def _create_callable_tf_command(command, args):
@@ -190,7 +189,7 @@ def terraform_root(
 def _add_tf_locations(transform_object:dict, transform_context:dict):
     values = transform_object.values
     original_value = values.original_value.value
-    name = _label_to_safe_string(original_value)
+    name = build_label_encode(original_value)
 
     if values.is_value.value:
         location = original_value
@@ -251,6 +250,3 @@ def _subs_to_list(subs:dict) -> list:
         subs_list.append(template_value(key, value))
 
     return subs_list
-
-def _label_to_safe_string(label:str) -> str:
-    return label.replace("/", "_").replace(":", "_").replace(".", "_").replace("|", "_")

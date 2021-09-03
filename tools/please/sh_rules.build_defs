@@ -2,25 +2,19 @@ old_sh_cmd = sh_cmd
 
 def sh_cmd(name:str, cmd:str|dict|list, srcs:list|dict=[], data:list=[], out:str="", shell:str='/usr/bin/env bash',
            labels:list&features&tags=[], deps:list=[], visibility:list=None,
-           test_only:bool=False) -> str:
+           test_only:bool=False, paths:list = []) -> str:
 
-    wrap_cmd = f"""
-    set -Eeou pipefail
+    for path in paths:
+        # TODO: We have to remove the | part from the path because that's not 
+        # not considered a valid build label at the moment (for deps)
+        before, sep, after = path.partition("|")
+        path_label = canonicalise(before)
+        deps.append(path_label)
 
-    # Store the out directory of the script
-    # e.g. plz-out/bin/tools/ssh
-    FILE_DIR="$(out_dir :{name})"
-
-    # Get the absolute directory of the current file
-    # From https://stackoverflow.com/a/4774063
-    # e.g. /home/user/setup/plz-out/bin/tools/ssh
-    ABSOLUTE_FILE_DIR="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-
-    # Remove "/" + the out directory from the absolute path of the current file
-    # From https://stackoverflow.com/a/16623897
-    # e.g. /home/user/setup
-    export PLEASE_ROOT="${ABSOLUTE_FILE_DIR%"/$FILE_DIR"}"
-    """
+    wrap_cmd = shell_script_header(
+        script_build_label = f":{name}",
+        paths = paths,
+    )
 
     if isinstance(cmd, list):
         cmd = [wrap_cmd] + cmd

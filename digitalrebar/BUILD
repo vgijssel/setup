@@ -29,17 +29,19 @@ docker_build(
 sh_cmd(
     name = "provision",
     cmd = """
-    export PATH="$PLEASE_ROOT/$(out_dir //tools/ssh):$PATH"
-
     PLAYBOOK="$PLEASE_ROOT/$(out_location provision.yml)"
+
     EXTRA_VARS="--extra-vars drpcli='$PLEASE_ROOT/$(out_location //third_party/digitalrebar:drpcli)'"
     EXTRA_VARS="$EXTRA_VARS --extra-vars license='$PLEASE_ROOT/$(out_location //secrets:rackn-license)'"
 
-    ansible-playbook $EXTRA_VARS -i provisioner, $PLAYBOOK
+    $PLEASE_ROOT/$(out_location //third_party/ansible|ansible-playbook) $EXTRA_VARS -i provisioner, $PLAYBOOK
     """,
+    paths = [
+        "//tools/ssh",
+    ],
     deps = [
         "//secrets:rackn-license",
+        "//third_party/ansible",
         "//third_party/digitalrebar:drpcli",
-        "//tools/ssh",
     ],
 )

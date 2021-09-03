@@ -8,6 +8,8 @@ def packer(
 
   ansible_arguments_json = json(ansible_arguments)
 
+  # TODO: we might be able to speed up this rule
+  # by moving some of the sources to deps
   return genrule(
       name = name,
       srcs = {
@@ -45,6 +47,7 @@ def packer(
       export ANSIBLE_CONFIG="$SRCS_ANSIBLE_CONFIG"
       export PKR_VAR_ansible_playbook="$SRCS_ANSIBLE_PLAYBOOK"
       export PKR_VAR_ansible_arguments='{ansible_arguments_json}'
+      export PKR_VAR_ansible_command="$TOOLS_ANSIBLE_PLAYBOOK"
       export PKR_VAR_awd="$PWD"
       export PKR_VAR_cd_files="$cd_files_json"
 
@@ -53,6 +56,7 @@ def packer(
       tools = {
         "PACKER": "//tools:packer",
         "JQ": "//third_party/jq",
+        "ANSIBLE_PLAYBOOK": "//third_party/ansible|ansible-playbook",
       },
       env = {
         "PKR_VAR_vm_name": f"{name}",

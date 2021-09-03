@@ -18,6 +18,10 @@ variable "output_directory" {
   type = string
 }
 
+variable "ansible_command" {
+  type = string
+}
+
 variable "ansible_playbook" {
   type = string
 }
@@ -85,6 +89,7 @@ build {
   }
 
   provisioner "ansible" {
+    command = var.ansible_command
     playbook_file = var.ansible_playbook
     extra_arguments = concat([
       "--extra-vars", "architecture=${var.arch}",
