@@ -16,7 +16,7 @@ terraform_root(
     tf_srcs = [
         "./main.tf",
     ],
-    toolchain = "//third_party/terraform:terraform_1_0_3",
+    toolchain = "//third_party/terraform:terraform",
 )
 
 terragrunt_module(

@@ -3,14 +3,14 @@ subinclude("//tools/terragrunt")
 terragrunt_toolchain(
     name = "terragrunt",
     hashes = [
-        "fe4cf3c05213895c6e30349e2402084323cb0765753fa064ec11be6e82821131",  # terragrunt_darwin_amd64
-        "77dde1af3379d2d284faa386ff632f81d23c1465dad85e86930b0e52e133f188",  # terragrunt_darwin_arm64
-        "423a2a1f9ea1271d40e4fc2cee6389b73a4c7bd8d14977bdd4c31ecff583db34",  # terragrunt_linux_386
-        "c1d863e8fa1c994a79338b28ec72dd97a97cff5d485691832c7304b43886a929",  # terragrunt_linux_amd64
-        "22edf6f3a2e8c3bcb879727f8edf5e329f7fa513deef1115bd795aedcfd23403",  # terragrunt_linux_arm64
-        "2fe58d691ed4257c0372f9aef4b2304ad838380c09863ccb3fc068d3ffe6aa8c",  # terragrunt_windows_386.exe
-        "64414883272803e8c962c9f2468b107a75e52ef407509a3b89f177ddebd59632",  # terragrunt_windows_amd64.exe
+        "b460c05a641cbefc6a6a21e547071340b77732cbc5f94e8d2204387c5bacec11", # terragrunt_darwin_amd64
+        "d3cfacb2a549f04450b84518d38f624308af94ca61dab6c77b4bd4689cab2134", # terragrunt_darwin_arm64
+        "a4fe8b5c5fea662a29125de05a569b0a48855da030574f589d38249e158441e6", # terragrunt_linux_386
+        "d94ced8483090cfcd9661a27c4b8b0c52430bdc2a91529e1527ff9b36f35993e", # terragrunt_linux_amd64
+        "15fec2df4740307e49a552cc2ad5b5131c38d3bd36f52875d7953d97a1397336", # terragrunt_linux_arm64
+        "c789aa67d95a83a9d06a8ef9b10a685893f074e9098b91e2c295a8de6acd504c", # terragrunt_windows_386.exe
+        "94c320a764b29b4169cba8031f9e01d53e0fbbb947de307504dc4380b820dc6d", # terragrunt_windows_amd64.exe
     ],
-    version = "0.31.7",
+    version = "0.31.8",
     visibility = ["PUBLIC"],
 )

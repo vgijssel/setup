@@ -3,19 +3,31 @@ subinclude("@pleasings//terraform")
 subinclude("//tools/terraform")
 
 terraform_toolchain(
-    name = "terraform_1_0_3",
+    name = "terraform",
     hashes = [
-        "1de66203cf7f62ad990b6d8b583bc2caaadf8594150323f4d632a869448b85b9",  # darwin
-        "99c4866ffc4d3a749671b1f74d37f907eda1d67d7fc29ed5485aeff592980644",  # linux
+        "3a97f2fffb75ac47a320d1595e20947afc8324571a784f1bd50bd91e26d5648c", # terraform_1.0.6_darwin_amd64.zip
+        "aaff1eccaf4099da22fe3c6b662011f8295dad9c94a35e1557b92844610f91f3", # terraform_1.0.6_darwin_arm64.zip
+        "0ffa6094a06ceff98824e34ea6147f223c7f234747a6710498acf2d26a60cf91", # terraform_1.0.6_freebsd_386.zip
+        "94989fa7d8bf601992104c5c908ff98ea3250a47a8934346bf8886d814ddf45d", # terraform_1.0.6_freebsd_amd64.zip
+        "6c483a304a473f10f8995c0b37c8facbdf8ddee87e26c09bbbb9a8ea89fb5ae8", # terraform_1.0.6_freebsd_arm.zip
+        "d77373bc8ad49fcd366ba4f5ed4adf618ec0164daf6a7791259bc8f4b6c2bdbc", # terraform_1.0.6_linux_386.zip
+        "6a454323d252d34e928785a3b7c52bfaff1192f82685dfee4da1279bb700b733", # terraform_1.0.6_linux_amd64.zip
+        "2047f8afc7d0d7b645a0422181ba3fe47b3547c4fe658f95eebeb872752ec129", # terraform_1.0.6_linux_arm64.zip
+        "10c67773334e2f4ee6c39815327f2cc1df242d97df997666d730fbc2b97558db", # terraform_1.0.6_linux_arm.zip
+        "91643f790489d8222e9077dd8a83451f9ca3f8b0574c8afbadcffe1afd4528d7", # terraform_1.0.6_openbsd_386.zip
+        "662c916245e478b33157b62438a55ff059aea1d6958d1fe98911c58ef309b5a7", # terraform_1.0.6_openbsd_amd64.zip
+        "eab79ac9217e93920c7f5ffdd65394de97fdbc43efcaece84cc414b7f8af258c", # terraform_1.0.6_solaris_amd64.zip
+        "d5588112f7cd73cefcd9d7dff046e7e18eaaf6acba9601fd3363d9a7892cba85", # terraform_1.0.6_windows_386.zip
+        "4e292555e71491c859e82b6995548dd43cb43c1b826359f60ac624ccd1111de4", # terraform_1.0.6_windows_amd64.zip
     ],
-    version = "1.0.3",
+    version = "1.0.6",
     visibility = ["PUBLIC"],
 )
 
 terraform_lock(
     name = "providers_lock",
     providers_file = "providers.tf",
-    toolchain = ":terraform_1_0_3",
+    toolchain = ":terraform",
     visibility = ["PUBLIC"],
 )
 
@@ -23,6 +35,6 @@ terraform_providers(
     name = "providers",
     lock_file = ".terraform.lock.hcl",
     providers_file = "providers.tf",
-    toolchain = ":terraform_1_0_3",
+    toolchain = ":terraform",
     visibility = ["PUBLIC"],
 )
