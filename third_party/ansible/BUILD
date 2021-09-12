@@ -6,6 +6,7 @@ pex_binary(
     name = "ansible",
     packages = [
         "ansible==4.5.0",
+        "netaddr==0.8.0",
     ],
     pex_toolchain = "//third_party/pex",
     python_toolchain = "//third_party/python",

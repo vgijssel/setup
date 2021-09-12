@@ -51,16 +51,12 @@ ENV SEED_DIRECTORY=/provision/seed-data
 # Copy all the files from the sledgehammer directory into the target directory
 COPY {{ sledgehammer.location }}/* /provision/seed-data/tftpboot/isos/
 
-COPY {{ scripts.location }}/with_seed_server.sh {{ scripts.location }}/seed_config.sh {{ scripts.location }}/is_healthy.sh ./scripts/
-# RUN ./scripts/with_seed_server.sh ./scripts/seed_config.sh
+COPY {{ scripts.location }}/is_healthy.sh ./scripts/
 
 HEALTHCHECK --interval=30s --timeout=3s CMD /scripts/is_healthy.sh
 
 COPY {{ scripts.location }}/entrypoint.sh ./scripts/
 ENTRYPOINT ["/scripts/entrypoint.sh"]
-
-COPY {{ scripts.location }}/seed_content.sh ./scripts/
-COPY {{ base.location }} ./base
 
 # TODO: Instead of running digitalrebar and running the seed
 # can we also directly copy the seed files into the image?

@@ -1,4 +1,4 @@
-Name: discover-new
+Name: discover_new
 Description: Updated discover workflow
 Stages:
   - discover

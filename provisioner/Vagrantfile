@@ -21,7 +21,7 @@ private_key_path = ENV.fetch('PRIVATE_KEY_PATH')
 
 Vagrant.configure('2') do |config|
   config.vm.define "provisioner", primary: true do |provisioner|
-    provisioner.vm.network "private_network", type: "dhcp", auto_config: false
+    provisioner.vm.network "private_network", type: "dhcp", auto_config: true
 
     provisioner.vm.box = "file://#{box_path}"
     provisioner.vm.synced_folder '.', '/vagrant', disabled: true

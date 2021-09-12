@@ -8,4 +8,4 @@ ExitActions:
 AllocateActions:
   Workflow: image-deploy-base
 ReleaseActions:
-  Workflow: discover-new
+  Workflow: discover_new

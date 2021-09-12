@@ -4,127 +4,102 @@
   gather_facts: true
 
   tasks:
-    # - name: Read env
-    #   set_fact:
-    #     provisioner_fqdn: "{{ lookup('env', 'PROVISIONER_FQDN') | not_falsy }}"
-    #     scripts_dir: "{{ lookup('env', 'SETUP_SCRIPTS_DIR') | not_falsy }}"
-    #     public_key_path: "{{ lookup('env', 'PUBLIC_KEY_PATH') | not_falsy }}"
-
-    - name: Copy license
+    - name: Setup digitalrebar
       delegate_to: localhost
-      command: "{{ drpcli }} contents upload {{ license }}"
+      tags: ["config"]
+      block:
+        - name: Copy license
+          command: "{{ drpcli }} contents upload {{ license }}"
 
-    # - name: Read env
-    #   set_fact:
-    #     provisioner_fqdn: "{{ lookup('env', 'PROVISIONER_FQDN') | not_falsy }}"
-    #     scripts_dir: "{{ lookup('env', 'SETUP_SCRIPTS_DIR') | not_falsy }}"
-    #     public_key_path: "{{ lookup('env', 'PUBLIC_KEY_PATH') | not_falsy }}"
+        # TODO: we can pre-compile the task libraries and upload them
+        # so installation might go a bit faster / reproducible.
+        - name: Install task library
+          command: "{{ drpcli }} catalog item install task-library"
 
-    # - name: Install drpcli on provisioner
-    #   tags: ["drpcli"]
-    #   become: yes
-    #   get_url:
-    #     url: "http://{{ provisioner_fqdn }}:8091/files/drpcli.amd64.linux"
-    #     dest: "/usr/local/bin/drpcli"
-    #     mode: "+x"
+        - name: Install community content
+          command: "{{ drpcli }} catalog item install drp-community-content"
 
-    # - name: Download macos drpcli
-    #   tags: ["drpcli"]
-    #   get_url:
-    #     url: "http://{{ provisioner_fqdn }}:8091/files/drpcli.amd64.darwin"
-    #     dest: "/tmp/drpcli.darwin"
+        - name: Install image deploy content pack
+          command: "{{ drpcli }} catalog item install image-deploy"
 
-    # - name: Copy drpcli to local machine
-    #   tags: ["drpcli"]
-    #   fetch:
-    #     flat: true
-    #     src: /tmp/drpcli.darwin
-    #     dest: "{{ scripts_dir }}/drpcli"
+        - name: Ensure logs are forwarded to console port
+          command: "{{ drpcli }} profiles set global param kernel-console to 'console=tty0 console=ttyS0,115200'"
 
-    # - name: Copy license
-    #   delegate_to: localhost
-    #   command: drpcli contents upload rackn-license.json
+        # TODO: replace with vault
+        - name: Get public key content
+          set_fact:
+            public_key: "{{ lookup('file', public_key_path) }}"
 
-    # - name: Install required community content
-    #   command: drpcli catalog item install drp-community-content
+        - name: Generate access keys param json
+          set_fact:
+            access_keys: "{{ lookup('template', './access_keys.json.j2') }}"
 
-    # # Baked into the image
-    # # - name: Upload sledgehammer iso
-    # #   command: drpcli bootenvs uploadiso sledgehammer
+        - name: Set public key in digital rebar
+          command: '{{ drpcli }} profiles set global param access-keys to "{{ access_keys }}"'
 
-    # # TODO: default workflow should be ignore, only if the machine is known we should handle it
-    # - name: Set default workflow
-    #   command: drpcli prefs set defaultWorkflow discover-new unknownBootEnv discovery
+        - name: Upload discover_new
+          command: "{{ drpcli }} contents upload {{ discover_new }}"
 
-    # - name: Upload default content
-    #   command: drpcli contents upload catalog:task-library-stable
+        # TODO: default workflow should be ignore, only if the machine is known we should handle it
+        - name: Set default workflow
+          command: "{{ drpcli }} prefs set defaultWorkflow discover_new unknownBootEnv discovery"
 
-    # - name: Ensure logs are forwarded to console port
-    #   command: drpcli profiles set global param kernel-console to "console=tty0 console=ttyS0,115200"
+    - name: Collect network information
+      tags: ["network"]
+      set_fact:
+        network_data: "{{ ansible_enp0s8 }}"
 
-    # # - name: Set default public key
-    # #   command: drpcli profiles set global param access-keys to "$PUBLIC_KEY_JSON"
+    - name: Adapter config
+      tags: ["network"]
+      debug:
+        msg: "{{ ansible_enp0s8 }}"
 
-    # - name: Install image deploy content pack
-    #   command: drpcli catalog item install image-deploy
+    - name: All config
+      tags: ["network"]
+      debug:
+        msg: "{{ ansible_facts }}"
 
-    # # TODO: replace with vault
-    # - name: Get public key content
-    #   delegate_to: localhost
-    #   set_fact:
-    #     public_key: "{{ lookup('file', public_key_path) }}"
+    - set_fact:
+      tags: ["network"]
+      set_fact:
+        network_interface: "{{ network_data.device }}"
+        network_netmask: "{{ network_data.ipv4.netmask }}"
+        network_broadcast: "{{ network_data.ipv4.broadcast }}"
+        network_cidr: "{{ network_data.ipv4.network }}/{{ network_data.ipv4.netmask }}"
+        provisioner_ip: "{{ network_data.ipv4.address }}"
+        # network_router: "{{ network_data.gateway }}"
+        # network_dns: "{{ network_data.gateway }}"
+        # network_dns_search: "{{ ansible_dns.search[0] }}"
 
-    # - name: Generate access keys param json
-    #   set_fact:
-    #     access_keys: "{{ lookup('template', './access_keys.json.j2') }}"
+    - name: Generate actual cidr
+      tags: ["network"]
+      set_fact:
+        network_cidr: "{{ network_cidr | ansible.netcommon.ipaddr('net') }}"
 
-    # - name: Set public key in digital rebar
-    #   shell: 'drpcli profiles set global param access-keys to "{{ access_keys }}"'
+    - name: Generate dhcp range
+      tags: ["network"]
+      set_fact:
+        network_dhcp_start: "{{ network_cidr | ansible.netcommon.ipaddr('first_usable') }}"
+        network_dhcp_end: "{{ network_cidr | ansible.netcommon.ipaddr('last_usable') }}"
 
-    # - name: Bundle our custom content pack
-    #   delegate_to: localhost
-    #   command: drpcli contents bundle base.yml
-    #   args:
-    #     chdir: "./base"
+    - name: Generate subnet config
+      tags: ["network"]
+      set_fact:
+        subnet_config: "{{ lookup('template', './subnet.json.j2') }}"
 
-    # - name: Upload our custom content pack
-    #   delegate_to: localhost
-    #   command: drpcli contents upload base.yml
-    #   args:
-    #     chdir: "./base"
+    - name: Get existing subnet
+      tags: ["network"]
+      delegate_to: localhost
+      command: "{{ drpcli }} subnets list"
+      register: existing_subnets
 
-    # - set_fact:
-    #     network_data: "{{ ansible_default_ipv4 }}"
+    - name: Delete existing subnet
+      tags: ["network"]
+      delegate_to: localhost
+      command: "{{ drpcli }} subnets destroy {{ network_interface }}"
+      when: existing_subnets.stdout | from_json | selectattr('Name', 'equalto', network_interface) | length > 0
 
-    # - set_fact:
-    #     network_interface: "{{ network_data.interface }}"
-    #     network_netmask: "{{ network_data.netmask }}"
-    #     network_router: "{{ network_data.gateway }}"
-    #     network_dns: "{{ network_data.gateway }}"
-    #     network_dns_search: "{{ ansible_dns.search[0] }}"
-    #     network_broadcast: "{{ network_data.broadcast }}"
-    #     network_cidr: "{{ network_data.network }}/{{ network_data.netmask }}"
-
-    # - name: Generate actual cidr
-    #   set_fact:
-    #     network_cidr: "{{ network_cidr | ansible.netcommon.ipaddr('net') }}"
-
-    # - name: Generate dhcp range
-    #   set_fact:
-    #     network_dhcp_start: "{{ network_cidr | ansible.netcommon.ipaddr('first_usable') }}"
-    #     network_dhcp_end: "{{ network_cidr | ansible.netcommon.ipaddr('last_usable') }}"
-
-    # - name: Generate subnet config
-    #   set_fact:
-    #     subnet_config: "{{ lookup('template', './subnet.json.j2') }}"
-
-    # - name: Get existing subnet
-    #   command: drpcli subnets list
-    #   register: existing_subnets
-
-    # - name: Delete existing subnet
-    #   command: "drpcli subnets destroy {{ network_interface }}"
-    #   when: existing_subnets.stdout | from_json | selectattr('Name', 'equalto', network_interface) | length > 0
-
-    # - name: Create subnet
-    #   shell: 'drpcli subnets create "{{ subnet_config }}"'
+    - name: Create subnet
+      tags: ["network"]
+      delegate_to: localhost
+      command: '{{ drpcli }} subnets create "{{ subnet_config }}"'
