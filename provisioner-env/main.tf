@@ -86,10 +86,11 @@ resource "docker_service" "registry" {
 }
 
 locals {
-  docker_tag     = replace(file("{{ data[':digitalrebar|tag'].tf_location }}"), ":", "_")
-  docker_archive = abspath("{{ data[':digitalrebar|archive'].tf_location }}")
-  docker_image   = "localhost:5000/digitalrebar:${local.docker_tag}"
-  skopeo         = abspath("{{ bin.tf_location }}")
+  docker_tag             = replace(file("{{ data[':digitalrebar|tag'].tf_location }}"), ":", "_")
+  docker_archive         = abspath("{{ data[':digitalrebar|archive'].tf_location }}")
+  docker_image           = "localhost:5000/digitalrebar:${local.docker_tag}"
+  skopeo                 = abspath("{{ bin.tf_location }}")
+  digitalrebar_provision = "{{ provision.tf_location }}"
 }
 
 resource "null_resource" "push_digitalrebar" {
@@ -137,5 +138,16 @@ resource "docker_service" "digitalrebar" {
         type   = "volume"
       }
     }
+  }
+}
+
+resource "null_resource" "provision_digitalrebar" {
+  triggers = {
+    digitalrebar_server        = docker_service.digitalrebar.id
+    digitalrebar_provision_sha = filemd5(local.digitalrebar_provision)
+  }
+
+  provisioner "local-exec" {
+    command = local.digitalrebar_provision
   }
 }

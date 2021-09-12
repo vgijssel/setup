@@ -1,7 +1,7 @@
 golang 1.13
 nodejs 12.20.0
 ruby 2.6.6
-terraform 1.0.3
+terraform 1.0.6
 postgres 12.4
 elasticsearch 7.9.2
 java adoptopenjdk-11.0.4+11.1

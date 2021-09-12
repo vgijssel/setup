@@ -9,7 +9,8 @@ def terragrunt_toolchain(name:str, hashes:list, version: str, visibility:list = 
 
 def terragrunt_root(name:str, toolchain:str, modules:list = [], visibility:list = None, test_only:bool = False) -> str:
     terragrunt_hcl = text_file(
-        name = f"terragrunt.hcl",
+        name = f"terragrunt_hcl",
+        out = "terragrunt.hcl",
         content = f"""
         """
     )
@@ -41,6 +42,9 @@ def terragrunt_root(name:str, toolchain:str, modules:list = [], visibility:list 
             ] + modules,
             visibility = visibility,
             test_only = test_only,
+            paths = [
+                "//tools/ssh"
+            ]
         )
 
     _create_callable_tf_command("init", "run-all init")
@@ -58,7 +62,8 @@ def terragrunt_module(name:str, terraform_root:str, dependencies:list = [], incl
     include_string = "\n".join([_generate_include(inc) for inc in includes])
 
     terragrunt_hcl = text_file(
-        name = f"terragrunt.hcl",
+        name = f"terragrunt_hcl",
+        out = "terragrunt.hcl",
         content = f"""
         terraform_binary = "${get_env("PLEASE_ROOT")}/$(out_location {terraform_bin})"
         

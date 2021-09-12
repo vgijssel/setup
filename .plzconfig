@@ -19,6 +19,9 @@ provisioner-platform = "linux_amd64"
 [python]
 moduledir = third_party.python
 
+[alias "ansible-playbook"]
+cmd = run //third_party/ansible|ansible-playbook --
+
 [alias "skopeo"]
 cmd = run //third_party/skopeo:bin --
 

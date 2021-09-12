@@ -26,10 +26,18 @@ docker_build(
     visibility = ["PUBLIC"],
 )
 
+export_file(
+    name = "provision.yml",
+    src = "./provision.yml",
+)
+
+# TODO: can we convert this into a ansible_playbook rule?
 sh_cmd(
     name = "provision",
     cmd = """
-    PLAYBOOK="$PLEASE_ROOT/$(out_location provision.yml)"
+    # This forces the output of this rule to change when the playbook changes
+    PLAYBOOK_HASH="$(hash :provision.yml)"
+    PLAYBOOK="$PLEASE_ROOT/$(out_location :provision.yml)"
 
     EXTRA_VARS="--extra-vars drpcli='$PLEASE_ROOT/$(out_location //third_party/digitalrebar:drpcli)'"
     EXTRA_VARS="$EXTRA_VARS --extra-vars license='$PLEASE_ROOT/$(out_location //secrets:rackn-license)'"
@@ -39,7 +47,9 @@ sh_cmd(
     paths = [
         "//tools/ssh",
     ],
+    visibility = ["PUBLIC"],
     deps = [
+        ":provision.yml",
         "//secrets:rackn-license",
         "//third_party/ansible",
         "//third_party/digitalrebar:drpcli",

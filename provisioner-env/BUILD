@@ -5,6 +5,7 @@ subinclude("//tools/terragrunt")
 terraform_root(
     name = "deploy",
     files = [
+        "//digitalrebar:provision",
         "//digitalrebar|archive",
         "//digitalrebar|tag",
         "//third_party/skopeo:bin",

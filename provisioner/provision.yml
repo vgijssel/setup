@@ -18,3 +18,11 @@
       tags: ["docker"]
       when: swarm_status.stdout != "active"
       command: "docker swarm init"
+
+    - name: Wait for docker swarm to be active
+      tags: ["docker"]
+      retries: 60
+      register: swarm_status
+      delay: 5
+      until: swarm_status.stdout == "active"
+      command: docker info --format {%raw%} '{{.Swarm.LocalNodeState}}' {%endraw%}

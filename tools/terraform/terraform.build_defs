@@ -156,7 +156,7 @@ def terraform_root(
         cat {TERRAFORM_RC_TEMPLATE} | envsubst '$PLEASE_ROOT' > {TERRAFORM_RC}
         export TF_CLI_CONFIG_FILE="$TERRAFORM_WD/{TERRAFORM_RC}"
 
-        exec $TERRAFORM_BIN $@
+        $TERRAFORM_BIN $@
         """,
         deps = [
             toolchain,
