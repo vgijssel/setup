@@ -1,0 +1,4 @@
+---
+collections:
+  - name: onepassword.connect
+    version: 2.1.1

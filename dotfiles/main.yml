@@ -19,69 +19,69 @@
         msg: "Running as user: {{ current_user }}"
 
     - name: Ensure proper permissions for brew services
-      tags: ['homebrew', 'test']
+      tags: ["homebrew", "test"]
       become: yes
       ansible.builtin.file:
         path: "{{ lookup('env','HOME') }}/Library/LaunchAgents"
         owner: maarten
         group: staff
-        mode: '0755'
+        mode: "0755"
 
     # Update brew before to fix this issue https://github.com/Homebrew/homebrew-bundle/issues/751
     - name: Update Homebrew
-      tags: ['homebrew']
+      tags: ["homebrew"]
       command: brew update --preinstall
 
     - name: Installing Homebrew packages using Brewfile
-      tags: ['homebrew']
+      tags: ["homebrew"]
       command: brew bundle install
       args:
         chdir: "{{ playbook_dir }}"
 
     - name: Fetch dns-heaven install script
-      tags: ['dns-heaven']
+      tags: ["dns-heaven"]
       register: dns_heaven_install_script
       uri:
         url: https://git.io/fix-my-dns-plz
         return_content: yes
 
     - name: Install dns-heaven
-      tags: ['dns-heaven']
+      tags: ["dns-heaven"]
       become: yes
       shell: "{{ dns_heaven_install_script.content }}"
 
     - name: Read DEVELOPMENT_DIR
-      tags: ['files']
+      tags: ["files"]
       set_fact:
         development_dir: "{{ lookup('env', 'DEVELOPMENT_DIR') | not_falsy }}"
 
     - name: Ensure rcm is installed
-      tags: ['files']
+      tags: ["files"]
       homebrew:
         name: rcm
         state: present
 
     - name: Symlink all dotfiles
-      tags: ['files']
+      tags: ["files"]
       command: rcup -vf
       register: rcm
       environment:
         RCRC: "{{ playbook_dir }}/files/rcrc"
 
     - name: Print rcm
-      tags: ['files']
+      tags: ["files"]
       debug:
         msg: "{{ rcm.stdout_lines }}"
 
     - name: Copy maxfiles service
-      tags: ['macos']
+      tags: ["macos"]
       become: yes
       template:
         src: limit.maxfiles.plist.j2
         dest: /Library/LaunchDaemons/limit.maxfiles.plist
 
     - name: Run maxfiles service
-      tags: ['macos']
+      tags: ["macos"]
       become: yes
       community.general.launchd:
         name: limit.maxfiles
@@ -89,16 +89,16 @@
         state: restarted
 
     - name: Apply macos customisations
-      tags: ['macos']
+      tags: ["macos"]
       command: "{{playbook_dir}}/macos_customisations.sh"
 
     - name: Get GitHub authorized key
-      tags: ['git']
+      tags: ["git"]
       command: ssh-keyscan -t rsa github.com
       register: github_key
 
     - name: Add GitHub authorized key to known hosts
-      tags: ['git']
+      tags: ["git"]
       known_hosts:
         hash_host: false
         name: github.com
@@ -107,19 +107,19 @@
         state: present
 
     - name: Ensure mr is installed
-      tags: ['git']
+      tags: ["git"]
       homebrew:
         name: mr
         state: present
 
     - name: Clone all repositories
-      tags: ['git']
+      tags: ["git"]
       command: mr checkout -j 8
       args:
         chdir: "{{ lookup('env','HOME') }}"
 
     - name: Ensure zsh and dependencies are installed
-      tags: ['shell']
+      tags: ["shell"]
       homebrew:
         name: "{{ item }}"
         state: present
@@ -130,38 +130,38 @@
         - gpg2
 
     - name: Set the ZSH version from brew
-      tags: ['shell']
+      tags: ["shell"]
       become: yes
       user:
         name: "{{ current_user }}"
         shell: /usr/local/bin/zsh
 
     - name: Ensure proper permissions for ZSH
-      tags: ['shell']
+      tags: ["shell"]
       become: yes
       file:
         path: /usr/local/share/zsh
         recurse: yes
-        mode: '0755'
+        mode: "0755"
 
-    - name : Install ZPlugin
+    - name: Install ZPlugin
       shell: "source {{ lookup('env','HOME') }}/.zshrc"
       args:
         executable: /usr/local/bin/zsh
-      tags: ['shell']
+      tags: ["shell"]
 
     - name: Check shell env
       command: env
-      tags: ['shell']
+      tags: ["shell"]
       register: check_shell_env
 
     - name: Print shell env
       debug:
         msg: "{{ check_shell_env.stdout_lines }}"
-      tags: ['shell']
+      tags: ["shell"]
 
     - name: Ensure gpg is installed to verify nodejs archives
-      tags: ['lang']
+      tags: ["lang"]
       homebrew:
         name: gpg2
         state: present
@@ -171,7 +171,7 @@
     - name: Install ASDF plugins
       command: "asdf plugin add {{ item.key }}"
       loop: "{{ languages | dict2items }}"
-      tags: ['lang']
+      tags: ["lang"]
       register: result
       failed_when:
         - result.rc != 0
@@ -180,33 +180,33 @@
     - name: Update ASDF plugins
       command: "asdf plugin update {{ item.key }}"
       loop: "{{ languages | dict2items }}"
-      tags: ['lang']
+      tags: ["lang"]
 
     - name: Install ASDF language versions
       include_tasks: asdf_install.yml
-      tags: ['lang']
+      tags: ["lang"]
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
       loop_control:
         loop_var: language
 
     - name: Set ASDF global versions
       command: "asdf global {{ item }} {{ languages[item].global }}"
-      tags: ['lang']
+      tags: ["lang"]
       loop: "{{ languages | dict2items | map(attribute='key') | list }}"
 
     - name: Remove existing yarn symlinks
-      tags: ['lang', 'node']
+      tags: ["lang", "node"]
       file:
-       path: "{{ item }}"
-       state: absent
+        path: "{{ item }}"
+        state: absent
       loop:
         - /usr/local/bin/yarn
         - /usr/local/bin/yarnpkg
 
     - name: Install Nodejs packages for all versions
-      tags: ['lang', 'node']
+      tags: ["lang", "node"]
       environment:
-        ASDF_NODEJS_VERSION: '{{ item[1] }}'
+        ASDF_NODEJS_VERSION: "{{ item[1] }}"
       npm:
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
@@ -217,9 +217,9 @@
         - "{{ languages.nodejs.versions | map(attribute='version') | list }}"
 
     - name: Install Nodejs packages specific for version
-      tags: ['lang', 'node']
+      tags: ["lang", "node"]
       environment:
-        ASDF_NODEJS_VERSION: '{{ item[0].version }}'
+        ASDF_NODEJS_VERSION: "{{ item[0].version }}"
       npm:
         name: "{{ item[1].name }}"
         state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
@@ -230,9 +230,9 @@
         - packages
 
     - name: Install Ruby gems for all versions
-      tags: ['lang', 'ruby']
+      tags: ["lang", "ruby"]
       environment:
-        ASDF_RUBY_VERSION: '{{ item[1] }}'
+        ASDF_RUBY_VERSION: "{{ item[1] }}"
       gem:
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
@@ -244,9 +244,9 @@
         - "{{ languages.ruby.versions | map(attribute='version') | list }}"
 
     - name: Install Ruby gems specific for version
-      tags: ['lang', 'ruby']
+      tags: ["lang", "ruby"]
       environment:
-        ASDF_RUBY_VERSION: '{{ item[0].version }}'
+        ASDF_RUBY_VERSION: "{{ item[0].version }}"
       gem:
         name: "{{ item[1].name }}"
         state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
@@ -258,23 +258,23 @@
         - gems
 
     - name: Install solargraph documentation
-      tags: ['lang', 'ruby']
+      tags: ["lang", "ruby", "solargraph"]
       environment:
-        ASDF_RUBY_VERSION: '{{ item.version }}'
+        ASDF_RUBY_VERSION: "{{ item.version }}"
       command: solargraph download-core {{ item.solargraph }}
       changed_when: False
       loop: "{{ languages.ruby.versions }}"
 
     - name: Generate YARD documentation for all Ruby versions
-      tags: ['lang', 'ruby']
+      tags: ["lang", "ruby", "solargraph"]
       environment:
-        ASDF_RUBY_VERSION: '{{ item }}'
+        ASDF_RUBY_VERSION: "{{ item }}"
       command: yard gems
       changed_when: False
       loop: "{{ languages.ruby.versions | map(attribute='version') | list }}"
 
     - name: Reshim asdf
-      tags: ['lang']
+      tags: ["lang"]
       command: asdf reshim
       changed_when: False
       environment:

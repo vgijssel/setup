@@ -1,0 +1,173 @@
+---
+- name: "Provision Hypervisor"
+  hosts: all
+  debugger: on_failed
+  gather_facts: true
+  environment:
+    OP_CONNECT_HOST: "{{ op_connect_host }}"
+    OP_CONNECT_TOKEN: "{{ op_connect_token }}"
+    OP_VAULT_ID: "{{ op_vault_id }}"
+  collections:
+    - onepassword.connect
+  tasks:
+    - name: Get DEB architecture
+      shell: dpkg --print-architecture
+      register: architecture
+
+    - set_fact:
+        ubuntu_release: "{{ hostvars[inventory_hostname].ansible_distribution_release }}"
+        architecture: "{{ architecture.stdout }}"
+
+    # https://docs.docker.com/engine/install/ubuntu/
+    - name: Install docker dependencies
+      tags: ["docker"]
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+      become: yes
+
+    - name: Add Docker GPG apt Key
+      tags: ["docker"]
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      become: yes
+
+    - name: Add Docker Repository
+      tags: ["docker"]
+      apt_repository:
+        repo: "deb [arch={{ architecture }}] https://download.docker.com/linux/ubuntu {{ ubuntu_release }} stable"
+        state: present
+      become: yes
+
+    - name: Update apt
+      tags: ["docker"]
+      apt:
+        update_cache: true
+      become: yes
+
+    - name: Install docker-ce
+      tags: ["docker"]
+      apt:
+        state: latest
+        name: "{{ item }}"
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+      become: yes
+
+    - name: Install pip
+      tags: ["docker"]
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - python3-pip
+      become: yes
+
+    - name: Install Ansible docker dependencies
+      tags: ["docker"]
+      pip:
+        name: "{{ item.name }}"
+        version: "{{ item.version }}"
+        state: present
+      with_items:
+        - { name: docker, version: 5.0.3 }
+      become: yes
+
+    - name: Install OpenNebula dependencies
+      tags: ["opennebula"]
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - gnupg
+        - wget
+        - apt-transport-https
+      become: yes
+
+    # https://docs.opennebula.io/6.0/installation_and_configuration/frontend_installation/opennebula_repository_configuration.html#repositories-ce
+    - name: Add OpenNebula signing key
+      tags: ["opennebula"]
+      ansible.builtin.apt_key:
+        url: https://downloads.opennebula.io/repo/repo.key
+        state: present
+      become: yes
+
+    - name: Add OpenNebula repository
+      tags: ["opennebula"]
+      ansible.builtin.apt_repository:
+        repo: deb https://downloads.opennebula.io/repo/6.0/Ubuntu/20.04 stable opennebula
+        state: present
+        filename: opennebula
+      become: yes
+
+    # https://docs.opennebula.io/6.0/installation_and_configuration/frontend_installation/install.html
+    - name: Install OpenNebula frontend
+      tags: ["opennebula"]
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - opennebula
+        - opennebula-sunstone
+        - opennebula-fireedge
+        - opennebula-gate
+        - opennebula-flow
+        - opennebula-provision
+      become: yes
+
+    - name: Add OpenNebula as docker user
+      tags: ["opennebula"]
+      ansible.builtin.user:
+        name: oneadmin
+        groups: docker
+        append: yes
+      become: yes
+
+    - name: Create mysql Secret
+      tags: ["opennebula"]
+      delegate_to: localhost
+      onepassword.connect.generic_item:
+        title: OpenNebula MySQL
+        state: present
+        fields:
+          - label: username
+            section: "MYSQL"
+            value: "oneadmin"
+          - label: password
+            section: "MYSQL"
+            field_type: concealed
+            generate_value: on_create
+            generator_recipe:
+              length: 32
+              include_letters: yes
+              include_digits: yes
+              include_symbols: no
+      no_log: true
+      register: result
+
+    - name: Setup mysql database
+      tags: ["opennebula"]
+      become: yes
+      docker_container:
+        name: opennebula_mysql
+        image: mysql:8.0.27
+        restart_policy: always
+        keep_volumes: yes
+        container_default_behavior: no_defaults
+        exposed_ports:
+          - 3306
+        volumes:
+          - /var/lib/opennebula_mysql:/var/lib/mysql
+        env:
+          MYSQL_ROOT_PASSWORD: "{{ result.op_item.fields.password.value }}"
+          MYSQL_DATABASE: opennebula
+          MYSQL_USER: oneadmin

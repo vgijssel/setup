@@ -2,9 +2,9 @@
 # TODO: replace the language installations with global .tool-versions!!
 languages:
   postgres:
-    global: 12.4
+    global: 12.7
     versions:
-      - version: 12.4
+      - version: 12.7
         packages: []
 
   # TODO: install buildifier for bazel vscode extension
@@ -75,11 +75,11 @@ languages:
         version: 1.7.2
 
       - name: git-merge-structure-sql # good merge strategy for structure.sql files
-    global: 2.7.3
+    global: 2.7.4
     versions:
-      - version: 2.7.3
+      - version: 2.7.4
         # There is no 2.7.3 available in `solargraph available-cores`
-        solargraph: 2.7.2
+        solargraph: 2.7.4
         gems:
           - { name: bundler, version: 2.2.15 }
           - { name: rubocop, version: 1.6.1 }

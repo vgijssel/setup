@@ -31,7 +31,7 @@ export GIT_EDITOR="$EDITOR"
 
 # TODO hardcoding GOPATH here as it's not set by asdf plugin
 # see https://github.com/kennyp/asdf-golang/issues/28
-export GOPATH="${HOME}/.asdf/installs/golang/1.13/packages"
+export GOPATH="${HOME}/.asdf/installs/golang/1.17.5/packages"
 export DOCKER_BUILDKIT=1
 export DIRENV_SHELL="${DIRENV_SHELL:-zsh}"
 export DEVELOPMENT_DIR="$HOME/Development"

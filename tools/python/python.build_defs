@@ -1,3 +1,5 @@
+# TODO: the pex needs to be built in a /tmp directory otherwise the path might be too long resulting in weird behaviour 
+# example: installing meltano library will install without the actual meltano binary
 def pex_binary(name:str, packages:list, pex_toolchain:str, python_toolchain:str, scripts:list, visibility:list = None, test_only:bool = False) -> str:
     relative_anchor = text_file(
         name = f"_{name}#relative_anchor",

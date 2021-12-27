@@ -1,8 +1,8 @@
-golang 1.13
+golang 1.17.5
 nodejs 12.20.0
-ruby 2.6.6
+ruby 2.7.4
 terraform 1.0.6
-postgres 12.4
+postgres 12.7
 elasticsearch 7.9.2
 java adoptopenjdk-11.0.4+11.1
 packer 1.6.3
@@ -11,3 +11,5 @@ bazel 4.0.0
 rust nightly
 python 3.7.9
 kubectl 1.22.0
+vault 1.7.3
+pulumi 3.20.0

@@ -216,25 +216,6 @@
 		<dict>
 			<key>config</key>
 			<dict>
-				<key>browser</key>
-				<string></string>
-				<key>spaces</key>
-				<string></string>
-				<key>url</key>
-				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/189?milestone_title=4.%20Data%20Platform%20Sprint%20(%23Impala)&amp;&amp;label_name[]=Data%20Platform</string>
-				<key>utf8</key>
-				<true/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.openurl</string>
-			<key>uid</key>
-			<string>AFC33D51-2273-4065-A378-D234763811A8</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
 				<key>argumenttype</key>
 				<integer>2</integer>
 				<key>keyword</key>
@@ -250,6 +231,25 @@
 			<string>alfred.workflow.input.keyword</string>
 			<key>uid</key>
 			<string>D487159A-6511-4B29-B9E3-9BAECE04E3D0</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>browser</key>
+				<string></string>
+				<key>spaces</key>
+				<string></string>
+				<key>url</key>
+				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/189?milestone_title=4.%20Data%20Platform%20Sprint%20(%23Impala)&amp;&amp;label_name[]=Data%20Platform</string>
+				<key>utf8</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.openurl</string>
+			<key>uid</key>
+			<string>AFC33D51-2273-4065-A378-D234763811A8</string>
 			<key>version</key>
 			<integer>1</integer>
 		</dict>
@@ -322,7 +322,7 @@
 				<key>spaces</key>
 				<string></string>
 				<key>url</key>
-				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/188?milestone_title=No+Milestone&amp;&amp;label_name[]=Data%20Platform</string>
+				<string>https://gitlab.inverselink.com/hackerone/issues/-/boards/188?scope=all&amp;label_name[]=Data%20Platform</string>
 				<key>utf8</key>
 				<true/>
 			</dict>

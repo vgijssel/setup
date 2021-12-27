@@ -18,3 +18,6 @@ __pycache__
 # Entries below this point are managed by Please (DO NOT EDIT)
 plz-out
 .plzconfig.local
+
+1password/1password-credentials.json
+hypervisor/credentials.yml
