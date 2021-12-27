@@ -67,7 +67,7 @@ MONITORING_INTERVAL_DB_UPDATE = 0
 SCRIPTS_REMOTE_DIR=/var/tmp/one
 
 DB = [ BACKEND = "mysql",
-       SERVER  = "localhost",
+       SERVER  = "127.0.0.1",
        PORT    = 3306,
        USER    = "{{ mysql_user }}",
        PASSWD  = "{{ mysql_password }}",
