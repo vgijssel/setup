@@ -202,11 +202,13 @@
         mode: "0640"
       become: yes
 
-    # TODO: add website here so we can login directly from the browser!
     - name: Create oneadmin Secret
-      tags: ["opennebula"]
+      tags: ["opennebula", "kerk"]
       delegate_to: localhost
       onepassword.connect.generic_item:
+        category: login
+        urls:
+          - "http://{{ inventory_hostname }}:9869"
         title: OpenNebula oneadmin
         state: present
         fields:
@@ -237,12 +239,12 @@
         mode: "0600"
       become: yes
 
-    - tags: ["opennebula", "kerk"]
+    - tags: ["opennebula"]
       set_fact:
         hypervisor_hostname: "{{ inventory_hostname }}"
 
     - name: Setup OpenNebula FireEdge configuration
-      tags: ["opennebula", "kerk"]
+      tags: ["opennebula"]
       ansible.builtin.template:
         src: sunstone-server.conf.j2
         dest: /etc/one/sunstone-server.conf
@@ -254,10 +256,9 @@
     # TODO: what to do with the serveradmin?
     # TODO: configure OneGate
     # TODO: configure OneFlow
-    # TODO: restart OpenNebula services when things have changed
 
     - name: Make sure OpenNebula is started
-      tags: ["opennebula", "kerk"]
+      tags: ["opennebula"]
       ansible.builtin.systemd:
         state: restarted
         enabled: yes
