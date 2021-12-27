@@ -132,6 +132,12 @@
         append: yes
       become: yes
 
+    - tags: ["opennebula"]
+      set_fact:
+        mysql_user: oneadmin
+        mysql_database: "opennebula"
+
+    # https://docs.opennebula.io/6.0/installation_and_configuration/frontend_installation/database.html#database-setup
     - name: Create mysql Secret
       tags: ["opennebula"]
       delegate_to: localhost
@@ -141,7 +147,7 @@
         fields:
           - label: username
             section: "MYSQL"
-            value: "oneadmin"
+            value: "{{ mysql_user }}"
           - label: password
             section: "MYSQL"
             field_type: concealed
@@ -153,6 +159,10 @@
               include_symbols: no
       no_log: true
       register: result
+
+    - tags: ["opennebula"]
+      set_fact:
+        mysql_password: "{{ result.op_item.fields.password.value }}"
 
     - name: Setup mysql database
       tags: ["opennebula"]
@@ -168,6 +178,17 @@
         volumes:
           - /var/lib/opennebula_mysql:/var/lib/mysql
         env:
-          MYSQL_ROOT_PASSWORD: "{{ result.op_item.fields.password.value }}"
-          MYSQL_DATABASE: opennebula
-          MYSQL_USER: oneadmin
+          MYSQL_ROOT_PASSWORD: "{{ mysql_password }}"
+          MYSQL_USER: "{{ mysql_user }}"
+          MYSQL_DATABASE: "{{ mysql_database }}"
+
+    - name: Setup OpenNebula configuration
+      tags: ["opennebula"]
+      ansible.builtin.template:
+        src: oned.conf.j2
+        dest: /etc/one/oned.conf
+        owner: root
+        group: oneadmin
+        mode: "0640"
+      become: yes
+
