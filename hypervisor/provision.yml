@@ -132,14 +132,14 @@
         append: yes
       become: yes
 
-    - tags: ["opennebula", "kerk"]
+    - tags: ["opennebula"]
       set_fact:
         mysql_user: oneadmin
         mysql_database: "opennebula"
 
     # https://docs.opennebula.io/6.0/installation_and_configuration/frontend_installation/database.html#database-setup
     - name: Create mysql Secret
-      tags: ["opennebula", "kerk"]
+      tags: ["opennebula"]
       delegate_to: localhost
       onepassword.connect.generic_item:
         title: OpenNebula MySQL
@@ -158,12 +158,12 @@
       no_log: true
       register: result_mysql_secret
 
-    - tags: ["opennebula", "kerk"]
+    - tags: ["opennebula"]
       set_fact:
         mysql_password: "{{ result_mysql_secret.op_item.fields.password.value }}"
 
     - name: Setup mysql database
-      tags: ["opennebula", "kerk"]
+      tags: ["opennebula"]
       become: yes
       docker_container:
         name: opennebula_mysql
@@ -183,7 +183,7 @@
           MYSQL_DATABASE: "{{ mysql_database }}"
 
     - name: Wait until MySQL is ready
-      tags: ["opennebula", "kerk"]
+      tags: ["opennebula"]
       command: "docker exec opennebula_mysql mysqladmin -u {{ mysql_user }} -p{{ mysql_password }} ping"
       retries: 10
       delay: 10
@@ -193,7 +193,7 @@
       become: yes
 
     - name: Setup OpenNebula configuration
-      tags: ["opennebula", "kerk"]
+      tags: ["opennebula"]
       ansible.builtin.template:
         src: oned.conf.j2
         dest: /etc/one/oned.conf
@@ -237,15 +237,29 @@
         mode: "0600"
       become: yes
 
+    - tags: ["opennebula", "kerk"]
+      set_fact:
+        hypervisor_hostname: "{{ inventory_hostname }}"
+
+    - name: Setup OpenNebula FireEdge configuration
+      tags: ["opennebula", "kerk"]
+      ansible.builtin.template:
+        src: sunstone-server.conf.j2
+        dest: /etc/one/sunstone-server.conf
+        owner: root
+        group: oneadmin
+        mode: "0640"
+      become: yes
+
     # TODO: what to do with the serveradmin?
-    # TODO: configure FireEdge
     # TODO: configure OneGate
     # TODO: configure OneFlow
+    # TODO: restart OpenNebula services when things have changed
 
     - name: Make sure OpenNebula is started
       tags: ["opennebula", "kerk"]
       ansible.builtin.systemd:
-        state: started
+        state: restarted
         enabled: yes
         name: "{{ item }}"
       loop:
