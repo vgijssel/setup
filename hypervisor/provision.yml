@@ -10,11 +10,37 @@
   collections:
     - onepassword.connect
   tasks:
+    - name: Copy network bridge config
+      tags: ["network"]
+      ansible.builtin.template:
+        src: 50-network-bridge.yaml.j2
+        dest: /etc/netplan/50-network-bridge.yaml
+        owner: root
+        group: root
+        mode: "0644"
+      become: yes
+
+    - name: Compile network config
+      tags: ["network"]
+      command: netplan generate
+      become: yes
+
+    # Make the task async to avoid hanging Ansible because of ip address change
+    # https://stackoverflow.com/questions/55471178/changing-ip-address-restarting-netplan
+    - name: Apply network config
+      tags: ["network"]
+      command: netplan apply
+      become: yes
+      async: 45
+      poll: 5
+
     - name: Get DEB architecture
+      tags: ["docker"]
       shell: dpkg --print-architecture
       register: architecture
 
-    - set_fact:
+    - tags: ["docker"]
+      set_fact:
         ubuntu_release: "{{ hostvars[inventory_hostname].ansible_distribution_release }}"
         architecture: "{{ architecture.stdout }}"
 
@@ -192,6 +218,10 @@
       no_log: true
       become: yes
 
+    - tags: ["opennebula"]
+      set_fact:
+        hypervisor_hostname: "{{ inventory_hostname }}"
+
     - name: Setup OpenNebula configuration
       tags: ["opennebula"]
       ansible.builtin.template:
@@ -203,7 +233,7 @@
       become: yes
 
     - name: Create oneadmin Secret
-      tags: ["opennebula", "kerk"]
+      tags: ["opennebula"]
       delegate_to: localhost
       onepassword.connect.generic_item:
         category: login
@@ -239,10 +269,6 @@
         mode: "0600"
       become: yes
 
-    - tags: ["opennebula"]
-      set_fact:
-        hypervisor_hostname: "{{ inventory_hostname }}"
-
     - name: Setup OpenNebula FireEdge configuration
       tags: ["opennebula"]
       ansible.builtin.template:
@@ -253,9 +279,15 @@
         mode: "0640"
       become: yes
 
-    # TODO: what to do with the serveradmin?
-    # TODO: configure OneGate
-    # TODO: configure OneFlow
+    - name: Setup OpenNebula OneGate configuration
+      tags: ["opennebula"]
+      ansible.builtin.template:
+        src: onegate-server.conf.j2
+        dest: /etc/one/onegate-server.conf
+        owner: root
+        group: oneadmin
+        mode: "0640"
+      become: yes
 
     - name: Make sure OpenNebula is started
       tags: ["opennebula"]
@@ -269,4 +301,62 @@
         - opennebula-fireedge
         - opennebula-gate
         - opennebula-flow
+      become: yes
+
+    # https://docs.opennebula.io/6.0/open_cluster_deployment/firecracker_node/firecracker_node_installation.html
+    - name: Install OpenNebula Firecracker Node
+      tags: ["opennebula-firecracker"]
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - opennebula-node-firecracker
+      become: yes
+
+    - tags: ["opennebula-firecracker"]
+      set_fact:
+        hypervisor_hostname: "{{ inventory_hostname }}"
+
+    - name: Check if node is already joined
+      tags: ["opennebula-firecracker"]
+      command: "onehost show {{ hypervisor_hostname }}"
+      ignore_errors: yes
+      become: yes
+      register: result
+      changed_when: False
+
+    - name: Add Firecracker Node to frontend
+      tags: ["opennebula-firecracker"]
+      command: "onehost create {{ hypervisor_hostname }} -i firecracker -v firecracker"
+      become: yes
+      when: "result.rc != 0"
+
+    # https://docs.opennebula.io/6.0/open_cluster_deployment/firecracker_node/firecracker_driver.html#networking
+    - name: Copy Firecracker networking scripts to bridge networking
+      tags: ["opennebula-firecracker"]
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        remote_src: yes
+        owner: oneadmin
+        group: oneadmin
+        mode: "0750"
+      loop:
+        - {
+            src: "/var/lib/one/remotes/vnm/hooks/pre/firecracker",
+            dest: "/var/lib/one/remotes/vnm/bridge/pre.d/firecracker",
+          }
+        - {
+            src: "/var/lib/one/remotes/vnm/hooks/clean/firecracker",
+            dest: "/var/lib/one/remotes/vnm/bridge/clean.d/firecracker",
+          }
+      become: yes
+
+    # https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md#appendix-a-setting-up-kvm-access
+    - name: Add oneadmin as kvm user
+      tags: ["opennebula-firecracker"]
+      ansible.builtin.user:
+        name: oneadmin
+        groups: kvm
+        append: yes
       become: yes
