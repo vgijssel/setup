@@ -10,6 +10,18 @@
   collections:
     - onepassword.connect
   tasks:
+    - name: Install Network utilities
+      tags: ["network"]
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - ebtables
+        - bridge-utils
+        - net-tools
+        - iptables-persistent
+      become: yes
+
     - name: Copy network bridge config
       tags: ["network"]
       ansible.builtin.template:
@@ -31,8 +43,46 @@
       tags: ["network"]
       command: netplan apply
       become: yes
-      async: 45
+      async: 30
       poll: 5
+
+    - name: Enable IP forwarding
+      tags: ["network"]
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        sysctl_set: yes
+      become: yes
+
+    # https://forum.opennebula.io/t/virtual-network-connectiviy-and-iptables/9159
+    # https://forum.opennebula.io/t/vm-can-only-be-pinged-from-node-solved/3196/10
+    # https://serverfault.com/questions/845923/bridge-interface-for-kvm-vms-with-access-to-internet
+    # Added these two iptable rules to allow vms to connect to the internet
+    # And for the LAN to be able to reach the VMS
+    # iptables -S
+    # iptables --table nat --append POSTROUTING --out-interface eno1 -j MASQUERADE
+    # iptables --insert FORWARD --in-interface br0 -j ACCEPT
+    # Save the iptables rules using iptables-save > /etc/iptables/rules.v4
+    - name: Copy iptables rules
+      tags: ["network"]
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "0644"
+      become: yes
+      loop:
+        - { src: "rules.v4.j2", dest: "/etc/iptables/rules.v4" }
+        - { src: "rules.v6.j2", dest: "/etc/iptables/rules.v6" }
+
+    - name: Apply iptables
+      tags: ["network"]
+      shell: "{{ item.command }} < {{ item.rules }}"
+      loop:
+        - { command: "iptables-restore", rules: "/etc/iptables/rules.v4" }
+        - { command: "ip6tables-restore", rules: "/etc/iptables/rules.v6" }
+      become: yes
 
     - name: Get DEB architecture
       tags: ["docker"]
@@ -287,6 +337,26 @@
         owner: root
         group: oneadmin
         mode: "0640"
+      become: yes
+
+    - name: Setup OpenNebula networking
+      tags: ["opennebula"]
+      ansible.builtin.template:
+        src: OpenNebulaNetwork.conf.j2
+        dest: /var/lib/one/remotes/etc/vnm/OpenNebulaNetwork.conf
+        owner: oneadmin
+        group: oneadmin
+        mode: "0640"
+      become: yes
+
+    - name: Setup OpenNebula onevm config
+      tags: ["opennebula"]
+      ansible.builtin.template:
+        src: onevm.yaml.j2
+        dest: /etc/one/cli/onevm.yaml
+        owner: root
+        group: root
+        mode: "0644"
       become: yes
 
     - name: Make sure OpenNebula is started
