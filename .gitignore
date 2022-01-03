@@ -21,3 +21,4 @@ plz-out
 
 1password/1password-credentials.json
 hypervisor/credentials.yml
+hypervisor/kubernetes_config.yaml

@@ -84,6 +84,66 @@
         - { command: "ip6tables-restore", rules: "/etc/iptables/rules.v6" }
       become: yes
 
+    - name: Add latest ZFS repository
+      tags: ["storage"]
+      ansible.builtin.apt_repository:
+        repo: ppa:jonathonf/zfs
+      become: yes
+
+    # When upgrading ZFS don't forget to remove mount points?
+    # https://launchpad.net/~jonathonf/+archive/ubuntu/zfs
+    - name: Install storage utilities
+      tags: ["storage"]
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - zfs-dkms
+        - zfs-test
+        - fio
+        - fdisk
+        - sysstat
+        - smartmontools
+        - nfs-kernel-server
+        - nfs-common
+      become: yes
+
+    - name: Assume existence of ZFS pool new_data
+      tags: ["storage"]
+      command: zpool status new_data
+      changed_when: False
+
+    - name: Configure ZFS data volume
+      tags: ["storage"]
+      community.general.zfs:
+        name: new_data
+        state: present
+        extra_zfs_properties:
+          dedup: "off"
+          sharenfs: "off"
+          compression: "lz4"
+          sync: "disabled"
+      become: yes
+
+    - name: Create ZFS volume for OpenNebula datastores
+      tags: ["storage"]
+      community.general.zfs:
+        name: new_data/opennebula_datastores
+        state: present
+        extra_zfs_properties:
+          mountpoint: /var/lib/one/datastores
+      become: yes
+
+    - name: Ensure OpenNebula can read/write to the datastores
+      tags: ["storage"]
+      ansible.builtin.file:
+        path: /var/lib/one/datastores
+        state: directory
+        recurse: yes
+        owner: oneadmin
+        group: oneadmin
+      become: yes
+
     - name: Get DEB architecture
       tags: ["docker"]
       shell: dpkg --print-architecture
