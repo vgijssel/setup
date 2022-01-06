@@ -1,0 +1,5 @@
+filegroup(
+    name = "packer",
+    srcs = ["packer.build_defs"],
+    visibility = ["PUBLIC"],
+)

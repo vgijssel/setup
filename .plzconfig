@@ -16,6 +16,11 @@ terraform-data = ./tmp/terraform/data
 pex-cache-dir = ./tmp/cache/pex
 provisioner-platform = "linux_amd64"
 
+[build]
+# 3600 seconds, 60 minutes
+# Majority of the time is spent on //third_party/firecracker:kernel
+timeout = 3600
+
 [python]
 moduledir = third_party.python
 
