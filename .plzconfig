@@ -28,6 +28,9 @@ cmd = run //third_party/ansible|ansible-galaxy --
 [alias "skopeo"]
 cmd = run //third_party/skopeo:bin --
 
+[alias "pulumi"]
+cmd = run //third_party/pulumi:pulumi|pulumi --
+
 [alias "ssh"]
 cmd = run //tools/ssh --
 
