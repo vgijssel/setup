@@ -23,24 +23,24 @@ deployment = Deployment(
         "template": {
             "metadata": {"labels": app_labels},
             "spec": {
-                # "volumes": [
-                #     VolumeArgs(
-                #         name="radarr-config",
-                #         nfs=NFSVolumeSourceArgs(
-                #             path="/data/apps/radarr", server="hypervisor"
-                #         ),
-                #     )
-                # ],
+                "volumes": [
+                    VolumeArgs(
+                        name="radarr-config",
+                        nfs=NFSVolumeSourceArgs(
+                            path="/data/apps/radarr", server="hypervisor"
+                        ),
+                    )
+                ],
                 "containers": [
                     {
                         "name": app_name,
                         "image": "linuxserver/radarr",
-                        # "volume_mounts": [
-                        #     VolumeMountArgs(
-                        #         name="radarr-config",
-                        #         mount_path="/config",
-                        #     )
-                        # ],
+                        "volume_mounts": [
+                            VolumeMountArgs(
+                                name="radarr-config",
+                                mount_path="/config",
+                            )
+                        ],
                         "resources": {
                             "requests": {
                                 "memory": "512Mi",
