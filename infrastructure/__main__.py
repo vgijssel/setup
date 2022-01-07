@@ -29,7 +29,13 @@ deployment = Deployment(
                         nfs=NFSVolumeSourceArgs(
                             path="/data/apps/radarr", server="hypervisor"
                         ),
-                    )
+                    ),
+                    VolumeArgs(
+                        name="radarr-movies",
+                        nfs=NFSVolumeSourceArgs(
+                            path="/data/media", server="hypervisor"
+                        ),
+                    ),
                 ],
                 "containers": [
                     {
@@ -39,7 +45,12 @@ deployment = Deployment(
                             VolumeMountArgs(
                                 name="radarr-config",
                                 mount_path="/config",
-                            )
+                            ),
+                            VolumeMountArgs(
+                                name="radarr-movies",
+                                mount_path="/movies",
+                                sub_path="movies",
+                            ),
                         ],
                         "resources": {
                             "requests": {

@@ -144,6 +144,28 @@
         group: oneadmin
       become: yes
 
+    - name: Create ZFS NFS volumes for media
+      tags: ["storage"]
+      community.general.zfs:
+        name: new_data/media
+        state: present
+        extra_zfs_properties:
+          sharenfs: "rw=@192.168.1.0/24,no_root_squash,no_subtree_check"
+      become: yes
+
+    # cat /etc/exports.d/zfs.exports
+    # mount -v -t nfs hypervisor:/data/apps/radarr /tmp/mnt
+    - name: Create ZFS NFS volumes for apps
+      tags: ["storage"]
+      community.general.zfs:
+        name: new_data/apps/{{ item }}
+        state: present
+        extra_zfs_properties:
+          sharenfs: "rw=@192.168.1.0/24,no_root_squash,no_subtree_check"
+      become: yes
+      loop:
+        - radarr
+
     - name: Get DEB architecture
       tags: ["docker"]
       shell: dpkg --print-architecture
