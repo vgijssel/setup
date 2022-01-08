@@ -165,6 +165,7 @@
       become: yes
       loop:
         - radarr
+        - plex
 
     - name: Get DEB architecture
       tags: ["docker"]

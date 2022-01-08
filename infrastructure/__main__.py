@@ -12,6 +12,8 @@ from pulumi_kubernetes.core.v1 import (
 )
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
 
+import plex
+
 app_name = "radarr"
 app_labels = {"app": app_name}
 
