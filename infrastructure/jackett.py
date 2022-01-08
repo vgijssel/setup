@@ -10,7 +10,7 @@ from pulumi_kubernetes.core.v1 import (
 )
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
 
-app_name = "radarr"
+app_name = "jackett"
 app_labels = {"app": app_name}
 
 deployment = Deployment(
@@ -23,19 +23,13 @@ deployment = Deployment(
             "spec": {
                 "volumes": [
                     VolumeArgs(
-                        name="radarr-config",
+                        name="jackett-config",
                         nfs=NFSVolumeSourceArgs(
-                            path="/data/apps/radarr", server="hypervisor"
+                            path="/data/apps/jackett", server="hypervisor"
                         ),
                     ),
                     VolumeArgs(
-                        name="radarr-movies",
-                        nfs=NFSVolumeSourceArgs(
-                            path="/data/media", server="hypervisor"
-                        ),
-                    ),
-                    VolumeArgs(
-                        name="radarr-downloads",
+                        name="jackett-downloads",
                         nfs=NFSVolumeSourceArgs(
                             path="/data/downloads", server="hypervisor"
                         ),
@@ -44,19 +38,14 @@ deployment = Deployment(
                 "containers": [
                     {
                         "name": app_name,
-                        "image": "linuxserver/radarr",
+                        "image": "linuxserver/jackett",
                         "volume_mounts": [
                             VolumeMountArgs(
-                                name="radarr-config",
+                                name="jackett-config",
                                 mount_path="/config",
                             ),
                             VolumeMountArgs(
-                                name="radarr-movies",
-                                mount_path="/movies",
-                                sub_path="movies",
-                            ),
-                            VolumeMountArgs(
-                                name="radarr-downloads",
+                                name="jackett-downloads",
                                 mount_path="/downloads",
                             ),
                         ],
@@ -65,13 +54,13 @@ deployment = Deployment(
                                 "memory": "512Mi",
                             },
                             "limits": {
-                                "memory": "1Gi",
+                                "memory": "512Mi",
                             },
                         },
                         "ports": [
                             ContainerPortArgs(
-                                name="radarr-ui",
-                                container_port=7878,
+                                name="jackett-ui",
+                                container_port=9117,
                                 protocol="TCP",
                             )
                         ],
@@ -94,7 +83,7 @@ Service(
     },
     spec={
         "type": "LoadBalancer",
-        "ports": [{"port": 7878, "target_port": 7878, "protocol": "TCP"}],
+        "ports": [{"port": 9117, "target_port": "jackett-ui", "protocol": "TCP"}],
         "selector": app_labels,
     },
 )

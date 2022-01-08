@@ -161,6 +161,7 @@
         - new_data/apps/radarr
         - new_data/apps/sonarr
         - new_data/apps/plex
+        - new_data/apps/jackett
 
     - name: Get DEB architecture
       tags: ["docker"]

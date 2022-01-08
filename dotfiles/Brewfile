@@ -126,6 +126,8 @@ cask 'flixtools' # for downloading subtitles
 cask 'virtualbox'
 cask 'intel-haxm' # hardware accelerator for qemu
 
+cask 'plex'
+
 cask 'brave-browser'
 cask '1password-cli'
 cask 'steam'
