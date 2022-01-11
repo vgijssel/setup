@@ -7,6 +7,7 @@ from pulumi_kubernetes.core.v1 import (
     VolumeMountArgs,
     VolumeArgs,
     NFSVolumeSourceArgs,
+    ISCSIVolumeSourceArgs,
 )
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
 
@@ -24,20 +25,24 @@ deployment = Deployment(
                 "volumes": [
                     VolumeArgs(
                         name="sonarr-config",
-                        nfs=NFSVolumeSourceArgs(
-                            path="/data/apps/sonarr", server="hypervisor"
+                        iscsi=ISCSIVolumeSourceArgs(
+                            target_portal="172.16.0.1",
+                            iqn="iqn.2022-01.hypervisor:sonarr",
+                            lun=1,
+                            fs_type="ext4",
+                            read_only=False,
                         ),
                     ),
                     VolumeArgs(
                         name="sonarr-tv",
                         nfs=NFSVolumeSourceArgs(
-                            path="/data/media", server="hypervisor"
+                            path="/data/media", server="172.16.0.1"
                         ),
                     ),
                     VolumeArgs(
                         name="sonarr-downloads",
                         nfs=NFSVolumeSourceArgs(
-                            path="/data/downloads", server="hypervisor"
+                            path="/data/downloads", server="172.16.0.1"
                         ),
                     ),
                 ],

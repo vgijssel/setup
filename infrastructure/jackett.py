@@ -7,6 +7,7 @@ from pulumi_kubernetes.core.v1 import (
     VolumeMountArgs,
     VolumeArgs,
     NFSVolumeSourceArgs,
+    ISCSIVolumeSourceArgs,
 )
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
 
@@ -24,14 +25,18 @@ deployment = Deployment(
                 "volumes": [
                     VolumeArgs(
                         name="jackett-config",
-                        nfs=NFSVolumeSourceArgs(
-                            path="/data/apps/jackett", server="hypervisor"
+                        iscsi=ISCSIVolumeSourceArgs(
+                            target_portal="172.16.0.1",
+                            iqn="iqn.2022-01.hypervisor:jackett",
+                            lun=1,
+                            fs_type="ext4",
+                            read_only=False,
                         ),
                     ),
                     VolumeArgs(
                         name="jackett-downloads",
                         nfs=NFSVolumeSourceArgs(
-                            path="/data/downloads", server="hypervisor"
+                            path="/data/downloads", server="172.16.0.1"
                         ),
                     ),
                 ],

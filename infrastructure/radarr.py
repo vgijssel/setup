@@ -7,8 +7,10 @@ from pulumi_kubernetes.core.v1 import (
     VolumeMountArgs,
     VolumeArgs,
     NFSVolumeSourceArgs,
+    ISCSIVolumeSourceArgs,
 )
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
+
 
 app_name = "radarr"
 app_labels = {"app": app_name}
@@ -24,20 +26,24 @@ deployment = Deployment(
                 "volumes": [
                     VolumeArgs(
                         name="radarr-config",
-                        nfs=NFSVolumeSourceArgs(
-                            path="/data/apps/radarr", server="hypervisor"
+                        iscsi=ISCSIVolumeSourceArgs(
+                            target_portal="172.16.0.1",
+                            iqn="iqn.2022-01.hypervisor:radarr",
+                            lun=1,
+                            fs_type="ext4",
+                            read_only=False,
                         ),
                     ),
                     VolumeArgs(
                         name="radarr-movies",
                         nfs=NFSVolumeSourceArgs(
-                            path="/data/media", server="hypervisor"
+                            path="/data/media", server="172.16.0.1"
                         ),
                     ),
                     VolumeArgs(
                         name="radarr-downloads",
                         nfs=NFSVolumeSourceArgs(
-                            path="/data/downloads", server="hypervisor"
+                            path="/data/downloads", server="172.16.0.1"
                         ),
                     ),
                 ],

@@ -9,6 +9,12 @@
     OP_VAULT_ID: "{{ op_vault_id }}"
   collections:
     - onepassword.connect
+    - debops.debops
+    - debops.roles01
+    - debops.roles02
+    - debops.roles03
+  become: yes
+
   tasks:
     - name: Install Network utilities
       tags: ["network"]
@@ -20,7 +26,6 @@
         - bridge-utils
         - net-tools
         - iptables-persistent
-      become: yes
 
     - name: Copy network bridge config
       tags: ["network"]
@@ -30,19 +35,16 @@
         owner: root
         group: root
         mode: "0644"
-      become: yes
 
     - name: Compile network config
       tags: ["network"]
       command: netplan generate
-      become: yes
 
     # Make the task async to avoid hanging Ansible because of ip address change
     # https://stackoverflow.com/questions/55471178/changing-ip-address-restarting-netplan
     - name: Apply network config
       tags: ["network"]
       command: netplan apply
-      become: yes
       async: 30
       poll: 5
 
@@ -52,7 +54,6 @@
         name: net.ipv4.ip_forward
         value: "1"
         sysctl_set: yes
-      become: yes
 
     # https://forum.opennebula.io/t/virtual-network-connectiviy-and-iptables/9159
     # https://forum.opennebula.io/t/vm-can-only-be-pinged-from-node-solved/3196/10
@@ -71,7 +72,6 @@
         owner: root
         group: root
         mode: "0644"
-      become: yes
       loop:
         - { src: "rules.v4.j2", dest: "/etc/iptables/rules.v4" }
         - { src: "rules.v6.j2", dest: "/etc/iptables/rules.v6" }
@@ -82,13 +82,11 @@
       loop:
         - { command: "iptables-restore", rules: "/etc/iptables/rules.v4" }
         - { command: "ip6tables-restore", rules: "/etc/iptables/rules.v6" }
-      become: yes
 
     - name: Add latest ZFS repository
       tags: ["storage"]
       ansible.builtin.apt_repository:
         repo: ppa:jonathonf/zfs
-      become: yes
 
     # When upgrading ZFS don't forget to remove mount points?
     # https://launchpad.net/~jonathonf/+archive/ubuntu/zfs
@@ -106,7 +104,7 @@
         - smartmontools
         - nfs-kernel-server
         - nfs-common
-      become: yes
+        - sqlite
 
     - name: Assume existence of ZFS pool new_data
       tags: ["storage"]
@@ -123,7 +121,8 @@
           sharenfs: "off"
           compression: "lz4"
           sync: "disabled"
-      become: yes
+          xattr: "sa"
+          dnodesize: "auto"
 
     - name: Create ZFS volume for OpenNebula datastores
       tags: ["storage"]
@@ -132,7 +131,6 @@
         state: present
         extra_zfs_properties:
           mountpoint: /var/lib/one/datastores
-      become: yes
 
     - name: Ensure OpenNebula can read/write to the datastores
       tags: ["storage"]
@@ -142,26 +140,78 @@
         recurse: yes
         owner: oneadmin
         group: oneadmin
-      become: yes
 
     # cat /etc/exports.d/zfs.exports
-    # mount -v -t nfs hypervisor:/data/apps/radarr /tmp/mnt
-    - name: Create ZFS NFS volumes
+    # mount -v -t nfs hypervisor:/data/media /tmp/mnt
+    - name: Create ZFS Filesystems for NFS
+      tags: ["storage"]
+      community.general.zfs:
+        name: "{{ item }}"
+        state: present
+        extra_zfs_properties:
+          sharenfs: "rw=@172.16.0.0/24,no_root_squash,no_subtree_check"
+      loop:
+        - new_data/media
+        - new_data/downloads
+
+    # From https://openzfs.github.io/openzfs-docs/man/8/zfs-create.8.html
+    # -V creates a block device under /dev/zvol/new_data/<<name>>
+    - name: Create ZFS Volumes for ISCSI
       tags: ["storage", "kerk"]
       community.general.zfs:
         name: "{{ item }}"
         state: present
         extra_zfs_properties:
-          sharenfs: "rw=@192.168.1.0/24,no_root_squash,no_subtree_check"
-      become: yes
+          volsize: 10G
       loop:
-        - new_data/media
-        - new_data/downloads
-        - new_data/apps/deluge
         - new_data/apps/radarr
+        - new_data/apps/deluge
         - new_data/apps/sonarr
         - new_data/apps/plex
         - new_data/apps/jackett
+
+    - name: Create a ext4 filesystem on the volume
+      tags: ["storage", "kerk"]
+      community.general.filesystem:
+        fstype: ext4
+        dev: "{{ item }}"
+        resizefs: yes
+      loop:
+        - /dev/zvol/new_data/apps/radarr
+        - /dev/zvol/new_data/apps/deluge
+        - /dev/zvol/new_data/apps/sonarr
+        - /dev/zvol/new_data/apps/plex
+        - /dev/zvol/new_data/apps/jackett
+
+    - name: Setup ISCSI targets
+      tags: ["storage", "kerk"]
+      block:
+        - include_role:
+            name: tgt
+          vars:
+            tgt_iqn_date: "2022-01"
+            tgt_iqn_authority: "hypervisor"
+            tgt_targets:
+              - name: radarr
+                backing_stores: ["/dev/zvol/new_data/apps/radarr"]
+                options: |
+                  initiator-address 172.16.0.0/24
+              - name: sonarr
+                backing_stores: ["/dev/zvol/new_data/apps/sonarr"]
+                options: |
+                  initiator-address 172.16.0.0/24
+              - name: deluge
+                backing_stores: ["/dev/zvol/new_data/apps/deluge"]
+                options: |
+                  initiator-address 172.16.0.0/24
+              - name: plex
+                backing_stores: ["/dev/zvol/new_data/apps/plex"]
+                options: |
+                  initiator-address 172.16.0.0/24
+              - name: jackett
+                backing_stores: ["/dev/zvol/new_data/apps/jackett"]
+                options: |
+                  initiator-address 172.16.0.0/24
 
     - name: Get DEB architecture
       tags: ["docker"]
@@ -185,27 +235,23 @@
         - curl
         - gnupg-agent
         - software-properties-common
-      become: yes
 
     - name: Add Docker GPG apt Key
       tags: ["docker"]
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
-      become: yes
 
     - name: Add Docker Repository
       tags: ["docker"]
       apt_repository:
         repo: "deb [arch={{ architecture }}] https://download.docker.com/linux/ubuntu {{ ubuntu_release }} stable"
         state: present
-      become: yes
 
     - name: Update apt
       tags: ["docker"]
       apt:
         update_cache: true
-      become: yes
 
     - name: Install docker-ce
       tags: ["docker"]
@@ -216,7 +262,6 @@
         - docker-ce
         - docker-ce-cli
         - containerd.io
-      become: yes
 
     - name: Install pip
       tags: ["docker"]
@@ -225,7 +270,6 @@
         state: present
       loop:
         - python3-pip
-      become: yes
 
     - name: Install Ansible docker dependencies
       tags: ["docker"]
@@ -235,7 +279,6 @@
         state: present
       with_items:
         - { name: docker, version: 5.0.3 }
-      become: yes
 
     - name: Install OpenNebula dependencies
       tags: ["opennebula"]
@@ -246,7 +289,6 @@
         - gnupg
         - wget
         - apt-transport-https
-      become: yes
 
     # https://docs.opennebula.io/6.0/installation_and_configuration/frontend_installation/opennebula_repository_configuration.html#repositories-ce
     - name: Add OpenNebula signing key
@@ -254,7 +296,6 @@
       ansible.builtin.apt_key:
         url: https://downloads.opennebula.io/repo/repo.key
         state: present
-      become: yes
 
     - name: Add OpenNebula repository
       tags: ["opennebula"]
@@ -262,7 +303,6 @@
         repo: deb https://downloads.opennebula.io/repo/6.0/Ubuntu/20.04 stable opennebula
         state: present
         filename: opennebula
-      become: yes
 
     # https://docs.opennebula.io/6.0/installation_and_configuration/frontend_installation/install.html
     - name: Install OpenNebula frontend
@@ -277,7 +317,6 @@
         - opennebula-gate
         - opennebula-flow
         - opennebula-provision
-      become: yes
 
     - name: Add OpenNebula as docker user
       tags: ["opennebula"]
@@ -285,7 +324,6 @@
         name: oneadmin
         groups: docker
         append: yes
-      become: yes
 
     - tags: ["opennebula"]
       set_fact:
@@ -319,7 +357,6 @@
 
     - name: Setup mysql database
       tags: ["opennebula"]
-      become: yes
       docker_container:
         name: opennebula_mysql
         image: mysql:8.0.27
@@ -345,7 +382,6 @@
       register: result
       until: result.rc == 0
       no_log: true
-      become: yes
 
     - tags: ["opennebula"]
       set_fact:
@@ -359,7 +395,6 @@
         owner: root
         group: oneadmin
         mode: "0640"
-      become: yes
 
     - name: Create oneadmin Secret
       tags: ["opennebula"]
@@ -396,7 +431,6 @@
         owner: oneadmin
         group: oneadmin
         mode: "0600"
-      become: yes
 
     - name: Setup OpenNebula FireEdge configuration
       tags: ["opennebula"]
@@ -406,7 +440,6 @@
         owner: root
         group: oneadmin
         mode: "0640"
-      become: yes
 
     - name: Setup OpenNebula OneGate configuration
       tags: ["opennebula"]
@@ -416,7 +449,6 @@
         owner: root
         group: oneadmin
         mode: "0640"
-      become: yes
 
     - name: Setup OpenNebula networking
       tags: ["opennebula"]
@@ -426,7 +458,6 @@
         owner: oneadmin
         group: oneadmin
         mode: "0640"
-      become: yes
 
     - name: Setup OpenNebula onevm config
       tags: ["opennebula"]
@@ -436,7 +467,6 @@
         owner: root
         group: root
         mode: "0644"
-      become: yes
 
     - name: Make sure OpenNebula is started
       tags: ["opennebula"]
@@ -450,7 +480,6 @@
         - opennebula-fireedge
         - opennebula-gate
         - opennebula-flow
-      become: yes
 
     # https://docs.opennebula.io/6.0/open_cluster_deployment/firecracker_node/firecracker_node_installation.html
     - name: Install OpenNebula Firecracker Node
@@ -460,7 +489,6 @@
         state: present
       loop:
         - opennebula-node-firecracker
-      become: yes
 
     - tags: ["opennebula-firecracker"]
       set_fact:
@@ -470,14 +498,12 @@
       tags: ["opennebula-firecracker"]
       command: "onehost show {{ hypervisor_hostname }}"
       ignore_errors: yes
-      become: yes
       register: result
       changed_when: False
 
     - name: Add Firecracker Node to frontend
       tags: ["opennebula-firecracker"]
       command: "onehost create {{ hypervisor_hostname }} -i firecracker -v firecracker"
-      become: yes
       when: "result.rc != 0"
 
     # https://docs.opennebula.io/6.0/open_cluster_deployment/firecracker_node/firecracker_driver.html#networking
@@ -499,7 +525,6 @@
             src: "/var/lib/one/remotes/vnm/hooks/clean/firecracker",
             dest: "/var/lib/one/remotes/vnm/bridge/clean.d/firecracker",
           }
-      become: yes
 
     # https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md#appendix-a-setting-up-kvm-access
     - name: Add oneadmin as kvm user
@@ -508,4 +533,3 @@
         name: oneadmin
         groups: kvm
         append: yes
-      become: yes

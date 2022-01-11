@@ -1,3 +1,5 @@
+# Install necessary dependencies for Ansible
+# plz ansible-galaxy install -r $PWD/ansible_requirements.yml
 sh_cmd(
     name = "provision",
     cmd = """

@@ -22,7 +22,14 @@ build {
     playbook_file = var.ansible_playbook
   }
 
+  # provisioner "breakpoint" {
+  #   disable = false
+  #   note    = "this is a breakpoint"
+  # }
+
   # https://github.com/firecracker-microvm/firecracker/blob/main/docs/rootfs-and-kernel-setup.md#use-the-provided-recipe
+  # CTRL+C after the kernel has been downloaded and extracted to enter 
+  # make menuconfig if you want to make changes.
   provisioner "shell" {
     inline = [
       "cd /opt/firecracker",

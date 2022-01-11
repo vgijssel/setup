@@ -60,6 +60,8 @@
         state: present
       loop:
         - git
+        - build-essential
+        - libncurses-dev
 
     - name: Clone kernel builder
       tags: ["kernel"]
