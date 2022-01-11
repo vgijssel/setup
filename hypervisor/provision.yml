@@ -169,6 +169,7 @@
         - new_data/apps/sonarr
         - new_data/apps/plex
         - new_data/apps/jackett
+        - new_data/apps/bazarr
 
     - name: Create a ext4 filesystem on the volume
       tags: ["storage", "kerk"]
@@ -182,6 +183,7 @@
         - /dev/zvol/new_data/apps/sonarr
         - /dev/zvol/new_data/apps/plex
         - /dev/zvol/new_data/apps/jackett
+        - /dev/zvol/new_data/apps/bazarr
 
     - name: Setup ISCSI targets
       tags: ["storage", "kerk"]
@@ -210,6 +212,10 @@
                   initiator-address 172.16.0.0/24
               - name: jackett
                 backing_stores: ["/dev/zvol/new_data/apps/jackett"]
+                options: |
+                  initiator-address 172.16.0.0/24
+              - name: bazarr
+                backing_stores: ["/dev/zvol/new_data/apps/bazarr"]
                 options: |
                   initiator-address 172.16.0.0/24
 
