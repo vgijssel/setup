@@ -10,10 +10,20 @@ from pulumi_kubernetes.core.v1 import (
     ISCSIVolumeSourceArgs,
 )
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
-
+from pulumi_kubernetes.networking.v1 import (
+    Ingress,
+    IngressSpecArgs,
+    IngressRuleArgs,
+    HTTPIngressRuleValueArgs,
+    HTTPIngressPathArgs,
+    IngressBackendArgs,
+    IngressServiceBackendArgs,
+    ServiceBackendPortArgs,
+)
 
 app_name = "radarr"
 app_labels = {"app": app_name}
+
 
 deployment = Deployment(
     app_name,
@@ -93,7 +103,7 @@ deployment = Deployment(
     },
 )
 
-Service(
+service = Service(
     app_name,
     metadata={
         "labels": deployment.spec["template"]["metadata"]["labels"],
@@ -103,4 +113,36 @@ Service(
         "ports": [{"port": 7878, "target_port": 7878, "protocol": "TCP"}],
         "selector": app_labels,
     },
+)
+
+Ingress(
+    app_name,
+    metadata=ObjectMetaArgs(
+        annotations={
+            "kubernetes.io/ingress.class": "traefik",
+        }
+    ),
+    spec=IngressSpecArgs(
+        rules=[
+            IngressRuleArgs(
+                host="radarr",
+                http=HTTPIngressRuleValueArgs(
+                    paths=[
+                        HTTPIngressPathArgs(
+                            path="/",
+                            path_type="Prefix",
+                            backend=IngressBackendArgs(
+                                service=IngressServiceBackendArgs(
+                                    name=service.metadata.name,
+                                    port=ServiceBackendPortArgs(
+                                        number=7878,
+                                    ),
+                                ),
+                            ),
+                        )
+                    ],
+                ),
+            )
+        ],
+    ),
 )

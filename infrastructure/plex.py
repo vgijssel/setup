@@ -15,6 +15,16 @@ from pulumi_kubernetes.core.v1 import (
     ISCSIVolumeSourceArgs,
 )
 from pulumi_kubernetes.meta.v1 import LabelSelectorArgs, ObjectMetaArgs
+from pulumi_kubernetes.networking.v1 import (
+    Ingress,
+    IngressSpecArgs,
+    IngressRuleArgs,
+    HTTPIngressRuleValueArgs,
+    HTTPIngressPathArgs,
+    IngressBackendArgs,
+    IngressServiceBackendArgs,
+    ServiceBackendPortArgs,
+)
 
 app_name = "plex"
 app_labels = {"app": app_name}
@@ -153,7 +163,7 @@ deployment = Deployment(
     },
 )
 
-Service(
+service_tcp = Service(
     f"{app_name}-tcp",
     metadata={
         "labels": deployment.spec["template"]["metadata"]["labels"],
@@ -177,4 +187,36 @@ Service(
         "ports": service_ports_upd,
         "selector": app_labels,
     },
+)
+
+Ingress(
+    app_name,
+    metadata=ObjectMetaArgs(
+        annotations={
+            "kubernetes.io/ingress.class": "traefik",
+        }
+    ),
+    spec=IngressSpecArgs(
+        rules=[
+            IngressRuleArgs(
+                host="plex",
+                http=HTTPIngressRuleValueArgs(
+                    paths=[
+                        HTTPIngressPathArgs(
+                            path="/",
+                            path_type="Prefix",
+                            backend=IngressBackendArgs(
+                                service=IngressServiceBackendArgs(
+                                    name=service_tcp.metadata.name,
+                                    port=ServiceBackendPortArgs(
+                                        number=32400,
+                                    ),
+                                ),
+                            ),
+                        )
+                    ],
+                ),
+            )
+        ],
+    ),
 )
