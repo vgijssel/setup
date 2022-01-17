@@ -26,6 +26,22 @@
         - bridge-utils
         - net-tools
         - iptables-persistent
+        - ethtool
+
+    # To prevent ethernet adapter from crashing under heavy load
+    # From https://forum.proxmox.com/threads/e1000-driver-hang.58284/page-8
+    - name: Copy disable offloading
+      tags: ["network"]
+      ansible.builtin.template:
+        src: 50-offloading-config.j2
+        dest: /etc/networkd-dispatcher/routable.d/50-offloading-config
+        owner: root
+        group: root
+        mode: "0744"
+
+    - name: Execute disable offloading
+      tags: ["network"]
+      command: /etc/networkd-dispatcher/routable.d/50-offloading-config
 
     - name: Copy network bridge config
       tags: ["network"]
@@ -144,7 +160,7 @@
     # cat /etc/exports.d/zfs.exports
     # mount -v -t nfs hypervisor:/data/media /tmp/mnt
     - name: Create ZFS Filesystems for NFS
-      tags: ["storage"]
+      tags: ["storage", "nfs"]
       community.general.zfs:
         name: "{{ item }}"
         state: present
@@ -153,11 +169,12 @@
       loop:
         - new_data/media
         - new_data/downloads
+        - new_data/docs
 
     # From https://openzfs.github.io/openzfs-docs/man/8/zfs-create.8.html
     # -V creates a block device under /dev/zvol/new_data/<<name>>
     - name: Create ZFS Volumes for ISCSI
-      tags: ["storage", "kerk"]
+      tags: ["storage", "iscsi"]
       community.general.zfs:
         name: "{{ item }}"
         state: present
@@ -172,7 +189,7 @@
         - new_data/apps/bazarr
 
     - name: Create a ext4 filesystem on the volume
-      tags: ["storage", "kerk"]
+      tags: ["storage", "iscsi"]
       community.general.filesystem:
         fstype: ext4
         dev: "{{ item }}"
@@ -186,7 +203,7 @@
         - /dev/zvol/new_data/apps/bazarr
 
     - name: Setup ISCSI targets
-      tags: ["storage", "kerk"]
+      tags: ["storage", "iscsi"]
       block:
         - include_role:
             name: tgt
