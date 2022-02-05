@@ -54,7 +54,7 @@ jobs:
       - run: ls -la
       - run: ifconfig
       - run: id
-      - run: VBoxManage list bridgedifs | grep ^Name
-      - run: vboxmanage --version
+      - run: VBoxManage list bridgedifs | grep ^Name || true
+      - run: vboxmanage --version || true
       - run: sudo pfctl -s all
       - run: sysctl -a
