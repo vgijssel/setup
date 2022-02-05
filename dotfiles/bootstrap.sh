@@ -62,7 +62,7 @@ ansible-galaxy collection install -r ./requirements.yml
 
 # Not running homebrew on the CI because that takes too long
 if [[ "$CI" = true ]]; then
-  EXTRA_ANSIBLE_ARGS="--skip-tags homebrew,ruby,nodejs"
+  EXTRA_ANSIBLE_ARGS="--skip-tags homebrew"
 fi
 
 # Run the complete ansible playbook
