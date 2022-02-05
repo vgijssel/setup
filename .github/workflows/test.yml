@@ -32,7 +32,7 @@ jobs:
       - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
         run: bundle install
       - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
-        run: rake spec
+        run: bundle exec rspec
 
   macos-info:
     name: Print macos vm information
