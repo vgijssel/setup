@@ -118,9 +118,7 @@ cask 'ngrok'
 cask 'figma' ## tool for sharing designs and workflows
 cask 'notion'
 
-cask 'folx' # for downloading torrents
 cask 'vlc'
-cask 'flixtools' # for downloading subtitles
 
 # First install of virtualbox will always fail because system extensions need to be approved
 cask 'virtualbox'

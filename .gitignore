@@ -1,24 +1,14 @@
 .vagrant
 *.temp
 **/spec/examples.txt
-terraform.tfstate
-terraform.tfstate.backup
-.terraform
-packer_cache
-packer_output
-terraform.zip
-terraform-provider-ansible.zip
-terraform-provider-libvirt.tar.gz
-scripts/terraform
-scripts/drpcli
 unifi
 *.pyc
 __pycache__
+1password/1password-credentials.json
+hypervisor/credentials.yml
+infrastructure/kubernetes_config.yaml
+infrastructure/Pulumi.dev.yaml
 
 # Entries below this point are managed by Please (DO NOT EDIT)
 plz-out
 .plzconfig.local
-
-1password/1password-credentials.json
-hypervisor/credentials.yml
-infrastructure/kubernetes_config.yaml

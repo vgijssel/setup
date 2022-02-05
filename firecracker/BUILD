@@ -2,14 +2,27 @@ subinclude("//tools/packer")
 
 packer_build(
     name = "kernel",
-    toolchain = "//third_party/packer",
+    srcs = {
+        "cloud_init_meta_data": "./cloud-init/meta-data",
+        "cloud_init_user_data": "./cloud-init/user-data",
+        "playbook": "./build.yml",
+        "kernel_config": "./config-4.19.155-fc.x86_64",
+        "ansible_config": "./ansible.cfg",
+    },
+    outs = [
+        "vmlinux.bin",
+    ],
+    env = {
+        "ANSIBLE_CONFIG": "echo $(location //build_helpers/defs:ansible.cfg)",
+    },
     templates = [
         "./packer_qemu.pkr.hcl",
         "./provision.pkr.hcl",
     ],
-    outs = [
-        "vmlinux.bin"
-    ],
+    toolchain = "//third_party/packer",
+    tools = {
+        "ANSIBLE_PLAYBOOK": "//third_party/ansible|ansible-playbook",
+    },
     variables = {
         "iso_file": "echo $(location //third_party/ubuntu:ubuntu_focal)",
         "iso_checksum": "echo $(location //third_party/ubuntu:ubuntu_focal_checksum)",
@@ -20,23 +33,10 @@ packer_build(
         "ansible_playbook_binary": "echo $TOOLS_ANSIBLE_PLAYBOOK",
         "ansible_playbook": "echo $SRCS_PLAYBOOK",
         "kernel_file": "echo vmlinux.bin",
-    }, 
-    srcs = {
-        "cloud_init_meta_data": "./cloud-init/meta-data",
-        "cloud_init_user_data": "./cloud-init/user-data",
-        "playbook": "./build.yml",
-        "kernel_config": "./config-4.19.155-fc.x86_64",
-        "ansible_config": "//build_helpers/defs:ansible.cfg"
     },
     deps = [
-       "//third_party/ubuntu:ubuntu_focal",
-       "//third_party/ubuntu:ubuntu_focal_checksum",
-       "//secrets:id_rsa",
+        "//secrets:id_rsa",
+        "//third_party/ubuntu:ubuntu_focal",
+        "//third_party/ubuntu:ubuntu_focal_checksum",
     ],
-    tools = {
-        "ANSIBLE_PLAYBOOK": "//third_party/ansible|ansible-playbook",
-    },
-    env = {
-        "ANSIBLE_CONFIG": "echo $(location //build_helpers/defs:ansible.cfg)",
-    }
 )

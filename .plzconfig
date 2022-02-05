@@ -9,12 +9,9 @@
 version = 16.17.1
 
 [buildconfig]
-# TODO: can we define the same config multiple times to get an array?
-ssh-config-dir = ./tmp/vagrant/ssh_configs
-terraform-state = ./tmp/terraform/state
-terraform-data = ./tmp/terraform/data
-pex-cache-dir = ./tmp/cache/pex
-provisioner-platform = "linux_amd64"
+ssh_config_dir = ./tmp/vagrant/ssh_configs
+pex_cache_dir = ./tmp/cache/pex
+provisioner_platform = "linux_amd64"
 
 [build]
 # 3600 seconds, 60 minutes
@@ -30,23 +27,11 @@ cmd = run //third_party/ansible|ansible-playbook --
 [alias "ansible-galaxy"]
 cmd = run //third_party/ansible|ansible-galaxy --
 
-[alias "skopeo"]
-cmd = run //third_party/skopeo:bin --
-
 [alias "pulumi"]
 cmd = run //third_party/pulumi:pulumi|pulumi --
 
 [alias "ssh"]
 cmd = run //tools/ssh --
-
-[alias "tf_init"]
-cmd = run //terragrunt:terragrunt_init
-
-[alias "deploy"]
-cmd = run //terragrunt:terragrunt_apply -- --terragrunt-non-interactive
-
-[alias "destroy"]
-cmd = run //terragrunt:terragrunt_destroy -- --terragrunt-non-interactive
 
 [Parse]
 PreloadBuildDefs = ./tools/please/sh_rules.build_defs

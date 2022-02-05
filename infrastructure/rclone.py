@@ -43,8 +43,8 @@ CronJob(
         "name": "backup-documents",
     },
     spec={
-        # Run the cronjob every hour
-        "schedule": "@hourly",
+        # Run the cronjob every day
+        "schedule": "@daily",
         "concurrency_policy": "Forbid",
         "job_template": {
             "spec": {
