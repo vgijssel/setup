@@ -19,6 +19,8 @@ ruby:
     - name: solargraph
     - name: ruby-debug-ide
     - name: debase
+    - name: bundler
+      version: 2.3.6
     - name: mkpasswd # for generating password hashes for cloud-init
 
     # https://github.com/sj26/mailcatcher/issues/430, XCode 12 issue
