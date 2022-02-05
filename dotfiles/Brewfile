@@ -1,5 +1,4 @@
 tap 'nektos/tap'
-tap 'semaphoreci/tap'
 tap 'homebrew/core'
 tap 'homebrew/cask'
 tap 'homebrew/cask-fonts'
@@ -63,7 +62,6 @@ brew 'dhcping' # for debugging DHCP responses
 brew 'overmind' # for running services in a procfile in the background
 
 brew 'nektos/tap/act'
-brew 'semaphoreci/tap/sem', conflicts_with: ['parallel']
 
 brew 'emacs-plus@28', args: ['with-spacemacs-icon']
 brew 'markdown'
