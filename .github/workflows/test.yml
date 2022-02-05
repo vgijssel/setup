@@ -2,9 +2,6 @@
 
 name: Test
 on: [push]
-env:
-  GITHUB_DOCKER_REGISTRY_TOKEN: ${{ github.token }}
-
 jobs:
   cancel_previous_run:
     name: Cancel Previous Run
