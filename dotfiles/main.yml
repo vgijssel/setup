@@ -214,7 +214,7 @@
         build_flags: "{{ item[0].build_flags | default(None) }}"
         user_install: false
         version: "{{ item[0].version | default(None) }}"
-      with_nested:
+      loop:
         - "{{ ruby.gems }}"
 
     # - name: Install solargraph documentation
