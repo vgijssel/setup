@@ -2,16 +2,10 @@ golang 1.17.5
 nodejs 12.20.0
 ruby 2.7.4
 terraform 1.0.6
-postgres 12.7
-elasticsearch 7.9.2
-java adoptopenjdk-11.0.4+11.1
 packer 1.6.3
 terraform-lsp 0.0.11-beta2
-bazel 4.0.0
-rust nightly
-python 3.8.11
+python 3.9.7
 kubectl 1.19.0
 vault 1.7.3
 pulumi 3.22.0
 poetry 1.2.0a2
-helm 3.7.2

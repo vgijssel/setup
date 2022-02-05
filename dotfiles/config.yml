@@ -1,85 +1,33 @@
 ---
-# TODO: replace the language installations with global .tool-versions!!
-languages:
-  postgres:
-    global: 12.7
-    versions:
-      - version: 12.7
-        packages: []
+nodejs:
+  packages:
+    - name: yarn # package manager
+    - name: eslint_d # daemon for eslint
+    - name: eslint # linting in javascript
+    - name: eslint-plugin-graphql # linting in javascript
+    - name: fx # json viewer for the terminal
+    - name: typescript-language-server # lsp for javascript
+    - name: typescript # typescript
+    - name: speedscope # profiling presentation
+    - name: depcheck # tool for checking used dependencies in a JS project
 
-  # TODO: install buildifier for bazel vscode extension
-  golang:
-    global: 1.13
-    versions:
-      - version: 1.13
-        packages: []
+ruby:
+  gems:
+    - name: pry
+    - name: pry-doc
+    - name: ruby_parser
+    - name: solargraph
+    - name: ruby-debug-ide
+    - name: debase
+    - name: mkpasswd # for generating password hashes for cloud-init
 
-  terraform:
-    global: 0.13.5
-    versions:
-      - version: 0.13.5
-        packages: []
+    # https://github.com/sj26/mailcatcher/issues/430, XCode 12 issue
+    - name: mailcatcher # email server to send local development emails to
+      build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
 
-  java:
-    global: adoptopenjdk-11.0.4+11.1
-    versions:
-      - version: adoptopenjdk-11.0.4+11.1
-        packages: []
+    # https://github.com/macournoyer/thin/issues/365, XCode 12 issue
+    - name: thin
+      build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
+      version: 1.7.2
 
-  terraform-lsp:
-    global: 0.0.11-beta2
-    versions:
-      - version: 0.0.11-beta2
-        packages: []
-
-  nodejs:
-    packages:
-      - name: yarn # package manager
-      - name: tern # spacemacs javascript layer
-      - name: eslint_d # daemon for eslint
-      - name: eslint # linting in javascript
-      - name: eslint-plugin-graphql # linting in javascript
-      - name: prettier # spacemacs javascript autofixer
-      - name: fx # json viewer for the terminal
-      - name: vmd # spacemacs markdown layer
-      - name: import-js # spacemacs automatic import helper
-      - name: typescript-language-server # lsp for javascript
-      - name: typescript # typescript
-      - name: speedscope # profiling presentation
-      - name: depcheck # tool for checking used dependencies in a JS project
-      - name: firebase-tools # for working with firebase apps
-    global: 12.20.0
-    versions:
-      - version: 12.20.0
-        packages: []
-
-  ruby:
-    gems:
-      - name: pry
-      - name: pry-doc
-      - name: ruby_parser
-      - name: seeing_is_believing
-      - name: solargraph
-      - name: ruby-debug-ide
-      - name: debase
-      - name: razor-client # for communication with the razor-server
-      - name: mkpasswd # for generating password hashes for cloud-init
-
-      # https://github.com/sj26/mailcatcher/issues/430, XCode 12 issue
-      - name: mailcatcher # email server to send local development emails to
-        build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
-
-      # https://github.com/macournoyer/thin/issues/365, XCode 12 issue
-      - name: thin
-        build_flags: --with-cflags="-Wno-error=implicit-function-declaration"
-        version: 1.7.2
-
-      - name: git-merge-structure-sql # good merge strategy for structure.sql files
-    global: 2.7.4
-    versions:
-      - version: 2.7.4
-        # There is no 2.7.3 available in `solargraph available-cores`
-        solargraph: 2.7.4
-        gems:
-          - { name: bundler, version: 2.2.15 }
-          - { name: rubocop, version: 1.6.1 }
+    - name: git-merge-structure-sql # good merge strategy for structure.sql files

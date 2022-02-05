@@ -166,73 +166,48 @@
         name: gpg2
         state: present
 
-    # TODO: install gems / nodejs packages based on globally installed versions
-    # and get the necessary plugins from the global asdf version file
-    - name: Install ASDF plugins
-      command: "asdf plugin add {{ item.key }}"
-      loop: "{{ languages | dict2items }}"
+    - name: List ASDF plugins
       tags: ["lang"]
+      shell: cat ./files/tool-versions | awk '{print $1;}'
+      register: asdf_plugins_result
+      failed_when:
+        - asdf_plugins_result.rc != 0 or asdf_plugins_result.stderr_lines | length > 0
+
+    - name: Set language facts
+      tags: ["lang"]
+      set_fact:
+        languages: "{{ asdf_plugins_result.stdout_lines }}"
+
+    - name: Install ASDF plugins
+      command: "asdf plugin add {{ item }}"
+      tags: ["lang"]
+      loop: "{{ languages }}"
       register: result
       failed_when:
         - result.rc != 0
         - '"already added" not in result.stderr'
 
     - name: Update ASDF plugins
-      command: "asdf plugin update {{ item.key }}"
-      loop: "{{ languages | dict2items }}"
+      command: "asdf plugin update {{ item }}"
+      loop: "{{ languages }}"
       tags: ["lang"]
 
-    - name: Install ASDF language versions
-      include_tasks: asdf_install.yml
+    - name: Install ASDF languages
       tags: ["lang"]
-      loop: "{{ languages | dict2items | map(attribute='key') | list }}"
-      loop_control:
-        loop_var: language
+      command: "asdf install"
 
-    - name: Set ASDF global versions
-      command: "asdf global {{ item }} {{ languages[item].global }}"
-      tags: ["lang"]
-      loop: "{{ languages | dict2items | map(attribute='key') | list }}"
-
-    - name: Remove existing yarn symlinks
-      tags: ["lang", "node"]
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /usr/local/bin/yarn
-        - /usr/local/bin/yarnpkg
-
-    - name: Install Nodejs packages for all versions
-      tags: ["lang", "node"]
-      environment:
-        ASDF_NODEJS_VERSION: "{{ item[1] }}"
+    - name: Install Nodejs packages
+      tags: ["lang", "nodejs"]
       npm:
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
         global: yes
         version: "{{ item[0].version | default(None) }}"
-      with_nested:
-        - "{{ languages.nodejs.packages }}"
-        - "{{ languages.nodejs.versions | map(attribute='version') | list }}"
+      loop:
+        - "{{ nodejs.packages }}"
 
-    - name: Install Nodejs packages specific for version
-      tags: ["lang", "node"]
-      environment:
-        ASDF_NODEJS_VERSION: "{{ item[0].version }}"
-      npm:
-        name: "{{ item[1].name }}"
-        state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
-        global: yes
-        version: "{{ item[1].version | default(None) }}"
-      with_subelements:
-        - "{{ languages.nodejs.versions }}"
-        - packages
-
-    - name: Install Ruby gems for all versions
+    - name: Install Ruby gems
       tags: ["lang", "ruby"]
-      environment:
-        ASDF_RUBY_VERSION: "{{ item[1] }}"
       gem:
         name: "{{ item[0].name }}"
         state: "{{ 'present' if (item[0].version | default(None)) else 'latest' }}"
@@ -240,38 +215,23 @@
         user_install: false
         version: "{{ item[0].version | default(None) }}"
       with_nested:
-        - "{{ languages.ruby.gems }}"
-        - "{{ languages.ruby.versions | map(attribute='version') | list }}"
+        - "{{ ruby.gems }}"
 
-    - name: Install Ruby gems specific for version
-      tags: ["lang", "ruby"]
-      environment:
-        ASDF_RUBY_VERSION: "{{ item[0].version }}"
-      gem:
-        name: "{{ item[1].name }}"
-        state: "{{ 'present' if (item[1].version | default(None)) else 'latest' }}"
-        build_flags: "{{ item[1].build_flags | default(None) }}"
-        user_install: false
-        version: "{{ item[1].version | default(None) }}"
-      with_subelements:
-        - "{{ languages.ruby.versions }}"
-        - gems
+    # - name: Install solargraph documentation
+    #   tags: ["lang", "ruby", "solargraph"]
+    #   environment:
+    #     ASDF_RUBY_VERSION: "{{ item.version }}"
+    #   command: solargraph download-core {{ item.solargraph }}
+    #   changed_when: False
+    #   loop: "{{ languages.ruby.versions }}"
 
-    - name: Install solargraph documentation
-      tags: ["lang", "ruby", "solargraph"]
-      environment:
-        ASDF_RUBY_VERSION: "{{ item.version }}"
-      command: solargraph download-core {{ item.solargraph }}
-      changed_when: False
-      loop: "{{ languages.ruby.versions }}"
-
-    - name: Generate YARD documentation for all Ruby versions
-      tags: ["lang", "ruby", "solargraph"]
-      environment:
-        ASDF_RUBY_VERSION: "{{ item }}"
-      command: yard gems
-      changed_when: False
-      loop: "{{ languages.ruby.versions | map(attribute='version') | list }}"
+    # - name: Generate YARD documentation for all Ruby versions
+    #   tags: ["lang", "ruby", "solargraph"]
+    #   environment:
+    #     ASDF_RUBY_VERSION: "{{ item }}"
+    #   command: yard gems
+    #   changed_when: False
+    #   loop: "{{ languages.ruby.versions | map(attribute='version') | list }}"
 
     - name: Reshim asdf
       tags: ["lang"]
