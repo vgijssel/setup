@@ -1,6 +1,0 @@
-qemu-kvm:
-libvirt-clients:
-libvirt-daemon-system:
-netcat-openbsd:
-dnsmasq:
-bridge-utils:

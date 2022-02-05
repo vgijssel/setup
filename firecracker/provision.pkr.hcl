@@ -42,9 +42,4 @@ build {
     direction = "download"
     destination = var.kernel_file
   }
-
-  # provisioner "breakpoint" {
-  #   disable = false
-  #   note    = "this is a breakpoint"
-  # }
 }

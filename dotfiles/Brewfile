@@ -55,7 +55,6 @@ brew 'imagemagick' # otherwise Rails image upload no work
 
 brew 'dnsmasq'
 brew 'cdrtools' # contains mkisofs for making cloud-init images
-brew 'minikube' # for running kubernetes locally
 brew 'hyperkit' # running virtual machines on macos for testing
 brew 'hivemind' # for running multiple virtual machines from procfile
 brew 'dnsmasq' # for custom DNS / DHCP

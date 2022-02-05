@@ -19,7 +19,7 @@
         msg: "Running as user: {{ current_user }}"
 
     - name: Ensure proper permissions for brew services
-      tags: ["homebrew", "test"]
+      tags: ["homebrew"]
       become: yes
       ansible.builtin.file:
         path: "{{ lookup('env','HOME') }}/Library/LaunchAgents"
