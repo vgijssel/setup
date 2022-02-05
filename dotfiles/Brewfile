@@ -1,5 +1,4 @@
 tap 'nektos/tap'
-tap 'semaphoreci/tap'
 tap 'homebrew/core'
 tap 'homebrew/cask'
 tap 'homebrew/cask-fonts'
@@ -17,12 +16,9 @@ brew 'socat' # for creating screen accessible sockets for virtualbox
 brew 'mkcert' # local trusted development certificates
 brew 'nss' # using locally trusted certificates
 
-brew 'jinja2-cli' # cli tool for parsing jinja templates
-
-brew 'kubernetes-cli' # kubectl for interaction with kubernetes clusters
 brew 'kustomize' # for building/handling/changing kubernetes manifests
 
-brew 'ansible'
+brew 'buildifier'
 
 brew 'exiftool' # show/mutate EXIF information of documents
 brew 'pstree' # show parent/child relationship of processes
@@ -36,6 +32,8 @@ brew 'git-crypt'
 brew 'mas' # cli tool to install Apple App Store apps
 brew 'redis'
 
+brew 'qcachegrind' # for reading calltree/valgrind outputted profiles
+
 brew 'mr' # myrepos tool to manage large number of repositories at the same time
 
 brew 'rcm' # tool for managing dotfiles
@@ -44,7 +42,8 @@ brew 'rcm' # tool for managing dotfiles
 brew 'direnv'
 brew 'fzf'
 brew 'fd' # fast alternative to find (https://github.com/sharkdp/fd)
-brew 'zsh' # brew version of zsh
+brew 'zsh' # latest version of zsh
+brew 'bash' # latest version of bash
 brew 'jq' # handling json on the command line
 
 brew 'v8@3.15' # the ruby racer gem
@@ -55,7 +54,6 @@ brew 'imagemagick' # otherwise Rails image upload no work
 
 brew 'dnsmasq'
 brew 'cdrtools' # contains mkisofs for making cloud-init images
-brew 'minikube' # for running kubernetes locally
 brew 'hyperkit' # running virtual machines on macos for testing
 brew 'hivemind' # for running multiple virtual machines from procfile
 brew 'dnsmasq' # for custom DNS / DHCP
@@ -64,7 +62,6 @@ brew 'dhcping' # for debugging DHCP responses
 brew 'overmind' # for running services in a procfile in the background
 
 brew 'nektos/tap/act'
-brew 'semaphoreci/tap/sem', conflicts_with: ['parallel']
 
 brew 'emacs-plus@28', args: ['with-spacemacs-icon']
 brew 'markdown'
@@ -116,11 +113,17 @@ cask 'multipass'
 cask 'amethyst'
 cask 'ngrok'
 cask 'figma' ## tool for sharing designs and workflows
+cask 'notion'
+
+cask 'vlc'
 
 # First install of virtualbox will always fail because system extensions need to be approved
 cask 'virtualbox'
 cask 'intel-haxm' # hardware accelerator for qemu
 
+cask 'plex'
+
+cask 'brave-browser'
 cask '1password-cli'
 cask 'steam'
 cask 'iterm2', args: { force: true }

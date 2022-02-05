@@ -1,0 +1,7 @@
+---
+collections:
+  - name: onepassword.connect
+    version: 2.1.1
+
+  - name: debops.debops
+    version: 2.3.3

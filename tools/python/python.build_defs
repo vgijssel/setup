@@ -1,0 +1,113 @@
+# TODO: the pex needs to be built in a /tmp directory otherwise the path might be too long resulting in weird behaviour 
+# example: installing meltano library will install without the actual meltano binary
+def pex_binary(name:str, packages:list, pex_toolchain:str, python_toolchain:str, scripts:list, visibility:list = None, test_only:bool = False) -> str:
+    relative_anchor = text_file(
+        name = f"_{name}#relative_anchor",
+        content = "relative",
+        binary = True,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+    absolute_anchor = text_file(
+        name = f"_{name}#absolute_anchor",
+        content = "absolute",
+        binary = True,
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+    packages_string = " ".join(packages)
+
+    pex_binary = genrule(
+        name = f"_{name}#pex",
+        outs = [f"{name}.pex"],
+        binary = True,
+        cmd = f"""
+        # TODO: hacky way to get the please root to be able to define the relative cache dir
+        ABSOLUTE_DIR="$(dirname $TOOLS_ABSOLUTE_ANCHOR)"
+        RELATIVE_DIR=$(out_dir {relative_anchor})
+        export PLEASE_ROOT="${ABSOLUTE_DIR%"/$RELATIVE_DIR"}"
+        export PEX_ROOT="$PLEASE_ROOT/{CONFIG.PEX_CACHE_DIR}"
+
+        $TOOLS_PEX --python $TOOLS_PYTHON --compile --venv -v -o $OUTS {packages_string}
+        """,
+        tools = {
+            "absolute_anchor": absolute_anchor,
+            "pex": pex_toolchain,
+            "python": f"{python_toolchain}|python",
+        },
+        deps = [
+            relative_anchor,
+        ],
+        visibility = visibility,
+        test_only = test_only,
+    )
+
+    entry_points = {}
+    cmds = []
+    out = "out"
+    iterator = 0
+
+    for script in scripts:
+        entry_points[script] = f"{out}/{script}"
+
+        header = shell_script_header(
+            script_build_label = f":{name}|{script}",
+            paths = [f"{python_toolchain}|python"],
+        )
+        
+        # NOTE: it's important that the HEREDOC is at the beginning of the line
+        # otherwise the end of the heredoc cannot be found therefore this script
+        # is indented all the way to the left.
+        cmds.append(
+            f"""
+cat <<'EOF{iterator}' > $OUTS/{script}
+#!/usr/bin/env bash
+{header}
+export PEX_SCRIPT={script}
+export PEX_ROOT="$PLEASE_ROOT/{CONFIG.PEX_CACHE_DIR}"
+# TODO: set the PEX_ROOT to a value otherwise the unpacking of the venv
+# takes a lot of time during invocations during builds
+$PLEASE_ROOT/$(out_location {pex_binary}) "$@"
+EOF{iterator}
+            """
+        )
+        iterator += 1
+
+    cmds_string = "\n".join(cmds)
+
+    genrule(
+        name = name,
+        outs = [out],
+        binary = True,
+        cmd = f"""
+        mkdir -p $OUTS
+        {cmds_string}
+        """,
+        entry_points = entry_points,
+        deps = [pex_binary, python_toolchain],
+    )
+
+def python_toolchain(name:str, version:str, visibility:list = None, test_only:bool = False) -> str:
+    # Inspired by the asdf-python plugin 
+    # https://github.com/danhper/asdf-python/blob/8ab052fced78b2c68c8fe17d5811d0ebae06eee8/bin/install
+    return genrule(
+        name = name,
+        binary = True,
+        cmd = f"""
+        set -e
+
+        git clone https://github.com/pyenv/pyenv.git pyenv
+        PYTHON_BUILD=pyenv/plugins/python-build/bin/python-build
+
+        # can use --verbose for debugging
+        $PYTHON_BUILD {version} $OUTS
+        """,
+        entry_points = {
+            "python": "out/bin/python",
+        },
+        outs = ["out"],
+        visibility = visibility,
+        test_only = test_only,
+    )

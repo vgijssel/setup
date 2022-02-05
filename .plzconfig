@@ -1,0 +1,38 @@
+; Please config file
+; Leaving this file as is is enough to use plz to build your project.
+; Please will stay on whatever version you currently have until you run
+; 'plz update', when it will download the latest available version.
+;
+; Or you can uncomment the following to pin everyone to a particular version;
+; when you change it all users will automatically get updated.
+[please]
+version = 16.17.1
+
+[buildconfig]
+ssh_config_dir = ./tmp/vagrant/ssh_configs
+pex_cache_dir = ./tmp/cache/pex
+provisioner_platform = "linux_amd64"
+
+[build]
+# 3600 seconds, 60 minutes
+# Majority of the time is spent on //third_party/firecracker:kernel
+timeout = 3600
+
+[python]
+moduledir = third_party.python
+
+[alias "ansible-playbook"]
+cmd = run //third_party/ansible|ansible-playbook --
+
+[alias "ansible-galaxy"]
+cmd = run //third_party/ansible|ansible-galaxy --
+
+[alias "pulumi"]
+cmd = run //third_party/pulumi:pulumi|pulumi --
+
+[alias "ssh"]
+cmd = run //tools/ssh --
+
+[Parse]
+PreloadBuildDefs = ./tools/please/sh_rules.build_defs
+PreloadBuildDefs = ./tools/please/helpers.build_defs

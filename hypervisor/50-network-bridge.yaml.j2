@@ -1,0 +1,10 @@
+network:
+  bridges:
+    br0:
+      interfaces: [eno1]
+      dhcp4: yes
+
+    nfs_net:
+      interfaces: []
+      dhcp4: no
+      addresses: [172.16.0.1/24]

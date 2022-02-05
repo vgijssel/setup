@@ -1,7 +1,18 @@
+# for debugging https://github.com/marketplace/actions/debugging-with-tmate
+
 name: Test
 on: [push]
-
 jobs:
+  cancel_previous_run:
+    name: Cancel Previous Run
+    timeout-minutes: 2
+    runs-on: ubuntu-latest
+    steps:
+      - name: cancel previous runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
+
   test-dotfiles:
     name: Test dotfiles
     timeout-minutes: 60
@@ -10,20 +21,40 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      # For debugging https://github.com/marketplace/actions/debugging-with-tmate
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.6.0
-      with:
-        access_token: ${{ github.token }}
-    - uses: actions/checkout@v1
-    - run: ./scripts/github_load_env.sh .envrc
-    - run: env
-    - run: |
-        export CI_PASSWORD=""
-        export BRANCH="$GIT_BRANCH"
-        eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
-    - run: env
-    - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
-      run: bundle install
-    - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
-      run: rake spec
+      - uses: actions/checkout@v1
+      - run: ./scripts/github_load_env.sh .envrc
+      - run: env
+      - run: |
+          export CI_PASSWORD=''
+          export BRANCH="$GIT_BRANCH"
+          eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
+      - run: env
+      - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
+        run: bundle install
+      - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
+        run: bundle exec rspec
+
+  macos-info:
+    name: Print macos vm information
+    timeout-minutes: 5
+    runs-on: macos-latest
+    steps:
+      - env:
+          GITHUB: ${{ toJson(github) }}
+          ENV: ${{ toJson(env) }}
+          JOB: ${{ toJson(job) }}
+          STEPS: ${{ toJson(steps) }}
+          RUNNER: ${{ toJson(runner) }}
+          SECRETS: ${{ toJson(secrets) }}
+          STRATEGY: ${{ toJson(strategy) }}
+          MATRIX: ${{ toJson(matrix) }}
+        run: |
+          env
+      - uses: actions/checkout@v1
+      - run: ls -la
+      - run: ifconfig
+      - run: id
+      - run: VBoxManage list bridgedifs | grep ^Name || true
+      - run: vboxmanage --version || true
+      - run: sudo pfctl -s all
+      - run: sysctl -a
