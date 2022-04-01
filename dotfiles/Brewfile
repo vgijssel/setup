@@ -99,6 +99,9 @@ brew 'watch'
 brew 'wdiff'
 brew 'wget'
 
+# Git tool to rewrite/remove git history
+brew 'git-filter-repo'
+
 cask 'microsoft-teams' # for video calling
 cask 'graphiql' # for running GraphQL queries against any GraphQL endpoint
 cask 'docker'
