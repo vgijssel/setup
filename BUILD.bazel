@@ -1,0 +1,6 @@
+load("//tools/packer:rules.bzl", "bar_binary")
+
+bar_binary(
+    name = "henk",
+    srcs = ["justfile"],
+)

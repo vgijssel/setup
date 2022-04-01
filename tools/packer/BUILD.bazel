@@ -1,0 +1,74 @@
+load("//tools/packer:packer_toolchain.bzl", "bar_toolchain")
+
+toolchain_type(name = "toolchain_type")
+
+bar_toolchain(
+    name = "barc_linux",
+    arch_flags = [
+        "--arch=Linux",
+        "--debug_everything",
+    ],
+    compiler_path = "/path/to/barc/on/linux",
+    system_lib = "/usr/lib/libbarc.so",
+)
+
+bar_toolchain(
+    name = "barc_windows",
+    arch_flags = [
+        "--arch=Windows",
+        # Different flags, no debug support on windows.
+    ],
+    compiler_path = "C:\\path\\on\\windows\\barc.exe",
+    system_lib = "C:\\path\\on\\windows\\barclib.dll",
+)
+
+bar_toolchain(
+    name = "barc_macos",
+    arch_flags = [
+        "--arch=Darwin",
+    ],
+    compiler_path = "/some/path",
+    system_lib = "/yes/sir",
+)
+
+toolchain(
+    name = "barc_linux_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = ":barc_linux",
+    toolchain_type = ":toolchain_type",
+)
+
+toolchain(
+    name = "barc_windows_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+    ],
+    target_compatible_with = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = ":barc_windows",
+    toolchain_type = ":toolchain_type",
+)
+
+toolchain(
+    name = "barc_macos_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = ":barc_macos",
+    toolchain_type = ":toolchain_type",
+)

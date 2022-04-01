@@ -9,6 +9,12 @@ hypervisor/credentials.yml
 infrastructure/kubernetes_config.yaml
 infrastructure/Pulumi.dev.yaml
 
+# For Bazel
+bazel-bin
+bazel-out
+bazel-setup
+bazel-testlogs
+
 # Entries below this point are managed by Please (DO NOT EDIT)
 plz-out
 .plzconfig.local
