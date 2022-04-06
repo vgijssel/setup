@@ -1,0 +1,4 @@
+exports_files([
+    "runner.sh.tpl",
+    "wrapper.sh",
+])

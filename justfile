@@ -3,7 +3,11 @@ default:
 
 # Build the hypervisor image
 hypervisor-build:
-    bazel build --show_progress --worker_verbose --verbose_failures --test_output=streamed -s //hypervisor:hypervisor
+    bazel build --show_progress --worker_verbose --verbose_failures --test_output=streamed -s //hypervisor:hypervisor_image
+
+# Run the hypervisor image
+hypervisor-run:
+    bazel run --show_progress --worker_verbose --verbose_failures --test_output=streamed -s //hypervisor:hypervisor
 
 # Invoke the packer binary directly
 packer +args:

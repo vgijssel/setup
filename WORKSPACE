@@ -17,19 +17,16 @@ http_file(
 http_archive(
     name = "lima",
     build_file_content = """
-sh_binary(
-    name = "lima",
-    srcs = ["bin/lima"],
-)
+package(default_visibility = ["//visibility:public"])
 
 sh_binary(
     name = "limactl",
-    srcs = ["bin/limactl"],
-)
-
-sh_binary(
-    name = "nerdctl.lima",
-    srcs = ["bin/nerdctl.lima"],
+    srcs = ["@//tools/lima:wrapper.sh"],
+    args = ["$(rootpath bin)/limactl"],
+    data = [
+        "share",
+        "bin",
+    ]
 )
     """,
 
