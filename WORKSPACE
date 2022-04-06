@@ -1,4 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
 
 rules_packer_toolchains(
@@ -12,4 +12,28 @@ http_file(
     urls = [
         "https://cloud-images.ubuntu.com/focal/20220404/focal-server-cloudimg-amd64.img",
     ],
+)
+
+http_archive(
+    name = "lima",
+    build_file_content = """
+sh_binary(
+    name = "lima",
+    srcs = ["bin/lima"],
+)
+
+sh_binary(
+    name = "limactl",
+    srcs = ["bin/limactl"],
+)
+
+sh_binary(
+    name = "nerdctl.lima",
+    srcs = ["bin/nerdctl.lima"],
+)
+    """,
+
+    # TODO: use select to download binary for different platform
+    sha256 = "820f86d1486f70993cdcb535c93442a8d362f3992602c57a3cf0a8789090a802",
+    urls = ["https://github.com/lima-vm/lima/releases/download/v0.9.2/lima-0.9.2-Darwin-x86_64.tar.gz"],
 )

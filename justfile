@@ -8,4 +8,7 @@ hypervisor-build:
 # Invoke the packer binary directly
 packer +args:
     bazel run @packer//:packer_binary -- {{args}}
-    
+
+# Invoke the limactl binary directly
+limactl +args:
+    bazel run @lima//:limactl -- {{args}}
