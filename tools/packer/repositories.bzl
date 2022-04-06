@@ -1,9 +1,3 @@
-# configure rules_packer according to https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
-# Help for writing repository rules:
-# https://jayconrod.com/posts/110/writing-bazel-rules--repository-rules
-# Specify dependencies necessary for rules_packer
-# like minimal bazel version?
-
 load(":packer_toolchain.bzl", "get_platform_info")
 
 def rules_packer_dependencies():
@@ -40,7 +34,7 @@ def _packer_download_impl(rctx):
         sha256 = checksum,
     )
 
-    template_label = Label("//tools/packer:BUILD.repositories.bazel")
+    template_label = Label("//tools/packer:BUILD.repositories.bazel.tpl")
 
     rctx.template(
         "BUILD.bazel",

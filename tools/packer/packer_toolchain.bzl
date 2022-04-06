@@ -1,7 +1,3 @@
-# example rule for packer
-# https://github.com/vaticle/bazel-distribution/blob/master/packer/rules.bzl
-# https://bazel.build/docs/toolchains
-# https://bazel.build/concepts/platforms-intro
 PackerInfo = provider(
     doc = "Information about packer runtime",
     fields = {
@@ -17,7 +13,7 @@ def _packer_toolchain_impl(ctx):
     )
     return [toolchain_info]
 
-packer_toolchain = rule(
+_packer_toolchain = rule(
     implementation = _packer_toolchain_impl,
     attrs = {
         "packer_binary": attr.label(
@@ -54,12 +50,10 @@ def get_platform_info(os, cpu):
             .format(cpu_constraint = CPU_CONSTRAINT_MAPPING.get(cpu, cpu)),
     )
 
-# TODO: Use same approach as rules_ruby
-# move the native toolchain definition into the packer_toolchain macro
-def declare_toolchains(host_os, host_cpu, packer_binary):
+def packer_toolchain(host_os, host_cpu, packer_binary):
     platform_info = get_platform_info(os = host_os, cpu = host_cpu)
 
-    packer_toolchain(
+    _packer_toolchain(
         name = "packer_{os}_{cpu}".format(os = platform_info.os, cpu = platform_info.cpu),
         packer_binary = packer_binary,
     )

@@ -1,5 +1,3 @@
-# Follow tutorial to create simple rule
-# https://jayconrod.com/posts/106/writing-bazel-rules--simple-binary-rule
 def _packer_image_impl(ctx):
     packer_info = ctx.toolchains["//tools/packer:toolchain_type"].packer_info
     template_dir = "{}.templates".format(ctx.label.name)
