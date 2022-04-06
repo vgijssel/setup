@@ -1,28 +1,78 @@
 # example rule for packer
 # https://github.com/vaticle/bazel-distribution/blob/master/packer/rules.bzl
-BarcInfo = provider(
-    doc = "Information about how to invoke the barc compiler.",
-    # In the real world, compiler_path and system_lib might hold File objects,
-    # but for simplicity they are strings for this example. arch_flags is a list
-    # of strings.
-    fields = ["compiler_path", "system_lib", "arch_flags"],
+# https://bazel.build/docs/toolchains
+# https://bazel.build/concepts/platforms-intro
+PackerInfo = provider(
+    doc = "Information about packer runtime",
+    fields = {
+        "packer_binary": "A label which points to the packer binary",
+    },
 )
 
-def _bar_toolchain_impl(ctx):
+def _packer_toolchain_impl(ctx):
     toolchain_info = platform_common.ToolchainInfo(
-        barcinfo = BarcInfo(
-            compiler_path = ctx.attr.compiler_path,
-            system_lib = ctx.attr.system_lib,
-            arch_flags = ctx.attr.arch_flags,
+        packer_info = PackerInfo(
+            packer_binary = ctx.attr.packer_binary,
         ),
     )
     return [toolchain_info]
 
-bar_toolchain = rule(
-    implementation = _bar_toolchain_impl,
+packer_toolchain = rule(
+    implementation = _packer_toolchain_impl,
     attrs = {
-        "compiler_path": attr.string(),
-        "system_lib": attr.string(),
-        "arch_flags": attr.string_list(),
+        "packer_binary": attr.label(
+            mandatory = True,
+            allow_files = True,
+            executable = True,
+            cfg = "exec",
+        ),
     },
 )
+
+CPU_MAPPING = {
+    "x86_64": "amd64",
+}
+
+CPU_CONSTRAINT_MAPPING = {
+}
+
+OS_MAPPING = {
+    "mac os x": "darwin",
+}
+
+OS_CONSTRAINT_MAPPING = {
+    "mac os x": "macos",
+}
+
+def get_platform_info(os, cpu):
+    return struct(
+        os = OS_MAPPING.get(os, os),
+        os_constraint = "@platforms//os:{os_constraint}"
+            .format(os_constraint = OS_CONSTRAINT_MAPPING.get(os, os)),
+        cpu = CPU_MAPPING.get(cpu, cpu),
+        cpu_constraint = "@platforms//cpu:{cpu_constraint}"
+            .format(cpu_constraint = CPU_CONSTRAINT_MAPPING.get(cpu, cpu)),
+    )
+
+# TODO: Use same approach as rules_ruby
+# move the native toolchain definition into the packer_toolchain macro
+def declare_toolchains(host_os, host_cpu, packer_binary):
+    platform_info = get_platform_info(os = host_os, cpu = host_cpu)
+
+    packer_toolchain(
+        name = "packer_{os}_{cpu}".format(os = platform_info.os, cpu = platform_info.cpu),
+        packer_binary = packer_binary,
+    )
+
+    native.toolchain(
+        name = "packer_{os}_{cpu}_toolchain".format(os = platform_info.os, cpu = platform_info.cpu),
+        exec_compatible_with = [
+            platform_info.os_constraint,
+            platform_info.cpu_constraint,
+        ],
+        # target_compatible_with can be empty because
+        # packer can build for any platform!
+        target_compatible_with = [],
+        toolchain = ":packer_{os}_{cpu}".format(os = platform_info.os, cpu = platform_info.cpu),
+        toolchain_type = "@//tools/packer:toolchain_type",
+    )
