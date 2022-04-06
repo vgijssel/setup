@@ -1,0 +1,13 @@
+#cloud-config
+
+#cloud-config
+
+chpasswd: { expire: False }
+# enable password based ssh logins
+ssh_pwauth: True
+
+users:
+  - name: packer
+    plain_text_passwd: packer
+    lock_passwd: false
+    sudo: ALL=(ALL) NOPASSWD:ALL

@@ -36,3 +36,4 @@ cmd = run //tools/ssh --
 [Parse]
 PreloadBuildDefs = ./tools/please/sh_rules.build_defs
 PreloadBuildDefs = ./tools/please/helpers.build_defs
+buildfilename = BUILD.plz
