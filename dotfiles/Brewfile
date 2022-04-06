@@ -8,6 +8,9 @@ tap 'd12frosted/emacs-plus'
 
 cask_args appdir: '~/Applications'
 
+# Command runner
+brew 'just'
+
 brew 'windmilleng/tap/tilt'
 brew 'docker-machine-driver-hyperkit'
 brew 'qemu' # for running qcow2 based vms
@@ -87,6 +90,7 @@ brew 'coreutils'
 brew 'diffutils'
 brew 'findutils'
 brew 'gawk'
+brew 'rename'
 brew 'gnu-indent'
 brew 'gnu-sed'
 brew 'gnu-tar'

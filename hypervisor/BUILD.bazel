@@ -1,0 +1,23 @@
+load("//tools/packer:defs.bzl", "packer_image")
+
+packer_image(
+    name = "hypervisor",
+    output_image = "output/hypervisor.qcow2",
+    templates = [
+        "packer_qemu.pkr.hcl",
+        "hypervisor.pkr.hcl",
+    ],
+    variables = {
+        "iso_file": "$(location @ubuntu_focal//file)",
+        "iso_checksum": "8c8b5acb521f53a32e6ee53505e85d43958e42794c77dbb54dbe797097a63c5d",
+        "ssh_username": "packer",
+        "ssh_password": "packer",
+        "cloud_init_meta_data_file": "$(location cloud-init/meta-data)",
+        "cloud_init_user_data_file": "$(location cloud-init/user-data)",
+    },
+    deps = [
+        "cloud-init/meta-data",
+        "cloud-init/user-data",
+        "@ubuntu_focal//file",
+    ],
+)

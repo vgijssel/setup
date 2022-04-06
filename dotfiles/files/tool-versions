@@ -9,3 +9,4 @@ kubectl 1.19.0
 vault 1.7.3
 pulumi 3.22.0
 poetry 1.2.0a2
+bazel 5.1.0
