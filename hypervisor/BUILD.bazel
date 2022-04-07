@@ -25,6 +25,7 @@ packer_image(
 
 lima_run(
     name = "hypervisor",
+    lima_runtime = "@lima//:limactl",
     substitutions = {
         "{image_location}": "$(rootpath :hypervisor_image)",
         "{image_arch}": "x86_64",

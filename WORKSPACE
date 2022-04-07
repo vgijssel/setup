@@ -1,5 +1,6 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
+load("//tools/lima:repositories.bzl", "rules_lima_toolchains")
 
 rules_packer_toolchains(
     version = "1.8.0",
@@ -14,23 +15,6 @@ http_file(
     ],
 )
 
-http_archive(
-    name = "lima",
-    build_file_content = """
-package(default_visibility = ["//visibility:public"])
-
-sh_binary(
-    name = "limactl",
-    srcs = ["@//tools/lima:wrapper.sh"],
-    args = ["$(rootpath bin)/limactl"],
-    data = [
-        "share",
-        "bin",
-    ]
-)
-    """,
-
-    # TODO: use select to download binary for different platform
-    sha256 = "820f86d1486f70993cdcb535c93442a8d362f3992602c57a3cf0a8789090a802",
-    urls = ["https://github.com/lima-vm/lima/releases/download/v0.9.2/lima-0.9.2-Darwin-x86_64.tar.gz"],
+rules_lima_toolchains(
+    version = "0.9.2",
 )

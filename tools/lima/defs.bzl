@@ -16,7 +16,7 @@ def _lima_run_impl(ctx):
     ctx.actions.expand_template(
         template = ctx.file._runner_tpl,
         substitutions = {
-            "{limactl_binary}": ctx.attr._limactl_binary.files_to_run.executable.short_path,
+            "{limactl_binary}": ctx.attr.lima_runtime.files_to_run.executable.short_path,
             "{image_template}": template.short_path,
             "{vm_name}": ctx.label.name,
         },
@@ -26,7 +26,7 @@ def _lima_run_impl(ctx):
 
     # Ensure the limactl binary is available when the lima_runner script
     # is being run by Bazel.
-    runfiles = ctx.runfiles(files = [ctx.attr._limactl_binary.files_to_run.executable, template] + ctx.files.deps)
+    runfiles = ctx.runfiles(files = [ctx.attr.lima_runtime.files_to_run.executable, template] + ctx.files.deps)
 
     return [DefaultInfo(
         runfiles = runfiles,
@@ -44,6 +44,42 @@ lima_run = rule(
             default = Label("//tools/lima:runner.sh.tpl"),
             allow_single_file = True,
         ),
-        "_limactl_binary": attr.label(default = Label("@lima//:limactl"), executable = True, cfg = "exec"),
+        "lima_runtime": attr.label(executable = True, cfg = "exec"),
+    },
+)
+
+def _lima_runtime_impl(ctx):
+    output_files = []
+    limactl_output_file = None
+
+    for file in ctx.files.files:
+        # file.owner.name is the original file name
+        output_file_name = "{label}/{file_name}".format(label = ctx.label.name, file_name = file.owner.name)
+        output_file = ctx.actions.declare_file(output_file_name)
+        ctx.actions.run(
+            outputs = [output_file],
+            inputs = [file],
+            arguments = [file.path, output_file.path],
+            executable = "cp",
+            mnemonic = "CopyFile",
+        )
+        output_files.append(output_file)
+
+        if file.basename == "limactl":
+            limactl_output_file = output_file
+
+    if limactl_output_file == None:
+        fail("limactl not found in the runtime")
+
+    return [DefaultInfo(
+        executable = limactl_output_file,
+        files = depset(output_files),
+    )]
+
+lima_runtime = rule(
+    implementation = _lima_runtime_impl,
+    executable = True,
+    attrs = {
+        "files": attr.label(mandatory = True),
     },
 )

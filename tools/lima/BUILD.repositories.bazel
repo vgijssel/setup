@@ -1,0 +1,16 @@
+load("@//tools/lima:defs.bzl", "lima_runtime")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "files",
+    srcs = glob([
+        "share/lima/**",
+        "bin/**",
+    ]),
+)
+
+lima_runtime(
+    name = "limactl",
+    files = ":files",
+)
