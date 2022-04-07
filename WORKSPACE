@@ -1,5 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
+load("//tools/lima:repositories.bzl", "rules_lima_toolchains")
 
 rules_packer_toolchains(
     version = "1.8.0",
@@ -13,3 +14,5 @@ http_file(
         "https://cloud-images.ubuntu.com/focal/20220404/focal-server-cloudimg-amd64.img",
     ],
 )
+
+rules_lima_toolchains()

@@ -1,0 +1,6 @@
+images:
+  - location: "{image_location}"
+    arch: "{image_arch}"
+containerd:
+  system: false
+  user: false
