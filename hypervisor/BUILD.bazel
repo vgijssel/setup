@@ -1,4 +1,5 @@
 load("//tools/packer:defs.bzl", "packer_image")
+load("@rules_python//python:defs.bzl", "py_binary")
 
 packer_image(
     name = "hypervisor",
@@ -19,5 +20,13 @@ packer_image(
         "cloud-init/meta-data",
         "cloud-init/user-data",
         "@ubuntu_focal//file",
+    ],
+)
+
+py_binary(
+    name = "main",
+    srcs = ["main.py"],
+    deps = [
+        "@hypervisor_deps_pyinfra//:pkg",
     ],
 )
