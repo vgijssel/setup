@@ -52,6 +52,10 @@ def _lima_runtime_impl(ctx):
     output_files = []
     limactl_output_file = None
 
+    # We are copying all the files from lima to the output directory
+    # and we keep the same structure as downloaded from the remote.
+    # this to make sure the "share" directory is in the right place
+    # relative to the limactl binary.
     for file in ctx.files.files:
         # file.owner.name is the original file name
         output_file_name = "{label}/{file_name}".format(label = ctx.label.name, file_name = file.owner.name)
