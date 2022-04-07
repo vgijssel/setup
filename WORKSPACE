@@ -15,6 +15,4 @@ http_file(
     ],
 )
 
-rules_lima_toolchains(
-    version = "0.9.2",
-)
+rules_lima_toolchains()
