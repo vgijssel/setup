@@ -1,7 +1,8 @@
 load("//tools/packer:defs.bzl", "packer_image")
+load("//tools/lima:defs.bzl", "lima_run")
 
 packer_image(
-    name = "hypervisor",
+    name = "hypervisor_image",
     output_image = "output/hypervisor.qcow2",
     templates = [
         "packer_qemu.pkr.hcl",
@@ -19,5 +20,18 @@ packer_image(
         "cloud-init/meta-data",
         "cloud-init/user-data",
         "@ubuntu_focal//file",
+    ],
+)
+
+lima_run(
+    name = "hypervisor",
+    lima_runtime = "@lima//:limactl",
+    substitutions = {
+        "{image_location}": "$(rootpath :hypervisor_image)",
+        "{image_arch}": "x86_64",
+    },
+    template = "hypervisor_lima.yml",
+    deps = [
+        ":hypervisor_image",
     ],
 )
