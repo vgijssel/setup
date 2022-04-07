@@ -1,15 +1,6 @@
 images:
   - location: "{image_location}"
     arch: "{image_arch}"
-    digest: "{image_digest}"
-    # digest: sha512:2289adb1ae052b33b1dd125d7363645146c23e48b33bc709317f530b4045af8c352ca8f61350643c4d7dd0b3f02c89d39673f018b77192f6a3227f41547533e0
-    # digest: sha512:2289adb1ae052b33b1dd125d7363645146c23e48b33bc709317f530b4045af8c352ca8f61350643c4d7dd0b3f02c89d39673f018b77192f6a3227f41547533e0
-mounts:
-  - location: "~"
-  - location: "/tmp/lima"
-    writable: true
-#
-# TODO:
-# [ ] Prevent installation of containerd
-# [ ] Prevent installation of sshfs
-# [ ] Ensure necessary binaries are already present in image for Lima
+containerd:
+  system: false
+  user: false

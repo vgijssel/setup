@@ -18,9 +18,9 @@ echo $VM_NAME
 # is there metadata we can store on the machine in lima which we can query?
 
 # If there already exists a VM with the same name force stop it.
-$LIMACTL_WRAPPER limactl delete -f $VM_NAME
+$LIMACTL_WRAPPER delete -f $VM_NAME
 
 # Check if machine already exists
 # the -e in the jq command ensure we fail if the machine doesn't exist
 # $LIMACTL_WRAPPER list --json | jq -e --arg VM_NAME "$VM_NAMe" 'select(.name==$VM_NAME)'
-$LIMACTL_WRAPPER limactl start --tty=false --name $VM_NAME $TEMPLATE
+$LIMACTL_WRAPPER start --tty=false --name $VM_NAME $TEMPLATE

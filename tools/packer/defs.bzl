@@ -55,11 +55,23 @@ def _packer_image_impl(ctx):
         env = env,
     )
 
+    ctx.actions.run_shell(
+        outputs = [ctx.outputs.sha256],
+        inputs = [ctx.outputs.output_image],
+        command = "sha256sum {} > {}".format(ctx.outputs.output_image.path, ctx.outputs.sha256.path),
+    )
+
+    ctx.actions.run_shell(
+        outputs = [ctx.outputs.sha512],
+        inputs = [ctx.outputs.output_image],
+        command = "sha512sum {} > {}".format(ctx.outputs.output_image.path, ctx.outputs.sha512.path),
+    )
+
     return [DefaultInfo(
         files = depset([ctx.outputs.output_image]),
     )]
 
-packer_image = rule(
+_packer_image = rule(
     implementation = _packer_image_impl,
     attrs = {
         "templates": attr.label_list(mandatory = True, allow_files = True),
@@ -67,6 +79,8 @@ packer_image = rule(
         "variables": attr.string_dict(),
         "env": attr.string_dict(),
         "output_image": attr.output(mandatory = True),
+        "sha256": attr.output(),
+        "sha512": attr.output(),
         "_runner_tpl": attr.label(
             default = Label("//tools/packer:runner.sh.tpl"),
             allow_single_file = True,
@@ -74,3 +88,13 @@ packer_image = rule(
     },
     toolchains = ["//tools/packer:toolchain_type"],
 )
+
+def packer_image(**kwargs):
+    name = kwargs["name"]
+
+    # Using implicit outputs similar to https://github.com/bazelbuild/examples/blob/main/rules/implicit_output/hash.bzl
+    return _packer_image(
+        sha256 = "{}.sha256".format(name),
+        sha512 = "{}.sha512".format(name),
+        **kwargs
+    )

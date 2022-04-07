@@ -24,9 +24,9 @@ def _lima_run_impl(ctx):
         is_executable = True,
     )
 
-    # Ensure the limactl binary is available when the lima_runner script
+    # Ensure the limactl binary and associated files are available when the lima_runner script
     # is being run by Bazel.
-    runfiles = ctx.runfiles(files = [ctx.attr.lima_runtime.files_to_run.executable, template] + ctx.files.deps)
+    runfiles = ctx.runfiles(files = ctx.attr.lima_runtime.files.to_list() + [template] + ctx.files.deps)
 
     return [DefaultInfo(
         runfiles = runfiles,

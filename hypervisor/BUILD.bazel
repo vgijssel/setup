@@ -29,7 +29,6 @@ lima_run(
     substitutions = {
         "{image_location}": "$(rootpath :hypervisor_image)",
         "{image_arch}": "x86_64",
-        "{image_digest}": "sha512:cc6ca5e2f232b341d526baba623f7cfd7f7d664b28451cd4152ea3f767c6349defe00307bda6fd8adf79c69f6df5555f60bd9103113e10da0f8b06549dce60fb",
     },
     template = "hypervisor_lima.yml",
     deps = [
