@@ -9,6 +9,10 @@ hypervisor-build:
 hypervisor-run:
     bazel run --show_progress --worker_verbose --verbose_failures --test_output=streamed -s //hypervisor:hypervisor
 
+# Provision the hypervisor with Pyinfra
+hypervisor-provision:
+    bazel run --show_progress --worker_verbose --verbose_failures --test_output=streamed -s //hypervisor:provision
+
 # Invoke the packer binary directly
 packer +args:
     bazel run @packer//:packer_binary -- {{args}}

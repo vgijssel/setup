@@ -1,13 +1,22 @@
 from pyinfra.operations import apt, server
+from pyinfra_docker import deploy_docker
 
-server.shell(
-    name='Run an ad-hoc command',  # optional name for the operation
-    commands='echo "hello world"',
+server.sysctl(
+    name='Enable ip4 forwarding',
+    key='net.ipv4.ip_forward',
+    value=1,
+    persist=True,
 )
 
-# Define some state - this operation will do nothing on subsequent runs
 apt.packages(
-    name='Ensure the vim apt package is installed',
-    packages=['vim'],
-    sudo=True,  # use sudo when installing the packages
+    name="Ensure ignite dependencies are installed",
+    packages=["mount", "tar", "e2fsprogs", "binutils", "dmsetup", "openssh-client", "git", "cpu-checker"],
 )
+
+deploy_docker()
+
+# - Install Ignire dependencies
+# - Install Ignite
+# --- packer specific
+# - Remove packer user
+# - Reset cloud init

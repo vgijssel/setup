@@ -1,9 +1,16 @@
+# query lima
+
+import subprocess
+import os
+import json
+
+limactl_binary = os.environ['LIMACTL_BINARY']
+
+result = subprocess.run([limactl_binary, 'list', '--json', 'hypervisor'], capture_output=True, check=True)
+server = json.loads(result.stdout)
+
 hosts = [
-	('hypervisor', {'ssh_hostname': '127.0.0.1', 'ssh_port': '64875'}),
+	(server['name'], {'ssh_hostname': '127.0.0.1', 'ssh_port': server['sshLocalPort'] }),
 ]
 
-# ssh_hostname = 'my-host.net' # defaults to the inventory name, but useful when you've got multiple hosts on one IP (e.g. virtual machines)
-# ssh_port = 22
-# ssh_user = 'ubuntu'
-# ssh_key = '~/.ssh/some_key'
-# ssh_key_password = 'password for key'
+# TODO: how can we ignore host keys missing on host?
