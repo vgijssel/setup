@@ -1,6 +1,5 @@
 load("//tools/packer:defs.bzl", "packer_image")
 load("//tools/lima:defs.bzl", "lima_run")
-load("@rules_python//python:defs.bzl", "py_binary")
 
 packer_image(
     name = "hypervisor_image",
@@ -37,10 +36,20 @@ lima_run(
     ],
 )
 
-py_binary(
-    name = "main",
-    srcs = ["main.py"],
-    deps = [
-        "@hypervisor_deps_pyinfra//:pkg",
+sh_binary(
+    name = "provision",
+    srcs = [
+        "provision.sh",
     ],
+    data = [
+        "deploy.py",
+        "group_data/all.py",
+        "inventory.py",
+        "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
+    ],
+    env = {
+        "PYINFRA_BINARY": "$(rootpath @hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra)",
+        "INVENTORY_FILE": "$(rootpath inventory.py)",
+        "DEPLOY_FILE": "$(rootpath deploy.py)",
+    },
 )
