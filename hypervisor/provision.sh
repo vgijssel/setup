@@ -2,4 +2,5 @@
 
 set -e
 
-$PYINFRA_BINARY --debug --sudo $INVENTORY_FILE $DEPLOY_FILE
+# --debug
+$PYINFRA_BINARY --sudo $INVENTORY_FILE $DEPLOY_FILE
