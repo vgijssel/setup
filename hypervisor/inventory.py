@@ -1,5 +1,3 @@
-# query lima
-
 import subprocess
 import os
 import json
