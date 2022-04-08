@@ -1,5 +1,6 @@
 load("//tools/packer:defs.bzl", "packer_image")
 load("//tools/lima:defs.bzl", "lima_run")
+load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 
 packer_image(
     name = "hypervisor_image",
@@ -8,6 +9,9 @@ packer_image(
         "packer_qemu.pkr.hcl",
         "hypervisor.pkr.hcl",
     ],
+    tools = [
+        ":provision",
+    ],
     variables = {
         "iso_file": "$(location @ubuntu_focal//file)",
         "iso_checksum": "8c8b5acb521f53a32e6ee53505e85d43958e42794c77dbb54dbe797097a63c5d",
@@ -15,6 +19,7 @@ packer_image(
         "ssh_password": "packer",
         "cloud_init_meta_data_file": "$(location cloud-init/meta-data)",
         "cloud_init_user_data_file": "$(location cloud-init/user-data)",
+        "provision_script": "$(location :provision)",
     },
     deps = [
         "cloud-init/meta-data",
@@ -36,22 +41,68 @@ lima_run(
     ],
 )
 
-sh_binary(
+pyinfra_run(
     name = "provision",
-    srcs = [
-        "provision.sh",
-    ],
-    data = [
-        "deploy.py",
-        "inventory.py",
-        "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
-        "@hypervisor_deps_pyinfra_docker//:pkg",
+    # deploy = "deploy.py",
+    env = {
+        "LIMACTL_BINARY": "$(execpath @lima//:limactl)",
+    },
+    # inventory = "inventory.py",
+    pyinfra_runtime = "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
+    deps = [
         "@lima//:limactl",
     ],
-    env = {
-        "PYINFRA_BINARY": "$(rootpath @hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra)",
-        "LIMACTL_BINARY": "$(rootpath @lima//:limactl)",
-        "INVENTORY_FILE": "$(rootpath inventory.py)",
-        "DEPLOY_FILE": "$(rootpath deploy.py)",
-    },
+)
+
+genrule(
+    name = "kerk",
+    outs = ["kerk.out"],
+    cmd = """
+    set -e
+
+    echo "THE PWD:"
+    pwd
+
+    PROVISION=$(location @hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra)
+
+    echo "THE PROVISION:"
+    echo $$PROVISION
+
+    $$PROVISION
+
+    """,
+    tools = [
+        "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
+    ],
+)
+
+genrule(
+    name = "shine",
+    outs = ["shine.out"],
+    cmd = """
+    set -e
+
+    # echo "THE PWD:"
+    # pwd
+
+    # echo "CURRENT DIR"
+    # ls -la .
+
+    # echo "EXTERNAL DIR"
+    # ls -la external
+
+    # echo "PARENT DIR"
+    # ls -la ../
+
+    PROVISION=$(location :provision)
+
+    echo "THE PROVISION:"
+    echo $$PROVISION
+
+    $$PROVISION
+
+    """,
+    tools = [
+        ":provision",
+    ],
 )

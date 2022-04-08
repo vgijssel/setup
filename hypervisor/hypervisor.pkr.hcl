@@ -1,3 +1,7 @@
+variable "provision_script" {
+  type = string
+}
+
 build {
   name = "hypervisor"
   sources = ["source.qemu.image"]
@@ -7,7 +11,7 @@ build {
   }
 
   provisioner "shell-local" {
-    inline = ["env"]
+    inline = [var.provision_script]
     env = {
       ssh_host = build.Host
       ssh_port = build.Port
