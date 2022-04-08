@@ -23,14 +23,6 @@ packer_image(
     ],
 )
 
-# TODO: running kvm-ok inside the vm fails, because qemu on macOS does not support nested virtualization.
-# qemu accelerators: kvm, tcg, hax, hvf, whpx, xen
-# kvm: linux specific, not available for macOS
-# tcg: pure emulation, likely to be slow?
-# hax: does not support it https://github.com/intel/haxm/issues/51
-# hvf: macOS Hypervisor.framework does
-# whpx: Windows Hypervisor Platform
-# xen:
 lima_run(
     name = "hypervisor",
     lima_runtime = "@lima//:limactl",

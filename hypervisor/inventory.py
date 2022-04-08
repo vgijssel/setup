@@ -12,5 +12,3 @@ server = json.loads(result.stdout)
 hosts = [
 	(server['name'], {'ssh_hostname': '127.0.0.1', 'ssh_port': server['sshLocalPort'] }),
 ]
-
-# TODO: how can we ignore host keys missing on host?
