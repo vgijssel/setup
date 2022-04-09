@@ -9,6 +9,8 @@ inventory_file = runner_env.inventory_file
 deploy_file = runner_env.deploy_file
 sys.argv = [
     current_file,
+    "--debug",
+    "--sudo",
     inventory_file,
     deploy_file,
 ]

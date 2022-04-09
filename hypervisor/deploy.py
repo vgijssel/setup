@@ -1,6 +1,7 @@
 from pyinfra.operations import apt, server, files
-from pyinfra_docker import deploy_docker
+# from pyinfra_docker import deploy_docker
 from pyinfra import host
+from pyinfra.facts.server import Arch
 
 server.sysctl(
     name='Enable ip4 forwarding',
@@ -14,11 +15,11 @@ apt.packages(
     packages=["mount", "tar", "e2fsprogs", "binutils", "dmsetup", "openssh-client", "git", "cpu-checker", "uuid-runtime"],
 )
 
-deploy_docker()
+# deploy_docker()
 
 # Installation instructions from https://github.com/weaveworks/ignite/blob/main/docs/installation.md
 cni_version = 'v0.9.1'
-arch = 'amd64' if host.fact.arch == 'x86_64' else 'arm64'
+arch = 'amd64' if host.get_fact(Arch) == 'x86_64' else 'arm64'
 
 files.download(
     name = 'Download CNI binaries',

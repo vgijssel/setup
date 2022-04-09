@@ -29,7 +29,7 @@ _create_runner_env = rule(
     },
 )
 
-def pyinfra_run(name, deploy, inventory, data, pyinfra_runtime):
+def pyinfra_run(name, deploy, inventory, data, pyinfra_runtime, deps = []):
     runner_env_label = "{}_runner_env".format(name)
 
     _create_runner_env(
@@ -50,7 +50,7 @@ def pyinfra_run(name, deploy, inventory, data, pyinfra_runtime):
         deps = [
             "@rules_python//python/runfiles",
             pyinfra_runtime,
-        ],
+        ] + deps,
         imports = ["{}_files".format(name)],
         data = [
             deploy,

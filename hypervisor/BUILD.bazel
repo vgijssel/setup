@@ -43,6 +43,7 @@ lima_run(
 
 pyinfra_run(
     name = "provision",
+    # TODO: can we use the crazy map attribute here?
     data = [
         "@lima//:limactl",
         "@packer//:packer_binary",
@@ -50,4 +51,7 @@ pyinfra_run(
     deploy = "deploy.py",
     inventory = "inventory.py",
     pyinfra_runtime = "@hypervisor_deps_pyinfra//:pkg",
+    deps = [
+        "@hypervisor_deps_pyinfra_docker//:pkg",
+    ],
 )
