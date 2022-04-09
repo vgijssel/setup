@@ -43,7 +43,6 @@ lima_run(
 
 pyinfra_run(
     name = "provision",
-    # TODO: can we use the crazy map attribute here?
     data = [
         "@lima//:limactl",
         "@packer//:packer_binary",
