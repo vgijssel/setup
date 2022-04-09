@@ -1,0 +1,4 @@
+# Ensure we are using the default OS paths to prevent user specific installed binary issues:
+# https://github.com/bazelbuild/rules_python/issues/662#issuecomment-1091878387
+build --action_env=PATH=/usr/local/bin/:/usr/local/sbin/:/usr/bin:/bin:/usr/sbin:/sbin
+run --action_env=PATH=/usr/local/bin/:/usr/local/sbin/:/usr/bin:/bin:/usr/sbin:/sbin
