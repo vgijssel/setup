@@ -53,6 +53,7 @@ def _packer_image_impl(ctx):
         progress_message = "Building packer image: %s" % ctx.outputs.output_image.path,
         executable = packer_runner,
         env = env,
+        tools = ctx.files.tools,
     )
 
     ctx.actions.run_shell(
@@ -75,6 +76,7 @@ _packer_image = rule(
     implementation = _packer_image_impl,
     attrs = {
         "templates": attr.label_list(mandatory = True, allow_files = True),
+        "tools": attr.label_list(),
         "deps": attr.label_list(allow_files = True),
         "variables": attr.string_dict(),
         "env": attr.string_dict(),

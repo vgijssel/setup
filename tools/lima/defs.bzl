@@ -75,9 +75,15 @@ def _lima_runtime_impl(ctx):
     if limactl_output_file == None:
         fail("limactl not found in the runtime")
 
+    runfiles = ctx.runfiles(files = output_files)
+    runfiles = runfiles.merge_all([
+        ctx.attr.files[DefaultInfo].default_runfiles,
+    ])
+
     return [DefaultInfo(
         executable = limactl_output_file,
-        files = depset(output_files),
+        files = runfiles.files,
+        runfiles = runfiles,
     )]
 
 lima_runtime = rule(
