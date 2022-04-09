@@ -43,66 +43,11 @@ lima_run(
 
 pyinfra_run(
     name = "provision",
-    # deploy = "deploy.py",
-    env = {
-        "LIMACTL_BINARY": "$(execpath @lima//:limactl)",
-    },
-    # inventory = "inventory.py",
-    pyinfra_runtime = "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
-    deps = [
+    data = [
         "@lima//:limactl",
+        "@packer//:packer_binary",
     ],
-)
-
-genrule(
-    name = "kerk",
-    outs = ["kerk.out"],
-    cmd = """
-    set -e
-
-    echo "THE PWD:"
-    pwd
-
-    PROVISION=$(location @hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra)
-
-    echo "THE PROVISION:"
-    echo $$PROVISION
-
-    $$PROVISION
-
-    """,
-    tools = [
-        "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
-    ],
-)
-
-genrule(
-    name = "shine",
-    outs = ["shine.out"],
-    cmd = """
-    set -e
-
-    # echo "THE PWD:"
-    # pwd
-
-    # echo "CURRENT DIR"
-    # ls -la .
-
-    # echo "EXTERNAL DIR"
-    # ls -la external
-
-    # echo "PARENT DIR"
-    # ls -la ../
-
-    PROVISION=$(location :provision)
-
-    echo "THE PROVISION:"
-    echo $$PROVISION
-
-    $$PROVISION
-
-    """,
-    tools = [
-        ":provision",
-    ],
+    deploy = "deploy.py",
+    inventory = "inventory.py",
+    pyinfra_runtime = "@hypervisor_deps_pyinfra//:pkg",
 )
