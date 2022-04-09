@@ -10,14 +10,14 @@ build {
     inline = ["/usr/bin/cloud-init status --wait"]
   }
 
-  # provisioner "shell-local" {
-  #   inline = [var.provision_script]
-  #   env = {
-  #     SETUP_ENV = "build"
-  #     ssh_host = build.Host
-  #     ssh_port = build.Port
-  #     ssh_user = build.User
-  #     ssh_password = build.Password
-  #   }
-  # }
+  provisioner "shell-local" {
+    inline = [var.provision_script]
+    env = {
+      SETUP_ENV = "build"
+      ssh_host = build.Host
+      ssh_port = build.Port
+      ssh_user = build.User
+      ssh_password = build.Password
+    }
+  }
 }
