@@ -51,7 +51,4 @@ pyinfra_run(
     deploy = "deploy.py",
     inventory = "inventory.py",
     pyinfra_runtime = "@hypervisor_deps_pyinfra//:pkg",
-    deps = [
-        "@hypervisor_deps_pyinfra_docker//:pkg",
-    ],
 )
