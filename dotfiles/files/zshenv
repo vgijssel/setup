@@ -15,7 +15,6 @@ export PATH=\
 "${HOME}/bin:"\
 "/Applications/Postgres.app/Contents/Versions/latest/bin:"\
 "${GNU_CORE_UTILS}:"\
-"${GNU_CORE_UTILS}:"\
 "${GNU_FIND_UTILS}:"\
 "${GNU_INDENT}:"\
 "${GNU_SED}:"\
