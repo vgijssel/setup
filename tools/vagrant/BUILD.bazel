@@ -1,0 +1,10 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["box.ovf"])
+
+sh_binary(
+    name = "qcow_to_vagrant_box",
+    srcs = [
+        "qcow_to_vagrant_box.sh",
+    ],
+)
