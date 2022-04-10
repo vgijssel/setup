@@ -50,13 +50,20 @@ new_git_repository(
     build_file_content = """
     """,
     commit = "379dd20cf91865c97f8dd5bb2c8e7f69fd1c00f2",
+    patch_args = ["-p1"],
+    patches = ["//tools/vagrant:remove-vagrant-spec-from-Gemfile.patch"],
     remote = "https://github.com/hashicorp/vagrant.git",
     shallow_since = "1636146944 -0700",
-    # tag = "v2.2.19",
 )
 
 ruby_bundle(
     name = "vagrant_bundle",
+    srcs = [
+        "@vagrant//:.gitignore",
+        "@vagrant//:lib/vagrant/version.rb",
+        "@vagrant//:vagrant.gemspec",
+        "@vagrant//:version.txt",
+    ],
     gemfile = "@vagrant//:Gemfile",
 )
 
