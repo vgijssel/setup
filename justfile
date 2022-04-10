@@ -7,7 +7,7 @@ hypervisor-build:
 
 # Run the hypervisor image
 hypervisor-run +args:
-    VAGRANT_EXPERIMENTAL="cloud_init,disks" HYPERVISOR_BOX_PATH=bazel-bin/hypervisor/hypervisor_image_box.box VAGRANT_CWD=hypervisor bazel run @vagrant_bundle//:bin/bundle -- exec vagrant {{args}}
+    bazel run //hypervisor -- {{args}}
 
 # Provision the hypervisor with Pyinfra
 hypervisor-provision:
@@ -27,4 +27,4 @@ pyinfra +args:
 
 # Invoke the vagrant binary directly
 vagrant +args:
-    VAGRANT_CWD={{invocation_directory()}} bazel run @vagrant_bundle//:bin/bundle -- exec vagrant {{args}}
+    VAGRANT_CWD={{invocation_directory()}} bazel run //tools/vagrant:vagrant_runtime -- {{args}}

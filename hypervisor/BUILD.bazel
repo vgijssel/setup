@@ -1,7 +1,6 @@
 load("//tools/packer:defs.bzl", "packer_image")
-load("//tools/lima:defs.bzl", "lima_run")
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
-load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box")
+load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box", "vagrant_run")
 
 packer_image(
     name = "hypervisor_image",
@@ -34,16 +33,17 @@ qcow_to_vagrant_box(
     src = ":hypervisor_image",
 )
 
-lima_run(
+vagrant_run(
     name = "hypervisor",
-    lima_runtime = "@lima//:limactl",
-    substitutions = {
-        "{image_location}": "$(rootpath :hypervisor_image)",
-        "{image_arch}": "x86_64",
+    env = {
+        "HYPERVISOR_BOX_PATH": "$(rootpath :hypervisor_image_box)",
+        "LOG_DIR": "/tmp",
+        "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
     },
-    template = "hypervisor_lima.yml",
+    vagrant_runtime = "//tools/vagrant:vagrant_runtime",
+    vagrantfile = "Vagrantfile",
     deps = [
-        ":hypervisor_image",
+        ":hypervisor_image_box",
     ],
 )
 

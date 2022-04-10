@@ -1,10 +1,24 @@
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["box.ovf"])
+exports_files([
+    "box.ovf",
+    "runner.sh.tpl",
+])
 
 sh_binary(
     name = "qcow_to_vagrant_box",
     srcs = [
         "qcow_to_vagrant_box.sh",
+    ],
+)
+
+sh_binary(
+    name = "vagrant_runtime",
+    srcs = [
+        "@vagrant_bundle//:bin/bundle",
+    ],
+    args = [
+        "exec",
+        "vagrant",
     ],
 )

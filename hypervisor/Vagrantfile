@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+# TODO:
+# 1. create vagrant_run rule to make Vagrant completely part of Bazel
+# 2. implement insecure vagrant ssh public key
+# 3. implement just hypervisor-provision
+# 4. remove lima code?
+
 # To install pry into the vagrant embedded gems:
 # cd /opt/vagrant/embedded/gems/ 
 # chmod -R 0777 <<VERSION>>
@@ -18,7 +24,7 @@
 # see https://martincarstenbach.wordpress.com/2020/05/05/versioning-for-your-local-vagrant-boxes-adding-a-new-box/
 # and https://martincarstenbach.wordpress.com/2020/05/07/versioning-for-your-local-vagrant-boxes-handling-updates/
 
-log_dir = "/tmp"
+log_dir = ENV.fetch('LOG_DIR')
 hypervisor_box_path = ENV.fetch('HYPERVISOR_BOX_PATH')
 
 Vagrant.configure('2') do |config|
