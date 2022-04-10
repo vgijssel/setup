@@ -23,7 +23,7 @@ hypervisor_box_path = ENV.fetch('HYPERVISOR_BOX_PATH')
 
 Vagrant.configure('2') do |config|
   config.vm.define "hypervisor", primary: true do |hypervisor|
-    hypervisor.vm.network "private_network", type: "dhcp", auto_config: true
+    # hypervisor.vm.network "private_network", type: "dhcp", auto_config: true
 
     hypervisor.vm.box = "file://#{hypervisor_box_path}"
     hypervisor.vm.synced_folder '.', '/vagrant', disabled: true
@@ -43,7 +43,6 @@ Vagrant.configure('2') do |config|
 #cloud-config
 
 chpasswd: { expire: False }
-# enable password based ssh logins
 ssh_pwauth: True
 
 users:

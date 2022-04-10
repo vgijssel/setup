@@ -20,4 +20,9 @@ build {
       ssh_password = build.Password
     }
   }
+
+  # Ensure we reset cloud-init so it's re-run the next time the image is loaded.
+  provisioner "shell" {
+    inline = ["sudo /usr/bin/cloud-init clean"]
+  }
 }
