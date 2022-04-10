@@ -27,4 +27,4 @@ pyinfra +args:
 
 # Invoke the vagrant binary directly
 vagrant +args:
-    bazel run @vagrant_bundle//:bin/bundle -- exec vagrant {{args}}
+    VAGRANT_CWD={{invocation_directory()}} bazel run @vagrant_bundle//:bin/bundle -- exec vagrant {{args}}

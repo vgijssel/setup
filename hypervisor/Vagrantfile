@@ -1,0 +1,88 @@
+# frozen_string_literal: true
+
+# To install pry into the vagrant embedded gems:
+# cd /opt/vagrant/embedded/gems/ 
+# chmod -R 0777 <<VERSION>>
+# gem install pry --install-dir /opt/vagrant/embedded/gems/<<VERSION>>
+# require 'pry'
+
+# hypervisor_box_path = ENV.fetch('BOX_PATH')
+# ssh_config_path = ENV.fetch('SSH_CONFIG_PATH')
+# pxe_box_path = File.join(box_dir, 'pxe.box')
+
+# TODO: manage these variables with plz not direnv
+# log_dir = ENV.fetch('SETUP_LOG_DIR')
+# private_key_path = ENV.fetch('PRIVATE_KEY_PATH')
+
+# TODO: could leverage a metadata file to support automatic upgrading of Vagrant box files
+# see https://martincarstenbach.wordpress.com/2020/05/05/versioning-for-your-local-vagrant-boxes-adding-a-new-box/
+# and https://martincarstenbach.wordpress.com/2020/05/07/versioning-for-your-local-vagrant-boxes-handling-updates/
+
+log_dir = "/tmp"
+hypervisor_box_path = ENV.fetch('HYPERVISOR_BOX_PATH')
+
+Vagrant.configure('2') do |config|
+  config.vm.define "hypervisor", primary: true do |hypervisor|
+    hypervisor.vm.network "private_network", type: "dhcp", auto_config: true
+
+    hypervisor.vm.box = "file://#{hypervisor_box_path}"
+    hypervisor.vm.synced_folder '.', '/vagrant', disabled: true
+
+    # hypervisor.vm.network "forwarded_port", guest: 8091, host: 8091
+    # hypervisor.vm.network "forwarded_port", guest: 8092, host: 8092
+    # docker registry
+    # hypervisor.vm.network "forwarded_port", guest: 5000, host: 5000
+
+    hypervisor.ssh.username = 'vagrant'
+    hypervisor.ssh.password = 'vagrant'
+    hypervisor.ssh.insert_key = false
+
+    hypervisor.vm.cloud_init :user_data do |cloud_init|
+        cloud_init.content_type = "text/cloud-config"
+        cloud_init.inline = """
+#cloud-config
+
+chpasswd: { expire: False }
+# enable password based ssh logins
+ssh_pwauth: True
+
+users:
+  - name: vagrant
+    plain_text_passwd: vagrant
+    lock_passwd: false
+    sudo: ALL=(ALL) NOPASSWD:ALL
+        """
+    end
+
+    hypervisor.vm.provider 'virtualbox' do |vb|
+      vb.gui = false
+      vb.memory = "4096"
+      vb.cpus = 2
+
+      # Enable promiscious mode on the network adapter to enable bridge networking in the vm
+    #   vb.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
+    #   vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+
+      # Setup log file
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "hypervisor.log")]
+    end
+
+#     hypervisor.trigger.after [:up, :resume, :reload] do |trigger|
+#       trigger.info = "Writing out ssh_config file to: #{ssh_config_path}"
+#       trigger.ruby do |env, machine|
+#         ssh_config = <<~SSH_CONFIG
+# Host #{machine.name}
+#   Port #{machine.ssh_info.fetch(:port)}
+#   Hostname #{machine.ssh_info.fetch(:host)}
+#   User #{machine.ssh_info.fetch(:username)}
+#   IdentityFile #{machine.ssh_info.fetch(:private_key_path).first}
+#   UserKnownHostsFile /dev/null
+#   StrictHostKeyChecking no
+#         SSH_CONFIG
+
+#         FileUtils.mkdir_p(ssh_config_path)
+#         File.write(File.join(ssh_config_path, machine.name.to_s), ssh_config)
+#       end
+#     end
+  end
+end
