@@ -45,6 +45,9 @@ def _vagrant_run_impl(ctx):
     )
 
     runfiles = ctx.runfiles(files = [ctx.executable.vagrant_runtime] + ctx.files.deps)
+    runfiles = runfiles.merge_all([
+        ctx.attr.vagrant_runtime[DefaultInfo].default_runfiles,
+    ])
 
     return [DefaultInfo(
         executable = vagrant_runner,

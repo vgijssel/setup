@@ -1,3 +1,5 @@
+load("//tools/bazel:defs.bzl", "runner_binary")
+
 package(default_visibility = ["//visibility:public"])
 
 exports_files([
@@ -12,13 +14,12 @@ sh_binary(
     ],
 )
 
-sh_binary(
+runner_binary(
     name = "vagrant_runtime",
-    srcs = [
+    cmd = """
+    $(rlocation vagrant_bundle/bin/bundle) exec vagrant
+    """,
+    deps = [
         "@vagrant_bundle//:bin/bundle",
-    ],
-    args = [
-        "exec",
-        "vagrant",
     ],
 )

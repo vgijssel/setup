@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
+# problem with using sh_binary is that arguments are dropped
+# when the binary is invoked in a different way.
+# we want these arguments to persist whatever way the binary is called.
+
 # TODO:
-# 1. create vagrant_run rule to make Vagrant completely part of Bazel
-# 2. implement insecure vagrant ssh public key
-# 3. implement just hypervisor-provision
-# 4. remove lima code?
+# 1. [x] create vagrant_run rule to make Vagrant completely part of Bazel
+# 2. [x] create vagrant_runtime with embedded "exec vagrant" arguments
+# 3. [ ] implement insecure vagrant ssh public key
+# 4. [ ] implement just hypervisor-provision
+# 5. [ ] remove lima code?
 
 # To install pry into the vagrant embedded gems:
 # cd /opt/vagrant/embedded/gems/ 

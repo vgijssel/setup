@@ -8,5 +8,4 @@ export VAGRANT_CWD="{output_dir}"
 
 {env_string}
 
-# TODO: wtf exec vagrant here? 
-$VAGRANT_BINARY exec vagrant $VAGRANT_ARGS
+$VAGRANT_BINARY $VAGRANT_ARGS
