@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -Eeoux pipefail
+set -Eeou pipefail
+# set -x
 
 export VAGRANT_ARGS="$@"
 export VAGRANT_BINARY="{vagrant_binary}"

@@ -19,12 +19,8 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
     ctx.actions.write(runner_binary_executable, full_cmd, is_executable = True)
 
     runfiles = ctx.runfiles(
-        files = ctx.files.deps + [ctx.file._rlocation],
+        files = [ctx.file._rlocation],
     )
-
-    runfiles = runfiles.merge_all([
-        ctx.attr._rlocation[DefaultInfo].default_runfiles,
-    ])
 
     return [DefaultInfo(
         executable = runner_binary_executable,
