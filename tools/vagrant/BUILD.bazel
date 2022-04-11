@@ -17,7 +17,7 @@ sh_binary(
 runner_binary(
     name = "vagrant_runtime",
     cmd = """
-    $(rlocation vagrant_bundle/bin/bundle) exec vagrant
+    $(rlocation vagrant_bundle/bin/bundle) exec vagrant $@
     """,
     data = [
         "@vagrant_bundle//:bin/bundle",

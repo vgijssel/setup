@@ -1,6 +1,12 @@
 def _runner_binary_impl(ctx):
     runner_binary_executable = ctx.actions.declare_file(ctx.label.name)
     cmd = ctx.expand_location(ctx.attr.cmd)
+
+    # Added the following line to the runfiles.bash script:
+    # source "$(grep -sm1 "^$f " "$(dirname $(pwd))/MANIFEST" | cut -f2- -d' ')" 2>/dev/null || \
+    # to deal with the case where the runner_binary is not called directly but
+    # called by another bazel rule. Because in that case $0 will be different
+    # and cannot be used to resolve the location of the runfiles manifest.
     cmd_header = """
 # --- begin runfiles.bash initialization v2 ---
 # Copy-pasted from the Bazel Bash runfiles library v2.
