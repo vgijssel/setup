@@ -19,7 +19,7 @@ runner_binary(
     cmd = """
     $(rlocation vagrant_bundle/bin/bundle) exec vagrant
     """,
-    deps = [
+    data = [
         "@vagrant_bundle//:bin/bundle",
     ],
 )
