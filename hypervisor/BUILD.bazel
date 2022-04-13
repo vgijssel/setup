@@ -9,9 +9,9 @@ packer_image(
         "packer_qemu.pkr.hcl",
         "hypervisor.pkr.hcl",
     ],
-    # tools = [
-    #     ":provision",
-    # ],
+    tools = [
+        ":provision",
+    ],
     variables = {
         "iso_file": "$(location @ubuntu_focal//file)",
         "iso_checksum": "8c8b5acb521f53a32e6ee53505e85d43958e42794c77dbb54dbe797097a63c5d",
@@ -19,12 +19,11 @@ packer_image(
         "ssh_password": "packer",
         "cloud_init_meta_data_file": "$(location cloud-init/meta-data)",
         "cloud_init_user_data_file": "$(location cloud-init/user-data)",
-        # "provision_script": "$(location :provision)",
+        "provision_script": "$(location :provision)",
     },
     deps = [
         "cloud-init/meta-data",
         "cloud-init/user-data",
-        # ":provision",
         "@ubuntu_focal//file",
     ],
 )
@@ -52,7 +51,8 @@ vagrant_run(
 # 2. [x] create vagrant_runtime with embedded "exec vagrant" arguments
 # 3. [x] implement insecure vagrant ssh public key
 # 4. [x] implement just hypervisor-provision
-# 5. [ ] remove lima code?
+# 5. [ ] ensure a genrule can actually call the provision script without error! Runfiles not working?
+# 6. [ ] remove lima code?
 # This needs environment variables to set the right directory
 # for the vagrant command. We need to set VAGRANT_CMD in the runner_binary
 # to make sure the vagrant pyinfra connector works as expected.
@@ -66,7 +66,7 @@ pyinfra_run(
         "HYPERVISOR_BOX_PATH": "",
     },
     inventory = "inventory.py",
-    pyinfra_runtime = "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
+    pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",
     deps = [
         ":dev.Vagrantfile",
     ],

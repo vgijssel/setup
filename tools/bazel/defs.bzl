@@ -40,6 +40,16 @@ set -Eeou pipefail
         files = [ctx.file._rlocation] + ctx.files.data + ctx.files.deps + [ctx.outputs.out],
     )
 
+    for dep in ctx.attr.deps:
+        runfiles = runfiles.merge_all([
+            dep[DefaultInfo].default_runfiles,
+        ])
+
+    for dat in ctx.attr.data:
+        runfiles = runfiles.merge_all([
+            dat[DefaultInfo].default_runfiles,
+        ])
+
     return [DefaultInfo(
         executable = ctx.outputs.out,
         files = runfiles.files,
