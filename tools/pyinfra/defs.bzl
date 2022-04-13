@@ -1,6 +1,6 @@
 load("//tools/bazel:defs.bzl", "runner_binary")
 
-def pyinfra_run(name, deploy, inventory, pyinfra_runtime, env = {}):
+def pyinfra_run(name, deploy, inventory, pyinfra_runtime, env = {}, deps = [], args = []):
     env_string = ""
     for key, value in env.items():
         env_string += 'export {}="{}"\n'.format(key, value)
@@ -14,18 +14,18 @@ def pyinfra_run(name, deploy, inventory, pyinfra_runtime, env = {}):
         INVENTORY_PATH=$$(rlocation $(WORKSPACE_NAME)/$(rootpath {inventory}))
         PYINFRA_BINARY=$$(rlocation $(WORKSPACE_NAME)/$(rootpath {pyinfra_binary}))
 
-        $$PYINFRA_BINARY $$INVENTORY_PATH $$DEPLOY_PATH
+        $$PYINFRA_BINARY {args} $$INVENTORY_PATH $$DEPLOY_PATH
         """.format(
             env_string = env_string,
             deploy = deploy,
             inventory = inventory,
             pyinfra_binary = pyinfra_runtime,
+            args = " ".join(args),
         ),
         out = "{}_runner.sh".format(name),
         deps = [
             deploy,
             inventory,
             pyinfra_runtime,
-        ],
+        ] + deps,
     )
-    pass

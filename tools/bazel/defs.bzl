@@ -37,7 +37,7 @@ set -Eeou pipefail
     ctx.actions.write(ctx.outputs.out, full_cmd, is_executable = True)
 
     runfiles = ctx.runfiles(
-        files = [ctx.file._rlocation] + ctx.files.data + ctx.files.deps,
+        files = [ctx.file._rlocation] + ctx.files.data + ctx.files.deps + [ctx.outputs.out],
     )
 
     return [DefaultInfo(
