@@ -52,10 +52,7 @@ vagrant_run(
 # packer -> provision -> vagrant -> box -> packer
 pyinfra_run(
     name = "provision",
-    # data = [
-    #     "//tools/vagrant:vagrant_runtime",
-    # ],
     deploy = "deploy.py",
     inventory = "inventory.py",
-    pyinfra_runtime = "@hypervisor_deps_pyinfra//:pkg",
+    pyinfra_runtime = "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
 )

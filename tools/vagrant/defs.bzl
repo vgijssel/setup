@@ -36,8 +36,6 @@ def vagrant_run(name, vagrantfile, env = {}, data = [], deps = []):
     runner_binary(
         name = name,
         cmd = """
-        set -Eeou pipefail
-
         {env_string}
 
         export VAGRANT_ARGS="$$@"

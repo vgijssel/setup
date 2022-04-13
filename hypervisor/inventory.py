@@ -1,4 +1,3 @@
-from rules_python.python.runfiles import runfiles
 import subprocess
 import os
 import json
@@ -6,17 +5,7 @@ import json
 is_dev = os.environ.get('SETUP_ENV', 'dev') == 'dev'
 hosts = None
 
-# 1. get the location of the vagrantfile into the inventory
-# 2. get the vagrant binary location, take the dirname and add this to the os.PATH so Pyinfra picks it up.
-# 3. set the necessary env variables before running the vagrant command
-
 if is_dev:
-	r = runfiles.Create()
-	vagrant_binary = r.Rlocation('setup/tools/vagrant/vagrant_runtime')
-	os.environ['PATH'] = os.path.dirname(vagrant_binary) + ':' + os.environ['PATH']
-
-	print(os.environ['PATH'])
-
 	hosts = [
 		('@vagrant/hypervisor')
 	]
