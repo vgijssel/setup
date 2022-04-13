@@ -33,10 +33,6 @@ def vagrant_run(name, vagrantfile, env = {}, data = [], deps = []):
         allow_symlink = True,
     )
 
-    # TODO: vagrant cannot import the box because the file name is too long
-    # this is because the box is deep inside the bazel directory structure
-    # can we symlink the box in the /tmp directory and import from there?
-    # though that kinda defeats the purpose of having the configure env variables :/
     runner_binary(
         name = name,
         cmd = """
