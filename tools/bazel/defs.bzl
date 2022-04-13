@@ -35,7 +35,7 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
     ctx.actions.write(ctx.outputs.out, full_cmd, is_executable = True)
 
     runfiles = ctx.runfiles(
-        files = [ctx.file._rlocation] + ctx.files.data,
+        files = [ctx.file._rlocation] + ctx.files.data + ctx.files.deps,
     )
 
     return [DefaultInfo(
@@ -50,6 +50,7 @@ runner_binary = rule(
     attrs = {
         "cmd": attr.string(mandatory = True),
         "data": attr.label_list(allow_files = True),
+        "deps": attr.label_list(allow_files = True),
         "out": attr.output(mandatory = True),
         "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
     },

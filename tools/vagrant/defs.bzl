@@ -19,7 +19,7 @@ def qcow_to_vagrant_box(name, src):
         ],
     )
 
-def vagrant_run(name, vagrantfile, env = {}, data = []):
+def vagrant_run(name, vagrantfile, env = {}, data = [], deps = []):
     env_string = ""
     for key, value in env.items():
         env_string += 'export {}="{}"\n'.format(key, value)
@@ -51,6 +51,7 @@ def vagrant_run(name, vagrantfile, env = {}, data = []):
         $$VAGRANT_BINARY $$VAGRANT_ARGS
         """.format(env_string = env_string),
         data = data + [vagrantfile_target],
+        deps = deps,
         out = "{}/vagrant".format(name),
         toolchains = [
             "@vagrant//:toolchain",
