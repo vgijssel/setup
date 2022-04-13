@@ -1,12 +1,5 @@
 # frozen_string_literal: true
 
-# TODO:
-# 1. [x] create vagrant_run rule to make Vagrant completely part of Bazel
-# 2. [x] create vagrant_runtime with embedded "exec vagrant" arguments
-# 3. [x] implement insecure vagrant ssh public key
-# 4. [ ] implement just hypervisor-provision
-# 5. [ ] remove lima code?
-
 # To install pry into the vagrant embedded gems:
 # cd /opt/vagrant/embedded/gems/ 
 # chmod -R 0777 <<VERSION>>

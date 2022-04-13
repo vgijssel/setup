@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -Eeou pipefail
-# set -x
 
 # name of the virtualbox ovf file
 OVF_FILE="$1"
