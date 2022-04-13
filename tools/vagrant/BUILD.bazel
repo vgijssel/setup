@@ -1,5 +1,3 @@
-load("//tools/bazel:defs.bzl", "runner_binary")
-
 package(default_visibility = ["//visibility:public"])
 
 exports_files([
@@ -14,14 +12,21 @@ sh_binary(
     ],
 )
 
-runner_binary(
-    name = "vagrant_runtime",
-    out = "vagrant_runtime/vagrant",
-    cmd = """
-    echo $(rlocation vagrant_bundle/bin/bundle)
-    $(rlocation vagrant_bundle/bin/bundle) exec vagrant $@
-    """,
-    data = [
-        "@vagrant_bundle//:bin/bundle",
-    ],
-)
+# repository_rule: vagrant_register_toolchains macro
+# this creates a BUILD.bazel file which contains a vagrant_toolchain
+# together with a native toolchain
+# and afterwards registers the created toolchains within Bazel
+# vagrant_run build rule registers with the toolchain_type
+# and therefore is able to pull the necessar toolchain info within the rule itself.
+
+# runner_binary(
+#     name = "vagrant_runtime",
+#     out = "vagrant_runtime/vagrant",
+#     cmd = """
+#     echo $(rlocation vagrant_bundle/bin/bundle)
+#     $(rlocation vagrant_bundle/bin/bundle) exec vagrant $@
+#     """,
+#     data = [
+#         "@vagrant_bundle//:bin/bundle",
+#     ],
+# )

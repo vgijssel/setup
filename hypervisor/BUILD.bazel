@@ -40,7 +40,6 @@ vagrant_run(
         "LOG_DIR": "/tmp",
         "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
     },
-    vagrant_runtime = "//tools/vagrant:vagrant_runtime",
     vagrantfile = "Vagrantfile",
     deps = [
         ":hypervisor_image_box",
@@ -53,9 +52,9 @@ vagrant_run(
 # packer -> provision -> vagrant -> box -> packer
 pyinfra_run(
     name = "provision",
-    data = [
-        "//tools/vagrant:vagrant_runtime",
-    ],
+    # data = [
+    #     "//tools/vagrant:vagrant_runtime",
+    # ],
     deploy = "deploy.py",
     inventory = "inventory.py",
     pyinfra_runtime = "@hypervisor_deps_pyinfra//:pkg",

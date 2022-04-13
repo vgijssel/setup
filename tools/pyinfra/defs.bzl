@@ -29,7 +29,7 @@ _create_runner_env = rule(
     },
 )
 
-def pyinfra_run(name, deploy, inventory, data, pyinfra_runtime, deps = []):
+def pyinfra_run(name, deploy, inventory, pyinfra_runtime, deps = [], data = []):
     runner_env_label = "{}_runner_env".format(name)
 
     _create_runner_env(

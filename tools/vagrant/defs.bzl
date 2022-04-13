@@ -19,6 +19,8 @@ def qcow_to_vagrant_box(name, src):
     )
 
 def _vagrant_run_impl(ctx):
+    vagrant_toolchain_info = ctx.toolchains["@vagrant//:toolchain_type"].vagrant_toolchain_info
+
     env_string = ""
     for key, value in ctx.attr.env.items():
         env_string += 'export {}="{}"\n'.format(key, ctx.expand_location(value))
@@ -36,7 +38,7 @@ def _vagrant_run_impl(ctx):
     ctx.actions.expand_template(
         template = ctx.file._runner_tpl,
         substitutions = {
-            "{vagrant_binary}": ctx.executable.vagrant_runtime.short_path,
+            "{vagrant_binary}": vagrant_toolchain_info.binary_path,
             "{output_dir}": paths.dirname(vagrant_runner.short_path),
             "{env_string}": env_string,
         },
@@ -44,10 +46,7 @@ def _vagrant_run_impl(ctx):
         output = vagrant_runner,
     )
 
-    runfiles = ctx.runfiles(files = [ctx.executable.vagrant_runtime] + ctx.files.deps)
-    runfiles = runfiles.merge_all([
-        ctx.attr.vagrant_runtime[DefaultInfo].default_runfiles,
-    ])
+    runfiles = ctx.runfiles(files = ctx.files.deps)
 
     return [DefaultInfo(
         executable = vagrant_runner,
@@ -60,7 +59,6 @@ vagrant_run = rule(
     executable = True,
     attrs = {
         "env": attr.string_dict(),
-        "vagrant_runtime": attr.label(executable = True, cfg = "exec"),
         "vagrantfile": attr.label(mandatory = True, allow_single_file = True),
         "deps": attr.label_list(allow_files = True),
         "_runner_tpl": attr.label(
@@ -68,4 +66,5 @@ vagrant_run = rule(
             allow_single_file = True,
         ),
     },
+    toolchains = ["@vagrant//:toolchain_type"],
 )
