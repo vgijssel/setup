@@ -1,4 +1,5 @@
-load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("//tools/bazel:defs.bzl", "runner_binary")
 
 def qcow_to_vagrant_box(name, src):
     native.genrule(
@@ -18,53 +19,40 @@ def qcow_to_vagrant_box(name, src):
         ],
     )
 
-def _vagrant_run_impl(ctx):
-    vagrant_toolchain_info = ctx.toolchains["@vagrant//:toolchain_type"].vagrant_toolchain_info
-
+def vagrant_run(name, vagrantfile, env = {}, data = []):
     env_string = ""
-    for key, value in ctx.attr.env.items():
-        env_string += 'export {}="{}"\n'.format(key, ctx.expand_location(value))
+    for key, value in env.items():
+        env_string += 'export {}="{}"\n'.format(key, value)
 
-    vagrantfile_output = ctx.actions.declare_file("{}/Vagrantfile".format(ctx.label.name))
-    ctx.actions.run(
-        outputs = [vagrantfile_output],
-        inputs = [ctx.file.vagrantfile],
-        arguments = [ctx.file.vagrantfile.path, vagrantfile_output.path],
-        executable = "cp",
-        mnemonic = "CopyFile",
+    vagrantfile_target = "{}.Vagrantfile".format(name)
+
+    copy_file(
+        name = vagrantfile_target,
+        src = vagrantfile,
+        out = "{}/Vagrantfile".format(name),
+        allow_symlink = True,
     )
 
-    vagrant_runner = ctx.actions.declare_file("{}/vagrant".format(ctx.label.name))
-    ctx.actions.expand_template(
-        template = ctx.file._runner_tpl,
-        substitutions = {
-            "{vagrant_binary}": vagrant_toolchain_info.binary_path,
-            "{output_dir}": paths.dirname(vagrant_runner.short_path),
-            "{env_string}": env_string,
-        },
-        is_executable = True,
-        output = vagrant_runner,
+    # TODO: vagrant cannot import the box because the file name is too long
+    # this is because the box is deep inside the bazel directory structure
+    # can we symlink the box in the /tmp directory and import from there?
+    # though that kinda defeats the purpose of having the configure env variables :/
+    runner_binary(
+        name = name,
+        cmd = """
+        set -Eeou pipefail
+
+        {env_string}
+
+        export VAGRANT_ARGS="$$@"
+        export VAGRANT_BINARY="$(VAGRANT_BINARY_PATH)"
+        export VAGRANT_CWD="$$(dirname $$(rlocation $(WORKSPACE_NAME)/$(OUT)))"
+
+        $$VAGRANT_BINARY $$VAGRANT_ARGS
+        """.format(env_string = env_string),
+        data = data + [vagrantfile_target],
+        out = "{}/vagrant".format(name),
+        toolchains = [
+            "@vagrant//:toolchain",
+        ],
     )
-
-    runfiles = ctx.runfiles(files = ctx.files.deps)
-
-    return [DefaultInfo(
-        executable = vagrant_runner,
-        files = depset([vagrantfile_output]),
-        runfiles = runfiles,
-    )]
-
-vagrant_run = rule(
-    implementation = _vagrant_run_impl,
-    executable = True,
-    attrs = {
-        "env": attr.string_dict(),
-        "vagrantfile": attr.label(mandatory = True, allow_single_file = True),
-        "deps": attr.label_list(allow_files = True),
-        "_runner_tpl": attr.label(
-            default = Label("//tools/vagrant:runner.sh.tpl"),
-            allow_single_file = True,
-        ),
-    },
-    toolchains = ["@vagrant//:toolchain_type"],
-)

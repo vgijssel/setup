@@ -6,8 +6,12 @@ hypervisor-build:
     bazel build --show_progress --worker_verbose --verbose_failures --test_output=streamed -s //hypervisor:hypervisor_image
 
 # Run the hypervisor image
-hypervisor-run +args:
-    bazel run //hypervisor -- {{args}}
+hypervisor-dev-start:
+    bazel run //hypervisor:dev -- up
+
+# Stop the hypervisor image
+hypervisor-dev-stop:
+    bazel run //hypervisor:dev -- destroy -f
 
 # Provision the hypervisor with Pyinfra
 hypervisor-provision:
@@ -24,7 +28,3 @@ limactl +args:
 # Invoke the pyinfra binary directly
 pyinfra +args:
     bazel run @hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra -- {{args}}
-
-# Invoke the vagrant binary directly
-vagrant +args:
-    VAGRANT_CWD={{invocation_directory()}} bazel run //tools/vagrant:vagrant_runtime -- {{args}}

@@ -11,7 +11,12 @@ def _vagrant_toolchain_impl(ctx):
             binary_path = ctx.attr.binary_path,
         ),
     )
-    return [toolchain_info]
+
+    toolchain_variables = platform_common.TemplateVariableInfo({
+        "VAGRANT_BINARY_PATH": ctx.attr.binary_path,
+    })
+
+    return [toolchain_info, toolchain_variables]
 
 _vagrant_toolchain = rule(
     implementation = _vagrant_toolchain_impl,

@@ -34,16 +34,16 @@ qcow_to_vagrant_box(
 )
 
 vagrant_run(
-    name = "hypervisor",
+    name = "dev",
+    data = [
+        ":hypervisor_image_box",
+    ],
     env = {
-        "HYPERVISOR_BOX_PATH": "$(rootpath :hypervisor_image_box)",
+        "HYPERVISOR_BOX_PATH": "$$(rlocation setup/hypervisor/hypervisor_image_box.box)",
         "LOG_DIR": "/tmp",
         "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
     },
     vagrantfile = "Vagrantfile",
-    deps = [
-        ":hypervisor_image_box",
-    ],
 )
 
 # TODO: circular dependency. Fix this by splitting up into two pyinfra_runs, one for build and one for dev
