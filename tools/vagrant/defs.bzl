@@ -32,7 +32,7 @@ def _vagrant_run_impl(ctx):
         mnemonic = "CopyFile",
     )
 
-    vagrant_runner = ctx.actions.declare_file("{}/runner.sh".format(ctx.label.name))
+    vagrant_runner = ctx.actions.declare_file("{}/vagrant".format(ctx.label.name))
     ctx.actions.expand_template(
         template = ctx.file._runner_tpl,
         substitutions = {

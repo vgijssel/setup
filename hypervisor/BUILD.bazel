@@ -47,11 +47,14 @@ vagrant_run(
     ],
 )
 
+# TODO: circular dependency. Fix this by splitting up into two pyinfra_runs, one for build and one for dev
+# restructure hypervisor files according to https://docs.pyinfra.com/en/latest/deploys.html
+# packer -> provision -> vagrant_runtime?
+# packer -> provision -> vagrant -> box -> packer
 pyinfra_run(
     name = "provision",
     data = [
-        "@lima//:limactl",
-        "@packer//:packer_binary",
+        "//tools/vagrant:vagrant_runtime",
     ],
     deploy = "deploy.py",
     inventory = "inventory.py",

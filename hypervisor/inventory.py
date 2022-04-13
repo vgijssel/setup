@@ -6,15 +6,19 @@ import json
 is_dev = os.environ.get('SETUP_ENV', 'dev') == 'dev'
 hosts = None
 
+# 1. get the location of the vagrantfile into the inventory
+# 2. get the vagrant binary location, take the dirname and add this to the os.PATH so Pyinfra picks it up.
+# 3. set the necessary env variables before running the vagrant command
+
 if is_dev:
 	r = runfiles.Create()
-	limactl_binary = r.Rlocation('lima/limactl/bin/limactl')
+	vagrant_binary = r.Rlocation('setup/tools/vagrant/vagrant_runtime')
+	os.environ['PATH'] = os.path.dirname(vagrant_binary) + ':' + os.environ['PATH']
 
-	result = subprocess.run([limactl_binary, 'list', '--json', 'hypervisor'], capture_output=True, check=True)
-	server = json.loads(result.stdout)
+	print(os.environ['PATH'])
 
 	hosts = [
-		(server['name'], {'ssh_hostname': '127.0.0.1', 'ssh_port': server['sshLocalPort'], 'ssh_strict_host_key_checking': 'no' }),
+		('@vagrant/hypervisor')
 	]
 else:
 	ssh_host = os.environ['ssh_host']

@@ -1,5 +1,4 @@
 def _runner_binary_impl(ctx):
-    runner_binary_executable = ctx.actions.declare_file(ctx.label.name)
     cmd = ctx.expand_location(ctx.attr.cmd)
 
     # Added the following line to the runfiles.bash script:
@@ -22,14 +21,14 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
     """
 
     full_cmd = cmd_header + cmd
-    ctx.actions.write(runner_binary_executable, full_cmd, is_executable = True)
+    ctx.actions.write(ctx.outputs.out, full_cmd, is_executable = True)
 
     runfiles = ctx.runfiles(
         files = [ctx.file._rlocation] + ctx.files.data,
     )
 
     return [DefaultInfo(
-        executable = runner_binary_executable,
+        executable = ctx.outputs.out,
         files = runfiles.files,
         runfiles = runfiles,
     )]
@@ -40,6 +39,7 @@ runner_binary = rule(
     attrs = {
         "cmd": attr.string(mandatory = True),
         "data": attr.label_list(allow_files = True),
+        "out": attr.output(mandatory = True),
         "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
     },
 )

@@ -20,53 +20,6 @@ http_file(
     ],
 )
 
-git_repository(
-    name = "bazelruby_rules_ruby",
-    branch = "master",
-    remote = "https://github.com/bazelruby/rules_ruby.git",
-)
-
-load(
-    "@bazelruby_rules_ruby//ruby:deps.bzl",
-    "rules_ruby_dependencies",
-    "rules_ruby_select_sdk",
-)
-
-rules_ruby_dependencies()
-
-load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-
-bazel_skylib_workspace()
-
-rules_ruby_select_sdk(version = "3.0.2")
-
-load(
-    "@bazelruby_rules_ruby//ruby:defs.bzl",
-    "ruby_bundle",
-)
-
-new_git_repository(
-    name = "vagrant",
-    build_file_content = """
-    """,
-    commit = "379dd20cf91865c97f8dd5bb2c8e7f69fd1c00f2",
-    patch_args = ["-p1"],
-    patches = ["//tools/vagrant:remove-vagrant-spec-from-Gemfile.patch"],
-    remote = "https://github.com/hashicorp/vagrant.git",
-    shallow_since = "1636146944 -0700",
-)
-
-ruby_bundle(
-    name = "vagrant_bundle",
-    srcs = [
-        "@vagrant//:.gitignore",
-        "@vagrant//:lib/vagrant/version.rb",
-        "@vagrant//:vagrant.gemspec",
-        "@vagrant//:version.txt",
-    ],
-    gemfile = "@vagrant//:Gemfile",
-)
-
 http_archive(
     name = "rules_python",
     sha256 = "9fcf91dbcc31fde6d1edb15f117246d912c33c36f44cf681976bd886538deba6",
