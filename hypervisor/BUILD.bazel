@@ -46,21 +46,14 @@ vagrant_run(
     ],
 )
 
-# TODO:
-# 1. [x] create vagrant_run rule to make Vagrant completely part of Bazel
-# 2. [x] create vagrant_runtime with embedded "exec vagrant" arguments
-# 3. [x] implement insecure vagrant ssh public key
-# 4. [x] implement just hypervisor-provision
-# 5. [x] ensure a genrule can actually call the provision script without error! Runfiles not working?
-# 6. [ ] remove lima code?
-# This needs environment variables to set the right directory
-# for the vagrant command. We need to set VAGRANT_CMD in the runner_binary
-# to make sure the vagrant pyinfra connector works as expected.
 pyinfra_run(
     name = "provision",
     args = ["--sudo"],
     deploy = "deploy.py",
     env = {
+        # Specifying the environment variables necessary for the vagrant connector and the associated Vagrantfile.
+        # The ":dev" target is not a direct dependency of this rule to prevent a circular dependency
+        # and also to prevent an entire packer build whenever a change has been made to the deploy
         "VAGRANT_CWD": "$$(dirname $$(rlocation $(WORKSPACE_NAME)/$(rootpath :dev.Vagrantfile)))",
         "LOG_DIR": "/tmp",
         "HYPERVISOR_BOX_PATH": "",

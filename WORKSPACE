@@ -18,15 +18,12 @@ bazel_skylib_workspace()
 
 load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
 load("//tools/vagrant:repositories.bzl", "rules_vagrant_toolchains")
-load("//tools/lima:repositories.bzl", "rules_lima_toolchains")
 
 bazel_skylib_workspace()
 
 rules_packer_toolchains(
     version = "1.8.0",
 )
-
-rules_lima_toolchains()
 
 rules_vagrant_toolchains(
     binary_path = "/usr/local/bin/vagrant",
