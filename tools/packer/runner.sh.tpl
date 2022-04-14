@@ -8,4 +8,6 @@ ARGS="$@"
 # this can also be solved by specifying the qemu binary in the packer template!
 export PATH="$PATH:/usr/local/bin"
 
+# export PACKER_LOG=1
+
 {packer_binary} $ARGS

@@ -12,6 +12,10 @@ build {
 
   provisioner "shell-local" {
     inline = [var.provision_script]
+    # The default shebang is /bin/sh -e which causes the runfiles.bash
+    # script to immediately exit on the first error encountered despite setting an 
+    # exlicit set +e afterwards.
+    inline_shebang = "/usr/bin/env bash"
     env = {
       SETUP_ENV = "build"
       ssh_host = build.Host
@@ -19,5 +23,10 @@ build {
       ssh_user = build.User
       ssh_password = build.Password
     }
+  }
+
+  # Ensure we reset cloud-init so it's re-run the next time the image is loaded.
+  provisioner "shell" {
+    inline = ["sudo /usr/bin/cloud-init clean"]
   }
 }

@@ -1,4 +1,3 @@
-from rules_python.python.runfiles import runfiles
 import subprocess
 import os
 import json
@@ -7,14 +6,8 @@ is_dev = os.environ.get('SETUP_ENV', 'dev') == 'dev'
 hosts = None
 
 if is_dev:
-	r = runfiles.Create()
-	limactl_binary = r.Rlocation('lima/limactl/bin/limactl')
-
-	result = subprocess.run([limactl_binary, 'list', '--json', 'hypervisor'], capture_output=True, check=True)
-	server = json.loads(result.stdout)
-
 	hosts = [
-		(server['name'], {'ssh_hostname': '127.0.0.1', 'ssh_port': server['sshLocalPort'], 'ssh_strict_host_key_checking': 'no' }),
+		('@vagrant/hypervisor', { 'ssh_strict_host_key_checking': 'no' }),
 	]
 else:
 	ssh_host = os.environ['ssh_host']
