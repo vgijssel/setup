@@ -44,12 +44,17 @@ runner_binary(
     export KITCHEN_YAML=$$(rlocation setup/hypervisor/kitchen.yml)
     export VAGRANTFILE_CLOUD_INIT=$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)
     export VAGRANT_EXPERIMENTAL=cloud_init,disks
+    export VAGRANT_BOX=$$(rlocation setup/hypervisor/hypervisor_image_box.box)
+    export CHEF_LICENSE=accept
+    export TEST_DIR=$$(rlocation setup/hypervisor/test)
+    export KITCHEN_CWD=$$(dirname $$KITCHEN_YAML)
 
-    $$KITCHEN_BINARY $$KITCHEN_ARGS
+    cd $$KITCHEN_CWD && $$KITCHEN_BINARY $$KITCHEN_ARGS
     """,
     data = [
         "Vagrantfile.cloud-init",
         "kitchen.yml",
+        "test",
         "@hypervisor_bundle//:bin/kitchen",
     ],
     deps = [],

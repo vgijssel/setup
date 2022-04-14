@@ -8,22 +8,17 @@ platforms:
   - name: ubuntu-focal
     driver:
       box: ubuntu-focal
-      box_url: file:///Users/maarten/Development/setup/bazel-out/darwin-fastbuild/bin/hypervisor/hypervisor_image_box.box
+      box_url: <%= ENV.fetch('VAGRANT_BOX') %>
 
-# platforms: # a list of OS on which we are going to run tests
-#   - name: centos-7.2 # our recipes
-#     driver:
-#       customize:
-#         memory: 2048 # configurations for the given OS
 verifier:
   name: inspec
 
-# provisioner:
-#   chef_license: accept
+provisioner:
+  name: shell
 
 suites:
   - name: default
     verifier:
       inspec_tests:
-        - test/integration/default
+        - <%= ENV.fetch('TEST_DIR') %>/integration/default
     attributes:
