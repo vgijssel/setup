@@ -12,6 +12,8 @@ build {
 
   provisioner "shell-local" {
     inline = [var.provision_script]
+    # todo: add comment about shebang
+    inline_shebang = "/usr/bin/env bash"
     env = {
       SETUP_ENV = "build"
       ssh_host = build.Host

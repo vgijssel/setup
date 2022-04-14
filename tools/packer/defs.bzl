@@ -46,6 +46,9 @@ def _packer_image_impl(ctx):
 
     args = ["build", "-force", "-on-error=ask", template_dir_path]
 
+    # TODO: do we need all these input files??
+    tools = [tool.files_to_run for tool in ctx.attr.tools]
+
     ctx.actions.run(
         inputs = output_files + [packer_info.packer_binary.files_to_run.executable] + ctx.files.deps,
         outputs = [ctx.outputs.output_image],
@@ -53,7 +56,7 @@ def _packer_image_impl(ctx):
         progress_message = "Building packer image: %s" % ctx.outputs.output_image.path,
         executable = packer_runner,
         env = env,
-        tools = ctx.files.tools,
+        tools = tools,
     )
 
     ctx.actions.run_shell(

@@ -1,6 +1,4 @@
 def _runner_binary_impl(ctx):
-    print(ctx.outputs.out)
-
     cmd = ctx.expand_make_variables(
         "cmd",
         ctx.expand_location(ctx.attr.cmd),
@@ -17,6 +15,8 @@ def _runner_binary_impl(ctx):
     # and cannot be used to resolve the location of the runfiles manifest.
     cmd_header = """
 #!/usr/bin/env bash
+
+set +e
 
 # --- begin runfiles.bash initialization v2 ---
 # Copy-pasted from the Bazel Bash runfiles library v2.
@@ -40,14 +40,17 @@ set -Eeou pipefail
         files = [ctx.file._rlocation] + ctx.files.data + ctx.files.deps + [ctx.outputs.out],
     )
 
+    # potentially not necessary!
     for dep in ctx.attr.deps:
         runfiles = runfiles.merge_all([
             dep[DefaultInfo].default_runfiles,
+            dep[DefaultInfo].data_runfiles,
         ])
 
     for dat in ctx.attr.data:
         runfiles = runfiles.merge_all([
             dat[DefaultInfo].default_runfiles,
+            dat[DefaultInfo].data_runfiles,
         ])
 
     return [DefaultInfo(
