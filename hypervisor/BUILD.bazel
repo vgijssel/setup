@@ -1,6 +1,6 @@
 load("//tools/packer:defs.bzl", "packer_image")
-load("//tools/lima:defs.bzl", "lima_run")
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
+load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box", "vagrant_run")
 
 packer_image(
     name = "hypervisor_image",
@@ -28,26 +28,39 @@ packer_image(
     ],
 )
 
-lima_run(
-    name = "hypervisor",
-    lima_runtime = "@lima//:limactl",
-    substitutions = {
-        "{image_location}": "$(rootpath :hypervisor_image)",
-        "{image_arch}": "x86_64",
+qcow_to_vagrant_box(
+    name = "hypervisor_image_box",
+    src = ":hypervisor_image",
+)
+
+vagrant_run(
+    name = "dev",
+    env = {
+        "HYPERVISOR_BOX_PATH": "$(rootpath :hypervisor_image_box)",
+        "LOG_DIR": "/tmp",
+        "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
     },
-    template = "hypervisor_lima.yml",
+    vagrantfile = "Vagrantfile",
     deps = [
-        ":hypervisor_image",
+        ":hypervisor_image_box",
     ],
 )
 
 pyinfra_run(
     name = "provision",
-    data = [
-        "@lima//:limactl",
-        "@packer//:packer_binary",
-    ],
+    args = ["--sudo"],
     deploy = "deploy.py",
+    env = {
+        # Specifying the environment variables necessary for the vagrant connector and the associated Vagrantfile.
+        # The ":dev" target is not a direct dependency of this rule to prevent a circular dependency
+        # and also to prevent an entire packer build whenever a change has been made to the deploy
+        "VAGRANT_CWD": "$$(dirname $$(rlocation $(WORKSPACE_NAME)/$(rootpath :dev.Vagrantfile)))",
+        "LOG_DIR": "/tmp",
+        "HYPERVISOR_BOX_PATH": "",
+    },
     inventory = "inventory.py",
-    pyinfra_runtime = "@hypervisor_deps_pyinfra//:pkg",
+    pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",
+    deps = [
+        ":dev.Vagrantfile",
+    ],
 )

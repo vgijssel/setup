@@ -1,0 +1,41 @@
+# frozen_string_literal: true
+
+# To install pry into the vagrant embedded gems:
+# cd /opt/vagrant/embedded/gems/ 
+# chmod -R 0777 <<VERSION>>
+# gem install pry --install-dir /opt/vagrant/embedded/gems/<<VERSION>>
+# require 'pry'
+
+log_dir = ENV.fetch('LOG_DIR')
+hypervisor_box_path = ENV.fetch('HYPERVISOR_BOX_PATH')
+
+Vagrant.configure('2') do |config|
+  config.vm.define "hypervisor", primary: true do |hypervisor|
+    hypervisor.vm.box = "file://#{hypervisor_box_path}"
+    hypervisor.vm.synced_folder '.', '/vagrant', disabled: true
+    hypervisor.ssh.username = 'vagrant'
+    hypervisor.ssh.insert_key = true
+
+    hypervisor.vm.cloud_init :user_data do |cloud_init|
+        cloud_init.content_type = "text/cloud-config"
+        cloud_init.inline = """
+#cloud-config
+
+users:
+  - name: vagrant
+    # Copied from https://github.com/hashicorp/vagrant/blob/master/keys/vagrant.pub
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key
+    sudo: ALL=(ALL) NOPASSWD:ALL
+        """
+    end
+
+    hypervisor.vm.provider 'virtualbox' do |vb|
+      vb.gui = false
+      vb.memory = "4096"
+      vb.cpus = 2
+      # Setup log file
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File.join(log_dir, "hypervisor.log")]
+    end
+  end
+end

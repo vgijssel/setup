@@ -1,7 +1,5 @@
 #cloud-config
 
-#cloud-config
-
 chpasswd: { expire: False }
 # enable password based ssh logins
 ssh_pwauth: True
