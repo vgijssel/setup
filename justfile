@@ -28,3 +28,7 @@ packer +args:
 # Invoke the pyinfra binary directly
 pyinfra +args:
     bazel run @hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra -- {{args}}
+
+# Invoke the inspec binary directly
+inspec +args:
+    bazel run @hypervisor_bundle//:bin/inspec -- {{args}}

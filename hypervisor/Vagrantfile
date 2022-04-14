@@ -6,13 +6,14 @@
 # gem install pry --install-dir /opt/vagrant/embedded/gems/<<VERSION>>
 # require 'pry'
 
-log_dir = ENV.fetch('LOG_DIR')
-hypervisor_box_path = ENV.fetch('HYPERVISOR_BOX_PATH')
+hypervisor_box_path = ENV.fetch('HYPERVISOR_BOX_PATH', 'unknown')
+log_dir = ENV.fetch('LOG_DIR', '/tmp')
 
 Vagrant.require_version ">= 2.2.19"
 
 Vagrant.configure('2') do |config|
   config.vm.define "hypervisor", primary: true do |hypervisor|
+
     hypervisor.vm.box = "file://#{hypervisor_box_path}"
     hypervisor.vm.synced_folder '.', '/vagrant', disabled: true
     hypervisor.ssh.username = 'vagrant'

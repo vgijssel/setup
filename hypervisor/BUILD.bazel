@@ -56,8 +56,6 @@ pyinfra_run(
         # The ":dev" target is not a direct dependency of this rule to prevent a circular dependency
         # and also to prevent an entire packer build whenever a change has been made to the deploy
         "VAGRANT_CWD": "$$(dirname $$(rlocation $(WORKSPACE_NAME)/$(rootpath :dev.Vagrantfile)))",
-        "LOG_DIR": "/tmp",
-        "HYPERVISOR_BOX_PATH": "",
     },
     inventory = "inventory.py",
     pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",
