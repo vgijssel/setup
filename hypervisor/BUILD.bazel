@@ -1,6 +1,7 @@
 load("//tools/packer:defs.bzl", "packer_image")
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box", "vagrant_run")
+load("//tools/bazel:defs.bzl", "runner_binary")
 
 packer_image(
     name = "hypervisor_image",
@@ -32,6 +33,26 @@ qcow_to_vagrant_box(
     name = "hypervisor_image_box",
     src = ":hypervisor_image",
     src_sha = ":hypervisor_image.sha512",
+)
+
+runner_binary(
+    name = "kitchen",
+    out = "kitchen.sh",
+    cmd = """
+    export KITCHEN_ARGS="$$@"
+    export KITCHEN_BINARY=$$(rlocation hypervisor_bundle/bin/kitchen)
+    export KITCHEN_YAML=$$(rlocation setup/hypervisor/kitchen.yml)
+    export VAGRANTFILE_CLOUD_INIT=$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)
+    export VAGRANT_EXPERIMENTAL=cloud_init,disks
+
+    $$KITCHEN_BINARY $$KITCHEN_ARGS
+    """,
+    data = [
+        "Vagrantfile.cloud-init",
+        "kitchen.yml",
+        "@hypervisor_bundle//:bin/kitchen",
+    ],
+    deps = [],
 )
 
 vagrant_run(

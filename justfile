@@ -32,3 +32,7 @@ pyinfra +args:
 # Invoke the inspec binary directly
 inspec +args:
     bazel run @hypervisor_bundle//:bin/inspec -- {{args}}
+
+# Invoke the kitchen binary directly
+kitchen +args:
+    cd {{invocation_directory()}}; bazel run @hypervisor_bundle//:bin/kitchen -- {{args}}

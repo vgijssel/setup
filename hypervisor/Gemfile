@@ -3,6 +3,9 @@
 source 'https://rubygems.org'
 
 gem 'inspec-bin', '= 5.12.2'
+gem 'test-kitchen', '= 3.2.2'
+gem 'kitchen-inspec', '= 2.5.2'
+gem 'kitchen-vagrant', '= 1.11.0'
 
 # gem 'pry-doc', '= 1.1.0'
 # gem 'pry-alias', '= 0.0.1'

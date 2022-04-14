@@ -91,4 +91,7 @@ ruby_bundle(
     bundler_version = "2.3.6",
     gemfile = "//hypervisor:Gemfile",
     gemfile_lock = "//hypervisor:Gemfile.lock",
+    includes = {
+        "addressable": ["data"],
+    },
 )
