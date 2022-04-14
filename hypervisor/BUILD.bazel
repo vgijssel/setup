@@ -51,7 +51,7 @@ vagrant_run(
 # 2. [x] create vagrant_runtime with embedded "exec vagrant" arguments
 # 3. [x] implement insecure vagrant ssh public key
 # 4. [x] implement just hypervisor-provision
-# 5. [ ] ensure a genrule can actually call the provision script without error! Runfiles not working?
+# 5. [x] ensure a genrule can actually call the provision script without error! Runfiles not working?
 # 6. [ ] remove lima code?
 # This needs environment variables to set the right directory
 # for the vagrant command. We need to set VAGRANT_CMD in the runner_binary

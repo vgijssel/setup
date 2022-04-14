@@ -5,6 +5,10 @@ default:
 hypervisor-build:
     bazel build --show_progress --worker_verbose --verbose_failures --test_output=streamed -s //hypervisor:hypervisor_image
 
+# Interact with the hypervisor vagrant 
+hypervisor-vagrant +args:
+    bazel run //hypervisor:dev -- {{args}}
+
 # Run the hypervisor image
 hypervisor-dev-start:
     bazel run //hypervisor:dev -- up

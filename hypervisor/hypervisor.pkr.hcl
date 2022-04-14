@@ -12,7 +12,9 @@ build {
 
   provisioner "shell-local" {
     inline = [var.provision_script]
-    # todo: add comment about shebang
+    # The default shebang is /bin/sh -e which causes the runfiles.bash
+    # script to immediately exit on the first error encountered despite setting an 
+    # exlicit set +e afterwards.
     inline_shebang = "/usr/bin/env bash"
     env = {
       SETUP_ENV = "build"
