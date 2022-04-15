@@ -55,22 +55,10 @@ runner_binary(
         "Vagrantfile.cloud-init",
         "kitchen.yml",
         "test",
+        # ":hypervisor_image_box",
         "@hypervisor_bundle//:bin/kitchen",
     ],
     deps = [],
-)
-
-vagrant_run(
-    name = "dev",
-    env = {
-        "HYPERVISOR_BOX_PATH": "$(rootpath :hypervisor_image_box)",
-        "LOG_DIR": "/tmp",
-        "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
-    },
-    vagrantfile = "Vagrantfile",
-    deps = [
-        ":hypervisor_image_box",
-    ],
 )
 
 pyinfra_run(

@@ -5,21 +5,25 @@ default:
 hypervisor-build:
     bazel build --show_progress --worker_verbose --verbose_failures --test_output=streamed -s //hypervisor:hypervisor_image
 
-# Interact with the hypervisor vagrant 
-hypervisor-vagrant +args:
-    bazel run //hypervisor:dev -- {{args}}
-
 # Run the hypervisor image
 hypervisor-dev-start:
-    bazel run //hypervisor:dev -- up
+    bazel run //hypervisor:kitchen -- create
 
 # Stop the hypervisor image
 hypervisor-dev-stop:
-    bazel run //hypervisor:dev -- destroy -f
+    bazel run //hypervisor:kitchen -- destroy
+
+# Test the hypervisor image using kitchen
+hypervisor-test:
+    bazel run //hypervisor:kitchen -- verify
 
 # Provision the hypervisor with Pyinfra
 hypervisor-provision:
     bazel run --show_progress --worker_verbose --verbose_failures --test_output=streamed -s //hypervisor:provision
+
+# Interact with the hypervisor kitchen binary
+hypervisor-kitchen +args:
+    bazel run //hypervisor:kitchen -- {{args}}
 
 # Invoke the packer binary directly
 packer +args:

@@ -1,3 +1,6 @@
+# Structure pyinfra according to:
+# https://docs.pyinfra.com/en/1.x/deploys.html#layout
+
 from pyinfra.operations import apt, server, files
 from pyinfra import host
 from pyinfra.facts.server import Arch, LsbRelease
@@ -41,7 +44,11 @@ def deploy_docker(state=None, host=None):
 
     apt.packages(
         name='Install Docker via apt',
-        packages='docker-ce',
+        packages=[
+            'docker-ce',
+            'docker-ce-cli',
+            'containerd.io',
+        ],
         update=add_apt_repo.changed,  # update if we added the repo
         state=state,
         host=host,
