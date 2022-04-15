@@ -17,16 +17,11 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 bazel_skylib_workspace()
 
 load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
-load("//tools/vagrant:repositories.bzl", "rules_vagrant_toolchains")
 
 bazel_skylib_workspace()
 
 rules_packer_toolchains(
     version = "1.8.0",
-)
-
-rules_vagrant_toolchains(
-    binary_path = "/usr/local/bin/vagrant",
 )
 
 # https://cloud-images.ubuntu.com/focal/20220404/

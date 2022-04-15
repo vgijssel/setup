@@ -55,3 +55,44 @@ describe command('kvm-ok') do
   its('stdout') { should match ("INFO: /dev/kvm exists\nKVM acceleration can be used") }
   its('exit_status') { should eq 0 }
 end
+
+describe 'firewall' do
+  describe systemd_service('ufw') do
+    it { should be_installed }
+    it { should be_enabled }
+    it { should be_running }
+  end
+
+  describe port(22) do
+    it { should be_listening }
+    its('processes') {should include 'sshd'}
+  end
+
+  describe port(80) do
+    it { should_not be_listening }
+  end
+
+  describe command('ufw status') do
+    its('stdout') { should match ("Status: active") }
+    its('exit_status') { should eq 0 }
+  end
+end
+
+describe 'automatic updates' do
+  describe systemd_service('unattended-upgrades') do
+    it { should be_installed }
+    it { should be_enabled }
+    it { should be_running }
+  end
+
+  describe command('apt-config dump APT::Periodic::Unattended-Upgrade') do
+    it 'installs automatic updates every 1 day' do
+      expect(subject.stdout.strip).to eq 'APT::Periodic::Unattended-Upgrade "1";'
+    end
+
+    its('exit_status') { should eq 0 }
+  end
+end
+
+# port 22 open
+# port 80 closed

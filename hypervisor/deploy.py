@@ -116,3 +116,13 @@ systemd.service(
     enabled=True,
     daemon_reload=True,
 )
+
+server.shell(
+    name='Enable firewall for SSH',
+    commands=['ufw allow "OpenSSH"'],
+)
+
+server.shell(
+    name='Enable the firewall',
+    commands=['ufw --force enable'],
+)

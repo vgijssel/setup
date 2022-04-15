@@ -6,10 +6,13 @@ locals {
     vm_name = basename(var.output_image)
     output_directory = dirname(var.output_image)
 
-    # As the root user remove the packer user and shutdown the vm.
-    # This will disconnect the ssh session and will prevent packer from
-    # removing the uploaded provisioner script in the /tmp directory
-    # therefore the /tmp directory is wiped in this script.
+    # Once the packer provisioning is done the packer user needs to be removed.
+    # Because the packer user is also used to execute commands over ssh,
+    # we need to let the root user remove the packer user.
+    # Packer needs a friendly disconnect after giving the shutdown command
+    # which means we need to run the user deletion script in the background 
+    # once ssh is disconnected (wait 5 seconds). 
+    # To implement this we use screen run as root.
     cleanup_and_shutdown_command = <<EOF
     set -ex
     sleep 5;

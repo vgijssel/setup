@@ -2,10 +2,15 @@
 # TODO: could leverage a metadata file to support automatic upgrading of Vagrant box files
 # see https://martincarstenbach.wordpress.com/2020/05/05/versioning-for-your-local-vagrant-boxes-adding-a-new-box/
 # and https://martincarstenbach.wordpress.com/2020/05/07/versioning-for-your-local-vagrant-boxes-handling-updates/
+# or maybe simply use a name based which includes the sha? if the name is different the image cannot be found
+# though how are old images then pruned? using vagrant box prune? Also if we update the
+# name while the machine is still running in virtualbox, won't that result in a parallel
+# runniing vms?
 lifecycle:
   post_destroy:
-    # machine name: ubuntu-focal
-    - local: env
+    # Also remove the associated vagrant box to ensure a next run
+    # will import a potentially updated box.
+    - local: vagrant box remove $KITCHEN_PLATFORM_NAME || true
 
 driver:
   name: vagrant
