@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'inspec-bin', '= 5.12.2'
+gem 'test-kitchen', '= 3.2.2'
+gem 'kitchen-inspec', '= 2.5.2'
+gem 'kitchen-vagrant', '= 1.11.0'
