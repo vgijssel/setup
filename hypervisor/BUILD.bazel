@@ -1,6 +1,7 @@
 load("//tools/packer:defs.bzl", "packer_image")
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
-load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box", "vagrant_run")
+load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box")
+load("//tools/bazel:defs.bzl", "runner_binary")
 
 packer_image(
     name = "hypervisor_image",
@@ -31,19 +32,33 @@ packer_image(
 qcow_to_vagrant_box(
     name = "hypervisor_image_box",
     src = ":hypervisor_image",
+    src_sha = ":hypervisor_image.sha512",
 )
 
-vagrant_run(
-    name = "dev",
-    env = {
-        "HYPERVISOR_BOX_PATH": "$(rootpath :hypervisor_image_box)",
-        "LOG_DIR": "/tmp",
-        "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
-    },
-    vagrantfile = "Vagrantfile",
-    deps = [
+runner_binary(
+    name = "kitchen",
+    out = "kitchen.sh",
+    cmd = """
+    export KITCHEN_ARGS="$$@"
+    export KITCHEN_BINARY=$$(rlocation hypervisor_bundle/bin/kitchen)
+    export KITCHEN_YAML=$$(rlocation setup/hypervisor/kitchen.yml)
+    export VAGRANTFILE_CLOUD_INIT=$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)
+    export VAGRANT_EXPERIMENTAL=cloud_init,disks
+    export VAGRANT_BOX=$$(rlocation setup/hypervisor/hypervisor_image_box.box)
+    export CHEF_LICENSE=accept
+    export TEST_DIR=$$(rlocation setup/hypervisor/test)
+    export KITCHEN_CWD=$$(dirname $$KITCHEN_YAML)
+
+    cd $$KITCHEN_CWD && $$KITCHEN_BINARY $$KITCHEN_ARGS
+    """,
+    data = [
+        "Vagrantfile.cloud-init",
+        "kitchen.yml",
+        "test",
         ":hypervisor_image_box",
+        "@hypervisor_bundle//:bin/kitchen",
     ],
+    deps = [],
 )
 
 pyinfra_run(
@@ -52,15 +67,11 @@ pyinfra_run(
     deploy = "deploy.py",
     env = {
         # Specifying the environment variables necessary for the vagrant connector and the associated Vagrantfile.
-        # The ":dev" target is not a direct dependency of this rule to prevent a circular dependency
-        # and also to prevent an entire packer build whenever a change has been made to the deploy
-        "VAGRANT_CWD": "$$(dirname $$(rlocation $(WORKSPACE_NAME)/$(rootpath :dev.Vagrantfile)))",
-        "LOG_DIR": "/tmp",
-        "HYPERVISOR_BOX_PATH": "",
+        "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/deploy.py))/.kitchen/kitchen-vagrant/default-ubuntu-focal",
     },
     inventory = "inventory.py",
     pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",
     deps = [
-        ":dev.Vagrantfile",
+        "files/ignited.service",
     ],
 )

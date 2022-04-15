@@ -5,6 +5,22 @@ variable "output_image" {
 locals {
     vm_name = basename(var.output_image)
     output_directory = dirname(var.output_image)
+
+    # Once the packer provisioning is done the packer user needs to be removed.
+    # Because the packer user is also used to execute commands over ssh,
+    # we need to let the root user remove the packer user.
+    # Packer needs a friendly disconnect after giving the shutdown command
+    # which means we need to run the user deletion script in the background 
+    # once ssh is disconnected (wait 5 seconds). 
+    # To implement this we use screen run as root.
+    cleanup_and_shutdown_command = <<EOF
+    set -ex
+    sleep 5;
+    /usr/bin/cloud-init clean -l -s;
+    rm -f /etc/sudoers.d/90-cloud-init-users;
+    userdel -rf packer;
+    shutdown -P now;
+    EOF
 }
 
 variable "iso_file" {
@@ -38,9 +54,9 @@ source "qemu" "image" {
   iso_url           = var.iso_file
   iso_checksum      = var.iso_checksum
 
-  shutdown_command  = "sudo shutdown -P now"
   format            = "qcow2"
   accelerator       = "hax"
+  shutdown_command = "sudo screen -d -m /bin/sh -c '${local.cleanup_and_shutdown_command}'"
 
   headless = true
   use_default_display = true

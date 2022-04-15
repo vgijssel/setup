@@ -7,7 +7,7 @@ hosts = None
 
 if is_dev:
 	hosts = [
-		('@vagrant/hypervisor', { 'ssh_strict_host_key_checking': 'no' }),
+		('@vagrant/default', { 'ssh_strict_host_key_checking': 'no' }),
 	]
 else:
 	ssh_host = os.environ['ssh_host']

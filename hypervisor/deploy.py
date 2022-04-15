@@ -1,4 +1,7 @@
-from pyinfra.operations import apt, server, files
+# Structure pyinfra according to:
+# https://docs.pyinfra.com/en/1.x/deploys.html#layout
+
+from pyinfra.operations import apt, server, files, systemd
 from pyinfra import host
 from pyinfra.facts.server import Arch, LsbRelease
 from pyinfra.api.deploy import deploy
@@ -41,7 +44,11 @@ def deploy_docker(state=None, host=None):
 
     apt.packages(
         name='Install Docker via apt',
-        packages='docker-ce',
+        packages=[
+            'docker-ce',
+            'docker-ce-cli',
+            'containerd.io',
+        ],
         update=add_apt_repo.changed,  # update if we added the repo
         state=state,
         host=host,
@@ -91,3 +98,31 @@ for binary in ['ignite', 'ignited']:
         dest = f'/usr/local/bin/{binary}',
         mode = '755',
     )
+
+files.put(
+    name = "Upload ingited service file",
+    src = "hypervisor/files/ignited.service",
+    dest = "/etc/systemd/system/ignited.service",
+    mode = '644',
+    user = 'root',
+    group = 'root',
+)
+
+systemd.service(
+    name='Restart and enable the ignited service',
+    service='ignited.service',
+    running=True,
+    restarted=True,
+    enabled=True,
+    daemon_reload=True,
+)
+
+server.shell(
+    name='Enable firewall for SSH',
+    commands=['ufw allow "OpenSSH"'],
+)
+
+server.shell(
+    name='Enable the firewall',
+    commands=['ufw --force enable'],
+)
