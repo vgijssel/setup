@@ -38,7 +38,6 @@ source "qemu" "image" {
   iso_url           = var.iso_file
   iso_checksum      = var.iso_checksum
 
-  shutdown_command  = "sudo shutdown -P now"
   format            = "qcow2"
   accelerator       = "hax"
 

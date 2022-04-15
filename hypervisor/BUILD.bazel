@@ -55,7 +55,7 @@ runner_binary(
         "Vagrantfile.cloud-init",
         "kitchen.yml",
         "test",
-        # ":hypervisor_image_box",
+        ":hypervisor_image_box",
         "@hypervisor_bundle//:bin/kitchen",
     ],
     deps = [],

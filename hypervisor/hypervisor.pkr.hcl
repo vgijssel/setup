@@ -2,6 +2,23 @@ variable "provision_script" {
   type = string
 }
 
+locals {
+  # As the root user remove the packer user and shutdown the vm.
+  # This will disconnect the ssh session and will prevent packer from
+  # removing the uploaded provisioner script in the /tmp directory
+  # therefore the /tmp directory is wiped in this script.
+  cleanup_script = <<EOF
+  set -ex 
+
+  /usr/bin/cloud-init clean -l -s
+  rm -f /etc/sudoers.d/90-cloud-init-users
+  killall --user packer 
+  userdel -rf packer
+  rm -rf /tmp/*
+  shutdown -P now
+  EOF
+}
+
 build {
   name = "hypervisor"
   sources = ["source.qemu.image"]
@@ -25,8 +42,11 @@ build {
     }
   }
 
-  # Ensure we reset cloud-init so it's re-run the next time the image is loaded.
   provisioner "shell" {
-    inline = ["sudo /usr/bin/cloud-init clean"]
+    expect_disconnect = true
+    skip_clean = true
+    inline = [
+      "sudo su root -c '${local.cleanup_script}'"
+    ]
   }
 }
