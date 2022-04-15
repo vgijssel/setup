@@ -43,8 +43,10 @@ describe systemd_service('ignited') do
   it { should be_running }
 end
 
-
-# TODO: expect group to also not exist
 describe user('packer') do
+  it { should_not exist }
+end
+
+describe group('packer') do
   it { should_not exist }
 end
