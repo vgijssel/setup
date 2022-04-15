@@ -50,3 +50,8 @@ end
 describe group('packer') do
   it { should_not exist }
 end
+
+describe command('kvm-ok') do
+  its('stdout') { should match ("INFO: /dev/kvm exists\nKVM acceleration can be used") }
+  its('exit_status') { should eq 0 }
+end
