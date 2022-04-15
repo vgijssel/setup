@@ -1,6 +1,6 @@
 load("//tools/packer:defs.bzl", "packer_image")
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
-load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box", "vagrant_run")
+load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box")
 load("//tools/bazel:defs.bzl", "runner_binary")
 
 packer_image(
