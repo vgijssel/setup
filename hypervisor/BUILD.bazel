@@ -72,6 +72,7 @@ pyinfra_run(
     inventory = "inventory.py",
     pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",
     deps = [
+        "files/ignited.service",
         "kitchen.yml",
     ],
 )

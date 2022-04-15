@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the ignited daemon
+
+[Service]
+User=root
+WorkingDirectory=/root
+ExecStart=/usr/local/bin/ignited daemon
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

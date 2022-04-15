@@ -36,3 +36,9 @@ describe command('/opt/cni/bin/bridge') do
   its('stderr.strip') { should eq 'CNI bridge plugin v0.9.1' }
   its('exit_status') { should eq 0 }
 end
+
+describe systemd_service('ignited') do
+  it { should be_installed }
+  it { should be_enabled }
+  it { should be_running }
+end

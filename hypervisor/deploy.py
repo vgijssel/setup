@@ -1,7 +1,7 @@
 # Structure pyinfra according to:
 # https://docs.pyinfra.com/en/1.x/deploys.html#layout
 
-from pyinfra.operations import apt, server, files
+from pyinfra.operations import apt, server, files, systemd
 from pyinfra import host
 from pyinfra.facts.server import Arch, LsbRelease
 from pyinfra.api.deploy import deploy
@@ -98,3 +98,21 @@ for binary in ['ignite', 'ignited']:
         dest = f'/usr/local/bin/{binary}',
         mode = '755',
     )
+
+files.put(
+    name = "Upload ingited service file",
+    src = "hypervisor/files/ignited.service",
+    dest = "/etc/systemd/system/ignited.service",
+    mode = '644',
+    user = 'root',
+    group = 'root',
+)
+
+systemd.service(
+    name='Restart and enable the ignited service',
+    service='ignited.service',
+    running=True,
+    restarted=True,
+    enabled=True,
+    daemon_reload=True,
+)
