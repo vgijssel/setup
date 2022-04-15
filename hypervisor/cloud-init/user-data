@@ -5,6 +5,7 @@ chpasswd: { expire: False }
 ssh_pwauth: True
 
 users:
+  # TODO: set /bin/bash as default shell instead of /bin/sh
   - name: packer
     plain_text_passwd: packer
     lock_passwd: false

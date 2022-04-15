@@ -67,12 +67,11 @@ pyinfra_run(
     deploy = "deploy.py",
     env = {
         # Specifying the environment variables necessary for the vagrant connector and the associated Vagrantfile.
-        "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/kitchen.yml))/.kitchen/kitchen-vagrant/default-ubuntu-focal",
+        "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/deploy.py))/.kitchen/kitchen-vagrant/default-ubuntu-focal",
     },
     inventory = "inventory.py",
     pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",
     deps = [
         "files/ignited.service",
-        "kitchen.yml",
     ],
 )

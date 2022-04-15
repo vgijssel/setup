@@ -5,6 +5,19 @@ variable "output_image" {
 locals {
     vm_name = basename(var.output_image)
     output_directory = dirname(var.output_image)
+
+    # As the root user remove the packer user and shutdown the vm.
+    # This will disconnect the ssh session and will prevent packer from
+    # removing the uploaded provisioner script in the /tmp directory
+    # therefore the /tmp directory is wiped in this script.
+    cleanup_and_shutdown_command = <<EOF
+    set -ex
+    sleep 5;
+    /usr/bin/cloud-init clean -l -s;
+    rm -f /etc/sudoers.d/90-cloud-init-users;
+    userdel -rf packer;
+    shutdown -P now;
+    EOF
 }
 
 variable "iso_file" {
@@ -40,6 +53,7 @@ source "qemu" "image" {
 
   format            = "qcow2"
   accelerator       = "hax"
+  shutdown_command = "sudo screen -d -m /bin/sh -c '${local.cleanup_and_shutdown_command}'"
 
   headless = true
   use_default_display = true
