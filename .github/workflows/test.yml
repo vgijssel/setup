@@ -50,7 +50,8 @@ jobs:
       - name: Read .tool-versions
         uses: marocchino/tool-versions-action@v1
         id: versions
-        path: dotfiles/files/tool-versions
+        with:
+          path: dotfiles/files/tool-versions
       - name: Use Ruby ${{ steps.versions.outputs.ruby}}
         uses: ruby/setup-ruby@v1
         with:
