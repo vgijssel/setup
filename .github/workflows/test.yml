@@ -59,7 +59,7 @@ jobs:
           ruby-version: ${{ steps.versions.outputs.ruby}}
       - run: which ruby
       - run: ruby --version
-      - run: brew install just
+      - run: brew install just qemu
       - run: just hypervisor-test
 
   macos-info:
