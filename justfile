@@ -25,6 +25,25 @@ hypervisor-provision:
 hypervisor-kitchen +args:
     bazel run //hypervisor:kitchen -- {{args}}
 
+# Run the bazel remote cache server
+bazel-remote-start:
+    docker rm -f bazel-remote-cache || true
+    docker run \
+        --name bazel-remote-cache \
+        --rm \
+        -d \
+        -u 1000:1000 \
+        -v $(pwd)/tools/bazel/bazel-remote-config.yml:/bazel-remote-config.yml \
+        -v $(pwd)/cache/bazel_cache:/data \
+        -p 8080:8080 \
+        -p 9092:9092 \
+        quay.io/bazel-remote/bazel-remote \
+        --config_file /bazel-remote-config.yml
+
+# Stop the bazel remote cache server
+bazel-remote-stop:
+    docker rm -f bazel-remote-cache
+
 # Invoke the packer binary directly
 packer +args:
     bazel run @packer//:packer_binary -- {{args}}

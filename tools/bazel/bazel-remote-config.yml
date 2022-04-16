@@ -1,0 +1,109 @@
+# These two are the only required options:
+dir: /data
+# size in GB
+max_size: 10
+
+# The form to store CAS blobs in ("zstd" or "uncompressed"):
+#storage_mode: zstd
+
+# The server listener address for HTTP/HTTPS. For TCP listeners,
+# use [host]:port, where host is optional (default 0.0.0.0) and can
+# be either a hostname or IP address. For Unix domain socket listeners,
+# use unix:///path/to/socket.sock, where /path/to/socket.sock can be
+# either an absolute or relative path to a socket path.
+http_address: 0.0.0.0:8080
+# The server listener address for gRPC (unix sockets are also supported
+# as described above):
+grpc_address: 0.0.0.0:9092
+# If profile_address (or the deprecated profile_port and/or profile_host)
+# is specified, then serve /debug/pprof/* URLs here (unix sockets are also
+# supported as described above):
+#profile_address: 127.0.0.1:7070
+
+# HTTP read/write timeouts. Note that these do not apply to the proxy
+# backends or the profiling endpoint. Reasonable values might be twice
+# the length of time that you expect a client to read/write the largest
+# likely blob. Units can be one of: "s", "m", "h".
+#http_read_timeout: 15s
+#http_write_timeout: 20s
+
+# Specify a certificate if you want to use HTTPS:
+#tls_cert_file: path/to/tls.cert
+#tls_key_file:  path/to/tls.key
+# If you want to use mutual TLS with client certificates:
+#tls_ca_file: path/to/ca/cert.pem
+
+# Alternatively, you can use simple authentication:
+#htpasswd_file: path/to/.htpasswd
+
+# If tls_ca_file or htpasswd_file are specified, you can choose
+# whether or not to allow unauthenticated read access:
+#allow_unauthenticated_reads: false
+
+# If specified, bazel-remote should exit after being idle
+# for this long. Time units can be one of: "s", "m", "h".
+#idle_timeout: 45s
+
+# If set to true, do not validate that ActionCache
+# items are valid ActionResult protobuf messages.
+#disable_http_ac_validation: false
+
+# If set to true, do not check that CAS items referred
+# to by ActionResult messages are in the cache.
+#disable_grpc_ac_deps_check: false
+
+# If set to true, enable metrics for each HTTP/gRPC endpoint.
+#enable_endpoint_metrics: false
+
+# Specify a custom list of histogram buckets for endpoint request duration metrics
+#endpoint_metrics_duration_buckets: [.5, 1, 2.5, 5, 10, 20, 40, 80, 160, 320]
+
+# At most one of the proxy backends can be selected:
+#
+# If this is 0, proxy backends won't upload blobs.
+#num_uploaders: 100
+# The maximum number of proxy uploads to queue, before dropping uploads.
+#max_queued_uploads: 1000000
+# The largest blob size that will be accepted, for example 10MB:
+#max_blob_size: 10485760
+#
+#gcs_proxy:
+#  bucket: gcs-bucket
+#  use_default_credentials: false
+#  json_credentials_file: path/to/creds.json
+#
+#s3_proxy:
+#  endpoint: minio.example.com:9000
+#  bucket: test-bucket
+#  prefix: test-prefix
+#  disable_ssl: true
+#
+# Provide exactly one auth_method (access_key, iam_role, or credentials_file) and accompanying configuration.
+#
+# Access key authenticaiton:
+#  auth_method: access_key
+#  access_key_id: EXAMPLE_ACCESS_KEY
+#  secret_access_key: EXAMPLE_SECRET_KEY
+#
+# IAM Role authentication.
+#  auth_method: iam_role
+#  iam_role_endpoint: http://169.254.169.254
+#  region: us-east-1
+#
+# AWS credentials file.
+#  auth_method: credentials_file
+#  aws_shared_credentials_file: path/to/aws/credentials
+#  aws_profile: my-profile
+#
+#http_proxy:
+#  url: https://remote-cache.com:8080/cache
+
+# If set to a valid port number, then serve /debug/pprof/* URLs here:
+#profile_port: 7070
+# IP address to use, if profiling is enabled:
+#profile_host: 127.0.0.1
+
+# If true, enable experimental remote asset API support:
+experimental_remote_asset_api: true
+# If supplied, controls the verbosity of the access logger ("none" or "all"):
+#access_log_level: none

@@ -15,7 +15,7 @@ packer_image(
     ],
     variables = {
         "iso_file": "$(location @ubuntu_focal//file)",
-        "iso_checksum": "8c8b5acb521f53a32e6ee53505e85d43958e42794c77dbb54dbe797097a63c5d",
+        "iso_checksum": "6e3ce31fe3a5523023650ba988c12d5fc2544bd0a95f435474841e2dec5836d9",
         "ssh_username": "packer",
         "ssh_password": "packer",
         "cloud_init_meta_data_file": "$(location cloud-init/meta-data)",

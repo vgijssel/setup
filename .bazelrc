@@ -1,4 +1,18 @@
 # Ensure we are using the default OS paths to prevent user specific installed binary issues:
 # https://github.com/bazelbuild/rules_python/issues/662#issuecomment-1091878387
-build --action_env=PATH=/usr/local/bin/:/usr/local/sbin/:/usr/bin:/bin:/usr/sbin:/sbin
-run --action_env=PATH=/usr/local/bin/:/usr/local/sbin/:/usr/bin:/bin:/usr/sbin:/sbin
+build --action_env=PATH=/Users/maarten/.asdf/shims:/Users/maarten/.asdf/bin:/usr/local/bin/:/usr/local/sbin/:/usr/bin:/bin:/usr/sbin:/sbin
+run --action_env=PATH=/Users/maarten/.asdf/shims:/Users/maarten/.asdf/bin:/usr/local/bin/:/usr/local/sbin/:/usr/bin:/bin:/usr/sbin:/sbin
+
+# Add asdf dir into the action env so we can use the asdf installed Ruby
+build --action_env=ASDF_DIR
+run --action_env=ASDF_DIR
+
+# build --remote_cache grpc://localhost:9092 --remote_upload_local_results=true --experimental_remote_downloader=grpc://localhost:9092 --experimental_remote_cache_async=true --remote_retries=0 --remote_timeout=20 
+# run --remote_cache grpc://localhost:9092 --remote_upload_local_results=true --experimental_remote_downloader=grpc://localhost:9092 --experimental_remote_cache_async=true --remote_retries=0 --remote_timeout=20
+# query --remote_cache grpc://localhost:9092 --remote_upload_local_results=true --experimental_remote_downloader=grpc://localhost:9092 --experimental_remote_cache_async=true --remote_retries=0 --remote_timeout=20
+
+common --disk_cache cache/bazel_cache
+common --repository_cache cache/bazel_repository_cache
+
+# --remote_timeout
+# --remote_retries

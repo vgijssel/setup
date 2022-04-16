@@ -55,6 +55,7 @@ source "qemu" "image" {
   iso_checksum      = var.iso_checksum
 
   format            = "qcow2"
+  disk_compression  = true
   accelerator       = "hax"
   shutdown_command = "sudo screen -d -m /bin/sh -c '${local.cleanup_and_shutdown_command}'"
 

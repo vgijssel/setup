@@ -14,9 +14,12 @@ bazel-bin
 bazel-out
 bazel-setup
 bazel-testlogs
+cache
 
 # Entries below this point are managed by Please (DO NOT EDIT)
 plz-out
 .plzconfig.local
 
 .kitchen
+
+wip-bazel-cache.md
