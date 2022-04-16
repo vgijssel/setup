@@ -46,7 +46,8 @@ jobs:
           path: |
             cache/bazel_cache
             cache/bazel_repository_cache
-          key: ${{ runner.os }}
+          key: bazel-cache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: bazel-cache-${{ runner.os }}-
       - name: Read .tool-versions
         uses: marocchino/tool-versions-action@v1
         id: versions
