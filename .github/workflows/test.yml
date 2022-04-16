@@ -34,10 +34,19 @@ jobs:
       - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
         run: bundle exec rspec
 
+  hypervisor-test:
+    name: Hypervisor test
+    timeout-minutes: 30
+    runs-on: macos-10.15
+    steps:
+      - uses: actions/checkout@v1
+      - run: brew install just
+      - run: just hypervisor-test
+
   macos-info:
     name: Print macos vm information
     timeout-minutes: 5
-    runs-on: macos-latest
+    runs-on: macos-10.15
     steps:
       - env:
           GITHUB: ${{ toJson(github) }}
