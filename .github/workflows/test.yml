@@ -47,8 +47,15 @@ jobs:
             cache/bazel_cache
             cache/bazel_repository_cache
           key: ${{ runner.os }}
+      - name: Read .tool-versions
+        uses: marocchino/tool-versions-action@v1
+        id: versions
+        path: dotfiles/files/tool-versions
+      - name: Use Ruby ${{ steps.versions.outputs.ruby}}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ steps.versions.outputs.ruby}}
       - run: brew install just
-      # TODO: do we need to enable right Ruby version?
       - run: just hypervisor-test
 
   macos-info:
