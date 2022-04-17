@@ -58,8 +58,15 @@ jobs:
         with:
           ruby-version: ${{ steps.versions.outputs.ruby}}
       - run: brew install just qemu coreutils
-      - run: which sha512sum
+      - run: qemu-system-x86_64 --version
       - run: just hypervisor-test
+
+      - name: Upload qemu logs
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: hypervisor-qemu-logs
+          path: /tmp/hypervisor.qcow2.packer.log
 
   # macos-info:
   #   name: Print macos vm information
