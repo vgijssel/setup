@@ -67,28 +67,3 @@ jobs:
         with:
           name: hypervisor-qemu-logs
           path: /tmp/hypervisor.qcow2.packer.log
-
-  # macos-info:
-  #   name: Print macos vm information
-  #   timeout-minutes: 5
-  #   runs-on: macos-10.15
-  #   steps:
-  #     - env:
-  #         GITHUB: ${{ toJson(github) }}
-  #         ENV: ${{ toJson(env) }}
-  #         JOB: ${{ toJson(job) }}
-  #         STEPS: ${{ toJson(steps) }}
-  #         RUNNER: ${{ toJson(runner) }}
-  #         SECRETS: ${{ toJson(secrets) }}
-  #         STRATEGY: ${{ toJson(strategy) }}
-  #         MATRIX: ${{ toJson(matrix) }}
-  #       run: |
-  #         env
-  #     - uses: actions/checkout@v1
-  #     - run: ls -la
-  #     - run: ifconfig
-  #     - run: id
-  #     - run: VBoxManage list bridgedifs | grep ^Name || true
-  #     - run: vboxmanage --version || true
-  #     - run: sudo pfctl -s all
-  #     - run: sysctl -a
