@@ -39,31 +39,37 @@ jobs:
     timeout-minutes: 30
     runs-on: macos-10.15
     steps:
-      - uses: actions/checkout@v1
-      - uses: pat-s/always-upload-cache@v3.0.1
-        id: bazel-cache
+      # - uses: actions/checkout@v1
+      # - uses: pat-s/always-upload-cache@v3.0.1
+      #   id: bazel-cache
+      #   with:
+      #     path: |
+      #       cache/bazel_cache
+      #       cache/bazel_repository_cache
+      #     key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+      #     restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
+      # - name: Read .tool-versions
+      #   uses: marocchino/tool-versions-action@v1
+      #   id: versions
+      #   with:
+      #     path: dotfiles/files/tool-versions
+      # - name: Use Ruby ${{ steps.versions.outputs.ruby}}
+      #   uses: ruby/setup-ruby@v1
+      #   with:
+      #     ruby-version: ${{ steps.versions.outputs.ruby}}
+      # - run: brew install just qemu coreutils
+      # - run: qemu-system-x86_64 --version
+      # - run: just hypervisor-test
+
+      - name: Check if qemu logs exist
+        id: check_files
+        uses: andstor/file-existence-action@v1
         with:
-          path: |
-            cache/bazel_cache
-            cache/bazel_repository_cache
-          key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
-          restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
-      - name: Read .tool-versions
-        uses: marocchino/tool-versions-action@v1
-        id: versions
-        with:
-          path: dotfiles/files/tool-versions
-      - name: Use Ruby ${{ steps.versions.outputs.ruby}}
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ steps.versions.outputs.ruby}}
-      - run: brew install just qemu coreutils
-      - run: qemu-system-x86_64 --version
-      - run: just hypervisor-test
+          files: "/tmp/hypervisor.qcow2.packer.log"
 
       - name: Upload qemu logs
-        if: always()
-        uses: actions/upload-artifact@v1
+        if: always() && steps.check_files.outputs.files_exists == 'true'
+        uses: actions/upload-artifact@v3
         with:
           name: hypervisor-qemu-logs
           path: /tmp/hypervisor.qcow2.packer.log
