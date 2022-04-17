@@ -34,27 +34,40 @@ jobs:
       - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
         run: bundle exec rspec
 
-  macos-info:
-    name: Print macos vm information
-    timeout-minutes: 5
-    runs-on: macos-latest
+  hypervisor-test:
+    name: Hypervisor test
+    timeout-minutes: 30
+    runs-on: macos-10.15
     steps:
-      - env:
-          GITHUB: ${{ toJson(github) }}
-          ENV: ${{ toJson(env) }}
-          JOB: ${{ toJson(job) }}
-          STEPS: ${{ toJson(steps) }}
-          RUNNER: ${{ toJson(runner) }}
-          SECRETS: ${{ toJson(secrets) }}
-          STRATEGY: ${{ toJson(strategy) }}
-          MATRIX: ${{ toJson(matrix) }}
-        run: |
-          env
       - uses: actions/checkout@v1
-      - run: ls -la
-      - run: ifconfig
-      - run: id
-      - run: VBoxManage list bridgedifs | grep ^Name || true
-      - run: vboxmanage --version || true
-      - run: sudo pfctl -s all
-      - run: sysctl -a
+      - uses: pat-s/always-upload-cache@v3.0.1
+        id: bazel-cache
+        with:
+          path: |
+            cache/bazel_cache
+            cache/bazel_repository_cache
+          key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
+      - name: Read .tool-versions
+        uses: marocchino/tool-versions-action@v1
+        id: versions
+        with:
+          path: dotfiles/files/tool-versions
+      - name: Use Ruby ${{ steps.versions.outputs.ruby}}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ steps.versions.outputs.ruby}}
+      - run: brew install just qemu coreutils
+      - run: qemu-system-x86_64 --version
+      - run: just hypervisor-test
+      - name: Check if qemu logs exist
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "/tmp/hypervisor.qcow2.packer.log"
+      - name: Upload qemu logs
+        if: always() && steps.check_files.outputs.files_exists == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: hypervisor-qemu-logs
+          path: /tmp/hypervisor.qcow2.packer.log

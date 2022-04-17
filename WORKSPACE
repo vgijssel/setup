@@ -13,9 +13,6 @@ http_archive(
 )
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-
-bazel_skylib_workspace()
-
 load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
 
 bazel_skylib_workspace()
@@ -24,17 +21,19 @@ rules_packer_toolchains(
     version = "1.8.0",
 )
 
-# https://cloud-images.ubuntu.com/focal/20220404/
+# https://cloud-images.ubuntu.com/focal/current/
 http_file(
     name = "ubuntu_focal",
-    sha256 = "8c8b5acb521f53a32e6ee53505e85d43958e42794c77dbb54dbe797097a63c5d",
+    sha256 = "6e3ce31fe3a5523023650ba988c12d5fc2544bd0a95f435474841e2dec5836d9",
     urls = [
-        "https://cloud-images.ubuntu.com/focal/20220404/focal-server-cloudimg-amd64.img",
+        "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img",
     ],
 )
 
 http_archive(
     name = "rules_python",
+    patch_args = ["-p1"],
+    patches = ["@//tools/python:fix-chmod.patch"],
     sha256 = "9fcf91dbcc31fde6d1edb15f117246d912c33c36f44cf681976bd886538deba6",
     strip_prefix = "rules_python-0.8.0",
     url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.8.0.tar.gz",
@@ -74,7 +73,7 @@ load(
 
 rules_ruby_dependencies()
 
-rules_ruby_select_sdk(version = "3.0.2")
+rules_ruby_select_sdk(version = "host")
 
 load(
     "@bazelruby_rules_ruby//ruby:defs.bzl",

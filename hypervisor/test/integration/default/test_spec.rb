@@ -93,6 +93,3 @@ describe 'automatic updates' do
     its('exit_status') { should eq 0 }
   end
 end
-
-# port 22 open
-# port 80 closed
