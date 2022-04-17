@@ -33,6 +33,7 @@ qcow_to_vagrant_box(
     name = "hypervisor_image_box",
     src = ":hypervisor_image",
     src_sha = ":hypervisor_image.sha512",
+    tags = ["no-cache"],
 )
 
 runner_binary(
