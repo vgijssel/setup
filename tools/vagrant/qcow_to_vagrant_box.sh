@@ -42,5 +42,5 @@ cat <<EOF | tee $BOX_INFO_FILE
 }
 EOF
 
-# Create a compressed tar with the specified files
-tar zcvf "$VAGRANT_FILE" "$BOX_METADATA_FILE" "$BOX_INFO_FILE" "$BOX_OVF_FILE" "$BOX_VMDK_FILE"
+# Create a tar with the specified files
+tar cvf "$VAGRANT_FILE" "$BOX_METADATA_FILE" "$BOX_INFO_FILE" "$BOX_OVF_FILE" "$BOX_VMDK_FILE"
