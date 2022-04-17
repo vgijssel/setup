@@ -1,7 +1,7 @@
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("//tools/bazel:defs.bzl", "runner_binary")
 
-def qcow_to_vagrant_box(name, src, src_sha):
+def qcow_to_vagrant_box(name, src, src_sha, tags = []):
     native.genrule(
         name = name,
         outs = [
@@ -18,4 +18,5 @@ def qcow_to_vagrant_box(name, src, src_sha):
         tools = [
             "//tools/vagrant:qcow_to_vagrant_box",
         ],
+        tags = tags,
     )
