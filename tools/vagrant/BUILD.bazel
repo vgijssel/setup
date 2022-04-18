@@ -3,6 +3,7 @@ package(default_visibility = ["//visibility:public"])
 exports_files([
     "box.ovf",
     "runner.sh.tpl",
+    "multi-user-target-active.sh",
 ])
 
 sh_binary(
