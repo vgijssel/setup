@@ -49,6 +49,7 @@ runner_binary(
     export CHEF_LICENSE=accept
     export TEST_DIR=$$(rlocation setup/hypervisor/test)
     export KITCHEN_CWD=$$(dirname $$KITCHEN_YAML)
+    export CONVERGE_SCRIPT=$$(rlocation setup/tools/vagrant/multi-user-target-active.sh)
 
     cd $$KITCHEN_CWD && $$KITCHEN_BINARY $$KITCHEN_ARGS
     """,
@@ -57,6 +58,7 @@ runner_binary(
         "kitchen.yml",
         "test",
         ":hypervisor_image_box",
+        "//tools/vagrant:multi-user-target-active.sh",
         "@hypervisor_bundle//:bin/kitchen",
     ],
     deps = [],

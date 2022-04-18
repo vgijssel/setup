@@ -28,6 +28,7 @@ verifier:
 
 provisioner:
   name: shell
+  script: <%= ENV.fetch('CONVERGE_SCRIPT') %>
 
 suites:
   - name: default
