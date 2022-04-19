@@ -13,5 +13,4 @@
 # pulumi.info("Attached to debugpy!")
 
 import pulumi
-
 pulumi.info("Kerk")

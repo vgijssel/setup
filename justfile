@@ -40,3 +40,8 @@ inspec +args:
 # Invoke the kitchen binary directly
 kitchen +args:
     cd {{invocation_directory()}}; bazel run @hypervisor_bundle//:bin/kitchen -- {{args}}
+
+# Invoke the Pulumi binary directly
+pulumi +args:
+    bazel run //infrastructure:deploy -- {{args}}
+
