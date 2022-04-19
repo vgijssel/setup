@@ -1,0 +1,4 @@
+pulumi==3.29.1
+pulumi-kubernetes==3.18.2
+onepasswordconnectsdk==1.2.0
+python-vagrant==1.0.0
