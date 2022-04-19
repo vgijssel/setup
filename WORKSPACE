@@ -55,9 +55,34 @@ pip_parse(
     requirements_lock = "//hypervisor:requirements_lock.txt",
 )
 
-load("@hypervisor_deps//:requirements.bzl", "install_deps")
+load("@hypervisor_deps//:requirements.bzl", hypervisor_install_deps = "install_deps")
 
-install_deps()
+hypervisor_install_deps()
+
+pip_parse(
+    name = "infrastructure_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "//infrastructure:requirements_lock.txt",
+)
+
+load("@infrastructure_deps//:requirements.bzl", infrastructure_install_deps = "install_deps")
+
+infrastructure_install_deps()
+
+http_archive(
+    name = "pulumi",
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+
+sh_binary(
+    name = "pulumi.sh",
+    srcs = ["pulumi"],
+)
+    """,
+    sha256 = "af180d963fcc68c521cc6df47a62f50599a990c8426a924d1d8f5a00ed710c4d",
+    strip_prefix = "pulumi",
+    url = "https://get.pulumi.com/releases/sdk/pulumi-v3.29.1-darwin-x64.tar.gz",
+)
 
 git_repository(
     name = "bazelruby_rules_ruby",

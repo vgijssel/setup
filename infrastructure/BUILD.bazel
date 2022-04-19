@@ -1,0 +1,18 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+
+py_binary(
+    name = "deploy",
+    srcs = [
+        "__main__.py",
+        "runner.py",
+    ],
+    data = [
+        "Pulumi.yaml",
+        "@pulumi",
+    ],
+    main = "runner.py",
+    deps = [
+        "@infrastructure_deps_pulumi//:pkg",
+        "@rules_python//python/runfiles",
+    ],
+)

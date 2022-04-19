@@ -1,4 +1,5 @@
 name: infrastructure
+# backend: https://pulumi.acmecorp.com
 runtime:
   name: python
 description: A minimal Kubernetes Python Pulumi program
