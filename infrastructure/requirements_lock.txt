@@ -80,7 +80,9 @@ onepasswordconnectsdk==1.2.0 \
 parver==0.3.1 \
     --hash=sha256:41a548c51b006a2f2522b54293cbfd2514bffa10774ece8430c9964a20cbd8b4 \
     --hash=sha256:c902e0653bcce927cc156a7fd9b3a51924cbce3bf3d0bfd49fc282bfd0c5dfd3
-    # via pulumi-kubernetes
+    # via
+    #   pulumi-command
+    #   pulumi-kubernetes
 protobuf==3.20.0 \
     --hash=sha256:001c2160c03b6349c04de39cf1a58e342750da3632f6978a1634a3dcca1ec10e \
     --hash=sha256:0b250c60256c8824219352dc2a228a6b49987e5bf94d3ffcf4c46585efcbd499 \
@@ -107,6 +109,9 @@ protobuf==3.20.0 \
     --hash=sha256:fbcbb068ebe67c4ff6483d2e2aa87079c325f8470b24b098d6bf7d4d21d57a69 \
     --hash=sha256:fd7133b885e356fa4920ead8289bb45dc6f185a164e99e10279f33732ed5ce15
     # via pulumi
+pulumi-command==0.1.0 \
+    --hash=sha256:1674d2c222d4e5889a6c04b8b5ee26cb31191c7606bff83b638aa41279e09354
+    # via -r infrastructure/requirements.txt
 pulumi-kubernetes==3.18.2 \
     --hash=sha256:944e2cac6279a4ca3a516413ef0011ba30882a5be0a7b3027352416b3ae111d3
     # via -r infrastructure/requirements.txt
@@ -114,6 +119,7 @@ pulumi==3.29.1 \
     --hash=sha256:f19804ada2aefde8975f1304a22f5acb6163ed9d1451073bdd0e4da0fe27691f
     # via
     #   -r infrastructure/requirements.txt
+    #   pulumi-command
     #   pulumi-kubernetes
 python-dateutil==2.8.2 \
     --hash=sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86 \
@@ -171,6 +177,7 @@ semver==2.13.0 \
     --hash=sha256:fa0fe2722ee1c3f57eac478820c3a5ae2f624af8264cbdf9000c980ff7f75e3f
     # via
     #   pulumi
+    #   pulumi-command
     #   pulumi-kubernetes
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
