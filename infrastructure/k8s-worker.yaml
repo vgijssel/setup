@@ -1,0 +1,13 @@
+apiVersion: ignite.weave.works/v1alpha4
+kind: VM
+metadata:
+  name: worker
+  uid: 199615df99804ae8
+spec:
+  image:
+    oci: weaveworks/ignite-ubuntu
+  cpus: 1
+  diskSize: 5GB
+  memory: 4096MB
+status:
+  running: true

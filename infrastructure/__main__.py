@@ -20,8 +20,6 @@ from pulumi_command import remote
 
 r = runfiles.Create()
 vagrantfile_dir = os.path.join(r.Rlocation("setup/hypervisor/.kitchen"), "kitchen-vagrant", "default-ubuntu-focal")
-test_vm = r.Rlocation("setup/infrastructure/test-vm.yaml")
-test_vm_content =  open(test_vm, 'r').read()
 
 v = vagrant.Vagrant(vagrantfile_dir, quiet_stdout=False, quiet_stderr=False)
 
@@ -33,4 +31,28 @@ connection = remote.ConnectionArgs(
     user=v.user(),
 )
 
-remote.CopyFile("test-vm", connection=connection, local_path=test_vm, remote_path=f"/etc/firecracker/manifests/test-vm.yaml", triggers=[test_vm_content])
+def ignite_vm(name, template_file, connection):
+    template_file_path = r.Rlocation(template_file)
+    template_file_content =  open(template_file_path, 'r').read()
+    remote_path = os.path.join("/etc/firecracker/manifests", os.path.basename(template_file_path))
+
+    remote.CopyFile(
+        name, 
+        connection=connection,
+        local_path=template_file_path,
+        remote_path=remote_path,
+        triggers=[template_file_content]
+    )
+
+
+ignite_vm(
+    "control-plane",
+    template_file="setup/infrastructure/k8s-control-plane.yaml",
+    connection = connection,
+)
+
+ignite_vm(
+    "worker",
+    template_file="setup/infrastructure/k8s-worker.yaml",
+    connection = connection,
+)

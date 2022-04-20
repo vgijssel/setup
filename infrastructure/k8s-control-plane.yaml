@@ -1,13 +1,13 @@
 apiVersion: ignite.weave.works/v1alpha4
 kind: VM
 metadata:
-  name: my-vm
+  name: control-plane
   uid: 599615df99804ae8
 spec:
   image:
     oci: weaveworks/ignite-ubuntu
-  cpus: 2
-  diskSize: 3GB
-  memory: 800MB
+  cpus: 1
+  diskSize: 5GB
+  memory: 1024MB
 status:
   running: true

@@ -14,6 +14,9 @@ lifecycle:
 
 driver:
   name: vagrant
+  customize:
+    cpus: 2
+    memory: 8192
   vagrantfiles:
     - <%= ENV.fetch('VAGRANTFILE_CLOUD_INIT') %>
 

@@ -9,14 +9,15 @@ compile_pip_requirements(
 )
 
 py_binary(
-    name = "deploy",
+    name = "provision",
     srcs = [
         "__main__.py",
         "runner.py",
     ],
     data = [
         "Pulumi.yaml",
-        "test-vm.yaml",
+        "k8s-control-plane.yaml",
+        "k8s-worker.yaml",
         "//hypervisor:.kitchen",
         "@pulumi",
     ],

@@ -25,6 +25,10 @@ hypervisor-provision:
 hypervisor-kitchen +args:
     bazel run //hypervisor:kitchen -- {{args}}
 
+# Provision the infrastructure using Pulumi
+infrastructure-provision +args:
+    bazel run //infrastructure:provision -- {{args}}
+
 # Invoke the packer binary directly
 packer +args:
     bazel run @packer//:packer_binary -- {{args}}
@@ -40,8 +44,3 @@ inspec +args:
 # Invoke the kitchen binary directly
 kitchen +args:
     cd {{invocation_directory()}}; bazel run @hypervisor_bundle//:bin/kitchen -- {{args}}
-
-# Invoke the Pulumi binary directly
-pulumi +args:
-    bazel run //infrastructure:deploy -- {{args}}
-
