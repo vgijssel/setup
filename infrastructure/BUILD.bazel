@@ -16,11 +16,13 @@ py_binary(
     ],
     data = [
         "Pulumi.yaml",
+        "//hypervisor:.kitchen",
         "@pulumi",
     ],
     main = "runner.py",
     deps = [
         "@infrastructure_deps_pulumi//:pkg",
+        "@infrastructure_deps_python_vagrant//:pkg",
         "@rules_python//python/runfiles",
     ],
 )
