@@ -108,6 +108,22 @@ files.put(
     group = 'root',
 )
 
+server.group(
+    name = "Create the ignite group",
+    group = "ignite",
+    present=True,
+    system=False,
+)
+
+files.directory(
+    name = "Create firecracker manifest directory",
+    path = "/etc/firecracker/manifests",
+    present = True,
+    user = "root",
+    group = "ignite",
+    mode = "775"
+)
+
 systemd.service(
     name='Restart and enable the ignited service',
     service='ignited.service',

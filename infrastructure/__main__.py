@@ -20,10 +20,10 @@ from pulumi_command import remote
 
 r = runfiles.Create()
 vagrantfile_dir = os.path.join(r.Rlocation("setup/hypervisor/.kitchen"), "kitchen-vagrant", "default-ubuntu-focal")
-kerk_txt = r.Rlocation("setup/infrastructure/kerk.txt")
+test_vm = r.Rlocation("setup/infrastructure/test-vm.yaml")
+test_vm_content =  open(test_vm, 'r').read()
 
 v = vagrant.Vagrant(vagrantfile_dir, quiet_stdout=False, quiet_stderr=False)
-pulumi.info(v.keyfile())
 
 private_key = open(v.keyfile(), 'r').read()
 connection = remote.ConnectionArgs(
@@ -33,4 +33,4 @@ connection = remote.ConnectionArgs(
     user=v.user(),
 )
 
-remote.CopyFile("kerk", connection=connection, local_path=kerk_txt, remote_path="/tmp/kerk.txt")
+remote.CopyFile("test-vm", connection=connection, local_path=test_vm, remote_path=f"/etc/firecracker/manifests/test-vm.yaml", triggers=[test_vm_content])
