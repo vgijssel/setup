@@ -4,7 +4,7 @@ load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box")
 load("//tools/bazel:defs.bzl", "runner_binary")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
-exports_files([".kitchen"])
+exports_files([".kitchen/.gitignore"])
 
 compile_pip_requirements(
     name = "requirements",
@@ -78,14 +78,12 @@ pyinfra_run(
     name = "provision",
     args = ["--sudo"],
     data = [
-        # TODO: this could mean that the contents of this directory are checked and therefore invalidated the cache for :hypervisor_image
-        # maybe ensure all files below this directory are ignored by Bazel?
-        ".kitchen",
+        ".kitchen/.gitignore",
     ],
     deploy = "deploy.py",
     env = {
         # Specifying the environment variables necessary for the vagrant connector and the associated Vagrantfile.
-        "VAGRANT_CWD": "$$(rlocation setup/hypervisor/.kitchen)/kitchen-vagrant/default-ubuntu-focal",
+        "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/.kitchen/.gitignore))/kitchen-vagrant/default-ubuntu-focal",
     },
     inventory = "inventory.py",
     pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",

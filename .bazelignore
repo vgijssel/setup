@@ -3,4 +3,3 @@
 bazel-setup
 
 .git
-hypervisor/.kitchen

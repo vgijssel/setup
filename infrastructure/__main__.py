@@ -20,7 +20,9 @@ from pulumi_command import remote
 
 r = runfiles.Create()
 vagrantfile_dir = os.path.join(
-    r.Rlocation("setup/hypervisor/.kitchen"), "kitchen-vagrant", "default-ubuntu-focal"
+    os.path.dirname(r.Rlocation("setup/hypervisor/.kitchen/.gitignore")),
+    "kitchen-vagrant",
+    "default-ubuntu-focal",
 )
 
 v = vagrant.Vagrant(vagrantfile_dir, quiet_stdout=False, quiet_stderr=False)
@@ -36,13 +38,14 @@ connection = remote.ConnectionArgs(
 create_script = """
 sudo kubefire install
 sudo kubefire cluster create -f demo --master-cpu 1 -b k3s
+sudo kubefire cluster show demo -o json | jq -r ".Nodes[0].Status.IPAddresses"
 """
 
 delete_script = """
 sudo kubefire cluster delete -f demo
 """
 
-remote.Command(
+k3s_cluster = remote.Command(
     "k3s_cluster",
     connection=connection,
     create=create_script,
@@ -50,6 +53,19 @@ remote.Command(
     opts=pulumi.ResourceOptions(delete_before_replace=True),
     triggers=[create_script, delete_script],
 )
+
+kubeconfig_script = """
+sudo kubefire kubeconfig show demo
+"""
+
+k3s_kubeconfig = remote.Command(
+    "k3s_kubeconfig",
+    connection=connection,
+    create=kubeconfig_script,
+    triggers=[kubeconfig_script],
+)
+
+pulumi.export("kubeconfig", k3s_kubeconfig.stdout)
 
 
 # , {

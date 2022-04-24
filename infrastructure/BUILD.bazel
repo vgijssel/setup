@@ -18,7 +18,7 @@ py_binary(
         "Pulumi.yaml",
         "k8s-control-plane.yaml",
         "k8s-worker.yaml",
-        "//hypervisor:.kitchen",
+        "//hypervisor:.kitchen/.gitignore",
         "@pulumi",
     ],
     main = "runner.py",

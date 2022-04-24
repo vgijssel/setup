@@ -55,22 +55,33 @@ from pyinfra.api.deploy import deploy
 #     )
 
 server.sysctl(
-    name='Enable ip4 forwarding',
-    key='net.ipv4.ip_forward',
+    name="Enable ip4 forwarding",
+    key="net.ipv4.ip_forward",
     value=1,
     persist=True,
 )
 
 apt.packages(
     name="Ensure ignite dependencies are installed",
-    packages=["mount", "tar", "e2fsprogs", "binutils", "dmsetup", "openssh-client", "git", "cpu-checker", "uuid-runtime"],
+    packages=[
+        "mount",
+        "tar",
+        "e2fsprogs",
+        "binutils",
+        "dmsetup",
+        "openssh-client",
+        "git",
+        "cpu-checker",
+        "uuid-runtime",
+        "jq",
+    ],
 )
 
 files.download(
-    name = f'Download kubefire binary',
-    src = f'https://github.com/innobead/kubefire/releases/download/v0.3.6/kubefire-linux-amd64',
-    dest = f'/usr/local/bin/kubefire',
-    mode = '755',
+    name=f"Download kubefire binary",
+    src=f"https://github.com/innobead/kubefire/releases/download/v0.3.6/kubefire-linux-amd64",
+    dest=f"/usr/local/bin/kubefire",
+    mode="755",
 )
 
 # server.shell(
@@ -146,12 +157,12 @@ files.download(
 #     daemon_reload=True,
 # )
 
-server.shell(
-    name='Enable firewall for SSH',
-    commands=['ufw allow "OpenSSH"'],
-)
+# server.shell(
+#     name='Enable firewall for SSH',
+#     commands=['ufw allow "OpenSSH"'],
+# )
 
-server.shell(
-    name='Enable the firewall',
-    commands=['ufw --force enable'],
-)
+# server.shell(
+#     name='Enable the firewall',
+#     commands=['ufw --force enable'],
+# )
