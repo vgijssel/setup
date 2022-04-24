@@ -78,6 +78,8 @@ pyinfra_run(
     name = "provision",
     args = ["--sudo"],
     data = [
+        # TODO: this could mean that the contents of this directory are checked and therefore invalidated the cache for :hypervisor_image
+        # maybe ensure all files below this directory are ignored by Bazel?
         ".kitchen",
     ],
     deploy = "deploy.py",

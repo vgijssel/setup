@@ -19,11 +19,13 @@ import pulumi
 from pulumi_command import remote
 
 r = runfiles.Create()
-vagrantfile_dir = os.path.join(r.Rlocation("setup/hypervisor/.kitchen"), "kitchen-vagrant", "default-ubuntu-focal")
+vagrantfile_dir = os.path.join(
+    r.Rlocation("setup/hypervisor/.kitchen"), "kitchen-vagrant", "default-ubuntu-focal"
+)
 
 v = vagrant.Vagrant(vagrantfile_dir, quiet_stdout=False, quiet_stderr=False)
 
-private_key = open(v.keyfile(), 'r').read()
+private_key = open(v.keyfile(), "r").read()
 connection = remote.ConnectionArgs(
     host=v.hostname(),
     port=int(v.port()),
@@ -31,28 +33,53 @@ connection = remote.ConnectionArgs(
     user=v.user(),
 )
 
-def ignite_vm(name, template_file, connection):
-    template_file_path = r.Rlocation(template_file)
-    template_file_content =  open(template_file_path, 'r').read()
-    remote_path = os.path.join("/etc/firecracker/manifests", os.path.basename(template_file_path))
+create_script = """
+sudo kubefire install
+sudo kubefire cluster delete -f demo
+sudo kubefire cluster create demo --master-cpu 1 -b k3s
+"""
 
-    remote.CopyFile(
-        name, 
-        connection=connection,
-        local_path=template_file_path,
-        remote_path=remote_path,
-        triggers=[template_file_content]
-    )
+delete_script = """
+sudo kubefire cluster delete -f demo
+"""
 
-
-ignite_vm(
-    "control-plane",
-    template_file="setup/infrastructure/k8s-control-plane.yaml",
-    connection = connection,
+remote.Command(
+    "k3s_cluster",
+    connection=connection,
+    create=create_script,
+    delete=delete_script,
+    opts=pulumi.ResourceOptions(delete_before_replace=True),
+    triggers=[create_script, delete_script],
 )
 
-ignite_vm(
-    "worker",
-    template_file="setup/infrastructure/k8s-worker.yaml",
-    connection = connection,
-)
+
+# , {
+#     connection,
+#     create: interpolate`echo ${server.privateIp} > private_ip.txt`,
+#     delete: `rm private_ip.txt`,
+# }, { deleteBeforeReplace: true });
+# def ignite_vm(name, template_file, connection):
+#     template_file_path = r.Rlocation(template_file)
+#     template_file_content =  open(template_file_path, 'r').read()
+#     remote_path = os.path.join("/etc/firecracker/manifests", os.path.basename(template_file_path))
+
+#     remote.CopyFile(
+#         name,
+#         connection=connection,
+#         local_path=template_file_path,
+#         remote_path=remote_path,
+#         triggers=[template_file_content]
+#     )
+
+
+# ignite_vm(
+#     "control-plane",
+#     template_file="setup/infrastructure/k8s-control-plane.yaml",
+#     connection = connection,
+# )
+
+# ignite_vm(
+#     "worker",
+#     template_file="setup/infrastructure/k8s-worker.yaml",
+#     connection = connection,
+# )

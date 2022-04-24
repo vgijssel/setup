@@ -17,6 +17,7 @@ driver:
   customize:
     cpus: 2
     memory: 8192
+    nicpromisc1: allow-all
   vagrantfiles:
     - <%= ENV.fetch('VAGRANTFILE_CLOUD_INIT') %>
 

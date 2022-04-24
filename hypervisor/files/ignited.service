@@ -4,7 +4,7 @@ Description=Run the ignited daemon
 [Service]
 User=root
 WorkingDirectory=/root
-ExecStart=/usr/local/bin/ignited daemon
+ExecStart=/usr/local/bin/ignited --runtime containerd daemon
 Restart=always
 
 [Install]

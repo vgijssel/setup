@@ -25,8 +25,12 @@ hypervisor-provision:
 hypervisor-kitchen +args:
     bazel run //hypervisor:kitchen -- {{args}}
 
-# Provision the infrastructure using Pulumi
-infrastructure-provision +args:
+# Provision the infrastructure
+infrastructure-provision:
+    bazel run //infrastructure:provision -- up -y -f --logtostderr -v=3
+
+# Access the pulumi binary for infrastructure
+infrastructure-pulumi +args:
     bazel run //infrastructure:provision -- {{args}}
 
 # Invoke the packer binary directly
