@@ -20,6 +20,8 @@ driver:
     nicpromisc1: allow-all
   vagrantfiles:
     - <%= ENV.fetch('VAGRANTFILE_CLOUD_INIT') %>
+  network:
+    - ["forwarded_port", { guest: 6443, host: 6443 }]
 
 platforms:
   - name: ubuntu-focal

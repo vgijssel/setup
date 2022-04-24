@@ -35,8 +35,7 @@ connection = remote.ConnectionArgs(
 
 create_script = """
 sudo kubefire install
-sudo kubefire cluster delete -f demo
-sudo kubefire cluster create demo --master-cpu 1 -b k3s
+sudo kubefire cluster create -f demo --master-cpu 1 -b k3s
 """
 
 delete_script = """
