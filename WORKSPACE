@@ -79,9 +79,9 @@ sh_binary(
     srcs = ["pulumi"],
 )
     """,
-    sha256 = "af180d963fcc68c521cc6df47a62f50599a990c8426a924d1d8f5a00ed710c4d",
+    sha256 = "f1afc2b7fa0b1c78b1a668add6e1d9b58c7c7246372c39be4d2af9a58a656d41",
     strip_prefix = "pulumi",
-    url = "https://get.pulumi.com/releases/sdk/pulumi-v3.29.1-darwin-x64.tar.gz",
+    url = "https://get.pulumi.com/releases/sdk/pulumi-v3.30.0-darwin-x64.tar.gz",
 )
 
 git_repository(

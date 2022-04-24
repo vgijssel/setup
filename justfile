@@ -1,3 +1,5 @@
+git_branch_tag := `git rev-parse --abbrev-ref HEAD | sed 's/[^a-zA-Z0-9]/_/g'`
+
 default: 
     just --list
 
@@ -27,7 +29,8 @@ hypervisor-kitchen +args:
 
 # Provision the infrastructure
 infrastructure-provision:
-    bazel run //infrastructure:provision -- up -y -f --logtostderr -v=3
+    bazel run //infrastructure:provision -- stack select {{git_branch_tag}} --create
+    bazel run //infrastructure:provision -- up -y --logtostderr -v=3 --stack={{git_branch_tag}}
 
 # Access the pulumi binary for infrastructure
 infrastructure-pulumi +args:

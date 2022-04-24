@@ -115,8 +115,8 @@ pulumi-command==0.1.0 \
 pulumi-kubernetes==3.18.2 \
     --hash=sha256:944e2cac6279a4ca3a516413ef0011ba30882a5be0a7b3027352416b3ae111d3
     # via -r infrastructure/requirements.txt
-pulumi==3.29.1 \
-    --hash=sha256:f19804ada2aefde8975f1304a22f5acb6163ed9d1451073bdd0e4da0fe27691f
+pulumi==3.30.0 \
+    --hash=sha256:8ad8bc32d1254fbfc607456117fde56b74ef388a48f8d7b03ba843764edd1fef
     # via
     #   -r infrastructure/requirements.txt
     #   pulumi-command

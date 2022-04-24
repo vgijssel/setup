@@ -1,4 +1,4 @@
-pulumi==3.29.1
+pulumi==3.30.0
 pulumi-kubernetes==3.18.2
 pulumi-command==0.1.0
 onepasswordconnectsdk==1.2.0
