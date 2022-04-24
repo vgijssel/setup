@@ -73,7 +73,7 @@ apt.packages(
         "git",
         "cpu-checker",
         "uuid-runtime",
-        "jq",
+        # "jq",
     ],
 )
 

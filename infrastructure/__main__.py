@@ -38,8 +38,9 @@ connection = remote.ConnectionArgs(
 create_script = """
 sudo kubefire install
 sudo kubefire cluster create -f demo --master-cpu 1 -b k3s
-sudo kubefire cluster show demo -o json | jq -r ".Nodes[0].Status.IPAddresses"
 """
+
+# sudo kubefire cluster show demo -o json | jq -r ".Nodes[0].Status.IPAddresses"
 
 delete_script = """
 sudo kubefire cluster delete -f demo
