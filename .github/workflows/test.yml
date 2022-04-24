@@ -40,6 +40,7 @@ jobs:
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v1
+      - run: git checkout -B "$GITHUB_REF_NAME" "$GITHUB_SHA"
       - uses: pat-s/always-upload-cache@v3.0.1
         id: bazel-cache
         with:
