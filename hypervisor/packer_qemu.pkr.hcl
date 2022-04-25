@@ -51,6 +51,9 @@ source "qemu" "image" {
   vm_name           = local.vm_name
   output_directory  = local.output_directory
 
+  disk_image = true
+  disk_size = "10G"
+  use_backing_file = false
   iso_url           = var.iso_file
   iso_checksum      = var.iso_checksum
 
@@ -72,9 +75,6 @@ source "qemu" "image" {
       var.cloud_init_user_data_file,
   ]
   cd_label = "cidata"
-
-  disk_image = true
-  use_backing_file = false
 
   net_device        = "virtio-net"
   disk_interface    = "virtio"
