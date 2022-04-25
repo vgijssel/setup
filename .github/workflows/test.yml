@@ -65,14 +65,9 @@ jobs:
       - run: just infrastructure-provision
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-      # - name: Check if qemu logs exist
-      #   id: check_files
-      #   uses: andstor/file-existence-action@v1
-      #   with:
-      #     files: "/private/tmp/hypervisor.qcow2.packer.log"
-      # - name: Upload qemu logs
-      #   if: always() && steps.check_files.outputs.files_exists == 'true'
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: hypervisor-qemu-logs
-      #     path: /private/tmp/hypervisor.qcow2.packer.log
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: hypervisor-qemu-logs
+          path: /private/tmp/setup/logs
