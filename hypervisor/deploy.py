@@ -84,6 +84,15 @@ files.download(
     mode="755",
 )
 
+KUBECTL_VERSION = "v1.23.6"
+
+files.download(
+    name=f"Download kubectl binary",
+    src=f"https://dl.k8s.io/release/{KUBECTL_VERSION}/bin/linux/amd64/kubectl",
+    dest="/usr/local/bin/kubectl",
+    mode="755",
+)
+
 # server.shell(
 #     name='Install kubefire depdenencies',
 #     commands=['kubefire install'],
