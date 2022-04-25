@@ -63,7 +63,7 @@ k3s_kubeconfig = remote.Command(
     "k3s_kubeconfig",
     connection=connection,
     create=kubeconfig_script,
-    triggers=[kubeconfig_script],
+    triggers=[k3s_cluster, kubeconfig_script],
     opts=pulumi.ResourceOptions(depends_on=[k3s_cluster]),
 )
 

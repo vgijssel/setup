@@ -28,6 +28,9 @@ hypervisor-provision:
 hypervisor-kitchen +args:
     bazel run {{ bazel_debug_config }} //hypervisor:kitchen -- {{ args }}
 
+hypervisor-login:
+    VAGRANT_CWD=hypervisor/.kitchen/kitchen-vagrant/default-ubuntu-focal vagrant ssh
+
 # Provision the infrastructure
 infrastructure-provision:
     bazel run {{ bazel_debug_config }} //infrastructure:provision -- stack select {{ git_branch_tag }} --create
