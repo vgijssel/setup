@@ -56,6 +56,7 @@ source "qemu" "image" {
   use_backing_file = false
   iso_url           = var.iso_file
   iso_checksum      = var.iso_checksum
+  iso_target_extension = "qcow2"
 
   format            = "qcow2"
   disk_compression  = true
