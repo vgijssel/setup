@@ -36,8 +36,8 @@ connection = remote.ConnectionArgs(
 )
 
 create_script = """
-sudo kubefire install
-sudo kubefire cluster create -f demo --master-cpu 1 -b k3s
+sudo kubefire install;
+sudo kubefire cluster create -f demo --master-cpu 1 -b k3s;
 """
 
 # sudo kubefire cluster show demo -o json | jq -r ".Nodes[0].Status.IPAddresses"
@@ -64,6 +64,7 @@ k3s_kubeconfig = remote.Command(
     connection=connection,
     create=kubeconfig_script,
     triggers=[kubeconfig_script],
+    opts=pulumi.ResourceOptions(depends_on=[k3s_cluster]),
 )
 
 pulumi.export("kubeconfig", k3s_kubeconfig.stdout)
