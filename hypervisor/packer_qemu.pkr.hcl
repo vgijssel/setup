@@ -82,6 +82,6 @@ source "qemu" "image" {
   memory = 1024
 
   qemuargs = [
-    ["-serial", "file:/tmp/setup/logs/${local.vm_name}.packer.log"],
+    ["-serial", "file:/tmp/setup-bazel-${local.vm_name}-packer.log"],
   ]
 }

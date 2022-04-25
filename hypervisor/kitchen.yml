@@ -19,7 +19,7 @@ driver:
     memory: 8192
     nicpromisc1: allow-all
     uartmode1:
-      file: "/tmp/setup/logs/hypervisor-virtualbox.log"
+      file: "/tmp/setup-bazel-hypervisor-virtualbox.log"
   vagrantfiles:
     - <%= ENV.fetch('VAGRANTFILE_CLOUD_INIT') %>
   network:
