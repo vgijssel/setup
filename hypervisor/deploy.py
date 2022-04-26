@@ -3,7 +3,7 @@
 
 from pyinfra.operations import apt, server, files, systemd
 from pyinfra import host
-from pyinfra.facts.server import Arch, LsbRelease
+from pyinfra.facts.server import Arch, LsbRelease, OsVersion
 from pyinfra.api.deploy import deploy
 
 
@@ -54,6 +54,12 @@ def deploy_docker(state=None, host=None):
         host=host,
     )
 
+
+apt.packages(
+    name="Ensure all kernel modules are available",
+    packages=[f"linux-modules-{host.get_fact(OsVersion)}"],
+    update=True,
+)
 
 server.sysctl(
     name="Enable ip4 forwarding",
