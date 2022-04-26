@@ -60,7 +60,7 @@ source "qemu" "image" {
   output_directory  = local.output_directory
 
   disk_image = true
-  disk_size = "10G"
+  disk_size = "20G"
   use_backing_file = false
   iso_url           = var.iso_file
   iso_checksum      = var.iso_checksum
@@ -88,7 +88,7 @@ source "qemu" "image" {
   net_device        = "virtio-net"
   disk_interface    = "virtio"
 
-  memory = 1024
+  memory = 2048
 
   qemuargs = [
     # [ "--no-acpi", "" ],
