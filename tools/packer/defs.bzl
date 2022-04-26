@@ -48,10 +48,11 @@ def _packer_image_impl(ctx):
 
     if ctx.attr._setup_debug_flag[BuildSettingInfo].value == True:
         env["PACKER_LOG"] = "1"
+        args = ["build", "-force", "-on-error=ask", template_dir_path]
     else:
         env["PACKER_LOG"] = "0"
+        args = ["build", "-force", template_dir_path]
 
-    args = ["build", "-force", "-on-error=ask", template_dir_path]
     tools = [tool.files_to_run for tool in ctx.attr.tools]
 
     ctx.actions.run(
