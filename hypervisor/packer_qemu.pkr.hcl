@@ -27,6 +27,14 @@ variable "iso_file" {
   type = string
 }
 
+variable "kernel" {
+  type = string
+}
+
+variable "initrd" {
+  type = string
+}
+
 variable "iso_checksum" {
   type = string
 }
@@ -83,6 +91,10 @@ source "qemu" "image" {
   memory = 1024
 
   qemuargs = [
+    # [ "--no-acpi", "" ],
     ["-serial", "file:/tmp/setup-bazel-${local.vm_name}-packer.log"],
+    ["-kernel", var.kernel],
+    ["-initrd", var.initrd],
+    ["-append", "root=LABEL=cloudimg-rootfs ro console=tty1 console=ttyS0 no_timer_check"],
   ]
 }

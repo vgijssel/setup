@@ -43,6 +43,7 @@ def _packer_image_impl(ctx):
     for key, value in ctx.attr.env.items():
         env[key] = value
     env["PKR_VAR_output_image"] = ctx.outputs.output_image.path
+    env["PACKER_LOG"] = "1"
 
     args = ["build", "-force", "-on-error=ask", template_dir_path]
     tools = [tool.files_to_run for tool in ctx.attr.tools]
