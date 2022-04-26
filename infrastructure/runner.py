@@ -16,5 +16,16 @@ pulumi_cwd = os.path.dirname(pulumi_main)
 # Force the Pulumi backend to be the standard managed Pulumi backend.
 os.environ["PULUMI_BACKEND_URL"] = "https://api.pulumi.com"
 
-result = subprocess.run([pulumi_binary, "--cwd", pulumi_cwd] + pulumi_args)
+if os.environ["SETUP_DEBUG"] == "true":
+    pulumi_debug_args = [
+        "--logtostderr",
+        "-v=3",
+    ]
+else:
+    pulumi_debug_args = []
+
+
+result = subprocess.run(
+    [pulumi_binary, "--cwd", pulumi_cwd] + pulumi_debug_args + pulumi_args
+)
 exit(result.returncode)

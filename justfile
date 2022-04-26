@@ -34,7 +34,7 @@ hypervisor-login:
 # Provision the infrastructure
 infrastructure-provision:
     bazel run {{ bazel_debug_config }} //infrastructure:provision -- stack select {{ git_branch_tag }} --create
-    bazel run {{ bazel_debug_config }} //infrastructure:provision -- up -y --logtostderr -v=3 --stack={{ git_branch_tag }}
+    bazel run {{ bazel_debug_config }} //infrastructure:provision -- up -y  --stack={{ git_branch_tag }}
 
 # Access the pulumi binary for infrastructure
 infrastructure-pulumi +args:

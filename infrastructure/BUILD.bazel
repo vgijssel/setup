@@ -21,6 +21,14 @@ py_binary(
         "//hypervisor:.kitchen/.gitignore",
         "@pulumi",
     ],
+    env = select({
+        "//:setup_debug": {
+            "SETUP_DEBUG": "true",
+        },
+        "//conditions:default": {
+            "SETUP_DEBUG": "false",
+        },
+    }),
     main = "runner.py",
     deps = [
         "@infrastructure_deps_pulumi//:pkg",
