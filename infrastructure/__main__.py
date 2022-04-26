@@ -36,6 +36,7 @@ connection = remote.ConnectionArgs(
 )
 
 ignite_create_vm_script = """
+sudo ignite rm -f my-vm || true
 sudo ignite run weaveworks/ignite-ubuntu --cpus 1 --memory 1GB --ssh --name my-vm
 """
 
