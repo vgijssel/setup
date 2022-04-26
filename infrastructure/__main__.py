@@ -35,39 +35,70 @@ connection = remote.ConnectionArgs(
     user=v.user(),
 )
 
-create_script = """
-sudo kubefire install;
-sudo kubefire cluster create -f demo --master-cpu 1 -b k3s;
+ignite_create_vm_script = """
+sudo ignite run weaveworks/ignite-ubuntu --cpus 1 --memory 1GB --ssh --name my-vm
 """
 
-# sudo kubefire cluster show demo -o json | jq -r ".Nodes[0].Status.IPAddresses"
-
-delete_script = """
-sudo kubefire cluster delete -f demo
+ignite_delete_vm_script = """
+sudo ignite rm -f my-vm || true
 """
 
-k3s_cluster = remote.Command(
-    "k3s_cluster",
+ignite_vm = remote.Command(
+    "ignite_vm",
     connection=connection,
-    create=create_script,
-    delete=delete_script,
+    create=ignite_create_vm_script,
+    delete=ignite_delete_vm_script,
     opts=pulumi.ResourceOptions(delete_before_replace=True),
-    triggers=[create_script, delete_script],
+    triggers=[ignite_create_vm_script, ignite_delete_vm_script],
 )
 
-kubeconfig_script = """
-sudo kubefire kubeconfig show demo
+ignite_vm_logs_script = """
+sudo ignite logs my-vm
 """
 
-k3s_kubeconfig = remote.Command(
-    "k3s_kubeconfig",
+ignite_vm_logs = remote.Command(
+    "ignite_vm_logs",
     connection=connection,
-    create=kubeconfig_script,
-    triggers=[k3s_cluster, kubeconfig_script],
-    opts=pulumi.ResourceOptions(depends_on=[k3s_cluster]),
+    create=ignite_vm_logs_script,
+    triggers=[ignite_vm_logs_script, ignite_vm],
+    opts=pulumi.ResourceOptions(depends_on=[ignite_vm]),
 )
 
-pulumi.export("kubeconfig", k3s_kubeconfig.stdout)
+pulumi.export("ignite_vm_logs", ignite_vm_logs.stdout)
+
+# create_script = """
+# sudo kubefire install;
+# sudo kubefire cluster create -f demo --master-cpu 1 -b k3s;
+# """
+
+# # sudo kubefire cluster show demo -o json | jq -r ".Nodes[0].Status.IPAddresses"
+
+# delete_script = """
+# sudo kubefire cluster delete -f demo
+# """
+
+# k3s_cluster = remote.Command(
+#     "k3s_cluster",
+#     connection=connection,
+#     create=create_script,
+#     delete=delete_script,
+#     opts=pulumi.ResourceOptions(delete_before_replace=True),
+#     triggers=[create_script, delete_script],
+# )
+
+# kubeconfig_script = """
+# sudo kubefire kubeconfig show demo
+# """
+
+# k3s_kubeconfig = remote.Command(
+#     "k3s_kubeconfig",
+#     connection=connection,
+#     create=kubeconfig_script,
+#     triggers=[k3s_cluster, kubeconfig_script],
+#     opts=pulumi.ResourceOptions(depends_on=[k3s_cluster]),
+# )
+
+# pulumi.export("kubeconfig", k3s_kubeconfig.stdout)
 
 
 # , {
