@@ -37,7 +37,14 @@ connection = remote.ConnectionArgs(
 
 ignite_create_vm_script = """
 sudo ignite rm -f my-vm || true
-sudo ignite run weaveworks/ignite-ubuntu --cpus 1 --memory 1GB --ssh --name my-vm
+sudo ignite run weaveworks/ignite-ubuntu --cpus 1 --memory 1GB --name my-vm
+
+timeout 300 /bin/bash <<EOF
+while true; do
+  sudo ignite logs my-vm
+  sleep 1
+done
+EOF
 """
 
 ignite_delete_vm_script = """
@@ -49,7 +56,10 @@ ignite_vm = remote.Command(
     connection=connection,
     create=ignite_create_vm_script,
     delete=ignite_delete_vm_script,
-    opts=pulumi.ResourceOptions(delete_before_replace=True),
+    opts=pulumi.ResourceOptions(
+        delete_before_replace=True,
+        # custom_timeouts=pulumi.CustomTimeouts(create="10s", update="10s", delete="10s"),
+    ),
     triggers=[ignite_create_vm_script, ignite_delete_vm_script],
 )
 
