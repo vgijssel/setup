@@ -8,6 +8,7 @@ exports_files([
 sh_binary(
     name = "qcow_to_vagrant_box",
     srcs = [
+        "multi-user-target-active.sh",
         "qcow_to_vagrant_box.sh",
     ],
 )
