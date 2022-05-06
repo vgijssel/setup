@@ -2,6 +2,14 @@ load("//tools/packer:defs.bzl", "packer_image")
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box")
 load("//tools/bazel:defs.bzl", "runner_binary")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
+compile_pip_requirements(
+    name = "requirements",
+    extra_args = ["--allow-unsafe"],
+    requirements_in = "requirements.txt",
+    requirements_txt = "requirements_lock.txt",
+)
 
 packer_image(
     name = "hypervisor_image",
@@ -15,7 +23,9 @@ packer_image(
     ],
     variables = {
         "iso_file": "$(location @ubuntu_focal//file)",
-        "iso_checksum": "6e3ce31fe3a5523023650ba988c12d5fc2544bd0a95f435474841e2dec5836d9",
+        "iso_checksum": "9a0f100258640fa68ee13e33f4ea636ee3f82e2b9991381553be65121ce3657b",
+        "kernel": "$(location @ubuntu_focal_kernel//file)",
+        "initrd": "$(location @ubuntu_focal_initrd//file)",
         "ssh_username": "packer",
         "ssh_password": "packer",
         "cloud_init_meta_data_file": "$(location cloud-init/meta-data)",
@@ -26,6 +36,8 @@ packer_image(
         "cloud-init/meta-data",
         "cloud-init/user-data",
         "@ubuntu_focal//file",
+        "@ubuntu_focal_initrd//file",
+        "@ubuntu_focal_kernel//file",
     ],
 )
 
@@ -49,6 +61,7 @@ runner_binary(
     export CHEF_LICENSE=accept
     export TEST_DIR=$$(rlocation setup/hypervisor/test)
     export KITCHEN_CWD=$$(dirname $$KITCHEN_YAML)
+    export CONVERGE_SCRIPT=$$(rlocation setup/tools/vagrant/multi-user-target-active.sh)
 
     cd $$KITCHEN_CWD && $$KITCHEN_BINARY $$KITCHEN_ARGS
     """,
@@ -57,18 +70,21 @@ runner_binary(
         "kitchen.yml",
         "test",
         ":hypervisor_image_box",
+        "//tools/vagrant:multi-user-target-active.sh",
         "@hypervisor_bundle//:bin/kitchen",
     ],
-    deps = [],
 )
 
 pyinfra_run(
     name = "provision",
     args = ["--sudo"],
+    data = [
+        ".kitchen/.gitignore",
+    ],
     deploy = "deploy.py",
     env = {
         # Specifying the environment variables necessary for the vagrant connector and the associated Vagrantfile.
-        "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/deploy.py))/.kitchen/kitchen-vagrant/default-ubuntu-focal",
+        "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/.kitchen/.gitignore))/kitchen-vagrant/default-ubuntu-focal",
     },
     inventory = "inventory.py",
     pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",

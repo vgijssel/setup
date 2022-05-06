@@ -65,9 +65,9 @@ jobs:
         uses: andstor/file-existence-action@v1
         with:
           files: "/tmp/hypervisor.qcow2.packer.log"
-      - name: Upload qemu logs
-        if: always() && steps.check_files.outputs.files_exists == 'true'
+      - name: Upload logs
+        if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: hypervisor-qemu-logs
-          path: /tmp/hypervisor.qcow2.packer.log
+          name: bazel-logs
+          path: /private/tmp/**/setup-bazel*.log
