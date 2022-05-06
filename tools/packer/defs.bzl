@@ -1,3 +1,5 @@
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+
 def _packer_image_impl(ctx):
     packer_info = ctx.toolchains["//tools/packer:toolchain_type"].packer_info
     template_dir = "{}.templates".format(ctx.label.name)
@@ -44,7 +46,13 @@ def _packer_image_impl(ctx):
         env[key] = value
     env["PKR_VAR_output_image"] = ctx.outputs.output_image.path
 
-    args = ["build", "-force", "-on-error=ask", template_dir_path]
+    if ctx.attr._setup_debug_flag[BuildSettingInfo].value == True:
+        env["PACKER_LOG"] = "1"
+        args = ["build", "-force", "-on-error=ask", template_dir_path]
+    else:
+        env["PACKER_LOG"] = "0"
+        args = ["build", "-force", template_dir_path]
+
     tools = [tool.files_to_run for tool in ctx.attr.tools]
 
     ctx.actions.run(
@@ -87,6 +95,9 @@ _packer_image = rule(
         "_runner_tpl": attr.label(
             default = Label("//tools/packer:runner.sh.tpl"),
             allow_single_file = True,
+        ),
+        "_setup_debug_flag": attr.label(
+            default = Label("//:setup_debug_flag"),
         ),
     },
     toolchains = ["//tools/packer:toolchain_type"],
