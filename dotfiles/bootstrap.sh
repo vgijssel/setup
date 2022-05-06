@@ -30,7 +30,8 @@ else
 fi
 
 # Install git and ansible which we use to install the rest
-brew install git ansible || true
+brew install git || true
+brew install ansible || true
 
 if [[ ! -e "$SETUP_DIR" ]]; then
   echo "Setup directory not found, cloning."

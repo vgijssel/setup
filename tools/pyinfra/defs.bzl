@@ -1,6 +1,6 @@
 load("//tools/bazel:defs.bzl", "runner_binary")
 
-def pyinfra_run(name, deploy, inventory, pyinfra_runtime, env = {}, deps = [], args = []):
+def pyinfra_run(name, deploy, inventory, pyinfra_runtime, env = {}, deps = [], args = [], data = []):
     env_string = ""
     for key, value in env.items():
         env_string += 'export {}="{}"\n'.format(key, value)
@@ -28,4 +28,5 @@ def pyinfra_run(name, deploy, inventory, pyinfra_runtime, env = {}, deps = [], a
             inventory,
             pyinfra_runtime,
         ] + deps,
+        data = data,
     )

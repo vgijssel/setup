@@ -21,10 +21,26 @@ rules_packer_toolchains(
     version = "1.8.0",
 )
 
+http_file(
+    name = "ubuntu_focal_kernel",
+    sha256 = "09bb705df1fb743524bbb5521c1dcd51d6249844ebffc4fd8b56da9257dea1ee",
+    urls = [
+        "https://cloud-images.ubuntu.com/focal/current/unpacked/focal-server-cloudimg-amd64-vmlinuz-generic",
+    ],
+)
+
+http_file(
+    name = "ubuntu_focal_initrd",
+    sha256 = "61503fe6ef01ae4801d52a5529bc81efd373375d013148e2b2e1c18a0f4ec8a8",
+    urls = [
+        "https://cloud-images.ubuntu.com/focal/current/unpacked/focal-server-cloudimg-amd64-initrd-generic",
+    ],
+)
+
 # https://cloud-images.ubuntu.com/focal/current/
 http_file(
     name = "ubuntu_focal",
-    sha256 = "6e3ce31fe3a5523023650ba988c12d5fc2544bd0a95f435474841e2dec5836d9",
+    sha256 = "9a0f100258640fa68ee13e33f4ea636ee3f82e2b9991381553be65121ce3657b",
     urls = [
         "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img",
     ],

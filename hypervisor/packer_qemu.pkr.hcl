@@ -27,6 +27,14 @@ variable "iso_file" {
   type = string
 }
 
+variable "kernel" {
+  type = string
+}
+
+variable "initrd" {
+  type = string
+}
+
 variable "iso_checksum" {
   type = string
 }
@@ -53,6 +61,7 @@ source "qemu" "image" {
 
   iso_url           = var.iso_file
   iso_checksum      = var.iso_checksum
+  iso_target_extension = "qcow2"
 
   format            = "qcow2"
   disk_compression  = true
@@ -82,6 +91,9 @@ source "qemu" "image" {
   memory = 1024
 
   qemuargs = [
-    ["-serial", "file:/tmp/${local.vm_name}.packer.log"],
+    ["-serial", "file:/tmp/setup-bazel-${local.vm_name}-packer.log"],
+    ["-kernel", var.kernel],
+    ["-initrd", var.initrd],
+    ["-append", "root=LABEL=cloudimg-rootfs ro console=tty1 console=ttyS0 no_timer_check"],
   ]
 }

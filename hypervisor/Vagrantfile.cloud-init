@@ -1,4 +1,7 @@
 Vagrant.configure('2') do |c|
+  c.vm.provider :virtualbox do |p|
+    p.customize ["modifyvm", :id, "--uartmode1", "file", "/tmp/setup-bazel-hypervisor-virtualbox.log"]
+  end
   c.vm.cloud_init :user_data do |cloud_init|
     cloud_init.content_type = "text/cloud-config"
     cloud_init.inline = """
