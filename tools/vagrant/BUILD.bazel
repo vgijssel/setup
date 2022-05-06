@@ -2,13 +2,12 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files([
     "box.ovf",
-    "runner.sh.tpl",
+    "multi-user-target-active.sh",
 ])
 
 sh_binary(
     name = "qcow_to_vagrant_box",
     srcs = [
-        "multi-user-target-active.sh",
         "qcow_to_vagrant_box.sh",
     ],
 )
