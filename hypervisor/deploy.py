@@ -3,7 +3,7 @@
 
 from pyinfra.operations import apt, server, files, systemd
 from pyinfra import host
-from pyinfra.facts.server import Arch, LsbRelease
+from pyinfra.facts.server import Arch, LsbRelease, OsVersion
 from pyinfra.api.deploy import deploy
 
 
