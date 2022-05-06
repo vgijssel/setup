@@ -23,7 +23,7 @@ packer_image(
     ],
     variables = {
         "iso_file": "$(location @ubuntu_focal//file)",
-        "iso_checksum": "6e3ce31fe3a5523023650ba988c12d5fc2544bd0a95f435474841e2dec5836d9",
+        "iso_checksum": "9a0f100258640fa68ee13e33f4ea636ee3f82e2b9991381553be65121ce3657b",
         "kernel": "$(location @ubuntu_focal_kernel//file)",
         "initrd": "$(location @ubuntu_focal_initrd//file)",
         "ssh_username": "packer",
