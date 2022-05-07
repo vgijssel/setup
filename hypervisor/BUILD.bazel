@@ -78,6 +78,10 @@ runner_binary(
 
 pyinfra_run(
     name = "provision",
+    srcs = [
+        "tasks/install_cni.py",
+        "tasks/install_docker.py",
+    ],
     args = ["--sudo"],
     data = [
         ".kitchen/.gitignore",
@@ -88,7 +92,4 @@ pyinfra_run(
         "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/.kitchen/.gitignore))/kitchen-vagrant/default-ubuntu-focal",
     },
     inventory = "inventory.py",
-    deps = [
-        "files/ignited.service",
-    ],
 )

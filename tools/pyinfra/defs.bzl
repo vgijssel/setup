@@ -1,7 +1,7 @@
 load("//tools/bazel:defs.bzl", "runner_binary")
 load("@rules_python//python:defs.bzl", "py_binary")
 
-def pyinfra_run(name, deploy, inventory, env = {}, deps = [], args = [], data = []):
+def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = [], data = []):
     python_binary = "{name}_env".format(name = name)
     python_binary_target = ":{python_binary}".format(python_binary = python_binary)
 
@@ -9,7 +9,7 @@ def pyinfra_run(name, deploy, inventory, env = {}, deps = [], args = [], data = 
         name = python_binary,
         srcs = [
             "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
-        ],
+        ] + srcs,
         main = "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra.py",
     )
 
