@@ -86,6 +86,8 @@ pyinfra_run(
     args = ["--sudo"],
     data = [
         ".kitchen/.gitignore",
+        "files/nomad.hcl",
+        "files/nomad.service",
     ],
     deploy = "deploy.py",
     env = {
