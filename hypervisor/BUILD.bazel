@@ -87,7 +87,6 @@ pyinfra_run(
         "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/.kitchen/.gitignore))/kitchen-vagrant/default-ubuntu-focal",
     },
     inventory = "inventory.py",
-    pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",
     deps = [
         "files/ignited.service",
     ],
