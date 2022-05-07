@@ -5,10 +5,6 @@ def pyinfra_run(name, deploy, inventory, env = {}, deps = [], args = [], data = 
     python_binary = "{name}_env".format(name = name)
     python_binary_target = ":{python_binary}".format(python_binary = python_binary)
 
-    env_string = ""
-    for key, value in env.items():
-        env_string += 'export {}="{}"\n'.format(key, value)
-
     py_binary(
         name = python_binary,
         srcs = [
@@ -20,15 +16,12 @@ def pyinfra_run(name, deploy, inventory, env = {}, deps = [], args = [], data = 
     runner_binary(
         name = name,
         cmd = """
-        {env_string}
-
         DEPLOY_PATH=$$(rlocation $(WORKSPACE_NAME)/$(rootpath {deploy}))
         INVENTORY_PATH=$$(rlocation $(WORKSPACE_NAME)/$(rootpath {inventory}))
         PYINFRA_BINARY=$$(rlocation $(WORKSPACE_NAME)/$(rootpath {pyinfra_binary}))
 
         $$PYINFRA_BINARY {args} $$INVENTORY_PATH $$DEPLOY_PATH
         """.format(
-            env_string = env_string,
             deploy = deploy,
             inventory = inventory,
             pyinfra_binary = python_binary_target,
@@ -41,4 +34,5 @@ def pyinfra_run(name, deploy, inventory, env = {}, deps = [], args = [], data = 
             python_binary_target,
         ] + deps,
         data = data,
+        env = env,
     )
