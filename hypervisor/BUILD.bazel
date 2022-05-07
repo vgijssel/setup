@@ -81,6 +81,7 @@ pyinfra_run(
     srcs = [
         "tasks/install_cni.py",
         "tasks/install_docker.py",
+        "tasks/install_nomad.py",
     ],
     args = ["--sudo"],
     data = [

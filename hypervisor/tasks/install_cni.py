@@ -5,9 +5,9 @@ from pyinfra.api.deploy import deploy
 
 
 @deploy("Install CNI")
-def install_cni():
+def install_cni(version):
     # Installation instructions from https://github.com/weaveworks/ignite/blob/main/docs/installation.md
-    cni_version = "v0.9.1"
+    cni_version = "v{version}".format(version=version)
     arch = "amd64" if host.get_fact(Arch) == "x86_64" else "arm64"
 
     files.download(
