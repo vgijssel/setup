@@ -52,17 +52,6 @@ runner_binary(
     name = "kitchen",
     out = "kitchen.sh",
     cmd = """
-    export KITCHEN_ARGS="$$@"
-    export KITCHEN_BINARY=$$(rlocation hypervisor_bundle/bin/kitchen)
-    export KITCHEN_YAML=$$(rlocation setup/hypervisor/kitchen.yml)
-    export VAGRANTFILE_CLOUD_INIT=$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)
-    export VAGRANT_EXPERIMENTAL=cloud_init,disks
-    export VAGRANT_BOX=$$(rlocation setup/hypervisor/hypervisor_image_box.box)
-    export CHEF_LICENSE=accept
-    export TEST_DIR=$$(rlocation setup/hypervisor/test)
-    export KITCHEN_CWD=$$(dirname $$KITCHEN_YAML)
-    export CONVERGE_SCRIPT=$$(rlocation setup/tools/vagrant/multi-user-target-active.sh)
-
     cd $$KITCHEN_CWD && $$KITCHEN_BINARY $$KITCHEN_ARGS
     """,
     data = [
@@ -73,6 +62,18 @@ runner_binary(
         "//tools/vagrant:multi-user-target-active.sh",
         "@hypervisor_bundle//:bin/kitchen",
     ],
+    env = {
+        "KITCHEN_ARGS": "$$@",
+        "KITCHEN_BINARY": "$$(rlocation hypervisor_bundle/bin/kitchen)",
+        "KITCHEN_YAML": "$$(rlocation setup/hypervisor/kitchen.yml)",
+        "VAGRANTFILE_CLOUD_INIT": "$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)",
+        "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
+        "VAGRANT_BOX": "$$(rlocation setup/hypervisor/hypervisor_image_box.box)",
+        "CHEF_LICENSE": "accept",
+        "TEST_DIR": "$$(rlocation setup/hypervisor/test)",
+        "KITCHEN_CWD": "$$(dirname $$KITCHEN_YAML)",
+        "CONVERGE_SCRIPT": "$$(rlocation setup/tools/vagrant/multi-user-target-active.sh)",
+    },
 )
 
 pyinfra_run(
