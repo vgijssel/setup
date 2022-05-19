@@ -93,5 +93,5 @@ jobs:
         id: versions
         with:
           path: dotfiles/files/tool-versions
-      - run: brew install ninja
+      - run: brew install ninja pixman
       - run: bazel build --config=debug //tools/qemu
