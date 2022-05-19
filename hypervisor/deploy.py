@@ -16,7 +16,7 @@ apt.packages(
 
 install_docker()
 install_cni(version="0.9.1")
-install_nomad(version="1.2.6")
+install_nomad(version="1.3.0")
 # install_consul(version="")
 # install_envoy(version="")
 
