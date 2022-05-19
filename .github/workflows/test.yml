@@ -93,4 +93,4 @@ jobs:
         id: versions
         with:
           path: dotfiles/files/tool-versions
-      - run: bazel
+      - run: bazel build --config=debug //tools/qem
