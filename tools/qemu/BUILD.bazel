@@ -1,0 +1,18 @@
+# load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+
+configure_make(
+    name = "qemu",
+    configure_options = [
+        "--enable-debug",
+        "--target-list=x86_64-softmmu",
+    ],
+    # Need to manually specify the ar otherwise it will pick /usr/bin/libtool which doesn't work
+    # https://github.com/bazelbuild/rules_foreign_cc/issues/185
+    env = {
+        "AR": "/usr/bin/ar",
+    },
+    lib_source = "@qemu//:all_srcs",
+    out_bin_dir = "build",
+    out_binaries = ["qemu-system-x86_64"],
+)
