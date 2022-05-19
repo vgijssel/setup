@@ -3,11 +3,32 @@ from pyinfra import host
 from pyinfra.facts.server import Arch
 from pyinfra.api.deploy import deploy
 
-
+# https://www.nomadproject.io/docs/install/production/requirements
 @deploy("Install Nomad")
 def install_nomad(version):
     nomad_version = version
     arch = "amd64" if host.get_fact(Arch) == "x86_64" else "arm64"
+
+    server.sysctl(
+        name="Ensure OS dynamic port does not conflict with Nomad",
+        key="net.ipv4.ip_local_port_range",
+        value="49152 65535",
+        persist=True,
+        persist_file="/etc/sysctl.conf",
+    )
+
+    for setting in [
+        "net.bridge.bridge-nf-call-arptables",
+        "net.bridge.bridge-nf-call-ip6tables",
+        "net.bridge.bridge-nf-call-iptables",
+    ]:
+        server.sysctl(
+            name=f"Optimize network for guest traffic {setting}",
+            key=setting,
+            value=1,
+            persist=True,
+            persist_file="/etc/sysctl.conf",
+        )
 
     files.download(
         name="Download Nomad binary",
