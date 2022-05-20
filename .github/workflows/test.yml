@@ -75,7 +75,8 @@ jobs:
   qemu-test:
     name: Qemu test
     timeout-minutes: 30
-    runs-on: macos-10.15
+    # runs-on: macos-10.15
+    runs-on: macos-latest
     env:
       SETUP_DEBUG: true
     steps:
