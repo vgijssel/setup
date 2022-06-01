@@ -1,8 +1,8 @@
 {
     "0x00158d000232cfca": {
-        "voltage": 3035,
+        "voltage": 3255,
         "battery": 100,
-        "device_temperature": 30,
+        "device_temperature": 25,
         "contact": true
     },
     "0x54ef4410004d9481": {

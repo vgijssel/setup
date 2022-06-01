@@ -1,1 +1,64 @@
-[]
+- id: '1654117678356'
+  alias: Set Office Presence
+  description: ''
+  trigger:
+  - type: present
+    platform: device
+    device_id: 410ace0a782a03a250764603cd0c065e
+    entity_id: binary_sensor.0x54ef4410004d9481_presence
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.office_present
+  mode: single
+- id: '1654117896464'
+  alias: Unset Office Presence
+  description: ''
+  trigger:
+  - type: not_present
+    platform: device
+    device_id: 410ace0a782a03a250764603cd0c065e
+    entity_id: binary_sensor.0x54ef4410004d9481_presence
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.office_present
+  mode: single
+- id: '1654118559214'
+  alias: Turn On Office Light
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_boolean.office_present
+    to: 'on'
+    from: 'off'
+  condition: []
+  action:
+  - type: turn_on
+    device_id: 882cfcb14e97e1a10ee2bb413e104af2
+    entity_id: switch.office_shelly
+    domain: switch
+  mode: single
+- id: '1654118627011'
+  alias: Turn Off Office Light
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_boolean.office_present
+    from: 'on'
+    to: 'off'
+  condition: []
+  action:
+  - type: turn_off
+    device_id: 882cfcb14e97e1a10ee2bb413e104af2
+    entity_id: switch.office_shelly
+    domain: switch
+  mode: single

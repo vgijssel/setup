@@ -26,6 +26,7 @@ services:
 
   home-assistant:
     container_name: homeassistant
+    user: "1000:1000"
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
       - ./config:/config
