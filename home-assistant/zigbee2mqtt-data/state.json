@@ -4,5 +4,17 @@
         "battery": 100,
         "device_temperature": 30,
         "contact": true
+    },
+    "0x54ef4410004d9481": {
+        "motion_sensitivity": "high",
+        "presence": true,
+        "device_temperature": 23,
+        "power_outage_count": 0,
+        "monitoring_mode": "undirected",
+        "approach_distance": "medium",
+        "update": {
+            "state": "idle"
+        },
+        "presence_event": "approach"
     }
 }
