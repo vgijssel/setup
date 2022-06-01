@@ -1,0 +1,34 @@
+permit_join: true
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://mqtt
+serial:
+  port: /dev/ttyACM1
+frontend:
+  port: 8080
+advanced:
+  network_key:
+    - 124
+    - 214
+    - 191
+    - 64
+    - 14
+    - 221
+    - 222
+    - 129
+    - 71
+    - 207
+    - 242
+    - 204
+    - 160
+    - 34
+    - 246
+    - 96
+  homeassistant_legacy_entity_attributes: false
+  legacy_api: false
+  legacy_availability_payload: false
+device_options:
+  legacy: false
+devices:
+  '0x00158d000232cfca':
+    friendly_name: '0x00158d000232cfca'

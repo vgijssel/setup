@@ -1,0 +1,12 @@
+sync:
+  defaults:
+    alpha: "."
+    ignore:
+      vcs: true
+      paths:
+        - "/zigbee2mqtt-data/database.db"
+        - "/zigbee2mqtt-data/log"
+
+  hypervisor:
+    beta: "hypervisor:/data/home-assistant"
+    mode: "two-way-safe"
