@@ -23,3 +23,13 @@ services:
       - TZ=Europe/Amsterdam
     devices:
       - /dev/ttyACM1:/dev/ttyACM1
+
+  home-assistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - ./config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
