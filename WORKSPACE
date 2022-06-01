@@ -130,9 +130,15 @@ filegroup(
 http_archive(
     name = "qemu",
     build_file_content = _ALL_CONTENT,
-    sha256 = "68e15d8e45ac56326e0b9a4afa8b49a3dfe8aba3488221d098c84698bca65b45",
-    strip_prefix = "qemu-6.2.0",
+    sha256 = "f6b375c7951f728402798b0baabb2d86478ca53d44cedbefabbe1c46bf46f839",
+    strip_prefix = "qemu-7.0.0",
     urls = [
-        "https://download.qemu.org/qemu-6.2.0.tar.xz",
+        "https://download.qemu.org/qemu-7.0.0.tar.xz",
     ],
 )
+
+# TODO:
+# what we want is to build a vm using packer on macOS, but the output platform of the target is Linux
+# let's first try to configure packer such that we're copying a binary file downloaded using bazel for the right target platform
+# as a next step we can then look into cross compiling or multi platform builds
+# so we can compile qemu in docker and link it in the vm when building through packer.

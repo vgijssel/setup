@@ -1,0 +1,190 @@
+qemu 7.0.0
+
+  Directories
+    Install prefix               : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/bazel-out/darwin-fastbuild/bin/tools/qemu/qemu.build_tmpdir/qemu
+    BIOS directory               : share/qemu
+    firmware path                : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/bazel-out/darwin-fastbuild/bin/tools/qemu/qemu.build_tmpdir/qemu/share/qemu-firmware
+    binary directory             : bin
+    library directory            : lib
+    module directory             : lib/qemu
+    libexec directory            : libexec
+    include directory            : include
+    config directory             : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/bazel-out/darwin-fastbuild/bin/tools/qemu/qemu.build_tmpdir/qemu/etc
+    local state directory        : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/bazel-out/darwin-fastbuild/bin/tools/qemu/qemu.build_tmpdir/qemu/var
+    Manual directory             : share/man
+    Doc directory                : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/bazel-out/darwin-fastbuild/bin/tools/qemu/qemu.build_tmpdir/qemu/share/doc
+    Build directory              : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/bazel-out/darwin-fastbuild/bin/tools/qemu/qemu.build_tmpdir
+    Source path                  : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/external/qemu
+    GIT submodules               : ui/keycodemapdb tests/fp/berkeley-testfloat-3 tests/fp/berkeley-softfloat-3 dtc capstone slirp
+
+  Host binaries
+    git                          : git
+    make                         : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/bazel-out/darwin-opt-exec-2B5CBBC6/bin/external/rules_foreign_cc/toolchains/make/bin/make
+    python                       : /usr/local/bin/python3 (version: 3.10)
+    sphinx-build                 : NO
+    iasl                         : NO
+    genisoimage                  : /usr/local/bin/mkisofs
+    smbd                         : /usr/sbin/smbd
+
+  Configurable features
+    Documentation                : NO
+    system-mode emulation        : YES
+    user-mode emulation          : NO
+    block layer                  : YES
+    Install blobs                : YES
+    module support               : NO
+    fuzzing support              : NO
+    Audio drivers                : coreaudio
+    Trace backends               : log
+    D-Bus display                : NO
+    QOM debugging                : NO
+    vhost-kernel support         : NO
+    vhost-net support            : NO
+    vhost-crypto support         : NO
+    vhost-scsi support           : NO
+    vhost-vsock support          : NO
+    vhost-user support           : NO
+    vhost-user-blk server support: NO
+    vhost-user-fs support        : NO
+    vhost-vdpa support           : NO
+    build guest agent            : NO
+
+  Compilation
+    host CPU                     : x86_64
+    host endianness              : little
+    C compiler                   : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/external/local_config_cc/wrapped_clang -m64 -mcx16
+    Host C compiler              : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/external/local_config_cc/wrapped_clang -m64 -mcx16
+    C++ compiler                 : /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/sandbox/darwin-sandbox/3/execroot/setup/external/local_config_cc/wrapped_clang_pp -m64 -mcx16
+    Objective-C compiler         : clang -m64 -mcx16
+    CFLAGS                       : -D_FORTIFY_SOURCE=1 -fstack-protector -fcolor-diagnostics -Wall -Wthread-safety -Wself-assign -fno-omit-frame-pointer -O0 -DDEBUG DEBUG_PREFIX_MAP_PWD=. -isysroot __BAZEL_XCODE_SDKROOT__ -F__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks -F__BAZEL_XCODE_DEVELOPER_DIR__/Platforms/MacOSX.platform/Developer/Library/Frameworks -mmacosx-version-min=12.3 -no-canonical-prefixes -pthread -no-canonical-prefixes -Wno-builtin-macro-redefined -D__DATE__=redacted -D__TIMESTAMP__=redacted -D__TIME__=redacted -target x86_64-apple-macosx -O2 -g
+    CXXFLAGS                     : -D_FORTIFY_SOURCE=1 -fstack-protector -fcolor-diagnostics -Wall -Wthread-safety -Wself-assign -fno-omit-frame-pointer -O0 -DDEBUG -std=c++11 DEBUG_PREFIX_MAP_PWD=. -isysroot __BAZEL_XCODE_SDKROOT__ -F__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks -F__BAZEL_XCODE_DEVELOPER_DIR__/Platforms/MacOSX.platform/Developer/Library/Frameworks -mmacosx-version-min=12.3 -no-canonical-prefixes -pthread -no-canonical-prefixes -Wno-builtin-macro-redefined -D__DATE__=redacted -D__TIMESTAMP__=redacted -D__TIME__=redacted -target x86_64-apple-macosx -O2 -g
+    OBJCFLAGS                    : -O2 -g
+    LDFLAGS                      : -D_FORTIFY_SOURCE=1 -fstack-protector -fcolor-diagnostics -Wall -Wthread-safety -Wself-assign -fno-omit-frame-pointer -O0 -DDEBUG -std=c++11 DEBUG_PREFIX_MAP_PWD=. -isysroot __BAZEL_XCODE_SDKROOT__ -F__BAZEL_XCODE_SDKROOT__/System/Library/Frameworks -F__BAZEL_XCODE_DEVELOPER_DIR__/Platforms/MacOSX.platform/Developer/Library/Frameworks -mmacosx-version-min=12.3 -no-canonical-prefixes -pthread -no-canonical-prefixes -Wno-builtin-macro-redefined -D__DATE__=redacted -D__TIMESTAMP__=redacted -D__TIME__=redacted -target x86_64-apple-macosx -lc++ -fobjc-link-runtime -headerpad_max_install_names -no-canonical-prefixes -target x86_64-apple-macosx -mmacosx-version-min=12.3 -lc++ -target x86_64-apple-macosx
+    QEMU_CFLAGS                  : -DOS_OBJECT_USE_OBJC=0 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -Wstrict-prototypes -Wredundant-decls -Wundef -Wwrite-strings -Wmissing-prototypes -fno-strict-aliasing -fno-common -fwrapv -Wold-style-definition -Wtype-limits -Wformat-security -Wformat-y2k -Winit-self -Wignored-qualifiers -Wempty-body -Wnested-externs -Wendif-labels -Wexpansion-to-defined -Wno-initializer-overrides -Wno-missing-include-dirs -Wno-shift-negative-value -Wno-string-plus-int -Wno-typedef-redefinition -Wno-tautological-type-limit-compare -Wno-psabi -fstack-protector-strong
+    QEMU_CXXFLAGS                : -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DOS_OBJECT_USE_OBJC=0 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -Wundef -Wwrite-strings -fno-strict-aliasing -fno-common -fwrapv -Wtype-limits -Wformat-security -Wformat-y2k -Winit-self -Wignored-qualifiers -Wempty-body -Wendif-labels -Wexpansion-to-defined -Wno-initializer-overrides -Wno-missing-include-dirs -Wno-shift-negative-value -Wno-string-plus-int -Wno-typedef-redefinition -Wno-tautological-type-limit-compare -Wno-psabi -fstack-protector-strong
+    QEMU_OBJCFLAGS               : -Wold-style-definition -Wtype-limits -Wformat-security -Wformat-y2k -Winit-self -Wignored-qualifiers -Wempty-body -Wnested-externs -Wendif-labels -Wexpansion-to-defined -Wno-initializer-overrides -Wno-missing-include-dirs -Wno-shift-negative-value -Wno-string-plus-int -Wno-typedef-redefinition -Wno-tautological-type-limit-compare -Wno-psabi
+    QEMU_LDFLAGS                 : -fstack-protector-strong
+    profiler                     : NO
+    link-time optimization (LTO) : NO
+    PIE                          : NO
+    static build                 : NO
+    malloc trim support          : NO
+    membarrier                   : NO
+    debug stack usage            : NO
+    mutex debugging              : NO
+    memory allocator             : system
+    avx2 optimization            : NO
+    avx512f optimization         : NO
+    gprof enabled                : NO
+    gcov                         : NO
+    thread sanitizer             : NO
+    CFI support                  : NO
+    strip binaries               : NO
+    sparse                       : NO
+    mingw32 support              : NO
+    x86_64 tests                 : x86_64-linux-gnu-gcc via debian-amd64-cross
+
+  Targets and accelerators
+    KVM support                  : NO
+    HAX support                  : YES
+    HVF support                  : YES
+    WHPX support                 : NO
+    NVMM support                 : NO
+    Xen support                  : NO
+    TCG support                  : YES
+    TCG backend                  : native (x86_64)
+    TCG plugins                  : YES
+    TCG debug enabled            : NO
+    target list                  : x86_64-softmmu
+    default devices              : YES
+    out of process emulation     : NO
+
+  Block layer support
+    coroutine backend            : sigaltstack
+    coroutine pool               : YES
+    Block whitelist (rw)         :
+    Block whitelist (ro)         :
+    Use block whitelist in tools : NO
+    VirtFS support               : YES
+    build virtiofs daemon        : NO
+    Live block migration         : YES
+    replication support          : YES
+    bochs support                : YES
+    cloop support                : YES
+    dmg support                  : YES
+    qcow v1 support              : YES
+    vdi support                  : YES
+    vvfat support                : YES
+    qed support                  : YES
+    parallels support            : YES
+    FUSE exports                 : NO
+
+  Crypto
+    TLS priority                 : "NORMAL"
+    GNUTLS support               : YES 3.7.4
+      GNUTLS crypto              : YES
+    libgcrypt                    : NO
+    nettle                       : NO
+    AF_ALG support               : NO
+    rng-none                     : NO
+    Linux keyring                : NO
+
+  Dependencies
+    Cocoa support                : YES
+    SDL support                  : NO
+    SDL image support            : NO
+    GTK support                  : NO
+    pixman                       : YES 0.40.0
+    VTE support                  : NO
+    slirp support                : YES 4.6.1
+    libtasn1                     : YES 4.18.0
+    PAM                          : YES
+    iconv support                : YES
+    curses support               : YES
+    virgl support                : NO
+    curl support                 : YES 7.64.1
+    Multipath support            : NO
+    VNC support                  : YES
+    VNC SASL support             : YES
+    VNC JPEG support             : YES 9.5.0
+    VNC PNG support              : YES 1.6.37
+    CoreAudio support            : YES
+    JACK support                 : NO
+    brlapi support               : NO
+    vde support                  : NO
+    netmap support               : NO
+    l2tpv3 support               : NO
+    Linux AIO support            : NO
+    Linux io_uring support       : NO
+    ATTR/XATTR support           : NO
+    RDMA support                 : NO
+    PVRDMA support               : NO
+    fdt support                  : internal
+    libcap-ng support            : NO
+    bpf support                  : NO
+    spice protocol support       : NO
+    rbd support                  : NO
+    smartcard support            : NO
+    U2F support                  : NO
+    libusb                       : YES 1.0.26
+    usb net redir                : NO
+    OpenGL support               : NO
+    GBM                          : NO
+    libiscsi support             : YES 1.19.0
+    libnfs support               : NO
+    seccomp support              : NO
+    GlusterFS support            : NO
+    TPM support                  : YES
+    libssh support               : YES 0.9.6
+    lzo support                  : NO
+    snappy support               : NO
+    bzip2 support                : YES
+    lzfse support                : NO
+    zstd support                 : YES 1.5.2
+    NUMA host support            : NO
+    capstone                     : internal
+    libpmem support              : NO
+    libdaxctl support            : NO
+    libudev                      : NO
+    FUSE lseek                   : NO
+    selinux                      : NO

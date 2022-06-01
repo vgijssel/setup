@@ -1,10 +1,11 @@
 # load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
 
+# Ability to specify multiple cores??
 configure_make(
     name = "qemu",
     configure_options = [
-        "--enable-debug",
+        # "--enable-debug",
         "--target-list=x86_64-softmmu",
     ],
     # Need to manually specify the ar otherwise it will pick /usr/bin/libtool which doesn't work
