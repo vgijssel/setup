@@ -15,6 +15,6 @@
         "voltage": 3035,
         "battery": 100,
         "device_temperature": 23,
-        "contact": true
+        "contact": false
     }
 }
