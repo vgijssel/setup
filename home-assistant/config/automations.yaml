@@ -12,6 +12,11 @@
     device_id: 8ccdae928e5b9bee8ed2369313658a12
     entity_id: binary_sensor.0x00158d000232cfca_contact
     domain: binary_sensor
+  - type: motion
+    platform: device
+    device_id: f454d32984b16796fb074bd7ba162ef3
+    entity_id: binary_sensor.motion_sensor_home_security_motion_detection
+    domain: binary_sensor
   condition: []
   action:
   - service: input_boolean.turn_on
