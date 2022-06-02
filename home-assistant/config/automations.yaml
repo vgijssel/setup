@@ -7,6 +7,11 @@
     device_id: 410ace0a782a03a250764603cd0c065e
     entity_id: binary_sensor.0x54ef4410004d9481_presence
     domain: binary_sensor
+  - type: opened
+    platform: device
+    device_id: 8ccdae928e5b9bee8ed2369313658a12
+    entity_id: binary_sensor.0x00158d000232cfca_contact
+    domain: binary_sensor
   condition: []
   action:
   - service: input_boolean.turn_on
@@ -23,7 +28,21 @@
     device_id: 410ace0a782a03a250764603cd0c065e
     entity_id: binary_sensor.0x54ef4410004d9481_presence
     domain: binary_sensor
-  condition: []
+  - platform: state
+    entity_id:
+    - input_boolean.office_present
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+    from: 'off'
+  condition:
+  - type: is_not_present
+    condition: device
+    device_id: 410ace0a782a03a250764603cd0c065e
+    entity_id: binary_sensor.0x54ef4410004d9481_presence
+    domain: binary_sensor
   action:
   - service: input_boolean.turn_off
     data: {}

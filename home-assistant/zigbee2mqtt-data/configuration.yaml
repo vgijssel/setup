@@ -32,6 +32,6 @@ device_options:
 homeassistant: true
 devices:
   "0x00158d000232cfca":
-    friendly_name: staircase_door
+    friendly_name: office_door
   "0x54ef4410004d9481":
     friendly_name: office_human

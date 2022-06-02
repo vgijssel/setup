@@ -1,13 +1,7 @@
 {
-    "0x00158d000232cfca": {
-        "voltage": 3255,
-        "battery": 100,
-        "device_temperature": 25,
-        "contact": true
-    },
     "0x54ef4410004d9481": {
         "motion_sensitivity": "high",
-        "presence": true,
+        "presence": false,
         "device_temperature": 23,
         "power_outage_count": 0,
         "monitoring_mode": "undirected",
@@ -15,6 +9,12 @@
         "update": {
             "state": "idle"
         },
-        "presence_event": "approach"
+        "presence_event": "leave"
+    },
+    "0x00158d000232cfca": {
+        "voltage": 3035,
+        "battery": 100,
+        "device_temperature": 23,
+        "contact": true
     }
 }
