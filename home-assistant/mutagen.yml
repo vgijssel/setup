@@ -6,7 +6,14 @@ sync:
       paths:
         - "/zigbee2mqtt-data/database.db"
         - "/zigbee2mqtt-data/log"
+        - "mutagen.yml.lock"
+        - "mutagen.yml"
 
   hypervisor:
     beta: "hypervisor:/data/home-assistant"
     mode: "two-way-safe"
+
+forward:
+  zwavejs-ui:
+    source: "tcp:localhost:8091"
+    destination: "hypervisor:tcp:localhost:8091"

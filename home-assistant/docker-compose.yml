@@ -22,7 +22,27 @@ services:
     environment:
       - TZ=Europe/Amsterdam
     devices:
-      - /dev/ttyACM1:/dev/ttyACM1
+      - /dev/serial/by-id/usb-Texas_Instruments_TI_CC2531_USB_CDC___0X00124B0019366A94-if00:/dev/zigbee
+
+  zwavejs2mqtt:
+    container_name: zwavejs2mqtt
+    image: zwavejs/zwavejs2mqtt:latest
+    restart: always
+    tty: true
+    stop_signal: SIGINT
+    environment:
+      - SESSION_SECRET=mysupersecretkey
+      - ZWAVEJS_EXTERNAL_CONFIG=/usr/src/app/store/.config-db
+      # Uncomment if you want logs time and dates to match your timezone instead of UTC
+      # Available at https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      - TZ=Europe/Amsterdam
+    devices:
+      - /dev/serial/by-id/usb-0658_0200-if00:/dev/zwave
+    volumes:
+      - ./zwavejs2mqtt-data:/usr/src/app/store
+    ports:
+      - '127.0.0.1:8091:8091' # port for web interface
+      - '127.0.0.1:3000:3000' # port for Z-Wave JS websocket server
 
   home-assistant:
     container_name: homeassistant
