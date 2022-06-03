@@ -14,6 +14,10 @@ sync:
     mode: "two-way-safe"
 
 forward:
-  zwavejs-ui:
+  zwavejs2mqtt-ui:
     source: "tcp:localhost:8091"
     destination: "hypervisor:tcp:localhost:8091"
+
+  zigbee2mqtt-ui:
+    source: "tcp:localhost:8092"
+    destination: "hypervisor:tcp:localhost:8080"
