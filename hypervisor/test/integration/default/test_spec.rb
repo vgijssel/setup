@@ -2,8 +2,8 @@ describe package("git") do
   it { should be_installed }
 end
 
-describe command('ignite version') do
-  its('stdout') { should match (/Ignite version:/) }
+describe command('nomad --version') do
+  its('stdout') { should match (/Nomad v1.3.0/) }
   its('exit_status') { should eq 0 }
 end
 
@@ -32,12 +32,16 @@ describe package("containerd.io") do
   it { should be_installed }
 end
 
+describe package("qemu") do
+  it { should be_installed }
+end
+
 describe command('/opt/cni/bin/bridge') do
   its('stderr.strip') { should eq 'CNI bridge plugin v0.9.1' }
   its('exit_status') { should eq 0 }
 end
 
-describe systemd_service('ignited') do
+describe systemd_service('nomad') do
   it { should be_installed }
   it { should be_enabled }
   it { should be_running }

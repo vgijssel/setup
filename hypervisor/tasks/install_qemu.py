@@ -10,6 +10,7 @@ def install_qemu():
             "qemu",
             "qemu-utils",
             "qemu-kvm",
+            "cpu-checker",
         ],
         update=True,
     )
