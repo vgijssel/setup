@@ -7,6 +7,7 @@ from pyinfra.facts.server import Arch, OsVersion
 from hypervisor.tasks.install_docker import install_docker
 from hypervisor.tasks.install_cni import install_cni
 from hypervisor.tasks.install_nomad import install_nomad
+from hypervisor.tasks.install_consul import install_consul
 from hypervisor.tasks.install_qemu import install_qemu
 
 apt.packages(
@@ -18,6 +19,7 @@ apt.packages(
 install_docker()
 install_cni(version="0.9.1")
 install_nomad(version="1.3.0")
+install_consul(version="1.12.2")
 install_qemu()
 
 server.shell(

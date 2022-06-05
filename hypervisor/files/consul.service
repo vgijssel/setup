@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Consul agent
+
+[Service]
+User=root
+WorkingDirectory=/root
+ExecStart=/usr/local/bin/consul agent -config-dir /etc/consul.d
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

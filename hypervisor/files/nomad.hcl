@@ -1,12 +1,9 @@
-# TODO: change this to logical directory
-data_dir  = "/tmp/nomad"
+data_dir  = "/opt/nomad"
 
 bind_addr = "127.0.0.1"
-
-log_level = "DEBUG"
+log_level = "INFO"
 
 advertise {
-  # Defaults to the first private IP address.
   http = "127.0.0.1"
   rpc  = "127.0.0.1"
   serf = "127.0.0.1"

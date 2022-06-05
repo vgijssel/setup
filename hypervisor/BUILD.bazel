@@ -80,6 +80,7 @@ pyinfra_run(
     name = "provision",
     srcs = [
         "tasks/install_cni.py",
+        "tasks/install_consul.py",
         "tasks/install_docker.py",
         "tasks/install_nomad.py",
         "tasks/install_qemu.py",
@@ -87,6 +88,8 @@ pyinfra_run(
     args = ["--sudo"],
     data = [
         ".kitchen/.gitignore",
+        "files/consul.hcl",
+        "files/consul.service",
         "files/nomad.hcl",
         "files/nomad.service",
     ],
