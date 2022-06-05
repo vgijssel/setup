@@ -7,6 +7,23 @@ describe command('nomad --version') do
   its('exit_status') { should eq 0 }
 end
 
+describe systemd_service('nomad') do
+  it { should be_installed }
+  it { should be_enabled }
+  it { should be_running }
+end
+
+describe command('consul --version') do
+  its('stdout') { should match (/Consul v1.12.2/) }
+  its('exit_status') { should eq 0 }
+end
+
+describe systemd_service('consul') do
+  it { should be_installed }
+  it { should be_enabled }
+  it { should be_running }
+end
+
 describe kernel_parameter('net.ipv4.ip_forward') do
   its('value') { should eq 1 }
 end
@@ -41,11 +58,6 @@ describe command('/opt/cni/bin/bridge') do
   its('exit_status') { should eq 0 }
 end
 
-describe systemd_service('nomad') do
-  it { should be_installed }
-  it { should be_enabled }
-  it { should be_running }
-end
 
 describe user('packer') do
   it { should_not exist }
