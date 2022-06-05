@@ -25,7 +25,7 @@ describe systemd_service('consul') do
 end
 
 describe command('envoy --version') do
-  its('stdout') { should match (/1.22.2/) }
+  its('stdout') { should match (/1.22.0/) }
   its('exit_status') { should eq 0 }
 end
 
