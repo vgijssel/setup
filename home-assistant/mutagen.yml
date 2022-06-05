@@ -4,10 +4,14 @@ sync:
     ignore:
       vcs: true
       paths:
-        - "/zigbee2mqtt-data/database.db"
-        - "/zigbee2mqtt-data/log"
-        - "mutagen.yml.lock"
-        - "mutagen.yml"
+        - mutagen.yml.lock
+        - home-assistant/config/.storage
+        - home-assistant/config/home-assistant.log*
+        - home-assistant/config/home-assistant_v2*
+        - home-assistant/config/secrets.yaml
+        - home-assistant/zwavejs2mqtt-data
+        - "!home-assistant/zwavejs2mqtt-data/settings.json"
+        - "!home-assistant/zwavejs2mqtt-data/nodes.json"
 
   hypervisor:
     beta: "hypervisor:/data/home-assistant"
