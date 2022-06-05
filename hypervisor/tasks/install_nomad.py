@@ -48,7 +48,9 @@ def install_nomad(version):
 
     files.file(
         name="Ensure Nomad binary is executable",
-        mode="",
+        mode="0755",
+        user="root",
+        group="root",
         path="/usr/local/bin/nomad",
     )
 

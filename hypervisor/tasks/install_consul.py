@@ -27,7 +27,9 @@ def install_consul(version):
 
     files.file(
         name="Ensure consul binary is executable",
-        mode="",
+        mode="0755",
+        user="root",
+        group="root",
         path="/usr/local/bin/consul",
     )
 

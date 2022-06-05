@@ -24,6 +24,11 @@ describe systemd_service('consul') do
   it { should be_running }
 end
 
+describe command('envoy --version') do
+  its('stdout') { should match (/1.22.2/) }
+  its('exit_status') { should eq 0 }
+end
+
 describe kernel_parameter('net.ipv4.ip_forward') do
   its('value') { should eq 1 }
 end

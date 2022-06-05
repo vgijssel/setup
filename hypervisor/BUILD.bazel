@@ -82,6 +82,7 @@ pyinfra_run(
         "tasks/install_cni.py",
         "tasks/install_consul.py",
         "tasks/install_docker.py",
+        "tasks/install_envoy.py",
         "tasks/install_nomad.py",
         "tasks/install_qemu.py",
     ],
