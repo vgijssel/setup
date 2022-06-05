@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Nomad agent
+
+[Service]
+User=root
+WorkingDirectory=/root
+ExecStart=/usr/local/bin/nomad agent -config /etc/nomad.d
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

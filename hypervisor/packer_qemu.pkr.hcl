@@ -75,6 +75,7 @@ source "qemu" "image" {
   communicator = "ssh"
   ssh_username      = var.ssh_username
   ssh_password      = var.ssh_password
+  ssh_timeout       = "2m"
   ssh_clear_authorized_keys = true
   cd_files = [
       var.cloud_init_meta_data_file,
