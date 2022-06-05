@@ -10,7 +10,7 @@
             "state": "idle"
         },
         "presence_event": "approach",
-        "linkquality": 44
+        "linkquality": 55
     },
     "0x00158d000232cfca": {
         "voltage": 3105,
@@ -24,17 +24,35 @@
         "voltage": 3265,
         "battery": 100,
         "device_temperature": 25,
-        "linkquality": 99
+        "linkquality": 36
     },
     "0x0017880104e25f8e": {
-        "color_mode": "xy",
+        "color_mode": "color_temp",
         "linkquality": 36,
         "brightness": 254,
-        "state": "ON",
-        "color_temp": 284,
+        "state": "OFF",
+        "color_temp": 366,
         "color": {
-            "x": 0.38345864661654133,
-            "y": 0.3308270676691729
+            "x": 0.4574,
+            "y": 0.41
+        }
+    },
+    "0x0017880102634d00": {
+        "color_mode": "xy",
+        "linkquality": 36,
+        "state": "OFF"
+    },
+    "0x54ef4410004d58d7": {
+        "motion_sensitivity": "high",
+        "presence": false,
+        "monitoring_mode": "undirected",
+        "approach_distance": "near",
+        "linkquality": 39,
+        "device_temperature": 26,
+        "power_outage_count": 1,
+        "presence_event": "leave",
+        "update": {
+            "state": "idle"
         }
     }
 }
