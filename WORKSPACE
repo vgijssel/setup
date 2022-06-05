@@ -23,7 +23,7 @@ rules_packer_toolchains(
 
 http_file(
     name = "ubuntu_focal_kernel",
-    sha256 = "09bb705df1fb743524bbb5521c1dcd51d6249844ebffc4fd8b56da9257dea1ee",
+    sha256 = "4048507b8db0705fead6b09030d967910bb6b6b8c348c389b7cdeb045860e628",
     urls = [
         "https://cloud-images.ubuntu.com/focal/current/unpacked/focal-server-cloudimg-amd64-vmlinuz-generic",
     ],
