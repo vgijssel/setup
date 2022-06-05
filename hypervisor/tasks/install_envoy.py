@@ -18,7 +18,7 @@ def install_envoy(version):
 
     server.shell(
         name="Unpack envoy Binary",
-        commands=["tar -C /tmp --extract --file=/tmp/envoy.tar.gz"],
+        commands=["tar -C /tmp --extract --file=/tmp/envoy.tar.xz"],
     )
 
     server.shell(
