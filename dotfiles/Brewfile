@@ -130,9 +130,12 @@ cask 'intel-haxm' # hardware accelerator for qemu
 
 cask 'plex'
 
+
 cask 'brave-browser'
 cask '1password-cli'
 cask 'steam'
+# New type of terminal
+cask 'warp'
 cask 'iterm2', args: { force: true }
 cask 'rubymine'
 cask 'sublime-text'

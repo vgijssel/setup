@@ -1,16 +1,1 @@
-load("@rules_python//python:defs.bzl", "py_binary")
-
 package(default_visibility = ["//visibility:public"])
-
-exports_files([
-    "runner.py",
-    "runner_env.py.tpl",
-])
-
-py_binary(
-    name = "pyinfra_runtime",
-    srcs = [
-        "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
-    ],
-    main = "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra.py",
-)

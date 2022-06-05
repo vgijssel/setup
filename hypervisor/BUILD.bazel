@@ -23,7 +23,7 @@ packer_image(
     ],
     variables = {
         "iso_file": "$(location @ubuntu_focal//file)",
-        "iso_checksum": "9a0f100258640fa68ee13e33f4ea636ee3f82e2b9991381553be65121ce3657b",
+        "iso_checksum": "103ae8982d79891e7fb5321260dbd7e924ec2021d7357872d0c65e3231466d23",
         "kernel": "$(location @ubuntu_focal_kernel//file)",
         "initrd": "$(location @ubuntu_focal_initrd//file)",
         "ssh_username": "packer",
@@ -52,17 +52,6 @@ runner_binary(
     name = "kitchen",
     out = "kitchen.sh",
     cmd = """
-    export KITCHEN_ARGS="$$@"
-    export KITCHEN_BINARY=$$(rlocation hypervisor_bundle/bin/kitchen)
-    export KITCHEN_YAML=$$(rlocation setup/hypervisor/kitchen.yml)
-    export VAGRANTFILE_CLOUD_INIT=$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)
-    export VAGRANT_EXPERIMENTAL=cloud_init,disks
-    export VAGRANT_BOX=$$(rlocation setup/hypervisor/hypervisor_image_box.box)
-    export CHEF_LICENSE=accept
-    export TEST_DIR=$$(rlocation setup/hypervisor/test)
-    export KITCHEN_CWD=$$(dirname $$KITCHEN_YAML)
-    export CONVERGE_SCRIPT=$$(rlocation setup/tools/vagrant/multi-user-target-active.sh)
-
     cd $$KITCHEN_CWD && $$KITCHEN_BINARY $$KITCHEN_ARGS
     """,
     data = [
@@ -73,13 +62,37 @@ runner_binary(
         "//tools/vagrant:multi-user-target-active.sh",
         "@hypervisor_bundle//:bin/kitchen",
     ],
+    env = {
+        "KITCHEN_ARGS": "$$@",
+        "KITCHEN_BINARY": "$$(rlocation hypervisor_bundle/bin/kitchen)",
+        "KITCHEN_YAML": "$$(rlocation setup/hypervisor/kitchen.yml)",
+        "VAGRANTFILE_CLOUD_INIT": "$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)",
+        "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
+        "VAGRANT_BOX": "$$(rlocation setup/hypervisor/hypervisor_image_box.box)",
+        "CHEF_LICENSE": "accept",
+        "TEST_DIR": "$$(rlocation setup/hypervisor/test)",
+        "KITCHEN_CWD": "$$(dirname $$KITCHEN_YAML)",
+        "CONVERGE_SCRIPT": "$$(rlocation setup/tools/vagrant/multi-user-target-active.sh)",
+    },
 )
 
 pyinfra_run(
     name = "provision",
+    srcs = [
+        "tasks/install_cni.py",
+        "tasks/install_consul.py",
+        "tasks/install_docker.py",
+        "tasks/install_envoy.py",
+        "tasks/install_nomad.py",
+        "tasks/install_qemu.py",
+    ],
     args = ["--sudo"],
     data = [
         ".kitchen/.gitignore",
+        "files/consul.hcl",
+        "files/consul.service",
+        "files/nomad.hcl",
+        "files/nomad.service",
     ],
     deploy = "deploy.py",
     env = {
@@ -87,8 +100,4 @@ pyinfra_run(
         "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/.kitchen/.gitignore))/kitchen-vagrant/default-ubuntu-focal",
     },
     inventory = "inventory.py",
-    pyinfra_runtime = "//tools/pyinfra:pyinfra_runtime",
-    deps = [
-        "files/ignited.service",
-    ],
 )
