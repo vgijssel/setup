@@ -23,7 +23,7 @@ packer_image(
     ],
     variables = {
         "iso_file": "$(location @ubuntu_focal//file)",
-        "iso_checksum": "9a0f100258640fa68ee13e33f4ea636ee3f82e2b9991381553be65121ce3657b",
+        "iso_checksum": "103ae8982d79891e7fb5321260dbd7e924ec2021d7357872d0c65e3231466d23",
         "kernel": "$(location @ubuntu_focal_kernel//file)",
         "initrd": "$(location @ubuntu_focal_initrd//file)",
         "ssh_username": "packer",
@@ -82,6 +82,7 @@ pyinfra_run(
         "tasks/install_cni.py",
         "tasks/install_docker.py",
         "tasks/install_nomad.py",
+        "tasks/install_qemu.py",
     ],
     args = ["--sudo"],
     data = [

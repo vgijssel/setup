@@ -7,6 +7,7 @@ from pyinfra.facts.server import Arch, OsVersion
 from hypervisor.tasks.install_docker import install_docker
 from hypervisor.tasks.install_cni import install_cni
 from hypervisor.tasks.install_nomad import install_nomad
+from hypervisor.tasks.install_qemu import install_qemu
 
 apt.packages(
     name="Ensure all kernel modules are available",
@@ -17,8 +18,7 @@ apt.packages(
 install_docker()
 install_cni(version="0.9.1")
 install_nomad(version="1.3.0")
-
-# install qemu!
+install_qemu()
 
 server.shell(
     name="Enable firewall for SSH",
