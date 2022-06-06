@@ -1,3 +1,6 @@
+git_branch_tag := `git rev-parse --abbrev-ref HEAD | sed 's/[^a-zA-Z0-9]/_/g'`
+git_commit_short_sha := `git rev-parse --short=8 HEAD`
+git_sha_or_branch := if env_var_or_default("CI", "false") == "true" { "ci-" + git_commit_short_sha } else { "dev-" + git_branch_tag }
 bazel_debug_config := if env_var_or_default("SETUP_DEBUG", "false") == "true" { "--config=debug" } else { "" }
 
 default: 
@@ -27,9 +30,21 @@ hypervisor-test:
 hypervisor-provision:
     bazel run {{ bazel_debug_config }} //hypervisor:provision
 
+
 # Interact with the hypervisor kitchen binary
 hypervisor-kitchen +args:
     bazel run {{ bazel_debug_config }} //hypervisor:kitchen -- {{ args }}
+
+# Provision the infrastructure using Pulumi
+infrastructure-provision:
+    bazel run {{ bazel_debug_config }} //infrastructure:provision -- stack select {{ git_sha_or_branch }} --create
+    bazel run {{ bazel_debug_config }} //infrastructure:provision -- up -y --stack={{ git_sha_or_branch }}
+
+infrastructure-destroy:
+    bazel run {{ bazel_debug_config }} //infrastructure:provision -- destroy -y --stack={{ git_sha_or_branch }}
+
+infrastructure-pulumi +args:
+    bazel run {{ bazel_debug_config }} //infrastructure:provision -- {{ args }}
 
 # Invoke the packer binary directly
 packer +args:

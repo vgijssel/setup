@@ -106,3 +106,27 @@ ruby_bundle(
         "addressable": ["data"],
     },
 )
+
+pip_parse(
+    name = "infrastructure_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "//infrastructure:requirements_lock.txt",
+)
+
+load("@infrastructure_deps//:requirements.bzl", infrastructure_install_deps = "install_deps")
+
+infrastructure_install_deps()
+
+http_archive(
+    name = "pulumi",
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+sh_binary(
+    name = "pulumi.sh",
+    srcs = ["pulumi"],
+)
+    """,
+    sha256 = "e7261ac9f49b7800036ead1c9f660b7fc4adf9b1dca3e20ef526468f73a199a6",
+    strip_prefix = "pulumi",
+    url = "https://get.pulumi.com/releases/sdk/pulumi-v3.33.2-darwin-x64.tar.gz",
+)

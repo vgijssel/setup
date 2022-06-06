@@ -1,0 +1,37 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
+compile_pip_requirements(
+    name = "requirements",
+    extra_args = ["--allow-unsafe"],
+    requirements_in = "requirements.txt",
+    requirements_txt = "requirements_lock.txt",
+)
+
+py_binary(
+    name = "provision",
+    srcs = [
+        "__main__.py",
+        "runner.py",
+    ],
+    data = [
+        "Pulumi.yaml",
+        "@pulumi",
+    ],
+    env = select({
+        "//:setup_debug": {
+            "SETUP_DEBUG": "true",
+        },
+        "//conditions:default": {
+            "SETUP_DEBUG": "false",
+        },
+    }),
+    main = "runner.py",
+    deps = [
+        "@infrastructure_deps_pulumi//:pkg",
+        "@infrastructure_deps_pulumi_command//:pkg",
+        # TODO: don't know if we need vagrant here
+        "@infrastructure_deps_python_vagrant//:pkg",
+        "@rules_python//python/runfiles",
+    ],
+)
