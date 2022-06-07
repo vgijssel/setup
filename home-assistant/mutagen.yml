@@ -5,13 +5,15 @@ sync:
       vcs: true
       paths:
         - mutagen.yml.lock
-        - home-assistant/config/.storage
-        - home-assistant/config/home-assistant.log*
-        - home-assistant/config/home-assistant_v2*
-        - home-assistant/config/secrets.yaml
-        - home-assistant/zwavejs2mqtt-data
-        - "!home-assistant/zwavejs2mqtt-data/settings.json"
-        - "!home-assistant/zwavejs2mqtt-data/nodes.json"
+        - config/.storage
+        - config/home-assistant.log*
+        - config/home-assistant_v2*
+        - config/secrets.yaml
+        - zwavejs2mqtt-data/
+        - "!zwavejs2mqtt-data/settings.json"
+        - "!zwavejs2mqtt-data/nodes.json"
+        - zigbee2mqtt-data/
+        - "!zigbee2mqtt-data/configuration.yaml"
 
   hypervisor:
     beta: "hypervisor:/data/home-assistant"

@@ -27,7 +27,7 @@ services:
   zwavejs2mqtt:
     container_name: zwavejs2mqtt
     image: zwavejs/zwavejs2mqtt:latest
-    restart: always
+    restart: unless-stopped
     tty: true
     stop_signal: SIGINT
     environment:
