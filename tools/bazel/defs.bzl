@@ -1,11 +1,23 @@
 def _runner_binary_impl(ctx):
+    make_variables = {
+        "OUT": ctx.outputs.out.short_path,
+        "WORKSPACE_NAME": ctx.workspace_name,
+    }
+
     cmd = ctx.expand_make_variables(
         "cmd",
         ctx.expand_location(ctx.attr.cmd),
-        {
-            "OUT": ctx.outputs.out.short_path,
-            "WORKSPACE_NAME": ctx.workspace_name,
-        },
+        make_variables,
+    )
+
+    env_string = ""
+    for key, value in ctx.attr.env.items():
+        env_string += 'export {}="{}"\n'.format(key, value)
+
+    env_string = ctx.expand_make_variables(
+        "env",
+        ctx.expand_location(env_string),
+        make_variables,
     )
 
     # Added the following line to the runfiles.bash script:
@@ -32,6 +44,8 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
 
 set -Eeou pipefail
     """
+
+    cmd_header += "\n{}\n".format(env_string)
 
     full_cmd = cmd_header + cmd
     ctx.actions.write(ctx.outputs.out, full_cmd, is_executable = True)
@@ -65,6 +79,7 @@ runner_binary = rule(
         "cmd": attr.string(mandatory = True),
         "data": attr.label_list(allow_files = True),
         "deps": attr.label_list(allow_files = True),
+        "env": attr.string_dict(),
         "out": attr.output(mandatory = True),
         "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
     },

@@ -15,6 +15,10 @@ hypervisor-dev-start:
 hypervisor-dev-stop:
     bazel run {{ bazel_debug_config }} //hypervisor:kitchen -- destroy
 
+# Login to the hypervisor machine
+hypervisor-login:
+    VAGRANT_CWD=hypervisor/.kitchen/kitchen-vagrant/default-ubuntu-focal vagrant ssh
+
 # Test the hypervisor image using kitchen
 hypervisor-test:
     bazel run {{ bazel_debug_config }} //hypervisor:kitchen -- verify

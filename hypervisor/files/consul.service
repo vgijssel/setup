@@ -1,10 +1,10 @@
 [Unit]
-Description=Run the ignited daemon
+Description=Run the Consul agent
 
 [Service]
 User=root
 WorkingDirectory=/root
-ExecStart=/usr/local/bin/ignited daemon
+ExecStart=/usr/local/bin/consul agent -config-dir /etc/consul.d
 Restart=always
 
 [Install]
