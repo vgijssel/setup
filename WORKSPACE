@@ -130,3 +130,55 @@ sh_binary(
     strip_prefix = "pulumi",
     url = "https://get.pulumi.com/releases/sdk/pulumi-v3.33.2-darwin-x64.tar.gz",
 )
+
+nomad_version = "1.3.1"
+
+arch = "amd64"
+
+os = "darwin"
+
+# TODO: implement select for different os using platforms?
+# os = select({
+#         "//:setup_debug": {
+#             "SETUP_DEBUG": "true",
+#         },
+#         "//conditions:default": {
+#             "SETUP_DEBUG": "false",
+#         },
+#     }),
+
+http_archive(
+    name = "nomad",
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+sh_binary(
+    name = "nomad.sh",
+    srcs = ["nomad"],
+)
+    """,
+    sha256 = "96454c7cbf136979a7b0eefb32d428abef41331b62afd1abd2e0a8f8e89e42da",
+    url = "https://releases.hashicorp.com/nomad/{nomad_version}/nomad_{nomad_version}_{os}_{arch}.zip".format(
+        arch = arch,
+        nomad_version = nomad_version,
+        os = os,
+    ),
+)
+
+consul_version = "1.12.2"
+
+http_archive(
+    name = "consul",
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+sh_binary(
+    name = "consul.sh",
+    srcs = ["consul"],
+)
+    """,
+    sha256 = "60548927c73a1c0698a400560c48660d105be60d19c0766865d6be32ba841f38",
+    url = "https://releases.hashicorp.com/consul/{consul_version}/consul_{consul_version}_{os}_{arch}.zip".format(
+        arch = arch,
+        consul_version = consul_version,
+        os = os,
+    ),
+)

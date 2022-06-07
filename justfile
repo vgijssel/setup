@@ -3,6 +3,9 @@ git_commit_short_sha := `git rev-parse --short=8 HEAD`
 git_sha_or_branch := if env_var_or_default("CI", "false") == "true" { "ci-" + git_commit_short_sha } else { "dev-" + git_branch_tag }
 bazel_debug_config := if env_var_or_default("SETUP_DEBUG", "false") == "true" { "--config=debug" } else { "" }
 
+export NOMAD_ADDR := "http://localhost:4646"
+export NOMAD_TOKEN := "nomad-token"
+
 default: 
     just --list
 
@@ -30,19 +33,30 @@ hypervisor-test:
 hypervisor-provision:
     bazel run {{ bazel_debug_config }} //hypervisor:provision
 
-
 # Interact with the hypervisor kitchen binary
 hypervisor-kitchen +args:
     bazel run {{ bazel_debug_config }} //hypervisor:kitchen -- {{ args }}
+
+# TODO: specify logging directory usable by the CI??
+# Start the infrastructure dev services
+infrastructure-dev-start:
+    bazel build @nomad//... @consul//...
+    OVERMIND_PROCFILE=infrastructure/Procfile bazel run {{ bazel_debug_config }} //tools/overmind -- --daemonize
+
+# Stop the infrastructure dev services
+infrastructure-dev-stop:
+    OVERMIND_PROCFILE=infrastructure/Procfile bazel run  {{ bazel_debug_config }} //tools/overmind -- quit
 
 # Provision the infrastructure using Pulumi
 infrastructure-provision:
     bazel run {{ bazel_debug_config }} //infrastructure:provision -- stack select {{ git_sha_or_branch }} --create
     bazel run {{ bazel_debug_config }} //infrastructure:provision -- up -y --stack={{ git_sha_or_branch }}
 
+# Destroy the Pulumi infrastructure
 infrastructure-destroy:
     bazel run {{ bazel_debug_config }} //infrastructure:provision -- destroy -y --stack={{ git_sha_or_branch }}
 
+# Invoke the Pulumi binary directly
 infrastructure-pulumi +args:
     bazel run {{ bazel_debug_config }} //infrastructure:provision -- {{ args }}
 

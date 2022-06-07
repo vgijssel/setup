@@ -1,6 +1,7 @@
 pulumi==3.33.2
 pulumi-kubernetes==3.19.2
 pulumi-command==0.2.0
+pulumi-nomad==0.2.1
 onepasswordconnectsdk==1.2.0
 # TODO: not sure if this one is necessary
 python-vagrant==1.0.0

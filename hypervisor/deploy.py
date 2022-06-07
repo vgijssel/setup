@@ -19,7 +19,7 @@ apt.packages(
 
 install_docker()
 install_cni(version="0.9.1")
-install_nomad(version="1.3.0")
+install_nomad(version="1.3.1")
 install_consul(version="1.12.2")
 # Envoy needs to be compatible with consul, supported version can be found here:
 # https://www.consul.io/docs/connect/proxies/envoy

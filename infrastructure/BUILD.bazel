@@ -16,6 +16,7 @@ py_binary(
     ],
     data = [
         "Pulumi.yaml",
+        "test-job.hcl",
         "@pulumi",
     ],
     env = select({
@@ -30,6 +31,7 @@ py_binary(
     deps = [
         "@infrastructure_deps_pulumi//:pkg",
         "@infrastructure_deps_pulumi_command//:pkg",
+        "@infrastructure_deps_pulumi_nomad//:pkg",
         # TODO: don't know if we need vagrant here
         "@infrastructure_deps_python_vagrant//:pkg",
         "@rules_python//python/runfiles",
