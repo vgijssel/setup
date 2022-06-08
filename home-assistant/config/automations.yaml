@@ -97,7 +97,7 @@
     domain: switch
   mode: single
 - id: '1654167850551'
-  alias: Supply Closet - Light - Turn On
+  alias: 'Supply Closet - Light: Manage'
   description: ''
   trigger:
   - type: opened
@@ -111,27 +111,13 @@
     device_id: 4fdcffe73d9aa250e26599761c1a19dd
     entity_id: switch.supply_closet_shelly
     domain: switch
-  mode: single
-- id: '1654167964344'
-  alias: 'Supply Closet -  Light: Turn Off'
-  description: ''
-  trigger:
-  - type: not_opened
-    platform: device
-    device_id: b6cb6e3ec0d8a1a3851cd6eae977b3c6
-    entity_id: binary_sensor.supply_closet_door_contact
-    domain: binary_sensor
-  - platform: device
-    type: turned_on
-    device_id: 4fdcffe73d9aa250e26599761c1a19dd
-    entity_id: switch.supply_closet_shelly
-    domain: switch
-    for:
-      hours: 0
-      minutes: 30
-      seconds: 0
-  condition: []
-  action:
+  - wait_for_trigger:
+    - type: not_opened
+      platform: device
+      device_id: b6cb6e3ec0d8a1a3851cd6eae977b3c6
+      entity_id: binary_sensor.supply_closet_door_contact
+      domain: binary_sensor
+    timeout: 00:30:00
   - type: turn_off
     device_id: 4fdcffe73d9aa250e26599761c1a19dd
     entity_id: switch.supply_closet_shelly
@@ -172,4 +158,34 @@
       transition: 1
     target:
       area_id: living_room
+  mode: single
+- id: '1654679985339'
+  alias: 'Laundry Room - Light: Manage'
+  description: ''
+  trigger:
+  - type: motion
+    platform: device
+    device_id: 7167d9efd803b681e222837ae47e8d26
+    entity_id: binary_sensor.laundry_room_motion_occupancy
+    domain: binary_sensor
+  condition: []
+  action:
+  - type: turn_on
+    device_id: b0fbe5b3c69086de8cb4d79adaddbcb4
+    entity_id: switch.laundry_room_shelly
+    domain: switch
+  - wait_for_trigger:
+    - type: no_motion
+      platform: device
+      device_id: 7167d9efd803b681e222837ae47e8d26
+      entity_id: binary_sensor.laundry_room_motion_occupancy
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 0
+  - type: turn_off
+    device_id: b0fbe5b3c69086de8cb4d79adaddbcb4
+    entity_id: switch.laundry_room_shelly
+    domain: switch
   mode: single
