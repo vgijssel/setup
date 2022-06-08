@@ -23,6 +23,8 @@ cloud:
         - light.living_room_monkey_light
         - light.living_room_mouse_light
         - light.living_room_tv_light
+        - sensor.woonkamer_temperature
+        - light.office_light
     entity_config:
       light.living_room_corner_light:
         name: Corner
@@ -49,3 +51,14 @@ cloud:
         aliases:
           - Tv Lamp
         room: Woonkamer
+      sensor.woonkamer_temperature:
+        name: Thermostat
+        aliases:
+          - Thermostaat
+        room: Woonkamer
+
+      light.office_light:
+        name: Light
+        aliases:
+          - Lamp
+        room: Kantoor
