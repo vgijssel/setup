@@ -218,3 +218,34 @@
     entity_id: switch.toilet_shelly
     domain: switch
   mode: single
+- id: '1654715898803'
+  alias: 'Driveway Light: Manage'
+  description: ''
+  trigger:
+  - type: opened
+    platform: device
+    device_id: bd26b76a9ab0198a9e6ce3cee2daa483
+    entity_id: binary_sensor.hallway_door_contact
+    domain: binary_sensor
+  condition: []
+  action:
+  - type: turn_on
+    device_id: e3d2ffd411b04836211a50deafe94855
+    entity_id: switch.driveway_shelly
+    domain: switch
+  - wait_for_trigger:
+    - type: not_opened
+      platform: device
+      device_id: bd26b76a9ab0198a9e6ce3cee2daa483
+      entity_id: binary_sensor.hallway_door_contact
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 30
+    timeout: 00:10:00
+  - type: turn_off
+    device_id: e3d2ffd411b04836211a50deafe94855
+    entity_id: switch.driveway_shelly
+    domain: switch
+  mode: single
