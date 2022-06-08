@@ -13,3 +13,39 @@ input_boolean:
   office_present:
     name: Office Presence
     icon: mdi:home
+
+cloud:
+  google_actions:
+    filter:
+      include_entities:
+        - light.living_room_corner_light
+        - light.living_room_dining_table_light
+        - light.living_room_monkey_light
+        - light.living_room_mouse_light
+        - light.living_room_tv_light
+    entity_config:
+      light.living_room_corner_light:
+        name: Corner
+        aliases:
+          - Hoek
+        room: Woonkamer
+      light.living_room_dining_table_light:
+        name: Dining Table
+        aliases:
+          - Eetkamertafel
+        room: Woonkamer
+      light.living_room_monkey_light:
+        name: Monkey
+        aliases:
+          - Aap
+        room: Woonkamer
+      light.living_room_mouse_light:
+        name: Mouse
+        aliases:
+          - Muis
+        room: Woonkamer
+      light.living_room_tv_light:
+        name: Tv Light
+        aliases:
+          - Tv Lamp
+        room: Woonkamer
