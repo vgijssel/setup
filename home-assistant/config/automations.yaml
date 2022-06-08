@@ -7,6 +7,10 @@
     device_id: 410ace0a782a03a250764603cd0c065e
     entity_id: binary_sensor.0x54ef4410004d9481_presence
     domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
   - type: opened
     platform: device
     device_id: 8ccdae928e5b9bee8ed2369313658a12
@@ -187,5 +191,30 @@
   - type: turn_off
     device_id: b0fbe5b3c69086de8cb4d79adaddbcb4
     entity_id: switch.laundry_room_shelly
+    domain: switch
+  mode: single
+- id: '1654712522580'
+  alias: 'Toilet - Light: Manage'
+  description: ''
+  trigger:
+  - type: opened
+    platform: device
+    device_id: 243f5eeff7217b81ac1756571be041c6
+    entity_id: binary_sensor.toilet_door_contact
+    domain: binary_sensor
+  condition: []
+  action:
+  - type: turn_on
+    device_id: 30d480fafab423619f5acb1a5830427b
+    entity_id: switch.toilet_shelly
+    domain: switch
+  - delay:
+      hours: 0
+      minutes: 2
+      seconds: 0
+      milliseconds: 0
+  - type: turn_off
+    device_id: 30d480fafab423619f5acb1a5830427b
+    entity_id: switch.toilet_shelly
     domain: switch
   mode: single
