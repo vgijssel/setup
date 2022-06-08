@@ -7,7 +7,7 @@ services:
       - "./mosquitto-data:/mosquitto"
     ports:
       - "0.0.0.0:1883:1883"
-      - "9001:9001"
+      - "127.0.0.1:9001:9001"
     command: "mosquitto -c /mosquitto-no-auth.conf"
 
   zigbee2mqtt:

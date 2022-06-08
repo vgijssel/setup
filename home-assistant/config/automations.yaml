@@ -109,7 +109,7 @@
   action:
   - type: turn_on
     device_id: 4fdcffe73d9aa250e26599761c1a19dd
-    entity_id: switch.shellyplus1pm_7c87ce65bca8_switch_0
+    entity_id: switch.supply_closet_shelly
     domain: switch
   mode: single
 - id: '1654167964344'
@@ -124,7 +124,7 @@
   - platform: device
     type: turned_on
     device_id: 4fdcffe73d9aa250e26599761c1a19dd
-    entity_id: switch.shellyplus1pm_7c87ce65bca8_switch_0
+    entity_id: switch.supply_closet_shelly
     domain: switch
     for:
       hours: 0
@@ -134,6 +134,42 @@
   action:
   - type: turn_off
     device_id: 4fdcffe73d9aa250e26599761c1a19dd
-    entity_id: switch.shellyplus1pm_7c87ce65bca8_switch_0
+    entity_id: switch.supply_closet_shelly
     domain: switch
+  mode: single
+- id: '1654670650990'
+  alias: 'Living Room - Lights: Set'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.living_room_shelly_input
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - service: light.turn_on
+    data:
+      transition: 1
+      color_temp: 390
+      brightness_pct: 80
+    target:
+      area_id: living_room
+  mode: single
+- id: '1654673685951'
+  alias: 'Living Room - Lights: Unset'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.living_room_shelly_input
+    from: 'on'
+    to: 'off'
+  condition: []
+  action:
+  - service: light.turn_off
+    data:
+      transition: 1
+    target:
+      area_id: living_room
   mode: single

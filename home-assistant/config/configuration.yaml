@@ -11,5 +11,5 @@ scene: !include scenes.yaml
 
 input_boolean:
   office_present:
-    name: Indicate if someone is in the office
+    name: Office Presence
     icon: mdi:home
