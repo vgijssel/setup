@@ -25,6 +25,7 @@ cloud:
         - light.living_room_tv_light
         - sensor.woonkamer_temperature
         - light.office_light
+        - switch.kitchen_shelly
     entity_config:
       light.living_room_corner_light:
         name: Corner
@@ -62,3 +63,38 @@ cloud:
         aliases:
           - Lamp
         room: Kantoor
+
+      switch.kitchen_shelly:
+        name: Kitchen
+        aliases:
+          - Keuken
+        room: Keuken
+
+homekit:
+  - filter:
+      include_entities:
+        - light.living_room_corner_light
+        - light.living_room_dining_table_light
+        - light.living_room_monkey_light
+        - light.living_room_mouse_light
+        - light.living_room_tv_light
+        - sensor.woonkamer_temperature
+        - light.office_light
+        - switch.kitchen_shelly
+    entity_config:
+      light.living_room_corner_light:
+        name: Woonkamer Hoek
+      light.living_room_dining_table_light:
+        name: Woonkamer Eetkamertafel
+      light.living_room_monkey_light:
+        name: Woonkamer Aap
+      light.living_room_mouse_light:
+        name: Woonkamer Muis
+      light.living_room_tv_light:
+        name: Woonkamer Tv Lamp
+      sensor.woonkamer_temperature:
+        name: Woonkamer Thermostaat
+      light.office_light:
+        name: Kantoor Lamp
+      switch.kitchen_shelly:
+        name: Keuken Lamp
