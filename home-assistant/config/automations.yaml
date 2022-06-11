@@ -249,3 +249,82 @@
     entity_id: switch.driveway_shelly
     domain: switch
   mode: single
+- id: '1654888062741'
+  alias: 'Living Room - Watching: Manage'
+  description: ''
+  trigger:
+  - platform: device
+    device_id: e9121935f1d5a2f516790f9a116fa1f0
+    domain: media_player
+    entity_id: media_player.living_room_tv
+    type: playing
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 15
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: media_player.living_room_tv
+      attribute: app_name
+      state: Netflix
+    - condition: state
+      entity_id: media_player.living_room_tv
+      attribute: app_name
+      state: Prime Video
+  action:
+  - service: light.turn_on
+    data:
+      transition: 5
+      brightness_pct: 30
+      color_temp: 500
+    target:
+      area_id: living_room
+  - wait_for_trigger:
+    - platform: device
+      device_id: e9121935f1d5a2f516790f9a116fa1f0
+      domain: media_player
+      entity_id: media_player.living_room_tv
+      type: paused
+    - platform: device
+      type: turned_off
+      device_id: e9121935f1d5a2f516790f9a116fa1f0
+      entity_id: remote.living_room_tv
+      domain: remote
+    - platform: device
+      device_id: e9121935f1d5a2f516790f9a116fa1f0
+      domain: media_player
+      entity_id: media_player.living_room_tv
+      type: idle
+  - service: light.turn_on
+    data:
+      transition: 2
+      color_temp: 380
+      brightness_pct: 90
+    target:
+      area_id: living_room
+  mode: single
+- id: '1654888687153'
+  alias: 'Hallway - Presence: Manage'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.living_room_door_contact
+  condition: []
+  action:
+  - type: turn_on
+    device_id: 7f77499815c8499f7cf2c3d9d98b7704
+    entity_id: switch.hallway_shelly
+    domain: switch
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 10
+      milliseconds: 0
+  - type: turn_off
+    device_id: 7f77499815c8499f7cf2c3d9d98b7704
+    entity_id: switch.hallway_shelly
+    domain: switch
+  mode: single
