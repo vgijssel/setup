@@ -81,6 +81,7 @@ homekit:
         - sensor.woonkamer_temperature
         - light.office_light
         - switch.kitchen_shelly
+        - camera.baby_room_cam_high
     entity_config:
       light.living_room_corner_light:
         name: Woonkamer Hoek
@@ -98,3 +99,5 @@ homekit:
         name: Kantoor Lamp
       switch.kitchen_shelly:
         name: Keuken Lamp
+      camera.baby_room_cam_high:
+        name: Babykamer Camera
