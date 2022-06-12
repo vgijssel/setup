@@ -138,13 +138,11 @@
     to: 'on'
   condition: []
   action:
-  - service: light.turn_on
+  - service: scene.turn_on
     data:
-      transition: 1
-      color_temp: 390
-      brightness_pct: 80
+      transition: 2
     target:
-      area_id: living_room
+      entity_id: scene.living_room_relax
   mode: single
 - id: '1654673685951'
   alias: 'Living Room - Lights: Unset'
@@ -159,7 +157,7 @@
   action:
   - service: light.turn_off
     data:
-      transition: 1
+      transition: 2
     target:
       area_id: living_room
   mode: single
