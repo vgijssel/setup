@@ -604,6 +604,11 @@
     - input_boolean.bedroom_presence
     from: 'off'
     to: 'on'
+  - platform: numeric_state
+    entity_id: sensor.bedroom_motion_illuminance_3
+    below: '25'
+  - platform: time_pattern
+    minutes: /5
   condition:
   - condition: time
     after: 07:00:00
@@ -616,6 +621,15 @@
     - fri
     - sat
     - sun
+  - type: is_illuminance
+    condition: device
+    device_id: 1040b71ce8f05d1677448fabcc133421
+    entity_id: sensor.bedroom_motion_illuminance_3
+    domain: sensor
+    below: 25
+  - condition: state
+    entity_id: input_boolean.bedroom_presence
+    state: 'on'
   action:
   - type: turn_on
     device_id: f495569fb2a00ec0399e951b59bd1752
@@ -630,5 +644,83 @@
   - type: turn_off
     device_id: f495569fb2a00ec0399e951b59bd1752
     entity_id: switch.bedroom_shelly
+    domain: switch
+  mode: single
+- id: '1655225566872'
+  alias: 'Baby Room - Presence: Manage'
+  description: ''
+  trigger:
+  - type: motion
+    platform: device
+    device_id: 3f1a2076d0f0567d099a92aea91d5ee7
+    entity_id: binary_sensor.baby_room_motion_home_security_motion_detection_2
+    domain: binary_sensor
+  - platform: state
+    entity_id:
+    - binary_sensor.baby_room_shelly_input
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.baby_room_presence
+  - if:
+    - type: is_motion
+      condition: device
+      device_id: 3f1a2076d0f0567d099a92aea91d5ee7
+      entity_id: binary_sensor.baby_room_motion_home_security_motion_detection_2
+      domain: binary_sensor
+    then:
+    - wait_for_trigger:
+      - type: no_motion
+        platform: device
+        device_id: 3f1a2076d0f0567d099a92aea91d5ee7
+        entity_id: binary_sensor.baby_room_motion_home_security_motion_detection_2
+        domain: binary_sensor
+  - delay:
+      hours: 0
+      minutes: 3
+      seconds: 0
+      milliseconds: 0
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.baby_room_presence
+  mode: restart
+- id: '1655225694008'
+  alias: 'Baby Room - Light: Manage'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_boolean.baby_room_presence
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: time
+    after: 07:00:00
+    before: '21:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - fri
+    - thu
+    - sat
+    - sun
+  action:
+  - type: turn_on
+    device_id: cb8d313b8527e3f3aee85ad48b26da45
+    entity_id: switch.baby_room_shelly
+    domain: switch
+  - wait_for_trigger:
+    - platform: state
+      entity_id:
+      - input_boolean.baby_room_presence
+      from: 'on'
+      to: 'off'
+  - type: turn_off
+    device_id: cb8d313b8527e3f3aee85ad48b26da45
+    entity_id: switch.baby_room_shelly
     domain: switch
   mode: single
