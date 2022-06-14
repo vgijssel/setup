@@ -536,3 +536,99 @@
     target:
       entity_id: input_boolean.toilet_presence
   mode: restart
+- id: '1655219299890'
+  alias: 'Bedroom - Presence: Manage'
+  description: ''
+  trigger:
+  - type: motion
+    platform: device
+    device_id: 1040b71ce8f05d1677448fabcc133421
+    entity_id: binary_sensor.bedroom_motion_home_security_motion_detection_3
+    domain: binary_sensor
+  - platform: state
+    entity_id:
+    - binary_sensor.bedroom_shelly_input
+  - type: present
+    platform: device
+    device_id: 5031a2cf5d04484b44cddd05e1f1bea7
+    entity_id: binary_sensor.bedroom_human_presence
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.bedroom_presence
+  - if:
+    - type: is_motion
+      condition: device
+      device_id: 1040b71ce8f05d1677448fabcc133421
+      entity_id: binary_sensor.bedroom_motion_home_security_motion_detection_3
+      domain: binary_sensor
+    then:
+    - wait_for_trigger:
+      - type: no_motion
+        platform: device
+        device_id: 1040b71ce8f05d1677448fabcc133421
+        entity_id: binary_sensor.bedroom_motion_home_security_motion_detection_3
+        domain: binary_sensor
+  - if:
+    - type: is_present
+      condition: device
+      device_id: 5031a2cf5d04484b44cddd05e1f1bea7
+      entity_id: binary_sensor.bedroom_human_presence
+      domain: binary_sensor
+    then:
+    - wait_for_trigger:
+      - type: not_present
+        platform: device
+        device_id: 5031a2cf5d04484b44cddd05e1f1bea7
+        entity_id: binary_sensor.bedroom_human_presence
+        domain: binary_sensor
+  - delay:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.bedroom_presence
+  mode: restart
+- id: '1655219551824'
+  alias: 'Bedroom - Light: Manage'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_boolean.bedroom_presence
+    from: 'off'
+    to: 'on'
+  condition:
+  - condition: time
+    after: 07:00:00
+    before: '21:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
+  action:
+  - type: turn_on
+    device_id: f495569fb2a00ec0399e951b59bd1752
+    entity_id: switch.bedroom_shelly
+    domain: switch
+  - wait_for_trigger:
+    - platform: state
+      entity_id:
+      - input_boolean.bedroom_presence
+      from: 'on'
+      to: 'off'
+  - type: turn_off
+    device_id: f495569fb2a00ec0399e951b59bd1752
+    entity_id: switch.bedroom_shelly
+    domain: switch
+  mode: single
