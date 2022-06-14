@@ -10,8 +10,12 @@ script: !include scripts.yaml
 scene: !include scenes.yaml
 
 input_boolean:
-  office_present:
+  office_presence:
     name: Office Presence
+    icon: mdi:home
+
+  hallway_presence:
+    name: Hallway Presence
     icon: mdi:home
 
 cloud:
