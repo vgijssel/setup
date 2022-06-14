@@ -1,5 +1,5 @@
 - id: '1654117678356'
-  alias: 'Office - Presence: Set'
+  alias: 'Office - Presence: Manage'
   description: ''
   trigger:
   - type: present
@@ -11,11 +11,9 @@
       hours: 0
       minutes: 0
       seconds: 30
-  - type: opened
-    platform: device
-    device_id: 8ccdae928e5b9bee8ed2369313658a12
-    entity_id: binary_sensor.0x00158d000232cfca_contact
-    domain: binary_sensor
+  - platform: state
+    entity_id:
+    - binary_sensor.0x00158d000232cfca_contact
   - type: motion
     platform: device
     device_id: f454d32984b16796fb074bd7ba162ef3
@@ -27,47 +25,42 @@
     data: {}
     target:
       entity_id: input_boolean.office_presence
-  mode: single
-- id: '1654117896464'
-  alias: 'Office - Presence: Unset'
-  description: ''
-  trigger:
-  - type: not_present
-    platform: device
-    device_id: 410ace0a782a03a250764603cd0c065e
-    entity_id: binary_sensor.0x54ef4410004d9481_presence
-    domain: binary_sensor
-  - platform: state
-    entity_id:
-    - input_boolean.office_presence
-    to: 'on'
-    for:
+  - delay:
       hours: 0
-      minutes: 0
-      seconds: 30
-    from: 'off'
-  - type: no_motion
-    platform: device
-    device_id: f454d32984b16796fb074bd7ba162ef3
-    entity_id: binary_sensor.motion_sensor_home_security_motion_detection
-    domain: binary_sensor
-  condition:
-  - type: is_not_present
-    condition: device
-    device_id: 410ace0a782a03a250764603cd0c065e
-    entity_id: binary_sensor.0x54ef4410004d9481_presence
-    domain: binary_sensor
-  - type: is_no_motion
-    condition: device
-    device_id: f454d32984b16796fb074bd7ba162ef3
-    entity_id: binary_sensor.motion_sensor_home_security_motion_detection
-    domain: binary_sensor
-  action:
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+  - if:
+    - type: is_present
+      condition: device
+      device_id: 410ace0a782a03a250764603cd0c065e
+      entity_id: binary_sensor.0x54ef4410004d9481_presence
+      domain: binary_sensor
+    then:
+    - wait_for_trigger:
+      - type: not_present
+        platform: device
+        device_id: 410ace0a782a03a250764603cd0c065e
+        entity_id: binary_sensor.0x54ef4410004d9481_presence
+        domain: binary_sensor
+  - if:
+    - type: is_motion
+      condition: device
+      device_id: f454d32984b16796fb074bd7ba162ef3
+      entity_id: binary_sensor.motion_sensor_home_security_motion_detection
+      domain: binary_sensor
+    then:
+    - wait_for_trigger:
+      - type: no_motion
+        platform: device
+        device_id: f454d32984b16796fb074bd7ba162ef3
+        entity_id: binary_sensor.motion_sensor_home_security_motion_detection
+        domain: binary_sensor
   - service: input_boolean.turn_off
     data: {}
     target:
       entity_id: input_boolean.office_presence
-  mode: single
+  mode: restart
 - id: '1654118559214'
   alias: 'Office - Light: Turn On'
   description: ''
