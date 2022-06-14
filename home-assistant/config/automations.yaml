@@ -5,7 +5,7 @@
   - type: present
     platform: device
     device_id: 410ace0a782a03a250764603cd0c065e
-    entity_id: binary_sensor.0x54ef4410004d9481_presence
+    entity_id: binary_sensor.office_human_presence
     domain: binary_sensor
     for:
       hours: 0
@@ -13,7 +13,7 @@
       seconds: 30
   - platform: state
     entity_id:
-    - binary_sensor.0x00158d000232cfca_contact
+    - binary_sensor.office_door_contact
     - binary_sensor.office_shelly_input
   - type: motion
     platform: device
@@ -35,14 +35,14 @@
     - type: is_present
       condition: device
       device_id: 410ace0a782a03a250764603cd0c065e
-      entity_id: binary_sensor.0x54ef4410004d9481_presence
+      entity_id: binary_sensor.office_human_presence
       domain: binary_sensor
     then:
     - wait_for_trigger:
       - type: not_present
         platform: device
         device_id: 410ace0a782a03a250764603cd0c065e
-        entity_id: binary_sensor.0x54ef4410004d9481_presence
+        entity_id: binary_sensor.office_human_presence
         domain: binary_sensor
   - if:
     - type: is_motion
@@ -92,11 +92,11 @@
   alias: 'Supply Closet - Light: Manage'
   description: ''
   trigger:
-  - type: opened
-    platform: device
-    device_id: b6cb6e3ec0d8a1a3851cd6eae977b3c6
-    entity_id: binary_sensor.supply_closet_door_contact
-    domain: binary_sensor
+  - platform: state
+    entity_id:
+    - input_boolean.supply_closet_presence
+    from: 'off'
+    to: 'on'
   condition: []
   action:
   - type: turn_on
@@ -104,12 +104,11 @@
     entity_id: switch.supply_closet_shelly
     domain: switch
   - wait_for_trigger:
-    - type: not_opened
-      platform: device
-      device_id: b6cb6e3ec0d8a1a3851cd6eae977b3c6
-      entity_id: binary_sensor.supply_closet_door_contact
-      domain: binary_sensor
-    timeout: 00:30:00
+    - platform: state
+      entity_id:
+      - input_boolean.supply_closet_presence
+      from: 'on'
+      to: 'off'
   - type: turn_off
     device_id: 4fdcffe73d9aa250e26599761c1a19dd
     entity_id: switch.supply_closet_shelly
@@ -200,28 +199,32 @@
   alias: 'Driveway Light: Manage'
   description: ''
   trigger:
-  - type: opened
-    platform: device
-    device_id: bd26b76a9ab0198a9e6ce3cee2daa483
-    entity_id: binary_sensor.hallway_door_contact
-    domain: binary_sensor
-  condition: []
+  - platform: state
+    entity_id:
+    - input_boolean.driveway_presence
+    from: 'off'
+    to: 'on'
+  - platform: sun
+    event: sunset
+    offset: -02:00:00
+  condition:
+  - condition: state
+    entity_id: input_boolean.driveway_presence
+    state: 'on'
+  - condition: sun
+    after: sunset
+    after_offset: -02:00:00
   action:
   - type: turn_on
     device_id: e3d2ffd411b04836211a50deafe94855
     entity_id: switch.driveway_shelly
     domain: switch
   - wait_for_trigger:
-    - type: not_opened
-      platform: device
-      device_id: bd26b76a9ab0198a9e6ce3cee2daa483
-      entity_id: binary_sensor.hallway_door_contact
-      domain: binary_sensor
-      for:
-        hours: 0
-        minutes: 0
-        seconds: 30
-    timeout: 00:10:00
+    - platform: state
+      entity_id:
+      - input_boolean.driveway_presence
+      from: 'on'
+      to: 'off'
   - type: turn_off
     device_id: e3d2ffd411b04836211a50deafe94855
     entity_id: switch.driveway_shelly
@@ -362,8 +365,8 @@
       entity_id: input_boolean.living_room_presence
   - delay:
       hours: 0
-      minutes: 0
-      seconds: 5
+      minutes: 2
+      seconds: 0
       milliseconds: 0
   - if:
     - type: is_present
@@ -424,3 +427,61 @@
     target:
       entity_id: light.living_room_tv_light
   mode: single
+- id: '1655205269031'
+  alias: 'Driveway - Presence: Manage'
+  description: ''
+  trigger:
+  - type: opened
+    platform: device
+    device_id: bd26b76a9ab0198a9e6ce3cee2daa483
+    entity_id: binary_sensor.hallway_door_contact
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.driveway_presence
+  - wait_for_trigger:
+    - type: not_opened
+      platform: device
+      device_id: bd26b76a9ab0198a9e6ce3cee2daa483
+      entity_id: binary_sensor.hallway_door_contact
+      domain: binary_sensor
+  - delay:
+      hours: 0
+      minutes: 2
+      seconds: 0
+      milliseconds: 0
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.driveway_presence
+  mode: restart
+- id: '1655211931964'
+  alias: 'Supply Closet - Presence: Manage'
+  description: ''
+  trigger:
+  - type: opened
+    platform: device
+    device_id: b6cb6e3ec0d8a1a3851cd6eae977b3c6
+    entity_id: binary_sensor.supply_closet_door_contact
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.supply_closet_presence
+  - wait_for_trigger:
+    - type: not_opened
+      platform: device
+      device_id: b6cb6e3ec0d8a1a3851cd6eae977b3c6
+      entity_id: binary_sensor.supply_closet_door_contact
+      domain: binary_sensor
+    timeout: 00:30:00
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.supply_closet_presence
+  mode: restart
