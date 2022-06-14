@@ -128,38 +128,30 @@
     domain: switch
   mode: single
 - id: '1654670650990'
-  alias: 'Living Room - Lights: Set'
+  alias: 'Living Room - Lights: Toggle'
   description: ''
   trigger:
   - platform: state
     entity_id:
     - binary_sensor.living_room_shelly_input
-    from: 'off'
-    to: 'on'
   condition: []
   action:
-  - service: scene.turn_on
-    data:
-      transition: 2
-    target:
-      entity_id: scene.living_room_relax
-  mode: single
-- id: '1654673685951'
-  alias: 'Living Room - Lights: Unset'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.living_room_shelly_input
-    from: 'on'
-    to: 'off'
-  condition: []
-  action:
-  - service: light.turn_off
-    data:
-      transition: 2
-    target:
-      area_id: living_room
+  - if:
+    - condition: state
+      entity_id: light.living_room_lights
+      state: 'on'
+    then:
+    - service: light.turn_off
+      data:
+        transition: 1
+      target:
+        entity_id: light.living_room_lights
+    else:
+    - service: scene.turn_on
+      data:
+        transition: 2
+      target:
+        entity_id: scene.living_room_relax
   mode: single
 - id: '1654679985339'
   alias: 'Laundry Room - Light: Manage'

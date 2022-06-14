@@ -9,6 +9,16 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+light:
+  - platform: group
+    name: "Living Room Lights"
+    entities:
+      - light.living_room_corner_light
+      - light.living_room_dining_table_light
+      - light.living_room_monkey_light
+      - light.living_room_mouse_light
+      - light.living_room_tv_light
+
 input_boolean:
   office_presence:
     name: Office Presence
@@ -16,6 +26,10 @@ input_boolean:
 
   hallway_presence:
     name: Hallway Presence
+    icon: mdi:home
+
+  living_room_presence:
+    name: Living Room Presence
     icon: mdi:home
 
 cloud:
