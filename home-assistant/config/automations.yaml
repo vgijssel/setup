@@ -128,7 +128,7 @@
     domain: switch
   mode: single
 - id: '1654670650990'
-  alias: 'Living Room - Lights: Toggle'
+  alias: 'Living Room - Lights: Manual Toggle'
   description: ''
   trigger:
   - platform: state
@@ -346,4 +346,93 @@
     device_id: 7f77499815c8499f7cf2c3d9d98b7704
     entity_id: switch.hallway_shelly
     domain: switch
+  mode: single
+- id: '1655195807606'
+  alias: 'Living Room - Presence: Manage'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.living_room_door_contact
+    - binary_sensor.supply_closet_door_contact
+    - binary_sensor.living_room_shelly_input
+  - type: present
+    platform: device
+    device_id: 9cbd44ac2a55c0ec041314b1300bdcd2
+    entity_id: binary_sensor.living_room_tv_human_presence
+    domain: binary_sensor
+  - type: present
+    platform: device
+    device_id: 521cfeb78b6ecf75d853e911fb7eb27a
+    entity_id: binary_sensor.living_room_dining_table_human_presence
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.living_room_presence
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - if:
+    - type: is_present
+      condition: device
+      device_id: 9cbd44ac2a55c0ec041314b1300bdcd2
+      entity_id: binary_sensor.living_room_tv_human_presence
+      domain: binary_sensor
+    then:
+    - wait_for_trigger:
+      - type: not_present
+        platform: device
+        device_id: 9cbd44ac2a55c0ec041314b1300bdcd2
+        entity_id: binary_sensor.living_room_tv_human_presence
+        domain: binary_sensor
+  - if:
+    - type: is_present
+      condition: device
+      device_id: 521cfeb78b6ecf75d853e911fb7eb27a
+      entity_id: binary_sensor.living_room_dining_table_human_presence
+      domain: binary_sensor
+    then:
+    - wait_for_trigger:
+      - type: not_present
+        platform: device
+        device_id: 521cfeb78b6ecf75d853e911fb7eb27a
+        entity_id: binary_sensor.living_room_dining_table_human_presence
+        domain: binary_sensor
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.living_room_presence
+  mode: restart
+- id: '1655195999380'
+  alias: 'Living Room - Lights: Auto Manage'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_boolean.living_room_presence
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - service: light.turn_on
+    data:
+      color_temp: 153
+      brightness_pct: 100
+    target:
+      entity_id: light.living_room_tv_light
+  - wait_for_trigger:
+    - platform: state
+      entity_id:
+      - input_boolean.living_room_presence
+      from: 'on'
+      to: 'off'
+  - service: light.turn_off
+    data: {}
+    target:
+      entity_id: light.living_room_tv_light
   mode: single
