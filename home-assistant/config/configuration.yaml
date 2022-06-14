@@ -20,16 +20,52 @@ light:
       - light.living_room_tv_light
 
 input_boolean:
-  office_presence:
-    name: Office Presence
+  baby_room_presence:
+    name: Baby Room Presence
+    icon: mdi:home
+
+  bathroom_presence:
+    name: Bathroom Presence
+    icon: mdi:home
+
+  bedroom_presence:
+    name: Bedroom Presence
+    icon: mdi:home
+
+  driveway_presence:
+    name: Driveway Presence
     icon: mdi:home
 
   hallway_presence:
     name: Hallway Presence
     icon: mdi:home
 
+  kitchen_presence:
+    name: Kitchen Presence
+    icon: mdi:home
+
+  landing_presence:
+    name: Landing Presence
+    icon: mdi:home
+
+  laundry_room_presence:
+    name: Laundry Room Presence
+    icon: mdi:home
+
   living_room_presence:
     name: Living Room Presence
+    icon: mdi:home
+
+  office_presence:
+    name: Office Presence
+    icon: mdi:home
+
+  supply_closet_presence:
+    name: Supply Closet Presence
+    icon: mdi:home
+
+  toilet_presence:
+    name: Toilet Presence
     icon: mdi:home
 
 cloud:
