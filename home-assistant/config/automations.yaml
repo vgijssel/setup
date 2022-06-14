@@ -144,11 +144,11 @@
   alias: 'Laundry Room - Light: Manage'
   description: ''
   trigger:
-  - type: motion
-    platform: device
-    device_id: 7167d9efd803b681e222837ae47e8d26
-    entity_id: binary_sensor.laundry_room_motion_occupancy
-    domain: binary_sensor
+  - platform: state
+    entity_id:
+    - input_boolean.laundry_room_presence
+    from: 'off'
+    to: 'on'
   condition: []
   action:
   - type: turn_on
@@ -156,15 +156,11 @@
     entity_id: switch.laundry_room_shelly
     domain: switch
   - wait_for_trigger:
-    - type: no_motion
-      platform: device
-      device_id: 7167d9efd803b681e222837ae47e8d26
-      entity_id: binary_sensor.laundry_room_motion_occupancy
-      domain: binary_sensor
-      for:
-        hours: 0
-        minutes: 1
-        seconds: 0
+    - platform: state
+      entity_id:
+      - input_boolean.laundry_room_presence
+      from: 'on'
+      to: 'off'
   - type: turn_off
     device_id: b0fbe5b3c69086de8cb4d79adaddbcb4
     entity_id: switch.laundry_room_shelly
@@ -174,22 +170,23 @@
   alias: 'Toilet - Light: Manage'
   description: ''
   trigger:
-  - type: opened
-    platform: device
-    device_id: 243f5eeff7217b81ac1756571be041c6
-    entity_id: binary_sensor.toilet_door_contact
-    domain: binary_sensor
+  - platform: state
+    entity_id:
+    - input_boolean.toilet_presence
+    from: 'off'
+    to: 'on'
   condition: []
   action:
   - type: turn_on
     device_id: 30d480fafab423619f5acb1a5830427b
     entity_id: switch.toilet_shelly
     domain: switch
-  - delay:
-      hours: 0
-      minutes: 4
-      seconds: 0
-      milliseconds: 0
+  - wait_for_trigger:
+    - platform: state
+      entity_id:
+      - input_boolean.toilet_presence
+      from: 'on'
+      to: 'off'
   - type: turn_off
     device_id: 30d480fafab423619f5acb1a5830427b
     entity_id: switch.toilet_shelly
@@ -484,4 +481,58 @@
     data: {}
     target:
       entity_id: input_boolean.supply_closet_presence
+  mode: restart
+- id: '1655212295194'
+  alias: 'Laundry Room - Presence: Manage'
+  description: ''
+  trigger:
+  - type: motion
+    platform: device
+    device_id: 7167d9efd803b681e222837ae47e8d26
+    entity_id: binary_sensor.laundry_room_motion_occupancy
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.laundry_room_presence
+  - wait_for_trigger:
+    - type: no_motion
+      platform: device
+      device_id: 7167d9efd803b681e222837ae47e8d26
+      entity_id: binary_sensor.laundry_room_motion_occupancy
+      domain: binary_sensor
+  - delay:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.laundry_room_presence
+  mode: restart
+- id: '1655212733040'
+  alias: 'Toilet - Presence: Manage'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.toilet_door_contact
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.toilet_presence
+  - delay:
+      hours: 0
+      minutes: 5
+      seconds: 0
+      milliseconds: 0
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.toilet_presence
   mode: restart
