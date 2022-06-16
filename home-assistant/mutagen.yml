@@ -14,6 +14,7 @@ sync:
         - "!zwavejs2mqtt-data/nodes.json"
         - /zigbee2mqtt-data/*
         - "!/zigbee2mqtt-data/configuration.yaml"
+        - "!/zigbee2mqtt-data/secret.yaml"
 
   hypervisor:
     beta: "hypervisor:/data/home-assistant"
