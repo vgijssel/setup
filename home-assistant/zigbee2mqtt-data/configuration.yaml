@@ -8,7 +8,7 @@ serial:
 frontend:
   port: 8080
 advanced:
-  network_key: "!secret network_key"
+  network_key: '!secret network_key'
   homeassistant_legacy_entity_attributes: false
   legacy_api: false
   legacy_availability_payload: false
@@ -18,37 +18,37 @@ device_options:
   legacy: false
 homeassistant: true
 devices:
-  "0x54ef4410004d9481":
+  '0x54ef4410004d9481':
     friendly_name: office_human
-  "0x00158d000232d0f6":
+  '0x00158d000232d0f6':
     friendly_name: supply_closet_door
-  "0x0017880104e25f8e":
+  '0x0017880104e25f8e':
     friendly_name: office_light
-  "0x0017880102634d00":
-    friendly_name: living_room_monkey_light
-  "0x54ef4410004d58d7":
-    friendly_name: living_room_tv_human
-  "0x00158d0002386344":
+  '0x00158d0002386344':
     friendly_name: toilet_door
-  "0x001788010455e9ac":
+  '0x001788010455e9ac':
     friendly_name: living_room_corner_light
-  "0x00178801038c3592":
+  '0x00178801038c3592':
     friendly_name: living_room_dining_table_light
-  "0x0017880103d0e4c9":
+  '0x0017880103d0e4c9':
     friendly_name: living_room_tv_light
-  "0x001788010c482469":
+  '0x001788010c482469':
     friendly_name: living_room_mouse_light
-  "0x0017880103298e01":
-    friendly_name: laundry_room_motion
-  "0x00158d0002286a8a":
+  '0x00158d0002286a8a':
     friendly_name: hallway_door
-  "0x00158d0002286aa4":
+  '0x00158d0002286aa4':
     friendly_name: living_room_door
-  "0x54ef4410004d9e9d":
+  '0x54ef4410004d9e9d':
     friendly_name: living_room_dining_table_human
-  "0x00158d000232cfca":
+  '0x00158d000232cfca':
     friendly_name: office_door
-  "0x54ef4410004d97e6":
+  '0x54ef4410004d97e6':
     friendly_name: bedroom_human
-  "0x54ef441000491b56":
-    friendly_name: "0x54ef441000491b56"
+  '0x54ef441000491b56':
+    friendly_name: '0x54ef441000491b56'
+  '0x0017880102634d00':
+    friendly_name: living_room_monkey_light
+  '0x54ef4410004d58d7':
+    friendly_name: living_room_tv_human
+  '0x0017880103298e01':
+    friendly_name: laundry_room_motion
