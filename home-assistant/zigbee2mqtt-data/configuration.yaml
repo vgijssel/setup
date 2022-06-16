@@ -13,6 +13,7 @@ advanced:
   legacy_api: false
   legacy_availability_payload: false
   log_level: info
+  channel: 11
 device_options:
   legacy: false
 homeassistant: true
