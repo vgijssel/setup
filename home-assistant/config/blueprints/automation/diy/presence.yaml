@@ -1,0 +1,83 @@
+blueprint:
+  name: "Room - Presence: Manage"
+  description: Toggle if there is a human within a room
+  domain: automation
+  source_url: https://github.com/mvgijssel/setup
+  input:
+    presence_entity:
+      name: Presence Entity
+      selector:
+        entity:
+          domain: input_boolean
+
+    motion_entity:
+      name: Motion Sensor
+      default: []
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: motion
+          multiple: true
+
+    shelly_entity:
+      name: Shelly Input
+      default: []
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: power
+          multiple: true
+
+    # TODO: how to do default values?
+    door_entity:
+      name: Door Sensor
+      default: []
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: door
+          multiple: true
+
+    presence_timeout:
+      name: Presence Timeout
+      description: Time to wait after no presence events happened
+      default: 60
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: seconds
+
+# If motion is detected within the delay,
+# we restart the script.
+mode: restart
+# max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input motion_entity
+    from: "off"
+    to: "on"
+
+  - platform: state
+    entity_id: !input shelly_entity
+
+  - platform: state
+    entity_id: !input door_entity
+
+action:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: !input presence_entity
+
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: !input presence_timeout
+      milliseconds: 0
+
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.office_presence
