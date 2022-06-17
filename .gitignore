@@ -21,16 +21,17 @@ plz-out
 .plzconfig.local
 
 mutagen.yml.lock
-home-assistant/config/.cloud
-home-assistant/config/.storage
-home-assistant/config/tts
-home-assistant/config/home-assistant.log*
-home-assistant/config/home-assistant_v2*
-home-assistant/config/secrets.yaml
 
-home-assistant/zwavejs2mqtt-data
-!home-assistant/zwavejs2mqtt-data/settings.json
-!home-assistant/zwavejs2mqtt-data/nodes.json
+/home-assistant/config/*
+!/home-assistant/config/configuration.yaml
+!/home-assistant/config/automations.yaml
+!/home-assistant/config/blueprints/
+!/home-assistant/config/scenes.yaml
+!/home-assistant/config/scripts.yaml
 
-home-assistant/zigbee2mqtt-data
-!home-assistant/zigbee2mqtt-data/configuration.yaml
+/home-assistant/zwavejs2mqtt-data/*
+!/home-assistant/zwavejs2mqtt-data/settings.json
+!/home-assistant/zwavejs2mqtt-data/nodes.json
+
+/home-assistant/zigbee2mqtt-data/*
+!/home-assistant/zigbee2mqtt-data/configuration.yaml
