@@ -38,8 +38,6 @@ devices:
     friendly_name: hallway_door
   '0x00158d0002286aa4':
     friendly_name: living_room_door
-  '0x54ef4410004d9e9d':
-    friendly_name: living_room_dining_table_human
   '0x00158d000232cfca':
     friendly_name: office_door
   '0x54ef4410004d97e6':
@@ -52,3 +50,5 @@ devices:
     friendly_name: living_room_tv_human
   '0x0017880103298e01':
     friendly_name: laundry_room_motion
+  '0x54ef4410004d9e9d':
+    friendly_name: living_room_dining_table_human
