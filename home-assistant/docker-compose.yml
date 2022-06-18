@@ -2,7 +2,7 @@ version: '3.8'
 services:
   mqtt:
     image: eclipse-mosquitto:2.0
-    restart: unless-stopped
+    restart: always
     volumes:
       - "./mosquitto-data:/mosquitto"
     ports:
@@ -12,7 +12,7 @@ services:
 
   zigbee2mqtt:
     container_name: zigbee2mqtt
-    restart: unless-stopped
+    restart: always
     image: koenkk/zigbee2mqtt
     volumes:
       - ./zigbee2mqtt-data:/app/data
@@ -27,7 +27,7 @@ services:
   zwavejs2mqtt:
     container_name: zwavejs2mqtt
     image: zwavejs/zwavejs2mqtt:latest
-    restart: unless-stopped
+    restart: always
     tty: true
     stop_signal: SIGINT
     environment:
@@ -51,6 +51,6 @@ services:
     volumes:
       - ./config:/config
       - /etc/localtime:/etc/localtime:ro
-    restart: unless-stopped
+    restart: always
     privileged: true
     network_mode: host
