@@ -10,13 +10,14 @@ blueprint:
         entity:
           domain: input_boolean
 
-    motion_entity:
+    motion_entities:
       name: Motion Sensor
       default: []
       selector:
         entity:
           domain: binary_sensor
-          device_class: motion
+          # TODO: can we have multiple types of device_class?
+          # device_class: motion
           multiple: true
 
     shelly_entity:
@@ -28,7 +29,7 @@ blueprint:
           device_class: power
           multiple: true
 
-    # TODO: how to do default values?
+    # TODO: how to specify optional inputs?
     door_entity:
       name: Door Sensor
       default: []
@@ -53,9 +54,12 @@ blueprint:
 mode: restart
 # max_exceeded: silent
 
+variables:
+  motion_entity_ids: !input motion_entities
+
 trigger:
   - platform: state
-    entity_id: !input motion_entity
+    entity_id: !input motion_entities
     from: "off"
     to: "on"
 
@@ -70,6 +74,13 @@ action:
     data: {}
     target:
       entity_id: !input presence_entity
+
+  # Wait until all motion sensors are reporting no motion
+  - wait_template: >
+      {% set motion_entities = expand(motion_entity_ids)  %}
+      {% set has_motion = motion_entities | selectattr("state", "equalto", "on") | list | length > 0 %}
+      {% set has_no_motion = not has_motion %}
+      {{ has_no_motion }}
 
   - delay:
       hours: 0

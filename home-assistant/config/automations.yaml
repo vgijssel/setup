@@ -1,67 +1,3 @@
-- id: '1654117678356'
-  alias: 'Office - Presence: Manage'
-  description: ''
-  trigger:
-  - type: present
-    platform: device
-    device_id: 410ace0a782a03a250764603cd0c065e
-    entity_id: binary_sensor.office_human_presence
-    domain: binary_sensor
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 30
-  - platform: state
-    entity_id:
-    - binary_sensor.office_door_contact
-    - binary_sensor.office_shelly_input
-  - type: motion
-    platform: device
-    device_id: f454d32984b16796fb074bd7ba162ef3
-    entity_id: binary_sensor.motion_sensor_home_security_motion_detection
-    domain: binary_sensor
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.office_presence
-  - delay:
-      hours: 0
-      minutes: 1
-      seconds: 0
-      milliseconds: 0
-  - if:
-    - type: is_present
-      condition: device
-      device_id: 410ace0a782a03a250764603cd0c065e
-      entity_id: binary_sensor.office_human_presence
-      domain: binary_sensor
-    then:
-    - wait_for_trigger:
-      - type: not_present
-        platform: device
-        device_id: 410ace0a782a03a250764603cd0c065e
-        entity_id: binary_sensor.office_human_presence
-        domain: binary_sensor
-  - if:
-    - type: is_motion
-      condition: device
-      device_id: f454d32984b16796fb074bd7ba162ef3
-      entity_id: binary_sensor.motion_sensor_home_security_motion_detection
-      domain: binary_sensor
-    then:
-    - wait_for_trigger:
-      - type: no_motion
-        platform: device
-        device_id: f454d32984b16796fb074bd7ba162ef3
-        entity_id: binary_sensor.motion_sensor_home_security_motion_detection
-        domain: binary_sensor
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.office_presence
-  mode: restart
 - id: '1654118627011'
   alias: 'Office - Light: Manage'
   description: ''
@@ -547,6 +483,7 @@
     data: {}
     target:
       entity_id: input_boolean.toilet_presence
+  - wait_template: '{{ is_state(''media_player.floor'', ''stop'') }}'
   mode: restart
 - id: '1655219299890'
   alias: 'Bedroom - Presence: Manage'
@@ -658,47 +595,6 @@
     entity_id: switch.bedroom_shelly
     domain: switch
   mode: single
-- id: '1655225566872'
-  alias: 'Baby Room - Presence: Manage'
-  description: ''
-  trigger:
-  - type: motion
-    platform: device
-    device_id: 3f1a2076d0f0567d099a92aea91d5ee7
-    entity_id: binary_sensor.baby_room_motion_home_security_motion_detection_2
-    domain: binary_sensor
-  - platform: state
-    entity_id:
-    - binary_sensor.baby_room_shelly_input
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.baby_room_presence
-  - if:
-    - type: is_motion
-      condition: device
-      device_id: 3f1a2076d0f0567d099a92aea91d5ee7
-      entity_id: binary_sensor.baby_room_motion_home_security_motion_detection_2
-      domain: binary_sensor
-    then:
-    - wait_for_trigger:
-      - type: no_motion
-        platform: device
-        device_id: 3f1a2076d0f0567d099a92aea91d5ee7
-        entity_id: binary_sensor.baby_room_motion_home_security_motion_detection_2
-        domain: binary_sensor
-  - delay:
-      hours: 0
-      minutes: 3
-      seconds: 0
-      milliseconds: 0
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.baby_room_presence
-  mode: restart
 - id: '1655225694008'
   alias: 'Baby Room - Light: Manage'
   description: ''
@@ -892,3 +788,30 @@
     entity_id: switch.landing_shelly
     domain: switch
   mode: single
+- id: '1655538528942'
+  alias: 'Office - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity: input_boolean.office_presence
+      motion_entities:
+      - binary_sensor.motion_sensor_home_security_motion_detection
+      - binary_sensor.office_human_presence
+      shelly_entity:
+      - binary_sensor.office_shelly_input
+      door_entity:
+      - binary_sensor.office_door_contact
+- id: '1655541106746'
+  alias: 'Baby Room - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity: input_boolean.baby_room_presence
+      motion_entities:
+      - binary_sensor.baby_room_motion_home_security_motion_detection_2
+      shelly_entity:
+      - binary_sensor.baby_room_shelly_input
+      door_entity:
+      - binary_sensor.office_door_contact
