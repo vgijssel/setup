@@ -42,8 +42,6 @@ devices:
     friendly_name: office_door
   '0x54ef4410004d97e6':
     friendly_name: bedroom_human
-  '0x54ef441000491b56':
-    friendly_name: bathroom_motion
   '0x0017880102634d00':
     friendly_name: living_room_monkey_light
   '0x54ef4410004d58d7':
