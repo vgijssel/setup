@@ -257,67 +257,6 @@
     entity_id: switch.hallway_shelly
     domain: switch
   mode: single
-- id: '1655195807606'
-  alias: 'Living Room - Presence: Manage'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.living_room_door_contact
-    - binary_sensor.supply_closet_door_contact
-    - binary_sensor.living_room_shelly_input
-  - type: present
-    platform: device
-    device_id: 9cbd44ac2a55c0ec041314b1300bdcd2
-    entity_id: binary_sensor.living_room_tv_human_presence
-    domain: binary_sensor
-  - type: present
-    platform: device
-    device_id: 521cfeb78b6ecf75d853e911fb7eb27a
-    entity_id: binary_sensor.living_room_dining_table_human_presence
-    domain: binary_sensor
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.living_room_presence
-  - delay:
-      hours: 0
-      minutes: 2
-      seconds: 0
-      milliseconds: 0
-  - if:
-    - type: is_present
-      condition: device
-      device_id: 9cbd44ac2a55c0ec041314b1300bdcd2
-      entity_id: binary_sensor.living_room_tv_human_presence
-      domain: binary_sensor
-    then:
-    - wait_for_trigger:
-      - type: not_present
-        platform: device
-        device_id: 9cbd44ac2a55c0ec041314b1300bdcd2
-        entity_id: binary_sensor.living_room_tv_human_presence
-        domain: binary_sensor
-  - if:
-    - type: is_present
-      condition: device
-      device_id: 521cfeb78b6ecf75d853e911fb7eb27a
-      entity_id: binary_sensor.living_room_dining_table_human_presence
-      domain: binary_sensor
-    then:
-    - wait_for_trigger:
-      - type: not_present
-        platform: device
-        device_id: 521cfeb78b6ecf75d853e911fb7eb27a
-        entity_id: binary_sensor.living_room_dining_table_human_presence
-        domain: binary_sensor
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.living_room_presence
-  mode: restart
 - id: '1655195999380'
   alias: 'Living Room - Lights: Auto Manage'
   description: ''
@@ -346,37 +285,6 @@
     target:
       entity_id: light.living_room_tv_light
   mode: single
-- id: '1655212295194'
-  alias: 'Laundry Room - Presence: Manage'
-  description: ''
-  trigger:
-  - type: motion
-    platform: device
-    device_id: 7167d9efd803b681e222837ae47e8d26
-    entity_id: binary_sensor.laundry_room_motion_occupancy
-    domain: binary_sensor
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.laundry_room_presence
-  - wait_for_trigger:
-    - type: no_motion
-      platform: device
-      device_id: 7167d9efd803b681e222837ae47e8d26
-      entity_id: binary_sensor.laundry_room_motion_occupancy
-      domain: binary_sensor
-  - delay:
-      hours: 0
-      minutes: 1
-      seconds: 0
-      milliseconds: 0
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.laundry_room_presence
-  mode: restart
 - id: '1655219551824'
   alias: 'Bedroom - Light: Manage'
   description: ''
@@ -481,102 +389,6 @@
     entity_id: remote.bedroom_tv
     domain: remote
   mode: single
-- id: '1655239420854'
-  alias: 'Landing - Presence: Manage'
-  description: ''
-  trigger:
-  - type: motion
-    platform: device
-    device_id: f454d32984b16796fb074bd7ba162ef3
-    entity_id: binary_sensor.motion_sensor_home_security_motion_detection
-    domain: binary_sensor
-  - type: motion
-    platform: device
-    device_id: 7167d9efd803b681e222837ae47e8d26
-    entity_id: binary_sensor.laundry_room_motion_occupancy
-    domain: binary_sensor
-  - type: motion
-    platform: device
-    device_id: 3f1a2076d0f0567d099a92aea91d5ee7
-    entity_id: binary_sensor.baby_room_motion_home_security_motion_detection_2
-    domain: binary_sensor
-  - type: motion
-    platform: device
-    device_id: 1040b71ce8f05d1677448fabcc133421
-    entity_id: binary_sensor.bedroom_motion_home_security_motion_detection_3
-    domain: binary_sensor
-  - platform: state
-    entity_id:
-    - binary_sensor.landing_shelly_input
-    - binary_sensor.office_door_contact
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.landing_presence
-  - if:
-    - type: is_motion
-      condition: device
-      device_id: f454d32984b16796fb074bd7ba162ef3
-      entity_id: binary_sensor.motion_sensor_home_security_motion_detection
-      domain: binary_sensor
-    then:
-    - wait_for_trigger:
-      - type: no_motion
-        platform: device
-        device_id: f454d32984b16796fb074bd7ba162ef3
-        entity_id: binary_sensor.motion_sensor_home_security_motion_detection
-        domain: binary_sensor
-  - if:
-    - type: is_motion
-      condition: device
-      device_id: 7167d9efd803b681e222837ae47e8d26
-      entity_id: binary_sensor.laundry_room_motion_occupancy
-      domain: binary_sensor
-    then:
-    - wait_for_trigger:
-      - type: no_motion
-        platform: device
-        device_id: 7167d9efd803b681e222837ae47e8d26
-        entity_id: binary_sensor.laundry_room_motion_occupancy
-        domain: binary_sensor
-  - if:
-    - type: is_motion
-      condition: device
-      device_id: 3f1a2076d0f0567d099a92aea91d5ee7
-      entity_id: binary_sensor.baby_room_motion_home_security_motion_detection_2
-      domain: binary_sensor
-    then:
-    - wait_for_trigger:
-      - type: no_motion
-        platform: device
-        device_id: 3f1a2076d0f0567d099a92aea91d5ee7
-        entity_id: binary_sensor.baby_room_motion_home_security_motion_detection_2
-        domain: binary_sensor
-  - if:
-    - type: is_motion
-      condition: device
-      device_id: 1040b71ce8f05d1677448fabcc133421
-      entity_id: binary_sensor.bedroom_motion_home_security_motion_detection_3
-      domain: binary_sensor
-    then:
-    - wait_for_trigger:
-      - type: no_motion
-        platform: device
-        device_id: 1040b71ce8f05d1677448fabcc133421
-        entity_id: binary_sensor.bedroom_motion_home_security_motion_detection_3
-        domain: binary_sensor
-  - delay:
-      hours: 0
-      minutes: 2
-      seconds: 0
-      milliseconds: 0
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.landing_presence
-  mode: restart
 - id: '1655239522976'
   alias: 'Landing - Light: Manage'
   description: ''
@@ -683,4 +495,71 @@
       - binary_sensor.toilet_door_contact
       - binary_sensor.living_room_door_contact
       - binary_sensor.driveway_shelly_input
+      presence_timeout: 120
+- id: '1655752840815'
+  alias: 'Landing - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: input_boolean.landing_presence
+      presence_hint_entity_ids:
+      - binary_sensor.landing_shelly_input
+      - binary_sensor.office_door_contact
+      presence_indicator_entity_ids:
+      - binary_sensor.baby_room_motion_home_security_motion_detection_2
+      - binary_sensor.bedroom_motion_home_security_motion_detection_3
+      - binary_sensor.laundry_room_motion_occupancy
+      - binary_sensor.motion_sensor_home_security_motion_detection
+      presence_timeout: 120
+- id: '1655752934365'
+  alias: 'Laundry Room - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: input_boolean.laundry_room_presence
+      presence_indicator_entity_ids:
+      - binary_sensor.laundry_room_motion_occupancy
+      presence_hint_entity_ids:
+      - binary_sensor.laundry_room_shelly_input
+- id: '1655753063582'
+  alias: 'Living Room - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: input_boolean.living_room_presence
+      presence_indicator_entity_ids:
+      - binary_sensor.living_room_dining_table_human_presence
+      - binary_sensor.living_room_tv_human_presence
+      presence_hint_entity_ids:
+      - binary_sensor.living_room_door_contact
+      - binary_sensor.supply_closet_door_contact
+      - binary_sensor.living_room_shelly_input
+      presence_timeout: 60
+- id: '1655753137217'
+  alias: 'Office - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: input_boolean.office_presence
+      presence_indicator_entity_ids:
+      - binary_sensor.office_human_presence
+      - binary_sensor.motion_sensor_home_security_motion_detection
+      presence_hint_entity_ids:
+      - binary_sensor.office_door_contact
+      - binary_sensor.office_shelly_input
+- id: '1655753220517'
+  alias: 'Baby Room - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: input_boolean.baby_room_presence
+      presence_indicator_entity_ids:
+      - binary_sensor.baby_room_motion_home_security_motion_detection_2
+      presence_hint_entity_ids:
+      - binary_sensor.baby_room_shelly_input
       presence_timeout: 120
