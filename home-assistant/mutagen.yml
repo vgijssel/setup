@@ -21,6 +21,7 @@ sync:
         - "!/config/scenes.yaml"
         - "!/config/scripts.yaml"
         - "!/config/secrets.yaml"
+        - "!/config/custom_components"
 
   hypervisor:
     beta: "hypervisor:/data/home-assistant"

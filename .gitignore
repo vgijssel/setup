@@ -28,6 +28,7 @@ mutagen.yml.lock
 !/home-assistant/config/blueprints/
 !/home-assistant/config/scenes.yaml
 !/home-assistant/config/scripts.yaml
+!/home-assistant/config/custom_components
 
 /home-assistant/zwavejs2mqtt-data/*
 !/home-assistant/zwavejs2mqtt-data/settings.json
