@@ -403,33 +403,6 @@
     target:
       entity_id: input_boolean.driveway_presence
   mode: restart
-- id: '1655211931964'
-  alias: 'Supply Closet - Presence: Manage'
-  description: ''
-  trigger:
-  - type: opened
-    platform: device
-    device_id: b6cb6e3ec0d8a1a3851cd6eae977b3c6
-    entity_id: binary_sensor.supply_closet_door_contact
-    domain: binary_sensor
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.supply_closet_presence
-  - wait_for_trigger:
-    - type: not_opened
-      platform: device
-      device_id: b6cb6e3ec0d8a1a3851cd6eae977b3c6
-      entity_id: binary_sensor.supply_closet_door_contact
-      domain: binary_sensor
-    timeout: 00:30:00
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.supply_closet_presence
-  mode: restart
 - id: '1655212295194'
   alias: 'Laundry Room - Presence: Manage'
   description: ''
@@ -483,7 +456,6 @@
     data: {}
     target:
       entity_id: input_boolean.toilet_presence
-  - wait_template: '{{ is_state(''media_player.floor'', ''stop'') }}'
   mode: restart
 - id: '1655219299890'
   alias: 'Bedroom - Presence: Manage'
@@ -788,30 +760,15 @@
     entity_id: switch.landing_shelly
     domain: switch
   mode: single
-- id: '1655538528942'
-  alias: 'Office - Presence: Manage'
+- id: '1655749208565'
+  alias: 'Supply Closet - Presence: Manage'
   description: ''
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity: input_boolean.office_presence
-      motion_entities:
-      - binary_sensor.motion_sensor_home_security_motion_detection
-      - binary_sensor.office_human_presence
-      shelly_entity:
-      - binary_sensor.office_shelly_input
-      door_entity:
-      - binary_sensor.office_door_contact
-- id: '1655541106746'
-  alias: 'Baby Room - Presence: Manage'
-  description: ''
-  use_blueprint:
-    path: diy/presence.yaml
-    input:
-      presence_entity: input_boolean.baby_room_presence
-      motion_entities:
-      - binary_sensor.baby_room_motion_home_security_motion_detection_2
-      shelly_entity:
-      - binary_sensor.baby_room_shelly_input
-      door_entity:
-      - binary_sensor.office_door_contact
+      presence_entity_id: input_boolean.supply_closet_presence
+      presence_indicator_entity_ids:
+      - binary_sensor.supply_closet_door_contact
+      presence_hint_entity_ids:
+      - binary_sensor.supply_closet_shelly_input
+      presence_timeout: 0

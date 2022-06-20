@@ -1,42 +1,41 @@
+## presence
+# if currently presence is false
+# if any of the presence entities are on for any duration
+# or if any event triggered less than timeout ago
+# set presence to true
+
+## no presence
+# if currently presence is true
+# wait until all of the presence entities are off
+# and wait until all events triggered are longer than timeout ago
+# set presence to false
+
 blueprint:
   name: "Room - Presence: Manage"
   description: Toggle if there is a human within a room
   domain: automation
   source_url: https://github.com/mvgijssel/setup
   input:
-    presence_entity:
+    presence_entity_id:
       name: Presence Entity
       selector:
         entity:
           domain: input_boolean
 
-    motion_entities:
-      name: Motion Sensor
+    presence_indicator_entity_ids:
+      name: Presence Indicator Entities
       default: []
       selector:
         entity:
           domain: binary_sensor
-          # TODO: can we have multiple types of device_class?
-          # device_class: motion
           multiple: true
 
-    shelly_entity:
-      name: Shelly Input
+    presence_hint_entity_ids:
+      name: Presence Hint Entities
       default: []
       selector:
         entity:
           domain: binary_sensor
-          device_class: power
-          multiple: true
-
-    # TODO: how to specify optional inputs?
-    door_entity:
-      name: Door Sensor
-      default: []
-      selector:
-        entity:
-          domain: binary_sensor
-          device_class: door
           multiple: true
 
     presence_timeout:
@@ -55,40 +54,65 @@ mode: restart
 # max_exceeded: silent
 
 variables:
-  motion_entity_ids: !input motion_entities
+  # presence_entity_id: !input presence_entity_id
+  presence_indicator_entity_ids: !input presence_indicator_entity_ids
+  presence_hint_entity_ids: !input presence_hint_entity_ids
+  presence_timeout: !input presence_timeout
 
 trigger:
   - platform: state
-    entity_id: !input motion_entities
-    from: "off"
-    to: "on"
+    entity_id: !input presence_indicator_entity_ids
 
   - platform: state
-    entity_id: !input shelly_entity
+    entity_id: !input presence_hint_entity_ids
 
-  - platform: state
-    entity_id: !input door_entity
+  # This will make sure this automation is at least re-evaluated every minute
+  # - platform: time_pattern
+  #   minutes: /1
 
 action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: !input presence_entity
+  - if:
+      - condition: state
+        entity_id: !input presence_entity_id
+        state: "off"
+    then:
+      - condition: or
+        conditions:
+          # any of the indicators are "on"
+          - condition: template
+            value_template: >
+              {% set presence_indicator_entities = expand(presence_indicator_entity_ids) %}
+              {% set has_presence = presence_indicator_entities | selectattr("state", "equalto", "on") | list | length > 0 %}
+              {{ has_presence }}
 
-  # Wait until all motion sensors are reporting no motion
-  - wait_template: >
-      {% set motion_entities = expand(motion_entity_ids)  %}
-      {% set has_motion = motion_entities | selectattr("state", "equalto", "on") | list | length > 0 %}
-      {% set has_no_motion = not has_motion %}
-      {{ has_no_motion }}
+          # or any of the hints changed within the presence timeout period
+          - condition: template
+            value_template: >
+              {% set presence_hint_entities = expand(presence_hint_entity_ids) %}
+              {% set has_presence = presence_hint_entities  | selectattr("last_changed", "greaterthan", now() - timedelta(seconds = presence_timeout)) | list | length > 0 %}
+              {{ has_presence }}
 
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: !input presence_timeout
-      milliseconds: 0
+      - service: input_boolean.turn_on
+        data: {}
+        target:
+          entity_id: !input presence_entity_id
+    else:
+      # wait for all the indicators to be off for at least the timeout period
+      - wait_template: >
+          {% set presence_indicator_entities = expand(presence_indicator_entity_ids) %}
+          {% set has_no_presence = presence_indicator_entities | selectattr("state", "equalto", "on") | list | length == 0 %}
+          {% set has_no_timeout = presence_indicator_entities | selectattr("last_changed", "greaterthan", now() - timedelta(seconds = presence_timeout)) | list | length == 0 %}
+          {{ has_no_presence and has_no_timeout }}
+        continue_on_timeout: false
 
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.office_presence
+      # and wait for all the hints to be outside the timeout period
+      - wait_template: >
+          {% set presence_hint_entities = expand(presence_hint_entity_ids) %}
+          {% set has_no_presence = presence_hint_entities  | selectattr("last_changed", "greaterthan", now() - timedelta(seconds = presence_timeout)) | list | length == 0 %}
+          {{ has_no_presence }}
+        continue_on_timeout: false
+
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id: !input presence_entity_id
