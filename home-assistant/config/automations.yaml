@@ -372,37 +372,6 @@
     target:
       entity_id: light.living_room_tv_light
   mode: single
-- id: '1655205269031'
-  alias: 'Driveway - Presence: Manage'
-  description: ''
-  trigger:
-  - type: opened
-    platform: device
-    device_id: bd26b76a9ab0198a9e6ce3cee2daa483
-    entity_id: binary_sensor.hallway_door_contact
-    domain: binary_sensor
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.driveway_presence
-  - wait_for_trigger:
-    - type: not_opened
-      platform: device
-      device_id: bd26b76a9ab0198a9e6ce3cee2daa483
-      entity_id: binary_sensor.hallway_door_contact
-      domain: binary_sensor
-  - delay:
-      hours: 0
-      minutes: 2
-      seconds: 0
-      milliseconds: 0
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.driveway_presence
-  mode: restart
 - id: '1655212295194'
   alias: 'Laundry Room - Presence: Manage'
   description: ''
@@ -761,3 +730,15 @@
       - binary_sensor.toilet_shelly_channel_1_input
       - binary_sensor.toilet_door_contact
       presence_timeout: 180
+- id: '1655751783256'
+  alias: 'Driveway - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: input_boolean.driveway_presence
+      presence_indicator_entity_ids:
+      - binary_sensor.hallway_door_contact
+      presence_hint_entity_ids:
+      - binary_sensor.driveway_shelly_input
+      presence_timeout: 120
