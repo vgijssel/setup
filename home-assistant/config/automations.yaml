@@ -231,32 +231,6 @@
     target:
       area_id: living_room
   mode: single
-- id: '1654888687153'
-  alias: 'Hallway - Presence: Manage'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.living_room_door_contact
-    - binary_sensor.hallway_door_contact
-    - binary_sensor.toilet_door_contact
-    - binary_sensor.hallway_shelly_input
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.hallway_presence
-  - delay:
-      hours: 0
-      minutes: 3
-      seconds: 0
-      milliseconds: 0
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.hallway_presence
-  mode: restart
 - id: '1655193271561'
   alias: 'Hallway - Light: Manage'
   description: ''
@@ -696,3 +670,17 @@
       presence_hint_entity_ids:
       - binary_sensor.bedroom_shelly_input
       presence_timeout: 60
+- id: '1655752570246'
+  alias: 'Hallway - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: input_boolean.hallway_presence
+      presence_hint_entity_ids:
+      - binary_sensor.hallway_door_contact
+      - binary_sensor.hallway_shelly_input
+      - binary_sensor.toilet_door_contact
+      - binary_sensor.living_room_door_contact
+      - binary_sensor.driveway_shelly_input
+      presence_timeout: 120
