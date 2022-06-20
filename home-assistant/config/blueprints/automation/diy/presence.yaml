@@ -51,7 +51,7 @@ blueprint:
 # If motion is detected within the delay,
 # we restart the script.
 mode: restart
-# max_exceeded: silent
+max_exceeded: silent
 
 variables:
   # presence_entity_id: !input presence_entity_id

@@ -1,0 +1,137 @@
+# When there is no presence
+# turn off the lights
+
+# When there is presence
+# if within the time range
+#  if below the wanted illuminance_range
+#  else turn of the light
+# else turn off the light
+
+blueprint:
+  name: "Room - Light: Manage"
+  description: Manage Lights based on room presence
+  domain: automation
+  source_url: https://github.com/mvgijssel/setup
+  input:
+    presence_entity_id:
+      name: Presence Entity
+      selector:
+        entity:
+          domain: input_boolean
+
+    illuminance_entity_id:
+      name: Illuminance Entity
+      selector:
+        entity:
+          domain: sensor
+
+    illuminance_threshold:
+      name: Illuminance Threshold
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 700
+          unit_of_measurement: lx
+
+    light_entity_ids:
+      name: Light Entities
+      selector:
+        entity:
+          multiple: true
+
+    start_time:
+      name: Start Time
+      selector:
+        time:
+
+    end_time:
+      name: End Time
+      selector:
+        time:
+
+mode: restart
+max_exceeded: silent
+
+# variables:
+# presence_entity_id: !input presence_entity_id
+# presence_indicator_entity_ids: !input presence_indicator_entity_ids
+# presence_hint_entity_ids: !input presence_hint_entity_ids
+# presence_timeout: !input presence_timeout
+
+trigger:
+  - platform: state
+    entity_id: !input presence_entity_id
+
+  - platform: numeric_state
+    entity_id: !input illuminance_entity_id
+    above: 0
+
+  # This will make sure this automation is at least re-evaluated every minute
+  - platform: time_pattern
+    minutes: /1
+
+action:
+  - if:
+      - condition: state
+        entity_id: !input presence_entity_id
+        state: "off"
+    then:
+      # TODO: only do when lights are not yet off?
+      - service: switch.turn_off
+        target:
+          entity_id: !input light_entity_ids
+
+      - service: light.turn_off
+        data:
+          transition: 1
+        target:
+          entity_id: !input light_entity_ids
+    else:
+      - if:
+          - condition: numeric_state
+            entity_id: !input illuminance_entity_id
+            below: !input illuminance_threshold
+        then:
+          - service: light.turn_on
+            data:
+              transition: 1
+            target:
+              entity_id: !input light_entity_ids
+
+          - service: switch.turn_on
+            target:
+              entity_id: !input light_entity_ids
+        else:
+          - service: switch.turn_off
+            target:
+              entity_id: !input light_entity_ids
+
+          - service: light.turn_off
+            data:
+              transition: 1
+            target:
+              entity_id: !input light_entity_ids
+      # TODO: only do when lights are not yet off?
+
+      # if illuminance entity numerical value below the threshold
+
+      # wait for all the indicators to be off for at least the timeout period
+      # - wait_template: >
+      #     {% set presence_indicator_entities = expand(presence_indicator_entity_ids) %}
+      #     {% set has_no_presence = presence_indicator_entities | selectattr("state", "equalto", "on") | list | length == 0 %}
+      #     {% set has_no_timeout = presence_indicator_entities | selectattr("last_changed", "greaterthan", now() - timedelta(seconds = presence_timeout)) | list | length == 0 %}
+      #     {{ has_no_presence and has_no_timeout }}
+      #   continue_on_timeout: false
+
+      # # and wait for all the hints to be outside the timeout period
+      # - wait_template: >
+      #     {% set presence_hint_entities = expand(presence_hint_entity_ids) %}
+      #     {% set has_no_presence = presence_hint_entities  | selectattr("last_changed", "greaterthan", now() - timedelta(seconds = presence_timeout)) | list | length == 0 %}
+      #     {{ has_no_presence }}
+      #   continue_on_timeout: false
+
+      # - service: input_boolean.turn_off
+      #   data: {}
+      #   target:
+      #     entity_id: !input presence_entity_id
