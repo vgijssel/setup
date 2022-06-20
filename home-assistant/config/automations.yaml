@@ -140,41 +140,6 @@
     entity_id: switch.toilet_shelly
     domain: switch
   mode: single
-- id: '1654715898803'
-  alias: 'Driveway Light: Manage'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - input_boolean.driveway_presence
-    from: 'off'
-    to: 'on'
-  - platform: sun
-    event: sunset
-    offset: -02:00:00
-  condition:
-  - condition: state
-    entity_id: input_boolean.driveway_presence
-    state: 'on'
-  - condition: sun
-    after: sunset
-    after_offset: -02:00:00
-  action:
-  - type: turn_on
-    device_id: e3d2ffd411b04836211a50deafe94855
-    entity_id: switch.driveway_shelly
-    domain: switch
-  - wait_for_trigger:
-    - platform: state
-      entity_id:
-      - input_boolean.driveway_presence
-      from: 'on'
-      to: 'off'
-  - type: turn_off
-    device_id: e3d2ffd411b04836211a50deafe94855
-    entity_id: switch.driveway_shelly
-    domain: switch
-  mode: single
 - id: '1654888062741'
   alias: 'Living Room - Watching: Manage'
   description: ''
@@ -563,3 +528,16 @@
       presence_hint_entity_ids:
       - binary_sensor.baby_room_shelly_input
       presence_timeout: 120
+- id: '1655755184933'
+  alias: 'Driveway - Light: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/auto_lights.yaml
+    input:
+      presence_entity_id: input_boolean.driveway_presence
+      light_entity_ids:
+      - switch.driveway_shelly
+      start_time: 07:00:00
+      end_time: '23:00:00'
+      illuminance_entity_id: sensor.illuminance
+      illuminance_threshold: 80

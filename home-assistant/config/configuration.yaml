@@ -9,6 +9,10 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+sensor:
+  - platform: illuminance
+    entity_id: weather.home
+
 light:
   - platform: group
     name: "Living Room Lights"
