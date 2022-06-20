@@ -434,29 +434,6 @@
     target:
       entity_id: input_boolean.laundry_room_presence
   mode: restart
-- id: '1655212733040'
-  alias: 'Toilet - Presence: Manage'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.toilet_door_contact
-  condition: []
-  action:
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.toilet_presence
-  - delay:
-      hours: 0
-      minutes: 5
-      seconds: 0
-      milliseconds: 0
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.toilet_presence
-  mode: restart
 - id: '1655219299890'
   alias: 'Bedroom - Presence: Manage'
   description: ''
@@ -772,3 +749,15 @@
       presence_hint_entity_ids:
       - binary_sensor.supply_closet_shelly_input
       presence_timeout: 0
+- id: '1655751397719'
+  alias: 'Toilet - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: input_boolean.toilet_presence
+      presence_indicator_entity_ids: []
+      presence_hint_entity_ids:
+      - binary_sensor.toilet_shelly_channel_1_input
+      - binary_sensor.toilet_door_contact
+      presence_timeout: 180
