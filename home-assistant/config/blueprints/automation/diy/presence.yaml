@@ -67,8 +67,8 @@ trigger:
     entity_id: !input presence_hint_entity_ids
 
   # This will make sure this automation is at least re-evaluated every minute
-  # - platform: time_pattern
-  #   minutes: /1
+  - platform: time_pattern
+    minutes: /1
 
 action:
   - if:
