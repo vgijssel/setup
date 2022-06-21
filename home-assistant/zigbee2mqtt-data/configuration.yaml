@@ -52,5 +52,5 @@ devices:
     friendly_name: living_room_dining_table_human
   '0x54ef441000491b56':
     friendly_name: bathroom_motion
-  '0x00158d000854274f':
-    friendly_name: '0x00158d000854274f'
+  '0x54ef4410004973e7':
+    friendly_name: landing_motion

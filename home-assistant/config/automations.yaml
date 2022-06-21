@@ -186,6 +186,7 @@
       - binary_sensor.toilet_door_contact
       - binary_sensor.living_room_door_contact
       - binary_sensor.driveway_shelly_input
+      - binary_sensor.landing_motion_occupancy
       presence_timeout: 120
 - id: '1655752840815'
   alias: 'Landing - Presence: Manage'
@@ -203,6 +204,7 @@
       - binary_sensor.laundry_room_motion_occupancy
       - binary_sensor.motion_sensor_home_security_motion_detection
       - binary_sensor.bathroom_motion_occupancy
+      - binary_sensor.landing_motion_occupancy
       presence_timeout: 120
 - id: '1655752934365'
   alias: 'Laundry Room - Presence: Manage'
