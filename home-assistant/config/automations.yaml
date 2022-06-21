@@ -305,12 +305,12 @@
     path: diy/auto_lights.yaml
     input:
       presence_entity_id: input_boolean.hallway_presence
-      illuminance_entity_id: sensor.illuminance
+      illuminance_entity_id: sensor.hallway_motion_illuminance_lux
       light_entity_ids:
       - switch.hallway_shelly
       start_time: 00:00:00
       end_time: '23:59:59'
-      illuminance_threshold: 100000
+      illuminance_threshold: 60
 - id: '1655799812663'
   alias: 'Landing - Light: Manage'
   description: ''
@@ -318,8 +318,8 @@
     path: diy/auto_lights.yaml
     input:
       presence_entity_id: input_boolean.landing_presence
-      illuminance_entity_id: sensor.illuminance
-      illuminance_threshold: 100000
+      illuminance_entity_id: sensor.landing_motion_illuminance_lux
+      illuminance_threshold: 60
       light_entity_ids:
       - switch.landing_shelly
       start_time: 07:00:00
