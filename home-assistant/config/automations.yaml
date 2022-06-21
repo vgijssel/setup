@@ -202,6 +202,7 @@
       - binary_sensor.bedroom_motion_home_security_motion_detection_3
       - binary_sensor.laundry_room_motion_occupancy
       - binary_sensor.motion_sensor_home_security_motion_detection
+      - binary_sensor.bathroom_motion_occupancy
       presence_timeout: 120
 - id: '1655752934365'
   alias: 'Laundry Room - Presence: Manage'
@@ -279,6 +280,7 @@
       - switch.baby_room_shelly
       start_time: 07:00:00
       end_time: '21:00:00'
+      illuminance_threshold: 40
 - id: '1655798594467'
   alias: 'Bedroom - Light: Manage'
   description: ''
@@ -291,6 +293,7 @@
       - switch.bedroom_shelly
       start_time: 07:00:00
       end_time: '21:00:00'
+      illuminance_threshold: 50
 - id: '1655798724103'
   alias: 'Hallway - Light: Manage'
   description: ''
@@ -369,3 +372,29 @@
       - switch.toilet_shelly
       start_time: 00:00:00
       end_time: '23:59:59'
+- id: '1655804642598'
+  alias: 'Bathroom - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: input_boolean.bathroom_presence
+      presence_indicator_entity_ids:
+      - binary_sensor.bathroom_motion_occupancy
+      presence_hint_entity_ids:
+      - binary_sensor.bathroom_shelly_channel_1_input
+      - binary_sensor.bathroom_shelly_channel_2_input
+      presence_timeout: 120
+- id: '1655804684374'
+  alias: 'Bathroom - Light: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/auto_lights.yaml
+    input:
+      presence_entity_id: input_boolean.bathroom_presence
+      illuminance_entity_id: sensor.bathroom_motion_illuminance_lux
+      light_entity_ids:
+      - switch.bathroom_shelly
+      start_time: 07:00:00
+      end_time: '21:00:00'
+      illuminance_threshold: 60
