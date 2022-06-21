@@ -537,7 +537,7 @@
       presence_entity_id: input_boolean.driveway_presence
       light_entity_ids:
       - switch.driveway_shelly
-      start_time: 07:00:00
-      end_time: '23:00:00'
+      start_time: 00:00:00
+      end_time: '23:59:59'
       illuminance_entity_id: sensor.illuminance
-      illuminance_threshold: 80
+      illuminance_threshold: 100

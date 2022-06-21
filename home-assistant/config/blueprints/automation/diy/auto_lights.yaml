@@ -31,7 +31,7 @@ blueprint:
       selector:
         number:
           min: 0
-          max: 700
+          max: 1000
           unit_of_measurement: lx
 
     light_entity_ids:
@@ -49,6 +49,29 @@ blueprint:
       name: End Time
       selector:
         time:
+
+    weekday:
+      name: Day of the week to use the Automation
+      default: [mon, tue, wed, thu, fri, sat, sun]
+      selector:
+        select:
+          options:
+            - label: Monday
+              value: mon
+            - label: Tuesday
+              value: tue
+            - label: Wednesday
+              value: wed
+            - label: Thursday
+              value: thu
+            - label: Friday
+              value: fri
+            - label: Saturday
+              value: sat
+            - label: Sunday
+              value: sun
+          custom_value: false
+          multiple: true
 
 mode: restart
 max_exceeded: silent
@@ -77,7 +100,6 @@ action:
         entity_id: !input presence_entity_id
         state: "off"
     then:
-      # TODO: only do when lights are not yet off?
       - service: switch.turn_off
         target:
           entity_id: !input light_entity_ids
@@ -89,9 +111,16 @@ action:
           entity_id: !input light_entity_ids
     else:
       - if:
-          - condition: numeric_state
-            entity_id: !input illuminance_entity_id
-            below: !input illuminance_threshold
+          - condition: and
+            conditions:
+              - condition: time
+                weekday: !input weekday
+                after: !input start_time
+                before: !input end_time
+
+              - condition: numeric_state
+                entity_id: !input illuminance_entity_id
+                below: !input illuminance_threshold
         then:
           - service: light.turn_on
             data:
@@ -112,7 +141,6 @@ action:
               transition: 1
             target:
               entity_id: !input light_entity_ids
-      # TODO: only do when lights are not yet off?
 
       # if illuminance entity numerical value below the threshold
 
