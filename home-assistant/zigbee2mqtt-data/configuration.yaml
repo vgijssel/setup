@@ -54,3 +54,5 @@ devices:
     friendly_name: bathroom_motion
   '0x54ef4410004973e7':
     friendly_name: landing_motion
+  '0x54ef4410004972a3':
+    friendly_name: hallway_motion

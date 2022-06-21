@@ -187,6 +187,7 @@
       - binary_sensor.living_room_door_contact
       - binary_sensor.driveway_shelly_input
       - binary_sensor.landing_motion_occupancy
+      - binary_sensor.hallway_motion_occupancy
       presence_timeout: 120
 - id: '1655752840815'
   alias: 'Landing - Presence: Manage'
@@ -227,6 +228,7 @@
       presence_indicator_entity_ids:
       - binary_sensor.living_room_dining_table_human_presence
       - binary_sensor.living_room_tv_human_presence
+      - binary_sensor.hallway_motion_occupancy
       presence_hint_entity_ids:
       - binary_sensor.living_room_door_contact
       - binary_sensor.supply_closet_door_contact
