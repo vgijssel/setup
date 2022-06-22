@@ -13,6 +13,14 @@ sensor:
   - platform: illuminance
     entity_id: weather.home
 
+template:
+  - binary_sensor:
+      - name: is_showering
+        state: >
+          {% set humidity = states("sensor.douche_humidity") | float %}
+          {{ humidity > 70 }}
+        icon: mdi:shower-head
+
 light:
   - platform: group
     name: "Living Room Lights"
