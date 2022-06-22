@@ -80,9 +80,9 @@ trigger:
     entity_id: !input presence_entity_id
     id: trigger_presence
 
-  # - platform: state
-  #   entity_id: !input light_entity_ids
-  #   id: trigger_lights
+  - platform: state
+    entity_id: !input light_entity_ids
+    id: trigger_lights
 
   - platform: numeric_state
     entity_id: !input illuminance_entity_id
@@ -96,13 +96,73 @@ trigger:
 
 variables:
   light_entity_ids: !input light_entity_ids
+  presence_entity_id: !input presence_entity_id
+  presence_variable: "{{ expand(presence_entity_id)[0].object_id }}"
 
 action:
+  - if:
+      - condition: and
+        conditions:
+          - condition: trigger
+            id: trigger_presence
+
+          - condition: state
+            entity_id: !input presence_entity_id
+            state: "on"
+
+          - condition: template
+            value_template: >
+              {% set light_entities = expand(light_entity_ids) %} 
+              {% set is_light_on = light_entities | selectattr("state", "equalto", "on") | list | length > 0 %} 
+              {{ is_light_on }}
+    then:
+      - service: variable.set_variable
+        data:
+          variable: "{{ presence_variable }}"
+          attributes:
+            light_manual_override: "on"
+      - stop: >
+          Lights were already on before presence was triggered. 
+          Manual override in effect, stopping execution.
+
+  - if:
+      - condition: trigger
+        id: trigger_lights
+    then:
+      - if:
+          - condition: state
+            entity_id: !input presence_entity_id
+            state: "off"
+        then:
+          - stop: No presence detected. Stopping execution.
+
+      - if:
+          - condition: template
+            value_template: >
+              {{ trigger.to_state.context.parent_id == expand(presence_entity_id)[0].attributes.trigger_context_id }}
+        then:
+          - stop: Light triggered by automation. Stopping execution.
+
+        else:
+          - service: variable.set_variable
+            data:
+              variable: "{{ presence_variable }}"
+              attributes:
+                light_manual_override: "on"
+          - stop: Light triggered externally, flagging manual override. Stopping execution.
+
   - if:
       - condition: state
         entity_id: !input presence_entity_id
         state: "off"
     then:
+      - service: variable.set_variable
+        data:
+          variable: "{{ presence_variable }}"
+          attributes:
+            light_manual_override: "off"
+            trigger_context_id: ""
+
       # TODO: filter the light_entity_ids based on the type and create an array
       # for switch and array for light
       # only call the service when there are entitity ids available.
@@ -117,6 +177,27 @@ action:
           entity_id: !input light_entity_ids
 
     else:
+      - if:
+          - condition: state
+            entity_id: !input presence_entity_id
+            attribute: light_manual_override
+            state: "on"
+        then:
+          - stop: Manual override in effect. Stopping execution.
+
+      # Update the presence state with the trigger context id
+      # if this update has been triggered by a state change.
+      - if:
+          - condition: template
+            value_template: '{{ trigger.platform == "state" }}'
+        then:
+          - service: variable.set_variable
+            data:
+              variable: "{{ presence_variable }}"
+              attributes:
+                trigger_context_id: "{{ trigger.to_state.context.id }}"
+                light_manual_override: "off"
+
       - if:
           - condition: and
             conditions:
