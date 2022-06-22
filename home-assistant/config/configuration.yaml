@@ -198,8 +198,20 @@ homekit:
         - light.living_room_tv_light
         - sensor.woonkamer_temperature
         - light.office_light
-        - switch.kitchen_shelly
         - camera.baby_room_cam_high
+        - switch.kitchen_shelly
+        - switch.baby_room_shelly
+        - switch.bathroom_shelly
+        - switch.bedroom_shelly
+        - switch.driveway_shelly
+        - switch.hallway_shelly
+        - switch.kitchen_shelly
+        - switch.landing_shelly
+        - switch.laundry_room_shelly
+        - switch.office_shelly
+        - switch.supply_closet_shelly
+        - switch.toilet_shelly
+
     entity_config:
       light.living_room_corner_light:
         name: Woonkamer Hoek
@@ -219,3 +231,27 @@ homekit:
         name: Keuken Lamp
       camera.baby_room_cam_high:
         name: Babykamer Camera
+      switch.kitchen_shelly:
+        name: Keuken Lamp
+      switch.baby_room_shelly:
+        name: Babykamer Lamp
+      switch.bathroom_shelly:
+        name: Badkamer Lamp
+      switch.bedroom_shelly:
+        name: Slaapkamer Lamp
+      switch.driveway_shelly:
+        name: Oprit Lamp
+      switch.hallway_shelly:
+        name: Gang Lamp
+      switch.kitchen_shelly:
+        name: Keuken Lamp
+      switch.landing_shelly:
+        name: Overloop Lamp
+      switch.laundry_room_shelly:
+        name: Waskamer Lamp
+      switch.office_shelly:
+        name: Kantoor Lamp
+      switch.supply_closet_shelly:
+        name: Voorraadkast Lamp
+      switch.toilet_shelly:
+        name: Wc Lamp
