@@ -61,14 +61,23 @@ variables:
   presence_timeout: !input presence_timeout
 
 trigger:
-  # TODO: because we are not selecting valid state transitions
-  # from unknown to false is also a valid transition
-  # happens when homeassistant reboots for example
   - platform: state
     entity_id: !input presence_indicator_entity_ids
+    from:
+      - "on"
+      - "off"
+    to:
+      - "on"
+      - "off"
 
   - platform: state
     entity_id: !input presence_hint_entity_ids
+    from:
+      - "on"
+      - "off"
+    to:
+      - "on"
+      - "off"
 
   # This will make sure this automation is at least re-evaluated every minute
   - platform: time_pattern
