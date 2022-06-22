@@ -80,34 +80,6 @@
     target:
       area_id: living_room
   mode: single
-- id: '1655195999380'
-  alias: 'Living Room - Lights: Auto Manage'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - variable.living_room_presence
-    from: 'off'
-    to: 'on'
-  condition: []
-  action:
-  - service: light.turn_on
-    data:
-      color_temp: 153
-      brightness_pct: 100
-    target:
-      entity_id: light.living_room_tv_light
-  - wait_for_trigger:
-    - platform: state
-      entity_id:
-      - variable.living_room_presence
-      from: 'on'
-      to: 'off'
-  - service: light.turn_off
-    data: {}
-    target:
-      entity_id: light.living_room_tv_light
-  mode: single
 - id: '1655228112348'
   alias: 'Bedroom - Tv: Turn Off'
   description: ''
@@ -230,6 +202,8 @@
       - binary_sensor.living_room_tv_human_presence
       - binary_sensor.hallway_motion_occupancy
       - binary_sensor.garden_door_contact
+      - binary_sensor.kitchen_human_presence
+      - binary_sensor.living_room_motion_occupancy
       presence_hint_entity_ids:
       - binary_sensor.living_room_door_contact
       - binary_sensor.supply_closet_door_contact
@@ -324,7 +298,7 @@
       light_entity_ids:
       - switch.landing_shelly
       start_time: 07:00:00
-      end_time: '21:00:00'
+      end_time: '22:00:00'
 - id: '1655799885346'
   alias: 'Laundry Room - Light: Manage'
   description: ''
@@ -350,7 +324,7 @@
       - switch.office_shelly
       - light.office_light
       start_time: 07:00:00
-      end_time: '21:00:00'
+      end_time: '23:00:00'
 - id: '1655800068148'
   alias: 'Supply Closet - Light: Manage'
   description: ''
@@ -402,5 +376,27 @@
       light_entity_ids:
       - switch.bathroom_shelly
       start_time: 07:00:00
-      end_time: '21:00:00'
+      end_time: '22:00:00'
       illuminance_threshold: 60
+- id: '1655926470261'
+  alias: 'Kitchen - Presence: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/presence.yaml
+    input:
+      presence_entity_id: variable.kitchen_presence
+      presence_indicator_entity_ids:
+      - binary_sensor.kitchen_human_presence
+- id: '1655928004919'
+  alias: 'Living Room - Lights: Manage'
+  description: ''
+  use_blueprint:
+    path: diy/auto_lights.yaml
+    input:
+      presence_entity_id: variable.living_room_presence
+      illuminance_entity_id: sensor.living_room_motion_illuminance_lux
+      illuminance_threshold: 40
+      light_entity_ids:
+      - light.living_room_lights
+      start_time: 07:00:00
+      end_time: '23:00:00'

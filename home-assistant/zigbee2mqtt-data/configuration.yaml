@@ -64,3 +64,7 @@ devices:
     friendly_name: hallway_motion
   '0x00158d000854274f':
     friendly_name: garden_door
+  '0x54ef4410004d70d1':
+    friendly_name: kitchen_human
+  '0x54ef441000491875':
+    friendly_name: living_room_motion

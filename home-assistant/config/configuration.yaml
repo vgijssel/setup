@@ -37,7 +37,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Baby Room Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -46,7 +46,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Bathroom Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -55,7 +55,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Bedroom Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -64,7 +64,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Driveway Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -73,7 +73,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Hallway Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -82,7 +82,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Kitchen Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -91,7 +91,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Landing Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -100,7 +100,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Laundry Room Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -109,7 +109,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Living Room Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -118,7 +118,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Office Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -127,7 +127,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Supply Closet Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
@@ -136,7 +136,7 @@ variable:
     restore: true
     attributes:
       friendly_name: "Toilet Presence"
-      icon: mdi:home
+      icon: mdi:home-outline
       light_manual_override: "off"
       trigger_context_id: ""
 
