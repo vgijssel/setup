@@ -298,7 +298,7 @@
       - switch.bedroom_shelly
       start_time: 07:00:00
       end_time: '21:00:00'
-      illuminance_threshold: 50
+      illuminance_threshold: 40
 - id: '1655798724103'
   alias: 'Hallway - Light: Manage'
   description: ''
@@ -390,7 +390,7 @@
       presence_hint_entity_ids:
       - binary_sensor.bathroom_shelly_channel_1_input
       - binary_sensor.bathroom_shelly_channel_2_input
-      presence_timeout: 120
+      presence_timeout: 300
 - id: '1655804684374'
   alias: 'Bathroom - Light: Manage'
   description: ''
