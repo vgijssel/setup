@@ -9,7 +9,15 @@
 
 blueprint:
   name: "Room - Light: Manage"
-  description: Manage Lights based on room presence
+  description: >
+    Manage Lights based on room presence.
+    When there is no presence turn off the lights.
+    When there is presence, within the time range and below the wanted illuminance, turn on the lights.
+    When there is presence but one if the conditions is not met turn off the lights.
+    This is a continuous process and checked every 1 minute.
+    If the lights are operated outside of this automation then for the duration of the presence,
+    the light is marked with manual override, meaning the automation won't turn it on/off anymore.
+    Once presence is off, the manual override is removed.
   domain: automation
   source_url: https://github.com/mvgijssel/setup
   input:
@@ -76,23 +84,27 @@ blueprint:
 mode: restart
 max_exceeded: silent
 
-# variables:
-# presence_entity_id: !input presence_entity_id
-# presence_indicator_entity_ids: !input presence_indicator_entity_ids
-# presence_hint_entity_ids: !input presence_hint_entity_ids
-# presence_timeout: !input presence_timeout
-
 trigger:
   - platform: state
     entity_id: !input presence_entity_id
+    id: trigger_presence
+
+  # - platform: state
+  #   entity_id: !input light_entity_ids
+  #   id: trigger_lights
 
   - platform: numeric_state
     entity_id: !input illuminance_entity_id
     above: 0
+    id: trigger_illuminance
 
   # This will make sure this automation is at least re-evaluated every minute
   - platform: time_pattern
     minutes: /1
+    id: trigger_time
+
+variables:
+  light_entity_ids: !input light_entity_ids
 
 action:
   - if:
@@ -100,6 +112,9 @@ action:
         entity_id: !input presence_entity_id
         state: "off"
     then:
+      # TODO: filter the light_entity_ids based on the type and create an array
+      # for switch and array for light
+      # only call the service when there are entitity ids available.
       - service: switch.turn_off
         target:
           entity_id: !input light_entity_ids
@@ -109,6 +124,7 @@ action:
           transition: 1
         target:
           entity_id: !input light_entity_ids
+
     else:
       - if:
           - condition: and
@@ -141,25 +157,3 @@ action:
               transition: 1
             target:
               entity_id: !input light_entity_ids
-
-      # if illuminance entity numerical value below the threshold
-
-      # wait for all the indicators to be off for at least the timeout period
-      # - wait_template: >
-      #     {% set presence_indicator_entities = expand(presence_indicator_entity_ids) %}
-      #     {% set has_no_presence = presence_indicator_entities | selectattr("state", "equalto", "on") | list | length == 0 %}
-      #     {% set has_no_timeout = presence_indicator_entities | selectattr("last_changed", "greaterthan", now() - timedelta(seconds = presence_timeout)) | list | length == 0 %}
-      #     {{ has_no_presence and has_no_timeout }}
-      #   continue_on_timeout: false
-
-      # # and wait for all the hints to be outside the timeout period
-      # - wait_template: >
-      #     {% set presence_hint_entities = expand(presence_hint_entity_ids) %}
-      #     {% set has_no_presence = presence_hint_entities  | selectattr("last_changed", "greaterthan", now() - timedelta(seconds = presence_timeout)) | list | length == 0 %}
-      #     {{ has_no_presence }}
-      #   continue_on_timeout: false
-
-      # - service: input_boolean.turn_off
-      #   data: {}
-      #   target:
-      #     entity_id: !input presence_entity_id
