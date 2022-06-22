@@ -207,7 +207,6 @@ homekit:
         - sensor.woonkamer_temperature
         - light.office_light
         - camera.baby_room_cam_high
-        - switch.kitchen_shelly
         - switch.baby_room_shelly
         - switch.bathroom_shelly
         - switch.bedroom_shelly
@@ -235,12 +234,8 @@ homekit:
         name: Woonkamer Thermostaat
       light.office_light:
         name: Kantoor Lamp
-      switch.kitchen_shelly:
-        name: Keuken Lamp
       camera.baby_room_cam_high:
         name: Babykamer Camera
-      switch.kitchen_shelly:
-        name: Keuken Lamp
       switch.baby_room_shelly:
         name: Babykamer Lamp
       switch.bathroom_shelly:
