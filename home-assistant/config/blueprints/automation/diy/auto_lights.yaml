@@ -79,6 +79,9 @@ trigger:
   - platform: state
     entity_id: !input presence_entity_id
     id: trigger_presence
+    # From https://www.home-assistant.io/docs/automation/trigger/#state-trigger
+    # Trigger on all state changes, but not attributes by setting to to null
+    to:
 
   - platform: state
     entity_id: !input light_entity_ids
