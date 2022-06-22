@@ -62,3 +62,5 @@ devices:
     friendly_name: landing_motion
   '0x54ef4410004972a3':
     friendly_name: hallway_motion
+  '0x00158d000854274f':
+    friendly_name: garden_door
