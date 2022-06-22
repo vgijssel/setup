@@ -23,6 +23,16 @@ light:
       - light.living_room_mouse_light
       - light.living_room_tv_light
 
+variable:
+  hallway_presence:
+    value: false
+    restore: true
+    attributes:
+      friendly_name: "Hallway Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
+
 input_boolean:
   baby_room_presence:
     name: Baby Room Presence
