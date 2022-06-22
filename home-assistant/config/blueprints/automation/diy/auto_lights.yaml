@@ -1,12 +1,3 @@
-# When there is no presence
-# turn off the lights
-
-# When there is presence
-# if within the time range
-#  if below the wanted illuminance_range
-#  else turn of the light
-# else turn off the light
-
 blueprint:
   name: "Room - Light: Manage"
   description: >
@@ -25,7 +16,7 @@ blueprint:
       name: Presence Entity
       selector:
         entity:
-          domain: input_boolean
+          domain: variable
 
     illuminance_entity_id:
       name: Illuminance Entity

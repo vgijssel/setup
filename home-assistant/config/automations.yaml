@@ -86,7 +86,7 @@
   trigger:
     - platform: state
       entity_id:
-        - input_boolean.living_room_presence
+        - variable.living_room_presence
       from: "off"
       to: "on"
   condition: []
@@ -100,7 +100,7 @@
     - wait_for_trigger:
         - platform: state
           entity_id:
-            - input_boolean.living_room_presence
+            - variable.living_room_presence
           from: "on"
           to: "off"
     - service: light.turn_off
@@ -114,7 +114,7 @@
   trigger:
     - platform: state
       entity_id:
-        - input_boolean.bedroom_presence
+        - variable.bedroom_presence
       from: "on"
       to: "off"
   condition: []
@@ -130,7 +130,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.supply_closet_presence
+      presence_entity_id: variable.supply_closet_presence
       presence_indicator_entity_ids:
         - binary_sensor.supply_closet_door_contact
       presence_hint_entity_ids:
@@ -142,7 +142,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.toilet_presence
+      presence_entity_id: variable.toilet_presence
       presence_indicator_entity_ids: []
       presence_hint_entity_ids:
         - binary_sensor.toilet_shelly_channel_1_input
@@ -154,7 +154,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.driveway_presence
+      presence_entity_id: variable.driveway_presence
       presence_indicator_entity_ids:
         - binary_sensor.hallway_door_contact
       presence_hint_entity_ids:
@@ -166,7 +166,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.bedroom_presence
+      presence_entity_id: variable.bedroom_presence
       presence_indicator_entity_ids:
         - binary_sensor.bedroom_human_presence
         - binary_sensor.bedroom_motion_home_security_motion_detection_3
@@ -179,7 +179,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.hallway_presence
+      presence_entity_id: variable.hallway_presence
       presence_hint_entity_ids:
         - binary_sensor.hallway_door_contact
         - binary_sensor.hallway_shelly_input
@@ -195,7 +195,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.landing_presence
+      presence_entity_id: variable.landing_presence
       presence_hint_entity_ids:
         - binary_sensor.landing_shelly_input
         - binary_sensor.office_door_contact
@@ -213,7 +213,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.laundry_room_presence
+      presence_entity_id: variable.laundry_room_presence
       presence_indicator_entity_ids:
         - binary_sensor.laundry_room_motion_occupancy
       presence_hint_entity_ids:
@@ -224,7 +224,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.living_room_presence
+      presence_entity_id: variable.living_room_presence
       presence_indicator_entity_ids:
         - binary_sensor.living_room_dining_table_human_presence
         - binary_sensor.living_room_tv_human_presence
@@ -240,7 +240,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.office_presence
+      presence_entity_id: variable.office_presence
       presence_indicator_entity_ids:
         - binary_sensor.office_human_presence
         - binary_sensor.motion_sensor_home_security_motion_detection
@@ -253,7 +253,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.baby_room_presence
+      presence_entity_id: variable.baby_room_presence
       presence_indicator_entity_ids:
         - binary_sensor.baby_room_motion_home_security_motion_detection_2
       presence_hint_entity_ids:
@@ -265,7 +265,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.driveway_presence
+      presence_entity_id: variable.driveway_presence
       light_entity_ids:
         - switch.driveway_shelly
       start_time: 00:00:00
@@ -278,7 +278,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.baby_room_presence
+      presence_entity_id: variable.baby_room_presence
       illuminance_entity_id: sensor.baby_room_motion_illuminance_2
       light_entity_ids:
         - switch.baby_room_shelly
@@ -291,7 +291,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.bedroom_presence
+      presence_entity_id: variable.bedroom_presence
       illuminance_entity_id: sensor.bedroom_motion_illuminance_3
       light_entity_ids:
         - switch.bedroom_shelly
@@ -304,7 +304,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.hallway_presence
+      presence_entity_id: variable.hallway_presence
       illuminance_entity_id: sensor.hallway_motion_illuminance_lux
       light_entity_ids:
         - switch.hallway_shelly
@@ -317,7 +317,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.landing_presence
+      presence_entity_id: variable.landing_presence
       illuminance_entity_id: sensor.landing_motion_illuminance_lux
       illuminance_threshold: 60
       light_entity_ids:
@@ -330,7 +330,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.laundry_room_presence
+      presence_entity_id: variable.laundry_room_presence
       illuminance_entity_id: sensor.laundry_room_motion_illuminance_lux
       illuminance_threshold: 100
       light_entity_ids:
@@ -343,7 +343,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.office_presence
+      presence_entity_id: variable.office_presence
       illuminance_entity_id: sensor.motion_sensor_illuminance
       light_entity_ids:
         - switch.office_shelly
@@ -356,9 +356,9 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.supply_closet_presence
+      presence_entity_id: variable.supply_closet_presence
       illuminance_entity_id: sensor.illuminance
-      illuminance_threshold: 100000
+      illuminance_threshold: 200000
       light_entity_ids:
         - switch.supply_closet_shelly
       start_time: 00:00:00
@@ -369,9 +369,9 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.toilet_presence
+      presence_entity_id: variable.toilet_presence
       illuminance_entity_id: sensor.illuminance
-      illuminance_threshold: 100000
+      illuminance_threshold: 200000
       light_entity_ids:
         - switch.toilet_shelly
       start_time: 00:00:00
@@ -382,7 +382,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: input_boolean.bathroom_presence
+      presence_entity_id: variable.bathroom_presence
       presence_indicator_entity_ids:
         - binary_sensor.bathroom_motion_occupancy
       presence_hint_entity_ids:
@@ -395,7 +395,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: input_boolean.bathroom_presence
+      presence_entity_id: variable.bathroom_presence
       illuminance_entity_id: sensor.bathroom_motion_illuminance_lux
       light_entity_ids:
         - switch.bathroom_shelly
@@ -409,7 +409,7 @@
     - platform: state
       id: trigger_presence
       entity_id:
-        - input_boolean.hallway_presence
+        - variable.hallway_presence
     - platform: time_pattern
       minutes: /1
       id: trigger_time
@@ -419,23 +419,21 @@
       id: trigger_light
   condition: []
   action:
-    # if presence triggered AND any of the lights are already on, then flag for manual override
-    # and stop execution
     - if:
         - condition: and
           conditions:
             - condition: trigger
               id: trigger_presence
-
             - condition: state
-              entity_id: input_boolean.hallway_presence
+              entity_id: variable.hallway_presence
               state: "on"
-
             - condition: template
-              value_template: >
-                {% set light_entities = expand(["switch.hallway_shelly"]) %}
-                {% set is_light_on = light_entities | selectattr("state", "equalto", "on") | list | length > 0 %}
-                {{ is_light_on }}
+              value_template:
+                '{% set light_entities = expand(["switch.hallway_shelly"])
+                %} {% set is_light_on = light_entities | selectattr("state", "equalto",
+                "on") | list | length > 0 %} {{ is_light_on }}
+
+                '
       then:
         - service: variable.set_variable
           data:
@@ -443,18 +441,16 @@
             attributes:
               light_manual_override: "on"
         - stop: Manual override in effect. Stopping execution.
-
     - if:
         - condition: trigger
           id: trigger_light
       then:
         - if:
             - condition: state
-              entity_id: input_boolean.hallway_presence
+              entity_id: variable.hallway_presence
               state: "off"
           then:
             - stop: No presence detected. Stopping execution.
-
         - if:
             - condition: template
               value_template:
@@ -462,7 +458,6 @@
                 }}'
           then:
             - stop: light triggered by automation. stopping
-
           else:
             - service: variable.set_variable
               data:
@@ -470,10 +465,9 @@
                 attributes:
                   light_manual_override: "on"
             - stop: light triggered externally, flagging manual override.
-
     - if:
         - condition: state
-          entity_id: input_boolean.hallway_presence
+          entity_id: variable.hallway_presence
           state: "off"
       then:
         - service: variable.set_variable
@@ -494,7 +488,6 @@
               state: "on"
           then:
             - stop: Manual override in effect. Stopping execution.
-
         - if:
             - condition: template
               value_template: '{{ trigger.platform == "state" }}'
@@ -509,5 +502,4 @@
           data: {}
           target:
             entity_id: switch.hallway_shelly
-
   mode: restart

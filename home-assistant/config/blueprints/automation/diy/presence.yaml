@@ -20,7 +20,7 @@ blueprint:
       name: Presence Entity
       selector:
         entity:
-          domain: input_boolean
+          domain: variable
 
     presence_indicator_entity_ids:
       name: Presence Indicator Entities
@@ -54,7 +54,8 @@ mode: restart
 max_exceeded: silent
 
 variables:
-  # presence_entity_id: !input presence_entity_id
+  presence_entity_id: !input presence_entity_id
+  presence_variable: {{ expand(presence_entity_id)[0].object_id }}
   presence_indicator_entity_ids: !input presence_indicator_entity_ids
   presence_hint_entity_ids: !input presence_hint_entity_ids
   presence_timeout: !input presence_timeout
@@ -95,10 +96,10 @@ action:
               {% set has_presence = presence_hint_entities  | selectattr("last_changed", "greaterthan", now() - timedelta(seconds = presence_timeout)) | list | length > 0 %}
               {{ has_presence }}
 
-      - service: input_boolean.turn_on
-        data: {}
-        target:
-          entity_id: !input presence_entity_id
+      - service: variable.set_variable
+        data:
+          variable: {{ presence_variable }}
+          value: "on"
     else:
       # wait for all the indicators to be off for at least the timeout period
       - wait_template: >
@@ -115,7 +116,7 @@ action:
           {{ has_no_presence }}
         continue_on_timeout: false
 
-      - service: input_boolean.turn_off
-        data: {}
-        target:
-          entity_id: !input presence_entity_id
+      - service: variable.set_variable
+        data:
+          variable: {{ presence_variable }}
+          value: "off"

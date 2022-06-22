@@ -24,8 +24,44 @@ light:
       - light.living_room_tv_light
 
 variable:
+  baby_room_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Baby Room Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
+
+  bathroom_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Bathroom Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
+
+  bedroom_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Bedroom Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
+
+  driveway_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Driveway Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
+
   hallway_presence:
-    value: false
+    value: "off"
     restore: true
     attributes:
       friendly_name: "Hallway Presence"
@@ -33,54 +69,68 @@ variable:
       light_manual_override: "off"
       trigger_context_id: ""
 
-input_boolean:
-  baby_room_presence:
-    name: Baby Room Presence
-    icon: mdi:home
-
-  bathroom_presence:
-    name: Bathroom Presence
-    icon: mdi:home
-
-  bedroom_presence:
-    name: Bedroom Presence
-    icon: mdi:home
-
-  driveway_presence:
-    name: Driveway Presence
-    icon: mdi:home
-
-  hallway_presence:
-    name: Hallway Presence
-    icon: mdi:home
-
   kitchen_presence:
-    name: Kitchen Presence
-    icon: mdi:home
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Kitchen Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
 
   landing_presence:
-    name: Landing Presence
-    icon: mdi:home
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Landing Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
 
   laundry_room_presence:
-    name: Laundry Room Presence
-    icon: mdi:home
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Laundry Room Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
 
   living_room_presence:
-    name: Living Room Presence
-    icon: mdi:home
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Living Room Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
 
   office_presence:
-    name: Office Presence
-    icon: mdi:home
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Office Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
 
   supply_closet_presence:
-    name: Supply Closet Presence
-    icon: mdi:home
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Supply Closet Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
 
   toilet_presence:
-    name: Toilet Presence
-    icon: mdi:home
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Toilet Presence"
+      icon: mdi:home
+      light_manual_override: "off"
+      trigger_context_id: ""
 
 cloud:
   google_actions:
