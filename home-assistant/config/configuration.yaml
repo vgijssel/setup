@@ -233,7 +233,7 @@ homekit:
         - switch.bedroom_shelly
         - switch.driveway_shelly
         - switch.hallway_shelly
-        - switch.kitchen_shelly
+        - light.kitchen_lights
         - switch.landing_shelly
         - switch.laundry_room_shelly
         - switch.office_shelly
@@ -267,7 +267,7 @@ homekit:
         name: Oprit Lamp
       switch.hallway_shelly:
         name: Gang Lamp
-      switch.kitchen_shelly:
+      light.kitchen_lights:
         name: Keuken Lamp
       switch.landing_shelly:
         name: Overloop Lamp
