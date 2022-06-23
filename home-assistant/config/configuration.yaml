@@ -38,7 +38,8 @@ variable:
     attributes:
       friendly_name: "Baby Room Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   bathroom_presence:
@@ -47,7 +48,8 @@ variable:
     attributes:
       friendly_name: "Bathroom Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   bedroom_presence:
@@ -56,7 +58,8 @@ variable:
     attributes:
       friendly_name: "Bedroom Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   driveway_presence:
@@ -65,7 +68,8 @@ variable:
     attributes:
       friendly_name: "Driveway Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   hallway_presence:
@@ -74,7 +78,8 @@ variable:
     attributes:
       friendly_name: "Hallway Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   kitchen_presence:
@@ -83,7 +88,8 @@ variable:
     attributes:
       friendly_name: "Kitchen Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   landing_presence:
@@ -92,7 +98,8 @@ variable:
     attributes:
       friendly_name: "Landing Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   laundry_room_presence:
@@ -101,7 +108,8 @@ variable:
     attributes:
       friendly_name: "Laundry Room Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   living_room_presence:
@@ -110,7 +118,8 @@ variable:
     attributes:
       friendly_name: "Living Room Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   office_presence:
@@ -119,7 +128,8 @@ variable:
     attributes:
       friendly_name: "Office Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   supply_closet_presence:
@@ -128,7 +138,8 @@ variable:
     attributes:
       friendly_name: "Supply Closet Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
   toilet_presence:
@@ -137,7 +148,8 @@ variable:
     attributes:
       friendly_name: "Toilet Presence"
       icon: mdi:home-outline
-      light_manual_override: "off"
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
 cloud:

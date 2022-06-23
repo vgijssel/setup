@@ -4,7 +4,7 @@ blueprint:
     Manage Lights based on room presence.
     When there is no presence turn off the lights.
     When there is presence, within the time range and below the wanted illuminance, turn on the lights.
-    When there is presence but one if the conditions is not met turn off the lights.
+    While there is presence and the lights have been turned on, don't turn them off until presence is lost.
     This is a continuous process and checked every 1 minute.
     If the lights are operated outside of this automation then for the duration of the presence,
     the light is marked with manual override, meaning the automation won't turn it on/off anymore.
@@ -125,7 +125,7 @@ action:
         data:
           variable: "{{ presence_variable }}"
           attributes:
-            light_manual_override: "on"
+            lights_manual_override: "on"
       - stop: >
           Lights were already on before presence was triggered. 
           Manual override in effect, stopping execution.
@@ -153,7 +153,7 @@ action:
             data:
               variable: "{{ presence_variable }}"
               attributes:
-                light_manual_override: "on"
+                lights_manual_override: "on"
           - stop: Light triggered externally, flagging manual override. Stopping execution.
 
   - if:
@@ -165,7 +165,8 @@ action:
         data:
           variable: "{{ presence_variable }}"
           attributes:
-            light_manual_override: "off"
+            lights_manual_override: "off"
+            lights_triggered_by_automation: "off"
             trigger_context_id: ""
 
       - service: switch.turn_off
@@ -182,10 +183,18 @@ action:
       - if:
           - condition: state
             entity_id: !input presence_entity_id
-            attribute: light_manual_override
+            attribute: lights_manual_override
             state: "on"
         then:
           - stop: Manual override in effect. Stopping execution.
+
+      - if:
+          - condition: state
+            entity_id: !input presence_entity_id
+            attribute: lights_triggered_by_automation
+            state: "on"
+        then:
+          - stop: Lights already turned on by automation. Stopping execution.
 
       # Update the presence state with the trigger context id
       # if this update has been triggered by a state change.
@@ -198,7 +207,7 @@ action:
               variable: "{{ presence_variable }}"
               attributes:
                 trigger_context_id: "{{ trigger.to_state.context.id }}"
-                light_manual_override: "off"
+                lights_manual_override: "off"
 
       - if:
           - condition: and
@@ -212,6 +221,12 @@ action:
                 entity_id: !input illuminance_entity_id
                 below: !input illuminance_threshold
         then:
+          - service: variable.set_variable
+            data:
+              variable: "{{ presence_variable }}"
+              attributes:
+                lights_triggered_by_automation: "on"
+
           - service: light.turn_on
             data:
               transition: 1
