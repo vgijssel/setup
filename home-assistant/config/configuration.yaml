@@ -154,46 +154,46 @@ cloud:
         - switch.kitchen_shelly
     entity_config:
       light.living_room_corner_light:
-        name: Corner
+        name: Hoek
         aliases:
-          - Hoek
+          - Corner
         room: Woonkamer
       light.living_room_dining_table_light:
-        name: Dining Table
+        name: Eetkamertafel
         aliases:
-          - Eetkamertafel
+          - Dining Table
         room: Woonkamer
       light.living_room_monkey_light:
-        name: Monkey
+        name: Aap
         aliases:
-          - Aap
+          - Monkey
         room: Woonkamer
       light.living_room_mouse_light:
-        name: Mouse
+        name: Muis
         aliases:
-          - Muis
+          - Mouse
         room: Woonkamer
       light.living_room_tv_light:
-        name: Tv Light
+        name: Tv Lamp
         aliases:
-          - Tv Lamp
+          - Tv Light
         room: Woonkamer
       sensor.woonkamer_temperature:
-        name: Thermostat
+        name: Thermostaat
         aliases:
-          - Thermostaat
+          - Thermostat
         room: Woonkamer
 
       light.office_light:
-        name: Light
+        name: Lamp
         aliases:
-          - Lamp
+          - Light
         room: Kantoor
 
       switch.kitchen_shelly:
-        name: Kitchen
+        name: Keuken
         aliases:
-          - Keuken
+          - Kitchen
         room: Keuken
 
 homekit:
