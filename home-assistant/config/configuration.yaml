@@ -18,7 +18,7 @@ template:
       - name: is_showering
         state: >
           {% set humidity = states("sensor.douche_humidity") | float %}
-          {{ humidity > 70 }}
+          {{ humidity > 85 }}
         icon: mdi:shower-head
 
 light:
