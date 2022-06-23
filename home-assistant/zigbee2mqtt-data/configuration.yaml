@@ -69,3 +69,15 @@ devices:
     friendly_name: landing_motion
   '0x54ef4410004972a3':
     friendly_name: hallway_motion
+  '0x001788010c4f2006':
+    friendly_name: kitchen_6_light
+  '0x001788010c4ef70d':
+    friendly_name: kitchen_2_light
+  '0x001788010c4ef726':
+    friendly_name: kitchen_5_light
+  '0x001788010c4f273d':
+    friendly_name: kitchen_4_light
+  '0x001788010c4f261d':
+    friendly_name: kitchen_3_light
+  '0x001788010c4f2526':
+    friendly_name: kitchen_1_light
