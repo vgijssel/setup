@@ -30,6 +30,15 @@ light:
       - light.living_room_monkey_light
       - light.living_room_mouse_light
       - light.living_room_tv_light
+  - platform: group
+    name: kitchen_lights
+    entities:
+      - light.kitchen_1_light
+      - light.kitchen_2_light
+      - light.kitchen_3_light
+      - light.kitchen_4_light
+      - light.kitchen_5_light
+      - light.kitchen_6_light
 
 variable:
   baby_room_presence:
@@ -163,7 +172,7 @@ cloud:
         - light.living_room_tv_light
         - sensor.woonkamer_temperature
         - light.office_light
-        - switch.kitchen_shelly
+        - light.kitchen_lights
     entity_config:
       light.living_room_corner_light:
         name: Hoek
@@ -202,7 +211,7 @@ cloud:
           - Light
         room: Kantoor
 
-      switch.kitchen_shelly:
+      light.kitchen_lights:
         name: Keuken
         aliases:
           - Kitchen
