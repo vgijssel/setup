@@ -14,11 +14,28 @@ sensor:
     entity_id: weather.home
 
 template:
-  - binary_sensor:
+  - trigger:
+      - platform: state
+        entity_id: sensor.douche_humidity
+        to:
+    binary_sensor:
       - name: is_showering
+        # if the humidity between two measurements increased by 8 percent or more then probably the shower is on
+        # if there was a positive increase but less than 8% then return the previous state value
+        # if there was a 3% decrease in humidity then showering is probably done
+        # if there was any other decrease return the previous state value
         state: >
-          {% set humidity = states("sensor.douche_humidity") | float %}
-          {{ humidity > 85 }}
+          {% set previous_state = states("binary_sensor.is_showering") %}
+          {% set delta = (trigger.to_state.state | float) - (trigger.from_state.state | float)%}
+          {% if delta >= 8 %}
+            on
+          {% elif delta > 0 %}
+            {{ previous_state }}
+          {% elif delta <= -3 %}
+            off
+          {% else %}
+            {{ previous_state }}
+          {% endif %}
         icon: mdi:shower-head
 
 light:

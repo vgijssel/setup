@@ -87,10 +87,10 @@ trigger:
     entity_id: !input light_and_switch_entity_ids
     id: trigger_lights
 
-  - platform: numeric_state
+  - platform: state
     entity_id: !input illuminance_entity_id
-    above: 0
     id: trigger_illuminance
+    to:
 
   # This will make sure this automation is at least re-evaluated every minute
   - platform: time_pattern
