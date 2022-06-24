@@ -27,7 +27,7 @@ template:
         state: >
           {% set previous_state = states("binary_sensor.is_showering") %}
           {% set delta = (trigger.to_state.state | float) - (trigger.from_state.state | float)%}
-          {% if delta >= 8 %}
+          {% if delta >= 5 %}
             on
           {% elif delta > 0 %}
             {{ previous_state }}
