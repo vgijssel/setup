@@ -218,7 +218,8 @@ cloud:
         room: Keuken
 
 homekit:
-  - filter:
+  - mode: bridge
+    filter:
       include_entities:
         - light.living_room_corner_light
         - light.living_room_dining_table_light
@@ -227,7 +228,6 @@ homekit:
         - light.living_room_tv_light
         - sensor.woonkamer_temperature
         - light.office_light
-        - camera.baby_room_cam_high
         - switch.baby_room_shelly
         - switch.bathroom_shelly
         - switch.bedroom_shelly
@@ -255,8 +255,6 @@ homekit:
         name: Woonkamer Thermostaat
       light.office_light:
         name: Kantoor Lamp
-      camera.baby_room_cam_high:
-        name: Babykamer Camera
       switch.baby_room_shelly:
         name: Babykamer Lamp
       switch.bathroom_shelly:
@@ -279,3 +277,13 @@ homekit:
         name: Voorraadkast Lamp
       switch.toilet_shelly:
         name: Wc Lamp
+
+  - name: Home Assistant - Baby Cam
+    port: 21064
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.baby_room_cam_high
+    entity_config:
+      camera.baby_room_cam_high:
+        name: Babykamer Camera
