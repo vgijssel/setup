@@ -260,7 +260,7 @@
       light_and_switch_entity_ids:
       - switch.baby_room_shelly
       start_time: 07:00:00
-      end_time: '21:00:00'
+      end_time: '23:00:00'
       illuminance_threshold: 40
 - id: '1655798594467'
   alias: 'Bedroom - Light: Manage'
@@ -378,7 +378,7 @@
       light_and_switch_entity_ids:
       - switch.bathroom_shelly
       start_time: 07:00:00
-      end_time: '22:00:00'
+      end_time: '23:00:00'
       illuminance_threshold: 60
 - id: '1655926470261'
   alias: 'Kitchen - Presence: Manage'
@@ -397,7 +397,7 @@
     input:
       presence_entity_id: variable.living_room_presence
       illuminance_entity_id: sensor.living_room_motion_illuminance_lux
-      illuminance_threshold: 40
+      illuminance_threshold: 100
       light_and_switch_entity_ids:
       - light.living_room_lights
       start_time: 07:00:00
