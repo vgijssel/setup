@@ -52,8 +52,6 @@ devices:
     friendly_name: kitchen_human
   '0x000d6f000bbc56c3':
     friendly_name: test_smart_plug
-  '0x001788010455e9ac':
-    friendly_name: living_room_corner_light
   '0x00158d000854274f':
     friendly_name: garden_door
   '0x54ef4410004973e7':
