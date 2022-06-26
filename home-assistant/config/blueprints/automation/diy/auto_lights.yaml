@@ -72,8 +72,12 @@ blueprint:
           custom_value: false
           multiple: true
 
-mode: restart
+# Use queue instead of restart/single because we want all instances of the automation trigger
+# to happen in order, because this can influence lights with a manual override.
+mode: queued
 max_exceeded: silent
+trace:
+  stored_traces: 1500
 
 trigger:
   - platform: state
