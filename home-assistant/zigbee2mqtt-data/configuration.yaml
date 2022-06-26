@@ -75,3 +75,5 @@ devices:
   '0x001788010c4f261d':
     friendly_name: kitchen_3_light
     transition: 1
+  '0x00158d0007e75b53':
+    friendly_name: bathroom_door

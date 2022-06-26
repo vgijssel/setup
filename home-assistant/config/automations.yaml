@@ -365,6 +365,7 @@
       presence_hint_entity_ids:
       - binary_sensor.bathroom_shelly_channel_1_input
       - binary_sensor.bathroom_shelly_channel_2_input
+      - binary_sensor.bathroom_door_contact
       presence_timeout: 360
 - id: '1655804684374'
   alias: 'Bathroom - Light: Manage'
