@@ -142,9 +142,9 @@
       presence_indicator_entity_ids:
       - binary_sensor.bedroom_human_presence
       - binary_sensor.bedroom_motion_home_security_motion_detection_3
-      - binary_sensor.bedroom_door_contact
       presence_hint_entity_ids:
       - binary_sensor.bedroom_shelly_input
+      - binary_sensor.bedroom_door_contact
       presence_timeout: 60
 - id: '1655752570246'
   alias: 'Hallway - Presence: Manage'
