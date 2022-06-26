@@ -77,3 +77,5 @@ devices:
     transition: 1
   '0x00158d0007e75b53':
     friendly_name: bathroom_door
+  '0x00158d0007ef9f06':
+    friendly_name: bedroom_door
