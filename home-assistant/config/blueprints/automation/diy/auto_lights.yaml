@@ -76,6 +76,8 @@ blueprint:
 # to happen in order, because this can influence lights with a manual override.
 mode: queued
 max_exceeded: silent
+
+# Make sure we store traces for about 24 hours.
 trace:
   stored_traces: 1500
 

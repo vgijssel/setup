@@ -53,6 +53,10 @@ blueprint:
 mode: restart
 max_exceeded: silent
 
+# Make sure we store traces for about 24 hours.
+trace:
+  stored_traces: 1500
+
 variables:
   presence_entity_id: !input presence_entity_id
   presence_variable: "{{ expand(presence_entity_id)[0].object_id }}"
