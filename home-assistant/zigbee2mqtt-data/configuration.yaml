@@ -30,12 +30,6 @@ devices:
   '0x00178801038c3592':
     friendly_name: living_room_dining_table_light
     transition: 1
-  '0x0017880103d0e4c9':
-    friendly_name: living_room_tv_light
-    transition: 1
-  '0x001788010c482469':
-    friendly_name: living_room_mouse_light
-    transition: 1
   '0x00158d0002286a8a':
     friendly_name: hallway_door
   '0x00158d0002286aa4':
@@ -44,9 +38,6 @@ devices:
     friendly_name: office_door
   '0x54ef4410004d97e6':
     friendly_name: bedroom_human
-  '0x0017880102634d00':
-    friendly_name: living_room_monkey_light
-    transition: 1
   '0x54ef4410004d58d7':
     friendly_name: living_room_tv_human
   '0x0017880103298e01':
@@ -83,7 +74,4 @@ devices:
     transition: 1
   '0x001788010c4f261d':
     friendly_name: kitchen_3_light
-    transition: 1
-  '0x001788010c4f2526':
-    friendly_name: kitchen_1_light
     transition: 1
