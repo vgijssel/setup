@@ -82,6 +82,7 @@ trace:
   stored_traces: 1500
 
 trigger:
+  # TODO: setup state changes we are interested in. Seeing now to: null triggering?
   - platform: state
     entity_id: !input presence_entity_id
     id: trigger_presence
@@ -105,12 +106,14 @@ trigger:
 
 variables:
   light_and_switch_entity_ids: !input light_and_switch_entity_ids
-  light_and_switch_entities: "{{ expand(light_and_switch_entity_ids) }}"
   switch_entity_ids: "{{ expand(light_and_switch_entity_ids) | selectattr('domain', 'equalto', 'switch') | map(attribute='entity_id') | list }}"
   light_entity_ids: "{{ expand(light_and_switch_entity_ids) | selectattr('domain', 'equalto', 'light') | map(attribute='entity_id') | list }}"
   presence_entity_id: !input presence_entity_id
   presence_variable: "{{ expand(presence_entity_id)[0].object_id }}"
+  any_light_on: "{{ expand(light_and_switch_entity_ids) | selectattr('state', 'equalto', 'on') | list | length > 0 }}"
+  any_light_off: "{{ expand(light_and_switch_entity_ids) | selectattr('state', 'equalto', 'off') | list | length > 0 }}"
 
+# TODO: use a switch instead of if/else
 action:
   - if:
       - condition: and
@@ -124,7 +127,7 @@ action:
 
           - condition: template
             value_template: >
-              {% set are_entities_on = light_and_switch_entities | selectattr("state", "equalto", "on") | list | length > 0 %} 
+              {% set are_entities_on = expand(light_and_switch_entity_ids) | selectattr("state", "equalto", "on") | list | length > 0 %} 
               {{ are_entities_on }}
     then:
       - service: variable.set_variable
@@ -143,9 +146,10 @@ action:
       - if:
           - condition: state
             entity_id: !input presence_entity_id
-            state: "off"
+            state: "on"
         then:
-          - stop: No presence detected. Stopping execution.
+          - stop: >
+              No presence, not necessary to continue.
 
       - if:
           - condition: template
@@ -153,7 +157,6 @@ action:
               {{ trigger.to_state.context.parent_id == expand(presence_entity_id)[0].attributes.trigger_context_id }}
         then:
           - stop: Light triggered by automation. Stopping execution.
-
         else:
           - service: variable.set_variable
             data:
@@ -186,34 +189,17 @@ action:
           entity_id: "{{ light_entity_ids }}"
 
     else:
-      - if:
-          - condition: state
-            entity_id: !input presence_entity_id
-            attribute: lights_manual_override
-            state: "on"
-        then:
-          - stop: Manual override in effect. Stopping execution.
+      # Only continue when no manual override is in effect
+      - condition: state
+        entity_id: !input presence_entity_id
+        attribute: lights_manual_override
+        state: "off"
 
-      - if:
-          - condition: state
-            entity_id: !input presence_entity_id
-            attribute: lights_triggered_by_automation
-            state: "on"
-        then:
-          - stop: Lights already turned on by automation. Stopping execution.
-
-      # Update the presence state with the trigger context id
-      # if this update has been triggered by a state change.
-      - if:
-          - condition: template
-            value_template: '{{ trigger.platform == "state" }}'
-        then:
-          - service: variable.set_variable
-            data:
-              variable: "{{ presence_variable }}"
-              attributes:
-                trigger_context_id: "{{ trigger.to_state.context.id }}"
-                lights_manual_override: "off"
+      # Stop once the lights have been turned on once by the automation already
+      - condition: state
+        entity_id: !input presence_entity_id
+        attribute: lights_triggered_by_automation
+        state: "off"
 
       - if:
           - condition: and
@@ -227,6 +213,22 @@ action:
                 entity_id: !input illuminance_entity_id
                 below: !input illuminance_threshold
         then:
+          # require that any of the lights are actually off
+          - condition: template
+            value_template: >
+              {{ any_light_off }}
+
+          - if:
+              - condition: template
+                value_template: '{{ trigger.platform == "state" }}'
+            then:
+              - service: variable.set_variable
+                data:
+                  variable: "{{ presence_variable }}"
+                  attributes:
+                    trigger_context_id: "{{ trigger.to_state.context.id }}"
+                    lights_manual_override: "off"
+
           - service: variable.set_variable
             data:
               variable: "{{ presence_variable }}"
@@ -245,6 +247,24 @@ action:
             target:
               entity_id: "{{ switch_entity_ids }}"
         else:
+          # require that any of the lights are on
+          - condition: template
+            value_template: >
+              {{ any_light_on }}
+
+          # Update the presence state with the trigger context id
+          # if this update has been triggered by a state change.
+          - if:
+              - condition: template
+                value_template: '{{ trigger.platform == "state" }}'
+            then:
+              - service: variable.set_variable
+                data:
+                  variable: "{{ presence_variable }}"
+                  attributes:
+                    trigger_context_id: "{{ trigger.to_state.context.id }}"
+                    lights_manual_override: "off"
+
           - service: switch.turn_off
             target:
               entity_id: "{{ switch_entity_ids }}"
