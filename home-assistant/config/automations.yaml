@@ -405,7 +405,7 @@
     input:
       presence_entity_id: variable.living_room_presence
       illuminance_entity_id: sensor.living_room_motion_illuminance_lux
-      illuminance_threshold: 200
+      illuminance_threshold: 60
       light_and_switch_entity_ids:
       - light.living_room_lights
       start_time: 07:00:00
