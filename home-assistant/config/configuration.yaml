@@ -16,16 +16,16 @@ sensor:
 template:
   - trigger:
       - platform: state
-        entity_id: sensor.douche_humidity
+        entity_id: sensor.bathroom_heat_current_humidity
         to:
     binary_sensor:
-      - name: is_showering
+      - name: bathroom_is_showering
         # if the humidity between two measurements increased by 8 percent or more then probably the shower is on
         # if there was a positive increase but less than 8% then return the previous state value
         # if there was a 3% decrease in humidity then showering is probably done
         # if there was any other decrease return the previous state value
         state: >
-          {% set previous_state = states("binary_sensor.is_showering") %}
+          {% set previous_state = states("binary_sensor.bathroom_is_showering") %}
           {% set delta = (trigger.to_state.state | float) - (trigger.from_state.state | float)%}
           {% if delta >= 5 %}
             on
@@ -187,7 +187,7 @@ cloud:
         - light.living_room_monkey_light
         - light.living_room_mouse_light
         - light.living_room_tv_light
-        - sensor.woonkamer_temperature
+        - climate.living_room_heat
         - light.office_light
         - light.kitchen_lights
     entity_config:
@@ -216,7 +216,8 @@ cloud:
         aliases:
           - Tv Light
         room: Woonkamer
-      sensor.woonkamer_temperature:
+
+      climate.living_room_heat:
         name: Thermostaat
         aliases:
           - Thermostat
@@ -243,7 +244,7 @@ homekit:
         - light.living_room_monkey_light
         - light.living_room_mouse_light
         - light.living_room_tv_light
-        - sensor.woonkamer_temperature
+        - climate.living_room_heat
         - light.office_light
         - switch.baby_room_shelly
         - switch.bathroom_shelly
@@ -268,7 +269,7 @@ homekit:
         name: Woonkamer Muis
       light.living_room_tv_light:
         name: Woonkamer Tv Lamp
-      sensor.woonkamer_temperature:
+      climate.living_room_heat:
         name: Woonkamer Thermostaat
       light.office_light:
         name: Kantoor Lamp
