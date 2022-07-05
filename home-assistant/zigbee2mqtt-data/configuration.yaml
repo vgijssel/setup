@@ -83,3 +83,5 @@ devices:
     friendly_name: baby_room_door
   '0x54ef4410004919b1':
     friendly_name: hallway_motion
+  '0x54ef4410004d1c26':
+    friendly_name: bathroom_human
