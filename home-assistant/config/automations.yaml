@@ -409,8 +409,8 @@
       illuminance_threshold: 40
       light_and_switch_entity_ids:
       - light.living_room_lights
-      start_time: 07:00:00
-      end_time: '23:00:00'
+      start_time: 00:00:00
+      end_time: '23:59:59'
 - id: '1655992356123'
   alias: 'Kitchen - Lights: Manual Toggle'
   description: ''
