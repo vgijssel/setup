@@ -3,7 +3,7 @@ ssh_config = text_file(
     content = f"""
 Include ~/.ssh/config
 Include /etc/ssh/ssh_config
-Include $PLEASE_ROOT/{CONFIG.SSH_CONFIG_DIR}/*
+Include $PLEASE_ROOT/tmp/vagrant/ssh_configs/*
     """,
 )
 

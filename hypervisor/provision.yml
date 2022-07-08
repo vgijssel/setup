@@ -183,6 +183,8 @@
       loop:
         - new_data/apps/radarr
         - new_data/apps/deluge
+        - new_data/apps/deluge2
+        - new_data/apps/transmission
         - new_data/apps/sonarr
         - new_data/apps/plex
         - new_data/apps/jackett
@@ -197,6 +199,8 @@
       loop:
         - /dev/zvol/new_data/apps/radarr
         - /dev/zvol/new_data/apps/deluge
+        - /dev/zvol/new_data/apps/deluge2
+        - /dev/zvol/new_data/apps/transmission
         - /dev/zvol/new_data/apps/sonarr
         - /dev/zvol/new_data/apps/plex
         - /dev/zvol/new_data/apps/jackett
@@ -220,7 +224,7 @@
                 options: |
                   initiator-address 172.16.0.0/24
               - name: deluge
-                backing_stores: ["/dev/zvol/new_data/apps/deluge"]
+                backing_stores: ["/dev/zvol/new_data/apps/deluge2"]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: plex
@@ -233,6 +237,10 @@
                   initiator-address 172.16.0.0/24
               - name: bazarr
                 backing_stores: ["/dev/zvol/new_data/apps/bazarr"]
+                options: |
+                  initiator-address 172.16.0.0/24
+              - name: transmission
+                backing_stores: ["/dev/zvol/new_data/apps/transmission"]
                 options: |
                   initiator-address 172.16.0.0/24
 

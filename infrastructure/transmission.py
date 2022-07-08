@@ -22,23 +22,23 @@ from pulumi_kubernetes.networking.v1 import (
     ServiceBackendPortArgs,
 )
 
-app_name = "deluge"
+app_name = "transmission"
 app_labels = {"app": app_name}
 
 container_ports = [
     ContainerPortArgs(
-        name="deluge-ui",
-        container_port=8112,
+        name="transmission-ui",
+        container_port=9091,
         protocol="TCP",
     ),
     ContainerPortArgs(
-        name="deluge-in-tcp",
-        container_port=6881,
+        name="trans-in-tcp",
+        container_port=51413,
         protocol="TCP",
     ),
     ContainerPortArgs(
-        name="deluge-in-udp",
-        container_port=6881,
+        name="trans-in-udp",
+        container_port=51413,
         protocol="UDP",
     ),
 ]
@@ -75,17 +75,17 @@ deployment = Deployment(
             "spec": {
                 "volumes": [
                     VolumeArgs(
-                        name="deluge-config",
+                        name="transmission-config",
                         iscsi=ISCSIVolumeSourceArgs(
                             target_portal="172.16.0.1",
-                            iqn="iqn.2022-01.hypervisor:deluge",
+                            iqn="iqn.2022-01.hypervisor:transmission",
                             lun=1,
                             fs_type="ext4",
                             read_only=False,
                         ),
                     ),
                     VolumeArgs(
-                        name="deluge-downloads",
+                        name="transmission-downloads",
                         nfs=NFSVolumeSourceArgs(
                             path="/data/downloads", server="172.16.0.1"
                         ),
@@ -94,14 +94,14 @@ deployment = Deployment(
                 "containers": [
                     {
                         "name": app_name,
-                        "image": "linuxserver/deluge",
+                        "image": "linuxserver/transmission",
                         "volume_mounts": [
                             VolumeMountArgs(
-                                name="deluge-config",
+                                name="transmission-config",
                                 mount_path="/config",
                             ),
                             VolumeMountArgs(
-                                name="deluge-downloads",
+                                name="transmission-downloads",
                                 mount_path="/downloads",
                             ),
                         ],
@@ -118,7 +118,6 @@ deployment = Deployment(
                             EnvVarArgs(name="PGID", value="0"),
                             EnvVarArgs(name="PUID", value="0"),
                             EnvVarArgs(name="TZ", value="Europe/Amsterdam"),
-                            EnvVarArgs(name="DELUGE_LOGLEVEL", value="debug"),
                         ],
                     }
                 ],
@@ -161,7 +160,7 @@ Ingress(
     spec=IngressSpecArgs(
         rules=[
             IngressRuleArgs(
-                host="deluge",
+                host="transmission",
                 http=HTTPIngressRuleValueArgs(
                     paths=[
                         HTTPIngressPathArgs(
@@ -171,7 +170,7 @@ Ingress(
                                 service=IngressServiceBackendArgs(
                                     name=service_tcp.metadata.name,
                                     port=ServiceBackendPortArgs(
-                                        number=8112,
+                                        number=9091,
                                     ),
                                 ),
                             ),
