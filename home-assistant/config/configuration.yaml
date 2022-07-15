@@ -56,6 +56,13 @@ light:
       - light.kitchen_4_light
       - light.kitchen_5_light
       - light.kitchen_6_light
+  - platform: group
+    name: hallway_lights
+    entities:
+      - light.hallway_1_light
+      - light.hallway_2_light
+      - light.hallway_3_light
+      - light.hallway_4_light
 
 variable:
   baby_room_presence:

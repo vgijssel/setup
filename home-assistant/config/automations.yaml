@@ -292,7 +292,7 @@
       presence_entity_id: variable.hallway_presence
       illuminance_entity_id: sensor.hallway_motion_illuminance_lux
       light_and_switch_entity_ids:
-      - switch.hallway_shelly
+      - light.hallway_lights
       start_time: 00:00:00
       end_time: '23:59:59'
       illuminance_threshold: 1000
@@ -500,4 +500,33 @@
       data: {}
       target:
         entity_id: input_boolean.bedroom_is_sleeping
+  mode: single
+- id: '1657289205943'
+  alias: 'Hallway - Lights: Manual Toggle'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.hallway_shelly_input
+    to:
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: light.hallway_lights
+      state: 'on'
+    then:
+    - service: light.turn_off
+      data:
+        transition: 1
+      target:
+        entity_id: light.hallway_lights
+    else:
+    - service: light.turn_on
+      data:
+        transition: 1
+        brightness_pct: 100
+        color_temp: 409
+      target:
+        entity_id: light.hallway_lights
   mode: single
