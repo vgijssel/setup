@@ -369,7 +369,6 @@
       presence_entity_id: variable.bathroom_presence
       presence_indicator_entity_ids:
       - binary_sensor.bathroom_motion_occupancy
-      - binary_sensor.bathroom_is_showering
       - binary_sensor.bathroom_human_presence
       presence_hint_entity_ids:
       - binary_sensor.bathroom_shelly_channel_1_input
