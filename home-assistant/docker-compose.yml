@@ -22,7 +22,7 @@ services:
     environment:
       - TZ=Europe/Amsterdam
     devices:
-      - /dev/serial/by-id/usb-Texas_Instruments_TI_CC2531_USB_CDC___0X00124B0019366A94-if00:/dev/zigbee
+      - /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0:/dev/zigbee
 
   zwavejs2mqtt:
     container_name: zwavejs2mqtt

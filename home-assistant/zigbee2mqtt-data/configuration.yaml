@@ -9,6 +9,7 @@ frontend:
   port: 8080
 advanced:
   network_key: '!secret network_key'
+  pan_id: 6755
   homeassistant_legacy_entity_attributes: false
   legacy_api: false
   legacy_availability_payload: false
@@ -27,11 +28,6 @@ devices:
     transition: 1
   '0x00158d0002386344':
     friendly_name: toilet_door
-  '0x00178801038c3592':
-    friendly_name: living_room_dining_table_light
-    transition: 1
-  '0x00158d0002286a8a':
-    friendly_name: hallway_door
   '0x00158d0002286aa4':
     friendly_name: living_room_door
   '0x00158d000232cfca':
@@ -46,8 +42,6 @@ devices:
     friendly_name: living_room_dining_table_human
   '0x54ef441000491b56':
     friendly_name: bathroom_motion
-  '0x54ef441000491875':
-    friendly_name: living_room_garden_motion
   '0x54ef4410004d70d1':
     friendly_name: kitchen_human
   '0x000d6f000bbc56c3':
@@ -62,6 +56,10 @@ devices:
     friendly_name: bathroom_door
   '0x00158d0007ef9f06':
     friendly_name: bedroom_door
+  '0x84fd27fffe953a35':
+    friendly_name: bedroom_2_button
+  '0x2c1165fffe6dc628':
+    friendly_name: bedroom_1_button
   '0x54ef441000490f71':
     friendly_name: toilet_motion
   '0x00158d000854aea1':
@@ -70,3 +68,19 @@ devices:
     friendly_name: hallway_motion
   '0x54ef4410004d1c26':
     friendly_name: bathroom_human
+  '0x00158d0002286a8a':
+    friendly_name: hallway_door
+  '0x9c6937000070de12':
+    friendly_name: hallway_3_light
+    transition: 1
+  '0xc498860000672d24':
+    friendly_name: hallway_4_light
+    transition: 1
+  '0xc498860000673e80':
+    friendly_name: hallway_2_light
+    transition: 1
+  '0x9c6937000070dd61':
+    friendly_name: hallway_1_light
+    transition: 1
+  '0x54ef441000491875':
+    friendly_name: living_room_garden_motion
