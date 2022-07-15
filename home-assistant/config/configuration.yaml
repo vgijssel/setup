@@ -63,6 +63,12 @@ light:
       - light.hallway_2_light
       - light.hallway_3_light
       - light.hallway_4_light
+  - platform: group
+    name: landing_lights
+    entities:
+      - light.landing_1_light
+      - light.landing_2_light
+      - light.landing_3_light
 
 variable:
   baby_room_presence:

@@ -84,3 +84,12 @@ devices:
     transition: 1
   '0x54ef441000491875':
     friendly_name: living_room_garden_motion
+  '0x9c69370000cbbe06':
+    friendly_name: landing_1_light
+    transition: 1
+  '0xc498860000000a73':
+    friendly_name: landing_3_light
+    transition: 1
+  '0x9c6937000070eb1b':
+    friendly_name: landing_2_light
+    transition: 1

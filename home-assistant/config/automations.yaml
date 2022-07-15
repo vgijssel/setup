@@ -307,7 +307,7 @@
       illuminance_entity_id: sensor.landing_motion_illuminance_lux
       illuminance_threshold: 60
       light_and_switch_entity_ids:
-      - switch.landing_shelly
+      - light.landing_lights
       start_time: 07:00:00
       end_time: '22:00:00'
 - id: '1655799885346'
@@ -545,4 +545,33 @@
       transition: 2
     target:
       entity_id: light.kitchen_lights
+  mode: single
+- id: '1657899301717'
+  alias: 'Landing - Lights: Manual Toggle'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.landing_shelly_input
+    to:
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: light.landing_lights
+      state: 'on'
+    then:
+    - service: light.turn_off
+      data:
+        transition: 1
+      target:
+        entity_id: light.landing_lights
+    else:
+    - service: light.turn_on
+      data:
+        transition: 1
+        brightness_pct: 100
+        color_temp: 409
+      target:
+        entity_id: light.landing_lights
   mode: single
