@@ -5,6 +5,7 @@
   - platform: state
     entity_id:
     - binary_sensor.living_room_shelly_input
+    to:
   condition: []
   action:
   - if:
