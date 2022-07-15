@@ -529,3 +529,19 @@
       target:
         entity_id: light.hallway_lights
   mode: single
+- id: '1657638476657'
+  alias: 'Kitchen - Lights: Auto Off'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - variable.kitchen_presence
+    to: 'off'
+  condition: []
+  action:
+  - service: light.turn_off
+    data:
+      transition: 2
+    target:
+      entity_id: light.kitchen_lights
+  mode: single
