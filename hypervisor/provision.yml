@@ -182,8 +182,6 @@
           volsize: 10G
       loop:
         - new_data/apps/radarr
-        - new_data/apps/deluge
-        - new_data/apps/deluge2
         - new_data/apps/transmission
         - new_data/apps/sonarr
         - new_data/apps/plex
@@ -198,8 +196,6 @@
         resizefs: yes
       loop:
         - /dev/zvol/new_data/apps/radarr
-        - /dev/zvol/new_data/apps/deluge
-        - /dev/zvol/new_data/apps/deluge2
         - /dev/zvol/new_data/apps/transmission
         - /dev/zvol/new_data/apps/sonarr
         - /dev/zvol/new_data/apps/plex
@@ -221,10 +217,6 @@
                   initiator-address 172.16.0.0/24
               - name: sonarr
                 backing_stores: ["/dev/zvol/new_data/apps/sonarr"]
-                options: |
-                  initiator-address 172.16.0.0/24
-              - name: deluge
-                backing_stores: ["/dev/zvol/new_data/apps/deluge2"]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: plex
