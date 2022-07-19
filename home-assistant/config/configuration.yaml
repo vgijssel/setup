@@ -267,14 +267,13 @@ homekit:
         - light.living_room_mouse_light
         - light.living_room_tv_light
         - climate.living_room_heat
-        - light.office_light
-        - switch.baby_room_shelly
+        - light.baby_room_light
         - switch.bathroom_shelly
         - switch.bedroom_shelly
         - switch.driveway_shelly
-        - switch.hallway_shelly
+        - light.hallway_lights
         - light.kitchen_lights
-        - switch.landing_shelly
+        - light.landing_lights
         - switch.laundry_room_shelly
         - switch.office_shelly
         - switch.supply_closet_shelly
@@ -293,22 +292,20 @@ homekit:
         name: Woonkamer Tv Lamp
       climate.living_room_heat:
         name: Woonkamer Thermostaat
-      light.office_light:
-        name: Kantoor Lamp
-      switch.baby_room_shelly:
+      light.baby_room_light:
         name: Babykamer Lamp
       switch.bathroom_shelly:
-        name: Badkamer Lamp
+        name: Badkamer Lampen
       switch.bedroom_shelly:
         name: Slaapkamer Lamp
       switch.driveway_shelly:
         name: Oprit Lamp
-      switch.hallway_shelly:
-        name: Gang Lamp
+      light.hallway_lights:
+        name: Gang Lampen
       light.kitchen_lights:
         name: Keuken Lamp
-      switch.landing_shelly:
-        name: Overloop Lamp
+      light.landing_lights:
+        name: Overloop Lampen
       switch.laundry_room_shelly:
         name: Waskamer Lamp
       switch.office_shelly:
