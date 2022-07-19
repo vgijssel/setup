@@ -69,6 +69,15 @@ light:
       - light.landing_1_light
       - light.landing_2_light
       - light.landing_3_light
+  - platform: group
+    name: bathroom_lights
+    entities:
+      - light.bathroom_1_light
+      - light.bathroom_2_light
+      - light.bathroom_3_light
+      - light.bathroom_4_light
+      - light.bathroom_5_light
+      - light.bathroom_6_light
 
 variable:
   baby_room_presence:

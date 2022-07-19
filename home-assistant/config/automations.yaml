@@ -386,8 +386,8 @@
       illuminance_entity_id: sensor.bathroom_motion_illuminance_lux
       light_and_switch_entity_ids:
       - switch.bathroom_shelly
-      start_time: 00:00:00
-      end_time: '23:59:59'
+      start_time: 07:00:00
+      end_time: '23:00:00'
       illuminance_threshold: 140
 - id: '1655926470261'
   alias: 'Kitchen - Presence: Manage'
