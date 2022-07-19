@@ -8,7 +8,6 @@ sync:
 
         - zwavejs2mqtt-data/
         - "!zwavejs2mqtt-data/settings.json"
-        - "!zwavejs2mqtt-data/nodes.json"
 
         - /zigbee2mqtt-data/*
         - "!/zigbee2mqtt-data/configuration.yaml"

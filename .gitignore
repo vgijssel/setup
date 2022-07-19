@@ -32,7 +32,6 @@ mutagen.yml.lock
 
 /home-assistant/zwavejs2mqtt-data/*
 !/home-assistant/zwavejs2mqtt-data/settings.json
-!/home-assistant/zwavejs2mqtt-data/nodes.json
 
 /home-assistant/zigbee2mqtt-data/*
 !/home-assistant/zigbee2mqtt-data/configuration.yaml
