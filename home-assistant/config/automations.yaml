@@ -477,7 +477,7 @@
     id: button_2
     to: 'on'
   - platform: time
-    at: '13:16:00'
+    at: '22:00:00'
     id: evening_time
   - platform: time
     at: 07:00:00
@@ -540,7 +540,7 @@
     then:
     - if:
       - condition: time
-        after: '13:16:00'
+        after: '22:00:00'
         before: 07:00:00
       then:
       - service: input_boolean.turn_on
