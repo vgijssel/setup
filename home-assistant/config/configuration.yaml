@@ -9,9 +9,35 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+input_boolean:
+  bedroom_is_sleeping:
+    name: Indicate if someone is sleeping in the Bedroom
+    icon: mdi:car
+
 sensor:
   - platform: illuminance
     entity_id: weather.home
+
+adaptive_lighting:
+  - name: hallway
+    lights:
+      - light.hallway_lights
+  - name: landing
+    lights:
+      - light.landing_lights
+  - name: baby_room
+    lights:
+      - light.baby_room_light
+  - name: kitchen
+    lights:
+      - light.kitchen_lights
+    take_over_control: true
+    detect_non_ha_changes: true
+  - name: living_room
+    lights:
+      - light.living_room_lights
+    take_over_control: true
+    detect_non_ha_changes: true
 
 template:
   - trigger:
@@ -40,7 +66,7 @@ template:
 
 light:
   - platform: group
-    name: "Living Room Lights"
+    name: living_room_lights
     entities:
       - light.living_room_corner_light
       - light.living_room_dining_table_light
