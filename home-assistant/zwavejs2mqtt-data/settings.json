@@ -1,0 +1,8 @@
+{
+  "zwave": {
+    "deviceConfigPriorityDir": "/usr/src/app/store/config",
+    "enableSoftReset": true,
+    "enableStatistics": false,
+    "disclaimerVersion": 1
+  }
+}

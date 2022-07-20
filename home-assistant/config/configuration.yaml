@@ -1,0 +1,352 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Text to speech
+tts:
+  - platform: google_translate
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+input_boolean:
+  bedroom_is_sleeping:
+    name: Indicate if someone is sleeping in the Bedroom
+    icon: mdi:car
+
+sensor:
+  - platform: illuminance
+    entity_id: weather.home
+
+adaptive_lighting:
+  - name: hallway
+    lights:
+      - light.hallway_lights
+  - name: landing
+    lights:
+      - light.landing_lights
+  - name: baby_room
+    lights:
+      - light.baby_room_light
+  - name: kitchen
+    lights:
+      - light.kitchen_lights
+    take_over_control: true
+    detect_non_ha_changes: true
+  - name: living_room
+    lights:
+      - light.living_room_lights
+    take_over_control: true
+    detect_non_ha_changes: true
+
+template:
+  - trigger:
+      - platform: state
+        entity_id: sensor.bathroom_heat_current_humidity
+        to:
+    binary_sensor:
+      - name: bathroom_is_showering
+        # if the humidity between two measurements increased by 8 percent or more then probably the shower is on
+        # if there was a positive increase but less than 8% then return the previous state value
+        # if there was a 3% decrease in humidity then showering is probably done
+        # if there was any other decrease return the previous state value
+        state: >
+          {% set previous_state = states("binary_sensor.bathroom_is_showering") %}
+          {% set delta = (trigger.to_state.state | float) - (trigger.from_state.state | float)%}
+          {% if delta >= 5 %}
+            on
+          {% elif delta > 0 %}
+            {{ previous_state }}
+          {% elif delta <= -3 %}
+            off
+          {% else %}
+            {{ previous_state }}
+          {% endif %}
+        icon: mdi:shower-head
+
+light:
+  - platform: group
+    name: living_room_lights
+    entities:
+      - light.living_room_corner_light
+      - light.living_room_dining_table_light
+      - light.living_room_monkey_light
+      - light.living_room_mouse_light
+      - light.living_room_tv_light
+  - platform: group
+    name: kitchen_lights
+    entities:
+      - light.kitchen_1_light
+      - light.kitchen_2_light
+      - light.kitchen_3_light
+      - light.kitchen_4_light
+      - light.kitchen_5_light
+      - light.kitchen_6_light
+  - platform: group
+    name: hallway_lights
+    entities:
+      - light.hallway_1_light
+      - light.hallway_2_light
+      - light.hallway_3_light
+      - light.hallway_4_light
+  - platform: group
+    name: landing_lights
+    entities:
+      - light.landing_1_light
+      - light.landing_2_light
+      - light.landing_3_light
+  - platform: group
+    name: bathroom_lights
+    entities:
+      - light.bathroom_1_light
+      - light.bathroom_2_light
+      - light.bathroom_3_light
+      - light.bathroom_4_light
+      - light.bathroom_5_light
+      - light.bathroom_6_light
+
+variable:
+  baby_room_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Baby Room Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  bathroom_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Bathroom Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  bedroom_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Bedroom Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  driveway_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Driveway Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  hallway_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Hallway Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  kitchen_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Kitchen Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  landing_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Landing Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  laundry_room_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Laundry Room Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  living_room_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Living Room Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  office_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Office Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  supply_closet_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Supply Closet Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  toilet_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Toilet Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+cloud:
+  google_actions:
+    filter:
+      include_entities:
+        - light.living_room_corner_light
+        - light.living_room_dining_table_light
+        - light.living_room_monkey_light
+        - light.living_room_mouse_light
+        - light.living_room_tv_light
+        - climate.living_room_heat
+        - light.office_light
+        - light.kitchen_lights
+    entity_config:
+      light.living_room_corner_light:
+        name: Hoek
+        aliases:
+          - Corner
+        room: Woonkamer
+      light.living_room_dining_table_light:
+        name: Eetkamertafel
+        aliases:
+          - Dining Table
+        room: Woonkamer
+      light.living_room_monkey_light:
+        name: Aap
+        aliases:
+          - Monkey
+        room: Woonkamer
+      light.living_room_mouse_light:
+        name: Muis
+        aliases:
+          - Mouse
+        room: Woonkamer
+      light.living_room_tv_light:
+        name: Tv Lamp
+        aliases:
+          - Tv Light
+        room: Woonkamer
+
+      climate.living_room_heat:
+        name: Thermostaat
+        aliases:
+          - Thermostat
+        room: Woonkamer
+
+      light.office_light:
+        name: Lamp
+        aliases:
+          - Light
+        room: Kantoor
+
+      light.kitchen_lights:
+        name: Keuken
+        aliases:
+          - Kitchen
+        room: Keuken
+
+homekit:
+  - mode: bridge
+    filter:
+      include_entities:
+        - light.living_room_corner_light
+        - light.living_room_dining_table_light
+        - light.living_room_monkey_light
+        - light.living_room_mouse_light
+        - light.living_room_tv_light
+        - climate.living_room_heat
+        - light.baby_room_light
+        - switch.bathroom_shelly
+        - switch.bedroom_shelly
+        - switch.driveway_shelly
+        - light.hallway_lights
+        - light.kitchen_lights
+        - light.landing_lights
+        - switch.laundry_room_shelly
+        - switch.office_shelly
+        - switch.supply_closet_shelly
+        - switch.toilet_shelly
+
+    entity_config:
+      light.living_room_corner_light:
+        name: Woonkamer Hoek
+      light.living_room_dining_table_light:
+        name: Woonkamer Eetkamertafel
+      light.living_room_monkey_light:
+        name: Woonkamer Aap
+      light.living_room_mouse_light:
+        name: Woonkamer Muis
+      light.living_room_tv_light:
+        name: Woonkamer Tv Lamp
+      climate.living_room_heat:
+        name: Woonkamer Thermostaat
+      light.baby_room_light:
+        name: Babykamer Lamp
+      switch.bathroom_shelly:
+        name: Badkamer Lampen
+      switch.bedroom_shelly:
+        name: Slaapkamer Lamp
+      switch.driveway_shelly:
+        name: Oprit Lamp
+      light.hallway_lights:
+        name: Gang Lampen
+      light.kitchen_lights:
+        name: Keuken Lamp
+      light.landing_lights:
+        name: Overloop Lampen
+      switch.laundry_room_shelly:
+        name: Waskamer Lamp
+      switch.office_shelly:
+        name: Kantoor Lamp
+      switch.supply_closet_shelly:
+        name: Voorraadkast Lamp
+      switch.toilet_shelly:
+        name: Wc Lamp
+
+  - name: Home Assistant - Baby Cam
+    port: 21064
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.baby_room_cam_high
+    entity_config:
+      camera.baby_room_cam_high:
+        name: Babykamer Camera

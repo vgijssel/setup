@@ -1,4 +1,4 @@
-import deluge
+import transmission
 import jackett
 import radarr
 import sonarr

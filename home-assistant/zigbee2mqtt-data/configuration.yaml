@@ -1,0 +1,113 @@
+permit_join: false
+availability: true
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://mqtt
+serial:
+  port: /dev/zigbee
+frontend:
+  port: 8080
+advanced:
+  network_key: '!secret network_key'
+  pan_id: 6755
+  homeassistant_legacy_entity_attributes: false
+  legacy_api: false
+  legacy_availability_payload: false
+  log_level: info
+  channel: 11
+device_options:
+  legacy: false
+homeassistant: true
+devices:
+  '0x54ef4410004d9481':
+    friendly_name: office_human
+  '0x00158d000232d0f6':
+    friendly_name: supply_closet_door
+  '0x0017880104e25f8e':
+    friendly_name: baby_room_light
+    transition: 1
+  '0x00158d0002386344':
+    friendly_name: toilet_door
+  '0x00158d0002286aa4':
+    friendly_name: living_room_door
+  '0x00158d000232cfca':
+    friendly_name: office_door
+  '0x54ef4410004d97e6':
+    friendly_name: bedroom_human
+  '0x54ef4410004d58d7':
+    friendly_name: living_room_tv_human
+  '0x0017880103298e01':
+    friendly_name: laundry_room_motion
+  '0x54ef4410004d9e9d':
+    friendly_name: living_room_dining_table_human
+  '0x54ef441000491b56':
+    friendly_name: bathroom_motion
+  '0x54ef4410004d70d1':
+    friendly_name: kitchen_human
+  '0x000d6f000bbc56c3':
+    friendly_name: test_smart_plug
+  '0x00158d000854274f':
+    friendly_name: garden_door
+  '0x54ef4410004973e7':
+    friendly_name: landing_motion
+  '0x54ef4410004972a3':
+    friendly_name: living_room_motion
+  '0x00158d0007e75b53':
+    friendly_name: bathroom_door
+  '0x00158d0007ef9f06':
+    friendly_name: bedroom_door
+  '0x84fd27fffe953a35':
+    friendly_name: bedroom_2_button
+  '0x2c1165fffe6dc628':
+    friendly_name: bedroom_1_button
+  '0x54ef441000490f71':
+    friendly_name: toilet_motion
+  '0x00158d000854aea1':
+    friendly_name: baby_room_door
+  '0x54ef4410004919b1':
+    friendly_name: hallway_motion
+  '0x54ef4410004d1c26':
+    friendly_name: bathroom_human
+  '0x00158d0002286a8a':
+    friendly_name: hallway_door
+  '0x9c6937000070de12':
+    friendly_name: hallway_3_light
+    transition: 1
+  '0xc498860000672d24':
+    friendly_name: hallway_4_light
+    transition: 1
+  '0xc498860000673e80':
+    friendly_name: hallway_2_light
+    transition: 1
+  '0x9c6937000070dd61':
+    friendly_name: hallway_1_light
+    transition: 1
+  '0x54ef441000491875':
+    friendly_name: living_room_garden_motion
+  '0x9c69370000cbbe06':
+    friendly_name: landing_1_light
+    transition: 1
+  '0xc498860000000a73':
+    friendly_name: landing_3_light
+    transition: 1
+  '0x9c6937000070eb1b':
+    friendly_name: landing_2_light
+    transition: 1
+  '0xc498860000672452':
+    friendly_name: bathroom_1_light
+    transition: 1
+  '0xc4988600000827d6':
+    friendly_name: bathroom_6_light
+    transition: 1
+  '0x9c6937000070e768':
+    friendly_name: bathroom_4_light
+    transition: 1
+  '0x9c6937000070e036':
+    friendly_name: bathroom_2_light
+    transition: 1
+  '0x44a54e00000167b0':
+    friendly_name: bathroom_3_light
+    transition: 1
+  '0xc498860000081ee6':
+    friendly_name: bathroom_5_light
+    transition: 1

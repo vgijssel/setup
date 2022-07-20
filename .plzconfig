@@ -9,9 +9,9 @@
 version = 16.17.1
 
 [buildconfig]
-ssh_config_dir = ./tmp/vagrant/ssh_configs
-pex_cache_dir = ./tmp/cache/pex
-provisioner_platform = "linux_amd64"
+; ssh_config_dir = "./tmp/vagrant/ssh_configs"
+; pex_cache_dir = "./tmp/cache/pex"
+; provisioner_platform = "linux_amd64"
 
 [build]
 # 3600 seconds, 60 minutes
@@ -19,7 +19,7 @@ provisioner_platform = "linux_amd64"
 timeout = 3600
 
 [python]
-moduledir = third_party.python
+moduledir = "third_party.python"
 
 [alias "ansible-playbook"]
 cmd = run //third_party/ansible|ansible-playbook --

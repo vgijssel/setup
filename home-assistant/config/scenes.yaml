@@ -1,0 +1,159 @@
+- id: '1654670583989'
+  name: living_room_relax
+  entities:
+    light.living_room_corner_light:
+      min_mireds: 153
+      max_mireds: 500
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      - xy
+      friendly_name: living_room_corner_light
+      supported_features: 63
+      color_mode: color_temp
+      brightness: 203
+      color_temp: 390
+      hs_color:
+      - 28.711
+      - 70.253
+      rgb_color:
+      - 255
+      - 161
+      - 75
+      xy_color:
+      - 0.541
+      - 0.389
+      state: 'on'
+    light.living_room_dining_table_light:
+      min_mireds: 153
+      max_mireds: 500
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      - xy
+      friendly_name: living_room_dining_table_light
+      supported_features: 63
+      color_mode: color_temp
+      brightness: 203
+      color_temp: 390
+      hs_color:
+      - 28.711
+      - 70.253
+      rgb_color:
+      - 255
+      - 161
+      - 75
+      xy_color:
+      - 0.541
+      - 0.389
+      state: 'on'
+    light.living_room_monkey_light:
+      min_mireds: 153
+      max_mireds: 500
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      - xy
+      friendly_name: living_room_monkey_light
+      supported_features: 63
+      color_mode: color_temp
+      brightness: 203
+      color_temp: 390
+      hs_color:
+      - 28.711
+      - 70.253
+      rgb_color:
+      - 255
+      - 161
+      - 75
+      xy_color:
+      - 0.541
+      - 0.389
+      state: 'on'
+    light.living_room_mouse_light:
+      min_mireds: 150
+      max_mireds: 500
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      - xy
+      color_mode: color_temp
+      friendly_name: living_room_mouse_light
+      supported_features: 63
+      brightness: 203
+      color_temp: 390
+      hs_color:
+      - 28.711
+      - 70.253
+      rgb_color:
+      - 255
+      - 161
+      - 75
+      xy_color:
+      - 0.541
+      - 0.389
+      state: 'on'
+    light.living_room_tv_light:
+      min_mireds: 153
+      max_mireds: 500
+      effect_list:
+      - blink
+      - breathe
+      - okay
+      - channel_change
+      - finish_effect
+      - stop_effect
+      supported_color_modes:
+      - color_temp
+      - xy
+      color_mode: color_temp
+      friendly_name: living_room_tv_light
+      supported_features: 63
+      color_temp: 390
+      hs_color:
+      - 28.711
+      - 70.253
+      rgb_color:
+      - 255
+      - 161
+      - 75
+      xy_color:
+      - 0.541
+      - 0.389
+      brightness: 203
+      state: 'on'
+  metadata:
+    light.living_room_monkey_light:
+      entity_only: false
+    light.living_room_corner_light:
+      entity_only: false
+    light.living_room_dining_table_light:
+      entity_only: false
+    light.living_room_tv_light:
+      entity_only: false
+    light.living_room_mouse_light:
+      entity_only: false

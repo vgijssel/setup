@@ -2,7 +2,7 @@
   "system": {
     "static-host-mapping": {
       "host-name": {
-        "deluge": {
+        "transmission": {
           "inet": ["192.168.1.20"]
         },
         "jackett": {

@@ -28,7 +28,8 @@ def pex_binary(name:str, packages:list, pex_toolchain:str, python_toolchain:str,
         ABSOLUTE_DIR="$(dirname $TOOLS_ABSOLUTE_ANCHOR)"
         RELATIVE_DIR=$(out_dir {relative_anchor})
         export PLEASE_ROOT="${ABSOLUTE_DIR%"/$RELATIVE_DIR"}"
-        export PEX_ROOT="$PLEASE_ROOT/{CONFIG.PEX_CACHE_DIR}"
+        export PEX_ROOT="$PLEASE_ROOT/tmp/cache/pex"
+        export PATH="$(dirname $TOOLS_PYTHON):$PATH"
 
         $TOOLS_PEX --python $TOOLS_PYTHON --compile --venv -v -o $OUTS {packages_string}
         """,
@@ -66,7 +67,7 @@ cat <<'EOF{iterator}' > $OUTS/{script}
 #!/usr/bin/env bash
 {header}
 export PEX_SCRIPT={script}
-export PEX_ROOT="$PLEASE_ROOT/{CONFIG.PEX_CACHE_DIR}"
+export PEX_ROOT="$PLEASE_ROOT/tmp/cache/pex"
 # TODO: set the PEX_ROOT to a value otherwise the unpacking of the venv
 # takes a lot of time during invocations during builds
 $PLEASE_ROOT/$(out_location {pex_binary}) "$@"
