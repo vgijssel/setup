@@ -19,3 +19,21 @@ cache
 # Entries below this point are managed by Please (DO NOT EDIT)
 plz-out
 .plzconfig.local
+
+mutagen.yml.lock
+
+/home-assistant/config/*
+!/home-assistant/config/configuration.yaml
+!/home-assistant/config/automations.yaml
+!/home-assistant/config/blueprints/
+!/home-assistant/config/scenes.yaml
+!/home-assistant/config/scripts.yaml
+!/home-assistant/config/custom_components
+
+/home-assistant/zwavejs2mqtt-data/*
+!/home-assistant/zwavejs2mqtt-data/settings.json
+
+/home-assistant/zigbee2mqtt-data/*
+!/home-assistant/zigbee2mqtt-data/configuration.yaml
+
+/home-assistant/z-stack-firmware/*

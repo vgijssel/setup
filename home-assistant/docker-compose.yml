@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    restart: always
+    volumes:
+      - "./mosquitto-data:/mosquitto"
+    ports:
+      - "127.0.0.1:1883:1883"
+      - "127.0.0.1:9001:9001"
+    command: "mosquitto -c /mosquitto-no-auth.conf"
+
+  zigbee2mqtt:
+    container_name: zigbee2mqtt
+    restart: always
+    image: koenkk/zigbee2mqtt
+    volumes:
+      - ./zigbee2mqtt-data:/app/data
+      - /run/udev:/run/udev:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      - TZ=Europe/Amsterdam
+    devices:
+      - /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0:/dev/zigbee
+
+  zwavejs2mqtt:
+    container_name: zwavejs2mqtt
+    image: zwavejs/zwavejs2mqtt:latest
+    restart: always
+    tty: true
+    stop_signal: SIGINT
+    environment:
+      - SESSION_SECRET=mysupersecretkey
+      - ZWAVEJS_EXTERNAL_CONFIG=/usr/src/app/store/.config-db
+      # Uncomment if you want logs time and dates to match your timezone instead of UTC
+      # Available at https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      - TZ=Europe/Amsterdam
+    devices:
+      - /dev/serial/by-id/usb-0658_0200-if00:/dev/zwave
+    volumes:
+      - ./zwavejs2mqtt-data:/usr/src/app/store
+    ports:
+      - '127.0.0.1:8091:8091' # port for web interface
+      - '127.0.0.1:3000:3000' # port for Z-Wave JS websocket server
+
+  home-assistant:
+    container_name: homeassistant
+    user: "1000:1000"
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - ./config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    privileged: true
+    network_mode: host
