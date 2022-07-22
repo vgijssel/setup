@@ -42,9 +42,11 @@ else
     echo "Homebrew found. Skipping installation"
 fi
 
+# Prevent homebrew updating all existing packages before installing the requested packages
+export HOMEBREW_NO_AUTO_UPDATE=1
+
 if test ! $(which bazelisk); then
     echo "Installing bazelisk"
-    # TODO: install without updating homebrew first
     brew install bazelisk
 else
     echo "Bazelisk found. Skipping installation"
