@@ -241,10 +241,11 @@
       presence_entity_id: variable.baby_room_presence
       presence_indicator_entity_ids:
       - binary_sensor.baby_room_motion_home_security_motion_detection_2
+      - binary_sensor.baby_room_human_presence
       presence_hint_entity_ids:
       - binary_sensor.baby_room_shelly_input
       - binary_sensor.baby_room_door_contact
-      presence_timeout: 120
+      presence_timeout: 60
 - id: '1655755184933'
   alias: 'Driveway - Light: Manage'
   description: ''

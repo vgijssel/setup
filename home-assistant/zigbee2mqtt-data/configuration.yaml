@@ -111,3 +111,5 @@ devices:
   '0xc498860000081ee6':
     friendly_name: bathroom_5_light
     transition: 1
+  '0x54ef441000518a1b':
+    friendly_name: baby_room_human
