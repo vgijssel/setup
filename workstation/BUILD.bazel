@@ -1,0 +1,24 @@
+load("//tools/pyinfra:defs.bzl", "pyinfra_run")
+
+pyinfra_run(
+    name = "provision",
+    srcs = [
+        # "tasks/install_cni.py",
+        # "tasks/install_consul.py",
+        # "tasks/install_docker.py",
+        # "tasks/install_envoy.py",
+        # "tasks/install_nomad.py",
+        # "tasks/install_qemu.py",
+    ],
+    # TODO: can we add "askpass" here? so it works with the bootstrap script?
+    # args = ["--sudo"],
+    data = [
+        # ".kitchen/.gitignore",
+        # "files/consul.hcl",
+        # "files/consul.service",
+        # "files/nomad.hcl",
+        # "files/nomad.service",
+    ],
+    deploy = "deploy.py",
+    inventory = "inventory.py",
+)

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# For development on a particular branch can be run as follows:
+#
+#    BRANCH=mg/95/create-workstation-provisioning ./workstation/bootstrap.sh
+#
+
 set -Eeoux pipefail
 
 DEVELOPMENT_DIR="$HOME/Development"
@@ -39,7 +44,7 @@ fi
 
 if test ! $(which bazelisk); then
     echo "Installing bazelisk"
-    # TODO: install without updating first
+    # TODO: install without updating homebrew first
     brew install bazelisk
 else
     echo "Bazelisk found. Skipping installation"
