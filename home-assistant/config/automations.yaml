@@ -386,7 +386,7 @@
       presence_entity_id: variable.bathroom_presence
       illuminance_entity_id: sensor.bathroom_motion_illuminance_lux
       light_and_switch_entity_ids:
-      - switch.bathroom_shelly
+      - light.bathroom_lights
       start_time: 07:00:00
       end_time: '23:00:00'
       illuminance_threshold: 140
@@ -638,4 +638,31 @@
     - switch.adaptive_lighting_sleep_mode_baby_room
     - switch.adaptive_lighting_sleep_mode_landing
     - switch.adaptive_lighting_sleep_mode_hallway
+  mode: single
+- id: '1658667110204'
+  alias: 'Bathroom - Lights: Manual Toggle'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.bathroom_shelly_channel_1_input
+    - binary_sensor.bathroom_shelly_channel_2_input
+    to:
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: light.bathroom_lights
+      state: 'on'
+    then:
+    - service: light.turn_off
+      data:
+        transition: 1
+      target:
+        entity_id: light.bathroom_lights
+    else:
+    - service: light.turn_on
+      data: {}
+      target:
+        entity_id: light.bathroom_lights
   mode: single

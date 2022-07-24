@@ -25,6 +25,9 @@ adaptive_lighting:
   - name: landing
     lights:
       - light.landing_lights
+  - name: bathroom
+    lights:
+      - light.bathroom_lights
   - name: baby_room
     lights:
       - light.baby_room_light
@@ -294,7 +297,7 @@ homekit:
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.baby_room_light
-        - switch.bathroom_shelly
+        - light.bathroom_lights
         - switch.bedroom_shelly
         - switch.driveway_shelly
         - light.hallway_lights
@@ -320,7 +323,7 @@ homekit:
         name: Woonkamer Thermostaat
       light.baby_room_light:
         name: Babykamer Lamp
-      switch.bathroom_shelly:
+      light.bathroom_lights:
         name: Badkamer Lampen
       switch.bedroom_shelly:
         name: Slaapkamer Lamp
