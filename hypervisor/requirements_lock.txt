@@ -273,9 +273,9 @@ pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
     --hash=sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206
     # via cffi
-pyinfra==2.0rc1 \
-    --hash=sha256:7fb2dd5d82401322cd0639372c4d132a3aba594e7aae81e648e2bcf05cd1cd7f \
-    --hash=sha256:c9524159a1120752860194c569dc602b783d29cf940eba03a691f7b4bc710c94
+pyinfra==2.3 \
+    --hash=sha256:352ed9234dbcbb4588e4a64b0efcfe9fe22da140e21d6f2bafe49c2058416a36 \
+    --hash=sha256:3b9697541b1692bb30e0e934bce66f9cab6b6428d3d48a1c50d35aadaee2154d
     # via -r hypervisor/requirements.txt
 pynacl==1.5.0 \
     --hash=sha256:06b8f6fa7f5de8d5d2f7573fe8c863c051225a27b61e6860fd047b1775807858 \

@@ -1,0 +1,47 @@
+# BREW_PREFIX is output from `brew --prefix`
+BREW_PREFIX="/usr/local"
+GNU_CORE_UTILS="${BREW_PREFIX}/opt/coreutils/libexec/gnubin"
+GNU_FIND_UTILS="${BREW_PREFIX}/opt/findutils/libexec/gnubin"
+GNU_INDENT="${BREW_PREFIX}/opt/gnu-indent/libexec/gnubin"
+GNU_SED="${BREW_PREFIX}/opt/gnu-sed/libexec/gnubin"
+GNU_TAR="${BREW_PREFIX}/opt/gnu-tar/libexec/gnubin"
+GNU_WHICH="${BREW_PREFIX}/opt/gnu-which/libexec/gnubin"
+GNU_GREP="${BREW_PREFIX}/opt/grep/libexec/gnubin"
+
+export PATH=\
+"/usr/local/bin/:"\
+"/usr/local/sbin/:"\
+"${HOME}/.local/bin:"\
+"${HOME}/bin:"\
+"/Applications/Postgres.app/Contents/Versions/latest/bin:"\
+"${GNU_CORE_UTILS}:"\
+"${GNU_FIND_UTILS}:"\
+"${GNU_INDENT}:"\
+"${GNU_SED}:"\
+"${GNU_TAR}:"\
+"${GNU_WHICH}:"\
+"${GNU_GREP}:"\
+"${PATH}"
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export EDITOR="code --wait --new-window"
+export VISUAL="$EDITOR"
+export GIT_EDITOR="$EDITOR"
+
+# TODO hardcoding GOPATH here as it's not set by asdf plugin
+# see https://github.com/kennyp/asdf-golang/issues/28
+export GOPATH="${HOME}/.asdf/installs/golang/1.17.5/packages"
+export DOCKER_BUILDKIT=1
+export DIRENV_SHELL="${DIRENV_SHELL:-zsh}"
+export DEVELOPMENT_DIR="$HOME/Development"
+
+source "$HOME/.shell_snippets/asdf.sh"
+source "$HOME/.shell_snippets/direnv.sh"
+source "$HOME/.shell_snippets/gpg.sh"
+
+if [ -e "$HOME/.shell_snippets/tokens.sh" ]; then
+  source $HOME/.shell_snippets/tokens.sh
+fi
+
+export USING_ASDF=true
+export PERSONAL_ENV_LOADED=true
