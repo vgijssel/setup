@@ -10,13 +10,6 @@ from pyinfra import host
 # Try to keep the brew packages as close to the actual "feature" that's using it.
 # so for example all the gnu tools should probably be installed together with zsh!
 #
-# install ssh
-# - link config file
-# - copy user_config from 1password
-# - copy ssh keys from 1password
-# - gpg
-# - download secrets from 1password
-#
 # setup macos customisations
 # - max files
 # - other random settings

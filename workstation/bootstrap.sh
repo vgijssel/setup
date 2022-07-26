@@ -5,11 +5,17 @@
 #    BRANCH=mg/95/create-workstation-provisioning ./workstation/bootstrap.sh
 #
 
-set -Eeoux pipefail
+set -Eeou pipefail
 
 DEVELOPMENT_DIR="$HOME/Development"
 SETUP_DIR="$DEVELOPMENT_DIR/setup"
 CHECKOUT_BRANCH="${BRANCH:-master}"
+
+if [ ! -f '.env.bootstrap' ]
+then
+  echo "Please create a .env.bootstrap file in $(pwd)"
+  exit 1
+fi
 
 # create temporary ssh askpass binary
 SUDO_ASKPASS_BINARY=$(mktemp)
