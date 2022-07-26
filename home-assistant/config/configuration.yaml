@@ -28,6 +28,9 @@ adaptive_lighting:
   - name: bathroom
     lights:
       - light.bathroom_lights
+  - name: toilet
+    lights:
+      - light.toilet_lights
   - name: baby_room
     lights:
       - light.baby_room_light
@@ -107,6 +110,11 @@ light:
       - light.bathroom_4_light
       - light.bathroom_5_light
       - light.bathroom_6_light
+  - platform: group
+    name: toilet_lights
+    entities:
+      - light.toilet_1_light
+      - light.toilet_2_light
 
 variable:
   baby_room_presence:
@@ -306,7 +314,7 @@ homekit:
         - switch.laundry_room_shelly
         - switch.office_shelly
         - switch.supply_closet_shelly
-        - switch.toilet_shelly
+        - light.toilet_lights
 
     entity_config:
       light.living_room_corner_light:
@@ -341,8 +349,8 @@ homekit:
         name: Kantoor Lamp
       switch.supply_closet_shelly:
         name: Voorraadkast Lamp
-      switch.toilet_shelly:
-        name: Wc Lamp
+      light.toilet_lights:
+        name: Wc Lampen
 
   - name: Home Assistant - Baby Cam
     port: 21064

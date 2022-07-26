@@ -359,7 +359,7 @@
       illuminance_entity_id: sensor.illuminance
       illuminance_threshold: 200000
       light_and_switch_entity_ids:
-      - switch.toilet_shelly
+      - light.toilet_lights
       start_time: 00:00:00
       end_time: '23:59:59'
 - id: '1655804642598'
@@ -665,4 +665,30 @@
       data: {}
       target:
         entity_id: light.bathroom_lights
+  mode: single
+- id: '1658862168741'
+  alias: 'Toilet - Lights: Manual Toggle'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.toilet_shelly_channel_1_input
+    to:
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: light.toilet_lights
+      state: 'on'
+    then:
+    - service: light.turn_off
+      data:
+        transition: 1
+      target:
+        entity_id: light.toilet_lights
+    else:
+    - service: light.turn_on
+      data: {}
+      target:
+        entity_id: light.toilet_lights
   mode: single
