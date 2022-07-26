@@ -299,6 +299,10 @@ python-dateutil==2.8.2 \
     # via
     #   onepasswordconnectsdk
     #   pyinfra
+python-dotenv==0.20.0 \
+    --hash=sha256:b7e3b04a59693c42c36f9ab1cc2acc46fa5df8c78e178fc33a8d4cd05c8d498f \
+    --hash=sha256:d92a187be61fe482e4fd675b6d52200e7be63a12b724abbf931a40ce4fa92938
+    # via -r hypervisor/requirements.txt
 pywinrm==0.4.2 \
     --hash=sha256:188c064c70b3c73a1548f3c67ac2aec07815fa50e0cb0bda07e447a354226f5c \
     --hash=sha256:e7865ec5e46e7fedb859c656cfaba4fcf669de7c042b5a7d8a759544636bcfb7

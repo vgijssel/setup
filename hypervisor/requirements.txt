@@ -1,2 +1,3 @@
 pyinfra==2.3
 onepasswordconnectsdk==1.2.0
+python-dotenv==0.20.0

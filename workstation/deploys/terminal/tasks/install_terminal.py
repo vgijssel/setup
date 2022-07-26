@@ -57,7 +57,6 @@ def install_terminal():
         "zshrc",
         "zshenv",
         "iterm2/Snazzy.json",
-        "shell_snippets/asdf.sh",
         "shell_snippets/benchmark.sh",
         "shell_snippets/direnv.sh",
         "shell_snippets/fzf.zsh",
