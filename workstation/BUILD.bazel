@@ -3,12 +3,13 @@ load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 pyinfra_run(
     name = "provision",
     srcs = [
+        "deploys/editor/tasks/install_editor.py",
         "deploys/terminal/tasks/install_terminal.py",
         "helpers/home_link.py",
     ],
-    # TODO: can we add "askpass" here? so it works with the bootstrap script?
-    # args = ["--sudo"],
     data = [
+        "deploys/editor/files/keybindings.json",
+        "deploys/editor/files/settings.json",
         "deploys/terminal/files/bash_profile",
         "deploys/terminal/files/bashrc",
         "deploys/terminal/files/iterm2/Snazzy.json",

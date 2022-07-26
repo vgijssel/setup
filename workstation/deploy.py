@@ -1,15 +1,11 @@
 # from pyinfra.operations import brew
 from workstation.deploys.terminal.tasks.install_terminal import install_terminal
+from workstation.deploys.editor.tasks.install_editor import install_editor
 
 # TODO:
 #
 # Try to keep the brew packages as close to the actual "feature" that's using it.
 # so for example all the gnu tools should probably be installed together with zsh!
-#
-# install zsh
-# - homebrew zsh
-# - gnutools
-# - update user profile
 #
 # install asdf
 # - asdf binary using homebrew
@@ -34,6 +30,7 @@ from workstation.deploys.terminal.tasks.install_terminal import install_terminal
 # delete direnv
 
 install_terminal()
+install_editor()
 
 # brew.packages(
 #     name="Install vim",
