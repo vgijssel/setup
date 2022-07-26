@@ -1,3 +1,4 @@
+import onepassword_connect
 import transmission
 import jackett
 import radarr

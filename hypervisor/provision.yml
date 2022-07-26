@@ -1,4 +1,5 @@
 ---
+# TODO: add primary user to docker group
 - name: "Provision Hypervisor"
   hosts: all
   debugger: on_failed
