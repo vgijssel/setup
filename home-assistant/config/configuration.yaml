@@ -239,7 +239,7 @@ cloud:
         - light.living_room_mouse_light
         - light.living_room_tv_light
         - climate.living_room_heat
-        - light.office_light
+        - switch.office_shelly
         - light.kitchen_lights
     entity_config:
       light.living_room_corner_light:
@@ -274,7 +274,7 @@ cloud:
           - Thermostat
         room: Woonkamer
 
-      light.office_light:
+      switch.office_shelly:
         name: Lamp
         aliases:
           - Light
