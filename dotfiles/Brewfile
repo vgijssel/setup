@@ -28,8 +28,6 @@ brew 'pstree' # show parent/child relationship of processes
 
 brew 'git'
 brew 'svn' # necessary for pull in fonts
-brew 'gpg2'
-brew 'pinentry-mac' # tool to enter password into when using gpg
 brew 'git-crypt'
 
 brew 'mas' # cli tool to install Apple App Store apps

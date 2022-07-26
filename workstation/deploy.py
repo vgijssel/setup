@@ -2,6 +2,7 @@
 from workstation.deploys.terminal.tasks.install_terminal import install_terminal
 from workstation.deploys.editor.tasks.install_editor import install_editor
 from workstation.deploys.languages.tasks.install_languages import install_languages
+from workstation.deploys.ssh.tasks.install_ssh import install_ssh
 from pyinfra import host
 
 # TODO:
@@ -10,6 +11,9 @@ from pyinfra import host
 # so for example all the gnu tools should probably be installed together with zsh!
 #
 # install ssh
+# - link config file
+# - copy user_config from 1password
+# - copy ssh keys from 1password
 # - gpg
 # - download secrets from 1password
 #
@@ -34,3 +38,6 @@ if host.data.get("install_editor"):
 
 if host.data.get("install_languages"):
     install_languages()
+
+if host.data.get("install_ssh"):
+    install_ssh()

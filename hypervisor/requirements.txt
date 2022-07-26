@@ -1,1 +1,2 @@
 pyinfra==2.3
+onepasswordconnectsdk==1.2.0
