@@ -1,12 +1,14 @@
 import os
-from pyinfra.operations import brew
+from turtle import home
+from pyinfra.operations import brew, server, files
+from pyinfra.facts.server import User, Home
 from pyinfra.api.deploy import deploy
+from pyinfra import host
 from workstation.helpers.home_link import home_link
 
 
 @deploy("Install Terminal")
 def install_terminal():
-    # TODO: force?
     brew.casks(
         name="Install iTerm2",
         casks=[
@@ -68,3 +70,38 @@ def install_terminal():
             source_file=f"setup/workstation/deploys/terminal/files/{file}",
             target_file=f".{file}",
         )
+
+    homebrew_zsh_path = "/usr/local/bin/zsh"
+    current_user = host.get_fact(User)
+
+    files.line(
+        name=f"Add ZSH from Homebrew to acceptable shells {homebrew_zsh_path}",
+        path="/etc/shells",
+        line=homebrew_zsh_path,
+        _sudo=True,
+    )
+
+    server.shell(
+        name=f"Set default shell to ZSH for {current_user}",
+        commands=f"chsh -s {homebrew_zsh_path} {current_user}",
+        _sudo=True,
+    )
+
+    files.directory(
+        name="Set proper permissions for ZSH share directory",
+        path="/usr/local/share/zsh",
+        present=True,
+        mode="0755",
+        _sudo=True,
+        user=current_user,
+        group="admin",
+        recursive=True,
+    )
+
+    home_dir = host.get_fact(Home)
+
+    server.shell(
+        name=f"Install ZPlugin",
+        commands=f"source {home_dir}/.zshrc",
+        _shell_executable=homebrew_zsh_path,
+    )
