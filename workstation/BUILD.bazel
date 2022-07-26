@@ -7,6 +7,10 @@ pyinfra_run(
         "deploys/terminal/tasks/install_terminal.py",
         "helpers/home_link.py",
     ],
+    args = [
+        "--data install_editor=True",
+        "--data install_terminal=True",
+    ],
     data = [
         "deploys/editor/files/keybindings.json",
         "deploys/editor/files/settings.json",

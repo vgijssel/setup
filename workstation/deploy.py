@@ -1,6 +1,7 @@
 # from pyinfra.operations import brew
 from workstation.deploys.terminal.tasks.install_terminal import install_terminal
 from workstation.deploys.editor.tasks.install_editor import install_editor
+from pyinfra import host
 
 # TODO:
 #
@@ -29,14 +30,8 @@ from workstation.deploys.editor.tasks.install_editor import install_editor
 # delete github test job
 # delete direnv
 
-install_terminal()
-install_editor()
+if host.data.get("install_terminal"):
+    install_terminal()
 
-# brew.packages(
-#     name="Install vim",
-#     packages=["vim"],
-#     present=True,
-#     update=False,
-#     latest=False,
-#     upgrade=False,
-# )
+if host.data.get("install_editor"):
+    install_editor()
