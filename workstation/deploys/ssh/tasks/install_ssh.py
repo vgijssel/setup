@@ -10,7 +10,6 @@ onepassword_client = new_client(
 )
 onepassword_vault_id = os.environ["ONEPASSWORD_CONNECT_VAULT_ID"]
 
-
 # install ssh
 # - copy user_config from 1password
 # - copy ssh keys from 1password
@@ -42,10 +41,11 @@ def install_ssh():
             target_file=f".{file}",
         )
 
-    ssh_secret_config_files = [".ssh/user_config"]
+    ssh_secret_config_files = ["~/.ssh/user_config"]
 
     for file in ssh_secret_config_files:
-        onepassword_client.get_item_by_title(file, onepassword_vault_id)
-        import pdb
+        # import pdb
 
-        pdb.set_trace()
+        # pdb.set_trace()
+
+        onepassword_client.get_item_by_title(file, onepassword_vault_id)
