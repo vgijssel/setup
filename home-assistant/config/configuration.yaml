@@ -29,6 +29,10 @@ adaptive_lighting:
     lights:
       - light.bathroom_lights
   - name: toilet
+    initial_transition: 0
+    sleep_transition: 0
+    min_brightness: 30
+    sleep_brightness: 30
     lights:
       - light.toilet_lights
   - name: baby_room
