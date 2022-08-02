@@ -44,8 +44,20 @@ def install_ssh():
     ssh_secret_config_files = ["~/.ssh/user_config"]
 
     for file in ssh_secret_config_files:
-        # import pdb
+        document = onepassword_client.get_item_by_title(file, onepassword_vault_id)
+        document_files = onepassword_client.get_files(document.id, onepassword_vault_id)
 
-        # pdb.set_trace()
+        local_file = os.path.expanduser(file)
+        local_dir = os.path.dirname(local_file)
 
-        onepassword_client.get_item_by_title(file, onepassword_vault_id)
+        for document_file in document_files:
+            print(
+                f"Downloading {document_file.name} to {local_dir} resulting in {local_file}"
+            )
+
+            onepassword_client.download_file(
+                document_file.id,
+                document.id,
+                onepassword_vault_id,
+                local_dir,
+            )
