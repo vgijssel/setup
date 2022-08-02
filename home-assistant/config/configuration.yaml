@@ -315,6 +315,7 @@ homekit:
         - switch.office_shelly
         - switch.supply_closet_shelly
         - light.toilet_lights
+        - switch.bedroom_fan_power
 
     entity_config:
       light.living_room_corner_light:
@@ -335,6 +336,8 @@ homekit:
         name: Badkamer Lampen
       switch.bedroom_shelly:
         name: Slaapkamer Lamp
+      switch.bedroom_fan_power:
+        name: Slaapkamer Ventilator
       switch.driveway_shelly:
         name: Oprit Lamp
       light.hallway_lights:
