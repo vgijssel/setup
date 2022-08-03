@@ -127,12 +127,6 @@ devices:
     transition: 1
   '0x54ef441000518a1b':
     friendly_name: baby_room_human
-  '0x9c6937000070e16e':
-    friendly_name: toilet_1_light
-    transition: 0
-  '0xc498860000006fc0':
-    friendly_name: toilet_2_light
-    transition: 0
   '0x540f57fffe3c228f':
     friendly_name: baby_room_power
     measurement_poll_interval: 60
