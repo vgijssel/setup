@@ -1,5 +1,5 @@
 # BREW_PREFIX is output from `brew --prefix`
-BREW_PREFIX="/usr/local"
+BREW_PREFIX="/opt/homebrew"
 GNU_CORE_UTILS="${BREW_PREFIX}/opt/coreutils/libexec/gnubin"
 GNU_FIND_UTILS="${BREW_PREFIX}/opt/findutils/libexec/gnubin"
 GNU_INDENT="${BREW_PREFIX}/opt/gnu-indent/libexec/gnubin"
@@ -9,6 +9,7 @@ GNU_WHICH="${BREW_PREFIX}/opt/gnu-which/libexec/gnubin"
 GNU_GREP="${BREW_PREFIX}/opt/grep/libexec/gnubin"
 
 export PATH=\
+"${BREW_PREFIX}/bin/:"\
 "/usr/local/bin/:"\
 "/usr/local/sbin/:"\
 "${HOME}/.local/bin:"\
@@ -36,7 +37,6 @@ export DIRENV_SHELL="${DIRENV_SHELL:-zsh}"
 export DEVELOPMENT_DIR="$HOME/Development"
 
 source "$HOME/.shell_snippets/asdf.sh"
-source "$HOME/.shell_snippets/direnv.sh"
 source "$HOME/.shell_snippets/gpg.sh"
 
 if [ -e "$HOME/.shell_snippets/tokens.sh" ]; then

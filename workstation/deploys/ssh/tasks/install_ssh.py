@@ -41,7 +41,7 @@ def install_ssh():
             target_file=f".{file}",
         )
 
-    ssh_secret_config_files = ["~/.ssh/user_config"]
+    ssh_secret_config_files = ["~/.ssh/user_config", "~/.ssh/hackerone_ed25519.pub", "~/.ssh/hackerone_ed25519", "~/.shell_snippets/tokens.sh", "~/.config/git/user_config"]
 
     for file in ssh_secret_config_files:
         document = onepassword_client.get_item_by_title(file, onepassword_vault_id)

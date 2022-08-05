@@ -3,11 +3,17 @@
   "vim.useSystemClipboard": true,
   "vim.normalModeKeyBindingsNonRecursive": [
     {
-      "before": ["<space>"],
-      "commands": ["vspacecode.space"]
+      "before": [
+        "<space>"
+      ],
+      "commands": [
+        "vspacecode.space"
+      ]
     },
     {
-      "before": [","],
+      "before": [
+        ","
+      ],
       "commands": [
         "vspacecode.space",
         {
@@ -19,11 +25,17 @@
   ],
   "vim.visualModeKeyBindingsNonRecursive": [
     {
-      "before": ["<space>"],
-      "commands": ["vspacecode.space"]
+      "before": [
+        "<space>"
+      ],
+      "commands": [
+        "vspacecode.space"
+      ]
     },
     {
-      "before": [","],
+      "before": [
+        ","
+      ],
       "commands": [
         "vspacecode.space",
         {

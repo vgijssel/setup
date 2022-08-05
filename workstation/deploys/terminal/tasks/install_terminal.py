@@ -70,7 +70,8 @@ def install_terminal():
             target_file=f".{file}",
         )
 
-    homebrew_zsh_path = "/usr/local/bin/zsh"
+    # TODO: use homebrew --prefx to generate this
+    homebrew_zsh_path = "/opt/homebrew/bin/zsh"
     current_user = host.get_fact(User)
 
     files.line(
@@ -99,8 +100,8 @@ def install_terminal():
 
     home_dir = host.get_fact(Home)
 
-    server.shell(
-        name=f"Install ZPlugin",
-        commands=f"source {home_dir}/.zshrc",
-        _shell_executable=homebrew_zsh_path,
-    )
+    # server.shell(
+    #    name=f"Install ZPlugin",
+    #    commands=f"source {home_dir}/.zshrc",
+    #    _shell_executable=homebrew_zsh_path,
+    # )

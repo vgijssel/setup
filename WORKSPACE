@@ -17,10 +17,6 @@ load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
 
 bazel_skylib_workspace()
 
-rules_packer_toolchains(
-    version = "1.8.0",
-)
-
 # https://cloud-images.ubuntu.com/focal/current/unpacked/
 http_file(
     name = "ubuntu_focal_kernel",
