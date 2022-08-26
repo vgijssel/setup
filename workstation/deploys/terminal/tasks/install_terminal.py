@@ -1,5 +1,3 @@
-import os
-from turtle import home
 from pyinfra.operations import brew, server, files
 from pyinfra.facts.server import User, Home
 from pyinfra.api.deploy import deploy
@@ -38,7 +36,7 @@ def install_terminal():
             "watch",
             "wdiff",
             "wget",
-            "fzf",
+            "atuin",
             "fd",
             "zsh",
             "bash",
@@ -50,18 +48,15 @@ def install_terminal():
         upgrade=False,
     )
 
+    # TODO: remove all these files and replace completely with fig?
+    # TODO: link sheldon config file + lock file?
     terminal_config_files = [
         "profile",
         "bashrc",
         "bash_profile",
         "zshrc",
-        "zshenv",
-        "iterm2/Snazzy.json",
         "shell_snippets/benchmark.sh",
-        "shell_snippets/direnv.sh",
-        "shell_snippets/fzf.zsh",
         "shell_snippets/gpg.sh",
-        "shell_snippets/direnv.sh",
     ]
 
     for file in terminal_config_files:
@@ -100,6 +95,7 @@ def install_terminal():
 
     home_dir = host.get_fact(Home)
 
+    # TODO: change to "fig source" or something so everything related to fig is installed and ready?
     # server.shell(
     #    name=f"Install ZPlugin",
     #    commands=f"source {home_dir}/.zshrc",

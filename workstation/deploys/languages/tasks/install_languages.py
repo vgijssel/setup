@@ -1,6 +1,6 @@
 from pyinfra.api.deploy import deploy
 from pyinfra.api import operation
-from pyinfra.operations import brew, server, python
+from pyinfra.operations import brew
 from pyinfra.facts.server import Command
 from workstation.helpers.home_link import home_link
 from pyinfra import host
@@ -41,11 +41,6 @@ def install_languages():
     home_link(
         source_file=tool_versions_file,
         target_file=f".tool-versions",
-    )
-
-    home_link(
-        source_file=f"setup/workstation/deploys/languages/files/asdf.sh",
-        target_file=f".shell_snippets/asdf.sh",
     )
 
     # From https://github.com/asdf-vm/asdf/issues/276#issuecomment-1189478229

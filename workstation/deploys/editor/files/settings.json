@@ -47,7 +47,8 @@
   ],
   "terminal.integrated.shellArgs.osx": [],
   "terminal.integrated.env.osx": {
-    "PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/munki"
+    "PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/munki",
+    "FIG_NEW_SESSION": "1"
   },
   "terminal.integrated.inheritEnv": false,
   "eslint.format.enable": true,

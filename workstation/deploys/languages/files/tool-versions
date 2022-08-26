@@ -5,5 +5,6 @@ terraform-lsp 0.0.11-beta2
 python 3.9.7
 kubectl 1.24.3
 vault 1.7.3
-pulumi 3.36.0
+pulumi 3.31.0
 poetry 1.2.0a2
+postgres 13.6
