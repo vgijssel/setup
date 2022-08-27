@@ -10,12 +10,13 @@ export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent
 # TODO terminal
 
 - [x] migrate zshenv into fig
-- [x] color scheme and fonts, try a different theme "Tomorrow"
-- [ ] color scheme for VSCode!
-- [ ] migrate secrets into fig
-- [ ] setup ssh using fig
+- [x] color scheme, try a different theme "Tomorrow"
+- [x] color scheme for VSCode!
+- [x] migrate secrets into fig
+- [ ] setup SSH with GPG 
 - [ ] rewrite last setup repo commits to use proper git committer email
-- [ ] setup profile for iTerm2
+- [ ] automatically export iTerm2 preferences to folder
+- [ ] color schema for Fig
 
 # TODO programatically install:
 
@@ -31,6 +32,7 @@ export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent
 
 - launch and configure docker desktop
 - launch and configure vscode
+- launch and configure iTerm2 
 
 # TODO rest
 
