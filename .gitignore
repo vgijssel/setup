@@ -39,3 +39,5 @@ mutagen.yml.lock
 /home-assistant/z-stack-firmware/*
 
 .env
+
+.DS_Store

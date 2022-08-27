@@ -10,9 +10,11 @@ export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent
 # TODO terminal
 
 - [x] migrate zshenv into fig
+- [x] color scheme and fonts, try a different theme "Tomorrow"
+- [ ] color scheme for VSCode!
 - [ ] migrate secrets into fig
 - [ ] setup ssh using fig
-- [ ] color scheme, snazzy again? Or something else?
+- [ ] rewrite last setup repo commits to use proper git committer email
 - [ ] setup profile for iTerm2
 
 # TODO programatically install:

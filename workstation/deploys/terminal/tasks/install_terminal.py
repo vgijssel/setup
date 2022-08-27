@@ -48,6 +48,30 @@ def install_terminal():
         upgrade=False,
     )
 
+    brew.tap(name="Tap brew installable fonts", src="homebrew/cask-fonts", present=True)
+
+    brew.packages(
+        name="Install svn necessary for some fonts",
+        packages=[
+            "svn",
+        ],
+        present=True,
+        update=False,
+        latest=False,
+        upgrade=False,
+    )
+
+    brew.casks(
+        name="Install fonts for terminal",
+        casks=[
+            "font-menlo-for-powerline",
+            "font-droid-sans-mono-for-powerline",
+        ],
+        present=True,
+        latest=False,
+        upgrade=False,
+    )
+
     # TODO: remove all these files and replace completely with fig?
     # TODO: link sheldon config file + lock file?
     terminal_config_files = [
