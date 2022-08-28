@@ -1,6 +1,5 @@
 import os
 from pyinfra.api.deploy import deploy
-from pyinfra.operations import brew
 from workstation.helpers.home_link import home_link
 from onepasswordconnectsdk.client import new_client, new_client
 
@@ -19,20 +18,9 @@ onepassword_vault_id = os.environ["ONEPASSWORD_CONNECT_VAULT_ID"]
 
 @deploy("Install SSH")
 def install_ssh():
-    brew.packages(
-        name="Install dependencies",
-        packages=["gpg2", "pinentry-mac"],
-        present=True,
-        update=False,
-        latest=False,
-        upgrade=False,
-    )
-
     ssh_config_files = [
         "ssh/config",
-        "gnupg/dirmngr.conf",
-        "gnupg/gpg-agent.conf",
-        "gnupg/gpg.conf",
+        "gitconfig",
     ]
 
     for file in ssh_config_files:
@@ -41,7 +29,7 @@ def install_ssh():
             target_file=f".{file}",
         )
 
-    ssh_secret_config_files = ["~/.ssh/user_config", "~/.ssh/hackerone_ed25519.pub", "~/.ssh/hackerone_ed25519", "~/.shell_snippets/tokens.sh", "~/.config/git/user_config"]
+    ssh_secret_config_files = ["~/.ssh/user_config"]
 
     for file in ssh_secret_config_files:
         document = onepassword_client.get_item_by_title(file, onepassword_vault_id)

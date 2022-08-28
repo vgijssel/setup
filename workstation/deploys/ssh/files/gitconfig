@@ -1,0 +1,11 @@
+[color]
+    ui=true
+[push]
+    default=simple
+[user]
+	email=6029816+mvgijssel@users.noreply.github.com
+	name=mvgijssel
+[core]
+    attributesfile = ~/.config/git/attributes
+[pull]
+    rebase = false
