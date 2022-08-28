@@ -2,6 +2,7 @@ import os
 from pyinfra.api.deploy import deploy
 from workstation.helpers.home_link import home_link
 from onepasswordconnectsdk.client import new_client, new_client
+from pyinfra.operations import brew
 
 onepassword_client = new_client(
     os.environ["ONEPASSWORD_CONNECT_HOST"],
@@ -9,15 +10,19 @@ onepassword_client = new_client(
 )
 onepassword_vault_id = os.environ["ONEPASSWORD_CONNECT_VAULT_ID"]
 
-# install ssh
-# - copy user_config from 1password
-# - copy ssh keys from 1password
-# - gpg
-# - download secrets from 1password
-
-
 @deploy("Install SSH")
 def install_ssh():
+    brew.packages(
+        name="Install latest version of git",
+        packages=[
+            "git",
+        ],
+        present=True,
+        update=False,
+        latest=True,
+        upgrade=False,
+    )
+
     ssh_config_files = [
         "ssh/config",
         "gitconfig",

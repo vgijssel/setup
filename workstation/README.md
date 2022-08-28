@@ -20,6 +20,7 @@ export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent
 
 # TODO programatically install:
 
+- 1password beta (for git commit signing)
 - vscode extensions
 - vscode configure python extension
 - whatsapp
@@ -29,6 +30,7 @@ export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent
 - spotify
 
 # TODO manual steps after install
+
 
 - launch and configure docker desktop
 - launch and configure vscode
