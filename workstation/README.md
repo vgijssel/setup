@@ -13,7 +13,7 @@ export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent
 - [x] color scheme, try a different theme "Tomorrow"
 - [x] color scheme for VSCode!
 - [x] migrate secrets into fig
-- [ ] setup SSH with GPG 
+- [x] setup SSH with GPG 
 - [ ] rewrite last setup repo commits to use proper git committer email
 - [ ] automatically export iTerm2 preferences to folder
 - [ ] color schema for Fig
