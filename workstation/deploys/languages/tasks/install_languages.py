@@ -17,10 +17,10 @@ tool_versions_path = r.Rlocation(
 
 @operation
 def asdf_plugin(plugin_name):
-    # installed_asdf_plugins = set(host.get_fact(Command, "asdf plugin list").split("\n"))
+    installed_asdf_plugins = set(host.get_fact(Command, "asdf plugin list").split("\n"))
 
-    # if plugin_name in installed_asdf_plugins:
-    #    return []
+    if plugin_name in installed_asdf_plugins:
+       return []
 
     yield f"asdf plugin-add {plugin_name}"
 
