@@ -1,25 +1,23 @@
 # Installation
 
-1. Create`.env.bootstrap` from 1Password
-2. Run the bootstrap script
+1. Install xcode from the appstore (can we do this automatically using mas cli?)
+2. Create`.env.bootstrap` from 1Password
+3. Run the bootstrap script
 
 ```
 export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mvgijssel/setup/$BRANCH/workstation/bootstrap.sh)"
 ```
 
-# TODO terminal
-
-- [x] migrate zshenv into fig
-- [x] color scheme, try a different theme "Tomorrow"
-- [x] color scheme for VSCode!
-- [x] migrate secrets into fig
-- [x] setup SSH with GPG 
-- [ ] rewrite last setup repo commits to use proper git committer email
-- [ ] automatically export iTerm2 preferences to folder
-- [ ] color schema for Fig
-
 # TODO programatically install:
 
+- xcode
+```
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -license
+
+# create symlink to SDK?
+MacOSX12.3.sdk -> /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+```
 - 1password beta (for git commit signing)
 - vscode extensions
 - vscode configure python extension
@@ -28,9 +26,10 @@ export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent
 - notion
 - docker desktop for mac
 - spotify
+- buildifier (for formatting Bazel files)
+- alfred
 
 # TODO manual steps after install
-
 
 - launch and configure docker desktop
 - launch and configure vscode
@@ -39,3 +38,15 @@ export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent
 # TODO rest
 
 - disable always updating homebrew when installing, upgrade/update on a schedule?
+
+
+
+---
+
+Trying with system Python by removing asdf from Fig
+```
+source $(/opt/homebrew/bin//brew --prefix asdf)/libexec/asdf.sh
+```
+
+Seems to still be broken because bazel c compiler cannot find the "pyconfig.h" header
+Do we need to configure another include directory in the .bazelrc file for C?

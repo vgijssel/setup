@@ -55,3 +55,5 @@ def install_languages():
             name=f"Install asdf plugin: {asdf_plugin_name}",
             plugin_name=asdf_plugin_name,
         )
+
+    # TODO: actually install the globally necessary languages?
