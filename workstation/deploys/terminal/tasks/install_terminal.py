@@ -72,15 +72,13 @@ def install_terminal():
         upgrade=False,
     )
 
-    # TODO: remove all these files and replace completely with fig?
-    # TODO: link sheldon config file + lock file?
     terminal_config_files = [
         "profile",
         "bashrc",
         "bash_profile",
         "zshrc",
         "shell_snippets/benchmark.sh",
-        "shell_snippets/gpg.sh",
+        "config/atuin/config.toml",
     ]
 
     for file in terminal_config_files:
