@@ -38,6 +38,8 @@ class DocumentObject():
         return json.dumps(self._data)
 
 class Document(FactBase):
+    requires_command = "op"
+
     def command(self, path):
         return f'op --format json item get "{path}" 2> /dev/null || true'
 
