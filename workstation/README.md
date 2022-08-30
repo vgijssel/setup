@@ -1,7 +1,7 @@
 # Installation
 
 1. Install xcode from the appstore (can we do this automatically using mas cli?)
-2. Create`.env.bootstrap` from 1Password
+2. Install 1Password 8 from here .... Ensure to enable biometric unlock for the CLI
 3. Run the bootstrap script
 
 ```
@@ -18,7 +18,6 @@ sudo xcodebuild -license
 # create symlink to SDK?
 MacOSX12.3.sdk -> /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
 ```
-- 1password beta (for git commit signing)
 - vscode extensions
 - vscode configure python extension
 - whatsapp

@@ -1,8 +1,11 @@
 import os
 from pyinfra.api.deploy import deploy
 from workstation.helpers.home_link import home_link
+from workstation.helpers import onepassword
 from onepasswordconnectsdk.client import new_client, new_client
+from pyinfra.facts.server import Home
 from pyinfra.operations import brew
+from pyinfra import host
 
 onepassword_client = new_client(
     os.environ["ONEPASSWORD_CONNECT_HOST"],
@@ -34,23 +37,11 @@ def install_ssh():
             target_file=f".{file}",
         )
 
-    ssh_secret_config_files = ["~/.ssh/user_config"]
+    home_dir = host.get_fact(Home)
 
-    for file in ssh_secret_config_files:
-        document = onepassword_client.get_item_by_title(file, onepassword_vault_id)
-        document_files = onepassword_client.get_files(document.id, onepassword_vault_id)
-
-        local_file = os.path.expanduser(file)
-        local_dir = os.path.dirname(local_file)
-
-        for document_file in document_files:
-            print(
-                f"Downloading {document_file.name} to {local_dir} resulting in {local_file}"
-            )
-
-            onepassword_client.download_file(
-                document_file.id,
-                document.id,
-                onepassword_vault_id,
-                local_dir,
-            )
+    onepassword.sync(
+        name="Sync 1Password user_config",
+        local_file=f"{home_dir}/.ssh/user_config",
+        remote_file=f"~/.ssh/user_config",
+        vault="Workstation",
+    )

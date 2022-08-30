@@ -8,6 +8,7 @@ pyinfra_run(
         "deploys/ssh/tasks/install_ssh.py",
         "deploys/terminal/tasks/install_terminal.py",
         "helpers/home_link.py",
+        "helpers/onepassword.py",
     ],
     args = [
         "--data install_editor=True",
