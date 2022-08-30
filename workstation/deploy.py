@@ -1,8 +1,4 @@
 # from pyinfra.operations import brew
-from dotenv import load_dotenv, find_dotenv
-
-load_dotenv(dotenv_path=find_dotenv(raise_error_if_not_found=True))
-
 from workstation.deploys.terminal.tasks.install_terminal import install_terminal
 from workstation.deploys.editor.tasks.install_editor import install_editor
 from workstation.deploys.languages.tasks.install_languages import install_languages

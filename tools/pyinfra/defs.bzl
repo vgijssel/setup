@@ -11,7 +11,7 @@ def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = 
             "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
         ] + srcs,
         main = "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra.py",
-        deps = ["@rules_python//python/runfiles", "@hypervisor_deps_onepasswordconnectsdk//:pkg", "@hypervisor_deps_python_dotenv//:pkg", "@hypervisor_deps_pyinfra//:pkg"],
+        deps = ["@rules_python//python/runfiles", "@hypervisor_deps_pyinfra//:pkg"],
     )
 
     runner_binary(

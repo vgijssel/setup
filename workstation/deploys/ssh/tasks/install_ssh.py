@@ -1,17 +1,9 @@
-import os
 from pyinfra.api.deploy import deploy
 from workstation.helpers.home_link import home_link
 from workstation.helpers import onepassword
-from onepasswordconnectsdk.client import new_client, new_client
 from pyinfra.facts.server import Home
 from pyinfra.operations import brew
 from pyinfra import host
-
-onepassword_client = new_client(
-    os.environ["ONEPASSWORD_CONNECT_HOST"],
-    os.environ["ONEPASSWORD_CONNECT_TOKEN"],
-)
-onepassword_vault_id = os.environ["ONEPASSWORD_CONNECT_VAULT_ID"]
 
 @deploy("Install SSH")
 def install_ssh():
