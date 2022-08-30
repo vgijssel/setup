@@ -25,7 +25,6 @@ MacOSX12.3.sdk -> /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.pl
 - notion
 - docker desktop for mac
 - spotify
-- buildifier (for formatting Bazel files)
 - alfred
 
 # TODO manual steps after install

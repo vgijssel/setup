@@ -15,6 +15,17 @@ def install_editor():
         upgrade=False,
     )
 
+    brew.packages(
+        name="Install dependencies",
+        packages=[
+            "buildifier", # Necessary for Bazel autoformatting
+        ],
+        present=True,
+        update=False,
+        latest=False,
+        upgrade=False,
+    )
+
     editor_config_files = [
         "settings.json",
         "keybindings.json",
