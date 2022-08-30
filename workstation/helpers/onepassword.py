@@ -65,7 +65,7 @@ def update_file_mtime(state, host, file_path, mtime):
     print(file_path, mtime, epoch)
     os.utime(file_path, (epoch, epoch))
 
-def download_document(remote_file, local_file):
+def download_document(remote_file, remote_info, local_file):
     yield f'op document get "{remote_file}" --output {local_file}'
     mtime = remote_info.mtime() if remote_info.mtime() is not None else datetime.datetime.now()
     yield FunctionCommand(update_file_mtime, [local_file, mtime], {})
@@ -83,7 +83,7 @@ def sync(local_file, remote_file, vault):
         raise OperationError(f"Both local {local_file} and remote {remote_file} don't exist")
 
     if local_info is None:
-        download_document(remote_file, local_file)
+        download_document(remote_file, remote_info, local_file)
 
     # upload the local file and set the local mtime
     elif remote_info is None:
@@ -97,8 +97,7 @@ def sync(local_file, remote_file, vault):
 
     # update the local file
     elif has_remote_changed(local_info, remote_info):
-        download_document(remote_file, local_file)
+        download_document(remote_file, remote_info, local_file)
 
     else:
-        # No changes!
-        return []
+        host.noop(f"local {local_file} and remote {remote_file} are in sync.")
