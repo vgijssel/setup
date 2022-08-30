@@ -1,5 +1,5 @@
 from pyinfra.operations import brew, server, files
-from pyinfra.facts.server import User, Home
+from pyinfra.facts.server import User
 from pyinfra.api.deploy import deploy
 from pyinfra import host
 from workstation.helpers.home_link import home_link
@@ -87,7 +87,6 @@ def install_terminal():
             target_file=f".{file}",
         )
 
-    # TODO: use homebrew --prefx to generate this
     homebrew_zsh_path = "/opt/homebrew/bin/zsh"
     current_user = host.get_fact(User)
 
@@ -114,12 +113,3 @@ def install_terminal():
         group="admin",
         recursive=True,
     )
-
-    home_dir = host.get_fact(Home)
-
-    # TODO: change to "fig source" or something so everything related to fig is installed and ready?
-    # server.shell(
-    #    name=f"Install ZPlugin",
-    #    commands=f"source {home_dir}/.zshrc",
-    #    _shell_executable=homebrew_zsh_path,
-    # )

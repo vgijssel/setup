@@ -27,4 +27,8 @@ def home_link(source_file, target_file):
         target=source_file_absolute,
         present=True,
         symbolic=True,
+        force=True,
+        create_remote_dir=True,
+        force_backup=True,
+        force_backup_dir=os.path.join(home_dir, '.setup-workstation-dotfile-backup')
     )
