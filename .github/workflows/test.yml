@@ -13,27 +13,6 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-  test-dotfiles:
-    name: Test dotfiles
-    timeout-minutes: 60
-    runs-on: macos-latest
-    defaults:
-      run:
-        shell: bash -l {0}
-    steps:
-      - uses: actions/checkout@v1
-      - run: ./scripts/github_load_env.sh .envrc
-      - run: env
-      - run: |
-          export CI_PASSWORD=''
-          export BRANCH="$GIT_BRANCH"
-          eval "$(cat ./dotfiles/bootstrap.sh)" < <(echo $CI_PASSWORD)
-      - run: env
-      - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
-        run: bundle install
-      - working-directory: ${{ env.SETUP_DOTFILES_DIR }}
-        run: bundle exec rspec
-
   hypervisor-test:
     name: Hypervisor test
     timeout-minutes: 30
