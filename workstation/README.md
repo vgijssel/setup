@@ -20,12 +20,6 @@ MacOSX12.3.sdk -> /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.pl
 ```
 - vscode extensions
 - vscode configure python extension
-- whatsapp
-- viscosity
-- notion
-- docker desktop for mac
-- spotify
-- alfred
 
 # TODO manual steps after install
 
@@ -36,15 +30,3 @@ MacOSX12.3.sdk -> /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.pl
 # TODO rest
 
 - disable always updating homebrew when installing, upgrade/update on a schedule?
-
-
-
----
-
-Trying with system Python by removing asdf from Fig
-```
-source $(/opt/homebrew/bin//brew --prefix asdf)/libexec/asdf.sh
-```
-
-Seems to still be broken because bazel c compiler cannot find the "pyconfig.h" header
-Do we need to configure another include directory in the .bazelrc file for C?
