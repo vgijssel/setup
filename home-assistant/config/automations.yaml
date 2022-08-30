@@ -88,10 +88,10 @@
     path: diy/presence.yaml
     input:
       presence_entity_id: variable.driveway_presence
-      presence_indicator_entity_ids:
-      - binary_sensor.hallway_door_contact
+      presence_indicator_entity_ids: []
       presence_hint_entity_ids:
       - binary_sensor.driveway_shelly_input
+      - binary_sensor.hallway_motion_occupancy
       presence_timeout: 120
 - id: '1655752447329'
   alias: 'Bedroom - Presence: Manage'
@@ -124,7 +124,6 @@
       - binary_sensor.toilet_motion_occupancy
       presence_timeout: 120
       presence_indicator_entity_ids:
-      - binary_sensor.hallway_door_contact
       - binary_sensor.hallway_motion_occupancy
 - id: '1655752840815'
   alias: 'Landing - Presence: Manage'
@@ -140,7 +139,7 @@
       - binary_sensor.bedroom_door_contact
       - binary_sensor.bathroom_door_contact
       presence_indicator_entity_ids:
-      - binary_sensor.baby_room_motion_home_security_motion_detection_2
+      - binary_sensor.baby_room_motion_general_purpose_state_2
       - binary_sensor.bedroom_motion_home_security_motion_detection_3
       - binary_sensor.laundry_room_motion_occupancy
       - binary_sensor.motion_sensor_home_security_motion_detection
@@ -191,14 +190,14 @@
       - binary_sensor.office_door_contact
       - binary_sensor.office_shelly_input
 - id: '1655753220517'
-  alias: 'Baby Room - Presence: Manage'
+  alias: 'Baby Room - Presence: Manage '
   description: ''
   use_blueprint:
     path: diy/presence.yaml
     input:
       presence_entity_id: variable.baby_room_presence
       presence_indicator_entity_ids:
-      - binary_sensor.baby_room_motion_home_security_motion_detection_2
+      - binary_sensor.baby_room_motion_general_purpose_state_2
       - binary_sensor.baby_room_human_presence
       presence_hint_entity_ids:
       - binary_sensor.baby_room_shelly_input
