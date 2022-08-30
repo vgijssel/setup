@@ -29,11 +29,10 @@ def install_ssh():
             target_file=f".{file}",
         )
 
-    # TODO: fix this in CI
-    # home_dir = host.get_fact(Home)
-    # onepassword.sync(
-    #     name="Sync 1Password user_config",
-    #     local_file=f"{home_dir}/.ssh/user_config",
-    #     remote_file=f"~/.ssh/user_config",
-    #     vault="Workstation",
-    # )
+    home_dir = host.get_fact(Home)
+    onepassword.sync(
+        name="Sync 1Password user_config",
+        local_file=f"{home_dir}/.ssh/user_config",
+        remote_file=f"~/.ssh/user_config",
+        vault="Workstation",
+    )
