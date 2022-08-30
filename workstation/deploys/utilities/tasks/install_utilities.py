@@ -8,7 +8,7 @@ def install_utilities():
         name="Install Apps",
         casks=[
             "whatsapp",
-            # "slack",
+            # "slack", # cannot do Slack as this is provisioned by IT
             "notion",
             "spotify",
             "viscosity",

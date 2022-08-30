@@ -1,2 +1,0 @@
-export DIRENV_SHELL="bash"
-source "$HOME/.zshenv"

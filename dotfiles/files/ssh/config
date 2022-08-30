@@ -1,5 +1,0 @@
-IgnoreUnknown UseKeychain
-Include ~/.ssh/user_config
-
-Host *
-     SendEnv LANG LC_*
