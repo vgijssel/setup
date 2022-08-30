@@ -1,10 +1,9 @@
 from pyinfra.api.deploy import deploy
-from pyinfra.api import operation
+from pyinfra.api import operation, FactBase
 from pyinfra.operations import brew
 from pyinfra.facts.server import Command
 from workstation.helpers.home_link import home_link
 from pyinfra import host
-
 from rules_python.python.runfiles import runfiles
 
 r = runfiles.Create()
@@ -14,10 +13,14 @@ tool_versions_path = r.Rlocation(
     "setup/workstation/deploys/languages/files/tool-versions"
 )
 
+class AsdfPlugins(FactBase):
+    command = "asdf plugin list"
+    requires_command = "asdf"
+    default = list
 
 @operation
 def asdf_plugin(plugin_name):
-    installed_asdf_plugins = set(host.get_fact(Command, "asdf plugin list").split("\n"))
+    installed_asdf_plugins = host.get_fact(AsdfPlugins)
 
     if plugin_name in installed_asdf_plugins:
        return []
