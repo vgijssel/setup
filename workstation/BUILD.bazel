@@ -8,7 +8,9 @@ pyinfra_run(
         "deploys/ssh/tasks/install_ssh.py",
         "deploys/terminal/tasks/install_terminal.py",
         "deploys/utilities/tasks/install_utilities.py",
+        "deploys/workflow/tasks/install_workflow.py",
         "helpers/home_link.py",
+        "helpers/macos.py",
         "helpers/onepassword.py",
     ],
     args = [
@@ -16,6 +18,8 @@ pyinfra_run(
         "--data install_terminal=True",
         "--data install_languages=True",
         "--data install_ssh=True",
+        "--data install_utilities=True",
+        "--data install_workflow=True",
     ],
     data = [
         "deploys/editor/files/keybindings.json",

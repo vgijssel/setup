@@ -13,7 +13,6 @@ def install_utilities():
             "spotify",
             "viscosity",
             "docker",
-            "Alfred",
         ],
         present=True,
         latest=False,
