@@ -18,3 +18,15 @@ def install_utilities():
         latest=False,
         upgrade=False,
     )
+
+    brew.packages(
+        name="Install tools",
+        packages=[
+            "aws-okta",
+            "awscli",
+        ],
+        present=True,
+        update=False,
+        latest=False,
+        upgrade=False,
+    )
