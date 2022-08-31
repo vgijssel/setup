@@ -1,8 +1,9 @@
 from pyinfra.operations import brew, server, files
-from pyinfra.facts.server import User
+from pyinfra.facts.server import User, Command
 from pyinfra.api.deploy import deploy
 from pyinfra import host
 from workstation.helpers.home_link import home_link
+import os
 
 
 @deploy("Install Terminal")
@@ -87,7 +88,7 @@ def install_terminal():
             target_file=f".{file}",
         )
 
-    homebrew_zsh_path = "/opt/homebrew/bin/zsh"
+    homebrew_zsh_path = os.path.join(host.get_fact(Command, 'brew --prefix'), 'bin', 'zsh')
     current_user = host.get_fact(User)
 
     files.line(
