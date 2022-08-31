@@ -9,9 +9,10 @@ import os
 @deploy("Install Terminal")
 def install_terminal():
     brew.casks(
-        name="Install iTerm2",
+        name="Install Apps",
         casks=[
             "iterm2",
+            "fig",
         ],
         present=True,
         latest=False,
