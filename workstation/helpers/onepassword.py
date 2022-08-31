@@ -74,6 +74,10 @@ def download_document(remote_file, remote_info, local_file):
 
 @operation
 def sync(local_file, remote_file, vault):
+    if os.environ['CI'] == 'true':
+        host.noop(f"onepassword.sync does not work in the CI yet. Skipping.")
+        return
+
     local_info = host.get_fact(File, path=local_file)
     remote_info = host.get_fact(Document, path=remote_file)
 
