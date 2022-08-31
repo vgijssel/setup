@@ -116,8 +116,11 @@ def install_terminal():
         recursive=True,
     )
 
-    server.shell(
-        name=f"Install Fig dotfiles",
-        commands=f"fig source",
-        _shell_executable=homebrew_zsh_path,
-    )
+    if os.environ['CI'] == 'true':
+        host.noop(f"Currently unable to login to Fig.io in the CI")
+    else:
+        server.shell(
+            name=f"Install Fig dotfiles",
+            commands=f"fig source",
+            _shell_executable=homebrew_zsh_path,
+        )
