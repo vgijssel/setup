@@ -102,4 +102,5 @@
   },
   "go.toolsManagement.autoUpdate": true,
   "workbench.colorTheme": "Snazzy",
+  "editor.accessibilitySupport": "off",
 }

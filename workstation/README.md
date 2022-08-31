@@ -26,6 +26,11 @@ MacOSX12.3.sdk -> /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.pl
 - launch and configure docker desktop
 - launch and configure vscode
 - launch and configure iTerm2 
+- launch and configure Amethyst
+- Enable "Night Shift" in Displays > Night Shift
+- Map Caps Lock to Escape for "Apple Internal Keyboard / Trackpad" in Keyboard > Modified Keys
+- Set "Secondary click" to "Click in bottom right corner" in Trackpad
+- Reboot to ensure all changes have applied
 
 # TODO rest
 
