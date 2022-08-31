@@ -113,3 +113,9 @@ def install_terminal():
         group="admin",
         recursive=True,
     )
+
+    server.shell(
+        name=f"Install Fig dotfiles",
+        commands=f"fig source",
+        _shell_executable=homebrew_zsh_path,
+    )
