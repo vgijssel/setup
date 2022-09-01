@@ -22,7 +22,6 @@ def install_utilities():
     brew.packages(
         name="Install tools",
         packages=[
-            "aws-okta",
             "awscli",
         ],
         present=True,
