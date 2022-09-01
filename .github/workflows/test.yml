@@ -27,7 +27,7 @@ jobs:
         run: echo "::set-output name=run::false"
 
   workstation-test:
-    if: needs.select_tests_to_run.outputs.run-workstation-test == true
+    if: needs.select_tests_to_run.outputs.run-workstation-test == 'true'
     name: Workstation test
     needs: select_tests_to_run
     timeout-minutes: 15
@@ -47,7 +47,7 @@ jobs:
       - run: bazel run //workstation:provision
 
   hypervisor-test:
-    if: needs.select_tests_to_run.outputs.run-hypervisor-test == true
+    if: needs.select_tests_to_run.outputs.run-hypervisor-test == 'true'
     name: Hypervisor test
     needs: select_tests_to_run
     timeout-minutes: 30
