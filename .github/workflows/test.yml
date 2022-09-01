@@ -28,7 +28,7 @@ jobs:
           key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
           restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
       # removing the aws CLI so it can be installed by the workstation provisioning
-      - run: rm /usr/local/bin/aws
+      - run: rm /usr/local/bin/aws /usr/local/bin/aws_completer
       - run: bazel run //workstation:provision
 
   hypervisor-test:
