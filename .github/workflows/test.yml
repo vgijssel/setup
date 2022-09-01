@@ -13,9 +13,24 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
+  select_tests_to_run:
+    name: Select Tests to Run
+    timeout-minutes: 2
+    runs-on: ubuntu-latest
+    outputs:
+      run-workstation-test: ${{ steps.step1.outputs.run }}
+      run-hypervisor-test: ${{ steps.step2.outputs.run }}
+    steps:
+      - id: step1
+        run: echo "::set-output name=run::true"
+      - id: step2
+        run: echo "::set-output name=run::false"
+
   workstation-test:
+    if: needs.select_tests_to_run.outputs.run-workstation-test == true
     name: Workstation test
-    timeout-minutes: 30
+    needs: select_tests_to_run
+    timeout-minutes: 15
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v1
@@ -32,7 +47,9 @@ jobs:
       - run: bazel run //workstation:provision
 
   hypervisor-test:
+    if: needs.select_tests_to_run.outputs.run-hypervisor-test == true
     name: Hypervisor test
+    needs: select_tests_to_run
     timeout-minutes: 30
     runs-on: macos-10.15
     steps:
