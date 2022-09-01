@@ -5,6 +5,8 @@ if [[ "$ZPROF" = true ]]; then
   zmodload zsh/zprof
 fi
 
+echo "kerk"
+
 # stop ZSH profiling and print profiling information
 if [[ "$ZPROF" = true ]]; then
   zprof
