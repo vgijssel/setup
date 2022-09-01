@@ -1,3 +1,0 @@
-DOTFILES_DIRS="$DEVELOPMENT_DIR/setup/dotfiles/files"
-SYMLINK_DIRS="alfred iterm2"
-UNDOTTED="bin iterm2 Library alfred Development"

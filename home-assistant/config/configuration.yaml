@@ -25,6 +25,16 @@ adaptive_lighting:
   - name: landing
     lights:
       - light.landing_lights
+  - name: bathroom
+    lights:
+      - light.bathroom_lights
+  - name: toilet
+    initial_transition: 0
+    sleep_transition: 0
+    min_brightness: 30
+    sleep_brightness: 30
+    lights:
+      - light.toilet_lights
   - name: baby_room
     lights:
       - light.baby_room_light
@@ -38,31 +48,6 @@ adaptive_lighting:
       - light.living_room_lights
     take_over_control: true
     detect_non_ha_changes: true
-
-template:
-  - trigger:
-      - platform: state
-        entity_id: sensor.bathroom_heat_current_humidity
-        to:
-    binary_sensor:
-      - name: bathroom_is_showering
-        # if the humidity between two measurements increased by 8 percent or more then probably the shower is on
-        # if there was a positive increase but less than 8% then return the previous state value
-        # if there was a 3% decrease in humidity then showering is probably done
-        # if there was any other decrease return the previous state value
-        state: >
-          {% set previous_state = states("binary_sensor.bathroom_is_showering") %}
-          {% set delta = (trigger.to_state.state | float) - (trigger.from_state.state | float)%}
-          {% if delta >= 5 %}
-            on
-          {% elif delta > 0 %}
-            {{ previous_state }}
-          {% elif delta <= -3 %}
-            off
-          {% else %}
-            {{ previous_state }}
-          {% endif %}
-        icon: mdi:shower-head
 
 light:
   - platform: group
@@ -104,6 +89,11 @@ light:
       - light.bathroom_4_light
       - light.bathroom_5_light
       - light.bathroom_6_light
+  - platform: group
+    name: toilet_lights
+    entities:
+      - light.toilet_1_light
+      - light.toilet_2_light
 
 variable:
   baby_room_presence:
@@ -236,7 +226,7 @@ cloud:
         - light.living_room_mouse_light
         - light.living_room_tv_light
         - climate.living_room_heat
-        - light.office_light
+        - switch.office_shelly
         - light.kitchen_lights
     entity_config:
       light.living_room_corner_light:
@@ -271,7 +261,7 @@ cloud:
           - Thermostat
         room: Woonkamer
 
-      light.office_light:
+      switch.office_shelly:
         name: Lamp
         aliases:
           - Light
@@ -294,7 +284,7 @@ homekit:
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.baby_room_light
-        - switch.bathroom_shelly
+        - light.bathroom_lights
         - switch.bedroom_shelly
         - switch.driveway_shelly
         - light.hallway_lights
@@ -303,7 +293,8 @@ homekit:
         - switch.laundry_room_shelly
         - switch.office_shelly
         - switch.supply_closet_shelly
-        - switch.toilet_shelly
+        - light.toilet_lights
+        - switch.bedroom_fan_power
 
     entity_config:
       light.living_room_corner_light:
@@ -320,10 +311,12 @@ homekit:
         name: Woonkamer Thermostaat
       light.baby_room_light:
         name: Babykamer Lamp
-      switch.bathroom_shelly:
+      light.bathroom_lights:
         name: Badkamer Lampen
       switch.bedroom_shelly:
         name: Slaapkamer Lamp
+      switch.bedroom_fan_power:
+        name: Slaapkamer Ventilator
       switch.driveway_shelly:
         name: Oprit Lamp
       light.hallway_lights:
@@ -338,8 +331,8 @@ homekit:
         name: Kantoor Lamp
       switch.supply_closet_shelly:
         name: Voorraadkast Lamp
-      switch.toilet_shelly:
-        name: Wc Lamp
+      light.toilet_lights:
+        name: Wc Lampen
 
   - name: Home Assistant - Baby Cam
     port: 21064

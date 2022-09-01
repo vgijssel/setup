@@ -17,9 +17,10 @@ load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
 
 bazel_skylib_workspace()
 
-rules_packer_toolchains(
-    version = "1.8.0",
-)
+# TODO: no binary available for M1!
+# rules_packer_toolchains(
+#     version = "1.8.0",
+# )
 
 # https://cloud-images.ubuntu.com/focal/current/unpacked/
 http_file(
@@ -49,21 +50,19 @@ http_file(
 
 http_archive(
     name = "rules_python",
-    patch_args = ["-p1"],
-    patches = ["@//tools/python:fix-chmod.patch"],
-    sha256 = "9fcf91dbcc31fde6d1edb15f117246d912c33c36f44cf681976bd886538deba6",
-    strip_prefix = "rules_python-0.8.0",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.8.0.tar.gz",
+    sha256 = "b593d13bb43c94ce94b483c2858e53a9b811f6f10e1e0eedc61073bd90e58d9c",
+    strip_prefix = "rules_python-0.12.0",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.12.0.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
 python_register_toolchains(
-    name = "python3_9",
-    python_version = "3.9",
+    name = "python3_10",
+    python_version = "3.10",
 )
 
-load("@python3_9//:defs.bzl", "interpreter")
+load("@python3_10//:defs.bzl", "interpreter")
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 pip_parse(

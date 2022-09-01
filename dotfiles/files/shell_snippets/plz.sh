@@ -1,1 +1,0 @@
-source <(plz --completion_script)

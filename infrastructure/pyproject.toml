@@ -5,11 +5,13 @@ description = ""
 authors = []
 
 [tool.poetry.dependencies]
-python = "^3.8"
-pulumi = "^3.21.0"
+python = "^3.9"
+pulumi = "3.36.0"
 pulumi-kubernetes = "^3.12.1"
 onepasswordconnectsdk = "^1.1.0"
 pulumi-vault = "^5.1.0"
+pulumi-docker = "^3.2.0"
+pulumi-command = "^0.4.1"
 
 [tool.poetry.group.dev.dependencies]
 debugpy = "^1.5.1"

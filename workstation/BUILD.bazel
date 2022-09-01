@@ -1,0 +1,39 @@
+load("//tools/pyinfra:defs.bzl", "pyinfra_run")
+
+pyinfra_run(
+    name = "provision",
+    srcs = [
+        "deploys/editor/tasks/install_editor.py",
+        "deploys/languages/tasks/install_languages.py",
+        "deploys/ssh/tasks/install_ssh.py",
+        "deploys/terminal/tasks/install_terminal.py",
+        "deploys/utilities/tasks/install_utilities.py",
+        "deploys/workflow/tasks/install_workflow.py",
+        "helpers/home_link.py",
+        "helpers/macos.py",
+        "helpers/onepassword.py",
+    ],
+    args = [
+        "--data install_editor=True",
+        "--data install_terminal=True",
+        "--data install_languages=True",
+        "--data install_ssh=True",
+        "--data install_utilities=True",
+        "--data install_workflow=True",
+    ],
+    data = [
+        "deploys/editor/files/keybindings.json",
+        "deploys/editor/files/settings.json",
+        "deploys/languages/files/tool-versions",
+        "deploys/ssh/files/gitconfig",
+        "deploys/ssh/files/ssh/config",
+        "deploys/terminal/files/bash_profile",
+        "deploys/terminal/files/bashrc",
+        "deploys/terminal/files/config/atuin/config.toml",
+        "deploys/terminal/files/profile",
+        "deploys/terminal/files/shell_snippets/benchmark.sh",
+        "deploys/terminal/files/zshrc",
+    ],
+    deploy = "deploy.py",
+    inventory = "inventory.py",
+)

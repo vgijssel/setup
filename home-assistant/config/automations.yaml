@@ -26,60 +26,19 @@
         entity_id: scene.living_room_relax
   mode: single
 - id: '1654888062741'
-  alias: 'Living Room - Watching: Manage'
+  alias: 'Bedroom - Fan: Manage '
   description: ''
   trigger:
-  - platform: device
-    device_id: e9121935f1d5a2f516790f9a116fa1f0
-    domain: media_player
-    entity_id: media_player.living_room_tv
-    type: playing
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 15
-  condition:
-  - condition: or
-    conditions:
-    - condition: state
-      entity_id: media_player.living_room_tv
-      attribute: app_name
-      state: Netflix
-    - condition: state
-      entity_id: media_player.living_room_tv
-      attribute: app_name
-      state: Prime Video
+  - platform: state
+    entity_id:
+    - timer.fan_timer
+    to: idle
+  condition: []
   action:
-  - service: light.turn_on
-    data:
-      transition: 5
-      brightness_pct: 30
-      color_temp: 500
+  - service: switch.turn_off
+    data: {}
     target:
-      area_id: living_room
-  - wait_for_trigger:
-    - platform: device
-      device_id: e9121935f1d5a2f516790f9a116fa1f0
-      domain: media_player
-      entity_id: media_player.living_room_tv
-      type: paused
-    - platform: device
-      type: turned_off
-      device_id: e9121935f1d5a2f516790f9a116fa1f0
-      entity_id: remote.living_room_tv
-      domain: remote
-    - platform: device
-      device_id: e9121935f1d5a2f516790f9a116fa1f0
-      domain: media_player
-      entity_id: media_player.living_room_tv
-      type: idle
-  - service: light.turn_on
-    data:
-      transition: 2
-      color_temp: 380
-      brightness_pct: 90
-    target:
-      area_id: living_room
+      entity_id: switch.bedroom_fan_power
   mode: single
 - id: '1655228112348'
   alias: 'Bedroom - Tv: Turn Off'
@@ -129,10 +88,10 @@
     path: diy/presence.yaml
     input:
       presence_entity_id: variable.driveway_presence
-      presence_indicator_entity_ids:
-      - binary_sensor.hallway_door_contact
+      presence_indicator_entity_ids: []
       presence_hint_entity_ids:
       - binary_sensor.driveway_shelly_input
+      - binary_sensor.hallway_motion_occupancy
       presence_timeout: 120
 - id: '1655752447329'
   alias: 'Bedroom - Presence: Manage'
@@ -156,7 +115,6 @@
     input:
       presence_entity_id: variable.hallway_presence
       presence_hint_entity_ids:
-      - binary_sensor.hallway_door_contact
       - binary_sensor.hallway_shelly_input
       - binary_sensor.toilet_door_contact
       - binary_sensor.living_room_door_contact
@@ -166,7 +124,6 @@
       - binary_sensor.toilet_motion_occupancy
       presence_timeout: 120
       presence_indicator_entity_ids:
-      - binary_sensor.hallway_door_contact
       - binary_sensor.hallway_motion_occupancy
 - id: '1655752840815'
   alias: 'Landing - Presence: Manage'
@@ -182,7 +139,7 @@
       - binary_sensor.bedroom_door_contact
       - binary_sensor.bathroom_door_contact
       presence_indicator_entity_ids:
-      - binary_sensor.baby_room_motion_home_security_motion_detection_2
+      - binary_sensor.baby_room_motion_general_purpose_state_2
       - binary_sensor.bedroom_motion_home_security_motion_detection_3
       - binary_sensor.laundry_room_motion_occupancy
       - binary_sensor.motion_sensor_home_security_motion_detection
@@ -233,18 +190,19 @@
       - binary_sensor.office_door_contact
       - binary_sensor.office_shelly_input
 - id: '1655753220517'
-  alias: 'Baby Room - Presence: Manage'
+  alias: 'Baby Room - Presence: Manage '
   description: ''
   use_blueprint:
     path: diy/presence.yaml
     input:
       presence_entity_id: variable.baby_room_presence
       presence_indicator_entity_ids:
-      - binary_sensor.baby_room_motion_home_security_motion_detection_2
+      - binary_sensor.baby_room_motion_general_purpose_state_2
+      - binary_sensor.baby_room_human_presence
       presence_hint_entity_ids:
       - binary_sensor.baby_room_shelly_input
       - binary_sensor.baby_room_door_contact
-      presence_timeout: 120
+      presence_timeout: 60
 - id: '1655755184933'
   alias: 'Driveway - Light: Manage'
   description: ''
@@ -268,6 +226,7 @@
       illuminance_entity_id: sensor.baby_room_motion_illuminance_2
       light_and_switch_entity_ids:
       - light.baby_room_light
+      - switch.baby_room_power
       start_time: 00:00:00
       end_time: '23:59:59'
       illuminance_threshold: 40
@@ -308,7 +267,7 @@
       illuminance_threshold: 60
       light_and_switch_entity_ids:
       - light.landing_lights
-      start_time: 00:00:00
+      start_time: 06:00:00
       end_time: '23:59:59'
 - id: '1655799885346'
   alias: 'Laundry Room - Light: Manage'
@@ -385,7 +344,7 @@
       presence_entity_id: variable.bathroom_presence
       illuminance_entity_id: sensor.bathroom_motion_illuminance_lux
       light_and_switch_entity_ids:
-      - switch.bathroom_shelly
+      - light.bathroom_lights
       start_time: 07:00:00
       end_time: '23:00:00'
       illuminance_threshold: 140
@@ -457,10 +416,19 @@
         transition: 1
       target:
         entity_id: light.baby_room_light
+    - service: switch.turn_off
+      data: {}
+      target:
+        entity_id: switch.baby_room_power
     else:
     - service: light.turn_on
       target:
         entity_id: light.baby_room_light
+      data: {}
+    - service: switch.turn_on
+      data: {}
+      target:
+        entity_id: switch.baby_room_power
   mode: single
 - id: '1657026314050'
   alias: 'Bedroom - Sleeping: Manage'
@@ -637,4 +605,55 @@
     - switch.adaptive_lighting_sleep_mode_baby_room
     - switch.adaptive_lighting_sleep_mode_landing
     - switch.adaptive_lighting_sleep_mode_hallway
+  mode: single
+- id: '1658667110204'
+  alias: 'Bathroom - Lights: Manual Toggle'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.bathroom_shelly_channel_1_input
+    - binary_sensor.bathroom_shelly_channel_2_input
+    to:
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: light.bathroom_lights
+      state: 'on'
+    then:
+    - service: light.turn_off
+      data:
+        transition: 1
+      target:
+        entity_id: light.bathroom_lights
+    else:
+    - service: light.turn_on
+      data: {}
+      target:
+        entity_id: light.bathroom_lights
+  mode: single
+- id: '1658862168741'
+  alias: 'Toilet - Lights: Manual Toggle'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.toilet_shelly_channel_1_input
+    to:
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: light.toilet_lights
+      state: 'on'
+    then:
+    - service: light.turn_off
+      target:
+        entity_id: light.toilet_lights
+    else:
+    - service: light.turn_on
+      data: {}
+      target:
+        entity_id: light.toilet_lights
   mode: single

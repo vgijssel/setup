@@ -68,20 +68,34 @@ devices:
     friendly_name: hallway_motion
   '0x54ef4410004d1c26':
     friendly_name: bathroom_human
-  '0x00158d0002286a8a':
-    friendly_name: hallway_door
   '0x9c6937000070de12':
     friendly_name: hallway_3_light
     transition: 1
+    homeassistant: {}
+    legacy: false
+    optimistic: true
+    qos: 1
   '0xc498860000672d24':
     friendly_name: hallway_4_light
     transition: 1
+    homeassistant: {}
+    legacy: false
+    optimistic: true
+    qos: 1
   '0xc498860000673e80':
     friendly_name: hallway_2_light
     transition: 1
+    homeassistant: {}
+    legacy: false
+    optimistic: true
+    qos: 1
   '0x9c6937000070dd61':
     friendly_name: hallway_1_light
     transition: 1
+    homeassistant: {}
+    legacy: false
+    optimistic: true
+    qos: 1
   '0x54ef441000491875':
     friendly_name: living_room_garden_motion
   '0x9c69370000cbbe06':
@@ -111,3 +125,17 @@ devices:
   '0xc498860000081ee6':
     friendly_name: bathroom_5_light
     transition: 1
+  '0x54ef441000518a1b':
+    friendly_name: baby_room_human
+  '0x540f57fffe3c228f':
+    friendly_name: baby_room_power
+    measurement_poll_interval: 60
+  '0x540f57fffe3c25a9':
+    friendly_name: bedroom_power
+    measurement_poll_interval: 60
+    power_calibration: 0
+  '0x94deb8fffe278118':
+    friendly_name: bedroom_fan_power
+    measurement_poll_interval: 60
+  '0x00158d0002286a8a':
+    friendly_name: hallway_door

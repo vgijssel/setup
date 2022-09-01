@@ -11,16 +11,21 @@ def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = 
             "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
         ] + srcs,
         main = "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra.py",
+        deps = ["@rules_python//python/runfiles", "@hypervisor_deps_pyinfra//:pkg"],
     )
 
     runner_binary(
         name = name,
         cmd = """
+        DEFAULT_ARGS="{args}"
+        CLI_ARGS="$$@"
+        ARGS=$${{CLI_ARGS:-$$DEFAULT_ARGS}}
+
         DEPLOY_PATH=$$(rlocation $(WORKSPACE_NAME)/$(rootpath {deploy}))
         INVENTORY_PATH=$$(rlocation $(WORKSPACE_NAME)/$(rootpath {inventory}))
         PYINFRA_BINARY=$$(rlocation $(WORKSPACE_NAME)/$(rootpath {pyinfra_binary}))
 
-        $$PYINFRA_BINARY {args} $$INVENTORY_PATH $$DEPLOY_PATH
+        $$PYINFRA_BINARY $$ARGS $$INVENTORY_PATH $$DEPLOY_PATH
         """.format(
             deploy = deploy,
             inventory = inventory,

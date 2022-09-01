@@ -6,17 +6,15 @@ services:
     ports:
       - "8090:8080"
     volumes:
-      - "./1password-credentials.json:/home/opuser/.op/1password-credentials.js\
-        on"
+      - "./1password-credentials.json:/home/opuser/.op/1password-credentials.json"
       - "data:/home/opuser/.op/data"
 
   op-connect-sync:
     image: 1password/connect-sync:latest
     ports:
-      - "8091:8080"
+      - "127.0.0.1:8091:8080"
     volumes:
-      - "./1password-credentials.json:/home/opuser/.op/1password-credentials.js\
-        on"
+      - "./1password-credentials.json:/home/opuser/.op/1password-credentials.json"
       - "data:/home/opuser/.op/data"
 
 volumes:
