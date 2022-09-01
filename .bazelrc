@@ -7,3 +7,6 @@ build --repository_cache cache/bazel_repository_cache
 
 build:debug --show_progress --worker_verbose --verbose_failures --test_output=streamed  --subcommands
 build:debug --//:setup_debug_flag
+
+# To ensure a hermetic environment for Java
+build --java_runtime_version=remotejdk_11

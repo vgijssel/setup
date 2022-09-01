@@ -105,3 +105,13 @@ ruby_bundle(
         "addressable": ["data"],
     },
 )
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
+
+http_jar(
+    name = "bazel_diff",
+    sha256 = "fe01c3500af3a724d2e6355f70c0ec5b11a8a9057f196efa8ff574f88cc379de",
+    urls = [
+        "https://github.com/Tinder/bazel-diff/releases/download/4.0.8/bazel-diff_deploy.jar",
+    ],
+)
