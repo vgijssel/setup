@@ -12,7 +12,7 @@ def install_utilities():
             "notion",
             "spotify",
             "viscosity",
-            "docker",
+            # "docker", # does not work in the CI for whatevery reason?
         ],
         present=True,
         latest=False,
