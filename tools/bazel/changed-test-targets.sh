@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # copied from https://github.com/Tinder/bazel-diff/blob/master/bazel-diff-example.sh
 
-set -Eeou pipefail
+set -Eeoux pipefail
 
 env
 
