@@ -3,8 +3,6 @@
 
 set -Eeou pipefail
 
-env
-
 # Path to your Bazel WORKSPACE directory
 workspace_path="$BUILD_WORKSPACE_DIRECTORY"
 
