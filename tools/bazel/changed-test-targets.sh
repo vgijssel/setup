@@ -29,7 +29,10 @@ cd $workspace_path
 # Uncomment the line below to see debug information
 # shared_flags="--config=verbose"
 
-$bazel_path run :bazel-diff $shared_flags --script_path="$bazel_diff"
+$bazel_path run //tools/bazel:bazel-diff $shared_flags --script_path="$bazel_diff"
+
+echo $previous_revision
+echo $final_revision
 
 echo "::set-output name=workstation-test::true"
 echo "::set-output name=hypervisor-test::false"
