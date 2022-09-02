@@ -22,6 +22,14 @@ jobs:
       run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
     steps:
       - uses: actions/checkout@v1
+      - uses: pat-s/always-upload-cache@v3.0.1
+        id: bazel-cache
+        with:
+          path: |
+            cache/bazel_cache
+            cache/bazel_repository_cache
+          key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
       - run: brew install just
       - id: changed-test-targets
         run: just changed-test-targets-current-branch
