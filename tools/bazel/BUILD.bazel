@@ -7,6 +7,6 @@ java_binary(
 )
 
 sh_binary(
-    name = "changed-targets",
-    srcs = ["changed-targets.sh"],
+    name = "changed-test-targets",
+    srcs = ["changed-test-targets.sh"],
 )

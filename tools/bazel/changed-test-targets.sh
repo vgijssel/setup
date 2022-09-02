@@ -31,6 +31,9 @@ cd $workspace_path
 
 $bazel_path run :bazel-diff $shared_flags --script_path="$bazel_diff"
 
+echo "::set-output name=workstation-test::true"
+echo "::set-output name=hypervisor-test::false"
+
 # git -C $workspace_path checkout $previous_revision --quiet
 
 # echo "Generating Hashes for Revision '$previous_revision'"

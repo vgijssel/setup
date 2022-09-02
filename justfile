@@ -47,7 +47,7 @@ inspec +args:
 kitchen +args:
     cd {{ invocation_directory() }}; bazel run @hypervisor_bundle//:bin/kitchen -- {{ args }}
 
-changed-targets-current-branch:
+changed-test-targets-current-branch:
     #!/usr/bin/env bash
     set -Eeou pipefail
 
@@ -62,5 +62,5 @@ changed-targets-current-branch:
         previous_commit=$(git rev-parse $current_branch_first_commit^)
     fi
 
-    bazel run {{ bazel_debug_config }} //tools/bazel:changed-targets -- $previous_commit $current_commit
+    bazel run {{ bazel_debug_config }} //tools/bazel:changed-test-targets -- $previous_commit $current_commit
 

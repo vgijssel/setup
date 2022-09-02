@@ -18,13 +18,12 @@ jobs:
     timeout-minutes: 2
     runs-on: ubuntu-latest
     outputs:
-      run-workstation-test: ${{ steps.step1.outputs.run }}
-      run-hypervisor-test: ${{ steps.step2.outputs.run }}
+      run-workstation-test: ${{ steps.changed-test-targets.outputs.workstation-test }}
+      run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
     steps:
-      - id: step1
-        run: echo "::set-output name=run::true"
-      - id: step2
-        run: echo "::set-output name=run::false"
+      - run: brew install just
+      - id: changed-test-targets
+        run: just changed-test-targets-current-branch
 
   workstation-test:
     if: needs.select_tests_to_run.outputs.run-workstation-test == 'true'
