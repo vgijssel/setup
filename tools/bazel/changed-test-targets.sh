@@ -60,7 +60,7 @@ function print_output {
     fi
 
     echo "For target $TARGET setting output $OUTPUT to $RESULT"
-    echo "::set-output name=$OUTPUT::true"
+    echo "::set-output name=$OUTPUT::$RESULT"
 }
 
 print_output "//workstation:provision" "workstation-test"
