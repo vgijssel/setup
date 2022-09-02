@@ -46,3 +46,21 @@ inspec +args:
 # Invoke the kitchen binary directly
 kitchen +args:
     cd {{ invocation_directory() }}; bazel run @hypervisor_bundle//:bin/kitchen -- {{ args }}
+
+changed-targets-current-branch:
+    #!/usr/bin/env bash
+    set -Eeou pipefail
+
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    current_commit=$(git rev-parse HEAD)
+
+    if [[ "$current_branch" == "master" ]]; then
+        previous_commit=$(git rev-parse $current_commit^)  
+    else
+        # from https://stackoverflow.com/questions/1527234/finding-a-branch-point-with-git/71193866#71193866 
+        current_branch_first_commit=$(git rev-list --exclude-first-parent-only ^master $current_branch | tail -1)
+        previous_commit=$(git rev-parse $current_branch_first_commit^)
+    fi
+
+    bazel run {{ bazel_debug_config }} //tools/bazel:changed-targets -- $previous_commit $current_commit
+
