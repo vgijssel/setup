@@ -13,10 +13,33 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
+  select_tests_to_run:
+    name: Select Tests to Run
+    timeout-minutes: 4
+    runs-on: ubuntu-latest
+    outputs:
+      run-workstation-test: ${{ steps.changed-test-targets.outputs.workstation-test }}
+      run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
+    steps:
+      - uses: actions/checkout@v1
+      - uses: pat-s/always-upload-cache@v3.0.1
+        id: bazel-cache
+        with:
+          path: |
+            cache/bazel_cache
+            cache/bazel_repository_cache
+          key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
+      - run: brew install just
+      - id: changed-test-targets
+        run: just changed-test-targets-current-branch
+
   workstation-test:
+    if: needs.select_tests_to_run.outputs.run-workstation-test == 'true'
     name: Workstation test
-    timeout-minutes: 30
-    runs-on: macos-10.15
+    needs: select_tests_to_run
+    timeout-minutes: 15
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v1
       - uses: pat-s/always-upload-cache@v3.0.1
@@ -32,9 +55,11 @@ jobs:
       - run: bazel run //workstation:provision
 
   hypervisor-test:
+    if: needs.select_tests_to_run.outputs.run-hypervisor-test == 'true'
     name: Hypervisor test
+    needs: select_tests_to_run
     timeout-minutes: 30
-    runs-on: macos-10.15
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v1
       - uses: pat-s/always-upload-cache@v3.0.1
