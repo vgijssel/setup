@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # copied from https://github.com/Tinder/bazel-diff/blob/master/bazel-diff-example.sh
 
-set -Eeoux pipefail
+set -Eeou pipefail
 
 env
 
@@ -49,15 +49,19 @@ echo "Impacted Targets between $previous_revision and $final_revision:"
 echo "$(cat $impacted_targets_path)"
 echo ""
 
+function print_output {
+    TARGET="$1"
+    OUTPUT="$2"
 
-if grep -q "^//workstation:provision$" "/tmp/impacted_targets.txt"; then
-    echo "::set-output name=workstation-test::true"
-else
-    echo "::set-output name=workstation-test::false"
-fi
+    if grep -q "^$TARGET$" "$impacted_targets_path"; then
+        RESULT="true"
+    else
+        RESULT="false"
+    fi
 
-if grep -q "^//hypervisor:kitchen$" "/tmp/impacted_targets.txt"; then
-    echo "::set-output name=hypervisor-test::true"
-else
-    echo "::set-output name=hypervisor-test::false"
-fi
+    echo "For target $TARGET setting output $OUTPUT to $RESULT"
+    echo "::set-output name=$OUTPUT::true"
+}
+
+print_output "//workstation:provision" "workstation-test"
+print_output "//hypervisor:kitchen" "hypervisor-test"
