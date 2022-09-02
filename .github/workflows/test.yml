@@ -21,6 +21,7 @@ jobs:
       run-workstation-test: ${{ steps.changed-test-targets.outputs.workstation-test }}
       run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
     steps:
+      - uses: actions/checkout@v1
       - run: brew install just
       - id: changed-test-targets
         run: just changed-test-targets-current-branch
