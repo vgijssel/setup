@@ -15,7 +15,7 @@ jobs:
 
   select_tests_to_run:
     name: Select Tests to Run
-    timeout-minutes: 2
+    timeout-minutes: 4
     runs-on: ubuntu-latest
     outputs:
       run-workstation-test: ${{ steps.changed-test-targets.outputs.workstation-test }}
