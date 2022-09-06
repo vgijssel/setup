@@ -64,3 +64,5 @@ changed-test-targets-current-branch:
 
     bazel run {{ bazel_debug_config }} //tools/bazel:changed-test-targets -- $previous_commit $current_commit
 
+workstation-provision:
+    bazel run {{ bazel_debug_config }} //workstation:provision
