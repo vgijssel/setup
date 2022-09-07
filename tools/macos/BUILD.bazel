@@ -1,0 +1,4 @@
+sh_binary(
+    name = "macos-remote-setup",
+    srcs = ["macos-remote-setup.sh"],
+)
