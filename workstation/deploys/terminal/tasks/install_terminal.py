@@ -79,6 +79,8 @@ def install_terminal():
         "bashrc",
         "bash_profile",
         "zshrc",
+        "zprofile",
+        "terminal_env",
         "shell_snippets/benchmark.sh",
         "config/atuin/config.toml",
     ]

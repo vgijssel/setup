@@ -37,6 +37,8 @@ pyinfra_run(
         "deploys/terminal/files/config/atuin/config.toml",
         "deploys/terminal/files/profile",
         "deploys/terminal/files/shell_snippets/benchmark.sh",
+        "deploys/terminal/files/terminal_env",
+        "deploys/terminal/files/zprofile",
         "deploys/terminal/files/zshrc",
     ],
     deploy = "deploy.py",
@@ -84,7 +86,14 @@ pkg_tar(
     strip_prefix = ".",
 )
 
-# inspec exec . -t ssh://maarten@host.docker.internal -i ~/.ssh/id_rsa
+# TODO:
+# - automatically accept the inspec licence (do inside docker image?)
+# - docker run and auto mount private key in the image so we can ssh into the macos host
+# - have a bazel rule that builds the docker image, mounts the private key and runs the inspec tests
+#
+# Cannot use ZSH as a login shell because of the coloring breaking output of brew info
+# inspec shell -t ssh://maarten@host.docker.internal -i ~/.ssh/id_rsa --shell --shell-command="/bin/sh" --shell-options="--login"
+# inspec exec . -t ssh://maarten@host.docker.internal -i ~/.ssh/id_rsa --shell --shell-command="/bin/sh" --shell-options="--login"
 container_image(
     name = "inspec_image",
     base = ":debs_installed.tar",

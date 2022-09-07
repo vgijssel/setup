@@ -1,0 +1,13 @@
+source $(/opt/homebrew/bin//brew --prefix asdf)/libexec/asdf.sh
+
+# BREW_PREFIX is output from `brew --prefix`
+BREW_PREFIX="/opt/homebrew"
+GNU_CORE_UTILS="$BREW_PREFIX/opt/coreutils/libexec/gnubin"
+GNU_FIND_UTILS="/opt/findutils/libexec/gnubin"
+GNU_INDENT="$BREW_PREFIX/opt/gnu-indent/libexec/gnubin"
+GNU_SED="$BREW_PREFIX/opt/gnu-sed/libexec/gnubin"
+GNU_TAR="$BREW_PREFIX/opt/gnu-tar/libexec/gnubin"
+GNU_WHICH="$BREW_PREFIX/opt/gnu-which/libexec/gnubin"
+GNU_GREP="$BREW_PREFIX/opt/grep/libexec/gnubin"
+
+export PATH=$BREW_PREFIX/bin/:/usr/local/bin/:/usr/local/sbin/:$HOME/.local/bin:$HOME/bin:$GNU_CORE_UTILS:$GNU_FIND_UTILS:$GNU_INDENT:$GNU_SED:$GNU_TAR:$GNU_WHICH:$GNU_GREP:$PATH
