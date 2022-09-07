@@ -115,9 +115,15 @@ command(
     command = "//workstation:inspec_runner",
 )
 
+command(
+    name = "provision_command",
+    command = ":provision",
+)
+
 multirun(
     name = "test",
     commands = [
+        ":provision_command",
         "//tools/macos:macos-remote-setup",
         ":inspec_runner_command",
     ],
