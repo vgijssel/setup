@@ -3,6 +3,7 @@ load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "instal
 load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
+load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
 pyinfra_run(
     name = "provision",
@@ -71,8 +72,25 @@ install_pkgs(
     output_image_name = "debs_installed",
 )
 
+pkg_tar(
+    name = "inspec_tar",
+    srcs = [
+        "controls/workstation.rb",
+        "inspec.yml",
+    ],
+    package_dir = "/project",
+    # Otherwise all directories are flattened:
+    # <https://github.com/bazelbuild/rules_docker/issues/317>
+    strip_prefix = ".",
+)
+
+# inspec exec . -t ssh://maarten@host.docker.internal -i ~/.ssh/id_rsa
 container_image(
     name = "inspec_image",
     base = ":debs_installed.tar",
     layers = [":loose_debs_layer"],
+    tars = [
+        ":inspec_tar",
+    ],
+    workdir = "/project",
 )
