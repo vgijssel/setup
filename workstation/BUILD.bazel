@@ -4,6 +4,7 @@ load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "downl
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
+load("//tools/docker:docker.bzl", "docker_load_and_run")
 
 pyinfra_run(
     name = "provision",
@@ -97,4 +98,13 @@ container_image(
         ":inspec_tar",
     ],
     workdir = "/project",
+)
+
+docker_load_and_run(
+    name = "inspec_runner",
+    command = "inspec exec . -t ssh://$$USER@host.docker.internal -i /root/.ssh/id_rsa --shell --shell-command='/bin/sh' --shell-options='--login'",
+    docker_args = [
+        "--volume=$$BUILD_WORKSPACE_DIRECTORY/tmp/remote_key/id_rsa:/root/.ssh/id_rsa",
+    ],
+    image = ":inspec_image",
 )

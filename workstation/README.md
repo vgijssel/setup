@@ -1,5 +1,7 @@
 # Installation
 
+Enable Full Disk Access for Terminal/iTerm2
+
 1. Install xcode from the appstore (can we do this automatically using mas cli?)
 2. Install 1Password 8 from here .... Ensure to enable biometric unlock for the CLI
 3. Run the bootstrap script
