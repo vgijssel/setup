@@ -162,12 +162,14 @@ container_pull(
 
 http_file(
     name = "inspec_arm64",
+    downloaded_file_path = "inspec.deb",
     sha256 = "79a496d2467f579c6533bcf42c663d96d830af42ba2f32769ddf6ef879d7d3b5",
     url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_arm64.deb",
 )
 
 http_file(
     name = "inspec_amd64",
+    downloaded_file_path = "inspec.deb",
     sha256 = "b4e8b11478cd2c930b24edcf5c24ef49fe83452f08f6cedc13deae5ce7b0c757",
     url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_amd64.deb",
 )

@@ -1,6 +1,8 @@
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
-load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
+load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
 
 pyinfra_run(
     name = "provision",
@@ -40,28 +42,37 @@ pyinfra_run(
     inventory = "inventory.py",
 )
 
-pkg_tar(
-    name = "loose_debs",
-    srcs = select({
-        "@platforms//cpu:arm64": ["@inspec_arm64//file:file"],
-        "@platforms//cpu:x86_64": ["@inspec_amd64//file:file"],
-    }),
-    mode = "0644",
+container_image(
+    name = "loose_debs_image",
+    base = "@ubuntu_base//image",
+    files = [
+        "@inspec_arm64//file",
+    ],
 )
 
-pkg_tar(
-    name = "pkg",
-    extension = "tar",
-    deps = [
-        ":loose_debs",
+container_run_and_commit_layer(
+    name = "loose_debs_layer",
+    commands = ["dpkg -i /inspec.deb"],
+    image = ":loose_debs_image.tar",
+)
+
+download_pkgs(
+    name = "debs",
+    image_tar = "@ubuntu_base//image",
+    packages = [
+        "openssh-client",
     ],
 )
 
 install_pkgs(
-    name = "pkgs_installed",
+    name = "debs_installed",
     image_tar = "@ubuntu_base//image",
-    installables_tar = ":pkg",
-    output_image_name = "pkgs_installed",
+    installables_tar = ":debs.tar",
+    output_image_name = "debs_installed",
 )
 
-# TODO: Download openssh-client dependency
+container_image(
+    name = "inspec_image",
+    base = ":debs_installed.tar",
+    layers = [":loose_debs_layer"],
+)

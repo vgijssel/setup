@@ -30,6 +30,7 @@ def install_utilities():
         name="Install tools",
         packages=[
             "awscli",
+            "dive", # to check contents of docker layers
         ],
         present=True,
         update=False,
