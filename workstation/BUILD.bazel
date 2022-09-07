@@ -55,7 +55,10 @@ container_image(
 
 container_run_and_commit_layer(
     name = "loose_debs_layer",
-    commands = ["dpkg -i /inspec.deb"],
+    commands = [
+        "dpkg -i /inspec.deb",
+        "inspec --chef-license=accept",
+    ],
     image = ":loose_debs_image.tar",
 )
 
@@ -86,14 +89,6 @@ pkg_tar(
     strip_prefix = ".",
 )
 
-# TODO:
-# - automatically accept the inspec licence (do inside docker image?)
-# - docker run and auto mount private key in the image so we can ssh into the macos host
-# - have a bazel rule that builds the docker image, mounts the private key and runs the inspec tests
-#
-# Cannot use ZSH as a login shell because of the coloring breaking output of brew info
-# inspec shell -t ssh://maarten@host.docker.internal -i ~/.ssh/id_rsa --shell --shell-command="/bin/sh" --shell-options="--login"
-# inspec exec . -t ssh://maarten@host.docker.internal -i ~/.ssh/id_rsa --shell --shell-command="/bin/sh" --shell-options="--login"
 container_image(
     name = "inspec_image",
     base = ":debs_installed.tar",
