@@ -5,6 +5,7 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("//tools/docker:docker.bzl", "docker_load_and_run")
+load("@com_github_ash2k_bazel_tools//multirun:def.bzl", "command", "multirun")
 
 pyinfra_run(
     name = "provision",
@@ -107,4 +108,17 @@ docker_load_and_run(
         "--volume=$$BUILD_WORKSPACE_DIRECTORY/tmp/remote_key/id_rsa:/root/.ssh/id_rsa",
     ],
     image = ":inspec_image",
+)
+
+command(
+    name = "inspec_runner_command",
+    command = "//workstation:inspec_runner",
+)
+
+multirun(
+    name = "test",
+    commands = [
+        "//tools/macos:macos-remote-setup",
+        ":inspec_runner_command",
+    ],
 )

@@ -23,7 +23,7 @@ def docker_load_and_run(name, image, command, docker_args = []):
             echo "Image already exists"
         fi
 
-        docker run --rm -it {docker_args} $$DOCKER_DIGEST $$ARGS
+        docker run --rm -t {docker_args} $$DOCKER_DIGEST $$ARGS
         """.format(
             command = command,
             docker_args = " ".join(docker_args),

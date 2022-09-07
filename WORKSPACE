@@ -186,3 +186,14 @@ http_archive(
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 rules_pkg_dependencies()
+
+git_repository(
+    name = "com_github_ash2k_bazel_tools",
+    commit = "8ec69576f63c254a089a63ebf7385e7ee1a871e9",
+    remote = "https://github.com/ash2k/bazel-tools.git",
+    shallow_since = "1662117149 +1000",
+)
+
+load("@com_github_ash2k_bazel_tools//multirun:deps.bzl", "multirun_dependencies")
+
+multirun_dependencies()
