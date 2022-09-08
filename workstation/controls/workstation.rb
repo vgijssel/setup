@@ -18,3 +18,15 @@ control 'homebrew' do
         it { should exist} 
     end
 end
+
+control 'ssh' do
+    impact 10.0
+    title 'SSH'
+    desc 'macOS should only be reachable by SSH by localhost'
+
+    # TODO: ideally use sshd_config https://docs.chef.io/inspec/resources/sshd_config/ here
+    # but does not work yet https://github.com/inspec/inspec/issues/2054#issuecomment-1241029846
+    describe file('/etc/ssh/sshd_config') do
+        its('content') { should include('AllowUsers *@127.0.0.1') }
+    end
+end
