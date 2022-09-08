@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -Eeou pipefail
 
+set -x
+
 SETUP_ROOT="$BUILD_WORKSPACE_DIRECTORY"
 SECRETS_DIR="$SETUP_ROOT/tmp/remote_key"
 AUTHORIZED_KEYS="$HOME/.ssh/authorized_keys"
@@ -26,3 +28,5 @@ fi
 if ! nc -z localhost 22; then 
     sudo systemsetup -setremotelogin on
 fi
+
+cat /etc/ssh/sshd_config
