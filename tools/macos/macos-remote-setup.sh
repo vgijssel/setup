@@ -25,8 +25,8 @@ if ! grep -q "$(cat $SECRETS_DIR/id_rsa.pub)" $AUTHORIZED_KEYS; then
 fi
 
 # if localhost is not listening to port 22, enable macos remote login
-if ! nc -z localhost 22; then 
-    sudo systemsetup -setremotelogin on
-fi
+# if ! nc -z localhost 22; then 
+sudo systemsetup -setremotelogin on
+# fi
 
 cat /etc/ssh/sshd_config
