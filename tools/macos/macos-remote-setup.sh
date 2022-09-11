@@ -17,6 +17,7 @@ fi
 # if authorized_keys does not exist, create it
 if [ ! -f "$AUTHORIZED_KEYS" ]; then
     touch "$AUTHORIZED_KEYS"
+    chmod 600 "$AUTHORIZED_KEYS"
 fi
 
 # add the public key to the authorized_keys file if it is not already there
@@ -25,8 +26,6 @@ if ! grep -q "$(cat $SECRETS_DIR/id_rsa.pub)" $AUTHORIZED_KEYS; then
 fi
 
 # if localhost is not listening to port 22, enable macos remote login
-# if ! nc -z localhost 22; then 
-sudo systemsetup -setremotelogin on
-# fi
-
-cat /etc/ssh/sshd_config
+if ! nc -z localhost 22; then 
+    sudo systemsetup -setremotelogin on
+fi
