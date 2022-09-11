@@ -14,6 +14,45 @@ input_boolean:
     name: Indicate if someone is sleeping in the Bedroom
     icon: mdi:car
 
+# occupancy:
+#   doors: 
+#     front_door:
+#       entry: true
+#       contact_sensor: binary_sensor.driveway_door_contact
+#       motion_sensor: binary_sensor.driveway_motion_occupancy
+#     hallway_door:
+#       contact_sensor: binary_sensor.living_room_door_contact
+#       motion_sensor: binary_sensor.living_room_motion_occupancy
+#     landing_door:
+#       contact_sensor: null
+#       motion_sensor: binary_sensor.landing_motion_occupancy
+#     toilet_door:
+#       contact_sensor: binary_sensor.toilet_door_contact
+#       motion_sensor: binary_sensor.toilet_motion_occupancy
+#     kitchen_door:
+#       contact_sensor: null
+#       motion_sensor: binary_sensor.kitchen_motion_occupancy
+#     garden_door:
+#       entry: true
+#       contact_sensor: binary_sensor.garden_door_contact
+#       motion_sensor: binary_sensor.living_room_garden_motion_occupancy
+#   areas:
+#     hallway:
+#       occupancy_sensors: []
+#       doors: ['front_door', 'hallway_door', 'landing_door']
+#     toilet:
+#       occupancy_sensors: []
+#       doors: ['hallway_door']
+#     living_room:
+#       occupancy_sensors: ['binary_sensor.living_room_tv_human_presence']
+#       doors: ['hallway_door', 'garden_door']
+#     landing:
+#       occupancy_sensors: []
+#       doors: ['hallway_door', 'garden_door']
+#     kitchen:
+#       occupancy_sensors: ['binary_sensor.kitchen_human_presence']
+#       doors: ['kitchen_door']
+
 sensor:
   - platform: illuminance
     entity_id: weather.home
