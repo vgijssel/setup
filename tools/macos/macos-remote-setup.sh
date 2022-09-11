@@ -17,8 +17,11 @@ fi
 # if authorized_keys does not exist, create it
 if [ ! -f "$AUTHORIZED_KEYS" ]; then
     touch "$AUTHORIZED_KEYS"
-    chmod 600 "$AUTHORIZED_KEYS"
 fi
+
+# Ensure the right permissions are set for SSH
+chmod 600 "$AUTHORIZED_KEYS"
+chmod 700 "$HOME/.ssh"
 
 # add the public key to the authorized_keys file if it is not already there
 if ! grep -q "$(cat $SECRETS_DIR/id_rsa.pub)" $AUTHORIZED_KEYS; then
