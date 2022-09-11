@@ -17,13 +17,20 @@ def docker_load_and_run(name, image, command, docker_args = []):
         DOCKER_DIGEST=$$(cat $$DOCKER_DIGEST_FILE)
         DOCKER_LOAD_FILE=$$(rlocation $(WORKSPACE_NAME)/$(rootpath {image_label}))
 
+        # if CLI_ARGS is set, then add interactive flag
+        if [[ ! -z "$$CLI_ARGS" ]]; then
+            DOCKER_INTERACTIVE_ARGS="-it"
+        else
+            DOCKER_INTERACTIVE_ARGS=""
+        fi
+
         if ! docker image inspect $$DOCKER_DIGEST > /dev/null 2>&1 ; then
             $$DOCKER_LOAD_FILE
         else
             echo "Image already exists"
         fi
 
-        docker run --rm -t {docker_args} $$DOCKER_DIGEST $$ARGS
+        docker run --rm $$DOCKER_INTERACTIVE_ARGS {docker_args} $$DOCKER_DIGEST $$ARGS
         """.format(
             command = command,
             docker_args = " ".join(docker_args),
