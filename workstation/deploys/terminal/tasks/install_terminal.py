@@ -79,6 +79,8 @@ def install_terminal():
         "bashrc",
         "bash_profile",
         "zshrc",
+        "zprofile",
+        "terminal_env",
         "shell_snippets/benchmark.sh",
         "config/atuin/config.toml",
     ]
@@ -116,11 +118,13 @@ def install_terminal():
         recursive=True,
     )
 
-    if os.environ['CI'] == 'true':
+    if os.environ.get('CI', 'false') == 'true':
         host.noop(f"Currently unable to login to Fig.io in the CI")
     else:
         server.shell(
             name=f"Install Fig dotfiles",
             commands=f"fig source",
             _shell_executable=homebrew_zsh_path,
+            # https://github.com/withfig/fig/issues/1753#issuecomment-1237834892
+            _ignore_errors=True,
         )

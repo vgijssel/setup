@@ -2,7 +2,7 @@ from pyinfra.api.deploy import deploy
 from workstation.helpers.home_link import home_link
 from workstation.helpers import onepassword
 from pyinfra.facts.server import Home
-from pyinfra.operations import brew
+from pyinfra.operations import brew, files
 from pyinfra import host
 
 @deploy("Install SSH")
@@ -35,4 +35,12 @@ def install_ssh():
         local_file=f"{home_dir}/.ssh/user_config",
         remote_file=f"~/.ssh/user_config",
         vault="Workstation",
+    )
+
+    files.line(
+        name="Ensure macOS is only reachable using SSH from localhost",
+        path="/etc/ssh/sshd_config",
+        line="AllowUsers *@127.0.0.1",
+        present=True,
+        _sudo=True,
     )

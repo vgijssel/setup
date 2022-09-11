@@ -115,3 +115,85 @@ http_jar(
         "https://github.com/Tinder/bazel-diff/releases/download/4.0.8/bazel-diff_deploy.jar",
     ],
 )
+
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "16e9fca53ed6bd4ff4ad76facc9b7b651a89db1689a2877d6fd7b82aa824e366",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
+    ],
+)
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.18.3")
+
+http_archive(
+    name = "io_bazel_rules_docker",
+    sha256 = "b1e80761a8a8243d03ebca8845e9cc1ba6c82ce7c5179ce2b295cd36f7e394bf",
+    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz"],
+)
+
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+
+container_repositories()
+
+load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
+
+container_deps()
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_pull",
+)
+
+container_pull(
+    name = "ubuntu_base",
+    digest = "sha256:b18dbe0837fd555c7028af6a1281ffa4fd1b5ffd835968f1009fd4cf9dfeaec3",
+    registry = "index.docker.io",
+    repository = "library/ubuntu:focal",
+)
+
+http_file(
+    name = "inspec_arm64",
+    downloaded_file_path = "inspec.deb",
+    sha256 = "79a496d2467f579c6533bcf42c663d96d830af42ba2f32769ddf6ef879d7d3b5",
+    url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_arm64.deb",
+)
+
+http_file(
+    name = "inspec_amd64",
+    downloaded_file_path = "inspec.deb",
+    sha256 = "b4e8b11478cd2c930b24edcf5c24ef49fe83452f08f6cedc13deae5ce7b0c757",
+    url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_amd64.deb",
+)
+
+http_archive(
+    name = "rules_pkg",
+    sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
+        "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
+    ],
+)
+
+load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+
+rules_pkg_dependencies()
+
+git_repository(
+    name = "com_github_ash2k_bazel_tools",
+    commit = "8ec69576f63c254a089a63ebf7385e7ee1a871e9",
+    remote = "https://github.com/ash2k/bazel-tools.git",
+    shallow_since = "1662117149 +1000",
+)
+
+load("@com_github_ash2k_bazel_tools//multirun:deps.bzl", "multirun_dependencies")
+
+multirun_dependencies()

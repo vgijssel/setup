@@ -61,5 +61,5 @@ function print_output {
     echo "::set-output name=$OUTPUT::$RESULT"
 }
 
-print_output "//workstation:provision" "workstation-test"
+print_output "//workstation:test" "workstation-test"
 print_output "//hypervisor:kitchen" "hypervisor-test"

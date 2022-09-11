@@ -1,6 +1,7 @@
 from pyinfra.api.deploy import deploy
-from pyinfra.operations import brew
+from pyinfra.operations import brew, server
 from workstation.helpers.home_link import home_link
+from workstation.helpers import macos
 
 
 @deploy("Install Editor")
@@ -36,3 +37,16 @@ def install_editor():
             source_file=f"setup/workstation/deploys/editor/files/{file}",
             target_file=f"Library/Application Support/Code/User/{file}",
         )
+
+    for vscode_app_name in ['com.microsoft.VSCode', 'com.microsoft.VSCodeInsiders', 'com.visualstudio.code.oss']:
+        macos.default(
+            name=f"Disable 'Press and hold' for {vscode_app_name}",
+            domain=vscode_app_name,
+            setting="ApplePressAndHoldEnabled",
+            value=False,
+        )
+
+    server.shell(
+        name="Stop VSCode",
+        commands=["osascript -e 'quit app \"Visual Studio Code\"'"],
+    )
