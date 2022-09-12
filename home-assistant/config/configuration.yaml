@@ -42,7 +42,7 @@ input_boolean:
 #       doors: ['front_door', 'hallway_door', 'landing_door']
 #     toilet:
 #       occupancy_sensors: []
-#       doors: ['hallway_door']
+#       doors: ['toilet_door']
 #     living_room:
 #       occupancy_sensors: ['binary_sensor.living_room_tv_human_presence']
 #       doors: ['hallway_door', 'garden_door']

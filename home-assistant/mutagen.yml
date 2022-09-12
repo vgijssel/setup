@@ -26,6 +26,10 @@ sync:
     beta: "hypervisor:/data/home-assistant"
     mode: "two-way-safe"
 
+  occupancy:
+    alpha: "../occupancy/custom_components/occupancy"
+    beta: "hypervisor:/data/home-assistant/config/custom_components/occupancy"
+
 forward:
   zwavejs2mqtt-ui:
     source: "tcp:localhost:8091"

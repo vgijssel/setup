@@ -6,6 +6,7 @@
 	"recommendations": [
 		"vspacecode.vspacecode",
 		"alexanderbast.vscode-snazzy",
-		"BazelBuild.vscode-bazel"
+		"bazelbuild.vscode-bazel",
+		"ms-azuretools.vscode-docker"
 	],
 }
