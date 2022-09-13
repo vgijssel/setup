@@ -31,6 +31,7 @@ def install_utilities():
         packages=[
             "awscli",
             "dive", # to check contents of docker layers
+            "tilt-dev/tap/tilt", # running local development environment
         ],
         present=True,
         update=False,
