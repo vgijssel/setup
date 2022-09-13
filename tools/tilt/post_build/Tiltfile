@@ -1,0 +1,23 @@
+def post_build(name, resource, cmd):
+    local_resource(
+        name,
+        serve_cmd="""
+        #!/usr/bin/env bash
+        set -Eeou pipefail
+
+        echo "Starting post build"
+
+        while :
+        do
+            # timeout -1s means a week
+            tilt wait --timeout=-1s --for=condition=UpToDate=true uiresource/{resource}
+
+            echo "Build UpToDate! Running post_build command"
+
+            {cmd}
+
+            tilt wait --timeout=-1s --for=condition=UpToDate=false uiresource/{resource}
+            echo "Build not UpToDate..."
+        done
+        """.format(resource=resource, cmd=cmd),
+    )
