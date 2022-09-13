@@ -2,7 +2,12 @@ docker_compose("./docker-compose.yml")
 
 docker_build(
     "setup/home-assistant",
-    "."
+    ".",
+    live_update=[
+        sync('configuration.yaml', '/config/configuration.yaml'),
+        sync('custom_components', '/config/custom_components/'),
+        restart_container(),
+    ]
 )
 
 def post_build(name, resource, cmd):
