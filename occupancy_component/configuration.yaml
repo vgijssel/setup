@@ -8,3 +8,14 @@ homeassistant:
   elevation: 0
   unit_system: metric
   time_zone: Europe/Amsterdam
+
+occupancy:
+  doors: 
+    front_door:
+      entry: true
+      contact_sensor: binary_sensor.front_door_contact
+      motion_sensor: binary_sensor.front_door_motion_occupancy
+  areas:
+    hallway:
+      occupancy_sensors: []
+      doors: ['front_door']

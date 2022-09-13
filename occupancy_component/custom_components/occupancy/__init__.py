@@ -31,7 +31,7 @@ CONFIG_SCHEMA = vol.Schema({
             })
         })
     })
-})
+}, extra=vol.ALLOW_EXTRA)
 
 # TODO:
 # - expose an entity through this component
@@ -50,7 +50,6 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
             Door(door_id, entry, contact_sensor, motion_sensor)
         )
 
-    # await async_add_entities(entities)
     await component.async_add_entities(entities)
 
     return True
