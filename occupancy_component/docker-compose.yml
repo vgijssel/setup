@@ -1,20 +1,18 @@
 services:
   mqtt:
     image: eclipse-mosquitto:2.0
-    # restart: always
-    # volumes:
-    #   - "./mosquitto-data:/mosquitto"
     ports:
       - "127.0.0.1:1883:1883"
       - "127.0.0.1:9001:9001"
     command: "mosquitto -c /mosquitto-no-auth.conf"
+    volumes:
+      - "mosquitto_data:/mosquitto"
 
   home-assistant:
-    # container_name: homeassistant
-    # user: "1000:1000"
     image: "setup/home-assistant"
     ports:
       - "127.0.0.1:8123:8123"
-    # volumes:
-    #   - ./config:/config
-    #   - /etc/localtime:/etc/localtime:ro
+
+volumes:
+  mosquitto_data:
+    driver: local
