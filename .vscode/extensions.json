@@ -8,6 +8,7 @@
 		"alexanderbast.vscode-snazzy",
 		"bazelbuild.vscode-bazel",
 		"ms-azuretools.vscode-docker",
-		"tilt-dev.tiltfile"
+		"tilt-dev.tiltfile",
+		"GitHub.remotehub"
 	],
 }

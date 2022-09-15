@@ -80,7 +80,8 @@ class Door(SwitchEntity, RestoreEntity):
 
     def __init__(self, hass, door_id: str, entry: bool, contact_sensor:str = None, motion_sensor:str = None):
         self._hass = hass
-        self._door_id = ENTITY_ID_FORMAT.format(door_id)
+        self._entity_id = ENTITY_ID_FORMAT.format(door_id)
+        self._door_id = door_id
         self._entry = entry
         self._contact_sensor = contact_sensor
         self._motion_sensor = motion_sensor
@@ -154,7 +155,7 @@ class Door(SwitchEntity, RestoreEntity):
     async def _contact_sensor_event(self, event: EventType):
         _LOGGER.debug("Called '_contact_sensor_event' with data %s", event.data)
 
-        from_state = event.data['old_state'].state
+        # from_state = event.data['old_state'].state
         to_state = event.data['new_state'].state
 
         # Door opened
