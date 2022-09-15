@@ -3,9 +3,9 @@
 from homeassistant.setup import async_setup_component
 from homeassistant.const import (
     STATE_ON,
+    STATE_OFF
 )
 from custom_components.occupancy.const import DOMAIN
-from homeassistant.components.demo.binary_sensor import DemoBinarySensor
 
 async def test_async_setup(hass):
     config = {
@@ -29,13 +29,9 @@ async def test_async_setup(hass):
     """Test the component gets setup."""
     assert await async_setup_component(hass, DOMAIN, config) is True
 
-async def test_door_contact_sensor(hass, init_integration):
-    sensor = DemoBinarySensor(
-        None, "Front Door Contact", state=True, device_class='door'
-    )
-    sensor.hass = hass
-    sensor.entity_id = "binary_sensor.front_door_contact"
-    await sensor.async_update_ha_state()
-    await hass.async_block_till_done()
+async def test_door_contact_sensor(hass, init_integration, door_contact_sensor):
+    assert hass.states.get('occupancy.front_door').state == STATE_OFF
+
+    await door_contact_sensor.open()
 
     assert hass.states.get('occupancy.front_door').state == STATE_ON

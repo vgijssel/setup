@@ -60,13 +60,13 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
     return True
 
 # TODO:
-# - Subscribe to the passed in sensor and motion sensor and generate derived state for the door entity
-# - Create area entities represented by a select_input
-# - Subscribe to the door entities by the areas and generate state according to the state machine
-# - Subscribe to the occupancy sensors and update the state machine accordingly
-# - Setup device_class for the door entity sensor
-# - Should we move the Door sensor to the sensor.py file according to the documentation?
-#
+# - [x] Subscribe to the passed in sensor and generate derived state for the door entity
+# - [ ] Subscribe to the passed in motion sensor and generate derived state for the door entity
+# - [ ] Create area entities represented by a select_input
+# - [ ] Subscribe to the door entities by the areas and generate state according to the state machine
+# - [ ] Subscribe to the occupancy sensors and update the state machine accordingly
+# - [ ] Setup device_class for the door entity sensor
+# - [ ] Should we move the Door sensor to the sensor.py file according to the documentation?
 #
 # Door is exposes as a sensor, with simply on/off behaviour
 # on means there is activity at the door
