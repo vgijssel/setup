@@ -89,10 +89,10 @@
     path: diy/presence.yaml
     input:
       presence_entity_id: variable.driveway_presence
-      presence_indicator_entity_ids: []
+      presence_indicator_entity_ids:
+      - binary_sensor.driveway_doorbell_motion
       presence_hint_entity_ids:
       - binary_sensor.driveway_shelly_input
-      - binary_sensor.hallway_motion_occupancy
       presence_timeout: 120
 - id: '1655752447329'
   alias: 'Bedroom - Presence: Manage'
