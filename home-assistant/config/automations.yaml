@@ -657,3 +657,49 @@
       target:
         entity_id: light.toilet_lights
   mode: single
+- id: '1664274065748'
+  alias: Driveway - Doorbell Play Chime
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.driveway_doorbell_doorbell
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - parallel:
+    - service: sonos.snapshot
+      data:
+        entity_id: media_player.woonkamer
+    - service: sonos.snapshot
+      data:
+        entity_id: media_player.sonos_move
+  - service: media_player.volume_set
+    data:
+      volume_level: 0.65
+    target:
+      entity_id:
+      - media_player.woonkamer
+      - media_player.sonos_move
+  - service: media_player.play_media
+    data:
+      media_content_type: music
+      media_content_id: http://hypervisor:8123/local/sounds_sounds_ring_button_Chime.mp3
+    target:
+      entity_id:
+      - media_player.woonkamer
+      - media_player.sonos_move
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 4
+      milliseconds: 0
+  - parallel:
+    - service: sonos.restore
+      data:
+        entity_id: media_player.woonkamer
+    - service: sonos.restore
+      data:
+        entity_id: media_player.sonos_move
+  mode: single
