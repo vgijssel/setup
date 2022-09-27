@@ -78,9 +78,10 @@
       presence_indicator_entity_ids:
       - binary_sensor.toilet_motion_occupancy
       presence_hint_entity_ids:
-      - binary_sensor.toilet_shelly_channel_1_input
+      - binary_sensor.toilet_shelly_input_1
+      - binary_sensor.toilet_shelly_input_2
       - binary_sensor.toilet_door_contact
-      presence_timeout: 120
+      presence_timeout: 180
 - id: '1655751783256'
   alias: 'Driveway - Presence: Manage'
   description: ''
@@ -317,7 +318,7 @@
       illuminance_entity_id: sensor.illuminance
       illuminance_threshold: 200000
       light_and_switch_entity_ids:
-      - switch.toilet_shelly
+      - light.toilet_lights
       start_time: 00:00:00
       end_time: '23:59:59'
 - id: '1655804642598'
