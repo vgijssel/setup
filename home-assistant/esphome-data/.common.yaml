@@ -54,7 +54,7 @@ captive_portal:
 
 switch:
   - platform: gpio
-    name: ${device_name}
+    name: ${entity_name}
     pin: GPIO5
     id: shelly_relay
     # after reboot, keep the relay off. this prevents light turning on after a power outage
@@ -62,12 +62,12 @@ switch:
 
 binary_sensor:
   - platform: gpio
-    name: ${device_name} Input 1
+    name: ${entity_name}_input_1
     pin:
       number: GPIO4
     <<: *light_toggle
   - platform: gpio
-    name: ${device_name} Input 2
+    name: ${entity_name}_input_2
     pin:
       number: GPIO14
     <<: *light_toggle

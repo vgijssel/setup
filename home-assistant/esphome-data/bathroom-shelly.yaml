@@ -1,5 +1,6 @@
 substitutions:
   device_name: "bathroom-shelly"
+  entity_name: "bathroom_shelly"
   light_entity_id: "light.bathroom_lights"
 
 packages:
