@@ -141,5 +141,7 @@ devices:
     friendly_name: hallway_door
   '0x9c6937000070e16e':
     friendly_name: toilet_1_light
+    transition: 1
   '0xc498860000006fc0':
     friendly_name: toilet_2_light
+    transition: 1
