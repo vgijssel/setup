@@ -311,7 +311,7 @@ homekit:
         - switch.laundry_room_shelly
         - switch.office_shelly
         - switch.supply_closet_shelly
-        # - light.toilet_lights
+        - light.toilet_lights
         - switch.bedroom_fan_power
 
     entity_config:
@@ -349,8 +349,8 @@ homekit:
         name: Kantoor Lamp
       switch.supply_closet_shelly:
         name: Voorraadkast Lamp
-      # light.toilet_lights:
-      #   name: Wc Lampen
+      light.toilet_lights:
+        name: Wc Lampen
 
   - name: HA - Baby Cam
     port: 21064
