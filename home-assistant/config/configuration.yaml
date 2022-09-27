@@ -293,7 +293,7 @@ homekit:
         - switch.laundry_room_shelly
         - switch.office_shelly
         - switch.supply_closet_shelly
-        - light.toilet_lights
+        # - light.toilet_lights
         - switch.bedroom_fan_power
 
     entity_config:
@@ -331,10 +331,10 @@ homekit:
         name: Kantoor Lamp
       switch.supply_closet_shelly:
         name: Voorraadkast Lamp
-      light.toilet_lights:
-        name: Wc Lampen
+      # light.toilet_lights:
+      #   name: Wc Lampen
 
-  - name: Home Assistant - Baby Cam
+  - name: HA - Baby Cam
     port: 21064
     mode: accessory
     filter:
@@ -343,3 +343,13 @@ homekit:
     entity_config:
       camera.baby_room_cam_high:
         name: Babykamer Camera
+
+  - name: HA - Driveway Cam
+    port: 21065
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.driveway_doorbell_high
+    entity_config:
+      camera.driveway_doorbell_high:
+        name: Oprit Camera
