@@ -57,7 +57,6 @@ services:
 
   esphome:
     container_name: esphome
-    user: "1000:1000"
     image: esphome/esphome
     volumes:
       - ./esphome-data:/config
