@@ -1,0 +1,6 @@
+substitutions:
+  device_name: "toilet-shelly"
+  # light_entity_id: "light.bathroom_lights"
+
+packages:
+  device_base: !include .small.yaml
