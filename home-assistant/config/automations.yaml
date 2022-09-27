@@ -409,27 +409,18 @@
   action:
   - if:
     - condition: state
-      entity_id: light.baby_room_light
+      entity_id: group.baby_room_lights
       state: 'on'
     then:
-    - service: light.turn_off
-      data:
-        transition: 1
-      target:
-        entity_id: light.baby_room_light
-    - service: switch.turn_off
+    - service: homeassistant.turn_off
       data: {}
       target:
-        entity_id: switch.baby_room_power
+        entity_id: group.baby_room_lights
     else:
-    - service: light.turn_on
-      target:
-        entity_id: light.baby_room_light
-      data: {}
-    - service: switch.turn_on
+    - service: homeassistant.turn_on
       data: {}
       target:
-        entity_id: switch.baby_room_power
+        entity_id: group.baby_room_lights
   mode: single
 - id: '1657026314050'
   alias: 'Bedroom - Sleeping: Manage'

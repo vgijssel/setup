@@ -113,6 +113,14 @@ light:
       - light.toilet_1_light
       - light.toilet_2_light
 
+group:
+  baby_room_lights:
+    name: baby_room_lights
+    entities:
+      - light.baby_room_light
+      - switch.baby_room_moon_light
+      - switch.baby_room_bed_light
+
 variable:
   baby_room_presence:
     value: "off"
@@ -302,6 +310,8 @@ homekit:
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.baby_room_light
+        - switch.baby_room_moon_light
+        - switch.baby_room_bed_light
         - light.bathroom_lights
         - switch.bedroom_shelly
         - switch.driveway_shelly
@@ -329,6 +339,10 @@ homekit:
         name: Woonkamer Thermostaat
       light.baby_room_light:
         name: Babykamer Lamp
+      switch.baby_room_moon_light:
+        name: Babykamer Maan Lamp
+      switch.baby_room_bed_light:
+        name: Babykamer Bed Lamp
       light.bathroom_lights:
         name: Badkamer Lampen
       switch.bedroom_shelly:
