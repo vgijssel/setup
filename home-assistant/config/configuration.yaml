@@ -21,33 +21,51 @@ sensor:
 adaptive_lighting:
   - name: hallway
     lights:
-      - light.hallway_lights
+      - light.hallway_1_light
+      - light.hallway_2_light
+      - light.hallway_3_light
+      - light.hallway_4_light
   - name: landing
     lights:
-      - light.landing_lights
+      - light.landing_1_light
+      - light.landing_2_light
+      - light.landing_3_light
   - name: bathroom
     lights:
-      - light.bathroom_lights
+      - light.bathroom_1_light
+      - light.bathroom_2_light
+      - light.bathroom_3_light
+      - light.bathroom_4_light
+      - light.bathroom_5_light
+      - light.bathroom_6_light
   - name: toilet
-    initial_transition: 0
-    sleep_transition: 0
-    min_brightness: 30
-    sleep_brightness: 30
     lights:
-      - light.toilet_lights
+      - light.toilet_1_light
+      - light.toilet_2_light
   - name: baby_room
     lights:
       - light.baby_room_light
   - name: kitchen
     lights:
-      - light.kitchen_lights
+      - light.kitchen_1_light
+      - light.kitchen_2_light
+      - light.kitchen_3_light
+      - light.kitchen_4_light
+      - light.kitchen_5_light
+      - light.kitchen_6_light
     take_over_control: true
     detect_non_ha_changes: true
+    min_brightness: 30
   - name: living_room
     lights:
-      - light.living_room_lights
+      - light.living_room_corner_light
+      - light.living_room_dining_table_light
+      - light.living_room_monkey_light
+      - light.living_room_mouse_light
+      - light.living_room_tv_light
     take_over_control: true
     detect_non_ha_changes: true
+    min_brightness: 30
 
 light:
   - platform: group
