@@ -22,6 +22,8 @@ sync:
         - "!/config/secrets.yaml"
         - "!/config/custom_components"
 
+        - esphome-data/.esphome
+
   hypervisor:
     beta: "hypervisor:/data/home-assistant"
     mode: "two-way-safe"
@@ -34,3 +36,7 @@ forward:
   zigbee2mqtt-ui:
     source: "tcp:localhost:8092"
     destination: "hypervisor:tcp:localhost:8080"
+
+  esphome-ui:
+    source: "tcp:localhost:6052"
+    destination: "hypervisor:tcp:localhost:6052"
