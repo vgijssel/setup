@@ -1,5 +1,5 @@
 platform: gpio
-on_state:
+on_press:
     then:
       - if:
           condition:
