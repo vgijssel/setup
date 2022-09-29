@@ -1,0 +1,23 @@
+esphome:
+  name: ${device_name}
+  platformio_options:
+    board_build.f_cpu: 160000000L
+
+esp32:
+  board: esp32doit-devkit-v1
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_FREERTOS_UNICORE: y
+      CONFIG_ESP32_DEFAULT_CPU_FREQ_160: y
+      CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ: "160"
+
+output:
+  - platform: gpio
+    id: "relay_output"
+    pin: GPIO26
+
+status_led:
+  pin:
+    number: GPIO0
+    inverted: true
