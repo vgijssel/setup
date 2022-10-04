@@ -1,5 +1,5 @@
 platform: gpio
-on_press:
+on_state:
     then:
       - switch.toggle: shelly_relay
 filters:

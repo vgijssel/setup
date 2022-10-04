@@ -295,7 +295,7 @@
       - switch.office_shelly
       start_time: 07:00:00
       end_time: '23:00:00'
-      illuminance_threshold: 50
+      illuminance_threshold: 40
 - id: '1655800068148'
   alias: 'Supply Closet - Light: Manage'
   description: ''
