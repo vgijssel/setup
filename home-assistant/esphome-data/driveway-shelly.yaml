@@ -1,6 +1,8 @@
 substitutions:
   device_name: "driveway-shelly"
   entity_id: "driveway_shelly"
+  beacon_major: 1
+  beacon_minor: 4
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml

@@ -25,3 +25,9 @@ status_led:
   pin:
     number: GPIO0
     inverted: true
+
+esp32_ble_beacon:
+  type: iBeacon
+  uuid: 12a13a53-905b-0654-3468-3956014a7888
+  major: ${beacon_major}
+  minor: ${beacon_minor}
