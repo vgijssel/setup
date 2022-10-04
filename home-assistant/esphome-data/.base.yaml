@@ -25,6 +25,7 @@ switch:
     # after reboot, keep the relay off. this prevents light turning on after a power outage
     restore_mode: ALWAYS_OFF
 
+# From https://community.home-assistant.io/t/shelly-plus-1-esphome-bletracker/363549/38
 # Setup a button in home assistant to reboot the shelly into safe mode
 button:
   - platform: safe_mode

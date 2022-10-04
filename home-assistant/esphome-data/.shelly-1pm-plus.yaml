@@ -4,13 +4,20 @@ esphome:
     board_build.f_cpu: 160000000L
 
 esp32:
-  board: esp32doit-devkit-v1
+  # board: esp32doit-devkit-v1
+  board: esp32dev
   framework:
     type: esp-idf
     sdkconfig_options:
       CONFIG_FREERTOS_UNICORE: y
       CONFIG_ESP32_DEFAULT_CPU_FREQ_160: y
       CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ: "160"
+      # From https://github.com/esphome/issues/issues/2941
+      # Increase watchdog timeout to flash firmware with bluetooth enabled, fixes error:
+      # ERROR Error receiving acknowledge binary size: timed out
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "20"
+      CONFIG_BT_BLE_50_FEATURES_SUPPORTED: n
+      CONFIG_BT_BLE_42_FEATURES_SUPPORTED: y
 
 output:
   - platform: gpio
@@ -21,3 +28,9 @@ status_led:
   pin:
     number: GPIO0
     inverted: true
+
+esp32_ble_beacon:
+  type: iBeacon
+  uuid: 12a13a53-905b-0654-3468-3956014a7888
+  major: ${beacon_major}
+  minor: ${beacon_minor}
