@@ -1,0 +1,53 @@
+version = "0.6.6"
+home = "/Users/maarten"
+config_dir = "/Users/maarten/.sheldon"
+data_dir = "/Users/maarten/.sheldon"
+config_file = "/Users/maarten/.sheldon/plugins.toml"
+lock_file = "/Users/maarten/.sheldon/plugins.lock"
+clone_dir = "/Users/maarten/.sheldon/repos"
+download_dir = "/Users/maarten/.sheldon/downloads"
+
+[[plugins]]
+name = "pure"
+source_dir = "/Users/maarten/.sheldon/repos/github.com/sindresorhus/pure"
+files = ["/Users/maarten/.sheldon/repos/github.com/sindresorhus/pure/async.zsh", "/Users/maarten/.sheldon/repos/github.com/sindresorhus/pure/pure.zsh"]
+apply = ["source"]
+
+[[plugins]]
+name = "zsh-autosuggestions"
+source_dir = "/Users/maarten/.sheldon/repos/github.com/zsh-users/zsh-autosuggestions"
+files = ["/Users/maarten/.sheldon/repos/github.com/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh"]
+apply = ["source"]
+
+[[plugins]]
+name = "zsh-syntax-highlighting"
+source_dir = "/Users/maarten/.sheldon/repos/github.com/zsh-users/zsh-syntax-highlighting"
+files = ["/Users/maarten/.sheldon/repos/github.com/zsh-users/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"]
+apply = ["source"]
+
+[[plugins]]
+name = "zsh-z"
+source_dir = "/Users/maarten/.sheldon/repos/github.com/agkozak/zsh-z"
+files = ["/Users/maarten/.sheldon/repos/github.com/agkozak/zsh-z/zsh-z.plugin.zsh"]
+apply = ["source"]
+
+[[plugins]]
+name = "atuin"
+source_dir = "/Users/maarten/.sheldon/repos/github.com/ellie/atuin"
+files = ["/Users/maarten/.sheldon/repos/github.com/ellie/atuin/atuin.plugin.zsh"]
+apply = ["source"]
+[templates.PATH]
+value = "export PATH=\"{{ dir }}:$PATH\""
+each = false
+
+[templates.path]
+value = "path=( \"{{ dir }}\" $path )"
+each = false
+
+[templates.fpath]
+value = "fpath=( \"{{ dir }}\" $fpath )"
+each = false
+
+[templates.source]
+value = "source \"{{ file }}\""
+each = true
