@@ -54,7 +54,7 @@ jobs:
       - run: rm /usr/local/bin/aws /usr/local/bin/aws_completer
       - run: brew install docker colima
       - run: colima start
-      - run: docker image ls
+      - run: docker info
       - run: bazel run //workstation:test
 
   hypervisor-test:

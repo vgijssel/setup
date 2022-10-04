@@ -38,6 +38,8 @@ pyinfra_run(
         "deploys/terminal/files/bashrc",
         "deploys/terminal/files/config/atuin/config.toml",
         "deploys/terminal/files/profile",
+        "deploys/terminal/files/sheldon/plugins.lock",
+        "deploys/terminal/files/sheldon/plugins.toml",
         "deploys/terminal/files/shell_snippets/benchmark.sh",
         "deploys/terminal/files/terminal_env",
         "deploys/terminal/files/zprofile",

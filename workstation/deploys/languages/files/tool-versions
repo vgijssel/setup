@@ -8,3 +8,4 @@ kubectl 1.24.3
 vault 1.7.3
 pulumi 3.31.0
 postgres 13.6
+ruby 2.7.6
