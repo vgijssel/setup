@@ -42,6 +42,8 @@ adaptive_lighting:
     lights:
       - light.toilet_1_light
       - light.toilet_2_light
+    min_brightness: 50
+    sleep_brightness: 50
   - name: baby_room
     lights:
       - light.baby_room_light

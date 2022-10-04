@@ -1,0 +1,6 @@
+platform: gpio
+on_state:
+    then:
+      - switch.toggle: shelly_relay
+filters:
+  - delayed_on_off: 50ms
