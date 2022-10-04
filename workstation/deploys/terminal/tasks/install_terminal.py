@@ -12,7 +12,6 @@ def install_terminal():
         name="Install Apps",
         casks=[
             "iterm2",
-            "fig",
         ],
         present=True,
         latest=False,
@@ -43,6 +42,7 @@ def install_terminal():
             "zsh",
             "bash",
             "jq",
+            "sheldon",
         ],
         present=True,
         update=False,
@@ -83,6 +83,8 @@ def install_terminal():
         "terminal_env",
         "shell_snippets/benchmark.sh",
         "config/atuin/config.toml",
+        "sheldon/plugins.lock",
+        "sheldon/plugins.toml",
     ]
 
     for file in terminal_config_files:
@@ -118,13 +120,10 @@ def install_terminal():
         recursive=True,
     )
 
-    if os.environ.get('CI', 'false') == 'true':
-        host.noop(f"Currently unable to login to Fig.io in the CI")
-    else:
-        server.shell(
-            name=f"Install Fig dotfiles",
-            commands=f"fig source",
-            _shell_executable=homebrew_zsh_path,
-            # https://github.com/withfig/fig/issues/1753#issuecomment-1237834892
-            _ignore_errors=True,
-        )
+    server.shell(
+        name=f"Install Sheldon plugins",
+        commands=f"sheldon lock",
+        _shell_executable=homebrew_zsh_path,
+        # https://github.com/withfig/fig/issues/1753#issuecomment-1237834892
+        _ignore_errors=True,
+    )
