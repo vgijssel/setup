@@ -24,3 +24,8 @@ switch:
     output: "relay_output"
     # after reboot, keep the relay off. this prevents light turning on after a power outage
     restore_mode: ALWAYS_OFF
+
+# Setup a button in home assistant to reboot the shelly into safe mode
+button:
+  - platform: safe_mode
+    name: "${entity_id}_safe_mode_restart"
