@@ -2,8 +2,6 @@ substitutions:
   device_name: "kitchen-shelly"
   entity_id: "kitchen_shelly"
   light_entity_id: "light.kitchen_lights"
-  beacon_major: "1"
-  beacon_minor: "2"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
