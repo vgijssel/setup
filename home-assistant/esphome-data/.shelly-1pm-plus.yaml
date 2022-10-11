@@ -28,3 +28,74 @@ status_led:
   pin:
     number: GPIO0
     inverted: true
+
+# globals:
+#   - id: room_topic
+#     type: std::string
+#     initial_value: '"room_presence/${entity_id}"'
+
+# TODO: misconfiguration in mqtt results in wifi no longer working!
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  discovery: false # Only if you use the HA API usually
+  id: mqtt_client
+
+# esp32_ble_tracker:
+#   scan_parameters:
+#     interval: 1.2s
+#     window: 500ms
+#     active: false
+#   on_ble_advertise:
+#     - then:
+#       # Look for manufacturer data of form: 4c00 10 05 YY 98 XXXXXX
+#       # Where YY can be 01..0F or 20..2F; and XXXXXX is ignored
+#       - lambda: |-
+#           optional<int16_t> best_rssi = nullopt;
+
+#           for (auto data : x.get_manufacturer_datas()) {
+#             // Guard against non-Apple datagrams, or those that are too small.
+#             if (data.data.size() < 4 || data.uuid.to_string() != "0x004C" || data.data[0] != 0x10 || data.data[1] < 5) {
+#               continue;
+#             }
+#             const int16_t rssi = x.get_rssi();
+#             const uint8_t status_flags = data.data[2] >> 4;  // High nibble
+#             const uint8_t data_flags = data.data[3];
+            
+#             if (data_flags == 0x98) {  // Match unlocked Apple Watch. To also match locked watch use: if (data_flags == 0x98 || data_flags == 0x18) {
+#               if (status_flags == 0 || status_flags == 2) {
+#                 best_rssi = max(rssi, best_rssi.value_or(rssi));
+#                 ESP_LOGD("ble_adv", "Found Apple Watch (mac %s) rssi %i", x.address_str().c_str(), rssi);
+#               } else {
+#                 ESP_LOGD("ble_adv", "Possible Apple Watch? (mac %s) rssi %i, unrecognised status/action flags %#04x", x.address_str().c_str(), rssi, data.data[2]);
+#               }
+#             }
+#           }
+#           if (best_rssi) {
+#             id(apple_watch_rssi).publish_state(*best_rssi);
+#           }
+
+esp32_ble_tracker:
+  scan_parameters:
+    interval: 1.2s
+    window: 500ms
+    active: false
+  on_ble_advertise:
+    - then:
+        - lambda: |-
+            ESP_LOGD("ble_adv", "New BLE device");
+            ESP_LOGD("ble_adv", "  address: %s", x.address_str().c_str());
+            ESP_LOGD("ble_adv", "  name: %s", x.get_name().c_str());
+            ESP_LOGD("ble_adv", "  Advertised service UUIDs:");
+            for (auto uuid : x.get_service_uuids()) {
+                ESP_LOGD("ble_adv", "    - %s", uuid.to_string().c_str());
+            }
+            ESP_LOGD("ble_adv", "  Advertised service data:");
+            for (auto data : x.get_service_datas()) {
+                ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
+            }
+            ESP_LOGD("ble_adv", "  Advertised manufacturer data:");
+            for (auto data : x.get_manufacturer_datas()) {
+                ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
+            }

@@ -6,7 +6,8 @@ services:
     volumes:
       - "./mosquitto-data:/mosquitto"
     ports:
-      - "127.0.0.1:1883:1883"
+      # - "127.0.0.1:1883:1883"
+      - "0.0.0.0:1883:1883"
       - "127.0.0.1:9001:9001"
     command: "mosquitto -c /mosquitto-no-auth.conf"
 
@@ -65,4 +66,5 @@ services:
     privileged: true
     ports:
       - '127.0.0.1:6052:6052' # port for the UI
-    # network_mode: host
+    # requires this to be able to access the shellys using the dashboard.
+    network_mode: host
