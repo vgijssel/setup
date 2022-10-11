@@ -124,6 +124,10 @@ group:
       - switch.baby_room_bed_light
 
 variable:
+  owntracks_data:
+    value: ""
+    restore: true
+
   baby_room_presence:
     value: "off"
     restore: true
@@ -387,28 +391,3 @@ homekit:
     entity_config:
       camera.driveway_doorbell_high:
         name: Oprit Camera
-
-owntracks:
-  waypoints: false
-
-zone:
-  - name: living_room
-    latitude: !secret latitude
-    longitude: !secret longitude
-    radius: 0
-    icon: mdi:school
-  - name: hallway
-    latitude: !secret latitude
-    longitude: !secret longitude
-    radius: 0
-    icon: mdi:school
-  - name: driveway
-    latitude: !secret latitude
-    longitude: !secret longitude
-    radius: 0
-    icon: mdi:school
-  - name: kitchen
-    latitude: !secret latitude
-    longitude: !secret longitude
-    radius: 0
-    icon: mdi:school

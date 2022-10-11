@@ -619,3 +619,49 @@
       data:
         entity_id: media_player.sonos_move
   mode: single
+- id: '1665418228675'
+  alias: Process Owntracks
+  variables:
+    beacon_mapping: 
+      1:
+        1: supply_closet
+        2: kitchen
+        3: hallway
+        4: driveway
+  description: |
+    example beacon payload
+    {'_type': 'beacon', 'acc': 13, 'major': 1, 'minor': 4, 'prox': 3, 'rssi': -84, 'tid': 'NE', 'tst': 1665465775, 'uuid': '12A13A53-905B-0654-3468-3956014A7888' }
+  trigger:
+  - platform: mqtt
+    topic: owntracks/mqtt/maarten-iphone/beacon
+  condition: []
+  action:
+  - service: variable.set_variable
+    data:
+      value: |
+        {% set current_data = expand("variable.owntracks_data")[0].attributes %}
+        {% set closest_location = (current_data.values() | max(attribute="rssi")).location %}
+        {{ closest_location }}
+      attributes: |
+        {% set location = beacon_mapping[trigger.payload_json.major][trigger.payload_json.minor] %}
+        {% 
+          set data = { 
+            location: {
+              'location': location,
+              'rssi': trigger.payload_json.rssi,
+              'acc': trigger.payload_json.acc,
+              'major': trigger.payload_json.major,
+              'minor': trigger.payload_json.minor,
+              'prox': trigger.payload_json.prox,
+              'tid': trigger.payload_json.tid,
+              'tst': trigger.payload_json.tst,
+              'uuid': trigger.payload_json.uuid,
+            } 
+          }
+        %}
+        {{ data }}
+      replace_attributes: false
+      variable: owntracks_data
+  mode: single
+  trace:
+    stored_traces: 1500
