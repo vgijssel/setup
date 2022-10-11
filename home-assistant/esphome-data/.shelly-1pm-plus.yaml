@@ -78,24 +78,45 @@ mqtt:
 
 esp32_ble_tracker:
   scan_parameters:
-    interval: 1.2s
-    window: 500ms
+    # interval: 1.2s
+    # window: 500ms
+    interval: 10s
+    window: 100ms
     active: false
   on_ble_advertise:
     - then:
         - lambda: |-
-            ESP_LOGD("ble_adv", "New BLE device");
-            ESP_LOGD("ble_adv", "  address: %s", x.address_str().c_str());
-            ESP_LOGD("ble_adv", "  name: %s", x.get_name().c_str());
-            ESP_LOGD("ble_adv", "  Advertised service UUIDs:");
-            for (auto uuid : x.get_service_uuids()) {
-                ESP_LOGD("ble_adv", "    - %s", uuid.to_string().c_str());
-            }
-            ESP_LOGD("ble_adv", "  Advertised service data:");
-            for (auto data : x.get_service_datas()) {
-                ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
-            }
-            ESP_LOGD("ble_adv", "  Advertised manufacturer data:");
             for (auto data : x.get_manufacturer_datas()) {
-                ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
+              // Guard against non-Apple datagrams, or those that are too small.
+              if (data.data.size() < 4 || data.uuid.to_string() != "0x004C" || data.data[0] != 0x10 || data.data[1] < 5) {
+                continue;
+              }
+
+              const int16_t rssi = x.get_rssi();
+              const uint8_t status_flags = data.data[2] >> 4;  // High nibble
+              const uint8_t data_flags = data.data[3];
+
+              // the apple watch is either locked or unlocked
+              if (data_flags == 0x98 || data_flags == 0x18) {
+                std::string result(x.get_tx_powers().begin(), x.get_tx_powers().end());
+
+                ESP_LOGD("ble_adv", "New BLE device");
+                ESP_LOGD("ble_adv", "  address: %s", x.address_str().c_str());
+                ESP_LOGD("ble_adv", "  name: %s", x.get_name().c_str());
+                ESP_LOGD("ble_adv", "  rssi: %i", x.get_rssi());
+                ESP_LOGD("ble_adv", "  tx_powers: %s", result.c_str());
+                ESP_LOGD("ble_adv", "  Advertised service UUIDs:");
+                for (auto uuid : x.get_service_uuids()) {
+                    ESP_LOGD("ble_adv", "    - %s", uuid.to_string().c_str());
+                }
+                ESP_LOGD("ble_adv", "  Advertised service data:");
+                for (auto data : x.get_service_datas()) {
+                    ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
+                }
+                ESP_LOGD("ble_adv", "  Advertised manufacturer data:");
+                for (auto data : x.get_manufacturer_datas()) {
+                    ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
+                }
+              }
+
             }
