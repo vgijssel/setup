@@ -64,6 +64,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
     restart: always
     privileged: true
+    network_mode: host
     ports:
-      - '127.0.0.1:6052:6052' # port for the UI
-    # network_mode: host
+      - '0.0.0.0:6052:6052' # port for the UI

@@ -14,3 +14,26 @@ binary_sensor:
   - <<: !include .smart_light_binary_sensor.yaml
     name: ${entity_id}_input_2
     pin: GPIO14
+
+time:
+  - platform: homeassistant
+    on_time:
+      - seconds: 0
+        # Every minute
+        minutes: /1
+        then:
+          - if:
+              condition:
+                and:
+                  - wifi.connected:
+                  - api.connected:
+                  - switch.is_off: shelly_relay
+              then:
+                # Turn on the shelly relay with the zigbee lights
+                - switch.turn_on: shelly_relay
+
+                # Immediately turn off the lights
+                - homeassistant.service:
+                    service: light.turn_off
+                    data:
+                      entity_id: ${light_entity_id}
