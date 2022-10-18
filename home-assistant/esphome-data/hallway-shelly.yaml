@@ -2,12 +2,11 @@ substitutions:
   device_name: "hallway-shelly"
   entity_id: "hallway_shelly"
   light_entity_id: "light.hallway_lights"
-  beacon_major: "1"
-  beacon_minor: "3"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
   base: !include .base.yaml
+  smart_light_restore: !include .smart_light_restore.yaml
 
 binary_sensor:
   - <<: !include .smart_light_binary_sensor.yaml
