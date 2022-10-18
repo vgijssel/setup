@@ -1,8 +1,6 @@
 substitutions:
   device_name: "supply-closet-shelly"
   entity_id: "supply_closet_shelly"
-  beacon_major: "1"
-  beacon_minor: "1"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
