@@ -3,6 +3,11 @@ availability: true
 mqtt:
   base_topic: zigbee2mqtt
   server: mqtt://mqtt
+  keepalive: 60
+  password: '!secret mqtt_password'
+  reject_unauthorized: true
+  user: zigbee2mqtt
+  version: 4
 serial:
   port: /dev/zigbee
 frontend:
