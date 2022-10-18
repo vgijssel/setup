@@ -8,7 +8,8 @@ services:
     ports:
       - "127.0.0.1:1883:1883"
       - "127.0.0.1:9001:9001"
-    command: "mosquitto -c /mosquitto-no-auth.conf"
+    command: "mosquitto -c /mosquitto/mosquitto-auth.conf"
+    user: 1000:1000
 
   zigbee2mqtt:
     container_name: zigbee2mqtt
