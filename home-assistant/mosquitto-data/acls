@@ -1,0 +1,15 @@
+# Home Assistant has access to everything
+user home-assistant
+topic readwrite #
+
+# ESPHome has access to everything
+user esphome
+topic readwrite #
+
+# ZwaveJS2mqtt has access to everything
+user zwavejs2mqtt
+topic readwrite #
+
+# Zigbee2mqtt has access to everything
+user zigbee2mqtt
+topic readwrite #
