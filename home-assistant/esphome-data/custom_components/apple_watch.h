@@ -8,13 +8,6 @@
 
 // Compiling .pioenvs/office-shelly/mbedtls/port/aes/block/esp_aes.o
 // is that pointing to https://github.com/espressif/esp-idf/blob/master/components/mbedtls/port/aes/block/esp_aes.c?
-// 
-// Do we need to set this flag somewhere to get what we want?
-// CONFIG_MBEDTLS_HARDWARE_AES
-// 
-// can ESPHome or platformio override the sdkconfig file? Maybe we need to set the previous flag!
-
-// From https://github.com/ESPresense/ESPresense/blob/master/lib/BleFingerprint/BleFingerprint.cpp#L135
 int bt_encrypt_be(const uint8_t *key, const uint8_t *plaintext, uint8_t *enc_data)
 {
     mbedtls_aes_context s = {0};
@@ -65,12 +58,10 @@ bool ble_ll_resolv_rpa(const uint8_t *rpa, const uint8_t *irk) {
     auto err = bt_encrypt_be(ecb.key, ecb.plain_text, ecb.cipher_text);
 
     if (ecb.cipher_text[15] != rpa[0] || ecb.cipher_text[14] != rpa[1] || ecb.cipher_text[13] != rpa[2]) {
-
-        // ESP_LOGD("ble_adv", "  Advertised manufacturer data:");
-        // Serial.printf("No RPA match");
+        ESP_LOGD("apple_watch", "No RPA match %d %02x%02x%02x %02x%02x%02x\n", err, rpa[0], rpa[1], rpa[2], ecb.cipher_text[15], ecb.cipher_text[14], ecb.cipher_text[13]);
         return false;
     } else {
-        // Serial.printf("RPA resolved %d %02x%02x%02x %02x%02x%02x\n", err, rpa[0], rpa[1], rpa[2], ecb.cipher_text[15], ecb.cipher_text[14], ecb.cipher_text[13]);
+        ESP_LOGD("apple_watch", "RPA resolved %d %02x%02x%02x %02x%02x%02x\n", err, rpa[0], rpa[1], rpa[2], ecb.cipher_text[15], ecb.cipher_text[14], ecb.cipher_text[13]);
         return true;
     }
 }
