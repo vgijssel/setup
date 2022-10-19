@@ -86,8 +86,7 @@ esp32_ble_tracker:
                     ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
                 }
 
-                // TODO: arguments of this function are not correct!!
-                ble_ll_resolv_rpa(x.address(), x.address());
+                doIt(x.address());
               }
             }
 

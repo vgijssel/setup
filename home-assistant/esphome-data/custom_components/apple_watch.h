@@ -1,10 +1,13 @@
-#include "esphome.h"
-
 // I think this comes from https://github.com/espressif/mbedtls/blob/mbedtls-3.2.1-idf/include/mbedtls/aes.h
 #include "mbedtls/aes.h"
 
 // From https://github.com/eblot/tde-nimble/blob/master/nimble/host/include/host/ble_hs.h#L83
 #define BLE_HS_EUNKNOWN             17
+
+// for the doIt function methods
+#include <iostream>
+#include <sstream>
+#include <string>
 
 // Compiling .pioenvs/office-shelly/mbedtls/port/aes/block/esp_aes.o
 // is that pointing to https://github.com/espressif/esp-idf/blob/master/components/mbedtls/port/aes/block/esp_aes.c?
@@ -63,5 +66,64 @@ bool ble_ll_resolv_rpa(const uint8_t *rpa, const uint8_t *irk) {
     } else {
         ESP_LOGD("apple_watch", "RPA resolved %d %02x%02x%02x %02x%02x%02x\n", err, rpa[0], rpa[1], rpa[2], ecb.cipher_text[15], ecb.cipher_text[14], ecb.cipher_text[13]);
         return true;
+    }
+}
+
+static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+std::string hexStr(const uint8_t *data, int len) {
+    std::string s(len * 2, ' ');
+    for (int i = 0; i < len; ++i) {
+        s[2 * i] = hexmap[(data[i] & 0xF0) >> 4];
+        s[2 * i + 1] = hexmap[data[i] & 0x0F];
+    }
+    return s;
+}
+
+uint8_t hextob(char ch)
+{
+    if (ch >= '0' && ch <= '9') return ch - '0';
+    if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
+    if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
+    return 0;
+}
+
+bool hextostr(const std::string &hexStr, uint8_t* output, size_t len)
+{
+    if (len & 1) return false;
+    if (hexStr.length() < len*2) return false;
+    int k = 0;
+    for (size_t i = 0; i < len*2; i+=2)
+        output[k++] = (hextob(hexStr[i]) << 4) | hextob(hexStr[i+1]);
+    return true;
+}
+
+// TODO: setup knownIrks like https://github.com/ESPresense/ESPresense/blob/11a61d20877bc098b7f05ed52ef30ccd1ce555d6/lib/BleFingerprint/BleFingerprintCollection.cpp#L8
+// TODO: translate the knownIrks 
+
+// Copied from https://github.com/ESPresense/ESPresense/blob/11a61d20877bc098b7f05ed52ef30ccd1ce555d6/lib/BleFingerprint/BleFingerprintCollection.cpp#L111
+void doIt(const uint8_t *rpa) {
+    std::string knownIrk("bfcdf556258d62b3de125068cd02378f");
+    std::vector<uint8_t *> irks;
+    std::istringstream iss(knownIrk.c_str());
+    std::string irk_hex;
+
+    while (iss >> irk_hex) {
+        uint8_t *irk = new uint8_t[16];
+        if (!hextostr(irk_hex.c_str(), irk, 16))
+            continue;
+        irks.push_back(irk);
+    }
+
+    ESP_LOGD("apple_watch", "irks length: %d", irks.size());
+
+    auto naddress = rpa;
+    auto it = std::find_if(irks.begin(), irks.end(), [naddress](uint8_t *irk) { return ble_ll_resolv_rpa(naddress, irk); });
+
+    if (it != irks.end()) {
+        auto irk_hex = hexStr(*it, 16);
+        // setId(String("irk:") + irk_hex.c_str(), ID_TYPE_KNOWN_IRK);
+
+        ESP_LOGD("apple_watch", "irk found: %s", irk_hex.c_str());
     }
 }
