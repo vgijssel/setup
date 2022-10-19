@@ -6,6 +6,13 @@
 // From https://github.com/eblot/tde-nimble/blob/master/nimble/host/include/host/ble_hs.h#L83
 #define BLE_HS_EUNKNOWN             17
 
+// Compiling .pioenvs/office-shelly/mbedtls/port/aes/block/esp_aes.o
+// is that pointing to https://github.com/espressif/esp-idf/blob/master/components/mbedtls/port/aes/block/esp_aes.c?
+// 
+// Do we need to set this flag somewhere to get what we want?
+// CONFIG_MBEDTLS_HARDWARE_AES
+// 
+// can ESPHome or platformio override the sdkconfig file? Maybe we need to set the previous flag!
 
 // From https://github.com/ESPresense/ESPresense/blob/master/lib/BleFingerprint/BleFingerprint.cpp#L135
 int bt_encrypt_be(const uint8_t *key, const uint8_t *plaintext, uint8_t *enc_data)
