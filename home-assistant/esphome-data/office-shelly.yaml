@@ -31,6 +31,14 @@ mqtt:
   discovery: false # Only if you use the HA API usually
   id: mqtt_client
 
+esphome:
+  # Use same setup as https://github.com/rpatel3001/BleDistance/blob/master/ble_dist.h
+  libraries:
+    # This version of mbedtls compiled, but still no "mbedtls_aes_init" function
+    - mbedtls=https://github.com/espressif/mbedtls.git#mbedtls-2.9.0-idf
+  includes:
+    - custom_components/apple_watch.h
+
 esp32_ble_tracker:
   scan_parameters:
     # interval: 1.2s
@@ -74,6 +82,9 @@ esp32_ble_tracker:
                 for (auto data : x.get_manufacturer_datas()) {
                     ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
                 }
+
+                // TODO: arguments of this function are not correct!!
+                ble_ll_resolv_rpa(x.address(), x.address());
               }
             }
 
