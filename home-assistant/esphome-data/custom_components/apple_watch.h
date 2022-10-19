@@ -104,6 +104,9 @@ bool hextostr(const std::string &hexStr, uint8_t* output, size_t len)
 // Copied from https://github.com/ESPresense/ESPresense/blob/11a61d20877bc098b7f05ed52ef30ccd1ce555d6/lib/BleFingerprint/BleFingerprintCollection.cpp#L111
 void doIt(const uint8_t *rpa) {
     std::string knownIrk("bfcdf556258d62b3de125068cd02378f");
+
+    ESP_LOGD("apple_watch", "knownIrk length: %d", knownIrk.length());
+
     std::vector<uint8_t *> irks;
     std::istringstream iss(knownIrk.c_str());
     std::string irk_hex;
@@ -112,12 +115,27 @@ void doIt(const uint8_t *rpa) {
         uint8_t *irk = new uint8_t[16];
         if (!hextostr(irk_hex.c_str(), irk, 16))
             continue;
+
+
+        // ESP_LOGD("apple_watch", "stored irk: %s", irk.length());
+
+
         irks.push_back(irk);
     }
 
     ESP_LOGD("apple_watch", "irks length: %d", irks.size());
 
+    // This is the original implementation from lib/BleFingerprint/BleFingerprint.cpp
+    // auto naddress = address.getNative();
+    // address = NimBLEAddress(advertisedDevice->getAddress());
+    // /**
+    //  * @brief Get the native representation of the address.
+    //  * @return a pointer to the uint8_t[6] array of the address.
+    //  */
     auto naddress = rpa;
+
+    // ESP_LOGD("apple_watch", "address length: %d", rpa.size());
+
     auto it = std::find_if(irks.begin(), irks.end(), [naddress](uint8_t *irk) { return ble_ll_resolv_rpa(naddress, irk); });
 
     if (it != irks.end()) {
