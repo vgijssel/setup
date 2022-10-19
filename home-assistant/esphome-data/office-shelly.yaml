@@ -18,18 +18,18 @@ binary_sensor:
 
 # If mqtt connectivity cannot be established then the shelly cannot be reached.
 # A reset or power cycle helps to get it back online.
-mqtt:
-  broker: !secret mqtt_broker
-  # Increasing keepalive here to 30 seconds to prevent the shelly from getting stuck
-  # during boot time. 
-  keepalive: 30s
-  reboot_timeout: 5min
-  username: esphome
-  password: !secret mqtt_password
-  port: 1883
-  client_id: ${device_name}-client
-  discovery: false # Only if you use the HA API usually
-  id: mqtt_client
+# mqtt:
+#   broker: !secret mqtt_broker
+#   # Increasing keepalive here to 30 seconds to prevent the shelly from getting stuck
+#   # during boot time. 
+#   keepalive: 30s
+#   reboot_timeout: 5min
+#   username: esphome
+#   password: !secret mqtt_password
+#   port: 1883
+#   client_id: ${device_name}-client
+#   discovery: false # Only if you use the HA API usually
+#   id: mqtt_client
 
 esp32:
   framework:
