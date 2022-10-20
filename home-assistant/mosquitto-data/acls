@@ -8,8 +8,8 @@ topic readwrite #
 
 # ZwaveJS2mqtt has access to everything
 user zwavejs2mqtt
-topic readwrite zwave/#
+topic readwrite #
 
 # Zigbee2mqtt has access to everything
 user zigbee2mqtt
-topic readwrite zigbee2mqtt/#
+topic readwrite #
