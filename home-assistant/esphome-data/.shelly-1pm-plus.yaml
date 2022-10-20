@@ -16,7 +16,7 @@ esp32:
       # Increase watchdog timeout to flash firmware with bluetooth enabled, fixes error:
       # ERROR Error receiving acknowledge binary size: timed out
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "20"
-      CONFIG_BT_BLE_50_FEATURES_SUPPORTED: n
+      CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
       CONFIG_BT_BLE_42_FEATURES_SUPPORTED: y
 
 output:

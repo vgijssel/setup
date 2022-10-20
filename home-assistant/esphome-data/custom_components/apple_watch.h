@@ -30,6 +30,8 @@ int bt_encrypt_be(const uint8_t *key, const uint8_t *plaintext, uint8_t *enc_dat
     return 0;
 }
 
+// TODO: is there the option to extract LocalName? As to stackoverflow ...
+
 struct encryption_block
 {
     uint8_t key[16];
@@ -103,7 +105,7 @@ bool hextostr(const std::string &hexStr, uint8_t* output, size_t len)
 
 // Copied from https://github.com/ESPresense/ESPresense/blob/11a61d20877bc098b7f05ed52ef30ccd1ce555d6/lib/BleFingerprint/BleFingerprintCollection.cpp#L111
 void doIt(const uint8_t *rpa) {
-    std::string knownIrk("bfcdf556258d62b3de125068cd02378f");
+    std::string knownIrk("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
     ESP_LOGD("apple_watch", "knownIrk length: %d", knownIrk.length());
 

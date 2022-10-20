@@ -18,6 +18,7 @@ binary_sensor:
 
 # If mqtt connectivity cannot be established then the shelly cannot be reached.
 # A reset or power cycle helps to get it back online.
+# TODO: can we subscribe to a particular topic so we don't get all the retain messages?
 # mqtt:
 #   broker: !secret mqtt_broker
 #   # Increasing keepalive here to 30 seconds to prevent the shelly from getting stuck
@@ -36,59 +37,65 @@ esp32:
     sdkconfig_options:
       # This needs to be set to n to ensure "mbedtls_aes_init" (and other functions) are available
       CONFIG_MBEDTLS_HARDWARE_AES: n
+      CONFIG_BT_ENABLED: y
+      CONFIG_BTDM_CTRL_MODE_BLE_ONLY: y
+      CONFIG_BTDM_CTRL_MODE_BR_EDR_ONLY: n
+      CONFIG_BTDM_CTRL_MODE_BTDM: n
+      CONFIG_BT_BLUEDROID_ENABLED: n
+      CONFIG_BT_NIMBLE_ENABLED: y
 
 esphome:
   # Use same setup as https://github.com/rpatel3001/BleDistance/blob/master/ble_dist.h
   includes:
     - custom_components/apple_watch.h
 
-esp32_ble_tracker:
-  scan_parameters:
-    # interval: 1.2s
-    # window: 500ms
-    interval: 2s
-    window: 500ms
-    # TODO: maybe active scan collects more information and thus gives us tx_power and name?
-    # Whether to actively send scan requests to request more data after having received an advertising packet. 
-    # With some devices this is necessary to receive all data, but also drains those devices’ power a bit more. 
-    # Some devices don’t need this, in that case you can save power and RF pollution by setting it to false. Defaults to true.
-    # NOTE: seems changing this to true didn't magically provide the 
-    active: false
-  on_ble_advertise:
-    - then:
-        - lambda: |-
-            for (auto data : x.get_manufacturer_datas()) {
-              // Guard against non-Apple datagrams, or those that are too small.
-              if (data.data.size() < 4 || data.uuid.to_string() != "0x004C" || data.data[0] != 0x10 || data.data[1] < 5) {
-                continue;
-              }
-              const int16_t rssi = x.get_rssi();
-              const uint8_t status_flags = data.data[2] >> 4;  // High nibble
-              const uint8_t data_flags = data.data[3];
-              // the apple watch is either locked or unlocked
-              if (data_flags == 0x98 || data_flags == 0x18) {
-                std::string result(x.get_tx_powers().begin(), x.get_tx_powers().end());
-                ESP_LOGD("ble_adv", "New BLE device");
-                ESP_LOGD("ble_adv", "  address: %s", x.address_str().c_str());
-                ESP_LOGD("ble_adv", "  name: %s", x.get_name().c_str());
-                ESP_LOGD("ble_adv", "  rssi: %i", x.get_rssi());
-                ESP_LOGD("ble_adv", "  tx_powers: %s", result.c_str());
-                ESP_LOGD("ble_adv", "  Advertised service UUIDs:");
-                for (auto uuid : x.get_service_uuids()) {
-                    ESP_LOGD("ble_adv", "    - %s", uuid.to_string().c_str());
-                }
-                ESP_LOGD("ble_adv", "  Advertised service data:");
-                for (auto data : x.get_service_datas()) {
-                    ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
-                }
-                ESP_LOGD("ble_adv", "  Advertised manufacturer data:");
-                for (auto data : x.get_manufacturer_datas()) {
-                    ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
-                }
+# esp32_ble_tracker:
+#   scan_parameters:
+#     # interval: 1.2s
+#     # window: 500ms
+#     interval: 2s
+#     window: 500ms
+#     # TODO: maybe active scan collects more information and thus gives us tx_power and name?
+#     # Whether to actively send scan requests to request more data after having received an advertising packet. 
+#     # With some devices this is necessary to receive all data, but also drains those devices’ power a bit more. 
+#     # Some devices don’t need this, in that case you can save power and RF pollution by setting it to false. Defaults to true.
+#     # NOTE: seems changing this to true didn't magically provide the 
+#     active: true
+#   on_ble_advertise:
+#     - then:
+#         - lambda: |-
+#             for (auto data : x.get_manufacturer_datas()) {
+#               // Guard against non-Apple datagrams, or those that are too small.
+#               if (data.data.size() < 4 || data.uuid.to_string() != "0x004C" || data.data[0] != 0x10 || data.data[1] < 5) {
+#                 continue;
+#               }
+#               const int16_t rssi = x.get_rssi();
+#               const uint8_t status_flags = data.data[2] >> 4;  // High nibble
+#               const uint8_t data_flags = data.data[3];
+#               // the apple watch is either locked or unlocked
+#               // if (data_flags == 0x98 || data_flags == 0x18) {
+#                 std::string result(x.get_tx_powers().begin(), x.get_tx_powers().end());
+#                 ESP_LOGD("ble_adv", "New BLE device");
+#                 ESP_LOGD("ble_adv", "  address: %s", x.address_str().c_str());
+#                 ESP_LOGD("ble_adv", "  name: %s", x.get_name().c_str());
+#                 ESP_LOGD("ble_adv", "  rssi: %i", x.get_rssi());
+#                 ESP_LOGD("ble_adv", "  tx_powers: %s", result.c_str());
+#                 ESP_LOGD("ble_adv", "  Advertised service UUIDs:");
+#                 for (auto uuid : x.get_service_uuids()) {
+#                     ESP_LOGD("ble_adv", "    - %s", uuid.to_string().c_str());
+#                 }
+#                 ESP_LOGD("ble_adv", "  Advertised service data:");
+#                 for (auto data : x.get_service_datas()) {
+#                     ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
+#                 }
+#                 ESP_LOGD("ble_adv", "  Advertised manufacturer data:");
+#                 for (auto data : x.get_manufacturer_datas()) {
+#                     ESP_LOGD("ble_adv", "    - %s: (length %i)", data.uuid.to_string().c_str(), data.data.size());
+#                 }
 
-                doIt(x.address());
-              }
-            }
+#                 // doIt(x.address());
+#               // }
+#             }
 
 # esp32_ble_tracker:
 #   scan_parameters:
@@ -176,30 +183,31 @@ esp32_ble_tracker:
 # 0x2A05: Service Changed - ???
 
 # ble_client:
-#   - mac_address: 4C:79:1F:E6:7B:8F
-#     id: apple_watch
+#   - mac_address: 59:C9:0E:EA:A7:AA
+#     id: iphone
 
 # text_sensor:
 #   - platform: template
-#     name: "Apple Watch Name"
-#     id: apple_watch_sensor_name
+#     name: "iPhone Name"
+#     id: iphone_sensor_name
 
-#   - platform: template
-#     name: "Something Else"
-#     id: something_else_sensor
+# #   - platform: template
+# #     name: "Something Else"
+# #     id: something_else_sensor
 
-# From https://koen.vervloesem.eu/blog/connecting-to-bluetooth-low-energy-devices-in-esphome/
+# # From https://koen.vervloesem.eu/blog/connecting-to-bluetooth-low-energy-devices-in-esphome/
 # sensor:
 #   # results in "Apple Watch"
 #   - platform: ble_client
-#     ble_client_id: apple_watch
+#     ble_client_id: iphone
 #     id: device_name
 #     service_uuid: '1800' # # Generic Access Profile
-#     characteristic_uuid: '2a00' # Device Name
+#     characteristic_uuid: '2a00' # Device Name: iPhone
 #     lambda: |-
 #       std::string data_string(x.begin(), x.end());
-#       id(apple_watch_sensor_name).publish_state(data_string.c_str());
+#       id(iphone_sensor_name).publish_state(data_string.c_str());
 #       return (float)x.size();
+
 #   - platform: ble_client
 #     ble_client_id: apple_watch
 #     id: something_else
