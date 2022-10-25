@@ -21,3 +21,8 @@ time:
 
                 # # Turn off the lights using home assistant
                 - logger.log: "Turn off ${light_entity_id} using home assistant"
+
+                - homeassistant.service:
+                    service: homeassistant.turn_off
+                    data:
+                      entity_id: ${light_entity_id}
