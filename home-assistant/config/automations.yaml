@@ -114,6 +114,7 @@
       - binary_sensor.baby_room_door_contact
       - binary_sensor.bedroom_door_contact
       - binary_sensor.bathroom_door_contact
+      - binary_sensor.landing_shelly_input_2
       presence_indicator_entity_ids:
       - binary_sensor.baby_room_motion_general_purpose_state_2
       - binary_sensor.bedroom_motion_home_security_motion_detection_3
