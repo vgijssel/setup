@@ -388,9 +388,6 @@ homekit:
       camera.driveway_doorbell_high:
         name: Oprit Camera
 
-owntracks:
-  waypoints: false
-
 zone:
   - name: living_room
     latitude: !secret latitude
