@@ -9,25 +9,9 @@ packages:
   smart_light_restore: !include .smart_light_restore.yaml
 
 binary_sensor:
-  - name: ${entity_id}_input
+  - <<: !include .smart_light_binary_sensor.yaml
+    name: ${entity_id}_input
     pin: GPIO4
-    platform: gpio
-    on_state:
-        then:
-          - if:
-              condition:
-                and:
-                  - wifi.connected:
-                  - api.connected:
-                  - switch.is_on: shelly_relay
-              # toggle smart light if wifi and api are connected and relay is on
-              then:
-                - homeassistant.service:
-                    service: homeassistant.toggle
-                    data:
-                      entity_id: ${group_entity_id}
-              # else, toggle relay
-              else:
-                - switch.toggle: shelly_relay
-    filters:
-      - delayed_on_off: 50ms
+  - platform: homeassistant
+    id: light_sensor
+    entity_id: ${light_entity_id}

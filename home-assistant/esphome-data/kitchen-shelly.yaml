@@ -12,3 +12,6 @@ binary_sensor:
   - <<: !include .smart_light_momentary_binary_sensor.yaml
     name: ${entity_id}_input
     pin: GPIO4
+  - platform: homeassistant
+    id: light_sensor
+    entity_id: ${light_entity_id}
