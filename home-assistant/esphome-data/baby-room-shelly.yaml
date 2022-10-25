@@ -1,7 +1,7 @@
 substitutions:
   device_name: "baby-room-shelly"
   entity_id: "baby_room_shelly"
-  light_entity_id: "light.baby_room_lights"
+  group_entity_id: "group.baby_room_lights"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
@@ -9,6 +9,25 @@ packages:
   smart_light_restore: !include .smart_light_restore.yaml
 
 binary_sensor:
-  - <<: !include .smart_light_binary_sensor.yaml
-    name: ${entity_id}_input
+  - name: ${entity_id}_input
     pin: GPIO4
+    platform: gpio
+    on_state:
+        then:
+          - if:
+              condition:
+                and:
+                  - wifi.connected:
+                  - api.connected:
+                  - switch.is_on: shelly_relay
+              # toggle smart light if wifi and api are connected and relay is on
+              then:
+                - homeassistant.service:
+                    service: homeassistant.toggle
+                    data:
+                      entity_id: ${group_entity_id}
+              # else, toggle relay
+              else:
+                - switch.toggle: shelly_relay
+    filters:
+      - delayed_on_off: 50ms
