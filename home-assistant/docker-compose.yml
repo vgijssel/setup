@@ -6,8 +6,7 @@ services:
     volumes:
       - "./mosquitto-data:/mosquitto"
     ports:
-      - "127.0.0.1:1883:1883"
-      - "127.0.0.1:9001:9001"
+      - "0.0.0.0:1883:1883"
     command: "mosquitto -c /mosquitto/mosquitto-auth.conf"
     user: 1000:1000
 

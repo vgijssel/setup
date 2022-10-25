@@ -91,6 +91,7 @@
       presence_entity_id: variable.driveway_presence
       presence_indicator_entity_ids:
       - binary_sensor.driveway_doorbell_motion
+      - binary_sensor.hallway_door_contact
       presence_hint_entity_ids:
       - binary_sensor.driveway_shelly_input
       presence_timeout: 120
@@ -126,6 +127,7 @@
       presence_timeout: 120
       presence_indicator_entity_ids:
       - binary_sensor.hallway_motion_occupancy
+      - binary_sensor.hallway_door_contact
 - id: '1655752840815'
   alias: 'Landing - Presence: Manage'
   description: ''
