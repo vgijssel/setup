@@ -463,31 +463,6 @@
         target:
           entity_id: input_boolean.bedroom_is_sleeping
   mode: single
-- id: '1657289205943'
-  alias: 'Hallway - Lights: Manual Toggle'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.hallway_shelly_input
-    to:
-  condition: []
-  action:
-  - if:
-    - condition: state
-      entity_id: light.hallway_lights
-      state: 'on'
-    then:
-    - service: light.turn_off
-      data:
-        transition: 1
-      target:
-        entity_id: light.hallway_lights
-    else:
-    - service: light.turn_on
-      target:
-        entity_id: light.hallway_lights
-  mode: single
 - id: '1657638476657'
   alias: 'Kitchen - Lights: Auto Off'
   description: ''
@@ -503,31 +478,6 @@
       transition: 2
     target:
       entity_id: light.kitchen_lights
-  mode: single
-- id: '1657899301717'
-  alias: 'Landing - Lights: Manual Toggle'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.landing_shelly_input
-    to:
-  condition: []
-  action:
-  - if:
-    - condition: state
-      entity_id: light.landing_lights
-      state: 'on'
-    then:
-    - service: light.turn_off
-      data:
-        transition: 1
-      target:
-        entity_id: light.landing_lights
-    else:
-    - service: light.turn_on
-      target:
-        entity_id: light.landing_lights
   mode: single
 - id: '1658226673278'
   alias: 'Adaptive lighting: toggle ''sleep mode'''
