@@ -1,7 +1,7 @@
 substitutions:
-  device_name: "kitchen-shelly"
-  entity_id: "kitchen_shelly"
-  light_entity_id: "light.kitchen_lights"
+  device_name: "baby-room-shelly"
+  entity_id: "baby_room_shelly"
+  light_entity_id: "group.baby_room_lights"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
@@ -9,7 +9,7 @@ packages:
   smart_light_restore: !include .smart_light_restore.yaml
 
 binary_sensor:
-  - <<: !include .smart_light_momentary_binary_sensor.yaml
+  - <<: !include .smart_light_binary_sensor.yaml
     name: ${entity_id}_input
     pin: GPIO4
   - platform: homeassistant

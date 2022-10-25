@@ -1,30 +1,3 @@
-- id: '1654670650990'
-  alias: 'Living Room - Lights: Manual Toggle'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.living_room_shelly_input
-    to:
-  condition: []
-  action:
-  - if:
-    - condition: state
-      entity_id: light.living_room_lights
-      state: 'on'
-    then:
-    - service: light.turn_off
-      data:
-        transition: 1
-      target:
-        entity_id: light.living_room_lights
-    else:
-    - service: scene.turn_on
-      data:
-        transition: 2
-      target:
-        entity_id: scene.living_room_relax
-  mode: single
 - id: '1654888062741'
   alias: 'Bedroom - Fan: Manage '
   description: ''
@@ -91,6 +64,7 @@
       presence_entity_id: variable.driveway_presence
       presence_indicator_entity_ids:
       - binary_sensor.driveway_doorbell_motion
+      - binary_sensor.hallway_door_contact
       presence_hint_entity_ids:
       - binary_sensor.driveway_shelly_input
       presence_timeout: 120
@@ -126,6 +100,7 @@
       presence_timeout: 120
       presence_indicator_entity_ids:
       - binary_sensor.hallway_motion_occupancy
+      - binary_sensor.hallway_door_contact
 - id: '1655752840815'
   alias: 'Landing - Presence: Manage'
   description: ''
@@ -191,7 +166,7 @@
       - binary_sensor.office_door_contact
       - binary_sensor.office_shelly_input
 - id: '1655753220517'
-  alias: 'Baby Room - Presence: Manage '
+  alias: 'Baby Room - Presence: Manage'
   description: ''
   use_blueprint:
     path: diy/presence.yaml
@@ -372,31 +347,6 @@
       - light.living_room_lights
       start_time: 00:00:00
       end_time: '23:59:59'
-- id: '1656254835865'
-  alias: 'Baby Room - Lights: Manual Toggle'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.baby_room_shelly_input
-    to:
-  condition: []
-  action:
-  - if:
-    - condition: state
-      entity_id: group.baby_room_lights
-      state: 'on'
-    then:
-    - service: homeassistant.turn_off
-      data: {}
-      target:
-        entity_id: group.baby_room_lights
-    else:
-    - service: homeassistant.turn_on
-      data: {}
-      target:
-        entity_id: group.baby_room_lights
-  mode: single
 - id: '1657026314050'
   alias: 'Bedroom - Sleeping: Manage'
   description: ''
@@ -488,31 +438,6 @@
         target:
           entity_id: input_boolean.bedroom_is_sleeping
   mode: single
-- id: '1657289205943'
-  alias: 'Hallway - Lights: Manual Toggle'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.hallway_shelly_input
-    to:
-  condition: []
-  action:
-  - if:
-    - condition: state
-      entity_id: light.hallway_lights
-      state: 'on'
-    then:
-    - service: light.turn_off
-      data:
-        transition: 1
-      target:
-        entity_id: light.hallway_lights
-    else:
-    - service: light.turn_on
-      target:
-        entity_id: light.hallway_lights
-  mode: single
 - id: '1657638476657'
   alias: 'Kitchen - Lights: Auto Off'
   description: ''
@@ -528,31 +453,6 @@
       transition: 2
     target:
       entity_id: light.kitchen_lights
-  mode: single
-- id: '1657899301717'
-  alias: 'Landing - Lights: Manual Toggle'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - binary_sensor.landing_shelly_input
-    to:
-  condition: []
-  action:
-  - if:
-    - condition: state
-      entity_id: light.landing_lights
-      state: 'on'
-    then:
-    - service: light.turn_off
-      data:
-        transition: 1
-      target:
-        entity_id: light.landing_lights
-    else:
-    - service: light.turn_on
-      target:
-        entity_id: light.landing_lights
   mode: single
 - id: '1658226673278'
   alias: 'Adaptive lighting: toggle ''sleep mode'''
