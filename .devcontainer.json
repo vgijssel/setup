@@ -1,29 +1,27 @@
 {
-    "name": "mvgijssel/setup Devcontainer",
-    "build": { "dockerfile": "./tools/devcontainer/Dockerfile", "context": "." },
-    "customizations": {
-      "vscode": {
-        "extensions": [
-          "esbenp.prettier-vscode",
-          "ms-python.python",
-          "ms-azuretools.vscode-docker",
-          "BazelBuild.vscode-bazel",
-          "bee.git-temporal-vscode",
-          "GitHub.copilot",
-          "vspacecode.vspacecode",
-		    "alexanderbast.vscode-snazzy",
-        ]
-      }
-    },
-    "remoteUser": "devcontainer",
-    "containerUser": "devcontainer",
-    "mounts": [
-      "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
-    ],
-    "settings": {
-      "python.formatting.provider": "black"
-    },
-    "shutdownAction": "stopContainer",
-    "postCreateCommand": "sudo chmod 777 /var/run/docker.sock; git config --global --add safe.directory $(pwd)"
-  }
-  
+  "name": "mvgijssel/setup Devcontainer",
+  "build": { "dockerfile": "./tools/devcontainer/Dockerfile", "context": "." },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "ms-python.python",
+        "ms-azuretools.vscode-docker",
+        "BazelBuild.vscode-bazel",
+        "bee.git-temporal-vscode",
+        "GitHub.copilot",
+        "vspacecode.vspacecode",
+        "alexanderbast.vscode-snazzy"
+      ]
+    }
+  },
+  "remoteUser": "devcontainer",
+  "containerUser": "devcontainer",
+  "mounts": [
+    "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
+  ],
+  "settings": {
+    "python.formatting.provider": "black"
+  },
+  "shutdownAction": "stopContainer"
+}
