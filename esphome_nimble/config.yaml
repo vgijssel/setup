@@ -9,6 +9,8 @@ external_components:
 
 nimble_tracker:
   scan_parameters:
+#     # interval: 1.2s
+#     # window: 500ms
     window: 30ms
     interval: 100ms
     active: false
@@ -55,6 +57,7 @@ status_led:
 
 # Enable logging
 logger:
+  level: VERBOSE
 
 # Enable Home Assistant API
 api:
