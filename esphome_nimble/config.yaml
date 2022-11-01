@@ -2,6 +2,22 @@ substitutions:
   device_name: "nimble-shelly"
   entity_id: "nimble_shelly"
 
+external_components:
+  - source:
+      type: local
+      path: ./components
+
+nimble_tracker:
+  scan_parameters:
+    window: 30ms
+    interval: 100ms
+    active: false
+
+# sensor:
+#   - platform: nimble_rssi
+#     irk: aaaaaaaaaaaaaaaa
+#     name: "BLE Google Home Mini RSSI value"
+  
 esphome:
   name: ${device_name}
   platformio_options:
