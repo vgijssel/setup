@@ -4,3 +4,6 @@
 bazel-setup
 .git
 tmp
+
+esphome_nimble/.esphome
+esphome_nimble/tmp

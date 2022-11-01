@@ -197,16 +197,3 @@ git_repository(
 load("@com_github_ash2k_bazel_tools//multirun:deps.bzl", "multirun_dependencies")
 
 multirun_dependencies()
-
-# ------------------------------- esphome deps ------------------------------- #
-load("@rules_python//python:pip.bzl", "pip_parse")
-
-pip_parse(
-    name = "esphome_deps",
-    python_interpreter_target = interpreter,
-    requirements_lock = "//tools/esphome:requirements.lock",
-)
-
-load("@esphome_deps//:requirements.bzl", "install_deps")
-
-install_deps()
