@@ -45,3 +45,5 @@ mutagen.yml.lock
 .env
 
 .DS_Store
+
+esphome_nimble/.pioenvs

@@ -2,5 +2,6 @@
 # fix described here https://github.com/bazelbuild/bazel/issues/10653
 
 bazel-setup
-
 .git
+esphome_nimble/.pioenvs
+tmp

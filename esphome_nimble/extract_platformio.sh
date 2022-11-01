@@ -8,4 +8,4 @@ env
 
 echo $ESPHOME_FILES
 
-cp -vR $ESPHOME_FILES $WORKSPACE_DIRECTORY/esphome_nimble
+cp -vR $ESPHOME_FILES/. $WORKSPACE_DIRECTORY/esphome_nimble
