@@ -1,5 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
+from esphome.components.esp32 import add_idf_sdkconfig_option
 from esphome.const import (
     CONF_ACTIVE,
     CONF_ID,
@@ -235,10 +236,10 @@ async def to_code(config):
         # TODO: use this to configure nimble compilation!
 
     
-    # add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
-    # add_idf_sdkconfig_option("CONFIG_BT_BLUEDROID_ENABLED", False)
-    # add_idf_sdkconfig_option("CONFIG_BT_NIMBLE_ENABLED", True)
-    # add_idf_sdkconfig_option("CONFIG_MBEDTLS_HARDWARE_AES", False)
+    add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
+    add_idf_sdkconfig_option("CONFIG_BT_BLUEDROID_ENABLED", False)
+    add_idf_sdkconfig_option("CONFIG_BT_NIMBLE_ENABLED", True)
+    add_idf_sdkconfig_option("CONFIG_MBEDTLS_HARDWARE_AES", False)
 
     # cg.add_define("USE_OTA_STATE_CALLBACK")  # To be notified when an OTA update starts
 
