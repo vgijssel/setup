@@ -1,0 +1,24 @@
+substitutions:
+  device_name: "scanner-shelly"
+  entity_id: "scanner_shelly"
+
+esphome:
+  name: ${device_name}
+  build_path: output
+  platformio_options:
+    board_build.f_cpu: 160000000L
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+output:
+  - platform: gpio
+    id: "relay_output"
+    pin: GPIO26
+
+status_led:
+  pin:
+    number: GPIO0
+    inverted: true

@@ -12,7 +12,8 @@ set -e
 
 COMPILE_DIR=$(dirname {config})/output
 {esphome_toolchain} compile {config}
-cp -R $COMPILE_DIR/**/* {output_dir}
+ls -la $COMPILE_DIR
+cp -R $COMPILE_DIR/. {output_dir}
         """.format(
             output_dir = output_dir.path,
             esphome_toolchain = ctx.executable.toolchain.path,
