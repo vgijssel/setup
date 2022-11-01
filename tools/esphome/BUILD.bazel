@@ -1,0 +1,22 @@
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@esphome_deps//:requirements.bzl", "requirement")
+
+package(default_visibility = ["//visibility:public"])
+
+compile_pip_requirements(
+    name = "requirements",
+    extra_args = ["--allow-unsafe"],
+    requirements_in = "requirements.in",
+    requirements_txt = "requirements.lock",
+)
+
+py_binary(
+    name = "esphome",
+    srcs = [
+        "@esphome_deps_esphome//:rules_python_wheel_entry_point_esphome",
+    ],
+    main = "@esphome_deps_esphome//:rules_python_wheel_entry_point_esphome.py",
+    deps = [
+        requirement("esphome"),
+    ],
+)

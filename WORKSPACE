@@ -75,36 +75,36 @@ load("@hypervisor_deps//:requirements.bzl", "install_deps")
 
 install_deps()
 
-git_repository(
-    name = "bazelruby_rules_ruby",
-    branch = "master",
-    remote = "https://github.com/bazelruby/rules_ruby.git",
-)
+# git_repository(
+#     name = "bazelruby_rules_ruby",
+#     branch = "master",
+#     remote = "https://github.com/bazelruby/rules_ruby.git",
+# )
 
-load(
-    "@bazelruby_rules_ruby//ruby:deps.bzl",
-    "rules_ruby_dependencies",
-    "rules_ruby_select_sdk",
-)
+# load(
+#     "@bazelruby_rules_ruby//ruby:deps.bzl",
+#     "rules_ruby_dependencies",
+#     "rules_ruby_select_sdk",
+# )
 
-rules_ruby_dependencies()
+# rules_ruby_dependencies()
 
-rules_ruby_select_sdk(version = "host")
+# rules_ruby_select_sdk(version = "host")
 
-load(
-    "@bazelruby_rules_ruby//ruby:defs.bzl",
-    "ruby_bundle",
-)
+# load(
+#     "@bazelruby_rules_ruby//ruby:defs.bzl",
+#     "ruby_bundle",
+# )
 
-ruby_bundle(
-    name = "hypervisor_bundle",
-    bundler_version = "2.3.6",
-    gemfile = "//hypervisor:Gemfile",
-    gemfile_lock = "//hypervisor:Gemfile.lock",
-    includes = {
-        "addressable": ["data"],
-    },
-)
+# ruby_bundle(
+#     name = "hypervisor_bundle",
+#     bundler_version = "2.3.6",
+#     gemfile = "//hypervisor:Gemfile",
+#     gemfile_lock = "//hypervisor:Gemfile.lock",
+#     includes = {
+#         "addressable": ["data"],
+#     },
+# )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
 
@@ -197,3 +197,16 @@ git_repository(
 load("@com_github_ash2k_bazel_tools//multirun:deps.bzl", "multirun_dependencies")
 
 multirun_dependencies()
+
+# ------------------------------- esphome deps ------------------------------- #
+load("@rules_python//python:pip.bzl", "pip_parse")
+
+pip_parse(
+    name = "esphome_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "//tools/esphome:requirements.lock",
+)
+
+load("@esphome_deps//:requirements.bzl", "install_deps")
+
+install_deps()
