@@ -21,8 +21,13 @@ cp -R $COMPILE_DIR/. {output_dir}
         ),
     )
 
+    runfiles = ctx.runfiles(
+        files = [output_dir],
+    )
+
     return [DefaultInfo(
-        files = depset([output_dir]),
+        files = runfiles.files,
+        runfiles = runfiles,
     )]
 
 _esphome_build = rule(

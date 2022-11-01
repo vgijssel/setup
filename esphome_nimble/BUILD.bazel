@@ -5,3 +5,14 @@ esphome_build(
     src = "esphome_config.yaml",
     toolchain = "//tools/esphome",
 )
+
+sh_binary(
+    name = "extract_platformio",
+    srcs = ["extract_platformio.sh"],
+    args = [
+        "$(location :esphome_nimble)",
+    ],
+    data = [
+        ":esphome_nimble",
+    ],
+)

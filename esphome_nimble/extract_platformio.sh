@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -Eeou pipefail
+
+ESPHOME_FILES=$1
+WORKSPACE_DIRECTORY=$BUILD_WORKSPACE_DIRECTORY
+
+env
+
+echo $ESPHOME_FILES
+
+cp -vR $ESPHOME_FILES $WORKSPACE_DIRECTORY/esphome_nimble
