@@ -1,0 +1,76 @@
+substitutions:
+  device_name: "nimble-shelly"
+  entity_id: "nimble_shelly"
+
+esphome:
+  name: ${device_name}
+  platformio_options:
+    board_build.f_cpu: 160000000L
+  includes:
+    - nimble.h
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_FREERTOS_UNICORE: y
+      CONFIG_ESP32_DEFAULT_CPU_FREQ_160: y
+      CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ: "160"
+      # From https://github.com/esphome/issues/issues/2941
+      # Increase watchdog timeout to flash firmware with bluetooth enabled, fixes error:
+      # ERROR Error receiving acknowledge binary size: timed out
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "20"
+      CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
+      CONFIG_BT_BLE_42_FEATURES_SUPPORTED: y
+
+      CONFIG_MBEDTLS_HARDWARE_AES: n
+      CONFIG_BT_ENABLED: y
+      CONFIG_BTDM_CTRL_MODE_BLE_ONLY: y
+      CONFIG_BTDM_CTRL_MODE_BR_EDR_ONLY: n
+      CONFIG_BTDM_CTRL_MODE_BTDM: n
+      CONFIG_BT_BLUEDROID_ENABLED: n
+      CONFIG_BT_NIMBLE_ENABLED: y
+
+output:
+  - platform: gpio
+    id: "relay_output"
+    pin: GPIO26
+
+status_led:
+  pin:
+    number: GPIO0
+    inverted: true
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    password: !secret wifi_password
+
+switch:
+  - platform: output
+    id: shelly_relay
+    name: "${entity_id}"
+    output: "relay_output"
+    # after reboot, keep the relay off. this prevents light turning on after a power outage
+    restore_mode: ALWAYS_OFF
+
+# From https://community.home-assistant.io/t/shelly-plus-1-esphome-bletracker/363549/38
+# Setup a button in home assistant to reboot the shelly into safe mode
+button:
+  - platform: safe_mode
+    name: "${entity_id}_safe_mode_restart"
