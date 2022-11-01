@@ -100,14 +100,8 @@ RUN npm install -g prettier@${PRETTIER_VERSION} \
     && npm install -g @evilmartians/lefthook@${LEFTHOOK_VERSION} \
     && npm install -g @bazel/buildifier@${BUILDIFIER_VERSION}
 
-# Install platformio deps
-USER root
-RUN apt-get update \
-    && apt-get install -y python3-venv \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 # Install task
+USER root
 ENV TASK_VERSION=3.17.0
 RUN case ${TARGETARCH} in \
     "amd64")  TASK_ARCH=amd64 ;; \
