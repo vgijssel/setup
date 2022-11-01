@@ -6,7 +6,6 @@ from esphome.const import (
     CONF_INTERVAL,
     CONF_DURATION,
 )
-from esphome.components.esp32 import add_idf_sdkconfig_option
 
 DEPENDENCIES = ["esp32"]
 
@@ -188,6 +187,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 async def to_code(config):
+    # this initializes the component in the generated code
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
 
@@ -233,10 +233,12 @@ async def to_code(config):
 
     # if CORE.using_esp_idf:
         # TODO: use this to configure nimble compilation!
-    add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
-    add_idf_sdkconfig_option("CONFIG_BT_BLUEDROID_ENABLED", False)
-    add_idf_sdkconfig_option("CONFIG_BT_NIMBLE_ENABLED", True)
-    add_idf_sdkconfig_option("CONFIG_MBEDTLS_HARDWARE_AES", False)
+
+    
+    # add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
+    # add_idf_sdkconfig_option("CONFIG_BT_BLUEDROID_ENABLED", False)
+    # add_idf_sdkconfig_option("CONFIG_BT_NIMBLE_ENABLED", True)
+    # add_idf_sdkconfig_option("CONFIG_MBEDTLS_HARDWARE_AES", False)
 
     # cg.add_define("USE_OTA_STATE_CALLBACK")  # To be notified when an OTA update starts
 
