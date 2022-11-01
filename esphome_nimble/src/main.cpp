@@ -16,6 +16,7 @@ esp32::ArduinoInternalGPIOPin *esp32_arduinointernalgpiopin;
 #define micros() esphome::micros()
 #define delay(x) esphome::delay(x)
 #define delayMicroseconds(x) esphome::delayMicroseconds(x)
+#include "nimble.h"
 // ========== AUTO GENERATED INCLUDE BLOCK END ==========="
 
 void setup() {
@@ -25,7 +26,8 @@ void setup() {
   //   build_path: output
   //   platformio_options:
   //     board_build.f_cpu: 160000000L
-  //   includes: []
+  //   includes:
+  //   - custom_components/nimble.h
   //   libraries: []
   //   name_add_mac_suffix: false
   //   min_version: 2022.10.1

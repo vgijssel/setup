@@ -6,7 +6,7 @@ def _esphome_build_impl(ctx):
         outputs = [output_dir],
         tools = [ctx.executable.toolchain],
         use_default_shell_env = True,
-        inputs = [ctx.file.src],
+        inputs = [ctx.file.config] + ctx.files.srcs,
         command = """
 set -e
 
@@ -17,7 +17,7 @@ cp -R $COMPILE_DIR/. {output_dir}
         """.format(
             output_dir = output_dir.path,
             esphome_toolchain = ctx.executable.toolchain.path,
-            config = ctx.file.src.path,
+            config = ctx.file.config.path,
         ),
     )
 
@@ -33,7 +33,8 @@ cp -R $COMPILE_DIR/. {output_dir}
 _esphome_build = rule(
     implementation = _esphome_build_impl,
     attrs = {
-        "src": attr.label(mandatory = True, allow_single_file = True),
+        "config": attr.label(mandatory = True, allow_single_file = True),
+        "srcs": attr.label_list(allow_files = True),
         "_setup_debug_flag": attr.label(
             default = Label("//:setup_debug_flag"),
         ),

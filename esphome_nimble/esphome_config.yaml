@@ -7,6 +7,8 @@ esphome:
   build_path: output
   platformio_options:
     board_build.f_cpu: 160000000L
+  includes:
+    - custom_components/nimble.h
 
 esp32:
   board: esp32dev

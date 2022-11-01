@@ -2,7 +2,10 @@ load("//tools/esphome:esphome.bzl", "esphome_build")
 
 esphome_build(
     name = "esphome_nimble",
-    src = "esphome_config.yaml",
+    srcs = [
+        "custom_components/nimble.h",
+    ],
+    config = "esphome_config.yaml",
     toolchain = "//tools/esphome",
 )
 
