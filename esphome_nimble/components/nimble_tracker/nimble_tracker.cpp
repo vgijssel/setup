@@ -28,27 +28,44 @@ namespace esphome
             this->pBLEScan_->setDuplicateFilter(false);
             this->pBLEScan_->setMaxResults(0);
 
+            ESP_LOGV("nimble_tracker", "Trying to start the scan");
+
             if (!pBLEScan_->start(0, nullptr, false))
             {
                 ESP_LOGE("nimble_tracker", "Error starting continuous ble scan");
-                this->mark_failed();
+                // this->mark_failed();
                 return;
             }
         }
 
         void NimbleTracker::loop()
         {
+            ESP_LOGV("nimble_tracker", "Entering loop");
+
+            if (!pBLEScan_->isScanning())
+            {
+                if (!pBLEScan_->start(0, nullptr, false))
+                {
+                    ESP_LOGE("nimble_tracker", "Error starting continuous ble scan");
+                    return;
+                }
+            }
+
             BLEAdvertisedDevice *advertised_device = this->advertised_devices_.pop();
 
             while (advertised_device != nullptr)
             {
                 NimBLEAddress mac = advertised_device->getAddress();
 
-                ESP_LOGV("nimble_tracker", "Found device with mac %s and address type %s", mac.toString().c_str(), mac.getType().c_str());
+                // TODO: how to print the address type of the device?
+                // TODO: also print rssi and tx_power!
+                ESP_LOGV("nimble_tracker", "Found device with mac %s", mac.toString().c_str());
 
                 delete advertised_device;
                 advertised_device = this->advertised_devices_.pop();
             }
+
+            ESP_LOGV("nimble_tracker", "Done with loop");
 
             // if (!pBLEScan_->isScanning())
             // {
