@@ -19,3 +19,7 @@ export VISUAL="$EDITOR"
 export GIT_EDITOR="$EDITOR"
 export DOCKER_BUILDKIT=1
 export DEVELOPMENT_DIR="$HOME/Development"
+export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+
+# For esphome to make sure dependencies are installed within the workspace
+export PLATFORMIO_CORE_DIR="$DEVELOPMENT_DIR/setup/tmp/.platformio"

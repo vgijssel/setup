@@ -1,0 +1,32 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/esphome_nimble/**",
+                "${workspaceFolder}/tmp/.platformio/**",
+            ],
+            "defines": [
+                "_GNU_SOURCE",
+                "IDF_VER=\"4.3.2\"",
+                "ESP_PLATFORM",
+                "PLATFORMIO=60002",
+                "ARDUINO_ESP32_DEV",
+                "ESPHOME_LOG_LEVEL=ESPHOME_LOG_LEVEL_DEBUG",
+                "USE_ESP32",
+                "USE_ESP32_FRAMEWORK_ESP_IDF",
+                "USE_ESP32_VARIANT_ESP32",
+                "USE_ESP_IDF",
+            ],
+            "macFrameworkPath": [
+                "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/Users/maarten/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-gcc",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-gcc-x86",
+            "compileCommands": "${workspaceFolder}/esphome_nimble/.esphome/build/nimble-shelly/.pioenvs/nimble-shelly/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

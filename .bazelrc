@@ -1,12 +1,25 @@
-# Add asdf dir into the action env so we can use the asdf installed Ruby
-build --action_env=ASDF_DIR
-
-# Specify cache directory to make it easier to share the cache in the CI
-build --disk_cache cache/bazel_cache
-build --repository_cache cache/bazel_repository_cache
-
 build:debug --show_progress --worker_verbose --verbose_failures --test_output=streamed  --subcommands
 build:debug --//:setup_debug_flag
 
 # To ensure a hermetic environment for Java
 build --java_runtime_version=remotejdk_11
+
+# From https://github.com/bazelbuild/bazel/issues/4867#issuecomment-830402410
+build:quiet --ui_event_filters=-info --noshow_progress
+query:quiet --ui_event_filters=-info --noshow_progress
+
+# Specify cache directory to make it easier to share the cache in the CI
+build --disk_cache tmp/bazel_cache
+build --repository_cache tmp/bazel_repository_cache
+
+# Move the bazel symlinks outside of the project root to avoid the symlinks appearing in the volume mount
+build --symlink_prefix=/tmp/bazel-setup-
+
+# NOTE: this flag is deprecated but significantly increases the performance of Bazel inside of Docker! 
+build --watchfs=true
+
+# Print warning messages about test suite being configured as too small/big
+test --test_verbose_timeout_warnings
+
+# Output test logs to the console when there are errors
+test --test_output=errors

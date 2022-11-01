@@ -4,8 +4,6 @@
 
 	// List of extensions which should be recommended for users of this workspace.
 	"recommendations": [
-		"vspacecode.vspacecode",
-		"alexanderbast.vscode-snazzy",
-		"BazelBuild.vscode-bazel"
+		"ms-vscode-remote.remote-containers"
 	],
 }
