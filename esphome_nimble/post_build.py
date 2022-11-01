@@ -1,6 +1,14 @@
 # Source https://github.com/letscontrolit/ESPEasy/pull/3845#issuecomment-1005864664
 
 import os
+
+Import("env")
+
+try:
+    import esptool
+except ImportError:
+    env.Execute("$PYTHONEXE -m pip install esptool")
+
 if os.environ.get("ESPHOME_USE_SUBPROCESS") is None:
     import esptool
 else:
@@ -51,6 +59,7 @@ def esp32_create_combined_bin(source, target, env):
         esptool.main(cmd)
     else:
         subprocess.run(["esptool.py", *cmd])
+
 
 # pylint: disable=E0602
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", esp32_create_combined_bin)  # noqa

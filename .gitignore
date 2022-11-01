@@ -47,3 +47,4 @@ mutagen.yml.lock
 .DS_Store
 
 esphome_nimble/.pioenvs
+esphome_nimble/.pio

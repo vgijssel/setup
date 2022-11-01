@@ -4,4 +4,5 @@
 bazel-setup
 .git
 esphome_nimble/.pioenvs
+esphome_nimble/.pio
 tmp

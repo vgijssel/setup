@@ -11,7 +11,8 @@
         "bee.git-temporal-vscode",
         "GitHub.copilot",
         "vspacecode.vspacecode",
-        "alexanderbast.vscode-snazzy"
+        "alexanderbast.vscode-snazzy",
+        "platformio.platformio-ide"
       ]
     }
   },
