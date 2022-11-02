@@ -21,7 +21,6 @@ namespace esphome
 
             void setup() override;
             void loop() override;
-            void print_device(NimBLEAdvertisedDevice *advertised_device);
 
         protected:
             uint32_t scan_duration_;
