@@ -17,10 +17,11 @@ namespace esphome
             void set_scan_window(uint32_t scan_window) { scan_window_ = scan_window; }
             void set_scan_active(bool scan_active) { scan_active_ = scan_active; }
             void set_scan_continuous(bool scan_continuous) { scan_continuous_ = scan_continuous; }
-            Queue<BLEAdvertisedDevice> advertised_devices_;
+            Queue<NimBLEAdvertisedDevice> advertised_devices_;
 
             void setup() override;
             void loop() override;
+            void print_device(NimBLEAdvertisedDevice *advertised_device);
 
         protected:
             uint32_t scan_duration_;
@@ -29,6 +30,7 @@ namespace esphome
             bool scan_active_;
             bool scan_continuous_;
             NimBLEScan *pBLEScan_;
+            SemaphoreHandle_t print_semaphore_;
         };
 
         extern NimbleTracker *global_nimble_tracker;

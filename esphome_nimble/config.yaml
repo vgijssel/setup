@@ -11,8 +11,8 @@ nimble_tracker:
   scan_parameters:
 #     # interval: 1.2s
 #     # window: 500ms
-    window: 30ms
-    interval: 100ms
+    window: 500ms
+    interval: 1.2s
     active: false
 
 # sensor:
@@ -60,20 +60,20 @@ logger:
   level: VERBOSE
 
 # Enable Home Assistant API
-api:
-  encryption:
-    key: !secret api_encryption_key
+# api:
+#   encryption:
+#     key: !secret api_encryption_key
 
-ota:
-  password: !secret ota_password
+# ota:
+#   password: !secret ota_password
 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_password
 
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
-  ap:
-    password: !secret wifi_password
+#   # Enable fallback hotspot (captive portal) in case wifi connection fails
+#   ap:
+#     password: !secret wifi_password
 
 switch:
   - platform: output
@@ -85,6 +85,6 @@ switch:
 
 # From https://community.home-assistant.io/t/shelly-plus-1-esphome-bletracker/363549/38
 # Setup a button in home assistant to reboot the shelly into safe mode
-button:
-  - platform: safe_mode
-    name: "${entity_id}_safe_mode_restart"
+# button:
+#   - platform: safe_mode
+#     name: "${entity_id}_safe_mode_restart"
