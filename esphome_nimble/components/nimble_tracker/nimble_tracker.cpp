@@ -24,9 +24,6 @@ namespace esphome
             // TODO: instead of doing the hacky global variable, why not add a reference to this to the callback instance?
             global_nimble_tracker = this;
 
-            this->print_semaphore_ = xSemaphoreCreateBinary();
-            xSemaphoreGive(this->print_semaphore_);
-
             // Set the name to empty string to not broadcast the name
             NimBLEDevice::init("");
             this->pBLEScan_ = NimBLEDevice::getScan();
@@ -95,6 +92,7 @@ namespace esphome
                         }
                         case BLE_ADDR_RANDOM:
                         {
+                            // TODO: try to resolve the irk from the apple watch here with logic from ESPresence.
                             address_type = "random";
                             break;
                         }
