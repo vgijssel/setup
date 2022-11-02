@@ -16,6 +16,8 @@ CONF_SCAN_PARAMETERS = "scan_parameters"
 CONF_WINDOW = "window"
 CONF_CONTINUOUS = "continuous"
 
+CONF_KNOWN_IRK = "known_irk"
+
 # CONF_ON_SCAN_END = "on_scan_end"
 nimble_tracker_ns = cg.esphome_ns.namespace("nimble_tracker")
 
@@ -130,6 +132,9 @@ def validate_scan_parameters(config):
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(NimbleTracker),
+        cv.Optional(
+            CONF_KNOWN_IRK,
+        ): cv.string,
         cv.Optional(CONF_SCAN_PARAMETERS, default={}): cv.All(
             cv.Schema(
                 {
@@ -191,6 +196,8 @@ async def to_code(config):
     # this initializes the component in the generated code
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
+
+    cg.add(var.set_known_irk(config[CONF_KNOWN_IRK]))
 
     params = config[CONF_SCAN_PARAMETERS]
     cg.add(var.set_scan_duration(params[CONF_DURATION]))

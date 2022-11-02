@@ -8,6 +8,7 @@ external_components:
       path: ./components
 
 nimble_tracker:
+  known_irk: !secret apple_watch_irk
   scan_parameters:
 #     # interval: 1.2s
 #     # window: 500ms
