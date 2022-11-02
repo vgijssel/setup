@@ -79,10 +79,40 @@ namespace esphome
 
                     if (manuf == "004c")
                     {
-                        ESP_LOGV("nimble_tracker", "Device found with RSSI %i: %s", advertised_device->getRSSI(), advertised_device->toString().c_str());
+                        std::string address_type;
+                        switch (advertised_device->getAddressType())
+                        {
+                        case BLE_ADDR_PUBLIC:
+                        {
+
+                            address_type = "public";
+                            break;
+                        }
+                        case BLE_ADDR_PUBLIC_ID:
+                        {
+                            address_type = "public_id";
+                            break;
+                        }
+                        case BLE_ADDR_RANDOM:
+                        {
+                            address_type = "random";
+                            break;
+                        }
+                        case BLE_ADDR_RANDOM_ID:
+                        {
+                            address_type = "random_id";
+                            break;
+                        }
+                        default:
+                        {
+                            ESP_LOGE("nimble_tracker", "Unknown address type");
+                            address_type = "unknown";
+                            break;
+                        }
+                        }
+                        ESP_LOGV("nimble_tracker", "Device with RSSI %i Address Type %s: %s", advertised_device->getRSSI(), address_type.c_str(), advertised_device->toString().c_str());
                     }
                 }
-
                 advertised_device = this->advertised_devices_.pop();
             }
         };
