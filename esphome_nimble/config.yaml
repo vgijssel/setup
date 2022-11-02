@@ -25,8 +25,6 @@ esphome:
   name: ${device_name}
   platformio_options:
     board_build.f_cpu: 160000000L
-  includes:
-    - nimble.h
   libraries:
     - esp-nimble-cpp=https://github.com/h2zero/esp-nimble-cpp.git#v1.4.1
 

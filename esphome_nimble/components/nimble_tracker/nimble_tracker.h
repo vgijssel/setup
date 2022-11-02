@@ -31,6 +31,8 @@ namespace esphome
             bool scan_continuous_;
             NimBLEScan *pBLEScan_;
             std::string known_irk_;
+
+            std::vector<uint8_t *> irks_;
         };
 
         extern NimbleTracker *global_nimble_tracker;

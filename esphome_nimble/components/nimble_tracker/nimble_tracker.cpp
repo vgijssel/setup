@@ -4,6 +4,48 @@
 
 #define Sprintf(f, ...) ({ char* s; asprintf(&s, f, __VA_ARGS__); std::string r = s; free(s); r; })
 
+// For the known_irk to irks conversion
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
+static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+std::string hexStr(const uint8_t *data, int len)
+{
+    std::string s(len * 2, ' ');
+    for (int i = 0; i < len; ++i)
+    {
+        s[2 * i] = hexmap[(data[i] & 0xF0) >> 4];
+        s[2 * i + 1] = hexmap[data[i] & 0x0F];
+    }
+    return s;
+}
+
+uint8_t hextob(char ch)
+{
+    if (ch >= '0' && ch <= '9')
+        return ch - '0';
+    if (ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    if (ch >= 'a' && ch <= 'f')
+        return ch - 'a' + 10;
+    return 0;
+}
+
+bool hextostr(const std::string &hexStr, uint8_t *output, size_t len)
+{
+    if (len & 1)
+        return false;
+    if (hexStr.length() < len * 2)
+        return false;
+    int k = 0;
+    for (size_t i = 0; i < len * 2; i += 2)
+        output[k++] = (hextob(hexStr[i]) << 4) | hextob(hexStr[i + 1]);
+    return true;
+}
+
 // using namespace esphome;
 namespace esphome
 {
@@ -21,6 +63,20 @@ namespace esphome
 
         void NimbleTracker::setup()
         {
+            std::istringstream iss(this->known_irk_.c_str());
+            std::string irk_hex;
+            while (iss >> irk_hex)
+            {
+                uint8_t *irk = new uint8_t[16];
+                if (!hextostr(irk_hex.c_str(), irk, 16))
+                {
+                    ESP_LOGE("nimble_tracker", "Something is wrong with the irk");
+                    continue;
+                }
+
+                this->irks_.push_back(irk);
+            }
+
             // TODO: instead of doing the hacky global variable, why not add a reference to this to the callback instance?
             global_nimble_tracker = this;
 

@@ -243,6 +243,7 @@ async def to_code(config):
         # TODO: use this to configure nimble compilation!
 
     
+    # TODO: can we add the esp-nimble-cpp library here as well??
     add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
     add_idf_sdkconfig_option("CONFIG_BT_BLUEDROID_ENABLED", False)
     add_idf_sdkconfig_option("CONFIG_BT_NIMBLE_ENABLED", True)
