@@ -1,4 +1,5 @@
-#include <string_utils.h>
+// Copied from https://github.com/ESPresense/ESPresense/blob/master/lib/BleFingerprint/string_utils.cpp
+#include "string_utils.h"
 
 namespace esphome
 {

@@ -1,3 +1,4 @@
+// Copied from https://github.com/ESPresense/ESPresense/blob/master/lib/BleFingerprint/string_utils.h
 #pragma once
 #include <string>
 
