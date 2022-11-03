@@ -1,8 +1,6 @@
 #include "esphome/core/component.h"
 #include "queue.h"
 #include "NimBLEDevice.h"
-#include "NimBLEScan.h"
-#include "NimBLEAdvertisedDevice.h"
 
 namespace esphome
 {
