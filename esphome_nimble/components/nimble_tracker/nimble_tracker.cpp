@@ -34,10 +34,7 @@ namespace esphome
             this->pBLEScan_->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks(this), true);
             this->pBLEScan_->setActiveScan(this->scan_active_);
             this->pBLEScan_->setDuplicateFilter(false);
-
-            // TODO: espresence has this set to 0, but this results REALLY quickly in a crash. Why is that?
-            // why does this work there and not here?
-            this->pBLEScan_->setMaxResults(50);
+            this->pBLEScan_->setMaxResults(this->max_results_);
 
             ESP_LOGV("nimble_tracker", "Trying to start the scan");
 
