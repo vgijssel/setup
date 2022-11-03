@@ -200,103 +200,15 @@ async def to_code(config):
     cg.add(var.set_scan_active(params[CONF_ACTIVE]))
     cg.add(var.set_scan_continuous(params[CONF_CONTINUOUS]))
 
-    # for conf in config.get(CONF_ON_BLE_ADVERTISE, []):
-    #     trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
-    #     if CONF_MAC_ADDRESS in conf:
-    #         cg.add(trigger.set_address(conf[CONF_MAC_ADDRESS].as_hex))
-    #     await automation.build_automation(trigger, [(ESPBTDeviceConstRef, "x")], conf)
-    # for conf in config.get(CONF_ON_BLE_SERVICE_DATA_ADVERTISE, []):
-    #     trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
-    #     if len(conf[CONF_SERVICE_UUID]) == len(bt_uuid16_format):
-    #         cg.add(trigger.set_service_uuid16(as_hex(conf[CONF_SERVICE_UUID])))
-    #     elif len(conf[CONF_SERVICE_UUID]) == len(bt_uuid32_format):
-    #         cg.add(trigger.set_service_uuid32(as_hex(conf[CONF_SERVICE_UUID])))
-    #     elif len(conf[CONF_SERVICE_UUID]) == len(bt_uuid128_format):
-    #         uuid128 = as_reversed_hex_array(conf[CONF_SERVICE_UUID])
-    #         cg.add(trigger.set_service_uuid128(uuid128))
-    #     if CONF_MAC_ADDRESS in conf:
-    #         cg.add(trigger.set_address(conf[CONF_MAC_ADDRESS].as_hex))
-    #     await automation.build_automation(trigger, [(adv_data_t_const_ref, "x")], conf)
-    # for conf in config.get(CONF_ON_BLE_MANUFACTURER_DATA_ADVERTISE, []):
-    #     trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
-    #     if len(conf[CONF_MANUFACTURER_ID]) == len(bt_uuid16_format):
-    #         cg.add(trigger.set_manufacturer_uuid16(as_hex(conf[CONF_MANUFACTURER_ID])))
-    #     elif len(conf[CONF_MANUFACTURER_ID]) == len(bt_uuid32_format):
-    #         cg.add(trigger.set_manufacturer_uuid32(as_hex(conf[CONF_MANUFACTURER_ID])))
-    #     elif len(conf[CONF_MANUFACTURER_ID]) == len(bt_uuid128_format):
-    #         uuid128 = as_reversed_hex_array(conf[CONF_MANUFACTURER_ID])
-    #         cg.add(trigger.set_manufacturer_uuid128(uuid128))
-    #     if CONF_MAC_ADDRESS in conf:
-    #         cg.add(trigger.set_address(conf[CONF_MAC_ADDRESS].as_hex))
-    #     await automation.build_automation(trigger, [(adv_data_t_const_ref, "x")], conf)
-    # for conf in config.get(CONF_ON_SCAN_END, []):
-    #     trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
-    #     await automation.build_automation(trigger, [], conf)
-
-    # if CORE.using_esp_idf:
-        # TODO: use this to configure nimble compilation!
-
-    
-    # TODO: can we add the esp-nimble-cpp library here as well??
     add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
     add_idf_sdkconfig_option("CONFIG_BT_BLUEDROID_ENABLED", False)
     add_idf_sdkconfig_option("CONFIG_BT_NIMBLE_ENABLED", True)
     add_idf_sdkconfig_option("CONFIG_MBEDTLS_HARDWARE_AES", False)
 
-    # cg.add_define("USE_OTA_STATE_CALLBACK")  # To be notified when an OTA update starts
-
-
-# NIMBLE_START_SCAN_ACTION_SCHEMA = cv.Schema(
-#     {
-#         cv.GenerateID(): cv.use_id(NimbleTracker),
-#         cv.Optional(CONF_CONTINUOUS, default=False): cv.templatable(cv.boolean),
-#     }
-# )
-
-
-# @automation.register_action(
-#     "nimble_tracker.start_scan",
-#     ESP32BLEStartScanAction,
-#     nimble_START_SCAN_ACTION_SCHEMA,
-# )
-# async def nimble_tracker_start_scan_action_to_code(
-#     config, action_id, template_arg, args
-# ):
-#     paren = await cg.get_variable(config[CONF_ID])
-#     var = cg.new_Pvariable(action_id, template_arg, paren)
-#     cg.add(var.set_continuous(config[CONF_CONTINUOUS]))
-#     return var
-
-
-# nimble_STOP_SCAN_ACTION_SCHEMA = automation.maybe_simple_id(
-#     cv.Schema(
-#         {
-#             cv.GenerateID(): cv.use_id(NimbleTracker),
-#         }
-#     )
-# )
-
-
-# @automation.register_action(
-#     "nimble_tracker.stop_scan",
-#     ESP32BLEStopScanAction,
-#     nimble_STOP_SCAN_ACTION_SCHEMA,
-# )
-# async def nimble_tracker_stop_scan_action_to_code(
-#     config, action_id, template_arg, args
-# ):
-#     var = cg.new_Pvariable(action_id, template_arg)
-#     await cg.register_parented(var, config[CONF_ID])
-#     return var
+    cg.add_library("esp-nimble-cpp=https://github.com/h2zero/esp-nimble-cpp.git#v1.4.1", None)
 
 
 async def register_ble_device(var, config):
     paren = await cg.get_variable(config[CONF_NIMBLE_ID])
     cg.add(paren.register_listener(var))
     return var
-
-
-# async def register_client(var, config):
-#     paren = await cg.get_variable(config[CONF_nimble_ID])
-#     cg.add(paren.register_client(var))
-#     return var
