@@ -35,19 +35,19 @@ namespace esphome
 
         void NimbleTracker::setup()
         {
-            std::istringstream iss(this->known_irk_.c_str());
-            std::string irk_hex;
-            while (iss >> irk_hex)
-            {
-                uint8_t *irk = new uint8_t[16];
-                if (!hextostr(irk_hex.c_str(), irk, 16))
-                {
-                    ESP_LOGE("nimble_tracker", "Something is wrong with the irk");
-                    continue;
-                }
+            // std::istringstream iss(this->known_irk_.c_str());
+            // std::string irk_hex;
+            // while (iss >> irk_hex)
+            // {
+            //     uint8_t *irk = new uint8_t[16];
+            //     if (!hextostr(irk_hex.c_str(), irk, 16))
+            //     {
+            //         ESP_LOGE("nimble_tracker", "Something is wrong with the irk");
+            //         continue;
+            //     }
 
-                this->irks_.push_back(irk);
-            }
+            //     this->irks_.push_back(irk);
+            // }
 
             // Set the name to empty string to not broadcast the name
             NimBLEDevice::init("");
@@ -119,18 +119,18 @@ namespace esphome
                         {
                             address_type = "random";
 
-                            auto address = advertised_device->getAddress();
-                            auto naddress = address.getNative();
-                            auto irks = this->irks_;
+                            // auto address = advertised_device->getAddress();
+                            // auto naddress = address.getNative();
+                            // auto irks = this->irks_;
 
-                            auto it = std::find_if(irks.begin(), irks.end(), [naddress](uint8_t *irk)
-                                                   { return ble_ll_resolv_rpa(naddress, irk); });
-                            if (it != irks.end())
-                            {
-                                auto irk_hex = hexStr(*it, 16);
+                            // auto it = std::find_if(irks.begin(), irks.end(), [naddress](uint8_t *irk)
+                            //                        { return ble_ll_resolv_rpa(naddress, irk); });
+                            // if (it != irks.end())
+                            // {
+                            //     auto irk_hex = hexStr(*it, 16);
 
-                                ESP_LOGD("nimble_tracker", "Found a match for %s with irk %s", address.toString().c_str(), irk_hex.c_str());
-                            }
+                            //     ESP_LOGD("nimble_tracker", "Found a match for %s with irk %s", address.toString().c_str(), irk_hex.c_str());
+                            // }
 
                             break;
                         }
