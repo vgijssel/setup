@@ -2,7 +2,7 @@
 
 namespace esphome
 {
-    namespace nimble_tracker
+    namespace nimble_rssi
     {
         int bt_encrypt_be(const uint8_t *key, const uint8_t *plaintext, uint8_t *enc_data)
         {
@@ -55,6 +55,6 @@ namespace esphome
             return true;
         }
 
-    } // namespace nimble_tracker
+    } // namespace nimble_rssi
 
 } // namespace esphome
