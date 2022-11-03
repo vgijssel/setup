@@ -6,13 +6,13 @@
 
 namespace esphome
 {
-    namespace nimble_tracker
+    namespace nimble_rssi
     {
 
         std::string hexStr(const uint8_t *data, int len);
         uint8_t hextob(char ch);
         bool hextostr(const std::string &hexStr, uint8_t *output, size_t len);
 
-    } // namespace nimble_tracker
+    } // namespace nimble_rssi
 
 } // namespace esphome

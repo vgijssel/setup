@@ -3,7 +3,7 @@
 
 namespace esphome
 {
-    namespace nimble_tracker
+    namespace nimble_rssi
     {
 
         static constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -42,6 +42,6 @@ namespace esphome
             return true;
         }
 
-    } // namespace esp32_ble_tracker
+    } // namespace nimble_rssi
 
-} // nam
+} // namespece esphome
