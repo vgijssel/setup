@@ -34,8 +34,6 @@ namespace esphome
 
             std::vector<uint8_t *> irks_;
         };
-
-        extern NimbleTracker *global_nimble_tracker;
     } // namespace esp32_ble_tracker
 
 } // namespace esphome

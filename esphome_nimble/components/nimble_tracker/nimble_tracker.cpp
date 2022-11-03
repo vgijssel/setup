@@ -79,13 +79,20 @@ namespace esphome
     {
         class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
         {
+        public:
+            MyAdvertisedDeviceCallbacks(NimbleTracker *nimble_tracker)
+            {
+                nimble_tracker_ = nimble_tracker;
+            }
+
             void onResult(BLEAdvertisedDevice *advertisedDevice)
             {
-                global_nimble_tracker->advertised_devices_.push(advertisedDevice);
+                nimble_tracker_->advertised_devices_.push(advertisedDevice);
             }
-        };
 
-        NimbleTracker *global_nimble_tracker = nullptr;
+        protected:
+            NimbleTracker *nimble_tracker_;
+        };
 
         void NimbleTracker::setup()
         {
@@ -103,15 +110,12 @@ namespace esphome
                 this->irks_.push_back(irk);
             }
 
-            // TODO: instead of doing the hacky global variable, why not add a reference to this to the callback instance?
-            global_nimble_tracker = this;
-
             // Set the name to empty string to not broadcast the name
             NimBLEDevice::init("");
             this->pBLEScan_ = NimBLEDevice::getScan();
             this->pBLEScan_->setInterval(this->scan_interval_);
             this->pBLEScan_->setWindow(this->scan_window_);
-            this->pBLEScan_->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks(), true);
+            this->pBLEScan_->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks(this), true);
             this->pBLEScan_->setActiveScan(this->scan_active_);
             this->pBLEScan_->setDuplicateFilter(false);
 
@@ -174,7 +178,6 @@ namespace esphome
                         }
                         case BLE_ADDR_RANDOM:
                         {
-                            // TODO: try to resolve the irk from the apple watch here with logic from ESPresence.
                             address_type = "random";
 
                             auto address = advertised_device->getAddress();
