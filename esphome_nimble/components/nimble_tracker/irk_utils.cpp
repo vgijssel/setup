@@ -1,5 +1,4 @@
 #include "irk_utils.h"
-#include "NimBLEDevice.h"
 
 namespace esphome
 {

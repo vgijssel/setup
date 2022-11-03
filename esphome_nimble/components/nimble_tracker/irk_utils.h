@@ -2,6 +2,7 @@
 #pragma once
 
 #include "mbedtls/aes.h"
+#include "NimBLEDevice.h"
 
 namespace esphome
 {

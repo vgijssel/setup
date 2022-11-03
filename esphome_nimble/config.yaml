@@ -8,7 +8,6 @@ external_components:
       path: ./components
 
 nimble_tracker:
-  known_irk: !secret apple_watch_irk
   scan_parameters:
 #     # interval: 1.2s
 #     # window: 500ms
@@ -16,10 +15,10 @@ nimble_tracker:
     interval: 1.2s
     active: false
 
-# sensor:
-#   - platform: nimble_rssi
-#     irk: aaaaaaaaaaaaaaaa
-#     name: "BLE Google Home Mini RSSI value"
+sensor:
+  - platform: nimble_rssi
+    irk: !secret apple_watch_irk
+    name: "Apple Watch RSSI"
   
 esphome:
   name: ${device_name}

@@ -16,12 +16,12 @@ CONF_SCAN_PARAMETERS = "scan_parameters"
 CONF_WINDOW = "window"
 CONF_CONTINUOUS = "continuous"
 
-CONF_KNOWN_IRK = "known_irk"
-
 # CONF_ON_SCAN_END = "on_scan_end"
 nimble_tracker_ns = cg.esphome_ns.namespace("nimble_tracker")
 
 NimbleTracker = nimble_tracker_ns.class_("NimbleTracker", cg.Component)
+NimbleDeviceListener = nimble_tracker_ns.class_("NimbleDeviceListener", cg.Component)
+
 # ESPBTClient = nimble_tracker_ns.class_("ESPBTClient")
 # ESPBTDeviceListener = nimble_tracker_ns.class_("ESPBTDeviceListener")
 # ESPBTDevice = nimble_tracker_ns.class_("ESPBTDevice")
@@ -128,13 +128,9 @@ def validate_scan_parameters(config):
 #         f"(uint8_t*)(const uint8_t[16]){{{','.join(reversed(cpp_array))}}}"
 #     )
 
-
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(NimbleTracker),
-        cv.Optional(
-            CONF_KNOWN_IRK,
-        ): cv.string,
         cv.Optional(CONF_SCAN_PARAMETERS, default={}): cv.All(
             cv.Schema(
                 {
@@ -185,19 +181,17 @@ CONFIG_SCHEMA = cv.Schema(
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
-# ESP_BLE_DEVICE_SCHEMA = cv.Schema(
-#     {
-#         cv.GenerateID(CONF_NIMBLE_ID): cv.use_id(NimbleTracker),
-#     }
-# )
+NIMBLE_DEVICE_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(CONF_NIMBLE_ID): cv.use_id(NimbleTracker),
+    }
+)
 
 
 async def to_code(config):
     # this initializes the component in the generated code
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-
-    cg.add(var.set_known_irk(config[CONF_KNOWN_IRK]))
 
     params = config[CONF_SCAN_PARAMETERS]
     cg.add(var.set_scan_duration(params[CONF_DURATION]))
