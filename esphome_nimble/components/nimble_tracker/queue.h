@@ -1,3 +1,4 @@
+// Copied from https://github.com/esphome/esphome/blob/dev/esphome/components/esp32_ble_tracker/queue.h
 #pragma once
 
 #include "esphome/core/component.h"
