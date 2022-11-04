@@ -2,9 +2,9 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor, nimble_tracker
 from esphome.const import (
-    DEVICE_CLASS_SIGNAL_STRENGTH,
+    DEVICE_CLASS_DISTANCE,
     STATE_CLASS_MEASUREMENT,
-    UNIT_DECIBEL_MILLIWATT,
+    UNIT_METER,
 )
 
 CONF_IRK = 'irk'
@@ -20,10 +20,9 @@ NimbleDistanceSensor = nimble_distance_ns.class_(
 CONFIG_SCHEMA = cv.All(
     sensor.sensor_schema(
         NimbleDistanceSensor,
-        # TODO: change this to be meters? What is ESPresence using for distance?
-        unit_of_measurement=UNIT_DECIBEL_MILLIWATT,
-        accuracy_decimals=0,
-        device_class=DEVICE_CLASS_SIGNAL_STRENGTH,
+        unit_of_measurement=UNIT_METER,
+        accuracy_decimals=2,
+        device_class=DEVICE_CLASS_DISTANCE,
         state_class=STATE_CLASS_MEASUREMENT,
     )
     # TODO: move this into nimble_tracker shared schema
