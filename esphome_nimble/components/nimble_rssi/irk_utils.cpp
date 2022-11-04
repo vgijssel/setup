@@ -1,3 +1,4 @@
+// Copied from https://github.com/ESPresense/ESPresense/blob/master/lib/BleFingerprint/BleFingerprint.cpp
 #include "irk_utils.h"
 
 namespace esphome

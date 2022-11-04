@@ -61,5 +61,5 @@ namespace esphome
       std::queue<T *> q_;
       SemaphoreHandle_t m_;
     };
-  } // namespace esp32_ble
+  } // namespace nimble_tracker
 } // namespace esphome

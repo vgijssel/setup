@@ -65,35 +65,6 @@ CONFIG_SCHEMA = cv.Schema(
             ),
             validate_scan_parameters,
         ),
-        # cv.Optional(CONF_ON_BLE_ADVERTISE): automation.validate_automation(
-        #     {
-        #         cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(ESPBTAdvertiseTrigger),
-        #         cv.Optional(CONF_MAC_ADDRESS): cv.mac_address,
-        #     }
-        # ),
-        # cv.Optional(CONF_ON_BLE_SERVICE_DATA_ADVERTISE): automation.validate_automation(
-        #     {
-        #         cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-        #             BLEServiceDataAdvertiseTrigger
-        #         ),
-        #         cv.Optional(CONF_MAC_ADDRESS): cv.mac_address,
-        #         cv.Required(CONF_SERVICE_UUID): bt_uuid,
-        #     }
-        # ),
-        # cv.Optional(
-        #     CONF_ON_BLE_MANUFACTURER_DATA_ADVERTISE
-        # ): automation.validate_automation(
-        #     {
-        #         cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-        #             BLEManufacturerDataAdvertiseTrigger
-        #         ),
-        #         cv.Optional(CONF_MAC_ADDRESS): cv.mac_address,
-        #         cv.Required(CONF_MANUFACTURER_ID): bt_uuid,
-        #     }
-        # ),
-        # cv.Optional(CONF_ON_SCAN_END): automation.validate_automation(
-        #     {cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(BLEEndOfScanTrigger)}
-        # ),
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
