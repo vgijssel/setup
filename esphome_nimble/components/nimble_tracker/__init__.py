@@ -68,12 +68,15 @@ CONFIG_SCHEMA = cv.Schema(
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
-NIMBLE_DEVICE_SCHEMA = cv.Schema(
+CONF_IRK = 'irk'
+
+NIMBLE_DEVICE_LISTENER_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_NIMBLE_ID): cv.use_id(NimbleTracker),
-    }
+        cv.Optional(CONF_IRK): cv.string,
+    },
+    cv.has_exactly_one_key(CONF_IRK)
 )
-
 
 async def to_code(config):
     # this initializes the component in the generated code
@@ -100,3 +103,7 @@ async def register_ble_device(var, config):
     paren = await cg.get_variable(config[CONF_NIMBLE_ID])
     cg.add(paren.register_listener(var))
     return var
+
+async def device_listener_to_code(var, config):
+    if CONF_IRK in config:
+        cg.add(var.set_irk(config[CONF_IRK]))

@@ -7,8 +7,6 @@ from esphome.const import (
     UNIT_DECIBEL_MILLIWATT,
 )
 
-CONF_IRK = 'irk'
-
 DEPENDENCIES = ["nimble_tracker"]
 
 nimble_rssi_ns = cg.esphome_ns.namespace("nimble_rssi")
@@ -25,21 +23,12 @@ CONFIG_SCHEMA = cv.All(
         device_class=DEVICE_CLASS_SIGNAL_STRENGTH,
         state_class=STATE_CLASS_MEASUREMENT,
     )
-    .extend(
-        {
-            cv.Optional(CONF_IRK): cv.string,
-        }
-    )
-    .extend(nimble_tracker.NIMBLE_DEVICE_SCHEMA)
+    .extend(nimble_tracker.NIMBLE_DEVICE_LISTENER_SCHEMA)
     .extend(cv.COMPONENT_SCHEMA),
-    cv.has_exactly_one_key(CONF_IRK),
 )
-
 
 async def to_code(config):
     var = await sensor.new_sensor(config)
     await cg.register_component(var, config)
-    await nimble_tracker.register_ble_device(var, config)
-
-    if CONF_IRK in config:
-        cg.add(var.set_irk(config[CONF_IRK]))
+    await nimble_tracker.device_listener_to_code(var, config)
+    nimble_tracker.register_ble_device(var, config)
