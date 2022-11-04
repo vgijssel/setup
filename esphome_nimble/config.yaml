@@ -17,6 +17,9 @@ sensor:
   - platform: nimble_rssi
     irk: !secret apple_watch_irk
     name: "Apple Watch RSSI"
+  - platform: nimble_distance
+    irk: !secret apple_watch_irk
+    name: "Apple Watch Distance"
   
 esphome:
   name: ${device_name}

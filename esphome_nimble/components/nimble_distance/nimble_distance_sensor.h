@@ -6,12 +6,12 @@
 
 namespace esphome
 {
-    namespace nimble_rssi
+    namespace nimble_distance
     {
-        class NimbleRssiSensor : public sensor::Sensor, public Component, public nimble_tracker::NimbleDeviceListener
+        class NimbleDistanceSensor : public sensor::Sensor, public Component, public nimble_tracker::NimbleDeviceListener
         {
         protected:
             bool update_state(NimBLEAdvertisedDevice *advertised_device) override;
         };
-    } // namespace nimble_rssi
+    } // namespace nimble_distance
 } // namespace esphome

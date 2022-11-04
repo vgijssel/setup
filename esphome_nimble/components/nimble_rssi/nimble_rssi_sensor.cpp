@@ -11,6 +11,6 @@ namespace esphome
             this->publish_state(advertised_device->getRSSI());
             return true;
         }
-    } // namespace nimble_tracker
+    } // namespace nimble_rssi
 
 } // namespace esphome
