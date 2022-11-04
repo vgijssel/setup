@@ -2,12 +2,26 @@ substitutions:
   device_name: "nimble-shelly"
   entity_id: "nimble_shelly"
 
+external_components:
+  - source:
+      type: local
+      path: ./components
+
+nimble_tracker:
+  scan_parameters:
+    window: 500ms
+    interval: 1.2s
+    active: false
+
+sensor:
+  - platform: nimble_rssi
+    irk: !secret apple_watch_irk
+    name: "Apple Watch RSSI"
+  
 esphome:
   name: ${device_name}
   platformio_options:
     board_build.f_cpu: 160000000L
-  includes:
-    - nimble.h
 
 esp32:
   board: esp32dev
@@ -24,14 +38,6 @@ esp32:
       CONFIG_BT_BLE_50_FEATURES_SUPPORTED: y
       CONFIG_BT_BLE_42_FEATURES_SUPPORTED: y
 
-      CONFIG_MBEDTLS_HARDWARE_AES: n
-      CONFIG_BT_ENABLED: y
-      CONFIG_BTDM_CTRL_MODE_BLE_ONLY: y
-      CONFIG_BTDM_CTRL_MODE_BR_EDR_ONLY: n
-      CONFIG_BTDM_CTRL_MODE_BTDM: n
-      CONFIG_BT_BLUEDROID_ENABLED: n
-      CONFIG_BT_NIMBLE_ENABLED: y
-
 output:
   - platform: gpio
     id: "relay_output"
@@ -44,6 +50,7 @@ status_led:
 
 # Enable logging
 logger:
+  level: VERBOSE
 
 # Enable Home Assistant API
 api:
