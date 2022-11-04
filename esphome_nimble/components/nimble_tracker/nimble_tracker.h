@@ -3,17 +3,12 @@
 #include "esphome/core/component.h"
 #include "queue.h"
 #include "NimBLEDevice.h"
+#include "nimble_device_listener.h"
 
 namespace esphome
 {
     namespace nimble_tracker
     {
-        class NimbleDeviceListener
-        {
-        public:
-            virtual bool parse_device(NimBLEAdvertisedDevice *advertised_device) = 0;
-        };
-
         class NimbleTracker : public Component
         {
 

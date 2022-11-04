@@ -7,6 +7,8 @@ namespace esphome
 {
     namespace nimble_tracker
     {
+        static const char *const TAG = "nimble_tracker";
+
         class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
         {
         public:
@@ -36,11 +38,11 @@ namespace esphome
             this->pBLEScan_->setDuplicateFilter(false);
             this->pBLEScan_->setMaxResults(this->max_results_);
 
-            ESP_LOGV("nimble_tracker", "Trying to start the scan");
+            ESP_LOGV(TAG, "Trying to start the scan");
 
             if (!pBLEScan_->start(0, nullptr, false))
             {
-                ESP_LOGE("nimble_tracker", "Error starting continuous ble scan");
+                ESP_LOGE(TAG, "Error starting continuous ble scan");
                 // this->mark_failed();
                 return;
             }
@@ -55,7 +57,7 @@ namespace esphome
             {
                 if (!pBLEScan_->start(0, nullptr, false))
                 {
-                    ESP_LOGE("nimble_tracker", "Error starting continuous ble scan");
+                    ESP_LOGE(TAG, "Error starting continuous ble scan");
                     return;
                 }
 
