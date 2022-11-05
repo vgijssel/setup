@@ -31,4 +31,4 @@ async def to_code(config):
     var = await sensor.new_sensor(config)
     await cg.register_component(var, config)
     await nimble_tracker.device_listener_to_code(var, config)
-    nimble_tracker.register_ble_device(var, config)
+    await nimble_tracker.register_ble_device(var, config)
