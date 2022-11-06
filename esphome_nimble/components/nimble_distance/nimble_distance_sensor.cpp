@@ -14,21 +14,29 @@ namespace esphome
         {
         }
 
+        bool Filter::filter(float rssi)
+        {
+            Reading<float, unsigned long> inter1, inter2;
+            inter1.timestamp = esp_timer_get_time();
+            inter1.value = rssi;
+
+            return this->one_euro_.push(&inter1, &inter2) && this->diff_filter_.push(&inter2, &this->output);
+        }
+
         void NimbleDistanceSensor::setup()
         {
             this->filter_ = new Filter(ONE_EURO_FCMIN, ONE_EURO_BETA, ONE_EURO_DCUTOFF);
-
-            // OneEuroFilter<float, unsigned long> one_euro_(0.1, 0.1, 0.1, 0.1);
-            // oneEuro { OneEuroFilter<float, unsigned long>(1, fcmin, beta, dcutoff) }
-            // one_euro_
-            // {
-            //     OneEuroFilter<float, unsigned long>(1, fcmin, beta, dcutoff);
-            // }
         }
 
         bool NimbleDistanceSensor::update_state(NimBLEAdvertisedDevice *advertised_device)
         {
-            // this->publish_state(advertised_device->getRSSI());
+            // auto output = this->filter_->filter(advertised_device->getRSSI());
+            if (!this->filter_->filter(advertised_device->getRSSI()))
+            {
+                return false;
+            }
+
+            this->publish_state(this->filter_->output.value.position);
             return true;
         }
     } // namespace nimble_distance

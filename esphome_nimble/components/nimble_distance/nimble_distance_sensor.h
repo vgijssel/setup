@@ -21,9 +21,12 @@ namespace esphome
         {
         public:
             Filter(float fcmin, float beta, float dcutoff);
+            bool filter(float rssi);
+            Reading<Differential<float>> output;
 
         protected:
             OneEuroFilter<float, unsigned long> one_euro_;
+            DifferentialFilter<float, unsigned long> diff_filter_;
         };
 
         class NimbleDistanceSensor : public sensor::Sensor,
