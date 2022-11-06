@@ -9,8 +9,11 @@ external_components:
 
 nimble_tracker:
   scan_parameters:
-    window: 500ms
-    interval: 1.2s
+    # window: 500ms
+    # interval: 1.2s
+
+    window: 100ms
+    interval: 100ms
     active: false
 
 sensor:

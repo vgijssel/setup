@@ -37,7 +37,7 @@ namespace esphome
         {
         public:
             void setup() override;
-            int get_1m_rssi();
+            int get_1m_rssi(NimBLEAdvertisedDevice *advertised_device);
 
         protected:
             bool update_state(NimBLEAdvertisedDevice *advertised_device) override;
@@ -46,6 +46,7 @@ namespace esphome
 
             int8_t ref_rssi_ = -65;
             float absorption_ = 3.5f;
+            // float absorption_ = 2.0f;
         };
     } // namespace nimble_distance
 } // namespace esphome

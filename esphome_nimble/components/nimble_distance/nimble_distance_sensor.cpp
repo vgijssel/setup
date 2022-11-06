@@ -1,7 +1,3 @@
-// Defined distance formula using
-// https://medium.com/beingcoders/convert-rssi-value-of-the-ble-bluetooth-low-energy-beacons-to-meters-63259f307283
-// and copied code from
-// https://github.com/ESPresense/ESPresense/blob/master/lib/BleFingerprint/BleFingerprint.cpp
 #include "nimble_distance_sensor.h"
 
 namespace esphome
@@ -18,9 +14,10 @@ namespace esphome
             int the_median = the_max ^ the_min ^ a ^ b ^ c;
             return (the_median);
         }
-        int NimbleDistanceSensor::get_1m_rssi()
+        int NimbleDistanceSensor::get_1m_rssi(NimBLEAdvertisedDevice *advertised_device)
         {
-            return this->ref_rssi_ + DEFAULT_TX;
+            return this->ref_rssi_ + advertised_device->getTXPower();
+            // return this->ref_rssi_ + 0;
         }
         // if (calRssi != NO_RSSI)
         //     return calRssi;
@@ -48,6 +45,10 @@ namespace esphome
             this->filter_ = new Filter(ONE_EURO_FCMIN, ONE_EURO_BETA, ONE_EURO_DCUTOFF);
         }
 
+        // Defined distance formula using
+        // https://medium.com/beingcoders/convert-rssi-value-of-the-ble-bluetooth-low-energy-beacons-to-meters-63259f307283
+        // and copied a lot of code from
+        // https://github.com/ESPresense/ESPresense/blob/master/lib/BleFingerprint/BleFingerprint.cpp
         bool NimbleDistanceSensor::update_state(NimBLEAdvertisedDevice *advertised_device)
         {
             this->oldest_ = this->recent_;
@@ -55,12 +56,12 @@ namespace esphome
             this->newest_ = advertised_device->getRSSI();
             this->rssi_ = median_of_3(this->oldest_, this->recent_, this->newest_);
 
-            float ratio = (this->get_1m_rssi() - this->rssi_) / (10.0f * this->absorption_);
+            float ratio = (this->get_1m_rssi(advertised_device) - this->rssi_) / (10.0f * this->absorption_);
             float raw = std::pow(10, ratio);
 
             if (!this->filter_->filter(raw))
             {
-                ESP_LOGD(TAG, "No filter data just yet?");
+                ESP_LOGD(TAG, "Not enough data to calculate distance.");
                 return false;
             }
 
