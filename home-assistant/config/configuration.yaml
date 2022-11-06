@@ -17,6 +17,11 @@ input_boolean:
 sensor:
   - platform: illuminance
     entity_id: weather.home
+  - platform: mqtt_room
+    name: apple_watch
+    device_id: apple_watch
+    state_topic: room_presence
+    away_timeout: 10
 
 adaptive_lighting:
   - name: hallway

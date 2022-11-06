@@ -35,6 +35,7 @@ sensor:
     name: "Apple Watch Distance"
     id: apple_watch_distance
     internal: true
+    # TODO: should we retain the mqtt message?
     on_value:
       then:
         - lambda: |-
