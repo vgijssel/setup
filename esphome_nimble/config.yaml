@@ -1,6 +1,14 @@
 substitutions:
   device_name: "nimble-shelly"
   entity_id: "nimble_shelly"
+  room_name: "office"
+
+mqtt:
+  broker: !secret mqtt_broker
+  username: esphome
+  password: !secret mqtt_password
+  discovery: false
+  id: mqtt_client
 
 external_components:
   - source:
@@ -16,14 +24,26 @@ nimble_tracker:
     interval: 100ms
     active: false
 
+globals:
+  - id: room_topic
+    type: std::string
+    initial_value: '"room_presence/${room_name}"'
+
 sensor:
-  - platform: nimble_rssi
-    irk: !secret apple_watch_irk
-    name: "Apple Watch RSSI"
   - platform: nimble_distance
     irk: !secret apple_watch_irk
     name: "Apple Watch Distance"
-  
+    id: apple_watch_distance
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            id(mqtt_client)->publish_json(id(room_topic), [=](ArduinoJson::JsonObject root) -> void {
+              root["id"] = "apple_watch";
+              root["name"] = "Apple Watch";
+              root["distance"] = id(apple_watch_distance).state;
+            });
+
 esphome:
   name: ${device_name}
   platformio_options:

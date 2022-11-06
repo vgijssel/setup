@@ -17,15 +17,7 @@ namespace esphome
         int NimbleDistanceSensor::get_1m_rssi(NimBLEAdvertisedDevice *advertised_device)
         {
             return this->ref_rssi_ + advertised_device->getTXPower();
-            // return this->ref_rssi_ + 0;
         }
-        // if (calRssi != NO_RSSI)
-        //     return calRssi;
-        // if (mdRssi != NO_RSSI)
-        //     return mdRssi;
-        // if (asRssi != NO_RSSI)
-        //     return asRssi;
-        // return BleFingerprintCollection::refRssi + DEFAULT_TX;
 
         Filter::Filter(float fcmin, float beta, float dcutoff) : one_euro_{OneEuroFilter<float, unsigned long>(1, fcmin, beta, dcutoff)}
         {
