@@ -7,6 +7,8 @@
 #define ONE_EURO_FCMIN 1e-5f
 #define ONE_EURO_BETA 1e-7f
 #define ONE_EURO_DCUTOFF 1e-5f
+#define NO_RSSI (-128)
+#define DEFAULT_TX (-6)
 
 // For NimbleDistanceSensor
 #include "esphome/core/component.h"
@@ -35,10 +37,15 @@ namespace esphome
         {
         public:
             void setup() override;
+            int get_1m_rssi();
 
         protected:
             bool update_state(NimBLEAdvertisedDevice *advertised_device) override;
             Filter *filter_;
+            int rssi_ = NO_RSSI, newest_ = NO_RSSI, recent_ = NO_RSSI, oldest_ = NO_RSSI;
+
+            int8_t ref_rssi_ = -65;
+            float absorption_ = 3.5f;
         };
     } // namespace nimble_distance
 } // namespace esphome

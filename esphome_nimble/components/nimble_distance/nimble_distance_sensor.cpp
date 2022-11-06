@@ -10,6 +10,26 @@ namespace esphome
     {
         static const char *const TAG = "nimble_distance";
 
+        static int median_of_3(int a, int b, int c)
+        {
+            int the_max = std::max(std::max(a, b), c);
+            int the_min = std::min(std::min(a, b), c);
+            // unnecessarily clever code
+            int the_median = the_max ^ the_min ^ a ^ b ^ c;
+            return (the_median);
+        }
+        int NimbleDistanceSensor::get_1m_rssi()
+        {
+            return this->ref_rssi_ + DEFAULT_TX;
+        }
+        // if (calRssi != NO_RSSI)
+        //     return calRssi;
+        // if (mdRssi != NO_RSSI)
+        //     return mdRssi;
+        // if (asRssi != NO_RSSI)
+        //     return asRssi;
+        // return BleFingerprintCollection::refRssi + DEFAULT_TX;
+
         Filter::Filter(float fcmin, float beta, float dcutoff) : one_euro_{OneEuroFilter<float, unsigned long>(1, fcmin, beta, dcutoff)}
         {
         }
@@ -30,9 +50,17 @@ namespace esphome
 
         bool NimbleDistanceSensor::update_state(NimBLEAdvertisedDevice *advertised_device)
         {
-            // auto output = this->filter_->filter(advertised_device->getRSSI());
-            if (!this->filter_->filter(advertised_device->getRSSI()))
+            this->oldest_ = this->recent_;
+            this->recent_ = this->newest_;
+            this->newest_ = advertised_device->getRSSI();
+            this->rssi_ = median_of_3(this->oldest_, this->recent_, this->newest_);
+
+            float ratio = (this->get_1m_rssi() - this->rssi_) / (10.0f * this->absorption_);
+            float raw = std::pow(10, ratio);
+
+            if (!this->filter_->filter(raw))
             {
+                ESP_LOGD(TAG, "No filter data just yet?");
                 return false;
             }
 
