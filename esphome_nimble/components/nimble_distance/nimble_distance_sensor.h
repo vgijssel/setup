@@ -46,7 +46,8 @@ namespace esphome
 
             int8_t ref_rssi_ = -65;
             float absorption_ = 3.5f;
-            // float absorption_ = 2.0f;
+            float last_reported_ = 0;
+            int64_t last_reported_milis_ = 0;
         };
     } // namespace nimble_distance
 } // namespace esphome

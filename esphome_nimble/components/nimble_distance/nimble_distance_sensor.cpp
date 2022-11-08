@@ -57,6 +57,19 @@ namespace esphome
                 return false;
             }
 
+            // determine if should report
+            auto max_distance = 16.0f;
+            if (max_distance > 0 && this->filter_->output.value.position > max_distance)
+                return false;
+
+            auto skip_distance = 0.5f;
+            auto skip_ms = 5000;
+            auto now = esp_timer_get_time();
+            if ((abs(this->filter_->output.value.position - this->last_reported_) < skip_distance) && (this->last_reported_milis_ > 0) && (now - this->last_reported_milis_ < skip_ms))
+                return false;
+
+            this->last_reported_milis_ = now;
+            this->last_reported_ = this->filter_->output.value.position;
             this->publish_state(this->filter_->output.value.position);
             return true;
         }
