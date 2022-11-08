@@ -15,7 +15,6 @@ CONF_SCAN_PARAMETERS = "scan_parameters"
 
 CONF_WINDOW = "window"
 CONF_CONTINUOUS = "continuous"
-CONF_MAX_RESULTS = "max_results"
 
 nimble_tracker_ns = cg.esphome_ns.namespace("nimble_tracker")
 
@@ -55,9 +54,6 @@ CONFIG_SCHEMA = cv.Schema(
                     cv.Optional(
                         CONF_WINDOW, default="30ms"
                     ): cv.positive_time_period_milliseconds,
-                    cv.Optional(
-                        CONF_MAX_RESULTS, default="50"
-                    ): cv.positive_not_null_int,
                     cv.Optional(CONF_ACTIVE, default=True): cv.boolean,
                     cv.Optional(CONF_CONTINUOUS, default=True): cv.boolean,
                     cv.Optional(CONF_CONTINUOUS, default=True): cv.boolean,
@@ -68,12 +64,15 @@ CONFIG_SCHEMA = cv.Schema(
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
-NIMBLE_DEVICE_SCHEMA = cv.Schema(
+CONF_IRK = 'irk'
+
+NIMBLE_DEVICE_LISTENER_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_NIMBLE_ID): cv.use_id(NimbleTracker),
-    }
+        cv.Optional(CONF_IRK): cv.string,
+    },
+    cv.has_exactly_one_key(CONF_IRK)
 )
-
 
 async def to_code(config):
     # this initializes the component in the generated code
@@ -86,7 +85,6 @@ async def to_code(config):
     cg.add(var.set_scan_window(int(params[CONF_WINDOW].total_milliseconds / 0.625)))
     cg.add(var.set_scan_active(params[CONF_ACTIVE]))
     cg.add(var.set_scan_continuous(params[CONF_CONTINUOUS]))
-    cg.add(var.set_max_results(params[CONF_MAX_RESULTS]))
 
     add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
     add_idf_sdkconfig_option("CONFIG_BT_BLUEDROID_ENABLED", False)
@@ -100,3 +98,7 @@ async def register_ble_device(var, config):
     paren = await cg.get_variable(config[CONF_NIMBLE_ID])
     cg.add(paren.register_listener(var))
     return var
+
+async def device_listener_to_code(var, config):
+    if CONF_IRK in config:
+        cg.add(var.set_irk(config[CONF_IRK]))

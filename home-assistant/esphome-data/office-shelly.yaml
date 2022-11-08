@@ -1,6 +1,7 @@
 substitutions:
   device_name: "office-shelly"
   entity_id: "office_shelly"
+  room_name: "office"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml

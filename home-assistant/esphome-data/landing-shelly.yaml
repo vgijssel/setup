@@ -2,6 +2,7 @@ substitutions:
   device_name: "landing-shelly"
   entity_id: "landing_shelly"
   light_entity_id: "light.landing_lights"
+  room_name: landing
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml

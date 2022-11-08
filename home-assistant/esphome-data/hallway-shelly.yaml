@@ -2,6 +2,7 @@ substitutions:
   device_name: "hallway-shelly"
   entity_id: "hallway_shelly"
   light_entity_id: "light.hallway_lights"
+  room_name: "hallway"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml

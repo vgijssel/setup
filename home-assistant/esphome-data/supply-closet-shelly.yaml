@@ -1,6 +1,7 @@
 substitutions:
   device_name: "supply-closet-shelly"
   entity_id: "supply_closet_shelly"
+  room_name: "living_room"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
