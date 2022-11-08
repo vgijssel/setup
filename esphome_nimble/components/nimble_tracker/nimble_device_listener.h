@@ -2,7 +2,7 @@
 
 #include "string_utils.h"
 #include "irk_utils.h"
-#include "nimble_tracker.h"
+#include "nimble_tracker_event.h"
 
 namespace esphome
 {

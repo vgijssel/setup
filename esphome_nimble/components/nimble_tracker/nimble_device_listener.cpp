@@ -1,4 +1,5 @@
 #include "esphome/core/log.h"
+#include "nimble_device_listener.h"
 
 namespace esphome
 {
