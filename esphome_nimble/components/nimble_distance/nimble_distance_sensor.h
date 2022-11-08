@@ -4,9 +4,15 @@
 #include <cstddef>
 #include "esp_timer.h"
 #include "SoftFilters.h"
-#define ONE_EURO_FCMIN 1e-5f
-#define ONE_EURO_BETA 1e-7f
-#define ONE_EURO_DCUTOFF 1e-5f
+// #define ONE_EURO_FCMIN 1e-5f
+// #define ONE_EURO_BETA 1e-7f
+// #define ONE_EURO_DCUTOFF 1e-5f
+
+// From https://github.com/rpatel3001/BleDistance/blob/master/ble_dist.h
+#define ONE_EURO_FCMIN 0.0001
+#define ONE_EURO_BETA 0.05
+#define ONE_EURO_DCUTOFF 1.0
+
 #define NO_RSSI (-128)
 #define DEFAULT_TX (-6)
 
@@ -46,8 +52,8 @@ namespace esphome
 
             int8_t ref_rssi_ = -65;
             float absorption_ = 3.5f;
-            float last_reported_ = 0;
-            int64_t last_reported_milis_ = 0;
+            float last_reported_position_ = 0;
+            int64_t last_reported_micro_seconds_ = 0;
         };
     } // namespace nimble_distance
 } // namespace esphome

@@ -26,6 +26,8 @@ namespace esphome
         bool Filter::filter(float rssi)
         {
             Reading<float, unsigned long> inter1, inter2;
+            // TODO: should we take into consideration micro seconds (returned from esp_timer_get_time())
+            // vs mili seconds (implementation used in ESPresence?)
             inter1.timestamp = esp_timer_get_time();
             inter1.value = rssi;
 
@@ -57,19 +59,22 @@ namespace esphome
                 return false;
             }
 
-            // determine if should report
             auto max_distance = 16.0f;
             if (max_distance > 0 && this->filter_->output.value.position > max_distance)
                 return false;
 
             auto skip_distance = 0.5f;
             auto skip_ms = 5000;
+            auto skip_micro_seconds = skip_ms * 1000;
             auto now = esp_timer_get_time();
-            if ((abs(this->filter_->output.value.position - this->last_reported_) < skip_distance) && (this->last_reported_milis_ > 0) && (now - this->last_reported_milis_ < skip_ms))
-                return false;
 
-            this->last_reported_milis_ = now;
-            this->last_reported_ = this->filter_->output.value.position;
+            if ((abs(this->filter_->output.value.position - this->last_reported_position_) < skip_distance) && (this->last_reported_micro_seconds_ > 0) && ((now - this->last_reported_micro_seconds_) < skip_micro_seconds))
+            {
+                return false;
+            }
+
+            this->last_reported_micro_seconds_ = now;
+            this->last_reported_position_ = this->filter_->output.value.position;
             this->publish_state(this->filter_->output.value.position);
             return true;
         }
