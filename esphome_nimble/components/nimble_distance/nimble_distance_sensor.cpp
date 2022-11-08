@@ -14,9 +14,9 @@ namespace esphome
             int the_median = the_max ^ the_min ^ a ^ b ^ c;
             return (the_median);
         }
-        int NimbleDistanceSensor::get_1m_rssi(NimBLEAdvertisedDevice *advertised_device)
+        int NimbleDistanceSensor::get_1m_rssi(nimble_tracker::NimbleTrackerEvent *tracker_event)
         {
-            return this->ref_rssi_ + advertised_device->getTXPower();
+            return this->ref_rssi_ + tracker_event->getTXPower();
         }
 
         Filter::Filter(float fcmin, float beta, float dcutoff) : one_euro_{OneEuroFilter<float, unsigned long>(1, fcmin, beta, dcutoff)}
@@ -41,14 +41,14 @@ namespace esphome
         // https://medium.com/beingcoders/convert-rssi-value-of-the-ble-bluetooth-low-energy-beacons-to-meters-63259f307283
         // and copied a lot of code from
         // https://github.com/ESPresense/ESPresense/blob/master/lib/BleFingerprint/BleFingerprint.cpp
-        bool NimbleDistanceSensor::update_state(NimBLEAdvertisedDevice *advertised_device)
+        bool NimbleDistanceSensor::update_state(nimble_tracker::NimbleTrackerEvent *tracker_event)
         {
             this->oldest_ = this->recent_;
             this->recent_ = this->newest_;
-            this->newest_ = advertised_device->getRSSI();
+            this->newest_ = tracker_event->getRSSI();
             this->rssi_ = median_of_3(this->oldest_, this->recent_, this->newest_);
 
-            float ratio = (this->get_1m_rssi(advertised_device) - this->rssi_) / (10.0f * this->absorption_);
+            float ratio = (this->get_1m_rssi(tracker_event) - this->rssi_) / (10.0f * this->absorption_);
             float raw = std::pow(10, ratio);
 
             if (!this->filter_->filter(raw))

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "NimBLEDevice.h"
 #include "string_utils.h"
 #include "irk_utils.h"
+#include "nimble_tracker.h"
 
 namespace esphome
 {
@@ -12,11 +12,11 @@ namespace esphome
         {
 
         public:
-            bool parse_device(NimBLEAdvertisedDevice *advertised_device);
+            bool parse_event(NimbleTrackerEvent *tracker_event);
             void set_irk(std::string irk_hex);
 
         protected:
-            virtual bool update_state(NimBLEAdvertisedDevice *advertised_device) = 0;
+            virtual bool update_state(NimbleTrackerEvent *tracker_event) = 0;
 
             enum MatchType
             {

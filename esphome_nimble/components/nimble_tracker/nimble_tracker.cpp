@@ -17,9 +17,18 @@ namespace esphome
                 nimble_tracker_ = nimble_tracker;
             }
 
-            void onResult(BLEAdvertisedDevice *advertisedDevice)
+            void onResult(BLEAdvertisedDevice *advertised_device)
             {
-                nimble_tracker_->advertised_devices_.push(advertisedDevice);
+                // Because setMaxResults is set to 0 for the NimBLEScan, we need to make a copy
+                // of the data of the advertised device, because this is deleted immediately by NimBLESCan
+                // after this callback is called.
+                auto *tracker_event = new NimbleTrackerEvent(
+                    advertised_device->getAddress(),
+                    advertised_device->getAddressType(),
+                    advertised_device->getRSSI(),
+                    advertised_device->getTXPower());
+
+                nimble_tracker_->tracker_events_.push(tracker_event);
             }
 
         protected:
@@ -36,7 +45,7 @@ namespace esphome
             this->pBLEScan_->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks(this), true);
             this->pBLEScan_->setActiveScan(this->scan_active_);
             this->pBLEScan_->setDuplicateFilter(false);
-            this->pBLEScan_->setMaxResults(this->max_results_);
+            this->pBLEScan_->setMaxResults(0);
 
             ESP_LOGV(TAG, "Trying to start the scan");
 
@@ -53,9 +62,9 @@ namespace esphome
 
         void NimbleTracker::loop()
         {
-            if (!pBLEScan_->isScanning())
+            if (!this->pBLEScan_->isScanning())
             {
-                if (!pBLEScan_->start(0, nullptr, false))
+                if (!this->pBLEScan_->start(0, nullptr, false))
                 {
                     ESP_LOGE(TAG, "Error starting continuous ble scan");
                     return;
@@ -65,16 +74,17 @@ namespace esphome
                 delay(200);
             }
 
-            BLEAdvertisedDevice *advertised_device = this->advertised_devices_.pop();
+            NimbleTrackerEvent *tracker_event = this->tracker_events_.pop();
 
-            while (advertised_device != nullptr)
+            while (tracker_event != nullptr)
             {
                 for (NimbleDeviceListener *listener : this->listeners_)
                 {
-                    listener->parse_device(advertised_device);
+                    listener->parse_event(tracker_event);
                 }
 
-                advertised_device = this->advertised_devices_.pop();
+                delete tracker_event;
+                tracker_event = this->tracker_events_.pop();
             }
         };
 

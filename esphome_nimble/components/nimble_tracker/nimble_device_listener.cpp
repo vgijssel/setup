@@ -1,4 +1,3 @@
-#include "nimble_device_listener.h"
 #include "esphome/core/log.h"
 
 namespace esphome
@@ -19,20 +18,20 @@ namespace esphome
             }
         }
 
-        bool NimbleDeviceListener::parse_device(NimBLEAdvertisedDevice *advertised_device)
+        bool NimbleDeviceListener::parse_event(NimbleTrackerEvent *tracker_event)
         {
-            if (advertised_device->getAddressType() != BLE_ADDR_RANDOM)
+            if (tracker_event->getAddressType() != BLE_ADDR_RANDOM)
             {
                 return false;
             }
 
-            auto address = advertised_device->getAddress();
+            auto address = tracker_event->getAddress();
             auto naddress = address.getNative();
 
             if (ble_ll_resolv_rpa(naddress, this->irk_))
             {
-                ESP_LOGD(TAG, "Found device %s", advertised_device->toString().c_str());
-                return this->update_state(advertised_device);
+                ESP_LOGD(TAG, "Found device %s", tracker_event->toString().c_str());
+                return this->update_state(tracker_event);
             }
             else
             {

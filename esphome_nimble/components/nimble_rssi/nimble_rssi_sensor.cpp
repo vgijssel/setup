@@ -6,7 +6,7 @@ namespace esphome
     {
         static const char *const TAG = "nimble_rssi";
 
-        bool NimbleRssiSensor::update_state(NimBLEAdvertisedDevice *advertised_device)
+        bool NimbleRssiSensor::update_state(nimble_tracker::NimbleTrackerEvent *tracker_event)
         {
             this->publish_state(advertised_device->getRSSI());
             return true;

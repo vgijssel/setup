@@ -15,7 +15,6 @@ CONF_SCAN_PARAMETERS = "scan_parameters"
 
 CONF_WINDOW = "window"
 CONF_CONTINUOUS = "continuous"
-CONF_MAX_RESULTS = "max_results"
 
 nimble_tracker_ns = cg.esphome_ns.namespace("nimble_tracker")
 
@@ -55,9 +54,6 @@ CONFIG_SCHEMA = cv.Schema(
                     cv.Optional(
                         CONF_WINDOW, default="30ms"
                     ): cv.positive_time_period_milliseconds,
-                    cv.Optional(
-                        CONF_MAX_RESULTS, default="50"
-                    ): cv.positive_not_null_int,
                     cv.Optional(CONF_ACTIVE, default=True): cv.boolean,
                     cv.Optional(CONF_CONTINUOUS, default=True): cv.boolean,
                     cv.Optional(CONF_CONTINUOUS, default=True): cv.boolean,
@@ -89,7 +85,6 @@ async def to_code(config):
     cg.add(var.set_scan_window(int(params[CONF_WINDOW].total_milliseconds / 0.625)))
     cg.add(var.set_scan_active(params[CONF_ACTIVE]))
     cg.add(var.set_scan_continuous(params[CONF_CONTINUOUS]))
-    cg.add(var.set_max_results(params[CONF_MAX_RESULTS]))
 
     add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
     add_idf_sdkconfig_option("CONFIG_BT_BLUEDROID_ENABLED", False)

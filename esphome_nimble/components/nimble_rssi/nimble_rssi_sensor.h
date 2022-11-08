@@ -11,7 +11,7 @@ namespace esphome
         class NimbleRssiSensor : public sensor::Sensor, public Component, public nimble_tracker::NimbleDeviceListener
         {
         protected:
-            bool update_state(NimBLEAdvertisedDevice *advertised_device) override;
+            bool update_state(nimble_tracker::NimbleTrackerEvent *tracker_event) override;
         };
     } // namespace nimble_rssi
 } // namespace esphome

@@ -37,10 +37,10 @@ namespace esphome
         {
         public:
             void setup() override;
-            int get_1m_rssi(NimBLEAdvertisedDevice *advertised_device);
+            int get_1m_rssi(nimble_tracker::NimbleTrackerEvent *tracker_event);
 
         protected:
-            bool update_state(NimBLEAdvertisedDevice *advertised_device) override;
+            bool update_state(nimble_tracker::NimbleTrackerEvent *tracker_event) override;
             Filter *filter_;
             int rssi_ = NO_RSSI, newest_ = NO_RSSI, recent_ = NO_RSSI, oldest_ = NO_RSSI;
 
