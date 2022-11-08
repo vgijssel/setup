@@ -1,6 +1,7 @@
 substitutions:
   device_name: "driveway-shelly"
   entity_id: "driveway_shelly"
+  room_name: "driveway"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
