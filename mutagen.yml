@@ -1,11 +1,19 @@
 sync:
   defaults:
-    alpha: "."
     ignore:
-      vcs: true
       paths:
+        - __pycache__
         - mutagen.yml.lock
+        - .esphome
+        - tmp
+        - .DS_Store
 
+  home-assistant:
+    alpha: "./home-assistant"
+    beta: "hypervisor:/data/home-assistant"
+    mode: "two-way-safe"
+    ignore:
+      paths:
         - zwavejs2mqtt-data/
         - "!zwavejs2mqtt-data/settings.json"
 
@@ -24,8 +32,9 @@ sync:
 
         - esphome-data/.esphome
 
-  hypervisor:
-    beta: "hypervisor:/data/home-assistant"
+  esphome-nimble:
+    alpha: "./esphome_nimble"
+    beta: "hypervisor:/data/esphome_nimble"
     mode: "two-way-safe"
 
 forward:
