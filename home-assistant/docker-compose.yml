@@ -1,12 +1,15 @@
 version: '3.8'
 services:
   mqtt:
+    container_name: mqtt
     image: eclipse-mosquitto:2.0
     restart: always
     volumes:
       - "./mosquitto-data:/mosquitto"
     ports:
       - "0.0.0.0:1883:1883"
+    expose:
+      - "1883"
     command: "mosquitto -c /mosquitto/mosquitto-auth.conf"
     user: 1000:1000
 
@@ -64,6 +67,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     ports:
       - '0.0.0.0:5050:5050' # port for UI
+    # So we can reach home assistant running with host networking through the docker host
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
