@@ -32,6 +32,7 @@ mutagen.yml.lock
 
 !/home-assistant/config/appdaemon
 /home-assistant/config/appdaemon/secrets.yaml
+/home-assistant/config/appdaemon/compiled
 
 /home-assistant/zwavejs2mqtt-data/*
 !/home-assistant/zwavejs2mqtt-data/settings.json

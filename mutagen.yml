@@ -30,6 +30,7 @@ sync:
         - "!/config/secrets.yaml"
         - "!/config/custom_components"
         - "!/config/appdaemon"
+        - "/config/appdaemon/compiled"
 
         - esphome-data/.esphome
 
