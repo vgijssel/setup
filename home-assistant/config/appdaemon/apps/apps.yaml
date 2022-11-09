@@ -8,16 +8,12 @@ ESPresenseIps:
   ips_topic: "room_presence/ips"
   location_topic: "room_presence/ips"
   draw_interval: 3
+  # Rooms are actually the installed shelly bluetooth sensors
   rooms:
     office: [0, 0.864, 0.965]
-    living_room: [9.83, 0.584, 1.224]
-    living_room_2: [3.175, 1.499, 1.727]
-    bedroom: [9.398, 5.817, 1.32]
-    kitchen: [3.772, 7.417, 0.838]
-    kitchen_2: [1.049, 4.56, 1.930]
   devices:
-  - id: iBeacon:xxxx
-    name: Phone
+  - id: apple_watch_1
+    name: Apple Watch 1
     timeout: 30
     away_timeout: 120
   roomplans:
