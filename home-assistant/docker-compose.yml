@@ -64,6 +64,7 @@ services:
     restart: always
     volumes:
       - ./appdaemon-data:/conf
+      - ./config/appdaemon/apps:/apps
       - /etc/localtime:/etc/localtime:ro
     ports:
       - '0.0.0.0:5050:5050' # port for UI

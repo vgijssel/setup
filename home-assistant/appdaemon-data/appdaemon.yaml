@@ -1,4 +1,5 @@
 appdaemon:
+  app_dir: /apps
   time_zone: Europe/Amsterdam
   latitude: !secret latitude
   longitude: !secret longitude
