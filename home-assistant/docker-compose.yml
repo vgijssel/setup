@@ -13,7 +13,7 @@ services:
   zigbee2mqtt:
     container_name: zigbee2mqtt
     restart: always
-    image: koenkk/zigbee2mqtt
+    image: koenkk/zigbee2mqtt:1.28.2
     volumes:
       - ./zigbee2mqtt-data:/app/data
       - /run/udev:/run/udev:ro
@@ -26,7 +26,7 @@ services:
 
   zwavejs2mqtt:
     container_name: zwavejs2mqtt
-    image: zwavejs/zwavejs2mqtt:latest
+    image: zwavejs/zwavejs2mqtt:8.4.1
     restart: always
     tty: true
     stop_signal: SIGINT
@@ -47,7 +47,7 @@ services:
   home-assistant:
     container_name: homeassistant
     user: "1000:1000"
-    image: "ghcr.io/home-assistant/home-assistant:stable"
+    image: homeassistant/home-assistant:2022.11
     volumes:
       - ./config:/config
       - /etc/localtime:/etc/localtime:ro
