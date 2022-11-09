@@ -1,0 +1,15 @@
+appdaemon:
+  time_zone: Europe/Amsterdam
+  latitude: !secret latitude
+  longitude: !secret longitude
+  elevation: 0
+  plugins:
+    HASS:
+      type: hass
+      ha_url: "http://host.docker.internal:8123"
+      token: !secret homeassistant_token
+http:
+  url: "http://hypervisor:5050"
+admin:
+api:
+hadashboard:

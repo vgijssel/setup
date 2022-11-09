@@ -42,6 +42,8 @@ mutagen.yml.lock
 !/home-assistant/mosquitto-data/acls
 !/home-assistant/mosquitto-data/mosquitto-auth.conf
 
+/home-assistant/appdaemon-data/secrets.yaml
+
 .env
 
 .DS_Store
