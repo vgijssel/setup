@@ -29,7 +29,9 @@ mutagen.yml.lock
 !/home-assistant/config/scenes.yaml
 !/home-assistant/config/scripts.yaml
 !/home-assistant/config/custom_components
+
 !/home-assistant/config/appdaemon
+/home-assistant/config/appdaemon/secrets.yaml
 
 /home-assistant/zwavejs2mqtt-data/*
 !/home-assistant/zwavejs2mqtt-data/settings.json
@@ -42,8 +44,6 @@ mutagen.yml.lock
 /home-assistant/mosquitto-data/*
 !/home-assistant/mosquitto-data/acls
 !/home-assistant/mosquitto-data/mosquitto-auth.conf
-
-/home-assistant/appdaemon-data/secrets.yaml
 
 .env
 

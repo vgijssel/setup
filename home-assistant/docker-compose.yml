@@ -63,8 +63,7 @@ services:
     image: acockburn/appdaemon:4.2.1
     restart: always
     volumes:
-      - ./appdaemon-data:/conf
-      - ./config/appdaemon/apps:/apps
+      - ./config/appdaemon:/conf
       - /etc/localtime:/etc/localtime:ro
     ports:
       - '0.0.0.0:5050:5050' # port for UI
