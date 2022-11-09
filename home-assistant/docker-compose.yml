@@ -8,6 +8,7 @@ services:
       - "./mosquitto-data:/mosquitto"
     ports:
       - "0.0.0.0:1883:1883"
+      - "0.0.0.0:9001:9001"
     expose:
       - "1883"
     command: "mosquitto -c /mosquitto/mosquitto-auth.conf"
