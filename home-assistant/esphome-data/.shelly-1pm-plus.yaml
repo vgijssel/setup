@@ -50,7 +50,7 @@ nimble_tracker:
 globals:
   - id: room_topic
     type: std::string
-    initial_value: '"room_presence/${room_name}"'
+    initial_value: '"room_presence/rooms/${room_name}"'
 
 sensor:
   - platform: nimble_distance

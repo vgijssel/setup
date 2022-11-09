@@ -20,13 +20,13 @@ sensor:
   - platform: mqtt_room
     name: apple_watch_1
     device_id: apple_watch_1
-    state_topic: room_presence
+    state_topic: room_presence/rooms
     away_timeout: 10
     timeout: 10 # 2x the esphome reporting timeout
   - platform: mqtt_room
     name: apple_watch_2
     device_id: apple_watch_2
-    state_topic: room_presence
+    state_topic: room_presence/rooms
     away_timeout: 10
     timeout: 10 # 2x the esphome reporting timeout
 

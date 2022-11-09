@@ -4,6 +4,9 @@ ESPresenseIps:
   pluggins:
     - HASS
     - MQTT
+  rooms_topic: "room_presence/rooms"
+  ips_topic: "room_presence/ips"
+  location_topic: "room_presence/ips"
   draw_interval: 3
   rooms:
     office: [0, 0.864, 0.965]
