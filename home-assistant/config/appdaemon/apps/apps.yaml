@@ -1,5 +1,6 @@
 ESPresenseIps:
   module: espresense-ips
+  log_level: DEBUG
   class: ESPresenseIps
   pluggins:
     - HASS
@@ -7,10 +8,20 @@ ESPresenseIps:
   rooms_topic: "room_presence/rooms"
   ips_topic: "room_presence/ips"
   location_topic: "room_presence/ips"
+  images_topic: "room_presence/images"
   draw_interval: 3
   # Rooms are actually the installed shelly bluetooth sensors
   rooms:
+    baby_room: [0, 0.864, 0.965]
+    bedroom: [0, 0.864, 0.965]
+    driveway: [0, 0.864, 0.965]
+    hallway: [0, 0.864, 0.965]
+    kitchen: [0, 0.864, 0.965]
+    landing: [0, 0.864, 0.965]
+    laundry_room: [0, 0.864, 0.965]
+    living_room: [0, 0.864, 0.965]
     office: [0, 0.864, 0.965]
+    supply_closet: [0, 0.864, 0.965]
   devices:
   - id: apple_watch_1
     name: Apple Watch 1

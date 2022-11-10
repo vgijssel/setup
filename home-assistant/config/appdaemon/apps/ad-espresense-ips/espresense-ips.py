@@ -162,6 +162,9 @@ class ESPresenseIps(hass.Hass):
             self.mqtt.listen_event(
                 self.mqtt_message, "MQTT_MESSAGE", topic=topic)
 
+        # TODO: added this to prevent index out of range error
+        color_idx = 0
+
         self.devices = {}
         for device in self.args["devices"]:
             self.devices[device["id"]] = Device(device["name"],
