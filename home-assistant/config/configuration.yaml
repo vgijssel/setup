@@ -14,6 +14,11 @@ input_boolean:
     name: Indicate if someone is sleeping in the Bedroom
     icon: mdi:car
 
+mqtt:
+  camera:
+    - topic: room_presence/images/map
+      name: "Room Presence Map"
+
 sensor:
   - platform: illuminance
     entity_id: weather.home

@@ -22,12 +22,71 @@ ESPresenseIps:
     living_room: [0, 0.864, 0.965]
     office: [0, 0.864, 0.965]
     supply_closet: [0, 0.864, 0.965]
+    # kitchen: [2.78,3.925,1.03]
+    # hallway: [3.445,2.315,2.65]
+    # driveway: [2.83,1.695,1.03]
+    # supply_closet: [4.345,6.085,1.03]
+    # living_room: [1.145,6.775,2.75]
   devices:
   - id: apple_watch_1
     name: Apple Watch 1
     timeout: 30
     away_timeout: 120
   roomplans:
+    # - name: kitchen
+    #   points:
+    #   - y: 1.4
+    #     x: 0
+    #   - y: 4.17
+    #     x: 2.83      
+    # - name: hallway-top
+    #   points:
+    #   - y: 0
+    #     x: 2.83
+    #   - y: 1.4
+    #     x: 5.18      
+    # - name: hallway-main
+    #   points:
+    #   - y: 1.4
+    #     x: 2.83
+    #   - y: 4.17
+    #     x: 4.15     
+    # - name: utility_closet
+    #   points:
+    #   - y: 1.4
+    #     x: 4.15
+    #   - y: 1.91
+    #     x: 5.18      
+    # - name: toilet
+    #   points:
+    #   - y: 1.91
+    #     x: 4.15
+    #   - y: 3.34
+    #     x: 5.18      
+    # - name: landing
+    #   points:
+    #   - y: 3.34
+    #     x: 4.15
+    #   - y: 4.17
+    #     x: 5.18      
+    # - name: supply_closet
+    #   points:
+    #   - y: 4.17
+    #     x: 4.15
+    #   - y: 6.17
+    #     x: 5.18      
+    # - name: living_room-main
+    #   points:
+    #   - y: 4.17
+    #     x: 0
+    #   - y: 11.06
+    #     x: 4.15      
+    # - name: living_room-tv
+    #   points:
+    #   - y: 6.17
+    #     x: 4.15
+    #   - y: 11.06
+    #     x: 5.18
   - name: office
     points:
     - x: 0.0
