@@ -33,117 +33,91 @@ ESPresenseIps:
     timeout: 30
     away_timeout: 120
   roomplans:
-    # - name: kitchen
-    #   points:
-    #   - y: 1.4
-    #     x: 0
-    #   - y: 4.17
-    #     x: 2.83      
-    # - name: hallway-top
-    #   points:
-    #   - y: 0
-    #     x: 2.83
-    #   - y: 1.4
-    #     x: 5.18      
-    # - name: hallway-main
-    #   points:
-    #   - y: 1.4
-    #     x: 2.83
-    #   - y: 4.17
-    #     x: 4.15     
-    # - name: utility_closet
-    #   points:
-    #   - y: 1.4
-    #     x: 4.15
-    #   - y: 1.91
-    #     x: 5.18      
-    # - name: toilet
-    #   points:
-    #   - y: 1.91
-    #     x: 4.15
-    #   - y: 3.34
-    #     x: 5.18      
-    # - name: landing
-    #   points:
-    #   - y: 3.34
-    #     x: 4.15
-    #   - y: 4.17
-    #     x: 5.18      
-    # - name: supply_closet
-    #   points:
-    #   - y: 4.17
-    #     x: 4.15
-    #   - y: 6.17
-    #     x: 5.18      
-    # - name: living_room-main
-    #   points:
-    #   - y: 4.17
-    #     x: 0
-    #   - y: 11.06
-    #     x: 4.15      
-    # - name: living_room-tv
-    #   points:
-    #   - y: 6.17
-    #     x: 4.15
-    #   - y: 11.06
-    #     x: 5.18
-  - name: office
-    points:
-    - x: 0.0
-      y: 0.0
-    - x: 3.175
-      y: 0
-    - x: 3.175
-      y: 2.225
-    - x: 1.87
-      y: 3.658
-    - x: 0
-      y: 1.956
-  - name: living_room
-    points:
-    - x: 3.175
-      y: 0
-    - x: 9.449
-      y: 0
-    - x: 9.449
-      y: 3.327
-    - x: 2.171
-      y: 3.327
-    - x: 3.175
-      y: 2.225
-  - name: bedroom
-    points:
-    - x: 5.41
-      y: 6.985
-    - x: 5.41
-      y: 6.121
-    - x: 6.248
-      y: 6.121
-    - x: 6.248
-      y: 4.191
-    - x: 9.398
-      y: 4.191
-    - x: 9.398
-      y: 6.985
-  - name: kitchen
-    points:
-    - x: 1.081
-      y: 2.94
-    - x: 1.87
-      y: 3.658
-    - x: 2.171
-      y: 3.327
-    - x: 5.41
-      y: 3.327
-    - x: 5.41
-      y: 6.985
-    - x: 4.166
-      y: 6.985
-    - x: 2.917
-      y: 8.356
-    - x: 0.006
-      y: 5.706
-    - x: 1.169
-      y: 4.428
-    - x: 0.38
-      y: 3.71
+    - name: living_room
+      points:
+      - x: 0.0
+        y: 0.0
+      - x: 5.18
+        y: 0.0
+      - x: 5.18
+        y: 4.89
+      - x: 4.15
+        y: 4.89
+      - x: 4.15
+        y: 7.03
+      - x: 0.0
+        y: 7.03
+    - name: kitchen
+      points:
+      - x: 0.0
+        y: 7.03
+      - x: 0.0
+        y: 9.80
+      - x: 2.83
+        y: 9.80
+      - x: 2.83
+        y: 7.03
+    - name: kitchen
+      points:
+      - x: 0.0
+        y: 7.03
+      - x: 0.0
+        y: 9.80
+      - x: 2.83
+        y: 9.80
+      - x: 2.83
+        y: 7.03
+    - name: hallway
+      points:
+      - x: 2.83
+        y: 7.03
+      - x: 4.15
+        y: 7.03
+      - x: 4.15
+        y: 9.80
+      - x: 5.18
+        y: 9.80
+      - x: 5.18
+        y: 11.2
+      - x: 2.83
+        y: 11.2
+    - name: supply_closet
+      points:
+      - x: 4.15
+        y: 4.89
+      - x: 5.18
+        y: 4.89
+      - x: 5.18
+        y: 6.89
+      - x: 4.15
+        y: 6.89
+    - name: landing
+      points:
+      - x: 4.15
+        y: 6.89
+      - x: 5.18
+        y: 6.89
+      - x: 5.18
+        y: 7.87
+      - x: 4.15
+        y: 7.87
+    - name: toilet
+      points:
+      - x: 4.15
+        y: 7.87
+      - x: 5.18
+        y: 7.87
+      - x: 5.18
+        y: 9.3
+      - x: 4.15
+        y: 9.3
+    - name: utility_closet
+      points:
+      - x: 4.15
+        y: 9.3
+      - x: 5.18
+        y: 9.3
+      - x: 5.18
+        y: 9.80
+      - x: 4.15
+        y: 9.80
