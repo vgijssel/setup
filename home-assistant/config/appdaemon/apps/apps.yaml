@@ -7,7 +7,6 @@ ESPresenseIps:
     - MQTT
   rooms_topic: "room_presence/rooms"
   ips_topic: "room_presence/ips"
-  location_topic: "room_presence/ips"
   images_topic: "room_presence/images"
   draw_interval: 3
   # Rooms are actually the installed shelly bluetooth sensors
@@ -18,15 +17,12 @@ ESPresenseIps:
     driveway: [2.83, 9.13, 1.03]
     kitchen: [2.83, 7,28, 1.03]
 
-    # baby_room: [0, 0.864, 0.965]
-    # bedroom: [0, 0.864, 0.965]
-    # landing: [0, 0.864, 0.965]
-    # laundry_room: [0, 0.864, 0.965]
-    # office: [0, 0.864, 0.965]
-    # kitchen: [2.78,3.925,1.03]
-    # hallway: [3.445,2.315,2.65]
-    # driveway: [2.83,1.695,1.03]
-    # supply_closet: [4.345,6.085,1.03]
+    # TODO: these still need to be set accoringly
+    baby_room: [0, 0.864, 0.965]
+    bedroom: [0, 0.864, 0.965]
+    landing: [0, 0.864, 0.965]
+    laundry_room: [0, 0.864, 0.965]
+    office: [0, 0.864, 0.965]
   devices:
   - id: apple_watch_1
     name: Apple Watch 1
