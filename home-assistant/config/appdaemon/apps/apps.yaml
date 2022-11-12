@@ -1,4 +1,4 @@
-ESPresenseIps:
+Downstairs_ESPresenseIps:
   module: espresense-ips
   log_level: DEBUG
   class: ESPresenseIps
@@ -6,11 +6,11 @@ ESPresenseIps:
     - HASS
     - MQTT
   rooms_topic: "room_presence/rooms"
-  ips_topic: "room_presence/ips"
-  images_topic: "room_presence/images"
+  ips_topic: "room_presence/downstairs/ips"
+  images_topic: "room_presence/downstairs/images"
   draw_interval: 3
   # Rooms are actually the installed shelly bluetooth sensors
-  rooms:
+  rooms: &rooms
     living_room: [1.1, 5,39, 2.75]
     supply_closet: [4.40, 4.99, 1.03]
     hallway: [3.43, 9.43, 2.75]
@@ -23,7 +23,7 @@ ESPresenseIps:
     landing: [0, 0.864, 0.965]
     laundry_room: [0, 0.864, 0.965]
     office: [0, 0.864, 0.965]
-  devices:
+  devices: &devices
   - id: apple_watch_1
     name: Apple Watch 1
     timeout: 30
@@ -117,3 +117,97 @@ ESPresenseIps:
         y: 9.80
       - x: 4.15
         y: 9.80
+
+Upstairs_ESPresenseIps:
+  module: espresense-ips
+  log_level: DEBUG
+  class: ESPresenseIps
+  pluggins:
+    - HASS
+    - MQTT
+  rooms_topic: "room_presence/rooms"
+  ips_topic: "room_presence/upstairs/ips"
+  images_topic: "room_presence/upstairs/images"
+  draw_interval: 3
+  # Rooms are actually the installed shelly bluetooth sensors
+  rooms: *rooms
+  devices: *devices
+  roomplans:
+    - name: landing
+      points:
+      - x: 0.0
+        y: 0.0
+      - x: 5.18
+        y: 0.0
+      - x: 5.18
+        y: 4.89
+      - x: 4.15
+        y: 4.89
+      - x: 4.15
+        y: 7.03
+      - x: 0.0
+        y: 7.03
+    - name: boiler_closet
+      points:
+      - x: 4.15
+        y: 9.3
+      - x: 5.18
+        y: 9.3
+      - x: 5.18
+        y: 9.80
+      - x: 4.15
+        y: 9.80
+    - name: baby_room
+      points:
+      - x: 0.0
+        y: 7.03
+      - x: 0.0
+        y: 9.80
+      - x: 2.83
+        y: 9.80
+      - x: 2.83
+        y: 7.03
+    - name: bedroom
+      points:
+      - x: 0.0
+        y: 7.03
+      - x: 0.0
+        y: 9.80
+      - x: 2.83
+        y: 9.80
+      - x: 2.83
+        y: 7.03
+    - name: laundry_room
+      points:
+      - x: 2.83
+        y: 7.03
+      - x: 4.15
+        y: 7.03
+      - x: 4.15
+        y: 9.80
+      - x: 5.18
+        y: 9.80
+      - x: 5.18
+        y: 11.2
+      - x: 2.83
+        y: 11.2
+    - name: office
+      points:
+      - x: 4.15
+        y: 4.89
+      - x: 5.18
+        y: 4.89
+      - x: 5.18
+        y: 6.89
+      - x: 4.15
+        y: 6.89
+    - name: bathroom
+      points:
+      - x: 4.15
+        y: 6.89
+      - x: 5.18
+        y: 6.89
+      - x: 5.18
+        y: 7.87
+      - x: 4.15
+        y: 7.87

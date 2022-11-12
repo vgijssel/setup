@@ -19,14 +19,14 @@ mqtt:
     - topic: room_presence/images/map
       name: "Room Presence Map"
   sensor:
-    - state_topic: "room_presence/ips/apple_watch_1/state"
+    - state_topic: "room_presence/downstairs/ips/apple_watch_1/state"
       expire_after: 30
-      object_id: apple_watch_1
-      name: Apple Watch 1
-    - state_topic: "room_presence/ips/apple_watch_2/state"
+      object_id: downstairs_apple_watch_1
+      name: Downstairs - Apple Watch 1
+    - state_topic: "room_presence/downstairs/ips/apple_watch_2/state"
       expire_after: 30
-      object_id: apple_watch_2
-      name: Apple Watch 2
+      object_id: downstairs_apple_watch_2
+      name: Downstairs - Apple Watch 2
 
 sensor:
   - platform: illuminance
