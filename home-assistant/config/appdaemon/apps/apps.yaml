@@ -1,4 +1,5 @@
 # 0,17 wall thickness
+# 2,93 from downstairs to upstairs
 Downstairs_ESPresenseIps:
   module: espresense-ips
   log_level: DEBUG
@@ -11,23 +12,29 @@ Downstairs_ESPresenseIps:
   images_topic: "room_presence/downstairs/images"
   draw_interval: 3
   # Rooms are actually the installed shelly bluetooth sensors
-  rooms: &rooms
-    living_room: [1.1, 5,39, 2.75]
+  rooms: 
+    # downstairs
+    living_room: [1.1, 5.39, 2.75]
     supply_closet: [4.40, 4.99, 1.03]
     hallway: [3.43, 9.43, 2.75]
     driveway: [2.83, 9.13, 1.03]
     kitchen: [2.83, 7,28, 1.03]
-    garden: [0.46, 0, 1.03]
-    
-    # what is the height of the shelly?
-    # bedroom: [2.66, 3.93, 1.03] 
+    # garden: [0.46, 0, 1.03]
 
-    # TODO: these still need to be set accoringly
-    # baby_room: [0, 0.864, 0.965]
-    # landing: [0, 0.864, 0.965]
-    # laundry_room: [0, 0.864, 0.965]
-    # office: [0, 0.864, 0.965]
-  devices: &devices
+    # # upstairs
+    # # bedroom: [2.66, 3.93, 1.03] 
+    # # baby_room: [4.0, 3.95, 1.03]
+    # # laundry_room: [2.66, 5.92, 1.03]
+    # # office: [2.66, 8.48, 1.03]
+    # # landing: [4.58, 6.23, 5.56]
+
+    bedroom: [2.66, 3.93, 3.96] 
+    baby_room: [4.0, 3.95, 3.96]
+    laundry_room: [2.66, 5.92, 3.96]
+    office: [2.66, 8.48, 3.96]
+    landing: [4.58, 6.23, 5.56]
+
+  devices:
   - id: apple_watch_1
     name: Apple Watch 1
     timeout: 30
@@ -122,104 +129,98 @@ Downstairs_ESPresenseIps:
       - x: 4.15
         y: 9.80
 
-Upstairs_ESPresenseIps:
-  module: espresense-ips
-  log_level: DEBUG
-  class: ESPresenseIps
-  pluggins:
-    - HASS
-    - MQTT
-  rooms_topic: "room_presence/rooms"
-  ips_topic: "room_presence/upstairs/ips"
-  images_topic: "room_presence/upstairs/images"
-  draw_interval: 3
-  # Rooms are actually the installed shelly bluetooth sensors
-  rooms: 
-    bedroom: [2.66, 3.93, 1.03] 
-    baby_room: [4.0, 3.95, 1.03]
-    laundry_room: [2.66, 5.92, 1.03]
-    office: [2.66, 8.48, 1.03]
-    landing: [4.58, 6.23, 2.63]
-  
-  devices: *devices
-  roomplans:
-    - name: bedroom
-      points:
-      - x: 0.0
-        y: 0.0
-      - x: 0.0
-        y: 5.09
-      - x: 2.66
-        y: 5.09
-      - x: 2.66
-        y: 0.0
+# Upstairs_ESPresenseIps:
+#   module: espresense-ips
+#   log_level: DEBUG
+#   class: ESPresenseIps
+#   pluggins:
+#     - HASS
+#     - MQTT
+#   rooms_topic: "room_presence/rooms"
+#   ips_topic: "room_presence/upstairs/ips"
+#   images_topic: "room_presence/upstairs/images"
+#   draw_interval: 3
+#   # Rooms are actually the installed shelly bluetooth sensors
+#   rooms: *rooms
+#   devices: *devices
+#   roomplans:
+#     - name: bedroom
+#       points:
+#       - x: 0.0
+#         y: 0.0
+#       - x: 0.0
+#         y: 5.09
+#       - x: 2.66
+#         y: 5.09
+#       - x: 2.66
+#         y: 0.0
 
-    - name: laundry_room
-      points:
-      - x: 0.0
-        y: 5.26
-      - x: 0.0
-        y: 7.08
-      - x: 2.66
-        y: 7.08
-      - x: 2.66
-        y: 5.26
+#     - name: laundry_room
+#       points:
+#       - x: 0.0
+#         y: 5.26
+#       - x: 0.0
+#         y: 7.08
+#       - x: 2.66
+#         y: 7.08
+#       - x: 2.66
+#         y: 5.26
 
-    - name: office
-      points:
-      - x: 0.0
-        y: 7.25
-      - x: 0.0
-        y: 10.78
-      - x: 2.66
-        y: 11.18
-      - x: 2.66
-        y: 7.25
+#     - name: office
+#       points:
+#       - x: 0.0
+#         y: 7.25
+#       - x: 0.0
+#         y: 10.78
+#       - x: 2.66
+#         y: 11.18
+#       - x: 2.66
+#         y: 7.25
 
-    - name: bathroom
-      points:
-      - x: 2.83
-        y: 7.25
-      - x: 2.83
-        y: 11.39
-      - x: 5.18
-        y: 11.78
-      - x: 5.18
-        y: 7.25
+#     - name: bathroom
+#       points:
+#       - x: 2.83
+#         y: 7.25
+#       - x: 2.83
+#         y: 11.39
+#       - x: 5.18
+#         y: 11.78
+#       - x: 5.18
+#         y: 7.25
 
-    - name: boiler_closet
-      points:
-      - x: 4.1
-        y: 4.12
-      - x: 4.1
-        y: 5.15
-      - x: 5.18
-        y: 5.15
-      - x: 5.18
-        y: 4.12
+#     - name: boiler_closet
+#       points:
+#       - x: 4.1
+#         y: 4.12
+#       - x: 4.1
+#         y: 5.15
+#       - x: 5.18
+#         y: 5.15
+#       - x: 5.18
+#         y: 4.12
 
-    - name: baby_room
-      points:
-      - x: 2.83
-        y: 0.0
-      - x: 2.83
-        y: 3.95
-      - x: 5.18
-        y: 3.95
-      - x: 5.18
-        y: 0
+#     - name: baby_room
+#       points:
+#       - x: 2.83
+#         y: 0.0
+#       - x: 2.83
+#         y: 3.95
+#       - x: 5.18
+#         y: 3.95
+#       - x: 5.18
+#         y: 0
 
-    - name: landing
-      points:
-      - x: 2.66
-        y: 3.95
-      - x: 2.66
-        y: 7.25
-      - x: 5.18
-        y: 7.25
-      - x: 5.18
-        y: 5.15
-      - x: 4.1
-        y: 5.15
-      - x: 4.1
-        y: 3.95
+#     - name: landing
+#       points:
+#       - x: 2.66
+#         y: 3.95
+#       - x: 2.66
+#         y: 7.25
+#       - x: 5.18
+#         y: 7.25
+#       - x: 5.18
+#         y: 5.15
+#       - x: 4.1
+#         y: 5.15
+#       - x: 4.1
+#         y: 3.95

@@ -214,7 +214,7 @@ class ESPresenseIps(hass.Hass):
         name = payload_json.get("name")
         distance = payload_json.get("distance")
         self.log(f"{id} {sensor} {distance}", level="DEBUG")
-
+        
         if id not in self.devices:
             return
         if sensor not in self.sensors:
