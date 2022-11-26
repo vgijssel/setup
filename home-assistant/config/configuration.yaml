@@ -29,6 +29,20 @@ mqtt:
       expire_after: 120
       object_id: upstairs_apple_watch_1
       name: Upstairs - Apple Watch 1
+    - state_topic: "room_presence/upstairs/ips/apple_watch_1"
+      value_template: "{{ value_json.z }}"
+      expire_after: 120
+      object_id: upstairs_apple_watch_1_z
+      name: Upstairs - Apple Watch 1 - Z
+      unit_of_measurement: meter
+      device_class: distance
+    - state_topic: "room_presence/downstairs/ips/apple_watch_1"
+      value_template: "{{ value_json.z }}"
+      expire_after: 120
+      object_id: downstairs_apple_watch_1_z
+      name: Downstairs - Apple Watch 1 - Z
+      unit_of_measurement: meter
+      device_class: distance
 
 sensor:
   - platform: illuminance
