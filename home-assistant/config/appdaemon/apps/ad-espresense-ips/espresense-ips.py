@@ -189,7 +189,7 @@ class ESPresenseIps(hass.Hass):
             self.subscribe_to_topic(f"{self.args.get('rooms_topic', 'espresense/rooms')}/{sensor}/telemetry", self.handle_sensor_telemetry_message)
 
         if "draw_interval" in self.args:
-            self.run_every(self.gen_image, "now+1",
+            self.run_every(self.gen_image, f"now+{self.args['draw_interval_offset']}",
                            int(self.args["draw_interval"]))
 
     def subscribe_to_topic(self, topic, handler):            

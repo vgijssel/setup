@@ -1,5 +1,5 @@
-# 0,17 wall thickness
-# 2,93 from downstairs to upstairs
+# # 0,17 wall thickness
+# # 2,93 from downstairs to upstairs
 Downstairs_ESPresenseIps:
   module: espresense-ips
   log_level: INFO
@@ -10,7 +10,9 @@ Downstairs_ESPresenseIps:
   rooms_topic: "room_presence/rooms"
   ips_topic: "room_presence/downstairs/ips"
   images_topic: "room_presence/downstairs/images"
-  draw_interval: 3
+  draw_interval: 4
+  draw_interval_offset: 1
+
   # Rooms are actually the installed shelly bluetooth sensors
   rooms: &rooms
     # downstairs
@@ -124,98 +126,98 @@ Downstairs_ESPresenseIps:
       - x: 4.15
         y: 9.80
 
-# Upstairs_ESPresenseIps:
-#   module: espresense-ips
-#   log_level: INFO
-#   class: ESPresenseIps
-#   pluggins:
-#     - HASS
-#     - MQTT
-#   rooms_topic: "room_presence/rooms"
-#   ips_topic: "room_presence/upstairs/ips"
-#   images_topic: "room_presence/upstairs/images"
-#   draw_interval: 3
-#   # Rooms are actually the installed shelly bluetooth sensors
-#   rooms: *rooms
-#   devices: *devices
-#   roomplans:
-#     - name: bedroom
-#       points:
-#       - x: 0.00
-#         y: 0.00
-#       - x: 0.00
-#         y: 5.09
-#       - x: 2.66
-#         y: 5.09
-#       - x: 2.66
-#         y: 0.00
+Upstairs_ESPresenseIps:
+  module: espresense-ips
+  log_level: INFO
+  draw_interval: 4
+  draw_interval_offset: 3
+  class: ESPresenseIps
+  pluggins:
+    - HASS
+    - MQTT
+  rooms_topic: "room_presence/rooms"
+  ips_topic: "room_presence/upstairs/ips"
+  images_topic: "room_presence/upstairs/images"
+  rooms: *rooms
+  devices: *devices
+  roomplans:
+    - name: bedroom
+      points:
+      - x: 0.00
+        y: 0.00
+      - x: 0.00
+        y: 5.09
+      - x: 2.66
+        y: 5.09
+      - x: 2.66
+        y: 0.00
 
-#     - name: laundry_room
-#       points:
-#       - x: 0.00
-#         y: 5.26
-#       - x: 0.00
-#         y: 7.08
-#       - x: 2.66
-#         y: 7.08
-#       - x: 2.66
-#         y: 5.26
+    - name: laundry_room
+      points:
+      - x: 0.00
+        y: 5.26
+      - x: 0.00
+        y: 7.08
+      - x: 2.66
+        y: 7.08
+      - x: 2.66
+        y: 5.26
 
-#     - name: office
-#       points:
-#       - x: 0.00
-#         y: 7.25
-#       - x: 0.00
-#         y: 10.78
-#       - x: 2.66
-#         y: 11.18
-#       - x: 2.66
-#         y: 7.25
+    - name: office
+      points:
+      - x: 0.00
+        y: 7.25
+      - x: 0.00
+        y: 10.78
+      - x: 2.66
+        y: 11.18
+      - x: 2.66
+        y: 7.25
 
-#     - name: bathroom
-#       points:
-#       - x: 2.83
-#         y: 7.25
-#       - x: 2.83
-#         y: 11.39
-#       - x: 5.18
-#         y: 11.78
-#       - x: 5.18
-#         y: 7.25
+    - name: bathroom
+      points:
+      - x: 2.83
+        y: 7.25
+      - x: 2.83
+        y: 11.39
+      - x: 5.18
+        y: 11.78
+      - x: 5.18
+        y: 7.25
 
-#     - name: boiler_closet
-#       points:
-#       - x: 4.10
-#         y: 4.12
-#       - x: 4.10
-#         y: 5.15
-#       - x: 5.18
-#         y: 5.15
-#       - x: 5.18
-#         y: 4.12
+    - name: boiler_closet
+      points:
+      - x: 4.10
+        y: 4.12
+      - x: 4.10
+        y: 5.15
+      - x: 5.18
+        y: 5.15
+      - x: 5.18
+        y: 4.12
 
-#     - name: baby_room
-#       points:
-#       - x: 2.83
-#         y: 0.00
-#       - x: 2.83
-#         y: 3.95
-#       - x: 5.18
-#         y: 3.95
-#       - x: 5.18
-#         y: 0.00
+    - name: baby_room
+      points:
+      - x: 2.83
+        y: 0.00
+      - x: 2.83
+        y: 3.95
+      - x: 5.18
+        y: 3.95
+      - x: 5.18
+        y: 0.00
 
-#     - name: landing
-#       points:
-#       - x: 2.66
-#         y: 3.95
-#       - x: 2.66
-#         y: 7.25
-#       - x: 5.18
-#         y: 7.25
-#       - x: 5.18
-#         y: 5.15
-#       - x: 4.10
-#         y: 5.15
-#       - x: 4.10
-#         y: 3.95
+    - name: landing
+      points:
+      - x: 2.66
+        y: 3.95
+      - x: 2.66
+        y: 7.25
+      - x: 5.18
+        y: 7.25
+      - x: 5.18
+        y: 5.15
+      - x: 4.10
+        y: 5.15
+      - x: 4.10
+        y: 3.95
