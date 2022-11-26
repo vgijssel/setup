@@ -1,3 +1,4 @@
+# 0,17 wall thickness
 Downstairs_ESPresenseIps:
   module: espresense-ips
   log_level: DEBUG
@@ -175,7 +176,28 @@ Upstairs_ESPresenseIps:
       - x: 2.66
         y: 7.25
 
-    # 0,17 wall thickness
+    - name: bathroom
+      points:
+      - x: 2.83
+        y: 7.25
+      - x: 2.83
+        y: 11.39
+      - x: 5.18
+        y: 11.78
+      - x: 5.18
+        y: 7.25
+
+    - name: boiler_closet
+      points:
+      - x: 4.1
+        y: 4.12
+      - x: 4.1
+        y: 5.15
+      - x: 5.18
+        y: 5.15
+      - x: 5.18
+        y: 4.12
+
     - name: baby_room
       points:
       - x: 2.83
@@ -187,101 +209,17 @@ Upstairs_ESPresenseIps:
       - x: 5.18
         y: 0
 
-
-    - name: bathroom
+    - name: landing
       points:
-      - x: 2.83
+      - x: 2.66
+        y: 3.95
+      - x: 2.66
         y: 7.25
-      - x: 2.83
-        y: 11.39
-      - x: 5.17
-        y: 11.78
-      - x: 5.17
+      - x: 5.18
         y: 7.25
-
-    # - name: boiler_closet
-    #   points:
-    #   - x: 4.15
-    #     y: 9.3
-    #   - x: 5.18
-    #     y: 9.3
-    #   - x: 5.18
-    #     y: 9.80
-    #   - x: 4.15
-    #     y: 9.80
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      - x: 5.18
+        y: 5.15
+      - x: 4.1
+        y: 5.15
+      - x: 4.1
+        y: 3.95
