@@ -16,13 +16,16 @@ Downstairs_ESPresenseIps:
     hallway: [3.43, 9.43, 2.75]
     driveway: [2.83, 9.13, 1.03]
     kitchen: [2.83, 7,28, 1.03]
+    garden: [0.46, 0, 1.03]
+    
+    # what is the height of the shelly?
+    # bedroom: [2.66, 3.93, 1.03] 
 
     # TODO: these still need to be set accoringly
-    baby_room: [0, 0.864, 0.965]
-    bedroom: [0, 0.864, 0.965]
-    landing: [0, 0.864, 0.965]
-    laundry_room: [0, 0.864, 0.965]
-    office: [0, 0.864, 0.965]
+    # baby_room: [0, 0.864, 0.965]
+    # landing: [0, 0.864, 0.965]
+    # laundry_room: [0, 0.864, 0.965]
+    # office: [0, 0.864, 0.965]
   devices: &devices
   - id: apple_watch_1
     name: Apple Watch 1
@@ -130,84 +133,155 @@ Upstairs_ESPresenseIps:
   images_topic: "room_presence/upstairs/images"
   draw_interval: 3
   # Rooms are actually the installed shelly bluetooth sensors
-  rooms: *rooms
+  rooms: 
+    bedroom: [2.66, 3.93, 1.03] 
+    baby_room: [4.0, 3.95, 1.03]
+    laundry_room: [2.66, 5.92, 1.03]
+    office: [2.66, 8.48, 1.03]
+    landing: [4.58, 6.23, 2.63]
+  
   devices: *devices
   roomplans:
-    - name: landing
-      points:
-      - x: 0.0
-        y: 0.0
-      - x: 5.18
-        y: 0.0
-      - x: 5.18
-        y: 4.89
-      - x: 4.15
-        y: 4.89
-      - x: 4.15
-        y: 7.03
-      - x: 0.0
-        y: 7.03
-    - name: boiler_closet
-      points:
-      - x: 4.15
-        y: 9.3
-      - x: 5.18
-        y: 9.3
-      - x: 5.18
-        y: 9.80
-      - x: 4.15
-        y: 9.80
-    - name: baby_room
-      points:
-      - x: 0.0
-        y: 7.03
-      - x: 0.0
-        y: 9.80
-      - x: 2.83
-        y: 9.80
-      - x: 2.83
-        y: 7.03
     - name: bedroom
       points:
       - x: 0.0
-        y: 7.03
+        y: 0.0
       - x: 0.0
-        y: 9.80
-      - x: 2.83
-        y: 9.80
-      - x: 2.83
-        y: 7.03
+        y: 5.09
+      - x: 2.66
+        y: 5.09
+      - x: 2.66
+        y: 0.0
+
     - name: laundry_room
       points:
-      - x: 2.83
-        y: 7.03
-      - x: 4.15
-        y: 7.03
-      - x: 4.15
-        y: 9.80
-      - x: 5.18
-        y: 9.80
-      - x: 5.18
-        y: 11.2
-      - x: 2.83
-        y: 11.2
+      - x: 0.0
+        y: 5.26
+      - x: 0.0
+        y: 7.08
+      - x: 2.66
+        y: 7.08
+      - x: 2.66
+        y: 5.26
+
     - name: office
       points:
-      - x: 4.15
-        y: 4.89
+      - x: 0.0
+        y: 7.25
+      - x: 0.0
+        y: 10.78
+      - x: 2.66
+        y: 11.18
+      - x: 2.66
+        y: 7.25
+
+    # 0,17 wall thickness
+    - name: baby_room
+      points:
+      - x: 2.83
+        y: 0.0
+      - x: 2.83
+        y: 3.95
       - x: 5.18
-        y: 4.89
+        y: 3.95
       - x: 5.18
-        y: 6.89
-      - x: 4.15
-        y: 6.89
+        y: 0
+
+
     - name: bathroom
       points:
-      - x: 4.15
-        y: 6.89
-      - x: 5.18
-        y: 6.89
-      - x: 5.18
-        y: 7.87
-      - x: 4.15
-        y: 7.87
+      - x: 2.83
+        y: 7.25
+      - x: 2.83
+        y: 11.39
+      - x: 5.17
+        y: 11.78
+      - x: 5.17
+        y: 7.25
+
+    # - name: boiler_closet
+    #   points:
+    #   - x: 4.15
+    #     y: 9.3
+    #   - x: 5.18
+    #     y: 9.3
+    #   - x: 5.18
+    #     y: 9.80
+    #   - x: 4.15
+    #     y: 9.80
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
