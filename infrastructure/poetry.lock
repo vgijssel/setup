@@ -7,8 +7,8 @@ optional = false
 python-versions = "*"
 
 [package.extras]
-dev = ["wheel", "mkdocs", "mike", "twine"]
-test = ["flake8", "coverage", "coveralls", "pytest"]
+dev = ["mike", "mkdocs", "twine", "wheel"]
+test = ["coverage", "coveralls", "flake8", "pytest"]
 
 [[package]]
 name = "attrs"
@@ -19,10 +19,10 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit", "cloudpickle"]
-docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "cloudpickle"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "cloudpickle"]
+dev = ["cloudpickle", "coverage[toml] (>=5.0.2)", "furo", "hypothesis", "mypy", "pre-commit", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "sphinx", "sphinx-notfound-page", "zope.interface"]
+docs = ["furo", "sphinx", "sphinx-notfound-page", "zope.interface"]
+tests = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "zope.interface"]
+tests-no-zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six"]
 
 [[package]]
 name = "certifi"
@@ -41,7 +41,7 @@ optional = false
 python-versions = ">=3.5.0"
 
 [package.extras]
-unicode_backport = ["unicodedata2"]
+unicode-backport = ["unicodedata2"]
 
 [[package]]
 name = "debugpy"
@@ -113,11 +113,11 @@ six = ">=1.13,<2.0"
 [package.extras]
 docstest = ["doc8", "sphinx", "sphinx-rtd-theme"]
 pep8test = ["flake8", "pep8-naming"]
-test = ["pytest", "hypothesis", "pretend"]
+test = ["hypothesis", "pretend", "pytest"]
 
 [[package]]
 name = "protobuf"
-version = "4.21.3"
+version = "4.21.6"
 description = ""
 category = "main"
 optional = false
@@ -228,7 +228,7 @@ urllib3 = ">=1.21.1,<1.27"
 
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
-use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
+use-chardet-on-py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
 name = "semver"
@@ -256,13 +256,13 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
 brotli = ["brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "ipaddress", "pyOpenSSL (>=0.14)"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.9"
-content-hash = "01d95b9ab1c4f95d847d690fff4971679af77b537cda4ec18d5a1571b931eb05"
+python-versions = "~3.11"
+content-hash = "e5c230bd2ff85bd2885596e6aa7fce86014286b4f736efaf4b94c17b27ee46f2"
 
 [metadata.files]
 arpeggio = [
@@ -366,10 +366,31 @@ parver = [
     {file = "parver-0.3.1-py2.py3-none-any.whl", hash = "sha256:41a548c51b006a2f2522b54293cbfd2514bffa10774ece8430c9964a20cbd8b4"},
     {file = "parver-0.3.1.tar.gz", hash = "sha256:c902e0653bcce927cc156a7fd9b3a51924cbce3bf3d0bfd49fc282bfd0c5dfd3"},
 ]
-protobuf = []
-pulumi = []
-pulumi-command = []
-pulumi-docker = []
+protobuf = [
+    {file = "protobuf-4.21.6-cp310-abi3-win32.whl", hash = "sha256:49f88d56a9180dbb7f6199c920f5bb5c1dd0172f672983bb281298d57c2ac8eb"},
+    {file = "protobuf-4.21.6-cp310-abi3-win_amd64.whl", hash = "sha256:7a6cc8842257265bdfd6b74d088b829e44bcac3cca234c5fdd6052730017b9ea"},
+    {file = "protobuf-4.21.6-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:ba596b9ffb85c909fcfe1b1a23136224ed678af3faf9912d3fa483d5f9813c4e"},
+    {file = "protobuf-4.21.6-cp37-abi3-manylinux2014_aarch64.whl", hash = "sha256:4143513c766db85b9d7c18dbf8339673c8a290131b2a0fe73855ab20770f72b0"},
+    {file = "protobuf-4.21.6-cp37-abi3-manylinux2014_x86_64.whl", hash = "sha256:b6cea204865595a92a7b240e4b65bcaaca3ad5d2ce25d9db3756eba06041138e"},
+    {file = "protobuf-4.21.6-cp37-cp37m-win32.whl", hash = "sha256:9666da97129138585b26afcb63ad4887f602e169cafe754a8258541c553b8b5d"},
+    {file = "protobuf-4.21.6-cp37-cp37m-win_amd64.whl", hash = "sha256:308173d3e5a3528787bb8c93abea81d5a950bdce62840d9760effc84127fb39c"},
+    {file = "protobuf-4.21.6-cp38-cp38-win32.whl", hash = "sha256:aa29113ec901281f29d9d27b01193407a98aa9658b8a777b0325e6d97149f5ce"},
+    {file = "protobuf-4.21.6-cp38-cp38-win_amd64.whl", hash = "sha256:8f9e60f7d44592c66e7b332b6a7b4b6e8d8b889393c79dbc3a91f815118f8eac"},
+    {file = "protobuf-4.21.6-cp39-cp39-win32.whl", hash = "sha256:80e6540381080715fddac12690ee42d087d0d17395f8d0078dfd6f1181e7be4c"},
+    {file = "protobuf-4.21.6-cp39-cp39-win_amd64.whl", hash = "sha256:77b355c8604fe285536155286b28b0c4cbc57cf81b08d8357bf34829ea982860"},
+    {file = "protobuf-4.21.6-py2.py3-none-any.whl", hash = "sha256:07a0bb9cc6114f16a39c866dc28b6e3d96fa4ffb9cc1033057412547e6e75cb9"},
+    {file = "protobuf-4.21.6-py3-none-any.whl", hash = "sha256:c7c864148a237f058c739ae7a05a2b403c0dfa4ce7d1f3e5213f352ad52d57c6"},
+    {file = "protobuf-4.21.6.tar.gz", hash = "sha256:6b1040a5661cd5f6e610cbca9cfaa2a17d60e2bb545309bc1b278bb05be44bdd"},
+]
+pulumi = [
+    {file = "pulumi-3.36.0-py2.py3-none-any.whl", hash = "sha256:86acb1e0921619d49123d1a4ce43bfa7dc2dae9723266e21c24a11632f3231d9"},
+]
+pulumi-command = [
+    {file = "pulumi_command-0.4.1.tar.gz", hash = "sha256:4ef219f6edd4759317453432fae6b4f006b4b36ad4eac4dfb43cdee6cee7ad30"},
+]
+pulumi-docker = [
+    {file = "pulumi_docker-3.2.0.tar.gz", hash = "sha256:355a30cad08f4925be43cf825a18301ff6baecf2c435f1b67e3bf4e5be22ef1d"},
+]
 pulumi-kubernetes = [
     {file = "pulumi_kubernetes-3.12.1.tar.gz", hash = "sha256:91744976e26ad9e5cd8f47430bcb7819b397c12fa3f488174f89cbf90c9fcf20"},
 ]
