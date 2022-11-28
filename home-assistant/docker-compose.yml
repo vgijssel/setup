@@ -1,12 +1,16 @@
 version: '3.8'
 services:
   mqtt:
+    container_name: mqtt
     image: eclipse-mosquitto:2.0
     restart: always
     volumes:
       - "./mosquitto-data:/mosquitto"
     ports:
       - "0.0.0.0:1883:1883"
+      - "0.0.0.0:9001:9001"
+    expose:
+      - "1883"
     command: "mosquitto -c /mosquitto/mosquitto-auth.conf"
     user: 1000:1000
 
@@ -31,7 +35,7 @@ services:
     tty: true
     stop_signal: SIGINT
     environment:
-      - SESSION_SECRET=mysupersecretkey
+      - SESSION_SECRET=${ZWAVEJS2MQTT_SESSION_SECRET:?err}
       - ZWAVEJS_EXTERNAL_CONFIG=/usr/src/app/store/.config-db
       # Uncomment if you want logs time and dates to match your timezone instead of UTC
       # Available at https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
@@ -54,6 +58,20 @@ services:
     restart: always
     privileged: true
     network_mode: host
+
+  appdaemon:
+    container_name: appdaemon
+    build:
+      context: ./config/appdaemon/.
+    restart: always
+    volumes:
+      - ./config/appdaemon:/conf
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - '0.0.0.0:5050:5050' # port for UI
+    # So we can reach home assistant running with host networking through the docker host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   esphome:
     container_name: esphome

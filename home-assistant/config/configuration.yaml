@@ -14,21 +14,39 @@ input_boolean:
     name: Indicate if someone is sleeping in the Bedroom
     icon: mdi:car
 
+mqtt:
+  camera:
+    - topic: room_presence/downstairs/images/map
+      name: "Downstairs - Presence Map"
+    - topic: room_presence/upstairs/images/map
+      name: "Upstairs - Presence Map"
+  sensor:
+    - state_topic: "room_presence/downstairs/ips/apple_watch_1/state"
+      expire_after: 120
+      object_id: downstairs_apple_watch_1
+      name: Downstairs - Apple Watch 1
+    - state_topic: "room_presence/upstairs/ips/apple_watch_1/state"
+      expire_after: 120
+      object_id: upstairs_apple_watch_1
+      name: Upstairs - Apple Watch 1
+    - state_topic: "room_presence/upstairs/ips/apple_watch_1"
+      value_template: "{{ value_json.z }}"
+      expire_after: 120
+      object_id: upstairs_apple_watch_1_z
+      name: Upstairs - Apple Watch 1 - Z
+      unit_of_measurement: meter
+      device_class: distance
+    - state_topic: "room_presence/downstairs/ips/apple_watch_1"
+      value_template: "{{ value_json.z }}"
+      expire_after: 120
+      object_id: downstairs_apple_watch_1_z
+      name: Downstairs - Apple Watch 1 - Z
+      unit_of_measurement: meter
+      device_class: distance
+
 sensor:
   - platform: illuminance
     entity_id: weather.home
-  - platform: mqtt_room
-    name: apple_watch_1
-    device_id: apple_watch_1
-    state_topic: room_presence
-    away_timeout: 10
-    timeout: 10 # 2x the esphome reporting timeout
-  - platform: mqtt_room
-    name: apple_watch_2
-    device_id: apple_watch_2
-    state_topic: room_presence
-    away_timeout: 10
-    timeout: 10 # 2x the esphome reporting timeout
 
 adaptive_lighting:
   - name: hallway

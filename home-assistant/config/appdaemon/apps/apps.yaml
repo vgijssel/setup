@@ -1,0 +1,223 @@
+# # 0,17 wall thickness
+# # 2,93 from downstairs to upstairs
+Downstairs_ESPresenseIps:
+  module: espresense-ips
+  log_level: INFO
+  class: ESPresenseIps
+  pluggins:
+    - HASS
+    - MQTT
+  rooms_topic: "room_presence/rooms"
+  ips_topic: "room_presence/downstairs/ips"
+  images_topic: "room_presence/downstairs/images"
+  draw_interval: 4
+  draw_interval_offset: 1
+
+  # Rooms are actually the installed shelly bluetooth sensors
+  rooms: &rooms
+    # downstairs
+    living_room: [1.10, 5.39, 2.75]
+    supply_closet: [4.40, 4.99, 1.03]
+    hallway: [3.43, 9.43, 2.75]
+    driveway: [2.83, 9.13, 1.03]
+    kitchen: [2.83, 7,28, 1.03]
+    garden: [0.46, 0.00, 1.03]
+
+    # upstairs
+    bedroom: [2.66, 3.93, 3.96] 
+    baby_room: [4.00, 3.95, 3.96]
+    laundry_room: [2.66, 5.92, 3.96]
+    office: [2.66, 8.48, 3.96]
+    landing: [4.58, 6.23, 5.56]
+
+  devices: &devices
+  - id: apple_watch_1
+    name: Apple Watch 1
+    timeout: 10
+    away_timeout: 60
+    color_code: 'navy'
+  roomplans:
+    - name: living_room
+      points:
+      - x: 0.0
+        y: 0.0
+      - x: 5.18
+        y: 0.0
+      - x: 5.18
+        y: 4.89
+      - x: 4.15
+        y: 4.89
+      - x: 4.15
+        y: 7.03
+      - x: 0.0
+        y: 7.03
+    - name: kitchen
+      points:
+      - x: 0.0
+        y: 7.03
+      - x: 0.0
+        y: 9.80
+      - x: 2.83
+        y: 9.80
+      - x: 2.83
+        y: 7.03
+    - name: kitchen
+      points:
+      - x: 0.0
+        y: 7.03
+      - x: 0.0
+        y: 9.80
+      - x: 2.83
+        y: 9.80
+      - x: 2.83
+        y: 7.03
+    - name: hallway
+      points:
+      - x: 2.83
+        y: 7.03
+      - x: 4.15
+        y: 7.03
+      - x: 4.15
+        y: 9.80
+      - x: 5.18
+        y: 9.80
+      - x: 5.18
+        y: 11.2
+      - x: 2.83
+        y: 11.2
+    - name: supply_closet
+      points:
+      - x: 4.15
+        y: 4.89
+      - x: 5.18
+        y: 4.89
+      - x: 5.18
+        y: 6.89
+      - x: 4.15
+        y: 6.89
+    - name: landing
+      points:
+      - x: 4.15
+        y: 6.89
+      - x: 5.18
+        y: 6.89
+      - x: 5.18
+        y: 7.87
+      - x: 4.15
+        y: 7.87
+    - name: toilet
+      points:
+      - x: 4.15
+        y: 7.87
+      - x: 5.18
+        y: 7.87
+      - x: 5.18
+        y: 9.3
+      - x: 4.15
+        y: 9.3
+    - name: utility_closet
+      points:
+      - x: 4.15
+        y: 9.3
+      - x: 5.18
+        y: 9.3
+      - x: 5.18
+        y: 9.80
+      - x: 4.15
+        y: 9.80
+
+Upstairs_ESPresenseIps:
+  module: espresense-ips
+  log_level: INFO
+  draw_interval: 4
+  draw_interval_offset: 3
+  class: ESPresenseIps
+  pluggins:
+    - HASS
+    - MQTT
+  rooms_topic: "room_presence/rooms"
+  ips_topic: "room_presence/upstairs/ips"
+  images_topic: "room_presence/upstairs/images"
+  rooms: *rooms
+  devices: *devices
+  roomplans:
+    - name: bedroom
+      points:
+      - x: 0.00
+        y: 0.00
+      - x: 0.00
+        y: 5.09
+      - x: 2.66
+        y: 5.09
+      - x: 2.66
+        y: 0.00
+
+    - name: laundry_room
+      points:
+      - x: 0.00
+        y: 5.26
+      - x: 0.00
+        y: 7.08
+      - x: 2.66
+        y: 7.08
+      - x: 2.66
+        y: 5.26
+
+    - name: office
+      points:
+      - x: 0.00
+        y: 7.25
+      - x: 0.00
+        y: 10.78
+      - x: 2.66
+        y: 11.18
+      - x: 2.66
+        y: 7.25
+
+    - name: bathroom
+      points:
+      - x: 2.83
+        y: 7.25
+      - x: 2.83
+        y: 11.39
+      - x: 5.18
+        y: 11.78
+      - x: 5.18
+        y: 7.25
+
+    - name: boiler_closet
+      points:
+      - x: 4.10
+        y: 4.12
+      - x: 4.10
+        y: 5.15
+      - x: 5.18
+        y: 5.15
+      - x: 5.18
+        y: 4.12
+
+    - name: baby_room
+      points:
+      - x: 2.83
+        y: 0.00
+      - x: 2.83
+        y: 3.95
+      - x: 5.18
+        y: 3.95
+      - x: 5.18
+        y: 0.00
+
+    - name: landing
+      points:
+      - x: 2.66
+        y: 3.95
+      - x: 2.66
+        y: 7.25
+      - x: 5.18
+        y: 7.25
+      - x: 5.18
+        y: 5.15
+      - x: 4.10
+        y: 5.15
+      - x: 4.10
+        y: 3.95
