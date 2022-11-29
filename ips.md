@@ -1,10 +1,10 @@
 192.168.178.1 - modem
 
 192.168.1.1 - Unifi USG
-192.168.1.2 - Unifi Cloud Key * + port forward
-192.168.1.3 - Unifi switch gangkast *
-192.168.1.4 - Unifi switch woonkamer *
-192.168.1.5 - Unifi switch babykamer *
+192.168.1.2 - Unifi Cloud Key
+192.168.1.3 - Unifi gangkast-switch
+192.168.1.4 - Unifi woonkamer-switch
+192.168.1.5 - Unifi kantoor-switch
 
 192.168.1.10 - Unifi ap gangkast *
 192.168.1.11 - Unifi ap woonkamer *
@@ -29,3 +29,8 @@
 192.168.1.72 - toilet-shelly *
 
 192.168.1.100 - 192.168.1.254 DHCP Range Unifi
+
+
+subnet mask: 255.255.255.0
+gateway: 192.168.1.1
+preferred dns: 192.168.1.1
