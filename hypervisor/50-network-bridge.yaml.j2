@@ -2,7 +2,11 @@ network:
   bridges:
     br0:
       interfaces: [eno1]
-      dhcp4: yes
+      dhcp4: no
+      addresses: [192.168.1.30/24]
+      gateway4: 192.168.1.1
+      nameservers:
+        addresses: [192.168.1.1]
 
     nfs_net:
       interfaces: []
