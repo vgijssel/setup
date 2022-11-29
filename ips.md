@@ -18,11 +18,11 @@
 192.168.1.31 - hyperbian * + home assistant update
 192.168.1.40 - 192.168.1.49 - opennebula * + port forward
 
-192.168.1.60 - baby-room-shelly *
-192.168.1.61 - bathroom-shelly *
-192.168.1.62 - bedroom-shelly *
-192.168.1.63 - driveway-shelly *
-192.168.1.64 - garden-shelly *
+192.168.1.60 - baby-room-shelly
+192.168.1.61 - bathroom-shelly
+192.168.1.62 - bedroom-shelly
+192.168.1.63 - driveway-shelly
+192.168.1.64 - garden-shelly
 192.168.1.65 - hallway-shelly
 192.168.1.66 - kitchen-shelly *
 192.168.1.67 - landing-shelly *

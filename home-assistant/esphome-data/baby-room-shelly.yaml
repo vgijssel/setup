@@ -3,6 +3,7 @@ substitutions:
   entity_id: "baby_room_shelly"
   light_entity_id: "group.baby_room_lights"
   room_name: "baby_room"
+  static_ip: "192.168.1.60"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
