@@ -23,7 +23,7 @@
 192.168.1.62 - bedroom-shelly *
 192.168.1.63 - driveway-shelly *
 192.168.1.64 - garden-shelly *
-192.168.1.65 - hallway-shelly *
+192.168.1.65 - hallway-shelly
 192.168.1.66 - kitchen-shelly *
 192.168.1.67 - landing-shelly *
 192.168.1.68 - laundry-room-shelly *
