@@ -24,9 +24,9 @@
 192.168.1.63 - driveway-shelly
 192.168.1.64 - garden-shelly
 192.168.1.65 - hallway-shelly
-192.168.1.66 - kitchen-shelly *
-192.168.1.67 - landing-shelly *
-192.168.1.68 - laundry-room-shelly *
+192.168.1.66 - kitchen-shelly
+192.168.1.67 - landing-shelly
+192.168.1.68 - laundry-room-shelly
 192.168.1.69 - living-room-shelly *
 192.168.1.70 - office-shelly *
 192.168.1.71 - supply-closet-shelly
