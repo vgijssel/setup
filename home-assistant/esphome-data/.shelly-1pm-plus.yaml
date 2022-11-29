@@ -40,6 +40,10 @@ mqtt:
   password: !secret mqtt_password
   discovery: false
   id: mqtt_client
+  reboot_timeout: 0s
+  log_topic:
+    topic: "doesnotmatter"
+    level: NONE
 
 nimble_tracker:
   scan_parameters:
