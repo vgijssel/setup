@@ -2,6 +2,7 @@ substitutions:
   device_name: "laundry-room-shelly"
   entity_id: "laundry_room_shelly"
   room_name: "laundry_room"
+  static_ip: "192.168.1.68"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml

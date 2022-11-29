@@ -10,7 +10,7 @@ sync:
 
   home-assistant:
     alpha: "./home-assistant"
-    beta: "hypervisor:/data/home-assistant"
+    beta: "192.168.1.30:/data/home-assistant"
     mode: "two-way-safe"
     ignore:
       paths:
@@ -36,18 +36,18 @@ sync:
 
   esphome-nimble:
     alpha: "./esphome_nimble"
-    beta: "hypervisor:/data/esphome_nimble"
+    beta: "192.168.1.30:/data/esphome_nimble"
     mode: "two-way-safe"
 
 forward:
   zwavejs2mqtt-ui:
     source: "tcp:localhost:8091"
-    destination: "hypervisor:tcp:localhost:8091"
+    destination: "192.168.1.30:tcp:localhost:8091"
 
   zigbee2mqtt-ui:
     source: "tcp:localhost:8092"
-    destination: "hypervisor:tcp:localhost:8080"
+    destination: "192.168.1.30:tcp:localhost:8080"
 
   esphome-ui:
     source: "tcp:localhost:6052"
-    destination: "hypervisor:tcp:localhost:6052"
+    destination: "192.168.1.30:tcp:localhost:6052"
