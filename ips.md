@@ -6,13 +6,17 @@
 192.168.1.4 - Unifi woonkamer-switch
 192.168.1.5 - Unifi kantoor-switch
 
-192.168.1.10 - Unifi ap gangkast *
-192.168.1.11 - Unifi ap woonkamer *
-192.168.1.12 - Unifi ap babykamer *
+192.168.1.10 - Unifi gangkast-ap
+192.168.1.11 - Unifi woonkamer-ap
+192.168.1.12 - Unifi babykamer-ap
+192.168.1.13 - Unifi tuin-ap
 
-192.168.1.20 - hypervisor * + home assistant secret update
-192.168.1.21 - hyperbian * + home assistant update
-192.168.1.30 - 192.168.1.39 - opennebula * + port forward
+192.168.1.20 - Unifi babykamer-camera *
+192.168.1.21 - Unifi oprit-camera *
+
+192.168.1.30 - hypervisor * + home assistant secret update + provisioning update + search for hostname references
+192.168.1.31 - hyperbian * + home assistant update
+192.168.1.40 - 192.168.1.49 - opennebula * + port forward
 
 192.168.1.60 - baby-room-shelly *
 192.168.1.61 - bathroom-shelly *
