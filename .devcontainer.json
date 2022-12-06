@@ -23,7 +23,13 @@
     "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
   ],
   "settings": {
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "terminal.integrated.scrollback": 10000,
+    "files.associations": {
+      ".bazelrc": "plaintext"
+    },
+    "editor.formatOnSave": true
   },
-  "shutdownAction": "stopContainer"
+  "shutdownAction": "stopContainer",
+  "runArgs": ["--name", "setup-devcontainer"]
 }
