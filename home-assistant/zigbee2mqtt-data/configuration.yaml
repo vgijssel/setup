@@ -35,8 +35,6 @@ devices:
     friendly_name: toilet_door
   '0x00158d0002286aa4':
     friendly_name: living_room_door
-  '0x00158d000232cfca':
-    friendly_name: office_door
   '0x54ef4410004d97e6':
     friendly_name: bedroom_human
   '0x54ef4410004d58d7':
@@ -159,3 +157,5 @@ devices:
     friendly_name: office_motion
   '0x54ef4410004e3ea7':
     friendly_name: baby_room_motion
+  '0x00158d00085428bc':
+    friendly_name: office_door
