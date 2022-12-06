@@ -75,6 +75,15 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install aspect cli tool for bazel
+ENV ASPECT_CLI_VERSION="5.0.2"
+RUN case ${TARGETARCH} in \
+    "amd64")  ASPECT_CLI_ARCH=amd64 ;; \
+    "arm64")  ASPECT_CLI_ARCH=arm64  ;; \
+    esac \
+    && curl --fail -L https://github.com/aspect-build/aspect-cli/releases/download/$ASPECT_CLI_VERSION/aspect-linux_$ASPECT_CLI_ARCH --output /usr/local/bin/aspect \
+    && chmod +x /usr/local/bin/aspect
+
 # Install bazel remote for Bazel S3 caching in the CI
 ENV BAZEL_REMOTE_VERSION="2.3.9"
 RUN case ${TARGETARCH} in \
@@ -92,5 +101,5 @@ USER devcontainer
 ENV USER devcontainer
 
 # Run some basic assertions
-RUN bazel --version \
+RUN aspect --version \
     && git --version
