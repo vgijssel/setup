@@ -153,3 +153,5 @@ devices:
     friendly_name: hallway_illuminance
   '0x54ef4410001ff3e1':
     friendly_name: living_room_illuminance
+  '0x54ef4410004e44a9':
+    friendly_name: bedroom_motion

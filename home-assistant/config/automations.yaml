@@ -62,7 +62,7 @@
       presence_entity_id: variable.bedroom_presence
       presence_indicator_entity_ids:
       - binary_sensor.bedroom_human_presence
-      - binary_sensor.bedroom_motion_home_security_motion_detection_3
+      - binary_sensor.bedroom_motion_occupancy
       presence_hint_entity_ids:
       - binary_sensor.bedroom_shelly_input
       - binary_sensor.bedroom_door_contact
@@ -101,7 +101,7 @@
       - binary_sensor.bathroom_door_contact
       presence_indicator_entity_ids:
       - binary_sensor.baby_room_motion_general_purpose_state_2
-      - binary_sensor.bedroom_motion_home_security_motion_detection_3
+      - binary_sensor.bedroom_motion_occupancy
       - binary_sensor.laundry_room_motion_occupancy
       - binary_sensor.motion_sensor_home_security_motion_detection
       - binary_sensor.bathroom_motion_occupancy
