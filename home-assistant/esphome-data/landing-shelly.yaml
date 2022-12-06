@@ -3,6 +3,7 @@ substitutions:
   entity_id: "landing_shelly"
   light_entity_id: "light.landing_lights"
   room_name: landing
+  static_ip: "192.168.1.67"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
