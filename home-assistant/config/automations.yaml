@@ -1,18 +1,3 @@
-- id: '1654888062741'
-  alias: 'Bedroom - Fan: Manage '
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - timer.fan_timer
-    to: idle
-  condition: []
-  action:
-  - service: switch.turn_off
-    data: {}
-    target:
-      entity_id: switch.bedroom_fan_power
-  mode: single
 - id: '1655228112348'
   alias: 'Bedroom - Tv: Turn Off'
   description: ''

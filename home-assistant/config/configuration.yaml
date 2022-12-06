@@ -151,7 +151,6 @@ group:
     entities:
       - light.baby_room_light
       - switch.baby_room_moon_light
-      - switch.baby_room_bed_light
 
 variable:
   baby_room_presence:
@@ -343,7 +342,6 @@ homekit:
         - climate.living_room_heat
         - light.baby_room_light
         - switch.baby_room_moon_light
-        - switch.baby_room_bed_light
         - light.bathroom_lights
         - switch.bedroom_shelly
         - switch.driveway_shelly
@@ -354,7 +352,6 @@ homekit:
         - switch.office_shelly
         - switch.supply_closet_shelly
         - light.toilet_lights
-        - switch.bedroom_fan_power
 
     entity_config:
       light.living_room_corner_light:
@@ -373,14 +370,10 @@ homekit:
         name: Babykamer Lamp
       switch.baby_room_moon_light:
         name: Babykamer Maan Lamp
-      switch.baby_room_bed_light:
-        name: Babykamer Bed Lamp
       light.bathroom_lights:
         name: Badkamer Lampen
       switch.bedroom_shelly:
         name: Slaapkamer Lamp
-      switch.bedroom_fan_power:
-        name: Slaapkamer Ventilator
       switch.driveway_shelly:
         name: Oprit Lamp
       light.hallway_lights:
