@@ -157,3 +157,5 @@ devices:
     friendly_name: bedroom_motion
   '0x54ef4410004e39af':
     friendly_name: office_motion
+  '0x54ef4410004e3ea7':
+    friendly_name: baby_room_motion
