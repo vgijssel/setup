@@ -100,7 +100,7 @@
       - binary_sensor.bedroom_door_contact
       - binary_sensor.bathroom_door_contact
       presence_indicator_entity_ids:
-      - binary_sensor.binary_sensor.baby_room_motion_occupancy
+      - binary_sensor.baby_room_motion_occupancy
       - binary_sensor.bedroom_motion_occupancy
       - binary_sensor.laundry_room_motion_occupancy
       - binary_sensor.office_motion_occupancy
@@ -158,7 +158,7 @@
     input:
       presence_entity_id: variable.baby_room_presence
       presence_indicator_entity_ids:
-      - binary_sensor.binary_sensor.baby_room_motion_occupancy
+      - binary_sensor.baby_room_motion_occupancy
       - binary_sensor.baby_room_human_presence
       presence_hint_entity_ids:
       - binary_sensor.baby_room_shelly_input
