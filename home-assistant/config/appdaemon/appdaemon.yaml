@@ -1,0 +1,23 @@
+appdaemon:
+  time_zone: Europe/Amsterdam
+  latitude: !secret latitude
+  longitude: !secret longitude
+  elevation: 0
+  plugins:
+    HASS:
+      type: hass
+      ha_url: "http://host.docker.internal:8123"
+      token: !secret homeassistant_token
+    MQTT:
+      type: mqtt
+      namespace: mqtt
+      birth_topic: appdaemon
+      will_topic: appdaemon
+      client_host: mqtt
+      client_user: appdaemon
+      client_password: !secret mqtt_password
+http:
+  url: "http://192.168.1.30:5050"
+admin:
+api:
+hadashboard:

@@ -4,11 +4,6 @@
 
 	// List of extensions which should be recommended for users of this workspace.
 	"recommendations": [
-		"vspacecode.vspacecode",
-		"alexanderbast.vscode-snazzy",
-		"bazelbuild.vscode-bazel",
-		"ms-azuretools.vscode-docker",
-		"tilt-dev.tiltfile",
-		"GitHub.remotehub"
+		"ms-vscode-remote.remote-containers"
 	],
 }

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import bisect
 from collections import defaultdict
 from copy import deepcopy
@@ -9,14 +10,11 @@ from dataclasses import dataclass
 import datetime
 from datetime import timedelta
 import functools
-import hashlib
 import logging
 import math
-from typing import Any
+from typing import Any, Literal
 
 import astral
-import voluptuous as vol
-
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
@@ -27,29 +25,30 @@ from homeassistant.components.light import (
     ATTR_HS_COLOR,
     ATTR_KELVIN,
     ATTR_RGB_COLOR,
+    ATTR_SUPPORTED_COLOR_MODES,
     ATTR_TRANSITION,
-    ATTR_WHITE_VALUE,
     ATTR_XY_COLOR,
-    DOMAIN as LIGHT_DOMAIN,
+    COLOR_MODE_BRIGHTNESS,
+    COLOR_MODE_COLOR_TEMP,
+    COLOR_MODE_HS,
+    COLOR_MODE_RGB,
+    COLOR_MODE_RGBW,
+    COLOR_MODE_XY,
+)
+from homeassistant.components.light import (
     SUPPORT_BRIGHTNESS,
     SUPPORT_COLOR,
     SUPPORT_COLOR_TEMP,
     SUPPORT_TRANSITION,
-    SUPPORT_WHITE_VALUE,
     VALID_TRANSITION,
     is_on,
-    COLOR_MODE_RGB,
-    COLOR_MODE_RGBW,
-    COLOR_MODE_HS,
-    COLOR_MODE_XY,
-    COLOR_MODE_COLOR_TEMP,
-    COLOR_MODE_BRIGHTNESS,
-    ATTR_SUPPORTED_COLOR_MODES,
 )
-
-from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN, SwitchEntity
+from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    ATTR_AREA_ID,
     ATTR_DOMAIN,
     ATTR_ENTITY_ID,
     ATTR_SERVICE,
@@ -82,6 +81,7 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.sun import get_astral_location
+from homeassistant.helpers.template import area_entities
 from homeassistant.util import slugify
 from homeassistant.util.color import (
     color_RGB_to_xy,
@@ -90,6 +90,7 @@ from homeassistant.util.color import (
     color_xy_to_hs,
 )
 import homeassistant.util.dt as dt_util
+import voluptuous as vol
 
 from .const import (
     ADAPT_BRIGHTNESS_SWITCH,
@@ -97,21 +98,26 @@ from .const import (
     ATTR_ADAPT_BRIGHTNESS,
     ATTR_ADAPT_COLOR,
     ATTR_TURN_ON_OFF_LISTENER,
+    CONF_ADAPT_DELAY,
     CONF_DETECT_NON_HA_CHANGES,
     CONF_INITIAL_TRANSITION,
-    CONF_SLEEP_TRANSITION,
     CONF_INTERVAL,
     CONF_LIGHTS,
     CONF_MANUAL_CONTROL,
     CONF_MAX_BRIGHTNESS,
     CONF_MAX_COLOR_TEMP,
+    CONF_MAX_SUNRISE_TIME,
     CONF_MIN_BRIGHTNESS,
     CONF_MIN_COLOR_TEMP,
+    CONF_MIN_SUNSET_TIME,
     CONF_ONLY_ONCE,
     CONF_PREFER_RGB_COLOR,
     CONF_SEPARATE_TURN_ON_COMMANDS,
     CONF_SLEEP_BRIGHTNESS,
     CONF_SLEEP_COLOR_TEMP,
+    CONF_SLEEP_RGB_COLOR,
+    CONF_SLEEP_RGB_OR_COLOR_TEMP,
+    CONF_SLEEP_TRANSITION,
     CONF_SUNRISE_OFFSET,
     CONF_SUNRISE_TIME,
     CONF_SUNSET_OFFSET,
@@ -134,7 +140,6 @@ from .const import (
 
 _SUPPORT_OPTS = {
     "brightness": SUPPORT_BRIGHTNESS,
-    "white_value": SUPPORT_WHITE_VALUE,
     "color_temp": SUPPORT_COLOR_TEMP,
     "color": SUPPORT_COLOR,
     "transition": SUPPORT_TRANSITION,
@@ -163,7 +168,6 @@ COLOR_ATTRS = {  # Should ATTR_PROFILE be in here?
 
 BRIGHTNESS_ATTRS = {
     ATTR_BRIGHTNESS,
-    ATTR_WHITE_VALUE,
     ATTR_BRIGHTNESS_PCT,
     ATTR_BRIGHTNESS_STEP,
     ATTR_BRIGHTNESS_STEP_PCT,
@@ -173,9 +177,18 @@ BRIGHTNESS_ATTRS = {
 _DOMAIN_SHORT = "adapt_lgt"
 
 
+def _int_to_bytes(i: int, signed: bool = False) -> bytes:
+    bits = i.bit_length()
+    if signed:
+        # Make room for the sign bit.
+        bits += 1
+    return i.to_bytes((bits + 7) // 8, "little", signed=signed)
+
+
 def _short_hash(string: str, length: int = 4) -> str:
     """Create a hash of 'string' with length 'length'."""
-    return hashlib.sha1(string.encode("UTF-8")).hexdigest()[:length]
+    str_hash_bytes = _int_to_bytes(hash(string), signed=True)
+    return base64.b85encode(str_hash_bytes)[:length]
 
 
 def create_context(
@@ -185,10 +198,12 @@ def create_context(
     # Use a hash for the name because otherwise the context might become
     # too long (max len == 36) to fit in the database.
     name_hash = _short_hash(name)
+    # Pack index with base85 to maximize the number of contexts we can create
+    # before we exceed the 36-character limit and are forced to wrap.
+    index_packed = base64.b85encode(_int_to_bytes(index, signed=False))
+    context_id = f"{_DOMAIN_SHORT}:{name_hash}:{which}:{index_packed}"[:36]
     parent_id = parent.id if parent else None
-    return Context(
-        id=f"{_DOMAIN_SHORT}_{name_hash}_{which}_{index}", parent_id=parent_id
-    )
+    return Context(id=context_id, parent_id=parent_id)
 
 
 def is_our_context(context: Context | None) -> bool:
@@ -207,7 +222,6 @@ def _split_service_data(service_data, adapt_brightness, adapt_color):
     service_datas = []
     if adapt_color:
         service_data_color = service_data.copy()
-        service_data_color.pop(ATTR_WHITE_VALUE, None)
         service_data_color.pop(ATTR_BRIGHTNESS, None)
         service_datas.append(service_data_color)
     if adapt_brightness:
@@ -215,6 +229,9 @@ def _split_service_data(service_data, adapt_brightness, adapt_color):
         service_data_brightness.pop(ATTR_RGB_COLOR, None)
         service_data_brightness.pop(ATTR_COLOR_TEMP, None)
         service_datas.append(service_data_brightness)
+
+    if not service_datas:  # neither adapt_brightness nor adapt_color
+        return [service_data]
     return service_datas
 
 
@@ -472,24 +489,6 @@ def _attributes_have_changed(
             return True
 
     if (
-        adapt_brightness
-        and ATTR_WHITE_VALUE in old_attributes
-        and ATTR_WHITE_VALUE in new_attributes
-    ):
-        last_white_value = old_attributes[ATTR_WHITE_VALUE]
-        current_white_value = new_attributes[ATTR_WHITE_VALUE]
-        if abs(current_white_value - last_white_value) > BRIGHTNESS_CHANGE:
-            _LOGGER.debug(
-                "White Value of '%s' significantly changed from %s to %s with"
-                " context.id='%s'",
-                light,
-                last_white_value,
-                current_white_value,
-                context.id,
-            )
-            return True
-
-    if (
         adapt_color
         and ATTR_COLOR_TEMP in old_attributes
         and ATTR_COLOR_TEMP in new_attributes
@@ -574,6 +573,7 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
         self._separate_turn_on_commands = data[CONF_SEPARATE_TURN_ON_COMMANDS]
         self._take_over_control = data[CONF_TAKE_OVER_CONTROL]
         self._transition = data[CONF_TRANSITION]
+        self._adapt_delay = data[CONF_ADAPT_DELAY]
         _loc = get_astral_location(self.hass)
         if isinstance(_loc, tuple):
             # Astral v2.2
@@ -591,10 +591,14 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
             min_color_temp=data[CONF_MIN_COLOR_TEMP],
             sleep_brightness=data[CONF_SLEEP_BRIGHTNESS],
             sleep_color_temp=data[CONF_SLEEP_COLOR_TEMP],
+            sleep_rgb_color=data[CONF_SLEEP_RGB_COLOR],
+            sleep_rgb_or_color_temp=data[CONF_SLEEP_RGB_OR_COLOR_TEMP],
             sunrise_offset=data[CONF_SUNRISE_OFFSET],
             sunrise_time=data[CONF_SUNRISE_TIME],
+            max_sunrise_time=data[CONF_MAX_SUNRISE_TIME],
             sunset_offset=data[CONF_SUNSET_OFFSET],
             sunset_time=data[CONF_SUNSET_TIME],
+            min_sunset_time=data[CONF_MIN_SUNSET_TIME],
             time_zone=self.hass.config.time_zone,
             transition=data[CONF_TRANSITION],
         )
@@ -721,13 +725,15 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
     ) -> Context:
         """Create a context that identifies this Adaptive Lighting instance."""
         # Right now the highest number of each context_id it can create is
-        # 'adapt_lgt_XXXX_turn_on_9999999999999'
-        # 'adapt_lgt_XXXX_interval_999999999999'
-        # 'adapt_lgt_XXXX_adapt_lights_99999999'
-        # 'adapt_lgt_XXXX_sleep_999999999999999'
-        # 'adapt_lgt_XXXX_light_event_999999999'
-        # 'adapt_lgt_XXXX_service_9999999999999'
-        # So 100 million calls before we run into the 36 chars limit.
+        # 'adapt_lgt:XXXX:turn_on:*************'
+        # 'adapt_lgt:XXXX:interval:************'
+        # 'adapt_lgt:XXXX:adapt_lights:********'
+        # 'adapt_lgt:XXXX:sleep:***************'
+        # 'adapt_lgt:XXXX:light_event:*********'
+        # 'adapt_lgt:XXXX:service:*************'
+        # The smallest space we have is for adapt_lights, which has
+        # 8 characters. In base85 encoding, that's enough space to hold values
+        # up to 2**48 - 1, which should give us plenty of calls before we wrap.
         context = create_context(self._name, which, self._context_cnt, parent=parent)
         self._context_cnt += 1
         return context
@@ -795,25 +801,33 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
         if "transition" in features:
             service_data[ATTR_TRANSITION] = transition
 
+        # The switch might be off and not have _settings set.
+        self._settings = self._sun_light_settings.get_settings(
+            self.sleep_mode_switch.is_on, transition
+        )
+
         if "brightness" in features and adapt_brightness:
             brightness = round(255 * self._settings["brightness_pct"] / 100)
             service_data[ATTR_BRIGHTNESS] = brightness
 
-        if "white_value" in features and adapt_brightness:
-            white_value = round(255 * self._settings["brightness_pct"] / 100)
-            service_data[ATTR_WHITE_VALUE] = white_value
-
+        sleep_rgb = (
+            self.sleep_mode_switch.is_on
+            and self._sun_light_settings.sleep_rgb_or_color_temp == "rgb_color"
+        )
         if (
             "color_temp" in features
             and adapt_color
             and not (prefer_rgb_color and "color" in features)
+            and not (sleep_rgb and "color" in features)
         ):
+            _LOGGER.debug("%s: Setting color_temp of light %s", self._name, light)
             attributes = self.hass.states.get(light).attributes
             min_mireds, max_mireds = attributes["min_mireds"], attributes["max_mireds"]
             color_temp_mired = self._settings["color_temp_mired"]
             color_temp_mired = max(min(color_temp_mired, max_mireds), min_mireds)
             service_data[ATTR_COLOR_TEMP] = color_temp_mired
         elif "color" in features and adapt_color:
+            _LOGGER.debug("%s: Setting rgb_color of light %s", self._name, light)
             service_data[ATTR_RGB_COLOR] = self._settings["rgb_color"]
 
         context = context or self.create_context("adapt_lights")
@@ -925,6 +939,7 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
 
     async def _sleep_mode_switch_state_event(self, event: Event) -> None:
         if not match_switch_state_event(event, (STATE_ON, STATE_OFF)):
+            _LOGGER.debug("%s: Ignoring sleep event %s", self._name, event)
             return
         _LOGGER.debug(
             "%s: _sleep_mode_switch_state_event, event: '%s'", self._name, event
@@ -970,6 +985,21 @@ class AdaptiveSwitch(SwitchEntity, RestoreEntity):
                         "%s: Cancelling adjusting lights for %s", self._name, entity_id
                     )
                     return
+
+            if self._adapt_delay > 0:
+                _LOGGER.debug(
+                    "%s: sleep started for '%s' with context.id='%s'",
+                    self._name,
+                    entity_id,
+                    event.context.id,
+                )
+                await asyncio.sleep(self._adapt_delay)
+                _LOGGER.debug(
+                    "%s: sleep ended for '%s' with context.id='%s'",
+                    self._name,
+                    entity_id,
+                    event.context.id,
+                )
 
             await self._update_attrs_and_maybe_adapt_lights(
                 lights=[entity_id],
@@ -1038,10 +1068,12 @@ class SimpleSwitch(SwitchEntity, RestoreEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on adaptive lighting sleep mode."""
+        _LOGGER.debug("%s: Turning on", self._name)
         self._state = True
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off adaptive lighting sleep mode."""
+        _LOGGER.debug("%s: Turning off", self._name)
         self._state = False
 
 
@@ -1056,11 +1088,15 @@ class SunLightSettings:
     min_brightness: int
     min_color_temp: int
     sleep_brightness: int
+    sleep_rgb_or_color_temp: Literal["color_temp", "rgb_color"]
     sleep_color_temp: int
+    sleep_rgb_color: tuple[int, int, int]
     sunrise_offset: datetime.timedelta | None
     sunrise_time: datetime.time | None
+    max_sunrise_time: datetime.time | None
     sunset_offset: datetime.timedelta | None
     sunset_time: datetime.time | None
+    min_sunset_time: datetime.time | None
     time_zone: datetime.tzinfo
     transition: int
 
@@ -1105,7 +1141,22 @@ class SunLightSettings:
             else _replace_time(date, "sunset")
         ) + self.sunset_offset
 
-        if self.sunrise_time is None and self.sunset_time is None:
+        if self.max_sunrise_time is not None:
+            max_sunrise = _replace_time(date, "max_sunrise")
+            if max_sunrise < sunrise:
+                sunrise = max_sunrise
+
+        if self.min_sunset_time is not None:
+            min_sunset = _replace_time(date, "min_sunset")
+            if min_sunset > sunset:
+                sunset = min_sunset
+
+        if (
+            self.sunrise_time is None
+            and self.sunset_time is None
+            and self.max_sunrise_time is None
+            and self.min_sunset_time is None
+        ):
             try:
                 # Astral v1
                 solar_noon = location.solar_noon(date, local=False)
@@ -1175,10 +1226,8 @@ class SunLightSettings:
         percent = 1 + percent
         return (delta_brightness * percent) + self.min_brightness
 
-    def calc_color_temp_kelvin(self, percent: float, is_sleep: bool) -> float:
+    def calc_color_temp_kelvin(self, percent: float) -> float:
         """Calculate the color temperature in Kelvin."""
-        if is_sleep:
-            return self.sleep_color_temp
         if percent > 0:
             delta = self.max_color_temp - self.min_color_temp
             return (delta * percent) + self.min_color_temp
@@ -1197,11 +1246,15 @@ class SunLightSettings:
             else self.calc_percent(0)
         )
         brightness_pct = self.calc_brightness_pct(percent, is_sleep)
-        color_temp_kelvin = self.calc_color_temp_kelvin(percent, is_sleep)
+        if is_sleep:
+            color_temp_kelvin = self.sleep_color_temp
+            rgb_color: tuple[float, float, float] = self.sleep_rgb_color
+        else:
+            color_temp_kelvin = self.calc_color_temp_kelvin(percent)
+            rgb_color: tuple[float, float, float] = color_temperature_to_rgb(
+                color_temp_kelvin
+            )
         color_temp_mired: float = color_temperature_kelvin_to_mired(color_temp_kelvin)
-        rgb_color: tuple[float, float, float] = color_temperature_to_rgb(
-            color_temp_kelvin
-        )
         xy_color: tuple[float, float] = color_RGB_to_xy(*rgb_color)
         hs_color: tuple[float, float] = color_xy_to_hs(*xy_color)
         return {
@@ -1266,7 +1319,24 @@ class TurnOnOffListener:
 
         service = event.data[ATTR_SERVICE]
         service_data = event.data[ATTR_SERVICE_DATA]
-        entity_ids = cv.ensure_list_csv(service_data[ATTR_ENTITY_ID])
+        if ATTR_ENTITY_ID in service_data:
+            entity_ids = cv.ensure_list_csv(service_data[ATTR_ENTITY_ID])
+        elif ATTR_AREA_ID in service_data:
+            area_ids = cv.ensure_list_csv(service_data[ATTR_AREA_ID])
+            entity_ids = []
+            for area_id in area_ids:
+                area_entity_ids = area_entities(self.hass, area_id)
+                for entity_id in area_entity_ids:
+                    if entity_id.startswith(LIGHT_DOMAIN):
+                        entity_ids.append(entity_id)
+                _LOGGER.debug(
+                    "Found entity_ids '%s' for area_id '%s'", entity_ids, area_id
+                )
+        else:
+            _LOGGER.debug(
+                "No entity_ids or area_ids found in service_data: %s", service_data
+            )
+            return
 
         if not any(eid in self.lights for eid in entity_ids):
             return
@@ -1483,6 +1553,11 @@ class TurnOnOffListener:
             transition = None
 
         turn_on_event = self.turn_on_event.get(entity_id)
+        if turn_on_event is None:
+            # This means that the light never got a 'turn_on' call that we
+            # registered. I am not 100% sure why this happens, but it does.
+            # This is a fix for #170 and #232.
+            return False
         id_turn_on = turn_on_event.context.id
 
         id_off_to_on = off_to_on_event.context.id

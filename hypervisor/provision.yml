@@ -159,7 +159,7 @@
         group: oneadmin
 
     # cat /etc/exports.d/zfs.exports
-    # mount -v -t nfs hypervisor:/data/media /tmp/mnt
+    # mount -v -t nfs 192.168.1.30:/data/media /tmp/mnt
     - name: Create ZFS Filesystems for NFS
       tags: ["storage", "nfs"]
       community.general.zfs:

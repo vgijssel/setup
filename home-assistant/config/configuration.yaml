@@ -14,44 +14,35 @@ input_boolean:
     name: Indicate if someone is sleeping in the Bedroom
     icon: mdi:car
 
-# occupancy:
-#   doors: 
-#     front_door:
-#       entry: true
-#       contact_sensor: binary_sensor.driveway_door_contact
-#       motion_sensor: binary_sensor.driveway_motion_occupancy
-#     hallway_door:
-#       contact_sensor: binary_sensor.living_room_door_contact
-#       motion_sensor: binary_sensor.living_room_motion_occupancy
-#     landing_door:
-#       contact_sensor: null
-#       motion_sensor: binary_sensor.landing_motion_occupancy
-#     toilet_door:
-#       contact_sensor: binary_sensor.toilet_door_contact
-#       motion_sensor: binary_sensor.toilet_motion_occupancy
-#     kitchen_door:
-#       contact_sensor: null
-#       motion_sensor: binary_sensor.kitchen_motion_occupancy
-#     garden_door:
-#       entry: true
-#       contact_sensor: binary_sensor.garden_door_contact
-#       motion_sensor: binary_sensor.living_room_garden_motion_occupancy
-#   areas:
-#     hallway:
-#       occupancy_sensors: []
-#       doors: ['front_door', 'hallway_door', 'landing_door']
-#     toilet:
-#       occupancy_sensors: []
-#       doors: ['toilet_door']
-#     living_room:
-#       occupancy_sensors: ['binary_sensor.living_room_tv_human_presence']
-#       doors: ['hallway_door', 'garden_door']
-#     landing:
-#       occupancy_sensors: []
-#       doors: ['hallway_door', 'garden_door']
-#     kitchen:
-#       occupancy_sensors: ['binary_sensor.kitchen_human_presence']
-#       doors: ['kitchen_door']
+mqtt:
+  camera:
+    - topic: room_presence/downstairs/images/map
+      name: "Downstairs - Presence Map"
+    - topic: room_presence/upstairs/images/map
+      name: "Upstairs - Presence Map"
+  sensor:
+    - state_topic: "room_presence/downstairs/ips/apple_watch_1/state"
+      expire_after: 120
+      object_id: downstairs_apple_watch_1
+      name: Downstairs - Apple Watch 1
+    - state_topic: "room_presence/upstairs/ips/apple_watch_1/state"
+      expire_after: 120
+      object_id: upstairs_apple_watch_1
+      name: Upstairs - Apple Watch 1
+    - state_topic: "room_presence/upstairs/ips/apple_watch_1"
+      value_template: "{{ value_json.z }}"
+      expire_after: 120
+      object_id: upstairs_apple_watch_1_z
+      name: Upstairs - Apple Watch 1 - Z
+      unit_of_measurement: meter
+      device_class: distance
+    - state_topic: "room_presence/downstairs/ips/apple_watch_1"
+      value_template: "{{ value_json.z }}"
+      expire_after: 120
+      object_id: downstairs_apple_watch_1_z
+      name: Downstairs - Apple Watch 1 - Z
+      unit_of_measurement: meter
+      device_class: distance
 
 sensor:
   - platform: illuminance
@@ -60,33 +51,53 @@ sensor:
 adaptive_lighting:
   - name: hallway
     lights:
-      - light.hallway_lights
+      - light.hallway_1_light
+      - light.hallway_2_light
+      - light.hallway_3_light
+      - light.hallway_4_light
   - name: landing
     lights:
-      - light.landing_lights
+      - light.landing_1_light
+      - light.landing_2_light
+      - light.landing_3_light
   - name: bathroom
     lights:
-      - light.bathroom_lights
+      - light.bathroom_1_light
+      - light.bathroom_2_light
+      - light.bathroom_3_light
+      - light.bathroom_4_light
+      - light.bathroom_5_light
+      - light.bathroom_6_light
   - name: toilet
-    initial_transition: 0
-    sleep_transition: 0
-    min_brightness: 30
-    sleep_brightness: 30
     lights:
-      - light.toilet_lights
+      - light.toilet_1_light
+      - light.toilet_2_light
+    min_brightness: 50
+    sleep_brightness: 50
   - name: baby_room
     lights:
       - light.baby_room_light
   - name: kitchen
     lights:
-      - light.kitchen_lights
+      - light.kitchen_1_light
+      - light.kitchen_2_light
+      - light.kitchen_3_light
+      - light.kitchen_4_light
+      - light.kitchen_5_light
+      - light.kitchen_6_light
     take_over_control: true
     detect_non_ha_changes: true
+    min_brightness: 30
   - name: living_room
     lights:
-      - light.living_room_lights
+      - light.living_room_corner_light
+      - light.living_room_dining_table_light
+      - light.living_room_monkey_light
+      - light.living_room_mouse_light
+      - light.living_room_tv_light
     take_over_control: true
     detect_non_ha_changes: true
+    min_brightness: 30
 
 light:
   - platform: group
@@ -133,6 +144,13 @@ light:
     entities:
       - light.toilet_1_light
       - light.toilet_2_light
+
+group:
+  baby_room_lights:
+    name: baby_room_lights
+    entities:
+      - light.baby_room_light
+      - switch.baby_room_moon_light
 
 variable:
   baby_room_presence:
@@ -323,6 +341,7 @@ homekit:
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.baby_room_light
+        - switch.baby_room_moon_light
         - light.bathroom_lights
         - switch.bedroom_shelly
         - switch.driveway_shelly
@@ -333,7 +352,6 @@ homekit:
         - switch.office_shelly
         - switch.supply_closet_shelly
         - light.toilet_lights
-        - switch.bedroom_fan_power
 
     entity_config:
       light.living_room_corner_light:
@@ -350,12 +368,12 @@ homekit:
         name: Woonkamer Thermostaat
       light.baby_room_light:
         name: Babykamer Lamp
+      switch.baby_room_moon_light:
+        name: Babykamer Maan Lamp
       light.bathroom_lights:
         name: Badkamer Lampen
       switch.bedroom_shelly:
         name: Slaapkamer Lamp
-      switch.bedroom_fan_power:
-        name: Slaapkamer Ventilator
       switch.driveway_shelly:
         name: Oprit Lamp
       light.hallway_lights:
@@ -373,7 +391,7 @@ homekit:
       light.toilet_lights:
         name: Wc Lampen
 
-  - name: Home Assistant - Baby Cam
+  - name: HA - Baby Cam
     port: 21064
     mode: accessory
     filter:
@@ -382,3 +400,35 @@ homekit:
     entity_config:
       camera.baby_room_cam_high:
         name: Babykamer Camera
+
+  - name: HA - Driveway Cam
+    port: 21065
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.driveway_doorbell_high
+    entity_config:
+      camera.driveway_doorbell_high:
+        name: Oprit Camera
+
+zone:
+  - name: living_room
+    latitude: !secret latitude
+    longitude: !secret longitude
+    radius: 0
+    icon: mdi:school
+  - name: hallway
+    latitude: !secret latitude
+    longitude: !secret longitude
+    radius: 0
+    icon: mdi:school
+  - name: driveway
+    latitude: !secret latitude
+    longitude: !secret longitude
+    radius: 0
+    icon: mdi:school
+  - name: kitchen
+    latitude: !secret latitude
+    longitude: !secret longitude
+    radius: 0
+    icon: mdi:school

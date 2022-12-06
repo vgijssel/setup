@@ -1,19 +1,23 @@
 version: '3.8'
 services:
   mqtt:
+    container_name: mqtt
     image: eclipse-mosquitto:2.0
     restart: always
     volumes:
       - "./mosquitto-data:/mosquitto"
     ports:
-      - "127.0.0.1:1883:1883"
-      - "127.0.0.1:9001:9001"
-    command: "mosquitto -c /mosquitto-no-auth.conf"
+      - "0.0.0.0:1883:1883"
+      - "0.0.0.0:9001:9001"
+    expose:
+      - "1883"
+    command: "mosquitto -c /mosquitto/mosquitto-auth.conf"
+    user: 1000:1000
 
   zigbee2mqtt:
     container_name: zigbee2mqtt
     restart: always
-    image: koenkk/zigbee2mqtt
+    image: koenkk/zigbee2mqtt:1.28.2
     volumes:
       - ./zigbee2mqtt-data:/app/data
       - /run/udev:/run/udev:ro
@@ -24,33 +28,40 @@ services:
     devices:
       - /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0:/dev/zigbee
 
-  zwavejs2mqtt:
-    container_name: zwavejs2mqtt
-    image: zwavejs/zwavejs2mqtt:latest
-    restart: always
-    tty: true
-    stop_signal: SIGINT
-    environment:
-      - SESSION_SECRET=mysupersecretkey
-      - ZWAVEJS_EXTERNAL_CONFIG=/usr/src/app/store/.config-db
-      # Uncomment if you want logs time and dates to match your timezone instead of UTC
-      # Available at https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-      - TZ=Europe/Amsterdam
-    devices:
-      - /dev/serial/by-id/usb-0658_0200-if00:/dev/zwave
-    volumes:
-      - ./zwavejs2mqtt-data:/usr/src/app/store
-    ports:
-      - '127.0.0.1:8091:8091' # port for web interface
-      - '127.0.0.1:3000:3000' # port for Z-Wave JS websocket server
-
   home-assistant:
     container_name: homeassistant
     user: "1000:1000"
-    image: "ghcr.io/home-assistant/home-assistant:stable"
+    image: homeassistant/home-assistant:2022.11
     volumes:
       - ./config:/config
       - /etc/localtime:/etc/localtime:ro
     restart: always
     privileged: true
     network_mode: host
+
+  appdaemon:
+    container_name: appdaemon
+    build:
+      context: ./config/appdaemon/.
+    restart: always
+    volumes:
+      - ./config/appdaemon:/conf
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - '0.0.0.0:5050:5050' # port for UI
+    # So we can reach home assistant running with host networking through the docker host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  esphome:
+    container_name: esphome
+    image: esphome/esphome:2022.10
+    volumes:
+      - ./esphome-data:/config
+      - /data/esphome_nimble:/esphome_nimble
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    privileged: true
+    network_mode: host
+    ports:
+      - '0.0.0.0:6052:6052' # port for the UI

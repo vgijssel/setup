@@ -3,6 +3,11 @@ availability: true
 mqtt:
   base_topic: zigbee2mqtt
   server: mqtt://mqtt
+  keepalive: 60
+  password: '!secret mqtt_password'
+  reject_unauthorized: true
+  user: zigbee2mqtt
+  version: 4
 serial:
   port: /dev/zigbee
 frontend:
@@ -30,8 +35,6 @@ devices:
     friendly_name: toilet_door
   '0x00158d0002286aa4':
     friendly_name: living_room_door
-  '0x00158d000232cfca':
-    friendly_name: office_door
   '0x54ef4410004d97e6':
     friendly_name: bedroom_human
   '0x54ef4410004d58d7':
@@ -44,8 +47,6 @@ devices:
     friendly_name: bathroom_motion
   '0x54ef4410004d70d1':
     friendly_name: kitchen_human
-  '0x000d6f000bbc56c3':
-    friendly_name: test_smart_plug
   '0x00158d000854274f':
     friendly_name: garden_door
   '0x54ef4410004973e7':
@@ -128,14 +129,33 @@ devices:
   '0x54ef441000518a1b':
     friendly_name: baby_room_human
   '0x540f57fffe3c228f':
-    friendly_name: baby_room_power
-    measurement_poll_interval: 60
-  '0x540f57fffe3c25a9':
-    friendly_name: bedroom_power
-    measurement_poll_interval: 60
-    power_calibration: 0
-  '0x94deb8fffe278118':
-    friendly_name: bedroom_fan_power
+    friendly_name: baby_room_moon_light
     measurement_poll_interval: 60
   '0x00158d0002286a8a':
     friendly_name: hallway_door
+  '0x9c6937000070e16e':
+    friendly_name: toilet_1_light
+    transition: 0
+  '0xc498860000006fc0':
+    friendly_name: toilet_2_light
+    transition: 0
+  '0x54ef4410001ff9a4':
+    friendly_name: office_illuminance
+  '0x54ef4410001ff3d3':
+    friendly_name: bedroom_illuminance
+  '0x54ef4410001ff3df':
+    friendly_name: bathroom_illuminance
+  '0x54ef4410001ff3da':
+    friendly_name: baby_room_illuminance
+  '0x54ef4410001ff967':
+    friendly_name: hallway_illuminance
+  '0x54ef4410001ff3e1':
+    friendly_name: living_room_illuminance
+  '0x54ef4410004e44a9':
+    friendly_name: bedroom_motion
+  '0x54ef4410004e39af':
+    friendly_name: office_motion
+  '0x54ef4410004e3ea7':
+    friendly_name: baby_room_motion
+  '0x00158d00085428bc':
+    friendly_name: office_door

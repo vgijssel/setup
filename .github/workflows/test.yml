@@ -30,7 +30,7 @@ jobs:
             cache/bazel_repository_cache
           key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
           restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
-      - run: brew install just
+      - run: sudo snap install --edge --classic just
       - id: changed-test-targets
         run: just changed-test-targets-current-branch
 
@@ -52,9 +52,9 @@ jobs:
           restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
       # removing the aws CLI so it can be installed by the workstation provisioning
       - run: rm /usr/local/bin/aws /usr/local/bin/aws_completer
-      - run: brew install docker colima
+      - run: brew install docker
       - run: colima start
-      - run: docker image ls
+      - run: docker info
       - run: bazel run //workstation:test
 
   hypervisor-test:

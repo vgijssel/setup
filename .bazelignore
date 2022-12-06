@@ -2,5 +2,8 @@
 # fix described here https://github.com/bazelbuild/bazel/issues/10653
 
 bazel-setup
-
 .git
+tmp
+
+esphome_nimble/.esphome
+esphome_nimble/tmp

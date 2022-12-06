@@ -1,0 +1,46 @@
+sync:
+  defaults:
+    ignore:
+      paths:
+        - __pycache__
+        - mutagen.yml.lock
+        - .esphome
+        - tmp
+        - .DS_Store
+
+  home-assistant:
+    alpha: "./home-assistant"
+    beta: "192.168.1.30:/data/home-assistant"
+    mode: "two-way-safe"
+    ignore:
+      paths:
+        - /zigbee2mqtt-data/*
+        - "!/zigbee2mqtt-data/configuration.yaml"
+        - "!/zigbee2mqtt-data/secret.yaml"
+
+        - /config/*
+        - "!/config/configuration.yaml"
+        - "!/config/automations.yaml"
+        - "!/config/blueprints"
+        - "!/config/scenes.yaml"
+        - "!/config/scripts.yaml"
+        - "!/config/secrets.yaml"
+        - "!/config/custom_components"
+        - "!/config/appdaemon"
+        - "/config/appdaemon/compiled"
+
+        - esphome-data/.esphome
+
+  esphome-nimble:
+    alpha: "./esphome_nimble"
+    beta: "192.168.1.30:/data/esphome_nimble"
+    mode: "two-way-safe"
+
+forward:
+  zigbee2mqtt-ui:
+    source: "tcp:localhost:8092"
+    destination: "192.168.1.30:tcp:localhost:8080"
+
+  esphome-ui:
+    source: "tcp:localhost:6052"
+    destination: "192.168.1.30:tcp:localhost:6052"
