@@ -14,9 +14,6 @@ sync:
     mode: "two-way-safe"
     ignore:
       paths:
-        - zwavejs2mqtt-data/
-        - "!zwavejs2mqtt-data/settings.json"
-
         - /zigbee2mqtt-data/*
         - "!/zigbee2mqtt-data/configuration.yaml"
         - "!/zigbee2mqtt-data/secret.yaml"
@@ -40,10 +37,6 @@ sync:
     mode: "two-way-safe"
 
 forward:
-  zwavejs2mqtt-ui:
-    source: "tcp:localhost:8091"
-    destination: "192.168.1.30:tcp:localhost:8091"
-
   zigbee2mqtt-ui:
     source: "tcp:localhost:8092"
     destination: "192.168.1.30:tcp:localhost:8080"
