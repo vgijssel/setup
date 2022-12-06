@@ -2,6 +2,7 @@ substitutions:
   device_name: "garden-shelly"
   entity_id: "garden_shelly"
   room_name: "garden"
+  static_ip: "192.168.1.64"
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml
