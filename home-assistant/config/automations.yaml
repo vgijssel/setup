@@ -103,7 +103,7 @@
       - binary_sensor.baby_room_motion_general_purpose_state_2
       - binary_sensor.bedroom_motion_occupancy
       - binary_sensor.laundry_room_motion_occupancy
-      - binary_sensor.motion_sensor_home_security_motion_detection
+      - binary_sensor.office_motion_occupancy
       - binary_sensor.bathroom_motion_occupancy
       - binary_sensor.landing_motion_occupancy
       presence_timeout: 120
@@ -146,7 +146,7 @@
       presence_entity_id: variable.office_presence
       presence_indicator_entity_ids:
       - binary_sensor.office_human_presence
-      - binary_sensor.motion_sensor_home_security_motion_detection
+      - binary_sensor.office_motion_occupancy
       presence_hint_entity_ids:
       - binary_sensor.office_door_contact
       - binary_sensor.office_shelly_input
