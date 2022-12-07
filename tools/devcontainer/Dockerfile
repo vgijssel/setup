@@ -103,3 +103,4 @@ ENV USER devcontainer
 # Run some basic assertions
 RUN aspect --version \
     && git --version
+

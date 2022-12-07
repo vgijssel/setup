@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# NOTE: this script is not part of Taskfile, because Taskfile tries to generate environment variables using 
+# git, but will fail if the directory is not marked as safe first.
+
+set -Eeou pipefail
+
+sudo chmod 777 /var/run/docker.sock
+sudo chown devcontainer:devcontainer $(pwd)
+
+CI="${CI:-false}"
+
+if [ "${CI}" = "false" ]; then
+    # Ensure the linters are built for local development
+    # Caching Bazel outside of the container will make sure this is quick between container rebuilds
+    aspect build @buildifier_prebuilt//:buildifier
+fi

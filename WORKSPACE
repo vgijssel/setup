@@ -1,6 +1,6 @@
 workspace(name = "setup")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file", "http_jar")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 # ------------------------------------ skylib ------------------------------------ #
@@ -15,7 +15,6 @@ http_archive(
 )
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
 
 bazel_skylib_workspace()
 
@@ -108,8 +107,6 @@ http_file(
 # )
 
 # ------------------------------------ bazel-diff ------------------------------------ #
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
 
 http_jar(
     name = "bazel_diff",
@@ -232,3 +229,22 @@ pip_parse(
 load("@occupancy_component//:requirements.bzl", install_occupancy_component_deps = "install_deps")
 
 install_occupancy_component_deps()
+
+# ------------------------------------ buildifier ------------------------------------ #
+
+http_archive(
+    name = "buildifier_prebuilt",
+    sha256 = "ecef8f8c39eaf4f1c1604c677d232ade33818f898e35e7826e7564a648751350",
+    strip_prefix = "buildifier-prebuilt-5.1.0.2",
+    urls = [
+        "http://github.com/keith/buildifier-prebuilt/archive/5.1.0.2.tar.gz",
+    ],
+)
+
+load("@buildifier_prebuilt//:deps.bzl", "buildifier_prebuilt_deps")
+
+buildifier_prebuilt_deps()
+
+load("@buildifier_prebuilt//:defs.bzl", "buildifier_prebuilt_register_toolchains")
+
+buildifier_prebuilt_register_toolchains()

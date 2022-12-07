@@ -13,7 +13,7 @@
         "vspacecode.vspacecode",
         "alexanderbast.vscode-snazzy",
         "tilt-dev.tiltfile",
-        "GitHub.remotehub",
+        "GitHub.remotehub"
       ]
     }
   },
@@ -28,8 +28,10 @@
     "files.associations": {
       ".bazelrc": "plaintext"
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "bazel.buildifierExecutable": "/tmp/bazel-setup-bin/external/buildifier_prebuilt/buildifier/buildifier"
   },
   "shutdownAction": "stopContainer",
+  "postAttachCommand": "bin/post-setup",
   "runArgs": ["--name", "setup-devcontainer"]
 }

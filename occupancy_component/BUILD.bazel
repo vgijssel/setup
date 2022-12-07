@@ -12,8 +12,8 @@ compile_pip_requirements(
 py_library(
     name = "lib",
     srcs = [
-        "custom_components/occupancy/const.py",
         "custom_components/occupancy/__init__.py",
+        "custom_components/occupancy/const.py",
     ],
     data = [
         "custom_components/occupancy/manifest.json",
@@ -25,9 +25,12 @@ py_pytest_test(
     name = "test",
     size = "small",
     srcs = [
-        "tests/test_init.py",
         "tests/conftest.py",
+        "tests/test_init.py",
     ],
-    deps = [":lib", requirement("pytest-homeassistant-custom-component")],
     imports = ["."],
+    deps = [
+        ":lib",
+        requirement("pytest-homeassistant-custom-component"),
+    ],
 )
