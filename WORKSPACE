@@ -3,6 +3,8 @@ workspace(name = "setup")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
+# ------------------------------------ skylib ------------------------------------ #
+
 http_archive(
     name = "bazel_skylib",
     sha256 = "f7be3474d42aae265405a592bb7da8e171919d74c16f082a5457840f06054728",
@@ -17,10 +19,36 @@ load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
 
 bazel_skylib_workspace()
 
-# TODO: no binary available for M1!
-# rules_packer_toolchains(
-#     version = "1.8.0",
-# )
+# ------------------------------------ rules_python ------------------------------------ #
+
+http_archive(
+    name = "rules_python",
+    sha256 = "b593d13bb43c94ce94b483c2858e53a9b811f6f10e1e0eedc61073bd90e58d9c",
+    strip_prefix = "rules_python-0.12.0",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.12.0.tar.gz",
+)
+
+load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+
+python_register_toolchains(
+    name = "python3",
+    python_version = "3.10",
+)
+
+load("@python3//:defs.bzl", "interpreter")
+load("@rules_python//python:pip.bzl", "pip_parse")
+
+# ------------------------------------ hypervisor ------------------------------------ #
+
+pip_parse(
+    name = "hypervisor_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "//hypervisor:requirements_lock.txt",
+)
+
+load("@hypervisor_deps//:requirements.bzl", "install_deps")
+
+install_deps()
 
 # https://cloud-images.ubuntu.com/focal/current/unpacked/
 http_file(
@@ -47,33 +75,6 @@ http_file(
         "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img",
     ],
 )
-
-http_archive(
-    name = "rules_python",
-    sha256 = "b593d13bb43c94ce94b483c2858e53a9b811f6f10e1e0eedc61073bd90e58d9c",
-    strip_prefix = "rules_python-0.12.0",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.12.0.tar.gz",
-)
-
-load("@rules_python//python:repositories.bzl", "python_register_toolchains")
-
-python_register_toolchains(
-    name = "python3",
-    python_version = "3.10",
-)
-
-load("@python3//:defs.bzl", "interpreter")
-load("@rules_python//python:pip.bzl", "pip_parse")
-
-pip_parse(
-    name = "hypervisor_deps",
-    python_interpreter_target = interpreter,
-    requirements_lock = "//hypervisor:requirements_lock.txt",
-)
-
-load("@hypervisor_deps//:requirements.bzl", "install_deps")
-
-install_deps()
 
 # git_repository(
 #     name = "bazelruby_rules_ruby",
@@ -106,6 +107,8 @@ install_deps()
 #     },
 # )
 
+# ------------------------------------ bazel-diff ------------------------------------ #
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
 
 http_jar(
@@ -115,6 +118,8 @@ http_jar(
         "https://github.com/Tinder/bazel-diff/releases/download/4.0.8/bazel-diff_deploy.jar",
     ],
 )
+
+# ------------------------------------ rules_docker ------------------------------------ #
 
 http_archive(
     name = "io_bazel_rules_go",
@@ -153,6 +158,8 @@ load(
     "container_pull",
 )
 
+# ------------------------------------ workstation ------------------------------------ #
+
 container_pull(
     name = "ubuntu_base",
     digest = "sha256:b18dbe0837fd555c7028af6a1281ffa4fd1b5ffd835968f1009fd4cf9dfeaec3",
@@ -174,6 +181,8 @@ http_file(
     url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_amd64.deb",
 )
 
+# ------------------------------------ rules_pkg ------------------------------------ #
+
 http_archive(
     name = "rules_pkg",
     sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
@@ -187,6 +196,8 @@ load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 rules_pkg_dependencies()
 
+# ------------------------------------ multirun ------------------------------------ #
+
 git_repository(
     name = "com_github_ash2k_bazel_tools",
     commit = "8ec69576f63c254a089a63ebf7385e7ee1a871e9",
@@ -198,7 +209,7 @@ load("@com_github_ash2k_bazel_tools//multirun:deps.bzl", "multirun_dependencies"
 
 multirun_dependencies()
 
-
+# ------------------------------------ aspect_rules_format ------------------------------------ #
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
@@ -231,3 +242,27 @@ parse_dependencies()
 load("@aspect_rules_format//format:toolchains.bzl", "format_register_toolchains")
 
 format_register_toolchains()
+
+# ------------------------------------ pytest ------------------------------------ #
+
+pip_parse(
+    name = "pytest",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@//tools/pytest:requirements.lock",
+)
+
+load("@pytest//:requirements.bzl", install_pytest_deps = "install_deps")
+
+install_pytest_deps()
+
+# ------------------------------------ occupancy_component ------------------------------------ #
+
+pip_parse(
+    name = "occupancy_component",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@//occupancy_component:requirements.lock",
+)
+
+load("@occupancy_component//:requirements.bzl", install_occupancy_component_deps = "install_deps")
+
+install_occupancy_component_deps()

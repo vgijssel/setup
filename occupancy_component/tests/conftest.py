@@ -1,6 +1,7 @@
 """pytest fixtures."""
 import pytest
 from homeassistant.setup import async_setup_component
+
 from custom_components.occupancy.const import DOMAIN
 from homeassistant.components.demo.binary_sensor import DemoBinarySensor
 
