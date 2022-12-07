@@ -63,3 +63,4 @@ function print_output {
 
 print_output "//workstation:test" "workstation-test"
 print_output "//hypervisor:kitchen" "hypervisor-test"
+print_output "//occupancy_component:test" "occupancy_component-test"

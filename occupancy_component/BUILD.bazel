@@ -1,0 +1,33 @@
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@occupancy_component//:requirements.bzl", "requirement")
+load("//tools/pytest:pytest.bzl", "py_pytest_test")
+
+compile_pip_requirements(
+    name = "requirements",
+    extra_args = ["--allow-unsafe"],
+    requirements_in = "requirements.in",
+    requirements_txt = "requirements.lock",
+)
+
+py_library(
+    name = "lib",
+    srcs = [
+        "custom_components/occupancy/const.py",
+        "custom_components/occupancy/__init__.py",
+    ],
+    data = [
+        "custom_components/occupancy/manifest.json",
+    ],
+    imports = ["."],
+)
+
+py_pytest_test(
+    name = "test",
+    size = "small",
+    srcs = [
+        "tests/test_init.py",
+        "tests/conftest.py",
+    ],
+    deps = [":lib", requirement("pytest-homeassistant-custom-component")],
+    imports = ["."],
+)

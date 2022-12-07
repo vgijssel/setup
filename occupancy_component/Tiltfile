@@ -1,0 +1,31 @@
+load('../tools/tilt/post_build/Tiltfile', 'post_build')
+
+docker_compose("./docker-compose.yml")
+
+docker_build(
+    "setup/home-assistant",
+    ".",
+    live_update=[
+        sync('configuration.yaml', '/config/configuration.yaml'),
+        sync('custom_components', '/config/custom_components/'),
+        restart_container(),
+    ]
+)
+
+post_build(
+    "skip_onboarding",
+    resource="home-assistant",
+    cmd="""
+    docker compose exec home-assistant wait-for -t 0 localhost:8123
+
+    curl --location --request POST 'http://127.0.0.1:8123/api/onboarding/users' \
+    --header 'Content-Type: application/json' \
+    --data-raw '{
+        "client_id": "http://127.0.0.1:8123/",
+        "name": "admin",
+        "username": "admin",
+        "password": "admin",
+        "language": "en"
+    }'
+    """,
+)

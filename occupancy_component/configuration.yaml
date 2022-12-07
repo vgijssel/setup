@@ -1,0 +1,39 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+homeassistant:
+  name: testing
+  latitude: 0
+  longitude: 0
+  elevation: 0
+  unit_system: metric
+  time_zone: Europe/Amsterdam
+
+logger:
+  default: info
+  logs:
+    custom_components.occupancy: debug
+
+mqtt:
+  binary_sensor:
+    - name: front_door_contact
+      state_topic: "home-assistant/front_door/contact"
+      device_class: "door"
+      payload_on: "ON"
+      payload_off: "OFF"
+    - name: front_door_motion_occupancy
+      state_topic: "home-assistant/front_door/motion_occupancy"
+      device_class: "motion"
+      payload_on: "ON"
+      payload_off: "OFF"
+
+occupancy:
+  doors: 
+    front_door:
+      entry: true
+      contact_sensor: binary_sensor.front_door_contact
+      motion_sensor: binary_sensor.front_door_motion_occupancy
+  areas:
+    hallway:
+      occupancy_sensors: []
+      doors: ['front_door']
