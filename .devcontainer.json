@@ -30,7 +30,8 @@
       ".bazelrc": "plaintext"
     },
     "editor.formatOnSave": true,
-    "bazel.buildifierExecutable": "/tmp/bazel-setup-bin/external/buildifier_prebuilt/buildifier/buildifier"
+    "bazel.buildifierExecutable": "/tmp/bazel-setup-bin/external/buildifier_prebuilt/buildifier/buildifier",
+    "prettier.executablePath": "/tmp/bazel-setup-bin/external/aspect_rules_format/format/prettier.sh"
   },
   "shutdownAction": "stopContainer",
   "postAttachCommand": "bin/post-setup",
