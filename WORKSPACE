@@ -209,40 +209,6 @@ load("@com_github_ash2k_bazel_tools//multirun:deps.bzl", "multirun_dependencies"
 
 multirun_dependencies()
 
-# ------------------------------------ aspect_rules_format ------------------------------------ #
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-http_archive(
-    name = "aspect_rules_format",
-    sha256 = "3eaa9851e09e3d2813e6c4ac1b6153e64ee44b494fa4ddf36fff2ba8b105e8db",
-    strip_prefix = "bazel-super-formatter-0.3.1",
-    url = "https://github.com/aspect-build/bazel-super-formatter/archive/refs/tags/v0.3.1.tar.gz",
-)
-
-load("@aspect_rules_format//format:repositories.bzl", "rules_format_dependencies")
-
-rules_format_dependencies()
-
-# If you didn't already register a toolchain providing nodejs, do that:
-load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
-
-nodejs_register_toolchains(
-    name = "node",
-    node_version = DEFAULT_NODE_VERSION,
-)
-
-load("@aspect_rules_format//format:dependencies.bzl", "parse_dependencies")
-
-parse_dependencies()
-
-# Installs toolchains for running programs under Node, Python, etc.
-# Be sure to register your own toolchains before this.
-# Most users should do this LAST in their WORKSPACE to avoid getting our versions of
-# things like the Go toolchain rather than the one you intended.
-load("@aspect_rules_format//format:toolchains.bzl", "format_register_toolchains")
-
-format_register_toolchains()
-
 # ------------------------------------ pytest ------------------------------------ #
 
 pip_parse(
