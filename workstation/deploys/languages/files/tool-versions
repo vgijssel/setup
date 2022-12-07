@@ -1,8 +1,9 @@
 golang 1.17.5
+nodejs 12.20.0
 terraform 1.0.6
 packer 1.8.3
 terraform-lsp 0.0.11-beta2
-python 3.10.7
+python 3.9.7
 kubectl 1.24.3
 vault 1.7.3
 pulumi 3.31.0
