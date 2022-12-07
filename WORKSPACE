@@ -248,3 +248,15 @@ buildifier_prebuilt_deps()
 load("@buildifier_prebuilt//:defs.bzl", "buildifier_prebuilt_register_toolchains")
 
 buildifier_prebuilt_register_toolchains()
+
+# ------------------------------------ black ------------------------------------ #
+
+pip_parse(
+    name = "black",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@//tools/black:requirements.lock",
+)
+
+load("@black//:requirements.bzl", install_black_deps = "install_deps")
+
+install_black_deps()

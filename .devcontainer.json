@@ -24,6 +24,7 @@
   ],
   "settings": {
     "python.formatting.provider": "black",
+    "python.formatting.blackPath": "/tmp/bazel-setup-bin/external/black_black/rules_python_wheel_entry_point_black",
     "terminal.integrated.scrollback": 10000,
     "files.associations": {
       ".bazelrc": "plaintext"
