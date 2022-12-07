@@ -20,6 +20,7 @@ jobs:
     outputs:
       run-workstation-test: ${{ steps.changed-test-targets.outputs.workstation-test }}
       run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
+      run-occupancy_component-test: ${{ steps.changed-test-targets.outputs.occupancy_component-test }}
     steps:
       - uses: actions/checkout@v1
       - uses: pat-s/always-upload-cache@v3.0.1
@@ -33,6 +34,24 @@ jobs:
       - run: sudo snap install --edge --classic just
       - id: changed-test-targets
         run: just changed-test-targets-current-branch
+
+  occupancy_component-test:
+    if: needs.select_tests_to_run.outputs.run-occupancy_component-test == 'true'
+    name: Occupancy Component test
+    needs: select_tests_to_run
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: pat-s/always-upload-cache@v3.0.1
+        id: bazel-cache
+        with:
+          path: |
+            cache/bazel_cache
+            cache/bazel_repository_cache
+          key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
+          restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
+      - run: bazel test //occupancy_component:test
 
   workstation-test:
     if: needs.select_tests_to_run.outputs.run-workstation-test == 'true'
