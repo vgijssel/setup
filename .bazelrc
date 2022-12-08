@@ -11,7 +11,9 @@ query:quiet --ui_event_filters=-info --noshow_progress
 # Move the bazel symlinks outside of the project root to avoid the symlinks appearing in the volume mount
 build --symlink_prefix=/tmp/bazel-setup-
 
-startup --output_user_root=/home/devcontainer/.cache/bazel
+build --disk_cache /home/devcontainer/bazel/disk_cache
+build --repository_cache /home/devcontainer/bazel/repository_cache
+startup --output_base=/home/devcontainer/bazel/output_base
 
 # Print warning messages about test suite being configured as too small/big
 test --test_verbose_timeout_warnings
