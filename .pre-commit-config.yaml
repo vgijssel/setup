@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: bazel-super-formatter
+        name: Format
+        language: system
+        entry: aspect run @aspect_rules_format//format
+        files: .*

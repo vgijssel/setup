@@ -230,6 +230,18 @@ load("@occupancy_component//:requirements.bzl", install_occupancy_component_deps
 
 install_occupancy_component_deps()
 
+# ------------------------------------ pre-commit ------------------------------------ #
+
+pip_parse(
+    name = "pre-commit",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@//tools/pre-commit:requirements.lock",
+)
+
+load("@pre-commit//:requirements.bzl", install_pre_commit_deps = "install_deps")
+
+install_pre_commit_deps()
+
 # ------------------------------------ rules_format ------------------------------------ #
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
