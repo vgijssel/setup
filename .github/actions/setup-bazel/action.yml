@@ -8,7 +8,9 @@ runs:
       id: bazel-cache
       with:
         path: |
-          tmp/bazel_cache
-          tmp/bazel_repository_cache
+          tmp/bazel/disk_cache
+          tmp/bazel/repository_cache
         key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
         restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
+    - run: bin/post-setup
+      shell: bash

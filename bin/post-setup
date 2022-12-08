@@ -7,10 +7,13 @@ set -Eeou pipefail
 
 sudo chmod 777 /var/run/docker.sock
 sudo chown devcontainer:devcontainer $(pwd)
+sudo chown devcontainer:devcontainer /home/devcontainer/.cache/bazel
 
 CI="${CI:-false}"
 
-if [ "${CI}" = "false" ]; then
+if [ "${CI}" = "true" ]; then
+    bin/generate-ci-bazelrc
+else
     # Ensure the linters are built for local development
     # Caching Bazel outside of the container will make sure this is quick between container rebuilds
     aspect build @aspect_rules_format//format
