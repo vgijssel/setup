@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# NOTE: this is a modification of the original pre-commit pre-push hook which you can generate with:
-# `pre-commit install --hook-type pre-push`
+# NOTE: this is a modification of the original pre-commit pre-commit hook which you can generate with:
+# `pre-commit install --hook-type pre-commit`
 
-ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-push)
+ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit)
 HERE="/workspaces/setup"
 ARGS+=(--hook-dir "${HERE}" -- "$@")
 DEVCONTAINER="setup-devcontainer"
