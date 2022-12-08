@@ -75,6 +75,12 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install bazel dependencies 
+RUN apt-get update \
+    && apt-get install -y build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install aspect cli tool for bazel
 ENV ASPECT_CLI_VERSION="5.0.2"
 RUN case ${TARGETARCH} in \

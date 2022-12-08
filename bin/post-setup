@@ -9,7 +9,7 @@ if [ "${CI}" = "true" ]; then
 else
     sudo chmod 777 /var/run/docker.sock
     sudo chown devcontainer:devcontainer $(pwd)
-    sudo chown devcontainer:devcontainer /home/devcontainer/.cache/bazel
+    sudo chown devcontainer:devcontainer /home/devcontainer/bazel
 
     # Ensure the linters are built for local development
     # Caching Bazel outside of the container will make sure this is quick between container rebuilds
