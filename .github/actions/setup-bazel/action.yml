@@ -3,7 +3,6 @@ description: "Setup the CI to work properly with Bazel"
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v1
     - uses: pat-s/always-upload-cache@v3.0.1
       id: bazel-cache
       with:

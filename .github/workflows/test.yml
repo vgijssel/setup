@@ -22,6 +22,7 @@ jobs:
       run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
       run-occupancy_component-test: ${{ steps.changed-test-targets.outputs.occupancy_component-test }}
     steps:
+      - uses: actions/checkout@v1
       - uses: ./.github/actions/setup-bazel
       - run: sudo snap install --edge --classic just
       - id: changed-test-targets
@@ -34,6 +35,7 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
       - uses: ./.github/actions/setup-bazel
       - run: bazel test //occupancy_component:test
 
@@ -44,6 +46,7 @@ jobs:
     timeout-minutes: 30
     runs-on: macos-12
     steps:
+      - uses: actions/checkout@v1
       - uses: ./.github/actions/setup-bazel
       # removing the aws CLI so it can be installed by the workstation provisioning
       - run: rm /usr/local/bin/aws /usr/local/bin/aws_completer
