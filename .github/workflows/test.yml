@@ -28,6 +28,15 @@ jobs:
       - id: changed-test-targets
         run: just changed-test-targets-current-branch
 
+  pre-commit-check:
+    name: pre-commit check
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./.github/actions/setup-bazel
+      - run: bazel run //tools/pre-commit -- run --all-files --show-diff-on-failure
+
   occupancy_component-test:
     if: needs.select_tests_to_run.outputs.run-occupancy_component-test == 'true'
     name: Occupancy Component test
