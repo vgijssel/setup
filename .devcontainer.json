@@ -1,6 +1,10 @@
 {
   "name": "mvgijssel/setup Devcontainer",
-  "build": { "dockerfile": "./tools/devcontainer/Dockerfile", "context": "." },
+  "build": {
+    "dockerfile": "./tools/devcontainer/Dockerfile",
+    "context": ".",
+    "args": { "USER_UID": "501", "USER_GID": "1000" }
+  },
   "customizations": {
     "vscode": {
       "extensions": [

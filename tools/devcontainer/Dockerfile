@@ -24,9 +24,12 @@ RUN apt-get update \
 
 # Setup non-root user for the container
 # with the ability to use passwordless sudo
+ARG USER_UID=1000
+ARG USER_GID=1000
 RUN apt-get update \
     && apt-get install -y sudo \
-    && useradd -u 1000 -m devcontainer -s /bin/bash \
+    && groupadd -r -g ${USER_GID} devcontainer \
+    && useradd -u ${USER_UID} -g ${USER_GID} -m devcontainer -s /bin/bash \
     && adduser devcontainer sudo \
     && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     && apt-get clean \
