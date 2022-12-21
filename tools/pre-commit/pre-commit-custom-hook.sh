@@ -6,11 +6,11 @@ ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit --color=
 HERE="/workspaces/setup"
 ARGS+=(--hook-dir "${HERE}" -- "$@")
 DEVCONTAINER="setup-devcontainer"
-COMMAND="aspect run //tools/pre-commit -- ${ARGS[@]}"
+COMMAND="bazel run //tools/pre-commit -- ${ARGS[@]}"
 
-if [ "$( docker container inspect -f '{{.State.Running}}' $DEVCONTAINER )" == "true" ]; then
-    docker exec -t -w $HERE $DEVCONTAINER $COMMAND
+if [ "$(docker container inspect -f '{{.State.Running}}' $DEVCONTAINER)" == "true" ]; then
+  docker exec -t -w $HERE $DEVCONTAINER $COMMAND
 else
-   echo "${DEVCONTAINER} is not running, skipping pre-commit." 
-   exit 0
+  echo "${DEVCONTAINER} is not running, skipping pre-commit."
+  exit 0
 fi

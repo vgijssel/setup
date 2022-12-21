@@ -4,5 +4,5 @@ repos:
       - id: bazel-super-formatter
         name: Format
         language: system
-        entry: aspect run @aspect_rules_format//format
+        entry: bazel run @aspect_rules_format//format
         files: .*

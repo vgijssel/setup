@@ -16,5 +16,5 @@ else
 
     # Ensure the linters are built for local development
     # Caching Bazel outside of the container will make sure this is quick between container rebuilds
-    aspect build @aspect_rules_format//format
+    bazel build @aspect_rules_format//format
 fi
