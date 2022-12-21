@@ -11,12 +11,12 @@
 192.168.1.12 - Unifi babykamer-ap
 192.168.1.13 - Unifi tuin-ap
 
-192.168.1.20 - Unifi babykamer-cam *
-192.168.1.21 - Unifi oprit-cam *
+192.168.1.20 - Unifi babykamer-cam _
+192.168.1.21 - Unifi oprit-cam _
 
 192.168.1.30 - hypervisor
-192.168.1.31 - hyperbian * + home assistant update
-192.168.1.40 - 192.168.1.49 - opennebula * + port forward
+192.168.1.31 - hyperbian _ + home assistant update
+192.168.1.40 - 192.168.1.49 - opennebula _ + port forward
 
 192.168.1.60 - baby-room-shelly
 192.168.1.61 - bathroom-shelly

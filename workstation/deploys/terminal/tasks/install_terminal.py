@@ -93,7 +93,9 @@ def install_terminal():
             target_file=f".{file}",
         )
 
-    homebrew_zsh_path = os.path.join(host.get_fact(Command, 'brew --prefix'), 'bin', 'zsh')
+    homebrew_zsh_path = os.path.join(
+        host.get_fact(Command, "brew --prefix"), "bin", "zsh"
+    )
     current_user = host.get_fact(User)
 
     files.line(

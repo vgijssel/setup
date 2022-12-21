@@ -8,18 +8,18 @@ build --java_runtime_version=remotejdk_11
 build:quiet --ui_event_filters=-info --noshow_progress
 query:quiet --ui_event_filters=-info --noshow_progress
 
-# Specify cache directory to make it easier to share the cache in the CI
-build --disk_cache tmp/bazel_cache
-build --repository_cache tmp/bazel_repository_cache
-
 # Move the bazel symlinks outside of the project root to avoid the symlinks appearing in the volume mount
 build --symlink_prefix=/tmp/bazel-setup-
 
-# NOTE: this flag is deprecated but significantly increases the performance of Bazel inside of Docker! 
-build --watchfs=true
+build --disk_cache /home/devcontainer/bazel/disk_cache
+build --repository_cache /home/devcontainer/bazel/repository_cache
+startup --output_base=/home/devcontainer/bazel/output_base
 
 # Print warning messages about test suite being configured as too small/big
 test --test_verbose_timeout_warnings
 
 # Output test logs to the console when there are errors
 test --test_output=errors
+
+# The CI has some specific configuration which we only want to load in the CI
+try-import %workspace%/ci.bazelrc

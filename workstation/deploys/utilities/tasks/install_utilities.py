@@ -11,12 +11,12 @@ def install_utilities():
         "notion",
         "spotify",
         "viscosity",
-        "todoist"
+        "todoist",
     ]
 
     # Currently unable to install docker in the CI
-    if os.environ.get('CI', 'false') == 'false':
-        utilities = utilities + ['docker']
+    if os.environ.get("CI", "false") == "false":
+        utilities = utilities + ["docker"]
 
     brew.casks(
         name="Install Apps",
@@ -30,7 +30,7 @@ def install_utilities():
         name="Install tools",
         packages=[
             "awscli",
-            "dive", # to check contents of docker layers
+            "dive",  # to check contents of docker layers
         ],
         present=True,
         update=False,

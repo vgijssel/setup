@@ -42,23 +42,22 @@ $bazel_diff generate-hashes -w $workspace_path -b $bazel_path $final_hashes_json
 echo "Determining Impacted Targets"
 $bazel_diff get-impacted-targets -sh $starting_hashes_json -fh $final_hashes_json -o $impacted_targets_path
 
-
 echo "Impacted Targets between $previous_revision and $final_revision:"
 echo "$(cat $impacted_targets_path)"
 echo ""
 
 function print_output {
-    TARGET="$1"
-    OUTPUT="$2"
+  TARGET="$1"
+  OUTPUT="$2"
 
-    if grep -q "^$TARGET$" "$impacted_targets_path"; then
-        RESULT="true"
-    else
-        RESULT="false"
-    fi
+  if grep -q "^$TARGET$" "$impacted_targets_path"; then
+    RESULT="true"
+  else
+    RESULT="false"
+  fi
 
-    echo "For target $TARGET setting output $OUTPUT to $RESULT"
-    echo "::set-output name=$OUTPUT::$RESULT"
+  echo "For target $TARGET setting output $OUTPUT to $RESULT"
+  echo "::set-output name=$OUTPUT::$RESULT"
 }
 
 print_output "//workstation:test" "workstation-test"

@@ -5,6 +5,7 @@ from pyinfra.facts.server import Home
 from pyinfra.operations import brew, files
 from pyinfra import host
 
+
 @deploy("Install SSH")
 def install_ssh():
     brew.packages(

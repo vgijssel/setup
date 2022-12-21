@@ -9,13 +9,10 @@ window.customIcons = window.customIcons || {};
 window.customIconsets = window.customIconsets || {};
 
 window.customIcons["hacs"] = {
-  getIcon: async (iconName) => (
-    { path: hacsIcons[iconName]?.path }
-  ),
+  getIcon: async (iconName) => ({ path: hacsIcons[iconName]?.path }),
   getIconList: async () =>
     Object.entries(hacsIcons).map(([icon, content]) => ({
       name: icon,
       keywords: content.keywords,
-    })
-    )
+    })),
 };

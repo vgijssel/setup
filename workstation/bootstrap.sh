@@ -11,8 +11,7 @@ DEVELOPMENT_DIR="$HOME/Development"
 SETUP_DIR="$DEVELOPMENT_DIR/setup"
 CHECKOUT_BRANCH="${BRANCH:-master}"
 
-if [ ! -f '.env.bootstrap' ]
-then
+if [ ! -f '.env.bootstrap' ]; then
   echo "Please create a .env.bootstrap file in $(pwd)"
   exit 1
 fi
@@ -28,7 +27,7 @@ trap "exit 1" HUP INT QUIT PIPE TERM
 
 # From https://apple.stackexchange.com/questions/23494/what-option-should-i-give-the-sudo-command-to-have-the-password-asked-through-a/23514#23514
 # Prompt user for sudo password
-SUDO_PASSWORD="$(osascript -e 'Tell application "System Events" to display dialog "Sudo password:" default answer "" with hidden answer' -e 'text returned of result' 2>/dev/null)"
+SUDO_PASSWORD="$(osascript -e 'Tell application "System Events" to display dialog "Sudo password:" default answer "" with hidden answer' -e 'text returned of result' 2> /dev/null)"
 
 # Setup our custom askpass binary
 cat << EOF > $SUDO_ASKPASS_BINARY
@@ -45,17 +44,17 @@ if test ! $(which brew); then
   # The empty echo makes sure we don't need to press RETURN when installing homebrew
   echo | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 else
-    echo "Homebrew found. Skipping installation"
+  echo "Homebrew found. Skipping installation"
 fi
 
 # Prevent homebrew updating all existing packages before installing the requested packages
 export HOMEBREW_NO_AUTO_UPDATE=1
 
 if test ! $(which bazelisk); then
-    echo "Installing bazelisk"
-    brew install bazelisk
+  echo "Installing bazelisk"
+  brew install bazelisk
 else
-    echo "Bazelisk found. Skipping installation"
+  echo "Bazelisk found. Skipping installation"
 fi
 
 if [[ ! -e "$SETUP_DIR" ]]; then

@@ -25,17 +25,17 @@ for var in $VARS; do
   # from: https://stackoverflow.com/a/30205555
   # if the variable $var does not exist
   if [ -z ${!var+x} ]; then
-      # set an empty environment variable
-      echo "$var=''" >> $GITHUB_ENV
+    # set an empty environment variable
+    echo "$var=''" >> $GITHUB_ENV
   else
-      # set the value of $var in the env
-      echo "$var=${!var}" >> $GITHUB_ENV
+    # set the value of $var in the env
+    echo "$var=${!var}" >> $GITHUB_ENV
   fi
 done
 
 if [[ $GIT_REF = "refs/heads/HEAD" ]]; then
   echo "GIT_REF value is not correct: '$GIT_REF', " \
-       "please check if .envrc sourcing is done correctly."
+    "please check if .envrc sourcing is done correctly."
 
   exit 1
 fi

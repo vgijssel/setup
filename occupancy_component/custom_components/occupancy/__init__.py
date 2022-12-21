@@ -14,7 +14,15 @@ from homeassistant.helpers.event import (
 
 _LOGGER = logging.getLogger(__name__)
 
-from custom_components.occupancy.const import DOMAIN, ATTR_DOORS, ATTR_ENTRY, ATTR_CONTACT_SENSOR, ATTR_MOTION_SENSOR, ATTR_AREAS, ATTR_OCCUPANCY_SENSORS
+from custom_components.occupancy.const import (
+    DOMAIN,
+    ATTR_DOORS,
+    ATTR_ENTRY,
+    ATTR_CONTACT_SENSOR,
+    ATTR_MOTION_SENSOR,
+    ATTR_AREAS,
+    ATTR_OCCUPANCY_SENSORS,
+)
 
 ENTITY_ID_FORMAT = DOMAIN + ".{}"
 
@@ -24,40 +32,57 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_component import EntityComponent
 
-CONFIG_SCHEMA = vol.Schema({
-    DOMAIN: vol.Schema({
-        vol.Required(ATTR_DOORS): vol.Schema({
-            cv.slug: vol.Schema({
-                vol.Optional(ATTR_ENTRY): cv.boolean, 
-                vol.Optional(ATTR_CONTACT_SENSOR): cv.string, # or null
-                vol.Optional(ATTR_MOTION_SENSOR): cv.string, # or null
-            })
-        }),
-        vol.Required(ATTR_AREAS): vol.Schema({
-            cv.slug: vol.Schema({
-                vol.Optional(ATTR_OCCUPANCY_SENSORS): vol.All(cv.ensure_list, [cv.string]),
-                vol.Optional(ATTR_DOORS): vol.All(cv.ensure_list, [cv.string]),
-            })
-        })
-    })
-}, extra=vol.ALLOW_EXTRA)
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Required(ATTR_DOORS): vol.Schema(
+                    {
+                        cv.slug: vol.Schema(
+                            {
+                                vol.Optional(ATTR_ENTRY): cv.boolean,
+                                vol.Optional(ATTR_CONTACT_SENSOR): cv.string,  # or null
+                                vol.Optional(ATTR_MOTION_SENSOR): cv.string,  # or null
+                            }
+                        )
+                    }
+                ),
+                vol.Required(ATTR_AREAS): vol.Schema(
+                    {
+                        cv.slug: vol.Schema(
+                            {
+                                vol.Optional(ATTR_OCCUPANCY_SENSORS): vol.All(
+                                    cv.ensure_list, [cv.string]
+                                ),
+                                vol.Optional(ATTR_DOORS): vol.All(
+                                    cv.ensure_list, [cv.string]
+                                ),
+                            }
+                        )
+                    }
+                ),
+            }
+        )
+    },
+    extra=vol.ALLOW_EXTRA,
+)
+
 
 async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
     component = EntityComponent(_LOGGER, DOMAIN, hass)
     entities = []
 
-    for door_id, door_config in config[DOMAIN]['doors'].items():
+    for door_id, door_config in config[DOMAIN]["doors"].items():
         entry = door_config.get(ATTR_ENTRY, False)
         contact_sensor = door_config.get(ATTR_CONTACT_SENSOR)
         motion_sensor = door_config.get(ATTR_MOTION_SENSOR)
 
-        entities.append(
-            Door(hass, door_id, entry, contact_sensor, motion_sensor)
-        )
+        entities.append(Door(hass, door_id, entry, contact_sensor, motion_sensor))
 
     await component.async_add_entities(entities)
 
     return True
+
 
 # TODO:
 # - [x] Subscribe to the passed in sensor and generate derived state for the door entity
@@ -78,7 +103,14 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
 class Door(SwitchEntity, RestoreEntity):
     """Representation of a Adaptive Lighting switch."""
 
-    def __init__(self, hass, door_id: str, entry: bool, contact_sensor:str = None, motion_sensor:str = None):
+    def __init__(
+        self,
+        hass,
+        door_id: str,
+        entry: bool,
+        contact_sensor: str = None,
+        motion_sensor: str = None,
+    ):
         self._hass = hass
         self._entity_id = ENTITY_ID_FORMAT.format(door_id)
         self._door_id = door_id
@@ -156,7 +188,7 @@ class Door(SwitchEntity, RestoreEntity):
         _LOGGER.debug("Called '_contact_sensor_event' with data %s", event.data)
 
         # from_state = event.data['old_state'].state
-        to_state = event.data['new_state'].state
+        to_state = event.data["new_state"].state
 
         # Door opened
         if to_state == STATE_ON:

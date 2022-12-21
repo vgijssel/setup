@@ -1,6 +1,10 @@
 {
   "name": "mvgijssel/setup Devcontainer",
-  "build": { "dockerfile": "./tools/devcontainer/Dockerfile", "context": "." },
+  "build": {
+    "dockerfile": "./tools/devcontainer/Dockerfile",
+    "context": ".",
+    "args": { "USER_UID": "501", "USER_GID": "1000" }
+  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -13,23 +17,28 @@
         "vspacecode.vspacecode",
         "alexanderbast.vscode-snazzy",
         "tilt-dev.tiltfile",
-        "GitHub.remotehub",
+        "GitHub.remotehub"
       ]
     }
   },
   "remoteUser": "devcontainer",
   "containerUser": "devcontainer",
   "mounts": [
-    "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
+    "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock",
+    "source=setup-bazel,target=/home/devcontainer/bazel,type=volume"
   ],
   "settings": {
     "python.formatting.provider": "black",
+    "python.formatting.blackPath": "/tmp/bazel-setup-bin/external/aspect_rules_format_pypi_black/rules_python_wheel_entry_point_black",
     "terminal.integrated.scrollback": 10000,
     "files.associations": {
       ".bazelrc": "plaintext"
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "bazel.buildifierExecutable": "/tmp/bazel-setup-bin/external/buildifier_prebuilt/buildifier/buildifier",
+    "prettier.executablePath": "/tmp/bazel-setup-bin/external/aspect_rules_format/format/prettier.sh"
   },
   "shutdownAction": "stopContainer",
+  "postAttachCommand": "bin/post-setup",
   "runArgs": ["--name", "setup-devcontainer"]
 }

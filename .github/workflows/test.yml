@@ -23,17 +23,19 @@ jobs:
       run-occupancy_component-test: ${{ steps.changed-test-targets.outputs.occupancy_component-test }}
     steps:
       - uses: actions/checkout@v1
-      - uses: pat-s/always-upload-cache@v3.0.1
-        id: bazel-cache
-        with:
-          path: |
-            tmp/bazel_cache
-            tmp/bazel_repository_cache
-          key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
-          restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
+      - uses: ./.github/actions/setup-bazel
       - run: sudo snap install --edge --classic just
       - id: changed-test-targets
         run: just changed-test-targets-current-branch
+
+  pre-commit-check:
+    name: pre-commit check
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./.github/actions/setup-bazel
+      - run: bazel run //tools/pre-commit -- run --all-files --show-diff-on-failure
 
   occupancy_component-test:
     if: needs.select_tests_to_run.outputs.run-occupancy_component-test == 'true'
@@ -43,14 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: pat-s/always-upload-cache@v3.0.1
-        id: bazel-cache
-        with:
-          path: |
-            tmp/bazel_cache
-            tmp/bazel_repository_cache
-          key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
-          restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
+      - uses: ./.github/actions/setup-bazel
       - run: bazel test //occupancy_component:test
 
   workstation-test:
@@ -61,14 +56,7 @@ jobs:
     runs-on: macos-12
     steps:
       - uses: actions/checkout@v1
-      - uses: pat-s/always-upload-cache@v3.0.1
-        id: bazel-cache
-        with:
-          path: |
-            tmp/bazel_cache
-            tmp/bazel_repository_cache
-          key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
-          restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
+      - uses: ./.github/actions/setup-bazel
       # removing the aws CLI so it can be installed by the workstation provisioning
       - run: rm /usr/local/bin/aws /usr/local/bin/aws_completer
       - run: brew install docker

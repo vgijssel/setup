@@ -61,7 +61,9 @@ async def async_initialize_integration(
 
     if config_entry is not None:
         if config_entry.source == SOURCE_IMPORT:
-            hass.async_create_task(hass.config_entries.async_remove(config_entry.entry_id))
+            hass.async_create_task(
+                hass.config_entries.async_remove(config_entry.entry_id)
+            )
             return False
 
         hacs.configuration.update_from_dict(
@@ -163,9 +165,13 @@ async def async_initialize_integration(
 
         if hacs.configuration.config_type == ConfigurationType.YAML:
             hass.async_create_task(
-                async_load_platform(hass, Platform.SENSOR, DOMAIN, {}, hacs.configuration.config)
+                async_load_platform(
+                    hass, Platform.SENSOR, DOMAIN, {}, hacs.configuration.config
+                )
             )
-            hacs.log.info("Update entities are only supported when using UI configuration")
+            hacs.log.info(
+                "Update entities are only supported when using UI configuration"
+            )
 
         else:
             hass.config_entries.async_setup_platforms(
@@ -183,7 +189,9 @@ async def async_initialize_integration(
         async_at_start(hass=hass, at_start_cb=hacs.startup_tasks)
 
         hacs.set_stage(HacsStage.WAITING)
-        hacs.log.info("Setup complete, waiting for Home Assistant before startup tasks starts")
+        hacs.log.info(
+            "Setup complete, waiting for Home Assistant before startup tasks starts"
+        )
 
         return not hacs.system.disabled
 
@@ -217,7 +225,9 @@ async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     config_entry.async_on_unload(config_entry.add_update_listener(async_reload_entry))
-    setup_result = await async_initialize_integration(hass=hass, config_entry=config_entry)
+    setup_result = await async_initialize_integration(
+        hass=hass, config_entry=config_entry
+    )
     hacs: HacsBase = hass.data[DOMAIN]
     return setup_result and not hacs.system.disabled
 
@@ -247,7 +257,9 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     if hacs.configuration.experimental:
         platforms.append("update")
 
-    unload_ok = await hass.config_entries.async_unload_platforms(config_entry, platforms)
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        config_entry, platforms
+    )
 
     hacs.set_stage(None)
     hacs.disable_hacs(HacsDisabledReason.REMOVED)

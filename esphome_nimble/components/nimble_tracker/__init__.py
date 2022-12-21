@@ -21,6 +21,7 @@ nimble_tracker_ns = cg.esphome_ns.namespace("nimble_tracker")
 NimbleTracker = nimble_tracker_ns.class_("NimbleTracker", cg.Component)
 NimbleDeviceListener = nimble_tracker_ns.class_("NimbleDeviceListener", cg.Component)
 
+
 def validate_scan_parameters(config):
     duration = config[CONF_DURATION]
     interval = config[CONF_INTERVAL]
@@ -38,6 +39,7 @@ def validate_scan_parameters(config):
         )
 
     return config
+
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -64,15 +66,16 @@ CONFIG_SCHEMA = cv.Schema(
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
-CONF_IRK = 'irk'
+CONF_IRK = "irk"
 
 NIMBLE_DEVICE_LISTENER_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_NIMBLE_ID): cv.use_id(NimbleTracker),
         cv.Optional(CONF_IRK): cv.string,
     },
-    cv.has_exactly_one_key(CONF_IRK)
+    cv.has_exactly_one_key(CONF_IRK),
 )
+
 
 async def to_code(config):
     # this initializes the component in the generated code
@@ -91,13 +94,16 @@ async def to_code(config):
     add_idf_sdkconfig_option("CONFIG_BT_NIMBLE_ENABLED", True)
     add_idf_sdkconfig_option("CONFIG_MBEDTLS_HARDWARE_AES", False)
 
-    cg.add_library("esp-nimble-cpp=https://github.com/h2zero/esp-nimble-cpp.git#v1.4.1", None)
+    cg.add_library(
+        "esp-nimble-cpp=https://github.com/h2zero/esp-nimble-cpp.git#v1.4.1", None
+    )
 
 
 async def register_ble_device(var, config):
     paren = await cg.get_variable(config[CONF_NIMBLE_ID])
     cg.add(paren.register_listener(var))
     return var
+
 
 async def device_listener_to_code(var, config):
     if CONF_IRK in config:

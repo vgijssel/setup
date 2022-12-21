@@ -1,6 +1,6 @@
 workspace(name = "setup")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file", "http_jar")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 # ------------------------------------ skylib ------------------------------------ #
@@ -15,17 +15,30 @@ http_archive(
 )
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("//tools/packer:repositories.bzl", "rules_packer_toolchains")
 
 bazel_skylib_workspace()
+
+# ------------------------------------ rules_pkg ------------------------------------ #
+
+http_archive(
+    name = "rules_pkg",
+    sha256 = "eea0f59c28a9241156a47d7a8e32db9122f3d50b505fae0f33de6ce4d9b61834",
+    urls = [
+        "https://github.com/bazelbuild/rules_pkg/releases/download/0.8.0/rules_pkg-0.8.0.tar.gz",
+    ],
+)
+
+load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+
+rules_pkg_dependencies()
 
 # ------------------------------------ rules_python ------------------------------------ #
 
 http_archive(
     name = "rules_python",
-    sha256 = "b593d13bb43c94ce94b483c2858e53a9b811f6f10e1e0eedc61073bd90e58d9c",
-    strip_prefix = "rules_python-0.12.0",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.12.0.tar.gz",
+    sha256 = "497ca47374f48c8b067d786b512ac10a276211810f4a580178ee9b9ad139323a",
+    strip_prefix = "rules_python-0.16.1",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.16.1.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "python_register_toolchains")
@@ -109,8 +122,6 @@ http_file(
 
 # ------------------------------------ bazel-diff ------------------------------------ #
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
-
 http_jar(
     name = "bazel_diff",
     sha256 = "fe01c3500af3a724d2e6355f70c0ec5b11a8a9057f196efa8ff574f88cc379de",
@@ -181,21 +192,6 @@ http_file(
     url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_amd64.deb",
 )
 
-# ------------------------------------ rules_pkg ------------------------------------ #
-
-http_archive(
-    name = "rules_pkg",
-    sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
-        "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
-    ],
-)
-
-load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
-
-rules_pkg_dependencies()
-
 # ------------------------------------ multirun ------------------------------------ #
 
 git_repository(
@@ -232,3 +228,59 @@ pip_parse(
 load("@occupancy_component//:requirements.bzl", install_occupancy_component_deps = "install_deps")
 
 install_occupancy_component_deps()
+
+# ------------------------------------ pre-commit ------------------------------------ #
+
+pip_parse(
+    name = "pre-commit",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@//tools/pre-commit:requirements.lock",
+)
+
+load("@pre-commit//:requirements.bzl", install_pre_commit_deps = "install_deps")
+
+install_pre_commit_deps()
+
+# ------------------------------------ rules_format ------------------------------------ #
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "aspect_rules_format",
+    sha256 = "3eaa9851e09e3d2813e6c4ac1b6153e64ee44b494fa4ddf36fff2ba8b105e8db",
+    strip_prefix = "bazel-super-formatter-0.3.1",
+    url = "https://github.com/aspect-build/bazel-super-formatter/archive/refs/tags/v0.3.1.tar.gz",
+)
+
+#########################################
+# rules_format setup                    #
+# Paste to the bottom of your WORKSPACE #
+#########################################
+# Fetches the rules_format dependencies.
+# If you want to have a different version of some dependency,
+# you should fetch it *before* calling this.
+# Alternatively, you can skip calling this function, so long as you've
+# already fetched all the dependencies.
+load("@aspect_rules_format//format:repositories.bzl", "rules_format_dependencies")
+
+rules_format_dependencies()
+
+# If you didn't already register a toolchain providing nodejs, do that:
+load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
+
+nodejs_register_toolchains(
+    name = "node",
+    node_version = DEFAULT_NODE_VERSION,
+)
+
+load("@aspect_rules_format//format:dependencies.bzl", "parse_dependencies")
+
+parse_dependencies()
+
+# Installs toolchains for running programs under Node, Python, etc.
+# Be sure to register your own toolchains before this.
+# Most users should do this LAST in their WORKSPACE to avoid getting our versions of
+# things like the Go toolchain rather than the one you intended.
+load("@aspect_rules_format//format:toolchains.bzl", "format_register_toolchains")
+
+format_register_toolchains()

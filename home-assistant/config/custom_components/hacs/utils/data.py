@@ -123,7 +123,9 @@ class HacsData:
             hacs = {}
 
         try:
-            repositories = await async_load_from_store(self.hacs.hass, "repositories") or {}
+            repositories = (
+                await async_load_from_store(self.hacs.hass, "repositories") or {}
+            )
         except HomeAssistantError as exception:
             self.hacs.log.error(
                 "Could not read %s, restore the file from a backup - %s",
@@ -173,7 +175,9 @@ class HacsData:
                 if entry == "0":
                     # Ignore repositories with ID 0
                     self.logger.debug(
-                        "<HacsData restore> Found repository with ID %s - %s", entry, repo_data
+                        "<HacsData restore> Found repository with ID %s - %s",
+                        entry,
+                        repo_data,
                     )
                     continue
                 self.async_restore_repository(entry, repo_data)
@@ -196,7 +200,8 @@ class HacsData:
                 repository_id=entry,
             )
             for entry, repo_data in repositories.items()
-            if entry != "0" and not self.hacs.repositories.is_registered(repository_id=entry)
+            if entry != "0"
+            and not self.hacs.repositories.is_registered(repository_id=entry)
         ]
         if register_tasks:
             await asyncio.gather(*register_tasks)
@@ -206,7 +211,9 @@ class HacsData:
         """Restore repository."""
         full_name = repository_data["full_name"]
         if not (repository := self.hacs.repositories.get_by_full_name(full_name)):
-            self.logger.error("<HacsData restore> Did not find %s (%s)", full_name, entry)
+            self.logger.error(
+                "<HacsData restore> Did not find %s (%s)", full_name, entry
+            )
             return
         # Restore repository attributes
         self.hacs.repositories.set_repository_id(repository, entry)
@@ -216,7 +223,9 @@ class HacsData:
         repository.data.last_updated = repository_data.get("last_updated", 0)
         repository.data.etag_repository = repository_data.get("etag_repository")
         repository.data.topics = [
-            topic for topic in repository_data.get("topics", []) if topic not in TOPIC_FILTER
+            topic
+            for topic in repository_data.get("topics", [])
+            if topic not in TOPIC_FILTER
         ]
         repository.data.domain = repository_data.get("domain")
         repository.data.stargazers_count = repository_data.get(
@@ -241,7 +250,9 @@ class HacsData:
             repository_data.get("repository_manifest", {})
         )
 
-        if repository.localpath is not None and is_safe(self.hacs, repository.localpath):
+        if repository.localpath is not None and is_safe(
+            self.hacs, repository.localpath
+        ):
             # Set local path
             repository.content.path.local = repository.localpath
 

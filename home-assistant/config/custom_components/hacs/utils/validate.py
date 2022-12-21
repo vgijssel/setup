@@ -31,11 +31,15 @@ def _country_validator(values) -> list[str]:
         for value in values:
             countries.append(value.upper())
     else:
-        raise vol.Invalid(f"Value '{values}' is not a string or list.", path=["country"])
+        raise vol.Invalid(
+            f"Value '{values}' is not a string or list.", path=["country"]
+        )
 
     for country in countries:
         if country not in LOCALE:
-            raise vol.Invalid(f"Value '{country}' is not in {LOCALE}.", path=["country"])
+            raise vol.Invalid(
+                f"Value '{country}' is not in {LOCALE}.", path=["country"]
+            )
 
     return countries
 

@@ -10,7 +10,9 @@ GITHUB_STATUS = "https://www.githubstatus.com/"
 
 
 @callback
-def async_register(hass: HomeAssistant, register: system_health.SystemHealthRegistration) -> None:
+def async_register(
+    hass: HomeAssistant, register: system_health.SystemHealthRegistration
+) -> None:
     """Register system health callbacks."""
     register.domain = "Home Assistant Community Store"
     register.async_register_info(system_health_info, "/hacs")
@@ -22,7 +24,9 @@ async def system_health_info(hass):
     response = await hacs.githubapi.rate_limit()
 
     data = {
-        "GitHub API": system_health.async_check_can_reach_url(hass, BASE_API_URL, GITHUB_STATUS),
+        "GitHub API": system_health.async_check_can_reach_url(
+            hass, BASE_API_URL, GITHUB_STATUS
+        ),
         "GitHub Content": system_health.async_check_can_reach_url(
             hass, "https://raw.githubusercontent.com/hacs/integration/main/hacs.json"
         ),

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -Eeou pipefail
+
+CI="${CI:-false}"
+
+
+if [ "${CI}" = "true" ]; then
+    bin/generate-ci-bazelrc
+else
+    sudo chmod 777 /var/run/docker.sock
+    sudo chown devcontainer:devcontainer $(pwd)
+    sudo chown devcontainer:devcontainer /home/devcontainer/bazel
+
+    ln -s -f "../../tools/pre-commit/pre-commit-custom-hook.sh" ".git/hooks/pre-commit"
+
+    # Ensure the linters are built for local development
+    # Caching Bazel outside of the container will make sure this is quick between container rebuilds
+    bazel build @aspect_rules_format//format
+fi
