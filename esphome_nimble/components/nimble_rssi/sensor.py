@@ -27,6 +27,7 @@ CONFIG_SCHEMA = cv.All(
     .extend(cv.COMPONENT_SCHEMA),
 )
 
+
 async def to_code(config):
     var = await sensor.new_sensor(config)
     await cg.register_component(var, config)

@@ -11,7 +11,10 @@ DEPENDENCIES = ["nimble_tracker"]
 
 nimble_distance_ns = cg.esphome_ns.namespace("nimble_distance")
 NimbleDistanceSensor = nimble_distance_ns.class_(
-    "NimbleDistanceSensor", sensor.Sensor, cg.Component, nimble_tracker.NimbleDeviceListener
+    "NimbleDistanceSensor",
+    sensor.Sensor,
+    cg.Component,
+    nimble_tracker.NimbleDeviceListener,
 )
 
 
@@ -26,6 +29,7 @@ CONFIG_SCHEMA = cv.All(
     .extend(nimble_tracker.NIMBLE_DEVICE_LISTENER_SCHEMA)
     .extend(cv.COMPONENT_SCHEMA),
 )
+
 
 async def to_code(config):
     var = await sensor.new_sensor(config)

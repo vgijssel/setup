@@ -60,7 +60,7 @@ def install_workflow():
     )
 
     macos.default(
-        name='Set a 1000 second delay before the dock appears',
+        name="Set a 1000 second delay before the dock appears",
         domain="com.apple.dock",
         setting="autohide-delay",
         value=float(1000),

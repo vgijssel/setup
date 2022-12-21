@@ -96,7 +96,9 @@ class HacsIntegrationRepository(HacsRepository):
                     f"Missing expected key '{exception}' in { RepositoryFile.MAINIFEST_JSON}"
                 )
                 self.hacs.log.error(
-                    "Missing expected key '%s' in '%s'", exception, RepositoryFile.MAINIFEST_JSON
+                    "Missing expected key '%s' in '%s'",
+                    exception,
+                    RepositoryFile.MAINIFEST_JSON,
                 )
 
         # Set local path
@@ -136,7 +138,9 @@ class HacsIntegrationRepository(HacsRepository):
                     f"Missing expected key '{exception}' in { RepositoryFile.MAINIFEST_JSON}"
                 )
                 self.hacs.log.error(
-                    "Missing expected key '%s' in '%s'", exception, RepositoryFile.MAINIFEST_JSON
+                    "Missing expected key '%s' in '%s'",
+                    exception,
+                    RepositoryFile.MAINIFEST_JSON,
                 )
 
         # Set local path
@@ -161,7 +165,9 @@ class HacsIntegrationRepository(HacsRepository):
         await async_get_custom_components(self.hacs.hass)
         self.logger.info("Custom_component cache reloaded")
 
-    async def async_get_integration_manifest(self, ref: str = None) -> dict[str, Any] | None:
+    async def async_get_integration_manifest(
+        self, ref: str = None
+    ) -> dict[str, Any] | None:
         """Get the content of the manifest.json file."""
         manifest_path = (
             "manifest.json"
@@ -170,7 +176,9 @@ class HacsIntegrationRepository(HacsRepository):
         )
 
         if not manifest_path in (x.full_path for x in self.tree):
-            raise HacsException(f"No {RepositoryFile.MAINIFEST_JSON} file found '{manifest_path}'")
+            raise HacsException(
+                f"No {RepositoryFile.MAINIFEST_JSON} file found '{manifest_path}'"
+            )
 
         response = await self.hacs.async_github_api_method(
             method=self.hacs.githubapi.repos.contents.get,

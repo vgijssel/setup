@@ -299,7 +299,9 @@ async def hacs_repository_release_notes(
                 }
                 for x in repository.releases.objects
                 if not repository.data.installed_version
-                or version_left_higher_then_right(x.tag_name, repository.data.installed_version)
+                or version_left_higher_then_right(
+                    x.tag_name, repository.data.installed_version
+                )
             ],
         )
     )

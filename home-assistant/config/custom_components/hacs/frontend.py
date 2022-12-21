@@ -40,7 +40,9 @@ def async_register_frontend(hass: HomeAssistant, hacs: HacsBase) -> None:
         )
     else:
         #
-        hass.http.register_static_path(f"{URL_BASE}/frontend", locate_dir(), cache_headers=False)
+        hass.http.register_static_path(
+            f"{URL_BASE}/frontend", locate_dir(), cache_headers=False
+        )
 
     # Custom iconset
     hass.http.register_static_path(
@@ -98,7 +100,9 @@ class HacsFrontendDev(HomeAssistantView):
         """Handle HACS Web requests."""
         hacs: HacsBase = request.app["hass"].data.get(DOMAIN)
         requested = requested_file.split("/")[-1]
-        request = await hacs.session.get(f"{hacs.configuration.frontend_repo_url}/{requested}")
+        request = await hacs.session.get(
+            f"{hacs.configuration.frontend_repo_url}/{requested}"
+        )
         if request.status == 200:
             result = await request.read()
             response = web.Response(body=result)

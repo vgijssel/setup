@@ -1,1 +1,2 @@
-var a=[];export{a as default};
+var a = [];
+export { a as default };

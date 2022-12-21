@@ -1,4 +1,15 @@
-import{V as e,W as t,_ as o,j as i,e as n,y as r,d as a,n as l}from"./main-ec7846c8.js";e({_template:t`
+import {
+  V as e,
+  W as t,
+  _ as o,
+  j as i,
+  e as n,
+  y as r,
+  d as a,
+  n as l,
+} from "./main-ec7846c8.js";
+e({
+  _template: t`
     <style>
       :host {
         overflow: hidden; /* needed for text-overflow: ellipsis to work on ff */
@@ -31,7 +42,36 @@ import{V as e,W as t,_ as o,j as i,e as n,y as r,d as a,n as l}from"./main-ec784
     </style>
 
     <slot></slot>
-`,is:"paper-item-body"}),o([l("ha-settings-row")],(function(e,t){return{F:class extends t{constructor(...t){super(...t),e(this)}},d:[{kind:"field",decorators:[n({type:Boolean,reflect:!0})],key:"narrow",value:void 0},{kind:"field",decorators:[n({type:Boolean,attribute:"three-line"})],key:"threeLine",value:()=>!1},{kind:"method",key:"render",value:function(){return r`
+`,
+  is: "paper-item-body",
+}),
+  o(
+    [l("ha-settings-row")],
+    function (e, t) {
+      return {
+        F: class extends t {
+          constructor(...t) {
+            super(...t), e(this);
+          }
+        },
+        d: [
+          {
+            kind: "field",
+            decorators: [n({ type: Boolean, reflect: !0 })],
+            key: "narrow",
+            value: void 0,
+          },
+          {
+            kind: "field",
+            decorators: [n({ type: Boolean, attribute: "three-line" })],
+            key: "threeLine",
+            value: () => !1,
+          },
+          {
+            kind: "method",
+            key: "render",
+            value: function () {
+              return r`
       <div class="prefix-wrap">
         <slot name="prefix"></slot>
         <paper-item-body
@@ -43,7 +83,15 @@ import{V as e,W as t,_ as o,j as i,e as n,y as r,d as a,n as l}from"./main-ec784
         </paper-item-body>
       </div>
       <div class="content"><slot></slot></div>
-    `}},{kind:"get",static:!0,key:"styles",value:function(){return a`
+    `;
+            },
+          },
+          {
+            kind: "get",
+            static: !0,
+            key: "styles",
+            value: function () {
+              return a`
       :host {
         display: flex;
         padding: 0 16px;
@@ -91,4 +139,11 @@ import{V as e,W as t,_ as o,j as i,e as n,y as r,d as a,n as l}from"./main-ec784
         display: flex;
         align-items: center;
       }
-    `}}]}}),i);
+    `;
+            },
+          },
+        ],
+      };
+    },
+    i
+  );

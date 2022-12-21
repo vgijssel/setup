@@ -19,7 +19,7 @@ def install_editor():
     brew.packages(
         name="Install dependencies",
         packages=[
-            "buildifier", # Necessary for Bazel autoformatting
+            "buildifier",  # Necessary for Bazel autoformatting
         ],
         present=True,
         update=False,
@@ -38,7 +38,11 @@ def install_editor():
             target_file=f"Library/Application Support/Code/User/{file}",
         )
 
-    for vscode_app_name in ['com.microsoft.VSCode', 'com.microsoft.VSCodeInsiders', 'com.visualstudio.code.oss']:
+    for vscode_app_name in [
+        "com.microsoft.VSCode",
+        "com.microsoft.VSCodeInsiders",
+        "com.visualstudio.code.oss",
+    ]:
         macos.default(
             name=f"Disable 'Press and hold' for {vscode_app_name}",
             domain=vscode_app_name,

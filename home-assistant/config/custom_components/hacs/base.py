@@ -314,7 +314,9 @@ class HacsRepositories:
             return None
         return self._repositories_by_id.get(str(repository_id))
 
-    def get_by_full_name(self, repository_full_name: str | None) -> HacsRepository | None:
+    def get_by_full_name(
+        self, repository_full_name: str | None
+    ) -> HacsRepository | None:
         """Get repository by full name."""
         if not repository_full_name:
             return None
@@ -395,7 +397,9 @@ class HacsBase:
         ):
             self.configuration.config_entry.state = ConfigEntryState.SETUP_ERROR
             self.configuration.config_entry.reason = "Authentication failed"
-            self.hass.add_job(self.configuration.config_entry.async_start_reauth, self.hass)
+            self.hass.add_job(
+                self.configuration.config_entry.async_start_reauth, self.hass
+            )
 
     def enable_hacs(self) -> None:
         """Enable HACS."""
@@ -457,7 +461,9 @@ class HacsBase:
             response = await self.async_github_api_method(self.githubapi.rate_limit)
             if ((limit := response.data.resources.core.remaining or 0) - 1000) >= 10:
                 return math.floor((limit - 1000) / 10)
-            reset = dt.as_local(dt.utc_from_timestamp(response.data.resources.core.reset))
+            reset = dt.as_local(
+                dt.utc_from_timestamp(response.data.resources.core.reset)
+            )
             self.log.info(
                 "GitHub API ratelimited - %s remaining (%s)",
                 response.data.resources.core.remaining,
@@ -529,18 +535,23 @@ class HacsBase:
         if repository_full_name == "home-assistant/core":
             raise HomeAssistantCoreRepositoryException()
 
-        if repository_full_name == "home-assistant/addons" or repository_full_name.startswith(
-            "hassio-addons/"
+        if (
+            repository_full_name == "home-assistant/addons"
+            or repository_full_name.startswith("hassio-addons/")
         ):
             raise AddonRepositoryException()
 
         if category not in RERPOSITORY_CLASSES:
             raise HacsException(f"{category} is not a valid repository category.")
 
-        if (renamed := self.common.renamed_repositories.get(repository_full_name)) is not None:
+        if (
+            renamed := self.common.renamed_repositories.get(repository_full_name)
+        ) is not None:
             repository_full_name = renamed
 
-        repository: HacsRepository = RERPOSITORY_CLASSES[category](self, repository_full_name)
+        repository: HacsRepository = RERPOSITORY_CLASSES[category](
+            self, repository_full_name
+        )
         if check:
             try:
                 await repository.async_registration(ref)
@@ -549,7 +560,9 @@ class HacsBase:
                 if repository.validate.errors:
                     self.common.skip.append(repository.data.full_name)
                     if not self.status.startup:
-                        self.log.error("Validation for %s failed.", repository_full_name)
+                        self.log.error(
+                            "Validation for %s failed.", repository_full_name
+                        )
                     if self.system.action:
                         raise HacsException(
                             f"::error:: Validation for {repository_full_name} failed."
@@ -558,7 +571,9 @@ class HacsBase:
                 if self.system.action:
                     repository.logger.info("%s Validation completed", repository.string)
                 else:
-                    repository.logger.info("%s Registration completed", repository.string)
+                    repository.logger.info(
+                        "%s Registration completed", repository.string
+                    )
             except (HacsRepositoryExistException, HacsRepositoryArchivedException):
                 return
             except AIOGitHubAPIException as exception:
@@ -571,7 +586,9 @@ class HacsBase:
             repository.data.id = repository_id
 
         else:
-            if self.hass is not None and ((check and repository.data.new) or self.status.new):
+            if self.hass is not None and (
+                (check and repository.data.new) or self.status.new
+            ):
                 self.async_dispatch(
                     HacsDispatchEvent.REPOSITORY,
                     {
@@ -595,7 +612,9 @@ class HacsBase:
                     category=HacsCategory.INTEGRATION,
                     default=True,
                 )
-                repository = self.repositories.get_by_full_name(HacsGitHubRepo.INTEGRATION)
+                repository = self.repositories.get_by_full_name(
+                    HacsGitHubRepo.INTEGRATION
+                )
             if repository is None:
                 raise HacsException("Unknown error")
 
@@ -675,7 +694,9 @@ class HacsBase:
 
         self.async_dispatch(HacsDispatchEvent.STATUS, {})
 
-    async def async_download_file(self, url: str, *, headers: dict | None = None) -> bytes | None:
+    async def async_download_file(
+        self, url: str, *, headers: dict | None = None
+    ) -> bytes | None:
         """Download files, and return the content."""
         if url is None:
             return None
@@ -723,7 +744,10 @@ class HacsBase:
 
     async def async_recreate_entities(self) -> None:
         """Recreate entities."""
-        if self.configuration == ConfigurationType.YAML or not self.configuration.experimental:
+        if (
+            self.configuration == ConfigurationType.YAML
+            or not self.configuration.experimental
+        ):
             return
 
         platforms = [Platform.SENSOR, Platform.UPDATE]
@@ -732,10 +756,14 @@ class HacsBase:
             entry=self.configuration.config_entry,
             platforms=platforms,
         )
-        self.hass.config_entries.async_setup_platforms(self.configuration.config_entry, platforms)
+        self.hass.config_entries.async_setup_platforms(
+            self.configuration.config_entry, platforms
+        )
 
     @callback
-    def async_dispatch(self, signal: HacsDispatchEvent, data: dict | None = None) -> None:
+    def async_dispatch(
+        self, signal: HacsDispatchEvent, data: dict | None = None
+    ) -> None:
         """Dispatch a signal with data."""
         async_dispatcher_send(self.hass, signal, data)
 
@@ -815,7 +843,10 @@ class HacsBase:
 
     async def async_check_rate_limit(self, _=None) -> None:
         """Check rate limit."""
-        if not self.system.disabled or self.system.disabled_reason != HacsDisabledReason.RATE_LIMIT:
+        if (
+            not self.system.disabled
+            or self.system.disabled_reason != HacsDisabledReason.RATE_LIMIT
+        ):
             return
 
         self.log.debug("Checking if ratelimit has lifted")
@@ -876,7 +907,9 @@ class HacsBase:
             removed.update_data(item)
 
         for removed in self.repositories.list_removed:
-            if (repository := self.repositories.get_by_full_name(removed.repository)) is None:
+            if (
+                repository := self.repositories.get_by_full_name(removed.repository)
+            ) is None:
                 continue
             if repository.data.full_name in self.common.ignored_repositories:
                 continue
@@ -949,7 +982,9 @@ class HacsBase:
         stored_critical = []
 
         for repository in critical:
-            removed_repo = self.repositories.removed_repository(repository["repository"])
+            removed_repo = self.repositories.removed_repository(
+                repository["repository"]
+            )
             removed_repo.removal_type = "critical"
             repo = self.repositories.get_by_full_name(repository["repository"])
 

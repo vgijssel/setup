@@ -11,7 +11,6 @@ This is where the validation rules that run against the various repository categ
 - Only use `validate` or `async_validate` methods to define validation rules.
 - If a rule should fail, raise `ValidationException` with the failure message.
 
-
 ## Example
 
 ```python

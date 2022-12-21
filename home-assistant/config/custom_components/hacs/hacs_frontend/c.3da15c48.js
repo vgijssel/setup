@@ -1,4 +1,15 @@
-import{a6 as e,a7 as t,a as o,h as i,e as n,$ as a,r,n as l}from"./main-ad130be7.js";e({_template:t`
+import {
+  a6 as e,
+  a7 as t,
+  a as o,
+  h as i,
+  e as n,
+  $ as a,
+  r,
+  n as l,
+} from "./main-ad130be7.js";
+e({
+  _template: t`
     <style>
       :host {
         overflow: hidden; /* needed for text-overflow: ellipsis to work on ff */
@@ -31,7 +42,36 @@ import{a6 as e,a7 as t,a as o,h as i,e as n,$ as a,r,n as l}from"./main-ad130be7
     </style>
 
     <slot></slot>
-`,is:"paper-item-body"}),o([l("ha-settings-row")],(function(e,t){return{F:class extends t{constructor(...t){super(...t),e(this)}},d:[{kind:"field",decorators:[n({type:Boolean,reflect:!0})],key:"narrow",value:void 0},{kind:"field",decorators:[n({type:Boolean,attribute:"three-line"})],key:"threeLine",value:()=>!1},{kind:"method",key:"render",value:function(){return a`
+`,
+  is: "paper-item-body",
+}),
+  o(
+    [l("ha-settings-row")],
+    function (e, t) {
+      return {
+        F: class extends t {
+          constructor(...t) {
+            super(...t), e(this);
+          }
+        },
+        d: [
+          {
+            kind: "field",
+            decorators: [n({ type: Boolean, reflect: !0 })],
+            key: "narrow",
+            value: void 0,
+          },
+          {
+            kind: "field",
+            decorators: [n({ type: Boolean, attribute: "three-line" })],
+            key: "threeLine",
+            value: () => !1,
+          },
+          {
+            kind: "method",
+            key: "render",
+            value: function () {
+              return a`
       <div class="prefix-wrap">
         <slot name="prefix"></slot>
         <paper-item-body
@@ -43,7 +83,15 @@ import{a6 as e,a7 as t,a as o,h as i,e as n,$ as a,r,n as l}from"./main-ad130be7
         </paper-item-body>
       </div>
       <div class="content"><slot></slot></div>
-    `}},{kind:"get",static:!0,key:"styles",value:function(){return r`
+    `;
+            },
+          },
+          {
+            kind: "get",
+            static: !0,
+            key: "styles",
+            value: function () {
+              return r`
       :host {
         display: flex;
         padding: 0 16px;
@@ -91,4 +139,11 @@ import{a6 as e,a7 as t,a as o,h as i,e as n,$ as a,r,n as l}from"./main-ad130be7
         display: flex;
         align-items: center;
       }
-    `}}]}}),i);
+    `;
+            },
+          },
+        ],
+      };
+    },
+    i
+  );

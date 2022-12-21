@@ -13,17 +13,19 @@ tool_versions_path = r.Rlocation(
     "setup/workstation/deploys/languages/files/tool-versions"
 )
 
+
 class AsdfPlugins(FactBase):
     command = "asdf plugin list"
     requires_command = "asdf"
     default = list
+
 
 @operation
 def asdf_plugin(plugin_name):
     installed_asdf_plugins = host.get_fact(AsdfPlugins)
 
     if plugin_name in installed_asdf_plugins:
-       return []
+        return []
 
     yield f"asdf plugin-add {plugin_name}"
 
