@@ -91,5 +91,6 @@
   "go.toolsManagement.autoUpdate": true,
   "workbench.colorTheme": "Snazzy",
   "editor.accessibilitySupport": "off",
-  "terminal.integrated.scrollback": 100000
+  "terminal.integrated.scrollback": 100000,
+  "dev.containers.defaultExtensions": ["kahole.magit"]
 }

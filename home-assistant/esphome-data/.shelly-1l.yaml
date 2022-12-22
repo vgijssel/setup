@@ -10,3 +10,11 @@ output:
   - platform: gpio
     id: "relay_output"
     pin: GPIO5
+
+switch:
+  - platform: output
+    id: shelly_relay
+    name: "${entity_id}"
+    output: "relay_output"
+    # after reboot, keep the relay off. this prevents light turning on after a power outage
+    restore_mode: ALWAYS_OFF
