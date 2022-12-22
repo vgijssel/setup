@@ -6,7 +6,7 @@ ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit --color=
 HERE="/workspaces/setup"
 ARGS+=(--hook-dir "${HERE}" -- "$@")
 DEVCONTAINER="setup-devcontainer"
-COMMAND="bazel run //tools/pre-commit -- ${ARGS[@]}"
+COMMAND="bazel run --config=quiet //tools/pre-commit -- ${ARGS[@]}"
 
 if [ "$(docker container inspect -f '{{.State.Running}}' $DEVCONTAINER)" == "true" ]; then
   docker exec -t -w $HERE $DEVCONTAINER $COMMAND
