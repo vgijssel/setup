@@ -150,7 +150,7 @@ group:
     name: baby_room_lights
     entities:
       - light.baby_room_light
-      - switch.baby_room_moon_light
+      - switch.baby_room_moon_light_moko
 
 variable:
   baby_room_presence:
@@ -341,7 +341,7 @@ homekit:
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.baby_room_light
-        - switch.baby_room_moon_light
+        - switch.baby_room_moon_light_moko
         - light.bathroom_lights
         - switch.bedroom_shelly
         - switch.driveway_shelly
@@ -368,7 +368,7 @@ homekit:
         name: Woonkamer Thermostaat
       light.baby_room_light:
         name: Babykamer Lamp
-      switch.baby_room_moon_light:
+      switch.baby_room_moon_light_moko:
         name: Babykamer Maan Lamp
       light.bathroom_lights:
         name: Badkamer Lampen

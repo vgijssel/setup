@@ -19,7 +19,7 @@ advanced:
   legacy_api: false
   legacy_availability_payload: false
   log_level: info
-  channel: 11
+  channel: 25
 device_options:
   legacy: false
 homeassistant: true
@@ -28,9 +28,6 @@ devices:
     friendly_name: office_human
   '0x00158d000232d0f6':
     friendly_name: supply_closet_door
-  '0x0017880104e25f8e':
-    friendly_name: baby_room_light
-    transition: 1
   '0x00158d0002386344':
     friendly_name: toilet_door
   '0x00158d0002286aa4':
@@ -67,78 +64,12 @@ devices:
     friendly_name: baby_room_door
   '0x54ef4410004919b1':
     friendly_name: hallway_motion
-  '0x54ef4410004d1c26':
-    friendly_name: bathroom_human
-  '0x9c6937000070de12':
-    friendly_name: hallway_3_light
-    transition: 1
-    homeassistant: {}
-    legacy: false
-    optimistic: true
-    qos: 1
-  '0xc498860000672d24':
-    friendly_name: hallway_4_light
-    transition: 1
-    homeassistant: {}
-    legacy: false
-    optimistic: true
-    qos: 1
-  '0xc498860000673e80':
-    friendly_name: hallway_2_light
-    transition: 1
-    homeassistant: {}
-    legacy: false
-    optimistic: true
-    qos: 1
-  '0x9c6937000070dd61':
-    friendly_name: hallway_1_light
-    transition: 1
-    homeassistant: {}
-    legacy: false
-    optimistic: true
-    qos: 1
   '0x54ef441000491875':
     friendly_name: living_room_garden_motion
-  '0x9c69370000cbbe06':
-    friendly_name: landing_1_light
-    transition: 1
-  '0xc498860000000a73':
-    friendly_name: landing_3_light
-    transition: 1
-  '0x9c6937000070eb1b':
-    friendly_name: landing_2_light
-    transition: 1
-  '0xc498860000672452':
-    friendly_name: bathroom_1_light
-    transition: 1
-  '0xc4988600000827d6':
-    friendly_name: bathroom_6_light
-    transition: 1
-  '0x9c6937000070e768':
-    friendly_name: bathroom_4_light
-    transition: 1
-  '0x9c6937000070e036':
-    friendly_name: bathroom_2_light
-    transition: 1
-  '0x44a54e00000167b0':
-    friendly_name: bathroom_3_light
-    transition: 1
-  '0xc498860000081ee6':
-    friendly_name: bathroom_5_light
-    transition: 1
   '0x54ef441000518a1b':
     friendly_name: baby_room_human
-  '0x540f57fffe3c228f':
-    friendly_name: baby_room_moon_light
-    measurement_poll_interval: 60
   '0x00158d0002286a8a':
     friendly_name: hallway_door
-  '0x9c6937000070e16e':
-    friendly_name: toilet_1_light
-    transition: 0
-  '0xc498860000006fc0':
-    friendly_name: toilet_2_light
-    transition: 0
   '0x54ef4410001ff9a4':
     friendly_name: office_illuminance
   '0x54ef4410001ff3d3':
@@ -159,3 +90,5 @@ devices:
     friendly_name: baby_room_motion
   '0x00158d00085428bc':
     friendly_name: office_door
+  '0x54ef4410004d1c26':
+    friendly_name: bathroom_human

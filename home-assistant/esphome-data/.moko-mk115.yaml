@@ -1,0 +1,60 @@
+# From https://github.com/hufman/esp32-beacon/blob/master/mk114_1.yaml
+esphome:
+  name: ${device_name}
+
+esp32:
+  board: nodemcu-32s
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      # From https://github.com/esphome/issues/issues/2941
+      # Increase watchdog timeout to flash firmware with bluetooth enabled, fixes error:
+      # ERROR Error receiving acknowledge binary size: timed out
+      CONFIG_ESP_TASK_WDT_TIMEOUT_S: "20"
+
+output:
+  - platform: gpio
+    id: "relay_output"
+    pin: GPIO25
+  - platform: ledc
+    id: led_red
+    pin:
+      number: GPIO26
+      inverted: True
+      mode: OUTPUT_OPEN_DRAIN
+  - platform: ledc
+    id: led_green
+    pin:
+      number: GPIO27
+      inverted: True
+      mode: OUTPUT_OPEN_DRAIN
+  - platform: ledc
+    id: led_blue
+    pin:
+      number: GPIO14
+      inverted: True
+      mode: OUTPUT_OPEN_DRAIN
+
+switch:
+  - platform: output
+    id: moko_relay
+    name: "${entity_id}"
+    output: "relay_output"
+    # Attempt to restore state and default to OFF if not possible to restore.
+    restore_mode: RESTORE_DEFAULT_OFF
+
+light:
+  - platform: rgb
+    id: color
+    name: "${entity_id}_led"
+    red: led_red
+    green: led_green
+    blue: led_blue
+
+binary_sensor:
+  - platform: gpio
+    name: "${entity_id}_input"
+    pin: GPIO0
+    on_press:
+      then:
+        - switch.toggle: moko_relay

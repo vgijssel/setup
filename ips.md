@@ -31,6 +31,7 @@
 192.168.1.70 - office-shelly
 192.168.1.71 - supply-closet-shelly
 192.168.1.72 - toilet-shelly
+192.168.1.73 - baby-room-moon-light-moko
 
 192.168.1.100 - 192.168.1.254 DHCP Range Unifi
 
