@@ -68,24 +68,6 @@ devices:
     friendly_name: bathroom_human
   '0x54ef441000491875':
     friendly_name: living_room_garden_motion
-  '0xc498860000672452':
-    friendly_name: bathroom_1_light
-    transition: 1
-  '0xc4988600000827d6':
-    friendly_name: bathroom_6_light
-    transition: 1
-  '0x9c6937000070e768':
-    friendly_name: bathroom_4_light
-    transition: 1
-  '0x9c6937000070e036':
-    friendly_name: bathroom_2_light
-    transition: 1
-  '0x44a54e00000167b0':
-    friendly_name: bathroom_3_light
-    transition: 1
-  '0xc498860000081ee6':
-    friendly_name: bathroom_5_light
-    transition: 1
   '0x54ef441000518a1b':
     friendly_name: baby_room_human
   '0x540f57fffe3c228f':
