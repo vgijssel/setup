@@ -19,7 +19,7 @@ advanced:
   legacy_api: false
   legacy_availability_payload: false
   log_level: info
-  channel: 11
+  channel: 25
 device_options:
   legacy: false
 homeassistant: true
@@ -64,8 +64,6 @@ devices:
     friendly_name: baby_room_door
   '0x54ef4410004919b1':
     friendly_name: hallway_motion
-  '0x54ef4410004d1c26':
-    friendly_name: bathroom_human
   '0x54ef441000491875':
     friendly_name: living_room_garden_motion
   '0x54ef441000518a1b':
@@ -92,3 +90,5 @@ devices:
     friendly_name: baby_room_motion
   '0x00158d00085428bc':
     friendly_name: office_door
+  '0x54ef4410004d1c26':
+    friendly_name: bathroom_human
