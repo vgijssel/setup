@@ -15,7 +15,6 @@ esp32:
 output:
   - platform: gpio
     id: "relay_output"
-    # TODO: double check pin
     pin: GPIO25
   - platform: ledc
     id: led_red
