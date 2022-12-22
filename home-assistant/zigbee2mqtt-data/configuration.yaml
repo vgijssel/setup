@@ -70,9 +70,6 @@ devices:
     friendly_name: living_room_garden_motion
   '0x54ef441000518a1b':
     friendly_name: baby_room_human
-  '0x540f57fffe3c228f':
-    friendly_name: baby_room_moon_light
-    measurement_poll_interval: 60
   '0x00158d0002286a8a':
     friendly_name: hallway_door
   '0x54ef4410001ff9a4':
