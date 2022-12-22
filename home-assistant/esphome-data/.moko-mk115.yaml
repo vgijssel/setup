@@ -51,3 +51,11 @@ light:
     red: led_red
     green: led_green
     blue: led_blue
+
+binary_sensor:
+  - platform: gpio
+    name: "${entity_id}_input"
+    pin: GPIO0
+    on_press:
+      then:
+        - switch.toggle: moko_relay
