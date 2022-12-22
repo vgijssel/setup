@@ -96,12 +96,6 @@ devices:
     measurement_poll_interval: 60
   '0x00158d0002286a8a':
     friendly_name: hallway_door
-  '0x9c6937000070e16e':
-    friendly_name: toilet_1_light
-    transition: 0
-  '0xc498860000006fc0':
-    friendly_name: toilet_2_light
-    transition: 0
   '0x54ef4410001ff9a4':
     friendly_name: office_illuminance
   '0x54ef4410001ff3d3':
