@@ -15,18 +15,18 @@ Downstairs_ESPresenseIps:
 
   # Rooms are actually the installed shelly bluetooth sensors
   rooms: &rooms
-    # rooms:
+    #
     # downstairs
-    # living_room: [1.10, 5.39, 2.75]
-    # living_room_tv: [5.18, 0.00, 0.25]
-    # supply_closet: [4.40, 4.99, 1.03]
-    # hallway: [3.43, 9.43, 2.75]
-    # hallway_vacuum: [5.18, 11.2, 0.05]
-    # driveway: [2.83, 9.13, 1.03]
-    # kitchen: [2.83, 7.28, 1.03]
-    # kitchen_oven: [0.00, 8.03, 0.00]
-    # garden: [0.46, 0.00, 1.03]
-
+    living_room: [1.10, 5.39, 2.75]
+    living_room_tv: [5.18, 0.00, 0.25]
+    supply_closet: [4.40, 4.99, 1.03]
+    hallway: [3.43, 9.43, 2.75]
+    hallway_vacuum: [5.18, 11.2, 0.05]
+    driveway: [2.83, 9.13, 1.03]
+    kitchen: [2.83, 7.28, 1.03]
+    kitchen_oven: [0.00, 8.03, 0.00]
+    garden: [0.46, 0.00, 1.03]
+    #
     # upstairs
     bedroom: [2.66, 3.93, 3.96]
     bedroom_charger: [0.00, 0.00, 3.18]
@@ -34,6 +34,7 @@ Downstairs_ESPresenseIps:
     baby_room_moon_light: [5.18, 0.00, 3.18]
     laundry_room: [2.66, 5.92, 3.96]
     office: [2.66, 8.48, 3.96]
+    office_server: [0.00, 10.58, 3.18]
     landing: [4.58, 6.23, 5.56]
 
   devices: &devices # devices:
