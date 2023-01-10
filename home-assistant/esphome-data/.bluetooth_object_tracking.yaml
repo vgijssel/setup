@@ -1,7 +1,7 @@
 external_components:
   - source:
       type: local
-      path: /esphome_nimble/components
+      path: ../../esphome_nimble/components
 
 mqtt:
   broker: !secret mqtt_broker
