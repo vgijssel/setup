@@ -33,6 +33,8 @@
 192.168.1.72 - toilet-shelly
 192.168.1.73 - baby-room-moon-light-moko
 192.168.1.74 - kitchen-oven-moko
+192.168.1.75 - living-room-tv-moko
+192.168.1.76 - hallway-vacuum-moko
 
 192.168.1.100 - 192.168.1.254 DHCP Range Unifi
 
