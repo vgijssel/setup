@@ -352,6 +352,7 @@ homekit:
         - switch.office_shelly
         - switch.supply_closet_shelly
         - light.toilet_lights
+        - switch.kitchen_oven_moko
 
     entity_config:
       light.living_room_corner_light:
@@ -370,6 +371,7 @@ homekit:
         name: Babykamer Lamp
       switch.baby_room_moon_light_moko:
         name: Babykamer Maan Lamp
+        type: outlet
       light.bathroom_lights:
         name: Badkamer Lampen
       switch.bedroom_shelly:
@@ -380,6 +382,9 @@ homekit:
         name: Gang Lampen
       light.kitchen_lights:
         name: Keuken Lamp
+      switch.kitchen_oven_moko:
+        name: Keuken Oven
+        type: outlet
       light.landing_lights:
         name: Overloop Lampen
       switch.laundry_room_shelly:
