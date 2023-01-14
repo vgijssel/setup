@@ -38,6 +38,8 @@
 192.168.1.76 - hallway-vacuum-moko
 192.168.1.77 - bedroom-charger-moko
 192.168.1.78 - office-server-moko
+192.168.1.79 - living-room-monkey-moko
+192.168.1.80 - bedroom-tv-moko
 
 192.168.1.100 - 192.168.1.254 DHCP Range Unifi
 
