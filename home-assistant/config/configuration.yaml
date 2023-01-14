@@ -13,6 +13,9 @@ input_boolean:
   bedroom_is_sleeping:
     name: Indicate if someone is sleeping in the Bedroom
     icon: mdi:car
+  bathroom_all_lights:
+    name: Indicate if all lights in the Bathroom are on
+    icon: mdi:light
 
 mqtt:
   camera:
@@ -43,6 +46,26 @@ mqtt:
       name: Downstairs - Apple Watch 1 - Z
       unit_of_measurement: meter
       device_class: distance
+
+scene:
+  - name: bathroom_shower_lights
+    icon: "mdi:shower-head"
+    entities:
+      light.bathroom_1_light: "on"
+      light.bathroom_2_light: "on"
+      light.bathroom_3_light: "off"
+      light.bathroom_4_light: "off"
+      light.bathroom_5_light: "off"
+      light.bathroom_6_light: "off"
+  - name: bathroom_all_lights
+    icon: "mdi:shower-head"
+    entities:
+      light.bathroom_1_light: "on"
+      light.bathroom_2_light: "on"
+      light.bathroom_3_light: "on"
+      light.bathroom_4_light: "on"
+      light.bathroom_5_light: "on"
+      light.bathroom_6_light: "on"
 
 sensor:
   - platform: illuminance

@@ -23,3 +23,6 @@ export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agen
 
 # For esphome to make sure dependencies are installed within the workspace
 export PLATFORMIO_CORE_DIR="$DEVELOPMENT_DIR/setup/tmp/.platformio"
+
+# Disable ZSH Pure from pulling git, because this will launch 1Password and is very distracting.
+export PURE_GIT_PULL=0
