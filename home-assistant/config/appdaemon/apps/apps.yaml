@@ -38,6 +38,7 @@ Downstairs_ESPresenseIps:
     laundry_room: [2.66, 5.92, 3.96]
     office: [2.66, 8.48, 3.96]
     office_server: [0.00, 10.58, 3.18]
+    office_human: [0.00, 7.25, 3.18]
     landing: [4.58, 6.23, 5.56]
 
   devices: &devices # devices:
