@@ -16,24 +16,6 @@ output:
   - platform: gpio
     id: "relay_output"
     pin: GPIO25
-  - platform: ledc
-    id: led_red
-    pin:
-      number: GPIO26
-      inverted: True
-      mode: OUTPUT_OPEN_DRAIN
-  - platform: ledc
-    id: led_green
-    pin:
-      number: GPIO27
-      inverted: True
-      mode: OUTPUT_OPEN_DRAIN
-  - platform: ledc
-    id: led_blue
-    pin:
-      number: GPIO14
-      inverted: True
-      mode: OUTPUT_OPEN_DRAIN
 
 switch:
   - platform: output
@@ -42,14 +24,6 @@ switch:
     output: "relay_output"
     # Attempt to restore state and default to OFF if not possible to restore.
     restore_mode: RESTORE_DEFAULT_OFF
-
-light:
-  - platform: rgb
-    id: color
-    name: "${entity_id}_led"
-    red: led_red
-    green: led_green
-    blue: led_blue
 
 binary_sensor:
   - platform: gpio

@@ -19,6 +19,7 @@ Downstairs_ESPresenseIps:
     # downstairs
     living_room: [1.10, 5.39, 2.75]
     living_room_tv: [5.18, 0.00, 0.25]
+    living_room_monkey: [5.18, 4.89, 0.25]
     supply_closet: [4.40, 4.99, 1.03]
     hallway: [3.43, 9.43, 2.75]
     hallway_vacuum: [5.18, 11.2, 0.05]
@@ -30,11 +31,15 @@ Downstairs_ESPresenseIps:
     # upstairs
     bedroom: [2.66, 3.93, 3.96]
     bedroom_charger: [0.00, 0.00, 3.18]
+    bedroom_tv: [2.66, 0.00, 3.18]
     baby_room: [4.00, 3.95, 3.96]
     baby_room_moon_light: [5.18, 0.00, 3.18]
+    baby_room_bed_light: [2.83, 0.00, 3.18]
+    bathroom_human: [2.83, 10.39, 3.18]
     laundry_room: [2.66, 5.92, 3.96]
     office: [2.66, 8.48, 3.96]
     office_server: [0.00, 10.58, 3.18]
+    office_human: [0.00, 7.25, 3.18]
     landing: [4.58, 6.23, 5.56]
 
   devices: &devices # devices:
@@ -132,7 +137,6 @@ Downstairs_ESPresenseIps:
           y: 9.80
         - x: 4.15
           y: 9.80
-
 Upstairs_ESPresenseIps:
   module: espresense-ips
   log_level: INFO
