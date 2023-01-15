@@ -35,6 +35,7 @@ Downstairs_ESPresenseIps:
     baby_room: [4.00, 3.95, 3.96]
     baby_room_moon_light: [5.18, 0.00, 3.18]
     baby_room_bed_light: [2.83, 0.00, 3.18]
+    bathroom_human: [2.83, 10.39, 3.18]
     laundry_room: [2.66, 5.92, 3.96]
     office: [2.66, 8.48, 3.96]
     office_server: [0.00, 10.58, 3.18]
