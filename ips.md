@@ -41,6 +41,7 @@
 192.168.1.79 - living-room-monkey-moko
 192.168.1.80 - bedroom-tv-moko
 192.168.1.81 - baby-room-bed-light-moko
+192.168.1.82 - office-human-moko
 
 192.168.1.100 - 192.168.1.254 DHCP Range Unifi
 
