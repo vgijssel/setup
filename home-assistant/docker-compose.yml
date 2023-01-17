@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   find3:
     container_name: find3
@@ -7,15 +8,13 @@ services:
     volumes:
       - "./find3-data:/data"
     environment:
-      - TZ=Europe/Amsterdam
-      - MQTT_ADMIN=ADMIN
-      - MQTT_PASS=PASSWORD
-      - MQTT_SERVER='localhost:1883'
+      MQTT_ADMIN: ADMIN
+      MQTT_PASS: PASSWORD
+      MQTT_SERVER: 'localhost:1883'
     # Expose the port 1883 to the internal docker network for bridging to the mqtt container
     expose:
       - "1883"
     ports:
-      # the find3 http server
       - "0.0.0.0:8003:8003"
 
   mqtt:
