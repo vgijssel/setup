@@ -50,9 +50,9 @@ sensor:
     filters:
       - exponential_moving_average:
           alpha: 0.3
-          send_every: 15
+          send_every: 5
     on_value:
       then:
         # From https://github.com/espressif/esp-idf/blob/3df87a91a3c876d6ef654e68b66f4939080fa1fc/examples/protocols/esp_http_client/main/esp_http_client_example.c
         - lambda: |-
-            do_request();
+            do_request(id(apple_watch_1_rssi).state);

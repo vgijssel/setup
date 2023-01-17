@@ -2,8 +2,9 @@
 
 #include "esphome/core/component.h"
 #include "esp_http_client.h"
+#include "ArduinoJson.h"
 
-bool do_request() {
+bool do_request(float rssi_value) {
     char local_response_buffer[2048] = {0};
 
     esp_http_client_config_t config = {
@@ -15,7 +16,20 @@ bool do_request() {
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
-    const char *post_data = "{\"field1\":\"value1\"}";
+    std::string result;
+    DynamicJsonDocument doc(1024);
+    doc["d"] = "test";
+    doc["f"] = "home";
+    doc["l"] = "test";
+    JsonObject sensorData = doc.createNestedObject("s");
+    JsonObject bluetoothData = sensorData.createNestedObject("bluetooth");
+    bluetoothData["00:00:00:00:00:00"] = rssi_value;
+    serializeJson(doc, result);
+
+    ESP_LOGI("http", "JSON: %s", result.c_str());
+
+    const char *post_data = result.c_str();
+
     esp_http_client_set_url(client, "http://192.168.1.30:8003/passive");
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
