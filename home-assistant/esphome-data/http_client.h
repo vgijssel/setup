@@ -4,7 +4,7 @@
 #include "esp_http_client.h"
 #include "ArduinoJson.h"
 
-bool do_request(float rssi_value) {
+bool do_request(float rssi_value, std::string room_name, std::string family_name) {
     char local_response_buffer[2048] = {0};
 
     esp_http_client_config_t config = {
@@ -18,9 +18,9 @@ bool do_request(float rssi_value) {
 
     std::string result;
     DynamicJsonDocument doc(1024);
-    doc["d"] = "test";
-    doc["f"] = "home";
-    doc["l"] = "test";
+    doc["d"] = room_name;
+    doc["l"] = room_name;
+    doc["f"] = family_name;
     JsonObject sensorData = doc.createNestedObject("s");
     JsonObject bluetoothData = sensorData.createNestedObject("bluetooth");
     bluetoothData["00:00:00:00:00:00"] = rssi_value;

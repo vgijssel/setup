@@ -28,19 +28,25 @@ globals:
   - id: room_topic
     type: std::string
     initial_value: '"room_presence/rooms/${room_name}"'
+  - id: room_name
+    type: std::string
+    initial_value: '"${room_name}"'
+  - id: family_name
+    type: std::string
+    initial_value: '"home"'
 
 sensor:
-  # - platform: nimble_distance
-  #   id: apple_watch_1_distance
-  #   irk: !secret apple_watch_1_irk
-  #   internal: true
-  #   on_value:
-  #     then:
-  #       - lambda: |-
-  #           id(mqtt_client)->publish_json(id(room_topic), [=](ArduinoJson::JsonObject root) -> void {
-  #             root["id"] = "apple_watch_1";
-  #             root["distance"] = id(apple_watch_1_distance).state;
-  #           });
+  - platform: nimble_distance
+    id: apple_watch_1_distance
+    irk: !secret apple_watch_1_irk
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            id(mqtt_client)->publish_json(id(room_topic), [=](ArduinoJson::JsonObject root) -> void {
+              root["id"] = "apple_watch_1";
+              root["distance"] = id(apple_watch_1_distance).state;
+            });
 
   - platform: nimble_rssi
     id: apple_watch_1_rssi
@@ -55,4 +61,8 @@ sensor:
       then:
         # From https://github.com/espressif/esp-idf/blob/3df87a91a3c876d6ef654e68b66f4939080fa1fc/examples/protocols/esp_http_client/main/esp_http_client_example.c
         - lambda: |-
-            do_request(id(apple_watch_1_rssi).state);
+            do_request(
+              id(apple_watch_1_rssi).state,
+              id(room_name),
+              id(family_name)
+            );
