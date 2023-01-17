@@ -3,6 +3,10 @@ external_components:
       type: local
       path: ../../esphome_nimble/components
 
+esphome:
+  includes:
+    - http_client.h
+
 mqtt:
   broker: !secret mqtt_broker
   username: esphome
@@ -30,7 +34,6 @@ sensor:
     id: apple_watch_1_distance
     irk: !secret apple_watch_1_irk
     internal: true
-    # TODO: should we retain the mqtt message?
     on_value:
       then:
         - lambda: |-
@@ -38,3 +41,18 @@ sensor:
               root["id"] = "apple_watch_1";
               root["distance"] = id(apple_watch_1_distance).state;
             });
+
+  - platform: nimble_rssi
+    id: apple_watch_1_rssi
+    irk: !secret apple_watch_1_irk
+    internal: true
+    # From https://github.com/dalehumby/ESPHome-Apple-Watch-detection/blob/main/lounge.yaml#L80
+    filters:
+      - exponential_moving_average:
+          alpha: 0.3
+          send_every: 1
+    on_value:
+      then:
+        # From https://github.com/espressif/esp-idf/blob/3df87a91a3c876d6ef654e68b66f4939080fa1fc/examples/protocols/esp_http_client/main/esp_http_client_example.c
+        - lambda: |-
+            do_request();
