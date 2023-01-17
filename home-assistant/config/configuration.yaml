@@ -46,6 +46,11 @@ mqtt:
       name: Downstairs - Apple Watch 1 - Z
       unit_of_measurement: meter
       device_class: distance
+    - state_topic: "home/location/bluetooth-00:00:00:00:00:00"
+      value_template: "{{ value_json.location }}"
+      expire_after: 120
+      object_id: apple_watch_1_location
+      name: Apple Watch 1
 
 scene:
   - name: bathroom_shower_lights
