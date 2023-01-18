@@ -50,7 +50,7 @@ mqtt:
       value_template: "{{ value_json.location }}"
       expire_after: 120
       object_id: apple_watch_1_location
-      name: Apple Watch 1
+      name: Apple Watch 1 Location
 
 scene:
   - name: bathroom_shower_lights
