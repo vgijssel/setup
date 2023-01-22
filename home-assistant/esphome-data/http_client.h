@@ -4,15 +4,15 @@
 #include "esp_http_client.h"
 #include "ArduinoJson.h"
 
+// Inspired by https://github.com/espressif/esp-idf/blob/3df87a91a3c876d6ef654e68b66f4939080fa1fc/examples/protocols/esp_http_client/main/esp_http_client_example.c
 bool do_request(float rssi_value, std::string room_name, std::string family_name) {
     char local_response_buffer[2048] = {0};
 
     esp_http_client_config_t config = {
-        .host = "192.168.1.30",
-        .port = 8003,
-        .path = "/passive",
+        .url = "http://192.168.1.30:8003/passive",
         .method = HTTP_METHOD_POST,
-        .user_data = local_response_buffer,        // Pass address of local buffer to get response
+        .timeout_ms = 500,  // request will timeout after 500ms
+        .user_data = local_response_buffer, // Pass address of local buffer to get response
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
@@ -30,8 +30,6 @@ bool do_request(float rssi_value, std::string room_name, std::string family_name
 
     const char *post_data = result.c_str();
 
-    esp_http_client_set_url(client, "http://192.168.1.30:8003/passive");
-    esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
     esp_http_client_set_post_field(client, post_data, strlen(post_data));
     esp_err_t err = esp_http_client_perform(client);
