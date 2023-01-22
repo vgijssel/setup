@@ -41,7 +41,6 @@ mutagen.yml.lock
 
 /home-assistant/mosquitto-data/*
 !/home-assistant/mosquitto-data/acls
-!/home-assistant/mosquitto-data/mosquitto-auth.conf
 
 /home-assistant/find3-data/*
 
