@@ -44,6 +44,8 @@
 192.168.1.82 - office-human-moko
 192.168.1.83 - bathroom-human-moko
 
+192.168.1.84 - test-shelly
+
 192.168.1.100 - 192.168.1.254 DHCP Range Unifi
 
 subnet mask: 255.255.255.0

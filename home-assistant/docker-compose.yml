@@ -1,5 +1,22 @@
 version: '3.8'
+
 services:
+  find3:
+    container_name: find3
+    image: schollz/find3@sha256:bb6e8879d5f4426c416071f20e8c0f9756791673bbe1c4a9da8e08369cadac0a
+    restart: always
+    volumes:
+      - "./find3-data:/data"
+    environment:
+      MQTT_ADMIN: ${FIND3_MQTT_ADMIN:?err}
+      MQTT_PASS: ${FIND3_MQTT_PASS:?err}
+      MQTT_SERVER: 'localhost:1883'
+    # Expose the port 1883 to the internal docker network for bridging to the mqtt container
+    expose:
+      - "1883"
+    ports:
+      - "0.0.0.0:8003:8003"
+
   mqtt:
     container_name: mqtt
     image: eclipse-mosquitto:2.0

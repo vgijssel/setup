@@ -8,7 +8,7 @@ namespace esphome
 
         bool NimbleRssiSensor::update_state(nimble_tracker::NimbleTrackerEvent *tracker_event)
         {
-            this->publish_state(advertised_device->getRSSI());
+            this->publish_state(tracker_event->getRSSI());
             return true;
         }
     } // namespace nimble_rssi

@@ -31,6 +31,8 @@ sync:
 
         - esphome-data/.esphome
 
+        - "/find3-data/*"
+
   esphome-nimble:
     alpha: "./esphome_nimble"
     beta: "192.168.1.30:/data/esphome_nimble"
