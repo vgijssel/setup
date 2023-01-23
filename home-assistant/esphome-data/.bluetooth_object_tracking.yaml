@@ -25,9 +25,6 @@ nimble_tracker:
     active: false
 
 globals:
-  - id: room_topic
-    type: std::string
-    initial_value: '"room_presence/rooms/${room_name}"'
   - id: room_name
     type: std::string
     initial_value: '"${room_name}"'
@@ -36,18 +33,6 @@ globals:
     initial_value: '"home"'
 
 sensor:
-  - platform: nimble_distance
-    id: apple_watch_1_distance
-    irk: !secret apple_watch_1_irk
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            id(mqtt_client)->publish_json(id(room_topic), [=](ArduinoJson::JsonObject root) -> void {
-              root["id"] = "apple_watch_1";
-              root["distance"] = id(apple_watch_1_distance).state;
-            });
-
   - platform: nimble_rssi
     id: apple_watch_1_rssi
     irk: !secret apple_watch_1_irk
