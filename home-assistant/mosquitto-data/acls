@@ -1,5 +1,5 @@
 # Create a new user by execing into the mqtt docker container and running:
-# mosquitto_passwd /mosquitto/passwd appdaemon
+# mosquitto_passwd /mosquitto/passwd home-assistant
 
 # Home Assistant has access to everything
 user home-assistant
@@ -11,8 +11,4 @@ topic readwrite #
 
 # Zigbee2mqtt has access to everything
 user zigbee2mqtt
-topic readwrite #
-
-# AppDaemon has access to everything
-user appdaemon
 topic readwrite #
