@@ -18,34 +18,7 @@ input_boolean:
     icon: mdi:light
 
 mqtt:
-  camera:
-    - topic: room_presence/downstairs/images/map
-      name: "Downstairs - Presence Map"
-    - topic: room_presence/upstairs/images/map
-      name: "Upstairs - Presence Map"
   sensor:
-    - state_topic: "room_presence/downstairs/ips/apple_watch_1/state"
-      expire_after: 120
-      object_id: downstairs_apple_watch_1
-      name: Downstairs - Apple Watch 1
-    - state_topic: "room_presence/upstairs/ips/apple_watch_1/state"
-      expire_after: 120
-      object_id: upstairs_apple_watch_1
-      name: Upstairs - Apple Watch 1
-    - state_topic: "room_presence/upstairs/ips/apple_watch_1"
-      value_template: "{{ value_json.z }}"
-      expire_after: 120
-      object_id: upstairs_apple_watch_1_z
-      name: Upstairs - Apple Watch 1 - Z
-      unit_of_measurement: meter
-      device_class: distance
-    - state_topic: "room_presence/downstairs/ips/apple_watch_1"
-      value_template: "{{ value_json.z }}"
-      expire_after: 120
-      object_id: downstairs_apple_watch_1_z
-      name: Downstairs - Apple Watch 1 - Z
-      unit_of_measurement: meter
-      device_class: distance
     - state_topic: "home/location/bluetooth-00:00:00:00:00:00"
       value_template: "{{ value_json.location }}"
       expire_after: 120

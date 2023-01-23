@@ -56,20 +56,6 @@ services:
     privileged: true
     network_mode: host
 
-  appdaemon:
-    container_name: appdaemon
-    build:
-      context: ./config/appdaemon/.
-    restart: always
-    volumes:
-      - ./config/appdaemon:/conf
-      - /etc/localtime:/etc/localtime:ro
-    ports:
-      - '0.0.0.0:5050:5050' # port for UI
-    # So we can reach home assistant running with host networking through the docker host
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
   esphome:
     container_name: esphome
     image: esphome/esphome:2022.10
