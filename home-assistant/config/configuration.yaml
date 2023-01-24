@@ -17,14 +17,6 @@ input_boolean:
     name: Indicate if all lights in the Bathroom are on
     icon: mdi:light
 
-mqtt:
-  sensor:
-    - state_topic: "home/location/bluetooth-00:00:00:00:00:00"
-      value_template: "{{ value_json.location }}"
-      expire_after: 120
-      object_id: apple_watch_1_location
-      name: Apple Watch 1 Location
-
 scene:
   - name: bathroom_shower_lights
     icon: "mdi:shower-head"
@@ -154,6 +146,15 @@ group:
       - switch.baby_room_moon_light_moko
 
 variable:
+  apple_watch_1_location:
+    value: "away"
+    restore: true
+    attributes:
+      friendly_name: "Apple Watch 1 Location"
+      icon: mdi:home-outline
+      next_location: "away"
+      next_location_iteration: 0
+
   baby_room_presence:
     value: "off"
     restore: true

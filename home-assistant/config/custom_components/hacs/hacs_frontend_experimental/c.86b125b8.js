@@ -639,11 +639,12 @@ var r = t(function (e, t) {
                   ));
             })(e, t, n)
           : (function (e, t) {
-              const n = z(e, "target")[String(t)];
-              n &&
-                n.attrListener &&
-                (x(n, n.attrListener.callback, !1),
-                (n.attrCallback = n.attrListener = void 0));
+              const n = z(e, "target"),
+                r = n[String(t)];
+              r &&
+                r.attrListener &&
+                (x(r, r.attrListener.callback, !1),
+                (r.attrCallback = r.attrListener = void 0));
             })(e, t);
     }
     function ee(e, t, n) {
