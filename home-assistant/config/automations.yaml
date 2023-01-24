@@ -504,3 +504,75 @@
       data:
         entity_id: media_player.sonos_move
   mode: single
+- id: '1674554618790'
+  alias: Apple Watch Location 1
+  description: ''
+  trigger:
+  - platform: mqtt
+    topic: home/location/bluetooth-00:00:00:00:00:00
+  condition: []
+  action:
+  - if:
+    - condition: template
+      value_template: '{{ trigger.payload_json.location == states(''variable.apple_watch_1_location'')
+        }}'
+    then:
+    - service: variable.set_variable
+      data:
+        variable: apple_watch_1_location
+        attributes:
+          next_location: '{{ states(''variable.apple_watch_1_location'') }}'
+          next_location_iteration: 0
+          icon: mdi:home
+    - stop: Nothing changed
+    alias: same location
+  - if:
+    - condition: template
+      value_template: '{{ trigger.payload_json.guesses[0].probability < 0.5 }}'
+    then:
+    - service: variable.set_variable
+      data:
+        variable: apple_watch_1_location
+        attributes:
+          next_location: '{{ states(''variable.apple_watch_1_location'') }}'
+          next_location_iteration: 0
+          icon: mdi:home
+    - stop: Probability too low
+    alias: low probability
+  - if:
+    - condition: template
+      value_template: '{{ trigger.payload_json.location != state_attr(''variable.apple_watch_1_location'',
+        ''next_location'') }}'
+    then:
+    - service: variable.set_variable
+      data:
+        variable: apple_watch_1_location
+        attributes:
+          next_location: '{{ trigger.payload_json.location }}'
+          next_location_iteration: 0
+          icon: mdi:home
+    alias: Update next location
+  - service: variable.set_variable
+    data:
+      variable: apple_watch_1_location
+      attributes:
+        next_location_iteration: '{{ (state_attr(''variable.apple_watch_1_location'',
+          ''next_location_iteration'') | int(default=0)) + 1 }}'
+    alias: Next location iteration increment
+  - if:
+    - condition: template
+      value_template: '{{ (state_attr(''variable.apple_watch_1_location'', ''next_location_iteration'')
+        | int(default=0)) > 1 }}'
+    then:
+    - service: variable.set_variable
+      data:
+        variable: apple_watch_1_location
+        value: '{{ state_attr(''variable.apple_watch_1_location'', ''next_location'')
+          }}'
+        attributes:
+          next_location: '{{ state_attr(''variable.apple_watch_1_location'', ''next_location'')
+            }}'
+          next_location_iteration: 0
+          icon: mdi:home
+    alias: Change location
+  mode: single

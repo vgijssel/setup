@@ -163,6 +163,15 @@ group:
       - switch.baby_room_moon_light_moko
 
 variable:
+  apple_watch_1_location:
+    value: "away"
+    restore: true
+    attributes:
+      friendly_name: "Apple Watch 1 Location"
+      icon: mdi:home-outline
+      next_location: "away"
+      next_location_iteration: 0
+
   baby_room_presence:
     value: "off"
     restore: true
