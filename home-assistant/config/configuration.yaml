@@ -17,23 +17,6 @@ input_boolean:
     name: Indicate if all lights in the Bathroom are on
     icon: mdi:light
 
-mqtt:
-  sensor:
-    - state_topic: "home/location/bluetooth-00:00:00:00:00:00"
-      expire_after: 120
-      object_id: apple_watch_1_location
-      name: Apple Watch 1 Location
-      value_template: |-
-        {% if states(entity_id) == None %}
-          {{ value_json.location }}
-        {% else %}
-          {% if value_json.guesses[0].probability > 0.5 %}
-            {{ value_json.location }}
-          {% else %}
-            {{ states(entity_id) }}
-          {% endif %}
-        {% endif %}
-
 scene:
   - name: bathroom_shower_lights
     icon: "mdi:shower-head"
