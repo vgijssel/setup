@@ -3,6 +3,17 @@
 
 set -Eeou pipefail
 
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+current_commit=$(git rev-parse HEAD)
+
+if [[ "$current_branch" == "master" ]]; then
+  previous_commit=$(git rev-parse $current_commit^)
+else
+  # from https://stackoverflow.com/questions/1527234/finding-a-branch-point-with-git/71193866#71193866
+  current_branch_first_commit=$(git rev-list --exclude-first-parent-only ^origin/master $current_branch | tail -1)
+  previous_commit=$(git rev-parse $current_branch_first_commit^)
+fi
+
 # Path to your Bazel WORKSPACE directory
 workspace_path="$BUILD_WORKSPACE_DIRECTORY"
 
@@ -10,9 +21,9 @@ workspace_path="$BUILD_WORKSPACE_DIRECTORY"
 bazel_path="$(which bazel)"
 
 # Starting Revision SHA
-previous_revision="$1"
+previous_revision=$previous_commit
 # Final Revision SHA
-final_revision="$2"
+final_revision=$current_commit
 
 starting_hashes_json="/tmp/starting_hashes.json"
 final_hashes_json="/tmp/final_hashes.json"
