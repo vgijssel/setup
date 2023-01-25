@@ -1,5 +1,4 @@
-# load("@com_github_ash2k_bazel_tools//multirun:def.bzl", multirun_command = "command")
-# load("@aspect_bazel_lib//lib:expand_make_vars.bzl", "expand_template")
+load("@command_deps//:requirements.bzl", "all_requirements")
 
 def _find_executable_runfiles_path(paths, target):
     for path in paths:
@@ -15,15 +14,13 @@ def _command_impl(ctx):
     executable_path = ctx.executable.cmd.path.replace(ctx.executable.cmd.root.path, "")
     executable_runfiles_path = _find_executable_runfiles_path(runfiles_paths, executable_path)
 
-    print(executable_runfiles_path)
-
     ctx.actions.expand_template(
         template = ctx.file._command_tpl,
         output = command_output,
         is_executable = True,
         substitutions = {
             "{{CMD}}": executable_runfiles_path,
-            "{{CWD}}": ctx.attr.cwd,
+            "{{CWD}}": ctx.expand_location(ctx.attr.cwd, targets = [ctx.attr.cmd] + ctx.attr.data),
         },
     )
 
@@ -74,5 +71,5 @@ def command(name, cmd, cwd = None, data = [], env = {}, before_script = None):
         data = [
             cmd,
         ] + data,
-        deps = ["@rules_python//python/runfiles"],
+        deps = ["@rules_python//python/runfiles"] + all_requirements,
     )

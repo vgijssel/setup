@@ -58,7 +58,7 @@ command(
     """,
     cmd = "@tilt_arm64//:tilt_binary",
     # cmd = ":henk",
-    cwd = "{{ os.path.dirname(r.Rlocation('$(rlocationpath :Tiltfile)')) }}",
+    cwd = "{{ os.path.dirname(runfiles_path('$(rlocationpath :Tiltfile)')) }}",
     data = [
         ":Tiltfile",
     ],

@@ -2,18 +2,31 @@
 import os
 import sys
 from rules_python.python.runfiles import runfiles
+import jinja2
 
 cmd_sub = "{{CMD}}"
 cwd_sub = "{{CWD}}"
 
-# Setup the command to run
 r = runfiles.Create()
-cmd = r.Rlocation(cmd_sub)
+
+
+def runfiles_path(path):
+    p = r.Rlocation(path)
+
+    if not p:
+        raise Exception("Unable to find runfile: {}".format(path))
+
+    return p
+
+
+# Setup the command to run
+cmd = runfiles_path(cmd_sub)
 
 # Setup the working directory of the command
-# TODO: run Jinja2
 # cwd = cwd_sub
-cwd = None
+environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
+template = environment.from_string(cwd_sub)
+cwd = template.render(os=os, runfiles_path=runfiles_path)
 
 # Setup the args to pass to the command
 inline_args = []
@@ -22,6 +35,8 @@ args = [cmd] + inline_args + external_args
 
 print(cmd_sub)
 print(cmd)
+print(cwd_sub)
+print(cwd)
 print(args)
 
 

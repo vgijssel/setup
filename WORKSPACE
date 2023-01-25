@@ -294,3 +294,14 @@ http_archive(
     sha256 = "1535891f128613b967f52fa635e0620b20cb2a849c6fa9655a27bbdaf905e20a",
     url = "https://github.com/tilt-dev/tilt/releases/download/v0.31.1/tilt.0.31.1.linux.arm64.tar.gz",
 )
+
+# ------------------------------------ command ------------------------------------ #
+pip_parse(
+    name = "command_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "//tools/command:requirements.lock",
+)
+
+load("@command_deps//:requirements.bzl", install_command_deps = "install_deps")
+
+install_command_deps()
