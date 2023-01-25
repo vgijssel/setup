@@ -14,6 +14,7 @@ docker_build(
 
 post_build(
     "skip_onboarding",
+    tilt_binary="bazel run //occupancy_component:tilt --",
     resource="home-assistant",
     cmd="""
     docker compose exec home-assistant wait-for -t 0 localhost:8123

@@ -5,6 +5,8 @@
     "context": ".",
     "args": { "USER_UID": "501", "USER_GID": "1000" }
   },
+  // tilt: 10350
+  "forwardPorts": [10350],
   "customizations": {
     "vscode": {
       "extensions": [

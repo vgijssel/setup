@@ -284,3 +284,13 @@ parse_dependencies()
 load("@aspect_rules_format//format:toolchains.bzl", "format_register_toolchains")
 
 format_register_toolchains()
+
+# ------------------------------------ tilt ------------------------------------ #
+
+http_archive(
+    name = "tilt_arm64",
+    build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
+    # downloaded_file_path = "inspec.deb",
+    sha256 = "1535891f128613b967f52fa635e0620b20cb2a849c6fa9655a27bbdaf905e20a",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.31.1/tilt.0.31.1.linux.arm64.tar.gz",
+)
