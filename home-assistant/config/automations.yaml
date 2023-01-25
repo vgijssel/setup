@@ -544,6 +544,7 @@
                   next_location: away
                   next_location_iteration: 0
                   next_location_duration: 0
+                  icon: mdi:home-outline
                   last_updated: "{{ now() }}"
         - stop: Done checking away status
       alias: Check for away status
