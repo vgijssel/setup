@@ -53,13 +53,16 @@ sh_binary(
 
 command(
     name = "tilt",
+    before_script = """
+    print(os.environ)
+    """,
     cmd = "@tilt_arm64//:tilt_binary",
     cwd = "{{ os.path.dirname(runfiles_path('$(rlocationpath :Tiltfile)')) }}",
     data = [
         ":Tiltfile",
     ],
     env = {
-        "KERK": "shine",
+        "KERK": "$(location :Tiltfile)",
     },
 )
 

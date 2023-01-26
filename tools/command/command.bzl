@@ -14,6 +14,12 @@ def _command_impl(ctx):
     executable_path = ctx.executable.cmd.path.replace(ctx.executable.cmd.root.path, "")
     executable_runfiles_path = _find_executable_runfiles_path(runfiles_paths, executable_path)
 
+    env_string = ""
+
+    for key, value in ctx.attr.env.items():
+        expanded_value = ctx.expand_location(value, targets = [ctx.attr.cmd] + ctx.attr.data)
+        env_string += "os.environ['{}'] = '{}'".format(key, expanded_value)
+
     ctx.actions.expand_template(
         template = ctx.file._command_tpl,
         output = command_output,
@@ -23,6 +29,7 @@ def _command_impl(ctx):
             "{{CWD}}": ctx.expand_location(ctx.attr.cwd, targets = [ctx.attr.cmd] + ctx.attr.data),
             # TODO: maybe correct indent the content of before_script?
             "{{BEFORE_SCRIPT}}": ctx.expand_location(ctx.attr.before_script, targets = [ctx.attr.cmd] + ctx.attr.data),
+            "{{ENV}}": env_string,
         },
     )
 
@@ -66,6 +73,8 @@ _command = rule(
 # This means if we "cd" to the root config file inside the runfiles dir, all the files are relative to that root config as if they are in the workspace.
 # For other deps we can create a mapping starting from root config to the dep, currently this is a custom build rule for meltano
 # but maybe this can be generalized for other tools.
+#
+# TODO: is there a bazelrc flag for the runfiles manifest behaviour? That it does not point to runfiles within the actual dir?
 def command(name, cmd, cwd = None, data = [], env = {}, before_script = None):
     command_name = "{}_command.py".format(name)
 
