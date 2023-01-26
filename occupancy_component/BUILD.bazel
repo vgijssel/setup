@@ -1,6 +1,7 @@
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@occupancy_component//:requirements.bzl", "requirement")
 load("//tools/pytest:pytest.bzl", "py_pytest_test")
+load("//tools/command:command.bzl", "command")
 
 compile_pip_requirements(
     name = "requirements",
@@ -33,4 +34,25 @@ py_pytest_test(
         ":lib",
         requirement("pytest-homeassistant-custom-component"),
     ],
+)
+
+command(
+    name = "tilt",
+    command_src = "@tilt_arm64//:tilt_binary",
+    cwd = "{{ os.path.dirname(runfiles_path('$(rlocationpath :Tiltfile)')) }}",
+    data = [
+        ":Tiltfile",
+        ":docker-compose.yml",
+        "//tools/tilt:post_build/Tiltfile",
+    ],
+)
+
+command(
+    name = "dev",
+    args = [
+        "up",
+        "--port",
+        "10350",
+    ],
+    command_src = ":tilt",
 )

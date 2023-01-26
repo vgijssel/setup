@@ -1,0 +1,5 @@
+load("//tools/command:command.bzl", "command")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["post_build/Tiltfile"])

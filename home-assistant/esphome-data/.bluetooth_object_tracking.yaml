@@ -6,17 +6,8 @@ external_components:
 esphome:
   includes:
     - http_client.h
-
-mqtt:
-  broker: !secret mqtt_broker
-  username: esphome
-  password: !secret mqtt_password
-  discovery: false
-  id: mqtt_client
-  reboot_timeout: 0s
-  log_topic:
-    topic: "doesnotmatter"
-    level: NONE
+  libraries:
+    - bblanchon/ArduinoJson
 
 nimble_tracker:
   scan_parameters:
@@ -42,6 +33,9 @@ sensor:
       - exponential_moving_average:
           alpha: 0.1
           send_every: 1
+      # Limit the number of requests to 1 per second to not loose connectivity with home assistant i
+      # Resulting in reboots.
+      - throttle: 1s
     on_value:
       then:
         # From https://github.com/espressif/esp-idf/blob/3df87a91a3c876d6ef654e68b66f4939080fa1fc/examples/protocols/esp_http_client/main/esp_http_client_example.c
