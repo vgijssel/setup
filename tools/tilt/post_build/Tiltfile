@@ -3,7 +3,7 @@ def post_build(name, resource, cmd, tilt_binary):
         name,
         serve_cmd="""
         #!/usr/bin/env bash
-        set -Eeou pipefail
+        set -e
 
         echo "Starting post build"
 

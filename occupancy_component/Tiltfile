@@ -19,10 +19,10 @@ post_build(
     cmd="""
     docker compose exec home-assistant wait-for -t 0 localhost:8123
 
-    curl --location --request POST 'http://127.0.0.1:8123/api/onboarding/users' \
+    curl --location --request POST 'http://host.docker.internal:8123/api/onboarding/users' \
     --header 'Content-Type: application/json' \
     --data-raw '{
-        "client_id": "http://127.0.0.1:8123/",
+        "client_id": "http://host.docker.internal:8123/",
         "name": "admin",
         "username": "admin",
         "password": "admin",
