@@ -42,6 +42,8 @@ command(
     cwd = "{{ os.path.dirname(runfiles_path('$(rlocationpath :Tiltfile)')) }}",
     data = [
         ":Tiltfile",
+        ":docker-compose.yml",
+        "//tools/tilt:post_build/Tiltfile",
     ],
 )
 
