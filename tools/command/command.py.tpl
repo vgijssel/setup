@@ -40,7 +40,7 @@ def runfiles_path(path):
 
 
 def before_script():
-    {{BEFORE_SCRIPT}}
+    {{BEFORE_CMD}}
 
 
 # Setup the command to run
