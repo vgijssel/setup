@@ -52,7 +52,7 @@ template = environment.from_string(cwd_sub)
 cwd = template.render(os=os, runfiles_path=runfiles_path)
 
 # Setup the args to pass to the command
-inline_args = []
+inline_args = {{ARGS}}
 external_args = sys.argv[1:]
 args = [cmd] + inline_args + external_args
 

@@ -36,75 +36,21 @@ py_pytest_test(
     ],
 )
 
-# NOTE: not using the orignal command because of:
-# 1. need a cwd argument to indicate where the command should be run from
-# 2. nesting of commands with custom cwds should work
-# 3. extendability with custom code, before/after commands which can influence the environment. For example add envconsul data to the environment
-#
-# before_script can be regular Python
-# cmd, env, args
-
-sh_binary(
-    name = "henk",
-    srcs = [
-        "henk.sh",
-    ],
-)
-
 command(
     name = "tilt",
-    before_script = """
-    print(os.environ)
-    """,
     cmd = "@tilt_arm64//:tilt_binary",
     cwd = "{{ os.path.dirname(runfiles_path('$(rlocationpath :Tiltfile)')) }}",
     data = [
         ":Tiltfile",
     ],
-    env = {
-        "KERK": "$(location :Tiltfile)",
-    },
 )
 
-genrule(
-    name = "kerk",
-    outs = [
-        "build",
+command(
+    name = "dev",
+    args = [
+        "up",
+        "--port",
+        "10350",
     ],
-    cmd = """
-    $(location :tilt) --help
-    exit 1
-    """,
-    tools = [
-        ":tilt",
-    ],
+    cmd = ":tilt",
 )
-
-# optional arguments
-
-# command(
-#     name = "dev",
-#     arguments = [
-#         "up",
-#         "--port",
-#         "10350",
-#     ],
-#     command = ":tilt",
-#     working_directory = "kerk",
-# )
-
-# command(
-#     name = "dev",
-#     arguments = [
-#         "up",
-#         "--port",
-#         "10350",
-#     ],
-#     command = "//tools/tilt",
-#     data = [
-#         ":Tiltfile",
-#         ":docker-compose.yml",
-#         "//tools/tilt:post_build/Tiltfile",
-#     ],
-#     working_directory = "$$(dirname $(location :Tiltfile))",
-# )
