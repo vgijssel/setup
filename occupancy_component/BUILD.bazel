@@ -53,11 +53,7 @@ sh_binary(
 
 command(
     name = "tilt",
-    before_script = """
-    print("papi")
-    """,
     cmd = "@tilt_arm64//:tilt_binary",
-    # cmd = ":henk",
     cwd = "{{ os.path.dirname(runfiles_path('$(rlocationpath :Tiltfile)')) }}",
     data = [
         ":Tiltfile",
@@ -65,6 +61,20 @@ command(
     env = {
         "KERK": "shine",
     },
+)
+
+genrule(
+    name = "kerk",
+    outs = [
+        "build",
+    ],
+    cmd = """
+    $(location :tilt) --help
+    exit 1
+    """,
+    tools = [
+        ":tilt",
+    ],
 )
 
 # optional arguments

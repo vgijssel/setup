@@ -21,6 +21,8 @@ def _command_impl(ctx):
         substitutions = {
             "{{CMD}}": executable_runfiles_path,
             "{{CWD}}": ctx.expand_location(ctx.attr.cwd, targets = [ctx.attr.cmd] + ctx.attr.data),
+            # TODO: maybe correct indent the content of before_script?
+            "{{BEFORE_SCRIPT}}": ctx.expand_location(ctx.attr.before_script, targets = [ctx.attr.cmd] + ctx.attr.data),
         },
     )
 
@@ -42,7 +44,7 @@ _command = rule(
         "cwd": attr.string(mandatory = False),
         "data": attr.label_list(allow_files = True),
         "env": attr.string_dict(),
-        "before_script": attr.string(mandatory = False),
+        "before_script": attr.string(mandatory = False, default = "pass"),
         "_command_tpl": attr.label(
             default = Label("//tools/command:command.py.tpl"),
             allow_single_file = True,
@@ -50,6 +52,20 @@ _command = rule(
     },
 )
 
+# TODO: in genrule "cmd" stands for an inline script, let's use that convention as well?
+#       before_cmd - inline script before cmd
+#       command_src - source of the command (either file or target)
+#
+# using runfiles during "run" results in absolute path to file in the workspace directory (not inside the runfiles dir) Runfiles mode is RUNFILES_MANIFEST_FILE
+# using runfiles during "build" results in absolute path to file in the runfiles dir. Runfiles mode is RUNFILES_DIR
+# Is there a bazel setting that maybe changes the behaviour of the runfiles manifest file?
+
+# The goal we want to achieve is to create a directory structure a tool expects, relative to the root of some config file.
+# For Meltano this is "meltano.yml", for Tilt this is "Tiltfile", for Pulumi this is "Pulumi.yaml" and so on.
+# All regular files linked in command are symlinked with their origin package structure,
+# This means if we "cd" to the root config file inside the runfiles dir, all the files are relative to that root config as if they are in the workspace.
+# For other deps we can create a mapping starting from root config to the dep, currently this is a custom build rule for meltano
+# but maybe this can be generalized for other tools.
 def command(name, cmd, cwd = None, data = [], env = {}, before_script = None):
     command_name = "{}_command.py".format(name)
 
