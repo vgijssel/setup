@@ -37,6 +37,7 @@ def _command_impl(ctx):
             "{{CMD}}": executable_runfiles_path,
             "{{CWD}}": ctx.expand_location(ctx.attr.cwd, targets = expand_targets),
             "{{BEFORE_CMD}}": ctx.expand_location(ctx.attr.before_cmd, targets = expand_targets),
+            "{{AFTER_CMD}}": ctx.expand_location(ctx.attr.after_cmd, targets = expand_targets),
             "{{ENV}}": env_string,
             "{{ARGS}}": arg_string,
         },
@@ -60,6 +61,7 @@ _command = rule(
         "data": attr.label_list(allow_files = True),
         "env": attr.string_dict(),
         "before_cmd": attr.string(mandatory = False, default = "pass"),
+        "after_cmd": attr.string(mandatory = False, default = "pass"),
         "_command_tpl": attr.label(
             default = Label("//tools/command:command.py.tpl"),
             allow_single_file = True,
@@ -72,7 +74,7 @@ _command = rule(
 # All regular files linked in a command are symlinked with their origin package structure,
 # This means if we "cd" to the root config file inside the runfiles dir, all the files are relative to that root config as if they are in the workspace.
 # For other deps we can create a mapping starting from root config to the dep, currently this is a custom build rule for meltano.
-def command(name, command_src, cwd = None, args = [], data = [], env = {}, before_cmd = None):
+def command(name, command_src, cwd = None, args = [], data = [], env = {}, before_cmd = None, after_cmd = None):
     command_name = "{}_command.py".format(name)
 
     _command(
@@ -83,6 +85,7 @@ def command(name, command_src, cwd = None, args = [], data = [], env = {}, befor
         data = data,
         env = env,
         before_cmd = before_cmd,
+        after_cmd = after_cmd,
     )
 
     native.py_binary(

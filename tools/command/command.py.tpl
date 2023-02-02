@@ -4,6 +4,9 @@ import sys
 from rules_python.python.runfiles import runfiles
 import jinja2
 from pathlib import Path
+import subprocess
+import atexit
+import signal
 
 
 cmd_sub = "{{CMD}}"
@@ -39,10 +42,6 @@ def runfiles_path(path):
     return p
 
 
-def before_script():
-    {{BEFORE_CMD}}
-
-
 # Setup the command to run
 cmd = runfiles_path(cmd_sub)
 
@@ -57,15 +56,39 @@ external_args = sys.argv[1:]
 args = [cmd] + inline_args + external_args
 
 
+# Prevent a SIGINT and regular exit firing the after_cmd hook twice.
+handle_exit_executed = False
+
+def handle_exit(*exit_args):
+    global handle_exit_executed
+
+    if handle_exit_executed:
+        return
+
+    handle_exit_executed = True
+
+    after_cmd()
+
+def before_cmd():
+    {{BEFORE_CMD}}
+
+def after_cmd():
+    {{AFTER_CMD}}
+
 def main():
     {{ENV}}
-
-    before_script()
 
     if cwd:
         os.chdir(cwd)
 
-    os.execvpe(cmd, args, os.environ)
+    atexit.register(handle_exit)
+    signal.signal(signal.SIGTERM, handle_exit)
+    signal.signal(signal.SIGINT, handle_exit)
+
+    before_cmd()
+
+    result = subprocess.run(args, env=os.environ)
+    sys.exit(result.returncode)
 
 
 if __name__ == "__main__":
