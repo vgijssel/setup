@@ -3,3 +3,8 @@ load("//tools/command:command.bzl", "command")
 package(default_visibility = ["//visibility:public"])
 
 exports_files(["post_build/Tiltfile"])
+
+command(
+    name = "tilt",
+    command_src = "@tilt_arm64//:tilt_binary",
+)

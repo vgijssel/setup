@@ -38,7 +38,8 @@
     },
     "editor.formatOnSave": true,
     "bazel.buildifierExecutable": "/tmp/bazel-setup-bin/external/buildifier_prebuilt/buildifier/buildifier",
-    "prettier.executablePath": "/tmp/bazel-setup-bin/external/aspect_rules_format/format/prettier.sh"
+    "prettier.executablePath": "/tmp/bazel-setup-bin/external/aspect_rules_format/format/prettier.sh",
+    "tiltfile.tilt.path": "/tmp/bazel-setup-bin/tools/tilt/tilt"
   },
   "shutdownAction": "stopContainer",
   "postAttachCommand": "bin/post-setup",
