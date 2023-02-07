@@ -297,11 +297,10 @@ http_archive(
 
 # ------------------------------------ command ------------------------------------ #
 pip_parse(
-    name = "command_deps",
-    python_interpreter_target = interpreter,
-    requirements_lock = "//tools/command:requirements.lock",
+    name = "command-requirements",
+    requirements_lock = "@//tools/command:requirements.lock",
 )
 
-load("@command_deps//:requirements.bzl", install_command_deps = "install_deps")
+load("@command-requirements//:requirements.bzl", install_command_requirements_deps = "install_deps")
 
-install_command_deps()
+install_command_requirements_deps()
