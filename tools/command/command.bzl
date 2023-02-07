@@ -1,4 +1,5 @@
-load("@command_deps//:requirements.bzl", "all_requirements")
+load("@command-requirements//:requirements.bzl", "all_requirements")
+load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 
 def _find_executable_runfiles_path(paths, target):
     for path in paths:
@@ -74,7 +75,7 @@ _command = rule(
 # All regular files linked in a command are symlinked with their origin package structure,
 # This means if we "cd" to the root config file inside the runfiles dir, all the files are relative to that root config as if they are in the workspace.
 # For other deps we can create a mapping starting from root config to the dep, currently this is a custom build rule for meltano.
-def command(name, command_src, cwd = None, args = [], data = [], env = {}, before_cmd = None, after_cmd = None):
+def command(name, command_src, cwd = None, args = [], deps = [], data = [], env = {}, before_cmd = None, after_cmd = None, tags = []):
     command_name = "{}_command.py".format(name)
 
     _command(
@@ -97,5 +98,22 @@ def command(name, command_src, cwd = None, args = [], data = [], env = {}, befor
         data = [
             command_src,
         ] + data,
-        deps = ["@rules_python//python/runfiles"] + all_requirements,
+        deps = ["@rules_python//python/runfiles"] + all_requirements + deps,
+        tags = tags,
+    )
+
+def command_test(name, tags = [], **kwargs):
+    command_name = "{}_command".format(name)
+
+    command(
+        name = command_name,
+        tags = tags,
+        **kwargs
+    )
+
+    native_test(
+        name = name,
+        src = command_name,
+        out = "{}.out".format(name),
+        tags = tags,
     )
