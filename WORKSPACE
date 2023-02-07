@@ -298,7 +298,7 @@ http_archive(
 # ------------------------------------ command ------------------------------------ #
 load("//tools/command:deps.bzl", command_deps = "deps")
 
-command_deps()
+command_deps(python_interpreter_target = interpreter)
 
 load("//tools/command:toolchains.bzl", command_toolchains = "toolchains")
 

@@ -1,9 +1,8 @@
 load("@rules_python//python:pip.bzl", "pip_parse")
-load("@python3//:defs.bzl", "interpreter")
 
-def deps():
+def deps(python_interpreter_target = None):
     pip_parse(
         name = "command-requirements",
-        python_interpreter_target = interpreter,
+        python_interpreter_target = python_interpreter_target,
         requirements_lock = "@//tools/command:requirements.lock",
     )
