@@ -296,11 +296,10 @@ http_archive(
 )
 
 # ------------------------------------ command ------------------------------------ #
-pip_parse(
-    name = "command-requirements",
-    requirements_lock = "@//tools/command:requirements.lock",
-)
+load("//tools/command:deps.bzl", command_deps = "deps")
 
-load("@command-requirements//:requirements.bzl", install_command_requirements_deps = "install_deps")
+command_deps()
 
-install_command_requirements_deps()
+load("//tools/command:toolchains.bzl", command_toolchains = "toolchains")
+
+command_toolchains()
