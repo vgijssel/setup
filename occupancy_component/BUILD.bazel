@@ -47,6 +47,7 @@ command(
     ],
 )
 
+# TODO: can we also remove attached volumes when doing "down"?
 command(
     name = "dev",
     after_cmd = """
