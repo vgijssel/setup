@@ -102,7 +102,7 @@ def command(name, command_src, cwd = None, args = [], deps = [], data = [], env 
         tags = tags,
     )
 
-def command_test(name, tags = [], **kwargs):
+def command_test(name, tags = [], size = None, **kwargs):
     command_name = "{}_command".format(name)
 
     command(
@@ -116,4 +116,5 @@ def command_test(name, tags = [], **kwargs):
         src = command_name,
         out = "{}.out".format(name),
         tags = tags,
+        size = size,
     )
