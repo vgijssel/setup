@@ -41,17 +41,26 @@ def runfiles_path(path):
 
     return p
 
+environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
+
+def jinja_render_string(string):
+    template = environment.from_string(string)
+    return template.render(os=os, runfiles_path=runfiles_path)
+
 
 # Setup the command to run
 cmd = runfiles_path(cmd_sub)
 
 # Setup the working directory of the command
-environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
-template = environment.from_string(cwd_sub)
-cwd = template.render(os=os, runfiles_path=runfiles_path)
+cwd = jinja_render_string(cwd_sub)
 
 # Setup the args to pass to the command
-inline_args = {{ARGS}}
+inline_args_raw = {{ARGS}}
+inline_args = []
+
+for inline_arg_raw in inline_args_raw:
+    inline_args.append(jinja_render_string(inline_arg_raw))
+
 external_args = sys.argv[1:]
 args = [cmd] + inline_args + external_args
 
