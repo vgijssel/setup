@@ -41,7 +41,9 @@ def runfiles_path(path):
 
     return p
 
+
 environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
+
 
 def jinja_render_string(string):
     template = environment.from_string(string)
@@ -55,6 +57,8 @@ cmd = runfiles_path(cmd_sub)
 cwd = jinja_render_string(cwd_sub)
 
 # Setup the args to pass to the command
+# TODO: need to escape the data that is coming in here! Same for CWD!
+# TODO: remove empty args?
 inline_args_raw = {{ARGS}}
 inline_args = []
 
@@ -68,6 +72,11 @@ args = [cmd] + inline_args + external_args
 # Prevent a SIGINT and regular exit firing the after_cmd hook twice.
 handle_exit_executed = False
 
+# When process exists and exit code is 0 the command is a success,
+# all other cases of exit is considered failure.
+successful_exit = False
+
+
 def handle_exit(*exit_args):
     global handle_exit_executed
 
@@ -78,11 +87,14 @@ def handle_exit(*exit_args):
 
     after_cmd()
 
+
 def before_cmd():
     {{BEFORE_CMD}}
 
+
 def after_cmd():
     {{AFTER_CMD}}
+
 
 def main():
     {{ENV}}
@@ -97,6 +109,8 @@ def main():
     before_cmd()
 
     result = subprocess.run(args, env=os.environ)
+    global successful_exit
+    successful_exit = result.returncode == 0
     sys.exit(result.returncode)
 
 
