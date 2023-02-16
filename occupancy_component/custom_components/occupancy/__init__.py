@@ -170,32 +170,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-# TODO:
-# - [ ] Setup icon when door is open or closes
-# so it looks like that the trick is to call the "async_add_entities" on a EntityComponent with domain of "binary_sensor".
-# is there a generic way we can add entities like this? So we don't have to create a new EntityComponent for each type of entity?
-#
-# - [ ] Setup device_class for the door entity sensor
-# - [ ] When door opens it is active for X seconds
-# - [ ] When door closes it is active for X seconds
-# - [ ] When door is open and motion sensor triggers the door should be active for X seconds
-# - [ ] When door is closed and motion sensor triggers the door not becomes active
-# - [ ] When door is active make icon yellow
-# - [ ] Ability to restore state after restart
-# - [ ] Should we move the Door sensor to the sensor.py file according to the documentation?
-#
-# https://www.home-assistant.io/integrations/binary_sensor/#device-class
-# Example of various device classes icons in `on` and `off` state. The on image in this example has `state_color: true` specified in the Entities card configuration to receive the icon coloring.
-#
-# Door is exposes as a sensor, with simply on/off behaviour
-# on means there is activity at the door
-# active means either
-# - door opened from closed state for a duration of (timeout) seconds
-# - associated motion sensor is triggering
-# change the icon based if the contact sensor is open or closed
-# change the color based if there is activity or not (yellow vs blue)
-
-
 class Door(BinarySensorEntity, RestoreEntity):
     """Representation of a Adaptive Lighting switch."""
 

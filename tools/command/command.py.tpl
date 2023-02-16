@@ -56,9 +56,6 @@ cmd = runfiles_path(cmd_sub)
 # Setup the working directory of the command
 cwd = jinja_render_string(cwd_sub)
 
-# Setup the args to pass to the command
-# TODO: need to escape the data that is coming in here! Same for CWD!
-# TODO: remove empty args?
 inline_args_raw = {{ARGS}}
 inline_args = []
 

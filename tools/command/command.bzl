@@ -20,7 +20,7 @@ def _command_impl(ctx):
 
     for key, value in ctx.attr.env.items():
         expanded_value = ctx.expand_location(value, targets = expand_targets)
-        env_string += "os.environ['{}'] = '{}'".format(key, expanded_value)
+        env_string += "os.environ['{}'] = '{}'\n".format(key, expanded_value)
 
     arg_string = "["
 
@@ -75,6 +75,12 @@ _command = rule(
 # All regular files linked in a command are symlinked with their origin package structure,
 # This means if we "cd" to the root config file inside the runfiles dir, all the files are relative to that root config as if they are in the workspace.
 # For other deps we can create a mapping starting from root config to the dep, currently this is a custom build rule for meltano.
+
+# Setup the args to pass to the command
+# TODO: need to escape the data that is passed in args, env so we can use any sort of quoting without breaking the script
+# TODO: ensure right indentiation in before_cmd and after_cmd
+# TODO: if after_cmd is not set, don't use subprocess.run but os.execvpe(...)
+# TODO: implement similar behavior as multirun, ability to run multiple commands?
 def command(name, command_src, cwd = None, args = [], deps = [], data = [], env = {}, before_cmd = None, after_cmd = None, tags = []):
     command_name = "{}_command.py".format(name)
 
