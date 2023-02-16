@@ -94,8 +94,7 @@ def after_cmd():
 
 
 def main():
-    {{ENV}}
-
+{{ENV}}
     if cwd:
         os.chdir(cwd)
 
