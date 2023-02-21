@@ -5,6 +5,17 @@ default_config:
 tts:
   - platform: google_translate
 
+nissan_leaf:
+  username: !secret nissan_leaf_username
+  password: !secret nissan_leaf_password
+  region: !secret nissan_leaf_region
+  update_interval:
+    minutes: 30
+  update_interval_charging:
+    minutes: 15
+  update_interval_climate:
+    minutes: 5
+
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
