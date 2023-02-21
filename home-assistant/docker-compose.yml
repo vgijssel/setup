@@ -47,7 +47,6 @@ services:
 
   home-assistant:
     container_name: homeassistant
-    user: "1000:1000"
     image: homeassistant/home-assistant:2022.11
     volumes:
       - ./config:/config
