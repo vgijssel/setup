@@ -10,3 +10,4 @@ pulumi 3.31.0
 postgres 13.6
 ruby 2.7.6
 bazel 5.3.2
+java openjdk-19.0.2

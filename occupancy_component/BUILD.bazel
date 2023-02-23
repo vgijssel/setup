@@ -14,6 +14,7 @@ py_library(
     name = "lib",
     srcs = [
         "custom_components/occupancy/__init__.py",
+        "custom_components/occupancy/binary_sensor.py",
         "custom_components/occupancy/const.py",
     ],
     data = [
@@ -47,8 +48,12 @@ command(
     ],
 )
 
+# TODO: can we also remove attached volumes when doing "down"?
 command(
     name = "dev",
+    after_cmd = """
+    subprocess.run([cmd, "down"])
+    """,
     args = [
         "up",
         "--port",

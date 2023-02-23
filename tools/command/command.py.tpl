@@ -4,6 +4,9 @@ import sys
 from rules_python.python.runfiles import runfiles
 import jinja2
 from pathlib import Path
+import subprocess
+import atexit
+import signal
 
 
 cmd_sub = "{{CMD}}"
@@ -39,33 +42,72 @@ def runfiles_path(path):
     return p
 
 
-def before_script():
-    {{BEFORE_CMD}}
+environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
+
+
+def jinja_render_string(string):
+    template = environment.from_string(string)
+    return template.render(os=os, runfiles_path=runfiles_path)
 
 
 # Setup the command to run
 cmd = runfiles_path(cmd_sub)
 
 # Setup the working directory of the command
-environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
-template = environment.from_string(cwd_sub)
-cwd = template.render(os=os, runfiles_path=runfiles_path)
+cwd = jinja_render_string(cwd_sub)
 
-# Setup the args to pass to the command
-inline_args = {{ARGS}}
+inline_args_raw = {{ARGS}}
+inline_args = []
+
+for inline_arg_raw in inline_args_raw:
+    inline_args.append(jinja_render_string(inline_arg_raw))
+
 external_args = sys.argv[1:]
 args = [cmd] + inline_args + external_args
 
 
+# Prevent a SIGINT and regular exit firing the after_cmd hook twice.
+handle_exit_executed = False
+
+# When process exists and exit code is 0 the command is a success,
+# all other cases of exit is considered failure.
+successful_exit = False
+
+
+def handle_exit(*exit_args):
+    global handle_exit_executed
+
+    if handle_exit_executed:
+        return
+
+    handle_exit_executed = True
+
+    after_cmd()
+
+
+def before_cmd():
+    {{BEFORE_CMD}}
+
+
+def after_cmd():
+    {{AFTER_CMD}}
+
+
 def main():
-    {{ENV}}
-
-    before_script()
-
+{{ENV}}
     if cwd:
         os.chdir(cwd)
 
-    os.execvpe(cmd, args, os.environ)
+    atexit.register(handle_exit)
+    signal.signal(signal.SIGTERM, handle_exit)
+    signal.signal(signal.SIGINT, handle_exit)
+
+    before_cmd()
+
+    result = subprocess.run(args, env=os.environ)
+    global successful_exit
+    successful_exit = result.returncode == 0
+    sys.exit(result.returncode)
 
 
 if __name__ == "__main__":

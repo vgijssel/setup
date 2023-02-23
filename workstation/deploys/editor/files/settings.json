@@ -92,5 +92,6 @@
   "workbench.colorTheme": "Snazzy",
   "editor.accessibilitySupport": "off",
   "terminal.integrated.scrollback": 100000,
-  "dev.containers.defaultExtensions": ["kahole.magit"]
+  "dev.containers.defaultExtensions": ["kahole.magit"],
+  "terminal.integrated.enableMultiLinePasteWarning": false
 }

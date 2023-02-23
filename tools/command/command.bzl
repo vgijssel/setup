@@ -1,4 +1,5 @@
-load("@command_deps//:requirements.bzl", "all_requirements")
+load("@command-requirements//:requirements.bzl", "all_requirements")
+load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 
 def _find_executable_runfiles_path(paths, target):
     for path in paths:
@@ -19,7 +20,7 @@ def _command_impl(ctx):
 
     for key, value in ctx.attr.env.items():
         expanded_value = ctx.expand_location(value, targets = expand_targets)
-        env_string += "os.environ['{}'] = '{}'".format(key, expanded_value)
+        env_string += "    os.environ['{}'] = '{}'\n".format(key, expanded_value)
 
     arg_string = "["
 
@@ -37,6 +38,7 @@ def _command_impl(ctx):
             "{{CMD}}": executable_runfiles_path,
             "{{CWD}}": ctx.expand_location(ctx.attr.cwd, targets = expand_targets),
             "{{BEFORE_CMD}}": ctx.expand_location(ctx.attr.before_cmd, targets = expand_targets),
+            "{{AFTER_CMD}}": ctx.expand_location(ctx.attr.after_cmd, targets = expand_targets),
             "{{ENV}}": env_string,
             "{{ARGS}}": arg_string,
         },
@@ -60,6 +62,7 @@ _command = rule(
         "data": attr.label_list(allow_files = True),
         "env": attr.string_dict(),
         "before_cmd": attr.string(mandatory = False, default = "pass"),
+        "after_cmd": attr.string(mandatory = False, default = "pass"),
         "_command_tpl": attr.label(
             default = Label("//tools/command:command.py.tpl"),
             allow_single_file = True,
@@ -72,7 +75,13 @@ _command = rule(
 # All regular files linked in a command are symlinked with their origin package structure,
 # This means if we "cd" to the root config file inside the runfiles dir, all the files are relative to that root config as if they are in the workspace.
 # For other deps we can create a mapping starting from root config to the dep, currently this is a custom build rule for meltano.
-def command(name, command_src, cwd = None, args = [], data = [], env = {}, before_cmd = None):
+
+# Setup the args to pass to the command
+# TODO: need to escape the data that is passed in args, env so we can use any sort of quoting without breaking the script
+# TODO: ensure right indentiation in before_cmd and after_cmd
+# TODO: if after_cmd is not set, don't use subprocess.run but os.execvpe(...)
+# TODO: implement similar behavior as multirun, ability to run multiple commands?
+def command(name, command_src, cwd = None, args = [], deps = [], data = [], env = {}, before_cmd = None, after_cmd = None, tags = []):
     command_name = "{}_command.py".format(name)
 
     _command(
@@ -83,6 +92,7 @@ def command(name, command_src, cwd = None, args = [], data = [], env = {}, befor
         data = data,
         env = env,
         before_cmd = before_cmd,
+        after_cmd = after_cmd,
     )
 
     native.py_binary(
@@ -94,5 +104,23 @@ def command(name, command_src, cwd = None, args = [], data = [], env = {}, befor
         data = [
             command_src,
         ] + data,
-        deps = ["@rules_python//python/runfiles"] + all_requirements,
+        deps = ["@rules_python//python/runfiles"] + all_requirements + deps,
+        tags = tags,
+    )
+
+def command_test(name, tags = [], size = None, **kwargs):
+    command_name = "{}_command".format(name)
+
+    command(
+        name = command_name,
+        tags = tags,
+        **kwargs
+    )
+
+    native_test(
+        name = name,
+        src = command_name,
+        out = "{}.out".format(name),
+        tags = tags,
+        size = size,
     )
