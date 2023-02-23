@@ -1,5 +1,7 @@
 DOMAIN = "occupancy"
 
+OCCUPANCY_DATA = "occupancy_data"
+
 ATTR_DOORS = "doors"
 ATTR_AREAS = "areas"
 

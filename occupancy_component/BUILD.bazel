@@ -14,6 +14,7 @@ py_library(
     name = "lib",
     srcs = [
         "custom_components/occupancy/__init__.py",
+        "custom_components/occupancy/binary_sensor.py",
         "custom_components/occupancy/const.py",
     ],
     data = [

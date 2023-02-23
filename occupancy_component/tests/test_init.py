@@ -29,8 +29,8 @@ async def test_async_setup(hass):
 
 
 async def test_door_contact_sensor(hass, init_integration, door_contact_sensor):
-    assert hass.states.get("occupancy.front_door").state == STATE_OFF
+    assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
 
     await door_contact_sensor.open()
 
-    assert hass.states.get("occupancy.front_door").state == STATE_ON
+    assert hass.states.get("binary_sensor.front_door").state == STATE_ON
