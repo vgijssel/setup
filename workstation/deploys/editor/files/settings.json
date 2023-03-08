@@ -93,5 +93,9 @@
   "editor.accessibilitySupport": "off",
   "terminal.integrated.scrollback": 100000,
   "dev.containers.defaultExtensions": ["kahole.magit"],
-  "terminal.integrated.enableMultiLinePasteWarning": false
+  "terminal.integrated.enableMultiLinePasteWarning": false,
+  "jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"],
+  "[python]": {
+    "editor.formatOnType": true
+  }
 }
