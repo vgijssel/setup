@@ -1,4 +1,3 @@
-# from pyinfra.operations import brew
 from workstation.deploys.terminal.tasks.install_terminal import install_terminal
 from workstation.deploys.editor.tasks.install_editor import install_editor
 from workstation.deploys.languages.tasks.install_languages import install_languages

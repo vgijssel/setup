@@ -12,6 +12,7 @@ def install_utilities():
         "spotify",
         "viscosity",
         "todoist",
+        "raspberry-pi-imager",
     ]
 
     # Currently unable to install docker in the CI

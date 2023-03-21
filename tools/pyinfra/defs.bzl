@@ -1,6 +1,8 @@
 load("//tools/bazel:defs.bzl", "runner_binary")
 load("@rules_python//python:defs.bzl", "py_binary")
 
+# TODO: migrate to use command.bzl
+# TODO: move pyinfra dependencies into separate requirements file
 def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = [], data = []):
     python_binary = "{name}_env".format(name = name)
     python_binary_target = ":{python_binary}".format(python_binary = python_binary)
