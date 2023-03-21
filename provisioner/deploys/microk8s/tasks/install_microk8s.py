@@ -5,6 +5,7 @@ from pyinfra.facts.server import Users
 
 
 # From https://microk8s.io/docs/getting-started
+# TODO: maybe enable addons? https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#3-enable-addons
 @deploy("Install Microk8s")
 def install_microk8s():
     snap.package(
@@ -43,4 +44,9 @@ def install_microk8s():
         group="ubuntu",
         path="/home/ubuntu/.kube",
         _sudo=True,
+    )
+
+    server.shell(
+        name="Enable DNS addon",
+        commands=["microk8s enable dns"],
     )
