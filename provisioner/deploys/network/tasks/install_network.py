@@ -4,7 +4,7 @@ from pyinfra.operations import files, server
 
 @deploy("Install Network")
 def install_network():
-    files.put(
+    config_file = files.put(
         name="Copy netplan config",
         src="provisioner/deploys/network/files/99_config.yaml",
         dest="/etc/netplan/99_config.yaml",
@@ -13,14 +13,15 @@ def install_network():
         _sudo=True,
     )
 
-    server.shell(
-        name="Generate netplan",
-        commands=["netplan generate"],
-        _sudo=True,
-    )
+    if config_file.changed:
+        server.shell(
+            name="Generate netplan",
+            commands=["netplan generate"],
+            _sudo=True,
+        )
 
-    server.shell(
-        name="Apply the netplan configuration",
-        commands=["netplan apply"],
-        _sudo=True,
-    )
+        server.shell(
+            name="Apply the netplan configuration",
+            commands=["netplan apply"],
+            _sudo=True,
+        )

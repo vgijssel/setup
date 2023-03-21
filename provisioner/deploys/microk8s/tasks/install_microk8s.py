@@ -1,57 +1,46 @@
+from pyinfra import host
 from pyinfra.api.deploy import deploy
+from pyinfra.operations import snap, server, files
+from pyinfra.facts.server import Users
 
-# from pyinfra.operations import server
 
-
+# From https://microk8s.io/docs/getting-started
 @deploy("Install Microk8s")
 def install_microk8s():
-    # snap install microk8s
-    pass
-    # brew.casks(
-    #     name="Install VSCode",
-    #     casks=[
-    #         "visual-studio-code",
-    #     ],
-    #     present=True,
-    #     latest=False,
-    #     upgrade=False,
-    # )
+    snap.package(
+        name="Install MicroK8S",
+        packages="microk8s",
+        classic=True,
+        present=True,
+        _sudo=True,
+    )
 
-    # brew.packages(
-    #     name="Install dependencies",
-    #     packages=[
-    #         "buildifier",  # Necessary for Bazel autoformatting
-    #     ],
-    #     present=True,
-    #     update=False,
-    #     latest=False,
-    #     upgrade=False,
-    # )
+    server.shell(
+        name="Update firewall rules",
+        commands=[
+            "ufw allow in on cni0",
+            "ufw allow out on cni0",
+            "ufw default allow routed",
+        ],
+        _sudo=True,
+    )
 
-    # editor_config_files = [
-    #     "settings.json",
-    #     "keybindings.json",
-    # ]
+    existing_groups = host.get_fact(Users)["ubuntu"]["groups"]
+    new_groups = existing_groups + ["microk8s"]
 
-    # for file in editor_config_files:
-    #     home_link(
-    #         source_file=f"setup/workstation/deploys/editor/files/{file}",
-    #         target_file=f"Library/Application Support/Code/User/{file}",
-    #     )
+    server.user(
+        name="Add ubuntu to microk8s group",
+        user="ubuntu",
+        groups=new_groups,
+        present=True,
+        _sudo=True,
+    )
 
-    # for vscode_app_name in [
-    #     "com.microsoft.VSCode",
-    #     "com.microsoft.VSCodeInsiders",
-    #     "com.visualstudio.code.oss",
-    # ]:
-    #     macos.default(
-    #         name=f"Disable 'Press and hold' for {vscode_app_name}",
-    #         domain=vscode_app_name,
-    #         setting="ApplePressAndHoldEnabled",
-    #         value=False,
-    #     )
-
-    # server.shell(
-    #     name="Stop VSCode",
-    #     commands=["osascript -e 'quit app \"Visual Studio Code\"'"],
-    # )
+    files.directory(
+        name="Create and own .kube directory",
+        present=True,
+        user="ubuntu",
+        group="ubuntu",
+        path="/home/ubuntu/.kube",
+        _sudo=True,
+    )
