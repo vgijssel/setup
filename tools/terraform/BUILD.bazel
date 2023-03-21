@@ -2,8 +2,9 @@ load("//tools/command:command.bzl", "command")
 
 package(default_visibility = ["//visibility:public"])
 
+# TODO: update cwd if run inside vs outside terramate
+#       to enable stand-alone usage
 command(
     name = "terraform",
     command_src = "@terraform_arm64//:terraform_binary",
-    cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}",
 )
