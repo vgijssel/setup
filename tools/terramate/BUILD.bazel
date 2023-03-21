@@ -1,0 +1,10 @@
+load("//tools/command:command.bzl", "command")
+
+command(
+    name = "terramate",
+    command_src = "@terramate_arm64//:terramate_binary",
+    cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}",
+    data = [
+        # ":Tiltfile",
+    ],
+)

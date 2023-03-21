@@ -303,3 +303,13 @@ command_deps(python_interpreter_target = interpreter)
 load("//tools/command:toolchains.bzl", command_toolchains = "toolchains")
 
 command_toolchains()
+
+# ------------------------------------ terramate ------------------------------------ #
+
+http_archive(
+    name = "terramate_arm64",
+    build_file = "//tools/terramate:BUILD.repositories.bazel.tpl",
+    sha256 = "0522cb3d823f6e2aa10dcd42da1fc0cf11b55c7eb25a3882f52e2020d262bfac",
+    # sha256 = "1535891f128613b967f52fa635e0620b20cb2a849c6fa9655a27bbdaf905e20a",
+    url = "https://github.com/mineiros-io/terramate/releases/download/v0.2.16/terramate_0.2.16_linux_arm64.tar.gz",
+)
