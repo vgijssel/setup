@@ -19,7 +19,8 @@
         "vspacecode.vspacecode",
         "alexanderbast.vscode-snazzy",
         "tilt-dev.tiltfile",
-        "GitHub.remotehub"
+        "GitHub.remotehub",
+        "HashiCorp.terraform"
       ]
     }
   },
