@@ -1,2 +1,18 @@
-# TODO:
-# build rule, uses packer arm to build a raspberry pi ubuntu image
+load("//tools/pyinfra:defs.bzl", "pyinfra_run")
+
+pyinfra_run(
+    name = "provision",
+    srcs = [
+        "deploys/microk8s/tasks/install_microk8s.py",
+        "deploys/network/tasks/install_network.py",
+    ],
+    args = [
+        "--data install_network=True",
+        "--data install_microk8s=True",
+    ],
+    data = [
+        "deploys/network/files/99_config.yaml",
+    ],
+    deploy = "deploy.py",
+    inventory = "inventory.py",
+)

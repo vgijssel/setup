@@ -115,6 +115,7 @@ def command_test(name, tags = [], size = None, **kwargs):
     command(
         name = command_name,
         tags = tags,
+        testonly = True,
         **kwargs
     )
 
