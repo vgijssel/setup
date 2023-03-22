@@ -13,7 +13,7 @@ terraform {
 }
 provider "helm" {
   kubernetes {
-    config_path = "/workspaces/setup/tmp/provisioner_kube_config"
+    config_path = "../../../tmp/provisioner_kube_config"
   }
 }
 provider "tfe" {

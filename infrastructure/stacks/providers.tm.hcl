@@ -16,22 +16,8 @@ generate_hcl "_terramate_generated_providers.tf" {
 
     provider "helm" {
       kubernetes {
-        config_path = "/workspaces/setup/tmp/provisioner_kube_config"
+        config_path = "${terramate.stack.path.to_root}/tmp/provisioner_kube_config"
       }
-
-      # localhost registry with password protection
-      # registry {
-      #   url = "oci://localhost:5000"
-      #   username = "username"
-      #   password = "password"
-      # }
-
-      # # private registry
-      # registry {
-      #   url = "oci://private.registry"
-      #   username = "username"
-      #   password = "password"
-      # }
     }
 
     provider "tfe" {
