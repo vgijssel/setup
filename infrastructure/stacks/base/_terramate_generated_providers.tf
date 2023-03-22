@@ -16,3 +16,5 @@ provider "helm" {
     config_path = "/workspaces/setup/tmp/provisioner_kube_config"
   }
 }
+provider "tfe" {
+}

@@ -4,6 +4,7 @@
 # }
 
 resource "tfe_workspace" "provisioner" {
-  name         = "provisioner"
-  organization = "home-production"
+  name           = var.provisioner_workspace_name
+  organization   = "home-production"
+  execution_mode = "local"
 }

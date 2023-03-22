@@ -4,7 +4,7 @@ terraform {
   cloud {
     organization = "home-production"
     workspaces {
-      name = "infrastructure-stacks-base"
+      name = "base"
     }
   }
 }
