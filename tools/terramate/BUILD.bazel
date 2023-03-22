@@ -1,5 +1,7 @@
 load("//tools/command:command.bzl", "command")
 
+package(default_visibility = ["//visibility:public"])
+
 command(
     name = "terramate",
     before_cmd = """

@@ -1,0 +1,25 @@
+load("//tools/command:command.bzl", "command")
+
+package(default_visibility = ["//visibility:public"])
+
+command(
+    name = "login",
+    args = [
+        "run",
+        "--",
+        "terraform",
+        "login",
+    ],
+    command_src = "//tools/terramate",
+)
+
+command(
+    name = "deploy",
+    args = [
+        "run",
+        "--",
+        "terraform",
+        "apply",
+    ],
+    command_src = "//tools/terramate",
+)
