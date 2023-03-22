@@ -5,6 +5,7 @@ set -Eeou pipefail
 CI="${CI:-false}"
 
 
+
 if [ "${CI}" = "true" ]; then
     bin/generate-ci-bazelrc
 else
@@ -18,6 +19,7 @@ else
     # Caching Bazel outside of the container will make sure this is quick between container rebuilds
     bazel build @aspect_rules_format//format
     bazel build //tools/tilt
-    bazel build //tools/terramate:terramate-ls
-    bazel build //tools/terraform
 fi
+
+bazel build //tools/terraform
+bazel build //tools/terramate:terramate-ls
