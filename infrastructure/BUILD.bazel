@@ -3,6 +3,25 @@ load("//tools/command:command.bzl", "command")
 package(default_visibility = ["//visibility:public"])
 
 command(
+    name = "generate",
+    args = [
+        "generate",
+    ],
+    command_src = "//tools/terramate",
+)
+
+command(
+    name = "init",
+    args = [
+        "run",
+        "--",
+        "terraform",
+        "init",
+    ],
+    command_src = "//tools/terramate",
+)
+
+command(
     name = "login",
     args = [
         "run",
@@ -20,6 +39,19 @@ command(
         "--",
         "terraform",
         "apply",
+        "-auto-approve",
+    ],
+    command_src = "//tools/terramate",
+)
+
+command(
+    name = "destroy",
+    args = [
+        "run",
+        "--",
+        "terraform",
+        "destroy",
+        "-auto-approve",
     ],
     command_src = "//tools/terramate",
 )

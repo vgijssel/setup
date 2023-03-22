@@ -1,3 +1,7 @@
 stack {
-  name = "Provisioner"
+  name = "provisioner"
+
+  after = [
+      "/infrastructure/stacks/base"
+  ]
 }
