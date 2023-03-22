@@ -11,6 +11,7 @@ pyinfra_run(
         "--data install_microk8s=True",
     ],
     data = [
+        "deploys/microk8s/files/cmdline.txt",
         "deploys/network/files/99_config.yaml",
     ],
     deploy = "deploy.py",
