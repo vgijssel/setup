@@ -7,4 +7,5 @@ package(default_visibility = ["//visibility:public"])
 command(
     name = "terraform",
     command_src = "@terraform_arm64//:terraform_binary",
+    cwd = "{{ os.environ.get('BUILD_WORKSPACE_DIRECTORY', os.getcwd()) }}",
 )

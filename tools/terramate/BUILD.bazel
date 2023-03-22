@@ -7,10 +7,17 @@ command(
     # TODO: better handling of composing commands
     terraform_binary = runfiles_path("$(rlocationpaths //tools/terraform)").split(" ")[0]
     os.environ["PATH"] = os.path.dirname(terraform_binary) + os.pathsep + os.environ["PATH"]
+    # Make sure terraform tool does not pick this up and uses the os.getcwd()
+    del os.environ['BUILD_WORKSPACE_DIRECTORY']
     """,
     command_src = "@terramate_arm64//:terramate_binary",
     cwd = "{{ os.environ.get('BUILD_WORKSPACE_DIRECTORY', os.getcwd()) }}",
     data = [
         "//tools/terraform",
     ],
+)
+
+command(
+    name = "terramate-ls",
+    command_src = "@terramate-ls_arm64//:terramate-ls_binary",
 )

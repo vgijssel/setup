@@ -34,7 +34,18 @@
         "bazel.buildifierExecutable": "/tmp/bazel-setup-bin/external/buildifier_prebuilt/buildifier/buildifier",
         "prettier.executablePath": "/tmp/bazel-setup-bin/external/aspect_rules_format/format/prettier.sh",
         "tiltfile.tilt.path": "/tmp/bazel-setup-bin/tools/tilt/tilt",
-        "terramate.languageServer.binPath": "/tmp/bazel-setup-bin/tools/terramate/terramate"
+        "terramate.languageServer.binPath": "/tmp/bazel-setup-bin/tools/terramate/terramate-ls",
+        "[terraform]": {
+          "editor.defaultFormatter": "hashicorp.terraform",
+          "editor.formatOnSave": true,
+          "editor.formatOnSaveMode": "file"
+        },
+        "[terraform-vars]": {
+          "editor.defaultFormatter": "hashicorp.terraform",
+          "editor.formatOnSave": true,
+          "editor.formatOnSaveMode": "file"
+        },
+        "terraform.languageServer.terraform.path": "/tmp/bazel-setup-bin/tools/terraform/terraform"
       }
     }
   },

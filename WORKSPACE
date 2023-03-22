@@ -314,6 +314,13 @@ http_archive(
 )
 
 http_archive(
+    name = "terramate-ls_arm64",
+    build_file = "//tools/terramate:BUILD.ls.repositories.bazel.tpl",
+    sha256 = "a18ce77f501431f45572326651a3a3a482d397f103783dec3a4d6f27e98b027f",
+    url = "https://github.com/mineiros-io/terramate-ls/releases/download/v0.0.7/terramate-ls_0.0.7_linux_arm64.tar.gz",
+)
+
+http_archive(
     name = "terraform_arm64",
     build_file = "//tools/terraform:BUILD.repositories.bazel.tpl",
     sha256 = "39c182670c4e63e918e0a16080b1cc47bb16e158d7da96333d682d6a9cb8eb91",
