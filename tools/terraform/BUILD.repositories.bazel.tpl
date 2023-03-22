@@ -1,6 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
-sh_binary(
-    name = "terraform_binary",
+filegroup(
+    name = "files",
     srcs = ["terraform"],
 )

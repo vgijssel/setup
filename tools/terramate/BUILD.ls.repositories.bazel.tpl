@@ -1,6 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
-sh_binary(
-    name = "terramate-ls_binary",
+filegroup(
+    name = "files",
     srcs = ["terramate-ls"],
 )

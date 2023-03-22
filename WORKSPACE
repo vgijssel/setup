@@ -314,6 +314,13 @@ http_archive(
 )
 
 http_archive(
+    name = "terramate_amd64",
+    build_file = "//tools/terramate:BUILD.repositories.bazel.tpl",
+    sha256 = "135faa3d8201797b5f4f92314f588de0093789c8d7ff7bec69de0709a1efb2cf",
+    url = "https://github.com/mineiros-io/terramate/releases/download/v0.2.16/terramate_0.2.16_linux_x86_64.tar.gz",
+)
+
+http_archive(
     name = "terramate-ls_arm64",
     build_file = "//tools/terramate:BUILD.ls.repositories.bazel.tpl",
     sha256 = "a18ce77f501431f45572326651a3a3a482d397f103783dec3a4d6f27e98b027f",
@@ -321,8 +328,22 @@ http_archive(
 )
 
 http_archive(
+    name = "terramate-ls_amd64",
+    build_file = "//tools/terramate:BUILD.ls.repositories.bazel.tpl",
+    sha256 = "0df55d7e6d7e6022e9315ed5ade73b2467bbb10177ce811c102c74d811d08cba",
+    url = "https://github.com/mineiros-io/terramate-ls/releases/download/v0.0.7/terramate-ls_0.0.7_linux_x86_64.tar.gz",
+)
+
+http_archive(
     name = "terraform_arm64",
     build_file = "//tools/terraform:BUILD.repositories.bazel.tpl",
     sha256 = "39c182670c4e63e918e0a16080b1cc47bb16e158d7da96333d682d6a9cb8eb91",
     url = "https://releases.hashicorp.com/terraform/1.4.2/terraform_1.4.2_linux_arm64.zip",
+)
+
+http_archive(
+    name = "terraform_amd64",
+    build_file = "//tools/terraform:BUILD.repositories.bazel.tpl",
+    sha256 = "9f3ca33d04f5335472829d1df7785115b60176d610ae6f1583343b0a2221a931",
+    url = "https://releases.hashicorp.com/terraform/1.4.2/terraform_1.4.2_linux_amd64.zip",
 )
