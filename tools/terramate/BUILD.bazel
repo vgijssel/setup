@@ -9,7 +9,7 @@ command(
     os.environ["PATH"] = os.path.dirname(terraform_binary) + os.pathsep + os.environ["PATH"]
     """,
     command_src = "@terramate_arm64//:terramate_binary",
-    cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}",
+    cwd = "{{ os.environ.get('BUILD_WORKSPACE_DIRECTORY', os.getcwd()) }}",
     data = [
         "//tools/terraform",
     ],

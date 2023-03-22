@@ -18,4 +18,5 @@ else
     # Caching Bazel outside of the container will make sure this is quick between container rebuilds
     bazel build @aspect_rules_format//format
     bazel build //tools/tilt
+    bazel build //tools/terramate
 fi

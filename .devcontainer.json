@@ -20,8 +20,22 @@
         "alexanderbast.vscode-snazzy",
         "tilt-dev.tiltfile",
         "GitHub.remotehub",
-        "HashiCorp.terraform"
-      ]
+        "HashiCorp.terraform",
+        "mineiros.terramate"
+      ],
+      "settings": {
+        "python.formatting.provider": "black",
+        "python.formatting.blackPath": "/tmp/bazel-setup-bin/external/aspect_rules_format_pypi_black/rules_python_wheel_entry_point_black",
+        "terminal.integrated.scrollback": 10000,
+        "files.associations": {
+          ".bazelrc": "plaintext"
+        },
+        "editor.formatOnSave": true,
+        "bazel.buildifierExecutable": "/tmp/bazel-setup-bin/external/buildifier_prebuilt/buildifier/buildifier",
+        "prettier.executablePath": "/tmp/bazel-setup-bin/external/aspect_rules_format/format/prettier.sh",
+        "tiltfile.tilt.path": "/tmp/bazel-setup-bin/tools/tilt/tilt",
+        "terramate.languageServer.binPath": "/tmp/bazel-setup-bin/tools/terramate/terramate"
+      }
     }
   },
   "remoteUser": "devcontainer",
@@ -30,18 +44,6 @@
     "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock",
     "source=setup-bazel,target=/home/devcontainer/bazel,type=volume"
   ],
-  "settings": {
-    "python.formatting.provider": "black",
-    "python.formatting.blackPath": "/tmp/bazel-setup-bin/external/aspect_rules_format_pypi_black/rules_python_wheel_entry_point_black",
-    "terminal.integrated.scrollback": 10000,
-    "files.associations": {
-      ".bazelrc": "plaintext"
-    },
-    "editor.formatOnSave": true,
-    "bazel.buildifierExecutable": "/tmp/bazel-setup-bin/external/buildifier_prebuilt/buildifier/buildifier",
-    "prettier.executablePath": "/tmp/bazel-setup-bin/external/aspect_rules_format/format/prettier.sh",
-    "tiltfile.tilt.path": "/tmp/bazel-setup-bin/tools/tilt/tilt"
-  },
   "shutdownAction": "stopContainer",
   "postAttachCommand": "bin/post-setup",
   "runArgs": ["--name", "setup-devcontainer"]

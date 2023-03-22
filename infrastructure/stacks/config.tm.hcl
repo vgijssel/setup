@@ -1,4 +1,4 @@
 globals {
-  terraform_version = "~> 1.0"
-  local_tfstate_path = "${terramate.root.path.fs.absolute}/tmp/terraform/${terramate.stack.path.relative}/terraform.tfstate"
+  terraform_version = "1.4.2"
+  cloud_workspace_name = tm_replace(terramate.stack.path.relative, "/", "-")
 }

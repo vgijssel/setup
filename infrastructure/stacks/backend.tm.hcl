@@ -1,8 +1,12 @@
 generate_hcl "_terramate_generated_backend.tf" {
   content {
     terraform {
-      backend "local" {
-        path = global.local_tfstate_path
+        cloud {
+          organization = "home-production"
+
+          workspaces {
+            name = global.cloud_workspace_name
+          }
       }
     }
   }
