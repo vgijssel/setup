@@ -5,6 +5,7 @@ set -Eeou pipefail
 CI="${CI:-false}"
 
 
+
 if [ "${CI}" = "true" ]; then
     bin/generate-ci-bazelrc
 else
@@ -19,3 +20,6 @@ else
     bazel build @aspect_rules_format//format
     bazel build //tools/tilt
 fi
+
+bazel build //tools/terraform
+bazel build //tools/terramate:terramate-ls

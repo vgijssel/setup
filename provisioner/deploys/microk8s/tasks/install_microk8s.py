@@ -1,13 +1,38 @@
 from pyinfra import host
 from pyinfra.api.deploy import deploy
-from pyinfra.operations import snap, server, files
+from pyinfra.operations import snap, server, files, apt
 from pyinfra.facts.server import Users
 
 
 # From https://microk8s.io/docs/getting-started
-# TODO: maybe enable addons? https://ubuntu.com/tutorials/install-a-local-kubernetes-with-microk8s#3-enable-addons
 @deploy("Install Microk8s")
 def install_microk8s():
+    # From https://microk8s.io/docs/install-raspberry-pi
+    apt.packages(
+        name="Ensure all kernel modules are available",
+        packages=["linux-modules-extra-raspi"],
+        update=True,
+        present=True,
+        _sudo=True,
+    )
+
+    # From https://microk8s.io/docs/install-raspberry-pi
+    config_file = files.put(
+        name="Copy cmdline",
+        src="provisioner/deploys/microk8s/files/cmdline.txt",
+        dest="/boot/firmware/cmdline.txt",
+        create_remote_dir=True,
+        _sudo=True,
+    )
+
+    if config_file.changed:
+        server.reboot(
+            name="Reboot the server and wait to reconnect",
+            delay=60,
+            reboot_timeout=600,
+            _sudo=True,
+        )
+
     snap.package(
         name="Install MicroK8S",
         packages="microk8s",
@@ -48,5 +73,10 @@ def install_microk8s():
 
     server.shell(
         name="Enable DNS addon",
-        commands=["microk8s enable dns"],
+        # From here https://microk8s.io/docs/addons
+        commands=[
+            "microk8s enable dns",
+            "microk8s enable helm",
+            "microk8s enable hostpath-storage",
+        ],
     )

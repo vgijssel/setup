@@ -25,3 +25,9 @@ def install_network():
             commands=["netplan apply"],
             _sudo=True,
         )
+
+    server.hostname(
+        name="Set hostname",
+        hostname="provisioner",
+        _sudo=True,
+    )

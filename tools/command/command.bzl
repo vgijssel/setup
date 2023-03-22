@@ -20,7 +20,7 @@ def _command_impl(ctx):
 
     for key, value in ctx.attr.env.items():
         expanded_value = ctx.expand_location(value, targets = expand_targets)
-        env_string += "    os.environ['{}'] = '{}'\n".format(key, expanded_value)
+        env_string += "    os.environ['{}'] = jinja_render_string('{}')\n".format(key, expanded_value)
 
     arg_string = "["
 
