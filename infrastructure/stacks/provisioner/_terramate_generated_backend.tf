@@ -2,6 +2,6 @@
 
 terraform {
   backend "local" {
-    path = "/workspaces/setup/tmp/infrastructure/stacks/provisioner/terraform.tfstate"
+    path = "/workspaces/setup/tmp/terraform/infrastructure/stacks/provisioner/terraform.tfstate"
   }
 }

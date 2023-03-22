@@ -14,7 +14,8 @@ terramate {
   config {
     run {
       env {
-        TF_PLUGIN_CACHE_DIR = "${terramate.root.path.fs.absolute}/tmp/terraform-cache-dir"
+        TF_PLUGIN_CACHE_DIR = "${terramate.root.path.fs.absolute}/tmp/terraform/terraform-cache-dir"
+        TF_DATA_DIR = "${terramate.root.path.fs.absolute}/tmp/terraform/${terramate.stack.path.relative}/.terraform"
       }
     }
   }
