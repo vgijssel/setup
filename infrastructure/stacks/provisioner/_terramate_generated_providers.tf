@@ -6,33 +6,51 @@ terraform {
     helm = {
       version = "2.9.0"
     }
+    ssh = {
+      source  = "AndrewChubatiuk/ssh"
+      version = "0.1.5"
+    }
     tfe = {
       version = "0.42.0"
     }
   }
 }
+variable "provisioner_private_key" {
+  description = "Private key of the provisioner machine"
+  sensitive   = true
+  type        = string
+}
 variable "provisioner_host" {
   description = "Host name of the provisioner machine"
+  sensitive   = true
   type        = string
 }
 variable "provisioner_port" {
   description = "Port number of the provisioner machine"
+  sensitive   = true
   type        = string
 }
-module "kubernetes_tunnel" {
-  gateway_host           = var.provisioner_host
-  gateway_port           = var.provisioner_port
-  gateway_user           = "ubuntu"
-  source                 = "../../../infrastructure/modules/ssh_tunnel"
-  ssh_tunnel_check_sleep = "10s"
-  target_host            = "192.168.1.31"
-  target_port            = 16443
+data "ssh_tunnel" "kubernetes" {
+  user = "ubuntu"
+  auth {
+    private_key {
+      content = var.provisioner_private_key
+    }
+  }
+  server {
+    host = var.provisioner_host
+    port = var.provisioner_port
+  }
+  remote {
+    host = "192.168.1.31"
+    port = 16443
+  }
 }
 provider "helm" {
   alias = "provisioner"
   kubernetes {
     config_path = "../../../tmp/provisioner_kube_config"
-    host        = "https://${module.kubernetes_tunnel.host}:${module.kubernetes_tunnel.port}"
+    host        = "https://${data.ssh_tunnel.kubernetes.local[0].address}"
   }
 }
 provider "tfe" {
