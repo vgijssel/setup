@@ -6,13 +6,14 @@ repos:
         language: system
         entry: bazel run --config=quiet @aspect_rules_format//format
         files: .*
+        exclude: ^tmp/
       - id: terraform_fmt
         name: Terraform fmt
         description: Rewrites all Terraform configuration files to a canonical format.
         entry: bazel run --config=quiet //tools/terraform -- fmt
         language: system
         files: (\.tf|\.tfvars)$
-        exclude: \.terraform\/.*$
+        exclude: (\.terraform\/.*$|^tmp/)
       - id: terramate_fmt
         name: Terramate fmt
         description: Rewrites all Terramate configuration files to a canonical format.
