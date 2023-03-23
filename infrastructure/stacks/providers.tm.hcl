@@ -27,6 +27,12 @@ generate_hcl "_terramate_generated_providers.tf" {
       sensitive   = true
     }
 
+    variable "provisioner_private_key_second" {
+      type        = string
+      description = "Private key of the provisioner machine"
+      sensitive   = true
+    }
+
     variable "provisioner_host" {
       type        = string
       description = "Host name of the provisioner machine"
@@ -45,7 +51,7 @@ generate_hcl "_terramate_generated_providers.tf" {
     #   user = "ubuntu"
     #   auth {
     #     private_key {
-    #       content = var.provisioner_private_key
+    #       content = var.provisioner_private_key_second
     #     }
     #   }
 
@@ -70,11 +76,30 @@ generate_hcl "_terramate_generated_providers.tf" {
       provisioner_private_key_file = abspath("${path.module}/provisioner_private_key")
     }
 
+    # resource "null_resource" "docker_build" {
+
+    #   triggers = {
+    #     always_run = "${timestamp()}"
+    #   }
+
+    #   provisioner "local-exec" {
+    #     command = "docker build -t ${var.image_name}:${var.image_tag} ./path-to-docker-file-Folder"
+    #     }
+    # }
+
     resource "local_sensitive_file" "provisioner_private_key" {
-      content         = var.provisioner_private_key
+      content         = var.provisioner_private_key_second
       filename        = local.provisioner_private_key_file
       file_permission = "0600"
     }
+
+    # module "shell_data_hello" {
+    #   depends_on = [
+    #     local_sensitive_file.provisioner_private_key
+    #   ]
+    #   source  = "Invicton-Labs/shell-data/external"
+    #   command_unix = "ssh -vvvv -o StrictHostKeyChecking=no -i ${local.provisioner_private_key_file} ubuntu@${var.provisioner_host} -p ${var.provisioner_port} ls -la"
+    # }
 
     # this module generates a host and port which represent a local tunnel to the actual kubernetes cluster
     module "kubernetes_tunnel" {

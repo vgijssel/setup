@@ -20,6 +20,11 @@ variable "provisioner_private_key" {
   sensitive   = true
   type        = string
 }
+variable "provisioner_private_key_second" {
+  description = "Private key of the provisioner machine"
+  sensitive   = true
+  type        = string
+}
 variable "provisioner_host" {
   description = "Host name of the provisioner machine"
   sensitive   = true
@@ -34,7 +39,7 @@ locals {
   provisioner_private_key_file = abspath("${path.module}/provisioner_private_key")
 }
 resource "local_sensitive_file" "provisioner_private_key" {
-  content         = var.provisioner_private_key
+  content         = var.provisioner_private_key_second
   file_permission = "0600"
   filename        = local.provisioner_private_key_file
 }
