@@ -41,46 +41,59 @@ generate_hcl "_terramate_generated_providers.tf" {
 
     # The ssh provider
     # https://github.com/thecadams/terraform-provider-ssh
-    data "ssh_tunnel" "kubernetes" {
-      user = "ubuntu"
-      auth {
-        private_key {
-          content = var.provisioner_private_key
-        }
-      }
+    # data "ssh_tunnel" "kubernetes" {
+    #   user = "ubuntu"
+    #   auth {
+    #     private_key {
+    #       content = var.provisioner_private_key
+    #     }
+    #   }
 
-      # what port to open on the terraform executed
-      local {
-        host = "127.0.0.1"
-        port = 3001
-      }
+    #   # what port to open on the terraform executed
+    #   local {
+    #     host = "127.0.0.1"
+    #     port = 3001
+    #   }
 
-      server {
-        host = var.provisioner_host
-        port = var.provisioner_port
-      }
+    #   server {
+    #     host = var.provisioner_host
+    #     port = var.provisioner_port
+    #   }
 
-      remote {
-        host = "192.168.1.31"
-        port = 16443
-      }
+    #   remote {
+    #     host = "192.168.1.31"
+    #     port = 16443
+    #   }
+    # }
+
+    locals {
+      provisioner_private_key_file = abspath("${path.module}/provisioner_private_key")
+    }
+
+    resource "local_sensitive_file" "provisioner_private_key" {
+      content         = var.provisioner_private_key
+      filename        = local.provisioner_private_key_file
+      file_permission = "0600"
     }
 
     # this module generates a host and port which represent a local tunnel to the actual kubernetes cluster
-    # module "kubernetes_tunnel" {
-    #   source = "${terramate.stack.path.to_root}/infrastructure/modules/ssh_tunnel"
+    module "kubernetes_tunnel" {
+      depends_on = [local_sensitive_file.provisioner_private_key]
 
-    #   # connect to the 
-    #   target_host = "192.168.1.31"
-    #   target_port = 16443
+      source = "../../modules/ssh_tunnel"
 
-    #   gateway_user           = "ubuntu"
-    #   gateway_host           = var.provisioner_host
-    #   gateway_port           = var.provisioner_port
-    #   ssh_tunnel_check_sleep = "10s"
+      # TODO: can this host also be 127.0.0.1?
+      target_host = "192.168.1.31"
+      target_port = 16443
 
-    #   # gateway_host = data.aws_instances.bastions.public_ips[0]
-    # }
+      gateway_user           = "ubuntu"
+      gateway_host           = var.provisioner_host
+      gateway_port           = var.provisioner_port
+      ssh_tunnel_check_sleep = "10s"
+      ssh_cmd                = "ssh -o StrictHostKeyChecking=no -i ${local.provisioner_private_key_file}"
+
+      # gateway_host = data.aws_instances.bastions.public_ips[0]
+    }
 
     # provider "helm" {
     #   alias    = "legacy"
@@ -106,7 +119,9 @@ generate_hcl "_terramate_generated_providers.tf" {
 
       kubernetes {
         # so this connects to https://localhost:<PORT> which forwards the requests using the SSH tunnel to the actual kubernetes cluster
-        host = "https://${data.ssh_tunnel.kubernetes.local.0.address}"
+        host = "https://${module.kubernetes_tunnel.host}:${module.kubernetes_tunnel.port}"
+        # host = "https://${data.ssh_tunnel.kubernetes.local.0.address}"
+        # host = "https://localhost:${data.jumphost_ssh.kubernetes_tunnel.local_port}"
         # username = "admin"
         # config_path = "${terramate.stack.path.to_root}/tmp/provisioner_kube_config"
 
