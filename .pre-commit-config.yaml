@@ -13,3 +13,10 @@ repos:
         language: system
         files: (\.tf|\.tfvars)$
         exclude: \.terraform\/.*$
+      - id: terramate_fmt
+        name: Terramate fmt
+        description: Rewrites all Terramate configuration files to a canonical format.
+        entry: bazel run --config=quiet //tools/terramate -- fmt
+        language: system
+        files: (\.tm.hcl)$
+        pass_filenames: false

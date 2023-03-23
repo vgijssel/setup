@@ -1,5 +1,8 @@
 stack {
   name = "base"
+  tags = [
+    "base",
+  ]
 }
 
 globals {
