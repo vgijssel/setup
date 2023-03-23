@@ -1,0 +1,5 @@
+# Ingore everything by default
+*
+
+# Only upload the infrastructure folder
+!infrastructure/

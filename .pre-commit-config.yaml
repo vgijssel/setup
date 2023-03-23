@@ -20,3 +20,4 @@ repos:
         language: system
         files: (\.tm.hcl)$
         pass_filenames: false
+        exclude: ^tmp/
