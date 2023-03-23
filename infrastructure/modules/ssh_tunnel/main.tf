@@ -1,3 +1,4 @@
+# Copied from https://github.com/flaupretre/terraform-ssh-tunnel
 resource "random_integer" "ssh_port" {
   min = "10000"
   max = "60000"

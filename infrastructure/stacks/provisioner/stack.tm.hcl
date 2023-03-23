@@ -4,6 +4,10 @@ stack {
   after = [
     "/infrastructure/stacks/base"
   ]
+
+  tags = [
+    "provisioner",
+  ]
 }
 
 globals {
