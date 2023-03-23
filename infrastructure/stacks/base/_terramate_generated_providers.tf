@@ -7,8 +7,8 @@ terraform {
       version = "2.9.0"
     }
     ssh = {
-      source  = "AndrewChubatiuk/ssh"
-      version = "0.1.5"
+      source  = "thecadams/ssh"
+      version = "0.1.12"
     }
     tfe = {
       version = "0.42.0"
@@ -37,6 +37,10 @@ data "ssh_tunnel" "kubernetes" {
       content = var.provisioner_private_key
     }
   }
+  local {
+    host = "127.0.0.1"
+    port = 3001
+  }
   server {
     host = var.provisioner_host
     port = var.provisioner_port
@@ -46,11 +50,20 @@ data "ssh_tunnel" "kubernetes" {
     port = 16443
   }
 }
+variable "provisioner_kube_config" {
+  description = "Kube config of the provisioner machine"
+  sensitive   = true
+  type        = string
+}
+locals {
+  provisioner_kube_config = yamldecode(var.provisioner_kube_config)
+}
 provider "helm" {
   alias = "provisioner"
   kubernetes {
-    config_path = "../../../tmp/provisioner_kube_config"
-    host        = "https://${data.ssh_tunnel.kubernetes.local[0].address}"
+    cluster_ca_certificate = base64decode(local.provisioner_kube_config.clusters[0].cluster.certificate-authority-data)
+    host                   = "https://${data.ssh_tunnel.kubernetes.local[0].address}"
+    token                  = local.provisioner_kube_config.users[0].user.token
   }
 }
 provider "tfe" {

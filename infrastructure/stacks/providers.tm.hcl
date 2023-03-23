@@ -13,8 +13,10 @@ generate_hcl "_terramate_generated_providers.tf" {
         }
 
         ssh = {
-          source  = "AndrewChubatiuk/ssh"
-          version = "0.1.5"
+          source  = "thecadams/ssh"
+          version = "0.1.12"
+          # source = "AndrewChubatiuk/ssh"
+          # version = "0.1.5"
         }
       }
     }
@@ -37,12 +39,20 @@ generate_hcl "_terramate_generated_providers.tf" {
       sensitive   = true
     }
 
+    # The ssh provider
+    # https://github.com/thecadams/terraform-provider-ssh
     data "ssh_tunnel" "kubernetes" {
       user = "ubuntu"
       auth {
         private_key {
           content = var.provisioner_private_key
         }
+      }
+
+      # what port to open on the terraform executed
+      local {
+        host = "127.0.0.1"
+        port = 3001
       }
 
       server {
@@ -81,6 +91,16 @@ generate_hcl "_terramate_generated_providers.tf" {
     #   }
     # }
 
+    variable "provisioner_kube_config" {
+      type        = string
+      description = "Kube config of the provisioner machine"
+      sensitive   = true
+    }
+
+    locals {
+      provisioner_kube_config = yamldecode(var.provisioner_kube_config)
+    }
+
     provider "helm" {
       alias = "provisioner"
 
@@ -88,7 +108,10 @@ generate_hcl "_terramate_generated_providers.tf" {
         # so this connects to https://localhost:<PORT> which forwards the requests using the SSH tunnel to the actual kubernetes cluster
         host = "https://${data.ssh_tunnel.kubernetes.local.0.address}"
         # username = "admin"
-        config_path = "${terramate.stack.path.to_root}/tmp/provisioner_kube_config"
+        # config_path = "${terramate.stack.path.to_root}/tmp/provisioner_kube_config"
+
+        cluster_ca_certificate = base64decode(local.provisioner_kube_config.clusters[0].cluster.certificate-authority-data)
+        token                  = local.provisioner_kube_config.users[0].user.token
       }
     }
 
