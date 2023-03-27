@@ -81,7 +81,7 @@ _command = rule(
 # TODO: ensure right indentiation in before_cmd and after_cmd
 # TODO: if after_cmd is not set, don't use subprocess.run but os.execvpe(...)
 # TODO: implement similar behavior as multirun, ability to run multiple commands?
-def command(name, command_src, cwd = None, args = [], deps = [], data = [], env = {}, before_cmd = None, after_cmd = None, **kwargs):
+def command(name, command_src, cwd = None, srcs = [], args = [], deps = [], data = [], env = {}, before_cmd = None, after_cmd = None, **kwargs):
     command_name = "{}_command.py".format(name)
 
     _command(
@@ -98,7 +98,7 @@ def command(name, command_src, cwd = None, args = [], deps = [], data = [], env 
 
     native.py_binary(
         name = name,
-        srcs = [
+        srcs = srcs + [
             command_name,
         ],
         main = command_name,
