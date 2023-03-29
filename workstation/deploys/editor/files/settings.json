@@ -97,6 +97,5 @@
   "jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"],
   "[python]": {
     "editor.formatOnType": true
-  },
-  "terraform.languageServer.enable": true
+  }
 }
