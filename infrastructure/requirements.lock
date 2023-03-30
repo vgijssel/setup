@@ -4,14 +4,6 @@
 #
 #    bazel run //infrastructure:requirements.update
 #
-arpeggio==2.0.0 \
-    --hash=sha256:448e332deb0e9ccd04046f1c6c14529d197f41bc2fdb3931e43fc209042fbdd3 \
-    --hash=sha256:d6b03839019bb8a68785f9292ee6a36b1954eb84b925b84a6b8a5e1e26d3ed3d
-    # via parver
-attrs==22.2.0 \
-    --hash=sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836 \
-    --hash=sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99
-    # via parver
 bcrypt==4.0.1 \
     --hash=sha256:089098effa1bc35dc055366740a067a2fc76987e8ec75349eb9484061c54f535 \
     --hash=sha256:08d2947c490093a11416df18043c27abe3921558d2c03e2076ccb28a116cb6d0 \
@@ -179,10 +171,6 @@ paramiko==3.1.0 \
     --hash=sha256:6950faca6819acd3219d4ae694a23c7a87ee38d084f70c1724b0c0dbb8b75769 \
     --hash=sha256:f0caa660e797d9cd10db6fc6ae81e2c9b2767af75c3180fcd0e46158cd368d7f
     # via sshtunnel
-parver==0.4 \
-    --hash=sha256:c66d3347a4858643875ef959d8ba7a269d5964bfb690b0dd998b8f39da930be2 \
-    --hash=sha256:d4a3dbb93c53373ee9a0ba055e4858c44169b204b912e49d003ead95db9a9bca
-    # via pulumi-command
 protobuf==4.22.1 \
     --hash=sha256:3e19dcf4adbf608924d3486ece469dd4f4f2cf7d2649900f0efcd1a84e8fd3ba \
     --hash=sha256:5917412347e1da08ce2939eb5cd60650dfb1a9ab4606a415b9278a1041fb4d19 \
@@ -200,11 +188,6 @@ protobuf==4.22.1 \
     # via pulumi
 pulumi==3.60.0 \
     --hash=sha256:7dbb4cf4728c32bd05d51831a5d9668bf3e8284a7dbaa3fb6746a8d225bc46cf
-    # via
-    #   -r infrastructure/requirements.in
-    #   pulumi-command
-pulumi-command==0.7.1 \
-    --hash=sha256:af93053d41253ba2771046f55a73b48dab4aff096085950bac1067bc946235a1
     # via -r infrastructure/requirements.in
 pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
@@ -267,9 +250,7 @@ pyyaml==6.0 \
 semver==2.13.0 \
     --hash=sha256:ced8b23dceb22134307c1b8abfa523da14198793d9787ac838e70e29e77458d4 \
     --hash=sha256:fa0fe2722ee1c3f57eac478820c3a5ae2f624af8264cbdf9000c980ff7f75e3f
-    # via
-    #   pulumi
-    #   pulumi-command
+    # via pulumi
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
