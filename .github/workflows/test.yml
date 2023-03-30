@@ -13,6 +13,49 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
+  build_devcontainer:
+    name: Build and push the devcontainer image
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    # outputs:
+    #   run-workstation-test: ${{ steps.changed-test-targets.outputs.workstation-test }}
+    #   run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
+    #   run-occupancy_component-test: ${{ steps.changed-test-targets.outputs.occupancy_component-test }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the GitHub Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/tools/devcontainer
+
+      # - name: Build and push
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: .
+      #     push: true
+      #     # tags: user/app:latest
+      #     cache-from: type=registry,ref=user/app:latest
+      #     cache-to: type=inline
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: tools/devcontainer/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
   select_tests_to_run:
     name: Select Tests to Run
     timeout-minutes: 4
