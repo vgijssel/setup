@@ -17,6 +17,9 @@ jobs:
     name: Build and push the devcontainer image
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     # outputs:
     #   run-workstation-test: ${{ steps.changed-test-targets.outputs.workstation-test }}
     #   run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
