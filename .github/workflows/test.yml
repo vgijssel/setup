@@ -1,5 +1,7 @@
 # for debugging https://github.com/marketplace/actions/debugging-with-tmate
 
+# global variables
+
 name: Test
 on: [push]
 jobs:
@@ -24,7 +26,25 @@ jobs:
     #   run-workstation-test: ${{ steps.changed-test-targets.outputs.workstation-test }}
     #   run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
     #   run-occupancy_component-test: ${{ steps.changed-test-targets.outputs.occupancy_component-test }}
+
     steps:
+      # https://docs.github.com/en/actions/learn-github-actions/contexts
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          ENV_CONTEXT: ${{ toJson(env) }}
+          VARS_CONTEXT: ${{ toJson(vars) }}
+          JOB_CONTEXT: ${{ toJson(job) }}
+          JOBS_CONTEXT: ${{ toJson(jobs) }}
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+          RUNNER_CONTEXT: ${{ toJson(runner) }}
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+          NEEDS_CONTEXT: ${{ toJson(needs) }}
+          INPUTS_CONTEXT: ${{ toJson(inputs) }}
+        run: env
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
