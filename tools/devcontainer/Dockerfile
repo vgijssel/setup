@@ -105,7 +105,8 @@ RUN case ${TARGETARCH} in \
 # Ensure that VSCode uses bash as the default shell
 # SHELL ["/bin/bash", "--login",  "-c"]
 
-RUN mkdir -p /opt/bin && chown -R devcontainer:devcontainer /opt/bin
+RUN mkdir -p /opt/bin && chown -R devcontainer:devcontainer /opt
+RUN mkdir -p /project && chown -R devcontainer:devcontainer /project
 ENV PATH /opt/bin:$PATH
 
 # Setup the default user of the container to devcontainer
@@ -114,7 +115,8 @@ ENV USER devcontainer
 
 ADD --chown=devcontainer:devcontainer tools/devcontainer/python /opt/bin/python
 ADD --chown=devcontainer:devcontainer tools/devcontainer/pulumi /opt/bin/pulumi
-ADD --chown=devcontainer:devcontainer .bazeliskrc .
+# NOTE: a WORKSPACE file needs to exist for bazelisk to respect the bazeliskrc file
+ADD --chown=devcontainer:devcontainer WORKSPACE .bazeliskrc ./
 
 RUN bazel --version
 
