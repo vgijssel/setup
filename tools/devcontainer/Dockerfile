@@ -101,6 +101,7 @@ RUN case ${TARGETARCH} in \
     && curl --fail -L https://github.com/buchgr/bazel-remote/releases/download/v$BAZEL_REMOTE_VERSION/bazel-remote-$BAZEL_REMOTE_VERSION-linux-$BAZEL_REMOTE_ARCH --output /usr/local/bin/bazel-remote \
     && chmod +x /usr/local/bin/bazel-remote
 
+# TODO: figure out if disabling the shell OR changing the default user breaks Pulumi Cloud deployments
 # Ensure that VSCode uses bash as the default shell
 # SHELL ["/bin/bash", "--login",  "-c"]
 
@@ -108,8 +109,8 @@ RUN mkdir -p /opt/bin && chown -R devcontainer:devcontainer /opt/bin
 ENV PATH /opt/bin:$PATH
 
 # Setup the default user of the container to devcontainer
-# USER devcontainer
-# ENV USER devcontainer
+USER devcontainer
+ENV USER devcontainer
 
 ADD --chown=devcontainer:devcontainer tools/devcontainer/python /opt/bin/python
 ADD --chown=devcontainer:devcontainer tools/devcontainer/pulumi /opt/bin/pulumi
