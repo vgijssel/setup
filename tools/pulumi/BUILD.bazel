@@ -1,4 +1,5 @@
 load("//tools/command:command.bzl", "command")
+load("@infrastructure-requirements//:requirements.bzl", "all_requirements")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -14,11 +15,11 @@ sh_binary(
 
 command(
     name = "pulumi",
-    # before_cmd = """
-    # print(os.environ)
-    # print(os.getcwd())
-    # print(cwd)
-    # """,
     command_src = ":pulumi_binary",
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
+    # TODO: this should be the hermetic Python, or at least a python with pip installed (system one does not have pip and fails)
+    env = {
+        "PULUMI_PYTHON_CMD": "/opt/bin/python",
+    },
+    deps = all_requirements,
 )
