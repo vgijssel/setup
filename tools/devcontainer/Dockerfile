@@ -113,6 +113,7 @@ USER devcontainer
 ENV USER devcontainer
 
 ADD --chown=devcontainer:devcontainer tools/devcontainer/python /opt/bin/python
+ADD --chown=devcontainer:devcontainer tools/devcontainer/pulumi /opt/bin/pulumi
 ADD --chown=devcontainer:devcontainer .bazeliskrc .
 
 RUN bazel --version

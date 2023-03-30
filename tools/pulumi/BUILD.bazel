@@ -1,3 +1,5 @@
+load("//tools/command:command.bzl", "command")
+
 package(default_visibility = ["//visibility:public"])
 
 pulumi_files = select({
@@ -6,6 +8,17 @@ pulumi_files = select({
 })
 
 sh_binary(
-    name = "pulumi",
+    name = "pulumi_binary",
     srcs = pulumi_files,
+)
+
+command(
+    name = "pulumi",
+    before_cmd = """
+    print(os.environ)
+    print(os.getcwd())
+    print(cwd)
+    """,
+    command_src = ":pulumi_binary",
+    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
 )
