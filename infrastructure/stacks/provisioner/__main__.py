@@ -22,6 +22,8 @@ kubeconfig = command.remote.Command(
     create="microk8s config",
 )
 
+# trigger pulumi
+
 
 # fp = tempfile.NamedTemporaryFile()
 # fp.write(provisioner_ssh_key.encode("utf-8"))
