@@ -1,0 +1,11 @@
+package(default_visibility = ["//visibility:public"])
+
+pulumi_files = select({
+    "@platforms//cpu:aarch64": ["@pulumi_arm64//:files"],
+    "@platforms//cpu:x86_64": ["@pulumi_amd64//:files"],
+})
+
+sh_binary(
+    name = "pulumi",
+    srcs = pulumi_files,
+)

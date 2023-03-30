@@ -105,12 +105,16 @@ RUN case ${TARGETARCH} in \
 # Ensure that VSCode uses bash as the default shell
 SHELL ["/bin/bash", "--login",  "-c"]
 
+RUN mkdir -p /opt/bin && chown -R devcontainer:devcontainer /opt/bin
+ENV PATH /opt/bin:$PATH
+
 # Setup the default user of the container to devcontainer
 USER devcontainer
 ENV USER devcontainer
 
-# Download bazel
+ADD --chown=devcontainer:devcontainer tools/devcontainer/python /opt/bin/python
 ADD --chown=devcontainer:devcontainer .bazeliskrc .
+
 RUN bazel --version
 
 # Run some basic assertions

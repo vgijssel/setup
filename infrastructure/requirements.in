@@ -1,0 +1,2 @@
+pulumi==3.60.0;
+pulumiverse-unifi==0.0.3;

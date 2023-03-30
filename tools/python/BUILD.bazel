@@ -1,0 +1,10 @@
+load("//tools/command:command.bzl", "command")
+load("@python3//:defs.bzl", "interpreter")
+
+command(
+    name = "python",
+    command_src = interpreter,
+    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
+)
+
+package(default_visibility = ["//visibility:public"])

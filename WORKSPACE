@@ -303,3 +303,31 @@ command_deps(python_interpreter_target = interpreter)
 load("//tools/command:toolchains.bzl", command_toolchains = "toolchains")
 
 command_toolchains()
+
+# ------------------------------------ pulumi ------------------------------------ #
+
+http_archive(
+    name = "pulumi_arm64",
+    build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
+    sha256 = "babe36f166c29aa2f646af154efd1b60ba727b9cb53245210fe12d72af890522",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.60.0/pulumi-v3.60.0-linux-arm64.tar.gz",
+)
+
+http_archive(
+    name = "pulumi_amd64",
+    build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
+    sha256 = "3a1c3c633fc500dc415777fdc1e43bc4621451c3e4722319d615231b17e77543",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.60.0/pulumi-v3.60.0-linux-x64.tar.gz",
+)
+
+# ------------------------------------ infrastructure ------------------------------------ #
+
+pip_parse(
+    name = "infrastructure-requirements",
+    python_interpreter_target = interpreter,
+    requirements_lock = "//infrastructure:requirements.lock",
+)
+
+load("@infrastructure-requirements//:requirements.bzl", "install_deps")
+
+install_deps()

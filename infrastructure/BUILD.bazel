@@ -1,17 +1,26 @@
 load("//tools/command:command.bzl", "command")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@infrastructure-requirements//:requirements.bzl", "all_requirements")
 
 package(default_visibility = ["//visibility:public"])
 
-# command(
-#     name = "login",
-#     args = [
-#         "run",
-#         "--",
-#         "terraform",
-#         "login",
-#     ],
-#     # command_src = "//tools/terramate",
-# )
+compile_pip_requirements(
+    name = "requirements",
+    extra_args = ["--allow-unsafe"],
+    requirements_in = "requirements.in",
+    requirements_txt = "requirements.lock",
+)
+
+command(
+    name = "provisioner-deploy",
+    command_src = "//tools/pulumi",
+    cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}/infrastructure/stacks/provisioner",
+    # TODO: this should be the hermetic Python, or at least a python with pip installed (system one does not have pip and fails)
+    env = {
+        "PULUMI_PYTHON_CMD": "/opt/bin/python",
+    },
+    deps = all_requirements,
+)
 
 # command(
 #     name = "deploy",
