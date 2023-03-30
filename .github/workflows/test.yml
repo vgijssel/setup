@@ -1,6 +1,8 @@
 # for debugging https://github.com/marketplace/actions/debugging-with-tmate
 
-# global variables
+env:
+  CONTAINER_REGISTRY: ghcr.io
+  DEVCONTAINER_IMAGE: ${{ env.CONTAINER_REGISTRY }}/${{ env.repository }}/tools/devcontainer
 
 name: Test
 on: [push]
@@ -51,7 +53,7 @@ jobs:
       - name: Log in to the GitHub Container registry
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
+          registry: ${{ env.CONTAINER_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -59,7 +61,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/tools/devcontainer
+          images: ${{ env.DEVCONTAINER_IMAGE }}
 
       # - name: Build and push
       #   uses: docker/build-push-action@v4
