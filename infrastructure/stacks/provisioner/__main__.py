@@ -22,7 +22,7 @@ kubeconfig = command.remote.Command(
     create="microk8s config",
 )
 
-# trigger pulumi 4
+# trigger pulumi 5
 
 
 # fp = tempfile.NamedTemporaryFile()
