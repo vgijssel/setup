@@ -31,7 +31,7 @@ jobs:
 
     steps:
       # https://docs.github.com/en/actions/learn-github-actions/contexts
-      - name: Dump GitHub context
+      - name: Dump GitHub env
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           ENV_CONTEXT: ${{ toJson(env) }}
