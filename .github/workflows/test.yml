@@ -2,7 +2,7 @@
 
 env:
   CONTAINER_REGISTRY: ghcr.io
-  DEVCONTAINER_IMAGE: ${{ env.CONTAINER_REGISTRY }}/${{ env.repository }}/tools/devcontainer
+  DEVCONTAINER_IMAGE: ghcr.io/mvgijssel/setup/tools/devcontainer
 
 name: Test
 on: [push]
