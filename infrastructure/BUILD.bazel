@@ -13,6 +13,12 @@ compile_pip_requirements(
 
 command(
     name = "provisioner-deploy",
+    args = [
+        "up",
+        "--stack",
+        "dev",
+        "--yes",
+    ],
     command_src = "//tools/pulumi",
     cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}/infrastructure/stacks/provisioner",
     # TODO: this should be the hermetic Python, or at least a python with pip installed (system one does not have pip and fails)

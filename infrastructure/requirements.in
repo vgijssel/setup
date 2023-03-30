@@ -1,2 +1,3 @@
 pulumi==3.60.0;
-pulumiverse-unifi==0.0.3;
+sshtunnel==0.4.0;
+pulumi-command==0.7.1;
