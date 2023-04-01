@@ -83,8 +83,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: "ghcr.io/mvgijssel/setup/tools/devcontainer:mg-176-migrate-terraform-to-pulumi"
-      volumes:
-        - .:/workspaces/setup
     steps:
       - name: Check for dockerenv file
         run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
