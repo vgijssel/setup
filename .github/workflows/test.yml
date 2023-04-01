@@ -81,11 +81,14 @@ jobs:
     name: Build and push the pulumi image
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    container:
+      image: "${{ env.DEVCONTAINER_IMAGE }}:mg-176-migrate-terraform-to-pulumi"
+      volumes:
+        - .:/workspaces/setup
     steps:
+      - name: Check for dockerenv file
+        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
