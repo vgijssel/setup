@@ -114,7 +114,6 @@ ENV PATH /opt/bin:$PATH
 # ENV USER devcontainer
 
 ADD --chown=devcontainer:devcontainer tools/devcontainer/python /opt/bin/python
-ADD --chown=devcontainer:devcontainer tools/devcontainer/pulumi /opt/bin/pulumi
 # NOTE: a WORKSPACE file needs to exist for bazelisk to respect the bazeliskrc file
 ADD --chown=devcontainer:devcontainer WORKSPACE .bazeliskrc ./
 

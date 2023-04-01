@@ -9,17 +9,6 @@ pulumi_files = select({
 })
 
 sh_binary(
-    name = "pulumi_binary",
-    srcs = pulumi_files,
-)
-
-command(
     name = "pulumi",
-    command_src = ":pulumi_binary",
-    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
-    # TODO: this should be the hermetic Python, or at least a python with pip installed (system one does not have pip and fails)
-    env = {
-        "PULUMI_PYTHON_CMD": "/opt/bin/python",
-    },
-    deps = all_requirements,
+    srcs = pulumi_files,
 )
