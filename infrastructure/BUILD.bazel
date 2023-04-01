@@ -53,3 +53,5 @@ command(
         ":pulumi_image",
     ],
 )
+
+# trigger pulumi
