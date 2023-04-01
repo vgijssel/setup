@@ -82,7 +82,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     container:
-      image: "${{ env.DEVCONTAINER_IMAGE }}:mg-176-migrate-terraform-to-pulumi"
+      image: "ghcr.io/mvgijssel/setup/tools/devcontainer:mg-176-migrate-terraform-to-pulumi"
       volumes:
         - .:/workspaces/setup
     steps:
