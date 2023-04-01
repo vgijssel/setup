@@ -3,6 +3,10 @@ load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@infrastructure-requirements//:requirements.bzl", "all_requirements")
 load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
 load("@command-requirements//:requirements.bzl", all_command_requirements = "all_requirements")
+load(
+    "//container:container.bzl",
+    "container_push",
+)
 
 package(default_visibility = ["//visibility:public"])
 
@@ -30,6 +34,15 @@ py3_image(
     deps = all_requirements + [
         "@rules_python//python/runfiles",
     ] + all_command_requirements,
+)
+
+container_push(
+    name = "pulumi_image_push",
+    format = "Docker",
+    image = ":pulumi_image",
+    registry = "ghcr.io",
+    repository = "mvgijssel/setup/infrastructure/pulumi",
+    tag = "latest",
 )
 
 command(
