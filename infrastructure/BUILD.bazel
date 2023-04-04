@@ -20,3 +20,18 @@ command(
     },
     deps = all_requirements,
 )
+
+command(
+    name = "provisioner-deploy",
+    args = [
+        "up",
+        "--stack",
+        "dev",
+        "--diff",
+        "--color",
+        "always",
+        "--yes",
+    ],
+    command_src = ":pulumi",
+    cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}/infrastructure/stacks/provisioner",
+)

@@ -350,15 +350,15 @@ container_pull(
 http_archive(
     name = "pulumi_arm64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "babe36f166c29aa2f646af154efd1b60ba727b9cb53245210fe12d72af890522",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.60.0/pulumi-v3.60.0-linux-arm64.tar.gz",
+    sha256 = "a1987df74cc4bffe19a746644e9ca5e41ccd5ff50732b5fc80f34c6dd345f811",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.61.0/pulumi-v3.61.0-linux-arm64.tar.gz",
 )
 
 http_archive(
     name = "pulumi_amd64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "3a1c3c633fc500dc415777fdc1e43bc4621451c3e4722319d615231b17e77543",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.60.0/pulumi-v3.60.0-linux-x64.tar.gz",
+    sha256 = "19c240ab4589dde018f99f12ff671c66e91c80855c5ce80d306a43b2a9f47970",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.61.0/pulumi-v3.61.0-linux-x64.tar.gz",
 )
 
 # ------------------------------------ infrastructure ------------------------------------ #
