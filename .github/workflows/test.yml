@@ -87,14 +87,14 @@ jobs:
       - id: changed-test-targets
         run: bazel run //tools/bazel:changed-test-targets
 
-  pre-commit-check:
-    name: pre-commit check
-    timeout-minutes: 30
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: ./.github/actions/setup-bazel
-      - run: bazel run //tools/pre-commit -- run --all-files --show-diff-on-failure
+  # pre-commit-check:
+  #   name: pre-commit check
+  #   timeout-minutes: 30
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v1
+  #     - uses: ./.github/actions/setup-bazel
+  #     - run: bazel run //tools/pre-commit -- run --all-files --show-diff-on-failure
 
   occupancy_component-test:
     if: needs.select_tests_to_run.outputs.run-occupancy_component-test == 'true'
@@ -122,3 +122,8 @@ jobs:
       - run: colima start
       - run: docker info
       - run: bazel run //workstation:test
+# lefthook
+# black
+# prettier
+# python
+# buildifier

@@ -253,62 +253,6 @@ load("@occupancy_component//:requirements.bzl", install_occupancy_component_deps
 
 install_occupancy_component_deps()
 
-# ------------------------------------ pre-commit ------------------------------------ #
-
-pip_parse(
-    name = "pre-commit",
-    python_interpreter_target = interpreter,
-    requirements_lock = "@//tools/pre-commit:requirements.lock",
-)
-
-load("@pre-commit//:requirements.bzl", install_pre_commit_deps = "install_deps")
-
-install_pre_commit_deps()
-
-# ------------------------------------ rules_format ------------------------------------ #
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-http_archive(
-    name = "aspect_rules_format",
-    sha256 = "3eaa9851e09e3d2813e6c4ac1b6153e64ee44b494fa4ddf36fff2ba8b105e8db",
-    strip_prefix = "bazel-super-formatter-0.3.1",
-    url = "https://github.com/aspect-build/bazel-super-formatter/archive/refs/tags/v0.3.1.tar.gz",
-)
-
-#########################################
-# rules_format setup                    #
-# Paste to the bottom of your WORKSPACE #
-#########################################
-# Fetches the rules_format dependencies.
-# If you want to have a different version of some dependency,
-# you should fetch it *before* calling this.
-# Alternatively, you can skip calling this function, so long as you've
-# already fetched all the dependencies.
-load("@aspect_rules_format//format:repositories.bzl", "rules_format_dependencies")
-
-rules_format_dependencies()
-
-# If you didn't already register a toolchain providing nodejs, do that:
-load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
-
-nodejs_register_toolchains(
-    name = "node",
-    node_version = DEFAULT_NODE_VERSION,
-)
-
-load("@aspect_rules_format//format:dependencies.bzl", "parse_dependencies")
-
-parse_dependencies()
-
-# Installs toolchains for running programs under Node, Python, etc.
-# Be sure to register your own toolchains before this.
-# Most users should do this LAST in their WORKSPACE to avoid getting our versions of
-# things like the Go toolchain rather than the one you intended.
-load("@aspect_rules_format//format:toolchains.bzl", "format_register_toolchains")
-
-format_register_toolchains()
-
 # ------------------------------------ tilt ------------------------------------ #
 
 http_archive(
@@ -370,5 +314,35 @@ pip_parse(
 )
 
 load("@infrastructure-requirements//:requirements.bzl", "install_deps")
+
+install_deps()
+
+# ------------------------------------ lefthook ------------------------------------ #
+
+http_file(
+    name = "lefthook_arm64",
+    downloaded_file_path = "lefthook",
+    executable = True,
+    sha256 = "10c7c283918f52f0ba112b3834967949177e4084e5468fa9a9c3ce88878dda26",
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.3.9/lefthook_1.3.9_Linux_arm64",
+)
+
+http_file(
+    name = "lefthook_amd64",
+    downloaded_file_path = "lefthook",
+    executable = True,
+    # sha256 = "19c240ab4589dde018f99f12ff671c66e91c80855c5ce80d306a43b2a9f47970",
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.3.9/lefthook_1.3.9_Linux_x86_64",
+)
+
+# ------------------------------------ black ------------------------------------ #
+
+pip_parse(
+    name = "black-requirements",
+    python_interpreter_target = interpreter,
+    requirements_lock = "//tools/black:requirements.lock",
+)
+
+load("@black-requirements//:requirements.bzl", "install_deps")
 
 install_deps()

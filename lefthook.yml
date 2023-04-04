@@ -1,0 +1,6 @@
+pre-commit:
+  commands:
+    lint:
+      run: black {staged_files}
+      glob: "*.{py}"
+      stage_fixed: true

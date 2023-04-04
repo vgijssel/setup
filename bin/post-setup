@@ -13,10 +13,7 @@ else
     sudo chown devcontainer:devcontainer $(pwd)
     sudo chown devcontainer:devcontainer /home/devcontainer/bazel
 
-    ln -s -f "../../tools/pre-commit/pre-commit-custom-hook.sh" ".git/hooks/pre-commit"
-
     # Ensure the linters are built for local development
     # Caching Bazel outside of the container will make sure this is quick between container rebuilds
-    bazel build @aspect_rules_format//format
     bazel build //tools/tilt
 fi

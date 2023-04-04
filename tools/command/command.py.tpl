@@ -102,6 +102,9 @@ def main():
     signal.signal(signal.SIGTERM, handle_exit)
     signal.signal(signal.SIGINT, handle_exit)
 
+    # Remove the RUNFILES_MANIFEST_FILE to enable nested py_binary (or command) calls
+    del os.environ['RUNFILES_MANIFEST_FILE']
+
     before_cmd()
 
     result = subprocess.run(args, env=os.environ, cwd=cwd)
