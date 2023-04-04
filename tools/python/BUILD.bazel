@@ -1,5 +1,9 @@
 load("//tools/command:command.bzl", "command")
 load("@python3//:defs.bzl", "interpreter")
+load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+
+package(default_visibility = ["//visibility:public"])
 
 command(
     name = "python",
@@ -7,4 +11,19 @@ command(
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
 )
 
-package(default_visibility = ["//visibility:public"])
+python_base_image = select({
+    "@platforms//cpu:aarch64": "@python_base_arm64//image",
+    "@platforms//cpu:x86_64": "@python_base_amd64//image",
+})
+
+container_image(
+    name = "python_base_image",
+    base = python_base_image,
+    env = {
+        "PYTHONUNBUFFERED": "1",
+    },
+    symlinks = {
+        "/usr/bin/python": "/usr/local/bin/python",  # To work as base for py3_image
+        "/usr/bin/python3": "/usr/local/bin/python3",  # To work as base for py3_image
+    },
+)

@@ -45,9 +45,7 @@ load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
 python_register_toolchains(
     name = "python3",
-    # TODO: added this because the image inside of Pulumi Deployments needs to be run as root
-    ignore_root_user_error = True,
-    python_version = "3.10",
+    python_version = "3.10.8",
 )
 
 load("@python3//:defs.bzl", "interpreter")
@@ -329,6 +327,23 @@ command_deps(python_interpreter_target = interpreter)
 load("//tools/command:toolchains.bzl", command_toolchains = "toolchains")
 
 command_toolchains()
+
+# ------------------------------------ python_image ------------------------------------ #
+
+# https://hub.docker.com/layers/library/python/3.10.8-bullseye/images/sha256-de501d4dbc12f846ee78ee76629b7524ec07f10c121832a190a1ecb7b9a119bb?context=explore
+container_pull(
+    name = "python_base_arm64",
+    digest = "sha256:fa109a6d1100a4e6382950ab1f7f94563268e537b1619f1969b9b33a9c1a99fb",
+    registry = "index.docker.io",
+    repository = "library/python:3.10.8-bullseye",
+)
+
+container_pull(
+    name = "python_base_amd64",
+    digest = "sha256:de501d4dbc12f846ee78ee76629b7524ec07f10c121832a190a1ecb7b9a119bb",
+    registry = "index.docker.io",
+    repository = "library/python:3.10.8-bullseye",
+)
 
 # ------------------------------------ pulumi ------------------------------------ #
 
