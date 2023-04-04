@@ -20,6 +20,3 @@ else
     bazel build @aspect_rules_format//format
     bazel build //tools/tilt
 fi
-
-bazel build //tools/terraform
-bazel build //tools/terramate:terramate-ls

@@ -56,6 +56,9 @@ cmd = runfiles_path(cmd_sub)
 # Setup the working directory of the command
 cwd = jinja_render_string(cwd_sub)
 
+if not cwd:
+    cwd = os.getcwd()
+
 inline_args_raw = {{ARGS}}
 inline_args = []
 
@@ -95,16 +98,13 @@ def after_cmd():
 
 def main():
 {{ENV}}
-    if cwd:
-        os.chdir(cwd)
-
     atexit.register(handle_exit)
     signal.signal(signal.SIGTERM, handle_exit)
     signal.signal(signal.SIGINT, handle_exit)
 
     before_cmd()
 
-    result = subprocess.run(args, env=os.environ)
+    result = subprocess.run(args, env=os.environ, cwd=cwd)
     global successful_exit
     successful_exit = result.returncode == 0
     sys.exit(result.returncode)

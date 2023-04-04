@@ -1,57 +1,37 @@
 load("//tools/command:command.bzl", "command")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@infrastructure-requirements//:requirements.bzl", "all_requirements")
 
 package(default_visibility = ["//visibility:public"])
 
-command(
-    name = "generate",
-    args = [
-        "generate",
-    ],
-    command_src = "//tools/terramate",
+compile_pip_requirements(
+    name = "requirements",
+    extra_args = ["--allow-unsafe"],
+    requirements_in = "requirements.in",
+    requirements_txt = "requirements.lock",
 )
 
 command(
-    name = "init",
-    args = [
-        "run",
-        "--",
-        "terraform",
-        "init",
-    ],
-    command_src = "//tools/terramate",
+    name = "pulumi",
+    command_src = "//tools/pulumi",
+    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
+    env = {
+        "PULUMI_PYTHON_CMD": "python",
+    },
+    deps = all_requirements,
 )
 
 command(
-    name = "login",
+    name = "provisioner-deploy",
     args = [
-        "run",
-        "--",
-        "terraform",
-        "login",
+        "up",
+        "--stack",
+        "dev",
+        "--diff",
+        "--color",
+        "always",
+        "--yes",
     ],
-    command_src = "//tools/terramate",
-)
-
-command(
-    name = "deploy",
-    args = [
-        "run",
-        "--",
-        "terraform",
-        "apply",
-        "-auto-approve",
-    ],
-    command_src = "//tools/terramate",
-)
-
-command(
-    name = "destroy",
-    args = [
-        "run",
-        "--",
-        "terraform",
-        "destroy",
-        "-auto-approve",
-    ],
-    command_src = "//tools/terramate",
+    command_src = ":pulumi",
+    cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}/infrastructure/stacks/provisioner",
 )

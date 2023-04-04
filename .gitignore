@@ -7,7 +7,7 @@ __pycache__
 1password/1password-credentials.json
 hypervisor/credentials.yml
 infrastructure/kubernetes_config.yaml
-infrastructure/Pulumi.dev.yaml
+infrastructure/stacks/provisioner/Pulumi.dev.yaml
 
 # For Bazel
 bazel-bin

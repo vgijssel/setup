@@ -2,5 +2,5 @@ package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "files",
-    srcs = ["terramate-ls"],
+    srcs = ["pulumi/pulumi"],
 )

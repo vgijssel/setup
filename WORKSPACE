@@ -45,7 +45,7 @@ load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
 python_register_toolchains(
     name = "python3",
-    python_version = "3.10",
+    python_version = "3.10.8",
 )
 
 load("@python3//:defs.bzl", "interpreter")
@@ -134,18 +134,36 @@ http_jar(
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "16e9fca53ed6bd4ff4ad76facc9b7b651a89db1689a2877d6fd7b82aa824e366",
+    sha256 = "f2dcd210c7095febe54b804bb1cd3a58fe8435a909db2ec04e31542631cf715c",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.31.0/rules_go-v0.31.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.31.0/rules_go-v0.31.0.zip",
+    ],
+)
+
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "5982e5463f171da99e3bdaeff8c0f48283a7a5f396ec5282910b9e8a49c0dd7e",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.25.0/bazel-gazelle-v0.25.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.25.0/bazel-gazelle-v0.25.0.tar.gz",
     ],
 )
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
+############################################################
+# Define your own dependencies here using go_repository.
+# Else, dependencies declared by rules_go/gazelle will be used.
+# The first declaration of an external repository "wins".
+############################################################
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.18.3")
+go_register_toolchains(version = "1.18")
+
+gazelle_dependencies()
 
 http_archive(
     name = "io_bazel_rules_docker",
@@ -168,6 +186,12 @@ load(
     "@io_bazel_rules_docker//container:container.bzl",
     "container_pull",
 )
+load(
+    "@io_bazel_rules_docker//python3:image.bzl",
+    _py3_image_repos = "repositories",
+)
+
+_py3_image_repos()
 
 # ------------------------------------ workstation ------------------------------------ #
 
@@ -304,46 +328,47 @@ load("//tools/command:toolchains.bzl", command_toolchains = "toolchains")
 
 command_toolchains()
 
-# ------------------------------------ terramate ------------------------------------ #
+# ------------------------------------ python_image ------------------------------------ #
+
+# https://hub.docker.com/layers/library/python/3.10.8-bullseye/images/sha256-de501d4dbc12f846ee78ee76629b7524ec07f10c121832a190a1ecb7b9a119bb?context=explore
+container_pull(
+    name = "python_base_arm64",
+    digest = "sha256:fa109a6d1100a4e6382950ab1f7f94563268e537b1619f1969b9b33a9c1a99fb",
+    registry = "index.docker.io",
+    repository = "library/python:3.10.8-bullseye",
+)
+
+container_pull(
+    name = "python_base_amd64",
+    digest = "sha256:de501d4dbc12f846ee78ee76629b7524ec07f10c121832a190a1ecb7b9a119bb",
+    registry = "index.docker.io",
+    repository = "library/python:3.10.8-bullseye",
+)
+
+# ------------------------------------ pulumi ------------------------------------ #
 
 http_archive(
-    name = "terramate_arm64",
-    build_file = "//tools/terramate:BUILD.repositories.bazel.tpl",
-    sha256 = "0522cb3d823f6e2aa10dcd42da1fc0cf11b55c7eb25a3882f52e2020d262bfac",
-    url = "https://github.com/mineiros-io/terramate/releases/download/v0.2.16/terramate_0.2.16_linux_arm64.tar.gz",
+    name = "pulumi_arm64",
+    build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
+    sha256 = "a1987df74cc4bffe19a746644e9ca5e41ccd5ff50732b5fc80f34c6dd345f811",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.61.0/pulumi-v3.61.0-linux-arm64.tar.gz",
 )
 
 http_archive(
-    name = "terramate_amd64",
-    build_file = "//tools/terramate:BUILD.repositories.bazel.tpl",
-    sha256 = "135faa3d8201797b5f4f92314f588de0093789c8d7ff7bec69de0709a1efb2cf",
-    url = "https://github.com/mineiros-io/terramate/releases/download/v0.2.16/terramate_0.2.16_linux_x86_64.tar.gz",
+    name = "pulumi_amd64",
+    build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
+    sha256 = "19c240ab4589dde018f99f12ff671c66e91c80855c5ce80d306a43b2a9f47970",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.61.0/pulumi-v3.61.0-linux-x64.tar.gz",
 )
 
-http_archive(
-    name = "terramate-ls_arm64",
-    build_file = "//tools/terramate:BUILD.ls.repositories.bazel.tpl",
-    sha256 = "a18ce77f501431f45572326651a3a3a482d397f103783dec3a4d6f27e98b027f",
-    url = "https://github.com/mineiros-io/terramate-ls/releases/download/v0.0.7/terramate-ls_0.0.7_linux_arm64.tar.gz",
+# ------------------------------------ infrastructure ------------------------------------ #
+
+pip_parse(
+    name = "infrastructure-requirements",
+    python_interpreter_target = interpreter,
+    requirements_lock = "//infrastructure:requirements.lock",
 )
 
-http_archive(
-    name = "terramate-ls_amd64",
-    build_file = "//tools/terramate:BUILD.ls.repositories.bazel.tpl",
-    sha256 = "0df55d7e6d7e6022e9315ed5ade73b2467bbb10177ce811c102c74d811d08cba",
-    url = "https://github.com/mineiros-io/terramate-ls/releases/download/v0.0.7/terramate-ls_0.0.7_linux_x86_64.tar.gz",
-)
+load("@infrastructure-requirements//:requirements.bzl", "install_deps")
 
-http_archive(
-    name = "terraform_arm64",
-    build_file = "//tools/terraform:BUILD.repositories.bazel.tpl",
-    sha256 = "39c182670c4e63e918e0a16080b1cc47bb16e158d7da96333d682d6a9cb8eb91",
-    url = "https://releases.hashicorp.com/terraform/1.4.2/terraform_1.4.2_linux_arm64.zip",
-)
-
-http_archive(
-    name = "terraform_amd64",
-    build_file = "//tools/terraform:BUILD.repositories.bazel.tpl",
-    sha256 = "9f3ca33d04f5335472829d1df7785115b60176d610ae6f1583343b0a2221a931",
-    url = "https://releases.hashicorp.com/terraform/1.4.2/terraform_1.4.2_linux_amd64.zip",
-)
+install_deps()
