@@ -15,5 +15,8 @@ command(
     name = "pulumi",
     command_src = "//tools/pulumi",
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
+    env = {
+        "PULUMI_PYTHON_CMD": "python",
+    },
     deps = all_requirements,
 )

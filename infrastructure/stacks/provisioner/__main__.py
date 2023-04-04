@@ -7,9 +7,10 @@ import tempfile
 import os
 import pulumi_command as command
 
-provisioner_ssh_key = os.environ["PROVISIONER_SSH_KEY"]
-provisioner_host = os.environ["PROVISIONER_HOST"]
-provisioner_port = os.environ["PROVISIONER_PORT"]
+config = pulumi.Config()
+provisioner_host = config.require_secret("provisioner_host")
+provisioner_port = config.require_secret("provisioner_port")
+provisioner_ssh_key = config.require_secret("provisioner_ssh_key")
 
 kubeconfig = command.remote.Command(
     "fetch-kubeconfig",
@@ -17,7 +18,7 @@ kubeconfig = command.remote.Command(
         "host": provisioner_host,
         "user": "ubuntu",
         "privateKey": provisioner_ssh_key,
-        "port": float(provisioner_port),
+        "port": provisioner_port.apply(lambda x: float(x)),
     },
     create="microk8s config",
 )
