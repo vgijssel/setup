@@ -110,8 +110,8 @@ RUN mkdir -p /project && chown -R devcontainer:devcontainer /project
 ENV PATH /opt/bin:$PATH
 
 # Setup the default user of the container to devcontainer
-# USER devcontainer
-# ENV USER devcontainer
+USER devcontainer
+ENV USER devcontainer
 
 ADD --chown=devcontainer:devcontainer tools/devcontainer/python /opt/bin/python
 # NOTE: a WORKSPACE file needs to exist for bazelisk to respect the bazeliskrc file

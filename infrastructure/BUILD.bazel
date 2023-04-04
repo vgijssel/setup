@@ -3,8 +3,7 @@ load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@infrastructure-requirements//:requirements.bzl", "all_requirements")
 load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
 load("@command-requirements//:requirements.bzl", all_command_requirements = "all_requirements")
-load("@io_bazel_rules_docker//container:container.bzl", "container_push")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
 
 package(default_visibility = ["//visibility:public"])
 
