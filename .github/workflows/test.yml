@@ -43,7 +43,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJson(needs) }}
           INPUTS_CONTEXT: ${{ toJson(inputs) }}
         run: env
-    steps:
+
       - id: step1
         run: echo "test=ghcr.io/mvgijssel/setup/tools/devcontainer:mg-176-migrate-terraform-to-pulumi" >> "$GITHUB_OUTPUT"
 
