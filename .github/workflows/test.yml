@@ -24,11 +24,8 @@ jobs:
     permissions:
       contents: read
       packages: write
-    # outputs:
-    #   run-workstation-test: ${{ steps.changed-test-targets.outputs.workstation-test }}
-    #   run-hypervisor-test: ${{ steps.changed-test-targets.outputs.hypervisor-test }}
-    #   run-occupancy_component-test: ${{ steps.changed-test-targets.outputs.occupancy_component-test }}
-
+    outputs:
+      output1: ${{ steps.step1.outputs.test }}
     steps:
       # https://docs.github.com/en/actions/learn-github-actions/contexts
       - name: Dump GitHub env
@@ -46,6 +43,9 @@ jobs:
           NEEDS_CONTEXT: ${{ toJson(needs) }}
           INPUTS_CONTEXT: ${{ toJson(inputs) }}
         run: env
+    steps:
+      - id: step1
+        run: echo "test=ghcr.io/mvgijssel/setup/tools/devcontainer:mg-176-migrate-terraform-to-pulumi" >> "$GITHUB_OUTPUT"
 
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -80,9 +80,12 @@ jobs:
   build_pulumi:
     name: Build and push the pulumi image
     timeout-minutes: 10
+    needs: build_devcontainer
     runs-on: ubuntu-latest
     container:
-      image: "ghcr.io/mvgijssel/setup/tools/devcontainer:mg-176-migrate-terraform-to-pulumi"
+      # image: "ghcr.io/mvgijssel/setup/tools/devcontainer:mg-176-migrate-terraform-to-pulumi"
+      image: ${{needs.job1.outputs.output1}}
+
     steps:
       - name: Check for dockerenv file
         run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
