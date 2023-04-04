@@ -1,9 +1,6 @@
 load("//tools/command:command.bzl", "command")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@infrastructure-requirements//:requirements.bzl", "all_requirements")
-load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
-load("@command-requirements//:requirements.bzl", all_command_requirements = "all_requirements")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -15,50 +12,8 @@ compile_pip_requirements(
 )
 
 command(
-    name = "pulumi_command",
-    command_src = "//tools/pulumi",
-)
-
-container_image(
-    name = "pulumi_base_image",
-    base = "//tools/python:python_base_image",
-    symlinks = {
-        # Pulumi deployments expect pulumi to be in the path.
-        "/usr/bin/pulumi": "/app/infrastructure/pulumi_image.binary",
-    },
-)
-
-py3_image(
-    name = "pulumi_image",
-    srcs = [
-        "pulumi_command_command.py",
-    ],
-    base = ":pulumi_base_image",
-    data = [
-        "//tools/pulumi",
-    ],
-    main = "pulumi_command_command.py",
-    deps = all_requirements + [
-        "@rules_python//python/runfiles",
-    ] + all_command_requirements,
-)
-
-container_push(
-    name = "pulumi_image_push",
-    format = "Docker",
-    image = ":pulumi_image",
-    registry = "ghcr.io",
-    repository = "mvgijssel/setup/infrastructure/pulumi",
-    tag = "latest",
-)
-
-command(
     name = "pulumi",
-    args = [
-        "--",
-    ],
-    command_src = ":pulumi_image.executable",
-    data = [
-        ":pulumi_image",
-    ],
+    command_src = "//tools/pulumi",
+    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
+    deps = all_requirements,
 )

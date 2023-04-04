@@ -77,53 +77,6 @@ jobs:
           cache-from: type=registry,ref=${{ env.DEVCONTAINER_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.DEVCONTAINER_IMAGE }}:buildcache,mode=max
 
-  build_pulumi:
-    name: Build and push the pulumi image
-    timeout-minutes: 10
-    needs: build_devcontainer
-    runs-on: ubuntu-latest
-    container:
-      image: "ghcr.io/mvgijssel/setup/tools/devcontainer:mg-176-migrate-terraform-to-pulumi"
-      # image: ${{needs.job1.outputs.output1}}
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-        ENV_CONTEXT: ${{ toJson(env) }}
-        VARS_CONTEXT: ${{ toJson(vars) }}
-        JOB_CONTEXT: ${{ toJson(job) }}
-        # JOBS_CONTEXT: ${{ toJson(jobs) }}
-        STEPS_CONTEXT: ${{ toJson(steps) }}
-        RUNNER_CONTEXT: ${{ toJson(runner) }}
-        SECRETS_CONTEXT: ${{ toJson(secrets) }}
-        STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-        MATRIX_CONTEXT: ${{ toJson(matrix) }}
-        NEEDS_CONTEXT: ${{ toJson(needs) }}
-        INPUTS_CONTEXT: ${{ toJson(inputs) }}
-
-    steps:
-      - name: debug
-        run: env
-
-      - name: Check for dockerenv file
-        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
-
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Log in to the GitHub Container registry
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.CONTAINER_REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.DEVCONTAINER_IMAGE }}
-
-      - run: bazel run //infrastructure:pulumi_image_push
-
   select_tests_to_run:
     name: Select Tests to Run
     timeout-minutes: 4
