@@ -13,4 +13,5 @@ actions:
     bazel_commands:
       - "run //:setup_ci"
       # https://github.com/bazelbuild/rules_docker/issues/1663
-      - "test --sandbox_writable_path=/run/user/${UID} //..."
+      # - "test --sandbox_writable_path=/run/user/${UID} //..."
+      - "test //..."
