@@ -23,6 +23,7 @@
       ],
       "settings": {
         "python.formatting.provider": "black",
+        "python.formatting.blackPath": "/opt/bin/black",
         "terminal.integrated.scrollback": 10000,
         "files.associations": {
           ".bazelrc": "plaintext"

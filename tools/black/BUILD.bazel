@@ -1,6 +1,6 @@
 load("//tools/command:command.bzl", "command")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
-load("@black-requirements//:requirements.bzl", "all_requirements")
+load("@black-requirements//:requirements.bzl", "requirement")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -11,9 +11,15 @@ compile_pip_requirements(
     requirements_txt = "requirements.lock",
 )
 
-# command(
-#     name = "black",
-#     command_src = entry_point("black"),
-#     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
-#     deps = all_requirements,
-# )
+py_binary(
+    name = "black_bin",
+    srcs = ["black_bin.py"],
+    main = "black_bin.py",
+)
+
+command(
+    name = "black",
+    command_src = ":black_bin",
+    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
+    deps = [requirement("black")],
+)

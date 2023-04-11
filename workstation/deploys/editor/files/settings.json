@@ -97,5 +97,6 @@
   "jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"],
   "[python]": {
     "editor.formatOnType": true
-  }
+  },
+  "python.formatting.provider": "black"
 }
