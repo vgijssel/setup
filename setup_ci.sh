@@ -19,19 +19,23 @@ curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/
 sudo apt-get update
 sudo apt-get -y install podman fuse-overlayfs
 
-
+# Fixing podman storage https://github.com/containers/buildah/issues/3666#issuecomment-1349687679
 cat /etc/containers/storage.conf
 sed -i 's/#mount_program/mount_program/' /etc/containers/storage.conf
 
-# Fix networking according to https://github.com/microsoft/WSL/issues/7948#issuecomment-1043467915
+# Fix podman networking https://github.com/microsoft/WSL/issues/7948#issuecomment-1043467915
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+
+# Force create network called podman
+sudo podman network create podman
 
 # Let's pretend we're docker
 sudo ln -s -f /usr/bin/podman /usr/bin/docker
 
 docker image ls 
 docker info
+docker version
 
 docker --log-level debug run -it debian:latest ls -la
 
