@@ -19,9 +19,13 @@ curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/
 sudo apt-get update
 sudo apt-get -y install podman fuse-overlayfs
 
-cat /etc/containers/storage.conf
 
+cat /etc/containers/storage.conf
 sed -i 's/#mount_program/mount_program/' /etc/containers/storage.conf
+
+# Fix networking according to https://github.com/microsoft/WSL/issues/7948#issuecomment-1043467915
+update-alternatives --set iptables /usr/sbin/iptables-legacy
+update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
 # Let's pretend we're docker
 sudo ln -s -f /usr/bin/podman /usr/bin/docker
