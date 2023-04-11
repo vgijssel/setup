@@ -6,9 +6,7 @@ set -Eeoux pipefail
 cat /etc/os-release
 env
 
-sudo apt-get purge -y docker-ce-cli
 sudo apt-get -y install gnupg
-
 
 # Podman installation from https://www.cyberithub.com/how-to-install-podman-on-ubuntu-20-04-lts-step-by-step/
 source /etc/os-release
@@ -20,7 +18,7 @@ sudo apt-get update
 sudo apt-get -y install podman
 
 # Let's pretend we're docker
-sudo ln -s /usr/bin/podman /usr/bin/docker
+sudo ln -s -f /usr/bin/podman /usr/bin/docker
 
 docker image ls 
 

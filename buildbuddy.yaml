@@ -12,4 +12,4 @@ actions:
           - "*"
     bazel_commands:
       - "run //:setup_ci"
-      - "test //..."
+      - "test --sandbox_writable_path=/run/user/${UID} --sandbox_writable_path=/path/to/your/container/storage //..."
