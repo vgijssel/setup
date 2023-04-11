@@ -48,33 +48,33 @@ qcow_to_vagrant_box(
     tags = ["no-cache"],
 )
 
-runner_binary(
-    name = "kitchen",
-    out = "kitchen.sh",
-    cmd = """
-    cd $$KITCHEN_CWD && $$KITCHEN_BINARY $$KITCHEN_ARGS
-    """,
-    data = [
-        "Vagrantfile.cloud-init",
-        "kitchen.yml",
-        "test",
-        ":hypervisor_image_box",
-        "//tools/vagrant:multi-user-target-active.sh",
-        "@hypervisor_bundle//:bin/kitchen",
-    ],
-    env = {
-        "KITCHEN_ARGS": "$$@",
-        "KITCHEN_BINARY": "$$(rlocation hypervisor_bundle/bin/kitchen)",
-        "KITCHEN_YAML": "$$(rlocation setup/hypervisor/kitchen.yml)",
-        "VAGRANTFILE_CLOUD_INIT": "$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)",
-        "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
-        "VAGRANT_BOX": "$$(rlocation setup/hypervisor/hypervisor_image_box.box)",
-        "CHEF_LICENSE": "accept",
-        "TEST_DIR": "$$(rlocation setup/hypervisor/test)",
-        "KITCHEN_CWD": "$$(dirname $$KITCHEN_YAML)",
-        "CONVERGE_SCRIPT": "$$(rlocation setup/tools/vagrant/multi-user-target-active.sh)",
-    },
-)
+# runner_binary(
+#     name = "kitchen",
+#     out = "kitchen.sh",
+#     cmd = """
+#     cd $$KITCHEN_CWD && $$KITCHEN_BINARY $$KITCHEN_ARGS
+#     """,
+#     data = [
+#         "Vagrantfile.cloud-init",
+#         "kitchen.yml",
+#         "test",
+#         ":hypervisor_image_box",
+#         "//tools/vagrant:multi-user-target-active.sh",
+#         "@hypervisor_bundle//:bin/kitchen",
+#     ],
+#     env = {
+#         "KITCHEN_ARGS": "$$@",
+#         "KITCHEN_BINARY": "$$(rlocation hypervisor_bundle/bin/kitchen)",
+#         "KITCHEN_YAML": "$$(rlocation setup/hypervisor/kitchen.yml)",
+#         "VAGRANTFILE_CLOUD_INIT": "$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)",
+#         "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
+#         "VAGRANT_BOX": "$$(rlocation setup/hypervisor/hypervisor_image_box.box)",
+#         "CHEF_LICENSE": "accept",
+#         "TEST_DIR": "$$(rlocation setup/hypervisor/test)",
+#         "KITCHEN_CWD": "$$(dirname $$KITCHEN_YAML)",
+#         "CONVERGE_SCRIPT": "$$(rlocation setup/tools/vagrant/multi-user-target-active.sh)",
+#     },
+# )
 
 pyinfra_run(
     name = "provision",

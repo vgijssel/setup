@@ -84,7 +84,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install bazelisk for Bazel
-ENV BAZELISK_VERSION="1.15.0"
+ENV BAZELISK_VERSION="1.16.0"
 RUN case ${TARGETARCH} in \
     "amd64")  BAZELISK_ARCH=amd64 ;; \
     "arm64")  BAZELISK_ARCH=arm64  ;; \
@@ -114,6 +114,7 @@ ENV USER devcontainer
 
 ADD --chown=devcontainer:devcontainer tools/devcontainer/python /opt/bin/python
 ADD --chown=devcontainer:devcontainer tools/devcontainer/lefthook /opt/bin/lefthook
+ADD --chown=devcontainer:devcontainer tools/devcontainer/black /opt/bin/black
 ADD --chown=devcontainer:devcontainer tools/devcontainer/prettier /opt/bin/prettier
 
 # NOTE: a WORKSPACE file needs to exist for bazelisk to respect the bazeliskrc file

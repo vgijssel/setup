@@ -1,7 +1,7 @@
 # See https://github.com/bazelbuild/bazel/blob/master/tools/python/runfiles/runfiles.py
 import os
 import sys
-from rules_python.python.runfiles import runfiles
+import runfiles
 import jinja2
 from pathlib import Path
 import subprocess

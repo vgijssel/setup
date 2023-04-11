@@ -122,8 +122,3 @@ jobs:
       - run: colima start
       - run: docker info
       - run: bazel run //workstation:test
-# lefthook
-# black
-# prettier
-# python
-# buildifier

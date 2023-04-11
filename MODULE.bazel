@@ -1,0 +1,98 @@
+module(
+    name = "setup",
+    version = "1.0",
+    repo_name = "setup",
+)
+
+# ------------------------------------ rules_skylib ------------------------------------ #
+bazel_dep(name = "bazel_skylib", version = "1.4.1")
+
+# ------------------------------------ rules_pkg ------------------------------------ #
+bazel_dep(name = "rules_pkg", version = "0.9.0")
+
+# ------------------------------------ rules_multirun ------------------------------------ #
+bazel_dep(name = "rules_multirun", version = "0.6.0")
+
+# ------------------------------------ rules_python ------------------------------------ #
+bazel_dep(name = "rules_python", version = "0.20.0")
+
+python = use_extension("@rules_python//python:extensions.bzl", "python")
+
+python.toolchain(
+    name = "python3",
+    python_version = "3.10.8",
+)
+
+use_repo(python, "python3_toolchains")
+use_repo(python, "python3")
+use_repo(python, "python3_aarch64-unknown-linux-gnu")
+
+# NOTE: custom extension so we can reference the hermetic python interpreter in the pip.parse rules
+# Can be removed once https://github.com/bazelbuild/rules_python/issues/1058 is solved.
+python_interpreter = use_extension(":extensions.bzl", "python_interpreter")
+use_repo(python_interpreter, "python_interpreter")
+
+register_toolchains(
+    "@python3_toolchains//:all",
+)
+
+pip = use_extension("@rules_python//python:extensions.bzl", "pip")
+
+# ------------------------------------ hypervisor ------------------------------------ #
+
+pip.parse(
+    name = "hypervisor_deps",
+    python_interpreter_target = "@python_interpreter//:python",
+    requirements_lock = "//hypervisor:requirements_lock.txt",
+)
+
+use_repo(pip, "hypervisor_deps")
+
+# ------------------------------------ pytest ------------------------------------ #
+
+pip.parse(
+    name = "pytest",
+    python_interpreter_target = "@python_interpreter//:python",
+    requirements_lock = "@//tools/pytest:requirements.lock",
+)
+
+use_repo(pip, "pytest")
+
+# ------------------------------------ occupancy_component ------------------------------------ #
+
+pip.parse(
+    name = "occupancy_component",
+    python_interpreter_target = "@python_interpreter//:python",
+    requirements_lock = "@//occupancy_component:requirements.lock",
+)
+
+use_repo(pip, "occupancy_component")
+
+# ------------------------------------ infrastructure ------------------------------------ #
+
+pip.parse(
+    name = "infrastructure-requirements",
+    python_interpreter_target = "@python_interpreter//:python",
+    requirements_lock = "//infrastructure:requirements.lock",
+)
+
+use_repo(pip, "infrastructure-requirements")
+
+# ------------------------------------ black ------------------------------------ #
+
+pip.parse(
+    name = "black-requirements",
+    python_interpreter_target = "@python_interpreter//:python",
+    requirements_lock = "//tools/black:requirements.lock",
+)
+
+use_repo(pip, "black-requirements")
+
+# ------------------------------------ command ------------------------------------ #
+pip.parse(
+    name = "command-requirements",
+    python_interpreter_target = "@python_interpreter//:python",
+    requirements_lock = "@setup//tools/command:requirements.lock",
+)
+
+use_repo(pip, "command-requirements")

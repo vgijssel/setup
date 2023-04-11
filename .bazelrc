@@ -21,5 +21,7 @@ test --test_verbose_timeout_warnings
 # Output test logs to the console when there are errors
 test --test_output=errors
 
+common --enable_bzlmod=true
+
 # The CI has some specific configuration which we only want to load in the CI
 try-import %workspace%/ci.bazelrc
