@@ -9,4 +9,5 @@ actions:
         branches:
           - "*"
     bazel_commands:
+      - "run //:setup_ci"
       - "test //... --config=remote"
