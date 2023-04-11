@@ -38,7 +38,7 @@ podman image ls
 podman info
 podman version
 
-sudo apt-get install \
+sudo apt-get install -y \
     ca-certificates \
     curl \
     gnupg
@@ -50,18 +50,11 @@ echo \
   "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+docker version
 
 # docker --log-level debug run -it debian:latest ls -la
 
 # podman image ls || true
 # docker image ls || true
-
-source /etc/os-release \
-    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - \
-    && sudo add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
-    && sudo apt-get update \
-    && sudo apt-get install -y docker-ce-cli
-
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-docker version
