@@ -23,6 +23,11 @@ test --test_output=errors
 
 common --enable_bzlmod=true
 
+# Currently a bug in rules_docker where the wrong platform is selected when building docker images
+# disabling the transitions ensures that docker images are built for the right CPU (amd64 or arm64)
+# See https://github.com/bazelbuild/rules_docker/issues/2052#issuecomment-1175585409
+build --@io_bazel_rules_docker//transitions:enable=false
+
 # Enable builds without the bytes https://github.com/bazelbuild/bazel/issues/6862
 build --remote_download_minimal
 
