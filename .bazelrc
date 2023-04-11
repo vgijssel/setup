@@ -55,3 +55,5 @@ build:remote --jobs=50
 
 # The CI has some specific configuration which we only want to load in the CI
 try-import %workspace%/ci.bazelrc
+
+try-import %workspace%/local.bazelrc

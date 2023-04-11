@@ -45,3 +45,5 @@ mutagen.yml.lock
 .DS_Store
 
 .pnpm-store
+
+local.bazelrc
