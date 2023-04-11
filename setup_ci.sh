@@ -8,7 +8,9 @@ echo $PATH
 
 which docker
 
-docker image ls
+docker image ls || true
+
+sudo service docker start
 
 sudo apt-get update \
     && sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common \
