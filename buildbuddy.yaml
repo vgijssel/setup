@@ -1,6 +1,6 @@
 actions:
   - name: "Test all targets"
-    user: buildbuddy
+    # user: buildbuddy
     # NOTE: to be able to install podman?
     container_image: "ubuntu-20.04"
     triggers:
