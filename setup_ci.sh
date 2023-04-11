@@ -8,7 +8,5 @@ sudo apt-get update \
     && sudo add-apt-repository "deb [arch=$(dpkg --print-architecture)] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
     && sudo apt-get update \
     && sudo apt-get install -y docker-ce-cli \
-    && sudo groupadd docker \
-    && sudo adduser buildbuddy docker \
-    && sudo apt-get clean \
-    && sudo rm -rf /var/lib/apt/lists/*
+    && sudo groupadd docker || true \
+    && sudo adduser buildbuddy docker || true
