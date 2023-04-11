@@ -26,6 +26,8 @@ sudo ln -s -f /usr/bin/podman /usr/bin/docker
 
 docker image ls 
 
+docker --log-level debug run -it debian:latest ls -la
+
 # podman image ls || true
 # docker image ls || true
 
