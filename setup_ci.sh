@@ -6,6 +6,7 @@ set -Eeoux pipefail
 cat /etc/os-release
 env
 
+sudo apt-get purge -y docker-ce-cli
 sudo apt-get -y install gnupg
 
 
