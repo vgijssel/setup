@@ -36,7 +36,20 @@ build --remote_timeout=3600
 # Suggestions from BuildBuddy
 build --experimental_remote_build_event_upload=minimal
 build --experimental_remote_cache_compression
-build --nolegacy_important_outputs
+common --nolegacy_important_outputs
+
+# For BuildBuddy Remote Build Execution
+build:remote --remote_executor=grpcs://remote.buildbuddy.io
+build:remote --host_platform=@buildbuddy_toolchain//:platform
+build:remote --platforms=@buildbuddy_toolchain//:platform
+build:remote --extra_execution_platforms=@buildbuddy_toolchain//:platform
+build:remote --crosstool_top=@buildbuddy_toolchain//:toolchain
+build:remote --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain
+build:remote --javabase=@buildbuddy_toolchain//:javabase_jdk8
+build:remote --host_javabase=@buildbuddy_toolchain//:javabase_jdk8
+build:remote --java_toolchain=@buildbuddy_toolchain//:toolchain_jdk8
+build:remote --host_java_toolchain=@buildbuddy_toolchain//:toolchain_jdk8
+build:remote --define=EXECUTOR=remote
 
 # The CI has some specific configuration which we only want to load in the CI
 try-import %workspace%/ci.bazelrc
