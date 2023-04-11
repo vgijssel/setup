@@ -51,7 +51,7 @@ pyinfra_run(
 
 container_image(
     name = "loose_debs_image",
-    base = "@ubuntu_base//image",
+    base = "//tools/ubuntu:ubuntu_base_image.tar",
     files = [
         "@inspec_arm64//file",
     ],
@@ -68,7 +68,7 @@ container_run_and_commit_layer(
 
 download_pkgs(
     name = "debs",
-    image_tar = "@ubuntu_base//image",
+    image_tar = "//tools/ubuntu:ubuntu_base_image.tar",
     packages = [
         "openssh-client",
     ],
@@ -76,7 +76,7 @@ download_pkgs(
 
 install_pkgs(
     name = "debs_installed",
-    image_tar = "@ubuntu_base//image",
+    image_tar = "//tools/ubuntu:ubuntu_base_image.tar",
     installables_tar = ":debs.tar",
     output_image_name = "debs_installed",
 )
