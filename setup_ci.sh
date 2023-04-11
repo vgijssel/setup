@@ -6,6 +6,7 @@ set -Eeou pipefail
 cat /etc/os-release
 env
 
+sudo apt-get update -qq
 sudo apt-get -qq -y install gnupg
 
 sudo mkdir -p /etc/apt/keyrings
