@@ -11,5 +11,4 @@ actions:
         branches:
           - "*"
     bazel_commands:
-      - "run //tools/buildbuddy:generate_ci_bazelrc"
       - "test //... --config remote"

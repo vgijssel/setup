@@ -101,6 +101,9 @@ RUN case ${TARGETARCH} in \
     && curl --fail -L https://github.com/buchgr/bazel-remote/releases/download/v$BAZEL_REMOTE_VERSION/bazel-remote-$BAZEL_REMOTE_VERSION-linux-$BAZEL_REMOTE_ARCH --output /usr/local/bin/bazel-remote \
     && chmod +x /usr/local/bin/bazel-remote
 
+# Install devcontainer specific bazelrc file
+ADD --chown=devcontainer:devcontainer tools/devcontainer/.bazelrc /home/devcontainer/.bazelrc
+
 # Ensure that VSCode uses bash as the default shell
 SHELL ["/bin/bash", "--login",  "-c"]
 
