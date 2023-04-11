@@ -121,7 +121,7 @@ ADD --chown=devcontainer:devcontainer tools/devcontainer/black /opt/bin/black
 ADD --chown=devcontainer:devcontainer tools/devcontainer/prettier /opt/bin/prettier
 
 # NOTE: a WORKSPACE file needs to exist for bazelisk to respect the bazeliskrc file
-ADD --chown=devcontainer:devcontainer WORKSPACE .bazeliskrc ./
+ADD --chown=devcontainer:devcontainer WORKSPACE .bazelversion ./
 
 RUN bazel --version
 
