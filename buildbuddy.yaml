@@ -14,4 +14,4 @@ actions:
       - "run //:setup_ci"
       # https://github.com/bazelbuild/rules_docker/issues/1663
       # - "test --sandbox_writable_path=/run/user/${UID} //..."
-      - "test //..."
+      - "test --sandbox_writable_path=/var/lib/containers/storage //..."
