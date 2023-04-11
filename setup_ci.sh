@@ -5,6 +5,7 @@ set -Eeoux pipefail
 # exit 0 if docker already exists?
 cat /etc/os-release
 env
+mount
 
 sudo apt-get -y install gnupg
 
