@@ -13,8 +13,3 @@ config_setting(
         "//:setup_debug_flag": "True",
     },
 )
-
-sh_binary(
-    name = "setup_ci",
-    srcs = ["setup_ci.sh"],
-)
