@@ -28,7 +28,7 @@ update-alternatives --set iptables /usr/sbin/iptables-legacy
 update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
 # Force create network called podman
-sudo podman network create podman
+# sudo podman network create podman
 
 # Let's pretend we're docker
 sudo ln -s -f /usr/bin/podman /usr/bin/docker
@@ -37,7 +37,7 @@ docker image ls
 docker info
 docker version
 
-docker --log-level debug run -it debian:latest ls -la
+# docker --log-level debug run -it debian:latest ls -la
 
 # podman image ls || true
 # docker image ls || true
