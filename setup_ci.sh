@@ -17,12 +17,17 @@ echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers
 curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | sudo apt-key add -
 
 sudo apt-get update
-sudo apt-get -y install podman
+sudo apt-get -y install podman fuse-overlayfs
+
+cat /etc/containers/storage.conf
+
+sed -i 's/#mount_program/mount_program/' /etc/containers/storage.conf
 
 # Let's pretend we're docker
 sudo ln -s -f /usr/bin/podman /usr/bin/docker
 
 docker image ls 
+docker info
 
 docker --log-level debug run -it debian:latest ls -la
 
