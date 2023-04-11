@@ -14,8 +14,6 @@ _symlink_python_interpreter = repository_rule(
 )
 
 def _python_interpreter(module_ctx):
-    print(module_ctx)
-
     _symlink_python_interpreter(
         name = "python_interpreter",
     )

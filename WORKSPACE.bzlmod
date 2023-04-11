@@ -63,3 +63,46 @@ http_file(
     sha256 = "b4e8b11478cd2c930b24edcf5c24ef49fe83452f08f6cedc13deae5ce7b0c757",
     url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_amd64.deb",
 )
+
+# ------------------------------------ tilt ------------------------------------ #
+
+http_archive(
+    name = "tilt_arm64",
+    build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
+    sha256 = "1535891f128613b967f52fa635e0620b20cb2a849c6fa9655a27bbdaf905e20a",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.31.1/tilt.0.31.1.linux.arm64.tar.gz",
+)
+
+# ------------------------------------ lefthook ------------------------------------ #
+
+http_file(
+    name = "lefthook_amd64",
+    # sha256 = "1535891f128613b967f52fa635e0620b20cb2a849c6fa9655a27bbdaf905e20a",
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.3.9/lefthook_1.3.9_Linux_x86_64.gz",
+    executable = True,
+    downloaded_file_path = "lefthook",
+)
+
+http_file(
+    name = "lefthook_arm64",
+    sha256 = '8a0f71ed6a35ef4b710ad7dfcebc434c4568884278e4e28f021851117d116ebb',
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.3.9/lefthook_1.3.9_Linux_arm64.gz",
+    executable = True,
+    downloaded_file_path = "lefthook",
+)
+
+# ------------------------------------ pulumi ------------------------------------ #
+
+http_archive(
+    name = "pulumi_arm64",
+    build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
+    sha256 = "a1987df74cc4bffe19a746644e9ca5e41ccd5ff50732b5fc80f34c6dd345f811",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.61.0/pulumi-v3.61.0-linux-arm64.tar.gz",
+)
+
+http_archive(
+    name = "pulumi_amd64",
+    build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
+    sha256 = "19c240ab4589dde018f99f12ff671c66e91c80855c5ce80d306a43b2a9f47970",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.61.0/pulumi-v3.61.0-linux-x64.tar.gz",
+)
