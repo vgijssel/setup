@@ -1,4 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 # https://github.com/bazelbuild/rules_docker/pull/2201
 http_archive(
@@ -39,4 +39,27 @@ container_pull(
     digest = "sha256:de501d4dbc12f846ee78ee76629b7524ec07f10c121832a190a1ecb7b9a119bb",
     registry = "index.docker.io",
     repository = "library/python:3.10.8-bullseye",
+)
+
+# ------------------------------------ workstation ------------------------------------ #
+
+container_pull(
+    name = "ubuntu_base",
+    digest = "sha256:b18dbe0837fd555c7028af6a1281ffa4fd1b5ffd835968f1009fd4cf9dfeaec3",
+    registry = "index.docker.io",
+    repository = "library/ubuntu:focal",
+)
+
+http_file(
+    name = "inspec_arm64",
+    downloaded_file_path = "inspec.deb",
+    sha256 = "79a496d2467f579c6533bcf42c663d96d830af42ba2f32769ddf6ef879d7d3b5",
+    url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_arm64.deb",
+)
+
+http_file(
+    name = "inspec_amd64",
+    downloaded_file_path = "inspec.deb",
+    sha256 = "b4e8b11478cd2c930b24edcf5c24ef49fe83452f08f6cedc13deae5ce7b0c757",
+    url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_amd64.deb",
 )
