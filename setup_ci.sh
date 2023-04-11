@@ -4,9 +4,15 @@ set -Eeou pipefail
 
 # exit 0 if docker already exists?
 
+sudo apt-get -qq -y install podman
+
+
 echo $PATH
 
 which docker
+which podman
+
+podman image ls || true
 
 docker image ls || true
 
