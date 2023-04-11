@@ -32,11 +32,24 @@ update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 
 # Let's pretend we're docker
 # sudo ln -s -f /usr/bin/podman /usr/bin/docker
-rm -f /usr/bin/docker
+# rm -f /usr/bin/docker
 
 podman image ls 
 podman info
 podman version
+
+sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg
+
+sudo mkdir -m 0755 -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
 
 # docker --log-level debug run -it debian:latest ls -la
 
@@ -49,5 +62,6 @@ source /etc/os-release \
     && sudo apt-get update \
     && sudo apt-get install -y docker-ce-cli
 
-docker version
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+docker version
