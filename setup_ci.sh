@@ -7,9 +7,7 @@ cat /etc/os-release
 env
 mount
 
-ls -la $HOME
-ls -la /home/buildbuddy
-
+sudo apt-get update
 sudo apt-get -y install gnupg
 
 # Podman installation from https://www.cyberithub.com/how-to-install-podman-on-ubuntu-20-04-lts-step-by-step/
