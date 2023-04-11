@@ -1,6 +1,6 @@
 actions:
   - name: "Test all targets"
-    # user: buildbuddy
+    user: buildbuddy
     # NOTE: to be able to install podman?
     container_image: "ubuntu-20.04"
     triggers:
@@ -11,8 +11,5 @@ actions:
         branches:
           - "*"
     bazel_commands:
-      # - "run //:setup_ci"
-      # https://github.com/bazelbuild/rules_docker/issues/1663
-      # - "test --sandbox_writable_path=/run/user/${UID} //..."
-      # - "test --sandbox_writable_path=/run/libpod --sandbox_writable_path=/var/lib/containers/storage //..."
+      - "run //tools/buildbuddy:generate_ci_bazelrc"
       - "test //... --config remote"
