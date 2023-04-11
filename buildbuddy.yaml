@@ -11,7 +11,8 @@ actions:
         branches:
           - "*"
     bazel_commands:
-      - "run //:setup_ci"
+      # - "run //:setup_ci"
       # https://github.com/bazelbuild/rules_docker/issues/1663
       # - "test --sandbox_writable_path=/run/user/${UID} //..."
-      - "test --sandbox_writable_path=/run/libpod --sandbox_writable_path=/var/lib/containers/storage //..."
+      # - "test --sandbox_writable_path=/run/libpod --sandbox_writable_path=/var/lib/containers/storage //..."
+      - "test //... --config remote"
