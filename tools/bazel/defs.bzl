@@ -1,3 +1,7 @@
+"""
+DEPRECATED: runner_binary to make it easy to run things. Superseded by command.bzl
+"""
+
 def _runner_binary_impl(ctx):
     make_variables = {
         "OUT": ctx.outputs.out.short_path,

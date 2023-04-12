@@ -1,3 +1,7 @@
+"""
+Bazel macro for creating a py_test that runs pytest.
+"""
+
 load("@rules_python//python:defs.bzl", "py_test")
 load("@pytest//:requirements.bzl", "requirement")
 

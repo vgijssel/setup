@@ -1,3 +1,7 @@
+"""
+Bazel rule to create a command target making it easy to run things.
+"""
+
 load("@command-requirements//:requirements.bzl", "requirement")
 load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 

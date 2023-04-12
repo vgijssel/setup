@@ -1,3 +1,7 @@
+"""
+All the dependencies for setup
+"""
+
 module(
     name = "setup",
     version = "1.0",

@@ -1,3 +1,7 @@
+"""
+Bazel repository rule to setup the packer toolchain.
+"""
+
 PackerInfo = provider(
     doc = "Information about packer runtime",
     fields = {
@@ -50,7 +54,7 @@ def get_platform_info(os, cpu):
             .format(cpu_constraint = CPU_CONSTRAINT_MAPPING.get(cpu, cpu)),
     )
 
-def packer_toolchain(host_os, host_cpu, packer_binary):
+def packer_toolchain(name, host_os, host_cpu, packer_binary):
     platform_info = get_platform_info(os = host_os, cpu = host_cpu)
 
     _packer_toolchain(

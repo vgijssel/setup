@@ -1,3 +1,7 @@
+"""
+Bazel macro to setup to command pip requirements.
+"""
+
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 def deps(python_interpreter_target = None):

@@ -8,6 +8,7 @@ sh_binary(
 )
 
 packer_toolchain(
+    name = "packer",
     host_cpu = "{host_cpu}",
     host_os = "{host_os}",
     packer_binary = ":packer_binary",

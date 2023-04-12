@@ -1,3 +1,7 @@
+"""
+Bazel rule for building packer images.
+"""
+
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 def _packer_image_impl(ctx):

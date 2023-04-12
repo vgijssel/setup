@@ -1,3 +1,7 @@
+"""
+Module extension to get a generic Bazel target that can be referenced in the MODULE.bazel file.
+"""
+
 load("@python3//:defs.bzl", "interpreter")
 
 def _symlink_python_interpreter_impl(repository_ctx):
@@ -13,7 +17,7 @@ _symlink_python_interpreter = repository_rule(
     local = True,
 )
 
-def _python_interpreter(module_ctx):
+def _python_interpreter(module_ctx):  # buildifier: disable=unused-variable
     _symlink_python_interpreter(
         name = "python_interpreter",
     )

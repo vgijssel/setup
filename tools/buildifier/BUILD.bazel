@@ -1,5 +1,4 @@
 load("@buildifier_prebuilt//:rules.bzl", "buildifier_test")
-load("//tools/command:command.bzl", "command")
 
 buildifier_test(
     name = "test",
