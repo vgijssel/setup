@@ -1,4 +1,4 @@
-build:debug --show_progress --worker_verbose --verbose_failures --test_output=streamed  --subcommands
+build:debug --sandbox_debug=true --show_progress --worker_verbose --verbose_failures --test_output=streamed  --subcommands
 build:debug --//:setup_debug_flag
 
 # To ensure a hermetic environment for Java

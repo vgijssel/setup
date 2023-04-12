@@ -2,10 +2,12 @@ load("@buildifier_prebuilt//:rules.bzl", "buildifier_test")
 
 buildifier_test(
     name = "test",
+    srcs = ["BUILD.bazel"],
     exclude_patterns = [
         "./.git/*",
     ],
     lint_mode = "warn",
     no_sandbox = True,
-    workspace = "@@//:WORKSPACE",
+    verbose = True,
+    workspace = "@//:WORKSPACE",
 )
