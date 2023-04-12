@@ -5,6 +5,7 @@ buildifier_test(
     timeout = "short",
     srcs = ["//:bazel-files"],
     lint_mode = "warn",
+    # NOTE: without this it fails in BuildBuddy without any explanation.
     tags = [
         "no-remote-exec",
     ],
