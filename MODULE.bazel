@@ -58,6 +58,7 @@ npm.npm_translate_lock(
     name = "npm",
     pnpm_lock = "//:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
+    npmrc = "@@//:.npmrc",
 )
 
 use_repo(npm, "npm")
@@ -68,7 +69,6 @@ pip.parse(
     name = "hypervisor_deps",
     python_interpreter_target = "@python_interpreter//:python",
     requirements_lock = "//hypervisor:requirements_lock.txt",
-    npmrc = "@@//:.npmrc",
 )
 
 use_repo(pip, "hypervisor_deps")

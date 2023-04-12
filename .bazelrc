@@ -52,6 +52,9 @@ build:remote --java_toolchain=@buildbuddy_toolchain//:toolchain_jdk8
 build:remote --host_java_toolchain=@buildbuddy_toolchain//:toolchain_jdk8
 build:remote --define=EXECUTOR=remote
 build:remote --jobs=50
+# To make the remote build work from macbook M1 (https://buildbuddy.slack.com/archives/CUHBFVATU/p1651609573695259?thread_ts=1651609249.864879&cid=CUHBFVATU)
+build:remote --host_cpu=k8
+build:remote --cpu=k8
 
 # The CI has some specific configuration which we only want to load in the CI
 try-import %workspace%/ci.bazelrc
