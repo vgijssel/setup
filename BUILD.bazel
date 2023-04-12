@@ -58,3 +58,13 @@ prettier_bin.prettier_test(
     ],
     data = [":prettier-files"],
 )
+
+filegroup(
+    name = "bazel-files",
+    srcs = glob([
+        "**/*.bazel",
+        "**/WORKSPACE",
+        "**/WORKSPACE.bzlmod",
+        "**/*.bzl",
+    ]),
+)
