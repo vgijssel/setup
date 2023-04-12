@@ -5,5 +5,8 @@ buildifier_test(
     timeout = "short",
     srcs = ["//:bazel-files"],
     lint_mode = "warn",
+    tags = [
+        "no-remote-exec",
+    ],
     verbose = True,
 )
