@@ -1,21 +1,21 @@
 load("//tools/command:command.bzl", "command")
 
-package(default_visibility=["//visibility:public"])
+package(default_visibility = ["//visibility:public"])
 
 lefthook_files = select(
     {
         "@platforms//cpu:aarch64": ["@lefthook_arm64//file"],
         "@platforms//cpu:x86_64": ["@lefthook_amd64//file"],
-    }
+    },
 )
 
 sh_binary(
-    name="lefthook_binary",
-    srcs=lefthook_files,
+    name = "lefthook_binary",
+    srcs = lefthook_files,
 )
 
 command(
-    name="lefthook",
-    command_src=":lefthook_binary",
-    cwd="{{ os.environ['BUILD_WORKING_DIRECTORY'] }}",
+    name = "lefthook",
+    command_src = ":lefthook_binary",
+    cwd = "{{ os.environ['BUILD_WORKING_DIRECTORY'] }}",
 )

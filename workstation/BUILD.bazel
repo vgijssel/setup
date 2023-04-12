@@ -66,37 +66,37 @@ container_run_and_commit_layer(
         "dpkg -i /inspec.deb",
         "inspec --chef-license=accept",
     ],
-    image = ":loose_debs_image.tar",
     exec_properties = {
         "workload-isolation-type": "firecracker",
         "init-dockerd": "true",
         "recycle-runner": "true",
     },
+    image = ":loose_debs_image.tar",
 )
 
 download_pkgs(
     name = "debs",
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
+    },
     image_tar = "//tools/ubuntu:ubuntu_base_image.tar",
     packages = [
         "openssh-client",
     ],
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
 )
 
 install_pkgs(
     name = "debs_installed",
-    image_tar = "//tools/ubuntu:ubuntu_base_image.tar",
-    installables_tar = ":debs.tar",
-    output_image_name = "debs_installed",
     exec_properties = {
         "workload-isolation-type": "firecracker",
         "init-dockerd": "true",
         "recycle-runner": "true",
     },
+    image_tar = "//tools/ubuntu:ubuntu_base_image.tar",
+    installables_tar = ":debs.tar",
+    output_image_name = "debs_installed",
 )
 
 pkg_tar(

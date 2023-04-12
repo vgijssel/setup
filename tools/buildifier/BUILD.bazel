@@ -1,0 +1,12 @@
+load("@buildifier_prebuilt//:rules.bzl", "buildifier_test")
+load("//tools/command:command.bzl", "command")
+
+buildifier_test(
+    name = "test",
+    exclude_patterns = [
+        "./.git/*",
+    ],
+    lint_mode = "warn",
+    no_sandbox = True,
+    workspace = "@@//:WORKSPACE",
+)

@@ -20,12 +20,10 @@ bazel_dep(name = "rules_multirun", version = "0.6.0")
 bazel_dep(name = "rules_python", version = "0.20.0")
 
 python = use_extension("@rules_python//python:extensions.bzl", "python")
-
 python.toolchain(
     name = "python3",
     python_version = "3.10.8",
 )
-
 use_repo(python, "python3_toolchains")
 use_repo(python, "python3")
 use_repo(python, "python3_aarch64-unknown-linux-gnu")
@@ -44,24 +42,28 @@ pip = use_extension("@rules_python//python:extensions.bzl", "pip")
 
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(name = "aspect_rules_js", version = "1.24.1")
-pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm")
 
+pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm")
 pnpm.pnpm(
     name = "pnpm-setup",
 )
-
 use_repo(pnpm, "pnpm-setup")
 
-npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
-
+npm = use_extension(
+    "@aspect_rules_js//npm:extensions.bzl",
+    "npm",
+    dev_dependency = True,
+)
 npm.npm_translate_lock(
     name = "npm",
+    npmrc = "@@//:.npmrc",
     pnpm_lock = "//:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
-    npmrc = "@@//:.npmrc",
 )
-
 use_repo(npm, "npm")
+
+# ------------------------------------ buildifier ------------------------------------ #
+bazel_dep(name = "buildifier_prebuilt", version = "6.1.0")
 
 # ------------------------------------ hypervisor ------------------------------------ #
 
@@ -70,7 +72,6 @@ pip.parse(
     python_interpreter_target = "@python_interpreter//:python",
     requirements_lock = "//hypervisor:requirements_lock.txt",
 )
-
 use_repo(pip, "hypervisor_deps")
 
 # ------------------------------------ pytest ------------------------------------ #
@@ -80,7 +81,6 @@ pip.parse(
     python_interpreter_target = "@python_interpreter//:python",
     requirements_lock = "@//tools/pytest:requirements.lock",
 )
-
 use_repo(pip, "pytest")
 
 # ------------------------------------ occupancy_component ------------------------------------ #
@@ -90,7 +90,6 @@ pip.parse(
     python_interpreter_target = "@python_interpreter//:python",
     requirements_lock = "@//occupancy_component:requirements.lock",
 )
-
 use_repo(pip, "occupancy_component")
 
 # ------------------------------------ infrastructure ------------------------------------ #
@@ -100,7 +99,6 @@ pip.parse(
     python_interpreter_target = "@python_interpreter//:python",
     requirements_lock = "//infrastructure:requirements.lock",
 )
-
 use_repo(pip, "infrastructure-requirements")
 
 # ------------------------------------ black ------------------------------------ #
@@ -110,7 +108,6 @@ pip.parse(
     python_interpreter_target = "@python_interpreter//:python",
     requirements_lock = "//tools/black:requirements.lock",
 )
-
 use_repo(pip, "black-requirements")
 
 # ------------------------------------ command ------------------------------------ #
@@ -119,5 +116,4 @@ pip.parse(
     python_interpreter_target = "@python_interpreter//:python",
     requirements_lock = "@setup//tools/command:requirements.lock",
 )
-
 use_repo(pip, "command-requirements")

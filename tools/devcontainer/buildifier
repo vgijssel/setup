@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+cd $BUILD_WORKING_DIRECTORY
+
+exec bazel run -- @buildifier_prebuilt//:buildifier "$@"

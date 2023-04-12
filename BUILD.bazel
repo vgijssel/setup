@@ -3,6 +3,8 @@ load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@npm//:prettier/package_json.bzl", prettier_bin = "bin")
 
+exports_files(["WORKSPACE"])
+
 package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages(name = "node_modules")
@@ -21,9 +23,17 @@ config_setting(
 
 filegroup(
     name = "prettier-files",
-    srcs = glob(["**/*.js", "**/*.ts", "**/*.tsx", "**/*.json", "**/*.md", "**/*.yml", "**/*.yaml"]) + [
-        ".prettierrc",
+    srcs = glob([
+        "**/*.js",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.json",
+        "**/*.md",
+        "**/*.yml",
+        "**/*.yaml",
+    ]) + [
         ".prettierignore",
+        ".prettierrc",
     ],
 )
 
@@ -36,15 +46,15 @@ command(
     command_src = ":prettier_bin",
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
     env = {
-        'BAZEL_BINDIR': '.'
-    }
+        "BAZEL_BINDIR": ".",
+    },
 )
 
 prettier_bin.prettier_test(
     name = "prettier_test",
     args = [
         "--check",
-        "."
+        ".",
     ],
     data = [":prettier-files"],
 )

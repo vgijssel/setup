@@ -105,7 +105,7 @@ def command(name, command_src, cwd = None, args = [], deps = [], data = [], env 
         data = [
             command_src,
         ] + data,
-        deps =  [requirement("bazel-runfiles"), requirement("jinja2")] + deps,
+        deps = [requirement("bazel-runfiles"), requirement("jinja2")] + deps,
         **kwargs
     )
 

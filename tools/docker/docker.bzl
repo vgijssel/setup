@@ -1,3 +1,7 @@
+"""
+For quickly loading and running docker images built by Bazel.
+"""
+
 load("//tools/bazel:defs.bzl", "runner_binary")
 
 def docker_load_and_run(name, image, command, docker_args = []):
