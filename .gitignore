@@ -47,3 +47,5 @@ mutagen.yml.lock
 .pnpm-store
 
 local.bazelrc
+
+node_modules

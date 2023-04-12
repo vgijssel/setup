@@ -13,3 +13,15 @@ config_setting(
         "//:setup_debug_flag": "True",
     },
 )
+
+load("@npm//:prettier/package_json.bzl", prettier_bin = "bin")
+
+prettier_bin.prettier_binary(
+    name = "kerk",
+    args = [
+        "--help",
+    ],
+    # data = [
+    #     "package.json"
+    # ],
+)

@@ -7,3 +7,5 @@ tmp
 
 esphome_nimble/.esphome
 esphome_nimble/tmp
+
+node_modules

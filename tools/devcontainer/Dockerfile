@@ -118,6 +118,7 @@ ENV USER devcontainer
 ADD --chown=devcontainer:devcontainer tools/devcontainer/python /opt/bin/python
 ADD --chown=devcontainer:devcontainer tools/devcontainer/lefthook /opt/bin/lefthook
 ADD --chown=devcontainer:devcontainer tools/devcontainer/black /opt/bin/black
+ADD --chown=devcontainer:devcontainer tools/devcontainer/pnpm /opt/bin/pnpm
 ADD --chown=devcontainer:devcontainer tools/devcontainer/prettier /opt/bin/prettier
 
 # NOTE: a WORKSPACE file needs to exist for bazelisk to respect the bazeliskrc file

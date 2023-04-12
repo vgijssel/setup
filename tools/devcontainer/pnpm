@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+exec bazel run -- @pnpm-setup//:pnpm --dir $PWD "$@"
