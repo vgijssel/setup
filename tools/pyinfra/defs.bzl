@@ -1,5 +1,10 @@
+"""
+Bazel macro to make it easy to run Pyinfra.
+"""
+
 load("//tools/bazel:defs.bzl", "runner_binary")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("@hypervisor_deps//:requirements.bzl", "requirement")
 
 # TODO: migrate to use command.bzl
 # TODO: move pyinfra dependencies into separate requirements file
@@ -10,10 +15,10 @@ def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = 
     py_binary(
         name = python_binary,
         srcs = [
-            "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra",
+            "//tools/pyinfra:main.py",
         ] + srcs,
-        main = "@hypervisor_deps_pyinfra//:rules_python_wheel_entry_point_pyinfra.py",
-        deps = ["@rules_python//python/runfiles", "@hypervisor_deps_pyinfra//:pkg"],
+        main = "main.py",
+        deps = ["@rules_python//python/runfiles", requirement("pyinfra")],
     )
 
     runner_binary(

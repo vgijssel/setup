@@ -1,3 +1,7 @@
+"""
+Bazel repository rules for packer rules.
+"""
+
 load(":packer_toolchain.bzl", "get_platform_info")
 
 def rules_packer_dependencies():
@@ -54,6 +58,6 @@ packer_download = repository_rule(
     },
 )
 
-def rules_packer_toolchains(version):
-    packer_download(name = "packer", version = version)
+def rules_packer_toolchains(name = "packer", version):
+    packer_download(name = name, version = version)
     native.register_toolchains("@packer//:all")

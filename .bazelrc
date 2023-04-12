@@ -1,4 +1,4 @@
-build:debug --show_progress --worker_verbose --verbose_failures --test_output=streamed  --subcommands
+build:debug --sandbox_debug=true --show_progress --worker_verbose --verbose_failures --test_output=streamed  --subcommands
 build:debug --//:setup_debug_flag
 
 # To ensure a hermetic environment for Java
@@ -11,15 +11,53 @@ query:quiet --ui_event_filters=-info --noshow_progress
 # Move the bazel symlinks outside of the project root to avoid the symlinks appearing in the volume mount
 build --symlink_prefix=/tmp/bazel-setup-
 
-build --disk_cache /home/devcontainer/bazel/disk_cache
-build --repository_cache /home/devcontainer/bazel/repository_cache
-startup --output_base=/home/devcontainer/bazel/output_base
-
 # Print warning messages about test suite being configured as too small/big
 test --test_verbose_timeout_warnings
 
 # Output test logs to the console when there are errors
 test --test_output=errors
 
+common --enable_bzlmod=true
+
+# Currently a bug in rules_docker where the wrong platform is selected when building docker images
+# disabling the transitions ensures that docker images are built for the right CPU (amd64 or arm64)
+# See https://github.com/bazelbuild/rules_docker/issues/2052#issuecomment-1175585409
+build --@io_bazel_rules_docker//transitions:enable=false
+
+# Enable builds without the bytes https://github.com/bazelbuild/bazel/issues/6862
+build --remote_download_minimal
+
+# From https://www.buildbuddy.io/docs/cloud
+# Use BuildBuddy
+build --bes_results_url=https://app.buildbuddy.io/invocation/
+build --bes_backend=grpcs://remote.buildbuddy.io
+build --remote_cache=grpcs://remote.buildbuddy.io
+build --remote_timeout=3600
+
+# Suggestions from BuildBuddy
+build --experimental_remote_build_event_upload=minimal
+build --experimental_remote_cache_compression
+build --experimental_stream_log_file_uploads
+common --nolegacy_important_outputs
+
+# For BuildBuddy Remote Build Execution
+build:remote --remote_executor=grpcs://remote.buildbuddy.io
+build:remote --host_platform=@buildbuddy_toolchain//:platform
+build:remote --platforms=@buildbuddy_toolchain//:platform
+build:remote --extra_execution_platforms=@buildbuddy_toolchain//:platform
+build:remote --crosstool_top=@buildbuddy_toolchain//:toolchain
+build:remote --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain
+build:remote --javabase=@buildbuddy_toolchain//:javabase_jdk8
+build:remote --host_javabase=@buildbuddy_toolchain//:javabase_jdk8
+build:remote --java_toolchain=@buildbuddy_toolchain//:toolchain_jdk8
+build:remote --host_java_toolchain=@buildbuddy_toolchain//:toolchain_jdk8
+build:remote --define=EXECUTOR=remote
+build:remote --jobs=50
+# To make the remote build work from macbook M1 (https://buildbuddy.slack.com/archives/CUHBFVATU/p1651609573695259?thread_ts=1651609249.864879&cid=CUHBFVATU)
+build:remote --host_cpu=k8
+build:remote --cpu=k8
+
 # The CI has some specific configuration which we only want to load in the CI
 try-import %workspace%/ci.bazelrc
+
+try-import %workspace%/local.bazelrc

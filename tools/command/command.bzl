@@ -1,4 +1,8 @@
-load("@command-requirements//:requirements.bzl", "all_requirements")
+"""
+Bazel rule to create a command target making it easy to run things.
+"""
+
+load("@command-requirements//:requirements.bzl", "requirement")
 load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 
 def _find_executable_runfiles_path(paths, target):
@@ -105,7 +109,7 @@ def command(name, command_src, cwd = None, args = [], deps = [], data = [], env 
         data = [
             command_src,
         ] + data,
-        deps = ["@rules_python//python/runfiles"] + all_requirements + deps,
+        deps = [requirement("bazel-runfiles"), requirement("jinja2")] + deps,
         **kwargs
     )
 

@@ -84,7 +84,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install bazelisk for Bazel
-ENV BAZELISK_VERSION="1.15.0"
+ENV BAZELISK_VERSION="1.16.0"
 RUN case ${TARGETARCH} in \
     "amd64")  BAZELISK_ARCH=amd64 ;; \
     "arm64")  BAZELISK_ARCH=arm64  ;; \
@@ -101,6 +101,9 @@ RUN case ${TARGETARCH} in \
     && curl --fail -L https://github.com/buchgr/bazel-remote/releases/download/v$BAZEL_REMOTE_VERSION/bazel-remote-$BAZEL_REMOTE_VERSION-linux-$BAZEL_REMOTE_ARCH --output /usr/local/bin/bazel-remote \
     && chmod +x /usr/local/bin/bazel-remote
 
+# Install devcontainer specific bazelrc file
+ADD --chown=devcontainer:devcontainer tools/devcontainer/.bazelrc /home/devcontainer/.bazelrc
+
 # Ensure that VSCode uses bash as the default shell
 SHELL ["/bin/bash", "--login",  "-c"]
 
@@ -113,8 +116,14 @@ USER devcontainer
 ENV USER devcontainer
 
 ADD --chown=devcontainer:devcontainer tools/devcontainer/python /opt/bin/python
+ADD --chown=devcontainer:devcontainer tools/devcontainer/lefthook /opt/bin/lefthook
+ADD --chown=devcontainer:devcontainer tools/devcontainer/black /opt/bin/black
+ADD --chown=devcontainer:devcontainer tools/devcontainer/pnpm /opt/bin/pnpm
+ADD --chown=devcontainer:devcontainer tools/devcontainer/prettier /opt/bin/prettier
+ADD --chown=devcontainer:devcontainer tools/devcontainer/buildifier /opt/bin/buildifier
+
 # NOTE: a WORKSPACE file needs to exist for bazelisk to respect the bazeliskrc file
-ADD --chown=devcontainer:devcontainer WORKSPACE .bazeliskrc ./
+ADD --chown=devcontainer:devcontainer WORKSPACE .bazelversion ./
 
 RUN bazel --version
 

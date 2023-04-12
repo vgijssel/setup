@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   find3:
@@ -10,7 +10,7 @@ services:
     environment:
       MQTT_ADMIN: ${FIND3_MQTT_ADMIN:?err}
       MQTT_PASS: ${FIND3_MQTT_PASS:?err}
-      MQTT_SERVER: 'localhost:1883'
+      MQTT_SERVER: "localhost:1883"
     # Expose the port 1883 to the internal docker network for bridging to the mqtt container
     expose:
       - "1883"
@@ -66,4 +66,4 @@ services:
     privileged: true
     network_mode: host
     ports:
-      - '0.0.0.0:6052:6052' # port for the UI
+      - "0.0.0.0:6052:6052" # port for the UI

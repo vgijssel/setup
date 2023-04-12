@@ -1,0 +1,14 @@
+actions:
+  - name: "Test all targets"
+    user: buildbuddy
+    # NOTE: to be able to install podman?
+    container_image: "ubuntu-20.04"
+    triggers:
+      push:
+        branches:
+          - "master"
+      pull_request:
+        branches:
+          - "*"
+    bazel_commands:
+      - "test //... --config remote"

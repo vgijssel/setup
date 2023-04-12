@@ -1,3 +1,7 @@
+"""
+Bazel macro to convert qcow images to vagrant box.
+"""
+
 def qcow_to_vagrant_box(name, src, src_sha, tags = []):
     native.genrule(
         name = name,

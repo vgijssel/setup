@@ -1,6 +1,6 @@
 load("//tools/command:command.bzl", "command")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
-load("@infrastructure-requirements//:requirements.bzl", "all_requirements")
+load("@infrastructure-requirements//:requirements.bzl", "requirement")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -18,7 +18,11 @@ command(
     env = {
         "PULUMI_PYTHON_CMD": "python",
     },
-    deps = all_requirements,
+    deps = [
+        requirement("pulumi"),
+        requirement("pulumi-command"),
+        requirement("pulumi-kubernetes"),
+    ],
 )
 
 command(
