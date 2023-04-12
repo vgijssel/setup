@@ -1,6 +1,11 @@
+load("//tools/command:command.bzl", "command")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//:prettier/package_json.bzl", prettier_bin = "bin")
 
 package(default_visibility = ["//visibility:public"])
+
+npm_link_all_packages(name = "node_modules")
 
 bool_flag(
     name = "setup_debug_flag",
@@ -14,14 +19,32 @@ config_setting(
     },
 )
 
-load("@npm//:prettier/package_json.bzl", prettier_bin = "bin")
+filegroup(
+    name = "prettier-files",
+    srcs = glob(["**/*.js", "**/*.ts", "**/*.tsx", "**/*.json", "**/*.md", "**/*.yml", "**/*.yaml"]) + [
+        ".prettierrc",
+        ".prettierignore",
+    ],
+)
 
 prettier_bin.prettier_binary(
-    name = "kerk",
+    name = "prettier_bin",
+)
+
+command(
+    name = "prettier",
+    command_src = ":prettier_bin",
+    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
+    env = {
+        'BAZEL_BINDIR': '.'
+    }
+)
+
+prettier_bin.prettier_test(
+    name = "prettier_test",
     args = [
-        "--help",
+        "--check",
+        "."
     ],
-    # data = [
-    #     "package.json"
-    # ],
+    data = [":prettier-files"],
 )
