@@ -9,5 +9,5 @@ buildifier_test(
     lint_mode = "warn",
     no_sandbox = True,
     verbose = True,
-    workspace = "@//:WORKSPACE",
+    workspace = "@setup//:WORKSPACE",
 )
