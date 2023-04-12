@@ -11,5 +11,5 @@ actions:
         branches:
           - "*"
     bazel_commands:
-      - "run //tools/buildifier:test --config remote --config debug"
+      - "test //tools/buildifier:test"
       - "test //... --config remote --config debug"
