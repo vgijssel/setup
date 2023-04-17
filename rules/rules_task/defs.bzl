@@ -18,8 +18,8 @@ def _task_impl(ctx):
         content = "{}",
     )
 
-    script = "#!/bin/bash\n"
-    script += 'exec ./%s -f %s "$@"\n' % (shell.quote(runner_exe.short_path), shell.quote(instructions_file.short_path))
+    script = "#!/usr/bin/env bash\n"
+    script += 'exec ./%s %s "$@"\n' % (shell.quote(runner_exe.short_path), shell.quote(instructions_file.short_path))
 
     ctx.actions.write(
         output = out_file,

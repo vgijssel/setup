@@ -37,6 +37,6 @@ pip = use_extension("@rules_python//python:extensions.bzl", "pip")
 pip.parse(
     name = "pip",
     python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "@rules_task//:requirements.in",
+    requirements_lock = ":requirements.lock",
 )
 use_repo(pip, "pip")

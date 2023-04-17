@@ -11,17 +11,20 @@ task(
 py_test(
     name = "test",
     srcs = [
-        "pytest.py",
+        "pytest_wrapper.py",
         "test.py",
     ],
     args = [
         "-ra",
         "-vv",
     ] + ["$(location :%s)" % x for x in ["test.py"]],
-    main = "pytest.py",
-    python_version = "PY3",
-    srcs_version = "PY3",
+    data = [
+        ":hello",
+    ],
+    main = "pytest_wrapper.py",
     deps = [
         requirement("bazel-runfiles"),
+        requirement("tomli"),
+        requirement("pytest"),
     ],
 )
