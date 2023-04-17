@@ -1,0 +1,27 @@
+load("@rules_task//:defs.bzl", "task")
+load("@pip//:requirements.bzl", "requirement")
+
+task(
+    name = "hello",
+    cmds = [
+        "echo Hello, world!",
+    ],
+)
+
+py_test(
+    name = "test",
+    srcs = [
+        "pytest.py",
+        "test.py",
+    ],
+    args = [
+        "-ra",
+        "-vv",
+    ] + ["$(location :%s)" % x for x in ["test.py"]],
+    main = "pytest.py",
+    python_version = "PY3",
+    srcs_version = "PY3",
+    deps = [
+        requirement("bazel-runfiles"),
+    ],
+)

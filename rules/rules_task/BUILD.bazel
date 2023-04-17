@@ -1,0 +1,19 @@
+load("@pip//:requirements.bzl", "requirement")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
+package(default_visibility = ["//visibility:public"])
+
+compile_pip_requirements(
+    name = "requirements",
+    extra_args = ["--allow-unsafe"],
+    requirements_in = "requirements.in",
+    requirements_txt = "requirements.lock",
+)
+
+py_binary(
+    name = "runner",
+    srcs = ["runner.py"],
+    deps = [
+        requirement("bazel-runfiles"),
+    ],
+)

@@ -41,7 +41,7 @@ _task = rule(
     attrs = {
         "cmds": attr.string_list(mandatory = True),
         "_runner": attr.label(
-            default = Label("//rules_task:runner"),
+            default = Label("//:runner"),
             cfg = "exec",
             executable = True,
         ),

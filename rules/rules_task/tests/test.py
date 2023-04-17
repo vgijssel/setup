@@ -17,7 +17,7 @@ def _runfiles_path(path):
 
 
 def _run_task(name):
-    binary = _runfiles_path(f"setup/rules_task/tests/{name}")
+    binary = _runfiles_path(f"rules_task/tests/{name}")
     return subprocess.run([binary], capture_output=True)
 
 
