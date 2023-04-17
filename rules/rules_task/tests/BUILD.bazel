@@ -20,10 +20,10 @@ task(
 task(
     name = "cwd",
     cmds = [
-        "echo $TMPDIR",
+        "echo $TEST_TMPDIR",
         "pwd >&2",
     ],
-    cwd = "$TMPDIR",
+    cwd = "$TEST_TMPDIR",
 )
 
 py_test(
