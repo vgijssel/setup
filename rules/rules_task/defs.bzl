@@ -12,10 +12,14 @@ def _task_impl(ctx):
     ])
 
     runner_exe = ctx.executable._runner
+    instructions = {
+        "cmds": ctx.attr.cmds,
+        "workspace": ctx.workspace_name,
+    }
 
     ctx.actions.write(
         output = instructions_file,
-        content = "{}",
+        content = json.encode(instructions),
     )
 
     script = "#!/usr/bin/env bash\n"

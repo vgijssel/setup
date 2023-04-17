@@ -4,8 +4,6 @@ import os
 
 r = runfiles.Create()
 
-print(os.getcwd())
-
 
 def _runfiles_path(path):
     p = r.Rlocation(path)
@@ -17,7 +15,8 @@ def _runfiles_path(path):
 
 
 def _run_task(name):
-    binary = _runfiles_path(f"rules_task/tests/{name}")
+    print(os.environ["WORKSPACE_NAME"])
+    binary = _runfiles_path(os.path.join(os.environ["WORKSPACE_NAME"], "tests", name))
     return subprocess.run([binary], capture_output=True)
 
 

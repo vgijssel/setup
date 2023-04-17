@@ -21,6 +21,9 @@ py_test(
     data = [
         ":hello",
     ],
+    env = {
+        "WORKSPACE_NAME": package_relative_label(":test").workspace_name,
+    },
     main = "pytest_wrapper.py",
     deps = [
         requirement("bazel-runfiles"),
