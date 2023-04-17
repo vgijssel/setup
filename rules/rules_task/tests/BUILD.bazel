@@ -8,6 +8,14 @@ task(
     ],
 )
 
+task(
+    name = "broken",
+    cmds = [
+        "echo Some error! >&2",
+        "exit 1",
+    ],
+)
+
 py_test(
     name = "test",
     srcs = [
@@ -19,6 +27,7 @@ py_test(
         "-vv",
     ] + ["$(location :%s)" % x for x in ["test.py"]],
     data = [
+        ":broken",
         ":hello",
     ],
     env = {

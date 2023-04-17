@@ -24,3 +24,10 @@ def test_hello():
     result = _run_task("hello")
     assert result.returncode == 0
     assert result.stdout.strip() == b"Hello, world!"
+
+
+def test_broken():
+    result = _run_task("broken")
+    assert result.returncode == 1
+    assert result.stdout.strip() == b""
+    assert result.stderr.strip() == b"Some error!"
