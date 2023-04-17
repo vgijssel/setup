@@ -1,4 +1,4 @@
-load("@rules_task//:defs.bzl", "task")
+load("@rules_task//:defs.bzl", "cmd", "task")
 load("@pip//:requirements.bzl", "requirement")
 
 task(
@@ -26,6 +26,16 @@ task(
     cwd = "$TEST_TMPDIR",
 )
 
+task(
+    name = "file",
+    cmds = [
+        cmd.shell(
+            "cat",
+            cmd.l("test_file.txt"),
+        ),
+    ],
+)
+
 py_test(
     name = "test",
     srcs = [
@@ -39,6 +49,7 @@ py_test(
     data = [
         ":broken",
         ":cwd",
+        ":file",
         ":hello",
     ],
     env = {

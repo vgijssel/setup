@@ -37,3 +37,9 @@ def test_cwd():
     result = _run_task("cwd")
     assert result.returncode == 0
     assert result.stdout.strip() == result.stderr.strip()
+
+
+def test_file():
+    result = _run_task("file")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"content in test file"
