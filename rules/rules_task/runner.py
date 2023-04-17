@@ -1,6 +1,7 @@
 import sys
 import json
 import subprocess
+import os
 
 
 def main() -> None:
@@ -9,15 +10,23 @@ def main() -> None:
     with open(instructions_file) as f:
         instructions = json.load(f)
 
+    cwd = instructions["cwd"] or "$PWD"
+
+    bash_cmd = f"""
+    set -e
+    cd {cwd}
+    """
+
     for cmd in instructions["cmds"]:
-        bash_cmd = ["bash", "-c", cmd]
-        result = subprocess.run(bash_cmd, capture_output=True)
+        bash_cmd += f"{cmd}\n"
 
-        sys.stdout.write(result.stdout.decode("utf-8"))
-        sys.stderr.write(result.stderr.decode("utf-8"))
+    result = subprocess.run(["bash", "-c", bash_cmd], capture_output=True)
 
-        if result.returncode != 0:
-            sys.exit(result.returncode)
+    sys.stdout.write(result.stdout.decode("utf-8"))
+    sys.stderr.write(result.stderr.decode("utf-8"))
+
+    if result.returncode != 0:
+        sys.exit(result.returncode)
 
 
 if __name__ == "__main__":

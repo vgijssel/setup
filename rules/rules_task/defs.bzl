@@ -15,6 +15,7 @@ def _task_impl(ctx):
     instructions = {
         "cmds": ctx.attr.cmds,
         "workspace": ctx.workspace_name,
+        "cwd": ctx.attr.cwd,
     }
 
     ctx.actions.write(
@@ -44,6 +45,7 @@ _task = rule(
     executable = True,
     attrs = {
         "cmds": attr.string_list(mandatory = True),
+        "cwd": attr.string(),
         "_runner": attr.label(
             default = Label("//:runner"),
             cfg = "exec",

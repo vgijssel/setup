@@ -31,3 +31,9 @@ def test_broken():
     assert result.returncode == 1
     assert result.stdout.strip() == b""
     assert result.stderr.strip() == b"Some error!"
+
+
+def test_cwd():
+    result = _run_task("cwd")
+    assert result.returncode == 0
+    assert result.stdout.strip() == result.stderr.strip()
