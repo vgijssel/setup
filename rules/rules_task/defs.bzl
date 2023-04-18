@@ -50,38 +50,46 @@ def _iterate(tree, callback):
 #     else:
 #         return ctx.workspace_name + "/" + file.short_path
 
-def _visit_method(node):
-    return _serializer["visit_" + node["type"]]
+def _visit_method(node, visitor):
+    if type(node) != "dict":
+        fail("Node should be a dict, got value '{}' of type {}".format(node, type(node)))
 
-def _visit_root(ctx, node):
+    method_key = "visit_" + node["type"]
+
+    if method_key not in visitor:
+        fail("Unknown node type: %s" % node["type"])
+
+    return visitor[method_key]
+
+def _visit_root(ctx, visitor, node):
     result = []
     for item in node:
         result.append(
-            _visit_method(item)(ctx, item, None),
+            _visit_method(item, visitor)(ctx, visitor, item),
         )
     return result
 
-def _visit_shell(ctx, node, _parent):
+def _visit_shell(ctx, visitor, node):
     result = []
     for arg in node["args"]:
-        result.append(_visit_method(arg)(ctx, arg, node))
-
-    result = " ".join(result)
+        result.append(_visit_method(arg, visitor)(ctx, visitor, arg))
     return result
 
-def _visit_string(_ctx, node, _parent):
-    return node["value"]
+def _visit_string(_ctx, _visitor, node):
+    return node
 
-def _visit_file(ctx, node, _parent):
-    rlocation = ctx.expand_location("$(rlocationpath {})".format(node["label"]), ctx.attr.data)
+def _visit_file(_ctx, _visitor, node):
+    return node
+
+def _label_to_jinja_path(ctx, label):
+    rlocation = ctx.expand_location("$(rlocationpath {})".format(label), ctx.attr.data)
     rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
     return rlocation
 
 _serializer = {
-    "visit_root": lambda ctx, node: _visit_root(ctx, node),
-    "visit_shell": lambda ctx, node, parent: _visit_shell(ctx, node, parent),
-    "visit_string": lambda ctx, node, parent: _visit_string(ctx, node, parent),
-    "visit_file": lambda ctx, node, parent: _visit_file(ctx, node, parent),
+    "visit_shell": lambda ctx, node, visitor: " ".join(_visit_shell(ctx, node, visitor)),
+    "visit_string": lambda ctx, node, visitor: _visit_string(ctx, node, visitor)["value"],
+    "visit_file": lambda ctx, node, visitor: _label_to_jinja_path(ctx, _visit_file(ctx, node, visitor)["label"]),
 }
 
 def _task_impl(ctx):
@@ -95,7 +103,7 @@ def _task_impl(ctx):
     ])
 
     cmd_nodes = json.decode(ctx.attr.cmd_json)
-    cmds = _serializer["visit_root"](ctx, cmd_nodes)
+    cmds = _visit_root(ctx, _serializer, cmd_nodes)
 
     runner_exe = ctx.executable._runner
     instructions = {

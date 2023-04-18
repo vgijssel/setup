@@ -41,6 +41,9 @@ task(
     ],
 )
 
+# root -> shell -> string
+# root -> string
+
 # task(
 #     name = "py_binary",
 #     cmds = [
