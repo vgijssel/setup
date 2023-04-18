@@ -1,12 +1,14 @@
 load("@bazel_skylib//lib:shell.bzl", "shell")
 
-def _update_results_with_callback(node, results, callback):
-    callback_result = callback(node)
+def _callback_with_results(node, parent, callback):
+    callback_result = callback(node, parent)
 
     if type(callback_result) == "list":
-        results = results + callback_result
+        return callback_result
     elif callback_result != None:
-        results.append(callback_result)
+        return [callback_result]
+    else:
+        return []
 
 def _iterate(tree, callback):
     results = []
@@ -18,31 +20,58 @@ def _iterate(tree, callback):
         if type(node) != "dict":
             fail("Unknown command type: %s" % type(node))
 
-        _update_results_with_callback(node, results, callback)
+        results = results + _callback_with_results(node, None, callback)
 
         if node["type"] == "shell":
             for arg in node["args"]:
                 if type(arg) == "string":
-                    continue
+                    arg = cmd.string(arg)
 
-                _update_results_with_callback(arg, results, callback)
+                if type(arg) != "dict":
+                    fail("Unknown command arg type: %s" % type(arg))
+
+                if arg["type"] in ["file", "string"]:
+                    results = results + _callback_with_results(arg, node, callback)
+                else:
+                    fail("Child level nodes can only be of type 'file' or 'string'. Given: %s" % arg["type"])
+
         else:
-            fail("Unknown command node: %s" % node["type"])
+            fail("Top level nodes can only be of type 'shell'. Given: %s" % node["type"])
 
     return results
 
 # TODO: replace with aspect skylib implementation
-def _rlocation_path(ctx, file):
-    """Produce the rlocation lookup path for the given file.
-    See https://github.com/bazelbuild/bazel-skylib/issues/303.
-    """
-    if file.short_path.startswith("../"):
-        return file.short_path[3:]
-    else:
-        return ctx.workspace_name + "/" + file.short_path
+# def _rlocation_path(ctx, file):
+#     """Produce the rlocation lookup path for the given file.
+#     See https://github.com/bazelbuild/bazel-skylib/issues/303.
+#     """
+#     if file.short_path.startswith("../"):
+#         return file.short_path[3:]
+#     else:
+#         return ctx.workspace_name + "/" + file.short_path
 
-def _update_label(ctx, node):
-    node["label"] = ctx.expand_location("$(rlocationpath {})".format(node["label"]), ctx.attr.data)
+# Given: string / file / shell node
+def _serialize_cmd(ctx, node, parent):
+    result = []
+
+    if node["type"] == "file":
+        result.append(ctx.expand_location("$(rlocationpath {})".format(node["label"]), ctx.attr.data))
+
+    elif node["type"] == "string":
+        result.append(node["value"])
+
+    elif node["type"] == "shell":
+        pass
+
+    else:
+        fail("Unknown command node to serialize: %s" % node["type"])
+
+    if parent == None:
+        result.append("\n")
+    else:
+        result.append(" ")
+
+    return result
 
 def _task_impl(ctx):
     instructions_file = ctx.actions.declare_file(ctx.label.name + ".json")
@@ -54,9 +83,10 @@ def _task_impl(ctx):
         for d in ([ctx.attr._runner] + ctx.attr.data)
     ])
 
-    cmds = json.decode(ctx.attr.cmd_json)
+    cmd_nodes = json.decode(ctx.attr.cmd_json)
+    cmds = _iterate(cmd_nodes, lambda node, parent: _serialize_cmd(ctx, node, parent))
 
-    _iterate(cmds, lambda node: _update_label(ctx, node) if node["type"] == "file" else None)
+    print(cmds)
 
     runner_exe = ctx.executable._runner
     instructions = {
@@ -109,7 +139,7 @@ def task(**kwargs):
     if "cmd_json" in kwargs:
         fail('The "cmd_json" attribute is reserved for internal use.')
 
-    cmd_data = _iterate(cmds, lambda node: node["label"] if node["type"] == "file" else None)
+    cmd_data = _iterate(cmds, lambda node, parent: node["label"] if node["type"] == "file" else None)
     cmd_json = json.encode(cmds)
 
     _task(
@@ -119,6 +149,7 @@ def task(**kwargs):
     )
 
 # TODO: make it faster by evaluating and validating members of shell when instantiating the "rule"!
+# TODO: make more generic nodes, no type checking but assume members are present? All nodes have a data member?
 cmd = struct(
     shell = lambda *args: {
         "type": "shell",
@@ -127,5 +158,9 @@ cmd = struct(
     file = lambda label: {
         "type": "file",
         "label": str(native.package_relative_label(label)),
+    },
+    string = lambda string: {
+        "type": "string",
+        "value": string,
     },
 )

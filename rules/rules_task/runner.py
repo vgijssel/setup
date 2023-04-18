@@ -16,27 +16,6 @@ def _get_location(label):
     return p
 
 
-def _get_instruction(cmd):
-    if isinstance(cmd, str):
-        return f"{cmd}"
-
-    if isinstance(cmd, list):
-        cmd_list = [_get_instruction(c) for c in cmd]
-        return "\n".join(cmd_list)
-
-    elif isinstance(cmd, dict):
-        if cmd["type"] not in ["shell", "location"]:
-            raise ValueError("Invalid command type: {}".format(cmd["type"]))
-
-        if cmd["type"] == "shell":
-            return "\n" + _get_instruction(cmd["args"]) + "\n"
-
-        if cmd["type"] == "location":
-            return _get_location(cmd["label"])
-    else:
-        raise ValueError("Invalid command: {}".format(cmd))
-
-
 def main() -> None:
     _, instructions_file = sys.argv
 
@@ -51,22 +30,11 @@ def main() -> None:
     """
 
     for cmd in instructions["cmds"]:
-        if isinstance(cmd, str):
-            bash_cmd += cmd + "\n"
+        bash_cmd += cmd + "\n"
 
-        elif cmd["type"] == "file":
-            bash_cmd += _get_location(cmd["label"]) + "\n"
+    # TODO: jinja eval the bash_cmd
 
-        elif cmd["type"] == "shell":
-            result = []
-            for arg in cmd["args"]:
-                if isinstance(arg, str):
-                    result.append(arg)
-
-                elif arg["type"] == "file":
-                    result.append(_get_location(arg["label"]))
-
-            bash_cmd += " ".join(result) + "\n"
+    print(bash_cmd)
 
     result = subprocess.run(["bash", "-c", bash_cmd], capture_output=True)
 
