@@ -35,14 +35,11 @@ task(
     name = "file",
     cmds = [
         cmd.shell(
-            cmd.string("cat"),
+            "cat",
             cmd.file("test_file.txt"),
         ),
     ],
 )
-
-# root -> shell -> string
-# root -> string
 
 # task(
 #     name = "py_binary",

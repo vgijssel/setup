@@ -1,44 +1,5 @@
+# TODO: replace with aspect skylib implementation of shell
 load("@bazel_skylib//lib:shell.bzl", "shell")
-
-def _callback_with_results(node, parent, callback):
-    callback_result = callback(node, parent)
-
-    if type(callback_result) == "list":
-        return callback_result
-    elif callback_result != None:
-        return [callback_result]
-    else:
-        return []
-
-def _iterate(tree, callback):
-    results = []
-
-    for node in tree:
-        if type(node) == "string":
-            node = cmd.shell(node)
-
-        if type(node) != "dict":
-            fail("Unknown command type: %s" % type(node))
-
-        results = results + _callback_with_results(node, None, callback)
-
-        if node["type"] == "shell":
-            for arg in node["args"]:
-                if type(arg) == "string":
-                    arg = cmd.string(arg)
-
-                if type(arg) != "dict":
-                    fail("Unknown command arg type: %s" % type(arg))
-
-                if arg["type"] in ["file", "string"]:
-                    results = results + _callback_with_results(arg, node, callback)
-                else:
-                    fail("Child level nodes can only be of type 'file' or 'string'. Given: %s" % arg["type"])
-
-        else:
-            fail("Top level nodes can only be of type 'shell'. Given: %s" % node["type"])
-
-    return results
 
 # TODO: replace with aspect skylib implementation
 # def _rlocation_path(ctx, file):
@@ -49,6 +10,9 @@ def _iterate(tree, callback):
 #         return file.short_path[3:]
 #     else:
 #         return ctx.workspace_name + "/" + file.short_path
+
+def _visit(ctx, visitor, node):
+    return _visit_method(node, visitor)(ctx, visitor, node)
 
 def _visit_method(node, visitor):
     if type(node) != "dict":
@@ -63,7 +27,7 @@ def _visit_method(node, visitor):
 
 def _visit_root(ctx, visitor, node):
     result = []
-    for item in node:
+    for item in node["args"]:
         result.append(
             _visit_method(item, visitor)(ctx, visitor, item),
         )
@@ -87,9 +51,18 @@ def _label_to_jinja_path(ctx, label):
     return rlocation
 
 _serializer = {
+    "visit_root": lambda ctx, node, visitor: _visit_root(ctx, node, visitor),
     "visit_shell": lambda ctx, node, visitor: " ".join(_visit_shell(ctx, node, visitor)),
     "visit_string": lambda ctx, node, visitor: _visit_string(ctx, node, visitor)["value"],
     "visit_file": lambda ctx, node, visitor: _label_to_jinja_path(ctx, _visit_file(ctx, node, visitor)["label"]),
+}
+
+_data_collector = {
+    # NOTE: the list comprehension is to flatten the list of lists
+    "visit_root": lambda ctx, node, visitor: [item for sublist in _visit_root(ctx, node, visitor) for item in sublist],
+    "visit_shell": lambda ctx, node, visitor: [n for n in _visit_shell(ctx, node, visitor) if n != None],
+    "visit_string": lambda ctx, node, visitor: None,
+    "visit_file": lambda ctx, node, visitor: _visit_file(ctx, node, visitor)["label"],
 }
 
 def _task_impl(ctx):
@@ -103,7 +76,7 @@ def _task_impl(ctx):
     ])
 
     cmd_nodes = json.decode(ctx.attr.cmd_json)
-    cmds = _visit_root(ctx, _serializer, cmd_nodes)
+    cmds = _visit(ctx, _serializer, cmd_nodes)
 
     runner_exe = ctx.executable._runner
     instructions = {
@@ -156,7 +129,9 @@ def task(**kwargs):
     if "cmd_json" in kwargs:
         fail('The "cmd_json" attribute is reserved for internal use.')
 
-    cmd_data = _iterate(cmds, lambda node, parent: node["label"] if node["type"] == "file" else None)
+    cmds = cmd.root(cmds)
+    cmd_data = _visit(None, _data_collector, cmds)
+
     cmd_json = json.encode(cmds)
 
     _task(
@@ -167,10 +142,45 @@ def task(**kwargs):
 
 # TODO: make it faster by evaluating and validating members of shell when instantiating the "rule"!
 # TODO: make more generic nodes, no type checking but assume members are present? All nodes have a data member?
+
+def _wrap_root_args(args):
+    result = []
+
+    for arg in args:
+        # Turn all reguluar string nodes into a cmd.shell nodes
+        if type(arg) == "string":
+            arg = cmd.shell(arg)
+
+        if type(arg) != "dict":
+            fail("Argument passed to root should either be string or dict, got value '{}' of type {}".format(arg, type(arg)))
+
+        result.append(arg)
+
+    return result
+
+def _wrap_shell_args(args):
+    result = []
+
+    for arg in args:
+        # Turn all reguluar string nodes into a cmd.string nodes
+        if type(arg) == "string":
+            arg = cmd.string(arg)
+
+        if type(arg) != "dict":
+            fail("Argument passed to shell should either be string or dict, got value '{}' of type {}".format(arg, type(arg)))
+
+        result.append(arg)
+
+    return result
+
 cmd = struct(
+    root = lambda args: {
+        "type": "root",
+        "args": _wrap_root_args(args),
+    },
     shell = lambda *args: {
         "type": "shell",
-        "args": args,
+        "args": _wrap_shell_args(args),
     },
     file = lambda label: {
         "type": "file",
