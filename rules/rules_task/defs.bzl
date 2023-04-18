@@ -50,28 +50,39 @@ def _iterate(tree, callback):
 #     else:
 #         return ctx.workspace_name + "/" + file.short_path
 
-# Given: string / file / shell node
-def _serialize_cmd(ctx, node, parent):
+def _visit_method(node):
+    return _serializer["visit_" + node["type"]]
+
+def _visit_root(ctx, node):
     result = []
-
-    if node["type"] == "file":
-        result.append(ctx.expand_location("$(rlocationpath {})".format(node["label"]), ctx.attr.data))
-
-    elif node["type"] == "string":
-        result.append(node["value"])
-
-    elif node["type"] == "shell":
-        pass
-
-    else:
-        fail("Unknown command node to serialize: %s" % node["type"])
-
-    if parent == None:
-        result.append("\n")
-    else:
-        result.append(" ")
-
+    for item in node:
+        result.append(
+            _visit_method(item)(ctx, item, None),
+        )
     return result
+
+def _visit_shell(ctx, node, _parent):
+    result = []
+    for arg in node["args"]:
+        result.append(_visit_method(arg)(ctx, arg, node))
+
+    result = " ".join(result)
+    return result
+
+def _visit_string(_ctx, node, _parent):
+    return node["value"]
+
+def _visit_file(ctx, node, _parent):
+    rlocation = ctx.expand_location("$(rlocationpath {})".format(node["label"]), ctx.attr.data)
+    rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
+    return rlocation
+
+_serializer = {
+    "visit_root": lambda ctx, node: _visit_root(ctx, node),
+    "visit_shell": lambda ctx, node, parent: _visit_shell(ctx, node, parent),
+    "visit_string": lambda ctx, node, parent: _visit_string(ctx, node, parent),
+    "visit_file": lambda ctx, node, parent: _visit_file(ctx, node, parent),
+}
 
 def _task_impl(ctx):
     instructions_file = ctx.actions.declare_file(ctx.label.name + ".json")
@@ -84,9 +95,7 @@ def _task_impl(ctx):
     ])
 
     cmd_nodes = json.decode(ctx.attr.cmd_json)
-    cmds = _iterate(cmd_nodes, lambda node, parent: _serialize_cmd(ctx, node, parent))
-
-    print(cmds)
+    cmds = _serializer["visit_root"](ctx, cmd_nodes)
 
     runner_exe = ctx.executable._runner
     instructions = {

@@ -15,5 +15,6 @@ py_binary(
     srcs = ["runner.py"],
     deps = [
         requirement("bazel-runfiles"),
+        requirement("jinja2"),
     ],
 )

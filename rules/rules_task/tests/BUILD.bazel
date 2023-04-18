@@ -35,7 +35,7 @@ task(
     name = "file",
     cmds = [
         cmd.shell(
-            "cat",
+            cmd.string("cat"),
             cmd.file("test_file.txt"),
         ),
     ],
