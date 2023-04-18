@@ -2,14 +2,14 @@
 load("@bazel_skylib//lib:shell.bzl", "shell")
 
 # TODO: replace with aspect skylib implementation
-# def _rlocation_path(ctx, file):
-#     """Produce the rlocation lookup path for the given file.
-#     See https://github.com/bazelbuild/bazel-skylib/issues/303.
-#     """
-#     if file.short_path.startswith("../"):
-#         return file.short_path[3:]
-#     else:
-#         return ctx.workspace_name + "/" + file.short_path
+def _rlocation_path(ctx, file):
+    """Produce the rlocation lookup path for the given file.
+    See https://github.com/bazelbuild/bazel-skylib/issues/303.
+    """
+    if file.short_path.startswith("../"):
+        return file.short_path[3:]
+    else:
+        return ctx.workspace_name + "/" + file.short_path
 
 def _visit(ctx, visitor, node):
     return _visit_method(node, visitor)(ctx, visitor, node)
@@ -45,24 +45,58 @@ def _visit_string(_ctx, _visitor, node):
 def _visit_file(_ctx, _visitor, node):
     return node
 
+def _visit_executable(_ctx, _visitor, node):
+    return node
+
 def _label_to_jinja_path(ctx, label):
     rlocation = ctx.expand_location("$(rlocationpath {})".format(label), ctx.attr.data)
     rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
     return rlocation
+
+def _executable_label_to_jinja_path(ctx, label):
+    target_matches_label = []
+
+    for d in ctx.attr.data:
+        if d.label == Label(label):
+            target_matches_label.append(d)
+
+    if len(target_matches_label) == 0:
+        fail("Could not find target matching label: %s" % label)
+
+    if len(target_matches_label) > 1:
+        fail("Found multiple targets (%s) matching label: %s" % len(label), label)
+
+    target = target_matches_label[0]
+    executable = target[DefaultInfo].files_to_run.executable
+    rlocation = _rlocation_path(ctx, executable)
+    rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
+    return rlocation
+
+def _flatten(list):
+    result = []
+
+    for item in list:
+        if type(item) == "list":
+            result = result + item
+        else:
+            result.append(item)
+
+    return result
 
 _serializer = {
     "visit_root": lambda ctx, node, visitor: _visit_root(ctx, node, visitor),
     "visit_shell": lambda ctx, node, visitor: " ".join(_visit_shell(ctx, node, visitor)),
     "visit_string": lambda ctx, node, visitor: _visit_string(ctx, node, visitor)["value"],
     "visit_file": lambda ctx, node, visitor: _label_to_jinja_path(ctx, _visit_file(ctx, node, visitor)["label"]),
+    "visit_executable": lambda ctx, node, visitor: _executable_label_to_jinja_path(ctx, _visit_executable(ctx, node, visitor)["label"]),
 }
 
 _data_collector = {
-    # NOTE: the list comprehension is to flatten the list of lists
-    "visit_root": lambda ctx, node, visitor: [item for sublist in _visit_root(ctx, node, visitor) for item in sublist],
+    "visit_root": lambda ctx, node, visitor: _flatten(_visit_root(ctx, node, visitor)),
     "visit_shell": lambda ctx, node, visitor: [n for n in _visit_shell(ctx, node, visitor) if n != None],
     "visit_string": lambda ctx, node, visitor: None,
     "visit_file": lambda ctx, node, visitor: _visit_file(ctx, node, visitor)["label"],
+    "visit_executable": lambda ctx, node, visitor: _visit_executable(ctx, node, visitor)["label"],
 }
 
 def _task_impl(ctx):
@@ -140,9 +174,6 @@ def task(**kwargs):
         **kwargs
     )
 
-# TODO: make it faster by evaluating and validating members of shell when instantiating the "rule"!
-# TODO: make more generic nodes, no type checking but assume members are present? All nodes have a data member?
-
 def _wrap_root_args(args):
     result = []
 
@@ -184,6 +215,10 @@ cmd = struct(
     },
     file = lambda label: {
         "type": "file",
+        "label": str(native.package_relative_label(label)),
+    },
+    executable = lambda label: {
+        "type": "executable",
         "label": str(native.package_relative_label(label)),
     },
     string = lambda string: {
