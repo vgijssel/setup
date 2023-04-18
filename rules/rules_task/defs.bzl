@@ -1,20 +1,48 @@
 load("@bazel_skylib//lib:shell.bzl", "shell")
 
-def _update_labels(ctx, cmds):
-    for cmd in cmds:
-        if type(cmd) == "string":
-            continue
+def _update_results_with_callback(node, results, callback):
+    callback_result = callback(node)
 
-        if cmd["type"] == "location":
-            cmd["label"] = ctx.expand_location(cmd["label"], ctx.attr.data)
+    if type(callback_result) == "list":
+        results = results + callback_result
+    elif callback_result != None:
+        results.append(callback_result)
 
-        elif cmd["type"] == "shell":
-            for arg in cmd["args"]:
+def _iterate(tree, callback):
+    results = []
+
+    for node in tree:
+        if type(node) == "string":
+            node = cmd.shell(node)
+
+        if type(node) != "dict":
+            fail("Unknown command type: %s" % type(node))
+
+        _update_results_with_callback(node, results, callback)
+
+        if node["type"] == "shell":
+            for arg in node["args"]:
                 if type(arg) == "string":
                     continue
 
-                if arg["type"] == "location":
-                    arg["label"] = ctx.expand_location("$(rlocationpath {})".format(arg["label"]), ctx.attr.data)
+                _update_results_with_callback(arg, results, callback)
+        else:
+            fail("Unknown command node: %s" % node["type"])
+
+    return results
+
+# TODO: replace with aspect skylib implementation
+def _rlocation_path(ctx, file):
+    """Produce the rlocation lookup path for the given file.
+    See https://github.com/bazelbuild/bazel-skylib/issues/303.
+    """
+    if file.short_path.startswith("../"):
+        return file.short_path[3:]
+    else:
+        return ctx.workspace_name + "/" + file.short_path
+
+def _update_label(ctx, node):
+    node["label"] = ctx.expand_location("$(rlocationpath {})".format(node["label"]), ctx.attr.data)
 
 def _task_impl(ctx):
     instructions_file = ctx.actions.declare_file(ctx.label.name + ".json")
@@ -28,7 +56,7 @@ def _task_impl(ctx):
 
     cmds = json.decode(ctx.attr.cmd_json)
 
-    _update_labels(ctx, cmds)
+    _iterate(cmds, lambda node: _update_label(ctx, node) if node["type"] == "file" else None)
 
     runner_exe = ctx.executable._runner
     instructions = {
@@ -65,7 +93,7 @@ _task = rule(
     attrs = {
         "cmd_json": attr.string(mandatory = True),
         "cwd": attr.string(),
-        "data": attr.label_list(allow_files = True),
+        "data": attr.label_list(allow_files = True, cfg = "exec"),
         "_runner": attr.label(
             default = Label("//:runner"),
             cfg = "exec",
@@ -74,26 +102,6 @@ _task = rule(
     },
 )
 
-def _collect_data(cmds):
-    data = []
-
-    for cmd in cmds:
-        if type(cmd) == "string":
-            continue
-
-        if cmd.type == "location":
-            data.append(cmd.label)
-
-        elif cmd.type == "shell":
-            for arg in cmd.args:
-                if type(arg) == "string":
-                    continue
-
-                if arg.type == "location":
-                    data.append(arg.label)
-
-    return data
-
 def task(**kwargs):
     data = kwargs.pop("data", [])
     cmds = kwargs.pop("cmds")
@@ -101,7 +109,7 @@ def task(**kwargs):
     if "cmd_json" in kwargs:
         fail('The "cmd_json" attribute is reserved for internal use.')
 
-    cmd_data = _collect_data(cmds)
+    cmd_data = _iterate(cmds, lambda node: node["label"] if node["type"] == "file" else None)
     cmd_json = json.encode(cmds)
 
     _task(
@@ -110,13 +118,14 @@ def task(**kwargs):
         **kwargs
     )
 
+# TODO: make it faster by evaluating and validating members of shell when instantiating the "rule"!
 cmd = struct(
-    shell = lambda *args: struct(
-        type = "shell",
-        args = args,
-    ),
-    l = lambda label: struct(
-        type = "location",
-        label = str(native.package_relative_label(label)),
-    ),
+    shell = lambda *args: {
+        "type": "shell",
+        "args": args,
+    },
+    file = lambda label: {
+        "type": "file",
+        "label": str(native.package_relative_label(label)),
+    },
 )

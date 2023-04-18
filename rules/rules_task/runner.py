@@ -54,7 +54,7 @@ def main() -> None:
         if isinstance(cmd, str):
             bash_cmd += cmd + "\n"
 
-        elif cmd["type"] == "location":
+        elif cmd["type"] == "file":
             bash_cmd += _get_location(cmd["label"]) + "\n"
 
         elif cmd["type"] == "shell":
@@ -63,7 +63,7 @@ def main() -> None:
                 if isinstance(arg, str):
                     result.append(arg)
 
-                elif arg["type"] == "location":
+                elif arg["type"] == "file":
                     result.append(_get_location(arg["label"]))
 
             bash_cmd += " ".join(result) + "\n"

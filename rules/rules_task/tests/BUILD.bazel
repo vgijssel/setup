@@ -1,6 +1,11 @@
 load("@rules_task//:defs.bzl", "cmd", "task")
 load("@pip//:requirements.bzl", "requirement")
 
+# py_binary(
+#     name = "test_py_binary",
+#     srcs = ["test_py_binary.py"],
+# )
+
 task(
     name = "hello",
     cmds = [
@@ -31,10 +36,31 @@ task(
     cmds = [
         cmd.shell(
             "cat",
-            cmd.l("test_file.txt"),
+            cmd.file("test_file.txt"),
         ),
     ],
 )
+
+# task(
+#     name = "py_binary",
+#     cmds = [
+#         cmd.executable(":test_py_binary"),
+#     ],
+# )
+
+# task(
+#     name = "kerk",
+#     cmds = [
+#         cmd.shell(
+#             cmd.executable(":test_py_binary"),
+#             cmd.files(":file_group"),
+#         ),
+#     ],
+#     env = {
+#         "files": cmd.files(":file_group"),
+#         "shine": cmd.executable(":test_py_binary"),
+#     },
+# )
 
 py_test(
     name = "test",
@@ -51,6 +77,7 @@ py_test(
         ":cwd",
         ":file",
         ":hello",
+        # ":py_binary",
     ],
     env = {
         "WORKSPACE_NAME": package_relative_label(":test").workspace_name,
