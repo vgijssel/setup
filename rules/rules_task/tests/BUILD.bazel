@@ -1,0 +1,77 @@
+load("@rules_task//:defs.bzl", "cmd", "task")
+load("@pip//:requirements.bzl", "requirement")
+
+py_binary(
+    name = "test_py_binary",
+    srcs = ["test_py_binary.py"],
+)
+
+task(
+    name = "hello",
+    cmds = [
+        "echo Hello, world!",
+    ],
+)
+
+task(
+    name = "broken",
+    cmds = [
+        "echo Some error! >&2",
+        "exit 1",
+        "echo This will not be printed!",
+    ],
+)
+
+task(
+    name = "cwd",
+    cmds = [
+        "echo $TEST_TMPDIR",
+        "pwd >&2",
+    ],
+    cwd = "$TEST_TMPDIR",
+)
+
+task(
+    name = "file",
+    cmds = [
+        cmd.shell(
+            "cat",
+            cmd.file("test_file.txt"),
+        ),
+    ],
+)
+
+task(
+    name = "py_binary",
+    cmds = [
+        cmd.executable(":test_py_binary"),
+    ],
+)
+
+py_test(
+    name = "test",
+    srcs = [
+        "pytest_wrapper.py",
+        "test.py",
+    ],
+    args = [
+        "-ra",
+        "-vv",
+    ] + ["$(location :%s)" % x for x in ["test.py"]],
+    data = [
+        ":broken",
+        ":cwd",
+        ":file",
+        ":hello",
+        ":py_binary",
+    ],
+    env = {
+        "WORKSPACE_NAME": package_relative_label(":test").workspace_name,
+    },
+    main = "pytest_wrapper.py",
+    deps = [
+        requirement("bazel-runfiles"),
+        requirement("tomli"),
+        requirement("pytest"),
+    ],
+)

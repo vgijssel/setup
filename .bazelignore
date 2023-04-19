@@ -9,3 +9,5 @@ esphome_nimble/.esphome
 esphome_nimble/tmp
 
 node_modules
+
+rules/rules_task

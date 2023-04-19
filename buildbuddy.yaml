@@ -11,4 +11,4 @@ actions:
         branches:
           - "*"
     bazel_commands:
-      - "test //... --config remote"
+      - "test //... @rules_task//... --config remote"

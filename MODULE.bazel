@@ -20,6 +20,13 @@ bazel_dep(name = "rules_pkg", version = "0.9.0")
 # ------------------------------------ rules_multirun ------------------------------------ #
 bazel_dep(name = "rules_multirun", version = "0.6.0")
 
+# ------------------------------------ rules_task ------------------------------------ #
+bazel_dep(name = "rules_task", version = "0.1.0")
+local_path_override(
+    module_name = "rules_task",
+    path = "./rules/rules_task",
+)
+
 # ------------------------------------ rules_python ------------------------------------ #
 bazel_dep(name = "rules_python", version = "0.20.0")
 
