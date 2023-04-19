@@ -1,15 +1,9 @@
-# TODO: replace with aspect skylib implementation of shell
-load("@bazel_skylib//lib:shell.bzl", "shell")
+"""
+Public API for defining tasks.
+"""
 
-# TODO: replace with aspect skylib implementation
-def _rlocation_path(ctx, file):
-    """Produce the rlocation lookup path for the given file.
-    See https://github.com/bazelbuild/bazel-skylib/issues/303.
-    """
-    if file.short_path.startswith("../"):
-        return file.short_path[3:]
-    else:
-        return ctx.workspace_name + "/" + file.short_path
+load("@bazel_skylib//lib:shell.bzl", "shell")
+load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 
 def _visit(ctx, visitor, node):
     return _visit_method(node, visitor)(ctx, visitor, node)
@@ -68,7 +62,7 @@ def _executable_label_to_jinja_path(ctx, label):
 
     target = target_matches_label[0]
     executable = target[DefaultInfo].files_to_run.executable
-    rlocation = _rlocation_path(ctx, executable)
+    rlocation = to_rlocation_path(ctx, executable)
     rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
     return rlocation
 
