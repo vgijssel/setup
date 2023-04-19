@@ -39,6 +39,12 @@ def test_cwd():
     assert result.stdout.strip() == result.stderr.strip()
 
 
+def test_cwd_jinja():
+    result = _run_task("cwd_jinja")
+    assert result.returncode == 0
+    assert result.stdout.strip() == result.stderr.strip()
+
+
 def test_file():
     result = _run_task("file")
     assert result.returncode == 0

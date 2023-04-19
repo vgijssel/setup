@@ -41,6 +41,15 @@ task(
 )
 
 task(
+    name = "cwd_jinja",
+    cmds = [
+        "echo $TEST_TMPDIR",
+        "pwd >&2",
+    ],
+    cwd = "{{ os.environ.get('TEST_TMPDIR', os.environ['BUILD_WORKING_DIRECTORY']) }}",
+)
+
+task(
     name = "file",
     cmds = [
         cmd.shell(
@@ -90,6 +99,7 @@ py_test(
     data = [
         ":broken",
         ":cwd",
+        ":cwd_jinja",
         ":file",
         ":filegroup",
         ":hello",
