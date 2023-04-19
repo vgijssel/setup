@@ -55,3 +55,9 @@ def test_filegroup():
     result = _run_task("filegroup")
     assert result.returncode == 0
     assert result.stdout.strip() == b"content in test filecontent in test second file"
+
+
+def test_python_entry_point():
+    result = _run_task("python_entry_point")
+    assert result.returncode == 0
+    assert result.stdout.strip().startswith(b"Usage: black_bin.py [OPTIONS] SRC ...")

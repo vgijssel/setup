@@ -45,6 +45,14 @@ def _visit_files(_ctx, _visitor, node):
 def _visit_executable(_ctx, _visitor, node):
     return node
 
+def _visit_python_entry_point(ctx, visitor, node):
+    print(node)
+    result = []
+
+    for arg in node["args"]:
+        result.append(_visit_method(arg, visitor)(ctx, visitor, arg))
+    return result
+
 def _file_label_to_jinja_path(ctx, label):
     rlocation = ctx.expand_location("$(rlocationpath {})".format(label), ctx.attr.data)
     rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
@@ -90,22 +98,27 @@ def _flatten(list):
 
     return result
 
+def _compact(list):
+    return [item for item in list if item != None]
+
 _serializer = {
-    "visit_root": lambda ctx, node, visitor: _visit_root(ctx, node, visitor),
-    "visit_shell": lambda ctx, node, visitor: " ".join(_visit_shell(ctx, node, visitor)),
-    "visit_string": lambda ctx, node, visitor: _visit_string(ctx, node, visitor)["value"],
-    "visit_file": lambda ctx, node, visitor: _file_label_to_jinja_path(ctx, _visit_file(ctx, node, visitor)["label"]),
-    "visit_files": lambda ctx, node, visitor: _files_label_to_jinja_path(ctx, _visit_file(ctx, node, visitor)["label"]),
-    "visit_executable": lambda ctx, node, visitor: _executable_label_to_jinja_path(ctx, _visit_executable(ctx, node, visitor)["label"]),
+    "visit_root": lambda ctx, visitor, node: _visit_root(ctx, visitor, node),
+    "visit_shell": lambda ctx, visitor, node: " ".join(_visit_shell(ctx, visitor, node)),
+    "visit_string": lambda ctx, visitor, node: _visit_string(ctx, visitor, node)["value"],
+    "visit_file": lambda ctx, visitor, node: _file_label_to_jinja_path(ctx, _visit_file(ctx, visitor, node)["label"]),
+    "visit_files": lambda ctx, visitor, node: _files_label_to_jinja_path(ctx, _visit_file(ctx, visitor, node)["label"]),
+    "visit_executable": lambda ctx, visitor, node: _executable_label_to_jinja_path(ctx, _visit_executable(ctx, visitor, node)["label"]),
+    "visit_python_entry_point": lambda ctx, visitor, node: " ".join([node["entry_point"]] + _visit_shell(ctx, visitor, node)),
 }
 
 _data_collector = {
-    "visit_root": lambda ctx, node, visitor: _flatten(_visit_root(ctx, node, visitor)),
-    "visit_shell": lambda ctx, node, visitor: [n for n in _visit_shell(ctx, node, visitor) if n != None],
-    "visit_string": lambda ctx, node, visitor: None,
-    "visit_file": lambda ctx, node, visitor: _visit_file(ctx, node, visitor)["label"],
-    "visit_files": lambda ctx, node, visitor: _visit_files(ctx, node, visitor)["label"],
-    "visit_executable": lambda ctx, node, visitor: _visit_executable(ctx, node, visitor)["label"],
+    "visit_root": lambda ctx, visitor, node: _flatten(_visit_root(ctx, visitor, node)),
+    "visit_shell": lambda ctx, visitor, node: _compact(_visit_shell(ctx, visitor, node)),
+    "visit_string": lambda ctx, visitor, node: None,
+    "visit_file": lambda ctx, visitor, node: _visit_file(ctx, visitor, node)["label"],
+    "visit_files": lambda ctx, visitor, node: _visit_files(ctx, visitor, node)["label"],
+    "visit_executable": lambda ctx, visitor, node: _visit_executable(ctx, visitor, node)["label"],
+    "visit_python_entry_point": lambda ctx, visitor, node: _compact(_visit_python_entry_point(ctx, visitor, node)),
 }
 
 def _task_impl(ctx):
@@ -115,7 +128,7 @@ def _task_impl(ctx):
     runfiles = ctx.runfiles(files = [instructions_file] + ctx.files.data)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
-        for d in ([ctx.attr._runner] + ctx.attr.data)
+        for d in ([ctx.attr._runner] + ctx.attr.data + ctx.attr.deps)
     ])
 
     cmd_nodes = json.decode(ctx.attr.cmd_json)
@@ -156,6 +169,7 @@ _task = rule(
     attrs = {
         "cmd_json": attr.string(mandatory = True),
         "cwd": attr.string(),
+        "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
         "data": attr.label_list(allow_files = True, cfg = "exec"),
         "_runner": attr.label(
             default = Label("//:runner"),
@@ -174,7 +188,6 @@ def task(**kwargs):
 
     cmds = cmd.root(cmds)
     cmd_data = _visit(None, _data_collector, cmds)
-
     cmd_json = json.encode(cmds)
 
     _task(
@@ -213,6 +226,21 @@ def _wrap_shell_args(args):
 
     return result
 
+def _wrap_python_entry_point_args(args):
+    result = []
+
+    for arg in args:
+        # Turn all reguluar string nodes into a cmd.string nodes
+        if type(arg) == "string":
+            arg = cmd.string(arg)
+
+        if type(arg) != "dict":
+            fail("Argument passed to python_entry_point should either be string or dict, got value '{}' of type {}".format(arg, type(arg)))
+
+        result.append(arg)
+
+    return result
+
 cmd = struct(
     root = lambda args: {
         "type": "root",
@@ -237,5 +265,10 @@ cmd = struct(
     string = lambda string: {
         "type": "string",
         "value": string,
+    },
+    python_entry_point = lambda entry_point, *args: {
+        "type": "python_entry_point",
+        "entry_point": entry_point,
+        "args": _wrap_python_entry_point_args(args),
     },
 )
