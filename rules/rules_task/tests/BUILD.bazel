@@ -1,5 +1,6 @@
 load("@rules_task//:defs.bzl", "cmd", "task")
-load("@pip//:requirements.bzl", "requirement")
+load("@pip//:requirements.bzl", "dist_info_requirement", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary")
 
 py_binary(
     name = "test_py_binary",
@@ -66,6 +67,16 @@ task(
     ],
 )
 
+task(
+    name = "python_entry_point",
+    cmds = [
+        cmd.python_entry_point("black:patched_main", "--help"),
+    ],
+    deps = [
+        requirement("black"),
+    ],
+)
+
 py_test(
     name = "test",
     srcs = [
@@ -83,6 +94,7 @@ py_test(
         ":filegroup",
         ":hello",
         ":py_binary",
+        ":python_entry_point",
     ],
     env = {
         "WORKSPACE_NAME": package_relative_label(":test").workspace_name,
