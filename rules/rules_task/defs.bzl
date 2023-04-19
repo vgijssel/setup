@@ -4,6 +4,8 @@ Public API for defining tasks.
 
 load("@bazel_skylib//lib:shell.bzl", "shell")
 load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
+load("@pip//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary")
 
 def _visit(ctx, visitor, node):
     return _visit_method(node, visitor)(ctx, visitor, node)
@@ -46,7 +48,6 @@ def _visit_executable(_ctx, _visitor, node):
     return node
 
 def _visit_python_entry_point(ctx, visitor, node):
-    print(node)
     result = []
 
     for arg in node["args"]:
@@ -87,6 +88,34 @@ def _executable_label_to_jinja_path(ctx, label):
     rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
     return rlocation
 
+def _serialize_python_entry_point(ctx, visitor, node):
+    args = " ".join(_visit_python_entry_point(ctx, visitor, node))
+
+    # Translate
+    # tap_gitlab:Tap.cli
+    # into
+    # from tap_gitlab import Tap
+    # Tap.cli()
+    entry_point = node["entry_point"]
+    python_import, python_method = entry_point.split(":")
+    python_class = python_method.split(".")[0]
+    python_import = "from {} import {}".format(python_import, python_class)
+    python_method = "{}()".format(python_method)
+
+    python_code = """
+import sys
+{python_import}
+sys.exit({python_method})
+    """.format(python_import = python_import, python_method = python_method)
+
+    inline_python = """
+python3 - <<EOF {args}
+{python_code}
+EOF
+    """.format(args = args, python_code = python_code)
+
+    return inline_python
+
 def _flatten(list):
     result = []
 
@@ -108,7 +137,7 @@ _serializer = {
     "visit_file": lambda ctx, visitor, node: _file_label_to_jinja_path(ctx, _visit_file(ctx, visitor, node)["label"]),
     "visit_files": lambda ctx, visitor, node: _files_label_to_jinja_path(ctx, _visit_file(ctx, visitor, node)["label"]),
     "visit_executable": lambda ctx, visitor, node: _executable_label_to_jinja_path(ctx, _visit_executable(ctx, visitor, node)["label"]),
-    "visit_python_entry_point": lambda ctx, visitor, node: " ".join([node["entry_point"]] + _visit_shell(ctx, visitor, node)),
+    "visit_python_entry_point": lambda ctx, visitor, node: _serialize_python_entry_point(ctx, visitor, node),
 }
 
 _data_collector = {
@@ -128,13 +157,13 @@ def _task_impl(ctx):
     runfiles = ctx.runfiles(files = [instructions_file] + ctx.files.data)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
-        for d in ([ctx.attr._runner] + ctx.attr.data + ctx.attr.deps)
+        for d in ([ctx.attr.runner] + ctx.attr.data + ctx.attr.deps)
     ])
 
     cmd_nodes = json.decode(ctx.attr.cmd_json)
     cmds = _visit(ctx, _serializer, cmd_nodes)
 
-    runner_exe = ctx.executable._runner
+    runner_exe = ctx.executable.runner
     instructions = {
         "cmds": cmds,
         "workspace": ctx.workspace_name,
@@ -171,17 +200,28 @@ _task = rule(
         "cwd": attr.string(),
         "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
         "data": attr.label_list(allow_files = True, cfg = "exec"),
-        "_runner": attr.label(
-            default = Label("//:runner"),
+        "runner": attr.label(
+            mandatory = True,
             cfg = "exec",
             executable = True,
         ),
     },
 )
 
-def task(**kwargs):
+def task(name, deps = [], **kwargs):
     data = kwargs.pop("data", [])
     cmds = kwargs.pop("cmds")
+    runner_name = "{}_runner".format(name)
+
+    py_binary(
+        name = runner_name,
+        main = "//:runner.py",
+        srcs = ["//:runner.py"],
+        deps = [
+            requirement("bazel-runfiles"),
+            requirement("jinja2"),
+        ] + deps,
+    )
 
     if "cmd_json" in kwargs:
         fail('The "cmd_json" attribute is reserved for internal use.')
@@ -191,6 +231,8 @@ def task(**kwargs):
     cmd_json = json.encode(cmds)
 
     _task(
+        runner = runner_name,
+        name = name,
         data = data + cmd_data,
         cmd_json = cmd_json,
         **kwargs

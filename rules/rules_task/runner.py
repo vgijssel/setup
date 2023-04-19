@@ -4,6 +4,7 @@ import subprocess
 import os
 import runfiles
 import jinja2
+import sys
 
 r = runfiles.Create()
 environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
@@ -26,11 +27,16 @@ def jinja_render_string(string):
 def main() -> None:
     _, instructions_file = sys.argv
 
+    # Making sure the current Python executable is in front of the PATH
+    # so python based cmds can use this Python as well.
+    os.environ["PATH"] = (
+        os.path.dirname(sys.executable) + os.pathsep + os.environ["PATH"]
+    )
+
     with open(instructions_file) as f:
         instructions = json.load(f)
 
     cwd = instructions["cwd"] or "$PWD"
-
     bash_cmd = f"""
     set -e
     cd {cwd}

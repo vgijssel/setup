@@ -1,5 +1,6 @@
 load("@rules_task//:defs.bzl", "cmd", "task")
 load("@pip//:requirements.bzl", "dist_info_requirement", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary")
 
 py_binary(
     name = "test_py_binary",
@@ -66,23 +67,10 @@ task(
     ],
 )
 
-print(requirement("black"))
-
-print(dist_info_requirement("black"))
-
-# Could get the dist-info from black using dist_info_requirement("black")
-# this contains entry_points.txt
-# which contains the entry point for black
-
 task(
     name = "python_entry_point",
     cmds = [
         cmd.python_entry_point("black:patched_main", "--help"),
-    ],
-    data = [
-        # "@@rules_python~0.20.0~pip~pip//:black_pkg",
-        "@@rules_python~0.20.0~pip~pip_black//:pkg",
-        # "@@black-requirements_black//:pkg",
     ],
     deps = [
         requirement("black"),
