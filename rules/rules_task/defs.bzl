@@ -39,13 +39,26 @@ def _visit_string(_ctx, _visitor, node):
 def _visit_file(_ctx, _visitor, node):
     return node
 
+def _visit_files(_ctx, _visitor, node):
+    return node
+
 def _visit_executable(_ctx, _visitor, node):
     return node
 
-def _label_to_jinja_path(ctx, label):
+def _file_label_to_jinja_path(ctx, label):
     rlocation = ctx.expand_location("$(rlocationpath {})".format(label), ctx.attr.data)
     rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
     return rlocation
+
+def _files_label_to_jinja_path(ctx, label):
+    rlocations = ctx.expand_location("$(rlocationpaths {})".format(label), ctx.attr.data).split(" ")
+
+    result = []
+
+    for rlocation in rlocations:
+        result.append("{{ rlocation_to_path('%s') }}" % rlocation)
+
+    return " ".join(result)
 
 def _executable_label_to_jinja_path(ctx, label):
     target_matches_label = []
@@ -81,7 +94,8 @@ _serializer = {
     "visit_root": lambda ctx, node, visitor: _visit_root(ctx, node, visitor),
     "visit_shell": lambda ctx, node, visitor: " ".join(_visit_shell(ctx, node, visitor)),
     "visit_string": lambda ctx, node, visitor: _visit_string(ctx, node, visitor)["value"],
-    "visit_file": lambda ctx, node, visitor: _label_to_jinja_path(ctx, _visit_file(ctx, node, visitor)["label"]),
+    "visit_file": lambda ctx, node, visitor: _file_label_to_jinja_path(ctx, _visit_file(ctx, node, visitor)["label"]),
+    "visit_files": lambda ctx, node, visitor: _files_label_to_jinja_path(ctx, _visit_file(ctx, node, visitor)["label"]),
     "visit_executable": lambda ctx, node, visitor: _executable_label_to_jinja_path(ctx, _visit_executable(ctx, node, visitor)["label"]),
 }
 
@@ -90,6 +104,7 @@ _data_collector = {
     "visit_shell": lambda ctx, node, visitor: [n for n in _visit_shell(ctx, node, visitor) if n != None],
     "visit_string": lambda ctx, node, visitor: None,
     "visit_file": lambda ctx, node, visitor: _visit_file(ctx, node, visitor)["label"],
+    "visit_files": lambda ctx, node, visitor: _visit_files(ctx, node, visitor)["label"],
     "visit_executable": lambda ctx, node, visitor: _visit_executable(ctx, node, visitor)["label"],
 }
 
@@ -209,6 +224,10 @@ cmd = struct(
     },
     file = lambda label: {
         "type": "file",
+        "label": str(native.package_relative_label(label)),
+    },
+    files = lambda label: {
+        "type": "files",
         "label": str(native.package_relative_label(label)),
     },
     executable = lambda label: {

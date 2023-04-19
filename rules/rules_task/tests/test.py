@@ -49,3 +49,9 @@ def test_py_binary():
     result = _run_task("py_binary")
     assert result.returncode == 0
     assert result.stdout.strip() == b"content from py_binary"
+
+
+def test_filegroup():
+    result = _run_task("filegroup")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"content in test filecontent in test second file"

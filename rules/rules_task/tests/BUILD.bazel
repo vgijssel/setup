@@ -6,6 +6,14 @@ py_binary(
     srcs = ["test_py_binary.py"],
 )
 
+filegroup(
+    name = "test_filegroup",
+    srcs = [
+        "test_file.txt",
+        "test_second_file.txt",
+    ],
+)
+
 task(
     name = "hello",
     cmds = [
@@ -48,6 +56,16 @@ task(
     ],
 )
 
+task(
+    name = "filegroup",
+    cmds = [
+        cmd.shell(
+            "cat",
+            cmd.files(":test_filegroup"),
+        ),
+    ],
+)
+
 py_test(
     name = "test",
     srcs = [
@@ -62,6 +80,7 @@ py_test(
         ":broken",
         ":cwd",
         ":file",
+        ":filegroup",
         ":hello",
         ":py_binary",
     ],
