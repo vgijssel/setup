@@ -18,7 +18,8 @@ filegroup(
 task(
     name = "hello",
     cmds = [
-        "echo Hello, world!",
+        "SOMEVAR=$(echo Hello, world!)",
+        "echo $SOMEVAR",
     ],
 )
 
@@ -77,6 +78,16 @@ task(
 )
 
 task(
+    name = "python",
+    cmds = [
+        cmd.python("""
+        os.environ['SOMEVAR'] = 'somevalue'
+        """),
+        "echo $SOMEVAR",
+    ],
+)
+
+task(
     name = "python_entry_point",
     cmds = [
         cmd.python_entry_point("black:patched_main", "--help"),
@@ -104,6 +115,7 @@ py_test(
         ":filegroup",
         ":hello",
         ":py_binary",
+        ":python",
         ":python_entry_point",
     ],
     env = {

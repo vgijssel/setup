@@ -63,6 +63,12 @@ def test_filegroup():
     assert result.stdout.strip() == b"content in test filecontent in test second file"
 
 
+def test_python():
+    result = _run_task("python")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"somevalue"
+
+
 def test_python_entry_point():
     result = _run_task("python_entry_point")
     assert result.returncode == 0
