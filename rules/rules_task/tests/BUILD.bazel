@@ -81,6 +81,7 @@ task(
     name = "python",
     cmds = [
         cmd.python("""
+        import os
         os.environ['SOMEVAR'] = 'somevalue'
         """),
         "echo $SOMEVAR",

@@ -3,6 +3,7 @@ Public API for defining tasks.
 """
 
 load("@bazel_skylib//lib:shell.bzl", "shell")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
@@ -120,6 +121,9 @@ EOF
 
     return inline_python
 
+def _fq_label(string):
+    return str(native.package_relative_label(string))
+
 def _flatten(list):
     result = []
 
@@ -135,7 +139,31 @@ def _compact(list):
     return [item for item in list if item != None]
 
 def _generate_py_binary(context, node):
-    pass
+    target_name = "{}_python_{}".format(context.name, context.state["target_index"])
+    target_main = "{}_main".format(target_name)
+    target_main_file = "{}.py".format(target_main)
+    python_code = """
+def main():
+    {python_code}
+
+if __name__ == "__main__":
+    main()
+""".format(python_code = node["code"])
+
+    write_file(
+        name = target_main,
+        out = target_main_file,
+        content = [python_code],
+    )
+
+    py_binary(
+        name = target_name,
+        srcs = [target_main_file],
+        main = target_main_file,
+    )
+
+    context.state["target_index"] += 1
+    node["label"] = _fq_label(target_name)
 
 _serializer = {
     "visit_root": lambda context, node: _visit_root(context, node),
@@ -145,7 +173,7 @@ _serializer = {
     "visit_files": lambda context, node: _files_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
     "visit_python_entry_point": lambda context, node: _serialize_python_entry_point(context, node),
-    "visit_python": lambda context, node: _visit_python(context, node),
+    "visit_python": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_python(context, node)["label"]),
 }
 
 _data_collector = {
@@ -170,10 +198,14 @@ _target_generator = {
     "visit_python": lambda context, node: _generate_py_binary(context, node),
 }
 
-def _visitor_context(ctx, visitor):
+def _visitor_context(ctx, visitor, name):
     return struct(
         ctx = ctx,
         visitor = visitor,
+        name = name,
+        state = {
+            "target_index": 0,
+        },
     )
 
 def _task_impl(ctx):
@@ -187,7 +219,7 @@ def _task_impl(ctx):
     ])
 
     cmd_nodes = json.decode(ctx.attr.cmd_json)
-    visitor_context = _visitor_context(ctx, _serializer)
+    visitor_context = _visitor_context(ctx, _serializer, ctx.label.name)
     cmds = _visit(visitor_context, cmd_nodes)
 
     runner_exe = ctx.executable.runner
@@ -256,12 +288,15 @@ def task(name, deps = [], **kwargs):
     cmds = cmd.root(cmds)
 
     # Generate targets and set labels for all the nodes
-    visitor_context = _visitor_context(None, _target_generator)
+    visitor_context = _visitor_context(None, _target_generator, name)
     _visit(visitor_context, cmds)
 
     # Collect all the labels from the nodes
-    visitor_context = _visitor_context(None, _data_collector)
+    visitor_context = _visitor_context(None, _data_collector, name)
     cmd_data = _visit(visitor_context, cmds)
+
+    print(cmd_data)
+
     cmd_json = json.encode(cmds)
 
     _task(
@@ -328,15 +363,15 @@ cmd = struct(
     },
     file = lambda label: {
         "type": "file",
-        "label": str(native.package_relative_label(label)),
+        "label": _fq_label(label),
     },
     files = lambda label: {
         "type": "files",
-        "label": str(native.package_relative_label(label)),
+        "label": _fq_label(label),
     },
     executable = lambda label: {
         "type": "executable",
-        "label": str(native.package_relative_label(label)),
+        "label": _fq_label(label),
     },
     string = lambda string: {
         "type": "string",
