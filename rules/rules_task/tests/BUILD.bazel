@@ -1,5 +1,5 @@
 load("@rules_task//:defs.bzl", "cmd", "task")
-load("@pip//:requirements.bzl", "dist_info_requirement", "requirement")
+load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 
 py_binary(
@@ -18,7 +18,8 @@ filegroup(
 task(
     name = "hello",
     cmds = [
-        "echo Hello, world!",
+        "SOMEVAR=$(echo Hello, world!)",
+        "echo $SOMEVAR",
     ],
 )
 
@@ -77,9 +78,23 @@ task(
 )
 
 task(
+    name = "python",
+    cmds = [
+        cmd.python("""
+        import os
+        import sys
+        os.environ['SOMEVAR'] = 'somevalue'
+        sys.exit(0)
+        os.environ['SOMEVAR'] = 'this should not be printed'
+        """),
+        "echo $SOMEVAR",
+    ],
+)
+
+task(
     name = "python_entry_point",
     cmds = [
-        cmd.python_entry_point("black:patched_main", "--help"),
+        cmd.python_entry_point("black:patched_main", "--version"),
     ],
     deps = [
         requirement("black"),
@@ -104,6 +119,7 @@ py_test(
         ":filegroup",
         ":hello",
         ":py_binary",
+        ":python",
         ":python_entry_point",
     ],
     env = {

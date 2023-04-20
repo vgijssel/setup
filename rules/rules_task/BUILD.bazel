@@ -2,7 +2,10 @@ load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["runner.py"])
+exports_files([
+    "runner.py",
+    "py_binary_cmd_main.tpl.py",
+])
 
 compile_pip_requirements(
     name = "requirements",
