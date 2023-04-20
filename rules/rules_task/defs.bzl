@@ -138,30 +138,12 @@ def _flatten(list):
 def _compact(list):
     return [item for item in list if item != None]
 
-def _generate_py_binary(context, node):
+def _generate_py_binary_cmd(context, node):
     target_name = "{}_python_{}".format(context.name, context.state["target_index"])
-    target_main = "{}_main".format(target_name)
-    target_main_file = "{}.py".format(target_main)
-    python_code = """
-def main():
-    {python_code}
-
-if __name__ == "__main__":
-    main()
-""".format(python_code = node["code"])
-
-    write_file(
-        name = target_main,
-        out = target_main_file,
-        content = [python_code],
-    )
-
-    py_binary(
+    py_binary_cmd(
         name = target_name,
-        srcs = [target_main_file],
-        main = target_main_file,
+        code = node["code"],
     )
-
     context.state["target_index"] += 1
     node["label"] = _fq_label(target_name)
 
@@ -195,7 +177,7 @@ _target_generator = {
     "visit_files": lambda context, node: None,
     "visit_executable": lambda context, node: None,
     "visit_python_entry_point": lambda context, node: None,
-    "visit_python": lambda context, node: _generate_py_binary(context, node),
+    "visit_python": lambda context, node: _generate_py_binary_cmd(context, node),
 }
 
 def _visitor_context(ctx, visitor, name):
@@ -388,3 +370,31 @@ cmd = struct(
         "label": None,
     },
 )
+
+def py_binary_cmd(name, code):
+    main_name = "{}_main".format(name)
+    main_name_file = "{}.py".format(main_name)
+    python_code = """
+# store the current os.environ
+# setup a at exit handler
+# on exit compare the os.environ
+# if changed print the diff
+
+def main():
+    {python_code}
+
+if __name__ == "__main__":
+    main()
+""".format(python_code = code)
+
+    write_file(
+        name = main_name,
+        out = main_name_file,
+        content = [python_code],
+    )
+
+    py_binary(
+        name = name,
+        srcs = [main_name_file],
+        main = main_name_file,
+    )
