@@ -8,7 +8,6 @@ load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 
-# TODO: merge _visit and _visit_method
 def _visit(context, node):
     return _visit_method(context, node)(context, node)
 
@@ -49,15 +48,11 @@ def _visit_files(_context, node):
 def _visit_executable(_context, node):
     return node
 
-def _visit_python_entry_point(context, node):
+def _visit_python(context, node):
     result = []
-
     for arg in node["args"]:
         result.append(_visit_method(context, arg)(context, arg))
     return result
-
-def _visit_python(_context, node):
-    return node
 
 def _file_label_to_jinja_path(ctx, label):
     rlocation = ctx.expand_location("$(rlocationpath {})".format(label), ctx.attr.data)
@@ -93,43 +88,35 @@ def _executable_label_to_jinja_path(ctx, label):
     rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
     return rlocation
 
-def _serialize_python_entry_point(context, node):
-    args = " ".join(_visit_python_entry_point(context, node))
-
+def _python_entry_point(entry_point, args):
     # Translate
     # tap_gitlab:Tap.cli
     # into
     # from tap_gitlab import Tap
     # Tap.cli()
-    entry_point = node["entry_point"]
     python_import, python_method = entry_point.split(":")
     python_class = python_method.split(".")[0]
     python_import = "from {} import {}".format(python_import, python_class)
     python_method = "{}()".format(python_method)
 
     python_code = """
-import sys
-{python_import}
-sys.exit({python_method})
+    import sys
+    {python_import}
+    sys.exit({python_method})
     """.format(python_import = python_import, python_method = python_method)
 
-    inline_python = """
-python3 - <<EOF {args}
-{python_code}
-EOF
-    """.format(args = args, python_code = python_code)
-
-    return inline_python
+    return cmd.python(python_code, *args)
 
 def _serialize_python(context, node):
-    label = _executable_label_to_jinja_path(context.ctx, _visit_python(context, node)["label"])
+    args = " ".join(_visit_python(context, node))
+    label = _executable_label_to_jinja_path(context.ctx, node["label"])
 
     code = """
     export TASK_ENV_FILE=$(mktemp)
-    {label}
+    {label} {args}
     source $TASK_ENV_FILE
     unset TASK_ENV_FILE
-    """.format(label = label)
+    """.format(label = label, args = args)
 
     return code
 
@@ -166,7 +153,6 @@ _serializer = {
     "visit_file": lambda context, node: _file_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_files": lambda context, node: _files_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
-    "visit_python_entry_point": lambda context, node: _serialize_python_entry_point(context, node),
     "visit_python": lambda context, node: _serialize_python(context, node),
 }
 
@@ -177,8 +163,7 @@ _data_collector = {
     "visit_file": lambda context, node: _visit_file(context, node)["label"],
     "visit_files": lambda context, node: _visit_files(context, node)["label"],
     "visit_executable": lambda context, node: _visit_executable(context, node)["label"],
-    "visit_python_entry_point": lambda context, node: _visit_python_entry_point(context, node),
-    "visit_python": lambda context, node: _visit_python(context, node)["label"],
+    "visit_python": lambda context, node: node["label"],
 }
 
 _target_generator = {
@@ -188,7 +173,6 @@ _target_generator = {
     "visit_file": lambda context, node: None,
     "visit_files": lambda context, node: None,
     "visit_executable": lambda context, node: None,
-    "visit_python_entry_point": lambda context, node: None,
     "visit_python": lambda context, node: _generate_py_binary_cmd(context, node),
 }
 
@@ -329,7 +313,7 @@ def _wrap_shell_args(args):
 
     return result
 
-def _wrap_python_entry_point_args(args):
+def _wrap_python_args(args):
     result = []
 
     for arg in args:
@@ -369,16 +353,13 @@ cmd = struct(
         "type": "string",
         "value": string,
     },
-    python_entry_point = lambda entry_point, *args: {
-        "type": "python_entry_point",
-        "entry_point": entry_point,
-        "args": _wrap_python_entry_point_args(args),
-    },
-    python = lambda code: {
+    python = lambda code, *args: {
         "type": "python",
         "code": code,
+        "args": _wrap_python_args(args),
         "label": None,
     },
+    python_entry_point = lambda entry_point, *args: _python_entry_point(entry_point, args),
 )
 
 def py_binary_cmd(name, code):

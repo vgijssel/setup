@@ -72,4 +72,4 @@ def test_python():
 def test_python_entry_point():
     result = _run_task("python_entry_point")
     assert result.returncode == 0
-    assert result.stdout.strip().startswith(b"Usage: - [OPTIONS] SRC ...")
+    assert "23.3.0 (compiled: no)" in result.stdout.strip().decode("utf-8")

@@ -1,4 +1,4 @@
-load("@rules_task//:defs.bzl", "cmd", "py_binary_cmd", "task")
+load("@rules_task//:defs.bzl", "cmd", "task")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 
@@ -77,19 +77,6 @@ task(
     ],
 )
 
-py_binary_cmd(
-    name = "python_test",
-    code = """
-    import os
-    import sys
-    print("kerk")
-    os.environ['SOMEVAR'] = 'somevalue'
-    os.environ['FOO'] = 'bar'
-    sys.exit(0)
-    os.environ['SOMEVAR'] = 'this should not be printed'
-    """,
-)
-
 task(
     name = "python",
     cmds = [
@@ -107,7 +94,7 @@ task(
 task(
     name = "python_entry_point",
     cmds = [
-        cmd.python_entry_point("black:patched_main", "--help"),
+        cmd.python_entry_point("black:patched_main", "--version"),
     ],
     deps = [
         requirement("black"),
