@@ -7,52 +7,56 @@ load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 
-def _visit(ctx, visitor, node):
-    return _visit_method(node, visitor)(ctx, visitor, node)
+# TODO: merge _visit and _visit_method
+def _visit(context, node):
+    return _visit_method(context, node)(context, node)
 
-def _visit_method(node, visitor):
+def _visit_method(context, node):
     if type(node) != "dict":
         fail("Node should be a dict, got value '{}' of type {}".format(node, type(node)))
 
     method_key = "visit_" + node["type"]
 
-    if method_key not in visitor:
+    if method_key not in context.visitor:
         fail("Unknown node type: %s" % node["type"])
 
-    return visitor[method_key]
+    return context.visitor[method_key]
 
-def _visit_root(ctx, visitor, node):
+def _visit_root(context, node):
     result = []
     for item in node["args"]:
         result.append(
-            _visit_method(item, visitor)(ctx, visitor, item),
+            _visit_method(context, item)(context, item),
         )
     return result
 
-def _visit_shell(ctx, visitor, node):
+def _visit_shell(context, node):
     result = []
     for arg in node["args"]:
-        result.append(_visit_method(arg, visitor)(ctx, visitor, arg))
+        result.append(_visit_method(context, arg)(context, arg))
     return result
 
-def _visit_string(_ctx, _visitor, node):
+def _visit_string(_context, node):
     return node
 
-def _visit_file(_ctx, _visitor, node):
+def _visit_file(_context, node):
     return node
 
-def _visit_files(_ctx, _visitor, node):
+def _visit_files(_context, node):
     return node
 
-def _visit_executable(_ctx, _visitor, node):
+def _visit_executable(_context, node):
     return node
 
-def _visit_python_entry_point(ctx, visitor, node):
+def _visit_python_entry_point(context, node):
     result = []
 
     for arg in node["args"]:
-        result.append(_visit_method(arg, visitor)(ctx, visitor, arg))
+        result.append(_visit_method(context, arg)(context, arg))
     return result
+
+def _visit_python(_context, node):
+    return node
 
 def _file_label_to_jinja_path(ctx, label):
     rlocation = ctx.expand_location("$(rlocationpath {})".format(label), ctx.attr.data)
@@ -88,8 +92,8 @@ def _executable_label_to_jinja_path(ctx, label):
     rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
     return rlocation
 
-def _serialize_python_entry_point(ctx, visitor, node):
-    args = " ".join(_visit_python_entry_point(ctx, visitor, node))
+def _serialize_python_entry_point(context, node):
+    args = " ".join(_visit_python_entry_point(context, node))
 
     # Translate
     # tap_gitlab:Tap.cli
@@ -130,25 +134,47 @@ def _flatten(list):
 def _compact(list):
     return [item for item in list if item != None]
 
+def _generate_py_binary(context, node):
+    pass
+
 _serializer = {
-    "visit_root": lambda ctx, visitor, node: _visit_root(ctx, visitor, node),
-    "visit_shell": lambda ctx, visitor, node: " ".join(_visit_shell(ctx, visitor, node)),
-    "visit_string": lambda ctx, visitor, node: _visit_string(ctx, visitor, node)["value"],
-    "visit_file": lambda ctx, visitor, node: _file_label_to_jinja_path(ctx, _visit_file(ctx, visitor, node)["label"]),
-    "visit_files": lambda ctx, visitor, node: _files_label_to_jinja_path(ctx, _visit_file(ctx, visitor, node)["label"]),
-    "visit_executable": lambda ctx, visitor, node: _executable_label_to_jinja_path(ctx, _visit_executable(ctx, visitor, node)["label"]),
-    "visit_python_entry_point": lambda ctx, visitor, node: _serialize_python_entry_point(ctx, visitor, node),
+    "visit_root": lambda context, node: _visit_root(context, node),
+    "visit_shell": lambda context, node: " ".join(_visit_shell(context, node)),
+    "visit_string": lambda context, node: _visit_string(context, node)["value"],
+    "visit_file": lambda context, node: _file_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
+    "visit_files": lambda context, node: _files_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
+    "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
+    "visit_python_entry_point": lambda context, node: _serialize_python_entry_point(context, node),
+    "visit_python": lambda context, node: _visit_python(context, node),
 }
 
 _data_collector = {
-    "visit_root": lambda ctx, visitor, node: _flatten(_visit_root(ctx, visitor, node)),
-    "visit_shell": lambda ctx, visitor, node: _compact(_visit_shell(ctx, visitor, node)),
-    "visit_string": lambda ctx, visitor, node: None,
-    "visit_file": lambda ctx, visitor, node: _visit_file(ctx, visitor, node)["label"],
-    "visit_files": lambda ctx, visitor, node: _visit_files(ctx, visitor, node)["label"],
-    "visit_executable": lambda ctx, visitor, node: _visit_executable(ctx, visitor, node)["label"],
-    "visit_python_entry_point": lambda ctx, visitor, node: _compact(_visit_python_entry_point(ctx, visitor, node)),
+    "visit_root": lambda context, node: _compact(_flatten(_visit_root(context, node))),
+    "visit_shell": lambda context, node: _visit_shell(context, node),
+    "visit_string": lambda context, node: None,
+    "visit_file": lambda context, node: _visit_file(context, node)["label"],
+    "visit_files": lambda context, node: _visit_files(context, node)["label"],
+    "visit_executable": lambda context, node: _visit_executable(context, node)["label"],
+    "visit_python_entry_point": lambda context, node: _visit_python_entry_point(context, node),
+    "visit_python": lambda context, node: _visit_python(context, node)["label"],
 }
+
+_target_generator = {
+    "visit_root": lambda context, node: _visit_root(context, node),
+    "visit_shell": lambda context, node: None,
+    "visit_string": lambda context, node: None,
+    "visit_file": lambda context, node: None,
+    "visit_files": lambda context, node: None,
+    "visit_executable": lambda context, node: None,
+    "visit_python_entry_point": lambda context, node: None,
+    "visit_python": lambda context, node: _generate_py_binary(context, node),
+}
+
+def _visitor_context(ctx, visitor):
+    return struct(
+        ctx = ctx,
+        visitor = visitor,
+    )
 
 def _task_impl(ctx):
     instructions_file = ctx.actions.declare_file(ctx.label.name + ".json")
@@ -161,7 +187,8 @@ def _task_impl(ctx):
     ])
 
     cmd_nodes = json.decode(ctx.attr.cmd_json)
-    cmds = _visit(ctx, _serializer, cmd_nodes)
+    visitor_context = _visitor_context(ctx, _serializer)
+    cmds = _visit(visitor_context, cmd_nodes)
 
     runner_exe = ctx.executable.runner
     instructions = {
@@ -227,7 +254,14 @@ def task(name, deps = [], **kwargs):
         fail('The "cmd_json" attribute is reserved for internal use.')
 
     cmds = cmd.root(cmds)
-    cmd_data = _visit(None, _data_collector, cmds)
+
+    # Generate targets and set labels for all the nodes
+    visitor_context = _visitor_context(None, _target_generator)
+    _visit(visitor_context, cmds)
+
+    # Collect all the labels from the nodes
+    visitor_context = _visitor_context(None, _data_collector)
+    cmd_data = _visit(visitor_context, cmds)
     cmd_json = json.encode(cmds)
 
     _task(
@@ -312,5 +346,10 @@ cmd = struct(
         "type": "python_entry_point",
         "entry_point": entry_point,
         "args": _wrap_python_entry_point_args(args),
+    },
+    python = lambda code: {
+        "type": "python",
+        "code": code,
+        "label": None,
     },
 )
