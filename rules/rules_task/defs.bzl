@@ -121,6 +121,18 @@ EOF
 
     return inline_python
 
+def _serialize_python(context, node):
+    label = _executable_label_to_jinja_path(context.ctx, _visit_python(context, node)["label"])
+
+    code = """
+    export TASK_ENV_FILE=$(mktemp)
+    {label}
+    source $TASK_ENV_FILE
+    unset TASK_ENV_FILE
+    """.format(label = label)
+
+    return code
+
 def _fq_label(string):
     return str(native.package_relative_label(string))
 
@@ -155,7 +167,7 @@ _serializer = {
     "visit_files": lambda context, node: _files_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
     "visit_python_entry_point": lambda context, node: _serialize_python_entry_point(context, node),
-    "visit_python": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_python(context, node)["label"]),
+    "visit_python": lambda context, node: _serialize_python(context, node),
 }
 
 _data_collector = {
@@ -276,8 +288,6 @@ def task(name, deps = [], **kwargs):
     # Collect all the labels from the nodes
     visitor_context = _visitor_context(None, _data_collector, name)
     cmd_data = _visit(visitor_context, cmds)
-
-    print(cmd_data)
 
     cmd_json = json.encode(cmds)
 

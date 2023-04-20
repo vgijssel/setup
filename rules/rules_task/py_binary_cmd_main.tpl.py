@@ -9,7 +9,7 @@ task_env_file = os.environ["TASK_ENV_FILE"]
 @atexit.register
 def write_changed_env():
     new_env = os.environ.copy()
-    diff = DeepDiff(old_env, new_env, ignore_order=True, report_repetition=True)
+    diff = DeepDiff(old_env, new_env, ignore_order=True)
 
     changed_env = {}
 
