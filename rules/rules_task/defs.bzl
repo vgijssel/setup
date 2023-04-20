@@ -3,7 +3,7 @@ Public API for defining tasks.
 """
 
 load("@bazel_skylib//lib:shell.bzl", "shell")
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
@@ -374,27 +374,19 @@ cmd = struct(
 def py_binary_cmd(name, code):
     main_name = "{}_main".format(name)
     main_name_file = "{}.py".format(main_name)
-    python_code = """
-# store the current os.environ
-# setup a at exit handler
-# on exit compare the os.environ
-# if changed print the diff
 
-def main():
-    {python_code}
-
-if __name__ == "__main__":
-    main()
-""".format(python_code = code)
-
-    write_file(
+    expand_template(
         name = main_name,
+        template = "//:py_binary_cmd_main.tpl.py",
         out = main_name_file,
-        content = [python_code],
+        substitutions = {
+            "{{python_code}}": code,
+        },
     )
 
     py_binary(
         name = name,
         srcs = [main_name_file],
         main = main_name_file,
+        deps = [requirement("deepdiff")],
     )

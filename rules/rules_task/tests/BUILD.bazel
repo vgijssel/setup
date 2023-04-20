@@ -84,6 +84,7 @@ py_binary_cmd(
     import sys
     print("kerk")
     os.environ['SOMEVAR'] = 'somevalue'
+    os.environ['FOO'] = 'bar'
     sys.exit(0)
     os.environ['SOMEVAR'] = 'this should not be printed'
     """,
