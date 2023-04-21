@@ -1,4 +1,4 @@
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 
@@ -156,6 +156,13 @@ task(
         "exit 2",
         "echo not printed",
         cmd.defer(cmd.python("print('not printed defer')")),
+    ],
+)
+
+task_test(
+    name = "task_test_test",
+    cmds = [
+        "exit 0",
     ],
 )
 
