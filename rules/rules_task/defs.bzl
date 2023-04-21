@@ -326,8 +326,8 @@ def _task_rule_prep(kwargs, testonly = False):
 
     py_binary(
         name = runner_name,
-        main = "//:runner.py",
-        srcs = ["//:runner.py"],
+        main = "@rules_task//:runner.py",
+        srcs = ["@rules_task//:runner.py"],
         testonly = testonly,
         deps = [
             requirement("bazel-runfiles"),

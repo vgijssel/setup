@@ -121,11 +121,3 @@ pip.parse(
     requirements_lock = "//tools/black:requirements.lock",
 )
 use_repo(pip, "black-requirements")
-
-# ------------------------------------ command ------------------------------------ #
-pip.parse(
-    name = "command-requirements",
-    python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "@setup//tools/command:requirements.lock",
-)
-use_repo(pip, "command-requirements")

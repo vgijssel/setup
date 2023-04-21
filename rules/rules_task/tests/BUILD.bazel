@@ -159,6 +159,13 @@ task(
     ],
 )
 
+task(
+    name = "cli_args",
+    cmds = [
+        "echo $CLI_ARGS",
+    ],
+)
+
 task_test(
     name = "task_test_test",
     cmds = [
@@ -178,6 +185,7 @@ py_test(
     ] + ["$(location :%s)" % x for x in ["test.py"]],
     data = [
         ":broken",
+        ":cli_args",
         ":cwd",
         ":cwd_jinja",
         ":defer",

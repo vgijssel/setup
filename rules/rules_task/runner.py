@@ -25,7 +25,8 @@ def jinja_render_string(string):
 
 
 def main() -> None:
-    _, instructions_file = sys.argv
+    _, instructions_file, *cli_args = sys.argv
+    cli_args = " ".join(cli_args)
 
     # Making sure the current Python executable is in front of the PATH
     # so python based cmds can use this Python as well.
@@ -81,8 +82,10 @@ trap_add() {
         bash_cmd += cmd + "\n"
 
     bash_cmd = jinja_render_string(bash_cmd)
+    cmd_env = os.environ.copy()
+    cmd_env["CLI_ARGS"] = cli_args
 
-    result = subprocess.run(["bash", "-c", bash_cmd], capture_output=True)
+    result = subprocess.run(["bash", "-c", bash_cmd], capture_output=True, env=cmd_env)
 
     sys.stdout.write(result.stdout.decode("utf-8"))
     sys.stderr.write(result.stderr.decode("utf-8"))

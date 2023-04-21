@@ -1,7 +1,7 @@
-load("//tools/command:command.bzl", "command")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@npm//:prettier/package_json.bzl", prettier_bin = "bin")
+load("@rules_task//:defs.bzl", "cmd", "task")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -41,9 +41,11 @@ prettier_bin.prettier_binary(
     name = "prettier_bin",
 )
 
-command(
+task(
     name = "prettier",
-    command_src = ":prettier_bin",
+    cmds = [
+        cmd.executable(":prettier_bin"),
+    ],
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
     env = {
         "BAZEL_BINDIR": ".",

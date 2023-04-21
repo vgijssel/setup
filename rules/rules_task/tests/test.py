@@ -14,9 +14,9 @@ def _runfiles_path(path):
     return p
 
 
-def _run_task(name):
+def _run_task(name, args=[]):
     binary = _runfiles_path(os.path.join(os.environ["WORKSPACE_NAME"], "tests", name))
-    return subprocess.run([binary], capture_output=True)
+    return subprocess.run([binary] + args, capture_output=True)
 
 
 def _get_output(name):
@@ -102,3 +102,9 @@ def test_defer():
     result = _run_task("defer")
     assert result.returncode == 2
     assert result.stdout.strip() == b"first\nsecond\nfirst defer\nsecond defer"
+
+
+def test_cli_args():
+    result = _run_task("cli_args", ["get", "this", "value", "back"])
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"get this value back"
