@@ -1,12 +1,17 @@
-load("//tools/command:command.bzl", "command")
+load("@rules_task//:defs.bzl", "cmd", "task")
 load("@python3//:defs.bzl", "interpreter")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 
 package(default_visibility = ["//visibility:public"])
 
-command(
+task(
     name = "python",
-    command_src = interpreter,
+    cmds = [
+        cmd.shell(
+            interpreter,
+            "$CLI_ARGS",
+        ),
+    ],
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
 )
 

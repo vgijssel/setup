@@ -5,6 +5,7 @@ import os
 import runfiles
 import jinja2
 import sys
+import signal
 
 r = runfiles.Create()
 environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
@@ -23,6 +24,9 @@ def jinja_render_string(string):
     template = environment.from_string(string)
     return template.render(os=os, rlocation_to_path=_rlocation_to_path)
 
+def signal_handler(sig, frame):
+    print('You pressed Ctrl+C!')
+    sys.exit(0)
 
 def main() -> None:
     _, instructions_file, *cli_args = sys.argv
@@ -85,8 +89,18 @@ trap_add() {
     cmd_env = os.environ.copy()
     cmd_env["CLI_ARGS"] = cli_args
 
-    result = subprocess.run(["bash", "-c", bash_cmd], env=cmd_env)
-    sys.exit(result.returncode)
+    cmd = ["bash", "-c", bash_cmd]
+    try:
+        process = subprocess.Popen(
+            cmd,
+            env=cmd_env,
+        )
+        process.wait()
+    except KeyboardInterrupt:
+        process.send_signal(signal.SIGINT)
+        process.wait()
+
+    sys.exit(process.returncode)
 
 
 if __name__ == "__main__":

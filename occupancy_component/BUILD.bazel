@@ -1,7 +1,7 @@
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@occupancy_component//:requirements.bzl", "requirement")
 load("//tools/pytest:pytest.bzl", "py_pytest_test")
-load("//tools/command:command.bzl", "command")
+load("@rules_task//:defs.bzl", "cmd", "task")
 
 compile_pip_requirements(
     name = "requirements",
@@ -38,10 +38,15 @@ py_pytest_test(
     ],
 )
 
-command(
+task(
     name = "tilt",
-    command_src = "@tilt_arm64//:tilt_binary",
-    cwd = "{{ os.path.dirname(runfiles_path('$(rlocationpath :Tiltfile)')) }}",
+    cmds = [
+        cmd.shell(
+            cmd.executable("@tilt_arm64//:tilt_binary"),
+            "$CLI_ARGS",
+        ),
+    ],
+    cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}/occupancy_component",
     data = [
         ":Tiltfile",
         ":docker-compose.yml",
@@ -49,16 +54,13 @@ command(
     ],
 )
 
-# TODO: can we also remove attached volumes when doing "down"?
-command(
+task(
     name = "dev",
-    after_cmd = """
-    subprocess.run([cmd, "down"])
-    """,
-    args = [
-        "up",
-        "--port",
-        "10350",
+    cmds = [
+        "$tilt up --port 10350",
+        {"defer": "$tilt down"},
     ],
-    command_src = ":tilt",
+    env = {
+        "tilt": cmd.executable(":tilt"),
+    },
 )
