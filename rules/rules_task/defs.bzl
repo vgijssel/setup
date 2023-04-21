@@ -299,40 +299,41 @@ set -Eeou pipefail
         ),
     ]
 
-_task = rule(
-    implementation = _task_impl,
-    executable = True,
-    attrs = {
-        "cmd_json": attr.string(mandatory = True),
-        "cwd": attr.string(),
-        "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
-        "data": attr.label_list(allow_files = True, cfg = "exec"),
-        "runner": attr.label(
-            mandatory = True,
-            cfg = "exec",
-            executable = True,
-        ),
-        "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
-    },
-)
+_shared_attrs = {
+    "cmd_json": attr.string(mandatory = True),
+    "cwd": attr.string(),
+    "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
+    "data": attr.label_list(allow_files = True, cfg = "exec"),
+    "runner": attr.label(
+        mandatory = True,
+        cfg = "exec",
+        executable = True,
+    ),
+    "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
+}
 
-def task(name, deps = [], env = {}, **kwargs):
-    data = kwargs.pop("data", [])
+def _task_rule_prep(kwargs, testonly = False):
+    if "cmd_json" in kwargs:
+        fail('The "cmd_json" attribute is reserved for internal use.')
+
     cmds = kwargs.pop("cmds")
+    env = kwargs.pop("env", {})
+    deps = kwargs.pop("deps", [])
+    data = kwargs.pop("data", [])
+    name = kwargs["name"]
+
     runner_name = "{}_runner".format(name)
 
     py_binary(
         name = runner_name,
         main = "//:runner.py",
         srcs = ["//:runner.py"],
+        testonly = testonly,
         deps = [
             requirement("bazel-runfiles"),
             requirement("jinja2"),
         ] + deps,
     )
-
-    if "cmd_json" in kwargs:
-        fail('The "cmd_json" attribute is reserved for internal use.')
 
     cmds = cmd.root([cmd.env(env)] + cmds)
 
@@ -342,14 +343,39 @@ def task(name, deps = [], env = {}, **kwargs):
 
     # Collect all the labels from the nodes
     visitor_context = _visitor_context(None, _data_collector, name)
-    cmd_data = _visit(visitor_context, cmds)
-
+    cmd_data = _visit(visitor_context, cmds) + data
     cmd_json = json.encode(cmds)
+    return runner_name, cmd_data, cmd_json
+
+_task = rule(
+    implementation = _task_impl,
+    executable = True,
+    attrs = _shared_attrs,
+)
+
+_task_test = rule(
+    implementation = _task_impl,
+    executable = True,
+    attrs = _shared_attrs,
+    test = True,
+)
+
+def task(**kwargs):
+    runner_name, data, cmd_json = _task_rule_prep(kwargs)
 
     _task(
         runner = runner_name,
-        name = name,
-        data = data + cmd_data,
+        data = data,
+        cmd_json = cmd_json,
+        **kwargs
+    )
+
+def task_test(**kwargs):
+    runner_name, data, cmd_json = _task_rule_prep(kwargs, testonly = True)
+
+    _task_test(
+        runner = runner_name,
+        data = data,
         cmd_json = cmd_json,
         **kwargs
     )
