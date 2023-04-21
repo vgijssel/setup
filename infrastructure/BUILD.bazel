@@ -33,11 +33,12 @@ task(
 task(
     name = "provisioner-deploy",
     cmds = [
+        "unset BUILD_WORKING_DIRECTORY",
         cmd.shell(
             cmd.executable(":pulumi"),
             "up",
             "--stack",
-            "dev",
+            "mvgijssel/provisioner/dev",
             "--diff",
             "--color",
             "always",

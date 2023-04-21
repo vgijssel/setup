@@ -166,6 +166,23 @@ task(
     ],
 )
 
+task(
+    name = "cat",
+    cmds = [
+        "cat",
+    ],
+)
+
+task(
+    name = "capture_stdin",
+    cmds = [
+        "echo 'hello from stdin' | $other_cmd",
+    ],
+    env = {
+        "other_cmd": cmd.executable(":cat"),
+    },
+)
+
 task_test(
     name = "task_test_test",
     cmds = [
@@ -185,6 +202,7 @@ py_test(
     ] + ["$(location :%s)" % x for x in ["test.py"]],
     data = [
         ":broken",
+        ":capture_stdin",
         ":cli_args",
         ":cwd",
         ":cwd_jinja",

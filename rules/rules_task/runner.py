@@ -85,13 +85,8 @@ trap_add() {
     cmd_env = os.environ.copy()
     cmd_env["CLI_ARGS"] = cli_args
 
-    result = subprocess.run(["bash", "-c", bash_cmd], capture_output=True, env=cmd_env)
-
-    sys.stdout.write(result.stdout.decode("utf-8"))
-    sys.stderr.write(result.stderr.decode("utf-8"))
-
-    if result.returncode != 0:
-        sys.exit(result.returncode)
+    result = subprocess.run(["bash", "-c", bash_cmd], env=cmd_env)
+    sys.exit(result.returncode)
 
 
 if __name__ == "__main__":

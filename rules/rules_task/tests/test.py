@@ -108,3 +108,9 @@ def test_cli_args():
     result = _run_task("cli_args", ["get", "this", "value", "back"])
     assert result.returncode == 0
     assert result.stdout.strip() == b"get this value back"
+
+
+def test_capture_stdin():
+    result = _run_task("capture_stdin")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"hello from stdin"
