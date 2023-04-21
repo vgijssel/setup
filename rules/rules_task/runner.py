@@ -38,7 +38,7 @@ def main() -> None:
 
     cwd = instructions["cwd"] or "$PWD"
     bash_cmd = f"""
-    set -e
+    set -Eeou pipefail
     cd {cwd}
     """
 

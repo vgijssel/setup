@@ -101,6 +101,20 @@ task(
     ],
 )
 
+task(
+    name = "env",
+    cmds = [
+        "echo $FOO",
+        "$hello",
+        "$python",
+    ],
+    env = {
+        "FOO": "BAR",
+        "hello": cmd.executable(":hello"),
+        "python": cmd.executable(":python"),
+    },
+)
+
 py_test(
     name = "test",
     srcs = [
@@ -115,6 +129,7 @@ py_test(
         ":broken",
         ":cwd",
         ":cwd_jinja",
+        ":env",
         ":file",
         ":filegroup",
         ":hello",
