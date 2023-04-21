@@ -88,8 +88,6 @@ trap_add() {
 
     cmd = ["bash", "-c", bash_cmd]
 
-    print(bash_cmd)
-
     try:
         process = subprocess.Popen(
             cmd,
