@@ -54,6 +54,23 @@ def _visit_python(context, node):
         result.append(_visit_method(context, arg)(context, arg))
     return result
 
+def _visit_env(context, node):
+    result = []
+
+    for _key, value in node["env"].items():
+        result.append(_visit_method(context, value)(context, value))
+
+    return result
+
+def _serialize_env(context, node):
+    env_string = ""
+
+    for key, value in node["env"].items():
+        env_value = _visit_method(context, value)(context, value)
+        env_string += "export {}={}\n".format(key, env_value)
+
+    return env_string
+
 def _file_label_to_jinja_path(ctx, label):
     rlocation = ctx.expand_location("$(rlocationpath {})".format(label), ctx.attr.data)
     rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
@@ -148,6 +165,7 @@ def _generate_py_binary_cmd(context, node):
 
 _serializer = {
     "visit_root": lambda context, node: _visit_root(context, node),
+    "visit_env": lambda context, node: _serialize_env(context, node),
     "visit_shell": lambda context, node: " ".join(_visit_shell(context, node)),
     "visit_string": lambda context, node: _visit_string(context, node)["value"],
     "visit_file": lambda context, node: _file_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
@@ -158,6 +176,7 @@ _serializer = {
 
 _data_collector = {
     "visit_root": lambda context, node: _compact(_flatten(_visit_root(context, node))),
+    "visit_env": lambda context, node: _visit_env(context, node),
     "visit_shell": lambda context, node: _visit_shell(context, node),
     "visit_string": lambda context, node: None,
     "visit_file": lambda context, node: _visit_file(context, node)["label"],
@@ -168,6 +187,7 @@ _data_collector = {
 
 _target_generator = {
     "visit_root": lambda context, node: _visit_root(context, node),
+    "visit_env": lambda context, node: _visit_env(context, node),
     "visit_shell": lambda context, node: None,
     "visit_string": lambda context, node: None,
     "visit_file": lambda context, node: None,
@@ -234,7 +254,6 @@ _task = rule(
     executable = True,
     attrs = {
         "cmd_json": attr.string(mandatory = True),
-        "env_json": attr.string(mandatory = True),
         "cwd": attr.string(),
         "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
         "data": attr.label_list(allow_files = True, cfg = "exec"),
@@ -264,10 +283,7 @@ def task(name, deps = [], env = {}, **kwargs):
     if "cmd_json" in kwargs:
         fail('The "cmd_json" attribute is reserved for internal use.')
 
-    if "env_json" in kwargs:
-        fail('The "env_json" attribute is reserved for internal use.')
-
-    cmds = cmd.root(cmds)
+    cmds = cmd.root([cmd.env(env)] + cmds)
 
     # Generate targets and set labels for all the nodes
     visitor_context = _visitor_context(None, _target_generator, name)
@@ -279,14 +295,11 @@ def task(name, deps = [], env = {}, **kwargs):
 
     cmd_json = json.encode(cmds)
 
-    env_json = json.encode(env)
-
     _task(
         runner = runner_name,
         name = name,
         data = data + cmd_data,
         cmd_json = cmd_json,
-        env_json = env_json,
         **kwargs
     )
 
@@ -304,6 +317,12 @@ def _wrap_root_args(args):
         result.append(arg)
 
     return result
+
+def _wrap_env(env):
+    for key, value in env.items():
+        if type(value) == "string":
+            env[key] = cmd.string(value)
+    return env
 
 def _wrap_shell_args(args):
     result = []
@@ -339,6 +358,10 @@ cmd = struct(
     root = lambda args: {
         "type": "root",
         "args": _wrap_root_args(args),
+    },
+    env = lambda env: {
+        "type": "env",
+        "env": _wrap_env(env),
     },
     shell = lambda *args: {
         "type": "shell",

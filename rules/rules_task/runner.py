@@ -47,9 +47,6 @@ def main() -> None:
 
     bash_cmd = jinja_render_string(bash_cmd)
 
-    if "BAZEL_TEST" not in os.environ:
-        print(bash_cmd)
-
     result = subprocess.run(["bash", "-c", bash_cmd], capture_output=True)
 
     sys.stdout.write(result.stdout.decode("utf-8"))
