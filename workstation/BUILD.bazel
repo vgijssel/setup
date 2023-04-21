@@ -133,8 +133,8 @@ docker_load_and_run(
 task(
     name = "test",
     cmds = [
-        cmd.executable(":provision_command"),
+        cmd.executable(":provision"),
         cmd.executable("//tools/macos:macos-remote-setup"),
-        cmd.executable(":inspec_runner_command"),
+        cmd.executable(":inspec_runner"),
     ],
 )

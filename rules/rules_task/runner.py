@@ -87,6 +87,9 @@ trap_add() {
     cmd_env["CLI_ARGS"] = cli_args
 
     cmd = ["bash", "-c", bash_cmd]
+
+    print(bash_cmd)
+
     try:
         process = subprocess.Popen(
             cmd,

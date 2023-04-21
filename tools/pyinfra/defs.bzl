@@ -30,7 +30,7 @@ def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = 
             "deploy_file": cmd.file(deploy),
             "inventory_file": cmd.file(inventory),
             "default_args": "'" + " ".join(args) + "'",
-        }.extend(env),
+        } | env,
         data = data,
         deps = deps,
     )
