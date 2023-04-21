@@ -234,6 +234,7 @@ _task = rule(
     executable = True,
     attrs = {
         "cmd_json": attr.string(mandatory = True),
+        "env_json": attr.string(mandatory = True),
         "cwd": attr.string(),
         "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
         "data": attr.label_list(allow_files = True, cfg = "exec"),
@@ -245,7 +246,7 @@ _task = rule(
     },
 )
 
-def task(name, deps = [], **kwargs):
+def task(name, deps = [], env = {}, **kwargs):
     data = kwargs.pop("data", [])
     cmds = kwargs.pop("cmds")
     runner_name = "{}_runner".format(name)
@@ -263,6 +264,9 @@ def task(name, deps = [], **kwargs):
     if "cmd_json" in kwargs:
         fail('The "cmd_json" attribute is reserved for internal use.')
 
+    if "env_json" in kwargs:
+        fail('The "env_json" attribute is reserved for internal use.')
+
     cmds = cmd.root(cmds)
 
     # Generate targets and set labels for all the nodes
@@ -275,11 +279,14 @@ def task(name, deps = [], **kwargs):
 
     cmd_json = json.encode(cmds)
 
+    env_json = json.encode(env)
+
     _task(
         runner = runner_name,
         name = name,
         data = data + cmd_data,
         cmd_json = cmd_json,
+        env_json = env_json,
         **kwargs
     )
 

@@ -38,7 +38,7 @@ def main() -> None:
 
     cwd = instructions["cwd"] or "$PWD"
     bash_cmd = f"""
-    set -e
+    set -Eeou pipefail
     cd {cwd}
     """
 
@@ -46,6 +46,9 @@ def main() -> None:
         bash_cmd += cmd + "\n"
 
     bash_cmd = jinja_render_string(bash_cmd)
+
+    if "BAZEL_TEST" not in os.environ:
+        print(bash_cmd)
 
     result = subprocess.run(["bash", "-c", bash_cmd], capture_output=True)
 

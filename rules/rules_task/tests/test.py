@@ -73,3 +73,9 @@ def test_python_entry_point():
     result = _run_task("python_entry_point")
     assert result.returncode == 0
     assert "23.3.0 (compiled:" in result.stdout.strip().decode("utf-8")
+
+
+def test_env():
+    result = _run_task("env")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"BAR\nHello, world!\nsomevalue"
