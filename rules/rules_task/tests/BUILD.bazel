@@ -120,12 +120,12 @@ task(
     cmds = [
         "echo first",
         "export FIRST_DEFER=$(echo first defer)",
-        {"defer": "echo $FIRST_DEFER"},
+        {"defer": "echo first defer"},
         cmd.shell("echo", "second"),
-        cmd.shell("echo", "second", "defer").defer(),
+        cmd.defer(cmd.shell("echo", "second", "defer")),
         "exit 2",
         "echo not printed",
-        cmd.python("print('not printed defer')").defer(),
+        cmd.defer(cmd.python("print('not printed defer')")),
     ],
 )
 
