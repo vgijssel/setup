@@ -24,9 +24,6 @@ def jinja_render_string(string):
     template = environment.from_string(string)
     return template.render(os=os, rlocation_to_path=_rlocation_to_path)
 
-def signal_handler(sig, frame):
-    print('You pressed Ctrl+C!')
-    sys.exit(0)
 
 def main() -> None:
     _, instructions_file, *cli_args = sys.argv

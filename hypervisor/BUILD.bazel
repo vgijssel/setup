@@ -1,7 +1,6 @@
 # load("//tools/packer:defs.bzl", "packer_image")
 # load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 # load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box")
-# load("//tools/bazel:defs.bzl", "runner_binary")
 # load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
 # compile_pip_requirements(
@@ -48,7 +47,7 @@
 #     tags = ["no-cache"],
 # )
 
-# # runner_binary(
+# # task(
 # #     name = "kitchen",
 # #     out = "kitchen.sh",
 # #     cmd = """
