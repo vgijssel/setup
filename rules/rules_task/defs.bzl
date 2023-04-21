@@ -62,6 +62,9 @@ def _visit_env(context, node):
 
     return result
 
+def _visit_defer(context, node):
+    return _visit_method(context, node["node"])(context, node["node"])
+
 def _serialize_env(context, node):
     env_string = ""
 
@@ -132,8 +135,25 @@ def _serialize_python(context, node):
     export TASK_ENV_FILE=$(mktemp)
     {label} {args}
     source $TASK_ENV_FILE
+    rm $TASK_ENV_FILE
     unset TASK_ENV_FILE
     """.format(label = label, args = args)
+
+    return code
+
+def _serialize_defer(context, node):
+    defer_code = _visit_method(context, node["node"])(context, node["node"])
+    defer_function_name = "{}_{}".format(context.name, context.state["defer_index"])
+
+    code = """
+    function {defer_function_name} {{
+    {defer_code}
+    }}
+    trap_add {defer_function_name} EXIT
+
+    """.format(defer_code = defer_code, defer_function_name = defer_function_name)
+
+    context.state["defer_index"] += 1
 
     return code
 
@@ -166,6 +186,7 @@ def _generate_py_binary_cmd(context, node):
 _serializer = {
     "visit_root": lambda context, node: _visit_root(context, node),
     "visit_env": lambda context, node: _serialize_env(context, node),
+    "visit_defer": lambda context, node: _serialize_defer(context, node),
     "visit_shell": lambda context, node: " ".join(_visit_shell(context, node)),
     "visit_string": lambda context, node: _visit_string(context, node)["value"],
     "visit_file": lambda context, node: _file_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
@@ -177,6 +198,7 @@ _serializer = {
 _data_collector = {
     "visit_root": lambda context, node: _compact(_flatten(_visit_root(context, node))),
     "visit_env": lambda context, node: _visit_env(context, node),
+    "visit_defer": lambda context, node: _visit_defer(context, node),
     "visit_shell": lambda context, node: _visit_shell(context, node),
     "visit_string": lambda context, node: None,
     "visit_file": lambda context, node: _visit_file(context, node)["label"],
@@ -188,6 +210,7 @@ _data_collector = {
 _target_generator = {
     "visit_root": lambda context, node: _visit_root(context, node),
     "visit_env": lambda context, node: _visit_env(context, node),
+    "visit_defer": lambda context, node: _visit_defer(context, node),
     "visit_shell": lambda context, node: None,
     "visit_string": lambda context, node: None,
     "visit_file": lambda context, node: None,
@@ -203,6 +226,7 @@ def _visitor_context(ctx, visitor, name):
         name = name,
         state = {
             "target_index": 0,
+            "defer_index": 0,
         },
     )
 
@@ -314,6 +338,9 @@ def _wrap_root_args(args):
         if type(arg) != "dict":
             fail("Argument passed to root should either be string or dict, got value '{}' of type {}".format(arg, type(arg)))
 
+        if "defer" in arg:
+            arg = cmd.defer(arg["defer"])
+
         result.append(arg)
 
     return result
@@ -354,6 +381,12 @@ def _wrap_python_args(args):
 
     return result
 
+def _wrap_defer(node):
+    if type(node) == "string":
+        node = cmd.string(node)
+
+    return node
+
 cmd = struct(
     root = lambda args: {
         "type": "root",
@@ -362,6 +395,10 @@ cmd = struct(
     env = lambda env: {
         "type": "env",
         "env": _wrap_env(env),
+    },
+    defer = lambda node: {
+        "type": "defer",
+        "node": _wrap_defer(node),
     },
     shell = lambda *args: {
         "type": "shell",

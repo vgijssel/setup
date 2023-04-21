@@ -79,3 +79,9 @@ def test_env():
     result = _run_task("env")
     assert result.returncode == 0
     assert result.stdout.strip() == b"BAR\nHello, world!\nsomevalue"
+
+
+def test_defer():
+    result = _run_task("defer")
+    assert result.returncode == 2
+    assert result.stdout.strip() == b"first\nsecond\nfirst defer\nsecond defer"

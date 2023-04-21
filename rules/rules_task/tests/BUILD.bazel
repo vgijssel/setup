@@ -115,6 +115,20 @@ task(
     },
 )
 
+task(
+    name = "defer",
+    cmds = [
+        "echo first",
+        "export FIRST_DEFER=$(echo first defer)",
+        {"defer": "echo $FIRST_DEFER"},
+        cmd.shell("echo", "second"),
+        cmd.defer(cmd.shell("echo", "second", "defer")),
+        "exit 2",
+        "echo not printed",
+        cmd.defer(cmd.python("print('not printed defer')")),
+    ],
+)
+
 py_test(
     name = "test",
     srcs = [
@@ -129,6 +143,7 @@ py_test(
         ":broken",
         ":cwd",
         ":cwd_jinja",
+        ":defer",
         ":env",
         ":file",
         ":filegroup",
