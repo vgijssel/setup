@@ -15,9 +15,15 @@ def _runfiles_path(path):
 
 
 def _run_task(name):
-    print(os.environ["WORKSPACE_NAME"])
     binary = _runfiles_path(os.path.join(os.environ["WORKSPACE_NAME"], "tests", name))
     return subprocess.run([binary], capture_output=True)
+
+
+def _get_output(name):
+    output = _runfiles_path(os.path.join(os.environ["WORKSPACE_NAME"], "tests", name))
+
+    with open(output, "r") as file:
+        return file.read()
 
 
 def test_hello():
@@ -55,6 +61,17 @@ def test_py_binary():
     result = _run_task("py_binary")
     assert result.returncode == 0
     assert result.stdout.strip() == b"content from py_binary"
+
+
+def test_py_binary_with_runfile():
+    result = _run_task("py_binary_with_runfile")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"from python: content in test file"
+
+
+def test_genrule():
+    result = _get_output("genrule_output.txt")
+    assert result == "from genrule\nfrom python: content in test file\n"
 
 
 def test_filegroup():

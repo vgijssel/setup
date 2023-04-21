@@ -7,6 +7,17 @@ py_binary(
     srcs = ["test_py_binary.py"],
 )
 
+py_binary(
+    name = "test_py_binary_with_runfile",
+    srcs = ["test_py_binary_with_runfile.py"],
+    data = [
+        "test_file.txt",
+    ],
+    deps = [
+        requirement("bazel-runfiles"),
+    ],
+)
+
 filegroup(
     name = "test_filegroup",
     srcs = [
@@ -64,6 +75,25 @@ task(
     name = "py_binary",
     cmds = [
         cmd.executable(":test_py_binary"),
+    ],
+)
+
+task(
+    name = "py_binary_with_runfile",
+    cmds = [
+        cmd.executable(":test_py_binary_with_runfile"),
+    ],
+)
+
+genrule(
+    name = "genrule",
+    outs = ["genrule_output.txt"],
+    cmd = """
+    echo "from genrule" > $@
+    $(location :py_binary_with_runfile) >> $@
+    """,
+    tools = [
+        ":py_binary_with_runfile",
     ],
 )
 
@@ -147,8 +177,10 @@ py_test(
         ":env",
         ":file",
         ":filegroup",
+        ":genrule",
         ":hello",
         ":py_binary",
+        ":py_binary_with_runfile",
         ":python",
         ":python_entry_point",
     ],
