@@ -1,4 +1,4 @@
-load("//tools/command:command.bzl", "command")
+load("@rules_task//:defs.bzl", "cmd", "task")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -14,8 +14,13 @@ sh_binary(
     srcs = lefthook_files,
 )
 
-command(
+task(
     name = "lefthook",
-    command_src = ":lefthook_binary",
+    cmds = [
+        cmd.shell(
+            cmd.executable(":lefthook_binary"),
+            "$CLI_ARGS",
+        ),
+    ],
     cwd = "{{ os.environ['BUILD_WORKING_DIRECTORY'] }}",
 )

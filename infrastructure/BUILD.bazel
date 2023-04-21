@@ -1,4 +1,4 @@
-load("//tools/command:command.bzl", "command")
+load("@rules_task//:defs.bzl", "cmd", "task")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@infrastructure-requirements//:requirements.bzl", "requirement")
 
@@ -11,9 +11,14 @@ compile_pip_requirements(
     requirements_txt = "requirements.lock",
 )
 
-command(
+task(
     name = "pulumi",
-    command_src = "//tools/pulumi",
+    cmds = [
+        cmd.shell(
+            cmd.executable("//tools/pulumi"),
+            "$CLI_ARGS",
+        ),
+    ],
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
     env = {
         "PULUMI_PYTHON_CMD": "python",
@@ -25,17 +30,20 @@ command(
     ],
 )
 
-command(
+task(
     name = "provisioner-deploy",
-    args = [
-        "up",
-        "--stack",
-        "dev",
-        "--diff",
-        "--color",
-        "always",
-        "--yes",
+    cmds = [
+        "unset BUILD_WORKING_DIRECTORY",
+        cmd.shell(
+            cmd.executable(":pulumi"),
+            "up",
+            "--stack",
+            "mvgijssel/provisioner/dev",
+            "--diff",
+            "--color",
+            "always",
+            "--yes",
+        ),
     ],
-    command_src = ":pulumi",
     cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}/infrastructure/stacks/provisioner",
 )

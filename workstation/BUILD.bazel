@@ -5,7 +5,7 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 load("//tools/docker:docker.bzl", "docker_load_and_run")
-load("@rules_multirun//:defs.bzl", "command", "multirun")
+load("@rules_task//:defs.bzl", "cmd", "task")
 
 pyinfra_run(
     name = "provision",
@@ -130,21 +130,11 @@ docker_load_and_run(
     image = ":inspec_image",
 )
 
-command(
-    name = "inspec_runner_command",
-    command = "//workstation:inspec_runner",
-)
-
-command(
-    name = "provision_command",
-    command = ":provision",
-)
-
-multirun(
+task(
     name = "test",
-    commands = [
-        ":provision_command",
-        "//tools/macos:macos-remote-setup",
-        ":inspec_runner_command",
+    cmds = [
+        cmd.executable(":provision"),
+        cmd.executable("//tools/macos:macos-remote-setup"),
+        cmd.executable(":inspec_runner"),
     ],
 )

@@ -5,6 +5,7 @@ import os
 import runfiles
 import jinja2
 import sys
+import signal
 
 r = runfiles.Create()
 environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
@@ -25,7 +26,8 @@ def jinja_render_string(string):
 
 
 def main() -> None:
-    _, instructions_file = sys.argv
+    _, instructions_file, *cli_args = sys.argv
+    cli_args = " ".join(cli_args)
 
     # Making sure the current Python executable is in front of the PATH
     # so python based cmds can use this Python as well.
@@ -81,14 +83,22 @@ trap_add() {
         bash_cmd += cmd + "\n"
 
     bash_cmd = jinja_render_string(bash_cmd)
+    cmd_env = os.environ.copy()
+    cmd_env["CLI_ARGS"] = cli_args
 
-    result = subprocess.run(["bash", "-c", bash_cmd], capture_output=True)
+    cmd = ["bash", "-c", bash_cmd]
 
-    sys.stdout.write(result.stdout.decode("utf-8"))
-    sys.stderr.write(result.stderr.decode("utf-8"))
+    try:
+        process = subprocess.Popen(
+            cmd,
+            env=cmd_env,
+        )
+        process.wait()
+    except KeyboardInterrupt:
+        process.send_signal(signal.SIGINT)
+        process.wait()
 
-    if result.returncode != 0:
-        sys.exit(result.returncode)
+    sys.exit(process.returncode)
 
 
 if __name__ == "__main__":

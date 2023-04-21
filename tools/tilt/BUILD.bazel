@@ -1,10 +1,15 @@
-load("//tools/command:command.bzl", "command")
+load("@rules_task//:defs.bzl", "cmd", "task")
 
 package(default_visibility = ["//visibility:public"])
 
 exports_files(["post_build/Tiltfile"])
 
-command(
+task(
     name = "tilt",
-    command_src = "@tilt_arm64//:tilt_binary",
+    cmds = [
+        cmd.shell(
+            cmd.executable("@tilt_arm64//:tilt_binary"),
+            "$CLI_ARGS",
+        ),
+    ],
 )

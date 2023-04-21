@@ -326,8 +326,8 @@ def _task_rule_prep(kwargs, testonly = False):
 
     py_binary(
         name = runner_name,
-        main = "//:runner.py",
-        srcs = ["//:runner.py"],
+        main = "@rules_task//:runner.py",
+        srcs = ["@rules_task//:runner.py"],
         testonly = testonly,
         deps = [
             requirement("bazel-runfiles"),
@@ -488,7 +488,7 @@ def py_binary_cmd(name, code):
 
     expand_template(
         name = main_name,
-        template = "//:py_binary_cmd_main.tpl.py",
+        template = "@rules_task//:py_binary_cmd_main.tpl.py",
         out = main_name_file,
         substitutions = {
             "{{python_code}}": code,

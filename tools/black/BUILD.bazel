@@ -1,4 +1,4 @@
-load("//tools/command:command.bzl", "command")
+load("@rules_task//:defs.bzl", "cmd", "task")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@black-requirements//:requirements.bzl", "requirement")
 
@@ -11,15 +11,11 @@ compile_pip_requirements(
     requirements_txt = "requirements.lock",
 )
 
-py_binary(
-    name = "black_bin",
-    srcs = ["black_bin.py"],
-    main = "black_bin.py",
-)
-
-command(
+task(
     name = "black",
-    command_src = ":black_bin",
+    cmds = [
+        cmd.python_entry_point("black:patched_main", "$CLI_ARGS"),
+    ],
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
     deps = [requirement("black")],
 )
