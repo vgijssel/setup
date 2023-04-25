@@ -53,6 +53,11 @@ container_pull(
 dockerfile_image(
     name = "ubuntu_base_snap_dockerfile",
     dockerfile = "//tools/ubuntu:ubuntu_base_snap.Dockerfile",
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
+    },
 )
 
 # ------------------------------------ workstation ------------------------------------ #
