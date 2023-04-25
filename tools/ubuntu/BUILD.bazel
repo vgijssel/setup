@@ -1,4 +1,5 @@
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -13,10 +14,37 @@ container_image(
     env = {
         "LANG": "C.UTF-8",
         "LC_ALL": "C.UTF-8",
+        "container": "docker",
     },
+)
+
+container_run_and_commit_layer(
+    name = "install_snap",
+    commands = [
+        "apt-get update",
+        "apt-get install -y snapd squashfuse fuse",
+        "systemctl enable snapd",
+    ],
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
+    },
+    image = ":ubuntu_base_image.tar",
 )
 
 container_image(
     name = "ubuntu_snap_base_image",
-    base = "@ubuntu_base_snap_dockerfile//image:dockerfile_image.tar",
+    base = ":ubuntu_base_image.tar",
+    env = {
+        "PATH": "/snap/bin:$$PATH",
+    },
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
+    },
+    layers = [
+        ":install_snap",
+    ],
 )
