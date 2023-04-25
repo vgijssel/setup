@@ -39,11 +39,6 @@ container_image(
     env = {
         "PATH": "/snap/bin:$$PATH",
     },
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
     layers = [
         ":install_snap",
     ],
