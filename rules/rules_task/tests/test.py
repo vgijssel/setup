@@ -95,7 +95,10 @@ def test_python_entry_point():
 def test_env():
     result = _run_task("env")
     assert result.returncode == 0
-    assert result.stdout.strip() == b"BAR\nHello, world!\nsomevalue"
+    assert (
+        result.stdout.strip()
+        == b"BAR's value\nHello, world!\nsomevalue\nsome inline shell"
+    )
 
 
 def test_defer():

@@ -70,13 +70,19 @@ def _serialize_env(context, node):
 
     for key, value in node["env"].items():
         env_value = _visit_method(context, value)(context, value)
-        env_string += "export {}='{}'\n".format(key, env_value)
+
+        # escape single quoted characters for Bash
+        env_value = env_value.replace("'", "\\\'")
+        env_string += "export {}=$'{}'\n".format(key, env_value)
 
     return env_string
 
+def _jinja_rlocation(rlocation):
+    return '{{ rlocation_to_path("%s") }}' % rlocation
+
 def _file_label_to_jinja_path(ctx, label):
     rlocation = ctx.expand_location("$(rlocationpath {})".format(label), ctx.attr.data)
-    rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
+    rlocation = _jinja_rlocation(rlocation)
     return rlocation
 
 def _files_label_to_jinja_path(ctx, label):
@@ -85,7 +91,7 @@ def _files_label_to_jinja_path(ctx, label):
     result = []
 
     for rlocation in rlocations:
-        result.append("{{ rlocation_to_path('%s') }}" % rlocation)
+        result.append(_jinja_rlocation(rlocation))
 
     return " ".join(result)
 
@@ -105,8 +111,7 @@ def _executable_label_to_jinja_path(ctx, label):
     target = target_matches_label[0]
     executable = target[DefaultInfo].files_to_run.executable
     rlocation = to_rlocation_path(ctx, executable)
-    rlocation = "{{ rlocation_to_path('%s') }}" % rlocation
-    return rlocation
+    return _jinja_rlocation(rlocation)
 
 def _python_entry_point(entry_point, args):
     # Translate
