@@ -240,11 +240,6 @@ def _task_impl(ctx):
         for d in ([ctx.attr.runner] + ctx.attr.data + ctx.attr.deps)
     ])
 
-    runfiles = runfiles.merge_all([
-        d[DefaultInfo].data_runfiles
-        for d in ([ctx.attr.runner] + ctx.attr.data + ctx.attr.deps)
-    ])
-
     cmd_nodes = json.decode(ctx.attr.cmd_json)
     visitor_context = _visitor_context(ctx, _serializer, ctx.label.name)
     cmds = _visit(visitor_context, cmd_nodes)
