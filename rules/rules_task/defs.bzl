@@ -70,7 +70,7 @@ def _serialize_env(context, node):
 
     for key, value in node["env"].items():
         env_value = _visit_method(context, value)(context, value)
-        env_string += "export {}={}\n".format(key, env_value)
+        env_string += "export {}='{}'\n".format(key, env_value)
 
     return env_string
 
@@ -197,7 +197,7 @@ _serializer = {
 
 _data_collector = {
     "visit_root": lambda context, node: _compact(_flatten(_visit_root(context, node))),
-    "visit_env": lambda context, node: _visit_env(context, node),
+    "visit_env": lambda context, node: _compact(_flatten(_visit_env(context, node))),
     "visit_defer": lambda context, node: _visit_defer(context, node),
     "visit_shell": lambda context, node: _visit_shell(context, node),
     "visit_string": lambda context, node: None,
@@ -237,6 +237,11 @@ def _task_impl(ctx):
     runfiles = ctx.runfiles(files = [instructions_file, ctx.file._rlocation] + ctx.files.data)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
+        for d in ([ctx.attr.runner] + ctx.attr.data + ctx.attr.deps)
+    ])
+
+    runfiles = runfiles.merge_all([
+        d[DefaultInfo].data_runfiles
         for d in ([ctx.attr.runner] + ctx.attr.data + ctx.attr.deps)
     ])
 

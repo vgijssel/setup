@@ -33,6 +33,7 @@ load(
     "@io_bazel_rules_docker//container:container.bzl",
     "container_pull",
 )
+load("@io_bazel_rules_docker//contrib:dockerfile_build.bzl", "dockerfile_image")
 
 # https://hub.docker.com/layers/library/python/3.10.8-bullseye/images/sha256-de501d4dbc12f846ee78ee76629b7524ec07f10c121832a190a1ecb7b9a119bb?context=explore
 container_pull(
@@ -47,6 +48,11 @@ container_pull(
     digest = "sha256:de501d4dbc12f846ee78ee76629b7524ec07f10c121832a190a1ecb7b9a119bb",
     registry = "index.docker.io",
     repository = "library/python:3.10.8-bullseye",
+)
+
+dockerfile_image(
+    name = "ubuntu_base_snap_dockerfile",
+    dockerfile = "//tools/ubuntu:ubuntu_base_snap.Dockerfile",
 )
 
 # ------------------------------------ workstation ------------------------------------ #

@@ -1,4 +1,6 @@
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
+load("@rules_task//:defs.bzl", "cmd", "task")
+load("//tools/docker:docker.bzl", "docker_load_and_run")
 
 pyinfra_run(
     name = "provision",
@@ -16,4 +18,31 @@ pyinfra_run(
     ],
     deploy = "deploy.py",
     inventory = "inventory.py",
+)
+
+docker_load_and_run(
+    name = "dev_image_run",
+    command = "/sbin/init",
+    docker_args = [
+        "--rm",
+        "--detach",
+        "--tmpfs /run",
+        "--tmpfs /run/lock",
+        "--tmpfs /tmp",
+        "--privileged",
+        "-v /lib/modules:/lib/modules:ro",
+    ],
+    image = "//tools/ubuntu:ubuntu_snap_base_image",
+)
+
+task(
+    name = "dev",
+    cmds = [
+        "CONTAINER_ID=$($run_dev_image)",
+        {"defer": "docker rm -f $CONTAINER_ID"},
+        "docker logs -f $CONTAINER_ID",
+    ],
+    env = {
+        "run_dev_image": cmd.executable(":dev_image_run"),
+    },
 )

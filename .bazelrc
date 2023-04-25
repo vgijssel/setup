@@ -25,7 +25,7 @@ common --enable_bzlmod=true
 build --@io_bazel_rules_docker//transitions:enable=false
 
 # Enable builds without the bytes https://github.com/bazelbuild/bazel/issues/6862
-build --remote_download_minimal
+build:remote --remote_download_minimal
 
 # From https://www.buildbuddy.io/docs/cloud
 # Use BuildBuddy
