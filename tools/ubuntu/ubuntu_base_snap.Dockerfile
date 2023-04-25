@@ -1,3 +1,4 @@
+# From https://forum.snapcraft.io/t/snapd-in-docker/177/13
 FROM library/ubuntu:focal-20230308
 ENV container docker
 ENV PATH /snap/bin:$PATH
