@@ -7,5 +7,5 @@ if os.environ.get("SETUP_ENV", "dev") == "prod":
 else:
     container_id = "provisioner_dev"
     hosts = [
-        (f"@docker/{container_id}"),
+        (f"@docker/{container_id}", {"inside_docker": True}),
     ]

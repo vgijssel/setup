@@ -1,5 +1,6 @@
 from pyinfra.api.deploy import deploy
 from pyinfra.operations import files, server
+from pyinfra import host
 
 
 @deploy("Install Network")
@@ -20,15 +21,16 @@ def install_network():
             _sudo=True,
         )
 
-        # TODO: prevent netplan apply inside of dev?
-        server.shell(
-            name="Apply the netplan configuration",
-            commands=["netplan apply"],
+        if not host.data.get("inside_docker"):
+            server.shell(
+                name="Apply the netplan configuration",
+                commands=["netplan apply"],
+                _sudo=True,
+            )
+
+    if not host.data.get("inside_docker"):
+        server.hostname(
+            name="Set hostname",
+            hostname="provisioner",
             _sudo=True,
         )
-
-    # server.hostname(
-    #     name="Set hostname",
-    #     hostname="provisioner",
-    #     _sudo=True,
-    # )

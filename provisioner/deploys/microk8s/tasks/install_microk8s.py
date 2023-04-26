@@ -7,14 +7,15 @@ from pyinfra.facts.server import Users
 # From https://microk8s.io/docs/getting-started
 @deploy("Install Microk8s")
 def install_microk8s():
-    # From https://microk8s.io/docs/install-raspberry-pi
-    # apt.packages(
-    #     name="Ensure all kernel modules are available",
-    #     packages=["linux-modules-extra-raspi"],
-    #     update=True,
-    #     present=True,
-    #     _sudo=True,
-    # )
+    if not host.data.get("inside_docker"):
+        # From https://microk8s.io/docs/install-raspberry-pi
+        apt.packages(
+            name="Ensure all kernel modules are available",
+            packages=["linux-modules-extra-raspi"],
+            update=True,
+            present=True,
+            _sudo=True,
+        )
 
     # From https://microk8s.io/docs/install-raspberry-pi
     config_file = files.put(
@@ -25,13 +26,13 @@ def install_microk8s():
         _sudo=True,
     )
 
-    # if config_file.changed:
-    #     server.reboot(
-    #         name="Reboot the server and wait to reconnect",
-    #         delay=60,
-    #         reboot_timeout=600,
-    #         _sudo=True,
-    #     )
+    if config_file.changed and not host.data.get("inside_docker"):
+        server.reboot(
+            name="Reboot the server and wait to reconnect",
+            delay=60,
+            reboot_timeout=600,
+            _sudo=True,
+        )
 
     snap.package(
         name="Install MicroK8S",
