@@ -137,11 +137,13 @@ task(
         "echo $FOO",
         "$hello",
         "$python",
+        "$command",
     ],
     env = {
-        "FOO": "BAR",
+        "FOO": "BAR's value",
         "hello": cmd.executable(":hello"),
         "python": cmd.executable(":python"),
+        "command": cmd.shell("echo", "some", "inline", "shell"),
     },
 )
 
