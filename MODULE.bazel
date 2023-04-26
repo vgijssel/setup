@@ -1,5 +1,5 @@
 """
-All the dependencies for setup
+All the dependencies for setup.
 """
 
 module(
@@ -47,6 +47,12 @@ register_toolchains(
 )
 
 pip = use_extension("@rules_python//python:extensions.bzl", "pip")
+pip.parse(
+    name = "pip-setup",
+    python_interpreter_target = "@python_interpreter//:python",
+    requirements_lock = "//:requirements.lock",
+)
+use_repo(pip, "pip-setup")
 
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(name = "aspect_rules_js", version = "1.24.1")
@@ -73,48 +79,3 @@ use_repo(npm, "npm")
 # ------------------------------------ buildifier ------------------------------------ #
 # NOTE: don't upgrade to 6.1.0 because this has a bug where tests always pass
 bazel_dep(name = "buildifier_prebuilt", version = "6.0.0.1")
-
-# ------------------------------------ hypervisor ------------------------------------ #
-
-pip.parse(
-    name = "hypervisor_deps",
-    python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "//hypervisor:requirements_lock.txt",
-)
-use_repo(pip, "hypervisor_deps")
-
-# ------------------------------------ pytest ------------------------------------ #
-
-pip.parse(
-    name = "pytest",
-    python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "@//tools/pytest:requirements.lock",
-)
-use_repo(pip, "pytest")
-
-# ------------------------------------ occupancy_component ------------------------------------ #
-
-pip.parse(
-    name = "occupancy_component",
-    python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "@//occupancy_component:requirements.lock",
-)
-use_repo(pip, "occupancy_component")
-
-# ------------------------------------ infrastructure ------------------------------------ #
-
-pip.parse(
-    name = "infrastructure-requirements",
-    python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "//infrastructure:requirements.lock",
-)
-use_repo(pip, "infrastructure-requirements")
-
-# ------------------------------------ black ------------------------------------ #
-
-pip.parse(
-    name = "black-requirements",
-    python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "//tools/black:requirements.lock",
-)
-use_repo(pip, "black-requirements")

@@ -4,9 +4,8 @@ Bazel macro to make it easy to run Pyinfra.
 
 load("@rules_task//:defs.bzl", "cmd", "task")
 load("@rules_python//python:defs.bzl", "py_binary")
-load("@hypervisor_deps//:requirements.bzl", "requirement")
+load("@pip-setup//:requirements.bzl", "requirement")
 
-# TODO: move pyinfra dependencies into separate requirements file
 def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = [], data = []):
     python_binary = "{name}_env".format(name = name)
 

@@ -1,14 +1,6 @@
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
-load("@occupancy_component//:requirements.bzl", "requirement")
+load("@pip-setup//:requirements.bzl", "requirement")
 load("//tools/pytest:pytest.bzl", "py_pytest_test")
 load("@rules_task//:defs.bzl", "cmd", "task")
-
-compile_pip_requirements(
-    name = "requirements",
-    extra_args = ["--allow-unsafe"],
-    requirements_in = "requirements.in",
-    requirements_txt = "requirements.lock",
-)
 
 py_library(
     name = "lib",
