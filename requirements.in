@@ -7,3 +7,4 @@ pulumi-kubernetes==3.24.2;
 pytest-homeassistant-custom-component==0.11.20;
 tzdata==2023.3;
 pyinfra==2.6.2
+sqlalchemy==1.4.40;
