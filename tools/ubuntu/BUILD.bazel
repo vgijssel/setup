@@ -19,12 +19,14 @@ container_image(
 )
 
 container_run_and_commit_layer(
-    name = "install_snap",
+    name = "setup_snap",
     commands = [
         "apt-get update",
-        "apt-get install -y snapd squashfuse fuse sudo netplan.io",
+        "apt-get install -y snapd squashfuse fuse sudo",
         "systemctl enable snapd",
         "useradd -m ubuntu -s /bin/bash",
+        "adduser ubuntu sudo",
+        "echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers",
     ],
     env = {
         "DEBIAN_FRONTEND": "noninteractive",
@@ -44,6 +46,6 @@ container_image(
         "PATH": "/snap/bin:$$PATH",
     },
     layers = [
-        ":install_snap",
+        ":setup_snap",
     ],
 )
