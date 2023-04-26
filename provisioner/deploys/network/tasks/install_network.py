@@ -20,14 +20,15 @@ def install_network():
             _sudo=True,
         )
 
+        # TODO: prevent netplan apply inside of dev?
         server.shell(
             name="Apply the netplan configuration",
             commands=["netplan apply"],
             _sudo=True,
         )
 
-    server.hostname(
-        name="Set hostname",
-        hostname="provisioner",
-        _sudo=True,
-    )
+    # server.hostname(
+    #     name="Set hostname",
+    #     hostname="provisioner",
+    #     _sudo=True,
+    # )

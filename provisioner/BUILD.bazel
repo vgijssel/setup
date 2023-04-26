@@ -25,6 +25,7 @@ docker_load_and_run(
     command = "/sbin/init",
     docker_args = [
         "--rm",
+        "--name provisioner_dev",
         "--detach",
         "--tmpfs /run",
         "--tmpfs /run/lock",

@@ -24,7 +24,7 @@ def docker_load_and_run(name, image, command, docker_args = []):
 
 
         if ! docker image inspect $DOCKER_DIGEST > /dev/null 2>&1 ; then
-            docker load --input $DOCKER_LOAD_FILE
+            docker load --input $DOCKER_LOAD_FILE >&2
         else
             echo Image already exists >&2
         fi

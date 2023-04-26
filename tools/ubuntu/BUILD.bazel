@@ -22,9 +22,13 @@ container_run_and_commit_layer(
     name = "install_snap",
     commands = [
         "apt-get update",
-        "apt-get install -y snapd squashfuse fuse",
+        "apt-get install -y snapd squashfuse fuse sudo netplan.io",
         "systemctl enable snapd",
+        "useradd -m ubuntu -s /bin/bash",
     ],
+    env = {
+        "DEBIAN_FRONTEND": "noninteractive",
+    },
     exec_properties = {
         "workload-isolation-type": "firecracker",
         "init-dockerd": "true",
