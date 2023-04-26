@@ -79,21 +79,3 @@ use_repo(npm, "npm")
 # ------------------------------------ buildifier ------------------------------------ #
 # NOTE: don't upgrade to 6.1.0 because this has a bug where tests always pass
 bazel_dep(name = "buildifier_prebuilt", version = "6.0.0.1")
-
-# ------------------------------------ hypervisor ------------------------------------ #
-
-pip.parse(
-    name = "hypervisor_deps",
-    python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "//hypervisor:requirements_lock.txt",
-)
-use_repo(pip, "hypervisor_deps")
-
-# ------------------------------------ occupancy_component ------------------------------------ #
-
-pip.parse(
-    name = "occupancy_component",
-    python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "@//occupancy_component:requirements.lock",
-)
-use_repo(pip, "occupancy_component")
