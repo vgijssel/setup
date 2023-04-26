@@ -1,15 +1,7 @@
 load("@rules_task//:defs.bzl", "cmd", "task")
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
-load("@infrastructure-requirements//:requirements.bzl", "requirement")
+load("@pip-setup//:requirements.bzl", "requirement")
 
 package(default_visibility = ["//visibility:public"])
-
-compile_pip_requirements(
-    name = "requirements",
-    extra_args = ["--allow-unsafe"],
-    requirements_in = "requirements.in",
-    requirements_txt = "requirements.lock",
-)
 
 task(
     name = "pulumi",

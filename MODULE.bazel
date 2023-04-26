@@ -97,12 +97,3 @@ pip.parse(
     requirements_lock = "@//occupancy_component:requirements.lock",
 )
 use_repo(pip, "occupancy_component")
-
-# ------------------------------------ infrastructure ------------------------------------ #
-
-pip.parse(
-    name = "infrastructure-requirements",
-    python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "//infrastructure:requirements.lock",
-)
-use_repo(pip, "infrastructure-requirements")

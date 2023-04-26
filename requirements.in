@@ -1,3 +1,6 @@
 black==23.3.0;
 pytest==7.1.2;
 pytest-cov==3.0.0;
+pulumi==3.60.1;
+pulumi-command==0.7.1;
+pulumi-kubernetes==3.24.2;
