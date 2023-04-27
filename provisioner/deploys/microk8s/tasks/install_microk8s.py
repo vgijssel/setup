@@ -72,12 +72,20 @@ def install_microk8s():
         _sudo=True,
     )
 
-    server.shell(
-        name="Enable DNS addon",
-        # From here https://microk8s.io/docs/addons
-        commands=[
-            "microk8s enable dns",
-            "microk8s enable helm",
-            "microk8s enable hostpath-storage",
-        ],
-    )
+    if not host.data.get("inside_docker"):
+        server.shell(
+            name="Start Microk8s",
+            commands=[
+                "microk8s start",
+            ],
+        )
+
+        server.shell(
+            name="Enable DNS addon",
+            # From here https://microk8s.io/docs/addons
+            commands=[
+                "microk8s enable dns",
+                "microk8s enable helm",
+                "microk8s enable hostpath-storage",
+            ],
+        )
