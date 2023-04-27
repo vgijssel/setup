@@ -86,12 +86,15 @@ task(
         else:
             os.environ['VALIDATE_HOST'] = 'provisioner_dev'
         """),
-        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"docker://ubuntu@$VALIDATE_HOST\"", "$tests"),
+        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"docker://root@$VALIDATE_HOST\"", "$tests"),
     ],
     env = {
         "tests": cmd.files("test_provisioner.py"),
     },
-    deps = [requirement("pytest-testinfra")],
+    deps = [
+        requirement("pytest-testinfra"),
+        requirement("pyyaml"),
+    ],
 )
 
 task_test(
