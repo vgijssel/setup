@@ -23,6 +23,11 @@ pyinfra_run(
 
 docker_load(
     name = "load_dev_image",
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
+    },
     image = "//tools/ubuntu:ubuntu_snap_base_image",
 )
 
@@ -46,6 +51,11 @@ task(
     ],
     env = {
         "load_dev_image": cmd.executable(":load_dev_image"),
+    },
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
     },
 )
 
@@ -97,5 +107,10 @@ task_test(
         "provision": cmd.executable(":provision"),
         "validate": cmd.executable(":validate"),
         "SETUP_ENV": "test",
+    },
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
     },
 )
