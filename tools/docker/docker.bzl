@@ -4,7 +4,7 @@ For quickly loading and running docker images built by Bazel.
 
 load("@rules_task//:defs.bzl", "cmd", "task")
 
-def docker_load(name, image):
+def docker_load(name, image, **kwargs):
     """
     Loads a docker image and return the image name.
     """
@@ -32,4 +32,5 @@ def docker_load(name, image):
             "image_label": cmd.file(image_label),
             "image_sha_label": cmd.file(image_sha_label),
         },
+        **kwargs
     )
