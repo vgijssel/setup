@@ -1,6 +1,7 @@
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 load("@rules_task//:defs.bzl", "cmd", "task")
 load("//tools/docker:docker.bzl", "docker_load_and_run")
+load("@pip-setup//:requirements.bzl", "requirement")
 
 pyinfra_run(
     name = "provision",
@@ -46,4 +47,15 @@ task(
     env = {
         "run_dev_image": cmd.executable(":dev_image_run"),
     },
+)
+
+task(
+    name = "validate",
+    cmds = [
+        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts='docker://ubuntu@provisioner_dev'", "$tests"),
+    ],
+    env = {
+        "tests": cmd.files("test_provisioner.py"),
+    },
+    deps = [requirement("pytest-testinfra")],
 )
