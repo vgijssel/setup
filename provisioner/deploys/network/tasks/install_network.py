@@ -52,13 +52,14 @@ def install_network():
         _sudo=True,
     )
 
-    server.shell(
-        name="Enable firewall",
-        commands=[
-            "ufw enable",
-        ],
-        _sudo=True,
-    )
+    if not host.data.get("inside_docker"):
+        server.shell(
+            name="Enable firewall",
+            commands=[
+                "ufw enable",
+            ],
+            _sudo=True,
+        )
 
     if config_file.changed:
         server.shell(

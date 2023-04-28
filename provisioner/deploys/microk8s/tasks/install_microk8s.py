@@ -45,15 +45,16 @@ def install_microk8s():
         _sudo=True,
     )
 
-    server.shell(
-        name="Update firewall rules",
-        commands=[
-            "ufw allow in on cni0",
-            "ufw allow out on cni0",
-            "ufw default allow routed",
-        ],
-        _sudo=True,
-    )
+    if not host.data.get("inside_docker"):
+        server.shell(
+            name="Update firewall rules",
+            commands=[
+                "ufw allow in on cni0",
+                "ufw allow out on cni0",
+                "ufw default allow routed",
+            ],
+            _sudo=True,
+        )
 
     existing_groups = host.get_fact(Users)["ubuntu"]["groups"]
     new_groups = existing_groups + ["microk8s"]
