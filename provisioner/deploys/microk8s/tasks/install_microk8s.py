@@ -24,6 +24,9 @@ def install_microk8s():
         dest="/boot/firmware/cmdline.txt",
         create_remote_dir=True,
         _sudo=True,
+        user="root",
+        group="root",
+        mode="644",
     )
 
     if config_file.changed and not host.data.get("inside_docker"):

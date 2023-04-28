@@ -62,6 +62,7 @@ task(
 task(
     name = "dev",
     cmds = [
+        "docker rm -f provisioner_dev",
         "export CONTAINER_ID=$($run_dev_image)",
         {"defer": "docker rm -f $CONTAINER_ID"},
         "docker logs -f $CONTAINER_ID",
