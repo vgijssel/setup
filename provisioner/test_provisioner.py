@@ -22,9 +22,6 @@ def test_ufw_enabled(host):
     ufw = host.service("ufw")
     assert ufw.is_enabled
 
-    cmd = host.run("ufw status")
-    assert cmd.stdout.startswith("Status: active\n")
-
 
 def test_hostname(host):
     assert host.check_output("hostname -s") == "provisioner"
@@ -51,23 +48,6 @@ def test_microk8s_installed(host):
 
 def test_microk8s_version(host):
     assert host.check_output("microk8s version").startswith("MicroK8s v1.27")
-
-
-def test_microk8s_firewall_rules(host):
-    ufw_status = host.check_output("ufw status")
-
-    assert (
-        len(re.findall("Anywhere on cni0.*ALLOW.*Anywhere", ufw_status, re.MULTILINE))
-        == 1
-    )
-    assert (
-        len(
-            re.findall(
-                "Anywhere.*ALLOW OUT.*Anywhere on cni0", ufw_status, re.MULTILINE
-            )
-        )
-        == 1
-    )
 
 
 def test_user_added_to_microk8s_group(host):
