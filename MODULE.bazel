@@ -15,7 +15,7 @@ bazel_dep(name = "platforms", version = "0.0.6")
 bazel_dep(name = "bazel_skylib", version = "1.4.1")
 
 # ------------------------------------ rules_pkg ------------------------------------ #
-bazel_dep(name = "rules_pkg", version = "0.9.0")
+bazel_dep(name = "rules_pkg", version = "0.7.0")
 
 # ------------------------------------ rules_task ------------------------------------ #
 bazel_dep(name = "rules_task", version = "0.1.0")
