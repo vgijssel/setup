@@ -24,6 +24,9 @@ def install_microk8s():
         dest="/boot/firmware/cmdline.txt",
         create_remote_dir=True,
         _sudo=True,
+        user="root",
+        group="root",
+        mode="644",
     )
 
     if config_file.changed and not host.data.get("inside_docker"):
@@ -42,15 +45,16 @@ def install_microk8s():
         _sudo=True,
     )
 
-    server.shell(
-        name="Update firewall rules",
-        commands=[
-            "ufw allow in on cni0",
-            "ufw allow out on cni0",
-            "ufw default allow routed",
-        ],
-        _sudo=True,
-    )
+    if not host.data.get("inside_docker"):
+        server.shell(
+            name="Update firewall rules",
+            commands=[
+                "ufw allow in on cni0",
+                "ufw allow out on cni0",
+                "ufw default allow routed",
+            ],
+            _sudo=True,
+        )
 
     existing_groups = host.get_fact(Users)["ubuntu"]["groups"]
     new_groups = existing_groups + ["microk8s"]
@@ -72,12 +76,20 @@ def install_microk8s():
         _sudo=True,
     )
 
-    server.shell(
-        name="Enable DNS addon",
-        # From here https://microk8s.io/docs/addons
-        commands=[
-            "microk8s enable dns",
-            "microk8s enable helm",
-            "microk8s enable hostpath-storage",
-        ],
-    )
+    if not host.data.get("inside_docker"):
+        server.shell(
+            name="Start Microk8s",
+            commands=[
+                "microk8s start",
+            ],
+        )
+
+        server.shell(
+            name="Enable DNS addon",
+            # From here https://microk8s.io/docs/addons
+            commands=[
+                "microk8s enable dns",
+                "microk8s enable helm",
+                "microk8s enable hostpath-storage",
+            ],
+        )

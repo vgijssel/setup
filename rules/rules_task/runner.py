@@ -84,8 +84,6 @@ trap_add() {
 
     bash_cmd = jinja_render_string(bash_cmd)
 
-    # print(bash_cmd)
-
     cmd_env = os.environ.copy()
     cmd_env["CLI_ARGS"] = cli_args
 
