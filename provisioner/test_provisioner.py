@@ -26,6 +26,15 @@ def test_ufw_enabled(host):
     assert cmd.stdout.startswith("Status: active\n")
 
 
+# def test_cmdline(host):
+#     cmdline = host.file("/boot/firmware/cmdline.txt")
+#     assert cmdline.contains("root")
+#     assert cmdline.user == "root"
+#     assert cmdline.group == "root"
+#     assert cmdline.mode == 0o644
+
+
+# can we set the hostname in docker and test it?
 # test if cmdline is copied
 # test cmd line arguments of os
 # test if microk8s is installed

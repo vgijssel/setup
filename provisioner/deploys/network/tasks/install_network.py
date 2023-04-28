@@ -21,6 +21,9 @@ def install_network():
         _sudo=True,
     )
 
+    # TODO: install iptables
+    # update iptables with https://lowendspirit.com/discussion/1559/iptables-restore-v1-8-4-legacy-couldnt-load-match-limit-no-such-file-or-directory
+
     apt.packages(
         name="Install Uncomplicated Firewall (ufw)",
         packages=["ufw"],
