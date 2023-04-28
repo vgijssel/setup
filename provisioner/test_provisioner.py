@@ -1,5 +1,5 @@
-# test if netplan is installed
 import yaml
+import re
 
 
 def test_netplan_installed(host):
@@ -26,6 +26,10 @@ def test_ufw_enabled(host):
     assert cmd.stdout.startswith("Status: active\n")
 
 
+def test_hostname(host):
+    assert host.check_output("hostname -s") == "provisioner"
+
+
 def test_cmdline(host):
     cmdline = host.file("/boot/firmware/cmdline.txt")
     assert cmdline.contains("root")
@@ -34,15 +38,50 @@ def test_cmdline(host):
     assert cmdline.mode == 0o644
 
 
-# can we set the hostname in docker and test it?
-# test if cmdline is copied
-# test cmd line arguments of os
-# test if microk8s is installed
-# test if uwf rules are applied for microk8s
-# test if ubuntu user is added to microk8s group
-# test if .kube directory is created and owned by ubuntu user
-# test if microk8s is running
-# test microk8s addons are enabled
+def test_ubuntu_focal(host):
+    assert host.system_info.type == "linux"
+    assert host.system_info.distribution == "ubuntu"
+    assert host.system_info.release == "20.04"
+    assert host.system_info.codename == "focal"
+
+
+def test_microk8s_installed(host):
+    assert "microk8s" in host.check_output("snap list")
+
+
+def test_microk8s_version(host):
+    assert host.check_output("microk8s version").startswith("MicroK8s v1.27")
+
+
+def test_microk8s_firewall_rules(host):
+    ufw_status = host.check_output("ufw status")
+
+    assert (
+        len(re.findall("Anywhere on cni0.*ALLOW.*Anywhere", ufw_status, re.MULTILINE))
+        == 1
+    )
+    assert (
+        len(
+            re.findall(
+                "Anywhere.*ALLOW OUT.*Anywhere on cni0", ufw_status, re.MULTILINE
+            )
+        )
+        == 1
+    )
+
+
+def test_user_added_to_microk8s_group(host):
+    assert "microk8s" in host.user("ubuntu").groups
+
+
+def test_kube_config_permissions(host):
+    kube_config = host.file("/home/ubuntu/.kube")
+    assert kube_config.is_directory
+    assert kube_config.user == "ubuntu"
+    assert kube_config.group == "ubuntu"
+    assert kube_config.mode == 0o755
+
+
 def test_passwd_file(host):
     passwd = host.file("/etc/passwd")
     assert passwd.contains("root")

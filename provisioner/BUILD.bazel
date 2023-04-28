@@ -44,6 +44,7 @@ task(
             "--tmpfs /tmp",
             "--privileged",
             "-v /lib/modules:/lib/modules:ro",
+            "-h provisioner",
             "$CLI_ARGS",
             "$CONTAINER_IMAGE",
             "/sbin/init",
