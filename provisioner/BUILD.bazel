@@ -8,10 +8,12 @@ pyinfra_run(
     srcs = [
         "deploys/microk8s/tasks/install_microk8s.py",
         "deploys/network/tasks/install_network.py",
+        "deploys/teleport/tasks/install_teleport.py",
     ],
     args = [
         "--data install_network=True",
         "--data install_microk8s=True",
+        "--data install_teleport=True",
     ],
     data = [
         "deploys/microk8s/files/cmdline.txt",
