@@ -11,8 +11,14 @@ def install_teleport():
         _sudo=True,
     )
 
-    # TODO: branch on architecture
-    # TODO: open port 443 for teleport in ufw
+    server.shell(
+        name="Allow HTTPS access",
+        commands=[
+            "ufw allow https",
+        ],
+        _sudo=True,
+    )
+
     # https://goteleport.com/download/#install-links
     TELEPORT_VERSION = "12.2.5"
 
