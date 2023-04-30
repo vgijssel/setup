@@ -67,6 +67,13 @@ def install_microk8s():
         _sudo=True,
     )
 
+    server.shell(
+        name="Add microk8s group to current user",
+        commands=[
+            "newgrp microk8s",
+        ],
+    )
+
     files.directory(
         name="Create and own .kube directory",
         present=True,

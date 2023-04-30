@@ -4,7 +4,7 @@ setup_env = os.environ.get("SETUP_ENV", "dev")
 
 if setup_env == "prod":
     hosts = [
-        ("@ssh/192.168.1.31", {"ssh_user": "ubuntu"}),
+        ("@ssh/provisioner.local", {"ssh_user": "ubuntu"}),
     ]
 
 elif setup_env == "test":
