@@ -18,6 +18,7 @@ pyinfra_run(
     data = [
         "deploys/microk8s/files/cmdline.txt",
         "deploys/network/files/99_config.yaml",
+        "deploys/teleport/files/teleport.yaml",
     ],
     deploy = "deploy.py",
     inventory = "inventory.py",
@@ -41,6 +42,7 @@ task(
             "docker run",
             "--rm",
             "--detach",
+            "--publish 0.0.0.0:443:443",
             "--tmpfs /run",
             "--tmpfs /run/lock",
             "--tmpfs /tmp",

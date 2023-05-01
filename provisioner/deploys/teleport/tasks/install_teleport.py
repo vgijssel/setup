@@ -1,5 +1,5 @@
 from pyinfra.api.deploy import deploy
-from pyinfra.operations import files, server, apt
+from pyinfra.operations import files, server, apt, systemd
 from pyinfra import host
 from pyinfra.facts.deb import DebPackage, DebArch
 
@@ -32,3 +32,23 @@ def install_teleport():
             src=f"https://cdn.teleport.dev/teleport_{TELEPORT_VERSION}_{arch}.deb",
             _sudo=True,
         )
+
+    files.put(
+        name="Copy Teleport config",
+        src="provisioner/deploys/teleport/files/teleport.yaml",
+        dest="/etc/teleport.yaml",
+        create_remote_dir=True,
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="644",
+    )
+
+    systemd.service(
+        name="Restart and enable the teleport service",
+        service="teleport.service",
+        running=True,
+        restarted=True,
+        enabled=True,
+        _sudo=True,
+    )

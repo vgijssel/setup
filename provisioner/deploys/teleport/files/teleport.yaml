@@ -1,0 +1,31 @@
+version: v3
+teleport:
+  nodename: provisioner
+  data_dir: /var/lib/teleport
+  log:
+    output: stderr
+    severity: INFO
+    format:
+      output: text
+  ca_pin: ""
+  diag_addr: ""
+auth_service:
+  enabled: "yes"
+  listen_addr: 0.0.0.0:3025
+  cluster_name: tele.example.com
+  proxy_listener_mode: multiplex
+ssh_service:
+  enabled: "yes"
+  commands:
+    - name: hostname
+      command: [hostname]
+      period: 1m0s
+proxy_service:
+  enabled: "yes"
+  web_listen_addr: 0.0.0.0:443
+  public_addr: tele.example.com:443
+  https_keypairs: []
+  https_keypairs_reload_interval: 0s
+  acme:
+    enabled: "yes"
+    email: user@example.com
