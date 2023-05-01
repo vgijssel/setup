@@ -67,13 +67,6 @@ def install_microk8s():
         _sudo=True,
     )
 
-    server.shell(
-        name="Add microk8s group to current user",
-        commands=[
-            "newgrp microk8s",
-        ],
-    )
-
     files.directory(
         name="Create and own .kube directory",
         present=True,
@@ -89,6 +82,7 @@ def install_microk8s():
             commands=[
                 "microk8s start",
             ],
+            _sudo=True,
         )
 
         server.shell(
@@ -99,4 +93,5 @@ def install_microk8s():
                 "microk8s enable helm",
                 "microk8s enable hostpath-storage",
             ],
+            _sudo=True,
         )
