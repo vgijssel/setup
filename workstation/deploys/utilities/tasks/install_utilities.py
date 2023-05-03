@@ -32,6 +32,7 @@ def install_utilities():
         packages=[
             "awscli",
             "dive",  # to check contents of docker layers
+            "mkcert",
         ],
         present=True,
         update=False,

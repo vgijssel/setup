@@ -1,4 +1,3 @@
-version: v3
 teleport:
   nodename: provisioner
   data_dir: /var/lib/teleport
@@ -12,7 +11,7 @@ teleport:
 auth_service:
   enabled: "yes"
   listen_addr: 0.0.0.0:3025
-  cluster_name: tele.example.com
+  cluster_name: localhost
   proxy_listener_mode: multiplex
 ssh_service:
   enabled: "yes"
@@ -23,9 +22,10 @@ ssh_service:
 proxy_service:
   enabled: "yes"
   web_listen_addr: 0.0.0.0:443
-  public_addr: tele.example.com:443
-  https_keypairs: []
+  public_addr: localhost:443
+  https_keypairs:
+    []
+    # - key_file: /var/lib/teleport/privkey.pem
+    #   cert_file: /var/lib/teleport/fullchain.pem
   https_keypairs_reload_interval: 0s
-  acme:
-    enabled: "yes"
-    email: user@example.com
+  acme: {}

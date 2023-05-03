@@ -33,9 +33,10 @@ def install_teleport():
             _sudo=True,
         )
 
-    files.put(
-        name="Copy Teleport config",
-        src="provisioner/deploys/teleport/files/teleport.yaml",
+    # TODO: branch on dev vs prod
+    files.template(
+        name="Create Teleport config",
+        src="provisioner/deploys/teleport/files/teleport.yaml.j2",
         dest="/etc/teleport.yaml",
         create_remote_dir=True,
         _sudo=True,
