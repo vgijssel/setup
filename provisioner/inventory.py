@@ -4,7 +4,7 @@ setup_env = os.environ.get("SETUP_ENV", "dev")
 
 if setup_env == "prod":
     prod = [
-        ("@ssh/provisioner.local"),
+        ("@ssh/192.168.1.31"),
     ]
 
 elif setup_env == "test":
