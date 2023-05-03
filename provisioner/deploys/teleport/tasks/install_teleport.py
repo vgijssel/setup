@@ -50,8 +50,6 @@ def install_teleport():
         group="root",
         mode="644",
         teleport_public_addr=host.data.teleport_public_addr,
-        teleport_acme_enabled=host.data.teleport_acme_enabled,
-        teleport_acme_email=host.data.teleport_acme_email,
     )
 
     systemd.service(
