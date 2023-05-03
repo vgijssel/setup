@@ -81,19 +81,19 @@ container_pull(
 
 # ------------------------------------ workstation ------------------------------------ #
 
-# https://hub.docker.com/layers/library/ubuntu/focal-20230308/images/sha256-b39db7fc56971aac21dee02187e898db759c4f26b9b27b1d80b6ad32ff330c76?context=explore
+# https://hub.docker.com/layers/library/ubuntu/jammy-20230425/images/sha256-ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00?context=explore
 container_pull(
     name = "ubuntu_base_amd64",
-    digest = "sha256:b39db7fc56971aac21dee02187e898db759c4f26b9b27b1d80b6ad32ff330c76",
+    digest = "sha256:ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00",
     registry = "index.docker.io",
-    repository = "library/ubuntu:focal-20230308",
+    repository = "library/ubuntu:jammy-20230425",
 )
 
 container_pull(
     name = "ubuntu_base_arm64",
-    digest = "sha256:f92b9de5f10b6e1fcda653f5d02bd6c816386dfb830c71cef95df52b2280cd1c",
+    digest = "sha256:6f8fe7bff0bee25c481cdc26e28bba984ebf72e6152005c18e1036983c01a28b",
     registry = "index.docker.io",
-    repository = "library/ubuntu:focal-20230308",
+    repository = "library/ubuntu:jammy-20230425",
 )
 
 http_file(
