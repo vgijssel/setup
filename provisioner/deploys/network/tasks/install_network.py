@@ -35,21 +35,6 @@ def install_network():
                 _sudo=True,
             )
 
-    # update iptables with https://lowendspirit.com/discussion/1559/iptables-restore-v1-8-4-legacy-couldnt-load-match-limit-no-such-file-or-directory
-    iptables = apt.packages(
-        name="Install iptables",
-        packages=["iptables", "arptables", "ebtables"],
-        _sudo=True,
-    )
-
-    if iptables.changed and not host.data.get("inside_docker"):
-        server.reboot(
-            name="Reboot the server and wait to reconnect",
-            delay=60,
-            reboot_timeout=600,
-            _sudo=True,
-        )
-
     apt.packages(
         name="Install Uncomplicated Firewall (ufw)",
         packages=["ufw"],
