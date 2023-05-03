@@ -91,11 +91,13 @@ task(
         setup_env = os.environ.get("SETUP_ENV", 'dev')
 
         if setup_env == 'test':
-            os.environ['VALIDATE_HOST'] = os.environ['CONTAINER_ID']
+            os.environ['VALIDATE_HOST'] = f"docker://root@{os.environ['CONTAINER_ID']}"
+        elif setup_env == 'prod':
+            os.environ['VALIDATE_HOST'] = f"ssh://ubuntu@192.168.1.31"
         else:
-            os.environ['VALIDATE_HOST'] = 'provisioner_dev'
+            os.environ['VALIDATE_HOST'] = f"docker://root@provisioner_dev"
         """),
-        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"docker://root@$VALIDATE_HOST\"", "$tests"),
+        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
     ],
     env = {
         "tests": cmd.files("test_provisioner.py"),
