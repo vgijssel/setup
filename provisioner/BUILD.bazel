@@ -103,6 +103,7 @@ task(
     deps = [
         requirement("pytest-testinfra"),
         requirement("pyyaml"),
+        requirement("semver"),
     ],
 )
 

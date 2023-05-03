@@ -23,13 +23,20 @@ def install_teleport():
     arch = host.get_fact(DebArch)
     teleport = host.get_fact(DebPackage, "teleport")
 
-    TELEPORT_VERSION = "12.2.5"
+    TELEPORT_VERSION = "12.3.1"
 
-    if not teleport or teleport["version"] != TELEPORT_VERSION:
+    needs_update = not teleport or teleport["version"] != TELEPORT_VERSION
+
+    if needs_update:
         # https://goteleport.com/download/#install-links
         apt.deb(
             name="Install Teleport via deb",
             src=f"https://cdn.teleport.dev/teleport_{TELEPORT_VERSION}_{arch}.deb",
+            _sudo=True,
+        )
+
+        systemd.daemon_reload(
+            name="Reload systemd in case service file changed",
             _sudo=True,
         )
 
