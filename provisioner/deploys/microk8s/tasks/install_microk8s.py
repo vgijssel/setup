@@ -26,7 +26,7 @@ def install_microk8s():
         _sudo=True,
         user="root",
         group="root",
-        mode="644",
+        mode="0755",
     )
 
     if config_file.changed and not host.data.get("inside_docker"):
