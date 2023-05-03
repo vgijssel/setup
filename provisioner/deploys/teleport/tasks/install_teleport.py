@@ -36,7 +36,7 @@ def install_teleport():
         )
 
         systemd.daemon_reload(
-            name="Reload systemd in case service file changed",
+            name="Reload systemd daemon in case service file changed",
             _sudo=True,
         )
 
