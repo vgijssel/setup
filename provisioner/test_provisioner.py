@@ -1,5 +1,5 @@
 import yaml
-import re
+import semver
 
 
 def test_netplan_installed(host):
@@ -32,14 +32,14 @@ def test_cmdline(host):
     assert cmdline.contains("root")
     assert cmdline.user == "root"
     assert cmdline.group == "root"
-    assert cmdline.mode == 0o644
+    assert cmdline.mode == 0o755
 
 
 def test_ubuntu_focal(host):
     assert host.system_info.type == "linux"
     assert host.system_info.distribution == "ubuntu"
-    assert host.system_info.release == "20.04"
-    assert host.system_info.codename == "focal"
+    assert host.system_info.release == "22.04"
+    assert host.system_info.codename == "jammy"
 
 
 def test_microk8s_installed(host):
@@ -68,3 +68,27 @@ def test_passwd_file(host):
     assert passwd.user == "root"
     assert passwd.group == "root"
     assert passwd.mode == 0o644
+
+
+def test_wget_installed(host):
+    wget = host.package("wget")
+    assert wget.is_installed
+
+
+def test_teleport_installed(host):
+    teleport = host.package("teleport")
+    assert teleport.is_installed
+
+    server_version = semver.VersionInfo.parse(teleport.version)
+    wanted_version = semver.VersionInfo.parse("12.3.1")
+    assert server_version >= wanted_version
+
+
+def test_teleport_service(host):
+    teleport = host.service("teleport")
+    assert teleport.is_running
+    assert teleport.is_enabled
+
+
+def test_https_port_is_open(host):
+    assert host.socket("tcp://0.0.0.0:443").is_listening

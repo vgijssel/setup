@@ -8,14 +8,20 @@ pyinfra_run(
     srcs = [
         "deploys/microk8s/tasks/install_microk8s.py",
         "deploys/network/tasks/install_network.py",
+        "deploys/teleport/tasks/install_teleport.py",
+        "group_data/dev.py",
+        "group_data/prod.py",
+        "group_data/test.py",
     ],
     args = [
         "--data install_network=True",
         "--data install_microk8s=True",
+        "--data install_teleport=True",
     ],
     data = [
         "deploys/microk8s/files/cmdline.txt",
         "deploys/network/files/99_config.yaml",
+        "deploys/teleport/files/teleport.yaml.j2",
     ],
     deploy = "deploy.py",
     inventory = "inventory.py",
@@ -39,6 +45,7 @@ task(
             "docker run",
             "--rm",
             "--detach",
+            "--publish 127.0.0.1:10443:443",
             "--tmpfs /run",
             "--tmpfs /run/lock",
             "--tmpfs /tmp",
@@ -84,11 +91,13 @@ task(
         setup_env = os.environ.get("SETUP_ENV", 'dev')
 
         if setup_env == 'test':
-            os.environ['VALIDATE_HOST'] = os.environ['CONTAINER_ID']
+            os.environ['VALIDATE_HOST'] = f"docker://root@{os.environ['CONTAINER_ID']}"
+        elif setup_env == 'prod':
+            os.environ['VALIDATE_HOST'] = f"ssh://ubuntu@192.168.1.31"
         else:
-            os.environ['VALIDATE_HOST'] = 'provisioner_dev'
+            os.environ['VALIDATE_HOST'] = f"docker://root@provisioner_dev"
         """),
-        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"docker://root@$VALIDATE_HOST\"", "$tests"),
+        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
     ],
     env = {
         "tests": cmd.files("test_provisioner.py"),
@@ -96,6 +105,7 @@ task(
     deps = [
         requirement("pytest-testinfra"),
         requirement("pyyaml"),
+        requirement("semver"),
     ],
 )
 
