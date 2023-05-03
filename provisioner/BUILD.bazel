@@ -9,6 +9,9 @@ pyinfra_run(
         "deploys/microk8s/tasks/install_microk8s.py",
         "deploys/network/tasks/install_network.py",
         "deploys/teleport/tasks/install_teleport.py",
+        "group_data/dev.py",
+        "group_data/prod.py",
+        "group_data/test.py",
     ],
     args = [
         "--data install_network=True",
@@ -18,7 +21,7 @@ pyinfra_run(
     data = [
         "deploys/microk8s/files/cmdline.txt",
         "deploys/network/files/99_config.yaml",
-        "deploys/teleport/files/teleport.yaml",
+        "deploys/teleport/files/teleport.yaml.j2",
     ],
     deploy = "deploy.py",
     inventory = "inventory.py",
@@ -42,7 +45,7 @@ task(
             "docker run",
             "--rm",
             "--detach",
-            "--publish 0.0.0.0:443:443",
+            "--publish 127.0.0.1:10443:443",
             "--tmpfs /run",
             "--tmpfs /run/lock",
             "--tmpfs /tmp",

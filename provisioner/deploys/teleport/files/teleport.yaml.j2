@@ -22,10 +22,8 @@ ssh_service:
 proxy_service:
   enabled: "yes"
   web_listen_addr: 0.0.0.0:443
-  public_addr: localhost:443
-  https_keypairs:
-    []
-    # - key_file: /var/lib/teleport/privkey.pem
-    #   cert_file: /var/lib/teleport/fullchain.pem
+  public_addr: "{{ teleport_public_addr }}"
   https_keypairs_reload_interval: 0s
-  acme: {}
+  acme:
+    enabled: "{{ teleport_acme_enabled }}"
+    email: "{{ teleport_acme_email }}"

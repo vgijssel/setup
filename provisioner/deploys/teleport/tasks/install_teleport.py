@@ -33,7 +33,6 @@ def install_teleport():
             _sudo=True,
         )
 
-    # TODO: branch on dev vs prod
     files.template(
         name="Create Teleport config",
         src="provisioner/deploys/teleport/files/teleport.yaml.j2",
@@ -43,6 +42,9 @@ def install_teleport():
         user="root",
         group="root",
         mode="644",
+        teleport_public_addr=host.data.teleport_public_addr,
+        teleport_acme_enabled=host.data.teleport_acme_enabled,
+        teleport_acme_email=host.data.teleport_acme_email,
     )
 
     systemd.service(
