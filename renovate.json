@@ -1,0 +1,33 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "pip-compile": {
+    "fileMatch": ["(^|/)requirements\\.in$"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "automergeType": "pr",
+    "platformAutomerge": true
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["(^|/)install_teleport\\.py$"],
+      "matchStrings": ["TELEPORT_VERSION = \"(?<currentValue>.*?)\""],
+      "depNameTemplate": "gravitational/teleport",
+      "datasourceTemplate": "github-releases"
+    }
+  ],
+  "ruby": {
+    "enabled": false
+  }
+}

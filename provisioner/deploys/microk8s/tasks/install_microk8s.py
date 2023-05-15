@@ -3,6 +3,8 @@ from pyinfra.api.deploy import deploy
 from pyinfra.operations import snap, server, files, apt
 from pyinfra.facts.server import Users
 
+MICROK8S_VERSION = "1.27"
+
 
 # From https://microk8s.io/docs/getting-started
 @deploy("Install Microk8s")
@@ -43,6 +45,7 @@ def install_microk8s():
         classic=True,
         present=True,
         _sudo=True,
+        channel=f"{MICROK8S_VERSION}/stable",
     )
 
     if not host.data.get("inside_docker"):

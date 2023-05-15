@@ -4,6 +4,9 @@ from pyinfra import host
 from pyinfra.facts.deb import DebPackage, DebArch
 
 
+TELEPORT_VERSION = "12.3.1"
+
+
 @deploy("Install Teleport")
 def install_teleport():
     apt.packages(
@@ -22,8 +25,6 @@ def install_teleport():
 
     arch = host.get_fact(DebArch)
     teleport = host.get_fact(DebPackage, "teleport")
-
-    TELEPORT_VERSION = "12.3.1"
 
     needs_update = not teleport or teleport["version"] != TELEPORT_VERSION
 
