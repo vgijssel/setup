@@ -27,5 +27,8 @@
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     }
-  ]
+  ],
+  "ruby": {
+    "enabled": false
+  }
 }
