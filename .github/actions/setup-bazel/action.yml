@@ -3,7 +3,7 @@ description: "Setup the CI to work properly with Bazel"
 runs:
   using: "composite"
   steps:
-    - uses: pat-s/always-upload-cache@v3.0.1
+    - uses: pat-s/always-upload-cache@v3.0.11
       id: bazel-cache
       with:
         path: |
