@@ -23,9 +23,9 @@
     {
       "fileMatch": ["(^|/)install_teleport\\.py$"],
       "matchStrings": [
-        "datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s*.*?_VERSION\\s*?=\\s*?\"(?<currentValue>.*?)\""
+        "#\\s?renovate: depName=(?<depName>.*?)\\s?.*?_VERSION\\s?=\\s?\\\"?(?<currentValue>.*)\""
       ],
-      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+      "datasourceTemplate": "github-releases"
     }
   ],
   "ruby": {

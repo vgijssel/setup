@@ -4,7 +4,7 @@ from pyinfra import host
 from pyinfra.facts.deb import DebPackage, DebArch
 
 
-# renovate: datasource=github-releases depName=gravitational/teleport
+# renovate: depName=gravitational/teleport
 TELEPORT_VERSION = "12.3.1"
 
 
