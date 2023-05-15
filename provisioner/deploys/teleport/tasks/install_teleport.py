@@ -10,8 +10,8 @@ TELEPORT_VERSION = "v12.3.3"
 @deploy("Install Teleport")
 def install_teleport():
     apt.packages(
-        name="Install wget so we can install .deb directly",
-        packages=["wget"],
+        name="Install wget and curl so we can install .deb directly",
+        packages=["wget", "curl"],
         _sudo=True,
     )
 
