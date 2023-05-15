@@ -23,6 +23,7 @@ def install_teleport():
     arch = host.get_fact(DebArch)
     teleport = host.get_fact(DebPackage, "teleport")
 
+    # renovate: datasource=github-releases depName=gravitational/teleport
     TELEPORT_VERSION = "12.3.1"
 
     needs_update = not teleport or teleport["version"] != TELEPORT_VERSION
