@@ -50,7 +50,7 @@ pip = use_extension("@rules_python//python:extensions.bzl", "pip")
 pip.parse(
     name = "pip-setup",
     python_interpreter_target = "@python_interpreter//:python",
-    requirements_lock = "//:requirements.lock",
+    requirements_lock = "//:requirements.txt",
 )
 use_repo(pip, "pip-setup")
 
