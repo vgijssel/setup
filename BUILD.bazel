@@ -75,7 +75,7 @@ filegroup(
 compile_pip_requirements(
     name = "requirements",
     env = {
-        "CUSTOM_COMPILE_COMMAND": "pip-compile --allow-unsafe --generate-hashes",
+        "CUSTOM_COMPILE_COMMAND": "pip-compile --allow-unsafe --generate-hashes requirements.in",
     },
     extra_args = ["--allow-unsafe"],
     requirements_in = "requirements.in",
