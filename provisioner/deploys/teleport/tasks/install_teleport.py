@@ -4,7 +4,7 @@ from pyinfra import host
 from pyinfra.facts.deb import DebPackage, DebArch
 
 
-TELEPORT_VERSION = "12.3.1"
+TELEPORT_VERSION = "v12.3.3"
 
 
 @deploy("Install Teleport")
