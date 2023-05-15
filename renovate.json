@@ -29,5 +29,8 @@
   ],
   "ruby": {
     "enabled": false
+  },
+  "pip_requirements": {
+    "fileMatch": ["(^|/)requirements\\.in$"]
   }
 }
