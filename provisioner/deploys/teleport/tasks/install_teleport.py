@@ -10,8 +10,8 @@ TELEPORT_VERSION = "v12.3.3"
 @deploy("Install Teleport")
 def install_teleport():
     apt.packages(
-        name="Install wget and curl so we can install .deb directly",
-        packages=["wget", "curl"],
+        name="Install wget so we can install .deb directly",
+        packages=["wget"],
         _sudo=True,
     )
 
@@ -25,14 +25,16 @@ def install_teleport():
 
     arch = host.get_fact(DebArch)
     teleport = host.get_fact(DebPackage, "teleport")
+    current_teleport_version = TELEPORT_VERSION.replace("v", "")
 
-    needs_update = not teleport or teleport["version"] != TELEPORT_VERSION
+    needs_update = not teleport or teleport["version"] != current_teleport_version
 
     if needs_update:
         # https://goteleport.com/download/#install-links
+        # https://cdn.teleport.dev/teleport_12.3.3_arm64.deb
         apt.deb(
             name="Install Teleport via deb",
-            src=f"https://cdn.teleport.dev/teleport_{TELEPORT_VERSION}_{arch}.deb",
+            src=f"https://cdn.teleport.dev/teleport_{current_teleport_version}_{arch}.deb",
             _sudo=True,
         )
 
