@@ -30,7 +30,8 @@
       "fileMatch": ["(^|/)install_microk8s\\.py$"],
       "matchStrings": ["MICROK8S_VERSION = \"(?<currentValue>.*?)\""],
       "depNameTemplate": "canonical/microk8s",
-      "datasourceTemplate": "github-releases"
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver-coerced"
     }
   ],
   "ruby": {
