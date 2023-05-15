@@ -25,13 +25,6 @@
       "matchStrings": ["TELEPORT_VERSION = \"(?<currentValue>.*?)\""],
       "depNameTemplate": "gravitational/teleport",
       "datasourceTemplate": "github-releases"
-    },
-    {
-      "fileMatch": ["(^|/)install_microk8s\\.py$"],
-      "matchStrings": ["MICROK8S_VERSION = \"(?<currentValue>.*?)\""],
-      "depNameTemplate": "canonical/microk8s",
-      "datasourceTemplate": "github-releases",
-      "versioningTemplate": "semver-coerced"
     }
   ],
   "ruby": {

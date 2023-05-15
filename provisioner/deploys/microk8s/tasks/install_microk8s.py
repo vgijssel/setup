@@ -3,7 +3,7 @@ from pyinfra.api.deploy import deploy
 from pyinfra.operations import snap, server, files, apt
 from pyinfra.facts.server import Users
 
-MICROK8S_VERSION = "1.26"
+MICROK8S_VERSION = "1.27"
 
 
 # From https://microk8s.io/docs/getting-started
