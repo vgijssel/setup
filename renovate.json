@@ -32,6 +32,6 @@
   },
   "pip_requirements": {
     "fileMatch": ["(^|/)requirements\\.in$"],
-    "ignorePaths": ["(^|/)requirements\\.txt$"]
+    "ignorePaths": ["**/requirements.txt"]
   }
 }
