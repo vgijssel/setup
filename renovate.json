@@ -24,7 +24,8 @@
       "fileMatch": ["(^|/)install_teleport\\.py$"],
       "matchStrings": ["TELEPORT_VERSION = \"(?<currentValue>.*?)\""],
       "depNameTemplate": "gravitational/teleport",
-      "datasourceTemplate": "github-releases"
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver-coerced"
     }
   ],
   "ruby": {
