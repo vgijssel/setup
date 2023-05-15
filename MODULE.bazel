@@ -55,7 +55,10 @@ pip.parse(
 use_repo(pip, "pip-setup")
 
 # ------------------------------------ rules_js ------------------------------------ #
-bazel_dep(name = "aspect_rules_js", version = "1.24.1")
+bazel_dep(name = "aspect_rules_js", version = "1.26.1")
+bazel_dep(name = "rules_nodejs", version = "5.8.2")
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "18.13.0")
 
 pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm")
 pnpm.pnpm(
