@@ -4,7 +4,7 @@ from pyinfra import host
 from pyinfra.facts.deb import DebPackage, DebArch
 
 
-TELEPORT_VERSION = "v12.3.3"
+TELEPORT_VERSION = "v12.3.1"
 
 
 @deploy("Install Teleport")
@@ -53,6 +53,8 @@ def install_teleport():
         group="root",
         mode="644",
         teleport_public_addr=host.data.teleport_public_addr,
+        teleport_acme_enabled=host.data.teleport_acme_enabled,
+        teleport_acme_email=host.data.teleport_acme_email,
     )
 
     systemd.service(
