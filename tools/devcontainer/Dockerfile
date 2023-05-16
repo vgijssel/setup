@@ -116,8 +116,6 @@ ENV PATH /opt/bin:$PATH
 USER devcontainer
 ENV USER devcontainer
 
-# ADD --chown=devcontainer:devcontainer tools/devcontainer/buildifier /opt/bin/buildifier
-
 # NOTE: a WORKSPACE file needs to exist for bazelisk to respect the bazeliskrc file
 ADD --chown=devcontainer:devcontainer WORKSPACE .bazelversion ./
 
