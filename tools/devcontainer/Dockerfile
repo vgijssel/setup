@@ -1,5 +1,6 @@
-# NOTE: not pinning on sha here so we are pulling the right image for the right arch
-FROM ubuntu:focal-20220826
+# From https://stackoverflow.com/a/74764298
+# We're pinning here on the multi-arch digest of the ubuntu:focal image
+FROM ubuntu:focal@sha256:db8bf6f4fb351aa7a26e27ba2686cf35a6a409f65603e59d4c203e58387dc6b3
 
 ARG TARGETARCH
 
