@@ -2,7 +2,7 @@
 Public API for defining tasks.
 """
 
-load("@bazel_skylib//lib:shell.bzl", "shell")
+load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@pip//:requirements.bzl", "requirement")
@@ -209,7 +209,7 @@ _data_collector = {
     "visit_file": lambda context, node: _visit_file(context, node)["label"],
     "visit_files": lambda context, node: _visit_files(context, node)["label"],
     "visit_executable": lambda context, node: _visit_executable(context, node)["label"],
-    "visit_python": lambda context, node: node["label"],
+    "visit_python": lambda context, node: _compact(_flatten(_visit_python(context, node))) + [node["label"]],
 }
 
 _target_generator = {
@@ -253,7 +253,6 @@ def _task_impl(ctx):
     instructions = {
         "cmds": cmds,
         "workspace": ctx.workspace_name,
-        "cwd": ctx.attr.cwd,
     }
 
     ctx.actions.write(
@@ -306,7 +305,6 @@ set -Eeou pipefail
 
 _shared_attrs = {
     "cmd_json": attr.string(mandatory = True),
-    "cwd": attr.string(),
     "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
     "data": attr.label_list(allow_files = True, cfg = "exec"),
     "runner": attr.label(
@@ -323,6 +321,7 @@ def _task_rule_prep(kwargs, testonly = False):
 
     cmds = kwargs.pop("cmds")
     env = kwargs.pop("env", {})
+    cwd = cmd.shell("cd", kwargs.pop("cwd", "$PWD"))
     deps = kwargs.pop("deps", [])
     data = kwargs.pop("data", [])
     name = kwargs["name"]
@@ -340,7 +339,7 @@ def _task_rule_prep(kwargs, testonly = False):
         ] + deps,
     )
 
-    cmds = cmd.root([cmd.env(env)] + cmds)
+    cmds = cmd.root([cmd.env(env), cwd] + cmds)
 
     # Generate targets and set labels for all the nodes
     visitor_context = _visitor_context(None, _target_generator, name)
@@ -348,7 +347,12 @@ def _task_rule_prep(kwargs, testonly = False):
 
     # Collect all the labels from the nodes
     visitor_context = _visitor_context(None, _data_collector, name)
+
     cmd_data = _visit(visitor_context, cmds) + data
+
+    # make sure we de-duplicate the labels
+    cmd_data = sets.to_list(sets.make(cmd_data))
+
     cmd_json = json.encode(cmds)
     return runner_name, cmd_data, cmd_json
 

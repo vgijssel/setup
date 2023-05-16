@@ -4,6 +4,10 @@
   "pip-compile": {
     "fileMatch": ["(^|/)requirements\\.in$"]
   },
+  "addLabels": ["dependencies"],
+  "constraints": {
+    "python": "<= 3.10"
+  },
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,
