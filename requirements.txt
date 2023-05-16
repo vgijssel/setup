@@ -982,8 +982,8 @@ pulumi==3.67.1 \
     #   -r requirements.in
     #   pulumi-command
     #   pulumi-kubernetes
-pulumi-command==0.7.1 \
-    --hash=sha256:af93053d41253ba2771046f55a73b48dab4aff096085950bac1067bc946235a1
+pulumi-command==0.7.2 \
+    --hash=sha256:23aec0ea89386775d552e5e0a66a1fa4fd8ecd7810879fa7494061e7aa27f58e
     # via -r requirements.in
 pulumi-kubernetes==3.27.1 \
     --hash=sha256:573bcea8f35b5dac9c08cea964ad57040ad4939194f8be46296218fdbcdcb943

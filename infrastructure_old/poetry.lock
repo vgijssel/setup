@@ -258,13 +258,13 @@ six = ">=1.12,<2.0"
 
 [[package]]
 name = "pulumi-command"
-version = "0.4.1"
+version = "0.7.2"
 description = "The Pulumi Command Provider enables you to execute commands and scripts either locally or remotely as part of the Pulumi resource model."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pulumi_command-0.4.1.tar.gz", hash = "sha256:4ef219f6edd4759317453432fae6b4f006b4b36ad4eac4dfb43cdee6cee7ad30"},
+    {file = "pulumi_command-0.7.2.tar.gz", hash = "sha256:23aec0ea89386775d552e5e0a66a1fa4fd8ecd7810879fa7494061e7aa27f58e"},
 ]
 
 [package.dependencies]
@@ -453,4 +453,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "98f370c10b65cee59042bd6590ba35e663a4cc4bd95cdcad118343cc4436dd70"
+content-hash = "e1f175d40df1b2d8b46d96e8067e43b43b7c74ffba807b7ebf986c80ed87fb45"
