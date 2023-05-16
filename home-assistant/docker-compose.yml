@@ -57,7 +57,7 @@ services:
 
   esphome:
     container_name: esphome
-    image: esphome/esphome:2022.10
+    image: esphome/esphome:2022.12
     volumes:
       - ./esphome-data:/config
       - /data/esphome_nimble:/esphome_nimble
