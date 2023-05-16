@@ -5,7 +5,14 @@ env:
   DEVCONTAINER_IMAGE: ghcr.io/mvgijssel/setup/tools/devcontainer
 
 name: Test
-on: [push]
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "*"
+  merge_group:
 jobs:
   cancel_previous_run:
     name: Cancel Previous Run
