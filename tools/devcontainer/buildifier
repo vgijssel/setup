@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-cd /workspaces/setup
-
-exec bazel run -- @buildifier_prebuilt//:buildifier "$@"
