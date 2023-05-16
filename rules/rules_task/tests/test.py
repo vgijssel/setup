@@ -45,6 +45,12 @@ def test_cwd():
     assert result.stdout.strip() == result.stderr.strip()
 
 
+def test_cwd_with_env():
+    result = _run_task("cwd_with_env")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"content in test file"
+
+
 def test_cwd_jinja():
     result = _run_task("cwd_jinja")
     assert result.returncode == 0
@@ -54,7 +60,7 @@ def test_cwd_jinja():
 def test_file():
     result = _run_task("file")
     assert result.returncode == 0
-    assert result.stdout.strip() == b"content in test file"
+    assert result.stdout.strip() == b"content in test filecontent in test file"
 
 
 def test_py_binary():
@@ -72,6 +78,11 @@ def test_py_binary_with_runfile():
 def test_genrule():
     result = _get_output("genrule_output.txt")
     assert result == "from genrule\nfrom python: content in test file\n"
+
+
+def test_genrule_with_cwd():
+    result = _get_output("genrule_with_cwd_output.txt")
+    assert result == "content in test file"
 
 
 def test_filegroup():

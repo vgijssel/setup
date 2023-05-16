@@ -18,6 +18,6 @@ def _get_file_content(path):
         return file.read()
 
 
-content = _get_file_content(_rlocation_to_path("rules_task/tests/test_file.txt"))
+content = _get_file_content(_rlocation_to_path("rules_task/tests/files/test_file.txt"))
 
 print(f"from python: {content}")

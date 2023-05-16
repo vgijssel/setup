@@ -11,7 +11,7 @@ py_binary(
     name = "test_py_binary_with_runfile",
     srcs = ["test_py_binary_with_runfile.py"],
     data = [
-        "test_file.txt",
+        "files/test_file.txt",
     ],
     deps = [
         requirement("bazel-runfiles"),
@@ -21,8 +21,8 @@ py_binary(
 filegroup(
     name = "test_filegroup",
     srcs = [
-        "test_file.txt",
-        "test_second_file.txt",
+        "files/test_file.txt",
+        "files/test_second_file.txt",
     ],
 )
 
@@ -66,7 +66,8 @@ task(
     cmds = [
         cmd.shell(
             "cat",
-            cmd.file("test_file.txt"),
+            cmd.file("files/test_file.txt"),
+            cmd.file("files/test_file.txt"),
         ),
     ],
 )
@@ -94,6 +95,28 @@ genrule(
     """,
     tools = [
         ":py_binary_with_runfile",
+    ],
+)
+
+task(
+    name = "cwd_with_env",
+    cmds = [
+        "cat $INPUT_FILE",
+    ],
+    cwd = "$(dirname $INPUT_FILE)",
+    env = {
+        "INPUT_FILE": cmd.file("files/test_file.txt"),
+    },
+)
+
+genrule(
+    name = "genrule_with_cwd",
+    outs = ["genrule_with_cwd_output.txt"],
+    cmd = """
+    $(location :cwd_with_env) > $@
+    """,
+    tools = [
+        ":cwd_with_env",
     ],
 )
 
@@ -208,11 +231,13 @@ py_test(
         ":cli_args",
         ":cwd",
         ":cwd_jinja",
+        ":cwd_with_env",
         ":defer",
         ":env",
         ":file",
         ":filegroup",
         ":genrule",
+        ":genrule_with_cwd",
         ":hello",
         ":py_binary",
         ":py_binary_with_runfile",
