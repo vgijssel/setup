@@ -184,6 +184,6 @@ http_archive(
 http_archive(
     name = "teleport_amd64",
     build_file = "//tools/teleport:BUILD.repositories.bazel.tpl",
-    # sha256 = "19c240ab4589dde018f99f12ff671c66e91c80855c5ce80d306a43b2a9f47970",
+    sha256 = "6d357e2e2a54a713e79fc0ce9068470fb202ac4fb0e27bafef0fe5a377ada10f",
     url = "https://cdn.teleport.dev/teleport-v13.0.0-linux-amd64-bin.tar.gz",
 )
