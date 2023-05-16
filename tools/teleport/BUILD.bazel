@@ -1,3 +1,5 @@
+load("@rules_task//:defs.bzl", "cmd", "task")
+
 package(default_visibility = ["//visibility:public"])
 
 tsh_file = select({
@@ -6,6 +8,22 @@ tsh_file = select({
 })
 
 sh_binary(
-    name = "tsh",
+    name = "tsh_binary",
     srcs = tsh_file,
+)
+
+task(
+    name = "tsh",
+    cmds = [
+        cmd.shell(
+            cmd.executable(":tsh_binary"),
+            "$CLI_ARGS",
+        ),
+    ],
+    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
+    env = {
+        "TELEPORT_PROXY": "tele.vgijssel.nl",
+        "TELEPORT_USER": "teleport-admin",
+        "TELEPORT_ADD_KEYS_TO_AGENT": "no",
+    },
 )
