@@ -976,8 +976,8 @@ protobuf==4.22.3 \
     --hash=sha256:f08aa300b67f1c012100d8eb62d47129e53d1150f4469fd78a29fa3cb68c66f2 \
     --hash=sha256:f2f4710543abec186aee332d6852ef5ae7ce2e9e807a3da570f36de5a732d88e
     # via pulumi
-pulumi==3.60.1 \
-    --hash=sha256:602ba5a4e8ba6e63c5594488333b75dd2096ccf2681e61648732e817552f50cd
+pulumi==3.67.1 \
+    --hash=sha256:19372f8e29f823a3483415fb28707953ee5f70d41d1cef26b0f7de1e7397def3
     # via
     #   -r requirements.in
     #   pulumi-command
