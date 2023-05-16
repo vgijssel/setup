@@ -38,8 +38,6 @@ def main() -> None:
     with open(instructions_file) as f:
         instructions = json.load(f)
 
-    cwd = instructions["cwd"] or "$PWD"
-
     trap_add = """
 # From https://stackoverflow.com/a/30650385
 #===================================================================
@@ -76,7 +74,6 @@ trap_add() {
     bash_cmd = f"""
     set -Eeou pipefail
     {trap_add}
-    cd {cwd}
     """
 
     for cmd in instructions["cmds"]:

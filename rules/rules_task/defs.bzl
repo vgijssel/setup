@@ -253,7 +253,6 @@ def _task_impl(ctx):
     instructions = {
         "cmds": cmds,
         "workspace": ctx.workspace_name,
-        "cwd": ctx.attr.cwd,
     }
 
     ctx.actions.write(
@@ -306,7 +305,6 @@ set -Eeou pipefail
 
 _shared_attrs = {
     "cmd_json": attr.string(mandatory = True),
-    "cwd": attr.string(),
     "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
     "data": attr.label_list(allow_files = True, cfg = "exec"),
     "runner": attr.label(
@@ -323,6 +321,7 @@ def _task_rule_prep(kwargs, testonly = False):
 
     cmds = kwargs.pop("cmds")
     env = kwargs.pop("env", {})
+    cwd = cmd.shell("cd", kwargs.pop("cwd", "$PWD"))
     deps = kwargs.pop("deps", [])
     data = kwargs.pop("data", [])
     name = kwargs["name"]
@@ -340,7 +339,7 @@ def _task_rule_prep(kwargs, testonly = False):
         ] + deps,
     )
 
-    cmds = cmd.root([cmd.env(env)] + cmds)
+    cmds = cmd.root([cmd.env(env), cwd] + cmds)
 
     # Generate targets and set labels for all the nodes
     visitor_context = _visitor_context(None, _target_generator, name)
@@ -509,10 +508,6 @@ def py_binary_cmd(name, code):
 
 #
 def new_compile_pip_requirements(name, requirements_in, requirements_txt, extra_args = []):
-    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}/" + native.package_name()
-
-    print(cwd)
-
     pip_compile_header_args = [
         "--generate-hashes",
     ] + extra_args + [
@@ -532,9 +527,10 @@ def new_compile_pip_requirements(name, requirements_in, requirements_txt, extra_
         cmds = [
             cmd.python_entry_point("piptools.scripts.compile:cli", *pip_compile_args),
         ],
-        cwd = cwd,
+        cwd = "$(dirname $REQUIREMENTS_IN)",
         env = {
             "CUSTOM_COMPILE_COMMAND": "pip-compile " + " ".join(pip_compile_header_args),
+            "REQUIREMENTS_IN": cmd.file(requirements_in),
         },
     )
     # genrule which takes task, changes output of requirements.txt to regular bazel-out
