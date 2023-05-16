@@ -46,6 +46,13 @@ register_toolchains(
     "@python3_toolchains//:all",
 )
 
+# TODO: we can do one of the following things to make rules_python work with Bazel:
+# 1. Use poetry instead of pip compile
+# 2. Update renovatebot to use different binary / image for pip
+# 3. Change heading of compile_pip_requirements to directly mention pip-compile
+#
+# create Bazel macro which runs the latest pip-compile
+# so the file is the same as renovatebot
 pip = use_extension("@rules_python//python:extensions.bzl", "pip")
 pip.parse(
     name = "pip-setup",
