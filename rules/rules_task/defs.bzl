@@ -209,7 +209,7 @@ _data_collector = {
     "visit_file": lambda context, node: _visit_file(context, node)["label"],
     "visit_files": lambda context, node: _visit_files(context, node)["label"],
     "visit_executable": lambda context, node: _visit_executable(context, node)["label"],
-    "visit_python": lambda context, node: node["label"],
+    "visit_python": lambda context, node: _compact(_flatten(_visit_python(context, node))) + [node["label"]],
 }
 
 _target_generator = {
@@ -506,3 +506,36 @@ def py_binary_cmd(name, code):
         main = main_name_file,
         deps = [requirement("deepdiff")],
     )
+
+#
+def new_compile_pip_requirements(name, requirements_in, requirements_txt, extra_args = []):
+    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}/" + native.package_name()
+
+    print(cwd)
+
+    pip_compile_header_args = [
+        "--generate-hashes",
+    ] + extra_args + [
+        requirements_in,
+    ]
+
+    pip_compile_args = [
+        "--output-file",
+        requirements_txt,
+    ] + pip_compile_header_args
+
+    task(
+        name = name,
+        deps = [
+            requirement("pip-tools"),
+        ],
+        cmds = [
+            cmd.python_entry_point("piptools.scripts.compile:cli", *pip_compile_args),
+        ],
+        cwd = cwd,
+        env = {
+            "CUSTOM_COMPILE_COMMAND": "pip-compile " + " ".join(pip_compile_header_args),
+        },
+    )
+    # genrule which takes task, changes output of requirements.txt to regular bazel-out
+    # diff_test which compares requirements.txt to genrule output
