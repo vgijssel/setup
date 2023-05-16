@@ -8,8 +8,8 @@ attrs==23.1.0 \
     --hash=sha256:1f28b4522cdc2fb4256ac1a020c78acf9cba2c6b461ccd2c126f3aa8e8335d04 \
     --hash=sha256:6279836d581513a26f1bf235f9acd333bc9115683f14f7e8fae46c98fc50e015
     # via pytest
-bazel-runfiles==0.20.0 \
-    --hash=sha256:935dde7433f3fa0fde01c098e4b18f6195f57a4a9ceda7d28bc707d1e31b5a57
+bazel-runfiles==0.21.0 \
+    --hash=sha256:3e430dd9a5aba90a90bc2493fdcfce02a3ece47fb574db0f4ac898261e6b068d
     # via -r requirements.in
 black==23.3.0 \
     --hash=sha256:064101748afa12ad2291c2b91c960be28b817c0c7eaa35bec09cc63aa56493c5 \
