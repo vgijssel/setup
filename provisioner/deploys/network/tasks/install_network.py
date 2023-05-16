@@ -57,7 +57,7 @@ def install_network():
         server.shell(
             name="Enable firewall",
             commands=[
-                "ufw enable",
+                "yes | ufw enable",
             ],
             _sudo=True,
         )
