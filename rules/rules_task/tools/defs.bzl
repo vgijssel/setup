@@ -8,9 +8,9 @@ def compile_pip_requirements(name, requirements_in, requirements_txt, extra_args
     pip_compile_compare_name = "{}_compare".format(name)
     pip_compile_test_name = "{}_test".format(name)
 
-    pip_compile_shared_args = [
+    pip_compile_shared_args = extra_args + [
         "--generate-hashes",
-    ] + extra_args
+    ]
 
     pip_compile_header_args = ["pip-compile"] + pip_compile_shared_args + [
         requirements_in,
