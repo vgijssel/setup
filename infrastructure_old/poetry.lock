@@ -310,13 +310,13 @@ semver = ">=2.8.1"
 
 [[package]]
 name = "pulumi-vault"
-version = "5.1.0"
-description = "A Pulumi package for creating and managing vault cloud resources."
+version = "5.11.0"
+description = "A Pulumi package for creating and managing HashiCorp Vault cloud resources."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "pulumi_vault-5.1.0.tar.gz", hash = "sha256:2afbb8e2a0c805208df3d4452f1afa5add091eb36b8191d1f6eb7accd66dcaac"},
+    {file = "pulumi_vault-5.11.0.tar.gz", hash = "sha256:920eb32bf890c91ef1060ae41fdb1f0c3038f4c0f44bc4a673d16b77b14045b9"},
 ]
 
 [package.dependencies]
