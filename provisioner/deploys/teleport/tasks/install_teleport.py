@@ -5,11 +5,11 @@ from pyinfra.facts.deb import DebPackage, DebArch
 from time import sleep
 
 
-
 TELEPORT_VERSION = "v12.3.1"
 
+
 # Inspired by https://github.com/Fizzadar/pyinfra/blob/2.x/pyinfra/operations/server.py#LL51C12-L51C52
-def _wait_for_reconnect(state, host, delay=10, interval=1, reboot_timeout=300):
+def _wait_for_reconnect(delay=10, interval=1, reboot_timeout=300):
     sleep(delay)
     max_retries = round(reboot_timeout / interval)
 
@@ -23,11 +23,14 @@ def _wait_for_reconnect(state, host, delay=10, interval=1, reboot_timeout=300):
 
         if retries > max_retries:
             raise Exception(
-                ("Server did not reboot in time (reboot_timeout={0}s)").format(reboot_timeout),
+                ("Server did not reboot in time (reboot_timeout={0}s)").format(
+                    reboot_timeout
+                ),
             )
 
         sleep(interval)
         retries += 1
+
 
 @deploy("Install Teleport")
 def install_teleport():
@@ -79,15 +82,21 @@ def install_teleport():
         teleport_acme_email=host.data.teleport_acme_email,
     )
 
+    systemd.service(
+        name="Enable the teleport service",
+        service="teleport.service",
+        running=True,
+        enabled=True,
+        _sudo=True,
+    )
+
     if needs_update or teleport_config.changed:
         systemd.service(
-            name="Restart and enable the teleport service",
+            name="Restart the teleport service",
             service="teleport.service",
-            running=True,
             restarted=True,
-            enabled=True,
             _sudo=True,
-            _success_exit_codes=[0, 1] # 1 happens when teleport disconnects the currently running session
+            _ignore_errors=True,  # restarting the service will disconnect us and result in error
         )
 
         python.call(

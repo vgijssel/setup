@@ -1,27 +1,13 @@
 """
-The ``@teleport`` connector allows you to build teleport images, or modify running
-teleport containers, using ``pyinfra``. You can pass either an image name or
-existing container ID:
-
-+ Image - will create a container from the image, execute operations and save
-    into a new image
-+ Existing container ID - will simply execute operations against the container,
-    leaving it up afterwards
-
+The ``@teleport`` connector allows you to use teleport to connect to remotes.
 
 .. code:: shell
 
-    # A teleport base image must be provided
-    pyinfra @teleport/alpine:3.8 ...
+    # Pyinfra will connect to the provisioner remote via teleport
+    pyinfra @teleport/provisioner ...
 
-    # pyinfra can run on multiple teleport images in parallel
-    pyinfra @teleport/alpine:3.8,@teleport/ubuntu:bionic ...
-
-    # Execute against a running container
-    pyinfra @teleport/2beb8c15a1b1 ...
 """
 
-import json
 import os
 from tempfile import mkstemp
 from typing import TYPE_CHECKING
@@ -71,14 +57,24 @@ class TeleportClient:
             self._get_remote(),
             command,
         ]
-
         return StringCommand(*args)
 
-    def scp_upload(self, file):
-        pass
+    def scp_upload(self, local_file, remote_file):
+        remote_file = f"{self._get_remote()}:{remote_file}"
+        return self.scp(local_file, remote_file)
 
-    def scp_download(self, file):
-        pass
+    def scp_download(self, remote_file, local_file):
+        remote_file = f"{self._get_remote()}:{remote_file}"
+        return self.scp(remote_file, local_file)
+
+    def scp(self, from_file, to_file):
+        args = [
+            self.tsh_binary,
+            "scp",
+            from_file,
+            to_file,
+        ]
+        return StringCommand(*args)
 
     def _get_remote(self):
         if self.teleport_user:
@@ -152,7 +148,13 @@ def run_shell_command(
 
 
 def _put_file(host, filename_or_io, temp_file):
-    local.shell(teleport_client.scp_upload(filename_or_io, temp_file))
+    teleport_client = host.connector_data["teleport_client"]
+    local.shell(
+        teleport_client.scp_upload(
+            local_file=filename_or_io,
+            remote_file=temp_file,
+        ).get_raw_value()
+    )
 
 
 # Inspired by https://github.com/Fizzadar/pyinfra/blob/6eca1a52d955a0497cd33c02cb9a94176f93583d/pyinfra/connectors/ssh.py#L493
@@ -175,7 +177,6 @@ def put_file(
     Upload file-ios to the specified host using SCP. Supports uploading files
     with sudo by uploading to a temporary directory then moving & chowning.
     """
-    teleport_client = host.connector_data["teleport_client"]
 
     # sudo/su are a little more complicated, as you can only sftp with the SSH
     # user connected, so upload to tmp and copy/chown w/sudo and/or su_user
