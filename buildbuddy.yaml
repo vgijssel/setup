@@ -12,3 +12,17 @@ actions:
           - "*"
     bazel_commands:
       - "test //... @rules_task//... --config remote"
+
+  - name: "Deploy provisioner"
+    user: buildbuddy
+    # NOTE: to be able to install podman?
+    container_image: "ubuntu-20.04"
+    triggers:
+      push:
+        branches:
+          - "master"
+      pull_request:
+        branches:
+          - "*"
+    bazel_commands:
+      - "SETUP_ENV=prod bazel run //provisioner:provision"
