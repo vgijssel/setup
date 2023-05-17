@@ -25,6 +25,9 @@ pyinfra_run(
         "deploys/teleport/files/teleport.yaml.j2",
     ],
     deploy = "deploy.py",
+    env = {
+        "TELEPORT_TSH_BINARY": cmd.executable("//tools/teleport:tsh"),
+    },
     inventory = "inventory.py",
 )
 

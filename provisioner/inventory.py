@@ -24,7 +24,10 @@ setup_env = os.environ.get("SETUP_ENV", "dev")
 
 if setup_env == "prod":
     prod = [
-        ("@teleport/provisioner"),
+        (
+            "@teleport/provisioner",
+            {"teleport_tsh_binary": os.environ["TELEPORT_TSH_BINARY"]},
+        ),
     ]
 
 elif setup_env == "test":

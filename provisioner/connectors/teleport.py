@@ -37,6 +37,8 @@ class Meta(BaseConnectorMeta):
         hostname = "SSH hostname"
         user = "SSH user"
 
+        tsh_binary = "Teleport tsh binary path"
+
 
 DATA_KEYS = Meta.keys()
 
@@ -46,7 +48,7 @@ class TeleportClient:
         self.state = state
         self.host = host
 
-        self.tsh_binary = "tsh"
+        self.tsh_binary = host.data.get(DATA_KEYS.tsh_binary, "tsh")
         self.teleport_hostname = host.data.get(DATA_KEYS.hostname)
         self.teleport_user = host.data.get(DATA_KEYS.user)
 
@@ -89,12 +91,6 @@ def make_names_data(hostname):
         {DATA_KEYS.hostname: hostname},
         ["@teleport"],
     )
-
-
-# TODO: remove this
-import os
-
-del os.environ["RUNFILES_MANIFEST_FILE"]
 
 
 def connect(state: "State", host: "Host"):
