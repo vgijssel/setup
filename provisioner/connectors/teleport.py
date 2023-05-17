@@ -87,42 +87,42 @@ def connect(state: "State", host: "Host"):
     except PyinfraError as e:
         raise ConnectError(e.args[0])
 
-    host.connector_data["teleport_hostname"] = teleport_hostname
     host.connector_data["teleport_args"] = teleport_args
 
     return True
 
 
 def disconnect(state, host):
-    container_id = host.connector_data["teleport_container_id"]
+    return
+    # container_id = host.connector_data["teleport_container_id"]
 
-    if host.connector_data.get("teleport_container_no_disconnect"):
-        logger.info(
-            "{0}teleport build complete, container left running: {1}".format(
-                host.print_prefix,
-                click.style(container_id, bold=True),
-            ),
-        )
-        return
+    # if host.connector_data.get("teleport_container_no_disconnect"):
+    #     logger.info(
+    #         "{0}teleport build complete, container left running: {1}".format(
+    #             host.print_prefix,
+    #             click.style(container_id, bold=True),
+    #         ),
+    #     )
+    #     return
 
-    with progress_spinner({"teleport commit"}):
-        image_id = local.shell(
-            "teleport commit {0}".format(container_id), splitlines=True
-        )[-1][
-            7:19
-        ]  # last line is the image ID, get sha256:[XXXXXXXXXX]...
+    # with progress_spinner({"teleport commit"}):
+    #     image_id = local.shell(
+    #         "teleport commit {0}".format(container_id), splitlines=True
+    #     )[-1][
+    #         7:19
+    #     ]  # last line is the image ID, get sha256:[XXXXXXXXXX]...
 
-    with progress_spinner({"teleport rm"}):
-        local.shell(
-            "teleport rm -f {0}".format(container_id),
-        )
+    # with progress_spinner({"teleport rm"}):
+    #     local.shell(
+    #         "teleport rm -f {0}".format(container_id),
+    #     )
 
-    logger.info(
-        "{0}teleport build complete, image ID: {1}".format(
-            host.print_prefix,
-            click.style(image_id, bold=True),
-        ),
-    )
+    # logger.info(
+    #     "{0}teleport build complete, image ID: {1}".format(
+    #         host.print_prefix,
+    #         click.style(image_id, bold=True),
+    #     ),
+    # )
 
 
 def run_shell_command(
@@ -138,21 +138,12 @@ def run_shell_command(
     return_combined_output=False,
     **command_kwargs,
 ):
-    container_id = host.connector_data["teleport_container_id"]
+    teleport_args = host.connector_data["teleport_args"]
 
     command = make_unix_command_for_host(state, host, command, **command_kwargs)
     command = QuoteString(command)
-
-    teleport_flags = "-it" if get_pty else "-i"
-    teleport_command = StringCommand(
-        "teleport",
-        "exec",
-        teleport_flags,
-        container_id,
-        "sh",
-        "-c",
-        command,
-    )
+    command_args = teleport_args + [command]
+    teleport_command = StringCommand(*command_args)
 
     return run_local_shell_command(
         state,
