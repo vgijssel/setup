@@ -8,7 +8,7 @@ task(
     name = "python",
     cmds = [
         cmd.shell(
-            interpreter,
+            cmd.executable(interpreter),
             "$CLI_ARGS",
         ),
     ],

@@ -283,6 +283,14 @@ set -Eeou pipefail
     script += """
     runner=$(rlocation {runner})
     instructions=$(rlocation {instructions})
+
+    if [ -z "$runner" ] || [ -z "$instructions" ]; then
+        >&2 echo "Unable to locate runner or instructions file in rules_task!"
+        >&2 echo "Is the task called from another bazel target without being dependent on it?"
+        >&2 echo "As this might result in the wrong runfiles being used."
+        exit 1
+    fi
+
     exec $runner $instructions "$@"
     """.format(
         runner = to_rlocation_path(ctx, runner_exe),

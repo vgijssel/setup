@@ -26,4 +26,5 @@ proxy_service:
   https_keypairs_reload_interval: 0s
   https_keypairs: []
   acme: 
-    enabled: no
+    enabled: "{{ teleport_acme_enabled }}"
+    email: "{{ teleport_acme_email }}"

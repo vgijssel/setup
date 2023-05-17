@@ -15,7 +15,7 @@ def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = 
             "//tools/pyinfra:main.py",
         ] + srcs,
         main = "main.py",
-        deps = ["@rules_python//python/runfiles", requirement("pyinfra")],
+        deps = ["@rules_python//python/runfiles", requirement("pyinfra")] + deps,
     )
 
     task(
