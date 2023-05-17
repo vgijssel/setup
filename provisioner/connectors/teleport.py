@@ -55,6 +55,38 @@ class Meta(BaseConnectorMeta):
 DATA_KEYS = Meta.keys()
 
 
+class TeleportClient:
+    def __init__(self, state, host):
+        self.state = state
+        self.host = host
+
+        self.tsh_binary = "tsh"
+        self.teleport_hostname = host.data.get(DATA_KEYS.hostname)
+        self.teleport_user = host.data.get(DATA_KEYS.user)
+
+    def ssh(self, command):
+        args = [
+            self.tsh_binary,
+            "ssh",
+            self._get_remote(),
+            command,
+        ]
+
+        return StringCommand(*args)
+
+    def scp_upload(self, file):
+        pass
+
+    def scp_download(self, file):
+        pass
+
+    def _get_remote(self):
+        if self.teleport_user:
+            return self.teleport_user + "@" + self.teleport_hostname
+
+        return self.teleport_hostname
+
+
 def make_names_data(hostname):
     yield (
         "@teleport/{0}".format(hostname),
@@ -62,67 +94,30 @@ def make_names_data(hostname):
         ["@teleport"],
     )
 
-tsh_binary = "tsh"
 
+# TODO: remove this
 import os
+
 del os.environ["RUNFILES_MANIFEST_FILE"]
 
+
 def connect(state: "State", host: "Host"):
-    teleport_hostname = host.data.get(DATA_KEYS.hostname)
-    teleport_username = host.data.get(DATA_KEYS.user)
-
-    teleport_args = [tsh_binary, "ssh"]
-
-    if teleport_username:
-        teleport_args.append(teleport_username + "@" + teleport_hostname)
-    else:
-        teleport_args.append(teleport_hostname)
+    teleport_client = TeleportClient(state, host)
 
     try:
         with progress_spinner({"connecting to teleport"}):
             local.shell(
-                " ".join(teleport_args + ["ls"]),
-                splitlines=True,
+                teleport_client.ssh(command="ls").get_raw_value(), splitlines=True
             )
     except PyinfraError as e:
         raise ConnectError(e.args[0])
 
-    host.connector_data["teleport_args"] = teleport_args
-
+    host.connector_data["teleport_client"] = TeleportClient(state, host)
     return True
 
 
 def disconnect(state, host):
     return
-    # container_id = host.connector_data["teleport_container_id"]
-
-    # if host.connector_data.get("teleport_container_no_disconnect"):
-    #     logger.info(
-    #         "{0}teleport build complete, container left running: {1}".format(
-    #             host.print_prefix,
-    #             click.style(container_id, bold=True),
-    #         ),
-    #     )
-    #     return
-
-    # with progress_spinner({"teleport commit"}):
-    #     image_id = local.shell(
-    #         "teleport commit {0}".format(container_id), splitlines=True
-    #     )[-1][
-    #         7:19
-    #     ]  # last line is the image ID, get sha256:[XXXXXXXXXX]...
-
-    # with progress_spinner({"teleport rm"}):
-    #     local.shell(
-    #         "teleport rm -f {0}".format(container_id),
-    #     )
-
-    # logger.info(
-    #     "{0}teleport build complete, image ID: {1}".format(
-    #         host.print_prefix,
-    #         click.style(image_id, bold=True),
-    #     ),
-    # )
 
 
 def run_shell_command(
@@ -138,12 +133,10 @@ def run_shell_command(
     return_combined_output=False,
     **command_kwargs,
 ):
-    teleport_args = host.connector_data["teleport_args"]
-
+    teleport_client = host.connector_data["teleport_client"]
     command = make_unix_command_for_host(state, host, command, **command_kwargs)
     command = QuoteString(command)
-    command_args = teleport_args + [command]
-    teleport_command = StringCommand(*command_args)
+    teleport_command = teleport_client.ssh(command=command)
 
     return run_local_shell_command(
         state,
@@ -158,65 +151,122 @@ def run_shell_command(
     )
 
 
+def _put_file(host, filename_or_io, temp_file):
+    local.shell(teleport_client.scp_upload(filename_or_io, temp_file))
+
+
+# Inspired by https://github.com/Fizzadar/pyinfra/blob/6eca1a52d955a0497cd33c02cb9a94176f93583d/pyinfra/connectors/ssh.py#L493
 def put_file(
     state: "State",
     host: "Host",
     filename_or_io,
     remote_filename,
-    remote_temp_filename=None,  # ignored
-    print_output=False,
-    print_input=False,
-    **kwargs,  # ignored (sudo/etc)
+    remote_temp_filename=None,
+    sudo: bool = False,
+    sudo_user=None,
+    doas: bool = False,
+    doas_user=None,
+    su_user=None,
+    print_output: bool = False,
+    print_input: bool = False,
+    **command_kwargs,
 ):
     """
-    Upload a file/IO object to the target teleport container by copying it to a
-    temporary location and then uploading it into the container using ``teleport cp``.
+    Upload file-ios to the specified host using SCP. Supports uploading files
+    with sudo by uploading to a temporary directory then moving & chowning.
     """
+    teleport_client = host.connector_data["teleport_client"]
 
-    fd, temp_filename = mkstemp()
+    # sudo/su are a little more complicated, as you can only sftp with the SSH
+    # user connected, so upload to tmp and copy/chown w/sudo and/or su_user
+    if sudo or doas or su_user:
+        # Get temp file location
+        temp_file = remote_temp_filename or state.get_temp_filename(remote_filename)
+        _put_file(host, filename_or_io, temp_file)
 
-    try:
-        # Load our file or IO object and write it to the temporary file
-        with get_file_io(filename_or_io) as file_io:
-            with open(temp_filename, "wb") as temp_f:
-                data = file_io.read()
+        # Make sure our sudo/su user can access the file
+        if su_user:
+            command = StringCommand(
+                "setfacl", "-m", "u:{0}:r".format(su_user), temp_file
+            )
+        elif sudo_user:
+            command = StringCommand(
+                "setfacl", "-m", "u:{0}:r".format(sudo_user), temp_file
+            )
+        elif doas_user:
+            command = StringCommand(
+                "setfacl", "-m", "u:{0}:r".format(doas_user), temp_file
+            )
 
-                if isinstance(data, str):
-                    data = data.encode()
+        if su_user or sudo_user or doas_user:
+            status, _, stderr = run_shell_command(
+                state,
+                host,
+                command,
+                sudo=False,
+                print_output=print_output,
+                print_input=print_input,
+                **command_kwargs,
+            )
 
-                temp_f.write(data)
+            if status is False:
+                logger.error(
+                    "Error on handover to sudo/su user: {0}".format("\n".join(stderr))
+                )
+                return False
 
-        teleport_id = host.connector_data["teleport_container_id"]
-        teleport_command = "teleport cp {0} {1}:{2}".format(
-            temp_filename,
-            teleport_id,
-            remote_filename,
-        )
+        # Execute run_shell_command w/sudo and/or su_user
+        command = StringCommand("cp", temp_file, QuoteString(remote_filename))
 
-        status, _, stderr = run_local_shell_command(
+        status, _, stderr = run_shell_command(
             state,
             host,
-            teleport_command,
+            command,
+            sudo=sudo,
+            sudo_user=sudo_user,
+            doas=doas,
+            doas_user=doas_user,
+            su_user=su_user,
             print_output=print_output,
             print_input=print_input,
+            **command_kwargs,
         )
-    finally:
-        os.close(fd)
-        os.remove(temp_filename)
 
-    if not status:
-        raise IOError("\n".join(stderr))
+        if status is False:
+            logger.error("File upload error: {0}".format("\n".join(stderr)))
+            return False
+
+        # Delete the temporary file now that we've successfully copied it
+        command = StringCommand("rm", "-f", temp_file)
+
+        status, _, stderr = run_shell_command(
+            state,
+            host,
+            command,
+            sudo=False,
+            doas=False,
+            print_output=print_output,
+            print_input=print_input,
+            **command_kwargs,
+        )
+
+        if status is False:
+            logger.error(
+                "Unable to remove temporary file: {0}".format("\n".join(stderr))
+            )
+            return False
+
+    # No sudo and no su_user, so just upload it!
+    else:
+        _put_file(host, filename_or_io, remote_filename)
 
     if print_output:
         click.echo(
-            "{0}file uploaded to container: {1}".format(
-                host.print_prefix,
-                remote_filename,
-            ),
+            "{0}file uploaded: {1}".format(host.print_prefix, remote_filename),
             err=True,
         )
 
-    return status
+    return True
 
 
 def get_file(

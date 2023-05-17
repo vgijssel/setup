@@ -65,7 +65,7 @@ def install_teleport():
             _sudo=True,
         )
 
-    files.template(
+    teleport_config = files.template(
         name="Create Teleport config",
         src="provisioner/deploys/teleport/files/teleport.yaml.j2",
         dest="/etc/teleport.yaml",
@@ -79,17 +79,18 @@ def install_teleport():
         teleport_acme_email=host.data.teleport_acme_email,
     )
 
-    systemd.service(
-        name="Restart and enable the teleport service",
-        service="teleport.service",
-        running=True,
-        restarted=True,
-        enabled=True,
-        _sudo=True,
-        _success_exit_codes=[0, 1] # 1 happens when teleport disconnects the currently running session
-    )
+    if needs_update or teleport_config.changed:
+        systemd.service(
+            name="Restart and enable the teleport service",
+            service="teleport.service",
+            running=True,
+            restarted=True,
+            enabled=True,
+            _sudo=True,
+            _success_exit_codes=[0, 1] # 1 happens when teleport disconnects the currently running session
+        )
 
-    python.call(
-        name="Wait for teleport to reconnect",
-        function=_wait_for_reconnect,
-    )
+        python.call(
+            name="Wait for teleport to reconnect",
+            function=_wait_for_reconnect,
+        )
