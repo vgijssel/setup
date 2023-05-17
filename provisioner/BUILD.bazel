@@ -6,6 +6,7 @@ load("@pip-setup//:requirements.bzl", "requirement")
 pyinfra_run(
     name = "provision",
     srcs = [
+        "connectors/teleport.py",
         "deploys/microk8s/tasks/install_microk8s.py",
         "deploys/network/tasks/install_network.py",
         "deploys/teleport/tasks/install_teleport.py",

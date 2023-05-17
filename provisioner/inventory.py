@@ -1,10 +1,30 @@
 import os
+import pkg_resources
+
+import pyinfra.api.connectors
+import provisioner.connectors.teleport
+
+from pyinfra.api.connectors import get_all_connectors
+import pyinfra.api.inventory
+
+original_get_all_connectors = pyinfra.api.connectors.get_all_connectors
+
+
+def patched_get_all_connectors():
+    data = original_get_all_connectors()
+    data["teleport"] = provisioner.connectors.teleport
+    return data
+
+
+pyinfra.api.connectors.get_all_connectors = patched_get_all_connectors
+pyinfra.api.inventory.get_all_connectors = patched_get_all_connectors
+
 
 setup_env = os.environ.get("SETUP_ENV", "dev")
 
 if setup_env == "prod":
     prod = [
-        ("@ssh/192.168.1.31"),
+        ("@teleport/provisioner"),
     ]
 
 elif setup_env == "test":
