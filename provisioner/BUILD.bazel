@@ -31,6 +31,16 @@ pyinfra_run(
     inventory = "inventory.py",
 )
 
+task(
+    name = "deploy",
+    cmds = [
+        cmd.executable(":provision"),
+    ],
+    env = {
+        "SETUP_ENV": "prod",
+    },
+)
+
 docker_load(
     name = "load_dev_image",
     exec_properties = {

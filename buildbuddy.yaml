@@ -25,4 +25,4 @@ actions:
         branches:
           - "*"
     bazel_commands:
-      - "SETUP_ENV=prod bazel run //provisioner:provision"
+      - "run //provisioner:deploy"
