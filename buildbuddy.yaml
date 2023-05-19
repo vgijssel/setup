@@ -1,7 +1,6 @@
 actions:
   - name: "Test all targets"
     user: buildbuddy
-    # NOTE: to be able to install podman?
     container_image: "ubuntu-20.04"
     triggers:
       push:
@@ -13,16 +12,14 @@ actions:
     bazel_commands:
       - "test //... @rules_task//... --config remote"
 
+  # TODO: concurrency lock?
+  # TODO: merge against fork point instead of master?
   - name: "Deploy provisioner"
     user: buildbuddy
-    # NOTE: to be able to install podman?
     container_image: "ubuntu-20.04"
     triggers:
       push:
         branches:
           - "master"
-      pull_request:
-        branches:
-          - "*"
     bazel_commands:
       - "run //provisioner:deploy"
