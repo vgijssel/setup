@@ -31,6 +31,22 @@ pyinfra_run(
     inventory = "inventory.py",
 )
 
+task(
+    name = "deploy",
+    cmds = [
+        "export TELEPORT_IDENTITY=$(mktemp)",
+        {"defer": "rm -f $TELEPORT_IDENTITY"},
+        'echo "$TELEPORT_BUILDBUDDY_IDENTITY" > $TELEPORT_IDENTITY',
+        cmd.executable(":provision"),
+    ],
+    env = {
+        "SETUP_ENV": "prod",
+    },
+    exec_properties = {
+        "include-secrets": "true",
+    },
+)
+
 docker_load(
     name = "load_dev_image",
     exec_properties = {

@@ -3,6 +3,7 @@ Public API for defining tasks.
 """
 
 load("@bazel_skylib//lib:new_sets.bzl", "sets")
+load("@bazel_skylib//lib:shell.bzl", "shell")
 load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@pip//:requirements.bzl", "requirement")
@@ -70,10 +71,7 @@ def _serialize_env(context, node):
 
     for key, value in node["env"].items():
         env_value = _visit_method(context, value)(context, value)
-
-        # escape single quoted characters for Bash
-        env_value = env_value.replace("'", "\\\'")
-        env_string += "export {}=$'{}'\n".format(key, env_value)
+        env_string += "export {}=${}\n".format(key, shell.quote(env_value))
 
     return env_string
 

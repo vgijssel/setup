@@ -34,10 +34,14 @@ class Meta(BaseConnectorMeta):
     keys_prefix: str = "teleport"
 
     class DataKeys:
-        hostname = "SSH hostname"
-        user = "SSH user"
+        login = "Remote host login"
+        host = "Remote host address"
 
         tsh_binary = "Teleport tsh binary path"
+
+        proxy = "Teleport proxy address"
+        user = "Teleport user, defaults to current local user"
+        identity = "Teleport identity file path"
 
 
 DATA_KEYS = Meta.keys()
@@ -48,47 +52,67 @@ class TeleportClient:
         self.state = state
         self.host = host
 
+        self.teleport_login = host.data.get(DATA_KEYS.login)
+        self.teleport_host = host.data.get(DATA_KEYS.host)
+
         self.tsh_binary = host.data.get(DATA_KEYS.tsh_binary, "tsh")
-        self.teleport_hostname = host.data.get(DATA_KEYS.hostname)
+
+        self.teleport_proxy = host.data.get(DATA_KEYS.proxy)
         self.teleport_user = host.data.get(DATA_KEYS.user)
+        self.teleport_identity = host.data.get(DATA_KEYS.identity)
 
     def ssh(self, command):
         args = [
-            self.tsh_binary,
+            *self._get_connection_args(),
             "ssh",
-            self._get_remote(),
+            self.teleport_host,
             command,
         ]
         return StringCommand(*args)
 
     def scp_upload(self, local_file, remote_file):
-        remote_file = f"{self._get_remote()}:{remote_file}"
+        remote_file = f"{self.teleport_host}:{remote_file}"
         return self.scp(local_file, remote_file)
 
     def scp_download(self, remote_file, local_file):
-        remote_file = f"{self._get_remote()}:{remote_file}"
+        remote_file = f"{self.teleport_host}:{remote_file}"
         return self.scp(remote_file, local_file)
 
     def scp(self, from_file, to_file):
         args = [
-            self.tsh_binary,
+            *self._get_connection_args(),
             "scp",
             from_file,
             to_file,
         ]
         return StringCommand(*args)
 
-    def _get_remote(self):
+    def _get_connection_args(self):
+        args = [self.tsh_binary]
+
+        if self.teleport_proxy:
+            args.append("--proxy")
+            args.append(self.teleport_proxy)
+
         if self.teleport_user:
-            return self.teleport_user + "@" + self.teleport_hostname
+            args.append("--user")
+            args.append(self.teleport_user)
 
-        return self.teleport_hostname
+        if self.teleport_identity:
+            args.append("--identity")
+            args.append(self.teleport_identity)
+
+        if self.teleport_login:
+            args.append("--login")
+            args.append(self.teleport_login)
+
+        return args
 
 
-def make_names_data(hostname):
+def make_names_data(host):
     yield (
-        "@teleport/{0}".format(hostname),
-        {DATA_KEYS.hostname: hostname},
+        "@teleport/{0}".format(host),
+        {DATA_KEYS.host: host},
         ["@teleport"],
     )
 
@@ -266,65 +290,89 @@ def put_file(
     return True
 
 
+def _get_file(host: "Host", remote_filename: str, filename_or_io):
+    teleport_client = host.connector_data["teleport_client"]
+    local.shell(
+        teleport_client.scp_download(
+            local_file=filename_or_io,
+            remote_file=remote_filename,
+        ).get_raw_value()
+    )
+
+
 def get_file(
     state: "State",
     host: "Host",
-    remote_filename,
+    remote_filename: str,
     filename_or_io,
-    remote_temp_filename=None,  # ignored
-    print_output=False,
-    print_input=False,
-    **kwargs,  # ignored (sudo/etc)
+    remote_temp_filename=None,
+    sudo: bool = False,
+    sudo_user=None,
+    su_user=None,
+    print_output: bool = False,
+    print_input: bool = False,
+    **command_kwargs,
 ):
     """
-    Download a file from the target teleport container by copying it to a temporary
-    location and then reading that into our final file/IO object.
+    Download a file from the remote host using SFTP. Supports download files
+    with sudo by copying to a temporary directory with read permissions,
+    downloading and then removing the copy.
     """
 
-    fd, temp_filename = mkstemp()
+    if sudo or su_user:
+        # Get temp file location
+        temp_file = remote_temp_filename or state.get_temp_filename(remote_filename)
 
-    try:
-        teleport_id = host.connector_data["teleport_container_id"]
-        teleport_command = "teleport cp {0}:{1} {2}".format(
-            teleport_id,
-            remote_filename,
-            temp_filename,
-        )
+        # Copy the file to the tempfile location and add read permissions
+        command = "cp {0} {1} && chmod +r {0}".format(remote_filename, temp_file)
 
-        status, _, stderr = run_local_shell_command(
+        copy_status, _, stderr = run_shell_command(
             state,
             host,
-            teleport_command,
+            command,
+            sudo=sudo,
+            sudo_user=sudo_user,
+            su_user=su_user,
             print_output=print_output,
             print_input=print_input,
+            **command_kwargs,
         )
 
-        # Load the temporary file and write it to our file or IO object
-        with open(temp_filename, encoding="utf-8") as temp_f:
-            with get_file_io(filename_or_io, "wb") as file_io:
-                data = temp_f.read()
-                data_bytes: bytes
+        if copy_status is False:
+            logger.error("File download copy temp error: {0}".format("\n".join(stderr)))
+            return False
 
-                if isinstance(data, str):
-                    data_bytes = data.encode()
-                else:
-                    data_bytes = data
+        try:
+            _get_file(host, temp_file, filename_or_io)
 
-                file_io.write(data_bytes)
-    finally:
-        os.close(fd)
-        os.remove(temp_filename)
+        # Ensure that, even if we encounter an error, we (attempt to) remove the
+        # temporary copy of the file.
+        finally:
+            remove_status, _, stderr = run_shell_command(
+                state,
+                host,
+                "rm -f {0}".format(temp_file),
+                sudo=sudo,
+                sudo_user=sudo_user,
+                su_user=su_user,
+                print_output=print_output,
+                print_input=print_input,
+                **command_kwargs,
+            )
 
-    if not status:
-        raise IOError("\n".join(stderr))
+        if remove_status is False:
+            logger.error(
+                "File download remove temp error: {0}".format("\n".join(stderr))
+            )
+            return False
+
+    else:
+        _get_file(host, remote_filename, filename_or_io)
 
     if print_output:
         click.echo(
-            "{0}file downloaded from container: {1}".format(
-                host.print_prefix,
-                remote_filename,
-            ),
+            "{0}file downloaded: {1}".format(host.print_prefix, remote_filename),
             err=True,
         )
 
-    return status
+    return True

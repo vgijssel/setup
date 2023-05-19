@@ -1,7 +1,6 @@
 actions:
   - name: "Test all targets"
     user: buildbuddy
-    # NOTE: to be able to install podman?
     container_image: "ubuntu-20.04"
     triggers:
       push:
@@ -12,3 +11,13 @@ actions:
           - "*"
     bazel_commands:
       - "test //... @rules_task//... --config remote"
+
+  - name: "Deploy provisioner"
+    user: buildbuddy
+    container_image: "ubuntu-20.04"
+    triggers:
+      push:
+        branches:
+          - "master"
+    bazel_commands:
+      - "run //provisioner:deploy"
