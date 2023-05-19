@@ -5,7 +5,7 @@ from pyinfra.facts.deb import DebPackage, DebArch
 from time import sleep
 
 
-TELEPORT_VERSION = "v12.3.1"
+TELEPORT_VERSION = "v12.4.3"
 
 
 # Inspired by https://github.com/Fizzadar/pyinfra/blob/2.x/pyinfra/operations/server.py#LL51C12-L51C52
