@@ -12,8 +12,6 @@ actions:
     bazel_commands:
       - "test //... @rules_task//... --config remote"
 
-  # TODO: concurrency lock?
-  # TODO: merge against fork point instead of master?
   - name: "Deploy provisioner"
     user: buildbuddy
     container_image: "ubuntu-20.04"
