@@ -34,10 +34,14 @@ class Meta(BaseConnectorMeta):
     keys_prefix: str = "teleport"
 
     class DataKeys:
-        hostname = "SSH hostname"
-        user = "SSH user"
+        login = "Remote host login"
+        host = "Remote host address"
 
         tsh_binary = "Teleport tsh binary path"
+
+        proxy = "Teleport proxy address"
+        user = "Teleport user, defaults to current local user"
+        identity = "Teleport identity file path"
 
 
 DATA_KEYS = Meta.keys()
@@ -48,47 +52,67 @@ class TeleportClient:
         self.state = state
         self.host = host
 
+        self.teleport_login = host.data.get(DATA_KEYS.login)
+        self.teleport_host = host.data.get(DATA_KEYS.host)
+
         self.tsh_binary = host.data.get(DATA_KEYS.tsh_binary, "tsh")
-        self.teleport_hostname = host.data.get(DATA_KEYS.hostname)
+
+        self.teleport_proxy = host.data.get(DATA_KEYS.proxy)
         self.teleport_user = host.data.get(DATA_KEYS.user)
+        self.teleport_identity = host.data.get(DATA_KEYS.identity)
 
     def ssh(self, command):
         args = [
-            self.tsh_binary,
+            *self._get_connection_args(),
             "ssh",
-            self._get_remote(),
+            self.teleport_host,
             command,
         ]
         return StringCommand(*args)
 
     def scp_upload(self, local_file, remote_file):
-        remote_file = f"{self._get_remote()}:{remote_file}"
+        remote_file = f"{self.teleport_host}:{remote_file}"
         return self.scp(local_file, remote_file)
 
     def scp_download(self, remote_file, local_file):
-        remote_file = f"{self._get_remote()}:{remote_file}"
+        remote_file = f"{self.teleport_host}:{remote_file}"
         return self.scp(remote_file, local_file)
 
     def scp(self, from_file, to_file):
         args = [
-            self.tsh_binary,
+            *self._get_connection_args(),
             "scp",
             from_file,
             to_file,
         ]
         return StringCommand(*args)
 
-    def _get_remote(self):
+    def _get_connection_args(self):
+        args = [self.tsh_binary]
+
+        if self.teleport_proxy:
+            args.append("--proxy")
+            args.append(self.teleport_proxy)
+
         if self.teleport_user:
-            return self.teleport_user + "@" + self.teleport_hostname
+            args.append("--user")
+            args.append(self.teleport_user)
 
-        return self.teleport_hostname
+        if self.teleport_identity:
+            args.append("--identity")
+            args.append(self.teleport_identity)
+
+        if self.teleport_login:
+            args.append("--login")
+            args.append(self.teleport_login)
+
+        return args
 
 
-def make_names_data(hostname):
+def make_names_data(host):
     yield (
-        "@teleport/{0}".format(hostname),
-        {DATA_KEYS.hostname: hostname},
+        "@teleport/{0}".format(host),
+        {DATA_KEYS.host: host},
         ["@teleport"],
     )
 

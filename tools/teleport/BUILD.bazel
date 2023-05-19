@@ -23,7 +23,6 @@ task(
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
     env = {
         "TELEPORT_PROXY": "tele.vgijssel.nl",
-        "TELEPORT_USER": "teleport-admin",
         "TELEPORT_ADD_KEYS_TO_AGENT": "no",
     },
 )
