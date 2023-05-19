@@ -1081,9 +1081,9 @@ pytest-sugar==0.9.5 \
 pytest-test-groups==1.0.3 \
     --hash=sha256:a93ee8ae8605ad290965508d13efc975de64f80429465837af5f3dd5bc93fd96
     # via pytest-homeassistant-custom-component
-pytest-testinfra==7.0.0 \
-    --hash=sha256:0b28076d7088fb0c8e868119639f1259f95dd0e735ae8045ead34433ce8cbc98 \
-    --hash=sha256:38c2ce2df4e25f685636c7db9ac15083a7cf3e4a8a997d5fa654e8a7bedeadce
+pytest-testinfra==8.0.0 \
+    --hash=sha256:5845f0b9beede720e86158e97717ba7cab1c0f67ec12307fea8635d536afaf65 \
+    --hash=sha256:6a30c12c4f0b1d66d092f490b24f7a245cbae8d81c8b97101537ec0cd041ee44
     # via -r requirements.in
 pytest-timeout==2.1.0 \
     --hash=sha256:c07ca07404c612f8abbe22294b23c368e2e5104b521c1790195561f37e1ac3d9 \
