@@ -107,3 +107,4 @@ def test_https_port_is_open(host):
 
 def test_teleport_diag_port_is_open(host):
     assert host.socket("tcp://127.0.0.1:3000").is_listening
+    assert not host.socket("tcp://0.0.0.0:3000").is_listening
