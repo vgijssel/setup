@@ -8,6 +8,7 @@ pyinfra_run(
     srcs = [
         "connectors/teleport.py",
         "deploys/microk8s/tasks/install_microk8s.py",
+        "deploys/monitoring/tasks/install_monitoring.py",
         "deploys/network/tasks/install_network.py",
         "deploys/teleport/tasks/install_teleport.py",
         "group_data/dev.py",
@@ -16,11 +17,13 @@ pyinfra_run(
     ],
     args = [
         "--data install_network=True",
+        "--data install_monitoring=True",
         "--data install_microk8s=True",
         "--data install_teleport=True",
     ],
     data = [
         "deploys/microk8s/files/cmdline.txt",
+        "deploys/monitoring/files/telegraf.conf",
         "deploys/network/files/99_config.yaml",
         "deploys/teleport/files/teleport.yaml.j2",
     ],
