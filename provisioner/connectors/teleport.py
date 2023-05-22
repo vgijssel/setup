@@ -70,23 +70,6 @@ class TeleportClient:
         ]
         return StringCommand(*args)
 
-    def scp_upload(self, local_file, remote_file):
-        remote_file = f"{self.teleport_host}:{remote_file}"
-        return self.scp(local_file, remote_file)
-
-    def scp_download(self, remote_file, local_file):
-        remote_file = f"{self.teleport_host}:{remote_file}"
-        return self.scp(remote_file, local_file)
-
-    def scp(self, from_file, to_file):
-        args = [
-            *self._get_connection_args(),
-            "scp",
-            from_file,
-            to_file,
-        ]
-        return StringCommand(*args)
-
     def _get_connection_args(self):
         args = [self.tsh_binary]
 
@@ -303,18 +286,6 @@ def put_file(
     return True
 
 
-def _get_file(host: "Host", remote_filename: str, filename_or_io):
-    teleport_client = host.connector_data["teleport_client"]
-
-    with get_file_io(filename_or_io, "wb") as file_io:
-        local.shell(
-            teleport_client.scp_download(
-                local_file=file_io,
-                remote_file=remote_filename,
-            ).get_raw_value()
-        )
-
-
 def get_file(
     state: "State",
     host: "Host",
@@ -328,66 +299,4 @@ def get_file(
     print_input: bool = False,
     **command_kwargs,
 ):
-    """
-    Download a file from the remote host using SFTP. Supports download files
-    with sudo by copying to a temporary directory with read permissions,
-    downloading and then removing the copy.
-    """
-
-    if sudo or su_user:
-        # Get temp file location
-        temp_file = remote_temp_filename or state.get_temp_filename(remote_filename)
-
-        # Copy the file to the tempfile location and add read permissions
-        command = "cp {0} {1} && chmod +r {0}".format(remote_filename, temp_file)
-
-        copy_status, _, stderr = run_shell_command(
-            state,
-            host,
-            command,
-            sudo=sudo,
-            sudo_user=sudo_user,
-            su_user=su_user,
-            print_output=print_output,
-            print_input=print_input,
-            **command_kwargs,
-        )
-
-        if copy_status is False:
-            logger.error("File download copy temp error: {0}".format("\n".join(stderr)))
-            return False
-
-        try:
-            _get_file(host, temp_file, filename_or_io)
-
-        # Ensure that, even if we encounter an error, we (attempt to) remove the
-        # temporary copy of the file.
-        finally:
-            remove_status, _, stderr = run_shell_command(
-                state,
-                host,
-                "rm -f {0}".format(temp_file),
-                sudo=sudo,
-                sudo_user=sudo_user,
-                su_user=su_user,
-                print_output=print_output,
-                print_input=print_input,
-                **command_kwargs,
-            )
-
-        if remove_status is False:
-            logger.error(
-                "File download remove temp error: {0}".format("\n".join(stderr))
-            )
-            return False
-
-    else:
-        _get_file(host, remote_filename, filename_or_io)
-
-    if print_output:
-        click.echo(
-            "{0}file downloaded: {1}".format(host.print_prefix, remote_filename),
-            err=True,
-        )
-
-    return True
+    raise NotImplementedError
