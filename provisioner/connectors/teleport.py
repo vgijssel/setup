@@ -170,12 +170,8 @@ def run_shell_command(
 def _put_file(host, state, filename_or_io, temp_file):
     teleport_client = host.connector_data["teleport_client"]
 
-    import pdb
-
-    pdb.set_trace()
-
-    with get_file_io(filename_or_io, "wb") as file_io:
-        stdin = file_io.read()
+    with get_file_io(filename_or_io) as file_io:
+        stdin = file_io.read().decode("utf-8")
 
         teleport_command = teleport_client.ssh(
             command=f"'cat > {temp_file}'"
