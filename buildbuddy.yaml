@@ -10,7 +10,7 @@ actions:
         branches:
           - "*"
     bazel_commands:
-      - "test //... @rules_task//... --config remote"
+      - "test //... @rules_task//... --config buildbuddy --config buildbuddy_rbe"
 
   - name: "Test Teleport connection"
     user: buildbuddy
@@ -20,7 +20,7 @@ actions:
         branches:
           - "*"
     bazel_commands:
-      - "run //tools/teleport:connection_test"
+      - "run //tools/teleport:connection_test --config buildbuddy"
 
   - name: "Deploy provisioner"
     user: buildbuddy
@@ -30,4 +30,4 @@ actions:
         branches:
           - "master"
     bazel_commands:
-      - "run //provisioner:deploy"
+      - "run //provisioner:deploy --config buildbuddy"
