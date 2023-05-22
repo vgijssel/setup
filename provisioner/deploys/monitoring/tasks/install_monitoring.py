@@ -22,6 +22,17 @@ def install_monitoring():
         mode="0644",  # rw r r for root
     )
 
+    files.put(
+        name="Copy telegraf json file output config",
+        src="provisioner/deploys/monitoring/files/json_file_output.conf",
+        dest="/etc/telegraf/telegraf.d/json_file_output.conf",
+        create_remote_dir=True,
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
     systemd.service(
         name="Enable the telegraf service",
         service="telegraf.service",
