@@ -16,7 +16,6 @@ def install_network():
         name="Copy netplan config",
         src="provisioner/deploys/network/files/99_config.yaml",
         dest="/etc/netplan/99_config.yaml",
-        add_deploy_dir=True,
         create_remote_dir=True,
         _sudo=True,
     )

@@ -167,14 +167,31 @@ def run_shell_command(
     )
 
 
-def _put_file(host, filename_or_io, temp_file):
+def _put_file(host, state, filename_or_io, temp_file):
     teleport_client = host.connector_data["teleport_client"]
-    local.shell(
-        teleport_client.scp_upload(
-            local_file=filename_or_io,
-            remote_file=temp_file,
+
+    import pdb
+
+    pdb.set_trace()
+
+    with get_file_io(filename_or_io, "wb") as file_io:
+        stdin = file_io.read()
+
+        teleport_command = teleport_client.ssh(
+            command=f"'cat > {temp_file}'"
         ).get_raw_value()
-    )
+
+        run_local_shell_command(
+            state,
+            host,
+            teleport_command,
+            timeout=10,
+            stdin=stdin,
+            success_exit_codes=[0],
+            print_output=False,
+            print_input=False,
+            return_combined_output=False,
+        )
 
 
 # Inspired by https://github.com/Fizzadar/pyinfra/blob/6eca1a52d955a0497cd33c02cb9a94176f93583d/pyinfra/connectors/ssh.py#L493
@@ -203,7 +220,7 @@ def put_file(
     if sudo or doas or su_user:
         # Get temp file location
         temp_file = remote_temp_filename or state.get_temp_filename(remote_filename)
-        _put_file(host, filename_or_io, temp_file)
+        _put_file(host, state, filename_or_io, temp_file)
 
         # Make sure our sudo/su user can access the file
         if su_user:
@@ -292,12 +309,14 @@ def put_file(
 
 def _get_file(host: "Host", remote_filename: str, filename_or_io):
     teleport_client = host.connector_data["teleport_client"]
-    local.shell(
-        teleport_client.scp_download(
-            local_file=filename_or_io,
-            remote_file=remote_filename,
-        ).get_raw_value()
-    )
+
+    with get_file_io(filename_or_io, "wb") as file_io:
+        local.shell(
+            teleport_client.scp_download(
+                local_file=file_io,
+                remote_file=remote_filename,
+            ).get_raw_value()
+        )
 
 
 def get_file(

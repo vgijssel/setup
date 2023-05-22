@@ -58,7 +58,7 @@ def install_teleport():
         # https://goteleport.com/download/#install-links
         # https://cdn.teleport.dev/teleport_12.3.3_arm64.deb
         apt.deb(
-            name="Install Teleport via deb",
+            name=f"Install Teleport version {current_teleport_version} via deb (previously {teleport['version']})",
             src=f"https://cdn.teleport.dev/teleport_{current_teleport_version}_{arch}.deb",
             _sudo=True,
         )
@@ -102,4 +102,23 @@ def install_teleport():
         python.call(
             name="Wait for teleport to reconnect",
             function=_wait_for_reconnect,
+        )
+
+    health_check_config = files.put(
+        name="Copy telegraf config",
+        src="provisioner/deploys/teleport/files/teleport_health_check.conf",
+        dest="/etc/telegraf/telegraf.d/teleport_health_check.conf",
+        create_remote_dir=True,
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
+    if health_check_config.changed:
+        systemd.service(
+            name="Restart the telegraf service",
+            service="telegraf.service",
+            restarted=True,
+            _sudo=True,
         )
