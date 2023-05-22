@@ -1,35 +1,11 @@
 from pyinfra.api.deploy import deploy
-from pyinfra.operations import files, server, apt, systemd, python
+from pyinfra.operations import files, server, apt, systemd
 from pyinfra import host
 from pyinfra.facts.deb import DebPackage, DebArch
-from time import sleep
+from provisioner.utils import wait_for_reconnect
 
 
 TELEPORT_VERSION = "v13.0.2"
-
-
-# Inspired by https://github.com/Fizzadar/pyinfra/blob/2.x/pyinfra/operations/server.py#LL51C12-L51C52
-def _wait_for_reconnect(delay=10, interval=1, reboot_timeout=300):
-    sleep(delay)
-    max_retries = round(reboot_timeout / interval)
-
-    host.connection = None  # remove the connection object
-    retries = 0
-
-    while True:
-        host.connect(show_errors=False)
-        if host.connection:
-            break
-
-        if retries > max_retries:
-            raise Exception(
-                ("Server did not reboot in time (reboot_timeout={0}s)").format(
-                    reboot_timeout
-                ),
-            )
-
-        sleep(interval)
-        retries += 1
 
 
 @deploy("Install Teleport")
@@ -99,9 +75,8 @@ def install_teleport():
             _ignore_errors=True,  # restarting the service will disconnect us and result in error
         )
 
-        python.call(
+        wait_for_reconnect(
             name="Wait for teleport to reconnect",
-            function=_wait_for_reconnect,
         )
 
     health_check_config = files.put(

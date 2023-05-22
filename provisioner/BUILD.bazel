@@ -14,6 +14,7 @@ pyinfra_run(
         "group_data/dev.py",
         "group_data/prod.py",
         "group_data/test.py",
+        "utils.py",
     ],
     args = [
         "--data install_network=True",
