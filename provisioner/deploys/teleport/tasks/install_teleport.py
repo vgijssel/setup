@@ -50,16 +50,16 @@ def install_teleport():
 
     arch = host.get_fact(DebArch)
     teleport = host.get_fact(DebPackage, "teleport")
-    current_teleport_version = TELEPORT_VERSION.replace("v", "")
-
-    needs_update = not teleport or teleport["version"] != current_teleport_version
+    current_teleport_version = teleport["version"] if teleport else None
+    wanted_teleport_version = TELEPORT_VERSION.replace("v", "")
+    needs_update = current_teleport_version != wanted_teleport_version
 
     if needs_update:
         # https://goteleport.com/download/#install-links
         # https://cdn.teleport.dev/teleport_12.3.3_arm64.deb
         apt.deb(
-            name=f"Install Teleport version {current_teleport_version} via deb (previously {teleport['version']})",
-            src=f"https://cdn.teleport.dev/teleport_{current_teleport_version}_{arch}.deb",
+            name=f"Install Teleport version {wanted_teleport_version} via deb (previously {current_teleport_version})",
+            src=f"https://cdn.teleport.dev/teleport_{wanted_teleport_version}_{arch}.deb",
             _sudo=True,
         )
 
