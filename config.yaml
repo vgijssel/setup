@@ -3,12 +3,13 @@ receivers:
     protocols:
       grpc:
         endpoint: "0.0.0.0:4317"
-      # http:
-      #   endpoint: "0.0.0.0:4318"
 
 exporters:
+  logging:
+    verbosity: detailed
+
   logzio/traces:
-    account_token: "XxuNwPDxqmgICcMEazgnscnKGxWynmDI"
+    account_token: ${file:/etc/otel/logzio_exporter.yaml}
     region: "us"
 
 processors:
@@ -32,29 +33,34 @@ processors:
 extensions:
   # pprof:
   #   endpoint: :1777
-  zpages:
-    endpoint: "0.0.0.0:55679"
+  # zpages:
+  #   endpoint: "0.0.0.0:55679"
   health_check:
     endpoint: "0.0.0.0:13133"
 
 service:
-  extensions: [health_check, zpages]
+  # extensions: [health_check, zpages]
+  # extensions: [health_check, zpages]
+  extensions: [health_check]
   pipelines:
     traces:
       receivers: [otlp]
       processors: [tail_sampling, batch]
-      exporters: [logzio/traces]
+      exporters: [logging, logzio/traces]
 
-docker run  \
--v /Users/maarten/Development/setup/config.yaml:/etc/otelcol/config.yaml \
--p 55678-55680:55678-55680 \
--p 1777:1777 \
--p 9411:9411 \
--p 9943:9943 \
--p 6831:6831 \
--p 6832:6832 \
--p 14250:14250 \
--p 14268:14268 \
--p 4317:4317 \
--p 55681:55681 \
-otel/opentelemetry-collector-contrib:0.60.0
+  telemetry:
+    logs:
+      level: debug #activate debug mode
+# docker run  \
+# -v /Users/maarten/Development/setup/config.yaml:/etc/otelcol/config.yaml \
+# -p 55678-55680:55678-55680 \
+# -p 1777:1777 \
+# -p 9411:9411 \
+# -p 9943:9943 \
+# -p 6831:6831 \
+# -p 6832:6832 \
+# -p 14250:14250 \
+# -p 14268:14268 \
+# -p 4317:4317 \
+# -p 55681:55681 \
+# otel/opentelemetry-collector-contrib:0.60.0

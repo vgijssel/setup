@@ -123,15 +123,19 @@ task(
         else:
             os.environ['VALIDATE_HOST'] = f"docker://root@provisioner_dev"
         """),
-        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
+        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--export-traces", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
     ],
     env = {
         "tests": cmd.files("test_provisioner.py"),
+        # "OTEL_SERVICE_NAME": "test_provisioner",
+        "OTEL_RESOURCE_ATTRIBUTES": "service.name=test_provisioner",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://host.docker.internal:4317",
     },
     deps = [
         requirement("pytest-testinfra"),
         requirement("pyyaml"),
         requirement("semver"),
+        requirement("pytest-opentelemetry"),
     ],
 )
 

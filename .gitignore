@@ -49,3 +49,5 @@ mutagen.yml.lock
 local.bazelrc
 
 node_modules
+
+logzio_exporter.yaml
