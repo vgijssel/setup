@@ -1,16 +1,40 @@
 receivers:
+  jaeger:
+    protocols:
+      thrift_compact:
+        endpoint: "0.0.0.0:6831"
+      thrift_binary:
+        endpoint: "0.0.0.0:6832"
+      grpc:
+        endpoint: "0.0.0.0:14250"
+      thrift_http:
+        endpoint: "0.0.0.0:14268"
+  opencensus:
+    endpoint: "0.0.0.0:55678"
   otlp:
     protocols:
       grpc:
         endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+  zipkin:
+    endpoint: "0.0.0.0:9411"
+  otlp/spanmetrics:
+    protocols:
+      grpc:
+        endpoint: :12345
+  prometheus:
+    config:
+      global:
+        external_labels:
+          p8s_logzio_name: spm-otel
+      scrape_configs:
+        - job_name: "spm"
+          scrape_interval: 15s
+          static_configs:
+            - targets: ["localhost:8889"]
 
-exporters:
-  logging:
-    verbosity: detailed
-
-  logzio/traces:
-    account_token: ${file:/etc/otel/logzio_exporter.yaml}
-    region: "us"
+exporters: ${file:/etc/otel/logzio_exporter.yaml}
 
 processors:
   batch:
@@ -29,38 +53,63 @@ processors:
           probabilistic: { sampling_percentage: 10 },
         },
       ]
+  spanmetrics:
+    metrics_exporter: prometheus
+    latency_histogram_buckets:
+      [
+        2ms,
+        6ms,
+        10ms,
+        100ms,
+        250ms,
+        500ms,
+        1000ms,
+        10000ms,
+        100000ms,
+        1000000ms,
+      ]
+    # Additional list of dimensions on top of:
+    # - service.name
+    # - operation
+    # - span.kind
+    # - status.code
+    dimensions:
+      # If the span is missing http.method, the processor will insert
+      # the http.method dimension with value 'GET'.
+      # For example, in the following scenario, http.method is not present in a span and so will be added as a dimension to the metric with value "GET":
+      # - promexample_calls{http_method="GET",operation="/Address",service_name="shippingservice",span_kind="SPAN_KIND_SERVER",status_code="STATUS_CODE_UNSET"} 1
+      - name: http.method
+        default: GET
+      # If a default is not provided, the http.status_code dimension will be omitted
+      # if the span does not contain http.status_code.
+      # For example, consider a scenario with two spans, one span having http.status_code=200 and another missing http.status_code. Two metrics would result with this configuration, one with the http_status_code omitted and the other included:
+      # - promexample_calls{http_status_code="200",operation="/Address",service_name="shippingservice",span_kind="SPAN_KIND_SERVER",status_code="STATUS_CODE_UNSET"} 1
+      # - promexample_calls{operation="/Address",service_name="shippingservice",span_kind="SPAN_KIND_SERVER",status_code="STATUS_CODE_UNSET"} 1
+      - name: http.status_code
 
 extensions:
-  # pprof:
-  #   endpoint: :1777
-  # zpages:
-  #   endpoint: "0.0.0.0:55679"
+  pprof:
+    endpoint: :1777
+  zpages:
+    endpoint: :55679
   health_check:
-    endpoint: "0.0.0.0:13133"
 
 service:
-  # extensions: [health_check, zpages]
-  # extensions: [health_check, zpages]
-  extensions: [health_check]
+  extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
-      receivers: [otlp]
-      processors: [tail_sampling, batch]
-      exporters: [logging, logzio/traces]
-
+      receivers: [otlp, jaeger, opencensus, zipkin]
+      processors: [spanmetrics, batch]
+      exporters: [logzio/traces]
+    metrics/spanmetrics:
+      # This receiver is just a dummy and never used.
+      # Added to pass validation requiring at least one receiver in a pipeline.
+      receivers: [otlp/spanmetrics]
+      exporters: [prometheus]
+    metrics:
+      receivers: [prometheus]
+      exporters: [logging, prometheusremotewrite/spm]
   telemetry:
     logs:
-      level: debug #activate debug mode
-# docker run  \
-# -v /Users/maarten/Development/setup/config.yaml:/etc/otelcol/config.yaml \
-# -p 55678-55680:55678-55680 \
-# -p 1777:1777 \
-# -p 9411:9411 \
-# -p 9943:9943 \
-# -p 6831:6831 \
-# -p 6832:6832 \
-# -p 14250:14250 \
-# -p 14268:14268 \
-# -p 4317:4317 \
-# -p 55681:55681 \
-# otel/opentelemetry-collector-contrib:0.60.0
+      level: "debug"
+# docker run -v /Users/maarten/Development/setup/config.yaml:/etc/otel/config.yaml -v /Users/maarten/Development/setup/tmp/logzio_exporter.yaml:/etc/otel/logzio_exporter.yaml  -p 127.0.0.1:4317:4317 -p 127.0.0.1:55679:55679 -p 127.0.0.1:13133:13133 otel/opentelemetry-collector-contrib:0.77.0 --config /etc/otel/config.yaml
