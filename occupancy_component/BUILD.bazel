@@ -23,6 +23,9 @@ py_pytest_test(
         "tests/test_init.py",
     ],
     imports = ["."],
+    tags = [
+        "no-remote-exec",
+    ],
     deps = [
         ":lib",
         requirement("pytest-homeassistant-custom-component"),
