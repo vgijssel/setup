@@ -16,6 +16,7 @@ def install_microk8s():
             packages=["linux-modules-extra-raspi"],
             update=True,
             present=True,
+            cache_time=24 * 60 * 60,
             _sudo=True,
         )
 

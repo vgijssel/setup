@@ -2,6 +2,7 @@ from provisioner.deploys.network.tasks.install_network import install_network
 from provisioner.deploys.microk8s.tasks.install_microk8s import install_microk8s
 from provisioner.deploys.teleport.tasks.install_teleport import install_teleport
 from provisioner.deploys.monitoring.tasks.install_monitoring import install_monitoring
+from provisioner.deploys.docker.tasks.install_docker import install_docker
 from provisioner.utils import wait_for_reconnect
 
 from pyinfra import host
@@ -23,6 +24,9 @@ if host.get_fact(File, "/var/run/reboot-required"):
 
 if host.data.get("install_network"):
     install_network()
+
+if host.data.get("install_docker"):
+    install_docker()
 
 if host.data.get("install_monitoring"):
     install_monitoring()

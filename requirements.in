@@ -1,14 +1,13 @@
 black==23.3.0;
-pytest==7.2.1;
+pytest==7.1.2;
 pytest-cov==3.0.0;
 pytest-testinfra==8.1.0;
 PyYAML==6.0;
 pulumi==3.68.0;
 pulumi-command==0.7.2;
 pulumi-kubernetes==3.28.1;
-pytest-homeassistant-custom-component==0.12.57;
+pytest-homeassistant-custom-component==0.11.20;
 tzdata==2023.3;
 pyinfra==2.7
 sqlalchemy==1.4.48;
 semver==2.13.0;
-cryptography==39.0.1;

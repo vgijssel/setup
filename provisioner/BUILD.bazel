@@ -7,6 +7,7 @@ pyinfra_run(
     name = "provision",
     srcs = [
         "connectors/teleport.py",
+        "deploys/docker/tasks/install_docker.py",
         "deploys/microk8s/tasks/install_microk8s.py",
         "deploys/monitoring/tasks/install_monitoring.py",
         "deploys/network/tasks/install_network.py",
@@ -18,6 +19,7 @@ pyinfra_run(
     ],
     args = [
         "--data install_network=True",
+        "--data install_docker=True",
         "--data install_monitoring=True",
         "--data install_microk8s=True",
         "--data install_teleport=True",
