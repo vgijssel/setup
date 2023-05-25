@@ -11,6 +11,7 @@ pyinfra_run(
         "deploys/microk8s/tasks/install_microk8s.py",
         "deploys/monitoring/tasks/install_monitoring.py",
         "deploys/network/tasks/install_network.py",
+        "deploys/onepassword_connect/tasks/install_onepassword_connect.py",
         "deploys/teleport/tasks/install_teleport.py",
         "group_data/dev.py",
         "group_data/prod.py",
@@ -20,6 +21,7 @@ pyinfra_run(
     args = [
         "--data install_network=True",
         "--data install_docker=True",
+        "--data install_onepassword_connect=True",
         "--data install_monitoring=True",
         "--data install_microk8s=True",
         "--data install_teleport=True",
@@ -29,6 +31,7 @@ pyinfra_run(
         "deploys/monitoring/files/json_file_output.conf",
         "deploys/monitoring/files/telegraf.conf",
         "deploys/network/files/99_config.yaml",
+        "deploys/onepassword_connect/files/docker-compose.yaml.j2",
         "deploys/teleport/files/teleport.yaml.j2",
         "deploys/teleport/files/teleport_health_check.conf",
     ],
