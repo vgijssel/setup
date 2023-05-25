@@ -24,7 +24,7 @@ def install_monitoring():
         setup_env=host.data.setup_env,
     )
 
-    logzio_metrics_token = one_password_item("kerk")["password"]
+    logzio_metrics_token = one_password_item("logzio_metrics_token")["password"]
 
     files.template(
         name="Copy telegraf logz.io output config",

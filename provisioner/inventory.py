@@ -22,7 +22,7 @@ pyinfra.api.inventory.get_all_connectors = patched_get_all_connectors
 setup_env = os.environ.get("SETUP_ENV", "dev")
 
 
-def _get_onepassword_connect_credentials(env_key, tmp_file):
+def _get_onepassword_service_account_token(env_key, tmp_file):
     if env_key in os.environ:
         return os.environ[env_key]
 
@@ -59,7 +59,7 @@ if setup_env == "prod":
                 "teleport_proxy": "tele.vgijssel.nl",
                 "teleport_user": teleport_user,
                 "teleport_identity": teleport_identity,
-                "onepassword_service_account_token": _get_onepassword_connect_credentials(
+                "onepassword_service_account_token": _get_onepassword_service_account_token(
                     "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD",
                     "1password-service-account-token-prod",
                 ),
@@ -73,7 +73,7 @@ elif setup_env == "test":
         (
             f"@docker/{container_id}",
             {
-                "onepassword_service_account_token": _get_onepassword_connect_credentials(
+                "onepassword_service_account_token": _get_onepassword_service_account_token(
                     "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
                     "1password-service-account-token-dev",
                 ),
@@ -87,7 +87,7 @@ else:
         (
             f"@docker/{container_id}",
             {
-                "onepassword_service_account_token": _get_onepassword_connect_credentials(
+                "onepassword_service_account_token": _get_onepassword_service_account_token(
                     "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
                     "1password-service-account-token-dev",
                 ),
