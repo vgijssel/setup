@@ -18,6 +18,7 @@ def install_docker():
         packages=["curl", "ca-certificates", "gnupg"],
         update=True,
         cache_time=24 * 60 * 60,
+        _sudo=True,
     )
 
     server.shell(
@@ -41,6 +42,7 @@ def install_docker():
             "deb [arch={arch} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/{distro} {version_codename} stable"
         ).format(arch=arch, distro=distro, version_codename=version_codename),
         filename="docker-ce-stable",
+        _sudo=True,
     )
 
     apt.packages(
@@ -54,6 +56,7 @@ def install_docker():
         ],
         update=True,
         cache_time=0 if add_apt_repo.changed else 24 * 60 * 60,
+        _sudo=True,
     )
 
     systemd.service(

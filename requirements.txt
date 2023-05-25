@@ -881,10 +881,6 @@ mypy-extensions==1.0.0 \
     --hash=sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d \
     --hash=sha256:75dbf8955dc00442a438fc4d0666508a9a97b6bd41aa2f0ffe9d2f2725af0782
     # via black
-onepasswordconnectsdk==1.3.0 \
-    --hash=sha256:a7a771d7a3d2e3e6a132095becb5c9fdbebc4f3e11a2bc3054c9a24857cc344f \
-    --hash=sha256:c741e978b47c3c691b779fc2d1d860075fed666ce5e4e28712102f39b3dd17a7
-    # via -r requirements.in
 orjson==3.7.11 \
     --hash=sha256:01863ff99f67afdb1a3a6a777d2de5a81f9b8203db70ef450b25363e7db48442 \
     --hash=sha256:01c77aab9ed881cc4322aca6ca3c534473f5334e5211b8dbb8622769595439ce \
@@ -1102,7 +1098,6 @@ python-dateutil==2.8.2 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
     # via
     #   freezegun
-    #   onepasswordconnectsdk
     #   pyinfra
 python-slugify==4.0.1 \
     --hash=sha256:69a517766e00c1268e5bbfc0d010a0a8508de0b18d30ad5a1ff357f8ae724270
@@ -1166,7 +1161,6 @@ requests==2.28.1 \
     --hash=sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349
     # via
     #   homeassistant
-    #   onepasswordconnectsdk
     #   pulumi-kubernetes
     #   pywinrm
     #   requests-mock
@@ -1200,7 +1194,6 @@ six==1.16.0 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via
     #   bcrypt
-    #   onepasswordconnectsdk
     #   paramiko
     #   pulumi
     #   python-dateutil

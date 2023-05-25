@@ -1,7 +1,11 @@
 from pyinfra.api.deploy import deploy
-from pyinfra.operations import files, server
+from pyinfra.operations import files, server, apt
 from pyinfra import host
 from io import StringIO
+from pyinfra.facts.server import LsbRelease
+from pyinfra.facts.deb import DebArch
+
+ONEPASSWORD_CLI_VERSION = "v2.17.0"
 
 
 @deploy("Install 1Password Connect")
@@ -47,3 +51,30 @@ def install_onepassword_connect():
         ],
         _sudo=True,
     )
+
+    # From https://developer.1password.com/docs/cli/get-started/
+    apt.packages(
+        name="Install dependencies for 1password-cli",
+        packages=["wget", "unzip"],
+        update=True,
+        cache_time=24 * 60 * 60,
+        _sudo=True,
+    )
+
+    arch = host.get_fact(DebArch)
+
+    server.shell(
+        name="Install 1password-cli",
+        commands=[
+            f'wget "https://cache.agilebits.com/dist/1P/op2/pkg/{ONEPASSWORD_CLI_VERSION}/op_linux_{arch}_{ONEPASSWORD_CLI_VERSION}.zip" -O /tmp/op.zip',
+            "unzip -d /tmp/op /tmp/op.zip",
+            "mv /tmp/op/op /usr/local/bin",
+            "rm -rf /tmp/op /tmp/op.zip",
+        ],
+        _sudo=True,
+    )
+
+    # TODO: turn this into a pyinfra fact
+    # export OP_CONNECT_HOST=http://localhost:8080
+    # export OP_CONNECT_TOKEN=token
+    # op item get 'kerk' --vault='vgijssel-dev' --format=json
