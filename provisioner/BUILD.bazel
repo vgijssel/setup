@@ -13,6 +13,7 @@ pyinfra_run(
         "deploys/network/tasks/install_network.py",
         "deploys/onepassword_connect/tasks/install_onepassword_connect.py",
         "deploys/teleport/tasks/install_teleport.py",
+        "facts/onepassword.py",
         "group_data/dev.py",
         "group_data/prod.py",
         "group_data/test.py",

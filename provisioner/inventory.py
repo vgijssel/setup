@@ -25,14 +25,18 @@ setup_env = os.environ.get("SETUP_ENV", "dev")
 def _get_onepassword_connect_credentials(env_key, tmp_file):
     if env_key in os.environ:
         return os.environ[env_key]
+
+    file = os.path.join(
+        os.environ["BUILD_WORKSPACE_DIRECTORY"],
+        "tmp",
+        tmp_file,
+    )
+
+    if os.path.exists(file):
+        return Path(file).read_text()
+
     else:
-        return Path(
-            os.path.join(
-                os.environ["BUILD_WORKSPACE_DIRECTORY"],
-                "tmp",
-                tmp_file,
-            )
-        ).read_text()
+        raise ValueError(f"Either set env variable '{env_key}' or create file '{file}'")
 
 
 if setup_env == "prod":
@@ -59,6 +63,10 @@ if setup_env == "prod":
                     "ONEPASSWORD_CONNECT_CREDENTIALS_PROD",
                     "1password-credentials-prod.json",
                 ),
+                "onepassword_connect_token": _get_onepassword_connect_credentials(
+                    "ONEPASSWORD_CONNECT_TOKEN_PROD",
+                    "1password-token-prod",
+                ),
             },
         ),
     ]
@@ -73,6 +81,10 @@ elif setup_env == "test":
                     "ONEPASSWORD_CONNECT_CREDENTIALS_DEV",
                     "1password-credentials-dev.json",
                 ),
+                "onepassword_connect_token": _get_onepassword_connect_credentials(
+                    "ONEPASSWORD_CONNECT_TOKEN_DEV",
+                    "1password-token-dev",
+                ),
             },
         ),
     ]
@@ -86,6 +98,10 @@ else:
                 "onepassword_connect_credentials": _get_onepassword_connect_credentials(
                     "ONEPASSWORD_CONNECT_CREDENTIALS_DEV",
                     "1password-credentials-dev.json",
+                ),
+                "onepassword_connect_token": _get_onepassword_connect_credentials(
+                    "ONEPASSWORD_CONNECT_TOKEN_DEV",
+                    "1password-token-dev",
                 ),
             },
         ),

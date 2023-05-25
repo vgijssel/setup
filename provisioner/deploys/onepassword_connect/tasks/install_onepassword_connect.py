@@ -73,8 +73,3 @@ def install_onepassword_connect():
         ],
         _sudo=True,
     )
-
-    # TODO: turn this into a pyinfra fact
-    # export OP_CONNECT_HOST=http://localhost:8080
-    # export OP_CONNECT_TOKEN=token
-    # op item get 'kerk' --vault='vgijssel-dev' --format=json
