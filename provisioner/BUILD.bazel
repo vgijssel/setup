@@ -29,7 +29,8 @@ pyinfra_run(
     data = [
         "deploys/microk8s/files/cmdline.txt",
         "deploys/monitoring/files/json_file_output.conf",
-        "deploys/monitoring/files/telegraf.conf",
+        "deploys/monitoring/files/logzio_output.conf.j2",
+        "deploys/monitoring/files/telegraf.conf.j2",
         "deploys/network/files/99_config.yaml",
         "deploys/onepassword_connect/files/docker-compose.yaml.j2",
         "deploys/teleport/files/teleport.yaml.j2",

@@ -1,0 +1,8 @@
+[[outputs.http]]
+  url = "https://listener.logz.io:8053"
+  data_format = "prometheusremotewrite"
+  [outputs.http.headers]
+     Content-Type = "application/x-protobuf"
+     Content-Encoding = "snappy"
+     X-Prometheus-Remote-Write-Version = "0.1.0"
+     Authorization = "Bearer {{ logzio_metrics_token }}"

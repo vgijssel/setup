@@ -59,6 +59,7 @@ if setup_env == "prod":
                     "ONEPASSWORD_CONNECT_CREDENTIALS_PROD",
                     "1password-credentials-prod.json",
                 ),
+                "setup_env": setup_env,
             },
         ),
     ]
@@ -73,6 +74,7 @@ elif setup_env == "test":
                     "ONEPASSWORD_CONNECT_CREDENTIALS_DEV",
                     "1password-credentials-dev.json",
                 ),
+                "setup_env": setup_env,
             },
         ),
     ]
@@ -87,6 +89,7 @@ else:
                     "ONEPASSWORD_CONNECT_CREDENTIALS_DEV",
                     "1password-credentials-dev.json",
                 ),
+                "setup_env": setup_env,
             },
         ),
     ]
