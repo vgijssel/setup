@@ -155,5 +155,6 @@ task_test(
         "workload-isolation-type": "firecracker",
         "init-dockerd": "true",
         "recycle-runner": "true",
+        "include-secrets": "true",
     },
 )
