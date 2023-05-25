@@ -27,7 +27,7 @@ def _get_onepassword_connect_credentials(env_key, tmp_file):
         return os.environ[env_key]
 
     file = os.path.join(
-        os.environ["BUILD_WORKSPACE_DIRECTORY"],
+        os.environ.get("BUILD_WORKSPACE_DIRECTORY"),
         "tmp",
         tmp_file,
     )
