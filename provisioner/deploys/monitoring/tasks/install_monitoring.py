@@ -1,6 +1,7 @@
 from pyinfra.api.deploy import deploy
 from pyinfra.operations import files, server, apt, systemd
 from pyinfra import host
+from provisioner.utils import get_onepassword_secret
 
 
 @deploy("Install Monitoring")
@@ -23,6 +24,13 @@ def install_monitoring():
         telegraf_env=host.data.setup_env,
     )
 
+    logzio_metrics_token = get_onepassword_secret(
+        host=host.data.onepassword_connect_host,
+        token=host.data.onepassword_connect_token,
+        vault_id=host.data.onepassword_vault_id,
+        item_title="logzio_metrics_token",
+    )
+
     files.template(
         name="Copy telegraf logz.io output config",
         src="provisioner/deploys/monitoring/files/logzio_output.conf.j2",
@@ -32,7 +40,7 @@ def install_monitoring():
         user="root",
         group="root",
         mode="0644",
-        logzio_metrics_token="",
+        logzio_metrics_token=logzio_metrics_token,
     )
 
     files.put(
