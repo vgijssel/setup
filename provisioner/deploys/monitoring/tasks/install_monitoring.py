@@ -1,7 +1,7 @@
 from pyinfra.api.deploy import deploy
 from pyinfra.operations import files, server, apt, systemd
 from pyinfra import host
-from provisioner.facts.onepassword import Item
+from provisioner.utils import one_password_item
 
 
 @deploy("Install Monitoring")
@@ -24,8 +24,7 @@ def install_monitoring():
         setup_env=host.data.setup_env,
     )
 
-    # NOTE: using reload_fact here because upon bootstrap the "onepassword-cli" is not yet available
-    logzio_metrics_token = host.reload_fact(Item, "kerk").get("password")
+    logzio_metrics_token = one_password_item("kerk")["password"]
 
     files.template(
         name="Copy telegraf logz.io output config",

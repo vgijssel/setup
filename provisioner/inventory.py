@@ -59,13 +59,9 @@ if setup_env == "prod":
                 "teleport_proxy": "tele.vgijssel.nl",
                 "teleport_user": teleport_user,
                 "teleport_identity": teleport_identity,
-                "onepassword_connect_credentials": _get_onepassword_connect_credentials(
-                    "ONEPASSWORD_CONNECT_CREDENTIALS_PROD",
-                    "1password-credentials-prod.json",
-                ),
-                "onepassword_connect_token": _get_onepassword_connect_credentials(
-                    "ONEPASSWORD_CONNECT_TOKEN_PROD",
-                    "1password-token-prod",
+                "onepassword_service_account_token": _get_onepassword_connect_credentials(
+                    "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD",
+                    "1password-service-account-token-prod",
                 ),
             },
         ),
@@ -77,13 +73,9 @@ elif setup_env == "test":
         (
             f"@docker/{container_id}",
             {
-                "onepassword_connect_credentials": _get_onepassword_connect_credentials(
-                    "ONEPASSWORD_CONNECT_CREDENTIALS_DEV",
-                    "1password-credentials-dev.json",
-                ),
-                "onepassword_connect_token": _get_onepassword_connect_credentials(
-                    "ONEPASSWORD_CONNECT_TOKEN_DEV",
-                    "1password-token-dev",
+                "onepassword_service_account_token": _get_onepassword_connect_credentials(
+                    "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
+                    "1password-service-account-token-dev",
                 ),
             },
         ),
@@ -95,13 +87,9 @@ else:
         (
             f"@docker/{container_id}",
             {
-                "onepassword_connect_credentials": _get_onepassword_connect_credentials(
-                    "ONEPASSWORD_CONNECT_CREDENTIALS_DEV",
-                    "1password-credentials-dev.json",
-                ),
-                "onepassword_connect_token": _get_onepassword_connect_credentials(
-                    "ONEPASSWORD_CONNECT_TOKEN_DEV",
-                    "1password-token-dev",
+                "onepassword_service_account_token": _get_onepassword_connect_credentials(
+                    "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
+                    "1password-service-account-token-dev",
                 ),
             },
         ),
