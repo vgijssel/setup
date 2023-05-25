@@ -1,9 +1,9 @@
 import os
 import pkg_resources
+from pathlib import Path
 
 import pyinfra.api.connectors
 import provisioner.connectors.teleport
-
 from pyinfra.api.connectors import get_all_connectors
 import pyinfra.api.inventory
 
@@ -20,6 +20,24 @@ pyinfra.api.connectors.get_all_connectors = patched_get_all_connectors
 pyinfra.api.inventory.get_all_connectors = patched_get_all_connectors
 
 setup_env = os.environ.get("SETUP_ENV", "dev")
+
+
+def _get_onepassword_service_account_token(env_key, tmp_file):
+    if env_key in os.environ:
+        return os.environ[env_key]
+
+    file = os.path.join(
+        os.environ.get("BUILD_WORKSPACE_DIRECTORY", ""),
+        "tmp",
+        tmp_file,
+    )
+
+    if os.path.exists(file):
+        return Path(file).read_text()
+
+    else:
+        raise ValueError(f"Either set env variable '{env_key}' or create file '{file}'")
+
 
 if setup_env == "prod":
     if (
@@ -41,6 +59,10 @@ if setup_env == "prod":
                 "teleport_proxy": "tele.vgijssel.nl",
                 "teleport_user": teleport_user,
                 "teleport_identity": teleport_identity,
+                "onepassword_service_account_token": _get_onepassword_service_account_token(
+                    "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD",
+                    "1password-service-account-token-prod",
+                ),
             },
         ),
     ]
@@ -48,11 +70,27 @@ if setup_env == "prod":
 elif setup_env == "test":
     container_id = os.environ["CONTAINER_ID"]
     test = [
-        (f"@docker/{container_id}"),
+        (
+            f"@docker/{container_id}",
+            {
+                "onepassword_service_account_token": _get_onepassword_service_account_token(
+                    "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
+                    "1password-service-account-token-dev",
+                ),
+            },
+        ),
     ]
 
 else:
     container_id = "provisioner_dev"
     dev = [
-        (f"@docker/{container_id}"),
+        (
+            f"@docker/{container_id}",
+            {
+                "onepassword_service_account_token": _get_onepassword_service_account_token(
+                    "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
+                    "1password-service-account-token-dev",
+                ),
+            },
+        ),
     ]

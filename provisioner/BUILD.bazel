@@ -25,7 +25,8 @@ pyinfra_run(
     data = [
         "deploys/microk8s/files/cmdline.txt",
         "deploys/monitoring/files/json_file_output.conf",
-        "deploys/monitoring/files/telegraf.conf",
+        "deploys/monitoring/files/logzio_output.conf.j2",
+        "deploys/monitoring/files/telegraf.conf.j2",
         "deploys/network/files/99_config.yaml",
         "deploys/teleport/files/teleport.yaml.j2",
         "deploys/teleport/files/teleport_health_check.conf",
@@ -33,6 +34,7 @@ pyinfra_run(
     deploy = "deploy.py",
     env = {
         "TELEPORT_TSH_BINARY": cmd.executable("//tools/teleport:tsh"),
+        "OP_BINARY": cmd.executable("//tools/onepassword:op"),
     },
     inventory = "inventory.py",
 )
@@ -153,5 +155,6 @@ task_test(
         "workload-isolation-type": "firecracker",
         "init-dockerd": "true",
         "recycle-runner": "true",
+        "include-secrets": "true",
     },
 )

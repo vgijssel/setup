@@ -1,0 +1,23 @@
+load("@rules_task//:defs.bzl", "cmd", "task")
+
+package(default_visibility = ["//visibility:public"])
+
+op_file = select({
+    "@platforms//cpu:aarch64": ["@onepassword_arm64//:op"],
+    "@platforms//cpu:x86_64": ["@onepassword_amd64//:op"],
+})
+
+sh_binary(
+    name = "op_binary",
+    srcs = op_file,
+)
+
+task(
+    name = "op",
+    cmds = [
+        cmd.shell(
+            cmd.executable(":op_binary"),
+            "$CLI_ARGS",
+        ),
+    ],
+)

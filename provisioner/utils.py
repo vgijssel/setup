@@ -1,6 +1,9 @@
 from pyinfra.operations import python
 from time import sleep
 from pyinfra import host
+from pyinfra import local
+import json
+import os
 
 
 # Inspired by https://github.com/Fizzadar/pyinfra/blob/2.x/pyinfra/operations/server.py#LL51C12-L51C52
@@ -32,3 +35,39 @@ def wait_for_reconnect(name):
         name=name,
         function=_wait_for_reconnect,
     )
+
+
+def one_password_item(
+    item_title,
+    onepassword_vault_id=None,
+    onepassword_service_account_token=None,
+):
+    if onepassword_vault_id is None:
+        onepassword_vault_id = host.data.onepassword_vault_id
+
+    if onepassword_service_account_token is None:
+        onepassword_service_account_token = host.data.onepassword_service_account_token
+
+    command = "{op_binary} item get '{item_title}' --vault='{onepassword_vault_id}' --format=json".format(
+        op_binary=os.environ["OP_BINARY"],
+        item_title=item_title,
+        onepassword_vault_id=onepassword_vault_id,
+        onepassword_service_account_token=onepassword_service_account_token,
+    )
+
+    try:
+        # NOTE: this environ hackery is so that if the command fail the secret is not printed to stdout/stderr.
+        os.environ["OP_SERVICE_ACCOUNT_TOKEN"] = onepassword_service_account_token
+        json_string = local.shell(command, print_input=False)
+    finally:
+        del os.environ["OP_SERVICE_ACCOUNT_TOKEN"]
+        print("An exception occurred")
+
+    raw_data = json.loads(json_string)
+
+    data = {}
+
+    for field in raw_data["fields"]:
+        data[field["id"]] = field.get("value", None)
+
+    return data

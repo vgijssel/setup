@@ -22,7 +22,7 @@ container_run_and_commit_layer(
     name = "setup_snap",
     commands = [
         "apt-get update",
-        "apt-get install -y snapd squashfuse fuse sudo",
+        "apt-get install -y snapd squashfuse fuse sudo lsb-release",
         "systemctl enable snapd",
         "useradd -m ubuntu -s /bin/bash",
         "adduser ubuntu sudo",
