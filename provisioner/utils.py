@@ -38,6 +38,9 @@ def wait_for_reconnect(name):
 # TODO: this is run within the context of Pyinfra, not of the host.
 # This means we need to provide a host/port to connect to which is hard when using docker
 # This is also when using Teleport/ssh as the connect server port will not be exposed?
+# Can also use the onepassword client inside the host? Which can use localhost?
+# That client only needs a token and vault id which we can provide!
+# Also means it works with regular facts
 def get_onepassword_secret(item_title, host=None, token=None, vault_id=None):
     if host is None:
         host = host.data.onepassword_connect_host
