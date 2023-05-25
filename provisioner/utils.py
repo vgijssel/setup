@@ -48,7 +48,8 @@ def one_password_item(
     if onepassword_service_account_token is None:
         onepassword_service_account_token = host.data.onepassword_service_account_token
 
-    command = "op item get '{item_title}' --vault='{onepassword_vault_id}' --format=json".format(
+    command = "{op_binary} item get '{item_title}' --vault='{onepassword_vault_id}' --format=json".format(
+        op_binary=os.environ["OP_BINARY"],
         item_title=item_title,
         onepassword_vault_id=onepassword_vault_id,
         onepassword_service_account_token=onepassword_service_account_token,
