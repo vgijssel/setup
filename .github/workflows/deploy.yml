@@ -16,12 +16,8 @@ jobs:
     environment: provisioner
     concurrency: deploy-provisioner
     steps:
-      - name: Deploy Provisioner with BuildBuddy workflow
-        run: |
-          curl -d '{"repo_url":"https://github.com/mvgijssel/setup", "ref": "master", "action_names": ["Deploy Provisioner"]}' \
-            -H 'x-buildbuddy-api-key: ${{ secrets.BUILDBUDDY_ORG_API_KEY }}' \
-            -H 'Content-Type: application/json' \
-            https://app.buildbuddy.io/api/v1/ExecuteWorkflow
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Poll for success
-        run: exit 1
+      - name: Deploy Provisioner with BuildBuddy workflow
+        run: scripts/call_buildbuddy_workflow.sh master "Deploy Provisioner" ${{ secrets.BUILDBUDDY_ORG_API_KEY }}
