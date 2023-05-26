@@ -13,7 +13,7 @@ jobs:
     name: Deploy Provisioner
     timeout-minutes: 20
     runs-on: ubuntu-latest
-    # environment: provisioner
-    # concurrency: deploy-provisioner
+    environment: provisioner
+    concurrency: deploy-provisioner
     steps:
-      - exit 1
+      - run: exit 1
