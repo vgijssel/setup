@@ -22,12 +22,12 @@ actions:
     bazel_commands:
       - "run //tools/teleport:connection_test --config buildbuddy"
 
-  - name: "Deploy provisioner"
+  - name: "Deploy Provisioner"
     user: buildbuddy
     container_image: "ubuntu-20.04"
     triggers:
       push:
         branches:
-          - "master"
+          - "reserved-for-buildbuddy-api__deploy-provisioner"
     bazel_commands:
       - "run //provisioner:deploy --config buildbuddy"
