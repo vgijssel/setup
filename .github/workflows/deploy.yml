@@ -1,0 +1,17 @@
+# for debugging https://github.com/marketplace/actions/debugging-with-tmate
+
+name: Deploy
+on:
+  push:
+    branches:
+      # - "master"
+      - "*"
+jobs:
+  deploy-provisioner:
+    name: Deploy Provisioner
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    environment: provisioner
+    concurrency: deploy-provisioner
+    steps:
+      - exit 1
