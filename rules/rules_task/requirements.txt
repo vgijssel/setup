@@ -4,8 +4,8 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes requirements.in
 #
-bazel-runfiles==0.21.0 \
-    --hash=sha256:3e430dd9a5aba90a90bc2493fdcfce02a3ece47fb574db0f4ac898261e6b068d
+bazel-runfiles==0.22.0 \
+    --hash=sha256:2b38b3113f91050c145dc017d535c6257a87959a6f2adc26fb6c6f86c806ccd9
     # via -r requirements.in
 black==23.3.0 \
     --hash=sha256:064101748afa12ad2291c2b91c960be28b817c0c7eaa35bec09cc63aa56493c5 \
