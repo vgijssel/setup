@@ -2,3 +2,4 @@ external/
 .pnpm-store/
 home-assistant/config/custom_components/hacs/
 home-assistant/config/custom_components
+pnpm-lock.yaml
