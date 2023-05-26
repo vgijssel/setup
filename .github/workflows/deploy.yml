@@ -1,0 +1,20 @@
+# for debugging https://github.com/marketplace/actions/debugging-with-tmate
+
+name: Deploy
+on:
+  push:
+    branches:
+      - "master"
+jobs:
+  deploy-provisioner:
+    name: Deploy Provisioner
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    environment: provisioner
+    concurrency: deploy-provisioner
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy Provisioner with BuildBuddy workflow
+        run: scripts/call_buildbuddy_workflow.sh master "Deploy Provisioner" ${{ secrets.BUILDBUDDY_ORG_API_KEY }}
