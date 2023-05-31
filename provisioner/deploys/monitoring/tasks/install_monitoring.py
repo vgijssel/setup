@@ -8,6 +8,37 @@ from pyinfra.facts.deb import DebArch
 
 @deploy("Install Monitoring")
 def install_monitoring():
+    files.directory(
+        name="Ensure monitoring directory exists",
+        path="/opt/monitoring",
+        user="root",
+        group="root",
+        mode="700",
+        _sudo=True,
+    )
+
+    github_exporter_token = one_password_item("github_exporter_token")["password"]
+
+    docker_compose = files.template(
+        name="Copy the docker-compose file",
+        src="provisioner/deploys/monitoring/files/docker-compose.yml.j2",
+        dest="/opt/monitoring/docker-compose.yml",
+        mode="600",
+        _sudo=True,
+        user="root",
+        group="root",
+        github_exporter_token=github_exporter_token,
+    )
+
+    if docker_compose.changed:
+        server.shell(
+            name="Start the monitoring service",
+            commands=[
+                "docker compose -f /opt/monitoring/docker-compose.yml up -d --force-recreate",
+            ],
+            _sudo=True,
+        )
+
     new_relic_license_key = one_password_item("new_relic_license_key")["password"]
 
     files.template(
