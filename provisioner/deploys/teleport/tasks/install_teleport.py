@@ -78,22 +78,3 @@ def install_teleport():
         wait_for_reconnect(
             name="Wait for teleport to reconnect",
         )
-
-    health_check_config = files.put(
-        name="Copy telegraf config",
-        src="provisioner/deploys/teleport/files/teleport_health_check.conf",
-        dest="/etc/telegraf/telegraf.d/teleport_health_check.conf",
-        create_remote_dir=True,
-        _sudo=True,
-        user="root",
-        group="root",
-        mode="0644",
-    )
-
-    if health_check_config.changed:
-        systemd.service(
-            name="Restart the telegraf service",
-            service="telegraf.service",
-            restarted=True,
-            _sudo=True,
-        )
