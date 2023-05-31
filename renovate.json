@@ -38,5 +38,8 @@
   "pip_requirements": {
     "fileMatch": ["(^|/)requirements\\.in$"],
     "ignorePaths": ["**/requirements.txt"]
+  },
+  "bazel-module": {
+    "enabled": true
   }
 }
