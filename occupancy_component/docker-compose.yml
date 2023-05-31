@@ -1,3 +1,5 @@
+version: "3.8"
+name: occupancy_component
 services:
   mqtt:
     image: eclipse-mosquitto:2.0

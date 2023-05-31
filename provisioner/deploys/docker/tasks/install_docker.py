@@ -63,6 +63,3 @@ def install_docker():
         enabled=True,
         _sudo=True,
     )
-
-    # TODO: add cron job for docker cleanup
-    # TODO: add cron job for reboot if kernel update

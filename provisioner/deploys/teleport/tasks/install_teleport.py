@@ -5,17 +5,8 @@ from pyinfra.facts.deb import DebPackage, DebArch
 from provisioner.utils import wait_for_reconnect
 
 
-TELEPORT_VERSION = "v13.0.3"
-
-
 @deploy("Install Teleport")
 def install_teleport():
-    apt.packages(
-        name="Install wget so we can install .deb directly",
-        packages=["wget"],
-        _sudo=True,
-    )
-
     server.shell(
         name="Allow HTTPS access",
         commands=[
@@ -24,30 +15,29 @@ def install_teleport():
         _sudo=True,
     )
 
-    arch = host.get_fact(DebArch)
-    teleport = host.get_fact(DebPackage, "teleport")
-    current_teleport_version = teleport["version"] if teleport else None
-    wanted_teleport_version = TELEPORT_VERSION.replace("v", "")
-    needs_update = current_teleport_version != wanted_teleport_version
+    files.directory(
+        name="Ensure teleport directory exists",
+        path="/opt/teleport",
+        user="root",
+        group="root",
+        mode="700",
+        _sudo=True,
+    )
 
-    if needs_update:
-        # https://goteleport.com/download/#install-links
-        # https://cdn.teleport.dev/teleport_12.3.3_arm64.deb
-        apt.deb(
-            name=f"Install Teleport version {wanted_teleport_version} via deb (previously {current_teleport_version})",
-            src=f"https://cdn.teleport.dev/teleport_{wanted_teleport_version}_{arch}.deb",
-            _sudo=True,
-        )
-
-        systemd.daemon_reload(
-            name="Reload systemd daemon in case service file changed",
-            _sudo=True,
-        )
+    docker_compose = files.put(
+        name="Copy the docker-compose file",
+        src="provisioner/deploys/teleport/files/docker-compose.yaml",
+        dest="/opt/teleport/docker-compose.yaml",
+        mode="600",
+        _sudo=True,
+        user="root",
+        group="root",
+    )
 
     teleport_config = files.template(
         name="Create Teleport config",
         src="provisioner/deploys/teleport/files/teleport.yaml.j2",
-        dest="/etc/teleport.yaml",
+        dest="/opt/teleport/teleport.yaml",
         create_remote_dir=True,
         _sudo=True,
         user="root",
@@ -58,19 +48,12 @@ def install_teleport():
         teleport_acme_email=host.data.teleport_acme_email,
     )
 
-    systemd.service(
-        name="Enable the teleport service",
-        service="teleport.service",
-        running=True,
-        enabled=True,
-        _sudo=True,
-    )
-
-    if needs_update or teleport_config.changed:
-        systemd.service(
-            name="Restart the teleport service",
-            service="teleport.service",
-            restarted=True,
+    if docker_compose.changed or teleport_config.changed:
+        server.shell(
+            name="Start the teleport service",
+            commands=[
+                "docker compose -f /opt/teleport/docker-compose.yaml up -d --force-recreate",
+            ],
             _sudo=True,
             _ignore_errors=True,  # restarting the service will disconnect us and result in error
         )

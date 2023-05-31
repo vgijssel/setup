@@ -1,0 +1,17 @@
+version: "3.8"
+name: teleport
+services:
+  teleport:
+    image: public.ecr.aws/gravitational/teleport-distroless:13.0.3
+    restart: always
+    container_name: teleport
+    hostname: localhost
+    ports:
+      - "0.0.0.0:443:443"
+    volumes:
+      - /opt/teleport/teleport.yaml:/etc/teleport/teleport.yaml
+      - data:/var/lib/teleport
+
+volumes:
+  data:
+    driver: local

@@ -23,20 +23,14 @@
       "platformAutomerge": true
     }
   ],
-  "regexManagers": [
-    {
-      "fileMatch": ["(^|/)install_teleport\\.py$"],
-      "matchStrings": ["TELEPORT_VERSION = \"(?<currentValue>.*?)\""],
-      "depNameTemplate": "gravitational/teleport",
-      "datasourceTemplate": "github-releases",
-      "versioningTemplate": "semver-coerced"
-    }
-  ],
   "ruby": {
     "enabled": false
   },
   "pip_requirements": {
     "fileMatch": ["(^|/)requirements\\.in$"],
     "ignorePaths": ["**/requirements.txt"]
+  },
+  "bazel-module": {
+    "enabled": true
   }
 }
