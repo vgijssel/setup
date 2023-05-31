@@ -12,7 +12,7 @@ module(
 bazel_dep(name = "platforms", version = "0.0.6")
 
 # ------------------------------------ rules_skylib ------------------------------------ #
-bazel_dep(name = "bazel_skylib", version = "1.4.1")
+bazel_dep(name = "bazel_skylib", version = "1.4.2")
 
 # ------------------------------------ rules_pkg ------------------------------------ #
 bazel_dep(name = "rules_pkg", version = "0.7.0")
