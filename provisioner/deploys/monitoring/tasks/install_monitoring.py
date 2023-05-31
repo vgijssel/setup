@@ -17,6 +17,7 @@ def install_monitoring():
         _sudo=True,
     )
 
+    new_relic_license_key = one_password_item("new_relic_license_key")["password"]
     github_exporter_token = one_password_item("github_exporter_token")["password"]
 
     docker_compose = files.template(
@@ -28,9 +29,20 @@ def install_monitoring():
         user="root",
         group="root",
         github_exporter_token=github_exporter_token,
+        new_relic_license_key=new_relic_license_key,
     )
 
-    if docker_compose.changed:
+    nri_prometheus_config = files.put(
+        name="Copy New Relic config",
+        src="provisioner/deploys/monitoring/files/nri-prometheus-config.yaml",
+        dest="/opt/monitoring/nri-prometheus-config.yaml",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
+    if docker_compose.changed or nri_prometheus_config.changed:
         server.shell(
             name="Start the monitoring service",
             commands=[
@@ -38,8 +50,6 @@ def install_monitoring():
             ],
             _sudo=True,
         )
-
-    new_relic_license_key = one_password_item("new_relic_license_key")["password"]
 
     files.template(
         name="Copy New Relic config",

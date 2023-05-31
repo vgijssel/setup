@@ -28,6 +28,7 @@ pyinfra_run(
         "deploys/microk8s/files/cmdline.txt",
         "deploys/monitoring/files/docker-compose.yml.j2",
         "deploys/monitoring/files/newrelic-infra.yml.j2",
+        "deploys/monitoring/files/nri-prometheus-config.yaml",
         "deploys/network/files/99_config.yaml",
         "deploys/teleport/files/teleport.yaml.j2",
     ],
