@@ -72,6 +72,8 @@ def install_monitoring():
         group="root",
         mode="0644",
         new_relic_license_key=new_relic_license_key,
+        new_relic_display_name=host.data.new_relic_display_name,
+        setup_env=host.data.setup_env,
     )
 
     lsb = host.get_fact(LsbRelease)
@@ -86,7 +88,7 @@ def install_monitoring():
     server.shell(
         name="Add New Relic key",
         commands=[
-            "curl -fsSL https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/newrelic-infra.gpg",
+            "curl -fsSL https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | gpg --yes --dearmor -o /etc/apt/trusted.gpg.d/newrelic-infra.gpg",
         ],
         _sudo=True,
     )
