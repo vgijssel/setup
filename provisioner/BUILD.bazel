@@ -143,6 +143,7 @@ task(
 
 task_test(
     name = "test",
+    size = "large",
     cmds = [
         "export CONTAINER_ID=$($run_dev_image)",
         {"defer": "docker rm -f $CONTAINER_ID"},
