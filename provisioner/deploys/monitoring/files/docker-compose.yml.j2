@@ -1,0 +1,24 @@
+name: monitoring
+version: '3.8'
+services:
+  # https://promhippie.github.io/github_exporter/#getting-started
+  github_exporter:
+    image: promhippie/github-exporter:latest@sha256:ad5cfc76d534d4c67ded2042b3ad343a8bcee9fd02f06638b39f74fbee17796e
+    restart: always
+    environment:
+      - GITHUB_EXPORTER_TOKEN={{ github_exporter_token }}
+      - GITHUB_EXPORTER_LOG_PRETTY=true
+      - GITHUB_EXPORTER_ORG=mvgijssel
+      - GITHUB_EXPORTER_REPO=mvgijssel/setup
+      - GITHUB_EXPORTER_COLLECTOR_WORKFLOWS=true
+      - GITHUB_EXPORTER_COLLECTOR_RUNNERS=false
+      - GITHUB_EXPORTER_COLLECTOR_BILLING=false
+      - GITHUB_EXPORTER_COLLECTOR_ADMIN=false
+
+  nri-prometheus:
+    image: newrelic/nri-prometheus:2.18.0@sha256:6b32ce98a098625b980342aae25634c7025d2dac996ac60642ffe0fc47e92bb9
+    restart: always
+    environment:
+      - LICENSE_KEY={{ new_relic_license_key }}
+    volumes:
+      - "/opt/monitoring/nri-prometheus-config.yaml:/config.yaml"

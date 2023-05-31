@@ -42,17 +42,6 @@ def test_ubuntu_focal(host):
     assert host.system_info.codename == "jammy"
 
 
-def test_telegraf_installed(host):
-    telegraf = host.package("telegraf")
-    assert telegraf.is_installed
-
-
-def test_telegraf_service(host):
-    telegraf = host.service("telegraf")
-    assert telegraf.is_enabled
-    assert telegraf.is_running
-
-
 def test_microk8s_installed(host):
     assert "microk8s" in host.check_output("snap list")
 

@@ -7,6 +7,7 @@ pyinfra_run(
     name = "provision",
     srcs = [
         "connectors/teleport.py",
+        "deploys/docker/tasks/install_docker.py",
         "deploys/microk8s/tasks/install_microk8s.py",
         "deploys/monitoring/tasks/install_monitoring.py",
         "deploys/network/tasks/install_network.py",
@@ -18,18 +19,18 @@ pyinfra_run(
     ],
     args = [
         "--data install_network=True",
+        "--data install_docker=True",
         "--data install_monitoring=True",
         "--data install_microk8s=True",
         "--data install_teleport=True",
     ],
     data = [
         "deploys/microk8s/files/cmdline.txt",
-        "deploys/monitoring/files/json_file_output.conf",
-        "deploys/monitoring/files/logzio_output.conf.j2",
-        "deploys/monitoring/files/telegraf.conf.j2",
+        "deploys/monitoring/files/docker-compose.yml.j2",
+        "deploys/monitoring/files/newrelic-infra.yml.j2",
+        "deploys/monitoring/files/nri-prometheus-config.yaml",
         "deploys/network/files/99_config.yaml",
         "deploys/teleport/files/teleport.yaml.j2",
-        "deploys/teleport/files/teleport_health_check.conf",
     ],
     deploy = "deploy.py",
     env = {
@@ -139,6 +140,7 @@ task(
 
 task_test(
     name = "test",
+    size = "large",
     cmds = [
         "export CONTAINER_ID=$($run_dev_image)",
         {"defer": "docker rm -f $CONTAINER_ID"},
