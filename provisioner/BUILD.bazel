@@ -30,7 +30,6 @@ pyinfra_run(
         "deploys/monitoring/files/logzio_output.conf.j2",
         "deploys/monitoring/files/newrelic-infra.yml.j2",
         "deploys/network/files/99_config.yaml",
-        "deploys/teleport/files/docker-compose.yaml",
         "deploys/teleport/files/teleport.yaml.j2",
         "deploys/teleport/files/teleport_health_check.conf",
     ],
