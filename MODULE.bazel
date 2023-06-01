@@ -38,6 +38,8 @@ python.toolchain(
 
 use_repo(python, PYTHON_NAME)
 use_repo(python, "{}_toolchains".format(PYTHON_NAME))
+use_repo(python, "{}_aarch64-unknown-linux-gnu".format(PYTHON_NAME))
+use_repo(python, "{}_x86_64-unknown-linux-gnu".format(PYTHON_NAME))
 
 register_toolchains(
     "@{}_toolchains//:all".format(PYTHON_NAME),
