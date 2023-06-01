@@ -18,7 +18,7 @@ services:
 
   nri-prometheus:
     container_name: nri-prometheus
-    image: newrelic/nri-prometheus:2.18.0@sha256:6b32ce98a098625b980342aae25634c7025d2dac996ac60642ffe0fc47e92bb9
+    image: newrelic/nri-prometheus:2.18.1@sha256:cd1b512186551293177fa7c48d85d876f2125c5da5978e03c7a4833b8082bc79
     restart: always
     environment:
       - LICENSE_KEY={{ new_relic_license_key }}
