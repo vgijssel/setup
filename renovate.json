@@ -41,5 +41,8 @@
   },
   "bazel-module": {
     "enabled": true
+  },
+  "docker-compose": {
+    "fileMatch": ["(^|/)docker-compose\\.yml\\.j2$"]
   }
 }
