@@ -12,16 +12,6 @@ actions:
     bazel_commands:
       - "test //... @rules_task//... --config buildbuddy --config buildbuddy_rbe"
 
-  - name: "Test Teleport connection"
-    user: buildbuddy
-    container_image: "ubuntu-20.04"
-    triggers:
-      pull_request:
-        branches:
-          - "*"
-    bazel_commands:
-      - "run //tools/teleport:connection_test --config buildbuddy"
-
   - name: "Deploy Provisioner"
     user: buildbuddy
     container_image: "ubuntu-20.04"

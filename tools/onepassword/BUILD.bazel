@@ -21,3 +21,8 @@ task(
         ),
     ],
 )
+
+py_library(
+    name = "lib",
+    srcs = ["lib.py"],
+)

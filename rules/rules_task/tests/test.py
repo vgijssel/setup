@@ -94,7 +94,7 @@ def test_filegroup():
 def test_python():
     result = _run_task("python")
     assert result.returncode == 0
-    assert result.stdout.strip() == b"somevalue"
+    assert result.stdout.strip() == b"some value"
 
 
 def test_python_entry_point():
@@ -108,7 +108,7 @@ def test_env():
     assert result.returncode == 0
     assert (
         result.stdout.strip()
-        == b"BAR's value\nHello, world!\nsomevalue\nsome inline shell"
+        == b"BAR's value\nHello, world!\nsome value\nsome inline shell"
     )
 
 

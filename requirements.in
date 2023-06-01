@@ -11,3 +11,4 @@ tzdata==2023.3;
 pyinfra==2.7
 sqlalchemy==2.0.15;
 semver==2.13.0;
+bazel-runfiles==0.22.0;

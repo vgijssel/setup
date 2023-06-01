@@ -1,7 +1,7 @@
 from pyinfra.api.deploy import deploy
 from pyinfra.operations import files, server, apt, systemd
 from pyinfra import host
-from provisioner.utils import one_password_item
+from tools.onepassword.lib import get_item_path
 from pyinfra.facts.server import LsbRelease
 from pyinfra.facts.deb import DebArch
 
@@ -17,8 +17,8 @@ def install_monitoring():
         _sudo=True,
     )
 
-    new_relic_license_key = one_password_item("new_relic_license_key")["password"]
-    github_exporter_token = one_password_item("github_exporter_token")["password"]
+    new_relic_license_key = get_item_path("new_relic_license_key.password")
+    github_exporter_token = get_item_path("github_exporter_token.password")
 
     docker_compose = files.template(
         name="Copy the docker-compose file",

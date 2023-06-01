@@ -136,7 +136,10 @@ task(
         cmd.python("""
         import os
         import sys
-        os.environ['SOMEVAR'] = 'somevalue'
+        os.environ['SOMEVAR'] = \"\"\"
+        some
+        value
+        \"\"\"
         sys.exit(0)
         os.environ['SOMEVAR'] = 'this should not be printed'
         """),

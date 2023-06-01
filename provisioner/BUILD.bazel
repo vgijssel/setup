@@ -2,6 +2,7 @@ load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("//tools/docker:docker.bzl", "docker_load")
 load("@pip-setup//:requirements.bzl", "requirement")
+load("//tools/onepassword:defs.bzl", "secrets")
 
 pyinfra_run(
     name = "provision",
@@ -38,11 +39,17 @@ pyinfra_run(
         "OP_BINARY": cmd.executable("//tools/onepassword:op"),
     },
     inventory = "inventory.py",
+    deps = [
+        "//tools/onepassword:lib",
+    ],
 )
 
 task(
     name = "deploy",
     cmds = [
+        secrets({
+            "TELEPORT_BUILDBUDDY_IDENTITY": "teleport_buildbuddy_identity.notesPlain",
+        }),
         "export TELEPORT_IDENTITY=$(mktemp)",
         {"defer": "rm -f $TELEPORT_IDENTITY"},
         'echo "$TELEPORT_BUILDBUDDY_IDENTITY" > $TELEPORT_IDENTITY',
@@ -50,9 +57,21 @@ task(
     ],
     env = {
         "SETUP_ENV": "prod",
+        "OP_BINARY": cmd.executable("//tools/onepassword:op"),
     },
     exec_properties = {
         "include-secrets": "true",
+    },
+    deps = ["//tools/onepassword:lib"],
+)
+
+task_test(
+    name = "deploy_test",
+    cmds = [
+        cmd.executable(":deploy"),
+    ],
+    env = {
+        "PYINFRA_RUN_ARGS": "--dry",
     },
 )
 
