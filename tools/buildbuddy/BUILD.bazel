@@ -2,22 +2,10 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//python:defs.bzl", "python_grpclib_library")
 
 proto_library(
-    name = "common_proto",
-    srcs = [
-        "common.proto",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_google_protobuf//:duration_proto",
-        "@com_google_protobuf//:timestamp_proto",
-        "@go_googleapis//google/rpc:status_proto",
-    ],
-)
-
-proto_library(
     name = "api_v1_proto",
     srcs = [
         "action.proto",
+        "common.proto",
         "file.proto",
         "invocation.proto",
         "log.proto",
@@ -27,7 +15,6 @@ proto_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":common_proto",
         "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:timestamp_proto",
         "@go_googleapis//google/rpc:status_proto",
@@ -35,6 +22,16 @@ proto_library(
 )
 
 python_grpclib_library(
-    name = "lib",
+    name = "lib_grpc",
     protos = [":api_v1_proto"],
+)
+
+py_binary(
+    name = "client",
+    srcs = [
+        "client.py",
+    ],
+    deps = [
+        ":lib_grpc",
+    ],
 )
