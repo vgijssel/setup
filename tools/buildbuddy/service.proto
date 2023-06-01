@@ -2,12 +2,12 @@ syntax = "proto3";
 
 package api.v1;
 
-import "proto/api/v1/action.proto";
-import "proto/api/v1/file.proto";
-import "proto/api/v1/invocation.proto";
-import "proto/api/v1/log.proto";
-import "proto/api/v1/target.proto";
-import "proto/api/v1/workflow.proto";
+import "tools/buildbuddy/action.proto";
+import "tools/buildbuddy/file.proto";
+import "tools/buildbuddy/invocation.proto";
+import "tools/buildbuddy/log.proto";
+import "tools/buildbuddy/target.proto";
+import "tools/buildbuddy/workflow.proto";
 
 // This is the public interface used to programatically retrieve information
 // from BuildBuddy.

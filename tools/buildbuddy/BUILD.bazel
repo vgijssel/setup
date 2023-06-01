@@ -1,5 +1,5 @@
 load("@rules_proto//proto:defs.bzl", "proto_library")
-load("@rules_python//python:proto.bzl", "py_proto_library")
+load("@rules_proto_grpc//python:defs.bzl", "python_grpclib_library")
 
 proto_library(
     name = "common_proto",
@@ -34,7 +34,7 @@ proto_library(
     ],
 )
 
-py_proto_library(
+python_grpclib_library(
     name = "lib",
-    deps = [":api_v1_proto"],
+    protos = [":api_v1_proto"],
 )

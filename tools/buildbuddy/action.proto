@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api.v1;
 
-import "proto/api/v1/file.proto";
+import "tools/buildbuddy/file.proto";
 
 // Request passed into GetAction
 message GetActionRequest {
