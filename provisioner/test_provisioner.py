@@ -154,6 +154,12 @@ def test_teleport_service(host):
     assert teleport.is_enabled
 
 
+def test_teleport_health(host):
+    assert '"status":"ok"' in host.check_output(
+        "curl --fail -L http://localhost:3000/healthz"
+    )
+
+
 def test_https_port_is_open(host):
     assert host.socket("tcp://0.0.0.0:443").is_listening
 
