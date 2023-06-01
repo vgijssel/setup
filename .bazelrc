@@ -17,6 +17,10 @@ test --test_verbose_timeout_warnings
 # Output test logs to the console when there are errors
 test --test_output=errors
 
+# Secrets necessary also while testing
+test --test_env=ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD
+test --test_env=ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV
+
 common --enable_bzlmod=true
 
 # Currently a bug in rules_docker where the wrong platform is selected when building docker images
