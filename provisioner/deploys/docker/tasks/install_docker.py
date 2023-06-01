@@ -3,6 +3,7 @@ from pyinfra import host
 from pyinfra.facts.server import LsbRelease
 from pyinfra.api.deploy import deploy
 from pyinfra.facts.deb import DebArch
+from pyinfra.facts.server import Users
 
 
 @deploy("Install Docker")
@@ -55,6 +56,17 @@ def install_docker():
         update=True,
         cache_time=0 if add_apt_repo.changed else 24 * 60 * 60,
     )
+
+    existing_groups = host.get_fact(Users)["ubuntu"]["groups"]
+
+    if "docker" not in existing_groups:
+        server.shell(
+            name="Add ubuntu to docker group",
+            commands=[
+                "usermod -a -G docker ubuntu",
+            ],
+            _sudo=True,
+        )
 
     systemd.service(
         name="Enable the docker service",

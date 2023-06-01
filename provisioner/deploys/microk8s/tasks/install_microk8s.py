@@ -61,15 +61,15 @@ def install_microk8s():
         )
 
     existing_groups = host.get_fact(Users)["ubuntu"]["groups"]
-    new_groups = existing_groups + ["microk8s"]
 
-    server.user(
-        name="Add ubuntu to microk8s group",
-        user="ubuntu",
-        groups=new_groups,
-        present=True,
-        _sudo=True,
-    )
+    if "microk8s" not in existing_groups:
+        server.shell(
+            name="Add ubuntu to microk8s group",
+            commands=[
+                "usermod -a -G microk8s ubuntu",
+            ],
+            _sudo=True,
+        )
 
     files.directory(
         name="Create and own .kube directory",
