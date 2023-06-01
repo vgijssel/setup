@@ -1,8 +1,12 @@
-import pdb
+from tools.buildbuddy.service_grpc import ApiServiceStub
 
-pdb.set_trace()
+# TODO: implement proper
+stub = ApiServiceStub(channel="app.buildbuddy.io:443")
+stub.GetInvocation()
 
-from tools.buildbuddy import service_pb2
+# import pdb
 
-# TODO:
-# *** ModuleNotFoundError: No module named 'google.rpc'
+# pdb.set_trace()
+
+# TODO: "@go_googleapis//google/rpc:status_proto",
+# this dependency does not work with Python?
