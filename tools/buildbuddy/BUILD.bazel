@@ -1,0 +1,40 @@
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_python//python:proto.bzl", "py_proto_library")
+
+proto_library(
+    name = "common_proto",
+    srcs = [
+        "common.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+        "@go_googleapis//google/rpc:status_proto",
+    ],
+)
+
+proto_library(
+    name = "api_v1_proto",
+    srcs = [
+        "action.proto",
+        "file.proto",
+        "invocation.proto",
+        "log.proto",
+        "service.proto",
+        "target.proto",
+        "workflow.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":common_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+        "@go_googleapis//google/rpc:status_proto",
+    ],
+)
+
+py_proto_library(
+    name = "lib",
+    deps = [":api_v1_proto"],
+)
