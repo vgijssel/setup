@@ -56,6 +56,16 @@ task(
     },
 )
 
+task_test(
+    name = "deploy_test",
+    cmds = [
+        cmd.executable(":deploy"),
+    ],
+    env = {
+        "PYINFRA_RUN_ARGS": "--dry",
+    },
+)
+
 docker_load(
     name = "load_dev_image",
     exec_properties = {

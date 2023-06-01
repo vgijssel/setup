@@ -15,14 +15,15 @@ def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = 
             "//tools/pyinfra:main.py",
         ] + srcs,
         main = "main.py",
-        deps = ["@rules_python//python/runfiles", requirement("pyinfra")] + deps,
+        deps = [requirement("bazel-runfiles"), requirement("pyinfra")] + deps,
     )
 
     task(
         name = name,
         cmds = [
             "ARGS=${CLI_ARGS:-$default_args}",
-            "$pyinfra $ARGS $inventory_file $deploy_file",
+            "PYINFRA_RUN_ARGS=${PYINFRA_RUN_ARGS:-\"\"}",
+            "$pyinfra $PYINFRA_RUN_ARGS $ARGS $inventory_file $deploy_file",
         ],
         env = {
             "pyinfra": cmd.executable(python_binary),

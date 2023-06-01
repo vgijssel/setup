@@ -132,6 +132,9 @@ awesomeversion==22.9.0 \
     --hash=sha256:2f4190d333e81e10b2a4e156150ddb3596f5f11da67e9d51ba39057aa7a17f7e \
     --hash=sha256:f4716e1e65ea1194be03f312f2b2643a8b76326c59538ddc5353642616ead82a
     # via homeassistant
+bazel-runfiles==0.22.0 \
+    --hash=sha256:2b38b3113f91050c145dc017d535c6257a87959a6f2adc26fb6c6f86c806ccd9
+    # via -r requirements.in
 bcrypt==4.0.1 \
     --hash=sha256:089098effa1bc35dc055366740a067a2fc76987e8ec75349eb9484061c54f535 \
     --hash=sha256:08d2947c490093a11416df18043c27abe3921558d2c03e2076ccb28a116cb6d0 \
