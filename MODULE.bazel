@@ -26,20 +26,30 @@ local_path_override(
 
 # ------------------------------------ rules_python ------------------------------------ #
 PYTHON_NAME = "python3"
+
 INTERPRETER_NAME = "interpreter3"
 
 bazel_dep(name = "rules_python", version = "0.22.0")
+
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     name = PYTHON_NAME,
-    python_version = "3.10.8",
     configure_coverage_tool = True,
+    python_version = "3.10.8",
 )
-
 use_repo(python, PYTHON_NAME)
-use_repo(python, "{}_toolchains".format(PYTHON_NAME))
-use_repo(python, "{}_aarch64-unknown-linux-gnu".format(PYTHON_NAME))
-use_repo(python, "{}_x86_64-unknown-linux-gnu".format(PYTHON_NAME))
+use_repo(
+    python,
+    "{}_toolchains".format(PYTHON_NAME),
+)
+use_repo(
+    python,
+    "{}_aarch64-unknown-linux-gnu".format(PYTHON_NAME),
+)
+use_repo(
+    python,
+    "{}_x86_64-unknown-linux-gnu".format(PYTHON_NAME),
+)
 
 register_toolchains(
     "@{}_toolchains//:all".format(PYTHON_NAME),
