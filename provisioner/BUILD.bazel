@@ -73,6 +73,9 @@ task_test(
     env = {
         "PYINFRA_RUN_ARGS": "--dry",
     },
+    exec_properties = {
+        "include-secrets": "true",
+    },
 )
 
 docker_load(
