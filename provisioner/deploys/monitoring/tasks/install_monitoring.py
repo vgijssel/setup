@@ -82,7 +82,7 @@ def install_monitoring():
         _sudo=True,
     )
 
-    apt.repo(
+    add_apt_repo = apt.repo(
         name="Install New Relic repo",
         src=f"deb https://download.newrelic.com/infrastructure_agent/linux/apt/ {version_codename} main",
         filename="newrelic-infra",
@@ -94,7 +94,7 @@ def install_monitoring():
         packages=["newrelic-infra"],
         update=True,
         present=True,
-        cache_time=24 * 60 * 60,
+        cache_time=0 if add_apt_repo.changed else 24 * 60 * 60,
         _sudo=True,
     )
 
