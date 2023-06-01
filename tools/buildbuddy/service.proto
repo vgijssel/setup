@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package api.v1;
+
+import "tools/buildbuddy/action.proto";
+import "tools/buildbuddy/file.proto";
+import "tools/buildbuddy/invocation.proto";
+import "tools/buildbuddy/log.proto";
+import "tools/buildbuddy/target.proto";
+import "tools/buildbuddy/workflow.proto";
+
+// This is the public interface used to programatically retrieve information
+// from BuildBuddy.
+//
+// Requests can be made over:
+// - gRPC connecting on port 1985
+// - gRPCS connecting on port 1986
+// - REST by making a POST request to /api/v1/ENDPOINT_NAME
+//   Example: /api/v1/GetTarget
+//
+// Requests require setting an API key using the header (or metadata for GRPC
+// requests) x-buildbuddy-api-key: YOUR_API_KEY which can be set in your
+// config.yaml file for on-prem BuildBuddy, or retreived by emailing
+// developers@buildbuddy.io if using the buildbuddy.io cloud hosted service.
+//
+// API access is available to BuildBuddy Enterprise customers. Email
+// enterprise@buildbuddy.io for information on BuildBuddy Enterprise.
+//
+// If there's information you'd like to access programatically that's not
+// included in this API, email developers@buildbuddy.io
+service ApiService {
+  // Retrieves a list of invocations or a specific invocation matching the given
+  // request selector.
+  rpc GetInvocation(GetInvocationRequest) returns (GetInvocationResponse);
+
+  // Retrieves the logs for a specific invocation.
+  rpc GetLog(GetLogRequest) returns (GetLogResponse);
+
+  // Retrieves a list of targets or a specific target matching the given
+  // request selector.
+  rpc GetTarget(GetTargetRequest) returns (GetTargetResponse);
+
+  // Retrieves a list of targets or a specific target matching the given
+  // request selector.
+  rpc GetAction(GetActionRequest) returns (GetActionResponse);
+
+  // Streams the File with the given uri.
+  // - Over gRPC returns a stream of bytes to be stitched together in order.
+  // - Over HTTP this simply returns the requested file.
+  rpc GetFile(GetFileRequest) returns (stream GetFileResponse);
+
+  // Delete the File with the given uri.
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+
+  // Execute a workflow for the given URL and branch.
+  // Github App authentication is required. The API does not support running
+  // legacy workflows.
+  rpc ExecuteWorkflow(ExecuteWorkflowRequest) returns (ExecuteWorkflowResponse);
+}
