@@ -1,6 +1,7 @@
 import os
 import atexit
 from deepdiff import DeepDiff, Delta
+from shlex import quote
 
 old_env = os.environ.copy()
 task_env_file = os.environ["TASK_ENV_FILE"]
@@ -20,7 +21,7 @@ def write_changed_env():
         results = []
 
         for key, value in changed_env.items():
-            results.append(f"export {key}={value}")
+            results.append(f"export {key}={quote(value)}")
 
         file.write("\n".join(results))
 
