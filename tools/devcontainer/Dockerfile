@@ -1,6 +1,6 @@
 # From https://stackoverflow.com/a/74764298
 # We're pinning here on the multi-arch digest of the ubuntu:focal image
-FROM ubuntu:jammy@sha256:dfd64a3b4296d8c9b62aa3309984f8620b98d87e47492599ee20739e8eb54fbf
+FROM ubuntu:jammy@sha256:ac58ff7fe25edc58bdf0067ca99df00014dbd032e2246d30a722fa348fd799a5
 
 ARG TARGETARCH
 
