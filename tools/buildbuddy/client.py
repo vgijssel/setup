@@ -19,7 +19,7 @@ async def start_workflow(stub):
         ),
         metadata={"x-buildbuddy-api-key": token},
     )
-    print(reply)
+    # print(reply)
     return reply.action_statuses[0].invocation_id
 
 
@@ -29,7 +29,7 @@ async def get_log(stub, invocation_id):
         GetLogRequest(selector=LogSelector(invocation_id=invocation_id)),
         metadata={"x-buildbuddy-api-key": token},
     )
-    print(reply)
+    # print(reply)
     return reply
 
 
@@ -41,7 +41,7 @@ async def get_invocation(stub, invocation_id):
         ),
         metadata={"x-buildbuddy-api-key": token},
     )
-    print(reply)
+    # print(reply)
     return reply.invocation[0]
 
 
@@ -56,12 +56,12 @@ async def main():
             if invocation.duration_usec > 0:
                 break
 
-            print("sleeping 5...")
+            print("Not yet ready. Sleeping 5...")
             await asyncio.sleep(1)
 
         log = await get_log(stub, invocation_id)
 
-        print(log)
+        print(log.log.contents)
 
         if invocation.success:
             sys.exit(0)
