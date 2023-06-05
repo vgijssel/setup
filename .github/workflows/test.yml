@@ -38,7 +38,7 @@ jobs:
           # Export loaded secrets as environment variables
           export-env: true
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV }}
           BUILDBUDDY_API_KEY: op://vgijssel-dev/buildbuddy-api-key/password
 
       - name: Create local.bazelrc file
