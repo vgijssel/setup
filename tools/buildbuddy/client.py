@@ -38,6 +38,7 @@ async def get_invocation(stub, invocation_id):
     reply = await stub.GetInvocation(
         GetInvocationRequest(
             selector=InvocationSelector(invocation_id=invocation_id),
+            include_metadata=True,
         ),
         metadata={"x-buildbuddy-api-key": token},
     )
