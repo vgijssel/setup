@@ -10,7 +10,7 @@ import sys
 
 
 async def start_workflow(stub):
-    token = os.environ["BUILDBUDDY_TOKEN"]
+    token = os.environ["BUILDBUDDY_API_KEY"]
     reply = await stub.ExecuteWorkflow(
         ExecuteWorkflowRequest(
             repo_url="https://github.com/mvgijssel/setup",
@@ -24,7 +24,7 @@ async def start_workflow(stub):
 
 
 async def get_log(stub, invocation_id):
-    token = os.environ["BUILDBUDDY_TOKEN"]
+    token = os.environ["BUILDBUDDY_API_KEY"]
     reply = await stub.GetLog(
         GetLogRequest(selector=LogSelector(invocation_id=invocation_id)),
         metadata={"x-buildbuddy-api-key": token},
@@ -34,7 +34,7 @@ async def get_log(stub, invocation_id):
 
 
 async def get_invocation(stub, invocation_id):
-    token = os.environ["BUILDBUDDY_TOKEN"]
+    token = os.environ["BUILDBUDDY_API_KEY"]
     reply = await stub.GetInvocation(
         GetInvocationRequest(
             selector=InvocationSelector(invocation_id=invocation_id),

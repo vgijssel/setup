@@ -31,6 +31,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Load secret
+        uses: 1password/load-secrets-action@v1
+        with:
+          # Export loaded secrets as environment variables
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          BUILDBUDDY_API_KEY: op://vgijssel-dev/buildbuddy-api-key/password
+
       - name: Run client
         run: bazel run //tools/buildbuddy:client
       # - name: cancel previous runs
