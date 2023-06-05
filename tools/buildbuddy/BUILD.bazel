@@ -1,5 +1,6 @@
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//python:defs.bzl", "python_grpclib_library")
+load("@pip-setup//:requirements.bzl", "requirement")
 
 proto_library(
     name = "api_v1_proto",
@@ -17,7 +18,7 @@ proto_library(
     deps = [
         "@com_google_protobuf//:duration_proto",
         "@com_google_protobuf//:timestamp_proto",
-        # "@go_googleapis//google/rpc:status_proto",
+        "@go_googleapis//google/rpc:status_proto",
     ],
 )
 
@@ -32,6 +33,8 @@ py_binary(
         "client.py",
     ],
     deps = [
+        requirement("googleapis-common-protos"),
+        requirement("grpclib"),
         ":lib_grpc",
     ],
 )

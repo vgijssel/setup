@@ -643,6 +643,10 @@ gevent==22.10.2 \
     --hash=sha256:f3329bedbba4d3146ae58c667e0f9ac1e6f1e1e6340c7593976cdc60aa7d1a47 \
     --hash=sha256:f7ed2346eb9dc4344f9cb0d7963ce5b74fe16fdd031a2809bb6c2b6eba7ebcd5
     # via pyinfra
+googleapis-common-protos==1.59.0 \
+    --hash=sha256:4168fcb568a826a52f23510412da405abd93f4d23ba544bb68d943b14ba3cb44 \
+    --hash=sha256:b287dc48449d1d41af0c69f4ea26242b5ae4c3d7249a38b0984c86a4caffff1f
+    # via -r requirements.in
 greenlet==2.0.2 \
     --hash=sha256:03a8f4f3430c3b3ff8d10a2a86028c660355ab637cee9333d63d66b56f09d52a \
     --hash=sha256:0bf60faf0bc2468089bdc5edd10555bab6e85152191df713e2ab1fcc86382b5a \
@@ -754,10 +758,17 @@ grpcio==1.51.3 \
     --hash=sha256:f7a0d0bf44438869d307f85a54f25a896ad6b4b0ca12370f76892ad732928d87 \
     --hash=sha256:ffaaf7e93fcb437356b5a4b23bf36e8a3d0221399ff77fd057e4bc77776a24be
     # via pulumi
+grpclib[protobuf]==0.4.4 \
+    --hash=sha256:80c7f5179b8d05d1192a092db1b60b4934a0d52e9919358de75c912c269485e5
+    # via -r requirements.in
 h11==0.14.0 \
     --hash=sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d \
     --hash=sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761
     # via httpcore
+h2==4.1.0 \
+    --hash=sha256:03a46bcf682256c95b5fd9e9a99c1323584c3eec6440d379b9903d709476bc6d \
+    --hash=sha256:a83aca08fbe7aacb79fec788c9c0bac936343560ed9ec18b82a13a12c28d2abb
+    # via grpclib
 home-assistant-bluetooth==1.10.0 \
     --hash=sha256:a5fc5dc13088f92cf157ecba153972fded22e042d2507b2933850b5cfc8b82e0 \
     --hash=sha256:e810a2db9d3d542779c46a4202fb3f1de54692e2631257a00b8aa2634c7ebde0
@@ -766,6 +777,10 @@ homeassistant==2023.5.4 \
     --hash=sha256:8f69d42e9bbbad44799843525064fd8e156c2306d693dd89a85eba16144220be \
     --hash=sha256:99189128c69f4648003ac847ff98baca3dfbf451336605e191d90ae79eec31a4
     # via pytest-homeassistant-custom-component
+hpack==4.0.0 \
+    --hash=sha256:84a076fad3dc9a9f8063ccb8041ef100867b1878b25ef0ee63847a5d53818a6c \
+    --hash=sha256:fc41de0c63e687ebffde81187a948221294896f6bdc0ae2312708df339430095
+    # via h2
 httpcore==0.17.2 \
     --hash=sha256:125f8375ab60036db632f34f4b627a9ad085048eef7cb7d2616fea0f739f98af \
     --hash=sha256:5581b9c12379c4288fe70f43c710d16060c10080617001e6b22a3b6dbcbefd36
@@ -776,6 +791,10 @@ httpx==0.24.1 \
     # via
     #   homeassistant
     #   respx
+hyperframe==6.0.1 \
+    --hash=sha256:0ec6bafd80d8ad2195c4f03aacba3a8265e57bc4cff261e802bf39970ed02a15 \
+    --hash=sha256:ae510046231dc8e9ecb1a6586f63d2347bf4c8905914aa84ba585ae85f28a914
+    # via h2
 idna==3.4 \
     --hash=sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4 \
     --hash=sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2
@@ -980,6 +999,7 @@ multidict==6.0.4 \
     --hash=sha256:ff959bee35038c4624250473988b24f846cbeb2c6639de3602c073f10410ceba
     # via
     #   aiohttp
+    #   grpclib
     #   yarl
 mypy-extensions==1.0.0 \
     --hash=sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d \
@@ -1126,7 +1146,10 @@ protobuf==4.23.2 \
     --hash=sha256:c52cfcbfba8eb791255edd675c1fe6056f723bf832fa67f0442218f8817c076e \
     --hash=sha256:ce744938406de1e64b91410f473736e815f28c3b71201302612a68bf01517fea \
     --hash=sha256:efabbbbac1ab519a514579ba9ec52f006c28ae19d97915951f69fa70da2c9e91
-    # via pulumi
+    # via
+    #   googleapis-common-protos
+    #   grpclib
+    #   pulumi
 pulumi==3.68.0 \
     --hash=sha256:979e574b66a97cd294de15938dc5d6abae75731a5b5a9c37207c30d547ceefef
     # via
