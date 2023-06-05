@@ -10,30 +10,50 @@ http_archive(
     ],
 )
 
-load(
-    "@io_bazel_rules_go//go:deps.bzl",
-    "go_download_sdk",
-    "go_rules_dependencies",
+# ------------------------------------ rules_proto_grpc ------------------------------------ #
+http_archive(
+    name = "rules_proto_grpc",
+    sha256 = "928e4205f701b7798ce32f3d2171c1918b363e9a600390a25c876f075f1efc0a",
+    strip_prefix = "rules_proto_grpc-4.4.0",
+    urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/releases/download/4.4.0/rules_proto_grpc-4.4.0.tar.gz"],
 )
 
-go_rules_dependencies()
+load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_repos", "rules_proto_grpc_toolchains")
 
-# From https://github.com/buildbuddy-io/buildbuddy/blob/73ec4544d3bf813141314970275d4c2eaa5091a8/WORKSPACE#L57-L83
-go_download_sdk(
-    name = "go_sdk_linux",
-    goarch = "amd64",
-    goos = "linux",
-    version = "1.18",  # Keep in sync with .github/workflows/checkstyle.yaml
+rules_proto_grpc_toolchains()
+
+rules_proto_grpc_repos()
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+
+rules_proto_dependencies()
+
+rules_proto_toolchains()
+
+load("@rules_proto_grpc//python:repositories.bzl", rules_proto_grpc_python_repos = "python_repos")
+
+rules_proto_grpc_python_repos()
+
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+
+grpc_deps()
+
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
+
+grpc_extra_deps()
+
+load("@rules_python//python:pip.bzl", "pip_parse")
+load("@python3//:defs.bzl", "interpreter")
+
+pip_parse(
+    name = "rules_proto_grpc_py3_deps",
+    python_interpreter_target = interpreter,
+    requirements_lock = "@rules_proto_grpc//python:requirements.txt",
 )
 
-go_download_sdk(
-    name = "go_sdk_linux_arm64",
-    goarch = "arm64",
-    goos = "linux",
-    version = "1.18",
-)
+load("@rules_proto_grpc_py3_deps//:requirements.bzl", "install_deps")
 
-# go_register_toolchains(version="1.18")
+install_deps()
 
 # ------------------------------------ rules_docker ------------------------------------ #
 # https://github.com/bazelbuild/rules_docker/pull/2201

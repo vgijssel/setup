@@ -1,0 +1,40 @@
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//python:defs.bzl", "python_grpclib_library")
+load("@pip-setup//:requirements.bzl", "requirement")
+
+proto_library(
+    name = "api_v1_proto",
+    srcs = [
+        "action.proto",
+        "common.proto",
+        "file.proto",
+        "invocation.proto",
+        "log.proto",
+        "service.proto",
+        "target.proto",
+        "workflow.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+        "@go_googleapis//google/rpc:status_proto",
+    ],
+)
+
+python_grpclib_library(
+    name = "lib_grpc",
+    protos = [":api_v1_proto"],
+)
+
+py_binary(
+    name = "client",
+    srcs = [
+        "client.py",
+    ],
+    deps = [
+        requirement("googleapis-common-protos"),
+        requirement("grpclib"),
+        ":lib_grpc",
+    ],
+)
