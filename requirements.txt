@@ -1133,7 +1133,10 @@ protobuf==4.23.2 \
     --hash=sha256:c52cfcbfba8eb791255edd675c1fe6056f723bf832fa67f0442218f8817c076e \
     --hash=sha256:ce744938406de1e64b91410f473736e815f28c3b71201302612a68bf01517fea \
     --hash=sha256:efabbbbac1ab519a514579ba9ec52f006c28ae19d97915951f69fa70da2c9e91
-    # via pulumi
+    # via
+    #   googleapis-common-protos
+    #   grpclib
+    #   pulumi
 pulumi==3.69.0 \
     --hash=sha256:e2088a08258acc5b066e2f46291d596853d9af55e2b4b2ecf9d639b5caf8f779
     # via
