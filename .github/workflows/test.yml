@@ -24,6 +24,20 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
+  test_buildbuddy_client:
+    name: Test BuildBuddy client
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Run client
+        run: bazel run //tools/buildbuddy:client
+      # - name: cancel previous runs
+      #   uses: styfle/cancel-workflow-action@0.11.0
+      #   with:
+      #     access_token: ${{ github.token }}
+
   build_devcontainer:
     name: Build and push the devcontainer image
     timeout-minutes: 10
