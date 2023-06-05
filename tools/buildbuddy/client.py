@@ -9,13 +9,13 @@ import os
 import sys
 
 
-async def start_workflow(stub):
+async def start_workflow(stub, action_name):
     token = os.environ["BUILDBUDDY_API_KEY"]
     reply = await stub.ExecuteWorkflow(
         ExecuteWorkflowRequest(
             repo_url="https://github.com/mvgijssel/setup",
             ref="master",
-            action_names=["Test all targets"],
+            action_names=[action_name],
         ),
         metadata={"x-buildbuddy-api-key": token},
     )
@@ -48,7 +48,8 @@ async def get_invocation(stub, invocation_id):
 async def main():
     async with Channel("app.buildbuddy.io", 1986, ssl=True) as channel:
         stub = ApiServiceStub(channel)
-        invocation_id = await start_workflow(stub)
+        action_name = "Deploy Provisioner"
+        invocation_id = await start_workflow(stub, action_name=action_name)
 
         while True:
             invocation = await get_invocation(stub, invocation_id)
