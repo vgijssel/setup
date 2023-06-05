@@ -24,30 +24,6 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-  test_buildbuddy_client:
-    name: Test BuildBuddy client
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Load secret
-        uses: 1password/load-secrets-action@v1
-        with:
-          # Export loaded secrets as environment variables
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV }}
-          BUILDBUDDY_API_KEY: op://vgijssel-dev/buildbuddy-api-key/password
-
-      - name: Create local.bazelrc file
-        run: |
-          echo "build --remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY" > local.bazelrc
-
-      - name: Run client
-        run: bazel run //tools/buildbuddy:client --config buildbuddy --config buildbuddy_rbe
-
   build_devcontainer:
     name: Build and push the devcontainer image
     timeout-minutes: 10
