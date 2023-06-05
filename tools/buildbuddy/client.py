@@ -19,7 +19,7 @@ async def start_workflow(stub, action_name):
         ),
         metadata={"x-buildbuddy-api-key": token},
     )
-    # print(reply)
+    print(reply)
     return reply.action_statuses[0].invocation_id
 
 
