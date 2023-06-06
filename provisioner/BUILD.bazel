@@ -132,23 +132,38 @@ task(
 )
 
 task(
+    name = "ssh",
+    cmds = [
+        cmd.shell(
+            cmd.executable("//tools/teleport:tsh"),
+            "ssh",
+            "--login",
+            "ubuntu",
+            "$CLI_ARGS",
+        ),
+    ],
+)
+
+task(
     name = "validate",
     cmds = [
         cmd.python("""
         import os
         setup_env = os.environ.get("SETUP_ENV", 'dev')
+        os.environ['PATH'] = os.path.dirname(os.environ['SSH_BINARY']) + ':' + os.environ['PATH']
 
         if setup_env == 'test':
             os.environ['VALIDATE_HOST'] = f"docker://root@{os.environ['CONTAINER_ID']}"
         elif setup_env == 'prod':
-            os.environ['VALIDATE_HOST'] = f"ssh://ubuntu@192.168.1.31"
+            os.environ['VALIDATE_HOST'] = f"ssh://provisioner?timeout=0&controlpersist=0"
         else:
             os.environ['VALIDATE_HOST'] = f"docker://root@provisioner_dev"
         """),
-        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
+        cmd.python_entry_point("pytest:console_main", "--verbose", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
     ],
     env = {
         "tests": cmd.files("test_provisioner.py"),
+        "SSH_BINARY": cmd.executable(":ssh"),
     },
     deps = [
         requirement("pytest-testinfra"),

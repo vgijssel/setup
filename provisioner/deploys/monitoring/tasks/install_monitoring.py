@@ -13,7 +13,7 @@ def install_monitoring():
         path="/opt/monitoring",
         user="root",
         group="root",
-        mode="700",
+        mode="0700",
         _sudo=True,
     )
 
@@ -24,7 +24,7 @@ def install_monitoring():
         name="Copy the docker-compose file",
         src="provisioner/deploys/monitoring/files/docker-compose.yml.j2",
         dest="/opt/monitoring/docker-compose.yml",
-        mode="600",
+        mode="0600",
         _sudo=True,
         user="root",
         group="root",

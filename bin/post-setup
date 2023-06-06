@@ -13,3 +13,4 @@ bazel run --script_path=/opt/bin/lefthook //tools/lefthook
 bazel run --script_path=/opt/bin/pnpm @pnpm-setup//:pnpm
 bazel run --script_path=/opt/bin/prettier //:prettier
 bazel run --script_path=/opt/bin/buildifier @buildifier_prebuilt//:buildifier
+bazel run --script_path=/opt/bin/tsh //tools/teleport:tsh

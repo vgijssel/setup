@@ -101,9 +101,10 @@ def test_nri_prometheus_service(host):
 
 
 def test_nri_prometheus_config(host):
-    config = host.file("/opt/monitoring/nri-prometheus-config.yaml")
-    assert config.exists
-    assert config.contains("http://github_exporter:9504/metrics")
+    with host.sudo():
+        config = host.file("/opt/monitoring/nri-prometheus-config.yaml")
+        assert config.exists
+        assert config.contains("http://github_exporter:9504/metrics")
 
 
 def test_microk8s_installed(host):
