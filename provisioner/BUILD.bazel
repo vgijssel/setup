@@ -207,7 +207,7 @@ task(
         else:
             os.environ['VALIDATE_HOST'] = f"docker://root@provisioner_dev"
         """),
-        cmd.python_entry_point("pytest:console_main", "--verbose", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
+        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
     ],
     env = {
         "tests": cmd.files("test_provisioner.py"),
