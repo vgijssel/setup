@@ -197,9 +197,16 @@ task(
 task(
     name = "validate",
     cmds = [
+        secrets({
+            "NEW_RELIC_API_KEY": "provisioner-validate-api-key.password",
+        }),
         cmd.python("""
         import os
         setup_env = os.environ.get("SETUP_ENV", 'dev')
+
+        os.environ['OTEL_EXPORTER_OTLP_ENDPOINT'] = 'https://otlp.eu01.nr-data.net:443'
+        os.environ['OTEL_EXPORTER_OTLP_HEADERS'] = 'api-key=' + os.environ['NEW_RELIC_API_KEY']
+        os.environ['OTEL_RESOURCE_ATTRIBUTES'] = 'service.name=provisioner-validate,env=' + setup_env
 
         if setup_env == 'test':
             os.environ['VALIDATE_HOST'] = f"docker://root@{os.environ['CONTAINER_ID']}"
@@ -208,15 +215,19 @@ task(
         else:
             os.environ['VALIDATE_HOST'] = f"docker://root@provisioner_dev"
         """),
-        cmd.python_entry_point("pytest:console_main", "-vv", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
+        cmd.python_entry_point("pytest:console_main", "--export-traces", "-vv", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
     ],
     env = {
         "tests": cmd.files("test_provisioner.py"),
+        "OTEL_RESOURCE_ATTRIBUTES": "service.name=provisioner-validate,env=dev",
+        "OP_BINARY": cmd.executable("//tools/onepassword:op"),
     },
     deps = [
         requirement("pytest-testinfra"),
         requirement("pyyaml"),
         requirement("semver"),
+        requirement("pytest-opentelemetry"),
+        "//tools/onepassword:lib",
     ],
 )
 
