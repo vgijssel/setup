@@ -65,6 +65,55 @@ task(
     deps = ["//tools/onepassword:lib"],
 )
 
+task(
+    name = "deploy_validate",
+    cmds = [
+        secrets({
+            "TELEPORT_BUILDBUDDY_IDENTITY": "teleport_buildbuddy_identity.notesPlain",
+        }),
+        "export TELEPORT_IDENTITY=$(mktemp)",
+        {"defer": "rm -f $TELEPORT_IDENTITY"},
+        'echo "$TELEPORT_BUILDBUDDY_IDENTITY" > $TELEPORT_IDENTITY',
+        cmd.python("""
+        import os
+        os.environ['PATH'] = os.path.dirname(os.environ['SSH_BINARY']) + ':' + os.environ['PATH']
+        """),
+        cmd.executable(":validate"),
+    ],
+    env = {
+        "SETUP_ENV": "prod",
+        "OP_BINARY": cmd.executable("//tools/onepassword:op"),
+        "SSH_BINARY": cmd.executable(":ssh"),
+    },
+    exec_properties = {
+        "include-secrets": "true",
+    },
+    deps = ["//tools/onepassword:lib"],
+)
+
+task(
+    name = "ssh",
+    cmds = [
+        cmd.python("""
+        import os
+        cli_args = os.environ["CLI_ARGS"]
+        # TODO: removing unsupported cli args to tsh for now until https://github.com/gravitational/teleport/issues/27441 is fixed.
+        cli_args = cli_args.replace("-o User=ubuntu", "")
+        cli_args = cli_args.replace("-o ConnectTimeout=0", "")
+        os.environ['CLI_ARGS'] = cli_args
+        """),
+        cmd.shell(
+            cmd.executable("//tools/teleport:tsh"),
+            "ssh",
+            "--login",
+            "ubuntu",
+            "--identity",
+            "$TELEPORT_IDENTITY",
+            "$CLI_ARGS",
+        ),
+    ],
+)
+
 task_test(
     name = "deploy_test",
     cmds = [
@@ -132,33 +181,11 @@ task(
 )
 
 task(
-    name = "ssh",
-    cmds = [
-        cmd.python("""
-        import os
-        cli_args = os.environ["CLI_ARGS"]
-        # TODO: removing unsupported cli args to tsh for now until https://github.com/gravitational/teleport/issues/27441 is fixed.
-        cli_args = cli_args.replace("-o User=ubuntu", "")
-        cli_args = cli_args.replace("-o ConnectTimeout=0", "")
-        os.environ['CLI_ARGS'] = cli_args
-        """),
-        cmd.shell(
-            cmd.executable("//tools/teleport:tsh"),
-            "ssh",
-            "--login",
-            "ubuntu",
-            "$CLI_ARGS",
-        ),
-    ],
-)
-
-task(
     name = "validate",
     cmds = [
         cmd.python("""
         import os
         setup_env = os.environ.get("SETUP_ENV", 'dev')
-        os.environ['PATH'] = os.path.dirname(os.environ['SSH_BINARY']) + ':' + os.environ['PATH']
 
         if setup_env == 'test':
             os.environ['VALIDATE_HOST'] = f"docker://root@{os.environ['CONTAINER_ID']}"
@@ -171,7 +198,6 @@ task(
     ],
     env = {
         "tests": cmd.files("test_provisioner.py"),
-        "SSH_BINARY": cmd.executable(":ssh"),
     },
     deps = [
         requirement("pytest-testinfra"),
