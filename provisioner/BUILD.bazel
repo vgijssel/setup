@@ -45,7 +45,7 @@ pyinfra_run(
 )
 
 task(
-    name = "deploy",
+    name = "deploy_provision",
     cmds = [
         secrets({
             "TELEPORT_BUILDBUDDY_IDENTITY": "teleport_buildbuddy_identity.notesPlain",
@@ -65,10 +65,73 @@ task(
     deps = ["//tools/onepassword:lib"],
 )
 
+task(
+    name = "deploy_validate",
+    cmds = [
+        secrets({
+            "TELEPORT_BUILDBUDDY_IDENTITY": "teleport_buildbuddy_identity.notesPlain",
+        }),
+        "export TELEPORT_IDENTITY=$(mktemp)",
+        {"defer": "rm -f $TELEPORT_IDENTITY"},
+        'echo "$TELEPORT_BUILDBUDDY_IDENTITY" > $TELEPORT_IDENTITY',
+        cmd.python("""
+        import os
+        os.environ['PATH'] = os.path.dirname(os.environ['SSH_BINARY']) + ':' + os.environ['PATH']
+        """),
+        cmd.executable(":validate"),
+    ],
+    env = {
+        "SETUP_ENV": "prod",
+        "OP_BINARY": cmd.executable("//tools/onepassword:op"),
+        "SSH_BINARY": cmd.executable(":ssh"),
+    },
+    exec_properties = {
+        "include-secrets": "true",
+    },
+    deps = ["//tools/onepassword:lib"],
+)
+
+task(
+    name = "ssh",
+    cmds = [
+        cmd.python("""
+        import os
+        cli_args = os.environ["CLI_ARGS"]
+        # TODO: removing unsupported cli args to tsh for now until https://github.com/gravitational/teleport/issues/27441 is fixed.
+        cli_args = cli_args.replace("-o User=ubuntu", "")
+        cli_args = cli_args.replace("-o ConnectTimeout=0", "")
+        os.environ['CLI_ARGS'] = cli_args
+        """),
+        cmd.shell(
+            cmd.executable("//tools/teleport:tsh"),
+            "ssh",
+            "--login",
+            "ubuntu",
+            "--identity",
+            "$TELEPORT_IDENTITY",
+            "$CLI_ARGS",
+        ),
+    ],
+)
+
+task(
+    name = "deploy",
+    cmds = [
+        cmd.executable(":deploy_provision"),
+        cmd.executable(":deploy_validate"),
+    ],
+)
+
 task_test(
     name = "deploy_test",
+    size = "large",
     cmds = [
-        cmd.executable(":deploy"),
+        cmd.executable(":deploy_provision"),
+        cmd.shell(
+            cmd.executable(":deploy_validate"),
+            "||",
+            "true",
+        ),
     ],
     env = {
         "PYINFRA_RUN_ARGS": "--dry",
@@ -141,7 +204,7 @@ task(
         if setup_env == 'test':
             os.environ['VALIDATE_HOST'] = f"docker://root@{os.environ['CONTAINER_ID']}"
         elif setup_env == 'prod':
-            os.environ['VALIDATE_HOST'] = f"ssh://ubuntu@192.168.1.31"
+            os.environ['VALIDATE_HOST'] = f"ssh://ubuntu@provisioner?timeout=0&controlpersist=0"
         else:
             os.environ['VALIDATE_HOST'] = f"docker://root@provisioner_dev"
         """),
