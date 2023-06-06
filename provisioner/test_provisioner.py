@@ -8,9 +8,10 @@ def test_netplan_installed(host):
 
 
 def test_netplan_config(host):
-    cmd = host.run("netplan get all")
-    data = yaml.safe_load(cmd.stdout)
-    assert data["network"]["ethernets"]["eth0"]["addresses"] == ["192.168.1.31/24"]
+    with host.sudo():
+        output = host.check_output("netplan get all")
+        data = yaml.safe_load(output)
+        assert data["network"]["ethernets"]["eth0"]["addresses"] == ["192.168.1.31/24"]
 
 
 def test_ufw_installed(host):
@@ -112,7 +113,8 @@ def test_microk8s_installed(host):
 
 
 def test_microk8s_version(host):
-    assert host.check_output("microk8s version").startswith("MicroK8s v1.27")
+    with host.sudo():
+        assert host.check_output("microk8s version").startswith("MicroK8s v1.27")
 
 
 def test_user_added_to_microk8s_group(host):
