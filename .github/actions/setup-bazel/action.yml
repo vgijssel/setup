@@ -1,5 +1,9 @@
 name: "Setup Bazel"
 description: "Setup the CI to work properly with Bazel"
+inputs:
+  OP_SERVICE_ACCOUNT_TOKEN:
+    description: "Service Account Token for 1Password"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -17,7 +21,7 @@ runs:
         # Export loaded secrets as environment variables
         export-env: true
       env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
         BUILDBUDDY_API_KEY: op://vgijssel-prod/buildbuddy-api-key/password
 
     - name: Create local.bazelrc file

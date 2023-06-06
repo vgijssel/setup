@@ -16,5 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - uses: ./.github/actions/setup-bazel
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
       - name: Run client
         run: bazel run  --config buildbuddy --config buildbuddy_rbe //tools/buildbuddy:client -- "Deploy Provisioner"
