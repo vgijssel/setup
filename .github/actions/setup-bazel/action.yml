@@ -1,5 +1,9 @@
 name: "Setup Bazel"
 description: "Setup the CI to work properly with Bazel"
+inputs:
+  OP_SERVICE_ACCOUNT_TOKEN:
+    description: "Service Account Token for 1Password"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -7,9 +11,22 @@ runs:
       id: bazel-cache
       with:
         path: |
-          tmp/bazel/disk_cache
-          tmp/bazel/repository_cache
+          tmp/output_base/external
         key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
         restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
-    - run: bin/post-setup
+
+    - name: Load secret
+      uses: 1password/load-secrets-action@v1
+      with:
+        # Export loaded secrets as environment variables
+        export-env: true
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
+        BUILDBUDDY_API_KEY: op://vgijssel-prod/buildbuddy-api-key/password
+
+    - name: Create local.bazelrc file
       shell: bash
+      run: |
+        echo "build --remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY" > local.bazelrc
+        echo "startup --output_base=$(pwd)/tmp/output_base" >> local.bazelrc
+        cat local.bazelrc

@@ -19,8 +19,16 @@ async def start_workflow(stub, action_name):
         ),
         metadata={"x-buildbuddy-api-key": token},
     )
+
     print(reply)
-    return reply.action_statuses[0].invocation_id
+
+    action_status = reply.action_statuses[0]
+
+    if action_status.status.code:
+        print(action_status.status.message)
+        sys.exit(1)
+
+    return action_status.invocation_id
 
 
 async def get_log(stub, invocation_id):
@@ -47,9 +55,11 @@ async def get_invocation(stub, invocation_id):
 
 
 async def main():
+    _, action_name = sys.argv
+
     async with Channel("app.buildbuddy.io", 1986, ssl=True) as channel:
         stub = ApiServiceStub(channel)
-        action_name = "Deploy Provisioner"
+
         invocation_id = await start_workflow(stub, action_name=action_name)
 
         while True:

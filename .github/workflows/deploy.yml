@@ -15,19 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Load secret
-        uses: 1password/load-secrets-action@v1
+      - uses: ./.github/actions/setup-bazel
         with:
-          # Export loaded secrets as environment variables
-          export-env: true
-        env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
-          BUILDBUDDY_API_KEY: op://vgijssel-prod/buildbuddy-api-key/password
-
-      - name: Create local.bazelrc file
-        run: |
-          echo "build --remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY" > local.bazelrc
-
       - name: Run client
-        run: bazel run //tools/buildbuddy:client --config buildbuddy --config buildbuddy_rbe
+        run: bazel run  --config buildbuddy --config buildbuddy_rbe //tools/buildbuddy:client -- "Deploy Provisioner"
