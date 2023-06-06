@@ -21,6 +21,7 @@ runs:
         BUILDBUDDY_API_KEY: op://vgijssel-prod/buildbuddy-api-key/password
 
     - name: Create local.bazelrc file
+      shell: bash
       run: |
         echo "build --remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY" > local.bazelrc
         echo "startup --output_base=$(pwd)/tmp/output_base" >> local.bazelrc
