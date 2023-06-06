@@ -20,4 +20,14 @@ actions:
         branches:
           - "reserved-for-buildbuddy-api__deploy-provisioner"
     bazel_commands:
-      - "run //provisioner:deploy --config buildbuddy"
+      - "run //provisioner:deploy --config buildbuddy --config buildbuddy_rbe"
+
+  - name: "Validate Provisioner"
+    user: buildbuddy
+    container_image: "ubuntu-20.04"
+    triggers:
+      push:
+        branches:
+          - "reserved-for-buildbuddy-api__validate-provisioner"
+    bazel_commands:
+      - "run //provisioner:deploy_validate --config buildbuddy --config buildbuddy_rbe"

@@ -11,5 +11,16 @@ runs:
           tmp/bazel/repository_cache
         key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
         restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
-    - run: bin/post-setup
-      shell: bash
+
+    - name: Load secret
+      uses: 1password/load-secrets-action@v1
+      with:
+        # Export loaded secrets as environment variables
+        export-env: true
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
+        BUILDBUDDY_API_KEY: op://vgijssel-prod/buildbuddy-api-key/password
+
+    - name: Create local.bazelrc file
+      run: |
+        echo "build --remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY" > local.bazelrc

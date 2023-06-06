@@ -1,0 +1,16 @@
+name: Schedule
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+
+jobs:
+  provisioner-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency: validate-provisioner
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-bazel
+      - name: Run client
+        run: bazel run --config buildbuddy --config buildbuddy_rbe //tools/buildbuddy:client -- "Validate Provisioner"
