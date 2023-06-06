@@ -4,7 +4,7 @@ services:
   # https://promhippie.github.io/github_exporter/#getting-started
   github_exporter:
     container_name: github_exporter
-    image: promhippie/github-exporter:latest@sha256:8767a6522afa9222dd630131211d50b498bc3e4932675c7cf28e49cabb8d2443
+    image: promhippie/github-exporter:latest@sha256:14c75bc048503ce67db8f78df77d374c23dc351c291428e82b53a0bce9602bf6
     restart: always
     environment:
       - GITHUB_EXPORTER_TOKEN={{ github_exporter_token }}
