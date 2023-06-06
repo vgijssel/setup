@@ -45,7 +45,7 @@ pyinfra_run(
 )
 
 task(
-    name = "deploy",
+    name = "deploy_provision",
     cmds = [
         secrets({
             "TELEPORT_BUILDBUDDY_IDENTITY": "teleport_buildbuddy_identity.notesPlain",
@@ -115,9 +115,22 @@ task(
 )
 
 task_test(
+    name = "deploy",
+    cmds = [
+        cmd.executable(":deploy_provision"),
+        cmd.executable(":deploy_validate"),
+    ],
+)
+
+task_test(
     name = "deploy_test",
     cmds = [
-        cmd.executable(":deploy"),
+        cmd.executable(":deploy_provision"),
+        cmd.shell(
+            cmd.executable(":deploy_validate"),
+            "||",
+            "true",
+        ),
     ],
     env = {
         "PYINFRA_RUN_ARGS": "--dry",
