@@ -114,7 +114,7 @@ task(
     ],
 )
 
-task_test(
+task(
     name = "deploy",
     cmds = [
         cmd.executable(":deploy_provision"),
@@ -124,6 +124,7 @@ task_test(
 
 task_test(
     name = "deploy_test",
+    size = "large",
     cmds = [
         cmd.executable(":deploy_provision"),
         cmd.shell(
