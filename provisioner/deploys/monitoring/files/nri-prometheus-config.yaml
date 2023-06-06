@@ -5,7 +5,7 @@ cluster_name: "provisioner"
 # standalone: true
 
 # How often the integration should run. Defaults to 30s.
-# scrape_duration: "30s"
+scrape_duration: "1m"
 
 # The HTTP client timeout when fetching data from targets. Defaults to 5s.
 # scrape_timeout: "5s"
