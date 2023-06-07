@@ -137,19 +137,15 @@ py_binary(
 task(
     name = "deploy_mark",
     cmds = [
-        "env",
-        "ls -la",
-        "git status",
-        "exit 1",
         secrets({
             "ENTITY_GUID": "provisioner-mark-new-relic-api-key.entity_guid",
             "NEW_RELIC_API_KEY": "provisioner-mark-new-relic-api-key.password",
         }),
+        "export COMMIT_SHA=$(git rev-parse HEAD)",
         cmd.executable(":deploy_mark_binary"),
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
-        "COMMIT": "",
         "OP_BINARY": cmd.executable("//tools/onepassword:op"),
     },
     exec_properties = {

@@ -4,9 +4,9 @@ import os
 
 url = "https://api.eu.newrelic.com/graphql"
 entity_guid = os.environ["ENTITY_GUID"]
-commit = os.environ["COMMIT"]
+commit_sha = os.environ["COMMIT_SHA"]
 new_relic_api_key = os.environ["NEW_RELIC_API_KEY"]
-group_id = commit
+group_id = commit_sha
 
 headers = {
     "Content-Type": "application/json",
@@ -34,7 +34,7 @@ mutation {
 }
 """ % (
     entity_guid,
-    commit,
+    commit_sha,
     group_id,
 )
 

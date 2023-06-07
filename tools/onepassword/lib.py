@@ -71,10 +71,9 @@ def get_item_path(path):
 
     json_string = result.stdout.decode("utf-8")
     raw_data = json.loads(json_string)
-
     data = {}
 
     for field in raw_data["fields"]:
-        data[field["id"]] = field.get("value", None)
+        data[field["label"]] = field.get("value", None)
 
     return data[item_field]
