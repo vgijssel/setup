@@ -138,6 +138,7 @@ task(
     name = "deploy_mark",
     cmds = [
         "env",
+        "ls -la",
         "git status",
         "exit 1",
         secrets({
@@ -146,6 +147,7 @@ task(
         }),
         cmd.executable(":deploy_mark_binary"),
     ],
+    cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
         "COMMIT": "",
         "OP_BINARY": cmd.executable("//tools/onepassword:op"),
