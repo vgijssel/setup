@@ -31,3 +31,13 @@ actions:
           - "reserved-for-buildbuddy-api__validate-provisioner"
     bazel_commands:
       - "run //provisioner:deploy_validate --config buildbuddy --config buildbuddy_rbe"
+
+  - name: "Test Env"
+    user: buildbuddy
+    container_image: "ubuntu-20.04"
+    triggers:
+      pull_request:
+        branches:
+          - "*"
+    bazel_commands:
+      - "run //provisioner:deploy_mark"

@@ -118,8 +118,41 @@ task(
     name = "deploy",
     cmds = [
         cmd.executable(":deploy_provision"),
+        cmd.executable(":deploy_mark"),
         cmd.executable(":deploy_validate"),
     ],
+)
+
+py_binary(
+    name = "deploy_mark_binary",
+    srcs = [
+        "deploy_mark.py",
+    ],
+    main = "deploy_mark.py",
+    deps = [
+        requirement("requests"),
+    ],
+)
+
+task(
+    name = "deploy_mark",
+    cmds = [
+        "env",
+        "exit 1",
+        secrets({
+            "ENTITY_GUID": "provisioner-mark-new-relic-api-key.entity_guid",
+            "NEW_RELIC_API_KEY": "provisioner-mark-new-relic-api-key.password",
+        }),
+        cmd.executable(":deploy_mark_binary"),
+    ],
+    env = {
+        "COMMIT": "",
+        "OP_BINARY": cmd.executable("//tools/onepassword:op"),
+    },
+    exec_properties = {
+        "include-secrets": "true",
+    },
+    deps = ["//tools/onepassword:lib"],
 )
 
 task_test(
@@ -198,7 +231,7 @@ task(
     name = "validate",
     cmds = [
         secrets({
-            "NEW_RELIC_API_KEY": "provisioner-validate-api-key.password",
+            "NEW_RELIC_API_KEY": "provisioner-validate-new-relic-api-key.password",
         }),
         cmd.python("""
         import os
