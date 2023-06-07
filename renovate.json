@@ -42,7 +42,11 @@
   "bazel-module": {
     "enabled": true
   },
+  "bazel": {
+    "fileMatch": ["(^|/)WORKSPACE\\.bzlmod$"]
+  },
   "docker-compose": {
     "fileMatch": ["(^|/)docker-compose\\.yml\\.j2$"]
-  }
+  },
+  "automergeSchedule": ["after 9am every weekday", "before 5pm every weekday"]
 }
