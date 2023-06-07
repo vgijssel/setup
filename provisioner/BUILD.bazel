@@ -138,6 +138,7 @@ task(
     name = "deploy_mark",
     cmds = [
         "env",
+        "git status",
         "exit 1",
         secrets({
             "ENTITY_GUID": "provisioner-mark-new-relic-api-key.entity_guid",
