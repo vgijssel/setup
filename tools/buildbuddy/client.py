@@ -69,7 +69,7 @@ async def main():
                 break
 
             print("Not yet ready. Sleeping 5...")
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
 
         log = await get_log(stub, invocation_id)
 
