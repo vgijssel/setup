@@ -153,8 +153,8 @@ http_file(
     name = "lefthook_arm64",
     downloaded_file_path = "lefthook",
     executable = True,
-    sha256 = "8a0f71ed6a35ef4b710ad7dfcebc434c4568884278e4e28f021851117d116ebb",
-    url = "https://github.com/evilmartians/lefthook/releases/download/v1.3.9/lefthook_1.3.9_Linux_arm64.gz",
+    sha256 = "2c6cb3a63f6c82251d660c212466d53823edc1e2da3c4f4c6d97b131097b465a",
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.4.1/lefthook_1.4.1_Linux_arm64.gz",
 )
 
 # ------------------------------------ pulumi ------------------------------------ #
