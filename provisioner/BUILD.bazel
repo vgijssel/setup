@@ -117,10 +117,18 @@ task(
 task(
     name = "deploy",
     cmds = [
+        "export COMMIT_SHA=$(git rev-parse HEAD)",
+        cmd.shell(
+            cmd.executable(":deploy_mark"),
+            "$COMMIT_SHA",
+        ),
         cmd.executable(":deploy_provision"),
-        cmd.executable(":deploy_mark"),
         cmd.executable(":deploy_validate"),
     ],
+    cwd = "$BUILD_WORKSPACE_DIRECTORY",
+    env = {
+        "SETUP_ENV": "prod",
+    },
 )
 
 py_binary(
@@ -141,10 +149,11 @@ task(
             "ENTITY_GUID": "provisioner-mark-new-relic-api-key.entity_guid",
             "NEW_RELIC_API_KEY": "provisioner-mark-new-relic-api-key.password",
         }),
-        "export COMMIT_SHA=$(git rev-parse HEAD)",
-        cmd.executable(":deploy_mark_binary"),
+        cmd.shell(
+            cmd.executable(":deploy_mark_binary"),
+            "$CLI_ARGS",
+        ),
     ],
-    cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
         "OP_BINARY": cmd.executable("//tools/onepassword:op"),
     },
@@ -158,6 +167,10 @@ task_test(
     name = "deploy_test",
     size = "large",
     cmds = [
+        cmd.shell(
+            cmd.executable(":deploy_mark"),
+            "test-commit-sha",
+        ),
         cmd.executable(":deploy_provision"),
         cmd.shell(
             cmd.executable(":deploy_validate"),
@@ -167,6 +180,7 @@ task_test(
     ],
     env = {
         "PYINFRA_RUN_ARGS": "--dry",
+        "SETUP_ENV": "test",
     },
 )
 

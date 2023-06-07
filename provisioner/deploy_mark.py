@@ -1,10 +1,10 @@
 import requests
 import os
-
+import sys
 
 url = "https://api.eu.newrelic.com/graphql"
 entity_guid = os.environ["ENTITY_GUID"]
-commit_sha = os.environ["COMMIT_SHA"]
+_, commit_sha = sys.argv
 new_relic_api_key = os.environ["NEW_RELIC_API_KEY"]
 group_id = commit_sha
 
