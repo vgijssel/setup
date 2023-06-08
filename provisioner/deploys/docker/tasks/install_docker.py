@@ -1,4 +1,4 @@
-from pyinfra.operations import apt, server, systemd
+from pyinfra.operations import apt, server, systemd, files
 from pyinfra import host
 from pyinfra.facts.server import LsbRelease
 from pyinfra.api.deploy import deploy
@@ -71,10 +71,37 @@ def install_docker():
             _sudo=True,
         )
 
+    files.put(
+        name="Copy Docker daemon config",
+        src="provisioner/deploys/docker/files/daemon.json",
+        dest="/etc/docker/daemon.json",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
     systemd.service(
         name="Enable the docker service",
         service="docker.service",
         running=True,
         enabled=True,
+        restarted=True,
+        _sudo=True,
+    )
+
+    apt.packages(
+        name="Install cron",
+        packages=["cron"],
+        update=True,
+        cache_time=24 * 60 * 60,
+        _sudo=True,
+    )
+
+    server.crontab(
+        name="Prune Docker every day at 00:00",
+        command="docker system prune -a -f --volumes",
+        minute="0",
+        hour="0",
         _sudo=True,
     )

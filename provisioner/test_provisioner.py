@@ -67,6 +67,10 @@ def test_user_added_to_docker_group(host):
     assert "docker" in host.user("ubuntu").groups
 
 
+def test_docker_system_prune_in_cron(host):
+    "0 0 * * * docker system prune -a -f --volumes" in host.check_output("crontab -l")
+
+
 def test_newrelic_infra_installed(host):
     newrelic_infra = host.package("newrelic-infra")
     assert newrelic_infra.is_installed
@@ -106,6 +110,7 @@ def test_nri_prometheus_config(host):
         config = host.file("/opt/monitoring/nri-prometheus-config.yaml")
         assert config.exists
         assert config.contains("http://github_exporter:9504/metrics")
+        assert config.contains("http://arm_exporter:9243/metrics")
 
 
 def test_otel_collector_service(host):
@@ -132,6 +137,10 @@ def test_otel_collector_health(host):
     assert '"status":"Server available"' in host.check_output(
         "curl --fail -L http://localhost:13133"
     )
+
+
+def test_required_reboot_in_cron(host):
+    "0 1 * * * /opt/monitoring/reboot.sh" in host.check_output("crontab -l")
 
 
 def test_microk8s_installed(host):

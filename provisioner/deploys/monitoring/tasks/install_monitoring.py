@@ -31,6 +31,7 @@ def install_monitoring():
         github_exporter_token=github_exporter_token,
         new_relic_license_key=new_relic_license_key,
         setup_env=host.data.setup_env,
+        is_arm=host.get_fact(DebArch) == "arm64",
     )
 
     nri_prometheus_config = files.put(
@@ -61,7 +62,7 @@ def install_monitoring():
         server.shell(
             name="Start the monitoring service",
             commands=[
-                "docker compose -f /opt/monitoring/docker-compose.yml up -d --force-recreate",
+                "docker compose -f /opt/monitoring/docker-compose.yml up -d --force-recreate --remove-orphans",
             ],
             _sudo=True,
         )
@@ -113,11 +114,67 @@ def install_monitoring():
         _sudo=True,
     )
 
+    files.put(
+        name="Copy New Relic logging config",
+        src="provisioner/deploys/monitoring/files/logging.yml",
+        dest="/etc/newrelic-infra/logging.d/logging.yml",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
+    files.put(
+        name="Copy New Relic docker fluentbit logging config",
+        src="provisioner/deploys/monitoring/files/docker-logs-fluentbit.conf",
+        dest="/etc/newrelic-infra/logging.d/docker-logs-fluentbit.conf",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
+    files.put(
+        name="Copy New Relic docker fluentbit parser",
+        src="provisioner/deploys/monitoring/files/docker-parser-fluentbit.conf",
+        dest="/etc/newrelic-infra/logging.d/docker-parser-fluentbit.conf",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
     systemd.service(
         name="Enable the New Relic service",
         service="newrelic-infra.service",
         running=True,
         restarted=True,
         enabled=True,
+        _sudo=True,
+    )
+
+    apt.packages(
+        name="Install cron",
+        packages=["cron"],
+        update=True,
+        cache_time=24 * 60 * 60,
+        _sudo=True,
+    )
+
+    files.put(
+        name="Copy reboot script",
+        src="provisioner/deploys/monitoring/files/reboot.sh",
+        dest="/opt/monitoring/reboot.sh",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0744",
+    )
+
+    server.crontab(
+        name="Reboot at 01:00 when required",
+        command="/opt/monitoring/reboot.sh",
+        minute="0",
+        hour="1",
         _sudo=True,
     )

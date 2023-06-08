@@ -15,12 +15,14 @@ services:
       - GITHUB_EXPORTER_COLLECTOR_RUNNERS=false
       - GITHUB_EXPORTER_COLLECTOR_BILLING=false
       - GITHUB_EXPORTER_COLLECTOR_ADMIN=false
-      - SETUP_ENV={{ setup_env }}
     deploy:
       resources:
         limits:
           cpus: '0.5' # Maximum of 0.5 CPU cores
           memory: '100M' # Maximum of 512 megabytes of memory
+    labels:
+      containerName: "github_exporter"
+      env: "{{ setup_env }}"
 
   nri-prometheus:
     container_name: nri-prometheus
@@ -36,6 +38,9 @@ services:
         limits:
           cpus: '0.5' # Maximum of 0.5 CPU cores
           memory: '100M' # Maximum of 512 megabytes of memory
+    labels:
+      containerName: "nri-prometheus"
+      env: "{{ setup_env }}"
 
   otel-collector:
     container_name: otel-collector
@@ -55,3 +60,21 @@ services:
         limits:
           cpus: '0.5' # Maximum of 0.5 CPU cores
           memory: '100M' # Maximum of 512 megabytes of memory
+    labels:
+      containerName: "otel-collector"
+      env: "{{ setup_env }}"
+
+{% if is_arm %}
+  arm_exporter:
+    container_name: arm_exporter
+    image: carlosedp/arm_exporter:latest@sha256:c2510142e3824686cba8af75826737a8158b25648e29867e262d26f553de5211
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5' # Maximum of 0.5 CPU cores
+          memory: '100M' # Maximum of 512 megabytes of memory
+    labels:
+      containerName: "arm_exporter"
+      env: "{{ setup_env }}"
+{% endif %}

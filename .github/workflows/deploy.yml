@@ -18,5 +18,6 @@ jobs:
       - uses: ./.github/actions/setup-bazel
         with:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
-      - name: Run client
-        run: bazel run  --config buildbuddy --config buildbuddy_rbe //tools/buildbuddy:client -- "Deploy Provisioner"
+      - run: bazel run  --config buildbuddy --config buildbuddy_rbe //provisioner:deploy
+        env:
+          ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
