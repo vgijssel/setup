@@ -173,6 +173,7 @@ def install_monitoring():
 
     server.crontab(
         name="Reboot at 01:00 when required",
+        cron_name="reboot-required",
         command="/opt/monitoring/reboot.sh",
         minute="0",
         hour="1",
