@@ -67,8 +67,8 @@ def test_user_added_to_docker_group(host):
     assert "docker" in host.user("ubuntu").groups
 
 
-def test_docker_system_prune_in_cron(host):
-    "0 0 * * * docker system prune -a -f --volumes" in host.check_output("crontab -l")
+# def test_docker_system_prune_in_cron(host):
+#     "0 0 * * * docker system prune -a -f --volumes" in host.check_output("crontab -l")
 
 
 def test_newrelic_infra_installed(host):
@@ -139,8 +139,8 @@ def test_otel_collector_health(host):
     )
 
 
-def test_required_reboot_in_cron(host):
-    "0 1 * * * /opt/monitoring/reboot.sh" in host.check_output("crontab -l")
+# def test_required_reboot_in_cron(host):
+#     "0 1 * * * /opt/monitoring/reboot.sh" in host.check_output("crontab -l")
 
 
 def test_microk8s_installed(host):

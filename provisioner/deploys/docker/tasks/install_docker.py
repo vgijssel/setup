@@ -98,11 +98,12 @@ def install_docker():
         _sudo=True,
     )
 
-    server.crontab(
-        name="Prune Docker every day at 00:00",
-        cron_name="prune-docker",
-        command="docker system prune -a -f --volumes",
-        minute="0",
-        hour="0",
-        _sudo=True,
-    )
+    # server.crontab(
+    #     name="Prune Docker every day at 00:00",
+    #     cron_name="prune-docker",
+    #     command="docker system prune -a -f --volumes",
+    #     minute="0",
+    #     hour="0",
+    #     day="'*'",
+    #     _sudo=True,
+    # )
