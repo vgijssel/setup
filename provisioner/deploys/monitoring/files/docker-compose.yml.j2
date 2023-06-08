@@ -40,6 +40,7 @@ services:
   otel-collector:
     container_name: otel-collector
     image: otel/opentelemetry-collector-contrib:0.79.0@sha256:a1930dca21b6baa78b1f361f5ced863bb86e30299cc9c3e6be78487af7b720a5
+    restart: always
     command: [ --config=/etc/otel-collector-config.yaml ]
     volumes:
       - "/opt/monitoring/otel-collector-config.yaml:/etc/otel-collector-config.yaml"
