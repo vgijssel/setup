@@ -30,6 +30,7 @@ def install_monitoring():
         group="root",
         github_exporter_token=github_exporter_token,
         new_relic_license_key=new_relic_license_key,
+        setup_env=host.data.setup_env,
     )
 
     nri_prometheus_config = files.put(
@@ -42,7 +43,21 @@ def install_monitoring():
         mode="0644",
     )
 
-    if docker_compose.changed or nri_prometheus_config.changed:
+    otel_collector_config = files.put(
+        name="Copy Oopen Telemetry config",
+        src="provisioner/deploys/monitoring/files/otel-collector-config.yaml",
+        dest="/opt/monitoring/otel-collector-config.yaml",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
+    if (
+        docker_compose.changed
+        or nri_prometheus_config.changed
+        or otel_collector_config.changed
+    ):
         server.shell(
             name="Start the monitoring service",
             commands=[

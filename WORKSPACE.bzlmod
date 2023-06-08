@@ -227,3 +227,21 @@ http_archive(
     sha256 = "2baf610b476727f24c62cc843419f55b157e1a05521a698c1c8b4ed676a766aa",
     url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_amd64_v2.18.0.zip",
 )
+
+# ------------------------------------ regctl ------------------------------------ #
+
+http_file(
+    name = "regctl_arm64",
+    downloaded_file_path = "regctl",
+    executable = True,
+    sha256 = "3973aeff35a7cd28a0a094e3d453fbc7aa230df9cdcffad9d1c44c85ec3192c9",
+    url = "https://github.com/regclient/regclient/releases/download/v0.4.8/regctl-linux-arm64",
+)
+
+http_file(
+    name = "regctl_amd64",
+    downloaded_file_path = "regctl",
+    executable = True,
+    sha256 = "89031da0802724505a73571c7bfa55bc57872147245d0d18bbc6123d7d4245b5",
+    url = "https://github.com/regclient/regclient/releases/download/v0.4.8/regctl-linux-amd64",
+)
