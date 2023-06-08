@@ -1,0 +1,10 @@
+logs:
+  - name: docker-logs
+    file: /var/lib/docker/containers/*/*.log # Path to multiple folders and files
+    logtype: docker
+
+  - name: system-logs
+    file: /var/log/*/*.log
+
+  - name: systemd-teleport
+    systemd: teleport

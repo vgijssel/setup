@@ -114,6 +114,16 @@ def install_monitoring():
         _sudo=True,
     )
 
+    files.put(
+        name="Copy New Relic logging config",
+        src="provisioner/deploys/monitoring/files/logging.yml",
+        dest="/etc/newrelic-infra/logging.d/logging.yml",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
     systemd.service(
         name="Enable the New Relic service",
         service="newrelic-infra.service",

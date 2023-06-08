@@ -28,6 +28,7 @@ pyinfra_run(
     data = [
         "deploys/microk8s/files/cmdline.txt",
         "deploys/monitoring/files/docker-compose.yml.j2",
+        "deploys/monitoring/files/logging.yml",
         "deploys/monitoring/files/newrelic-infra.yml.j2",
         "deploys/monitoring/files/nri-prometheus-config.yaml",
         "deploys/monitoring/files/otel-collector-config.yaml",
