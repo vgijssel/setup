@@ -108,6 +108,32 @@ def test_nri_prometheus_config(host):
         assert config.contains("http://github_exporter:9504/metrics")
 
 
+def test_otel_collector_service(host):
+    otel_collector = host.docker("otel-collector")
+    assert otel_collector.is_running
+
+
+def test_otel_collector_config(host):
+    with host.sudo():
+        config = host.file("/opt/monitoring/otel-collector-config.yaml")
+        assert config.exists
+        assert config.contains("https://otlp.eu01.nr-data.net:443")
+
+
+def test_otel_collector_port_is_open(host):
+    assert host.socket("tcp://127.0.0.1:4317").is_listening
+    assert not host.socket("tcp://0.0.0.0:4317").is_listening
+
+    assert host.socket("tcp://127.0.0.1:13133").is_listening
+    assert not host.socket("tcp://0.0.0.0:13133").is_listening
+
+
+def test_otel_collector_health(host):
+    assert '"status":"Server available"' in host.check_output(
+        "curl --fail -L http://localhost:13133"
+    )
+
+
 def test_microk8s_installed(host):
     assert "microk8s" in host.check_output("snap list")
 
