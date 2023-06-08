@@ -92,4 +92,5 @@ def install_docker():
         command="docker system prune -a -f --volumes",
         minute="0",
         hour="0",
+        _sudo=True,
     )

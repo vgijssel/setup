@@ -122,3 +122,29 @@ def install_monitoring():
         enabled=True,
         _sudo=True,
     )
+
+    apt.packages(
+        name="Install cron",
+        packages=["cron"],
+        update=True,
+        cache_time=24 * 60 * 60,
+        _sudo=True,
+    )
+
+    files.put(
+        name="Copy reboot script",
+        src="provisioner/deploys/monitoring/files/reboot.sh",
+        dest="/opt/monitoring/reboot.sh",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0744",
+    )
+
+    server.crontab(
+        name="Reboot at 01:00 when required",
+        command="/opt/monitoring/reboot.sh",
+        minute="0",
+        hour="1",
+        _sudo=True,
+    )

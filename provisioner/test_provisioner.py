@@ -139,6 +139,10 @@ def test_otel_collector_health(host):
     )
 
 
+def test_required_reboot_in_cron(host):
+    "0 1 * * * /opt/monitoring/reboot.sh" in host.check_output("crontab -l")
+
+
 def test_microk8s_installed(host):
     assert "microk8s" in host.check_output("snap list")
 
