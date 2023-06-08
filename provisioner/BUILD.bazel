@@ -26,6 +26,7 @@ pyinfra_run(
         "--data install_teleport=True",
     ],
     data = [
+        "deploys/docker/files/daemon.json",
         "deploys/microk8s/files/cmdline.txt",
         "deploys/monitoring/files/docker-compose.yml.j2",
         "deploys/monitoring/files/logging.yml",

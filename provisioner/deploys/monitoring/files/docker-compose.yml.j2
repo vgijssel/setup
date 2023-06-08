@@ -21,6 +21,8 @@ services:
         limits:
           cpus: '0.5' # Maximum of 0.5 CPU cores
           memory: '100M' # Maximum of 512 megabytes of memory
+    labels:
+      containerName: "github_exporter"
 
   nri-prometheus:
     container_name: nri-prometheus
@@ -36,6 +38,8 @@ services:
         limits:
           cpus: '0.5' # Maximum of 0.5 CPU cores
           memory: '100M' # Maximum of 512 megabytes of memory
+    labels:
+      containerName: "nri-prometheus"
 
   otel-collector:
     container_name: otel-collector
@@ -55,6 +59,8 @@ services:
         limits:
           cpus: '0.5' # Maximum of 0.5 CPU cores
           memory: '100M' # Maximum of 512 megabytes of memory
+    labels:
+      containerName: "otel-collector"
 
 {% if is_arm %}
   arm_exporter:
@@ -68,4 +74,6 @@ services:
         limits:
           cpus: '0.5' # Maximum of 0.5 CPU cores
           memory: '100M' # Maximum of 512 megabytes of memory
+    labels:
+      containerName: "arm_exporter"
 {% endif %}
