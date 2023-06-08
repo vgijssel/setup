@@ -2,6 +2,7 @@ name: monitoring
 version: '3.8'
 services:
   # https://promhippie.github.io/github_exporter/#getting-started
+
   github_exporter:
     container_name: github_exporter
     image: promhippie/github-exporter:latest@sha256:d2c4dc75d44666ebf1e3433f497fe18e2be6f4bfeeca770790944d745dc1c8ed
@@ -15,6 +16,11 @@ services:
       - GITHUB_EXPORTER_COLLECTOR_RUNNERS=false
       - GITHUB_EXPORTER_COLLECTOR_BILLING=false
       - GITHUB_EXPORTER_COLLECTOR_ADMIN=false
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5' # Maximum of 0.5 CPU cores
+          memory: '100M' # Maximum of 512 megabytes of memory
 
   nri-prometheus:
     container_name: nri-prometheus
@@ -24,3 +30,25 @@ services:
       - LICENSE_KEY={{ new_relic_license_key }}
     volumes:
       - "/opt/monitoring/nri-prometheus-config.yaml:/config.yaml"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5' # Maximum of 0.5 CPU cores
+          memory: '100M' # Maximum of 512 megabytes of memory
+
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector-contrib:0.79.0@sha256:a1930dca21b6baa78b1f361f5ced863bb86e30299cc9c3e6be78487af7b720a5
+    command: [ --config=/etc/otel-collector-config.yaml ]
+    volumes:
+      - "/opt/monitoring/otel-collector-config.yaml:/etc/otel-collector-config.yaml"
+    ports:
+      - "127.0.0.1:13133:13133" # health_check extension
+      - "127.0.0.1:4317:4317" # OTLP gRPC receiver
+    environment:
+      - LICENSE_KEY={{ new_relic_license_key }}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5' # Maximum of 0.5 CPU cores
+          memory: '100M' # Maximum of 512 megabytes of memory
