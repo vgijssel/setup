@@ -2,6 +2,9 @@ name: Schedule
 on:
   schedule:
     - cron: "*/10 * * * *"
+  pull_request:
+    branches:
+      - "*"
 
 jobs:
   provisioner-validate:
@@ -14,5 +17,4 @@ jobs:
       - uses: ./.github/actions/setup-bazel
         with:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
-      - name: Run client
-        run: bazel run --config buildbuddy --config buildbuddy_rbe //tools/buildbuddy:client -- "Validate Provisioner"
+      - run: bazel run --config buildbuddy --config buildbuddy_rbe //provisioner:deploy_validate
