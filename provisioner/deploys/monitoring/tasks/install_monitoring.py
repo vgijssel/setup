@@ -31,6 +31,7 @@ def install_monitoring():
         github_exporter_token=github_exporter_token,
         new_relic_license_key=new_relic_license_key,
         setup_env=host.data.setup_env,
+        is_arm=host.get_fact(DebArch) == "arm64",
     )
 
     nri_prometheus_config = files.put(
@@ -61,7 +62,7 @@ def install_monitoring():
         server.shell(
             name="Start the monitoring service",
             commands=[
-                "docker compose -f /opt/monitoring/docker-compose.yml up -d --force-recreate",
+                "docker compose -f /opt/monitoring/docker-compose.yml up -d --force-recreate --remove-orphans",
             ],
             _sudo=True,
         )

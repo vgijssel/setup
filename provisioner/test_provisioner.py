@@ -135,11 +135,6 @@ def test_otel_collector_health(host):
     )
 
 
-def test_arm_exporter_service(host):
-    arm_exporter = host.docker("arm_exporter")
-    assert arm_exporter.is_running
-
-
 def test_microk8s_installed(host):
     assert "microk8s" in host.check_output("snap list")
 
