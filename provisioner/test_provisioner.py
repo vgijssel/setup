@@ -106,6 +106,7 @@ def test_nri_prometheus_config(host):
         config = host.file("/opt/monitoring/nri-prometheus-config.yaml")
         assert config.exists
         assert config.contains("http://github_exporter:9504/metrics")
+        assert config.contains("http://arm_exporter:9243/metrics")
 
 
 def test_otel_collector_service(host):
@@ -132,6 +133,11 @@ def test_otel_collector_health(host):
     assert '"status":"Server available"' in host.check_output(
         "curl --fail -L http://localhost:13133"
     )
+
+
+def test_arm_exporter_service(host):
+    arm_exporter = host.docker("arm_exporter")
+    assert arm_exporter.is_running
 
 
 def test_microk8s_installed(host):
