@@ -30,6 +30,7 @@ def install_monitoring():
         group="root",
         github_exporter_token=github_exporter_token,
         new_relic_license_key=new_relic_license_key,
+        setup_env=host.data.setup_env,
     )
 
     nri_prometheus_config = files.put(

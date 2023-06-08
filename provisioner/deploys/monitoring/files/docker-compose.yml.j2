@@ -15,6 +15,7 @@ services:
       - GITHUB_EXPORTER_COLLECTOR_RUNNERS=false
       - GITHUB_EXPORTER_COLLECTOR_BILLING=false
       - GITHUB_EXPORTER_COLLECTOR_ADMIN=false
+      - SETUP_ENV={{ setup_env }}
     deploy:
       resources:
         limits:
@@ -27,6 +28,7 @@ services:
     restart: always
     environment:
       - LICENSE_KEY={{ new_relic_license_key }}
+      - SETUP_ENV={{ setup_env }}
     volumes:
       - "/opt/monitoring/nri-prometheus-config.yaml:/config.yaml"
     deploy:
@@ -46,6 +48,7 @@ services:
       - "127.0.0.1:4317:4317" # OTLP gRPC receiver
     environment:
       - LICENSE_KEY={{ new_relic_license_key }}
+      - SETUP_ENV={{ setup_env }}
     deploy:
       resources:
         limits:

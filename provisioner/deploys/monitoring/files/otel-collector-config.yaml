@@ -6,12 +6,26 @@ receivers:
 
 processors:
   batch:
+    timeout: 10s
+
+  transform:
+    error_mode: ignore
+    trace_statements:
+      - context: resource
+        statements:
+          - replace_match(attributes["service.name"], "teleport", "teleport-${SETUP_ENV}")
+          - set(attributes["env"], "${SETUP_ENV}")
 
 exporters:
   otlp:
     endpoint: https://otlp.eu01.nr-data.net:443
     headers:
       api-key: ${LICENSE_KEY}
+
+  # logging:
+  #   verbosity: detailed
+  #   sampling_initial: 5
+  #   sampling_thereafter: 200
 
 extensions:
   health_check:
@@ -22,13 +36,13 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp]
+      processors: [transform, batch]
+      exporters: [logging, otlp]
     metrics:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp]
+      processors: [transform, batch]
+      exporters: [logging, otlp]
     logs:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp]
+      processors: [transform, batch]
+      exporters: [logging, otlp]
