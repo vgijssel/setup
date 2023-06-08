@@ -78,3 +78,18 @@ def install_docker():
         enabled=True,
         _sudo=True,
     )
+
+    apt.packages(
+        name="Install cron",
+        packages=["cron"],
+        update=True,
+        cache_time=24 * 60 * 60,
+        _sudo=True,
+    )
+
+    server.crontab(
+        name="Prune Docker every day at 00:00",
+        command="docker system prune -a -f --volumes",
+        minute="0",
+        hour="0",
+    )

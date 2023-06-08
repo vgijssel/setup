@@ -67,6 +67,10 @@ def test_user_added_to_docker_group(host):
     assert "docker" in host.user("ubuntu").groups
 
 
+def test_docker_system_prune_in_cron(host):
+    "0 0 * * * docker system prune -a -f --volumes" in host.check_output("crontab -l")
+
+
 def test_newrelic_infra_installed(host):
     newrelic_infra = host.package("newrelic-infra")
     assert newrelic_infra.is_installed
