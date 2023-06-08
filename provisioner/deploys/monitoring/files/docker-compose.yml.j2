@@ -55,3 +55,15 @@ services:
         limits:
           cpus: '0.5' # Maximum of 0.5 CPU cores
           memory: '100M' # Maximum of 512 megabytes of memory
+
+  arm_exporter:
+    container_name: arm_exporter
+    image: carlosedp/arm_exporter:latest@sha256:c2510142e3824686cba8af75826737a8158b25648e29867e262d26f553de5211
+    restart: always
+    environment:
+      - SETUP_ENV={{ setup_env }}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5' # Maximum of 0.5 CPU cores
+          memory: '100M' # Maximum of 512 megabytes of memory
