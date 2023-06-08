@@ -29,6 +29,8 @@ pyinfra_run(
         "deploys/docker/files/daemon.json",
         "deploys/microk8s/files/cmdline.txt",
         "deploys/monitoring/files/docker-compose.yml.j2",
+        "deploys/monitoring/files/docker-logs-fluentbit.conf",
+        "deploys/monitoring/files/docker-parser-fluentbit.conf",
         "deploys/monitoring/files/logging.yml",
         "deploys/monitoring/files/newrelic-infra.yml.j2",
         "deploys/monitoring/files/nri-prometheus-config.yaml",

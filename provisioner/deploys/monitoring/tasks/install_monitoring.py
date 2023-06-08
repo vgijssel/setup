@@ -124,6 +124,26 @@ def install_monitoring():
         mode="0644",
     )
 
+    files.put(
+        name="Copy New Relic docker fluentbit logging config",
+        src="provisioner/deploys/monitoring/files/docker-logs-fluentbit.conf",
+        dest="/etc/newrelic-infra/logging.d/docker-logs-fluentbit.conf",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
+    files.put(
+        name="Copy New Relic docker fluentbit parser",
+        src="provisioner/deploys/monitoring/files/docker-parser-fluentbit.conf",
+        dest="/etc/newrelic-infra/logging.d/docker-parser-fluentbit.conf",
+        _sudo=True,
+        user="root",
+        group="root",
+        mode="0644",
+    )
+
     systemd.service(
         name="Enable the New Relic service",
         service="newrelic-infra.service",
