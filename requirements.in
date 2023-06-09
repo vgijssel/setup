@@ -7,7 +7,7 @@ PyYAML==6.0;
 pulumi==3.70.0;
 pulumi-command==0.7.2;
 pulumi-kubernetes==3.29.0;
-pytest-homeassistant-custom-component==0.13.36;
+pytest-homeassistant-custom-component==0.13.37;
 tzdata==2023.3;
 pyinfra==2.7
 sqlalchemy==2.0.15;
