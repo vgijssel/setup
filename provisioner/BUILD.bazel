@@ -134,7 +134,10 @@ py_binary(
 task(
     name = "teleport_ssh",
     cmds = [
-        cmd.executable(":teleport_ssh_binary"),
+        cmd.shell(
+            cmd.executable(":teleport_ssh_binary"),
+            "$CLI_ARGS",
+        ),
     ],
     env = {
         "TELEPORT_TSH_BINARY": cmd.executable("//tools/teleport:tsh"),

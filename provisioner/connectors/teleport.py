@@ -61,7 +61,12 @@ class TeleportClient:
         self.teleport_user = host.data.get(DATA_KEYS.user)
         self.teleport_identity = host.data.get(DATA_KEYS.identity)
 
+        self.ssh_config = None
+
     def ssh(self, command):
+        if not self.ssh_config:
+            self._generate_ssh_config()
+
         args = [
             *self._get_connection_args(),
             "ssh",
@@ -69,6 +74,12 @@ class TeleportClient:
             command,
         ]
         return StringCommand(*args)
+
+    def cleanup(self):
+        pass
+
+    def _generate_ssh_config(self):
+        pass
 
     def _get_connection_args(self):
         args = [self.tsh_binary]
@@ -116,7 +127,7 @@ def connect(state: "State", host: "Host"):
 
 
 def disconnect(state, host):
-    return
+    host.connector_data["teleport_client"].cleanup()
 
 
 def run_shell_command(
@@ -132,6 +143,7 @@ def run_shell_command(
     return_combined_output=False,
     **command_kwargs,
 ):
+    # TODO: why does this setup work for the docker conntector but not for this one?
     teleport_client = host.connector_data["teleport_client"]
     command = make_unix_command_for_host(state, host, command, **command_kwargs)
     command = QuoteString(command)
