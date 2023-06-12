@@ -1176,7 +1176,9 @@ paho-mqtt==1.6.1 \
 paramiko==2.12.0 \
     --hash=sha256:376885c05c5d6aa6e1f4608aac2a6b5b0548b1add40274477324605903d9cd49 \
     --hash=sha256:b2df1a6325f6996ef55a8789d0462f5b502ea83b3c990cbb5bbe57345c6812c4
-    # via pyinfra
+    # via
+    #   -r requirements.in
+    #   pyinfra
 parver==0.4 \
     --hash=sha256:c66d3347a4858643875ef959d8ba7a269d5964bfb690b0dd998b8f39da930be2 \
     --hash=sha256:d4a3dbb93c53373ee9a0ba055e4858c44169b204b912e49d003ead95db9a9bca

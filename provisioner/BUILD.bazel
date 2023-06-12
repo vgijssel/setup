@@ -120,6 +120,27 @@ task(
     ],
 )
 
+py_binary(
+    name = "teleport_ssh_binary",
+    srcs = [
+        "teleport_ssh.py",
+    ],
+    main = "teleport_ssh.py",
+    deps = [
+        requirement("paramiko"),
+    ],
+)
+
+task(
+    name = "teleport_ssh",
+    cmds = [
+        cmd.executable(":teleport_ssh_binary"),
+    ],
+    env = {
+        "TELEPORT_TSH_BINARY": cmd.executable("//tools/teleport:tsh"),
+    },
+)
+
 task(
     name = "deploy",
     cmds = [
@@ -173,10 +194,6 @@ task_test(
     name = "deploy_test",
     size = "large",
     cmds = [
-        cmd.shell(
-            cmd.executable(":deploy_mark"),
-            "test-commit-sha",
-        ),
         cmd.executable(":deploy_provision"),
         cmd.shell(
             cmd.executable(":deploy_validate"),

@@ -14,3 +14,4 @@ sqlalchemy==2.0.15;
 semver==2.13.0;
 bazel-runfiles==0.22.0;
 requests==2.31.0;
+paramiko==2.12.0;
