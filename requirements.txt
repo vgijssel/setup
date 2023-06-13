@@ -138,8 +138,8 @@ backoff==2.2.1 \
     # via
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
-bazel-runfiles==0.22.0 \
-    --hash=sha256:2b38b3113f91050c145dc017d535c6257a87959a6f2adc26fb6c6f86c806ccd9
+bazel-runfiles==0.23.0 \
+    --hash=sha256:d568892048beda453aad391e70fc6ec29024eacb6fd03f1616b8e9c734899788
     # via -r requirements.in
 bcrypt==4.0.1 \
     --hash=sha256:089098effa1bc35dc055366740a067a2fc76987e8ec75349eb9484061c54f535 \
