@@ -783,9 +783,9 @@ home-assistant-bluetooth==1.10.0 \
     --hash=sha256:a5fc5dc13088f92cf157ecba153972fded22e042d2507b2933850b5cfc8b82e0 \
     --hash=sha256:e810a2db9d3d542779c46a4202fb3f1de54692e2631257a00b8aa2634c7ebde0
     # via homeassistant
-homeassistant==2023.6.1 \
-    --hash=sha256:41d68c3c93583ff43db47da672886dd21344bbb87250132a5fa8b7809356d939 \
-    --hash=sha256:f05d8a895fe5ba34db696425d087c2c3343b1f1362a0700771f7e2ee52f6873b
+homeassistant==2023.6.2 \
+    --hash=sha256:58f8ea28292d08493bc8faf3f3f183a61a05b43e10de3d1c231531384c1cfe2d \
+    --hash=sha256:c432e063106bacdad69f7d3364537a64f5e14c02e688827c8cf7ab9eb01c6273
     # via pytest-homeassistant-custom-component
 httpcore==0.17.2 \
     --hash=sha256:125f8375ab60036db632f34f4b627a9ad085048eef7cb7d2616fea0f739f98af \
@@ -1369,9 +1369,9 @@ pytest-freezer==0.4.6 \
     --hash=sha256:8e88cd571d3ba10dd9e0cc09897eb01c32a37bef5ca4ff7c4ea8598c91aa6d96 \
     --hash=sha256:ca549c30a7e12bc7b242978b6fa0bb91e73cd1bd7d5b2bb658f0f9d7f1694cac
     # via pytest-homeassistant-custom-component
-pytest-homeassistant-custom-component==0.13.37 \
-    --hash=sha256:2687c9b7408fcbdc4857e4ead6e0f4fecd133ca88bce2b0a4aad579762fde622 \
-    --hash=sha256:f6a18acd4e8f202015dc8d837c5359a1f126e1789350acdeb6aa0a41a51f8f49
+pytest-homeassistant-custom-component==0.13.38 \
+    --hash=sha256:6420418077d22911a8c9bc62bc2d8850b1258fead5e609033b61dec099ef33f7 \
+    --hash=sha256:d47ccbaa05e912594f7c8ee465e3e9fb4bc5f0e35bb21457192c88bba73bbfac
     # via -r requirements.in
 pytest-opentelemetry==0.6.2 \
     --hash=sha256:b57dd4e4f08ee23a979b6cba612f6ae3b5dbb7e0da1ead1416c15df056aef360 \
