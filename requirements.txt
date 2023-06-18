@@ -1233,8 +1233,8 @@ psutil==5.9.5 \
     --hash=sha256:c607bb3b57dc779d55e1554846352b4e358c10fff3abf3514a7a6601beebdb30 \
     --hash=sha256:ea8518d152174e1249c4f2a1c89e3e6065941df2fa13a1ab45327716a23c2b48
     # via opentelemetry-resourcedetector-process
-pulumi==3.72.1 \
-    --hash=sha256:d348cbd61fafcc0fe4ebf8e2af1cf6f33a6ca6ea22560eca7d4508ad1bc05e52
+pulumi==3.72.2 \
+    --hash=sha256:3c0ef0a33d68ed615b7bfd7f61337bba5ecc78a1a136f5ae32ce8044b0839ba6
     # via
     #   -r requirements.in
     #   pulumi-command
