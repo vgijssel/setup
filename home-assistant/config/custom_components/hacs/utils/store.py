@@ -17,7 +17,9 @@ class HACSStore(Store):
         """Load the data from disk if version matches."""
         try:
             data = json_util.load_json(self.path)
-        except BaseException as exception:  # lgtm [py/catch-base-exception] pylint: disable=broad-except
+        except (
+            BaseException  # lgtm [py/catch-base-exception] pylint: disable=broad-except
+        ) as exception:
             _LOGGER.critical(
                 "Could not load '%s', restore it from a backup or delete the file: %s",
                 self.path,
@@ -36,9 +38,7 @@ def get_store_key(key):
 
 def _get_store_for_key(hass, key, encoder):
     """Create a Store object for the key."""
-    return HACSStore(
-        hass, VERSION_STORAGE, get_store_key(key), encoder=encoder, atomic_writes=True
-    )
+    return HACSStore(hass, VERSION_STORAGE, get_store_key(key), encoder=encoder, atomic_writes=True)
 
 
 def get_store_for_key(hass, key):

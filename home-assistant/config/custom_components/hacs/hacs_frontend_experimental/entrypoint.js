@@ -1,8 +1,10 @@
+
 try {
-  new Function("import('/hacsfiles/frontend/main-e6d3fb5e.js')")();
+  new Function("import('/hacsfiles/frontend/main-85e087f9.js')")();
 } catch (err) {
-  var el = document.createElement("script");
-  el.src = "/hacsfiles/frontend/main-e6d3fb5e.js";
-  el.type = "module";
+  var el = document.createElement('script');
+  el.src = '/hacsfiles/frontend/main-85e087f9.js';
+  el.type = 'module';
   document.body.appendChild(el);
 }
+  

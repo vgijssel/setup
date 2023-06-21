@@ -92,9 +92,7 @@ class HacsRepositoryEntity(HacsBaseEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return self.hacs.repositories.is_downloaded(
-            repository_id=str(self.repository.data.id)
-        )
+        return self.hacs.repositories.is_downloaded(repository_id=str(self.repository.data.id))
 
     @property
     def device_info(self) -> dict[str, any]:

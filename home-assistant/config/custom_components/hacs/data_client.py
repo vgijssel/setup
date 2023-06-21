@@ -42,9 +42,7 @@ class HacsDataClient:
         except asyncio.TimeoutError:
             raise HacsException("Timeout of 60s reached") from None
         except Exception as exception:
-            raise HacsException(
-                f"Error fetching data from HACS: {exception}"
-            ) from exception
+            raise HacsException(f"Error fetching data from HACS: {exception}") from exception
 
         self._etags[endpoint] = response.headers.get("etag")
 

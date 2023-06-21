@@ -64,9 +64,7 @@ async def async_get_config_entry_diagnostics(
                 "repository_manifest": repository.repository_manifest.to_dict(),
                 "ref": repository.ref,
                 "paths": {
-                    "localpath": repository.localpath.replace(
-                        hacs.core.config_path, "/config"
-                    ),
+                    "localpath": repository.localpath.replace(hacs.core.config_path, "/config"),
                     "local": repository.content.path.local.replace(
                         hacs.core.config_path, "/config"
                     ),

@@ -19,7 +19,6 @@ from astral import Elevation
 from astral.location import Location
 import voluptuous as vol
 
-from homeassistant.components.darksky.weather import MAP_CONDITION as DSW_MAP_CONDITION
 from homeassistant.components.sensor import (
     DOMAIN as SENSOR_DOMAIN,
     PLATFORM_SCHEMA,
@@ -103,8 +102,6 @@ MAPPING = (
 
 AW_PATTERN = re.compile(r"(?i).*accuweather.*")
 AW_MAPPING = ((3, ("mostlycloudy",)),)
-
-DARKSKY_PATTERN = re.compile(r"(?i).*dark\s*sky.*")
 
 ECOBEE_PATTERN = re.compile(r"(?i).*ecobee.*")
 ECOBEE_MAPPING = (
@@ -217,7 +214,6 @@ class IlluminanceSensor(SensorEntity):
     entity_description: IlluminanceSensorEntityDescription
     _entity_status = EntityStatus.NOT_SEEN
     _sk_mapping: Sequence[tuple[Num, Sequence[str]]] | None = None
-    _cd_mapping: Mapping[str, str | None] | None = None
     _sk: Num
     _cond_desc: str | None = None
     _warned = False
@@ -317,17 +313,17 @@ class IlluminanceSensor(SensorEntity):
         if self._entity_status == EntityStatus.BAD:
             return
 
-        raw_condition = entity_state and entity_state.state
-        if raw_condition in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-            raw_condition = None
+        condition = entity_state and entity_state.state
+        if condition in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            condition = None
 
         # If entity type, and potentially assocated mappings, have not been determined
         # yet, try to determine them.
         if self._entity_status <= EntityStatus.NO_ATTRIBUTION:
-            if raw_condition:
+            if condition:
                 assert entity_state
                 try:
-                    float(raw_condition)
+                    float(condition)
                     self._entity_status = EntityStatus.OK_CLOUD
                     _LOGGER.info(
                         "%s: Supported sensor %s: cloud coverage",
@@ -360,7 +356,7 @@ class IlluminanceSensor(SensorEntity):
                     self._entity_status = EntityStatus.BAD
                 return
 
-        if raw_condition:
+        if condition:
             self._warned = False
         else:
             if not self._warned:
@@ -370,7 +366,7 @@ class IlluminanceSensor(SensorEntity):
 
         if self._entity_status == EntityStatus.OK_CLOUD:
             try:
-                cloud = float(raw_condition)
+                cloud = float(condition)
                 if not 0 <= cloud <= 100:
                     raise ValueError
             except ValueError:
@@ -378,7 +374,7 @@ class IlluminanceSensor(SensorEntity):
                     "%s: Cloud coverage sensor state "
                     "is not a number between 0 and 100: %s",
                     self.name,
-                    raw_condition,
+                    condition,
                 )
             else:
                 self._cond_desc = f"({round(cloud)}%)"
@@ -388,18 +384,12 @@ class IlluminanceSensor(SensorEntity):
         assert self._entity_status == EntityStatus.OK_CONDITION
         assert self._sk_mapping
 
-        if self._cd_mapping:
-            condition = self._cd_mapping.get(raw_condition)
-            cond_desc = f"({raw_condition} -> {condition})"
-        else:
-            condition = raw_condition
-            cond_desc = f"({condition})"
         for sk, conditions in self._sk_mapping:
             if condition in conditions:
-                self._cond_desc = cond_desc
+                self._cond_desc = f"({condition})"
                 self._sk = sk
                 return
-        _LOGGER.error("%s: Unexpected current condition: %s", self.name, raw_condition)
+        _LOGGER.error("%s: Unexpected current condition: %s", self.name, condition)
 
     def _get_mappings(self, attribution: str | None, domain: str) -> None:
         """Get sk -> conditions mappings."""
@@ -411,8 +401,6 @@ class IlluminanceSensor(SensorEntity):
         for pat, mapping in ADDITIONAL_MAPPINGS:
             if pat.fullmatch(attribution):
                 self._sk_mapping += mapping
-        if DARKSKY_PATTERN.fullmatch(attribution) and domain == SENSOR_DOMAIN:
-            self._cd_mapping = DSW_MAP_CONDITION
         self._entity_status = EntityStatus.OK_CONDITION
 
     def _calculate_illuminance(self, now: datetime) -> Num:
