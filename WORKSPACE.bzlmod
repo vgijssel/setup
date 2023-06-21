@@ -190,3 +190,19 @@ http_file(
     sha256 = "89031da0802724505a73571c7bfa55bc57872147245d0d18bbc6123d7d4245b5",
     url = "https://github.com/regclient/regclient/releases/download/v0.4.8/regctl-linux-amd64",
 )
+
+# ------------------------------------ mutagen ------------------------------------ #
+
+http_archive(
+    name = "mutagen_arm64",
+    build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
+    sha256 = "e6d81a109f3eee07493b35439e7f3c3b8b3b2dfef6951f48f4aa260049bf9b44",
+    url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.1/mutagen_linux_arm64_v0.17.1.tar.gz",
+)
+
+http_archive(
+    name = "mutagen_amd64",
+    build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
+    sha256 = "bc11fd1ec3b37b5fcefe630dd9a5b12758eef707cef6b33de230277f3385f31d",
+    url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.1/mutagen_linux_amd64_v0.17.1.tar.gz",
+)
