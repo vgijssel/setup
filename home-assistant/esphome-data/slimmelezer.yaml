@@ -1,0 +1,12 @@
+substitutions:
+  name: slimmelezer
+packages:
+  zuidwijk.slimmelezer: github://zuidwijk/dsmr/slimmelezer.yaml@main
+esphome:
+  name: ${name}
+  name_add_mac_suffix: false
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
