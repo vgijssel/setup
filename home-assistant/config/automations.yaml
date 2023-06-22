@@ -631,10 +631,6 @@
                 - condition: template
                   value_template: "{{ trigger.to_state.context.parent_id == None  }}"
               then:
-                - service: input_boolean.turn_on
-                  data: {}
-                  target:
-                    entity_id: input_boolean.living_room_dining_table_manual
                 - service: timer.start
                   data:
                     duration: 00:01:00
@@ -646,8 +642,8 @@
               entity_id: binary_sensor.living_room_dining_table_human_presence
               state: "on"
             - condition: state
-              entity_id: input_boolean.living_room_dining_table_manual
-              state: "off"
+              entity_id: timer.living_room_dining_table_manual_timer
+              state: idle
           sequence:
             - service: light.turn_on
               data: {}
@@ -670,8 +666,8 @@
               entity_id: timer.living_room_dining_table_away_timer
               state: paused
             - condition: state
-              entity_id: input_boolean.living_room_dining_table_manual
-              state: "off"
+              entity_id: timer.living_room_dining_table_manual_timer
+              state: idle
           sequence:
             - service: timer.start
               data:
@@ -686,8 +682,8 @@
               entity_id: timer.living_room_dining_table_away_timer
               state: idle
             - condition: state
-              entity_id: input_boolean.living_room_dining_table_manual
-              state: "off"
+              state: idle
+              entity_id: timer.living_room_dining_table_manual_timer
           sequence:
             - service: light.turn_off
               data: {}
@@ -695,21 +691,9 @@
                 entity_id: light.living_room_dining_table_light
         - conditions:
             - condition: state
-              entity_id: input_boolean.living_room_dining_table_manual
-              state: "on"
-            - condition: or
-              conditions:
-                - condition: state
-                  entity_id: timer.living_room_dining_table_manual_timer
-                  state: idle
-                - condition: state
-                  entity_id: timer.living_room_dining_table_manual_timer
-                  state: paused
+              entity_id: timer.living_room_dining_table_manual_timer
+              state: paused
           sequence:
-            - service: input_boolean.turn_off
-              data: {}
-              target:
-                entity_id: input_boolean.living_room_dining_table_manual
             - service: timer.cancel
               data: {}
               target:
