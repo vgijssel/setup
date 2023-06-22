@@ -608,6 +608,18 @@
       entity_id:
         - light.living_room_dining_table_light
       id: lights
+      from:
+      to:
+    - platform: state
+      entity_id:
+        - timer.living_room_dining_table_manual_timer
+      from: active
+      to:
+    - platform: state
+      entity_id:
+        - input_boolean.living_room_dining_table_manual
+      from:
+      to:
   condition: []
   action:
     - choose:
@@ -623,6 +635,12 @@
                   data: {}
                   target:
                     entity_id: input_boolean.living_room_dining_table_manual
+                - service: timer.start
+                  data:
+                    duration: 00:01:00
+                  target:
+                    entity_id:
+                      - timer.living_room_dining_table_manual_timer
         - conditions:
             - condition: state
               entity_id: binary_sensor.living_room_dining_table_human_presence
@@ -675,5 +693,26 @@
               data: {}
               target:
                 entity_id: light.living_room_dining_table_light
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.living_room_dining_table_manual
+              state: "on"
+            - condition: or
+              conditions:
+                - condition: state
+                  entity_id: timer.living_room_dining_table_manual_timer
+                  state: idle
+                - condition: state
+                  entity_id: timer.living_room_dining_table_manual_timer
+                  state: paused
+          sequence:
+            - service: input_boolean.turn_off
+              data: {}
+              target:
+                entity_id: input_boolean.living_room_dining_table_manual
+            - service: timer.cancel
+              data: {}
+              target:
+                entity_id: timer.living_room_dining_table_manual_timer
   mode: queued
   max: 10
