@@ -118,25 +118,6 @@
         - binary_sensor.laundry_room_motion_occupancy
       presence_hint_entity_ids:
         - binary_sensor.laundry_room_shelly_input
-- id: "1655753063582"
-  alias: "Living Room - Presence: Manage"
-  description: ""
-  use_blueprint:
-    path: diy/presence.yaml
-    input:
-      presence_entity_id: variable.living_room_presence
-      presence_indicator_entity_ids:
-        - binary_sensor.living_room_dining_table_human_presence
-        - binary_sensor.living_room_tv_human_presence
-        - binary_sensor.garden_door_contact
-        - binary_sensor.kitchen_human_presence
-        - binary_sensor.living_room_garden_motion_occupancy
-        - binary_sensor.living_room_motion_occupancy
-      presence_hint_entity_ids:
-        - binary_sensor.living_room_door_contact
-        - binary_sensor.supply_closet_door_contact
-        - binary_sensor.living_room_shelly_input
-      presence_timeout: 60
 - id: "1655753137217"
   alias: "Office - Presence: Manage"
   description: ""
@@ -319,19 +300,6 @@
       presence_entity_id: variable.kitchen_presence
       presence_indicator_entity_ids:
         - binary_sensor.kitchen_human_presence
-- id: "1655928004919"
-  alias: "Living Room - Lights: Manage"
-  description: ""
-  use_blueprint:
-    path: diy/auto_lights.yaml
-    input:
-      presence_entity_id: variable.living_room_presence
-      illuminance_entity_id: sensor.living_room_motion_illuminance_lux
-      illuminance_threshold: 40
-      light_and_switch_entity_ids:
-        - light.living_room_lights
-      start_time: 00:00:00
-      end_time: "23:59:59"
 - id: "1657026314050"
   alias: "Bedroom - Sleeping: Manage"
   description: ""
@@ -514,7 +482,7 @@
       topic: home/location/bluetooth-00:00:00:00:00:00
       id: mqtt
     - platform: time_pattern
-      seconds: "/10"
+      seconds: /10
       id: time
   condition: []
   action:
@@ -622,3 +590,69 @@
               last_updated: "{{ now() }}"
       alias: Change location
   mode: single
+- id: "1687429985089"
+  alias: Living Room Dining Table - Lights
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.living_room_dining_table_human_presence
+      to:
+      from:
+    - platform: state
+      entity_id:
+        - timer.living_room_dining_table_away_timer
+      from: active
+      to: idle
+  condition: []
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.living_room_dining_table_human_presence
+              state: "on"
+          sequence:
+            - service: light.turn_on
+              data: {}
+              target:
+                entity_id: light.living_room_dining_table_light
+            - service: timer.start
+              data:
+                duration: 00:00:05
+              target:
+                entity_id: timer.living_room_dining_table_away_timer
+            - service: timer.pause
+              data: {}
+              target:
+                entity_id: timer.living_room_dining_table_away_timer
+        - conditions:
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: binary_sensor.living_room_dining_table_human_presence
+                  state: "off"
+                - condition: state
+                  entity_id: timer.living_room_dining_table_away_timer
+                  state: paused
+          sequence:
+            - service: timer.start
+              data:
+                duration: 00:00:05
+              target:
+                entity_id: timer.living_room_dining_table_away_timer
+        - conditions:
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: binary_sensor.living_room_dining_table_human_presence
+                  state: "off"
+                - condition: state
+                  entity_id: timer.living_room_dining_table_away_timer
+                  state: idle
+          sequence:
+            - service: light.turn_off
+              data: {}
+              target:
+                entity_id: light.living_room_dining_table_light
+  mode: queued
+  max: 10
