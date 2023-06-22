@@ -653,3 +653,24 @@
         hours: 1
         minutes: 0
         seconds: 0
+- id: "1687447110495"
+  alias: Living Room Sofa - Lights
+  description: ""
+  use_blueprint:
+    path: diy/better_auto_lights.yaml
+    input:
+      presence_entity_id: binary_sensor.living_room_sofa_human_presence
+      light_and_switch_entity_ids:
+        - light.living_room_corner_light
+      illuminance_entity_id: sensor.living_room_illuminance
+      illuminance_threshold: 300
+      away_timer_entity_id: timer.living_room_sofa_away_timer
+      away_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 30
+      manual_timer_entity_id: timer.living_room_sofa_manual_timer
+      manual_timer_duration:
+        hours: 1
+        minutes: 0
+        seconds: 0
