@@ -620,6 +620,9 @@
         - input_boolean.living_room_dining_table_manual
       from:
       to:
+    - platform: numeric_state
+      entity_id: sensor.living_room_illuminance
+      below: 260
   condition: []
   action:
     - choose:
@@ -645,10 +648,6 @@
               entity_id: timer.living_room_dining_table_manual_timer
               state: idle
           sequence:
-            - service: light.turn_on
-              data: {}
-              target:
-                entity_id: light.living_room_dining_table_light
             - service: timer.start
               data:
                 duration: 00:00:01
@@ -658,6 +657,15 @@
               data: {}
               target:
                 entity_id: timer.living_room_dining_table_away_timer
+            - if:
+                - condition: numeric_state
+                  entity_id: sensor.living_room_illuminance
+                  below: 260
+              then:
+                - service: light.turn_on
+                  data: {}
+                  target:
+                    entity_id: light.living_room_dining_table_light
         - conditions:
             - condition: state
               entity_id: binary_sensor.living_room_dining_table_human_presence
