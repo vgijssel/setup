@@ -591,7 +591,7 @@
       alias: Change location
   mode: single
 - id: "1687429985089"
-  alias: Living Room Dining Table - Lights
+  alias: living_room_dining_table_lights
   description: ""
   trigger:
     - platform: state
@@ -604,8 +604,27 @@
         - timer.living_room_dining_table_away_timer
       from: active
       to: idle
+    - platform: state
+      entity_id:
+        - light.living_room_dining_table_light
+      id: lights
   condition: []
   action:
+    - if:
+        - condition: trigger
+          id: lights
+      then:
+        - if:
+            - condition: template
+              value_template: '{{ trigger.to_state.context.id != states.automation["living_room_dining_table_lights"].context.parent_id  }}'
+          then:
+            - service: input_boolean.turn_on
+              data: {}
+              target:
+                entity_id: input_boolean.living_room_dining_table_manual
+        - stop: ""
+      alias: Enable manual mode when lights triggered externally
+      else: []
     - choose:
         - conditions:
             - condition: state
@@ -618,7 +637,7 @@
                 entity_id: light.living_room_dining_table_light
             - service: timer.start
               data:
-                duration: 00:00:05
+                duration: 00:00:01
               target:
                 entity_id: timer.living_room_dining_table_away_timer
             - service: timer.pause
@@ -637,7 +656,7 @@
           sequence:
             - service: timer.start
               data:
-                duration: 00:00:05
+                duration: 00:00:01
               target:
                 entity_id: timer.living_room_dining_table_away_timer
         - conditions:
