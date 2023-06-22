@@ -604,10 +604,31 @@
       away_timer_duration:
         hours: 0
         minutes: 0
-        seconds: 5
+        seconds: 30
       manual_timer_entity_id: timer.living_room_dining_table_manual_timer
       manual_timer_duration:
+        hours: 1
+        minutes: 0
+        seconds: 0
+      illuminance_threshold: 300
+- id: "1687446669605"
+  alias: Living Room Kitchen - Lights
+  description: ""
+  use_blueprint:
+    path: diy/better_auto_lights.yaml
+    input:
+      presence_entity_id: binary_sensor.living_room_kitchen_human_presence
+      light_and_switch_entity_ids:
+        - light.kitchen_lights
+      illuminance_entity_id: sensor.living_room_illuminance
+      illuminance_threshold: 300
+      away_timer_entity_id: timer.living_room_kitchen_away_timer
+      away_timer_duration:
         hours: 0
         minutes: 0
-        seconds: 5
-      illuminance_threshold: 300
+        seconds: 30
+      manual_timer_entity_id: timer.living_room_kitchen_manual_timer
+      manual_timer_duration:
+        hours: 2
+        minutes: 0
+        seconds: 0

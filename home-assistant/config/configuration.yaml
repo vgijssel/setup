@@ -20,6 +20,15 @@ timer:
   living_room_dining_table_away_timer:
   living_room_dining_table_manual_timer:
 
+  living_room_kitchen_away_timer:
+  living_room_kitchen_manual_timer:
+
+  living_room_reading_away_timer:
+  living_room_reading_manual_timer:
+
+  living_room_sofa_away_timer:
+  living_room_sofa_manual_timer:
+
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
