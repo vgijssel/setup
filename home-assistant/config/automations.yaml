@@ -708,3 +708,24 @@
                 entity_id: timer.living_room_dining_table_manual_timer
   mode: queued
   max: 10
+- id: "1687445709673"
+  alias: Test blueprint
+  description: ""
+  use_blueprint:
+    path: diy/better_auto_lights.yaml
+    input:
+      presence_entity_id: binary_sensor.living_room_dining_table_human_presence
+      light_and_switch_entity_ids:
+        - light.living_room_dining_table_light
+      illuminance_entity_id: sensor.living_room_illuminance
+      away_timer_entity_id: timer.living_room_dining_table_away_timer
+      away_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 5
+      manual_timer_entity_id: timer.living_room_dining_table_manual_timer
+      manual_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 3
+      illuminance_threshold: 300
