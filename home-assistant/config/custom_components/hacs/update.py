@@ -73,13 +73,9 @@ class HacsRepositoryUpdateEntity(HacsRepositoryEntity, UpdateEntity):
         ):
             return None
 
-        return (
-            f"https://brands.home-assistant.io/_/{self.repository.data.domain}/icon.png"
-        )
+        return f"https://brands.home-assistant.io/_/{self.repository.data.domain}/icon.png"
 
-    async def async_install(
-        self, version: str | None, backup: bool, **kwargs: Any
-    ) -> None:
+    async def async_install(self, version: str | None, backup: bool, **kwargs: Any) -> None:
         """Install an update."""
         if self.repository.display_version_or_commit == "version":
             self._update_in_progress(progress=10)
@@ -103,9 +99,7 @@ class HacsRepositoryUpdateEntity(HacsRepositoryEntity, UpdateEntity):
                 self.repository.data.releases = True
                 self.repository.releases.objects = releases
                 self.repository.data.published_tags = [x.tag_name for x in releases]
-                self.repository.data.last_version = next(
-                    iter(self.repository.data.published_tags)
-                )
+                self.repository.data.last_version = next(iter(self.repository.data.published_tags))
 
         release_notes = ""
         if len(self.repository.releases.objects) > 0:

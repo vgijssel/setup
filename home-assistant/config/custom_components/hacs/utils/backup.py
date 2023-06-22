@@ -74,7 +74,9 @@ class Backup:
                 self.local_path,
                 self.backup_path_full,
             )
-        except BaseException as exception:  # lgtm [py/catch-base-exception] pylint: disable=broad-except
+        except (
+            BaseException  # lgtm [py/catch-base-exception] pylint: disable=broad-except
+        ) as exception:
             self.hacs.log.warning("Could not create backup: %s", exception)
 
     def restore(self) -> None:
@@ -92,9 +94,7 @@ class Backup:
                 while os.path.exists(self.local_path):
                     sleep(0.1)
             shutil.copytree(self.backup_path_full, self.local_path)
-        self.hacs.log.debug(
-            "Restored %s, from backup %s", self.local_path, self.backup_path_full
-        )
+        self.hacs.log.debug("Restored %s, from backup %s", self.local_path, self.backup_path_full)
 
     def cleanup(self) -> None:
         """Cleanup backup files."""

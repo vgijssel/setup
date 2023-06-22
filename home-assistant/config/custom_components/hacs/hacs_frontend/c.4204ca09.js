@@ -1,57 +1,5 @@
-import {
-  a as e,
-  h as t,
-  e as o,
-  $ as r,
-  aM as i,
-  r as a,
-  n as s,
-  o as n,
-  aL as d,
-  d as c,
-} from "./main-ad130be7.js";
-import "./c.2d5ed670.js";
-import "./c.9b92f489.js";
-import "./c.82eccc94.js";
-import "./c.4feb0cb8.js";
-import "./c.0ca5587f.js";
-import "./c.5d3ce9d6.js";
-e(
-  [s("ha-icon-overflow-menu")],
-  function (e, t) {
-    return {
-      F: class extends t {
-        constructor(...t) {
-          super(...t), e(this);
-        }
-      },
-      d: [
-        {
-          kind: "field",
-          decorators: [o({ attribute: !1 })],
-          key: "hass",
-          value: void 0,
-        },
-        {
-          kind: "field",
-          decorators: [o({ type: Array })],
-          key: "items",
-          value: () => [],
-        },
-        {
-          kind: "field",
-          decorators: [o({ type: Boolean })],
-          key: "narrow",
-          value: () => !1,
-        },
-        {
-          kind: "method",
-          key: "render",
-          value: function () {
-            return r`
-      ${
-        this.narrow
-          ? r` <!-- Collapsed representation for small screens -->
+import{a as e,h as t,e as o,$ as r,aM as i,r as a,n as s,o as n,aL as d,d as c}from"./main-ad130be7.js";import"./c.2d5ed670.js";import"./c.9b92f489.js";import"./c.82eccc94.js";import"./c.4feb0cb8.js";import"./c.0ca5587f.js";import"./c.5d3ce9d6.js";e([s("ha-icon-overflow-menu")],(function(e,t){return{F:class extends t{constructor(...t){super(...t),e(this)}},d:[{kind:"field",decorators:[o({attribute:!1})],key:"hass",value:void 0},{kind:"field",decorators:[o({type:Array})],key:"items",value:()=>[]},{kind:"field",decorators:[o({type:Boolean})],key:"narrow",value:()=>!1},{kind:"method",key:"render",value:function(){return r`
+      ${this.narrow?r` <!-- Collapsed representation for small screens -->
             <ha-button-menu
               @click=${this._handleIconOverflowMenuOpened}
               @closed=${this._handleIconOverflowMenuClosed}
@@ -65,8 +13,7 @@ e(
                 slot="trigger"
               ></ha-icon-button>
 
-              ${this.items.map(
-                (e) => r`
+              ${this.items.map((e=>r`
                   <mwc-list-item
                     graphic="icon"
                     .disabled=${e.disabled}
@@ -77,263 +24,56 @@ e(
                     </div>
                     ${e.label}
                   </mwc-list-item>
-                `
-              )}
-            </ha-button-menu>`
-          : r`
+                `))}
+            </ha-button-menu>`:r`
             <!-- Icon representation for big screens -->
-            ${this.items.map((e) =>
-              e.narrowOnly
-                ? ""
-                : r`<div>
-                    ${
-                      e.tooltip
-                        ? r`<paper-tooltip animation-delay="0" position="left">
+            ${this.items.map((e=>e.narrowOnly?"":r`<div>
+                    ${e.tooltip?r`<paper-tooltip animation-delay="0" position="left">
                           ${e.tooltip}
-                        </paper-tooltip>`
-                        : ""
-                    }
+                        </paper-tooltip>`:""}
                     <ha-icon-button
                       @click=${e.action}
                       .label=${e.label}
                       .path=${e.path}
                       .disabled=${e.disabled}
                     ></ha-icon-button>
-                  </div> `
-            )}
-          `
-      }
-    `;
-          },
-        },
-        {
-          kind: "method",
-          key: "_handleIconOverflowMenuOpened",
-          value: function () {
-            const e = this.closest(".mdc-data-table__row");
-            e && (e.style.zIndex = "1");
-          },
-        },
-        {
-          kind: "method",
-          key: "_handleIconOverflowMenuClosed",
-          value: function () {
-            const e = this.closest(".mdc-data-table__row");
-            e && (e.style.zIndex = "");
-          },
-        },
-        {
-          kind: "get",
-          static: !0,
-          key: "styles",
-          value: function () {
-            return a`
+                  </div> `))}
+          `}
+    `}},{kind:"method",key:"_handleIconOverflowMenuOpened",value:function(){const e=this.closest(".mdc-data-table__row");e&&(e.style.zIndex="1")}},{kind:"method",key:"_handleIconOverflowMenuClosed",value:function(){const e=this.closest(".mdc-data-table__row");e&&(e.style.zIndex="")}},{kind:"get",static:!0,key:"styles",value:function(){return a`
       :host {
         display: flex;
         justify-content: flex-end;
       }
-    `;
-          },
-        },
-      ],
-    };
-  },
-  t
-);
-const l = (e) => (t) => ({
-  kind: "method",
-  placement: "prototype",
-  key: t.key,
-  descriptor: {
-    set(e) {
-      this[`__${String(t.key)}`] = e;
-    },
-    get() {
-      return this[`__${String(t.key)}`];
-    },
-    enumerable: !0,
-    configurable: !0,
-  },
-  finisher(o) {
-    const r = o.prototype.connectedCallback;
-    o.prototype.connectedCallback = function () {
-      if ((r.call(this), this[t.key])) {
-        const o = this.renderRoot.querySelector(e);
-        if (!o) return;
-        o.scrollTop = this[t.key];
-      }
-    };
-  },
-});
-e(
-  [s("hacs-repository-card")],
-  function (e, t) {
-    return {
-      F: class extends t {
-        constructor(...t) {
-          super(...t), e(this);
-        }
-      },
-      d: [
-        {
-          kind: "field",
-          decorators: [o({ attribute: !1 })],
-          key: "hass",
-          value: void 0,
-        },
-        {
-          kind: "field",
-          decorators: [o({ attribute: !1 })],
-          key: "hacs",
-          value: void 0,
-        },
-        {
-          kind: "field",
-          decorators: [o({ attribute: !1 })],
-          key: "repository",
-          value: void 0,
-        },
-        {
-          kind: "field",
-          decorators: [o({ type: Boolean })],
-          key: "narrow",
-          value: void 0,
-        },
-        {
-          kind: "get",
-          key: "_borderClass",
-          value: function () {
-            const e = {};
-            return (
-              this.hacs.addedToLovelace(this.hacs, this.repository) &&
-              "pending-restart" !== this.repository.status
-                ? this.repository.pending_upgrade
-                  ? (e["status-update"] = !0)
-                  : this.repository.new &&
-                    !this.repository.installed &&
-                    (e["status-new"] = !0)
-                : (e["status-issue"] = !0),
-              0 !== Object.keys(e).length && (e["status-border"] = !0),
-              e
-            );
-          },
-        },
-        {
-          kind: "get",
-          key: "_headerClass",
-          value: function () {
-            const e = {};
-            return (
-              this.hacs.addedToLovelace(this.hacs, this.repository) &&
-              "pending-restart" !== this.repository.status
-                ? this.repository.pending_upgrade
-                  ? (e["update-header"] = !0)
-                  : this.repository.new && !this.repository.installed
-                  ? (e["new-header"] = !0)
-                  : (e["default-header"] = !0)
-                : (e["issue-header"] = !0),
-              e
-            );
-          },
-        },
-        {
-          kind: "get",
-          key: "_headerTitle",
-          value: function () {
-            return this.hacs.addedToLovelace(this.hacs, this.repository)
-              ? "pending-restart" === this.repository.status
-                ? this.hacs.localize("repository_card.pending_restart")
-                : this.repository.pending_upgrade
-                ? this.hacs.localize("repository_card.pending_update")
-                : this.repository.new && !this.repository.installed
-                ? this.hacs.localize("repository_card.new_repository")
-                : ""
-              : this.hacs.localize("repository_card.not_loaded");
-          },
-        },
-        {
-          kind: "method",
-          key: "render",
-          value: function () {
-            return r`
+    `}}]}}),t);const l=e=>t=>({kind:"method",placement:"prototype",key:t.key,descriptor:{set(e){this[`__${String(t.key)}`]=e},get(){return this[`__${String(t.key)}`]},enumerable:!0,configurable:!0},finisher(o){const r=o.prototype.connectedCallback;o.prototype.connectedCallback=function(){if(r.call(this),this[t.key]){const o=this.renderRoot.querySelector(e);if(!o)return;o.scrollTop=this[t.key]}}}});e([s("hacs-repository-card")],(function(e,t){return{F:class extends t{constructor(...t){super(...t),e(this)}},d:[{kind:"field",decorators:[o({attribute:!1})],key:"hass",value:void 0},{kind:"field",decorators:[o({attribute:!1})],key:"hacs",value:void 0},{kind:"field",decorators:[o({attribute:!1})],key:"repository",value:void 0},{kind:"field",decorators:[o({type:Boolean})],key:"narrow",value:void 0},{kind:"get",key:"_borderClass",value:function(){const e={};return this.hacs.addedToLovelace(this.hacs,this.repository)&&"pending-restart"!==this.repository.status?this.repository.pending_upgrade?e["status-update"]=!0:this.repository.new&&!this.repository.installed&&(e["status-new"]=!0):e["status-issue"]=!0,0!==Object.keys(e).length&&(e["status-border"]=!0),e}},{kind:"get",key:"_headerClass",value:function(){const e={};return this.hacs.addedToLovelace(this.hacs,this.repository)&&"pending-restart"!==this.repository.status?this.repository.pending_upgrade?e["update-header"]=!0:this.repository.new&&!this.repository.installed?e["new-header"]=!0:e["default-header"]=!0:e["issue-header"]=!0,e}},{kind:"get",key:"_headerTitle",value:function(){return this.hacs.addedToLovelace(this.hacs,this.repository)?"pending-restart"===this.repository.status?this.hacs.localize("repository_card.pending_restart"):this.repository.pending_upgrade?this.hacs.localize("repository_card.pending_update"):this.repository.new&&!this.repository.installed?this.hacs.localize("repository_card.new_repository"):"":this.hacs.localize("repository_card.not_loaded")}},{kind:"method",key:"render",value:function(){return r`
       <a href="/hacs/repository/${this.repository.id}">
         <ha-card class=${n(this._borderClass)} ?narrow=${this.narrow} outlined>
           <div class="card-content">
             <div class="group-header">
-              <div class="status-header ${n(this._headerClass)}">${
-              this._headerTitle
-            }</div>
+              <div class="status-header ${n(this._headerClass)}">${this._headerTitle}</div>
 
               <div class="title pointer">
                 <h1>${this.repository.name}</h1>
-                ${
-                  "integration" !== this.repository.category
-                    ? r` <ha-chip>
-                      ${this.hacs.localize(
-                        `common.${this.repository.category}`
-                      )}
-                    </ha-chip>`
-                    : ""
-                }
+                ${"integration"!==this.repository.category?r` <ha-chip>
+                      ${this.hacs.localize(`common.${this.repository.category}`)}
+                    </ha-chip>`:""}
               </div>
             </div>
             <div class="description">${this.repository.description}</div>
           </div>
           <div class="card-actions">
-            ${
-              this.repository.new && !this.repository.installed
-                ? r`<div>
+            ${this.repository.new&&!this.repository.installed?r`<div>
                   <mwc-button class="status-new" @click=${this._setNotNew}>
                     ${this.hacs.localize("repository_card.dismiss")}
                   </mwc-button>
-                </div>`
-                : this.repository.pending_upgrade &&
-                  this.hacs.addedToLovelace(this.hacs, this.repository)
-                ? r`<div>
-                  <mwc-button class="update-header" @click=${
-                    this._updateRepository
-                  } raised>
+                </div>`:this.repository.pending_upgrade&&this.hacs.addedToLovelace(this.hacs,this.repository)?r`<div>
+                  <mwc-button class="update-header" @click=${this._updateRepository} raised>
                     ${this.hacs.localize("common.update")}
                   </mwc-button>
-                </div> `
-                : ""
-            }
+                </div> `:""}
           </div>
         </ha-card>
       </a>
-    `;
-          },
-        },
-        {
-          kind: "method",
-          key: "_updateRepository",
-          value: function (e) {
-            e.preventDefault(),
-              this.dispatchEvent(
-                new CustomEvent("hacs-dialog", {
-                  detail: { type: "update", repository: this.repository.id },
-                  bubbles: !0,
-                  composed: !0,
-                })
-              );
-          },
-        },
-        {
-          kind: "method",
-          key: "_setNotNew",
-          value: async function (e) {
-            e.preventDefault(),
-              await d(this.hass, { repository: String(this.repository.id) });
-          },
-        },
-        {
-          kind: "get",
-          static: !0,
-          key: "styles",
-          value: function () {
-            return [
-              c,
-              a`
+    `}},{kind:"method",key:"_updateRepository",value:function(e){e.preventDefault(),this.dispatchEvent(new CustomEvent("hacs-dialog",{detail:{type:"update",repository:this.repository.id},bubbles:!0,composed:!0}))}},{kind:"method",key:"_setNotNew",value:async function(e){e.preventDefault(),await d(this.hass,{repository:String(this.repository.id)})}},{kind:"get",static:!0,key:"styles",value:function(){return[c,a`
         ha-card {
           display: flex;
           flex-direction: column;
@@ -447,13 +187,4 @@ e(
           padding: 4px;
           margin-top: 3px;
         }
-      `,
-            ];
-          },
-        },
-      ],
-    };
-  },
-  t
-);
-export { l as r };
+      `]}}]}}),t);export{l as r};
