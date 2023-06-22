@@ -610,26 +610,26 @@
       id: lights
   condition: []
   action:
-    - if:
-        - condition: trigger
-          id: lights
-      then:
-        - if:
-            - condition: template
-              value_template: '{{ trigger.to_state.context.id != states.automation["living_room_dining_table_lights"].context.parent_id  }}'
-          then:
-            - service: input_boolean.turn_on
-              data: {}
-              target:
-                entity_id: input_boolean.living_room_dining_table_manual
-        - stop: ""
-      alias: Enable manual mode when lights triggered externally
-      else: []
     - choose:
+        - conditions:
+            - condition: trigger
+              id: lights
+          sequence:
+            - if:
+                - condition: template
+                  value_template: "{{ trigger.to_state.context.parent_id == None  }}"
+              then:
+                - service: input_boolean.turn_on
+                  data: {}
+                  target:
+                    entity_id: input_boolean.living_room_dining_table_manual
         - conditions:
             - condition: state
               entity_id: binary_sensor.living_room_dining_table_human_presence
               state: "on"
+            - condition: state
+              entity_id: input_boolean.living_room_dining_table_manual
+              state: "off"
           sequence:
             - service: light.turn_on
               data: {}
@@ -645,14 +645,15 @@
               target:
                 entity_id: timer.living_room_dining_table_away_timer
         - conditions:
-            - condition: and
-              conditions:
-                - condition: state
-                  entity_id: binary_sensor.living_room_dining_table_human_presence
-                  state: "off"
-                - condition: state
-                  entity_id: timer.living_room_dining_table_away_timer
-                  state: paused
+            - condition: state
+              entity_id: binary_sensor.living_room_dining_table_human_presence
+              state: "off"
+            - condition: state
+              entity_id: timer.living_room_dining_table_away_timer
+              state: paused
+            - condition: state
+              entity_id: input_boolean.living_room_dining_table_manual
+              state: "off"
           sequence:
             - service: timer.start
               data:
@@ -660,14 +661,15 @@
               target:
                 entity_id: timer.living_room_dining_table_away_timer
         - conditions:
-            - condition: and
-              conditions:
-                - condition: state
-                  entity_id: binary_sensor.living_room_dining_table_human_presence
-                  state: "off"
-                - condition: state
-                  entity_id: timer.living_room_dining_table_away_timer
-                  state: idle
+            - condition: state
+              entity_id: binary_sensor.living_room_dining_table_human_presence
+              state: "off"
+            - condition: state
+              entity_id: timer.living_room_dining_table_away_timer
+              state: idle
+            - condition: state
+              entity_id: input_boolean.living_room_dining_table_manual
+              state: "off"
           sequence:
             - service: light.turn_off
               data: {}
