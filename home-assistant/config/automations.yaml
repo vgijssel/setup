@@ -662,6 +662,7 @@
       presence_entity_id: binary_sensor.living_room_sofa_human_presence
       light_and_switch_entity_ids:
         - light.living_room_corner_light
+        - light.living_room_tv_light
       illuminance_entity_id: sensor.living_room_illuminance
       illuminance_threshold: 300
       away_timer_entity_id: timer.living_room_sofa_away_timer

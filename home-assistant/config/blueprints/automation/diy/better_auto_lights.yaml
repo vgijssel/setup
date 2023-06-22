@@ -100,13 +100,13 @@ trigger:
     from: active
     to:
 
+  - platform: homeassistant
+    event: start
+
 variables:
   light_and_switch_entity_ids: !input light_and_switch_entity_ids
   switch_entity_ids: "{{ expand(light_and_switch_entity_ids) | selectattr('domain', 'equalto', 'switch') | map(attribute='entity_id') | list }}"
   light_entity_ids: "{{ expand(light_and_switch_entity_ids) | selectattr('domain', 'equalto', 'light') | map(attribute='entity_id') | list }}"
-  # presence_entity_id: !input presence_entity_id
-  # any_light_on: "{{ expand(light_and_switch_entity_ids) | selectattr('state', 'equalto', 'on') | list | length > 0 }}"
-  # any_light_off: "{{ expand(light_and_switch_entity_ids) | selectattr('state', 'equalto', 'off') | list | length > 0 }}"
 
 action:
   - choose:
