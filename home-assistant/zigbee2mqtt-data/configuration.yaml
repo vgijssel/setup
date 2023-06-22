@@ -92,3 +92,5 @@ devices:
     friendly_name: office_door
   "0x54ef4410004d1c26":
     friendly_name: bathroom_human
+  "0x00124b00258f1af0":
+    friendly_name: hallway_router
