@@ -59,9 +59,7 @@ class HacsFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 async_call_later(self.hass, 1, _wait_for_activation)
                 return
 
-            response = await self.device.activation(
-                device_code=self._login_device.device_code
-            )
+            response = await self.device.activation(device_code=self._login_device.device_code)
             self.activation = response.data
             self.hass.async_create_task(
                 self.hass.config_entries.flow.async_configure(flow_id=self.flow_id)
@@ -108,18 +106,12 @@ class HacsFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        "acc_logs", default=user_input.get("acc_logs", False)
-                    ): bool,
-                    vol.Required(
-                        "acc_addons", default=user_input.get("acc_addons", False)
-                    ): bool,
+                    vol.Required("acc_logs", default=user_input.get("acc_logs", False)): bool,
+                    vol.Required("acc_addons", default=user_input.get("acc_addons", False)): bool,
                     vol.Required(
                         "acc_untested", default=user_input.get("acc_untested", False)
                     ): bool,
-                    vol.Required(
-                        "acc_disable", default=user_input.get("acc_disable", False)
-                    ): bool,
+                    vol.Required("acc_disable", default=user_input.get("acc_disable", False)): bool,
                 }
             ),
             errors=self._errors,
@@ -128,18 +120,14 @@ class HacsFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_device_done(self, _user_input):
         """Handle device steps"""
         if self._reauth:
-            existing_entry = self.hass.config_entries.async_get_entry(
-                self.context["entry_id"]
-            )
+            existing_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
             self.hass.config_entries.async_update_entry(
                 existing_entry, data={"token": self.activation.access_token}
             )
             await self.hass.config_entries.async_reload(existing_entry.entry_id)
             return self.async_abort(reason="reauth_successful")
 
-        return self.async_create_entry(
-            title="", data={"token": self.activation.access_token}
-        )
+        return self.async_create_entry(title="", data={"token": self.activation.access_token})
 
     async def async_step_reauth(self, user_input=None):
         """Perform reauth upon an API authentication error."""

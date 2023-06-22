@@ -89,9 +89,7 @@ class HacsPluginRepository(HacsRepository):
     async def get_package_content(self):
         """Get package content."""
         try:
-            package = await self.repository_object.get_contents(
-                "package.json", self.ref
-            )
+            package = await self.repository_object.get_contents("package.json", self.ref)
             package = json_loads(package.content)
 
             if package:
@@ -126,9 +124,7 @@ class HacsPluginRepository(HacsRepository):
                         self.content.path.remote = "release"
                         return
 
-        for location in (
-            ("",) if self.repository_manifest.content_in_root else ("dist", "")
-        ):
+        for location in ("",) if self.repository_manifest.content_in_root else ("dist", ""):
             for filename in valid_filenames:
                 if f"{location+'/' if location else ''}{filename}" in [
                     x.full_path for x in self.tree

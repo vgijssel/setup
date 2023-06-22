@@ -35,9 +35,7 @@ def filter_content_return_one_of_type(
     return contents
 
 
-def get_first_directory_in_directory(
-    content: list[str | Any], dirname: str
-) -> str | None:
+def get_first_directory_in_directory(content: list[str | Any], dirname: str) -> str | None:
     """Return the first directory in dirname or None."""
     directory = None
     for path in content:

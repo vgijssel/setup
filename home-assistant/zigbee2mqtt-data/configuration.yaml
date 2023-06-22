@@ -34,16 +34,10 @@ devices:
     friendly_name: living_room_door
   "0x54ef4410004d97e6":
     friendly_name: bedroom_human
-  "0x54ef4410004d58d7":
-    friendly_name: living_room_tv_human
   "0x0017880103298e01":
     friendly_name: laundry_room_motion
-  "0x54ef4410004d9e9d":
-    friendly_name: living_room_dining_table_human
   "0x54ef441000491b56":
     friendly_name: bathroom_motion
-  "0x54ef4410004d70d1":
-    friendly_name: kitchen_human
   "0x00158d000854274f":
     friendly_name: garden_door
   "0x54ef4410004973e7":
@@ -80,8 +74,6 @@ devices:
     friendly_name: baby_room_illuminance
   "0x54ef4410001ff967":
     friendly_name: hallway_illuminance
-  "0x54ef4410001ff3e1":
-    friendly_name: living_room_illuminance
   "0x54ef4410004e44a9":
     friendly_name: bedroom_motion
   "0x54ef4410004e39af":
@@ -92,3 +84,5 @@ devices:
     friendly_name: office_door
   "0x54ef4410004d1c26":
     friendly_name: bathroom_human
+  "0x00124b00258f1af0":
+    friendly_name: hallway_router

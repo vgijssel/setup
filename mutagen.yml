@@ -10,7 +10,7 @@ sync:
 
   home-assistant:
     alpha: "./home-assistant"
-    beta: "192.168.1.30:/data/home-assistant"
+    beta: "maarten@192.168.1.30:/data/home-assistant"
     mode: "two-way-safe"
     ignore:
       paths:
@@ -33,14 +33,10 @@ sync:
 
   esphome-nimble:
     alpha: "./esphome_nimble"
-    beta: "192.168.1.30:/data/esphome_nimble"
+    beta: "maarten@192.168.1.30:/data/esphome_nimble"
     mode: "two-way-safe"
 
 forward:
   zigbee2mqtt-ui:
     source: "tcp:localhost:8092"
-    destination: "192.168.1.30:tcp:localhost:8080"
-
-  esphome-ui:
-    source: "tcp:localhost:6052"
-    destination: "192.168.1.30:tcp:localhost:6052"
+    destination: "maarten@192.168.1.30:tcp:localhost:8080"

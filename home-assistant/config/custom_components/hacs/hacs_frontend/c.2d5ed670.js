@@ -1,34 +1,4 @@
-import {
-  a as r,
-  h as a,
-  e as o,
-  r as e,
-  $ as d,
-  n as t,
-} from "./main-ad130be7.js";
-r(
-  [t("ha-card")],
-  function (r, a) {
-    return {
-      F: class extends a {
-        constructor(...a) {
-          super(...a), r(this);
-        }
-      },
-      d: [
-        { kind: "field", decorators: [o()], key: "header", value: void 0 },
-        {
-          kind: "field",
-          decorators: [o({ type: Boolean, reflect: !0 })],
-          key: "outlined",
-          value: () => !1,
-        },
-        {
-          kind: "get",
-          static: !0,
-          key: "styles",
-          value: function () {
-            return e`
+import{a as r,h as a,e as o,r as e,$ as d,n as t}from"./main-ad130be7.js";r([t("ha-card")],(function(r,a){return{F:class extends a{constructor(...a){super(...a),r(this)}},d:[{kind:"field",decorators:[o()],key:"header",value:void 0},{kind:"field",decorators:[o({type:Boolean,reflect:!0})],key:"outlined",value:()=>!1},{kind:"get",static:!0,key:"styles",value:function(){return e`
       :host {
         background: var(
           --ha-card-background,
@@ -85,21 +55,7 @@ r(
         border-top: 1px solid var(--divider-color, #e8e8e8);
         padding: 5px 16px;
       }
-    `;
-          },
-        },
-        {
-          kind: "method",
-          key: "render",
-          value: function () {
-            return d`
-      ${this.header ? d`<h1 class="card-header">${this.header}</h1>` : d``}
+    `}},{kind:"method",key:"render",value:function(){return d`
+      ${this.header?d`<h1 class="card-header">${this.header}</h1>`:d``}
       <slot></slot>
-    `;
-          },
-        },
-      ],
-    };
-  },
-  a
-);
+    `}}]}}),a);
