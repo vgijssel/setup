@@ -727,5 +727,5 @@
       manual_timer_duration:
         hours: 0
         minutes: 0
-        seconds: 3
+        seconds: 5
       illuminance_threshold: 300

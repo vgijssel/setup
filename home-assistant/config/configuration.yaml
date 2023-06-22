@@ -16,6 +16,10 @@ nissan_leaf:
   update_interval_climate:
     minutes: 5
 
+timer:
+  living_room_dining_table_away_timer:
+  living_room_dining_table_manual_timer:
+
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
