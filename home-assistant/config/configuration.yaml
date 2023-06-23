@@ -29,6 +29,12 @@ timer:
   living_room_sofa_away_timer:
   living_room_sofa_manual_timer:
 
+  bathroom_shower_away_timer:
+  bathroom_shower_manual_timer:
+
+  bathroom_washing_away_timer:
+  bathroom_washing_manual_timer:
+
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
