@@ -62,8 +62,6 @@ devices:
     friendly_name: hallway_door
   "0x54ef4410001ff9a4":
     friendly_name: office_illuminance
-  "0x54ef4410001ff3d3":
-    friendly_name: bedroom_illuminance
   "0x54ef4410001ff3da":
     friendly_name: baby_room_illuminance
   "0x54ef4410001ff967":

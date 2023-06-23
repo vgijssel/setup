@@ -693,3 +693,23 @@
         hours: 1
         minutes: 0
         seconds: 0
+- id: "1687512815133"
+  alias: Bedroom - Lights
+  description: ""
+  use_blueprint:
+    path: diy/better_auto_lights.yaml
+    input:
+      presence_entity_id: binary_sensor.bedroom_human_presence
+      light_and_switch_entity_ids:
+        - switch.bedroom_shelly
+      illuminance_entity_id: sensor.bedroom_illuminance
+      away_timer_entity_id: timer.bedroom_away_timer
+      away_timer_duration:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      manual_timer_entity_id: timer.bedroom_manual_timer
+      manual_timer_duration:
+        hours: 8
+        minutes: 0
+        seconds: 0

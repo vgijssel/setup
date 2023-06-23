@@ -35,6 +35,9 @@ timer:
   bathroom_washing_away_timer:
   bathroom_washing_manual_timer:
 
+  bedroom_away_timer:
+  bedroom_manual_timer:
+
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
