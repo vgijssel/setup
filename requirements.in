@@ -10,7 +10,7 @@ pulumi-kubernetes==3.29.1;
 pytest-homeassistant-custom-component==0.13.38;
 tzdata==2023.3;
 pyinfra==2.7
-sqlalchemy==2.0.16;
+sqlalchemy==2.0.17;
 semver==2.13.0;
 bazel-runfiles==0.23.1;
 requests==2.31.0;
