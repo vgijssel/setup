@@ -1,19 +1,3 @@
-- id: "1655228112348"
-  alias: "Bedroom - Tv: Turn Off"
-  description: ""
-  trigger:
-    - platform: state
-      entity_id:
-        - variable.bedroom_presence
-      from: "on"
-      to: "off"
-  condition: []
-  action:
-    - type: turn_off
-      device_id: 2488b94619cead138686380c1c220fec
-      entity_id: remote.bedroom_tv
-      domain: remote
-  mode: single
 - id: "1655749208565"
   alias: "Supply Closet - Presence: Manage"
   description: ""
@@ -53,20 +37,6 @@
       presence_hint_entity_ids:
         - binary_sensor.driveway_shelly_input
       presence_timeout: 120
-- id: "1655752447329"
-  alias: "Bedroom - Presence: Manage"
-  description: ""
-  use_blueprint:
-    path: diy/presence.yaml
-    input:
-      presence_entity_id: variable.bedroom_presence
-      presence_indicator_entity_ids:
-        - binary_sensor.bedroom_human_presence
-        - binary_sensor.bedroom_motion_occupancy
-      presence_hint_entity_ids:
-        - binary_sensor.bedroom_shelly_input
-        - binary_sensor.bedroom_door_contact
-      presence_timeout: 60
 - id: "1655752570246"
   alias: "Hallway - Presence: Manage"
   description: ""
@@ -171,19 +141,6 @@
         - switch.baby_room_power
       start_time: 00:00:00
       end_time: "23:59:59"
-      illuminance_threshold: 40
-- id: "1655798594467"
-  alias: "Bedroom - Light: Manage"
-  description: ""
-  use_blueprint:
-    path: diy/auto_lights.yaml
-    input:
-      presence_entity_id: variable.bedroom_presence
-      illuminance_entity_id: sensor.bedroom_motion_illuminance_3
-      light_and_switch_entity_ids:
-        - switch.bedroom_shelly
-      start_time: 08:00:00
-      end_time: "21:00:00"
       illuminance_threshold: 40
 - id: "1655798724103"
   alias: "Hallway - Light: Manage"
@@ -582,7 +539,7 @@
         hours: 3
         minutes: 0
         seconds: 0
-      illuminance_threshold: 300
+      illuminance_threshold: 200
 - id: "1687446669605"
   alias: Living Room Kitchen - Lights
   description: ""
@@ -593,7 +550,7 @@
       light_and_switch_entity_ids:
         - light.kitchen_lights
       illuminance_entity_id: sensor.living_room_illuminance
-      illuminance_threshold: 300
+      illuminance_threshold: 200
       away_timer_entity_id: timer.living_room_kitchen_away_timer
       away_timer_duration:
         hours: 0
@@ -614,7 +571,7 @@
       light_and_switch_entity_ids:
         - light.living_room_monkey_light
       illuminance_entity_id: sensor.living_room_illuminance
-      illuminance_threshold: 300
+      illuminance_threshold: 200
       away_timer_entity_id: timer.living_room_reading_away_timer
       away_timer_duration:
         hours: 0
@@ -636,7 +593,7 @@
         - light.living_room_corner_light
         - light.living_room_tv_light
       illuminance_entity_id: sensor.living_room_illuminance
-      illuminance_threshold: 300
+      illuminance_threshold: 200
       away_timer_entity_id: timer.living_room_sofa_away_timer
       away_timer_duration:
         hours: 0
@@ -655,12 +612,11 @@
     input:
       presence_entity_id: binary_sensor.bathroom_shower_human_presence
       illuminance_entity_id: sensor.bathroom_illuminance
-      illuminance_threshold: 300
       away_timer_entity_id: timer.bathroom_shower_away_timer
       away_timer_duration:
         hours: 0
-        minutes: 0
-        seconds: 30
+        minutes: 3
+        seconds: 0
       manual_timer_entity_id: timer.bathroom_shower_manual_timer
       manual_timer_duration:
         hours: 1
@@ -669,27 +625,48 @@
       light_and_switch_entity_ids:
         - light.bathroom_1_light
         - light.bathroom_2_light
+        - light.bathroom_3_light
+      illuminance_threshold: 500
 - id: "1687452837238"
   alias: Bathroom Washing - Lights
   description: ""
   use_blueprint:
     path: diy/better_auto_lights.yaml
     input:
-      presence_entity_id: binary_sensor.bathroom_washing_human_presence
       light_and_switch_entity_ids:
-        - light.bathroom_3_light
         - light.bathroom_4_light
         - light.bathroom_5_light
         - light.bathroom_6_light
       illuminance_entity_id: sensor.bathroom_illuminance
-      illuminance_threshold: 300
       away_timer_entity_id: timer.bathroom_washing_away_timer
       away_timer_duration:
         hours: 0
-        minutes: 0
-        seconds: 30
+        minutes: 3
+        seconds: 0
       manual_timer_entity_id: timer.bathroom_washing_manual_timer
       manual_timer_duration:
         hours: 1
+        minutes: 0
+        seconds: 0
+      illuminance_threshold: 500
+      presence_entity_id: binary_sensor.bathroom_washing_human_presence
+- id: "1687512815133"
+  alias: Bedroom - Lights
+  description: ""
+  use_blueprint:
+    path: diy/better_auto_lights.yaml
+    input:
+      presence_entity_id: binary_sensor.bedroom_human_presence
+      light_and_switch_entity_ids:
+        - switch.bedroom_shelly
+      illuminance_entity_id: sensor.bedroom_illuminance
+      away_timer_entity_id: timer.bedroom_away_timer
+      away_timer_duration:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      manual_timer_entity_id: timer.bedroom_manual_timer
+      manual_timer_duration:
+        hours: 9
         minutes: 0
         seconds: 0
