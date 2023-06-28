@@ -80,8 +80,8 @@ http_file(
 http_archive(
     name = "tilt_arm64",
     build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
-    sha256 = "be399251df8054731c8cddc975206c403058619b23a0bc88b2561a52d450c96b",
-    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.0/tilt.0.33.0.linux.arm64.tar.gz",
+    sha256 = "6bfa14a66c390dae246a1d58b75c5949afc9859270f4ff430dc0f8f88ebab2c5",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.1/tilt.0.33.1.linux.arm64.tar.gz",
 )
 
 # ------------------------------------ lefthook ------------------------------------ #
