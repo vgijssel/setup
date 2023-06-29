@@ -347,12 +347,12 @@ semver = ">=2.8.1"
 
 [[package]]
 name = "pulumi-kubernetes"
-version = "3.29.1"
+version = "3.30.0"
 description = "A Pulumi package for creating and managing Kubernetes resources."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pulumi_kubernetes-3.29.1.tar.gz", hash = "sha256:49d156c63b3b184bd87d71a307abd2e98d475cf4cb448944cb6b23cc59f5dd8e"},
+    {file = "pulumi_kubernetes-3.30.0.tar.gz", hash = "sha256:d13cbde403ced11d70f81970324bc2f70fbee2456d5c7ecf16d8768c248cd9d1"},
 ]
 
 [package.dependencies]
