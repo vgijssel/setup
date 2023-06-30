@@ -203,6 +203,6 @@ http_archive(
 http_archive(
     name = "mutagen_amd64",
     build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
-    sha256 = "bc11fd1ec3b37b5fcefe630dd9a5b12758eef707cef6b33de230277f3385f31d",
-    url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.1/mutagen_linux_amd64_v0.17.1.tar.gz",
+    sha256 = "85d967462ade994d37fc8d4906579d33b6fbb1744bab4a7cceb0c12424fb0f1d",
+    url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.2/mutagen_linux_amd64_v0.17.2.tar.gz",
 )
