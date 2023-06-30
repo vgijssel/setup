@@ -196,8 +196,8 @@ http_file(
 http_archive(
     name = "mutagen_arm64",
     build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
-    sha256 = "e6d81a109f3eee07493b35439e7f3c3b8b3b2dfef6951f48f4aa260049bf9b44",
-    url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.1/mutagen_linux_arm64_v0.17.1.tar.gz",
+    sha256 = "60fdd4f2abe68d3c23b22e48be556038a29175a65877dd43128d56319a6bcae0",
+    url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.2/mutagen_linux_arm64_v0.17.2.tar.gz",
 )
 
 http_archive(
