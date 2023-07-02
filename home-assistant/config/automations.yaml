@@ -539,7 +539,7 @@
         hours: 3
         minutes: 0
         seconds: 0
-      illuminance_threshold: 200
+      illuminance_threshold: 150
 - id: "1687446669605"
   alias: Living Room Kitchen - Lights
   description: ""
@@ -550,7 +550,6 @@
       light_and_switch_entity_ids:
         - light.kitchen_lights
       illuminance_entity_id: sensor.living_room_illuminance
-      illuminance_threshold: 200
       away_timer_entity_id: timer.living_room_kitchen_away_timer
       away_timer_duration:
         hours: 0
@@ -561,6 +560,7 @@
         hours: 3
         minutes: 0
         seconds: 0
+      illuminance_threshold: 150
 - id: "1687446932202"
   alias: Living Room Reading - Lights
   description: ""
@@ -571,7 +571,6 @@
       light_and_switch_entity_ids:
         - light.living_room_monkey_light
       illuminance_entity_id: sensor.living_room_illuminance
-      illuminance_threshold: 200
       away_timer_entity_id: timer.living_room_reading_away_timer
       away_timer_duration:
         hours: 0
@@ -582,6 +581,7 @@
         hours: 3
         minutes: 0
         seconds: 0
+      illuminance_threshold: 150
 - id: "1687447110495"
   alias: Living Room Sofa - Lights
   description: ""
@@ -593,7 +593,6 @@
         - light.living_room_corner_light
         - light.living_room_tv_light
       illuminance_entity_id: sensor.living_room_illuminance
-      illuminance_threshold: 200
       away_timer_entity_id: timer.living_room_sofa_away_timer
       away_timer_duration:
         hours: 0
@@ -604,6 +603,7 @@
         hours: 3
         minutes: 0
         seconds: 0
+      illuminance_threshold: 150
 - id: "1687452619492"
   alias: Bathroom Shower - Lights
   description: ""
