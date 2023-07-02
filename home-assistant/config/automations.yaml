@@ -598,3 +598,83 @@
         hours: 9
         minutes: 0
         seconds: 0
+- id: "1688322983719"
+  alias: Living Room - Door Occupancy
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.living_room_door_contact
+      from:
+      to:
+    - platform: state
+      entity_id:
+        - binary_sensor.living_room_motion_occupancy
+      from:
+      to:
+    - platform: homeassistant
+      event: start
+  condition: []
+  action:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{% set door_id = 'binary_sensor.living_room_door_contact'
+                %}\n{% set timeout = 10 %}\n\n{% set door_activity_timeout = now() - timedelta(seconds
+                = timeout) %}\n{% set door_last_updated = states[door_id].last_updated %}
+                \n{% set door_recently_updated = door_last_updated >= door_activity_timeout
+                %}\n\n{{ door_recently_updated }}"
+              alias: Door contact recently had activity
+          sequence:
+            - service: variable.update_sensor
+              data:
+                replace_attributes: false
+                attributes:
+                  icon: mdi:motion-sensor
+                value: "on"
+              target:
+                entity_id: sensor.living_room_door_occupancy
+              alias: Set door activity
+            - delay:
+                hours: 0
+                minutes: 0
+                seconds: 10
+                milliseconds: 0
+            - service: variable.update_sensor
+              data:
+                replace_attributes: false
+                value: "off"
+                attributes:
+                  icon: mdi:motion-sensor-off
+              target:
+                entity_id: sensor.living_room_door_occupancy
+              alias: Unset door activity
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.living_room_door_contact
+              state: "on"
+            - condition: state
+              entity_id: binary_sensor.living_room_motion_occupancy
+              state: "on"
+          sequence:
+            - service: variable.update_sensor
+              data:
+                replace_attributes: false
+                value: "on"
+                attributes:
+                  icon: mdi:motion-sensor
+              target:
+                entity_id: sensor.living_room_door_occupancy
+              alias: Set door activity
+      default:
+        - service: variable.update_sensor
+          data:
+            replace_attributes: false
+            value: "off"
+            attributes:
+              icon: mdi:motion-sensor-off
+          target:
+            entity_id: sensor.living_room_door_occupancy
+          alias: Unset door activity
+  mode: single

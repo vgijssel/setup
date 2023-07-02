@@ -48,28 +48,6 @@ input_select:
       - leaving
     icon: mdi:panda
 
-template:
-  - binary_sensor:
-      - name: living_room_door
-        state: >
-          {% set door_id = 'binary_sensor.living_room_door_contact' %}
-          {% set motion_id = 'binary_sensor.living_room_motion_occupancy' %}
-          {% set timeout = 10 %}
-
-          {% set door_last_updated = states[door_id].last_updated %} 
-          {% set door_is_open = is_state(door_id, 'on') %} 
-          {% set door_activity_timeout = now() - timedelta(seconds = timeout) %}
-          {% set door_recently_updated = door_last_updated >= door_activity_timeout %}
-          {% set motion_is_active = is_state(motion_id, 'on') %}
-
-          {% if door_recently_updated %}
-          on
-          {% elif door_is_open and motion_is_active %}
-          on
-          {% else %}
-          off
-          {% endif %}
-
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
@@ -199,6 +177,15 @@ variable:
       icon: mdi:home-outline
       next_location: "away"
       next_location_iteration: 0
+
+  living_room_door_occupancy:
+    value: "off"
+    restore: true
+    attributes:
+      state_class: measurement
+      device_class: "door"
+      friendly_name: "Living Room Door Occupancy"
+      icon: mdi:motion-sensor
 
   driveway_presence:
     value: "off"
