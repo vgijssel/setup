@@ -4,7 +4,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.supply_closet_presence
+      presence_entity_id: sensor.supply_closet_presence
       presence_indicator_entity_ids:
         - binary_sensor.supply_closet_door_contact
       presence_hint_entity_ids:
@@ -16,7 +16,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.toilet_presence
+      presence_entity_id: sensor.toilet_presence
       presence_indicator_entity_ids:
         - binary_sensor.toilet_motion_occupancy
       presence_hint_entity_ids:
@@ -30,7 +30,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.driveway_presence
+      presence_entity_id: sensor.driveway_presence
       presence_indicator_entity_ids:
         - binary_sensor.driveway_doorbell_motion
         - binary_sensor.hallway_door_contact
@@ -43,7 +43,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.hallway_presence
+      presence_entity_id: sensor.hallway_presence
       presence_hint_entity_ids:
         - binary_sensor.hallway_shelly_input
         - binary_sensor.toilet_door_contact
@@ -62,7 +62,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.laundry_room_presence
+      presence_entity_id: sensor.laundry_room_presence
       presence_indicator_entity_ids:
         - binary_sensor.laundry_room_motion_occupancy
       presence_hint_entity_ids:
@@ -73,7 +73,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.office_presence
+      presence_entity_id: sensor.office_presence
       presence_indicator_entity_ids:
         - binary_sensor.office_human_presence
         - binary_sensor.office_motion_occupancy
@@ -86,7 +86,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.driveway_presence
+      presence_entity_id: sensor.driveway_presence
       light_and_switch_entity_ids:
         - switch.driveway_shelly
       start_time: 00:00:00
@@ -99,7 +99,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.hallway_presence
+      presence_entity_id: sensor.hallway_presence
       illuminance_entity_id: sensor.hallway_motion_illuminance_lux
       light_and_switch_entity_ids:
         - light.hallway_lights
@@ -112,7 +112,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.laundry_room_presence
+      presence_entity_id: sensor.laundry_room_presence
       illuminance_entity_id: sensor.laundry_room_motion_illuminance_lux
       illuminance_threshold: 100
       light_and_switch_entity_ids:
@@ -125,7 +125,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.office_presence
+      presence_entity_id: sensor.office_presence
       illuminance_entity_id: sensor.office_illuminance_illuminance_lux
       light_and_switch_entity_ids:
         - switch.office_shelly
@@ -138,7 +138,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.supply_closet_presence
+      presence_entity_id: sensor.supply_closet_presence
       illuminance_entity_id: sensor.illuminance
       illuminance_threshold: 200000
       light_and_switch_entity_ids:
@@ -151,7 +151,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.toilet_presence
+      presence_entity_id: sensor.toilet_presence
       illuminance_entity_id: sensor.illuminance
       illuminance_threshold: 200000
       light_and_switch_entity_ids:
@@ -164,7 +164,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.kitchen_presence
+      presence_entity_id: sensor.kitchen_presence
       presence_indicator_entity_ids:
         - binary_sensor.kitchen_human_presence
 - id: "1657026314050"
@@ -344,7 +344,7 @@
         - if:
             - condition: template
               value_template:
-                "{% set the_past = state_attr('variable.apple_watch_1_location',
+                "{% set the_past = state_attr('sensor.apple_watch_1_location',
                 'last_updated') %}
 
                 {% set the_present = now() %}
@@ -355,9 +355,10 @@
 
                 {{ seconds_passed > 120 }}"
           then:
-            - service: variable.set_variable
+            - service: variable.update_sensor
+              target:
+                entity_id: sensor.apple_watch_1_location
               data:
-                variable: apple_watch_1_location
                 value: away
                 attributes:
                   next_location: away
@@ -370,14 +371,15 @@
     - if:
         - condition: template
           value_template:
-            "{{ trigger.payload_json.location == states('variable.apple_watch_1_location')
+            "{{ trigger.payload_json.location == states('sensor.apple_watch_1_location')
             }}"
       then:
-        - service: variable.set_variable
+        - service: variable.update_sensor
+          target:
+            entity_id: sensor.apple_watch_1_location
           data:
-            variable: apple_watch_1_location
             attributes:
-              next_location: "{{ states('variable.apple_watch_1_location') }}"
+              next_location: "{{ states('sensor.apple_watch_1_location') }}"
               next_location_iteration: 0
               icon: mdi:home
               last_updated: "{{ now() }}"
@@ -387,11 +389,12 @@
         - condition: template
           value_template: "{{ trigger.payload_json.guesses[0].probability < 0.5 }}"
       then:
-        - service: variable.set_variable
+        - service: variable.update_sensor
+          target:
+            entity_id: sensor.apple_watch_1_location
           data:
-            variable: apple_watch_1_location
             attributes:
-              next_location: "{{ states('variable.apple_watch_1_location') }}"
+              next_location: "{{ states('sensor.apple_watch_1_location') }}"
               next_location_iteration: 0
               icon: mdi:home
               last_updated: "{{ now() }}"
@@ -400,41 +403,44 @@
     - if:
         - condition: template
           value_template:
-            "{{ trigger.payload_json.location != state_attr('variable.apple_watch_1_location',
+            "{{ trigger.payload_json.location != state_attr('sensor.apple_watch_1_location',
             'next_location') }}"
       then:
-        - service: variable.set_variable
+        - service: variable.update_sensor
+          target:
+            entity_id: sensor.apple_watch_1_location
           data:
-            variable: apple_watch_1_location
             attributes:
               next_location: "{{ trigger.payload_json.location }}"
               next_location_iteration: 0
               icon: mdi:home
               last_updated: "{{ now() }}"
       alias: Update next location
-    - service: variable.set_variable
+    - service: variable.update_sensor
+      target:
+        entity_id: sensor.apple_watch_1_location
       data:
-        variable: apple_watch_1_location
         attributes:
           next_location_iteration:
-            "{{ (state_attr('variable.apple_watch_1_location',
+            "{{ (state_attr('sensor.apple_watch_1_location',
             'next_location_iteration') | int(default=0)) + 1 }}"
       alias: Next location iteration increment
     - if:
         - condition: template
           value_template:
-            "{{ (state_attr('variable.apple_watch_1_location', 'next_location_iteration')
+            "{{ (state_attr('sensor.apple_watch_1_location', 'next_location_iteration')
             | int(default=0)) > 1 }}"
       then:
-        - service: variable.set_variable
+        - service: variable.update_sensor
+          target:
+            entity_id: sensor.apple_watch_1_location
           data:
-            variable: apple_watch_1_location
             value:
-              "{{ state_attr('variable.apple_watch_1_location', 'next_location')
+              "{{ state_attr('sensor.apple_watch_1_location', 'next_location')
               }}"
             attributes:
               next_location:
-                "{{ state_attr('variable.apple_watch_1_location', 'next_location')
+                "{{ state_attr('sensor.apple_watch_1_location', 'next_location')
                 }}"
               next_location_iteration: 0
               icon: mdi:home

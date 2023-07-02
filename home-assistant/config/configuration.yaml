@@ -38,6 +38,38 @@ timer:
   bedroom_away_timer:
   bedroom_manual_timer:
 
+input_select:
+  hallway_presence:
+    name: Hallway Presence
+    options:
+      - absent
+      - entering
+      - present
+      - leaving
+    icon: mdi:panda
+
+template:
+  - binary_sensor:
+      - name: living_room_door
+        state: >
+          {% set door_id = 'binary_sensor.living_room_door_contact' %}
+          {% set motion_id = 'binary_sensor.living_room_motion_occupancy' %}
+          {% set timeout = 10 %}
+
+          {% set door_last_updated = states[door_id].last_updated %} 
+          {% set door_is_open = is_state(door_id, 'on') %} 
+          {% set door_activity_timeout = now() - timedelta(seconds = timeout) %}
+          {% set door_recently_updated = door_last_updated >= door_activity_timeout %}
+          {% set motion_is_active = is_state(motion_id, 'on') %}
+
+          {% if door_recently_updated %}
+          on
+          {% elif door_is_open and motion_is_active %}
+          on
+          {% else %}
+          off
+          {% endif %}
+
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
@@ -168,36 +200,6 @@ variable:
       next_location: "away"
       next_location_iteration: 0
 
-  baby_room_presence:
-    value: "off"
-    restore: true
-    attributes:
-      friendly_name: "Baby Room Presence"
-      icon: mdi:home-outline
-      lights_manual_override: "off"
-      lights_triggered_by_automation: "off"
-      trigger_context_id: ""
-
-  bathroom_presence:
-    value: "off"
-    restore: true
-    attributes:
-      friendly_name: "Bathroom Presence"
-      icon: mdi:home-outline
-      lights_manual_override: "off"
-      lights_triggered_by_automation: "off"
-      trigger_context_id: ""
-
-  bedroom_presence:
-    value: "off"
-    restore: true
-    attributes:
-      friendly_name: "Bedroom Presence"
-      icon: mdi:home-outline
-      lights_manual_override: "off"
-      lights_triggered_by_automation: "off"
-      trigger_context_id: ""
-
   driveway_presence:
     value: "off"
     restore: true
@@ -218,41 +220,11 @@ variable:
       lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
-  kitchen_presence:
-    value: "off"
-    restore: true
-    attributes:
-      friendly_name: "Kitchen Presence"
-      icon: mdi:home-outline
-      lights_manual_override: "off"
-      lights_triggered_by_automation: "off"
-      trigger_context_id: ""
-
-  landing_presence:
-    value: "off"
-    restore: true
-    attributes:
-      friendly_name: "Landing Presence"
-      icon: mdi:home-outline
-      lights_manual_override: "off"
-      lights_triggered_by_automation: "off"
-      trigger_context_id: ""
-
   laundry_room_presence:
     value: "off"
     restore: true
     attributes:
       friendly_name: "Laundry Room Presence"
-      icon: mdi:home-outline
-      lights_manual_override: "off"
-      lights_triggered_by_automation: "off"
-      trigger_context_id: ""
-
-  living_room_presence:
-    value: "off"
-    restore: true
-    attributes:
-      friendly_name: "Living Room Presence"
       icon: mdi:home-outline
       lights_manual_override: "off"
       lights_triggered_by_automation: "off"
