@@ -59,7 +59,6 @@ trace:
 
 variables:
   presence_entity_id: !input presence_entity_id
-  presence_variable: "{{ expand(presence_entity_id)[0].object_id }}"
   presence_indicator_entity_ids: !input presence_indicator_entity_ids
   presence_hint_entity_ids: !input presence_hint_entity_ids
   presence_timeout: !input presence_timeout
