@@ -1,4 +1,5 @@
 substitutions:
+  name: "hallway-epo"
   device_name: "hallway-epo"
   entity_id: "hallway_epo"
   static_ip: "192.168.1.90"
