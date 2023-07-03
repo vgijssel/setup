@@ -678,3 +678,90 @@
             entity_id: sensor.living_room_door_occupancy
           alias: Unset door activity
   mode: single
+- id: "1688367427268"
+  alias: Hallway - Presence
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - sensor.living_room_door_occupancy
+      id: doors
+      from: "off"
+      to: "on"
+    - platform: state
+      entity_id:
+        - input_select.hallway_presence
+      from:
+      to:
+      id: state
+    - platform: state
+      entity_id:
+        - timer.hallway_transition_timer
+      from:
+      to:
+      id: timer
+  condition: []
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_select.hallway_presence
+              state: absent
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id: doors
+                  sequence:
+                    - service: input_select.select_option
+                      data:
+                        option: entering
+                      target:
+                        entity_id: input_select.hallway_presence
+        - conditions:
+            - condition: state
+              entity_id: input_select.hallway_presence
+              state: entering
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id: state
+                  sequence:
+                    - service: timer.start
+                      data:
+                        duration: 00:00:10
+                      target:
+                        entity_id: timer.hallway_transition_timer
+                - conditions:
+                    - condition: trigger
+                      id: timer
+                    - condition: state
+                      entity_id: timer.hallway_transition_timer
+                      state: idle
+                  sequence:
+                    - service: input_select.select_option
+                      data:
+                        option: absent
+                      target:
+                        entity_id: input_select.hallway_presence
+                - conditions:
+                    - condition: trigger
+                      id: doors
+                  sequence:
+                    - service: timer.change
+                      data:
+                        duration: 00:00:10
+                      target:
+                        entity_id: timer.hallway_transition_timer
+        - conditions:
+            - condition: state
+              entity_id: input_select.hallway_presence
+              state: present
+          sequence: []
+        - conditions:
+            - condition: state
+              entity_id: input_select.hallway_presence
+              state: leaving
+          sequence: []
+  mode: queued
