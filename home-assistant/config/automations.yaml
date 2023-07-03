@@ -700,6 +700,12 @@
       from:
       to:
       id: timer
+    - platform: state
+      entity_id:
+        - binary_sensor.hallway_human
+      from:
+      to:
+      id: human
   condition: []
   action:
     - choose:
@@ -718,6 +724,14 @@
                         option: entering
                       target:
                         entity_id: input_select.hallway_presence
+                - conditions:
+                    - condition: trigger
+                      id: state
+                  sequence:
+                    - service: timer.cancel
+                      data: {}
+                      target:
+                        entity_id: timer.hallway_transition_timer
         - conditions:
             - condition: state
               entity_id: input_select.hallway_presence
@@ -745,6 +759,7 @@
                         option: absent
                       target:
                         entity_id: input_select.hallway_presence
+                    - stop: Back to absent.
                 - conditions:
                     - condition: trigger
                       id: doors
@@ -754,14 +769,77 @@
                         duration: 00:00:10
                       target:
                         entity_id: timer.hallway_transition_timer
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.hallway_human
+                  state: "on"
+              then:
+                - service: input_select.select_option
+                  data:
+                    option: present
+                  target:
+                    entity_id: input_select.hallway_presence
         - conditions:
             - condition: state
               entity_id: input_select.hallway_presence
               state: present
-          sequence: []
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id: state
+                  sequence:
+                    - service: timer.cancel
+                      data: {}
+                      target:
+                        entity_id: timer.hallway_transition_timer
+                - conditions:
+                    - condition: trigger
+                      id: doors
+                  sequence:
+                    - service: input_select.select_option
+                      data:
+                        option: leaving
+                      target:
+                        entity_id: input_select.hallway_presence
         - conditions:
             - condition: state
               entity_id: input_select.hallway_presence
               state: leaving
-          sequence: []
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id: state
+                  sequence:
+                    - service: timer.start
+                      data:
+                        duration: 00:00:10
+                      target:
+                        entity_id: timer.hallway_transition_timer
+                - conditions:
+                    - condition: trigger
+                      id: timer
+                    - condition: state
+                      entity_id: timer.hallway_transition_timer
+                      state: idle
+                  sequence:
+                    - service: input_select.select_option
+                      data:
+                        option: present
+                      target:
+                        entity_id: input_select.hallway_presence
+                      alias: Back to present
+                    - stop: Back to present
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.hallway_human
+                  state: "off"
+              then:
+                - service: input_select.select_option
+                  data:
+                    option: absent
+                  target:
+                    entity_id: input_select.hallway_presence
+                  alias: Select absent
   mode: queued
