@@ -72,7 +72,7 @@ pip.parse(
 use_repo(pip, "pip-setup")
 
 # ------------------------------------ rules_js ------------------------------------ #
-bazel_dep(name = "aspect_rules_js", version = "1.29.2")
+bazel_dep(name = "aspect_rules_js", version = "1.30.0")
 bazel_dep(name = "rules_nodejs", version = "5.8.3")
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
