@@ -15,7 +15,7 @@ bazel_dep(name = "aspect_bazel_lib", version = "1.32.1")
 PYTHON_NAME = "python3_rules_task"
 INTERPRETER_NAME = "interpreter3_rules_task"
 
-bazel_dep(name = "rules_python", version = "0.22.0")
+bazel_dep(name = "rules_python", version = "0.25.0")
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     name = PYTHON_NAME,
