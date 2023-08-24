@@ -45,7 +45,10 @@ prettier_bin.prettier_binary(
 task(
     name = "prettier",
     cmds = [
-        cmd.executable(":prettier_bin"),
+        cmd.shell(
+            cmd.executable(":prettier_bin"),
+            "$CLI_ARGS",
+        ),
     ],
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
     env = {

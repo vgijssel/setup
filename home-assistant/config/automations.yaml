@@ -4,7 +4,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.supply_closet_presence
+      presence_entity_id: sensor.supply_closet_presence
       presence_indicator_entity_ids:
         - binary_sensor.supply_closet_door_contact
       presence_hint_entity_ids:
@@ -16,7 +16,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.toilet_presence
+      presence_entity_id: sensor.toilet_presence
       presence_indicator_entity_ids:
         - binary_sensor.toilet_motion_occupancy
       presence_hint_entity_ids:
@@ -30,7 +30,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.driveway_presence
+      presence_entity_id: sensor.driveway_presence
       presence_indicator_entity_ids:
         - binary_sensor.driveway_doorbell_motion
         - binary_sensor.hallway_door_contact
@@ -43,7 +43,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.hallway_presence
+      presence_entity_id: sensor.hallway_presence
       presence_hint_entity_ids:
         - binary_sensor.hallway_shelly_input
         - binary_sensor.toilet_door_contact
@@ -56,34 +56,13 @@
       presence_indicator_entity_ids:
         - binary_sensor.hallway_motion_occupancy
         - binary_sensor.hallway_door_contact
-- id: "1655752840815"
-  alias: "Landing - Presence: Manage"
-  description: ""
-  use_blueprint:
-    path: diy/presence.yaml
-    input:
-      presence_entity_id: variable.landing_presence
-      presence_hint_entity_ids:
-        - binary_sensor.landing_shelly_input
-        - binary_sensor.office_door_contact
-        - binary_sensor.baby_room_door_contact
-        - binary_sensor.bedroom_door_contact
-        - binary_sensor.bathroom_door_contact
-      presence_indicator_entity_ids:
-        - binary_sensor.baby_room_motion_occupancy
-        - binary_sensor.bedroom_motion_occupancy
-        - binary_sensor.laundry_room_motion_occupancy
-        - binary_sensor.office_motion_occupancy
-        - binary_sensor.bathroom_motion_occupancy
-        - binary_sensor.landing_motion_occupancy
-      presence_timeout: 120
 - id: "1655752934365"
   alias: "Laundry Room - Presence: Manage"
   description: ""
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.laundry_room_presence
+      presence_entity_id: sensor.laundry_room_presence
       presence_indicator_entity_ids:
         - binary_sensor.laundry_room_motion_occupancy
       presence_hint_entity_ids:
@@ -94,87 +73,46 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.office_presence
+      presence_entity_id: sensor.office_presence
       presence_indicator_entity_ids:
         - binary_sensor.office_human_presence
         - binary_sensor.office_motion_occupancy
       presence_hint_entity_ids:
         - binary_sensor.office_door_contact
         - binary_sensor.office_shelly_input
-- id: "1655753220517"
-  alias: "Baby Room - Presence: Manage"
-  description: ""
-  use_blueprint:
-    path: diy/presence.yaml
-    input:
-      presence_entity_id: variable.baby_room_presence
-      presence_indicator_entity_ids:
-        - binary_sensor.baby_room_motion_occupancy
-        - binary_sensor.baby_room_human_presence
-      presence_hint_entity_ids:
-        - binary_sensor.baby_room_shelly_input
-        - binary_sensor.baby_room_door_contact
-      presence_timeout: 60
 - id: "1655755184933"
   alias: "Driveway - Light: Manage"
   description: ""
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.driveway_presence
+      presence_entity_id: sensor.driveway_presence
       light_and_switch_entity_ids:
         - switch.driveway_shelly
       start_time: 00:00:00
       end_time: "23:59:59"
       illuminance_entity_id: sensor.illuminance
       illuminance_threshold: 1000
-- id: "1655798480666"
-  alias: "Baby Room - Light: Manage"
-  description: ""
-  use_blueprint:
-    path: diy/auto_lights.yaml
-    input:
-      presence_entity_id: variable.baby_room_presence
-      illuminance_entity_id: sensor.baby_room_motion_illuminance_2
-      light_and_switch_entity_ids:
-        - light.baby_room_light
-        - switch.baby_room_power
-      start_time: 00:00:00
-      end_time: "23:59:59"
-      illuminance_threshold: 40
 - id: "1655798724103"
   alias: "Hallway - Light: Manage"
   description: ""
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.hallway_presence
+      presence_entity_id: sensor.hallway_presence
       illuminance_entity_id: sensor.hallway_motion_illuminance_lux
       light_and_switch_entity_ids:
         - light.hallway_lights
       start_time: 00:00:00
       end_time: "23:59:59"
       illuminance_threshold: 1000
-- id: "1655799812663"
-  alias: "Landing - Light: Manage"
-  description: ""
-  use_blueprint:
-    path: diy/auto_lights.yaml
-    input:
-      presence_entity_id: variable.landing_presence
-      illuminance_entity_id: sensor.landing_motion_illuminance_lux
-      illuminance_threshold: 60
-      light_and_switch_entity_ids:
-        - light.landing_lights
-      start_time: 06:00:00
-      end_time: "23:59:59"
 - id: "1655799885346"
   alias: "Laundry Room - Light: Manage"
   description: ""
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.laundry_room_presence
+      presence_entity_id: sensor.laundry_room_presence
       illuminance_entity_id: sensor.laundry_room_motion_illuminance_lux
       illuminance_threshold: 100
       light_and_switch_entity_ids:
@@ -187,7 +125,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.office_presence
+      presence_entity_id: sensor.office_presence
       illuminance_entity_id: sensor.office_illuminance_illuminance_lux
       light_and_switch_entity_ids:
         - switch.office_shelly
@@ -200,7 +138,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.supply_closet_presence
+      presence_entity_id: sensor.supply_closet_presence
       illuminance_entity_id: sensor.illuminance
       illuminance_threshold: 200000
       light_and_switch_entity_ids:
@@ -213,7 +151,7 @@
   use_blueprint:
     path: diy/auto_lights.yaml
     input:
-      presence_entity_id: variable.toilet_presence
+      presence_entity_id: sensor.toilet_presence
       illuminance_entity_id: sensor.illuminance
       illuminance_threshold: 200000
       light_and_switch_entity_ids:
@@ -226,7 +164,7 @@
   use_blueprint:
     path: diy/presence.yaml
     input:
-      presence_entity_id: variable.kitchen_presence
+      presence_entity_id: sensor.kitchen_presence
       presence_indicator_entity_ids:
         - binary_sensor.kitchen_human_presence
 - id: "1657026314050"
@@ -320,22 +258,6 @@
               target:
                 entity_id: input_boolean.bedroom_is_sleeping
   mode: single
-- id: "1657638476657"
-  alias: "Kitchen - Lights: Auto Off"
-  description: ""
-  trigger:
-    - platform: state
-      entity_id:
-        - variable.kitchen_presence
-      to: "off"
-  condition: []
-  action:
-    - service: light.turn_off
-      data:
-        transition: 2
-      target:
-        entity_id: light.kitchen_lights
-  mode: single
 - id: "1658226673278"
   alias: "Adaptive lighting: toggle 'sleep mode'"
   description: ""
@@ -422,7 +344,7 @@
         - if:
             - condition: template
               value_template:
-                "{% set the_past = state_attr('variable.apple_watch_1_location',
+                "{% set the_past = state_attr('sensor.apple_watch_1_location',
                 'last_updated') %}
 
                 {% set the_present = now() %}
@@ -433,9 +355,10 @@
 
                 {{ seconds_passed > 120 }}"
           then:
-            - service: variable.set_variable
+            - service: variable.update_sensor
+              target:
+                entity_id: sensor.apple_watch_1_location
               data:
-                variable: apple_watch_1_location
                 value: away
                 attributes:
                   next_location: away
@@ -448,14 +371,15 @@
     - if:
         - condition: template
           value_template:
-            "{{ trigger.payload_json.location == states('variable.apple_watch_1_location')
+            "{{ trigger.payload_json.location == states('sensor.apple_watch_1_location')
             }}"
       then:
-        - service: variable.set_variable
+        - service: variable.update_sensor
+          target:
+            entity_id: sensor.apple_watch_1_location
           data:
-            variable: apple_watch_1_location
             attributes:
-              next_location: "{{ states('variable.apple_watch_1_location') }}"
+              next_location: "{{ states('sensor.apple_watch_1_location') }}"
               next_location_iteration: 0
               icon: mdi:home
               last_updated: "{{ now() }}"
@@ -465,11 +389,12 @@
         - condition: template
           value_template: "{{ trigger.payload_json.guesses[0].probability < 0.5 }}"
       then:
-        - service: variable.set_variable
+        - service: variable.update_sensor
+          target:
+            entity_id: sensor.apple_watch_1_location
           data:
-            variable: apple_watch_1_location
             attributes:
-              next_location: "{{ states('variable.apple_watch_1_location') }}"
+              next_location: "{{ states('sensor.apple_watch_1_location') }}"
               next_location_iteration: 0
               icon: mdi:home
               last_updated: "{{ now() }}"
@@ -478,41 +403,44 @@
     - if:
         - condition: template
           value_template:
-            "{{ trigger.payload_json.location != state_attr('variable.apple_watch_1_location',
+            "{{ trigger.payload_json.location != state_attr('sensor.apple_watch_1_location',
             'next_location') }}"
       then:
-        - service: variable.set_variable
+        - service: variable.update_sensor
+          target:
+            entity_id: sensor.apple_watch_1_location
           data:
-            variable: apple_watch_1_location
             attributes:
               next_location: "{{ trigger.payload_json.location }}"
               next_location_iteration: 0
               icon: mdi:home
               last_updated: "{{ now() }}"
       alias: Update next location
-    - service: variable.set_variable
+    - service: variable.update_sensor
+      target:
+        entity_id: sensor.apple_watch_1_location
       data:
-        variable: apple_watch_1_location
         attributes:
           next_location_iteration:
-            "{{ (state_attr('variable.apple_watch_1_location',
+            "{{ (state_attr('sensor.apple_watch_1_location',
             'next_location_iteration') | int(default=0)) + 1 }}"
       alias: Next location iteration increment
     - if:
         - condition: template
           value_template:
-            "{{ (state_attr('variable.apple_watch_1_location', 'next_location_iteration')
+            "{{ (state_attr('sensor.apple_watch_1_location', 'next_location_iteration')
             | int(default=0)) > 1 }}"
       then:
-        - service: variable.set_variable
+        - service: variable.update_sensor
+          target:
+            entity_id: sensor.apple_watch_1_location
           data:
-            variable: apple_watch_1_location
             value:
-              "{{ state_attr('variable.apple_watch_1_location', 'next_location')
+              "{{ state_attr('sensor.apple_watch_1_location', 'next_location')
               }}"
             attributes:
               next_location:
-                "{{ state_attr('variable.apple_watch_1_location', 'next_location')
+                "{{ state_attr('sensor.apple_watch_1_location', 'next_location')
                 }}"
               next_location_iteration: 0
               icon: mdi:home
@@ -539,7 +467,7 @@
         hours: 3
         minutes: 0
         seconds: 0
-      illuminance_threshold: 200
+      illuminance_threshold: 150
 - id: "1687446669605"
   alias: Living Room Kitchen - Lights
   description: ""
@@ -550,7 +478,6 @@
       light_and_switch_entity_ids:
         - light.kitchen_lights
       illuminance_entity_id: sensor.living_room_illuminance
-      illuminance_threshold: 200
       away_timer_entity_id: timer.living_room_kitchen_away_timer
       away_timer_duration:
         hours: 0
@@ -561,6 +488,7 @@
         hours: 3
         minutes: 0
         seconds: 0
+      illuminance_threshold: 150
 - id: "1687446932202"
   alias: Living Room Reading - Lights
   description: ""
@@ -571,7 +499,6 @@
       light_and_switch_entity_ids:
         - light.living_room_monkey_light
       illuminance_entity_id: sensor.living_room_illuminance
-      illuminance_threshold: 200
       away_timer_entity_id: timer.living_room_reading_away_timer
       away_timer_duration:
         hours: 0
@@ -582,6 +509,7 @@
         hours: 3
         minutes: 0
         seconds: 0
+      illuminance_threshold: 150
 - id: "1687447110495"
   alias: Living Room Sofa - Lights
   description: ""
@@ -593,7 +521,6 @@
         - light.living_room_corner_light
         - light.living_room_tv_light
       illuminance_entity_id: sensor.living_room_illuminance
-      illuminance_threshold: 200
       away_timer_entity_id: timer.living_room_sofa_away_timer
       away_timer_duration:
         hours: 0
@@ -604,6 +531,7 @@
         hours: 3
         minutes: 0
         seconds: 0
+      illuminance_threshold: 150
 - id: "1687452619492"
   alias: Bathroom Shower - Lights
   description: ""
@@ -670,3 +598,248 @@
         hours: 9
         minutes: 0
         seconds: 0
+- id: "1688322983719"
+  alias: Living Room - Door Occupancy
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.living_room_door_contact
+      from:
+      to:
+    - platform: state
+      entity_id:
+        - binary_sensor.living_room_motion_occupancy
+      from:
+      to:
+    - platform: homeassistant
+      event: start
+  condition: []
+  action:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{% set door_id = 'binary_sensor.living_room_door_contact'
+                %}\n{% set timeout = 10 %}\n\n{% set door_activity_timeout = now() - timedelta(seconds
+                = timeout) %}\n{% set door_last_updated = states[door_id].last_updated %}
+                \n{% set door_recently_updated = door_last_updated >= door_activity_timeout
+                %}\n\n{{ door_recently_updated }}"
+              alias: Door contact recently had activity
+          sequence:
+            - service: variable.update_sensor
+              data:
+                replace_attributes: false
+                attributes:
+                  icon: mdi:motion-sensor
+                value: "on"
+              target:
+                entity_id: sensor.living_room_door_occupancy
+              alias: Set door activity
+            - delay:
+                hours: 0
+                minutes: 0
+                seconds: 10
+                milliseconds: 0
+            - service: variable.update_sensor
+              data:
+                replace_attributes: false
+                value: "off"
+                attributes:
+                  icon: mdi:motion-sensor-off
+              target:
+                entity_id: sensor.living_room_door_occupancy
+              alias: Unset door activity
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.living_room_door_contact
+              state: "on"
+            - condition: state
+              entity_id: binary_sensor.living_room_motion_occupancy
+              state: "on"
+          sequence:
+            - service: variable.update_sensor
+              data:
+                replace_attributes: false
+                value: "on"
+                attributes:
+                  icon: mdi:motion-sensor
+              target:
+                entity_id: sensor.living_room_door_occupancy
+              alias: Set door activity
+      default:
+        - service: variable.update_sensor
+          data:
+            replace_attributes: false
+            value: "off"
+            attributes:
+              icon: mdi:motion-sensor-off
+          target:
+            entity_id: sensor.living_room_door_occupancy
+          alias: Unset door activity
+  mode: single
+- id: "1688367427268"
+  alias: Hallway - Presence
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - sensor.living_room_door_occupancy
+      id: doors
+      from: "off"
+      to: "on"
+    - platform: state
+      entity_id:
+        - input_select.hallway_presence
+      from:
+      to:
+      id: state
+    - platform: state
+      entity_id:
+        - timer.hallway_transition_timer
+      from:
+      to:
+      id: timer
+    - platform: state
+      entity_id:
+        - binary_sensor.hallway_human
+      from:
+      to:
+      id: human
+  condition: []
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_select.hallway_presence
+              state: absent
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id: doors
+                  sequence:
+                    - service: input_select.select_option
+                      data:
+                        option: entering
+                      target:
+                        entity_id: input_select.hallway_presence
+                - conditions:
+                    - condition: trigger
+                      id: state
+                  sequence:
+                    - service: timer.cancel
+                      data: {}
+                      target:
+                        entity_id: timer.hallway_transition_timer
+        - conditions:
+            - condition: state
+              entity_id: input_select.hallway_presence
+              state: entering
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id: state
+                  sequence:
+                    - service: timer.start
+                      data:
+                        duration: 00:00:10
+                      target:
+                        entity_id: timer.hallway_transition_timer
+                - conditions:
+                    - condition: trigger
+                      id: timer
+                    - condition: state
+                      entity_id: timer.hallway_transition_timer
+                      state: idle
+                  sequence:
+                    - service: input_select.select_option
+                      data:
+                        option: absent
+                      target:
+                        entity_id: input_select.hallway_presence
+                    - stop: Back to absent.
+                - conditions:
+                    - condition: trigger
+                      id: doors
+                  sequence:
+                    - service: timer.change
+                      data:
+                        duration: 00:00:10
+                      target:
+                        entity_id: timer.hallway_transition_timer
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.hallway_human
+                  state: "on"
+              then:
+                - service: input_select.select_option
+                  data:
+                    option: present
+                  target:
+                    entity_id: input_select.hallway_presence
+        - conditions:
+            - condition: state
+              entity_id: input_select.hallway_presence
+              state: present
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id: state
+                  sequence:
+                    - service: timer.cancel
+                      data: {}
+                      target:
+                        entity_id: timer.hallway_transition_timer
+                - conditions:
+                    - condition: trigger
+                      id: doors
+                  sequence:
+                    - service: input_select.select_option
+                      data:
+                        option: leaving
+                      target:
+                        entity_id: input_select.hallway_presence
+        - conditions:
+            - condition: state
+              entity_id: input_select.hallway_presence
+              state: leaving
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id: state
+                  sequence:
+                    - service: timer.start
+                      data:
+                        duration: 00:00:10
+                      target:
+                        entity_id: timer.hallway_transition_timer
+                - conditions:
+                    - condition: trigger
+                      id: timer
+                    - condition: state
+                      entity_id: timer.hallway_transition_timer
+                      state: idle
+                  sequence:
+                    - service: input_select.select_option
+                      data:
+                        option: present
+                      target:
+                        entity_id: input_select.hallway_presence
+                      alias: Back to present
+                    - stop: Back to present
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.hallway_human
+                  state: "off"
+              then:
+                - service: input_select.select_option
+                  data:
+                    option: absent
+                  target:
+                    entity_id: input_select.hallway_presence
+                  alias: Select absent
+  mode: queued

@@ -2,6 +2,6 @@
   "search.exclude": {
     "home-assistant/config/custom_components/**/*": true
   },
-  "prettier.prettierPath": "/opt/bin/prettier",
-  "bazel.buildifierExecutable": "/opt/bin/buildifier"
+  "bazel.buildifierExecutable": "/opt/bin/buildifier",
+  "prettier.resolveGlobalModules": false
 }

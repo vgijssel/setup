@@ -59,7 +59,6 @@ trace:
 
 variables:
   presence_entity_id: !input presence_entity_id
-  presence_variable: "{{ expand(presence_entity_id)[0].object_id }}"
   presence_indicator_entity_ids: !input presence_indicator_entity_ids
   presence_hint_entity_ids: !input presence_hint_entity_ids
   presence_timeout: !input presence_timeout
@@ -109,9 +108,10 @@ action:
               {% set has_presence = presence_hint_entities  | selectattr("last_changed", "greaterthan", now() - timedelta(seconds = presence_timeout)) | list | length > 0 %}
               {{ has_presence }}
 
-      - service: variable.set_variable
+      - service: variable.update_sensor
+        target:
+          entity_id: !input presence_entity_id
         data:
-          variable: "{{ presence_variable }}"
           value: "on"
           attributes:
             icon: mdi:home
@@ -131,9 +131,10 @@ action:
           {{ has_no_presence }}
         continue_on_timeout: false
 
-      - service: variable.set_variable
+      - service: variable.update_sensor
+        target:
+          entity_id: !input presence_entity_id
         data:
-          variable: "{{ presence_variable }}"
           value: "off"
           attributes:
             icon: mdi:home-outline

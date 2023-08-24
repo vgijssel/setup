@@ -109,7 +109,6 @@ variables:
   switch_entity_ids: "{{ expand(light_and_switch_entity_ids) | selectattr('domain', 'equalto', 'switch') | map(attribute='entity_id') | list }}"
   light_entity_ids: "{{ expand(light_and_switch_entity_ids) | selectattr('domain', 'equalto', 'light') | map(attribute='entity_id') | list }}"
   presence_entity_id: !input presence_entity_id
-  presence_variable: "{{ expand(presence_entity_id)[0].object_id }}"
   any_light_on: "{{ expand(light_and_switch_entity_ids) | selectattr('state', 'equalto', 'on') | list | length > 0 }}"
   any_light_off: "{{ expand(light_and_switch_entity_ids) | selectattr('state', 'equalto', 'off') | list | length > 0 }}"
 
@@ -130,9 +129,10 @@ action:
               {% set are_entities_on = expand(light_and_switch_entity_ids) | selectattr("state", "equalto", "on") | list | length > 0 %} 
               {{ are_entities_on }}
     then:
-      - service: variable.set_variable
+      - service: variable.update_sensor
+        target:
+          entity_id: !input presence_entity_id
         data:
-          variable: "{{ presence_variable }}"
           attributes:
             lights_manual_override: "on"
       - stop: >
@@ -158,9 +158,10 @@ action:
         then:
           - stop: Light triggered by automation. Stopping execution.
         else:
-          - service: variable.set_variable
+          - service: variable.update_sensor
+            target:
+              entity_id: !input presence_entity_id
             data:
-              variable: "{{ presence_variable }}"
               attributes:
                 lights_manual_override: "on"
           - stop: Light triggered externally, flagging manual override. Stopping execution.
@@ -170,9 +171,10 @@ action:
         entity_id: !input presence_entity_id
         state: "off"
     then:
-      - service: variable.set_variable
+      - service: variable.update_sensor
+        target:
+          entity_id: !input presence_entity_id
         data:
-          variable: "{{ presence_variable }}"
           attributes:
             lights_manual_override: "off"
             lights_triggered_by_automation: "off"
@@ -222,16 +224,18 @@ action:
               - condition: template
                 value_template: '{{ trigger.platform == "state" }}'
             then:
-              - service: variable.set_variable
+              - service: variable.update_sensor
+                target:
+                  entity_id: !input presence_entity_id
                 data:
-                  variable: "{{ presence_variable }}"
                   attributes:
                     trigger_context_id: "{{ trigger.to_state.context.id }}"
                     lights_manual_override: "off"
 
-          - service: variable.set_variable
+          - service: variable.update_sensor
+            target:
+              entity_id: !input presence_entity_id
             data:
-              variable: "{{ presence_variable }}"
               attributes:
                 lights_triggered_by_automation: "on"
 
@@ -254,9 +258,10 @@ action:
               - condition: template
                 value_template: '{{ trigger.platform == "state" }}'
             then:
-              - service: variable.set_variable
+              - service: variable.update_sensor
+                target:
+                  entity_id: !input presence_entity_id
                 data:
-                  variable: "{{ presence_variable }}"
                   attributes:
                     trigger_context_id: "{{ trigger.to_state.context.id }}"
                     lights_manual_override: "off"
