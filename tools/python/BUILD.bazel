@@ -1,19 +1,20 @@
 load("@rules_task//:defs.bzl", "cmd", "task")
-load("@python3//:defs.bzl", "interpreter")
+
+# load("@python3//:defs.bzl", "interpreter")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 
 package(default_visibility = ["//visibility:public"])
 
-task(
-    name = "python",
-    cmds = [
-        cmd.shell(
-            cmd.executable(interpreter),
-            "$CLI_ARGS",
-        ),
-    ],
-    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
-)
+# task(
+#     name = "python",
+#     cmds = [
+#         cmd.shell(
+#             cmd.executable(interpreter),
+#             "$CLI_ARGS",
+#         ),
+#     ],
+#     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
+# )
 
 python_base_image = select({
     "@platforms//cpu:aarch64": "@python_base_arm64//image",

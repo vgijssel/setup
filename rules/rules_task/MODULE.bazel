@@ -12,38 +12,19 @@ bazel_dep(name = "bazel_skylib", version = "1.4.2")
 bazel_dep(name = "aspect_bazel_lib", version = "1.32.1")
 
 # ------------------------------------ rules_python ------------------------------------ #
-PYTHON_NAME = "python3_rules_task"
-INTERPRETER_NAME = "interpreter3_rules_task"
-
 bazel_dep(name = "rules_python", version = "0.25.0")
+
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
-    name = PYTHON_NAME,
-    python_version = "3.10.8",
+    python_version = "3.11",
     configure_coverage_tool = True,
+    is_default = True,
 )
-
-use_repo(python, PYTHON_NAME)
-use_repo(python, "{}_toolchains".format(PYTHON_NAME))
-use_repo(python, "{}_aarch64-unknown-linux-gnu".format(PYTHON_NAME))
-use_repo(python, "{}_x86_64-unknown-linux-gnu".format(PYTHON_NAME))
-
-register_toolchains(
-    "@{}_toolchains//:all".format(PYTHON_NAME),
-)
-
-interpreter = use_extension("@rules_python//python/extensions:interpreter.bzl", "interpreter")
-interpreter.install(
-    name = INTERPRETER_NAME,
-    python_name = PYTHON_NAME,
-)
-use_repo(interpreter, INTERPRETER_NAME)
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
-    name = "pip",
-    incompatible_generate_aliases = True,
-    python_interpreter_target = "@{}//:python".format(INTERPRETER_NAME),
+    hub_name = "pip",
+    python_version = "3.11",
     requirements_lock = "//:requirements.txt",
 )
 use_repo(pip, "pip")
