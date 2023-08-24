@@ -29,7 +29,7 @@ PYTHON_NAME = "python3"
 
 INTERPRETER_NAME = "interpreter3"
 
-bazel_dep(name = "rules_python", version = "0.22.0")
+bazel_dep(name = "rules_python", version = "0.25.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
