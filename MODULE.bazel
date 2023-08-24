@@ -72,8 +72,8 @@ pip.parse(
 use_repo(pip, "pip-setup")
 
 # ------------------------------------ rules_js ------------------------------------ #
-bazel_dep(name = "aspect_rules_js", version = "1.29.0")
-bazel_dep(name = "rules_nodejs", version = "5.8.2")
+bazel_dep(name = "aspect_rules_js", version = "1.30.0")
+bazel_dep(name = "rules_nodejs", version = "6.0.0")
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 node.toolchain(node_version = "17.9.1")
@@ -99,4 +99,4 @@ use_repo(npm, "npm")
 
 # ------------------------------------ buildifier ------------------------------------ #
 # NOTE: don't upgrade to 6.1.0 because this has a bug where tests always pass
-bazel_dep(name = "buildifier_prebuilt", version = "6.0.0.1")
+bazel_dep(name = "buildifier_prebuilt", version = "6.1.2")
