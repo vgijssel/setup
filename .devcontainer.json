@@ -28,8 +28,7 @@
         "files.associations": {
           ".bazelrc": "plaintext"
         },
-        "editor.formatOnSave": true,
-        "prettier.prettierPath": "/opt/bin/prettier"
+        "editor.formatOnSave": true
       }
     }
   },

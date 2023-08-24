@@ -93,15 +93,6 @@ RUN case ${TARGETARCH} in \
     && curl --fail -L https://github.com/bazelbuild/bazelisk/releases/download/v${BAZELISK_VERSION}/bazelisk-linux-${BAZELISK_ARCH} --output /usr/local/bin/bazel \
     && chmod +x /usr/local/bin/bazel
 
-# Install bazel remote for Bazel S3 caching in the CI
-ENV BAZEL_REMOTE_VERSION="2.3.9"
-RUN case ${TARGETARCH} in \
-    "amd64")  BAZEL_REMOTE_ARCH=x86_64 ;; \
-    "arm64")  BAZEL_REMOTE_ARCH=arm64  ;; \
-    esac \
-    && curl --fail -L https://github.com/buchgr/bazel-remote/releases/download/v$BAZEL_REMOTE_VERSION/bazel-remote-$BAZEL_REMOTE_VERSION-linux-$BAZEL_REMOTE_ARCH --output /usr/local/bin/bazel-remote \
-    && chmod +x /usr/local/bin/bazel-remote
-
 # Install devcontainer specific bazelrc file
 ADD --chown=devcontainer:devcontainer tools/devcontainer/.bazelrc /home/devcontainer/.bazelrc
 

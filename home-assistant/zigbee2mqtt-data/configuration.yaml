@@ -4,7 +4,7 @@ mqtt:
   base_topic: zigbee2mqtt
   server: mqtt://mqtt
   keepalive: 60
-  password: '!secret mqtt_password'
+  password: "!secret mqtt_password"
   reject_unauthorized: true
   user: zigbee2mqtt
   version: 4
@@ -13,63 +13,62 @@ serial:
 frontend:
   port: 8080
 advanced:
-  network_key: '!secret network_key'
+  network_key: "!secret network_key"
   pan_id: 6755
   homeassistant_legacy_entity_attributes: false
   legacy_api: false
   legacy_availability_payload: false
-
   log_level: info
   channel: 25
 device_options:
   legacy: false
 homeassistant: true
 devices:
-  '0x54ef4410004d9481':
+  "0x54ef4410004d9481":
     friendly_name: office_human
-  '0x00158d000232d0f6':
+  "0x00158d000232d0f6":
     friendly_name: supply_closet_door
-  '0x00158d0002386344':
+  "0x00158d0002386344":
     friendly_name: toilet_door
-  '0x00158d0002286aa4':
+  "0x00158d0002286aa4":
     friendly_name: living_room_door
-  '0x0017880103298e01':
+  "0x0017880103298e01":
     friendly_name: laundry_room_motion
-  '0x54ef441000491b56':
+  "0x54ef441000491b56":
     friendly_name: bathroom_motion
-  '0x00158d000854274f':
+  "0x00158d000854274f":
     friendly_name: garden_door
-  '0x54ef4410004973e7':
+  "0x54ef4410004973e7":
     friendly_name: landing_motion
-  '0x54ef4410004972a3':
+  "0x54ef4410004972a3":
     friendly_name: living_room_motion
-  '0x00158d0007e75b53':
+  "0x00158d0007e75b53":
     friendly_name: bathroom_door
-  '0x00158d0007ef9f06':
+  "0x00158d0007ef9f06":
     friendly_name: bedroom_door
-  '0x84fd27fffe953a35':
+  "0x84fd27fffe953a35":
     friendly_name: bedroom_2_button
-  '0x2c1165fffe6dc628':
+  "0x2c1165fffe6dc628":
     friendly_name: bedroom_1_button
-  '0x54ef441000490f71':
+  "0x54ef441000490f71":
     friendly_name: toilet_motion
-  '0x00158d000854aea1':
+  "0x00158d000854aea1":
     friendly_name: baby_room_door
-  '0x54ef4410004919b1':
+  "0x54ef4410004919b1":
     friendly_name: hallway_motion
-  '0x54ef441000491875':
+  "0x54ef441000491875":
     friendly_name: living_room_garden_motion
-  '0x00158d0002286a8a':
+  "0x00158d0002286a8a":
     friendly_name: hallway_door
-  '0x54ef4410001ff9a4':
+  "0x54ef4410001ff9a4":
     friendly_name: office_illuminance
-  '0x54ef4410001ff3da':
+  "0x54ef4410001ff3da":
     friendly_name: baby_room_illuminance
-  '0x54ef4410004e44a9':
+  "0x54ef4410004e44a9":
     friendly_name: bedroom_motion
-  '0x54ef4410004e39af':
+  "0x54ef4410004e39af":
     friendly_name: office_motion
-  '0x54ef4410004e3ea7':
+  "0x54ef4410004e3ea7":
     friendly_name: baby_room_motion
-  '0x00158d00085428bc':
+  "0x00158d00085428bc":
     friendly_name: office_door
