@@ -77,7 +77,10 @@ filegroup(
 
 compile_pip_requirements(
     name = "requirements",
-    extra_args = ["--allow-unsafe"],
+    extra_args = [
+        "--allow-unsafe",
+        "--verbose",
+    ],
     requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
 )
