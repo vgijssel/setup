@@ -16,7 +16,7 @@ bazel_dep(name = "rules_python", version = "0.25.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
-    python_version = "3.11",
+    python_version = "3.10",
     configure_coverage_tool = True,
     is_default = True,
 )
@@ -24,7 +24,7 @@ python.toolchain(
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
     hub_name = "pip",
-    python_version = "3.11",
+    python_version = "3.10",
     requirements_lock = "//:requirements.txt",
 )
 use_repo(pip, "pip")
