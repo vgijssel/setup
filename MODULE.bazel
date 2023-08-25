@@ -46,7 +46,7 @@ use_repo(pip, "pip-setup")
 
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(name = "aspect_rules_js", version = "1.30.0")
-bazel_dep(name = "rules_nodejs", version = "6.0.0")
+bazel_dep(name = "rules_nodejs", version = "6.0.1")
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 node.toolchain(node_version = "17.9.1")
