@@ -179,8 +179,8 @@ http_file(
     name = "regctl_arm64",
     downloaded_file_path = "regctl",
     executable = True,
-    sha256 = "1a6274526eaab761edeb45b9bd696f57bc5a62b2eeeaec947ba4456c9afbd06b",
-    url = "https://github.com/regclient/regclient/releases/download/v0.5.0/regctl-linux-arm64",
+    sha256 = "17312dadc43ed24886076b0669bc36a9d790c26140fbacb66b0b89f5f96ece52",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.1/regctl-linux-arm64",
 )
 
 http_file(
