@@ -332,12 +332,12 @@ semver = ">=2.8.1"
 
 [[package]]
 name = "pulumi-docker"
-version = "4.3.0"
+version = "4.3.2"
 description = "A Pulumi package for interacting with Docker in Pulumi programs"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pulumi_docker-4.3.0.tar.gz", hash = "sha256:58dc0cb354240a209846f63dd95a2d2638c7dde57d63687c5ed1888ddd5cfa8c"},
+    {file = "pulumi_docker-4.3.2.tar.gz", hash = "sha256:5302936f0fdcd7fb8691cfb572fef9463a9520707194e5187b1b7043cf9c592f"},
 ]
 
 [package.dependencies]
