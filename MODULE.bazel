@@ -72,4 +72,4 @@ use_repo(npm, "npm")
 
 # ------------------------------------ buildifier ------------------------------------ #
 # NOTE: don't upgrade to 6.1.0 because this has a bug where tests always pass
-bazel_dep(name = "buildifier_prebuilt", version = "6.1.2")
+bazel_dep(name = "buildifier_prebuilt", version = "6.3.3")
