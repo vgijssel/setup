@@ -1314,7 +1314,9 @@ pynacl==1.5.0 \
 pyopenssl==23.1.0 \
     --hash=sha256:8cb78010a1eb2c8e24b851693b7b04dfe9b1dc0a5ab3843927b10a85b1dfbb2e \
     --hash=sha256:fb96e936866ad65662c22d0de84ca0fba58397893cdfe0f01334fa93382af23c
-    # via homeassistant
+    # via
+    #   -r requirements.in
+    #   homeassistant
 pyspnego==0.9.1 \
     --hash=sha256:07417f90328fb57c19a383e59b65060d4fc101441b74c34dbe4ba860775b0a3a \
     --hash=sha256:4b79d5ba55ada38833d2421c44ed30a7313c00cbf34fa919dd106049616307d3 \

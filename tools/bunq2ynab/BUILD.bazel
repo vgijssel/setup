@@ -1,0 +1,61 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@pip-setup//:requirements.bzl", "requirement")
+load("@rules_task//:defs.bzl", "cmd", "task")
+
+py_binary(
+    name = "list_user_binary",
+    srcs = ["@bunq2ynab//:list_user.py"],
+    main = "list_user.py",
+    deps = [
+        "@bunq2ynab//:lib",
+        requirement("requests"),
+        requirement("pyopenssl"),
+    ],
+)
+
+py_binary(
+    name = "list_budget_binary",
+    srcs = ["@bunq2ynab//:list_budget.py"],
+    main = "list_budget.py",
+    deps = [
+        "@bunq2ynab//:lib",
+        requirement("requests"),
+        requirement("pyopenssl"),
+    ],
+)
+
+py_binary(
+    name = "bunq2ynab_binary",
+    srcs = ["@bunq2ynab//:bunq2ynab.py"],
+    main = "bunq2ynab.py",
+    deps = [
+        "@bunq2ynab//:lib",
+        requirement("requests"),
+        requirement("pyopenssl"),
+    ],
+)
+
+task(
+    name = "list_user",
+    cmds = [
+        cmd.executable("list_user_binary"),
+    ],
+    cwd = "$BUILD_WORKSPACE_DIRECTORY",
+)
+
+task(
+    name = "list_budget",
+    cmds = [
+        cmd.executable("list_budget_binary"),
+    ],
+)
+
+task(
+    name = "bunq2ynab",
+    cmds = [
+        cmd.shell(
+            cmd.executable("bunq2ynab_binary"),
+            "--all",
+        ),
+    ],
+)
