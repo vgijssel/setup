@@ -1,4 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 # ------------------------------------ rules_docker ------------------------------------ #
 # https://github.com/bazelbuild/rules_docker/pull/2201
@@ -205,4 +206,13 @@ http_archive(
     build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
     sha256 = "85d967462ade994d37fc8d4906579d33b6fbb1744bab4a7cceb0c12424fb0f1d",
     url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.2/mutagen_linux_amd64_v0.17.2.tar.gz",
+)
+
+# ------------------------------------ bunq2ynab ------------------------------------ #
+
+git_repository(
+    name = "bunq2ynab",
+    build_file = "//tools/bunq2ynab:BUILD.repositories.bazel.tpl",
+    commit = "562d63d7d708f7beb18173d4f5c48050fe207aea",
+    remote = "https://github.com/wesselt/bunq2ynab.git",
 )

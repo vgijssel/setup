@@ -3,5 +3,8 @@
     "home-assistant/config/custom_components/**/*": true
   },
   "bazel.buildifierExecutable": "/opt/bin/buildifier",
-  "prettier.resolveGlobalModules": false
+  "prettier.resolveGlobalModules": false,
+  "files.associations": {
+    "WORKSPACE.bzlmod": "starlark"
+  }
 }
