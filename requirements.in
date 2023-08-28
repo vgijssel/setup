@@ -14,4 +14,3 @@ semver==2.13.0;
 bazel-runfiles==0.24.0;
 requests==2.31.0;
 pyOpenSSL==23.1.0;
-# miniupnpc==2.2.2;
