@@ -214,7 +214,7 @@ git_repository(
     name = "bunq2ynab",
     build_file = "//tools/bunq2ynab:BUILD.repositories.bazel.tpl",
     commit = "38e62454e86041b604e21db13eafc1d3376de170",
-    remote = "git@github.com:mvgijssel/bunq2ynab.git",
+    remote = "https://github.com/mvgijssel/bunq2ynab.git",
 )
 
 # new_local_repository(
