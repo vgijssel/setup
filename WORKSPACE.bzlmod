@@ -210,15 +210,15 @@ http_archive(
 
 # ------------------------------------ bunq2ynab ------------------------------------ #
 
-# git_repository(
-#     name = "bunq2ynab",
-#     build_file = "//tools/bunq2ynab:BUILD.repositories.bazel.tpl",
-#     commit = "562d63d7d708f7beb18173d4f5c48050fe207aea",
-#     remote = "https://github.com/wesselt/bunq2ynab.git",
-# )
-
-new_local_repository(
+git_repository(
     name = "bunq2ynab",
     build_file = "//tools/bunq2ynab:BUILD.repositories.bazel.tpl",
-    path = "/workspaces/bunq2ynab",
+    commit = "38e62454e86041b604e21db13eafc1d3376de170",
+    remote = "git@github.com:mvgijssel/bunq2ynab.git",
 )
+
+# new_local_repository(
+#     name = "bunq2ynab",
+#     build_file = "//tools/bunq2ynab:BUILD.repositories.bazel.tpl",
+#     path = "/workspaces/bunq2ynab",
+# )
