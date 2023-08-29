@@ -79,6 +79,8 @@ compile_pip_requirements(
     name = "requirements",
     extra_args = [
         "--allow-unsafe",
+    ],
+    hidden_args = [
         "--verbose",
     ],
     requirements_in = "requirements.in",
