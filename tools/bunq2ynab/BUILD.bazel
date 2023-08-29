@@ -59,3 +59,22 @@ task(
         ),
     ],
 )
+
+py_binary(
+    name = "generate_oauth_token_binary",
+    srcs = ["@bunq2ynab//:generate_oauth_token.py"],
+    main = "generate_oauth_token.py",
+    deps = [
+        "@bunq2ynab//:lib",
+        requirement("requests"),
+        requirement("pyopenssl"),
+    ],
+)
+
+task(
+    name = "generate_oauth_token",
+    cmds = [
+        cmd.executable("generate_oauth_token_binary"),
+    ],
+    cwd = "$BUILD_WORKSPACE_DIRECTORY",
+)

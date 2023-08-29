@@ -5,6 +5,8 @@
   "bazel.buildifierExecutable": "/opt/bin/buildifier",
   "prettier.resolveGlobalModules": false,
   "files.associations": {
-    "WORKSPACE.bzlmod": "starlark"
-  }
+    "WORKSPACE.bzlmod": "starlark",
+    ".bazelrc": "plaintext"
+  },
+  "editor.formatOnSave": true
 }

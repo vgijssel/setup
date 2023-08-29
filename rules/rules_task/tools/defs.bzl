@@ -2,11 +2,12 @@ load("@rules_task//:defs.bzl", "cmd", "task")
 load("@pip//:requirements.bzl", "requirement")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 
-def compile_pip_requirements(name, requirements_in, requirements_txt, extra_args = []):
+def compile_pip_requirements(name, requirements_in, requirements_txt, extra_args = [], hidden_args = []):
     pip_compile_name = name
     pip_compile_update_name = "{}.update".format(name)
     pip_compile_compare_name = "{}_compare".format(name)
     pip_compile_test_name = "{}_test".format(name)
+    pip_compile_hidden_args = hidden_args
 
     pip_compile_shared_args = extra_args + [
         "--generate-hashes",
@@ -16,7 +17,7 @@ def compile_pip_requirements(name, requirements_in, requirements_txt, extra_args
         requirements_in,
     ]
 
-    pip_compile_args = pip_compile_shared_args + [
+    pip_compile_args = pip_compile_shared_args + pip_compile_hidden_args + [
         "--output-file",
         "$REQUIREMENTS_TXT",
         requirements_in,

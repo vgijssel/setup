@@ -8,7 +8,6 @@ sudo chown devcontainer:devcontainer /home/devcontainer/bazel
 
 # Ensure the linters are built for local development
 bazel run --script_path=/opt/bin/black //tools/black
-bazel run --script_path=/opt/bin/python //tools/python
 bazel run --script_path=/opt/bin/lefthook //tools/lefthook
 bazel run --script_path=/opt/bin/pnpm @pnpm-setup//:pnpm
 bazel run --script_path=/opt/bin/prettier //:prettier

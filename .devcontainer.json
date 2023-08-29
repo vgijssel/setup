@@ -24,11 +24,7 @@
       "settings": {
         "python.formatting.provider": "black",
         "python.formatting.blackPath": "/opt/bin/black",
-        "terminal.integrated.scrollback": 10000,
-        "files.associations": {
-          ".bazelrc": "plaintext"
-        },
-        "editor.formatOnSave": true
+        "terminal.integrated.scrollback": 10000
       }
     }
   },
@@ -36,7 +32,8 @@
   "containerUser": "devcontainer",
   "mounts": [
     "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock",
-    "source=setup-bazel,target=/home/devcontainer/bazel,type=volume"
+    "source=setup-bazel,target=/home/devcontainer/bazel,type=volume",
+    "source=${localWorkspaceFolder}/../bunq2ynab,target=/workspaces/bunq2ynab,type=bind,consistency=cached"
   ],
   "shutdownAction": "stopContainer",
   "postAttachCommand": "bin/post-setup",

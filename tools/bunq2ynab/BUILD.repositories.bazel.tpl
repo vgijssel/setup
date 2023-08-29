@@ -11,4 +11,5 @@ exports_files([
     "list_user.py",
     "list_budget.py",
     "bunq2ynab.py",
+    "generate_oauth_token.py",
 ])
