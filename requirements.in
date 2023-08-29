@@ -5,7 +5,7 @@ pytest-testinfra==8.1.0;
 pytest-opentelemetry==0.6.2;
 PyYAML==6.0;
 pulumi==3.75.0;
-pulumi-command==0.7.2;
+pulumi-command==0.8.2;
 pulumi-kubernetes==3.30.2;
 pytest-homeassistant-custom-component==0.13.39;
 tzdata==2023.3;

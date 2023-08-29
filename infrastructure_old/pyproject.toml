@@ -11,7 +11,7 @@ pulumi-kubernetes = "^3.12.1"
 onepasswordconnectsdk = "^1.1.0"
 pulumi-vault = "^5.1.0"
 pulumi-docker = "^4.0.0"
-pulumi-command = "^0.7.0"
+pulumi-command = "^0.8.0"
 
 [tool.poetry.group.dev.dependencies]
 debugpy = "^1.5.1"
