@@ -1208,8 +1208,8 @@ pulumi==3.79.0 \
 pulumi-command==0.8.2 \
     --hash=sha256:2cacfa1dda6972e3ca2b2116cbd15007526cca449d5fe4e3f608c8e5a9795ed3
     # via -r requirements.in
-pulumi-kubernetes==3.30.2 \
-    --hash=sha256:8a7804ec2f2f0da86c153312d63a4ea34af200b24601e58c3c54b81807204ec1
+pulumi-kubernetes==4.1.1 \
+    --hash=sha256:46ba620d6bfe4c6a57246051710aaec0488453f4fe15dbbf8985399b977bec46
     # via -r requirements.in
 pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
@@ -1440,7 +1440,6 @@ pyyaml==6.0 \
     #   -r requirements.in
     #   homeassistant
     #   pulumi
-    #   pulumi-kubernetes
 requests==2.31.0 \
     --hash=sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f \
     --hash=sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1
