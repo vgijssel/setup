@@ -38,26 +38,46 @@ py_binary(
 task(
     name = "list_user",
     cmds = [
-        cmd.executable("list_user_binary"),
+        "export CONFIG_FILE=$(pwd)/config.json",
+        "$OP inject --in-file=$CONFIG_FILE_TPL --out-file=$CONFIG_FILE --force",
+        {"defer": "rm -rf $CONFIG_FILE"},
+        "$BINARY --config $CONFIG_FILE",
     ],
-    cwd = "$BUILD_WORKSPACE_DIRECTORY",
+    env = {
+        "BINARY": cmd.executable("list_user_binary"),
+        "OP": cmd.executable("//tools/onepassword:op"),
+        "CONFIG_FILE_TPL": cmd.file("config.json.tpl"),
+    },
 )
 
 task(
     name = "list_budget",
     cmds = [
-        cmd.executable("list_budget_binary"),
+        "export CONFIG_FILE=$(pwd)/config.json",
+        "$OP inject --in-file=$CONFIG_FILE_TPL --out-file=$CONFIG_FILE --force",
+        {"defer": "rm -rf $CONFIG_FILE"},
+        "$BINARY --config $CONFIG_FILE",
     ],
+    env = {
+        "BINARY": cmd.executable("list_budget_binary"),
+        "OP": cmd.executable("//tools/onepassword:op"),
+        "CONFIG_FILE_TPL": cmd.file("config.json.tpl"),
+    },
 )
 
 task(
     name = "bunq2ynab",
     cmds = [
-        cmd.shell(
-            cmd.executable("bunq2ynab_binary"),
-            "--all",
-        ),
+        "export CONFIG_FILE=$(pwd)/config.json",
+        "$OP inject --in-file=$CONFIG_FILE_TPL --out-file=$CONFIG_FILE --force",
+        {"defer": "rm -rf $CONFIG_FILE"},
+        "$BINARY --config $CONFIG_FILE",
     ],
+    env = {
+        "BINARY": cmd.executable("bunq2ynab_binary"),
+        "OP": cmd.executable("//tools/onepassword:op"),
+        "CONFIG_FILE_TPL": cmd.file("config.json.tpl"),
+    },
 )
 
 py_binary(
@@ -74,7 +94,9 @@ py_binary(
 task(
     name = "generate_oauth_token",
     cmds = [
-        cmd.executable("generate_oauth_token_binary"),
+        "$BINARY --oauth-client-id $CLIENT_ID --oauth-client-secret $CLIENT_SECRET",
     ],
-    cwd = "$BUILD_WORKSPACE_DIRECTORY",
+    env = {
+        "BINARY": cmd.executable("generate_oauth_token_binary"),
+    },
 )
