@@ -1,6 +1,6 @@
 load("@rules_python//python:defs.bzl", "py_binary")
 load("@pip-setup//:requirements.bzl", "requirement")
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 
 py_binary(
     name = "list_user_binary",
@@ -38,6 +38,7 @@ py_binary(
 task(
     name = "list_user",
     cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
         "export CONFIG_FILE=$(pwd)/config.json",
         "$OP inject --in-file=$CONFIG_FILE_TPL --out-file=$CONFIG_FILE --force",
         {"defer": "rm -rf $CONFIG_FILE"},
@@ -48,6 +49,13 @@ task(
         "OP": cmd.executable("//tools/onepassword:op"),
         "CONFIG_FILE_TPL": cmd.file("config.json.tpl"),
     },
+)
+
+task_test(
+    name = "list_user_test",
+    cmds = [
+        cmd.executable("list_user"),
+    ],
 )
 
 task(
