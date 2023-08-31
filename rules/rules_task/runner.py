@@ -57,9 +57,9 @@ trap_add() {
     new_cmd=
     for trap_add_name in "$@"; do
         # Grab the currently defined trap commands for this trap
-        existing_cmd=`trap -p "${trap_add_name}" |  awk -F"'" '{print $2}'`
+        existing_cmd=`trap -p "${trap_add_name}" |  awk -F"'" '{echo $2}'`
 
-        [ -z "${existing_cmd}" ] && existing_cmd="print"
+        [ -z "${existing_cmd}" ] && existing_cmd="echo"
 
         # Generate the new command
         new_cmd="${existing_cmd};${trap_add_cmd}"

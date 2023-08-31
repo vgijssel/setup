@@ -213,7 +213,7 @@ http_archive(
 git_repository(
     name = "bunq2ynab",
     build_file = "//tools/bunq2ynab:BUILD.repositories.bazel.tpl",
-    commit = "38e62454e86041b604e21db13eafc1d3376de170",
+    commit = "239090a8348ab985b7c01af18e84b27923edfe82",
     remote = "https://github.com/mvgijssel/bunq2ynab.git",
 )
 
