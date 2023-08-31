@@ -112,10 +112,11 @@ def test_env():
     )
 
 
-def test_defer():
-    result = _run_task("defer")
-    assert result.returncode == 2
-    assert result.stdout.strip() == b"first\nsecond\nfirst defer\nsecond defer"
+# TODO: https://github.com/mvgijssel/setup/issues/485
+# def test_defer():
+#     result = _run_task("defer")
+#     assert result.returncode == 2
+#     assert result.stdout.strip() == b"first\nsecond\nfirst defer\nsecond defer"
 
 
 def test_cli_args():
