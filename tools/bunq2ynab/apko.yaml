@@ -1,0 +1,17 @@
+contents:
+  repositories:
+    - https://dl-cdn.alpinelinux.org/alpine/edge/main
+    - "@local /Users/maarten/Development/setup/tools/bunq2ynab/packages"
+  packages:
+    - alpine-base
+    - kerk_package@local
+
+entrypoint:
+  command: /bin/sh -l
+
+# optional environment configuration
+environment:
+  PATH: /usr/sbin:/sbin:/usr/bin:/bin
+
+archs:
+  - arm64

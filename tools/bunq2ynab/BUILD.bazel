@@ -1,6 +1,7 @@
 load("@rules_python//python:defs.bzl", "py_binary")
 load("@pip-setup//:requirements.bzl", "requirement")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
 py_binary(
     name = "list_user_binary",
@@ -110,4 +111,20 @@ task(
         "BINARY": cmd.executable("generate_oauth_token_binary"),
         "OP": cmd.executable("//tools/onepassword:op"),
     },
+)
+
+task(
+    name = "kerk",
+    cmds = [
+        "echo kerk",
+    ],
+)
+
+pkg_tar(
+    name = "kerk_tar",
+    srcs = [
+        ":kerk",
+    ],
+    include_runfiles = True,
+    strip_prefix = ".",
 )
