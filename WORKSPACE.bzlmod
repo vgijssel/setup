@@ -91,8 +91,8 @@ http_file(
     name = "lefthook_amd64",
     downloaded_file_path = "lefthook",
     executable = True,
-    sha256 = "375cb760d6ea6e3f46cc71f5cca3d13c4cc8da95e3d3632084599949ea0fc7fc",
-    url = "https://github.com/evilmartians/lefthook/releases/download/v1.4.9/lefthook_1.4.9_Linux_x86_64.gz",
+    sha256 = "fda468cb2c6623f77e24f743eb2935f0d2fa93c883d3f237bbc33017a5908fb3",
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.4.10/lefthook_1.4.10_Linux_x86_64.gz",
 )
 
 http_file(
