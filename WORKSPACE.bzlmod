@@ -108,8 +108,8 @@ http_file(
 http_archive(
     name = "pulumi_arm64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "cfe5cae7062f05cdb69ef21c889ae3864fb357d3c5d2088dd287dc5b42f95346",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.80.0/pulumi-v3.80.0-linux-arm64.tar.gz",
+    sha256 = "744e2e50fef39e052da8f6589dc8b3da271e0adaf7e5b544619c5b35d42fb6ba",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.81.0/pulumi-v3.81.0-linux-arm64.tar.gz",
 )
 
 http_archive(
