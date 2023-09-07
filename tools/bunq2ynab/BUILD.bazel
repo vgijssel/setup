@@ -2,6 +2,7 @@ load("@rules_python//python:defs.bzl", "py_binary")
 load("@pip-setup//:requirements.bzl", "requirement")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//tools/bunq2ynab:rules.bzl", "pkg_executable")
 
 py_binary(
     name = "list_user_binary",
@@ -120,10 +121,23 @@ task(
     ],
 )
 
+pkg_executable(
+    name = "kerk_executable",
+    bin = ":kerk",
+    path = "kerk",
+)
+
+# TODO: currently the task does not run in the docker container
+# because the runfiles structure is different breaking the runfiles functions.
+# https://github.com/bazelbuild/rules_pkg/issues/392
+# Two things still broken:
+# 1. PYTHON_BINARY is hardcoded in the python runner. Can we get rid of this? Because the included Python does not seem to work.
+#    maybe similar approach as rules_docker? Update the toolchain for the target or something?
+# 2. The symlink is absolute not relative, maybe has something to do with how we extract in melango?
 pkg_tar(
     name = "kerk_tar",
     srcs = [
-        ":kerk",
+        ":kerk_executable",
     ],
     include_runfiles = True,
     strip_prefix = ".",

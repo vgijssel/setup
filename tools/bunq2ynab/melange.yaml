@@ -4,7 +4,9 @@ package:
   epoch: 0
   description: "kerk package"
   target-architecture:
-    - arm64
+    - all
+    # - arm64
+    # - arm64
   copyright:
     - paths:
         - "*"
@@ -46,11 +48,17 @@ environment:
   #     - username: nginx
   #       uid: 10000
 
+vars:
+  # variable needs to be relative to melange execution
+  # as melange starts a docker container with a volume mount in the directory it's running
+  kerk_tar: kerk_tar.tar
+
 pipeline:
-  - runs: ls -la
+  - name: debug
+    runs: pwd
+  - name: debug
+    runs: ls -la
   - name: "Create kerk_package dir"
     runs: mkdir -p ${{targets.destdir}}/opt/${{package.name}}
-  # TODO: untar the kerk_tar file into the kerk_package dir
-  - name: "Copy hello.sh"
-    runs: cp -v hello.sh ${{targets.destdir}}/opt/${{package.name}}
-  # - uses: strip
+  - name: "Untar the kerk_tar file into the kerk_package dir"
+    runs: tar -xvf ${{vars.kerk_tar}} -C ${{targets.destdir}}/opt/${{package.name}}
