@@ -14,6 +14,7 @@ package:
       license: BSD-2-Clause
   dependencies:
     runtime:
+      # TODO: I though this would be added to the apko image? But have to install it separately anyway??
       - python3
 
 environment:
@@ -52,6 +53,7 @@ vars:
   # variable needs to be relative to melange execution
   # as melange starts a docker container with a volume mount in the directory it's running
   kerk_tar: kerk_tar.tar
+  shine_zip: shine.zip
 
 pipeline:
   - name: debug
@@ -60,5 +62,7 @@ pipeline:
     runs: ls -la
   - name: "Create kerk_package dir"
     runs: mkdir -p ${{targets.destdir}}/opt/${{package.name}}
-  - name: "Untar the kerk_tar file into the kerk_package dir"
-    runs: tar -xvf ${{vars.kerk_tar}} -C ${{targets.destdir}}/opt/${{package.name}}
+  # - name: "Untar the kerk_tar file into the kerk_package dir"
+  #   runs: tar -xvf ${{vars.kerk_tar}} -C ${{targets.destdir}}/opt/${{package.name}}
+  - name: "Copy shine.zip into image"
+    runs: cp -v ${{vars.shine_zip}} ${{targets.destdir}}/opt/${{package.name}}

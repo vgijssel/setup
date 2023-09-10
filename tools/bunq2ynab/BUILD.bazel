@@ -142,3 +142,62 @@ pkg_tar(
     include_runfiles = True,
     strip_prefix = ".",
 )
+
+# We have to use a custom packaging rule because rules_task is a custom executable
+# What if rules_task outputs a py_binary? Then maybe we can use the python zip output group
+# and package / upload this with Meltange and Apko!
+#
+# Steps to validate:
+# 1. create py_binary target shine
+# 2. zip up the py_binary target with output group
+# 3. modify melange build to include the zip file
+# 4. build the image with apko
+# 5. load the image in docker
+# 6. enjoy?!
+# 7. also try py_binary with runfiles that includes another py_binary!
+#
+# Seems Python zip suffers from the same problems as pkg_executable, the python wrapper still contains a reference to the Python toolchain
+# So how to remove the reference to the Python toolchain?
+#
+
+# py_runtime(
+#     name = "default_container_py2_runtime",
+#     interpreter_path = "/usr/bin/python",
+#     python_version = "PY2",
+# )
+
+# py_runtime(
+#     name = "default_container_py3_runtime",
+#     interpreter_path = "/usr/bin/python3",
+#     python_version = "PY3",
+# )
+
+# py_runtime_pair(
+#     name = "default_container_py_runtime_pair",
+#     py2_runtime = ":default_container_py2_runtime",
+#     py3_runtime = ":default_container_py3_runtime",
+# )
+
+# toolchain(
+#     name = "container_py_toolchain",
+#     exec_compatible_with = [
+#         "@io_bazel_rules_docker//platforms:run_in_container",
+#     ],
+#     toolchain = ":default_container_py_runtime_pair",
+#     toolchain_type = "@bazel_tools//tools/python:toolchain_type",
+# )
+
+py_binary(
+    name = "shine",
+    srcs = [
+        "shine.py",
+    ],
+    exec_compatible_with = [
+        "@io_bazel_rules_docker//platforms:run_in_container",
+        # "@platforms//os:linux",
+        # "@platforms//cpu:aarch64",
+    ],
+    # target_compatible_with = [
+    #     "@io_bazel_rules_docker//platforms:run_in_container",
+    # ],
+)
