@@ -115,8 +115,8 @@ http_archive(
 http_archive(
     name = "pulumi_amd64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "7a3cc003a9194bc443e41de08c5b1f297586838bf32e33f9c4c1f9a181ca3b09",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.81.0/pulumi-v3.81.0-linux-x64.tar.gz",
+    sha256 = "cea2bbd2b3dfacc809f65a4fdca77ed78255526f98c8c186126e65afd528814d",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.82.0/pulumi-v3.82.0-linux-x64.tar.gz",
 )
 
 # ------------------------------------ buildbuddy Remote Build Execution ------------------------------------ #
