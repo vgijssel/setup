@@ -81,8 +81,8 @@ http_file(
 http_archive(
     name = "tilt_arm64",
     build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
-    sha256 = "4d10df953d8d3386923ef0bf37f2a9626fca3e0a8c572386ffd7c97ee5704b3a",
-    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.4/tilt.0.33.4.linux.arm64.tar.gz",
+    sha256 = "9d1a9f69a7ec337493096c8146272a5d86dd49a66dc84acdcd93be4d7af38c18",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.5/tilt.0.33.5.linux.arm64.tar.gz",
 )
 
 # ------------------------------------ lefthook ------------------------------------ #
@@ -91,16 +91,16 @@ http_file(
     name = "lefthook_amd64",
     downloaded_file_path = "lefthook",
     executable = True,
-    sha256 = "375cb760d6ea6e3f46cc71f5cca3d13c4cc8da95e3d3632084599949ea0fc7fc",
-    url = "https://github.com/evilmartians/lefthook/releases/download/v1.4.9/lefthook_1.4.9_Linux_x86_64.gz",
+    sha256 = "fda468cb2c6623f77e24f743eb2935f0d2fa93c883d3f237bbc33017a5908fb3",
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.4.10/lefthook_1.4.10_Linux_x86_64.gz",
 )
 
 http_file(
     name = "lefthook_arm64",
     downloaded_file_path = "lefthook",
     executable = True,
-    sha256 = "388e3f218129d4463637794b1bb8caab92d85a82daf98fe1f6565378606416e9",
-    url = "https://github.com/evilmartians/lefthook/releases/download/v1.4.9/lefthook_1.4.9_Linux_arm64.gz",
+    sha256 = "c766a543e82c46959b2673634ee8b7fe50ba82a00b9f352be744274d3595fe2b",
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.4.10/lefthook_1.4.10_Linux_arm64.gz",
 )
 
 # ------------------------------------ pulumi ------------------------------------ #
@@ -108,15 +108,15 @@ http_file(
 http_archive(
     name = "pulumi_arm64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "a952a877e564a14b835683ba57376776dd6323ddcd985e48be8605bd99d1f19b",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.79.0/pulumi-v3.79.0-linux-arm64.tar.gz",
+    sha256 = "744e2e50fef39e052da8f6589dc8b3da271e0adaf7e5b544619c5b35d42fb6ba",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.81.0/pulumi-v3.81.0-linux-arm64.tar.gz",
 )
 
 http_archive(
     name = "pulumi_amd64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "6daed6601d41bb0982e3d56f35cfa7f149ceeb1877ecfd2ff715cff06c642c0e",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.79.0/pulumi-v3.79.0-linux-x64.tar.gz",
+    sha256 = "7a3cc003a9194bc443e41de08c5b1f297586838bf32e33f9c4c1f9a181ca3b09",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.81.0/pulumi-v3.81.0-linux-x64.tar.gz",
 )
 
 # ------------------------------------ buildbuddy Remote Build Execution ------------------------------------ #
