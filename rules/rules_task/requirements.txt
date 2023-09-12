@@ -98,9 +98,9 @@ coverage[toml]==7.3.1 \
     --hash=sha256:f2781fd3cabc28278dc982a352f50c81c09a1a500cc2086dc4249853ea96b981 \
     --hash=sha256:f4f456590eefb6e1b3c9ea6328c1e9fa0f1006e7481179d749b3376fc793478e
     # via pytest-cov
-deepdiff==6.4.1 \
-    --hash=sha256:065cdbbe62f66447cf507b32351579ffcc4a80bb28f567ac27e92a21ddca99f9 \
-    --hash=sha256:744c4e54ff83eaa77a995b3311dccdce6ee67773335a34a5ef269fa048005457
+deepdiff==6.5.0 \
+    --hash=sha256:080b1359d6128f3f5f1738c6be3064f0ad9b0cc41994aa90a028065f6ad11f25 \
+    --hash=sha256:acdc1651a3e802415e0337b7e1192df5cd7c17b72fbab480466fdd799b9a72e7
     # via -r requirements.in
 exceptiongroup==1.1.3 \
     --hash=sha256:097acd85d473d75af5bb98e41b61ff7fe35efe6675e4f9370ec6ec5126d160e9 \
