@@ -320,6 +320,7 @@ _shared_attrs = {
         cfg = "target",
         executable = True,
     ),
+    "target_platforms": attr.label_list(allow_files = False),
     "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
     # This attribute is required to use starlark transitions. It allows
     # allowlisting usage of this rule. For more information, see
@@ -371,25 +372,7 @@ def _task_rule_prep(kwargs, testonly = False):
     return runner_name, cmd_data, cmd_json
 
 def _transition_impl(settings, attr):
-    _ignore = settings
-
-    print("settings:")
-    print(settings)
-
-    print("attr")
-    print(attr)
-
-    print("shine")
-
-    # Attaching the special prefix "//comand_line_option" to the name of a native
-    # flag makes the flag available to transition on. The result of this transition
-    # is to set --cpu
-    # We read the value from the attr also named `cpu` which allows target writers
-    # to modify how the transition works. This could also just be a hardcoded
-    # string like "x86" if you didn't want to give target writers that power.
-    # return {}
-    return {"//command_line_option:platforms": ["@@//:shine_platform"]}
-    # return {"//command_line_option:cpu": "x86_64"}
+    return {"//command_line_option:platforms": attr.target_platforms}
 
 # Define a transition.
 cpu_transition = transition(

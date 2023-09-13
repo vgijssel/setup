@@ -104,13 +104,13 @@ platform(
 
 py_runtime(
     name = "shine_container_py2_runtime",
-    interpreter_path = "/shine",
+    interpreter_path = "/kerk",
     python_version = "PY2",
 )
 
 py_runtime(
     name = "shine_container_py3_runtime",
-    interpreter_path = "/shine",
+    interpreter_path = "/kerk",
     python_version = "PY3",
 )
 

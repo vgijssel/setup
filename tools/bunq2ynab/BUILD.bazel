@@ -253,4 +253,7 @@ task(
             "'PYTHON_BINARY = '",
         ),
     ],
+    target_platforms = [
+        "@setup//:shine_platform",
+    ],
 )
