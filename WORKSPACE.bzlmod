@@ -2,7 +2,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file"
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 register_toolchains(
-    "//tools/bunq2ynab:shine_container_py_toolchain",
+    "@rules_task~override//:shine_container_py_toolchain",
 )
 
 # ------------------------------------ rules_docker ------------------------------------ #

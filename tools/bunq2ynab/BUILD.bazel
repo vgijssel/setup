@@ -161,37 +161,37 @@ pkg_tar(
 # So how to remove the reference to the Python toolchain?
 #
 
-constraint_setting(name = "shine_containerized")
+# constraint_setting(name = "shine_containerized")
 
-constraint_value(
-    name = "shine_run_in_container",
-    constraint_setting = ":shine_containerized",
-)
+# constraint_value(
+#     name = "shine_run_in_container",
+#     constraint_setting = ":shine_containerized",
+# )
 
-platform(
-    name = "shine_platform",
-    constraint_values = [
-        ":shine_run_in_container",
-    ],
-)
+# platform(
+#     name = "shine_platform",
+#     constraint_values = [
+#         ":shine_run_in_container",
+#     ],
+# )
 
-py_runtime(
-    name = "shine_container_py2_runtime",
-    interpreter_path = "/shine",
-    python_version = "PY2",
-)
+# py_runtime(
+#     name = "shine_container_py2_runtime",
+#     interpreter_path = "/shine",
+#     python_version = "PY2",
+# )
 
-py_runtime(
-    name = "shine_container_py3_runtime",
-    interpreter_path = "/shine",
-    python_version = "PY3",
-)
+# py_runtime(
+#     name = "shine_container_py3_runtime",
+#     interpreter_path = "/shine",
+#     python_version = "PY3",
+# )
 
-py_runtime_pair(
-    name = "shine_container_py_runtime_pair",
-    py2_runtime = ":shine_container_py2_runtime",
-    py3_runtime = ":shine_container_py3_runtime",
-)
+# py_runtime_pair(
+#     name = "shine_container_py_runtime_pair",
+#     py2_runtime = ":shine_container_py2_runtime",
+#     py3_runtime = ":shine_container_py3_runtime",
+# )
 
 # https://bazel.build/extending/platforms#:~:text=Execution%20%2D%20a%20platform%20on%20which,final%20output%20resides%20and%20executes.
 # Not sure, but use exec_compatible_with instead of target_compatile_with because the latter
@@ -202,17 +202,17 @@ py_runtime_pair(
 #
 # prints '/shine'
 # cat /tmp/bazel-setup-bin/tools/bunq2ynab/shine | grep PYTHON_BINARY
-toolchain(
-    name = "shine_container_py_toolchain",
-    # exec_compatible_with = [
-    #     ":shine_run_in_container",
-    # ],
-    target_compatible_with = [
-        ":shine_run_in_container",
-    ],
-    toolchain = ":shine_container_py_runtime_pair",
-    toolchain_type = "@bazel_tools//tools/python:toolchain_type",
-)
+# toolchain(
+#     name = "shine_container_py_toolchain",
+#     # exec_compatible_with = [
+#     #     ":shine_run_in_container",
+#     # ],
+#     target_compatible_with = [
+#         ":shine_run_in_container",
+#     ],
+#     toolchain = ":shine_container_py_runtime_pair",
+#     toolchain_type = "@bazel_tools//tools/python:toolchain_type",
+# )
 
 # Steps to use an alternative Python toolchain for container image:
 # 1. Setup alternative Python toolchain
@@ -240,4 +240,17 @@ py_binary(
     # target_compatible_with = [
     #     "@io_bazel_rules_docker//platforms:run_in_container",
     # ],
+)
+
+task(
+    name = "shine_wrapper",
+    cmds = [
+        cmd.shell(
+            "cat",
+            cmd.executable(":shine"),
+            "|",
+            "grep",
+            "'PYTHON_BINARY = '",
+        ),
+    ],
 )

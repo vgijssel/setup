@@ -1,4 +1,5 @@
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
+load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -12,4 +13,45 @@ compile_pip_requirements(
     extra_args = ["--allow-unsafe"],
     requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
+)
+
+constraint_setting(name = "shine_containerized")
+
+constraint_value(
+    name = "shine_run_in_container",
+    constraint_setting = ":shine_containerized",
+)
+
+platform(
+    name = "shine_platform",
+    constraint_values = [
+        ":shine_run_in_container",
+    ],
+)
+
+py_runtime(
+    name = "shine_container_py2_runtime",
+    interpreter_path = "/shine",
+    python_version = "PY2",
+)
+
+py_runtime(
+    name = "shine_container_py3_runtime",
+    interpreter_path = "/shine",
+    python_version = "PY3",
+)
+
+py_runtime_pair(
+    name = "shine_container_py_runtime_pair",
+    py2_runtime = ":shine_container_py2_runtime",
+    py3_runtime = ":shine_container_py3_runtime",
+)
+
+toolchain(
+    name = "shine_container_py_toolchain",
+    target_compatible_with = [
+        ":shine_run_in_container",
+    ],
+    toolchain = ":shine_container_py_runtime_pair",
+    toolchain_type = "@bazel_tools//tools/python:toolchain_type",
 )
