@@ -388,7 +388,7 @@ def _transition_impl(settings, attr):
     # to modify how the transition works. This could also just be a hardcoded
     # string like "x86" if you didn't want to give target writers that power.
     # return {}
-    return {"//command_line_option:platforms": ":shine_platform"}
+    return {"//command_line_option:platforms": ["@@//:shine_platform"]}
     # return {"//command_line_option:cpu": "x86_64"}
 
 # Define a transition.
