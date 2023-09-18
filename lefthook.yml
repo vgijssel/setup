@@ -6,7 +6,7 @@ pre-commit:
       stage_fixed: true
     prettier:
       run: prettier --write {staged_files}
-      glob: "*.{yml,yaml}"
+      glob: "*.{yml,yaml,json,md}"
       stage_fixed: true
     buildifier:
       run: buildifier {staged_files}
