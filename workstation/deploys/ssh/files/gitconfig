@@ -8,6 +8,7 @@
 	signingKey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPnUEhcD4sCtja1Xfmnn+tGbjLZy1IvuAYgHiwybCgxE
 [core]
     attributesfile = ~/.config/git/attributes
+	excludesFile = ~/.gitignore
 [pull]
     rebase = false
 [gpg]

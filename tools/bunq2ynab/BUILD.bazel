@@ -257,3 +257,10 @@ task(
         "@setup//:shine_platform",
     ],
 )
+
+# TODO:
+# 1. package up the task with runfiles into a tar file
+# 2. create melange package with tar file
+# 3. create apko image with melange package
+# 4. load apko image into docker daemon
+# 5. validate ability to run task from within container.
