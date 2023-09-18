@@ -1,6 +1,16 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
 
+
+
+
+
+
+
+
+
+
+
 package(default_visibility = ["//visibility:public"])
 
 exports_files(["WORKSPACE"])
