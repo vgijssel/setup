@@ -94,9 +94,5 @@
   "terminal.integrated.scrollback": 100000,
   "dev.containers.defaultExtensions": ["kahole.magit"],
   "terminal.integrated.enableMultiLinePasteWarning": false,
-  "jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"],
-  "[python]": {
-    "editor.formatOnType": true
-  },
-  "python.formatting.provider": "black"
+  "jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"]
 }
