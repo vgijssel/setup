@@ -14,6 +14,7 @@ services:
     # Expose the port 1883 to the internal docker network for bridging to the mqtt container
     expose:
       - "1883"
+
     ports:
       - "0.0.0.0:8003:8003"
 
