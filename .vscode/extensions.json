@@ -3,5 +3,18 @@
   // Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
 
   // List of extensions which should be recommended for users of this workspace.
-  "recommendations": ["ms-vscode-remote.remote-containers"]
+  "recommendations": [
+    "ms-vscode-remote.remote-containers",
+    "jetpack-io.devbox",
+    "ms-python.python",
+    "esbenp.prettier-vscode",
+    "bazelbuild.vscode-bazel",
+    "bee.git-temporal-vscode",
+    "github.copilot",
+    "github.copilot-chat",
+    "vspacecode.vspacecode",
+    "alexanderbast.vscode-snazzy",
+    "tilt-dev.tiltfile",
+    "github.remotehub"
+  ]
 }
