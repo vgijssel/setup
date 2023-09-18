@@ -22,6 +22,7 @@ services:
     container_name: mqtt
     image: eclipse-mosquitto:2.0
     restart: always
+
     volumes:
       - "./mosquitto-data:/mosquitto"
     ports:
