@@ -10,5 +10,5 @@ pre-commit:
       stage_fixed: true
     buildifier:
       run: buildifier {staged_files}
-      glob: "*.{BUILD,bzl}"
+      glob: "*.{bazel,bzl,bzlmod}"
       stage_fixed: true

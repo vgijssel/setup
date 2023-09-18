@@ -5,22 +5,6 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files(["WORKSPACE"])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 bool_flag(
     name = "setup_debug_flag",
     build_setting_default = False,
