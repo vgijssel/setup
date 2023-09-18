@@ -1,0 +1,23 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "bazelisk@1.18.0": {
+      "last_modified": "2023-09-17T10:54:49Z",
+      "resolved": "github:NixOS/nixpkgs/5148520bfab61f99fd25fb9ff7bfbb50dad3c9db#bazelisk",
+      "source": "devbox-search",
+      "version": "1.18.0"
+    },
+    "buildifier@5.1.0": {
+      "last_modified": "2022-05-14T15:20:22Z",
+      "resolved": "github:NixOS/nixpkgs/f7a22851667ac89ac1863ede0d8c386fc6eb12a0#buildifier",
+      "source": "devbox-search",
+      "version": "5.1.0"
+    },
+    "nodePackages.prettier@3.0.3": {
+      "last_modified": "2023-09-17T10:54:49Z",
+      "resolved": "github:NixOS/nixpkgs/5148520bfab61f99fd25fb9ff7bfbb50dad3c9db#nodePackages.prettier",
+      "source": "devbox-search",
+      "version": "3.0.3"
+    }
+  }
+}

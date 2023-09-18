@@ -1,14 +1,9 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
-load("@npm//:defs.bzl", "npm_link_all_packages")
-load("@npm//:prettier/package_json.bzl", prettier_bin = "bin")
-load("@rules_task//:defs.bzl", "cmd", "task")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
 
 package(default_visibility = ["//visibility:public"])
 
 exports_files(["WORKSPACE"])
-
-npm_link_all_packages(name = "node_modules")
 
 bool_flag(
     name = "setup_debug_flag",
@@ -20,49 +15,6 @@ config_setting(
     flag_values = {
         "//:setup_debug_flag": "True",
     },
-)
-
-filegroup(
-    name = "prettier-files",
-    srcs = glob([
-        "**/*.js",
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.json",
-        "**/*.md",
-        "**/*.yml",
-        "**/*.yaml",
-    ]) + [
-        ".prettierignore",
-        ".prettierrc",
-    ],
-)
-
-prettier_bin.prettier_binary(
-    name = "prettier_bin",
-)
-
-task(
-    name = "prettier",
-    cmds = [
-        cmd.shell(
-            cmd.executable(":prettier_bin"),
-            "$CLI_ARGS",
-        ),
-    ],
-    cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
-    env = {
-        "BAZEL_BINDIR": ".",
-    },
-)
-
-prettier_bin.prettier_test(
-    name = "prettier_test",
-    args = [
-        "--check",
-        ".",
-    ],
-    data = [":prettier-files"],
 )
 
 filegroup(
