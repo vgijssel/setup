@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
-load("@rules_task//:defs.bzl", "cmd", "task_test")
+load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 
 package(default_visibility = ["//visibility:public"])
 
