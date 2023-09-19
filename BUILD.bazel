@@ -1,6 +1,5 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
-load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -18,16 +17,6 @@ config_setting(
     },
 )
 
-filegroup(
-    name = "bazel-files",
-    srcs = glob([
-        "**/*.bazel",
-        "**/WORKSPACE",
-        "**/WORKSPACE.bzlmod",
-        "**/*.bzl",
-    ]),
-)
-
 compile_pip_requirements(
     name = "requirements",
     extra_args = [
@@ -38,27 +27,4 @@ compile_pip_requirements(
     ],
     requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
-)
-
-sh_binary(
-    name = "setup_ci",
-    srcs = ["setup_ci.sh"],
-)
-
-task_test(
-    name = "lint_test",
-    cmds = [
-        "echo $PATH",
-        "devbox run lefthook run all",
-    ],
-)
-
-task(
-    name = "lint",
-    cmds = [
-        "sudo devbox run lefthook run all",
-    ],
-    env = {
-        "DEVBOX_DEBUG": "1",
-    },
 )

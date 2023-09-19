@@ -11,17 +11,3 @@ actions:
           - "*"
     bazel_commands:
       - bazel test --keep_going //... @rules_task//... --config buildbuddy --config buildbuddy_rbe
-
-  - name: "Lint"
-    user: buildbuddy
-    container_image: "ubuntu-20.04"
-    triggers:
-      push:
-        branches:
-          - "master"
-      pull_request:
-        branches:
-          - "*"
-    bazel_commands:
-      - bazel run --config buildbuddy --config buildbuddy_rbe :setup_ci
-      - bazel run --config buildbuddy --config buildbuddy_rbe //:lint
