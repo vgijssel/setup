@@ -4,8 +4,8 @@ All the dependencies for setup.
 
 module(
     name = "setup",
-    version = "1.0",
     repo_name = "setup",
+    version = "1.0",
 )
 
 # ------------------------------------ platforms ------------------------------------ #
@@ -19,6 +19,7 @@ bazel_dep(name = "rules_pkg", version = "0.9.1")
 
 # ------------------------------------ rules_task ------------------------------------ #
 bazel_dep(name = "rules_task", version = "0.1.0")
+
 local_path_override(
     module_name = "rules_task",
     path = "./rules/rules_task",
@@ -28,48 +29,21 @@ local_path_override(
 bazel_dep(name = "rules_python", version = "0.25.0")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+
 python.toolchain(
     configure_coverage_tool = True,
-    python_version = "3.10",
     is_default = True,
+    python_version = "3.10",
 )
 
 use_repo(python, "python_versions")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+
 pip.parse(
     hub_name = "pip-setup",
     python_version = "3.10",
     requirements_lock = "//:requirements.txt",
 )
+
 use_repo(pip, "pip-setup")
-
-# ------------------------------------ rules_js ------------------------------------ #
-bazel_dep(name = "aspect_rules_js", version = "1.32.2")
-bazel_dep(name = "rules_nodejs", version = "6.0.1")
-
-node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
-node.toolchain(node_version = "17.9.1")
-
-pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm")
-pnpm.pnpm(
-    name = "pnpm-setup",
-)
-use_repo(pnpm, "pnpm-setup")
-
-npm = use_extension(
-    "@aspect_rules_js//npm:extensions.bzl",
-    "npm",
-    dev_dependency = True,
-)
-npm.npm_translate_lock(
-    name = "npm",
-    npmrc = "@@//:.npmrc",
-    pnpm_lock = "//:pnpm-lock.yaml",
-    verify_node_modules_ignored = "//:.bazelignore",
-)
-use_repo(npm, "npm")
-
-# ------------------------------------ buildifier ------------------------------------ #
-# NOTE: don't upgrade to 6.1.0 because this has a bug where tests always pass
-bazel_dep(name = "buildifier_prebuilt", version = "6.3.3")

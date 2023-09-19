@@ -22,6 +22,7 @@ def install_ssh():
     ssh_config_files = [
         "ssh/config",
         "gitconfig",
+        "config/1Password/ssh/agent.toml",
     ]
 
     for file in ssh_config_files:

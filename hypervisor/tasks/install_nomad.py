@@ -3,6 +3,7 @@ from pyinfra import host
 from pyinfra.facts.server import Arch
 from pyinfra.api.deploy import deploy
 
+
 # https://www.nomadproject.io/docs/install/production/requirements
 @deploy("Install Nomad")
 def install_nomad(version):

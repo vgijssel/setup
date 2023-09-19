@@ -1,0 +1,15 @@
+{
+  "packages": [
+    "bazelisk@1.18.0",
+    "nodePackages.prettier@3.0.3",
+    "buildifier@5.1.0",
+    "black@23.9.1",
+    "lefthook@1.4.8"
+  ],
+  "shell": {
+    "init_hook": ["alias bazel='bazelisk'"],
+    "scripts": {
+      "test": ["echo \"Error: no test specified\" && exit 1"]
+    }
+  }
+}

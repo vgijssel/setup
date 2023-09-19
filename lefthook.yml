@@ -1,6 +1,26 @@
+all:
+  commands:
+    black:
+      run: black --force-exclude=/home-assistant\/config\/custom_components --check {all_files}
+      glob: "*.{py}"
+    prettier:
+      run: prettier --check {all_files}
+      glob: "*.{yml,yaml,json,md}"
+    buildifier:
+      run: buildifier -mode check {all_files}
+      glob: "*.{bazel,bzl,bzlmod}"
+
 pre-commit:
   commands:
-    lint:
+    black:
       run: black {staged_files}
       glob: "*.{py}"
+      stage_fixed: true
+    prettier:
+      run: prettier --write {staged_files}
+      glob: "*.{yml,yaml,json,md}"
+      stage_fixed: true
+    buildifier:
+      run: buildifier {staged_files}
+      glob: "*.{bazel,bzl,bzlmod}"
       stage_fixed: true

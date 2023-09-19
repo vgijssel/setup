@@ -3,6 +3,7 @@ from pyinfra import host
 from pyinfra.facts.server import Arch
 from pyinfra.api.deploy import deploy
 
+
 # https://learn.hashicorp.com/tutorials/consul/deployment-guide#install-consul
 @deploy("Install Consul")
 def install_consul(version):

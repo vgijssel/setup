@@ -329,6 +329,7 @@ homekit:
         - switch.supply_closet_shelly
         - light.toilet_lights
         - switch.kitchen_oven_moko
+        - switch.garden_shelly
 
     entity_config:
       light.living_room_corner_light:
@@ -371,6 +372,8 @@ homekit:
         name: Voorraadkast Lamp
       light.toilet_lights:
         name: Wc Lampen
+      switch.garden_shelly:
+        name: Tuin Lamp
 
   - name: HA - Baby Cam
     port: 21064

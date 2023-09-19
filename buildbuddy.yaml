@@ -10,4 +10,4 @@ actions:
         branches:
           - "*"
     bazel_commands:
-      - "test --keep_going //... @rules_task//... --config buildbuddy --config buildbuddy_rbe"
+      - bazel test --keep_going //... @rules_task//... --config buildbuddy --config buildbuddy_rbe

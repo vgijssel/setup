@@ -31,6 +31,7 @@ pyinfra_run(
         "deploys/editor/files/keybindings.json",
         "deploys/editor/files/settings.json",
         "deploys/languages/files/tool-versions",
+        "deploys/ssh/files/config/1Password/ssh/agent.toml",
         "deploys/ssh/files/gitconfig",
         "deploys/ssh/files/ssh/config",
         "deploys/terminal/files/bash_profile",
