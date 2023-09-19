@@ -56,7 +56,7 @@ task_test(
 task(
     name = "lint",
     cmds = [
-        "devbox run lefthook run all",
+        "sudo devbox run lefthook run all",
     ],
     env = {
         "DEVBOX_DEBUG": "1",
