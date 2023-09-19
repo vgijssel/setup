@@ -2,8 +2,8 @@
 set -e
 
 # Enable debugging
-set -x
+# set -x
 
 curl -fsSL https://get.jetpack.io/devbox | FORCE=1 bash
 
-devbox run -- echo "Installed Packages."
+# devbox run -- echo "Installed Packages."

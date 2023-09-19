@@ -1,5 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
+load("@rules_task//:defs.bzl", "cmd", "task_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -42,4 +43,11 @@ compile_pip_requirements(
 sh_binary(
     name = "setup_ci",
     srcs = ["setup_ci.sh"],
+)
+
+task_test(
+    name = "lint",
+    cmds = [
+        "lefthook run all",
+    ],
 )
