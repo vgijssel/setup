@@ -1,3 +1,15 @@
+all:
+  commands:
+    black:
+      run: black --check {all_files}
+      glob: "*.{py}"
+    prettier:
+      run: prettier --check {all_files}
+      glob: "*.{yml,yaml,json,md}"
+    buildifier:
+      run: buildifier -mode check {all_files}
+      glob: "*.{bazel,bzl,bzlmod}"
+
 pre-commit:
   commands:
     black:
