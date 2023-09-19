@@ -13,7 +13,7 @@ curl -fsSL https://get.jetpack.io/devbox | FORCE=1 bash
 which devbox
 devbox version
 
-which nix
-nix --version
+# which nix
+# nix --version
 
 # devbox run -- echo "Installed Packages."
