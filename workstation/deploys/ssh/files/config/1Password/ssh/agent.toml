@@ -17,3 +17,9 @@ account = "Van Gijssel"
 item = "SSH - GitHub - Authentication"
 vault = "Private"
 account = "Van Gijssel"
+
+[[ssh-keys]]
+item = "SSH - GitHub - Commit Signing"
+vault = "Private"
+account = "Van Gijssel"
+
