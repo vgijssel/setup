@@ -7,13 +7,9 @@
     "lefthook@1.4.8"
   ],
   "shell": {
-    "init_hook": [
-      "alias bazel='bazelisk'"
-    ],
+    "init_hook": ["alias bazel='bazelisk'"],
     "scripts": {
-      "test": [
-        "echo \"Error: no test specified\" && exit 1"
-      ]
+      "test": ["echo \"Error: no test specified\" && exit 1"]
     }
   }
 }
