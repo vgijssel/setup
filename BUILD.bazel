@@ -58,4 +58,7 @@ task(
     cmds = [
         "devbox run lefthook run all",
     ],
+    env = {
+        "DEVBOX_DEBUG": 1,
+    },
 )
