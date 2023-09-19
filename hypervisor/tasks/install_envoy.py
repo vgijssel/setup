@@ -3,6 +3,7 @@ from pyinfra import host
 from pyinfra.facts.server import Arch
 from pyinfra.api.deploy import deploy
 
+
 # https://learn.hashicorp.com/tutorials/envoy/deployment-guide#install-envoy
 @deploy("Install envoy")
 def install_envoy(version):
