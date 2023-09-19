@@ -46,9 +46,16 @@ sh_binary(
 )
 
 task_test(
-    name = "lint",
+    name = "lint_test",
     cmds = [
         "echo $PATH",
+        "devbox run lefthook run all",
+    ],
+)
+
+task(
+    name = "lint",
+    cmds = [
         "devbox run lefthook run all",
     ],
 )
