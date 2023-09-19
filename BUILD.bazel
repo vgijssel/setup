@@ -59,6 +59,6 @@ task(
         "devbox run lefthook run all",
     ],
     env = {
-        "DEVBOX_DEBUG": 1,
+        "DEVBOX_DEBUG": "1",
     },
 )
