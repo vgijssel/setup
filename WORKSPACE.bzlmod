@@ -108,15 +108,15 @@ http_file(
 http_archive(
     name = "pulumi_arm64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "64ec8e0331853f61801958b883bd1339d5473b70d2df3c139c5542a1a562db3c",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.82.1/pulumi-v3.82.1-linux-arm64.tar.gz",
+    sha256 = "71a0484029f1395c44c9237a70b569b5e7df2aa19e889ead3cad5604b7455c77",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.83.0/pulumi-v3.83.0-linux-arm64.tar.gz",
 )
 
 http_archive(
     name = "pulumi_amd64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "e0c0725280b99db64a6ef51b1dae77f4cff53e7a7ba83fe79c3b5b544d4e949c",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.82.1/pulumi-v3.82.1-linux-x64.tar.gz",
+    sha256 = "9f8d0f92028c08aff3b46fb73a69396d9e5ab16f86712c5cff142cfbdf3ba79a",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.83.0/pulumi-v3.83.0-linux-x64.tar.gz",
 )
 
 # ------------------------------------ buildbuddy Remote Build Execution ------------------------------------ #

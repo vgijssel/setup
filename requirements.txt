@@ -1218,8 +1218,8 @@ psutil==5.9.5 \
     --hash=sha256:c607bb3b57dc779d55e1554846352b4e358c10fff3abf3514a7a6601beebdb30 \
     --hash=sha256:ea8518d152174e1249c4f2a1c89e3e6065941df2fa13a1ab45327716a23c2b48
     # via opentelemetry-resourcedetector-process
-pulumi==3.82.1 \
-    --hash=sha256:8ebbfba3170d1679be6951793739e43f96d76138ecb270c1b067eea7a25af252
+pulumi==3.83.0 \
+    --hash=sha256:ae3f0f7885a9871fb21c2c166bdeaf41bf335182c34f404794d1079957a8508b
     # via
     #   -r requirements.in
     #   pulumi-command
@@ -1227,8 +1227,9 @@ pulumi==3.82.1 \
 pulumi-command==0.8.2 \
     --hash=sha256:2cacfa1dda6972e3ca2b2116cbd15007526cca449d5fe4e3f608c8e5a9795ed3
     # via -r requirements.in
-pulumi-kubernetes==4.1.1 \
-    --hash=sha256:46ba620d6bfe4c6a57246051710aaec0488453f4fe15dbbf8985399b977bec46
+pulumi-kubernetes==4.2.0 \
+    --hash=sha256:023521d9b9ee67c29f76168df10b968b617df87199cf505b763220a7904e68be \
+    --hash=sha256:c9f3ca4a3a69486147d8cbfac4f0dc1786b82082a4e7206b5f8e8f54c3ef7a42
     # via -r requirements.in
 pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
