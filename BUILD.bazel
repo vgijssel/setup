@@ -48,6 +48,6 @@ sh_binary(
 task_test(
     name = "lint",
     cmds = [
-        "lefthook run all",
+        "devbox run lefthook run all",
     ],
 )
