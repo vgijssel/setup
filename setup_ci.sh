@@ -5,7 +5,7 @@ set -e
 # set -x
 
 # Install nix
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm --init none
 
 # Install devbox
 curl -fsSL https://get.jetpack.io/devbox | FORCE=1 bash
