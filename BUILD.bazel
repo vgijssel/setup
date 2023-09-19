@@ -48,6 +48,7 @@ sh_binary(
 task_test(
     name = "lint",
     cmds = [
+        "echo $PATH",
         "devbox run lefthook run all",
     ],
 )
