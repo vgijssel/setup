@@ -1,5 +1,5 @@
 import os
-from rules_python.python.runfiles import runfiles
+import runfiles
 from pyinfra.facts.server import Home
 from pyinfra import host
 from pyinfra.operations import files

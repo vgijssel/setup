@@ -38,3 +38,8 @@ compile_pip_requirements(
     requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
 )
+
+sh_binary(
+    name = "setup_ci",
+    srcs = ["setup_ci.sh"],
+)

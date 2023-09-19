@@ -4,7 +4,7 @@ from pyinfra.operations import brew
 from pyinfra.facts.server import Command
 from workstation.helpers.home_link import home_link
 from pyinfra import host
-from rules_python.python.runfiles import runfiles
+import runfiles
 
 r = runfiles.Create()
 
