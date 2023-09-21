@@ -406,12 +406,13 @@ six = ">=1.12,<2.0"
 
 [[package]]
 name = "pulumi-command"
-version = "0.8.2"
+version = "0.9.0"
 description = "The Pulumi Command Provider enables you to execute commands and scripts either locally or remotely as part of the Pulumi resource model."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pulumi_command-0.8.2.tar.gz", hash = "sha256:2cacfa1dda6972e3ca2b2116cbd15007526cca449d5fe4e3f608c8e5a9795ed3"},
+    {file = "pulumi_command-0.9.0-py3-none-any.whl", hash = "sha256:3aae2a5184ba90a589207b38d47e87b7b6932f268cd52e95b6633d7518396782"},
+    {file = "pulumi_command-0.9.0.tar.gz", hash = "sha256:e5439081a446d3638aa2565b6bbdf8e95282ae4448eaf1373fc1a5cdead7bf5a"},
 ]
 
 [package.dependencies]
@@ -641,4 +642,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "c32f04d431fc5f4c26f0f959d9274153d8ef69a47600f1d2a5c5772608dc021b"
+content-hash = "59faa2dc48755153785f0710eda229d2ae7535955e1fd6e0192d7833ef67666e"
