@@ -25,6 +25,12 @@
       "source": "devbox-search",
       "version": "1.4.8"
     },
+    "nixpkgs-fmt@1.3.0": {
+      "last_modified": "2023-09-17T10:54:49Z",
+      "resolved": "github:NixOS/nixpkgs/5148520bfab61f99fd25fb9ff7bfbb50dad3c9db#nixpkgs-fmt",
+      "source": "devbox-search",
+      "version": "1.3.0"
+    },
     "nodePackages.prettier@3.0.3": {
       "last_modified": "2023-09-17T10:54:49Z",
       "resolved": "github:NixOS/nixpkgs/5148520bfab61f99fd25fb9ff7bfbb50dad3c9db#nodePackages.prettier",

@@ -222,3 +222,18 @@ git_repository(
 #     build_file = "//tools/bunq2ynab:BUILD.repositories.bazel.tpl",
 #     path = "/workspaces/bunq2ynab",
 # )
+
+# ------------------------------------ rules_nixpkgs ------------------------------------ #
+
+http_archive(
+    name = "io_tweag_rules_nixpkgs",
+    sha256 = "b01f170580f646ee3cde1ea4c117d00e561afaf3c59eda604cf09194a824ff10",
+    strip_prefix = "rules_nixpkgs-0.9.0",
+    urls = ["curl -L https://github.com/tweag/rules_nixpkgs/archive/refs/tags/v0.9.0.tar.gz"],
+)
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
+
+rules_nixpkgs_dependencies()
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_package")
