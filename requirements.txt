@@ -1224,9 +1224,9 @@ pulumi==3.84.0 \
     #   -r requirements.in
     #   pulumi-command
     #   pulumi-kubernetes
-pulumi-command==0.9.0 \
-    --hash=sha256:3aae2a5184ba90a589207b38d47e87b7b6932f268cd52e95b6633d7518396782 \
-    --hash=sha256:e5439081a446d3638aa2565b6bbdf8e95282ae4448eaf1373fc1a5cdead7bf5a
+pulumi-command==0.9.1 \
+    --hash=sha256:c0613e15c0b156bad221306dafcb63ab1d38319287653ee50e534f87ee00db15 \
+    --hash=sha256:f95840b7865ccc0aab915ade16df5d1054843716259e9261f27b91af71c23df7
     # via -r requirements.in
 pulumi-kubernetes==4.2.0 \
     --hash=sha256:023521d9b9ee67c29f76168df10b968b617df87199cf505b763220a7904e68be \
