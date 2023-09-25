@@ -1,5 +1,39 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "278b7ff5a826f3dc10f04feaf0b70d48b68748ccd512d7f98bf442077f043fe3",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.41.0/rules_go-v0.41.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.41.0/rules_go-v0.41.0.zip",
+    ],
+)
+
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "d3fa66a39028e97d76f9e2db8f1b0c11c099e8e01bf363a923074784e451f809",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.33.0/bazel-gazelle-v0.33.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.33.0/bazel-gazelle-v0.33.0.tar.gz",
+    ],
+)
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
+############################################################
+# Define your own dependencies here using go_repository.
+# Else, dependencies declared by rules_go/gazelle will be used.
+# The first declaration of an external repository "wins".
+############################################################
+
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.20.5")
+
+gazelle_dependencies()
 
 # ------------------------------------ rules_docker ------------------------------------ #
 # https://github.com/bazelbuild/rules_docker/pull/2201
@@ -229,7 +263,7 @@ http_archive(
     name = "io_tweag_rules_nixpkgs",
     sha256 = "b01f170580f646ee3cde1ea4c117d00e561afaf3c59eda604cf09194a824ff10",
     strip_prefix = "rules_nixpkgs-0.9.0",
-    urls = ["curl -L https://github.com/tweag/rules_nixpkgs/archive/refs/tags/v0.9.0.tar.gz"],
+    urls = ["https://github.com/tweag/rules_nixpkgs/archive/refs/tags/v0.9.0.tar.gz"],
 )
 
 load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
@@ -237,3 +271,31 @@ load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_depende
 rules_nixpkgs_dependencies()
 
 load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_package")
+
+nixpkgs_git_repository(
+    name = "nixpkgs",
+    # revision = "21.05",  # Any tag or commit hash
+    revision = "23.05",  # Any tag or commit hash
+    sha256 = "",  # optional sha to verify package integrity!
+)
+
+nixpkgs_package(
+    name = "raw_python38_base_image",
+    build_file_content = """
+package(default_visibility = [ "//visibility:public" ])
+exports_files(["result"])
+    """,
+    nix_file = "//:python38_base_image.nix",
+    # nix_file = "//:hello-docker.nix",
+    repository = "@nixpkgs//:default.nix",
+)
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_load",
+)
+
+container_load(
+    name = "python38_base_image",
+    file = "@raw_python38_base_image//:image",
+)

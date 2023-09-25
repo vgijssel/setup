@@ -28,3 +28,19 @@ compile_pip_requirements(
     requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
 )
+
+load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
+
+py3_image(
+    name = "hello",
+    srcs = [
+        "hello.py",
+    ],
+    base = "@python38_base_image//image",
+    main = "hello.py",
+
+    # Currently needs to be built on Linux.
+    # target_compatible_with = [
+    #     "@platforms//os:linux",
+    # ],
+)
