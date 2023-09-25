@@ -1228,9 +1228,9 @@ pulumi-command==0.9.1 \
     --hash=sha256:c0613e15c0b156bad221306dafcb63ab1d38319287653ee50e534f87ee00db15 \
     --hash=sha256:f95840b7865ccc0aab915ade16df5d1054843716259e9261f27b91af71c23df7
     # via -r requirements.in
-pulumi-kubernetes==4.2.0 \
-    --hash=sha256:023521d9b9ee67c29f76168df10b968b617df87199cf505b763220a7904e68be \
-    --hash=sha256:c9f3ca4a3a69486147d8cbfac4f0dc1786b82082a4e7206b5f8e8f54c3ef7a42
+pulumi-kubernetes==4.3.0 \
+    --hash=sha256:5a01669af7f7cc486f139d01ed2733dfdd2f4f6c6a08dd63a0643a9eefa6249a \
+    --hash=sha256:77cadd2586822796259d3ede0c7cef0805716943630ece1731353e6cdd75ad40
     # via -r requirements.in
 pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
