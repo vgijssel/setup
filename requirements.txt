@@ -1364,9 +1364,9 @@ pytest-homeassistant-custom-component==0.13.39 \
     --hash=sha256:0126f895a383384ee2e4d52b0f95a1a9e6a4cba937602f1c588356949d6aa4c4 \
     --hash=sha256:cf52cb22e62353f551b4c51d38eae042453bbbf942cdd7e85767ba3c0717682c
     # via -r requirements.in
-pytest-opentelemetry==0.6.2 \
-    --hash=sha256:b57dd4e4f08ee23a979b6cba612f6ae3b5dbb7e0da1ead1416c15df056aef360 \
-    --hash=sha256:d514d229c4286214df3eff202ecc19bdc35111e56556b402e38e558cef4b1a09
+pytest-opentelemetry==0.7.0 \
+    --hash=sha256:405ca4a54e4c38e6da34cf4db3a14a51644ecb2270f1a1b94bdf5cdf92e38344 \
+    --hash=sha256:a451d43d4a33d7fe075491a7ed3d1ba2119393969862375dae02dd01a1a4bd08
     # via -r requirements.in
 pytest-picked==0.4.6 \
     --hash=sha256:8bc744222a39ecc84cbcb87251fb69810ee576a80f84cc77fc47222818b3fa7c \
