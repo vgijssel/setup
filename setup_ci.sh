@@ -7,7 +7,7 @@ set -e
 
 if [ -f /nix/receipt.json ]; then
   echo "Uninstall nix as it's already here"
-  sudo /nix/nix-installer uninstall
+  sudo /nix/nix-installer uninstall --no-confirm
 else
   echo "No nix here"
   # echo "Installing Nix"
