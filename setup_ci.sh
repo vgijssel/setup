@@ -6,15 +6,16 @@ set -e
 
 
 if [ -f /nix/receipt.json ]; then
-  echo "Nix is already installed"
+  echo "Uninstall nix as it's already here"
+  sudo /nix/nix-installer uninstall
 else
-  echo "Installing Nix"
+  # echo "Installing Nix"
 
-  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
-    --init none \
-    --extra-conf "sandbox = false" \
-    --no-start-daemon \
-    --no-confirm
+  # curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
+  #   --init none \
+  #   --extra-conf "sandbox = false" \
+  #   --no-start-daemon \
+  #   --no-confirm
 fi
 
 # sudo which nix-build
@@ -23,6 +24,7 @@ echo $PATH
 sudo env
 ls -la /nix/var/nix/profiles/default/bin/
 
-sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/bin/nix-build
+# install nix portable
+sudo curl -L https://github.com/DavHau/nix-portable/releases/download/v009/nix-portable -o /usr/local/bin/nix-portable && chmod +x /usr/local/bin/nix-portable
 
-which nix-build
+sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/bin/nix-build
