@@ -1218,18 +1218,19 @@ psutil==5.9.5 \
     --hash=sha256:c607bb3b57dc779d55e1554846352b4e358c10fff3abf3514a7a6601beebdb30 \
     --hash=sha256:ea8518d152174e1249c4f2a1c89e3e6065941df2fa13a1ab45327716a23c2b48
     # via opentelemetry-resourcedetector-process
-pulumi==3.84.0 \
-    --hash=sha256:2b7503575fe3fe82a6ad4fdfad2df673c4d598a43e096d019039811d3e7ae9a5
+pulumi==3.85.0 \
+    --hash=sha256:d78556534cc3c19c43157a6a3798203baabcd790c46f72cc99ecf3c1b5166ffc
     # via
     #   -r requirements.in
     #   pulumi-command
     #   pulumi-kubernetes
-pulumi-command==0.8.2 \
-    --hash=sha256:2cacfa1dda6972e3ca2b2116cbd15007526cca449d5fe4e3f608c8e5a9795ed3
+pulumi-command==0.9.1 \
+    --hash=sha256:c0613e15c0b156bad221306dafcb63ab1d38319287653ee50e534f87ee00db15 \
+    --hash=sha256:f95840b7865ccc0aab915ade16df5d1054843716259e9261f27b91af71c23df7
     # via -r requirements.in
-pulumi-kubernetes==4.2.0 \
-    --hash=sha256:023521d9b9ee67c29f76168df10b968b617df87199cf505b763220a7904e68be \
-    --hash=sha256:c9f3ca4a3a69486147d8cbfac4f0dc1786b82082a4e7206b5f8e8f54c3ef7a42
+pulumi-kubernetes==4.3.0 \
+    --hash=sha256:5a01669af7f7cc486f139d01ed2733dfdd2f4f6c6a08dd63a0643a9eefa6249a \
+    --hash=sha256:77cadd2586822796259d3ede0c7cef0805716943630ece1731353e6cdd75ad40
     # via -r requirements.in
 pycparser==2.21 \
     --hash=sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9 \
@@ -1363,9 +1364,9 @@ pytest-homeassistant-custom-component==0.13.39 \
     --hash=sha256:0126f895a383384ee2e4d52b0f95a1a9e6a4cba937602f1c588356949d6aa4c4 \
     --hash=sha256:cf52cb22e62353f551b4c51d38eae042453bbbf942cdd7e85767ba3c0717682c
     # via -r requirements.in
-pytest-opentelemetry==0.6.2 \
-    --hash=sha256:b57dd4e4f08ee23a979b6cba612f6ae3b5dbb7e0da1ead1416c15df056aef360 \
-    --hash=sha256:d514d229c4286214df3eff202ecc19bdc35111e56556b402e38e558cef4b1a09
+pytest-opentelemetry==0.7.0 \
+    --hash=sha256:405ca4a54e4c38e6da34cf4db3a14a51644ecb2270f1a1b94bdf5cdf92e38344 \
+    --hash=sha256:a451d43d4a33d7fe075491a7ed3d1ba2119393969862375dae02dd01a1a4bd08
     # via -r requirements.in
 pytest-picked==0.4.6 \
     --hash=sha256:8bc744222a39ecc84cbcb87251fb69810ee576a80f84cc77fc47222818b3fa7c \

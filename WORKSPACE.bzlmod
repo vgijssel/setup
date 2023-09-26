@@ -125,16 +125,16 @@ http_file(
     name = "lefthook_amd64",
     downloaded_file_path = "lefthook",
     executable = True,
-    sha256 = "b9383d48f98f69a26e262f4026af6cfddb1e30df9c7355401abc903589d89577",
-    url = "https://github.com/evilmartians/lefthook/releases/download/v1.4.11/lefthook_1.4.11_Linux_x86_64.gz",
+    sha256 = "8b18b70df91674cf5e08ff2d8963a56ed44221deb4aacae0b274869cecd398af",
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.5.0/lefthook_1.5.0_Linux_x86_64.gz",
 )
 
 http_file(
     name = "lefthook_arm64",
     downloaded_file_path = "lefthook",
     executable = True,
-    sha256 = "16ddd82a85ea7a1615360e9d274930bf67198078e706625a1a99426ee3873db2",
-    url = "https://github.com/evilmartians/lefthook/releases/download/v1.4.11/lefthook_1.4.11_Linux_arm64.gz",
+    sha256 = "dfe09178049f0a03f09d8686f8a8bc90fe9dbfc86ea704fb13b0adb137d76147",
+    url = "https://github.com/evilmartians/lefthook/releases/download/v1.5.0/lefthook_1.5.0_Linux_arm64.gz",
 )
 
 # ------------------------------------ pulumi ------------------------------------ #
@@ -142,15 +142,15 @@ http_file(
 http_archive(
     name = "pulumi_arm64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "39c2f213530b2c170b1fbf812bc67185a4fa482798faf30babaaa6fd1916a2b1",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.84.0/pulumi-v3.84.0-linux-arm64.tar.gz",
+    sha256 = "f5f884b7272d746741ff513c2d04bbfd188b1e3da629260bd31218ce5ec0745b",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.85.0/pulumi-v3.85.0-linux-arm64.tar.gz",
 )
 
 http_archive(
     name = "pulumi_amd64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "3ed5f2f421a73bd8598ca91508518e617a85d17256893c24494f63982cef55d1",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.84.0/pulumi-v3.84.0-linux-x64.tar.gz",
+    sha256 = "91ba22d31a4b9e4aba9f6e1dbe59eed05ad6536d3141e05a604e036d35aeedeb",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.85.0/pulumi-v3.85.0-linux-x64.tar.gz",
 )
 
 # ------------------------------------ buildbuddy Remote Build Execution ------------------------------------ #

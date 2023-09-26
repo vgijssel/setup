@@ -388,12 +388,12 @@ files = [
 
 [[package]]
 name = "pulumi"
-version = "3.84.0"
+version = "3.85.0"
 description = "Pulumi's Python SDK"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pulumi-3.84.0-py3-none-any.whl", hash = "sha256:2b7503575fe3fe82a6ad4fdfad2df673c4d598a43e096d019039811d3e7ae9a5"},
+    {file = "pulumi-3.85.0-py3-none-any.whl", hash = "sha256:d78556534cc3c19c43157a6a3798203baabcd790c46f72cc99ecf3c1b5166ffc"},
 ]
 
 [package.dependencies]
@@ -406,12 +406,13 @@ six = ">=1.12,<2.0"
 
 [[package]]
 name = "pulumi-command"
-version = "0.8.2"
+version = "0.9.1"
 description = "The Pulumi Command Provider enables you to execute commands and scripts either locally or remotely as part of the Pulumi resource model."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pulumi_command-0.8.2.tar.gz", hash = "sha256:2cacfa1dda6972e3ca2b2116cbd15007526cca449d5fe4e3f608c8e5a9795ed3"},
+    {file = "pulumi_command-0.9.1-py3-none-any.whl", hash = "sha256:c0613e15c0b156bad221306dafcb63ab1d38319287653ee50e534f87ee00db15"},
+    {file = "pulumi_command-0.9.1.tar.gz", hash = "sha256:f95840b7865ccc0aab915ade16df5d1054843716259e9261f27b91af71c23df7"},
 ]
 
 [package.dependencies]
@@ -436,13 +437,13 @@ semver = ">=2.8.1"
 
 [[package]]
 name = "pulumi-kubernetes"
-version = "4.2.0"
+version = "4.3.0"
 description = "A Pulumi package for creating and managing Kubernetes resources."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pulumi_kubernetes-4.2.0-py3-none-any.whl", hash = "sha256:023521d9b9ee67c29f76168df10b968b617df87199cf505b763220a7904e68be"},
-    {file = "pulumi_kubernetes-4.2.0.tar.gz", hash = "sha256:c9f3ca4a3a69486147d8cbfac4f0dc1786b82082a4e7206b5f8e8f54c3ef7a42"},
+    {file = "pulumi_kubernetes-4.3.0-py3-none-any.whl", hash = "sha256:5a01669af7f7cc486f139d01ed2733dfdd2f4f6c6a08dd63a0643a9eefa6249a"},
+    {file = "pulumi_kubernetes-4.3.0.tar.gz", hash = "sha256:77cadd2586822796259d3ede0c7cef0805716943630ece1731353e6cdd75ad40"},
 ]
 
 [package.dependencies]
@@ -641,4 +642,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "c32f04d431fc5f4c26f0f959d9274153d8ef69a47600f1d2a5c5772608dc021b"
+content-hash = "6c8d62dcd515895baa8a772eb2f23307d5c105126d0a79e3322d4353c3c078fa"
