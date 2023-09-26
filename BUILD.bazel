@@ -29,6 +29,20 @@ compile_pip_requirements(
     requirements_txt = "requirements.txt",
 )
 
+platform(
+    name = "docker_image_platform",
+    constraint_values = [
+        "@bazel_tools//platforms:x86_64",
+        "@bazel_tools//platforms:linux",
+        "@bazel_tools//tools/cpp:clang",
+    ],
+    exec_properties = {
+        "OSFamily": "Linux",
+        # "container-image": "docker://gcr.io/YOUR:IMAGE",
+        "container-image": "docker://registry.hub.docker.com/nixos/nix",
+    },
+)
+
 load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
 
 py3_image(
@@ -37,10 +51,15 @@ py3_image(
         "hello.py",
     ],
     base = "@python38_base_image//image",
-    main = "hello.py",
 
     # Currently needs to be built on Linux.
     # target_compatible_with = [
     #     "@platforms//os:linux",
     # ],
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
+    },
+    main = "hello.py",
 )
