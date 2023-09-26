@@ -9,6 +9,7 @@ if [ -f /nix/receipt.json ]; then
   echo "Uninstall nix as it's already here"
   sudo /nix/nix-installer uninstall
 else
+  echo "No nix here"
   # echo "Installing Nix"
 
   # curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
