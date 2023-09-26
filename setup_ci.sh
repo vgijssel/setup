@@ -3,13 +3,7 @@
 set -x
 set -e
 
-env
 
-echo $PATH
-
-sudo env
-
-sudo which nix-build
 
 if [ -f /nix/receipt.json ]; then
   echo "Nix is already installed"
@@ -22,3 +16,13 @@ else
     --no-start-daemon \
     --no-confirm
 fi
+
+# sudo which nix-build
+env
+echo $PATH
+sudo env
+ls -la /nix/var/nix/profiles/default/bin
+
+sudo ln -f -s /nix/var/nix/profiles/default/bin/nix-build /usr/local/bin/nix-build
+
+which nix-build
