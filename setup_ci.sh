@@ -29,4 +29,6 @@ sudo env
 sudo curl -L https://github.com/DavHau/nix-portable/releases/download/v009/nix-portable -o /usr/local/bin/nix-portable
 sudo chmod +x /usr/local/bin/nix-portable
 
+nix-build --version
+
 sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/bin/nix-build
