@@ -30,6 +30,7 @@ sudo curl -L https://github.com/DavHau/nix-portable/releases/download/v009/nix-p
 sudo chmod +x /usr/local/bin/nix-portable
 
 export NP_DEBUG=2
+export NP_RUNTIME=proot
 
 nix-build --version
 
