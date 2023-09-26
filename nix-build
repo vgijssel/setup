@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# set -x
+set -e
+
+sudo /nix/var/nix/profiles/default/bin/nix-build $@

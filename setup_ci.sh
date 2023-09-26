@@ -21,8 +21,8 @@ fi
 env
 echo $PATH
 sudo env
-ls -la /nix/var/nix/profiles/default/bin
+ls -la /nix/var/nix/profiles/default/bin/
 
-sudo ln -f -s /nix/var/nix/profiles/default/bin/nix-build /usr/local/bin/nix-build
+sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/bin/nix-build
 
 which nix-build
