@@ -16,13 +16,6 @@
     "editor.defaultFormatter": "ms-azuretools.vscode-docker"
   },
   "python.formatting.provider": "none",
-  "devbox.autoShellOnTerminal": false,
-  "nix.enableLanguageServer": false,
-  "terminal.integrated.profiles.osx": {
-    "devboxCompatibleShell": {
-      "path": "/opt/homebrew/bin/zsh",
-      "args": []
-    }
-  },
-  "terminal.integrated.defaultProfile.osx": "devboxCompatibleShell"
+  "devbox.autoShellOnTerminal": true,
+  "nix.enableLanguageServer": false
 }
