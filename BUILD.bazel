@@ -67,3 +67,10 @@ py3_image(
     },
     main = "hello.py",
 )
+
+sh_binary(
+    name = "setup_ci",
+    srcs = [
+        "setup_ci.sh",
+    ],
+)
