@@ -188,8 +188,8 @@ http_file(
     name = "regctl_amd64",
     downloaded_file_path = "regctl",
     executable = True,
-    sha256 = "484f98e99c90341336b1be99b2b333e7129fde3535b54ef97b4673e8fb2b1d6c",
-    url = "https://github.com/regclient/regclient/releases/download/v0.5.1/regctl-linux-amd64",
+    sha256 = "00a39b3048397443d30033924fbf3d1e6a3179280e61617b3c651e43aa7506de",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-linux-amd64",
 )
 
 # ------------------------------------ mutagen ------------------------------------ #
