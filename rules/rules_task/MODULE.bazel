@@ -42,6 +42,7 @@ npm = use_extension(
 
 npm.npm_translate_lock(
     name = "npm",
+    link_workspace = "rules_task",
     pnpm_lock = "//:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
 )
