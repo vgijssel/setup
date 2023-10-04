@@ -42,6 +42,7 @@ npm = use_extension(
 
 npm.npm_translate_lock(
     name = "npm",
+    # TODO: link_workspace like this only works for "setup" not for "rules_task". Do we need to turn this into an extension?
     link_workspace = "rules_task",
     pnpm_lock = "//:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
