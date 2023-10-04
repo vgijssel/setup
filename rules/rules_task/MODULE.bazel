@@ -38,7 +38,6 @@ bazel_dep(name = "aspect_rules_js", version = "1.32.6")
 npm = use_extension(
     "@aspect_rules_js//npm:extensions.bzl",
     "npm",
-    dev_dependency = True,
 )
 
 npm.npm_translate_lock(
