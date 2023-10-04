@@ -1,4 +1,5 @@
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
+load("@aspect_rules_js//npm:defs.bzl", "npm_link_all_packages")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -12,4 +13,7 @@ compile_pip_requirements(
     extra_args = ["--allow-unsafe"],
     requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
+)
+
+npm_link_all_packages(
 )
