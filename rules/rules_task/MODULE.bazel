@@ -48,3 +48,9 @@ npm.npm_translate_lock(
 )
 
 use_repo(npm, "npm")
+
+bazel_dep(name = "rules_nodejs", version = "6.0.1")
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+
+node.toolchain(node_version = "18.17.1")

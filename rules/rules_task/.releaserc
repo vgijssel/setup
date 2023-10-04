@@ -3,5 +3,10 @@
     "mg/571/release-rules-task"
   ],
   "extends": "semantic-release-monorepo",
-  "tagFormat": "rules_task-v${version}"
+  "tagFormat": "rules_task-v${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/github"
+  ]
 }

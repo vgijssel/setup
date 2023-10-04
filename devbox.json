@@ -9,8 +9,6 @@
   ],
   "shell": {
     "init_hook": ["alias bazel='bazelisk'"],
-    "scripts": {
-      "test": []
-    }
+    "scripts": {}
   }
 }
