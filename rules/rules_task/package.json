@@ -1,5 +1,5 @@
 {
-  "name": "setup",
+  "name": "rules_task",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@semantic-release/commit-analyzer": "9.0.2",
+    "@semantic-release/exec": "^6.0.3",
     "@semantic-release/github": "8.1.0",
     "@semantic-release/release-notes-generator": "10.0.3",
     "semantic-release": "^22.0.5",
