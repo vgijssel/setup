@@ -1,12 +1,22 @@
 {
   "branches": [
-    "master"
+    "mg/571/configure-semantic-release"
   ],
   "extends": "semantic-release-monorepo",
   "tagFormat": "rules_task-v${version}",
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    "@semantic-release/github"
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "dist/asset.min.css",
+            "label": "CSS distribution"
+          }
+        ]
+      }
+    ]
   ]
 }
