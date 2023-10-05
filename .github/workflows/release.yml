@@ -14,9 +14,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      # - uses: pnpm/action-setup@v2
-      #   with:
-      #     version: 8
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Install pnpm dependencies
         run: pnpm install
         working-directory: ./rules/rules_task
