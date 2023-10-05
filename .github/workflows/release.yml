@@ -21,6 +21,14 @@ jobs:
           run_install: |
             - cwd: ./rules/rules_task
 
+      - name: Load secret
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          GH_TOKEN: "op://vgijssel-dev/semantic-release-setup/credential"
+
       - name: Run release
         run: pnpm exec semantic-release
         working-directory: ./rules/rules_task
