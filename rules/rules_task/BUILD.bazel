@@ -1,6 +1,4 @@
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
-load("@npm//:defs.bzl", "npm_link_all_packages")
-load("@npm//:semantic-release/package_json.bzl", semantic_release_bin = "bin")
 load(":defs.bzl", "cmd", "task")
 
 package(default_visibility = ["//visibility:public"])
@@ -15,27 +13,4 @@ compile_pip_requirements(
     extra_args = ["--allow-unsafe"],
     requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
-)
-
-semantic_release_bin.semantic_release_binary(
-    name = "semantic-release_bin",
-    log_level = "debug",
-)
-
-task(
-    name = "release",
-    cmds = [
-        cmd.shell(
-            cmd.executable(":semantic-release_bin"),
-            "$CLI_ARGS",
-        ),
-    ],
-    cwd = "$(dirname $(readlink -f $RELEASERC))",
-    env = {
-        "RELEASERC": cmd.file(".releaserc"),
-        "BAZEL_BINDIR": ".",
-    },
-)
-
-npm_link_all_packages(
 )
