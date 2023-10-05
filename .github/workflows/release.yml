@@ -18,10 +18,8 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 8
-
-      - name: Install pnpm dependencies
-        run: pnpm install
-        working-directory: ./rules/rules_task
+          run_install:
+            cwd: ./rules/rules_task
 
       - name: Run release
         run: pnpm exec semantic-release
