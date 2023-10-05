@@ -5,7 +5,7 @@ All the dependencies for rules_task
 module(
     name = "rules_task",
     repo_name = "rules_task",
-    version = "0.1.0",
+    version = "0.0.0",
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
@@ -31,3 +31,27 @@ pip.parse(
 )
 
 use_repo(pip, "pip")
+
+# ------------------------------------ rules_js ------------------------------------ #
+bazel_dep(name = "aspect_rules_js", version = "1.32.6")
+
+npm = use_extension(
+    "@aspect_rules_js//npm:extensions.bzl",
+    "npm",
+)
+
+npm.npm_translate_lock(
+    name = "npm",
+    # Need to configure link_workspace otherwise invocation from setup workspace does not work
+    link_workspace = "rules_task",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
+
+use_repo(npm, "npm")
+
+bazel_dep(name = "rules_nodejs", version = "6.0.1")
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+
+node.toolchain(node_version = "18.17.1")

@@ -25,6 +25,20 @@
       "source": "devbox-search",
       "version": "1.4.8"
     },
+    "nodePackages.pnpm@8.7.5": {
+      "last_modified": "2023-09-16T18:11:59Z",
+      "resolved": "github:NixOS/nixpkgs/b2e813ada825ef491546ea81f42ef2d37ce71bf6#nodePackages.pnpm",
+      "source": "devbox-search",
+      "version": "8.7.5",
+      "systems": {
+        "aarch64-linux": {
+          "store_path": "/nix/store/dn93vz8nqqln96r0r45f353jc7fnf48n-pnpm-8.7.5"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/bj41725jfc23pz1pz6h56y04l4699zhn-pnpm-8.7.5"
+        }
+      }
+    },
     "nodePackages.prettier@3.0.3": {
       "last_modified": "2023-09-17T10:54:49Z",
       "resolved": "github:NixOS/nixpkgs/5148520bfab61f99fd25fb9ff7bfbb50dad3c9db#nodePackages.prettier",
