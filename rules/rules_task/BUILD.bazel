@@ -19,39 +19,23 @@ compile_pip_requirements(
 
 semantic_release_bin.semantic_release_binary(
     name = "semantic-release_bin",
-    # log_level = "debug",
+    log_level = "debug",
 )
 
-# TODO: this in general does not work with Bazel, because we need to change directories otherwise semantic-relase cannot find git
-# When chaning directories semantic-release is unable to find the semantic-release-monorepo module
-# This has probably something to do with node_modules, but unsure how to fix this? Can we set NODE_PATH or something?
 task(
     name = "release",
     cmds = [
-        # "ls -la",
-        # "echo $BINARY",
-        # "echo $KERK",
-        # "pwd",
-        # "export NODE_PATH=$(pwd):$(pwd)/external/rules_task~override/node_modules:$(pwd)/external/rules_task~override/node_modules/.aspect_rules_js",
-        # "echo $NODE_PATH",
-        "cd $(dirname $(readlink -f $RELEASERC))",
-        # "pwd",
         cmd.shell(
             cmd.executable(":semantic-release_bin"),
             "$CLI_ARGS",
         ),
     ],
-    # cwd = "$(dirname $RELEASERC)",
+    cwd = "$(dirname $(readlink -f $RELEASERC))",
     env = {
         "RELEASERC": cmd.file(".releaserc"),
-        "BINARY": cmd.executable(":semantic-release_bin"),
         "BAZEL_BINDIR": ".",
-        # "KERK": cmd.files("@rules_task//:node_modules/semantic-release-monorepo"),
-        # "OP": cmd.executable("//tools/onepassword:op"),
     },
 )
-
-# /private/var/tmp/_bazel_maarten/8c4bfcd606c4d7b95cf418885251b08c/execroot/_main/bazel-out/darwin_arm64-fastbuild/bin/external/rules_task~override/release.runfiles/_main
 
 npm_link_all_packages(
 )

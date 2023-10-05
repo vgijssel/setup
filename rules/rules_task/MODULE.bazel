@@ -42,9 +42,8 @@ npm = use_extension(
 
 npm.npm_translate_lock(
     name = "npm",
-    # TODO: link_workspace like this only works for "setup" not for "rules_task". Do we need to turn this into an extension?
+    # Need to configure link_workspace otherwise invocation from setup workspace does not work
     link_workspace = "rules_task",
-    # link_workspace = module_name(),
     pnpm_lock = "//:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
 )
@@ -55,5 +54,4 @@ bazel_dep(name = "rules_nodejs", version = "6.0.1")
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 
-# node.toolchain(node_version = "18.17.1")
-node.toolchain(node_version = "20.8.0")
+node.toolchain(node_version = "18.17.1")

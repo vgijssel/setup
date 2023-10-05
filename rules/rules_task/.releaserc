@@ -1,6 +1,6 @@
 {
   "branches": [
-    "mg/571/release-rules-task"
+    "master"
   ],
   "extends": "semantic-release-monorepo",
   "tagFormat": "rules_task-v${version}",
