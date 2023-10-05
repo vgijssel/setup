@@ -1,0 +1,26 @@
+name: Release
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "*"
+jobs:
+  release:
+    name: Release
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # - uses: pnpm/action-setup@v2
+      #   with:
+      #     version: 8
+      - name: Install pnpm dependencies
+        run: pnpm install
+        working-directory: ./rules/rules_task
+
+      - name: Run release
+        run: pnpm exec semantic-release
+        working-directory: ./rules/rules_task
