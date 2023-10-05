@@ -19,7 +19,7 @@ compile_pip_requirements(
 
 semantic_release_bin.semantic_release_binary(
     name = "semantic-release_bin",
-    log_level = "debug",
+    # log_level = "debug",
 )
 
 # TODO: this in general does not work with Bazel, because we need to change directories otherwise semantic-relase cannot find git
@@ -28,13 +28,13 @@ semantic_release_bin.semantic_release_binary(
 task(
     name = "release",
     cmds = [
-        "ls -la",
-        "echo $BINARY",
-        "echo $KERK",
-        "pwd",
-        "export NODE_PATH=$(pwd):$(pwd)/external/rules_task~override/node_modules:$(pwd)/external/rules_task~override/node_modules/.aspect_rules_js",
-        "echo $NODE_PATH",
-        # "cd $(dirname $(readlink -f $RELEASERC))",
+        # "ls -la",
+        # "echo $BINARY",
+        # "echo $KERK",
+        # "pwd",
+        # "export NODE_PATH=$(pwd):$(pwd)/external/rules_task~override/node_modules:$(pwd)/external/rules_task~override/node_modules/.aspect_rules_js",
+        # "echo $NODE_PATH",
+        "cd $(dirname $(readlink -f $RELEASERC))",
         # "pwd",
         cmd.shell(
             cmd.executable(":semantic-release_bin"),
@@ -46,7 +46,8 @@ task(
         "RELEASERC": cmd.file(".releaserc"),
         "BINARY": cmd.executable(":semantic-release_bin"),
         "BAZEL_BINDIR": ".",
-        "KERK": cmd.files("@rules_task//:node_modules/semantic-release-monorepo"),
+        # "KERK": cmd.files("@rules_task//:node_modules/semantic-release-monorepo"),
+        # "OP": cmd.executable("//tools/onepassword:op"),
     },
 )
 
