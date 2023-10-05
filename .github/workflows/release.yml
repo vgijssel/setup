@@ -19,7 +19,7 @@ jobs:
         with:
           version: 8
           run_install:
-            cwd: ./rules/rules_task
+            - cwd: ./rules/rules_task
 
       - name: Run release
         run: pnpm exec semantic-release
