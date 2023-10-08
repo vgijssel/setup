@@ -1218,8 +1218,8 @@ psutil==5.9.5 \
     --hash=sha256:c607bb3b57dc779d55e1554846352b4e358c10fff3abf3514a7a6601beebdb30 \
     --hash=sha256:ea8518d152174e1249c4f2a1c89e3e6065941df2fa13a1ab45327716a23c2b48
     # via opentelemetry-resourcedetector-process
-pulumi==3.85.0 \
-    --hash=sha256:d78556534cc3c19c43157a6a3798203baabcd790c46f72cc99ecf3c1b5166ffc
+pulumi==3.86.0 \
+    --hash=sha256:db1923170e91badf7d781426d14132a3bec6be827a75d1c535d8be987dc579e1
     # via
     #   -r requirements.in
     #   pulumi-command
@@ -1364,9 +1364,9 @@ pytest-homeassistant-custom-component==0.13.39 \
     --hash=sha256:0126f895a383384ee2e4d52b0f95a1a9e6a4cba937602f1c588356949d6aa4c4 \
     --hash=sha256:cf52cb22e62353f551b4c51d38eae042453bbbf942cdd7e85767ba3c0717682c
     # via -r requirements.in
-pytest-opentelemetry==0.7.0 \
-    --hash=sha256:405ca4a54e4c38e6da34cf4db3a14a51644ecb2270f1a1b94bdf5cdf92e38344 \
-    --hash=sha256:a451d43d4a33d7fe075491a7ed3d1ba2119393969862375dae02dd01a1a4bd08
+pytest-opentelemetry==1.0.0 \
+    --hash=sha256:cd649d235500aa8237871aca5d9444293576680b9d3b3c65341208f3b76a2f59 \
+    --hash=sha256:fbb0fe777998e510a6556c17c12a77f474f36e21774f81a0ab4333fa12f4e7df
     # via -r requirements.in
 pytest-picked==0.4.6 \
     --hash=sha256:8bc744222a39ecc84cbcb87251fb69810ee576a80f84cc77fc47222818b3fa7c \

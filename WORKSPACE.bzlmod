@@ -115,8 +115,8 @@ http_file(
 http_archive(
     name = "tilt_arm64",
     build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
-    sha256 = "9d1a9f69a7ec337493096c8146272a5d86dd49a66dc84acdcd93be4d7af38c18",
-    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.5/tilt.0.33.5.linux.arm64.tar.gz",
+    sha256 = "447c89642c4f2b511005a219c8665b86cc8f942d14175a0256950902ecce7cac",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.6/tilt.0.33.6.linux.arm64.tar.gz",
 )
 
 # ------------------------------------ lefthook ------------------------------------ #
@@ -142,15 +142,15 @@ http_file(
 http_archive(
     name = "pulumi_arm64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "f5f884b7272d746741ff513c2d04bbfd188b1e3da629260bd31218ce5ec0745b",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.85.0/pulumi-v3.85.0-linux-arm64.tar.gz",
+    sha256 = "a33d0b61a1308f9d8c746afb4d7a3ccba55db98208c16fbb7d6640de99c0f725",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.86.0/pulumi-v3.86.0-linux-arm64.tar.gz",
 )
 
 http_archive(
     name = "pulumi_amd64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
-    sha256 = "91ba22d31a4b9e4aba9f6e1dbe59eed05ad6536d3141e05a604e036d35aeedeb",
-    url = "https://github.com/pulumi/pulumi/releases/download/v3.85.0/pulumi-v3.85.0-linux-x64.tar.gz",
+    sha256 = "3227b656f624410f745cef4977430f96fd3daab1118f2180ab4bda8ce029168c",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.86.0/pulumi-v3.86.0-linux-x64.tar.gz",
 )
 
 # ------------------------------------ buildbuddy Remote Build Execution ------------------------------------ #
@@ -214,16 +214,16 @@ http_file(
     name = "regctl_arm64",
     downloaded_file_path = "regctl",
     executable = True,
-    sha256 = "17312dadc43ed24886076b0669bc36a9d790c26140fbacb66b0b89f5f96ece52",
-    url = "https://github.com/regclient/regclient/releases/download/v0.5.1/regctl-linux-arm64",
+    sha256 = "8d076f225c1701c83dd8afda3d944d6e75efe1208f30557d39fdb4604bfa684f",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-linux-arm64",
 )
 
 http_file(
     name = "regctl_amd64",
     downloaded_file_path = "regctl",
     executable = True,
-    sha256 = "484f98e99c90341336b1be99b2b333e7129fde3535b54ef97b4673e8fb2b1d6c",
-    url = "https://github.com/regclient/regclient/releases/download/v0.5.1/regctl-linux-amd64",
+    sha256 = "00a39b3048397443d30033924fbf3d1e6a3179280e61617b3c651e43aa7506de",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-linux-amd64",
 )
 
 # ------------------------------------ mutagen ------------------------------------ #

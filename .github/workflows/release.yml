@@ -1,0 +1,49 @@
+name: Release
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "*"
+jobs:
+  rules_task:
+    name: rules_task
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.head_ref }}
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: |
+            - cwd: ./rules/rules_task
+
+      - name: Load secret
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV }}
+          GH_TOKEN: "op://vgijssel-dev/semantic-release-setup/credential"
+
+      # From https://github.com/semantic-release/semantic-release/discussions/1886#discussioncomment-6899211
+      - name: Dry run release
+        run: |
+          unset GITHUB_ACTIONS
+          unset GITHUB_EVENT_NAME
+          pnpm exec semantic-release --dry-run --no-ci --branches $TARGET_BRANCH
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: ./rules/rules_task
+        env:
+          TARGET_BRANCH: ${{ github.head_ref }}
+
+      - name: Run release
+        run: pnpm exec semantic-release
+        if: ${{ github.event_name == 'push' }}
+        working-directory: ./rules/rules_task

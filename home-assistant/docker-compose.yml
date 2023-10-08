@@ -36,7 +36,7 @@ services:
   zigbee2mqtt:
     container_name: zigbee2mqtt
     restart: always
-    image: koenkk/zigbee2mqtt:1.33.0
+    image: koenkk/zigbee2mqtt:1.33.1
     volumes:
       - ./zigbee2mqtt-data:/app/data
       - /run/udev:/run/udev:ro
@@ -49,7 +49,7 @@ services:
 
   home-assistant:
     container_name: homeassistant
-    image: homeassistant/home-assistant:2023.9
+    image: homeassistant/home-assistant:2023.10
     volumes:
       - ./config:/config
       - /etc/localtime:/etc/localtime:ro
@@ -59,7 +59,7 @@ services:
 
   esphome:
     container_name: esphome
-    image: esphome/esphome:2023.8
+    image: esphome/esphome:2023.9
     volumes:
       - ./esphome-data:/config
       - /data/esphome_nimble:/esphome_nimble

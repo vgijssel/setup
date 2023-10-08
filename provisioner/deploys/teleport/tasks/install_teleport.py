@@ -5,7 +5,7 @@ from pyinfra.facts.deb import DebPackage, DebArch
 from provisioner.utils import wait_for_reconnect
 
 
-TELEPORT_VERSION = "v14.0.0"
+TELEPORT_VERSION = "v14.0.1"
 
 
 @deploy("Install Teleport")

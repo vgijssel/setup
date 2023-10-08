@@ -1,52 +1,59 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"],
-  "pip-compile": {
-    "fileMatch": ["(^|/)requirements\\.in$"]
-  },
-  "addLabels": ["dependencies"],
-  "constraints": {
-    "python": "<= 3.10"
-  },
-  "lockFileMaintenance": {
-    "enabled": true,
-    "automerge": true,
-    "automergeType": "pr",
-    "platformAutomerge": true
-  },
-  "packageRules": [
-    {
-      "matchUpdateTypes": ["minor", "patch"],
-      "matchCurrentVersion": "!/^0/",
+  "config": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["mergeConfidence:all-badges", "config:recommended"],
+    "semanticCommits": "enabled",
+    "semanticCommitType": "chore",
+    "semanticCommitScope": "deps",
+    "pip-compile": {
+      "fileMatch": ["(^|/)requirements\\.in$"]
+    },
+    "addLabels": ["dependencies"],
+    "constraints": {
+      "python": "<= 3.10"
+    },
+    "lockFileMaintenance": {
+      "enabled": true,
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
-    }
-  ],
-  "regexManagers": [
-    {
-      "fileMatch": ["(^|/)install_teleport\\.py$"],
-      "matchStrings": ["TELEPORT_VERSION = \"(?<currentValue>.*?)\""],
-      "depNameTemplate": "gravitational/teleport",
-      "datasourceTemplate": "github-releases",
-      "versioningTemplate": "semver-coerced"
-    }
-  ],
-  "ruby": {
-    "enabled": false
-  },
-  "pip_requirements": {
-    "fileMatch": ["(^|/)requirements\\.in$"],
-    "ignorePaths": ["**/requirements.txt"]
-  },
-  "bazel-module": {
-    "enabled": true
-  },
-  "bazel": {
-    "fileMatch": ["(^|/)WORKSPACE\\.bzlmod$"]
-  },
-  "docker-compose": {
-    "fileMatch": ["(^|/)docker-compose\\.yml\\.j2$"]
-  },
-  "automergeSchedule": ["after 9am every weekday", "before 5pm every weekday"]
+    },
+    "packageRules": [
+      {
+        "matchCategories": ["ruby"],
+        "enabled": false
+      },
+      {
+        "matchUpdateTypes": ["minor", "patch"],
+        "matchCurrentVersion": "!/^0/",
+        "automerge": true,
+        "automergeType": "pr",
+        "platformAutomerge": true
+      }
+    ],
+    "customManagers": [
+      {
+        "customType": "regex",
+        "fileMatch": ["(^|/)install_teleport\\.py$"],
+        "matchStrings": ["TELEPORT_VERSION = \"(?<currentValue>.*?)\""],
+        "depNameTemplate": "gravitational/teleport",
+        "datasourceTemplate": "github-releases",
+        "versioningTemplate": "semver-coerced"
+      }
+    ],
+    "pip_requirements": {
+      "fileMatch": ["(^|/)requirements\\.in$"],
+      "ignorePaths": ["**/requirements.txt"]
+    },
+    "bazel-module": {
+      "enabled": true
+    },
+    "bazel": {
+      "fileMatch": ["(^|/)WORKSPACE\\.bzlmod$"]
+    },
+    "docker-compose": {
+      "fileMatch": ["(^|/)docker-compose\\.yml\\.j2$"]
+    },
+    "automergeSchedule": ["after 9am every weekday", "before 5pm every weekday"]
+  }
 }

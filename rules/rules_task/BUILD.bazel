@@ -1,4 +1,5 @@
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
+load(":defs.bzl", "cmd", "task")
 
 package(default_visibility = ["//visibility:public"])
 
