@@ -7,8 +7,8 @@ on:
     branches:
       - "*"
 jobs:
-  release:
-    name: Release
+  rules_task:
+    name: rules_task
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -31,6 +31,12 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV }}
           GH_TOKEN: "op://vgijssel-dev/semantic-release-setup/credential"
 
+      - name: Dry run release
+        run: pnpm exec semantic-release --dry-run
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: ./rules/rules_task
+
       - name: Run release
         run: pnpm exec semantic-release
+        if: ${{ github.event_name == 'push' }}
         working-directory: ./rules/rules_task
