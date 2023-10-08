@@ -36,7 +36,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         working-directory: ./rules/rules_task
         env:
-          BRANCH: ${{ github.head_ref }}
+          BRANCH: ${{ github.ref }}
 
       - name: Run release
         run: pnpm exec semantic-release
