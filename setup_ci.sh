@@ -39,3 +39,5 @@ set -e
 sudo curl -L https://hydra.nixos.org/job/nix/maintenance-2.14/buildStatic.x86_64-linux/latest/download-by-type/file/binary-dist -o /usr/local/bin/nix
 sudo chmod +x /usr/local/bin/nix
 sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/bin/nix-build
+
+nix-build --version
