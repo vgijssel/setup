@@ -3,14 +3,11 @@
 # set -x
 set -e
 
-ARGS="$@"
-
-
-echo $ARGS
+echo $@
 
 # sudo /nix/var/nix/profiles/default/bin/nix-build $@
 # nix-portable nix-build $@
 
-docker run --workdir=$(pwd) --volume $(pwd):$(pwd) --rm -it nixos/nix:2.18.1 nix-build $ARGS
+docker run --workdir=$(pwd) --volume $(pwd):$(pwd) --rm -it nixos/nix:2.18.1 nix-build "$@"
 
 # nix build "$ARGS"
