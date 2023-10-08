@@ -56,6 +56,10 @@ sudo /nix/var/nix/profiles/default/bin/nix-build --version
 
 rm -fv /usr/local/sbin/nix-build 
 
+sudo ln -f -s /nix/var/nix/profiles/default/bin/nix-build /usr/local/bin/nix-build
+
+nix-build --version
+
 # # which docker
 # # docker --version
 
