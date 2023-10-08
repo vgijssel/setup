@@ -32,8 +32,12 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV }}
           GH_TOKEN: "op://vgijssel-dev/semantic-release-setup/credential"
 
+      # From https://github.com/semantic-release/semantic-release/discussions/1886#discussioncomment-6899211
       - name: Dry run release
-        run: pnpm exec semantic-release --dry-run --no-ci --branches $TARGET_BRANCH
+        run: |
+          unset GITHUB_ACTIONS
+          unset GITHUB_EVENT_NAME
+          pnpm exec semantic-release --dry-run --no-ci --branches $TARGET_BRANCH
         if: ${{ github.event_name == 'pull_request' }}
         working-directory: ./rules/rules_task
         env:
