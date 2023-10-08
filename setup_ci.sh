@@ -51,6 +51,9 @@ sudo which nix
 # sudo which nix-build
 # sudo nix-build --version
 
+/nix/var/nix/profiles/default/bin/nix-build --version
+sudo /nix/var/nix/profiles/default/bin/nix-build --version
+
 
 # which docker
 # docker --version
