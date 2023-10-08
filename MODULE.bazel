@@ -47,3 +47,6 @@ pip.parse(
 )
 
 use_repo(pip, "pip-setup")
+
+# ------------------------------------ rules_oci ------------------------------------ #
+bazel_dep(name = "rules_oci", version = "1.4.0")

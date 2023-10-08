@@ -1,5 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -74,3 +75,24 @@ sh_binary(
         "setup_ci.sh",
     ],
 )
+
+oci_image(
+    name = "kerk",
+    base = "@raw_python38_base_image//:image.tar.gz",
+)
+
+oci_tarball(
+    name = "tarball",
+    image = ":kerk",
+    repo_tags = ["kerk:latest"],
+)
+
+# oci_pull(
+#     name = "distroless_static",
+#     digest = "sha256:c3c3d0230d487c0ad3a0d87ad03ee02ea2ff0b3dcce91ca06a1019e07de05f12",
+#     image = "gcr.io/distroless/static",
+#     platforms = [
+#         "linux/amd64",
+#         "linux/arm64",
+#     ],
+# )

@@ -1,5 +1,5 @@
-# with import <nixpkgs> { system = "aarch64-linux"; };
-with import <nixpkgs> { system = "x86_64-linux"; };
+with import <nixpkgs> { system = "aarch64-linux"; };
+# with import <nixpkgs> { system = "x86_64-linux"; };
 
 let
   dockerEtc = runCommand "docker-etc" { } ''
@@ -9,6 +9,16 @@ let
     echo "root:!x:::::::" > $out/etc/shadow
     echo "root:x:0:" > $out/etc/group
   '';
+
+  # bash = dockerTools.buildImage {
+  #   name = "bash";
+  #   tag = "latest";
+  #   copyToRoot = pkgs.buildEnv {
+  #     name = "image-root";
+  #     paths = [ pkgs.bashInteractive ];
+  #     pathsToLink = [ "/bin" ];
+  #   };
+  # };
 
   pythonBase = dockerTools.buildLayeredImage {
     name = "python38-base-image-unwrapped";
@@ -22,7 +32,6 @@ let
       iana-etc
       cacert
       dockerEtc
-      vim
     ];
     extraCommands = ''
             mkdir -p root
@@ -39,8 +48,10 @@ let
   };
   # rules_nixpkgs require the nix output to be a directory,
   # so we create one in which we put the image we've just created
+  # exportPython = dockerTools.exportImage { fromImage = bash; };
+
 in
 runCommand "python38-base-image" { } ''
   mkdir -p $out
-  gunzip -c ${pythonBase} > $out/image
+  gunzip -c ${pythonBase} > $out/image.tar.gz
 ''
