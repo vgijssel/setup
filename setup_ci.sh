@@ -5,19 +5,17 @@ set -e
 
 
 
-# if [ -f /nix/receipt.json ]; then
-#   echo "Uninstall nix as it's already here"
-#   sudo /nix/nix-installer uninstall --no-confirm
-# else
-#   echo "No nix here"
-#   # echo "Installing Nix"
-
-#   # curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
-#   #   --init none \
-#   #   --extra-conf "sandbox = false" \
-#   #   --no-start-daemon \
-#   #   --no-confirm
-# fi
+if [ -f /nix/receipt.json ]; then
+  echo "Nix already installed"
+  # sudo /nix/nix-installer uninstall --no-confirm
+else
+  echo "Installing Nix"
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
+    --init none \
+    --extra-conf "sandbox = false" \
+    --no-start-daemon \
+    --no-confirm
+fi
 
 # # sudo which nix-build
 # env
@@ -34,18 +32,11 @@ set -e
 
 # nix-build --version
 
-echo $PATH
 env
+sudo env
 
-# sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/bin/nix-build
-sudo curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
-  --extra-conf "sandbox = false" \
-  --init none \
-  --no-confirm
-
-nix-build --version
-which nix-build
-nix-build --version
+sudo which nix-build
+sudo nix-build --version
 
 
 # which docker
