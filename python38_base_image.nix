@@ -33,6 +33,7 @@ let
       iana-etc
       cacert
       dockerEtc
+      vim
     ];
     extraCommands = ''
             mkdir -p root

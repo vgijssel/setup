@@ -77,25 +77,42 @@ sh_binary(
     ],
 )
 
+load("//tools/python:py_image_layer.bzl", "py_image_layer")
+
+py_binary(
+    name = "hello_world",
+    srcs = [
+        "hello_world.py",
+    ],
+)
+
+py_image_layer(
+    name = "hello_world_layer",
+    binary = ":hello_world",
+    root = "/opt",
+)
+
 oci_image(
-    name = "kerk",
+    name = "hello_world_image",
     base = "@raw_python38_base_image//:image.tar.gz",
+    entrypoint = ["/opt/hello_world"],
+    tars = [":hello_world_layer"],
 )
 
 oci_tarball(
-    name = "tarball",
-    image = ":kerk",
-    repo_tags = ["kerk:latest"],
+    name = "hello_world_tarball",
+    image = ":hello_world_image",
+    repo_tags = ["hello_world:latest"],
 )
 
 task_test(
-    name = "image_test",
+    name = "hello_world_test",
     cmds = [
         "docker load < $TARBALL",
-        "docker run --rm  kerk:latest echo 'hello world'",
+        "docker run --rm  hello_world:latest",
     ],
     env = {
-        "TARBALL": cmd.file(":tarball"),
+        "TARBALL": cmd.file(":hello_world_tarball"),
     },
     exec_properties = {
         "workload-isolation-type": "firecracker",
