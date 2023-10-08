@@ -16,6 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: ${{ github.head_ref }}
 
       - uses: pnpm/action-setup@v2
         with:
@@ -32,11 +33,11 @@ jobs:
           GH_TOKEN: "op://vgijssel-dev/semantic-release-setup/credential"
 
       - name: Dry run release
-        run: pnpm exec semantic-release --dry-run --no-ci --branches $BRANCH
+        run: pnpm exec semantic-release --dry-run --no-ci --branches $TARGET_BRANCH
         if: ${{ github.event_name == 'pull_request' }}
         working-directory: ./rules/rules_task
         env:
-          BRANCH: ${{ github.ref }}
+          TARGET_BRANCH: ${{ github.head_ref }}
 
       - name: Run release
         run: pnpm exec semantic-release
