@@ -1,4 +1,5 @@
-with import <nixpkgs> { system = "aarch64-linux"; };
+# with import <nixpkgs> { system = "aarch64-linux"; };
+with import <nixpkgs> { system = "x86_64-linux"; };
 
 let
   dockerEtc = runCommand "docker-etc" { } ''
