@@ -33,7 +33,7 @@ fi
 # nix-build --version
 # ENV PATH="${PATH}:/nix/var/nix/profiles/default/bin"
 
-sudo ls -la /nix/var/nix/profiles/default/bin
+sudo ls -la /nix/var/nix/profiles/default/bin/
 
 env
 sudo env
@@ -47,6 +47,7 @@ sudo which nix-build
 which nix
 sudo which nix
 
+# /usr/local/sbin
 # sudo which nix-build
 # sudo nix-build --version
 
@@ -56,6 +57,8 @@ sudo which nix
 
 # sudo curl -L https://hydra.nixos.org/job/nix/maintenance-2.14/buildStatic.x86_64-linux/latest/download-by-type/file/binary-dist -o /usr/local/bin/nix
 # sudo chmod +x /usr/local/bin/nix
-# sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/bin/nix-build
+sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/sbin/nix-build
+
+nix-build --version
 
 # nix-build --version

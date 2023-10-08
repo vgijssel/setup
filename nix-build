@@ -3,7 +3,9 @@
 # set -x
 set -e
 
-echo $@
+# echo $@
+
+sudo nix-build "$@"
 
 # sudo /nix/var/nix/profiles/default/bin/nix-build $@
 # nix-portable nix-build $@
