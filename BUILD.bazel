@@ -1,5 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
+load("@rules_task//:defs.bzl", "cmd", "task_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 
 package(default_visibility = ["//visibility:public"])
@@ -87,12 +88,18 @@ oci_tarball(
     repo_tags = ["kerk:latest"],
 )
 
-# oci_pull(
-#     name = "distroless_static",
-#     digest = "sha256:c3c3d0230d487c0ad3a0d87ad03ee02ea2ff0b3dcce91ca06a1019e07de05f12",
-#     image = "gcr.io/distroless/static",
-#     platforms = [
-#         "linux/amd64",
-#         "linux/arm64",
-#     ],
-# )
+task_test(
+    name = "image_test",
+    cmds = [
+        "docker load < $TARBALL",
+        "docker run --rm  kerk:latest echo 'hello world'",
+    ],
+    env = {
+        "TARBALL": cmd.file(":tarball"),
+    },
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
+    },
+)
