@@ -51,6 +51,8 @@ sudo env
 # sudo which nix-build
 # sudo nix-build --version
 
+sudo chown buildbuddy:buildbuddy /nix
+
 /nix/var/nix/profiles/default/bin/nix-build --version
 sudo /nix/var/nix/profiles/default/bin/nix-build --version
 
