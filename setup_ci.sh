@@ -31,6 +31,9 @@ fi
 # export NP_RUNTIME=proot
 
 # nix-build --version
+# ENV PATH="${PATH}:/nix/var/nix/profiles/default/bin"
+
+sudo ls -la /nix/var/nix/profiles/default/bin
 
 env
 sudo env
