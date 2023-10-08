@@ -59,6 +59,8 @@ sudo which nix
 # sudo chmod +x /usr/local/bin/nix
 sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/sbin/nix-build
 
+/usr/local/bin/nix-build --version
+sudo /usr/local/bin/nix-build --version
 nix-build --version
 
 # nix-build --version
