@@ -43,6 +43,7 @@ sudo curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems
   --init none \
   --no-confirm
 
+nix-build --version
 which nix-build
 nix-build --version
 
