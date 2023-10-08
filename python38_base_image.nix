@@ -1,4 +1,15 @@
-with import <nixpkgs> { system = "aarch64-linux"; };
+let
+  currentSystem = builtins.currentSystem;
+  targetSystem = {
+    "x86_64-linux" = "x86_64-linux";
+    "aarch64-darwin" = "aarch64-linux";
+    "aarch64-linux" = "aarch64-linux";
+  }."${currentSystem}";
+in
+with import <nixpkgs>
+{
+  system = targetSystem;
+};
 # with import <nixpkgs> { system = "x86_64-linux"; };
 
 let
@@ -9,16 +20,6 @@ let
     echo "root:!x:::::::" > $out/etc/shadow
     echo "root:x:0:" > $out/etc/group
   '';
-
-  # bash = dockerTools.buildImage {
-  #   name = "bash";
-  #   tag = "latest";
-  #   copyToRoot = pkgs.buildEnv {
-  #     name = "image-root";
-  #     paths = [ pkgs.bashInteractive ];
-  #     pathsToLink = [ "/bin" ];
-  #   };
-  # };
 
   pythonBase = dockerTools.buildLayeredImage {
     name = "python38-base-image-unwrapped";
@@ -46,9 +47,6 @@ let
             ln -s /usr/bin/python3 usr/bin/python
     '';
   };
-  # rules_nixpkgs require the nix output to be a directory,
-  # so we create one in which we put the image we've just created
-  # exportPython = dockerTools.exportImage { fromImage = bash; };
 
 in
 runCommand "python38-base-image" { } ''
