@@ -54,7 +54,7 @@ sudo env
 /nix/var/nix/profiles/default/bin/nix-build --version
 sudo /nix/var/nix/profiles/default/bin/nix-build --version
 
-rm -fv /usr/local/sbin/nix-build 
+sudo rm -fv /usr/local/sbin/nix-build 
 
 sudo ln -f -s /nix/var/nix/profiles/default/bin/nix-build /usr/local/bin/nix-build
 
