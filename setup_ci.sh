@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -x
-set -e
+# set -e
 
 
 
@@ -36,6 +36,13 @@ env
 sudo env
 
 sudo find / -name nix-build
+sudo find / -name nix
+
+which nix-build
+sudo which nix-build
+
+which nix
+sudo which nix
 
 # sudo which nix-build
 # sudo nix-build --version
