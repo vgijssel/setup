@@ -10,7 +10,7 @@ if [ -f /nix/receipt.json ]; then
   # sudo /nix/nix-installer uninstall --no-confirm
 else
   echo "Installing Nix"
-  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sudo sh -s -- install linux \
     --init none \
     --extra-conf "sandbox = false" \
     --no-start-daemon \
@@ -38,14 +38,14 @@ sudo ls -la /nix/var/nix/profiles/default/bin/
 env
 sudo env
 
-sudo find / -name nix-build
-sudo find / -name nix
+# sudo find / -name nix-build
+# sudo find / -name nix
 
-which nix-build
-sudo which nix-build
+# which nix-build
+# sudo which nix-build
 
-which nix
-sudo which nix
+# which nix
+# sudo which nix
 
 # /usr/local/sbin
 # sudo which nix-build
@@ -54,16 +54,17 @@ sudo which nix
 /nix/var/nix/profiles/default/bin/nix-build --version
 sudo /nix/var/nix/profiles/default/bin/nix-build --version
 
+rm -fv /usr/local/sbin/nix-build 
 
-# which docker
-# docker --version
+# # which docker
+# # docker --version
 
-# sudo curl -L https://hydra.nixos.org/job/nix/maintenance-2.14/buildStatic.x86_64-linux/latest/download-by-type/file/binary-dist -o /usr/local/bin/nix
-# sudo chmod +x /usr/local/bin/nix
-sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/sbin/nix-build
+# # sudo curl -L https://hydra.nixos.org/job/nix/maintenance-2.14/buildStatic.x86_64-linux/latest/download-by-type/file/binary-dist -o /usr/local/bin/nix
+# # sudo chmod +x /usr/local/bin/nix
+# sudo ln -f -s $BUILD_WORKSPACE_DIRECTORY/nix-build /usr/local/sbin/nix-build
 
-/usr/local/bin/nix-build --version
-sudo /usr/local/bin/nix-build --version
-nix-build --version
+# /usr/local/bin/nix-build --version
+# sudo /usr/local/bin/nix-build --version
+# nix-build --version
 
 # nix-build --version
