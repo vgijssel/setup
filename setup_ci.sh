@@ -35,8 +35,10 @@ fi
 env
 sudo env
 
-sudo which nix-build
-sudo nix-build --version
+sudo find / -name nix-build
+
+# sudo which nix-build
+# sudo nix-build --version
 
 
 # which docker
