@@ -3,7 +3,12 @@
 # set -x
 set -e
 
+ARGS="$@"
+
+
+echo $ARGS
+
 # sudo /nix/var/nix/profiles/default/bin/nix-build $@
 # nix-portable nix-build $@
 
-nix build $@
+nix build "$ARGS"
