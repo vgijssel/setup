@@ -113,7 +113,7 @@ py_binary(
 py_image_layer(
     name = "hello_world_layer",
     binary = ":hello_world",
-    root = "/opt",
+    prefix = "opt/",
 )
 
 oci_image(
@@ -141,6 +141,9 @@ task(
     env = {
         "TARBALL": cmd.file(":hello_world_tarball"),
     },
+    target_platforms = [
+        ":shine_platform",
+    ],
 )
 
 task_test(

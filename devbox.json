@@ -6,10 +6,10 @@
     "black@23.9.1",
     "lefthook@1.4.8",
     "nixpkgs-fmt@1.3.0",
-    "nodePackages.pnpm@8.7.5"
+    "nodePackages.pnpm@8.7.5",
+    "libarchive@latest"
   ],
   "shell": {
-    "init_hook": ["alias bazel='bazelisk'"],
-    "scripts": {}
+    "init_hook": ["alias bazel='bazelisk'"]
   }
 }

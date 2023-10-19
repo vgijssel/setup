@@ -35,6 +35,7 @@ let
       dockerEtc
       vim
       findutils
+      gnugrep
     ];
     extraCommands = ''
             mkdir -p root
