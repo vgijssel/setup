@@ -34,6 +34,7 @@ let
       cacert
       dockerEtc
       vim
+      findutils
     ];
     extraCommands = ''
             mkdir -p root

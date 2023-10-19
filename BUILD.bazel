@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
-load("@rules_task//:defs.bzl", "cmd", "task_test")
+load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
 
@@ -132,10 +132,22 @@ oci_tarball(
     repo_tags = ["hello_world:latest"],
 )
 
+task(
+    name = "hello_world_image_run",
+    cmds = [
+        "docker load < $TARBALL",
+        "docker run --rm --entrypoint='' hello_world:latest find /opt",
+    ],
+    env = {
+        "TARBALL": cmd.file(":hello_world_tarball"),
+    },
+)
+
 task_test(
     name = "hello_world_test",
     cmds = [
         "docker load < $TARBALL",
+        "docker run --rm --entrypoint='' hello_world:latest find /opt",
         "docker run --rm  hello_world:latest",
     ],
     env = {
@@ -149,7 +161,4 @@ task_test(
     target_platforms = [
         ":shine_platform",
     ],
-    # target_compatible_with = [
-    #     ":docker_image_platform",
-    # ],
 )
