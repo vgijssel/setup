@@ -14,7 +14,7 @@ def py_image_layer(name, binary, prefix = "", **kwargs):
     native.genrule(
         name = prefixed_mtree_spec_name,
         srcs = [mtree_spec_name],
-        outs = ["output.txt"],
+        outs = ["{}.txt".format(prefixed_mtree_spec_name)],
         cmd = "sed 's|^|{}|' $< > $@".format(prefix),
     )
 
