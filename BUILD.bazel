@@ -2,6 +2,7 @@ load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
 load("@rules_task//:defs.bzl", "cmd", "task_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -31,22 +32,45 @@ compile_pip_requirements(
     requirements_txt = "requirements.txt",
 )
 
-platform(
-    name = "docker_image_platform",
-    constraint_values = [
-        # "@bazel_tools//platforms:x86_64",
-        # "@bazel_tools//platforms:linux",
-        "@bazel_tools//tools/cpp:clang",
-        "@platforms//os:linux",
+constraint_setting(name = "shine_containerized")
 
-        # "@platforms//cpu:aarch64": ["@lefthook_arm64//file"],
-        "@platforms//cpu:x86_64",
+constraint_value(
+    name = "shine_run_in_container",
+    constraint_setting = ":shine_containerized",
+)
+
+platform(
+    name = "shine_platform",
+    constraint_values = [
+        ":shine_run_in_container",
     ],
-    exec_properties = {
-        "OSFamily": "Linux",
-        # "container-image": "docker://gcr.io/YOUR:IMAGE",
-        "container-image": "docker://registry.hub.docker.com/nixos/nix",
-    },
+)
+
+py_runtime(
+    name = "shine_container_py2_runtime",
+    interpreter_path = "/usr/bin/python3",
+    python_version = "PY2",
+)
+
+py_runtime(
+    name = "shine_container_py3_runtime",
+    interpreter_path = "/usr/bin/python3",
+    python_version = "PY3",
+)
+
+py_runtime_pair(
+    name = "shine_container_py_runtime_pair",
+    py2_runtime = ":shine_container_py2_runtime",
+    py3_runtime = ":shine_container_py3_runtime",
+)
+
+toolchain(
+    name = "shine_container_py_toolchain",
+    target_compatible_with = [
+        ":shine_run_in_container",
+    ],
+    toolchain = ":shine_container_py_runtime_pair",
+    toolchain_type = "@bazel_tools//tools/python:toolchain_type",
 )
 
 load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
@@ -96,7 +120,10 @@ oci_image(
     name = "hello_world_image",
     base = "@raw_python38_base_image//:image.tar.gz",
     entrypoint = ["/opt/hello_world"],
-    tars = [":hello_world_layer"],
+    tars = [
+        ":hello_world_layer",
+    ],
+    # os = "linux",
 )
 
 oci_tarball(
@@ -119,4 +146,10 @@ task_test(
         "init-dockerd": "true",
         "recycle-runner": "true",
     },
+    target_platforms = [
+        ":shine_platform",
+    ],
+    # target_compatible_with = [
+    #     ":docker_image_platform",
+    # ],
 )

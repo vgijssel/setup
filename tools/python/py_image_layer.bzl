@@ -1,4 +1,5 @@
 "Simple macro to create tar files from a Python binary."
+# Copied from https://github.com/aspect-build/bazel-examples/blob/main/oci_python_image/py_image_layer.bzl
 
 load(":runfiles.bzl", "runfiles")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")

@@ -2,6 +2,7 @@
 Workaround for broken runfiles handling in rules_pkg
 
 See https://github.com/bazelbuild/rules_pkg/issues/153
+Copied from https://github.com/aspect-build/bazel-examples/blob/main/oci_python_image/workaround_rules_pkg_153/runfiles.bzl
 """
 
 load("@rules_pkg//:providers.bzl", "PackageFilegroupInfo", "PackageFilesInfo", "PackageSymlinkInfo")

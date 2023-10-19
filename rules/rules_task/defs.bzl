@@ -311,14 +311,23 @@ set -Eeou pipefail
 
 _shared_attrs = {
     "cmd_json": attr.string(mandatory = True),
-    "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
-    "data": attr.label_list(allow_files = True, cfg = "exec"),
+    # cfg = "target" makes sure the deps, data and runner use the target platform toolchain
+    # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
+    "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
+    "data": attr.label_list(allow_files = True, cfg = "target"),
     "runner": attr.label(
         mandatory = True,
-        cfg = "exec",
+        cfg = "target",
         executable = True,
     ),
+    "target_platforms": attr.label_list(allow_files = False),
     "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
+    # This attribute is required to use starlark transitions. It allows
+    # allowlisting usage of this rule. For more information, see
+    # https://docs.bazel.build/versions/master/skylark/config.html#user-defined-transitions
+    "_allowlist_function_transition": attr.label(
+        default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+    ),
 }
 
 def _task_rule_prep(kwargs, testonly = False):
@@ -362,10 +371,23 @@ def _task_rule_prep(kwargs, testonly = False):
     cmd_json = json.encode(cmds)
     return runner_name, cmd_data, cmd_json
 
+def _transition_impl(_settings, attr):
+    return {"//command_line_option:platforms": attr.target_platforms}
+
+# Define a transition.
+_transition = transition(
+    implementation = _transition_impl,
+    inputs = [],
+    # We declare which flags the transition will be writing. The returned dict(s)
+    # of flags must have keyset(s) that contains exactly this list.
+    outputs = ["//command_line_option:platforms"],
+)
+
 _task = rule(
     implementation = _task_impl,
     executable = True,
     attrs = _shared_attrs,
+    cfg = _transition,
 )
 
 _task_test = rule(
@@ -373,6 +395,7 @@ _task_test = rule(
     executable = True,
     attrs = _shared_attrs,
     test = True,
+    cfg = _transition,
 )
 
 def task(**kwargs):
