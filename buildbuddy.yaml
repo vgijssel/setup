@@ -11,4 +11,4 @@ actions:
           - "*"
     bazel_commands:
       - bazel run //:setup_ci
-      - bazel test --keep_going //... @rules_task//... --config buildbuddy --config buildbuddy_rbe --host_platform=//:docker_image_platform
+      - bazel test --keep_going //... @rules_task//... --config buildbuddy --config buildbuddy_rbe
