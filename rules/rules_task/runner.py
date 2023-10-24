@@ -25,18 +25,16 @@ def jinja_render_string(string):
     return template.render(os=os, rlocation_to_path=_rlocation_to_path)
 
 
-def main() -> None:
-    _, instructions_file, *cli_args = sys.argv
+def main(instructions) -> None:
+    _, *cli_args = sys.argv
     cli_args = " ".join(cli_args)
 
     # Making sure the current Python executable is in front of the PATH
     # so python based cmds can use this Python as well.
+    # TODO: is this still needed?
     os.environ["PATH"] = (
         os.path.dirname(sys.executable) + os.pathsep + os.environ["PATH"]
     )
-
-    with open(instructions_file) as f:
-        instructions = json.load(f)
 
     trap_add = """
 # From https://stackoverflow.com/a/30650385
