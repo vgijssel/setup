@@ -4,7 +4,6 @@
       "name": "master"
     }
   ],
-  "extends": "semantic-release-monorepo",
   "tagFormat": "rules_task-v${version}",
   "plugins": [
     [
@@ -13,7 +12,6 @@
         "releaseRules": [
           {
             "type": "docs",
-            "scope": "readme.md",
             "release": "patch"
           },
           {
@@ -21,6 +19,12 @@
             "release": "patch"
           }
         ],
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
         "preset": "conventionalcommits",
         "presetConfig": {
           "types": [
@@ -34,7 +38,7 @@
             },
             {
               "type": "fix",
-              "section": "Bug Fixes - Kerk"
+              "section": "Bug Fixes"
             },
             {
               "type": "perf",
@@ -76,12 +80,10 @@
         }
       }
     ],
-    "@semantic-release/release-notes-generator",
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./prepare-release.sh ${nextRelease.version}",
-        "generateNotes": "./generate-release-notes.sh ${nextRelease}"
+        "prepareCmd": "./prepare-release.sh ${nextRelease.version}"
       }
     ],
     [
