@@ -4,6 +4,7 @@
       "name": "master"
     }
   ],
+  "extends": "semantic-release-monorepo",
   "tagFormat": "rules_task-v${version}",
   "plugins": [
     [
