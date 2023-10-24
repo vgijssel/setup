@@ -80,8 +80,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./prepare-release.sh ${nextRelease.version}",
-        "generateNotes": "./generate-release-notes.sh ${nextRelease}"
+        "prepareCmd": "./prepare-release.sh ${nextRelease.version}"
       }
     ],
     [
