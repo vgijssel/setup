@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# trigger
+
 set -o errexit -o nounset -o pipefail
 
 # Set by GH actions, see
