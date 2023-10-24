@@ -5,6 +5,9 @@
     }
   ],
   "tagFormat": "rules_task-v${version}",
+  "commitPaths": [
+    "rules/rules_task/*"
+  ],
   "plugins": [
     [
       "@semantic-release/commit-analyzer",
