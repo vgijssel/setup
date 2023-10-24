@@ -23,6 +23,12 @@
       }
     ],
     [
+      "@semantic-release/exec",
+      {
+        "generateNotesCmd": "./generate-release-notes.sh ${nextRelease.version}"
+      }
+    ],
+    [
       "@semantic-release/release-notes-generator",
       {
         "preset": "conventionalcommits",
@@ -78,12 +84,6 @@
             }
           ]
         }
-      }
-    ],
-    [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "./prepare-release.sh ${nextRelease.version}"
       }
     ],
     [
