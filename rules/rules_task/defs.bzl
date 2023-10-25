@@ -351,7 +351,6 @@ def _task_rule_prep(name, kwargs, testonly = False):
         name = script_name,
         data = cmd_data,
         cmd_json = cmd_json,
-        **kwargs
     )
 
     py_binary(
@@ -363,6 +362,7 @@ def _task_rule_prep(name, kwargs, testonly = False):
             requirement("bazel-runfiles"),
             requirement("jinja2"),
         ] + deps,
+        **kwargs
     )
 
 def task(**kwargs):
