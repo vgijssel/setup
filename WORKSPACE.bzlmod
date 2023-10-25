@@ -209,18 +209,27 @@ http_file(
 
 # ------------------------------------ mutagen ------------------------------------ #
 
+# From https://github.com/mutagen-io/mutagen/releases
+
 http_archive(
-    name = "mutagen_arm64",
+    name = "mutagen_linux_arm64",
     build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
     sha256 = "60fdd4f2abe68d3c23b22e48be556038a29175a65877dd43128d56319a6bcae0",
     url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.2/mutagen_linux_arm64_v0.17.2.tar.gz",
 )
 
 http_archive(
-    name = "mutagen_amd64",
+    name = "mutagen_linux_amd64",
     build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
     sha256 = "85d967462ade994d37fc8d4906579d33b6fbb1744bab4a7cceb0c12424fb0f1d",
     url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.2/mutagen_linux_amd64_v0.17.2.tar.gz",
+)
+
+http_archive(
+    name = "mutagen_darwin_arm64",
+    build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
+    sha256 = "dc06db9ae11381d1b3fc6057cda3854580f1476463a665ad9b168a973a81afad",
+    url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.2/mutagen_darwin_arm64_v0.17.2.tar.gz",
 )
 
 # ------------------------------------ bunq2ynab ------------------------------------ #

@@ -3,8 +3,9 @@ load("@rules_task//:defs.bzl", "cmd", "task")
 package(default_visibility = ["//visibility:public"])
 
 mutagen_files = select({
-    "@platforms//cpu:aarch64": ["@mutagen_arm64//:files"],
-    "@platforms//cpu:x86_64": ["@mutagen_amd64//:files"],
+    "//:is_linux_amd64": ["@mutagen_linux_amd64//:files"],
+    "//:is_linux_arm64": ["@mutagen_linux_arm64//:files"],
+    "//:is_darwin_arm64": ["@mutagen_darwin_arm64//:files"],
 })
 
 sh_binary(
