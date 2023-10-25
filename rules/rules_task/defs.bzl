@@ -292,16 +292,6 @@ _shared_attrs = {
     # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
     "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
     "data": attr.label_list(allow_files = True, cfg = "target"),
-    "runner": attr.label(
-        mandatory = True,
-        cfg = "target",
-        executable = True,
-    ),
-    "target_platforms": attr.label_list(allow_files = False),
-    # cfg = "target" makes sure the deps, data and runner use the target platform toolchain
-    # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
-    "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
-    "data": attr.label_list(allow_files = True, cfg = "target"),
     "target_platforms": attr.label_list(allow_files = False),
     "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
     # This attribute is required to use starlark transitions. It allows

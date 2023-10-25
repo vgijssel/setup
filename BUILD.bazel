@@ -97,27 +97,6 @@ toolchain(
     toolchain_type = "@bazel_tools//tools/python:toolchain_type",
 )
 
-load("@io_bazel_rules_docker//python3:image.bzl", "py3_image")
-
-py3_image(
-    name = "hello",
-    srcs = [
-        "hello.py",
-    ],
-    base = "@python38_base_image//image",
-
-    # Currently needs to be built on Linux.
-    # target_compatible_with = [
-    #     "@platforms//os:linux",
-    # ],
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
-    main = "hello.py",
-)
-
 sh_binary(
     name = "setup_ci",
     srcs = [
@@ -142,12 +121,11 @@ py_image_layer(
 
 oci_image(
     name = "hello_world_image",
-    base = "@raw_python38_base_image//:image.tar.gz",
+    base = "@python38_base_image//:image.tar.gz",
     entrypoint = ["/opt/hello_world"],
     tars = [
         ":hello_world_layer",
     ],
-    # os = "linux",
 )
 
 oci_tarball(
