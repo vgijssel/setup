@@ -112,45 +112,50 @@ http_file(
 
 # ------------------------------------ tilt ------------------------------------ #
 
+# From https://github.com/tilt-dev/tilt/releases
+
 http_archive(
-    name = "tilt_arm64",
+    name = "tilt_linux_arm64",
     build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
     sha256 = "447c89642c4f2b511005a219c8665b86cc8f942d14175a0256950902ecce7cac",
     url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.6/tilt.0.33.6.linux.arm64.tar.gz",
 )
 
-# ------------------------------------ lefthook ------------------------------------ #
-
-http_file(
-    name = "lefthook_amd64",
-    downloaded_file_path = "lefthook",
-    executable = True,
-    sha256 = "febd3fd2a9164f4776bd44cd9876a436f307d52943f6e9120fab28d74bf44272",
-    url = "https://github.com/evilmartians/lefthook/releases/download/v1.5.1/lefthook_1.5.1_Linux_x86_64.gz",
+http_archive(
+    name = "tilt_linux_amd64",
+    build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
+    sha256 = "66d41fa58e3d601521ea0435039b6f4e546422f6f9d65b7c38ee436202f2b2b6",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.6/tilt.0.33.6.linux.x86_64.tar.gz",
 )
 
-http_file(
-    name = "lefthook_arm64",
-    downloaded_file_path = "lefthook",
-    executable = True,
-    sha256 = "dfe09178049f0a03f09d8686f8a8bc90fe9dbfc86ea704fb13b0adb137d76147",
-    url = "https://github.com/evilmartians/lefthook/releases/download/v1.5.0/lefthook_1.5.0_Linux_arm64.gz",
+http_archive(
+    name = "tilt_darwin_arm64",
+    build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
+    sha256 = "0438c86be7d4649b061c45128145cc52a77ba9bac8bc5fe4163959bc528d4bbd",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.6/tilt.0.33.6.mac.arm64.tar.gz",
 )
 
 # ------------------------------------ pulumi ------------------------------------ #
 
 http_archive(
-    name = "pulumi_arm64",
+    name = "pulumi_linux_arm64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
     sha256 = "a33d0b61a1308f9d8c746afb4d7a3ccba55db98208c16fbb7d6640de99c0f725",
     url = "https://github.com/pulumi/pulumi/releases/download/v3.86.0/pulumi-v3.86.0-linux-arm64.tar.gz",
 )
 
 http_archive(
-    name = "pulumi_amd64",
+    name = "pulumi_linux_amd64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
     sha256 = "3227b656f624410f745cef4977430f96fd3daab1118f2180ab4bda8ce029168c",
     url = "https://github.com/pulumi/pulumi/releases/download/v3.86.0/pulumi-v3.86.0-linux-x64.tar.gz",
+)
+
+http_archive(
+    name = "pulumi_darwin_arm64",
+    build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
+    sha256 = "5514673cfbead3ac0726ca8c5469ae2bc13f849ac1bd375b00742df9d78e1443",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.86.0/pulumi-v3.86.0-darwin-arm64.tar.gz",
 )
 
 # ------------------------------------ buildbuddy Remote Build Execution ------------------------------------ #
@@ -177,41 +182,59 @@ buildbuddy(
 
 # ------------------------------------ teleport client ------------------------------------ #
 
+# from https://goteleport.com/download/#install-links
+
 http_archive(
-    name = "teleport_arm64",
+    name = "teleport_linux_arm64",
     build_file = "//tools/teleport:BUILD.repositories.bazel.tpl",
     sha256 = "a575222f970ff8d2137b96fe31e45210d4394bba2ac31b55900c517852880458",
     url = "https://cdn.teleport.dev/teleport-v13.0.0-linux-arm64-bin.tar.gz",
 )
 
 http_archive(
-    name = "teleport_amd64",
+    name = "teleport_linux_amd64",
     build_file = "//tools/teleport:BUILD.repositories.bazel.tpl",
     sha256 = "6d357e2e2a54a713e79fc0ce9068470fb202ac4fb0e27bafef0fe5a377ada10f",
     url = "https://cdn.teleport.dev/teleport-v13.0.0-linux-amd64-bin.tar.gz",
+)
+
+http_archive(
+    name = "teleport_darwin_arm64",
+    build_file = "//tools/teleport:BUILD.repositories.bazel.tpl",
+    sha256 = "eff41d350f5bfd45de3979db7013003fe3f6d6678f4e80aa5ca5366a0d9aca49",
+    url = "https://cdn.teleport.dev/teleport-v13.0.0-darwin-arm64-bin.tar.gz",
 )
 
 # ------------------------------------ 1password client ------------------------------------ #
 
 # From https://app-updates.agilebits.com/product_history/CLI2
 http_archive(
-    name = "onepassword_arm64",
+    name = "onepassword_linux_arm64",
     build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
     sha256 = "b93a8e0dc42c0979bb13047ac4412bd73092be57bb84ad223eeca295151159fa",
     url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_arm64_v2.18.0.zip",
 )
 
 http_archive(
-    name = "onepassword_amd64",
+    name = "onepassword_linux_amd64",
     build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
     sha256 = "2baf610b476727f24c62cc843419f55b157e1a05521a698c1c8b4ed676a766aa",
     url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_amd64_v2.18.0.zip",
 )
 
+http_archive(
+    name = "onepassword_darwin_arm64",
+    build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
+    sha256 = "b9ae52df3003216b454f6ac0a402c71bcfb4804eafb3ee3593a84a2002930d27",
+    url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.22.0/op_darwin_arm64_v2.22.0.zip",
+)
+
 # ------------------------------------ regctl ------------------------------------ #
 
+# From https://github.com/regclient/regclient/releases
+
 http_file(
-    name = "regctl_arm64",
+    name = "regctl_linux_arm64",
     downloaded_file_path = "regctl",
     executable = True,
     sha256 = "8d076f225c1701c83dd8afda3d944d6e75efe1208f30557d39fdb4604bfa684f",
@@ -219,27 +242,44 @@ http_file(
 )
 
 http_file(
-    name = "regctl_amd64",
+    name = "regctl_linux_amd64",
     downloaded_file_path = "regctl",
     executable = True,
     sha256 = "00a39b3048397443d30033924fbf3d1e6a3179280e61617b3c651e43aa7506de",
     url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-linux-amd64",
 )
 
+http_file(
+    name = "regctl_darwin_arm64",
+    downloaded_file_path = "regctl",
+    executable = True,
+    sha256 = "fffb5a55882a0d606eaa7827289ce7fba4012c4dd6a0125258284d8014ed3397",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-darwin-arm64",
+)
+
 # ------------------------------------ mutagen ------------------------------------ #
 
+# From https://github.com/mutagen-io/mutagen/releases
+
 http_archive(
-    name = "mutagen_arm64",
+    name = "mutagen_linux_arm64",
     build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
     sha256 = "60fdd4f2abe68d3c23b22e48be556038a29175a65877dd43128d56319a6bcae0",
     url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.2/mutagen_linux_arm64_v0.17.2.tar.gz",
 )
 
 http_archive(
-    name = "mutagen_amd64",
+    name = "mutagen_linux_amd64",
     build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
     sha256 = "85d967462ade994d37fc8d4906579d33b6fbb1744bab4a7cceb0c12424fb0f1d",
     url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.2/mutagen_linux_amd64_v0.17.2.tar.gz",
+)
+
+http_archive(
+    name = "mutagen_darwin_arm64",
+    build_file = "//tools/mutagen:BUILD.repositories.bazel.tpl",
+    sha256 = "dc06db9ae11381d1b3fc6057cda3854580f1476463a665ad9b168a973a81afad",
+    url = "https://github.com/mutagen-io/mutagen/releases/download/v0.17.2/mutagen_darwin_arm64_v0.17.2.tar.gz",
 )
 
 # ------------------------------------ bunq2ynab ------------------------------------ #

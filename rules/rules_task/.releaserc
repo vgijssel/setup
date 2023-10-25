@@ -4,8 +4,13 @@
       "name": "master"
     }
   ],
-  "extends": "semantic-release-monorepo",
   "tagFormat": "rules_task-v${version}",
+  "extends": [
+    "./commit-paths.js"
+  ],
+  "commitPaths": [
+    "rules/rules_task/*"
+  ],
   "plugins": [
     [
       "@semantic-release/commit-analyzer",
@@ -13,7 +18,6 @@
         "releaseRules": [
           {
             "type": "docs",
-            "scope": "readme.md",
             "release": "patch"
           },
           {
@@ -21,6 +25,18 @@
             "release": "patch"
           }
         ],
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "generateNotesCmd": "./generate-release-notes.sh ${nextRelease.version}"
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
         "preset": "conventionalcommits",
         "presetConfig": {
           "types": [
@@ -74,13 +90,6 @@
             }
           ]
         }
-      }
-    ],
-    "@semantic-release/release-notes-generator",
-    [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "./prepare-release.sh ${nextRelease.version}"
       }
     ],
     [

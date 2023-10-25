@@ -9,7 +9,7 @@ module(
 )
 
 # ------------------------------------ platforms ------------------------------------ #
-bazel_dep(name = "platforms", version = "0.0.7")
+bazel_dep(name = "platforms", version = "0.0.8")
 
 # ------------------------------------ rules_skylib ------------------------------------ #
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
