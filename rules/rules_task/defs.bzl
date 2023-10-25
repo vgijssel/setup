@@ -345,7 +345,7 @@ def _task_rule_prep(name, kwargs, testonly = False):
 
     cmd_json = json.encode(cmds)
 
-    script_name = "{}.py".format(name)
+    script_name = "{}_runner.py".format(name)
 
     _task(
         name = script_name,
