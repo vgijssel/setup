@@ -88,17 +88,24 @@ http_archive(
 # ------------------------------------ pulumi ------------------------------------ #
 
 http_archive(
-    name = "pulumi_arm64",
+    name = "pulumi_linux_arm64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
     sha256 = "a33d0b61a1308f9d8c746afb4d7a3ccba55db98208c16fbb7d6640de99c0f725",
     url = "https://github.com/pulumi/pulumi/releases/download/v3.86.0/pulumi-v3.86.0-linux-arm64.tar.gz",
 )
 
 http_archive(
-    name = "pulumi_amd64",
+    name = "pulumi_linux_amd64",
     build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
     sha256 = "3227b656f624410f745cef4977430f96fd3daab1118f2180ab4bda8ce029168c",
     url = "https://github.com/pulumi/pulumi/releases/download/v3.86.0/pulumi-v3.86.0-linux-x64.tar.gz",
+)
+
+http_archive(
+    name = "pulumi_darwin_arm64",
+    build_file = "//tools/pulumi:BUILD.repositories.bazel.tpl",
+    sha256 = "5514673cfbead3ac0726ca8c5469ae2bc13f849ac1bd375b00742df9d78e1443",
+    url = "https://github.com/pulumi/pulumi/releases/download/v3.86.0/pulumi-v3.86.0-darwin-arm64.tar.gz",
 )
 
 # ------------------------------------ buildbuddy Remote Build Execution ------------------------------------ #

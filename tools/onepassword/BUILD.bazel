@@ -3,8 +3,8 @@ load("@rules_task//:defs.bzl", "cmd", "task")
 package(default_visibility = ["//visibility:public"])
 
 op_file = select({
-    "//:is_linux_amd64": ["@onepassword_linux_arm64//:op"],
-    "//:is_linux_arm64": ["@onepassword_linux_amd64//:op"],
+    "//:is_linux_amd64": ["@onepassword_linux_amd64//:op"],
+    "//:is_linux_arm64": ["@onepassword_linux_arm64//:op"],
     "//:is_darwin_arm64": ["@onepassword_darwin_arm64//:op"],
 })
 
