@@ -388,20 +388,6 @@ def task_test(size = None, timeout = None, flaky = False, shard_count = None, lo
         **kwargs
     )
 
-    # native.
-
-# task(
-#     name,
-# )
-# runner_name, data, cmd_json = _task_rule_prep(kwargs, testonly = True)
-
-# _task_test(
-#     runner = runner_name,
-#     data = data,
-#     cmd_json = cmd_json,
-#     **kwargs
-# )
-
 def _wrap_root_args(args):
     result = []
 
