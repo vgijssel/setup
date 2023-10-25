@@ -132,18 +132,27 @@ buildbuddy(
 
 # ------------------------------------ teleport client ------------------------------------ #
 
+# from https://goteleport.com/download/#install-links
+
 http_archive(
-    name = "teleport_arm64",
+    name = "teleport_linux_arm64",
     build_file = "//tools/teleport:BUILD.repositories.bazel.tpl",
     sha256 = "a575222f970ff8d2137b96fe31e45210d4394bba2ac31b55900c517852880458",
     url = "https://cdn.teleport.dev/teleport-v13.0.0-linux-arm64-bin.tar.gz",
 )
 
 http_archive(
-    name = "teleport_amd64",
+    name = "teleport_linux_amd64",
     build_file = "//tools/teleport:BUILD.repositories.bazel.tpl",
     sha256 = "6d357e2e2a54a713e79fc0ce9068470fb202ac4fb0e27bafef0fe5a377ada10f",
     url = "https://cdn.teleport.dev/teleport-v13.0.0-linux-amd64-bin.tar.gz",
+)
+
+http_archive(
+    name = "teleport_darwin_arm64",
+    build_file = "//tools/teleport:BUILD.repositories.bazel.tpl",
+    sha256 = "eff41d350f5bfd45de3979db7013003fe3f6d6678f4e80aa5ca5366a0d9aca49",
+    url = "https://cdn.teleport.dev/teleport-v13.0.0-darwin-arm64-bin.tar.gz",
 )
 
 # ------------------------------------ 1password client ------------------------------------ #
