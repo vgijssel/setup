@@ -3,6 +3,7 @@ load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -106,23 +107,30 @@ sh_binary(
 
 load("//tools/python:py_image_layer.bzl", "py_image_layer")
 
-py_binary(
+task(
     name = "hello_world",
-    srcs = [
-        "hello_world.py",
+    cmds = [
+        "echo 'hello world'",
     ],
+)
+
+platform_transition_binary(
+    name = "hello_world_transitioned",
+    basename = "hello_world",
+    binary = ":hello_world",
+    target_platform = ":shine_platform",
 )
 
 py_image_layer(
     name = "hello_world_layer",
-    binary = ":hello_world",
+    binary = ":hello_world_transitioned",
     prefix = "opt/",
 )
 
 oci_image(
     name = "hello_world_image",
     base = "@python38_base_image//:image.tar.gz",
-    entrypoint = ["/opt/hello_world"],
+    entrypoint = ["/opt/hello_world_transitioned/hello_world"],
     tars = [
         ":hello_world_layer",
     ],
@@ -138,14 +146,11 @@ task(
     name = "hello_world_image_run",
     cmds = [
         "docker load < $TARBALL",
-        "docker run --rm --entrypoint='' hello_world:latest find /opt",
+        "docker run --rm -it --entrypoint='' hello_world:latest  $CLI_ARGS",
     ],
     env = {
         "TARBALL": cmd.file(":hello_world_tarball"),
     },
-    target_platforms = [
-        ":shine_platform",
-    ],
 )
 
 task_test(
@@ -163,7 +168,4 @@ task_test(
         "init-dockerd": "true",
         "recycle-runner": "true",
     },
-    target_platforms = [
-        ":shine_platform",
-    ],
 )
