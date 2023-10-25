@@ -509,12 +509,6 @@ distro==1.8.0 \
     --hash=sha256:02e111d1dc6a50abb8eed6bf31c3e48ed8b0830d1ea2a1b78c61765c2513fdd8 \
     --hash=sha256:99522ca3e365cac527b44bde033f64c6945d90eb9f769703caaec52b09bbd3ff
     # via pyinfra
-exceptiongroup==1.1.3 \
-    --hash=sha256:097acd85d473d75af5bb98e41b61ff7fe35efe6675e4f9370ec6ec5126d160e9 \
-    --hash=sha256:343280667a4585d195ca1cf9cef84a4e178c4b6cf2274caef9859782b567d5e3
-    # via
-    #   anyio
-    #   pytest
 execnet==2.0.2 \
     --hash=sha256:88256416ae766bc9e8895c76a87928c0012183da3cc4fc18016e6f050e025f41 \
     --hash=sha256:cc59bc4423742fd71ad227122eb0dd44db51efb3dc4095b45ac9a08c770096af
@@ -1057,9 +1051,9 @@ opentelemetry-exporter-otlp-proto-http==1.20.0 \
     --hash=sha256:03f6e768ad25f1c3a9586e8c695db4a4adf978f8546a1285fa962e16bfbb0bd6 \
     --hash=sha256:500f42821420fdf0759193d6438edc0f4e984a83e14c08a23023c06a188861b4
     # via opentelemetry-exporter-otlp
-opentelemetry-instrumentation==0.40b0 \
-    --hash=sha256:08bebe6a752514ed61e901e9fee5ccf06ae7533074442e707d75bb65f3e0aa17 \
-    --hash=sha256:789d3726e698aa9526dd247b461b9172f99a4345571546c4aecf40279679fc8e
+opentelemetry-instrumentation==0.41b0 \
+    --hash=sha256:0ef9e5705ceca0205992a4a845ae4251ce6ec15a1206ca07c2b00afb0c5bd386 \
+    --hash=sha256:214382ba10dfd29d4e24898a4c7ef18b7368178a6277a1aec95cdb75cabf4612
     # via opentelemetry-container-distro
 opentelemetry-proto==1.20.0 \
     --hash=sha256:512c3d2c6864fb7547a69577c3907348e6c985b7a204533563cb4c4c5046203b \
@@ -1563,15 +1557,6 @@ text-unidecode==1.3 \
     --hash=sha256:1311f10e8b895935241623731c2ba64f4c455287888b18189350b67134a822e8 \
     --hash=sha256:bad6603bb14d279193107714b288be206cac565dfa49aa5b105294dd5c4aab93
     # via python-slugify
-tomli==2.0.1 \
-    --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
-    --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
-    # via
-    #   black
-    #   coverage
-    #   pylint-per-file-ignores
-    #   pytest
-    #   pytest-homeassistant-custom-component
 tqdm==4.64.0 \
     --hash=sha256:40be55d30e200777a307a7585aee69e4eabb46b4ec6a4b4a5f2d9f11e7d5408d \
     --hash=sha256:74a2cdefe14d11442cedf3ba4e21a3b84ff9a2dbdc6cfae2c34addb2a14a5ea6
