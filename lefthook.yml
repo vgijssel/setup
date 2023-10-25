@@ -5,7 +5,7 @@ all:
       glob: "*.{py}"
     prettier:
       run: prettier --check {all_files}
-      glob: "*.{yml,yaml,json,md}"
+      glob: "*.{yml,yaml,json,md,js}"
     buildifier:
       run: buildifier -mode check {all_files}
       glob: "*.{bazel,bzl,bzlmod}"
@@ -18,7 +18,7 @@ pre-commit:
       stage_fixed: true
     prettier:
       run: prettier --write {staged_files}
-      glob: "*.{yml,yaml,json,md}"
+      glob: "*.{yml,yaml,json,md,js}"
       stage_fixed: true
     buildifier:
       run: buildifier {staged_files}
