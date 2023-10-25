@@ -219,8 +219,8 @@ http_file(
     name = "regctl_darwin_arm64",
     downloaded_file_path = "regctl",
     executable = True,
-    sha256 = "fffb5a55882a0d606eaa7827289ce7fba4012c4dd6a0125258284d8014ed3397",
-    url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-darwin-arm64",
+    sha256 = "4705d5068f946a75606494400c811b9f3f34c89dc495a372462eef02d372fe4d",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.3/regctl-darwin-arm64",
 )
 
 # ------------------------------------ mutagen ------------------------------------ #
