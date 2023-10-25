@@ -369,7 +369,7 @@ def task(**kwargs):
     name = kwargs.pop("name")
     _task_rule_prep(name, kwargs)
 
-def task_test(**kwargs):
+def task_test(size = None, timeout = None, flaky = False, shard_count = None, local = False, **kwargs):
     name = kwargs.pop("name")
     out = "{}.out".format(name)
     task_name = "{}_task".format(name)
@@ -380,6 +380,11 @@ def task_test(**kwargs):
         name = name,
         src = task_name,
         out = out,
+        size = size,
+        timeout = timeout,
+        flaky = flaky,
+        shard_count = shard_count,
+        local = local,
     )
 
     # native.
