@@ -9,6 +9,7 @@ load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 load("@aspect_bazel_lib//lib:base64.bzl", "base64")
+load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 
 def _visit(context, node):
     return _visit_method(context, node)(context, node)
@@ -301,39 +302,9 @@ _shared_attrs = {
     ),
 }
 
-# def _task_rule_prep(kwargs):
-#     if "cmd_json" in kwargs:
-#         fail('The "cmd_json" attribute is reserved for internal use.')
-
-#     cmds = kwargs.pop("cmds")
-#     env = kwargs.pop("env", {})
-#     cwd = cmd.shell("cd", kwargs.pop("cwd", "$PWD"))
-#     data = kwargs.pop("data", [])
-#     name = kwargs["name"]
-
-#     runner_name = "{}_runner".format(name)
-
-#     cmds = cmd.root([cmd.env(env), cwd] + cmds)
-
-#     # Generate targets and set labels for all the nodes
-#     visitor_context = _visitor_context(None, _target_generator, name)
-#     _visit(visitor_context, cmds)
-
-#     # Collect all the labels from the nodes
-#     visitor_context = _visitor_context(None, _data_collector, name)
-
-#     cmd_data = _visit(visitor_context, cmds) + data
-
-#     # make sure we de-duplicate the labels
-#     cmd_data = sets.to_list(sets.make(cmd_data))
-
-#     cmd_json = json.encode(cmds)
-#     return runner_name, cmd_data, cmd_json
-
 def _transition_impl(_settings, attr):
     return {"//command_line_option:platforms": attr.target_platforms}
 
-# Define a transition.
 _transition = transition(
     implementation = _transition_impl,
     inputs = [],
@@ -348,15 +319,7 @@ _task = rule(
     cfg = _transition,
 )
 
-# _task_test = rule(
-#     implementation = _task_impl,
-#     executable = True,
-#     attrs = _shared_attrs,
-#     test = True,
-#     cfg = _transition,
-# )
-
-def task(**kwargs):
+def _task_rule_prep(name, kwargs, testonly = False):
     if "cmd_json" in kwargs:
         fail('The "cmd_json" attribute is reserved for internal use.')
 
@@ -365,7 +328,6 @@ def task(**kwargs):
     deps = kwargs.pop("deps", [])
     cwd = cmd.shell("cd", kwargs.pop("cwd", "$PWD"))
     data = kwargs.pop("data", [])
-    name = kwargs.pop("name")
 
     cmds = cmd.root([cmd.env(env), cwd] + cmds)
 
@@ -396,24 +358,43 @@ def task(**kwargs):
         name = name,
         main = script_name,
         srcs = [script_name, "@rules_task//:runner.py"],
-        # testonly = testonly,
-        # data = [script_name],
+        testonly = testonly,
         deps = [
             requirement("bazel-runfiles"),
             requirement("jinja2"),
         ] + deps,
     )
 
-def task_test(**kwargs):
-    pass
-    # runner_name, data, cmd_json = _task_rule_prep(kwargs, testonly = True)
+def task(**kwargs):
+    name = kwargs.pop("name")
+    _task_rule_prep(name, kwargs)
 
-    # _task_test(
-    #     runner = runner_name,
-    #     data = data,
-    #     cmd_json = cmd_json,
-    #     **kwargs
-    # )
+def task_test(**kwargs):
+    name = kwargs.pop("name")
+    out = "{}.out".format(name)
+    task_name = "{}_task".format(name)
+
+    _task_rule_prep(task_name, kwargs, testonly = True)
+
+    native_test(
+        name = name,
+        src = task_name,
+        out = out,
+    )
+
+    # native.
+
+# task(
+#     name,
+# )
+# runner_name, data, cmd_json = _task_rule_prep(kwargs, testonly = True)
+
+# _task_test(
+#     runner = runner_name,
+#     data = data,
+#     cmd_json = cmd_json,
+#     **kwargs
+# )
 
 def _wrap_root_args(args):
     result = []
