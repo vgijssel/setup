@@ -181,8 +181,10 @@ http_archive(
 
 # ------------------------------------ regctl ------------------------------------ #
 
+# From https://github.com/regclient/regclient/releases
+
 http_file(
-    name = "regctl_arm64",
+    name = "regctl_linux_arm64",
     downloaded_file_path = "regctl",
     executable = True,
     sha256 = "8d076f225c1701c83dd8afda3d944d6e75efe1208f30557d39fdb4604bfa684f",
@@ -190,11 +192,19 @@ http_file(
 )
 
 http_file(
-    name = "regctl_amd64",
+    name = "regctl_linux_amd64",
     downloaded_file_path = "regctl",
     executable = True,
     sha256 = "00a39b3048397443d30033924fbf3d1e6a3179280e61617b3c651e43aa7506de",
     url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-linux-amd64",
+)
+
+http_file(
+    name = "regctl_darwin_arm64",
+    downloaded_file_path = "regctl",
+    executable = True,
+    sha256 = "fffb5a55882a0d606eaa7827289ce7fba4012c4dd6a0125258284d8014ed3397",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-darwin-arm64",
 )
 
 # ------------------------------------ mutagen ------------------------------------ #
