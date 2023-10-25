@@ -387,7 +387,7 @@ def task(**kwargs):
 
     _task(
         name = script_name,
-        data = data,
+        data = cmd_data,
         cmd_json = cmd_json,
         **kwargs
     )
@@ -397,6 +397,7 @@ def task(**kwargs):
         main = script_name,
         srcs = [script_name, "@rules_task//:runner.py"],
         # testonly = testonly,
+        # data = [script_name],
         deps = [
             requirement("bazel-runfiles"),
             requirement("jinja2"),
