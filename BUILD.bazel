@@ -1,9 +1,8 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
-load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_binary")
+load("//tools/python:defs.bzl", "py_image")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -105,8 +104,6 @@ sh_binary(
     ],
 )
 
-load("//tools/python:py_image_layer.bzl", "py_image_layer")
-
 task(
     name = "hello_world",
     cmds = [
@@ -114,32 +111,12 @@ task(
     ],
 )
 
-platform_transition_binary(
-    name = "hello_world_transitioned",
-    basename = "hello_world",
-    binary = ":hello_world",
-    target_platform = ":shine_platform",
-)
-
-py_image_layer(
-    name = "hello_world_layer",
-    binary = ":hello_world_transitioned",
-    prefix = "opt/",
-)
-
-oci_image(
+py_image(
     name = "hello_world_image",
     base = "@python38_base_image//:image.tar.gz",
-    entrypoint = ["/opt/hello_world_transitioned/hello_world"],
-    tars = [
-        ":hello_world_layer",
-    ],
-)
-
-oci_tarball(
-    name = "hello_world_tarball",
-    image = ":hello_world_image",
-    repo_tags = ["hello_world:latest"],
+    binary = ":hello_world",
+    prefix = "opt/",
+    target_platform = ":shine_platform",
 )
 
 task(
