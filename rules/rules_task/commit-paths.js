@@ -10,7 +10,7 @@ let commitPaths = null;
 const wrapStep = (
   stepName,
   wrapFn,
-  { defaultReturn = undefined, wrapperName = "" } = {},
+  { defaultReturn = undefined, wrapperName = "" } = {}
 ) => {
   const wrapperFn = async function (globalPluginConfig, context) {
     const {
@@ -31,8 +31,8 @@ const wrapStep = (
           `${
             wrapperName ? wrapperName : "semantic-release-plugin-decorators"
           }: Incorrect plugin name type. Expected string but was ${JSON.stringify(
-            pluginName,
-          )}.`,
+            pluginName
+          )}.`
         );
       }
 
@@ -41,7 +41,7 @@ const wrapStep = (
 
       if (!step) {
         context.logger.log(
-          `Plugin "${pluginName}" does not provide step "${stepName}"`,
+          `Plugin "${pluginName}" does not provide step "${stepName}"`
         );
         continue;
       }
@@ -51,7 +51,7 @@ const wrapStep = (
       await step(globalPluginConfig, context);
 
       context.logger.log(
-        `Completed step "${stepName}" of plugin "${pluginName}"`,
+        `Completed step "${stepName}" of plugin "${pluginName}"`
       );
     }
 
@@ -71,7 +71,7 @@ const verifyConditions = wrapStep(
   },
   {
     wrapperName: "get-commit-paths",
-  },
+  }
 );
 
 gitLogParser.parse = function (config, options) {
