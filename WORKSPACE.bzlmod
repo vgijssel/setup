@@ -78,11 +78,27 @@ http_file(
 
 # ------------------------------------ tilt ------------------------------------ #
 
+# From https://github.com/tilt-dev/tilt/releases
+
 http_archive(
-    name = "tilt_arm64",
+    name = "tilt_linux_arm64",
     build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
     sha256 = "447c89642c4f2b511005a219c8665b86cc8f942d14175a0256950902ecce7cac",
     url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.6/tilt.0.33.6.linux.arm64.tar.gz",
+)
+
+http_archive(
+    name = "tilt_linux_amd64",
+    build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
+    sha256 = "66d41fa58e3d601521ea0435039b6f4e546422f6f9d65b7c38ee436202f2b2b6",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.6/tilt.0.33.6.linux.x86_64.tar.gz",
+)
+
+http_archive(
+    name = "tilt_darwin_arm64",
+    build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
+    sha256 = "0438c86be7d4649b061c45128145cc52a77ba9bac8bc5fe4163959bc528d4bbd",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.6/tilt.0.33.6.mac.arm64.tar.gz",
 )
 
 # ------------------------------------ pulumi ------------------------------------ #
