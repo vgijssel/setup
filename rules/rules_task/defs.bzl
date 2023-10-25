@@ -385,6 +385,7 @@ def task_test(size = None, timeout = None, flaky = False, shard_count = None, lo
         flaky = flaky,
         shard_count = shard_count,
         local = local,
+        **kwargs
     )
 
     # native.
