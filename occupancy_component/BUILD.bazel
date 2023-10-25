@@ -35,7 +35,7 @@ task(
     name = "tilt",
     cmds = [
         cmd.shell(
-            cmd.executable("@tilt_arm64//:tilt_binary"),
+            cmd.executable("//tools/tilt"),
             "$CLI_ARGS",
         ),
     ],

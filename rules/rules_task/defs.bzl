@@ -8,6 +8,8 @@ load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("@aspect_bazel_lib//lib:base64.bzl", "base64")
+load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 
 def _visit(context, node):
     return _visit_method(context, node)(context, node)
@@ -234,116 +236,98 @@ def _visitor_context(ctx, visitor, name):
     )
 
 def _task_impl(ctx):
-    instructions_file = ctx.actions.declare_file(ctx.label.name + ".json")
     out_file = ctx.actions.declare_file(ctx.label.name)
 
-    runfiles = ctx.runfiles(files = [instructions_file, ctx.file._rlocation] + ctx.files.data)
+    runfiles = ctx.runfiles(files = [ctx.file._rlocation] + ctx.files.data)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
-        for d in ([ctx.attr.runner] + ctx.attr.data + ctx.attr.deps)
+        for d in (ctx.attr.data + ctx.attr.deps)
     ])
 
     cmd_nodes = json.decode(ctx.attr.cmd_json)
     visitor_context = _visitor_context(ctx, _serializer, ctx.label.name)
     cmds = _visit(visitor_context, cmd_nodes)
 
-    runner_exe = ctx.executable.runner
     instructions = {
         "cmds": cmds,
         "workspace": ctx.workspace_name,
     }
 
-    ctx.actions.write(
-        output = instructions_file,
-        content = json.encode(instructions),
+    instructions = base64.encode(
+        data = json.encode(instructions),
     )
 
-    script = "#!/usr/bin/env bash"
+    script = """
+import json
+import base64
+from runner import main
 
-    script += """
-set +e
+INSTRUCTIONS = \"\"\"
+{instructions}
+\"\"\"
 
-# --- begin runfiles.bash initialization v2 ---
-# Copy-pasted from the Bazel Bash runfiles library v2.
-set -uo pipefail; f=bazel_tools/tools/bash/runfiles/runfiles.bash
-source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
-  source "$(grep -sm1 "^$f " "$(dirname $(pwd))/MANIFEST" | cut -f2- -d' ')" 2>/dev/null || \
-  source "$(grep -sm1 "^$f " "${RUNFILES_MANIFEST_FILE:-/dev/null}" | cut -f2- -d' ')" 2>/dev/null || \
-  source "$0.runfiles/$f" 2>/dev/null || \
-  source "$(grep -sm1 "^$f " "$0.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
-  source "$(grep -sm1 "^$f " "$0.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
-  { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
-# --- end runfiles.bash initialization v2 ---
+instructions = base64.b64decode(INSTRUCTIONS)
+instructions = json.loads(instructions)
 
-set -Eeou pipefail
-    """
-
-    script += """
-    runner=$(rlocation {runner})
-    instructions=$(rlocation {instructions})
-
-    if [ -z "$runner" ] || [ -z "$instructions" ]; then
-        >&2 echo "Unable to locate runner or instructions file in rules_task!"
-        >&2 echo "Is the task called from another bazel target without being dependent on it?"
-        >&2 echo "As this might result in the wrong runfiles being used."
-        exit 1
-    fi
-
-    exec $runner $instructions "$@"
+main(instructions)
     """.format(
-        runner = to_rlocation_path(ctx, runner_exe),
-        instructions = to_rlocation_path(ctx, instructions_file),
+        instructions = instructions,
     )
 
     ctx.actions.write(
         output = out_file,
         content = script,
-        is_executable = True,
     )
 
     return [
         DefaultInfo(
-            executable = out_file,
-            files = depset([out_file, instructions_file]),
+            files = depset([out_file]),
             runfiles = runfiles,
         ),
     ]
 
 _shared_attrs = {
     "cmd_json": attr.string(mandatory = True),
-    "deps": attr.label_list(cfg = "exec"),  # TODO: only allow Python here?
-    "data": attr.label_list(allow_files = True, cfg = "exec"),
-    "runner": attr.label(
-        mandatory = True,
-        cfg = "exec",
-        executable = True,
-    ),
+    # cfg = "target" makes sure the deps, data and runner use the target platform toolchain
+    # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
+    "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
+    "data": attr.label_list(allow_files = True, cfg = "target"),
+    "target_platforms": attr.label_list(allow_files = False),
     "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
+    # This attribute is required to use starlark transitions. It allows
+    # allowlisting usage of this rule. For more information, see
+    # https://docs.bazel.build/versions/master/skylark/config.html#user-defined-transitions
+    "_allowlist_function_transition": attr.label(
+        default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+    ),
 }
 
-def _task_rule_prep(kwargs, testonly = False):
+def _transition_impl(_settings, attr):
+    return {"//command_line_option:platforms": attr.target_platforms}
+
+_transition = transition(
+    implementation = _transition_impl,
+    inputs = [],
+    # We declare which flags the transition will be writing. The returned dict(s)
+    # of flags must have keyset(s) that contains exactly this list.
+    outputs = ["//command_line_option:platforms"],
+)
+
+_task = rule(
+    implementation = _task_impl,
+    attrs = _shared_attrs,
+    cfg = _transition,
+)
+
+def _task_rule_prep(name, kwargs, testonly = False):
     if "cmd_json" in kwargs:
         fail('The "cmd_json" attribute is reserved for internal use.')
 
     cmds = kwargs.pop("cmds")
     env = kwargs.pop("env", {})
-    cwd = cmd.shell("cd", kwargs.pop("cwd", "$PWD"))
     deps = kwargs.pop("deps", [])
+    cwd = cmd.shell("cd", kwargs.pop("cwd", "$PWD"))
     data = kwargs.pop("data", [])
-    name = kwargs["name"]
-
-    runner_name = "{}_runner".format(name)
-
-    py_binary(
-        name = runner_name,
-        main = "@rules_task//:runner.py",
-        srcs = ["@rules_task//:runner.py"],
-        testonly = testonly,
-        deps = [
-            requirement("bazel-runfiles"),
-            requirement("jinja2"),
-        ] + deps,
-    )
 
     cmds = cmd.root([cmd.env(env), cwd] + cmds)
 
@@ -360,38 +344,47 @@ def _task_rule_prep(kwargs, testonly = False):
     cmd_data = sets.to_list(sets.make(cmd_data))
 
     cmd_json = json.encode(cmds)
-    return runner_name, cmd_data, cmd_json
 
-_task = rule(
-    implementation = _task_impl,
-    executable = True,
-    attrs = _shared_attrs,
-)
-
-_task_test = rule(
-    implementation = _task_impl,
-    executable = True,
-    attrs = _shared_attrs,
-    test = True,
-)
-
-def task(**kwargs):
-    runner_name, data, cmd_json = _task_rule_prep(kwargs)
+    script_name = "{}_runner.py".format(name)
 
     _task(
-        runner = runner_name,
-        data = data,
+        name = script_name,
+        data = cmd_data,
         cmd_json = cmd_json,
+    )
+
+    py_binary(
+        name = name,
+        main = script_name,
+        srcs = [script_name, "@rules_task//:runner.py"],
+        testonly = testonly,
+        deps = [
+            requirement("bazel-runfiles"),
+            requirement("jinja2"),
+        ] + deps,
         **kwargs
     )
 
-def task_test(**kwargs):
-    runner_name, data, cmd_json = _task_rule_prep(kwargs, testonly = True)
+def task(**kwargs):
+    name = kwargs.pop("name")
+    _task_rule_prep(name, kwargs)
 
-    _task_test(
-        runner = runner_name,
-        data = data,
-        cmd_json = cmd_json,
+def task_test(size = None, timeout = None, flaky = False, shard_count = None, local = False, **kwargs):
+    name = kwargs.pop("name")
+    out = "{}.out".format(name)
+    task_name = "{}_task".format(name)
+
+    _task_rule_prep(task_name, kwargs, testonly = True)
+
+    native_test(
+        name = name,
+        src = task_name,
+        out = out,
+        size = size,
+        timeout = timeout,
+        flaky = flaky,
+        shard_count = shard_count,
+        local = local,
         **kwargs
     )
 
