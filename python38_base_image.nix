@@ -26,6 +26,7 @@ let
     maxLayers = 2;
     contents = [
       busybox
+      rocgdb
       openssl
       bashInteractive
       coreutils

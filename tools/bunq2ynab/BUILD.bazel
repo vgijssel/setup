@@ -55,11 +55,9 @@ task(
 task_test(
     name = "list_user_test",
     cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
         cmd.executable("list_user"),
     ],
-    env = {
-        "OP_SERVICE_ACCOUNT_TOKEN": "$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
-    },
 )
 
 task(
