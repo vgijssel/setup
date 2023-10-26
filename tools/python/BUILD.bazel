@@ -13,6 +13,8 @@ platform(
     name = "python_container",
     constraint_values = [
         ":python_run_in_container",
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
     ],
 )
 

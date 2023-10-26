@@ -8,6 +8,10 @@ module(
     version = "1.0",
 )
 
+register_toolchains(
+    "//tools/python:python_container_py_toolchain",
+)
+
 # ------------------------------------ platforms ------------------------------------ #
 bazel_dep(name = "platforms", version = "0.0.8")
 

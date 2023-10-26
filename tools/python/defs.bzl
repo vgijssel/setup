@@ -30,6 +30,7 @@ def py_image_layer(name, binary, prefix = "", **kwargs):
 
 def py_image(name, base, binary, host_container_platform, prefix = ""):
     binary_name = Label(binary).name
+    transitioned_binary_name = "{}_transitioned".format(binary_name)
     package_name = native.package_name()
     entrypoint = ["/{}{}/{}".format(prefix, package_name, binary_name)]
 
@@ -43,9 +44,17 @@ def py_image(name, base, binary, host_container_platform, prefix = ""):
         "{}:{}".format(binary_name, "latest"),
     ]
 
+    platform_transition_binary(
+        name = transitioned_binary_name,
+        binary = binary,
+        # target_platform = host_container_platform,
+        target_platform = "//tools/python:python_container",
+    )
+
     py_image_layer(
         name = image_python_layer_name,
-        binary = binary,
+        # binary = binary,
+        binary = transitioned_binary_name,
         prefix = prefix,
     )
 
@@ -61,12 +70,14 @@ def py_image(name, base, binary, host_container_platform, prefix = ""):
     platform_transition_filegroup(
         name = transitioned_image,
         srcs = [image_name],
-        target_platform = host_container_platform,
+        # target_platform = host_container_platform,
+        target_platform = "//tools/python:python_container",
     )
 
     oci_tarball(
         name = tarball_name,
-        image = transitioned_image,
+        # image = transitioned_image,
+        image = image_name,
         repo_tags = repo_tags,
     )
 
