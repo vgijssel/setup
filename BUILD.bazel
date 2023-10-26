@@ -126,7 +126,7 @@ task(
         "docker run --rm -it --entrypoint='' hello_world:latest  $CLI_ARGS",
     ],
     env = {
-        "TARBALL": cmd.file(":hello_world_tarball"),
+        "TARBALL": cmd.file(":hello_world_image_tarball"),
     },
 )
 
@@ -138,7 +138,7 @@ task_test(
         "docker run --rm  hello_world:latest",
     ],
     env = {
-        "TARBALL": cmd.file(":hello_world_tarball"),
+        "TARBALL": cmd.file(":hello_world_image_tarball"),
     },
     exec_properties = {
         "workload-isolation-type": "firecracker",
