@@ -3,6 +3,9 @@ load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@rules_task//:defs.bzl", "cmd", "task")
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
+load("@pip-setup_linux_arm64//:requirements.bzl", requirement_linux_arm64 = "requirement")
+load("@pip-setup_linux_amd64//:requirements.bzl", requirement_linux_amd64 = "requirement")
+load("@pip-setup_darwin_arm64//:requirements.bzl", requirement_darwin_arm64 = "requirement")
 
 # This sets up a platform for the Python toolchain to run in a container.
 # This is way to prevent the Python hermetic interpreter to be copied into the container
@@ -102,3 +105,16 @@ def py_image(name, base, binary, host_container_platform, prefix = ""):
             "recycle-runner": "true",
         },
     )
+
+def requirement(name):
+    if not native.existing_rule(name):
+        native.alias(
+            name = name,
+            actual = select({
+                "//:is_linux_amd64": requirement_linux_amd64(name),
+                "//:is_linux_arm64": requirement_linux_arm64(name),
+                "//:is_darwin_arm64": requirement_darwin_arm64(name),
+            }),
+            visibility = ["//visibility:public"],
+        )
+    return name

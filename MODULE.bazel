@@ -48,12 +48,19 @@ use_repo(python, "python_versions")
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 
 pip.parse(
-    hub_name = "pip-setup",
+    download_only = True,
+    extra_pip_args = [
+        "--platform",
+        "manylinux_2_28_x86_64",
+        "--platform",
+        "manylinux_2_17_x86_64",
+    ],
+    hub_name = "pip-setup_linux_amd64",
     python_version = "3.10",
     requirements_lock = "//:requirements.txt",
 )
 
-use_repo(pip, "pip-setup")
+use_repo(pip, "pip-setup_linux_amd64")
 
 pip.parse(
     download_only = True,
@@ -69,6 +76,21 @@ pip.parse(
 )
 
 use_repo(pip, "pip-setup_linux_arm64")
+
+pip.parse(
+    download_only = True,
+    extra_pip_args = [
+        "--platform",
+        "macosx_10_12_universal2",
+        "--platform",
+        "macosx_11_0_arm64",
+    ],
+    hub_name = "pip-setup_darwin_arm64",
+    python_version = "3.10",
+    requirements_lock = "//:requirements.txt",
+)
+
+use_repo(pip, "pip-setup_darwin_arm64")
 
 # ------------------------------------ rules_oci ------------------------------------ #
 bazel_dep(name = "rules_oci", version = "1.4.0")
