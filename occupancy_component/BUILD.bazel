@@ -1,4 +1,4 @@
-load("@pip-setup//:requirements.bzl", "requirement")
+load("//tools/python:defs.bzl", "requirement")
 load("//tools/pytest:pytest.bzl", "py_pytest_test")
 load("@rules_task//:defs.bzl", "cmd", "task")
 

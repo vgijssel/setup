@@ -3,7 +3,7 @@ Bazel macro for creating a py_test that runs pytest.
 """
 
 load("@rules_python//python:defs.bzl", "py_test")
-load("@pip-setup//:requirements.bzl", "requirement")
+load("//tools/python:defs.bzl", "requirement")
 
 def py_pytest_test(name, srcs, deps = [], args = [], **kwargs):
     py_test(

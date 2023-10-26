@@ -107,9 +107,10 @@ def py_image(name, base, binary, host_container_platform, prefix = ""):
     )
 
 def requirement(name):
-    if not native.existing_rule(name):
+    alias_name = "{}_wheel".format(name)
+    if not native.existing_rule(alias_name):
         native.alias(
-            name = name,
+            name = alias_name,
             actual = select({
                 "//:is_linux_amd64": requirement_linux_amd64(name),
                 "//:is_linux_arm64": requirement_linux_arm64(name),
@@ -117,4 +118,4 @@ def requirement(name):
             }),
             visibility = ["//visibility:public"],
         )
-    return name
+    return alias_name
