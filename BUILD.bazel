@@ -1,7 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
-load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
-load("//tools/python:defs.bzl", "py_image")
+load(":defs.bzl", "host_container_platform")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -17,6 +16,10 @@ config_setting(
     flag_values = {
         "//:setup_debug_flag": "True",
     },
+)
+
+host_container_platform(
+    name = "host_container_platform",
 )
 
 config_setting(
@@ -60,47 +63,4 @@ sh_binary(
     srcs = [
         "setup_ci.sh",
     ],
-)
-
-task(
-    name = "hello_world",
-    cmds = [
-        "echo 'hello world'",
-    ],
-)
-
-py_image(
-    name = "hello_world_image",
-    base = "@python38_base_image//:image.tar.gz",
-    binary = ":hello_world",
-    prefix = "opt/",
-    target_platform = "//tools/python:python_container",
-)
-
-task(
-    name = "hello_world_image_run",
-    cmds = [
-        "docker load < $TARBALL",
-        "docker run --rm -it --entrypoint='' hello_world:latest  $CLI_ARGS",
-    ],
-    env = {
-        "TARBALL": cmd.file(":hello_world_image_tarball"),
-    },
-)
-
-task_test(
-    name = "hello_world_test",
-    cmds = [
-        "docker load < $TARBALL",
-        "docker run --rm --entrypoint='' hello_world:latest find /opt",
-        "docker run --rm  hello_world:latest",
-    ],
-    env = {
-        "TARBALL": cmd.file(":hello_world_image_tarball"),
-    },
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
 )

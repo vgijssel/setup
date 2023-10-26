@@ -1,6 +1,8 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_binary")
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
+load("@rules_task//:defs.bzl", "cmd", "task")
 
 def py_image_layer(name, binary, prefix = "", **kwargs):
     mtree_spec_name = "{}_mtree".format(name)
@@ -26,31 +28,24 @@ def py_image_layer(name, binary, prefix = "", **kwargs):
         mtree = prefixed_mtree_spec_name,
     )
 
-def py_image(name, base, binary, target_platform, prefix = ""):
+def py_image(name, base, binary, host_container_platform, prefix = ""):
     binary_name = Label(binary).name
-    transitioned_binary_name = "{}_transitioned".format(binary_name)
-    entrypoint = ["/{}{}/{}".format(prefix, transitioned_binary_name, binary_name)]
+    package_name = native.package_name()
+    entrypoint = ["/{}{}/{}".format(prefix, package_name, binary_name)]
 
     image_name = name
+    transitioned_image = "{}_transitioned".format(name)
+    image_load_name = "{}.load".format(name)
     image_python_layer_name = "{}_python_layer".format(name)
-    tarball_name = "{}_tarball".format(name)
+    tarball_name = "{}.tarball".format(transitioned_image)
 
     repo_tags = [
         "{}:{}".format(binary_name, "latest"),
     ]
 
-    # This transition is necessary otherwise on darwin the darwin hermetic Python interpreter
-    # is copied into the Linux image which results in a exec format error.
-    platform_transition_binary(
-        name = transitioned_binary_name,
-        basename = binary_name,
-        binary = binary,
-        target_platform = target_platform,
-    )
-
     py_image_layer(
         name = image_python_layer_name,
-        binary = transitioned_binary_name,
+        binary = binary,
         prefix = prefix,
     )
 
@@ -63,8 +58,29 @@ def py_image(name, base, binary, target_platform, prefix = ""):
         ],
     )
 
+    platform_transition_filegroup(
+        name = transitioned_image,
+        srcs = [image_name],
+        target_platform = host_container_platform,
+    )
+
     oci_tarball(
         name = tarball_name,
-        image = image_name,
+        image = transitioned_image,
         repo_tags = repo_tags,
+    )
+
+    task(
+        name = image_load_name,
+        cmds = [
+            "docker load < $TARBALL",
+        ],
+        env = {
+            "TARBALL": cmd.file(tarball_name),
+        },
+        exec_properties = {
+            "workload-isolation-type": "firecracker",
+            "init-dockerd": "true",
+            "recycle-runner": "true",
+        },
     )
