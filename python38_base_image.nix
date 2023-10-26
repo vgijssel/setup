@@ -26,9 +26,10 @@ let
     maxLayers = 2;
     contents = [
       busybox
+      openssl
       bashInteractive
       coreutils
-      python38
+      python310
       stdenv.cc.cc.lib
       iana-etc
       cacert
