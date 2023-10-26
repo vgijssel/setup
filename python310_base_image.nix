@@ -21,7 +21,7 @@ let
   '';
 
   pythonBase = dockerTools.buildLayeredImage {
-    name = "python38-base-image-unwrapped";
+    name = "python310-base-image-unwrapped";
     created = "now";
     maxLayers = 2;
     contents = [
@@ -54,7 +54,7 @@ let
   };
 
 in
-runCommand "python38-base-image" { } ''
+runCommand "python310-base-image" { } ''
   mkdir -p $out
   gunzip -c ${pythonBase} > $out/image.tar.gz
 ''

@@ -285,11 +285,11 @@ nixpkgs_git_repository(
 )
 
 nixpkgs_package(
-    name = "python38_base_image",
+    name = "python310_base_image",
     build_file_content = """
 package(default_visibility = [ "//visibility:public" ])
 exports_files(["image.tar.gz"])
     """,
-    nix_file = "//:python38_base_image.nix",
+    nix_file = "//:python310_base_image.nix",
     repository = "@nixpkgs//:default.nix",
 )
