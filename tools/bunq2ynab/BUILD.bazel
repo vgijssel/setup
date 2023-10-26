@@ -128,24 +128,16 @@ task(
     name = "bunq2ynab_image_run",
     cmds = [
         cmd.executable("bunq2ynab_image.load"),
-        "docker run --rm -it --entrypoint='' bunq2ynab:latest $CLI_ARGS",
+        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV -it --entrypoint='' bunq2ynab:latest $CLI_ARGS",
     ],
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
 )
 
 task_test(
     name = "bunq2ynab_image_test",
     cmds = [
-        "docker load < $TARBALL",
-        "docker run --rm bunq2ynab:latest",
+        cmd.executable("bunq2ynab_image.load"),
+        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV bunq2ynab:latest",
     ],
-    env = {
-        "TARBALL": cmd.file(":bunq2ynab_image_tarball"),
-    },
     exec_properties = {
         "workload-isolation-type": "firecracker",
         "init-dockerd": "true",

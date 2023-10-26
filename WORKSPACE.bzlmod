@@ -280,7 +280,6 @@ load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "
 
 nixpkgs_git_repository(
     name = "nixpkgs",
-    # revision = "21.05",  # Any tag or commit hash
     revision = "23.05",  # Any tag or commit hash
     sha256 = "",  # optional sha to verify package integrity!
 )
@@ -292,6 +291,5 @@ package(default_visibility = [ "//visibility:public" ])
 exports_files(["image.tar.gz"])
     """,
     nix_file = "//:python38_base_image.nix",
-    # nix_file = "//:hello-docker.nix",
     repository = "@nixpkgs//:default.nix",
 )

@@ -10,7 +10,6 @@ with import <nixpkgs>
 {
   system = targetSystem;
 };
-# with import <nixpkgs> { system = "x86_64-linux"; };
 
 let
   dockerEtc = runCommand "docker-etc" { } ''
@@ -26,6 +25,7 @@ let
     created = "now";
     maxLayers = 2;
     contents = [
+      busybox
       bashInteractive
       coreutils
       python38

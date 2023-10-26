@@ -74,6 +74,8 @@ def py_image(name, base, binary, host_container_platform, prefix = ""):
         ],
     )
 
+    # This can be extended to multi-arch images. For example see:
+    # https://github.com/macourteau/aspect-rules_oci/blob/master/container.bzl#L85
     platform_transition_filegroup(
         name = transitioned_image,
         srcs = [image_name],
