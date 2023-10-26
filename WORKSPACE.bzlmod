@@ -203,24 +203,24 @@ http_file(
     name = "regctl_linux_arm64",
     downloaded_file_path = "regctl",
     executable = True,
-    sha256 = "8d076f225c1701c83dd8afda3d944d6e75efe1208f30557d39fdb4604bfa684f",
-    url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-linux-arm64",
+    sha256 = "380105c05c6c69ea3d35a8efeec0ccfa1bdfc38a876bf7d473be06d7267bae99",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.3/regctl-linux-arm64",
 )
 
 http_file(
     name = "regctl_linux_amd64",
     downloaded_file_path = "regctl",
     executable = True,
-    sha256 = "00a39b3048397443d30033924fbf3d1e6a3179280e61617b3c651e43aa7506de",
-    url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-linux-amd64",
+    sha256 = "5141569cd0ef6e52a9dc67391c432f1bdd0cfd2d3b82d3f22d56f94feab7203e",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.3/regctl-linux-amd64",
 )
 
 http_file(
     name = "regctl_darwin_arm64",
     downloaded_file_path = "regctl",
     executable = True,
-    sha256 = "fffb5a55882a0d606eaa7827289ce7fba4012c4dd6a0125258284d8014ed3397",
-    url = "https://github.com/regclient/regclient/releases/download/v0.5.2/regctl-darwin-arm64",
+    sha256 = "4705d5068f946a75606494400c811b9f3f34c89dc495a372462eef02d372fe4d",
+    url = "https://github.com/regclient/regclient/releases/download/v0.5.3/regctl-darwin-arm64",
 )
 
 # ------------------------------------ mutagen ------------------------------------ #
