@@ -1,1 +1,44 @@
+load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
+
 package(default_visibility = ["//visibility:public"])
+
+constraint_setting(name = "python_containerized")
+
+constraint_value(
+    name = "python_run_in_container",
+    constraint_setting = ":python_containerized",
+)
+
+platform(
+    name = "python_container",
+    constraint_values = [
+        ":python_run_in_container",
+    ],
+)
+
+py_runtime(
+    name = "python_container_py2_runtime",
+    interpreter_path = "/usr/bin/python3",
+    python_version = "PY2",
+)
+
+py_runtime(
+    name = "python_container_py3_runtime",
+    interpreter_path = "/usr/bin/python3",
+    python_version = "PY3",
+)
+
+py_runtime_pair(
+    name = "python_container_py_runtime_pair",
+    py2_runtime = ":python_container_py2_runtime",
+    py3_runtime = ":python_container_py3_runtime",
+)
+
+toolchain(
+    name = "python_container_py_toolchain",
+    target_compatible_with = [
+        ":python_run_in_container",
+    ],
+    toolchain = ":python_container_py_runtime_pair",
+    toolchain_type = "@bazel_tools//tools/python:toolchain_type",
+)

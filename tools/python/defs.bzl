@@ -39,6 +39,8 @@ def py_image(name, base, binary, target_platform, prefix = ""):
         "{}:{}".format(binary_name, "latest"),
     ]
 
+    # This transition is necessary otherwise on darwin the darwin hermetic Python interpreter
+    # is copied into the Linux image which results in a exec format error.
     platform_transition_binary(
         name = transitioned_binary_name,
         basename = binary_name,

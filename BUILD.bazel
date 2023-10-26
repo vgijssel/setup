@@ -1,7 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
-load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
 load("//tools/python:defs.bzl", "py_image")
 
 package(default_visibility = ["//visibility:public"])
@@ -56,47 +55,6 @@ compile_pip_requirements(
     requirements_txt = "requirements.txt",
 )
 
-constraint_setting(name = "shine_containerized")
-
-constraint_value(
-    name = "shine_run_in_container",
-    constraint_setting = ":shine_containerized",
-)
-
-platform(
-    name = "shine_platform",
-    constraint_values = [
-        ":shine_run_in_container",
-    ],
-)
-
-py_runtime(
-    name = "shine_container_py2_runtime",
-    interpreter_path = "/usr/bin/python3",
-    python_version = "PY2",
-)
-
-py_runtime(
-    name = "shine_container_py3_runtime",
-    interpreter_path = "/usr/bin/python3",
-    python_version = "PY3",
-)
-
-py_runtime_pair(
-    name = "shine_container_py_runtime_pair",
-    py2_runtime = ":shine_container_py2_runtime",
-    py3_runtime = ":shine_container_py3_runtime",
-)
-
-toolchain(
-    name = "shine_container_py_toolchain",
-    target_compatible_with = [
-        ":shine_run_in_container",
-    ],
-    toolchain = ":shine_container_py_runtime_pair",
-    toolchain_type = "@bazel_tools//tools/python:toolchain_type",
-)
-
 sh_binary(
     name = "setup_ci",
     srcs = [
@@ -116,7 +74,7 @@ py_image(
     base = "@python38_base_image//:image.tar.gz",
     binary = ":hello_world",
     prefix = "opt/",
-    target_platform = ":shine_platform",
+    target_platform = "//tools/python:python_container",
 )
 
 task(
