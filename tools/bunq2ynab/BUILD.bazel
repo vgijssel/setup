@@ -1,8 +1,18 @@
 load("@rules_python//python:defs.bzl", "py_binary")
 load("@pip-setup//:requirements.bzl", "requirement")
+load("@pip-setup_linux_arm64//:requirements.bzl", requirement_linux_arm64 = "requirement")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("//tools/python:defs.bzl", "py_image")
-load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_binary")
+
+alias(
+    name = "pyopenssl",
+    actual = select({
+        "//:is_linux_amd64": requirement("pyopenssl"),
+        "//:is_linux_arm64": requirement_linux_arm64("pyopenssl"),
+        "//:is_darwin_arm64": requirement("pyopenssl"),
+    }),
+    visibility = ["//visibility:public"],
+)
 
 py_binary(
     name = "list_user_binary",
@@ -11,7 +21,7 @@ py_binary(
     deps = [
         "@bunq2ynab//:lib",
         requirement("requests"),
-        requirement("pyopenssl"),
+        ":pyopenssl",
     ],
 )
 
@@ -33,7 +43,8 @@ py_binary(
     deps = [
         "@bunq2ynab//:lib",
         requirement("requests"),
-        requirement("pyopenssl"),
+        # requirement("pyopenssl"),
+        ":pyopenssl",
     ],
 )
 
