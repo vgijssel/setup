@@ -70,6 +70,47 @@
       "resolved": "github:NixOS/nixpkgs/5148520bfab61f99fd25fb9ff7bfbb50dad3c9db#nodePackages.prettier",
       "source": "devbox-search",
       "version": "3.0.3"
+    },
+    "pdm@2.9.3": {
+      "last_modified": "2023-10-25T20:49:13Z",
+      "resolved": "github:NixOS/nixpkgs/75a52265bda7fd25e06e3a67dee3f0354e73243c#pdm",
+      "source": "devbox-search",
+      "version": "2.9.3",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/98srm6dyhra44vajrzprnsxjwk37w3fr-pdm-2.9.3"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/jpz1hrbl8qa7qcm0q2z638wqbrnr35br-pdm-2.9.3"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/zy0jsl90xmzmhihiy1kdvjnsy8izpkwj-pdm-2.9.3"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/iyw7jbr1fvsc5q2j6byy8ik4d0mrdi0x-pdm-2.9.3"
+        }
+      }
+    },
+    "python310Packages.pip@23.2.1": {
+      "last_modified": "2023-10-25T20:49:13Z",
+      "plugin_version": "0.0.1",
+      "resolved": "github:NixOS/nixpkgs/75a52265bda7fd25e06e3a67dee3f0354e73243c#python310Packages.pip",
+      "source": "devbox-search",
+      "version": "23.2.1",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/vyh7bsqnpg3v2y8fvw5h8x8dfm0r6bmf-python3.10-pip-23.2.1"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/6v2fjgyfm78pkjh6jha0vs5f0n6y6pr0-python3.10-pip-23.2.1"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/sxyq3lsx7xpw2v8494daprh66jy70vp1-python3.10-pip-23.2.1"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/96zrmllll78k3zf6zyxyyfzpcihf1svd-python3.10-pip-23.2.1"
+        }
+      }
     }
   }
 }

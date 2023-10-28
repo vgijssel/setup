@@ -45,6 +45,23 @@ container_pull(
     repository = "library/python:3.10.8-bullseye",
 )
 
+# ------------------------------------ rules_pycross ------------------------------------ #
+http_archive(
+    name = "jvolkman_rules_pycross",
+    sha256 = "5b51cfa4890d6de29b6a0976248e8139f69354bf29924308093a039d93ab630f",
+    strip_prefix = "rules_pycross-0.2",
+    url = "https://github.com/jvolkman/rules_pycross/archive/refs/tags/v0.2.tar.gz",
+)
+
+load("@jvolkman_rules_pycross//pycross:repositories.bzl", "rules_pycross_dependencies")
+
+# rules_pycross_dependencies()
+
+load("@python_3_11//:defs.bzl", "interpreter")
+
+# Or, if you're using a hermetic toolchain:
+rules_pycross_dependencies(python_interpreter_target = interpreter)
+
 # ------------------------------------ workstation ------------------------------------ #
 
 # https://hub.docker.com/layers/library/ubuntu/jammy-20230425/images/sha256-ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00?context=explore

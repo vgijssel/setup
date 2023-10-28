@@ -7,7 +7,9 @@
     "lefthook@1.4.8",
     "nixpkgs-fmt@1.3.0",
     "nodePackages.pnpm@8.7.5",
-    "libarchive@latest"
+    "libarchive@latest",
+    "python310Packages.pip@23.2.1",
+    "pdm@2.9.3"
   ],
   "shell": {
     "init_hook": ["alias bazel='bazelisk'"]
