@@ -47,6 +47,35 @@ use_repo(python, "python_versions")
 
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 
+# List of packages that are not available as wheels for Python 3.10 yet.
+# colored
+# home_assistant_bluetooth
+# lru-dict
+# mock-open
+# paho-mqtt
+# pytest-test-groups
+# python-slugify
+# ulid_transform
+
+no_binary = [
+    "--no-binary",
+    "colored",
+    "--no-binary",
+    "home_assistant_bluetooth",
+    "--no-binary",
+    "lru-dict",
+    "--no-binary",
+    "mock-open",
+    "--no-binary",
+    "paho-mqtt",
+    "--no-binary",
+    "pytest-test-groups",
+    "--no-binary",
+    "python-slugify",
+    "--no-binary",
+    "ulid_transform",
+]
+
 pip.parse(
     download_only = True,
     extra_pip_args = [
@@ -54,7 +83,7 @@ pip.parse(
         "manylinux_2_28_x86_64",
         "--platform",
         "manylinux_2_17_x86_64",
-    ],
+    ] + no_binary,
     hub_name = "pip-setup_linux_amd64",
     python_version = "3.10",
     requirements_lock = "//:requirements.txt",
@@ -69,7 +98,7 @@ pip.parse(
         "manylinux_2_28_aarch64",
         "--platform",
         "manylinux_2_17_aarch64",
-    ],
+    ] + no_binary,
     hub_name = "pip-setup_linux_arm64",
     python_version = "3.10",
     requirements_lock = "//:requirements.txt",
@@ -84,7 +113,7 @@ pip.parse(
         "macosx_10_12_universal2",
         "--platform",
         "macosx_11_0_arm64",
-    ],
+    ] + no_binary,
     hub_name = "pip-setup_darwin_arm64",
     python_version = "3.10",
     requirements_lock = "//:requirements.txt",
