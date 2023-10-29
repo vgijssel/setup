@@ -592,6 +592,7 @@ def targets():
     )
 
     _home_assistant_bluetooth_1_10_0_build_deps = [
+        ":poetry_core_1.7.0",
         ":setuptools_68.2.2",
         ":wheel_0.41.2",
     ]
@@ -763,6 +764,7 @@ def targets():
     )
 
     _lru_dict_1_1_8_build_deps = [
+        ":poetry_core_1.7.0",
         ":setuptools_68.2.2",
         ":wheel_0.41.2",
     ]
@@ -1772,6 +1774,7 @@ def targets():
     )
 
     _ulid_transform_0_7_2_build_deps = [
+        ":poetry_core_1.7.0",
         ":setuptools_68.2.2",
         ":wheel_0.41.2",
     ]

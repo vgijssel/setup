@@ -124,6 +124,8 @@ pycross_target_environment(
     abis = ["cp310"],
     platforms = [
         "macosx_12_0_arm64",
+        "macosx_13_0_arm64",
+        "macosx_14_0_arm64",
     ],
     python_compatible_with = _darwin_arm64,
     version = "3.10.13",
@@ -191,6 +193,7 @@ pycross_lock_file(
         "ulid-transform": [
             "wheel",
             "setuptools",
+            "poetry-core",
         ],
         "python-slugify": [
             "wheel",
@@ -203,7 +206,7 @@ pycross_lock_file(
         "lru-dict": [
             "wheel",
             "setuptools",
-            # "poetry",
+            "poetry-core",
         ],
         "pytest-test-groups": [
             "wheel",
@@ -220,7 +223,7 @@ pycross_lock_file(
         "home-assistant-bluetooth": [
             "wheel",
             "setuptools",
-            # "poetry",
+            "poetry-core",
         ],
     },
     pypi_index = "https://pypi.org",
