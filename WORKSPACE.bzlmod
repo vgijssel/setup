@@ -55,12 +55,23 @@ http_archive(
 
 load("@jvolkman_rules_pycross//pycross:repositories.bzl", "rules_pycross_dependencies")
 
-# rules_pycross_dependencies()
+rules_pycross_dependencies()
 
-load("@python_3_11//:defs.bzl", "interpreter")
+# load("@python_3_11//:defs.bzl", "interpreter")
 
-# Or, if you're using a hermetic toolchain:
-rules_pycross_dependencies(python_interpreter_target = interpreter)
+# # Or, if you're using a hermetic toolchain:
+# rules_pycross_dependencies(python_interpreter_target = interpreter)
+
+# load("@jvolkman_rules_pycross//pycross:defs.bzl", "pycross_lock_repo")
+
+# pycross_lock_repo(
+#     name = "pdm-setup",
+#     lock_file = "//:pdm-setup_lock.bzl",
+# )
+
+# load("@pdm-setup//:requirements.bzl", "install_deps")
+
+# install_deps()
 
 # ------------------------------------ workstation ------------------------------------ #
 
