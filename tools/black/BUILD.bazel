@@ -1,5 +1,5 @@
 load("@rules_task//:defs.bzl", "cmd", "task")
-load("//tools/python:defs.bzl", "requirement")
+load("@pdm-setup//:requirements.bzl", "requirement")
 
 package(default_visibility = ["//visibility:public"])
 
