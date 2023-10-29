@@ -498,7 +498,11 @@ def targets():
 
     pycross_wheel_library(
         name = "home_assistant_bluetooth_1.10.0",
-        wheel = ":_build_home_assistant_bluetooth_1.10.0",
+        wheel = select({
+            ":_env_python_darwin_arm64": ":_build_home_assistant_bluetooth_1.10.0",
+            ":_env_python_linux_arm64": ":_build_home_assistant_bluetooth_1.10.0",
+            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_home_assistant_bluetooth_1.10.0_cp310_cp310_manylinux_2_31_x86_64//file",
+        }),
     )
 
     _homeassistant_2023_6_3_deps = [
@@ -2187,6 +2191,16 @@ def repositories():
         ],
         sha256 = "e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761",
         downloaded_file_path = "h11-0.14.0-py3-none-any.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_setup_lock_wheel_home_assistant_bluetooth_1.10.0_cp310_cp310_manylinux_2_31_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/e6/0d/1a559abab4bebf2567571c5ef4ff4dcbd3db546aae678363ab822d97b153/home_assistant_bluetooth-1.10.0-cp310-cp310-manylinux_2_31_x86_64.whl"
+        ],
+        sha256 = "a5fc5dc13088f92cf157ecba153972fded22e042d2507b2933850b5cfc8b82e0",
+        downloaded_file_path = "home_assistant_bluetooth-1.10.0-cp310-cp310-manylinux_2_31_x86_64.whl",
     )
 
     maybe(

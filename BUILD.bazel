@@ -136,7 +136,7 @@ pycross_target_environment(
         "manylinux2014_x86_64",
     ] + [
         "manylinux_2_%s_x86_64" % str(i)
-        for i in range(17, 25)
+        for i in range(17, 35)
     ],
     python_compatible_with = _linux_x86_64,
     version = "3.10.13",
@@ -151,7 +151,7 @@ pycross_target_environment(
         "manylinux2014_aarch64",
     ] + [
         "manylinux_2_%s_aarch64" % str(i)
-        for i in range(17, 25)
+        for i in range(17, 35)
     ],
     python_compatible_with = _linux_arm64,
     version = "3.10.13",
