@@ -22,6 +22,11 @@ dependencies = [
     "bazel-runfiles==0.25.0",
     "requests==2.31.0",
     "pyOpenSSL==23.1.0",
+    "toml>=0.10.2",
+    "tomli>=2.0.1",
+    "setuptools>=68.2.2",
+    "wheel>=0.41.2",
+    "poetry>=1.6.1",
 ]
 requires-python = ">=3.10"
 readme = "README.md"

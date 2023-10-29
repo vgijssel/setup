@@ -54,13 +54,18 @@ http_archive(
 )
 
 load("@jvolkman_rules_pycross//pycross:repositories.bzl", "rules_pycross_dependencies")
+load("@rules_python~0.25.0~python~pythons_hub//:interpreters.bzl", "INTERPRETER_LABELS")
 
-rules_pycross_dependencies()
+# This is necessary to get the hermetic interpreter which is defined in MODULE.bazel
+# This would be simpler if rules_pycross would also use bzlmod.
+interpreter_internal_target = INTERPRETER_LABELS["python_3_10"]
 
-# load("@python_3_11//:defs.bzl", "interpreter")
+interpreter_target = "@rules_python~0.25.0~python~{}//:{}".format(
+    interpreter_internal_target.workspace_name,
+    interpreter_internal_target.name,
+)
 
-# # Or, if you're using a hermetic toolchain:
-# rules_pycross_dependencies(python_interpreter_target = interpreter)
+rules_pycross_dependencies(python_interpreter_target = interpreter_target)
 
 load("@jvolkman_rules_pycross//pycross:defs.bzl", "pycross_lock_repo")
 
