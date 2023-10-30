@@ -6,7 +6,7 @@ load(
     "pycross_pdm_lock_model",
     "pycross_target_environment",
 )
-# load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -128,7 +128,7 @@ pycross_pdm_lock_model(
 
 pycross_lock_file(
     name = "pdm-setup_lock",
-    out = "pdm-setup_lock.bzl",
+    out = "pdm-setup_lock_gen.bzl",
     default_alias_single_version = True,
     lock_model_file = ":pdm-setup_lock_model",
     package_build_dependencies = {
@@ -179,9 +179,15 @@ pycross_lock_file(
 task(
     name = "pdm-setup.update",
     cmds = [
-        "cp -fv $LOCK_FILE $BUILD_WORKSPACE_DIRECTORY",
+        "cp -fv $LOCK_FILE $BUILD_WORKSPACE_DIRECTORY/pdm-setup_lock.bzl",
     ],
     env = {
         "LOCK_FILE": cmd.file(":pdm-setup_lock"),
     },
+)
+
+diff_test(
+    name = "pdm-setup_test",
+    file1 = "pdm-setup_lock.bzl",
+    file2 = ":pdm-setup_lock",
 )
