@@ -292,31 +292,12 @@ _shared_attrs = {
     # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
     "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
     "data": attr.label_list(allow_files = True, cfg = "target"),
-    "target_platforms": attr.label_list(allow_files = False),
     "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
-    # This attribute is required to use starlark transitions. It allows
-    # allowlisting usage of this rule. For more information, see
-    # https://docs.bazel.build/versions/master/skylark/config.html#user-defined-transitions
-    "_allowlist_function_transition": attr.label(
-        default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-    ),
 }
-
-def _transition_impl(_settings, attr):
-    return {"//command_line_option:platforms": attr.target_platforms}
-
-_transition = transition(
-    implementation = _transition_impl,
-    inputs = [],
-    # We declare which flags the transition will be writing. The returned dict(s)
-    # of flags must have keyset(s) that contains exactly this list.
-    outputs = ["//command_line_option:platforms"],
-)
 
 _task = rule(
     implementation = _task_impl,
     attrs = _shared_attrs,
-    cfg = _transition,
 )
 
 def _task_rule_prep(name, kwargs, testonly = False):
