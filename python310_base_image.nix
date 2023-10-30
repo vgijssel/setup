@@ -26,18 +26,11 @@ let
     maxLayers = 2;
     contents = [
       busybox
-      rocgdb
-      openssl
       bashInteractive
-      coreutils
       python310
       stdenv.cc.cc.lib
-      iana-etc
       cacert
       dockerEtc
-      vim
-      findutils
-      gnugrep
     ];
     extraCommands = ''
             mkdir -p root
