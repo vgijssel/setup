@@ -12,6 +12,6 @@
     "pdm@2.9.3"
   ],
   "shell": {
-    "init_hook": ["alias bazel='bazelisk'"]
+    "init_hook": ["alias bazel='bazelisk'", "export PATH=$HOME/bin:$PATH"]
   }
 }

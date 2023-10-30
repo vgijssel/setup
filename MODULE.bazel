@@ -19,7 +19,7 @@ bazel_dep(name = "platforms", version = "0.0.8")
 
 # ------------------------------------ rules_skylib ------------------------------------ #
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
-bazel_dep(name = "aspect_bazel_lib", version = "2.0.0-rc0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.0.0-rc1")
 
 # ------------------------------------ rules_pkg ------------------------------------ #
 bazel_dep(name = "rules_pkg", version = "0.9.1")
