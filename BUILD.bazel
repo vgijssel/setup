@@ -1,5 +1,12 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
-load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
+load("@rules_task//:defs.bzl", "cmd", "task")
+load(
+    "@jvolkman_rules_pycross//pycross:defs.bzl",
+    "pycross_lock_file",
+    "pycross_pdm_lock_model",
+    "pycross_target_environment",
+)
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -17,38 +24,170 @@ config_setting(
     },
 )
 
+sh_binary(
+    name = "setup_ci",
+    srcs = [
+        "setup_ci.sh",
+    ],
+)
+
+_darwin_arm64 = [
+    "@platforms//os:macos",
+    "@platforms//cpu:arm64",
+]
+
+_linux_amd64 = [
+    "@platforms//os:linux",
+    "@platforms//cpu:x86_64",
+]
+
+_linux_arm64 = [
+    "@platforms//os:linux",
+    "@platforms//cpu:arm64",
+]
+
 config_setting(
     name = "is_linux_amd64",
-    constraint_values = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:linux",
-    ],
+    constraint_values = _linux_amd64,
 )
 
 config_setting(
     name = "is_linux_arm64",
-    constraint_values = [
-        "@platforms//cpu:aarch64",
-        "@platforms//os:linux",
-    ],
+    constraint_values = _linux_arm64,
 )
 
 config_setting(
     name = "is_darwin_arm64",
-    constraint_values = [
-        "@platforms//cpu:aarch64",
-        "@platforms//os:macos",
+    constraint_values = _darwin_arm64,
+)
+
+platform(
+    name = "darwin_arm64",
+    constraint_values = _darwin_arm64,
+)
+
+platform(
+    name = "linux_x86_64",
+    constraint_values = _linux_amd64,
+)
+
+platform(
+    name = "linux_arm64",
+    constraint_values = _linux_arm64,
+)
+
+pycross_target_environment(
+    name = "python_darwin_arm64",
+    abis = ["cp310"],
+    platforms = [
+        "macosx_12_0_arm64",
+        "macosx_13_0_arm64",
+        "macosx_14_0_arm64",
+    ],
+    python_compatible_with = _darwin_arm64,
+    version = "3.10.13",
+)
+
+pycross_target_environment(
+    name = "python_linux_amd64",
+    abis = ["cp310"],
+    platforms = [
+        "linux_x86_64",
+        "manylinux2014_x86_64",
+    ] + [
+        "manylinux_2_%s_x86_64" % str(i)
+        for i in range(17, 35)
+    ],
+    python_compatible_with = _linux_amd64,
+    version = "3.10.13",
+)
+
+pycross_target_environment(
+    name = "python_linux_arm64",
+    abis = ["cp310"],
+    platforms = [
+        "linux_aarch64",
+        "manylinux2014_aarch64",
+    ] + [
+        "manylinux_2_%s_aarch64" % str(i)
+        for i in range(17, 35)
+    ],
+    python_compatible_with = _linux_arm64,
+    version = "3.10.13",
+)
+
+pycross_pdm_lock_model(
+    name = "pdm-setup_lock_model",
+    dev = True,
+    groups = [
+        "default",
+    ],
+    lock_file = "pdm.lock",
+    project_file = "pyproject.toml",
+)
+
+pycross_lock_file(
+    name = "pdm-setup_lock",
+    out = "pdm-setup_lock_gen.bzl",
+    default_alias_single_version = True,
+    lock_model_file = ":pdm-setup_lock_model",
+    package_build_dependencies = {
+        "ulid-transform": [
+            "wheel",
+            "setuptools",
+            "poetry-core",
+        ],
+        "python-slugify": [
+            "wheel",
+            "setuptools",
+        ],
+        "mock-open": [
+            "wheel",
+            "setuptools",
+        ],
+        "lru-dict": [
+            "wheel",
+            "setuptools",
+            "poetry-core",
+        ],
+        "pytest-test-groups": [
+            "wheel",
+            "setuptools",
+        ],
+        "colored": [
+            "wheel",
+            "setuptools",
+        ],
+        "paho-mqtt": [
+            "wheel",
+            "setuptools",
+        ],
+        "home-assistant-bluetooth": [
+            "wheel",
+            "setuptools",
+            "poetry-core",
+        ],
+    },
+    pypi_index = "https://pypi.org",
+    target_environments = [
+        ":python_darwin_arm64",
+        ":python_linux_amd64",
+        ":python_linux_arm64",
     ],
 )
 
-compile_pip_requirements(
-    name = "requirements",
-    extra_args = [
-        "--allow-unsafe",
+task(
+    name = "pdm-setup.update",
+    cmds = [
+        "cp -fv $LOCK_FILE $BUILD_WORKSPACE_DIRECTORY/pdm-setup_lock.bzl",
     ],
-    hidden_args = [
-        "--verbose",
-    ],
-    requirements_in = "requirements.in",
-    requirements_txt = "requirements.txt",
+    env = {
+        "LOCK_FILE": cmd.file(":pdm-setup_lock"),
+    },
+)
+
+diff_test(
+    name = "pdm-setup_test",
+    file1 = "pdm-setup_lock.bzl",
+    file2 = ":pdm-setup_lock",
 )

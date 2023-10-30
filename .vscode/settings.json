@@ -16,5 +16,6 @@
     "editor.defaultFormatter": "ms-azuretools.vscode-docker"
   },
   "python.formatting.provider": "none",
-  "devbox.autoShellOnTerminal": false
+  "devbox.autoShellOnTerminal": true,
+  "nix.enableLanguageServer": false
 }

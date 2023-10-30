@@ -5,10 +5,11 @@ all:
       glob: "*.{py}"
     prettier:
       run: prettier --check {all_files}
-      glob: "*.{yml,yaml,json,md}"
+      glob: "*.{yml,yaml,json,md,js}"
     buildifier:
       run: buildifier -mode check {all_files}
       glob: "*.{bazel,bzl,bzlmod}"
+      exclude: "pdm-setup_lock.bzl"
 
 pre-commit:
   commands:
@@ -18,9 +19,10 @@ pre-commit:
       stage_fixed: true
     prettier:
       run: prettier --write {staged_files}
-      glob: "*.{yml,yaml,json,md}"
+      glob: "*.{yml,yaml,json,md,js}"
       stage_fixed: true
     buildifier:
       run: buildifier {staged_files}
       glob: "*.{bazel,bzl,bzlmod}"
       stage_fixed: true
+      exclude: "pdm-setup_lock.bzl"

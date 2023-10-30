@@ -1,7 +1,7 @@
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("//tools/docker:docker.bzl", "docker_load")
-load("@pip-setup//:requirements.bzl", "requirement")
+load("@pdm-setup//:requirements.bzl", "requirement")
 load("//tools/onepassword:defs.bzl", "secrets")
 
 pyinfra_run(

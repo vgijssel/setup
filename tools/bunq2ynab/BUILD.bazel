@@ -1,6 +1,7 @@
 load("@rules_python//python:defs.bzl", "py_binary")
-load("@pip-setup//:requirements.bzl", "requirement")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
+load("//tools/python:defs.bzl", "py_image")
+load("@pdm-setup//:requirements.bzl", "requirement")
 
 py_binary(
     name = "list_user_binary",
@@ -38,7 +39,6 @@ py_binary(
 task(
     name = "list_user",
     cmds = [
-        "export OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
         "export CONFIG_FILE=$(pwd)/config.json",
         "$OP inject --in-file=$CONFIG_FILE_TPL --out-file=$CONFIG_FILE --force",
         {"defer": "rm -rf $CONFIG_FILE"},
@@ -54,6 +54,7 @@ task(
 task_test(
     name = "list_user_test",
     cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
         cmd.executable("list_user"),
     ],
 )
@@ -109,5 +110,34 @@ task(
     env = {
         "BINARY": cmd.executable("generate_oauth_token_binary"),
         "OP": cmd.executable("//tools/onepassword:op"),
+    },
+)
+
+py_image(
+    name = "bunq2ynab_image",
+    base = "@python310_base_image//:image.tar.gz",
+    binary = ":bunq2ynab",
+    host_container_platform = "//:host_container_platform",
+    prefix = "opt/",
+)
+
+task(
+    name = "bunq2ynab_image_run",
+    cmds = [
+        cmd.executable("bunq2ynab_image.load"),
+        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV -it --entrypoint='' bunq2ynab:latest $CLI_ARGS",
+    ],
+)
+
+task_test(
+    name = "bunq2ynab_image_test",
+    cmds = [
+        cmd.executable("bunq2ynab_image.load"),
+        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV bunq2ynab:latest",
+    ],
+    exec_properties = {
+        "workload-isolation-type": "firecracker",
+        "init-dockerd": "true",
+        "recycle-runner": "true",
     },
 )

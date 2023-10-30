@@ -1,34 +1,35 @@
-load("@rules_task//:defs.bzl", "cmd", "task")
-
-# load("@python3//:defs.bzl", "interpreter")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
+load(":defs.bzl", "host_python_container_platform")
 
 package(default_visibility = ["//visibility:public"])
 
-# task(
-#     name = "python",
-#     cmds = [
-#         cmd.shell(
-#             cmd.executable(interpreter),
-#             "$CLI_ARGS",
-#         ),
-#     ],
-#     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
-# )
+constraint_setting(name = "python_containerized")
 
-python_base_image = select({
-    "@platforms//cpu:aarch64": "@python_base_arm64//image",
-    "@platforms//cpu:x86_64": "@python_base_amd64//image",
-})
+host_python_container_platform(
+    name = "host_python_container",
+)
 
-container_image(
-    name = "python_base_image",
-    base = python_base_image,
-    env = {
-        "PYTHONUNBUFFERED": "1",
-    },
-    symlinks = {
-        "/usr/bin/python": "/usr/local/bin/python",  # To work as base for py3_image
-        "/usr/bin/python3": "/usr/local/bin/python3",  # To work as base for py3_image
-    },
+constraint_value(
+    name = "python_run_in_container",
+    constraint_setting = ":python_containerized",
+)
+
+py_runtime(
+    name = "python_container_py3_runtime",
+    interpreter_path = "/usr/bin/python3",
+    python_version = "PY3",
+)
+
+py_runtime_pair(
+    name = "python_container_py_runtime_pair",
+    py3_runtime = ":python_container_py3_runtime",
+)
+
+toolchain(
+    name = "python_container_py_toolchain",
+    target_compatible_with = [
+        ":python_run_in_container",
+    ],
+    toolchain = ":python_container_py_runtime_pair",
+    toolchain_type = "@bazel_tools//tools/python:toolchain_type",
 )

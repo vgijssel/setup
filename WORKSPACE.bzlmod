@@ -45,6 +45,39 @@ container_pull(
     repository = "library/python:3.10.8-bullseye",
 )
 
+# ------------------------------------ rules_pycross ------------------------------------ #
+http_archive(
+    name = "jvolkman_rules_pycross",
+    sha256 = "5b51cfa4890d6de29b6a0976248e8139f69354bf29924308093a039d93ab630f",
+    strip_prefix = "rules_pycross-0.2",
+    url = "https://github.com/jvolkman/rules_pycross/archive/refs/tags/v0.2.tar.gz",
+)
+
+load("@jvolkman_rules_pycross//pycross:repositories.bzl", "rules_pycross_dependencies")
+load("@rules_python~0.25.0~python~pythons_hub//:interpreters.bzl", "INTERPRETER_LABELS")
+
+# This is necessary to get the hermetic interpreter which is defined in MODULE.bazel
+# This would be simpler if rules_pycross would also use bzlmod.
+interpreter_internal_target = INTERPRETER_LABELS["python_3_10"]
+
+interpreter_target = "@rules_python~0.25.0~python~{}//:{}".format(
+    interpreter_internal_target.workspace_name,
+    interpreter_internal_target.name,
+)
+
+rules_pycross_dependencies(python_interpreter_target = interpreter_target)
+
+load("@jvolkman_rules_pycross//pycross:defs.bzl", "pycross_lock_repo")
+
+pycross_lock_repo(
+    name = "pdm-setup",
+    lock_file = "//:pdm-setup_lock.bzl",
+)
+
+load("@pdm-setup//:requirements.bzl", "install_deps")
+
+install_deps()
+
 # ------------------------------------ workstation ------------------------------------ #
 
 # https://hub.docker.com/layers/library/ubuntu/jammy-20230425/images/sha256-ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00?context=explore
@@ -262,3 +295,34 @@ git_repository(
 #     build_file = "//tools/bunq2ynab:BUILD.repositories.bazel.tpl",
 #     path = "/workspaces/bunq2ynab",
 # )
+
+# ------------------------------------ rules_nixpkgs ------------------------------------ #
+
+http_archive(
+    name = "io_tweag_rules_nixpkgs",
+    sha256 = "b01f170580f646ee3cde1ea4c117d00e561afaf3c59eda604cf09194a824ff10",
+    strip_prefix = "rules_nixpkgs-0.9.0",
+    urls = ["https://github.com/tweag/rules_nixpkgs/archive/refs/tags/v0.9.0.tar.gz"],
+)
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
+
+rules_nixpkgs_dependencies()
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_package")
+
+nixpkgs_git_repository(
+    name = "nixpkgs",
+    revision = "23.05",  # Any tag or commit hash
+    sha256 = "",  # optional sha to verify package integrity!
+)
+
+nixpkgs_package(
+    name = "python310_base_image",
+    build_file_content = """
+package(default_visibility = [ "//visibility:public" ])
+exports_files(["image.tar.gz"])
+    """,
+    nix_file = "//:python310_base_image.nix",
+    repository = "@nixpkgs//:default.nix",
+)
