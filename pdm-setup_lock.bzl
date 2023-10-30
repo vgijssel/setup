@@ -188,6 +188,14 @@ def targets():
     )
 
     native.config_setting(
+        name = "_env_python_linux_amd64",
+        constraint_values = [
+            "@platforms//os:linux",
+            "@platforms//cpu:x86_64",
+        ],
+    )
+
+    native.config_setting(
         name = "_env_python_linux_arm64",
         constraint_values = [
             "@platforms//os:linux",
@@ -195,18 +203,10 @@ def targets():
         ],
     )
 
-    native.config_setting(
-        name = "_env_python_linux_x86_64",
-        constraint_values = [
-            "@platforms//os:linux",
-            "@platforms//cpu:x86_64",
-        ],
-    )
-
     _target = select({
         ":_env_python_darwin_arm64": "@//:python_darwin_arm64",
+        ":_env_python_linux_amd64": "@//:python_linux_amd64",
         ":_env_python_linux_arm64": "@//:python_linux_arm64",
-        ":_env_python_linux_x86_64": "@//:python_linux_x86_64",
     })
 
     _aiohttp_3_8_4_deps = [
@@ -224,8 +224,8 @@ def targets():
         deps = _aiohttp_3_8_4_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_aiohttp_3.8.4_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_aiohttp_3.8.4_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_aiohttp_3.8.4_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_aiohttp_3.8.4_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -300,8 +300,8 @@ def targets():
         name = "bcrypt_4.0.1",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_bcrypt_4.0.1_cp36_abi3_macosx_10_10_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_bcrypt_4.0.1_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_bcrypt_4.0.1_cp36_abi3_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_bcrypt_4.0.1_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -319,8 +319,8 @@ def targets():
         deps = _black_23_3_0_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_black_23.3.0_cp310_cp310_macosx_10_16_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_black_23.3.0_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_black_23.3.0_py3_none_any//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_black_23.3.0_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -362,8 +362,8 @@ def targets():
         deps = _cffi_1_16_0_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_cffi_1.16.0_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_cffi_1.16.0_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_cffi_1.16.0_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_cffi_1.16.0_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -371,8 +371,8 @@ def targets():
         name = "charset_normalizer_3.3.1",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_charset_normalizer_3.3.1_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_charset_normalizer_3.3.1_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_charset_normalizer_3.3.1_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_charset_normalizer_3.3.1_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -387,8 +387,8 @@ def targets():
         name = "ciso8601_2.3.0",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_ciso8601_2.3.0_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_ciso8601_2.3.0_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": ":_build_ciso8601_2.3.0",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_ciso8601_2.3.0_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -445,8 +445,8 @@ def targets():
         deps = _coverage_7_2_4_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_coverage_7.2.4_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_coverage_7.2.4_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_coverage_7.2.4_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_coverage_7.2.4_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -464,8 +464,8 @@ def targets():
         deps = _cryptography_40_0_2_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_cryptography_40.0.2_cp36_abi3_macosx_10_12_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_cryptography_40.0.2_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_cryptography_40.0.2_cp36_abi3_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_cryptography_40.0.2_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -503,8 +503,8 @@ def targets():
         deps = _dulwich_0_21_6_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_dulwich_0.21.6_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_dulwich_0.21.6_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_dulwich_0.21.6_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_dulwich_0.21.6_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -537,8 +537,8 @@ def targets():
         name = "frozenlist_1.4.0",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_frozenlist_1.4.0_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_frozenlist_1.4.0_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_frozenlist_1.4.0_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_frozenlist_1.4.0_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -553,8 +553,8 @@ def targets():
         deps = _gevent_23_9_1_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_gevent_23.9.1_cp310_cp310_macosx_11_0_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_gevent_23.9.1_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_gevent_23.9.1_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_gevent_23.9.1_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -572,8 +572,8 @@ def targets():
         name = "greenlet_3.0.1",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_greenlet_3.0.1_cp310_cp310_macosx_10_9_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_greenlet_3.0.1_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_greenlet_3.0.1_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_greenlet_3.0.1_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -581,8 +581,8 @@ def targets():
         name = "grpcio_1.56.2",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_grpcio_1.56.2_cp310_cp310_macosx_12_0_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_grpcio_1.56.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_grpcio_1.56.2_cp310_cp310_manylinux_2_17_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_grpcio_1.56.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -609,8 +609,8 @@ def targets():
         name = "home_assistant_bluetooth_1.10.0",
         wheel = select({
             ":_env_python_darwin_arm64": ":_build_home_assistant_bluetooth_1.10.0",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_home_assistant_bluetooth_1.10.0_cp310_cp310_manylinux_2_31_x86_64//file",
             ":_env_python_linux_arm64": ":_build_home_assistant_bluetooth_1.10.0",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_home_assistant_bluetooth_1.10.0_cp310_cp310_manylinux_2_31_x86_64//file",
         }),
     )
 
@@ -746,11 +746,11 @@ def targets():
         ":importlib_metadata_6.8.0",
         ":jaraco_classes_3.3.0",
     ] + select({
-        ":_env_python_linux_arm64": [
+        ":_env_python_linux_amd64": [
             ":jeepney_0.8.0",
             ":secretstorage_3.3.3",
         ],
-        ":_env_python_linux_x86_64": [
+        ":_env_python_linux_arm64": [
             ":jeepney_0.8.0",
             ":secretstorage_3.3.3",
         ],
@@ -781,8 +781,8 @@ def targets():
         name = "lru_dict_1.1.8",
         wheel = select({
             ":_env_python_darwin_arm64": ":_build_lru_dict_1.1.8",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_lru_dict_1.1.8_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": ":_build_lru_dict_1.1.8",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_lru_dict_1.1.8_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -790,8 +790,8 @@ def targets():
         name = "markupsafe_2.1.3",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_markupsafe_2.1.3_cp310_cp310_macosx_10_9_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_markupsafe_2.1.3_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_markupsafe_2.1.3_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_markupsafe_2.1.3_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -822,8 +822,8 @@ def targets():
         name = "msgpack_1.0.7",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_msgpack_1.0.7_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_msgpack_1.0.7_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_msgpack_1.0.7_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_msgpack_1.0.7_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -831,8 +831,8 @@ def targets():
         name = "multidict_6.0.4",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_multidict_6.0.4_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_multidict_6.0.4_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_multidict_6.0.4_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_multidict_6.0.4_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -845,8 +845,8 @@ def targets():
         name = "numpy_1.23.2",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_numpy_1.23.2_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_numpy_1.23.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_numpy_1.23.2_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_numpy_1.23.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1010,8 +1010,8 @@ def targets():
         name = "orjson_3.8.12",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_orjson_3.8.12_cp310_cp310_macosx_11_0_x86_64.macosx_11_0_arm64.macosx_11_0_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_orjson_3.8.12_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_orjson_3.8.12_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_orjson_3.8.12_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1158,8 +1158,8 @@ def targets():
         name = "protobuf_4.24.4",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_protobuf_4.24.4_cp37_abi3_macosx_10_9_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_protobuf_4.24.4_cp37_abi3_manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_protobuf_4.24.4_cp37_abi3_manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_protobuf_4.24.4_cp37_abi3_manylinux2014_x86_64//file",
         }),
     )
 
@@ -1174,8 +1174,8 @@ def targets():
         name = "psutil_5.9.6",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_psutil_5.9.6_cp38_abi3_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_psutil_5.9.6_cp36_abi3_manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": ":_build_psutil_5.9.6",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_psutil_5.9.6_cp36_abi3_manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1238,8 +1238,8 @@ def targets():
         deps = _pydantic_1_10_8_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_pydantic_1.10.8_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_pydantic_1.10.8_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_pydantic_1.10.8_py3_none_any//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_pydantic_1.10.8_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1286,8 +1286,8 @@ def targets():
         deps = _pynacl_1_5_0_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_pynacl_1.5.0_cp36_abi3_macosx_10_10_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_pynacl_1.5.0_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_pynacl_1.5.0_cp36_abi3_manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_pynacl_1.5.0_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1315,8 +1315,8 @@ def targets():
         name = "pyrsistent_0.20.0",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_pyrsistent_0.20.0_cp310_cp310_macosx_10_9_universal2//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_pyrsistent_0.20.0_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_pyrsistent_0.20.0_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_pyrsistent_0.20.0_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1589,8 +1589,8 @@ def targets():
         name = "pyyaml_6.0",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_pyyaml_6.0_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_pyyaml_6.0_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_pyyaml_6.0_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_pyyaml_6.0_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64//file",
         }),
     )
 
@@ -1598,8 +1598,8 @@ def targets():
         name = "rapidfuzz_2.15.2",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_rapidfuzz_2.15.2_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_rapidfuzz_2.15.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_rapidfuzz_2.15.2_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_rapidfuzz_2.15.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1698,10 +1698,10 @@ def targets():
     _sqlalchemy_2_0_15_deps = [
         ":typing_extensions_4.8.0",
     ] + select({
-        ":_env_python_linux_arm64": [
+        ":_env_python_linux_amd64": [
             ":greenlet_3.0.1",
         ],
-        ":_env_python_linux_x86_64": [
+        ":_env_python_linux_arm64": [
             ":greenlet_3.0.1",
         ],
         "//conditions:default": [],
@@ -1712,8 +1712,8 @@ def targets():
         deps = _sqlalchemy_2_0_15_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_sqlalchemy_2.0.15_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_sqlalchemy_2.0.15_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_sqlalchemy_2.0.15_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_sqlalchemy_2.0.15_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1791,8 +1791,8 @@ def targets():
         name = "ulid_transform_0.7.2",
         wheel = select({
             ":_env_python_darwin_arm64": ":_build_ulid_transform_0.7.2",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_ulid_transform_0.7.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": ":_build_ulid_transform_0.7.2",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_ulid_transform_0.7.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1837,8 +1837,8 @@ def targets():
         name = "wrapt_1.15.0",
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_wrapt_1.15.0_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_wrapt_1.15.0_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_wrapt_1.15.0_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_wrapt_1.15.0_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1851,8 +1851,8 @@ def targets():
         deps = _xattr_0_10_1_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_xattr_0.10.1_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_xattr_0.10.1_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_xattr_0.10.1_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_xattr_0.10.1_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1871,8 +1871,8 @@ def targets():
         deps = _yarl_1_9_2_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_yarl_1.9.2_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_yarl_1.9.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_yarl_1.9.2_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_yarl_1.9.2_cp310_cp310_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1900,8 +1900,8 @@ def targets():
         deps = _zope_interface_6_1_deps,
         wheel = select({
             ":_env_python_darwin_arm64": "@pdm_setup_lock_wheel_zope.interface_6.1_cp310_cp310_macosx_11_0_arm64//file",
+            ":_env_python_linux_amd64": "@pdm_setup_lock_wheel_zope.interface_6.1_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
             ":_env_python_linux_arm64": "@pdm_setup_lock_wheel_zope.interface_6.1_cp310_cp310_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
-            ":_env_python_linux_x86_64": "@pdm_setup_lock_wheel_zope.interface_6.1_cp310_cp310_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
