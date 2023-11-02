@@ -7,6 +7,7 @@ load(
     "pycross_target_environment",
 )
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_release//:defs.bzl", "release", "release_manager")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -190,4 +191,35 @@ diff_test(
     name = "pdm-setup_test",
     file1 = "pdm-setup_lock.bzl",
     file2 = ":pdm-setup_lock",
+)
+
+task(
+    name = "foo",
+    cmds = [
+        "echo foo",
+    ],
+)
+
+task(
+    name = "foo_publish",
+    cmds = [
+        "echo 'PUBLISHING foo AT VERSION: $RELEASE_VERSION'",
+        "echo 'CHANGELOG: $RELEASE_CHANGELOG'",
+    ],
+)
+
+release(
+    name = "foo_release",
+    publish_cmds = [
+        ":foo_publish",
+    ],
+    target = ":foo",
+    version_file = "foo_version.txt",
+)
+
+release_manager(
+    name = "release_manager",
+    deps = [
+        ":foo_release",
+    ],
 )
