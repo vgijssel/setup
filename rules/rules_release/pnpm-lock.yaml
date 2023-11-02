@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@bazel/runfiles':
+    specifier: ^5.8.1
+    version: 5.8.1
   '@changesets/action':
     specifier: github:changesets/action
     version: github.com/changesets/action/2bb9bcbd6bf4996a55ce459a630a0aa699457f59(@octokit/core@4.2.4)
@@ -79,6 +82,10 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
+    dev: false
+
+  /@bazel/runfiles@5.8.1:
+    resolution: {integrity: sha512-NDdfpdQ6rZlylgv++iMn5FkObC/QlBQvipinGLSOguTYpRywmieOyJ29XHvUilspwTFSILWpoE9CqMGkHXug1g==}
     dev: false
 
   /@changesets/apply-release-plan@6.1.4:

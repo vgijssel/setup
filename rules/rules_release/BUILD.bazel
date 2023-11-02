@@ -1,16 +1,25 @@
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_library", "js_test")
+load("@rules_java//java:defs.bzl", "java_binary")
 
-exports_files(["release_manager.js"])
+package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages()
 
-js_library(
-    name = "kerk",
-    srcs = [":release_manager"],
+java_binary(
+    name = "bazel-diff",
+    main_class = "com.bazel_diff.Main",
+    runtime_deps = ["@bazel_diff//jar"],
 )
 
 js_binary(
-    name = "test",
-    entry_point = "@rules_release//:release_manager.js",
+    name = "generate",
+    data = [
+        ":bazel-diff",
+        ":node_modules/@bazel/runfiles",
+    ],
+    entry_point = "generate.js",
+    env = {
+        "WORKSPACE": repository_name(),
+    },
 )

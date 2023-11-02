@@ -18,6 +18,13 @@ bazel_dep(
 #     version = "1.36.0",
 # )
 
+# ------------------------------------ rules_java ------------------------------------ #
+bazel_dep(name = "rules_java", version = "7.0.6")
+
+non_module_dependencies = use_extension(":extensions.bzl", "non_module_dependencies")
+
+use_repo(non_module_dependencies, "bazel_diff")
+
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(
     name = "aspect_rules_js",
