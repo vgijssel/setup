@@ -12,6 +12,7 @@ def release_manager(name, deps):
         actual = "@rules_release//:generate",
     )
 
+    # TODO: how are we going to write the release deps into this file?
     write_file(
         name = name + "_file",
         out = name + "_file.js",

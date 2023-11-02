@@ -101,5 +101,3 @@ const impactedTargets = generateImpactedTargets(
   false
 );
 console.log(`impactedTargets is ${impactedTargets}`);
-
-// Write impacted targets workspace directory .changesets
