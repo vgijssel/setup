@@ -40,10 +40,10 @@ const getCurrentCommit = () => {
   return currentCommitHash;
 };
 
-const generateHashesForSha = (sha) => {
+const generateHashesForSha = (sha, cache) => {
   const hashesFile = `${hashesDir}/${sha}.json`;
 
-  if (existsSync(hashesFile)) {
+  if (cache && existsSync(hashesFile)) {
     return hashesFile;
   }
 
@@ -62,10 +62,10 @@ const checkoutSha = (sha) => {
   }).trim();
 };
 
-const generateImpactedTargets = (sha, previousHashes, currentHashes) => {
+const generateImpactedTargets = (sha, previousHashes, currentHashes, cache) => {
   const impactedTargetsPath = `${hashesDir}/${sha}.impacted_targets.json`;
 
-  if (existsSync(impactedTargetsPath)) {
+  if (cache && existsSync(impactedTargetsPath)) {
     return impactedTargetsPath;
   }
 
@@ -88,16 +88,17 @@ console.log(`previousCommit is ${previousCommit}`);
 const currentCommit = getCurrentCommit();
 console.log(`currentCommit is ${currentCommit}`);
 
-const previousHashes = generateHashesForSha(previousCommit);
+const previousHashes = generateHashesForSha(previousCommit, true);
 console.log(`previousHashes is ${previousHashes}`);
 
-const currentHashes = generateHashesForSha(currentCommit);
+const currentHashes = generateHashesForSha(currentCommit, false);
 console.log(`currentHashes is ${currentHashes}`);
 
 const impactedTargets = generateImpactedTargets(
   currentCommit,
   previousHashes,
-  currentHashes
+  currentHashes,
+  false
 );
 console.log(`impactedTargets is ${impactedTargets}`);
 
