@@ -47,10 +47,14 @@ const generateHashesForSha = (sha, cache) => {
     return hashesFile;
   }
 
+  checkoutSha(sha);
+
   const bazelDiffCommand = `${bazelDiffPath} generate-hashes -w ${workspaceDir} -b ${bazelPath} ${hashesFile}`;
   execSync(bazelDiffCommand, {
     encoding: "utf-8",
   }).trim();
+
+  checkoutSha(currentBranch);
 
   return hashesFile;
 };
@@ -69,15 +73,11 @@ const generateImpactedTargets = (sha, previousHashes, currentHashes, cache) => {
     return impactedTargetsPath;
   }
 
-  checkoutSha(sha);
-
   const bazelDiffCommand = `${bazelDiffPath} get-impacted-targets -sh ${previousHashes} -fh ${currentHashes} -o ${impactedTargetsPath}`;
 
   execSync(bazelDiffCommand, {
     encoding: "utf-8",
   }).trim();
-
-  checkoutSha(currentBranch);
 
   return impactedTargetsPath;
 };
