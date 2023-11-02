@@ -55,3 +55,9 @@ local_path_override(
     module_name = "rules_release",
     path = "./rules/rules_release",
 )
+
+# TODO: this shouldn't be here, right?
+bazel_dep(
+    name = "aspect_rules_js",
+    version = "1.33.1",
+)
