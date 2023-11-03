@@ -2,6 +2,9 @@ load("@rules_python//python:defs.bzl", "py_binary")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("//tools/python:defs.bzl", "py_image")
 load("@pdm-setup//:requirements.bzl", "requirement")
+load("@rules_release//release:defs.bzl", "release")
+
+package(default_visibility = ["//visibility:public"])
 
 py_binary(
     name = "list_user_binary",
@@ -140,4 +143,10 @@ task_test(
         "init-dockerd": "true",
         "recycle-runner": "true",
     },
+)
+
+release(
+    name = "bunq2ynab_release",
+    target = ":bunq2ynab_image",
+    version_file = "version.txt",
 )

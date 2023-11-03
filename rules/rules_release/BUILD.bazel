@@ -12,6 +12,7 @@ java_binary(
     runtime_deps = ["@bazel_diff//jar"],
 )
 
+# TODO: use to_rlocation_path
 js_binary(
     name = "generate",
     data = [
@@ -22,4 +23,9 @@ js_binary(
     env = {
         "WORKSPACE": repository_name(),
     },
+)
+
+js_binary(
+    name = "runner",
+    entry_point = "runner.js",
 )

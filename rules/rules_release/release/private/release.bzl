@@ -1,6 +1,28 @@
 load(":release_info.bzl", "ReleaseInfo")
 
 def _release_impl(ctx):
+    release_config_file = ctx.actions.declare_file(ctx.label.name + ".json")
+
+    publish_cmds_paths = []
+
+    for cmd in ctx.attr.publish_cmds:
+        executable = cmd[DefaultInfo].files_to_run.executable
+        if not executable:
+            fail("publish_cmd {} is not an executable".format(cmd))
+
+        publish_cmds_paths.append(executable.path)
+
+    release_config_data = {
+        "name": ctx.label.name,
+        "version_file": ctx.file.version_file.short_path,
+        "publish_cmds": publish_cmds_paths,
+    }
+
+    ctx.actions.write(
+        output = release_config_file,
+        content = json.encode(release_config_data),
+    )
+
     release_info = ReleaseInfo(
         name = ctx.label.name,
     )
@@ -13,7 +35,7 @@ def _release_impl(ctx):
 
     return [
         release_info,
-        DefaultInfo(runfiles = runfiles),
+        DefaultInfo(files = depset([release_config_file]), runfiles = runfiles),
     ]
 
 _release = rule(
@@ -26,7 +48,7 @@ _release = rule(
     },
 )
 
-def release(name, publish_cmds, target, version_file):
+def release(name, target, version_file, publish_cmds = []):
     _release(
         name = name,
         publish_cmds = publish_cmds,

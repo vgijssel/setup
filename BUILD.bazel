@@ -221,5 +221,6 @@ release_manager(
     name = "release_manager",
     deps = [
         ":foo_release",
+        "//tools/bunq2ynab:bunq2ynab_release",
     ],
 )

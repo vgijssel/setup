@@ -1,46 +1,45 @@
 load(":release_info.bzl", "ReleaseInfo")
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
 
-def _release_manager_script_impl(ctx):
-    print(ctx.attr.deps[0][ReleaseInfo])
+def _release_manager_impl(ctx):
+    executable = ctx.actions.declare_file(ctx.label.name)
+    runner_path = ctx.executable._runner.short_path
 
-    script_file = ctx.actions.declare_file("script.js")
+    args = [runner_path]
+
+    for dep in ctx.attr.deps:
+        for file in dep[DefaultInfo].files.to_list():
+            args.append("--config")
+            args.append(file.short_path)
+
+    command = " ".join(args)
+
+    runfiles = ctx.runfiles()
+    runfiles = runfiles.merge_all([
+        d[DefaultInfo].default_runfiles
+        for d in ([ctx.attr._runner] + ctx.attr.deps)
+    ])
 
     ctx.actions.write(
-        output = script_file,
-        content = """
-        console.log("kerk")
-        """,
+        output = executable,
+        content = command,
     )
 
     return [
-        DefaultInfo(files = depset([script_file])),
+        DefaultInfo(executable = executable, runfiles = runfiles),
     ]
 
-_release_manager_script = rule(
-    implementation = _release_manager_script_impl,
+_release_manager = rule(
+    implementation = _release_manager_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
+        "_runner": attr.label(executable = True, default = Label("@rules_release//:runner"), cfg = "target"),
     },
+    executable = True,
 )
 
 def release_manager(name, deps):
-    generate_name = "{}.generate".format(name)
-    script_name = "{}.script".format(name)
-
-    _release_manager_script(
-        name = script_name,
-        deps = deps,
-    )
-
-    native.alias(
-        name = generate_name,
-        actual = "@rules_release//:generate",
-    )
-
-    # TODO: turn this into an attribute of the release manager as a "runner"
-    # then the rule needs to output executables which run those runners
-    js_binary(
+    _release_manager(
         name = name,
-        entry_point = script_name,
+        deps = deps,
     )
