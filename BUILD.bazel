@@ -7,7 +7,7 @@ load(
     "pycross_target_environment",
 )
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@rules_release//:defs.bzl", "release", "release_manager")
+load("@rules_release//release:defs.bzl", "release", "release_manager")
 
 package(default_visibility = ["//visibility:public"])
 
