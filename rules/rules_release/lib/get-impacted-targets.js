@@ -27,7 +27,13 @@ const getCurrentCommit = () => {
   return currentCommitHash;
 };
 
-const generateHashesForSha = (bazelDiffPath, bazelPath, sha, cache) => {
+const generateHashesForSha = (
+  bazelDiffPath,
+  bazelDiffArgs,
+  bazelPath,
+  sha,
+  cache
+) => {
   const hashesFile = `${hashesDir}/${sha}.json`;
 
   if (cache && existsSync(hashesFile)) {
@@ -39,7 +45,8 @@ const generateHashesForSha = (bazelDiffPath, bazelPath, sha, cache) => {
   try {
     checkoutSha(sha);
 
-    const bazelDiffCommand = `${bazelDiffPath} generate-hashes --fineGrainedHashExternalRepos=rules_task -w ${workspaceDir} -b ${bazelPath} ${hashesFile}`;
+    const bazelDiffCommand = `${bazelDiffPath} generate-hashes ${bazelDiffArgs} -w ${workspaceDir} -b ${bazelPath} ${hashesFile}`;
+    console.log(bazelDiffCommand);
     execSync(bazelDiffCommand, {
       encoding: "utf-8",
     }).trim();
@@ -75,6 +82,7 @@ const generateImpactedTargets = (
   }
 
   const bazelDiffCommand = `${bazelDiffPath} get-impacted-targets -sh ${previousHashes} -fh ${currentHashes} -o ${impactedTargetsPath}`;
+  console.log(bazelDiffCommand);
 
   execSync(bazelDiffCommand, {
     encoding: "utf-8",
@@ -83,7 +91,7 @@ const generateImpactedTargets = (
   return impactedTargetsPath;
 };
 
-const getImpactedTargets = ({ bazelDiffPath }) => {
+const getImpactedTargets = ({ bazelDiffPath, bazelDiffArgs }) => {
   if (!existsSync(hashesDir)) {
     mkdirSync(hashesDir, { recursive: true });
   }
@@ -97,6 +105,7 @@ const getImpactedTargets = ({ bazelDiffPath }) => {
 
   const previousHashes = generateHashesForSha(
     bazelDiffPath,
+    bazelDiffArgs,
     bazelPath,
     previousCommit,
     false
@@ -105,6 +114,7 @@ const getImpactedTargets = ({ bazelDiffPath }) => {
 
   const currentHashes = generateHashesForSha(
     bazelDiffPath,
+    bazelDiffArgs,
     bazelPath,
     currentCommit,
     false

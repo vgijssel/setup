@@ -14,6 +14,10 @@ program
   .description("CLI to manage releases using changesets and Bazel")
   .option("-c, --config <items>", "Config items", collect, [])
   .requiredOption("--bazel-diff-path <string>")
+  .option(
+    "--bazel-diff-args <string>",
+    "Additional args generate hashes command for bazel-diff"
+  )
   .version("0.0.0");
 
 program
@@ -22,7 +26,11 @@ program
     "Generate changesets based on changed targets with latest master"
   )
   .action(async () => {
-    const { config: configPaths, bazelDiffPath } = program.opts();
+    const {
+      config: configPaths,
+      bazelDiffPath,
+      bazelDiffArgs,
+    } = program.opts();
     const config = await getConfig(configPaths);
 
     console.log(config._releaseData);
@@ -31,6 +39,7 @@ program
 
     const impactedTargets = getImpactedTargets({
       bazelDiffPath,
+      bazelDiffArgs,
     });
 
     const changedReleaseLabels = impactedTargets.filter((target) => {
