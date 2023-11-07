@@ -4,7 +4,8 @@ const program = new Command();
 const getImpactedTargets = require("./lib/get-impacted-targets");
 const getConfig = require("./lib/get-config.js");
 const write = require("@changesets/write").default;
-const { rename } = require("fs").promises;
+const { rename, stat } = require("fs").promises;
+const fileExists = async (path) => !!(await stat(path).catch((e) => false));
 
 function collect(val, memo) {
   memo.push(val);
@@ -51,6 +52,14 @@ program
 
     for (const changedReleaseLabel of changedReleaseLabels) {
       const release = config.getReleaseByLabel(changedReleaseLabel);
+      const newFilePath = `${config.workspaceDir()}/.changeset/${
+        release.name
+      }.md`;
+
+      if (await fileExists(newFilePath)) {
+        console.log(`Skipping ${newFilePath} as it already exists`);
+        continue;
+      }
 
       const changeset = {
         summary: "A change",
@@ -58,12 +67,9 @@ program
       };
       const uniqueId = await write(changeset, config.workspaceDir());
       const oldFilePath = `${config.workspaceDir()}/.changeset/${uniqueId}.md`;
-      const newFilePath = `${config.workspaceDir()}/.changeset/${
-        release.name
-      }.md`;
 
       await rename(oldFilePath, newFilePath);
-      console.log(`Renamed ${oldFilePath} to ${newFilePath}`);
+      console.log(`Created changeset ${newFilePath}`);
     }
   });
 
