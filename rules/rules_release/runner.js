@@ -4,6 +4,7 @@ const program = new Command();
 const getImpactedTargets = require("./lib/get-impacted-targets");
 const getConfig = require("./lib/get-config.js");
 const write = require("@changesets/write").default;
+const { rename } = require("fs").promises;
 
 function collect(val, memo) {
   memo.push(val);
@@ -48,18 +49,22 @@ program
       return releaseLabels.includes(target);
     });
 
-    console.log(changedReleaseLabels);
+    for (const changedReleaseLabel of changedReleaseLabels) {
+      const release = config.getReleaseByLabel(changedReleaseLabel);
 
-    const changeset = {
-      summary: "A description of a minor change",
-      releases: [
-        { name: "@changesets/something", type: "minor" },
-        { name: "@changesets/something-else", type: "patch" },
-      ],
-    };
+      const changeset = {
+        summary: "A change",
+        releases: [{ name: release.name, type: "minor" }],
+      };
+      const uniqueId = await write(changeset, config.workspaceDir());
+      const oldFilePath = `${config.workspaceDir()}/.changeset/${uniqueId}.md`;
+      const newFilePath = `${config.workspaceDir()}/.changeset/${
+        release.name
+      }.md`;
 
-    const uniqueId = await write(changeset, config.workspaceDir());
-    console.log(uniqueId); // orange-foxes-waggle
+      await rename(oldFilePath, newFilePath);
+      console.log(`Renamed ${oldFilePath} to ${newFilePath}`);
+    }
   });
 
 program.parse();

@@ -16,6 +16,12 @@ class Config {
   workspaceDir() {
     return process.env.BUILD_WORKSPACE_DIRECTORY;
   }
+
+  getReleaseByLabel(label) {
+    return this._releaseData.releases.find(
+      (release) => release.label === label
+    );
+  }
 }
 
 const getConfig = async (configPaths) => {

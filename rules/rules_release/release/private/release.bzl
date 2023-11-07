@@ -2,6 +2,7 @@ load(":release_info.bzl", "ReleaseInfo")
 
 def _release_impl(ctx):
     release_config_file = ctx.actions.declare_file(ctx.label.name + ".json")
+    release_name = ctx.attr.release_name or ctx.label.name
 
     publish_cmds_paths = []
 
@@ -19,7 +20,8 @@ def _release_impl(ctx):
         workspace_name = "@" + ctx.label.workspace_name.rstrip("~override")
 
     release_config_data = {
-        "name": ctx.label.name,
+        "name": release_name,
+        "target_name": ctx.label.name,
         "label": workspace_name + "//" + ctx.label.package + ":" + ctx.label.name,
         "version_file": ctx.file.version_file.short_path,
         "publish_cmds": publish_cmds_paths,
@@ -45,20 +47,13 @@ def _release_impl(ctx):
         DefaultInfo(files = depset([release_config_file]), runfiles = runfiles),
     ]
 
-_release = rule(
+release = rule(
     implementation = _release_impl,
     attrs = {
         "src": attr.label(allow_single_file = True),
         "target": attr.label(mandatory = True),
         "version_file": attr.label(allow_single_file = True, mandatory = True),
         "publish_cmds": attr.label_list(),
+        "release_name": attr.string(),
     },
 )
-
-def release(name, target, version_file, publish_cmds = []):
-    _release(
-        name = name,
-        publish_cmds = publish_cmds,
-        target = target,
-        version_file = version_file,
-    )

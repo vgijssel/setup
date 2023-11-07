@@ -23,6 +23,7 @@ filegroup(
 
 release(
     name = "rules_task_release",
+    release_name = "rules_task",
     target = ":all",
     version_file = "version.txt",
 )
