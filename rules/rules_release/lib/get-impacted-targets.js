@@ -1,7 +1,7 @@
 const { execSync } = require("child_process");
 const workspaceDir = process.env.BUILD_WORKSPACE_DIRECTORY;
 const hashesDir = `${workspaceDir}/tmp/bazel_diff_hashes`;
-const { existsSync, mkdirSync } = require("fs");
+const { existsSync, mkdirSync, readFileSync } = require("fs");
 
 const getBazelPath = () => {
   const bazelCommand = `which bazel`;
@@ -61,7 +61,13 @@ const checkoutSha = (sha) => {
   }).trim();
 };
 
-const generateImpactedTargets = (sha, previousHashes, currentHashes, cache) => {
+const generateImpactedTargets = (
+  bazelDiffPath,
+  sha,
+  previousHashes,
+  currentHashes,
+  cache
+) => {
   const impactedTargetsPath = `${hashesDir}/${sha}.impacted_targets.json`;
 
   if (cache && existsSync(impactedTargetsPath)) {
@@ -101,17 +107,21 @@ const getImpactedTargets = ({ bazelDiffPath }) => {
     bazelDiffPath,
     bazelPath,
     currentCommit,
-    false
+    true
   );
   console.log(`currentHashes is ${currentHashes}`);
 
   const impactedTargets = generateImpactedTargets(
+    bazelDiffPath,
     currentCommit,
     previousHashes,
     currentHashes,
-    false
+    true
   );
   console.log(`impactedTargets is ${impactedTargets}`);
+  const data = readFileSync(impactedTargets, "utf8");
+  const result = data.split("\n");
+  return result;
 };
 
 module.exports = getImpactedTargets;
