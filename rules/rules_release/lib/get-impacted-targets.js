@@ -39,7 +39,7 @@ const generateHashesForSha = (bazelDiffPath, bazelPath, sha, cache) => {
   try {
     checkoutSha(sha);
 
-    const bazelDiffCommand = `${bazelDiffPath} generate-hashes -w ${workspaceDir} -b ${bazelPath} ${hashesFile}`;
+    const bazelDiffCommand = `${bazelDiffPath} generate-hashes --fineGrainedHashExternalRepos=rules_task -w ${workspaceDir} -b ${bazelPath} ${hashesFile}`;
     execSync(bazelDiffCommand, {
       encoding: "utf-8",
     }).trim();
@@ -99,7 +99,7 @@ const getImpactedTargets = ({ bazelDiffPath }) => {
     bazelDiffPath,
     bazelPath,
     previousCommit,
-    true
+    false
   );
   console.log(`previousHashes is ${previousHashes}`);
 
@@ -107,7 +107,7 @@ const getImpactedTargets = ({ bazelDiffPath }) => {
     bazelDiffPath,
     bazelPath,
     currentCommit,
-    true
+    false
   );
   console.log(`currentHashes is ${currentHashes}`);
 
@@ -116,7 +116,7 @@ const getImpactedTargets = ({ bazelDiffPath }) => {
     currentCommit,
     previousHashes,
     currentHashes,
-    true
+    false
   );
   console.log(`impactedTargets is ${impactedTargets}`);
   const data = readFileSync(impactedTargets, "utf8");
