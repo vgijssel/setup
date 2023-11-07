@@ -113,7 +113,7 @@ const getImpactedTargets = ({ bazelDiffPath, bazelDiffArgs, workspaceDir }) => {
     hashesDir,
     bazelPath,
     sha: previousCommit,
-    caching: true,
+    cache: true,
   });
   console.log(`previousHashes is ${previousHashes}`);
 
@@ -124,7 +124,7 @@ const getImpactedTargets = ({ bazelDiffPath, bazelDiffArgs, workspaceDir }) => {
     hashesDir,
     bazelPath,
     sha: currentCommit,
-    caching: false,
+    cache: false,
   });
   console.log(`currentHashes is ${currentHashes}`);
 
@@ -134,7 +134,7 @@ const getImpactedTargets = ({ bazelDiffPath, bazelDiffArgs, workspaceDir }) => {
     currentCommit,
     previousHashes,
     currentHashes,
-    caching: false,
+    cache: false,
   });
   console.log(`impactedTargets is ${impactedTargets}`);
   const data = readFileSync(impactedTargets, "utf8");

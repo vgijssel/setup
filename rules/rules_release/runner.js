@@ -3,7 +3,7 @@ const { Command } = require("commander");
 const program = new Command();
 const getImpactedTargets = require("./lib/get-impacted-targets");
 const getConfig = require("./lib/get-config.js");
-const write = require("@changesets/write");
+const write = require("@changesets/write").default;
 
 function collect(val, memo) {
   memo.push(val);
