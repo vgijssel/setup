@@ -34,14 +34,20 @@ const generateHashesForSha = (bazelDiffPath, bazelPath, sha, cache) => {
     return hashesFile;
   }
 
-  checkoutSha(sha);
+  try {
+    checkoutSha(sha);
 
-  const bazelDiffCommand = `${bazelDiffPath} generate-hashes -w ${workspaceDir} -b ${bazelPath} ${hashesFile}`;
-  execSync(bazelDiffCommand, {
-    encoding: "utf-8",
-  }).trim();
+    const bazelDiffCommand = `${bazelDiffPath} generate-hashes -w ${workspaceDir} -b ${bazelPath} ${hashesFile}`;
+    execSync(bazelDiffCommand, {
+      encoding: "utf-8",
+    }).trim();
 
-  checkoutSha(currentBranch);
+    checkoutSha(currentBranch);
+  } catch (error) {
+    // make sure we checkout back to the current branch
+    checkoutSha(currentBranch);
+    throw error;
+  }
 
   return hashesFile;
 };
