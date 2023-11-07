@@ -12,9 +12,15 @@ def _release_impl(ctx):
 
         publish_cmds_paths.append(executable.path)
 
+    if ctx.label.workspace_name == "":
+        workspace_name = ""
+    else:
+        # TODO: Wonder if there is a better way to get the workspace name of a locally overriden external repository
+        workspace_name = "@" + ctx.label.workspace_name.rstrip("~override")
+
     release_config_data = {
         "name": ctx.label.name,
-        "label": "//" + ctx.label.package + ":" + ctx.label.name,
+        "label": workspace_name + "//" + ctx.label.package + ":" + ctx.label.name,
         "version_file": ctx.file.version_file.short_path,
         "publish_cmds": publish_cmds_paths,
     }

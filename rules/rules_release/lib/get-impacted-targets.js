@@ -108,7 +108,7 @@ const getImpactedTargets = ({ bazelDiffPath, bazelDiffArgs }) => {
     bazelDiffArgs,
     bazelPath,
     previousCommit,
-    false
+    true
   );
   console.log(`previousHashes is ${previousHashes}`);
 
