@@ -1,6 +1,8 @@
+console.log(process.env.PWD);
 const { Command } = require("commander");
 const program = new Command();
 const getImpactedTargets = require("./lib/get-impacted-targets");
+const getConfig = require("./lib/get-config.js");
 
 function collect(val, memo) {
   memo.push(val);
@@ -19,22 +21,23 @@ program
   .description(
     "Generate changesets based on changed targets with latest master"
   )
-  .action(() => {
-    const { config, bazelDiffPath } = program.opts();
+  .action(async () => {
+    const { config: configPaths, bazelDiffPath } = program.opts();
+    const config = await getConfig(configPaths);
 
-    const releases = [];
+    console.log(config._releaseData);
+
+    const releaseLabels = config.releaseLabels();
 
     const impactedTargets = getImpactedTargets({
       bazelDiffPath,
     });
 
-    const changedReleases = impactedTargets.filter((target) => {
-      return releases.includes(target);
+    const changedReleaseLabels = impactedTargets.filter((target) => {
+      return releaseLabels.includes(target);
     });
 
-    console.log(changedReleases);
-
-    // write out changesets
+    console.log(changedReleaseLabels);
   });
 
 program.parse();

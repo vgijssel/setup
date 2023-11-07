@@ -14,6 +14,7 @@ def _release_impl(ctx):
 
     release_config_data = {
         "name": ctx.label.name,
+        "label": "//" + ctx.label.package + ":" + ctx.label.name,
         "version_file": ctx.file.version_file.short_path,
         "publish_cmds": publish_cmds_paths,
     }

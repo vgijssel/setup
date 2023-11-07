@@ -18,7 +18,7 @@ def _release_manager_impl(ctx):
 
     command = " ".join(args)
 
-    runfiles = ctx.runfiles()
+    runfiles = ctx.runfiles(files = ctx.files.deps)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
         for d in ([ctx.attr._runner] + [ctx.attr._bazel_diff] + ctx.attr.deps)
