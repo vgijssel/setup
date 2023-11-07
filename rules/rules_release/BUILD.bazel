@@ -27,5 +27,9 @@ js_binary(
 
 js_binary(
     name = "runner",
+    data = [
+        "lib/get-impacted-targets.js",
+        "//:node_modules/commander",
+    ],
     entry_point = "runner.js",
 )

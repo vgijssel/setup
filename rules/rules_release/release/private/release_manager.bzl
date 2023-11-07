@@ -12,6 +12,10 @@ def _release_manager_impl(ctx):
             args.append("--config")
             args.append(file.short_path)
 
+    args = args + ["--bazel-diff-path", ctx.executable._bazel_diff.short_path]
+
+    args = args + ["generate"]
+
     command = " ".join(args)
 
     runfiles = ctx.runfiles()
@@ -34,6 +38,7 @@ _release_manager = rule(
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
         "_runner": attr.label(executable = True, default = Label("@rules_release//:runner"), cfg = "target"),
+        "_bazel_diff": attr.label(executable = True, default = Label("@rules_release//:bazel-diff"), cfg = "target"),
     },
     executable = True,
 )

@@ -1,16 +1,7 @@
-const { runfiles } = require("@bazel/runfiles");
 const { execSync } = require("child_process");
-const removePrefix = (value, prefix) =>
-  value.startsWith(prefix) ? value.slice(prefix.length) : value;
-const workspace_name = removePrefix(process.env.WORKSPACE, "@");
-const bazelDiffPath = runfiles.resolve(`${workspace_name}/bazel-diff`);
 const workspaceDir = process.env.BUILD_WORKSPACE_DIRECTORY;
 const hashesDir = `${workspaceDir}/tmp/bazel_diff_hashes`;
 const { existsSync, mkdirSync } = require("fs");
-
-if (!existsSync(hashesDir)) {
-  mkdirSync(hashesDir, { recursive: true });
-}
 
 const getBazelPath = () => {
   const bazelCommand = `which bazel`;
@@ -18,15 +9,11 @@ const getBazelPath = () => {
   return bazelPath;
 };
 
-const bazelPath = getBazelPath();
-
 const getCurrentBranch = () => {
   const gitCommand = `git --work-tree=${workspaceDir} rev-parse --abbrev-ref HEAD`;
   const currentBranch = execSync(gitCommand, { encoding: "utf-8" }).trim();
   return currentBranch;
 };
-
-const currentBranch = getCurrentBranch();
 
 const getLatestMasterCommit = () => {
   const gitCommand = `git --work-tree=${workspaceDir} rev-parse master`;
@@ -40,7 +27,7 @@ const getCurrentCommit = () => {
   return currentCommitHash;
 };
 
-const generateHashesForSha = (sha, cache) => {
+const generateHashesForSha = (bazelDiffPath, bazelPath, sha, cache) => {
   const hashesFile = `${hashesDir}/${sha}.json`;
 
   if (cache && existsSync(hashesFile)) {
@@ -82,22 +69,42 @@ const generateImpactedTargets = (sha, previousHashes, currentHashes, cache) => {
   return impactedTargetsPath;
 };
 
-const previousCommit = getLatestMasterCommit();
-console.log(`previousCommit is ${previousCommit}`);
+const getImpactedTargets = ({ bazelDiffPath }) => {
+  if (!existsSync(hashesDir)) {
+    mkdirSync(hashesDir, { recursive: true });
+  }
+  const bazelPath = getBazelPath();
+  const currentBranch = getCurrentBranch();
+  const previousCommit = getLatestMasterCommit();
 
-const currentCommit = getCurrentCommit();
-console.log(`currentCommit is ${currentCommit}`);
+  console.log(`previousCommit is ${previousCommit}`);
 
-const previousHashes = generateHashesForSha(previousCommit, true);
-console.log(`previousHashes is ${previousHashes}`);
+  const currentCommit = getCurrentCommit();
+  console.log(`currentCommit is ${currentCommit}`);
 
-const currentHashes = generateHashesForSha(currentCommit, false);
-console.log(`currentHashes is ${currentHashes}`);
+  const previousHashes = generateHashesForSha(
+    bazelDiffPath,
+    bazelPath,
+    previousCommit,
+    true
+  );
+  console.log(`previousHashes is ${previousHashes}`);
 
-const impactedTargets = generateImpactedTargets(
-  currentCommit,
-  previousHashes,
-  currentHashes,
-  false
-);
-console.log(`impactedTargets is ${impactedTargets}`);
+  const currentHashes = generateHashesForSha(
+    bazelDiffPath,
+    bazelPath,
+    currentCommit,
+    false
+  );
+  console.log(`currentHashes is ${currentHashes}`);
+
+  const impactedTargets = generateImpactedTargets(
+    currentCommit,
+    previousHashes,
+    currentHashes,
+    false
+  );
+  console.log(`impactedTargets is ${impactedTargets}`);
+};
+
+module.exports = getImpactedTargets;

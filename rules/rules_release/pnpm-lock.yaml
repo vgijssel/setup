@@ -17,6 +17,9 @@ dependencies:
   '@changesets/cli':
     specifier: ^2.26.2
     version: 2.26.2
+  commander:
+    specifier: ^11.1.0
+    version: 11.1.0
 
 packages:
 
@@ -755,6 +758,11 @@ packages:
 
   /color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
+    dev: false
+
+  /commander@11.1.0:
+    resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
+    engines: {node: '>=16'}
     dev: false
 
   /cross-spawn@5.1.0:
