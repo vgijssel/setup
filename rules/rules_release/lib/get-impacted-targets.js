@@ -34,6 +34,8 @@ const generateHashesForSha = (bazelDiffPath, bazelPath, sha, cache) => {
     return hashesFile;
   }
 
+  const currentBranch = getCurrentBranch();
+
   try {
     checkoutSha(sha);
 
@@ -80,7 +82,6 @@ const getImpactedTargets = ({ bazelDiffPath }) => {
     mkdirSync(hashesDir, { recursive: true });
   }
   const bazelPath = getBazelPath();
-  const currentBranch = getCurrentBranch();
   const previousCommit = getLatestMasterCommit();
 
   console.log(`previousCommit is ${previousCommit}`);
