@@ -16,11 +16,6 @@ program
   .name("release-manager")
   .description("CLI to manage releases using changesets and Bazel")
   .option("-c, --config <items>", "Config items", collect, [])
-  .requiredOption("--bazel-diff-path <string>")
-  .option(
-    "--bazel-diff-args <string>",
-    "Additional args generate hashes command for bazel-diff"
-  )
   .version("0.0.0");
 
 program
@@ -28,12 +23,14 @@ program
   .description(
     "Generate changesets based on changed targets with latest master"
   )
-  .action(async () => {
-    const {
-      config: configPaths,
-      bazelDiffPath,
-      bazelDiffArgs,
-    } = program.opts();
+  .requiredOption("--bazel-diff-path <string>")
+  .option(
+    "--bazel-diff-args <string>",
+    "Additional args generate hashes command for bazel-diff"
+  )
+  .action(async (options) => {
+    const { config: configPaths } = program.opts();
+    const { bazelDiffPath, bazelDiffArgs } = options;
     const config = await getConfig(configPaths);
 
     console.log(config._releaseData);
@@ -71,6 +68,20 @@ program
       await rename(oldFilePath, newFilePath);
       console.log(`Created changeset ${newFilePath}`);
     }
+  });
+
+program
+  .command("version")
+  .description("Update version files based on changesets")
+  .action(async () => {
+    const {
+      config: configPaths,
+      bazelDiffPath,
+      bazelDiffArgs,
+    } = program.opts();
+    const config = await getConfig(configPaths);
+
+    console.log(config._releaseData);
   });
 
 program.parse();
