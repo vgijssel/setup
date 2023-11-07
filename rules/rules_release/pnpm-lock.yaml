@@ -17,6 +17,9 @@ dependencies:
   '@changesets/cli':
     specifier: ^2.26.2
     version: 2.26.2
+  '@changesets/write':
+    specifier: ^0.2.3
+    version: 0.2.3
   commander:
     specifier: ^11.1.0
     version: 11.1.0

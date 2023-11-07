@@ -3,6 +3,7 @@ const { Command } = require("commander");
 const program = new Command();
 const getImpactedTargets = require("./lib/get-impacted-targets");
 const getConfig = require("./lib/get-config.js");
+const write = require("@changesets/write");
 
 function collect(val, memo) {
   memo.push(val);
@@ -40,6 +41,7 @@ program
     const impactedTargets = getImpactedTargets({
       bazelDiffPath,
       bazelDiffArgs,
+      workspaceDir: config.workspaceDir(),
     });
 
     const changedReleaseLabels = impactedTargets.filter((target) => {
@@ -47,6 +49,17 @@ program
     });
 
     console.log(changedReleaseLabels);
+
+    const changeset = {
+      summary: "A description of a minor change",
+      releases: [
+        { name: "@changesets/something", type: "minor" },
+        { name: "@changesets/something-else", type: "patch" },
+      ],
+    };
+
+    const uniqueId = await write(changeset, config.workspaceDir());
+    console.log(uniqueId); // orange-foxes-waggle
   });
 
 program.parse();
