@@ -37,13 +37,6 @@ program
   .command("version")
   .description("Update version files based on changesets")
   .action(async () => {
-    // const {
-    //   config: configPaths,
-    //   bazelDiffPath,
-    //   bazelDiffArgs,
-    // } = program.opts();
-    // const config = await getConfig(configPaths);
-    // console.log(config._releaseData);
     console.log("version");
   });
 

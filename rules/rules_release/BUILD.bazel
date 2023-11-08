@@ -16,7 +16,6 @@ js_binary(
     name = "runner",
     data = [
         "lib/actions/GenerateAction.mjs",
-        "lib/get-config.js",
         "lib/repositories/ChangesetRepository.mjs",
         "lib/repositories/ConfigRepository.mjs",
         "lib/repositories/ReleaseRepository.mjs",
