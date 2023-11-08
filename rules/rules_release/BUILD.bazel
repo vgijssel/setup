@@ -17,7 +17,7 @@ js_binary(
     data = [
         "lib/actions/GenerateAction.mjs",
         "lib/get-config.js",
-        "lib/get-impacted-targets.js",
+        "lib/repositories/ChangesetRepository.mjs",
         "lib/repositories/ConfigRepository.mjs",
         "lib/repositories/ReleaseRepository.mjs",
         "lib/repositories/TargetRepository.mjs",
