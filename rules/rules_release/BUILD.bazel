@@ -28,6 +28,7 @@ js_binary(
 js_binary(
     name = "runner",
     data = [
+        "lib/actions/GenerateAction.js",
         "lib/get-config.js",
         "lib/get-impacted-targets.js",
         "//:node_modules/@changesets/write",
