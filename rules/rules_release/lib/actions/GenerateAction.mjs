@@ -1,10 +1,10 @@
-import getImpactedTargets from "../get-impacted-targets.js";
-import { rename, stat } from "fs/promises";
-const fileExists = async (path) => !!(await stat(path).catch((e) => false));
+import { rename } from "fs/promises";
+import { fileExists } from "../utils.mjs";
 import pkg from "@changesets/write";
 const { default: write } = pkg;
 import ReleaseRepository from "../repositories/ReleaseRepository.mjs";
 import ConfigRepository from "../repositories/ConfigRepository.mjs";
+import TargetRepository from "../repositories/TargetRepository.mjs";
 
 export default class GenerateAction {
   constructor({ configPaths, bazelDiffPath, bazelDiffArgs }) {
@@ -17,13 +17,12 @@ export default class GenerateAction {
     const configRepository = new ConfigRepository();
     const releaseRepository = new ReleaseRepository(this.configPaths);
     const releaseLabels = await releaseRepository.getAllLabels();
-
-    const impactedTargets = getImpactedTargets({
+    const targetRepository = new TargetRepository({
       bazelDiffPath: this.bazelDiffPath,
       bazelDiffArgs: this.bazelDiffArgs,
       workspaceDir: configRepository.workspaceDir(),
     });
-
+    const impactedTargets = await targetRepository.getImpactedTargets();
     const changedReleaseLabels = impactedTargets.filter((target) => {
       return releaseLabels.includes(target);
     });

@@ -20,6 +20,8 @@ js_binary(
         "lib/get-impacted-targets.js",
         "lib/repositories/ConfigRepository.mjs",
         "lib/repositories/ReleaseRepository.mjs",
+        "lib/repositories/TargetRepository.mjs",
+        "lib/utils.mjs",
         "//:node_modules/@changesets/write",
         "//:node_modules/commander",
         "//:node_modules/zx",
