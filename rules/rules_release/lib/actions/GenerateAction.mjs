@@ -1,11 +1,12 @@
-const getImpactedTargets = require("../get-impacted-targets");
+import getImpactedTargets from "../get-impacted-targets.js";
+import { rename, stat } from "fs/promises";
 const fileExists = async (path) => !!(await stat(path).catch((e) => false));
-const { rename, stat } = require("fs").promises;
-const write = require("@changesets/write").default;
-const ReleaseRepository = require("../repositories/ReleaseRepository");
-const ConfigRepository = require("../repositories/ConfigRepository");
+import pkg from "@changesets/write";
+const { default: write } = pkg;
+import ReleaseRepository from "../repositories/ReleaseRepository.js";
+import ConfigRepository from "../repositories/ConfigRepository.js";
 
-class GenerateAction {
+export default class GenerateAction {
   constructor({ configPaths, bazelDiffPath, bazelDiffArgs }) {
     this.configPaths = configPaths;
     this.bazelDiffPath = bazelDiffPath;
@@ -50,5 +51,3 @@ class GenerateAction {
     }
   }
 }
-
-module.exports = GenerateAction;

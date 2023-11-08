@@ -1,4 +1,4 @@
-const { Command } = require("commander");
+import { Command } from "commander";
 const program = new Command();
 
 function collect(val, memo) {
@@ -6,7 +6,7 @@ function collect(val, memo) {
   return memo;
 }
 
-const GenerateAction = require("./lib/actions/GenerateAction");
+import GenerateAction from "./lib/actions/GenerateAction.mjs";
 
 program
   .name("release-manager")
@@ -48,10 +48,3 @@ program
   });
 
 program.parse();
-
-// cli program
-// generate action
-// release repository: get releases / get changed releases
-// target repository: get impacted targets
-// changeset repository: write changesets
-// version action
