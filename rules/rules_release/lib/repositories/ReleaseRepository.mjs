@@ -6,6 +6,10 @@ export default class ReleaseRepository {
     this._releases = null;
   }
 
+  async getAll() {
+    return await this._getData();
+  }
+
   async getAllLabels() {
     return (await this._getData()).map((release) => release.label);
   }

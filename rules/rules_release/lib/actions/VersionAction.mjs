@@ -4,16 +4,40 @@ import TargetRepository from "../repositories/TargetRepository.mjs";
 import ChangesetRepository from "../repositories/ChangesetRepository.mjs";
 
 export default class VersionAction {
-  constructor({ configPaths, bazelDiffPath, bazelDiffArgs }) {
+  constructor({ configPaths }) {
     this.configPaths = configPaths;
-    this.bazelDiffPath = bazelDiffPath;
-    this.bazelDiffArgs = bazelDiffArgs;
   }
 
   async execute() {
     console.log("version");
-    // const configRepository = new ConfigRepository();
-    // const releaseRepository = new ReleaseRepository(this.configPaths);
+
+    const configRepository = new ConfigRepository();
+    const releaseRepository = new ReleaseRepository(this.configPaths);
+    const targetRepository = new TargetRepository({
+      workspaceDir: configRepository.workspaceDir(),
+    });
+
+    const releases = await releaseRepository.getAll();
+
+    console.log(releases);
+
+    //   const releaseDependencies = await targetRepository.getDependencies(
+    //     release
+    //   );
+
+    // //:foo has a dependency on @rules_task//:all_files
+    // //tools/bunq2ynab:release has a dependency on @rules_task//:all_files
+
+    // release called //:foo_release with a target of //:foo
+    // release called @rules_task//:rules_task_release with a target of @rules_task//:all
+
+    // - collect all releases
+    // - create package.json for each release file
+    // - for each release determine (transitive) dependencies and append to package.json
+    // - run changeset version command
+    // - extract updated version information and write to version file
+    // - extract updated changelog information and write to changelog file
+
     // const targetRepository = new TargetRepository({
     //   bazelDiffPath: this.bazelDiffPath,
     //   bazelDiffArgs: this.bazelDiffArgs,

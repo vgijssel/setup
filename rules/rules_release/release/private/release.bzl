@@ -1,5 +1,14 @@
 load(":release_info.bzl", "ReleaseInfo")
 
+def _to_label_string(label):
+    if label.workspace_name == "":
+        workspace_name = ""
+    else:
+        # TODO: Wonder if there is a better way to get the workspace name of a locally overriden external repository
+        workspace_name = "@" + label.workspace_name.rstrip("~override")
+
+    return workspace_name + "//" + label.package + ":" + label.name
+
 def _release_impl(ctx):
     release_config_file = ctx.actions.declare_file(ctx.label.name + ".json")
     release_name = ctx.attr.release_name or ctx.label.name
@@ -13,16 +22,10 @@ def _release_impl(ctx):
 
         publish_cmds_paths.append(executable.path)
 
-    if ctx.label.workspace_name == "":
-        workspace_name = ""
-    else:
-        # TODO: Wonder if there is a better way to get the workspace name of a locally overriden external repository
-        workspace_name = "@" + ctx.label.workspace_name.rstrip("~override")
-
     release_config_data = {
         "name": release_name,
         "target_name": ctx.label.name,
-        "label": workspace_name + "//" + ctx.label.package + ":" + ctx.label.name,
+        "label": _to_label_string(ctx.label),
         "version_file": ctx.file.version_file.short_path,
         "publish_cmds": publish_cmds_paths,
     }

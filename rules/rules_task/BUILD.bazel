@@ -17,13 +17,13 @@ compile_pip_requirements(
 )
 
 filegroup(
-    name = "all",
+    name = "all_files",
     srcs = glob(["**/*"]),
 )
 
 release(
-    name = "rules_task_release",
+    name = "release",
     release_name = "rules_task",
-    target = ":all",
+    target = ":all_files",
     version_file = "version.txt",
 )

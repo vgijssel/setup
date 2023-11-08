@@ -1,5 +1,5 @@
 import { mkdir, readFile } from "fs/promises";
-import { $ } from "zx";
+import { $, which } from "zx";
 import { fileExists } from "../utils.mjs";
 
 export default class TargetRepository {
@@ -47,7 +47,7 @@ export default class TargetRepository {
 
   async _generateHashesForSha(sha, cache) {
     const hashesFile = `${this.hashesDir}/${sha}.json`;
-    const bazelPath = await $`which bazel`;
+    const bazelPath = await which("bazel");
 
     if (cache && (await fileExists(hashesFile))) {
       return hashesFile;
