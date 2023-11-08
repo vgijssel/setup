@@ -65,7 +65,7 @@ export default class TargetRepository {
 
     try {
       await this._checkoutSha(sha);
-      $`${this.bazelDiffPath} generate-hashes ${this.bazelDiffArgs} -w ${this.workspaceDir} -b ${this.bazelPath} ${this.hashesFile}`;
+      await $`${this.bazelDiffPath} generate-hashes ${this.bazelDiffArgs} -w ${this.workspaceDir} -b ${this.bazelPath} ${this.hashesFile}`;
       await this._checkoutSha(currentBranch);
     } catch (error) {
       // make sure we checkout back to the current branch
@@ -83,7 +83,7 @@ export default class TargetRepository {
       return impactedTargetsPath;
     }
 
-    $`${this.bazelDiffPath} get-impacted-targets -sh ${previousHashes} -fh ${currentHashes} -o ${impactedTargetsPath}`;
+    await $`${this.bazelDiffPath} get-impacted-targets -sh ${previousHashes} -fh ${currentHashes} -o ${impactedTargetsPath}`;
 
     return impactedTargetsPath;
   }
