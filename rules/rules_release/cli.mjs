@@ -7,6 +7,7 @@ function collect(val, memo) {
 }
 
 import GenerateAction from "./lib/actions/GenerateAction.mjs";
+import VersionAction from "./lib/actions/VersionAction.mjs";
 
 program
   .name("release-manager")
@@ -37,7 +38,10 @@ program
   .command("version")
   .description("Update version files based on changesets")
   .action(async () => {
-    console.log("version");
+    const action = new VersionAction({
+      configPaths: program.opts().config,
+    });
+    await action.execute();
   });
 
 program.parse();
