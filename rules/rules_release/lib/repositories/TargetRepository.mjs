@@ -15,28 +15,23 @@ export default class TargetRepository {
       mkdir(this.hashesDir, { recursive: true });
     }
 
-    const bazelPath = await $`which bazel`;
     const previousCommit = (
       await $`git --work-tree=${this.workspaceDir} rev-parse master`
     ).stdout.trim();
-    console.log(`previousCommit is ${previousCommit}`);
 
     const currentCommit = (
       await $`git --work-tree=${this.workspaceDir} rev-parse HEAD`
     ).stdout.trim();
-    console.log(`currentCommit is ${currentCommit}`);
 
     const previousHashes = await this._generateHashesForSha(
       previousCommit,
       true
     );
-    console.log(`previousHashes is ${previousHashes}`);
 
     const currentHashes = await this._generateHashesForSha(
       currentCommit,
       false
     );
-    console.log(`currentHashes is ${currentHashes}`);
 
     const impactedTargets = await this._generateImpactedTargets(
       currentCommit,
@@ -44,7 +39,6 @@ export default class TargetRepository {
       currentHashes,
       false
     );
-    console.log(`impactedTargets is ${impactedTargets}`);
 
     const data = await readFile(impactedTargets, "utf8");
     const result = data.split("\n");
@@ -53,8 +47,7 @@ export default class TargetRepository {
 
   async _generateHashesForSha(sha, cache) {
     const hashesFile = `${this.hashesDir}/${sha}.json`;
-
-    console.log(hashesFile);
+    const bazelPath = await $`which bazel`;
 
     if (cache && (await fileExists(hashesFile))) {
       return hashesFile;
@@ -65,7 +58,7 @@ export default class TargetRepository {
 
     try {
       await this._checkoutSha(sha);
-      await $`${this.bazelDiffPath} generate-hashes ${this.bazelDiffArgs} -w ${this.workspaceDir} -b ${this.bazelPath} ${this.hashesFile}`;
+      await $`${this.bazelDiffPath} generate-hashes ${this.bazelDiffArgs} -w ${this.workspaceDir} -b ${bazelPath} ${hashesFile}`;
       await this._checkoutSha(currentBranch);
     } catch (error) {
       // make sure we checkout back to the current branch
