@@ -3,8 +3,8 @@ import { rename, stat } from "fs/promises";
 const fileExists = async (path) => !!(await stat(path).catch((e) => false));
 import pkg from "@changesets/write";
 const { default: write } = pkg;
-import ReleaseRepository from "../repositories/ReleaseRepository.js";
-import ConfigRepository from "../repositories/ConfigRepository.js";
+import ReleaseRepository from "../repositories/ReleaseRepository.mjs";
+import ConfigRepository from "../repositories/ConfigRepository.mjs";
 
 export default class GenerateAction {
   constructor({ configPaths, bazelDiffPath, bazelDiffArgs }) {

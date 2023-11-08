@@ -1,6 +1,6 @@
-const { readFile } = require("fs").promises;
+import { readFile } from "fs/promises";
 
-class ReleaseRepository {
+export default class ReleaseRepository {
   constructor(configPaths) {
     this.configPaths = configPaths;
     this._releases = null;
@@ -30,5 +30,3 @@ class ReleaseRepository {
     return this._releases;
   }
 }
-
-module.exports = ReleaseRepository;
