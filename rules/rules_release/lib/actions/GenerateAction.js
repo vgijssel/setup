@@ -1,8 +1,9 @@
 const getImpactedTargets = require("../get-impacted-targets");
-const getConfig = require("../get-config.js");
 const fileExists = async (path) => !!(await stat(path).catch((e) => false));
 const { rename, stat } = require("fs").promises;
 const write = require("@changesets/write").default;
+const ReleaseRepository = require("../repositories/ReleaseRepository");
+const ConfigRepository = require("../repositories/ConfigRepository");
 
 class GenerateAction {
   constructor({ configPaths, bazelDiffPath, bazelDiffArgs }) {
@@ -12,16 +13,14 @@ class GenerateAction {
   }
 
   async execute() {
-    const config = await getConfig(this.configPaths);
-
-    console.log(config._releaseData);
-
-    const releaseLabels = config.releaseLabels();
+    const configRepository = new ConfigRepository();
+    const releaseRepository = new ReleaseRepository(this.configPaths);
+    const releaseLabels = await releaseRepository.getAllLabels();
 
     const impactedTargets = getImpactedTargets({
       bazelDiffPath: this.bazelDiffPath,
       bazelDiffArgs: this.bazelDiffArgs,
-      workspaceDir: config.workspaceDir(),
+      workspaceDir: configRepository.workspaceDir(),
     });
 
     const changedReleaseLabels = impactedTargets.filter((target) => {
@@ -29,8 +28,8 @@ class GenerateAction {
     });
 
     for (const changedReleaseLabel of changedReleaseLabels) {
-      const release = config.getReleaseByLabel(changedReleaseLabel);
-      const newFilePath = `${config.workspaceDir()}/.changeset/${
+      const release = await releaseRepository.getByLabel(changedReleaseLabel);
+      const newFilePath = `${configRepository.workspaceDir()}/.changeset/${
         release.name
       }.md`;
 
@@ -43,8 +42,8 @@ class GenerateAction {
         summary: "A change",
         releases: [{ name: release.name, type: "minor" }],
       };
-      const uniqueId = await write(changeset, config.workspaceDir());
-      const oldFilePath = `${config.workspaceDir()}/.changeset/${uniqueId}.md`;
+      const uniqueId = await write(changeset, configRepository.workspaceDir());
+      const oldFilePath = `${configRepository.workspaceDir()}/.changeset/${uniqueId}.md`;
 
       await rename(oldFilePath, newFilePath);
       console.log(`Created changeset ${newFilePath}`);

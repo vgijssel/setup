@@ -12,25 +12,14 @@ java_binary(
     runtime_deps = ["@bazel_diff//jar"],
 )
 
-# TODO: use to_rlocation_path
-js_binary(
-    name = "generate",
-    data = [
-        ":bazel-diff",
-        ":node_modules/@bazel/runfiles",
-    ],
-    entry_point = "generate.js",
-    env = {
-        "WORKSPACE": repository_name(),
-    },
-)
-
 js_binary(
     name = "runner",
     data = [
         "lib/actions/GenerateAction.js",
         "lib/get-config.js",
         "lib/get-impacted-targets.js",
+        "lib/repositories/ConfigRepository.js",
+        "lib/repositories/ReleaseRepository.js",
         "//:node_modules/@changesets/write",
         "//:node_modules/commander",
     ],
