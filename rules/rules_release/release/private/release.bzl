@@ -28,7 +28,7 @@ def _release_impl(ctx):
         "label": _to_label_string(ctx.label),
         "version_file": ctx.file.version_file.short_path,
         "publish_cmds": publish_cmds_paths,
-        "deps": [_to_label_string(dep.label) for dep in ctx.attr.deps],
+        "deps": [dep[ReleaseInfo].name for dep in ctx.attr.deps],
     }
 
     ctx.actions.write(
@@ -37,7 +37,7 @@ def _release_impl(ctx):
     )
 
     release_info = ReleaseInfo(
-        name = ctx.label.name,
+        name = release_name,
     )
 
     runfiles = ctx.runfiles(files = ctx.files.version_file + ctx.files.target + ctx.files.publish_cmds + ctx.files.deps)

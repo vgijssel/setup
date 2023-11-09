@@ -1,7 +1,12 @@
 import ReleaseRepository from "../repositories/ReleaseRepository.mjs";
 import ConfigRepository from "../repositories/ConfigRepository.mjs";
 import TargetRepository from "../repositories/TargetRepository.mjs";
+import PackageRepository from "../repositories/PackageRepository.mjs";
 import ChangesetRepository from "../repositories/ChangesetRepository.mjs";
+import VersionRepository from "../repositories/VersionRepository.mjs";
+
+import { getPackages } from "@manypkg/get-packages";
+import { path } from "zx";
 
 export default class VersionAction {
   constructor({ configPaths }) {
@@ -9,54 +14,38 @@ export default class VersionAction {
   }
 
   async execute() {
-    console.log("version");
-
     const configRepository = new ConfigRepository();
     const releaseRepository = new ReleaseRepository(this.configPaths);
-    const targetRepository = new TargetRepository({
-      workspaceDir: configRepository.workspaceDir(),
+    const packageRepository = new PackageRepository({
+      packagesDir: configRepository.packagesDir(),
     });
-
+    const versionRepository = new VersionRepository();
     const releases = await releaseRepository.getAll();
 
     console.log(releases);
 
-    //   const releaseDependencies = await targetRepository.getDependencies(
-    //     release
-    //   );
+    await packageRepository.writeRoot();
 
-    // //:foo has a dependency on @rules_task//:all_files
-    // //tools/bunq2ynab:release has a dependency on @rules_task//:all_files
+    // write all the release files into package.json files
+    for (const release of releases) {
+      const releaseVersion = await versionRepository.getByFile(
+        release.version_file
+      );
 
-    // release called //:foo_release with a target of //:foo
-    // release called @rules_task//:rules_task_release with a target of @rules_task//:all
+      await packageRepository.write({
+        name: release.name,
+        version: releaseVersion,
+        deps: release.deps,
+      });
+    }
 
-    // - collect all releases
-    // - create package.json for each release file
-    // - for each release determine (transitive) dependencies and append to package.json
-    // - run changeset version command
-    // - extract updated version information and write to version file
-    // - extract updated changelog information and write to changelog file
+    // run the version command
+    // extract the updated versions and write into the version files
+    // const { packages, tool } = await getPackages(
+    //   path.join(configRepository.workspaceDir(), "tmp", "rules_release")
+    // );
 
-    // const targetRepository = new TargetRepository({
-    //   bazelDiffPath: this.bazelDiffPath,
-    //   bazelDiffArgs: this.bazelDiffArgs,
-    //   workspaceDir: configRepository.workspaceDir(),
-    // });
-    // const changesetRepository = new ChangesetRepository({
-    //   workspaceDir: configRepository.workspaceDir(),
-    // });
-    // const releaseLabels = await releaseRepository.getAllLabels();
-    // const impactedTargets = await targetRepository.getImpactedTargets();
-    // const changedReleaseLabels = impactedTargets.filter((target) => {
-    //   return releaseLabels.includes(target);
-    // });
-    // for (const changedReleaseLabel of changedReleaseLabels) {
-    //   const release = await releaseRepository.getByLabel(changedReleaseLabel);
-    //   const changeset = await changesetRepository.writeChangeset({
-    //     name: release.name,
-    //   });
-    //   console.log(changeset);
-    // }
+    // console.log(packages);
+    // console.log(tool);
   }
 }

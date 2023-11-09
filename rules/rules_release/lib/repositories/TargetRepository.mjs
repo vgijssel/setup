@@ -3,11 +3,11 @@ import { $, which } from "zx";
 import { fileExists } from "../utils.mjs";
 
 export default class TargetRepository {
-  constructor({ bazelDiffPath, bazelDiffArgs, workspaceDir }) {
+  constructor({ bazelDiffPath, bazelDiffArgs, workspaceDir, hashesDir }) {
     this.bazelDiffPath = bazelDiffPath;
     this.bazelDiffArgs = bazelDiffArgs;
     this.workspaceDir = workspaceDir;
-    this.hashesDir = `${this.workspaceDir}/tmp/bazel_diff_hashes`;
+    this.hashesDir = hashesDir;
   }
 
   async getImpactedTargets() {

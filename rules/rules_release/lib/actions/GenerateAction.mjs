@@ -17,6 +17,7 @@ export default class GenerateAction {
       bazelDiffPath: this.bazelDiffPath,
       bazelDiffArgs: this.bazelDiffArgs,
       workspaceDir: configRepository.workspaceDir(),
+      hashesDir: configRepository.hashesDir(),
     });
     const changesetRepository = new ChangesetRepository({
       workspaceDir: configRepository.workspaceDir(),
