@@ -215,6 +215,9 @@ release(
     ],
     target = ":foo",
     version_file = "foo_version.txt",
+    deps = [
+        "@rules_task//:release",
+    ],
 )
 
 release_manager(

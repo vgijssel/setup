@@ -149,4 +149,7 @@ release(
     name = "bunq2ynab_release",
     target = ":bunq2ynab_image",
     version_file = "version.txt",
+    deps = [
+        "@rules_task//:release",
+    ],
 )

@@ -28,6 +28,7 @@ def _release_impl(ctx):
         "label": _to_label_string(ctx.label),
         "version_file": ctx.file.version_file.short_path,
         "publish_cmds": publish_cmds_paths,
+        "deps": [_to_label_string(dep.label) for dep in ctx.attr.deps],
     }
 
     ctx.actions.write(
@@ -39,10 +40,10 @@ def _release_impl(ctx):
         name = ctx.label.name,
     )
 
-    runfiles = ctx.runfiles(files = ctx.files.version_file + ctx.files.target + ctx.files.publish_cmds)
+    runfiles = ctx.runfiles(files = ctx.files.version_file + ctx.files.target + ctx.files.publish_cmds + ctx.files.deps)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
-        for d in (ctx.attr.publish_cmds + [ctx.attr.target])
+        for d in (ctx.attr.publish_cmds + [ctx.attr.target] + ctx.attr.deps)
     ])
 
     return [
@@ -53,7 +54,7 @@ def _release_impl(ctx):
 release = rule(
     implementation = _release_impl,
     attrs = {
-        "src": attr.label(allow_single_file = True),
+        "deps": attr.label_list(providers = [ReleaseInfo]),
         "target": attr.label(mandatory = True),
         "version_file": attr.label(allow_single_file = True, mandatory = True),
         "publish_cmds": attr.label_list(),

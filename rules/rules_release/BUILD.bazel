@@ -13,7 +13,7 @@ java_binary(
 )
 
 js_binary(
-    name = "runner",
+    name = "cli",
     data = [
         "lib/actions/GenerateAction.mjs",
         "lib/actions/VersionAction.mjs",

@@ -1,11 +1,10 @@
 load(":release_info.bzl", "ReleaseInfo")
-load("@aspect_rules_js//js:defs.bzl", "js_binary")
 
-def _common(ctx, extra_args):
+def _common(ctx, extra_args, extra_runfiles = []):
     executable = ctx.actions.declare_file(ctx.label.name)
-    runner_path = ctx.executable._runner.short_path
+    cli_path = ctx.executable._cli.short_path
 
-    args = [runner_path]
+    args = [cli_path]
 
     for dep in ctx.attr.deps:
         for file in dep[DefaultInfo].files.to_list():
@@ -17,7 +16,7 @@ def _common(ctx, extra_args):
     runfiles = ctx.runfiles(files = ctx.files.deps)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
-        for d in ([ctx.attr._runner] + [ctx.attr._bazel_diff] + ctx.attr.deps)
+        for d in ([ctx.attr._cli] + ctx.attr.deps + extra_runfiles)
     ])
 
     ctx.actions.write(
@@ -33,13 +32,14 @@ def _generate_impl(ctx):
     extra_args = ["generate"]
     extra_args = extra_args + ["--bazel-diff-path", ctx.executable._bazel_diff.short_path]
     extra_args = extra_args + ["--bazel-diff-args", ctx.attr.bazel_diff_args]
-    return _common(ctx, extra_args)
+    extra_runfiles = [ctx.attr._bazel_diff]
+    return _common(ctx, extra_args, extra_runfiles)
 
 _generate = rule(
     implementation = _generate_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
-        "_runner": attr.label(executable = True, default = Label("@rules_release//:runner"), cfg = "target"),
+        "_cli": attr.label(executable = True, default = Label("@rules_release//:cli"), cfg = "target"),
         "_bazel_diff": attr.label(executable = True, default = Label("@rules_release//:bazel-diff"), cfg = "target"),
         "bazel_diff_args": attr.string(),
     },
@@ -54,8 +54,7 @@ _version = rule(
     implementation = _version_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
-        "_runner": attr.label(executable = True, default = Label("@rules_release//:runner"), cfg = "target"),
-        "_bazel_diff": attr.label(executable = True, default = Label("@rules_release//:bazel-diff"), cfg = "target"),
+        "_cli": attr.label(executable = True, default = Label("@rules_release//:cli"), cfg = "target"),
     },
     executable = True,
 )
