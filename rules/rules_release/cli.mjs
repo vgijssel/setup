@@ -37,9 +37,11 @@ program
 program
   .command("version")
   .description("Update version files based on changesets")
-  .action(async () => {
+  .requiredOption("--changesets-path <string>")
+  .action(async (options) => {
     const action = new VersionAction({
       configPaths: program.opts().config,
+      changesetsPath: options.changesetsPath,
     });
     await action.execute();
   });

@@ -48,13 +48,16 @@ _generate = rule(
 
 def _version_impl(ctx):
     extra_args = ["version"]
-    return _common(ctx, extra_args)
+    extra_args = extra_args + ["--changesets-path", ctx.executable._changesets_cli.short_path]
+    extra_runfiles = [ctx.attr._changesets_cli]
+    return _common(ctx, extra_args, extra_runfiles)
 
 _version = rule(
     implementation = _version_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
         "_cli": attr.label(executable = True, default = Label("@rules_release//:cli"), cfg = "target"),
+        "_changesets_cli": attr.label(executable = True, default = Label("@rules_release//:changesets_cli"), cfg = "target"),
     },
     executable = True,
 )

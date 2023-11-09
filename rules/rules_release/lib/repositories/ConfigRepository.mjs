@@ -9,6 +9,10 @@ export default class ConfigRepository {
     return path.join(this.workspaceDir(), "tmp");
   }
 
+  changesetDir() {
+    return path.join(this.workspaceDir(), ".changeset");
+  }
+
   rulesReleaseDir() {
     return path.join(this.tmpDir(), "rules_release");
   }

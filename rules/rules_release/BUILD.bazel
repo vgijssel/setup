@@ -31,3 +31,12 @@ js_binary(
     ],
     entry_point = "cli.mjs",
 )
+
+js_binary(
+    name = "changesets_cli",
+    data = [
+        "//:node_modules/@changesets/cli",
+        "//:node_modules/zx",
+    ],
+    entry_point = "changesets_cli.mjs",
+)

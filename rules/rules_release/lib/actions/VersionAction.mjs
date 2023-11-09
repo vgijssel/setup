@@ -1,16 +1,13 @@
 import ReleaseRepository from "../repositories/ReleaseRepository.mjs";
 import ConfigRepository from "../repositories/ConfigRepository.mjs";
-import TargetRepository from "../repositories/TargetRepository.mjs";
 import PackageRepository from "../repositories/PackageRepository.mjs";
-import ChangesetRepository from "../repositories/ChangesetRepository.mjs";
 import VersionRepository from "../repositories/VersionRepository.mjs";
-
-import { getPackages } from "@manypkg/get-packages";
-import { path } from "zx";
+import ChangesetRepository from "../repositories/ChangesetRepository.mjs";
 
 export default class VersionAction {
-  constructor({ configPaths }) {
+  constructor({ configPaths, changesetsPath }) {
     this.configPaths = configPaths;
+    this.changesetsPath = changesetsPath;
   }
 
   async execute() {
@@ -20,13 +17,17 @@ export default class VersionAction {
       packagesDir: configRepository.packagesDir(),
     });
     const versionRepository = new VersionRepository();
+    const changesetRepository = new ChangesetRepository({
+      workspaceDir: configRepository.workspaceDir(),
+      changesetDir: configRepository.changesetDir(),
+      changesetBinaryPath: this.changesetsPath,
+    });
     const releases = await releaseRepository.getAll();
 
     console.log(releases);
 
     await packageRepository.writeRoot();
 
-    // write all the release files into package.json files
     for (const release of releases) {
       const releaseVersion = await versionRepository.getByFile(
         release.version_file
@@ -39,13 +40,6 @@ export default class VersionAction {
       });
     }
 
-    // run the version command
-    // extract the updated versions and write into the version files
-    // const { packages, tool } = await getPackages(
-    //   path.join(configRepository.workspaceDir(), "tmp", "rules_release")
-    // );
-
-    // console.log(packages);
-    // console.log(tool);
+    await changesetRepository.updateVersions();
   }
 }

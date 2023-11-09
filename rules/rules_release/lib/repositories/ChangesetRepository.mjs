@@ -2,15 +2,17 @@ import pkg from "@changesets/write";
 const { default: write } = pkg;
 import { rename } from "fs/promises";
 import { fileExists } from "../utils.mjs";
+import { path, $ } from "zx";
 
 export default class ChangesetRepository {
-  constructor({ workspaceDir }) {
+  constructor({ workspaceDir, changesetDir, changesetBinaryPath }) {
     this.workspaceDir = workspaceDir;
-    this.changesetDir = `${this.workspaceDir}/.changeset`;
+    this.changesetDir = changesetDir;
+    this.changesetBinaryPath = changesetBinaryPath;
   }
 
   async writeChangeset({ name }) {
-    const newFilePath = `${this.changesetDir}/${name}.md`;
+    const newFilePath = path.join(this.changesetDir, `${name}.md`);
 
     if (await fileExists(newFilePath)) {
       return newFilePath;
@@ -21,9 +23,14 @@ export default class ChangesetRepository {
       releases: [{ name: name, type: "minor" }],
     };
     const uniqueId = await write(changeset, this.workspaceDir);
-    const oldFilePath = `${this.changesetDir}/${uniqueId}.md`;
+    const oldFilePath = path.join(this.changesetDir, `${uniqueId}.md`);
 
     await rename(oldFilePath, newFilePath);
     return newFilePath;
+  }
+
+  async updateVersions() {
+    process.env.WORKSPACE_DIR = this.workspaceDir;
+    await $`${this.changesetBinaryPath} version`;
   }
 }

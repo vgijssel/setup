@@ -21,6 +21,7 @@ export default class GenerateAction {
     });
     const changesetRepository = new ChangesetRepository({
       workspaceDir: configRepository.workspaceDir(),
+      changesetDir: configRepository.changesetDir(),
     });
     const releaseLabels = await releaseRepository.getAllLabels();
     const impactedTargets = await targetRepository.getImpactedTargets();
