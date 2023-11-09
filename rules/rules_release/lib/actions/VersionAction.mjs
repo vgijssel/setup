@@ -26,8 +26,6 @@ export default class VersionAction {
 
     console.log(releases);
 
-    await packageRepository.writeRoot();
-
     for (const release of releases) {
       const releaseVersion = await versionRepository.getByFile(
         release.version_file

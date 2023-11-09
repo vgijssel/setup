@@ -4,26 +4,7 @@ import { path } from "zx";
 
 export default class PackageRepository {
   constructor({ packagesDir }) {
-    this.packagesRootDir = packagesDir;
-    this.packagesDir = path.join(packagesDir, "packages");
-  }
-
-  async writeRoot() {
-    if (!(await fileExists(this.packagesRootDir))) {
-      await mkdir(this.packagesRootDir, { recursive: true });
-    }
-
-    const packagePath = path.join(this.packagesRootDir, "package.json");
-
-    const content = {
-      name: "root",
-      version: "0.0.0",
-      private: true,
-      dependencies: {},
-      workspaces: ["packages/*"],
-    };
-
-    await writeFile(packagePath, JSON.stringify(content, null, 2));
+    this.packagesDir = packagesDir;
   }
 
   async write({ name, version, deps }) {
