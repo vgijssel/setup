@@ -30,7 +30,15 @@ export default class ChangesetRepository {
   }
 
   async updateVersions() {
+    const nodeModulesPath = path.join(
+      process.env.JS_BINARY__RUNFILES,
+      process.env.WORKSPACE_NAME,
+      "node_modules"
+    );
+    process.env.NODE_PATH = nodeModulesPath;
+
     process.env.WORKSPACE_DIR = this.workspaceDir;
+
     await $`${this.changesetBinaryPath} version`;
   }
 }

@@ -30,11 +30,15 @@ js_binary(
         "//:node_modules/zx",
     ],
     entry_point = "cli.mjs",
+    env = {
+        "WORKSPACE_NAME": repository_name().lstrip("@"),
+    },
 )
 
 js_binary(
     name = "changesets_cli",
     data = [
+        "//:node_modules/@changesets/changelog-github",
         "//:node_modules/@changesets/cli",
         "//:node_modules/zx",
     ],
