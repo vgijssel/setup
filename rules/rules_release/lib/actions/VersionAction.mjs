@@ -39,5 +39,22 @@ export default class VersionAction {
     }
 
     await changesetRepository.updateVersions();
+
+    for (const release of releases) {
+      const packageData = await packageRepository.getByName(release.name);
+      const currentVersion = await versionRepository.getByFile(
+        release.version_file
+      );
+      const newVersion = packageData.version;
+
+      const releaseVersion = await versionRepository.updateByFile(
+        release.version_file,
+        newVersion
+      );
+
+      console.log(
+        `Updated version for release ${release.name} from ${currentVersion} to ${newVersion}`
+      );
+    }
   }
 }

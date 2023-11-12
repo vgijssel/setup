@@ -1,4 +1,4 @@
-import { writeFile, mkdir } from "fs/promises";
+import { readFile, writeFile, mkdir } from "fs/promises";
 import { fileExists } from "../utils.mjs";
 import { path } from "zx";
 
@@ -8,13 +8,12 @@ export default class PackageRepository {
   }
 
   async write({ name, version, deps }) {
-    const packageDir = path.join(this.packagesDir, name);
+    const packagePath = this._getPackagePath(name);
+    const packageDir = path.dirname(packagePath);
 
     if (!(await fileExists(packageDir))) {
       await mkdir(packageDir, { recursive: true });
     }
-
-    const packagePath = path.join(packageDir, "package.json");
 
     const content = {
       name: name,
@@ -28,5 +27,14 @@ export default class PackageRepository {
     }
 
     await writeFile(packagePath, JSON.stringify(content, null, 2));
+  }
+
+  async getByName(name) {
+    const packagePath = this._getPackagePath(name);
+    return JSON.parse(await readFile(packagePath, "utf-8"));
+  }
+
+  _getPackagePath(name) {
+    return path.join(this.packagesDir, name, "package.json");
   }
 }
