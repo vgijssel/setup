@@ -18,6 +18,7 @@ js_binary(
     data = [
         "lib/actions/GenerateAction.mjs",
         "lib/actions/VersionAction.mjs",
+        "lib/repositories/ChangelogRepository.mjs",
         "lib/repositories/ChangesetRepository.mjs",
         "lib/repositories/ConfigRepository.mjs",
         "lib/repositories/PackageRepository.mjs",

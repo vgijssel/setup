@@ -8,7 +8,7 @@ export default class PackageRepository {
   }
 
   async write({ name, version, deps }) {
-    const packagePath = this._getPackagePath(name);
+    const packagePath = this.getPathByName(name);
     const packageDir = path.dirname(packagePath);
 
     if (!(await fileExists(packageDir))) {
@@ -27,14 +27,15 @@ export default class PackageRepository {
     }
 
     await writeFile(packagePath, JSON.stringify(content, null, 2));
+    return packagePath;
   }
 
-  async getByName(name) {
-    const packagePath = this._getPackagePath(name);
+  async getContentByName(name) {
+    const packagePath = this.getPathByName(name);
     return JSON.parse(await readFile(packagePath, "utf-8"));
   }
 
-  _getPackagePath(name) {
+  getPathByName(name) {
     return path.join(this.packagesDir, name, "package.json");
   }
 }

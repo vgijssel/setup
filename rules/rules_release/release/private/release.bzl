@@ -27,6 +27,7 @@ def _release_impl(ctx):
         "target_name": ctx.label.name,
         "label": _to_label_string(ctx.label),
         "version_file": ctx.file.version_file.short_path,
+        "changelog_file": ctx.file.changelog.short_path,
         "publish_cmds": publish_cmds_paths,
         "deps": [dep[ReleaseInfo].name for dep in ctx.attr.deps],
     }
