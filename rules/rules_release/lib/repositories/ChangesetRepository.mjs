@@ -1,6 +1,6 @@
 import pkg from "@changesets/write";
 const { default: write } = pkg;
-import { rename } from "fs/promises";
+import { rename, readdir } from "fs/promises";
 import { fileExists } from "../utils.mjs";
 import { path, $ } from "zx";
 
@@ -9,21 +9,43 @@ export default class ChangesetRepository {
     this.workspaceDir = workspaceDir;
     this.changesetDir = changesetDir;
     this.changesetBinaryPath = changesetBinaryPath;
+    this.changesetExtension = ".md";
+  }
+
+  async getByName(name) {
+    const changesetFiles = (await readdir(this.changesetDir))
+      .filter((file) => {
+        return (
+          path.extname(file).toLowerCase() ===
+          this.changesetExtension.toLowerCase()
+        );
+      })
+      .map((file) => {
+        return path.join(this.changesetDir, file);
+      });
+
+    return changesetFiles.find((file) => {
+      return path.basename(file).startsWith(name);
+    });
   }
 
   async writeChangeset({ name }) {
-    const newFilePath = path.join(this.changesetDir, `${name}.md`);
+    let newFilePath = await this.getByName(name);
 
-    if (await fileExists(newFilePath)) {
+    if (newFilePath) {
       return newFilePath;
     }
 
     const changeset = {
-      summary: "A change",
-      releases: [{ name: name, type: "minor" }],
+      summary: "Generated update",
+      releases: [{ name: name, type: "patch" }],
     };
     const uniqueId = await write(changeset, this.workspaceDir);
     const oldFilePath = path.join(this.changesetDir, `${uniqueId}.md`);
+    newFilePath = path.join(
+      this.changesetDir,
+      `${name}-${uniqueId}${this.changesetExtension}`
+    );
 
     await rename(oldFilePath, newFilePath);
     return newFilePath;
