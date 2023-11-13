@@ -193,39 +193,12 @@ diff_test(
     file2 = ":pdm-setup_lock",
 )
 
-task(
-    name = "foo",
-    cmds = [
-        "echo foo",
-    ],
-)
-
-task(
-    name = "foo_publish",
-    cmds = [
-        "echo 'PUBLISHING foo AT VERSION: $RELEASE_VERSION'",
-        "echo 'CHANGELOG: $RELEASE_CHANGELOG'",
-    ],
-)
-
-release(
-    name = "foo_release",
-    publish_cmds = [
-        ":foo_publish",
-    ],
-    target = ":foo",
-    version_file = "foo_version.txt",
-    deps = [
-        "@rules_task//:release",
-    ],
-)
-
 release_manager(
     name = "release_manager",
-    bazel_diff_args = "--fineGrainedHashExternalRepos=rules_task",
+    bazel_diff_args = "--fineGrainedHashExternalRepos=rules_task,rules_release",
     deps = [
-        ":foo_release",
         "//tools/bunq2ynab:bunq2ynab_release",
+        "@rules_release//:release",
         "@rules_task//:release",
     ],
 )

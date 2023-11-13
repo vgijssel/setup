@@ -1,6 +1,6 @@
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
 load(":defs.bzl", "cmd", "task")
-load("@rules_release//release:defs.bzl", "release", "release_manager")
+load("@rules_release//release:defs.bzl", "release")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -26,4 +26,7 @@ release(
     release_name = "rules_task",
     target = ":all_files",
     version_file = "version.txt",
+    deps = [
+        "@rules_release//:release",
+    ],
 )

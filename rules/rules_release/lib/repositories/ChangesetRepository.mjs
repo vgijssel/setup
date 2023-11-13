@@ -1,7 +1,6 @@
 import pkg from "@changesets/write";
 const { default: write } = pkg;
 import { rename, readdir } from "fs/promises";
-import { fileExists } from "../utils.mjs";
 import { path, $ } from "zx";
 
 export default class ChangesetRepository {
