@@ -23,6 +23,7 @@ filegroup(
 
 release(
     name = "release",
+    changelog = "CHANGELOG.md",
     release_name = "rules_task",
     target = ":all_files",
     version_file = "version.txt",

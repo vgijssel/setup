@@ -40,7 +40,7 @@ def _release_impl(ctx):
         name = release_name,
     )
 
-    runfiles = ctx.runfiles(files = ctx.files.version_file + ctx.files.target + ctx.files.publish_cmds + ctx.files.deps)
+    runfiles = ctx.runfiles(ctx.file.changelog, files = ctx.files.version_file + ctx.files.target + ctx.files.publish_cmds + ctx.files.deps)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
         for d in (ctx.attr.publish_cmds + [ctx.attr.target] + ctx.attr.deps)
@@ -59,5 +59,6 @@ release = rule(
         "version_file": attr.label(allow_single_file = True, mandatory = True),
         "publish_cmds": attr.label_list(),
         "release_name": attr.string(),
+        "changelog": attr.label(allow_single_file = True, mandatory = True),
     },
 )

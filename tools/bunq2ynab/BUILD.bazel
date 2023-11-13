@@ -147,6 +147,7 @@ task_test(
 
 release(
     name = "bunq2ynab_release",
+    changelog = "CHANGELOG.md",
     target = ":bunq2ynab_image",
     version_file = "version.txt",
     deps = [
