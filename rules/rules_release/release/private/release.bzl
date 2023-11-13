@@ -40,7 +40,7 @@ def _release_impl(ctx):
         name = release_name,
     )
 
-    runfiles = ctx.runfiles(ctx.file.changelog, files = ctx.files.version_file + ctx.files.target + ctx.files.publish_cmds + ctx.files.deps)
+    runfiles = ctx.runfiles(files = ctx.files.version_file + ctx.files.target + ctx.files.publish_cmds + ctx.files.deps + [ctx.file.changelog])
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
         for d in (ctx.attr.publish_cmds + [ctx.attr.target] + ctx.attr.deps)
