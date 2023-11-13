@@ -195,10 +195,9 @@ diff_test(
 
 release_manager(
     name = "release_manager",
-    bazel_diff_args = "--fineGrainedHashExternalRepos=rules_task,rules_release",
+    bazel_diff_args = "--fineGrainedHashExternalRepos=rules_task",
     deps = [
         "//tools/bunq2ynab:bunq2ynab_release",
-        "@rules_release//:release",
         "@rules_task//:release",
     ],
 )
