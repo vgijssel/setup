@@ -1,4 +1,5 @@
 load(":release_info.bzl", "ReleaseInfo")
+load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 
 def _to_label_string(label):
     if label.workspace_name == "":
@@ -52,7 +53,7 @@ def _release_impl(ctx):
         DefaultInfo(files = depset([release_config_file]), runfiles = runfiles),
     ]
 
-release = rule(
+_release = rule(
     implementation = _release_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
@@ -63,3 +64,25 @@ release = rule(
         "changelog_file": attr.label(allow_single_file = True, mandatory = True),
     },
 )
+
+def release(**kwargs):
+    name = kwargs.get("name")
+    version_changelog_name = "{}.version_changelog".format(name)
+
+    _release(**kwargs)
+
+    js_run_binary(
+        name = version_changelog_name,
+        tool = "@rules_release//release/private:version_changelog",
+        srcs = [
+            kwargs.get("version_file"),
+            kwargs.get("changelog_file"),
+        ],
+        outs = [
+            "{}.out".format(version_changelog_name),
+        ],
+        args = [
+            "$(location {})".format(kwargs.get("version_file")),
+            "$(location {})".format(kwargs.get("changelog_file")),
+        ],
+    )

@@ -189,8 +189,6 @@ task(
         "export DIGEST=$(cat $DIGEST_FILE)",
         "export VERSION=$(cat $VERSION_FILE)",
         "export RELEASE_TAG=bunq2ynab-v$VERSION",
-        # "export CHANGELOG=$($EXTRACT_CHANGELOG $CHANGELOG_FILE $VERSION)",
-        "export CHANGELOG='test --shine'",
         "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
         "export RELEASE_EXISTS=$($GH release view $RELEASE_TAG > /dev/null 2>&1 && echo true || echo false)",
         "if [ $RELEASE_EXISTS = true ]; then echo 'Release already exists, exitting.'; exit 0; fi",
@@ -199,7 +197,7 @@ task(
     env = {
         "DIGEST_FILE": cmd.file(":bunq2ynab_image.digest"),
         "VERSION_FILE": cmd.file("version.txt"),
-        "CHANGELOG_FILE": cmd.file("CHANGELOG.md"),
+        "CHANGELOG_FILE": cmd.file(":bunq2ynab_release.version_changelog"),
         "OP": cmd.executable("//tools/onepassword:op"),
         "GH": cmd.executable("//tools/github_cli"),
     },

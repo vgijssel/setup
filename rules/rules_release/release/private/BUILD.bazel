@@ -1,0 +1,10 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+# TODO: add the github action library here which extracts the version from the changelog
+
+js_binary(
+    name = "version_changelog",
+    entry_point = "version_changelog.js",
+)
