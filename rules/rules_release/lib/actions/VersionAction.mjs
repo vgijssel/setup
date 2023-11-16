@@ -27,8 +27,6 @@ export default class VersionAction {
     const changelogRepository = new ChangelogRepository();
     const releases = await releaseRepository.getAll();
 
-    console.log(releases);
-
     for (const release of releases) {
       const releaseVersion = await versionRepository.getByFile(
         release.version_file

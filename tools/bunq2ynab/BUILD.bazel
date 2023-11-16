@@ -3,6 +3,7 @@ load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("//tools/python:defs.bzl", "py_image")
 load("@pdm-setup//:requirements.bzl", "requirement")
 load("@rules_release//release:defs.bzl", "release")
+load("@rules_oci//oci:defs.bzl", "oci_push")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -148,9 +149,39 @@ task_test(
 release(
     name = "bunq2ynab_release",
     changelog = "CHANGELOG.md",
+    publish_cmds = [
+        ":bunq2ynab_image_push",
+    ],
     target = ":bunq2ynab_image",
     version_file = "version.txt",
     deps = [
         "@rules_task//:release",
     ],
+)
+
+oci_push(
+    name = "bunq2ynab_image_push_oci",
+    image = ":bunq2ynab_image",
+    remote_tags = "version.txt",
+    repository = "ghcr.io/vgijssel/setup/bunq2ynab",
+)
+
+task(
+    name = "bunq2ynab_image_push",
+    cmds = [
+        "export IMAGE_TAG=$(cat $VERSION_FILE)",
+        "export IMAGE=ghcr.io/vgijssel/setup/bunq2ynab:$IMAGE_TAG",
+        "export REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
+        "export REGISTRY_PASSWORD=$($OP read op://vgijssel-prod/github-container-registry/credential)",
+        "docker login ghcr.io --username $REGISTRY_LOGIN --password $REGISTRY_PASSWORD",
+        "export CONTAINER_EXISTS=$($REGCTL image inspect $IMAGE > /dev/null 2>&1 && echo true || echo false)",
+        "if [ $CONTAINER_EXISTS = true ]; then echo 'Image already exists, exitting.'; exit 0; fi",
+        "$PUSH_IMAGE",
+    ],
+    env = {
+        "OP": cmd.executable("//tools/onepassword:op"),
+        "REGCTL": cmd.executable("//tools/regctl"),
+        "VERSION_FILE": cmd.file("version.txt"),
+        "PUSH_IMAGE": cmd.executable(":bunq2ynab_image_push_oci"),
+    },
 )
