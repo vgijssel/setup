@@ -54,7 +54,7 @@ filegroup(
 
 release(
     name = "release",
-    changelog = "CHANGELOG.md",
+    changelog_file = "CHANGELOG.md",
     release_name = "rules_release",
     target = ":all_files",
     version_file = "version.txt",
