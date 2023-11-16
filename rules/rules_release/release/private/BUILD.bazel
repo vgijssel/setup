@@ -6,5 +6,11 @@ package(default_visibility = ["//visibility:public"])
 
 js_binary(
     name = "version_changelog",
-    entry_point = "version_changelog.js",
+    data = [
+        "//:node_modules/mdast-util-to-string",
+        "//:node_modules/remark-parse",
+        "//:node_modules/remark-stringify",
+        "//:node_modules/unified",
+    ],
+    entry_point = "version_changelog.mjs",
 )

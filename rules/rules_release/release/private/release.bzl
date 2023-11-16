@@ -68,6 +68,7 @@ _release = rule(
 def release(**kwargs):
     name = kwargs.get("name")
     version_changelog_name = "{}.version_changelog".format(name)
+    version_changelog_out_file = "{}.out".format(version_changelog_name)
 
     _release(**kwargs)
 
@@ -79,10 +80,11 @@ def release(**kwargs):
             kwargs.get("changelog_file"),
         ],
         outs = [
-            "{}.out".format(version_changelog_name),
+            version_changelog_out_file,
         ],
         args = [
             "$(location {})".format(kwargs.get("version_file")),
             "$(location {})".format(kwargs.get("changelog_file")),
+            "$(rootpath {})".format(version_changelog_out_file),
         ],
     )

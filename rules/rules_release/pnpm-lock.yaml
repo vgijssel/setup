@@ -26,6 +26,18 @@ dependencies:
   commander:
     specifier: ^11.1.0
     version: 11.1.0
+  mdast-util-to-string:
+    specifier: ^1.0.6
+    version: 1.1.0
+  remark-parse:
+    specifier: ^7.0.1
+    version: 7.0.2
+  remark-stringify:
+    specifier: ^7.0.3
+    version: 7.0.4
+  unified:
+    specifier: ^8.3.2
+    version: 8.4.2
   zx:
     specifier: ^7.2.3
     version: 7.2.3
