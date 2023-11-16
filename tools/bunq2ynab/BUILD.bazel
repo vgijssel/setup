@@ -160,31 +160,8 @@ release(
     ],
 )
 
-# How to include arbitrary text in the release notes?
-# We can supply a before_cmd which sets variables?
-# Those variables are made available in the liquid template?
-# publish_github_release(
-#     name = "bunq2ynab_github_release",
-#     before_cmd = """
-#     export DIGEST_FILE=$(location :bunq2ynab_image.digest)
-#     export DIGEST=$(cat $DIGEST_FILE)
-#     """,
-#     changelog_file = "CHANGELOG.md",
-#     data = [
-#         ":bunq2ynab_image.digest",
-#     ],
-#     # env = {
-#     #     "DIGEST": cmd.output(":bunq2ynab_image_push_oci"),
-#     # },
-#     prefix = """
-#     Image: [setup/bunq2ynab@$VERSION](https://github.com/orgs/vgijssel/packages/container/package/setup%2Fbunq2ynab)
-#     Digest: $DIGEST
-#     """,
-#     version_file = "version.txt",
-# )
-
 task(
-    name = "kerk",
+    name = "bunq2ynab_github_release",
     cmds = [
         "export DIGEST=$(cat $DIGEST_FILE)",
         "export VERSION=$(cat $VERSION_FILE)",
