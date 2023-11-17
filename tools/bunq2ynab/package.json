@@ -1,8 +1,0 @@
-{
-  "name": "bunq2ynab",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "rules_task": "workspace:^"
-  }
-}
