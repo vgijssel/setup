@@ -27,7 +27,6 @@ js_binary(
         "lib/repositories/VersionRepository.mjs",
         "lib/utils.mjs",
         "//:node_modules/@changesets/write",
-        "//:node_modules/@manypkg/get-packages",
         "//:node_modules/commander",
         "//:node_modules/zx",
     ],

@@ -5,12 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@bazel/runfiles':
-    specifier: ^5.8.1
-    version: 5.8.1
-  '@changesets/action':
-    specifier: github:changesets/action
-    version: github.com/changesets/action/2bb9bcbd6bf4996a55ce459a630a0aa699457f59(@octokit/core@4.2.4)
   '@changesets/changelog-github':
     specifier: ^0.4.8
     version: 0.4.8
@@ -20,9 +14,6 @@ dependencies:
   '@changesets/write':
     specifier: ^0.2.3
     version: 0.2.3
-  '@manypkg/get-packages':
-    specifier: ^2.2.0
-    version: 2.2.0
   commander:
     specifier: ^11.1.0
     version: 11.1.0
@@ -43,41 +34,6 @@ dependencies:
     version: 7.2.3
 
 packages:
-
-  /@actions/core@1.10.1:
-    resolution: {integrity: sha512-3lBR9EDAY+iYIpTnTIXmWcNbX3T2kCkAEQGIQx4NVQ0575nk2k3GRZDTPQG+vVtS2izSLmINlxXf0uLtnrTP+g==}
-    dependencies:
-      '@actions/http-client': 2.2.0
-      uuid: 8.3.2
-    dev: false
-
-  /@actions/exec@1.1.1:
-    resolution: {integrity: sha512-+sCcHHbVdk93a0XT19ECtO/gIXoxvdsgQLzb2fE2/5sIZmWQuluYyjPQtrtTHdU1YzTZ7bAPN4sITq2xi1679w==}
-    dependencies:
-      '@actions/io': 1.1.3
-    dev: false
-
-  /@actions/github@5.1.1:
-    resolution: {integrity: sha512-Nk59rMDoJaV+mHCOJPXuvB1zIbomlKS0dmSIqPGxd0enAXBnOfn4VWF+CGtRCwXZG9Epa54tZA7VIRlJDS8A6g==}
-    dependencies:
-      '@actions/http-client': 2.2.0
-      '@octokit/core': 3.6.0
-      '@octokit/plugin-paginate-rest': 2.21.3(@octokit/core@3.6.0)
-      '@octokit/plugin-rest-endpoint-methods': 5.16.2(@octokit/core@3.6.0)
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@actions/http-client@2.2.0:
-    resolution: {integrity: sha512-q+epW0trjVUUHboliPb4UF9g2msf+w61b32tAkFEwL/IwP0DQWgbCMM0Hbe3e3WXSKz5VcUXbzJQgy8Hkra/Lg==}
-    dependencies:
-      tunnel: 0.0.6
-      undici: 5.27.0
-    dev: false
-
-  /@actions/io@1.1.3:
-    resolution: {integrity: sha512-wi9JjgKLYS7U/z8PPbco+PvTb/nRWjeoFlJ1Qer83k/3C5PHQi28hiVdeE2kHXmIL99mQFawx8qt/JPjZilJ8Q==}
-    dev: false
 
   /@babel/code-frame@7.22.13:
     resolution: {integrity: sha512-XktuhWlJ5g+3TJXc5upd9Ks1HutSArik6jf2eAjYFyIOf4ej3RN+184cZbzDvbPnuTJIUhPKKJE3cIsYTiAT3w==}
@@ -106,10 +62,6 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
-    dev: false
-
-  /@bazel/runfiles@5.8.1:
-    resolution: {integrity: sha512-NDdfpdQ6rZlylgv++iMn5FkObC/QlBQvipinGLSOguTYpRywmieOyJ29XHvUilspwTFSILWpoE9CqMGkHXug1g==}
     dev: false
 
   /@changesets/apply-release-plan@6.1.4:
@@ -315,25 +267,11 @@ packages:
       prettier: 2.8.8
     dev: false
 
-  /@fastify/busboy@2.0.0:
-    resolution: {integrity: sha512-JUFJad5lv7jxj926GPgymrWQxxjPYuJNiNjNMzqT+HiuP6Vl3dk5xzG+8sTX96np0ZAluvaMzPsjhHZ5rNuNQQ==}
-    engines: {node: '>=14'}
-    dev: false
-
   /@manypkg/find-root@1.1.0:
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
     dependencies:
       '@babel/runtime': 7.23.2
       '@types/node': 12.20.55
-      find-up: 4.1.0
-      fs-extra: 8.1.0
-    dev: false
-
-  /@manypkg/find-root@2.2.1:
-    resolution: {integrity: sha512-34NlypD5mmTY65cFAK7QPgY5Tzt0qXR4ZRXdg97xAlkiLuwXUPBEXy5Hsqzd+7S2acsLxUz6Cs50rlDZQr4xUA==}
-    engines: {node: '>=14.18.0'}
-    dependencies:
-      '@manypkg/tools': 1.1.0
       find-up: 4.1.0
       fs-extra: 8.1.0
     dev: false
@@ -346,24 +284,6 @@ packages:
       '@manypkg/find-root': 1.1.0
       fs-extra: 8.1.0
       globby: 11.1.0
-      read-yaml-file: 1.1.0
-    dev: false
-
-  /@manypkg/get-packages@2.2.0:
-    resolution: {integrity: sha512-B5p5BXMwhGZKi/syEEAP1eVg5DZ/9LP+MZr0HqfrHLgu9fq0w4ZwH8yVen4JmjrxI2dWS31dcoswYzuphLaRxg==}
-    engines: {node: '>=14.18.0'}
-    dependencies:
-      '@manypkg/find-root': 2.2.1
-      '@manypkg/tools': 1.1.0
-    dev: false
-
-  /@manypkg/tools@1.1.0:
-    resolution: {integrity: sha512-SkAyKAByB9l93Slyg8AUHGuM2kjvWioUTCckT/03J09jYnfEzMO/wSXmEhnKGYs6qx9De8TH4yJCl0Y9lRgnyQ==}
-    engines: {node: '>=14.18.0'}
-    dependencies:
-      fs-extra: 8.1.0
-      globby: 11.1.0
-      jju: 1.4.0
       read-yaml-file: 1.1.0
     dev: false
 
@@ -386,178 +306,6 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
-    dev: false
-
-  /@octokit/auth-token@2.5.0:
-    resolution: {integrity: sha512-r5FVUJCOLl19AxiuZD2VRZ/ORjp/4IN98Of6YJoJOkY75CIBuYfmiNHGrDwXr+aLGG55igl9QrxX3hbiXlLb+g==}
-    dependencies:
-      '@octokit/types': 6.41.0
-    dev: false
-
-  /@octokit/auth-token@3.0.4:
-    resolution: {integrity: sha512-TWFX7cZF2LXoCvdmJWY7XVPi74aSY0+FfBZNSXEXFkMpjcqsQwDSYVv5FhRFaI0V1ECnwbz4j59T/G+rXNWaIQ==}
-    engines: {node: '>= 14'}
-    dev: false
-
-  /@octokit/core@3.6.0:
-    resolution: {integrity: sha512-7RKRKuA4xTjMhY+eG3jthb3hlZCsOwg3rztWh75Xc+ShDWOfDDATWbeZpAHBNRpm4Tv9WgBMOy1zEJYXG6NJ7Q==}
-    dependencies:
-      '@octokit/auth-token': 2.5.0
-      '@octokit/graphql': 4.8.0
-      '@octokit/request': 5.6.3
-      '@octokit/request-error': 2.1.0
-      '@octokit/types': 6.41.0
-      before-after-hook: 2.2.3
-      universal-user-agent: 6.0.0
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@octokit/core@4.2.4:
-    resolution: {integrity: sha512-rYKilwgzQ7/imScn3M9/pFfUf4I1AZEH3KhyJmtPdE2zfaXAn2mFfUy4FbKewzc2We5y/LlKLj36fWJLKC2SIQ==}
-    engines: {node: '>= 14'}
-    dependencies:
-      '@octokit/auth-token': 3.0.4
-      '@octokit/graphql': 5.0.6
-      '@octokit/request': 6.2.8
-      '@octokit/request-error': 3.0.3
-      '@octokit/types': 9.3.2
-      before-after-hook: 2.2.3
-      universal-user-agent: 6.0.0
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@octokit/endpoint@6.0.12:
-    resolution: {integrity: sha512-lF3puPwkQWGfkMClXb4k/eUT/nZKQfxinRWJrdZaJO85Dqwo/G0yOC434Jr2ojwafWJMYqFGFa5ms4jJUgujdA==}
-    dependencies:
-      '@octokit/types': 6.41.0
-      is-plain-object: 5.0.0
-      universal-user-agent: 6.0.0
-    dev: false
-
-  /@octokit/endpoint@7.0.6:
-    resolution: {integrity: sha512-5L4fseVRUsDFGR00tMWD/Trdeeihn999rTMGRMC1G/Ldi1uWlWJzI98H4Iak5DB/RVvQuyMYKqSK/R6mbSOQyg==}
-    engines: {node: '>= 14'}
-    dependencies:
-      '@octokit/types': 9.3.2
-      is-plain-object: 5.0.0
-      universal-user-agent: 6.0.0
-    dev: false
-
-  /@octokit/graphql@4.8.0:
-    resolution: {integrity: sha512-0gv+qLSBLKF0z8TKaSKTsS39scVKF9dbMxJpj3U0vC7wjNWFuIpL/z76Qe2fiuCbDRcJSavkXsVtMS6/dtQQsg==}
-    dependencies:
-      '@octokit/request': 5.6.3
-      '@octokit/types': 6.41.0
-      universal-user-agent: 6.0.0
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@octokit/graphql@5.0.6:
-    resolution: {integrity: sha512-Fxyxdy/JH0MnIB5h+UQ3yCoh1FG4kWXfFKkpWqjZHw/p+Kc8Y44Hu/kCgNBT6nU1shNumEchmW/sUO1JuQnPcw==}
-    engines: {node: '>= 14'}
-    dependencies:
-      '@octokit/request': 6.2.8
-      '@octokit/types': 9.3.2
-      universal-user-agent: 6.0.0
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@octokit/openapi-types@12.11.0:
-    resolution: {integrity: sha512-VsXyi8peyRq9PqIz/tpqiL2w3w80OgVMwBHltTml3LmVvXiphgeqmY9mvBw9Wu7e0QWk/fqD37ux8yP5uVekyQ==}
-    dev: false
-
-  /@octokit/openapi-types@18.1.1:
-    resolution: {integrity: sha512-VRaeH8nCDtF5aXWnjPuEMIYf1itK/s3JYyJcWFJT8X9pSNnBtriDf7wlEWsGuhPLl4QIH4xM8fqTXDwJ3Mu6sw==}
-    dev: false
-
-  /@octokit/plugin-paginate-rest@2.21.3(@octokit/core@3.6.0):
-    resolution: {integrity: sha512-aCZTEf0y2h3OLbrgKkrfFdjRL6eSOo8komneVQJnYecAxIej7Bafor2xhuDJOIFau4pk0i/P28/XgtbyPF0ZHw==}
-    peerDependencies:
-      '@octokit/core': '>=2'
-    dependencies:
-      '@octokit/core': 3.6.0
-      '@octokit/types': 6.41.0
-    dev: false
-
-  /@octokit/plugin-rest-endpoint-methods@5.16.2(@octokit/core@3.6.0):
-    resolution: {integrity: sha512-8QFz29Fg5jDuTPXVtey05BLm7OB+M8fnvE64RNegzX7U+5NUXcOcnpTIK0YfSHBg8gYd0oxIq3IZTe9SfPZiRw==}
-    peerDependencies:
-      '@octokit/core': '>=3'
-    dependencies:
-      '@octokit/core': 3.6.0
-      '@octokit/types': 6.41.0
-      deprecation: 2.3.1
-    dev: false
-
-  /@octokit/plugin-throttling@5.2.3(@octokit/core@4.2.4):
-    resolution: {integrity: sha512-C9CFg9mrf6cugneKiaI841iG8DOv6P5XXkjmiNNut+swePxQ7RWEdAZRp5rJoE1hjsIqiYcKa/ZkOQ+ujPI39Q==}
-    engines: {node: '>= 14'}
-    peerDependencies:
-      '@octokit/core': ^4.0.0
-    dependencies:
-      '@octokit/core': 4.2.4
-      '@octokit/types': 9.3.2
-      bottleneck: 2.19.5
-    dev: false
-
-  /@octokit/request-error@2.1.0:
-    resolution: {integrity: sha512-1VIvgXxs9WHSjicsRwq8PlR2LR2x6DwsJAaFgzdi0JfJoGSO8mYI/cHJQ+9FbN21aa+DrgNLnwObmyeSC8Rmpg==}
-    dependencies:
-      '@octokit/types': 6.41.0
-      deprecation: 2.3.1
-      once: 1.4.0
-    dev: false
-
-  /@octokit/request-error@3.0.3:
-    resolution: {integrity: sha512-crqw3V5Iy2uOU5Np+8M/YexTlT8zxCfI+qu+LxUB7SZpje4Qmx3mub5DfEKSO8Ylyk0aogi6TYdf6kxzh2BguQ==}
-    engines: {node: '>= 14'}
-    dependencies:
-      '@octokit/types': 9.3.2
-      deprecation: 2.3.1
-      once: 1.4.0
-    dev: false
-
-  /@octokit/request@5.6.3:
-    resolution: {integrity: sha512-bFJl0I1KVc9jYTe9tdGGpAMPy32dLBXXo1dS/YwSCTL/2nd9XeHsY616RE3HPXDVk+a+dBuzyz5YdlXwcDTr2A==}
-    dependencies:
-      '@octokit/endpoint': 6.0.12
-      '@octokit/request-error': 2.1.0
-      '@octokit/types': 6.41.0
-      is-plain-object: 5.0.0
-      node-fetch: 2.7.0
-      universal-user-agent: 6.0.0
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@octokit/request@6.2.8:
-    resolution: {integrity: sha512-ow4+pkVQ+6XVVsekSYBzJC0VTVvh/FCTUUgTsboGq+DTeWdyIFV8WSCdo0RIxk6wSkBTHqIK1mYuY7nOBXOchw==}
-    engines: {node: '>= 14'}
-    dependencies:
-      '@octokit/endpoint': 7.0.6
-      '@octokit/request-error': 3.0.3
-      '@octokit/types': 9.3.2
-      is-plain-object: 5.0.0
-      node-fetch: 2.7.0
-      universal-user-agent: 6.0.0
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@octokit/types@6.41.0:
-    resolution: {integrity: sha512-eJ2jbzjdijiL3B4PrSQaSjuF2sPEQPVCPzBvTHJD9Nz+9dw2SGH4K4xeQJ77YfTq5bRQ+bD8wT11JbeDPmxmGg==}
-    dependencies:
-      '@octokit/openapi-types': 12.11.0
-    dev: false
-
-  /@octokit/types@9.3.2:
-    resolution: {integrity: sha512-D4iHGTdAnEEVsB8fl95m1hiz7D5YiRdQ9b/OEb3BYRVwbLsGHcRVPz+u+BgRLNk0Q0/4iZCBqDN96j2XNxfXrA==}
-    dependencies:
-      '@octokit/openapi-types': 18.1.1
     dev: false
 
   /@types/fs-extra@11.0.4:
@@ -692,19 +440,11 @@ packages:
     resolution: {integrity: sha512-xFbRxM1tahm08yHBP16MMjVUAvDaBMD38zsM9EMAUN61omwLmKlOpB/Zku5QkjZ8TZ4vn53pj+t518cH0S03RQ==}
     dev: false
 
-  /before-after-hook@2.2.3:
-    resolution: {integrity: sha512-NzUnlZexiaH/46WDhANlyR2bXRopNg4F/zuSA3OpZnllCUgRaOF2znDioDWrmbNVsuZk6l9pMquQB38cfBZwkQ==}
-    dev: false
-
   /better-path-resolve@1.0.0:
     resolution: {integrity: sha512-pbnl5XzGBdrFU/wT4jqmJVPn2B6UHPBOhzMQkY/SPUPB6QtUXtmBHBIwCbXJol93mOpGMnQyP/+BB19q04xj7g==}
     engines: {node: '>=4'}
     dependencies:
       is-windows: 1.0.2
-    dev: false
-
-  /bottleneck@2.19.5:
-    resolution: {integrity: sha512-VHiNCbI1lKdl44tGrhNfU3lup0Tj/ZBMJB5/2ZbNXRCPuRCO7ed2mgcK4r17y+KB2EfuYuRaVlwNbAeaWGSpbw==}
     dev: false
 
   /braces@3.0.2:
@@ -919,10 +659,6 @@ packages:
       define-data-property: 1.1.1
       has-property-descriptors: 1.0.1
       object-keys: 1.1.1
-    dev: false
-
-  /deprecation@2.3.1:
-    resolution: {integrity: sha512-xmHIy4F3scKVwMsQ4WnVaS8bHOx0DmVwRywosKhaILI0ywMDWPtBSku2HNxRvF7jtwDRsoEwYQSfbxj8b7RlJQ==}
     dev: false
 
   /detect-indent@6.1.0:
@@ -1484,11 +1220,6 @@ packages:
     engines: {node: '>=8'}
     dev: false
 
-  /is-plain-object@5.0.0:
-    resolution: {integrity: sha512-VRSzKkbMm5jMDoKLbltAkFQ5Qr7VDiTFGXxYFXXowVj387GeGNOCsOH6Msy00SGZ3Fp84b1Naa1psqgcCIEP5Q==}
-    engines: {node: '>=0.10.0'}
-    dev: false
-
   /is-regex@1.1.4:
     resolution: {integrity: sha512-kvRdxDsxZjhzUX07ZnLydzS1TU/TJlTUHHY4YLL87e37oUA49DfkLqgy+VjFocowy29cKvcSiu+kIv728jTTVg==}
     engines: {node: '>= 0.4'}
@@ -1556,10 +1287,6 @@ packages:
 
   /isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
-    dev: false
-
-  /jju@1.4.0:
-    resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
     dev: false
 
   /js-tokens@4.0.0:
@@ -1789,12 +1516,6 @@ packages:
       define-properties: 1.2.1
       has-symbols: 1.0.3
       object-keys: 1.1.1
-    dev: false
-
-  /once@1.4.0:
-    resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
-    dependencies:
-      wrappy: 1.0.2
     dev: false
 
   /os-tmpdir@1.0.2:
@@ -2375,11 +2096,6 @@ packages:
       yargs: 17.7.2
     dev: false
 
-  /tunnel@0.0.6:
-    resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
-    engines: {node: '>=0.6.11 <=0.7.0 || >=0.7.3'}
-    dev: false
-
   /type-fest@0.13.1:
     resolution: {integrity: sha512-34R7HTnG0XIJcBSn5XhDd7nNFPRcXYRZrBB2O2jdKqYODldSzBAqzsWoZYYvduky73toYS/ESqxPvkDf/F0XMg==}
     engines: {node: '>=10'}
@@ -2446,13 +2162,6 @@ packages:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
     dev: false
 
-  /undici@5.27.0:
-    resolution: {integrity: sha512-l3ydWhlhOJzMVOYkymLykcRRXqbUaQriERtR70B9LzNkZ4bX52Fc8wbTDneMiwo8T+AemZXvXaTx+9o5ROxrXg==}
-    engines: {node: '>=14.0'}
-    dependencies:
-      '@fastify/busboy': 2.0.0
-    dev: false
-
   /unherit@1.1.3:
     resolution: {integrity: sha512-Ft16BJcnapDKp0+J/rqFC3Rrk6Y/Ng4nzsC028k2jdDII/rdZ7Wd3pPT/6+vIIxRagwRc9K0IUX0Ra4fKvw+WQ==}
     dependencies:
@@ -2499,10 +2208,6 @@ packages:
       unist-util-visit-parents: 2.1.2
     dev: false
 
-  /universal-user-agent@6.0.0:
-    resolution: {integrity: sha512-isyNax3wXoKaulPDZWHQqbmIx1k2tb9fb3GGDBRxCscfYV2Ch7WxPArBsFEG8s/safwXTT7H4QGhaIkTp9447w==}
-    dev: false
-
   /universalify@0.1.2:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
     engines: {node: '>= 4.0.0'}
@@ -2511,11 +2216,6 @@ packages:
   /universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
-    dev: false
-
-  /uuid@8.3.2:
-    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
-    hasBin: true
     dev: false
 
   /validate-npm-package-license@3.0.4:
@@ -2638,10 +2338,6 @@ packages:
       strip-ansi: 6.0.1
     dev: false
 
-  /wrappy@1.0.2:
-    resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
-    dev: false
-
   /xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
@@ -2737,30 +2433,4 @@ packages:
       webpod: 0.0.2
       which: 3.0.1
       yaml: 2.3.4
-    dev: false
-
-  github.com/changesets/action/2bb9bcbd6bf4996a55ce459a630a0aa699457f59(@octokit/core@4.2.4):
-    resolution: {tarball: https://codeload.github.com/changesets/action/tar.gz/2bb9bcbd6bf4996a55ce459a630a0aa699457f59}
-    id: github.com/changesets/action/2bb9bcbd6bf4996a55ce459a630a0aa699457f59
-    name: '@changesets/action'
-    version: 1.4.5
-    engines: {node: '>= 16'}
-    dependencies:
-      '@actions/core': 1.10.1
-      '@actions/exec': 1.1.1
-      '@actions/github': 5.1.1
-      '@changesets/pre': 1.0.14
-      '@changesets/read': 0.5.9
-      '@manypkg/get-packages': 1.1.3
-      '@octokit/plugin-throttling': 5.2.3(@octokit/core@4.2.4)
-      fs-extra: 8.1.0
-      mdast-util-to-string: 1.1.0
-      remark-parse: 7.0.2
-      remark-stringify: 7.0.4
-      resolve-from: 5.0.0
-      semver: 7.5.4
-      unified: 8.4.2
-    transitivePeerDependencies:
-      - '@octokit/core'
-      - encoding
     dev: false
