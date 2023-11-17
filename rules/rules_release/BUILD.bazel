@@ -1,7 +1,6 @@
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_library", "js_test")
 load("@rules_java//java:defs.bzl", "java_binary")
-load("//release:defs.bzl", "release")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -44,17 +43,4 @@ js_binary(
         "//:node_modules/zx",
     ],
     entry_point = "changesets_cli.mjs",
-)
-
-filegroup(
-    name = "all_files",
-    srcs = glob(["**/*"]),
-)
-
-release(
-    name = "release",
-    changelog_file = "CHANGELOG.md",
-    release_name = "rules_release",
-    target = ":all_files",
-    version_file = "version.txt",
 )

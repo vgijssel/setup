@@ -1,6 +1,4 @@
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
-load(":defs.bzl", "cmd", "task")
-load("@rules_release//release:defs.bzl", "release")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -14,20 +12,4 @@ compile_pip_requirements(
     extra_args = ["--allow-unsafe"],
     requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
-)
-
-filegroup(
-    name = "all_files",
-    srcs = glob(["**/*"]),
-)
-
-release(
-    name = "release",
-    changelog_file = "CHANGELOG.md",
-    release_name = "rules_task",
-    target = ":all_files",
-    version_file = "version.txt",
-    deps = [
-        "@rules_release//:release",
-    ],
 )

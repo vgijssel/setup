@@ -7,7 +7,7 @@ load(
     "pycross_target_environment",
 )
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@rules_release//release:defs.bzl", "release", "release_manager")
+load("@rules_release//release:defs.bzl", "release_manager")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -195,9 +195,7 @@ diff_test(
 
 release_manager(
     name = "release_manager",
-    bazel_diff_args = "--fineGrainedHashExternalRepos=rules_task",
     deps = [
         "//tools/bunq2ynab:bunq2ynab_release",
-        "@rules_task//:release",
     ],
 )
