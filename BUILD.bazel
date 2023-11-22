@@ -211,10 +211,11 @@ task(
         "export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME",
         "export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL",
         "git add .",
-        "git commit -m chore(release_manager): [skip ci] update release files",
+        "git commit -m 'chore(release_manager): [skip ci] update release files'",
         # TODO: implement right branch here
         "git push --tags origin HEAD",
     ],
+    cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
         "GIT_ASKPASS": cmd.executable(":git_askpass"),
         "OP": cmd.executable("//tools/onepassword:op"),
