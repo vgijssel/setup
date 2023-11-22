@@ -194,10 +194,31 @@ diff_test(
 )
 
 task(
+    name = "git_askpass",
+    cmds = [
+        "echo $($OP read op://vgijssel-prod/github-release/credential)",
+    ],
+    env = {
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
+)
+
+task(
     name = "push_git_changes",
     cmds = [
-        "echo 'Pushing git changes'",
+        "export GIT_AUTHOR_NAME=$($OP read op://vgijssel-prod/github-release/username)",
+        "export GIT_AUTHOR_EMAIL=$($OP read op://vgijssel-prod/github-release/email)",
+        "export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME",
+        "export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL",
+        "git add .",
+        "git commit -m chore(release_manager): [skip ci] update release files",
+        # TODO: implement right branch here
+        "git push --tags origin HEAD",
     ],
+    env = {
+        "GIT_ASKPASS": cmd.executable(":git_askpass"),
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
 )
 
 release_manager(
