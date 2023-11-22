@@ -160,6 +160,7 @@ release(
 task(
     name = "bunq2ynab_github_release",
     cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
         "export DIGEST=$(cat $DIGEST_FILE)",
         "export VERSION=$(cat $VERSION_FILE)",
         "export RELEASE_TAG=bunq2ynab-v$VERSION",
@@ -187,6 +188,7 @@ oci_push(
 task(
     name = "bunq2ynab_image_push",
     cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
         "export IMAGE_TAG=$(cat $VERSION_FILE)",
         "export IMAGE=ghcr.io/vgijssel/setup/bunq2ynab:$IMAGE_TAG",
         "export REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
