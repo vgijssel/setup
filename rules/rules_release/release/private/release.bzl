@@ -1,5 +1,6 @@
 load(":release_info.bzl", "ReleaseInfo")
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load(":utils.bzl", "get_executable_from_target")
 
 def _to_label_string(label):
     if label.workspace_name == "":
@@ -17,10 +18,7 @@ def _release_impl(ctx):
     publish_cmds_paths = []
 
     for cmd in ctx.attr.publish_cmds:
-        executable = cmd[DefaultInfo].files_to_run.executable
-        if not executable:
-            fail("publish_cmd {} is not an executable".format(cmd))
-
+        executable = get_executable_from_target(cmd)
         publish_cmds_paths.append(executable.short_path)
 
     release_config_data = {
@@ -59,7 +57,7 @@ _release = rule(
         "deps": attr.label_list(providers = [ReleaseInfo]),
         "target": attr.label(mandatory = True),
         "version_file": attr.label(allow_single_file = True, mandatory = True),
-        "publish_cmds": attr.label_list(),
+        "publish_cmds": attr.label_list(cfg = "target"),
         "release_name": attr.string(),
         "changelog_file": attr.label(allow_single_file = True, mandatory = True),
     },

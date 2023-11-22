@@ -193,8 +193,18 @@ diff_test(
     file2 = ":pdm-setup_lock",
 )
 
+task(
+    name = "push_git_changes",
+    cmds = [
+        "echo 'Pushing git changes'",
+    ],
+)
+
 release_manager(
     name = "release_manager",
+    publish_cmds = [
+        ":push_git_changes",
+    ],
     deps = [
         "//tools/bunq2ynab:bunq2ynab_release",
     ],

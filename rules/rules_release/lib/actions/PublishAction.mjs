@@ -3,8 +3,9 @@ import ConfigRepository from "../repositories/ConfigRepository.mjs";
 import PublishRepository from "../repositories/PublishRepository.mjs";
 
 export default class PublishAction {
-  constructor({ configPaths }) {
+  constructor({ configPaths, publishCmds }) {
     this.configPaths = configPaths;
+    this.publishCmds = publishCmds;
   }
 
   async execute() {
@@ -13,11 +14,18 @@ export default class PublishAction {
     const publishRepository = new PublishRepository();
     const releases = await releaseRepository.getAll();
 
-    for (const release of releases) {
-      for (const publishCmd of release.publish_cmds) {
-        await publishRepository.executeCmd(publishCmd);
-      }
+    // console.log(this.publishCmds);
+    // console.log(releases);
+
+    for (const cmd of this.publishCmds) {
+      await publishRepository.executeCmd(cmd);
     }
+
+    // for (const release of releases) {
+    //   for (const publishCmd of release.publish_cmds) {
+    //     await publishRepository.executeCmd(publishCmd);
+    //   }
+    // }
 
     //     const packageRepository = new PackageRepository({
     //       packagesDir: configRepository.packagesDir(),

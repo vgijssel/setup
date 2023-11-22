@@ -1,4 +1,5 @@
 load(":release_info.bzl", "ReleaseInfo")
+load(":utils.bzl", "get_executable_from_target")
 
 def _common(ctx, extra_args, extra_runfiles = []):
     executable = ctx.actions.declare_file(ctx.label.name)
@@ -64,18 +65,26 @@ _version = rule(
 
 def _publish_impl(ctx):
     extra_args = ["publish"]
-    return _common(ctx, extra_args, [])
+    extra_runfiles = []
+
+    for cmd in ctx.attr.publish_cmds:
+        executable = get_executable_from_target(cmd)
+        extra_args = extra_args + ["--publish-cmd", executable.short_path]
+        extra_runfiles = extra_runfiles + [cmd]
+
+    return _common(ctx, extra_args, extra_runfiles)
 
 _publish = rule(
     implementation = _publish_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
         "_cli": attr.label(executable = True, default = Label("@rules_release//:cli"), cfg = "target"),
+        "publish_cmds": attr.label_list(cfg = "target"),
     },
     executable = True,
 )
 
-def release_manager(name, deps, bazel_diff_args = ""):
+def release_manager(name, deps, publish_cmds = [], bazel_diff_args = ""):
     generate_name = "{}.generate".format(name)
     version_name = "{}.version".format(name)
     publish_name = "{}.publish".format(name)
@@ -94,4 +103,5 @@ def release_manager(name, deps, bazel_diff_args = ""):
     _publish(
         name = publish_name,
         deps = deps,
+        publish_cmds = publish_cmds,
     )

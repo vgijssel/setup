@@ -52,9 +52,16 @@ program
   .description(
     "Run the publish scripts for each release and for the release manager"
   )
-  .action(async () => {
+  .option(
+    "--publish-cmd <items>",
+    "Publish commands of the release manager",
+    collect,
+    []
+  )
+  .action(async (options) => {
     const action = new PublishAction({
       configPaths: program.opts().config,
+      publishCmds: options.publishCmd,
     });
     await action.execute();
   });
