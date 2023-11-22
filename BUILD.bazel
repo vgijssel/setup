@@ -216,6 +216,7 @@ task(
         "git commit -m 'chore(release_manager): update release files'",
         # Disable credential.helper to ensure GIT_ASKPASS is used and not cached
         # Force https to ensure GIT_ASKPASS is used and we can use al alternative username
+        # try
         "git -c credential.helper= push --tags https://$GIT_COMMITTER_NAME@github.com/vgijssel/setup.git HEAD:master",
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
