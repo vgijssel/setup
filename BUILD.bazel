@@ -196,7 +196,7 @@ diff_test(
 task(
     name = "git_askpass",
     cmds = [
-        "echo 'henk'",
+        "echo $($OP read op://vgijssel-prod/github-release/credential)",
     ],
     env = {
         "OP": cmd.executable("//tools/onepassword:op"),
