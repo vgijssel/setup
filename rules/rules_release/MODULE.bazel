@@ -13,11 +13,6 @@ bazel_dep(
     version = "1.4.2",
 )
 
-# bazel_dep(
-#     name = "aspect_bazel_lib",
-#     version = "1.36.0",
-# )
-
 # ------------------------------------ rules_java ------------------------------------ #
 bazel_dep(name = "rules_java", version = "7.0.6")
 
