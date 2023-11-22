@@ -1,10 +1,6 @@
 import ReleaseRepository from "../repositories/ReleaseRepository.mjs";
 import ConfigRepository from "../repositories/ConfigRepository.mjs";
-import PackageRepository from "../repositories/PackageRepository.mjs";
-import VersionRepository from "../repositories/VersionRepository.mjs";
-import ChangesetRepository from "../repositories/ChangesetRepository.mjs";
-import ChangelogRepository from "../repositories/ChangelogRepository.mjs";
-import { path } from "zx";
+import PublishRepository from "../repositories/PublishRepository.mjs";
 
 export default class PublishAction {
   constructor({ configPaths }) {
@@ -12,9 +8,17 @@ export default class PublishAction {
   }
 
   async execute() {
-    console.log("publish");
-    //     const configRepository = new ConfigRepository();
-    //     const releaseRepository = new ReleaseRepository(this.configPaths);
+    const configRepository = new ConfigRepository();
+    const releaseRepository = new ReleaseRepository(this.configPaths);
+    const publishRepository = new PublishRepository();
+    const releases = await releaseRepository.getAll();
+
+    for (const release of releases) {
+      for (const publishCmd of release.publish_cmds) {
+        await publishRepository.executeCmd(publishCmd);
+      }
+    }
+
     //     const packageRepository = new PackageRepository({
     //       packagesDir: configRepository.packagesDir(),
     //     });

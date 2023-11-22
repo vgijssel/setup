@@ -22,6 +22,7 @@ js_binary(
         "lib/repositories/ChangesetRepository.mjs",
         "lib/repositories/ConfigRepository.mjs",
         "lib/repositories/PackageRepository.mjs",
+        "lib/repositories/PublishRepository.mjs",
         "lib/repositories/ReleaseRepository.mjs",
         "lib/repositories/TargetRepository.mjs",
         "lib/repositories/VersionRepository.mjs",

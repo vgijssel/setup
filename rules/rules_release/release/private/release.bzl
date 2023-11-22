@@ -21,7 +21,7 @@ def _release_impl(ctx):
         if not executable:
             fail("publish_cmd {} is not an executable".format(cmd))
 
-        publish_cmds_paths.append(executable.path)
+        publish_cmds_paths.append(executable.short_path)
 
     release_config_data = {
         "name": release_name,
