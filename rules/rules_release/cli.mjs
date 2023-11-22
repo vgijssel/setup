@@ -24,7 +24,8 @@ program
   .requiredOption("--bazel-diff-path <string>")
   .option(
     "--bazel-diff-args <string>",
-    "Additional args generate hashes command for bazel-diff"
+    "Additional args generate hashes command for bazel-diff",
+    ""
   )
   .action(async (options) => {
     const action = new GenerateAction({

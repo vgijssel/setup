@@ -32,7 +32,9 @@ def _common(ctx, extra_args, extra_runfiles = []):
 def _generate_impl(ctx):
     extra_args = ["generate"]
     extra_args = extra_args + ["--bazel-diff-path", ctx.executable._bazel_diff.short_path]
-    extra_args = extra_args + ["--bazel-diff-args", ctx.attr.bazel_diff_args]
+
+    if ctx.attr.bazel_diff_args:
+        extra_args = extra_args + ["--bazel-diff-args", ctx.attr.bazel_diff_args]
     extra_runfiles = [ctx.attr._bazel_diff]
     return _common(ctx, extra_args, extra_runfiles)
 
