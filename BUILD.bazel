@@ -213,8 +213,7 @@ task(
         "git add .",
         "git commit -m 'chore(release_manager): update release files'",
         # Disable credential.helper to ensure GIT_ASKPASS is used and not cached
-        # TODO: ensure to use the right branch
-        "git -c credential.helper= push --tags origin HEAD",
+        "git -c credential.helper= push --tags origin HEAD:master",
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
