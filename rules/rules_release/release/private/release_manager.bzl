@@ -62,9 +62,23 @@ _version = rule(
     executable = True,
 )
 
+def _publish_impl(ctx):
+    extra_args = ["publish"]
+    return _common(ctx, extra_args, [])
+
+_publish = rule(
+    implementation = _publish_impl,
+    attrs = {
+        "deps": attr.label_list(providers = [ReleaseInfo]),
+        "_cli": attr.label(executable = True, default = Label("@rules_release//:cli"), cfg = "target"),
+    },
+    executable = True,
+)
+
 def release_manager(name, deps, bazel_diff_args = ""):
     generate_name = "{}.generate".format(name)
     version_name = "{}.version".format(name)
+    publish_name = "{}.publish".format(name)
 
     _generate(
         name = generate_name,
@@ -72,8 +86,12 @@ def release_manager(name, deps, bazel_diff_args = ""):
         bazel_diff_args = bazel_diff_args,
     )
 
-    version_name = "{}.version".format(name)
     _version(
         name = version_name,
+        deps = deps,
+    )
+
+    _publish(
+        name = publish_name,
         deps = deps,
     )

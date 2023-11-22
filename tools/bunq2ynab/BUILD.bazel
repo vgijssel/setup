@@ -2,7 +2,7 @@ load("@rules_python//python:defs.bzl", "py_binary")
 load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("//tools/python:defs.bzl", "py_image")
 load("@pdm-setup//:requirements.bzl", "requirement")
-load("@rules_release//release:defs.bzl", "publish_github_release", "release")
+load("@rules_release//release:defs.bzl", "release")
 load("@rules_oci//oci:defs.bzl", "oci_push")
 
 package(default_visibility = ["//visibility:public"])
@@ -155,9 +155,6 @@ release(
     ],
     target = ":bunq2ynab_image",
     version_file = "version.txt",
-    deps = [
-        "@rules_task//:release",
-    ],
 )
 
 task(

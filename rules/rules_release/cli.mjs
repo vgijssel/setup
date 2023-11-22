@@ -8,6 +8,7 @@ function collect(val, memo) {
 
 import GenerateAction from "./lib/actions/GenerateAction.mjs";
 import VersionAction from "./lib/actions/VersionAction.mjs";
+import PublishAction from "./lib/actions/PublishAction.mjs";
 
 program
   .name("release-manager")
@@ -42,6 +43,18 @@ program
     const action = new VersionAction({
       configPaths: program.opts().config,
       changesetsPath: options.changesetsPath,
+    });
+    await action.execute();
+  });
+
+program
+  .command("publish")
+  .description(
+    "Run the publish scripts for each release and for the release manager"
+  )
+  .action(async () => {
+    const action = new PublishAction({
+      configPaths: program.opts().config,
     });
     await action.execute();
   });

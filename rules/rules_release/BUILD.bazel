@@ -16,6 +16,7 @@ js_binary(
     name = "cli",
     data = [
         "lib/actions/GenerateAction.mjs",
+        "lib/actions/PublishAction.mjs",
         "lib/actions/VersionAction.mjs",
         "lib/repositories/ChangelogRepository.mjs",
         "lib/repositories/ChangesetRepository.mjs",
