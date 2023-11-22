@@ -11,3 +11,4 @@ esphome_nimble/tmp
 node_modules
 
 rules/rules_task
+rules/rules_release

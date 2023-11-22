@@ -49,3 +49,8 @@ mutagen.yml.lock
 local.bazelrc
 
 node_modules
+
+.pdm-python
+__pypackages__
+keys
+nixos.qcow2

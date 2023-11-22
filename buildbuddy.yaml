@@ -12,3 +12,15 @@ actions:
     bazel_commands:
       - bazel run //:setup_ci
       - bazel test --keep_going //... @rules_task//... --config buildbuddy --config buildbuddy_rbe
+
+  - name: "Release all targets"
+    user: buildbuddy
+    container_image: "ubuntu-20.04"
+    triggers:
+      push:
+        branches:
+          - "master"
+    bazel_commands:
+      - bazel run //:setup_ci
+      - bazel run //:release_manager.version
+      - bazel run //:release_manager.publish

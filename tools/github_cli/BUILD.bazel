@@ -1,0 +1,24 @@
+load("@rules_task//:defs.bzl", "cmd", "task")
+
+package(default_visibility = ["//visibility:public"])
+
+github_cli_file = select({
+    "//:is_linux_amd64": ["@github_cli_linux_amd64//:files"],
+    "//:is_linux_arm64": ["@github_cli_linux_arm64//:files"],
+    "//:is_darwin_arm64": ["@github_cli_darwin_arm64//:files"],
+})
+
+sh_binary(
+    name = "github_cli_binary",
+    srcs = github_cli_file,
+)
+
+task(
+    name = "github_cli",
+    cmds = [
+        cmd.shell(
+            cmd.executable(":github_cli_binary"),
+            "$CLI_ARGS",
+        ),
+    ],
+)

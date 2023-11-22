@@ -47,3 +47,11 @@ use_repo(python, "python_versions")
 
 # ------------------------------------ rules_oci ------------------------------------ #
 bazel_dep(name = "rules_oci", version = "1.4.0")
+
+# ------------------------------------ rules_release ------------------------------------ #
+bazel_dep(name = "rules_release", version = "0.0.0")
+
+local_path_override(
+    module_name = "rules_release",
+    path = "./rules/rules_release",
+)

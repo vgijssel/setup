@@ -7,6 +7,7 @@ load(
     "pycross_target_environment",
 )
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_release//release:defs.bzl", "release_manager")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -190,4 +191,43 @@ diff_test(
     name = "pdm-setup_test",
     file1 = "pdm-setup_lock.bzl",
     file2 = ":pdm-setup_lock",
+)
+
+task(
+    name = "git_askpass",
+    cmds = [
+        "echo $($OP read op://vgijssel-prod/github-git-push/credential)",
+    ],
+    env = {
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
+)
+
+task(
+    name = "push_git_changes",
+    cmds = [
+        "export GIT_AUTHOR_NAME=$($OP read op://vgijssel-prod/github-git-push/username)",
+        "export GIT_AUTHOR_EMAIL=$($OP read op://vgijssel-prod/github-git-push/email)",
+        "export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME",
+        "export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL",
+        "git add .",
+        "git commit -m 'chore(release_manager): update release files'",
+        # Disable credential.helper to ensure GIT_ASKPASS is used and not cached
+        "git -c credential.helper= push --tags origin HEAD:master",
+    ],
+    cwd = "$BUILD_WORKSPACE_DIRECTORY",
+    env = {
+        "GIT_ASKPASS": cmd.executable(":git_askpass"),
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
+)
+
+release_manager(
+    name = "release_manager",
+    publish_cmds = [
+        ":push_git_changes",
+    ],
+    deps = [
+        "//tools/bunq2ynab:bunq2ynab_release",
+    ],
 )

@@ -1,0 +1,48 @@
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_library", "js_test")
+load("@rules_java//java:defs.bzl", "java_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+npm_link_all_packages()
+
+java_binary(
+    name = "bazel-diff",
+    main_class = "com.bazel_diff.Main",
+    runtime_deps = ["@bazel_diff//jar"],
+)
+
+js_binary(
+    name = "cli",
+    data = [
+        "lib/actions/GenerateAction.mjs",
+        "lib/actions/PublishAction.mjs",
+        "lib/actions/VersionAction.mjs",
+        "lib/repositories/ChangelogRepository.mjs",
+        "lib/repositories/ChangesetRepository.mjs",
+        "lib/repositories/ConfigRepository.mjs",
+        "lib/repositories/PackageRepository.mjs",
+        "lib/repositories/PublishRepository.mjs",
+        "lib/repositories/ReleaseRepository.mjs",
+        "lib/repositories/TargetRepository.mjs",
+        "lib/repositories/VersionRepository.mjs",
+        "lib/utils.mjs",
+        "//:node_modules/@changesets/write",
+        "//:node_modules/commander",
+        "//:node_modules/zx",
+    ],
+    entry_point = "cli.mjs",
+    env = {
+        "WORKSPACE_NAME": repository_name().lstrip("@"),
+    },
+)
+
+js_binary(
+    name = "changesets_cli",
+    data = [
+        "//:node_modules/@changesets/changelog-github",
+        "//:node_modules/@changesets/cli",
+        "//:node_modules/zx",
+    ],
+    entry_point = "changesets_cli.mjs",
+)
