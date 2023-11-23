@@ -229,10 +229,13 @@ task(
 
 release_manager(
     name = "release_manager",
+    bazel_diff_args = "--fineGrainedHashExternalRepos=rules_release,rules_task",
     publish_cmds = [
         ":push_git_changes",
     ],
     deps = [
         "//tools/bunq2ynab:bunq2ynab_release",
+        "@rules_release//:release",
+        "@rules_task//:release",
     ],
 )

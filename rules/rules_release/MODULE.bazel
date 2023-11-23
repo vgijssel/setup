@@ -51,3 +51,11 @@ npm.npm_translate_lock(
 )
 
 use_repo(npm, "npm")
+
+# ------------------------------------ rules_task ------------------------------------ #
+bazel_dep(name = "rules_task", version = "0.0.0")
+
+local_path_override(
+    module_name = "rules_task",
+    path = "../rules_task",
+)
