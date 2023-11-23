@@ -3,6 +3,7 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_task//:defs.bzl", "cmd")
 load("//release:defs.bzl", "publish_github_release", "release")
+# load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -81,7 +82,57 @@ js_binary(
 
 filegroup(
     name = "all_files",
-    srcs = glob(["**/*"]),
+    srcs = glob(["**/*"]) + [
+        "//release:all_files",
+        "//release/private:all_files",
+    ],
+)
+
+# tar(
+#     name = "release_archive",
+#     srcs = [
+#         ":all_files",
+#     ],
+#     out = "rules_task.tar.gz",
+#     compress = "gzip",
+# )
+
+# get the sha256 of the archive
+# create template from version_changelog + prefix and write to out
+
+genrule(
+    name = "github_release_template",
+    srcs = [
+        ":release.version_changelog",
+        ":release.version",
+    ],
+    outs = [
+        "github_release_template.txt",
+    ],
+    cmd = """
+export VERSION="v$$(cat $(location :release.version))"
+export SHA=kerk
+export PREFIX="rules_task-$${VERSION}"
+export ARCHIVE="rules_task-$${VERSION}.tar.gz"
+
+cat <<EOF > $(OUTS)
+## Using WORKSPACE:
+
+\\`\\`\\`starlark
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "rules_release",
+    sha256 = "$${SHA}",
+    strip_prefix = "$${PREFIX}",
+    url = "https://github.com/vgijssel/setup/releases/download/$${PREFIX}/$${ARCHIVE}",
+)
+\\`\\`\\`
+
+EOF
+
+cat $(location :release.version_changelog) >> $(OUTS)
+    """,
 )
 
 publish_github_release(
@@ -90,7 +141,7 @@ publish_github_release(
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
         "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
     ],
-    changelog_file = "CHANGELOG.md",  # TODO: update with workspace reference with digest etc
+    changelog_file = ":github_release_template",
     env = {
         "OP": cmd.executable("//tools/onepassword:op"),
     },

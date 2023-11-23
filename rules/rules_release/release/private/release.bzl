@@ -76,6 +76,9 @@ def release(**kwargs):
     release_file_name = "{}.release_name".format(name)
     release_file_out_file = "{}.out".format(release_name)
 
+    changelog_name = "{}.changelog".format(name)
+    changelog_out_file = "{}.out".format(changelog_name)
+
     _release(release_name = release_name, **kwargs)
 
     js_run_binary(
@@ -112,4 +115,15 @@ def release(**kwargs):
             release_file_out_file,
         ],
         cmd = "echo {} > $(OUTS)".format(release_name),
+    )
+
+    native.genrule(
+        name = changelog_name,
+        srcs = [
+            kwargs.get("changelog_file"),
+        ],
+        outs = [
+            changelog_out_file,
+        ],
+        cmd = "cat $(location {}) > $(OUTS)".format(kwargs.get("changelog_file")),
     )

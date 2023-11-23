@@ -29,4 +29,5 @@ def publish_github_release(name, release, changelog_file = None, before_cmds = [
             "$GH release create $RELEASE_TAG --notes-file $CHANGELOG_FILE --title $RELEASE_TAG",
         ],
         env = target_env,
+        cwd = "$BUILD_WORKSPACE_DIRECTORY",
     )
