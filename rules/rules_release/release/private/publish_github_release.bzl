@@ -11,7 +11,7 @@ def publish_github_release(name, release, changelog_file = None, assets = [], be
         "VERSION_FILE": cmd.file(version_file),
         "CHANGELOG_FILE": cmd.file(changelog_file),
         "RELEASE_NAME_FILE": cmd.file(release_name_file),
-        "GH": cmd.executable("//tools/github_cli"),
+        "GH": cmd.executable(Label("//tools/github_cli")),
         "ASSETS": cmd.shell(*assets_to_upload),
     }
 
@@ -29,7 +29,7 @@ def publish_github_release(name, release, changelog_file = None, assets = [], be
             "export RELEASE_TAG=$RELEASE_NAME-v$VERSION",
             "export RELEASE_EXISTS=$($GH release view $RELEASE_TAG > /dev/null 2>&1 && echo true || echo false)",
             "if [ $RELEASE_EXISTS = true ]; then echo 'Release already exists, exitting.'; exit 0; fi",
-            "$GH release create $RELEASE_TAG --notes-file $CHANGELOG_FILE --title $RELEASE_TAG $ASSETS",
+            "$GH release create $RELEASE_TAG --notes-file $CHANGELOG_FILE --title $RELEASE_TAG ",
         ],
         env = target_env,
         cwd = "$BUILD_WORKSPACE_DIRECTORY",
