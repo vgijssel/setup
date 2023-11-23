@@ -2,6 +2,13 @@ load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**/*"]),
+)
+
 py_binary(
     name = "test_py_binary",
     srcs = ["test_py_binary.py"],

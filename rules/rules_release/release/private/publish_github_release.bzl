@@ -29,7 +29,7 @@ def publish_github_release(name, release, changelog_file = None, assets = [], be
             "export RELEASE_TAG=$RELEASE_NAME-v$VERSION",
             "export RELEASE_EXISTS=$($GH release view $RELEASE_TAG > /dev/null 2>&1 && echo true || echo false)",
             "if [ $RELEASE_EXISTS = true ]; then echo 'Release already exists, exitting.'; exit 0; fi",
-            "$GH release create $RELEASE_TAG --notes-file $CHANGELOG_FILE --title $RELEASE_TAG ",
+            "$GH release create $RELEASE_TAG --notes-file $CHANGELOG_FILE --title $RELEASE_TAG $ASSETS",
         ],
         env = target_env,
         cwd = "$BUILD_WORKSPACE_DIRECTORY",
