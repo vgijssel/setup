@@ -92,7 +92,7 @@ publish_github_release(
     ],
     changelog_file = "CHANGELOG.md",  # TODO: update with workspace reference with digest etc
     env = {
-        "OP": cmd.executable("@rules_task//tools/onepassword:op"),
+        "OP": cmd.executable("//tools/onepassword:op"),
     },
     release = ":release",
 )

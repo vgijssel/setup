@@ -32,6 +32,13 @@ use_repo(non_module_dependencies, "github_cli_linux_amd64")
 
 use_repo(non_module_dependencies, "github_cli_darwin_arm64")
 
+# ------------------------------------ onepassword ------------------------------------ #
+use_repo(non_module_dependencies, "onepassword_linux_arm64")
+
+use_repo(non_module_dependencies, "onepassword_linux_amd64")
+
+use_repo(non_module_dependencies, "onepassword_darwin_arm64")
+
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(
     name = "aspect_rules_js",

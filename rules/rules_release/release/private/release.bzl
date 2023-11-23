@@ -13,7 +13,7 @@ def _to_label_string(label):
 
 def _release_impl(ctx):
     release_config_file = ctx.actions.declare_file(ctx.label.name + ".json")
-    release_name = ctx.attr.release_name or ctx.label.name
+    release_name = ctx.attr.release_name
 
     publish_cmds_paths = []
 
@@ -58,17 +58,25 @@ _release = rule(
         "target": attr.label(mandatory = True),
         "version_file": attr.label(allow_single_file = True, mandatory = True),
         "publish_cmds": attr.label_list(cfg = "target"),
-        "release_name": attr.string(),
+        "release_name": attr.string(mandatory = True),
         "changelog_file": attr.label(allow_single_file = True, mandatory = True),
     },
 )
 
 def release(**kwargs):
     name = kwargs.get("name")
+    release_name = kwargs.pop("release_name") or name
+
     version_changelog_name = "{}.version_changelog".format(name)
     version_changelog_out_file = "{}.out".format(version_changelog_name)
 
-    _release(**kwargs)
+    version_name = "{}.version".format(name)
+    version_out_file = "{}.out".format(version_name)
+
+    release_file_name = "{}.release_name".format(name)
+    release_file_out_file = "{}.out".format(release_name)
+
+    _release(release_name = release_name, **kwargs)
 
     js_run_binary(
         name = version_changelog_name,
@@ -85,4 +93,23 @@ def release(**kwargs):
             "$(location {})".format(kwargs.get("changelog_file")),
             "$(rootpath {})".format(version_changelog_out_file),
         ],
+    )
+
+    native.genrule(
+        name = version_name,
+        srcs = [
+            kwargs.get("version_file"),
+        ],
+        outs = [
+            version_out_file,
+        ],
+        cmd = "cat $(location {}) > $(OUTS)".format(kwargs.get("version_file")),
+    )
+
+    native.genrule(
+        name = release_file_name,
+        outs = [
+            release_file_out_file,
+        ],
+        cmd = "echo {} > $(OUTS)".format(release_name),
     )
