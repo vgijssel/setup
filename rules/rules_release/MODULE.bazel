@@ -8,17 +8,25 @@ module(
     version = "0.0.0",
 )
 
+non_module_dependencies = use_extension(":extensions.bzl", "non_module_dependencies")
+
+# ------------------------------------ bazel_skylib ------------------------------------ #
 bazel_dep(
     name = "bazel_skylib",
     version = "1.4.2",
 )
 
+# ------------------------------------ rules_multitool ------------------------------------ #
+bazel_dep(name = "rules_multitool", version = "0.1.1")
+
 # ------------------------------------ rules_java ------------------------------------ #
 bazel_dep(name = "rules_java", version = "7.0.6")
 
-non_module_dependencies = use_extension(":extensions.bzl", "non_module_dependencies")
-
+# ------------------------------------ bazel-diff ------------------------------------ #
 use_repo(non_module_dependencies, "bazel_diff")
+
+# ------------------------------------ github_cli ------------------------------------ #
+use_repo(non_module_dependencies, "github_cli")
 
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(
