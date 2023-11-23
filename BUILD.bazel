@@ -234,7 +234,7 @@ release_manager(
         ":push_git_changes",
     ],
     deps = [
-        "//tools/bunq2ynab:bunq2ynab_release",
+        "//tools/bunq2ynab:release",
         "@rules_release//:release",
         "@rules_task//:release",
     ],
