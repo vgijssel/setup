@@ -20,7 +20,7 @@ bazel_dep(
 )
 
 # ------------------------------------ aspect_bazel_lib ------------------------------------ #
-# bazel_dep(name = "aspect_bazel_lib", version = "2.0.1")
+bazel_dep(name = "aspect_bazel_lib", version = "2.0.1")
 
 # ------------------------------------ rules_java ------------------------------------ #
 bazel_dep(name = "rules_java", version = "7.0.6")
@@ -45,7 +45,7 @@ use_repo(non_module_dependencies, "onepassword_darwin_arm64")
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(
     name = "aspect_rules_js",
-    version = "1.33.1",
+    version = "1.34.1",
 )
 
 ####### Node.js version #########

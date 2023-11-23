@@ -3,7 +3,7 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_task//:defs.bzl", "cmd")
 load("//release:defs.bzl", "publish_github_release", "release")
-# load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -88,32 +88,30 @@ filegroup(
     ],
 )
 
-# tar(
-#     name = "release_archive",
-#     srcs = [
-#         ":all_files",
-#     ],
-#     out = "rules_task.tar.gz",
-#     compress = "gzip",
-# )
-
-# get the sha256 of the archive
-# create template from version_changelog + prefix and write to out
+tar(
+    name = "release_archive",
+    srcs = [
+        ":all_files",
+    ],
+    out = "rules_task.tar.gz",
+    compress = "gzip",
+)
 
 genrule(
     name = "github_release_template",
     srcs = [
         ":release.version_changelog",
         ":release.version",
+        ":release_archive",
     ],
     outs = [
         "github_release_template.txt",
     ],
     cmd = """
 export VERSION="v$$(cat $(location :release.version))"
-export SHA=kerk
-export PREFIX="rules_task-$${VERSION}"
-export ARCHIVE="rules_task-$${VERSION}.tar.gz"
+export SHA=$$(shasum -a 256 $(location :release_archive) | awk '{print $$1}')
+export PREFIX="rules_release-$${VERSION}"
+export ARCHIVE="rules_release-$${VERSION}.tar.gz"
 
 cat <<EOF > $(OUTS)
 ## Using WORKSPACE:
@@ -128,7 +126,6 @@ http_archive(
     url = "https://github.com/vgijssel/setup/releases/download/$${PREFIX}/$${ARCHIVE}",
 )
 \\`\\`\\`
-
 EOF
 
 cat $(location :release.version_changelog) >> $(OUTS)
