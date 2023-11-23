@@ -10,14 +10,14 @@ module(
 
 non_module_dependencies = use_extension(":extensions.bzl", "non_module_dependencies")
 
+# ------------------------------------ platforms ------------------------------------ #
+bazel_dep(name = "platforms", version = "0.0.8")
+
 # ------------------------------------ bazel_skylib ------------------------------------ #
 bazel_dep(
     name = "bazel_skylib",
     version = "1.4.2",
 )
-
-# ------------------------------------ rules_multitool ------------------------------------ #
-bazel_dep(name = "rules_multitool", version = "0.1.1")
 
 # ------------------------------------ rules_java ------------------------------------ #
 bazel_dep(name = "rules_java", version = "7.0.6")
@@ -26,7 +26,11 @@ bazel_dep(name = "rules_java", version = "7.0.6")
 use_repo(non_module_dependencies, "bazel_diff")
 
 # ------------------------------------ github_cli ------------------------------------ #
-use_repo(non_module_dependencies, "github_cli")
+use_repo(non_module_dependencies, "github_cli_linux_arm64")
+
+use_repo(non_module_dependencies, "github_cli_linux_amd64")
+
+use_repo(non_module_dependencies, "github_cli_darwin_arm64")
 
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(

@@ -20,7 +20,7 @@ def publish_github_release(name, release, changelog_file = None, before_cmds = [
         env = {
             # "VERSION_FILE": cmd.file(version_file),
             # "CHANGELOG_FILE": cmd.file(changelog_file),
-            "GH": cmd.executable("@github_cli//tool"),
+            "GH": cmd.executable("//tools/github_cli"),
         },
     )
 

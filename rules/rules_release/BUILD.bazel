@@ -6,6 +6,36 @@ load("//release:defs.bzl", "publish_github_release", "release")
 
 package(default_visibility = ["//visibility:public"])
 
+_darwin_arm64 = [
+    "@platforms//os:macos",
+    "@platforms//cpu:arm64",
+]
+
+_linux_amd64 = [
+    "@platforms//os:linux",
+    "@platforms//cpu:x86_64",
+]
+
+_linux_arm64 = [
+    "@platforms//os:linux",
+    "@platforms//cpu:arm64",
+]
+
+config_setting(
+    name = "is_linux_amd64",
+    constraint_values = _linux_amd64,
+)
+
+config_setting(
+    name = "is_linux_arm64",
+    constraint_values = _linux_arm64,
+)
+
+config_setting(
+    name = "is_darwin_arm64",
+    constraint_values = _darwin_arm64,
+)
+
 npm_link_all_packages()
 
 java_binary(

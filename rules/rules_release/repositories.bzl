@@ -1,5 +1,4 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
-load("@rules_multitool//multitool:multitool.bzl", "multitool")
 
 def dependencies():
     http_jar(
@@ -29,11 +28,4 @@ def dependencies():
         build_file = "//tools/github_cli:BUILD.repositories.bazel.tpl",
         sha256 = "f854225778b7215480c442cd2e3eeec1a56d33876bbbad19daf557c1b00d6913",
         url = "https://github.com/cli/cli/releases/download/v2.39.1/gh_2.39.1_macOS_arm64.zip",
-    )
-
-    multitool(
-        name = "github_cli",
-        linux_x86_64_binary = "@github_cli_linux_amd64//:files",
-        linux_arm64_binary = "@github_cli_linux_arm64//:files",
-        macos_arm64_binary = "@github_cli_darwin_arm64//:files",
     )
