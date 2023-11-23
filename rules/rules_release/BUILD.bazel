@@ -3,7 +3,7 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_task//:defs.bzl", "cmd")
 load("//release:defs.bzl", "publish_github_release", "release")
-load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -66,7 +66,7 @@ js_binary(
     ],
     entry_point = "cli.mjs",
     env = {
-        "WORKSPACE_NAME": repository_name().lstrip("@"),
+        "WORKSPACE_NAME": repository_name().removeprefix("@"),
     },
 )
 
@@ -88,13 +88,36 @@ filegroup(
     ],
 )
 
+mtree_spec(
+    name = "release_archive_mtree",
+    srcs = [
+        ":all_files",
+    ],
+)
+
+# Remove `../rules_release~override` from each line because otherwise
+# this results in an empty archive when extracting.
+genrule(
+    name = "release_archive_mtree_normalized",
+    srcs = [
+        ":release_archive_mtree",
+    ],
+    outs = [
+        "release_archive_mtree_normalized.spec",
+    ],
+    cmd = """
+    sed 's|../{}/||' $< > $@
+    """.format(repository_name().removeprefix("@")),
+)
+
 tar(
     name = "release_archive",
     srcs = [
         ":all_files",
     ],
-    out = "rules_task.tar.gz",
+    out = "rules_release.tar.gz",
     compress = "gzip",
+    mtree = ":release_archive_mtree_normalized",
 )
 
 genrule(
@@ -111,7 +134,7 @@ genrule(
 export VERSION="v$$(cat $(location :release.version))"
 export SHA=$$(shasum -a 256 $(location :release_archive) | awk '{print $$1}')
 export PREFIX="rules_release-$${VERSION}"
-export ARCHIVE="rules_release-$${VERSION}.tar.gz"
+export ARCHIVE="rules_release.tar.gz"
 
 cat <<EOF > $(OUTS)
 ## Using WORKSPACE:
@@ -122,7 +145,6 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "rules_release",
     sha256 = "$${SHA}",
-    strip_prefix = "$${PREFIX}",
     url = "https://github.com/vgijssel/setup/releases/download/$${PREFIX}/$${ARCHIVE}",
 )
 \\`\\`\\`
@@ -134,6 +156,9 @@ cat $(location :release.version_changelog) >> $(OUTS)
 
 publish_github_release(
     name = "publish_github_release",
+    assets = [
+        ":release_archive",
+    ],
     before_cmds = [
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
         "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
