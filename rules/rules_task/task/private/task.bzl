@@ -236,7 +236,7 @@ def _task_impl(ctx):
     script = """
 import json
 import base64
-from runner import main
+from task.private.runner import main
 
 INSTRUCTIONS = \"\"\"
 {instructions}
@@ -313,7 +313,7 @@ def _task_rule_prep(name, kwargs, testonly = False):
     py_binary(
         name = name,
         main = script_name,
-        srcs = [script_name, "@rules_task//:runner.py"],
+        srcs = [script_name, Label("//task/private:runner.py")],
         testonly = testonly,
         deps = [
             requirement("bazel-runfiles"),

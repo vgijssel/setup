@@ -8,7 +8,7 @@ def py_binary_cmd(name, code):
 
     expand_template(
         name = main_name,
-        template = "@rules_task//:py_binary_cmd_main.tpl.py",
+        template = Label("py_binary_cmd_main.tpl.py"),
         out = main_name_file,
         substitutions = {
             "{{python_code}}": code,
