@@ -1,4 +1,4 @@
-load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
+load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 

@@ -1,4 +1,4 @@
-load("@rules_task//:defs.bzl", "cmd")
+load("@rules_task//task:defs.bzl", "cmd")
 
 def secrets(data):
     json_data = json.encode(data)

@@ -1,4 +1,4 @@
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 
 def publish_github_release(name, release, changelog_file = None, assets = [], before_cmds = [], env = {}):
     version_file = "{}.version".format(release)

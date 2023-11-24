@@ -1,7 +1,7 @@
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@rules_java//java:defs.bzl", "java_binary")
-load("@rules_task//:defs.bzl", "cmd")
+load("@rules_task//task:defs.bzl", "cmd")
 load("//release:defs.bzl", "publish_github_release", "release")
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
 

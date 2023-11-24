@@ -1,6 +1,6 @@
 load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
 load("@rules_release//release:defs.bzl", "publish_github_release", "release")
-load("@rules_task//:defs.bzl", "cmd")
+load("@rules_task//task:defs.bzl", "cmd")
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
 
 package(default_visibility = ["//visibility:public"])
