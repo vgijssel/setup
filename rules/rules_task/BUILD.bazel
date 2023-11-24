@@ -22,6 +22,8 @@ filegroup(
     srcs = glob(["**/*"]) + [
         "//tests:all_files",
         "//tools:all_files",
+        "//task:all_files",
+        "//task/private:all_files",
     ],
 )
 
