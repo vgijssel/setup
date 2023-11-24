@@ -1,6 +1,6 @@
 load("@pdm-setup//:requirements.bzl", "requirement")
 load("//tools/pytest:pytest.bzl", "py_pytest_test")
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 
 py_library(
     name = "lib",

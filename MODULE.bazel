@@ -19,13 +19,15 @@ bazel_dep(name = "platforms", version = "0.0.8")
 
 # ------------------------------------ rules_skylib ------------------------------------ #
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
-bazel_dep(name = "aspect_bazel_lib", version = "2.0.0-rc1")
+
+# ------------------------------------ aspect_bazel_lib ------------------------------------ #
+bazel_dep(name = "aspect_bazel_lib", version = "2.0.1")
 
 # ------------------------------------ rules_pkg ------------------------------------ #
 bazel_dep(name = "rules_pkg", version = "0.9.1")
 
 # ------------------------------------ rules_task ------------------------------------ #
-bazel_dep(name = "rules_task", version = "0.1.0")
+bazel_dep(name = "rules_task", version = "0.0.0")
 
 local_path_override(
     module_name = "rules_task",

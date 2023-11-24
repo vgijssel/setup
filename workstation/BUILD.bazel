@@ -4,7 +4,7 @@ load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "downl
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 
 pyinfra_run(
     name = "provision",

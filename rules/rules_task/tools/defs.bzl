@@ -1,4 +1,4 @@
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 load("@pip//:requirements.bzl", "requirement")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 

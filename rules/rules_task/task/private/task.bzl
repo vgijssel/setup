@@ -1,15 +1,13 @@
-"""
-Public API for defining tasks.
-"""
-
-load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@bazel_skylib//lib:shell.bzl", "shell")
-load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
+load("@bazel_skylib//lib:new_sets.bzl", "sets")
+load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
+load("@aspect_bazel_lib//lib:base64.bzl", "base64")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
-load("@aspect_bazel_lib//lib:base64.bzl", "base64")
-load("@bazel_skylib//rules:native_binary.bzl", "native_test")
+load(":py_binary_cmd.bzl", "py_binary_cmd")
+load(":cmd.bzl", "cmd")
+load(":utils.bzl", "fq_label")
 
 def _visit(context, node):
     return _visit_method(context, node)(context, node)
@@ -113,25 +111,6 @@ def _executable_label_to_jinja_path(ctx, label):
     rlocation = to_rlocation_path(ctx, executable)
     return _jinja_rlocation(rlocation)
 
-def _python_entry_point(entry_point, args):
-    # Translate
-    # tap_gitlab:Tap.cli
-    # into
-    # from tap_gitlab import Tap
-    # Tap.cli()
-    python_import, python_method = entry_point.split(":")
-    python_class = python_method.split(".")[0]
-    python_import = "from {} import {}".format(python_import, python_class)
-    python_method = "{}()".format(python_method)
-
-    python_code = """
-    import sys
-    {python_import}
-    sys.exit({python_method})
-    """.format(python_import = python_import, python_method = python_method)
-
-    return cmd.python(python_code, *args)
-
 def _serialize_python(context, node):
     args = " ".join(_visit_python(context, node))
     label = _executable_label_to_jinja_path(context.ctx, node["label"])
@@ -162,9 +141,6 @@ def _serialize_defer(context, node):
 
     return code
 
-def _fq_label(string):
-    return str(native.package_relative_label(string))
-
 def _flatten(list):
     result = []
 
@@ -186,7 +162,7 @@ def _generate_py_binary_cmd(context, node):
         code = node["code"],
     )
     context.state["target_index"] += 1
-    node["label"] = _fq_label(target_name)
+    node["label"] = fq_label(target_name)
 
 _serializer = {
     "visit_root": lambda context, node: _visit_root(context, node),
@@ -260,7 +236,7 @@ def _task_impl(ctx):
     script = """
 import json
 import base64
-from runner import main
+from task.private.runner import main
 
 INSTRUCTIONS = \"\"\"
 {instructions}
@@ -337,7 +313,7 @@ def _task_rule_prep(name, kwargs, testonly = False):
     py_binary(
         name = name,
         main = script_name,
-        srcs = [script_name, "@rules_task//:runner.py"],
+        srcs = [script_name, Label("//task/private:runner.py")],
         testonly = testonly,
         deps = [
             requirement("bazel-runfiles"),
@@ -367,126 +343,4 @@ def task_test(size = None, timeout = None, flaky = False, shard_count = None, lo
         shard_count = shard_count,
         local = local,
         **kwargs
-    )
-
-def _wrap_root_args(args):
-    result = []
-
-    for arg in args:
-        # Turn all reguluar string nodes into a cmd.shell nodes
-        if type(arg) == "string":
-            arg = cmd.shell(arg)
-
-        if type(arg) != "dict":
-            fail("Argument passed to root should either be string or dict, got value '{}' of type {}".format(arg, type(arg)))
-
-        if "defer" in arg:
-            arg = cmd.defer(arg["defer"])
-
-        result.append(arg)
-
-    return result
-
-def _wrap_env(env):
-    for key, value in env.items():
-        if type(value) == "string":
-            env[key] = cmd.string(value)
-    return env
-
-def _wrap_shell_args(args):
-    result = []
-
-    for arg in args:
-        # Turn all reguluar string nodes into a cmd.string nodes
-        if type(arg) == "string":
-            arg = cmd.string(arg)
-
-        if type(arg) != "dict":
-            fail("Argument passed to shell should either be string or dict, got value '{}' of type {}".format(arg, type(arg)))
-
-        result.append(arg)
-
-    return result
-
-def _wrap_python_args(args):
-    result = []
-
-    for arg in args:
-        # Turn all reguluar string nodes into a cmd.string nodes
-        if type(arg) == "string":
-            arg = cmd.string(arg)
-
-        if type(arg) != "dict":
-            fail("Argument passed to python_entry_point should either be string or dict, got value '{}' of type {}".format(arg, type(arg)))
-
-        result.append(arg)
-
-    return result
-
-def _wrap_defer(node):
-    if type(node) == "string":
-        node = cmd.string(node)
-
-    return node
-
-cmd = struct(
-    root = lambda args: {
-        "type": "root",
-        "args": _wrap_root_args(args),
-    },
-    env = lambda env: {
-        "type": "env",
-        "env": _wrap_env(env),
-    },
-    defer = lambda node: {
-        "type": "defer",
-        "node": _wrap_defer(node),
-    },
-    shell = lambda *args: {
-        "type": "shell",
-        "args": _wrap_shell_args(args),
-    },
-    file = lambda label: {
-        "type": "file",
-        "label": _fq_label(label),
-    },
-    files = lambda label: {
-        "type": "files",
-        "label": _fq_label(label),
-    },
-    executable = lambda label: {
-        "type": "executable",
-        "label": _fq_label(label),
-    },
-    string = lambda string: {
-        "type": "string",
-        "value": string,
-    },
-    python = lambda code, *args: {
-        "type": "python",
-        "code": code,
-        "args": _wrap_python_args(args),
-        "label": None,
-    },
-    python_entry_point = lambda entry_point, *args: _python_entry_point(entry_point, args),
-)
-
-def py_binary_cmd(name, code):
-    main_name = "{}_main".format(name)
-    main_name_file = "{}.py".format(main_name)
-
-    expand_template(
-        name = main_name,
-        template = "@rules_task//:py_binary_cmd_main.tpl.py",
-        out = main_name_file,
-        substitutions = {
-            "{{python_code}}": code,
-        },
-    )
-
-    py_binary(
-        name = name,
-        srcs = [main_name_file],
-        main = main_name_file,
-        deps = [requirement("deepdiff")],
     )

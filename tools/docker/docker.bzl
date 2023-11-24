@@ -2,7 +2,7 @@
 For quickly loading and running docker images built by Bazel.
 """
 
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 
 def docker_load(name, image, **kwargs):
     """

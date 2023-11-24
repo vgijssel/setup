@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 load(
     "@jvolkman_rules_pycross//pycross:defs.bzl",
     "pycross_lock_file",
@@ -229,10 +229,13 @@ task(
 
 release_manager(
     name = "release_manager",
+    bazel_diff_args = "--fineGrainedHashExternalRepos=rules_release,rules_task",
     publish_cmds = [
         ":push_git_changes",
     ],
     deps = [
-        "//tools/bunq2ynab:bunq2ynab_release",
+        "//tools/bunq2ynab:release",
+        "@rules_release//:release",
+        "@rules_task//:release",
     ],
 )

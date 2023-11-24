@@ -2,7 +2,7 @@
 Bazel macro to make it easy to run Pyinfra.
 """
 
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 load("@rules_python//python:defs.bzl", "py_binary")
 load("@pdm-setup//:requirements.bzl", "requirement")
 

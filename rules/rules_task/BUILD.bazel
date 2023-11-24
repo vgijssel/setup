@@ -1,16 +1,116 @@
-load("@rules_task//tools:defs.bzl", "compile_pip_requirements")
-load(":defs.bzl", "cmd", "task")
+load("@rules_release//release:defs.bzl", "publish_github_release", "release")
+load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
+load("//task:defs.bzl", "cmd")
+load("//tools:defs.bzl", "compile_pip_requirements")
 
 package(default_visibility = ["//visibility:public"])
-
-exports_files([
-    "runner.py",
-    "py_binary_cmd_main.tpl.py",
-])
 
 compile_pip_requirements(
     name = "requirements",
     extra_args = ["--allow-unsafe"],
     requirements_in = "requirements.in",
     requirements_txt = "requirements.txt",
+)
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**/*"]) + [
+        "//tests:all_files",
+        "//tools:all_files",
+        "//task:all_files",
+        "//task/private:all_files",
+    ],
+)
+
+mtree_spec(
+    name = "release_archive_mtree",
+    srcs = [
+        ":all_files",
+    ],
+)
+
+# Remove `../rules_task~override` from each line because otherwise
+# this results in an empty archive when extracting.
+genrule(
+    name = "release_archive_mtree_normalized",
+    srcs = [
+        ":release_archive_mtree",
+    ],
+    outs = [
+        "release_archive_mtree_normalized.spec",
+    ],
+    cmd = """
+    sed 's|../{}/||' $< > $@
+    """.format(repository_name().removeprefix("@")),
+)
+
+tar(
+    name = "release_archive",
+    srcs = [
+        ":all_files",
+    ],
+    out = "rules_task.tar.gz",
+    compress = "gzip",
+    mtree = ":release_archive_mtree_normalized",
+)
+
+genrule(
+    name = "github_release_template",
+    srcs = [
+        ":release.version_changelog",
+        ":release.version",
+        ":release_archive",
+    ],
+    outs = [
+        "github_release_template.txt",
+    ],
+    cmd = """
+export VERSION="v$$(cat $(location :release.version))"
+export SHA=$$(shasum -a 256 $(location :release_archive) | awk '{print $$1}')
+export PREFIX="rules_task-$${VERSION}"
+export ARCHIVE="rules_task.tar.gz"
+
+cat <<EOF > $(OUTS)
+## Using WORKSPACE:
+
+\\`\\`\\`starlark
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "rules_task",
+    sha256 = "$${SHA}",
+    url = "https://github.com/vgijssel/setup/releases/download/$${PREFIX}/$${ARCHIVE}",
+)
+\\`\\`\\`
+EOF
+
+cat $(location :release.version_changelog) >> $(OUTS)
+    """,
+)
+
+publish_github_release(
+    name = "publish_github_release",
+    assets = [
+        ":release_archive",
+    ],
+    before_cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+    ],
+    changelog_file = ":github_release_template",
+    env = {
+        "OP": cmd.executable("@rules_release//tools/onepassword:op"),
+    },
+    release = ":release",
+)
+
+release(
+    name = "release",
+    changelog_file = "CHANGELOG.md",
+    publish_cmds = [
+        ":publish_github_release",
+    ],
+    release_name = "rules_task",
+    target = ":all_files",
+    version_file = "version.txt",
 )

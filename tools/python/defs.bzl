@@ -1,7 +1,7 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
-load("@rules_task//:defs.bzl", "cmd", "task")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
 
 # This sets up a platform for the Python toolchain to run in a container.

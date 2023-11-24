@@ -8,22 +8,44 @@ module(
     version = "0.0.0",
 )
 
+non_module_dependencies = use_extension(":extensions.bzl", "non_module_dependencies")
+
+# ------------------------------------ platforms ------------------------------------ #
+bazel_dep(name = "platforms", version = "0.0.8")
+
+# ------------------------------------ bazel_skylib ------------------------------------ #
 bazel_dep(
     name = "bazel_skylib",
     version = "1.4.2",
 )
 
+# ------------------------------------ aspect_bazel_lib ------------------------------------ #
+bazel_dep(name = "aspect_bazel_lib", version = "2.0.1")
+
 # ------------------------------------ rules_java ------------------------------------ #
 bazel_dep(name = "rules_java", version = "7.0.6")
 
-non_module_dependencies = use_extension(":extensions.bzl", "non_module_dependencies")
-
+# ------------------------------------ bazel-diff ------------------------------------ #
 use_repo(non_module_dependencies, "bazel_diff")
+
+# ------------------------------------ github_cli ------------------------------------ #
+use_repo(non_module_dependencies, "github_cli_linux_arm64")
+
+use_repo(non_module_dependencies, "github_cli_linux_amd64")
+
+use_repo(non_module_dependencies, "github_cli_darwin_arm64")
+
+# ------------------------------------ onepassword ------------------------------------ #
+use_repo(non_module_dependencies, "onepassword_linux_arm64")
+
+use_repo(non_module_dependencies, "onepassword_linux_amd64")
+
+use_repo(non_module_dependencies, "onepassword_darwin_arm64")
 
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(
     name = "aspect_rules_js",
-    version = "1.33.1",
+    version = "1.34.1",
 )
 
 ####### Node.js version #########
@@ -51,3 +73,11 @@ npm.npm_translate_lock(
 )
 
 use_repo(npm, "npm")
+
+# ------------------------------------ rules_task ------------------------------------ #
+bazel_dep(name = "rules_task", version = "0.0.0")
+
+local_path_override(
+    module_name = "rules_task",
+    path = "../rules_task",
+)

@@ -1,8 +1,8 @@
 load("@rules_python//python:defs.bzl", "py_binary")
-load("@rules_task//:defs.bzl", "cmd", "task", "task_test")
+load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
 load("//tools/python:defs.bzl", "py_image")
 load("@pdm-setup//:requirements.bzl", "requirement")
-load("@rules_release//release:defs.bzl", "release")
+load("@rules_release//release:defs.bzl", "publish_github_release", "release")
 load("@rules_oci//oci:defs.bzl", "oci_push")
 
 package(default_visibility = ["//visibility:public"])
@@ -146,36 +146,31 @@ task_test(
     },
 )
 
+publish_github_release(
+    name = "publish_github_release",
+    before_cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+    ],
+    env = {
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
+    release = ":release",
+)
+
 release(
-    name = "bunq2ynab_release",
+    name = "release",
     changelog_file = "CHANGELOG.md",
     publish_cmds = [
         ":bunq2ynab_image_push",
-        ":bunq2ynab_github_release",
+        ":publish_github_release",
     ],
+    release_name = "bunq2ynab",
     target = ":bunq2ynab_image",
     version_file = "version.txt",
-)
-
-task(
-    name = "bunq2ynab_github_release",
-    cmds = [
-        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
-        "export DIGEST=$(cat $DIGEST_FILE)",
-        "export VERSION=$(cat $VERSION_FILE)",
-        "export RELEASE_TAG=bunq2ynab-v$VERSION",
-        "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
-        "export RELEASE_EXISTS=$($GH release view $RELEASE_TAG > /dev/null 2>&1 && echo true || echo false)",
-        "if [ $RELEASE_EXISTS = true ]; then echo 'Release already exists, exitting.'; exit 0; fi",
-        "$GH release create $RELEASE_TAG --notes-file $CHANGELOG_FILE --title $RELEASE_TAG",
+    deps = [
+        "@rules_task//:release",
     ],
-    env = {
-        "DIGEST_FILE": cmd.file(":bunq2ynab_image.digest"),
-        "VERSION_FILE": cmd.file("version.txt"),
-        "CHANGELOG_FILE": cmd.file(":bunq2ynab_release.version_changelog"),
-        "OP": cmd.executable("//tools/onepassword:op"),
-        "GH": cmd.executable("//tools/github_cli"),
-    },
 )
 
 oci_push(
