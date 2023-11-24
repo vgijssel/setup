@@ -168,6 +168,9 @@ release(
     release_name = "bunq2ynab",
     target = ":bunq2ynab_image",
     version_file = "version.txt",
+    deps = [
+        "@rules_task//:release",
+    ],
 )
 
 oci_push(

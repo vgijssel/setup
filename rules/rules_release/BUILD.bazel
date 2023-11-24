@@ -179,4 +179,7 @@ release(
     release_name = "rules_release",
     target = ":all_files",
     version_file = "version.txt",
+    deps = [
+        "@rules_task//:release",
+    ],
 )
