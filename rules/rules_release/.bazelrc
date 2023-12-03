@@ -1,1 +1,5 @@
 common --enable_bzlmod=true
+
+# `bazel run @rules_bazel_integration_test//tools:update_deleted_packages`
+build --deleted_packages=examples/workspace,examples/workspace/tests
+query --deleted_packages=examples/workspace,examples/workspace/tests

@@ -81,3 +81,38 @@ local_path_override(
     module_name = "rules_task",
     path = "../rules_task",
 )
+
+# ------------------------------------ rules_bazel_integration_test ------------------------------------ #
+bazel_dep(
+    name = "rules_bazel_integration_test",
+    version = "0.20.0",
+    # dev_dependency = True,
+)
+
+# bazel_binaries = use_extension(
+#     "@rules_bazel_integration_test//:extensions.bzl",
+#     "bazel_binaries",
+#     # dev_dependency = True,
+# )
+
+bazel_binaries = use_extension(
+    "@rules_bazel_integration_test//:extensions.bzl",
+    "bazel_binaries",
+    dev_dependency = True,
+)
+
+bazel_binaries.download(version_file = "//:.bazelversion")
+
+bazel_binaries.download(version = "6.0.0")
+
+bazel_binaries.download(version = "last_green")
+
+use_repo(bazel_binaries, "bazel_binaries")
+
+use_repo(bazel_binaries, "bazel_binaries_bazelisk")
+
+use_repo(bazel_binaries, "build_bazel_bazel_.bazelversion")
+
+use_repo(bazel_binaries, "build_bazel_bazel_6_0_0")
+
+use_repo(bazel_binaries, "build_bazel_bazel_last_green")
