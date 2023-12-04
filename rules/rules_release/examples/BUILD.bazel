@@ -6,8 +6,16 @@ load(
     "integration_test_utils",
 )
 
+# if the tests are executed from setup repository then the path is ../../../rules_release~override
+# if it's executed from the rules_release repository then the path is ../../
+repository_path = "../../" if repository_name() == "@" else "../../../rules_release~override"
+
 default_test_runner(
     name = "workspace_test_runner",
+    bazel_cmds = [
+        "info",
+        "test --override_repository=rules_release={} //...".format(repository_path),
+    ],
 )
 
 integration_test_tags = [tag for tag in integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS if tag != "manual"]
@@ -17,6 +25,9 @@ bazel_integration_test(
     bazel_version = bazel_binaries.versions.current,
     tags = integration_test_tags,
     test_runner = ":workspace_test_runner",
-    workspace_files = ["@examples_workspace//:all_files"],
+    workspace_files = [
+        "@examples_workspace//:all_files",
+        "//:all_files",
+    ],
     workspace_path = "workspace",
 )
