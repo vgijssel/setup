@@ -1,5 +1,24 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 
+# Copied from https://groups.google.com/g/bazel-discuss/c/xpsg3mWQPZg
+def _starlarkified_local_repository_impl(repository_ctx):
+    relative_path = repository_ctx.attr.path
+    workspace_root = repository_ctx.path(repository_ctx.attr._root_file).dirname
+
+    absolute_path = workspace_root
+    for segment in relative_path.split("/"):
+        absolute_path = absolute_path.get_child(segment)
+
+    repository_ctx.symlink(absolute_path, ".")
+
+starlarkified_local_repository = repository_rule(
+    implementation = _starlarkified_local_repository_impl,
+    attrs = {
+        "_root_file": attr.label(default = Label("//:MODULE.bazel")),
+        "path": attr.string(mandatory = True),
+    },
+)
+
 def dependencies():
     http_jar(
         name = "bazel_diff",
@@ -50,4 +69,9 @@ def dependencies():
         build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
         sha256 = "b9ae52df3003216b454f6ac0a402c71bcfb4804eafb3ee3593a84a2002930d27",
         url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.22.0/op_darwin_arm64_v2.22.0.zip",
+    )
+
+    starlarkified_local_repository(
+        name = "examples_workspace",
+        path = "examples/workspace",
     )

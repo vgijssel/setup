@@ -18,6 +18,7 @@ bazel_integration_test(
     name = "workspace_test",
     bazel_version = bazel_binaries.versions.current,
     test_runner = ":workspace_test_runner",
+    workspace_files = ["@examples_workspace//:all_files"],
     workspace_path = "workspace",
 )
 
