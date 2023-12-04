@@ -16,6 +16,9 @@ sh_test(
         "$(location //:release_manager.version)",
     ],
     data = [
+        # We need to include all files because the release manager currently assumes the
+        # package.json and .changeset directory are present.
+        "//:all_files",
         "//:release_manager.generate",
         "//:release_manager.publish",
         "//:release_manager.version",

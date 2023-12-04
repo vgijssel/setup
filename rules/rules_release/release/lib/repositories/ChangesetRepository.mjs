@@ -1,7 +1,8 @@
 import pkg from "@changesets/write";
 const { default: write } = pkg;
-import { rename, readdir } from "fs/promises";
+import { rename, readdir, mkdir } from "fs/promises";
 import { path, $ } from "zx";
+import { fileExists } from "../utils.mjs";
 
 export default class ChangesetRepository {
   constructor({ workspaceDir, changesetDir, changesetBinaryPath }) {
@@ -12,6 +13,8 @@ export default class ChangesetRepository {
   }
 
   async getByName(name) {
+    await this._ensureChangesetDir();
+
     const changesetFiles = (await readdir(this.changesetDir))
       .filter((file) => {
         return (
@@ -29,6 +32,8 @@ export default class ChangesetRepository {
   }
 
   async writeChangeset({ name }) {
+    await this._ensureChangesetDir();
+
     let newFilePath = await this.getByName(name);
 
     if (newFilePath) {
@@ -51,6 +56,8 @@ export default class ChangesetRepository {
   }
 
   async updateVersions() {
+    await this._ensureChangesetDir();
+
     const nodeModulesPath = path.join(
       process.env.JS_BINARY__RUNFILES,
       process.env.WORKSPACE_NAME,
@@ -61,5 +68,11 @@ export default class ChangesetRepository {
     process.env.WORKSPACE_DIR = this.workspaceDir;
 
     await $`${this.changesetBinaryPath} version`;
+  }
+
+  async _ensureChangesetDir() {
+    if (!(await fileExists(this.changesetDir))) {
+      await mkdir(this.changesetDir, { recursive: true });
+    }
   }
 }
