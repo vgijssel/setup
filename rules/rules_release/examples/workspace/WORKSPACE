@@ -1,4 +1,74 @@
+# ------------------------------------ bazel_features ------------------------------------ #
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "bazel_features",
+    sha256 = "62c26e427e5cbc751024446927622e398a9dcdf32c64325238815709d11c11a8",
+    strip_prefix = "bazel_features-1.1.1",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.1.1/bazel_features-v1.1.1.tar.gz",
+)
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+# ------------------------------------ aspect_bazel_lib ------------------------------------ #
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "aspect_bazel_lib",
+    sha256 = "4b32cf6feab38b887941db022020eea5a49b848e11e3d6d4d18433594951717a",
+    strip_prefix = "bazel-lib-2.0.1",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.0.1/bazel-lib-v2.0.1.tar.gz",
+)
+
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains")
+
+aspect_bazel_lib_dependencies()
+
+aspect_bazel_lib_register_toolchains()
+
+# ------------------------------------ aspect_rules_js ------------------------------------ #
+http_archive(
+    name = "aspect_rules_js",
+    sha256 = "76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643",
+    strip_prefix = "rules_js-1.34.1",
+    url = "https://github.com/aspect-build/rules_js/releases/download/v1.34.1/rules_js-v1.34.1.tar.gz",
+)
+
+load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
+
+rules_js_dependencies()
+
+load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
+
+nodejs_register_toolchains(
+    name = "nodejs",
+    node_version = DEFAULT_NODE_VERSION,
+)
+
+# ------------------------------------ rules_release ------------------------------------ #
+
 local_repository(
     name = "rules_release",
     path = "../../",
 )
+
+load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
+
+npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "@rules_release//:pnpm-lock.yaml",
+    verify_node_modules_ignored = "@rules_release//:.bazelignore",
+)
+
+load("@npm//:repositories.bzl", "npm_repositories")
+
+npm_repositories()
+
+# load("@rules_release//release:repositories.bzl", "rules_release_dependencies", "rules_release_dependency_setup")
+
+# rules_release_dependencies()
+
+# rules_release_dependency_setup()

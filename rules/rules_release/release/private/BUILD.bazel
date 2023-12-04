@@ -10,10 +10,10 @@ filegroup(
 js_binary(
     name = "version_changelog",
     data = [
-        "//:node_modules/mdast-util-to-string",
-        "//:node_modules/remark-parse",
-        "//:node_modules/remark-stringify",
-        "//:node_modules/unified",
+        "//release:node_modules/mdast-util-to-string",
+        "//release:node_modules/remark-parse",
+        "//release:node_modules/remark-stringify",
+        "//release:node_modules/unified",
     ],
     entry_point = "version_changelog.mjs",
 )
