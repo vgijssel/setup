@@ -1,6 +1,24 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "all_files",
     srcs = glob(["**/*"]),
+)
+
+java_binary(
+    name = "bazel-diff",
+    main_class = "com.bazel_diff.Main",
+    runtime_deps = ["@bazel_diff//jar"],
+)
+
+js_binary(
+    name = "bazel-diff_cli",
+    data = [
+        "//release:node_modules/commander",
+        # "//release:node_modules/zx",
+    ],
+    entry_point = "bazel-diff_cli.mjs",
 )
