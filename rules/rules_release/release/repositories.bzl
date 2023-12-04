@@ -19,7 +19,7 @@ starlarkified_local_repository = repository_rule(
     },
 )
 
-def dependencies():
+def rules_release_dependencies():
     http_jar(
         name = "bazel_diff",
         sha256 = "7943790f690ad5115493da8495372c89f7895b09334cb4fee5174a8f213654dd",

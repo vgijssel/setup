@@ -1,0 +1,2 @@
+# To ensure a hermetic environment for Java
+build --java_runtime_version=remotejdk_11

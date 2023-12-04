@@ -55,6 +55,10 @@ local_repository(
     path = "../../",
 )
 
+load("@rules_release//release:repositories.bzl", "rules_release_dependencies")
+
+rules_release_dependencies()
+
 load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
 
 npm_translate_lock(
