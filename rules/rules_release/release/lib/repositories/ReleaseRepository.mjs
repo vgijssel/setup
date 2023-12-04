@@ -1,3 +1,4 @@
+import { $ } from "zx";
 import { readFile } from "fs/promises";
 
 export default class ReleaseRepository {
@@ -8,6 +9,24 @@ export default class ReleaseRepository {
 
   async getAll() {
     return await this._getData();
+  }
+
+  async getChangedReleases() {
+    const releases = await this._getData();
+    const changedReleases = [];
+
+    for (const release of releases) {
+      const hasChanged = await $`${release.change_cmd}`;
+
+      if (
+        hasChanged.exitCode === 0 &&
+        hasChanged.stdout.trim().toLowerCase() === "true"
+      ) {
+        changedReleases.push(release);
+      }
+    }
+
+    return changedReleases;
   }
 
   async getAllLabels() {

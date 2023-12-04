@@ -52,7 +52,7 @@ nodejs_register_toolchains(
 
 local_repository(
     name = "rules_release",
-    path = "../../",
+    path = "../..",
 )
 
 load("@rules_release//release:repositories.bzl", "rules_release_dependencies")

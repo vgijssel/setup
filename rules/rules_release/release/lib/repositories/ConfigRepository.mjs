@@ -20,8 +20,4 @@ export default class ConfigRepository {
   packagesDir() {
     return path.join(this.rulesReleaseDir(), "packages");
   }
-
-  hashesDir() {
-    return path.join(this.rulesReleaseDir(), "bazel_diff_hashes");
-  }
 }

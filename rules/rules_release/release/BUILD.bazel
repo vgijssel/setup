@@ -29,7 +29,6 @@ js_binary(
         "lib/repositories/PackageRepository.mjs",
         "lib/repositories/PublishRepository.mjs",
         "lib/repositories/ReleaseRepository.mjs",
-        "lib/repositories/TargetRepository.mjs",
         "lib/repositories/VersionRepository.mjs",
         "lib/utils.mjs",
         "//release:node_modules/@changesets/write",

@@ -7,20 +7,56 @@ filegroup(
     srcs = ["//tests:all_files"] + glob(["**/*"]),
 )
 
+sh_binary(
+    name = "foo_changed",
+    srcs = [
+        "foo_changed.sh",
+    ],
+)
+
 filegroup(
     name = "foo_files",
-    srcs = glob(["**/*.foo"]),
+    srcs = [
+        "foo.txt",
+    ],
 )
 
 release(
-    name = "foo",
+    name = "foo_release",
+    change_cmd = ":foo_changed",
     changelog_file = "CHANGELOG_foo.md",
     release_name = "foo",
     target = ":foo_files",
     version_file = "VERSION_foo.txt",
 )
 
+sh_binary(
+    name = "bar_not_changed",
+    srcs = [
+        "bar_not_changed.sh",
+    ],
+)
+
+filegroup(
+    name = "bar_files",
+    srcs = [
+        "bar.txt",
+    ],
+)
+
+release(
+    name = "bar_release",
+    change_cmd = ":bar_not_changed",
+    changelog_file = "CHANGELOG_bar.md",
+    release_name = "bar",
+    target = ":bar_files",
+    version_file = "VERSION_bar.txt",
+)
+
 release_manager(
     name = "release_manager",
-    deps = [":foo"],
+    deps = [
+        ":bar_release",
+        ":foo_release",
+    ],
 )

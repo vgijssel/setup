@@ -18,20 +18,10 @@ program
 
 program
   .command("generate")
-  .description(
-    "Generate changesets based on changed targets with latest master"
-  )
-  .requiredOption("--bazel-diff-path <string>")
-  .option(
-    "--bazel-diff-args <string>",
-    "Additional args generate hashes command for bazel-diff",
-    ""
-  )
+  .description("Generate changesets based on changed releases")
   .action(async (options) => {
     const action = new GenerateAction({
       configPaths: program.opts().config,
-      bazelDiffPath: options.bazelDiffPath,
-      bazelDiffArgs: options.bazelDiffArgs,
     });
     await action.execute();
   });
