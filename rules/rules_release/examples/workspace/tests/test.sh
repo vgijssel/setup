@@ -1,3 +1,13 @@
-echo $@
+#!/usr/bin/env bash
+set -euo pipefail
 
-exit 0
+
+export GENERATE=$1
+export VERSION=$2
+export PUBLISH=$3
+
+echo $GENERATE
+echo $VERSION
+echo $PUBLISH
+
+exit 1
