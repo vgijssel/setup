@@ -12,11 +12,14 @@ default_test_runner(
     name = "workspace_test_runner",
 )
 
+integration_test_tags = [tag for tag in integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS if tag != "manual"]
+
 # If you only want to execute against a single version of Bazel, use
 # bazel_integration_test.
 bazel_integration_test(
     name = "workspace_test",
     bazel_version = bazel_binaries.versions.current,
+    tags = integration_test_tags,
     test_runner = ":workspace_test_runner",
     workspace_files = ["@examples_workspace//:all_files"],
     workspace_path = "workspace",
