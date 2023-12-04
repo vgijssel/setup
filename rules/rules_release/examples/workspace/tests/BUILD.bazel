@@ -5,6 +5,14 @@ filegroup(
     srcs = glob(["**/*"]),
 )
 
+sh_library(
+    name = "unittest",
+    srcs = [
+        "unittest.bash",
+        "unittest_utils.sh",
+    ],
+)
+
 sh_test(
     name = "test",
     srcs = [
@@ -22,5 +30,8 @@ sh_test(
         "//:release_manager.generate",
         "//:release_manager.publish",
         "//:release_manager.version",
+    ],
+    deps = [
+        ":unittest",
     ],
 )

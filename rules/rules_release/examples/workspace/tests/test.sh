@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source ./tests/unittest.bash || exit 1
+
 export GENERATE=$1
 export VERSION=$2
 export PUBLISH=$3
@@ -21,4 +23,30 @@ convert_to_actual_file VERSION_bar.txt
 
 $GENERATE
 $VERSION
-$PUBLISH
+$PUBLISH 2>&1 | tee publish_output.txt
+
+function test_foo_updated_version() {
+  assert_contains "0.0.1" "VERSION_foo.txt" 
+}
+
+function test_foo_changelog_contains_new_version() {
+  assert_contains "0.0.1" "CHANGELOG_foo.md" 
+}
+
+function test_foo_publish_is_called() {
+  assert_contains "Publishing foo!" "publish_output.txt" 
+}
+
+function test_final_publish_is_called() {
+    assert_contains "This runs after all other releases have been published." "publish_output.txt" 
+}
+
+function test_bar_version_did_not_update() {
+  assert_contains "0.0.0" "VERSION_bar.txt" 
+}
+
+function test_bar_changelog_contains_new_version() {
+  assert_not_contains "0.0.0" "CHANGELOG_bar.md" 
+}
+
+run_suite "workspace test suite"
