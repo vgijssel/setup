@@ -21,3 +21,8 @@ release(
     target = ":foo_files",
     version_file = "VERSION_foo.txt",
 )
+
+release_manager(
+    name = "release_manager",
+    deps = [":foo"],
+)

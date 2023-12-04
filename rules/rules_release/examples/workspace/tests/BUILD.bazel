@@ -10,4 +10,14 @@ sh_test(
     srcs = [
         "test.sh",
     ],
+    args = [
+        "$(location //:release_manager.generate)",
+        "$(location //:release_manager.publish)",
+        "$(location //:release_manager.version)",
+    ],
+    data = [
+        "//:release_manager.generate",
+        "//:release_manager.publish",
+        "//:release_manager.version",
+    ],
 )

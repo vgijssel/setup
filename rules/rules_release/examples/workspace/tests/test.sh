@@ -1,1 +1,3 @@
+echo $@
+
 exit 0
