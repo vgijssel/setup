@@ -10,10 +10,7 @@ infrastructure/kubernetes_config.yaml
 infrastructure/stacks/provisioner/Pulumi.dev.yaml
 
 # For Bazel
-bazel-bin
-bazel-out
-bazel-setup
-bazel-testlogs
+bazel-*
 cache
 
 # Entries below this point are managed by Please (DO NOT EDIT)
