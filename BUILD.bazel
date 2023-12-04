@@ -229,7 +229,6 @@ task(
 
 release_manager(
     name = "release_manager",
-    bazel_diff_args = "--fineGrainedHashExternalRepos=rules_release,rules_task",
     publish_cmds = [
         ":push_git_changes",
     ],
