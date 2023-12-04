@@ -1,6 +1,23 @@
+load("@rules_release//release:defs.bzl", "release", "release_manager")
+
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "all_files",
     srcs = ["//tests:all_files"] + glob(["**/*"]),
+)
+
+filegroup(
+    name = "foo_files",
+    srcs = [
+        "foo.txt",
+    ],
+)
+
+release(
+    name = "foo",
+    changelog_file = "CHANGELOG_foo.md",
+    release_name = "foo",
+    target = ":foo_files",
+    version_file = "VERSION_foo.txt",
 )
