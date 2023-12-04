@@ -1,5 +1,5 @@
 load("//release:defs.bzl", "release")
-load("@rules_task//task:defs.bzl", "cmd", "task")
+load("@rules_task//task:defs.bzl", "task")
 
 def bazel_diff_release(**kwargs):
     name = kwargs.get("name")

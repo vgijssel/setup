@@ -58,13 +58,15 @@ export default class ChangesetRepository {
   async updateVersions() {
     await this._ensureChangesetDir();
 
+    // NOTE: this is necessary so changesets find the changelog module like "@changesets/changelog-github"
+    // inside of .changeset/config.json.
     const nodeModulesPath = path.join(
       process.env.JS_BINARY__RUNFILES,
       process.env.WORKSPACE_NAME,
+      "release",
       "node_modules"
     );
     process.env.NODE_PATH = nodeModulesPath;
-
     process.env.WORKSPACE_DIR = this.workspaceDir;
 
     await $`${this.changesetBinaryPath} version`;
