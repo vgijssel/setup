@@ -11,7 +11,7 @@ actions:
           - "*"
     bazel_commands:
       - bazel run //:setup_ci
-      - bazel test --keep_going //... @rules_task//... --config buildbuddy --config buildbuddy_rbe
+      - bazel test --keep_going //... @rules_task//... @rules_release//... --config buildbuddy --config buildbuddy_rbe
 
   - name: "Release all targets"
     user: buildbuddy
