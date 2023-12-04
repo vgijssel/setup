@@ -59,16 +59,10 @@ load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
 
 npm_translate_lock(
     name = "npm",
-    pnpm_lock = "@rules_release//:pnpm-lock.yaml",
+    pnpm_lock = "@rules_release//release:pnpm-lock.yaml",
     verify_node_modules_ignored = "@rules_release//:.bazelignore",
 )
 
 load("@npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
-
-# load("@rules_release//release:repositories.bzl", "rules_release_dependencies", "rules_release_dependency_setup")
-
-# rules_release_dependencies()
-
-# rules_release_dependency_setup()
