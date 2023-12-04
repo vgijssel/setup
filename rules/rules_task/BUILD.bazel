@@ -1,4 +1,5 @@
-load("@rules_release//release:defs.bzl", "publish_github_release", "release")
+load("@rules_release//release:defs.bzl", "release")
+load("@rules_release//tools:defs.bzl", "publish_github_release")
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
 load("//task:defs.bzl", "cmd")
 load("//tools:defs.bzl", "compile_pip_requirements")
