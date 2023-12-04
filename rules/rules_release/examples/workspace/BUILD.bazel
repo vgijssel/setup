@@ -9,9 +9,7 @@ filegroup(
 
 filegroup(
     name = "foo_files",
-    srcs = [
-        "foo.txt",
-    ],
+    srcs = glob(["**/*.foo"]),
 )
 
 release(

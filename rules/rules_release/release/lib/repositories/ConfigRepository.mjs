@@ -2,7 +2,7 @@ import { path } from "zx";
 
 export default class ConfigRepository {
   workspaceDir() {
-    return process.env.BUILD_WORKSPACE_DIRECTORY;
+    return process.env.BUILD_WORKSPACE_DIRECTORY || process.cwd();
   }
 
   tmpDir() {
