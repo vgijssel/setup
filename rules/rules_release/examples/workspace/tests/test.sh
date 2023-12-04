@@ -22,5 +22,3 @@ convert_to_actual_file VERSION_bar.txt
 $GENERATE
 $VERSION
 $PUBLISH
-
-exit 1

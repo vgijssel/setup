@@ -12,8 +12,8 @@ sh_test(
     ],
     args = [
         "$(location //:release_manager.generate)",
-        "$(location //:release_manager.publish)",
         "$(location //:release_manager.version)",
+        "$(location //:release_manager.publish)",
     ],
     data = [
         # We need to include all files because the release manager currently assumes the
