@@ -8,13 +8,15 @@ load(
 
 # if the tests are executed from setup repository then the path is ../../../rules_release~override
 # if it's executed from the rules_release repository then the path is ../../
-repository_path = "../../" if repository_name() == "@" else "../../../rules_release~override"
+rules_release_repository_path = "../../" if repository_name() == "@" else "../../../rules_release~override"
+
+rules_task_repository_path = "../../../rules_task~override"
 
 default_test_runner(
     name = "workspace_test_runner",
     bazel_cmds = [
         "info",
-        "test --override_repository=rules_release={} //...".format(repository_path),
+        "test --override_repository=rules_release={} --override_repository=rules_task={} //...".format(rules_release_repository_path, rules_task_repository_path),
     ],
 )
 
@@ -28,6 +30,7 @@ bazel_integration_test(
     workspace_files = [
         "@examples_workspace//:all_files",
         "//:all_files",
+        "@rules_task//:all_files",
     ],
     workspace_path = "workspace",
 )
