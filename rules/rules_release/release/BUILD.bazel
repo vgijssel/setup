@@ -1,10 +1,15 @@
-load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_library")
 
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "all_files",
     srcs = glob(["**/*"]),
+)
+
+js_library(
+    name = "utils",
+    srcs = ["lib/utils.mjs"],
 )
 
 js_binary(
@@ -20,7 +25,7 @@ js_binary(
         "lib/repositories/PublishRepository.mjs",
         "lib/repositories/ReleaseRepository.mjs",
         "lib/repositories/VersionRepository.mjs",
-        "lib/utils.mjs",
+        ":utils",
         "//:node_modules/@changesets/write",
         "//:node_modules/commander",
         "//:node_modules/zx",

@@ -21,6 +21,7 @@ js_binary(
         "lib/repositories/BazelDiffRepository.mjs",
         "//:node_modules/commander",
         "//:node_modules/zx",
+        "//release:utils",
     ],
     entry_point = "bazel-diff-cli.mjs",
 )

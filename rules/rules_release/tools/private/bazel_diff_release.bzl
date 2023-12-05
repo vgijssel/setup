@@ -15,7 +15,7 @@ def _bazel_diff_release_impl(ctx):
     bazel_diff_cli_path = ctx.executable._bazel_diff_cli.short_path
     bazel_diff_path = ctx.executable._bazel_diff.short_path
 
-    args = [bazel_diff_cli_path, "--bazel_diff_path", bazel_diff_path]
+    args = [bazel_diff_cli_path, "--bazel_diff_path", bazel_diff_path, "--previous_revision", ctx.attr.previous_revision, "--final_revision", ctx.attr.final_revision]
 
     if ctx.attr.generate_hashes_extra_args:
         args += ["--generate_hashes_extra_args", " ".join(ctx.attr.generate_hashes_extra_args)]
@@ -50,6 +50,8 @@ _bazel_diff_release = rule(
         "generate_hashes_extra_args": attr.string_list(default = []),
         "get_impacted_targets_extra_args": attr.string_list(default = []),
         "target": attr.label(mandatory = True),
+        "previous_revision": attr.string(mandatory = True),
+        "final_revision": attr.string(mandatory = True),
     },
     executable = True,
 )
@@ -66,6 +68,8 @@ def bazel_diff_release(**kwargs):
         generate_hashes_extra_args = generate_hashes_extra_args,
         get_impacted_targets_extra_args = get_impacted_targets_extra_args,
         target = target,
+        previous_revision = "$(git rev-parse master)",
+        final_revision = "$(git rev-parse HEAD)",
     )
 
     release(change_cmd = change_cmd_name, **kwargs)
