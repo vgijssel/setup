@@ -9,16 +9,16 @@ export default class BazelDiffRepository {
     getImpactedTargetsExtraArgs,
     workspaceDir,
     hashesDir,
-    previousRevision,
-    finalRevision,
+    previousRevisionCmd,
+    finalRevisionCmd,
   }) {
     this.bazelDiffPath = bazelDiffPath;
     this.generateHashesExtraArgs = generateHashesExtraArgs;
     this.getImpactedTargetsExtraArgs = getImpactedTargetsExtraArgs;
     this.workspaceDir = workspaceDir;
     this.hashesDir = hashesDir;
-    this.previousRevision = previousRevision;
-    this.finalRevision = finalRevision;
+    this.previousRevisionCmd = previousRevisionCmd;
+    this.finalRevisionCmd = finalRevisionCmd;
   }
 
   async hasLabelChanged(label) {
@@ -31,8 +31,10 @@ export default class BazelDiffRepository {
       mkdir(this.hashesDir, { recursive: true });
     }
 
-    const previousCommit = this.previousRevision;
-    const currentCommit = this.finalRevision;
+    const previousCommit = await $`${this.previousRevisionCmd}`;
+    const currentCommit = await $`${this.finalRevisionCmd}`;
+
+    console.log(previousCommit, currentCommit);
 
     const previousHashes = await this._generateHashesForSha(
       previousCommit,

@@ -8,16 +8,16 @@ export default class BazelDiffChangeAction {
       generate_hashes_extra_args,
       get_impacted_targets_extra_args,
       bazel_diff_path,
-      previous_revision,
-      final_revision,
+      previous_revision_cmd,
+      final_revision_cmd,
     }
   ) {
     this.label = label;
     this.generate_hashes_extra_args = generate_hashes_extra_args;
     this.get_impacted_targets_extra_args = get_impacted_targets_extra_args;
     this.bazel_diff_path = bazel_diff_path;
-    this.previous_revision = previous_revision;
-    this.final_revision = final_revision;
+    this.previous_revision_cmd = previous_revision_cmd;
+    this.final_revision_cmd = final_revision_cmd;
   }
 
   async execute() {
@@ -30,8 +30,8 @@ export default class BazelDiffChangeAction {
       getImpactedTargetsExtraArgs: this.get_impacted_targets_extra_args,
       workspaceDir: workspaceDir,
       hashesDir: hashesDir,
-      previousRevision: this.previous_revision,
-      finalRevision: this.final_revision,
+      previousRevisionCmd: this.previous_revision_cmd,
+      finalRevisionCmd: this.final_revision_cmd,
     });
 
     const hasLabelChanged = await bazelDiffRepository.hasLabelChanged(

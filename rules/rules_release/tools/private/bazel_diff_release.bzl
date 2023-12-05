@@ -14,8 +14,10 @@ def _bazel_diff_release_impl(ctx):
     executable = ctx.actions.declare_file(ctx.label.name)
     bazel_diff_cli_path = ctx.executable._bazel_diff_cli.short_path
     bazel_diff_path = ctx.executable._bazel_diff.short_path
+    previous_revision_path = ctx.executable.previous_revision_cmd.short_path
+    final_revision_path = ctx.executable.final_revision_cmd.short_path
 
-    args = [bazel_diff_cli_path, "--bazel_diff_path", bazel_diff_path, "--previous_revision", ctx.attr.previous_revision, "--final_revision", ctx.attr.final_revision]
+    args = [bazel_diff_cli_path, "--bazel_diff_path", bazel_diff_path, "--previous_revision_cmd", previous_revision_path, "--final_revision_cmd", final_revision_path]
 
     if ctx.attr.generate_hashes_extra_args:
         args += ["--generate_hashes_extra_args", " ".join(ctx.attr.generate_hashes_extra_args)]
@@ -27,10 +29,10 @@ def _bazel_diff_release_impl(ctx):
 
     command = " ".join(args)
 
-    runfiles = ctx.runfiles(files = ctx.files._bazel_diff + ctx.files._bazel_diff_cli)
+    runfiles = ctx.runfiles(files = ctx.files._bazel_diff + ctx.files._bazel_diff_cli + ctx.files.previous_revision_cmd + ctx.files.final_revision_cmd)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
-        for d in ([ctx.attr._bazel_diff] + [ctx.attr._bazel_diff_cli])
+        for d in ([ctx.attr._bazel_diff] + [ctx.attr._bazel_diff_cli] + [ctx.attr.previous_revision_cmd] + [ctx.attr.final_revision_cmd])
     ])
 
     ctx.actions.write(
@@ -50,8 +52,8 @@ _bazel_diff_release = rule(
         "generate_hashes_extra_args": attr.string_list(default = []),
         "get_impacted_targets_extra_args": attr.string_list(default = []),
         "target": attr.label(mandatory = True),
-        "previous_revision": attr.string(mandatory = True),
-        "final_revision": attr.string(mandatory = True),
+        "previous_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
+        "final_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
     },
     executable = True,
 )
@@ -59,17 +61,35 @@ _bazel_diff_release = rule(
 def bazel_diff_release(**kwargs):
     name = kwargs.get("name")
     change_cmd_name = "{}.change_cmd".format(name)
+    previous_revision_cmd_name = "{}.previous_revision_cmd".format(name)
+    final_revision_cmd_name = "{}.final_revision_cmd".format(name)
     target = kwargs.pop("target")
     generate_hashes_extra_args = kwargs.pop("generate_hashes_extra_args", [])
     get_impacted_targets_extra_args = kwargs.pop("get_impacted_targets_extra_args", [])
+
+    task(
+        name = previous_revision_cmd_name,
+        cmds = [
+            "git rev-parse master",
+        ],
+        cwd = "$BUILD_WORKSPACE_DIRECTORY",
+    )
+
+    task(
+        name = final_revision_cmd_name,
+        cmds = [
+            "git rev-parse HEAD",
+        ],
+        cwd = "$BUILD_WORKSPACE_DIRECTORY",
+    )
 
     _bazel_diff_release(
         name = change_cmd_name,
         generate_hashes_extra_args = generate_hashes_extra_args,
         get_impacted_targets_extra_args = get_impacted_targets_extra_args,
         target = target,
-        previous_revision = "$(git rev-parse master)",
-        final_revision = "$(git rev-parse HEAD)",
+        previous_revision_cmd = previous_revision_cmd_name,
+        final_revision_cmd = final_revision_cmd_name,
     )
 
     release(change_cmd = change_cmd_name, **kwargs)
