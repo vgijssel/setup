@@ -33,7 +33,10 @@ export default class BazelDiffChangeAction {
       previousRevision: this.previous_revision,
       finalRevision: this.final_revision,
     });
-    const impactedTargets = await bazelDiffRepository.getImpactedTargets();
-    console.log(impactedTargets);
+
+    const hasLabelChanged = await bazelDiffRepository.hasLabelChanged(
+      this.label
+    );
+    console.log(hasLabelChanged);
   }
 }

@@ -21,7 +21,12 @@ export default class BazelDiffRepository {
     this.finalRevision = finalRevision;
   }
 
-  async getImpactedTargets() {
+  async hasLabelChanged(label) {
+    const impactedTargets = await this._getImpactedTargets();
+    return impactedTargets.includes(label);
+  }
+
+  async _getImpactedTargets() {
     if (!(await fileExists(this.hashesDir))) {
       mkdir(this.hashesDir, { recursive: true });
     }
