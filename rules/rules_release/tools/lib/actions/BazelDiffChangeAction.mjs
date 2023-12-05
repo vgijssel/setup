@@ -5,19 +5,19 @@ export default class BazelDiffChangeAction {
   constructor(
     label,
     {
-      generate_hashes_extra_args,
-      get_impacted_targets_extra_args,
-      bazel_diff_path,
-      previous_revision_cmd,
-      final_revision_cmd,
+      generateHashesExtraArgs,
+      getImpactedTargetsExtraArgs,
+      bazelDiffPath,
+      previousRevisionCmd,
+      finalRevisionCmd,
     }
   ) {
     this.label = label;
-    this.generate_hashes_extra_args = generate_hashes_extra_args;
-    this.get_impacted_targets_extra_args = get_impacted_targets_extra_args;
-    this.bazel_diff_path = bazel_diff_path;
-    this.previous_revision_cmd = previous_revision_cmd;
-    this.final_revision_cmd = final_revision_cmd;
+    this.generateHashesExtraArgs = generateHashesExtraArgs;
+    this.getImpactedTargetsExtraArgs = getImpactedTargetsExtraArgs;
+    this.bazelDiffPath = bazelDiffPath;
+    this.previousRevisionCmd = previousRevisionCmd;
+    this.finalRevisionCmd = finalRevisionCmd;
   }
 
   async execute() {
@@ -25,13 +25,13 @@ export default class BazelDiffChangeAction {
     const hashesDir = path.join(workspaceDir, "tmp", "bazel-diff-hashes");
 
     const bazelDiffRepository = new BazelDiffRepository({
-      bazelDiffPath: this.bazel_diff_path,
-      generateHashesExtraArgs: this.generate_hashes_extra_args,
-      getImpactedTargetsExtraArgs: this.get_impacted_targets_extra_args,
+      bazelDiffPath: this.bazelDiffPath,
+      generateHashesExtraArgs: this.generateHashesExtraArgs,
+      getImpactedTargetsExtraArgs: this.getImpactedTargetsExtraArgs,
       workspaceDir: workspaceDir,
       hashesDir: hashesDir,
-      previousRevisionCmd: this.previous_revision_cmd,
-      finalRevisionCmd: this.final_revision_cmd,
+      previousRevisionCmd: this.previousRevisionCmd,
+      finalRevisionCmd: this.finalRevisionCmd,
     });
 
     const hasLabelChanged = await bazelDiffRepository.hasLabelChanged(

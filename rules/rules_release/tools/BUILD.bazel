@@ -15,7 +15,7 @@ java_binary(
 )
 
 js_binary(
-    name = "bazel-diff-cli",
+    name = "bazel-diff-change-cli",
     data = [
         "lib/actions/BazelDiffChangeAction.mjs",
         "lib/repositories/BazelDiffRepository.mjs",
@@ -23,5 +23,5 @@ js_binary(
         "//:node_modules/zx",
         "//release:utils",
     ],
-    entry_point = "bazel-diff-cli.mjs",
+    entry_point = "bazel-diff-change-cli.mjs",
 )

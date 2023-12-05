@@ -17,13 +17,13 @@ def _bazel_diff_release_impl(ctx):
     previous_revision_path = ctx.executable.previous_revision_cmd.short_path
     final_revision_path = ctx.executable.final_revision_cmd.short_path
 
-    args = [bazel_diff_cli_path, "--bazel_diff_path", bazel_diff_path, "--previous_revision_cmd", previous_revision_path, "--final_revision_cmd", final_revision_path]
+    args = [bazel_diff_cli_path, "--bazel-diff-path", bazel_diff_path, "--previous-revision-cmd", previous_revision_path, "--final-revision-cmd", final_revision_path]
 
     if ctx.attr.generate_hashes_extra_args:
-        args += ["--generate_hashes_extra_args", " ".join(ctx.attr.generate_hashes_extra_args)]
+        args += ["--generate-hashes-extra-args", " ".join(ctx.attr.generate_hashes_extra_args)]
 
     if ctx.attr.get_impacted_targets_extra_args:
-        args += ["--get_impacted_targets_extra_args", " ".join(ctx.attr.get_impacted_targets_extra_args)]
+        args += ["--get-impacted-targets-extra-args", " ".join(ctx.attr.get_impacted_targets_extra_args)]
 
     args.append(_to_label_string(ctx.attr.target.label))
 
@@ -48,7 +48,7 @@ _bazel_diff_release = rule(
     implementation = _bazel_diff_release_impl,
     attrs = {
         "_bazel_diff": attr.label(executable = True, cfg = "target", default = Label("//tools:bazel-diff")),
-        "_bazel_diff_cli": attr.label(executable = True, cfg = "target", default = Label("//tools:bazel-diff-cli")),
+        "_bazel_diff_cli": attr.label(executable = True, cfg = "target", default = Label("//tools:bazel-diff-change-cli")),
         "generate_hashes_extra_args": attr.string_list(default = []),
         "get_impacted_targets_extra_args": attr.string_list(default = []),
         "target": attr.label(mandatory = True),
