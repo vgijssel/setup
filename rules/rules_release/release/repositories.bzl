@@ -1,4 +1,5 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive", _http_jar = "http_jar")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 # Copied from https://groups.google.com/g/bazel-discuss/c/xpsg3mWQPZg
 def _starlarkified_local_repository_impl(repository_ctx):
@@ -18,6 +19,65 @@ starlarkified_local_repository = repository_rule(
         "path": attr.string(mandatory = True),
     },
 )
+
+def http_archive(**kwargs):
+    maybe(_http_archive, **kwargs)
+
+def http_jar(**kwargs):
+    maybe(_http_jar, **kwargs)
+
+# load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# http_archive(
+#     name = "bazel_skylib",
+#     sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
+#     urls = [
+#         "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+#         "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+#     ],
+# )
+
+# load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+# bazel_skylib_workspace()
+
+def rules_release_bazel_dependencies():
+    http_archive(
+        name = "bazel_features",
+        sha256 = "62c26e427e5cbc751024446927622e398a9dcdf32c64325238815709d11c11a8",
+        strip_prefix = "bazel_features-1.1.1",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.1.1/bazel_features-v1.1.1.tar.gz",
+    )
+
+    http_archive(
+        name = "bazel_skylib",
+        sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+        ],
+    )
+
+    http_archive(
+        name = "aspect_bazel_lib",
+        sha256 = "4b32cf6feab38b887941db022020eea5a49b848e11e3d6d4d18433594951717a",
+        strip_prefix = "bazel-lib-2.0.1",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.0.1/bazel-lib-v2.0.1.tar.gz",
+    )
+
+    http_archive(
+        name = "aspect_rules_js",
+        sha256 = "76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643",
+        strip_prefix = "rules_js-1.34.1",
+        url = "https://github.com/aspect-build/rules_js/releases/download/v1.34.1/rules_js-v1.34.1.tar.gz",
+    )
+
+    http_archive(
+        name = "rules_python",
+        sha256 = "94750828b18044533e98a129003b6a68001204038dc4749f40b195b24c38f49f",
+        strip_prefix = "rules_python-0.21.0",
+        url = "https://github.com/bazelbuild/rules_python/releases/download/0.21.0/rules_python-0.21.0.tar.gz",
+    )
 
 def rules_release_dependencies():
     http_jar(
