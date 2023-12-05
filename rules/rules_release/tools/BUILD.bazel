@@ -23,5 +23,5 @@ js_binary(
         "//:node_modules/zx",
         "//release:utils",
     ],
-    entry_point = "bazel-diff-change-cli.mjs",
+    entry_point = "@rules_release//tools:bazel-diff-change-cli.mjs",
 )
