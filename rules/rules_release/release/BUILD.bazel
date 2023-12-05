@@ -1,4 +1,3 @@
-load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
 
 package(default_visibility = ["//visibility:public"])
@@ -7,8 +6,6 @@ filegroup(
     name = "all_files",
     srcs = glob(["**/*"]),
 )
-
-npm_link_all_packages()
 
 js_binary(
     name = "cli",
@@ -24,9 +21,9 @@ js_binary(
         "lib/repositories/ReleaseRepository.mjs",
         "lib/repositories/VersionRepository.mjs",
         "lib/utils.mjs",
-        "//release:node_modules/@changesets/write",
-        "//release:node_modules/commander",
-        "//release:node_modules/zx",
+        "//:node_modules/@changesets/write",
+        "//:node_modules/commander",
+        "//:node_modules/zx",
     ],
     entry_point = "cli.mjs",
     env = {
@@ -37,9 +34,9 @@ js_binary(
 js_binary(
     name = "changesets_cli",
     data = [
-        "//release:node_modules/@changesets/changelog-github",
-        "//release:node_modules/@changesets/cli",
-        "//release:node_modules/zx",
+        "//:node_modules/@changesets/changelog-github",
+        "//:node_modules/@changesets/cli",
+        "//:node_modules/zx",
     ],
     entry_point = "changesets_cli.mjs",
 )

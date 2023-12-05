@@ -15,10 +15,10 @@ java_binary(
 )
 
 js_binary(
-    name = "bazel-diff_cli",
+    name = "bazel-diff-cli",
     data = [
-        "//release:node_modules/commander",
-        # "//release:node_modules/zx",
+        "//:node_modules/commander",
+        # "//:node_modules/zx",
     ],
-    entry_point = "bazel-diff_cli.mjs",
+    entry_point = "bazel-diff-cli.mjs",
 )

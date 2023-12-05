@@ -1,6 +1,9 @@
 load("@rules_task//task:defs.bzl", "cmd")
 load("//tools:defs.bzl", "publish_github_release", release = "bazel_diff_release")
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages()
 
 package(default_visibility = ["//visibility:public"])
 
