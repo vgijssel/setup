@@ -1,11 +1,11 @@
 local_repository(
     name = "rules_task",
-    path = "../../../rules_task",
+    path = "../rules_task~override",
 )
 
 local_repository(
     name = "rules_release",
-    path = "../..",
+    path = "../rules_release~override",
 )
 
 load("@rules_release//release:repositories.bzl", "rules_release_bazel_dependencies", "rules_release_dependencies")
