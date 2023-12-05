@@ -63,7 +63,6 @@ export default class ChangesetRepository {
     const nodeModulesPath = path.join(
       process.env.JS_BINARY__RUNFILES,
       process.env.WORKSPACE_NAME,
-      "release",
       "node_modules"
     );
     process.env.NODE_PATH = nodeModulesPath;

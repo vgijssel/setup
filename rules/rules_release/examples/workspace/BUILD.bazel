@@ -36,7 +36,6 @@ release(
         ":foo_publish",
     ],
     release_name = "foo",
-    target = ":foo_files",
     version_file = "VERSION_foo.txt",
 )
 
@@ -59,7 +58,6 @@ release(
     change_cmd = ":bar_not_changed",
     changelog_file = "CHANGELOG_bar.md",
     release_name = "bar",
-    target = ":bar_files",
     version_file = "VERSION_bar.txt",
 )
 
