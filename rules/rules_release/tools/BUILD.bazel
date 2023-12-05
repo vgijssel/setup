@@ -17,8 +17,10 @@ java_binary(
 js_binary(
     name = "bazel-diff-cli",
     data = [
+        "lib/actions/BazelDiffChangeAction.mjs",
+        "lib/repositories/BazelDiffRepository.mjs",
         "//:node_modules/commander",
-        # "//:node_modules/zx",
+        "//:node_modules/zx",
     ],
     entry_point = "bazel-diff-cli.mjs",
 )

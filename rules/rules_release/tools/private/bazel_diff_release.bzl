@@ -15,7 +15,7 @@ def _bazel_diff_release_impl(ctx):
     bazel_diff_cli_path = ctx.executable._bazel_diff_cli.short_path
     bazel_diff_path = ctx.executable._bazel_diff.short_path
 
-    args = [bazel_diff_cli_path, "--bazel-diff-path", bazel_diff_path]
+    args = [bazel_diff_cli_path, "--bazel_diff_path", bazel_diff_path]
 
     if ctx.attr.generate_hashes_extra_args:
         args += ["--generate_hashes_extra_args", " ".join(ctx.attr.generate_hashes_extra_args)]
