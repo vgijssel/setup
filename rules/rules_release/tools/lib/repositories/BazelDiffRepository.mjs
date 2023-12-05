@@ -80,7 +80,9 @@ export default class BazelDiffRepository {
   }
 
   async _generateImpactedTargets(sha, previousHashes, currentHashes, cache) {
-    const impactedTargetsPath = `${this.hashesDir}/${sha}.impacted_targets.json`;
+    const impactedTargetsPath = `${this.hashesDir}/${sha}-${md5(
+      this.generateHashesExtraArgs
+    )}-${md5(this.getImpactedTargetsExtraArgs)}.impacted_targets.json`;
 
     if (cache && (await fileExists(impactedTargetsPath))) {
       return impactedTargetsPath;
