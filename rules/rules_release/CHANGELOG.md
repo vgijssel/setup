@@ -1,5 +1,19 @@
 # rules_release
 
+## 1.0.0
+
+### Major Changes
+
+- [#612](https://github.com/vgijssel/setup/pull/612) [`3f6eca4`](https://github.com/vgijssel/setup/commit/3f6eca4c03214e021cc333fecd466abea67bd1a3) Thanks [@mvgijssel](https://github.com/mvgijssel)! - BREAKING CHANGE: Extracted bazel-diff from release manager and introduced `bazel_diff_release` rule.
+
+- [#612](https://github.com/vgijssel/setup/pull/612) [`3f6eca4`](https://github.com/vgijssel/setup/commit/3f6eca4c03214e021cc333fecd466abea67bd1a3) Thanks [@mvgijssel](https://github.com/mvgijssel)! - BREAKING CHANGE: Move `bazel_diff_release` and `publish_github_release` from release/defs.bzl to tools/defs.bzl.
+
+### Patch Changes
+
+- [#612](https://github.com/vgijssel/setup/pull/612) [`3f6eca4`](https://github.com/vgijssel/setup/commit/3f6eca4c03214e021cc333fecd466abea67bd1a3) Thanks [@mvgijssel](https://github.com/mvgijssel)! - build: Updated release template to include WORKSPACE setup
+
+- [#612](https://github.com/vgijssel/setup/pull/612) [`3f6eca4`](https://github.com/vgijssel/setup/commit/3f6eca4c03214e021cc333fecd466abea67bd1a3) Thanks [@mvgijssel](https://github.com/mvgijssel)! - test: Add integration test for a WORKSPACE setup
+
 ## 0.1.0
 
 ### Minor Changes
