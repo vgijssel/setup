@@ -34,8 +34,6 @@ export default class BazelDiffRepository {
     const previousCommit = await $`${this.previousRevisionCmd}`;
     const currentCommit = await $`${this.finalRevisionCmd}`;
 
-    console.log(previousCommit, currentCommit);
-
     const previousHashes = await this._generateHashesForSha(
       previousCommit,
       true
@@ -67,7 +65,7 @@ export default class BazelDiffRepository {
     }
 
     const currentBranch =
-      await $`git --work-tree=${this.workspaceDir} rev-parse --abbrev-ref HEAD`;
+      await $`git -C ${this.workspaceDir} rev-parse --abbrev-ref HEAD`;
 
     try {
       await this._checkoutSha(sha);
@@ -95,6 +93,6 @@ export default class BazelDiffRepository {
   }
 
   async _checkoutSha(sha) {
-    return await $`git --work-tree=${this.workspaceDir} checkout ${sha}`;
+    return await $`git -C ${this.workspaceDir} checkout ${sha}`;
   }
 }
