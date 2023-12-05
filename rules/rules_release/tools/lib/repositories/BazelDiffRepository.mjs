@@ -1,6 +1,6 @@
 import { mkdir, readFile } from "fs/promises";
 import { $, which } from "zx";
-import { fileExists } from "../../../release/lib/utils.mjs";
+import { fileExists, md5 } from "../../../release/lib/utils.mjs";
 
 export default class BazelDiffRepository {
   constructor({
@@ -39,16 +39,13 @@ export default class BazelDiffRepository {
       true
     );
 
-    const currentHashes = await this._generateHashesForSha(
-      currentCommit,
-      false
-    );
+    const currentHashes = await this._generateHashesForSha(currentCommit, true);
 
     const impactedTargets = await this._generateImpactedTargets(
       currentCommit,
       previousHashes,
       currentHashes,
-      false
+      true
     );
 
     const data = await readFile(impactedTargets, "utf8");
@@ -57,7 +54,9 @@ export default class BazelDiffRepository {
   }
 
   async _generateHashesForSha(sha, cache) {
-    const hashesFile = `${this.hashesDir}/${sha}.json`;
+    const hashesFile = `${this.hashesDir}/${sha}-${md5(
+      this.generateHashesExtraArgs
+    )}.json`;
     const bazelPath = await which("bazel");
 
     if (cache && (await fileExists(hashesFile))) {
