@@ -18,10 +18,15 @@ export default class ReleaseRepository {
     for (const release of releases) {
       const hasChanged = await $`${release.change_cmd}`;
 
-      if (
-        hasChanged.exitCode === 0 &&
-        hasChanged.stdout.trim().toLowerCase() === "true"
-      ) {
+      const output = hasChanged.stdout.trim().toLowerCase();
+
+      if (output !== "true" && output !== "false") {
+        throw new Error(
+          `Change command ${release.change_cmd} for release ${release.name} must return true or false, but returned ${output}`
+        );
+      }
+
+      if (hasChanged.stdout.trim().toLowerCase() === "true") {
         changedReleases.push(release);
       }
     }
