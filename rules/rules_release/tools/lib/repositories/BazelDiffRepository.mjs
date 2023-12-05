@@ -31,8 +31,8 @@ export default class BazelDiffRepository {
       mkdir(this.hashesDir, { recursive: true });
     }
 
-    const previousCommit = await $`${this.previousRevisionCmd}`;
-    const currentCommit = await $`${this.finalRevisionCmd}`;
+    const previousCommit = (await $`${this.previousRevisionCmd}`).stdout.trim();
+    const currentCommit = (await $`${this.finalRevisionCmd}`).stdout.trim();
 
     const previousHashes = await this._generateHashesForSha(
       previousCommit,
