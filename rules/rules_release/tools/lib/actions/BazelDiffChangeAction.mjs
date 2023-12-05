@@ -1,4 +1,5 @@
 import BazelDiffRepository from "../repositories/BazelDiffRepository.mjs";
+import { path } from "zx";
 
 export default class BazelDiffChangeAction {
   constructor(
@@ -20,12 +21,15 @@ export default class BazelDiffChangeAction {
   }
 
   async execute() {
+    const workspaceDir = process.env.BUILD_WORKSPACE_DIRECTORY || process.cwd();
+    const hashesDir = path.join(workspaceDir, "tmp", "bazel-diff-hashes");
+
     const bazelDiffRepository = new BazelDiffRepository({
       bazelDiffPath: this.bazel_diff_path,
       generateHashesExtraArgs: this.generate_hashes_extra_args,
       getImpactedTargetsExtraArgs: this.get_impacted_targets_extra_args,
-      workspaceDir: process.env.BUILD_WORKSPACE_DIRECTORY || process.cwd(),
-      hashesDir: "bazel_diff_hashes",
+      workspaceDir: workspaceDir,
+      hashesDir: hashesDir,
       previousRevision: this.previous_revision,
       finalRevision: this.final_revision,
     });
