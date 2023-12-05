@@ -24,7 +24,7 @@ export default class BazelDiffChangeAction {
       bazelDiffPath: this.bazel_diff_path,
       generateHashesExtraArgs: this.generate_hashes_extra_args,
       getImpactedTargetsExtraArgs: this.get_impacted_targets_extra_args,
-      workspaceDir: process.cwd(),
+      workspaceDir: process.env.BUILD_WORKSPACE_DIRECTORY || process.cwd(),
       hashesDir: "bazel_diff_hashes",
       previousRevision: this.previous_revision,
       finalRevision: this.final_revision,
