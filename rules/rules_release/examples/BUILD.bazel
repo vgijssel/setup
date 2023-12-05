@@ -1,0 +1,36 @@
+load("@bazel_binaries//:defs.bzl", "bazel_binaries")
+load(
+    "@rules_bazel_integration_test//bazel_integration_test:defs.bzl",
+    "bazel_integration_test",
+    "default_test_runner",
+    "integration_test_utils",
+)
+
+# if the tests are executed from setup repository then the path is ../../../rules_release~override
+# if it's executed from the rules_release repository then the path is ../../
+rules_release_repository_path = "../../" if repository_name() == "@" else "../rules_release~override"
+
+rules_task_repository_path = "../rules_task~override"
+
+default_test_runner(
+    name = "workspace_test_runner",
+    bazel_cmds = [
+        "info --override_repository=rules_release={} --override_repository=rules_task={}".format(rules_release_repository_path, rules_task_repository_path),
+        "test --override_repository=rules_release={} --override_repository=rules_task={} //...".format(rules_release_repository_path, rules_task_repository_path),
+    ],
+)
+
+integration_test_tags = [tag for tag in integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS if tag != "manual"]
+
+bazel_integration_test(
+    name = "workspace_test",
+    bazel_version = bazel_binaries.versions.current,
+    tags = integration_test_tags,
+    test_runner = ":workspace_test_runner",
+    workspace_files = [
+        "@examples_workspace//:all_files",
+        "//:all_files",
+        "@rules_task//:all_files",
+    ],
+    workspace_path = "workspace",
+)

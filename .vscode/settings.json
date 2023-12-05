@@ -17,5 +17,8 @@
   },
   "python.formatting.provider": "none",
   "devbox.autoShellOnTerminal": true,
-  "nix.enableLanguageServer": false
+  "nix.enableLanguageServer": false,
+  "files.exclude": {
+    "**/bazel-*": true
+  }
 }

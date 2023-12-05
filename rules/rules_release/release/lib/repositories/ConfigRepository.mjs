@@ -2,7 +2,7 @@ import { path } from "zx";
 
 export default class ConfigRepository {
   workspaceDir() {
-    return process.env.BUILD_WORKSPACE_DIRECTORY;
+    return process.env.BUILD_WORKSPACE_DIRECTORY || process.cwd();
   }
 
   tmpDir() {
@@ -19,9 +19,5 @@ export default class ConfigRepository {
 
   packagesDir() {
     return path.join(this.rulesReleaseDir(), "packages");
-  }
-
-  hashesDir() {
-    return path.join(this.rulesReleaseDir(), "bazel_diff_hashes");
   }
 }

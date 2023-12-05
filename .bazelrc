@@ -8,8 +8,8 @@ build --java_runtime_version=remotejdk_11
 build:quiet --ui_event_filters=-info --noshow_progress
 query:quiet --ui_event_filters=-info --noshow_progress
 
-# Move the bazel symlinks outside of the project root to avoid the symlinks appearing in the volume mount
-build --symlink_prefix=/tmp/bazel-setup-
+# Disable the bazel symlinks
+common --experimental_convenience_symlinks=ignore
 
 # Print warning messages about test suite being configured as too small/big
 test --test_verbose_timeout_warnings

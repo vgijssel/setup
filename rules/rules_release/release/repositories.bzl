@@ -1,0 +1,137 @@
+load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive", _http_jar = "http_jar")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+
+# Copied from https://groups.google.com/g/bazel-discuss/c/xpsg3mWQPZg
+def _starlarkified_local_repository_impl(repository_ctx):
+    relative_path = repository_ctx.attr.path
+    workspace_root = repository_ctx.path(repository_ctx.attr._root_file).dirname
+
+    absolute_path = workspace_root
+    for segment in relative_path.split("/"):
+        absolute_path = absolute_path.get_child(segment)
+
+    repository_ctx.symlink(absolute_path, ".")
+
+starlarkified_local_repository = repository_rule(
+    implementation = _starlarkified_local_repository_impl,
+    attrs = {
+        "_root_file": attr.label(default = Label("//:MODULE.bazel")),
+        "path": attr.string(mandatory = True),
+    },
+)
+
+def http_archive(**kwargs):
+    maybe(_http_archive, **kwargs)
+
+def http_jar(**kwargs):
+    maybe(_http_jar, **kwargs)
+
+# load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# http_archive(
+#     name = "bazel_skylib",
+#     sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
+#     urls = [
+#         "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+#         "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+#     ],
+# )
+
+# load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+# bazel_skylib_workspace()
+
+def rules_release_bazel_dependencies():
+    http_archive(
+        name = "bazel_features",
+        sha256 = "62c26e427e5cbc751024446927622e398a9dcdf32c64325238815709d11c11a8",
+        strip_prefix = "bazel_features-1.1.1",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.1.1/bazel_features-v1.1.1.tar.gz",
+    )
+
+    http_archive(
+        name = "bazel_skylib",
+        sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+        ],
+    )
+
+    http_archive(
+        name = "aspect_bazel_lib",
+        sha256 = "4b32cf6feab38b887941db022020eea5a49b848e11e3d6d4d18433594951717a",
+        strip_prefix = "bazel-lib-2.0.1",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.0.1/bazel-lib-v2.0.1.tar.gz",
+    )
+
+    http_archive(
+        name = "aspect_rules_js",
+        sha256 = "76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643",
+        strip_prefix = "rules_js-1.34.1",
+        url = "https://github.com/aspect-build/rules_js/releases/download/v1.34.1/rules_js-v1.34.1.tar.gz",
+    )
+
+    http_archive(
+        name = "rules_python",
+        sha256 = "94750828b18044533e98a129003b6a68001204038dc4749f40b195b24c38f49f",
+        strip_prefix = "rules_python-0.21.0",
+        url = "https://github.com/bazelbuild/rules_python/releases/download/0.21.0/rules_python-0.21.0.tar.gz",
+    )
+
+def rules_release_dependencies():
+    http_jar(
+        name = "bazel_diff",
+        sha256 = "7943790f690ad5115493da8495372c89f7895b09334cb4fee5174a8f213654dd",
+        urls = [
+            "https://github.com/Tinder/bazel-diff/releases/download/5.0.0/bazel-diff_deploy.jar",
+        ],
+    )
+
+    http_archive(
+        name = "github_cli_linux_arm64",
+        build_file = "//tools/github_cli:BUILD.repositories.bazel.tpl",
+        sha256 = "e29e51efae58693cab394b983771bc0c73b400e429dd1d7339fc62c8b257c74a",
+        url = "https://github.com/cli/cli/releases/download/v2.39.1/gh_2.39.1_linux_arm64.tar.gz",
+    )
+
+    http_archive(
+        name = "github_cli_linux_amd64",
+        build_file = "//tools/github_cli:BUILD.repositories.bazel.tpl",
+        sha256 = "18a1bc97eb72305ff20e965d3c67aee7e1ac607fabc6251c7374226d8c41422b",
+        url = "https://github.com/cli/cli/releases/download/v2.39.1/gh_2.39.1_linux_amd64.tar.gz",
+    )
+
+    http_archive(
+        name = "github_cli_darwin_arm64",
+        build_file = "//tools/github_cli:BUILD.repositories.bazel.tpl",
+        sha256 = "f854225778b7215480c442cd2e3eeec1a56d33876bbbad19daf557c1b00d6913",
+        url = "https://github.com/cli/cli/releases/download/v2.39.1/gh_2.39.1_macOS_arm64.zip",
+    )
+
+    # From https://app-updates.agilebits.com/product_history/CLI2
+    http_archive(
+        name = "onepassword_linux_arm64",
+        build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
+        sha256 = "b93a8e0dc42c0979bb13047ac4412bd73092be57bb84ad223eeca295151159fa",
+        url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_arm64_v2.18.0.zip",
+    )
+
+    http_archive(
+        name = "onepassword_linux_amd64",
+        build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
+        sha256 = "2baf610b476727f24c62cc843419f55b157e1a05521a698c1c8b4ed676a766aa",
+        url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_amd64_v2.18.0.zip",
+    )
+
+    http_archive(
+        name = "onepassword_darwin_arm64",
+        build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
+        sha256 = "b9ae52df3003216b454f6ac0a402c71bcfb4804eafb3ee3593a84a2002930d27",
+        url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.22.0/op_darwin_arm64_v2.22.0.zip",
+    )
+
+    starlarkified_local_repository(
+        name = "examples_workspace",
+        path = "examples/workspace",
+    )

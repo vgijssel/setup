@@ -1,0 +1,25 @@
+#### Specificy for this particular repository
+local_repository(
+    name = "rules_task",
+    path = "../../../rules_task",
+)
+
+local_repository(
+    name = "rules_release",
+    path = "../../../rules_release",
+)
+
+#### Generic for each workspace file
+load("@rules_release//release:repositories.bzl", "rules_release_bazel_dependencies", "rules_release_dependencies")
+
+rules_release_bazel_dependencies()
+
+rules_release_dependencies()
+
+load("@rules_release//release:repository_primary_deps.bzl", "install_primary_deps")
+
+install_primary_deps()
+
+load("@rules_release//release:repository_secondary_deps.bzl", "install_secondary_deps")
+
+install_secondary_deps()

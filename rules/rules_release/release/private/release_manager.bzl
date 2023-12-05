@@ -31,20 +31,14 @@ def _common(ctx, extra_args, extra_runfiles = []):
 
 def _generate_impl(ctx):
     extra_args = ["generate"]
-    extra_args = extra_args + ["--bazel-diff-path", ctx.executable._bazel_diff.short_path]
-
-    if ctx.attr.bazel_diff_args:
-        extra_args = extra_args + ["--bazel-diff-args", ctx.attr.bazel_diff_args]
-    extra_runfiles = [ctx.attr._bazel_diff]
+    extra_runfiles = []
     return _common(ctx, extra_args, extra_runfiles)
 
 _generate = rule(
     implementation = _generate_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
-        "_cli": attr.label(executable = True, default = Label("@rules_release//:cli"), cfg = "target"),
-        "_bazel_diff": attr.label(executable = True, default = Label("@rules_release//:bazel-diff"), cfg = "target"),
-        "bazel_diff_args": attr.string(),
+        "_cli": attr.label(executable = True, default = Label("@rules_release//release:cli"), cfg = "target"),
     },
     executable = True,
 )
@@ -59,8 +53,8 @@ _version = rule(
     implementation = _version_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
-        "_cli": attr.label(executable = True, default = Label("@rules_release//:cli"), cfg = "target"),
-        "_changesets_cli": attr.label(executable = True, default = Label("@rules_release//:changesets_cli"), cfg = "target"),
+        "_cli": attr.label(executable = True, default = Label("@rules_release//release:cli"), cfg = "target"),
+        "_changesets_cli": attr.label(executable = True, default = Label("@rules_release//release:changesets_cli"), cfg = "target"),
     },
     executable = True,
 )
@@ -80,13 +74,13 @@ _publish = rule(
     implementation = _publish_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
-        "_cli": attr.label(executable = True, default = Label("@rules_release//:cli"), cfg = "target"),
+        "_cli": attr.label(executable = True, default = Label("@rules_release//release:cli"), cfg = "target"),
         "publish_cmds": attr.label_list(cfg = "target"),
     },
     executable = True,
 )
 
-def release_manager(name, deps, publish_cmds = [], bazel_diff_args = ""):
+def release_manager(name, deps, publish_cmds = [], change_cmd = None):
     generate_name = "{}.generate".format(name)
     version_name = "{}.version".format(name)
     publish_name = "{}.publish".format(name)
@@ -94,7 +88,6 @@ def release_manager(name, deps, publish_cmds = [], bazel_diff_args = ""):
     _generate(
         name = generate_name,
         deps = deps,
-        bazel_diff_args = bazel_diff_args,
     )
 
     _version(

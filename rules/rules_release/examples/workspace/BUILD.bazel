@@ -1,0 +1,80 @@
+load("@rules_release//release:defs.bzl", "release", "release_manager")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_files",
+    srcs = ["//tests:all_files"] + glob(["**/*"]),
+)
+
+sh_binary(
+    name = "foo_changed",
+    srcs = [
+        "foo_changed.sh",
+    ],
+)
+
+sh_binary(
+    name = "foo_publish",
+    srcs = [
+        "foo_publish.sh",
+    ],
+)
+
+filegroup(
+    name = "foo_files",
+    srcs = [
+        "foo.txt",
+    ],
+)
+
+release(
+    name = "foo_release",
+    change_cmd = ":foo_changed",
+    changelog_file = "CHANGELOG_foo.md",
+    publish_cmds = [
+        ":foo_publish",
+    ],
+    release_name = "foo",
+    version_file = "VERSION_foo.txt",
+)
+
+sh_binary(
+    name = "bar_not_changed",
+    srcs = [
+        "bar_not_changed.sh",
+    ],
+)
+
+filegroup(
+    name = "bar_files",
+    srcs = [
+        "bar.txt",
+    ],
+)
+
+release(
+    name = "bar_release",
+    change_cmd = ":bar_not_changed",
+    changelog_file = "CHANGELOG_bar.md",
+    release_name = "bar",
+    version_file = "VERSION_bar.txt",
+)
+
+sh_binary(
+    name = "final_publish",
+    srcs = [
+        "final_publish.sh",
+    ],
+)
+
+release_manager(
+    name = "release_manager",
+    publish_cmds = [
+        ":final_publish",
+    ],
+    deps = [
+        ":bar_release",
+        ":foo_release",
+    ],
+)

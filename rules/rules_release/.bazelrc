@@ -1,1 +1,4 @@
 common --enable_bzlmod=true
+
+# Disable the bazel symlinks
+common --experimental_convenience_symlinks=ignore

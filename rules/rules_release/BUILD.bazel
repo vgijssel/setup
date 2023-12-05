@@ -1,9 +1,9 @@
-load("@npm//:defs.bzl", "npm_link_all_packages")
-load("@aspect_rules_js//js:defs.bzl", "js_binary")
-load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_task//task:defs.bzl", "cmd")
-load("//release:defs.bzl", "publish_github_release", "release")
+load("//tools:defs.bzl", "publish_github_release", release = "bazel_diff_release")
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages()
 
 package(default_visibility = ["//visibility:public"])
 
@@ -37,54 +37,13 @@ config_setting(
     constraint_values = _darwin_arm64,
 )
 
-npm_link_all_packages()
-
-java_binary(
-    name = "bazel-diff",
-    main_class = "com.bazel_diff.Main",
-    runtime_deps = ["@bazel_diff//jar"],
-)
-
-js_binary(
-    name = "cli",
-    data = [
-        "lib/actions/GenerateAction.mjs",
-        "lib/actions/PublishAction.mjs",
-        "lib/actions/VersionAction.mjs",
-        "lib/repositories/ChangelogRepository.mjs",
-        "lib/repositories/ChangesetRepository.mjs",
-        "lib/repositories/ConfigRepository.mjs",
-        "lib/repositories/PackageRepository.mjs",
-        "lib/repositories/PublishRepository.mjs",
-        "lib/repositories/ReleaseRepository.mjs",
-        "lib/repositories/TargetRepository.mjs",
-        "lib/repositories/VersionRepository.mjs",
-        "lib/utils.mjs",
-        "//:node_modules/@changesets/write",
-        "//:node_modules/commander",
-        "//:node_modules/zx",
-    ],
-    entry_point = "cli.mjs",
-    env = {
-        "WORKSPACE_NAME": repository_name().removeprefix("@"),
-    },
-)
-
-js_binary(
-    name = "changesets_cli",
-    data = [
-        "//:node_modules/@changesets/changelog-github",
-        "//:node_modules/@changesets/cli",
-        "//:node_modules/zx",
-    ],
-    entry_point = "changesets_cli.mjs",
-)
-
 filegroup(
     name = "all_files",
     srcs = glob(["**/*"]) + [
         "//release:all_files",
         "//release/private:all_files",
+        "//tools:all_files",
+        "//tools/private:all_files",
     ],
 )
 
@@ -126,6 +85,7 @@ genrule(
         ":release.version_changelog",
         ":release.version",
         ":release_archive",
+        "@examples_workspace//:WORKSPACE",
     ],
     outs = [
         "github_release_template.txt",
@@ -135,6 +95,9 @@ export VERSION="v$$(cat $(location :release.version))"
 export SHA=$$(shasum -a 256 $(location :release_archive) | awk '{print $$1}')
 export PREFIX="rules_release-$${VERSION}"
 export ARCHIVE="rules_release.tar.gz"
+export WORKSPACE_CONTENT=$$(cat $(location @examples_workspace//:WORKSPACE))
+export SEARCH_TARGET_LINE="#### Generic for each workspace file"
+export FILTERED_WORKSPACE_CONTENT=$$(echo "$$WORKSPACE_CONTENT" | sed "1,/$$SEARCH_TARGET_LINE/d")
 
 cat <<EOF > $(OUTS)
 ## Using WORKSPACE:
@@ -147,6 +110,8 @@ http_archive(
     sha256 = "$${SHA}",
     url = "https://github.com/vgijssel/setup/releases/download/$${PREFIX}/$${ARCHIVE}",
 )
+
+$$FILTERED_WORKSPACE_CONTENT
 \\`\\`\\`
 EOF
 
@@ -173,6 +138,7 @@ publish_github_release(
 release(
     name = "release",
     changelog_file = "CHANGELOG.md",
+    generate_hashes_extra_args = ["--fineGrainedHashExternalRepos=rules_release"],
     publish_cmds = [
         ":publish_github_release",
     ],
