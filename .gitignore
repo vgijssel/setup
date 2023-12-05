@@ -51,3 +51,4 @@ node_modules
 __pypackages__
 keys
 nixos.qcow2
+result
