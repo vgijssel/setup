@@ -85,6 +85,7 @@ genrule(
         ":release.version_changelog",
         ":release.version",
         ":release_archive",
+        "@examples_workspace//:WORKSPACE",
     ],
     outs = [
         "github_release_template.txt",
@@ -94,6 +95,9 @@ export VERSION="v$$(cat $(location :release.version))"
 export SHA=$$(shasum -a 256 $(location :release_archive) | awk '{print $$1}')
 export PREFIX="rules_release-$${VERSION}"
 export ARCHIVE="rules_release.tar.gz"
+export WORKSPACE_CONTENT=$$(cat $(location @examples_workspace//:WORKSPACE))
+export SEARCH_TARGET_LINE="#### Generic for each workspace file"
+export FILTERED_WORKSPACE_CONTENT=$$(echo "$$WORKSPACE_CONTENT" | sed "1,/$$SEARCH_TARGET_LINE/d")
 
 cat <<EOF > $(OUTS)
 ## Using WORKSPACE:
@@ -106,6 +110,8 @@ http_archive(
     sha256 = "$${SHA}",
     url = "https://github.com/vgijssel/setup/releases/download/$${PREFIX}/$${ARCHIVE}",
 )
+
+$$FILTERED_WORKSPACE_CONTENT
 \\`\\`\\`
 EOF
 
