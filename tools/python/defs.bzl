@@ -33,10 +33,10 @@ def py_image(name, base, binary, platforms, prefix = ""):
     package_name = native.package_name()
     entrypoint = ["/{}{}/{}".format(prefix, package_name, binary_name)]
 
-    image_name = name
-    image_load_name = "{}.load".format(name)
-    image_python_layer_name = "{}_python_layer".format(name)
-    image_index_name = "{}_index".format(name)
+    image_index_name = name
+    image_name = "{}.image".format(image_index_name)
+    image_load_name = "{}.load".format(image_index_name)
+    image_python_layer_name = "{}_python_layer".format(image_index_name)
     tarball_name = "{}.tarball".format(image_index_name)
 
     repo_tags = [
