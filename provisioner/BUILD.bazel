@@ -25,8 +25,10 @@ pyinfra_run(
         "--data install_monitoring=True",
         "--data install_microk8s=True",
         "--data install_teleport=True",
+        "--data install_bunq2ynab=True",
     ],
     data = [
+        "deploys/bunq2ynab/files/docker-compose.yml.j2",
         "deploys/docker/files/daemon.json",
         "deploys/microk8s/files/cmdline.txt",
         "deploys/monitoring/files/docker-compose.yml.j2",

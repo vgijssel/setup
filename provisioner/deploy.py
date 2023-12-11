@@ -3,6 +3,7 @@ from provisioner.deploys.microk8s.tasks.install_microk8s import install_microk8s
 from provisioner.deploys.teleport.tasks.install_teleport import install_teleport
 from provisioner.deploys.monitoring.tasks.install_monitoring import install_monitoring
 from provisioner.deploys.docker.tasks.install_docker import install_docker
+from provisioner.deploys.bunq2ynab.tasks.install_bunq2ynab import install_bunq2ynab
 from provisioner.utils import wait_for_reconnect
 
 from pyinfra import host
@@ -36,3 +37,6 @@ if host.data.get("install_teleport"):
 
 if host.data.get("install_microk8s"):
     install_microk8s()
+
+if host.data.get("install_bunq2ynab"):
+    install_bunq2ynab()

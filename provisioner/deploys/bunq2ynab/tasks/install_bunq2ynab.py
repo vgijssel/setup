@@ -17,8 +17,9 @@ def install_bunq2ynab():
         _sudo=True,
     )
 
-    # new_relic_license_key = get_item_path("new_relic_license_key.password")
-    # github_exporter_token = get_item_path("github_exporter_token.password")
+    op_service_account_token = get_item_path(
+        "1password_service_account_token.credential"
+    )
 
     docker_compose = files.template(
         name="Copy the docker-compose file",
@@ -28,10 +29,8 @@ def install_bunq2ynab():
         _sudo=True,
         user="root",
         group="root",
-        # github_exporter_token=github_exporter_token,
-        # new_relic_license_key=new_relic_license_key,
+        op_service_account_token=op_service_account_token,
         setup_env=host.data.setup_env,
-        is_arm=host.get_fact(DebArch) == "arm64",
     )
 
     if docker_compose.changed:
