@@ -2,12 +2,15 @@
 # , pkgsLinux ? import <nixpkgs> { system = "x86_64-linux"; }
 # }:
 
+{ targetArch }:
+
 let
-  kerk = import <nixpkgs> { };
+  localPkgs = import <nixpkgs> { };
   # pkgs = nixpkgs.legacyPackages.aarch64-darwin;
   # pkgs = import <nixpkgs> { localSystem = "aarch64-darwin"; crossSystem = "x86_64-linux"; };
-  pkgs = import <nixpkgs> { localSystem = "aarch64-darwin"; };
-  targetPkgs = import <nixpkgs> { system = "x86_64-linux"; };
+  # pkgs = import <nixpkgs> { localSystem = "aarch64-darwin"; };
+  # targetPkgs = import <nixpkgs> { system = "x86_64-linux"; };
+  targetPkgs = import <nixpkgs> { system = targetArch + "-linux"; };
   # targetPkgs = import <nixpkgs> { system = "aarch64-linux"; };
   # pkgs = import <nixpkgs> { };
   # pkgsLinux = import <nixpkgs> { system = "x86_64-linux"; };
@@ -29,18 +32,19 @@ let
   #     };
   #   };
 
-  pythonBase = kerk.dockerTools.buildLayeredImage {
-    name = "myimage";
+  testBaseImage = localPkgs.dockerTools.buildLayeredImage {
+    name = "test_base_image";
     tag = "latest";
     created = "now";
     # architecture = "aarch64";
-    architecture = "x86_64";
+    # architecture = "x86_64";
+    architecture = targetArch;
     maxLayers = 2;
     config = {
       Cmd = [ "${targetPkgs.bashInteractive}/bin/bash" ];
     };
     contents = [
-      # pkgs.busybox
+      targetPkgs.busybox
       targetPkgs.bashInteractive
       # crossPkgs.python310
       # crossPkgs.stdenv.cc.cc.lib
@@ -48,5 +52,8 @@ let
     ];
   };
 in
-pythonBase
+localPkgs.runCommand "testBaseImage" { } ''
+  mkdir -p $out
+  gunzip -c ${testBaseImage} > $out/image.tar.gz
+''
 

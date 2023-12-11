@@ -119,9 +119,13 @@ task(
 
 py_image(
     name = "bunq2ynab_image",
-    base = "@python310_base_image//:image.tar.gz",
+    # base = "@python310_base_image//:image.tar.gz",
+    base_images = {
+        "amd64": "@test_base_image_amd64//:image.tar.gz",
+        "arm64": "@test_base_image_arm64//:image.tar.gz",
+    },
     binary = ":bunq2ynab",
-    host_container_platform = "//:host_container_platform",
+    # host_container_platform = "//:host_container_platform",
     prefix = "opt/",
 )
 
