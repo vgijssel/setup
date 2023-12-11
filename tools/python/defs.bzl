@@ -93,8 +93,9 @@ def py_image(name, base, binary, platforms, prefix = ""):
         cmds = [
             "$REGCTL image import ocidir://{} $TARBALL".format(binary_name),
             "digest=$($REGCTL image digest --platform local ocidir://{})".format(binary_name),
-            "export LOCAL_TARBALL=$TMPDIR/{}.tar".format(binary_name),
+            "export LOCAL_TARBALL=$(pwd)/{}.tar".format(binary_name),
             "$REGCTL image export ocidir://{}@$digest $LOCAL_TARBALL".format(binary_name),
+            {"defer": "rm -f $LOCAL_TARBALL"},
             "docker load < $LOCAL_TARBALL",
         ],
         env = {

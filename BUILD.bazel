@@ -257,3 +257,8 @@ alias(
     name = "regctl",
     actual = "//tools/regctl",
 )
+
+alias(
+    name = "tsh",
+    actual = "//tools/teleport:tsh",
+)
