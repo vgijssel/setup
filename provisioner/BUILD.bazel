@@ -8,6 +8,7 @@ pyinfra_run(
     name = "provision",
     srcs = [
         "connectors/teleport.py",
+        "deploys/bunq2ynab/tasks/install_bunq2ynab.py",
         "deploys/docker/tasks/install_docker.py",
         "deploys/microk8s/tasks/install_microk8s.py",
         "deploys/monitoring/tasks/install_monitoring.py",

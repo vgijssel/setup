@@ -1,0 +1,18 @@
+name: bunq2ynab
+version: '3.8'
+services:
+  github_exporter:
+    container_name: bunq2ynab
+    image: ghcr.io/vgijssel/setup/bunq2ynab:0.1.0
+    restart: always
+    environment:
+      - OP_SERVICE_ACCOUNT_TOKEN={{ op_service_account_token }}
+      - SETUP_ENV={{ setup_env }}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5' 
+          memory: '256M' 
+    labels:
+      containerName: "bunq2ynab"
+      env: "{{ setup_env }}"
