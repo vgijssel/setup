@@ -119,13 +119,12 @@ task(
 
 py_image(
     name = "bunq2ynab_image",
-    # base = "@python310_base_image//:image.tar.gz",
-    base_images = {
-        "amd64": "@test_base_image_amd64//:image.tar.gz",
-        "arm64": "@test_base_image_arm64//:image.tar.gz",
-    },
+    base = "//tools/python:python_base_image_file",
     binary = ":bunq2ynab",
-    # host_container_platform = "//:host_container_platform",
+    platforms = [
+        "//:linux_amd64",
+        "//:linux_arm64",
+    ],
     prefix = "opt/",
 )
 
@@ -133,7 +132,7 @@ task(
     name = "bunq2ynab_image_run",
     cmds = [
         cmd.executable("bunq2ynab_image.load"),
-        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV -it --entrypoint='' bunq2ynab:latest $CLI_ARGS",
+        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV -it --entrypoint='' localhost/bunq2ynab:latest $CLI_ARGS",
     ],
 )
 

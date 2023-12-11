@@ -68,7 +68,7 @@ platform(
 )
 
 platform(
-    name = "linux_x86_64",
+    name = "linux_amd64",
     constraint_values = _linux_amd64,
 )
 
@@ -237,4 +237,9 @@ release_manager(
         "@rules_release//:release",
         "@rules_task//:release",
     ],
+)
+
+alias(
+    name = "regctl",
+    actual = "//tools/regctl",
 )
