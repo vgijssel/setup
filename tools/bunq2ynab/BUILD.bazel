@@ -51,7 +51,7 @@ task(
     env = {
         "BINARY": cmd.executable("list_user_binary"),
         "OP": cmd.executable("//tools/onepassword:op"),
-        "CONFIG_FILE_TPL": cmd.file("config.json.tpl"),
+        "CONFIG_FILE_TPL": cmd.file("config-dev.json.tpl"),
     },
 )
 
@@ -74,7 +74,7 @@ task(
     env = {
         "BINARY": cmd.executable("list_budget_binary"),
         "OP": cmd.executable("//tools/onepassword:op"),
-        "CONFIG_FILE_TPL": cmd.file("config.json.tpl"),
+        "CONFIG_FILE_TPL": cmd.file("config-dev.json.tpl"),
     },
 )
 
