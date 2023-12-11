@@ -68,13 +68,27 @@ platform(
 )
 
 platform(
-    name = "linux_x86_64",
+    name = "linux_amd64",
     constraint_values = _linux_amd64,
 )
 
 platform(
     name = "linux_arm64",
     constraint_values = _linux_arm64,
+)
+
+platform(
+    name = "python_container_linux_amd64",
+    constraint_values = _linux_amd64 + [
+        "//tools/python:python_run_in_container",
+    ],
+)
+
+platform(
+    name = "python_container_linux_arm64",
+    constraint_values = _linux_arm64 + [
+        "//tools/python:python_run_in_container",
+    ],
 )
 
 pycross_target_environment(
@@ -237,4 +251,14 @@ release_manager(
         "@rules_release//:release",
         "@rules_task//:release",
     ],
+)
+
+alias(
+    name = "regctl",
+    actual = "//tools/regctl",
+)
+
+alias(
+    name = "tsh",
+    actual = "//tools/teleport:tsh",
 )

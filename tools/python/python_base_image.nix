@@ -1,18 +1,10 @@
-let
-  currentSystem = builtins.currentSystem;
-  targetSystem = {
-    "x86_64-linux" = "x86_64-linux";
-    "aarch64-darwin" = "aarch64-linux";
-    "aarch64-linux" = "aarch64-linux";
-  }."${currentSystem}";
-in
-with import <nixpkgs>
-{
-  system = targetSystem;
-};
+{ targetArch }:
 
 let
-  dockerEtc = runCommand "docker-etc" { } ''
+  localPkgs = import <nixpkgs> { };
+  targetPkgs = import <nixpkgs> { system = targetArch + "-linux"; };
+
+  dockerEtc = localPkgs.runCommand "docker-etc" { } ''
     mkdir -p $out/etc/pam.d
 
     echo "root:x:0:0::/root:/bin/bash" > $out/etc/passwd
@@ -20,16 +12,18 @@ let
     echo "root:x:0:" > $out/etc/group
   '';
 
-  pythonBase = dockerTools.buildLayeredImage {
-    name = "python310-base-image-unwrapped";
+  pythonBaseImage = localPkgs.dockerTools.buildLayeredImage {
+    name = "python_base_image";
+    tag = "latest";
     created = "now";
+    architecture = targetArch;
     maxLayers = 2;
     contents = [
-      busybox
-      bashInteractive
-      python310
-      stdenv.cc.cc.lib
-      cacert
+      targetPkgs.busybox
+      targetPkgs.bashInteractive
+      targetPkgs.python310
+      targetPkgs.stdenv.cc.cc.lib
+      targetPkgs.cacert
       dockerEtc
     ];
     extraCommands = ''
@@ -45,9 +39,9 @@ let
             ln -s /usr/bin/python3 usr/bin/python
     '';
   };
-
 in
-runCommand "python310-base-image" { } ''
+localPkgs.runCommand "pythonBaseImage" { } ''
   mkdir -p $out
-  gunzip -c ${pythonBase} > $out/image.tar.gz
+  gunzip -c ${pythonBaseImage} > $out/image.tar.gz
 ''
+

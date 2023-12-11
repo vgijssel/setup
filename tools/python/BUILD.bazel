@@ -1,12 +1,17 @@
 load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
-load(":defs.bzl", "host_python_container_platform")
 
 package(default_visibility = ["//visibility:public"])
 
 constraint_setting(name = "python_containerized")
 
-host_python_container_platform(
-    name = "host_python_container",
+python_base_image_file = select({
+    "//:is_linux_amd64": ["@python_base_image_amd64//:image.tar.gz"],
+    "//:is_linux_arm64": ["@python_base_image_arm64//:image.tar.gz"],
+})
+
+filegroup(
+    name = "python_base_image_file",
+    srcs = python_base_image_file,
 )
 
 constraint_value(

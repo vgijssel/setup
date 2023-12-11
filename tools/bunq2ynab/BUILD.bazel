@@ -119,9 +119,12 @@ task(
 
 py_image(
     name = "bunq2ynab_image",
-    base = "@python310_base_image//:image.tar.gz",
+    base = "//tools/python:python_base_image_file",
     binary = ":bunq2ynab",
-    host_container_platform = "//:host_container_platform",
+    platforms = [
+        "//:python_container_linux_amd64",
+        "//:python_container_linux_arm64",
+    ],
     prefix = "opt/",
 )
 
@@ -129,7 +132,7 @@ task(
     name = "bunq2ynab_image_run",
     cmds = [
         cmd.executable("bunq2ynab_image.load"),
-        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV -it --entrypoint='' bunq2ynab:latest $CLI_ARGS",
+        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV -it --entrypoint='' localhost/bunq2ynab:latest $CLI_ARGS",
     ],
 )
 
@@ -137,7 +140,7 @@ task_test(
     name = "bunq2ynab_image_test",
     cmds = [
         cmd.executable("bunq2ynab_image.load"),
-        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV bunq2ynab:latest",
+        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV localhost/bunq2ynab:latest",
     ],
     exec_properties = {
         "workload-isolation-type": "firecracker",

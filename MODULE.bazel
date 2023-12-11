@@ -48,7 +48,7 @@ python.toolchain(
 use_repo(python, "python_versions")
 
 # ------------------------------------ rules_oci ------------------------------------ #
-bazel_dep(name = "rules_oci", version = "1.4.0")
+bazel_dep(name = "rules_oci", version = "1.4.3")
 
 # ------------------------------------ rules_release ------------------------------------ #
 bazel_dep(name = "rules_release", version = "0.0.0")
