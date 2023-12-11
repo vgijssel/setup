@@ -93,14 +93,6 @@ def py_image(name, base, binary, platforms, prefix = ""):
         images = transitioned_images,
     )
 
-    # This can be extended to multi-arch images. For example see:
-    # https://github.com/macourteau/aspect-rules_oci/blob/master/container.bzl#L85
-    # platform_transition_filegroup(
-    #     name = transitioned_image,
-    #     srcs = [image_name],
-    #     target_platform = "//tools/python:host_python_container",
-    # )
-
     oci_tarball(
         name = tarball_name,
         image = image_index_name,
