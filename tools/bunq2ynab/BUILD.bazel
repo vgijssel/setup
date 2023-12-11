@@ -140,7 +140,7 @@ task_test(
     name = "bunq2ynab_image_test",
     cmds = [
         cmd.executable("bunq2ynab_image.load"),
-        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV bunq2ynab:latest",
+        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV localhost/bunq2ynab:latest",
     ],
     exec_properties = {
         "workload-isolation-type": "firecracker",

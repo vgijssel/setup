@@ -318,22 +318,12 @@ nixpkgs_git_repository(
 )
 
 nixpkgs_package(
-    name = "python310_base_image",
+    name = "python_base_image_amd64",
     build_file_content = """
 package(default_visibility = [ "//visibility:public" ])
 exports_files(["image.tar.gz"])
     """,
-    nix_file = "//:python310_base_image.nix",
-    repository = "@nixpkgs//:default.nix",
-)
-
-nixpkgs_package(
-    name = "test_base_image_amd64",
-    build_file_content = """
-package(default_visibility = [ "//visibility:public" ])
-exports_files(["image.tar.gz"])
-    """,
-    nix_file = "//:test.nix",
+    nix_file = "//tools/python:python_base_image.nix",
     nixopts = [
         "--argstr",
         "targetArch",
@@ -343,12 +333,12 @@ exports_files(["image.tar.gz"])
 )
 
 nixpkgs_package(
-    name = "test_base_image_arm64",
+    name = "python_base_image_arm64",
     build_file_content = """
 package(default_visibility = [ "//visibility:public" ])
 exports_files(["image.tar.gz"])
     """,
-    nix_file = "//:test.nix",
+    nix_file = "//tools/python:python_base_image.nix",
     nixopts = [
         "--argstr",
         "targetArch",
