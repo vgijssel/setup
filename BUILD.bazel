@@ -77,6 +77,20 @@ platform(
     constraint_values = _linux_arm64,
 )
 
+platform(
+    name = "python_container_linux_amd64",
+    constraint_values = _linux_amd64 + [
+        "//tools/python:python_run_in_container",
+    ],
+)
+
+platform(
+    name = "python_container_linux_arm64",
+    constraint_values = _linux_arm64 + [
+        "//tools/python:python_run_in_container",
+    ],
+)
+
 pycross_target_environment(
     name = "python_darwin_arm64",
     abis = ["cp310"],

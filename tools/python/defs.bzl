@@ -4,22 +4,6 @@ load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@rules_task//task:defs.bzl", "cmd", "task")
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
 
-# This sets up a platform for the Python toolchain to run in a container.
-# This is way to prevent the Python hermetic interpreter to be copied into the container
-# And instead we rely on a shebang and a Python interpreter in the container base image.
-# Currently this only works for the host cpu, but can be extended for multi-arch images
-def host_python_container_platform(name):
-    host_cpu, _host_os = HOST_CONSTRAINTS
-
-    native.platform(
-        name = name,
-        constraint_values = [
-            host_cpu,
-            "@platforms//os:linux",
-            "//tools/python:python_run_in_container",
-        ],
-    )
-
 def py_image_layer(name, binary, prefix = "", **kwargs):
     mtree_spec_name = "{}_mtree".format(name)
     prefixed_mtree_spec_name = "{}_prefixed".format(mtree_spec_name)

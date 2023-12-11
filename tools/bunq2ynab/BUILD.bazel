@@ -122,8 +122,8 @@ py_image(
     base = "//tools/python:python_base_image_file",
     binary = ":bunq2ynab",
     platforms = [
-        "//:linux_amd64",
-        "//:linux_arm64",
+        "//:python_container_linux_amd64",
+        "//:python_container_linux_arm64",
     ],
     prefix = "opt/",
 )
