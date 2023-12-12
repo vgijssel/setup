@@ -193,13 +193,13 @@ task_test(
 
 docker_load(
     name = "load_dev_image",
-    binary_name = "provisioner",
+    binary_name = "provisioner-dev",
     exec_properties = {
         "workload-isolation-type": "firecracker",
         "init-dockerd": "true",
         "recycle-runner": "true",
     },
-    image = "@ubuntu_base//image.tar.gz",
+    image = "@ubuntu_base",
 )
 
 task(
@@ -211,15 +211,10 @@ task(
             "--rm",
             "--detach",
             "--publish 127.0.0.1:10443:443",
-            "--tmpfs /run",
-            "--tmpfs /run/lock",
-            "--tmpfs /tmp",
-            "--privileged",
-            "-v /lib/modules:/lib/modules:ro",
             "-h provisioner",
             "$CLI_ARGS",
             "$CONTAINER_IMAGE",
-            "/sbin/init",
+            "sleep infinity",
         ),
     ],
     env = {
@@ -235,7 +230,7 @@ task(
 task(
     name = "dev",
     cmds = [
-        "docker rm -f provisioner_dev",
+        "docker rm -f provisioner-dev",
         "export CONTAINER_ID=$($run_dev_image)",
         {"defer": "docker rm -f $CONTAINER_ID"},
         "docker logs -f $CONTAINER_ID",
@@ -243,7 +238,7 @@ task(
     env = {
         "run_dev_image": cmd.shell(
             cmd.executable(":run_dev_image"),
-            "--name provisioner_dev",
+            "--name provisioner-dev",
         ),
     },
 )

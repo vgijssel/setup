@@ -80,4 +80,5 @@ def py_image(name, base, binary, platforms, prefix = ""):
             "init-dockerd": "true",
             "recycle-runner": "true",
         },
+        format = "oci",
     )
