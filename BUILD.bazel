@@ -255,7 +255,7 @@ release_manager(
 
 alias(
     name = "regctl",
-    actual = "//tools/regctl",
+    actual = "@rules_release//tools/regctl",
 )
 
 alias(

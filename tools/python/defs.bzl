@@ -100,7 +100,7 @@ def py_image(name, base, binary, platforms, prefix = ""):
         ],
         env = {
             "TARBALL": cmd.file(tarball_name),
-            "REGCTL": cmd.executable("//tools/regctl:regctl"),
+            "REGCTL": cmd.executable("//:regctl"),
         },
         exec_properties = {
             "workload-isolation-type": "firecracker",

@@ -28,6 +28,9 @@ bazel_dep(name = "rules_java", version = "7.0.6")
 # ------------------------------------ bazel-diff ------------------------------------ #
 use_repo(non_module_dependencies, "bazel_diff")
 
+# ------------------------------------ rules_oci ------------------------------------ #
+bazel_dep(name = "rules_oci", version = "1.4.3")
+
 # ------------------------------------ github_cli ------------------------------------ #
 use_repo(non_module_dependencies, "github_cli_linux_arm64")
 
@@ -41,6 +44,13 @@ use_repo(non_module_dependencies, "onepassword_linux_arm64")
 use_repo(non_module_dependencies, "onepassword_linux_amd64")
 
 use_repo(non_module_dependencies, "onepassword_darwin_arm64")
+
+# ------------------------------------ regctl ------------------------------------ #
+use_repo(non_module_dependencies, "regctl_linux_arm64")
+
+use_repo(non_module_dependencies, "regctl_linux_amd64")
+
+use_repo(non_module_dependencies, "regctl_darwin_arm64")
 
 # ------------------------------------ examples ------------------------------------ #
 use_repo(non_module_dependencies, "examples_workspace")
