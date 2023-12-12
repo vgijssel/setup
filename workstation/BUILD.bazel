@@ -1,140 +1,136 @@
-load("//tools/pyinfra:defs.bzl", "pyinfra_run")
-load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
-load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
-load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
-load("@rules_pkg//:pkg.bzl", "pkg_tar")
-load("@rules_task//task:defs.bzl", "cmd", "task")
+# load("//tools/pyinfra:defs.bzl", "pyinfra_run")
+# load("@rules_pkg//:pkg.bzl", "pkg_tar")
+# load("@rules_task//task:defs.bzl", "cmd", "task")
 
-pyinfra_run(
-    name = "provision",
-    srcs = [
-        "deploys/editor/tasks/install_editor.py",
-        "deploys/languages/tasks/install_languages.py",
-        "deploys/ssh/tasks/install_ssh.py",
-        "deploys/terminal/tasks/install_terminal.py",
-        "deploys/utilities/tasks/install_utilities.py",
-        "deploys/workflow/tasks/install_workflow.py",
-        "helpers/home_link.py",
-        "helpers/macos.py",
-        "helpers/onepassword.py",
-    ],
-    args = [
-        "--data install_editor=True",
-        "--data install_terminal=True",
-        "--data install_languages=True",
-        "--data install_ssh=True",
-        "--data install_utilities=True",
-        "--data install_workflow=True",
-    ],
-    data = [
-        "deploys/editor/files/keybindings.json",
-        "deploys/editor/files/settings.json",
-        "deploys/languages/files/tool-versions",
-        "deploys/ssh/files/config/1Password/ssh/agent.toml",
-        "deploys/ssh/files/gitconfig",
-        "deploys/ssh/files/ssh/config",
-        "deploys/terminal/files/bash_profile",
-        "deploys/terminal/files/bashrc",
-        "deploys/terminal/files/config/atuin/config.toml",
-        "deploys/terminal/files/profile",
-        "deploys/terminal/files/sheldon/plugins.lock",
-        "deploys/terminal/files/sheldon/plugins.toml",
-        "deploys/terminal/files/shell_snippets/benchmark.sh",
-        "deploys/terminal/files/terminal_env",
-        "deploys/terminal/files/zprofile",
-        "deploys/terminal/files/zshrc",
-    ],
-    deploy = "deploy.py",
-    inventory = "inventory.py",
-)
-
-inspec_files = select({
-    "@platforms//cpu:aarch64": ["@inspec_arm64//file"],
-    "@platforms//cpu:x86_64": ["@inspec_amd64//file"],
-})
-
-container_image(
-    name = "loose_debs_image",
-    base = "//tools/ubuntu:ubuntu_base_image.tar",
-    files = inspec_files,
-)
-
-container_run_and_commit_layer(
-    name = "loose_debs_layer",
-    commands = [
-        "dpkg -i /inspec.deb",
-        "inspec --chef-license=accept",
-    ],
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
-    image = ":loose_debs_image.tar",
-)
-
-download_pkgs(
-    name = "debs",
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
-    image_tar = "//tools/ubuntu:ubuntu_base_image.tar",
-    packages = [
-        "openssh-client",
-    ],
-)
-
-install_pkgs(
-    name = "debs_installed",
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
-    image_tar = "//tools/ubuntu:ubuntu_base_image.tar",
-    installables_tar = ":debs.tar",
-    output_image_name = "debs_installed",
-)
-
-pkg_tar(
-    name = "inspec_tar",
-    srcs = [
-        "controls/workstation.rb",
-        "inspec.yml",
-    ],
-    package_dir = "/project",
-    # Otherwise all directories are flattened:
-    # <https://github.com/bazelbuild/rules_docker/issues/317>
-    strip_prefix = ".",
-)
-
-container_image(
-    name = "inspec_image",
-    base = ":debs_installed.tar",
-    layers = [":loose_debs_layer"],
-    tars = [
-        ":inspec_tar",
-    ],
-    workdir = "/project",
-)
-
-# docker_load_and_run(
-#     name = "inspec_runner",
-#     command = "inspec exec . -t ssh://$$USER@host.docker.internal -i /root/.ssh/id_rsa --shell --shell-command='/bin/sh' --shell-options='--login'",
-#     docker_args = [
-#         "--volume=$$BUILD_WORKSPACE_DIRECTORY/tmp/remote_key/id_rsa:/root/.ssh/id_rsa",
+# pyinfra_run(
+#     name = "provision",
+#     srcs = [
+#         "deploys/editor/tasks/install_editor.py",
+#         "deploys/languages/tasks/install_languages.py",
+#         "deploys/ssh/tasks/install_ssh.py",
+#         "deploys/terminal/tasks/install_terminal.py",
+#         "deploys/utilities/tasks/install_utilities.py",
+#         "deploys/workflow/tasks/install_workflow.py",
+#         "helpers/home_link.py",
+#         "helpers/macos.py",
+#         "helpers/onepassword.py",
 #     ],
-#     image = ":inspec_image",
+#     args = [
+#         "--data install_editor=True",
+#         "--data install_terminal=True",
+#         "--data install_languages=True",
+#         "--data install_ssh=True",
+#         "--data install_utilities=True",
+#         "--data install_workflow=True",
+#     ],
+#     data = [
+#         "deploys/editor/files/keybindings.json",
+#         "deploys/editor/files/settings.json",
+#         "deploys/languages/files/tool-versions",
+#         "deploys/ssh/files/config/1Password/ssh/agent.toml",
+#         "deploys/ssh/files/gitconfig",
+#         "deploys/ssh/files/ssh/config",
+#         "deploys/terminal/files/bash_profile",
+#         "deploys/terminal/files/bashrc",
+#         "deploys/terminal/files/config/atuin/config.toml",
+#         "deploys/terminal/files/profile",
+#         "deploys/terminal/files/sheldon/plugins.lock",
+#         "deploys/terminal/files/sheldon/plugins.toml",
+#         "deploys/terminal/files/shell_snippets/benchmark.sh",
+#         "deploys/terminal/files/terminal_env",
+#         "deploys/terminal/files/zprofile",
+#         "deploys/terminal/files/zshrc",
+#     ],
+#     deploy = "deploy.py",
+#     inventory = "inventory.py",
 # )
 
-task(
-    name = "test",
-    cmds = [
-        cmd.executable(":provision"),
-        cmd.executable("//tools/macos:macos-remote-setup"),
-        # cmd.executable(":inspec_runner"),
-    ],
-)
+# inspec_files = select({
+#     "@platforms//cpu:aarch64": ["@inspec_arm64//file"],
+#     "@platforms//cpu:x86_64": ["@inspec_amd64//file"],
+# })
+
+# container_image(
+#     name = "loose_debs_image",
+#     base = "//tools/ubuntu:ubuntu_base_image.tar",
+#     files = inspec_files,
+# )
+
+# container_run_and_commit_layer(
+#     name = "loose_debs_layer",
+#     commands = [
+#         "dpkg -i /inspec.deb",
+#         "inspec --chef-license=accept",
+#     ],
+#     exec_properties = {
+#         "workload-isolation-type": "firecracker",
+#         "init-dockerd": "true",
+#         "recycle-runner": "true",
+#     },
+#     image = ":loose_debs_image.tar",
+# )
+
+# download_pkgs(
+#     name = "debs",
+#     exec_properties = {
+#         "workload-isolation-type": "firecracker",
+#         "init-dockerd": "true",
+#         "recycle-runner": "true",
+#     },
+#     image_tar = "//tools/ubuntu:ubuntu_base_image.tar",
+#     packages = [
+#         "openssh-client",
+#     ],
+# )
+
+# install_pkgs(
+#     name = "debs_installed",
+#     exec_properties = {
+#         "workload-isolation-type": "firecracker",
+#         "init-dockerd": "true",
+#         "recycle-runner": "true",
+#     },
+#     image_tar = "//tools/ubuntu:ubuntu_base_image.tar",
+#     installables_tar = ":debs.tar",
+#     output_image_name = "debs_installed",
+# )
+
+# pkg_tar(
+#     name = "inspec_tar",
+#     srcs = [
+#         "controls/workstation.rb",
+#         "inspec.yml",
+#     ],
+#     package_dir = "/project",
+#     # Otherwise all directories are flattened:
+#     # <https://github.com/bazelbuild/rules_docker/issues/317>
+#     strip_prefix = ".",
+# )
+
+# container_image(
+#     name = "inspec_image",
+#     base = ":debs_installed.tar",
+#     layers = [":loose_debs_layer"],
+#     tars = [
+#         ":inspec_tar",
+#     ],
+#     workdir = "/project",
+# )
+
+# # docker_load_and_run(
+# #     name = "inspec_runner",
+# #     command = "inspec exec . -t ssh://$$USER@host.docker.internal -i /root/.ssh/id_rsa --shell --shell-command='/bin/sh' --shell-options='--login'",
+# #     docker_args = [
+# #         "--volume=$$BUILD_WORKSPACE_DIRECTORY/tmp/remote_key/id_rsa:/root/.ssh/id_rsa",
+# #     ],
+# #     image = ":inspec_image",
+# # )
+
+# task(
+#     name = "test",
+#     cmds = [
+#         cmd.executable(":provision"),
+#         cmd.executable("//tools/macos:macos-remote-setup"),
+#         # cmd.executable(":inspec_runner"),
+#     ],
+# )

@@ -3,34 +3,39 @@ For quickly loading and running docker images built by Bazel.
 """
 
 load("@rules_task//task:defs.bzl", "cmd", "task")
+load("@rules_oci//oci:defs.bzl", "oci_tarball")
 
-def docker_load(name, image, **kwargs):
-    """
-    Loads a docker image and return the image name.
-    """
-    image_label = "{}.tar".format(image)
-    image_sha_label = "{}.json.sha256".format(image)
+def docker_load(name, binary_name, image, **kwargs):
+    tarball_name = "{}.tarball".format(name)
 
+    repo_tags = [
+        "{}:{}".format(binary_name, "latest"),
+    ]
+
+    oci_tarball(
+        name = tarball_name,
+        image = image,
+        repo_tags = repo_tags,
+        format = "oci",
+    )
+
+    # From https://stackoverflow.com/questions/72945407/how-do-i-import-and-run-a-multi-platform-oci-image-in-docker-for-macos
+    # We need to load the multi-arch image using regctl
+    # Export the platform specific digest into a tar
+    # And load that tar into the daemon
     task(
         name = name,
         cmds = [
-            """
-        DOCKER_DIGEST_FILE=$image_sha_label
-        DOCKER_DIGEST=$(cat $DOCKER_DIGEST_FILE)
-        DOCKER_LOAD_FILE=$image_label
-
-        if ! docker image inspect $DOCKER_DIGEST > /dev/null 2>&1 ; then
-            docker load --input $DOCKER_LOAD_FILE >&2
-        else
-            echo Image already exists >&2
-        fi
-
-        echo $DOCKER_DIGEST
-        """,
+            "$REGCTL image import ocidir://{} $TARBALL".format(binary_name),
+            "digest=$($REGCTL image digest --platform local ocidir://{})".format(binary_name),
+            "export LOCAL_TARBALL=$(pwd)/{}.tar".format(binary_name),
+            "$REGCTL image export ocidir://{}@$digest $LOCAL_TARBALL".format(binary_name),
+            {"defer": "rm -f $LOCAL_TARBALL"},
+            "docker load < $LOCAL_TARBALL",
         ],
         env = {
-            "image_label": cmd.file(image_label),
-            "image_sha_label": cmd.file(image_sha_label),
+            "TARBALL": cmd.file(tarball_name),
+            "REGCTL": cmd.executable("@rules_release//tools/regctl"),
         },
         **kwargs
     )

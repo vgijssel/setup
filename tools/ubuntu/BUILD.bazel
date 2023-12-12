@@ -1,51 +1,6 @@
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
-load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
-
 package(default_visibility = ["//visibility:public"])
 
-ubuntu_base_image = select({
-    "@platforms//cpu:aarch64": "@ubuntu_base_arm64//image",
-    "@platforms//cpu:x86_64": "@ubuntu_base_amd64//image",
-})
-
-container_image(
-    name = "ubuntu_base_image",
-    base = ubuntu_base_image,
-    env = {
-        "LANG": "C.UTF-8",
-        "LC_ALL": "C.UTF-8",
-        "container": "docker",
-    },
-)
-
-container_run_and_commit_layer(
-    name = "setup_snap",
-    commands = [
-        "apt-get update",
-        "apt-get install -y snapd squashfuse fuse sudo lsb-release",
-        "systemctl enable snapd",
-        "useradd -m ubuntu -s /bin/bash",
-        "adduser ubuntu sudo",
-        "echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers",
-    ],
-    env = {
-        "DEBIAN_FRONTEND": "noninteractive",
-    },
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
-    image = ":ubuntu_base_image.tar",
-)
-
-container_image(
-    name = "ubuntu_snap_base_image",
-    base = ":ubuntu_base_image.tar",
-    env = {
-        "PATH": "/snap/bin:$$PATH",
-    },
-    layers = [
-        ":setup_snap",
-    ],
-)
+# ubuntu_base_image = select({
+#     "@platforms//cpu:aarch64": "@ubuntu_base_arm64//image",
+#     "@platforms//cpu:x86_64": "@ubuntu_base_amd64//image",
+# })

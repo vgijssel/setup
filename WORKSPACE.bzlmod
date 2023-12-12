@@ -1,50 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
-# ------------------------------------ rules_docker ------------------------------------ #
-# https://github.com/bazelbuild/rules_docker/pull/2201
-http_archive(
-    name = "io_bazel_rules_docker",
-    sha256 = "b1e80761a8a8243d03ebca8845e9cc1ba6c82ce7c5179ce2b295cd36f7e394bf",
-    urls = [
-        "https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz",
-    ],
-)
-
-load(
-    "@io_bazel_rules_docker//repositories:repositories.bzl",
-    container_repositories = "repositories",
-)
-
-container_repositories()
-
-load(
-    "@io_bazel_rules_docker//python3:image.bzl",
-    _py3_image_repos = "repositories",
-)
-
-_py3_image_repos()
-
-load(
-    "@io_bazel_rules_docker//container:container.bzl",
-    "container_pull",
-)
-
-# https://hub.docker.com/layers/library/python/3.10.8-bullseye/images/sha256-de501d4dbc12f846ee78ee76629b7524ec07f10c121832a190a1ecb7b9a119bb?context=explore
-container_pull(
-    name = "python_base_arm64",
-    digest = "sha256:fa109a6d1100a4e6382950ab1f7f94563268e537b1619f1969b9b33a9c1a99fb",
-    registry = "index.docker.io",
-    repository = "library/python:3.10.8-bullseye",
-)
-
-container_pull(
-    name = "python_base_amd64",
-    digest = "sha256:de501d4dbc12f846ee78ee76629b7524ec07f10c121832a190a1ecb7b9a119bb",
-    registry = "index.docker.io",
-    repository = "library/python:3.10.8-bullseye",
-)
-
 # ------------------------------------ rules_pycross ------------------------------------ #
 http_archive(
     name = "jvolkman_rules_pycross",
@@ -77,37 +33,6 @@ pycross_lock_repo(
 load("@pdm-setup//:requirements.bzl", "install_deps")
 
 install_deps()
-
-# ------------------------------------ workstation ------------------------------------ #
-
-# https://hub.docker.com/layers/library/ubuntu/jammy-20230425/images/sha256-ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00?context=explore
-container_pull(
-    name = "ubuntu_base_amd64",
-    digest = "sha256:ca5534a51dd04bbcebe9b23ba05f389466cf0c190f1f8f182d7eea92a9671d00",
-    registry = "index.docker.io",
-    repository = "library/ubuntu:jammy-20230425",
-)
-
-container_pull(
-    name = "ubuntu_base_arm64",
-    digest = "sha256:6f8fe7bff0bee25c481cdc26e28bba984ebf72e6152005c18e1036983c01a28b",
-    registry = "index.docker.io",
-    repository = "library/ubuntu:jammy-20230425",
-)
-
-http_file(
-    name = "inspec_arm64",
-    downloaded_file_path = "inspec.deb",
-    sha256 = "79a496d2467f579c6533bcf42c663d96d830af42ba2f32769ddf6ef879d7d3b5",
-    url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_arm64.deb",
-)
-
-http_file(
-    name = "inspec_amd64",
-    downloaded_file_path = "inspec.deb",
-    sha256 = "b4e8b11478cd2c930b24edcf5c24ef49fe83452f08f6cedc13deae5ce7b0c757",
-    url = "https://packages.chef.io/files/stable/inspec/5.18.14/ubuntu/20.04/inspec_5.18.14-1_amd64.deb",
-)
 
 # ------------------------------------ tilt ------------------------------------ #
 

@@ -41,6 +41,8 @@ pyinfra_run(
         "deploys/monitoring/files/reboot.sh",
         "deploys/network/files/99_config.yaml",
         "deploys/teleport/files/teleport.yaml.j2",
+        "//tools/bunq2ynab:publish_oci_image.remote_tags",
+        "//tools/bunq2ynab:publish_oci_image-dev.remote_tags",
     ],
     deploy = "deploy.py",
     env = {
@@ -176,10 +178,6 @@ task_test(
     name = "deploy_test",
     size = "large",
     cmds = [
-        cmd.shell(
-            cmd.executable(":deploy_mark"),
-            "test-commit-sha",
-        ),
         cmd.executable(":deploy_provision"),
         cmd.shell(
             cmd.executable(":deploy_validate"),
@@ -195,12 +193,13 @@ task_test(
 
 docker_load(
     name = "load_dev_image",
+    binary_name = "provisioner",
     exec_properties = {
         "workload-isolation-type": "firecracker",
         "init-dockerd": "true",
         "recycle-runner": "true",
     },
-    image = "//tools/ubuntu:ubuntu_snap_base_image",
+    image = "@ubuntu_base//image.tar.gz",
 )
 
 task(
@@ -292,6 +291,7 @@ task_test(
     cmds = [
         "export CONTAINER_ID=$($run_dev_image)",
         {"defer": "docker rm -f $CONTAINER_ID"},
+        # "$bunq2ynab_publish_oci_image",
         "$provision",
         "$validate",
     ],
@@ -299,6 +299,7 @@ task_test(
         "run_dev_image": cmd.executable(":run_dev_image"),
         "provision": cmd.executable(":provision"),
         "validate": cmd.executable(":validate"),
+        # "bunq2ynab_publish_oci_image": cmd.executable("//tools/bunq2ynab:publish_oci_image_dev"),
         "SETUP_ENV": "test",
     },
     exec_properties = {

@@ -15,13 +15,22 @@ register_toolchains(
 )
 
 # ------------------------------------ platforms ------------------------------------ #
-bazel_dep(name = "platforms", version = "0.0.8")
+bazel_dep(
+    name = "platforms",
+    version = "0.0.8",
+)
 
 # ------------------------------------ rules_skylib ------------------------------------ #
-bazel_dep(name = "bazel_skylib", version = "1.4.2")
+bazel_dep(
+    name = "bazel_skylib",
+    version = "1.4.2",
+)
 
 # ------------------------------------ aspect_bazel_lib ------------------------------------ #
-bazel_dep(name = "aspect_bazel_lib", version = "2.0.3")
+bazel_dep(
+    name = "aspect_bazel_lib",
+    version = "2.0.3",
+)
 
 bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
 
@@ -30,10 +39,16 @@ bazel_lib_toolchains.jq()
 use_repo(bazel_lib_toolchains, "jq_toolchains")
 
 # ------------------------------------ rules_pkg ------------------------------------ #
-bazel_dep(name = "rules_pkg", version = "0.9.1")
+bazel_dep(
+    name = "rules_pkg",
+    version = "0.9.1",
+)
 
 # ------------------------------------ rules_task ------------------------------------ #
-bazel_dep(name = "rules_task", version = "0.0.0")
+bazel_dep(
+    name = "rules_task",
+    version = "0.0.0",
+)
 
 local_path_override(
     module_name = "rules_task",
@@ -41,7 +56,10 @@ local_path_override(
 )
 
 # ------------------------------------ rules_python ------------------------------------ #
-bazel_dep(name = "rules_python", version = "0.25.0")
+bazel_dep(
+    name = "rules_python",
+    version = "0.25.0",
+)
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 
@@ -54,10 +72,30 @@ python.toolchain(
 use_repo(python, "python_versions")
 
 # ------------------------------------ rules_oci ------------------------------------ #
-bazel_dep(name = "rules_oci", version = "1.4.3")
+bazel_dep(
+    name = "rules_oci",
+    version = "1.4.3",
+)
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+
+oci.pull(
+    name = "ubuntu_base",
+    digest = "sha256:dfd64a3b4296d8c9b62aa3309984f8620b98d87e47492599ee20739e8eb54fbf",
+    image = "index.docker.io/library/ubuntu",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+    ],
+)
+
+use_repo(oci, "ubuntu_base")
 
 # ------------------------------------ rules_release ------------------------------------ #
-bazel_dep(name = "rules_release", version = "0.0.0")
+bazel_dep(
+    name = "rules_release",
+    version = "0.0.0",
+)
 
 local_path_override(
     module_name = "rules_release",
