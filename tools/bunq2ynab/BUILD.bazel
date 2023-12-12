@@ -3,6 +3,7 @@ load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
 load("//tools/python:defs.bzl", "py_image")
 load("@pdm-setup//:requirements.bzl", "requirement")
 load("@rules_release//tools:defs.bzl", "publish_github_release", "publish_oci_image", release = "bazel_diff_release")
+load("@aspect_bazel_lib//lib:jq.bzl", "jq")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -166,6 +167,20 @@ publish_github_release(
     release = ":release",
 )
 
+# Copied from https://github.com/bazel-contrib/rules_oci/blob/375e5dbf3b2c50e83c9df0d0dc16a027984dab77/examples/env_inheritance/BUILD.bazel#L28C1-L34
+genrule(
+    name = "hash",
+    srcs = [":bunq2ynab_image"],
+    outs = ["hash.txt"],
+    cmd = """
+    prefix_to_remove="sha256:"
+    digest=$$($(JQ_BIN) -r '.manifests[0].digest' $(location :bunq2ynab_image)/index.json)
+    digest_without_prefix=$$(echo $$digest | sed "s/$$prefix_to_remove//")
+    echo "dev-$$digest_without_prefix" > $@
+    """,
+    toolchains = ["@jq_toolchains//:resolved_toolchain"],
+)
+
 publish_oci_image(
     name = "publish_oci_image",
     before_cmds = [
@@ -179,6 +194,22 @@ publish_oci_image(
     },
     image = ":bunq2ynab_image",
     remote_tags = "version.txt",
+    repository = "ghcr.io/vgijssel/setup/bunq2ynab",
+)
+
+publish_oci_image(
+    name = "publish_oci_image-dev",
+    before_cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "export REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
+        "export REGISTRY_PASSWORD=$($OP read op://vgijssel-prod/github-container-registry/credential)",
+        "docker login ghcr.io --username $REGISTRY_LOGIN --password $REGISTRY_PASSWORD",
+    ],
+    env = {
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
+    image = ":bunq2ynab_image",
+    remote_tags = ":hash",
     repository = "ghcr.io/vgijssel/setup/bunq2ynab",
 )
 

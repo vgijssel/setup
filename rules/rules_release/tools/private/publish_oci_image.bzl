@@ -1,9 +1,10 @@
 load("@rules_task//task:defs.bzl", "cmd", "task")
 load("@rules_oci//oci:defs.bzl", "oci_push")
+load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
 
-# TODO: remove dependency on rules_oci, only use regctl?
 def publish_oci_image(name, image, repository, remote_tags, before_cmds = [], env = {}):
-    oci_push_name = "{}_push_oci".format(name)
+    oci_push_name = "{}.push_oci".format(name)
+    remote_tags_name = "{}.remote_tags".format(name)
 
     oci_push(
         name = oci_push_name,
@@ -34,4 +35,10 @@ def publish_oci_image(name, image, repository, remote_tags, before_cmds = [], en
             "$PUSH_IMAGE",
         ],
         env = target_env,
+    )
+
+    copy_file(
+        name = remote_tags_name,
+        src = remote_tags,
+        out = "{}.txt".format(remote_tags_name),
     )
