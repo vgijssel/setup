@@ -3,24 +3,18 @@ For quickly loading and running docker images built by Bazel.
 """
 
 load("@rules_task//task:defs.bzl", "cmd", "task")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_oci//oci:defs.bzl", "oci_tarball")
 
 def docker_load(name, binary_name, image, format = "docker", **kwargs):
     tarball_name = "{}.tarball".format(name)
-    image_name = "{}.image".format(name)
 
     repo_tags = [
         "{}:{}".format(binary_name, "latest"),
     ]
 
-    oci_image(
-        name = image_name,
-        base = image,
-    )
-
     oci_tarball(
         name = tarball_name,
-        image = image_name,
+        image = image,
         repo_tags = repo_tags,
         format = format,
     )
