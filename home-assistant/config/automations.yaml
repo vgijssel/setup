@@ -33,7 +33,6 @@
       presence_entity_id: sensor.driveway_presence
       presence_indicator_entity_ids:
         - binary_sensor.driveway_doorbell_motion
-        - binary_sensor.hallway_door_contact
       presence_hint_entity_ids:
         - binary_sensor.driveway_shelly_input
       presence_timeout: 120
@@ -52,10 +51,11 @@
         - binary_sensor.landing_motion_occupancy
         - binary_sensor.living_room_motion_occupancy
         - binary_sensor.toilet_motion_occupancy
+        - binary_sensor.hallway_motion_occupancy
+        - binary_sensor.hallway_motion_update_available
       presence_timeout: 120
       presence_indicator_entity_ids:
         - binary_sensor.hallway_motion_occupancy
-        - binary_sensor.hallway_door_contact
 - id: "1655752934365"
   alias: "Laundry Room - Presence: Manage"
   description: ""
@@ -305,7 +305,7 @@
     - service: media_player.play_media
       data:
         media_content_type: music
-        media_content_id: http://hypervisor:8123/local/sounds_sounds_ring_button_Chime.mp3
+        media_content_id: http://192.168.1.30:8123/local/sounds_sounds_ring_button_Chime.mp3
       target:
         entity_id:
           - media_player.woonkamer
@@ -313,7 +313,7 @@
     - delay:
         hours: 0
         minutes: 0
-        seconds: 4
+        seconds: 8
         milliseconds: 0
     - parallel:
         - service: sonos.restore
@@ -459,8 +459,8 @@
       illuminance_entity_id: sensor.living_room_illuminance
       away_timer_entity_id: timer.living_room_dining_table_away_timer
       away_timer_duration:
-        hours: 0
-        minutes: 3
+        hours: 1
+        minutes: 0
         seconds: 0
       manual_timer_entity_id: timer.living_room_dining_table_manual_timer
       manual_timer_duration:
@@ -480,8 +480,8 @@
       illuminance_entity_id: sensor.living_room_illuminance
       away_timer_entity_id: timer.living_room_kitchen_away_timer
       away_timer_duration:
-        hours: 0
-        minutes: 3
+        hours: 1
+        minutes: 0
         seconds: 0
       manual_timer_entity_id: timer.living_room_kitchen_manual_timer
       manual_timer_duration:
@@ -502,7 +502,7 @@
       away_timer_entity_id: timer.living_room_reading_away_timer
       away_timer_duration:
         hours: 0
-        minutes: 3
+        minutes: 15
         seconds: 0
       manual_timer_entity_id: timer.living_room_reading_manual_timer
       manual_timer_duration:
@@ -523,8 +523,8 @@
       illuminance_entity_id: sensor.living_room_illuminance
       away_timer_entity_id: timer.living_room_sofa_away_timer
       away_timer_duration:
-        hours: 0
-        minutes: 3
+        hours: 1
+        minutes: 0
         seconds: 0
       manual_timer_entity_id: timer.living_room_sofa_manual_timer
       manual_timer_duration:
