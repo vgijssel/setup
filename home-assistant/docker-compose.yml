@@ -57,6 +57,17 @@ services:
     privileged: true
     network_mode: host
 
+  matter-server:
+    container_name: matter-server
+    image: ghcr.io/home-assistant-libs/python-matter-server:stable
+    restart: unless-stopped
+    security_opt:
+      - apparmor=unconfined
+    volumes:
+      - ./matter-server-data:/data
+      - /run/dbus:/run/dbus:ro
+    network_mode: host
+
   esphome:
     container_name: esphome
     image: esphome/esphome:2023.9

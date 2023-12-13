@@ -30,6 +30,8 @@ mutagen.yml.lock
 /home-assistant/zigbee2mqtt-data/*
 !/home-assistant/zigbee2mqtt-data/configuration.yaml
 
+/home-assistant/matter-server-data/*
+
 /home-assistant/z-stack-firmware/*
 
 /home-assistant/mosquitto-data/*
