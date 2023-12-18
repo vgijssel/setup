@@ -1,8 +1,10 @@
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
 load("//tools/docker:docker_load.bzl", "docker_load")
+load("//tools/docker:docker_run_and_commit.bzl", "docker_run_and_commit")
 load("@pdm-setup//:requirements.bzl", "requirement")
 load("//tools/onepassword:defs.bzl", "secrets")
+load("@rules_oci//oci:defs.bzl", "oci_image")
 
 pyinfra_run(
     name = "provision",
@@ -188,6 +190,33 @@ task_test(
     },
 )
 
+docker_run_and_commit(
+    name = "install_deps",
+    cmd = """
+    apt-get update
+    apt-get install -y snapd squashfuse fuse sudo lsb-release
+    systemctl enable snapd
+    useradd -m ubuntu -s /bin/bash
+    adduser ubuntu sudo
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+    """,
+    image = "@ubuntu_base",
+)
+
+oci_image(
+    name = "dev-image",
+    base = "@ubuntu_base",
+    env = {
+        "DEBIAN_FRONTEND": "noninteractive",
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8",
+        "container": "docker",
+    },
+    tars = [
+        ":install_deps",
+    ],
+)
+
 docker_load(
     name = "load_dev_image",
     exec_properties = {
@@ -195,7 +224,7 @@ docker_load(
         "init-dockerd": "true",
         "recycle-runner": "true",
     },
-    image = "@ubuntu_base",
+    image = ":dev-image",
     tag = "provisioner-dev:latest",
 )
 
@@ -203,13 +232,24 @@ task(
     name = "run_dev_image",
     cmds = [
         "export CONTAINER_IMAGE=$($load_dev_image)",
-        "export CONTAINER_ID=$(docker run --rm --detach --publish 127.0.0.1:10443:443 --tmpfs /run --tmpfs /run/lock --tmpfs /tmp --privileged -v /lib/modules:/lib/modules:ro -h provisioner $CLI_ARGS $CONTAINER_IMAGE /sbin/init)",
-        "docker exec $CONTAINER_ID /opt/bootstrap.sh 1>&2",
-        "echo $CONTAINER_ID",
+        cmd.shell(
+            "docker run",
+            "--rm",
+            "--detach",
+            "--publish 127.0.0.1:10443:443",
+            "--tmpfs /run",
+            "--tmpfs /run/lock",
+            "--tmpfs /tmp",
+            "--privileged",
+            "-v /lib/modules:/lib/modules:ro",
+            "-h provisioner",
+            "$CLI_ARGS",
+            "$CONTAINER_IMAGE",
+            "/sbin/init",
+        ),
     ],
     env = {
         "load_dev_image": cmd.executable(":load_dev_image"),
-        "bootstrap": cmd.file("bootstrap-dev.sh"),
     },
     exec_properties = {
         "workload-isolation-type": "firecracker",
