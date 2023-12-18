@@ -3,17 +3,16 @@ For quickly loading and running docker images built by Bazel.
 """
 
 load("@rules_task//task:defs.bzl", "cmd", "task")
-load("@rules_oci//oci:defs.bzl", "oci_tarball")
+load(":docker_local_tar.bzl", "docker_local_tar")
 
 def docker_load(name, binary_name, image, format = "docker", **kwargs):
-    tarball_name = "{}.tarball".format(name)
-
+    local_tar_name = "{}.local_tar".format(name)
     repo_tags = [
         "{}:{}".format(binary_name, "latest"),
     ]
 
-    oci_tarball(
-        name = tarball_name,
+    docker_local_tar(
+        name = local_tar_name,
         image = image,
         repo_tags = repo_tags,
         format = format,
@@ -26,16 +25,11 @@ def docker_load(name, binary_name, image, format = "docker", **kwargs):
     task(
         name = name,
         cmds = [
-            "$REGCTL image import ocidir://{} $TARBALL".format(binary_name),
-            "digest=$($REGCTL image digest --platform local ocidir://{})".format(binary_name),
-            "export LOCAL_TARBALL=$(pwd)/{}.tar".format(binary_name),
-            "$REGCTL image export ocidir://{}@$digest $LOCAL_TARBALL".format(binary_name),
-            {"defer": "rm -f $LOCAL_TARBALL"},
             "docker load < $LOCAL_TARBALL 1>&2",
             "echo localhost/{}:latest".format(binary_name),
         ],
         env = {
-            "TARBALL": cmd.file(tarball_name),
+            "LOCAL_TAR": cmd.file(local_tar_name),
             "REGCTL": cmd.executable("@rules_release//tools/regctl"),
         },
         **kwargs

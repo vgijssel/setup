@@ -1,6 +1,6 @@
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
-load("//tools/docker:docker.bzl", "docker_load")
+load("//tools/docker:docker_load.bzl", "docker_load")
 load("@pdm-setup//:requirements.bzl", "requirement")
 load("//tools/onepassword:defs.bzl", "secrets")
 
@@ -203,7 +203,7 @@ task(
     name = "run_dev_image",
     cmds = [
         "export CONTAINER_IMAGE=$($load_dev_image)",
-        "export CONTAINER_ID=$(docker run -v $bootstrap:/opt/bootstrap.sh --rm --detach --publish 127.0.0.1:10443:443 -h provisioner $CLI_ARGS $CONTAINER_IMAGE sleep infinity)",
+        "export CONTAINER_ID=$(docker run --rm --detach --publish 127.0.0.1:10443:443 --tmpfs /run --tmpfs /run/lock --tmpfs /tmp --privileged -v /lib/modules:/lib/modules:ro -h provisioner $CLI_ARGS $CONTAINER_IMAGE /sbin/init)",
         "docker exec $CONTAINER_ID /opt/bootstrap.sh 1>&2",
         "echo $CONTAINER_ID",
     ],
