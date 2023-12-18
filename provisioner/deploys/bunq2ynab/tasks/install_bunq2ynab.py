@@ -31,6 +31,7 @@ def install_bunq2ynab():
         group="root",
         op_service_account_token=op_service_account_token,
         setup_env=host.data.setup_env,
+        bunq2ynab_image_tag=host.data.bunq2ynab_image_tag,
     )
 
     if docker_compose.changed:

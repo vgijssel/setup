@@ -317,7 +317,7 @@ task_test(
     cmds = [
         "export CONTAINER_ID=$($run_dev_image)",
         {"defer": "docker rm -f $CONTAINER_ID"},
-        # "$bunq2ynab_publish_oci_image",
+        "$bunq2ynab_publish_oci_image",
         "$provision",
         "$validate",
     ],
@@ -325,7 +325,7 @@ task_test(
         "run_dev_image": cmd.executable(":run_dev_image"),
         "provision": cmd.executable(":provision"),
         "validate": cmd.executable(":validate"),
-        # "bunq2ynab_publish_oci_image": cmd.executable("//tools/bunq2ynab:publish_oci_image_dev"),
+        "bunq2ynab_publish_oci_image": cmd.executable("//tools/bunq2ynab:publish_oci_image-dev"),
         "SETUP_ENV": "test",
     },
     exec_properties = {
