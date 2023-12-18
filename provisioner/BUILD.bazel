@@ -190,13 +190,13 @@ task_test(
 
 docker_load(
     name = "load_dev_image",
-    binary_name = "provisioner-dev",
     exec_properties = {
         "workload-isolation-type": "firecracker",
         "init-dockerd": "true",
         "recycle-runner": "true",
     },
     image = "@ubuntu_base",
+    tag = "provisioner-dev:latest",
 )
 
 task(
