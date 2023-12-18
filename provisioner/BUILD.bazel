@@ -5,6 +5,7 @@ load("//tools/docker:docker_run_and_commit.bzl", "docker_run_and_commit")
 load("@pdm-setup//:requirements.bzl", "requirement")
 load("//tools/onepassword:defs.bzl", "secrets")
 load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@rules_release//tools:defs.bzl", "publish_github_release", release = "bazel_diff_release")
 
 pyinfra_run(
     name = "provision",
@@ -329,4 +330,31 @@ task_test(
         "recycle-runner": "true",
         "include-secrets": "true",
     },
+)
+
+publish_github_release(
+    name = "publish_github_release",
+    before_cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+    ],
+    env = {
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
+    release = ":release",
+)
+
+release(
+    name = "release",
+    changelog_file = "CHANGELOG.md",
+    publish_cmds = [
+        ":publish_github_release",
+    ],
+    release_name = "provisioner",
+    target = ":deploy",
+    version_file = "version.txt",
+    deps = [
+        "//tools/bunq2ynab:release",
+        "@rules_task//:release",
+    ],
 )
