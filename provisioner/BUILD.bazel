@@ -293,7 +293,7 @@ task(
         elif setup_env == 'prod':
             os.environ['VALIDATE_HOST'] = f"ssh://ubuntu@provisioner?timeout=0&controlpersist=0"
         else:
-            os.environ['VALIDATE_HOST'] = f"docker://root@provisioner-dev:latest"
+            os.environ['VALIDATE_HOST'] = f"docker://root@provisioner-dev"
         """),
         cmd.python_entry_point("pytest:console_main", "--export-traces", "-vv", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
     ],

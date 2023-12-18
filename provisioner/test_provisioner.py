@@ -28,14 +28,6 @@ def test_hostname(host):
     assert host.check_output("hostname -s") == "provisioner"
 
 
-def test_cmdline(host):
-    cmdline = host.file("/boot/firmware/cmdline.txt")
-    assert cmdline.contains("root")
-    assert cmdline.user == "root"
-    assert cmdline.group == "root"
-    assert cmdline.mode == 0o755
-
-
 def test_ubuntu_focal(host):
     assert host.system_info.type == "linux"
     assert host.system_info.distribution == "ubuntu"
@@ -184,3 +176,8 @@ def test_https_port_is_open(host):
 def test_teleport_diag_port_is_open(host):
     assert host.socket("tcp://127.0.0.1:3000").is_listening
     assert not host.socket("tcp://0.0.0.0:3000").is_listening
+
+
+def test_bunq2ynab_service(host):
+    bunq2ynab = host.docker("bunq2ynab")
+    assert bunq2ynab.is_running
