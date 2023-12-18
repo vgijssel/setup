@@ -116,8 +116,8 @@ py_binary(
 task(
     name = "generate_oauth_token",
     cmds = [
-        "export CLIENT_ID=$($OP read op://vgijssel-dev/bunq2ynab_oauth/username)",
-        "export CLIENT_SECRET=$($OP read op://vgijssel-dev/bunq2ynab_oauth/credential)",
+        "export CLIENT_ID=$($OP read op://vgijssel-prod/bunq2ynab_oauth/username)",
+        "export CLIENT_SECRET=$($OP read op://vgijssel-prod/bunq2ynab_oauth/credential)",
         "$BINARY --oauth-client-id $CLIENT_ID --oauth-client-secret $CLIENT_SECRET",
     ],
     env = {
