@@ -1,5 +1,11 @@
 # rules_release
 
+## 1.1.0
+
+### Minor Changes
+
+- [#616](https://github.com/vgijssel/setup/pull/616) [`286ea6d`](https://github.com/vgijssel/setup/commit/286ea6d51987fe66961fd06a5d7c30d51063ebcb) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Added `publish_oci_image` rule to publish OCI images to a registry.
+
 ## 1.0.0
 
 ### Major Changes

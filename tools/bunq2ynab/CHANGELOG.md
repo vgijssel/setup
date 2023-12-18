@@ -1,5 +1,13 @@
 # bunq2ynab_release
 
+## 0.2.0
+
+### Minor Changes
+
+- [#616](https://github.com/vgijssel/setup/pull/616) [`286ea6d`](https://github.com/vgijssel/setup/commit/286ea6d51987fe66961fd06a5d7c30d51063ebcb) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Added support for specifying a sleep timeout at the end of running bunq2ynab to prevent rate limit issues with both Bunq and YNAB.
+
+- [#616](https://github.com/vgijssel/setup/pull/616) [`286ea6d`](https://github.com/vgijssel/setup/commit/286ea6d51987fe66961fd06a5d7c30d51063ebcb) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Enabled support for both dev and prod environments loading secrets from relevant 1Password vaults.
+
 ## 0.1.0
 
 ### Minor Changes
