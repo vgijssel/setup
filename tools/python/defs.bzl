@@ -1,8 +1,7 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index", "oci_tarball")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index")
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
-load("@rules_task//task:defs.bzl", "cmd", "task")
-load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
+load("//tools/docker:docker_load.bzl", "docker_load")
 
 def py_image_layer(name, binary, prefix = "", **kwargs):
     mtree_spec_name = "{}_mtree".format(name)
@@ -28,7 +27,7 @@ def py_image_layer(name, binary, prefix = "", **kwargs):
         mtree = prefixed_mtree_spec_name,
     )
 
-def py_image(name, base, binary, platforms, prefix = ""):
+def py_image(name, base, binary, platforms, prefix = "", labels = None):
     binary_name = Label(binary).name
     package_name = native.package_name()
     entrypoint = ["/{}{}/{}".format(prefix, package_name, binary_name)]
@@ -37,11 +36,6 @@ def py_image(name, base, binary, platforms, prefix = ""):
     image_name = "{}.image".format(image_index_name)
     image_load_name = "{}.load".format(image_index_name)
     image_python_layer_name = "{}_python_layer".format(image_index_name)
-    tarball_name = "{}.tarball".format(image_index_name)
-
-    repo_tags = [
-        "{}:{}".format(binary_name, "latest"),
-    ]
 
     py_image_layer(
         name = image_python_layer_name,
@@ -56,6 +50,7 @@ def py_image(name, base, binary, platforms, prefix = ""):
         tars = [
             image_python_layer_name,
         ],
+        labels = labels,
     )
 
     transitioned_images = []
@@ -77,34 +72,9 @@ def py_image(name, base, binary, platforms, prefix = ""):
         images = transitioned_images,
     )
 
-    oci_tarball(
-        name = tarball_name,
-        image = image_index_name,
-        repo_tags = repo_tags,
-        format = "oci",
-    )
-
-    # From https://stackoverflow.com/questions/72945407/how-do-i-import-and-run-a-multi-platform-oci-image-in-docker-for-macos
-    # We need to load the multi-arch image using regctl
-    # Export the platform specific digest into a tar
-    # And load that tar into the daemon
-    task(
+    docker_load(
         name = image_load_name,
-        cmds = [
-            "$REGCTL image import ocidir://{} $TARBALL".format(binary_name),
-            "digest=$($REGCTL image digest --platform local ocidir://{})".format(binary_name),
-            "export LOCAL_TARBALL=$(pwd)/{}.tar".format(binary_name),
-            "$REGCTL image export ocidir://{}@$digest $LOCAL_TARBALL".format(binary_name),
-            {"defer": "rm -f $LOCAL_TARBALL"},
-            "docker load < $LOCAL_TARBALL",
-        ],
-        env = {
-            "TARBALL": cmd.file(tarball_name),
-            "REGCTL": cmd.executable("//tools/regctl:regctl"),
-        },
-        exec_properties = {
-            "workload-isolation-type": "firecracker",
-            "init-dockerd": "true",
-            "recycle-runner": "true",
-        },
+        tag = "{}:latest".format(binary_name),
+        image = image_index_name,
+        format = "oci",
     )

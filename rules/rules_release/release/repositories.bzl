@@ -1,4 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive", _http_jar = "http_jar")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive", _http_file = "http_file", _http_jar = "http_jar")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 # Copied from https://groups.google.com/g/bazel-discuss/c/xpsg3mWQPZg
@@ -26,20 +26,8 @@ def http_archive(**kwargs):
 def http_jar(**kwargs):
     maybe(_http_jar, **kwargs)
 
-# load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-# http_archive(
-#     name = "bazel_skylib",
-#     sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
-#     urls = [
-#         "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
-#         "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
-#     ],
-# )
-
-# load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-
-# bazel_skylib_workspace()
+def http_file(**kwargs):
+    maybe(_http_file, **kwargs)
 
 def rules_release_bazel_dependencies():
     http_archive(
@@ -77,6 +65,13 @@ def rules_release_bazel_dependencies():
         sha256 = "94750828b18044533e98a129003b6a68001204038dc4749f40b195b24c38f49f",
         strip_prefix = "rules_python-0.21.0",
         url = "https://github.com/bazelbuild/rules_python/releases/download/0.21.0/rules_python-0.21.0.tar.gz",
+    )
+
+    http_archive(
+        name = "rules_oci",
+        sha256 = "d41d0ba7855f029ad0e5ee35025f882cbe45b0d5d570842c52704f7a47ba8668",
+        strip_prefix = "rules_oci-1.4.3",
+        url = "https://github.com/bazel-contrib/rules_oci/releases/download/v1.4.3/rules_oci-v1.4.3.tar.gz",
     )
 
 def rules_release_dependencies():
@@ -129,6 +124,32 @@ def rules_release_dependencies():
         build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
         sha256 = "b9ae52df3003216b454f6ac0a402c71bcfb4804eafb3ee3593a84a2002930d27",
         url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.22.0/op_darwin_arm64_v2.22.0.zip",
+    )
+
+    # ------------------------------------ regctl ------------------------------------ #
+    # From https://github.com/regclient/regclient/releases
+    http_file(
+        name = "regctl_linux_arm64",
+        downloaded_file_path = "regctl",
+        executable = True,
+        sha256 = "380105c05c6c69ea3d35a8efeec0ccfa1bdfc38a876bf7d473be06d7267bae99",
+        url = "https://github.com/regclient/regclient/releases/download/v0.5.3/regctl-linux-arm64",
+    )
+
+    http_file(
+        name = "regctl_linux_amd64",
+        downloaded_file_path = "regctl",
+        executable = True,
+        sha256 = "5141569cd0ef6e52a9dc67391c432f1bdd0cfd2d3b82d3f22d56f94feab7203e",
+        url = "https://github.com/regclient/regclient/releases/download/v0.5.3/regctl-linux-amd64",
+    )
+
+    http_file(
+        name = "regctl_darwin_arm64",
+        downloaded_file_path = "regctl",
+        executable = True,
+        sha256 = "4705d5068f946a75606494400c811b9f3f34c89dc495a372462eef02d372fe4d",
+        url = "https://github.com/regclient/regclient/releases/download/v0.5.3/regctl-darwin-arm64",
     )
 
     starlarkified_local_repository(

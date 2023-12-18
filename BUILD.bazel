@@ -247,6 +247,7 @@ release_manager(
         ":push_git_changes",
     ],
     deps = [
+        "//provisioner:release",
         "//tools/bunq2ynab:release",
         "@rules_release//:release",
         "@rules_task//:release",
@@ -255,7 +256,7 @@ release_manager(
 
 alias(
     name = "regctl",
-    actual = "//tools/regctl",
+    actual = "@rules_release//tools/regctl",
 )
 
 alias(

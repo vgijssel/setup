@@ -52,7 +52,7 @@ elif setup_env == "test":
     ]
 
 else:
-    container_id = "provisioner_dev"
+    container_id = "provisioner-dev"
     dev = [
         (f"@docker/{container_id}", {}),
     ]

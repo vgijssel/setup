@@ -49,12 +49,23 @@ services:
 
   home-assistant:
     container_name: homeassistant
-    image: homeassistant/home-assistant:2023.10
+    image: homeassistant/home-assistant:2023.12
     volumes:
       - ./config:/config
       - /etc/localtime:/etc/localtime:ro
     restart: always
     privileged: true
+    network_mode: host
+
+  matter-server:
+    container_name: matter-server
+    image: ghcr.io/home-assistant-libs/python-matter-server:stable
+    restart: unless-stopped
+    security_opt:
+      - apparmor=unconfined
+    volumes:
+      - ./matter-server-data:/data
+      - /run/dbus:/run/dbus:ro
     network_mode: host
 
   esphome:

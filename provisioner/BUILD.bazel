@@ -1,15 +1,20 @@
 load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
-load("//tools/docker:docker.bzl", "docker_load")
+load("//tools/docker:docker_load.bzl", "docker_load")
+load("//tools/docker:docker_run_and_commit.bzl", "docker_run_and_commit")
 load("@pdm-setup//:requirements.bzl", "requirement")
 load("//tools/onepassword:defs.bzl", "secrets")
+load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@rules_release//tools:defs.bzl", "publish_github_release", release = "bazel_diff_release")
+
+package(default_visibility = ["//visibility:public"])
 
 pyinfra_run(
     name = "provision",
     srcs = [
         "connectors/teleport.py",
+        "deploys/bunq2ynab/tasks/install_bunq2ynab.py",
         "deploys/docker/tasks/install_docker.py",
-        "deploys/microk8s/tasks/install_microk8s.py",
         "deploys/monitoring/tasks/install_monitoring.py",
         "deploys/network/tasks/install_network.py",
         "deploys/teleport/tasks/install_teleport.py",
@@ -22,12 +27,12 @@ pyinfra_run(
         "--data install_network=True",
         "--data install_docker=True",
         "--data install_monitoring=True",
-        "--data install_microk8s=True",
         "--data install_teleport=True",
+        "--data install_bunq2ynab=True",
     ],
     data = [
+        "deploys/bunq2ynab/files/docker-compose.yml.j2",
         "deploys/docker/files/daemon.json",
-        "deploys/microk8s/files/cmdline.txt",
         "deploys/monitoring/files/docker-compose.yml.j2",
         "deploys/monitoring/files/docker-logs-fluentbit.conf",
         "deploys/monitoring/files/docker-parser-fluentbit.conf",
@@ -38,6 +43,8 @@ pyinfra_run(
         "deploys/monitoring/files/reboot.sh",
         "deploys/network/files/99_config.yaml",
         "deploys/teleport/files/teleport.yaml.j2",
+        "//tools/bunq2ynab:publish_oci_image.remote_tags",
+        "//tools/bunq2ynab:publish_oci_image-dev.remote_tags",
     ],
     deploy = "deploy.py",
     env = {
@@ -173,10 +180,6 @@ task_test(
     name = "deploy_test",
     size = "large",
     cmds = [
-        cmd.shell(
-            cmd.executable(":deploy_mark"),
-            "test-commit-sha",
-        ),
         cmd.executable(":deploy_provision"),
         cmd.shell(
             cmd.executable(":deploy_validate"),
@@ -190,14 +193,37 @@ task_test(
     },
 )
 
+docker_run_and_commit(
+    name = "install_deps",
+    cmd = """
+    apt-get update
+    apt-get install -y snapd squashfuse fuse sudo lsb-release
+    systemctl enable snapd
+    useradd -m ubuntu -s /bin/bash
+    adduser ubuntu sudo
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+    """,
+    image = "@ubuntu_base",
+)
+
+oci_image(
+    name = "dev-image",
+    base = "@ubuntu_base",
+    env = {
+        "DEBIAN_FRONTEND": "noninteractive",
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8",
+        "container": "docker",
+    },
+    tars = [
+        ":install_deps",
+    ],
+)
+
 docker_load(
     name = "load_dev_image",
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
-    image = "//tools/ubuntu:ubuntu_snap_base_image",
+    image = ":dev-image",
+    tag = "provisioner-dev:latest",
 )
 
 task(
@@ -233,7 +259,7 @@ task(
 task(
     name = "dev",
     cmds = [
-        "docker rm -f provisioner_dev",
+        "docker rm -f provisioner-dev",
         "export CONTAINER_ID=$($run_dev_image)",
         {"defer": "docker rm -f $CONTAINER_ID"},
         "docker logs -f $CONTAINER_ID",
@@ -241,7 +267,7 @@ task(
     env = {
         "run_dev_image": cmd.shell(
             cmd.executable(":run_dev_image"),
-            "--name provisioner_dev",
+            "--name provisioner-dev",
         ),
     },
 )
@@ -265,7 +291,7 @@ task(
         elif setup_env == 'prod':
             os.environ['VALIDATE_HOST'] = f"ssh://ubuntu@provisioner?timeout=0&controlpersist=0"
         else:
-            os.environ['VALIDATE_HOST'] = f"docker://root@provisioner_dev"
+            os.environ['VALIDATE_HOST'] = f"docker://root@provisioner-dev"
         """),
         cmd.python_entry_point("pytest:console_main", "--export-traces", "-vv", "-ra", "--hosts=\"$VALIDATE_HOST\"", "$tests"),
     ],
@@ -289,6 +315,7 @@ task_test(
     cmds = [
         "export CONTAINER_ID=$($run_dev_image)",
         {"defer": "docker rm -f $CONTAINER_ID"},
+        "$bunq2ynab_publish_oci_image",
         "$provision",
         "$validate",
     ],
@@ -296,6 +323,7 @@ task_test(
         "run_dev_image": cmd.executable(":run_dev_image"),
         "provision": cmd.executable(":provision"),
         "validate": cmd.executable(":validate"),
+        "bunq2ynab_publish_oci_image": cmd.executable("//tools/bunq2ynab:publish_oci_image-dev"),
         "SETUP_ENV": "test",
     },
     exec_properties = {
@@ -304,4 +332,31 @@ task_test(
         "recycle-runner": "true",
         "include-secrets": "true",
     },
+)
+
+publish_github_release(
+    name = "publish_github_release",
+    before_cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+    ],
+    env = {
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
+    release = ":release",
+)
+
+release(
+    name = "release",
+    changelog_file = "CHANGELOG.md",
+    publish_cmds = [
+        ":publish_github_release",
+    ],
+    release_name = "provisioner",
+    target = ":deploy",
+    version_file = "version.txt",
+    deps = [
+        "//tools/bunq2ynab:release",
+        "@rules_task//:release",
+    ],
 )

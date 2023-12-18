@@ -2,8 +2,8 @@ load("@rules_python//python:defs.bzl", "py_binary")
 load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
 load("//tools/python:defs.bzl", "py_image")
 load("@pdm-setup//:requirements.bzl", "requirement")
-load("@rules_release//tools:defs.bzl", "publish_github_release", release = "bazel_diff_release")
-load("@rules_oci//oci:defs.bzl", "oci_push")
+load("@rules_release//tools:defs.bzl", "publish_github_release", "publish_oci_image", release = "bazel_diff_release")
+load("@aspect_bazel_lib//lib:jq.bzl", "jq")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -51,7 +51,7 @@ task(
     env = {
         "BINARY": cmd.executable("list_user_binary"),
         "OP": cmd.executable("//tools/onepassword:op"),
-        "CONFIG_FILE_TPL": cmd.file("config.json.tpl"),
+        "CONFIG_FILE_TPL": cmd.file("config-dev.json.tpl"),
     },
 )
 
@@ -74,22 +74,31 @@ task(
     env = {
         "BINARY": cmd.executable("list_budget_binary"),
         "OP": cmd.executable("//tools/onepassword:op"),
-        "CONFIG_FILE_TPL": cmd.file("config.json.tpl"),
+        "CONFIG_FILE_TPL": cmd.file("config-dev.json.tpl"),
     },
 )
 
 task(
     name = "bunq2ynab",
     cmds = [
+        "export SETUP_ENV=${SETUP_ENV:-dev}",
+        "export TIMEOUT=${TIMEOUT:-0}",
+        'export SETUP_ENV="${SETUP_ENV^^}"',
+        "echo Running in env: $SETUP_ENV",
         "export CONFIG_FILE=$(pwd)/config.json",
-        "$OP inject --in-file=$CONFIG_FILE_TPL --out-file=$CONFIG_FILE --force",
+        'export CONFIG_TEMPLATE="CONFIG_${SETUP_ENV}_FILE_TPL"',
+        "echo Using config template: $CONFIG_TEMPLATE",
+        "$OP inject --in-file=${!CONFIG_TEMPLATE} --out-file=$CONFIG_FILE --force",
         {"defer": "rm -rf $CONFIG_FILE"},
         "$BINARY --config $CONFIG_FILE",
+        "echo Sleeping for $TIMEOUT to prevent rate limiting",
+        "sleep $TIMEOUT",
     ],
     env = {
         "BINARY": cmd.executable("bunq2ynab_binary"),
         "OP": cmd.executable("//tools/onepassword:op"),
-        "CONFIG_FILE_TPL": cmd.file("config.json.tpl"),
+        "CONFIG_DEV_FILE_TPL": cmd.file("config-dev.json.tpl"),
+        "CONFIG_PROD_FILE_TPL": cmd.file("config-prod.json.tpl"),
     },
 )
 
@@ -107,8 +116,8 @@ py_binary(
 task(
     name = "generate_oauth_token",
     cmds = [
-        "export CLIENT_ID=$($OP read op://vgijssel-dev/bunq2ynab_oauth/username)",
-        "export CLIENT_SECRET=$($OP read op://vgijssel-dev/bunq2ynab_oauth/credential)",
+        "export CLIENT_ID=$($OP read op://vgijssel-prod/bunq2ynab_oauth/username)",
+        "export CLIENT_SECRET=$($OP read op://vgijssel-prod/bunq2ynab_oauth/credential)",
         "$BINARY --oauth-client-id $CLIENT_ID --oauth-client-secret $CLIENT_SECRET",
     ],
     env = {
@@ -121,6 +130,7 @@ py_image(
     name = "bunq2ynab_image",
     base = "//tools/python:python_base_image_file",
     binary = ":bunq2ynab",
+    labels = "container-labels.txt",
     platforms = [
         "//:python_container_linux_amd64",
         "//:python_container_linux_arm64",
@@ -140,7 +150,7 @@ task_test(
     name = "bunq2ynab_image_test",
     cmds = [
         cmd.executable("bunq2ynab_image.load"),
-        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV localhost/bunq2ynab:latest",
+        "docker run --rm --env OP_SERVICE_ACCOUNT_TOKEN=$ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV --env TIMEOUT=5 localhost/bunq2ynab:latest",
     ],
     exec_properties = {
         "workload-isolation-type": "firecracker",
@@ -161,11 +171,57 @@ publish_github_release(
     release = ":release",
 )
 
+# Copied from https://github.com/bazel-contrib/rules_oci/blob/375e5dbf3b2c50e83c9df0d0dc16a027984dab77/examples/env_inheritance/BUILD.bazel#L28C1-L34
+genrule(
+    name = "hash",
+    srcs = [":bunq2ynab_image"],
+    outs = ["hash.txt"],
+    cmd = """
+    prefix_to_remove="sha256:"
+    digest=$$($(JQ_BIN) -r '.manifests[0].digest' $(location :bunq2ynab_image)/index.json)
+    digest_without_prefix=$$(echo $$digest | sed "s/$$prefix_to_remove//")
+    echo "dev-$$digest_without_prefix" > $@
+    """,
+    toolchains = ["@jq_toolchains//:resolved_toolchain"],
+)
+
+publish_oci_image(
+    name = "publish_oci_image",
+    before_cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "export REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
+        "export REGISTRY_PASSWORD=$($OP read op://vgijssel-prod/github-container-registry/credential)",
+        "docker login ghcr.io --username $REGISTRY_LOGIN --password $REGISTRY_PASSWORD",
+    ],
+    env = {
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
+    image = ":bunq2ynab_image",
+    remote_tags = "version.txt",
+    repository = "ghcr.io/vgijssel/setup/bunq2ynab",
+)
+
+publish_oci_image(
+    name = "publish_oci_image-dev",
+    before_cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "export REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
+        "export REGISTRY_PASSWORD=$($OP read op://vgijssel-prod/github-container-registry/credential)",
+        "docker login ghcr.io --username $REGISTRY_LOGIN --password $REGISTRY_PASSWORD",
+    ],
+    env = {
+        "OP": cmd.executable("//tools/onepassword:op"),
+    },
+    image = ":bunq2ynab_image",
+    remote_tags = ":hash",
+    repository = "ghcr.io/vgijssel/setup/bunq2ynab-dev",
+)
+
 release(
     name = "release",
     changelog_file = "CHANGELOG.md",
     publish_cmds = [
-        ":bunq2ynab_image_push",
+        ":publish_oci_image",
         ":publish_github_release",
     ],
     release_name = "bunq2ynab",
@@ -174,32 +230,4 @@ release(
     deps = [
         "@rules_task//:release",
     ],
-)
-
-oci_push(
-    name = "bunq2ynab_image_push_oci",
-    image = ":bunq2ynab_image",
-    remote_tags = "version.txt",
-    repository = "ghcr.io/vgijssel/setup/bunq2ynab",
-)
-
-task(
-    name = "bunq2ynab_image_push",
-    cmds = [
-        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
-        "export IMAGE_TAG=$(cat $VERSION_FILE)",
-        "export IMAGE=ghcr.io/vgijssel/setup/bunq2ynab:$IMAGE_TAG",
-        "export REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
-        "export REGISTRY_PASSWORD=$($OP read op://vgijssel-prod/github-container-registry/credential)",
-        "docker login ghcr.io --username $REGISTRY_LOGIN --password $REGISTRY_PASSWORD",
-        "export CONTAINER_EXISTS=$($REGCTL image inspect $IMAGE > /dev/null 2>&1 && echo true || echo false)",
-        "if [ $CONTAINER_EXISTS = true ]; then echo 'Image already exists, exitting.'; exit 0; fi",
-        "$PUSH_IMAGE",
-    ],
-    env = {
-        "OP": cmd.executable("//tools/onepassword:op"),
-        "REGCTL": cmd.executable("//tools/regctl"),
-        "VERSION_FILE": cmd.file("version.txt"),
-        "PUSH_IMAGE": cmd.executable(":bunq2ynab_image_push_oci"),
-    },
 )

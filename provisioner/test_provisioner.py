@@ -28,14 +28,6 @@ def test_hostname(host):
     assert host.check_output("hostname -s") == "provisioner"
 
 
-def test_cmdline(host):
-    cmdline = host.file("/boot/firmware/cmdline.txt")
-    assert cmdline.contains("root")
-    assert cmdline.user == "root"
-    assert cmdline.group == "root"
-    assert cmdline.mode == 0o755
-
-
 def test_ubuntu_focal(host):
     assert host.system_info.type == "linux"
     assert host.system_info.distribution == "ubuntu"
@@ -143,27 +135,6 @@ def test_otel_collector_health(host):
 #     "0 1 * * * /opt/monitoring/reboot.sh" in host.check_output("crontab -l")
 
 
-def test_microk8s_installed(host):
-    assert "microk8s" in host.check_output("snap list")
-
-
-def test_microk8s_version(host):
-    with host.sudo():
-        assert host.check_output("microk8s version").startswith("MicroK8s v1.27")
-
-
-def test_user_added_to_microk8s_group(host):
-    assert "microk8s" in host.user("ubuntu").groups
-
-
-def test_kube_config_permissions(host):
-    kube_config = host.file("/home/ubuntu/.kube")
-    assert kube_config.is_directory
-    assert kube_config.user == "ubuntu"
-    assert kube_config.group == "ubuntu"
-    assert kube_config.mode == 0o755
-
-
 def test_passwd_file(host):
     passwd = host.file("/etc/passwd")
     assert passwd.contains("root")
@@ -205,3 +176,8 @@ def test_https_port_is_open(host):
 def test_teleport_diag_port_is_open(host):
     assert host.socket("tcp://127.0.0.1:3000").is_listening
     assert not host.socket("tcp://0.0.0.0:3000").is_listening
+
+
+def test_bunq2ynab_service(host):
+    bunq2ynab = host.docker("bunq2ynab")
+    assert bunq2ynab.is_running
