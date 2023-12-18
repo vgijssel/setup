@@ -27,7 +27,7 @@ def py_image_layer(name, binary, prefix = "", **kwargs):
         mtree = prefixed_mtree_spec_name,
     )
 
-def py_image(name, base, binary, platforms, prefix = ""):
+def py_image(name, base, binary, platforms, prefix = "", labels = None):
     binary_name = Label(binary).name
     package_name = native.package_name()
     entrypoint = ["/{}{}/{}".format(prefix, package_name, binary_name)]
@@ -50,6 +50,7 @@ def py_image(name, base, binary, platforms, prefix = ""):
         tars = [
             image_python_layer_name,
         ],
+        labels = labels,
     )
 
     transitioned_images = []

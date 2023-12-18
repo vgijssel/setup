@@ -130,6 +130,7 @@ py_image(
     name = "bunq2ynab_image",
     base = "//tools/python:python_base_image_file",
     binary = ":bunq2ynab",
+    labels = "container-labels.txt",
     platforms = [
         "//:python_container_linux_amd64",
         "//:python_container_linux_arm64",
@@ -213,7 +214,7 @@ publish_oci_image(
     },
     image = ":bunq2ynab_image",
     remote_tags = ":hash",
-    repository = "ghcr.io/vgijssel/setup/bunq2ynab",
+    repository = "ghcr.io/vgijssel/setup/bunq2ynab-dev",
 )
 
 release(
