@@ -8,6 +8,8 @@ services:
     environment:
       - OP_SERVICE_ACCOUNT_TOKEN={{ op_service_account_token }}
       - SETUP_ENV={{ setup_env }}
+      # sleeping for 15 minutes to prevent rate limiting
+      - TIMEOUT=900
     deploy:
       resources:
         limits:
