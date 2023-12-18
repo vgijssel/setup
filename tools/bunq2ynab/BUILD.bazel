@@ -90,6 +90,8 @@ task(
         "$OP inject --in-file=${!CONFIG_TEMPLATE} --out-file=$CONFIG_FILE --force",
         {"defer": "rm -rf $CONFIG_FILE"},
         "$BINARY --config $CONFIG_FILE",
+        "echo Sleeping for 15 minutes to prevent rate limiting",
+        "sleep 900",
     ],
     env = {
         "BINARY": cmd.executable("bunq2ynab_binary"),
