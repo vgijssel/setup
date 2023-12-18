@@ -49,4 +49,9 @@ def docker_run_and_commit(name, cmd, image, format = "docker", timeout = 300):
             cmd = cmd,
             timeout = timeout,
         ),
+        exec_properties = {
+            "workload-isolation-type": "firecracker",
+            "init-dockerd": "true",
+            "recycle-runner": "true",
+        },
     )

@@ -5,7 +5,7 @@ For quickly loading and running docker images built by Bazel.
 load("@rules_task//task:defs.bzl", "cmd", "task")
 load(":docker_local_tar.bzl", "docker_local_tar")
 
-def docker_load(name, tag, image, format = "docker", **kwargs):
+def docker_load(name, tag, image, format = "docker"):
     local_tar_name = "{}.local_tar".format(name)
 
     docker_local_tar(
@@ -29,5 +29,9 @@ def docker_load(name, tag, image, format = "docker", **kwargs):
             "LOCAL_TAR": cmd.file(local_tar_name),
             "REGCTL": cmd.executable("@rules_release//tools/regctl"),
         },
-        **kwargs
+        exec_properties = {
+            "workload-isolation-type": "firecracker",
+            "init-dockerd": "true",
+            "recycle-runner": "true",
+        },
     )

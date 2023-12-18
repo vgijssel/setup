@@ -75,10 +75,5 @@ def py_image(name, base, binary, platforms, prefix = ""):
         name = image_load_name,
         tag = "{}:latest".format(binary_name),
         image = image_index_name,
-        exec_properties = {
-            "workload-isolation-type": "firecracker",
-            "init-dockerd": "true",
-            "recycle-runner": "true",
-        },
         format = "oci",
     )

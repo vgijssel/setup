@@ -200,12 +200,6 @@ docker_run_and_commit(
     adduser ubuntu sudo
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
     """,
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-        "include-secrets": "true",
-    },
     image = "@ubuntu_base",
 )
 
@@ -225,11 +219,6 @@ oci_image(
 
 docker_load(
     name = "load_dev_image",
-    exec_properties = {
-        "workload-isolation-type": "firecracker",
-        "init-dockerd": "true",
-        "recycle-runner": "true",
-    },
     image = ":dev-image",
     tag = "provisioner-dev:latest",
 )
