@@ -73,7 +73,7 @@ def py_image(name, base, binary, platforms, prefix = ""):
 
     docker_load(
         name = image_load_name,
-        binary_name = binary_name,
+        tag = "{}:latest".format(binary_name),
         image = image_index_name,
         exec_properties = {
             "workload-isolation-type": "firecracker",

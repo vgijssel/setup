@@ -67,6 +67,13 @@ def rules_release_bazel_dependencies():
         url = "https://github.com/bazelbuild/rules_python/releases/download/0.21.0/rules_python-0.21.0.tar.gz",
     )
 
+    http_archive(
+        name = "rules_oci",
+        sha256 = "d41d0ba7855f029ad0e5ee35025f882cbe45b0d5d570842c52704f7a47ba8668",
+        strip_prefix = "rules_oci-1.4.3",
+        url = "https://github.com/bazel-contrib/rules_oci/releases/download/v1.4.3/rules_oci-v1.4.3.tar.gz",
+    )
+
 def rules_release_dependencies():
     http_jar(
         name = "bazel_diff",
