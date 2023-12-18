@@ -17,6 +17,17 @@ def install_bunq2ynab():
         _sudo=True,
     )
 
+    github_registry_username = get_item_path("github-container-registry.username")
+    github_registry_password = get_item_path("github-container-registry.credential")
+
+    server.shell(
+        name="Login to the Github Container Registry",
+        commands=[
+            f"docker login ghcr.io --username {github_registry_username} --password {github_registry_password}",
+        ],
+        _sudo=True,
+    )
+
     op_service_account_token = get_item_path(
         "1password_service_account_token.credential"
     )

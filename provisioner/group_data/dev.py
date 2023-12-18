@@ -6,5 +6,8 @@ teleport_acme_email = ""
 teleport_acme_enabled = "no"
 new_relic_display_name = "provisioner_dev"
 bunq2ynab_image_tag = (
-    open("./tools/bunq2ynab/publish_oci_image-dev.remote_tags.txt", "r").read().strip()
+    "ghcr.io/vgijssel/setup/bunq2ynab-dev:"
+    + open("./tools/bunq2ynab/publish_oci_image-dev.remote_tags.txt", "r")
+    .read()
+    .strip()
 )

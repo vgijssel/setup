@@ -3,7 +3,7 @@ version: '3.8'
 services:
   bunq2ynab:
     container_name: bunq2ynab
-    image: ghcr.io/vgijssel/setup/bunq2ynab:{{ bunq2ynab_image_tag }}
+    image: {{ bunq2ynab_image_tag }}
     restart: always
     environment:
       - OP_SERVICE_ACCOUNT_TOKEN={{ op_service_account_token }}
