@@ -20,10 +20,10 @@ def _bazel_diff_release_impl(ctx):
     args = [bazel_diff_cli_path, "--bazel-diff-path", bazel_diff_path, "--previous-revision-cmd", previous_revision_path, "--final-revision-cmd", final_revision_path]
 
     if ctx.attr.generate_hashes_extra_args:
-        args += ["--generate-hashes-extra-args", " ".join(ctx.attr.generate_hashes_extra_args)]
+        args.append("--generate-hashes-extra-args \'" + " ".join(ctx.attr.generate_hashes_extra_args) + "\'")
 
     if ctx.attr.get_impacted_targets_extra_args:
-        args += ["--get-impacted-targets-extra-args", " ".join(ctx.attr.get_impacted_targets_extra_args)]
+        args.append("--get-impacted-targets-extra-args \'" + " ".join(ctx.attr.get_impacted_targets_extra_args) + "\'")
 
     args.append(_to_label_string(ctx.attr.target.label))
 
@@ -58,30 +58,36 @@ _bazel_diff_release = rule(
     executable = True,
 )
 
-def bazel_diff_release(**kwargs):
+def bazel_diff_release(previous_revision_cmd = None, final_revision_cmd = None, **kwargs):
     name = kwargs.get("name")
     change_cmd_name = "{}.change_cmd".format(name)
-    previous_revision_cmd_name = "{}.previous_revision_cmd".format(name)
-    final_revision_cmd_name = "{}.final_revision_cmd".format(name)
+    previous_revision_cmd_name = previous_revision_cmd
+    final_revision_cmd_name = final_revision_cmd
     target = kwargs.pop("target")
     generate_hashes_extra_args = kwargs.pop("generate_hashes_extra_args", [])
     get_impacted_targets_extra_args = kwargs.pop("get_impacted_targets_extra_args", [])
 
-    task(
-        name = previous_revision_cmd_name,
-        cmds = [
-            "git rev-parse master",
-        ],
-        cwd = "$BUILD_WORKSPACE_DIRECTORY",
-    )
+    if not previous_revision_cmd_name:
+        previous_revision_cmd_name = "{}.previous_revision_cmd".format(name)
 
-    task(
-        name = final_revision_cmd_name,
-        cmds = [
-            "git rev-parse HEAD",
-        ],
-        cwd = "$BUILD_WORKSPACE_DIRECTORY",
-    )
+        task(
+            name = previous_revision_cmd_name,
+            cmds = [
+                "git rev-parse master",
+            ],
+            cwd = "$BUILD_WORKSPACE_DIRECTORY",
+        )
+
+    if not final_revision_cmd_name:
+        final_revision_cmd_name = "{}.final_revision_cmd".format(name)
+
+        task(
+            name = final_revision_cmd_name,
+            cmds = [
+                "git rev-parse HEAD",
+            ],
+            cwd = "$BUILD_WORKSPACE_DIRECTORY",
+        )
 
     _bazel_diff_release(
         name = change_cmd_name,
