@@ -15,7 +15,7 @@ dependencies = [
     "pulumi==3.86.0",
     "pulumi-command==0.9.1",
     "pulumi-kubernetes==4.3.0",
-    "pytest-homeassistant-custom-component==0.13.39",
+    "pytest-homeassistant-custom-component==0.13.85",
     "tzdata==2023.3",
     "pyinfra==2.7",
     "semver==2.13.0",
