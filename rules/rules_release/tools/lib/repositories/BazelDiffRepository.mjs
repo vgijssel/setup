@@ -102,6 +102,7 @@ export default class BazelDiffRepository {
   }
 
   async _generateImpactedTargets(sha, previousHashes, currentHashes, cache) {
+    console.log("kerk");
     const impactedTargetsPath = `${this.hashesDir}/${sha}-${md5(
       this.generateHashesExtraArgs
     )}-${md5(this.getImpactedTargetsExtraArgs)}.impacted_targets.json`;
