@@ -232,8 +232,7 @@ task(
         'echo $FILES_CHANGED | xargs cp -v --target-directory="$NEW_REPOSITORY_PATH" --parents',
         "git -C $NEW_REPOSITORY_PATH add .",
         "git -C $NEW_REPOSITORY_PATH commit -m 'chore(release_manager): update release files'",
-        # Disable credential.helper to ensure the passed in token is used
-        "git -c credential.helper= -C $NEW_REPOSITORY_PATH push --tags origin master",
+        "git -C $NEW_REPOSITORY_PATH push --tags origin master",
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
