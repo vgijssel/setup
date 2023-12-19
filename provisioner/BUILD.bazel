@@ -139,6 +139,11 @@ task(
         cmd.executable(":deploy_validate"),
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
+    # Add in all the .github files to the data attribute,
+    # so if the github workflows change then we re-run the deployment
+    data = [
+        "//:.github",
+    ],
     env = {
         "SETUP_ENV": "prod",
     },
