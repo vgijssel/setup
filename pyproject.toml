@@ -19,7 +19,7 @@ dependencies = [
     "tzdata==2023.3",
     "pyinfra==2.7",
     "semver==2.13.0",
-    "bazel-runfiles==0.25.0",
+    "bazel-runfiles==0.27.1",
     "requests==2.31.0",
     "pyOpenSSL==23.1.0",
     "setuptools>=68.2.2",

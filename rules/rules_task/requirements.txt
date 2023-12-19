@@ -4,8 +4,8 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes requirements.in
 #
-bazel-runfiles==0.25.0 \
-    --hash=sha256:f74c1865bbb27824c21775a76d6939206eaa3be75106093ee11615875dd2c935
+bazel-runfiles==0.27.1 \
+    --hash=sha256:89ae658e4e6e8714db99bea0e5a4c9c6b171316fc944968efd7502678910169a
     # via -r requirements.in
 black==23.3.0 \
     --hash=sha256:064101748afa12ad2291c2b91c960be28b817c0c7eaa35bec09cc63aa56493c5 \
@@ -97,7 +97,9 @@ coverage[toml]==7.3.1 \
     --hash=sha256:f1a317fdf5c122ad642db8a97964733ab7c3cf6009e1a8ae8821089993f175ff \
     --hash=sha256:f2781fd3cabc28278dc982a352f50c81c09a1a500cc2086dc4249853ea96b981 \
     --hash=sha256:f4f456590eefb6e1b3c9ea6328c1e9fa0f1006e7481179d749b3376fc793478e
-    # via pytest-cov
+    # via
+    #   coverage
+    #   pytest-cov
 deepdiff==6.6.0 \
     --hash=sha256:d78e8a83c8f5b223008983144308b214e29a25fc37a3354148e7eddacd0f9bb1 \
     --hash=sha256:e96424a57befa3f85238d10d9fb73d7a8cfd2228f1c2ab3cedd58b97d2acd80e

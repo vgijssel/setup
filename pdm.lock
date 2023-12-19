@@ -3,10 +3,9 @@
 
 [metadata]
 groups = ["default"]
-cross_platform = true
-static_urls = true
-lock_version = "4.3"
-content_hash = "sha256:6ff8e9c5b619b5181ea479e90c81313ddef35d9405932aa8201d67b6c0ea70fe"
+strategy = ["cross_platform", "static_urls"]
+lock_version = "4.4.1"
+content_hash = "sha256:1a373347b812a6c5e0cf134f6e6820e773ced33182fe188f3b9ee73b344eff03"
 
 [[package]]
 name = "aiohttp"
@@ -158,10 +157,10 @@ files = [
 
 [[package]]
 name = "bazel-runfiles"
-version = "0.25.0"
+version = "0.27.1"
 summary = ""
 files = [
-    {url = "https://files.pythonhosted.org/packages/3c/87/acb2d68ebd96d7abbc44507dd1903b3c0dc130a7de3efa629f9daeed1c19/bazel_runfiles-0.25.0-py3-none-any.whl", hash = "sha256:f74c1865bbb27824c21775a76d6939206eaa3be75106093ee11615875dd2c935"},
+    {url = "https://files.pythonhosted.org/packages/7b/b1/664f3ebd1b956ee090a629c16dbe1db085951881451227ed326c866cfb52/bazel_runfiles-0.27.1-py3-none-any.whl", hash = "sha256:89ae658e4e6e8714db99bea0e5a4c9c6b171316fc944968efd7502678910169a"},
 ]
 
 [[package]]
@@ -1958,7 +1957,7 @@ version = "2.0.15"
 requires_python = ">=3.7"
 summary = "Database Abstraction Library"
 dependencies = [
-    "greenlet!=0.4.17; platform_machine == \"aarch64\" or (platform_machine == \"ppc64le\" or (platform_machine == \"x86_64\" or (platform_machine == \"amd64\" or (platform_machine == \"AMD64\" or (platform_machine == \"win32\" or platform_machine == \"WIN32\")))))",
+    "greenlet!=0.4.17; platform_machine == \"win32\" or platform_machine == \"WIN32\" or platform_machine == \"AMD64\" or platform_machine == \"amd64\" or platform_machine == \"x86_64\" or platform_machine == \"ppc64le\" or platform_machine == \"aarch64\"",
     "typing-extensions>=4.2.0",
 ]
 files = [
