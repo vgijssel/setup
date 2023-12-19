@@ -1,5 +1,11 @@
 # provisioner
 
+## 1.0.2
+
+### Patch Changes
+
+- [#618](https://github.com/vgijssel/setup/pull/618) [`752d545`](https://github.com/vgijssel/setup/commit/752d545659cc6b1251fe228cbc08b9177eddde09) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Ensure the provisioner deployment is triggered
+
 ## 1.0.1
 
 ### Patch Changes
