@@ -135,6 +135,7 @@ publish_github_release(
     release = ":release",
 )
 
+# add a random comment
 release(
     name = "release",
     changelog_file = "CHANGELOG.md",
