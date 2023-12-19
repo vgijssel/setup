@@ -70,7 +70,8 @@ def bazel_diff_release(**kwargs):
     task(
         name = previous_revision_cmd_name,
         cmds = [
-            "git rev-parse master",
+            "echo a870d128d5c971746ee1fb454c166f6ea9aabe6a",
+            # "git rev-parse master",
         ],
         cwd = "$BUILD_WORKSPACE_DIRECTORY",
     )

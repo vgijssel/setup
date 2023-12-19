@@ -140,8 +140,8 @@ release(
     name = "release",
     changelog_file = "CHANGELOG.md",
     generate_hashes_extra_args = [
-        "--seed-filepaths=/tmp/files",
         "--fineGrainedHashExternalRepos=rules_release",
+        "--useCquery",
     ],
     publish_cmds = [
         ":publish_github_release",
