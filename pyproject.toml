@@ -18,7 +18,7 @@ dependencies = [
     "pytest-homeassistant-custom-component==0.13.39",
     "tzdata==2023.3",
     "pyinfra==2.7",
-    "semver==2.13.0",
+    "semver==3.0.2",
     "bazel-runfiles==0.25.0",
     "requests==2.31.0",
     "pyOpenSSL==23.1.0",
