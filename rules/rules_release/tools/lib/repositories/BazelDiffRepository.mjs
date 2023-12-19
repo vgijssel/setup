@@ -74,7 +74,12 @@ export default class BazelDiffRepository {
       hasStashedChanges =
         stashResult.stdout.trim() !== "No local changes to save";
       await this._checkoutSha(sha);
-      await $`${this.bazelDiffPath} generate-hashes ${this.generateHashesExtraArgs} -w ${this.workspaceDir} -b ${bazelPath} ${hashesFile}`;
+
+      await $`${
+        this.bazelDiffPath
+      } generate-hashes ${this.generateHashesExtraArgs.split(" ")} -w ${
+        this.workspaceDir
+      } -b ${bazelPath} ${hashesFile}`;
       await this._checkoutSha(currentBranch);
     } catch (error) {
       // make sure we checkout back to the current branch
@@ -98,7 +103,11 @@ export default class BazelDiffRepository {
       return impactedTargetsPath;
     }
 
-    await $`${this.bazelDiffPath} get-impacted-targets ${this.getImpactedTargetsExtraArgs} -sh ${previousHashes} -fh ${currentHashes} -o ${impactedTargetsPath}`;
+    await $`${
+      this.bazelDiffPath
+    } get-impacted-targets ${this.getImpactedTargetsExtraArgs.split(
+      " "
+    )} -sh ${previousHashes} -fh ${currentHashes} -o ${impactedTargetsPath}`;
 
     return impactedTargetsPath;
   }
