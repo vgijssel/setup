@@ -1,12 +1,12 @@
 name: Schedule
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "0 * * * *"
 
 jobs:
   provisioner-validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 9
+    timeout-minutes: 10
     concurrency: validate-provisioner
     steps:
       - name: Checkout repository

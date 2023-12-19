@@ -24,6 +24,11 @@ runs:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
         BUILDBUDDY_API_KEY: op://vgijssel-prod/buildbuddy-api-key/password
 
+    - name: Install nix package manager
+      uses: cachix/install-nix-action@v22
+      with:
+        nix_path: nixpkgs=channel:nixos-23.11
+
     - name: Create local.bazelrc file
       shell: bash
       run: |
