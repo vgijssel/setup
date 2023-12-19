@@ -213,6 +213,8 @@ diff_test(
 task(
     name = "push_git_changes",
     cmds = [
+        # Ensure also untracked files are added
+        "git add .",
         "export CHANGES_TO_COMMIT=$(git diff-index --quiet HEAD && echo false || echo true)",
         "if [ $CHANGES_TO_COMMIT = false ]; then echo 'Nothing to commit, working tree clean. Exitting.'; exit 0; fi",
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
