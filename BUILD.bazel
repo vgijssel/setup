@@ -213,18 +213,26 @@ diff_test(
 task(
     name = "push_git_changes",
     cmds = [
+        # Ensure also untracked files are added
+        "git add .",
+        "export FILES_CHANGED=$(git diff --cached --name-only)",
+        'if [ -z "$FILES_CHANGED" ]; then echo "Nothing to commit, working tree clean. Exitting."; exit 0; fi',
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
         "export GIT_AUTHOR_NAME=$($OP read op://vgijssel-prod/github-git-push/username)",
         "export GIT_AUTHOR_EMAIL=$($OP read op://vgijssel-prod/github-git-push/email)",
         "export GIT_PUSH_PASSWORD=$($OP read op://vgijssel-prod/github-git-push/credential)",
         "export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME",
         "export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL",
-        "git add .",
-        "export CHANGES_TO_COMMIT=$(git diff-index --quiet HEAD && echo false || echo true)",
-        "if [ $CHANGES_TO_COMMIT = false ]; then echo 'Nothing to commit, working tree clean. Exitting.'; exit 0; fi",
-        "git commit -m 'chore(release_manager): update release files'",
-        # Disable credential.helper to ensure the passed in token is used
-        "git -c credential.helper= push --tags https://$GIT_COMMITTER_NAME:$GIT_PUSH_PASSWORD@github.com/vgijssel/setup.git HEAD:master",
+        "export NEW_REPOSITORY_DIR=$(mktemp -d)",
+        "export NEW_REPOSITORY_PATH=$NEW_REPOSITORY_DIR/git_push_changes",
+        "git clone --depth=1 https://$GIT_COMMITTER_NAME:$GIT_PUSH_PASSWORD@github.com/vgijssel/setup.git $NEW_REPOSITORY_PATH",
+        {"defer": "rm -rf $NEW_REPOSITORY_DIR"},
+        # From https://stackoverflow.com/questions/72374273/git-diff-and-copy
+        # Copy new and changed files from the current git repository to the new git repository
+        'echo $FILES_CHANGED | xargs cp -v --target-directory="$NEW_REPOSITORY_PATH" --parents',
+        "git -C $NEW_REPOSITORY_PATH add .",
+        "git -C $NEW_REPOSITORY_PATH commit -m 'chore(release_manager): update release files'",
+        "git -C $NEW_REPOSITORY_PATH push --tags origin master",
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
@@ -253,4 +261,9 @@ alias(
 alias(
     name = "tsh",
     actual = "//tools/teleport:tsh",
+)
+
+alias(
+    name = "op",
+    actual = "//tools/onepassword:op",
 )
