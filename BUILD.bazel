@@ -215,7 +215,7 @@ task(
     cmds = [
         # Ensure also untracked files are added
         "git add .",
-        "export FILES_CHANGED=$(git diff --cached --name-only -z)",
+        "export FILES_CHANGED=$(git diff --cached --name-only)",
         'if [ -z "$FILES_CHANGED" ]; then echo "Nothing to commit, working tree clean. Exitting."; exit 0; fi',
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
         "export GIT_AUTHOR_NAME=$($OP read op://vgijssel-prod/github-git-push/username)",
@@ -229,11 +229,11 @@ task(
         {"defer": "rm -rf $NEW_REPOSITORY_DIR"},
         # From https://stackoverflow.com/questions/72374273/git-diff-and-copy
         # Copy new and changed files from the current git repository to the new git repository
-        '$FILED_CHANGED | xargs -0 cp -v --target-directory="$NEW_REPOSITORY_PATH" --parents',
+        'echo $FILES_CHANGED | xargs cp -v --target-directory="$NEW_REPOSITORY_PATH" --parents',
         "git -C $NEW_REPOSITORY_PATH add .",
         "git -C $NEW_REPOSITORY_PATH commit -m 'chore(release_manager): update release files'",
         # Disable credential.helper to ensure the passed in token is used
-        # "git -c credential.helper= -C $NEW_REPOSITORY_PATH push --tags origin master",
+        "git -c credential.helper= -C $NEW_REPOSITORY_PATH push --tags origin master",
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
