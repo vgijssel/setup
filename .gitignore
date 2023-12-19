@@ -54,3 +54,5 @@ __pypackages__
 keys
 nixos.qcow2
 result
+
+target-determinator
