@@ -73,6 +73,7 @@ export default class BazelDiffRepository {
         await $`git -C ${this.workspaceDir} stash --include-untracked`;
       hasStashedChanges =
         stashResult.stdout.trim() !== "No local changes to save";
+
       await this._checkoutSha(sha);
 
       await $`${
@@ -80,11 +81,17 @@ export default class BazelDiffRepository {
       } generate-hashes ${this.generateHashesExtraArgs.split(" ")} -w ${
         this.workspaceDir
       } -b ${bazelPath} ${hashesFile}`;
+
       await this._checkoutSha(currentBranch);
+
+      if (hasStashedChanges) {
+        await $`git -C ${this.workspaceDir} stash pop`;
+      }
     } catch (error) {
       // make sure we checkout back to the current branch
       await this._checkoutSha(currentBranch);
 
+      // make sure we restore the stash
       if (hasStashedChanges) {
         await $`git -C ${this.workspaceDir} stash pop`;
       }
