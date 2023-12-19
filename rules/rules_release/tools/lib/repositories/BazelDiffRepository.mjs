@@ -69,7 +69,8 @@ export default class BazelDiffRepository {
     let hasStashedChanges = false;
 
     try {
-      const stashResult = await $`git stash --include-untracked`;
+      const stashResult =
+        await $`git -C ${this.workspaceDir} stash --include-untracked`;
       hasStashedChanges =
         stashResult.stdout.trim() !== "No local changes to save";
       await this._checkoutSha(sha);
@@ -80,7 +81,7 @@ export default class BazelDiffRepository {
       await this._checkoutSha(currentBranch);
 
       if (hasStashedChanges) {
-        await $`git stash pop`;
+        await $`git -C ${this.workspaceDir} stash pop`;
       }
       throw error;
     }
