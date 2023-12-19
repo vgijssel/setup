@@ -11,7 +11,10 @@ load("@rules_release//release:defs.bzl", "release_manager")
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["WORKSPACE"])
+exports_files([
+    "WORKSPACE",
+    ".github",
+])
 
 bool_flag(
     name = "setup_debug_flag",
