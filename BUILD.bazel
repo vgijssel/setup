@@ -224,7 +224,7 @@ task(
         "if [ $CHANGES_TO_COMMIT = false ]; then echo 'Nothing to commit, working tree clean. Exitting.'; exit 0; fi",
         "git commit -m 'chore(release_manager): update release files'",
         # Disable credential.helper to ensure the passed in token is used
-        "git -c credential.helper= push --tags https://$GIT_COMMITTER_NAME@$GIT_PUSH_PASSWORD@github.com/vgijssel/setup.git HEAD:master",
+        "git -c credential.helper= push --tags https://$GIT_COMMITTER_NAME:$GIT_PUSH_PASSWORD@github.com/vgijssel/setup.git HEAD:master",
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
