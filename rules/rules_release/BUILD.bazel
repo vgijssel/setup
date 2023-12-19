@@ -138,7 +138,10 @@ publish_github_release(
 release(
     name = "release",
     changelog_file = "CHANGELOG.md",
-    generate_hashes_extra_args = ["--fineGrainedHashExternalRepos=rules_release"],
+    generate_hashes_extra_args = [
+        "--fineGrainedHashExternalRepos=rules_release",
+        "--useCquery",
+    ],
     publish_cmds = [
         ":publish_github_release",
     ],
