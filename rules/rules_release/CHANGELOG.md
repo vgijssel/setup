@@ -1,5 +1,22 @@
 # rules_release
 
+## 1.2.0
+
+### Minor Changes
+
+- [#617](https://github.com/vgijssel/setup/pull/617) [`951b11e`](https://github.com/vgijssel/setup/commit/951b11ef1110cbb6696e4cb8c9d4d738dba0a64a) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Enable passing `previous_revision_cmd` and `final_revision_cmd` to `bazel_diff_release`
+
+- [#617](https://github.com/vgijssel/setup/pull/617) [`951b11e`](https://github.com/vgijssel/setup/commit/951b11ef1110cbb6696e4cb8c9d4d738dba0a64a) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Add `release_changed_files` to enable releasing based on changed file paths inside of git
+
+- [#617](https://github.com/vgijssel/setup/pull/617) [`951b11e`](https://github.com/vgijssel/setup/commit/951b11ef1110cbb6696e4cb8c9d4d738dba0a64a) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Support changing git directories better by stashing and restoring the working directory
+
+### Patch Changes
+
+- [#617](https://github.com/vgijssel/setup/pull/617) [`951b11e`](https://github.com/vgijssel/setup/commit/951b11ef1110cbb6696e4cb8c9d4d738dba0a64a) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Fix passing multiple arguments to generate-hashes and get-impacted-targets
+
+- Updated dependencies [[`951b11e`](https://github.com/vgijssel/setup/commit/951b11ef1110cbb6696e4cb8c9d4d738dba0a64a)]:
+  - rules_task@2.0.1
+
 ## 1.1.0
 
 ### Minor Changes

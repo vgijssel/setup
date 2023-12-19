@@ -1,5 +1,18 @@
 # provisioner
 
+## 1.0.1
+
+### Patch Changes
+
+- [#617](https://github.com/vgijssel/setup/pull/617) [`951b11e`](https://github.com/vgijssel/setup/commit/951b11ef1110cbb6696e4cb8c9d4d738dba0a64a) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Update timeout of bunq2ynab to prevent 1password rate limit
+
+- [#617](https://github.com/vgijssel/setup/pull/617) [`951b11e`](https://github.com/vgijssel/setup/commit/951b11ef1110cbb6696e4cb8c9d4d738dba0a64a) Thanks [@mvgijssel](https://github.com/mvgijssel)! - chore(deps): Update teleport to 14.2.3
+
+- [#617](https://github.com/vgijssel/setup/pull/617) [`951b11e`](https://github.com/vgijssel/setup/commit/951b11ef1110cbb6696e4cb8c9d4d738dba0a64a) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Ensure nix-build is available inside GitHub actions
+
+- Updated dependencies [[`951b11e`](https://github.com/vgijssel/setup/commit/951b11ef1110cbb6696e4cb8c9d4d738dba0a64a)]:
+  - rules_task@2.0.1
+
 ## 1.0.0
 
 ### Major Changes
