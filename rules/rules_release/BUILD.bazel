@@ -139,6 +139,7 @@ release(
     name = "release",
     changelog_file = "CHANGELOG.md",
     generate_hashes_extra_args = [
+        "--seed-filepaths=/tmp/files",
         "--fineGrainedHashExternalRepos=rules_release",
     ],
     publish_cmds = [
