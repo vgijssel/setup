@@ -226,13 +226,14 @@ task(
         "export NEW_REPOSITORY_DIR=$(mktemp -d)",
         "export NEW_REPOSITORY_PATH=$NEW_REPOSITORY_DIR/git_push_changes",
         "git clone --depth=1 https://$GIT_COMMITTER_NAME:$GIT_PUSH_PASSWORD@github.com/vgijssel/setup.git $NEW_REPOSITORY_PATH",
-        {"defer": "rm -rf $NEW_REPOSITORY_DIR"},
+        # {"defer": "rm -rf $NEW_REPOSITORY_DIR"},
         # From https://stackoverflow.com/questions/72374273/git-diff-and-copy
         # Copy new and changed files from the current git repository to the new git repository
         'git diff --cached --name-only -z | xargs -0 cp -v --target-directory="$NEW_REPOSITORY_PATH" --parents',
         "git -C $NEW_REPOSITORY_PATH add .",
         "git -C $NEW_REPOSITORY_PATH commit -m 'chore(release_manager): update release files'",
-        "git -C $NEW_REPOSITORY_PATH push --tags HEAD:master",
+        # Disable credential.helper to ensure the passed in token is used
+        "git -c credential.helper= -C $NEW_REPOSITORY_PATH push --tags HEAD:master",
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
