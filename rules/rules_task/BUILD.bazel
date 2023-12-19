@@ -1,4 +1,4 @@
-load("@rules_release//tools:defs.bzl", "publish_github_release", release = "bazel_diff_release")
+load("@rules_release//tools:defs.bzl", "publish_github_release", release = "release_changed_files")
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
 load("//task:defs.bzl", "cmd")
 load("//tools:defs.bzl", "compile_pip_requirements")
@@ -106,12 +106,13 @@ publish_github_release(
 
 release(
     name = "release",
+    changed_file_paths = [
+        "rules/rules_task",
+    ],
     changelog_file = "CHANGELOG.md",
-    generate_hashes_extra_args = ["--fineGrainedHashExternalRepos=rules_task"],
     publish_cmds = [
         ":publish_github_release",
     ],
     release_name = "rules_task",
-    target = ":all_files",
     version_file = "version.txt",
 )

@@ -1,5 +1,5 @@
 load("@rules_task//task:defs.bzl", "cmd")
-load("//tools:defs.bzl", "publish_github_release", release = "bazel_diff_release")
+load("//tools:defs.bzl", "publish_github_release", release = "release_changed_files")
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
@@ -135,19 +135,16 @@ publish_github_release(
     release = ":release",
 )
 
-# add a random comment
 release(
     name = "release",
-    changelog_file = "CHANGELOG.md",
-    generate_hashes_extra_args = [
-        "--fineGrainedHashExternalRepos=rules_release",
-        "--useCquery",
+    changed_file_paths = [
+        "rules/rules_release",
     ],
+    changelog_file = "CHANGELOG.md",
     publish_cmds = [
         ":publish_github_release",
     ],
     release_name = "rules_release",
-    target = ":all_files",
     version_file = "version.txt",
     deps = [
         "@rules_task//:release",
