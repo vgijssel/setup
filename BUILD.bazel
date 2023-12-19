@@ -216,7 +216,7 @@ task(
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
         "export GIT_AUTHOR_NAME=$($OP read op://vgijssel-prod/github-git-push/username)",
         "export GIT_AUTHOR_EMAIL=$($OP read op://vgijssel-prod/github-git-push/email)",
-        "export GIT_PUSH_PASSWORD=$($OP read op://vgijssel-prod/github-git-push/credential))",
+        "export GIT_PUSH_PASSWORD=$($OP read op://vgijssel-prod/github-git-push/credential)",
         "export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME",
         "export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL",
         "git add .",
