@@ -1,6 +1,5 @@
 name: "Setup Bazel"
 description: "Setup the CI to work properly with Bazel"
-inputs:
 runs:
   using: "composite"
   steps:
