@@ -210,7 +210,6 @@ diff_test(
     file2 = ":pdm-setup_lock",
 )
 
-# TODO: DO track deletes!!!!
 task(
     name = "push_git_changes",
     cmds = [
