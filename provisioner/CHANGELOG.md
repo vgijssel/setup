@@ -1,5 +1,17 @@
 # provisioner
 
+## 1.0.5
+
+### Patch Changes
+
+- [#623](https://github.com/vgijssel/setup/pull/623) [`9bc1487`](https://github.com/vgijssel/setup/commit/9bc1487bee5d8e5d3d070f974ef695ac7407ffd7) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Make command substitution actually fail
+
+- [#618](https://github.com/vgijssel/setup/pull/618) [`752d545`](https://github.com/vgijssel/setup/commit/752d545659cc6b1251fe228cbc08b9177eddde09) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Ensure the provisioner deployment is triggered
+
+- Updated dependencies [[`9bc1487`](https://github.com/vgijssel/setup/commit/9bc1487bee5d8e5d3d070f974ef695ac7407ffd7), [`9bc1487`](https://github.com/vgijssel/setup/commit/9bc1487bee5d8e5d3d070f974ef695ac7407ffd7)]:
+  - bunq2ynab@0.2.4
+  - rules_task@2.0.5
+
 ## 1.0.4
 
 ### Patch Changes
