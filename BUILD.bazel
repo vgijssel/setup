@@ -247,9 +247,9 @@ task(
 
 release_manager(
     name = "release_manager",
-    publish_cmds = [
-        ":push_git_changes",
-    ],
+    # publish_cmds = [
+    #     ":push_git_changes",
+    # ],
     deps = [
         "//provisioner:release",
         "//tools/bunq2ynab:release",
