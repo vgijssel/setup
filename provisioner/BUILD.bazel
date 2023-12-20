@@ -234,7 +234,7 @@ docker_load(
 task(
     name = "run_dev_image",
     cmds = [
-        "export CONTAINER_IMAGE=$($load_dev_image)",
+        "CONTAINER_IMAGE=$($load_dev_image)",
         cmd.shell(
             "docker run",
             "--rm",
@@ -265,7 +265,8 @@ task(
     name = "dev",
     cmds = [
         "docker rm -f provisioner-dev",
-        "export CONTAINER_ID=$($run_dev_image)",
+        "CONTAINER_ID=$($run_dev_image)",
+        "export CONTAINER_ID",
         {"defer": "docker rm -f $CONTAINER_ID"},
         "docker logs -f $CONTAINER_ID",
     ],
@@ -318,7 +319,8 @@ task_test(
     name = "test",
     size = "large",
     cmds = [
-        "export CONTAINER_ID=$($run_dev_image)",
+        "CONTAINER_ID=$($run_dev_image)",
+        "export CONTAINER_ID",
         {"defer": "docker rm -f $CONTAINER_ID"},
         "$bunq2ynab_publish_oci_image",
         "$provision",
@@ -343,7 +345,8 @@ publish_github_release(
     name = "publish_github_release",
     before_cmds = [
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
-        "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+        "GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+        "export GH_TOKEN",
     ],
     env = {
         "OP": cmd.executable("//tools/onepassword:op"),

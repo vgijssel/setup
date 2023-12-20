@@ -43,7 +43,7 @@ py_binary(
 task(
     name = "list_user",
     cmds = [
-        "export CONFIG_FILE=$(pwd)/config.json",
+        "CONFIG_FILE=$(pwd)/config.json",
         "$OP inject --in-file=$CONFIG_FILE_TPL --out-file=$CONFIG_FILE --force",
         {"defer": "rm -rf $CONFIG_FILE"},
         "$BINARY --config $CONFIG_FILE",
@@ -66,7 +66,7 @@ task_test(
 task(
     name = "list_budget",
     cmds = [
-        "export CONFIG_FILE=$(pwd)/config.json",
+        "CONFIG_FILE=$(pwd)/config.json",
         "$OP inject --in-file=$CONFIG_FILE_TPL --out-file=$CONFIG_FILE --force",
         {"defer": "rm -rf $CONFIG_FILE"},
         "$BINARY --config $CONFIG_FILE",
@@ -81,12 +81,12 @@ task(
 task(
     name = "bunq2ynab",
     cmds = [
-        "export SETUP_ENV=${SETUP_ENV:-dev}",
-        "export TIMEOUT=${TIMEOUT:-0}",
-        'export SETUP_ENV="${SETUP_ENV^^}"',
+        "SETUP_ENV=${SETUP_ENV:-dev}",
+        "TIMEOUT=${TIMEOUT:-0}",
+        'SETUP_ENV="${SETUP_ENV^^}"',
         "echo Running in env: $SETUP_ENV",
-        "export CONFIG_FILE=$(pwd)/config.json",
-        'export CONFIG_TEMPLATE="CONFIG_${SETUP_ENV}_FILE_TPL"',
+        "CONFIG_FILE=$(pwd)/config.json",
+        'CONFIG_TEMPLATE="CONFIG_${SETUP_ENV}_FILE_TPL"',
         "echo Using config template: $CONFIG_TEMPLATE",
         "$OP inject --in-file=${!CONFIG_TEMPLATE} --out-file=$CONFIG_FILE --force",
         {"defer": "rm -rf $CONFIG_FILE"},
@@ -116,8 +116,8 @@ py_binary(
 task(
     name = "generate_oauth_token",
     cmds = [
-        "export CLIENT_ID=$($OP read op://vgijssel-prod/bunq2ynab_oauth/username)",
-        "export CLIENT_SECRET=$($OP read op://vgijssel-prod/bunq2ynab_oauth/credential)",
+        "CLIENT_ID=$($OP read op://vgijssel-prod/bunq2ynab_oauth/username)",
+        "CLIENT_SECRET=$($OP read op://vgijssel-prod/bunq2ynab_oauth/credential)",
         "$BINARY --oauth-client-id $CLIENT_ID --oauth-client-secret $CLIENT_SECRET",
     ],
     env = {
@@ -163,7 +163,8 @@ publish_github_release(
     name = "publish_github_release",
     before_cmds = [
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
-        "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+        "GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+        "export GH_TOKEN",
     ],
     env = {
         "OP": cmd.executable("//tools/onepassword:op"),
@@ -189,8 +190,8 @@ publish_oci_image(
     name = "publish_oci_image",
     before_cmds = [
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
-        "export REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
-        "export REGISTRY_PASSWORD=$($OP read op://vgijssel-prod/github-container-registry/credential)",
+        "REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
+        "REGISTRY_PASSWORD=$($OP read op://vgijssel-prod/github-container-registry/credential)",
         "docker login ghcr.io --username $REGISTRY_LOGIN --password $REGISTRY_PASSWORD",
     ],
     env = {
@@ -205,8 +206,8 @@ publish_oci_image(
     name = "publish_oci_image-dev",
     before_cmds = [
         "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
-        "export REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
-        "export REGISTRY_PASSWORD=$($OP read op://vgijssel-prod/github-container-registry/credential)",
+        "REGISTRY_LOGIN=$($OP read op://vgijssel-prod/github-container-registry/username)",
+        "REGISTRY_PASSWORD=$($OP read op://vgijssel-prod/github-container-registry/credential)",
         "docker login ghcr.io --username $REGISTRY_LOGIN --password $REGISTRY_PASSWORD",
     ],
     env = {

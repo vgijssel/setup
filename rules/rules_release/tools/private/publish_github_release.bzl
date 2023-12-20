@@ -24,10 +24,10 @@ def publish_github_release(name, release, changelog_file = None, assets = [], be
     task(
         name = name,
         cmds = before_cmds + [
-            "export VERSION=$(cat $VERSION_FILE)",
-            "export RELEASE_NAME=$(cat $RELEASE_NAME_FILE)",
-            "export RELEASE_TAG=$RELEASE_NAME-v$VERSION",
-            "export RELEASE_EXISTS=$($GH release view $RELEASE_TAG > /dev/null 2>&1 && echo true || echo false)",
+            "VERSION=$(cat $VERSION_FILE)",
+            "RELEASE_NAME=$(cat $RELEASE_NAME_FILE)",
+            "RELEASE_TAG=$RELEASE_NAME-v$VERSION",
+            "RELEASE_EXISTS=$($GH release view $RELEASE_TAG > /dev/null 2>&1 && echo true || echo false)",
             "if [ $RELEASE_EXISTS = true ]; then echo 'Release already exists, exitting.'; exit 0; fi",
             "$GH release create $RELEASE_TAG --notes-file $CHANGELOG_FILE --title $RELEASE_TAG $ASSETS",
         ],

@@ -32,9 +32,9 @@ def release_changed_files(changed_file_paths, previous_revision_cmd = None, fina
     task(
         name = change_cmd_name,
         cmds = [
-            "export PREVIOUS_REVISION=$($PREVIOUS_REVISION_CMD)",
-            "export FINAL_REVISION=$($FINAL_REVISION_CMD)",
-            "export HAS_CHANGED=$(git diff --name-only $PREVIOUS_REVISION $FINAL_REVISION -- $CHANGED_FILES)",
+            "PREVIOUS_REVISION=$($PREVIOUS_REVISION_CMD)",
+            "FINAL_REVISION=$($FINAL_REVISION_CMD)",
+            "HAS_CHANGED=$(git diff --name-only $PREVIOUS_REVISION $FINAL_REVISION -- $CHANGED_FILES)",
             'if [ -z "$HAS_CHANGED" ]; then echo "false"; else echo "true"; fi',
         ],
         cwd = "$BUILD_WORKSPACE_DIRECTORY",

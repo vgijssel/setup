@@ -31,7 +31,7 @@ task(
 task(
     name = "connection_test",
     cmds = [
-        "export TELEPORT_IDENTITY=$(mktemp)",
+        "TELEPORT_IDENTITY=$(mktemp)",
         {"defer": "rm -f $TELEPORT_IDENTITY"},
         'echo "$TELEPORT_BUILDBUDDY_IDENTITY" > $TELEPORT_IDENTITY',
         cmd.shell(
