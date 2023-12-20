@@ -266,6 +266,7 @@ task(
     cmds = [
         "docker rm -f provisioner-dev",
         "CONTAINER_ID=$($run_dev_image)",
+        "export CONTAINER_ID",
         {"defer": "docker rm -f $CONTAINER_ID"},
         "docker logs -f $CONTAINER_ID",
     ],
@@ -319,6 +320,7 @@ task_test(
     size = "large",
     cmds = [
         "CONTAINER_ID=$($run_dev_image)",
+        "export CONTAINER_ID",
         {"defer": "docker rm -f $CONTAINER_ID"},
         "$bunq2ynab_publish_oci_image",
         "$provision",
