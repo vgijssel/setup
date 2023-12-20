@@ -12,8 +12,4 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bazel
-        with:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
-      - run: bazel run --config buildbuddy --config buildbuddy_rbe //provisioner:deploy_validate
-        env:
-          ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
+      - run: bazel run //provisioner:deploy_validate
