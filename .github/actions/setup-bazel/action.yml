@@ -4,6 +4,9 @@ inputs:
   OP_SERVICE_ACCOUNT_TOKEN:
     description: "Service Account Token for 1Password"
     required: true
+  BUILDBUDDY_API_KEY:
+    description: "API Key for BuildBuddy"
+    required: true
 runs:
   using: "composite"
   steps:
