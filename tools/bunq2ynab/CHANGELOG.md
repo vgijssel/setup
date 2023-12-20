@@ -1,5 +1,14 @@
 # bunq2ynab_release
 
+## 0.2.8
+
+### Patch Changes
+
+- [#623](https://github.com/vgijssel/setup/pull/623) [`9bc1487`](https://github.com/vgijssel/setup/commit/9bc1487bee5d8e5d3d070f974ef695ac7407ffd7) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Make command substitution actually fail
+
+- Updated dependencies [[`9bc1487`](https://github.com/vgijssel/setup/commit/9bc1487bee5d8e5d3d070f974ef695ac7407ffd7)]:
+  - rules_task@2.0.9
+
 ## 0.2.7
 
 ### Patch Changes
