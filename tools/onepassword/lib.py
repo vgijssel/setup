@@ -58,7 +58,7 @@ def get_item_path(path):
     ]
 
     op_env = os.environ.copy()
-    op_env["OP_SERVICE_ACCOUNT_TOKEN"] = onepassword_service_account_token
+    # op_env["OP_SERVICE_ACCOUNT_TOKEN"] = onepassword_service_account_token
 
     result = subprocess.run(command, env=op_env, capture_output=True)
 
