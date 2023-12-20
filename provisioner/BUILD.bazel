@@ -342,8 +342,9 @@ task_test(
 publish_github_release(
     name = "publish_github_release",
     before_cmds = [
-        "OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
         "GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+        "export GH_TOKEN",
     ],
     env = {
         "OP": cmd.executable("//tools/onepassword:op"),

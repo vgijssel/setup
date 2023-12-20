@@ -94,8 +94,9 @@ publish_github_release(
         ":release_archive",
     ],
     before_cmds = [
-        "OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
         "GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+        "export GH_TOKEN",
     ],
     changelog_file = ":github_release_template",
     env = {
