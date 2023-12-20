@@ -18,19 +18,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install nix package manager
-        uses: cachix/install-nix-action@v22
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bazel
         with:
-          nix_path: nixpkgs=channel:nixos-23.11
-      # - uses: ./.github/actions/setup-bazel
-      #   with:
-      #     OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
-      - run: bazel build //provisioner:deploy
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
 
-      - name: cancel previous runs
-        uses: styfle/cancel-workflow-action@0.12.0
-        with:
-          access_token: ${{ github.token }}
+      - run: bazel run  --config buildbuddy --config buildbuddy_rbe //provisioner:deploy
+        # env:
+        #   ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
+
+      # - name: cancel previous runs
+      #   uses: styfle/cancel-workflow-action@0.12.0
+      #   with:
+      #     access_token: ${{ github.token }}
 
   lint:
     name: Lint

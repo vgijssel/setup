@@ -15,14 +15,14 @@ runs:
         key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
         restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
 
-    - name: Load secret
-      uses: 1password/load-secrets-action@v1
-      with:
-        # Export loaded secrets as environment variables
-        export-env: true
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
-        BUILDBUDDY_API_KEY: op://vgijssel-prod/buildbuddy-api-key/password
+    # - name: Load secret
+    #   uses: 1password/load-secrets-action@v1
+    #   with:
+    #     # Export loaded secrets as environment variables
+    #     export-env: true
+    #   env:
+    #     OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
+    #     BUILDBUDDY_API_KEY: op://vgijssel-prod/buildbuddy-api-key/password
 
     - name: Install nix package manager
       uses: cachix/install-nix-action@v22
