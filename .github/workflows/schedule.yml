@@ -2,6 +2,9 @@ name: Schedule
 on:
   schedule:
     - cron: "0 * * * *"
+  pull_request:
+    branches:
+      - "*"
 
 jobs:
   provisioner-validate:
