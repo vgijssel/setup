@@ -22,7 +22,8 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
           BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
 
-      - run: bazel run  --config buildbuddy --config buildbuddy_rbe //provisioner:deploy
+      # - run: bazel run  --config buildbuddy --config buildbuddy_rbe //provisioner:deploy
+      - run: bazel run //provisioner:deploy
         # env:
         #   ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
 
