@@ -17,12 +17,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-bazel
-        with:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
-      - run: bazel build --config buildbuddy --config buildbuddy_rbe //provisioner:deploy
-        env:
-          ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
+      # - uses: ./.github/actions/setup-bazel
+      #   with:
+      #     OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD }}
+      - run: bazel build //provisioner:deploy
 
       - name: cancel previous runs
         uses: styfle/cancel-workflow-action@0.12.0
