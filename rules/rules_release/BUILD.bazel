@@ -91,13 +91,13 @@ genrule(
         "github_release_template.txt",
     ],
     cmd = """
-export VERSION="v$$(cat $(location :release.version))"
-export SHA=$$(shasum -a 256 $(location :release_archive) | awk '{print $$1}')
-export PREFIX="rules_release-$${VERSION}"
-export ARCHIVE="rules_release.tar.gz"
-export WORKSPACE_CONTENT=$$(cat $(location @examples_workspace//:WORKSPACE))
-export SEARCH_TARGET_LINE="#### Generic for each workspace file"
-export FILTERED_WORKSPACE_CONTENT=$$(echo "$$WORKSPACE_CONTENT" | sed "1,/$$SEARCH_TARGET_LINE/d")
+VERSION="v$$(cat $(location :release.version))"
+SHA=$$(shasum -a 256 $(location :release_archive) | awk '{print $$1}')
+PREFIX="rules_release-$${VERSION}"
+ARCHIVE="rules_release.tar.gz"
+WORKSPACE_CONTENT=$$(cat $(location @examples_workspace//:WORKSPACE))
+SEARCH_TARGET_LINE="#### Generic for each workspace file"
+FILTERED_WORKSPACE_CONTENT=$$(echo "$$WORKSPACE_CONTENT" | sed "1,/$$SEARCH_TARGET_LINE/d")
 
 cat <<EOF > $(OUTS)
 ## Using WORKSPACE:
@@ -125,8 +125,8 @@ publish_github_release(
         ":release_archive",
     ],
     before_cmds = [
-        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
-        "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+        "OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
     ],
     changelog_file = ":github_release_template",
     env = {

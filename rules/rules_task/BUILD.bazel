@@ -65,10 +65,10 @@ genrule(
         "github_release_template.txt",
     ],
     cmd = """
-export VERSION="v$$(cat $(location :release.version))"
-export SHA=$$(shasum -a 256 $(location :release_archive) | awk '{print $$1}')
-export PREFIX="rules_task-$${VERSION}"
-export ARCHIVE="rules_task.tar.gz"
+VERSION="v$$(cat $(location :release.version))"
+SHA=$$(shasum -a 256 $(location :release_archive) | awk '{print $$1}')
+PREFIX="rules_task-$${VERSION}"
+ARCHIVE="rules_task.tar.gz"
 
 cat <<EOF > $(OUTS)
 ## Using WORKSPACE:
@@ -94,8 +94,8 @@ publish_github_release(
         ":release_archive",
     ],
     before_cmds = [
-        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
-        "export GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+        "OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
     ],
     changelog_file = ":github_release_template",
     env = {

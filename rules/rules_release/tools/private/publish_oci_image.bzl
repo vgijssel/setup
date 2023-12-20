@@ -28,9 +28,9 @@ def publish_oci_image(name, image, repository, remote_tags, before_cmds = [], en
     task(
         name = name,
         cmds = before_cmds + [
-            "export IMAGE_TAG=$(cat $REMOTE_TAGS_FILE)",
-            "export IMAGE={}:$IMAGE_TAG".format(repository),
-            "export CONTAINER_EXISTS=$($REGCTL image inspect $IMAGE > /dev/null 2>&1 && echo true || echo false)",
+            "IMAGE_TAG=$(cat $REMOTE_TAGS_FILE)",
+            "IMAGE={}:$IMAGE_TAG".format(repository),
+            "CONTAINER_EXISTS=$($REGCTL image inspect $IMAGE > /dev/null 2>&1 && echo true || echo false)",
             "if [ $CONTAINER_EXISTS = true ]; then echo 'Image already exists, exitting.'; exit 0; fi",
             "$PUSH_IMAGE",
         ],
