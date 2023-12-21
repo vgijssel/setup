@@ -7,6 +7,9 @@ on:
       - "master"
     paths:
       - "provisioner/version.txt"
+  pull_request:
+    branches:
+      - "*"
 jobs:
   deploy-provisioner:
     name: Deploy Provisioner
@@ -18,4 +21,5 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bazel
-      - run: bazel run //provisioner:deploy
+      - run: bazel build //provisioner:deploy
+      # - run: bazel run //provisioner:deploy
