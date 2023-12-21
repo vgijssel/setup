@@ -14,6 +14,11 @@ vault = "Private"
 account = "Van Gijssel"
 
 [[ssh-keys]]
+item = "SSH - Hypervisor"
+vault = "Private"
+account = "Van Gijssel"
+
+[[ssh-keys]]
 item = "SSH - GitHub - Authentication"
 vault = "Private"
 account = "Van Gijssel"
