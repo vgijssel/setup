@@ -218,7 +218,10 @@ nixpkgs_package(
     name = "python_base_image_amd64",
     build_file_content = """
 package(default_visibility = [ "//visibility:public" ])
-exports_files(["image.tar.gz"])
+filegroup(
+    name = "image",
+    srcs = ["image.tar.gz"],
+)
     """,
     nix_file = "//tools/python:python_base_image.nix",
     nixopts = [
@@ -233,7 +236,10 @@ nixpkgs_package(
     name = "python_base_image_arm64",
     build_file_content = """
 package(default_visibility = [ "//visibility:public" ])
-exports_files(["image.tar.gz"])
+filegroup(
+    name = "image",
+    srcs = ["image.tar.gz"],
+)
     """,
     nix_file = "//tools/python:python_base_image.nix",
     nixopts = [
