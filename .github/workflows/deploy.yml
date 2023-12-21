@@ -21,5 +21,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bazel
+      - run: bazel build @python_base_image_amd64//...
+      - run: bazel build @python_base_image_arm64//...
       - run: bazel build //provisioner:deploy
       # - run: bazel run //provisioner:deploy
