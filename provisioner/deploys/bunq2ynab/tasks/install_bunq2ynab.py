@@ -32,7 +32,7 @@ def install_bunq2ynab():
         "1password_service_account_token.credential"
     )
 
-    docker_compose = files.template(
+    files.template(
         name="Copy the docker-compose file",
         src="provisioner/deploys/bunq2ynab/files/docker-compose.yml.j2",
         dest="/opt/bunq2ynab/docker-compose.yml",
@@ -45,11 +45,10 @@ def install_bunq2ynab():
         bunq2ynab_image_tag=host.data.bunq2ynab_image_tag,
     )
 
-    if docker_compose.changed:
-        server.shell(
-            name="Start the bunq2ynab service",
-            commands=[
-                "docker compose -f /opt/bunq2ynab/docker-compose.yml up -d --force-recreate --remove-orphans",
-            ],
-            _sudo=True,
-        )
+    server.shell(
+        name="Start the bunq2ynab service",
+        commands=[
+            "docker compose -f /opt/bunq2ynab/docker-compose.yml up -d --remove-orphans",
+        ],
+        _sudo=True,
+    )
