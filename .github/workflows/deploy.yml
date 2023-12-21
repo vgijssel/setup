@@ -15,7 +15,7 @@ jobs:
     name: Deploy Provisioner
     timeout-minutes: 30
     runs-on: ubuntu-latest
-    environment: provisioner
+    # environment: provisioner
     concurrency: deploy-provisioner
     steps:
       - name: Checkout repository
