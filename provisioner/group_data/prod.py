@@ -1,3 +1,5 @@
+from pathlib import Path
+
 setup_env = "prod"
 inside_docker = False
 legacy_ip_tables = False
@@ -7,5 +9,5 @@ teleport_acme_enabled = "yes"
 new_relic_display_name = "provisioner"
 bunq2ynab_image_tag = (
     "ghcr.io/vgijssel/setup/bunq2ynab:"
-    + open("./tools/bunq2ynab/publish_oci_image.remote_tags.txt", "r").read().strip()
+    + Path("./tools/bunq2ynab/publish_oci_image.remote_tags.txt").read_text().strip()
 )

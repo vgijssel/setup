@@ -1,5 +1,13 @@
 # provisioner
 
+## 1.0.3
+
+### Patch Changes
+
+- [#627](https://github.com/vgijssel/setup/pull/627) [`d95cf42`](https://github.com/vgijssel/setup/commit/d95cf42b7ba28854a6a8a134d07c078c673e9b24) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Improve deploy logic for bunq2ynab
+
+- [#627](https://github.com/vgijssel/setup/pull/627) [`d95cf42`](https://github.com/vgijssel/setup/commit/d95cf42b7ba28854a6a8a134d07c078c673e9b24) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Loading remote tags for bunq2ynab
+
 ## 1.0.2
 
 ### Patch Changes
