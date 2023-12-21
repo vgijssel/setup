@@ -4,11 +4,7 @@ services:
   bunq2ynab:
     container_name: bunq2ynab
     image: {{ bunq2ynab_image_tag }}
-    restart_policy:
-      condition: on-failure
-      delay: 5s
-      max_attempts: 3
-      window: 30s
+    restart: always
     environment:
       - OP_SERVICE_ACCOUNT_TOKEN={{ op_service_account_token }}
       - SETUP_ENV={{ setup_env }}
