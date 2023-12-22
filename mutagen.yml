@@ -35,8 +35,3 @@ sync:
     alpha: "./esphome_nimble"
     beta: "maarten@192.168.1.30:/data/esphome_nimble"
     mode: "two-way-safe"
-
-forward:
-  zigbee2mqtt-ui:
-    source: "tcp:localhost:8092"
-    destination: "maarten@192.168.1.30:tcp:localhost:8080"
