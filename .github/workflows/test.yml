@@ -22,7 +22,7 @@ jobs:
 
   lint:
     name: Lint
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: macos-latest
     steps:
       # # https://docs.github.com/en/actions/learn-github-actions/contexts
