@@ -1,5 +1,11 @@
 # bunq2ynab_release
 
+## 0.2.2
+
+### Patch Changes
+
+- [#629](https://github.com/vgijssel/setup/pull/629) [`59f71f1`](https://github.com/vgijssel/setup/commit/59f71f1b20d4e49ef38518b1eb65406ea4d12d41) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Loading Python base image
+
 ## 0.2.1
 
 ### Patch Changes
