@@ -1,5 +1,11 @@
 # provisioner
 
+## 1.0.5
+
+### Patch Changes
+
+- [#631](https://github.com/vgijssel/setup/pull/631) [`0b2ed35`](https://github.com/vgijssel/setup/commit/0b2ed3550c7a355ee59f52f72ca8f20874793d64) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Inject 1Password secret for provisioner deploy
+
 ## 1.0.4
 
 ### Patch Changes
