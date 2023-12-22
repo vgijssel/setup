@@ -9,7 +9,8 @@
     "nodePackages.pnpm@8.7.5",
     "libarchive@latest",
     "python310Packages.pip@23.2.1",
-    "pdm@2.9.3"
+    "pdm@2.9.3",
+    "nixos-rebuild@latest"
   ],
   "shell": {
     "init_hook": ["alias bazel='bazelisk'", "export PATH=$HOME/bin:$PATH"]

@@ -155,6 +155,11 @@ services.openssh = {
   settings.PermitRootLogin = "no";
 };
 
+
+  security.sudo.enable = true;
+  security.pam.enableSSHAgentAuth = true;
+  security.pam.services.sudo.sshAgentAuth = true;
+
 systemd.tmpfiles.rules = [ 
   "L /etc/cni/net.d - - - - /var/lib/rancher/k3s/agent/etc/cni/net.d" 
   "L /opt/cni/bin   - - - - /var/lib/rancher/k3s/data/current/bin" 
