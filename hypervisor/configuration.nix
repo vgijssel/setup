@@ -6,7 +6,8 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
@@ -19,31 +20,31 @@
   # Define on which hard drive you want to install Grub.
   # boot.loader.grub.device = "/dev/sda"; # or "nodev" for efi only
 
-boot.zfs.extraPools = [ "new_data" ];
+  boot.zfs.extraPools = [ "new_data" ];
 
 
-boot.supportedFilesystems = [ "zfs" ];
-boot.zfs.forceImportRoot = false;
-networking.hostId = "8090765d";
-networking.hostName = "hypervisor"; # Define your hostname.
-networking.useDHCP = false;
+  boot.supportedFilesystems = [ "zfs" ];
+  boot.zfs.forceImportRoot = false;
+  networking.hostId = "8090765d";
+  networking.hostName = "hypervisor"; # Define your hostname.
+  networking.useDHCP = false;
 
-networking.bridges = {
-  "br0" = {
-    interfaces = ["eno1"];
+  networking.bridges = {
+    "br0" = {
+      interfaces = [ "eno1" ];
+    };
   };
-};
 
-networking.interfaces.br0.ipv4.addresses = [ {
+  networking.interfaces.br0.ipv4.addresses = [{
     address = "192.168.1.30";
     prefixLength = 24;
-  } ];
-networking.defaultGateway = "192.168.1.1";
-networking.nameservers = ["192.168.1.1"];
+  }];
+  networking.defaultGateway = "192.168.1.1";
+  networking.nameservers = [ "192.168.1.1" ];
 
-# Disable the configuration for eth0 (if it was previously configured)
-networking.interfaces.eno1.useDHCP = false;
-networking.interfaces.eno1.ipv4 = {};
+  # Disable the configuration for eth0 (if it was previously configured)
+  networking.interfaces.eno1.useDHCP = false;
+  networking.interfaces.eno1.ipv4 = { };
 
   networking.firewall.allowedTCPPorts = [
     6443 # k3s: required so that pods can reach the API server (running on port 6443 by default)
@@ -55,7 +56,7 @@ networking.interfaces.eno1.ipv4 = {};
   ];
 
   networking.firewall.allowedUDPPorts = [
-	5353 # for homekit bridge
+    5353 # for homekit bridge
   ];
 
   services.k3s.enable = true;
@@ -63,17 +64,17 @@ networking.interfaces.eno1.ipv4 = {};
 
   systemd.services.k3s.path = [ pkgs.ipset ];
 
-# services.localtimed.enable = true;
-#  services.geoclue2.enable = true;
+  # services.localtimed.enable = true;
+  #  services.geoclue2.enable = true;
 
-time.timeZone = "Europe/Amsterdam";
+  time.timeZone = "Europe/Amsterdam";
 
 
 
-    # 2379 # k3s, etcd clients: required if using a "High Availability Embedded etcd" configuration
-    # 2380 # k3s, etcd peers: required if using a "High Availability Embedded etcd" configuration
+  # 2379 # k3s, etcd clients: required if using a "High Availability Embedded etcd" configuration
+  # 2380 # k3s, etcd peers: required if using a "High Availability Embedded etcd" configuration
   #services.k3s.extraFlags = toString [
-    # "--kubelet-arg=v=4" # Optionally add additional args to k3s
+  # "--kubelet-arg=v=4" # Optionally add additional args to k3s
   #];
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -98,7 +99,7 @@ time.timeZone = "Europe/Amsterdam";
   # services.xserver.enable = true;
 
 
-  
+
 
   # Configure keymap in X11
   # services.xserver.xkb.layout = "us";
@@ -119,7 +120,7 @@ time.timeZone = "Europe/Amsterdam";
     isNormalUser = true;
     extraGroups = [ "wheel" "docker" ]; # Enable ‘sudo’ for the user.
     home = "/home/maarten";
-    openssh.authorizedKeys.keys  = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAxlxnzhmyhG8wT+LOc24GkJ9QSw9Mt2kbLWDcf5EeFm" ];
+    openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAxlxnzhmyhG8wT+LOc24GkJ9QSw9Mt2kbLWDcf5EeFm" ];
   };
 
   # List packages installed in system profile. To search, run:
@@ -129,12 +130,12 @@ time.timeZone = "Europe/Amsterdam";
     wget
     k3s
     kubevirt
-bridge-utils
-docker-compose 
-mutagen
+    bridge-utils
+    docker-compose
+    mutagen
   ];
 
-virtualisation.docker.enable = true;
+  virtualisation.docker.enable = true;
 
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -146,24 +147,24 @@ virtualisation.docker.enable = true;
   # };
 
   # List services that you want to enable:
-services.openssh = {
-  enable = true;
-  # require public key authentication for better security
-  settings.PasswordAuthentication = false;
-  settings.KbdInteractiveAuthentication = false;
-  # disable root login
-  settings.PermitRootLogin = "no";
-};
-
+  services.openssh = {
+    enable = true;
+    # require public key authentication for better security
+    settings.PasswordAuthentication = false;
+    settings.KbdInteractiveAuthentication = false;
+    # disable root login
+    settings.PermitRootLogin = "no";
+  };
 
   security.sudo.enable = true;
   security.pam.enableSSHAgentAuth = true;
   security.pam.services.sudo.sshAgentAuth = true;
 
-systemd.tmpfiles.rules = [ 
-  "L /etc/cni/net.d - - - - /var/lib/rancher/k3s/agent/etc/cni/net.d" 
-  "L /opt/cni/bin   - - - - /var/lib/rancher/k3s/data/current/bin" 
-];
+
+  systemd.tmpfiles.rules = [
+    "L /etc/cni/net.d - - - - /var/lib/rancher/k3s/agent/etc/cni/net.d"
+    "L /opt/cni/bin   - - - - /var/lib/rancher/k3s/data/current/bin"
+  ];
 
 
 
