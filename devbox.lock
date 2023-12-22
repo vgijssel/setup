@@ -45,6 +45,19 @@
         }
       }
     },
+    "nixos-rebuild@latest": {
+      "last_modified": "2023-12-13T22:54:10Z",
+      "resolved": "github:NixOS/nixpkgs/fd04bea4cbf76f86f244b9e2549fca066db8ddff#nixos-rebuild",
+      "source": "devbox-search",
+      "systems": {
+        "aarch64-linux": {
+          "store_path": "/nix/store/lvdvlm6j41mkykldg84kkx7xd1bwsghw-nixos-rebuild"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/34kyi1rwzqpfyb6vm4y3jxfwj4iy8vz7-nixos-rebuild"
+        }
+      }
+    },
     "nixpkgs-fmt@1.3.0": {
       "last_modified": "2023-09-17T10:54:49Z",
       "resolved": "github:NixOS/nixpkgs/5148520bfab61f99fd25fb9ff7bfbb50dad3c9db#nixpkgs-fmt",

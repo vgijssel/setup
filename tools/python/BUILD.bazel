@@ -5,8 +5,8 @@ package(default_visibility = ["//visibility:public"])
 constraint_setting(name = "python_containerized")
 
 python_base_image_file = select({
-    "//:is_linux_amd64": ["@python_base_image_amd64//:image.tar.gz"],
-    "//:is_linux_arm64": ["@python_base_image_arm64//:image.tar.gz"],
+    "//:is_linux_amd64": ["@python_base_image_amd64//:image"],
+    "//:is_linux_arm64": ["@python_base_image_arm64//:image"],
 })
 
 filegroup(

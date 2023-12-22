@@ -7,4 +7,4 @@ substitutions:
 packages:
   device_base: !include .moko-mk115.yaml
   base: !include .base.yaml
-  bluetooth_object_tracking: !include .bluetooth_object_tracking.yaml
+  # bluetooth_object_tracking: !include .bluetooth_object_tracking.yaml

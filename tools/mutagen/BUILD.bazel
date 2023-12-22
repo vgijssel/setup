@@ -1,16 +1,34 @@
 load("@rules_task//task:defs.bzl", "cmd", "task")
+load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
 
 package(default_visibility = ["//visibility:public"])
 
-mutagen_files = select({
-    "//:is_linux_amd64": ["@mutagen_linux_amd64//:files"],
-    "//:is_linux_arm64": ["@mutagen_linux_arm64//:files"],
-    "//:is_darwin_arm64": ["@mutagen_darwin_arm64//:files"],
+mutagen_binary = select({
+    "//:is_linux_amd64": ["@mutagen_linux_amd64//:binary"],
+    "//:is_linux_arm64": ["@mutagen_linux_arm64//:binary"],
+    "//:is_darwin_arm64": ["@mutagen_darwin_arm64//:binary"],
 })
+
+mutagen_agent_files = select({
+    "//:is_linux_amd64": ["@mutagen_linux_amd64//:agent_files"],
+    "//:is_linux_arm64": ["@mutagen_linux_arm64//:agent_files"],
+    "//:is_darwin_arm64": ["@mutagen_darwin_arm64//:agent_files"],
+})
+
+filegroup(
+    name = "mutagen_agent_files",
+    srcs = mutagen_agent_files,
+)
 
 sh_binary(
     name = "mutagen_binary",
-    srcs = mutagen_files,
+    srcs = mutagen_binary,
+)
+
+copy_file(
+    name = "mutagen_agent_files_copy",
+    src = ":mutagen_agent_files",
+    out = "mutagen-agents.tar.gz",
 )
 
 task(
@@ -22,6 +40,10 @@ task(
         ),
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
+    env = {
+        "mutagen_agent_files": cmd.file(":mutagen_agent_files_copy"),
+        "mutagen_binary": cmd.executable(":mutagen_binary"),
+    },
 )
 
 task(
