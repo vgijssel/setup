@@ -5,21 +5,12 @@ from shlex import quote
 from pathlib import Path
 
 
-def _get_onepassword_service_account_token(env_key, tmp_file):
+def _get_onepassword_service_account_token(env_key):
     if env_key in os.environ:
         return os.environ[env_key]
 
-    file = os.path.join(
-        os.environ.get("BUILD_WORKSPACE_DIRECTORY", ""),
-        "tmp",
-        tmp_file,
-    )
-
-    if os.path.exists(file):
-        return Path(file).read_text()
-
     else:
-        raise ValueError(f"Either set env variable '{env_key}' or create file '{file}'")
+        raise ValueError(f"Set env variable '{env_key}'.")
 
 
 def get_item_path(path):
@@ -37,13 +28,11 @@ def get_item_path(path):
         onepassword_vault_id = "vgijssel-prod"
         onepassword_service_account_token = _get_onepassword_service_account_token(
             "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD",
-            "1password-service-account-token-prod",
         )
     else:
         onepassword_vault_id = "vgijssel-dev"
         onepassword_service_account_token = _get_onepassword_service_account_token(
             "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
-            "1password-service-account-token-dev",
         )
 
     op_binary = os.environ["OP_BINARY"]
