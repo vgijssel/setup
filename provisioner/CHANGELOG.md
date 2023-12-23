@@ -1,5 +1,11 @@
 # provisioner
 
+## 1.0.6
+
+### Patch Changes
+
+- [#633](https://github.com/vgijssel/setup/pull/633) [`2c31663`](https://github.com/vgijssel/setup/commit/2c316635521d4928ad7a1d2dd4fbb5874ff4516f) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Improve CI caching and fix remote tags loading
+
 ## 1.0.5
 
 ### Patch Changes
