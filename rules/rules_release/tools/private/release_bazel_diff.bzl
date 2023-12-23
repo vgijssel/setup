@@ -1,14 +1,6 @@
 load("//release:defs.bzl", "release")
 load("@rules_task//task:defs.bzl", "task")
-
-def _to_label_string(label):
-    if label.workspace_name == "":
-        workspace_name = ""
-    else:
-        # TODO: Wonder if there is a better way to get the workspace name of a locally overriden external repository
-        workspace_name = "@" + label.workspace_name.removesuffix("~override")
-
-    return workspace_name + "//" + label.package + ":" + label.name
+load("//release/private:utils.bzl", "label_to_string")
 
 def _release_bazel_diff_impl(ctx):
     executable = ctx.actions.declare_file(ctx.label.name)
@@ -25,7 +17,7 @@ def _release_bazel_diff_impl(ctx):
     if ctx.attr.get_impacted_targets_extra_args:
         args.append("--get-impacted-targets-extra-args \'" + " ".join(ctx.attr.get_impacted_targets_extra_args) + "\'")
 
-    args.append(_to_label_string(ctx.attr.target.label))
+    args.append(label_to_string(ctx.attr.target.label))
 
     command = " ".join(args)
 
@@ -47,7 +39,7 @@ def _release_bazel_diff_impl(ctx):
 _release_bazel_diff = rule(
     implementation = _release_bazel_diff_impl,
     attrs = {
-        "_bazel_diff": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ")),
+        "_bazel_diff": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-diff")),
         "_bazel_diff_cli": attr.label(executable = True, cfg = "target", default = Label("//tools:bazel-diff-change-cli")),
         "generate_hashes_extra_args": attr.string_list(default = []),
         "get_impacted_targets_extra_args": attr.string_list(default = []),
