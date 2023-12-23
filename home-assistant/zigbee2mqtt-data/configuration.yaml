@@ -56,8 +56,6 @@ devices:
     friendly_name: baby_room_door
   "0x54ef4410004919b1":
     friendly_name: hallway_motion
-  "0x54ef441000491875":
-    friendly_name: living_room_garden_motion
   "0x00158d0002286a8a":
     friendly_name: hallway_door
   "0x54ef4410001ff9a4":
