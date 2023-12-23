@@ -110,11 +110,9 @@ export default class BazelDiffRepository {
       return impactedTargetsPath;
     }
 
-    await $`${
-      this.bazelDiffPath
-    } get-impacted-targets ${this.getImpactedTargetsExtraArgs.split(
+    await $`${this.bazelDiffPath} diff ${this.getImpactedTargetsExtraArgs.split(
       " "
-    )} -sh ${previousHashes} -fh ${currentHashes} -o ${impactedTargetsPath}`;
+    )} --startingHashes ${previousHashes} --finalHashes ${currentHashes} --output ${impactedTargetsPath}`;
 
     return impactedTargetsPath;
   }

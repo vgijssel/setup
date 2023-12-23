@@ -262,3 +262,8 @@ alias(
     name = "op",
     actual = "//tools/onepassword:op",
 )
+
+alias(
+    name = "bazel-differ",
+    actual = "@rules_release//tools/bazel-differ",
+)

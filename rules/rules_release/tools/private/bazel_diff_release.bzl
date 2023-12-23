@@ -47,7 +47,7 @@ def _bazel_diff_release_impl(ctx):
 _bazel_diff_release = rule(
     implementation = _bazel_diff_release_impl,
     attrs = {
-        "_bazel_diff": attr.label(executable = True, cfg = "target", default = Label("//tools:bazel-diff")),
+        "_bazel_diff": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ")),
         "_bazel_diff_cli": attr.label(executable = True, cfg = "target", default = Label("//tools:bazel-diff-change-cli")),
         "generate_hashes_extra_args": attr.string_list(default = []),
         "get_impacted_targets_extra_args": attr.string_list(default = []),
