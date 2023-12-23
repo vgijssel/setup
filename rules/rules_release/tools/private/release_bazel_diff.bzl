@@ -10,7 +10,7 @@ def _to_label_string(label):
 
     return workspace_name + "//" + label.package + ":" + label.name
 
-def _bazel_diff_release_impl(ctx):
+def _release_bazel_diff_impl(ctx):
     executable = ctx.actions.declare_file(ctx.label.name)
     bazel_diff_cli_path = ctx.executable._bazel_diff_cli.short_path
     bazel_diff_path = ctx.executable._bazel_diff.short_path
@@ -44,8 +44,8 @@ def _bazel_diff_release_impl(ctx):
         DefaultInfo(executable = executable, runfiles = runfiles),
     ]
 
-_bazel_diff_release = rule(
-    implementation = _bazel_diff_release_impl,
+_release_bazel_diff = rule(
+    implementation = _release_bazel_diff_impl,
     attrs = {
         "_bazel_diff": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ")),
         "_bazel_diff_cli": attr.label(executable = True, cfg = "target", default = Label("//tools:bazel-diff-change-cli")),
@@ -58,7 +58,7 @@ _bazel_diff_release = rule(
     executable = True,
 )
 
-def bazel_diff_release(previous_revision_cmd = None, final_revision_cmd = None, **kwargs):
+def release_bazel_diff(previous_revision_cmd = None, final_revision_cmd = None, **kwargs):
     name = kwargs.get("name")
     change_cmd_name = "{}.change_cmd".format(name)
     previous_revision_cmd_name = previous_revision_cmd
@@ -89,7 +89,7 @@ def bazel_diff_release(previous_revision_cmd = None, final_revision_cmd = None, 
             cwd = "$BUILD_WORKSPACE_DIRECTORY",
         )
 
-    _bazel_diff_release(
+    _release_bazel_diff(
         name = change_cmd_name,
         generate_hashes_extra_args = generate_hashes_extra_args,
         get_impacted_targets_extra_args = get_impacted_targets_extra_args,
