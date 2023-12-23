@@ -5,14 +5,6 @@ from shlex import quote
 from pathlib import Path
 
 
-def _get_onepassword_service_account_token(env_key):
-    if env_key in os.environ:
-        return os.environ[env_key]
-
-    else:
-        raise ValueError(f"Set env variable '{env_key}'.")
-
-
 def get_item_path(path):
     parts = path.split(".")
 
@@ -26,13 +18,13 @@ def get_item_path(path):
 
     if os.environ.get("SETUP_ENV") == "prod":
         onepassword_vault_id = "vgijssel-prod"
-        onepassword_service_account_token = _get_onepassword_service_account_token(
-            "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD",
+        onepassword_service_account_token = os.environ.get(
+            "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD"
         )
     else:
         onepassword_vault_id = "vgijssel-dev"
-        onepassword_service_account_token = _get_onepassword_service_account_token(
-            "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV",
+        onepassword_service_account_token = os.environ.get(
+            "ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV"
         )
 
     op_binary = os.environ["OP_BINARY"]
@@ -47,7 +39,11 @@ def get_item_path(path):
     ]
 
     op_env = os.environ.copy()
-    op_env["OP_SERVICE_ACCOUNT_TOKEN"] = onepassword_service_account_token
+
+    # Set the service account only if the token is in the environment
+    # this means we can use local 1Password directly!
+    if onepassword_service_account_token:
+        op_env["OP_SERVICE_ACCOUNT_TOKEN"] = onepassword_service_account_token
 
     result = subprocess.run(command, env=op_env, capture_output=True)
 
