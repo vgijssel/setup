@@ -22,6 +22,7 @@ export default class BazelDifferRepository {
     return impactedTargets.includes(label);
   }
 
+  // TODO: implement caching
   async _getImpactedTargets() {
     if (!(await fileExists(this.hashesDir))) {
       mkdir(this.hashesDir, { recursive: true });
