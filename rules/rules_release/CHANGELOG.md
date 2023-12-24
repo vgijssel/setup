@@ -1,5 +1,15 @@
 # rules_release
 
+## 2.0.0
+
+### Major Changes
+
+- [#636](https://github.com/vgijssel/setup/pull/636) [`e304c19`](https://github.com/vgijssel/setup/commit/e304c19bcb6c09f1ef2d219f1982d39f4209353e) Thanks [@mvgijssel](https://github.com/mvgijssel)! - BREAKING CHANGE: Rename `bazel_diff_release` to `release_bazel_diff`
+
+### Minor Changes
+
+- [#636](https://github.com/vgijssel/setup/pull/636) [`e304c19`](https://github.com/vgijssel/setup/commit/e304c19bcb6c09f1ef2d219f1982d39f4209353e) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Add release_bazel_differ
+
 ## 1.2.1
 
 ### Patch Changes
