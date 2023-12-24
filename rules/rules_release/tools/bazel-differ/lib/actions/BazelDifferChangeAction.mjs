@@ -4,9 +4,17 @@ import { path } from "zx";
 export default class BazelDifferChangeAction {
   constructor(
     label,
-    { bazelDifferPath, previousRevisionCmd, finalRevisionCmd }
+    {
+      bazelDifferPath,
+      previousRevisionCmd,
+      finalRevisionCmd,
+      generateHashesExtraArgs,
+      getImpactedTargetsExtraArgs,
+    }
   ) {
     this.label = label;
+    this.generatehashesextraargs = generatehashesextraargs;
+    this.getimpactedtargetsextraargs = getimpactedtargetsextraargs;
     this.bazelDifferPath = bazelDifferPath;
     this.previousRevisionCmd = previousRevisionCmd;
     this.finalRevisionCmd = finalRevisionCmd;
@@ -18,6 +26,8 @@ export default class BazelDifferChangeAction {
 
     const bazelDifferRepository = new BazelDifferRepository({
       bazelDifferPath: this.bazelDifferPath,
+      generateHashesExtraArgs: this.generateHashesExtraArgs,
+      getImpactedTargetsExtraArgs: this.getImpactedTargetsExtraArgs,
       workspaceDir: workspaceDir,
       hashesDir: hashesDir,
       previousRevisionCmd: this.previousRevisionCmd,

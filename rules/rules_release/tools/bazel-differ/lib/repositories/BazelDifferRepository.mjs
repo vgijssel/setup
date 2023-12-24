@@ -5,6 +5,8 @@ import { fileExists, md5 } from "../../../../release/lib/utils.mjs";
 export default class BazelDifferRepository {
   constructor({
     bazelDifferPath,
+    generateHashesExtraArgs,
+    getImpactedTargetsExtraArgs,
     workspaceDir,
     hashesDir,
     previousRevisionCmd,

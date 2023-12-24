@@ -7,6 +7,16 @@ program
   .name("bazel-diff-change-cli")
   .description("CLI to interact with bazel-diff for release-manager")
   .requiredOption("--bazel-differ-path <string>", "Path to bazel-differ")
+  .option(
+    "--generate-hashes-extra-args <string>",
+    "Additional args to pass to bazel-differ generate-hashes command",
+    ""
+  )
+  .option(
+    "--get-impacted-targets-extra-args <string>",
+    "Additional args to pass to bazel-differ get-impacted-targets command",
+    ""
+  )
   .requiredOption(
     "--previous-revision-cmd <string>",
     "Executable to get previous git revision"
