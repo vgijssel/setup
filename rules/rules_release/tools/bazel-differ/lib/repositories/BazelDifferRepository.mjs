@@ -6,7 +6,7 @@ export default class BazelDifferRepository {
   constructor({
     bazelDifferPath,
     generateHashesExtraArgs,
-    getImpactedTargetsExtraArgs,
+    diffExtraArgs,
     workspaceDir,
     hashesDir,
     previousRevisionCmd,
@@ -14,7 +14,7 @@ export default class BazelDifferRepository {
   }) {
     this.bazelDifferPath = bazelDifferPath;
     this.generateHashesExtraArgs = generateHashesExtraArgs;
-    this.getImpactedTargetsExtraArgs = getImpactedTargetsExtraArgs;
+    this.diffExtraArgs = diffExtraArgs;
     this.workspaceDir = workspaceDir;
     this.hashesDir = hashesDir;
     this.previousRevisionCmd = previousRevisionCmd;
@@ -104,15 +104,13 @@ export default class BazelDifferRepository {
   async _generateImpactedTargets(sha, previousHashes, currentHashes, cache) {
     const impactedTargetsPath = `${this.hashesDir}/${sha}-${md5(
       this.generateHashesExtraArgs
-    )}-${md5(this.getImpactedTargetsExtraArgs)}.impacted_targets.json`;
+    )}-${md5(this.diffExtraArgs)}.impacted_targets.json`;
 
     if (cache && (await fileExists(impactedTargetsPath))) {
       return impactedTargetsPath;
     }
 
-    await $`${
-      this.bazelDifferPath
-    } diff ${this.getImpactedTargetsExtraArgs.split(
+    await $`${this.bazelDifferPath} diff ${this.diffExtraArgs.split(
       " "
     )} -s ${previousHashes} -f ${currentHashes} -o ${impactedTargetsPath}`;
 

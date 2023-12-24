@@ -14,8 +14,8 @@ def _release_bazel_differ_impl(ctx):
     if ctx.attr.generate_hashes_extra_args:
         args.append("--generate-hashes-extra-args \'" + " ".join(ctx.attr.generate_hashes_extra_args) + "\'")
 
-    if ctx.attr.get_impacted_targets_extra_args:
-        args.append("--get-impacted-targets-extra-args \'" + " ".join(ctx.attr.get_impacted_targets_extra_args) + "\'")
+    if ctx.attr.diff_extra_args:
+        args.append("--diff-extra-args \'" + " ".join(ctx.attr.diff_extra_args) + "\'")
 
     args.append(label_to_string(ctx.attr.target.label))
 
@@ -42,7 +42,7 @@ _release_bazel_differ = rule(
         "_bazel_differ": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ")),
         "_bazel_differ_cli": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ:bazel-differ-change-cli")),
         "generate_hashes_extra_args": attr.string_list(default = []),
-        "get_impacted_targets_extra_args": attr.string_list(default = []),
+        "diff_extra_args": attr.string_list(default = []),
         "target": attr.label(mandatory = True),
         "previous_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
         "final_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
@@ -57,7 +57,7 @@ def release_bazel_differ(previous_revision_cmd = None, final_revision_cmd = None
     final_revision_cmd_name = final_revision_cmd
     target = kwargs.pop("target")
     generate_hashes_extra_args = kwargs.pop("generate_hashes_extra_args", [])
-    get_impacted_targets_extra_args = kwargs.pop("get_impacted_targets_extra_args", [])
+    diff_extra_args = kwargs.pop("diff_extra_args", [])
 
     if not previous_revision_cmd_name:
         previous_revision_cmd_name = "{}.previous_revision_cmd".format(name)
@@ -84,7 +84,7 @@ def release_bazel_differ(previous_revision_cmd = None, final_revision_cmd = None
     _release_bazel_differ(
         name = change_cmd_name,
         generate_hashes_extra_args = generate_hashes_extra_args,
-        get_impacted_targets_extra_args = get_impacted_targets_extra_args,
+        diff_extra_args = diff_extra_args,
         target = target,
         previous_revision_cmd = previous_revision_cmd_name,
         final_revision_cmd = final_revision_cmd_name,

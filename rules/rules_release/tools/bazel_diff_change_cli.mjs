@@ -13,8 +13,8 @@ program
     ""
   )
   .option(
-    "--get-impacted-targets-extra-args <string>",
-    "Additional args to pass to bazel-diff get-impacted-targets command",
+    "--diff-extra-args <string>",
+    "Additional args to pass to bazel-diff diff command",
     ""
   )
   .requiredOption(
