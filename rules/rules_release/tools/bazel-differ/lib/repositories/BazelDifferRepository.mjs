@@ -27,8 +27,6 @@ export default class BazelDifferRepository {
       mkdir(this.hashesDir, { recursive: true });
     }
 
-    console.log("kerk");
-
     const previousCommit = (await $`${this.previousRevisionCmd}`).stdout.trim();
     const currentCommit = (await $`${this.finalRevisionCmd}`).stdout.trim();
     const impactedTargetsPath = `${this.hashesDir}/${previousCommit}-${currentCommit}.impacted_targets.json`;
