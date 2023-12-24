@@ -138,9 +138,6 @@ task(
         cmd.executable(":deploy_provision"),
         cmd.executable(":deploy_validate"),
     ],
-    # Add in all the .github files to the data attribute,
-    # so if the github workflows change then we re-run the deployment
-    data = glob([".github/**"]),
     env = {
         "SETUP_ENV": "prod",
     },
