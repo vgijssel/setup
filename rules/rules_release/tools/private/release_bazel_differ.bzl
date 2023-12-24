@@ -65,8 +65,7 @@ def release_bazel_differ(previous_revision_cmd = None, final_revision_cmd = None
         task(
             name = previous_revision_cmd_name,
             cmds = [
-                # "git rev-parse master",
-                "echo 85042ebe80ce37798e52f76fde0ceddae1224446",
+                "git rev-parse master",
             ],
             cwd = "$BUILD_WORKSPACE_DIRECTORY",
         )
@@ -77,8 +76,7 @@ def release_bazel_differ(previous_revision_cmd = None, final_revision_cmd = None
         task(
             name = final_revision_cmd_name,
             cmds = [
-                "echo 1d4b4dc6fe77a9f7423f5df56af8a2307a7c9290",
-                # "git rev-parse HEAD",
+                "git rev-parse HEAD",
             ],
             cwd = "$BUILD_WORKSPACE_DIRECTORY",
         )
