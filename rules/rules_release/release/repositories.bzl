@@ -152,6 +152,31 @@ def rules_release_dependencies():
         url = "https://github.com/regclient/regclient/releases/download/v0.5.3/regctl-darwin-arm64",
     )
 
+    # ------------------------------------ bazel-differ ------------------------------------ #
+    http_file(
+        name = "bazel-differ_linux_arm64",
+        downloaded_file_path = "bazel-differ",
+        executable = True,
+        # sha256 = "380105c05c6c69ea3d35a8efeec0ccfa1bdfc38a876bf7d473be06d7267bae99",
+        url = "https://github.com/ewhauser/bazel-differ/releases/download/v0.0.7/bazel-differ-linux-arm64",
+    )
+
+    http_file(
+        name = "bazel-differ_linux_amd64",
+        downloaded_file_path = "bazel-differ",
+        executable = True,
+        # sha256 = "5141569cd0ef6e52a9dc67391c432f1bdd0cfd2d3b82d3f22d56f94feab7203e",
+        url = "https://github.com/ewhauser/bazel-differ/releases/download/v0.0.7/bazel-differ-linux-x86_64",
+    )
+
+    http_file(
+        name = "bazel-differ_darwin_arm64",
+        downloaded_file_path = "bazel-differ",
+        executable = True,
+        sha256 = "d1d6c92895c7cd3af4ff8de727114efb119b08f886604a958abbdedb9497b2ce",
+        url = "https://github.com/ewhauser/bazel-differ/releases/download/v0.0.7/bazel-differ-darwin-arm64",
+    )
+
     starlarkified_local_repository(
         name = "examples_workspace",
         path = "examples/workspace",

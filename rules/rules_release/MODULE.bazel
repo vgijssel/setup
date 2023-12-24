@@ -52,6 +52,13 @@ use_repo(non_module_dependencies, "regctl_linux_amd64")
 
 use_repo(non_module_dependencies, "regctl_darwin_arm64")
 
+# ------------------------------------ bazel-differ ------------------------------------ #
+use_repo(non_module_dependencies, "bazel-differ_linux_arm64")
+
+use_repo(non_module_dependencies, "bazel-differ_linux_amd64")
+
+use_repo(non_module_dependencies, "bazel-differ_darwin_arm64")
+
 # ------------------------------------ examples ------------------------------------ #
 use_repo(non_module_dependencies, "examples_workspace")
 

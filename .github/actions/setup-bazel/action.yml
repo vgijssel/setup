@@ -7,15 +7,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: pat-s/always-upload-cache@v3.0.11
-      id: bazel-cache
-      with:
-        path: |
-          tmp/output_base/external
-          /nix/store
-        key: bazel-cache-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
-        restore-keys: bazel-cache-${{ runner.os }}-${{ github.job }}-
-
     - name: Load secret
       uses: 1password/load-secrets-action@v1
       with:

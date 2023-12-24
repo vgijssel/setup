@@ -7,6 +7,9 @@ on:
       - "master"
     paths:
       - "provisioner/version.txt"
+      # Add in all the .github files to the data attribute,
+      # so if the github workflows change then we re-run the deployment
+      - ".github/**"
 jobs:
   deploy-provisioner:
     name: Deploy Provisioner

@@ -44,6 +44,7 @@ filegroup(
         "//release/private:all_files",
         "//tools:all_files",
         "//tools/private:all_files",
+        "//tools/bazel-differ:all_files",
     ],
 )
 

@@ -13,7 +13,6 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files([
     "WORKSPACE",
-    ".github",
 ])
 
 bool_flag(
@@ -261,4 +260,9 @@ alias(
 alias(
     name = "op",
     actual = "//tools/onepassword:op",
+)
+
+alias(
+    name = "bazel-differ",
+    actual = "@rules_release//tools/bazel-differ",
 )
