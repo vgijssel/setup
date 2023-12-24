@@ -9,12 +9,12 @@ export default class BazelDifferChangeAction {
       previousRevisionCmd,
       finalRevisionCmd,
       generateHashesExtraArgs,
-      getImpactedTargetsExtraArgs,
+      diffExtraArgs,
     }
   ) {
     this.label = label;
     this.generateHashesExtraArgs = generateHashesExtraArgs;
-    this.getImpactedTargetsExtraArgs = getImpactedTargetsExtraArgs;
+    this.diffExtraArgs = diffExtraArgs;
     this.bazelDifferPath = bazelDifferPath;
     this.previousRevisionCmd = previousRevisionCmd;
     this.finalRevisionCmd = finalRevisionCmd;
@@ -27,7 +27,7 @@ export default class BazelDifferChangeAction {
     const bazelDifferRepository = new BazelDifferRepository({
       bazelDifferPath: this.bazelDifferPath,
       generateHashesExtraArgs: this.generateHashesExtraArgs,
-      getImpactedTargetsExtraArgs: this.getImpactedTargetsExtraArgs,
+      diffExtraArgs: this.diffExtraArgs,
       workspaceDir: workspaceDir,
       hashesDir: hashesDir,
       previousRevisionCmd: this.previousRevisionCmd,
