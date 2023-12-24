@@ -2,7 +2,7 @@ load("@rules_python//python:defs.bzl", "py_binary")
 load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
 load("//tools/python:defs.bzl", "py_image")
 load("@pdm-setup//:requirements.bzl", "requirement")
-load("@rules_release//tools:defs.bzl", "publish_github_release", "publish_oci_image", release = "release_bazel_diff")
+load("@rules_release//tools:defs.bzl", "publish_github_release", "publish_oci_image", release = "release_bazel_differ")
 load("@aspect_bazel_lib//lib:jq.bzl", "jq")
 
 package(default_visibility = ["//visibility:public"])
