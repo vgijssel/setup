@@ -13,8 +13,8 @@ export default class BazelDifferChangeAction {
     }
   ) {
     this.label = label;
-    this.generatehashesextraargs = generatehashesextraargs;
-    this.getimpactedtargetsextraargs = getimpactedtargetsextraargs;
+    this.generateHashesExtraArgs = generateHashesExtraArgs;
+    this.getImpactedTargetsExtraArgs = getImpactedTargetsExtraArgs;
     this.bazelDifferPath = bazelDifferPath;
     this.previousRevisionCmd = previousRevisionCmd;
     this.finalRevisionCmd = finalRevisionCmd;
