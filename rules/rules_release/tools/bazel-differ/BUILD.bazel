@@ -1,0 +1,31 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+bazel_differ_file = select({
+    "//:is_linux_amd64": ["@bazel-differ_linux_amd64//file"],
+    "//:is_linux_arm64": ["@bazel-differ_linux_arm64//file"],
+    "//:is_darwin_arm64": ["@bazel-differ_darwin_arm64//file"],
+})
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**/*"]),
+)
+
+sh_binary(
+    name = "bazel-differ",
+    srcs = bazel_differ_file,
+)
+
+js_binary(
+    name = "bazel-differ-change-cli",
+    data = [
+        "lib/actions/BazelDifferChangeAction.mjs",
+        "lib/repositories/BazelDifferRepository.mjs",
+        "//:node_modules/commander",
+        "//:node_modules/zx",
+        "//release:utils",
+    ],
+    entry_point = "bazel_differ_change_cli.mjs",
+)

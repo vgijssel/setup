@@ -5,7 +5,7 @@ load("//tools/docker:docker_run_and_commit.bzl", "docker_run_and_commit")
 load("@pdm-setup//:requirements.bzl", "requirement")
 load("//tools/onepassword:defs.bzl", "secrets")
 load("@rules_oci//oci:defs.bzl", "oci_image")
-load("@rules_release//tools:defs.bzl", "publish_github_release", release = "release_bazel_diff")
+load("@rules_release//tools:defs.bzl", "publish_github_release", release = "release_bazel_differ")
 
 package(default_visibility = ["//visibility:public"])
 

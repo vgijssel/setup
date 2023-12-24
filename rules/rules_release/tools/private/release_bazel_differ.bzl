@@ -33,7 +33,7 @@ _release_bazel_differ = rule(
     implementation = _release_bazel_differ_impl,
     attrs = {
         "_bazel_differ": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ")),
-        "_bazel_differ_cli": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ:change-cli")),
+        "_bazel_differ_cli": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ:bazel-differ-change-cli")),
         "target": attr.label(mandatory = True),
         "previous_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
         "final_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
