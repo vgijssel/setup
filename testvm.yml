@@ -20,19 +20,14 @@ spec:
               disk:
                 bus: virtio
           interfaces:
-            - name: default
-              masquerade: {}
             - name: test1
               bridge: {}
         resources:
           requests:
             memory: 64M
       networks:
-        - name: default
-          pod: {}
         - name: test1
-          multus: # Multus network as default
-            # default: true
+          multus:
             networkName: bridge-test
       volumes:
         - name: containerdisk
