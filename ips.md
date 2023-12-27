@@ -16,6 +16,7 @@
 
 192.168.1.30 - hypervisor
 192.168.1.31 - provisioner
+192.168.1.32 - haos
 192.168.1.40 - 192.168.1.49 - opennebula \_ + port forward
 
 192.168.1.60 - baby-room-shelly

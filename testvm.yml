@@ -3,7 +3,7 @@ kind: VirtualMachine
 metadata:
   name: testvm
 spec:
-  running: false
+  running: true
   template:
     metadata:
       labels:
@@ -22,12 +22,18 @@ spec:
           interfaces:
             - name: default
               masquerade: {}
+            - name: test1
+              bridge: {}
         resources:
           requests:
             memory: 64M
       networks:
         - name: default
           pod: {}
+        - name: test1
+          multus: # Multus network as default
+            # default: true
+            networkName: bridge-test
       volumes:
         - name: containerdisk
           containerDisk:
