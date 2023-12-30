@@ -2,6 +2,13 @@
 logger:
   level: DEBUG
 
+text_sensor:
+  - platform: debug
+    device:
+      name: "device_info"
+    reset_reason:
+      name: "reason_reason"
+
 # Enable Home Assistant API
 api:
   encryption:

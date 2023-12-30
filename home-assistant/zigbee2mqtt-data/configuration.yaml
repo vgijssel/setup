@@ -40,8 +40,6 @@ devices:
     friendly_name: garden_door
   "0x54ef4410004973e7":
     friendly_name: landing_motion
-  "0x54ef4410004972a3":
-    friendly_name: living_room_motion
   "0x00158d0007e75b53":
     friendly_name: bathroom_door
   "0x00158d0007ef9f06":

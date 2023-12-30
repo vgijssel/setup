@@ -1,0 +1,18 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: "haos"
+spec:
+  # storage:
+  #   resources:
+  #     requests:
+  #       storage: 40Gi
+  pvc:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: "40Gi"
+  source:
+    http:
+      url: "https://github.com/home-assistant/operating-system/releases/download/11.2/haos_ova-11.2.qcow2.xz"

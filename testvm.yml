@@ -19,6 +19,9 @@ spec:
             - name: cloudinitdisk
               disk:
                 bus: virtio
+            - name: haosdisk
+              disk:
+                bus: virtio
           interfaces:
             - name: test1
               bridge: {}
@@ -36,3 +39,6 @@ spec:
         - name: cloudinitdisk
           cloudInitNoCloud:
             userDataBase64: SGkuXG4=
+        - name: haosdisk
+          persistentVolumeClaim:
+            claimName: haos
