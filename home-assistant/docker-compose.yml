@@ -70,7 +70,7 @@ services:
 
   esphome:
     container_name: esphome
-    image: esphome/esphome:2023.9
+    image: esphome/esphome:2023.9 # TODO: maybe upgrade esphome version?
     volumes:
       - ./esphome-data:/config
       - /data/esphome_nimble:/esphome_nimble

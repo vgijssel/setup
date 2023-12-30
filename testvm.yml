@@ -2,23 +2,23 @@ apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
   name: testvm
+  labels:
+    kubevirt.io/vm: haos
 spec:
-  running: true
+  running: true # TODO: should we have a restart policy?
   template:
     metadata:
       labels:
-        kubevirt.io/size: small
-        kubevirt.io/domain: testvm
+        kubevirt.io/vm: haos
+        # kubevirt.io/size: small
+        # kubevirt.io/domain: testvm
     spec:
       domain:
+        # machine:
+        #   # This value indicates QEMU machine type.
+        #   type: pc-q35-3.1
         devices:
           disks:
-            - name: containerdisk
-              disk:
-                bus: virtio
-            - name: cloudinitdisk
-              disk:
-                bus: virtio
             - name: haosdisk
               disk:
                 bus: virtio
@@ -27,18 +27,12 @@ spec:
               bridge: {}
         resources:
           requests:
-            memory: 64M
+            memory: 4096M # TODO: how much memory should haos have?
       networks:
         - name: test1
           multus:
             networkName: bridge-test
       volumes:
-        - name: containerdisk
-          containerDisk:
-            image: quay.io/kubevirt/cirros-container-disk-demo
-        - name: cloudinitdisk
-          cloudInitNoCloud:
-            userDataBase64: SGkuXG4=
         - name: haosdisk
           persistentVolumeClaim:
             claimName: haos

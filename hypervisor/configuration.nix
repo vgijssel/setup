@@ -22,6 +22,8 @@
 
   boot.zfs.extraPools = [ "new_data" ];
 
+  # Enable nested virtualization
+  boot.extraModprobeConfig = "options kvm_intel nested=1";
 
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs.forceImportRoot = false;
@@ -133,6 +135,7 @@
     bridge-utils
     docker-compose
     mutagen
+    qemu_full
   ];
 
   virtualisation.docker.enable = true;
