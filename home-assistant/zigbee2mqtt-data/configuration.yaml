@@ -60,8 +60,6 @@ devices:
     friendly_name: office_illuminance
   "0x54ef4410001ff3da":
     friendly_name: baby_room_illuminance
-  "0x54ef4410004e44a9":
-    friendly_name: bedroom_motion
   "0x54ef4410004e39af":
     friendly_name: office_motion
   "0x54ef4410004e3ea7":
