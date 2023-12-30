@@ -2,6 +2,9 @@
 logger:
   level: DEBUG
 
+debug:
+  update_interval: 5s
+
 text_sensor:
   - platform: debug
     device:
