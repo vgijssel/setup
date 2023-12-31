@@ -10,10 +10,14 @@ spec:
     metadata:
       labels:
         kubevirt.io/vm: haos
+        kubevirt.io/os: haos
         # kubevirt.io/size: small
         # kubevirt.io/domain: testvm
     spec:
+      # TODO: usb passthrough using kubevirt cr mapping
       domain:
+        cpu:
+          cores: 2
         # machine:
         #   # This value indicates QEMU machine type.
         #   type: pc-q35-3.1
@@ -23,13 +27,21 @@ spec:
               disk:
                 bus: virtio
           interfaces:
-            - name: test1
+            - name: bridge
               bridge: {}
         resources:
           requests:
-            memory: 4096M # TODO: how much memory should haos have?
+            memory: 4096M
+        features:
+          smm:
+            enabled: false
+        firmware:
+          # haos needs efi otherwise it won't boot
+          bootloader:
+            efi:
+              secureBoot: false
       networks:
-        - name: test1
+        - name: bridge
           multus:
             networkName: bridge-test
       volumes:
