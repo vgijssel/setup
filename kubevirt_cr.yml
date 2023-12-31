@@ -5,12 +5,12 @@ metadata:
   namespace: kubevirt
 spec:
   configuration:
-    # permittedHostDevices:
-    #   usb:
-    #     - resource: skyconnect
-    #       selectors:
-    #         - vendor: "46f4"
-    #           product: "0001"
+    permittedHostDevices:
+      usb:
+        - resourceName: skyconnect
+          selectors:
+            - vendor: "10c4"
+              product: "ea60"
     developerConfiguration:
       featureGates:
         # For using DataVolumes inside VirtualMachine definitions

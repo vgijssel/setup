@@ -136,6 +136,7 @@
     docker-compose
     mutagen
     qemu_full
+    usbutils
   ];
 
   virtualisation.docker.enable = true;

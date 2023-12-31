@@ -29,6 +29,9 @@ spec:
           interfaces:
             - name: bridge
               bridge: {}
+          hostDevices:
+            - deviceName: skyconnect
+              name: skyconnect
         resources:
           requests:
             memory: 4096M

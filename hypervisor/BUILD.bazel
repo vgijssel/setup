@@ -1,6 +1,17 @@
 # load("//tools/packer:defs.bzl", "packer_image")
 # load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 # load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box")
+load("@rules_task//task:defs.bzl", "task")
+
+task(
+    name = "deploy",
+    cmds = [
+        "nixos-rebuild switch -I nixos-config=configuration.nix --target-host maarten@192.168.1.30 --build-host maarten@192.168.1.30 --fast --use-remote-sudo",
+    ],
+    env = {
+        "NIX_SSHOPTS": "-o ForwardAgent=yes",
+    },
+)
 
 # packer_image(
 #     name = "hypervisor_image",
