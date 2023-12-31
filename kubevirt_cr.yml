@@ -7,7 +7,7 @@ spec:
   configuration:
     permittedHostDevices:
       usb:
-        - resourceName: skyconnect
+        - resourceName: kubevirt.io/skyconnect
           selectors:
             - vendor: "10c4"
               product: "ea60"

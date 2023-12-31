@@ -30,7 +30,7 @@ spec:
             - name: bridge
               bridge: {}
           hostDevices:
-            - deviceName: skyconnect
+            - deviceName: kubevirt.io/skyconnect
               name: skyconnect
         resources:
           requests:
