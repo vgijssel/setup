@@ -1,15 +1,17 @@
 # load("//tools/packer:defs.bzl", "packer_image")
 # load("//tools/pyinfra:defs.bzl", "pyinfra_run")
 # load("//tools/vagrant:defs.bzl", "qcow_to_vagrant_box")
-load("@rules_task//task:defs.bzl", "task")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 
 task(
     name = "deploy",
     cmds = [
-        "nixos-rebuild switch -I nixos-config=configuration.nix --target-host maarten@192.168.1.30 --build-host maarten@192.168.1.30 --fast --use-remote-sudo",
+        "nixos-rebuild switch --flake flake.nix#hypervisor --target-host maarten@192.168.1.30 --build-host maarten@192.168.1.30 --fast --use-remote-sudo",
     ],
+    cwd = "$BUILD_WORKSPACE_DIRECTORY/hypervisor",
     env = {
         "NIX_SSHOPTS": "-o ForwardAgent=yes",
+        "flake": cmd.file("flake.nix"),
     },
 )
 
