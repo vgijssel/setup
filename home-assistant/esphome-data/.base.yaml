@@ -16,8 +16,6 @@ text_sensor:
 api:
   encryption:
     key: !secret api_encryption_key
-  # TODO: temporary disable the reboot timeout
-  reboot_timeout: 0s
 
 ota:
   password: !secret ota_password
