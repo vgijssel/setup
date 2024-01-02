@@ -19,6 +19,11 @@ vault = "Private"
 account = "Van Gijssel"
 
 [[ssh-keys]]
+item = "SSH - HomeAssistant"
+vault = "Private"
+account = "Van Gijssel"
+
+[[ssh-keys]]
 item = "SSH - GitHub - Authentication"
 vault = "Private"
 account = "Van Gijssel"
