@@ -35,3 +35,18 @@ sync:
     alpha: "./esphome_nimble"
     beta: "maarten@192.168.1.30:/data/esphome_nimble"
     mode: "two-way-safe"
+
+  haos:
+    alpha: "./haos"
+    beta: "root@192.168.1.32:/homeassistant"
+    mode: "two-way-safe"
+    ignore:
+      paths:
+        - /*
+        - "!/configuration.yaml"
+        - "!/automations.yaml"
+        - "!/blueprints"
+        - "!/scenes.yaml"
+        - "!/scripts.yaml"
+        - "!/secrets.yaml"
+        - "!/custom_components"
