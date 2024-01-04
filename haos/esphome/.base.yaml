@@ -3,14 +3,12 @@ logger:
   level: DEBUG
 
 debug:
-  update_interval: 5s
+  update_interval: 10s
 
 text_sensor:
   - platform: debug
     device:
       name: "device_info"
-    reset_reason:
-      name: "reason_reason"
 
 # Enable Home Assistant API
 api:
