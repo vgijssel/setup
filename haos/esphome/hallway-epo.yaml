@@ -10,4 +10,5 @@ packages:
 
 esphome:
   name: ${name}
+  friendly_name: ${name}
   name_add_mac_suffix: false

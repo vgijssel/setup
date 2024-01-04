@@ -47,6 +47,8 @@
 
 192.168.1.84 - test-shelly
 
+192.168.1.85 - slimmelezer
+
 192.168.1.90 - hallway-epo
 
 192.168.1.100 - 192.168.1.254 DHCP Range Unifi
