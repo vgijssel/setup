@@ -8,3 +8,156 @@ frontend:
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
+
+nissan_leaf:
+  username: !secret nissan_leaf_username
+  password: !secret nissan_leaf_password
+  region: !secret nissan_leaf_region
+  update_interval:
+    minutes: 30
+  update_interval_charging:
+    minutes: 15
+  update_interval_climate:
+    minutes: 5
+
+light:
+  - platform: group
+    name: living_room_lights
+    entities:
+      - light.living_room_corner_light
+      - light.living_room_dining_table_light
+      - light.living_room_monkey_light
+      - light.living_room_mouse_light
+      - light.living_room_tv_light
+  - platform: group
+    name: kitchen_lights
+    entities:
+      - light.kitchen_1_light
+      - light.kitchen_2_light
+      - light.kitchen_3_light
+      - light.kitchen_4_light
+      - light.kitchen_5_light
+      - light.kitchen_6_light
+  - platform: group
+    name: hallway_lights
+    entities:
+      - light.hallway_1_light
+      - light.hallway_2_light
+      - light.hallway_3_light
+      - light.hallway_4_light
+  - platform: group
+    name: landing_lights
+    entities:
+      - light.landing_1_light
+      - light.landing_2_light
+      - light.landing_3_light
+  - platform: group
+    name: bathroom_lights
+    entities:
+      - light.bathroom_1_light
+      - light.bathroom_2_light
+      - light.bathroom_3_light
+      - light.bathroom_4_light
+      - light.bathroom_5_light
+      - light.bathroom_6_light
+  - platform: group
+    name: toilet_lights
+    entities:
+      - light.toilet_1_light
+      - light.toilet_2_light
+
+group:
+  baby_room_lights:
+    name: baby_room_lights
+    entities:
+      - light.baby_room_light
+      - switch.baby_room_moon_light_moko
+
+homekit:
+  - mode: bridge
+    filter:
+      include_entities:
+        - light.living_room_corner_light
+        - light.living_room_dining_table_light
+        - light.living_room_monkey_light
+        - light.living_room_mouse_light
+        - light.living_room_tv_light
+        - climate.living_room_heat
+        - light.baby_room_light
+        - switch.baby_room_moon_light_moko
+        - light.bathroom_lights
+        - switch.bedroom_shelly
+        - switch.driveway_shelly
+        - light.hallway_lights
+        - light.kitchen_lights
+        - light.landing_lights
+        - switch.laundry_room_shelly
+        - switch.office_shelly
+        - switch.supply_closet_shelly
+        - light.toilet_lights
+        - switch.kitchen_oven_moko
+        - switch.garden_shelly
+
+    entity_config:
+      light.living_room_corner_light:
+        name: Woonkamer Hoek
+      light.living_room_dining_table_light:
+        name: Woonkamer Eetkamertafel
+      light.living_room_monkey_light:
+        name: Woonkamer Aap
+      light.living_room_mouse_light:
+        name: Woonkamer Muis
+      light.living_room_tv_light:
+        name: Woonkamer Tv Lamp
+      climate.living_room_heat:
+        name: Woonkamer Thermostaat
+      light.baby_room_light:
+        name: Babykamer Lamp
+      switch.baby_room_moon_light_moko:
+        name: Babykamer Maan Lamp
+        type: outlet
+      light.bathroom_lights:
+        name: Badkamer Lampen
+      switch.bedroom_shelly:
+        name: Slaapkamer Lamp
+      switch.driveway_shelly:
+        name: Oprit Lamp
+      light.hallway_lights:
+        name: Gang Lampen
+      light.kitchen_lights:
+        name: Keuken Lamp
+      switch.kitchen_oven_moko:
+        name: Keuken Oven
+        type: outlet
+      light.landing_lights:
+        name: Overloop Lampen
+      switch.laundry_room_shelly:
+        name: Waskamer Lamp
+      switch.office_shelly:
+        name: Kantoor Lamp
+      switch.supply_closet_shelly:
+        name: Voorraadkast Lamp
+      light.toilet_lights:
+        name: Wc Lampen
+      switch.garden_shelly:
+        name: Tuin Lamp
+
+  - name: HA - Baby Cam
+    port: 21064
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.baby_room_cam_high
+    entity_config:
+      camera.baby_room_cam_high:
+        name: Babykamer Camera
+
+  - name: HA - Driveway Cam
+    port: 21065
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.driveway_doorbell_high
+    entity_config:
+      camera.driveway_doorbell_high:
+        name: Oprit Camera

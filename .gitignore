@@ -50,3 +50,5 @@ __pypackages__
 keys
 nixos.qcow2
 result
+
+/haos/secrets.yaml
