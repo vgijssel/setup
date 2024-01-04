@@ -1,0 +1,47 @@
+external_components:
+  - source:
+      type: local
+      path: ../../esphome_nimble/components
+
+esphome:
+  includes:
+    - http_client.h
+  libraries:
+    - bblanchon/ArduinoJson
+
+nimble_tracker:
+  scan_parameters:
+    window: 100ms
+    interval: 100ms
+    active: false
+
+globals:
+  - id: room_name
+    type: std::string
+    initial_value: '"${room_name}"'
+  - id: family_name
+    type: std::string
+    initial_value: '"home"'
+
+sensor:
+  - platform: nimble_rssi
+    id: apple_watch_1_rssi
+    irk: !secret apple_watch_1_irk
+    internal: true
+    # From https://github.com/dalehumby/ESPHome-Apple-Watch-detection/blob/main/lounge.yaml#L80
+    filters:
+      - exponential_moving_average:
+          alpha: 0.1
+          send_every: 1
+      # Limit the number of requests to 1 per second to not loose connectivity with home assistant i
+      # Resulting in reboots.
+      - throttle: 1s
+    on_value:
+      then:
+        # From https://github.com/espressif/esp-idf/blob/3df87a91a3c876d6ef654e68b66f4939080fa1fc/examples/protocols/esp_http_client/main/esp_http_client_example.c
+        - lambda: |-
+            do_request(
+              id(apple_watch_1_rssi).state,
+              id(room_name),
+              id(family_name)
+            );

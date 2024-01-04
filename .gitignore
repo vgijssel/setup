@@ -52,3 +52,4 @@ nixos.qcow2
 result
 
 /haos/secrets.yaml
+/haos/esphome/secrets.yaml

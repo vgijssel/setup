@@ -50,3 +50,4 @@ sync:
         - "!/scripts.yaml"
         - "!/secrets.yaml"
         - "!/custom_components"
+        - "!/esphome"
