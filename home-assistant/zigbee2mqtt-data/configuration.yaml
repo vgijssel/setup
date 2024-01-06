@@ -62,7 +62,5 @@ devices:
     friendly_name: baby_room_illuminance
   "0x54ef4410004e39af":
     friendly_name: office_motion
-  "0x54ef4410004e3ea7":
-    friendly_name: baby_room_motion
   "0x00158d00085428bc":
     friendly_name: office_door
