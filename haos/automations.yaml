@@ -36,7 +36,7 @@
         - binary_sensor.toilet_shelly_input_1
         - binary_sensor.toilet_shelly_input_2
         - binary_sensor.toilet_door_contact
-      presence_timeout: 240
+      presence_timeout: 120
 - id: "1655800128048"
   alias: "Toilet - Light: Manage"
   description: ""
