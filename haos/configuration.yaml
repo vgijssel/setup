@@ -20,6 +20,66 @@ nissan_leaf:
   update_interval_climate:
     minutes: 5
 
+illuminance:
+  - unique_id: 1
+    entity_id: weather.home_forecast
+    fallback: 5
+    mode: normal
+    name: illuminance
+    scan_interval:
+      minutes: 10
+
+variable:
+  supply_closet_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Supply Closet Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  laundry_room_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Laundry Room Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  hallway_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Hallway Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  toilet_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Toilet Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
+  driveway_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Driveway Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
 light:
   - platform: group
     name: living_room_lights

@@ -1,1 +1,25 @@
-[]
+- id: "1655749208565"
+  alias: "Supply Closet - Presence: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/presence.yaml
+    input:
+      presence_entity_id: sensor.supply_closet_presence
+      presence_indicator_entity_ids:
+        - binary_sensor.supply_closet_door_contact
+      presence_hint_entity_ids:
+        - binary_sensor.supply_closet_shelly_input
+      presence_timeout: 0
+- id: "1655800068148"
+  alias: "Supply Closet - Light: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/auto_lights.yaml
+    input:
+      presence_entity_id: sensor.supply_closet_presence
+      illuminance_entity_id: sensor.illuminance
+      illuminance_threshold: 200000
+      light_and_switch_entity_ids:
+        - switch.supply_closet_shelly
+      start_time: 00:00:00
+      end_time: "23:59:59"
