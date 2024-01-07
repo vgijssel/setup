@@ -50,3 +50,29 @@
         - light.toilet_lights
       start_time: 00:00:00
       end_time: "23:59:59"
+- id: "1655751783256"
+  alias: "Driveway - Presence: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/presence.yaml
+    input:
+      presence_entity_id: sensor.driveway_presence
+      presence_indicator_entity_ids:
+        - binary_sensor.oprit_cam_motion
+        - binary_sensor.hallway_door_contact
+      presence_hint_entity_ids:
+        - binary_sensor.driveway_shelly_input
+      presence_timeout: 120
+- id: "1655755184933"
+  alias: "Driveway - Light: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/auto_lights.yaml
+    input:
+      presence_entity_id: sensor.driveway_presence
+      light_and_switch_entity_ids:
+        - switch.driveway_shelly
+      start_time: 00:00:00
+      end_time: "23:59:59"
+      illuminance_entity_id: sensor.illuminance
+      illuminance_threshold: 1000
