@@ -23,3 +23,30 @@
         - switch.supply_closet_shelly
       start_time: 00:00:00
       end_time: "23:59:59"
+- id: "1655751397719"
+  alias: "Toilet - Presence: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/presence.yaml
+    input:
+      presence_entity_id: sensor.toilet_presence
+      presence_indicator_entity_ids:
+        - binary_sensor.toilet_motion_occupancy
+      presence_hint_entity_ids:
+        - binary_sensor.toilet_shelly_input_1
+        - binary_sensor.toilet_shelly_input_2
+        - binary_sensor.toilet_door_contact
+      presence_timeout: 240
+- id: "1655800128048"
+  alias: "Toilet - Light: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/auto_lights.yaml
+    input:
+      presence_entity_id: sensor.toilet_presence
+      illuminance_entity_id: sensor.illuminance
+      illuminance_threshold: 200000
+      light_and_switch_entity_ids:
+        - light.toilet_lights
+      start_time: 00:00:00
+      end_time: "23:59:59"

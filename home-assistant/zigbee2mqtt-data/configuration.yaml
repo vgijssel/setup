@@ -26,8 +26,6 @@ homeassistant: true
 devices:
   "0x54ef4410004d9481":
     friendly_name: office_human
-  "0x00158d0002386344":
-    friendly_name: toilet_door
   "0x00158d0002286aa4":
     friendly_name: living_room_door
   "0x0017880103298e01":
@@ -46,8 +44,6 @@ devices:
     friendly_name: bedroom_2_button
   "0x2c1165fffe6dc628":
     friendly_name: bedroom_1_button
-  "0x54ef441000490f71":
-    friendly_name: toilet_motion
   "0x00158d000854aea1":
     friendly_name: baby_room_door
   "0x54ef4410004919b1":
