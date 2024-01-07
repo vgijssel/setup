@@ -24,10 +24,6 @@ device_options:
   legacy: false
 homeassistant: true
 devices:
-  "0x54ef4410004d9481":
-    friendly_name: office_human
-  "0x00158d0002286aa4":
-    friendly_name: living_room_door
   "0x0017880103298e01":
     friendly_name: laundry_room_motion
   "0x54ef441000491b56":
@@ -46,11 +42,5 @@ devices:
     friendly_name: bedroom_1_button
   "0x00158d000854aea1":
     friendly_name: baby_room_door
-  "0x54ef4410001ff9a4":
-    friendly_name: office_illuminance
-  "0x54ef4410001ff3da":
-    friendly_name: baby_room_illuminance
-  "0x54ef4410004e39af":
-    friendly_name: office_motion
   "0x00158d00085428bc":
     friendly_name: office_door
