@@ -110,21 +110,22 @@
   alias: "Laundry Room - Presence: Manage"
   description: ""
   use_blueprint:
-    path: diy/presence.yaml
+    path: setup/presence.yaml
     input:
       presence_entity_id: sensor.laundry_room_presence
       presence_indicator_entity_ids:
         - binary_sensor.laundry_room_motion_occupancy
       presence_hint_entity_ids:
         - binary_sensor.laundry_room_shelly_input
+      presence_timeout: 180
 - id: "1655799885346"
   alias: "Laundry Room - Light: Manage"
   description: ""
   use_blueprint:
-    path: diy/auto_lights.yaml
+    path: setup/auto_lights.yaml
     input:
       presence_entity_id: sensor.laundry_room_presence
-      illuminance_entity_id: sensor.laundry_room_motion_illuminance_lux
+      illuminance_entity_id: sensor.laundry_room_motion_illuminance
       illuminance_threshold: 100
       light_and_switch_entity_ids:
         - switch.laundry_room_shelly
