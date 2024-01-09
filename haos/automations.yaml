@@ -87,9 +87,8 @@
         - binary_sensor.hallway_shelly_input
         - binary_sensor.toilet_door_contact
         - binary_sensor.living_room_door_contact
-      presence_timeout: 120
+      presence_timeout: 300
       presence_indicator_entity_ids:
-        - binary_sensor.hallway_epo_occupancy
         - binary_sensor.hallway_door_contact
         - binary_sensor.landing_motion_occupancy
         - binary_sensor.living_room_motion_occupancy

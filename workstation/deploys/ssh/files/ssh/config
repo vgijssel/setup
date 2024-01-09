@@ -1,3 +1,5 @@
+Include ~/.orbstack/ssh/config
+
 IgnoreUnknown UseKeychain
 Include ~/.ssh/user_config
 
