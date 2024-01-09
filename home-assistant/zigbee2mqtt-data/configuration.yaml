@@ -24,8 +24,6 @@ device_options:
   legacy: false
 homeassistant: true
 devices:
-  "0x0017880103298e01":
-    friendly_name: laundry_room_motion
   "0x54ef441000491b56":
     friendly_name: bathroom_motion
   "0x00158d000854274f":
