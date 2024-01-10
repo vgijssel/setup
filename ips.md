@@ -14,6 +14,9 @@
 192.168.1.20 - Unifi babykamer-cam _
 192.168.1.21 - Unifi oprit-cam _
 
+192.168.1.25 - Apple Tv Woonkamer
+192.168.1.26 - Apple Tv Slaapkamer
+
 192.168.1.30 - hypervisor
 192.168.1.31 - provisioner
 192.168.1.32 - haos
