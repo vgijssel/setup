@@ -226,6 +226,7 @@ adaptive_lighting:
   - name: hallway
     lights:
       - light.hallway_lights
+    min_brightness: 40
   - name: landing
     lights:
       - light.landing_lights
