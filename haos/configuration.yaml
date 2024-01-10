@@ -80,6 +80,16 @@ variable:
       lights_triggered_by_automation: "off"
       trigger_context_id: ""
 
+  garden_presence:
+    value: "off"
+    restore: true
+    attributes:
+      friendly_name: "Garden Presence"
+      icon: mdi:home-outline
+      lights_manual_override: "off"
+      lights_triggered_by_automation: "off"
+      trigger_context_id: ""
+
 light:
   - platform: group
     name: living_room_lights

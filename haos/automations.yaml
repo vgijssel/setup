@@ -131,3 +131,26 @@
         - switch.laundry_room_shelly
       start_time: 07:00:00
       end_time: "21:00:00"
+- id: "1704911987528"
+  alias: "Garden - Presence: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/presence.yaml
+    input:
+      presence_entity_id: sensor.garden_presence
+      presence_indicator_entity_ids:
+        - binary_sensor.garden_door_door
+      presence_timeout: 900
+- id: "1704912076940"
+  alias: "Garden - Light: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/auto_lights.yaml
+    input:
+      presence_entity_id: sensor.garden_presence
+      illuminance_entity_id: sensor.illuminance
+      illuminance_threshold: 200
+      light_and_switch_entity_ids:
+        - switch.garden_shelly
+      start_time: 00:00:00
+      end_time: "23:59:59"
