@@ -154,3 +154,47 @@
         - switch.garden_shelly
       start_time: 00:00:00
       end_time: "23:59:59"
+- id: "1704914261631"
+  alias: "Living Room - Presence: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/presence.yaml
+    input:
+      presence_entity_id: sensor.living_room_presence
+      presence_indicator_entity_ids:
+        - binary_sensor.living_room_human_presence
+        - binary_sensor.garden_door_door
+        - binary_sensor.garden_motion_occupancy
+        - binary_sensor.living_room_motion_occupancy
+      presence_hint_entity_ids:
+        - binary_sensor.kitchen_shelly_input
+        - binary_sensor.living_room_shelly_input
+        - binary_sensor.supply_closet_door_contact
+        - binary_sensor.living_room_door_contact
+      presence_timeout: 300
+- id: "1704914531704"
+  alias: "Living Room - Lights: Manage"
+  description: ""
+  use_blueprint:
+    path: setup/auto_lights.yaml
+    input:
+      presence_entity_id: sensor.living_room_presence
+      illuminance_entity_id: sensor.living_room_human_light_sensor_light_level
+      illuminance_threshold: 200
+      light_and_switch_entity_ids:
+        - light.living_room_monkey_light
+        - light.living_room_dining_table_light
+        - light.living_room_mouse_light
+        - light.living_room_corner_light
+        - light.kitchen_lights
+        - light.living_room_tv_light
+      start_time: 00:00:00
+      end_time: "23:59:59"
+      weekday:
+        - tue
+        - wed
+        - thu
+        - fri
+        - sat
+        - sun
+        - mon
