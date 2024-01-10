@@ -277,3 +277,60 @@ adaptive_lighting:
     take_over_control: true
     detect_non_ha_changes: true
     min_brightness: 35
+
+cloud:
+  google_actions:
+    filter:
+      include_entities:
+        - light.living_room_corner_light
+        - light.living_room_dining_table_light
+        - light.living_room_monkey_light
+        - light.living_room_mouse_light
+        - light.living_room_tv_light
+        - climate.living_room_heat
+        - switch.office_shelly
+        - light.kitchen_lights
+    entity_config:
+      light.living_room_corner_light:
+        name: Hoek
+        aliases:
+          - Corner
+        room: Woonkamer
+      light.living_room_dining_table_light:
+        name: Eetkamertafel
+        aliases:
+          - Dining Table
+        room: Woonkamer
+      light.living_room_monkey_light:
+        name: Aap
+        aliases:
+          - Monkey
+        room: Woonkamer
+      light.living_room_mouse_light:
+        name: Muis
+        aliases:
+          - Mouse
+        room: Woonkamer
+      light.living_room_tv_light:
+        name: Tv Lamp
+        aliases:
+          - Tv Light
+        room: Woonkamer
+
+      climate.living_room_heat:
+        name: Thermostaat
+        aliases:
+          - Thermostat
+        room: Woonkamer
+
+      switch.office_shelly:
+        name: Lamp
+        aliases:
+          - Light
+        room: Kantoor
+
+      light.kitchen_lights:
+        name: Keuken
+        aliases:
+          - Kitchen
+        room: Keuken
