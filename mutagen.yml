@@ -8,34 +8,6 @@ sync:
         - tmp
         - .DS_Store
 
-  home-assistant:
-    alpha: "./home-assistant"
-    beta: "maarten@192.168.1.30:/data/home-assistant"
-    mode: "two-way-safe"
-    ignore:
-      paths:
-        - /zigbee2mqtt-data/*
-        - "!/zigbee2mqtt-data/configuration.yaml"
-        - "!/zigbee2mqtt-data/secret.yaml"
-
-        - /config/*
-        - "!/config/configuration.yaml"
-        - "!/config/automations.yaml"
-        - "!/config/blueprints"
-        - "!/config/scenes.yaml"
-        - "!/config/scripts.yaml"
-        - "!/config/secrets.yaml"
-        - "!/config/custom_components"
-
-        - esphome-data/.esphome
-
-        - "/find3-data/*"
-
-  esphome-nimble:
-    alpha: "./esphome_nimble"
-    beta: "maarten@192.168.1.30:/data/esphome_nimble"
-    mode: "two-way-safe"
-
   haos:
     alpha: "./haos"
     beta: "root@192.168.1.32:/homeassistant"
