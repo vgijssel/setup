@@ -90,7 +90,7 @@
       presence_timeout: 300
       presence_indicator_entity_ids:
         - binary_sensor.hallway_door_contact
-        - binary_sensor.landing_motion_occupancy
+        - binary_sensor.landing_motion_motion
         - binary_sensor.living_room_motion_occupancy
         - binary_sensor.toilet_motion_occupancy
 - id: "1655798724103"
