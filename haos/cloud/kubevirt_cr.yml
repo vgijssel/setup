@@ -11,6 +11,10 @@ spec:
           selectors:
             - vendor: "10c4"
               product: "ea60"
+        - resourceName: kubevirt.io/internet
+          selectors:
+            - vendor: "05ac"
+              product: "1402"
     developerConfiguration:
       featureGates:
         # For using DataVolumes inside VirtualMachine definitions

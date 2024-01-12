@@ -1,7 +1,7 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: testvm
+  name: haos
   labels:
     kubevirt.io/vm: haos
 spec:
@@ -26,12 +26,14 @@ spec:
             - name: haosdisk
               disk:
                 bus: virtio
-          interfaces:
-            - name: bridge
-              bridge: {}
+          # interfaces:
+          #   - name: bridge
+          #     bridge: {}
           hostDevices:
             - deviceName: kubevirt.io/skyconnect
               name: skyconnect
+            - deviceName: kubevirt.io/internet
+              name: internet
         resources:
           requests:
             memory: 4096M
@@ -43,10 +45,10 @@ spec:
           bootloader:
             efi:
               secureBoot: false
-      networks:
-        - name: bridge
-          multus:
-            networkName: bridge-test
+      # networks:
+      #   - name: bridge
+      #     multus:
+      #       networkName: bridge-test
       volumes:
         - name: haosdisk
           persistentVolumeClaim:
