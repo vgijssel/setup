@@ -26,7 +26,9 @@ spec:
             - name: haosdisk
               disk:
                 bus: virtio
-          # interfaces:
+          # Networking is provided by external USB dongle
+          autoattachPodInterface: false
+          interfaces: []
           #   - name: bridge
           #     bridge: {}
           hostDevices:
