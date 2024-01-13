@@ -6,6 +6,14 @@ esp8266:
 
 captive_portal:
 
+api:
+  # Turning off the reboot timeout, because a reboot might make the
+  # attached smart ligts inaccessible.
+  reboot_timeout: 0s
+
+wifi:
+  reboot_timeout: 0s
+
 output:
   - platform: gpio
     id: "relay_output"

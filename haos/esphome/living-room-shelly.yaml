@@ -9,7 +9,7 @@ packages:
   device_base: !include .shelly-1pm-plus.yaml
   # bluetooth_object_tracking: !include .bluetooth_object_tracking.yaml
   base: !include .base.yaml
-  smart_light_restore: !include .smart_light_restore.yaml
+  # smart_light_restore: !include .smart_light_restore.yaml
 
 binary_sensor:
   - <<: !include .smart_light_binary_sensor.yaml

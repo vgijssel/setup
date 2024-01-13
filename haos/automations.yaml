@@ -93,6 +93,7 @@
         - binary_sensor.landing_motion_motion
         - binary_sensor.living_room_motion_occupancy
         - binary_sensor.toilet_motion_occupancy
+        - binary_sensor.hallway_epo_occupancy
 - id: "1655798724103"
   alias: "Hallway - Light: Manage"
   description: ""
