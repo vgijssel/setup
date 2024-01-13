@@ -9,6 +9,11 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+input_boolean:
+  bathroom_all_lights:
+    name: Indicate if all lights in the Bathroom are on
+    icon: mdi:light
+
 nissan_leaf:
   username: !secret nissan_leaf_username
   password: !secret nissan_leaf_password
