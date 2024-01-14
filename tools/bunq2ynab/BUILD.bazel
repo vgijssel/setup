@@ -55,6 +55,21 @@ task(
     },
 )
 
+task(
+    name = "list_user-prod",
+    cmds = [
+        "CONFIG_FILE=$(pwd)/config.json",
+        "$OP inject --in-file=$CONFIG_FILE_TPL --out-file=$CONFIG_FILE --force",
+        {"defer": "rm -rf $CONFIG_FILE"},
+        "$BINARY --config $CONFIG_FILE",
+    ],
+    env = {
+        "BINARY": cmd.executable("list_user_binary"),
+        "OP": cmd.executable("//tools/onepassword:op"),
+        "CONFIG_FILE_TPL": cmd.file("config-prod.json.tpl"),
+    },
+)
+
 task_test(
     name = "list_user_test",
     cmds = [

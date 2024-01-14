@@ -1,0 +1,23 @@
+apiVersion: kubevirt.io/v1
+kind: KubeVirt
+metadata:
+  name: kubevirt
+  namespace: kubevirt
+spec:
+  configuration:
+    permittedHostDevices:
+      usb:
+        - resourceName: kubevirt.io/skyconnect
+          selectors:
+            - vendor: "10c4"
+              product: "ea60"
+        - resourceName: kubevirt.io/internet
+          selectors:
+            - vendor: "05ac"
+              product: "1402"
+    developerConfiguration:
+      featureGates:
+        # For using DataVolumes inside VirtualMachine definitions
+        - DataVolumes
+        # For USB passthrough from host to guest
+        - HostDevices

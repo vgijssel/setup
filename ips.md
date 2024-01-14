@@ -14,8 +14,12 @@
 192.168.1.20 - Unifi babykamer-cam _
 192.168.1.21 - Unifi oprit-cam _
 
+192.168.1.25 - Apple Tv Woonkamer
+192.168.1.26 - Apple Tv Slaapkamer
+
 192.168.1.30 - hypervisor
 192.168.1.31 - provisioner
+192.168.1.32 - haos
 192.168.1.40 - 192.168.1.49 - opennebula \_ + port forward
 
 192.168.1.60 - baby-room-shelly
@@ -45,6 +49,8 @@
 192.168.1.83 - bathroom-human-moko
 
 192.168.1.84 - test-shelly
+
+192.168.1.85 - slimmelezer
 
 192.168.1.90 - hallway-epo
 

@@ -10,7 +10,9 @@
     "libarchive@latest",
     "python310Packages.pip@23.2.1",
     "pdm@2.9.3",
-    "nixos-rebuild@latest"
+    "nixos-rebuild@latest",
+    "kubectl@latest",
+    "kubevirt@latest"
   ],
   "shell": {
     "init_hook": ["alias bazel='bazelisk'", "export PATH=$HOME/bin:$PATH"]

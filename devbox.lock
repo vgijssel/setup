@@ -19,6 +19,46 @@
       "source": "devbox-search",
       "version": "5.1.0"
     },
+    "kubectl@latest": {
+      "last_modified": "2023-12-13T22:54:10Z",
+      "resolved": "github:NixOS/nixpkgs/fd04bea4cbf76f86f244b9e2549fca066db8ddff#kubectl",
+      "source": "devbox-search",
+      "version": "1.28.4",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/n082kkafm88sckhn6dib17mr0izmgvgv-kubectl-1.28.4"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/ga2yx93m6hmdds1j42whq323jmdbr4ph-kubectl-1.28.4"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/340l2mgfk0bw31ssdxagny5rbimqxk9z-kubectl-1.28.4"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/wmz6qf68wysh6k8iqpqsbjpmwrxvwjcr-kubectl-1.28.4"
+        }
+      }
+    },
+    "kubevirt@latest": {
+      "last_modified": "2023-12-13T22:54:10Z",
+      "resolved": "github:NixOS/nixpkgs/fd04bea4cbf76f86f244b9e2549fca066db8ddff#kubevirt",
+      "source": "devbox-search",
+      "version": "1.1.0",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/29cbf3y183yf9yv9ki713lvpbra49rzx-kubevirt-1.1.0"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/5rv2yi82i8r3wmbjxvd290qp8986whz1-kubevirt-1.1.0"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/yk0v0c6jz3p2i7425vwfa80z7izp1z39-kubevirt-1.1.0"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/rnp4p2sfn7inpmnhccwy053j58wg2iz8-kubevirt-1.1.0"
+        }
+      }
+    },
     "lefthook@1.4.8": {
       "last_modified": "2023-09-17T10:54:49Z",
       "resolved": "github:NixOS/nixpkgs/5148520bfab61f99fd25fb9ff7bfbb50dad3c9db#lefthook",

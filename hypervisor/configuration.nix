@@ -22,9 +22,21 @@
 
   boot.zfs.extraPools = [ "new_data" ];
 
+  # Enable nested virtualization
+  boot.extraModprobeConfig = "options kvm_intel nested=1";
 
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs.forceImportRoot = false;
+
+  # For the matter server https://github.com/home-assistant-libs/python-matter-server
+  boot.kernel.sysctl = {
+    "net.ipv6.conf.all.forwarding" = 0;
+    "net.ipv6.conf.br0.accept_ra" = 1;
+    "net.ipv6.conf.br0.accept_ra_rt_info_max_plen" = 64;
+    "net.ipv6.conf.eno1.accept_ra" = 1;
+    "net.ipv6.conf.eno1.accept_ra_rt_info_max_plen" = 64;
+  };
+
   networking.hostId = "8090765d";
   networking.hostName = "hypervisor"; # Define your hostname.
   networking.useDHCP = false;
@@ -133,6 +145,8 @@
     bridge-utils
     docker-compose
     mutagen
+    qemu_full
+    usbutils
   ];
 
   virtualisation.docker.enable = true;
