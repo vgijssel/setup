@@ -38,7 +38,7 @@ A single entity or a list of entities can be added at one time using the _add_fi
 
 Notes:
 
-- The entity_type (_input_boolean, light, etc._ ) needs to be used if it is a non-sensor entity.
+- The entity*type (\_input_boolean, light, etc.* ) needs to be used if it is a non-sensor entity.
 - The first custom component to use the _add_filter_ function call will inject the _recorder_prefilter_ into the HA Recorder component. All subsequent _add_filter_ calls will update the filter list.
 
 #### Removing Entities
