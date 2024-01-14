@@ -1,5 +1,14 @@
 # provisioner
 
+## 1.0.8
+
+### Patch Changes
+
+- [#637](https://github.com/vgijssel/setup/pull/637) [`566ae15`](https://github.com/vgijssel/setup/commit/566ae157f823745149b9133fd7b03cba15d71f2e) Thanks [@mvgijssel](https://github.com/mvgijssel)! - chore(deps): Update bunq2ynab
+
+- Updated dependencies [[`566ae15`](https://github.com/vgijssel/setup/commit/566ae157f823745149b9133fd7b03cba15d71f2e)]:
+  - bunq2ynab@0.3.0
+
 ## 1.0.7
 
 ### Patch Changes

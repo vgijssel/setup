@@ -1,5 +1,11 @@
 # bunq2ynab_release
 
+## 0.3.0
+
+### Minor Changes
+
+- [#637](https://github.com/vgijssel/setup/pull/637) [`566ae15`](https://github.com/vgijssel/setup/commit/566ae157f823745149b9133fd7b03cba15d71f2e) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Add task to validate correct api token
+
 ## 0.2.2
 
 ### Patch Changes
