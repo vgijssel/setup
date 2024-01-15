@@ -104,6 +104,7 @@
   systemd.services.teleport = {
     description = "Teleport Client";
     wantedBy = [ "default.target" ];
+    # Make these packages available to the service in PATH
     path = [
       pkgs.hostname
       pkgs.teleport
