@@ -60,15 +60,6 @@
 
   networking.firewall.allowedTCPPorts = [
     6443 # k3s: required so that pods can reach the API server (running on port 6443 by default)
-    8123 # for homeassistant running in host networking mode
-    21063 # for homekit bridge
-    21064 # for baby cam
-    21065 # for driveway cam
-    6052 # for esphome
-  ];
-
-  networking.firewall.allowedUDPPorts = [
-    5353 # for homekit bridge
   ];
 
   services.k3s.enable = true;
@@ -147,6 +138,7 @@
     mutagen
     qemu_full
     usbutils
+    teleport
   ];
 
   virtualisation.docker.enable = true;

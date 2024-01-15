@@ -118,7 +118,7 @@
         - binary_sensor.laundry_room_motion_occupancy
       presence_hint_entity_ids:
         - binary_sensor.laundry_room_shelly_input
-      presence_timeout: 180
+      presence_timeout: 1800
 - id: "1655799885346"
   alias: "Laundry Room - Light: Manage"
   description: ""
