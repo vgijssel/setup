@@ -101,6 +101,19 @@
   # Enable the X11 windowing system.
   # services.xserver.enable = true;
 
+  systemd.services.teleport = {
+    description = "Teleport Client";
+    wantedBy = [ "default.target" ];
+    path = [
+      pkgs.hostname
+      pkgs.teleport
+      pkgs.getent
+    ];
+    serviceConfig = {
+      ExecStart = "${pkgs.teleport}/bin/teleport start --config /etc/teleport.yaml";
+    };
+  };
+
 
 
 
