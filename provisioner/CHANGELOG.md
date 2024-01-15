@@ -1,5 +1,11 @@
 # provisioner
 
+## 1.0.9
+
+### Patch Changes
+
+- [#643](https://github.com/vgijssel/setup/pull/643) [`553343c`](https://github.com/vgijssel/setup/commit/553343c4b9e0caf8391dfc4adb09b9138a8944eb) Thanks [@mvgijssel](https://github.com/mvgijssel)! - chore(deps): Update Teleport to v14.3.0
+
 ## 1.0.8
 
 ### Patch Changes
