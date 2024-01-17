@@ -4,10 +4,6 @@ node 09: toilet_motion
 node 10: hallway_door
 node 11: living_room_door
 node 12: living_room_motion
-node 13: hallway_1_light
-node 14: hallway_2_light
-node 16: hallway_4_light
-node 21: hallway_3_light
 node 22: laundry_room_motion
 node 23: garden_motion
 node 27: garden_door
