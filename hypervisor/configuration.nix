@@ -53,11 +53,6 @@
     prefixLength = 24;
   }];
 
-  networking.interfaces.br0.ipv6.addresses = [{
-    address = "2a02:a03f:4a0b:8c00:1::30";
-    prefixLength = 64;
-  }];
-
   networking.defaultGateway = "192.168.1.1";
   networking.nameservers = [ "192.168.1.1" ];
 
