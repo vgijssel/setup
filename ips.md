@@ -6,6 +6,13 @@
 192.168.1.4 - Unifi woonkamer-switch
 192.168.1.5 - Unifi kantoor-switch
 
+192.168.1.220 - TP-Link office-switch
+192.168.1.252 - TP-Link living-room-switch
+192.168.1.239 - TP-Link hallway-switch
+
+192.168.1.1 - TP-Link hallway-router
+192.168.1.100 - 192.168.1.254 DHCP Range Unifi
+
 192.168.1.10 - Unifi gangkast-ap
 192.168.1.11 - Unifi woonkamer-ap
 192.168.1.12 - Unifi babykamer-ap
@@ -53,8 +60,6 @@
 192.168.1.85 - slimmelezer
 
 192.168.1.90 - hallway-epo
-
-192.168.1.100 - 192.168.1.254 DHCP Range Unifi
 
 subnet mask: 255.255.255.0
 gateway: 192.168.1.1
