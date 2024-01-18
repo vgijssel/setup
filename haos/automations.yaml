@@ -167,12 +167,13 @@
         - binary_sensor.garden_door_door
         - binary_sensor.garden_motion_occupancy
         - binary_sensor.living_room_motion_occupancy
+        - binary_sensor.living_room_tv_occupancy
       presence_hint_entity_ids:
         - binary_sensor.kitchen_shelly_input
         - binary_sensor.living_room_shelly_input
         - binary_sensor.supply_closet_door_contact
         - binary_sensor.living_room_door_contact
-      presence_timeout: 1800
+      presence_timeout: 300
 - id: "1704914531704"
   alias: "Living Room - Lights: Manage"
   description: ""
