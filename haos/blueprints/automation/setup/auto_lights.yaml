@@ -100,9 +100,9 @@ trigger:
     to:
 
   # This will make sure this automation is at least re-evaluated every minute
-  - platform: time_pattern
-    minutes: /1
-    id: trigger_time
+  # - platform: time_pattern
+  #   minutes: /1
+  #   id: trigger_time
 
 variables:
   light_and_switch_entity_ids: !input light_and_switch_entity_ids
