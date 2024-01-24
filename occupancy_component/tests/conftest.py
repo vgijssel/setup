@@ -13,12 +13,28 @@ class DoorContactSensor(DemoBinarySensor):
 
     async def open(self):
         self._state = True
-        await self.async_update_ha_state()
+        self.async_write_ha_state()
         await self.hass.async_block_till_done()
 
     async def close(self):
         self._state = False
-        await self.async_update_ha_state()
+        self.async_write_ha_state()
+        await self.hass.async_block_till_done()
+
+
+class MotionSensor(DemoBinarySensor):
+    def __init__(self, hass, *args, **kwargs):
+        super(MotionSensor, self).__init__(*args, **kwargs)
+        self.hass = hass
+
+    async def motion(self):
+        self._state = True
+        self.async_write_ha_state()
+        await self.hass.async_block_till_done()
+
+    async def away(self):
+        self._state = False
+        self.async_write_ha_state()
         await self.hass.async_block_till_done()
 
 
@@ -57,5 +73,13 @@ async def door_contact_sensor(hass) -> DoorContactSensor:
         hass, None, "Front Door Contact", state=False, device_class="door"
     )
     sensor.entity_id = "binary_sensor.front_door_contact"
-    await sensor.close()
+    return sensor
+
+
+@pytest.fixture()
+async def door_motion_sensor(hass) -> DoorContactSensor:
+    sensor = MotionSensor(
+        hass, None, "Front Door Motion", state=False, device_class="presence"
+    )
+    sensor.entity_id = "binary_sensor.front_door_motion"
     return sensor

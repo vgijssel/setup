@@ -3,6 +3,10 @@
 from homeassistant.setup import async_setup_component
 from homeassistant.const import STATE_ON, STATE_OFF
 from custom_components.occupancy.const import DOMAIN
+import homeassistant.util.dt as dt_util
+from datetime import timedelta
+from pytest_homeassistant_custom_component.common import async_fire_time_changed
+import time
 
 
 async def test_async_setup(hass):
@@ -28,9 +32,31 @@ async def test_async_setup(hass):
     assert await async_setup_component(hass, DOMAIN, config) is True
 
 
-async def test_door_contact_sensor(hass, init_integration, door_contact_sensor):
+async def test_door_open(hass, init_integration, door_contact_sensor):
+    assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
+    await door_contact_sensor.open()
+    assert hass.states.get("binary_sensor.front_door").state == STATE_ON
+
+    next_update = dt_util.utcnow() + timedelta(seconds=10)
+    async_fire_time_changed(hass, next_update)
+    await hass.async_block_till_done()
+
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
 
-    await door_contact_sensor.open()
 
-    assert hass.states.get("binary_sensor.front_door").state == STATE_ON
+# when door opens then there is presence for X seconds
+# we track door open/close separately for the icon
+
+
+# when door is closed and there is motion, then no presence emitted
+# when door is open and there is motion, then presence emitted
+# when door is closed and there is no motion, then no presence emitted
+# when there is motion and the door opens, then presence emitted
+# async def test_door_closed_motion(
+#     hass, init_integration, door_motion_sensor, door_contact_sensor
+# ):
+#     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
+
+#     await door_motion_sensor.motion()
+
+#     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
