@@ -157,6 +157,7 @@
     teleport
     # for ping6
     inetutils
+    pciutils
   ];
 
   virtualisation.docker.enable = true;
