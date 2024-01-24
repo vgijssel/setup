@@ -14,6 +14,15 @@ input_boolean:
     name: Indicate if all lights in the Bathroom are on
     icon: mdi:light
 
+template:
+  - binary_sensor:
+      - name: living_room_tv_occupancy
+        state: "{{ not is_state('media_player.living_room_tv', 'standby') }}"
+        device_class: presence
+      - name: bedroom_tv_occupancy
+        state: "{{ not is_state('media_player.bedroom_tv', 'standby') }}"
+        device_class: presence
+
 nissan_leaf:
   username: !secret nissan_leaf_username
   password: !secret nissan_leaf_password

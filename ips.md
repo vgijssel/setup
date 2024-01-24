@@ -1,14 +1,22 @@
 192.168.178.1 - modem
 
 192.168.1.1 - Unifi USG
-192.168.1.2 - Unifi Cloud Key
 192.168.1.3 - Unifi gangkast-switch
 192.168.1.4 - Unifi woonkamer-switch
 192.168.1.5 - Unifi kantoor-switch
 
-192.168.1.10 - Unifi gangkast-ap
-192.168.1.11 - Unifi woonkamer-ap
-192.168.1.12 - Unifi babykamer-ap
+192.168.1.1 - TP-Link hallway-router
+192.168.1.2 - Unifi Cloud Key
+192.168.1.3 - TP-Link hallway-switch
+192.168.1.4 - TP-Link office-switch
+192.168.1.5 - TP-Link living-room-switch
+192.168.1.6 - TP-Link hallway-controller
+192.168.1.10 - TP-Link hallway-ap
+192.168.1.11 - TP-Link living-room-ap
+192.168.1.12 - TP-Link baby-room-ap
+
+192.168.1.100 - 192.168.1.254 DHCP Range
+
 192.168.1.13 - Unifi tuin-ap
 
 192.168.1.20 - Unifi babykamer-cam _
@@ -53,8 +61,6 @@
 192.168.1.85 - slimmelezer
 
 192.168.1.90 - hallway-epo
-
-192.168.1.100 - 192.168.1.254 DHCP Range Unifi
 
 subnet mask: 255.255.255.0
 gateway: 192.168.1.1

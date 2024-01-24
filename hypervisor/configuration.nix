@@ -40,6 +40,7 @@
   networking.hostId = "8090765d";
   networking.hostName = "hypervisor"; # Define your hostname.
   networking.useDHCP = false;
+  networking.enableIPv6 = true;
 
   networking.bridges = {
     "br0" = {
@@ -51,6 +52,7 @@
     address = "192.168.1.30";
     prefixLength = 24;
   }];
+
   networking.defaultGateway = "192.168.1.1";
   networking.nameservers = [ "192.168.1.1" ];
 
@@ -153,6 +155,9 @@
     qemu_full
     usbutils
     teleport
+    # for ping6
+    inetutils
+    pciutils
   ];
 
   virtualisation.docker.enable = true;
