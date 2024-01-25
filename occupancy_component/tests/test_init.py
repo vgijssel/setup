@@ -32,18 +32,34 @@ async def test_async_setup(hass):
     assert await async_setup_component(hass, DOMAIN, config) is True
 
 
-async def test_door_open(hass, init_integration, door_contact_sensor):
+async def test_door_opens(hass, init_integration, door_contact_sensor):
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
+    assert (
+        hass.states.get("binary_sensor.front_door").attributes["door_state"] == "closed"
+    )
+
     await door_contact_sensor.open()
     assert hass.states.get("binary_sensor.front_door").state == STATE_ON
+    assert (
+        hass.states.get("binary_sensor.front_door").attributes["door_state"] == "open"
+    )
 
     next_update = dt_util.utcnow() + timedelta(seconds=10)
     async_fire_time_changed(hass, next_update)
     await hass.async_block_till_done()
 
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
+    assert (
+        hass.states.get("binary_sensor.front_door").attributes["door_state"] == "open"
+    )
 
 
+async def test_door_closes(hass, init_integration, door_contact_sensor):
+    pass
+
+
+# when door is unknown and transitions to open
+# when door is unknown and transitions to closed
 # when door opens then there is presence for X seconds
 # we track door open/close separately for the icon
 

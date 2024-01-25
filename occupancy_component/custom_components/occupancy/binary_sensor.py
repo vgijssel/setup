@@ -178,55 +178,39 @@ class Door(BinarySensorEntity, RestoreEntity):
     async def _contact_sensor_event(self, event: EventType):
         _LOGGER.debug("Called '_contact_sensor_event' with data %s", event.data)
 
-        # from_state = event.data['old_state'].state
-        # to_state = event.data["new_state"].state
+        if event.data["old_state"] == None:
+            from_state = None
+        else:
+            from_state = event.data["old_state"].state
 
-        # self._remove_contact_sensor_listener()
+        to_state = event.data["new_state"].state
 
-        # if any state change happens on the contact sensor then we set the attribute to on
+        if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
+            self._door_is_open = True
+            self._attr_is_on = True
+            self._listener_reset_contact_presence = async_call_later(
+                self._hass, 5, self._reset_contact_presence
+            )
+            self.async_write_ha_state()
 
-        self._attr_is_on = True
+        elif (from_state == STATE_ON or from_state == None) and to_state == STATE_OFF:
+            self._door_is_open = False
+            self._attr_is_on = True
+            self._listener_reset_contact_presence = async_call_later(
+                self._hass, 5, self._reset_contact_presence
+            )
+            self.async_write_ha_state()
 
-        # schedule a listener to turn to back to false after 5 seconds
-
-        self._listener_reset_contact_presence = async_call_later(
-            self._hass, 5, self._reset_contact_presence
-        )
-
-        self.async_write_ha_state()
-
-        # # Door opened
-        # if to_state == STATE_ON:
-        #     self._door_is_open = True
-        #     await self._calculate_presence()
-
-        # elif to_state == STATE_OFF:
-        #     self._door_is_open = False
-        #     await self._calculate_presence()
-        # else:
-        #     pass
+        else:
+            pass
 
     async def _reset_contact_presence(self, now: datetime) -> None:
         self._attr_is_on = False
         self._listener_reset_contact_presence = None
         self.async_write_ha_state()
 
-    # async def _calculate_presence(self):
-    #     if self._door_is_open:
-    #         self._attr_is_on = True
-    #     else:
-    #         self._attr_is_on = False
-
-    #     async_call_later(self._hass, 5, )
-
-    #     # TODO: what exactly is the difference between these two methods?
-    #     # self.async_schedule_update_ha_state()
-    #     await self.async_write_ha_state()
-
-    # async def extra_state_attributes(self):
-    #     return {"kerk": "shine", "color": "red"}
     @property
     def extra_state_attributes(self):
-        """Return the device specific state attributes."""
-        return {"kerk": "shine", "color": "red"}
-        # return {ATTR_FAN: self._pdp.fan_state}
+        door_state = "open" if self._door_is_open else "closed"
+
+        return {"door_state": door_state}
