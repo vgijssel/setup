@@ -55,7 +55,31 @@ async def test_door_opens(hass, init_integration, door_contact_sensor):
 
 
 async def test_door_closes(hass, init_integration, door_contact_sensor):
-    pass
+    await door_contact_sensor.open()
+    next_update = dt_util.utcnow() + timedelta(seconds=10)
+    async_fire_time_changed(hass, next_update)
+    await hass.async_block_till_done()
+
+    assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
+    assert (
+        hass.states.get("binary_sensor.front_door").attributes["door_state"] == "open"
+    )
+
+    await door_contact_sensor.close()
+
+    assert hass.states.get("binary_sensor.front_door").state == STATE_ON
+    assert (
+        hass.states.get("binary_sensor.front_door").attributes["door_state"] == "closed"
+    )
+
+    next_update = dt_util.utcnow() + timedelta(seconds=10)
+    async_fire_time_changed(hass, next_update)
+    await hass.async_block_till_done()
+
+    assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
+    assert (
+        hass.states.get("binary_sensor.front_door").attributes["door_state"] == "closed"
+    )
 
 
 # when door is unknown and transitions to open
