@@ -21,6 +21,11 @@ class DoorContactSensor(DemoBinarySensor):
         self.async_write_ha_state()
         await self.hass.async_block_till_done()
 
+    async def unknown(self):
+        self._state = None
+        self.async_write_ha_state()
+        await self.hass.async_block_till_done()
+
 
 class MotionSensor(DemoBinarySensor):
     def __init__(self, hass, *args, **kwargs):
@@ -34,6 +39,11 @@ class MotionSensor(DemoBinarySensor):
 
     async def away(self):
         self._state = False
+        self.async_write_ha_state()
+        await self.hass.async_block_till_done()
+
+    async def unknown(self):
+        self._state = None
         self.async_write_ha_state()
         await self.hass.async_block_till_done()
 

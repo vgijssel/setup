@@ -20,6 +20,7 @@ py_pytest_test(
     size = "small",
     srcs = [
         "tests/conftest.py",
+        "tests/helpers.py",
         "tests/test_init.py",
     ],
     args = ["--asyncio-mode=auto"],
