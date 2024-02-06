@@ -7,6 +7,8 @@ from custom_components.occupancy.const import DOMAIN
 from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNKNOWN
 from homeassistant.components.template.const import DOMAIN as TEMPLATE_DOMAIN
 from tests.helpers import wait
+from homeassistant.components import binary_sensor
+from pytest_homeassistant_custom_component.common import MockEntityPlatform
 
 
 @pytest.fixture(autouse=True)
@@ -54,6 +56,20 @@ class ContactSensor:
     async def unknown(self):
         self._hass.states.async_set(self._entity_id, STATE_UNKNOWN, {})
         await self._hass.async_block_till_done()
+
+
+@pytest.fixture()
+def init_entities(hass):
+    async def _init_entities(*entities):
+        entity_platform = MockEntityPlatform(
+            hass, domain=binary_sensor.DOMAIN, platform_name="test", platform=None
+        )
+        await entity_platform.async_add_entities(entities)
+        # We have to wait here, because adding entities to hass will trigger a state change
+        await wait(hass)
+        return entities
+
+    return _init_entities
 
 
 @pytest.fixture()

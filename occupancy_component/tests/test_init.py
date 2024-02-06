@@ -3,7 +3,7 @@
 from homeassistant.setup import async_setup_component
 from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNKNOWN
 from custom_components.occupancy.const import DOMAIN
-from tests.helpers import wait
+from tests.helpers import wait, contact_sensor
 
 
 async def test_async_setup(hass):
@@ -29,15 +29,18 @@ async def test_async_setup(hass):
     assert await async_setup_component(hass, DOMAIN, config) is True
 
 
-async def test_door_opens(hass, init_integration, door_contact_sensor):
-    door_contact_sensor = await door_contact_sensor(False)
+async def test_door_opens(hass, init_integration, init_entities):
+    [front_door_contact] = await init_entities(
+        contact_sensor("binary_sensor.front_door_contact", False),
+    )
 
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
     assert (
         hass.states.get("binary_sensor.front_door").attributes["door_state"] == "closed"
     )
 
-    await door_contact_sensor.open()
+    await front_door_contact.open()
+
     assert hass.states.get("binary_sensor.front_door").state == STATE_ON
     assert (
         hass.states.get("binary_sensor.front_door").attributes["door_state"] == "open"
@@ -51,13 +54,15 @@ async def test_door_opens(hass, init_integration, door_contact_sensor):
     )
 
 
-async def test_door_closes(hass, init_integration, door_contact_sensor):
-    door_contact_sensor = await door_contact_sensor(True)
+async def test_door_closes(hass, init_integration, init_entities):
+    [front_door_contact] = await init_entities(
+        contact_sensor("binary_sensor.front_door_contact", STATE_ON),
+    )
 
     assert hass.states.get("binary_sensor.front_door_contact").state == STATE_ON
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
 
-    await door_contact_sensor.close()
+    await front_door_contact.close()
 
     assert hass.states.get("binary_sensor.front_door_contact").state == STATE_OFF
     assert hass.states.get("binary_sensor.front_door").state == STATE_ON
@@ -68,24 +73,28 @@ async def test_door_closes(hass, init_integration, door_contact_sensor):
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
 
 
-async def test_door_unknown_to_open(hass, init_integration, door_contact_sensor):
-    door_contact_sensor = await door_contact_sensor(None)
+async def test_door_unknown_to_open(hass, init_integration, init_entities):
+    [front_door_contact] = await init_entities(
+        contact_sensor("binary_sensor.front_door_contact", None),
+    )
 
     assert hass.states.get("binary_sensor.front_door_contact").state == STATE_UNKNOWN
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
 
-    await door_contact_sensor.open()
+    await front_door_contact.open()
 
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
 
 
-async def test_door_unknown_to_close(hass, init_integration, door_contact_sensor):
-    door_contact_sensor = await door_contact_sensor(None)
+async def test_door_unknown_to_close(hass, init_integration, init_entities):
+    [front_door_contact] = await init_entities(
+        contact_sensor("binary_sensor.front_door_contact", None),
+    )
 
     assert hass.states.get("binary_sensor.front_door_contact").state == STATE_UNKNOWN
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
 
-    await door_contact_sensor.close()
+    await front_door_contact.close()
 
     assert hass.states.get("binary_sensor.front_door").state == STATE_OFF
 
