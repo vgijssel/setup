@@ -80,13 +80,20 @@ async def async_setup_platform(
 class Area(SelectEntity, RestoreEntity):
     """Representation of a Adaptive Lighting switch."""
 
+    ABSENT = "absent"
+    ENTERING = "entering"
+    ENTERING_CONFIRM = "entering_confirm"
+    PRESENT = "present"
+    LEAVING = "leaving"
+    LEAVING_CONFIRM = "leaving_confirm"
+
     STATES = [
-        "absent",
-        "entering",
-        "entering_confirm",
-        "present",
-        "leaving",
-        "leaving_confirm",
+        ABSENT,
+        ENTERING,
+        ENTERING_CONFIRM,
+        PRESENT,
+        LEAVING,
+        LEAVING_CONFIRM,
     ]
 
     def __init__(
@@ -100,7 +107,7 @@ class Area(SelectEntity, RestoreEntity):
         self._attr_unique_id = unique_id
         self._occupancy_sensors = occupancy_sensors
         self._doors = doors
-        self._current_state = None
+        self._current_state = self.ABSENT
 
     @property
     def options(self) -> list[str]:
@@ -115,13 +122,29 @@ class Area(SelectEntity, RestoreEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
-        # state = await self.async_get_last_state()
-        # if not state or state.state not in self._tariffs:
-        #     self._current_tariff = self._tariffs[0]
-        # else:
-        #     self._current_tariff = state.state
+        for door in self._doors:
+            self.async_on_remove(
+                async_track_state_change_event(self.hass, door, self._door_event)
+            )
+
+    async def _door_event(self, event: EventType):
+        _LOGGER.debug("Called '_door_event' with data %s", event.data)
+
+        if event.data["old_state"] == None:
+            from_state = None
+        else:
+            from_state = event.data["old_state"].state
+
+        to_state = event.data["new_state"].state
+
+        if self._current_state == self.ABSENT:
+            if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
+                self._current_state = self.ENTERING
+                self.async_write_ha_state()
 
     async def async_select_option(self, option: str) -> None:
         """Select new tariff (option)."""
+        _LOGGER.debug("Called 'async_select_option' with data %s", option)
+
         self._current_state = option
         self.async_write_ha_state()

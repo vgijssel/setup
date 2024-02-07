@@ -77,6 +77,16 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
         )
 
     for area_id, area_config in config[DOMAIN][ATTR_AREAS].items():
+        area_config = {
+            "occupancy_sensors": area_config[ATTR_OCCUPANCY_SENSORS],
+            # Adding the binary sensor domain to the door references. Maybe this
+            # also requires some validation for the user, so they know they shouldn't
+            # provide an entity reference but a door name.
+            "doors": [
+                f"{BINARY_SENSOR_DOMAIN}.{door}" for door in area_config[ATTR_DOORS]
+            ],
+        }
+
         data[ATTR_AREAS][area_id] = area_config
 
         hass.async_create_task(
