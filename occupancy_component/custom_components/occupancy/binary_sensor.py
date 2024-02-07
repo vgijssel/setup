@@ -93,8 +93,6 @@ class Door(BinarySensorEntity, RestoreEntity):
         self._door_has_motion = False
 
         self._listener_reset_contact_presence = None
-        self._listener_contact_sensor = None
-        self._listener_motion_sensor = None
 
         self._entry = entry
         self._contact_sensor = contact_sensor
@@ -109,47 +107,26 @@ class Door(BinarySensorEntity, RestoreEntity):
             return "mdi:door-closed"
 
     async def async_added_to_hass(self) -> None:
-        """Call when entity about to be added to hass."""
-        # await super().async_added_to_hass()
-
-        if self.hass.is_running:
-            await self._setup_listeners()
-        else:
-            self.hass.bus.async_listen_once(
-                EVENT_HOMEASSISTANT_STARTED, self._setup_listeners
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass,
+                self._contact_sensor,
+                self._contact_sensor_event,
             )
-
-        # self._attr_is_on = await self.async_get_last_state()
-        # is_new_entry = last_state is None  # newly added to HA
-        # if is_new_entry or last_state.state == STATE_ON:
-        #     await self.async_turn_on(adapt_lights=not self._only_once)
-        # else:
-        #     self._state = False
-        #     assert not self.remove_listeners
-
-    async def async_will_remove_from_hass(self):
-        self._remove_listeners()
-
-    async def _setup_listeners(self, _=None) -> None:
-        _LOGGER.debug("Called '_setup_listeners'")
-
-        self._listener_contact_sensor = async_track_state_change_event(
-            self.hass,
-            self._contact_sensor,
-            self._contact_sensor_event,
         )
 
-        self._listener_motion_sensor = async_track_state_change_event(
-            self.hass,
-            self._motion_sensor,
-            self._motion_sensor_event,
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass,
+                self._motion_sensor,
+                self._motion_sensor_event,
+            )
         )
+
+        self.async_on_remove(self._remove_listeners)
 
     def _remove_listeners(self) -> None:
         _LOGGER.debug("Called '_remove_listeners'")
-
-        self._listener_contact_sensor()
-        self._listener_motion_sensor()
 
         if self._listener_reset_contact_presence:
             self._listener_reset_contact_presence()
