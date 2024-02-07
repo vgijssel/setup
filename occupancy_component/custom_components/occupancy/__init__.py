@@ -19,6 +19,8 @@ from custom_components.occupancy.const import (
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -62,6 +64,7 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
     # Initialize default state for the domain
     data = {}
     data[ATTR_DOORS] = {}
+    data[ATTR_AREAS] = {}
     hass.data[OCCUPANCY_DATA] = data
 
     for door_id, door_config in config[DOMAIN][ATTR_DOORS].items():
@@ -69,7 +72,16 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
 
         hass.async_create_task(
             hass.helpers.discovery.async_load_platform(
-                "binary_sensor", DOMAIN, {"door_id": door_id}, config
+                BINARY_SENSOR_DOMAIN, DOMAIN, {"door_id": door_id}, config
+            )
+        )
+
+    for area_id, area_config in config[DOMAIN][ATTR_AREAS].items():
+        data[ATTR_AREAS][area_id] = area_config
+
+        hass.async_create_task(
+            hass.helpers.discovery.async_load_platform(
+                SELECT_DOMAIN, DOMAIN, {"area_id": area_id}, config
             )
         )
 
