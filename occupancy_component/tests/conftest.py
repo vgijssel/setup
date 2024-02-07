@@ -1,25 +1,15 @@
 """pytest fixtures."""
+
 import pytest
 from homeassistant.setup import async_setup_component
 
 from custom_components.occupancy.const import DOMAIN
-from homeassistant.components.demo.binary_sensor import DemoBinarySensor
 
-
-class DoorContactSensor(DemoBinarySensor):
-    def __init__(self, hass, *args, **kwargs):
-        super(DoorContactSensor, self).__init__(*args, **kwargs)
-        self.hass = hass
-
-    async def open(self):
-        self._state = True
-        await self.async_update_ha_state()
-        await self.hass.async_block_till_done()
-
-    async def close(self):
-        self._state = False
-        await self.async_update_ha_state()
-        await self.hass.async_block_till_done()
+from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNKNOWN
+from homeassistant.components.template.const import DOMAIN as TEMPLATE_DOMAIN
+from tests.helpers import wait
+from homeassistant.components import binary_sensor
+from pytest_homeassistant_custom_component.common import MockEntityPlatform
 
 
 @pytest.fixture(autouse=True)
@@ -49,13 +39,22 @@ async def init_integration(hass) -> None:
     }
     await async_setup_component(hass, DOMAIN, config) is True
     await hass.async_block_till_done()
+    yield
+
+    # TODO: can we also teardown the integration / entities instead of waiting?
+    # This waits for 24 hours to make sure all the timers are reset
+    await wait(hass, 86400)
 
 
 @pytest.fixture()
-async def door_contact_sensor(hass) -> DoorContactSensor:
-    sensor = DoorContactSensor(
-        hass, None, "Front Door Contact", state=False, device_class="door"
-    )
-    sensor.entity_id = "binary_sensor.front_door_contact"
-    await sensor.close()
-    return sensor
+def init_entities(hass):
+    async def _init_entities(*entities):
+        entity_platform = MockEntityPlatform(
+            hass, domain=binary_sensor.DOMAIN, platform_name="test", platform=None
+        )
+        await entity_platform.async_add_entities(entities)
+        # We have to wait here, because adding entities to hass will trigger a state change
+        await wait(hass)
+        return entities
+
+    return _init_entities

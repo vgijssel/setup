@@ -65,7 +65,7 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
     hass.data[OCCUPANCY_DATA] = data
 
     for door_id, door_config in config[DOMAIN][ATTR_DOORS].items():
-        data["doors"][door_id] = door_config
+        data[ATTR_DOORS][door_id] = door_config
 
         hass.async_create_task(
             hass.helpers.discovery.async_load_platform(

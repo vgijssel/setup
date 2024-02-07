@@ -1,6 +1,10 @@
 load("@pdm-setup//:requirements.bzl", "requirement")
 load("//tools/pytest:pytest.bzl", "py_pytest_test")
 load("@rules_task//task:defs.bzl", "cmd", "task")
+load("@rules_release//tools:defs.bzl", "publish_github_release", release = "release_bazel_differ")
+load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+
+package(default_visibility = ["//visibility:public"])
 
 py_library(
     name = "lib",
@@ -20,6 +24,7 @@ py_pytest_test(
     size = "small",
     srcs = [
         "tests/conftest.py",
+        "tests/helpers.py",
         "tests/test_init.py",
     ],
     args = ["--asyncio-mode=auto"],
@@ -56,4 +61,45 @@ task(
     env = {
         "tilt": cmd.executable(":tilt"),
     },
+)
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**/*"]),
+)
+
+tar(
+    name = "release_archive",
+    srcs = [
+        ":all_files",
+    ],
+    out = "occupancy_component.tar.gz",
+    compress = "gzip",
+)
+
+publish_github_release(
+    name = "publish_github_release",
+    assets = [
+        ":release_archive",
+    ],
+    before_cmds = [
+        "export OP_SERVICE_ACCOUNT_TOKEN=${ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_PROD:-}",
+        "GH_TOKEN=$($OP read op://vgijssel-prod/github-release/credential)",
+        "export GH_TOKEN",
+    ],
+    env = {
+        "OP": cmd.executable("@rules_release//tools/onepassword:op"),
+    },
+    release = ":release",
+)
+
+release(
+    name = "release",
+    changelog_file = "CHANGELOG.md",
+    publish_cmds = [
+        ":publish_github_release",
+    ],
+    release_name = "occupancy_component",
+    target = ":all_files",
+    version_file = "version.txt",
 )
