@@ -1,4 +1,5 @@
 """pytest fixtures."""
+
 import pytest
 from homeassistant.setup import async_setup_component
 
@@ -38,24 +39,11 @@ async def init_integration(hass) -> None:
     }
     await async_setup_component(hass, DOMAIN, config) is True
     await hass.async_block_till_done()
+    yield
 
-
-class ContactSensor:
-    def __init__(self, hass, entity_id):
-        self._entity_id = entity_id
-        self._hass = hass
-
-    async def open(self):
-        self._hass.states.async_set(self._entity_id, STATE_ON, {})
-        await self._hass.async_block_till_done()
-
-    async def close(self):
-        self._hass.states.async_set(self._entity_id, STATE_OFF, {})
-        await self._hass.async_block_till_done()
-
-    async def unknown(self):
-        self._hass.states.async_set(self._entity_id, STATE_UNKNOWN, {})
-        await self._hass.async_block_till_done()
+    # TODO: can we also teardown the integration / entities instead of waiting?
+    # This waits for 24 hours to make sure all the timers are reset
+    await wait(hass, 86400)
 
 
 @pytest.fixture()
@@ -70,53 +58,3 @@ def init_entities(hass):
         return entities
 
     return _init_entities
-
-
-@pytest.fixture()
-def door_contact_sensor(hass):
-    async def _door_contact_sensor(state):
-        config = {
-            TEMPLATE_DOMAIN: {
-                "binary_sensor": {
-                    "state": "",
-                    "name": "front_door_contact",
-                    "device_class": "door",
-                }
-            }
-        }
-
-        await async_setup_component(
-            hass,
-            TEMPLATE_DOMAIN,
-            config,
-        )
-        await hass.async_block_till_done()
-        await wait(hass)
-
-        # return hass.data["binary_sensor"].get_entity("binary_sensor.front_door_contact")
-        contact_sensor = ContactSensor(hass, "binary_sensor.front_door_contact")
-
-        if state is True:
-            await contact_sensor.open()
-        elif state is False:
-            await contact_sensor.close()
-        else:
-            await contact_sensor.unknown()
-
-        await wait(hass)
-
-        return contact_sensor
-
-    return _door_contact_sensor
-
-
-@pytest.fixture()
-async def door_motion_sensor(hass):
-    def _door_motion_sensor(state):
-        sensor = MotionSensor(
-            hass, None, "Front Door Motion", state=state, device_class="presence"
-        )
-        sensor.entity_id = "binary_sensor.front_door_motion"
-        return sensor
-
-    return _door_motion_sensor
