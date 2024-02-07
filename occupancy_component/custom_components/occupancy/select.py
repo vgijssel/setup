@@ -123,5 +123,5 @@ class Area(SelectEntity, RestoreEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Select new tariff (option)."""
-        self._current_tariff = option
+        self._current_state = option
         self.async_write_ha_state()

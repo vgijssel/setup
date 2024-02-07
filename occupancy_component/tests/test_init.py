@@ -25,8 +25,9 @@ async def test_async_setup(hass):
         },
     }
 
-    """Test the component gets setup."""
-    assert await async_setup_component(hass, DOMAIN, config) is True
+    result = await async_setup_component(hass, DOMAIN, config)
+    await hass.async_block_till_done()
+    assert result is True
 
 
 async def test_door_opens(hass, init_integration, init_entities):

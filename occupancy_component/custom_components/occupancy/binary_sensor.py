@@ -66,48 +66,31 @@ async def async_setup_platform(
     async_add_entities(
         [
             Door(
-                hass=hass,
-                door_id=door_id,
+                name=door_id,
+                unique_id=door_id,
                 entry=entry,
                 contact_sensor=contact_sensor,
                 motion_sensor=motion_sensor,
-                entity_description=BinarySensorEntityDescription(
-                    key="occupancy_door",
-                    name="Door",
-                    device_class=BinarySensorDeviceClass.OCCUPANCY,
-                ),
             )
         ]
     )
 
 
 class Door(BinarySensorEntity, RestoreEntity):
-    """Representation of a Adaptive Lighting switch."""
-
-    entity_description: BinarySensorEntityDescription
-
     def __init__(
         self,
-        hass,
-        door_id: str,
+        name,
+        unique_id,
         entry: bool,
-        entity_description: BinarySensorEntityDescription,
         contact_sensor: str = None,
         motion_sensor: str = None,
     ):
-        self.entity_description = entity_description
-        self._door_is_open = False
-        self._door_has_motion = False
-
-        # This comes from the base class
+        self._attr_name = name
+        self._attr_unique_id = unique_id
         self._attr_is_on = False
 
-        # TODO: don't we have this already? But then self.hass?
-        self._hass = hass
-        # self._entity_id = ENTITY_ID_FORMAT.format(door_id)
-
-        self._door_id = door_id
-        self._unique_id = f"{DOMAIN}_{door_id}"
+        self._door_is_open = False
+        self._door_has_motion = False
 
         self._listener_reset_contact_presence = None
         self._listener_contact_sensor = None
@@ -118,11 +101,6 @@ class Door(BinarySensorEntity, RestoreEntity):
         self._motion_sensor = motion_sensor
 
     @property
-    def name(self):
-        """Return the name of the device if any."""
-        return self._door_id
-
-    @property
     def icon(self):
         """Return the icon to use for the valve."""
         if self._door_is_open:
@@ -130,19 +108,14 @@ class Door(BinarySensorEntity, RestoreEntity):
         else:
             return "mdi:door-closed"
 
-    @property
-    def unique_id(self):
-        """Return the unique ID of entity."""
-        return self._unique_id
-
     async def async_added_to_hass(self) -> None:
         """Call when entity about to be added to hass."""
         # await super().async_added_to_hass()
 
-        if self._hass.is_running:
+        if self.hass.is_running:
             await self._setup_listeners()
         else:
-            self._hass.bus.async_listen_once(
+            self.hass.bus.async_listen_once(
                 EVENT_HOMEASSISTANT_STARTED, self._setup_listeners
             )
 
@@ -161,13 +134,13 @@ class Door(BinarySensorEntity, RestoreEntity):
         _LOGGER.debug("Called '_setup_listeners'")
 
         self._listener_contact_sensor = async_track_state_change_event(
-            self._hass,
+            self.hass,
             self._contact_sensor,
             self._contact_sensor_event,
         )
 
         self._listener_motion_sensor = async_track_state_change_event(
-            self._hass,
+            self.hass,
             self._motion_sensor,
             self._motion_sensor_event,
         )
@@ -194,7 +167,7 @@ class Door(BinarySensorEntity, RestoreEntity):
         if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
             self._door_is_open = True
             self._listener_reset_contact_presence = async_call_later(
-                self._hass, 5, self._reset_contact_presence
+                self.hass, 5, self._reset_contact_presence
             )
             self._calculate_presence()
             self.async_write_ha_state()
@@ -202,7 +175,7 @@ class Door(BinarySensorEntity, RestoreEntity):
         elif (from_state == STATE_ON or from_state == None) and to_state == STATE_OFF:
             self._door_is_open = False
             self._listener_reset_contact_presence = async_call_later(
-                self._hass, 5, self._reset_contact_presence
+                self.hass, 5, self._reset_contact_presence
             )
             self._calculate_presence()
             self.async_write_ha_state()
