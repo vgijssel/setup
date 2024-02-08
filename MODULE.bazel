@@ -56,6 +56,11 @@ local_path_override(
 )
 
 # ------------------------------------ rules_python ------------------------------------ #
+
+PYTHON_VERSION = "3.12"
+
+py_underscore_version = PYTHON_VERSION.replace(".", "_")
+
 bazel_dep(
     name = "rules_python",
     version = "0.29.0",
@@ -66,13 +71,31 @@ python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     configure_coverage_tool = True,
     is_default = True,
-    python_version = "3.11.5",
+    python_version = PYTHON_VERSION,
 )
 
-use_repo(python, "python_versions")
+use_repo(
+    python,
+    "python_%s" % py_underscore_version,
+    "python_%s_host" % py_underscore_version,
+    "python_versions",
+    "pythons_hub",
+)
 
 # ------------------------------------ rules_pycross ------------------------------------ #
 bazel_dep(name = "rules_pycross", version = "0.5.2")
+
+pycross = use_extension("@rules_pycross//pycross/extensions:pycross.bzl", "pycross")
+
+# Copied this setup from https://github.com/jvolkman/rules_pycross/blob/3d4b8a9d932207ba09ca56858f3352dd1f2557a4/MODULE.bazel#L33
+pycross.configure_environments()
+
+pycross.configure_interpreter(
+    python_defs_file = "@python_%s//:defs.bzl" % py_underscore_version,
+    python_interpreter_target = "@python_%s_host//:python" % py_underscore_version,
+)
+
+pycross.configure_toolchains()
 
 environments = use_extension("@rules_pycross//pycross/extensions:environments.bzl", "environments")
 

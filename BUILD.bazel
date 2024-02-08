@@ -103,7 +103,7 @@ pycross_target_environment(
         "macosx_14_0_arm64",
     ],
     python_compatible_with = _darwin_arm64,
-    version = "3.11.5",
+    version = "3.12.0",
 )
 
 pycross_target_environment(
@@ -117,7 +117,7 @@ pycross_target_environment(
         for i in range(17, 35)
     ],
     python_compatible_with = _linux_amd64,
-    version = "3.11.5",
+    version = "3.12.0",
 )
 
 pycross_target_environment(
@@ -131,7 +131,7 @@ pycross_target_environment(
         for i in range(17, 35)
     ],
     python_compatible_with = _linux_arm64,
-    version = "3.11.5",
+    version = "3.12.0",
 )
 
 pycross_pdm_lock_model(
