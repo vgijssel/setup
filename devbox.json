@@ -12,7 +12,8 @@
     "pdm@2.12.3",
     "nixos-rebuild@latest",
     "kubectl@latest",
-    "kubevirt@latest"
+    "kubevirt@latest",
+    "python@3.12.0"
   ],
   "shell": {
     "init_hook": ["alias bazel='bazelisk'", "export PATH=$HOME/bin:$PATH"]
