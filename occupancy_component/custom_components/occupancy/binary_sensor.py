@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
+from homeassistant.components.stream.core import IdleTimer
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.event import (
@@ -92,8 +93,6 @@ class Door(BinarySensorEntity, RestoreEntity):
         self._door_is_open = False
         self._door_has_motion = False
 
-        self._listener_reset_contact_presence = None
-
         self._entry = entry
         self._contact_sensor = contact_sensor
         self._motion_sensor = motion_sensor
@@ -125,13 +124,13 @@ class Door(BinarySensorEntity, RestoreEntity):
             )
         )
 
-        self.async_on_remove(self._remove_listeners)
+        self._reset_contact_presence_timer = IdleTimer(
+            self.hass, 5, self._reset_contact_presence
+        )
 
-    def _remove_listeners(self) -> None:
-        _LOGGER.debug("Called '_remove_listeners'")
-
-        if self._listener_reset_contact_presence:
-            self._listener_reset_contact_presence()
+        self.async_on_remove(
+            self._reset_contact_presence_timer.clear,
+        )
 
     async def _contact_sensor_event(self, event: EventType):
         _LOGGER.debug("Called '_contact_sensor_event' with data %s", event.data)
@@ -145,18 +144,13 @@ class Door(BinarySensorEntity, RestoreEntity):
 
         if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
             self._door_is_open = True
-            # TODO: what if listener is still active? Kill it an setup a new one?
-            self._listener_reset_contact_presence = async_call_later(
-                self.hass, 5, self._reset_contact_presence
-            )
+            self._reset_contact_presence_timer.awake()
             self._calculate_presence()
             self.async_write_ha_state()
 
         elif (from_state == STATE_ON or from_state == None) and to_state == STATE_OFF:
             self._door_is_open = False
-            self._listener_reset_contact_presence = async_call_later(
-                self.hass, 5, self._reset_contact_presence
-            )
+            self._reset_contact_presence_timer.awake()
             self._calculate_presence()
             self.async_write_ha_state()
 
@@ -188,11 +182,12 @@ class Door(BinarySensorEntity, RestoreEntity):
 
     def _calculate_presence(self):
         door_just_opened = (
-            self._door_is_open == True and self._listener_reset_contact_presence != None
+            self._door_is_open == True
+            and self._reset_contact_presence_timer.idle == False
         )
         door_just_closed = (
             self._door_is_open == False
-            and self._listener_reset_contact_presence != None
+            and self._reset_contact_presence_timer.idle == False
         )
 
         if door_just_closed:
@@ -208,8 +203,7 @@ class Door(BinarySensorEntity, RestoreEntity):
             f"_calculate_presence with {door_just_closed} - {door_just_opened} - {self._door_is_open} - {self._door_has_motion} calculated: {self._attr_is_on}"
         )
 
-    async def _reset_contact_presence(self, now: datetime) -> None:
-        self._listener_reset_contact_presence = None
+    async def _reset_contact_presence(self) -> None:
         self._calculate_presence()
         self.async_write_ha_state()
 
