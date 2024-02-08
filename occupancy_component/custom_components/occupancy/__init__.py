@@ -21,6 +21,7 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+from homeassistant.components.timer import DOMAIN as TIMER_DOMAIN
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -92,6 +93,12 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
         hass.async_create_task(
             hass.helpers.discovery.async_load_platform(
                 SELECT_DOMAIN, DOMAIN, {"area_id": area_id}, config
+            )
+        )
+
+        hass.async_create_task(
+            hass.helpers.discovery.async_load_platform(
+                "timer", DOMAIN, {"area_id": area_id}, config
             )
         )
 

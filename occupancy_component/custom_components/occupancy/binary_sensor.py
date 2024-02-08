@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from homeassistant.const import TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 from homeassistant.components.stream.core import IdleTimer
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -10,18 +9,12 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.event import (
     async_track_state_change_event,
 )
-from datetime import datetime
-
-from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntityDescription,
     BinarySensorEntity,
 )
 
 from homeassistant.const import (
-    EVENT_HOMEASSISTANT_STARTED,
     STATE_OFF,
     STATE_ON,
 )
@@ -31,7 +24,6 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 from custom_components.occupancy.const import (
-    DOMAIN,
     ATTR_ENTRY,
     ATTR_CONTACT_SENSOR,
     ATTR_MOTION_SENSOR,
@@ -53,9 +45,10 @@ async def async_setup_platform(
 
     data = hass.data[OCCUPANCY_DATA]
 
-    _LOGGER.debug("async_setup_platform called with discovery_info: %s", discovery_info)
-    _LOGGER.debug("async_setup_platform called with config: %s", config)
-    _LOGGER.debug("async_setup_platform called with data: %s", data)
+    _LOGGER.debug(
+        "binary_sensor async_setup_platform called with discovery_info: %s",
+        discovery_info,
+    )
 
     door_id = discovery_info["door_id"]
     door_config = data[ATTR_DOORS][door_id]

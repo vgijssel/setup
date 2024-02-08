@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from homeassistant.const import TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
@@ -41,6 +40,14 @@ from custom_components.occupancy.const import (
     ATTR_DOORS,
 )
 
+from homeassistant.components.timer import (
+    Timer,
+    CONF_ICON,
+    CONF_ID,
+    CONF_NAME,
+    CONF_DURATION,
+)
+
 
 async def async_setup_platform(
     hass: HomeAssistant,
@@ -55,9 +62,9 @@ async def async_setup_platform(
 
     data = hass.data[OCCUPANCY_DATA]
 
-    _LOGGER.debug("async_setup_platform called with discovery_info: %s", discovery_info)
-    _LOGGER.debug("async_setup_platform called with config: %s", config)
-    _LOGGER.debug("async_setup_platform called with data: %s", data)
+    _LOGGER.debug(
+        "select async_setup_platform called with discovery_info: %s", discovery_info
+    )
 
     area_id = discovery_info["area_id"]
     area_config = data[ATTR_AREAS][area_id]
@@ -72,7 +79,7 @@ async def async_setup_platform(
                 unique_id=area_id,
                 occupancy_sensors=occupancy_sensors,
                 doors=doors,
-            )
+            ),
         ]
     )
 
@@ -127,6 +134,20 @@ class Area(SelectEntity, RestoreEntity):
                 async_track_state_change_event(self.hass, door, self._door_event)
             )
 
+    # TODO:
+    # we need to have a single function which runs whenever a door
+    # or an occupancy sensor changes state.
+    #
+    # Whenever the select changes state we should use a service call
+    # this way all the state changes, either through the UI or the automation
+    # go through the same code path.
+    #
+    # When the select changes state reset the unnecessary times
+    # and start the timers that are relevant for that particular state
+    #
+    # We need a timer component for each state and inject that timer
+    # into each area component. Each time a timer triggers when it's done
+    # we need to call the main calculate state function to determine what to do next.
     async def _door_event(self, event: EventType):
         _LOGGER.debug("Called '_door_event' with data %s", event.data)
 
