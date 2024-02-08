@@ -164,27 +164,6 @@
           "store_path": "/nix/store/bx64fkd0lxsv12nzlwpyqgyz5p0hfc2r-python3.12-pip-23.3.1"
         }
       }
-    },
-    "python@3.12.0": {
-      "last_modified": "2023-11-17T14:14:56Z",
-      "plugin_version": "0.0.3",
-      "resolved": "github:NixOS/nixpkgs/a71323f68d4377d12c04a5410e214495ec598d4c#python312",
-      "source": "devbox-search",
-      "version": "3.12.0",
-      "systems": {
-        "aarch64-darwin": {
-          "store_path": "/nix/store/c3abs938k4b5k4m1n5icmp14b4gbpxp3-python3-3.12.0"
-        },
-        "aarch64-linux": {
-          "store_path": "/nix/store/3vmqf1mjkyc8yazxn9byarx7ibp6zrsy-python3-3.12.0"
-        },
-        "x86_64-darwin": {
-          "store_path": "/nix/store/1b2075gy0b5scpdyvyxy11cfa1x847d0-python3-3.12.0"
-        },
-        "x86_64-linux": {
-          "store_path": "/nix/store/lqwbvvrl0x0f6rxbfm52jajvjlrb0jsx-python3-3.12.0"
-        }
-      }
     }
   }
 }
