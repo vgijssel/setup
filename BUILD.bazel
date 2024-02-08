@@ -140,6 +140,14 @@ pycross_pdm_lock_model(
     project_file = "pyproject.toml",
 )
 
+# home_assistant_bluetooth: poetry.core.masonry.api
+# paho-mqtt-1.6.1: setuptools.build_meta:__legacy__
+# colored-1.4.4.tar.gz: setuptools.build_meta:__legacy__
+# python-slugify-4.0.1: setuptools.build_meta:__legacy__
+# mock-open-1.4.0: setuptools.build_meta:__legacy__
+# ulid_transform-0.7.2: poetry.core.masonry.api
+# pytest-test-groups-1.0.3: setuptools.build_meta:__legacy__
+# lru-dict-1.1.8: setuptools.build_meta:__legacy__ not available
 pycross_lock_file(
     name = "pdm_lock",
     out = "updated_pdm_lock.bzl",
@@ -187,6 +195,17 @@ pycross_lock_file(
         ":python_darwin_arm64",
         ":python_linux_amd64",
         ":python_linux_arm64",
+    ],
+)
+
+load("@pdm-setup//:requirements.bzl", "requirement")
+
+# TODO: try to make this target work!
+py_binary(
+    name = "try_it",
+    srcs = ["try_it.py"],
+    deps = [
+        requirement("lru-dict"),
     ],
 )
 
