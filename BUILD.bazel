@@ -5,7 +5,7 @@ load(
     "@rules_pycross//pycross:defs.bzl",
     "pycross_lock_file",
     "pycross_pdm_lock_model",
-    "pycross_target_environment",
+    # "pycross_target_environment",
 )
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_release//release:defs.bzl", "release_manager")
@@ -94,45 +94,45 @@ platform(
     ],
 )
 
-pycross_target_environment(
-    name = "python_darwin_arm64",
-    abis = ["cp310"],
-    platforms = [
-        "macosx_12_0_arm64",
-        "macosx_13_0_arm64",
-        "macosx_14_0_arm64",
-    ],
-    python_compatible_with = _darwin_arm64,
-    version = "3.12.0",
-)
+# pycross_target_environment(
+#     name = "python_darwin_arm64",
+#     abis = ["cp312"],
+#     platforms = [
+#         "macosx_12_0_arm64",
+#         "macosx_13_0_arm64",
+#         "macosx_14_0_arm64",
+#     ],
+#     python_compatible_with = _darwin_arm64,
+#     version = "3.12.0",
+# )
 
-pycross_target_environment(
-    name = "python_linux_amd64",
-    abis = ["cp310"],
-    platforms = [
-        "linux_x86_64",
-        "manylinux2014_x86_64",
-    ] + [
-        "manylinux_2_%s_x86_64" % str(i)
-        for i in range(17, 35)
-    ],
-    python_compatible_with = _linux_amd64,
-    version = "3.12.0",
-)
+# pycross_target_environment(
+#     name = "python_linux_amd64",
+#     abis = ["cp312"],
+#     platforms = [
+#         "linux_x86_64",
+#         "manylinux2014_x86_64",
+#     ] + [
+#         "manylinux_2_%s_x86_64" % str(i)
+#         for i in range(17, 35)
+#     ],
+#     python_compatible_with = _linux_amd64,
+#     version = "3.12.0",
+# )
 
-pycross_target_environment(
-    name = "python_linux_arm64",
-    abis = ["cp310"],
-    platforms = [
-        "linux_aarch64",
-        "manylinux2014_aarch64",
-    ] + [
-        "manylinux_2_%s_aarch64" % str(i)
-        for i in range(17, 35)
-    ],
-    python_compatible_with = _linux_arm64,
-    version = "3.12.0",
-)
+# pycross_target_environment(
+#     name = "python_linux_arm64",
+#     abis = ["cp312"],
+#     platforms = [
+#         "linux_aarch64",
+#         "manylinux2014_aarch64",
+#     ] + [
+#         "manylinux_2_%s_aarch64" % str(i)
+#         for i in range(17, 35)
+#     ],
+#     python_compatible_with = _linux_arm64,
+#     version = "3.12.0",
+# )
 
 pycross_pdm_lock_model(
     name = "pdm_lock_model",
@@ -148,55 +148,58 @@ pycross_pdm_lock_model(
 # ulid_transform-0.7.2: poetry.core.masonry.api
 # pytest-test-groups-1.0.3: setuptools.build_meta:__legacy__
 # lru-dict-1.1.8: setuptools.build_meta:__legacy__ not available
-pycross_lock_file(
-    name = "pdm_lock",
-    out = "updated_pdm_lock.bzl",
-    default_alias_single_version = True,
-    lock_model_file = ":pdm_lock_model",
-    package_build_dependencies = {
-        "ulid-transform": [
-            "wheel",
-            "setuptools",
-            "poetry-core",
-        ],
-        "python-slugify": [
-            "wheel",
-            "setuptools",
-        ],
-        "mock-open": [
-            "wheel",
-            "setuptools",
-        ],
-        "lru-dict": [
-            "wheel",
-            "setuptools",
-            "poetry-core",
-        ],
-        "pytest-test-groups": [
-            "wheel",
-            "setuptools",
-        ],
-        "colored": [
-            "wheel",
-            "setuptools",
-        ],
-        "paho-mqtt": [
-            "wheel",
-            "setuptools",
-        ],
-        "home-assistant-bluetooth": [
-            "wheel",
-            "setuptools",
-            "poetry-core",
-        ],
-    },
-    pypi_index = "https://pypi.org",
-    target_environments = [
-        ":python_darwin_arm64",
-        ":python_linux_amd64",
-        ":python_linux_arm64",
-    ],
-)
+# pycross_lock_file(
+#     name = "pdm_lock",
+#     out = "updated_pdm_lock.bzl",
+#     default_alias_single_version = True,
+#     lock_model_file = ":pdm_lock_model",
+#     package_build_dependencies = {
+#         "ulid-transform": [
+#             "wheel",
+#             "setuptools",
+#             "poetry-core",
+#         ],
+#         "python-slugify": [
+#             "wheel",
+#             "setuptools",
+#         ],
+#         "mock-open": [
+#             "wheel",
+#             "setuptools",
+#         ],
+#         "lru-dict": [
+#             "wheel",
+#             "setuptools",
+#             "poetry-core",
+#         ],
+#         "pytest-test-groups": [
+#             "wheel",
+#             "setuptools",
+#         ],
+#         "colored": [
+#             "wheel",
+#             "setuptools",
+#         ],
+#         "paho-mqtt": [
+#             "wheel",
+#             "setuptools",
+#         ],
+#         "home-assistant-bluetooth": [
+#             "wheel",
+#             "setuptools",
+#             "poetry-core",
+#         ],
+#     },
+#     pypi_index = "https://pypi.org",
+#     target_environments = ["@smoke_environments//:environments"],
+
+#     # target_environments = [
+#     #     ":python_darwin_arm64",
+#     #     ":python_linux_amd64",
+#     #     ":python_linux_arm64",
+#     # ],
+# )
+# @@rules_pycross~0.5.2~lock_repos~pdm-setup//_lock:_build_lru-dict@1.1.8
 
 load("@pdm-setup//:requirements.bzl", "requirement")
 
@@ -209,18 +212,18 @@ py_binary(
     ],
 )
 
-write_source_files(
-    name = "update_locks",
-    files = {
-        "pdm_lock.bzl": ":updated_pdm_lock.bzl",
-    },
-)
+# write_source_files(
+#     name = "update_locks",
+#     files = {
+#         "pdm_lock.bzl": ":updated_pdm_lock.bzl",
+#     },
+# )
 
-diff_test(
-    name = "pdm_lock_test",
-    file1 = ":pdm_lock",
-    file2 = ":pdm_lock.bzl",
-)
+# diff_test(
+#     name = "pdm_lock_test",
+#     file1 = ":pdm_lock",
+#     file2 = ":pdm_lock.bzl",
+# )
 
 task(
     name = "push_git_changes",

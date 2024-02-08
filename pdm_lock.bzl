@@ -151,35 +151,32 @@ def targets():
             actual = ":" + pin_target,
         )
 
-    native.config_setting(
-        name = "_env_python_darwin_arm64",
-        constraint_values = [
-            "@@platforms//os:osx",
-            "@@platforms//cpu:aarch64",
-        ],
+    native.alias(
+        name = "_env_python_3.12_aarch64-apple-darwin",
+        actual = "@@rules_pycross~0.5.2~environments~smoke_environments//:python_3.12_aarch64-apple-darwin_config",
     )
 
-    native.config_setting(
-        name = "_env_python_linux_amd64",
-        constraint_values = [
-            "@@platforms//os:linux",
-            "@@platforms//cpu:x86_64",
-        ],
+    native.alias(
+        name = "_env_python_3.12_aarch64-unknown-linux-gnu",
+        actual = "@@rules_pycross~0.5.2~environments~smoke_environments//:python_3.12_aarch64-unknown-linux-gnu_config",
     )
 
-    native.config_setting(
-        name = "_env_python_linux_arm64",
-        constraint_values = [
-            "@@platforms//os:linux",
-            "@@platforms//cpu:aarch64",
-        ],
+    native.alias(
+        name = "_env_python_3.12_x86_64-apple-darwin",
+        actual = "@@rules_pycross~0.5.2~environments~smoke_environments//:python_3.12_x86_64-apple-darwin_config",
+    )
+
+    native.alias(
+        name = "_env_python_3.12_x86_64-unknown-linux-gnu",
+        actual = "@@rules_pycross~0.5.2~environments~smoke_environments//:python_3.12_x86_64-unknown-linux-gnu_config",
     )
 
     # buildifier: disable=unused-variable
     _target = select({
-        ":_env_python_darwin_arm64": "@@_main//:python_darwin_arm64",
-        ":_env_python_linux_amd64": "@@_main//:python_linux_amd64",
-        ":_env_python_linux_arm64": "@@_main//:python_linux_arm64",
+        ":_env_python_3.12_aarch64-apple-darwin": "@@rules_pycross~0.5.2~environments~smoke_environments//:python_3.12_aarch64-apple-darwin.json",
+        ":_env_python_3.12_aarch64-unknown-linux-gnu": "@@rules_pycross~0.5.2~environments~smoke_environments//:python_3.12_aarch64-unknown-linux-gnu.json",
+        ":_env_python_3.12_x86_64-apple-darwin": "@@rules_pycross~0.5.2~environments~smoke_environments//:python_3.12_x86_64-apple-darwin.json",
+        ":_env_python_3.12_x86_64-unknown-linux-gnu": "@@rules_pycross~0.5.2~environments~smoke_environments//:python_3.12_x86_64-unknown-linux-gnu.json",
     })
 
     _aiohttp_3_8_4_deps = [
@@ -335,9 +332,10 @@ def targets():
     native.alias(
         name = "_wheel_bcrypt@4.0.1",
         actual = select({
-            ":_env_python_darwin_arm64": "@pdm_lock_wheel_bcrypt_4.0.1_cp36_abi3_macosx_10_10_universal2//file",
-            ":_env_python_linux_amd64": "@pdm_lock_wheel_bcrypt_4.0.1_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
-            ":_env_python_linux_arm64": "@pdm_lock_wheel_bcrypt_4.0.1_cp36_abi3_manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64//file",
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_bcrypt_4.0.1_cp36_abi3_macosx_10_10_universal2//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_bcrypt_4.0.1_cp36_abi3_manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_bcrypt_4.0.1_cp36_abi3_macosx_10_10_universal2//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_bcrypt_4.0.1_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -380,21 +378,13 @@ def targets():
     ]
 
     native.alias(
-        name = "_sdist_cffi@1.16.0",
-        actual = "@pdm_lock_sdist_cffi_1.16.0//file",
-    )
-
-    pycross_wheel_build(
-        name = "_build_cffi@1.16.0",
-        sdist = ":_sdist_cffi@1.16.0",
-        target_environment = _target,
-        deps = _cffi_1_16_0_deps,
-        tags = ["manual"],
-    )
-
-    native.alias(
         name = "_wheel_cffi@1.16.0",
-        actual = ":_build_cffi@1.16.0",
+        actual = select({
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_cffi_1.16.0_cp312_cp312_macosx_11_0_arm64//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_cffi_1.16.0_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_cffi_1.16.0_cp312_cp312_macosx_10_9_x86_64//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_cffi_1.16.0_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
+        }),
     )
 
     pycross_wheel_library(
@@ -405,7 +395,12 @@ def targets():
 
     native.alias(
         name = "_wheel_charset-normalizer@3.3.2",
-        actual = "@pdm_lock_wheel_charset_normalizer_3.3.2_py3_none_any//file",
+        actual = select({
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_charset_normalizer_3.3.2_cp312_cp312_macosx_11_0_arm64//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_charset_normalizer_3.3.2_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_charset_normalizer_3.3.2_cp312_cp312_macosx_10_9_x86_64//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_charset_normalizer_3.3.2_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
+        }),
     )
 
     pycross_wheel_library(
@@ -522,9 +517,10 @@ def targets():
     native.alias(
         name = "_wheel_cryptography@40.0.2",
         actual = select({
-            ":_env_python_darwin_arm64": "@pdm_lock_wheel_cryptography_40.0.2_cp36_abi3_macosx_10_12_universal2//file",
-            ":_env_python_linux_amd64": "@pdm_lock_wheel_cryptography_40.0.2_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
-            ":_env_python_linux_arm64": "@pdm_lock_wheel_cryptography_40.0.2_cp36_abi3_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_cryptography_40.0.2_cp36_abi3_macosx_10_12_universal2//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_cryptography_40.0.2_cp36_abi3_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_cryptography_40.0.2_cp36_abi3_macosx_10_12_x86_64//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_cryptography_40.0.2_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -596,7 +592,12 @@ def targets():
 
     native.alias(
         name = "_wheel_frozenlist@1.4.1",
-        actual = "@pdm_lock_wheel_frozenlist_1.4.1_py3_none_any//file",
+        actual = select({
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_frozenlist_1.4.1_cp312_cp312_macosx_11_0_arm64//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_frozenlist_1.4.1_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_frozenlist_1.4.1_cp312_cp312_macosx_10_9_x86_64//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_frozenlist_1.4.1_cp312_cp312_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
+        }),
     )
 
     pycross_wheel_library(
@@ -611,21 +612,13 @@ def targets():
     ]
 
     native.alias(
-        name = "_sdist_gevent@23.9.1",
-        actual = "@pdm_lock_sdist_gevent_23.9.1//file",
-    )
-
-    pycross_wheel_build(
-        name = "_build_gevent@23.9.1",
-        sdist = ":_sdist_gevent@23.9.1",
-        target_environment = _target,
-        deps = _gevent_23_9_1_deps,
-        tags = ["manual"],
-    )
-
-    native.alias(
         name = "_wheel_gevent@23.9.1",
-        actual = ":_build_gevent@23.9.1",
+        actual = select({
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_gevent_23.9.1_cp312_cp312_macosx_11_0_universal2//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_gevent_23.9.1_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_gevent_23.9.1_cp312_cp312_macosx_11_0_universal2//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_gevent_23.9.1_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
+        }),
     )
 
     pycross_wheel_library(
@@ -650,20 +643,13 @@ def targets():
     )
 
     native.alias(
-        name = "_sdist_greenlet@3.0.3",
-        actual = "@pdm_lock_sdist_greenlet_3.0.3//file",
-    )
-
-    pycross_wheel_build(
-        name = "_build_greenlet@3.0.3",
-        sdist = ":_sdist_greenlet@3.0.3",
-        target_environment = _target,
-        tags = ["manual"],
-    )
-
-    native.alias(
         name = "_wheel_greenlet@3.0.3",
-        actual = ":_build_greenlet@3.0.3",
+        actual = select({
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_greenlet_3.0.3_cp312_cp312_macosx_11_0_universal2//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_greenlet_3.0.3_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_greenlet_3.0.3_cp312_cp312_macosx_11_0_universal2//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_greenlet_3.0.3_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
+        }),
     )
 
     pycross_wheel_library(
@@ -899,20 +885,13 @@ def targets():
     )
 
     native.alias(
-        name = "_sdist_markupsafe@2.1.5",
-        actual = "@pdm_lock_sdist_markupsafe_2.1.5//file",
-    )
-
-    pycross_wheel_build(
-        name = "_build_markupsafe@2.1.5",
-        sdist = ":_sdist_markupsafe@2.1.5",
-        target_environment = _target,
-        tags = ["manual"],
-    )
-
-    native.alias(
         name = "_wheel_markupsafe@2.1.5",
-        actual = ":_build_markupsafe@2.1.5",
+        actual = select({
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_markupsafe_2.1.5_cp312_cp312_macosx_10_9_universal2//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_markupsafe_2.1.5_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_markupsafe_2.1.5_cp312_cp312_macosx_10_9_x86_64//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_markupsafe_2.1.5_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
+        }),
     )
 
     pycross_wheel_library(
@@ -950,7 +929,12 @@ def targets():
 
     native.alias(
         name = "_wheel_multidict@6.0.5",
-        actual = "@pdm_lock_wheel_multidict_6.0.5_py3_none_any//file",
+        actual = select({
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_multidict_6.0.5_cp312_cp312_macosx_11_0_arm64//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_multidict_6.0.5_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_multidict_6.0.5_cp312_cp312_macosx_10_9_x86_64//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_multidict_6.0.5_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64//file",
+        }),
     )
 
     pycross_wheel_library(
@@ -1368,9 +1352,10 @@ def targets():
     native.alias(
         name = "_wheel_protobuf@4.25.2",
         actual = select({
-            ":_env_python_darwin_arm64": "@pdm_lock_wheel_protobuf_4.25.2_cp37_abi3_macosx_10_9_universal2//file",
-            ":_env_python_linux_amd64": "@pdm_lock_wheel_protobuf_4.25.2_cp37_abi3_manylinux2014_x86_64//file",
-            ":_env_python_linux_arm64": "@pdm_lock_wheel_protobuf_4.25.2_cp37_abi3_manylinux2014_aarch64//file",
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_protobuf_4.25.2_cp37_abi3_macosx_10_9_universal2//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_protobuf_4.25.2_cp37_abi3_manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_protobuf_4.25.2_cp37_abi3_macosx_10_9_universal2//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_protobuf_4.25.2_cp37_abi3_manylinux2014_x86_64//file",
         }),
     )
 
@@ -1394,9 +1379,10 @@ def targets():
     native.alias(
         name = "_wheel_psutil@5.9.8",
         actual = select({
-            ":_env_python_darwin_arm64": "@pdm_lock_wheel_psutil_5.9.8_cp38_abi3_macosx_11_0_arm64//file",
-            ":_env_python_linux_amd64": "@pdm_lock_wheel_psutil_5.9.8_cp36_abi3_manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
-            ":_env_python_linux_arm64": ":_build_psutil@5.9.8",
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_psutil_5.9.8_cp38_abi3_macosx_11_0_arm64//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": ":_build_psutil@5.9.8",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_psutil_5.9.8_cp36_abi3_macosx_10_9_x86_64//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_psutil_5.9.8_cp36_abi3_manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
         }),
     )
 
@@ -1536,9 +1522,10 @@ def targets():
     native.alias(
         name = "_wheel_pynacl@1.5.0",
         actual = select({
-            ":_env_python_darwin_arm64": "@pdm_lock_wheel_pynacl_1.5.0_cp36_abi3_macosx_10_10_universal2//file",
-            ":_env_python_linux_amd64": "@pdm_lock_wheel_pynacl_1.5.0_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64//file",
-            ":_env_python_linux_arm64": "@pdm_lock_wheel_pynacl_1.5.0_cp36_abi3_manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64//file",
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_pynacl_1.5.0_cp36_abi3_macosx_10_10_universal2//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_pynacl_1.5.0_cp36_abi3_manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_pynacl_1.5.0_cp36_abi3_macosx_10_10_universal2//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_pynacl_1.5.0_cp36_abi3_manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64//file",
         }),
     )
 
@@ -2066,10 +2053,13 @@ def targets():
     _sqlalchemy_2_0_15_deps = [
         ":typing-extensions@4.9.0",
     ] + select({
-        ":_env_python_linux_amd64": [
+        ":_env_python_3.12_aarch64-unknown-linux-gnu": [
             ":greenlet@3.0.3",
         ],
-        ":_env_python_linux_arm64": [
+        ":_env_python_3.12_x86_64-apple-darwin": [
+            ":greenlet@3.0.3",
+        ],
+        ":_env_python_3.12_x86_64-unknown-linux-gnu": [
             ":greenlet@3.0.3",
         ],
         "//conditions:default": [],
@@ -2228,7 +2218,12 @@ def targets():
 
     native.alias(
         name = "_wheel_wrapt@1.16.0",
-        actual = "@pdm_lock_wheel_wrapt_1.16.0_py3_none_any//file",
+        actual = select({
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_wrapt_1.16.0_cp312_cp312_macosx_11_0_arm64//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_wrapt_1.16.0_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_wrapt_1.16.0_cp312_cp312_macosx_10_9_x86_64//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_wrapt_1.16.0_cp312_cp312_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
+        }),
     )
 
     pycross_wheel_library(
@@ -2305,21 +2300,13 @@ def targets():
     ]
 
     native.alias(
-        name = "_sdist_zope-interface@6.1",
-        actual = "@pdm_lock_sdist_zope.interface_6.1//file",
-    )
-
-    pycross_wheel_build(
-        name = "_build_zope-interface@6.1",
-        sdist = ":_sdist_zope-interface@6.1",
-        target_environment = _target,
-        deps = _zope_interface_6_1_deps,
-        tags = ["manual"],
-    )
-
-    native.alias(
         name = "_wheel_zope-interface@6.1",
-        actual = ":_build_zope-interface@6.1",
+        actual = select({
+            ":_env_python_3.12_aarch64-apple-darwin": "@pdm_lock_wheel_zope.interface_6.1_cp312_cp312_macosx_11_0_arm64//file",
+            ":_env_python_3.12_aarch64-unknown-linux-gnu": "@pdm_lock_wheel_zope.interface_6.1_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64//file",
+            ":_env_python_3.12_x86_64-apple-darwin": "@pdm_lock_wheel_zope.interface_6.1_cp312_cp312_macosx_10_9_x86_64//file",
+            ":_env_python_3.12_x86_64-unknown-linux-gnu": "@pdm_lock_wheel_zope.interface_6.1_cp312_cp312_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64//file",
+        }),
     )
 
     pycross_wheel_library(
@@ -2340,16 +2327,6 @@ def repositories():
         ],
         sha256 = "bf2e1a9162c1e441bf805a1fd166e249d574ca04e03b34f97e2928769e91ab5c",
         downloaded_file_path = "aiohttp-3.8.4.tar.gz",
-    )
-
-    maybe(
-        http_file,
-        name = "pdm_lock_sdist_cffi_1.16.0",
-        urls = [
-            "https://files.pythonhosted.org/packages/68/ce/95b0bae7968c65473e1298efb042e10cafc7bafc14d9e4f154008241c91d/cffi-1.16.0.tar.gz",
-        ],
-        sha256 = "bcb3ef43e58665bbda2fb198698fcae6776483e0c4a631aa5647806c25e02cc0",
-        downloaded_file_path = "cffi-1.16.0.tar.gz",
     )
 
     maybe(
@@ -2384,26 +2361,6 @@ def repositories():
 
     maybe(
         http_file,
-        name = "pdm_lock_sdist_gevent_23.9.1",
-        urls = [
-            "https://files.pythonhosted.org/packages/8e/ce/d2b9a376ee010f6d548bf1b6b6eddc372a175e6e100896e607c57e37f7cf/gevent-23.9.1.tar.gz",
-        ],
-        sha256 = "72c002235390d46f94938a96920d8856d4ffd9ddf62a303a0d7c118894097e34",
-        downloaded_file_path = "gevent-23.9.1.tar.gz",
-    )
-
-    maybe(
-        http_file,
-        name = "pdm_lock_sdist_greenlet_3.0.3",
-        urls = [
-            "https://files.pythonhosted.org/packages/17/14/3bddb1298b9a6786539ac609ba4b7c9c0842e12aa73aaa4d8d73ec8f8185/greenlet-3.0.3.tar.gz",
-        ],
-        sha256 = "43374442353259554ce33599da8b692d5aa96f8976d567d4badf263371fbe491",
-        downloaded_file_path = "greenlet-3.0.3.tar.gz",
-    )
-
-    maybe(
-        http_file,
         name = "pdm_lock_sdist_grpcio_1.56.2",
         urls = [
             "https://files.pythonhosted.org/packages/2f/7e/ddf5d42c77418ebf6d57f1503084e2955e8cf1d49671372fbdff7a82cbe5/grpcio-1.56.2.tar.gz",
@@ -2430,16 +2387,6 @@ def repositories():
         ],
         sha256 = "878bc8ef4073e5cfb953dfc1cf4585db41e8b814c0106abde34d00ee0d0b3115",
         downloaded_file_path = "lru-dict-1.1.8.tar.gz",
-    )
-
-    maybe(
-        http_file,
-        name = "pdm_lock_sdist_markupsafe_2.1.5",
-        urls = [
-            "https://files.pythonhosted.org/packages/87/5b/aae44c6655f3801e81aa3eef09dbbf012431987ba564d7231722f68df02d/MarkupSafe-2.1.5.tar.gz",
-        ],
-        sha256 = "d283d37a890ba4c1ae73ffadf8046435c76e7bc2247bbb63c00bd1a709c6544b",
-        downloaded_file_path = "MarkupSafe-2.1.5.tar.gz",
     )
 
     maybe(
@@ -2540,16 +2487,6 @@ def repositories():
         ],
         sha256 = "04ab9d4b9f587c06d801c2abfe9317b77cdf996c65a90d5e84ecc45010823571",
         downloaded_file_path = "yarl-1.9.2.tar.gz",
-    )
-
-    maybe(
-        http_file,
-        name = "pdm_lock_sdist_zope.interface_6.1",
-        urls = [
-            "https://files.pythonhosted.org/packages/87/03/6b85c1df2dca1b9acca38b423d1e226d8ffdf30ebd78bcb398c511de8b54/zope.interface-6.1.tar.gz",
-        ],
-        sha256 = "2fdc7ccbd6eb6b7df5353012fbed6c3c5d04ceaca0038f75e601060e95345309",
-        downloaded_file_path = "zope.interface-6.1.tar.gz",
     )
 
     maybe(
@@ -2704,12 +2641,82 @@ def repositories():
 
     maybe(
         http_file,
-        name = "pdm_lock_wheel_charset_normalizer_3.3.2_py3_none_any",
+        name = "pdm_lock_wheel_cffi_1.16.0_cp312_cp312_macosx_10_9_x86_64",
         urls = [
-            "https://files.pythonhosted.org/packages/28/76/e6222113b83e3622caa4bb41032d0b1bf785250607392e1b778aca0b8a7d/charset_normalizer-3.3.2-py3-none-any.whl",
+            "https://files.pythonhosted.org/packages/22/04/1d10d5baf3faaae9b35f6c49bcf25c1be81ea68cc7ee6923206d02be85b0/cffi-1.16.0-cp312-cp312-macosx_10_9_x86_64.whl",
         ],
-        sha256 = "3e4d1f6587322d2788836a99c69062fbb091331ec940e02d12d179c1d53e25fc",
-        downloaded_file_path = "charset_normalizer-3.3.2-py3-none-any.whl",
+        sha256 = "fa3a0128b152627161ce47201262d3140edb5a5c3da88d73a1b790a959126956",
+        downloaded_file_path = "cffi-1.16.0-cp312-cp312-macosx_10_9_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_cffi_1.16.0_cp312_cp312_macosx_11_0_arm64",
+        urls = [
+            "https://files.pythonhosted.org/packages/b4/f6/b28d2bfb5fca9e8f9afc9d05eae245bed9f6ba5c2897fefee7a9abeaf091/cffi-1.16.0-cp312-cp312-macosx_11_0_arm64.whl",
+        ],
+        sha256 = "68e7c44931cc171c54ccb702482e9fc723192e88d25a0e133edd7aff8fcd1f6e",
+        downloaded_file_path = "cffi-1.16.0-cp312-cp312-macosx_11_0_arm64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_cffi_1.16.0_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64",
+        urls = [
+            "https://files.pythonhosted.org/packages/e4/c7/c09cc6fd1828ea950e60d44e0ef5ed0b7e3396fbfb856e49ca7d629b1408/cffi-1.16.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+        ],
+        sha256 = "88e2b3c14bdb32e440be531ade29d3c50a1a59cd4e51b1dd8b0865c54ea5d2e2",
+        downloaded_file_path = "cffi-1.16.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_cffi_1.16.0_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/09/d4/8759cc3b2222c159add8ce3af0089912203a31610f4be4c36f98e320b4c6/cffi-1.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        ],
+        sha256 = "e715596e683d2ce000574bae5d07bd522c781a822866c20495e52520564f0969",
+        downloaded_file_path = "cffi-1.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_charset_normalizer_3.3.2_cp312_cp312_macosx_10_9_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/2e/7d/2259318c202f3d17f3fe6438149b3b9e706d1070fe3fcbb28049730bb25c/charset_normalizer-3.3.2-cp312-cp312-macosx_10_9_x86_64.whl",
+        ],
+        sha256 = "ddbb2551d7e0102e7252db79ba445cdab71b26640817ab1e3e3648dad515003b",
+        downloaded_file_path = "charset_normalizer-3.3.2-cp312-cp312-macosx_10_9_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_charset_normalizer_3.3.2_cp312_cp312_macosx_11_0_arm64",
+        urls = [
+            "https://files.pythonhosted.org/packages/3a/52/9f9d17c3b54dc238de384c4cb5a2ef0e27985b42a0e5cc8e8a31d918d48d/charset_normalizer-3.3.2-cp312-cp312-macosx_11_0_arm64.whl",
+        ],
+        sha256 = "55086ee1064215781fff39a1af09518bc9255b50d6333f2e4c74ca09fac6a8f6",
+        downloaded_file_path = "charset_normalizer-3.3.2-cp312-cp312-macosx_11_0_arm64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_charset_normalizer_3.3.2_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64",
+        urls = [
+            "https://files.pythonhosted.org/packages/99/b0/9c365f6d79a9f0f3c379ddb40a256a67aa69c59609608fe7feb6235896e1/charset_normalizer-3.3.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+        ],
+        sha256 = "8f4a014bc36d3c57402e2977dada34f9c12300af536839dc38c0beab8878f38a",
+        downloaded_file_path = "charset_normalizer-3.3.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_charset_normalizer_3.3.2_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/ee/fb/14d30eb4956408ee3ae09ad34299131fb383c47df355ddb428a7331cfa1e/charset_normalizer-3.3.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        ],
+        sha256 = "90d558489962fd4918143277a773316e56c72da56ec7aa3dc3dbbe20fdfed15b",
+        downloaded_file_path = "charset_normalizer-3.3.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
     )
 
     maybe(
@@ -2750,6 +2757,16 @@ def repositories():
         ],
         sha256 = "8f79b5ff5ad9d3218afb1e7e20ea74da5f76943ee5edb7f76e56ec5161ec782b",
         downloaded_file_path = "cryptography-40.0.2-cp36-abi3-macosx_10_12_universal2.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_cryptography_40.0.2_cp36_abi3_macosx_10_12_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/85/86/a17a4baf08e0ae6496b44f75136f8e14b843fd3d8a3f4105c0fd79d4786b/cryptography-40.0.2-cp36-abi3-macosx_10_12_x86_64.whl",
+        ],
+        sha256 = "05dc219433b14046c476f6f09d7636b92a1c3e5808b9a6536adf4932b3b2c440",
+        downloaded_file_path = "cryptography-40.0.2-cp36-abi3-macosx_10_12_x86_64.whl",
     )
 
     maybe(
@@ -2824,12 +2841,72 @@ def repositories():
 
     maybe(
         http_file,
-        name = "pdm_lock_wheel_frozenlist_1.4.1_py3_none_any",
+        name = "pdm_lock_wheel_frozenlist_1.4.1_cp312_cp312_macosx_10_9_x86_64",
         urls = [
-            "https://files.pythonhosted.org/packages/83/10/466fe96dae1bff622021ee687f68e5524d6392b0a2f80d05001cd3a451ba/frozenlist-1.4.1-py3-none-any.whl",
+            "https://files.pythonhosted.org/packages/46/03/69eb64642ca8c05f30aa5931d6c55e50b43d0cd13256fdd01510a1f85221/frozenlist-1.4.1-cp312-cp312-macosx_10_9_x86_64.whl",
         ],
-        sha256 = "04ced3e6a46b4cfffe20f9ae482818e34eba9b5fb0ce4056e4cc9b6e212d09b7",
-        downloaded_file_path = "frozenlist-1.4.1-py3-none-any.whl",
+        sha256 = "cc7b01b3754ea68a62bd77ce6020afaffb44a590c2289089289363472d13aedb",
+        downloaded_file_path = "frozenlist-1.4.1-cp312-cp312-macosx_10_9_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_frozenlist_1.4.1_cp312_cp312_macosx_11_0_arm64",
+        urls = [
+            "https://files.pythonhosted.org/packages/3f/ab/c543c13824a615955f57e082c8a5ee122d2d5368e80084f2834e6f4feced/frozenlist-1.4.1-cp312-cp312-macosx_11_0_arm64.whl",
+        ],
+        sha256 = "c9c92be9fd329ac801cc420e08452b70e7aeab94ea4233a4804f0915c14eba9b",
+        downloaded_file_path = "frozenlist-1.4.1-cp312-cp312-macosx_11_0_arm64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_frozenlist_1.4.1_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64",
+        urls = [
+            "https://files.pythonhosted.org/packages/a9/b8/438cfd92be2a124da8259b13409224d9b19ef8f5a5b2507174fc7e7ea18f/frozenlist-1.4.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+        ],
+        sha256 = "5c3894db91f5a489fc8fa6a9991820f368f0b3cbdb9cd8849547ccfab3392d86",
+        downloaded_file_path = "frozenlist-1.4.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_frozenlist_1.4.1_cp312_cp312_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/0b/f2/b8158a0f06faefec33f4dff6345a575c18095a44e52d4f10c678c137d0e0/frozenlist-1.4.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        ],
+        sha256 = "9acbb16f06fe7f52f441bb6f413ebae6c37baa6ef9edd49cdd567216da8600cd",
+        downloaded_file_path = "frozenlist-1.4.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_gevent_23.9.1_cp312_cp312_macosx_11_0_universal2",
+        urls = [
+            "https://files.pythonhosted.org/packages/5f/38/796f4233ca509db402536b6e8f1feae7f47f8532d1cbfacf8a2787b55e16/gevent-23.9.1-cp312-cp312-macosx_11_0_universal2.whl",
+        ],
+        sha256 = "ed7a048d3e526a5c1d55c44cb3bc06cfdc1947d06d45006cc4cf60dedc628904",
+        downloaded_file_path = "gevent-23.9.1-cp312-cp312-macosx_11_0_universal2.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_gevent_23.9.1_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64",
+        urls = [
+            "https://files.pythonhosted.org/packages/3a/c4/1cad8a349456055bcc996c1587b1802b85bf10ead31ddf3f4b518121744f/gevent-23.9.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+        ],
+        sha256 = "7c1abc6f25f475adc33e5fc2dbcc26a732608ac5375d0d306228738a9ae14d3b",
+        downloaded_file_path = "gevent-23.9.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_gevent_23.9.1_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/ee/04/07ec55cf891353f05d1fd173d5ef007bcb4cffd280716ec8adeb35693445/gevent-23.9.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        ],
+        sha256 = "52e9f12cd1cda96603ce6b113d934f1aafb873e2c13182cf8e86d2c5c41982ea",
+        downloaded_file_path = "gevent-23.9.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
     )
 
     maybe(
@@ -2840,6 +2917,36 @@ def repositories():
         ],
         sha256 = "4750113612205514f9f6aa4cb00d523a94f3e8c06c5ad2fee466387dc4875f07",
         downloaded_file_path = "googleapis_common_protos-1.62.0-py2.py3-none-any.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_greenlet_3.0.3_cp312_cp312_macosx_11_0_universal2",
+        urls = [
+            "https://files.pythonhosted.org/packages/a2/2f/461615adc53ba81e99471303b15ac6b2a6daa8d2a0f7f77fd15605e16d5b/greenlet-3.0.3-cp312-cp312-macosx_11_0_universal2.whl",
+        ],
+        sha256 = "70fb482fdf2c707765ab5f0b6655e9cfcf3780d8d87355a063547b41177599be",
+        downloaded_file_path = "greenlet-3.0.3-cp312-cp312-macosx_11_0_universal2.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_greenlet_3.0.3_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64",
+        urls = [
+            "https://files.pythonhosted.org/packages/e9/55/2c3cfa3cdbb940cf7321fbcf544f0e9c74898eed43bf678abf416812d132/greenlet-3.0.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+        ],
+        sha256 = "d4d1ac74f5c0c0524e4a24335350edad7e5f03b9532da7ea4d3c54d527784f2e",
+        downloaded_file_path = "greenlet-3.0.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_greenlet_3.0.3_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/63/0f/847ed02cdfce10f0e6e3425cd054296bddb11a17ef1b34681fa01a055187/greenlet-3.0.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        ],
+        sha256 = "881b7db1ebff4ba09aaaeae6aa491daeb226c8150fc20e836ad00041bcb11230",
+        downloaded_file_path = "greenlet-3.0.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
     )
 
     maybe(
@@ -2934,12 +3041,82 @@ def repositories():
 
     maybe(
         http_file,
-        name = "pdm_lock_wheel_multidict_6.0.5_py3_none_any",
+        name = "pdm_lock_wheel_markupsafe_2.1.5_cp312_cp312_macosx_10_9_universal2",
         urls = [
-            "https://files.pythonhosted.org/packages/fa/a2/17e1e23c6be0a916219c5292f509360c345b5fa6beeb50d743203c27532c/multidict-6.0.5-py3-none-any.whl",
+            "https://files.pythonhosted.org/packages/53/bd/583bf3e4c8d6a321938c13f49d44024dbe5ed63e0a7ba127e454a66da974/MarkupSafe-2.1.5-cp312-cp312-macosx_10_9_universal2.whl",
         ],
-        sha256 = "0d63c74e3d7ab26de115c49bffc92cc77ed23395303d496eae515d4204a625e7",
-        downloaded_file_path = "multidict-6.0.5-py3-none-any.whl",
+        sha256 = "8dec4936e9c3100156f8a2dc89c4b88d5c435175ff03413b443469c7c8c5f4d1",
+        downloaded_file_path = "MarkupSafe-2.1.5-cp312-cp312-macosx_10_9_universal2.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_markupsafe_2.1.5_cp312_cp312_macosx_10_9_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/48/d6/e7cd795fc710292c3af3a06d80868ce4b02bfbbf370b7cee11d282815a2a/MarkupSafe-2.1.5-cp312-cp312-macosx_10_9_x86_64.whl",
+        ],
+        sha256 = "3c6b973f22eb18a789b1460b4b91bf04ae3f0c4234a0a6aa6b0a92f6f7b951d4",
+        downloaded_file_path = "MarkupSafe-2.1.5-cp312-cp312-macosx_10_9_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_markupsafe_2.1.5_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64",
+        urls = [
+            "https://files.pythonhosted.org/packages/51/b5/5d8ec796e2a08fc814a2c7d2584b55f889a55cf17dd1a90f2beb70744e5c/MarkupSafe-2.1.5-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+        ],
+        sha256 = "ac07bad82163452a6884fe8fa0963fb98c2346ba78d779ec06bd7a6262132aee",
+        downloaded_file_path = "MarkupSafe-2.1.5-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_markupsafe_2.1.5_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/0a/0d/2454f072fae3b5a137c119abf15465d1771319dfe9e4acbb31722a0fff91/MarkupSafe-2.1.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        ],
+        sha256 = "f5dfb42c4604dddc8e4305050aa6deb084540643ed5804d7455b5df8fe16f5e5",
+        downloaded_file_path = "MarkupSafe-2.1.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_multidict_6.0.5_cp312_cp312_macosx_10_9_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/be/21/d6ca80dd1b9b2c5605ff7475699a8ff5dc6ea958cd71fb2ff234afc13d79/multidict-6.0.5-cp312-cp312-macosx_10_9_x86_64.whl",
+        ],
+        sha256 = "cbebcd5bcaf1eaf302617c114aa67569dd3f090dd0ce8ba9e35e9985b41ac35b",
+        downloaded_file_path = "multidict-6.0.5-cp312-cp312-macosx_10_9_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_multidict_6.0.5_cp312_cp312_macosx_11_0_arm64",
+        urls = [
+            "https://files.pythonhosted.org/packages/9c/18/9565f32c19d186168731e859692dfbc0e98f66a1dcf9e14d69c02a78b75a/multidict-6.0.5-cp312-cp312-macosx_11_0_arm64.whl",
+        ],
+        sha256 = "2ffc42c922dbfddb4a4c3b438eb056828719f07608af27d163191cb3e3aa6cc5",
+        downloaded_file_path = "multidict-6.0.5-cp312-cp312-macosx_11_0_arm64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_multidict_6.0.5_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64",
+        urls = [
+            "https://files.pythonhosted.org/packages/4e/4e/3815190e73e6ef101b5681c174c541bf972a1b064e926e56eea78d06e858/multidict-6.0.5-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+        ],
+        sha256 = "ceb3b7e6a0135e092de86110c5a74e46bda4bd4fbfeeb3a3bcec79c0f861e450",
+        downloaded_file_path = "multidict-6.0.5-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_multidict_6.0.5_cp312_cp312_manylinux_2_17_x86_64.manylinux2014_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/24/1f/af976383b0b772dd351210af5b60ff9927e3abb2f4a103e93da19a957da0/multidict-6.0.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        ],
+        sha256 = "d84a5c3a5f7ce6db1f999fb9438f686bc2e09d38143f2d93d8406ed2dd6b9226",
+        downloaded_file_path = "multidict-6.0.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
     )
 
     maybe(
@@ -3200,6 +3377,16 @@ def repositories():
         ],
         sha256 = "fc381d1dd0516343f1440019cedf08a7405f791cd49eef4ae1ea06520bc1c020",
         downloaded_file_path = "protobuf-4.25.2-cp37-abi3-manylinux2014_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_psutil_5.9.8_cp36_abi3_macosx_10_9_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/e7/e3/07ae864a636d70a8a6f58da27cb1179192f1140d5d1da10886ade9405797/psutil-5.9.8-cp36-abi3-macosx_10_9_x86_64.whl",
+        ],
+        sha256 = "aee678c8720623dc456fa20659af736241f575d79429a0e5e9cf88ae0605cc81",
+        downloaded_file_path = "psutil-5.9.8-cp36-abi3-macosx_10_9_x86_64.whl",
     )
 
     maybe(
@@ -3714,12 +3901,42 @@ def repositories():
 
     maybe(
         http_file,
-        name = "pdm_lock_wheel_wrapt_1.16.0_py3_none_any",
+        name = "pdm_lock_wheel_wrapt_1.16.0_cp312_cp312_macosx_10_9_x86_64",
         urls = [
-            "https://files.pythonhosted.org/packages/ff/21/abdedb4cdf6ff41ebf01a74087740a709e2edb146490e4d9beea054b0b7a/wrapt-1.16.0-py3-none-any.whl",
+            "https://files.pythonhosted.org/packages/92/17/224132494c1e23521868cdd57cd1e903f3b6a7ba6996b7b8f077ff8ac7fe/wrapt-1.16.0-cp312-cp312-macosx_10_9_x86_64.whl",
         ],
-        sha256 = "6906c4100a8fcbf2fa735f6059214bb13b97f75b1a61777fcf6432121ef12ef1",
-        downloaded_file_path = "wrapt-1.16.0-py3-none-any.whl",
+        sha256 = "5eb404d89131ec9b4f748fa5cfb5346802e5ee8836f57d516576e61f304f3b7b",
+        downloaded_file_path = "wrapt-1.16.0-cp312-cp312-macosx_10_9_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_wrapt_1.16.0_cp312_cp312_macosx_11_0_arm64",
+        urls = [
+            "https://files.pythonhosted.org/packages/6a/d7/cfcd73e8f4858079ac59d9db1ec5a1349bc486ae8e9ba55698cc1f4a1dff/wrapt-1.16.0-cp312-cp312-macosx_11_0_arm64.whl",
+        ],
+        sha256 = "9090c9e676d5236a6948330e83cb89969f433b1943a558968f659ead07cb3b36",
+        downloaded_file_path = "wrapt-1.16.0-cp312-cp312-macosx_11_0_arm64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_wrapt_1.16.0_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64",
+        urls = [
+            "https://files.pythonhosted.org/packages/7e/79/5ff0a5c54bda5aec75b36453d06be4f83d5cd4932cc84b7cb2b52cee23e2/wrapt-1.16.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+        ],
+        sha256 = "94265b00870aa407bd0cbcfd536f17ecde43b94fb8d228560a1e9d3041462d73",
+        downloaded_file_path = "wrapt-1.16.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_wrapt_1.16.0_cp312_cp312_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/62/62/30ca2405de6a20448ee557ab2cd61ab9c5900be7cbd18a2639db595f0b98/wrapt-1.16.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        ],
+        sha256 = "98b5e1f498a8ca1858a1cdbffb023bfd954da4e3fa2c0cb5853d40014557248b",
+        downloaded_file_path = "wrapt-1.16.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
     )
 
     maybe(
@@ -3750,4 +3967,44 @@ def repositories():
         ],
         sha256 = "2832e95014f4db26c47a13fdaef84cef2f4df37e66b59d8f1f4a8f319a632c26",
         downloaded_file_path = "zope.event-5.0-py3-none-any.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_zope.interface_6.1_cp312_cp312_macosx_10_9_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/3c/91/68a0bbc97c2554f87d39572091954e94d043bcd83897cd6a779ca85cb5cc/zope.interface-6.1-cp312-cp312-macosx_10_9_x86_64.whl",
+        ],
+        sha256 = "e8bb9c990ca9027b4214fa543fd4025818dc95f8b7abce79d61dc8a2112b561a",
+        downloaded_file_path = "zope.interface-6.1-cp312-cp312-macosx_10_9_x86_64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_zope.interface_6.1_cp312_cp312_macosx_11_0_arm64",
+        urls = [
+            "https://files.pythonhosted.org/packages/e1/84/850092a8ab7e87a3ea615daf3f822f7196c52592e3e92f264621b4cfe5a2/zope.interface-6.1-cp312-cp312-macosx_11_0_arm64.whl",
+        ],
+        sha256 = "b51b64432eed4c0744241e9ce5c70dcfecac866dff720e746d0a9c82f371dfa7",
+        downloaded_file_path = "zope.interface-6.1-cp312-cp312-macosx_11_0_arm64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_zope.interface_6.1_cp312_cp312_manylinux_2_17_aarch64.manylinux2014_aarch64",
+        urls = [
+            "https://files.pythonhosted.org/packages/57/23/508f7f79619ae4e025f5b264a9283efc3c805ed4c0ad75cb28c091179ced/zope.interface-6.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+        ],
+        sha256 = "aa6fd016e9644406d0a61313e50348c706e911dca29736a3266fc9e28ec4ca6d",
+        downloaded_file_path = "zope.interface-6.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+    )
+
+    maybe(
+        http_file,
+        name = "pdm_lock_wheel_zope.interface_6.1_cp312_cp312_manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64",
+        urls = [
+            "https://files.pythonhosted.org/packages/fd/4f/8e80173ebcdefe0ff4164444c22b171cf8bd72533026befc2adf079f3ac8/zope.interface-6.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        ],
+        sha256 = "e30506bcb03de8983f78884807e4fd95d8db6e65b69257eea05d13d519b83ac0",
+        downloaded_file_path = "zope.interface-6.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
     )
