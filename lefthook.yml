@@ -9,7 +9,6 @@ all:
     buildifier:
       run: buildifier -mode check {all_files}
       glob: "*.{bazel,bzl,bzlmod}"
-      exclude: "pdm_lock.bzl"
 
 pre-commit:
   commands:
@@ -25,4 +24,3 @@ pre-commit:
       run: buildifier {staged_files}
       glob: "*.{bazel,bzl,bzlmod}"
       stage_fixed: true
-      exclude: "pdm_lock.bzl"

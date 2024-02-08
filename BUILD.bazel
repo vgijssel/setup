@@ -86,17 +86,6 @@ platform(
     ],
 )
 
-load("@pdm-setup//:requirements.bzl", "requirement")
-
-# TODO: try to make this target work!
-py_binary(
-    name = "try_it",
-    srcs = ["try_it.py"],
-    deps = [
-        requirement("lru-dict"),
-    ],
-)
-
 task(
     name = "push_git_changes",
     cmds = [
