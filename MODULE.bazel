@@ -57,7 +57,7 @@ local_path_override(
 
 # ------------------------------------ rules_python ------------------------------------ #
 
-PYTHON_VERSION = "3.10"
+PYTHON_VERSION = "3.11"
 
 py_underscore_version = PYTHON_VERSION.replace(".", "_")
 
@@ -177,15 +177,6 @@ lock_import.package(
 )
 
 lock_import.package(
-    name = "colored",
-    build_dependencies = [
-        "wheel",
-        "setuptools",
-    ],
-    repo = "pdm-setup",
-)
-
-lock_import.package(
     name = "paho-mqtt",
     build_dependencies = [
         "wheel",
@@ -196,6 +187,44 @@ lock_import.package(
 
 lock_import.package(
     name = "home-assistant-bluetooth",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+        "poetry-core",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "zlib-ng",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "bluetooth-data-tools",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+        "poetry-core",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "pyric",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "dbus-fast",
     build_dependencies = [
         "wheel",
         "setuptools",

@@ -9,7 +9,7 @@ services:
       - "mosquitto_data:/mosquitto"
 
   home-assistant:
-    image: "setup/home-assistant"
+    image: "homeassistant/home-assistant:2024.2"
     ports:
       - "127.0.0.1:8123:8123"
     extra_hosts:
