@@ -130,7 +130,72 @@ lock_import.import_pdm(
 )
 
 lock_import.package(
+    name = "ulid-transform",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+        "poetry-core",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "python-slugify",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "mock-open",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
     name = "lru-dict",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+        "poetry-core",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "pytest-test-groups",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "colored",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "paho-mqtt",
+    build_dependencies = [
+        "wheel",
+        "setuptools",
+    ],
+    repo = "pdm-setup",
+)
+
+lock_import.package(
+    name = "home-assistant-bluetooth",
     build_dependencies = [
         "wheel",
         "setuptools",
@@ -142,15 +207,6 @@ lock_import.package(
 lock_repos = use_extension("@rules_pycross//pycross/extensions:lock_repos.bzl", "lock_repos")
 
 use_repo(lock_repos, "pdm-setup")
-
-lock_file = use_extension("@rules_pycross//pycross/extensions:lock_file.bzl", "lock_file")
-
-lock_file.instantiate(
-    name = "pdm_lock_file",
-    lock_file = "@setup//:pdm_lock.bzl",
-)
-
-use_repo(lock_file, "pdm_lock_file")
 
 # ------------------------------------ rules_oci ------------------------------------ #
 bazel_dep(
