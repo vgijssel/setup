@@ -6,15 +6,14 @@ metadata:
 spec:
   configuration:
     permittedHostDevices:
+      pciHostDevices:
+        - pciVendorSelector: "8086:107c"
+          resourceName: "kubevirt.io/internet-card"
       usb:
         - resourceName: kubevirt.io/skyconnect
           selectors:
             - vendor: "10c4"
               product: "ea60"
-        - resourceName: kubevirt.io/internet
-          selectors:
-            - vendor: "05ac"
-              product: "1402"
     developerConfiguration:
       featureGates:
         # For using DataVolumes inside VirtualMachine definitions

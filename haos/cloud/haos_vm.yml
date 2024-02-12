@@ -33,7 +33,7 @@ spec:
           hostDevices:
             - deviceName: kubevirt.io/skyconnect
               name: skyconnect
-            - deviceName: kubevirt.io/internet
+            - deviceName: kubevirt.io/internet-card
               name: internet
         resources:
           requests:

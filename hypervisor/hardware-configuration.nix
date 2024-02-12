@@ -5,27 +5,42 @@
 
 {
   imports =
-    [ (modulesPath + "/installer/scan/not-detected.nix")
+    [
+      (modulesPath + "/installer/scan/not-detected.nix")
     ];
 
+  # To enable pci passthrough from kubevirt to haos
+  boot.kernelParams = [ "intel_iommu=on" ];
+  boot.kernelModules = [ "vfio" "vfio_iommu_type1" "vfio_pci" "vfio_virqfd" "kvm-intel" ];
+  boot.extraModprobeConfig = "options vfio-pci ids=8086:107c";
+  boot.initrd.preDeviceCommands = ''
+    DEVS="0000:04:00.0"
+
+    for DEV in $DEVS; do
+      echo "vfio-pci" > /sys/bus/pci/devices/$DEV/driver_override
+    done
+    modprobe -i vfio-pci
+  '';
+
   boot.initrd.availableKernelModules = [ "ata_generic" "ehci_pci" "ahci" "xhci_pci" "usbhid" "usb_storage" "sd_mod" ];
+
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/2e1880ab-24e3-4492-8081-8f4c22955d06";
+    {
+      device = "/dev/disk/by-uuid/2e1880ab-24e3-4492-8081-8f4c22955d06";
       fsType = "ext4";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/4B57-151A";
+    {
+      device = "/dev/disk/by-uuid/4B57-151A";
       fsType = "vfat";
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-uuid/f753fc3a-58f5-4d10-9dde-4736d900f762"; }
-    ];
+    [{ device = "/dev/disk/by-uuid/f753fc3a-58f5-4d10-9dde-4736d900f762"; }];
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
