@@ -1,5 +1,11 @@
 # occupancy_component
 
+## 0.2.0
+
+### Minor Changes
+
+- [#648](https://github.com/vgijssel/setup/pull/648) [`6b838e3`](https://github.com/vgijssel/setup/commit/6b838e3a3ea1d188afb5b27dba831c5e6d0d7059) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Add boilerplate for select and timer components
+
 ## 0.1.0
 
 ### Minor Changes

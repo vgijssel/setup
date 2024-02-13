@@ -1,5 +1,14 @@
 # bunq2ynab_release
 
+## 0.3.1
+
+### Patch Changes
+
+- [#648](https://github.com/vgijssel/setup/pull/648) [`6b838e3`](https://github.com/vgijssel/setup/commit/6b838e3a3ea1d188afb5b27dba831c5e6d0d7059) Thanks [@mvgijssel](https://github.com/mvgijssel)! - chore(deps): Upgrade Python to 3.11
+
+- Updated dependencies [[`6b838e3`](https://github.com/vgijssel/setup/commit/6b838e3a3ea1d188afb5b27dba831c5e6d0d7059)]:
+  - rules_task@2.0.3
+
 ## 0.3.0
 
 ### Minor Changes
