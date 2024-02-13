@@ -96,6 +96,7 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
             )
         )
 
+        # TODO: this does not work for uknown reason
         hass.async_create_task(
             hass.helpers.discovery.async_load_platform(
                 "timer", DOMAIN, {"area_id": area_id}, config
