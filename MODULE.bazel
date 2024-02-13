@@ -85,10 +85,11 @@ use_repo(
 # ------------------------------------ rules_pycross ------------------------------------ #
 bazel_dep(name = "rules_pycross", version = "0.5.2")
 
-# local_path_override(
-#     module_name = "rules_pycross",
-#     path = "./rules/rules_pycross",
-# )
+# TODO: can be removed once versiojn 0.5.3 is released
+local_path_override(
+    module_name = "rules_pycross",
+    path = "./rules/rules_pycross",
+)
 
 pycross = use_extension("@rules_pycross//pycross/extensions:pycross.bzl", "pycross")
 
