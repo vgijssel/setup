@@ -16,12 +16,13 @@ from custom_components.occupancy.const import (
     ATTR_OCCUPANCY_SENSORS,
     OCCUPANCY_DATA,
 )
+from custom_components.occupancy.helper import create_timer
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
-from homeassistant.components.timer import DOMAIN as TIMER_DOMAIN
+
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -96,12 +97,7 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
             )
         )
 
-        # TODO: this does not work for uknown reason
-        hass.async_create_task(
-            hass.helpers.discovery.async_load_platform(
-                "timer", DOMAIN, {"area_id": area_id}, config
-            )
-        )
+    await create_timer(hass, "test")
 
     _LOGGER.debug("async_setup done")
     return True
