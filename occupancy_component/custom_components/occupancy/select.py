@@ -17,6 +17,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.components.timer import (
     DOMAIN as TIMER_DOMAIN,
     SERVICE_START as TIMER_SERVICE_START,
+    STATUS_IDLE as TIMER_STATUS_IDLE,
 )
 
 from homeassistant.const import (
@@ -148,6 +149,7 @@ class Area(SelectEntity, RestoreEntity):
 
     async def _timer_event(self, event: EventType):
         _LOGGER.debug("Called '_timer_event' with data %s", event.data)
+        await self._calculate_state()
 
     # TODO:
     # we need to have a single function which runs whenever a door
@@ -166,17 +168,16 @@ class Area(SelectEntity, RestoreEntity):
     async def _door_event(self, event: EventType):
         _LOGGER.debug("Called '_door_event' with data %s", event.data)
 
-        if event.data["old_state"] == None:
-            from_state = None
-        else:
-            from_state = event.data["old_state"].state
+        # if event.data["old_state"] == None:
+        #     from_state = None
+        # else:
+        #     from_state = event.data["old_state"].state
 
-        to_state = event.data["new_state"].state
+        # to_state = event.data["new_state"].state
 
-        if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
-            # self._door_last_changed = to_state.last_changed
-            pass
-
+        # if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
+        #     # self._door_last_changed = to_state.last_changed
+        #     pass
         await self._calculate_state()
 
     async def async_select_option(self, option: str) -> None:
@@ -195,21 +196,34 @@ class Area(SelectEntity, RestoreEntity):
 
         return False
 
+    def _timer_is_idle(self, timer: str):
+        state = self.hass.states.get(timer)
+
+        _LOGGER.debug(f"Getting timer state for {timer} {state}")
+
+        if state is None or state.state == TIMER_STATUS_IDLE:
+            return True
+
+        return False
+
+    async def _start_timer(self, timer: str):
+        _LOGGER.debug(f"Starting timer {timer}")
+        data = {
+            "entity_id": timer,
+            "duration": "00:00:10",
+        }
+
+        await self.hass.services.async_call(TIMER_DOMAIN, TIMER_SERVICE_START, data)
+
     async def _calculate_state(self):
         doors_have_activity = self._doors_have_activity()
 
         if self._current_state == STATE_ABSENT:
             if doors_have_activity:
-                _LOGGER.debug(f"Starting timer {self._entering_timer}")
-                data = {
-                    "entity_id": self._entering_timer,
-                    "duration": "00:00:10",
-                }
+                await self._start_timer(self._entering_timer)
                 await self.async_select_option(STATE_ENTERING)
+        elif self._current_state == STATE_ENTERING:
+            entering_timer_idle = self._timer_is_idle(self._entering_timer)
 
-                await self.hass.services.async_call(
-                    TIMER_DOMAIN, TIMER_SERVICE_START, data
-                )
-
-                # self._current_state = STATE_ENTERING
-                # self.async_write_ha_state()
+            if entering_timer_idle:
+                await self.async_select_option(STATE_ABSENT)
