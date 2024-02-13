@@ -1,0 +1,9 @@
+.ijwb
+.vscode
+env
+bazel-*
+.bazelrc.user
+__pycache__
+.pdm-python
+.flakeheaven_cache
+MODULE.bazel.lock

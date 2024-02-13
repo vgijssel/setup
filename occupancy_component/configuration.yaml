@@ -33,10 +33,10 @@ occupancy:
       entry: true
       contact_sensor: binary_sensor.front_door_contact
       motion_sensor: binary_sensor.front_door_motion_occupancy
-    office_door:
-      contact_sensor: binary_sensor.office_door_contact
-      motion_sensor: binary_sensor.office_door_motion_occupancy
+    living_room_door:
+      contact_sensor: binary_sensor.living_room_door_contact
+      motion_sensor: binary_sensor.living_room_door_motion
   areas:
     hallway:
-      occupancy_sensors: []
-      doors: ["front_door"]
+      occupancy_sensors: ["binary_sensor.hallway_occupancy"]
+      doors: ["front_door", "living_room_door"]

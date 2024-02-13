@@ -21,7 +21,7 @@ let
     contents = [
       targetPkgs.busybox
       targetPkgs.bashInteractive
-      targetPkgs.python310
+      targetPkgs.python311
       targetPkgs.stdenv.cc.cc.lib
       targetPkgs.cacert
       dockerEtc

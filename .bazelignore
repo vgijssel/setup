@@ -13,6 +13,7 @@ node_modules
 
 rules/rules_task
 rules/rules_release
+rules/rules_pycross
 
 bazel-bin
 bazel-out

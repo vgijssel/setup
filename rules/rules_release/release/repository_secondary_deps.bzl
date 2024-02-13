@@ -1,7 +1,7 @@
 load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
-load("@pip//:requirements.bzl", install_pip_deps = "install_deps")
 load("@npm//:repositories.bzl", "npm_repositories")
 load("@rules_oci//oci:repositories.bzl", "LATEST_CRANE_VERSION", "oci_register_toolchains")
+load("@rules_python//python:pip.bzl", "pip_parse")
 
 def install_secondary_deps():
     # ------------------------------------ aspect_rules_js ------------------------------------ #
@@ -11,7 +11,10 @@ def install_secondary_deps():
     )
 
     # ------------------------------------ rules_task ------------------------------------ #
-    install_pip_deps()
+    pip_parse(
+        name = "pip",
+        requirements_lock = "@rules_task//:requirements.txt",
+    )
 
     # ------------------------------------ rules_release ------------------------------------ #
     npm_repositories()

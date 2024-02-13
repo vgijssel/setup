@@ -3,7 +3,6 @@ load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies",
 load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
 load("@rules_python//python:repositories.bzl", "py_repositories")
-load("@rules_python//python:pip.bzl", "pip_parse")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@rules_oci//oci:dependencies.bzl", "rules_oci_dependencies")
 
@@ -23,12 +22,6 @@ def install_primary_deps():
 
     # ------------------------------------ rules_python ------------------------------------ #
     py_repositories()
-
-    # ------------------------------------ rules_task ------------------------------------ #
-    pip_parse(
-        name = "pip",
-        requirements_lock = "@rules_task//:requirements.txt",
-    )
 
     # ------------------------------------ rules_release ------------------------------------ #
     npm_translate_lock(

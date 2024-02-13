@@ -1,0 +1,155 @@
+load("@rules_pycross_internal//:python.bzl", "py_binary", "py_library")
+load("//pycross/private:wheel_zipimport_library.bzl", "pycross_wheel_zipimport_library")
+
+package(default_visibility = ["//pycross:__subpackages__"])
+
+py_library(
+    name = "args",
+    srcs = [
+        "args.py",
+    ],
+)
+
+py_binary(
+    name = "bzl_lock_generator",
+    srcs = ["bzl_lock_generator.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":args",
+        ":raw_lock_resolver",
+        ":resolved_lock_renderer",
+    ],
+)
+
+py_binary(
+    name = "extract_lock_repos",
+    srcs = ["extract_lock_repos.py"],
+)
+
+py_binary(
+    name = "raw_lock_resolver",
+    srcs = ["raw_lock_resolver.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":args",
+        ":lock_model",
+        ":target_environment",
+        "@rules_pycross_internal//deps:packaging",
+        "@rules_pycross_internal//deps:pip",
+    ],
+)
+
+py_binary(
+    name = "resolved_lock_renderer",
+    srcs = ["resolved_lock_renderer.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":args",
+        ":lock_model",
+    ],
+)
+
+pycross_wheel_zipimport_library(
+    name = "installer",
+    wheel = "@rules_pycross_internal//:installer_whl",
+)
+
+py_library(
+    name = "target_environment",
+    srcs = [
+        "target_environment.py",
+    ],
+    deps = [
+        "@rules_pycross_internal//deps:pip",
+    ],
+)
+
+py_library(
+    name = "lock_model",
+    srcs = ["lock_model.py"],
+    deps = [
+        ":target_environment",
+        "@rules_pycross_internal//deps:dacite",
+        "@rules_pycross_internal//deps:packaging",
+    ],
+)
+
+py_library(
+    name = "namespace_pkgs",
+    srcs = [
+        "namespace_pkgs.py",
+    ],
+)
+
+py_test(
+    name = "namespace_pkgs_test",
+    size = "small",
+    srcs = [
+        "namespace_pkgs_test.py",
+    ],
+    tags = ["unit"],
+    deps = [
+        ":namespace_pkgs",
+    ],
+)
+
+py_binary(
+    name = "pdm_translator",
+    srcs = ["pdm_translator.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":args",
+        ":lock_model",
+        "@rules_pycross_internal//deps:tomli",
+    ],
+)
+
+py_binary(
+    name = "poetry_translator",
+    srcs = ["poetry_translator.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":args",
+        ":lock_model",
+        "@rules_pycross_internal//deps:poetry-core",
+        "@rules_pycross_internal//deps:tomli",
+    ],
+)
+
+py_binary(
+    name = "target_environment_generator",
+    srcs = ["target_environment_generator.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":args",
+        ":target_environment",
+        "@rules_pycross_internal//deps:dacite",
+        "@rules_pycross_internal//deps:packaging",
+        "@rules_pycross_internal//deps:pip",
+    ],
+)
+
+py_binary(
+    name = "wheel_builder",
+    srcs = ["wheel_builder.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":args",
+        ":target_environment",
+        "//pycross/private/tools/crossenv",
+        "@rules_pycross_internal//deps:build",
+        "@rules_pycross_internal//deps:packaging",
+        "@rules_pycross_internal//deps:tomli",
+    ],
+)
+
+py_binary(
+    name = "wheel_installer",
+    srcs = ["wheel_installer.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":args",
+        ":installer",
+        ":namespace_pkgs",
+    ],
+)

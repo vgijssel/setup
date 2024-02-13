@@ -23,3 +23,7 @@ install_primary_deps()
 load("@rules_release//release:repository_secondary_deps.bzl", "install_secondary_deps")
 
 install_secondary_deps()
+
+load("@rules_release//release:repository_tertiary_deps.bzl", "install_tertiary_deps")
+
+install_tertiary_deps()

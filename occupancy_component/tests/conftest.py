@@ -27,12 +27,16 @@ async def init_integration(hass) -> None:
                     "entry": True,
                     "contact_sensor": "binary_sensor.front_door_contact",
                     "motion_sensor": "binary_sensor.front_door_motion",
-                }
+                },
+                "living_room_door": {
+                    "contact_sensor": "binary_sensor.living_room_door_contact",
+                    "motion_sensor": "binary_sensor.living_room_door_motion",
+                },
             },
             "areas": {
                 "hallway": {
                     "occupancy_sensors": ["binary_sensor.hallway_occupancy"],
-                    "doors": ["front_door"],
+                    "doors": ["front_door", "living_room_door"],
                 }
             },
         },
