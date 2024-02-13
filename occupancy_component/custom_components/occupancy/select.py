@@ -8,19 +8,18 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.event import (
     async_track_state_change_event,
 )
-from datetime import datetime
-
-from homeassistant.components.select import SelectEntity
-from homeassistant.helpers.event import async_call_later
+from homeassistant.components.select import (
+    SelectEntity,
+    DOMAIN as SELECT_DOMAIN,
+    SERVICE_SELECT_OPTION,
+)
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntityDescription,
-    BinarySensorEntity,
+from homeassistant.components.timer import (
+    DOMAIN as TIMER_DOMAIN,
+    SERVICE_START as TIMER_SERVICE_START,
 )
 
 from homeassistant.const import (
-    EVENT_HOMEASSISTANT_STARTED,
     STATE_OFF,
     STATE_ON,
 )
@@ -30,22 +29,20 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 from custom_components.occupancy.const import (
-    DOMAIN,
-    ATTR_ENTRY,
-    ATTR_CONTACT_SENSOR,
-    ATTR_MOTION_SENSOR,
     ATTR_AREAS,
     OCCUPANCY_DATA,
     ATTR_OCCUPANCY_SENSORS,
     ATTR_DOORS,
-)
-
-from homeassistant.components.timer import (
-    Timer,
-    CONF_ICON,
-    CONF_ID,
-    CONF_NAME,
-    CONF_DURATION,
+    STATE_ABSENT,
+    STATE_ENTERING,
+    STATE_ENTERING_CONFIRM,
+    STATE_PRESENT,
+    STATE_LEAVING,
+    STATE_LEAVING_CONFIRM,
+    ATTR_ENTERING_TIMER,
+    ATTR_ENTERING_CONFIRM_TIMER,
+    ATTR_LEAVING_TIMER,
+    ATTR_LEAVING_CONFIRM_TIMER,
 )
 
 
@@ -71,6 +68,10 @@ async def async_setup_platform(
 
     occupancy_sensors = area_config.get(ATTR_OCCUPANCY_SENSORS)
     doors = area_config.get(ATTR_DOORS)
+    entering_timer = area_config.get(ATTR_ENTERING_TIMER)
+    entering_confirm_timer = area_config.get(ATTR_ENTERING_CONFIRM_TIMER)
+    leaving_timer = area_config.get(ATTR_LEAVING_TIMER)
+    leaving_confirm_timer = area_config.get(ATTR_LEAVING_CONFIRM_TIMER)
 
     async_add_entities(
         [
@@ -79,6 +80,10 @@ async def async_setup_platform(
                 unique_id=area_id,
                 occupancy_sensors=occupancy_sensors,
                 doors=doors,
+                entering_timer=entering_timer,
+                entering_confirm_timer=entering_confirm_timer,
+                leaving_timer=leaving_timer,
+                leaving_confirm_timer=leaving_confirm_timer,
             ),
         ]
     )
@@ -87,20 +92,13 @@ async def async_setup_platform(
 class Area(SelectEntity, RestoreEntity):
     """Representation of a Adaptive Lighting switch."""
 
-    ABSENT = "absent"
-    ENTERING = "entering"
-    ENTERING_CONFIRM = "entering_confirm"
-    PRESENT = "present"
-    LEAVING = "leaving"
-    LEAVING_CONFIRM = "leaving_confirm"
-
     STATES = [
-        ABSENT,
-        ENTERING,
-        ENTERING_CONFIRM,
-        PRESENT,
-        LEAVING,
-        LEAVING_CONFIRM,
+        STATE_ABSENT,
+        STATE_ENTERING,
+        STATE_ENTERING_CONFIRM,
+        STATE_PRESENT,
+        STATE_LEAVING,
+        STATE_LEAVING_CONFIRM,
     ]
 
     def __init__(
@@ -109,12 +107,20 @@ class Area(SelectEntity, RestoreEntity):
         unique_id,
         occupancy_sensors,
         doors,
+        entering_timer,
+        entering_confirm_timer,
+        leaving_timer,
+        leaving_confirm_timer,
     ):
         self._attr_name = name
         self._attr_unique_id = unique_id
         self._occupancy_sensors = occupancy_sensors
         self._doors = doors
-        self._current_state = self.ABSENT
+        self._current_state = STATE_ABSENT
+        self._entering_timer = entering_timer
+        self._entering_confirm_timer = entering_confirm_timer
+        self._leaving_timer = leaving_timer
+        self._leaving_confirm_timer = leaving_confirm_timer
 
     @property
     def options(self) -> list[str]:
@@ -133,6 +139,15 @@ class Area(SelectEntity, RestoreEntity):
             self.async_on_remove(
                 async_track_state_change_event(self.hass, door, self._door_event)
             )
+
+        self.async_on_remove(
+            async_track_state_change_event(
+                self.hass, self._entering_timer, self._timer_event
+            )
+        )
+
+    async def _timer_event(self, event: EventType):
+        _LOGGER.debug("Called '_timer_event' with data %s", event.data)
 
     # TODO:
     # we need to have a single function which runs whenever a door
@@ -158,10 +173,11 @@ class Area(SelectEntity, RestoreEntity):
 
         to_state = event.data["new_state"].state
 
-        if self._current_state == self.ABSENT:
-            if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
-                self._current_state = self.ENTERING
-                self.async_write_ha_state()
+        if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
+            # self._door_last_changed = to_state.last_changed
+            pass
+
+        await self._calculate_state()
 
     async def async_select_option(self, option: str) -> None:
         """Select new tariff (option)."""
@@ -169,3 +185,31 @@ class Area(SelectEntity, RestoreEntity):
 
         self._current_state = option
         self.async_write_ha_state()
+
+    def _doors_have_activity(self):
+        for door in self._doors:
+            state = self.hass.states.get(door)
+
+            if state is not None and state.state == STATE_ON:
+                return True
+
+        return False
+
+    async def _calculate_state(self):
+        doors_have_activity = self._doors_have_activity()
+
+        if self._current_state == STATE_ABSENT:
+            if doors_have_activity:
+                _LOGGER.debug(f"Starting timer {self._entering_timer}")
+                data = {
+                    "entity_id": self._entering_timer,
+                    "duration": "00:00:10",
+                }
+                await self.async_select_option(STATE_ENTERING)
+
+                await self.hass.services.async_call(
+                    TIMER_DOMAIN, TIMER_SERVICE_START, data
+                )
+
+                # self._current_state = STATE_ENTERING
+                # self.async_write_ha_state()

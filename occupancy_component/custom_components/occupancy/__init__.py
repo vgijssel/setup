@@ -15,6 +15,14 @@ from custom_components.occupancy.const import (
     ATTR_AREAS,
     ATTR_OCCUPANCY_SENSORS,
     OCCUPANCY_DATA,
+    STATE_ENTERING,
+    STATE_ENTERING_CONFIRM,
+    STATE_LEAVING,
+    STATE_LEAVING_CONFIRM,
+    ATTR_ENTERING_TIMER,
+    ATTR_ENTERING_CONFIRM_TIMER,
+    ATTR_LEAVING_TIMER,
+    ATTR_LEAVING_CONFIRM_TIMER,
 )
 from custom_components.occupancy.helper import create_timer
 
@@ -60,6 +68,12 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
+async def _create_area_timer(hass, area_id, state):
+    timer_id = f"{area_id}_{state}"
+    timer = await create_timer(hass, timer_id)
+    return timer.entity_id
+
+
 async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
     _LOGGER.debug("async_setup start %s", config)
 
@@ -80,13 +94,23 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
 
     for area_id, area_config in config[DOMAIN][ATTR_AREAS].items():
         area_config = {
-            "occupancy_sensors": area_config[ATTR_OCCUPANCY_SENSORS],
+            ATTR_OCCUPANCY_SENSORS: area_config[ATTR_OCCUPANCY_SENSORS],
             # Adding the binary sensor domain to the door references. Maybe this
             # also requires some validation for the user, so they know they shouldn't
             # provide an entity reference but a door name.
-            "doors": [
+            ATTR_DOORS: [
                 f"{BINARY_SENSOR_DOMAIN}.{door}" for door in area_config[ATTR_DOORS]
             ],
+            ATTR_ENTERING_TIMER: await _create_area_timer(
+                hass, area_id, STATE_ENTERING
+            ),
+            ATTR_ENTERING_CONFIRM_TIMER: await _create_area_timer(
+                hass, area_id, STATE_ENTERING_CONFIRM
+            ),
+            ATTR_LEAVING_TIMER: await _create_area_timer(hass, area_id, STATE_LEAVING),
+            ATTR_LEAVING_CONFIRM_TIMER: await _create_area_timer(
+                hass, area_id, STATE_LEAVING_CONFIRM
+            ),
         }
 
         data[ATTR_AREAS][area_id] = area_config
@@ -96,8 +120,6 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
                 SELECT_DOMAIN, DOMAIN, {"area_id": area_id}, config
             )
         )
-
-    await create_timer(hass, "test")
 
     _LOGGER.debug("async_setup done")
     return True
