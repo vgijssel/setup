@@ -192,10 +192,10 @@ class Area(SelectEntity, RestoreEntity):
         _LOGGER.debug("Called 'async_select_option' with data %s", option)
 
         self._current_state = option
-        await self.async_write_ha_state()
-        await self._update_timers(option)
+        self.async_write_ha_state()
+        await self._update_timers_from_status(option)
 
-    async def _update_timers(self, option: str):
+    async def _update_timers_from_status(self, option: str):
         start_timer = self._timer_mapping.get(option)
         cancel_timers = [
             timer for status, timer in self._timer_mapping.items() if status != option
@@ -204,7 +204,9 @@ class Area(SelectEntity, RestoreEntity):
         for cancel_timer in cancel_timers:
             await self._cancel_timer(cancel_timer)
 
-        self._start_timer(start_timer)
+        # It's possible there is no start timer for the current state
+        if start_timer:
+            await self._start_timer(start_timer)
 
     async def _start_timer(self, timer: str):
         _LOGGER.debug(f"Starting timer {timer}")
@@ -219,7 +221,6 @@ class Area(SelectEntity, RestoreEntity):
         _LOGGER.debug(f"Cancel timer {timer}")
         data = {
             "entity_id": timer,
-            "duration": "00:00:10",
         }
 
         await self.hass.services.async_call(TIMER_DOMAIN, TIMER_SERVICE_CANCEL, data)
@@ -248,7 +249,6 @@ class Area(SelectEntity, RestoreEntity):
 
         if self._current_state == STATUS_ABSENT:
             if doors_have_activity:
-                # await self._start_timer(self._entering_timer)
                 await self.async_select_option(STATUS_ENTERING)
         elif self._current_state == STATUS_ENTERING:
             entering_timer_idle = self._timer_is_idle(self._entering_timer)
