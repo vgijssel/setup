@@ -18,7 +18,9 @@ from homeassistant.components.timer import (
     DOMAIN as TIMER_DOMAIN,
     SERVICE_START as TIMER_SERVICE_START,
     SERVICE_CANCEL as TIMER_SERVICE_CANCEL,
+    SERVICE_PAUSE as TIMER_SERVICE_PAUSE,
     STATUS_IDLE as TIMER_STATUS_IDLE,
+    STATUS_PAUSED as TIMER_STATUS_PAUSED,
 )
 
 from homeassistant.const import (
@@ -225,6 +227,22 @@ class Area(SelectEntity, RestoreEntity):
 
         await self.hass.services.async_call(TIMER_DOMAIN, TIMER_SERVICE_CANCEL, data)
 
+    async def _pause_timer(self, timer: str):
+        _LOGGER.debug(f"Pause timer {timer}")
+        data = {
+            "entity_id": timer,
+        }
+
+        await self.hass.services.async_call(TIMER_DOMAIN, TIMER_SERVICE_PAUSE, data)
+
+    async def _resume_timer(self, timer: str):
+        _LOGGER.debug(f"Resume timer {timer}")
+        data = {
+            "entity_id": timer,
+        }
+
+        await self.hass.services.async_call(TIMER_DOMAIN, TIMER_SERVICE_START, data)
+
     def _doors_have_activity(self):
         for door in self._doors:
             state = self.hass.states.get(door)
@@ -244,14 +262,34 @@ class Area(SelectEntity, RestoreEntity):
 
         return False
 
+    def _timer_is_paused(self, timer: str):
+        state = self.hass.states.get(timer)
+
+        _LOGGER.debug(f"Getting timer state for {timer} {state}")
+
+        if state is None or state.state == TIMER_STATUS_PAUSED:
+            return True
+
+        return False
+
     async def _calculate_state(self):
         doors_have_activity = self._doors_have_activity()
 
         if self._current_state == STATUS_ABSENT:
             if doors_have_activity:
                 await self.async_select_option(STATUS_ENTERING)
+
         elif self._current_state == STATUS_ENTERING:
             entering_timer_idle = self._timer_is_idle(self._entering_timer)
+            entering_timer_paused = self._timer_is_paused(self._entering_timer)
 
-            if entering_timer_idle:
+            # If there is activity at the door then pause the timer
+            # until there is no longer activity in which case we resume the timer
+            if doors_have_activity:
+                await self._pause_timer(self._entering_timer)
+
+            elif entering_timer_paused:
+                await self._resume_timer(self._entering_timer)
+
+            elif entering_timer_idle:
                 await self.async_select_option(STATUS_ABSENT)
