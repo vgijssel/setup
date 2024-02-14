@@ -146,6 +146,7 @@
     },
     "python311Packages.pip@23.3.1": {
       "last_modified": "2024-01-27T14:55:31Z",
+      "plugin_version": "0.0.2",
       "resolved": "github:NixOS/nixpkgs/160b762eda6d139ac10ae081f8f78d640dd523eb#python311Packages.pip",
       "source": "devbox-search",
       "version": "23.3.1",

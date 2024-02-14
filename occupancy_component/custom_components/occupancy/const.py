@@ -11,12 +11,12 @@ ATTR_MOTION_SENSOR = "motion_sensor"
 
 ATTR_OCCUPANCY_SENSORS = "occupancy_sensors"
 
-STATE_ABSENT = "absent"
-STATE_ENTERING = "entering"
-STATE_ENTERING_CONFIRM = "entering_confirm"
-STATE_PRESENT = "present"
-STATE_LEAVING = "leaving"
-STATE_LEAVING_CONFIRM = "leaving_confirm"
+STATUS_ABSENT = "absent"
+STATUS_ENTERING = "entering"
+STATUS_ENTERING_CONFIRM = "entering_confirm"
+STATUS_PRESENT = "present"
+STATUS_LEAVING = "leaving"
+STATUS_LEAVING_CONFIRM = "leaving_confirm"
 
 ATTR_ENTERING_TIMER = "entering_timer"
 ATTR_ENTERING_CONFIRM_TIMER = "entering_confirm_timer"

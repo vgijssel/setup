@@ -1,6 +1,8 @@
 # Loads default set of integrations. Do not remove.
 default_config:
 
+automation: !include automations.yaml
+
 homeassistant:
   name: testing
   latitude: 0
@@ -14,18 +16,28 @@ logger:
   logs:
     custom_components.occupancy: debug
 
+input_boolean:
+  front_door_contact_simulate:
+    name: Simulate front door contact
+    icon: mdi:door
+
+input_button:
+  front_door_motion_occupancy_simulate:
+    name: Simulate front door motion occupancy
+    icon: mdi:motion-sensor
+
 mqtt:
   binary_sensor:
     - name: front_door_contact
       state_topic: "home-assistant/front_door/contact"
       device_class: "door"
-      payload_on: "ON"
-      payload_off: "OFF"
+      payload_on: "on"
+      payload_off: "off"
     - name: front_door_motion_occupancy
       state_topic: "home-assistant/front_door/motion_occupancy"
       device_class: "motion"
-      payload_on: "ON"
-      payload_off: "OFF"
+      payload_on: "on"
+      payload_off: "off"
 
 occupancy:
   doors:

@@ -15,10 +15,10 @@ from custom_components.occupancy.const import (
     ATTR_AREAS,
     ATTR_OCCUPANCY_SENSORS,
     OCCUPANCY_DATA,
-    STATE_ENTERING,
-    STATE_ENTERING_CONFIRM,
-    STATE_LEAVING,
-    STATE_LEAVING_CONFIRM,
+    STATUS_ENTERING,
+    STATUS_ENTERING_CONFIRM,
+    STATUS_LEAVING,
+    STATUS_LEAVING_CONFIRM,
     ATTR_ENTERING_TIMER,
     ATTR_ENTERING_CONFIRM_TIMER,
     ATTR_LEAVING_TIMER,
@@ -102,14 +102,14 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
                 f"{BINARY_SENSOR_DOMAIN}.{door}" for door in area_config[ATTR_DOORS]
             ],
             ATTR_ENTERING_TIMER: await _create_area_timer(
-                hass, area_id, STATE_ENTERING
+                hass, area_id, STATUS_ENTERING
             ),
             ATTR_ENTERING_CONFIRM_TIMER: await _create_area_timer(
-                hass, area_id, STATE_ENTERING_CONFIRM
+                hass, area_id, STATUS_ENTERING_CONFIRM
             ),
-            ATTR_LEAVING_TIMER: await _create_area_timer(hass, area_id, STATE_LEAVING),
+            ATTR_LEAVING_TIMER: await _create_area_timer(hass, area_id, STATUS_LEAVING),
             ATTR_LEAVING_CONFIRM_TIMER: await _create_area_timer(
-                hass, area_id, STATE_LEAVING_CONFIRM
+                hass, area_id, STATUS_LEAVING_CONFIRM
             ),
         }
 

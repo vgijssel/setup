@@ -33,7 +33,6 @@ async def get_platform(hass, domain):
 
     if platform is None:
         raise ValueError(f"Unable to load {domain} platform")
-
     return platform
 
 

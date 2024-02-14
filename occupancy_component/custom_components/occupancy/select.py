@@ -17,6 +17,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.components.timer import (
     DOMAIN as TIMER_DOMAIN,
     SERVICE_START as TIMER_SERVICE_START,
+    SERVICE_CANCEL as TIMER_SERVICE_CANCEL,
     STATUS_IDLE as TIMER_STATUS_IDLE,
 )
 
@@ -34,12 +35,12 @@ from custom_components.occupancy.const import (
     OCCUPANCY_DATA,
     ATTR_OCCUPANCY_SENSORS,
     ATTR_DOORS,
-    STATE_ABSENT,
-    STATE_ENTERING,
-    STATE_ENTERING_CONFIRM,
-    STATE_PRESENT,
-    STATE_LEAVING,
-    STATE_LEAVING_CONFIRM,
+    STATUS_ABSENT,
+    STATUS_ENTERING,
+    STATUS_ENTERING_CONFIRM,
+    STATUS_PRESENT,
+    STATUS_LEAVING,
+    STATUS_LEAVING_CONFIRM,
     ATTR_ENTERING_TIMER,
     ATTR_ENTERING_CONFIRM_TIMER,
     ATTR_LEAVING_TIMER,
@@ -93,13 +94,13 @@ async def async_setup_platform(
 class Area(SelectEntity, RestoreEntity):
     """Representation of a Adaptive Lighting switch."""
 
-    STATES = [
-        STATE_ABSENT,
-        STATE_ENTERING,
-        STATE_ENTERING_CONFIRM,
-        STATE_PRESENT,
-        STATE_LEAVING,
-        STATE_LEAVING_CONFIRM,
+    STATUSES = [
+        STATUS_ABSENT,
+        STATUS_ENTERING,
+        STATUS_ENTERING_CONFIRM,
+        STATUS_PRESENT,
+        STATUS_LEAVING,
+        STATUS_LEAVING_CONFIRM,
     ]
 
     def __init__(
@@ -117,15 +118,21 @@ class Area(SelectEntity, RestoreEntity):
         self._attr_unique_id = unique_id
         self._occupancy_sensors = occupancy_sensors
         self._doors = doors
-        self._current_state = STATE_ABSENT
+        self._current_state = STATUS_ABSENT
         self._entering_timer = entering_timer
         self._entering_confirm_timer = entering_confirm_timer
         self._leaving_timer = leaving_timer
         self._leaving_confirm_timer = leaving_confirm_timer
+        self._timer_mapping = {
+            STATUS_ENTERING: self._entering_timer,
+            STATUS_ENTERING_CONFIRM: self._entering_confirm_timer,
+            STATUS_LEAVING: self._leaving_timer,
+            STATUS_LEAVING_CONFIRM: self._leaving_confirm_timer,
+        }
 
     @property
     def options(self) -> list[str]:
-        return self.STATES
+        return self.STATUSES
 
     @property
     def current_option(self) -> str | None:
@@ -185,7 +192,37 @@ class Area(SelectEntity, RestoreEntity):
         _LOGGER.debug("Called 'async_select_option' with data %s", option)
 
         self._current_state = option
-        self.async_write_ha_state()
+        await self.async_write_ha_state()
+        await self._update_timers(option)
+
+    async def _update_timers(self, option: str):
+        start_timer = self._timer_mapping.get(option)
+        cancel_timers = [
+            timer for status, timer in self._timer_mapping.items() if status != option
+        ]
+
+        for cancel_timer in cancel_timers:
+            await self._cancel_timer(cancel_timer)
+
+        self._start_timer(start_timer)
+
+    async def _start_timer(self, timer: str):
+        _LOGGER.debug(f"Starting timer {timer}")
+        data = {
+            "entity_id": timer,
+            "duration": "00:00:10",
+        }
+
+        await self.hass.services.async_call(TIMER_DOMAIN, TIMER_SERVICE_START, data)
+
+    async def _cancel_timer(self, timer: str):
+        _LOGGER.debug(f"Cancel timer {timer}")
+        data = {
+            "entity_id": timer,
+            "duration": "00:00:10",
+        }
+
+        await self.hass.services.async_call(TIMER_DOMAIN, TIMER_SERVICE_CANCEL, data)
 
     def _doors_have_activity(self):
         for door in self._doors:
@@ -206,24 +243,15 @@ class Area(SelectEntity, RestoreEntity):
 
         return False
 
-    async def _start_timer(self, timer: str):
-        _LOGGER.debug(f"Starting timer {timer}")
-        data = {
-            "entity_id": timer,
-            "duration": "00:00:10",
-        }
-
-        await self.hass.services.async_call(TIMER_DOMAIN, TIMER_SERVICE_START, data)
-
     async def _calculate_state(self):
         doors_have_activity = self._doors_have_activity()
 
-        if self._current_state == STATE_ABSENT:
+        if self._current_state == STATUS_ABSENT:
             if doors_have_activity:
-                await self._start_timer(self._entering_timer)
-                await self.async_select_option(STATE_ENTERING)
-        elif self._current_state == STATE_ENTERING:
+                # await self._start_timer(self._entering_timer)
+                await self.async_select_option(STATUS_ENTERING)
+        elif self._current_state == STATUS_ENTERING:
             entering_timer_idle = self._timer_is_idle(self._entering_timer)
 
             if entering_timer_idle:
-                await self.async_select_option(STATE_ABSENT)
+                await self.async_select_option(STATUS_ABSENT)
