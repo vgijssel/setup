@@ -150,11 +150,17 @@ class Area(SelectEntity, RestoreEntity):
                 async_track_state_change_event(self.hass, door, self._door_event)
             )
 
-        self.async_on_remove(
-            async_track_state_change_event(
-                self.hass, self._entering_timer, self._timer_event
+        for occupancy_sensor in self._occupancy_sensors:
+            self.async_on_remove(
+                async_track_state_change_event(
+                    self.hass, occupancy_sensor, self._occupancy_sensor_event
+                )
             )
-        )
+
+        for timer in self._timer_mapping.values():
+            self.async_on_remove(
+                async_track_state_change_event(self.hass, timer, self._timer_event)
+            )
 
     async def _timer_event(self, event: EventType):
         _LOGGER.debug("Called '_timer_event' with data %s", event.data)
@@ -187,6 +193,10 @@ class Area(SelectEntity, RestoreEntity):
         # if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
         #     # self._door_last_changed = to_state.last_changed
         #     pass
+        await self._calculate_state()
+
+    async def _occupancy_sensor_event(self, event: EventType):
+        _LOGGER.debug("Called '_occupancy_sensor_event' with data %s", event.data)
         await self._calculate_state()
 
     async def async_select_option(self, option: str) -> None:
@@ -252,6 +262,15 @@ class Area(SelectEntity, RestoreEntity):
 
         return False
 
+    def _area_has_occupancy(self):
+        for occupancy_sensor in self._occupancy_sensors:
+            state = self.hass.states.get(occupancy_sensor)
+
+            if state is not None and state.state == STATE_ON:
+                return True
+
+        return False
+
     def _timer_is_idle(self, timer: str):
         state = self.hass.states.get(timer)
 
@@ -282,10 +301,14 @@ class Area(SelectEntity, RestoreEntity):
         elif self._current_state == STATUS_ENTERING:
             entering_timer_idle = self._timer_is_idle(self._entering_timer)
             entering_timer_paused = self._timer_is_paused(self._entering_timer)
+            area_has_occupancy = self._area_has_occupancy()
+
+            if area_has_occupancy:
+                await self.async_select_option(STATUS_ENTERING_CONFIRM)
 
             # If there is activity at the door then pause the timer
             # until there is no longer activity in which case we resume the timer
-            if doors_have_activity:
+            elif doors_have_activity:
                 await self._pause_timer(self._entering_timer)
 
             elif entering_timer_paused:
@@ -293,3 +316,22 @@ class Area(SelectEntity, RestoreEntity):
 
             elif entering_timer_idle:
                 await self.async_select_option(STATUS_ABSENT)
+
+        elif self._current_state == STATUS_ENTERING_CONFIRM:
+            # TODO:
+            # This branch is called before the timer events are processed
+            # or that the timer state data has been processed. This means we have a race condition
+            # if the timer state has not uet been processed then the timer will be idle
+            # meaning it will immediately jump to the next state.
+
+            area_has_occupancy = self._area_has_occupancy()
+            entering_confirm_timer_idle = self._timer_is_idle(
+                self._entering_confirm_timer
+            )
+
+            _LOGGER.debug(f"Entering confirm timer idle: {entering_confirm_timer_idle}")
+
+            if not area_has_occupancy:
+                await self.async_select_option(STATUS_ENTERING)
+            elif entering_confirm_timer_idle:
+                await self.async_select_option(STATUS_PRESENT)

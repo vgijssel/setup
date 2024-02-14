@@ -10,8 +10,8 @@
     - service: mqtt.publish
       metadata: {}
       data:
-        qos: 0
-        retain: false
+        qos: "2"
+        retain: true
         topic: home-assistant/front_door/contact
         payload: "{{ trigger.to_state.state }}"
   mode: single
@@ -44,3 +44,19 @@
         topic: home-assistant/front_door/motion_occupancy
         payload: "off"
   mode: single
+- id: "1707942333572"
+  alias: Control hallway occupancy
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - input_boolean.hallway_occupancy_simulate
+  condition: []
+  action:
+    - service: mqtt.publish
+      metadata: {}
+      data:
+        qos: "2"
+        retain: true
+        topic: home-assistant/hallway/occupancy
+        payload: "{{ trigger.to_state.state }}"
