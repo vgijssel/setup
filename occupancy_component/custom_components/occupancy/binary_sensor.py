@@ -120,6 +120,9 @@ class Door(BinarySensorEntity, RestoreEntity):
         self._reset_contact_presence_timer = IdleTimer(
             self.hass, 5, self._reset_contact_presence
         )
+        # The starting state of the timer should be idle, so
+        # we're able to differentiate between an event just happened or not.
+        self._reset_contact_presence_timer.idle = True
 
         self.async_on_remove(
             self._reset_contact_presence_timer.clear,

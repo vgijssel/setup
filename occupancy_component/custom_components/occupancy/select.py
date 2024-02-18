@@ -21,6 +21,7 @@ from homeassistant.components.timer import (
     SERVICE_PAUSE as TIMER_SERVICE_PAUSE,
     STATUS_IDLE as TIMER_STATUS_IDLE,
     STATUS_PAUSED as TIMER_STATUS_PAUSED,
+    STATUS_ACTIVE as TIMER_STATUS_ACTIVE,
 )
 
 from homeassistant.const import (
@@ -145,12 +146,20 @@ class Area(SelectEntity, RestoreEntity):
         """Run when entity about to be added."""
         await super().async_added_to_hass()
 
+        self._internal_state = {
+            self.entity_id: self._current_state,
+        }
+
         for door in self._doors:
+            self._internal_state[door] = None
+
             self.async_on_remove(
                 async_track_state_change_event(self.hass, door, self._door_event)
             )
 
         for occupancy_sensor in self._occupancy_sensors:
+            self._internal_state[occupancy_sensor] = None
+
             self.async_on_remove(
                 async_track_state_change_event(
                     self.hass, occupancy_sensor, self._occupancy_sensor_event
@@ -158,65 +167,92 @@ class Area(SelectEntity, RestoreEntity):
             )
 
         for timer in self._timer_mapping.values():
+            self._internal_state[timer] = None
+
             self.async_on_remove(
                 async_track_state_change_event(self.hass, timer, self._timer_event)
             )
 
+    def _update_internal_state(self, entity_id: str, state: str):
+        if entity_id not in self._internal_state:
+            raise Exception("Entity not found in internal state")
+
+        self._internal_state[entity_id] = state
+
     async def _timer_event(self, event: EventType):
-        _LOGGER.debug("Called '_timer_event' with data %s", event.data)
+        self._update_internal_state(
+            event.data["entity_id"], event.data["new_state"].state
+        )
+
+        _LOGGER.debug(
+            "Called '_timer_event' with data %s - new state %s",
+            event.data,
+            self._internal_state,
+        )
+
         await self._calculate_state()
 
-    # TODO:
-    # we need to have a single function which runs whenever a door
-    # or an occupancy sensor changes state.
-    #
-    # Whenever the select changes state we should use a service call
-    # this way all the state changes, either through the UI or the automation
-    # go through the same code path.
-    #
-    # When the select changes state reset the unnecessary times
-    # and start the timers that are relevant for that particular state
-    #
-    # We need a timer component for each state and inject that timer
-    # into each area component. Each time a timer triggers when it's done
-    # we need to call the main calculate state function to determine what to do next.
     async def _door_event(self, event: EventType):
-        _LOGGER.debug("Called '_door_event' with data %s", event.data)
+        self._update_internal_state(
+            event.data["entity_id"], event.data["new_state"].state
+        )
 
-        # if event.data["old_state"] == None:
-        #     from_state = None
-        # else:
-        #     from_state = event.data["old_state"].state
+        _LOGGER.debug(
+            "Called '_door_event' with data %s - new state %s",
+            event.data,
+            self._internal_state,
+        )
 
-        # to_state = event.data["new_state"].state
-
-        # if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
-        #     # self._door_last_changed = to_state.last_changed
-        #     pass
         await self._calculate_state()
 
     async def _occupancy_sensor_event(self, event: EventType):
-        _LOGGER.debug("Called '_occupancy_sensor_event' with data %s", event.data)
+        self._update_internal_state(
+            event.data["entity_id"], event.data["new_state"].state
+        )
+
+        _LOGGER.debug(
+            "Called '_occupancy_sensor_event' with data %s - new state %s",
+            event.data,
+            self._internal_state,
+        )
         await self._calculate_state()
 
     async def async_select_option(self, option: str) -> None:
-        """Select new tariff (option)."""
-        _LOGGER.debug("Called 'async_select_option' with data %s", option)
-
-        self._current_state = option
-        self.async_write_ha_state()
-        await self._update_timers_from_status(option)
-
-    async def _update_timers_from_status(self, option: str):
         start_timer = self._timer_mapping.get(option)
         cancel_timers = [
             timer for status, timer in self._timer_mapping.items() if status != option
         ]
 
+        # We are doing an optimisitc update of the internal state here
+        # to prevent any race condition inside the _calculate_state function.
+        # If we don't do this when cancelling/starting timers or updating the
+        # select state the _calculate_state function might be called while some of the
+        # other updates are still in progress resulting in the wrong state being calculated.
+        # Basically we want the update of the select and timers to be atomic or
+        # in a single transaction, but as those options don't exist we do this
+        # by tracking internal state and doing an optimistic update.
+        self._update_internal_state(self.entity_id, option)
+
+        for cancel_timer in cancel_timers:
+            # await self._cancel_timer(cancel_timer)
+            self._update_internal_state(cancel_timer, TIMER_STATUS_IDLE)
+
+        # It's possible there is no start timer for the current state
+        if start_timer:
+            self._update_internal_state(start_timer, TIMER_STATUS_ACTIVE)
+
+        _LOGGER.debug(
+            "Called 'async_select_option' with data %s - new state %s",
+            option,
+            self._internal_state,
+        )
+
+        self._current_state = option
+        self.async_write_ha_state()
+
         for cancel_timer in cancel_timers:
             await self._cancel_timer(cancel_timer)
 
-        # It's possible there is no start timer for the current state
         if start_timer:
             await self._start_timer(start_timer)
 
@@ -255,38 +291,38 @@ class Area(SelectEntity, RestoreEntity):
 
     def _doors_have_activity(self):
         for door in self._doors:
-            state = self.hass.states.get(door)
+            state = self._internal_state[door]
 
-            if state is not None and state.state == STATE_ON:
+            if state is not None and state == STATE_ON:
                 return True
 
         return False
 
     def _area_has_occupancy(self):
         for occupancy_sensor in self._occupancy_sensors:
-            state = self.hass.states.get(occupancy_sensor)
+            state = self._internal_state[occupancy_sensor]
 
-            if state is not None and state.state == STATE_ON:
+            if state is not None and state == STATE_ON:
                 return True
 
         return False
 
     def _timer_is_idle(self, timer: str):
-        state = self.hass.states.get(timer)
+        state = self._internal_state[timer]
 
-        _LOGGER.debug(f"Getting timer state for {timer} {state}")
+        _LOGGER.debug(f"Got timer state for {timer} {state}")
 
-        if state is None or state.state == TIMER_STATUS_IDLE:
+        if state is None or state == TIMER_STATUS_IDLE:
             return True
 
         return False
 
     def _timer_is_paused(self, timer: str):
-        state = self.hass.states.get(timer)
+        state = self._internal_state[timer]
 
-        _LOGGER.debug(f"Getting timer state for {timer} {state}")
+        _LOGGER.debug(f"Got timer state for {timer} {state}")
 
-        if state is None or state.state == TIMER_STATUS_PAUSED:
+        if state is None or state == TIMER_STATUS_PAUSED:
             return True
 
         return False
