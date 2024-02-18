@@ -354,20 +354,44 @@ class Area(SelectEntity, RestoreEntity):
                 await self.async_select_option(STATUS_ABSENT)
 
         elif self._current_state == STATUS_ENTERING_CONFIRM:
-            # TODO:
-            # This branch is called before the timer events are processed
-            # or that the timer state data has been processed. This means we have a race condition
-            # if the timer state has not uet been processed then the timer will be idle
-            # meaning it will immediately jump to the next state.
-
             area_has_occupancy = self._area_has_occupancy()
             entering_confirm_timer_idle = self._timer_is_idle(
                 self._entering_confirm_timer
             )
 
-            _LOGGER.debug(f"Entering confirm timer idle: {entering_confirm_timer_idle}")
-
             if not area_has_occupancy:
                 await self.async_select_option(STATUS_ENTERING)
             elif entering_confirm_timer_idle:
                 await self.async_select_option(STATUS_PRESENT)
+
+        elif self._current_state == STATUS_PRESENT:
+            if doors_have_activity:
+                await self.async_select_option(STATUS_LEAVING)
+
+        elif self._current_state == STATUS_LEAVING:
+            leaving_timer_idle = self._timer_is_idle(self._leaving_timer)
+            leaving_timer_paused = self._timer_is_paused(self._leaving_timer)
+            area_has_occupancy = self._area_has_occupancy()
+
+            if not area_has_occupancy:
+                await self.async_select_option(STATUS_LEAVING_CONFIRM)
+
+            elif doors_have_activity:
+                await self._pause_timer(self._leaving_timer)
+
+            elif leaving_timer_paused:
+                await self._resume_timer(self._leaving_timer)
+
+            elif leaving_timer_idle:
+                await self.async_select_option(STATUS_PRESENT)
+
+        elif self._current_state == STATUS_LEAVING_CONFIRM:
+            area_has_occupancy = self._area_has_occupancy()
+            leaving_confirm_timer_idle = self._timer_is_idle(
+                self._leaving_confirm_timer
+            )
+
+            if area_has_occupancy:
+                await self.async_select_option(STATUS_LEAVING)
+            elif leaving_confirm_timer_idle:
+                await self.async_select_option(STATUS_ABSENT)
