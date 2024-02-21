@@ -92,3 +92,4 @@ def get_area(hass, area_id):
 async def update_area(hass, area_id, new_state):
     area = get_area(hass, area_id)
     await area.async_select_option(new_state)
+    await hass.async_block_till_done()

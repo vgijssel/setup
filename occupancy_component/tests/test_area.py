@@ -3,6 +3,7 @@
 from custom_components.occupancy.const import (
     STATUS_ABSENT,
     STATUS_ENTERING,
+    STATUS_ENTERING_CONFIRM,
     STATUS_PRESENT,
 )
 from tests.helpers import (
@@ -142,15 +143,17 @@ async def test_area_entering_has_occupancy(hass, init_integration, init_entities
     await update_area(hass, "hallway", STATUS_ENTERING)
 
     assert hass.states.get("select.hallway").state == STATUS_ENTERING
-    assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_ACTIVE
     assert hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_IDLE
     assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
 
     await hallway_occupancy.motion()
 
-    assert hass.states.get("select.hallway").state == STATUS_PRESENT
+    assert hass.states.get("select.hallway").state == STATUS_ENTERING_CONFIRM
     assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_IDLE
-    assert hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_IDLE
+    assert (
+        hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_ACTIVE
+    )
     assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
