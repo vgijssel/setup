@@ -23,6 +23,7 @@ from custom_components.occupancy.const import (
     ATTR_ENTERING_CONFIRM_TIMER,
     ATTR_LEAVING_TIMER,
     ATTR_LEAVING_CONFIRM_TIMER,
+    ATTR_TIMER_ENTITIES,
 )
 from custom_components.occupancy.helper import create_timer
 
@@ -71,7 +72,7 @@ CONFIG_SCHEMA = vol.Schema(
 async def _create_area_timer(hass, area_id, state):
     timer_id = f"{area_id}_{state}"
     timer = await create_timer(hass, timer_id)
-    return timer.entity_id
+    return timer
 
 
 async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
@@ -93,7 +94,22 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
         )
 
     for area_id, area_config in config[DOMAIN][ATTR_AREAS].items():
+        entering_timer = await _create_area_timer(hass, area_id, STATUS_ENTERING)
+        entering_confirm_timer = await _create_area_timer(
+            hass, area_id, STATUS_ENTERING_CONFIRM
+        )
+        leaving_timer = await _create_area_timer(hass, area_id, STATUS_LEAVING)
+        leaving_confirm_timer = await _create_area_timer(
+            hass, area_id, STATUS_LEAVING_CONFIRM
+        )
+
         area_config = {
+            ATTR_TIMER_ENTITIES: [
+                entering_timer,
+                entering_confirm_timer,
+                leaving_timer,
+                leaving_confirm_timer,
+            ],
             ATTR_OCCUPANCY_SENSORS: area_config[ATTR_OCCUPANCY_SENSORS],
             # Adding the binary sensor domain to the door references. Maybe this
             # also requires some validation for the user, so they know they shouldn't
@@ -101,16 +117,10 @@ async def async_setup(hass: HomeAssistantType, config: dict) -> bool:
             ATTR_DOORS: [
                 f"{BINARY_SENSOR_DOMAIN}.{door}" for door in area_config[ATTR_DOORS]
             ],
-            ATTR_ENTERING_TIMER: await _create_area_timer(
-                hass, area_id, STATUS_ENTERING
-            ),
-            ATTR_ENTERING_CONFIRM_TIMER: await _create_area_timer(
-                hass, area_id, STATUS_ENTERING_CONFIRM
-            ),
-            ATTR_LEAVING_TIMER: await _create_area_timer(hass, area_id, STATUS_LEAVING),
-            ATTR_LEAVING_CONFIRM_TIMER: await _create_area_timer(
-                hass, area_id, STATUS_LEAVING_CONFIRM
-            ),
+            ATTR_ENTERING_TIMER: entering_timer.entity_id,
+            ATTR_ENTERING_CONFIRM_TIMER: entering_confirm_timer.entity_id,
+            ATTR_LEAVING_TIMER: leaving_timer.entity_id,
+            ATTR_LEAVING_CONFIRM_TIMER: leaving_confirm_timer.entity_id,
         }
 
         data[ATTR_AREAS][area_id] = area_config

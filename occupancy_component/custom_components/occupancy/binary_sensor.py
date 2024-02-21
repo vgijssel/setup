@@ -57,17 +57,17 @@ async def async_setup_platform(
     contact_sensor = door_config.get(ATTR_CONTACT_SENSOR)
     motion_sensor = door_config.get(ATTR_MOTION_SENSOR)
 
-    async_add_entities(
-        [
-            Door(
-                name=door_id,
-                unique_id=door_id,
-                entry=entry,
-                contact_sensor=contact_sensor,
-                motion_sensor=motion_sensor,
-            )
-        ]
+    entity = Door(
+        name=door_id,
+        unique_id=door_id,
+        entry=entry,
+        contact_sensor=contact_sensor,
+        motion_sensor=motion_sensor,
     )
+
+    door_config["entity"] = entity
+
+    async_add_entities([entity])
 
 
 class Door(BinarySensorEntity, RestoreEntity):
@@ -131,12 +131,17 @@ class Door(BinarySensorEntity, RestoreEntity):
     async def _contact_sensor_event(self, event: EventType):
         _LOGGER.debug("Called '_contact_sensor_event' with data %s", event.data)
 
+        # old_state is None happens when the entity is added to home assistant
         if event.data["old_state"] == None:
             from_state = None
         else:
             from_state = event.data["old_state"].state
 
-        to_state = event.data["new_state"].state
+        # new_state is None happens when the entity is removed from home assisstant
+        if event.data["new_state"] == None:
+            to_state = None
+        else:
+            to_state = event.data["new_state"].state
 
         if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
             self._door_is_open = True
@@ -156,12 +161,17 @@ class Door(BinarySensorEntity, RestoreEntity):
     async def _motion_sensor_event(self, event: EventType):
         _LOGGER.debug("Called '_motion_sensor_event' with data %s", event.data)
 
+        # old_state is None happens when the entity is added to home assistant
         if event.data["old_state"] == None:
             from_state = None
         else:
             from_state = event.data["old_state"].state
 
-        to_state = event.data["new_state"].state
+        # new_state is None happens when the entity is removed from home assisstant
+        if event.data["new_state"] == None:
+            to_state = None
+        else:
+            to_state = event.data["new_state"].state
 
         if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
             self._door_has_motion = True

@@ -3,13 +3,23 @@
 import pytest
 from homeassistant.setup import async_setup_component
 
-from custom_components.occupancy.const import DOMAIN
+from custom_components.occupancy.const import (
+    DOMAIN,
+    OCCUPANCY_DATA,
+    ATTR_DOORS,
+    ATTR_AREAS,
+    ATTR_TIMER_ENTITIES,
+)
 
 from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNKNOWN
 from homeassistant.components.template.const import DOMAIN as TEMPLATE_DOMAIN
 from tests.helpers import wait
 from homeassistant.components import binary_sensor
 from pytest_homeassistant_custom_component.common import MockEntityPlatform
+
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(autouse=True)
@@ -42,23 +52,41 @@ async def init_integration(hass) -> None:
         },
     }
     await async_setup_component(hass, DOMAIN, config) is True
+
     await hass.async_block_till_done()
+
     yield
 
-    # TODO: can we also teardown the integration / entities instead of waiting?
-    # This waits for 24 hours to make sure all the timers are reset
-    await wait(hass, 86400)
+    for door in hass.data[OCCUPANCY_DATA][ATTR_DOORS].values():
+        await door["entity"].async_remove()
+
+    for area in hass.data[OCCUPANCY_DATA][ATTR_AREAS].values():
+        await area["entity"].async_remove()
+
+        for timer in area[ATTR_TIMER_ENTITIES]:
+            timer.async_cancel()
+            await timer.async_remove()
 
 
 @pytest.fixture()
-def init_entities(hass):
+async def init_entities(hass):
+    tracked_entities = None
+
     async def _init_entities(*entities):
+        nonlocal tracked_entities
         entity_platform = MockEntityPlatform(
             hass, domain=binary_sensor.DOMAIN, platform_name="test", platform=None
         )
+        tracked_entities = entities
+
         await entity_platform.async_add_entities(entities)
         # We have to wait here, because adding entities to hass will trigger a state change
         await wait(hass)
         return entities
 
-    return _init_entities
+    yield _init_entities
+
+    for entity in tracked_entities:
+        await entity.async_remove()
+
+    await hass.async_block_till_done()

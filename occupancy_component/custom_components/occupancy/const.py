@@ -22,3 +22,5 @@ ATTR_ENTERING_TIMER = "entering_timer"
 ATTR_ENTERING_CONFIRM_TIMER = "entering_confirm_timer"
 ATTR_LEAVING_TIMER = "leaving_timer"
 ATTR_LEAVING_CONFIRM_TIMER = "leaving_confirm_timer"
+
+ATTR_TIMER_ENTITIES = "timer_entities"

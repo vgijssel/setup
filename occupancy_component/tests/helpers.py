@@ -6,10 +6,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.helpers.event import async_call_later
-
-import logging
-
-_LOGGER = logging.getLogger(__name__)
+from homeassistant.components.stream.core import IdleTimer
 
 
 async def wait(hass, seconds=10):
@@ -42,22 +39,33 @@ class MotionSensor(BinarySensorEntity):
         self._attr_device_class = BinarySensorDeviceClass.OCCUPANCY
         self._timeout = timeout
 
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        self._reset_motion_presence_timer = IdleTimer(
+            self.hass, self._timeout, self._reset_motion_presence
+        )
+        # The starting state of the timer should be idle, so
+        # we're able to differentiate between an event just happened or not.
+        self._reset_motion_presence_timer.idle = True
+
+        self.async_on_remove(
+            self._reset_motion_presence_timer.clear,
+        )
+
     async def motion(self):
         self._attr_is_on = True
         self.async_write_ha_state()
-        self._listener_reset_motion_presence = async_call_later(
-            self.hass, self._timeout, self._reset_motion_presence
-        )
+        self._reset_motion_presence_timer.awake()
         await self.hass.async_block_till_done()
 
     async def away(self):
         self._attr_is_on = False
         self.async_write_ha_state()
+        self._reset_motion_presence_timer.clear()
         await self.hass.async_block_till_done()
 
-    async def _reset_motion_presence(self, now):
-        _LOGGER.debug("Called '_reset_motion_presence'")
-        self._listener_reset_motion_presence = None
+    async def _reset_motion_presence(self) -> None:
         await self.away()
 
 

@@ -78,20 +78,20 @@ async def async_setup_platform(
     leaving_timer = area_config.get(ATTR_LEAVING_TIMER)
     leaving_confirm_timer = area_config.get(ATTR_LEAVING_CONFIRM_TIMER)
 
-    async_add_entities(
-        [
-            Area(
-                name=area_id,
-                unique_id=area_id,
-                occupancy_sensors=occupancy_sensors,
-                doors=doors,
-                entering_timer=entering_timer,
-                entering_confirm_timer=entering_confirm_timer,
-                leaving_timer=leaving_timer,
-                leaving_confirm_timer=leaving_confirm_timer,
-            ),
-        ]
+    entity = Area(
+        name=area_id,
+        unique_id=area_id,
+        occupancy_sensors=occupancy_sensors,
+        doors=doors,
+        entering_timer=entering_timer,
+        entering_confirm_timer=entering_confirm_timer,
+        leaving_timer=leaving_timer,
+        leaving_confirm_timer=leaving_confirm_timer,
     )
+
+    area_config["entity"] = entity
+
+    async_add_entities([entity])
 
 
 class Area(SelectEntity, RestoreEntity):
