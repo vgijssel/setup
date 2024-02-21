@@ -180,9 +180,12 @@ class Area(SelectEntity, RestoreEntity):
         self._internal_state[entity_id] = state
 
     async def _timer_event(self, event: EventType):
-        self._update_internal_state(
-            event.data["entity_id"], event.data["new_state"].state
-        )
+        if event.data["new_state"] == None:
+            to_state = None
+        else:
+            to_state = event.data["new_state"].state
+
+        self._update_internal_state(event.data["entity_id"], to_state)
 
         _LOGGER.debug(
             "Called '_timer_event' with data %s - new state %s",
@@ -193,9 +196,12 @@ class Area(SelectEntity, RestoreEntity):
         await self._calculate_state()
 
     async def _door_event(self, event: EventType):
-        self._update_internal_state(
-            event.data["entity_id"], event.data["new_state"].state
-        )
+        if event.data["new_state"] == None:
+            to_state = None
+        else:
+            to_state = event.data["new_state"].state
+
+        self._update_internal_state(event.data["entity_id"], to_state)
 
         _LOGGER.debug(
             "Called '_door_event' with data %s - new state %s",
@@ -206,9 +212,12 @@ class Area(SelectEntity, RestoreEntity):
         await self._calculate_state()
 
     async def _occupancy_sensor_event(self, event: EventType):
-        self._update_internal_state(
-            event.data["entity_id"], event.data["new_state"].state
-        )
+        if event.data["new_state"] == None:
+            to_state = None
+        else:
+            to_state = event.data["new_state"].state
+
+        self._update_internal_state(event.data["entity_id"], to_state)
 
         _LOGGER.debug(
             "Called '_occupancy_sensor_event' with data %s - new state %s",

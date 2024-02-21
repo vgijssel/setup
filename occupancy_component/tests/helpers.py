@@ -7,6 +7,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.helpers.event import async_call_later
 from homeassistant.components.stream.core import IdleTimer
+from custom_components.occupancy.const import OCCUPANCY_DATA, ATTR_AREAS
 
 
 async def wait(hass, seconds=10):
@@ -77,3 +78,17 @@ def contact_sensor(entity_id, state):
 def motion_sensor(entity_id, state, timeout=5):
     entity = MotionSensor(entity_id, state, timeout)
     return entity
+
+
+def occupancy_sensor(entity_id, state, timeout=5):
+    entity = MotionSensor(entity_id, state, timeout)
+    return entity
+
+
+def get_area(hass, area_id):
+    return hass.data[OCCUPANCY_DATA][ATTR_AREAS][area_id]["entity"]
+
+
+async def update_area(hass, area_id, new_state):
+    area = get_area(hass, area_id)
+    await area.async_select_option(new_state)
