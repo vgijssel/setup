@@ -83,9 +83,6 @@ class Door(BinarySensorEntity, RestoreEntity):
         self._attr_unique_id = unique_id
         self._attr_is_on = False
 
-        self._door_is_open = False
-        self._door_has_motion = False
-
         self._entry = entry
         self._contact_sensor = contact_sensor
         self._motion_sensor = motion_sensor
@@ -101,6 +98,9 @@ class Door(BinarySensorEntity, RestoreEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
 
+        self._internal_state = {}
+
+        self._internal_state[self._contact_sensor] = None
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -109,6 +109,7 @@ class Door(BinarySensorEntity, RestoreEntity):
             )
         )
 
+        self._internal_state[self._motion_sensor] = None
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -128,9 +129,13 @@ class Door(BinarySensorEntity, RestoreEntity):
             self._reset_contact_presence_timer.clear,
         )
 
-    async def _contact_sensor_event(self, event: EventType):
-        _LOGGER.debug("Called '_contact_sensor_event' with data %s", event.data)
+    def _update_internal_state(self, entity_id: str, state: str):
+        if entity_id not in self._internal_state:
+            raise Exception(f"Entity {entity_id} not found in internal state")
 
+        self._internal_state[entity_id] = state
+
+    async def _contact_sensor_event(self, event: EventType):
         # old_state is None happens when the entity is added to home assistant
         if event.data["old_state"] == None:
             from_state = None
@@ -143,79 +148,81 @@ class Door(BinarySensorEntity, RestoreEntity):
         else:
             to_state = event.data["new_state"].state
 
-        if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
-            self._door_is_open = True
-            self._reset_contact_presence_timer.awake()
-            self._calculate_presence()
-            self.async_write_ha_state()
+        self._update_internal_state(event.data["entity_id"], to_state)
 
-        elif (from_state == STATE_ON or from_state == None) and to_state == STATE_OFF:
-            self._door_is_open = False
-            self._reset_contact_presence_timer.awake()
-            self._calculate_presence()
-            self.async_write_ha_state()
+        _LOGGER.debug(
+            "Called '_contact_sensor_event' with data %s - new state %s",
+            event.data,
+            self._internal_state,
+        )
 
-        else:
-            pass
+        if from_state == STATE_OFF and to_state == STATE_ON:
+            self._reset_contact_presence_timer.awake()
+
+        elif from_state == STATE_ON and to_state == STATE_OFF:
+            self._reset_contact_presence_timer.awake()
+
+        self._calculate_presence()
 
     async def _motion_sensor_event(self, event: EventType):
-        _LOGGER.debug("Called '_motion_sensor_event' with data %s", event.data)
-
-        # old_state is None happens when the entity is added to home assistant
-        if event.data["old_state"] == None:
-            from_state = None
-        else:
-            from_state = event.data["old_state"].state
-
-        # new_state is None happens when the entity is removed from home assisstant
         if event.data["new_state"] == None:
             to_state = None
         else:
             to_state = event.data["new_state"].state
 
-        if (from_state == STATE_OFF or from_state == None) and to_state == STATE_ON:
-            self._door_has_motion = True
-            self._calculate_presence()
-            self.async_write_ha_state()
+        self._update_internal_state(event.data["entity_id"], to_state)
 
-        elif (from_state == STATE_ON or from_state == None) and to_state == STATE_OFF:
-            self._door_has_motion = False
-            self._calculate_presence()
-            self.async_write_ha_state()
+        _LOGGER.debug(
+            "Called '_motion_sensor_event' with data %s - new state %s",
+            event.data,
+            self._internal_state,
+        )
 
-        else:
-            pass
+        self._calculate_presence()
+
+    def _door_is_open(self):
+        return self._internal_state[self._contact_sensor] == STATE_ON
+
+    def _door_is_closed(self):
+        return self._internal_state[self._contact_sensor] == STATE_OFF
+
+    def _door_has_motion(self):
+        return self._internal_state[self._motion_sensor] == STATE_ON
+
+    def _door_just_opened(self):
+        return self._door_is_open() and self._reset_contact_presence_timer.idle == False
+
+    def _door_just_closed(self):
+        return (
+            self._door_is_closed() and self._reset_contact_presence_timer.idle == False
+        )
 
     def _calculate_presence(self):
-        door_just_opened = (
-            self._door_is_open == True
-            and self._reset_contact_presence_timer.idle == False
-        )
-        door_just_closed = (
-            self._door_is_open == False
-            and self._reset_contact_presence_timer.idle == False
-        )
+        door_just_opened = self._door_just_opened()
+        door_just_closed = self._door_just_closed()
+        door_is_open = self._door_is_open()
+        door_has_motion = self._door_has_motion()
 
         if door_just_closed:
             self._attr_is_on = True
         elif door_just_opened:
             self._attr_is_on = True
-        elif self._door_is_open == True and self._door_has_motion:
+        elif door_is_open and door_has_motion:
             self._attr_is_on = True
         else:
             self._attr_is_on = False
 
         _LOGGER.debug(
-            f"_calculate_presence with {door_just_closed} - {door_just_opened} - {self._door_is_open} - {self._door_has_motion} calculated: {self._attr_is_on}"
+            f"_calculate_presence with {door_just_closed} - {door_just_opened} - {door_is_open} - {door_has_motion} calculated: {self._attr_is_on}"
         )
+        self.async_write_ha_state()
 
     async def _reset_contact_presence(self) -> None:
         self._calculate_presence()
-        self.async_write_ha_state()
 
     @property
     def extra_state_attributes(self):
-        door_state = "open" if self._door_is_open else "closed"
-        motion_state = "motion" if self._door_has_motion else "no motion"
+        door_state = "open" if self._door_is_open() else "closed"
+        motion_state = "motion" if self._door_has_motion() else "no motion"
 
         return {"door_state": door_state, "motion_state": motion_state}

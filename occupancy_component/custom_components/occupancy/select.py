@@ -175,7 +175,7 @@ class Area(SelectEntity, RestoreEntity):
 
     def _update_internal_state(self, entity_id: str, state: str):
         if entity_id not in self._internal_state:
-            raise Exception("Entity not found in internal state")
+            raise Exception(f"Entity {entity_id} not found in internal state")
 
         self._internal_state[entity_id] = state
 
