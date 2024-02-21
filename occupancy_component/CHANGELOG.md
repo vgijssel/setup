@@ -1,5 +1,11 @@
 # occupancy_component
 
+## 0.3.0
+
+### Minor Changes
+
+- [#649](https://github.com/vgijssel/setup/pull/649) [`8be3f4c`](https://github.com/vgijssel/setup/commit/8be3f4cdd6a948fc2148a54c1894164ca3b6ac20) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Implement area with timer logic
+
 ## 0.2.0
 
 ### Minor Changes
