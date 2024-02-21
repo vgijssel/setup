@@ -8,22 +8,22 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 http_archive(
     name = "tilt_linux_arm64",
     build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
-    sha256 = "7b9d859439e063a9fb2701c1dee41e3455590afb436edc2c9a7fc633bb9d374a",
-    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.10/tilt.0.33.10.linux.arm64.tar.gz",
+    sha256 = "49ce19981761b6102cf5fe3cb15d6cfdf6b56aa2be7a1178457955c7476bf21f",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.11/tilt.0.33.11.linux.arm64.tar.gz",
 )
 
 http_archive(
     name = "tilt_linux_amd64",
     build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
-    sha256 = "fdb62ab5f9e0cf2cb697f8b1e91f2909ee61ab14899f6b2c1a144c0d729d99a3",
-    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.10/tilt.0.33.10.linux.x86_64.tar.gz",
+    sha256 = "b14cc9d33b18c8bdf69b543914696b252e553c9361f65d2ed0cded302698708d",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.11/tilt.0.33.11.linux.x86_64.tar.gz",
 )
 
 http_archive(
     name = "tilt_darwin_arm64",
     build_file = "//tools/tilt:BUILD.repositories.bazel.tpl",
-    sha256 = "b4b460b02eb4e261b512a7c793e8381bef1a5adb864ef46d3fcae3f6a30fcab3",
-    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.10/tilt.0.33.10.mac.arm64.tar.gz",
+    sha256 = "dbb1716432a79a31b9c5f1842cfce02f2abbf9bcfa789d9afbc41d155e930855",
+    url = "https://github.com/tilt-dev/tilt/releases/download/v0.33.11/tilt.0.33.11.mac.arm64.tar.gz",
 )
 
 # ------------------------------------ pulumi ------------------------------------ #

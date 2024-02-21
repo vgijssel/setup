@@ -1,0 +1,62 @@
+- id: "1707938841757"
+  alias: Control front door contact
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - input_boolean.front_door_contact_simulate
+  condition: []
+  action:
+    - service: mqtt.publish
+      metadata: {}
+      data:
+        qos: "2"
+        retain: true
+        topic: home-assistant/front_door/contact
+        payload: "{{ trigger.to_state.state }}"
+  mode: single
+- id: "1707939189264"
+  alias: Control front door motion occupancy
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - input_button.front_door_motion_occupancy_simulate
+  condition: []
+  action:
+    - service: mqtt.publish
+      metadata: {}
+      data:
+        qos: "2"
+        retain: true
+        topic: home-assistant/front_door/motion_occupancy
+        payload: "on"
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 5
+        milliseconds: 0
+    - service: mqtt.publish
+      metadata: {}
+      data:
+        qos: "2"
+        retain: true
+        topic: home-assistant/front_door/motion_occupancy
+        payload: "off"
+  mode: single
+- id: "1707942333572"
+  alias: Control hallway occupancy
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - input_boolean.hallway_occupancy_simulate
+  condition: []
+  action:
+    - service: mqtt.publish
+      metadata: {}
+      data:
+        qos: "2"
+        retain: true
+        topic: home-assistant/hallway/occupancy
+        payload: "{{ trigger.to_state.state }}"
