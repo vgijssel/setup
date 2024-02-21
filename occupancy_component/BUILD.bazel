@@ -27,6 +27,7 @@ py_pytest_test(
     srcs = [
         "tests/conftest.py",
         "tests/helpers.py",
+        "tests/test_door.py",
         "tests/test_init.py",
     ],
     args = ["--asyncio-mode=auto"],
