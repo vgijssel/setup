@@ -25,7 +25,7 @@ from custom_components.occupancy.const import (
     ATTR_LEAVING_CONFIRM_TIMER,
     ATTR_TIMER_ENTITIES,
 )
-from custom_components.occupancy.helper import create_timer
+from custom_components.occupancy.helpers import create_timer
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol

@@ -80,7 +80,7 @@ def motion_sensor(entity_id, state, timeout=5):
     return entity
 
 
-def occupancy_sensor(entity_id, state, timeout=5):
+def occupancy_sensor(entity_id, state, timeout=30):
     entity = MotionSensor(entity_id, state, timeout)
     return entity
 

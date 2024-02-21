@@ -157,3 +157,76 @@ async def test_area_entering_has_occupancy(hass, init_integration, init_entities
     )
     assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
+
+    await wait(hass, 10)
+
+    assert hass.states.get("select.hallway").state == STATUS_PRESENT
+    assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
+
+
+async def test_area_entering_without_occupancy(hass, init_integration, init_entities):
+    [front_door_contact, front_door_motion, hallway_occupancy] = await init_entities(
+        contact_sensor("binary_sensor.front_door_contact", False),
+        motion_sensor("binary_sensor.front_door_motion", False),
+        occupancy_sensor("binary_sensor.hallway_occupancy", False),
+    )
+
+    await update_area(hass, "hallway", STATUS_ENTERING)
+
+    assert hass.states.get("select.hallway").state == STATUS_ENTERING
+    assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_ACTIVE
+    assert hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
+
+    await wait(hass, 10)
+
+    assert hass.states.get("select.hallway").state == STATUS_ABSENT
+    assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
+
+
+async def test_area_entering_door_opens(hass, init_integration, init_entities):
+    [front_door_contact, front_door_motion, hallway_occupancy] = await init_entities(
+        contact_sensor("binary_sensor.front_door_contact", False),
+        motion_sensor("binary_sensor.front_door_motion", False),
+        occupancy_sensor("binary_sensor.hallway_occupancy", False),
+    )
+
+    await update_area(hass, "hallway", STATUS_ENTERING)
+
+    assert hass.states.get("select.hallway").state == STATUS_ENTERING
+    assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_ACTIVE
+    assert hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
+
+    await front_door_contact.open()
+
+    assert hass.states.get("select.hallway").state == STATUS_ENTERING
+    assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_PAUSED
+    assert hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
+
+    # Wait for the door to become inactive to trigger the timer to become active
+    await wait(hass, 5)
+
+    assert hass.states.get("select.hallway").state == STATUS_ENTERING
+    assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_ACTIVE
+    assert hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
+
+    await wait(hass, 15)
+
+    assert hass.states.get("select.hallway").state == STATUS_ABSENT
+    assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_entering_confirm").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving").state == TIMER_STATUS_IDLE
+    assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
