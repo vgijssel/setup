@@ -13,6 +13,7 @@ py_library(
         "custom_components/occupancy/binary_sensor.py",
         "custom_components/occupancy/const.py",
         "custom_components/occupancy/helpers.py",
+        "custom_components/occupancy/internal_state.py",
         "custom_components/occupancy/select.py",
     ],
     data = [

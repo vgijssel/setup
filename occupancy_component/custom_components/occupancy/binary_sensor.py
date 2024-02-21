@@ -13,6 +13,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
+from custom_components.occupancy.internal_state import InternalState
 
 from homeassistant.const import (
     STATE_OFF,
@@ -86,6 +87,7 @@ class Door(BinarySensorEntity, RestoreEntity):
         self._entry = entry
         self._contact_sensor = contact_sensor
         self._motion_sensor = motion_sensor
+        self._internal_state = InternalState()
 
     @property
     def icon(self):
@@ -98,9 +100,7 @@ class Door(BinarySensorEntity, RestoreEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
 
-        self._internal_state = {}
-
-        self._internal_state[self._contact_sensor] = None
+        self._internal_state.register_entity(self._contact_sensor)
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -109,7 +109,7 @@ class Door(BinarySensorEntity, RestoreEntity):
             )
         )
 
-        self._internal_state[self._motion_sensor] = None
+        self._internal_state.register_entity(self._motion_sensor)
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -129,13 +129,15 @@ class Door(BinarySensorEntity, RestoreEntity):
             self._reset_contact_presence_timer.clear,
         )
 
-    def _update_internal_state(self, entity_id: str, state: str):
-        if entity_id not in self._internal_state:
-            raise Exception(f"Entity {entity_id} not found in internal state")
-
-        self._internal_state[entity_id] = state
-
     async def _contact_sensor_event(self, event: EventType):
+        self._internal_state.set(event.data["entity_id"], event.data["new_state"])
+
+        _LOGGER.debug(
+            "Called '_contact_sensor_event' with data %s - new state %s",
+            event.data,
+            self._internal_state,
+        )
+
         # old_state is None happens when the entity is added to home assistant
         if event.data["old_state"] == None:
             from_state = None
@@ -148,14 +150,6 @@ class Door(BinarySensorEntity, RestoreEntity):
         else:
             to_state = event.data["new_state"].state
 
-        self._update_internal_state(event.data["entity_id"], to_state)
-
-        _LOGGER.debug(
-            "Called '_contact_sensor_event' with data %s - new state %s",
-            event.data,
-            self._internal_state,
-        )
-
         if from_state == STATE_OFF and to_state == STATE_ON:
             self._reset_contact_presence_timer.awake()
 
@@ -165,12 +159,7 @@ class Door(BinarySensorEntity, RestoreEntity):
         self._calculate_presence()
 
     async def _motion_sensor_event(self, event: EventType):
-        if event.data["new_state"] == None:
-            to_state = None
-        else:
-            to_state = event.data["new_state"].state
-
-        self._update_internal_state(event.data["entity_id"], to_state)
+        self._internal_state.set(event.data["entity_id"], event.data["new_state"])
 
         _LOGGER.debug(
             "Called '_motion_sensor_event' with data %s - new state %s",
@@ -181,13 +170,13 @@ class Door(BinarySensorEntity, RestoreEntity):
         self._calculate_presence()
 
     def _door_is_open(self):
-        return self._internal_state[self._contact_sensor] == STATE_ON
+        return self._internal_state.get(self._contact_sensor) == STATE_ON
 
     def _door_is_closed(self):
-        return self._internal_state[self._contact_sensor] == STATE_OFF
+        return self._internal_state.get(self._contact_sensor) == STATE_OFF
 
     def _door_has_motion(self):
-        return self._internal_state[self._motion_sensor] == STATE_ON
+        return self._internal_state.get(self._motion_sensor) == STATE_ON
 
     def _door_just_opened(self):
         return self._door_is_open() and self._reset_contact_presence_timer.idle == False
