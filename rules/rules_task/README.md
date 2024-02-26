@@ -153,7 +153,7 @@ task(
 
 ### More examples
 
-For more examples, see the [tests](rules/rules_task/tests/BUILD.bazel).
+For more examples, see the [tests](tests/BUILD.bazel).
 
 # AST nodes
 
