@@ -1,5 +1,11 @@
 # rules_task
 
+## 2.0.4
+
+### Patch Changes
+
+- [#650](https://github.com/vgijssel/setup/pull/650) [`a193f71`](https://github.com/vgijssel/setup/commit/a193f718231871c6d812518d08453ccdc580f0bb) Thanks [@mvgijssel](https://github.com/mvgijssel)! - docs: Add docs for rules_task
+
 ## 2.0.3
 
 ### Patch Changes
