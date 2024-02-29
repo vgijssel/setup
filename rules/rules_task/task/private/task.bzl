@@ -254,7 +254,7 @@ def _task_impl(ctx):
             outputs = [info_out_file],
             inputs = [ctx.info_file] + runfiles.files.to_list(),
             arguments = [ctx.info_file.path, info_out_file.path],
-            executable = "cp",
+            executable = ctx.executable._dotenv_convert,
             env = {
                 "cmd_json": ctx.attr.cmd_json,
             },
@@ -268,7 +268,7 @@ def _task_impl(ctx):
             outputs = [version_out_file],
             inputs = [ctx.version_file] + runfiles.files.to_list(),
             arguments = [ctx.version_file.path, version_out_file.path],
-            executable = "cp",
+            executable = ctx.executable._dotenv_convert,
             env = {
                 "cmd_json": ctx.attr.cmd_json,
             },
@@ -331,6 +331,8 @@ _task = rule(
         "data": attr.label_list(allow_files = True, cfg = "target"),
         "stamp_stable": attr.bool(default = False),
         "stamp_volatile": attr.bool(default = False),
+        # cfg = "exec" makes sure the dotenv_convert target is built with the host toolchain
+        "_dotenv_convert": attr.label(default = Label("//task/private:dotenv_convert"), executable = True, cfg = "exec"),
     },
 )
 

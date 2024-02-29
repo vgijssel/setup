@@ -4,3 +4,8 @@ filegroup(
     name = "all_files",
     srcs = glob(["**/*"]),
 )
+
+sh_binary(
+    name = "dotenv_convert",
+    srcs = ["dotenv_convert.sh"],
+)
