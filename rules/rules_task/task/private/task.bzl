@@ -93,6 +93,10 @@ def _files_label_to_jinja_path(ctx, label):
 
     return " ".join(result)
 
+def _file_to_jinja_path(ctx, file):
+    rlocation = to_rlocation_path(ctx, file)
+    return _jinja_rlocation(rlocation)
+
 def _executable_label_to_jinja_path(ctx, label):
     target_matches_label = []
 
@@ -164,6 +168,12 @@ def _generate_py_binary_cmd(context, node):
     context.state["target_index"] += 1
     node["label"] = fq_label(target_name)
 
+def _set_use_info_file(context):
+    context.state["info_file"] = True
+
+def _get_use_info_file(context):
+    return context.state.get("info_file", False)
+
 _serializer = {
     "visit_root": lambda context, node: _visit_root(context, node),
     "visit_env": lambda context, node: _serialize_env(context, node),
@@ -172,7 +182,7 @@ _serializer = {
     "visit_string": lambda context, node: _visit_string(context, node)["value"],
     "visit_file": lambda context, node: _file_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_files": lambda context, node: _files_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
-    "visit_info_file": lambda context, node: _files_label_to_jinja_path(context.ctx, context.extra, [context.extra]),
+    "visit_info_file": lambda context, node: _file_to_jinja_path(context.ctx, context.info_file),
     "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
     "visit_python": lambda context, node: _serialize_python(context, node),
 }
@@ -194,16 +204,16 @@ _target_generator = {
     "visit_root": lambda context, node: _visit_root(context, node),
     "visit_env": lambda context, node: _visit_env(context, node),
     "visit_defer": lambda context, node: _visit_defer(context, node),
-    "visit_shell": lambda context, node: None,
+    "visit_shell": lambda context, node: _visit_shell(context, node),
     "visit_string": lambda context, node: None,
     "visit_file": lambda context, node: None,
     "visit_files": lambda context, node: None,
-    "visit_info_file": lambda context, node: None,
+    "visit_info_file": lambda context, node: _set_use_info_file(context),
     "visit_executable": lambda context, node: None,
     "visit_python": lambda context, node: _generate_py_binary_cmd(context, node),
 }
 
-def _visitor_context(ctx, visitor, name):
+def _visitor_context(ctx, visitor, name, info_file = None):
     return struct(
         ctx = ctx,
         visitor = visitor,
@@ -212,16 +222,17 @@ def _visitor_context(ctx, visitor, name):
             "target_index": 0,
             "defer_index": 0,
         },
-        use_version_file = False,
-        use_info_file = False,
+        info_file = info_file,
     )
 
 def _task_impl(ctx):
     out_file = ctx.actions.declare_file(ctx.label.name)
 
-    info_out_file = ctx.actions.declare_file("info.out")
+    extra_files = []
+    info_out_file = ctx.actions.declare_file("info_file.out")
 
-    # We should include all the
+    # TODO: We should include all runfiles files in the action that transforms the info_File / version_file
+    # to make sure it's regenerated when the runfiles change.
     ctx.actions.run(
         outputs = [info_out_file],
         inputs = [ctx.info_file],
@@ -229,14 +240,17 @@ def _task_impl(ctx):
         executable = "cp",
     )
 
-    runfiles = ctx.runfiles(files = ctx.files.data + [info_out_file])
+    if ctx.attr.stamp_stable:
+        extra_files.append(info_out_file)
+
+    runfiles = ctx.runfiles(files = ctx.files.data + extra_files)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
         for d in (ctx.attr.data + ctx.attr.deps)
     ])
 
     cmd_nodes = json.decode(ctx.attr.cmd_json)
-    visitor_context = _visitor_context(ctx, _serializer, ctx.label.name)
+    visitor_context = _visitor_context(ctx, _serializer, ctx.label.name, info_out_file)
     cmds = _visit(visitor_context, cmd_nodes)
 
     instructions = {
@@ -285,6 +299,7 @@ _task = rule(
         # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
         "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
         "data": attr.label_list(allow_files = True, cfg = "target"),
+        "stamp_stable": attr.bool(default = False),
     },
 )
 
@@ -301,6 +316,7 @@ def _task_rule_prep(name, kwargs, testonly = False):
     stamp_volatile = kwargs.pop("stamp_volatile", False)
     root_nodes = []
 
+    # Convenience keyword args to add the info_file and version_file to the task
     if stamp_stable:
         root_nodes.append(cmd.env_file(cmd.version_file()))
 
@@ -315,6 +331,9 @@ def _task_rule_prep(name, kwargs, testonly = False):
     # Generate targets and set labels for all the nodes
     visitor_context = _visitor_context(None, _target_generator, name)
     _visit(visitor_context, cmds)
+
+    # Collect stamp_stable boolean from the AST, should be enabled if any info_file is used
+    stamp_stable = _get_use_info_file(visitor_context)
 
     # Collect all the labels from the nodes
     visitor_context = _visitor_context(None, _data_collector, name)
@@ -332,6 +351,7 @@ def _task_rule_prep(name, kwargs, testonly = False):
         name = script_name,
         data = cmd_data,
         cmd_json = cmd_json,
+        stamp_stable = stamp_stable,
     )
 
     py_binary(

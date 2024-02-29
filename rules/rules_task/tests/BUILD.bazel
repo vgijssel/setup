@@ -237,6 +237,22 @@ task(
             "echo",
             cmd.info_file(),
         ),
+        cmd.shell(
+            "cat",
+            cmd.info_file(),
+        ),
+    ],
+)
+
+genrule(
+    name = "stamp_stable_genrule",
+    outs = ["stamp_stable_genrule_output.txt"],
+    cmd = """
+    echo "from stamp_stable_genrule" > $@
+    $(location :stamp_stable) >> $@
+    """,
+    tools = [
+        ":stamp_stable",
     ],
 )
 
