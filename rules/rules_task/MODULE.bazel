@@ -9,7 +9,7 @@ module(
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
-bazel_dep(name = "aspect_bazel_lib", version = "1.36.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.0.3")
 
 # ------------------------------------ rules_python ------------------------------------ #
 bazel_dep(name = "rules_python", version = "0.29.0")
