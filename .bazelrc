@@ -11,6 +11,8 @@ query:quiet --ui_event_filters=-info --noshow_progress
 # Disable the bazel symlinks
 common --experimental_convenience_symlinks=ignore
 
+common --workspace_status_command=tools/bazel/workspace_status.sh
+
 # Print warning messages about test suite being configured as too small/big
 test --test_verbose_timeout_warnings
 

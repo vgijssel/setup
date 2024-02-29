@@ -225,6 +225,21 @@ task_test(
     ],
 )
 
+task(
+    name = "stamp_stable",
+    cmds = [
+        # cmd.shell(
+        #     "echo",
+        #     cmd.file("files/test_file.txt"),
+        # ),
+        "pwd",
+        cmd.shell(
+            "echo",
+            cmd.info_file(),
+        ),
+    ],
+)
+
 py_test(
     name = "test",
     srcs = [
@@ -253,6 +268,7 @@ py_test(
         ":py_binary_with_runfile",
         ":python",
         ":python_entry_point",
+        ":stamp",
     ],
     env = {
         "WORKSPACE_NAME": package_relative_label(":test").workspace_name,

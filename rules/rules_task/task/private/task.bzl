@@ -172,6 +172,7 @@ _serializer = {
     "visit_string": lambda context, node: _visit_string(context, node)["value"],
     "visit_file": lambda context, node: _file_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_files": lambda context, node: _files_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
+    "visit_info_file": lambda context, node: _files_label_to_jinja_path(context.ctx, context.extra, [context.extra]),
     "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
     "visit_python": lambda context, node: _serialize_python(context, node),
 }
@@ -184,6 +185,7 @@ _data_collector = {
     "visit_string": lambda context, node: None,
     "visit_file": lambda context, node: _visit_file(context, node)["label"],
     "visit_files": lambda context, node: _visit_files(context, node)["label"],
+    "visit_info_file": lambda context, node: None,
     "visit_executable": lambda context, node: _visit_executable(context, node)["label"],
     "visit_python": lambda context, node: _compact(_flatten(_visit_python(context, node))) + [node["label"]],
 }
@@ -196,6 +198,7 @@ _target_generator = {
     "visit_string": lambda context, node: None,
     "visit_file": lambda context, node: None,
     "visit_files": lambda context, node: None,
+    "visit_info_file": lambda context, node: None,
     "visit_executable": lambda context, node: None,
     "visit_python": lambda context, node: _generate_py_binary_cmd(context, node),
 }
@@ -209,12 +212,24 @@ def _visitor_context(ctx, visitor, name):
             "target_index": 0,
             "defer_index": 0,
         },
+        use_version_file = False,
+        use_info_file = False,
     )
 
 def _task_impl(ctx):
     out_file = ctx.actions.declare_file(ctx.label.name)
 
-    runfiles = ctx.runfiles(files = [ctx.file._rlocation] + ctx.files.data)
+    info_out_file = ctx.actions.declare_file("info.out")
+
+    # We should include all the
+    ctx.actions.run(
+        outputs = [info_out_file],
+        inputs = [ctx.info_file],
+        arguments = [ctx.info_file.path, info_out_file.path],
+        executable = "cp",
+    )
+
+    runfiles = ctx.runfiles(files = ctx.files.data + [info_out_file])
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
         for d in (ctx.attr.data + ctx.attr.deps)
@@ -262,18 +277,15 @@ main(instructions)
         ),
     ]
 
-_shared_attrs = {
-    "cmd_json": attr.string(mandatory = True),
-    # cfg = "target" makes sure the deps, data and runner use the target platform toolchain
-    # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
-    "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
-    "data": attr.label_list(allow_files = True, cfg = "target"),
-    "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
-}
-
 _task = rule(
     implementation = _task_impl,
-    attrs = _shared_attrs,
+    attrs = {
+        "cmd_json": attr.string(mandatory = True),
+        # cfg = "target" makes sure the deps, data and runner use the target platform toolchain
+        # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
+        "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
+        "data": attr.label_list(allow_files = True, cfg = "target"),
+    },
 )
 
 def _task_rule_prep(name, kwargs, testonly = False):
@@ -285,8 +297,20 @@ def _task_rule_prep(name, kwargs, testonly = False):
     deps = kwargs.pop("deps", [])
     cwd = cmd.shell("cd", kwargs.pop("cwd", "$PWD"))
     data = kwargs.pop("data", [])
+    stamp_stable = kwargs.pop("stamp_stable", False)
+    stamp_volatile = kwargs.pop("stamp_volatile", False)
+    root_nodes = []
 
-    cmds = cmd.root([cmd.env(env), cwd] + cmds)
+    if stamp_stable:
+        root_nodes.append(cmd.env_file(cmd.version_file()))
+
+    if stamp_volatile:
+        root_nodes.append(cmd.env_file(cmd.info_file()))
+
+    root_nodes.append(cmd.env(env))
+    root_nodes.append(cwd)
+
+    cmds = cmd.root(root_nodes + cmds)
 
     # Generate targets and set labels for all the nodes
     visitor_context = _visitor_context(None, _target_generator, name)

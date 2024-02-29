@@ -129,3 +129,9 @@ def test_capture_stdin():
     result = _run_task("capture_stdin")
     assert result.returncode == 0
     assert result.stdout.strip() == b"hello from stdin"
+
+
+def test_stamp():
+    result = _run_task("stamp")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"content in test file"

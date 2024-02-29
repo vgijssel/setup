@@ -88,6 +88,11 @@ cmd = struct(
         "type": "env",
         "env": _wrap_env(env),
     },
+    env_file = lambda label: {
+        "type": "env_file",
+        # "label": fq_label(label),
+        "label": label,
+    },
     defer = lambda node: {
         "type": "defer",
         "node": _wrap_defer(node),
@@ -99,6 +104,12 @@ cmd = struct(
     file = lambda label: {
         "type": "file",
         "label": fq_label(label),
+    },
+    version_file = lambda: {
+        "type": "version_file",
+    },
+    info_file = lambda: {
+        "type": "info_file",
     },
     files = lambda label: {
         "type": "files",
