@@ -245,6 +245,22 @@ task(
     ],
 )
 
+task(
+    name = "stamp_stable",
+    cmds = [
+        "echo $STABLE_RULES_TASK_TEST_FLAG",
+    ],
+    stamp_stable = True,
+)
+
+task(
+    name = "stamp_volatile",
+    cmds = [
+        "echo $VOLATILE_RULES_TASK_TEST_FLAG",
+    ],
+    stamp_volatile = True,
+)
+
 py_test(
     name = "test",
     srcs = [
@@ -274,6 +290,8 @@ py_test(
         ":py_binary_with_runfile",
         ":python",
         ":python_entry_point",
+        ":stamp_stable",
+        ":stamp_volatile",
         ":version_file",
     ],
     env = {

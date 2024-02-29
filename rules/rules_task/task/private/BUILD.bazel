@@ -1,3 +1,5 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
@@ -5,7 +7,7 @@ filegroup(
     srcs = glob(["**/*"]),
 )
 
-sh_binary(
+py_binary(
     name = "dotenv_convert",
-    srcs = ["dotenv_convert.sh"],
+    srcs = ["dotenv_convert.py"],
 )

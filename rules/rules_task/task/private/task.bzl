@@ -66,6 +66,9 @@ def _visit_env(context, node):
 def _visit_defer(context, node):
     return _visit_method(context, node["node"])(context, node["node"])
 
+def _visit_env_file(context, node):
+    return _visit_method(context, node["node"])(context, node["node"])
+
 def _serialize_env(context, node):
     env_string = ""
 
@@ -74,6 +77,13 @@ def _serialize_env(context, node):
         env_string += "export {}=${}\n".format(key, shell.quote(env_value))
 
     return env_string
+
+def _serialize_env_file(context, node):
+    node = _visit_method(context, node["node"])(context, node["node"])
+
+    return """
+    source {node}
+    """.format(node = node)
 
 def _jinja_rlocation(rlocation):
     return '{{ rlocation_to_path("%s") }}' % rlocation
@@ -183,6 +193,7 @@ def _get_use_version_file(context):
 _serializer = {
     "visit_root": lambda context, node: _visit_root(context, node),
     "visit_env": lambda context, node: _serialize_env(context, node),
+    "visit_env_file": lambda context, node: _serialize_env_file(context, node),
     "visit_defer": lambda context, node: _serialize_defer(context, node),
     "visit_shell": lambda context, node: " ".join(_visit_shell(context, node)),
     "visit_string": lambda context, node: _visit_string(context, node)["value"],
@@ -197,6 +208,7 @@ _serializer = {
 _data_collector = {
     "visit_root": lambda context, node: _compact(_flatten(_visit_root(context, node))),
     "visit_env": lambda context, node: _compact(_flatten(_visit_env(context, node))),
+    "visit_env_file": lambda context, node: _visit_env_file(context, node),
     "visit_defer": lambda context, node: _visit_defer(context, node),
     "visit_shell": lambda context, node: _visit_shell(context, node),
     "visit_string": lambda context, node: None,
@@ -211,6 +223,7 @@ _data_collector = {
 _target_generator = {
     "visit_root": lambda context, node: _visit_root(context, node),
     "visit_env": lambda context, node: _visit_env(context, node),
+    "visit_env_file": lambda context, node: _visit_env_file(context, node),
     "visit_defer": lambda context, node: _visit_defer(context, node),
     "visit_shell": lambda context, node: _visit_shell(context, node),
     "visit_string": lambda context, node: None,
@@ -249,7 +262,7 @@ def _task_impl(ctx):
     version_out_file = None
 
     if ctx.attr.stamp_stable:
-        info_out_file = ctx.actions.declare_file("info_file.out")
+        info_out_file = ctx.actions.declare_file("{}_info_file.out".format(ctx.label.name))
         ctx.actions.run(
             outputs = [info_out_file],
             inputs = [ctx.info_file] + runfiles.files.to_list(),
@@ -263,7 +276,7 @@ def _task_impl(ctx):
         extra_files.append(info_out_file)
 
     if ctx.attr.stamp_volatile:
-        version_out_file = ctx.actions.declare_file("version_file.out")
+        version_out_file = ctx.actions.declare_file("{}_version_file.out".format(ctx.label.name))
         ctx.actions.run(
             outputs = [version_out_file],
             inputs = [ctx.version_file] + runfiles.files.to_list(),
@@ -351,10 +364,10 @@ def _task_rule_prep(name, kwargs, testonly = False):
 
     # Convenience keyword args to add the info_file and version_file to the task
     if stamp_stable:
-        root_nodes.append(cmd.env_file(cmd.version_file()))
+        root_nodes.append(cmd.env_file(cmd.info_file()))
 
     if stamp_volatile:
-        root_nodes.append(cmd.env_file(cmd.info_file()))
+        root_nodes.append(cmd.env_file(cmd.version_file()))
 
     root_nodes.append(cmd.env(env))
     root_nodes.append(cwd)
