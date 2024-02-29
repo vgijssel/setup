@@ -226,17 +226,8 @@ task_test(
 )
 
 task(
-    name = "stamp_stable",
+    name = "info_file",
     cmds = [
-        # cmd.shell(
-        #     "echo",
-        #     cmd.file("files/test_file.txt"),
-        # ),
-        "pwd",
-        cmd.shell(
-            "echo",
-            cmd.info_file(),
-        ),
         cmd.shell(
             "cat",
             cmd.info_file(),
@@ -244,15 +235,13 @@ task(
     ],
 )
 
-genrule(
-    name = "stamp_stable_genrule",
-    outs = ["stamp_stable_genrule_output.txt"],
-    cmd = """
-    echo "from stamp_stable_genrule" > $@
-    $(location :stamp_stable) >> $@
-    """,
-    tools = [
-        ":stamp_stable",
+task(
+    name = "version_file",
+    cmds = [
+        cmd.shell(
+            "cat",
+            cmd.version_file(),
+        ),
     ],
 )
 
@@ -280,11 +269,12 @@ py_test(
         ":genrule",
         ":genrule_with_cwd",
         ":hello",
+        ":info_file",
         ":py_binary",
         ":py_binary_with_runfile",
         ":python",
         ":python_entry_point",
-        ":stamp",
+        ":version_file",
     ],
     env = {
         "WORKSPACE_NAME": package_relative_label(":test").workspace_name,

@@ -131,7 +131,15 @@ def test_capture_stdin():
     assert result.stdout.strip() == b"hello from stdin"
 
 
-def test_stamp():
-    result = _run_task("stamp")
+def test_info_file():
+    result = _run_task("info_file")
     assert result.returncode == 0
-    assert result.stdout.strip() == b"content in test file"
+    assert b"STABLE_RULES_TASK_TEST_FLAG" in result.stdout.strip()
+    assert b"VOLATILE_RULES_TASK_TEST_FLAG" not in result.stdout.strip()
+
+
+def test_version_file():
+    result = _run_task("version_file")
+    assert result.returncode == 0
+    assert b"VOLATILE_RULES_TASK_TEST_FLAG" in result.stdout.strip()
+    assert b"STABLE_RULES_TASK_TEST_FLAG" not in result.stdout.strip()

@@ -174,6 +174,12 @@ def _set_use_info_file(context):
 def _get_use_info_file(context):
     return context.state.get("info_file", False)
 
+def _set_use_version_file(context):
+    context.state["version_file"] = True
+
+def _get_use_version_file(context):
+    return context.state.get("version_file", False)
+
 _serializer = {
     "visit_root": lambda context, node: _visit_root(context, node),
     "visit_env": lambda context, node: _serialize_env(context, node),
@@ -183,6 +189,7 @@ _serializer = {
     "visit_file": lambda context, node: _file_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_files": lambda context, node: _files_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_info_file": lambda context, node: _file_to_jinja_path(context.ctx, context.info_file),
+    "visit_version_file": lambda context, node: _file_to_jinja_path(context.ctx, context.version_file),
     "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
     "visit_python": lambda context, node: _serialize_python(context, node),
 }
@@ -196,6 +203,7 @@ _data_collector = {
     "visit_file": lambda context, node: _visit_file(context, node)["label"],
     "visit_files": lambda context, node: _visit_files(context, node)["label"],
     "visit_info_file": lambda context, node: None,
+    "visit_version_file": lambda context, node: None,
     "visit_executable": lambda context, node: _visit_executable(context, node)["label"],
     "visit_python": lambda context, node: _compact(_flatten(_visit_python(context, node))) + [node["label"]],
 }
@@ -209,11 +217,12 @@ _target_generator = {
     "visit_file": lambda context, node: None,
     "visit_files": lambda context, node: None,
     "visit_info_file": lambda context, node: _set_use_info_file(context),
+    "visit_version_file": lambda context, node: _set_use_version_file(context),
     "visit_executable": lambda context, node: None,
     "visit_python": lambda context, node: _generate_py_binary_cmd(context, node),
 }
 
-def _visitor_context(ctx, visitor, name, info_file = None):
+def _visitor_context(ctx, visitor, name, info_file = None, version_file = None):
     return struct(
         ctx = ctx,
         visitor = visitor,
@@ -223,34 +232,55 @@ def _visitor_context(ctx, visitor, name, info_file = None):
             "defer_index": 0,
         },
         info_file = info_file,
+        version_file = version_file,
     )
 
 def _task_impl(ctx):
     out_file = ctx.actions.declare_file(ctx.label.name)
 
-    extra_files = []
-    info_out_file = ctx.actions.declare_file("info_file.out")
-
-    # TODO: We should include all runfiles files in the action that transforms the info_File / version_file
-    # to make sure it's regenerated when the runfiles change.
-    ctx.actions.run(
-        outputs = [info_out_file],
-        inputs = [ctx.info_file],
-        arguments = [ctx.info_file.path, info_out_file.path],
-        executable = "cp",
-    )
-
-    if ctx.attr.stamp_stable:
-        extra_files.append(info_out_file)
-
-    runfiles = ctx.runfiles(files = ctx.files.data + extra_files)
+    runfiles = ctx.runfiles(files = ctx.files.data)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
         for d in (ctx.attr.data + ctx.attr.deps)
     ])
 
+    extra_files = []
+    info_out_file = None
+    version_out_file = None
+
+    if ctx.attr.stamp_stable:
+        info_out_file = ctx.actions.declare_file("info_file.out")
+        ctx.actions.run(
+            outputs = [info_out_file],
+            inputs = [ctx.info_file] + runfiles.files.to_list(),
+            arguments = [ctx.info_file.path, info_out_file.path],
+            executable = "cp",
+            env = {
+                "cmd_json": ctx.attr.cmd_json,
+            },
+        )
+
+        extra_files.append(info_out_file)
+
+    if ctx.attr.stamp_volatile:
+        version_out_file = ctx.actions.declare_file("version_file.out")
+        ctx.actions.run(
+            outputs = [version_out_file],
+            inputs = [ctx.version_file] + runfiles.files.to_list(),
+            arguments = [ctx.version_file.path, version_out_file.path],
+            executable = "cp",
+            env = {
+                "cmd_json": ctx.attr.cmd_json,
+            },
+        )
+
+        extra_files.append(version_out_file)
+
+    extra_runfiles = ctx.runfiles(files = extra_files)
+    runfiles = runfiles.merge(extra_runfiles)
+
     cmd_nodes = json.decode(ctx.attr.cmd_json)
-    visitor_context = _visitor_context(ctx, _serializer, ctx.label.name, info_out_file)
+    visitor_context = _visitor_context(ctx, _serializer, ctx.label.name, info_out_file, version_out_file)
     cmds = _visit(visitor_context, cmd_nodes)
 
     instructions = {
@@ -300,6 +330,7 @@ _task = rule(
         "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
         "data": attr.label_list(allow_files = True, cfg = "target"),
         "stamp_stable": attr.bool(default = False),
+        "stamp_volatile": attr.bool(default = False),
     },
 )
 
@@ -333,7 +364,14 @@ def _task_rule_prep(name, kwargs, testonly = False):
     _visit(visitor_context, cmds)
 
     # Collect stamp_stable boolean from the AST, should be enabled if any info_file is used
-    stamp_stable = _get_use_info_file(visitor_context)
+    ast_stamp_stable = _get_use_info_file(visitor_context)
+    ast_stamp_volatile = _get_use_version_file(visitor_context)
+
+    if stamp_stable and not ast_stamp_stable:
+        fail("`stamp_stable` is set to True, but no info_file is used in the task")
+
+    if stamp_volatile and not ast_stamp_volatile:
+        fail("`stamp_volatile` is set to True, but no version_file is used in the task")
 
     # Collect all the labels from the nodes
     visitor_context = _visitor_context(None, _data_collector, name)
@@ -351,7 +389,8 @@ def _task_rule_prep(name, kwargs, testonly = False):
         name = script_name,
         data = cmd_data,
         cmd_json = cmd_json,
-        stamp_stable = stamp_stable,
+        stamp_stable = ast_stamp_stable,
+        stamp_volatile = ast_stamp_volatile,
     )
 
     py_binary(
