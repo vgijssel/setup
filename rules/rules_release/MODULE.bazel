@@ -20,7 +20,7 @@ bazel_dep(
 )
 
 # ------------------------------------ aspect_bazel_lib ------------------------------------ #
-bazel_dep(name = "aspect_bazel_lib", version = "2.0.3")
+bazel_dep(name = "aspect_bazel_lib", version = "2.5.0")
 
 # ------------------------------------ rules_java ------------------------------------ #
 bazel_dep(name = "rules_java", version = "7.0.6")

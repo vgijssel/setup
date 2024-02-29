@@ -29,7 +29,7 @@ bazel_dep(
 # ------------------------------------ aspect_bazel_lib ------------------------------------ #
 bazel_dep(
     name = "aspect_bazel_lib",
-    version = "2.0.3",
+    version = "2.5.0",
 )
 
 bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
