@@ -125,7 +125,7 @@ You can use the `cmd.executable` AST node to reference other **executable** targ
 task(
     name = "executable",
     cmds = [
-        "$my_executable",
+        "$tool",
     ],
     env = {
         "tool": cmd.executable("my_executable"),
@@ -141,8 +141,8 @@ You can use the `cmd.file` and `cmd.files` AST nodes to reference other targets.
 task(
     name = "file",
     cmds = [
-        "echo $my_file",
-        "cat $my_file_group",
+        "echo $file",
+        "cat $files",
     ],
     env = {
         "file": cmd.file("my_file"),
