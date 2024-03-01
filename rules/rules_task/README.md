@@ -125,7 +125,7 @@ You can use the `cmd.executable` AST node to reference other **executable** targ
 task(
     name = "executable",
     cmds = [
-        "$my_executable",
+        "$tool",
     ],
     env = {
         "tool": cmd.executable("my_executable"),
@@ -141,14 +141,66 @@ You can use the `cmd.file` and `cmd.files` AST nodes to reference other targets.
 task(
     name = "file",
     cmds = [
-        "echo $my_file",
-        "cat $my_file_group",
+        "echo $file",
+        "cat $files",
     ],
     env = {
         "file": cmd.file("my_file"),
         "files": cmd.files(":my_file_group"),
     }
 )
+```
+
+### Using variables from Bazel workspace_status_command / stamping
+
+If you add the following variable to the `workspace_status_command`:
+
+```bash
+#!/bin/bash
+echo "STABLE_SOME_VAR BAR"
+```
+
+Add add `stamp_stable` attribute to the `task` rule, you can use the variable in the task:
+
+```bazel
+task(
+    name = "stamp_stable",
+    cmds = [
+        "echo $STABLE_SOME_VAR",
+    ],
+    stamp_stable = True,
+)
+```
+
+This will print:
+
+```bash
+FOO
+```
+
+The same goes for volatile variables which has the benefit of not invalidating the Bazel cache if only the volatile variable changes ([docs](https://bazel.build/docs/user-manual#workspace-status)). With the following `workspace_status_command`:
+
+```bash
+#!/bin/bash
+echo "SOME_OTHER_VAR BAR"
+```
+
+And the `stamp_volatile` attribute:
+
+```bazel
+task(
+    name = "stamp_volatile",
+    cmds = [
+        "echo $SOME_OTHER_VAR",
+    ],
+    stamp_volatile = True,
+)
+```
+
+This will print:
+
+```bash
+BAR
 ```
 
 ### More examples
@@ -253,6 +305,36 @@ See [Referencing outputs of other targets](#referencing-outputs-of-other-targets
 ### `cmd.files`
 
 See [Referencing outputs of other targets](#referencing-outputs-of-other-targets)
+
+### `cmd.version_file`
+
+Instead of using the `stamp_stable` and `stamp_volatile` flags, you can use the `cmd.version_file` node to reference the file containing the stable variables. Given a `workspace_status_command` like:
+
+```bash
+#!/bin/bash
+echo "VOLATILE_SOME_VAR BAR"
+```
+
+And running `cat` on the the version file
+
+```bazel
+task(
+    name = "version_file",
+    cmds = [
+        cmd.shell("cat", cmd.version_file()),
+    ],
+)
+```
+
+This will print
+
+```bash
+export VOLATILE_SOME_VAR='BAR'
+```
+
+### `cmd.info_file`
+
+This is the same as `cmd.version_file` but for the info file, this gives you the volatile variables.
 
 ### `cmd.executable`
 

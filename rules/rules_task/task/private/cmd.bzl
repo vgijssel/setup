@@ -24,6 +24,12 @@ def _wrap_env(env):
             env[key] = cmd.string(value)
     return env
 
+def _wrap_env_file(node):
+    if type(node) == "string":
+        node = cmd.string(node)
+
+    return node
+
 def _wrap_shell_args(args):
     result = []
 
@@ -88,6 +94,10 @@ cmd = struct(
         "type": "env",
         "env": _wrap_env(env),
     },
+    env_file = lambda node: {
+        "type": "env_file",
+        "node": _wrap_env_file(node),
+    },
     defer = lambda node: {
         "type": "defer",
         "node": _wrap_defer(node),
@@ -99,6 +109,12 @@ cmd = struct(
     file = lambda label: {
         "type": "file",
         "label": fq_label(label),
+    },
+    version_file = lambda: {
+        "type": "version_file",
+    },
+    info_file = lambda: {
+        "type": "info_file",
     },
     files = lambda label: {
         "type": "files",

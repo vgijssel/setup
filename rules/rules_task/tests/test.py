@@ -129,3 +129,29 @@ def test_capture_stdin():
     result = _run_task("capture_stdin")
     assert result.returncode == 0
     assert result.stdout.strip() == b"hello from stdin"
+
+
+def test_info_file():
+    result = _run_task("info_file")
+    assert result.returncode == 0
+    assert b"STABLE_RULES_TASK_TEST_FLAG=FOO" in result.stdout.strip()
+    assert b"VOLATILE_RULES_TASK_TEST_FLAG" not in result.stdout.strip()
+
+
+def test_version_file():
+    result = _run_task("version_file")
+    assert result.returncode == 0
+    assert b"VOLATILE_RULES_TASK_TEST_FLAG=BAR" in result.stdout.strip()
+    assert b"STABLE_RULES_TASK_TEST_FLAG" not in result.stdout.strip()
+
+
+def test_stamp_stable():
+    result = _run_task("stamp_stable")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"FOO"
+
+
+def test_stamp_volatile():
+    result = _run_task("stamp_volatile")
+    assert result.returncode == 0
+    assert result.stdout.strip() == b"BAR"

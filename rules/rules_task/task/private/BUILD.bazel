@@ -1,6 +1,13 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "all_files",
     srcs = glob(["**/*"]),
+)
+
+py_binary(
+    name = "dotenv_convert",
+    srcs = ["dotenv_convert.py"],
 )

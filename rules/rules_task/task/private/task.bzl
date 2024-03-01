@@ -66,6 +66,9 @@ def _visit_env(context, node):
 def _visit_defer(context, node):
     return _visit_method(context, node["node"])(context, node["node"])
 
+def _visit_env_file(context, node):
+    return _visit_method(context, node["node"])(context, node["node"])
+
 def _serialize_env(context, node):
     env_string = ""
 
@@ -74,6 +77,13 @@ def _serialize_env(context, node):
         env_string += "export {}=${}\n".format(key, shell.quote(env_value))
 
     return env_string
+
+def _serialize_env_file(context, node):
+    node = _visit_method(context, node["node"])(context, node["node"])
+
+    return """
+    source {node}
+    """.format(node = node)
 
 def _jinja_rlocation(rlocation):
     return '{{ rlocation_to_path("%s") }}' % rlocation
@@ -92,6 +102,10 @@ def _files_label_to_jinja_path(ctx, label):
         result.append(_jinja_rlocation(rlocation))
 
     return " ".join(result)
+
+def _file_to_jinja_path(ctx, file):
+    rlocation = to_rlocation_path(ctx, file)
+    return _jinja_rlocation(rlocation)
 
 def _executable_label_to_jinja_path(ctx, label):
     target_matches_label = []
@@ -164,14 +178,29 @@ def _generate_py_binary_cmd(context, node):
     context.state["target_index"] += 1
     node["label"] = fq_label(target_name)
 
+def _set_use_info_file(context):
+    context.state["info_file"] = True
+
+def _get_use_info_file(context):
+    return context.state.get("info_file", False)
+
+def _set_use_version_file(context):
+    context.state["version_file"] = True
+
+def _get_use_version_file(context):
+    return context.state.get("version_file", False)
+
 _serializer = {
     "visit_root": lambda context, node: _visit_root(context, node),
     "visit_env": lambda context, node: _serialize_env(context, node),
+    "visit_env_file": lambda context, node: _serialize_env_file(context, node),
     "visit_defer": lambda context, node: _serialize_defer(context, node),
     "visit_shell": lambda context, node: " ".join(_visit_shell(context, node)),
     "visit_string": lambda context, node: _visit_string(context, node)["value"],
     "visit_file": lambda context, node: _file_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_files": lambda context, node: _files_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
+    "visit_info_file": lambda context, node: _file_to_jinja_path(context.ctx, context.info_file),
+    "visit_version_file": lambda context, node: _file_to_jinja_path(context.ctx, context.version_file),
     "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
     "visit_python": lambda context, node: _serialize_python(context, node),
 }
@@ -179,11 +208,14 @@ _serializer = {
 _data_collector = {
     "visit_root": lambda context, node: _compact(_flatten(_visit_root(context, node))),
     "visit_env": lambda context, node: _compact(_flatten(_visit_env(context, node))),
+    "visit_env_file": lambda context, node: _visit_env_file(context, node),
     "visit_defer": lambda context, node: _visit_defer(context, node),
     "visit_shell": lambda context, node: _visit_shell(context, node),
     "visit_string": lambda context, node: None,
     "visit_file": lambda context, node: _visit_file(context, node)["label"],
     "visit_files": lambda context, node: _visit_files(context, node)["label"],
+    "visit_info_file": lambda context, node: None,
+    "visit_version_file": lambda context, node: None,
     "visit_executable": lambda context, node: _visit_executable(context, node)["label"],
     "visit_python": lambda context, node: _compact(_flatten(_visit_python(context, node))) + [node["label"]],
 }
@@ -191,16 +223,19 @@ _data_collector = {
 _target_generator = {
     "visit_root": lambda context, node: _visit_root(context, node),
     "visit_env": lambda context, node: _visit_env(context, node),
+    "visit_env_file": lambda context, node: _visit_env_file(context, node),
     "visit_defer": lambda context, node: _visit_defer(context, node),
-    "visit_shell": lambda context, node: None,
+    "visit_shell": lambda context, node: _visit_shell(context, node),
     "visit_string": lambda context, node: None,
     "visit_file": lambda context, node: None,
     "visit_files": lambda context, node: None,
+    "visit_info_file": lambda context, node: _set_use_info_file(context),
+    "visit_version_file": lambda context, node: _set_use_version_file(context),
     "visit_executable": lambda context, node: None,
     "visit_python": lambda context, node: _generate_py_binary_cmd(context, node),
 }
 
-def _visitor_context(ctx, visitor, name):
+def _visitor_context(ctx, visitor, name, info_file = None, version_file = None):
     return struct(
         ctx = ctx,
         visitor = visitor,
@@ -209,19 +244,56 @@ def _visitor_context(ctx, visitor, name):
             "target_index": 0,
             "defer_index": 0,
         },
+        info_file = info_file,
+        version_file = version_file,
     )
 
 def _task_impl(ctx):
     out_file = ctx.actions.declare_file(ctx.label.name)
 
-    runfiles = ctx.runfiles(files = [ctx.file._rlocation] + ctx.files.data)
+    runfiles = ctx.runfiles(files = ctx.files.data)
     runfiles = runfiles.merge_all([
         d[DefaultInfo].default_runfiles
         for d in (ctx.attr.data + ctx.attr.deps)
     ])
 
+    extra_files = []
+    info_out_file = None
+    version_out_file = None
+
+    if ctx.attr.stamp_stable:
+        info_out_file = ctx.actions.declare_file("{}_info_file.out".format(ctx.label.name))
+        ctx.actions.run(
+            outputs = [info_out_file],
+            inputs = [ctx.info_file] + runfiles.files.to_list(),
+            arguments = [ctx.info_file.path, info_out_file.path],
+            executable = ctx.executable._dotenv_convert,
+            env = {
+                "cmd_json": ctx.attr.cmd_json,
+            },
+        )
+
+        extra_files.append(info_out_file)
+
+    if ctx.attr.stamp_volatile:
+        version_out_file = ctx.actions.declare_file("{}_version_file.out".format(ctx.label.name))
+        ctx.actions.run(
+            outputs = [version_out_file],
+            inputs = [ctx.version_file] + runfiles.files.to_list(),
+            arguments = [ctx.version_file.path, version_out_file.path],
+            executable = ctx.executable._dotenv_convert,
+            env = {
+                "cmd_json": ctx.attr.cmd_json,
+            },
+        )
+
+        extra_files.append(version_out_file)
+
+    extra_runfiles = ctx.runfiles(files = extra_files)
+    runfiles = runfiles.merge(extra_runfiles)
+
     cmd_nodes = json.decode(ctx.attr.cmd_json)
-    visitor_context = _visitor_context(ctx, _serializer, ctx.label.name)
+    visitor_context = _visitor_context(ctx, _serializer, ctx.label.name, info_out_file, version_out_file)
     cmds = _visit(visitor_context, cmd_nodes)
 
     instructions = {
@@ -262,18 +334,19 @@ main(instructions)
         ),
     ]
 
-_shared_attrs = {
-    "cmd_json": attr.string(mandatory = True),
-    # cfg = "target" makes sure the deps, data and runner use the target platform toolchain
-    # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
-    "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
-    "data": attr.label_list(allow_files = True, cfg = "target"),
-    "_rlocation": attr.label(allow_single_file = True, default = Label("@bazel_tools//tools/bash/runfiles")),
-}
-
 _task = rule(
     implementation = _task_impl,
-    attrs = _shared_attrs,
+    attrs = {
+        "cmd_json": attr.string(mandatory = True),
+        # cfg = "target" makes sure the deps, data and runner use the target platform toolchain
+        # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
+        "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
+        "data": attr.label_list(allow_files = True, cfg = "target"),
+        "stamp_stable": attr.bool(default = False),
+        "stamp_volatile": attr.bool(default = False),
+        # cfg = "exec" makes sure the dotenv_convert target is built with the host toolchain
+        "_dotenv_convert": attr.label(default = Label("//task/private:dotenv_convert"), executable = True, cfg = "exec"),
+    },
 )
 
 def _task_rule_prep(name, kwargs, testonly = False):
@@ -285,12 +358,35 @@ def _task_rule_prep(name, kwargs, testonly = False):
     deps = kwargs.pop("deps", [])
     cwd = cmd.shell("cd", kwargs.pop("cwd", "$PWD"))
     data = kwargs.pop("data", [])
+    stamp_stable = kwargs.pop("stamp_stable", False)
+    stamp_volatile = kwargs.pop("stamp_volatile", False)
+    root_nodes = []
 
-    cmds = cmd.root([cmd.env(env), cwd] + cmds)
+    # Convenience keyword args to add the info_file and version_file to the task
+    if stamp_stable:
+        root_nodes.append(cmd.env_file(cmd.info_file()))
+
+    if stamp_volatile:
+        root_nodes.append(cmd.env_file(cmd.version_file()))
+
+    root_nodes.append(cmd.env(env))
+    root_nodes.append(cwd)
+
+    cmds = cmd.root(root_nodes + cmds)
 
     # Generate targets and set labels for all the nodes
     visitor_context = _visitor_context(None, _target_generator, name)
     _visit(visitor_context, cmds)
+
+    # Collect stamp_stable boolean from the AST, should be enabled if any info_file is used
+    ast_stamp_stable = _get_use_info_file(visitor_context)
+    ast_stamp_volatile = _get_use_version_file(visitor_context)
+
+    if stamp_stable and not ast_stamp_stable:
+        fail("`stamp_stable` is set to True, but no info_file is used in the task")
+
+    if stamp_volatile and not ast_stamp_volatile:
+        fail("`stamp_volatile` is set to True, but no version_file is used in the task")
 
     # Collect all the labels from the nodes
     visitor_context = _visitor_context(None, _data_collector, name)
@@ -308,6 +404,8 @@ def _task_rule_prep(name, kwargs, testonly = False):
         name = script_name,
         data = cmd_data,
         cmd_json = cmd_json,
+        stamp_stable = ast_stamp_stable,
+        stamp_volatile = ast_stamp_volatile,
     )
 
     py_binary(
