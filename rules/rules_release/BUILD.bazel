@@ -1,6 +1,6 @@
 load("@rules_task//task:defs.bzl", "cmd")
 load("//tools:defs.bzl", "publish_github_release", release = "release_changed_files")
-load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
+load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages()
@@ -48,28 +48,6 @@ filegroup(
     ],
 )
 
-mtree_spec(
-    name = "release_archive_mtree",
-    srcs = [
-        ":all_files",
-    ],
-)
-
-# Remove `../rules_release~override` from each line because otherwise
-# this results in an empty archive when extracting.
-genrule(
-    name = "release_archive_mtree_normalized",
-    srcs = [
-        ":release_archive_mtree",
-    ],
-    outs = [
-        "release_archive_mtree_normalized.spec",
-    ],
-    cmd = """
-    sed 's|../{}/||' $< > $@
-    """.format(repository_name().removeprefix("@")),
-)
-
 tar(
     name = "release_archive",
     srcs = [
@@ -77,7 +55,6 @@ tar(
     ],
     out = "rules_release.tar.gz",
     compress = "gzip",
-    mtree = ":release_archive_mtree_normalized",
 )
 
 genrule(
