@@ -153,14 +153,14 @@ task(
 
 ### Using variables from Bazel workspace_status_command / stamping
 
-If you add the following flag to the workspace_status_command:
+If you add the following variable to the `workspace_status_command`:
 
 ```bash
 #!/bin/bash
 echo "STABLE_SOME_VAR BAR"
 ```
 
-Add add `stamp_stable` to the `task` rule, you can use the variable in the rest of the task
+Add add `stamp_stable` attribute to the `task` rule, you can use the variable in the task:
 
 ```bazel
 task(
@@ -172,18 +172,20 @@ task(
 )
 ```
 
-This will print
+This will print:
 
 ```bash
 FOO
 ```
 
-The same goes for volatile variables which has the benefit of not invalidating the Bazel cache if only the volatile variable changes ([docs](https://bazel.build/docs/user-manual#workspace-status)).
+The same goes for volatile variables which has the benefit of not invalidating the Bazel cache if only the volatile variable changes ([docs](https://bazel.build/docs/user-manual#workspace-status)). With the following `workspace_status_command`:
 
 ```bash
 #!/bin/bash
 echo "SOME_OTHER_VAR BAR"
 ```
+
+And the `stamp_volatile` attribute:
 
 ```bazel
 task(
@@ -195,7 +197,7 @@ task(
 )
 ```
 
-This will print
+This will print:
 
 ```bash
 BAR
