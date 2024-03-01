@@ -1,5 +1,15 @@
 # provisioner
 
+## 1.0.11
+
+### Patch Changes
+
+- [#652](https://github.com/vgijssel/setup/pull/652) [`2fc3870`](https://github.com/vgijssel/setup/commit/2fc387082badda15d0a7ca6c26cf5e3de9a463c8) Thanks [@mvgijssel](https://github.com/mvgijssel)! - chore(deps): Upgrade bazel_skylib and bazel_skylib
+
+- Updated dependencies [[`2fc3870`](https://github.com/vgijssel/setup/commit/2fc387082badda15d0a7ca6c26cf5e3de9a463c8), [`2fc3870`](https://github.com/vgijssel/setup/commit/2fc387082badda15d0a7ca6c26cf5e3de9a463c8), [`2fc3870`](https://github.com/vgijssel/setup/commit/2fc387082badda15d0a7ca6c26cf5e3de9a463c8)]:
+  - bunq2ynab@0.3.2
+  - rules_task@2.1.0
+
 ## 1.0.10
 
 ### Patch Changes
