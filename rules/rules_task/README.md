@@ -203,6 +203,24 @@ This will print:
 BAR
 ```
 
+It's also possible to override stamped environment variables from a task caller:
+
+```
+task(
+    name = "parent",
+    cmds = [
+        "export SOME_OTHER_VAR=parent_value",
+        cmd.executable(":stamp_volatile"),
+    ],
+)
+```
+
+This will print
+
+```bash
+parent_value
+```
+
 ### More examples
 
 For more examples, see the [tests](tests/BUILD.bazel).
