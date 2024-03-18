@@ -269,7 +269,6 @@ task(
     env = {
         "VOLATILE_RULES_TASK_TEST_FLAG": "parent_value",
     },
-    stamp_volatile = True,
 )
 
 py_test(
