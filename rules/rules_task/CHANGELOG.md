@@ -1,5 +1,11 @@
 # rules_task
 
+## 2.2.0
+
+### Minor Changes
+
+- [#654](https://github.com/vgijssel/setup/pull/654) [`1a1d644`](https://github.com/vgijssel/setup/commit/1a1d6445a8ef8879bcc42182940b68692d92e908) Thanks [@mvgijssel](https://github.com/mvgijssel)! - feat: Support nested stamping
+
 ## 2.1.0
 
 ### Minor Changes
