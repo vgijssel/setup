@@ -261,6 +261,17 @@ task(
     stamp_volatile = True,
 )
 
+task(
+    name = "stamp_nested",
+    cmds = [
+        cmd.executable(":stamp_volatile"),
+    ],
+    env = {
+        "VOLATILE_RULES_TASK_TEST_FLAG": "parent_value",
+    },
+    stamp_volatile = True,
+)
+
 py_test(
     name = "test",
     srcs = [
@@ -290,6 +301,7 @@ py_test(
         ":py_binary_with_runfile",
         ":python",
         ":python_entry_point",
+        ":stamp_nested",
         ":stamp_stable",
         ":stamp_volatile",
         ":version_file",

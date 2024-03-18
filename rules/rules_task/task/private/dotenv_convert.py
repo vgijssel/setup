@@ -15,7 +15,7 @@ for line in bazel_content.split("\n"):
     key, value = line.split(" ", 1)
     safe_value = shlex.quote(value)
 
-    results.append(f"export {key}={safe_value}")
+    results.append(f"export {key}=${{{key}:-{safe_value}}}")
 
 with open(output_file, "w") as file:
     file.write("\n".join(results))
