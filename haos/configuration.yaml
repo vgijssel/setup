@@ -256,6 +256,16 @@ homekit:
       camera.driveway_doorbell_high:
         name: Oprit Camera
 
+  - name: HA - Garden Alley Cam
+    port: 21066
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.tuingang_cam_medium_resolution_channel
+    entity_config:
+      camera.driveway_doorbell_high:
+        name: Tuin Gang Camera
+
 adaptive_lighting:
   - name: hallway
     lights:
