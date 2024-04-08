@@ -261,7 +261,7 @@ homekit:
     mode: accessory
     filter:
       include_entities:
-        - camera.garden_alley_cam_high
+        - camera.tuingang_cam_medium_resolution_channel
     entity_config:
       camera.driveway_doorbell_high:
         name: Tuin Gang Camera
