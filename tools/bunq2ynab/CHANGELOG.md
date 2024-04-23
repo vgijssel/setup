@@ -1,5 +1,11 @@
 # bunq2ynab_release
 
+## 0.3.3
+
+### Patch Changes
+
+- [#656](https://github.com/vgijssel/setup/pull/656) [`585f3d6`](https://github.com/vgijssel/setup/commit/585f3d6c2894bbb5aaefb0c8bfac280c39c3af47) Thanks [@mvgijssel](https://github.com/mvgijssel)! - chore(deps): Upgrade bunq2ynab
+
 ## 0.3.2
 
 ### Patch Changes
