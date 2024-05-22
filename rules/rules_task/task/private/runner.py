@@ -84,17 +84,7 @@ trap_add() {
 
     cmd = ["bash", "-c", bash_cmd]
 
-    try:
-        process = subprocess.Popen(
-            cmd,
-            env=cmd_env,
-        )
-        process.wait()
-    except KeyboardInterrupt:
-        process.send_signal(signal.SIGINT)
-        process.wait()
-
-    sys.exit(process.returncode)
+    os.execlpe(cmd[0], *cmd, cmd_env)
 
 
 if __name__ == "__main__":

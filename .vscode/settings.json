@@ -19,6 +19,7 @@
   "devbox.autoShellOnTerminal": true,
   "nix.enableLanguageServer": false,
   "files.exclude": {
-    "**/bazel-*": true
+    "**/bazel-*": true,
+    "haos/custom_components/hacs/**/*": true
   }
 }
