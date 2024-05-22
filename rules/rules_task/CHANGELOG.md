@@ -1,5 +1,11 @@
 # rules_task
 
+## 2.2.1
+
+### Patch Changes
+
+- [#658](https://github.com/vgijssel/setup/pull/658) [`5d41466`](https://github.com/vgijssel/setup/commit/5d414664d045260d789642c4e414e0663a0ffcb9) Thanks [@mvgijssel](https://github.com/mvgijssel)! - fix: Propagate signal
+
 ## 2.2.0
 
 ### Minor Changes
