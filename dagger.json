@@ -1,6 +1,12 @@
 {
   "name": "setup",
   "sdk": "python",
+  "dependencies": [
+    {
+      "name": "nix",
+      "source": "github.com/tsirysndr/daggerverse/nix@631932b459d218e641dec8047085f0cc87cf5f1c"
+    }
+  ],
   "source": "dagger",
   "engineVersion": "v0.11.9"
 }

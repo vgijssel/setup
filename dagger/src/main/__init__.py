@@ -35,3 +35,33 @@ class Setup:
             .with_exec(["grep", "-R", pattern, "."])
             .stdout()
         )
+
+    # TODO: add caching volume. This can only be done BEFORE nix is installed, otherwise
+    # you remove all the files in the nix store by mounting the cache.
+    # nixos-generate -f docker -c /src/configuration.nix
+    # Able to export the archive using:  dagger call example --source example export --path ./archive
+    # Able to import the archive using:  docker load -i ./archive nixos:dev
+    # Able to run the container using:  docker run -it --rm --privileged nixos:dev /init
+    @function
+    def example(self, source: dagger.Directory) -> dagger.Container:
+        return (
+            dag.nix()
+            .setup_nix()
+            .with_exec(
+                ["nix", "profile", "install", "github:nix-community/nixos-generators"]
+            )
+            # .with_mounted_cache("/nix", dag.cache_volume("nix"))
+            .with_directory("/src", source)
+            .with_exec(
+                [
+                    "nixos-generate",
+                    "-f",
+                    "docker",
+                    "-c",
+                    "/src/configuration.nix",
+                    "-o",
+                    "/tmp/kerk",
+                ]
+            )
+            .file("/tmp/kerk/tarball/nixos-system-aarch64-linux.tar.xz")
+        )
