@@ -12,3 +12,4 @@ alias edit='code'
 if [[ "$ZPROF" = true ]]; then
   zprof
 fi
+test -f /Users/maarten/.cache/trunk/shell-hooks/zsh.rc && source /Users/maarten/.cache/trunk/shell-hooks/zsh.rc;
