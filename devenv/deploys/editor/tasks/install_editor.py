@@ -1,8 +1,7 @@
+from helpers import macos
+from helpers.home_link import home_link
 from pyinfra.api.deploy import deploy
 from pyinfra.operations import brew, server
-
-from workstation.helpers import macos
-from workstation.helpers.home_link import home_link
 
 
 @deploy("Install Editor")
@@ -17,27 +16,15 @@ def install_editor():
         upgrade=False,
     )
 
-    brew.packages(
-        name="Install dependencies",
-        packages=[
-            "buildifier",  # Necessary for Bazel autoformatting
-        ],
-        present=True,
-        update=False,
-        latest=False,
-        upgrade=False,
+    home_link(
+        source_file="deploys/editor/files/settings.json",
+        target_file="Library/Application Support/Code/User/settings.json",
     )
 
-    editor_config_files = [
-        "settings.json",
-        "keybindings.json",
-    ]
-
-    for file in editor_config_files:
-        home_link(
-            source_file=f"setup/workstation/deploys/editor/files/{file}",
-            target_file=f"Library/Application Support/Code/User/{file}",
-        )
+    home_link(
+        source_file="deploys/editor/files/keybindings.json",
+        target_file="Library/Application Support/Code/User/keybindings.json",
+    )
 
     for vscode_app_name in [
         "com.microsoft.VSCode",
@@ -50,8 +37,3 @@ def install_editor():
             setting="ApplePressAndHoldEnabled",
             value=False,
         )
-
-    server.shell(
-        name="Stop VSCode",
-        commands=["osascript -e 'quit app \"Visual Studio Code\"'"],
-    )
