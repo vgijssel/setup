@@ -53,3 +53,5 @@ result
 
 /haos/secrets.yaml
 /haos/esphome/secrets.yaml
+
+/.task

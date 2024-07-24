@@ -3,9 +3,17 @@ version: "3"
 tasks:
   devenv:install:
     desc: Install dependencies for the devenv
+    dir: devenv
     cmds:
-      - echo "kerk"
-    # sources:
-    #   - src/js/**/*.js
-    # generates:
-    #   - public/bundle.js
+      - poetry install
+    sources:
+      - pyproject.toml
+      - poetry.lock
+
+  devenv:provision:
+    desc: Provision the devenv
+    dir: devenv
+    deps:
+      - devenv:install
+    cmds:
+      - poetry run pyinfra inventory.py deploy.py

@@ -1,0 +1,26 @@
+# BREW_PREFIX is output from `brew --prefix`
+export BREW_PREFIX="/opt/homebrew"
+GNU_CORE_UTILS="$BREW_PREFIX/opt/coreutils/libexec/gnubin"
+GNU_FIND_UTILS="/opt/findutils/libexec/gnubin"
+GNU_INDENT="$BREW_PREFIX/opt/gnu-indent/libexec/gnubin"
+GNU_SED="$BREW_PREFIX/opt/gnu-sed/libexec/gnubin"
+GNU_TAR="$BREW_PREFIX/opt/gnu-tar/libexec/gnubin"
+GNU_WHICH="$BREW_PREFIX/opt/gnu-which/libexec/gnubin"
+GNU_GREP="$BREW_PREFIX/opt/grep/libexec/gnubin"
+
+export PATH=$BREW_PREFIX/bin/:/usr/local/bin/:/usr/local/sbin/:$HOME/.local/bin:$HOME/bin:$GNU_CORE_UTILS:$GNU_FIND_UTILS:$GNU_INDENT:$GNU_SED:$GNU_TAR:$GNU_WHICH:$GNU_GREP:$PATH
+
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+export EDITOR="code --wait --new-window"
+export VISUAL="$EDITOR"
+export GIT_EDITOR="$EDITOR"
+export DOCKER_BUILDKIT=1
+export DEVELOPMENT_DIR="$HOME/Development"
+export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+
+# For esphome to make sure dependencies are installed within the workspace
+export PLATFORMIO_CORE_DIR="$DEVELOPMENT_DIR/setup/tmp/.platformio"
+
+# Disable ZSH Pure from pulling git, because this will launch 1Password and is very distracting.
+export PURE_GIT_PULL=0
