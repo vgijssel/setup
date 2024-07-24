@@ -5,10 +5,10 @@ tasks:
     desc: Install dependencies for the devenv
     dir: devenv
     cmds:
-      - poetry install
+      - pdm install
     sources:
       - pyproject.toml
-      - poetry.lock
+      - pdm.lock
 
   devenv:provision:
     desc: Provision the devenv
@@ -16,4 +16,10 @@ tasks:
     deps:
       - devenv:install
     cmds:
-      - poetry run pyinfra inventory.py deploy.py
+      - pdm run pyinfra inventory.py deploy.py -y
+        --data install_editor=True
+        --data install_terminal=True
+        --data install_languages=True
+        --data install_ssh=True
+        --data install_utilities=True
+        --data install_workflow=True

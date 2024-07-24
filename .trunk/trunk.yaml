@@ -48,14 +48,16 @@ actions:
     - trunk-fmt-pre-commit
     - trunk-upgrade-available
 tools:
+  disabled:
+    - poetry
   auto_sync: true
   runtimes:
     - python
   enabled:
-    - poetry@1.8.3
     - bazelisk@1.18.0
     - bazel-remote@2.3.9
     - go-task@3.32.0
+    - pdm@2.17.1
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -75,6 +77,11 @@ tools:
       shims:
         - name: task
           target: task
+    - name: pdm
+      runtime: python
+      package: pdm
+      shims: [pdm]
+      known_good_version: 2.17.1
 
 downloads:
   - name: bazelisk
