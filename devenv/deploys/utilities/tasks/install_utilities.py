@@ -6,20 +6,27 @@ from pyinfra.operations import brew
 
 @deploy("Install Utilities")
 def install_utilities():
-    brew.casks(
-        name="Install Apps",
-        casks=[
-            "whatsapp",
-            "notion",
-            "spotify",
-            "todoist",
-            "raspberry-pi-imager",
-            "orbstack",
-            "arc",
-            "steam",
-            "sunsama",
-        ],
-        present=True,
-        latest=False,
-        upgrade=False,
-    )
+    utilities = [
+        "whatsapp",
+        "notion",
+        "spotify",
+        "todoist",
+        "raspberry-pi-imager",
+        "orbstack",
+        "arc",
+        "steam",
+        "sunsama",
+    ]
+
+    for utility in utilities:
+        brew.casks(
+            name=f"Install {utility}",
+            casks=[
+                utility,
+            ],
+            present=True,
+            latest=False,
+            upgrade=False,
+            # Ignore errors because some apps might be installed by IT
+            _ignore_errors=True,
+        )
