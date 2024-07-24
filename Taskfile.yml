@@ -1,0 +1,11 @@
+version: "3"
+
+tasks:
+  devenv:install:
+    desc: Install dependencies for the devenv
+    cmds:
+      - echo "kerk"
+    # sources:
+    #   - src/js/**/*.js
+    # generates:
+    #   - public/bundle.js

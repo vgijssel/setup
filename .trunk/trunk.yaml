@@ -3,6 +3,8 @@
 version: 0.1
 cli:
   version: 1.22.2
+  shell_hooks:
+    enforce: true
 # Trunk provides extensibility via plugins. (https://docs.trunk.io/plugins)
 plugins:
   sources:
@@ -45,3 +47,62 @@ actions:
     - trunk-check-pre-push
     - trunk-fmt-pre-commit
     - trunk-upgrade-available
+tools:
+  auto_sync: true
+  runtimes:
+    - python
+  enabled:
+    - poetry@1.8.3
+    - bazelisk@1.18.0
+    - bazel-remote@2.3.9
+    - go-task@3.32.0
+  definitions:
+    - name: bazelisk
+      download: bazelisk
+      known_good_version: 1.18.0
+      shims:
+        - name: bazel
+          target: bazelisk
+    - name: bazel-remote
+      download: bazel-remote
+      known_good_version: 2.3.9
+      shims:
+        - name: bazel-remote
+          target: bazel-remote
+    - name: go-task
+      download: go-task
+      known_good_version: 3.32.0
+      shims:
+        - name: task
+          target: task
+
+downloads:
+  - name: bazelisk
+    executable: true
+    downloads:
+      - os:
+          linux: linux
+          macos: darwin
+        cpu:
+          x86_64: amd64
+          arm_64: arm64
+        url: https://github.com/bazelbuild/bazelisk/releases/download/v${version}/bazelisk-${os}-${cpu}
+  - name: bazel-remote
+    executable: true
+    downloads:
+      - os:
+          linux: linux
+          macos: darwin
+        cpu:
+          x86_64: amd64
+          arm_64: arm64
+        url: https://github.com/buchgr/bazel-remote/releases/download/v${version}/bazel-remote-${version}-${os}-${cpu}
+  - name: go-task
+    downloads:
+      - os:
+          linux: linux
+          macos: darwin
+        cpu:
+          x86_64: amd64
+          arm_64: arm64
+        url: https://github.com/go-task/task/releases/download/v${version}/task_${os}_${cpu}.tar.gz

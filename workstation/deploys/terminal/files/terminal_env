@@ -10,8 +10,6 @@ GNU_GREP="$BREW_PREFIX/opt/grep/libexec/gnubin"
 
 export PATH=$BREW_PREFIX/bin/:/usr/local/bin/:/usr/local/sbin/:$HOME/.local/bin:$HOME/bin:$GNU_CORE_UTILS:$GNU_FIND_UTILS:$GNU_INDENT:$GNU_SED:$GNU_TAR:$GNU_WHICH:$GNU_GREP:$PATH
 
-source $(/opt/homebrew/bin//brew --prefix asdf)/libexec/asdf.sh
-
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 export EDITOR="code --wait --new-window"
