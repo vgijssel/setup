@@ -1,4 +1,6 @@
-from helpers.home_link import home_link
+import os
+
+from helpers.symlink import home_link, symlink
 from pyinfra import host
 from pyinfra.api.deploy import deploy
 from pyinfra.operations import brew, files
@@ -29,13 +31,8 @@ def install_ssh():
             target_file=file,
         )
 
-    files.link(
-        name=f"Ensure macOS is only reachable using SSH from localhost",
-        path="/etc/ssh/sshd_config.d/200-devenv.conf",
-        target="deploys/ssh/files/etc/ssh/sshd_config.d/200-devenv.conf",
-        present=True,
-        symbolic=True,
-        force=True,
-        create_remote_dir=True,
-        # _sudo=True,
+    symlink(
+        source_file="deploys/ssh/files/etc/ssh/sshd_config.d/200-devenv.conf",
+        target_file="/etc/ssh/sshd_config.d/200-devenv.conf",
+        _sudo=True,
     )

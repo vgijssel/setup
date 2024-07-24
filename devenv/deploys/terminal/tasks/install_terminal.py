@@ -1,6 +1,6 @@
 import os
 
-from helpers.home_link import home_link
+from helpers.symlink import home_link
 from pyinfra import host
 from pyinfra.api.deploy import deploy
 from pyinfra.facts.server import Command, User

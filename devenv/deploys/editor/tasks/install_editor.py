@@ -1,5 +1,5 @@
 from helpers import macos
-from helpers.home_link import home_link
+from helpers.symlink import home_link
 from pyinfra.api.deploy import deploy
 from pyinfra.operations import brew, server
 
