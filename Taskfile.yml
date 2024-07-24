@@ -16,10 +16,12 @@ tasks:
     deps:
       - devenv:install
     cmds:
-      - pdm run pyinfra inventory.py deploy.py -y
-        --data install_editor=True
+      - pdm run pyinfra inventory.py deploy.py -y {{.ARGS}}
+    vars:
+      DEFAULT_ARGS: --data install_editor=True
         --data install_terminal=True
         --data install_languages=True
         --data install_ssh=True
         --data install_utilities=True
         --data install_workflow=True
+      ARGS: "{{default .DEFAULT_ARGS .CLI_ARGS}}"

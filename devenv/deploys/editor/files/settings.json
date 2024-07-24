@@ -89,7 +89,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "go.toolsManagement.autoUpdate": true,
-  "workbench.colorTheme": "Snazzy",
+  "workbench.colorTheme": "Default Light Modern",
   "editor.accessibilitySupport": "off",
   "terminal.integrated.scrollback": 100000,
   "dev.containers.defaultExtensions": ["kahole.magit"],
