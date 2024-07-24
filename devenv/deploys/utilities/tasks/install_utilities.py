@@ -16,6 +16,7 @@ def install_utilities():
         "arc",
         "steam",
         "sunsama",
+        "1password",
     ]
 
     for utility in utilities:
