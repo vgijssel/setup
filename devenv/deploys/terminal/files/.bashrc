@@ -1,1 +1,1 @@
-eval "$(sheldon source)"
+test -f $HOME/.cache/trunk/shell-hooks/bash.rc && source $HOME/.cache/trunk/shell-hooks/bash.rc;
