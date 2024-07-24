@@ -1,7 +1,6 @@
+from helpers import macos
 from pyinfra.api.deploy import deploy
 from pyinfra.operations import brew, server
-
-from workstation.helpers import macos
 
 
 @deploy("Install Workflow")
@@ -10,7 +9,6 @@ def install_workflow():
         name="Install Worflow Apps",
         casks=[
             "alfred",
-            "amethyst",
         ],
         present=True,
         latest=False,
