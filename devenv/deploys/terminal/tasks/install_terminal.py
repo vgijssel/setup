@@ -24,6 +24,7 @@ def install_terminal():
         packages=[
             "zsh",
             "bash",
+            "zoxide",
         ],
         present=True,
         update=False,
