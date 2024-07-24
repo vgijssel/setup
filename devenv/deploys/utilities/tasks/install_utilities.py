@@ -17,6 +17,8 @@ def install_utilities():
         "steam",
         "sunsama",
         "1password",
+        "discord",
+        "slack",
     ]
 
     for utility in utilities:
