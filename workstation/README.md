@@ -1,6 +1,6 @@
 # Installation
 
-1. Install 1Password from https://1password.com/downloads/mac/
+1. [Install 1Password](https://1password.com/downloads/mac/)
 2. Install VSCode
 3. Install Orbstack
 4. Install Arc browser
@@ -14,7 +14,7 @@
 12. Install Todoist
 13. Install Whatsapp
 
-# Manual steps after install
+## Manual steps after install
 
 1. Launch and configure Orbstack
 2. Launch and configure Alfred
