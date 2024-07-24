@@ -35,7 +35,7 @@ else
 	git pull origin "$CHECKOUT_BRANCH"
 fi
 
-bew install trunk
+brew install --cask trunk-io
 trunk install
 
 # Ensure Trunk CLI tools are in the PATH
