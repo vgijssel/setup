@@ -42,7 +42,7 @@
   "eslint.format.enable": true,
   "eslint.packageManager": "yarn",
   "editor.codeActionsOnSave": {
-    "source.fixAll": true
+    "source.fixAll": "explicit"
   },
   "editor.formatOnSave": true,
   "[ruby]": {
@@ -94,5 +94,19 @@
   "terminal.integrated.scrollback": 100000,
   "dev.containers.defaultExtensions": ["kahole.magit"],
   "terminal.integrated.enableMultiLinePasteWarning": false,
-  "jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"]
+  "jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"],
+  "files.exclude": {
+    "**/.trunk/*actions/": true,
+    "**/.trunk/*logs/": true,
+    "**/.trunk/*notifications/": true,
+    "**/.trunk/*out/": true,
+    "**/.trunk/*plugins/": true
+  },
+  "files.watcherExclude": {
+    "**/.trunk/*actions/": true,
+    "**/.trunk/*logs/": true,
+    "**/.trunk/*notifications/": true,
+    "**/.trunk/*out/": true,
+    "**/.trunk/*plugins/": true
+  }
 }
