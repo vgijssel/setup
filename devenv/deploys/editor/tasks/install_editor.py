@@ -1,7 +1,7 @@
 from helpers import macos
 from helpers.symlink import home_link
 from pyinfra.api.deploy import deploy
-from pyinfra.operations import brew, server
+from pyinfra.operations import brew
 
 
 @deploy("Install Editor")

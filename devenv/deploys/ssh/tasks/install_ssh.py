@@ -1,9 +1,6 @@
-import os
-
 from helpers.symlink import home_link, symlink
-from pyinfra import host
 from pyinfra.api.deploy import deploy
-from pyinfra.operations import brew, files
+from pyinfra.operations import brew
 
 
 @deploy("Install SSH")

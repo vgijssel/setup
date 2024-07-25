@@ -38,7 +38,7 @@ function setup_sudo_askpass() {
 
 	# From https://stackoverflow.com/questions/8122779/is-it-necessary-to-specify-traps-other-than-exit
 	# remove temporary file once script is done, updating exit code if something goes wrong.
-	trap "rm -f ${SUDO_ASKPASS_BINARY}" 0
+	trap 'rm -f ${SUDO_ASKPASS_BINARY}' 0
 	trap "exit 1" HUP INT QUIT PIPE TERM
 
 	# Collect the sudo password until it's correct
@@ -46,7 +46,7 @@ function setup_sudo_askpass() {
 		SUDO_PASSWORD=$(gum input --password --placeholder="Enter sudo password")
 
 		# Setup our custom askpass binary
-		cat <<EOF >${SUDO_ASKPASS_BINARY}
+		cat <<EOF >"${SUDO_ASKPASS_BINARY}"
 #!/bin/bash
 echo "${SUDO_PASSWORD}"
 EOF
@@ -72,8 +72,9 @@ function setup_homebrew() {
 	# Prevent homebrew updating all existing packages before installing the requested packages
 	export HOMEBREW_NO_AUTO_UPDATE=1
 
-	if test ! $(which brew); then
-		gum spin --title "Installing homebrew..." -- /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+	if test ! "$(command -v brew || true)"; then
+		HOMEBREW_SCRIPT="$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+		gum spin --title "Installing homebrew..." -- /bin/bash -c "${HOMEBREW_SCRIPT}"
 		gum log -l info --time TimeOnly "Homebrew installed."
 	fi
 

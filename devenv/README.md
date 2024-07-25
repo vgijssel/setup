@@ -3,7 +3,7 @@
 1. Install xcode using `xcode-select --install`
 1. Run bootstrap script in Terminal:
 
-```
+```bash
 export BRANCH='master'; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/mvgijssel/setup/$BRANCH/devenv/bootstrap.sh)"
 ```
 

@@ -1,5 +1,3 @@
-import os
-
 from pyinfra.api.deploy import deploy
 from pyinfra.operations import brew
 
