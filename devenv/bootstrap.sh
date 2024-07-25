@@ -25,6 +25,10 @@ function setup_gum() {
 	fi
 
 	export PATH="/tmp/bin:${PATH}"
+	export GUM_SPIN_SHOW_ERROR=true
+	export GUM_SPIN_SPINNER=dot
+
+	gum log -l info --time TimeOnly "Done setting up gum."
 }
 
 function setup_sudo_askpass() {
@@ -49,7 +53,7 @@ EOF
 		export SUDO_ASKPASS="$SUDO_ASKPASS_BINARY"
 
 		set +e
-		sudo --askpass whoami
+		sudo --askpass whoami >/dev/null
 		STATUS=$?
 		set -e
 
@@ -60,6 +64,8 @@ EOF
 			break
 		fi
 	done
+
+	gum log -l info --time TimeOnly "Done setting up sudo askpass."
 }
 
 function setup_homebrew() {
@@ -67,14 +73,14 @@ function setup_homebrew() {
 	export HOMEBREW_NO_AUTO_UPDATE=1
 
 	if test ! $(which brew); then
-		gum spin --spinner dot --title "Installing homebrew..." --show-error -- /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-		gum log -l info "Homebrew installed."
-	else
-		gum log -l info "Homebrew found, skipping installation."
+		gum spin --title "Installing homebrew..." -- /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+		gum log -l info --time TimeOnly "Homebrew installed."
 	fi
 
 	# Ensure brew binaries are in the PATH
 	export PATH="/opt/homebrew/bin:${PATH}"
+
+	gum log -l info --time TimeOnly "Done setting up homebrew"
 }
 
 function setup_repository() {
@@ -83,24 +89,28 @@ function setup_repository() {
 	export CHECKOUT_BRANCH="${BRANCH:-master}"
 
 	if [[ ! -e ${SETUP_DIR} ]]; then
-		gum spin --spinner dot --title "Closing repository..." --show-error -- git clone -b "${CHECKOUT_BRANCH}" https://github.com/mvgijssel/setup.git "${SETUP_DIR}"
+		gum spin --title "Closing repository..." -- git clone -b "${CHECKOUT_BRANCH}" https://github.com/mvgijssel/setup.git "${SETUP_DIR}"
 		cd "${SETUP_DIR}"
 	else
 		cd "${SETUP_DIR}"
-		gum spin --spinner dot --title "Repository found, pulling..." --show-error -- git pull origin "${CHECKOUT_BRANCH}"
+		gum spin --title "Repository found, pulling..." -- git pull origin "${CHECKOUT_BRANCH}"
 	fi
+
+	gum log -l info --time TimeOnly "Done setting up repository."
 }
 
 function setup_trunk() {
-	gum spin --spinner dot --title "Installing Trunk CLI..." --show-error -- brew install --cask trunk-io
-	gum spin --spinner dot --title "Installing Trunk dependencies..." --show-error -- trunk install
+	gum spin --title "Installing Trunk CLI..." -- brew install --cask trunk-io
+	gum spin --title "Installing Trunk CLI dependencies..." -- trunk install
 	# Ensure Trunk CLI tools are in the PATH
 	export PATH="${SETUP_DIR}/.trunk/tools:${PATH}"
+
+	gum log -l info --time TimeOnly "Done setting up Trunk CLI."
 }
 
 setup_gum
 setup_sudo_askpass
-# setup_homebrew
+setup_homebrew
 setup_repository
 setup_trunk
 
