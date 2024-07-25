@@ -1,11 +1,11 @@
-from pyinfra.api.deploy import deploy
-from pyinfra.operations import files, server, apt, systemd
 from pyinfra import host
-from pyinfra.facts.deb import DebPackage, DebArch
+from pyinfra.api.deploy import deploy
+from pyinfra.facts.deb import DebArch, DebPackage
+from pyinfra.operations import apt, files, server, systemd
+
 from provisioner.utils import wait_for_reconnect
 
-
-TELEPORT_VERSION = "v14.3.0"
+TELEPORT_VERSION = "v16.1.0"
 
 
 @deploy("Install Teleport")
