@@ -8,7 +8,7 @@
 set -Eeou pipefail
 
 function setup_gum() {
-	if [ ! -f /tmp/bin/gum ]; then
+	if [[ ! -f /tmp/bin/gum ]]; then
 		GUM_VERSION="0.14.3"
 		GUM_OS="Darwin"
 		GUM_CPU="arm64"
@@ -34,11 +34,11 @@ function setup_gum() {
 function setup_sudo_askpass() {
 	# Create temporary sudo askpass binary
 	SUDO_ASKPASS_BINARY=$(mktemp)
-	chmod +x "$SUDO_ASKPASS_BINARY"
+	chmod +x "${SUDO_ASKPASS_BINARY}"
 
 	# From https://stackoverflow.com/questions/8122779/is-it-necessary-to-specify-traps-other-than-exit
 	# remove temporary file once script is done, updating exit code if something goes wrong.
-	trap "rm -f $SUDO_ASKPASS_BINARY" 0
+	trap "rm -f ${SUDO_ASKPASS_BINARY}" 0
 	trap "exit 1" HUP INT QUIT PIPE TERM
 
 	# Collect the sudo password until it's correct
@@ -46,11 +46,11 @@ function setup_sudo_askpass() {
 		SUDO_PASSWORD=$(gum input --password --placeholder="Enter sudo password")
 
 		# Setup our custom askpass binary
-		cat <<EOF >$SUDO_ASKPASS_BINARY
+		cat <<EOF >${SUDO_ASKPASS_BINARY}
 #!/bin/bash
-echo "$SUDO_PASSWORD"
+echo "${SUDO_PASSWORD}"
 EOF
-		export SUDO_ASKPASS="$SUDO_ASKPASS_BINARY"
+		export SUDO_ASKPASS="${SUDO_ASKPASS_BINARY}"
 
 		set +e
 		sudo --askpass whoami >/dev/null
@@ -58,7 +58,7 @@ EOF
 		set -e
 
 		# check exit code
-		if [ $STATUS -ne 0 ]; then
+		if [[ ${STATUS} -ne 0 ]]; then
 			gum log -l error "Incorrect sudo password, please try again."
 		else
 			break
@@ -108,10 +108,15 @@ function setup_trunk() {
 	gum log -l info --time TimeOnly "Done setting up Trunk CLI."
 }
 
+function provision() {
+	gum spin --title "Provisioning workstation..." -- task devenv:provision
+
+	gum log -l info --time TimeOnly "Done provisioning workstation."
+}
+
 setup_gum
 setup_sudo_askpass
 setup_homebrew
 setup_repository
 setup_trunk
-
-task devenv:provision
+provision
