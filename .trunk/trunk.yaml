@@ -58,6 +58,7 @@ tools:
     - bazel-remote@2.3.9
     - go-task@3.32.0
     - pdm@2.17.1
+    - gum@0.14.3
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -82,6 +83,12 @@ tools:
       package: pdm
       shims: [pdm]
       known_good_version: 2.17.1
+    - name: gum
+      download: gum
+      known_good_version: 0.14.3
+      shims:
+        - name: gum
+          target: gum
 
 downloads:
   - name: bazelisk
@@ -113,3 +120,13 @@ downloads:
           x86_64: amd64
           arm_64: arm64
         url: https://github.com/go-task/task/releases/download/v${version}/task_${os}_${cpu}.tar.gz
+  - name: gum
+    downloads:
+      - os:
+          linux: Linux
+          macos: Darwin
+        cpu:
+          x86_64: x86_64
+          arm_64: arm64
+        url: https://github.com/charmbracelet/gum/releases/download/v${version}/gum_${version}_${os}_${cpu}.tar.gz
+        strip_components: 1
