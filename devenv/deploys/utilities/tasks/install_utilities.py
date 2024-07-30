@@ -17,6 +17,7 @@ def install_utilities():
         "1password",
         "discord",
         "slack",
+        "aws-vpn-client",
     ]
 
     for utility in utilities:

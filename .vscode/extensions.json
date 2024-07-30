@@ -6,7 +6,6 @@
   "recommendations": [
     "ms-vscode-remote.remote-containers",
     "ms-python.python",
-    "esbenp.prettier-vscode",
     "bazelbuild.vscode-bazel",
     "bee.git-temporal-vscode",
     "github.copilot",
