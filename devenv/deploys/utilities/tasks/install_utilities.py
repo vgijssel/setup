@@ -1,5 +1,5 @@
 from pyinfra.api.deploy import deploy
-from pyinfra.operations import brew
+from pyinfra.operations import brew, server
 
 
 @deploy("Install Utilities")
@@ -17,7 +17,6 @@ def install_utilities():
         "1password",
         "discord",
         "slack",
-        "aws-vpn-client",
     ]
 
     for utility in utilities:
@@ -32,3 +31,18 @@ def install_utilities():
             # Ignore errors because some apps might be installed by IT
             _ignore_errors=True,
         )
+
+    brew.packages(
+        name="Install defaultbrowser",
+        packages=[
+            "defaultbrowser",
+        ],
+        present=True,
+        update=False,
+        upgrade=False,
+    )
+
+    server.shell(
+        name="Set default browser to Arc",
+        commands="defaultbrowser browser",
+    )

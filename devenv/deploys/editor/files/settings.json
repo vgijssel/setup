@@ -48,16 +48,7 @@
   "[ruby]": {
     "editor.formatOnSave": false
   },
-  "[javascript]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  },
   "workbench.editor.untitled.hint": "hidden",
-  "[typescript]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  },
   "workbench.editorAssociations": {
     "*.ipynb": "jupyter-notebook"
   },
@@ -78,15 +69,10 @@
     "markdown": true
   },
   "[json]": {
-    // "editor.defaultFormatter": "vscode.json-language-features",
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.quickSuggestions": {
       "strings": true
     },
     "editor.suggest.insertMode": "replace"
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "go.toolsManagement.autoUpdate": true,
   "workbench.colorTheme": "Default Light Modern",
@@ -108,5 +94,6 @@
     "**/.trunk/*notifications/": true,
     "**/.trunk/*out/": true,
     "**/.trunk/*plugins/": true
-  }
+  },
+  "editor.defaultFormatter": "trunk.io"
 }

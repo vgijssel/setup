@@ -4,6 +4,8 @@ tasks:
   devenv:install:
     desc: Install dependencies for the devenv
     dir: devenv
+    env:
+      PDM_IGNORE_ACTIVE_VENV: 1
     cmds:
       - pdm install
     sources:
