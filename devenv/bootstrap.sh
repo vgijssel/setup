@@ -7,6 +7,9 @@
 
 set -Eeou pipefail
 
+export DEVELOPMENT_DIR="${HOME}/Development"
+export SETUP_DIR="${DEVELOPMENT_DIR}/setup"
+
 function setup_gum() {
 	if [[ ! -f /tmp/bin/gum ]]; then
 		GUM_VERSION="0.14.3"
@@ -85,8 +88,6 @@ function setup_homebrew() {
 }
 
 function setup_repository() {
-	export DEVELOPMENT_DIR="${HOME}/Development"
-	export SETUP_DIR="${DEVELOPMENT_DIR}/setup"
 	export CHECKOUT_BRANCH="${BRANCH:-master}"
 
 	if [[ ! -e ${SETUP_DIR} ]]; then
@@ -115,9 +116,14 @@ function provision() {
 	gum log -l info --time TimeOnly "Done provisioning workstation."
 }
 
+function next_steps() {
+	gum pager <"${SETUP_DIR}/devenv/README.md"
+}
+
 setup_gum
 setup_sudo_askpass
 setup_homebrew
 setup_repository
 setup_trunk
 provision
+next_steps
