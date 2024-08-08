@@ -1,0 +1,8 @@
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+export EDITOR="code --wait --new-window"
+export VISUAL="$EDITOR"
+export GIT_EDITOR="$EDITOR"
+export DEVELOPMENT_DIR="$HOME/Development"
+export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+export PATH=/opt/homebrew/bin:$PATH

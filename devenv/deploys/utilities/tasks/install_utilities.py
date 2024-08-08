@@ -1,0 +1,48 @@
+from pyinfra.api.deploy import deploy
+from pyinfra.operations import brew, server
+
+
+@deploy("Install Utilities")
+def install_utilities():
+    utilities = [
+        "whatsapp",
+        "notion",
+        "spotify",
+        "todoist",
+        "raspberry-pi-imager",
+        "orbstack",
+        "arc",
+        "steam",
+        "sunsama",
+        "1password",
+        "discord",
+        "slack",
+    ]
+
+    for utility in utilities:
+        brew.casks(
+            name=f"Install {utility}",
+            casks=[
+                utility,
+            ],
+            present=True,
+            latest=False,
+            upgrade=False,
+            # Ignore errors because some apps might be installed by IT
+            _ignore_errors=True,
+        )
+
+    brew.packages(
+        name="Install defaultbrowser",
+        packages=[
+            "defaultbrowser",
+        ],
+        present=True,
+        update=False,
+        upgrade=False,
+    )
+
+    server.shell(
+        name="Set default browser to Arc",
+        commands="defaultbrowser browser",
+    )

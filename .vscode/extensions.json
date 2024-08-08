@@ -5,9 +5,7 @@
   // List of extensions which should be recommended for users of this workspace.
   "recommendations": [
     "ms-vscode-remote.remote-containers",
-    "jetpack-io.devbox",
     "ms-python.python",
-    "esbenp.prettier-vscode",
     "bazelbuild.vscode-bazel",
     "bee.git-temporal-vscode",
     "github.copilot",
