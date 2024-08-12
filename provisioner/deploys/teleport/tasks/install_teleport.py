@@ -5,7 +5,7 @@ from pyinfra.operations import apt, files, server, systemd
 
 from provisioner.utils import wait_for_reconnect
 
-TELEPORT_VERSION = "v14.3.0"
+TELEPORT_VERSION = "v16.0.3"
 
 
 @deploy("Install Teleport")
