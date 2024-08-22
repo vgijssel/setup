@@ -18,31 +18,31 @@
       # TODO: how to handle this platform in CI? Can we cross compile?
       nixpkgs.hostPlatform = "aarch64-linux";
       system.stateVersion = "24.05";
+      nix.settings.experimental-features = [ "nix-command" "flakes" ];
+      services.openssh.enable = true;
+
+      # Symlink bash to /bin/bash to make it work with lima/warp.
+      system.activationScripts.binbash = ''
+        mkdir -m 0755 -p /bin
+        ln -sfn ${pkgs.bash}/bin/bash /bin/.bash.tmp
+        mv /bin/.bash.tmp /bin/bash # atomically replace /bin/bash
+      '';
 
       environment.systemPackages = with pkgs; [
         vim
       ];
 
-      formatConfigs.docker = { config, ... }: {
-        services.openssh.enable = true;
-      };
-
-      formatConfigs.raw = { config, ... }: {
-        services.openssh.enable = true;
-      };
-
-      # customize an existing format
       formatConfigs.qcow = { config, ... }: {
-        services.openssh.enable = true;
-      };
+        services.cloud-init.enable = true;
 
-      # define a new format
-      formatConfigs.my-custom-format = { config, modulesPath, ... }: {
-        imports = [ "${toString modulesPath}/installer/cd-dvd/installation-cd-base.nix" ];
-        formatAttr = "isoImage";
-        fileExtension = ".iso";
-        networking.wireless.networks = {
-          # ...
+        # Make sure /bin/bash exists
+        # services.envfs.enable = true;
+
+        services.openssh.settings.PermitRootLogin = "yes";
+        users.users.root.password = "nixos";
+
+        security = {
+          sudo.wheelNeedsPassword = false;
         };
       };
     };
