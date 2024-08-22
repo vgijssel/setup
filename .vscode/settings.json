@@ -2,23 +2,14 @@
   "search.exclude": {
     "home-assistant/config/custom_components/**/*": true
   },
-  "prettier.resolveGlobalModules": false,
   "files.associations": {
     "WORKSPACE.bzlmod": "starlark",
     ".bazelrc": "plaintext"
   },
   "editor.formatOnSave": true,
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
-    "editor.formatOnSave": true
-  },
-  "[dockercompose]": {
-    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
-  },
-  "python.formatting.provider": "none",
-  "nix.enableLanguageServer": false,
   "files.exclude": {
     "**/bazel-*": true,
     "haos/custom_components/hacs/**/*": true
-  }
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/dist/export/python/virtualenvs/python-default/3.10.8/bin/python"
 }

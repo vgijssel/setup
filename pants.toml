@@ -1,0 +1,14 @@
+[GLOBAL]
+pants_version = "2.21.1"
+
+backend_packages = ["pants.backend.python", "pants.backend.docker"]
+
+build_ignore = ["**/BUILD.bazel", "**/BUILD.repositories.bazel.tpl"]
+
+[python]
+interpreter_constraints = ["CPython==3.10.*"]
+enable_resolves = true
+
+[export]
+py_resolve_format = "symlinked_immutable_virtualenv"
+resolve = ["python-default"]
