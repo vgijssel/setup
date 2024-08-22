@@ -1,0 +1,1 @@
+FROM nixos/nix:2.24.3

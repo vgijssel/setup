@@ -12,3 +12,8 @@ enable_resolves = true
 [export]
 py_resolve_format = "symlinked_immutable_virtualenv"
 resolve = ["python-default"]
+
+[docker]
+use_buildx = true
+# Flag needed because of https://github.com/pantsbuild/pants/issues/20605#issuecomment-2020309567
+build_args = ["HOME"]
