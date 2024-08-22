@@ -1,0 +1,15 @@
+docker_image(
+    name = "image-builder",
+    image_tags = ['dev'],
+    extra_run_args = [
+        "--volume=./bastion:/opt/bastion",
+    ],
+    dependencies = [
+        ":bastion-files",
+    ],
+)
+
+files(
+    name = "bastion-files",
+    sources = ["**"],
+)
