@@ -15,3 +15,6 @@ COPY bastion/flake.lock .
 
 # Build the actual 
 # nix build .#nixosConfigurations.bastion.config.formats.qcow
+
+# Copy the image to the host
+# cp result/nixos.qcow2 .

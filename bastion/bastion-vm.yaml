@@ -1,0 +1,7 @@
+images:
+  - location: "bastion/nixos.qcow2"
+
+mounts:
+  - location: "~"
+  - location: "/tmp/lima"
+    writable: true

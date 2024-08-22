@@ -11,5 +11,5 @@ docker_image(
 
 files(
     name = "bastion-files",
-    sources = ["**"],
+    sources = ["flake.lock", "flake.nix"],
 )

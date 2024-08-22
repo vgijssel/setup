@@ -36,6 +36,7 @@ def install_utilities():
         name="Install defaultbrowser",
         packages=[
             "defaultbrowser",
+            "lima",
         ],
         present=True,
         update=False,
