@@ -1,0 +1,25 @@
+service:
+  sshd:
+    enabled: true
+    running: true
+user:
+  root:
+    exists: true
+    uid: 0
+    gid: 0
+    groups:
+      - root
+    home: /root
+    shell: /run/current-system/sw/bin/bash
+command:
+  command -v vim:
+    exit-status: 0
+    stdout:
+      - /run/current-system/sw/bin/vim
+    timeout: 10000
+  nixos-version:
+    exit-status: 0
+    stdout:
+      - "24.05"
+    stderr: ""
+    timeout: 10000
