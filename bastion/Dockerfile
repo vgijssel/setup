@@ -13,3 +13,5 @@ WORKDIR /opt/bastion
 # Ensure we symlink bash to /bin/bash otherwise pants will fail.
 # Not sure if we can configure PATH in pants for this exact purpose.
 RUN ln -sfn /root/.nix-profile/bin/bash /bin/bash
+
+RUN nix-env -i nixos-rebuild

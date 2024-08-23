@@ -27,19 +27,5 @@
         ./configuration-lima.nix
       ];
     };
-
-    deploy.nodes.bastion = {
-      # Hardcoded port, also in: bastion-vm.yaml
-      sshOpts = [ "-p" "63762" ];
-      hostname = "host.docker.internal";
-      profiles.system = {
-        user = "root";
-        sshUser = "root";
-        path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.bastion;
-      };
-    };
-
-    # This is highly advised, and will prevent many possible mistakes
-    checks = builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib;
   };
 }

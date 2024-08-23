@@ -55,10 +55,14 @@ run_shell_command(
     ],
 )
 
-# Run deploy-rs on the development machine
+# inside the docker container with nix run:
+# export SSH_ASKPASS_REQUIRE=force
+# export SSH_ASKPASS=/opt/bastion/ssh_askpass.sh
+# NIX_SSHOPTS="-p 63762 -o StrictHostKeyChecking=no" nixos-rebuild --target-host root@host.docker.internal switch --use-remote-sudo --flake .#bastion
+# nix run github:serokell/deploy-rs .#bastion.system
 run_shell_command(
     name = "provision",
-    command = "ls -la",
+    command = "ls -la {chroot}/bastion",
     execution_dependencies = [
         ":image-builder",
     ],
