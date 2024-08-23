@@ -40,10 +40,6 @@
   systemd.services.goss = {
     description = "Goss Healthcheck Service";
     wantedBy = [ "default.target" ];
-    # Make nixos-version available in the PATH of the service
-    path = [
-      pkgs.nixos-version
-    ];
     serviceConfig = {
       ExecStart = "${pkgs.goss}/bin/goss --gossfile /etc/goss.yaml serve";
     };
