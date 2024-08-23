@@ -6,13 +6,14 @@
   "recommendations": [
     "ms-vscode-remote.remote-containers",
     "ms-python.python",
-    "bazelbuild.vscode-bazel",
     "bee.git-temporal-vscode",
     "github.copilot",
     "github.copilot-chat",
     "vspacecode.vspacecode",
     "alexanderbast.vscode-snazzy",
     "tilt-dev.tiltfile",
-    "github.remotehub"
+    "github.remotehub",
+    "robotpajamas.vscode-suspenders",
+    "tamasfe.even-better-toml"
   ]
 }

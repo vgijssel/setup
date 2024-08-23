@@ -1,7 +1,12 @@
 [GLOBAL]
 pants_version = "2.21.1"
 
-backend_packages = ["pants.backend.python", "pants.backend.docker"]
+backend_packages = [
+  "pants.backend.python",
+  "pants.backend.docker",
+  "pants.backend.experimental.adhoc",
+  "pants.backend.shell",
+]
 
 build_ignore = ["**/BUILD.bazel", "**/BUILD.repositories.bazel.tpl"]
 
@@ -17,3 +22,6 @@ resolve = ["python-default"]
 use_buildx = true
 # Flag needed because of https://github.com/pantsbuild/pants/issues/20605#issuecomment-2020309567
 build_args = ["HOME"]
+
+[environments-preview.names]
+image-builder = "//:image-builder"
