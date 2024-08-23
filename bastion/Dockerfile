@@ -13,10 +13,8 @@ RUN echo "extra-experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 RUN echo "system-features = nixos-test benchmark big-parallel kvm" >> /etc/nix/nix.conf
 
 WORKDIR /opt/bastion
-
-COPY bastion/flake.nix .
-COPY bastion/flake.lock .
-
+# COPY bastion/flake.nix .
+# COPY bastion/flake.lock .
 
 # Ensure we symlink bash to /bin/bash otherwise pants will fail.
 # Not sure if we can configure PATH in pants for this exact purpose.

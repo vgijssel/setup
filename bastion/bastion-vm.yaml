@@ -1,6 +1,5 @@
 images:
-  - location: "bastion/nixos.qcow2"
-  # - location: "bastion/nixos.img"
+  - location: ./bastion.qcow2
 
 mounts:
   - location: "~"

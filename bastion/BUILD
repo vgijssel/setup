@@ -20,15 +20,38 @@ files(
 shell_command(
     name = "image",
     timeout = 300,
-    # command = "ls -la > world.txt",
     command = "nix build .#nixosConfigurations.bastion.config.formats.qcow && cp -v result/nixos.qcow2 bastion.qcow2",
     environment = "image-builder",
     execution_dependencies = [":bastion-files"],
     output_files = ["bastion.qcow2"],
-    # output_files = ["world.txt"],
     tools = [
         "cp",
         "nix",
     ],
-    # tools = ["ls"],
+)
+
+system_binary(
+    name = "limactl",
+    binary_name = "limactl",
+    fingerprint = "limactl version 0.23.1",
+    fingerprint_args = ["--version"],
+)
+
+file(
+    name = "bastion-vm-config",
+    source = "bastion-vm.yaml",
+)
+
+run_shell_command(
+    name = "start",
+    command = """
+    cd {chroot}/bastion && limactl delete -f bastion-vm && limactl start --plain --tty=false ./bastion-vm.yaml
+    """,
+    execution_dependencies = [
+        ":image",
+        ":bastion-vm-config",
+    ],
+    runnable_dependencies = [
+        ":limactl",
+    ],
 )
