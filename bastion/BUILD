@@ -1,8 +1,5 @@
 docker_image(
     name = "image-builder",
-    dependencies = [
-        ":bastion-files",
-    ],
     extra_run_args = [
         "--volume=./bastion:/opt/bastion",
     ],
@@ -14,6 +11,7 @@ files(
     sources = [
         "flake.lock",
         "flake.nix",
+        "configuration.nix",
     ],
 )
 
@@ -56,6 +54,7 @@ run_shell_command(
     ],
 )
 
+# Run deploy-rs on the development machine
 run_shell_command(
     name = "provision",
     command = "ls -la",

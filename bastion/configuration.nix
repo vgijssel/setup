@@ -41,14 +41,21 @@
   };
 
   # qcow specific settings
-  # we only need this to satisfy limactl upon boot
   services.cloud-init.enable = true;
 
-  services.openssh.settings.PermitRootLogin = "yes";
+  # Make sure /bin/bash exists
+  # services.envfs.enable = true;
 
+  services.openssh.settings.PermitRootLogin = "yes";
   users.users.root.password = "nixos";
 
   security = {
     sudo.wheelNeedsPassword = false;
+  };
+
+  users.users.ops = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" ]; # Add the user to the wheel group if you want them to have sudo access.
+    password = "ops";
   };
 }
