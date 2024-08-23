@@ -25,3 +25,12 @@ build_args = ["HOME"]
 
 [environments-preview.names]
 image-builder = "//:image-builder"
+
+[system-binaries]
+system_binary_paths = [
+  "%(buildroot)s/.trunk/tools",
+  "/usr/bin",
+  "/bin",
+  "/usr/local/bin",
+  "/opt/homebrew/bin",
+]
