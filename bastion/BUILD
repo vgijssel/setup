@@ -12,13 +12,14 @@ files(
         "flake.lock",
         "flake.nix",
         "configuration.nix",
+        "configuration-lima.nix",
     ],
 )
 
 shell_command(
     name = "image",
     timeout = 600,
-    command = "nix build .#nixosConfigurations.bastion.config.formats.qcow && cp -v result/nixos.qcow2 bastion.qcow2",
+    command = "nix build .#qcow && cp -v result/nixos.qcow2 bastion.qcow2",
     environment = "image-builder",
     execution_dependencies = [":bastion-files"],
     output_files = ["bastion.qcow2"],

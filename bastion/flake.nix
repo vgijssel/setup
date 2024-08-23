@@ -9,25 +9,23 @@
     deploy-rs.url = "github:serokell/deploy-rs";
   };
   outputs = { self, nixpkgs, nixos-generators, deploy-rs, ... }: {
-
-    # A single nixos config outputting multiple formats.
-    # Alternatively put this in a configuration.nix.
-    nixosModules.bastionFormats = { config, pkgs, ... }: {
-      imports = [
-        nixos-generators.nixosModules.all-formats
-        ./configuration.nix
-      ];
-
-      nixpkgs.hostPlatform = "aarch64-linux";
-
-      formatConfigs.qcow = { config, ... }: {
-        # Enable cloud-init specifically for lima
-        services.cloud-init.enable = true;
+    packages.aarch64-linux = {
+      qcow = nixos-generators.nixosGenerate {
+        system = "aarch64-linux";
+        modules = [
+          ./configuration.nix
+          ./configuration-lima.nix
+        ];
+        format = "qcow";
       };
     };
 
     nixosConfigurations.bastion = nixpkgs.lib.nixosSystem {
-      modules = [ self.nixosModules.bastionFormats ];
+      system = "aarch64-linux";
+      modules = [
+        ./configuration.nix
+        ./configuration-lima.nix
+      ];
     };
 
     deploy.nodes.bastion = {
@@ -37,7 +35,7 @@
       profiles.system = {
         user = "root";
         sshUser = "root";
-        path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.bastion.config.formats.qcow;
+        path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.bastion;
       };
     };
 
