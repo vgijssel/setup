@@ -19,7 +19,7 @@ files(
 
 shell_command(
     name = "image",
-    timeout = 300,
+    timeout = 600,
     command = "nix build .#nixosConfigurations.bastion.config.formats.qcow && cp -v result/nixos.qcow2 bastion.qcow2",
     environment = "image-builder",
     execution_dependencies = [":bastion-files"],
@@ -53,5 +53,13 @@ run_shell_command(
     ],
     runnable_dependencies = [
         ":limactl",
+    ],
+)
+
+run_shell_command(
+    name = "provision",
+    command = "ls -la",
+    execution_dependencies = [
+        ":image-builder",
     ],
 )

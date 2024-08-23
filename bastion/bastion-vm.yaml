@@ -1,12 +1,11 @@
+# for all the settings see: https://github.com/lima-vm/lima/blob/master/examples/default.yaml
 images:
   - location: ./bastion.qcow2
 
-mounts:
-  - location: "~"
-  - location: "/tmp/lima"
-    writable: true
+plain: true
 
-mountType: "9p"
+ssh:
+  localPort: 63762
 
 containerd:
   system: false

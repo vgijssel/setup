@@ -20,6 +20,9 @@ WORKDIR /opt/bastion
 # Not sure if we can configure PATH in pants for this exact purpose.
 RUN ln -sfn /root/.nix-profile/bin/bash /bin/bash
 
+# build and not run the following flake for faster execution?
+# nix run github:serokell/deploy-rs
+
 # Build the actual 
 
 # nix build .#nixosConfigurations.bastion.config.formats.qcow

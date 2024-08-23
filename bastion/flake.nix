@@ -15,6 +15,24 @@
         nixos-generators.nixosModules.all-formats
       ];
 
+      boot.loader.grub = {
+        device = "nodev";
+        efiSupport = true;
+        efiInstallAsRemovable = true;
+      };
+
+      fileSystems."/boot" = {
+        device = "/dev/vda1"; # /dev/disk/by-label/ESP
+        fsType = "vfat";
+      };
+
+      fileSystems."/" = {
+        device = "/dev/disk/by-label/nixos";
+        autoResize = true;
+        fsType = "ext4";
+        options = [ "noatime" "nodiratime" "discard" ];
+      };
+
       # TODO: how to handle this platform in CI? Can we cross compile?
       nixpkgs.hostPlatform = "aarch64-linux";
       system.stateVersion = "24.05";
