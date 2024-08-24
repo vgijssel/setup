@@ -1,16 +1,26 @@
 #!/usr/bin/env bash
 
-# Get the docker image info from pants
-docker_info="$1"
+# For provisioning the flake against a target host
+#
+#    ./provision.sh <image_id>
+#
+image_id="$1"
 
-# Extract the image id from the info using jq
-image_id=$(cat $docker_info | jq -r ".image_id")
+VOLUME_NAME="bastion_nix"
+
+if [ ! "$(docker volume ls -q -f name=$VOLUME_NAME)" ]; then
+  docker volume create $VOLUME_NAME
+  echo "Volume $VOLUME_NAME created."
+else
+  echo "Volume $VOLUME_NAME already exists."
+fi
 
 # Run nixos-rebuild on the target host
 docker run \
     --rm \
     -it \
     -v .:/opt/bastion \
+    -v $VOLUME_NAME:/nix \
     -e SSH_ASKPASS_REQUIRE="force" \
     -e SSH_ASKPASS="/opt/bastion/ssh_askpass.sh" \
     -e NIX_SSHOPTS="-p 63762 -o StrictHostKeyChecking=no" \

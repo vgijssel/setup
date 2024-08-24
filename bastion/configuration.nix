@@ -33,15 +33,11 @@
     options = [ "noatime" "nodiratime" "discard" ];
   };
 
-  environment.etc = {
-    "goss.yaml".source = "${./goss.yaml}";
-  };
-
   systemd.services.goss = {
     description = "Goss Healthcheck Service";
     wantedBy = [ "default.target" ];
     serviceConfig = {
-      ExecStart = "${pkgs.goss}/bin/goss --gossfile /etc/goss.yaml serve";
+      ExecStart = "${pkgs.goss}/bin/goss --gossfile ${./goss.yaml} serve";
     };
   };
 }

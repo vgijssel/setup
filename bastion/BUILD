@@ -69,7 +69,7 @@ run_shell_command(
 
 run_shell_command(
     name = "provision",
-    command = "./provision.sh {chroot}/bastion/image-builder.docker-info.json",
+    command = "./provision.sh $(cat {chroot}/bastion/image-builder.docker-info.json | jq -r '.image_id')",
     execution_dependencies = [
         ":image-builder",
     ],
