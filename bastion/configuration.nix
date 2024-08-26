@@ -13,6 +13,7 @@
     vim
     wget
     goss
+    teleport
   ];
 
   boot.loader.grub = {
@@ -40,4 +41,8 @@
       ExecStart = "${pkgs.goss}/bin/goss --gossfile ${./goss.yaml} serve";
     };
   };
+
+  networking.firewall.allowedTCPPorts = [
+    8080 # goss: exposes the healthcheck results at 0.0.0.0:8080/healthz
+  ];
 }

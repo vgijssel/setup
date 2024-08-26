@@ -10,6 +10,8 @@ backend_packages = [
 
 build_ignore = ["**/BUILD.bazel", "**/BUILD.repositories.bazel.tpl"]
 
+keep_sandboxes = "on_failure"
+
 [python]
 interpreter_constraints = ["CPython==3.10.*"]
 enable_resolves = true
@@ -23,11 +25,9 @@ use_buildx = true
 # Flag needed because of https://github.com/pantsbuild/pants/issues/20605#issuecomment-2020309567
 build_args = ["HOME"]
 
-[environments-preview.names]
-image-builder = "//:image-builder"
-
 [system-binaries]
 system_binary_paths = [
+  "%(buildroot)s/bin",
   "%(buildroot)s/.trunk/tools",
   "/usr/bin",
   "/bin",

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -Eeou pipefail
+
+if [ "$@" == "pants-fingerprint" ]; then
+    echo "nixos-rebuild binstub"
+    exit 0
+fi
+
+# docker run --name nixos-rebuild --rm --detach --volume $HOME:/opt/delegator$HOME --volume $(realpath $TMPDIR):/opt/delegator$(realpath $TMPDIR) image-builder:dev sleep infinity
+
+# TODO
+# - delegate all host environment variables to the guest
+# - optionally use -it if the program is interactive
+# - spin up a container if it does not exist
+# - terminate the container with the name if it exists and the settings are different
+# - start the container with a server script which terminates the container after a set timeout
+# - refresh the timeout every time a command is run against the container using the delegate binary
+
+docker exec -it \
+    --env SSH_ASKPASS_REQUIRE="force" \
+    --env SSH_ASKPASS="./ssh_askpass.sh" \
+    --env NIX_SSHOPTS="-p 63762 -o StrictHostKeyChecking=no" \
+    --workdir /opt/delegator$PWD \
+    nixos-rebuild nixos-rebuild $@
+
+
+# potential public api:
+# delegator \
+#     --name nixos-rebuild \
+#     --volume $HOME \
+#     --volume $(realpath TMPDIR) \
+#     --timout 10m \
+#     --image image-builder:dev \
+#     nixos-rebuild $@

@@ -10,3 +10,12 @@ ssh:
 containerd:
   system: false
   user: false
+
+# TODO: The port forward does not work with the plain flag!!
+# TODO: use ssh port forwarding instead?
+portForwards:
+  # forward the server healthcheck port to macOS
+  - guestPort: 8080
+    hostIP: 127.0.0.1
+    hostPort: 63763
+    proto: tcp

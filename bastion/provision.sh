@@ -4,6 +4,9 @@
 #
 #    ./provision.sh <image_id>
 #
+
+set -Eeou pipefail
+
 image_id="$1"
 
 VOLUME_NAME="bastion_nix"
@@ -18,7 +21,6 @@ fi
 # Run nixos-rebuild on the target host
 docker run \
     --rm \
-    -it \
     -v .:/opt/bastion \
     -v $VOLUME_NAME:/nix \
     -e SSH_ASKPASS_REQUIRE="force" \

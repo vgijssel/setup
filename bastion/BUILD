@@ -9,48 +9,33 @@ docker_image(
 files(
     name = "bastion-files",
     sources = [
+        "build.sh",
         "flake.lock",
         "flake.nix",
         "configuration.nix",
         "configuration-lima.nix",
+        "goss.yaml",
     ],
 )
 
 shell_command(
     name = "image",
     timeout = 600,
-    command = "nix build .#qcow && cp -v result/nixos.qcow2 bastion.qcow2",
-    environment = "image-builder",
-    execution_dependencies = [":bastion-files"],
-    output_files = ["bastion.qcow2"],
-    tools = [
-        "cp",
-        "nix",
+    command = "./build.sh $(cat ./image-builder.docker-info.json | jq -r '.image_id')",
+    execution_dependencies = [
+        ":image-builder",
+        ":bastion-files",
     ],
-)
-
-system_binary(
-    name = "limactl",
-    binary_name = "limactl",
-    fingerprint = "limactl version 0.23.1",
-    fingerprint_args = ["--version"],
-)
-
-system_binary(
-    name = "jq",
-    binary_name = "jq",
-    fingerprint = "jq-1.7.1",
-    fingerprint_args = ["--version"],
-)
-
-system_binary(
-    name = "docker",
-    binary_name = "docker",
-)
-
-file(
-    name = "bastion-vm-config",
-    source = "bastion-vm.yaml",
+    output_files = [
+        "bastion.qcow2",
+    ],
+    runnable_dependencies = [":jq"],
+    tools = [
+        "bash",
+        "cat",
+        "docker",
+        "ls",
+    ],
 )
 
 run_shell_command(
@@ -77,4 +62,44 @@ run_shell_command(
         ":jq",
         ":docker",
     ],
+)
+
+system_binary(
+    name = "nixos-rebuild",
+    binary_name = "nixos-rebuild",
+    fingerprint = "nixos-rebuild binstub",
+    fingerprint_args = ["pants-fingerprint"],
+    fingerprint_dependencies = [
+        ":bash",
+        ":docker",
+    ],
+)
+
+system_binary(
+    name = "limactl",
+    binary_name = "limactl",
+    fingerprint = "limactl version 0.23.1",
+    fingerprint_args = ["--version"],
+)
+
+system_binary(
+    name = "jq",
+    binary_name = "jq",
+    fingerprint = "jq-1.7.1",
+    fingerprint_args = ["--version"],
+)
+
+system_binary(
+    name = "bash",
+    binary_name = "bash",
+)
+
+system_binary(
+    name = "docker",
+    binary_name = "docker",
+)
+
+file(
+    name = "bastion-vm-config",
+    source = "bastion-vm.yaml",
 )
