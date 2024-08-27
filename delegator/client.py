@@ -1,4 +1,5 @@
 import argparse
+import importlib.resources
 import json
 import logging
 import os
@@ -14,6 +15,10 @@ import sys
 #     nixos-rebuild $@
 
 LOGGER = logging.getLogger(__name__)
+
+import pdb
+
+pdb.set_trace()
 
 
 def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
