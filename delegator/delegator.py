@@ -1,12 +1,9 @@
 import argparse
 import json
+import logging
 import os
 import subprocess
 import sys
-
-# TODO: add logging
-# TODO: write pid to the settings file
-# TODO: implement server polling to check pids still active
 
 # delegator \
 #     --name nixos-rebuild \
@@ -15,6 +12,32 @@ import sys
 #     --timout 10m \
 #     --image image-builder:dev \
 #     nixos-rebuild $@
+
+LOGGER = logging.getLogger(__name__)
+
+
+def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
+    LOGGER.debug("Run command: %s", " ".join(command))
+
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
+        exit(1)
+
+    LOGGER.debug("Command stdout: %s. stderr: %s", result.stdout, result.stderr)
+
+    return result
+
+
+def _exec(command: list[str]) -> None:
+    LOGGER.debug("Exec command: %s", " ".join(command))
+    os.execvp(command[0], command)
 
 
 class Settings:
@@ -27,7 +50,7 @@ class Settings:
 
 
 def is_container_running(settings: Settings) -> bool:
-    result = subprocess.run(
+    result = _run(
         [
             "docker",
             "ps",
@@ -37,14 +60,7 @@ def is_container_running(settings: Settings) -> bool:
             "--filter",
             "name={}".format(settings.name),
         ],
-        capture_output=True,
-        text=True,
     )
-
-    if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr)
-        exit(1)
 
     # container does not exist, need to create it
     if len(result.stdout) == 0:
@@ -65,10 +81,8 @@ def is_container_running(settings: Settings) -> bool:
         return True
 
     # If the container is in another state, remove it
-    subprocess.run(
+    _run(
         ["docker", "rm", "-f", settings.name],
-        capture_output=True,
-        text=True,
     )
 
     return False
@@ -89,11 +103,7 @@ def create_container(settings: Settings) -> None:
 
     command = command + [settings.image, "sleep", "infinity"]
 
-    subprocess.run(
-        command,
-        capture_output=True,
-        text=True,
-    )
+    _run(command)
 
 
 def execute_command(settings: Settings, remote_command: str) -> None:
@@ -115,7 +125,7 @@ def execute_command(settings: Settings, remote_command: str) -> None:
         remote_command,
     ]
 
-    os.execvp("docker", command)
+    _exec(command)
 
 
 def main():
@@ -145,6 +155,12 @@ def main():
         required=True,
         help="Name of the base image to use for the delegator container.",
     )
+    parser.add_argument(
+        "--log-level",
+        choices=["debug", "info", "warning", "error", "critical"],
+        default=None,
+        help="Name of the base image to use for the delegator container.",
+    )
 
     args = parser.parse_args()
     settings = Settings(
@@ -152,6 +168,24 @@ def main():
         volumes=args.volume,
         timeout=args.timeout,
         image=args.image,
+    )
+
+    log_level_map = {
+        "debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+        "critical": logging.CRITICAL,
+        None: None,
+    }
+
+    log_level = log_level_map[args.log_level]
+
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s.%(msecs)02d [%(levelname)s] %(message)s",
+        datefmt="%I:%M:%S",
+        handlers=[logging.StreamHandler(sys.stderr)],  # Log to stderr
     )
 
     is_running = is_container_running(settings)
