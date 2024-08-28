@@ -5,20 +5,22 @@ import logging
 import os
 import subprocess
 import sys
-
-# delegator \
-#     --name nixos-rebuild \
-#     --volume $HOME \
-#     --volume $(realpath TMPDIR) \
-#     --timout 10m \
-#     --image image-builder:dev \
-#     nixos-rebuild $@
+from dataclasses import dataclass
+from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
 
-import pdb
 
-pdb.set_trace()
+def _server_path() -> Path:
+    server_path = importlib.resources.path("delegator", "server.pex")
+
+    LOGGER.debug(f"Server path: {server_path}")
+
+    if not server_path.is_file():
+        print("Server binary not found.")
+        exit(1)
+
+    return server_path
 
 
 def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
@@ -45,13 +47,13 @@ def _exec(command: list[str]) -> None:
     os.execvp(command[0], command)
 
 
+@dataclass
 class Settings:
-    def __init__(self, name: str, volumes: list[str], timeout: str, image: str) -> None:
-        self.name = name
-        self.volumes = volumes
-        self.timeout = timeout
-        self.image = image
-        self.mount_prefix = "/opt/delegator"
+    name: str
+    volumes: list[str]
+    timeout: str
+    image: str
+    mount_prefix: str = "/opt/delegator"
 
 
 def is_container_running(settings: Settings) -> bool:
@@ -168,12 +170,6 @@ def main():
     )
 
     args = parser.parse_args()
-    settings = Settings(
-        name=args.name,
-        volumes=args.volume,
-        timeout=args.timeout,
-        image=args.image,
-    )
 
     log_level_map = {
         "debug": logging.DEBUG,
@@ -191,6 +187,15 @@ def main():
         format="%(asctime)s.%(msecs)02d [%(levelname)s] %(message)s",
         datefmt="%I:%M:%S",
         handlers=[logging.StreamHandler(sys.stderr)],  # Log to stderr
+    )
+
+    volumes = args.volume + [_server_path().parent]
+
+    settings = Settings(
+        name=args.name,
+        volumes=volumes,
+        timeout=args.timeout,
+        image=args.image,
     )
 
     is_running = is_container_running(settings)

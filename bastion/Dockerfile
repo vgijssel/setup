@@ -14,4 +14,5 @@ WORKDIR /opt/bastion
 # Not sure if we can configure PATH in pants for this exact purpose.
 RUN ln -sfn /root/.nix-profile/bin/bash /bin/bash
 
-RUN nix-env -i nixos-rebuild
+# Can search for packages with: nix-env -qa
+RUN nix-env -i nixos-rebuild python3-3.10.14 ps-procps

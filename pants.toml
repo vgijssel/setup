@@ -12,6 +12,8 @@ build_ignore = ["**/BUILD.bazel", "**/BUILD.repositories.bazel.tpl"]
 
 keep_sandboxes = "on_failure"
 
+build_file_prelude_globs = ["pants-plugins/macros.py"]
+
 [python]
 interpreter_constraints = ["CPython==3.10.*"]
 enable_resolves = true
@@ -34,3 +36,7 @@ system_binary_paths = [
   "/usr/local/bin",
   "/opt/homebrew/bin",
 ]
+
+[environments-preview.names]
+local_linux_python = "//:local_linux_python"
+docker_linux_python = "//:docker_linux_python"
