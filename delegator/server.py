@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import sys
 import time
 from datetime import datetime
@@ -25,9 +26,9 @@ def main():
     )
     parser.add_argument(
         "--log-level",
-        choices=["debug", "info", "warning", "error", "critical"],
+        choices=["none", "debug", "info", "warning", "error", "critical"],
         default="debug",
-        help="Name of the base image to use for the delegator container.",
+        help="Log level for the server.",
     )
 
     args = parser.parse_args()
@@ -38,7 +39,7 @@ def main():
         "warning": logging.WARNING,
         "error": logging.ERROR,
         "critical": logging.CRITICAL,
-        None: None,
+        "none": None,
     }
 
     log_level = log_level_map[args.log_level]
@@ -50,9 +51,9 @@ def main():
         handlers=[logging.StreamHandler(sys.stderr)],
     )
 
-    boot_pids = set(psutil.pids())
-    LOGGER.info(f"Boot pids: {boot_pids}")
-
+    server_pid = os.getpid()
+    LOGGER.info(f"Server pid: {server_pid}")
+    boot_pids = set([server_pid])
     cal = parsedatetime.Calendar()
     timeout_datetime, status = cal.parseDT(args.timeout)
 

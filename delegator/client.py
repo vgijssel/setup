@@ -53,6 +53,8 @@ class Settings:
     volumes: list[str]
     timeout: str
     image: str
+    server_log_level: str
+    server_poll_interval: int
     mount_prefix: str = "/opt/delegator"
 
 
@@ -108,7 +110,16 @@ def create_container(settings: Settings) -> None:
         volume_mapping = f"{volume}:{settings.mount_prefix}{volume}"
         command = command + ["--volume", volume_mapping]
 
-    command = command + [settings.image, "sleep", "infinity"]
+    command = command + [
+        settings.image,
+        f"{settings.mount_prefix}{_server_path()}",
+        "--timeout",
+        settings.timeout,
+        "--poll-interval",
+        str(settings.server_poll_interval),
+        "--log-level",
+        settings.server_log_level,
+    ]
 
     _run(command)
 
@@ -164,9 +175,22 @@ def main():
     )
     parser.add_argument(
         "--log-level",
-        choices=["debug", "info", "warning", "error", "critical"],
-        default=None,
-        help="Name of the base image to use for the delegator container.",
+        choices=["none", "debug", "info", "warning", "error", "critical"],
+        default="none",
+        help="Log level for the client.",
+    )
+    parser.add_argument(
+        "--server-log-level",
+        choices=["none", "debug", "info", "warning", "error", "critical"],
+        default="debug",
+        help="Log level for the server.",
+    )
+    parser.add_argument(
+        "--server-poll-interval",
+        required=False,
+        default=1,
+        help="How often the server should poll for new pids.",
+        type=int,
     )
 
     args = parser.parse_args()
@@ -177,7 +201,7 @@ def main():
         "warning": logging.WARNING,
         "error": logging.ERROR,
         "critical": logging.CRITICAL,
-        None: None,
+        "none": None,
     }
 
     log_level = log_level_map[args.log_level]
@@ -196,6 +220,8 @@ def main():
         volumes=volumes,
         timeout=args.timeout,
         image=args.image,
+        server_log_level=args.server_log_level,
+        server_poll_interval=args.server_poll_interval,
     )
 
     is_running = is_container_running(settings)
