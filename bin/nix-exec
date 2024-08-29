@@ -13,20 +13,13 @@ then
     export PATH="$delegator_dir:$PATH"
 fi
 
-# TODO: yeah of course now the nix-exec daemon is restarting on each invocation
-# because the NIX_EXEC_WORKDIR is different because the current directory is a unique sandbox
-# location :facepalm:. If we're able to mount the current temp directory, that would be great.
-# Doesn't Pants expose it's settings to all targets perhaps?
-# Setting is: "local_execution_root_dir"
-#
-# Can we access this setting somehow?
-NIX_EXEC_WORKDIR="${HOME:-/private/tmp/pants-sandbox}"
 NIX_EXEC_IMAGE="${NIX_EXEC_IMAGE:-image-builder:dev}"
 
 exec delegator \
-    --log-level debug \
     --name nix-exec \
-    --volume "$NIX_EXEC_WORKDIR" \
+    # Mounting the full disk to allow the binary to work both from the host
+    # and from within the pants sandbox.
+    --volume "/" \
     --image "$NIX_EXEC_IMAGE" \
     --timeout "12 hours" \
     "$@"

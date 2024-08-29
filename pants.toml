@@ -1,6 +1,5 @@
 [GLOBAL]
 pants_version = "2.21.1"
-local_execution_root_dir = "/private/tmp/pants-sandbox"
 
 backend_packages = [
   "pants.backend.python",
