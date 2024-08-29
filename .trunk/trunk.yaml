@@ -29,7 +29,7 @@ lint:
     - black@24.4.2
     - buildifier@7.1.2
     - checkov@3.2.200
-    - git-diff-check
+    # - git-diff-check
     # - hadolint@2.12.0
     - isort@5.13.2
     - markdownlint@0.41.0
@@ -53,6 +53,7 @@ lint:
     - osv-scanner
     - trufflehog
     - trivy
+    - git-diff-check
 actions:
   enabled:
     - trunk-check-pre-push

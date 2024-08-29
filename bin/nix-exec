@@ -18,5 +18,5 @@ exec delegator \
     --volume $HOME \
     --volume $(realpath $TMPDIR) \
     --image image-builder:dev \
-    --timeout 12h \
+    --timeout "12 hours" \
     "$@"

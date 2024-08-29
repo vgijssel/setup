@@ -1,12 +1,13 @@
 import argparse
 import logging
 import os
-import sys
 import time
 from datetime import datetime
 
 import parsedatetime
 import psutil
+
+from .utils import setup_logging, validate_timeout
 
 LOGGER = logging.getLogger(__name__)
 
@@ -33,23 +34,11 @@ def main():
 
     args = parser.parse_args()
 
-    log_level_map = {
-        "debug": logging.DEBUG,
-        "info": logging.INFO,
-        "warning": logging.WARNING,
-        "error": logging.ERROR,
-        "critical": logging.CRITICAL,
-        "none": None,
-    }
+    setup_logging(args.log_level)
 
-    log_level = log_level_map[args.log_level]
+    LOGGER.debug("Arguments: %s", args)
 
-    logging.basicConfig(
-        level=log_level,
-        format="%(asctime)s.%(msecs)02d [%(levelname)s] %(message)s",
-        datefmt="%I:%M:%S",
-        handlers=[logging.StreamHandler(sys.stderr)],
-    )
+    validate_timeout(args.timeout)
 
     server_pid = os.getpid()
     LOGGER.info(f"Server pid: {server_pid}")

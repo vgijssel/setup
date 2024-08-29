@@ -9,6 +9,8 @@ import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from .utils import setup_logging, validate_timeout
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -266,25 +268,11 @@ def main():
 
     args = parser.parse_args()
 
-    log_level_map = {
-        "debug": logging.DEBUG,
-        "info": logging.INFO,
-        "warning": logging.WARNING,
-        "error": logging.ERROR,
-        "critical": logging.CRITICAL,
-        "none": None,
-    }
-
-    log_level = log_level_map[args.log_level]
-
-    logging.basicConfig(
-        level=log_level,
-        format="%(asctime)s.%(msecs)02d [%(levelname)s] %(message)s",
-        datefmt="%I:%M:%S",
-        handlers=[logging.StreamHandler(sys.stderr)],  # Log to stderr
-    )
+    setup_logging(args.log_level)
 
     LOGGER.debug("Arguments: %s", args)
+
+    validate_timeout(args.timeout)
 
     server_path = get_server_path()
 
