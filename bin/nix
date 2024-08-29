@@ -2,8 +2,12 @@
 
 set -Eeou pipefail
 
-if [ "$#" -gt 0 ] && [ "$@" == "pants-fingerprint" ]; then
-    echo "bin/nix binstub"
+# When this "binary" is included by Pants with system_binary
+# it will be called with the argument "pants-fingerprint" to validate if we're using the right binary.
+# Using this method, because all environment variables are missing when Pants is trying to locate
+# a binary, which means bin/nix-exec will fail.
+if [ "$#" -eq 1 ] && [ "$1" == "pants-fingerprint" ]; then
+    echo "bin/nixos-rebuild binstub"
     exit 0
 fi
 
