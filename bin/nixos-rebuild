@@ -2,22 +2,13 @@
 
 set -Eeou pipefail
 
-# set -x
-
 # if [ "$@" == "pants-fingerprint" ]; then
     # echo "nixos-rebuild binstub"
     # exit 0
 # fi
 
-# Expose the delegator pex binary from PATH to the current environment
-export PATH=$(pwd)/dist/delegator:$PATH
 export SSH_ASKPASS_REQUIRE="force" 
 export SSH_ASKPASS="./ssh_askpass.sh"
 export NIX_SSHOPTS="-p 63762 -o StrictHostKeyChecking=no"
 
-delegator \
-    --name nixos-rebuild \
-    --volume $HOME \
-    --volume $(realpath $TMPDIR) \
-    --image image-builder:dev \
-    "$@"
+exec bin/nix-exec nixos-rebuild "$@"
