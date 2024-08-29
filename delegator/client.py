@@ -52,6 +52,7 @@ class Settings:
     volumes: list[str]
     timeout: str
     image: str
+    exclude_env: list[str]
     server_log_level: str
     server_poll_interval: int
     server_executable: str
@@ -169,6 +170,29 @@ def execute_command(settings: Settings, remote_command: str) -> None:
     command = [
         "docker",
         "exec",
+        settings.name,
+        "bash",
+        "-l",
+        "-c",
+        "compgen -e",
+    ]
+
+    result = _run(command)
+    container_variables = set(result.stdout.splitlines())
+    host_variables = set(os.environ.keys())
+    missing_variables = host_variables - container_variables
+    env_args = []
+
+    for host_var in missing_variables:
+        if host_var in settings.exclude_env:
+            continue
+
+        env_args += ["--env", host_var]
+
+    command = [
+        "docker",
+        "exec",
+        *env_args,
         "--workdir",
         f"{settings.mount_prefix}{os.environ['PWD']}",
         *tty_flags,
@@ -197,6 +221,13 @@ def main():
         required=False,
         help="Map a local directory into the delegator container.",
         action="append",
+    )
+    parser.add_argument(
+        "--exclude-env",
+        required=False,
+        help="Exclude host environment variables from being forwarded to the container.",
+        action="append",
+        default=["TMPDIR", "SHELL", "_", "LANG", "OLDPWD", "LC_ALL", "LC_CTYPE"],
     )
     parser.add_argument(
         "--timeout",
@@ -257,6 +288,7 @@ def main():
         volumes=volumes,
         timeout=args.timeout,
         image=args.image,
+        exclude_env=args.exclude_env,
         server_log_level=args.server_log_level,
         server_poll_interval=args.server_poll_interval,
         server_executable=str(server_path),
