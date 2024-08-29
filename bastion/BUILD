@@ -18,10 +18,31 @@ files(
     ],
 )
 
+# shell_command(
+#     name = "image",
+#     timeout = 600,
+#     command = "./build.sh $(cat ./image-builder.docker-info.json | jq -r '.image_id')",
+#     execution_dependencies = [
+#         ":image-builder",
+#         ":bastion-files",
+#     ],
+#     output_files = [
+#         "bastion.qcow2",
+#     ],
+#     runnable_dependencies = [":jq"],
+#     tools = [
+#         "bash",
+#         "cat",
+#         "docker",
+#         "ls",
+#     ],
+# )
+
 shell_command(
     name = "image",
     timeout = 600,
-    command = "./build.sh $(cat ./image-builder.docker-info.json | jq -r '.image_id')",
+    # command = "./build.sh $(cat ./image-builder.docker-info.json | jq -r '.image_id')",
+    command = "nix build .#qcow",
     execution_dependencies = [
         ":image-builder",
         ":bastion-files",
@@ -29,12 +50,16 @@ shell_command(
     output_files = [
         "bastion.qcow2",
     ],
-    runnable_dependencies = [":jq"],
+    runnable_dependencies = [
+        ":nix",
+        "//delegator:delegator",
+    ],
     tools = [
         "bash",
-        "cat",
-        "docker",
-        "ls",
+        "dirname",
+        "env",
+        "python3",
+        "realpath",
     ],
 )
 

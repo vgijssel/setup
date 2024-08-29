@@ -3,11 +3,11 @@ python_sources(
 )
 
 pex_binary(
-    name = "client",
+    name = "delegator",
     dependencies = [
         ":server-pex",
     ],
-    entry_point = "client.py",
+    entry_point = "delegator.py",
     # Specifing the output_path enables removing the `.pex` extension
     output_path = "delegator/delegator",
     shebang = "#!/usr/bin/env python3",
