@@ -2,10 +2,10 @@
 
 set -Eeou pipefail
 
-# if [ "$@" == "pants-fingerprint" ]; then
-    # echo "nixos-rebuild binstub"
-    # exit 0
-# fi
+if [ "$#" -gt 0 ] && [ "$@" == "pants-fingerprint" ]; then
+    echo "bin/nixos-rebuild binstub"
+    exit 0
+fi
 
 export SSH_ASKPASS_REQUIRE="force" 
 export SSH_ASKPASS="./ssh_askpass.sh"

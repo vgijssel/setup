@@ -2,4 +2,9 @@
 
 set -Eeou pipefail
 
+if [ "$#" -gt 0 ] && [ "$@" == "pants-fingerprint" ]; then
+    echo "bin/nix binstub"
+    exit 0
+fi
+
 exec bin/nix-exec nix "$@"
