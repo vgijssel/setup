@@ -38,11 +38,28 @@ files(
 #     ],
 # )
 
+# Interesting! We're able to pass environment variables directly
+# into the shell command using `env` target.
+# To prevent cache invalidation etc, probably best to use a stable
+# location for the temporary directory for pants.
+# That way we can hardcode it as well.
+# run_shell_command(
+# name = "kerk",
+# command = f"""
+# echo {env("KERK")}
+# """,
+# )
+
 shell_command(
     name = "image",
     timeout = 600,
     # command = "./build.sh $(cat ./image-builder.docker-info.json | jq -r '.image_id')",
-    command = "nix build .#qcow",
+    command = """
+    export NIX_EXEC_WORKDIR=$(pwd)
+    # export NIX_EXEC_IMAGE=$(cat ./image-builder.docker-info.json | jq -r '.image_id')
+
+    nix build .#qcow
+    """,
     execution_dependencies = [
         ":image-builder",
         ":bastion-files",
@@ -52,11 +69,14 @@ shell_command(
     ],
     runnable_dependencies = [
         ":nix",
+        ":jq",
         "//delegator:delegator",
     ],
     tools = [
         "bash",
+        "cat",
         "dirname",
+        "docker",
         "env",
         "python3",
         "realpath",
