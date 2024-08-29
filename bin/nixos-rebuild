@@ -11,8 +11,10 @@ if [ "$#" -eq 1 ] && [ "$1" == "pants-fingerprint" ]; then
     exit 0
 fi
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 export SSH_ASKPASS_REQUIRE="force" 
 export SSH_ASKPASS="./ssh_askpass.sh"
 export NIX_SSHOPTS="-p 63762 -o StrictHostKeyChecking=no"
 
-exec bin/nix-exec nixos-rebuild "$@"
+exec "$script_dir/nix-exec" nixos-rebuild "$@"

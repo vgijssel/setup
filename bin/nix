@@ -11,4 +11,6 @@ if [ "$#" -eq 1 ] && [ "$1" == "pants-fingerprint" ]; then
     exit 0
 fi
 
-exec bin/nix-exec nix "$@"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+exec "$script_dir/nix-exec" nix "$@"

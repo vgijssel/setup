@@ -2,11 +2,21 @@
 
 set -Eeou pipefail
 
-export PATH=$(pwd)/dist/delegator:$PATH
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# If the "delegator" binary is not in the PATH
+# Use the binary inside the dist directory
+if ! command -v delegator &> /dev/null
+then
+    dist_dir=$(realpath $script_dir/../dist)
+    delegator_dir="$dist_dir/delegator"
+    export PATH="$delegator_dir:$PATH"
+fi
 
 exec delegator \
     --name nix-exec \
     --volume $HOME \
     --volume $(realpath $TMPDIR) \
     --image image-builder:dev \
+    --timeout 12h \
     "$@"

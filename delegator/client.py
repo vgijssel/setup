@@ -11,9 +11,6 @@ from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
 
-# TODO: add validation to the timeout input
-# TODO: cache compgen -v call to the container, to speed up slightly executing
-
 
 def get_server_path() -> Path:
     with importlib.resources.path("delegator", "server.pex") as server_path:
