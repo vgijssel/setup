@@ -3,12 +3,16 @@ import importlib.resources
 import json
 import logging
 import os
+import shlex
 import subprocess
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
+
+# TODO: add validation to the timeout input
+# TODO: cache compgen -v call to the container, to speed up slightly executing
 
 
 def get_server_path() -> Path:
@@ -160,7 +164,7 @@ def remove_container(settings: Settings) -> None:
     )
 
 
-def execute_command(settings: Settings, remote_command: str) -> None:
+def execute_command(settings: Settings, remote_command: list[str]) -> None:
     # if the output is a tty then we want to add the tty/interactive flags
     if sys.stdout.isatty():
         tty_flags = ["--tty", "--interactive"]
@@ -189,6 +193,8 @@ def execute_command(settings: Settings, remote_command: str) -> None:
 
         env_args += ["--env", host_var]
 
+    remote_command_string = shlex.join(remote_command)
+
     command = [
         "docker",
         "exec",
@@ -199,7 +205,7 @@ def execute_command(settings: Settings, remote_command: str) -> None:
         settings.name,
         "/bin/sh",
         "-c",
-        remote_command,
+        remote_command_string,
     ]
 
     _exec(command)
@@ -207,10 +213,6 @@ def execute_command(settings: Settings, remote_command: str) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Delegator tool.")
-    parser.add_argument(
-        "command",
-        help="The command to delegate to the container",
-    )
     parser.add_argument(
         "--name",
         required=True,
@@ -233,6 +235,7 @@ def main():
         "--timeout",
         required=False,
         help="Set a timeout when the delegator container self destructs.",
+        default="10m",
     )
     parser.add_argument(
         "--image",
@@ -258,6 +261,11 @@ def main():
         help="How often the server should poll for new pids.",
         type=int,
     )
+    parser.add_argument(
+        "command",
+        nargs=argparse.REMAINDER,
+        help="The command to delegate to the container",
+    )
 
     args = parser.parse_args()
 
@@ -278,6 +286,8 @@ def main():
         datefmt="%I:%M:%S",
         handlers=[logging.StreamHandler(sys.stderr)],  # Log to stderr
     )
+
+    LOGGER.debug("Arguments: %s", args)
 
     server_path = get_server_path()
 
