@@ -7,7 +7,7 @@ set -Eeou pipefail
 # Using this method, because all environment variables are missing when Pants is trying to locate
 # a binary, which means bin/nix-exec will fail.
 if [ "$#" -eq 1 ] && [ "$1" == "pants-fingerprint" ]; then
-    echo "bin/nixos-rebuild binstub"
+    echo "bin/nix binstub"
     exit 0
 fi
 

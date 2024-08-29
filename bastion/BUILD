@@ -67,11 +67,20 @@ run_shell_command(
 system_binary(
     name = "nixos-rebuild",
     binary_name = "nixos-rebuild",
-    fingerprint = "nixos-rebuild binstub",
+    fingerprint = "bin/nixos-rebuild binstub",
     fingerprint_args = ["pants-fingerprint"],
     fingerprint_dependencies = [
         ":bash",
-        ":docker",
+    ],
+)
+
+system_binary(
+    name = "nix",
+    binary_name = "nix",
+    fingerprint = "bin/nix binstub",
+    fingerprint_args = ["pants-fingerprint"],
+    fingerprint_dependencies = [
+        ":bash",
     ],
 )
 
