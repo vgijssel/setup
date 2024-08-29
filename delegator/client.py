@@ -5,7 +5,7 @@ import logging
 import os
 import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
@@ -57,11 +57,14 @@ class Settings:
     server_executable: str
     mount_prefix: str = "/opt/delegator"
     server_command: list[str] = field(init=False)
+    docker_command: list[str] = field(init=False)
+    settings_label: str = "com.delegator"
 
     def __post_init__(self):
-        command = [
+        docker_command = [
             "docker",
             "run",
+            "--rm",
             "--name",
             self.name,
             "--detach",
@@ -69,10 +72,11 @@ class Settings:
 
         for volume in self.volumes:
             volume_mapping = f"{volume}:{self.mount_prefix}{volume}"
-            command = command + ["--volume", volume_mapping]
+            docker_command = docker_command + ["--volume", volume_mapping]
 
-        command = command + [
-            self.image,
+        self.docker_command = docker_command
+
+        self.server_command = [
             f"{self.mount_prefix}{self.server_executable}",
             "--timeout",
             self.timeout,
@@ -82,17 +86,20 @@ class Settings:
             self.server_log_level,
         ]
 
-        self.server_command = command
-
 
 def is_container_running(settings: Settings) -> bool:
+    format = (
+        '{"name": "{{.Names}}", "state": "{{.State}}", "settings": {{.Label "%s"}}}'
+        % settings.settings_label
+    )
+
     result = _run(
         [
             "docker",
             "ps",
             "-a",
             "--format",
-            "{{json .}}",
+            format,
             "--filter",
             "name={}".format(settings.name),
         ],
@@ -113,19 +120,43 @@ def is_container_running(settings: Settings) -> bool:
 
     container_state = json.loads(lines[0])
 
-    if container_state["State"] == "running":
-        return True
+    if container_state["state"] != "running":
+        LOGGER.info("Container is not running. Removing.")
+        remove_container(settings)
+        return False
 
-    # If the container is in another state, remove it
-    _run(
-        ["docker", "rm", "-f", settings.name],
-    )
+    # Cannot compare Settings class to Settings class, because maybe the settings have changed.
+    # Therefore comparing the dicts to see if there is any difference
+    container_settings_data = json.loads(container_state["settings"])
+    settings_data = asdict(settings)
 
-    return False
+    if container_settings_data != settings_data:
+        LOGGER.info("Container settings have changed. Removing.")
+        remove_container(settings)
+        return False
+
+    return True
 
 
 def create_container(settings: Settings) -> None:
-    _run(settings.server_command)
+    server_command = settings.server_command
+    docker_command = settings.docker_command
+    docker_image = settings.image
+    settings_json = json.dumps(json.dumps(asdict(settings)))
+
+    command = (
+        docker_command
+        + ["--label", f"{settings.settings_label}={settings_json}"]
+        + [docker_image]
+        + server_command
+    )
+    _run(command)
+
+
+def remove_container(settings: Settings) -> None:
+    _run(
+        ["docker", "rm", "-f", settings.name],
+    )
 
 
 def execute_command(settings: Settings, remote_command: str) -> None:
@@ -217,7 +248,9 @@ def main():
         handlers=[logging.StreamHandler(sys.stderr)],  # Log to stderr
     )
 
-    volumes = args.volume + [get_server_path().parent]
+    server_path = get_server_path()
+
+    volumes = args.volume + [str(server_path.parent)]
 
     settings = Settings(
         name=args.name,
@@ -226,7 +259,7 @@ def main():
         image=args.image,
         server_log_level=args.server_log_level,
         server_poll_interval=args.server_poll_interval,
-        server_executable=str(get_server_path()),
+        server_executable=str(server_path),
     )
 
     is_running = is_container_running(settings)
