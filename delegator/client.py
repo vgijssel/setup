@@ -5,22 +5,21 @@ import logging
 import os
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
 
 
-def _server_path() -> Path:
-    server_path = importlib.resources.path("delegator", "server.pex")
+def get_server_path() -> Path:
+    with importlib.resources.path("delegator", "server.pex") as server_path:
+        LOGGER.debug(f"Server path: {server_path}")
 
-    LOGGER.debug(f"Server path: {server_path}")
+        if not server_path.is_file():
+            print("Server binary not found.")
+            exit(1)
 
-    if not server_path.is_file():
-        print("Server binary not found.")
-        exit(1)
-
-    return server_path
+        return server_path
 
 
 def _run(command: list[str]) -> subprocess.CompletedProcess[str]:
@@ -55,7 +54,35 @@ class Settings:
     image: str
     server_log_level: str
     server_poll_interval: int
+    server_executable: str
     mount_prefix: str = "/opt/delegator"
+    server_command: list[str] = field(init=False)
+
+    def __post_init__(self):
+        command = [
+            "docker",
+            "run",
+            "--name",
+            self.name,
+            "--detach",
+        ]
+
+        for volume in self.volumes:
+            volume_mapping = f"{volume}:{self.mount_prefix}{volume}"
+            command = command + ["--volume", volume_mapping]
+
+        command = command + [
+            self.image,
+            f"{self.mount_prefix}{self.server_executable}",
+            "--timeout",
+            self.timeout,
+            "--poll-interval",
+            str(self.server_poll_interval),
+            "--log-level",
+            self.server_log_level,
+        ]
+
+        self.server_command = command
 
 
 def is_container_running(settings: Settings) -> bool:
@@ -98,30 +125,7 @@ def is_container_running(settings: Settings) -> bool:
 
 
 def create_container(settings: Settings) -> None:
-    command = [
-        "docker",
-        "run",
-        "--name",
-        settings.name,
-        "--detach",
-    ]
-
-    for volume in settings.volumes:
-        volume_mapping = f"{volume}:{settings.mount_prefix}{volume}"
-        command = command + ["--volume", volume_mapping]
-
-    command = command + [
-        settings.image,
-        f"{settings.mount_prefix}{_server_path()}",
-        "--timeout",
-        settings.timeout,
-        "--poll-interval",
-        str(settings.server_poll_interval),
-        "--log-level",
-        settings.server_log_level,
-    ]
-
-    _run(command)
+    _run(settings.server_command)
 
 
 def execute_command(settings: Settings, remote_command: str) -> None:
@@ -213,7 +217,7 @@ def main():
         handlers=[logging.StreamHandler(sys.stderr)],  # Log to stderr
     )
 
-    volumes = args.volume + [_server_path().parent]
+    volumes = args.volume + [get_server_path().parent]
 
     settings = Settings(
         name=args.name,
@@ -222,6 +226,7 @@ def main():
         image=args.image,
         server_log_level=args.server_log_level,
         server_poll_interval=args.server_poll_interval,
+        server_executable=str(get_server_path()),
     )
 
     is_running = is_container_running(settings)
