@@ -15,10 +15,10 @@ fi
 
 NIX_EXEC_IMAGE="${NIX_EXEC_IMAGE:-image-builder:dev}"
 
+# Mounting the full disk "/" to allow the binary to work both from the host
+# and from within the pants sandbox.
 exec delegator \
     --name nix-exec \
-    # Mounting the full disk to allow the binary to work both from the host
-    # and from within the pants sandbox.
     --volume "/" \
     --image "$NIX_EXEC_IMAGE" \
     --timeout "12 hours" \

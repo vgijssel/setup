@@ -9,6 +9,8 @@ import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from deepdiff import DeepDiff
+
 from .utils import setup_logging, validate_timeout
 
 LOGGER = logging.getLogger(__name__)
@@ -132,10 +134,16 @@ def is_container_running(settings: Settings) -> bool:
     # Cannot compare Settings class to Settings class, because maybe the settings have changed.
     # Therefore comparing the dicts to see if there is any difference
     container_settings_data = json.loads(container_state["settings"])
-    settings_data = asdict(settings)
+    LOGGER.debug("Current settings:\n%s", container_settings_data)
 
-    if container_settings_data != settings_data:
+    settings_data = asdict(settings)
+    LOGGER.debug("New settings:\n%s", settings_data)
+
+    diff = DeepDiff(container_settings_data, settings_data)
+
+    if len(diff) > 0:
         LOGGER.info("Container settings have changed. Removing.")
+        LOGGER.debug("Diff\n" + diff.pretty())
         remove_container(settings)
         return False
 
@@ -221,6 +229,7 @@ def main():
         "--volume",
         required=False,
         help="Map a local directory into the delegator container.",
+        default=[],
         action="append",
     )
     parser.add_argument(

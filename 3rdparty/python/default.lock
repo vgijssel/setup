@@ -9,6 +9,7 @@
 //     "CPython==3.10.*"
 //   ],
 //   "generated_with_requirements": [
+//     "deepdiff==8.0.1",
 //     "parsedatetime==2.6",
 //     "psutil==6.0.0"
 //   ],
@@ -28,6 +29,47 @@
   "locked_resolves": [
     {
       "locked_requirements": [
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "42e99004ce603f9a53934c634a57b04ad5900e0d8ed0abb15e635767489cbc05",
+              "url": "https://files.pythonhosted.org/packages/06/46/01673060e83277a863baf0909b387cd809865cba2d5e7213db76516bedd9/deepdiff-8.0.1-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "245599a4586ab59bb599ca3517a9c42f3318ff600ded5e80a3432693c8ec3c4b",
+              "url": "https://files.pythonhosted.org/packages/62/ba/aced1d6a7d988ca1b6f9b274faed7dafc7356a733e45a457819bddcf2dbc/deepdiff-8.0.1.tar.gz"
+            }
+          ],
+          "project_name": "deepdiff",
+          "requires_dists": [
+            "click==8.1.7; extra == \"cli\"",
+            "orderly-set==5.2.2",
+            "orjson; extra == \"optimize\"",
+            "pyyaml==6.0.1; extra == \"cli\""
+          ],
+          "requires_python": ">=3.8",
+          "version": "8.0.1"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "f7a37c95a38c01cdfe41c3ffb62925a318a2286ea0a41790c057fc802aec54da",
+              "url": "https://files.pythonhosted.org/packages/69/71/6f9554919da608cb5bcf709822a9644ba4785cc7856e01ea375f6d808774/orderly_set-5.2.2-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "52a18b86aaf3f5d5a498bbdb27bf3253a4e5c57ab38e5b7a56fa00115cd28448",
+              "url": "https://files.pythonhosted.org/packages/c8/71/5408fee86ce5408132a3ece6eff61afa2c25d5b37cd76bc100a9a4a4d8dd/orderly_set-5.2.2.tar.gz"
+            }
+          ],
+          "project_name": "orderly-set",
+          "requires_dists": [],
+          "requires_python": ">=3.8",
+          "version": "5.2.2"
+        },
         {
           "artifacts": [
             {
@@ -101,6 +143,7 @@
   "pip_version": "24.0",
   "prefer_older_binary": false,
   "requirements": [
+    "deepdiff==8.0.1",
     "parsedatetime==2.6",
     "psutil==6.0.0"
   ],

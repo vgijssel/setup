@@ -18,45 +18,13 @@ files(
     ],
 )
 
-# shell_command(
-#     name = "image",
-#     timeout = 600,
-#     command = "./build.sh $(cat ./image-builder.docker-info.json | jq -r '.image_id')",
-#     execution_dependencies = [
-#         ":image-builder",
-#         ":bastion-files",
-#     ],
-#     output_files = [
-#         "bastion.qcow2",
-#     ],
-#     runnable_dependencies = [":jq"],
-#     tools = [
-#         "bash",
-#         "cat",
-#         "docker",
-#         "ls",
-#     ],
-# )
-
-# Interesting! We're able to pass environment variables directly
-# into the shell command using `env` target.
-# To prevent cache invalidation etc, probably best to use a stable
-# location for the temporary directory for pants.
-# That way we can hardcode it as well.
-# run_shell_command(
-# name = "kerk",
-# command = f"""
-# echo {env("KERK")}
-# """,
-# )
-
 shell_command(
     name = "image",
     timeout = 600,
     # command = "./build.sh $(cat ./image-builder.docker-info.json | jq -r '.image_id')",
     command = """
     export NIX_EXEC_WORKDIR=$(pwd)
-    # export NIX_EXEC_IMAGE=$(cat ./image-builder.docker-info.json | jq -r '.image_id')
+    export NIX_EXEC_IMAGE=$(cat ./image-builder.docker-info.json | jq -r '.image_id')
 
     nix build .#qcow
     """,
