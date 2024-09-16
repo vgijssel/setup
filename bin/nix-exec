@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -Eeou pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# If the "delegator" binary is not in the PATH
+# Use the binary inside the dist directory
+if ! command -v delegator &> /dev/null
+then
+    dist_dir=$(realpath $script_dir/../dist)
+    delegator_dir="$dist_dir/delegator"
+    export PATH="$delegator_dir:$PATH"
+fi
+
+NIX_EXEC_IMAGE="${NIX_EXEC_IMAGE:-image-builder:dev}"
+
+# Mounting the full disk "/" to allow the binary to work both from the host
+# and from within the pants sandbox.
+exec delegator \
+    --name nix-exec \
+    --volume "/" \
+    --image "$NIX_EXEC_IMAGE" \
+    --timeout "12 hours" \
+    "$@"

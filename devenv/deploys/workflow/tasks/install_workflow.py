@@ -5,15 +5,19 @@ from pyinfra.operations import brew, server
 
 @deploy("Install Workflow")
 def install_workflow():
-    brew.casks(
-        name="Install Worflow Apps",
-        casks=[
-            "alfred",
-        ],
-        present=True,
-        latest=False,
-        upgrade=False,
-    )
+    apps = [
+        "alfred",
+        "motion",
+    ]
+
+    for app in apps:
+        brew.casks(
+            name="Install Workflow App: {app}",
+            casks=[app],
+            present=True,
+            latest=False,
+            upgrade=False,
+        )
 
     macos.default(
         name='Disable "Correct spelling automatically"',

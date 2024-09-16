@@ -75,7 +75,6 @@
     "editor.suggest.insertMode": "replace"
   },
   "go.toolsManagement.autoUpdate": true,
-  "workbench.colorTheme": "Default Light Modern",
   "editor.accessibilitySupport": "off",
   "terminal.integrated.scrollback": 100000,
   "dev.containers.defaultExtensions": ["kahole.magit"],

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -Eeou pipefail
+
+# When this "binary" is included by Pants with system_binary
+# it will be called with the argument "pants-fingerprint" to validate if we're using the right binary.
+# Using this method, because all environment variables are missing when Pants is trying to locate
+# a binary, which means bin/nix-exec will fail.
+if [ "$#" -eq 1 ] && [ "$1" == "pants-fingerprint" ]; then
+    echo "bin/nixos-rebuild binstub"
+    exit 0
+fi
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+export SSH_ASKPASS_REQUIRE="force" 
+export SSH_ASKPASS="./ssh_askpass.sh"
+export NIX_SSHOPTS="-p 63762 -o StrictHostKeyChecking=no"
+
+exec "$script_dir/nix-exec" nixos-rebuild "$@"

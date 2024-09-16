@@ -55,3 +55,6 @@ result
 /haos/esphome/secrets.yaml
 
 /.task
+
+/.pants.d
+/dist/

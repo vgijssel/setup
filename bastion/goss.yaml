@@ -1,0 +1,27 @@
+file:
+  /run/current-system/sw/bin/vim:
+    exists: true
+    mode: "0777"
+    owner: root
+    group: root
+    filetype: symlink
+service:
+  sshd:
+    enabled: true
+    running: true
+user:
+  root:
+    exists: true
+    uid: 0
+    gid: 0
+    groups:
+      - root
+    home: /root
+    shell: /run/current-system/sw/bin/bash
+command:
+  /run/current-system/sw/bin/nixos-version:
+    exit-status: 0
+    stdout:
+      - "24.05"
+    stderr: ""
+    timeout: 10000
