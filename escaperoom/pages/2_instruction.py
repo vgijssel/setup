@@ -59,6 +59,7 @@ st.write(turn)
 if st.session_state.turn == 0:
     st.button("Begin", on_click=click_button)
 elif st.session_state.turn == len(turns) - 1:
+    st.balloons()
     st.button("Opnieuw", on_click=reset)
 else:
     st.button("Volgende", on_click=click_button)
