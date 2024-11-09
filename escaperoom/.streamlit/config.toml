@@ -14,3 +14,4 @@
 
 # Default: "auto"
 toolbarMode = "minimal"
+showSidebarNavigation = false
