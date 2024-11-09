@@ -54,6 +54,8 @@ tools:
   runtimes:
     - python
   enabled:
+    - kubectl@1.25.16
+    - helm@3.9.4
     - bazelisk@1.18.0
     - bazel-remote@2.3.9
     - go-task@3.32.0
