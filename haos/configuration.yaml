@@ -166,6 +166,7 @@ group:
     entities:
       - light.baby_room_light
       - switch.baby_room_moon_light_moko
+      - switch.office_server_moko
 
 homekit:
   - mode: bridge
