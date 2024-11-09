@@ -27,6 +27,12 @@ images:
 
 # This is a list of `deployments` that DevSpace can create for this project
 deployments:
+  tailscale:
+    # This deployment uses `kubectl` but you can also define `helm` deployments or kustomizations
+    kubectl:
+      # We are deploying this project with the following Kubernetes manifest
+      manifests:
+        - ./ingress.yaml
   app:
     # This deployment uses `helm` but you can also define `kubectl` deployments or kustomizations
     helm:
