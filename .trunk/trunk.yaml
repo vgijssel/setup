@@ -61,6 +61,7 @@ tools:
     - go-task@3.32.0
     - pdm@2.17.1
     - gum@0.14.3
+    - devspace@6.3.14
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -91,6 +92,12 @@ tools:
       shims:
         - name: gum
           target: gum
+    - name: devspace
+      download: devspace
+      known_good_version: 6.3.14
+      shims:
+        - name: devspace
+          target: devspace
 
 downloads:
   - name: bazelisk
@@ -132,3 +139,12 @@ downloads:
           arm_64: arm64
         url: https://github.com/charmbracelet/gum/releases/download/v${version}/gum_${version}_${os}_${cpu}.tar.gz
         strip_components: 1
+  - name: devspace
+    downloads:
+      - os:
+          linux: linux
+          macos: darwin
+        cpu:
+          x86_64: amd64
+          arm_64: arm64
+        url: https://github.com/devspace-sh/devspace/releases/download/v${version}/devspace-${os}-${cpu}
