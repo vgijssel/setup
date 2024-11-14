@@ -4,8 +4,8 @@ All the dependencies for setup.
 
 module(
     name = "setup",
-    repo_name = "setup",
     version = "1.0",
+    repo_name = "setup",
 )
 
 # It's important that this toolchain is registered before the toolchains from rules_python
@@ -29,13 +29,11 @@ bazel_dep(
 # ------------------------------------ aspect_bazel_lib ------------------------------------ #
 bazel_dep(
     name = "aspect_bazel_lib",
-    version = "2.5.0",
+    version = "2.9.4",
 )
 
 bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
-
 bazel_lib_toolchains.jq()
-
 use_repo(bazel_lib_toolchains, "jq_toolchains")
 
 # ------------------------------------ rules_pkg ------------------------------------ #
@@ -49,7 +47,6 @@ bazel_dep(
     name = "rules_task",
     version = "0.0.0",
 )
-
 local_path_override(
     module_name = "rules_task",
     path = "./rules/rules_task",
@@ -67,13 +64,11 @@ bazel_dep(
 )
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
-
 python.toolchain(
     configure_coverage_tool = True,
     is_default = True,
     python_version = PYTHON_VERSION,
 )
-
 use_repo(
     python,
     "python_%s" % py_underscore_version,
@@ -95,16 +90,13 @@ pycross = use_extension("@rules_pycross//pycross/extensions:pycross.bzl", "pycro
 
 # Copied this setup from https://github.com/jvolkman/rules_pycross/blob/3d4b8a9d932207ba09ca56858f3352dd1f2557a4/MODULE.bazel#L33
 pycross.configure_environments()
-
 pycross.configure_interpreter(
     python_defs_file = "@python_%s//:defs.bzl" % py_underscore_version,
     python_interpreter_target = "@python_%s_host//:python" % py_underscore_version,
 )
-
 pycross.configure_toolchains()
 
 environments = use_extension("@rules_pycross//pycross/extensions:environments.bzl", "environments")
-
 environments.create_for_python_toolchains(
     name = "smoke_environments",
     macos_version = "14.0",
@@ -118,13 +110,10 @@ environments.create_for_python_toolchains(
         PYTHON_VERSION,
     ],
 )
-
 use_repo(environments, "smoke_environments")
-
 use_repo(environments, "pycross_environments")
 
 lock_import = use_extension("@rules_pycross//pycross/extensions:lock_import.bzl", "lock_import")
-
 lock_import.import_pdm(
     default_alias_single_version = True,
     local_wheels = [
@@ -141,7 +130,6 @@ lock_import.import_pdm(
         "@smoke_environments//:environments",
     ],
 )
-
 lock_import.package(
     name = "ulid-transform",
     build_dependencies = [
@@ -151,7 +139,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "python-slugify",
     build_dependencies = [
@@ -160,7 +147,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "mock-open",
     build_dependencies = [
@@ -169,7 +155,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "lru-dict",
     build_dependencies = [
@@ -179,7 +164,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "pytest-test-groups",
     build_dependencies = [
@@ -188,7 +172,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "paho-mqtt",
     build_dependencies = [
@@ -197,7 +180,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "home-assistant-bluetooth",
     build_dependencies = [
@@ -207,7 +189,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "zlib-ng",
     build_dependencies = [
@@ -216,7 +197,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "bluetooth-data-tools",
     build_dependencies = [
@@ -226,7 +206,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "pyric",
     build_dependencies = [
@@ -235,7 +214,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "dbus-fast",
     build_dependencies = [
@@ -245,7 +223,6 @@ lock_import.package(
     ],
     repo = "pdm-setup",
 )
-
 lock_import.package(
     name = "habluetooth",
     build_dependencies = [
@@ -257,7 +234,6 @@ lock_import.package(
 )
 
 lock_repos = use_extension("@rules_pycross//pycross/extensions:lock_repos.bzl", "lock_repos")
-
 use_repo(lock_repos, "pdm-setup")
 
 # ------------------------------------ rules_oci ------------------------------------ #
@@ -267,7 +243,6 @@ bazel_dep(
 )
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
-
 oci.pull(
     name = "ubuntu_base",
     digest = "sha256:dfd64a3b4296d8c9b62aa3309984f8620b98d87e47492599ee20739e8eb54fbf",
@@ -277,7 +252,6 @@ oci.pull(
         "linux/arm64/v8",
     ],
 )
-
 use_repo(oci, "ubuntu_base")
 
 # ------------------------------------ rules_release ------------------------------------ #
@@ -285,7 +259,6 @@ bazel_dep(
     name = "rules_release",
     version = "0.0.0",
 )
-
 local_path_override(
     module_name = "rules_release",
     path = "./rules/rules_release",

@@ -15,6 +15,7 @@
 192.168.1.11 - TP-Link living-room-ap
 192.168.1.12 - TP-Link baby-room-ap
 192.168.1.13 - TP-Link garden-ap
+192.168.1.14 - TP-Link office-ap
 
 192.168.1.100 - 192.168.1.254 DHCP Range
 
