@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: app
+  namespace: escaperoom
   annotations:
     tailscale.com/funnel: "true"
 spec:
