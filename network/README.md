@@ -43,7 +43,7 @@ Devices that need access to the internet but not to anything else, "internet of 
 
 - hallway-xsense-base
 
-## VLAN - not
+## LAN - not
 
 Devices that don't need access to anything, "network of things".
 
