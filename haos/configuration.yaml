@@ -192,6 +192,9 @@ homekit:
         - light.toilet_lights
         - switch.kitchen_oven_moko
         - switch.garden_shelly
+        - binary_sensor.landing_smoke_alarm_status
+        - binary_sensor.landing_carbon_alarm_status
+        - binary_sensor.hallway_smoke_alarm_status
 
     entity_config:
       light.living_room_corner_light:
@@ -236,6 +239,12 @@ homekit:
         name: Wc Lampen
       switch.garden_shelly:
         name: Tuin Lamp
+      binary_sensor.landing_smoke_alarm_status:
+        name: Overloop Rookmelder
+      binary_sensor.landing_carbon_alarm_status:
+        name: Overloop Koolmonoxide Melder
+      binary_sensor.hallway_smoke_alarm_status:
+        name: Gang Rookmelder
 
   - name: HA - Baby Cam
     port: 21064
