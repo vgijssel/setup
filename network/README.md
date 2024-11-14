@@ -26,9 +26,9 @@ For guests that need access to the internet but not to anything else.
 | MLD Snooping   | Disabled                        |
 | LAN Interfaces | LAN2                            |
 
-## LAN - iot (internet of things)
+## LAN - iot
 
-Devices that need access to the internet but not to anything else.
+Devices that need access to the internet but not to anything else, "internet of things".
 
 | Setting        | value                           |
 | -------------- | ------------------------------- |
@@ -39,15 +39,13 @@ Devices that need access to the internet but not to anything else.
 | MLD Snooping   | Disabled                        |
 | LAN Interfaces | LAN2                            |
 
-## Wireless - not
-
 #### Devices
 
-- x-sense hub
+- hallway-xsense-base
 
-## VLAN - not (network of things)
+## VLAN - not
 
-Devices that don't need access to anything.
+Devices that don't need access to anything, "network of things".
 
 | Setting        | value                           |
 | -------------- | ------------------------------- |
@@ -58,9 +56,13 @@ Devices that don't need access to anything.
 | MLD Snooping   | Disabled                        |
 | LAN Interfaces | LAN2                            |
 
-## Wireless - koekebrood
+## Wireless - admin
 
-## Wireless - guest
+| Setting | value                                |
+| ------- | ------------------------------------ |
+| Name    | koekebrood                           |
+| Band    | 2.4 GHz, 5 GHz, 6 GHz                |
+| VLAN    | Default (not sure what this entails) |
 
 ## Wireless - iot
 
@@ -70,9 +72,24 @@ Devices that don't need access to anything.
 | Band    | 2.4 GHz |
 | VLAN    | iot(30) |
 
+## Profile Groups
+
+| Name        | IP Subnet       |
+| ----------- | --------------- |
+| iot-gateway | 192.168.30.1/32 |
+
+## Switch ACL
+
+| Index | Name                     | Policy | Source                | Destination                     |
+| ----- | ------------------------ | ------ | --------------------- | ------------------------------- |
+| 1     | allow iot to net         | Permit | Network(iot)          | IP Group(iot-gateway)           |
+| 2     | allow iot to net reverse | Permit | IP Group(iot-gateway) | Network(iot)                    |
+| 3     | block iot to vlans       | Deny   | Network(iot)          | Network(guest, not, iot, admin) |
+
 ## Resources
 
 - https://www.youtube.com/watch?v=7i17jvrIjD0
+- https://community.tp-link.com/en/business/forum/topic/604504
 
 # IPS
 
