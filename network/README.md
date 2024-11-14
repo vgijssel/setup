@@ -39,7 +39,7 @@ Devices that need access to the internet but not to anything else, "internet of 
 | MLD Snooping   | Disabled                        |
 | LAN Interfaces | LAN2                            |
 
-#### Devices
+### Devices
 
 - hallway-xsense-base
 
@@ -88,10 +88,10 @@ Devices that don't need access to anything, "network of things".
 
 ## Resources
 
-- https://www.youtube.com/watch?v=7i17jvrIjD0
-- https://community.tp-link.com/en/business/forum/topic/604504
+- [Full TP-Link Configuration With The Omada SDN Controller](https://www.youtube.com/watch?v=7i17jvrIjD0)
+- [Secluded Wireless VLAN Configuration for Omada](https://community.tp-link.com/en/business/forum/topic/604504)
 
-# IPS
+## IPS
 
 192.168.178.1 - modem
 
@@ -114,8 +114,8 @@ Devices that don't need access to anything, "network of things".
 
 192.168.1.100 - 192.168.1.254 DHCP Range
 
-192.168.1.20 - Unifi babykamer-cam _
-192.168.1.21 - Unifi oprit-cam _
+192.168.1.20 - Unifi babykamer-cam
+192.168.1.21 - Unifi oprit-cam
 
 192.168.1.25 - Apple Tv Woonkamer
 192.168.1.26 - Apple Tv Slaapkamer
