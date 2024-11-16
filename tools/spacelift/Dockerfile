@@ -4,6 +4,8 @@
 # trunk-ignore(trivy/DS001)
 FROM ghcr.io/spacelift-io/runner-ansible:latest AS spacelift
 
+LABEL org.opencontainers.image.source=https://github.com/vgijssel/setup
+
 USER root
 
 RUN apk add --no-cache tailscale

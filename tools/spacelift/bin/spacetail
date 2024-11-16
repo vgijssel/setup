@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Helper script to control tailscale whilst playing nicely with Spacelift
-#
+# Copied from https://github.com/caius/spacelift-tailscale
 
 [[ "$TRACE" ]] && set -o xtrace
 set -o errexit
