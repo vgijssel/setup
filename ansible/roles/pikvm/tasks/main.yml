@@ -3,6 +3,7 @@
     - name: Remount read-write to prepare for changes
       ansible.builtin.command: rw
       changed_when: false
+      when: not ansible_check_mode
 
     - name: Generate PiKVM config
       ansible.builtin.template:
@@ -13,7 +14,15 @@
         mode: "0644"
       vars:
         pikvm_hostname: "{{ ansible_hostname }}"
+
+  rescue:
+    - name: Something went wrong
+      ansible.builtin.debug:
+        msg: An error occured
+      when: not ansible_check_mode
+
   always:
     - name: Remount read-only
       ansible.builtin.command: ro
       changed_when: false
+      when: not ansible_check_mode
