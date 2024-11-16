@@ -1,0 +1,4 @@
+---
+- hosts: provisioner
+  roles:
+    - pikvm
