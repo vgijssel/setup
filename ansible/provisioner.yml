@@ -2,4 +2,3 @@
 - hosts: provisioner
   roles:
     - pikvm
-  gather_facts: false
