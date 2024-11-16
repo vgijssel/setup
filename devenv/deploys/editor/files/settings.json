@@ -94,5 +94,6 @@
     "**/.trunk/*out/": true,
     "**/.trunk/*plugins/": true
   },
-  "editor.defaultFormatter": "trunk.io"
+  "editor.defaultFormatter": "trunk.io",
+  "trunk.autoInit": false
 }

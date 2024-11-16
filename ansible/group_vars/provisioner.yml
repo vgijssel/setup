@@ -1,0 +1,4 @@
+ansible_python_interpreter: /usr/bin/python
+ansible_user: root
+ansible_become: false
+ansible_remote_tmp: /tmp/
