@@ -46,10 +46,11 @@ lint:
     - trufflehog
 actions:
   enabled:
-    - trunk-announce
     - trunk-check-pre-push
     - trunk-fmt-pre-commit
     - trunk-upgrade-available
+  disabled:
+    - trunk-announce
 tools:
   disabled:
     - poetry
