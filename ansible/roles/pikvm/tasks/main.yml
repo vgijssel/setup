@@ -1,0 +1,15 @@
+# - name: Generate PiKVM config
+#   ansible.builtin.template:
+#     src: templates/meta.j2
+#     dest: /etc/kvmd/meta.yaml
+#     group: root
+#     owner: root
+#     mode: '0644'
+
+- name: Update PiKVM
+  block:
+    - name: Remount read-write to prepare for changes
+      ansible.builtin.command: rw
+  always:
+    - name: Remount read-only
+      ansible.builtin.command: ro

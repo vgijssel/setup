@@ -64,6 +64,7 @@ tools:
     - pdm@2.17.1
     - gum@0.14.3
     - devspace@6.3.14
+    - ansible@10.6.0
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -100,6 +101,11 @@ tools:
       shims:
         - name: devspace
           target: devspace
+    - name: ansible
+      runtime: python
+      package: ansible
+      shims: [ansible, ansible-playbook, ansible-galaxy]
+      known_good_version: 10.6.0
 
 downloads:
   - name: bazelisk
