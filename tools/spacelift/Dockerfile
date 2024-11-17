@@ -11,6 +11,7 @@ USER root
 RUN apk add --no-cache tailscale
 
 COPY bin/ /usr/local/bin/
+COPY .ssh/ /home/spacelift/.ssh/
 
 # Let tailscale/d use default socket location
 RUN mkdir -p /home/spacelift/.local/share/tailscale /var/run/tailscale && chown spacelift:spacelift /home/spacelift/.local/share/tailscale /var/run/tailscale
