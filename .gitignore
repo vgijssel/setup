@@ -55,3 +55,7 @@ result
 /haos/esphome/secrets.yaml
 
 /.task
+
+
+.nx/cache
+.nx/workspace-data
