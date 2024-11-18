@@ -20,7 +20,11 @@
     "projectsRelationship": "independent",
     "versionPlans": true,
     "changelog": {
-      "projectChangelogs": true
+      "projectChangelogs": {
+        "renderOptions": {
+          "authors": false
+        }
+      }
     }
   }
 }
