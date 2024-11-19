@@ -1,11 +1,7 @@
 [GLOBAL]
 pants_version = "2.22.1"
 
-backend_packages = [
-  "pants.backend.python",
-  "pants.backend.docker",
-  "pants.backend.experimental.javascript",
-]
+backend_packages = ["pants.backend.python", "pants.backend.docker"]
 
 build_ignore = ["**/BUILD.bazel", "**/BUILD.repositories.bazel.tpl"]
 
@@ -25,11 +21,3 @@ resolve = ["python-default"]
 use_buildx = true
 # Flag needed because of https://github.com/pantsbuild/pants/issues/20605#issuecomment-2020309567
 build_args = ["HOME"]
-
-[nodejs]
-# Use system (trunk provided) nodejs
-known_versions = []
-package_manager = "npm"
-
-[nodejs.package_managers]
-npm = "10.9.0"
