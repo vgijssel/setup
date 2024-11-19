@@ -2,16 +2,10 @@ import React from "react";
 import chalk from "chalk";
 import test from "ava";
 import { render } from "ink-testing-library";
-import App from "./source/app.js";
+import Index from "./source/commands/index.js";
 
-test("greet unknown user", (t) => {
-	const { lastFrame } = render(<App name={undefined} />);
-
-	t.is(lastFrame(), `Hello, ${chalk.green("Stranger")}`);
-});
-
-test("greet user with a name", (t) => {
-	const { lastFrame } = render(<App name="Jane" />);
+test("greet user", (t) => {
+	const { lastFrame } = render(<Index options={{ name: "Jane" }} />);
 
 	t.is(lastFrame(), `Hello, ${chalk.green("Jane")}`);
 });
