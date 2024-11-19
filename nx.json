@@ -16,7 +16,7 @@
     }
   ],
   "release": {
-    "projects": ["tools/spacelift"],
+    "projects": ["*"],
     "projectsRelationship": "independent",
     "versionPlans": true,
     "version": {

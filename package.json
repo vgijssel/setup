@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "workspaces": [
-    "release"
+    "release",
+    "tools/spacelift"
   ],
   "devDependencies": {
     "@nx/js": "^20.1.2",
