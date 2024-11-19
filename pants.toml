@@ -1,0 +1,27 @@
+[GLOBAL]
+pants_version = "2.22.1"
+
+backend_packages = [
+  "pants.backend.python",
+  "pants.backend.docker",
+  "pants.backend.experimental.javascript",
+]
+
+build_ignore = ["**/BUILD.bazel", "**/BUILD.repositories.bazel.tpl"]
+
+keep_sandboxes = "on_failure"
+
+build_file_prelude_globs = ["pants-plugins/macros.py"]
+
+[python]
+interpreter_constraints = ["CPython==3.10.*"]
+enable_resolves = true
+
+[export]
+py_resolve_format = "symlinked_immutable_virtualenv"
+resolve = ["python-default"]
+
+[docker]
+use_buildx = true
+# Flag needed because of https://github.com/pantsbuild/pants/issues/20605#issuecomment-2020309567
+build_args = ["HOME"]

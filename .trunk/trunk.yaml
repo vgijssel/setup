@@ -5,7 +5,8 @@ cli:
   version: 1.22.2
   shell_hooks:
     enforce: true
-# Trunk provides extensibility via plugins. (https://docs.trunk.io/plugins)
+repo:
+  trunk_branch: master
 plugins:
   sources:
     - id: trunk
@@ -26,7 +27,6 @@ lint:
     - bandit@1.7.9
     - black@24.4.2
     - buildifier@7.1.2
-    - checkov@3.2.200
     - git-diff-check
     - isort@5.13.2
     - markdownlint@0.41.0
@@ -44,6 +44,7 @@ lint:
     - trufflehog
     - osv-scanner
     - shfmt
+    - checkov
 actions:
   enabled:
     - trunk-check-pre-push
@@ -68,6 +69,7 @@ tools:
     - gum@0.14.3
     - devspace@6.3.14
     - ansible@10.6.0
+    - scie-pants@0.12.0
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -109,6 +111,12 @@ tools:
       package: ansible
       shims: [ansible, ansible-playbook, ansible-galaxy]
       known_good_version: 10.6.0
+    - name: scie-pants
+      download: pants
+      known_good_version: 0.12.0
+      shims:
+        - name: pants
+          target: pants
 
 downloads:
   - name: bazelisk
@@ -159,3 +167,14 @@ downloads:
           x86_64: amd64
           arm_64: arm64
         url: https://github.com/devspace-sh/devspace/releases/download/v${version}/devspace-${os}-${cpu}
+  # The download of scie-pants needs to be called "pants" otherwise the binary does not work.
+  - name: pants
+    executable: true
+    downloads:
+      - os:
+          linux: linux
+          macos: macos
+        cpu:
+          x86_64: x86_64
+          arm_64: aarch64
+        url: https://github.com/pantsbuild/scie-pants/releases/download/v${version}/scie-pants-${os}-${cpu}
