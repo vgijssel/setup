@@ -10,7 +10,11 @@
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
-    "nx": "20.1.2"
+    "@types/yargs": "^17.0.33",
+    "nx": "20.1.2",
+    "yargs": "^17.7.2"
   },
-  "dependencies": {}
+  "scripts": {
+    "release": "node ./tools/release/release.mjs"
+  }
 }

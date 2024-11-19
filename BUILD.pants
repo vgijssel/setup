@@ -1,0 +1,11 @@
+package_json(
+    name = "package_json",
+    scripts=[
+        node_build_script(
+            entry_point="release",
+        ),
+    ],
+    dependencies=[
+        "tools/release",
+    ]
+)

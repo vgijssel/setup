@@ -25,3 +25,11 @@ resolve = ["python-default"]
 use_buildx = true
 # Flag needed because of https://github.com/pantsbuild/pants/issues/20605#issuecomment-2020309567
 build_args = ["HOME"]
+
+[nodejs]
+# Use system (trunk provided) nodejs
+known_versions = []
+package_manager = "npm"
+
+[nodejs.package_managers]
+npm = "10.9.0"
