@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Text } from "ink";
 import zod from "zod";
 import VersionRepository from "../repositories/VersionRepository.js";
@@ -12,22 +12,41 @@ type Props = {
 	options: zod.infer<typeof options>;
 };
 
-export default function Index({ options }: Props) {
+export default function Index({}: Props) {
 	const appContext = useContext(AppContext);
+	const versionRepository = new VersionRepository(appContext.cliDirectory);
+	const result = useAsyncGenerator(versionRepository.applyVersion(true, true));
 
-	useEffect(() => {
-		const run = async () => {
-			const versionRepository = new VersionRepository(appContext.cliDirectory);
-			const result = await versionRepository.applyVersion(true, true);
-			console.log(result);
-		};
+	// const applyVersion = useCallback(versionRepository.applyVersion, ["kerk"]);
+	// const result = useForAwaitOf(versionRepository.applyVersion(true, true));
 
-		run();
-	}, []);
+	// useEffect(() => {
+	// 	(async () => {
+	// 		for await (const message of versionRepository.applyVersion(true, true)) {
+	// 			setData((prev) => [...prev, message]);
+	// 		}
+	// 	})();
+	// }, []);
 
 	return (
 		<Text>
-			Hello, <Text color="green">{options.name}</Text>
+			The app context: {appContext.cliDirectory}
+			Hello! Here is the text: {result}
 		</Text>
 	);
+}
+
+function useAsyncGenerator(thing: AsyncGenerator) {
+	const [data, setData] = useState<string>("");
+
+	useEffect(() => {
+		(async () => {
+			for await (const message of thing) {
+				// setData((prev) => [...prev, message as string]);
+				setData(message as string);
+			}
+		})();
+	}, []);
+
+	return data;
 }

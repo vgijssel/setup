@@ -1,6 +1,9 @@
 import childProcess from "node:child_process";
-// import type Buffer from "node:buffer";
 import { join } from "path";
+
+function sleep(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export default class VersionRepository {
 	cliDirectory: string;
@@ -11,33 +14,33 @@ export default class VersionRepository {
 		this.releaseVersionFile = join(cliDirectory, "utils", "release-version.js");
 	}
 
-	async applyVersion(dryRun: boolean, verbose: boolean): Promise<void> {
-		// console.log("Applying version...");
-		console.log("Dry run: ", dryRun);
-		console.log("Verbose: ", verbose);
+	async *applyVersion(dryRun: boolean, verbose: boolean) {
+		yield `dryRun: ${dryRun}, verbose: ${verbose}`;
+		// console.log("Dry run: ", dryRun);
+		// console.log("Verbose: ", verbose);
+		await sleep(1000);
+		yield "Starting release version...";
+		await sleep(1000);
+		yield "This is an error message";
+		await sleep(1000);
+		yield "we are done";
 
-		// const currentWorkingDirectory = process.cwd();
-		// console.log("Current working directory: ", currentWorkingDirectory);
-		// console.log("Current CLI directory: " + this.cliDirectory);
+		// console.log("Dry run: ", dryRun);
+		// console.log("Verbose: ", verbose);
+		// const subProcess = childProcess.spawn("node", [this.releaseVersionFile]);
+		// for await (const data of this.readStderr(subProcess)) {
+		// 	yield data;
+		// }
+		// subProcess.on("close", (code: number) => {
+		// 	console.log(`child process exited with code ${code}`);
+		// });
+	}
 
-		const subProcess = childProcess.spawn("node", [this.releaseVersionFile]);
-
-		subProcess.stdout.on("data", (data: Buffer) => {
-			console.log("stdout");
-			// process.stdout.write(data.toString());
-			console.log(data.toString());
-		});
-
-		subProcess.stderr.on("data", (data: Buffer) => {
-			console.log("stderr");
-			// process.stdout.write(data.toString());
-			console.log(data.toString());
-		});
-
-		subProcess.on("close", (code: number) => {
-			console.log(`child process exited with code ${code}`);
-		});
+	async *readStderr(subProcess: childProcess.ChildProcess) {
+		if (subProcess.stderr !== null) {
+			for await (const chunk of subProcess.stderr) {
+				yield chunk.toString();
+			}
+		}
 	}
 }
-
-// - print stderr into separate flexbox component
