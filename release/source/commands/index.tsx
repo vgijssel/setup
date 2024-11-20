@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Text } from "ink";
 import zod from "zod";
-// import { releaseVersion } from "nx/release/index.js";
 import VersionRepository from "../repositories/VersionRepository.js";
+import { AppContext } from "./_app.js";
 
 export const options = zod.object({
 	name: zod.string().default("Stranger").describe("Name"),
@@ -13,9 +13,11 @@ type Props = {
 };
 
 export default function Index({ options }: Props) {
+	const appContext = useContext(AppContext);
+
 	useEffect(() => {
 		const run = async () => {
-			const versionRepository = new VersionRepository();
+			const versionRepository = new VersionRepository(appContext.cliDirectory);
 			const result = await versionRepository.applyVersion(true, true);
 			console.log(result);
 		};

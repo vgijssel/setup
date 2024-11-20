@@ -24,7 +24,6 @@ lint:
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1
-    - bandit@1.7.9
     - black@24.4.2
     - buildifier@7.1.2
     - git-diff-check
@@ -45,6 +44,7 @@ lint:
     - osv-scanner
     - shfmt
     - checkov
+    - bandit
 actions:
   enabled:
     - trunk-check-pre-push
