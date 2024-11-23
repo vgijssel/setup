@@ -22,6 +22,12 @@ const kerkAtom = atom({
 	changelog: "pending",
 });
 
+const logsAtom = atom<string[]>([]);
+
+const updateLogsAtom = atom(null, async (get, set, log: string) => {
+	set(logsAtom, (prev) => [...prev, log]);
+});
+
 function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -30,12 +36,24 @@ const mutateAtom = atom(null, async (get, set, key: string, value: string) => {
 	set(kerkAtom, (prev) => ({ ...prev, [key]: value }));
 });
 
-const logAtom = atom(null, async (get, set, random: string) => {
-	console.log("KERK" + random);
-});
-
 const runAllAtom = atom(null, async (get, set) => {
 	await set(mutateAtom, "check", "loading");
+	await set(updateLogsAtom, "Checking for changes...");
+	await set(updateLogsAtom, "Checking for changes 2...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
+	await set(updateLogsAtom, "Checking for changes 3...");
 	await sleep(1000);
 	await set(mutateAtom, "check", "success");
 	await set(mutateAtom, "version", "loading");
@@ -50,6 +68,7 @@ export default function Index({}: Props) {
 	const cliDirectory = useAtomValue(cliDirectoryAtom);
 	const kerk = useAtomValue(kerkAtom);
 	const runAll = useSetAtom(runAllAtom);
+	const logs = useAtomValue(logsAtom);
 
 	useEffect(() => {
 		runAll();
@@ -57,19 +76,38 @@ export default function Index({}: Props) {
 
 	return (
 		<>
-			<TaskList>
-				<Task label="Check" state={kerk.check as any} spinner={spinners.dots} />
-				<Task
-					label="Versioning"
-					state={kerk.version as any}
-					spinner={spinners.dots}
-				/>
-				<Task
-					label="Writing Changelog"
-					state={kerk.changelog as any}
-					spinner={spinners.dots}
-				/>
-			</TaskList>
+			<Box>
+				<Box
+					borderStyle="classic"
+					marginRight={5}
+					paddingLeft={1}
+					paddingRight={1}
+				>
+					<TaskList>
+						<Task
+							label="Check"
+							state={kerk.check as any}
+							spinner={spinners.dots}
+						/>
+						<Task
+							label="Versioning"
+							state={kerk.version as any}
+							spinner={spinners.dots}
+						/>
+						<Task
+							label="Writing Changelog"
+							state={kerk.changelog as any}
+							spinner={spinners.dots}
+						/>
+					</TaskList>
+				</Box>
+
+				<Box flexGrow={1} borderStyle="classic" flexDirection="column">
+					{logs.map((log, index) => (
+						<Text key={index}>{log}</Text>
+					))}
+				</Box>
+			</Box>
 		</>
 	);
 }
