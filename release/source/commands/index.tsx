@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Box, Text } from "ink";
+import { Box, Static, Text } from "ink";
 import zod from "zod";
 import VersionRepository from "../repositories/VersionRepository.js";
 import { cliDirectoryAtom } from "../atoms/global.js";
@@ -38,22 +38,12 @@ const mutateAtom = atom(null, async (get, set, key: string, value: string) => {
 
 const runAllAtom = atom(null, async (get, set) => {
 	await set(mutateAtom, "check", "loading");
-	await set(updateLogsAtom, "Checking for changes...");
-	await set(updateLogsAtom, "Checking for changes 2...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
-	await set(updateLogsAtom, "Checking for changes 3...");
+
+	for (let i = 0; i < 100; i++) {
+		await set(updateLogsAtom, "Update " + i);
+		await sleep(10);
+	}
+
 	await sleep(1000);
 	await set(mutateAtom, "check", "success");
 	await set(mutateAtom, "version", "loading");
@@ -77,12 +67,13 @@ export default function Index({}: Props) {
 	return (
 		<>
 			<Box>
-				<Box
-					borderStyle="classic"
-					marginRight={5}
-					paddingLeft={1}
-					paddingRight={1}
-				>
+				<Box>
+					<Static items={logs}>
+						{(log, index) => <Text key={index}>{log}</Text>}
+					</Static>
+				</Box>
+
+				<Box borderStyle="classic" flexGrow={1} padding={1}>
 					<TaskList>
 						<Task
 							label="Check"
@@ -100,12 +91,6 @@ export default function Index({}: Props) {
 							spinner={spinners.dots}
 						/>
 					</TaskList>
-				</Box>
-
-				<Box flexGrow={1} borderStyle="classic" flexDirection="column">
-					{logs.map((log, index) => (
-						<Text key={index}>{log}</Text>
-					))}
 				</Box>
 			</Box>
 		</>
