@@ -2,8 +2,16 @@
   "name": "setup",
   "version": "0.0.0",
   "private": true,
-  "dependencies": {},
   "workspaces": [
-    "tmp/rules_release/packages/*"
-  ]
+    "release",
+    "tools/spacelift"
+  ],
+  "devDependencies": {
+    "@nx/js": "^20.1.2",
+    "@swc-node/register": "~1.9.1",
+    "@swc/core": "~1.5.7",
+    "@swc/helpers": "~0.5.11",
+    "@types/yargs": "^17.0.33",
+    "nx": "20.1.2"
+  }
 }
