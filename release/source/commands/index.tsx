@@ -36,13 +36,23 @@ const mutateAtom = atom(null, async (get, set, key: string, value: string) => {
 	set(kerkAtom, (prev) => ({ ...prev, [key]: value }));
 });
 
+const runVersionAtom = atom(null, async (get, set) => {
+	const cliDirectory = get(cliDirectoryAtom);
+	const versionRepository = new VersionRepository(cliDirectory);
+
+	for await (const log of versionRepository.applyVersion(false, false)) {
+		await set(updateLogsAtom, log);
+	}
+});
+
 const runAllAtom = atom(null, async (get, set) => {
 	await set(mutateAtom, "check", "loading");
+	await set(runVersionAtom);
 
-	for (let i = 0; i < 100; i++) {
-		await set(updateLogsAtom, "Update " + i);
-		await sleep(10);
-	}
+	// for (let i = 0; i < 100; i++) {
+	// 	await set(updateLogsAtom, "Update " + i);
+	// 	await sleep(10);
+	// }
 
 	await sleep(1000);
 	await set(mutateAtom, "check", "success");
