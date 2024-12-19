@@ -70,6 +70,7 @@ tools:
     - devspace@6.3.14
     - ansible@10.6.0
     - scie-pants@0.12.0
+    - windmill-cli@1.440.3
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -94,6 +95,11 @@ tools:
       package: pdm
       shims: [pdm]
       known_good_version: 2.17.1
+    - name: windmill-cli
+      runtime: node
+      package: windmill-cli
+      shims: [wmill]
+      known_good_version: 1.440.3
     - name: gum
       download: gum
       known_good_version: 0.14.3
