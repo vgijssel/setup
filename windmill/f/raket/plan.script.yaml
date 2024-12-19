@@ -1,0 +1,20 @@
+summary: plan
+description: ""
+lock: ""
+kind: script
+schema:
+  $schema: "https://json-schema.org/draft/2020-12/schema"
+  type: object
+  properties:
+    dflt:
+      type: string
+      description: ""
+      default: default value
+      originalType: string
+    msg:
+      type: string
+      description: ""
+      default: null
+      originalType: string
+  required:
+    - msg
