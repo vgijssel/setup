@@ -25,6 +25,8 @@ def install_terminal():
             "zsh",
             "bash",
             "zoxide",
+            "direnv",
+            "1password-cli",
         ],
         present=True,
         update=False,

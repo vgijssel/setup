@@ -1,0 +1,37 @@
+# How to mix and match global publish steps with project specific steps?
+# Technically we're creating a DAG of publish steps
+# If we prefix the publish steps with a number, we can control the order of execution?
+# like GitLab stages?
+
+publish:
+  - 1: publish-changelog ./CHANGELOG.md
+  - 2: publish-git-changes
+
+projects:
+  # name of the project must be unique
+  - name: spacelift-ansible
+    version: version-basic ./tools/spacelift/VERSION.txt
+    changed: changed-git-files ./tools/spacelift
+    publish:
+      - 1: publish-changelog ./tools/spacelift/CHANGELOG.md
+      - 1: publish-git-tags
+      - 1: publish-docker-image ghcr.io/vgijssel/setup/spacelift-runner-ansible
+      - 1: publish-github-release
+
+  - name: some-python-lib
+    version: version-poetry ./some-python-lib/pyproject.toml
+    changed: changed-git-files ./some-python-lib
+    dependencies:
+      - spacelift-ansible
+    publish:
+      - 1: publish-changelog .raket/changelog-template.j2 ./some-python-lib/CHANGELOG.md
+      - 1: publish-github-release ./raket/release-template.j2
+
+  - name: pants-lib
+    version: version-basic ./VERSION-lib.txt
+    changed: changed-pants //:pants-lib
+    dependencies:
+      - spacelift-ansible
+      - some-python-lib
+    publish:
+      - 1: publish-changelog CHANGELOG.md
