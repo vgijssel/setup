@@ -6,3 +6,5 @@ dflt="${2:-default value}"
 # the last line of the stdout is the return value
 # unless you write json to './result.json' or a string to './result.out'
 echo "Hello $msg"
+sleep 1
+echo "Papi"

@@ -1,6 +1,7 @@
 summary: plan
 description: ""
 lock: ""
+concurrency_time_window_s: 0
 kind: script
 schema:
   $schema: "https://json-schema.org/draft/2020-12/schema"
@@ -18,3 +19,4 @@ schema:
       originalType: string
   required:
     - msg
+tag: some-uuid
