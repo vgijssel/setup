@@ -1,0 +1,15 @@
+summary: Receive markdown and return a json object
+description: ""
+lock: "!inline f/raket/markdown_parser.script.lock"
+kind: script
+schema:
+  $schema: "https://json-schema.org/draft/2020-12/schema"
+  type: object
+  properties:
+    markdown_text:
+      type: string
+      description: ""
+      default: null
+      originalType: string
+  required:
+    - markdown_text
