@@ -1,22 +1,18 @@
-summary: plan
+summary: plan2
 description: ""
-lock: ""
+lock: "!inline f/raket/plan2.script.lock"
 concurrency_time_window_s: 0
 kind: script
 schema:
   $schema: "https://json-schema.org/draft/2020-12/schema"
   type: object
+  order:
+    - worker_uuid
   properties:
-    dflt:
-      type: string
-      description: ""
-      default: default value
-      originalType: string
-    msg:
+    worker_uuid:
       type: string
       description: ""
       default: null
       originalType: string
   required:
-    - msg
-tag: some-uuid-kerk
+    - worker_uuid

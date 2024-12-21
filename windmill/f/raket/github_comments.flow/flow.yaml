@@ -1,0 +1,737 @@
+summary: GitHub Comments
+description: ""
+value:
+  modules:
+    - id: a
+      value:
+        type: rawscript
+        content: "!inline inline_script_0.inline_script.py"
+        input_transforms:
+          kerk:
+            type: javascript
+            expr: flow_input.comment.body
+        lock: ""
+        is_trigger: false
+        language: python3
+schema:
+  type: object
+  additionalProperties: false
+  order:
+    - issue
+    - action
+    - sender
+    - changes
+    - comment
+    - repository
+    - organization
+  properties:
+    action:
+      type: string
+    changes:
+      type: object
+      additionalProperties: false
+      properties:
+        body:
+          type: object
+          additionalProperties: false
+          properties:
+            from:
+              type: string
+    comment:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+        author_association:
+          type: string
+        body:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        html_url:
+          type: string
+          format: url
+        issue_url:
+          type: string
+          format: url
+        node_id:
+          type: string
+        performed_via_github_app:
+          type: "null"
+        reactions:
+          type: object
+          additionalProperties: false
+          properties:
+            "-1":
+              type: integer
+            "+1":
+              type: integer
+            confused:
+              type: integer
+            eyes:
+              type: integer
+            heart:
+              type: integer
+            hooray:
+              type: integer
+            laugh:
+              type: integer
+            rocket:
+              type: integer
+            total_count:
+              type: integer
+            url:
+              type: string
+              format: url
+        updated_at:
+          type: string
+          format: date-time
+        url:
+          type: string
+          format: url
+        user:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: integer
+            type:
+              type: string
+            avatar_url:
+              type: string
+              format: url
+            events_url:
+              type: string
+              format: url
+            followers_url:
+              type: string
+              format: url
+            following_url:
+              type: string
+              format: url
+            gists_url:
+              type: string
+              format: url
+            gravatar_id:
+              type: string
+            html_url:
+              type: string
+              format: url
+            login:
+              type: string
+            node_id:
+              type: string
+            organizations_url:
+              type: string
+              format: url
+            received_events_url:
+              type: string
+              format: url
+            repos_url:
+              type: string
+              format: url
+            site_admin:
+              type: boolean
+            starred_url:
+              type: string
+              format: url
+            subscriptions_url:
+              type: string
+              format: url
+            url:
+              type: string
+              format: url
+            user_view_type:
+              type: string
+    issue:
+      type: object
+      additionalProperties: false
+      order:
+        - id
+        - url
+        - body
+        - user
+        - draft
+        - state
+        - title
+        - labels
+        - locked
+        - number
+        - node_id
+        - assignee
+        - comments
+        - html_url
+        - assignees
+        - closed_at
+        - milestone
+        - reactions
+        - created_at
+        - events_url
+        - labels_url
+        - updated_at
+        - comments_url
+        - pull_request
+        - state_reason
+        - timeline_url
+        - repository_url
+        - active_lock_reason
+        - author_association
+        - performed_via_github_app
+      properties:
+        id:
+          type: integer
+        active_lock_reason:
+          type: "null"
+        assignee:
+          type: "null"
+        assignees:
+          type: array
+        author_association:
+          type: string
+        body:
+          type: string
+        closed_at:
+          type: "null"
+        comments:
+          type: integer
+        comments_url:
+          type: string
+          format: url
+        created_at:
+          type: string
+          format: date-time
+        draft:
+          type: boolean
+        events_url:
+          type: string
+          format: url
+        html_url:
+          type: string
+          format: url
+        labels:
+          type: array
+        labels_url:
+          type: string
+          format: url
+        locked:
+          type: boolean
+        milestone:
+          type: "null"
+        node_id:
+          type: string
+        number:
+          type: integer
+        performed_via_github_app:
+          type: "null"
+        pull_request:
+          type: object
+          additionalProperties: false
+          properties:
+            diff_url:
+              type: string
+              format: url
+            html_url:
+              type: string
+              format: url
+            merged_at:
+              type: "null"
+            patch_url:
+              type: string
+              format: url
+            url:
+              type: string
+              format: url
+        reactions:
+          type: object
+          additionalProperties: false
+          order:
+            - "+1"
+            - "-1"
+            - url
+            - eyes
+            - heart
+            - laugh
+            - hooray
+            - rocket
+            - confused
+            - total_count
+          properties:
+            "-1":
+              type: integer
+            "+1":
+              type: integer
+            confused:
+              type: integer
+            eyes:
+              type: integer
+            heart:
+              type: integer
+            hooray:
+              type: integer
+            laugh:
+              type: integer
+            rocket:
+              type: integer
+            total_count:
+              type: integer
+            url:
+              type: string
+              format: url
+        repository_url:
+          type: string
+          format: url
+        state:
+          type: string
+        state_reason:
+          type: "null"
+        timeline_url:
+          type: string
+          format: url
+        title:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+        url:
+          type: string
+          format: url
+        user:
+          type: object
+          additionalProperties: false
+          order:
+            - id
+            - url
+            - type
+            - login
+            - node_id
+            - html_url
+            - gists_url
+            - repos_url
+            - avatar_url
+            - events_url
+            - site_admin
+            - gravatar_id
+            - starred_url
+            - followers_url
+            - following_url
+            - user_view_type
+            - organizations_url
+            - subscriptions_url
+            - received_events_url
+          properties:
+            id:
+              type: integer
+            type:
+              type: string
+            avatar_url:
+              type: string
+              format: url
+            events_url:
+              type: string
+              format: url
+            followers_url:
+              type: string
+              format: url
+            following_url:
+              type: string
+              format: url
+            gists_url:
+              type: string
+              format: url
+            gravatar_id:
+              type: string
+            html_url:
+              type: string
+              format: url
+            login:
+              type: string
+            node_id:
+              type: string
+            organizations_url:
+              type: string
+              format: url
+            received_events_url:
+              type: string
+              format: url
+            repos_url:
+              type: string
+              format: url
+            site_admin:
+              type: boolean
+            starred_url:
+              type: string
+              format: url
+            subscriptions_url:
+              type: string
+              format: url
+            url:
+              type: string
+              format: url
+            user_view_type:
+              type: string
+    organization:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+        description:
+          type: "null"
+        avatar_url:
+          type: string
+          format: url
+        events_url:
+          type: string
+          format: url
+        hooks_url:
+          type: string
+          format: url
+        issues_url:
+          type: string
+          format: url
+        login:
+          type: string
+        members_url:
+          type: string
+          format: url
+        node_id:
+          type: string
+        public_members_url:
+          type: string
+          format: url
+        repos_url:
+          type: string
+          format: url
+        url:
+          type: string
+          format: url
+    repository:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        allow_forking:
+          type: boolean
+        archive_url:
+          type: string
+          format: url
+        archived:
+          type: boolean
+        assignees_url:
+          type: string
+          format: url
+        blobs_url:
+          type: string
+          format: url
+        branches_url:
+          type: string
+          format: url
+        clone_url:
+          type: string
+          format: url
+        collaborators_url:
+          type: string
+          format: url
+        comments_url:
+          type: string
+          format: url
+        commits_url:
+          type: string
+          format: url
+        compare_url:
+          type: string
+          format: url
+        contents_url:
+          type: string
+          format: url
+        contributors_url:
+          type: string
+          format: url
+        created_at:
+          type: string
+          format: date-time
+        custom_properties:
+          type: object
+        default_branch:
+          type: string
+        deployments_url:
+          type: string
+          format: url
+        disabled:
+          type: boolean
+        downloads_url:
+          type: string
+          format: url
+        events_url:
+          type: string
+          format: url
+        fork:
+          type: boolean
+        forks:
+          type: integer
+        forks_count:
+          type: integer
+        forks_url:
+          type: string
+          format: url
+        full_name:
+          type: string
+        git_commits_url:
+          type: string
+          format: url
+        git_refs_url:
+          type: string
+          format: url
+        git_tags_url:
+          type: string
+          format: url
+        git_url:
+          type: string
+        has_discussions:
+          type: boolean
+        has_downloads:
+          type: boolean
+        has_issues:
+          type: boolean
+        has_pages:
+          type: boolean
+        has_projects:
+          type: boolean
+        has_wiki:
+          type: boolean
+        homepage:
+          type: string
+        hooks_url:
+          type: string
+          format: url
+        html_url:
+          type: string
+          format: url
+        is_template:
+          type: boolean
+        issue_comment_url:
+          type: string
+          format: url
+        issue_events_url:
+          type: string
+          format: url
+        issues_url:
+          type: string
+          format: url
+        keys_url:
+          type: string
+          format: url
+        labels_url:
+          type: string
+          format: url
+        language:
+          type: string
+        languages_url:
+          type: string
+          format: url
+        license:
+          type: object
+          additionalProperties: false
+          properties:
+            name:
+              type: string
+            key:
+              type: string
+            node_id:
+              type: string
+            spdx_id:
+              type: string
+            url:
+              type: string
+              format: url
+        merges_url:
+          type: string
+          format: url
+        milestones_url:
+          type: string
+          format: url
+        mirror_url:
+          type: "null"
+        node_id:
+          type: string
+        notifications_url:
+          type: string
+          format: url
+        open_issues:
+          type: integer
+        open_issues_count:
+          type: integer
+        owner:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: integer
+            type:
+              type: string
+            avatar_url:
+              type: string
+              format: url
+            events_url:
+              type: string
+              format: url
+            followers_url:
+              type: string
+              format: url
+            following_url:
+              type: string
+              format: url
+            gists_url:
+              type: string
+              format: url
+            gravatar_id:
+              type: string
+            html_url:
+              type: string
+              format: url
+            login:
+              type: string
+            node_id:
+              type: string
+            organizations_url:
+              type: string
+              format: url
+            received_events_url:
+              type: string
+              format: url
+            repos_url:
+              type: string
+              format: url
+            site_admin:
+              type: boolean
+            starred_url:
+              type: string
+              format: url
+            subscriptions_url:
+              type: string
+              format: url
+            url:
+              type: string
+              format: url
+            user_view_type:
+              type: string
+        private:
+          type: boolean
+        pulls_url:
+          type: string
+          format: url
+        pushed_at:
+          type: string
+          format: date-time
+        releases_url:
+          type: string
+          format: url
+        size:
+          type: integer
+        ssh_url:
+          type: string
+          format: email
+        stargazers_count:
+          type: integer
+        stargazers_url:
+          type: string
+          format: url
+        statuses_url:
+          type: string
+          format: url
+        subscribers_url:
+          type: string
+          format: url
+        subscription_url:
+          type: string
+          format: url
+        svn_url:
+          type: string
+          format: url
+        tags_url:
+          type: string
+          format: url
+        teams_url:
+          type: string
+          format: url
+        topics:
+          type: array
+        trees_url:
+          type: string
+          format: url
+        updated_at:
+          type: string
+          format: date-time
+        url:
+          type: string
+          format: url
+        visibility:
+          type: string
+        watchers:
+          type: integer
+        watchers_count:
+          type: integer
+        web_commit_signoff_required:
+          type: boolean
+    sender:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        avatar_url:
+          type: string
+          format: url
+        events_url:
+          type: string
+          format: url
+        followers_url:
+          type: string
+          format: url
+        following_url:
+          type: string
+          format: url
+        gists_url:
+          type: string
+          format: url
+        gravatar_id:
+          type: string
+        html_url:
+          type: string
+          format: url
+        login:
+          type: string
+        node_id:
+          type: string
+        organizations_url:
+          type: string
+          format: url
+        received_events_url:
+          type: string
+          format: url
+        repos_url:
+          type: string
+          format: url
+        site_admin:
+          type: boolean
+        starred_url:
+          type: string
+          format: url
+        subscriptions_url:
+          type: string
+          format: url
+        url:
+          type: string
+          format: url
+        user_view_type:
+          type: string
+  required: []
