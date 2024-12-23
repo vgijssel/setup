@@ -61,7 +61,7 @@ tools:
     - node
   enabled:
     - kubectl@1.25.16
-    - helm@3.9.4
+    - helm@3.15.4
     - helmfile@0.169.2
     - bazelisk@1.18.0
     - bazel-remote@2.3.9
