@@ -31,3 +31,18 @@
     dump: 0
     passno: 2
     state: mounted
+
+- name: Remove tmpfs mount for {{ item.path }}
+  ansible.posix.mount:
+    path: "{{ item.path }}"
+    fstype: tmpfs
+    opts: "{{ item.opts}}"
+    dump: 0
+    passno: 0
+    state: absent
+  with_items:
+    - { path: /var/lib/systemd, opts: mode=0755 }
+    - { path: /var/lib/private, opts: mode=0700 }
+    - { path: /var/lib/dhclient, opts: mode=0755 }
+    - { path: /var/lib/dhcpcd, opts: mode=0750 }
+    - { path: /var/log, opts: nodev, nosuid }
