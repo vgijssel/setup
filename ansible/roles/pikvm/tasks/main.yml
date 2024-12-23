@@ -1,28 +1,33 @@
-- name: Update PiKVM
-  block:
-    - name: Remount read-write to prepare for changes
-      ansible.builtin.command: rw
-      changed_when: false
-      when: not ansible_check_mode
+- name: Remount read-write to prepare for changes
+  ansible.builtin.command: rw
+  changed_when: false
+  when: not ansible_check_mode
 
-    - name: Generate PiKVM config
-      ansible.builtin.template:
-        src: meta.yml.j2
-        dest: /etc/kvmd/meta.yaml
-        group: root
-        owner: root
-        mode: "0644"
-      vars:
-        pikvm_hostname: "{{ ansible_hostname }}"
+- name: Generate PiKVM config
+  ansible.builtin.template:
+    src: meta.yml.j2
+    dest: /etc/kvmd/meta.yaml
+    group: root
+    owner: root
+    mode: "0644"
+  vars:
+    pikvm_hostname: "{{ ansible_hostname }}"
 
-  rescue:
-    - name: Something went wrong
-      ansible.builtin.debug:
-        msg: An error occured
-      when: not ansible_check_mode
+# From https://docs.pikvm.org/faq "I want to get read-write filesystem all of the time"
+- name: Update kernel parameters to bootable
+  ansible.builtin.copy:
+    src: cmdline.txt
+    dest: /boot/cmdline.txt
+    owner: root
+    group: root
+    mode: "0755"
 
-  always:
-    - name: Remount read-only
-      ansible.builtin.command: ro
-      changed_when: false
-      when: not ansible_check_mode
+- name: Make boot partition writable
+  ansible.posix.mount:
+    path: /boot
+    src: LABEL=PIBOOT
+    fstype: vfat
+    opts: rw,errors=remount-ro
+    dump: 0
+    passno: 2
+    state: mounted

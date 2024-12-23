@@ -1,9 +1,10 @@
-from pyinfra.api.deploy import deploy
-from pyinfra.operations import files, server, apt, systemd
 from pyinfra import host
-from tools.onepassword.lib import get_item_path
-from pyinfra.facts.server import LsbRelease
+from pyinfra.api.deploy import deploy
 from pyinfra.facts.deb import DebArch
+from pyinfra.facts.server import LsbRelease
+from pyinfra.operations import apt, files, server, systemd
+
+from tools.onepassword.lib import get_item_path
 
 
 @deploy("Install Monitoring")
