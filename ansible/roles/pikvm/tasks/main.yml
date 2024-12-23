@@ -58,7 +58,7 @@
     opts: "{{ item.opts}}"
     dump: 0
     passno: 0
-    state: absent
+    state: absent_from_fstab
   with_items:
     - { path: /var/lib/systemd, opts: mode=0755 }
     - { path: /var/lib/private, opts: mode=0700 }
