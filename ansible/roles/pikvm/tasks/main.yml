@@ -14,6 +14,20 @@
     pikvm_hostname: "{{ ansible_hostname }}"
 
 # From https://docs.pikvm.org/faq "I want to get read-write filesystem all of the time"
+#
+# fstab table from fresh pikvm installation:
+#
+# LABEL=PIBOOT  /boot               vfat   ro,errors=remount-ro    0 2
+# tmpfs         /var/lib/systemd    tmpfs  mode=0755               0 0
+# tmpfs         /var/lib/private    tmpfs  mode=0700               0 0
+# tmpfs         /var/lib/dhclient   tmpfs  mode=0755               0 0
+# tmpfs         /var/lib/dhcpcd     tmpfs  mode=0750               0 0
+# tmpfs         /var/log            tmpfs  nodev,nosuid            0 0
+# tmpfs         /var/tmp            tmpfs  nodev,nosuid,mode=1777  0 0
+# tmpfs         /tmp                tmpfs  nodev,nosuid,mode=1777  0 0
+# LABEL=PIPST  /var/lib/kvmd/pst  ext4  nodev,nosuid,noexec,ro,errors=remount-ro,X-kvmd.pst-user=kvmd-pst  0 2
+# LABEL=PIMSD  /var/lib/kvmd/msd  ext4  nodev,nosuid,noexec,ro,errors=remount-ro,X-kvmd.otgmsd-user=kvmd  0 2
+#
 - name: Update kernel parameters to bootable
   ansible.builtin.copy:
     src: cmdline.txt
@@ -21,6 +35,8 @@
     owner: root
     group: root
     mode: "0755"
+  notify:
+    - reboot
 
 - name: Make boot partition writable
   ansible.posix.mount:
@@ -31,10 +47,13 @@
     dump: 0
     passno: 2
     state: mounted
+  notify:
+    - reboot
 
 - name: Remove tmpfs mount for {{ item.path }}
   ansible.posix.mount:
     path: "{{ item.path }}"
+    src: tmpfs
     fstype: tmpfs
     opts: "{{ item.opts}}"
     dump: 0
@@ -46,3 +65,5 @@
     - { path: /var/lib/dhclient, opts: mode=0755 }
     - { path: /var/lib/dhcpcd, opts: mode=0750 }
     - { path: /var/log, opts: nodev, nosuid }
+  notify:
+    - reboot
