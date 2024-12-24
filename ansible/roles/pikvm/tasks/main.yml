@@ -68,3 +68,16 @@
 - name: reboot
   ansible.builtin.reboot:
   when: kernel_params_result.changed or boot_partition_result.changed or tmpfs_partition_result.changed
+
+- name: Download the script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /tmp/get-k3s.sh
+    mode: "0755"
+
+- name: Install k3s
+  ansible.builtin.command: /tmp/get-k3s.sh
+  environment:
+    INSTALL_K3S_VERSION: v1.31.4+k3s1
+  register: k3s_install_result
+  changed_when: '"No change detected so skipping service start" not in k3s_install_result.stdout'
