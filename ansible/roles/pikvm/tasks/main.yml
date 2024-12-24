@@ -35,8 +35,7 @@
     owner: root
     group: root
     mode: "0755"
-  notify:
-    - reboot
+  register: kernel_params_result
 
 - name: Make boot partition writable
   ansible.posix.mount:
@@ -47,8 +46,7 @@
     dump: 0
     passno: 2
     state: mounted
-  notify:
-    - reboot
+  register: boot_partition_result
 
 - name: Remove tmpfs mount for {{ item.path }}
   ansible.posix.mount:
@@ -65,5 +63,8 @@
     - { path: /var/lib/dhclient, opts: mode=0755 }
     - { path: /var/lib/dhcpcd, opts: mode=0750 }
     - { path: /var/log, opts: nodev, nosuid }
-  notify:
-    - reboot
+  register: tmpfs_partition_result
+
+- name: reboot
+  ansible.builtin.reboot:
+  when: kernel_params_result.changed or boot_partition_result.changed or tmpfs_partition_result.changed
