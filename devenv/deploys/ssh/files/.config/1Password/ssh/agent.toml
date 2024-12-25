@@ -14,7 +14,7 @@ vault = "Private"
 account = "Van Gijssel"
 
 [[ssh-keys]]
-item = "SSH - Provisioner"
+item = "SSH - Setup"
 vault = "Private"
 account = "Van Gijssel"
 

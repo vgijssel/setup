@@ -10,6 +10,7 @@ def install_utilities():
         "spotify",
         "todoist",
         "raspberry-pi-imager",
+        "balenaetcher",
         "orbstack",
         "arc",
         "steam",
