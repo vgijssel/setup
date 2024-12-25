@@ -1,0 +1,4 @@
+---
+- hosts: proxmox
+  roles:
+    - proxmox

@@ -1,0 +1,80 @@
+- name: Do some stuff
+  ansible.builtin.command: ls -la
+# - name: Generate PiKVM config
+#   ansible.builtin.template:
+#     src: meta.yml.j2
+#     dest: /etc/kvmd/meta.yaml
+#     group: root
+#     owner: root
+#     mode: "0644"
+#   vars:
+#     pikvm_hostname: "{{ ansible_hostname }}"
+
+# # From https://docs.pikvm.org/faq "I want to get read-write filesystem all of the time"
+# #
+# # fstab table from fresh pikvm installation:
+# #
+# # LABEL=PIBOOT  /boot               vfat   ro,errors=remount-ro    0 2
+# # tmpfs         /var/lib/systemd    tmpfs  mode=0755               0 0
+# # tmpfs         /var/lib/private    tmpfs  mode=0700               0 0
+# # tmpfs         /var/lib/dhclient   tmpfs  mode=0755               0 0
+# # tmpfs         /var/lib/dhcpcd     tmpfs  mode=0750               0 0
+# # tmpfs         /var/log            tmpfs  nodev,nosuid            0 0
+# # tmpfs         /var/tmp            tmpfs  nodev,nosuid,mode=1777  0 0
+# # tmpfs         /tmp                tmpfs  nodev,nosuid,mode=1777  0 0
+# # LABEL=PIPST  /var/lib/kvmd/pst  ext4  nodev,nosuid,noexec,ro,errors=remount-ro,X-kvmd.pst-user=kvmd-pst  0 2
+# # LABEL=PIMSD  /var/lib/kvmd/msd  ext4  nodev,nosuid,noexec,ro,errors=remount-ro,X-kvmd.otgmsd-user=kvmd  0 2
+# #
+# - name: Update kernel parameters to bootable
+#   ansible.builtin.copy:
+#     src: cmdline.txt
+#     dest: /boot/cmdline.txt
+#     owner: root
+#     group: root
+#     mode: "0755"
+#   register: kernel_params_result
+
+# - name: Make boot partition writable
+#   ansible.posix.mount:
+#     path: /boot
+#     src: LABEL=PIBOOT
+#     fstype: vfat
+#     opts: rw,errors=remount-ro
+#     dump: 0
+#     passno: 2
+#     state: mounted
+#   register: boot_partition_result
+
+# - name: Remove tmpfs mount for {{ item.path }}
+#   ansible.posix.mount:
+#     path: "{{ item.path }}"
+#     src: tmpfs
+#     fstype: tmpfs
+#     opts: "{{ item.opts}}"
+#     dump: 0
+#     passno: 0
+#     state: absent_from_fstab
+#   with_items:
+#     - { path: /var/lib/systemd, opts: mode=0755 }
+#     - { path: /var/lib/private, opts: mode=0700 }
+#     - { path: /var/lib/dhclient, opts: mode=0755 }
+#     - { path: /var/lib/dhcpcd, opts: mode=0750 }
+#     - { path: /var/log, opts: nodev, nosuid }
+#   register: tmpfs_partition_result
+
+# - name: reboot
+#   ansible.builtin.reboot:
+#   when: kernel_params_result.changed or boot_partition_result.changed or tmpfs_partition_result.changed
+
+# - name: Download the script
+#   ansible.builtin.get_url:
+#     url: https://get.k3s.io
+#     dest: /tmp/get-k3s.sh
+#     mode: "0755"
+
+# - name: Install k3s
+#   ansible.builtin.command: /tmp/get-k3s.sh
+#   environment:
+#     INSTALL_K3S_VERSION: v1.31.4+k3s1
+#   register: k3s_install_result
+#   changed_when: '"No change detected so skipping service start" not in k3s_install_result.stdout'

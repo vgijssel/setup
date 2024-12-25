@@ -1,2 +1,5 @@
 [provisioner]
 provisioner.tail2c33e2.ts.net
+
+[proxmox]
+proxmox.local
