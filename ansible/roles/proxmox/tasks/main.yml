@@ -12,3 +12,20 @@
   ansible.builtin.reboot:
   when: kernel_params_result.changed
   become: true
+
+- name: Generate locale
+  ansible.builtin.command: locale-gen "en_US.UTF-8"
+  become: true
+
+- name: Configure locale
+  ansible.builtin.command: dpkg-reconfigure locales
+  become: true
+
+- name: Copy locale settings
+  ansible.builtin.copy:
+    src: locale
+    dest: /etc/default/locale
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
