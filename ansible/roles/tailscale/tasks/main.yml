@@ -1,0 +1,24 @@
+# From https://tailscale.com/download/linux
+- name: Add Tailscale package signing key
+  ansible.builtin.apt_key:
+    url: https://pkgs.tailscale.com/stable/{{ ansible_lsb["id"] | lower }}/{{ ansible_lsb["codename"] | lower }}.noarmor.gpg
+    keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
+  become: true
+
+- name: Add specified repository into sources list using specified filename
+  ansible.builtin.apt_repository:
+    repo: deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/{{ ansible_lsb["id"] | lower }} {{ ansible_lsb["codename"] | lower }} main
+    state: present
+    filename: tailscale
+  become: true
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+
+- name: Install Tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    state: present
+  become: true

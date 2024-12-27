@@ -12,3 +12,8 @@
     group: root
     mode: "0644"
   become: true
+
+- name: Set timezone to Europe/Amsterdam
+  become: true
+  community.general.timezone:
+    name: Europe/Amsterdam
