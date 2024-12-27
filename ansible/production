@@ -1,5 +1,5 @@
 [provisioner]
-provisioner.tail2c33e2.ts.net
+provisioner.local
 
-[proxmox]
-proxmox.local
+[windmill]
+windmill.local

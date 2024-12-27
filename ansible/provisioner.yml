@@ -1,4 +1,6 @@
 ---
 - hosts: provisioner
   roles:
+    - base
     - pikvm
+    - proxmox

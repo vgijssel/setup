@@ -1,0 +1,5 @@
+---
+- hosts: windmill
+  roles:
+    - base
+    - k3s
