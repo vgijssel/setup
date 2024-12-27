@@ -1,9 +1,7 @@
-- name: Generate locale
-  ansible.builtin.command: locale-gen "en_US.UTF-8"
-  become: true
-
-- name: Configure locale
-  ansible.builtin.command: dpkg-reconfigure locales
+- name: Ensure a locale exists kerk
+  community.general.locale_gen:
+    name: en_US.UTF-8
+    state: present
   become: true
 
 - name: Copy locale settings

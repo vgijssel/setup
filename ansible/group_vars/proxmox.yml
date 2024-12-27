@@ -1,3 +1,0 @@
-ansible_python_interpreter: /usr/bin/python
-ansible_user: maarten
-ansible_become: false
