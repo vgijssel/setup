@@ -1,3 +1,10 @@
+- name: Set the hostname in the hosts file
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[ansible_host].ansible_all_ipv4_addresses.0 }} {{ hostvars[ansible_host].ansible_fqdn }} {{ hostvars[ansible_host].ansible_hostname }}"
+    regexp: "{{ hostvars[ansible_host].ansible_fqdn }}"
+  become: true
+
 - name: Update kernel parameters to bootable
   ansible.builtin.copy:
     src: cmdline.txt

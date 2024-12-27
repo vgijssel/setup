@@ -1,4 +1,4 @@
-- name: Ensure a locale exists kerk
+- name: Ensure a locale exists
   community.general.locale_gen:
     name: en_US.UTF-8
     state: present
