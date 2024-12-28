@@ -15,7 +15,7 @@ account = "Van Gijssel"
 
 [[ssh-keys]]
 item = "SSH - Setup"
-vault = "Private"
+vault = "vgijssel-prod"
 account = "Van Gijssel"
 
 [[ssh-keys]]

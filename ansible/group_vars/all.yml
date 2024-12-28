@@ -1,0 +1,1 @@
+maarten_user_public_key: '{{ lookup("op", "op://vgijssel-prod/SSH - Setup/public key") }}'

@@ -18,7 +18,7 @@
   community.general.timezone:
     name: Europe/Amsterdam
 
-- name: Install whois
+- name: Install whois for mkpasswd
   ansible.builtin.package:
     name: whois
     state: present
@@ -42,6 +42,13 @@
     groups: sudo
     append: yes
   become: true
+
+- name: Set authorized key for maarten
+  ansible.posix.authorized_key:
+    user: maarten
+    state: present
+    key: "{{ maarten_user_public_key }}"
+    exclusive: true
 
 - name: Set sudo timeout to 0 minutes
   ansible.builtin.lineinfile:
