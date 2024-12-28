@@ -2,6 +2,7 @@
 provisioner.tail2c33e2.ts.net
 
 [provisioner:vars]
+ansible_become_pass='{{ lookup("op", "op://vgijssel-prod/maarten_user/password") }}'
 tailscale_provisioner_auth_key='{{ lookup("op", "op://vgijssel-prod/tailscale_provisioner/auth_key") }}'
 root_user_password_encrypted='{{ lookup("op", "op://vgijssel-prod/root_user/password_encrypted") }}'
 maarten_user_password_encrypted='{{ lookup("op", "op://vgijssel-prod/maarten_user/password_encrypted") }}'
