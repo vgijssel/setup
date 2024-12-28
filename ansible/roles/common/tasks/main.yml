@@ -85,5 +85,3 @@
     mode: "0755"
   become: true
   notify: restart ssh
-  tags:
-    - kerk
