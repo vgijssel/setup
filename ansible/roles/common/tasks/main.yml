@@ -43,16 +43,22 @@
     append: yes
   become: true
 
-- name: Set sudo timeout to 0.1 minute
+- name: Set sudo timeout to 0 minutes
   ansible.builtin.lineinfile:
     path: /etc/sudoers
     state: present
     regexp: "^Defaults passwd_timeout="
-    line: "Defaults passwd_timeout=0.1"
+    line: "Defaults passwd_timeout=0"
     validate: "/usr/sbin/visudo -cf %s"
   become: true
-  tags:
-    - kerk
+
+- name: Authenticate sudo per tty session
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    line: "Defaults tty_tickets"
+    validate: "/usr/sbin/visudo -cf %s"
+  become: true
 
 - name: Ensure maarten needs to enter password for sudo
   community.general.sudoers:
@@ -62,5 +68,3 @@
     commands: ALL
     validation: required
   become: true
-  tags:
-    - kerk
