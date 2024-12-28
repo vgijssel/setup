@@ -50,12 +50,12 @@
     key: "{{ maarten_user_public_key }}"
     exclusive: true
 
-- name: Set sudo timeout to 0 minutes
+- name: Set sudo timeout to 5 minutes
   ansible.builtin.lineinfile:
     path: /etc/sudoers
     state: present
     regexp: "^Defaults passwd_timeout="
-    line: "Defaults passwd_timeout=0"
+    line: "Defaults passwd_timeout=5"
     validate: "/usr/sbin/visudo -cf %s"
   become: true
 
@@ -75,3 +75,15 @@
     commands: ALL
     validation: required
   become: true
+
+- name: Set sshd configuration
+  ansible.builtin.copy:
+    src: 00-sshd_config.conf
+    dest: /etc/ssh/sshd_config.d/00-sshd_config.conf
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  notify: restart ssh
+  tags:
+    - kerk
