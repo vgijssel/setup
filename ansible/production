@@ -1,5 +1,8 @@
 [provisioner]
 provisioner.local
 
+[provisioner:vars]
+tailscale_provisioner='{{ lookup("op", "op://vgijssel-prod/tailscale_provisioner/auth_key") }}'
+
 [windmill]
 windmill.local

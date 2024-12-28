@@ -1,3 +1,7 @@
+- name: Use the custom lookup
+  debug:
+    msg: "{{ tailscale_provisioner }} {{ tailscale_provisioner }}"
+
 # From https://tailscale.com/download/linux
 - name: Add Tailscale package signing key
   ansible.builtin.apt_key:
@@ -25,3 +29,7 @@
     name: tailscale
     state: present
   become: true
+# TODO: needs auth key from 1Password
+# - name: Register Tailscale device
+#   ansible.builtin.command: tailscale login --authkey <authkey>
+#   become: true
