@@ -1,8 +1,8 @@
 ---
 - hosts: provisioner
   roles:
-    - role: base
-      tags: base
+    - role: common
+      tags: common
     - role: tailscale
       tags: tailscale
     - role: proxmox
