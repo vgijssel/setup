@@ -6,6 +6,7 @@ ansible_become_pass='{{ lookup("op", "op://vgijssel-prod/maarten_user/password")
 tailscale_provisioner_auth_key='{{ lookup("op", "op://vgijssel-prod/tailscale_provisioner/auth_key") }}'
 root_user_password_encrypted='{{ lookup("op", "op://vgijssel-prod/root_user/password_encrypted") }}'
 maarten_user_password_encrypted='{{ lookup("op", "op://vgijssel-prod/maarten_user/password_encrypted") }}'
+deploy_user_password_encrypted='{{ lookup("op", "op://vgijssel-prod/deploy_user/password_encrypted") }}'
 
 [windmill]
 windmill.local
