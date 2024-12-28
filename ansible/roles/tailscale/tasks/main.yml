@@ -26,8 +26,30 @@
     state: present
   become: true
 
-- name: Register Tailscale device - might require manual approval in the UI
-  ansible.builtin.command: tailscale up --ssh=true --auth-key {{ tailscale_provisioner_auth_key }}
-  register: tailscale_register_result
-  changed_when: '"Success" in tailscale_register_result.stderr'
+- name: Register Tailscale device
+  ansible.builtin.command: tailscale up --ssh=true --auth-key {{ tailscale_provisioner_auth_key }} --timeout=2s
   become: true
+  ignore_errors: true
+  changed_when: false
+  no_log: True
+
+- name: Check Tailscale status
+  ansible.builtin.command: tailscale status --json
+  register: tailscale_status_result
+  changed_when: false
+
+- name: Parse Tailscale status
+  ansible.builtin.set_fact:
+    tailscale_status: "{{ tailscale_status_result.stdout | from_json }}"
+
+- name: Approve Tailscale device in the UI
+  ansible.builtin.debug:
+    msg: "Approve the device in the Tailscale UI at https://login.tailscale.com/admin/machines"
+  when: tailscale_status.BackendState == "NeedsMachineAuth"
+
+- name: Validate Tailscale status
+  ansible.builtin.assert:
+    that:
+      - tailscale_status.BackendState == "NeedsMachineAuth" or tailscale_status.BackendState == "Running"
+    fail_msg: "'tailscale_status' is in an unexpected state: `{{ tailscale_status.BackendState }}`"
+    success_msg: "'tailscale_status' is valid"
