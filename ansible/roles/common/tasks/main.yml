@@ -1,3 +1,10 @@
+- name: Ensure the Ansible tmp directory exists for the deploy user to prevent permission issues
+  ansible.builtin.file:
+    path: "{{ ansible_remote_tmp }}"
+    state: directory
+    group: deploy
+    owner: deploy
+
 - name: Ensure a locale exists
   community.general.locale_gen:
     name: en_US.UTF-8
