@@ -1,5 +1,5 @@
 [provisioner]
-provisioner.local
+provisioner.tail2c33e2.ts.net
 
 [provisioner:vars]
 tailscale_provisioner_auth_key='{{ lookup("op", "op://vgijssel-prod/tailscale_provisioner/auth_key") }}'
