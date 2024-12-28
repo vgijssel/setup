@@ -51,6 +51,7 @@
     state: present
     key: "{{ maarten_user_public_key }}"
     exclusive: true
+  become: true
 
 - name: Ensure maarten needs to enter password for sudo
   community.general.sudoers:
@@ -67,13 +68,7 @@
     password: "{{ deploy_user_password_encrypted }}"
     state: present
     create_home: true
-  become: true
-
-- name: Adding deploy to sudo group
-  user:
-    name: deploy
-    groups: sudo
-    append: yes
+    groups: [sudo]
   become: true
 
 - name: Ensure deploy needs to enter password for sudo
