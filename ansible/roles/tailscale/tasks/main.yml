@@ -1,7 +1,3 @@
-- name: Use the custom lookup
-  debug:
-    msg: "{{ tailscale_provisioner }} {{ tailscale_provisioner }}"
-
 # From https://tailscale.com/download/linux
 - name: Add Tailscale package signing key
   ansible.builtin.apt_key:
@@ -29,7 +25,9 @@
     name: tailscale
     state: present
   become: true
-# TODO: needs auth key from 1Password
-# - name: Register Tailscale device
-#   ansible.builtin.command: tailscale login --authkey <authkey>
-#   become: true
+
+- name: Register Tailscale device - might require manual approval in the UI
+  ansible.builtin.command: tailscale up --ssh=true --auth-key {{ tailscale_provisioner_auth_key }}
+  register: tailscale_register_result
+  changed_when: '"Success" in tailscale_register_result.stderr'
+  become: true
