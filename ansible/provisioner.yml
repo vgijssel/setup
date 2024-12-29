@@ -7,5 +7,5 @@
       tags: tailscale
     - role: proxmox
       tags: proxmox
-    # - role: pikvm
-    #   tags: pikvm
+    - role: pikvm
+      tags: pikvm

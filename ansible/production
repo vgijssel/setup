@@ -4,9 +4,5 @@ provisioner.tail2c33e2.ts.net
 [provisioner:vars]
 ip_address=192.168.1.31
 
-[windmill]
-windmill.local
-
 [production:children]
 provisioner
-windmill

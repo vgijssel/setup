@@ -1,8 +1,0 @@
-repositories:
-  - name: windmill
-    url: https://windmill-labs.github.io/windmill-helm-charts/
-
-releases:
-  - name: windmill
-    namespace: windmill
-    chart: windmill/windmill

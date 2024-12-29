@@ -1,3 +1,2 @@
 ---
 - import_playbook: provisioner.yml
-- import_playbook: windmill.yml
