@@ -6,7 +6,7 @@
   register: tailscale_key_result
   become: true
 
-- name: Add specified repository into sources list using specified filename
+- name: Add Tailscale repository
   ansible.builtin.apt_repository:
     repo: deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/{{ ansible_lsb["id"] | lower }} {{ ansible_lsb["codename"] | lower }} main
     state: present
@@ -21,7 +21,7 @@
   when: tailscale_key_result.changed or tailscale_repository_result.changed
 
 - name: Install Tailscale
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name: tailscale
     state: present
   become: true

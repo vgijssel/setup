@@ -1,0 +1,12 @@
+auto lo
+iface lo inet loopback
+
+iface eth0 inet manual
+
+auto vmbr0
+iface vmbr0 inet static
+	address {{ ip_address }}/32
+	gateway {{ gateway }}
+	bridge-ports eth0
+	bridge-stp off
+	bridge-fd 0
