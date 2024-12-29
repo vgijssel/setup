@@ -41,12 +41,12 @@ class VarsModule(BaseVarsPlugin):
 
     def _assert_login(self):
         if "whoami" in LOGIN_CACHE:
-            display.v("Using cached login data for key: whoami")
+            display.vv("Using cached login data for key: whoami")
 
         else:
             command = ["op", "whoami", "--format", "json"]
             result = self._run_command(command)
-            display.v("Caching login data with key: whoami")
+            display.vv("Caching login data with key: whoami")
             LOGIN_CACHE["whoami"] = result
 
         return LOGIN_CACHE["whoami"]
@@ -55,19 +55,19 @@ class VarsModule(BaseVarsPlugin):
         op_environment_file = os.path.join(path, "group_vars", f"{entity}.op.yml")
 
         if op_environment_file in VAR_CACHE:
-            display.v(f"Returning cached variable data for key: {op_environment_file}")
+            display.vv(f"Returning cached variable data for key: {op_environment_file}")
             return VAR_CACHE[op_environment_file]
 
         if os.path.exists(op_environment_file):
-            display.v(f"Found variable file: {op_environment_file}")
+            display.vv(f"Found variable file: {op_environment_file}")
             result = self._get_environment_file_data(op_environment_file)
             result = loader.load(result)
 
         else:
-            display.v(f"Variable file not found: {op_environment_file}. Skipping.")
+            display.vv(f"Variable file not found: {op_environment_file}. Skipping.")
             result = {}
 
-        display.v(f"Caching variable data with key: {op_environment_file}")
+        display.vv(f"Caching variable data with key: {op_environment_file}")
         VAR_CACHE[op_environment_file] = result
         return result
 
@@ -78,7 +78,7 @@ class VarsModule(BaseVarsPlugin):
 
     def _run_command(self, command):
         command_str = " ".join(command)
-        display.v(f"Executing command: {command_str}")
+        display.vv(f"Executing command: {command_str}")
 
         result = subprocess.run(command, text=True, capture_output=True)
 
