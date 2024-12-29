@@ -16,6 +16,10 @@ RUN echo https://downloads.1password.com/linux/alpinelinux/stable/ >> /etc/apk/r
     apk add 1password-cli && \
     op --version
 
+# Upgrades ansible-core to 2.16.1 though it's not pinned in any way
+# so this will diverge in the future.
+RUN apk add --no-cache ansible
+
 COPY bin/ /usr/local/bin/
 COPY .ssh/ /home/spacelift/.ssh/
 

@@ -69,7 +69,7 @@ tools:
     - pdm@2.17.1
     - gum@0.14.3
     - devspace@6.3.14
-    - ansible@11.1.0
+    - ansible@9.13.0
     - scie-pants@0.12.0
     - windmill-cli@1.440.3
   definitions:
