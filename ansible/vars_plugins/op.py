@@ -65,6 +65,9 @@ class VarsModule(BaseVarsPlugin):
         result = subprocess.run(command, text=True, capture_output=True)
 
         if result.returncode != 0:
+            display.v(f"Return code: {result.returncode}")
+            display.v(f"Stderr: {result.stderr.strip()}")
+
             raise AnsibleError(
                 f"Error executing command `{command_str}` with return code {result.returncode}: {result.stderr.strip()}"
             )
