@@ -5,6 +5,12 @@
     state: present
   become: true
 
+- name: Remove network manager to prevent conflicts
+  ansible.builtin.package:
+    name: network-manager
+    state: absent
+  become: true
+
 - name: Generate network configuration
   ansible.builtin.template:
     src: interfaces.j2
