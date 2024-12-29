@@ -24,24 +24,39 @@ DOCUMENTATION = """
     - The `op` command line tool must be installed and available in the PATH.
 """
 
-CACHE = {}
+VAR_CACHE = {}
+LOGIN_CACHE = {}
 
 
 class VarsModule(BaseVarsPlugin):
     def get_vars(self, loader, path, entities):
         result = {}
 
+        self._assert_login()
+
         for entity in entities:
             result.update(self._get_secrets(path, entity, loader))
 
         return result
 
+    def _assert_login(self):
+        if "whoami" in LOGIN_CACHE:
+            display.v("Using cached login data for key: whoami")
+
+        else:
+            command = ["op", "whoami", "--format", "json"]
+            result = self._run_command(command)
+            display.v("Caching login data with key: whoami")
+            LOGIN_CACHE["whoami"] = result
+
+        return LOGIN_CACHE["whoami"]
+
     def _get_secrets(self, path, entity, loader):
         op_environment_file = os.path.join(path, "group_vars", f"{entity}.op.yml")
 
-        if op_environment_file in CACHE:
+        if op_environment_file in VAR_CACHE:
             display.v(f"Returning cached variable data for key: {op_environment_file}")
-            return CACHE[op_environment_file]
+            return VAR_CACHE[op_environment_file]
 
         if os.path.exists(op_environment_file):
             display.v(f"Found variable file: {op_environment_file}")
@@ -53,21 +68,21 @@ class VarsModule(BaseVarsPlugin):
             result = {}
 
         display.v(f"Caching variable data with key: {op_environment_file}")
-        CACHE[op_environment_file] = result
+        VAR_CACHE[op_environment_file] = result
         return result
 
     def _get_environment_file_data(self, path):
         safe_path = quote(path)
-        command = ["op", "inject", f"--in-file={safe_path}"]
+        command = ["op", "inject", "--force", f"--in-file={safe_path}"]
+        return self._run_command(command)
+
+    def _run_command(self, command):
         command_str = " ".join(command)
         display.v(f"Executing command: {command_str}")
 
         result = subprocess.run(command, text=True, capture_output=True)
 
         if result.returncode != 0:
-            display.v(f"Return code: {result.returncode}")
-            display.v(f"Stderr: {result.stderr.strip()}")
-
             raise AnsibleError(
                 f"Error executing command `{command_str}` with return code {result.returncode}: {result.stderr.strip()}"
             )
