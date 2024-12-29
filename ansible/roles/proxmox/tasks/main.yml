@@ -1,0 +1,97 @@
+# Instructions from: https://github.com/jiangcuo/Proxmox-Port/wiki/Install-Proxmox-VE-on-Debian-bookworm
+- name: Install networking packages
+  package:
+    name: ifupdown2
+    state: present
+  become: true
+
+- name: Remove network manager to prevent conflicts
+  ansible.builtin.package:
+    name: network-manager
+    state: absent
+  become: true
+
+- name: Generate network configuration
+  ansible.builtin.template:
+    src: interfaces.j2
+    dest: /etc/network/interfaces
+    group: root
+    owner: root
+    mode: "0644"
+  vars:
+    pikvm_hostname: "{{ ansible_hostname }}"
+  register: network_config_result
+  become: true
+
+- name: Update network configuration
+  ansible.builtin.shell: ifdown --exclude=lo -a; sleep 1; ifup --exclude=lo -a
+  become: true
+  when: network_config_result.changed
+
+- name: Set the hostname in the hosts file
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ ip_address }} {{ hostvars[ansible_host].ansible_fqdn }} {{ hostvars[ansible_host].ansible_hostname }}"
+    regexp: "{{ hostvars[ansible_host].ansible_fqdn }}"
+  become: true
+
+- name: Update kernel parameters to bootable
+  ansible.builtin.copy:
+    src: cmdline.txt
+    dest: /boot/firmware/cmdline.txt
+    owner: root
+    group: root
+    mode: "0755"
+  register: kernel_params_result
+  become: true
+
+- name: reboot
+  ansible.builtin.reboot:
+  when: kernel_params_result.changed
+  become: true
+
+- name: Set OS variables
+  ansible.builtin.set_fact:
+    host_id: "{{ ansible_lsb['id'] | lower }}"
+    host_codename: "{{ ansible_lsb['codename'] | lower }}"
+    host_architecture: "{{ architecture_mapping[ansible_architecture] }}"
+
+- name: Validate OS version
+  ansible.builtin.assert:
+    that:
+      - host_id == "debian"
+      - host_codename == "bookworm"
+      - host_architecture == "arm64"
+    fail_msg: Proxmox role currently only works for debian bookworm arm64 - got `{{ host_id }} {{ host_codename }} {{ host_architecture }}`
+
+- name: Add Proxmox Port package signing key
+  ansible.builtin.apt_key:
+    url: https://mirrors.apqa.cn/proxmox/{{ host_id }}/pveport.gpg
+    keyring: /etc/apt/trusted.gpg.d/pveport.gpg
+  register: proxmox_port_key_result
+  become: true
+
+- name: Add Proxmox Port repository
+  ansible.builtin.apt_repository:
+    repo: deb [signed-by=/etc/apt/trusted.gpg.d/pveport.gpg, arch={{ host_architecture }}] https://mirrors.apqa.cn/proxmox/{{ host_id }}/pve {{ host_codename }} port
+    state: present
+    filename: pveport
+  register: proxmox_port_repository_result
+  become: true
+
+- name: Update and upgrade apt
+  ansible.builtin.apt:
+    update_cache: yes
+    upgrade: full
+  become: true
+  when: proxmox_port_key_result.changed or proxmox_port_repository_result.changed
+
+- name: Install Proxmox Port
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop:
+    - proxmox-ve
+    - postfix
+    - open-iscsi

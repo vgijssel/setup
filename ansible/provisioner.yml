@@ -1,4 +1,11 @@
 ---
 - hosts: provisioner
   roles:
-    - pikvm
+    - role: common
+      tags: common
+    - role: tailscale
+      tags: tailscale
+    - role: proxmox
+      tags: proxmox
+    - role: pikvm
+      tags: pikvm

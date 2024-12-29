@@ -9,8 +9,13 @@ vault = "Personal"
 account = "HackerOne"
 
 [[ssh-keys]]
-item = "SSH - Provisioner"
+item = "SSH - CloudWays"
 vault = "Private"
+account = "Van Gijssel"
+
+[[ssh-keys]]
+item = "SSH - Setup"
+vault = "vgijssel-prod"
 account = "Van Gijssel"
 
 [[ssh-keys]]

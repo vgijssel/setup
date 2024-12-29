@@ -10,6 +10,16 @@ USER root
 
 RUN apk add --no-cache tailscale
 
+RUN echo https://downloads.1password.com/linux/alpinelinux/stable/ >> /etc/apk/repositories && \
+    wget https://downloads.1password.com/linux/keys/alpinelinux/support@1password.com-61ddfc31.rsa.pub -P /etc/apk/keys && \
+    apk update && \
+    apk add --no-cache 1password-cli && \
+    op --version
+
+# Upgrades ansible-core to 2.16.1 though it's not pinned in any way
+# so this will diverge in the future.
+RUN apk add --no-cache ansible
+
 COPY bin/ /usr/local/bin/
 COPY .ssh/ /home/spacelift/.ssh/
 

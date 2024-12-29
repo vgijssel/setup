@@ -27,3 +27,16 @@ tasks:
         --data install_utilities=True
         --data install_workflow=True
       ARGS: "{{default .DEFAULT_ARGS .CLI_ARGS}}"
+
+  provisioner:provision:
+    desc: Provision the provisioner
+    dir: ansible
+    cmds:
+      - ansible-playbook -i production provisioner.yml {{.CLI_ARGS}}
+
+  tools:spacelift:build:
+    desc: Build and push the Spacelift image
+    dir: tools/spacelift
+    cmds:
+      - docker build --platform="linux/amd64" -t ghcr.io/vgijssel/setup/spacelift-runner-ansible:latest .
+      - docker push ghcr.io/vgijssel/setup/spacelift-runner-ansible:latest

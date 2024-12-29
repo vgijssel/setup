@@ -1,4 +1,0 @@
-name: provisioner
-runtime:
-  name: python
-description: A minimal Python Pulumi program

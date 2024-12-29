@@ -1,0 +1,57 @@
+# From https://tailscale.com/download/linux
+- name: Add Tailscale package signing key
+  ansible.builtin.apt_key:
+    url: https://pkgs.tailscale.com/stable/{{ ansible_lsb["id"] | lower }}/{{ ansible_lsb["codename"] | lower }}.noarmor.gpg
+    keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
+  register: tailscale_key_result
+  become: true
+
+- name: Add Tailscale repository
+  ansible.builtin.apt_repository:
+    repo: deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/{{ ansible_lsb["id"] | lower }} {{ ansible_lsb["codename"] | lower }} main
+    state: present
+    filename: tailscale
+  register: tailscale_repository_result
+  become: true
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+  when: tailscale_key_result.changed or tailscale_repository_result.changed
+
+- name: Install Tailscale
+  ansible.builtin.package:
+    name: tailscale
+    state: present
+  become: true
+
+- name: Register Tailscale device
+  ansible.builtin.command: tailscale up --ssh=true --auth-key {{ tailscale_provisioner_auth_key }} --timeout=2s
+  become: true
+  ignore_errors: true
+  changed_when: false
+  no_log: True
+
+- name: Check Tailscale status
+  ansible.builtin.command: tailscale status --json
+  register: tailscale_status_result
+  changed_when: false
+
+- name: Parse Tailscale status
+  ansible.builtin.set_fact:
+    tailscale_status: "{{ tailscale_status_result.stdout | from_json }}"
+  when: not ansible_check_mode
+
+- name: Approve Tailscale device in the UI
+  ansible.builtin.debug:
+    msg: Approve the device in the Tailscale UI at https://login.tailscale.com/admin/machines
+  when: not ansible_check_mode and tailscale_status.BackendState == "NeedsMachineAuth"
+
+- name: Validate Tailscale status
+  ansible.builtin.assert:
+    that:
+      - tailscale_status.BackendState == "NeedsMachineAuth" or tailscale_status.BackendState == "Running"
+    fail_msg: "'tailscale_status' is in an unexpected state: `{{ tailscale_status.BackendState }}`"
+    success_msg: "'tailscale_status' is valid"
+  when: not ansible_check_mode
