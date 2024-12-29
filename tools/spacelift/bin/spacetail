@@ -47,6 +47,11 @@ readonly TS_TAILSCALED_EXTRA_ARGS
 if [[ ${ACTION} == "up" ]]; then
 	echo "spacetail: Bringing tailscale up"
 
+	LOG_FILE=/home/spacelift/tailscaled.log
+
+	# Remove the log file if already present
+	rm -f "${LOG_FILE}"
+
 	# With massive thanks to containerboot
 	# https://github.com/tailscale/tailscale/blob/main/cmd/containerboot/main.go
 
@@ -54,7 +59,7 @@ if [[ ${ACTION} == "up" ]]; then
 	nohup tailscaled \
 		--state=mem: --statedir="${TF_VAR_spacelift_workspace_root}/tailscale-state" \
 		--tun=userspace-networking \
-		${TS_TAILSCALED_EXTRA_ARGS} 2>/home/spacelift/tailscaled.log &
+		${TS_TAILSCALED_EXTRA_ARGS} 2>"${LOG_FILE}" &
 
 	sleep 1 # FIXME: grep tailscaled output somehow instead of this?
 
