@@ -91,17 +91,17 @@
   ansible.builtin.lineinfile:
     path: /etc/sudoers
     state: present
-    regexp: "^Defaults passwd_timeout="
-    line: "Defaults passwd_timeout=5"
-    validate: "/usr/sbin/visudo -cf %s"
+    regexp: ^Defaults passwd_timeout=
+    line: Defaults passwd_timeout=5
+    validate: /usr/sbin/visudo -cf %s
   become: true
 
 - name: Authenticate sudo per tty session
   ansible.builtin.lineinfile:
     path: /etc/sudoers
     state: present
-    line: "Defaults tty_tickets"
-    validate: "/usr/sbin/visudo -cf %s"
+    line: Defaults tty_tickets
+    validate: /usr/sbin/visudo -cf %s
   become: true
 
 - name: Set sshd configuration

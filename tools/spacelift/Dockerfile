@@ -13,7 +13,7 @@ RUN apk add --no-cache tailscale
 RUN echo https://downloads.1password.com/linux/alpinelinux/stable/ >> /etc/apk/repositories && \
     wget https://downloads.1password.com/linux/keys/alpinelinux/support@1password.com-61ddfc31.rsa.pub -P /etc/apk/keys && \
     apk update && \
-    apk add 1password-cli && \
+    apk add --no-cache 1password-cli && \
     op --version
 
 # Upgrades ansible-core to 2.16.1 though it's not pinned in any way

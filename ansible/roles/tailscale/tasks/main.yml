@@ -45,7 +45,7 @@
 
 - name: Approve Tailscale device in the UI
   ansible.builtin.debug:
-    msg: "Approve the device in the Tailscale UI at https://login.tailscale.com/admin/machines"
+    msg: Approve the device in the Tailscale UI at https://login.tailscale.com/admin/machines
   when: not ansible_check_mode and tailscale_status.BackendState == "NeedsMachineAuth"
 
 - name: Validate Tailscale status
