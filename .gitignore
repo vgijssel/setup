@@ -54,12 +54,5 @@ result
 /haos/secrets.yaml
 /haos/esphome/secrets.yaml
 
+/.pants.d/
 /.task
-
-
-.nx/cache
-.nx/workspace-data
-
-.pants.d/
-
-windmill/tmp
