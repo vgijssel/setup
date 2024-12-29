@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
-load("@rules_task//task:defs.bzl", "cmd", "task")
 load("@rules_release//release:defs.bzl", "release_manager")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -118,7 +118,6 @@ release_manager(
     ],
     deps = [
         "//occupancy_component:release",
-        "//provisioner:release",
         "//tools/bunq2ynab:release",
         "@rules_release//:release",
         "@rules_task//:release",
