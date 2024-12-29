@@ -41,11 +41,12 @@
 - name: Parse Tailscale status
   ansible.builtin.set_fact:
     tailscale_status: "{{ tailscale_status_result.stdout | from_json }}"
+  when: not ansible_check_mode
 
 - name: Approve Tailscale device in the UI
   ansible.builtin.debug:
     msg: "Approve the device in the Tailscale UI at https://login.tailscale.com/admin/machines"
-  when: tailscale_status.BackendState == "NeedsMachineAuth"
+  when: not ansible_check_mode and tailscale_status.BackendState == "NeedsMachineAuth"
 
 - name: Validate Tailscale status
   ansible.builtin.assert:
@@ -53,3 +54,4 @@
       - tailscale_status.BackendState == "NeedsMachineAuth" or tailscale_status.BackendState == "Running"
     fail_msg: "'tailscale_status' is in an unexpected state: `{{ tailscale_status.BackendState }}`"
     success_msg: "'tailscale_status' is valid"
+  when: not ansible_check_mode
