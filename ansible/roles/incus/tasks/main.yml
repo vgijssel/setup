@@ -58,3 +58,12 @@
     - incus
     - incus-ui-canonical
     - qemu-system
+
+- name: Copy Incus certificate
+  ansible.builtin.copy:
+    content: "{{ incus_certificate }}"
+    dest: /opt/incus/incus_certificate.crt
+    group: root
+    owner: root
+    mode: "0400"
+  become: true

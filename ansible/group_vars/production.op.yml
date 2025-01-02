@@ -4,3 +4,5 @@ tailscale_provisioner_auth_key: op://vgijssel-prod/tailscale_provisioner/auth_ke
 root_user_password_encrypted: op://vgijssel-prod/root_user/password_encrypted
 maarten_user_password_encrypted: op://vgijssel-prod/maarten_user/password_encrypted
 maarten_user_public_key: op://vgijssel-prod/SSH - Setup/public key
+incus_certificate: |
+op://Private/incus-certificate/certificate
