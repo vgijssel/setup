@@ -29,6 +29,22 @@
   when: reboot_required.stat.exists
   become: true
 
+- name: Install unattended upgrades
+  ansible.builtin.package:
+    name: unattended-upgrades
+    state: present
+  become: true
+
+- name: Configure unattended security upgrades
+  ansible.builtin.copy:
+    src: 50unattended-upgrades
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: restart unattended-upgrades
+
 - name: Ensure a locale exists
   community.general.locale_gen:
     name: en_GB.UTF-8
