@@ -153,3 +153,13 @@
     mode: "0755"
   become: true
   notify: restart ssh
+
+- name: Copy Netplan template
+  ansible.builtin.template:
+    src: 90-common-network.yaml.j2
+    dest: /etc/netplan/90-common-network.yaml
+    group: root
+    owner: root
+    mode: "0600"
+  become: true
+  notify: apply netplan

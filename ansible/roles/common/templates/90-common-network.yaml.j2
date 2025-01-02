@@ -1,0 +1,19 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: no
+      dhcp6: no
+  bridges:
+    br0:
+      interfaces:
+        - eth0
+      addresses:
+        - {{ ip_address }}/24
+      gateway4: {{ gateway4 }}
+      nameservers:
+        addresses:
+          {% for ns in nameservers %}
+          - {{ ns }}
+          {% endfor %}

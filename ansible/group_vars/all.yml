@@ -1,5 +1,8 @@
 ansible_remote_tmp: /tmp/.ansible/tmp
-gateway: 192.168.1.1
+gateway4: 192.168.1.1
+nameservers:
+  - 192.168.1.1
 
+# TODO: do we still need this?
 architecture_mapping:
   aarch64: arm64

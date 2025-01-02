@@ -3,3 +3,7 @@
     name: ssh
     state: restarted
   become: true
+
+- name: apply netplan
+  ansible.builtin.command: netplan apply
+  become: true
