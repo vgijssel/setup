@@ -5,6 +5,30 @@
     group: deploy
     owner: deploy
 
+- name: Update apt package index
+  ansible.builtin.apt:
+    update_cache: yes
+    # Cache is valid for 24 hours
+    cache_valid_time: 86400
+  become: true
+
+- name: Upgrade all packages to the latest version
+  ansible.builtin.apt:
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+  become: true
+
+- name: Check if a reboot is required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+
+- name: Reboot the server if needed
+  ansible.builtin.reboot:
+  when: reboot_required.stat.exists
+  become: true
+
 - name: Ensure a locale exists
   community.general.locale_gen:
     name: en_GB.UTF-8
@@ -69,7 +93,7 @@
     validation: required
   become: true
 
-- name: Create deploy user
+- name: Update deploy user
   user:
     name: deploy
     password: "{{ deploy_user_password_encrypted }}"
