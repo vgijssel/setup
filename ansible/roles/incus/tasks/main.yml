@@ -9,10 +9,45 @@
   register: kernel_params_result
   become: true
 
-- name: reboot
-  ansible.builtin.reboot:
-  when: kernel_params_result.changed
+# From https://linuxcontainers.org/incus/docs/main/reference/server_settings/
+- ansible.posix.sysctl:
+    name: kernel.dmesg_restrict
+    value: "1"
+    state: present
+  register: dmesg_restrict_result
   become: true
+
+- name: Reboot
+  ansible.builtin.reboot:
+  when: kernel_params_result.changed or dmesg_restrict_result.changed
+  become: true
+
+- name: Add Incus package signing key
+  ansible.builtin.get_url:
+    url: https://pkgs.zabbly.com/key.asc
+    dest: /usr/share/keyrings/zabbly.asc
+    checksum: sha256:6b0ca4f477a86bc059b4c370d210e2fa1a18580f9b56dd6c1f1d39aca738a9dc
+  register: incus_key_result
+  become: true
+
+- name: Add Incus repository
+  ansible.builtin.template:
+    src: zabbly-incus-stable.sources.j2
+    dest: /etc/apt/sources.list.d/zabbly-incus-stable.sources
+    group: root
+    owner: root
+    mode: "0600"
+  become: true
+  vars:
+    host_codename: "{{ ansible_lsb['codename'] | lower }}"
+    host_architecture: "{{ architecture_mapping[ansible_architecture] }}"
+  register: incus_repository_result
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+  when: incus_key_result.changed or incus_repository_result.changed
 
 - name: Install Incus packages
   ansible.builtin.package:
@@ -21,49 +56,5 @@
   become: true
   loop:
     - incus
+    - incus-ui-canonical
     - qemu-system
-# - name: Set OS variables
-#   ansible.builtin.set_fact:
-#     host_id: "{{ ansible_lsb['id'] | lower }}"
-#     host_codename: "{{ ansible_lsb['codename'] | lower }}"
-#     host_architecture: "{{ architecture_mapping[ansible_architecture] }}"
-
-# - name: Validate OS version
-#   ansible.builtin.assert:
-#     that:
-#       - host_id == "debian"
-#       - host_codename == "bookworm"
-#       - host_architecture == "arm64"
-#     fail_msg: Proxmox role currently only works for debian bookworm arm64 - got `{{ host_id }} {{ host_codename }} {{ host_architecture }}`
-
-# - name: Add Proxmox Port package signing key
-#   ansible.builtin.apt_key:
-#     url: https://mirrors.apqa.cn/proxmox/{{ host_id }}/pveport.gpg
-#     keyring: /etc/apt/trusted.gpg.d/pveport.gpg
-#   register: proxmox_port_key_result
-#   become: true
-
-# - name: Add Proxmox Port repository
-#   ansible.builtin.apt_repository:
-#     repo: deb [signed-by=/etc/apt/trusted.gpg.d/pveport.gpg, arch={{ host_architecture }}] https://mirrors.apqa.cn/proxmox/{{ host_id }}/pve {{ host_codename }} port
-#     state: present
-#     filename: pveport
-#   register: proxmox_port_repository_result
-#   become: true
-
-# - name: Update and upgrade apt
-#   ansible.builtin.apt:
-#     update_cache: yes
-#     upgrade: full
-#   become: true
-#   when: proxmox_port_key_result.changed or proxmox_port_repository_result.changed
-
-# - name: Install Proxmox Port
-#   ansible.builtin.package:
-#     name: "{{ item }}"
-#     state: present
-#   become: true
-#   loop:
-#     - proxmox-ve
-#     - postfix
-#     - open-iscsi
