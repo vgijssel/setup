@@ -1,8 +1,15 @@
 [provisioner]
-provisioner.local
+provisioner.rig.internal.vgijssel.nl
 
 [provisioner:vars]
 ip_address=192.168.1.31
 
+[kvmd]
+kvmd.rig.internal.vgijssel.nl
+
+[kvmd:vars]
+ip_address=192.168.1.33
+
 [production:children]
 provisioner
+kvmd
