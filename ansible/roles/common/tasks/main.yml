@@ -61,6 +61,12 @@
     password: "{{ root_user_password_encrypted }}"
   become: true
 
+- name: Remove authorized keys for root
+  ansible.builtin.file:
+    path: /root/.ssh/authorized_keys
+    state: absent
+  become: true
+
 - name: Create maarten user
   user:
     name: maarten
@@ -113,6 +119,12 @@
     nopassword: false
     commands: ALL
     validation: required
+  become: true
+
+- name: Remove authorized keys for deploy
+  ansible.builtin.file:
+    path: /home/deploy/.ssh/authorized_keys
+    state: absent
   become: true
 
 - name: Set sudo timeout to 5 minutes
