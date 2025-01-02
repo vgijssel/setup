@@ -66,14 +66,9 @@
     name: maarten
     password: "{{ maarten_user_password_encrypted }}"
     state: present
+    shell: /bin/bash
+    groups: [sudo]
     create_home: true
-  become: true
-
-- name: Adding maarten to sudo group
-  user:
-    name: maarten
-    groups: sudo
-    append: yes
   become: true
 
 - name: Set authorized key for maarten
@@ -93,12 +88,21 @@
     validation: required
   become: true
 
+- name: Set authorized key for maarten
+  ansible.posix.authorized_key:
+    user: maarten
+    state: present
+    key: "{{ maarten_user_public_key }}"
+    exclusive: true
+  become: true
+
 - name: Update deploy user
   user:
     name: deploy
     password: "{{ deploy_user_password_encrypted }}"
     state: present
     create_home: true
+    shell: /bin/bash
     groups: [sudo]
   become: true
 
