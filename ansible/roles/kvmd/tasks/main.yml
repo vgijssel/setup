@@ -1,5 +1,8 @@
 # - name: Setup user groups mapping to host groups
 
+# create user kvmd with id 999
+# create group kvmd with id 999
+
 - name: Install kvmd packages
   ansible.builtin.package:
     name: "{{ item }}"
