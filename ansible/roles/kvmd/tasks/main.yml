@@ -1,0 +1,27 @@
+# - name: Setup user groups mapping to host groups
+
+- name: Install kvmd packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop:
+    - git
+    - vim
+    - make
+    - python3-dev
+    - gcc
+    - xz-utils
+    - wget
+    - sudo
+
+- name: Get installation script
+  ansible.builtin.git:
+    repo: https://github.com/srepac/kvmd-armbian.git
+    dest: /opt/kvmd-armbian
+  become: true
+
+- name: Run installation script
+  ansible.builtin.command: /opt/kvmd-armbian/install.sh
+  become: true
+# Setup boot systemd service to enable hidg0 devices
