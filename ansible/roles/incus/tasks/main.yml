@@ -17,9 +17,19 @@
   register: dmesg_restrict_result
   become: true
 
+- name: Update pi4 firmware config
+  ansible.builtin.copy:
+    src: config.txt
+    dest: /boot/firmware/config.txt
+    owner: root
+    group: root
+    mode: "0755"
+  register: firmware_config_result
+  become: true
+
 - name: Reboot
   ansible.builtin.reboot:
-  when: kernel_params_result.changed or dmesg_restrict_result.changed
+  when: kernel_params_result.changed or dmesg_restrict_result.changed or firmware_config_result.changed
   become: true
 
 - name: Add Incus package signing key
@@ -58,6 +68,8 @@
     - incus
     - incus-ui-canonical
     - qemu-system
+    # To manage video4linux drivers
+    - v4l-utils
 
 - name: Copy Incus certificate
   ansible.builtin.copy:
