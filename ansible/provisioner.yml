@@ -5,5 +5,5 @@
       tags: common
     - role: tailscale
       tags: tailscale
-    # - role: incus
-    #   tags: incus
+    - role: incus
+      tags: incus

@@ -154,6 +154,12 @@
   become: true
   notify: restart ssh
 
+- name: Install net-tools to inspect routing table
+  ansible.builtin.package:
+    name: net-tools
+    state: present
+  become: true
+
 - name: Copy Netplan template
   ansible.builtin.template:
     src: 90-common-network.yaml.j2
