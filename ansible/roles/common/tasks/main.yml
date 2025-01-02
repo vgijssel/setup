@@ -143,6 +143,13 @@
     state: absent
   become: true
 
+- name: Remove ubuntu user
+  ansible.builtin.user:
+    name: ubuntu
+    state: absent
+    remove: yes
+  become: true
+
 - name: Set sudo timeout to 5 minutes
   ansible.builtin.lineinfile:
     path: /etc/sudoers
