@@ -54,7 +54,7 @@
       "Press ENTER to continue": ""
     echo: true
     # timeout is 5 minutes to wait for the expected string
-    timeout: 300
+    timeout: 600
   become: true
   # ignore_errors: true
   # The installation script will reboot
