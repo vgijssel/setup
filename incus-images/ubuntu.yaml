@@ -6,6 +6,7 @@ image:
     PiKVM {{ image.release }}
   architecture: arm64
 
+# TODO: do we need this?
 source:
   downloader: rootfs-http
   url: file://noop
@@ -18,40 +19,31 @@ targets:
       To enable SSH, run: apt install openssh-server
       No default root or user password are set by LXC.
     config: []
-    # - type: all
-    #   before: 5
-    #   content: |-
-    #     lxc.include = LXC_TEMPLATE_CONFIG/ubuntu.common.conf
-
-    # - type: user
-    #   before: 5
-    #   content: |-
-    #     lxc.include = LXC_TEMPLATE_CONFIG/ubuntu.userns.conf
-
-    # - type: all
-    #   after: 4
-    #   content: |-
-    #     lxc.include = LXC_TEMPLATE_CONFIG/common.conf
-
-    # - type: user
-    #   after: 4
-    #   content: |-
-    #     lxc.include = LXC_TEMPLATE_CONFIG/userns.conf
-
-    # - type: all
-    #   content: |-
-    #     lxc.arch = {{ image.architecture_personality }}
 
 files:
   - path: /etc/hostname
     generator: hostname
 
+  # We're overriding the fstab file as we don't use those partitions anymore in LXC
   - path: /etc/fstab
-    source: config/fstab
-    generator: copy
     uid: 0
     gid: 0
-    mode: 0644
+    mode: 0600
+    generator: dump
+    content: |-
+      /dev/cdrom	/media/cdrom	iso9660	noauto,ro 0 0
+      /dev/usbdisk	/media/usb	vfat	noauto,ro 0 0
+
+  # Disable the msd service by default as we're missing the msd partition
+  - path: /etc/kvmd/override.d/disable-msd
+    uid: 0
+    gid: 0
+    mode: 0600
+    generator: dump
+    content: |-
+      kvmd:
+        msd:
+          type: disabled
 
 packages:
   manager: pacman
@@ -59,90 +51,29 @@ packages:
   cleanup: false
   sets:
     - packages:
-        - vim
+        - cloud-init
       action: install
 
-  # repositories:
-  # - name: sources.list
-  #   url: |-
-  #     deb http://archive.ubuntu.com/ubuntu {{ image.release }} main restricted universe multiverse
-  #     deb http://archive.ubuntu.com/ubuntu {{ image.release }}-updates main restricted universe multiverse
-  #     deb http://security.ubuntu.com/ubuntu {{ image.release }}-security main restricted universe multiverse
-  #   architectures:
-  #   - amd64
-  #   - i386
+actions:
+  - trigger: post-files
+    action: |-
+      #!/bin/sh
+      set -eux
 
-  # - name: sources.list
-  #   url: |-
-  #     deb http://ports.ubuntu.com/ubuntu-ports {{ image.release }} main restricted universe multiverse
-  #     deb http://ports.ubuntu.com/ubuntu-ports {{ image.release }}-updates main restricted universe multiverse
-  #     deb http://ports.ubuntu.com/ubuntu-ports {{ image.release }}-security main restricted universe multiverse
-  #   architectures:
-  #   - armhf
-  #   - arm64
-  #   - powerpc
-  #   - powerpc64
-  #   - ppc64el
-  #   - riscv64
-# actions:
-# - trigger: post-update
-#   action: |-
-#     #!/bin/sh
-#     set -eux
+      # Don't need persistant storage service: https://docs.pikvm.org/pst/
+      systemctl mask kvmd-pst
 
-#     # Create the ubuntu user account
-#     getent group sudo >/dev/null 2>&1 || groupadd --system sudo
-#     useradd --create-home -s /bin/bash -G sudo -U ubuntu
-#   variants:
-#   - default
+      # Don't need kvmd-fan service
+      systemctl mask kvmd-fan
 
-# - trigger: post-packages
-#   action: |-
-#     #!/bin/sh
-#     set -eux
+      # The bootconfig does not work, we need to do this manually
+      systemctl mask kvmd-bootconfig.service 
 
-#     # Enable systemd-networkd
-#     systemctl enable systemd-networkd
-#   releases:
-#   - bionic
-#   - eoan
-#   - focal
-#   - jammy
-#   - noble
-#   - oracular
-#   - plucky
+      # Enable the OLED service
+      systemctl enable kvmd-oled
 
-# - trigger: post-packages
-#   action: |-
-#     #!/bin/sh
-#     set -eux
+      # Generate a new certificate
+      # kmd-gencert --do-the-thing
 
-#     # Make sure the locale is built and functional
-#     locale-gen en_US.UTF-8
-#     update-locale LANG=en_US.UTF-8
-
-#     # Cleanup underlying /run
-#     mount -o bind / /mnt
-#     rm -rf /mnt/run/*
-#     umount /mnt
-
-#     # Cleanup temporary shadow paths
-#     rm /etc/*-
-
-# - trigger: post-files
-#   action: |-
-#     #!/bin/sh
-#     set -eux
-
-#     TARGET="x86_64"
-#     [ "$(uname -m)" = "aarch64" ] && TARGET="arm64"
-
-#     update-grub
-#     grub-install --uefi-secure-boot --target="${TARGET}-efi" --no-nvram --removable
-#     update-grub
-#     sed -i "s#root=[^ ]*#root=${DISTROBUILDER_ROOT_UUID}#g" /boot/grub/grub.cfg
-#   types:
-#   - vm
-
-# mappings:
-#   architecture_map: debian
+      # Generate a new certificate for vnc
+      # kmd-gencert --do-the-thing --vnc
