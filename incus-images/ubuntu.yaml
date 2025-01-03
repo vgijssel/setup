@@ -56,10 +56,10 @@ files:
       set -eux
 
       # Generate a new certificate
-      kmd-gencert --do-the-thing
+      kvmd-gencert --do-the-thing
 
       # Generate a new certificate for vnc
-      kmd-gencert --do-the-thing --vnc
+      kvmd-gencert --do-the-thing --vnc
 
   # Run the helper executable during boot
   - path: /usr/lib/systemd/system/kvmd-bootconfig-incus.service
@@ -76,7 +76,7 @@ files:
 
         [Service]
         Type=oneshot
-        ExecStart=/usr/bin/kvmd-bootconfig --do-the-thing
+        ExecStart=/usr/bin/kvmd-bootconfig-incus
         ExecStop=/bin/true
         RemainAfterExit=true
 
