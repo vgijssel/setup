@@ -28,7 +28,6 @@ lint:
     - buildifier@7.1.2
     - isort@5.13.2
     - markdownlint@0.41.0
-    - nixpkgs-fmt@1.3.0
     - prettier@3.3.3
     - renovate@37.440.0
     - ruff@0.5.4
@@ -45,6 +44,7 @@ lint:
     - checkov
     - bandit
     - git-diff-check
+    - nixpkgs-fmt
 actions:
   enabled:
     - trunk-check-pre-push
@@ -72,6 +72,7 @@ tools:
     - ansible@9.13.0
     - scie-pants@0.12.0
     - windmill-cli@1.440.3
+    - packer@1.11.2
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -130,6 +131,12 @@ tools:
       shims:
         - name: helmfile
           target: helmfile
+    - name: packer
+      download: packer
+      known_good_version: 1.11.2
+      shims:
+        - name: packer
+          target: packer
 
 downloads:
   - name: bazelisk
@@ -200,3 +207,12 @@ downloads:
           x86_64: amd64
           arm_64: arm64
         url: https://github.com/helmfile/helmfile/releases/download/v${version}/helmfile_${version}_${os}_${cpu}.tar.gz
+  - name: packer
+    downloads:
+      - os:
+          linux: linux
+          macos: darwin
+        cpu:
+          x86_64: amd64
+          arm_64: arm64
+        url: https://releases.hashicorp.com/packer/${version}/packer_${version}_${os}_${cpu}.zip

@@ -1,15 +1,15 @@
 [provisioner]
-provisioner.tail2c33e2.ts.net
+provisioner.rig.internal.vgijssel.nl
 
 [provisioner:vars]
 ip_address=192.168.1.31
 
-[kvmd]
-kvmd.tail2c33e2.ts.net
+[pikvm]
+pikvm.rig.internal.vgijssel.nl
 
-[kvmd:vars]
+[pikvm:vars]
 ip_address=192.168.1.33
 
 [production:children]
 provisioner
-kvmd
+pikvm

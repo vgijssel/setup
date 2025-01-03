@@ -37,6 +37,8 @@ def install_utilities():
         name="Install defaultbrowser",
         packages=[
             "defaultbrowser",
+            # client for interacting with incus host
+            "incus",
         ],
         present=True,
         update=False,

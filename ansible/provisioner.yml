@@ -5,7 +5,7 @@
       tags: common
     - role: tailscale
       tags: tailscale
-    - role: proxmox
-      tags: proxmox
-    - role: pikvm
-      tags: pikvm
+      vars:
+        tailscale_auth_key: "{{ tailscale_provisioner_auth_key }}"
+    - role: incus
+      tags: incus
