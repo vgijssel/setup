@@ -41,10 +41,12 @@
 
 - name: Get installation script
   ansible.builtin.git:
-    repo: https://github.com/srepac/kvmd-armbian.git
+    repo: https://github.com/vgijssel/kvmd-armbian.git
     dest: /opt/kvmd-armbian
     force: true
   become: true
+  tags:
+    - kerk
 
 - name: Run step 1 of the installation script
   ansible.builtin.expect:
@@ -53,17 +55,20 @@
       "Choose which capture device you will use": "3"
       "Press ENTER to continue": ""
     echo: true
-    # timeout is 5 minutes to wait for the expected string
+    # timeout is 10 minutes to wait for the expected string
+    # the installation of kvmd-armbian takes a long time
     timeout: 600
   become: true
-  # ignore_errors: true
-  # The installation script will reboot
   ignore_unreachable: true
+  tags:
+    - kerk
 
 - name: Wait for host to come back up
   wait_for_connection:
     delay: 10
     timeout: 120
+  tags:
+    - kerk
 
 - name: Run step 2 of the installation script
   ansible.builtin.expect:
@@ -75,6 +80,8 @@
     timeout: 300
   become: true
   ignore_errors: true
+  tags:
+    - kerk
 
 - name: Download font for OLED
   ansible.builtin.get_url:
@@ -82,6 +89,8 @@
     dest: /usr/share/fonts/TTF/ProggySquare.ttf
     mode: "0444"
   become: true
+  tags:
+    - kerk
 
 - name: Extract kvmd-oled package
   ansible.builtin.unarchive:
@@ -89,6 +98,8 @@
     dest: /
     remote_src: true
   become: true
+  tags:
+    - kerk
 
 - name: Enable kvmd-oled services
   ansible.builtin.service:
@@ -100,3 +111,5 @@
     - kvmd-oled-reboot
     - kvmd-oled
     - kvmd-oled-shutdown
+  tags:
+    - kerk
