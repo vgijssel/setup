@@ -15,6 +15,15 @@
 # systemctl enable /usr/lib/systemd/system/kvmd-oled.service
 # systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 
+# Direction - kvmd-armbian way
+# 1. Disable the get-packages function
+# 2. Download packages using Ansible
+# 3. Run installer script
+#
+# Direction - Run pikvm arm image directly in LXC
+#
+# Direction - Re-implement the install script using Ansible and new repo
+
 - name: Install kvmd packages
   ansible.builtin.package:
     name: "{{ item }}"
