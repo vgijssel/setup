@@ -1,7 +1,19 @@
-# - name: Setup user groups mapping to host groups
+# # This at least shows the directory in the host
+# TODO: needs to run in the host
+# modprobe libcomposite
 
-# create user kvmd with id 999
-# create group kvmd with id 999
+# apt-get install -y python3-usb python3-luma.core python3-luma.lcd python3-luma.oled python3-psutil curl
+
+# mkdir -p /usr/share/fonts/TTF
+# curl -L https://github.com/pikvm/kvmd/raw/ebda7ea03d178ebf93f115eaa75cf059e010cd96/kvmd/apps/oled/fonts/ProggySquare.ttf --output /usr/share/fonts/TTF/ProggySquare.ttf
+
+# curl -L https://kvmnerds.com/REPO/NEW/kvmd-oled-0.26-1-any.pkg.tar.xz --output /tmp/kvmd-oled-0.26-1-any.pkg.tar.xz
+# cd /
+# tar xfJ /tmp/kvmd-oled-0.26-1-any.pkg.tar.xz
+
+# systemctl enable /usr/lib/systemd/system/kvmd-oled-reboot.service
+# systemctl enable /usr/lib/systemd/system/kvmd-oled.service
+# systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 
 - name: Install kvmd packages
   ansible.builtin.package:
@@ -17,14 +29,74 @@
     - xz-utils
     - wget
     - sudo
+    # These are all for the kvmd-oled service
+    - python3-usb
+    - python3-luma.core
+    - python3-luma.lcd
+    - python3-luma.oled
+    - python3-psutil
+    - curl
+    # to run the installation script
+    - python3-pexpect
 
 - name: Get installation script
   ansible.builtin.git:
     repo: https://github.com/srepac/kvmd-armbian.git
     dest: /opt/kvmd-armbian
+    force: true
   become: true
 
-- name: Run installation script
-  ansible.builtin.command: /opt/kvmd-armbian/install.sh
+- name: Run step 1 of the installation script
+  ansible.builtin.expect:
+    command: /opt/kvmd-armbian/install.sh -f
+    responses:
+      "Choose which capture device you will use": "3"
+      "Press ENTER to continue": ""
+    echo: true
+    # timeout is 5 minutes to wait for the expected string
+    timeout: 300
   become: true
-# Setup boot systemd service to enable hidg0 devices
+  # ignore_errors: true
+  # The installation script will reboot
+  ignore_unreachable: true
+
+- name: Wait for host to come back up
+  wait_for_connection:
+    delay: 10
+    timeout: 120
+
+- name: Run step 2 of the installation script
+  ansible.builtin.expect:
+    command: /opt/kvmd-armbian/install.sh
+    responses:
+      "Did kvmd -m run properly": "y"
+    echo: true
+    # timeout is 5 minutes to wait for the expected string
+    timeout: 300
+  become: true
+  ignore_errors: true
+
+- name: Download font for OLED
+  ansible.builtin.get_url:
+    url: https://github.com/pikvm/kvmd/raw/ebda7ea03d178ebf93f115eaa75cf059e010cd96/kvmd/apps/oled/fonts/ProggySquare.ttf
+    dest: /usr/share/fonts/TTF/ProggySquare.ttf
+    mode: "0444"
+  become: true
+
+- name: Extract kvmd-oled package
+  ansible.builtin.unarchive:
+    src: https://kvmnerds.com/REPO/NEW/kvmd-oled-0.26-1-any.pkg.tar.xz
+    dest: /
+    remote_src: true
+  become: true
+
+- name: Enable kvmd-oled services
+  ansible.builtin.service:
+    name: "{{ item}}"
+    state: started
+    enabled: true
+  become: true
+  loop:
+    - kvmd-oled-reboot
+    - kvmd-oled
+    - kvmd-oled-shutdown
