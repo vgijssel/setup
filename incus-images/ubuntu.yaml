@@ -1,0 +1,148 @@
+image:
+  name: pikvm-rpi4
+  distribution: pikvm-rpi4
+  release: latest
+  description: |-
+    PiKVM {{ image.release }}
+  architecture: arm64
+
+source:
+  downloader: rootfs-http
+  url: file://noop
+
+targets:
+  lxc:
+    create_message: |-
+      You just created an {{ image.description }} container.
+
+      To enable SSH, run: apt install openssh-server
+      No default root or user password are set by LXC.
+    config: []
+    # - type: all
+    #   before: 5
+    #   content: |-
+    #     lxc.include = LXC_TEMPLATE_CONFIG/ubuntu.common.conf
+
+    # - type: user
+    #   before: 5
+    #   content: |-
+    #     lxc.include = LXC_TEMPLATE_CONFIG/ubuntu.userns.conf
+
+    # - type: all
+    #   after: 4
+    #   content: |-
+    #     lxc.include = LXC_TEMPLATE_CONFIG/common.conf
+
+    # - type: user
+    #   after: 4
+    #   content: |-
+    #     lxc.include = LXC_TEMPLATE_CONFIG/userns.conf
+
+    # - type: all
+    #   content: |-
+    #     lxc.arch = {{ image.architecture_personality }}
+
+files:
+  - path: /etc/hostname
+    generator: hostname
+
+  - path: /etc/fstab
+    source: config/fstab
+    generator: copy
+    uid: 0
+    gid: 0
+    mode: 0644
+
+packages:
+  manager: pacman
+  update: false
+  cleanup: false
+  sets:
+    - packages:
+        - vim
+      action: install
+
+  # repositories:
+  # - name: sources.list
+  #   url: |-
+  #     deb http://archive.ubuntu.com/ubuntu {{ image.release }} main restricted universe multiverse
+  #     deb http://archive.ubuntu.com/ubuntu {{ image.release }}-updates main restricted universe multiverse
+  #     deb http://security.ubuntu.com/ubuntu {{ image.release }}-security main restricted universe multiverse
+  #   architectures:
+  #   - amd64
+  #   - i386
+
+  # - name: sources.list
+  #   url: |-
+  #     deb http://ports.ubuntu.com/ubuntu-ports {{ image.release }} main restricted universe multiverse
+  #     deb http://ports.ubuntu.com/ubuntu-ports {{ image.release }}-updates main restricted universe multiverse
+  #     deb http://ports.ubuntu.com/ubuntu-ports {{ image.release }}-security main restricted universe multiverse
+  #   architectures:
+  #   - armhf
+  #   - arm64
+  #   - powerpc
+  #   - powerpc64
+  #   - ppc64el
+  #   - riscv64
+# actions:
+# - trigger: post-update
+#   action: |-
+#     #!/bin/sh
+#     set -eux
+
+#     # Create the ubuntu user account
+#     getent group sudo >/dev/null 2>&1 || groupadd --system sudo
+#     useradd --create-home -s /bin/bash -G sudo -U ubuntu
+#   variants:
+#   - default
+
+# - trigger: post-packages
+#   action: |-
+#     #!/bin/sh
+#     set -eux
+
+#     # Enable systemd-networkd
+#     systemctl enable systemd-networkd
+#   releases:
+#   - bionic
+#   - eoan
+#   - focal
+#   - jammy
+#   - noble
+#   - oracular
+#   - plucky
+
+# - trigger: post-packages
+#   action: |-
+#     #!/bin/sh
+#     set -eux
+
+#     # Make sure the locale is built and functional
+#     locale-gen en_US.UTF-8
+#     update-locale LANG=en_US.UTF-8
+
+#     # Cleanup underlying /run
+#     mount -o bind / /mnt
+#     rm -rf /mnt/run/*
+#     umount /mnt
+
+#     # Cleanup temporary shadow paths
+#     rm /etc/*-
+
+# - trigger: post-files
+#   action: |-
+#     #!/bin/sh
+#     set -eux
+
+#     TARGET="x86_64"
+#     [ "$(uname -m)" = "aarch64" ] && TARGET="arm64"
+
+#     update-grub
+#     grub-install --uefi-secure-boot --target="${TARGET}-efi" --no-nvram --removable
+#     update-grub
+#     sed -i "s#root=[^ ]*#root=${DISTROBUILDER_ROOT_UUID}#g" /boot/grub/grub.cfg
+#   types:
+#   - vm
+
+# mappings:
+#   architecture_map: debian

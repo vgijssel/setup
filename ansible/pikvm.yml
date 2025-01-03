@@ -1,0 +1,15 @@
+---
+- hosts: pikvm
+  tasks:
+    - name: hello
+      ansible.builtin.command: ls -la
+
+  # roles:
+  #   - role: common
+  #     tags: common
+  # - role: tailscale
+  #   tags: tailscale
+  #   vars:
+  #     tailscale_auth_key: "{{ tailscale_provisioner_auth_key }}"
+  # - role: incus
+  #   tags: incus

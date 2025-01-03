@@ -4,12 +4,12 @@ provisioner.rig.internal.vgijssel.nl
 [provisioner:vars]
 ip_address=192.168.1.31
 
-[kvmd]
-kvmd.rig.internal.vgijssel.nl
+[pikvm]
+pikvm.rig.internal.vgijssel.nl
 
-[kvmd:vars]
+[pikvm:vars]
 ip_address=192.168.1.33
 
 [production:children]
 provisioner
-kvmd
+pikvm
