@@ -25,11 +25,14 @@ locals {
     "${local.partition_path}/2.img",
   ]
   image_path = "${local.output_path}/image"
-  image_distribution = "v3-hdmi-rpi4-box"
+  image_distribution = "pikvm-v3-hdmi-rpi4-box"
   image_release = "20240904"
   image_description = "PiKVM Incus image."
   image_architecture = "arm64"
   image_serial = formatdate("YYYYMMDD_hhmm", timestamp())
+  image_alias = "${local.image_distribution}/${local.image_release}"
+  image_alias_latest = "${local.image_distribution}/latest"
+
   # Following naming convention from https://linuxcontainers.org/distrobuilder/docs/latest/reference/image/
   image_name = "${local.image_distribution}-${local.image_release}-${local.image_architecture}-${local.image_serial}"
   image_compressed_file_name = "${local.image_name}.tar.xz"
@@ -130,6 +133,12 @@ build {
     post-processor "artifice" {
       files = [
         "${local.image_path}/${local.image_compressed_file_name}",
+      ]
+    }
+
+    post-processor "shell-local" {
+      inline = [
+        "incus image import ${local.image_compressed_file_name} --alias ${local.image_alias} --alias ${local.image_alias_latest}", 
       ]
     }
   }
