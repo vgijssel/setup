@@ -138,7 +138,7 @@ build {
 
     post-processor "shell-local" {
       inline = [
-        "incus image import ${local.image_compressed_file_name} --alias ${local.image_alias} --alias ${local.image_alias_latest}", 
+        "incus image import ${local.image_path}/${local.image_compressed_file_name} --alias ${local.image_alias} --alias ${local.image_alias_latest}", 
       ]
     }
   }
