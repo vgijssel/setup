@@ -1,9 +1,9 @@
 ansible_become_pass: op://vgijssel-prod/deploy_user/password
 deploy_user_password_encrypted: op://vgijssel-prod/deploy_user/password_encrypted
 tailscale_provisioner_auth_key: op://vgijssel-prod/tailscale_provisioner/auth_key
-tailscale_kvmd_auth_key: op://vgijssel-prod/tailscale_kvmd/auth_key
+tailscale_pikvm_auth_key: op://vgijssel-prod/tailscale_pikvm/auth_key
 root_user_password_encrypted: op://vgijssel-prod/root_user/password_encrypted
 maarten_user_password_encrypted: op://vgijssel-prod/maarten_user/password_encrypted
 maarten_user_public_key: op://vgijssel-prod/SSH - Setup/public key
 incus_certificate: |
-op://Private/incus-certificate/certificate
+op://vgijssel-prod/incus-certificate/certificate

@@ -4,12 +4,12 @@ provisioner.tail2c33e2.ts.net
 [provisioner:vars]
 ip_address=192.168.1.31
 
-[kvmd]
-kvmd.tail2c33e2.ts.net
+[pikvm]
+pikvm.tail2c33e2.ts.net
 
-[kvmd:vars]
+[pikvm:vars]
 ip_address=192.168.1.33
 
 [production:children]
 provisioner
-kvmd
+pikvm
