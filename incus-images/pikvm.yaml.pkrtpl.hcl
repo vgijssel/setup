@@ -1,24 +1,12 @@
-image:
-  name: pikvm-rpi4
-  distribution: pikvm-rpi4
-  release: latest
-  description: |-
-    PiKVM {{ image.release }}
-  architecture: arm64
+${yamlencode({
+  "image": image_settings,
+})}
 
-# TODO: do we need this?
+# The source is a noop, because the rootfs will be generated
+# outside of distrobuiler.
 source:
   downloader: rootfs-http
   url: file://noop
-
-targets:
-  lxc:
-    create_message: |-
-      You just created an {{ image.description }} container.
-
-      To enable SSH, run: apt install openssh-server
-      No default root or user password are set by LXC.
-    config: []
 
 files:
   - path: /etc/hostname
@@ -100,6 +88,9 @@ actions:
 
       # Don't need kvmd-fan service
       systemctl mask kvmd-fan
+
+      # Unsure if the watchdog service is needed
+      systemctl mask kvmd-watchdog
 
       # The original bootconfig does not work
       systemctl mask kvmd-bootconfig.service 
