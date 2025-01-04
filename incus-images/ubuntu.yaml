@@ -28,7 +28,7 @@ files:
   - path: /etc/fstab
     uid: 0
     gid: 0
-    mode: 0600
+    mode: 0644
     generator: dump
     content: |-
       /dev/cdrom	/media/cdrom	iso9660	noauto,ro 0 0
@@ -38,7 +38,7 @@ files:
   - path: /etc/kvmd/override.d/disable-msd
     uid: 0
     gid: 0
-    mode: 0600
+    mode: 0644
     generator: dump
     content: |-
       kvmd:
@@ -49,7 +49,7 @@ files:
   - path: /usr/sbin/kvmd-bootconfig-incus
     uid: 0
     gid: 0
-    mode: 0700
+    mode: 0744
     generator: dump
     content: |-
       #!/bin/sh
@@ -87,10 +87,7 @@ packages:
   manager: pacman
   update: false
   cleanup: false
-  sets:
-    - packages:
-        - cloud-init
-      action: install
+  sets: []
 
 actions:
   - trigger: post-files
