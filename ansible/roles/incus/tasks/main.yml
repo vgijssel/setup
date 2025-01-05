@@ -46,6 +46,14 @@
   when: kernel_params_result.changed or dmesg_restrict_result.changed or firmware_config_result.changed or kernel_modules_result.changed
   become: true
 
+- name: Setup remove-gadget utility to remove USB gadgets if necessary
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/larsks/systemd-usb-gadget/7602009806a4b838663d9db75e5e7f35e131d0c7/remove-gadget.sh
+    dest: /usr/local/bin/remove-gadget
+    checksum: sha256:1fb2313e6696c1b79a076b1fc3f235634055b1b24b62520dbb4c794d65b81977
+    mode: "0500"
+  become: true
+
 - name: Add Incus package signing key
   ansible.builtin.get_url:
     url: https://pkgs.zabbly.com/key.asc
