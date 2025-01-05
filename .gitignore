@@ -54,3 +54,5 @@ result
 
 /.pants.d/
 /.task
+
+incus-images/output

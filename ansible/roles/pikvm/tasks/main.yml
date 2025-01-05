@@ -8,3 +8,11 @@
   vars:
     pikvm_hostname: "{{ ansible_hostname }}"
   become: true
+
+# From https://docs.pikvm.org/_passwd/
+- name: Change password for admin
+  ansible.builtin.command: 
+    cmd: kvmd-htpasswd set admin -i
+    stdin: "{{ pikvm_admin_user_password }}"
+  become: true
+  changed_when: false

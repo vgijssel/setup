@@ -34,9 +34,27 @@ tasks:
     cmds:
       - ansible-playbook -i production provisioner.yml {{.CLI_ARGS}}
 
+  pikvm:provision:
+    desc: Provision the PiKVM
+    dir: ansible
+    cmds:
+      - ansible-playbook -i production pikvm.yml {{.CLI_ARGS}}
+
   tools:spacelift:build:
     desc: Build and push the Spacelift image
     dir: tools/spacelift
     cmds:
       - docker build --platform="linux/amd64" -t ghcr.io/vgijssel/setup/spacelift-runner-ansible:latest .
       - docker push ghcr.io/vgijssel/setup/spacelift-runner-ansible:latest
+
+  incus-images:pikvm:prepare_disk:
+    desc: Download and extract the PiKVM disk image
+    dir: incus-images
+    cmds:
+      - packer build -only='prepare_disk.*' -on-error=ask .
+
+  incus-images:pikvm:build:
+    desc: Build an Incus container from the PiKVM disk image
+    dir: incus-images
+    cmds:
+      - packer build -only='build_image.*' -on-error=ask .

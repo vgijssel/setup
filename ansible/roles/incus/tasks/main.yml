@@ -1,0 +1,103 @@
+# Instructions from: https://linuxcontainers.org/incus/docs/main/installing/#installing
+- name: Update kernel parameters to bootable
+  ansible.builtin.copy:
+    src: cmdline.txt
+    dest: /boot/firmware/cmdline.txt
+    owner: root
+    group: root
+    mode: "0755"
+  register: kernel_params_result
+  become: true
+
+# From https://linuxcontainers.org/incus/docs/main/reference/server_settings/
+- ansible.posix.sysctl:
+    name: kernel.dmesg_restrict
+    value: "1"
+    state: present
+  register: dmesg_restrict_result
+  become: true
+
+- name: Update pi4 firmware config
+  ansible.builtin.copy:
+    src: config.txt
+    dest: /boot/firmware/config.txt
+    owner: root
+    group: root
+    mode: "0755"
+  register: firmware_config_result
+  become: true
+
+- name: Add necessary kernel modules for PiKVM
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+    persistent: present
+  # Copied from /etc/modules-load.d/kvmd.conf from the PiKVM disk image
+  loop:
+    - dwc2
+    - libcomposite
+    - tc358743
+    - i2c-dev
+  register: kernel_modules_result
+  become: true
+
+- name: Reboot
+  ansible.builtin.reboot:
+  when: kernel_params_result.changed or dmesg_restrict_result.changed or firmware_config_result.changed or kernel_modules_result.changed
+  become: true
+
+- name: Setup remove-gadget utility to remove USB gadgets if necessary
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/larsks/systemd-usb-gadget/7602009806a4b838663d9db75e5e7f35e131d0c7/remove-gadget.sh
+    dest: /usr/local/bin/remove-gadget
+    checksum: sha256:1fb2313e6696c1b79a076b1fc3f235634055b1b24b62520dbb4c794d65b81977
+    mode: "0500"
+  become: true
+
+- name: Add Incus package signing key
+  ansible.builtin.get_url:
+    url: https://pkgs.zabbly.com/key.asc
+    dest: /usr/share/keyrings/zabbly.asc
+    checksum: sha256:6b0ca4f477a86bc059b4c370d210e2fa1a18580f9b56dd6c1f1d39aca738a9dc
+  register: incus_key_result
+  become: true
+
+- name: Add Incus repository
+  ansible.builtin.template:
+    src: zabbly-incus-stable.sources.j2
+    dest: /etc/apt/sources.list.d/zabbly-incus-stable.sources
+    group: root
+    owner: root
+    mode: "0600"
+  become: true
+  vars:
+    host_codename: "{{ ansible_lsb['codename'] | lower }}"
+    host_architecture: "{{ architecture_mapping[ansible_architecture] }}"
+  register: incus_repository_result
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+  when: incus_key_result.changed or incus_repository_result.changed
+
+- name: Install Incus packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop:
+    - incus
+    - incus-ui-canonical
+    - qemu-system
+    # To manage video4linux drivers
+    - v4l-utils
+
+- name: Copy Incus certificate
+  ansible.builtin.copy:
+    content: "{{ incus_certificate }}"
+    dest: /opt/incus/incus_certificate.crt
+    group: root
+    owner: root
+    mode: "0400"
+  become: true

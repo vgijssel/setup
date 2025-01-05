@@ -1,10 +1,12 @@
 # From https://tailscale.com/download/linux
 - name: Add Tailscale package signing key
-  ansible.builtin.apt_key:
+  ansible.builtin.get_url:
     url: https://pkgs.tailscale.com/stable/{{ ansible_lsb["id"] | lower }}/{{ ansible_lsb["codename"] | lower }}.noarmor.gpg
-    keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    checksum: sha256:3e03dacf222698c60b8e2f990b809ca1b3e104de127767864284e6c228f1fb39
   register: tailscale_key_result
   become: true
+  when: ansible_distribution != 'Archlinux'
 
 - name: Add Tailscale repository
   ansible.builtin.apt_repository:
@@ -13,12 +15,15 @@
     filename: tailscale
   register: tailscale_repository_result
   become: true
+  when: ansible_distribution != 'Archlinux'
 
 - name: Update apt cache
   ansible.builtin.apt:
     update_cache: yes
   become: true
-  when: tailscale_key_result.changed or tailscale_repository_result.changed
+  when:
+    - ansible_distribution != 'Archlinux'
+    - tailscale_key_result.changed or tailscale_repository_result.changed
 
 - name: Install Tailscale
   ansible.builtin.package:
@@ -26,8 +31,15 @@
     state: present
   become: true
 
+- name: Start Tailscale service
+  ansible.builtin.service:
+    name: tailscaled
+    enabled: true
+    state: started
+  become: true
+
 - name: Register Tailscale device
-  ansible.builtin.command: tailscale up --ssh=true --auth-key {{ tailscale_provisioner_auth_key }} --timeout=2s
+  ansible.builtin.command: tailscale up --ssh=true --auth-key {{ tailscale_auth_key }} --timeout=2s
   become: true
   ignore_errors: true
   changed_when: false
