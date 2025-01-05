@@ -1,9 +1,9 @@
-- name: Ensure the Ansible tmp directory exists for the deploy user to prevent permission issues
+- name: Ensure the Ansible tmp directory exists for the "{{ ansible_user }}" user to prevent permission issues
   ansible.builtin.file:
     path: "{{ ansible_remote_tmp }}"
     state: directory
-    group: deploy
-    owner: deploy
+    group: "{{ ansible_user }}"
+    owner: "{{ ansible_user }}"
 
 - name: Update apt package index
   ansible.builtin.apt:
@@ -11,6 +11,7 @@
     # Cache is valid for 24 hours
     cache_valid_time: 86400
   become: true
+  when: ansible_distribution != 'Archlinux'
 
 - name: Upgrade all packages to the latest version
   ansible.builtin.apt:
@@ -18,22 +19,25 @@
     autoremove: yes
     autoclean: yes
   become: true
+  when: ansible_distribution != 'Archlinux'
 
 - name: Check if a reboot is required
   ansible.builtin.stat:
     path: /var/run/reboot-required
   register: reboot_required
+  when: ansible_distribution != 'Archlinux'
 
 - name: Reboot the server if needed
   ansible.builtin.reboot:
-  when: reboot_required.stat.exists
   become: true
+  when: ansible_distribution != 'Archlinux' and reboot_required.stat.exists
 
 - name: Install unattended upgrades
   ansible.builtin.package:
     name: unattended-upgrades
     state: present
   become: true
+  when: ansible_distribution != 'Archlinux'
 
 - name: Configure unattended security upgrades
   ansible.builtin.copy:
@@ -44,21 +48,32 @@
     mode: "0644"
   become: true
   notify: restart unattended-upgrades
+  when: ansible_distribution != 'Archlinux'
 
-- name: Ensure a locale exists
-  community.general.locale_gen:
-    name: en_GB.UTF-8
-    state: present
+- name: Add locale to file
+  ansible.builtin.lineinfile:
+    path: /etc/locale.gen
+    line: en_GB.UTF-8 UTF-8
   become: true
+  register: add_locale_result
+
+- name: Run locale-gen
+  ansible.builtin.command:
+    cmd: locale-gen
+  become: true
+  when: add_locale_result.changed
 
 - name: Copy locale settings
   ansible.builtin.copy:
     src: locale
-    dest: /etc/default/locale
+    dest: "{{ item }}"
     owner: root
     group: root
     mode: "0644"
   become: true
+  loop:
+    - /etc/default/locale
+    - /etc/locale.conf
 
 - name: Set timezone to Europe/Amsterdam
   become: true
@@ -68,6 +83,12 @@
 - name: Install whois for mkpasswd
   ansible.builtin.package:
     name: whois
+    state: present
+  become: true
+
+- name: Ensure group "sudo" exists
+  ansible.builtin.group:
+    name: sudo
     state: present
   become: true
 
@@ -192,6 +213,7 @@
     mode: "0600"
   become: true
   notify: apply netplan
+  when: ansible_distribution != 'Archlinux'
 
 - name: Install vim
   ansible.builtin.package:
