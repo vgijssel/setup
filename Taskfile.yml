@@ -34,6 +34,12 @@ tasks:
     cmds:
       - ansible-playbook -i production provisioner.yml {{.CLI_ARGS}}
 
+  pikvm:provision:
+    desc: Provision the PiKVM
+    dir: ansible
+    cmds:
+      - ansible-playbook -i production pikvm.yml {{.CLI_ARGS}}
+
   tools:spacelift:build:
     desc: Build and push the Spacelift image
     dir: tools/spacelift
