@@ -27,9 +27,23 @@
   register: firmware_config_result
   become: true
 
+- name: Add necessary kernel modules for PiKVM
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+    persistent: present
+  # Copied from /etc/modules-load.d/kvmd.conf from the PiKVM disk image
+  loop:
+    - dwc2
+    - libcomposite
+    - tc358743
+    - i2c-dev
+  register: kernel_modules_result
+  become: true
+
 - name: Reboot
   ansible.builtin.reboot:
-  when: kernel_params_result.changed or dmesg_restrict_result.changed or firmware_config_result.changed
+  when: kernel_params_result.changed or dmesg_restrict_result.changed or firmware_config_result.changed or kernel_modules_result.changed
   become: true
 
 - name: Add Incus package signing key
