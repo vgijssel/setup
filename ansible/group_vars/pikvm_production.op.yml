@@ -1,0 +1,2 @@
+pikvm_admin_user_password: op://vgijssel-prod/pikvm_admin_user/password
+tailscale_pikvm_auth_key: op://vgijssel-prod/tailscale_pikvm/auth_key

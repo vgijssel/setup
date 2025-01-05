@@ -1,0 +1,3 @@
+tailscale_provisioner_auth_key: op://vgijssel-prod/tailscale_provisioner/auth_key
+incus_certificate: |
+op://vgijssel-prod/incus-certificate/certificate

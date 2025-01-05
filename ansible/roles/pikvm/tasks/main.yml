@@ -15,3 +15,4 @@
     cmd: kvmd-htpasswd set admin -i
     stdin: "{{ pikvm_admin_user_password }}"
   become: true
+  changed_when: false
