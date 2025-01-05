@@ -27,6 +27,7 @@
 - name: Comment out the [pikvm] line
   ansible.builtin.lineinfile:
     path: /etc/pacman.conf
+    # trunk-ignore(yamllint/quoted-strings)
     regexp: '^\[pikvm\]'
     line: "# [pikvm]"
     state: present
@@ -35,6 +36,7 @@
 - name: Comment out the Include line
   ansible.builtin.lineinfile:
     path: /etc/pacman.conf
+    # trunk-ignore(yamllint/quoted-strings)
     regexp: "^Include = /etc/pacman.d/pikvm"
     line: "# Include = /etc/pacman.d/pikvm"
     state: present

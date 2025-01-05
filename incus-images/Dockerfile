@@ -1,3 +1,6 @@
+# trunk-ignore-all(trivy/DS002)
+# trunk-ignore-all(trivy/DS026)
+
 # Copied from https://github.com/f-bn/containers-images/blob/main/distrobuilder/Dockerfile
 # --- Build stage ---
 FROM docker.io/golang:1.22.3 AS build
@@ -25,7 +28,7 @@ COPY --from=build --chmod=755 /build/bin/distrobuilder /usr/bin/distrobuilder
     
 RUN set -ex ; \
     export DEBIAN_FRONTEND=noninteractive ; \
-    apt update ; \
+    apt update && \
     apt install -y --no-install-recommends \
     btrfs-progs \
     bzip2 \
