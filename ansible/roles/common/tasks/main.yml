@@ -4,6 +4,7 @@
     state: directory
     group: "{{ ansible_user }}"
     owner: "{{ ansible_user }}"
+  become: true
 
 - name: Update apt package index
   ansible.builtin.apt:
