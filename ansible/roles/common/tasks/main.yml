@@ -13,6 +13,8 @@
   become: true
   when: ansible_distribution != 'Archlinux'
 
+# The pikvm mirror currently has a dependency conflict so unable
+# to upgrade system packages to their latest version.
 - name: Upgrade all packages to the latest version
   ansible.builtin.apt:
     upgrade: dist
@@ -20,6 +22,29 @@
     autoclean: yes
   become: true
   when: ansible_distribution != 'Archlinux'
+
+- name: Comment out the [pikvm] line
+  ansible.builtin.lineinfile:
+    path: /etc/pacman.conf
+    regexp: '^\[pikvm\]'
+    line: "# [pikvm]"
+    state: present
+  when: ansible_distribution == 'Archlinux'
+
+- name: Comment out the Include line
+  ansible.builtin.lineinfile:
+    path: /etc/pacman.conf
+    regexp: "^Include = /etc/pacman.d/pikvm"
+    line: "# Include = /etc/pacman.d/pikvm"
+    state: present
+  when: ansible_distribution == 'Archlinux'
+
+- name: Upgrade all packages to the latest version
+  pacman:
+    update_cache: yes
+    upgrade: yes
+  become: true
+  when: ansible_distribution == 'Archlinux'
 
 - name: Check if a reboot is required
   ansible.builtin.stat:

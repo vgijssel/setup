@@ -8,7 +8,7 @@ ip_address=192.168.1.31
 pikvm.tail2c33e2.ts.net
 
 [pikvm:vars]
-ip_address=192.168.1.33
+ansible_user=deploy
 
 [production:children]
 provisioner
