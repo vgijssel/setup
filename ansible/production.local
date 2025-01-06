@@ -29,7 +29,7 @@ ansible_user=root
 ansible_incus_project=default
 ansible_incus_remote=provisioner
 
-[provisioner_production:children]
+[provisioner_k8s_production:children]
 provisioner_k8s
 
 [production:children]

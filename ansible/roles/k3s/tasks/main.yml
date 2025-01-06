@@ -3,7 +3,7 @@
     url: https://get.k3s.io
     dest: /tmp/get-k3s.sh
     mode: "0755"
-    checksum: sha256:1fb2313e6696c1b79a076b1fc3f235634055b1b24b62520dbb4c794d65b81977
+    checksum: sha256:d75e014f2d2ab5d30a318efa5c326f3b0b7596f194afcff90fa7a7a91166d5f7
 
 - name: Install k3s
   ansible.builtin.command: /tmp/get-k3s.sh
