@@ -1,0 +1,13 @@
+- name: Download the k3s script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /tmp/get-k3s.sh
+    mode: "0755"
+    checksum: sha256:1fb2313e6696c1b79a076b1fc3f235634055b1b24b62520dbb4c794d65b81977
+
+- name: Install k3s
+  ansible.builtin.command: /tmp/get-k3s.sh
+  environment:
+    INSTALL_K3S_VERSION: v1.31.4+k3s1
+  register: k3s_install_result
+  changed_when: '"No change detected so skipping service start" not in k3s_install_result.stdout'

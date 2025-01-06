@@ -19,6 +19,19 @@ ansible_incus_remote=provisioner
 [pikvm_production:children]
 pikvm
 
+[provisioner_k8s]
+provisioner-k8s.rig.internal.vgijssel.nl
+
+[provisioner_k8s:vars]
+ansible_connection=community.general.incus
+ansible_user=root
+ansible_incus_project=default
+ansible_incus_remote=provisioner
+
+[provisioner_production:children]
+provisioner_k8s
+
 [production:children]
 provisioner
 pikvm
+provisioner_k8s
