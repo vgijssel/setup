@@ -84,11 +84,14 @@
 
 - name: Ensure the Ansible tmp directory exists for the "deploy" user to prevent permission issues
   ansible.builtin.file:
-    path: "{{ ansible_remote_tmp }}"
+    path: "{{ item }}"
     state: directory
     group: deploy
     owner: deploy
   become: true
+  loop:
+    - "{{ ansible_remote_tmp }}"
+    - "{{ ansible_remote_parent_tmp }}"
 
 - name: Remove ubuntu user
   ansible.builtin.user:
