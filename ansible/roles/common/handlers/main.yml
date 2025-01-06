@@ -4,6 +4,15 @@
     enabled: true
     state: restarted
   become: true
+  when: ansible_distribution != 'Archlinux'
+
+- name: restart ssh
+  ansible.builtin.service:
+    name: sshd
+    enabled: true
+    state: restarted
+  become: true
+  when: ansible_distribution == 'Archlinux'
 
 - name: apply netplan
   ansible.builtin.command: netplan apply

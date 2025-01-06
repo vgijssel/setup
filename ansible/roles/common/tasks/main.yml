@@ -67,6 +67,13 @@
   become: true
   when: ansible_distribution != 'Archlinux'
 
+# https://unix.stackexchange.com/questions/463498/terminate-and-disable-remove-unattended-upgrade-before-command-returns
+- name: Wait for unattended-upgrades to finish
+  ansible.builtin.command: systemd-run --property="After=apt-daily.timer apt-daily-upgrade.timer" --wait /bin/true
+  become: true
+  when: ansible_distribution != 'Archlinux'
+  changed_when: false
+
 - name: Configure unattended security upgrades
   ansible.builtin.copy:
     src: 50unattended-upgrades
@@ -119,6 +126,28 @@
     name: sudo
     state: present
   become: true
+
+- name: Install openssh-server
+  ansible.builtin.package:
+    name: openssh-server
+    state: present
+  become: true
+  notify: restart ssh
+  register: openssh_server_installed
+
+- name: Force handlers to run to ensure directories exist
+  ansible.builtin.meta: flush_handlers
+  when: openssh_server_installed.changed
+
+- name: Set sshd configuration
+  ansible.builtin.copy:
+    src: 00-sshd_config.conf
+    dest: /etc/ssh/sshd_config.d/00-sshd_config.conf
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  notify: restart ssh
 
 - name: Set root password
   user:
@@ -215,16 +244,6 @@
     line: Defaults tty_tickets
     validate: /usr/sbin/visudo -cf %s
   become: true
-
-- name: Set sshd configuration
-  ansible.builtin.copy:
-    src: 00-sshd_config.conf
-    dest: /etc/ssh/sshd_config.d/00-sshd_config.conf
-    owner: root
-    group: root
-    mode: "0755"
-  become: true
-  notify: restart ssh
 
 - name: Install net-tools to inspect routing table
   ansible.builtin.package:
