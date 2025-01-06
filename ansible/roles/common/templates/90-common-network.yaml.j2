@@ -2,13 +2,13 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    eth0:
+    {{ network_interface }}:
       dhcp4: no
       dhcp6: no
   bridges:
     br0:
       interfaces:
-        - eth0
+        - {{ network_interface }}
       addresses:
         - {{ ip_address }}/24
       routes:

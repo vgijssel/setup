@@ -1,3 +1,2 @@
-ansible_user: deploy
 ansible_python_interpreter: /usr/bin/python3
-network_interface: eth0
+network_interface: enp5s0
