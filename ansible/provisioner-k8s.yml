@@ -1,0 +1,11 @@
+---
+- hosts: provisioner_k8s
+  roles:
+    - role: common
+      tags: common
+    - role: tailscale
+      tags: tailscale
+      vars:
+        tailscale_auth_key: "{{ tailscale_provisioner_k8s_auth_key }}"
+    - role: k3s
+      tags: k3s

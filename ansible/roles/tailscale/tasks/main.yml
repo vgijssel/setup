@@ -38,6 +38,11 @@
     state: started
   become: true
 
+- name: Assert that the Tailscale auth key is defined
+  assert:
+    that:
+      - tailscale_auth_key is defined
+
 - name: Register Tailscale device
   ansible.builtin.command: tailscale up --ssh=true --auth-key {{ tailscale_auth_key }} --timeout=2s
   become: true

@@ -1,0 +1,32 @@
+- name: Download the k3s script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /tmp/get-k3s.sh
+    mode: "0755"
+    checksum: sha256:d75e014f2d2ab5d30a318efa5c326f3b0b7596f194afcff90fa7a7a91166d5f7
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: "0755"
+    group: root
+    owner: root
+  become: true
+
+- name: Copy k3s configuration
+  ansible.builtin.template:
+    src: k3s-config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    group: root
+    owner: root
+    mode: "0600"
+  become: true
+
+- name: Install k3s
+  ansible.builtin.command: /tmp/get-k3s.sh
+  environment:
+    INSTALL_K3S_VERSION: v1.31.4+k3s1
+  register: k3s_install_result
+  changed_when: '"No change detected so skipping service start" not in k3s_install_result.stdout'
+  become: true
