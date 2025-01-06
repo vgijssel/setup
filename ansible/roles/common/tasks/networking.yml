@@ -14,18 +14,3 @@
   become: true
   notify: apply netplan
   when: ansible_distribution != 'Archlinux'
-
-- name: Install vim
-  ansible.builtin.package:
-    name: vim
-    state: present
-  become: true
-
-- name: Set vim as the default editor for all users
-  ansible.builtin.copy:
-    src: default_editor.sh
-    dest: /etc/profile.d/default_editor.sh
-    owner: root
-    group: root
-    mode: "0644"
-  become: trueg

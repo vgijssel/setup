@@ -86,8 +86,8 @@
   ansible.builtin.file:
     path: "{{ ansible_remote_tmp }}"
     state: directory
-    group: "deploy"
-    owner: "deploy"
+    group: deploy
+    owner: deploy
   become: true
 
 - name: Remove ubuntu user
@@ -112,4 +112,19 @@
     state: present
     line: Defaults tty_tickets
     validate: /usr/sbin/visudo -cf %s
+  become: true
+
+- name: Install vim
+  ansible.builtin.package:
+    name: vim
+    state: present
+  become: true
+
+- name: Set vim as the default editor for all users
+  ansible.builtin.copy:
+    src: default_editor.sh
+    dest: /etc/profile.d/default_editor.sh
+    owner: root
+    group: root
+    mode: "0644"
   become: true
