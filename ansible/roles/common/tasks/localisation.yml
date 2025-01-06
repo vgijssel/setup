@@ -1,0 +1,29 @@
+- name: Add locale to file
+  ansible.builtin.lineinfile:
+    path: /etc/locale.gen
+    line: en_GB.UTF-8 UTF-8
+  become: true
+  register: add_locale_result
+
+- name: Run locale-gen
+  ansible.builtin.command:
+    cmd: locale-gen
+  become: true
+  when: add_locale_result.changed
+
+- name: Copy locale settings
+  ansible.builtin.copy:
+    src: locale
+    dest: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  loop:
+    - /etc/default/locale
+    - /etc/locale.conf
+
+- name: Set timezone to Europe/Amsterdam
+  become: true
+  community.general.timezone:
+    name: Europe/Amsterdam

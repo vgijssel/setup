@@ -1,0 +1,45 @@
+- name: Update apt package index
+  ansible.builtin.apt:
+    update_cache: yes
+    # Cache is valid for 24 hours
+    cache_valid_time: 86400
+  become: true
+
+- name: Upgrade all packages to the latest version
+  ansible.builtin.apt:
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+  become: true
+
+- name: Check if a reboot is required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+
+- name: Reboot the server if needed
+  ansible.builtin.reboot:
+  become: true
+  when: reboot_required.stat.exists
+
+- name: Install unattended upgrades
+  ansible.builtin.package:
+    name: unattended-upgrades
+    state: present
+  become: true
+
+- name: Configure unattended security upgrades
+  ansible.builtin.copy:
+    src: 50unattended-upgrades
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: restart unattended-upgrades
+
+# https://unix.stackexchange.com/questions/463498/terminate-and-disable-remove-unattended-upgrade-before-command-returns
+- name: Wait for unattended-upgrades to finish
+  ansible.builtin.command: systemd-run --property="After=apt-daily.timer apt-daily-upgrade.timer" --wait /bin/true
+  become: true
+  changed_when: false

@@ -1,0 +1,115 @@
+- name: Install whois for mkpasswd
+  ansible.builtin.package:
+    name: whois
+    state: present
+  become: true
+
+- name: Ensure group "sudo" exists
+  ansible.builtin.group:
+    name: sudo
+    state: present
+  become: true
+
+- name: Set root password
+  user:
+    name: root
+    password: "{{ root_user_password_encrypted }}"
+  become: true
+
+- name: Remove authorized keys for root
+  ansible.builtin.file:
+    path: /root/.ssh/authorized_keys
+    state: absent
+  become: true
+
+- name: Create maarten user
+  user:
+    name: maarten
+    password: "{{ maarten_user_password_encrypted }}"
+    state: present
+    shell: /bin/bash
+    groups: [sudo]
+    create_home: true
+  become: true
+
+- name: Set authorized key for maarten
+  ansible.posix.authorized_key:
+    user: maarten
+    state: present
+    key: "{{ maarten_user_public_key }}"
+    exclusive: true
+  become: true
+
+- name: Ensure maarten needs to enter password for sudo
+  community.general.sudoers:
+    name: 99_maarten-sudo
+    user: maarten
+    nopassword: false
+    commands: ALL
+    validation: required
+  become: true
+
+- name: Set authorized key for maarten
+  ansible.posix.authorized_key:
+    user: maarten
+    state: present
+    key: "{{ maarten_user_public_key }}"
+    exclusive: true
+  become: true
+
+- name: Update deploy user
+  user:
+    name: deploy
+    password: "{{ deploy_user_password_encrypted }}"
+    state: present
+    create_home: true
+    shell: /bin/bash
+    groups: [sudo]
+  become: true
+
+- name: Ensure deploy needs to enter password for sudo
+  community.general.sudoers:
+    name: 99_deploy-sudo
+    user: deploy
+    nopassword: false
+    commands: ALL
+    validation: required
+  become: true
+
+- name: Remove authorized keys for deploy
+  ansible.builtin.file:
+    path: /home/deploy/.ssh/authorized_keys
+    state: absent
+  become: true
+
+- name: Ensure the Ansible tmp directory exists for the "deploy" user to prevent permission issues
+  ansible.builtin.file:
+    path: "{{ ansible_remote_tmp }}"
+    state: directory
+    group: "deploy"
+    owner: "deploy"
+  become: true
+
+- name: Remove ubuntu user
+  ansible.builtin.user:
+    name: ubuntu
+    state: absent
+    remove: yes
+  become: true
+
+- name: Set sudo timeout to 5 minutes
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: ^Defaults passwd_timeout=
+    line: Defaults passwd_timeout=5
+    validate: /usr/sbin/visudo -cf %s
+  become: true
+
+- name: Authenticate sudo per tty session
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    line: Defaults tty_tickets
+    validate: /usr/sbin/visudo -cf %s
+  become: true
