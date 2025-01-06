@@ -20,7 +20,9 @@ pikvm
 provisioner-k8s.tail2c33e2.ts.net
 
 [provisioner_k8s:vars]
+ansible_user=deploy
 ip_address=192.168.1.33
+tailscale_host=provisioner-k8s.tail2c33e2.ts.net
 
 [provisioner_k8s_production:children]
 provisioner_k8s

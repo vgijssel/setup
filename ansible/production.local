@@ -24,6 +24,7 @@ provisioner-k8s.rig.internal.vgijssel.nl
 
 [provisioner_k8s:vars]
 ip_address=192.168.1.33
+tailscale_host=provisioner-k8s.tail2c33e2.ts.net
 ansible_connection=community.general.incus
 ansible_user=root
 ansible_incus_project=default
