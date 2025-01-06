@@ -74,6 +74,7 @@ tools:
     - scie-pants@0.12.0
     - windmill-cli@1.440.3
     - packer@1.11.2
+    - kubens@0.9.5
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -138,6 +139,12 @@ tools:
       shims:
         - name: packer
           target: packer
+    - name: kubens
+      download: kubens
+      known_good_version: 0.9.5
+      shims:
+        - name: kubens
+          target: kubens
 
 downloads:
   - name: bazelisk
@@ -217,3 +224,12 @@ downloads:
           x86_64: amd64
           arm_64: arm64
         url: https://releases.hashicorp.com/packer/${version}/packer_${version}_${os}_${cpu}.zip
+  - name: kubens
+    downloads:
+      - os:
+          linux: linux
+          macos: darwin
+        cpu:
+          x86_64: x86_64
+          arm_64: arm64
+        url: https://github.com/ahmetb/kubectx/releases/download/v${version}/kubens_v${version}_${os}_${cpu}.tar.gz
