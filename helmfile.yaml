@@ -1,0 +1,19 @@
+repositories:
+  - name: windmill
+    url: https://windmill-labs.github.io/windmill-helm-charts/
+
+releases:
+  - name: windmill
+    namespace: windmill
+    chart: windmill/windmill
+    set:
+      - name: appReplicas
+        value: 1
+      - name: lspReplicas
+        value: 1
+      # default worker group with a single replica
+      - name: workerGroups[0].replicas
+        value: 1
+      # native worker group with a single replica
+      - name: workerGroups[1].replicas
+        value: 1
