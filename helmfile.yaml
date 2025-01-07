@@ -1,0 +1,30 @@
+environments:
+  default:
+    values:
+      - tailscale:
+          oauth_client_id: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_id
+          oauth_client_secret: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_secret
+---
+repositories:
+  - name: windmill
+    url: https://windmill-labs.github.io/windmill-helm-charts/
+  - name: tailscale
+    url: https://pkgs.tailscale.com/helmcharts
+
+releases:
+  - name: windmill
+    namespace: windmill
+    chart: windmill/windmill
+    values:
+      - ./services/windmill/values.yaml
+  - name: windmill-ingress
+    namespace: windmill
+    chart: ./services/windmill-ingress
+  - name: tailscale-operator
+    namespace: tailscale
+    chart: tailscale/tailscale-operator
+    # For example https://github.com/tailscale/tailscale/blob/main/cmd/k8s-operator/deploy/chart/values.yaml
+    values:
+      - oauth:
+          clientId: "{{ .Values.tailscale.oauth_client_id | fetchSecretValue }}"
+          clientSecret: "{{ .Values.tailscale.oauth_client_secret | fetchSecretValue }}"
