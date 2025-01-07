@@ -17,6 +17,9 @@ releases:
     chart: windmill/windmill
     values:
       - ./services/windmill/values.yaml
+  - name: windmill-ingress
+    namespace: windmill
+    chart: ./services/windmill-ingress
   - name: tailscale-operator
     namespace: tailscale
     chart: tailscale/tailscale-operator

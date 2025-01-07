@@ -1,5 +1,7 @@
 # windmill root values block
 windmill:
+  baseDomain: windmill
+
   # replica for the application app
   appReplicas: 1
   # replicas for the workers, jobs are executed on the workers
@@ -32,3 +34,7 @@ windmill:
 # enable postgres (bitnami) on kubernetes
 postgresql:
   enabled: true
+
+# Disable the ingress because we define it ourselves
+ingress:
+  enabled: false
