@@ -75,6 +75,7 @@ tools:
     - windmill-cli@1.440.3
     - packer@1.11.2
     - kubens@0.9.5
+    - vals@0.38.0
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -145,6 +146,12 @@ tools:
       shims:
         - name: kubens
           target: kubens
+    - name: vals
+      download: vals
+      known_good_version: 0.38.0
+      shims:
+        - name: vals
+          target: vals
 
 downloads:
   - name: bazelisk
@@ -233,3 +240,12 @@ downloads:
           x86_64: x86_64
           arm_64: arm64
         url: https://github.com/ahmetb/kubectx/releases/download/v${version}/kubens_v${version}_${os}_${cpu}.tar.gz
+  - name: vals
+    downloads:
+      - os:
+          linux: linux
+          macos: darwin
+        cpu:
+          x86_64: amd64
+          arm_64: arm64
+        url: https://github.com/helmfile/vals/releases/download/v${version}/vals_${version}_${os}_${cpu}.tar.gz
