@@ -8,28 +8,28 @@ windmill:
   lspReplicas: 1
   workerGroups:
     # The default worker group is the one that will execute jobs with any taggs  except the native ones. Windmill has a default worker group configuration for it
-    - name: "default"
+    - name: default
       replicas: 1
       resources:
         requests:
-          memory: "1028Mi"
-          cpu: "500m"
+          memory: 1028Mi
+          cpu: 500m
         limits:
-          memory: "2048Mi"
-          cpu: "1000m"
-      mode: "worker"
+          memory: 2048Mi
+          cpu: 1000m
+      mode: worker
 
     # Thenative worker group will only execute native jobs. Windmill has a default worker group configuration for it
-    - name: "native"
+    - name: native
       replicas: 1
       resources:
         requests:
-          memory: "128Mi"
-          cpu: "100m"
+          memory: 128Mi
+          cpu: 100m
         limits:
-          memory: "256Mi"
-          cpu: "200m"
-      mode: "worker"
+          memory: 256Mi
+          cpu: 200m
+      mode: worker
 
 # enable postgres (bitnami) on kubernetes
 postgresql:
