@@ -2,8 +2,8 @@ environments:
   default:
     values:
       - tailscale:
-          oauth_client_id: "op://vgijssel-prod/tailscale_k8s_operator/oauth_client_id"
-          oauth_client_secret: "op://vgijssel-prod/tailscale_k8s_operator/oauth_client_secret"
+          oauth_client_id: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_id
+          oauth_client_secret: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_secret
 ---
 repositories:
   - name: windmill
@@ -20,12 +20,8 @@ releases:
   - name: tailscale-operator
     namespace: tailscale
     chart: tailscale/tailscale-operator
+    # For example https://github.com/tailscale/tailscale/blob/main/cmd/k8s-operator/deploy/chart/values.yaml
     values:
-      - tailscale:
-          login: { { .Values.tailscale.oauth_client_id | fetchSecretValue } }
-          password:
-            {
-              {
-                .Values.tailscale.oauth_client_secret | fetchSecretValue | quote,
-              },
-            }
+      - oauth:
+          clientId: "{{ .Values.tailscale.oauth_client_id | fetchSecretValue }}"
+          clientSecret: "{{ .Values.tailscale.oauth_client_secret | fetchSecretValue }}"
