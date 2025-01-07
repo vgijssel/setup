@@ -18,6 +18,7 @@ def install_utilities():
         "1password",
         "discord",
         "slack",
+        "obsidian",
     ]
 
     for utility in utilities:
