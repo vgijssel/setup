@@ -6,6 +6,8 @@ tasks:
     cmds:
       - op inject --force --in-file=.op.env --out-file=.env
       - op read --force --out-file $HOME/.kube/provisioner-k8s.config "op://vgijssel-prod/provisioner-k8s-kubeconfig/certificate"
+    sources:
+      - .op.env
 
   devenv:install:
     desc: Install dependencies for the devenv
@@ -33,6 +35,13 @@ tasks:
         --data install_utilities=True
         --data install_workflow=True
       ARGS: "{{default .DEFAULT_ARGS .CLI_ARGS}}"
+
+  docs:serve:
+    desc: Development server for the docs
+    deps:
+      - devenv:secrets
+    cmds:
+      - mkdocs serve
 
   provisioner:provision:
     desc: Provision the provisioner

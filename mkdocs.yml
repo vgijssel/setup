@@ -1,4 +1,10 @@
 site_name: Setup
+site_description: Hackery
+site_url: https://github.com/vgijssel/setup
+site_author: Maarten van Gijssel
+
+theme:
+  name: "material"
 
 plugins:
   - pub-blog

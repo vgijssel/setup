@@ -4,6 +4,12 @@ description: Learning valuable lessons through deploying PiKVM in various ways.
 date: 2025-01-09 10:43:00
 publish: true
 slug: lessons-learned-deploying-pikvm
+tags:
+  - lxc
+  - pikvm
+  - incus
+categories:
+  - devops
 ---
 
 **TL;DR If you are thinking about using the Raspberry Pi 4 (Pi) which hosts PiKVM for multiple use cases, just get a second Pi. It will save you a lot of time.**
