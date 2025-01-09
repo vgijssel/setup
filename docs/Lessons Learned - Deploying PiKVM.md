@@ -233,7 +233,7 @@ Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a 
    ```
 8. Celebrate 🎉
 
-#### Results
+#### Result
 
 Success! I'm running an officially supported hypervisor and a _hacky_-officially supported installation of PiKVM inside an LXC container! Now I can get back to what I was doing, spinning up Windmill.
 
