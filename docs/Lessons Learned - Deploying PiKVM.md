@@ -1,54 +1,39 @@
-NOTES
-
-- Create table which represents which setups work and link to sections?
-- Remove Windmill from the titles? To make it easier to navigate
-- issue from the pikvm repo linking to running pikvm on 64-bit mode
-- final remarks: didn't figure out mass-storage-device as I don't need it right now
-- Final working template for LXC
-- Final working template for Incus
-- Is it called a "LXC container"? Or just "LXC"? Fix this in the copy
-- Ask ChatGPT what a good length for an article is! Bottom right we the see number of works and characters.
-- More general lessons learned
-- Rename all references to Raspberry Pi to just Pi
-- Have collapsable sections for code? Or link them all the way at the bottom as a reference?
-- Move all the passthrough sections to the bottom.
-
 **TL;DR If you are thinking about using the Raspberry Pi 4 (Pi) which hosts PiKVM for multiple use cases, just get a second Pi. It will save you a lot of time.**
 
-Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughly (reading _is_ hard) I decided to purchase a Pi 8GiB to host both the PiKVM OS and other services inside of [K3S](https://k3s.io). The service I wanted to run next to PiKVM inside K3S was [Windmill](https://www.windmill.dev/). Using the [KVM-A3]([https://wiki.geekworm.com/KVM-A3](https://wiki.geekworm.com/KVM-A3)casing.
-
-> being able to run multiple things on a Pi with PiKVM
+Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughly (reading _is_ hard after all) I decided to purchase the [KVM-A3]([https://wiki.geekworm.com/KVM-A3](https://wiki.geekworm.com/KVM-A3) with a Pi 8GiB instead of the recommend 1GiB to host both the PiKVM OS and [Windmill](https://www.windmill.dev/) inside of [K3S](https://k3s.io). I was about to learn this was actually a lot harder than I imagined it would be.
 
 ## Table of ~~contents~~ experiments
 
-- [[#Windmill inside PiKVM OS]]
-- [[#Deploy Windmill and PiKVM inside ESXi-Arm Fling vms]]
-- [[#Deploy Windmill and PiKVM inside Proxmox-Port vms]]
-- [[#Deploy Windmill inside Proxmox-Port vm and kvmd-armbian on host]]
-- [[#Deploy Windmill inside Proxmox-Port vm and kvmd-armbian in LXC]]
-- [[#Deploy Windmill inside Incus vm and PiKVM in LXC]]
-- [[#Deploy Windmill inside Incus vm and PiKVM in LXC]]
+- [[#Windmill in PiKVM host OS]]
+- [[#PiKVM in ESXi-Arm Fling vm]]
+- [[#PiKVM in Pimox vm]]
+- [[#kvmd-armbian in Pimox host OS]]
+- [[#kvmd-armbian in Pimox LXC]]
+- [[#kvmd-armbian in Incus LXC]]
+- [[#PiKVM in Incus LXC]]
 
-## Windmill inside PiKVM OS
+## Windmill in PiKVM host OS
+
+PiKVM is based on Arch Linux which also supports K3S. The only thing I thought was different from a regular Arch Linux installation was the read-only filesystem.
 
 #### Steps
 
-1. Circumvent read-only file system as described [here](https://docs.pikvm.org/faq/)ignoring the warning
+1. Circumvent read-only file system as described [here](https://docs.pikvm.org/faq/). You can find how to do this in between all the large warning banners 😂
    ![[pikvm-read-write-warning.png]]
 1. Install K3s
 1. Setup [helmfile](https://helmfile.readthedocs.io/en/latest/) with the Windmill chart
 1. Run `helmfile apply`
-1. Fail 🤔
+1. Fail 🤦‍♂️
 
 #### Result
 
-Here I realised it took a really long time to start the windmill pods. Checking out the kubectl logs I came to the realisation that k3s was unable to pull an image from the registry due to a mismatch in architecture. Checking the [latest Windmill package](https://github.com/windmill-labs/windmill/pkgs/container/windmill) it showed that an arm variant was published, but only `arm64` and not `armhf` the OS type of PiKVM.
+I was surprised it took a really long time to start the Windmill pods. Checking out the kubectl logs I came to the realisation that k3s was unable to pull an image from the registry due to a mismatch in architecture. Checking the [latest Windmill package](https://github.com/windmill-labs/windmill/pkgs/container/windmill) it showed that an arm variant was published, but only `arm64` and not `armhf` the latter being the OS type of PiKVM.
 
 > [!Lesson 1]
 >
-> arm64 and armhf are not the same architecture and it's no guarantee all software will work / is built for these different architectures.
+> The arm64 and armhf architectures are not the same and it's no guarantee software will work for both these different architectures. Do you due-diligence!
 
-## Windmill and PiKVM inside ESXi-Arm Fling vm's
+## PiKVM in ESXi-Arm Fling vm
 
 As PiKVM doesn't have a 64-bit version of the OS (see [here](https://github.com/pikvm/pi-builder/issues/4) and [here](https://github.com/pikvm/pikvm/issues/711)) but I still needed to run 64-bit software and 32-bit software on the same machine I started to look into virtualisation. After some searching I came across [this](https://williamlam.com/2024/10/new-esxi-arm-fling-based-on-8-0-update-3b.html)post which made me excited to use ESXi again, this time on a Pi. Success guaranteed of course, as ESXi is built and maintained by a reputable company.
 
@@ -63,9 +48,9 @@ As PiKVM doesn't have a 64-bit version of the OS (see [here](https://github.com/
       systemMediaSize=min
       ```
    4. When asked for a ESX OSData store when installing on a USB attached disk press enter to skip this, otherwise you'll get a cryptic error and have to start over.
-3. Get license code from: [https://gist.github.com/ayebrian/646775424393c9a35fb8257f44df1c8b](https://gist.github.com/ayebrian/646775424393c9a35fb8257f44df1c8b)
+3. Get license code from [https://gist.github.com/ayebrian/646775424393c9a35fb8257f44df1c8b](https://gist.github.com/ayebrian/646775424393c9a35fb8257f44df1c8b) who is kind enough to share it with the rest of the world.
 4. Add license code to ESXi
-5. Download V3 pre-assembled image: [https://pikvm.org/download/](https://pikvm.org/download/)
+5. [Download official PiKVM v3 image](https://files.pikvm.org/images/v3-hdmi-rpi4-box-latest.img.xz -O pikvm-rpi4.img.xz)
 6. Convert the image to vmdk
    ```bash
    qemu-img convert -f raw -O vmdk ~/Downloads/v3-hdmi-rpi4-box-latest.img ~/Downloads/v3-hdmi-rpi4-box-latest.vmdk
@@ -75,7 +60,7 @@ As PiKVM doesn't have a 64-bit version of the OS (see [here](https://github.com/
    ![[esxi-vm-settings.png]]
 9. Attach the uploaded disk to the virtual machine
 10. Boot the machine
-11. Fail 🤔
+11. Fail 🤦‍♂️
 
 #### Result
 
@@ -83,13 +68,13 @@ I quickly realised that the machine wouldn't boot (and would never boot for that
 
 > [!Lesson 2]
 >
-> Not all OS images are the same and can be run in a hypervisor out-of-the-box. The Pi doesn't have a BIOS or UEFI has it's own special way of boothing things.
+> Not all OS images are the same and can be run in a hypervisor out-of-the-box. The Pi doesn't have a BIOS or UEFI, it has it's own special way of booting things.
 
 > [!Lesson 3]
 >
 > ESXi doesn't support running 32-bit arm virtual machines (see [here](https://williamlam.com/2020/10/how-to-run-raspberry-pi-os-as-a-vm-on-esxi-arm.html) and [here](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=250308#c2)).
 
-## Windmill and PiKVM inside Pimox vm's
+## PiKVM in Pimox vm
 
 Following [this Reddit post](https://www.reddit.com/r/Proxmox/comments/nvdb1z/proxmox_on_the_raspberry_pi_now_supports_32bit/)I decided to try Pimox, which is an unofficial [port of Proxmox](https://github.com/pimox/pimox7) for the Pi (Pi + Proxmox = Pimox), as that post claims Pimox supports running a 32-bit vm on the 64-bit arm hypervisor.
 
@@ -105,11 +90,11 @@ Having installed Pimox I decided first to try a simple vm before running PiKVM, 
 
 1. Initialise a Proxmox VM
 2. Search for the device passthrough section
-3. Fail 🤔
+3. Fail 🤦‍♂️
 
 #### Result
 
-I quickly realised that Proxmox (and other hypervisors like ESXi) aren't able to just passthrough any device from the host to the guest. I did some reading about [vfio passthrough](https://www.openeuler.org/en/blog/wxggg/2020-11-29-vfio-passthrough-2.html) but as that was way out of my comfort zone, I decided to give up on running PiKVM inside a vm.
+I quickly realised that Proxmox (and other hypervisors like ESXi) aren't able to just passthrough any device from the host to the guest. I did some reading about [vfio passthrough](https://www.openeuler.org/en/blog/wxggg/2020-11-29-vfio-passthrough-2.html) but as that was waaaay out of my comfort zone, I decided to give up on running PiKVM inside a vm.
 
 Thanks for [helping me set up PiKVM in a vm @srepac](https://discord.com/channels/1138148231180714085/1138148231663067258/1321907940382343209)!
 
@@ -117,7 +102,7 @@ Thanks for [helping me set up PiKVM in a vm @srepac](https://discord.com/channel
 >
 > Device passthrough with vm's is complicated, you can't simply passthrough any host device to a guest.
 
-## Windmill inside Pimox vm and kvmd-armbian on the host OS
+## kvmd-armbian in Pimox host OS
 
 Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost)big time I kept pursuing my original goal: being able to run multiple things on a Pi which hosts PiKVM. I wasn't able to run the official PiKVM image, so I started looking for an unofficial port which did support 64-bit.
 
@@ -166,13 +151,13 @@ Taking a _small_ step back and looking what I had, I realised that I had an unof
 >
 > Focus on how you want to run services long term.
 
-## Windmill inside Pimox vm and kvmd-armbian in LXC
+## kvmd-armbian in Pimox LXC
 
-If I can't run kvmd-armbian on the host and not in a vm, what are my options? I looked into docker containers and [LXC containers](https://linuxcontainers.org/lxc/introduction/). As LXC is closer to a vm than Docker and PiKVM has all of these specific host requirements like an additional partition for msd, I decided to go with LXC.
+If I can't run kvmd-armbian on the host and not in a vm, what are my options? I looked into docker containers and [LXC containers](https://linuxcontainers.org/lxc/introduction/). As LXC is closer to a vm than Docker and PiKVM has specific host requirements like an additional partition for msd, I decided to go with LXC.
 
 #### Steps
 
-1. Using [this article](https://benheater.com/proxmox-lxc-using-external-templates/) downloaded LXC Jammy and created a container template (CT)
+1. Using [this article](https://benheater.com/proxmox-lxc-using-external-templates/) download LXC Jammy and create a container template
 2. Create an LXC container with the following settings
    - **Hostname**: pikvm
    - UNCHECK - unprivileged container (so **privileged** container)
@@ -198,7 +183,7 @@ It's definitely a step in the right direction, running a service like kvmd-armbi
 >
 > As both LXC and device passthrough are pretty far out of my comfort zone, I used ChatGPT which was incredibly helpful!
 
-## Windmill inside Incus vm and kvmd-armbian in LXC
+## kvmd-armbian in Incus LXC
 
 As mentioned, Pimox is not an officially supported port of Promox. Now that I have a working solution, I decided to see if it's possible to use a hypervisor which is officially supported on arm AND supports LXC out of the box. I investigated the following, not an exhaustive list:
 
@@ -238,9 +223,9 @@ The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup
 
 #### Result
 
-Celebrate! Now running kvmd-armbian using supported hypervisor on the Raspberry Pi! (Which works really well, kudos to the Incus team 👏). At this point I'm pretty happy. But having spent all this time, it would be a waste not to spend **EVEN MORE** time on trying to improve the setup.
+Now running kvmd-armbian using supported hypervisor on the Raspberry Pi! (Which works really well, kudos to the Incus team 👏). At this point I'm pretty happy. But having spent all this time, it would be a waste not to spend **EVEN MORE** time on trying to improve the setup.
 
-## Windmill inside Incus vm and PiKVM in LXC
+## PiKVM in Incus LXC
 
 I also found https://github.com/Prototyped/pikvm-container which is a (dated) docker implementation of running PiKVM inside a docker container. Which made me wonder: If it's possible to run it a docker container, it should also be possible to run it inside an LXC container right? I used the repo as a starting point and updated it for an LXC container (see [pull request](https://github.com/vgijssel/setup/pull/679) for a full working version with [Packer](https://www.packer.io/)).
 
