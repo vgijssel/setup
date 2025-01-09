@@ -1,3 +1,10 @@
+site_name: Setup
+
 plugins:
   - pub-blog
   - pub-meta
+  - pub-obsidian
+  - pub-social:
+      og:
+        enabled: true
+        locale: en_us

@@ -126,7 +126,7 @@ tools:
     - name: mkdocs-publisher
       runtime: python
       package: mkdocs-publisher
-      shims: [mkdocs-publisher]
+      shims: [mkdocs-publisher, mkdocs]
       known_good_version: 1.4.3
     - name: scie-pants
       download: pants
