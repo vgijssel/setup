@@ -1,3 +1,11 @@
+---
+title: Lessons Learned - Deploying PiKVM
+description: Learning valuable lessons through deploying PiKVM in various ways.
+date: 2025-01-09 10:43:00
+publish: true
+slug: lessons-learned-deploying-pikvm
+---
+
 **TL;DR If you are thinking about using the Raspberry Pi 4 (Pi) which hosts PiKVM for multiple use cases, just get a second Pi. It will save you a lot of time.**
 
 Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughly (reading _is_ hard after all) I decided to purchase the [KVM-A3]([https://wiki.geekworm.com/KVM-A3](https://wiki.geekworm.com/KVM-A3) with a Pi 8GiB instead of the recommend 1GiB to host both the PiKVM OS and [Windmill](https://www.windmill.dev/) inside of [K3S](https://k3s.io). I was about to learn this was actually a lot harder than I imagined it would be.
