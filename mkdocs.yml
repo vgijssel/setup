@@ -6,6 +6,11 @@ site_author: Maarten van Gijssel
 theme:
   name: "material"
 
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+
 plugins:
   - pub-blog
   - pub-meta

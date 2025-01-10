@@ -1,3 +1,8 @@
+---
+title: Bootstrap provisioner-k8s
+publish: false
+---
+
 1. Create Incus instance
 
    ```bash

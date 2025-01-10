@@ -41,7 +41,7 @@ tasks:
     deps:
       - devenv:secrets
     cmds:
-      - mkdocs serve
+      - mkdocs serve -a localhost:8000
 
   provisioner:provision:
     desc: Provision the provisioner

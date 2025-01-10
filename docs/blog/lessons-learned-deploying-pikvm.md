@@ -14,23 +14,11 @@ categories:
 
 **TL;DR If you are thinking about using the Raspberry Pi 4 (Pi) which hosts PiKVM for multiple use cases, just get a second Pi. It will save you a lot of time.**
 
-Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughly (reading _is_ hard after all) I decided to purchase the [KVM-A3]([https://wiki.geekworm.com/KVM-A3](https://wiki.geekworm.com/KVM-A3) with a Pi 8GiB instead of the recommend 1GiB to host both the PiKVM OS and [Windmill](https://www.windmill.dev/) inside of [K3S](https://k3s.io). I was about to learn this was actually a lot harder than I imagined it would be.
-
-## Table of ~~contents~~ experiments
-
-- [[#Windmill in PiKVM Host OS]]
-- [[#PiKVM in ESXi-Arm Fling VM]]
-- [[#PiKVM in Pimox VM]]
-- [[#kvmd-armbian in Pimox Host OS]]
-- [[#kvmd-armbian in Pimox LXC]]
-- [[#kvmd-armbian in Incus LXC]]
-- [[#PiKVM in Incus LXC]]
-- [[#Closing Thoughts]]
-- [[#Code Snippets]]
+Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughly (reading _is_ hard after all) I decided to purchase the [Geekworm KVM-A3](https://wiki.geekworm.com/KVM-A3) with a Pi 8GiB instead of the recommend 1GiB to host both the PiKVM OS and [Windmill](https://www.windmill.dev/) inside of [K3S](https://k3s.io). I was about to learn this was actually a lot harder than I imagined it would be.
 
 ## Windmill in PiKVM Host OS
 
-PiKVM is based on Arch Linux, which supports K3s. The only notable difference? Its read-only filesystem.
+PiKVM is based on Arch Linux, which supports K3s. The only notable difference? Its read-only filesystem! Let's change that.
 
 #### Steps
 
@@ -45,7 +33,7 @@ PiKVM is based on Arch Linux, which supports K3s. The only notable difference? I
 
 I was surprised it took a really long time to start the Windmill pods. Checking out the kubectl logs I came to the realisation that k3s was unable to pull an image from the registry due to a mismatch in architecture. The [Windmill package](https://github.com/windmill-labs/windmill/pkgs/container/windmill) only supports `arm64`, while PiKVM runs on `armhf`.
 
-> [!Lesson 1]
+> [!tip] Lesson 1
 >
 > Arm64 and armhf are different architectures, and software compatibility isn’t guaranteed. Always do your due diligence!
 
@@ -82,11 +70,11 @@ PiKVM doesn't offer a 64-bit version of the OS ([source](https://github.com/pikv
 
 The VM wouldn’t boot—a 32-bit PiKVM image can’t run as a 64-bit VM. I also tried to run the virtual machine with the Debian net installer: [https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/](https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/) and trying add grub to the root file system, but with no success.
 
-> [!Lesson 2]
+> [!tip] Lesson 2
 >
 > Not all OS images work with hypervisors. The Pi has a unique boot process.
 
-> [!Lesson 3]
+> [!tip] Lesson 3
 >
 > ESXi doesn't support 32-bit arm VMs ([source](https://williamlam.com/2020/10/how-to-run-raspberry-pi-os-as-a-vm-on-esxi-arm.html), [source](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=250308#c2)).
 
@@ -117,7 +105,7 @@ Hypervisors like Proxmox can’t easily passthrough all devices from host to gue
 
 Thanks for [helping me set up PiKVM in a vm @srepac](https://discord.com/channels/1138148231180714085/1138148231663067258/1321907940382343209)!
 
-> [!Lesson 4]
+> [!tip] Lesson 4
 >
 > Device passthrough in VMs is complex. Not all devices can be passed to guests.
 
@@ -141,7 +129,7 @@ Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost)big t
 
 With help from the kvmd-armbian community ❤️ it worked, but running two unofficial setups (Pimox + kvmd-armbian) in the host OS felt unsustainable. If one of the projects would stop developing I'd have to start over.
 
-> [!Lesson 5]
+> [!tip] Lesson 5
 >
 > Prioritize long-term maintainability.
 
@@ -170,7 +158,7 @@ If I can't run kvmd-armbian on the host and not in a VM, what are my options? I 
 
 This separation enabled easier updates for both host and guest OS, leaving me less worried about potential future breakage.
 
-> [!Lesson 6]
+> [!tip] Lesson 6
 >
 > LXC and device passthrough are pretty far out of my comfort zone, I used ChatGPT which was incredibly helpful!
 
@@ -251,7 +239,7 @@ Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a 
 
 Success! I'm running an officially supported hypervisor and a _hacky_-officially supported installation of PiKVM inside an LXC container! Now I can get back to what I was doing, spinning up Windmill.
 
-> [!Lesson 7]
+> [!tip] Lesson 7
 >
 > The shareholder wins 🇳🇱 (in regular English: Persistence pays off)
 
