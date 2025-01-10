@@ -4,7 +4,10 @@ site_url: https://github.com/vgijssel/setup
 site_author: Maarten van Gijssel
 
 theme:
-  name: "material"
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tabs
 
 markdown_extensions:
   - footnotes
@@ -45,9 +48,9 @@ markdown_extensions:
 
 plugins:
   - search
-  - pub-debugger:
-      console_log:
-        enabled: true
+  # - pub-debugger:
+  #     console_log:
+  #       enabled: true
   - pub-blog
   - pub-meta
   - pub-obsidian:

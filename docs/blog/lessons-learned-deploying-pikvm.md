@@ -20,7 +20,7 @@ Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughl
 
 PiKVM is based on Arch Linux, which supports K3s. The only notable difference? Its read-only filesystem! Let's change that.
 
-#### Steps
+<h4>Steps</h4>
 
 1. Circumvent read-only file system as described [here](https://docs.pikvm.org/faq/). (Tip: Look for instructions between the giant warning banners 😂).
    ![[pikvm-read-write-warning.png]]
@@ -29,7 +29,7 @@ PiKVM is based on Arch Linux, which supports K3s. The only notable difference? I
 1. Run `helmfile apply`
 1. Watch it fail 🤦‍♂️
 
-#### Result
+<h4>Result</h4>
 
 I was surprised it took a really long time to start the Windmill pods. Checking out the kubectl logs I came to the realisation that k3s was unable to pull an image from the registry due to a mismatch in architecture. The [Windmill package](https://github.com/windmill-labs/windmill/pkgs/container/windmill) only supports `arm64`, while PiKVM runs on `armhf`.
 
@@ -41,7 +41,7 @@ I was surprised it took a really long time to start the Windmill pods. Checking 
 
 PiKVM doesn't offer a 64-bit version of the OS ([source](https://github.com/pikvm/pi-builder/issues/4), [source](https://github.com/pikvm/pikvm/issues/711)), yet I needed to run 64-bit and 32-bit software on the same machine. Enter [ESXi-Arm Fling](https://williamlam.com/2024/10/new-esxi-arm-fling-based-on-8-0-update-3b.html). Success guaranteed of course, as ESXi is built and maintained by a reputable company.
 
-#### Steps
+<h4>Steps</h4>
 
 1. Create an account on [the Broadcom website](https://access.broadcom.com/default/ui/v1/signin/) and download the documentation
 2. From the documentation
@@ -66,7 +66,7 @@ PiKVM doesn't offer a 64-bit version of the OS ([source](https://github.com/pikv
 10. Boot the machine
 11. Watch if fail 🤦‍♂️
 
-#### Result
+<h4>Result</h4>
 
 The VM wouldn’t boot—a 32-bit PiKVM image can’t run as a 64-bit VM. I also tried to run the virtual machine with the Debian net installer: [https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/](https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/) and trying add grub to the root file system, but with no success.
 
@@ -82,7 +82,7 @@ The VM wouldn’t boot—a 32-bit PiKVM image can’t run as a 64-bit VM. I also
 
 Pimox (Proxmox + Pi) seemed promising based on [this Reddit post](https://www.reddit.com/r/Proxmox/comments/nvdb1z/proxmox_on_the_raspberry_pi_now_supports_32bit/) with support for 32-bit VMs.
 
-#### Steps
+<h4>Steps</h4>
 
 1. Install Pimox ([source](https://github.com/jiangcuo/Proxmox-Port), [source](https://fleetstack.io/blog/install-proxmox-on-raspberry-pi), [source](https://pimylifeup.com/raspberry-pi-proxmox), [source](https://gist.github.com/enjikaka/52d62c9c5462748dbe35abe3c7e37f9a), [source](https://www.bachmann-lan.de/proxmox-8-auf-dem-raspberry-pi-4-installieren/))
 2. Create and run an Ansible Playbook (see [pull request](https://github.com/vgijssel/setup/pull/676))
@@ -94,7 +94,7 @@ Pimox (Proxmox + Pi) seemed promising based on [this Reddit post](https://www.re
    - I2C for the OLED screen
 5. Fail 🤦‍♂️
 
-#### Result
+<h4>Result</h4>
 
 Hypervisors like Proxmox can’t easily passthrough all devices from host to guest. I did some reading about [vfio passthrough](https://www.openeuler.org/en/blog/wxggg/2020-11-29-vfio-passthrough-2.html) but that was waaaay out of my comfort zone, so I decided to give up on running PiKVM inside a vm.
 
@@ -108,7 +108,7 @@ Thanks for [helping me set up PiKVM in a vm @srepac](https://discord.com/channel
 
 Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost) big time I kept pursuing my goal. Determined I found [kvmd-armbian](https://github.com/srepac/kvmd-armbian) which is an unofficial port that supports 32-bit, 64-bit on arm AND x86 machines. Bonus points having a [Discord channel](https://discord.gg/64EQQuwjsB) for support.
 
-#### Steps
+<h4>Steps</h4>
 
 1. Install Pimox
 2. Create and run an Ansible Playbook
@@ -120,7 +120,7 @@ Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost) big 
 5. [Fix OLED screen for kvmd-armbian](#Fix%20OLED%20screen%20for%20kvmd-armbian)
 6. Celebrate 🎉
 
-#### Result
+<h4>Result</h4>
 
 With help from the kvmd-armbian community ❤️ it worked, but running two unofficial setups (Pimox + kvmd-armbian) in the host OS felt unsustainable. If one of the projects would stop developing I'd have to start over.
 
@@ -132,7 +132,7 @@ With help from the kvmd-armbian community ❤️ it worked, but running two unof
 
 If I can't run kvmd-armbian on the host and not in a VM, what are my options? I looked into docker containers and [LXC containers](https://linuxcontainers.org/lxc/introduction/). As LXC is closer to a vm than Docker and PiKVM has specific host requirements like an additional partition for msd, I decided to go with LXC.
 
-#### Steps
+<h4>Steps</h4>
 
 1. Download LXC Jammy and create a container template ([source](https://benheater.com/proxmox-lxc-using-external-templates/))
 2. Create an LXC container with the following settings
@@ -150,7 +150,7 @@ If I can't run kvmd-armbian on the host and not in a VM, what are my options? I 
    5. [Passthrough I2C for the OLED screen](#Passthrough%20I2C%20for%20the%20OLED%20screen)
 7. Celebrate 🎉
 
-#### Result
+<h4>Result</h4>
 
 This separation enabled easier updates for both host and guest OS, leaving me less worried about potential future breakage.
 
@@ -172,7 +172,7 @@ Next I decided to see if it's possible to use a hypervisor which is officially s
 
 The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup/pull/679)).
 
-#### Steps
+<h4>Steps</h4>
 
 1. Using Raspberry Pi Imager:
    - **OS**: Ubuntu Server 24.04 LTS 64-bit
@@ -196,7 +196,7 @@ The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup
    ```
 1. Celebrate 🎉
 
-#### Result
+<h4>Result</h4>
 
 A clean, supported hypervisor setup (many kudos to the Incus team 👏). At this point I'm pretty happy. But having spent all this time, it would be a waste not to spend **EVEN MORE** time trying to improve things.
 
@@ -204,7 +204,7 @@ A clean, supported hypervisor setup (many kudos to the Incus team 👏). At this
 
 Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a (dated) implementation of running PiKVM inside a docker container, I adapted the official PiKVM image for LXC (see [pull request](https://github.com/vgijssel/setup/pull/679) with [Packer](https://www.packer.io/)pipeline).
 
-#### Steps
+<h4>Steps</h4>
 
 1. [Download official PiKVM v3 image](https://files.pikvm.org/images/v3-hdmi-rpi4-box-latest.img.xz -O pikvm-rpi4.img.xz)
 2. Extract partitions using 7zip
@@ -231,7 +231,7 @@ Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a 
    ```
 8. Celebrate 🎉
 
-#### Result
+<h4>Result</h4>
 
 Success! I'm running an officially supported hypervisor and a _hacky_-officially supported installation of PiKVM inside an LXC container! Now I can get back to what I was doing, spinning up Windmill.
 
