@@ -3,27 +3,57 @@ site_description: Hackery
 site_url: https://github.com/vgijssel/setup
 site_author: Maarten van Gijssel
 
-# theme:
-#   name: "material"
+theme:
+  name: "material"
 
 markdown_extensions:
-  - admonition
+  - footnotes
+  - nl2br
+  - attr_list
+  - sane_lists
+  - meta
+  - smarty
+  - tables
+  - def_list
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.details
-  - pymdownx.superfences
-  - wikilinks
+  - pymdownx.magiclink
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.highlight:
+      use_pygments: true
+      anchor_linenums: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 
 plugins:
   - search
   - pub-debugger:
       console_log:
-        #        show_code_link: true
         enabled: true
   - pub-blog
   - pub-meta
   - pub-obsidian:
       links:
-        wikilinks_enabled: false
-        img_lazy_loading: false
+        wikilinks_enabled: true
+        img_lazy_loading: true
   - pub-social:
       og:
         enabled: true

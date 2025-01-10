@@ -1,6 +1,6 @@
 ---
 title: Bootstrap provisioner-k8s
-publish: false
+publish: hidden
 ---
 
 1. Create Incus instance

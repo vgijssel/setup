@@ -84,8 +84,8 @@ Pimox (Proxmox + Pi) seemed promising based on [this Reddit post](https://www.re
 
 #### Steps
 
-1. Install Pimox ([source](https://github.com/jiangcuo/Proxmox-Port), [source](https://fleetstack.io/blog/install-proxmox-on-raspberry-pi), [source](https://pimylifeup.com/raspberry-pi-proxmox), [source](https://gist.github.com/enjikaka/52d62c9c5462748dbe35abe3c7e37f9a), [source](https://www.bachmann-lan.de/proxmox-8-auf-dem-raspberry-pi-4-installieren/)) ^pimox-install
-2. Create and run an Ansible Playbook (see [pull request](https://github.com/vgijssel/setup/pull/676)) ^pimox-ansible
+1. Install Pimox ([source](https://github.com/jiangcuo/Proxmox-Port), [source](https://fleetstack.io/blog/install-proxmox-on-raspberry-pi), [source](https://pimylifeup.com/raspberry-pi-proxmox), [source](https://gist.github.com/enjikaka/52d62c9c5462748dbe35abe3c7e37f9a), [source](https://www.bachmann-lan.de/proxmox-8-auf-dem-raspberry-pi-4-installieren/))
+2. Create and run an Ansible Playbook (see [pull request](https://github.com/vgijssel/setup/pull/676))
 3. Initialise a Proxmox VM
 4. Search for the device passthrough section to passthrough the following devices:
    - OTG port for keyboard/mouse/mass storage device (msd) emulation on the target the PiKVM is attached to
@@ -110,14 +110,14 @@ Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost) big 
 
 #### Steps
 
-1. Install Pimox [[#^pimox-install]]
-2. Create and run an Ansible Playbook [[#^pimox-ansible]]
-3. Run installer from kvmd-armbian ^kvmd-installer
+1. Install Pimox
+2. Create and run an Ansible Playbook
+3. Run installer from kvmd-armbian
 4. Disable the Pimox firewall to get access to the kvmd web ui (Tip: Please enable it again if you plan deploy like this 😅)
    ```bash
    pve-firewall stop
    ```
-5. [[#Fix OLED screen for kvmd-armbian]]
+5. [Fix OLED screen for kvmd-armbian](#Fix%20OLED%20screen%20for%20kvmd-armbian)
 6. Celebrate 🎉
 
 #### Result
@@ -140,13 +140,14 @@ If I can't run kvmd-armbian on the host and not in a VM, what are my options? I 
    - UNCHECK - unprivileged container (so **privileged** container)
    - **Password**: Password1234 (Tip: don't)
 3. Start the LXC container and attach the console
-4. Run kvmd-installer [[#^kvmd-installer]]
-5. [[#Fix OLED screen for kvmd-armbian]]
+4. Run kvmd-installer
+5. [Fix OLED screen for kvmd-armbian](#Fix%20OLED%20screen%20for%20kvmd-armbian)
 6. Forward devices from host to guest (I have to admit this was _pretty_ time consuming 😅)
-   1. [[#Passthrough GPIO for ATX control]]
-   2. [[#Passthrough OTG port for keyboard/mouse]]
-   3. [[#Passthrough HDMI capture card]]
-   4. [[#Passthrough I2C for the OLED screen]]
+   1. [Passthrough GPIO for ATX control](#Passthrough%20GPIO%20for%20ATX%20control)
+   2. [Passthrough OTG port for keyboard/mouse](#Passthrough%20OTG%20port%20for%20keyboard/mouse)
+   3. [Passthrough OTG port for keyboard/mouse](#Passthrough%20OTG%20port%20for%20keyboard/mouse)
+   4. [Passthrough HDMI capture card](#Passthrough%20HDMI%20capture%20card)
+   5. [Passthrough I2C for the OLED screen](#Passthrough%20I2C%20for%20the%20OLED%20screen)
 7. Celebrate 🎉
 
 #### Result
@@ -178,22 +179,22 @@ The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup
    - **Username**: deploy
    - **Hostname**: provisioner
    - **Password**: `Password1234`
-2. Setup Incus host using Ansible playbook
+1. Setup Incus host using Ansible playbook
    ```bash
    ansible-playbook -i ./production.local provisioner.yml --diff
    ```
-3. Create [[#Incus kvmd-armbian LXC container with passthrough]]
-4. Start the LXC container
+1. Create [Incus kvmd-armbian LXC container with passthrough](#Incus%20kvmd-armbian%20LXC%20container%20with%20passthrough)
+1. Start the LXC container
    ```bash
    incus start kvmd
    ```
-5. Run the kvmd-armbian installer [[#^kvmd-installer]]
-6. [[#Fix OLED screen for kvmd-armbian]]
-7. Restart the container
+1. Run the kvmd-armbian installer
+1. [Fix OLED screen for kvmd-armbian](#Fix%20OLED%20screen%20for%20kvmd-armbian)
+1. Restart the container
    ```bash
    incus restart kvmd
    ```
-8. Celebrate 🎉
+1. Celebrate 🎉
 
 #### Result
 
@@ -223,7 +224,7 @@ Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a 
    ```bash
    incus image import pikvm-rpi4.tar.xz --alias pikvm-rpi4/latest
    ```
-6. Create [[#Incus PiKVM LXC container with passthrough]]
+6. Create [Incus PiKVM LXC container with passthrough](#Incus%20PiKVM%20LXC%20container%20with%20passthrough)
 7. Check the console for errors
    ```bash
    incus console pikvm --show-log
