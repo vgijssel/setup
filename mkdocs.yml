@@ -3,18 +3,27 @@ site_description: Hackery
 site_url: https://github.com/vgijssel/setup
 site_author: Maarten van Gijssel
 
-theme:
-  name: "material"
+# theme:
+#   name: "material"
 
 markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - wikilinks
 
 plugins:
+  - search
+  - pub-debugger:
+      console_log:
+        #        show_code_link: true
+        enabled: true
   - pub-blog
   - pub-meta
-  - pub-obsidian
+  - pub-obsidian:
+      links:
+        wikilinks_enabled: false
+        img_lazy_loading: false
   - pub-social:
       og:
         enabled: true

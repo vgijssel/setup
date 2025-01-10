@@ -84,13 +84,8 @@ Pimox (Proxmox + Pi) seemed promising based on [this Reddit post](https://www.re
 
 #### Steps
 
-1. Install Pimox using a combination of the following guides
-   - https://github.com/jiangcuo/Proxmox-Port
-   - [https://fleetstack.io/blog/install-proxmox-on-raspberry-pi](https://fleetstack.io/blog/install-proxmox-on-raspberry-pi)
-   - [https://pimylifeup.com/raspberry-pi-proxmox/](https://pimylifeup.com/raspberry-pi-proxmox/)
-   - [https://gist](https://gist.github.com/enjikaka/52d62c9c5462748dbe35abe3c7e37f9a)
-   - [https://www.bachmann-lan.de/proxmox-8-auf-dem-raspberry-pi-4-installieren/](https://www.bachmann-lan.de/proxmox-8-auf-dem-raspberry-pi-4-installieren/)
-2. Create and run an Ansible Playbook (see [pull request](https://github.com/vgijssel/setup/pull/676))
+1. Install Pimox ([source](https://github.com/jiangcuo/Proxmox-Port), [source](https://fleetstack.io/blog/install-proxmox-on-raspberry-pi), [source](https://pimylifeup.com/raspberry-pi-proxmox), [source](https://gist.github.com/enjikaka/52d62c9c5462748dbe35abe3c7e37f9a), [source](https://www.bachmann-lan.de/proxmox-8-auf-dem-raspberry-pi-4-installieren/)) ^pimox-install
+2. Create and run an Ansible Playbook (see [pull request](https://github.com/vgijssel/setup/pull/676)) ^pimox-ansible
 3. Initialise a Proxmox VM
 4. Search for the device passthrough section to passthrough the following devices:
    - OTG port for keyboard/mouse/mass storage device (msd) emulation on the target the PiKVM is attached to
@@ -111,12 +106,12 @@ Thanks for [helping me set up PiKVM in a vm @srepac](https://discord.com/channel
 
 ## kvmd-armbian in Pimox Host OS
 
-Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost)big time I kept pursuing my goal. Determined I found [kvmd-armbian](https://github.com/srepac/kvmd-armbian) which is an unofficial port that supports 32-bit, 64-bit on arm AND x86 machines. Bonus points having a [Discord channel](https://discord.gg/64EQQuwjsB) for support.
+Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost) big time I kept pursuing my goal. Determined I found [kvmd-armbian](https://github.com/srepac/kvmd-armbian) which is an unofficial port that supports 32-bit, 64-bit on arm AND x86 machines. Bonus points having a [Discord channel](https://discord.gg/64EQQuwjsB) for support.
 
 #### Steps
 
-1. Install Pimox ([source](https://github.com/jiangcuo/Proxmox-Port), [source](https://fleetstack.io/blog/install-proxmox-on-raspberry-pi), [source](https://pimylifeup.com/raspberry-pi-proxmox), [source](https://gist.github.com/enjikaka/52d62c9c5462748dbe35abe3c7e37f9a), [source](https://www.bachmann-lan.de/proxmox-8-auf-dem-raspberry-pi-4-installieren/))
-2. Create and run an Ansible Playbook (see [pull request](https://github.com/vgijssel/setup/pull/676))
+1. Install Pimox [[#^pimox-install]]
+2. Create and run an Ansible Playbook [[#^pimox-ansible]]
 3. Run installer from kvmd-armbian ^kvmd-installer
 4. Disable the Pimox firewall to get access to the kvmd web ui (Tip: Please enable it again if you plan deploy like this 😅)
    ```bash
