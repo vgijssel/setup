@@ -12,6 +12,8 @@ categories:
   - devops
 ---
 
+![](pikvm-image.png)
+
 **TL;DR If you are thinking about using the Raspberry Pi 4 (Pi) which hosts PiKVM for multiple use cases, just get a second Pi. It will save you a lot of time.**
 
 Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughly (reading _is_ hard after all) I decided to purchase the [Geekworm KVM-A3](https://wiki.geekworm.com/KVM-A3) with a Pi 8GiB instead of the recommend 1GiB to host both the PiKVM OS and [Windmill](https://www.windmill.dev/) inside of [K3S](https://k3s.io). I was about to learn this was actually a lot harder than I imagined it would be.
@@ -50,9 +52,9 @@ PiKVM doesn't offer a 64-bit version of the OS ([source](https://github.com/pikv
    1. Update Raspberry Pi 4 EEPROM
    2. Flash UEFI to sdcard from [https://github.com/pftf/RPi4/releases](https://github.com/pftf/RPi4/releases)
    3. Make OSData partition 25gb by passing this in the boot screen (to not have ESXi take all the space in the thumb-drive)
-      ```
-      systemMediaSize=min
-      ```
+   ```
+   systemMediaSize=min
+   ```
    4. When asked for a ESX OSData store when installing on a USB attached disk press enter to skip this, otherwise you'll get a cryptic error and have to start over.
 3. Get license code from [https://gist.github.com/ayebrian/646775424393c9a35fb8257f44df1c8b](https://gist.github.com/ayebrian/646775424393c9a35fb8257f44df1c8b) who is kind enough to share it with the rest of the world.
 4. Add license code to ESXi
@@ -204,7 +206,7 @@ A clean, supported hypervisor setup (many kudos to the Incus team 👏). At this
 
 ## PiKVM in Incus LXC
 
-Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a (dated) implementation of running PiKVM inside a docker container, I adapted the official PiKVM image for LXC (see [pull request](https://github.com/vgijssel/setup/pull/679) with [Packer](https://www.packer.io/)pipeline).
+Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a (dated) implementation of running PiKVM inside a docker container, I adapted the official PiKVM image for LXC (see [pull request](https://github.com/vgijssel/setup/pull/679) with [Packer](https://www.packer.io/) pipeline).
 
 <h4>Steps</h4>
 
@@ -220,7 +222,7 @@ Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a 
 4. Use [distrobuilder](https://github.com/lxc/distrobuilder) to convert`/mnt/rootfs` into an Incus LXC image with modifications
    1. Remove `/etc/fstab`
    2. Disable msd
-   3. A boot helper to generate a certificate
+   3. Add a systemd boot service to generate certificates
    4. Mask service `kvmd-pst`, `kvmd-fan`, `kvmd-watchdog` and `kvmd-bootconfig` because PiKVM works without those (and I don't want to spend more time fixing those services 😂)
 5. Import the image into Incus
    ```bash
@@ -239,7 +241,7 @@ Success! I'm running an officially supported hypervisor and a _hacky_-officially
 
 > [!tip] Lesson 7
 >
-> The shareholder wins 🇳🇱 (in regular English: Persistence pays off)
+> The on holder wins 🇳🇱 (in regular English: Persistence pays off)
 
 ## Closing Thoughts
 

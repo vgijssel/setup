@@ -27,7 +27,6 @@ lint:
     - black@24.4.2
     - buildifier@7.1.2
     - isort@5.13.2
-    - markdownlint@0.41.0
     - prettier@3.3.3
     - renovate@37.440.0
     - ruff@0.5.4
@@ -46,6 +45,8 @@ lint:
     - nixpkgs-fmt
     # Got CI failure for Trivy https://github.com/vgijssel/setup/actions/runs/12617622581/job/35160087065
     - trivy
+    # Use Obsidian Linter
+    - markdownlint
 actions:
   enabled:
     - trunk-check-pre-push
