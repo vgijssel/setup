@@ -6,8 +6,24 @@ site_author: Maarten van Gijssel
 theme:
   name: material
   features:
-    - navigation.instant
     - navigation.tabs
+    # - navigation.tabs.sticky
+    - navigation.footer # Prev/Next page
+    - navigation.tracking # Anchor tracking
+    - navigation.top # Back to top
+    - navigation.sections # Useful for an overview
+    - navigation.indexes # Needed for an overview
+    - navigation.instant
+    - navigation.instant.progress
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
 
 markdown_extensions:
   - footnotes
@@ -51,7 +67,8 @@ plugins:
   # - pub-debugger:
   #     console_log:
   #       enabled: true
-  - pub-blog
+  - pub-blog:
+      blog_dir: 02_blog
   - pub-meta
   - pub-obsidian:
   - pub-social:
