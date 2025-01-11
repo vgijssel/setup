@@ -1,6 +1,9 @@
 ---
 title: Bootstrap provisioner-k8s
-publish: false
+slug: bootstrap-provisioner-k8s
+publish: true
+date: 2025-01-11 06:00:00
+update: 2025-01-11 06:00:00
 ---
 
 1.  Create Incus instance
