@@ -37,6 +37,7 @@ publish: false
 1. Copy Kubernetes secret `/etc/rancher/k3s/k3s.yaml` into 1Password `op://vgijssel-prod/provisioner-k8s-kubeconfig/certificate`
 1. Modify server url to [`https://provisioner-k8s.tail2c33e2.ts.net:6443`](https://provisioner-k8s.tail2c33e2.ts.net:6443/)
 1. Update devenv secrets
+
    ```bash
    task devenv:secrets
    ```
