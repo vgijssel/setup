@@ -16,6 +16,8 @@ categories:
 
 Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughly (reading _is_ hard after all) I decided to purchase the [Geekworm KVM-A3](https://wiki.geekworm.com/KVM-A3) with a Pi 8GiB instead of the recommend 1GiB to host both the PiKVM OS and [Windmill](https://www.windmill.dev/) inside of [K3S](https://k3s.io). I was about to learn this was actually a lot harder than I imagined it would be.
 
+<!-- more -->
+
 ## Windmill in PiKVM Host OS
 
 PiKVM is based on Arch Linux, which supports K3s. The only notable difference? Its read-only filesystem! Let's change that.
