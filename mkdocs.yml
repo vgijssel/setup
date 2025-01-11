@@ -3,6 +3,16 @@ site_description: Maarten's House of Hackery
 site_url: https://github.com/vgijssel/setup
 site_author: Maarten van Gijssel
 
+repo_name: setup
+repo_url: https://github.com/vgijssel/setup
+edit_uri: https://github.com/vgijssel/setup/edit/master/docs/
+
+docs_dir: docs
+site_dir: docs
+
+use_directory_urls: true
+strict: true
+
 theme:
   name: material
   features:
