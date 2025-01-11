@@ -54,9 +54,6 @@ plugins:
   - pub-blog
   - pub-meta
   - pub-obsidian:
-      links:
-        wikilinks_enabled: true
-        img_lazy_loading: true
   - pub-social:
       og:
         enabled: true
