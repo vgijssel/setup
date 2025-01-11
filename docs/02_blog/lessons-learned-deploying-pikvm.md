@@ -10,9 +10,10 @@ tags:
   - incus
 categories:
   - devops
+image: ./images/pikvm-lessons-learned.jpeg
 ---
 
-![](pikvm-image.png)
+![](pikvm-lessons-learned.jpeg)
 
 **TL;DR If you are thinking about using the Raspberry Pi 4 (Pi) which hosts PiKVM for multiple use cases, just get a second Pi. It will save you a lot of time.**
 
