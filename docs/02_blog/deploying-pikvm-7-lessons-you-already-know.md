@@ -4,18 +4,13 @@ description: Reaquiantance with valuable devops lessons through deploying PiKVM 
 date: 2025-01-09 10:43:00
 publish: true
 slug: lessons-learned-deploying-pikvm
-tags:
-  - lxc
-  - pikvm
-  - incus
-  - ansible
-  - packer
+tags: [lxc, pikvm, incus, ansible, packer]
 categories:
   - devops
   - virtualisation
   - failure
 image: ./images/pikvm-lessons-learned.jpeg
-update: 2025-01-12 06:50:01
+update: 2025-01-12 07:19:28
 ---
 
 ![](pikvm-lessons-learned.jpeg)
@@ -60,13 +55,13 @@ PiKVM doesn't offer a 64-bit version of the OS ([source](https://github.com/pikv
    2. Flash UEFI to sdcard from [https://github.com/pftf/RPi4/releases](https://github.com/pftf/RPi4/releases)
    3. Make OSData partition 25gb by passing this in the boot screen (to not have ESXi take all the space in the thumb-drive)
 
-   ```bash
-   systemMediaSize=min
-   ```
+      ```bash
+      systemMediaSize=min
+      ```
 
    4. When asked for a ESX OSData store when installing on a USB attached disk press enter to skip this, otherwise you'll get a cryptic error and have to start over.
 
-3. Get license code from [https://gist.github.com/ayebrian/646775424393c9a35fb8257f44df1c8b](https://gist.github.com/ayebrian/646775424393c9a35fb8257f44df1c8b) who is kind enough to share it with the rest of the world.
+3. Get license code from [this gist](https://gist.github.com/ayebrian/646775424393c9a35fb8257f44df1c8b) who is kind enough to share it with the rest of the world.
 4. Add license code to ESXi
 5. [Download official PiKVM v3 image](https://files.pikvm.org/images/v3-hdmi-rpi4-box-latest.img.xz)
 6. Convert the image to vmdk
@@ -104,10 +99,10 @@ Pimox (Proxmox + Pi) seemed promising based on [this Reddit post](https://www.re
 2. Create and run an Ansible Playbook (see [pull request](https://github.com/vgijssel/setup/pull/676))
 3. Initialise a Proxmox VM
 4. Search for the device passthrough section to passthrough the following devices:
-   - OTG port for keyboard/mouse/mass storage device (msd) emulation on the target the PiKVM is attached to
-   - HDMI capture card and hardware H264 encoding for streaming target video output
-   - GPIO for ATX control for power on/off control
-   - I2C for the OLED screen
+   1. OTG port for keyboard/mouse/mass storage device (msd) emulation on the target the PiKVM is attached to
+   2. HDMI capture card and hardware H264 encoding for streaming target video output
+   3. GPIO for ATX control for power on/off control
+   4. I2C for the OLED screen
 5. Fail 🤦‍♂️
 
 <h4>Result</h4>
@@ -154,9 +149,9 @@ If I can't run kvmd-armbian on the host and not in a VM, what are my options? I 
 
 1. Download LXC Jammy and create a container template ([source](https://benheater.com/proxmox-lxc-using-external-templates/))
 2. Create an LXC container with the following settings
-   - **Hostname**: pikvm
-   - UNCHECK - unprivileged container (so **privileged** container)
-   - **Password**: Password1234 (Tip: don't)
+   1. **Hostname**: pikvm
+   2. UNCHECK - unprivileged container (so **privileged** container)
+   3. **Password**: Password1234 (Tip: don't)
 3. Start the LXC container and attach the console
 4. Run kvmd-installer
 5. [Fix OLED screen for kvmd-armbian](#Fix%20OLED%20screen%20for%20kvmd-armbian)
@@ -193,10 +188,10 @@ The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup
 <h4>Steps</h4>
 
 1. Using Raspberry Pi Imager:
-   - **OS**: Ubuntu Server 24.04 LTS 64-bit
-   - **Username**: deploy
-   - **Hostname**: provisioner
-   - **Password**: `Password1234`
+   1. **OS**: Ubuntu Server 24.04 LTS 64-bit
+   2. **Username**: deploy
+   3. **Hostname**: provisioner
+   4. **Password**: `Password1234`
 2. Setup Incus host using Ansible playbook
 
    ```bash
@@ -300,20 +295,20 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 
 1. I used the output of `journalctl -f` to figure out where kvmd-armbian would break:
 
-```bash
-	Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/bin/kvmd", line 8, in <module>
-	Dec 29 19:36:40 pikvm kvmd[602]: sys.exit(main())
-	Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/lib/python3/dist-packages/kvmd/apps/kvmd/__init__.py", line 75, in main
-	Dec 29 19:36:40 pikvm kvmd[602]: KvmdServer(
-	Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/lib/python3/dist-packages/kvmd/apps/kvmd/server.py", line 263, in run
-	Dec 29 19:36:40 pikvm kvmd[602]: comp.sysprep()
-	Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/lib/python3/dist-packages/kvmd/apps/kvmd/ugpio.py", line 294, in sysprep
-	Dec 29 19:36:40 pikvm kvmd[602]: driver.prepare()
-	Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/lib/python3/dist-packages/kvmd/plugins/ugpio/gpio.py", line 86, in prepare
-	Dec 29 19:36:40 pikvm kvmd[602]: self.__chip = gpiod.Chip(self.__device_path) Dec 29 19:36:40 pikvm kvmd[602]: PermissionError: [Errno 1] Operation not permitted
-```
+   ```bash
+   Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/bin/kvmd", line 8, in <module>
+   Dec 29 19:36:40 pikvm kvmd[602]: sys.exit(main())
+   Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/lib/python3/dist-packages/kvmd/apps/kvmd/__init__.py", line 75, in main
+   Dec 29 19:36:40 pikvm kvmd[602]: KvmdServer(
+   Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/lib/python3/dist-packages/kvmd/apps/kvmd/server.py", line 263, in run
+   Dec 29 19:36:40 pikvm kvmd[602]: comp.sysprep()
+   Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/lib/python3/dist-packages/kvmd/apps/kvmd/ugpio.py", line 294, in sysprep
+   Dec 29 19:36:40 pikvm kvmd[602]: driver.prepare()
+   Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/lib/python3/dist-packages/kvmd/plugins/ugpio/gpio.py", line 86, in prepare
+   Dec 29 19:36:40 pikvm kvmd[602]: self.__chip = gpiod.Chip(self.__device_path) Dec 29 19:36:40 pikvm kvmd[602]: PermissionError: [Errno 1] Operation not permitted
+   ```
 
-1. Running `kvmd -m` showed me what gpio device what was spected
+2. Running `kvmd -m` showed me what gpio device what was spected
 
    ```yaml
    kvmd:
@@ -321,7 +316,7 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
        device: /dev/gpiochip0
    ```
 
-2. Update the LXC template
+3. Update the LXC template
 
    ```yaml
    # 254 is the major number as can be seen by the ls command OR stat /dev/gpiochip0
@@ -329,8 +324,8 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
    lxc.mount.entry = /dev/gpiochip0 dev/gpiochip0 none bind,optional,create=file
    ```
 
-3. Restart the LXC using the UI
-4. Works!
+4. Restart the LXC using the UI
+5. Works!
 
 ### Passthrough OTG Port for keyboard/mouse
 
@@ -425,8 +420,7 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 5. Now we see a different error
 
    ```bash
-   Dec 30 05:32:21 pikvm kvmd[237]: kvmd.apps.kvmd.streamer           INFO --- => -- INFO  [36989.079          ] -- H264: Configuring encoder: DMA=1 ...
-   Dec 30 05:32:21 pikvm kvmd[237]: kvmd.apps.kvmd.streamer           INFO --- => -- ERROR [36989.079          ] -- H264: Can't open encoder device: No such file or directory
+   Dec 30 05:32:21 pikvm kvmd[237]: kvmd.apps.kvmd.streamer           INFO --- => -- ERROR [36989.079          ] -- H264: Can t open encoder device: No such file or directory
    Dec 30 05:32:21 pikvm kvmd[237]: kvmd.apps.kvmd.streamer           INFO --- => -- ERROR [36989.079          ] -- H264: Encoder destroyed due an error (prepare)
    ```
 
@@ -459,19 +453,19 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 1. `journalctl` and `systemctl` didn't show the `kvmd-oled` service
 2. Running `systemctl start kvmd-oled` showed the problem, the device `/dev/i2c-1` didn't exist
 
-```bash
-Jan 08 09:14:13 pikvm systemd[1]: PiKVM - A small OLED daemon was skipped because of an unmet condition check (ConditionPathExists=/dev/i2c-1).
-```
+   ```bash
+   Jan 08 09:14:13 pikvm systemd[1]: PiKVM - A small OLED daemon was skipped because of an unmet condition check (ConditionPathExists=/dev/i2c-1).
+   ```
 
-1. Easy peasy! Update the LXC template
+3. Easy peasy 🍋! Update the LXC template
 
    ```yaml
    lxc.cgroup2.devices.allow: c 89:* rwm
    lxc.mount.entry: /dev/i2c-1 dev/i2c-1 none bind,optional,create=file 0 0
    ```
 
-2. Restart the LXC
-3. BOOM
+4. Restart the LXC
+5. BOOM
    ![[pikvm-oled-screen.png]]
 
 ### Incus Kvmd-armbian LXC Container with Passthrough
