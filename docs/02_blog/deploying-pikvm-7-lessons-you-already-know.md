@@ -1,16 +1,21 @@
 ---
-title: Lessons-learned-deploying-pikvm
-description: Learning valuable lessons through deploying PiKVM in various ways.
+title: "Deploying PiKVM: 7 Lessons You Already Know"
+description: Reaquiantance with valuable devops lessons through deploying PiKVM in various ways.
 date: 2025-01-09 10:43:00
 publish: true
 slug: lessons-learned-deploying-pikvm
-tags: [lxc, pikvm, incus, ansible, packer]
+tags:
+  - lxc
+  - pikvm
+  - incus
+  - ansible
+  - packer
 categories:
   - devops
   - virtualisation
   - failure
 image: ./images/pikvm-lessons-learned.jpeg
-update: 2025-01-12 06:48:26
+update: 2025-01-12 06:50:01
 ---
 
 ![](pikvm-lessons-learned.jpeg)
@@ -40,7 +45,7 @@ I was surprised it took a really long time to start the Windmill pods. Checking 
 
 > [!tip] Lesson 1
 >
-> Arm64 and armhf are different architectures, and software compatibility isn't guaranteed. Always do your due diligence!
+> Do your due diligence! Arm64 and armhf are different architectures, and software compatibility isn't guaranteed.
 
 ## PiKVM in ESXi-Arm Fling VM
 
@@ -83,11 +88,11 @@ The VM wouldn't boot—a 32-bit PiKVM image can't run as a 64-bit VM. I also tri
 
 > [!tip] Lesson 2
 >
-> Not all OS images work with hypervisors. The Pi has a unique boot process.
+> Details matter! Not all OS images work with hypervisors. The Pi has a unique boot process.
 
 > [!tip] Lesson 3
 >
-> ESXi doesn't support 32-bit arm VMs ([source](https://williamlam.com/2020/10/how-to-run-raspberry-pi-os-as-a-vm-on-esxi-arm.html), [source](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=250308#c2)).
+> Temper expectations with early-access software. ESXi-Arm Fling doesn't support 32-bit arm VMs ([source](https://williamlam.com/2020/10/how-to-run-raspberry-pi-os-as-a-vm-on-esxi-arm.html), [source](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=250308#c2)).
 
 ## PiKVM in Pimox VM
 
@@ -113,7 +118,7 @@ Thanks for [helping me set up PiKVM in a vm @srepac](https://discord.com/channel
 
 > [!tip] Lesson 4
 >
-> Device passthrough in VMs is complex. Not all devices can be passed to guests.
+> Tackle highest risk first. Device passthrough in VMs is complex. Not all devices can be passed to guests.
 
 ## Kvmd-armbian in Pimox Host OS
 
@@ -169,7 +174,7 @@ This separation enabled easier updates for both host and guest OS, leaving me le
 
 > [!tip] Lesson 6
 >
-> LXC and device passthrough are pretty far out of my comfort zone, I used ChatGPT which was incredibly helpful!
+> Ask for help! LXC and device passthrough are pretty far out of my comfort zone, I used ChatGPT which was incredibly helpful!
 
 ## Kvmd-armbian in Incus LXC
 
