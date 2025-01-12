@@ -10,10 +10,8 @@ categories:
   - virtualisation
   - failure
 image: ./images/pikvm-lessons-learned.jpeg
-update: 2025-01-12 06:37:22
+update: 2025-01-12 06:48:26
 ---
-
-# Lessons-learned-deploying-pikvm
 
 ![](pikvm-lessons-learned.jpeg)
 
