@@ -40,6 +40,7 @@ def install_utilities():
             "defaultbrowser",
             # client for interacting with incus host
             "incus",
+            "hermit",
         ],
         present=True,
         update=False,

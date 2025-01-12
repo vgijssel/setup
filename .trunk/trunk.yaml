@@ -79,7 +79,6 @@ tools:
     - ansible@9.13.0
     - scie-pants@0.12.0
     - windmill-cli@1.440.3
-    - packer@1.11.2
     - kubens@0.9.5
     - vals@0.38.0
     - mkdocs-publisher@1.4.4
@@ -146,12 +145,6 @@ tools:
       shims:
         - name: helmfile
           target: helmfile
-    - name: packer
-      download: packer
-      known_good_version: 1.11.2
-      shims:
-        - name: packer
-          target: packer
     - name: kubens
       download: kubens
       known_good_version: 0.9.5
@@ -233,15 +226,6 @@ downloads:
           x86_64: amd64
           arm_64: arm64
         url: https://github.com/helmfile/helmfile/releases/download/v${version}/helmfile_${version}_${os}_${cpu}.tar.gz
-  - name: packer
-    downloads:
-      - os:
-          linux: linux
-          macos: darwin
-        cpu:
-          x86_64: amd64
-          arm_64: arm64
-        url: https://releases.hashicorp.com/packer/${version}/packer_${version}_${os}_${cpu}.zip
   - name: kubens
     downloads:
       - os:
