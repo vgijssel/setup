@@ -8,7 +8,7 @@ repo_url: https://github.com/vgijssel/setup
 edit_uri: https://github.com/vgijssel/setup/edit/master/docs/
 
 docs_dir: docs
-site_dir: docs
+site_dir: tmp/docs_output
 
 use_directory_urls: true
 strict: true

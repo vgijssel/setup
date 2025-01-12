@@ -21,6 +21,11 @@ runtimes:
     - rust@1.71.1
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
+  ignore:
+    - linters: [ALL]
+      paths:
+        # Ignore all files in the tmp directory
+        - tmp/**
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1
