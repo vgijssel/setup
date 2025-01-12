@@ -3,3 +3,6 @@ external/
 home-assistant/config/custom_components/hacs/
 home-assistant/config/custom_components
 pnpm-lock.yaml
+
+# Use Obsidian Linter for formatting markdown files
+*.md

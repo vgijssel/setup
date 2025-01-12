@@ -1,0 +1,86 @@
+site_name: Maarten's House of Hackery
+site_description: Maarten's House of Hackery
+site_url: https://vgijssel.github.io/setup
+site_author: Maarten van Gijssel
+
+repo_name: setup
+repo_url: https://github.com/vgijssel/setup
+edit_uri: https://github.com/vgijssel/setup/edit/master/docs/
+
+docs_dir: docs
+site_dir: tmp/docs_output
+
+use_directory_urls: true
+strict: true
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    # - navigation.tabs.sticky
+    - navigation.tracking # Anchor tracking
+    - navigation.top # Back to top
+    - navigation.sections # Useful for an overview
+    - navigation.indexes # Needed for an overview
+    - navigation.instant
+    - navigation.instant.progress
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+
+markdown_extensions:
+  - footnotes
+  - nl2br
+  - attr_list
+  - sane_lists
+  - meta
+  - smarty
+  - tables
+  - def_list
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.details
+  - pymdownx.magiclink
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.highlight:
+      use_pygments: true
+      anchor_linenums: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - search
+  # - pub-debugger:
+  #     console_log:
+  #       enabled: true
+  - pub-blog:
+      blog_dir: 02_blog
+  - pub-meta
+  - pub-obsidian:
+  - pub-social:
+      og:
+        enabled: true
+        locale: en_us

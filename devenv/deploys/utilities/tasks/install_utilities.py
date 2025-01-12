@@ -14,10 +14,11 @@ def install_utilities():
         "orbstack",
         "arc",
         "steam",
-        "sunsama",
         "1password",
         "discord",
         "slack",
+        "obsidian",
+        "gimp",
     ]
 
     for utility in utilities:

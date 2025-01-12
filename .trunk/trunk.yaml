@@ -21,13 +21,17 @@ runtimes:
     - rust@1.71.1
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
+  ignore:
+    - linters: [ALL]
+      paths:
+        # Ignore all files in the tmp directory
+        - tmp/**
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1
     - black@24.4.2
     - buildifier@7.1.2
     - isort@5.13.2
-    - markdownlint@0.41.0
     - prettier@3.3.3
     - renovate@37.440.0
     - ruff@0.5.4
@@ -46,6 +50,8 @@ lint:
     - nixpkgs-fmt
     # Got CI failure for Trivy https://github.com/vgijssel/setup/actions/runs/12617622581/job/35160087065
     - trivy
+    # Use Obsidian Linter
+    - markdownlint
 actions:
   enabled:
     - trunk-check-pre-push
@@ -76,6 +82,7 @@ tools:
     - packer@1.11.2
     - kubens@0.9.5
     - vals@0.38.0
+    - mkdocs-publisher@1.4.4
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -122,6 +129,11 @@ tools:
       package: ansible
       shims: [ansible, ansible-playbook, ansible-galaxy, ansible-doc]
       known_good_version: 10.6.0
+    - name: mkdocs-publisher
+      runtime: python
+      package: mkdocs-publisher
+      shims: [mkdocs-publisher, mkdocs]
+      known_good_version: 1.4.4
     - name: scie-pants
       download: pants
       known_good_version: 0.12.0
@@ -152,7 +164,6 @@ tools:
       shims:
         - name: vals
           target: vals
-
 downloads:
   - name: bazelisk
     executable: true
