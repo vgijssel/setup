@@ -8,8 +8,12 @@ tags:
   - lxc
   - pikvm
   - incus
+  - ansible
+  - packer
 categories:
   - devops
+  - virtualisation
+  - failure
 image: ./images/pikvm-lessons-learned.jpeg
 ---
 
