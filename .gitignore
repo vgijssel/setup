@@ -53,6 +53,7 @@ result
 /haos/esphome/secrets.yaml
 
 /.pants.d/
+/dist/
 /.task
 
 incus-images/output

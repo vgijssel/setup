@@ -1,1 +1,2 @@
 mkdocs-publisher==1.4.4
+mkdocs==1.6.1

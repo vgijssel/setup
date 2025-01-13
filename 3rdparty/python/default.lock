@@ -9,7 +9,8 @@
 //     "CPython==3.10.*"
 //   ],
 //   "generated_with_requirements": [
-//     "mkdocs-publisher==1.4.4"
+//     "mkdocs-publisher==1.4.4",
+//     "mkdocs==1.6.1"
 //   ],
 //   "manylinux": "manylinux2014",
 //   "requirement_constraints": [],
@@ -996,7 +997,8 @@
   "pip_version": "24.0",
   "prefer_older_binary": false,
   "requirements": [
-    "mkdocs-publisher==1.4.4"
+    "mkdocs-publisher==1.4.4",
+    "mkdocs==1.6.1"
   ],
   "requires_python": [
     "==3.10.*"
