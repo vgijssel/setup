@@ -81,7 +81,6 @@ tools:
     - windmill-cli@1.440.3
     - kubens@0.9.5
     - vals@0.38.0
-    - mkdocs-publisher@1.4.4
   definitions:
     - name: bazelisk
       download: bazelisk
@@ -128,11 +127,6 @@ tools:
       package: ansible
       shims: [ansible, ansible-playbook, ansible-galaxy, ansible-doc]
       known_good_version: 10.6.0
-    - name: mkdocs-publisher
-      runtime: python
-      package: mkdocs-publisher
-      shims: [mkdocs-publisher, mkdocs]
-      known_good_version: 1.4.4
     - name: scie-pants
       download: pants
       known_good_version: 0.12.0
