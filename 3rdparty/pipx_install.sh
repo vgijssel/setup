@@ -1,31 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
-# This script ensures that the installation's sysconfig module contains the
-# correct paths. Without this, any C modules will fail to compile.
-
 root="$1"
 wheel="$2"
 wheel="$root/$wheel"
 
 cd "${root}"
-
-
-
-
-# sysconfig="$(echo install/lib/python*/_sysconfigdata_*.py)"
-# tmpfile="$(mktemp)"
-# trap "rm -f ${tmpfile}" INT EXIT
-# echo "gaaaan"
-
 export PIPX_HOME=$root/.pipx
+
+export HERMIT_STATE_DIR=$root/.hermit
 
 pipx install $wheel
 
-# chmod +w "${sysconfig}"
-
-# cp "${sysconfig}" "${tmpfile}"
-
-# sed "s,'/install,'${root}/install,g" "${tmpfile}" > "${sysconfig}"
-
-# test -e "${root}/install/bin/python" || ln "${root}/install/bin/python3" "${root}/install/bin/python"
+unset HERMIT_STATE_DIR
