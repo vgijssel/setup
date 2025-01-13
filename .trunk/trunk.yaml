@@ -77,7 +77,6 @@ tools:
     - gum@0.14.3
     - devspace@6.3.14
     - ansible@9.13.0
-    - scie-pants@0.12.0
     - windmill-cli@1.440.3
     - kubens@0.9.5
     - vals@0.38.0
@@ -127,12 +126,6 @@ tools:
       package: ansible
       shims: [ansible, ansible-playbook, ansible-galaxy, ansible-doc]
       known_good_version: 10.6.0
-    - name: scie-pants
-      download: pants
-      known_good_version: 0.12.0
-      shims:
-        - name: pants
-          target: pants
     - name: helmfile
       download: helmfile
       known_good_version: 0.169.2
@@ -200,17 +193,6 @@ downloads:
           x86_64: amd64
           arm_64: arm64
         url: https://github.com/devspace-sh/devspace/releases/download/v${version}/devspace-${os}-${cpu}
-  # The download of scie-pants needs to be called "pants" otherwise the binary does not work.
-  - name: pants
-    executable: true
-    downloads:
-      - os:
-          linux: linux
-          macos: macos
-        cpu:
-          x86_64: x86_64
-          arm_64: aarch64
-        url: https://github.com/pantsbuild/scie-pants/releases/download/v${version}/scie-pants-${os}-${cpu}
   - name: helmfile
     downloads:
       - os:
