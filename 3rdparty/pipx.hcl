@@ -1,7 +1,6 @@
-
 description = "Install and Run Python Applications in Isolated Environments"
 binaries = ["pipx"]
-# test = "pre-commit --version"
+test = "pipx --version"
 source = "https://github.com/pypa/pipx/releases/download/${version}/pipx.pyz"
 runtime-dependencies = ["python3@3.10"]
 dont-extract = true
