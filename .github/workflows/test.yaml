@@ -21,7 +21,7 @@ jobs:
       - name: Trunk Check
         uses: trunk-io/trunk-action@v1
 
-  docs:build:
+  docs-build:
     name: docs:build
     runs-on: ubuntu-latest
     steps:
