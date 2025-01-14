@@ -95,3 +95,5 @@ plugins:
         enabled: false
       js:
         enabled: false
+      jpeg:
+        enabled: false
