@@ -71,38 +71,11 @@ tools:
     - python
     - node
   enabled:
-    - kubectl@1.25.16
-    - helm@3.15.4
-    - helmfile@0.169.2
-    - bazelisk@1.18.0
-    - bazel-remote@2.3.9
-    - go-task@3.32.0
     - pdm@2.17.1
-    - gum@0.14.3
-    - devspace@6.3.14
-    - ansible@9.13.0
     - windmill-cli@1.440.3
     - kubens@0.9.5
     - vals@0.38.0
   definitions:
-    - name: bazelisk
-      download: bazelisk
-      known_good_version: 1.18.0
-      shims:
-        - name: bazel
-          target: bazelisk
-    - name: bazel-remote
-      download: bazel-remote
-      known_good_version: 2.3.9
-      shims:
-        - name: bazel-remote
-          target: bazel-remote
-    - name: go-task
-      download: go-task
-      known_good_version: 3.32.0
-      shims:
-        - name: task
-          target: task
     - name: pdm
       runtime: python
       package: pdm
@@ -113,29 +86,6 @@ tools:
       package: windmill-cli
       shims: [wmill]
       known_good_version: 1.440.3
-    - name: gum
-      download: gum
-      known_good_version: 0.14.3
-      shims:
-        - name: gum
-          target: gum
-    - name: devspace
-      download: devspace
-      known_good_version: 6.3.14
-      shims:
-        - name: devspace
-          target: devspace
-    - name: ansible
-      runtime: python
-      package: ansible
-      shims: [ansible, ansible-playbook, ansible-galaxy, ansible-doc]
-      known_good_version: 10.6.0
-    - name: helmfile
-      download: helmfile
-      known_good_version: 0.169.2
-      shims:
-        - name: helmfile
-          target: helmfile
     - name: kubens
       download: kubens
       known_good_version: 0.9.5
@@ -149,63 +99,6 @@ tools:
         - name: vals
           target: vals
 downloads:
-  - name: bazelisk
-    executable: true
-    downloads:
-      - os:
-          linux: linux
-          macos: darwin
-        cpu:
-          x86_64: amd64
-          arm_64: arm64
-        url: https://github.com/bazelbuild/bazelisk/releases/download/v${version}/bazelisk-${os}-${cpu}
-  - name: bazel-remote
-    executable: true
-    downloads:
-      - os:
-          linux: linux
-          macos: darwin
-        cpu:
-          x86_64: amd64
-          arm_64: arm64
-        url: https://github.com/buchgr/bazel-remote/releases/download/v${version}/bazel-remote-${version}-${os}-${cpu}
-  - name: go-task
-    downloads:
-      - os:
-          linux: linux
-          macos: darwin
-        cpu:
-          x86_64: amd64
-          arm_64: arm64
-        url: https://github.com/go-task/task/releases/download/v${version}/task_${os}_${cpu}.tar.gz
-  - name: gum
-    downloads:
-      - os:
-          linux: Linux
-          macos: Darwin
-        cpu:
-          x86_64: x86_64
-          arm_64: arm64
-        url: https://github.com/charmbracelet/gum/releases/download/v${version}/gum_${version}_${os}_${cpu}.tar.gz
-        strip_components: 1
-  - name: devspace
-    downloads:
-      - os:
-          linux: linux
-          macos: darwin
-        cpu:
-          x86_64: amd64
-          arm_64: arm64
-        url: https://github.com/devspace-sh/devspace/releases/download/v${version}/devspace-${os}-${cpu}
-  - name: helmfile
-    downloads:
-      - os:
-          linux: linux
-          macos: darwin
-        cpu:
-          x86_64: amd64
-          arm_64: arm64
-        url: https://github.com/helmfile/helmfile/releases/download/v${version}/helmfile_${version}_${os}_${cpu}.tar.gz
   - name: kubens
     downloads:
       - os:
