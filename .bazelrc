@@ -58,6 +58,9 @@ build:buildbuddy_rbe --jobs=50
 build:buildbuddy_rbe --host_cpu=k8
 build:buildbuddy_rbe --cpu=k8
 
+# Ignore pants packages
+common --deleted_packages 3rdparty,3rdparty/python
+
 # The CI has some specific configuration which we only want to load in the CI
 try-import %workspace%/ci.bazelrc
 
