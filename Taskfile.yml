@@ -38,10 +38,13 @@ tasks:
 
   docs:serve:
     desc: Development server for the docs
-    deps:
-      - devenv:secrets
     cmds:
       - mkdocs serve -a localhost:8000
+
+  docs:build:
+    desc: Build the docs
+    cmds:
+      - mkdocs build
 
   docs:publish:
     desc: Publish the docs

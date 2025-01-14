@@ -1,0 +1,16 @@
+[GLOBAL]
+pants_version = "2.23.1"
+
+backend_packages = ["pants.backend.python"]
+
+build_ignore = ["**/BUILD.bazel", "**/BUILD.repositories.bazel.tpl"]
+
+keep_sandboxes = "on_failure"
+
+[python]
+interpreter_constraints = ["CPython==3.10.*"]
+enable_resolves = true
+
+[export]
+py_resolve_format = "symlinked_immutable_virtualenv"
+resolve = ["python-default"]

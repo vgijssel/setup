@@ -84,3 +84,16 @@ plugins:
       og:
         enabled: true
         locale: en_us
+  # Disabled minification because have to figure out a hermetic way to
+  # install the required dependencies inside of nodejs.
+  - pub-minifier:
+      svg:
+        enabled: false
+      html:
+        enabled: false
+      css:
+        enabled: false
+      js:
+        enabled: false
+      jpeg:
+        enabled: false
