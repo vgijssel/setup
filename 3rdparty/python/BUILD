@@ -75,3 +75,13 @@ pex_binary(
     ],
     entry_point = "ansible_test._util.target.cli.ansible_test_cli_stub:main",
 )
+
+# From https://github.com/mkdocs/mkdocs/blob/master/pyproject.toml#L80C11-L80C30
+pex_binary(
+    name = "mkdocs",
+    dependencies = [
+        "3rdparty/python:reqs#mkdocs",
+        "3rdparty/python:reqs#mkdocs-publisher",
+    ],
+    entry_point = "mkdocs.__main__:cli",
+)

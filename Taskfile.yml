@@ -43,6 +43,11 @@ tasks:
     cmds:
       - mkdocs serve -a localhost:8000
 
+  docs:build:
+    desc: Build the docs
+    cmds:
+      - mkdocs build
+
   docs:publish:
     desc: Publish the docs
     cmds:

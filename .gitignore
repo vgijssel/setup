@@ -59,5 +59,6 @@ result
 incus-images/output
 docs/.obsidian
 .pub_blog_temp/
+.pub_min_cache/
 
 .hermit

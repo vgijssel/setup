@@ -84,3 +84,4 @@ plugins:
       og:
         enabled: true
         locale: en_us
+  - pub-minifier
