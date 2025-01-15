@@ -38,3 +38,6 @@ postgresql:
 # Disable the ingress because we define it ourselves
 ingress:
   enabled: false
+
+minio:
+  enabled: true

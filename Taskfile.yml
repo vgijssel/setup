@@ -9,32 +9,10 @@ tasks:
     sources:
       - .op.env
 
-  devenv:install:
+  devenv:setup:
     desc: Install dependencies for the devenv
-    dir: devenv
-    env:
-      PDM_IGNORE_ACTIVE_VENV: 1
     cmds:
-      - pdm install
-    sources:
-      - pyproject.toml
-      - pdm.lock
-
-  devenv:provision:
-    desc: Provision the devenv
-    dir: devenv
-    deps:
-      - devenv:install
-    cmds:
-      - pdm run pyinfra inventory.py deploy.py -y {{.ARGS}}
-    vars:
-      DEFAULT_ARGS: --data install_editor=True
-        --data install_terminal=True
-        --data install_languages=True
-        --data install_ssh=True
-        --data install_utilities=True
-        --data install_workflow=True
-      ARGS: "{{default .DEFAULT_ARGS .CLI_ARGS}}"
+      - helmfile init
 
   docs:serve:
     desc: Development server for the docs
