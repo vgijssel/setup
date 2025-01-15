@@ -4,8 +4,6 @@ environments:
       - tailscale:
           oauth_client_id: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_id
           oauth_client_secret: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_secret
-      - windmill:
-          windmill_minio_password: ref+op://vgijssel-prod/windmill_minio/password
 ---
 repositories:
   - name: windmill
@@ -19,9 +17,6 @@ releases:
     chart: windmill/windmill
     values:
       - ./services/windmill/values.yaml
-      - minio:
-          auth:
-            rootPassword: "{{ .Values.windmill.windmill_minio_password | fetchSecretValue }}"
   - name: windmill-ingress
     namespace: windmill
     chart: ./services/windmill-ingress

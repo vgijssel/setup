@@ -6,18 +6,58 @@ windmill:
   appReplicas: 1
   # replicas for the workers, jobs are executed on the workers
   lspReplicas: 1
+  app:
+    volumes:
+      - name: windmill-logs
+        hostPath:
+          path: /opt/windmill/logs
+          type: DirectoryOrCreate
+    volumeMounts:
+      - name: windmill-logs
+        mountPath: /tmp/windmill/logs
+
+    resources:
+      requests:
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+
+  lsp:
+    resources:
+      requests:
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+
+    volumes:
+      - name: windmill-logs
+        hostPath:
+          path: /opt/windmill/logs
+          type: DirectoryOrCreate
+    volumeMounts:
+      - name: windmill-logs
+        mountPath: /tmp/windmill/logs
+
   workerGroups:
     # The default worker group is the one that will execute jobs with any taggs  except the native ones. Windmill has a default worker group configuration for it
     - name: default
       replicas: 1
       resources:
         requests:
-          memory: 1028Mi
+          memory: 512Mi
           cpu: 500m
         limits:
-          memory: 2048Mi
-          cpu: 1000m
+          memory: 1Gi
+          cpu: 500m
       mode: worker
+      volumes:
+        - name: windmill-logs
+          hostPath:
+            path: /opt/windmill/logs
+            type: DirectoryOrCreate
+      volumeMounts:
+        - name: windmill-logs
+          mountPath: /tmp/windmill/logs
 
     # Thenative worker group will only execute native jobs. Windmill has a default worker group configuration for it
     - name: native
@@ -30,14 +70,28 @@ windmill:
           memory: 256Mi
           cpu: 200m
       mode: worker
+      volumes:
+        - name: windmill-logs
+          hostPath:
+            path: /opt/windmill/logs
+            type: DirectoryOrCreate
+      volumeMounts:
+        - name: windmill-logs
+          mountPath: /tmp/windmill/logs
 
 # enable postgres (bitnami) on kubernetes
 postgresql:
   enabled: true
+  primary:
+    resources:
+      requests:
+        memory: 512Mi
+      limits:
+        memory: 1Gi
 
 # Disable the ingress because we define it ourselves
 ingress:
   enabled: false
 
 minio:
-  enabled: true
+  enabled: false
