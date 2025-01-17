@@ -1,0 +1,9 @@
+{
+  "name": "javascript",
+  "version": "0.0.0",
+  "main": "index.js",
+  "description": "",
+  "dependencies": {
+    "windmill-cli": "^1.447.4"
+  }
+}
