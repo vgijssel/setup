@@ -2,4 +2,4 @@
 
 set -eo pipefail
 
-exec npx --prefix $SETUP_DIR/3rdparty/javascript wmill -- "$@"
+exec npx --prefix $SETUP_DIR/3rdparty/javascript wmill "$@"
