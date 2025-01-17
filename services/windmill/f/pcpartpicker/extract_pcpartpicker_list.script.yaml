@@ -8,10 +8,22 @@ schema:
   $schema: "https://json-schema.org/draft/2020-12/schema"
   type: object
   properties:
+    name:
+      type: string
+      description: ""
+      default: null
+      originalType: string
     s3:
       type: object
       description: ""
       default: null
       format: resource-s3
+    url:
+      type: string
+      description: ""
+      default: null
+      originalType: string
   required:
     - s3
+    - name
+    - url

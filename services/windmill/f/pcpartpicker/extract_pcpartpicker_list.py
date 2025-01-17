@@ -76,17 +76,17 @@ def get_parts_data(url):
     return parts_data
 
 
-def main(s3: s3):
-    # Example URL, replace with actual URL if needed
-    # url = 'https://nl.pcpartpicker.com/user/kerkshine/saved/md6DJx'
-    # parts_data = get_parts_data(url)
-    # df = pd.DataFrame(parts_data)
-    # # Include hours, minutes, seconds, and microseconds in the date format
-    # df['date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-    # df['id'] = df.apply(lambda row: generate_md5(f"{row['name']}{row['date']}"), axis=1)
+def main(s3: s3, name: str, url: str):
+    parts_data = get_parts_data(url)
+    df = pd.DataFrame(parts_data)
 
-    # # Convert DataFrame to JSON
-    # json_data = df.to_json(orient='split')
+    current_time = datetime.now()
+    data_time = current_time.strftime("%Y-%m-%d %H:%M:%S.%f")
+    file_name_time = current_time.strftime("%Y-%m-%d_%H-%M-%S-%f")
+
+    df["date"] = data_time
+
+    json_data = df.to_json(orient="records")
 
     info = InMemoryAccountInfo()
     b2_api = B2Api(info)
@@ -95,9 +95,9 @@ def main(s3: s3):
     b2_api.authorize_account("production", application_key_id, application_key)
     bucket = b2_api.get_bucket_by_name(s3["bucket"])
 
-    file_name = "papi/kerk.json"
-    file_info = {"description": "shine"}
-    file_content = json.dumps([{"name": "shine", "value": 1}])
+    file_name = f"pcpartpicker/{name}/{file_name_time}.json"
+    file_info = {"description": "pcpartpicker"}
+    file_content = json_data
     file_content_binary = file_content.encode("utf-8")
 
     bucket.upload_bytes(file_content_binary, file_name, file_infos=file_info)
