@@ -66,9 +66,11 @@ def main():
     url = "https://nl.pcpartpicker.com/user/kerkshine/saved/md6DJx"
     parts_data = get_parts_data(url)
     df = pd.DataFrame(parts_data)
-    df["date"] = datetime.now().strftime("%Y-%m-%d")
+    # Include hours, minutes, seconds, and microseconds in the date format
+    df["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
     df["id"] = df.apply(lambda row: generate_md5(f"{row['name']}{row['date']}"), axis=1)
 
     print(df.to_string())
 
-    return []
+    json_data = df.to_json(orient="split")
+    return json_data

@@ -1,0 +1,31 @@
+summary: ""
+description: ""
+value:
+  modules:
+    - id: a
+      value:
+        type: script
+        input_transforms: {}
+        is_trigger: false
+        path: f/pcpartpicker/extract_pcpartpicker_list
+    - id: b
+      value:
+        type: script
+        input_transforms:
+          clickhouse:
+            type: static
+            value: "$res:u/maarten/pre_eminent_clickhouse"
+          json_data:
+            type: javascript
+            expr: results.a
+          table_name:
+            type: static
+            value: pcpartpicker_parts
+        is_trigger: false
+        path: f/pcpartpicker/clickhouse_load
+schema:
+  $schema: "https://json-schema.org/draft/2020-12/schema"
+  type: object
+  order: []
+  properties: {}
+  required: []
