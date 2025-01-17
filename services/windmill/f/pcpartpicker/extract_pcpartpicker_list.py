@@ -76,6 +76,8 @@ def get_parts_data(url):
     return parts_data
 
 
+# name = 'am5_7900'
+# url = 'https://nl.pcpartpicker.com/user/kerkshine/saved/md6DJx'
 def main(s3: s3, name: str, url: str):
     parts_data = get_parts_data(url)
     df = pd.DataFrame(parts_data)
@@ -85,6 +87,8 @@ def main(s3: s3, name: str, url: str):
     file_name_time = current_time.strftime("%Y-%m-%d_%H-%M-%S-%f")
 
     df["date"] = data_time
+    df["id"] = df.apply(lambda row: generate_md5(f"{row['name']}{row['date']}"), axis=1)
+    df["list"] = name
 
     json_data = df.to_json(orient="records")
 

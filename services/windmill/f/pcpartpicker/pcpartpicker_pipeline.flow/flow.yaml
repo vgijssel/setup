@@ -1,0 +1,75 @@
+summary: ""
+description: ""
+value:
+  modules:
+    - id: a
+      summary: ""
+      value:
+        type: branchall
+        branches:
+          - summary: ""
+            modules:
+              - id: c
+                value:
+                  type: script
+                  input_transforms:
+                    name:
+                      type: static
+                      value: am5_9900x
+                    s3:
+                      type: static
+                      value: "$res:u/maarten/nourishing_s3"
+                    url:
+                      type: static
+                      value: "https://pcpartpicker.com/user/kerkshine/saved/hgbL4D"
+                  is_trigger: false
+                  path: f/pcpartpicker/extract_pcpartpicker_list
+            expr: ""
+            parallel: true
+            skip_failure: false
+          - summary: ""
+            modules:
+              - id: b
+                value:
+                  type: script
+                  input_transforms:
+                    name:
+                      type: static
+                      value: am4_5900x
+                    s3:
+                      type: static
+                      value: "$res:u/maarten/nourishing_s3"
+                    url:
+                      type: static
+                      value: "https://pcpartpicker.com/user/kerkshine/saved/8DxHRB"
+                  is_trigger: false
+                  path: f/pcpartpicker/extract_pcpartpicker_list
+            expr: "false"
+            parallel: true
+            skip_failure: false
+          - summary: ""
+            modules:
+              - id: d
+                value:
+                  type: script
+                  input_transforms:
+                    name:
+                      type: static
+                      value: am5_7900
+                    s3:
+                      type: static
+                      value: "$res:u/maarten/nourishing_s3"
+                    url:
+                      type: static
+                      value: "https://pcpartpicker.com/user/kerkshine/saved/md6DJx"
+                  is_trigger: false
+                  path: f/pcpartpicker/extract_pcpartpicker_list
+            expr: "false"
+            parallel: true
+            skip_failure: false
+        parallel: true
+schema:
+  $schema: "https://json-schema.org/draft/2020-12/schema"
+  type: object
+  properties: {}
+  required: []
