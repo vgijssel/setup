@@ -88,12 +88,12 @@ plugins:
   # install the required dependencies inside of nodejs.
   - pub-minifier:
       svg:
-        enabled: false
+        enabled: true
       html:
-        enabled: false
+        enabled: true
       css:
-        enabled: false
+        enabled: true
       js:
-        enabled: false
+        enabled: true
       jpeg:
-        enabled: false
+        enabled: true
