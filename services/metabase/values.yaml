@@ -1,0 +1,105 @@
+replicaCount: 1
+
+# Adding host aliases to the metabase deployment
+hostAliases: []
+# - ip: "127.0.0.1"
+#   hostnames:
+#   - "foo.local"
+#   - "bar.local"
+
+## String to fully override metabase.fullname template
+##
+# fullnameOverride:
+
+# Config Jetty web server
+listen:
+  host: "0.0.0.0"
+  port: 3000
+
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+  port: 9191
+
+jetty:
+#  maxThreads: 254
+#  minThreads: 8
+#  maxQueued: -1
+#  maxIdleTime: 60000
+
+# Backend database
+database:
+  # Database type (h2 / mysql / postgres), default: h2
+  type: h2
+  file: /opt/metabase/metabase.db
+  ## Specify file to store H2 database.  You will also have to back this with a volume (cf. extraVolume and extraVolumeMounts)!
+  # file:
+  # encryptionKey:
+  ## Only need when you use mysql / postgres
+  # host:
+  # port:
+  # dbname:
+  # username:
+  # password:
+  ## Alternatively, use a connection URI for full configurability. Example for SSL enabled Postgres.
+  # connectionURI: postgres://<host>:<port>/<database>?user=<username>&password=<password>&ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
+  ## If a secret with the database credentials already exists, use the following values:
+  # existingSecret:
+  # existingSecretUsernameKey:
+  # existingSecretPasswordKey:
+  # existingSecretConnectionURIKey:
+  # existingSecretEncryptionKeyKey:
+  # existingSecretPortKey:
+  # existingSecretHostKey:
+  # existingSecretDatabaseNameKey:
+
+password:
+  # Changing Metabase password complexity:
+  # weak: no character constraints
+  # normal: at least 1 digit (default)
+  # strong: minimum 8 characters w/ 2 lowercase, 2 uppercase, 1 digit, and 1 special character
+  complexity: strong
+  length: 50
+
+timeZone: UTC
+emojiLogging: true
+colorLogging: true
+# javaOpts:
+# pluginsDirectory: /plugins
+# siteUrl:
+
+extraVolumeMounts:
+  - name: metabase-data
+    mountPath: /opt/metabase
+
+extraVolumes:
+  - name: metabase-data
+    hostPath:
+      path: /opt/metabase/data
+      type: DirectoryOrCreate
+
+ingress:
+  enabled: false
+  # The ingress class name, if you use multiple ingress controllers:
+  # className: ...
+  # Used to create Ingress record (should used with service.type: ClusterIP).
+  hosts:
+    - "*"
+    # - metabase.domain.com
+  # The ingress path. Useful to host metabase on a subpath, such as `/metabase`.
+  path: /
+  pathType: Prefix
+  labels:
+    # Used to add custom labels to the Ingress
+    # Useful if for example you have multiple Ingress controllers and want your Ingress controllers to bind to specific Ingresses
+    # traffic: internal
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  tls:
+    # Secrets must be manually created in the namespace.
+    # - secretName: metabase-tls
+    #   hosts:
+    #     - metabase.domain.com

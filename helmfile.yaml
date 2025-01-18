@@ -4,12 +4,16 @@ environments:
       - tailscale:
           oauth_client_id: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_id
           oauth_client_secret: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_secret
+      - metabase:
+          database_encryptionKey: ref+op://vgijssel-prod/metabase/database_encryptionKey
 ---
 repositories:
   - name: windmill
     url: https://windmill-labs.github.io/windmill-helm-charts/
   - name: tailscale
     url: https://pkgs.tailscale.com/helmcharts
+  - name: pmint93
+    url: https://pmint93.github.io/helm-charts
 
 releases:
   - name: windmill
@@ -28,3 +32,10 @@ releases:
       - oauth:
           clientId: "{{ .Values.tailscale.oauth_client_id | fetchSecretValue }}"
           clientSecret: "{{ .Values.tailscale.oauth_client_secret | fetchSecretValue }}"
+  - name: metabase
+    namespace: metabase
+    chart: pmint93/metabase
+    values:
+      - ./services/metabase/values.yaml
+      - database:
+          encryptionKey: "{{ .Values.metabase.database_encryptionKey | fetchSecretValue }}"
