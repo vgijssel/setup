@@ -5,7 +5,7 @@ environments:
           oauth_client_id: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_id
           oauth_client_secret: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_secret
       - metabase:
-          database_encryptionKey: ref+op://vgijssel-prod/metabase/database_encryptionKey
+          postgres_credential: ref+op://vgijssel-prod/metabase_postgres/credential
 ---
 repositories:
   - name: windmill
@@ -38,4 +38,10 @@ releases:
     values:
       - ./services/metabase/values.yaml
       - database:
-          encryptionKey: "{{ .Values.metabase.database_encryptionKey | fetchSecretValue }}"
+          # Reusing the windmill postgres instance to use a little bit less
+          # resources. Can we dedicated on a larger server.
+          host: windmill-postgresql.windmill.svc.cluster.local
+          port: "5432"
+          dbname: "metabase"
+          username: "metabase"
+          password: "{{ .Values.metabase.postgres_credential | fetchSecretValue }}"

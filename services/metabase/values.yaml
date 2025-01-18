@@ -31,11 +31,7 @@ jetty:
 # Backend database
 database:
   # Database type (h2 / mysql / postgres), default: h2
-  type: h2
-  file: /opt/metabase/metabase.db
-  ## Specify file to store H2 database.  You will also have to back this with a volume (cf. extraVolume and extraVolumeMounts)!
-  # file:
-  # encryptionKey:
+  type: postgres
   ## Only need when you use mysql / postgres
   # host:
   # port:
@@ -69,15 +65,12 @@ colorLogging: true
 # pluginsDirectory: /plugins
 # siteUrl:
 
-extraVolumeMounts:
-  - name: metabase-data
-    mountPath: /opt/metabase
-
-extraVolumes:
-  - name: metabase-data
-    hostPath:
-      path: /opt/metabase/data
-      type: DirectoryOrCreate
+image:
+  # TODO: temporary community image until official ARM image is available
+  # https://github.com/metabase/metabase/issues/13119
+  # https://github.com/DockARM/metabase-arm/pkgs/container/metabase-arm
+  repository: ghcr.io/dockarm/metabase-arm
+  tag: v0.52.6
 
 ingress:
   enabled: false
