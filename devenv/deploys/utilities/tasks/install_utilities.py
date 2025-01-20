@@ -41,6 +41,7 @@ def install_utilities():
             # client for interacting with incus host
             "incus",
             "hermit",
+            "whalebrew",
         ],
         present=True,
         update=False,

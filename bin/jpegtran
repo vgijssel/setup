@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -eo pipefail
+
+# PATHs to check
+LINUX_PATH="/usr/bin"
+MACOS_PATH="/opt/homebrew/bin"
+SEARCH_PATH="$LINUX_PATH:$MACOS_PATH"
+
+export PATH="$SEARCH_PATH"
+
+command -v jpegtran > /dev/null || {
+  echo "jpegtran not found in PATH"
+  exit 1
+}
+
+exec jpegtran "$@"
