@@ -19,12 +19,13 @@ tasks:
     cmds:
       - helmfile init
 
+  # TODO: No longer necessary after https://github.com/mkdocs-publisher/mkdocs-publisher/pull/110
   docs:check:
     desc: Check if necessary requirements are installed
     cmds:
-      - djpeg
-      - cjpeg
-      - jpegtran
+      - djpeg -version
+      - cjpeg -version
+      - jpegtran -version
 
   docs:serve:
     desc: Development server for the docs
