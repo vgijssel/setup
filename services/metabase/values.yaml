@@ -41,7 +41,7 @@ timeZone: UTC
 emojiLogging: true
 colorLogging: true
 # javaOpts:
-# pluginsDirectory: /plugins
+pluginsDirectory: /plugins
 # siteUrl:
 
 image:
