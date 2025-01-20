@@ -84,16 +84,15 @@ plugins:
       og:
         enabled: true
         locale: en_us
-  # Disabled minification because have to figure out a hermetic way to
-  # install the required dependencies inside of nodejs.
+  # https://mkdocs-publisher.github.io/setup/seo-and-sharing/pub-minifier/
   - pub-minifier:
       svg:
-        enabled: false
+        enabled: true
       html:
-        enabled: false
+        enabled: true
       css:
-        enabled: false
+        enabled: true
       js:
-        enabled: false
+        enabled: true
       jpeg:
-        enabled: false
+        enabled: true

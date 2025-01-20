@@ -1,5 +1,10 @@
 version: "3"
 
+includes:
+  services:windmill:
+    taskfile: ./services/windmill/Taskfile.yml
+    dir: ./services/windmill
+
 tasks:
   devenv:secrets:
     desc: Install secrets for the devenv
@@ -9,45 +14,37 @@ tasks:
     sources:
       - .op.env
 
-  devenv:install:
+  devenv:setup:
     desc: Install dependencies for the devenv
-    dir: devenv
-    env:
-      PDM_IGNORE_ACTIVE_VENV: 1
     cmds:
-      - pdm install
-    sources:
-      - pyproject.toml
-      - pdm.lock
+      - helmfile init
 
-  devenv:provision:
-    desc: Provision the devenv
-    dir: devenv
-    deps:
-      - devenv:install
+  # TODO: No longer necessary after https://github.com/mkdocs-publisher/mkdocs-publisher/pull/110
+  docs:check:
+    desc: Check if necessary requirements are installed
     cmds:
-      - pdm run pyinfra inventory.py deploy.py -y {{.ARGS}}
-    vars:
-      DEFAULT_ARGS: --data install_editor=True
-        --data install_terminal=True
-        --data install_languages=True
-        --data install_ssh=True
-        --data install_utilities=True
-        --data install_workflow=True
-      ARGS: "{{default .DEFAULT_ARGS .CLI_ARGS}}"
+      - djpeg -version
+      - cjpeg -version
+      - jpegtran -version
 
   docs:serve:
     desc: Development server for the docs
+    deps:
+      - docs:check
     cmds:
       - mkdocs serve -a localhost:8000
 
   docs:build:
     desc: Build the docs
+    deps:
+      - docs:check
     cmds:
       - mkdocs build
 
   docs:publish:
     desc: Publish the docs
+    deps:
+      - docs:check
     cmds:
       - mkdocs gh-deploy --clean
 
