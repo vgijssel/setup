@@ -5,9 +5,9 @@ set -eo pipefail
 # PATHs to check
 LINUX_PATH="/usr/bin"
 MACOS_PATH="/opt/homebrew/bin"
-SEARCH_PATH="$LINUX_PATH:$MACOS_PATH"
+SEARCH_PATH="${LINUX_PATH}:${MACOS_PATH}"
 
-export PATH="$SEARCH_PATH"
+export PATH="${SEARCH_PATH}"
 
 command -v cjpeg > /dev/null || {
   echo "cjpeg not found in PATH"
