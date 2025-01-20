@@ -1,19 +1,10 @@
 replicaCount: 1
 
-# Adding host aliases to the metabase deployment
 hostAliases: []
-# - ip: "127.0.0.1"
-#   hostnames:
-#   - "foo.local"
-#   - "bar.local"
-
-## String to fully override metabase.fullname template
-##
-# fullnameOverride:
 
 # Config Jetty web server
 listen:
-  host: "0.0.0.0"
+  host: 0.0.0.0
   port: 3000
 
 monitoring:
@@ -23,12 +14,7 @@ monitoring:
   port: 9191
 
 jetty:
-#  maxThreads: 254
-#  minThreads: 8
-#  maxQueued: -1
-#  maxIdleTime: 60000
 
-# Backend database
 database:
   type: postgres
 
@@ -40,9 +26,7 @@ password:
 timeZone: UTC
 emojiLogging: true
 colorLogging: true
-# javaOpts:
 pluginsDirectory: /plugins
-# siteUrl:
 
 image:
   # TODO: temporary community image until official ARM image is available
@@ -58,19 +42,19 @@ ingress:
     - hosts:
         - metabase
   hosts:
-    - "metabase"
+    - metabase
 
 extraInitContainers:
   - name: download-modules
-    image: "curlimages/curl:7.70.0"
-    imagePullPolicy: "IfNotPresent"
+    image: curlimages/curl:7.70.0
+    imagePullPolicy: IfNotPresent
     volumeMounts:
       - name: plugins
         mountPath: /plugins
     workingDir: /plugins
     command:
-      - "/bin/sh"
-      - "-ec"
+      - /bin/sh
+      - -ec
       - |
         curl -Lso /plugins/clickhouse.metabase-driver.jar \
                   https://github.com/ClickHouse/metabase-clickhouse-driver/releases/download/1.51.0/clickhouse.metabase-driver.jar

@@ -42,6 +42,6 @@ releases:
           # resources. Can we dedicated on a larger server.
           host: windmill-postgresql.windmill.svc.cluster.local
           port: "5432"
-          dbname: "metabase"
-          username: "metabase"
+          dbname: metabase
+          username: metabase
           password: "{{ .Values.metabase.postgres_credential | fetchSecretValue }}"

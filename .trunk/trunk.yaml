@@ -31,8 +31,8 @@ lint:
         - bin/activate-hermit.fish
         - bin/hermit
         # Generated files from Windmill
-        - "services/windmill/f/**/*.script.yaml"
-        - "services/windmill/f/**/flow.yaml"
+        - services/windmill/f/**/*.script.yaml
+        - services/windmill/f/**/flow.yaml
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1
