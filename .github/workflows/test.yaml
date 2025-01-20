@@ -32,4 +32,5 @@ jobs:
       - uses: HatsuneMiku3939/direnv-action@v1
         with:
           direnvVersion: 2.35.0
+      - run: apt install -y libjpeg-turbo-progs
       - run: task docs:build
