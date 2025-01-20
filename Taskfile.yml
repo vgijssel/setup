@@ -19,18 +19,31 @@ tasks:
     cmds:
       - helmfile init
 
+  docs:check:
+    desc: Check if necessary requirements are installed
+    cmds:
+      - djpeg
+      - cjpeg
+      - jpegtran
+
   docs:serve:
     desc: Development server for the docs
+    deps:
+      - docs:check
     cmds:
       - mkdocs serve -a localhost:8000
 
   docs:build:
     desc: Build the docs
+    deps:
+      - docs:check
     cmds:
       - mkdocs build
 
   docs:publish:
     desc: Publish the docs
+    deps:
+      - docs:check
     cmds:
       - mkdocs gh-deploy --clean
 
