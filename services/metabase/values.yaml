@@ -30,30 +30,9 @@ jetty:
 
 # Backend database
 database:
-  # Database type (h2 / mysql / postgres), default: h2
   type: postgres
-  ## Only need when you use mysql / postgres
-  # host:
-  # port:
-  # dbname:
-  # username:
-  # password:
-  ## Alternatively, use a connection URI for full configurability. Example for SSL enabled Postgres.
-  # connectionURI: postgres://<host>:<port>/<database>?user=<username>&password=<password>&ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
-  ## If a secret with the database credentials already exists, use the following values:
-  # existingSecret:
-  # existingSecretUsernameKey:
-  # existingSecretPasswordKey:
-  # existingSecretConnectionURIKey:
-  # existingSecretEncryptionKeyKey:
-  # existingSecretPortKey:
-  # existingSecretHostKey:
-  # existingSecretDatabaseNameKey:
 
 password:
-  # Changing Metabase password complexity:
-  # weak: no character constraints
-  # normal: at least 1 digit (default)
   # strong: minimum 8 characters w/ 2 lowercase, 2 uppercase, 1 digit, and 1 special character
   complexity: strong
   length: 50
@@ -73,26 +52,34 @@ image:
   tag: v0.52.6
 
 ingress:
-  enabled: false
-  # The ingress class name, if you use multiple ingress controllers:
-  # className: ...
-  # Used to create Ingress record (should used with service.type: ClusterIP).
-  hosts:
-    - "*"
-    # - metabase.domain.com
-  # The ingress path. Useful to host metabase on a subpath, such as `/metabase`.
-  path: /
-  pathType: Prefix
-  labels:
-    # Used to add custom labels to the Ingress
-    # Useful if for example you have multiple Ingress controllers and want your Ingress controllers to bind to specific Ingresses
-    # traffic: internal
-  annotations:
-    {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  enabled: true
+  className: tailscale
   tls:
-    # Secrets must be manually created in the namespace.
-    # - secretName: metabase-tls
-    #   hosts:
-    #     - metabase.domain.com
+    - hosts:
+        - metabase
+  hosts:
+    - "metabase"
+
+extraInitContainers:
+  - name: download-modules
+    image: "curlimages/curl:7.70.0"
+    imagePullPolicy: "IfNotPresent"
+    volumeMounts:
+      - name: plugins
+        mountPath: /plugins
+    workingDir: /plugins
+    command:
+      - "/bin/sh"
+      - "-ec"
+      - |
+        curl -Lso /plugins/clickhouse.metabase-driver.jar \
+                  https://github.com/ClickHouse/metabase-clickhouse-driver/releases/download/1.51.0/clickhouse.metabase-driver.jar
+
+extraVolumeMounts:
+  - name: plugins
+    mountPath: /plugins
+    readOnly: false
+
+extraVolumes:
+  - name: plugins
+    emptyDir: {}
