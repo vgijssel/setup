@@ -579,6 +579,9 @@ actions:
       # Create the ubuntu user account
       getent group sudo >/dev/null 2>&1 || groupadd --system sudo
       useradd --create-home -s /bin/bash -G sudo -U ubuntu
+
+      # Set the password for the ubuntu user account
+      echo "ubuntu:ubuntu" | chpasswd
     variants:
       - default
 
@@ -668,76 +671,6 @@ actions:
     variants:
       - default
       - desktop
-
-  - trigger: post-packages
-    action: |-
-      #!/bin/sh
-      set -eux
-
-      # Disable location service
-      systemctl mask geoclue.service
-
-      # Timezone
-      rm -f /etc/localtime
-      ln -s /usr/share/zoneinfo/UTC /etc/localtime
-      echo UTC > /etc/timezone
-
-      # Locale
-      echo en_US.UTF-8 UTF-8 > /etc/locale.gen
-      locale-gen
-      echo LANG=en_US.UTF-8 > /etc/locale.conf
-
-      # User
-      USERNAME="ubuntu"
-      useradd ${USERNAME} -s /bin/bash -m -U -G adm,video,users
-
-      cat << EOF > /etc/gdm3/custom.conf
-      [daemon]
-      AutomaticLogin=${USERNAME}
-      AutomaticLoginEnable=true
-      EOF
-
-      cat << EOF > /home/ubuntu/firstboot.sh
-      #!/bin/sh
-
-      set -e
-
-      # Disable automatic screensaver lock
-      gsettings set org.gnome.desktop.screensaver lock-enabled false
-
-      # Disable welcome tour.
-      gsettings set org.gnome.shell welcome-dialog-last-shown-version '4294967295'
-
-      # Delete this script
-      rm /home/ubuntu/firstboot.sh
-      EOF
-
-      chown ubuntu:ubuntu /home/ubuntu/firstboot.sh
-      chmod +x /home/ubuntu/firstboot.sh
-
-      cat << EOF > /etc/systemd/user/firstboot.service
-      [Unit]
-      Description=One time boot script
-      After=dbus.service
-      After=display-manager.service
-      ConditionPathExists=/home/ubuntu/firstboot.sh
-
-      [Service]
-      Type=oneshot
-      ExecStart=/home/ubuntu/firstboot.sh
-
-      [Install]
-      WantedBy=default.target
-      EOF
-
-      mkdir -p /home/ubuntu/.config/systemd/user/default.target.wants
-      ln -s /etc/systemd/user/firstboot.service /home/ubuntu/.config/systemd/user/default.target.wants/firstboot.service
-
-      chown -R ubuntu:ubuntu /home/ubuntu/.config
-    variants:
-      - desktop
-    types:
-      - vm
 
 mappings:
   architecture_map: debian
