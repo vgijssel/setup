@@ -19,6 +19,7 @@ def install_utilities():
         "slack",
         "obsidian",
         "gimp",
+        "utm",
     ]
 
     for utility in utilities:

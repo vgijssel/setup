@@ -44,6 +44,7 @@ RUN set -ex ; \
     xz-utils \
     ca-certificates \
     p7zip-full \
+    gpg \
     zstd ; \
     apt clean all ; \
     rm -rf /var/lib/apt/lists/*
