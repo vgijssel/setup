@@ -3,11 +3,11 @@
 
 # Copied from https://github.com/f-bn/containers-images/blob/main/distrobuilder/Dockerfile
 # --- Build stage ---
-FROM docker.io/golang:1.22.3 AS build
+FROM docker.io/golang:1.22.7 AS build
 
 ARG TARGETOS
 ARG TARGETARCH
-ARG VERSION=3.0
+ARG VERSION=3.1
     
 ENV GOOS=${TARGETOS}
 ENV GOARCH=${TARGETARCH}
