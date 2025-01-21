@@ -429,12 +429,6 @@ packages:
   cleanup: true
   sets:
     - packages:
-        - fuse
-      releases:
-        - focal
-      action: install
-
-    - packages:
         - fuse3
       releases:
         - jammy
@@ -454,28 +448,12 @@ packages:
       architectures:
         - amd64
         - arm64
-        - armhf
-        - powerpc
-        - powerpc64
-
-    - packages:
-        - language-pack-en
-      action: install
-      architectures:
-        - ppc64el
 
     - packages:
         - cloud-init
       action: install
       variants:
         - cloud
-
-    - packages:
-        - systemd-resolved
-      action: install
-      releases:
-        - noble
-        - oracular
 
     - packages:
         - grub-efi-amd64-signed
@@ -517,14 +495,6 @@ packages:
     - packages:
         - cloud-guest-utils
       action: install
-      types:
-        - vm
-
-    - packages:
-        - ubuntu-desktop-minimal
-      action: install
-      variants:
-        - desktop
       types:
         - vm
 
