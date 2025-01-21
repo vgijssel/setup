@@ -1,7 +1,7 @@
 image:
   distribution: "ubuntu"
   variant: default
-  release: jammy
+  release: noble
 
 source:
   downloader: debootstrap
@@ -388,18 +388,44 @@ files:
     types:
       - vm
 
-  - name: incus-agent
-    generator: incus-agent
-    types:
-      - vm
+  # - name: incus-agent
+  #   generator: incus-agent
+  #   types:
+  #     - vm
+
+  - generator: copy
+    source: ipxe.efi
+    path: /EFI/ipxe/ipxe.efi
 
   - path: /etc/default/grub.d/50-incus.cfg
     generator: dump
+    # Forcing a menu to appear for 15 seconds
     content: |-
-      GRUB_RECORDFAIL_TIMEOUT=0
-      GRUB_TIMEOUT=0
+      GRUB_RECORDFAIL_TIMEOUT=15
+      GRUB_TIMEOUT=15
+      GRUB_TIMEOUT_STYLE=menu
       GRUB_CMDLINE_LINUX_DEFAULT="${GRUB_CMDLINE_LINUX_DEFAULT} console=tty1 console=ttyS0"
       GRUB_TERMINAL=console
+    types:
+      - vm
+
+  # Add ipxe to the grub menu
+  - path: /etc/grub.d/40_custom
+    generator: dump
+    content: |-
+      #!/bin/sh
+      exec tail -n +3 $0
+      # This file provides an easy way to add custom menu entries.  Simply type the
+      # menu entries you want to add after this comment.  Be careful not to change
+      # the 'exec tail' line above.
+      menuentry "iPXE Boot" {
+          insmod efi_gop
+          insmod efi_uga
+          insmod part_gpt
+          insmod ext2
+          set root='hd0,gpt1'  # Adjust this to match the partition containing ipxe.efi
+          chainloader /EFI/ipxe/ipxe.efi
+      }
     types:
       - vm
 
