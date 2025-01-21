@@ -402,10 +402,10 @@ files:
       # menu entries you want to add after this comment.  Be careful not to change
       # the 'exec tail' line above.
       menuentry "iPXE Boot" {
-          # insmod efi_gop
+          insmod efi_gop
           # insmod efi_uga
-          # insmod part_gpt
-          # insmod ext2
+          insmod part_gpt
+          insmod ext2
           set root='hd0,gpt1'  # Adjust this to match the partition containing ipxe.efi
           chainloader /EFI/ipxe/ipxe.efi
       }
