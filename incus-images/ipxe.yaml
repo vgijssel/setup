@@ -332,24 +332,25 @@ files:
   - path: /var/lib/dbus/machine-id
     generator: remove
 
-  # enp0s1 is the adapter for UTM
-  # not sure if it's different for tart/limactl
-  # or can we be smart with udev rules? Or use an asterisk in the netplan file?
-  - path: /etc/netplan/10-utm.yaml
-    generator: dump
-    mode: 0600
-    content: |-
-      network:
-        version: 2
-        ethernets:
-          enp0s1:
-            dhcp4: true
-            dhcp-identifier: mac
-    types:
-      - vm
-    variants:
-      - default
-      - desktop
+  # lima generates a good network config, no need to do that again
+  # # enp0s1 is the adapter for UTM
+  # # not sure if it's different for tart/limactl
+  # # or can we be smart with udev rules? Or use an asterisk in the netplan file?
+  # - path: /etc/netplan/10-utm.yaml
+  #   generator: dump
+  #   mode: 0600
+  #   content: |-
+  #     network:
+  #       version: 2
+  #       ethernets:
+  #         enp0s2:
+  #           dhcp4: true
+  #           dhcp-identifier: mac
+  #   types:
+  #     - vm
+  #   variants:
+  #     - default
+  #     - desktop
 
   - name: meta-data
     generator: cloud-init
@@ -409,6 +410,7 @@ files:
           insmod ext2
           set root='hd0,gpt1'  # Adjust this to match the partition containing ipxe.efi
           chainloader /EFI/ipxe/ipxe.efi
+          boot
       }
     types:
       - vm
@@ -448,8 +450,11 @@ packages:
 
     - packages:
         - openssh-client
+        - openssh-server
         - sudo
         - vim
+        # to help debug using limactl
+        - cloud-init
       action: install
 
     - packages:

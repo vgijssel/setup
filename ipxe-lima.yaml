@@ -164,17 +164,10 @@ additionalDisks:
 user:
   # User name. An explicitly specified username is not validated by Lima.
   # 🟢 Builtin default: same as the host username, if it is a valid Linux username, otherwise "lima"
-  name: null
+  name: ubuntu
   # Full name or display name of the user.
   # 🟢 Builtin default: user information from the host
-  comment: null
-  # Numeric user id. It is not currently possible to specify a group id.
-  # 🟢 Builtin default: same as the host user id of the current user (NOT a lookup of the specified "username").
-  uid: null
-  # Home directory inside the VM, NOT the mounted home directory of the host.
-  # It can use the following template variables: {{.Name}}, {{.Hostname}}, {{.UID}}, {{.User}}, and {{.Param.Key}}.
-  # 🟢 Builtin default: "/home/{{.User}}.linux"
-  home: null
+  comment: ubunti
 
 vmOpts:
   qemu:
