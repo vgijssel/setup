@@ -1,0 +1,4 @@
+global:
+  # TODO: validate these!! This is currently the IP of the machine running Tinkerbell k3s
+  trustedProxies: [192.168.5.15]
+  publicIP: 192.168.5.15
