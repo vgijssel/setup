@@ -1,4 +1,7 @@
+# ip address of tinkerbell-server: 192.168.5.15
+# ip address of macos host machine: 192.168.5.2 (as this is the default gateway?)
+
 global:
   # TODO: validate these!! This is currently the IP of the machine running Tinkerbell k3s
-  trustedProxies: [192.168.5.15]
-  publicIP: 192.168.5.15
+  trustedProxies: [192.168.5.15, 192.168.5.2]
+  publicIP: 192.168.5.2
