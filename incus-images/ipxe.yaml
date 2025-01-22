@@ -382,13 +382,14 @@ files:
 
   - path: /etc/default/grub.d/50-incus.cfg
     generator: dump
-    # Forcing a menu to appear for 15 seconds
+    # Forcing a menu to appear for 5 seconds
     content: |-
-      GRUB_RECORDFAIL_TIMEOUT=15
-      GRUB_TIMEOUT=15
+      GRUB_RECORDFAIL_TIMEOUT=5
+      GRUB_TIMEOUT=5
       GRUB_TIMEOUT_STYLE=menu
       GRUB_CMDLINE_LINUX_DEFAULT="${GRUB_CMDLINE_LINUX_DEFAULT} console=tty1 console=ttyS0"
       GRUB_TERMINAL=console
+      GRUB_DEFAULT=ipxe
     types:
       - vm
 
@@ -401,7 +402,7 @@ files:
       # This file provides an easy way to add custom menu entries.  Simply type the
       # menu entries you want to add after this comment.  Be careful not to change
       # the 'exec tail' line above.
-      menuentry "iPXE Boot" {
+      menuentry "ipxe" {
           insmod efi_gop
           # insmod efi_uga
           insmod part_gpt

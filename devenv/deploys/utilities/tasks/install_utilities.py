@@ -20,6 +20,7 @@ def install_utilities():
         "obsidian",
         "gimp",
         "utm",
+        "cirruslabs/cli/tart",
     ]
 
     for utility in utilities:
@@ -43,6 +44,7 @@ def install_utilities():
             "incus",
             "hermit",
             "whalebrew",
+            "lima",
         ],
         present=True,
         update=False,
