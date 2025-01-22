@@ -1,0 +1,23 @@
+#!ipxe
+
+:start
+echo Attempting to obtain a DHCP lease...
+dhcp || goto dhcp_fail
+echo DHCP lease obtained successfully.
+echo Attempting to boot from ${boot-url}...
+chain ${boot-url} || goto chain_fail
+echo Boot succeeded!
+goto end
+
+:dhcp_fail
+echo DHCP failed. Retrying in 5 seconds...
+sleep 5
+goto start
+
+:chain_fail
+echo Boot failed. Retrying in 5 seconds...
+sleep 5
+goto start
+
+:end
+echo Script finished. This should never happen unless manually exited.
