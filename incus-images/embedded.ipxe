@@ -4,7 +4,8 @@
 echo Attempting to obtain a DHCP lease...
 dhcp || goto dhcp_fail
 echo DHCP lease obtained successfully.
-echo Attempting to boot from: '${boot-url}'...
+echo The current IP address is: '${ip}'
+echo Attempting to boot from: '${boot-url}'
 
 isset ${boot-url} || goto boot_url_fail
 chain ${boot-url} || goto chain_fail
