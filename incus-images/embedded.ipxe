@@ -4,13 +4,20 @@
 echo Attempting to obtain a DHCP lease...
 dhcp || goto dhcp_fail
 echo DHCP lease obtained successfully.
-echo Attempting to boot from ${boot-url}...
+echo Attempting to boot from: '${boot-url}'...
+
+isset ${boot-url} || goto boot_url_fail
 chain ${boot-url} || goto chain_fail
 echo Boot succeeded!
 goto end
 
 :dhcp_fail
 echo DHCP failed. Retrying in 5 seconds...
+sleep 5
+goto start
+
+:boot_url_fail
+echo Boot url not set. Retrying in 5 seconds...
 sleep 5
 goto start
 
