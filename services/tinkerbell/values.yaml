@@ -3,8 +3,21 @@
 # ip address of the default gateway: 192.168.104.2
 # the public IP should not be already taken!! So 192.168.104.1 will break everything. as that is already used
 # public IP: 192.168.104.100
+#
+# https://github.com/tinkerbell/charts/blob/main/tinkerbell/stack/README.md
+#
+# From the docs:
+# The trusted proxies are the IP addresses of the nodes in the cluster.
 
 global:
-  # TODO: validate these!! This is currently the IP of the machine running Tinkerbell k3s
-  trustedProxies: [192.168.104.1, 192.168.104.100]
+  trustedProxies: [192.168.104.1]
   publicIP: 192.168.104.100
+
+smee:
+  dhcp:
+    enabled: true
+    name: smee-dhcp
+    # There is already an existing DHCP server in the network
+    # so we're using the proxy mode
+    # See: https://github.com/tinkerbell/smee
+    mode: proxy
