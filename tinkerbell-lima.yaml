@@ -73,3 +73,7 @@ message: |
   kubectl ...
   ------
 vmType: qemu
+networks:
+  - lima: user-v2
+
+memory: 1GiB
