@@ -4,7 +4,20 @@
 echo Attempting to obtain a DHCP lease...
 dhcp || goto dhcp_fail
 echo DHCP lease obtained successfully.
-echo The current IP address is: '${ip}'
+
+# Get the ipxe variables from: https://ipxe.org/cfg
+
+echo Tinkerbell settings:
+echo 
+echo "arch: ${buildarch}"
+echo "mac: ${mac}"
+echo "hostname: ${hostname}"
+echo "ip:"
+echo "  address: ${ip}"
+echo "  gateway: ${gateway}"
+echo "  netmark: ${netmask}"
+echo 
+
 echo Attempting to boot from: '${boot-url}'
 
 isset ${boot-url} || goto boot_url_fail

@@ -1,8 +1,10 @@
-# ip address of tinkerbell-server: 192.168.5.15
-# ip address of macos host machine: 192.168.5.2 (as this is the default gateway?)
-# the public IP should not be already taken!! So 192.168.5.2 will break everything. as that is already used
+# ip address of tinkerbell-server: 192.168.5.15 (slirp)
+# ip address of tinkerbell-server: 192.168.104.1 (user-v2)
+# ip address of the default gateway: 192.168.104.2
+# the public IP should not be already taken!! So 192.168.104.1 will break everything. as that is already used
+# public IP: 192.168.104.100
 
 global:
   # TODO: validate these!! This is currently the IP of the machine running Tinkerbell k3s
-  trustedProxies: [192.168.5.15, 192.168.5.5]
-  publicIP: 192.168.5.5
+  trustedProxies: [192.168.104.1, 192.168.104.100]
+  publicIP: 192.168.104.100
