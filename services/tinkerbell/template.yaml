@@ -19,23 +19,23 @@ spec:
             image: quay.io/tinkerbell/actions/image2disk:latest
             timeout: 600
             environment:
-              DEST_DISK: {{ .disk }}
+              DEST_DISK: {{ index .Hardware.Disks 0 }}
               IMG_URL: "http://{{ .artifact_server_ip_port }}/jammy-server-cloudimg-arm64.raw.gz"
               COMPRESSED: true
           - name: "grow-partition"
             image: quay.io/tinkerbell/actions/cexec:latest
             timeout: 90
             environment:
-              BLOCK_DEVICE: {{ .disk }}1
+              BLOCK_DEVICE: {{ index .Hardware.Disks 0 }}1
               FS_TYPE: ext4
               CHROOT: y
               DEFAULT_INTERPRETER: "/bin/sh -c"
-              CMD_LINE: "growpart {{ .disk }} 1 && resize2fs {{ .disk }}1"
+              CMD_LINE: "growpart {{ index .Hardware.Disks 0 }} 1 && resize2fs {{ index .Hardware.Disks 0 }}1"
           - name: "install openssl"
             image: quay.io/tinkerbell/actions/cexec:latest
             timeout: 90
             environment:
-              BLOCK_DEVICE: {{ .disk }}1
+              BLOCK_DEVICE: {{ index .Hardware.Disks 0 }}1
               FS_TYPE: ext4
               CHROOT: y
               DEFAULT_INTERPRETER: "/bin/sh -c"
@@ -44,7 +44,7 @@ spec:
             image: quay.io/tinkerbell/actions/cexec:latest
             timeout: 90
             environment:
-              BLOCK_DEVICE: {{ .disk }}1
+              BLOCK_DEVICE: {{ index .Hardware.Disks 0 }}1
               FS_TYPE: ext4
               CHROOT: y
               DEFAULT_INTERPRETER: "/bin/sh -c"
@@ -53,7 +53,7 @@ spec:
             image: quay.io/tinkerbell/actions/cexec:latest
             timeout: 90
             environment:
-              BLOCK_DEVICE: {{ .disk }}1
+              BLOCK_DEVICE: {{ index .Hardware.Disks 0 }}1
               FS_TYPE: ext4
               CHROOT: y
               DEFAULT_INTERPRETER: "/bin/sh -c"
@@ -62,7 +62,7 @@ spec:
             image: quay.io/tinkerbell/actions/cexec:latest
             timeout: 90
             environment:
-              BLOCK_DEVICE: {{ .disk }}1
+              BLOCK_DEVICE: {{ index .Hardware.Disks 0 }}1
               FS_TYPE: ext4
               CHROOT: y
               DEFAULT_INTERPRETER: "/bin/sh -c"
@@ -71,7 +71,7 @@ spec:
             image: quay.io/tinkerbell/actions/writefile:latest
             timeout: 90
             environment:
-              DEST_DISK: {{ .disk }}1
+              DEST_DISK: {{ index .Hardware.Disks 0 }}1
               FS_TYPE: ext4
               DEST_PATH: /etc/netplan/config.yaml
               CONTENTS: |
