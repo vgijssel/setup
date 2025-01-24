@@ -1,0 +1,11 @@
+apiVersion: "tinkerbell.org/v1alpha1"
+kind: Workflow
+metadata:
+  name: playground-workflow
+spec:
+  templateRef: ubuntu
+  hardwareRef: machine1
+  hardwareMap:
+    device_1: 52:55:55:38:6f:53
+    artifact_server_ip_port: 192.168.104.100:8080
+    disk: /dev/vda

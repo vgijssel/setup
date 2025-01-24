@@ -53,4 +53,5 @@ networks:
   - lima: user-v2
 plain: true
 nestedVirtualization: false
-memory: 1GiB
+# Need memory to unpack the ram disk
+memory: 2GiB
