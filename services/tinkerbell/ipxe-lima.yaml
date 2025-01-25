@@ -6,8 +6,7 @@ minimumLimaVersion: "1.0.0"
 arch: aarch64
 
 images:
-  # TODO: fixme
-  - location: ./incus-images/pikvm_output/disk.qcow2
+  - location: ../../images/ipxe-vm/output/disk.qcow2
     arch: aarch64
 
 additionalDisks:

@@ -10,5 +10,5 @@ tasks:
   ipxe:
     desc: Start the ipxe machine
     cmds:
-      - limactl disk create ipxe-target --size 20GiB
+      - limactl disk create ipxe-target --size 20GiB || true
       - limactl start ./ipxe-lima.yaml
