@@ -1,6 +1,10 @@
 version: "3"
 
 includes:
+  images:ipxe-vm:
+    taskfile: ./images/ipxe-vm/Taskfile.yml
+    dir: ./images/ipxe-vm
+
   services:windmill:
     taskfile: ./services/windmill/Taskfile.yml
     dir: ./services/windmill
