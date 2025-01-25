@@ -25,7 +25,6 @@ source "docker" "ipxe" {
   build {
     path = "Dockerfile"
   }
-  container_dir = "/opt/ipxe/src"
 }
 
 build {
