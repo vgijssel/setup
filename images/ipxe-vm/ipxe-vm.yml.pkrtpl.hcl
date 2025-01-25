@@ -1,7 +1,6 @@
-image:
-  distribution: "ubuntu"
-  variant: default
-  release: noble
+${yamlencode({
+  "image": image_settings,
+})}
 
 source:
   downloader: debootstrap
@@ -281,38 +280,6 @@ source:
       =VTg2
       -----END PGP PUBLIC KEY BLOCK-----
 
-targets:
-  lxc:
-    create_message: |-
-      You just created an {{ image.description }} container.
-
-      To enable SSH, run: apt install openssh-server
-      No default root or user password are set by LXC.
-    config:
-      - type: all
-        before: 5
-        content: |-
-          lxc.include = LXC_TEMPLATE_CONFIG/ubuntu.common.conf
-
-      - type: user
-        before: 5
-        content: |-
-          lxc.include = LXC_TEMPLATE_CONFIG/ubuntu.userns.conf
-
-      - type: all
-        after: 4
-        content: |-
-          lxc.include = LXC_TEMPLATE_CONFIG/common.conf
-
-      - type: user
-        after: 4
-        content: |-
-          lxc.include = LXC_TEMPLATE_CONFIG/userns.conf
-
-      - type: all
-        content: |-
-          lxc.arch = {{ image.architecture_personality }}
-
 files:
   - path: /etc/hostname
     generator: hostname
@@ -331,26 +298,6 @@ files:
 
   - path: /var/lib/dbus/machine-id
     generator: remove
-
-  # lima generates a good network config, no need to do that again
-  # # enp0s1 is the adapter for UTM
-  # # not sure if it's different for tart/limactl
-  # # or can we be smart with udev rules? Or use an asterisk in the netplan file?
-  # - path: /etc/netplan/10-utm.yaml
-  #   generator: dump
-  #   mode: 0600
-  #   content: |-
-  #     network:
-  #       version: 2
-  #       ethernets:
-  #         enp0s2:
-  #           dhcp4: true
-  #           dhcp-identifier: mac
-  #   types:
-  #     - vm
-  #   variants:
-  #     - default
-  #     - desktop
 
   - name: meta-data
     generator: cloud-init
@@ -388,7 +335,7 @@ files:
       GRUB_RECORDFAIL_TIMEOUT=5
       GRUB_TIMEOUT=5
       GRUB_TIMEOUT_STYLE=menu
-      GRUB_CMDLINE_LINUX_DEFAULT="${GRUB_CMDLINE_LINUX_DEFAULT} console=tty1 console=ttyS0"
+      GRUB_CMDLINE_LINUX_DEFAULT="$${GRUB_CMDLINE_LINUX_DEFAULT} console=tty1 console=ttyS0"
       GRUB_TERMINAL=console
       GRUB_DEFAULT=ipxe
     types:
@@ -516,18 +463,18 @@ packages:
   repositories:
     - name: sources.list
       url: |-
-        deb http://archive.ubuntu.com/ubuntu {{ image.release }} main restricted universe multiverse
-        deb http://archive.ubuntu.com/ubuntu {{ image.release }}-updates main restricted universe multiverse
-        deb http://security.ubuntu.com/ubuntu {{ image.release }}-security main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu ${image_settings.release} main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu ${image_settings.release}-updates main restricted universe multiverse
+        deb http://security.ubuntu.com/ubuntu ${image_settings.release}-security main restricted universe multiverse
       architectures:
         - amd64
         - i386
 
     - name: sources.list
       url: |-
-        deb http://ports.ubuntu.com/ubuntu-ports {{ image.release }} main restricted universe multiverse
-        deb http://ports.ubuntu.com/ubuntu-ports {{ image.release }}-updates main restricted universe multiverse
-        deb http://ports.ubuntu.com/ubuntu-ports {{ image.release }}-security main restricted universe multiverse
+        deb http://ports.ubuntu.com/ubuntu-ports ${image_settings.release} main restricted universe multiverse
+        deb http://ports.ubuntu.com/ubuntu-ports ${image_settings.release}-updates main restricted universe multiverse
+        deb http://ports.ubuntu.com/ubuntu-ports ${image_settings.release}-security main restricted universe multiverse
       architectures:
         - armhf
         - arm64
@@ -621,13 +568,13 @@ actions:
       update-grub
 
       # This will create EFI/BOOT
-      grub-install --uefi-secure-boot --target="${TARGET}-efi" --no-nvram --removable
+      grub-install --uefi-secure-boot --target="$${TARGET}-efi" --no-nvram --removable
 
       # This will create EFI/ubuntu
-      grub-install --uefi-secure-boot --target="${TARGET}-efi" --no-nvram
+      grub-install --uefi-secure-boot --target="$${TARGET}-efi" --no-nvram
 
       update-grub
-      sed -i "s#root=[^ ]*#root=${DISTROBUILDER_ROOT_UUID}#g" /boot/grub/grub.cfg
+      sed -i "s#root=[^ ]*#root=$${DISTROBUILDER_ROOT_UUID}#g" /boot/grub/grub.cfg
     types:
       - vm
 
