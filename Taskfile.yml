@@ -95,14 +95,14 @@ tasks:
       - docker build --platform="linux/amd64" -t ghcr.io/vgijssel/setup/spacelift-runner-ansible:latest .
       - docker push ghcr.io/vgijssel/setup/spacelift-runner-ansible:latest
 
-  incus-images:pikvm:prepare_disk:
+  images:pikvm:prepare_disk:
     desc: Download and extract the PiKVM disk image
-    dir: incus-images
+    dir: images
     cmds:
       - packer build -only='prepare_disk.*' -on-error=ask .
 
-  incus-images:pikvm:build:
+  images:pikvm:build:
     desc: Build an Incus container from the PiKVM disk image
-    dir: incus-images
+    dir: images
     cmds:
       - packer build -only='build_image.*' -on-error=ask .
