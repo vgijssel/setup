@@ -9,15 +9,10 @@ images:
   - location: ./incus-images/pikvm_output/disk.qcow2
     arch: aarch64
 
-# Need to specify additional ones to tinkerbell can write the os into a disk
-# mimic zfs disks as well?
 additionalDisks:
-# disks should either be a list of disk name strings, for example:
-# - "data"
-# or a list of disk objects with extra parameters, for example:
-# - name: "data"
-#   format: true
-#   fsType: "ext4"
+  - name: "ipxe-target"
+    format: true
+    fsType: "ext4"
 
 # Probe scripts to check readiness.
 # The scripts run in user mode. They must start with a '#!' line.
@@ -47,8 +42,6 @@ vmOpts:
     minimumVersion: 9.2.0
 
 os: Linux
-video:
-  display: cocoa
 networks:
   - lima: user-v2
 plain: true

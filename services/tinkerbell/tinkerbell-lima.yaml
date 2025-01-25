@@ -43,12 +43,7 @@ provision:
               curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable=traefik,servicelb,metrics-server,local-storage server --write-kubeconfig-mode 644" sh -
       fi
 
-  # TODO: remove me. backup user if everything is broken. lol
-  - mode: system
-    script: |
-      #!/bin/sh
-      useradd --create-home -s /bin/bash -G sudo -U kerk
-      echo "kerk:kerk" | chpasswd
+  # TODO: Wait for k3s to be ready and rename the context to tinkerbell-dev
 
 probes:
   - script: |
@@ -64,12 +59,12 @@ probes:
       If that is still empty, check the bottom of the log at "/var/log/cloud-init-output.log".
 copyToHost:
   - guest: "/etc/rancher/k3s/k3s.yaml"
-    host: "{{.Dir}}/copied-from-guest/kubeconfig.yaml"
+    host: "$HOME/.kube/configs/tinkerbell-dev.yaml"
     deleteOnStop: true
 message: |
   To run `kubectl` on the host (assumes kubectl is installed), run the following commands:
   ------
-  export KUBECONFIG="{{.Dir}}/copied-from-guest/kubeconfig.yaml"
+  export KUBECONFIG="$HOME/.kube/configs/tinkerbell-dev.yaml"
   kubectl ...
   ------
 vmType: qemu

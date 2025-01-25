@@ -1,0 +1,14 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: Start the tinkerbell development environment
+    cmds:
+      - limactl start ./tinkerbell-lima.yaml
+      - KUBECONFIG="$HOME/.kube/configs/tinkerbell-dev.yaml" kubectl config rename-context default tinkerbell-dev
+
+  ipxe:
+    desc: Start the ipxe machine
+    cmds:
+      - limactl disk create ipxe-target --size 20GiB
+      - limactl start ./ipxe-lima.yaml
