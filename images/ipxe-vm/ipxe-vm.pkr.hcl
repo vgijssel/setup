@@ -28,7 +28,7 @@ locals {
 
   # Following naming convention from https://linuxcontainers.org/distrobuilder/docs/latest/reference/image/
   image_name = "${local.image_distribution}-${local.image_release}-${local.image_architecture}-${local.image_serial}"
-  image_file_name = "${local.image_name}.qcow2"
+  image_file_name = "disk.qcow2"
 
   output_image_path = "${local.output_path}/${local.image_file_name}"
   build_image_path = "/build/${local.image_file_name}"
