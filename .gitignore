@@ -56,7 +56,7 @@ result
 /dist/
 /.task
 
-incus-images/output
+images/**/output/
 docs/.obsidian
 .pub_blog_temp/
 .pub_min_cache/

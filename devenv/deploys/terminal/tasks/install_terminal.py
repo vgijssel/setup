@@ -41,6 +41,7 @@ def install_terminal():
         ".zprofile",
         ".profile",
         ".terminal_env",
+        ".kube/kubie.yaml",
     ]
 
     for terminal_file in terminal_files:

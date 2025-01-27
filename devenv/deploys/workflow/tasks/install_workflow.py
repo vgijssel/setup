@@ -72,6 +72,10 @@ def install_workflow():
         value=False,
     )
 
+    # Tart has been installed. You might want to reduce the default DHCP lease time
+    # from 86,400 to 600 seconds to avoid DHCP shortage when running lots of VMs daily:
+    # defaults write /Library/Preferences/SystemConfiguration/com.apple.InternetSharing.default.plist bootpd -dict DHCPLeaseTimeSecs -int 600
+
     server.shell(
         name="Restart macOS Dock",
         commands=["killall Dock"],

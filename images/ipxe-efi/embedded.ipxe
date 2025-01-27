@@ -1,0 +1,71 @@
+#!ipxe
+
+:start
+echo Attempting to obtain a DHCP lease...
+dhcp || goto dhcp_fail
+echo DHCP lease obtained successfully.
+echo
+echo
+
+# Get the ipxe variables from: https://ipxe.org/cfg
+echo *** Network device settings ***
+echo mac: ${mac}
+echo chip: ${chip}
+echo
+echo *** IPv4 settings ***
+echo ip:           ${ip}
+echo netmask:      ${netmask}
+echo gateway:      ${gateway}
+echo dns:          ${dns}
+echo domain:       ${domain}
+echo 
+echo *** Boot settings ***
+echo filename:     ${filename}
+echo next-server:  ${next-server}
+echo 
+echo *** Host settings ***
+echo hostname:     ${hostname}
+echo uuid:         ${uuid}
+echo user-class:   ${user-class}
+echo manufacturer: ${manufacturer}
+echo product:      ${product}
+echo serial:       ${serial}
+echo asset:        ${asset}
+echo
+echo *** Miscellaneous settings ***
+echo buildarch:    ${buildarch}
+echo cpumodel:     ${cpumodel}
+echo cpuvendor:    ${cpuvendor}
+echo cwduri:       ${cwduri}
+echo cwuri:        ${cwuri}
+echo dhcp-server:  ${dhcp-server}
+echo platform:     ${platform}
+echo sysmac:       ${sysmac}
+echo version:      ${version}
+echo
+echo
+
+echo Attempting to boot from 'filename': '${filename}'
+
+isset ${filename} || goto filename_fail
+chain ${filename} || goto chain_fail
+echo Boot succeeded!
+goto end
+
+:dhcp_fail
+echo DHCP failed. Retrying in 5 seconds...
+sleep 5
+goto start
+
+:filename_fail
+echo Filename not set. Retrying in 5 seconds...
+sleep 5
+goto start
+
+:chain_fail
+echo Boot failed. Retrying in 5 seconds...
+sleep 5
+goto start
+
+:end
+echo Script finished. This should never happen unless manually exited.
