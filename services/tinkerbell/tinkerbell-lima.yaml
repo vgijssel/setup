@@ -59,14 +59,8 @@ probes:
       If that is still empty, check the bottom of the log at "/var/log/cloud-init-output.log".
 copyToHost:
   - guest: "/etc/rancher/k3s/k3s.yaml"
-    host: "$HOME/.kube/configs/tinkerbell-dev.yaml"
+    host: "{{.Home}}/.kube/configs/tinkerbell-dev.yaml"
     deleteOnStop: true
-message: |
-  To run `kubectl` on the host (assumes kubectl is installed), run the following commands:
-  ------
-  export KUBECONFIG="$HOME/.kube/configs/tinkerbell-dev.yaml"
-  kubectl ...
-  ------
 vmType: qemu
 networks:
   - lima: user-v2

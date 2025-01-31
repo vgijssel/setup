@@ -4,9 +4,13 @@ tasks:
   dev:
     desc: Start the tinkerbell development environment
     cmds:
+      - limactl delete -f tinkerbell-lima || true
       - limactl start ./tinkerbell-lima.yaml
       - KUBECONFIG="$HOME/.kube/configs/tinkerbell-dev.yaml" kubectl config rename-context default tinkerbell-dev
+      - helmfile apply --wait
 
+  # For console output use:
+  # minicom -D unix#/Users/maarten/.lima/ipxe-lima/serial.sock
   ipxe:
     desc: Start the ipxe machine
     cmds:
