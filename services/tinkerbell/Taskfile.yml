@@ -8,6 +8,7 @@ tasks:
       - limactl start ./tinkerbell-lima.yaml
       - KUBECONFIG="$HOME/.kube/configs/tinkerbell-dev.yaml" kubectl config rename-context default tinkerbell-dev
       - helmfile apply --wait
+      - kubie exec tinkerbell-dev tink kubectl apply -f hardware.yaml -f template.yaml -f ubuntu-download.yaml -f workflow.yaml
 
   # For console output use:
   # minicom -D unix#/Users/maarten/.lima/ipxe-lima/serial.sock
