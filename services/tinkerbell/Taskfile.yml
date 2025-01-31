@@ -11,6 +11,9 @@ tasks:
 
   # For console output use:
   # minicom -D unix#/Users/maarten/.lima/ipxe-lima/serial.sock
+  #
+  # For shell access use:
+  # limactl shell ipxe-lima
   ipxe:
     desc: Start the ipxe machine
     cmds:

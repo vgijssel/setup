@@ -347,17 +347,9 @@ files:
     content: |-
       #!/bin/sh
       exec tail -n +3 $0
-      # This file provides an easy way to add custom menu entries.  Simply type the
-      # menu entries you want to add after this comment.  Be careful not to change
-      # the 'exec tail' line above.
       menuentry "ipxe" {
-          # insmod efi_gop
-          # insmod efi_uga
-          # insmod part_gpt
-          # insmod ext2
           set root='hd0,gpt1'  # Adjust this to match the partition containing ipxe.efi
           chainloader /EFI/ipxe/ipxe.efi
-          # boot
       }
     types:
       - vm
@@ -371,17 +363,6 @@ files:
     variants:
       - default
 
-  - path: /etc/sudoers.d/90-incus
-    generator: dump
-    mode: 0440
-    content: |-
-      # User rules for ubuntu
-      ubuntu ALL=(ALL) NOPASSWD:ALL
-    variants:
-      - desktop
-    types:
-      - vm
-
 packages:
   manager: apt
   update: true
@@ -389,76 +370,22 @@ packages:
   sets:
     - packages:
         - fuse3
-      releases:
-        - jammy
-        - noble
-        - oracular
-      action: install
-
-    - packages:
         - openssh-client
         - openssh-server
         - sudo
         - vim
+        - language-pack-en
+        - grub-efi-arm64-signed
         # to help debug using limactl
         - cloud-init
-      action: install
-
-    - packages:
-        - language-pack-en
-      action: install
-      architectures:
-        - amd64
-        - arm64
-
-    - packages:
-        - cloud-init
-      action: install
-      variants:
-        - cloud
-
-    - packages:
-        - grub-efi-amd64-signed
         - shim-signed
-      action: install
-      architectures:
-        - amd64
-      types:
-        - vm
-
-    - packages:
-        - grub-efi-arm64-signed
-      action: install
-      architectures:
-        - arm64
-      types:
-        - vm
-
-    - packages:
-        - shim-signed
-      action: install
-      architectures:
-        - arm64
-      types:
-        - vm
-
-    - packages:
         - linux-image-virtual
+        - cloud-guest-utils
       action: install
-      types:
-        - vm
 
     - packages:
         - os-prober
       action: remove
-      types:
-        - vm
-
-    - packages:
-        - cloud-guest-utils
-      action: install
-      types:
-        - vm
 
   repositories:
     - name: sources.list
@@ -564,7 +491,6 @@ actions:
       TARGET="x86_64"
       [ "$(uname -m)" = "aarch64" ] && TARGET="arm64"
 
-
       update-grub
 
       # This will create EFI/BOOT
@@ -574,7 +500,6 @@ actions:
       grub-install --uefi-secure-boot --target="$${TARGET}-efi" --no-nvram
 
       update-grub
-      sed -i "s#root=[^ ]*#root=$${DISTROBUILDER_ROOT_UUID}#g" /boot/grub/grub.cfg
     types:
       - vm
 
