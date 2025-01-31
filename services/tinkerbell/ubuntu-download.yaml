@@ -33,11 +33,11 @@ spec:
       containers:
         - name: download-ubuntu-jammy
           image: bash:5.2.2
-          command: ["/script/entrypoint.sh"]
+          command: [/script/entrypoint.sh]
           args:
             [
-              "https://cloud-images.ubuntu.com/daily/server/jammy/current/jammy-server-cloudimg-arm64.img",
-              "/output",
+              https://cloud-images.ubuntu.com/daily/server/jammy/current/jammy-server-cloudimg-arm64.img,
+              /output,
             ]
           volumeMounts:
             - mountPath: /output
@@ -51,5 +51,5 @@ spec:
             claimName: hook-artifacts
         - name: configmap-volume
           configMap:
-            defaultMode: 0700
+            defaultMode: "0700"
             name: download-image

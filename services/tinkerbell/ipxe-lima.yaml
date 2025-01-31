@@ -1,5 +1,5 @@
 vmType: qemu
-minimumLimaVersion: "1.0.0"
+minimumLimaVersion: 1.0.0
 
 arch: aarch64
 
@@ -8,9 +8,9 @@ images:
     arch: aarch64
 
 additionalDisks:
-  - name: "ipxe-target"
+  - name: ipxe-target
     format: true
-    fsType: "ext4"
+    fsType: ext4
 
 user:
   name: ubuntu
