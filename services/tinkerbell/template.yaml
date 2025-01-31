@@ -87,14 +87,15 @@ spec:
               GID: 0
               MODE: 0644
               DIRMODE: 0755
-          - name: "kexec into os"
+
+          # For some reason kexec does not work, so reboot now
+          - name: "reboot"
             image: ghcr.io/jacobweinstock/waitdaemon:latest
             timeout: 90
             pid: host
+            command: ["reboot"]
             environment:
-              BLOCK_DEVICE: {{ formatPartition ( index .Hardware.Disks 0 ) 1 }}
-              FS_TYPE: ext4
-              IMAGE: quay.io/tinkerbell/actions/kexec:latest
+              IMAGE: alpine
               WAIT_SECONDS: 10
             volumes:
               - /var/run/docker.sock:/var/run/docker.sock
