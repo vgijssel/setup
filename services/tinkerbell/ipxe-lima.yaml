@@ -7,11 +7,6 @@ images:
   - location: ../../images/ipxe-vm/output/disk.qcow2
     arch: aarch64
 
-additionalDisks:
-  - name: ipxe-target
-    format: true
-    fsType: ext4
-
 user:
   name: ubuntu
   comment: ubuntu
