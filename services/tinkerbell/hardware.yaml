@@ -5,23 +5,15 @@ metadata:
   namespace: tink
 spec:
   disks:
-    # TODO: validate if this is the right disk
     - device: /dev/vda
   interfaces:
     - dhcp:
-        # arch: x86_64
         arch: aarch64
-        # hostname: machine1
         ip:
           address: 192.168.104.4
           gateway: 192.168.104.2
           netmask: 255.255.255.0
-        # lease_time: 86400
         mac: 52:55:55:38:6f:53
-        # name_servers:
-        # - 1.1.1.1
-        # - 8.8.8.8
-        # uefi: true
       netboot:
         allowPXE: true
         allowWorkflow: true

@@ -1,16 +1,9 @@
-# ip address of tinkerbell-server: 192.168.5.15 (slirp)
-# ip address of tinkerbell-server: 192.168.104.1 (user-v2)
-# ip address of the default gateway: 192.168.104.2
-# the public IP should not be already taken!! So 192.168.104.1 will break everything. as that is already used
-# public IP: 192.168.104.100
-#
 # https://github.com/tinkerbell/charts/blob/main/tinkerbell/stack/README.md
-#
-# From the docs:
-# The trusted proxies are the IP addresses of the nodes in the cluster.
-
 global:
+  # The trusted proxies are the IP addresses of the nodes in the cluster.
   trustedProxies: [192.168.104.1]
+
+  # The public IP should be a free IP address in the network, not already taken by another device.
   publicIP: 192.168.104.100
 
 smee:

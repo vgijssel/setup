@@ -1,8 +1,6 @@
 vmType: qemu
 minimumLimaVersion: "1.0.0"
 
-# Arch: "default", "x86_64", "aarch64".
-# 🟢 Builtin default: "default" (corresponds to the host architecture)
 arch: aarch64
 
 images:
@@ -14,28 +12,9 @@ additionalDisks:
     format: true
     fsType: "ext4"
 
-# Probe scripts to check readiness.
-# The scripts run in user mode. They must start with a '#!' line.
-# The scripts can use the following template variables: {{.Home}}, {{.Name}}, {{.Hostname}}, {{.UID}}, {{.User}}, and {{.Param.Key}}.
-# 🟢 Builtin default: []
-# probes:
-# # Only `readiness` probes are supported right now.
-# - mode: readiness
-#   description: vim to be installed
-#   script: |
-#      #!/bin/bash
-#      set -eux -o pipefail
-#      if ! timeout 30s bash -c "until command -v vim; do sleep 3; done"; then
-#        echo >&2 "vim is not installed yet"
-#        exit 1
-#      fi
-#   hint: |
-#     vim was not installed in the guest. Make sure the package system is working correctly.
-#     Also see "/var/log/cloud-init-output.log" in the guest.
-
 user:
   name: ubuntu
-  comment: ubunti
+  comment: ubuntu
 
 vmOpts:
   qemu:
@@ -46,5 +25,6 @@ networks:
   - lima: user-v2
 plain: true
 nestedVirtualization: false
-# Need memory to unpack the ram disk
+
+# Need at least 2GiB memory to unpack the ram disk for HookOS
 memory: 2GiB

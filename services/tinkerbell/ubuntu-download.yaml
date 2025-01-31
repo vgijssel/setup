@@ -34,7 +34,6 @@ spec:
         - name: download-ubuntu-jammy
           image: bash:5.2.2
           command: ["/script/entrypoint.sh"]
-          # TODO: change the architecture here!!
           args:
             [
               "https://cloud-images.ubuntu.com/daily/server/jammy/current/jammy-server-cloudimg-arm64.img",

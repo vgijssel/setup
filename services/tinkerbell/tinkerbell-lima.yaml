@@ -43,8 +43,6 @@ provision:
               curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable=traefik,servicelb,metrics-server,local-storage server --write-kubeconfig-mode 644" sh -
       fi
 
-  # TODO: Wait for k3s to be ready and rename the context to tinkerbell-dev
-
 probes:
   - script: |
       #!/bin/bash
