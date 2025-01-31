@@ -1,0 +1,25 @@
+vmType: qemu
+minimumLimaVersion: 1.0.0
+
+arch: aarch64
+
+images:
+  - location: ../../images/ipxe-vm/output/disk.qcow2
+    arch: aarch64
+
+user:
+  name: ubuntu
+  comment: ubuntu
+
+vmOpts:
+  qemu:
+    minimumVersion: 9.2.0
+
+os: Linux
+networks:
+  - lima: user-v2
+plain: true
+nestedVirtualization: false
+
+# Need at least 2GiB memory to unpack the ram disk for HookOS
+memory: 2GiB

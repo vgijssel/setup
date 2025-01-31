@@ -1,0 +1,19 @@
+apiVersion: tinkerbell.org/v1alpha1
+kind: Hardware
+metadata:
+  name: machine1
+  namespace: tink
+spec:
+  disks:
+    - device: /dev/vda
+  interfaces:
+    - dhcp:
+        arch: aarch64
+        ip:
+          address: 192.168.104.4
+          gateway: 192.168.104.2
+          netmask: 255.255.255.0
+        mac: 52:55:55:38:6f:53
+      netboot:
+        allowPXE: true
+        allowWorkflow: true

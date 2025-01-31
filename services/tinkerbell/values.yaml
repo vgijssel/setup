@@ -1,0 +1,16 @@
+# https://github.com/tinkerbell/charts/blob/main/tinkerbell/stack/README.md
+global:
+  # The trusted proxies are the IP addresses of the nodes in the cluster.
+  trustedProxies: [192.168.104.1]
+
+  # The public IP should be a free IP address in the network, not already taken by another device.
+  publicIP: 192.168.104.100
+
+smee:
+  dhcp:
+    enabled: true
+    name: smee-dhcp
+    # There is already an existing DHCP server in the network
+    # so we're using the proxy mode
+    # See: https://github.com/tinkerbell/smee
+    mode: proxy
