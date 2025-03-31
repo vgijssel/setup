@@ -1,0 +1,17 @@
+# environments:
+#   default:
+#     values:
+#       - tailscale:
+#           oauth_client_id: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_id
+#           oauth_client_secret: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_secret
+#       - metabase:
+#           postgres_credential: ref+op://vgijssel-prod/metabase_postgres/credential
+# ---
+repositories:
+  - name: rook-release
+    url: https://charts.rook.io/release
+
+releases:
+  - name: rook-ceph
+    namespace: rook-ceph
+    chart: rook-release/rook-ceph
