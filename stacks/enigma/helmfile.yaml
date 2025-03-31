@@ -15,3 +15,20 @@ releases:
   - name: rook-ceph
     namespace: rook-ceph
     chart: rook-release/rook-ceph
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          [
+            "label",
+            "namespace",
+            "rook-ceph",
+            "pod-security.kubernetes.io/enforce=privileged",
+          ]
+
+  - name: rook-ceph-cluster
+    namespace: rook-ceph
+    chart: rook-release/rook-ceph-cluster
+    values:
+      - operatorNamespace: rook-ceph
