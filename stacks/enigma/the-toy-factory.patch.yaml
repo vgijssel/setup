@@ -1,0 +1,18 @@
+machine:
+  install:
+    disk: /dev/nvme0n1
+  network:
+    hostname: the-toy-factory
+    nameservers:
+      - 192.168.1.1
+    interfaces:
+      - interface: eno1
+        addresses:
+          - 192.168.1.40/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.1.1
+        vip:
+          ip: 192.168.1.50
+cluster:
+  allowSchedulingOnControlPlanes: true
