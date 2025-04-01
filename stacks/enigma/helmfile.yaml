@@ -28,6 +28,7 @@ releases:
           ]
 
   - name: rook-ceph-cluster
+    installed: false
     namespace: rook-ceph
     chart: rook-release/rook-ceph-cluster
     values:
