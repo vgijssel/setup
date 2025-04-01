@@ -14,5 +14,16 @@ machine:
             gateway: 192.168.1.1
         vip:
           ip: 192.168.1.50
+
+      # - interface: enp4s0f0np0
+      #   addresses:
+      #     - 10.0.1.1/30
+
 cluster:
   allowSchedulingOnControlPlanes: true
+  network:
+    cni:
+      # Using Cilium as the CNI plugin
+      name: none
+  proxy:
+    disabled: true
