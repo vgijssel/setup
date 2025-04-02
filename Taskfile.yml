@@ -13,6 +13,10 @@ includes:
     taskfile: ./services/tinkerbell/Taskfile.yml
     dir: ./services/tinkerbell
 
+  stacks:enigma:
+    taskfile: ./stacks/enigma/Taskfile.yml
+    dir: ./stacks/enigma
+
 tasks:
   devenv:secrets:
     desc: Install secrets for the devenv
