@@ -33,4 +33,4 @@ cluster:
       flannel:
         # https://github.com/flannel-io/flannel/blob/master/Documentation/configuration.md#key-command-line-options
         extraArgs:
-          - --iface="br0"
+          - --iface=br0

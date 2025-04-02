@@ -24,6 +24,7 @@ machine:
           interfaces:
             - enp4s0f0np0
             - enp4s0f1np1
+
 cluster:
   allowSchedulingOnControlPlanes: true
   network:
@@ -32,4 +33,4 @@ cluster:
       flannel:
         # https://github.com/flannel-io/flannel/blob/master/Documentation/configuration.md#key-command-line-options
         extraArgs:
-          - --iface="br0"
+          - --iface=br0
