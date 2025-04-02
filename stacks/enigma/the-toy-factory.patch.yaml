@@ -21,9 +21,3 @@ machine:
 
 cluster:
   allowSchedulingOnControlPlanes: true
-  network:
-    cni:
-      # Using Cilium as the CNI plugin
-      name: none
-  proxy:
-    disabled: true
