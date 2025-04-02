@@ -27,3 +27,10 @@ machine:
 
 cluster:
   allowSchedulingOnControlPlanes: true
+  network:
+    cni:
+      name: flannel
+      flannel:
+        # https://github.com/flannel-io/flannel/blob/master/Documentation/configuration.md#key-command-line-options
+        extraArgs:
+          - --iface="br0"
