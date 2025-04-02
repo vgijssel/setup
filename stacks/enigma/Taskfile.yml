@@ -36,3 +36,12 @@ tasks:
       # Install kubeconfig
       - talosctl kubeconfig -n 192.168.1.40
       - kubectl get nodes
+
+  apply:
+    desc: Apply the configuration to the nodes
+    deps:
+      - generate
+    cmds:
+      - talosctl apply-config -n 192.168.1.40 --file the-toy-factory.yaml
+      - talosctl apply-config -n 192.168.1.41 --file the-dome.yaml
+      - talosctl apply-config -n 192.168.1.42 --file illusion.yaml

@@ -14,5 +14,16 @@ machine:
             gateway: 192.168.1.1
         vip:
           ip: 192.168.1.50
+
+      - interface: br0
+        addresses:
+          - 10.15.15.42/24
+        bridge:
+          stp:
+            enabled: true
+          interfaces:
+            - enp4s0f0np0
+            - enp4s0f1np1
+
 cluster:
   allowSchedulingOnControlPlanes: true
