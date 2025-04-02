@@ -34,3 +34,7 @@ releases:
     chart: rook-release/rook-ceph-cluster
     values:
       - operatorNamespace: rook-ceph
+
+  - name: iperf3
+    namespace: iperf3
+    chart: ../../services/iperf3

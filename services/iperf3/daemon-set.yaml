@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: iperf3-ds
+spec:
+  selector:
+    matchLabels:
+      app: iperf3
+  template:
+    metadata:
+      labels:
+        app: iperf3
+    spec:
+      containers:
+        - name: iperf3
+          image: networkstatic/iperf3
+          entrypoint: []
+          command: ["sleep", "infinity"]
