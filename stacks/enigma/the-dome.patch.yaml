@@ -17,11 +17,11 @@ machine:
 
       - interface: enp4s0f0np0
         ignore: true
+
       - interface: enp4s0f1np1
         ignore: true
 
       # - interface: br0
-      #   mtu: 9000
       #   addresses:
       #     - 10.15.15.41/24
       #   bridge:
@@ -33,13 +33,13 @@ machine:
 
 cluster:
   allowSchedulingOnControlPlanes: true
+  etcd:
+    advertisedSubnets:
+      - 192.168.1.0/24
   network:
     cni:
       name: flannel
       # flannel:
       #   # https://github.com/flannel-io/flannel/blob/master/Documentation/configuration.md#key-command-line-options
       #   extraArgs:
-      #     # - --iface=10.15.15.40
-      #     # - --iface=10.15.15.41
-      #     # - --iface=10.15.15.42
       #     - --iface=br0
