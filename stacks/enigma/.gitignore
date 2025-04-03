@@ -3,4 +3,5 @@ talosconfig
 the-toy-factory.yaml
 the-dome.yaml
 illusion.yaml
+cilium.patch.yaml
 .task
