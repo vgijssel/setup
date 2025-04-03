@@ -4,9 +4,9 @@ tasks:
   generate:
     desc: Generate the Talos configuration files
     cmds:
-      - talosctl gen config --with-secrets secrets.yaml --config-patch-control-plane @the-toy-factory.patch.yaml --output-types controlplane -o the-toy-factory.yaml enigma https://192.168.1.50:6443 --force
-      - talosctl gen config --with-secrets secrets.yaml --config-patch-control-plane @the-dome.patch.yaml --output-types controlplane -o the-dome.yaml enigma https://192.168.1.50:6443 --force
-      - talosctl gen config --with-secrets secrets.yaml --config-patch-control-plane @illusion.patch.yaml --output-types controlplane -o illusion.yaml enigma https://192.168.1.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o the-toy-factory.yaml enigma https://192.168.1.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o the-dome.yaml enigma https://192.168.1.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o illusion.yaml enigma https://192.168.1.50:6443 --force
     sources:
       - the-toy-factory.patch.yaml
       - the-dome.patch.yaml
