@@ -17,6 +17,10 @@ includes:
     taskfile: ./stacks/enigma/Taskfile.yml
     dir: ./stacks/enigma
 
+  3rdparty:
+    taskfile: ./3rdparty/Taskfile.yml
+    dir: .
+
 tasks:
   devenv:secrets:
     desc: Install secrets for the devenv

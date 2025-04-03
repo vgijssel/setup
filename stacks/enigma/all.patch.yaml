@@ -39,8 +39,6 @@ cluster:
       - 192.168.1.0/24
   network:
     cni:
-      name: flannel
-      flannel:
-        # https://github.com/flannel-io/flannel/blob/master/Documentation/configuration.md#key-command-line-options
-        extraArgs:
-          - --iface=br0
+      name: none
+  proxy:
+    disabled: true
