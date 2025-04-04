@@ -19,6 +19,8 @@ tasks:
       - talosctl gen config --with-secrets secrets.yaml --config-patch @cilium.patch.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o the-dome.yaml enigma https://192.168.1.50:6443 --force
       - talosctl gen config --with-secrets secrets.yaml --config-patch @cilium.patch.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o illusion.yaml enigma https://192.168.1.50:6443 --force
     sources:
+      - cilium.patch.yaml
+      - all.patch.yaml
       - the-toy-factory.patch.yaml
       - the-dome.patch.yaml
       - illusion.patch.yaml
@@ -27,7 +29,7 @@ tasks:
       - the-dome.yaml
       - illusion.yaml
 
-  init:
+  bootstrap:
     desc: Apply initial configuration to nodes
     deps:
       - generate
@@ -35,18 +37,13 @@ tasks:
       - talosctl apply-config --insecure -n {{.THE_TOY_FACTORY_IP}} --file the-toy-factory.yaml
       - talosctl apply-config --insecure -n {{.THE_DOME_IP}} --file the-dome.yaml
       - talosctl apply-config --insecure -n {{.ILLUSION_IP}} --file illusion.yaml
-    requires:
-      vars: [THE_TOY_FACTORY_IP, THE_DOME_IP, ILLUSION_IP]
-
-  bootstrap:
-    desc: Bootstrap the Talos cluster
-    cmds:
       - talosctl bootstrap -n 192.168.1.40
       - talosctl health -n 192.168.1.40
       - talosctl version
-      # Install kubeconfig
       - talosctl kubeconfig -n 192.168.1.40
       - kubectl get nodes
+    requires:
+      vars: [THE_TOY_FACTORY_IP, THE_DOME_IP, ILLUSION_IP]
 
   apply:
     desc: Apply the configuration to the nodes

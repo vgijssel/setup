@@ -11,6 +11,7 @@ def wrap(s):  # literal if multi-line
     return ruamel.yaml.scalarstring.LiteralScalarString(s)
 
 
+# TODO: move this to a values file, this is unwieldy
 helm_script = """
 helm template \
     cilium \
@@ -24,7 +25,18 @@ helm template \
     --set cgroup.autoMount.enabled=false \
     --set cgroup.hostRoot=/sys/fs/cgroup \
     --set k8sServiceHost=localhost \
-    --set k8sServicePort=7445
+    --set k8sServicePort=7445 \
+    --set routingMode=native \
+    --set bpf.masquerade=true \
+    --set enableIPv4Masquerade=true \
+    --set ipv4NativeRoutingCIDR=10.244.0.0/16 \
+    --set autoDirectNodeRoutes=true \
+    --set hubble.relay.enabled=true \
+    --set hubble.ui.enabled=true \
+    --set ipv4.enabled=true \
+    --set ipv6.enabled=false \
+    --set routingMode=native
+
 """
 
 result = subprocess.run([helm_script], text=True, shell=True, capture_output=True)

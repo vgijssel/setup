@@ -32,6 +32,11 @@ machine:
       #     interfaces:
       #       - enp4s0f0np0
       #       - enp4s0f1np1
+  features:
+    hostDNS:
+      # Necessary for Cilium `bpf.masquerade=true`
+      # See https://github.com/siderolabs/talos/pull/9200
+      forwardKubeDNSToHost: false
 cluster:
   allowSchedulingOnControlPlanes: true
   etcd:
