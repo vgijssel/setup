@@ -6,6 +6,7 @@ tasks:
     cmds:
       - pants run generate_cilium_patch.py
     sources:
+      - "{{ .SERVICES_DIR }}/cilium/values.yaml"
       - generate_cilium_patch.py
     generates:
       - cilium.patch.yaml
