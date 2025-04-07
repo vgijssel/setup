@@ -43,5 +43,8 @@ ipv4:
   enabled: true
 ipv6:
   enabled: false
-# devices:
-#   - br0
+
+nodePort:
+  directRoutingDevice: br0
+devices:
+  - br0
