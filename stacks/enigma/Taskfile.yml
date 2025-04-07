@@ -40,7 +40,8 @@ tasks:
       - talosctl bootstrap -n 192.168.1.40
       - talosctl health -n 192.168.1.40
       - talosctl version
-      - talosctl kubeconfig -n 192.168.1.40
+      # Write out the kubeconfig to a location known by kubie
+      - talosctl kubeconfig -n 192.168.1.40 ~/.kube/configs/enigma.yaml
       - kubectl get nodes
     requires:
       vars: [THE_TOY_FACTORY_IP, THE_DOME_IP, ILLUSION_IP]

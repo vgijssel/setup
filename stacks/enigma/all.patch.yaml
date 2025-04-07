@@ -17,21 +17,13 @@ machine:
         vip:
           ip: 192.168.1.50
 
-      - interface: enp4s0f0np0
-        ignore: true
-
-      - interface: enp4s0f1np1
-        ignore: true
-
-      # - interface: br0
-      #   addresses:
-      #     - 10.15.15.42/24
-      #   bridge:
-      #     stp:
-      #       enabled: true
-      #     interfaces:
-      #       - enp4s0f0np0
-      #       - enp4s0f1np1
+      - interface: br0
+        bridge:
+          stp:
+            enabled: true
+          interfaces:
+            - enp4s0f0np0
+            - enp4s0f1np1
   features:
     hostDNS:
       # Necessary for Cilium `bpf.masquerade=true`

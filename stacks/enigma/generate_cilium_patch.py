@@ -3,40 +3,20 @@ import subprocess
 
 import ruamel.yaml
 
-# generate yaml based on helm call
-# From https://www.talos.dev/v1.9/kubernetes-guides/network/deploying-cilium/
-
 
 def wrap(s):  # literal if multi-line
     return ruamel.yaml.scalarstring.LiteralScalarString(s)
 
 
-# TODO: move this to a values file, this is unwieldy
-helm_script = """
+cilium_values = os.path.join(os.environ["SERVICES_DIR"], "cilium", "values.yaml")
+
+helm_script = f"""
 helm template \
     cilium \
     cilium/cilium \
     --version 1.15.6 \
     --namespace kube-system \
-    --set ipam.mode=kubernetes \
-    --set kubeProxyReplacement=true \
-    --set securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}" \
-    --set securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}" \
-    --set cgroup.autoMount.enabled=false \
-    --set cgroup.hostRoot=/sys/fs/cgroup \
-    --set k8sServiceHost=localhost \
-    --set k8sServicePort=7445 \
-    --set routingMode=native \
-    --set bpf.masquerade=true \
-    --set enableIPv4Masquerade=true \
-    --set ipv4NativeRoutingCIDR=10.244.0.0/16 \
-    --set autoDirectNodeRoutes=true \
-    --set hubble.relay.enabled=true \
-    --set hubble.ui.enabled=true \
-    --set ipv4.enabled=true \
-    --set ipv6.enabled=false \
-    --set routingMode=native
-
+    --values {cilium_values}
 """
 
 result = subprocess.run([helm_script], text=True, shell=True, capture_output=True)
@@ -59,7 +39,7 @@ patch = {
 yaml = ruamel.yaml.YAML()
 
 # Get the directory of the current script
-script_dir = os.path.join(os.environ["SETUP_DIR"], "stacks", "enigma")
+script_dir = os.path.join(os.environ["STACKS_DIR"], "enigma")
 
 # Write out file_content to cilium.patch.yaml in the same directory as the script
 output_file = os.path.join(script_dir, "cilium.patch.yaml")
