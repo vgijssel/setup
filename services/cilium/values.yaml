@@ -43,5 +43,5 @@ ipv4:
   enabled: true
 ipv6:
   enabled: false
-devices:
-  - br0
+# devices:
+#   - br0
