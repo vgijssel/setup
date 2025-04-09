@@ -3,7 +3,9 @@
 
 ipam:
   mode: kubernetes
-kubeProxyReplacement: true
+kubeProxyReplacement: false
+# k8sServiceHost: localhost
+# k8sServicePort: 7445
 securityContext:
   capabilities:
     ciliumAgent:
@@ -26,10 +28,11 @@ cgroup:
   autoMount:
     enabled: false
   hostRoot: /sys/fs/cgroup
-k8sServiceHost: localhost
-k8sServicePort: 7445
 # bpf:
 #   masquerade: true
+# bpf:
+#   hostLegacyRouting: true
+#   masquerade: false
 ipv4NativeRoutingCIDR: 10.244.0.0/16
 # ipv4NativeRoutingCIDR: 10.42.0.0/16
 routingMode: native
@@ -38,20 +41,19 @@ autoDirectNodeRoutes: true
 # We need to apply NAT on the interface which is external facing
 # enableIPv4Masquerade: true
 # ipv4MasqueradeInterface: eno1
-hubble:
-  enabled: true
-  relay:
-    enabled: true
-  ui:
-    enabled: true
-ipv4:
-  enabled: true
-ipv6:
-  enabled: false
-
-nodePort:
-  enabled: true
-  # directRoutingDevice: br0
+# hubble:
+#   enabled: true
+#   relay:
+#     enabled: true
+#   ui:
+#     enabled: true
+# ipv4:
+#   enabled: true
+# ipv6:
+#   enabled: false
+# nodePort:
+#   enabled: true
+# directRoutingDevice: br0
 # Need to specify both the internal and external network interfaces
 # otherwise the pods will not have access to the internet
 # when the external inface is omitted.

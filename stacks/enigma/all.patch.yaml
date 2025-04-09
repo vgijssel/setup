@@ -4,7 +4,8 @@ machine:
   kubelet:
     nodeIP:
       validSubnets:
-        - 10.15.15.0/24
+        - 192.168.1.0/24
+        # - 10.15.15.0/24
   network:
     hostname: illusion
     nameservers:
@@ -33,9 +34,16 @@ cluster:
   allowSchedulingOnControlPlanes: true
   etcd:
     advertisedSubnets:
-      - 10.15.15.0/24
+      - 192.168.1.0/24
+      # - 10.15.15.0/24
   network:
     cni:
       name: none
   proxy:
-    disabled: true
+    extraArgs:
+      # From https://github.com/siderolabs/talos/discussions/9577
+      # TODO: set to more specific CIDR
+      nodeport-addresses: 0.0.0.0/0
+
+  # proxy:
+  #   disabled: true
