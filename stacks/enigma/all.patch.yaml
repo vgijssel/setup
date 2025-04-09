@@ -28,12 +28,12 @@ machine:
     hostDNS:
       # Necessary for Cilium `bpf.masquerade=true`
       # See https://github.com/siderolabs/talos/pull/9200
-      forwardKubeDNSToHost: false
+      # forwardKubeDNSToHost: false
 cluster:
   allowSchedulingOnControlPlanes: true
   etcd:
     advertisedSubnets:
-      - 192.168.1.0/24
+      - 10.15.15.0/24
   network:
     cni:
       name: none

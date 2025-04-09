@@ -28,15 +28,18 @@ cgroup:
   hostRoot: /sys/fs/cgroup
 k8sServiceHost: localhost
 k8sServicePort: 7445
-routingMode: native
-bpf:
-  masquerade: true
+# bpf:
+#   masquerade: true
 ipv4NativeRoutingCIDR: 10.244.0.0/16
+# ipv4NativeRoutingCIDR: 10.42.0.0/16
+routingMode: native
 autoDirectNodeRoutes: true
+# ipv4NativeRoutingCIDR: 10.0.0.0/8
 # We need to apply NAT on the interface which is external facing
-enableIPv4Masquerade: true
-ipv4MasqueradeInterface: eno1
+# enableIPv4Masquerade: true
+# ipv4MasqueradeInterface: eno1
 hubble:
+  enabled: true
   relay:
     enabled: true
   ui:
@@ -47,11 +50,11 @@ ipv6:
   enabled: false
 
 nodePort:
-  directRoutingDevice: br0
-
+  enabled: true
+  # directRoutingDevice: br0
 # Need to specify both the internal and external network interfaces
 # otherwise the pods will not have access to the internet
 # when the external inface is omitted.
-devices:
-  - br0
-  - eno1
+# devices:
+#   - br0
+#   - eno1

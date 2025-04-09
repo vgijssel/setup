@@ -11,6 +11,25 @@ tasks:
     generates:
       - cilium.patch.yaml
 
+  test:
+    desc: Test Cilium connectivity tests
+    cmds:
+      - kubectl delete ns cilium-test-1 || true
+      - kubectl create ns cilium-test-1
+      - kubectl label ns cilium-test-1 pod-security.kubernetes.io/enforce=privileged
+      - cilium connectivity test --test echo-ingress-l7 --pause-on-fail
+
+  # hubble:test:
+  #   desc: Validate status of Huble
+  #   cmds:
+  #     - cilium hubble port-forward --port-forward 4245
+  #     - hubble status
+
+  reboot:
+    desc: Reboot Talos nodes
+    cmds:
+      - talosctl reboot -n 192.168.1.40,192.168.1.41,192.168.1.42
+
   generate:
     desc: Generate the Talos configuration files
     deps:
