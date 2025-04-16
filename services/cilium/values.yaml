@@ -3,9 +3,12 @@
 
 ipam:
   mode: kubernetes
-kubeProxyReplacement: false
-# k8sServiceHost: localhost
-# k8sServicePort: 7445
+
+# kube-proxy replacement
+kubeProxyReplacement: true
+k8sServiceHost: localhost
+k8sServicePort: 7445
+
 securityContext:
   capabilities:
     ciliumAgent:
@@ -34,19 +37,18 @@ cgroup:
 #   hostLegacyRouting: true
 #   masquerade: false
 ipv4NativeRoutingCIDR: 10.244.0.0/16
-# ipv4NativeRoutingCIDR: 10.42.0.0/16
 routingMode: native
 autoDirectNodeRoutes: true
 # ipv4NativeRoutingCIDR: 10.0.0.0/8
 # We need to apply NAT on the interface which is external facing
-# enableIPv4Masquerade: true
+enableIPv4Masquerade: true
 # ipv4MasqueradeInterface: eno1
-# hubble:
-#   enabled: true
-#   relay:
-#     enabled: true
-#   ui:
-#     enabled: true
+hubble:
+  enabled: true
+  relay:
+    enabled: true
+  ui:
+    enabled: true
 # ipv4:
 #   enabled: true
 # ipv6:

@@ -17,13 +17,16 @@ tasks:
       - kubectl delete ns cilium-test-1 || true
       - kubectl create ns cilium-test-1
       - kubectl label ns cilium-test-1 pod-security.kubernetes.io/enforce=privileged
-      - cilium connectivity test --test echo-ingress-l7 --pause-on-fail
+      # - cilium connectivity test --test echo-ingress-l7 --pause-on-fail --single-node
+      - cilium connectivity test --single-node
 
-  # hubble:test:
+  # global_tests:
   #   desc: Validate status of Huble
   #   cmds:
   #     - cilium hubble port-forward --port-forward 4245
   #     - hubble status
+  #     - cilium status
+  #     - kubectl get nodes -o wide
 
   reboot:
     desc: Reboot Talos nodes

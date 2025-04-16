@@ -14,6 +14,7 @@
     "alexanderbast.vscode-snazzy",
     "tilt-dev.tiltfile",
     "github.remotehub",
-    "hashicorp.hcl"
+    "hashicorp.hcl",
+    "mkhl.direnv"
   ]
 }
