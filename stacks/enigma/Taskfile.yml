@@ -33,6 +33,7 @@ tasks:
   #     - hubble status
   #     - cilium status
   #     - kubectl get nodes -o wide
+  #     - kubectl rook-ceph rook status
 
   reboot:
     desc: Reboot Talos nodes

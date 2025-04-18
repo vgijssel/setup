@@ -6,7 +6,6 @@ cephClusterSpec:
   dataDirHostPath: /var/lib/rook
   mon:
     count: 3
-    # TODO: change this after migrating all data
     allowMultiplePerNode: false
   dashboard:
     enabled: true
@@ -23,17 +22,17 @@ cephClusterSpec:
     useAllDevices: false
     nodes:
       - name: the-toy-factory
-        devices:
-          - name: /dev/disk/by-id/wwn-0x5000039d78c8b66e # Toshiba 8TB
-            config:
-              metadataDevice: /dev/disk/by-partlabel/db-1 # Micron 2TB cache partition
+        devices: []
+        # devices:
+        #   - name: /dev/disk/by-id/wwn-0x5000039d78c8b66e # Toshiba 8TB
+        #     config:
+        #       metadataDevice: /dev/disk/by-partlabel/db-1 # Micron 2TB cache partition
 
-          - name: /dev/disk/by-id/wwn-0x5000039d78c8c98c # Toshiba 8TB
-            config:
-              metadataDevice: /dev/disk/by-partlabel/db-2 # Micron 2TB cache partition
+        #   - name: /dev/disk/by-id/wwn-0x5000039d78c8c98c # Toshiba 8TB
+        #     config:
+        #       metadataDevice: /dev/disk/by-partlabel/db-2 # Micron 2TB cache partition
 
-          - name: /dev/disk/by-partlabel/data # Micron 2TB data partition
-
+        #   - name: /dev/disk/by-partlabel/data # Micron 2TB data partition
 # cephBlockPools:
 #   - name: ssd-pool
 #     spec:
