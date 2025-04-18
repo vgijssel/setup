@@ -34,6 +34,7 @@ tasks:
   #     - cilium status
   #     - kubectl get nodes -o wide
   #     - kubectl rook-ceph rook status
+  #     - ceph -s
 
   reboot:
     desc: Reboot Talos nodes
