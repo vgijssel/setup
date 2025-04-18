@@ -1,6 +1,7 @@
 version: "3"
 
 tasks:
+  # TODO: implement basic Ansible playbook to provision the devenv
   apply:
     desc: Apply the development environment configuration
     cmds:
@@ -12,6 +13,7 @@ tasks:
     cmds:
       - goss validate
 
+  # TODO: experiment using a shell which sets environment variables when it starts?
   secrets:
     desc: Install secrets for the devenv
     cmds:

@@ -6,6 +6,7 @@ cephClusterSpec:
   dataDirHostPath: /var/lib/rook
   mon:
     count: 3
+    # TODO: change this after migrating all data
     allowMultiplePerNode: true
   dashboard:
     enabled: true
@@ -18,8 +19,8 @@ cephClusterSpec:
     nodes:
       - name: the-toy-factory
         devices:
-          - name: "sdb" # SSD
-
+          - name: /dev/disk/by-id/wwn-0x5000039d78c8b66e
+          - name: /dev/disk/by-id/wwn-0x5000039d78c8c98c
 # cephBlockPools:
 #   - name: ssd-pool
 #     spec:
