@@ -23,16 +23,16 @@ cephClusterSpec:
     nodes:
       - name: the-toy-factory
         devices: []
-        # devices:
-        #   - name: /dev/disk/by-id/wwn-0x5000039d78c8b66e # Toshiba 8TB
-        #     config:
-        #       metadataDevice: /dev/disk/by-partlabel/db-1 # Micron 2TB cache partition
+        devices:
+          - name: /dev/disk/by-id/wwn-0x5000039d78c8b66e # Toshiba 8TB
+            config:
+              metadataDevice: /dev/disk/by-id/nvme-eui.000000000000000100a0752249f0f8de-part1 # Micron 2TB cache partition
 
-        #   - name: /dev/disk/by-id/wwn-0x5000039d78c8c98c # Toshiba 8TB
-        #     config:
-        #       metadataDevice: /dev/disk/by-partlabel/db-2 # Micron 2TB cache partition
+          - name: /dev/disk/by-id/wwn-0x5000039d78c8c98c # Toshiba 8TB
+            config:
+              metadataDevice: /dev/disk/by-id/nvme-eui.000000000000000100a0752249f0f8de-part2 # Micron 2TB cache partition
 
-        #   - name: /dev/disk/by-partlabel/data # Micron 2TB data partition
+          - name: /dev/disk/by-id/nvme-eui.000000000000000100a0752249f0f8de-part3 # Micron 2TB data partition
 # cephBlockPools:
 #   - name: ssd-pool
 #     spec:
