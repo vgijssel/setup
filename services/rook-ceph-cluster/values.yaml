@@ -1,0 +1,52 @@
+operatorNamespace: rook-ceph
+
+cephClusterSpec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v18.2.2
+  dataDirHostPath: /var/lib/rook
+  mon:
+    count: 3
+    allowMultiplePerNode: true
+  dashboard:
+    enabled: true
+  network:
+    hostNetwork: false
+
+  storage:
+    useAllNodes: false
+    useAllDevices: false
+    nodes:
+      - name: the-toy-factory
+        devices:
+          - name: "sdb" # SSD
+
+# cephBlockPools:
+#   - name: ssd-pool
+#     spec:
+#       failureDomain: osd
+#       replicated:
+#         size: 3
+#       crushRoot: default
+#       deviceClass: ssd
+#     storageClass:
+#       enabled: true
+#       name: rook-ceph-ssd
+#       isDefault: false
+#       reclaimPolicy: Delete
+#       allowVolumeExpansion: true
+#       volumeBindingMode: Immediate
+
+#   - name: hdd-pool
+#     spec:
+#       failureDomain: osd
+#       replicated:
+#         size: 3
+#       crushRoot: default
+#       deviceClass: hdd
+#     storageClass:
+#       enabled: true
+#       name: rook-ceph-hdd
+#       isDefault: true  # You can choose which to be default
+#       reclaimPolicy: Delete
+#       allowVolumeExpansion: true
+#       volumeBindingMode: Immediate

@@ -1,0 +1,20 @@
+version: "3"
+
+tasks:
+  apply:
+    desc: Apply the development environment configuration
+    cmds:
+      - helmfile init
+
+  test:
+    desc: Test the development environment
+    dir: stacks/devenv
+    cmds:
+      - goss validate
+
+  secrets:
+    desc: Install secrets for the devenv
+    cmds:
+      - op inject --force --in-file=.op.env --out-file=.env
+    sources:
+      - .op.env

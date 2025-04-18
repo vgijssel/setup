@@ -13,7 +13,6 @@ repositories:
 
 releases:
   - name: rook-ceph
-    installed: false
     namespace: rook-ceph
     chart: rook-release/rook-ceph
     hooks:
@@ -29,12 +28,12 @@ releases:
           ]
 
   - name: rook-ceph-cluster
-    installed: false
     namespace: rook-ceph
     chart: rook-release/rook-ceph-cluster
     values:
-      - operatorNamespace: rook-ceph
+      - ../../services/rook-ceph-cluster/values.yaml
 
-  - name: iperf3
-    namespace: iperf3
-    chart: ../../services/iperf3
+  # - name: iperf3
+  #   installed: false
+  #   namespace: iperf3
+  #   chart: ../../services/iperf3

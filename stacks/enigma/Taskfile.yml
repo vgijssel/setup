@@ -18,7 +18,13 @@ tasks:
       - kubectl create ns cilium-test-1
       - kubectl label ns cilium-test-1 pod-security.kubernetes.io/enforce=privileged
       # - cilium connectivity test --test echo-ingress-l7 --pause-on-fail --single-node
+      # TODO: can we add in the labels here as well??
       - cilium connectivity test --single-node
+
+  benchmark:
+    desc: Run Cilium benchmark tests
+    cmds:
+      - cilium connectivity perf --namespace-labels=pod-security.kubernetes.io/enforce=privileged --namespace-labels=pod-security.kubernetes.io/audit=privileged --namespace-labels=pod-security.kubernetes.io/warn=privileged
 
   # global_tests:
   #   desc: Validate status of Huble
