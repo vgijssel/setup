@@ -6,6 +6,7 @@ tasks:
     desc: Apply the development environment configuration
     cmds:
       - helmfile init
+      - kubectl krew install rook-ceph
 
   test:
     desc: Test the development environment
