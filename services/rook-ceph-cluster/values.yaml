@@ -1,5 +1,9 @@
 operatorNamespace: rook-ceph
 
+toolbox:
+  # -- Enable Ceph debugging pod deployment. See [toolbox](../Troubleshooting/ceph-toolbox.md)
+  enabled: false
+
 cephClusterSpec:
   cephVersion:
     image: quay.io/ceph/ceph:v18.2.2
@@ -7,6 +11,11 @@ cephClusterSpec:
   mon:
     count: 3
     allowMultiplePerNode: false
+  mgr:
+    allowMultiplePerNode: false
+    modules:
+      - name: rook
+        enabled: true
   dashboard:
     enabled: true
   network:
@@ -22,7 +31,6 @@ cephClusterSpec:
     useAllDevices: false
     nodes:
       - name: the-toy-factory
-        devices: []
         devices:
           - name: /dev/disk/by-id/wwn-0x5000039d78c8b66e # Toshiba 8TB
             config:
@@ -33,33 +41,15 @@ cephClusterSpec:
               metadataDevice: /dev/disk/by-partlabel/db-2 # Micron 2TB cache partition
 
           - name: /dev/disk/by-partlabel/data # Micron 2TB data partition
-# cephBlockPools:
-#   - name: ssd-pool
-#     spec:
-#       failureDomain: osd
-#       replicated:
-#         size: 3
-#       crushRoot: default
-#       deviceClass: ssd
-#     storageClass:
-#       enabled: true
-#       name: rook-ceph-ssd
-#       isDefault: false
-#       reclaimPolicy: Delete
-#       allowVolumeExpansion: true
-#       volumeBindingMode: Immediate
 
-#   - name: hdd-pool
-#     spec:
-#       failureDomain: osd
-#       replicated:
-#         size: 3
-#       crushRoot: default
-#       deviceClass: hdd
-#     storageClass:
-#       enabled: true
-#       name: rook-ceph-hdd
-#       isDefault: true  # You can choose which to be default
-#       reclaimPolicy: Delete
-#       allowVolumeExpansion: true
-#       volumeBindingMode: Immediate
+      - name: the-dome
+        devices:
+          - name: /dev/disk/by-partlabel/data # Micron 2TB data partition
+
+      - name: illusion
+        devices:
+          - name: /dev/disk/by-partlabel/data # Micron 2TB data partition
+
+cephBlockPools: []
+cephFileSystems: []
+cephObjectStores: []
