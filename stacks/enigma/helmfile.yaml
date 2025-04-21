@@ -33,6 +33,10 @@ releases:
     values:
       - ../../services/rook-ceph-cluster/values.yaml
 
+  - name: rook-ceph-nfs
+    namespace: rook-ceph
+    chart: ../../services/rook-ceph-nfs
+
   # - name: iperf3
   #   installed: false
   #   namespace: iperf3
