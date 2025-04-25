@@ -1,6 +1,17 @@
 version: "3"
 
 tasks:
+  hubble:start:
+    desc: Start Hubble Relay port forward
+    cmds:
+      - overmind status || overmind start --daemonize
+      - wait-for-it localhost:4245
+
+  hubble:stop:
+    desc: Stop Hubble Relay port forward
+    cmds:
+      - overmind quit
+
   generate:cilium:
     desc: Generate the Cilium patch
     cmds:
@@ -32,6 +43,8 @@ tasks:
   validate:
     desc: Validate Cluster Health
     cmds:
+      - task: hubble:start
+      - defer: { task: hubble:stop }
       - goss validate
 
   reboot:
