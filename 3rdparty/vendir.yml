@@ -16,8 +16,10 @@ directories:
 
     contents:
       - path: multus-cni
+        lazy: true
         git:
           url: https://github.com/k8snetworkplumbingwg/multus-cni
           ref: v4.2.0
           depth: 1
+          lfsSkipSmudge: false
         newRootPath: deployments

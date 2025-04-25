@@ -1,7 +1,12 @@
 version: "3"
 
 tasks:
-  update:
+  python:update:
     desc: Update 3rd party lock files
     cmds:
       - pants generate-lockfiles
+
+  vendir:update:
+    desc: Update vendir lock files
+    cmds:
+      - vendir sync
