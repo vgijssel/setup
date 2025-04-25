@@ -1,11 +1,11 @@
 apiVersion: vendir.k14s.io/v1alpha1
 directories:
-  - contents:
-      - git:
-          commitTitle: "Merge pull request #1409 from maiqueb/bump-net-attach-def-client-lib-1.7.6..."
-          sha: 2a91646eafe7e777f54cc01134a430f4730325e2
-          tags:
-            - v4.2.0
-        path: multus-cni
-    path: config
+- contents:
+  - git:
+      commitTitle: 'Merge pull request #1409 from maiqueb/bump-net-attach-def-client-lib-1.7.6...'
+      sha: 2a91646eafe7e777f54cc01134a430f4730325e2
+      tags:
+      - v4.2.0
+    path: multus-cni
+  path: config
 kind: LockConfig
