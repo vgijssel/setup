@@ -15,37 +15,44 @@ command:
     title: Cilium must be healthy for the network to be functional
     exec: cilium status --output json | jq ".pod_state"
     exit-status: 0
-    stdout:
-      - "{"
-      - '"cilium": {'
-      - '"Type": "DaemonSet",'
-      - '"Desired": 3,'
-      - '"Ready": 1,'
-      - '"Available": 3,'
-      - '"Unavailable": 0'
-      - "},"
-      - '"cilium-operator": {'
-      - '"Type": "Deployment",'
-      - '"Desired": 2,'
-      - '"Ready": 2,'
-      - '"Available": 2,'
-      - '"Unavailable": 0'
-      - "},"
-      - '"hubble-relay": {'
-      - '"Type": "Deployment",'
-      - '"Desired": 1,'
-      - '"Ready": 1,'
-      - '"Available": 1,'
-      - '"Unavailable": 0'
-      - "},"
-      - '"hubble-ui": {'
-      - '"Type": "Deployment",'
-      - '"Desired": 1,'
-      - '"Ready": 1,'
-      - '"Available": 1,'
-      - '"Unavailable": 0'
-      - "}"
-      - "}"
+    stdout: |
+      {
+        "cilium": {
+          "Type": "DaemonSet",
+          "Desired": 3,
+          "Ready": 3,
+          "Available": 3,
+          "Unavailable": 0
+        },
+        "cilium-envoy": {
+          "Type": "DaemonSet",
+          "Desired": 3,
+          "Ready": 3,
+          "Available": 3,
+          "Unavailable": 0
+        },
+        "cilium-operator": {
+          "Type": "Deployment",
+          "Desired": 2,
+          "Ready": 2,
+          "Available": 2,
+          "Unavailable": 0
+        },
+        "hubble-relay": {
+          "Type": "Deployment",
+          "Desired": 1,
+          "Ready": 1,
+          "Available": 1,
+          "Unavailable": 0
+        },
+        "hubble-ui": {
+          "Type": "Deployment",
+          "Desired": 1,
+          "Ready": 1,
+          "Available": 1,
+          "Unavailable": 0
+        }
+      }
     stderr: ""
     timeout: 10000
   kubectl_nodes:

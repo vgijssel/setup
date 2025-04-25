@@ -60,9 +60,14 @@ hubble:
 # nodePort:
 #   enabled: true
 # directRoutingDevice: br0
-# Need to specify both the internal and external network interfaces
+# Need to specify both the internal and external network interfaces (br0 and br1)
 # otherwise the pods will not have access to the internet
 # when the external inface is omitted.
 devices:
   - br0
   - br1
+
+daemon:
+  # From https://github.com/cilium/cilium/issues/35011
+  # Disable source IP verification because we're chaining Cilium with Multus for Kubevirt
+  enableSourceIPVerification: false

@@ -14,7 +14,7 @@ helm_script = f"""
 helm template \
     cilium \
     cilium/cilium \
-    --version 1.15.6 \
+    --version 1.17.3 \
     --namespace kube-system \
     --values {cilium_values}
 """
