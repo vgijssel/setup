@@ -4,20 +4,12 @@ machine:
   kubelet:
     nodeIP:
       validSubnets:
-        # - 192.168.1.0/24
         - 10.15.15.0/24
   network:
     hostname: illusion
     nameservers:
       - 192.168.1.1
     interfaces:
-      - interface: eno1
-        routes:
-          - network: 0.0.0.0/0
-            gateway: 192.168.1.1
-        vip:
-          ip: 192.168.1.50
-
       - interface: br0
         bridge:
           stp:
@@ -25,6 +17,19 @@ machine:
           interfaces:
             - enp4s0f0np0
             - enp4s0f1np1
+
+      - interface: br1
+        bridge:
+          stp:
+            enabled: true
+          interfaces:
+            - eno1
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.1.1
+        vip:
+          ip: 192.168.1.50
+
   # features:
   #   hostDNS:
   # Necessary for Cilium `bpf.masquerade=true`
@@ -34,15 +39,9 @@ cluster:
   allowSchedulingOnControlPlanes: true
   etcd:
     advertisedSubnets:
-      # - 192.168.1.0/24
       - 10.15.15.0/24
   network:
     cni:
       name: none
   proxy:
     disabled: true
-    # extraArgs:
-    #   # From https://github.com/siderolabs/talos/discussions/9577
-    #   # maybe this helps with the current problem as well? Set to 192.168.0.0 range maybe?
-    #   # From: https://kubernetes.io/docs/concepts/services-networking/service/#service-nodeport-custom-listen-address
-    #   nodeport-addresses: 10.15.15.0/24,192.168.1.0/24
