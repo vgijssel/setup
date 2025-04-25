@@ -37,7 +37,6 @@ releases:
     namespace: rook-ceph
     chart: ../../services/rook-ceph-nfs
 
-  # - name: iperf3
-  #   installed: false
-  #   namespace: iperf3
-  #   chart: ../../services/iperf3
+  - name: iperf3
+    namespace: iperf3
+    chart: ../../services/iperf3

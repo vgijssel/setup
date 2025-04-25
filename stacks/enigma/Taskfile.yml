@@ -27,16 +27,9 @@ tasks:
       - cilium connectivity perf --namespace-labels=pod-security.kubernetes.io/enforce=privileged --namespace-labels=pod-security.kubernetes.io/audit=privileged --namespace-labels=pod-security.kubernetes.io/warn=privileged
 
   validate:
-    desc: Validate the cluster
+    desc: Validate Cluster Health
     cmds:
       - goss validate
-
-  # global_tests:
-  #   desc: Validate status of Huble
-  #   cmds:
-  #     - cilium hubble port-forward --port-forward 4245
-  #     - hubble status
-  #     - kubectl rook-ceph rook status
 
   reboot:
     desc: Reboot Talos nodes

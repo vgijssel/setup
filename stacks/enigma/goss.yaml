@@ -1,3 +1,8 @@
+# - cilium hubble port-forward --port-forward 4245
+# - hubble status
+# - kubectl rook-ceph rook status
+# - validate internet connectivity (maybe separate goss?)
+
 command:
   ceph status --format json | jq -r ".health.status":
     title: Ceph must be healthy for the cluster to be functional
