@@ -26,6 +26,9 @@ tasks:
     cmds:
       - cilium connectivity perf --namespace-labels=pod-security.kubernetes.io/enforce=privileged --namespace-labels=pod-security.kubernetes.io/audit=privileged --namespace-labels=pod-security.kubernetes.io/warn=privileged
 
+  # - kubectl rook-ceph rook status
+  # - validate internet connectivity (maybe separate goss?)
+  # TODO: create start / stop service for rook relay
   validate:
     desc: Validate Cluster Health
     cmds:
