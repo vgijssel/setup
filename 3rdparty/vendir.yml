@@ -33,6 +33,15 @@ directories:
           lfsSkipSmudge: false
         newRootPath: deploy
 
+      - path: kubevirt
+        lazy: true
+        githubRelease:
+          slug: kubevirt/kubevirt
+          tag: v1.5.0
+          assetNames: ["kubevirt-operator.yaml"]
+          checksums:
+            kubevirt-operator.yaml: 6868cbac915f54e2347150a2bff04794100e070e5efbabb358737a0a1e1d4d54
+
   - path: charts
 
     # set the permissions for this directory (optional; v0.33.0+)
