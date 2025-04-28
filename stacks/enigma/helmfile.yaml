@@ -35,3 +35,7 @@ releases:
   - name: multus-cni
     namespace: kube-system
     chart: ../../services/multus-cni
+
+  - name: cilium-bridge
+    namespace: default
+    chart: ../../services/cilium-bridge

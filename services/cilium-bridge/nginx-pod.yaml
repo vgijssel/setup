@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: multus-nginx-bridge
+  annotations:
+    k8s.v1.cni.cncf.io/networks: cilium-bridge
+spec:
+  containers:
+    - name: nginx
+      image: nginx:latest
