@@ -1,0 +1,2 @@
+resources:
+- multus-daemonset-thick.yml

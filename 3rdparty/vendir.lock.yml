@@ -8,5 +8,5 @@ directories:
       tags:
       - v4.2.0
     path: multus-cni
-  path: config
+  path: manifests
 kind: LockConfig
