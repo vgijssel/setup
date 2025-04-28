@@ -68,3 +68,13 @@ command:
       - the-toy-factory   Ready    Talos (v1.9.5)   10.15.15.40   <none>
     stderr: ""
     timeout: 10000
+  bridge_cni_installed:
+    title: Validate the bridge CNI plugin is installed in Talos
+    exec: talosctl ls /opt/cni/bin | grep bridge | sort
+    exit-status: 0
+    stdout: |
+      192.168.1.40   bridge
+      192.168.1.41   bridge
+      192.168.1.42   bridge
+    stderr: ""
+    timeout: 10000
