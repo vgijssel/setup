@@ -2,9 +2,7 @@ apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
   name: cilium-bridge
-  namespace: default
-  annotations:
-    k8s.v1.cni.cncf.io/resourceName: bridge.network.kubevirt.io/br1
+  namespace: myvm
 spec:
   config: |-
     {

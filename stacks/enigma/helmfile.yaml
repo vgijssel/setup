@@ -36,10 +36,6 @@ releases:
     namespace: kube-system
     chart: ../../services/multus-cni
 
-  - name: cilium-bridge
-    namespace: default
-    chart: ../../services/cilium-bridge
-
   - name: local-path-provisioner
     namespace: local-path-storage
     chart: ../../services/local-path-provisioner
@@ -77,3 +73,16 @@ releases:
   - name: containerized-data-importer
     namespace: cdi
     chart: ../../services/containerized-data-importer
+
+  - name: containerized-data-importer-config
+    namespace: cdi
+    chart: ../../services/containerized-data-importer-config
+
+  - name: myvm
+    namespace: myvm
+    installed: false
+    chart: ../../services/myvm
+
+  - name: cilium-bridge
+    namespace: myvm
+    chart: ../../services/cilium-bridge
