@@ -69,3 +69,11 @@ releases:
             "kubevirt",
             "pod-security.kubernetes.io/enforce=privileged",
           ]
+
+  - name: kubevirt-config
+    namespace: kubevirt
+    chart: ../../services/kubevirt-config
+
+  - name: containerized-data-importer
+    namespace: cdi
+    chart: ../../services/containerized-data-importer

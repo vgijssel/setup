@@ -44,6 +44,17 @@ directories:
         ignorePaths:
           - kustomization.yaml
 
+      - path: containerized-data-importer
+        lazy: true
+        githubRelease:
+          slug: kubevirt/containerized-data-importer
+          tag: v1.62.0
+          assetNames: ["cdi-operator.yaml"]
+          checksums:
+            cdi-operator.yaml: c1c11ac41fa38c9cca2962c0955e1b5b6fa75cb225268eb8a724ffffd0b22622
+        ignorePaths:
+          - kustomization.yaml
+
   - path: charts
 
     # set the permissions for this directory (optional; v0.33.0+)

@@ -15,11 +15,16 @@ directories:
       tags:
       - v0.0.31
     path: local-path-provisioner
-  - configDigest: e4c178e521c3a05202b7f33808501c7ee8cdc25851ea7404b7d962cca2bc665d
+  - configDigest: 56120c1af1b4dee1b0c96be34e5b93ab0edfc7ca2d29bb9ac9ad2b10f8adc0ae
     githubRelease:
       tag: v1.5.0
       url: https://api.github.com/repos/kubevirt/kubevirt/releases/205690294
     path: kubevirt
+  - configDigest: 8e677cae57fc207a37167da6638ccd58944f246c5ee1ea8c72e2f54342b04e1d
+    githubRelease:
+      tag: v1.62.0
+      url: https://api.github.com/repos/kubevirt/containerized-data-importer/releases/209663151
+    path: containerized-data-importer
   path: manifests
 - contents:
   - configDigest: f673216be45f1e5ef0e8b4bd72d91d023282a7ccec803ddcd2f1253d18bc44e4
