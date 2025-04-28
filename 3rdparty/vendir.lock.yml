@@ -9,4 +9,10 @@ directories:
       - v4.2.0
     path: multus-cni
   path: manifests
+- contents:
+  - helmChart:
+      appVersion: 1.17.3
+      version: 1.17.3
+    path: cilium
+  path: charts
 kind: LockConfig
