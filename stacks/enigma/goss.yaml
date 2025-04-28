@@ -1,4 +1,14 @@
 command:
+  bridge_cni_installed:
+    title: Validate the bridge CNI plugin is installed in Talos
+    exec: talosctl ls /opt/cni/bin | grep bridge | sort
+    exit-status: 0
+    stdout: |
+      192.168.1.40   bridge
+      192.168.1.41   bridge
+      192.168.1.42   bridge
+    stderr: ""
+    timeout: 10000
   ceph status --format json | jq -r ".health.status":
     title: Ceph must be healthy for the cluster to be functional
     exit-status: 0
@@ -68,13 +78,11 @@ command:
       - the-toy-factory   Ready    Talos (v1.9.5)   10.15.15.40   <none>
     stderr: ""
     timeout: 10000
-  bridge_cni_installed:
-    title: Validate the bridge CNI plugin is installed in Talos
-    exec: talosctl ls /opt/cni/bin | grep bridge | sort
-    exit-status: 0
-    stdout: |
-      192.168.1.40   bridge
-      192.168.1.41   bridge
-      192.168.1.42   bridge
-    stderr: ""
-    timeout: 10000
+http:
+  http://192.168.1.90:
+    title: Validate the Multus exposed nginx service is reachable though the LAN
+    status: 200
+    allow-insecure: false
+    no-follow-redirects: false
+    timeout: 5000
+    body: []
