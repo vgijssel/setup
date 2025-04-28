@@ -22,6 +22,15 @@ tasks:
     generates:
       - cilium.patch.yaml
 
+  debug:
+    desc: Run a debug pod with elevated privileges
+    interactive: true
+    cmds:
+      - kubectl -n kube-system debug node/the-toy-factory --image ubuntu --profile sysadmin -it
+    preconditions:
+      - sh: "kubie info ctx"
+        msg: "Make sure to be in a kubie shell"
+
   test:
     desc: Test Cilium connectivity tests
     cmds:
