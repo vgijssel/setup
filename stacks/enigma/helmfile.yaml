@@ -39,3 +39,18 @@ releases:
   - name: cilium-bridge
     namespace: default
     chart: ../../services/cilium-bridge
+
+  - name: local-path-provisioner
+    namespace: local-path-storage
+    chart: ../../services/local-path-provisioner
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          [
+            "label",
+            "namespace",
+            "local-path-storage",
+            "pod-security.kubernetes.io/enforce=privileged",
+          ]
