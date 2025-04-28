@@ -9,12 +9,12 @@ def wrap(s):  # literal if multi-line
 
 
 cilium_values = os.path.join(os.environ["SERVICES_DIR"], "cilium", "values.yaml")
+cilium_chart = os.path.join(os.environ["_3RDPARTY_DIR"], "charts", "cilium")
 
 helm_script = f"""
 helm template \
     cilium \
-    cilium/cilium \
-    --version 1.17.3 \
+    {cilium_chart} \
     --namespace kube-system \
     --values {cilium_values}
 """
