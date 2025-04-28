@@ -1,12 +1,3 @@
-# environments:
-#   default:
-#     values:
-#       - tailscale:
-#           oauth_client_id: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_id
-#           oauth_client_secret: ref+op://vgijssel-prod/tailscale_k8s_operator/oauth_client_secret
-#       - metabase:
-#           postgres_credential: ref+op://vgijssel-prod/metabase_postgres/credential
-# ---
 repositories:
   - name: rook-release
     url: https://charts.rook.io/release
@@ -40,3 +31,7 @@ releases:
   - name: iperf3
     namespace: iperf3
     chart: ../../services/iperf3
+
+  - name: multus-cni
+    namespace: kube-system
+    chart: ../../services/multus-cni
