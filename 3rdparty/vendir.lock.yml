@@ -1,7 +1,7 @@
 apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
-  - configDigest: be299a1c7071d84a5e7aa60063fd085b8b56f4b7deb7b8a499f6b3eb7950de81
+  - configDigest: b8de21bdb01795106410de5f3437962f06cf0d4bb0f433326c9532f7d5d13390
     git:
       commitTitle: 'Merge pull request #1409 from maiqueb/bump-net-attach-def-client-lib-1.7.6...'
       sha: 2a91646eafe7e777f54cc01134a430f4730325e2

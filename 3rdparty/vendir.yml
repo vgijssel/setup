@@ -23,3 +23,5 @@ directories:
           depth: 1
           lfsSkipSmudge: false
         newRootPath: deployments
+        ignorePaths:
+        - kustomization.yaml

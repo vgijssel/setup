@@ -8,5 +8,6 @@ tasks:
 
   vendir:update:
     desc: Update vendir lock files
+    dir: 3rdparty
     cmds:
       - vendir sync
