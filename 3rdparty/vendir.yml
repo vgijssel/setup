@@ -41,6 +41,8 @@ directories:
           assetNames: ["kubevirt-operator.yaml"]
           checksums:
             kubevirt-operator.yaml: 6868cbac915f54e2347150a2bff04794100e070e5efbabb358737a0a1e1d4d54
+        ignorePaths:
+          - kustomization.yaml
 
   - path: charts
 

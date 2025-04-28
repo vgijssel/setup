@@ -54,3 +54,18 @@ releases:
             "local-path-storage",
             "pod-security.kubernetes.io/enforce=privileged",
           ]
+
+  - name: kubevirt
+    namespace: kubevirt
+    chart: ../../services/kubevirt
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          [
+            "label",
+            "namespace",
+            "kubevirt",
+            "pod-security.kubernetes.io/enforce=privileged",
+          ]
