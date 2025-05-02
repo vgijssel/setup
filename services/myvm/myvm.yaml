@@ -4,7 +4,7 @@ kind: VirtualMachine
 metadata:
   name: ubuntu-vm
 spec:
-  running: false
+  runStrategy: Always
   template:
     metadata:
       labels:
@@ -45,16 +45,17 @@ spec:
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |
-              version: 1
-              config:
-                - type: physical
-                  name: eth0
-                  subnets:
-                    - type: static
-                      address: 192.168.1.89/24
-                      gateway: 192.168.1.1
-                      dns_nameservers:
-                        - 192.168.1.1
+              network:
+                version: 1
+                config:
+                  - type: physical
+                    name: enp1s0
+                    subnets:
+                      - type: static
+                        address: 192.168.1.89/24
+                        gateway: 192.168.1.1
+                        dns_nameservers:
+                          - 192.168.1.1
             userData: |-
               #cloud-config
               users:
