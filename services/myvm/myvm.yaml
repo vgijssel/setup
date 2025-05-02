@@ -44,18 +44,6 @@ spec:
             claimName: ubuntu-vm-pvc
         - name: cloudinitdisk
           cloudInitNoCloud:
-            networkData: |
-              network:
-                version: 1
-                config:
-                  - type: physical
-                    name: enp1s0
-                    subnets:
-                      - type: static
-                        address: 192.168.1.89/24
-                        gateway: 192.168.1.1
-                        dns_nameservers:
-                          - 192.168.1.1
             userData: |-
               #cloud-config
               users:
@@ -66,6 +54,18 @@ spec:
                   groups: sudo
                   shell: /bin/bash
 
+            networkData: |
+              network:
+                version: 2
+                ethernets:
+                  enp1s0:
+                    dhcp4: false
+                    addresses:
+                      - 192.168.1.89/24
+                    gateway4: 192.168.1.1
+                    nameservers:
+                      addresses:
+                        - 192.168.1.1
   dataVolumeTemplates:
     - metadata:
         name: ubuntu-vm-pvc
