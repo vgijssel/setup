@@ -2,13 +2,13 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: fedora-vm
+  name: ubuntu-vm
 spec:
   running: false
   template:
     metadata:
       labels:
-        kubevirt.io/vm: fedora-vm
+        kubevirt.io/vm: ubuntu-vm
       annotations:
         kubevirt.io/allow-pod-bridge-network-live-migration: "true"
 
@@ -22,7 +22,7 @@ spec:
             memory: 4G
         devices:
           disks:
-            - name: fedora-vm-pvc
+            - name: ubuntu-vm-pvc
               disk:
                 bus: virtio
             - name: cloudinitdisk
@@ -37,52 +37,48 @@ spec:
         - name: external
           # What happens if the NAD is in another namespace? Or don't care and create multiple?
           multus: # Secondary multus network
-            networkName: myvm/cilium-bridge #ref to NAD name
+            networkName: myvm/cilium-bridge-vm #ref to NAD name
       volumes:
-        - name: fedora-vm-pvc
+        - name: ubuntu-vm-pvc
           persistentVolumeClaim:
-            claimName: fedora-vm-pvc
+            claimName: ubuntu-vm-pvc
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |
-              network:
-                version: 1
-                config:
-                  - type: physical
-                    name: eth0
-                    subnets:
-                      - type: dhcp
+              version: 1
+              config:
+                - type: physical
+                  name: eth0
+                  subnets:
+                    - type: static
+                      address: 192.168.1.89/24
+                      gateway: 192.168.1.1
+                      dns_nameservers:
+                        - 192.168.1.1
             userData: |-
               #cloud-config
               users:
-                - name: cloud-user
+                - name: maarten
                   ssh_authorized_keys:
                     - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN6L7btdM1aa/R72LWoj3KRMb2rH/c2l/SmZ5qyPpYCx
                   sudo: ['ALL=(ALL) NOPASSWD:ALL']
                   groups: sudo
                   shell: /bin/bash
-              runcmd:
-                - "sudo touch /root/installed"
-                - "sudo dnf update"
-                - "sudo dnf install httpd fastfetch -y"
-                - "sudo systemctl daemon-reload"
-                - "sudo systemctl enable httpd"
-                - "sudo systemctl start --no-block httpd"
 
   dataVolumeTemplates:
     - metadata:
-        name: fedora-vm-pvc
+        name: ubuntu-vm-pvc
       spec:
         storage:
           resources:
             requests:
               storage: 35Gi
           accessModes:
-            - ReadWriteOnce
+            - ReadWriteMany
           # Make sure this is set to Filesystem and not Block
           # when using a qcow2 image
           volumeMode: Filesystem
-          storageClassName: "vm-blockpool"
+          storageClassName: "vm-filesystem"
         source:
           http:
-            url: "https://fedora.mirror.wearetriple.com/linux/releases/40/Cloud/x86_64/images/Fedora-Cloud-Base-Generic.x86_64-40-1.14.qcow2"
+            url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"

@@ -50,40 +50,7 @@ cephClusterSpec:
         devices:
           - name: /dev/disk/by-partlabel/data # Micron 2TB data partition
 
-cephBlockPools:
-  - name: vm-blockpool
-    # see https://github.com/rook/rook/blob/master/Documentation/CRDs/Block-Storage/ceph-block-pool-crd.md#spec for available configuration
-    spec:
-      failureDomain: host
-      deviceClass: nvme
-      replicated:
-        size: 3
-      # Enables collecting RBD per-image IO statistics by enabling dynamic OSD performance counters. Defaults to false.
-      # For reference: https://docs.ceph.com/docs/latest/mgr/prometheus/#rbd-io-statistics
-      # enableRBDStats: true
-    storageClass:
-      enabled: true
-      name: vm-blockpool
-      isDefault: true
-      reclaimPolicy: Delete
-      allowVolumeExpansion: true
-      volumeBindingMode: "Immediate"
-      parameters:
-        imageFormat: "2"
-        imageFeatures: layering
-
-        # These secrets contain Ceph admin credentials.
-        csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
-        csi.storage.k8s.io/provisioner-secret-namespace: "{{ .Release.Namespace }}"
-        csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
-        csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
-        csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
-        csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
-        # Specify the filesystem type of the volume. If not specified, csi-provisioner
-        # will set default as `ext4`. Note that `xfs` is not recommended due to potential deadlock
-        # in hyperconverged settings where the volume is mounted on the same node as the osds.
-        csi.storage.k8s.io/fstype: ext4
-
+cephBlockPools: []
 cephObjectStores: []
 cephFileSystems:
   - name: media-filesystem
@@ -178,6 +145,65 @@ cephFileSystems:
       annotations: {}
       labels: {}
       mountOptions: []
+      # see https://github.com/rook/rook/blob/master/Documentation/Storage-Configuration/Shared-Filesystem-CephFS/filesystem-storage.md#provision-storage for available configuration
+      parameters:
+        # The secrets contain Ceph admin credentials.
+        csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+        csi.storage.k8s.io/provisioner-secret-namespace: "{{ .Release.Namespace }}"
+        csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+        csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
+        csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+        csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
+        # Specify the filesystem type of the volume. If not specified, csi-provisioner
+        # will set default as `ext4`. Note that `xfs` is not recommended due to potential deadlock
+        # in hyperconverged settings where the volume is mounted on the same node as the osds.
+        csi.storage.k8s.io/fstype: ext4
+
+  - name: vm-filesystem
+    # see https://github.com/rook/rook/blob/master/Documentation/CRDs/Shared-Filesystem/ceph-filesystem-crd.md#filesystem-settings for available configuration
+    spec:
+      metadataPool:
+        replicated:
+          size: 3
+        # From https://docs.ceph.com/en/quincy/cephfs/createfs/
+        # use nvme / low latency devices for the metadata pool
+        deviceClass: nvme
+      dataPools:
+        # Currently only store two copies of each file in the media file system
+        # and not distributed across hosts, because only a single node has hdds currently.
+        - failureDomain: host
+          replicated:
+            size: 3
+          # Optional and highly recommended, 'data0' by default, see https://github.com/rook/rook/blob/master/Documentation/CRDs/Shared-Filesystem/ceph-filesystem-crd.md#pools
+          name: data0
+          deviceClass: nvme
+      metadataServer:
+        activeCount: 1
+        # activeStandby: true
+        # resources:
+        #   limits:
+        #     memory: "4Gi"
+        #   requests:
+        #     cpu: "1000m"
+        #     memory: "4Gi"
+        # priorityClassName: system-cluster-critical
+    storageClass:
+      enabled: true
+      isDefault: false
+      name: vm-filesystem
+      pool: data0
+      reclaimPolicy: Delete
+      allowVolumeExpansion: true
+      volumeBindingMode: "Immediate"
+      annotations: {}
+      labels: {}
+      mountOptions: [
+          # The noatime option disables updates to the access time (atime)
+          # attribute of files every time they are read. This can have significant
+          # performance benefits, especially for workloads that read from disk frequently
+          # without modifying the data.
+          "noatime",
+        ]
       # see https://github.com/rook/rook/blob/master/Documentation/Storage-Configuration/Shared-Filesystem-CephFS/filesystem-storage.md#provision-storage for available configuration
       parameters:
         # The secrets contain Ceph admin credentials.

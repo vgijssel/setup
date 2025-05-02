@@ -78,10 +78,10 @@ releases:
     namespace: cdi
     chart: ../../services/containerized-data-importer-config
 
-  - name: myvm
-    namespace: myvm
-    installed: false
-    chart: ../../services/myvm
+  # - name: myvm
+  #   namespace: myvm
+  #   installed: false
+  #   chart: ../../services/myvm
 
   - name: cilium-bridge
     namespace: myvm
