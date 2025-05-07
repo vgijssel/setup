@@ -9,31 +9,39 @@ vault = "Personal"
 account = "HackerOne"
 
 [[ssh-keys]]
-item = "SSH - CloudWays"
 vault = "Private"
 account = "Van Gijssel"
 
 [[ssh-keys]]
-item = "SSH - Setup"
 vault = "vgijssel-prod"
 account = "Van Gijssel"
 
-[[ssh-keys]]
-item = "SSH - Hypervisor"
-vault = "Private"
-account = "Van Gijssel"
+# [[ssh-keys]]
+# item = "SSH - CloudWays"
+# vault = "Private"
+# account = "Van Gijssel"
 
-[[ssh-keys]]
-item = "SSH - HomeAssistant"
-vault = "Private"
-account = "Van Gijssel"
+# [[ssh-keys]]
+# item = "SSH - Setup"
+# vault = "vgijssel-prod"
+# account = "Van Gijssel"
 
-[[ssh-keys]]
-item = "SSH - GitHub - Authentication"
-vault = "Private"
-account = "Van Gijssel"
+# [[ssh-keys]]
+# item = "SSH - Hypervisor"
+# vault = "Private"
+# account = "Van Gijssel"
 
-[[ssh-keys]]
-item = "SSH - GitHub - Commit Signing"
-vault = "Private"
-account = "Van Gijssel"
+# [[ssh-keys]]
+# item = "SSH - HomeAssistant"
+# vault = "Private"
+# account = "Van Gijssel"
+
+# [[ssh-keys]]
+# item = "SSH - GitHub - Authentication"
+# vault = "Private"
+# account = "Van Gijssel"
+
+# [[ssh-keys]]
+# item = "SSH - GitHub - Commit Signing"
+# vault = "Private"
+# account = "Van Gijssel"
