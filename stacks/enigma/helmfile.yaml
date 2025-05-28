@@ -33,6 +33,7 @@ releases:
     chart: ../../services/iperf3
 
   - name: multus-cni
+    installed: false
     namespace: kube-system
     chart: ../../services/multus-cni
 

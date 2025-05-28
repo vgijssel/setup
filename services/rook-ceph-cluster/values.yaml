@@ -2,7 +2,7 @@ operatorNamespace: rook-ceph
 
 toolbox:
   # -- Enable Ceph debugging pod deployment. See [toolbox](../Troubleshooting/ceph-toolbox.md)
-  enabled: false
+  enabled: true
 
 cephClusterSpec:
   cephVersion:
