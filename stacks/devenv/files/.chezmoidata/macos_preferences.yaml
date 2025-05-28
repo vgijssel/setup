@@ -1,0 +1,42 @@
+preferences:
+  "com.googlecode.iterm2":
+    TabStyleWithAutomaticOption: int
+    "Default Bookmark Guid": string
+  "com.microsoft.VSCode":
+    ApplePressAndHoldEnabled: bool
+  "com.microsoft.VSCodeInsiders":
+    ApplePressAndHoldEnabled: bool
+  "com.visualstudio.code.oss":
+    ApplePressAndHoldEnabled: bool
+  "NSGlobalDomain":
+    NSAutomaticSpellingCorrectionEnabled: int
+    NSAutomaticCapitalizationEnabled: int
+    NSAutomaticPeriodSubstitutionEnabled: int
+    KeyRepeat: int
+    InitialKeyRepeat: int
+  "com.apple.dock":
+    autohide: bool
+    autohide-delay: float
+    mru-spaces: bool
+
+settings:
+  recommended:
+    "com.googlecode.iterm2":
+      TabStyleWithAutomaticOption: 5
+      "Default Bookmark Guid": "dataone-profile-guid"
+    "com.microsoft.VSCode":
+      ApplePressAndHoldEnabled: false
+    "com.microsoft.VSCodeInsiders":
+      ApplePressAndHoldEnabled: false
+    "com.visualstudio.code.oss":
+      ApplePressAndHoldEnabled: false
+    "NSGlobalDomain":
+      NSAutomaticSpellingCorrectionEnabled: 0
+      NSAutomaticCapitalizationEnabled: 0
+      NSAutomaticPeriodSubstitutionEnabled: 0
+      KeyRepeat: 1
+      InitialKeyRepeat: 12
+    "com.apple.dock":
+      autohide: true
+      autohide-delay: 1000
+      mru-spaces: false
