@@ -6,7 +6,6 @@ from pyinfra.operations import brew, server
 def install_utilities():
     utilities = [
         "whatsapp",
-        "notion",
         "spotify",
         "todoist",
         "raspberry-pi-imager",

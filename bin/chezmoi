@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec $SETUP_DIR/bin/internal/bin/chezmoi -S $SETUP_DIR "$@"

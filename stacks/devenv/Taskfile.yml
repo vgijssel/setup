@@ -5,22 +5,12 @@ tasks:
   apply:
     desc: Apply the development environment configuration
     cmds:
-      - helmfile init
-      # TODO: can't we install rook-ceph using Hermit directly?
-      - kubectl krew install rook-ceph
+      - chezmoi apply --verbose
 
   # TODO:
   # - validate tmux is installed using brew (unless we can install using homebrew?)
-  test:
-    desc: Test the development environment
-    dir: stacks/devenv
-    cmds:
-      - goss validate
-
-  # TODO: experiment using a shell which sets environment variables when it starts?
-  secrets:
-    desc: Install secrets for the devenv
-    cmds:
-      - op inject --force --in-file=.op.env --out-file=.env
-    sources:
-      - .op.env
+  # test:
+  #   desc: Test the development environment
+  #   dir: stacks/devenv
+  #   cmds:
+  #     - goss validate
