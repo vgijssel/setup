@@ -1,0 +1,53 @@
+#
+# Modules
+#
+
+# Sets sane Zsh built-in environment options.
+zmodule environment
+# Applies correct bindkeys for input events.
+zmodule input
+# Utility aliases and functions. Adds colour to ls, grep and less.
+zmodule utility
+
+#
+# Prompt
+#
+
+# Exposes to prompts how long the last command took to execute, used by asciiship.
+zmodule duration-info
+
+# Exposes git repository status information to prompts, used by asciiship.
+zmodule git-info
+
+# Starship prompt for Zim
+zmodule joke/zim-starship
+
+# Loads .envrc files using direnv
+zmodule direnv
+
+# Introduces "z" alias which tracks your most used directories and allows you to quickly navigate to them.
+zmodule kiesman99/zim-zoxide
+
+# Introduces graphical history search and fuzzy finder for Zsh.
+zmodule fzf
+
+
+#
+# Completion
+#
+
+# Additional completion definitions for Zsh.
+zmodule zsh-users/zsh-completions --fpath src
+# Enables and configures smart and extensive tab completion.
+# completion must be sourced after all modules that add completion definitions.
+zmodule completion
+
+#
+# Modules that must be initialized last
+#
+
+# Fish-like syntax highlighting for Zsh.
+# zsh-users/zsh-syntax-highlighting must be sourced after completion
+zmodule zsh-users/zsh-syntax-highlighting
+# Fish-like autosuggestions for Zsh.
+zmodule zsh-users/zsh-autosuggestions

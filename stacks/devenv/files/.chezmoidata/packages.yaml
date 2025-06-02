@@ -9,7 +9,6 @@ packages:
       - chezmoi
       - coreutils
       - zoxide
-      - finicky
     casks:
       - google-chrome
       - orbstack
@@ -30,3 +29,4 @@ packages:
       - gimp
       - chatgpt
       - github
+      - finicky
