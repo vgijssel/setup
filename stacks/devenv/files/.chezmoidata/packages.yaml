@@ -9,6 +9,7 @@ packages:
       - chezmoi
       - coreutils
       - zoxide
+      - finicky
     casks:
       - google-chrome
       - orbstack
