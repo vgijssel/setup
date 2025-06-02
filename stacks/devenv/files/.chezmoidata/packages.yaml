@@ -26,3 +26,5 @@ packages:
       - slack
       - obsidian
       - gimp
+      - chatgpt
+      - github
