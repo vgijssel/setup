@@ -10,6 +10,7 @@
     "tilt-dev.tiltfile",
     "github.remotehub",
     "hashicorp.hcl",
-    "mkhl.direnv"
+    "mkhl.direnv",
+    "openai.chatgpt"
   ]
 }
