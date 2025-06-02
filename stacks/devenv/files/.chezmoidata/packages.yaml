@@ -8,6 +8,7 @@ packages:
       - zimfw
       - chezmoi
       - coreutils
+      - zoxide
     casks:
       - google-chrome
       - orbstack
