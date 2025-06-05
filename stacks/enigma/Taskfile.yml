@@ -5,7 +5,7 @@ tasks:
     desc: Start Hubble Relay port forward
     cmds:
       - overmind status || overmind start --daemonize
-      - wait-for-it localhost:4245
+      - wait-for-it --service localhost:4245
 
   hubble:stop:
     desc: Stop Hubble Relay port forward
@@ -71,6 +71,10 @@ tasks:
     deps:
       - generate:cilium
     cmds:
+      - talosctl gen config --with-secrets secrets.yaml  enigma https://192.168.1.50:6443 --output-types talosconfig -o talosconfig --force
+      - talosctl config endpoint 192.168.1.50
+      - talosctl config nodes 192.168.1.40 192.168.1.41 192.168.1.42
+      - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
       - talosctl gen config --with-secrets secrets.yaml --config-patch @cilium.patch.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o the-toy-factory.yaml enigma https://192.168.1.50:6443 --force
       - talosctl gen config --with-secrets secrets.yaml --config-patch @cilium.patch.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o the-dome.yaml enigma https://192.168.1.50:6443 --force
       - talosctl gen config --with-secrets secrets.yaml --config-patch @cilium.patch.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o illusion.yaml enigma https://192.168.1.50:6443 --force
@@ -84,6 +88,8 @@ tasks:
       - the-toy-factory.yaml
       - the-dome.yaml
       - illusion.yaml
+      - talosconfig
+      - ~/.kube/configs/enigma.yaml 
 
   bootstrap:
     desc: Apply initial configuration to nodes

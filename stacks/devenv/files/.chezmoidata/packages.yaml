@@ -9,6 +9,7 @@ packages:
       - chezmoi
       - coreutils
       - zoxide
+      - tmux
     casks:
       - google-chrome
       - orbstack

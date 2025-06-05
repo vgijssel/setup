@@ -36,3 +36,6 @@ $container\
 $netns\
 $shell\
 $character"""
+
+[direnv]
+disabled = false
