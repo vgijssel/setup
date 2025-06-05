@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-exec kubectl rook-ceph ceph "$@"
+exec kubectl-rook-ceph ceph "$@"
