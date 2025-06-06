@@ -5,9 +5,3 @@ tasks:
     desc: Update 3rd party lock files
     cmds:
       - pants generate-lockfiles
-
-  vendir:update:
-    desc: Update vendir lock files
-    dir: 3rdparty
-    cmds:
-      - vendir sync

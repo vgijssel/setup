@@ -1,1 +1,0 @@
-hubble: cilium hubble port-forward --port-forward 4245

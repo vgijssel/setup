@@ -1,17 +1,6 @@
 version: "3"
 
 tasks:
-  hubble:start:
-    desc: Start Hubble Relay port forward
-    cmds:
-      - overmind status || overmind start --daemonize
-      - wait-for-it --service localhost:4245
-
-  hubble:stop:
-    desc: Stop Hubble Relay port forward
-    cmds:
-      - overmind quit
-
   debug:
     desc: Run a debug pod with elevated privileges
     interactive: true
@@ -29,21 +18,6 @@ tasks:
       - talosctl reset -n 192.168.1.41 --system-labels-to-wipe EPHEMERAL,STATE --reboot
       - # for the last node use --graceful=false
       - talosctl reset -n 192.168.1.40 --system-labels-to-wipe EPHEMERAL,STATE --reboot --graceful=false
-
-  test:
-    desc: Test Cilium connectivity tests
-    cmds:
-      - kubectl delete ns cilium-test-1 || true
-      - kubectl create ns cilium-test-1
-      - kubectl label ns cilium-test-1 pod-security.kubernetes.io/enforce=privileged
-      # - cilium connectivity test --test echo-ingress-l7 --pause-on-fail --single-node
-      # TODO: can we add in the labels here as well??
-      - cilium connectivity test --single-node
-
-  benchmark:
-    desc: Run Cilium benchmark tests
-    cmds:
-      - cilium connectivity perf --namespace-labels=pod-security.kubernetes.io/enforce=privileged --namespace-labels=pod-security.kubernetes.io/audit=privileged --namespace-labels=pod-security.kubernetes.io/warn=privileged
 
   # - kubectl rook-ceph rook status
   # - validate internet connectivity (maybe separate goss?)

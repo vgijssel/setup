@@ -32,12 +32,12 @@ spec:
             - name: external
               bridge: {}
       networks:
-        # - name: external
-        #   pod: {}
         - name: external
-          # What happens if the NAD is in another namespace? Or don't care and create multiple?
-          multus: # Secondary multus network
-            networkName: myvm/cilium-bridge-vm #ref to NAD name
+          pod: {}
+        # - name: external
+        #   # What happens if the NAD is in another namespace? Or don't care and create multiple?
+        #   multus: # Secondary multus network
+        #     networkName: myvm/cilium-bridge-vm #ref to NAD name
       volumes:
         - name: ubuntu-vm-pvc
           persistentVolumeClaim:
