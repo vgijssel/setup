@@ -12,16 +12,6 @@ tasks:
     cmds:
       - overmind quit
 
-  generate:cilium:
-    desc: Generate the Cilium patch
-    cmds:
-      - pants run generate_cilium_patch.py
-    sources:
-      - "{{ .SERVICES_DIR }}/cilium/values.yaml"
-      - generate_cilium_patch.py
-    generates:
-      - cilium.patch.yaml
-
   debug:
     desc: Run a debug pod with elevated privileges
     interactive: true
@@ -30,6 +20,15 @@ tasks:
     preconditions:
       - sh: "kubie info ctx"
         msg: "Make sure to be in a kubie shell"
+
+  reset:
+    prompt: This will wipe the cluster and reset Talos nodes. Are you sure?
+    desc: Reset the cluster to start a fresh Talos install
+    cmds:
+      - talosctl reset -n 192.168.1.42 --system-labels-to-wipe EPHEMERAL,STATE --reboot
+      - talosctl reset -n 192.168.1.41 --system-labels-to-wipe EPHEMERAL,STATE --reboot
+      - # for the last node use --graceful=false
+      - talosctl reset -n 192.168.1.40 --system-labels-to-wipe EPHEMERAL,STATE --reboot --graceful=false
 
   test:
     desc: Test Cilium connectivity tests
@@ -68,18 +67,15 @@ tasks:
 
   generate:
     desc: Generate the Talos configuration files
-    deps:
-      - generate:cilium
     cmds:
       - talosctl gen config --with-secrets secrets.yaml  enigma https://192.168.1.50:6443 --output-types talosconfig -o talosconfig --force
       - talosctl config endpoint 192.168.1.50
       - talosctl config nodes 192.168.1.40 192.168.1.41 192.168.1.42
       - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
-      - talosctl gen config --with-secrets secrets.yaml --config-patch @cilium.patch.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o the-toy-factory.yaml enigma https://192.168.1.50:6443 --force
-      - talosctl gen config --with-secrets secrets.yaml --config-patch @cilium.patch.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o the-dome.yaml enigma https://192.168.1.50:6443 --force
-      - talosctl gen config --with-secrets secrets.yaml --config-patch @cilium.patch.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o illusion.yaml enigma https://192.168.1.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o the-toy-factory.yaml enigma https://192.168.1.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o the-dome.yaml enigma https://192.168.1.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o illusion.yaml enigma https://192.168.1.50:6443 --force
     sources:
-      - cilium.patch.yaml
       - all.patch.yaml
       - the-toy-factory.patch.yaml
       - the-dome.patch.yaml
@@ -116,6 +112,3 @@ tasks:
       - talosctl apply-config -n 192.168.1.40 --file the-toy-factory.yaml
       - talosctl apply-config -n 192.168.1.41 --file the-dome.yaml
       - talosctl apply-config -n 192.168.1.42 --file illusion.yaml
-      # Necessary to pick up cilium changes
-      - talosctl upgrade-k8s -n 192.168.1.40
-      - kubectl rollout restart ds cilium -n kube-system
