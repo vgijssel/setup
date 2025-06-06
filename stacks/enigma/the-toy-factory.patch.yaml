@@ -5,6 +5,6 @@ machine:
       - interface: br0
         addresses:
           - 10.15.15.40/24
-      - interface: br1
+      - interface: eno1
         addresses:
           - 192.168.1.40/24

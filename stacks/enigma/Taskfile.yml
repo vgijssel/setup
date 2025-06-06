@@ -14,10 +14,9 @@ tasks:
     prompt: This will wipe the cluster and reset Talos nodes. Are you sure?
     desc: Reset the cluster to start a fresh Talos install
     cmds:
-      - talosctl reset -n 192.168.1.42 --system-labels-to-wipe EPHEMERAL,STATE --reboot
-      - talosctl reset -n 192.168.1.41 --system-labels-to-wipe EPHEMERAL,STATE --reboot
-      - # for the last node use --graceful=false
-      - talosctl reset -n 192.168.1.40 --system-labels-to-wipe EPHEMERAL,STATE --reboot --graceful=false
+      - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.42 -e 192.168.1.42 --reboot --graceful=false --wait=false
+      - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.41 -e 192.168.1.41 --reboot --graceful=false --wait=false
+      - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.40 -e 192.168.1.40 --reboot --graceful=false --wait=false
 
   # - kubectl rook-ceph rook status
   # - validate internet connectivity (maybe separate goss?)
@@ -45,7 +44,6 @@ tasks:
       - talosctl gen config --with-secrets secrets.yaml  enigma https://192.168.1.50:6443 --output-types talosconfig -o talosconfig --force
       - talosctl config endpoint 192.168.1.50
       - talosctl config nodes 192.168.1.40 192.168.1.41 192.168.1.42
-      - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
       - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o the-toy-factory.yaml enigma https://192.168.1.50:6443 --force
       - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o the-dome.yaml enigma https://192.168.1.50:6443 --force
       - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o illusion.yaml enigma https://192.168.1.50:6443 --force
@@ -69,11 +67,11 @@ tasks:
       - talosctl apply-config --insecure -n {{.THE_TOY_FACTORY_IP}} --file the-toy-factory.yaml
       - talosctl apply-config --insecure -n {{.THE_DOME_IP}} --file the-dome.yaml
       - talosctl apply-config --insecure -n {{.ILLUSION_IP}} --file illusion.yaml
-      - talosctl bootstrap -n 192.168.1.40
+      - talosctl bootstrap -n 192.168.1.40 -e 192.168.1.40
       - talosctl health -n 192.168.1.40
       - talosctl version
       # Write out the kubeconfig to a location known by kubie
-      - talosctl kubeconfig -n 192.168.1.40 ~/.kube/configs/enigma.yaml
+      - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
       - kubectl get nodes
     requires:
       vars: [THE_TOY_FACTORY_IP, THE_DOME_IP, ILLUSION_IP]
