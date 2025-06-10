@@ -16,13 +16,7 @@ machine:
           interfaces:
             - enp4s0f0np0
             - enp4s0f1np1
-
-      - interface: br1
-        bridge:
-          stp:
-            enabled: true
-          interfaces:
-            - eno1
+      - interface: eno1
         routes:
           - network: 0.0.0.0/0
             gateway: 192.168.1.1

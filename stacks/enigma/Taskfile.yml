@@ -17,6 +17,8 @@ tasks:
       - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.42 -e 192.168.1.42 --reboot --graceful=false --wait=false
       - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.41 -e 192.168.1.41 --reboot --graceful=false --wait=false
       - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.40 -e 192.168.1.40 --reboot --graceful=false --wait=false
+      - # wait for the nodes to come back online (using wait-for-it?)
+      - # run the bootstrap script on 192.168.1.40
 
   # - kubectl rook-ceph rook status
   # - validate internet connectivity (maybe separate goss?)
@@ -67,12 +69,13 @@ tasks:
       - talosctl apply-config --insecure -n {{.THE_TOY_FACTORY_IP}} --file the-toy-factory.yaml
       - talosctl apply-config --insecure -n {{.THE_DOME_IP}} --file the-dome.yaml
       - talosctl apply-config --insecure -n {{.ILLUSION_IP}} --file illusion.yaml
-      - talosctl bootstrap -n 192.168.1.40 -e 192.168.1.40
-      - talosctl health -n 192.168.1.40
-      - talosctl version
-      # Write out the kubeconfig to a location known by kubie
-      - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
-      - kubectl get nodes
+      - # wait for the nodes to ready
+      # - talosctl bootstrap -n 192.168.1.40 -e 192.168.1.40
+      # - talosctl health -n 192.168.1.40
+      # - talosctl version
+      # # Write out the kubeconfig to a location known by kubie
+      # - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
+      # - kubectl get nodes
     requires:
       vars: [THE_TOY_FACTORY_IP, THE_DOME_IP, ILLUSION_IP]
 
