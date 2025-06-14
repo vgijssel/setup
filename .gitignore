@@ -63,3 +63,5 @@ docs/.obsidian
 
 .hermit
 .aider*
+
+services/kube-OVN/charts
