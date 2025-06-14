@@ -59,7 +59,7 @@ tasks:
       - talosconfig
       - ~/.kube/configs/enigma.yaml 
 
-  bootstrap:
+  apply:bootstrap:
     desc: Apply initial configuration to nodes
     deps:
       - generate
@@ -67,13 +67,10 @@ tasks:
       - talosctl apply-config --insecure -n {{.THE_TOY_FACTORY_IP}} --file the-toy-factory.yaml
       - talosctl apply-config --insecure -n {{.THE_DOME_IP}} --file the-dome.yaml
       - talosctl apply-config --insecure -n {{.ILLUSION_IP}} --file illusion.yaml
-      - # wait for the nodes to ready
-      # - talosctl bootstrap -n 192.168.1.40 -e 192.168.1.40
-      # - talosctl health -n 192.168.1.40
-      # - talosctl version
-      # # Write out the kubeconfig to a location known by kubie
-      # - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
-      # - kubectl get nodes
+      - wait-for-it --service 192.168.1.40:50000
+      - talosctl bootstrap -n 192.168.1.40 -e 192.168.1.40
+      - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
+      - talosctl get nodes --watch
     requires:
       vars: [THE_TOY_FACTORY_IP, THE_DOME_IP, ILLUSION_IP]
 
@@ -92,7 +89,8 @@ tasks:
     deps:
       - generate
     cmds:
-      - talosctl apply-config -n 192.168.1.40 --mode try --timeout 1m --file the-toy-factory.yaml
+      # - talosctl apply-config -n 192.168.1.40 --mode try --timeout 1m --file the-toy-factory.yaml
+      - talosctl apply-config -n 192.168.1.40,192.168.1.41,192.168.1.42 --mode try --timeout 3m --file the-toy-factory.yaml
 
   apply:network:
     desc: Apply Kube-OVN network configuration

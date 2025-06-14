@@ -6,6 +6,10 @@ machine:
     - name: openvswitch
   nodeLabels:
     kube-ovn/role: master
+    # TODO: unsure if we need this
+    # can also be: userspace? 
+    # Doesn't seem to matter???
+    ovn.kubernetes.io/ovs_dp_type: userspace
   kubelet:
     nodeIP:
       validSubnets:
