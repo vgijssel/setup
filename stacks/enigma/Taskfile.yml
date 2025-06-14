@@ -87,3 +87,4 @@ tasks:
       - talosctl apply-config -n 192.168.1.40 --file the-toy-factory.yaml
       - talosctl apply-config -n 192.168.1.41 --file the-dome.yaml
       - talosctl apply-config -n 192.168.1.42 --file illusion.yaml
+      - talosctl upgrade-k8s -n 192.168.1.40
