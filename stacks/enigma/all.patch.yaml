@@ -29,12 +29,9 @@ machine:
   # See https://github.com/siderolabs/talos/pull/9200
   # forwardKubeDNSToHost: false
 cluster:
-  allowSchedulingOnControlPlanes: true
   etcd:
     advertisedSubnets:
       - 10.15.15.0/24
   network:
     cni:
       name: none
-  proxy:
-    disabled: true

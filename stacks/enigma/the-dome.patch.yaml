@@ -2,9 +2,9 @@ machine:
   network:
     hostname: the-dome
     interfaces:
-      - interface: br0
-        addresses:
-          - 10.15.15.41/24
       - interface: eno1
         addresses:
           - 192.168.1.41/24
+      - interface: br0
+        addresses:
+          - 10.15.15.41/24
