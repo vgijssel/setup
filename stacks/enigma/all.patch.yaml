@@ -1,6 +1,11 @@
 machine:
   install:
     disk: /dev/nvme0n1
+  kernel:
+    modules:
+    - name: openvswitch
+  nodeLabels:
+    kube-ovn/role: master
   kubelet:
     nodeIP:
       validSubnets:

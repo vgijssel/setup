@@ -20,14 +20,11 @@ tasks:
       - # wait for the nodes to come back online (using wait-for-it?)
       - # run the bootstrap script on 192.168.1.40
 
-  # - kubectl rook-ceph rook status
   # - validate internet connectivity (maybe separate goss?)
   # TODO: create start / stop service for rook relay
   validate:
     desc: Validate Cluster Health
     cmds:
-      - task: hubble:start
-      - defer: { task: hubble:stop }
       - goss validate
 
   reboot:
