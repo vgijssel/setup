@@ -96,3 +96,8 @@ tasks:
       - generate
     cmds:
       - talosctl apply-config -n 192.168.1.40 --mode try --timeout 1m --file the-toy-factory.yaml
+
+  apply:network:
+    desc: Apply Kube-OVN network configuration
+    cmds:
+      - kustomize build $SERVICES_DIR/kube-OVN --enable-helm | kubectl apply -f -

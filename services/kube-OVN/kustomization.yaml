@@ -5,7 +5,7 @@ namespace: kube-system
 
 helmCharts:
 - name: kube-ovn
-  repo: https://charts.kube-ovn.io
+  repo: https://kubeovn.github.io/kube-ovn/
   releaseName: kubeovn
   namespace: kube-system
   version: v1.13.13
