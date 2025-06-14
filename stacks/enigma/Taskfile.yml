@@ -41,6 +41,7 @@ tasks:
       - talosctl shutdown -n 192.168.1.40,192.168.1.41,192.168.1.42
 
   generate:
+    aliases: [gen, g]
     desc: Generate the Talos configuration files
     cmds:
       - talosctl gen config --with-secrets secrets.yaml  enigma https://192.168.1.50:6443 --output-types talosconfig -o talosconfig --force
@@ -88,3 +89,10 @@ tasks:
       - talosctl apply-config -n 192.168.1.41 --file the-dome.yaml
       - talosctl apply-config -n 192.168.1.42 --file illusion.yaml
       - talosctl upgrade-k8s -n 192.168.1.40
+
+  apply:try:
+    desc: Try a configuration change for a single node which automatiacally reverts after 1 minute
+    deps:
+      - generate
+    cmds:
+      - talosctl apply-config -n 192.168.1.40 --mode try --timeout 1m --file the-toy-factory.yaml

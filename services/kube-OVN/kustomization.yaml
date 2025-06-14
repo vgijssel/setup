@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kube-system
+
+helmCharts:
+- name: kube-ovn
+  repo: https://charts.kube-ovn.io
+  releaseName: kubeovn
+  namespace: kube-system
+  version: v1.13.13
+  includeCRDs: true   # this makes sure we don't have to run `helm install` separately for CRDs
+  valuesInline:
+    OVN_DIR: "/var/lib/ovn"
+    OPENVSWITCH_DIR: "/var/lib/openvswitch"
+    DISABLE_MODULES_MANAGEMENT: true
+    cni_conf:
+      MOUNT_LOCAL_BIN_DIR: false
+    networking:
+      NETWORK_TYPE: "vlan"
+      vlan:
+        VLAN_INTERFACE_NAME: "eno1"
+        VLAN_ID: 50
+      NET_STACK: "ipv4"
+      # Ensure there's IPs which can be assigned manually
+      EXCLUDE_IPS: '192.168.50.1..192.168.50.30'
+    ipv4:
+      POD_CIDR: "192.168.50.0/24"
+      POD_GATEWAY: "192.168.50.1"
