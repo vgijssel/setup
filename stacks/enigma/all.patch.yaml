@@ -10,23 +10,19 @@ machine:
   kubelet:
     nodeIP:
       validSubnets:
-        # - 10.15.15.0/24
-        - 192.168.1.0/24
+        - 10.15.15.0/24
+        # - 192.168.1.0/24
   network:
     nameservers:
       - 192.168.1.1
     interfaces:
-      - interface: enp4s0f0np0
-        ignore: true
-      - interface: enp4s0f1np1
-        ignore: true
-#       - interface: br0
-#         bridge:
-#           stp:
-#             enabled: true
-#           interfaces:
-#             - enp4s0f0np0
-#             - enp4s0f1np1
+      - interface: br0
+        bridge:
+          stp:
+            enabled: true
+          interfaces:
+            - enp4s0f0np0
+            - enp4s0f1np1
       - interface: eno1
         routes:
           - network: 0.0.0.0/0
@@ -36,8 +32,8 @@ machine:
 cluster:
   etcd:
     advertisedSubnets:
-      # - 10.15.15.0/24
-        - 192.168.1.0/24
+      - 10.15.15.0/24
+        # - 192.168.1.0/24
   network:
     cni:
       name: none

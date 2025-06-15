@@ -17,7 +17,7 @@ helmCharts:
     cni_conf:
       MOUNT_LOCAL_BIN_DIR: false
     # Specify the interface to use for OVN
-    IFACE: "eno1"
+    IFACE: "br0"
     # NOTE: Need to explicitly set the master nodes here, otherwise the 
     # central component does not come up!
     # MASTER_NODES: 10.15.15.40,10.15.15.41,10.15.15.42
