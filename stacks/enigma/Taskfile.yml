@@ -68,13 +68,16 @@ tasks:
       - talosctl apply-config --insecure -n {{.THE_DOME_IP}} --file the-dome.yaml
       - talosctl apply-config --insecure -n {{.ILLUSION_IP}} --file illusion.yaml
       - wait-for-it --service 192.168.1.40:50000
+      # TODO: wait until etcd is ready for cluster forming
       - talosctl bootstrap -n 192.168.1.40 -e 192.168.1.40
       - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
-      - talosctl get nodes --watch
+      - # TODO: wait until all three nodes are listed in kubectl get nodes
+      - # TODO: wait until all the scheduler, controller-manager, and kube-apiserver pods are running in all nodes
     requires:
       vars: [THE_TOY_FACTORY_IP, THE_DOME_IP, ILLUSION_IP]
 
   apply:
+    prompt: This might break kube-ovn, are you sure?
     desc: Apply the configuration to the nodes
     deps:
       - generate
@@ -96,3 +99,4 @@ tasks:
     desc: Apply Kube-OVN network configuration
     cmds:
       - kustomize build $SERVICES_DIR/kube-OVN --enable-helm | kubectl apply -f -
+      # TODO: wait until kubectl get nodes is ready

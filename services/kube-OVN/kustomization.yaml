@@ -11,19 +11,14 @@ helmCharts:
   version: v1.13.13
   includeCRDs: true   # this makes sure we don't have to run `helm install` separately for CRDs
   valuesInline:
-    OVN_DIR: "/var/lib/ovn"
-    OPENVSWITCH_DIR: "/var/lib/openvswitch"
+    OVN_DIR: /var/lib/ovn
+    OPENVSWITCH_DIR: /var/lib/openvswitch
     DISABLE_MODULES_MANAGEMENT: true
     cni_conf:
       MOUNT_LOCAL_BIN_DIR: false
-    networking:
-      NETWORK_TYPE: "vlan"
-      vlan:
-        VLAN_INTERFACE_NAME: "eno1"
-        VLAN_ID: 50
-      NET_STACK: "ipv4"
-      # Ensure there's IPs which can be assigned manually
-      EXCLUDE_IPS: '192.168.50.1..192.168.50.30'
-    ipv4:
-      POD_CIDR: "192.168.50.0/24"
-      POD_GATEWAY: "192.168.50.1"
+    # Specify the interface to use for OVN
+    IFACE: "eno1"
+    # NOTE: Need to explicitly set the master nodes here, otherwise the 
+    # central component does not come up!
+    # MASTER_NODES: 10.15.15.40,10.15.15.41,10.15.15.42
+    MASTER_NODES: 192.168.1.40,192.168.1.41,192.168.1.42

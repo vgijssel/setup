@@ -6,41 +6,38 @@ machine:
     - name: openvswitch
   nodeLabels:
     kube-ovn/role: master
-    # TODO: unsure if we need this
-    # can also be: userspace? 
-    # Doesn't seem to matter???
-    ovn.kubernetes.io/ovs_dp_type: userspace
+    ovn.kubernetes.io/ovs_dp_type: kernel
   kubelet:
     nodeIP:
       validSubnets:
-        - 10.15.15.0/24
+        # - 10.15.15.0/24
+        - 192.168.1.0/24
   network:
     nameservers:
       - 192.168.1.1
     interfaces:
-      - interface: br0
-        bridge:
-          stp:
-            enabled: true
-          interfaces:
-            - enp4s0f0np0
-            - enp4s0f1np1
+      - interface: enp4s0f0np0
+        ignore: true
+      - interface: enp4s0f1np1
+        ignore: true
+#       - interface: br0
+#         bridge:
+#           stp:
+#             enabled: true
+#           interfaces:
+#             - enp4s0f0np0
+#             - enp4s0f1np1
       - interface: eno1
         routes:
           - network: 0.0.0.0/0
             gateway: 192.168.1.1
         vip:
           ip: 192.168.1.50
-
-  # features:
-  #   hostDNS:
-  # Necessary for Cilium `bpf.masquerade=true`
-  # See https://github.com/siderolabs/talos/pull/9200
-  # forwardKubeDNSToHost: false
 cluster:
   etcd:
     advertisedSubnets:
-      - 10.15.15.0/24
+      # - 10.15.15.0/24
+        - 192.168.1.0/24
   network:
     cni:
       name: none
