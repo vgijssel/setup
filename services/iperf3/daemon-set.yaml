@@ -14,5 +14,4 @@ spec:
       containers:
         - name: iperf3
           image: networkstatic/iperf3
-          entrypoint: []
           command: ["sleep", "infinity"]

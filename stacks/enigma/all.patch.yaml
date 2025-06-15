@@ -37,3 +37,4 @@ cluster:
   network:
     cni:
       name: none
+  allowSchedulingOnControlPlanes: true
