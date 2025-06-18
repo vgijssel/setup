@@ -25,3 +25,5 @@ helmCharts:
 
 resources:
   - provider-network.yaml
+  - vlan.yaml
+  - subnet.yaml

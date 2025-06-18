@@ -103,3 +103,8 @@ tasks:
     cmds:
       - kustomize build $SERVICES_DIR/kube-ovn --enable-helm | kubectl apply -f -
       # TODO: wait until kubectl get nodes is ready
+
+  apply:testing:
+    desc: Apply Kube-OVN network configuration
+    cmds:
+      - kustomize build $SERVICES_DIR/iperf3 --enable-helm | kubectl apply -f -
