@@ -22,3 +22,6 @@ helmCharts:
     # central component does not come up!
     MASTER_NODES: 10.15.15.40,10.15.15.41,10.15.15.42
     # MASTER_NODES: 192.168.1.40,192.168.1.41,192.168.1.42
+
+resources:
+  - provider-network.yaml

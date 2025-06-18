@@ -42,7 +42,7 @@ tasks:
     desc: Generate the Talos configuration files
     cmds:
       - talosctl gen config --with-secrets secrets.yaml  enigma https://192.168.1.50:6443 --output-types talosconfig -o talosconfig --force
-      - talosctl config endpoint 192.168.1.50
+      - talosctl config endpoint 192.168.1.40 # Best practice: DON'T use the kube-vip ip here
       - talosctl config nodes 192.168.1.40 192.168.1.41 192.168.1.42
       - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o the-toy-factory.yaml enigma https://192.168.1.50:6443 --force
       - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o the-dome.yaml enigma https://192.168.1.50:6443 --force
@@ -67,8 +67,11 @@ tasks:
       - talosctl apply-config --insecure -n {{.THE_TOY_FACTORY_IP}} --file the-toy-factory.yaml
       - talosctl apply-config --insecure -n {{.THE_DOME_IP}} --file the-dome.yaml
       - talosctl apply-config --insecure -n {{.ILLUSION_IP}} --file illusion.yaml
-      - wait-for-it --service 192.168.1.40:50000
+      # TODO: use goss validate for this instead!
+      # On a fresh install can take a while for the nodes to come up
+      - wait-for-it --service 192.168.1.40:50000 --timeout 300
       # TODO: wait until etcd is ready for cluster forming
+      - sleep 30
       - talosctl bootstrap -n 192.168.1.40 -e 192.168.1.40
       - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
       - # TODO: wait until all three nodes are listed in kubectl get nodes
@@ -98,5 +101,5 @@ tasks:
   apply:network:
     desc: Apply Kube-OVN network configuration
     cmds:
-      - kustomize build $SERVICES_DIR/kube-OVN --enable-helm | kubectl apply -f -
+      - kustomize build $SERVICES_DIR/kube-ovn --enable-helm | kubectl apply -f -
       # TODO: wait until kubectl get nodes is ready

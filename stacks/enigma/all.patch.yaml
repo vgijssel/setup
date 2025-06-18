@@ -29,6 +29,9 @@ machine:
             gateway: 192.168.1.1
         vip:
           ip: 192.168.1.50
+
+      - interface: enp6s0
+        ignore: true
 cluster:
   etcd:
     advertisedSubnets:
