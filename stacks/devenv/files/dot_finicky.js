@@ -5,22 +5,22 @@ export default {
       match: "hackerone.okta.com/*",
       browser: {
         name: "Google Chrome",
-        profile: "Profile 2"
-      }
+        profile: "Profile 2",
+      },
     },
     {
       match: "*.inverselink.com/*",
       browser: {
         name: "Google Chrome",
-        profile: "Profile 2"
-      }
+        profile: "Profile 2",
+      },
     },
     {
       match: "*.awsapps.com/*",
       browser: {
         name: "Google Chrome",
-        profile: "Profile 2"
-      }
-    }
-  ]
-}
+        profile: "Profile 2",
+      },
+    },
+  ],
+};

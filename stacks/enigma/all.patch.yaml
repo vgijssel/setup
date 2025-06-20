@@ -3,7 +3,7 @@ machine:
     disk: /dev/nvme0n1
   kernel:
     modules:
-    - name: openvswitch
+      - name: openvswitch
   nodeLabels:
     kube-ovn/role: master
     ovn.kubernetes.io/ovs_dp_type: kernel

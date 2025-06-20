@@ -53,7 +53,7 @@ tasks:
       - the-dome.yaml
       - illusion.yaml
       - talosconfig
-      - ~/.kube/configs/enigma.yaml 
+      - ~/.kube/configs/enigma.yaml
 
   apply:bootstrap:
     desc: Apply initial configuration to nodes
@@ -67,8 +67,8 @@ tasks:
       # TODO: wait until etcd is ready for cluster forming
       - talosctl bootstrap -n 192.168.1.40 -e 192.168.1.40
       - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
-      - # TODO: wait until all three nodes are listed in kubectl get nodes
-      - # TODO: wait until all the scheduler, controller-manager, and kube-apiserver pods are running in all nodes
+      -  # TODO: wait until all three nodes are listed in kubectl get nodes
+      -  # TODO: wait until all the scheduler, controller-manager, and kube-apiserver pods are running in all nodes
     requires:
       vars: [THE_TOY_FACTORY_IP, THE_DOME_IP, ILLUSION_IP]
 
