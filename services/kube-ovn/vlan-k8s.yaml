@@ -1,0 +1,7 @@
+apiVersion: kubeovn.io/v1
+kind: Vlan
+metadata:
+  name: vlan-k8s
+spec:
+  id: 50
+  provider: net1

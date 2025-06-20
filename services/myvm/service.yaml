@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    kubevirt.io/vm: ubuntu-2-vm
+  name: ubuntu-2-vm
+spec:
+  ports:
+    - name: ssh
+      port: 22
+      protocol: TCP
+      targetPort: 22
+  selector:
+    kubevirt.io/vm: ubuntu-2-vm
+  type: ClusterIP
