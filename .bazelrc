@@ -25,38 +25,7 @@ test --test_env=ONEPASSWORD_SERVICE_ACCOUNT_TOKEN_DEV
 
 common --enable_bzlmod=true
 
-# Enable builds without the bytes https://github.com/bazelbuild/bazel/issues/6862
-build:buildbuddy --remote_download_minimal
-
-# From https://www.buildbuddy.io/docs/cloud
-# Use BuildBuddy
-build:buildbuddy --bes_results_url=https://app.buildbuddy.io/invocation/
-build:buildbuddy --bes_backend=grpcs://remote.buildbuddy.io
-build:buildbuddy --remote_cache=grpcs://remote.buildbuddy.io
-build:buildbuddy --remote_timeout=3600
-
-# Suggestions from BuildBuddy
-build:buildbuddy --experimental_remote_build_event_upload=minimal
-build:buildbuddy --experimental_remote_cache_compression
-build:buildbuddy --experimental_stream_log_file_uploads
 common --nolegacy_important_outputs
-
-# For BuildBuddy Remote Build Execution
-build:buildbuddy_rbe --remote_executor=grpcs://remote.buildbuddy.io
-build:buildbuddy_rbe --host_platform=@buildbuddy_toolchain//:platform
-build:buildbuddy_rbe --platforms=@buildbuddy_toolchain//:platform
-build:buildbuddy_rbe --extra_execution_platforms=@buildbuddy_toolchain//:platform
-build:buildbuddy_rbe --crosstool_top=@buildbuddy_toolchain//:toolchain
-build:buildbuddy_rbe --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain
-build:buildbuddy_rbe --javabase=@buildbuddy_toolchain//:javabase_jdk8
-build:buildbuddy_rbe --host_javabase=@buildbuddy_toolchain//:javabase_jdk8
-build:buildbuddy_rbe --java_toolchain=@buildbuddy_toolchain//:toolchain_jdk8
-build:buildbuddy_rbe --host_java_toolchain=@buildbuddy_toolchain//:toolchain_jdk8
-build:buildbuddy_rbe --define=EXECUTOR=remote
-build:buildbuddy_rbe --jobs=50
-# To make the remote build work from macbook M1 (https://buildbuddy.slack.com/archives/CUHBFVATU/p1651609573695259?thread_ts=1651609249.864879&cid=CUHBFVATU)
-build:buildbuddy_rbe --host_cpu=k8
-build:buildbuddy_rbe --cpu=k8
 
 # Ignore pants packages
 common --deleted_packages 3rdparty,3rdparty/python

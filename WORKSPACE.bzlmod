@@ -49,27 +49,6 @@ http_archive(
     url = "https://github.com/pulumi/pulumi/releases/download/v3.86.0/pulumi-v3.86.0-darwin-arm64.tar.gz",
 )
 
-# ------------------------------------ buildbuddy Remote Build Execution ------------------------------------ #
-
-http_archive(
-    name = "io_buildbuddy_buildbuddy_toolchain",
-    sha256 = "a430e0b50ee9c64713cfc476c610f80e9a8a3f84fb27c96f0da886f21d5bf3e1",
-    strip_prefix = "buildbuddy-toolchain-f0a5cf35d2f580e623996fcf13108f319a79d8c5",
-    urls = [
-        "https://github.com/buildbuddy-io/buildbuddy-toolchain/archive/f0a5cf35d2f580e623996fcf13108f319a79d8c5.tar.gz",
-    ],
-)
-
-load("@io_buildbuddy_buildbuddy_toolchain//:deps.bzl", "buildbuddy_deps")
-
-buildbuddy_deps()
-
-load("@io_buildbuddy_buildbuddy_toolchain//:rules.bzl", "UBUNTU20_04_IMAGE", "buildbuddy")
-
-buildbuddy(
-    name = "buildbuddy_toolchain",
-    container_image = UBUNTU20_04_IMAGE,
-)
 
 # ------------------------------------ teleport client ------------------------------------ #
 
