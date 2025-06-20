@@ -1,7 +1,7 @@
 apiVersion: kubeovn.io/v1
 kind: Subnet
 metadata:
-   name: subnet1
+   name: subnet-admin
 spec:
    protocol: IPv4
    # cidrBlock: 192.168.50.0/24
@@ -10,6 +10,6 @@ spec:
    excludeIps:
     - 192.168.1.1..192.168.1.90
     - 192.168.1.100..192.168.1.254
-   vlan: vlan1
+   vlan: vlan-admin
    namespaces:
     - testing

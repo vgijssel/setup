@@ -14,6 +14,13 @@ export default {
         name: "Google Chrome",
         profile: "Profile 2"
       }
+    },
+    {
+      match: "*.awsapps.com/*",
+      browser: {
+        name: "Google Chrome",
+        profile: "Profile 2"
+      }
     }
   ]
 }
