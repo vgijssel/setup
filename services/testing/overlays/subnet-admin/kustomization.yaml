@@ -22,7 +22,7 @@ patches:
               app: subnet-admin-test-app
             annotations:
               ovn.kubernetes.io/logical_switch: subnet-admin
-              ovn.kubernetes.io/ip_pool: 192.168.1.91
+              ovn.kubernetes.io/ip_address: 192.168.1.91
   - patch: |-
       apiVersion: v1
       kind: Service
