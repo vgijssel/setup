@@ -11,7 +11,6 @@ machine:
     nodeIP:
       validSubnets:
         - 10.15.15.0/24
-        # - 192.168.1.0/24
   network:
     nameservers:
       - 192.168.1.1
@@ -36,7 +35,6 @@ cluster:
   etcd:
     advertisedSubnets:
       - 10.15.15.0/24
-        # - 192.168.1.0/24
   network:
     cni:
       name: none
