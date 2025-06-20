@@ -1,4 +1,0 @@
-patches:
-- path: patch.yaml
-resources:
-- ../../3rdparty/manifests/multus-cni

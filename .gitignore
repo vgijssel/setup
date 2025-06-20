@@ -64,4 +64,4 @@ docs/.obsidian
 .hermit
 .aider*
 
-services/kube-OVN/charts
+services/kube-ovn/charts

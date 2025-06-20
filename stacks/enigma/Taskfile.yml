@@ -17,11 +17,7 @@ tasks:
       - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.42 -e 192.168.1.42 --reboot --graceful=false --wait=false
       - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.41 -e 192.168.1.41 --reboot --graceful=false --wait=false
       - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.40 -e 192.168.1.40 --reboot --graceful=false --wait=false
-      - # wait for the nodes to come back online (using wait-for-it?)
-      - # run the bootstrap script on 192.168.1.40
 
-  # - validate internet connectivity (maybe separate goss?)
-  # TODO: create start / stop service for rook relay
   validate:
     desc: Validate Cluster Health
     cmds:
@@ -68,10 +64,7 @@ tasks:
       - talosctl apply-config --insecure -n {{.THE_DOME_IP}} --file the-dome.yaml
       - talosctl apply-config --insecure -n {{.ILLUSION_IP}} --file illusion.yaml
       # TODO: use goss validate for this instead!
-      # On a fresh install can take a while for the nodes to come up
-      - wait-for-it --service 192.168.1.40:50000 --timeout 300
       # TODO: wait until etcd is ready for cluster forming
-      - sleep 30
       - talosctl bootstrap -n 192.168.1.40 -e 192.168.1.40
       - talosctl kubeconfig --force -n 192.168.1.50 ~/.kube/configs/enigma.yaml
       - # TODO: wait until all three nodes are listed in kubectl get nodes
