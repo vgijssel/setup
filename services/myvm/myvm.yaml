@@ -79,7 +79,7 @@ spec:
           # Make sure this is set to Filesystem and not Block
           # when using a qcow2 image
           volumeMode: Filesystem
-          storageClassName: "vm-filesystem"
+          storageClassName: vm-filesystem
         source:
           http:
-            url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+            url: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img

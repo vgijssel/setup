@@ -7,8 +7,8 @@ tasks:
     cmds:
       - kubectl -n kube-system debug node/the-toy-factory --image ubuntu --profile sysadmin -it
     preconditions:
-      - sh: "kubie info ctx"
-        msg: "Make sure to be in a kubie shell"
+      - sh: kubie info ctx
+        msg: Make sure to be in a kubie shell
 
   reset:
     prompt: This will wipe the cluster and reset Talos nodes. Are you sure?

@@ -7,8 +7,8 @@ spec:
     scratchSpaceStorageClass: local-path
     podResourceRequirements:
       requests:
-        cpu: "100m"
-        memory: "60M"
+        cpu: 100m
+        memory: 60M
       limits:
-        cpu: "750m"
-        memory: "2Gi"
+        cpu: 750m
+        memory: 2Gi

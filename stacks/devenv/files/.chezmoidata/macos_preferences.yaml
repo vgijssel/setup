@@ -21,9 +21,9 @@ preferences:
 
 settings:
   recommended:
-    "com.googlecode.iterm2":
+    com.googlecode.iterm2:
       TabStyleWithAutomaticOption: 5
-      "Default Bookmark Guid": "dataone-profile-guid"
+      Default Bookmark Guid: dataone-profile-guid
     "com.microsoft.VSCode":
       ApplePressAndHoldEnabled: false
     "com.microsoft.VSCodeInsiders":
