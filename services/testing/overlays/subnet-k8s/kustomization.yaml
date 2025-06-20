@@ -8,22 +8,27 @@ resources:
 
 patches:
   - patch: |-
-      - op: replace
-        path: /spec/template/metadata/annotations/ovn.kubernetes.io~1logical_switch
-        value: subnet-k8s
-      - op: replace
-        path: /spec/template/metadata/labels/app
-        value: subnet-k8s-test-app
-      - op: replace
-        path: /spec/selector/matchLabels/app
-        value: subnet-k8s-test-app
-    target:
+      apiVersion: apps/v1
       kind: Deployment
-      name: test-app
+      metadata:
+        name: test-app
+      spec:
+        selector:
+          matchLabels:
+            app: subnet-k8s-test-app
+        template:
+          metadata:
+            labels:
+              app: subnet-k8s-test-app
+            annotations:
+              ovn.kubernetes.io/logical_switch: subnet-k8s
+              ovn.kubernetes.io/ip_pool: 192.168.50.15
+
   - patch: |-
-      - op: replace
-        path: /spec/selector/app
-        value: subnet-k8s-test-app
-    target:
+      apiVersion: v1
       kind: Service
-      name: test-app-service
+      metadata:
+        name: test-app-service
+      spec:
+        selector:
+          app: subnet-k8s-test-app
