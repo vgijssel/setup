@@ -1,0 +1,17 @@
+#!/bin/bash
+
+{{- $preferences := .preferences }}
+{{- $settings := .settings.recommended }}
+
+
+set -ex
+
+# iterm2 preferences
+# https://iterm2.com/python-api/preferences.html
+
+{{- range $category, $prefs := $preferences }}
+{{- range $key, $type := $prefs }}
+{{- $setting := index $settings $category $key }}
+defaults write {{ $category }} "{{ $key }}" -{{ $type }} "{{ $setting }}"
+{{- end }}
+{{- end }}

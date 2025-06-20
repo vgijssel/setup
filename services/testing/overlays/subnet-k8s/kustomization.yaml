@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: subnet-k8s-
+
+resources:
+  - ../../base
+
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: test-app
+      spec:
+        selector:
+          matchLabels:
+            app: subnet-k8s-test-app
+        template:
+          metadata:
+            labels:
+              app: subnet-k8s-test-app
+            annotations:
+              ovn.kubernetes.io/logical_switch: subnet-k8s
+              ovn.kubernetes.io/ip_address: 192.168.50.15
+
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: test-app-service
+      spec:
+        selector:
+          app: subnet-k8s-test-app

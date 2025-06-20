@@ -1,0 +1,85 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: ubuntu-vm
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: ubuntu-vm
+      annotations:
+        kubevirt.io/allow-pod-bridge-network-live-migration: "true"
+
+    spec:
+      evictionStrategy: LiveMigrate
+      domain:
+        cpu:
+          cores: 2
+        resources:
+          requests:
+            memory: 4G
+        devices:
+          disks:
+            - name: ubuntu-vm-pvc
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: external
+              bridge: {}
+      networks:
+        - name: external
+          pod: {}
+        # - name: external
+        #   # What happens if the NAD is in another namespace? Or don't care and create multiple?
+        #   multus: # Secondary multus network
+        #     networkName: myvm/cilium-bridge-vm #ref to NAD name
+      volumes:
+        - name: ubuntu-vm-pvc
+          persistentVolumeClaim:
+            claimName: ubuntu-vm-pvc
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              users:
+                - name: maarten
+                  ssh_authorized_keys:
+                    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN6L7btdM1aa/R72LWoj3KRMb2rH/c2l/SmZ5qyPpYCx
+                  sudo: ['ALL=(ALL) NOPASSWD:ALL']
+                  groups: sudo
+                  shell: /bin/bash
+
+            networkData: |
+              network:
+                version: 2
+                ethernets:
+                  enp1s0:
+                    dhcp4: false
+                    addresses:
+                      - 192.168.1.89/24
+                    gateway4: 192.168.1.1
+                    nameservers:
+                      addresses:
+                        - 192.168.1.1
+  dataVolumeTemplates:
+    - metadata:
+        name: ubuntu-vm-pvc
+      spec:
+        storage:
+          resources:
+            requests:
+              storage: 35Gi
+          accessModes:
+            - ReadWriteMany
+          # Make sure this is set to Filesystem and not Block
+          # when using a qcow2 image
+          volumeMode: Filesystem
+          storageClassName: vm-filesystem
+        source:
+          http:
+            url: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img

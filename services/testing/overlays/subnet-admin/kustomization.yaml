@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: subnet-admin-
+
+resources:
+  - ../../base
+
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: test-app
+      spec:
+        selector:
+          matchLabels:
+            app: subnet-admin-test-app
+        template:
+          metadata:
+            labels:
+              app: subnet-admin-test-app
+            annotations:
+              ovn.kubernetes.io/logical_switch: subnet-admin
+              ovn.kubernetes.io/ip_address: 192.168.1.91
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: test-app-service
+      spec:
+        selector:
+          app: subnet-admin-test-app

@@ -1,0 +1,13 @@
+apiVersion: kubeovn.io/v1
+kind: Subnet
+metadata:
+  name: subnet-k8s
+spec:
+  protocol: IPv4
+  cidrBlock: 192.168.50.0/24
+  gateway: 192.168.50.1
+  excludeIps:
+    - 192.168.50.1..192.168.50.10
+  vlan: vlan-k8s
+  namespaces:
+    - testing-k8s

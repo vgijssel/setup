@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kube-system
+
+helmCharts:
+  - name: kube-ovn
+    repo: https://kubeovn.github.io/kube-ovn/
+    releaseName: kubeovn
+    namespace: kube-system
+    version: v1.13.13
+    includeCRDs: true # this makes sure we don't have to run `helm install` separately for CRDs
+    valuesInline:
+      OVN_DIR: /var/lib/ovn
+      OPENVSWITCH_DIR: /var/lib/openvswitch
+      DISABLE_MODULES_MANAGEMENT: true
+      cni_conf:
+        MOUNT_LOCAL_BIN_DIR: false
+      # Specify the interface to use for OVN
+      IFACE: br0
+      # NOTE: Need to explicitly set the master nodes here, otherwise the
+      # central component does not come up!
+      MASTER_NODES: 10.15.15.40,10.15.15.41,10.15.15.42
+      # MASTER_NODES: 192.168.1.40,192.168.1.41,192.168.1.42
+
+resources:
+  - provider-network.yaml
+  - vlan-admin.yaml
+  - subnet-admin.yaml
+  - vlan-k8s.yaml
+  - subnet-k8s.yaml

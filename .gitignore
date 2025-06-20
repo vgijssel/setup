@@ -62,3 +62,6 @@ docs/.obsidian
 .pub_min_cache/
 
 .hermit
+.aider*
+
+services/kube-ovn/charts

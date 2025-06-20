@@ -13,20 +13,19 @@ includes:
     taskfile: ./services/tinkerbell/Taskfile.yml
     dir: ./services/tinkerbell
 
+  stacks:enigma:
+    taskfile: ./stacks/enigma/Taskfile.yml
+    dir: ./stacks/enigma
+
+  stacks:devenv:
+    taskfile: ./stacks/devenv/Taskfile.yml
+    dir: .
+
+  3rdparty:
+    taskfile: ./3rdparty/Taskfile.yml
+    dir: .
+
 tasks:
-  devenv:secrets:
-    desc: Install secrets for the devenv
-    cmds:
-      - op inject --force --in-file=.op.env --out-file=.env
-      - op read --force --out-file $HOME/.kube/provisioner-k8s.config "op://vgijssel-prod/provisioner-k8s-kubeconfig/certificate"
-    sources:
-      - .op.env
-
-  devenv:setup:
-    desc: Install dependencies for the devenv
-    cmds:
-      - helmfile init
-
   # TODO: No longer necessary after https://github.com/mkdocs-publisher/mkdocs-publisher/pull/110
   docs:check:
     desc: Check if necessary requirements are installed

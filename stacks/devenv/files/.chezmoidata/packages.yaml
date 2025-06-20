@@ -1,0 +1,34 @@
+packages:
+  darwin:
+    brews:
+      - git
+      - zsh
+      - starship
+      - fzf
+      - zimfw
+      - chezmoi
+      - coreutils
+      - zoxide
+      - tmux
+    casks:
+      - google-chrome
+      - orbstack
+      - iterm2
+      - visual-studio-code
+      - font-fira-code-nerd-font
+      - alfred
+      - whatsapp
+      - spotify
+      - todoist
+      - raspberry-pi-imager
+      - balenaetcher
+      - steam
+      - 1password
+      - discord
+      - slack
+      - obsidian
+      - gimp
+      - chatgpt
+      - github
+      - finicky
+      - obs
