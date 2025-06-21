@@ -1,15 +1,3 @@
 {
-  "search.exclude": {
-    "home-assistant/config/custom_components/**/*": true
-  },
-  "files.associations": {
-    "WORKSPACE.bzlmod": "starlark",
-    ".bazelrc": "plaintext"
-  },
-  "editor.formatOnSave": true,
-  "files.exclude": {
-    "**/bazel-*": true,
-    "haos/custom_components/hacs/**/*": true
-  },
-  "trunk.autoInit": false
+  "editor.formatOnSave": true
 }
