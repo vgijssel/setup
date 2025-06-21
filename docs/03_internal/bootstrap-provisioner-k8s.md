@@ -28,13 +28,13 @@ update: 2025-01-11 06:00:00
 1.  Run Ansible playbook with local inventory
 
         ```bash
-        task provisioner-k8s:provision:local
+        task stacks:provisioner:k8s:provision:local
         ```
 
 1.  Validate if host can now be provisioned through Tailscale
 
     ```bash
-    task provisioner-k8s:provision
+    task stacks:provisioner:k8s:provision
     ```
 
 1.  Copy Kubernetes secret `/etc/rancher/k3s/k3s.yaml` into 1Password `op://vgijssel-prod/provisioner-k8s-kubeconfig/certificate`
