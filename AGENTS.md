@@ -13,6 +13,7 @@ Defines full deployment environments (real or virtualized). For example:
 
 - `enigma/`: Talos-based Kubernetes cluster
 - `devenv/`: Local MacOS-based dev environment
+- `provisioner/`: PiKVM machine provisioned using Ansible
 
 ### `services/`
 Reusable Kubernetes service modules. For example:
@@ -38,6 +39,7 @@ Each app includes:
 Reusable libraries and build tools. For example:
 
 - `rules_task/`: Bazel rule set or CLI helper scripts to simplify task execution, builds, or image packaging
+- `ansible/`: Shared Ansible roles and filters.
 
 ### `third_party/`
 All external, vendored dependencies.
