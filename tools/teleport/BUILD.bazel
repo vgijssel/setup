@@ -3,9 +3,9 @@ load("@rules_task//task:defs.bzl", "cmd", "task")
 package(default_visibility = ["//visibility:public"])
 
 tsh_file = select({
+    "//:is_darwin_arm64": ["@teleport_darwin_arm64//:teleport/tsh"],
     "//:is_linux_amd64": ["@teleport_linux_amd64//:teleport/tsh"],
     "//:is_linux_arm64": ["@teleport_linux_arm64//:teleport/tsh"],
-    "//:is_darwin_arm64": ["@teleport_darwin_arm64//:teleport/tsh"],
 })
 
 sh_binary(
@@ -23,8 +23,7 @@ task(
     ],
     cwd = "{{ os.environ.get('BUILD_WORKING_DIRECTORY', os.getcwd()) }}",
     env = {
-        "TELEPORT_PROXY": "tele.vgijssel.nl",
         "TELEPORT_ADD_KEYS_TO_AGENT": "no",
+        "TELEPORT_PROXY": "tele.vgijssel.nl",
     },
 )
-
