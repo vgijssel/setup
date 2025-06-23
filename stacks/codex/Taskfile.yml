@@ -1,0 +1,7 @@
+version: "3"
+
+tasks:
+  setup:
+    desc: Prepare the Codex CI environment
+    cmds:
+      - eval "$(stacks/codex/setup.sh)"
