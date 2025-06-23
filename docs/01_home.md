@@ -16,7 +16,7 @@ hide:
 
 ## What is this place?!
 
-This is my personal blog where I write about my experiences, failures, successes and other things that interests me. It also houses documentation for all of my experiments an projects. I hope you find something useful here.
+This is my personal blog where I write about my experiences, failures, successes and other things that interest me. It also houses documentation for all of my experiments and projects. I hope you find something useful here.
 
 ## About Me
 
