@@ -14,6 +14,7 @@ Defines full deployment environments (real or virtualized). For example:
 - `enigma/`: Talos-based Kubernetes cluster
 - `devenv/`: Local MacOS-based dev environment
 - `provisioner/`: PiKVM machine provisioned using Ansible
+- `hypervisor/`: Nix-managed virtualization stack
 
 ### `services/`
 Reusable Kubernetes service modules. For example:
