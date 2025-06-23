@@ -2,52 +2,41 @@
 
 from __future__ import annotations
 
+import logging
+
+from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
+from homeassistant.components.select import SERVICE_SELECT_OPTION, SelectEntity
+from homeassistant.components.timer import DOMAIN as TIMER_DOMAIN
+from homeassistant.components.timer import SERVICE_CANCEL as TIMER_SERVICE_CANCEL
+from homeassistant.components.timer import SERVICE_PAUSE as TIMER_SERVICE_PAUSE
+from homeassistant.components.timer import SERVICE_START as TIMER_SERVICE_START
+from homeassistant.components.timer import STATUS_ACTIVE as TIMER_STATUS_ACTIVE
+from homeassistant.components.timer import STATUS_IDLE as TIMER_STATUS_IDLE
+from homeassistant.components.timer import STATUS_PAUSED as TIMER_STATUS_PAUSED
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-from homeassistant.helpers.event import (
-    async_track_state_change_event,
-)
-from homeassistant.components.select import (
-    SelectEntity,
-    DOMAIN as SELECT_DOMAIN,
-    SERVICE_SELECT_OPTION,
-)
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.components.timer import (
-    DOMAIN as TIMER_DOMAIN,
-    SERVICE_START as TIMER_SERVICE_START,
-    SERVICE_CANCEL as TIMER_SERVICE_CANCEL,
-    SERVICE_PAUSE as TIMER_SERVICE_PAUSE,
-    STATUS_IDLE as TIMER_STATUS_IDLE,
-    STATUS_PAUSED as TIMER_STATUS_PAUSED,
-    STATUS_ACTIVE as TIMER_STATUS_ACTIVE,
-)
-
-from homeassistant.const import (
-    STATE_OFF,
-    STATE_ON,
-)
-
-import logging
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 _LOGGER = logging.getLogger(__name__)
 
 from custom_components.occupancy.const import (
     ATTR_AREAS,
-    OCCUPANCY_DATA,
-    ATTR_OCCUPANCY_SENSORS,
     ATTR_DOORS,
+    ATTR_ENTERING_CONFIRM_TIMER,
+    ATTR_ENTERING_TIMER,
+    ATTR_LEAVING_CONFIRM_TIMER,
+    ATTR_LEAVING_TIMER,
+    ATTR_OCCUPANCY_SENSORS,
+    OCCUPANCY_DATA,
     STATUS_ABSENT,
     STATUS_ENTERING,
     STATUS_ENTERING_CONFIRM,
-    STATUS_PRESENT,
     STATUS_LEAVING,
     STATUS_LEAVING_CONFIRM,
-    ATTR_ENTERING_TIMER,
-    ATTR_ENTERING_CONFIRM_TIMER,
-    ATTR_LEAVING_TIMER,
-    ATTR_LEAVING_CONFIRM_TIMER,
+    STATUS_PRESENT,
 )
 from custom_components.occupancy.internal_state import InternalState
 

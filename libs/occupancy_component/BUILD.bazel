@@ -1,8 +1,9 @@
-load("@pdm-setup//:requirements.bzl", "requirement")
-load("//tools/pytest:pytest.bzl", "py_pytest_test")
-load("@rules_task//task:defs.bzl", "cmd", "task")
-load("@rules_release//tools:defs.bzl", "publish_github_release", release = "release_bazel_differ")
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+load("@pdm-setup//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_release//tools:defs.bzl", "publish_github_release", release = "release_bazel_differ")
+load("@rules_task//task:defs.bzl", "cmd", "task")
+load("//tools/pytest:pytest.bzl", "py_pytest_test")
 
 package(default_visibility = ["//visibility:public"])
 

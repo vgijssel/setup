@@ -1,23 +1,21 @@
 """pytest fixtures."""
 
-import pytest
-from homeassistant.setup import async_setup_component
+import logging
 
+import pytest
 from custom_components.occupancy.const import (
+    ATTR_AREAS,
+    ATTR_DOORS,
+    ATTR_TIMER_ENTITIES,
     DOMAIN,
     OCCUPANCY_DATA,
-    ATTR_DOORS,
-    ATTR_AREAS,
-    ATTR_TIMER_ENTITIES,
 )
-
-from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNKNOWN
-from homeassistant.components.template.const import DOMAIN as TEMPLATE_DOMAIN
-from tests.helpers import wait
 from homeassistant.components import binary_sensor
+from homeassistant.components.template.const import DOMAIN as TEMPLATE_DOMAIN
+from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockEntityPlatform
-
-import logging
+from tests.helpers import wait
 
 _LOGGER = logging.getLogger(__name__)
 
