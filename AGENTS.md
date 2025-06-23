@@ -29,6 +29,7 @@ In-house applications built and deployed via services. For example:
 
 - `home-assistant/`: Smart home automation platform
 - `blog/`: Blog deployed with mkdocs to GitHub Pages
+- `escaperoom/`: Streamlit-based puzzle application
 
 Each app includes:
 - Build configuration (Dockerfile, Taskfile, etc.)
@@ -145,4 +146,8 @@ Examples:
 This repo uses the [Trunk CLI](https://docs.trunk.io/code-quality/code-quality)
 for consistent formatting and linting. Run `trunk fmt` to automatically format
 your changes and `trunk check` to run the configured linters.
+
+### Maintaining AGENTS.md
+
+Whenever you create a new package or move an existing one within the repository, update `AGENTS.md` to reflect the current structure. Keeping this file in sync ensures contributors understand the latest layout.
 

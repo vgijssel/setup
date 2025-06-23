@@ -20,13 +20,6 @@ config_setting(
     },
 )
 
-sh_binary(
-    name = "setup_ci",
-    srcs = [
-        "setup_ci.sh",
-    ],
-)
-
 _darwin_arm64 = [
     "@platforms//os:macos",
     "@platforms//cpu:arm64",
