@@ -41,6 +41,7 @@ Reusable libraries and build tools. For example:
 
 - `rules_task/`: Bazel rule set or CLI helper scripts to simplify task execution, builds, or image packaging
 - `ansible/`: Shared Ansible roles and filters.
+- `occupancy_component/`: Home Assistant occupancy detection component.
 
 ### `third_party/`
 All external, vendored dependencies.

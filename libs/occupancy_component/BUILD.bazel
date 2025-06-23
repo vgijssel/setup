@@ -49,7 +49,7 @@ task(
             "$CLI_ARGS",
         ),
     ],
-    cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}/occupancy_component",
+    cwd = "{{ os.environ['BUILD_WORKSPACE_DIRECTORY'] }}/libs/occupancy_component",
     data = [
         ":Tiltfile",
         ":docker-compose.yml",
