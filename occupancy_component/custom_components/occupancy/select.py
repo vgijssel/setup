@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.event import (
@@ -10,8 +10,6 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.components.select import (
     SelectEntity,
-    DOMAIN as SELECT_DOMAIN,
-    SERVICE_SELECT_OPTION,
 )
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.components.timer import (
@@ -25,13 +23,10 @@ from homeassistant.components.timer import (
 )
 
 from homeassistant.const import (
-    STATE_OFF,
     STATE_ON,
 )
 
 import logging
-
-_LOGGER = logging.getLogger(__name__)
 
 from custom_components.occupancy.const import (
     ATTR_AREAS,
@@ -49,7 +44,10 @@ from custom_components.occupancy.const import (
     ATTR_LEAVING_TIMER,
     ATTR_LEAVING_CONFIRM_TIMER,
 )
+
 from custom_components.occupancy.internal_state import InternalState
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(
@@ -173,7 +171,7 @@ class Area(SelectEntity, RestoreEntity):
                 async_track_state_change_event(self.hass, timer, self._timer_event)
             )
 
-    async def _timer_event(self, event: EventType):
+    async def _timer_event(self, event: Event):
         self._internal_state.set(event.data["entity_id"], event.data["new_state"])
 
         _LOGGER.debug(
@@ -184,7 +182,7 @@ class Area(SelectEntity, RestoreEntity):
 
         await self._calculate_state()
 
-    async def _door_event(self, event: EventType):
+    async def _door_event(self, event: Event):
         self._internal_state.set(event.data["entity_id"], event.data["new_state"])
 
         _LOGGER.debug(
@@ -195,7 +193,7 @@ class Area(SelectEntity, RestoreEntity):
 
         await self._calculate_state()
 
-    async def _occupancy_sensor_event(self, event: EventType):
+    async def _occupancy_sensor_event(self, event: Event):
         self._internal_state.set(event.data["entity_id"], event.data["new_state"])
 
         _LOGGER.debug(

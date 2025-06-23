@@ -1,7 +1,6 @@
 """Test component setup."""
 
 from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNKNOWN
-from custom_components.occupancy.const import DOMAIN
 from tests.helpers import wait, contact_sensor, motion_sensor
 
 

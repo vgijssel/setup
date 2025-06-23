@@ -4,8 +4,6 @@ from homeassistant.helpers.typing import (
     HomeAssistantType,
 )
 
-_LOGGER = logging.getLogger(__name__)
-
 from custom_components.occupancy.const import (
     DOMAIN,
     ATTR_DOORS,
@@ -31,6 +29,8 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 
 CONFIG_SCHEMA = vol.Schema(

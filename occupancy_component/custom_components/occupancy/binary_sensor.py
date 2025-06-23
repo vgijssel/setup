@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant
 from homeassistant.components.stream.core import IdleTimer
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
@@ -22,8 +22,6 @@ from homeassistant.const import (
 
 import logging
 
-_LOGGER = logging.getLogger(__name__)
-
 from custom_components.occupancy.const import (
     ATTR_ENTRY,
     ATTR_CONTACT_SENSOR,
@@ -31,6 +29,8 @@ from custom_components.occupancy.const import (
     ATTR_DOORS,
     OCCUPANCY_DATA,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(
@@ -129,7 +129,7 @@ class Door(BinarySensorEntity, RestoreEntity):
             self._reset_contact_presence_timer.clear,
         )
 
-    async def _contact_sensor_event(self, event: EventType):
+    async def _contact_sensor_event(self, event: Event):
         self._internal_state.set(event.data["entity_id"], event.data["new_state"])
 
         _LOGGER.debug(
@@ -139,13 +139,13 @@ class Door(BinarySensorEntity, RestoreEntity):
         )
 
         # old_state is None happens when the entity is added to home assistant
-        if event.data["old_state"] == None:
+        if event.data["old_state"] is None:
             from_state = None
         else:
             from_state = event.data["old_state"].state
 
         # new_state is None happens when the entity is removed from home assisstant
-        if event.data["new_state"] == None:
+        if event.data["new_state"] is None:
             to_state = None
         else:
             to_state = event.data["new_state"].state
@@ -158,7 +158,7 @@ class Door(BinarySensorEntity, RestoreEntity):
 
         self._calculate_presence()
 
-    async def _motion_sensor_event(self, event: EventType):
+    async def _motion_sensor_event(self, event: Event):
         self._internal_state.set(event.data["entity_id"], event.data["new_state"])
 
         _LOGGER.debug(
@@ -179,12 +179,10 @@ class Door(BinarySensorEntity, RestoreEntity):
         return self._internal_state.get(self._motion_sensor) == STATE_ON
 
     def _door_just_opened(self):
-        return self._door_is_open() and self._reset_contact_presence_timer.idle == False
+        return self._door_is_open() and not self._reset_contact_presence_timer.idle
 
     def _door_just_closed(self):
-        return (
-            self._door_is_closed() and self._reset_contact_presence_timer.idle == False
-        )
+        return self._door_is_closed() and not self._reset_contact_presence_timer.idle
 
     def _calculate_presence(self):
         door_just_opened = self._door_just_opened()

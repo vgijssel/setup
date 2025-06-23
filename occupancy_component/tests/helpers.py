@@ -5,7 +5,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.helpers.event import async_call_later
 from homeassistant.components.stream.core import IdleTimer
 from custom_components.occupancy.const import OCCUPANCY_DATA, ATTR_AREAS
 

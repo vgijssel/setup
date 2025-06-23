@@ -1,6 +1,6 @@
 import os
 import atexit
-from deepdiff import DeepDiff, Delta
+from deepdiff import DeepDiff
 from shlex import quote
 
 old_env = os.environ.copy()
@@ -27,7 +27,7 @@ def write_changed_env():
 
 
 def main():
-    {{python_code}}
+    {{python_code}}  # noqa: F821
 
 
 if __name__ == "__main__":

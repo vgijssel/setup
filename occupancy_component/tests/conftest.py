@@ -11,8 +11,6 @@ from custom_components.occupancy.const import (
     ATTR_TIMER_ENTITIES,
 )
 
-from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNKNOWN
-from homeassistant.components.template.const import DOMAIN as TEMPLATE_DOMAIN
 from tests.helpers import wait
 from homeassistant.components import binary_sensor
 from pytest_homeassistant_custom_component.common import MockEntityPlatform

@@ -1,6 +1,5 @@
 import sys
 import pytest
-import os
 
 
 def main() -> None:

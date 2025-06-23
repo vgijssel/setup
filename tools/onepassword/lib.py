@@ -2,7 +2,6 @@ import os
 import json
 import subprocess
 from shlex import quote
-from pathlib import Path
 
 
 def get_item_path(path):
