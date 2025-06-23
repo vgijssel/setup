@@ -28,22 +28,3 @@ task(
     },
 )
 
-task(
-    name = "connection_test",
-    cmds = [
-        "TELEPORT_IDENTITY=$(mktemp)",
-        {"defer": "rm -f $TELEPORT_IDENTITY"},
-        'echo "$TELEPORT_BUILDBUDDY_IDENTITY" > $TELEPORT_IDENTITY',
-        cmd.shell(
-            cmd.executable(":tsh"),
-            "ls",
-            "--login",
-            "buildbuddy",
-            "--identity",
-            "$TELEPORT_IDENTITY",
-        ),
-    ],
-    exec_properties = {
-        "include-secrets": "true",
-    },
-)

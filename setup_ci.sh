@@ -14,7 +14,6 @@ else
     --no-confirm
 fi
 
-sudo chown -R buildbuddy:buildbuddy /nix
 
 sudo ln -f -s /nix/var/nix/profiles/default/bin/nix-build /usr/local/bin/nix-build
 
