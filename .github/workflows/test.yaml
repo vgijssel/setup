@@ -34,3 +34,13 @@ jobs:
           direnvVersion: 2.35.0
       - run: sudo apt install -y libjpeg-turbo-progs
       - run: task docs:build
+
+  codex-test:
+    name: stacks:codex:test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+      - run: task stacks:codex:test
