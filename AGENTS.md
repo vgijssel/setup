@@ -147,6 +147,7 @@ Examples:
 This repo uses the [Trunk CLI](https://docs.trunk.io/code-quality/code-quality)
 for consistent formatting and linting. Run `trunk fmt` to automatically format
 your changes and `trunk check` to run the configured linters.
+Trunk handles changed files by itself, no need to pass it files.
 
 ### Maintaining AGENTS.md
 
