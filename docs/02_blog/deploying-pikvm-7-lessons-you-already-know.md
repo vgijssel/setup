@@ -192,9 +192,10 @@ The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup
 	4. **Password**: `Password1234`
 2. Setup Incus host using Ansible playbook
 
-	```bash
-	ansible-playbook -i ./production.local provisioner.yml --diff
-	```
+        ```bash
+        cd stacks/provisioner
+        ansible-playbook -i ./production.local provisioner.yml --diff
+        ```
 
 3. Create [Incus kvmd-armbian LXC container with passthrough](#Incus%20kvmd-armbian%20LXC%20container%20with%20passthrough)
 4. Start the LXC container
