@@ -1,5 +1,0 @@
-alias(
-    name = "repair_wheel",
-    actual = "//pycross/private/tools/repairwheel:repair_wheel_hook",
-    visibility = ["//visibility:public"],
-)
