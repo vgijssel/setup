@@ -25,6 +25,10 @@ includes:
     taskfile: ./stacks/provisioner/Taskfile.yml
     dir: ./stacks/provisioner
 
+  stacks:codex:
+    taskfile: ./stacks/codex/Taskfile.yml
+    dir: .
+
   3rdparty:
     taskfile: ./3rdparty/Taskfile.yml
     dir: .
