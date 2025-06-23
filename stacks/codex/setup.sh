@@ -12,7 +12,7 @@ echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
 direnv allow >&2
 
 # Ensure Trunk CLI is installed
-trunk install >&2
+direnv exec . trunk install >&2
 
 # Print direnv hook to stdout to be eval'ed by the calling process
 direnv hook bash
