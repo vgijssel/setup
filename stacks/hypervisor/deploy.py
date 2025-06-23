@@ -4,12 +4,12 @@
 from pyinfra.operations import apt, server, files, systemd
 from pyinfra import host
 from pyinfra.facts.server import Arch, OsVersion
-from hypervisor.tasks.install_docker import install_docker
-from hypervisor.tasks.install_cni import install_cni
-from hypervisor.tasks.install_nomad import install_nomad
-from hypervisor.tasks.install_consul import install_consul
-from hypervisor.tasks.install_envoy import install_envoy
-from hypervisor.tasks.install_qemu import install_qemu
+from stacks.hypervisor.tasks.install_docker import install_docker
+from stacks.hypervisor.tasks.install_cni import install_cni
+from stacks.hypervisor.tasks.install_nomad import install_nomad
+from stacks.hypervisor.tasks.install_consul import install_consul
+from stacks.hypervisor.tasks.install_envoy import install_envoy
+from stacks.hypervisor.tasks.install_qemu import install_qemu
 
 apt.packages(
     name="Ensure all kernel modules are available",
