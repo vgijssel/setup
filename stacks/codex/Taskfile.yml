@@ -5,3 +5,9 @@ tasks:
     desc: Prepare the Codex CI environment
     cmds:
       - eval "$(stacks/codex/setup.sh)"
+
+  test:
+    desc: Run setup script and verify required tools
+    cmds:
+      - eval "$(stacks/codex/setup.sh)"
+      - direnv --version
