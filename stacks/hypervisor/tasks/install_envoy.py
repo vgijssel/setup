@@ -1,4 +1,4 @@
-from pyinfra.operations import apt, files, server, systemd
+from pyinfra.operations import files, server
 from pyinfra import host
 from pyinfra.facts.server import Arch
 from pyinfra.api.deploy import deploy

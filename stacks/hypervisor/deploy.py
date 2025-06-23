@@ -1,9 +1,9 @@
 # Structure pyinfra according to:
 # https://docs.pyinfra.com/en/1.x/deploys.html#layout
 
-from pyinfra.operations import apt, server, files, systemd
+from pyinfra.operations import apt, server
 from pyinfra import host
-from pyinfra.facts.server import Arch, OsVersion
+from pyinfra.facts.server import OsVersion
 from stacks.hypervisor.tasks.install_docker import install_docker
 from stacks.hypervisor.tasks.install_cni import install_cni
 from stacks.hypervisor.tasks.install_nomad import install_nomad
