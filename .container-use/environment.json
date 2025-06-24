@@ -1,0 +1,5 @@
+{
+  "workdir": "/workdir",
+  "base_image": "ubuntu:latest",
+  "setup_commands": [""]
+}
