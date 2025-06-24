@@ -5,7 +5,7 @@ unifi
 *.pyc
 __pycache__
 1password/1password-credentials.json
-hypervisor/credentials.yml
+stacks/hypervisor/credentials.yml
 
 # Entries below this point are managed by Please (DO NOT EDIT)
 plz-out

@@ -8,7 +8,7 @@ task(
     cmds = [
         "nixos-rebuild switch --flake $flake#hypervisor --target-host maarten@192.168.1.30 --build-host maarten@192.168.1.30 --fast --use-remote-sudo",
     ],
-    cwd = "$BUILD_WORKSPACE_DIRECTORY/hypervisor",
+    cwd = "$BUILD_WORKSPACE_DIRECTORY/stacks/hypervisor",
     env = {
         "NIX_SSHOPTS": "-o ForwardAgent=yes",
         "flake": cmd.file("flake.nix"),
@@ -69,12 +69,12 @@ task(
 # #     env = {
 # #         "KITCHEN_ARGS": "$$@",
 # #         "KITCHEN_BINARY": "$$(rlocation hypervisor_bundle/bin/kitchen)",
-# #         "KITCHEN_YAML": "$$(rlocation setup/hypervisor/kitchen.yml)",
-# #         "VAGRANTFILE_CLOUD_INIT": "$$(rlocation setup/hypervisor/Vagrantfile.cloud-init)",
+# #         "KITCHEN_YAML": "$$(rlocation setup/stacks/hypervisor/kitchen.yml)",
+# #         "VAGRANTFILE_CLOUD_INIT": "$$(rlocation setup/stacks/hypervisor/Vagrantfile.cloud-init)",
 # #         "VAGRANT_EXPERIMENTAL": "cloud_init,disks",
-# #         "VAGRANT_BOX": "$$(rlocation setup/hypervisor/hypervisor_image_box.box)",
+# #         "VAGRANT_BOX": "$$(rlocation setup/stacks/hypervisor/hypervisor_image_box.box)",
 # #         "CHEF_LICENSE": "accept",
-# #         "TEST_DIR": "$$(rlocation setup/hypervisor/test)",
+# #         "TEST_DIR": "$$(rlocation setup/stacks/hypervisor/test)",
 # #         "KITCHEN_CWD": "$$(dirname $$KITCHEN_YAML)",
 # #         "CONVERGE_SCRIPT": "$$(rlocation setup/tools/vagrant/multi-user-target-active.sh)",
 # #     },
@@ -101,7 +101,7 @@ task(
 #     deploy = "deploy.py",
 #     env = {
 #         # Specifying the environment variables necessary for the vagrant connector and the associated Vagrantfile.
-#         "VAGRANT_CWD": "$$(dirname $$(rlocation setup/hypervisor/.kitchen/.gitignore))/kitchen-vagrant/default-ubuntu-focal",
+#         "VAGRANT_CWD": "$$(dirname $$(rlocation setup/stacks/hypervisor/.kitchen/.gitignore))/kitchen-vagrant/default-ubuntu-focal",
 #     },
 #     inventory = "inventory.py",
 # )
