@@ -1,0 +1,11 @@
+[profile devel]
+sso_account_id = 790338063405
+sso_role_name = PowerUserWithModels
+region = us-west-2
+output = json
+sso_session = devel
+
+[sso-session devel]
+sso_start_url = https://d-926766230a.awsapps.com/start#
+sso_region = us-west-2
+sso_registration_scopes = sso:account:access

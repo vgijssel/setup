@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -eo pipefail
+
+AWS_PROFILE=devel exec npx --yes --prefix "${SETUP_DIR}"/3rdparty/javascript @anthropic-ai/claude-code "$@"
