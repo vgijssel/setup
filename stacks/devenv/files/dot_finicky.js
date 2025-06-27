@@ -22,5 +22,12 @@ export default {
         profile: "Profile 2",
       },
     },
+    {
+      match: "https://oidc.us-west-2.amazonaws.com/*",
+      browser: {
+        name: "Google Chrome",
+        profile: "Profile 2",
+      },
+    },
   ],
 };
