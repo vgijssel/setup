@@ -1,0 +1,20 @@
+[project]
+name = "friendo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+  { name = "mvgijssel", email = "6029816+mvgijssel@users.noreply.github.com" },
+]
+requires-python = ">=3.11"
+dependencies = ["textual>=3.7.1"]
+
+[project.scripts]
+friendo = "friendo:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["pytest>=8.4.1", "textual-dev>=1.7.0"]
