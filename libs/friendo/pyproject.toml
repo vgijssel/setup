@@ -17,4 +17,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = ["pytest>=8.4.1", "textual-dev>=1.7.0"]
+dev = ["pytest>=8.4.1", "pytest-asyncio>=0.24.0", "textual-dev>=1.7.0"]

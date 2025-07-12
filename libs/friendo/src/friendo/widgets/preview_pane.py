@@ -15,13 +15,21 @@ class PreviewPane(TabbedContent):
         self.border_title = "Preview"
         self.current_session: Session | None = None
 
-    def compose(self):
-        """Create the tabbed content structure."""
-        with TabPane("Preview", id="preview-tab"):
-            yield Static("Select a session to view details", id="preview-content")
+    def on_mount(self) -> None:
+        """Initialize the tabbed content after mounting."""
+        # Add the first tab pane
+        preview_pane = TabPane(
+            "Preview",
+            Static("Select a session to view details", id="preview-content"),
+            id="preview-tab",
+        )
+        self.add_pane(preview_pane)
 
-        with TabPane("Diff", id="diff-tab"):
-            yield Static("No changes to display", id="diff-content")
+        # Add the second tab pane
+        diff_pane = TabPane(
+            "Diff", Static("No changes to display", id="diff-content"), id="diff-tab"
+        )
+        self.add_pane(diff_pane)
 
     def update_content(self, session: Session) -> None:
         """Update the preview content with session information."""

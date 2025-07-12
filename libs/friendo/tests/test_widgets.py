@@ -5,10 +5,9 @@ from friendo.models.session import Session, SessionManager
 from friendo.widgets.preview_pane import PreviewPane
 from friendo.widgets.session_list import SessionList
 from textual.app import App, ComposeResult
-from textual.testing import AppHarness
 
 
-class TestSessionListApp(App):
+class SessionListTestApp(App):
     """Test app for SessionList widget."""
 
     def __init__(self):
@@ -19,7 +18,7 @@ class TestSessionListApp(App):
         yield SessionList(self.session_manager)
 
 
-class TestPreviewPaneApp(App):
+class PreviewPaneTestApp(App):
     """Test app for PreviewPane widget."""
 
     def compose(self) -> ComposeResult:
@@ -29,22 +28,20 @@ class TestPreviewPaneApp(App):
 class TestSessionList:
     """Test cases for SessionList widget."""
 
-    @pytest.fixture
-    def session_list_harness(self):
-        """Create a harness for testing SessionList."""
-        app = TestSessionListApp()
-        return AppHarness(app)
-
-    def test_session_list_composition(self, session_list_harness):
+    @pytest.mark.asyncio
+    async def test_session_list_composition(self):
         """Test SessionList widget composition."""
-        with session_list_harness as pilot:
+        app = SessionListTestApp()
+        async with app.run_test() as pilot:
             session_list = pilot.app.query_one("SessionList")
             assert session_list is not None
             assert session_list.border_title == "Sessions"
 
-    def test_demo_sessions_created(self, session_list_harness):
+    @pytest.mark.asyncio
+    async def test_demo_sessions_created(self):
         """Test that demo sessions are created on mount."""
-        with session_list_harness as pilot:
+        app = SessionListTestApp()
+        async with app.run_test() as pilot:
             # Demo sessions should be created automatically
             assert len(pilot.app.session_manager.sessions) == 4
 
@@ -54,9 +51,11 @@ class TestSessionList:
             assert "Resize preview pane" in session_names
             assert "Logging refactor" in session_names
 
-    def test_create_session(self, session_list_harness):
+    @pytest.mark.asyncio
+    async def test_create_session(self):
         """Test creating a new session."""
-        with session_list_harness as pilot:
+        app = SessionListTestApp()
+        async with app.run_test() as pilot:
             session_list = pilot.app.query_one("SessionList")
             initial_count = len(pilot.app.session_manager.sessions)
 
@@ -66,9 +65,11 @@ class TestSessionList:
             new_session = pilot.app.session_manager.current_session
             assert new_session.name == "New Session"
 
-    def test_delete_session(self, session_list_harness):
+    @pytest.mark.asyncio
+    async def test_delete_session(self):
         """Test deleting a session."""
-        with session_list_harness as pilot:
+        app = SessionListTestApp()
+        async with app.run_test() as pilot:
             session_list = pilot.app.query_one("SessionList")
             initial_count = len(pilot.app.session_manager.sessions)
 
@@ -77,9 +78,11 @@ class TestSessionList:
             # Should have one less session
             assert len(pilot.app.session_manager.sessions) == initial_count - 1
 
-    def test_refresh_sessions(self, session_list_harness):
+    @pytest.mark.asyncio
+    async def test_refresh_sessions(self):
         """Test refreshing the session list display."""
-        with session_list_harness as pilot:
+        app = SessionListTestApp()
+        async with app.run_test() as pilot:
             session_list = pilot.app.query_one("SessionList")
 
             # Add a session directly to manager
@@ -95,31 +98,31 @@ class TestSessionList:
 class TestPreviewPane:
     """Test cases for PreviewPane widget."""
 
-    @pytest.fixture
-    def preview_pane_harness(self):
-        """Create a harness for testing PreviewPane."""
-        app = TestPreviewPaneApp()
-        return AppHarness(app)
-
-    def test_preview_pane_composition(self, preview_pane_harness):
+    @pytest.mark.asyncio
+    async def test_preview_pane_composition(self):
         """Test PreviewPane widget composition."""
-        with preview_pane_harness as pilot:
+        app = PreviewPaneTestApp()
+        async with app.run_test() as pilot:
             preview_pane = pilot.app.query_one("PreviewPane")
             assert preview_pane is not None
             assert preview_pane.border_title == "Preview"
 
-    def test_initial_content(self, preview_pane_harness):
+    @pytest.mark.asyncio
+    async def test_initial_content(self):
         """Test initial preview pane content."""
-        with preview_pane_harness as pilot:
+        app = PreviewPaneTestApp()
+        async with app.run_test() as pilot:
             preview_content = pilot.app.query_one("#preview-content")
             diff_content = pilot.app.query_one("#diff-content")
 
             assert "Select a session to view details" in str(preview_content.renderable)
             assert "No changes to display" in str(diff_content.renderable)
 
-    def test_update_content(self, preview_pane_harness):
+    @pytest.mark.asyncio
+    async def test_update_content(self):
         """Test updating preview content with session data."""
-        with preview_pane_harness as pilot:
+        app = PreviewPaneTestApp()
+        async with app.run_test() as pilot:
             preview_pane = pilot.app.query_one("PreviewPane")
 
             # Create a test session
@@ -139,9 +142,11 @@ class TestPreviewPane:
             assert "Test task description" in content_text
             assert "Test progress note" in content_text
 
-    def test_switch_tab(self, preview_pane_harness):
+    @pytest.mark.asyncio
+    async def test_switch_tab(self):
         """Test switching between preview tabs."""
-        with preview_pane_harness as pilot:
+        app = PreviewPaneTestApp()
+        async with app.run_test() as pilot:
             preview_pane = pilot.app.query_one("PreviewPane")
 
             # Should start on preview tab

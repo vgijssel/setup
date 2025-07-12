@@ -21,7 +21,7 @@ class FriendoApp(App):
         Binding("ctrl+q", "detach", "Detach", key_display="^Q"),
         Binding("s", "submit_pr", "Submit PR", show=True),
         Binding("c", "checkout", "Checkout", show=True),
-        Binding("tab", "switch_tab", "Switch Tab", show=True),
+        Binding("t", "switch_tab", "Switch Tab", show=True),
         Binding("q", "quit", "Quit", show=True),
     ]
 
