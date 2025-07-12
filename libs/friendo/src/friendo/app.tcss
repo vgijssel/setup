@@ -1,0 +1,63 @@
+/* Main application styles */
+
+#main-horizontal {
+    height: 100%;
+}
+
+/* Session List Styles */
+SessionList {
+    width: 40%;
+    min-width: 30;
+    border: solid $primary;
+    background: $surface;
+}
+
+SessionList > ListView {
+    background: $surface;
+}
+
+SessionList ListItem {
+    padding: 1;
+    margin: 0 1;
+    background: $surface;
+}
+
+SessionList ListItem:hover {
+    background: $surface-darken-1;
+}
+
+SessionList:focus ListItem.-highlighted {
+    background: $primary-darken-2;
+    color: $text;
+}
+
+/* Preview Pane Styles */
+PreviewPane {
+    width: 60%;
+    border: solid $secondary;
+    background: $surface;
+}
+
+PreviewPane TabbedContent {
+    background: $surface;
+}
+
+PreviewPane TabPane {
+    padding: 1;
+    background: $surface;
+}
+
+PreviewPane Static {
+    background: $surface;
+    padding: 1;
+}
+
+/* Footer with keybindings */
+Footer {
+    background: $primary-darken-3;
+}
+
+/* Header styling */
+Header {
+    background: $primary;
+}

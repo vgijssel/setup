@@ -40,7 +40,8 @@ Each app includes:
 Reusable libraries and build tools. For example:
 
 - `rules_task/`: Bazel rule set or CLI helper scripts to simplify task execution, builds, or image packaging
-- `ansible/`: Shared Ansible roles and filters.
+- `ansible/`: Shared Ansible roles and filters
+- `friendo/`: Textual-based AI agent session manager
 
 ### `third_party/`
 All external, vendored dependencies.

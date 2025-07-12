@@ -1,2 +1,6 @@
+from .app import FriendoApp
+
+
 def main() -> None:
-    print("Hello from friendo!")
+    app = FriendoApp()
+    app.run()
