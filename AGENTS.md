@@ -83,8 +83,7 @@ Run `task --list` for a full list of available commands.
 1. Use `direnv allow` to setup environment
 2. Run `task --list` to see available commands
 3. Use `trunk check` before committing
-4. Test with `bazel test //...` or `pants test ::`
-5. Build documentation with `task docs:serve` for development
+4. Build documentation with `task docs:serve` for development
 
 ### How It Works
 
@@ -123,3 +122,22 @@ your changes and `trunk check` to run the configured linters.
 
 Whenever you create a new package or move an existing one within the repository, update `AGENTS.md` to reflect the current structure. Keeping this file in sync ensures contributors understand the latest layout.
 
+## Development Containers
+
+For feature development, you can spin up isolated development environments using the devcontainer system:
+
+```bash
+# Start a new development environment
+task libs:devcontainer:start NAME=feature-name
+
+# Stop and cleanup when done
+task libs:devcontainer:stop NAME=feature-name
+```
+
+This creates:
+- A git worktree in `workspaces/feature-name` 
+- An Ubuntu-based Docker container with tmux, git, curl, and vim
+- The worktree mounted at `/opt/setup` inside the container
+- A tmux session ready for development
+
+Perfect for isolated feature development without affecting the main branch.

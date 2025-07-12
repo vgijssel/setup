@@ -37,6 +37,10 @@ includes:
     taskfile: ./libs/friendo/Taskfile.yml
     dir: ./libs/friendo
 
+  libs:devcontainer:
+    taskfile: ./libs/devcontainer/Taskfile.yml
+    dir: ./libs/devcontainer
+
 tasks:
   # TODO: No longer necessary after https://github.com/mkdocs-publisher/mkdocs-publisher/pull/110
   docs:check:
