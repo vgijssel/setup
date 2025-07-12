@@ -65,3 +65,6 @@ docs/.obsidian
 .aider*
 
 services/kube-ovn/charts
+
+**/textual.log
+**/textual_serve.log

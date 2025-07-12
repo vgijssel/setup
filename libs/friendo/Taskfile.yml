@@ -3,7 +3,7 @@ version: "3"
 tasks:
   dev:
     desc: Start the textual application and serve it on port 8000
-    cmd: uv run textual serve --dev src/friendo/app.py:FriendoApp --port 8000
+    cmd: uv run textual serve --dev "uv run -m src.friendo" --port 8000 | tee -a textual_serve.log
 
   test:
     desc: Run tests
