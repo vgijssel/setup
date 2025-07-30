@@ -231,7 +231,7 @@ homekit:
         name: Overloop Lampen
       switch.laundry_room_shelly:
         name: Waskamer Lamp
-      switch.office_shelly:
+      light.office_light:
         name: Kantoor Lamp
       switch.supply_closet_shelly:
         name: Voorraadkast Lamp
@@ -295,6 +295,9 @@ adaptive_lighting:
   - name: baby_room
     lights:
       - light.baby_room_light
+  - name: office
+    lights:
+      - light.office_light
   - name: kitchen
     lights:
       - light.kitchen_lights

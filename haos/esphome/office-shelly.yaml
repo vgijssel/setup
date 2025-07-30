@@ -1,6 +1,7 @@
 substitutions:
   device_name: "office-shelly"
   entity_id: "office_shelly"
+  light_entity_id: "light.office_light"
   room_name: "office"
   static_ip: "192.168.1.70"
 
@@ -10,6 +11,9 @@ packages:
   base: !include .base.yaml
 
 binary_sensor:
-  - <<: !include .basic_light_binary_sensor.yaml
+  - <<: !include .smart_light_binary_sensor.yaml
     name: ${entity_id}_input
     pin: GPIO4
+  - platform: homeassistant
+    id: light_sensor
+    entity_id: ${light_entity_id}
