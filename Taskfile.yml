@@ -37,6 +37,10 @@ includes:
     taskfile: ./libs/devcontainer/Taskfile.yml
     dir: ./libs/devcontainer
 
+  haos:
+    taskfile: ./haos/Taskfile.yml
+    dir: ./haos
+
 tasks:
   # TODO: No longer necessary after https://github.com/mkdocs-publisher/mkdocs-publisher/pull/110
   docs:check:

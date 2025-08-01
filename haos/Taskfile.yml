@@ -1,0 +1,7 @@
+version: "3"
+
+tasks:
+  apply:
+    desc: Sync files between local and remote environment
+    cmds:
+      - unison haos
