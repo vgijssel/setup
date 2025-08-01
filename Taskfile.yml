@@ -33,10 +33,6 @@ includes:
     taskfile: ./3rdparty/Taskfile.yml
     dir: .
 
-  libs:friendo:
-    taskfile: ./libs/friendo/Taskfile.yml
-    dir: ./libs/friendo
-
   libs:devcontainer:
     taskfile: ./libs/devcontainer/Taskfile.yml
     dir: ./libs/devcontainer

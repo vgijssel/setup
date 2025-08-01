@@ -1,0 +1,23 @@
+{{- $setup_dir := env "SETUP_DIR" }}
+{{- $haos_dir := printf "%s/haos" $setup_dir }}
+
+# Local directory
+root = {{ $haos_dir }}
+
+# Remote directory over SSH
+root = ssh://root@192.168.1.32//root/config
+
+# Auto-approve safe changes (but not conflicts)
+# auto = true
+
+# Confirm if many deletions are about to occur
+confirmbigdel = true
+
+# Display progress and statistics
+log = true
+# logfile = ~/.unison/unison.log
+
+# Don’t sync .git directories or other system files
+ignore = Name .git
+ignore = Name .DS_Store
+ignore = Name Thumbs.db
