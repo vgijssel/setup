@@ -17,7 +17,22 @@ confirmbigdel = true
 log = true
 # logfile = ~/.unison/unison.log
 
-# Don’t sync .git directories or other system files
-ignore = Name .git
-ignore = Name .DS_Store
-ignore = Name Thumbs.db
+# Ignore permissions
+perms = 0
+owner = false
+group = false
+
+# Don't sync haos specific folders
+ignore = Name .cloud
+ignore = Name .storage
+ignore = Name deps
+ignore = Name home-assistant.log
+ignore = Name home-assistant.log.*
+ignore = Name home-assistant.log.fault
+ignore = Name home-assistant_v2.db
+ignore = Name home-assistant_v2.db-shm
+ignore = Name home-assistant_v2.db-wal
+ignore = Name tts
+ignore = Name zigbee.db
+ignore = Name custom_components
+ignore = Name cloud

@@ -187,7 +187,7 @@ homekit:
         - light.kitchen_lights
         - light.landing_lights
         - switch.laundry_room_shelly
-        - switch.office_shelly
+        - light.office_light
         - switch.supply_closet_shelly
         - light.toilet_lights
         - switch.kitchen_oven_moko
@@ -325,7 +325,6 @@ cloud:
         - light.living_room_mouse_light
         - light.living_room_tv_light
         - climate.living_room_heat
-        - switch.office_shelly
         - light.kitchen_lights
     entity_config:
       light.living_room_corner_light:
@@ -359,12 +358,6 @@ cloud:
         aliases:
           - Thermostat
         room: Woonkamer
-
-      switch.office_shelly:
-        name: Lamp
-        aliases:
-          - Light
-        room: Kantoor
 
       light.kitchen_lights:
         name: Keuken
