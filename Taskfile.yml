@@ -33,9 +33,9 @@ includes:
     taskfile: ./3rdparty/Taskfile.yml
     dir: .
 
-  haos:
-    taskfile: ./haos/Taskfile.yml
-    dir: ./haos
+  apps:haos:
+    taskfile: ./apps/haos/Taskfile.yml
+    dir: ./apps/haos
 
 tasks:
   # TODO: No longer necessary after https://github.com/mkdocs-publisher/mkdocs-publisher/pull/110
