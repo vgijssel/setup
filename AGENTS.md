@@ -27,8 +27,7 @@ Each service includes manifests (Kustomize or Helm), optionally environment-agno
 ### `apps/`
 In-house applications built and deployed via services. For example:
 
-- `home-assistant/`: Smart home automation platform
-- `blog/`: Blog deployed with mkdocs to GitHub Pages
+- `haos/`: Smart home automation platform
 - `escaperoom/`: Streamlit-based puzzle application
 
 Each app includes:
