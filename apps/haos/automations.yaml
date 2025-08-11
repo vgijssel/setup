@@ -1,1 +1,197 @@
-[]
+- id: "1754753646691"
+  alias: Supply Closet - Turn On Lights
+  description: ""
+  triggers:
+    - type: opened
+      device_id: a62de5fe0e35a2d1e908876d86033594
+      entity_id: 297272a4570654e5bd288da03d3b9437
+      domain: binary_sensor
+      trigger: device
+  conditions: []
+  actions:
+    - type: turn_on
+      device_id: 302cf0e6ebd333f1e79e8c33d4d4c030
+      entity_id: 669044aeb04953856eb2c5fbc68cddbd
+      domain: switch
+  mode: single
+- id: "1754753697773"
+  alias: Supply Closet - Turn Off Lights
+  description: ""
+  triggers:
+    - type: not_opened
+      device_id: a62de5fe0e35a2d1e908876d86033594
+      entity_id: 297272a4570654e5bd288da03d3b9437
+      domain: binary_sensor
+      trigger: device
+  conditions: []
+  actions:
+    - type: turn_off
+      device_id: 302cf0e6ebd333f1e79e8c33d4d4c030
+      entity_id: 669044aeb04953856eb2c5fbc68cddbd
+      domain: switch
+  mode: single
+- id: "1754897315049"
+  alias: Garden - Start Pump Timer
+  description: ""
+  triggers:
+    - trigger: time
+      at: 06:00:00
+      weekday:
+        - mon
+        - tue
+        - wed
+        - fri
+        - sat
+        - sun
+        - thu
+    - trigger: time
+      at: "22:00:00"
+      weekday:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+        - sat
+        - sun
+  conditions: []
+  actions:
+    - action: timer.start
+      metadata: {}
+      data:
+        duration: 01:00:00
+      target:
+        entity_id: timer.garden_pump_timer
+  mode: single
+- id: "1754897526643"
+  alias: Garden - Start Pump
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - timer.garden_pump_timer
+      from:
+      to: active
+  conditions: []
+  actions:
+    - type: turn_on
+      device_id: 254bd3f4675ebd884cf48e8432ade589
+      entity_id: c3c6a841bbf202032bd5ed1a881a54ff
+      domain: switch
+  mode: single
+- id: "1754897648095"
+  alias: Garden - Turn Off Pump
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - timer.garden_pump_timer
+      to: idle
+  conditions: []
+  actions:
+    - type: turn_off
+      device_id: 254bd3f4675ebd884cf48e8432ade589
+      entity_id: c3c6a841bbf202032bd5ed1a881a54ff
+      domain: switch
+  mode: single
+- id: "1754909530539"
+  alias: "Toilet - Door Presence "
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.toilet_contact_door
+      from:
+      id: contact_open
+      to: "on"
+    - trigger: template
+      value_template:
+        "{{ state_attr('binary_sensor.toilet_door_presence', 'door_open_activity')
+        == true }}"
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 5
+      id: contact_timer
+    - trigger: template
+      value_template:
+        "{{ state_attr('binary_sensor.toilet_door_presence', 'door_close_activity')
+        == true }}"
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 5
+      id: contact_timer
+    - trigger: state
+      entity_id:
+        - binary_sensor.toilet_contact_door
+      from:
+      id: contact_closed
+      to: "off"
+    - trigger: state
+      entity_id:
+        - binary_sensor.toilet_motion
+      from:
+      to: "on"
+      id: motion
+    - trigger: state
+      entity_id:
+        - binary_sensor.toilet_motion
+      from:
+      to: "off"
+      id: motion
+  conditions: []
+  actions:
+    - variables:
+        motion_state: "{{ states('binary_sensor.toilet_motion') }}"
+        door_state: "{{ states('binary_sensor.toilet_contact_door') }}"
+        door_open_activity:
+          "{{ state_attr('binary_sensor.toilet_door_presence', 'door_open_activity')
+          }}"
+        door_close_activity:
+          "{{ state_attr('binary_sensor.toilet_door_presence',
+          'door_close_activity') }}"
+        state: "{{ states('binary_sensor.toilet_door_presence') }}"
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - contact_timer
+          sequence:
+            - variables:
+                door_open_activity: false
+                door_close_activity: false
+        - conditions:
+            - condition: trigger
+              id:
+                - contact_open
+          sequence:
+            - variables:
+                door_open_activity: true
+                door_close_activity: false
+        - conditions:
+            - condition: trigger
+              id:
+                - contact_closed
+          sequence:
+            - variables:
+                door_open_activity: false
+                door_close_activity: true
+    - variables:
+        state:
+          "{{ (motion_state == 'on' or door_open_activity or door_close_activity)
+          | string | lower }}"
+    - action: variable.update_binary_sensor
+      metadata: {}
+      data:
+        replace_attributes: true
+        attributes:
+          state: "{{ state }}"
+          motion_state: "{{ motion_state }}"
+          door_state: "{{ door_state }}"
+          door_open_activity: "{{ door_open_activity }}"
+          door_close_activity: "{{ door_close_activity }}"
+        value: "{{ state }}"
+      target:
+        entity_id: binary_sensor.toilet_door_presence
+  mode: single
