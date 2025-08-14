@@ -1,0 +1,136 @@
+blueprint:
+  name: Door Presence
+  description: Automation to track door presence based on contact sensor and motion sensor activity
+  domain: automation
+  input:
+    contact_sensor:
+      name: Contact Binary Sensor
+      description: The door contact sensor entity
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: door
+    motion_sensor:
+      name: Motion Binary Sensor
+      description: The motion sensor entity
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: motion
+    variable_sensor:
+      name: Variable Binary Sensor
+      description: The variable binary sensor entity to update
+      selector:
+        entity:
+          domain: binary_sensor
+    contact_timer:
+      name: Contact Timer
+      description: Duration to wait after door activity before clearing the activity state
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 60
+          unit_of_measurement: seconds
+
+variables:
+  contact_sensor: !input contact_sensor
+  motion_sensor: !input motion_sensor
+  variable_sensor: !input variable_sensor
+  contact_timer: !input contact_timer
+
+trigger_variables:
+  contact_sensor: !input contact_sensor
+  motion_sensor: !input motion_sensor
+  variable_sensor: !input variable_sensor
+  contact_timer: !input contact_timer
+
+trigger:
+  - trigger: state
+    entity_id: !input contact_sensor
+    from:
+    id: contact_open
+    to: "on"
+  - trigger: template
+    value_template: >
+      {{ state_attr(variable_sensor, 'door_open_activity') == true }}
+    for:
+      hours: 0
+      minutes: 0
+      seconds: "{{ contact_timer }}"
+    id: contact_timer
+  - trigger: template
+    value_template: >
+      {{ state_attr(variable_sensor, 'door_close_activity') == true }}
+    for:
+      hours: 0
+      minutes: 0
+      seconds: "{{ contact_timer }}"
+    id: contact_timer
+  - trigger: state
+    entity_id: !input contact_sensor
+    from:
+    id: contact_closed
+    to: "off"
+  - trigger: state
+    entity_id: !input motion_sensor
+    from:
+    to: "on"
+    id: motion
+  - trigger: state
+    entity_id: !input motion_sensor
+    from:
+    to: "off"
+    id: motion
+
+condition: []
+
+action:
+  - variables:
+      motion_state: "{{ states(motion_sensor) }}"
+      door_state: "{{ states(contact_sensor) }}"
+      door_open_activity: "{{ state_attr(variable_sensor, 'door_open_activity') }}"
+      door_close_activity: "{{ state_attr(variable_sensor, 'door_close_activity') }}"
+      state: "{{ states(variable_sensor) }}"
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - contact_timer
+        sequence:
+          - variables:
+              door_open_activity: false
+              door_close_activity: false
+      - conditions:
+          - condition: trigger
+            id:
+              - contact_open
+        sequence:
+          - variables:
+              door_open_activity: true
+              door_close_activity: false
+      - conditions:
+          - condition: trigger
+            id:
+              - contact_closed
+        sequence:
+          - variables:
+              door_open_activity: false
+              door_close_activity: true
+  - variables:
+      state: "{{ ((motion_state == 'on' and door_state == 'on') or door_open_activity or door_close_activity) | string | lower }}"
+  - action: variable.update_binary_sensor
+    metadata: {}
+    data:
+      replace_attributes: true
+      attributes:
+        state: "{{ state }}"
+        motion_state: "{{ motion_state }}"
+        door_state: "{{ door_state }}"
+        door_open_activity: "{{ door_open_activity }}"
+        door_close_activity: "{{ door_close_activity }}"
+      value: "{{ state }}"
+    target:
+      entity_id: "{{ variable_sensor }}"
+
+mode: single
