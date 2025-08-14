@@ -32,32 +32,33 @@
     mode: "0644"
   when: unison_needs_install
 
-- name: Extract Unison binary
+- name: Extract Unison binary using tar
   shell: |
     cd "{{ unison_temp_dir.path }}"
-    tar --version > /dev/null 2>&1 && tar -xzf unison-2.53.7.tar.gz --strip-components=1 || {
-      # Try with gtar if available
-      gtar --version > /dev/null 2>&1 && gtar -xzf unison-2.53.7.tar.gz --strip-components=1 || {
-        # Fallback: extract to subdirectory and move
-        mkdir -p extracted
-        tar -xzf unison-2.53.7.tar.gz -C extracted
-        find extracted -name unison -type f -executable | head -1 | xargs -I {} cp {} ./unison
-      }
-    }
+    tar -xzf unison-2.53.7.tar.gz
   args:
     creates: "{{ unison_temp_dir.path }}/unison"
   when: unison_needs_install
 
+- name: Find extracted Unison binary
+  find:
+    paths: "{{ unison_temp_dir.path }}"
+    patterns: "unison"
+    file_type: file
+    recurse: yes
+  register: unison_binary_find
+  when: unison_needs_install
+
 - name: Install Unison binary to /usr/local/bin
   copy:
-    src: "{{ unison_temp_dir.path }}/unison"
+    src: "{{ unison_binary_find.files[0].path }}"
     dest: /usr/local/bin/unison
     mode: "0755"
     owner: root
     group: root
     remote_src: yes
   become: yes
-  when: unison_needs_install
+  when: unison_needs_install and unison_binary_find.files | length > 0
 
 - name: Clean up temporary directory
   file:
