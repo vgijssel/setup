@@ -1,0 +1,90 @@
+blueprint:
+  name: Occupancy Lights
+  description: Automation to control lights based on room occupancy toggle
+  domain: automation
+  input:
+    occupancy_toggle:
+      name: Occupancy Toggle
+      description: The input_boolean entity that indicates if the room is occupied
+      selector:
+        entity:
+          domain: input_boolean
+    lights:
+      name: Lights to Control
+      description: List of light entities to control based on occupancy
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    fade_delay:
+      name: Fade Delay
+      description: Time to wait after occupancy ends before turning lights completely off
+      default: 120
+      selector:
+        number:
+          min: 10
+          max: 3600
+          unit_of_measurement: seconds
+
+variables:
+  occupancy_toggle: !input occupancy_toggle
+  lights: !input lights
+  fade_delay: !input fade_delay
+
+trigger:
+  - trigger: state
+    entity_id: !input occupancy_toggle
+    from: "off"
+    to: "on"
+    id: occupancy_on
+  - trigger: state
+    entity_id: !input occupancy_toggle
+    from: "on"
+    to: "off"
+    id: occupancy_off
+  - trigger: state
+    entity_id: !input occupancy_toggle
+    to: "off"
+    for:
+      seconds: !input fade_delay
+    id: occupancy_off_delayed
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - occupancy_on
+        sequence:
+          - action: light.turn_on
+            metadata: {}
+            target:
+              entity_id: !input lights
+      - conditions:
+          - condition: trigger
+            id:
+              - occupancy_off
+        sequence:
+          - action: light.turn_on
+            metadata: {}
+            data:
+              brightness_pct: 10
+            target:
+              entity_id: !input lights
+      - conditions:
+          - condition: trigger
+            id:
+              - occupancy_off_delayed
+        sequence:
+          - action: light.turn_off
+            metadata: {}
+            target:
+              entity_id: !input lights
+
+mode: queued
+max: 25
+max_exceeded: silent
+trace:
+  stored_traces: 500

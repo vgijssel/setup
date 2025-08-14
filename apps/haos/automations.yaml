@@ -1,176 +1,176 @@
-- id: "1754753646691"
+- id: '1754753646691'
   alias: Supply Closet - Turn On Lights
-  description: ""
+  description: ''
   triggers:
-    - type: opened
-      device_id: a62de5fe0e35a2d1e908876d86033594
-      entity_id: 297272a4570654e5bd288da03d3b9437
-      domain: binary_sensor
-      trigger: device
+  - type: opened
+    device_id: a62de5fe0e35a2d1e908876d86033594
+    entity_id: 297272a4570654e5bd288da03d3b9437
+    domain: binary_sensor
+    trigger: device
   conditions: []
   actions:
-    - type: turn_on
-      device_id: 302cf0e6ebd333f1e79e8c33d4d4c030
-      entity_id: 669044aeb04953856eb2c5fbc68cddbd
-      domain: switch
+  - type: turn_on
+    device_id: 302cf0e6ebd333f1e79e8c33d4d4c030
+    entity_id: 669044aeb04953856eb2c5fbc68cddbd
+    domain: switch
   mode: single
-- id: "1754753697773"
+- id: '1754753697773'
   alias: Supply Closet - Turn Off Lights
-  description: ""
+  description: ''
   triggers:
-    - type: not_opened
-      device_id: a62de5fe0e35a2d1e908876d86033594
-      entity_id: 297272a4570654e5bd288da03d3b9437
-      domain: binary_sensor
-      trigger: device
+  - type: not_opened
+    device_id: a62de5fe0e35a2d1e908876d86033594
+    entity_id: 297272a4570654e5bd288da03d3b9437
+    domain: binary_sensor
+    trigger: device
   conditions: []
   actions:
-    - type: turn_off
-      device_id: 302cf0e6ebd333f1e79e8c33d4d4c030
-      entity_id: 669044aeb04953856eb2c5fbc68cddbd
-      domain: switch
+  - type: turn_off
+    device_id: 302cf0e6ebd333f1e79e8c33d4d4c030
+    entity_id: 669044aeb04953856eb2c5fbc68cddbd
+    domain: switch
   mode: single
-- id: "1754897315049"
+- id: '1754897315049'
   alias: Garden - Start Pump Timer
-  description: ""
+  description: ''
   triggers:
-    - trigger: time
-      at: 06:00:00
-      weekday:
-        - mon
-        - tue
-        - wed
-        - fri
-        - sat
-        - sun
-        - thu
-    - trigger: time
-      at: "22:00:00"
-      weekday:
-        - mon
-        - tue
-        - wed
-        - thu
-        - fri
-        - sat
-        - sun
+  - trigger: time
+    at: 06:00:00
+    weekday:
+    - mon
+    - tue
+    - wed
+    - fri
+    - sat
+    - sun
+    - thu
+  - trigger: time
+    at: '22:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
   conditions:
-    - condition: device
-      type: is_off
-      device_id: 254bd3f4675ebd884cf48e8432ade589
-      entity_id: c3c6a841bbf202032bd5ed1a881a54ff
-      domain: switch
+  - condition: device
+    type: is_off
+    device_id: 254bd3f4675ebd884cf48e8432ade589
+    entity_id: c3c6a841bbf202032bd5ed1a881a54ff
+    domain: switch
   actions:
-    - action: timer.start
-      metadata: {}
-      data:
-        duration: 01:00:00
-      target:
-        entity_id: timer.garden_pump_timer
+  - action: timer.start
+    metadata: {}
+    data:
+      duration: 01:00:00
+    target:
+      entity_id: timer.garden_pump_timer
   mode: single
-- id: "1754897526643"
+- id: '1754897526643'
   alias: Garden - Start Pump
-  description: ""
+  description: ''
   triggers:
-    - trigger: state
-      entity_id:
-        - timer.garden_pump_timer
-      from:
-      to: active
+  - trigger: state
+    entity_id:
+    - timer.garden_pump_timer
+    from:
+    to: active
   conditions: []
   actions:
-    - type: turn_on
-      device_id: 254bd3f4675ebd884cf48e8432ade589
-      entity_id: c3c6a841bbf202032bd5ed1a881a54ff
-      domain: switch
+  - type: turn_on
+    device_id: 254bd3f4675ebd884cf48e8432ade589
+    entity_id: c3c6a841bbf202032bd5ed1a881a54ff
+    domain: switch
   mode: single
-- id: "1754897648095"
+- id: '1754897648095'
   alias: Garden - Turn Off Pump
-  description: ""
+  description: ''
   triggers:
-    - trigger: state
-      entity_id:
-        - timer.garden_pump_timer
-      to: idle
+  - trigger: state
+    entity_id:
+    - timer.garden_pump_timer
+    to: idle
   conditions: []
   actions:
-    - type: turn_off
-      device_id: 254bd3f4675ebd884cf48e8432ade589
-      entity_id: c3c6a841bbf202032bd5ed1a881a54ff
-      domain: switch
+  - type: turn_off
+    device_id: 254bd3f4675ebd884cf48e8432ade589
+    entity_id: c3c6a841bbf202032bd5ed1a881a54ff
+    domain: switch
   mode: single
-- id: "1754921354906"
+- id: '1754921354906'
   alias: Garden - Door Presence
-  description: ""
+  description: ''
   use_blueprint:
     path: setup/door_presence.yaml
     input:
       contact_sensor: binary_sensor.garden_contact_door
       motion_sensor: binary_sensor.garden_motion_occupancy
       variable_sensor: binary_sensor.garden_door_presence
-- id: "1754923333948"
+- id: '1754923333948'
   alias: Hallway - Door Presence
-  description: ""
+  description: ''
   use_blueprint:
     path: setup/door_presence.yaml
     input:
       contact_sensor: binary_sensor.hallway_contact_door
       motion_sensor: binary_sensor.hallway_motion_occupancy
       variable_sensor: binary_sensor.hallway_door_presence
-- id: "1754923400673"
+- id: '1754923400673'
   alias: Living Room - Door Presence
-  description: ""
+  description: ''
   use_blueprint:
     path: setup/door_presence.yaml
     input:
       contact_sensor: binary_sensor.living_room_contact_door
       motion_sensor: binary_sensor.living_room_motion_occupancy
       variable_sensor: binary_sensor.living_room_door_presence
-- id: "1754923474097"
+- id: '1754923474097'
   alias: Toilet - Door Presence
-  description: ""
+  description: ''
   use_blueprint:
     path: setup/door_presence.yaml
     input:
       contact_sensor: binary_sensor.toilet_contact_door
       motion_sensor: binary_sensor.toilet_motion
       variable_sensor: binary_sensor.toilet_door_presence
-- id: "1754924013174"
+- id: '1754924013174'
   alias: Baby Room - Door Presence
-  description: ""
+  description: ''
   use_blueprint:
     path: setup/door_presence.yaml
     input:
       contact_sensor: binary_sensor.baby_room_contact_door
       motion_sensor: binary_sensor.baby_room_motion_occupancy
       variable_sensor: binary_sensor.baby_room_door_presence
-- id: "1754924065570"
+- id: '1754924065570'
   alias: Bedroom - Door Presence
-  description: ""
+  description: ''
   use_blueprint:
     path: setup/door_presence.yaml
     input:
       contact_sensor: binary_sensor.bedroom_contact_door
       motion_sensor: binary_sensor.bedroom_motion_occupancy
       variable_sensor: binary_sensor.bedroom_door_presence
-- id: "1754924108862"
+- id: '1754924108862'
   alias: Office - Door Presence
-  description: ""
+  description: ''
   use_blueprint:
     path: setup/door_presence.yaml
     input:
       contact_sensor: binary_sensor.office_door_door
       motion_sensor: binary_sensor.office_motion_occupancy
       variable_sensor: binary_sensor.office_door_presence
-- id: "1755173983930"
+- id: '1755173983930'
   alias: Living Room - Room Occupancy
-  description: ""
+  description: ''
   use_blueprint:
     path: setup/room_occupancy.yaml
     input:
       door_sensors:
-        - binary_sensor.living_room_door_presence
-        - binary_sensor.garden_door_presence
+      - binary_sensor.living_room_door_presence
+      - binary_sensor.garden_door_presence
       occupancy_sensor: binary_sensor.living_room_occupancy_presence
       occupancy_state_selector: input_select.living_room_room_occupancy_select
       occupancy_timer: timer.living_room_room_occupancy_timer
@@ -179,16 +179,16 @@
       leaving_timer_duration: 60
       leaving_confirm_timer_duration: 300
       occupancy_toggle: input_boolean.living_room_room_occupancy_toggle
-- id: "1755176063280"
+- id: '1755176063280'
   alias: Hallway - Room Occupancy
-  description: ""
+  description: ''
   use_blueprint:
     path: setup/room_occupancy.yaml
     input:
       door_sensors:
-        - binary_sensor.living_room_door_presence
-        - binary_sensor.hallway_door_presence
-      occupancy_sensor: binary_sensor.presence_sensor_fp2_c958_presence_sensor_1
+      - binary_sensor.living_room_door_presence
+      - binary_sensor.hallway_door_presence
+      occupancy_sensor: binary_sensor.hallway_occupancy_presence
       occupancy_state_selector: input_select.hallway_room_occupancy_select
       occupancy_timer: timer.hallway_room_occupancy_timer
       occupancy_toggle: input_boolean.hallway_room_occupancy_toggle
@@ -196,3 +196,22 @@
       entering_confirm_timer_duration: 1
       leaving_timer_duration: 120
       leaving_confirm_timer_duration: 180
+- id: '1755177390289'
+  alias: Living Room - Occupancy Lights
+  description: ''
+  use_blueprint:
+    path: setup/occupancy_lights.yaml
+    input:
+      occupancy_toggle: input_boolean.living_room_room_occupancy_toggle
+      lights:
+      - light.living_room
+- id: '1755177432443'
+  alias: Hallway - Occupancy Lights
+  description: ''
+  use_blueprint:
+    path: setup/occupancy_lights.yaml
+    input:
+      occupancy_toggle: input_boolean.hallway_room_occupancy_toggle
+      lights:
+      - light.hallway_lights
+      fade_delay: 60
