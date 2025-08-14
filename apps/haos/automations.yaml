@@ -178,3 +178,4 @@
       entering_confirm_timer_duration: 10
       leaving_timer_duration: 60
       leaving_confirm_timer_duration: 300
+      occupancy_toggle: input_boolean.living_room_room_occupancy_toggle

@@ -247,6 +247,13 @@ homekit:
         - binary_sensor.landing_smoke_alarm_status
         - binary_sensor.landing_carbon_alarm_status
         - binary_sensor.hallway_smoke_alarm_status
+        - input_boolean.living_room_room_occupancy_toggle
+        - input_boolean.hallway_room_occupancy_toggle
+        - input_boolean.landing_room_occupancy_toggle
+        - input_boolean.baby_room_room_occupancy_toggle
+        - input_boolean.bedroom_room_occupancy_toggle
+        - input_boolean.office_room_occupancy_toggle
+        - input_boolean.bathroom_room_occupancy_toggle
 
     entity_config:
       light.living_room_corner_light:
@@ -297,6 +304,20 @@ homekit:
         name: Overloop Koolmonoxide Melder
       binary_sensor.hallway_smoke_alarm_status:
         name: Gang Rookmelder
+      input_boolean.living_room_room_occupancy_toggle:
+        name: Woonkamer Aanwezigheid
+      input_boolean.hallway_room_occupancy_toggle:
+        name: Gang Aanwezigheid
+      input_boolean.landing_room_occupancy_toggle:
+        name: Overloop Aanwezigheid
+      input_boolean.baby_room_room_occupancy_toggle:
+        name: Babykamer Aanwezigheid
+      input_boolean.bedroom_room_occupancy_toggle:
+        name: Slaapkamer Aanwezigheid
+      input_boolean.office_room_occupancy_toggle:
+        name: Kantoor Aanwezigheid
+      input_boolean.bathroom_room_occupancy_toggle:
+        name: Badkamer Aanwezigheid
 
   - name: HA - Baby Cam
     port: 21064
