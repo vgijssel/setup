@@ -14,6 +14,24 @@ input_boolean:
     name: Indicate if all lights in the Bathroom are on
     icon: mdi:light
 
+timer:
+  living_room_room_occupancy_timer:
+    name: Living Room Occupancy Timer
+    icon: mdi:timer
+
+input_select:
+  living_room_room_occupancy_select:
+    name: Living Room Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+
 template:
   - binary_sensor:
       - name: living_room_tv_occupancy

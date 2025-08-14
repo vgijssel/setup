@@ -340,6 +340,7 @@ action:
                       entity_id: !input occupancy_state_selector
 
 mode: queued
+max: 25
 max_exceeded: silent
 trace:
   stored_traces: 500
