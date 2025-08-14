@@ -1,0 +1,276 @@
+blueprint:
+  name: Room Occupancy
+  description: Automation to track room occupancy based on door presence sensors and occupancy presence sensor
+  domain: automation
+  input:
+    door_sensors:
+      name: Door Presence Sensors
+      description: List of door presence sensor entities for the room
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+    occupancy_sensor:
+      name: Occupancy Presence Sensor
+      description: The occupancy presence sensor entity
+      selector:
+        entity:
+          domain: binary_sensor
+    occupancy_state_selector:
+      name: Occupancy State Selector
+      description: The input_select entity that tracks occupancy state
+      selector:
+        entity:
+          domain: input_select
+    occupancy_timer:
+      name: Occupancy Timer
+      description: The timer entity used for occupancy state transitions
+      selector:
+        entity:
+          domain: timer
+    timer_duration:
+      name: Timer Duration
+      description: Duration for occupancy state transitions
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 300
+          unit_of_measurement: seconds
+
+variables:
+  door_sensors: !input door_sensors
+  occupancy_sensor: !input occupancy_sensor
+  occupancy_state_selector: !input occupancy_state_selector
+  occupancy_timer: !input occupancy_timer
+  timer_duration: !input timer_duration
+
+trigger:
+  - trigger: state
+    entity_id: !input door_sensors
+    from:
+    to:
+    id: door
+  - trigger: state
+    entity_id: !input occupancy_state_selector
+    id: select
+  - trigger: state
+    entity_id: !input occupancy_timer
+    from:
+    to:
+    id: timer
+  - trigger: state
+    entity_id: !input occupancy_sensor
+    id: occupancy
+
+condition: []
+
+action:
+  - variables:
+      doors_have_activity: "{{ expand(door_sensors) | selectattr('state', 'eq', 'on') | list | count > 0 }}"
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - select
+        sequence:
+          - if:
+              - condition: state
+                entity_id: !input occupancy_state_selector
+                state:
+                  - entering
+                  - entering_confirm
+                  - leaving
+                  - leaving_confirm
+            then:
+              - action: timer.start
+                metadata: {}
+                data:
+                  duration: "{{ '00:00:' + (timer_duration | string).zfill(2) }}"
+                target:
+                  entity_id: !input occupancy_timer
+      - conditions:
+          - condition: state
+            entity_id: !input occupancy_state_selector
+            state: absent
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ doors_have_activity }}"
+            then:
+              - action: input_select.select_option
+                metadata: {}
+                data:
+                  option: entering
+                target:
+                  entity_id: !input occupancy_state_selector
+      - conditions:
+          - condition: state
+            entity_id: !input occupancy_state_selector
+            state: entering
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_sensor
+                    state: "on"
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: entering_confirm
+                    target:
+                      entity_id: !input occupancy_state_selector
+              - conditions:
+                  - condition: template
+                    value_template: "{{ doors_have_activity }}"
+                sequence:
+                  - action: timer.pause
+                    metadata: {}
+                    data: {}
+                    target:
+                      entity_id: !input occupancy_timer
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_timer
+                    state: paused
+                sequence:
+                  - action: timer.start
+                    metadata: {}
+                    data: {}
+                    target:
+                      entity_id: !input occupancy_timer
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_timer
+                    state: idle
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: absent
+                    target:
+                      entity_id: !input occupancy_state_selector
+      - conditions:
+          - condition: state
+            entity_id: !input occupancy_state_selector
+            state: entering_confirm
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_sensor
+                    state: "off"
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: entering
+                    target:
+                      entity_id: !input occupancy_state_selector
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_timer
+                    state: idle
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: present
+                    target:
+                      entity_id: !input occupancy_state_selector
+      - conditions:
+          - condition: state
+            entity_id: !input occupancy_state_selector
+            state: present
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ doors_have_activity }}"
+            then:
+              - action: input_select.select_option
+                metadata: {}
+                data:
+                  option: leaving
+                target:
+                  entity_id: !input occupancy_state_selector
+      - conditions:
+          - condition: state
+            entity_id: !input occupancy_state_selector
+            state: leaving
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_sensor
+                    state: "off"
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: leaving_confirm
+                    target:
+                      entity_id: !input occupancy_state_selector
+              - conditions:
+                  - condition: template
+                    value_template: "{{ doors_have_activity }}"
+                sequence:
+                  - action: timer.pause
+                    metadata: {}
+                    data: {}
+                    target:
+                      entity_id: !input occupancy_timer
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_timer
+                    state: paused
+                sequence:
+                  - action: timer.start
+                    metadata: {}
+                    data: {}
+                    target:
+                      entity_id: !input occupancy_timer
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_timer
+                    state: idle
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: present
+                    target:
+                      entity_id: !input occupancy_state_selector
+      - conditions:
+          - condition: state
+            entity_id: !input occupancy_state_selector
+            state: leaving_confirm
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_sensor
+                    state: "on"
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: leaving
+                    target:
+                      entity_id: !input occupancy_state_selector
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_timer
+                    state: idle
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: absent
+                    target:
+                      entity_id: !input occupancy_state_selector
+
+mode: queued
+max_exceeded: silent
+trace:
+  stored_traces: 500
