@@ -1,0 +1,75 @@
+---
+- name: Check if Unison is already installed
+  stat:
+    path: /usr/local/bin/unison
+  register: unison_binary
+
+- name: Check installed Unison version
+  command: /usr/local/bin/unison -version
+  register: unison_version_check
+  failed_when: false
+  changed_when: false
+  when: unison_binary.stat.exists
+
+- name: Set fact for Unison installation needed
+  set_fact:
+    unison_needs_install: >-
+      {{ not unison_binary.stat.exists or 
+         (unison_version_check.stdout is defined and 
+          "2.53.7" not in unison_version_check.stdout) }}
+
+- name: Create temporary directory for Unison download
+  tempfile:
+    state: directory
+    suffix: unison
+  register: unison_temp_dir
+  when: unison_needs_install
+
+- name: Download Unison 2.53.7 binary
+  get_url:
+    url: "https://github.com/bcpierce00/unison/releases/download/v2.53.7/unison-2.53.7-ubuntu-x86_64-static.tar.gz"
+    dest: "{{ unison_temp_dir.path }}/unison-2.53.7.tar.gz"
+    mode: "0644"
+  when: unison_needs_install
+
+- name: Extract Unison binary
+  shell: |
+    cd "{{ unison_temp_dir.path }}"
+    tar --version > /dev/null 2>&1 && tar -xzf unison-2.53.7.tar.gz --strip-components=1 || {
+      # Try with gtar if available
+      gtar --version > /dev/null 2>&1 && gtar -xzf unison-2.53.7.tar.gz --strip-components=1 || {
+        # Fallback: extract to subdirectory and move
+        mkdir -p extracted
+        tar -xzf unison-2.53.7.tar.gz -C extracted
+        find extracted -name unison -type f -executable | head -1 | xargs -I {} cp {} ./unison
+      }
+    }
+  args:
+    creates: "{{ unison_temp_dir.path }}/unison"
+  when: unison_needs_install
+
+- name: Install Unison binary to /usr/local/bin
+  copy:
+    src: "{{ unison_temp_dir.path }}/unison"
+    dest: /usr/local/bin/unison
+    mode: "0755"
+    owner: root
+    group: root
+    remote_src: yes
+  become: yes
+  when: unison_needs_install
+
+- name: Clean up temporary directory
+  file:
+    path: "{{ unison_temp_dir.path }}"
+    state: absent
+  when: unison_needs_install and unison_temp_dir is defined
+
+- name: Verify Unison installation
+  command: /usr/local/bin/unison -version
+  register: unison_final_version
+  changed_when: false
+
+- name: Display Unison version
+  debug:
+    msg: "Unison version installed: {{ unison_final_version.stdout_lines[0] }}"
