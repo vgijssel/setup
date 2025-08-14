@@ -18,10 +18,94 @@ timer:
   living_room_room_occupancy_timer:
     name: Living Room Occupancy Timer
     icon: mdi:timer
+  hallway_room_occupancy_timer:
+    name: Hallway Occupancy Timer
+    icon: mdi:timer
+  landing_room_occupancy_timer:
+    name: Landing Occupancy Timer
+    icon: mdi:timer
+  baby_room_room_occupancy_timer:
+    name: Baby Room Occupancy Timer
+    icon: mdi:timer
+  bedroom_room_occupancy_timer:
+    name: Bedroom Occupancy Timer
+    icon: mdi:timer
+  office_room_occupancy_timer:
+    name: Office Occupancy Timer
+    icon: mdi:timer
+  bathroom_room_occupancy_timer:
+    name: Bathroom Occupancy Timer
+    icon: mdi:timer
 
 input_select:
   living_room_room_occupancy_select:
     name: Living Room Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  hallway_room_occupancy_select:
+    name: Hallway Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  landing_room_occupancy_select:
+    name: Landing Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  baby_room_room_occupancy_select:
+    name: Baby Room Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  bedroom_room_occupancy_select:
+    name: Bedroom Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  office_room_occupancy_select:
+    name: Office Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  bathroom_room_occupancy_select:
+    name: Bathroom Occupancy State
     options:
       - absent
       - entering
