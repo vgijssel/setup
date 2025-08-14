@@ -114,6 +114,11 @@ trigger:
   - trigger: state
     entity_id: !input occupancy_sensor
     id: occupancy
+  - trigger: state
+    entity_id: !input occupancy_toggle
+    from:
+    to:
+    id: toggle
 
 condition: []
 
@@ -158,6 +163,29 @@ action:
                 metadata: {}
                 target:
                   entity_id: !input occupancy_toggle
+      - conditions:
+          - condition: trigger
+            id:
+              - toggle
+        sequence:
+          - if:
+              - condition: state
+                entity_id: !input occupancy_toggle
+                state: "on"
+            then:
+              - action: input_select.select_option
+                metadata: {}
+                data:
+                  option: present
+                target:
+                  entity_id: !input occupancy_state_selector
+            else:
+              - action: input_select.select_option
+                metadata: {}
+                data:
+                  option: absent
+                target:
+                  entity_id: !input occupancy_state_selector
       - conditions:
           - condition: state
             entity_id: !input occupancy_state_selector
