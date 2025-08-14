@@ -13,6 +13,27 @@ input_boolean:
   bathroom_all_lights:
     name: Indicate if all lights in the Bathroom are on
     icon: mdi:light
+  living_room_room_occupancy_toggle:
+    name: Living Room Occupancy Toggle
+    icon: mdi:toggle-switch
+  hallway_room_occupancy_toggle:
+    name: Hallway Occupancy Toggle
+    icon: mdi:toggle-switch
+  landing_room_occupancy_toggle:
+    name: Landing Occupancy Toggle
+    icon: mdi:toggle-switch
+  baby_room_room_occupancy_toggle:
+    name: Baby Room Occupancy Toggle
+    icon: mdi:toggle-switch
+  bedroom_room_occupancy_toggle:
+    name: Bedroom Occupancy Toggle
+    icon: mdi:toggle-switch
+  office_room_occupancy_toggle:
+    name: Office Occupancy Toggle
+    icon: mdi:toggle-switch
+  bathroom_room_occupancy_toggle:
+    name: Bathroom Occupancy Toggle
+    icon: mdi:toggle-switch
 
 timer:
   living_room_room_occupancy_timer:

@@ -28,6 +28,12 @@ blueprint:
       selector:
         entity:
           domain: timer
+    occupancy_toggle:
+      name: Occupancy Toggle
+      description: The input_boolean entity that indicates if the room is occupied
+      selector:
+        entity:
+          domain: input_boolean
     entering_timer_duration:
       name: Entering Timer Duration
       description: Duration for entering state transition
@@ -70,6 +76,7 @@ variables:
   occupancy_sensor: !input occupancy_sensor
   occupancy_state_selector: !input occupancy_state_selector
   occupancy_timer: !input occupancy_timer
+  occupancy_toggle: !input occupancy_toggle
   entering_timer_duration: !input entering_timer_duration
   entering_confirm_timer_duration: !input entering_confirm_timer_duration
   leaving_timer_duration: !input leaving_timer_duration
@@ -132,6 +139,25 @@ action:
                   duration: "{{ timer_duration }}"
                 target:
                   entity_id: !input occupancy_timer
+          - if:
+              - condition: state
+                entity_id: !input occupancy_state_selector
+                state:
+                  - entering
+                  - entering_confirm
+                  - present
+                  - leaving
+                  - leaving_confirm
+            then:
+              - action: input_boolean.turn_on
+                metadata: {}
+                target:
+                  entity_id: !input occupancy_toggle
+            else:
+              - action: input_boolean.turn_off
+                metadata: {}
+                target:
+                  entity_id: !input occupancy_toggle
       - conditions:
           - condition: state
             entity_id: !input occupancy_state_selector
