@@ -36,7 +36,7 @@ blueprint:
           domain: input_boolean
     entering_timer_duration:
       name: Entering Timer Duration
-      description: Duration for entering state transition
+      description: How long does it take the occupancy sensor to switch to entering state and add in margin for sensor noise.
       default: 10
       selector:
         number:
@@ -45,7 +45,7 @@ blueprint:
           unit_of_measurement: seconds
     entering_confirm_timer_duration:
       name: Entering Confirm Timer Duration
-      description: Duration for entering_confirm state transition
+      description: How long for the occupancy sensor to be in present state before confirming occupancy. This is shorter for hallways and longer for living areas where you want to be sure the room is occupied.
       default: 10
       selector:
         number:
@@ -54,8 +54,8 @@ blueprint:
           unit_of_measurement: seconds
     leaving_timer_duration:
       name: Leaving Timer Duration
-      description: Duration for leaving state transition
-      default: 10
+      description: How long does it take the occupancy sensor to switch back to absent and add in margin for sensor noise.
+      default: 60
       selector:
         number:
           min: 1
@@ -63,8 +63,8 @@ blueprint:
           unit_of_measurement: seconds
     leaving_confirm_timer_duration:
       name: Leaving Confirm Timer Duration
-      description: Duration for leaving_confirm state transition
-      default: 10
+      description: How long for the occupancy sensor to be in absent state before confirming no occupancy. Make this longer to reduce false negatives, especially in living areas.
+      default: 120
       selector:
         number:
           min: 1
@@ -144,6 +144,12 @@ action:
                   duration: "{{ timer_duration }}"
                 target:
                   entity_id: !input occupancy_timer
+            else:
+              - action: timer.cancel
+                metadata: {}
+                target:
+                  entity_id: !input occupancy_timer
+
           - if:
               - condition: state
                 entity_id: !input occupancy_state_selector
@@ -167,6 +173,8 @@ action:
           - condition: trigger
             id:
               - toggle
+          - condition: template
+            value_template: "{{ trigger.to_state.context.user_id is not none or trigger.to_state.context.parent_id is none }}"
         sequence:
           - if:
               - condition: state

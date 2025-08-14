@@ -179,3 +179,20 @@
       leaving_timer_duration: 60
       leaving_confirm_timer_duration: 300
       occupancy_toggle: input_boolean.living_room_room_occupancy_toggle
+- id: "1755176063280"
+  alias: Hallway - Room Occupancy
+  description: ""
+  use_blueprint:
+    path: setup/room_occupancy.yaml
+    input:
+      door_sensors:
+        - binary_sensor.living_room_door_presence
+        - binary_sensor.hallway_door_presence
+      occupancy_sensor: binary_sensor.presence_sensor_fp2_c958_presence_sensor_1
+      occupancy_state_selector: input_select.hallway_room_occupancy_select
+      occupancy_timer: timer.hallway_room_occupancy_timer
+      occupancy_toggle: input_boolean.hallway_room_occupancy_toggle
+      entering_timer_duration: 120
+      entering_confirm_timer_duration: 1
+      leaving_timer_duration: 120
+      leaving_confirm_timer_duration: 180
