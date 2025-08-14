@@ -10,4 +10,4 @@ tasks:
   sync:
     desc: Sync files between local and remote environment
     cmds:
-      - unison haos
+      - unison haos {{.CLI_ARGS}}

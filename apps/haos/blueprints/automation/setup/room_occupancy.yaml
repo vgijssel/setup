@@ -168,17 +168,24 @@ action:
                   - condition: template
                     value_template: "{{ doors_have_activity }}"
                 sequence:
-                  - action: timer.start
-                    metadata: {}
-                    data:
-                      duration: "{{ timer_duration }}"
-                    target:
-                      entity_id: !input occupancy_timer
-                  - action: timer.pause
-                    metadata: {}
-                    data: {}
-                    target:
-                      entity_id: !input occupancy_timer
+                  - if:
+                      - condition: not
+                        conditions:
+                          - condition: state
+                            entity_id: !input occupancy_timer
+                            state: paused
+                    then:
+                      - action: timer.start
+                        metadata: {}
+                        data:
+                          duration: "{{ timer_duration }}"
+                        target:
+                          entity_id: !input occupancy_timer
+                      - action: timer.pause
+                        metadata: {}
+                        data: {}
+                        target:
+                          entity_id: !input occupancy_timer
               - conditions:
                   - condition: state
                     entity_id: !input occupancy_timer
@@ -264,17 +271,24 @@ action:
                   - condition: template
                     value_template: "{{ doors_have_activity }}"
                 sequence:
-                  - action: timer.start
-                    metadata: {}
-                    data:
-                      duration: "{{ timer_duration }}"
-                    target:
-                      entity_id: !input occupancy_timer
-                  - action: timer.pause
-                    metadata: {}
-                    data: {}
-                    target:
-                      entity_id: !input occupancy_timer
+                  - if:
+                      - condition: not
+                        conditions:
+                          - condition: state
+                            entity_id: !input occupancy_timer
+                            state: paused
+                    then:
+                      - action: timer.start
+                        metadata: {}
+                        data:
+                          duration: "{{ timer_duration }}"
+                        target:
+                          entity_id: !input occupancy_timer
+                      - action: timer.pause
+                        metadata: {}
+                        data: {}
+                        target:
+                          entity_id: !input occupancy_timer
               - conditions:
                   - condition: state
                     entity_id: !input occupancy_timer
