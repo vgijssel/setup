@@ -188,6 +188,7 @@
       door_sensors:
       - binary_sensor.living_room_door_presence
       - binary_sensor.hallway_door_presence
+      - binary_sensor.landing_motion_occupancy
       occupancy_sensor: binary_sensor.hallway_occupancy_presence
       occupancy_state_selector: input_select.hallway_room_occupancy_select
       occupancy_timer: timer.hallway_room_occupancy_timer
@@ -204,7 +205,7 @@
     input:
       occupancy_toggle: input_boolean.living_room_room_occupancy_toggle
       lights:
-      - light.living_room
+      - light.living_room_lights
 - id: '1755177432443'
   alias: Hallway - Occupancy Lights
   description: ''
@@ -215,3 +216,36 @@
       lights:
       - light.hallway_lights
       fade_delay: 60
+- id: '1755192029849'
+  alias: Bathroom - Room Occupancy
+  description: ''
+  use_blueprint:
+    path: setup/room_occupancy.yaml
+    input:
+      door_sensors:
+      - binary_sensor.bathroom_door_presence
+      occupancy_sensor: binary_sensor.bathroom_occupancy_presence
+      occupancy_state_selector: input_select.bathroom_room_occupancy_select
+      occupancy_timer: timer.bathroom_room_occupancy_timer
+      occupancy_toggle: input_boolean.bathroom_room_occupancy_toggle
+      leaving_timer_duration: 300
+      entering_confirm_timer_duration: 1
+      entering_timer_duration: 60
+- id: '1755192139953'
+  alias: Bathroom - Occupancy Lights
+  description: ''
+  use_blueprint:
+    path: setup/occupancy_lights.yaml
+    input:
+      occupancy_toggle: input_boolean.bathroom_room_occupancy_toggle
+      lights:
+      - light.bathroom_lights
+- id: '1755193095431'
+  alias: Bathroom - Door Presence
+  description: ''
+  use_blueprint:
+    path: setup/door_presence.yaml
+    input:
+      contact_sensor: binary_sensor.bathroom_contact_door
+      motion_sensor: binary_sensor.bathroom_motion_occupancy
+      variable_sensor: binary_sensor.bathroom_door_presence

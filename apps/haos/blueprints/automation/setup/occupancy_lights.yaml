@@ -58,20 +58,11 @@ action:
             id:
               - occupancy_on
         sequence:
-          - if:
-              - condition: template
-                value_template: "{{ expand(lights) | selectattr('state', 'eq', 'on') | list | count > 0 }}"
-            then:
-              - action: adaptive_lighting.apply
-                target: {}
-                data:
-                  lights:
-                    - light.hallway_lights
-            else:
-              - action: light.turn_on
-                metadata: {}
-                target:
-                  entity_id: !input lights
+          - action: adaptive_lighting.apply
+            target: {}
+            data:
+              lights:
+                - !input lights
       - conditions:
           - condition: trigger
             id:
