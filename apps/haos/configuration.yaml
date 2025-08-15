@@ -254,6 +254,9 @@ homekit:
         - input_boolean.bedroom_room_occupancy_toggle
         - input_boolean.office_room_occupancy_toggle
         - input_boolean.bathroom_room_occupancy_toggle
+        - automation.living_room_occupancy_lights
+        - automation.hallway_occupancy_lights
+        - automation.bathroom_occupancy_lights
 
     entity_config:
       light.living_room_corner_light:
@@ -318,6 +321,12 @@ homekit:
         name: Kantoor Aanwezigheid
       input_boolean.bathroom_room_occupancy_toggle:
         name: Badkamer Aanwezigheid
+      automation.living_room_occupancy_lights:
+        name: Woonkamer Automagisch
+      automation.hallway_occupancy_lights:
+        name: Gang Automagisch
+      automation.bathroom_occupancy_lights:
+        name: Badkamer Automagisch
 
   - name: HA - Baby Cam
     port: 21064
