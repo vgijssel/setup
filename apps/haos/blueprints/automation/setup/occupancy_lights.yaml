@@ -68,13 +68,17 @@ action:
             id:
               - occupancy_off
         sequence:
-          - action: light.turn_on
-            metadata: {}
-            data:
-              brightness_pct: 10
-              transition: 5
-            target:
-              entity_id: !input lights
+          - if:
+              - condition: template
+                value_template: "{{ expand(lights) | selectattr('state', 'eq', 'on') | list | count > 0 }}"
+            then:
+              - action: light.turn_on
+                metadata: {}
+                data:
+                  brightness_pct: 10
+                  transition: 5
+                target:
+                  entity_id: !input lights
       - conditions:
           - condition: trigger
             id:
