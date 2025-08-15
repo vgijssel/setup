@@ -61,8 +61,8 @@ action:
           - action: adaptive_lighting.apply
             target: {}
             data:
-              lights:
-                - !input lights
+              lights: !input lights
+              turn_on_lights: true
       - conditions:
           - condition: trigger
             id:
