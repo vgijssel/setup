@@ -10,12 +10,13 @@ blueprint:
         entity:
           domain: binary_sensor
           multiple: true
-    occupancy_sensor:
-      name: Occupancy Presence Sensor
-      description: The occupancy presence sensor entity
+    occupancy_sensors:
+      name: Occupancy Presence Sensors
+      description: List of occupancy presence sensor entities for the room
       selector:
         entity:
           domain: binary_sensor
+          multiple: true
     occupancy_state_selector:
       name: Occupancy State Selector
       description: The input_select entity that tracks occupancy state
@@ -82,7 +83,7 @@ blueprint:
 
 variables:
   door_sensors: !input door_sensors
-  occupancy_sensor: !input occupancy_sensor
+  occupancy_sensors: !input occupancy_sensors
   occupancy_state_selector: !input occupancy_state_selector
   occupancy_timer: !input occupancy_timer
   occupancy_toggle: !input occupancy_toggle
@@ -92,7 +93,7 @@ variables:
   leaving_confirm_timer_duration: !input leaving_confirm_timer_duration
   presence_timer_duration: !input presence_timer_duration
   doors_have_activity: "{{ expand(door_sensors) | selectattr('state', 'eq', 'on') | list | count > 0 }}"
-  occupancy_has_activity: "{{ occupancy_sensor.state == 'on' }}"
+  occupancy_has_activity: "{{ expand(occupancy_sensors) | selectattr('state', 'eq', 'on') | list | count > 0 }}"
   timer_duration: >
     {% set state = states(occupancy_state_selector) %}
     {% if state == 'entering' %}
@@ -124,7 +125,7 @@ trigger:
     to:
     id: timer
   - trigger: state
-    entity_id: !input occupancy_sensor
+    entity_id: !input occupancy_sensors
     id: occupancy
   - trigger: state
     entity_id: !input occupancy_toggle
@@ -229,9 +230,8 @@ action:
         sequence:
           - choose:
               - conditions:
-                  - condition: state
-                    entity_id: !input occupancy_sensor
-                    state: "on"
+                  - condition: template
+                    value_template: "{{ occupancy_has_activity }}"
                 sequence:
                   - action: input_select.select_option
                     metadata: {}
@@ -289,9 +289,8 @@ action:
         sequence:
           - choose:
               - conditions:
-                  - condition: state
-                    entity_id: !input occupancy_sensor
-                    state: "off"
+                  - condition: template
+                    value_template: "{{ not occupancy_has_activity }}"
                 sequence:
                   - action: input_select.select_option
                     metadata: {}
@@ -344,9 +343,8 @@ action:
         sequence:
           - choose:
               - conditions:
-                  - condition: state
-                    entity_id: !input occupancy_sensor
-                    state: "off"
+                  - condition: template
+                    value_template: "{{ not occupancy_has_activity }}"
                 sequence:
                   - action: input_select.select_option
                     metadata: {}
@@ -404,9 +402,8 @@ action:
         sequence:
           - choose:
               - conditions:
-                  - condition: state
-                    entity_id: !input occupancy_sensor
-                    state: "on"
+                  - condition: template
+                    value_template: "{{ occupancy_has_activity }}"
                 sequence:
                   - action: input_select.select_option
                     metadata: {}

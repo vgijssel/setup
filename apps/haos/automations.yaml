@@ -171,7 +171,9 @@
       door_sensors:
       - binary_sensor.living_room_door_presence
       - binary_sensor.garden_door_presence
-      occupancy_sensor: binary_sensor.living_room_occupancy_presence
+      occupancy_sensors:
+      - binary_sensor.living_room_occupancy_presence
+      - binary_sensor.living_room_tv_occupancy
       occupancy_state_selector: input_select.living_room_room_occupancy_select
       occupancy_timer: timer.living_room_room_occupancy_timer
       entering_timer_duration:
@@ -205,7 +207,8 @@
       - binary_sensor.living_room_door_presence
       - binary_sensor.hallway_door_presence
       - binary_sensor.landing_motion_occupancy
-      occupancy_sensor: binary_sensor.hallway_occupancy_presence
+      occupancy_sensors:
+      - binary_sensor.hallway_occupancy_presence
       occupancy_state_selector: input_select.hallway_room_occupancy_select
       occupancy_timer: timer.hallway_room_occupancy_timer
       occupancy_toggle: input_boolean.hallway_room_occupancy_toggle
@@ -256,7 +259,8 @@
     input:
       door_sensors:
       - binary_sensor.bathroom_door_presence
-      occupancy_sensor: binary_sensor.bathroom_occupancy_presence
+      occupancy_sensors:
+      - binary_sensor.bathroom_occupancy_presence
       occupancy_state_selector: input_select.bathroom_room_occupancy_select
       occupancy_timer: timer.bathroom_room_occupancy_timer
       occupancy_toggle: input_boolean.bathroom_room_occupancy_toggle
@@ -302,7 +306,9 @@
     input:
       door_sensors:
       - binary_sensor.bedroom_door_presence
-      occupancy_sensor: binary_sensor.bedroom_occupancy_presence
+      occupancy_sensors:
+      - binary_sensor.bedroom_occupancy_presence
+      - binary_sensor.bedroom_tv_occupancy
       occupancy_state_selector: input_select.bedroom_room_occupancy_select
       occupancy_timer: timer.bedroom_room_occupancy_timer
       occupancy_toggle: input_boolean.bedroom_room_occupancy_toggle
@@ -326,7 +332,8 @@
     input:
       door_sensors:
       - binary_sensor.office_door_presence
-      occupancy_sensor: binary_sensor.office_occupancy_presence
+      occupancy_sensors:
+      - binary_sensor.office_occupancy_presence
       occupancy_state_selector: input_select.office_room_occupancy_select
       occupancy_timer: timer.office_room_occupancy_timer
       occupancy_toggle: input_boolean.office_room_occupancy_toggle
@@ -369,7 +376,8 @@
     input:
       door_sensors:
       - binary_sensor.baby_room_door_presence
-      occupancy_sensor: binary_sensor.baby_room_occupancy_presence
+      occupancy_sensors:
+      - binary_sensor.baby_room_occupancy_presence
       occupancy_state_selector: input_select.baby_room_room_occupancy_select
       occupancy_timer: timer.baby_room_room_occupancy_timer
       occupancy_toggle: input_boolean.baby_room_room_occupancy_toggle
@@ -407,7 +415,8 @@
       - binary_sensor.bedroom_door_presence
       - binary_sensor.office_door_presence
       - binary_sensor.bathroom_door_presence
-      occupancy_sensor: binary_sensor.landing_occupancy_presence
+      occupancy_sensors:
+      - binary_sensor.landing_occupancy_presence
       occupancy_state_selector: input_select.landing_room_occupancy_select
       occupancy_timer: timer.landing_room_occupancy_timer
       occupancy_toggle: input_boolean.landing_room_occupancy_toggle
