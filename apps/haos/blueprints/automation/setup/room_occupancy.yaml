@@ -70,6 +70,15 @@ blueprint:
           min: 1
           max: 3600
           unit_of_measurement: seconds
+    presence_timer_duration:
+      name: Presence Timer Duration
+      description: Maximum time someone would typically be inside a room. After this duration, the room will transition to leaving state to prevent false positives during regular area transitions.
+      default: 1800
+      selector:
+        number:
+          min: 60
+          max: 7200
+          unit_of_measurement: seconds
 
 variables:
   door_sensors: !input door_sensors
@@ -81,6 +90,7 @@ variables:
   entering_confirm_timer_duration: !input entering_confirm_timer_duration
   leaving_timer_duration: !input leaving_timer_duration
   leaving_confirm_timer_duration: !input leaving_confirm_timer_duration
+  presence_timer_duration: !input presence_timer_duration
   doors_have_activity: "{{ expand(door_sensors) | selectattr('state', 'eq', 'on') | list | count > 0 }}"
   occupancy_has_activity: "{{ occupancy_sensor.state == 'on' }}"
   timer_duration: >
@@ -93,6 +103,8 @@ variables:
       {{ '00:00:' + (leaving_timer_duration | string).zfill(2) }}
     {% elif state == 'leaving_confirm' %}
       {{ '00:00:' + (leaving_confirm_timer_duration | string).zfill(2) }}
+    {% elif state == 'present' %}
+      {{ '00:00:' + (presence_timer_duration | string).zfill(2) if presence_timer_duration < 60 else ('00:' + ((presence_timer_duration // 60) | string).zfill(2) + ':' + ((presence_timer_duration % 60) | string).zfill(2)) if presence_timer_duration < 3600 else (((presence_timer_duration // 3600) | string).zfill(2) + ':' + (((presence_timer_duration % 3600) // 60) | string).zfill(2) + ':' + ((presence_timer_duration % 60) | string).zfill(2)) }}
     {% else %}
       {{ '00:00:' + (entering_timer_duration | string).zfill(2) }}
     {% endif %}
@@ -137,6 +149,7 @@ action:
                   - entering_confirm
                   - leaving
                   - leaving_confirm
+                  - present
             then:
               - action: timer.start
                 metadata: {}
@@ -302,16 +315,28 @@ action:
             entity_id: !input occupancy_state_selector
             state: present
         sequence:
-          - if:
-              - condition: template
-                value_template: "{{ doors_have_activity }}"
-            then:
-              - action: input_select.select_option
-                metadata: {}
-                data:
-                  option: leaving
-                target:
-                  entity_id: !input occupancy_state_selector
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ doors_have_activity }}"
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: leaving
+                    target:
+                      entity_id: !input occupancy_state_selector
+              - conditions:
+                  - condition: state
+                    entity_id: !input occupancy_timer
+                    state: idle
+                sequence:
+                  - action: input_select.select_option
+                    metadata: {}
+                    data:
+                      option: leaving
+                    target:
+                      entity_id: !input occupancy_state_selector
       - conditions:
           - condition: state
             entity_id: !input occupancy_state_selector
