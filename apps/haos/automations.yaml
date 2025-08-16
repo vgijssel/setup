@@ -176,8 +176,8 @@
       occupancy_timer: timer.living_room_room_occupancy_timer
       entering_timer_duration: 120
       entering_confirm_timer_duration: 10
-      leaving_timer_duration: 60
-      leaving_confirm_timer_duration: 300
+      leaving_timer_duration: 120
+      leaving_confirm_timer_duration: 600
       occupancy_toggle: input_boolean.living_room_room_occupancy_toggle
 - id: '1755176063280'
   alias: Hallway - Room Occupancy
@@ -194,7 +194,7 @@
       occupancy_timer: timer.hallway_room_occupancy_timer
       occupancy_toggle: input_boolean.hallway_room_occupancy_toggle
       entering_timer_duration: 120
-      entering_confirm_timer_duration: 1
+      entering_confirm_timer_duration: 3
       leaving_timer_duration: 120
       leaving_confirm_timer_duration: 180
 - id: '1755177390289'
@@ -229,7 +229,7 @@
       occupancy_timer: timer.bathroom_room_occupancy_timer
       occupancy_toggle: input_boolean.bathroom_room_occupancy_toggle
       leaving_timer_duration: 300
-      entering_confirm_timer_duration: 1
+      entering_confirm_timer_duration: 10
       entering_timer_duration: 60
 - id: '1755192139953'
   alias: Bathroom - Occupancy Lights
@@ -249,3 +249,106 @@
       contact_sensor: binary_sensor.bathroom_contact_door
       motion_sensor: binary_sensor.bathroom_motion_occupancy
       variable_sensor: binary_sensor.bathroom_door_presence
+- id: '1755248144103'
+  alias: Bedroom - Room Occupancy
+  description: ''
+  use_blueprint:
+    path: setup/room_occupancy.yaml
+    input:
+      door_sensors:
+      - binary_sensor.bedroom_door_presence
+      occupancy_sensor: binary_sensor.bedroom_occupancy_presence
+      occupancy_state_selector: input_select.bedroom_room_occupancy_select
+      occupancy_timer: timer.bedroom_room_occupancy_timer
+      occupancy_toggle: input_boolean.bedroom_room_occupancy_toggle
+      entering_timer_duration: 60
+      entering_confirm_timer_duration: 10
+      leaving_timer_duration: 120
+- id: '1755248312882'
+  alias: Office - Room Occupancy
+  description: ''
+  use_blueprint:
+    path: setup/room_occupancy.yaml
+    input:
+      door_sensors:
+      - binary_sensor.office_door_presence
+      occupancy_sensor: binary_sensor.office_occupancy_presence
+      occupancy_state_selector: input_select.office_room_occupancy_select
+      occupancy_timer: timer.office_room_occupancy_timer
+      occupancy_toggle: input_boolean.office_room_occupancy_toggle
+      entering_timer_duration: 60
+      entering_confirm_timer_duration: 10
+      leaving_timer_duration: 120
+- id: '1755248375721'
+  alias: Office - Occupancy Lights
+  description: ''
+  use_blueprint:
+    path: setup/occupancy_lights.yaml
+    input:
+      occupancy_toggle: input_boolean.office_room_occupancy_toggle
+      lights:
+      - light.office_light
+- id: '1755250048428'
+  alias: Bedroom - Occupancy Lights
+  description: ''
+  use_blueprint:
+    path: setup/occupancy_lights.yaml
+    input:
+      occupancy_toggle: input_boolean.bedroom_room_occupancy_toggle
+      lights:
+      - light.bedroom_shelly_bedroom_shelly
+      fade_delay: 0
+- id: '1755250284225'
+  alias: Baby Room - Room Occupancy
+  description: ''
+  use_blueprint:
+    path: setup/room_occupancy.yaml
+    input:
+      door_sensors:
+      - binary_sensor.baby_room_door_presence
+      occupancy_sensor: binary_sensor.baby_room_occupancy_presence
+      occupancy_state_selector: input_select.baby_room_room_occupancy_select
+      occupancy_timer: timer.baby_room_room_occupancy_timer
+      occupancy_toggle: input_boolean.baby_room_room_occupancy_toggle
+      entering_confirm_timer_duration: 10
+      entering_timer_duration: 60
+      leaving_timer_duration: 120
+- id: '1755250382670'
+  alias: Baby Room - Occupancy Lights
+  description: ''
+  use_blueprint:
+    path: setup/occupancy_lights.yaml
+    input:
+      occupancy_toggle: input_boolean.baby_room_room_occupancy_toggle
+      lights:
+      - light.baby_room_light
+      - light.baby_room_moon_light_moko_baby_room_moon_light_moko
+- id: '1755251175899'
+  alias: Landing - Room Occupancy
+  description: ''
+  use_blueprint:
+    path: setup/room_occupancy.yaml
+    input:
+      door_sensors:
+      - binary_sensor.landing_motion_occupancy
+      - binary_sensor.baby_room_door_presence
+      - binary_sensor.bedroom_door_presence
+      - binary_sensor.office_door_presence
+      - binary_sensor.bathroom_door_presence
+      occupancy_sensor: binary_sensor.landing_occupancy_presence
+      occupancy_state_selector: input_select.landing_room_occupancy_select
+      occupancy_timer: timer.landing_room_occupancy_timer
+      occupancy_toggle: input_boolean.landing_room_occupancy_toggle
+      entering_timer_duration: 120
+      entering_confirm_timer_duration: 3
+      leaving_confirm_timer_duration: 300
+      leaving_timer_duration: 120
+- id: '1755251260933'
+  alias: Landing - Occupancy Lights
+  description: ''
+  use_blueprint:
+    path: setup/occupancy_lights.yaml
+    input:
+      occupancy_toggle: input_boolean.landing_room_occupancy_toggle
+      lights:
+      - light.landing_lights

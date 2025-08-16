@@ -256,6 +256,10 @@ homekit:
         - input_boolean.bathroom_room_occupancy_toggle
         - automation.living_room_occupancy_lights
         - automation.hallway_occupancy_lights
+        - automation.landing_occupancy_lights
+        - automation.baby_room_occupancy_lights
+        - automation.bedroom_occupancy_lights
+        - automation.office_occupancy_lights
         - automation.bathroom_occupancy_lights
 
     entity_config:
@@ -325,6 +329,14 @@ homekit:
         name: Woonkamer Automagisch
       automation.hallway_occupancy_lights:
         name: Gang Automagisch
+      automation.landing_occupancy_lights:
+        name: Overloop Automagisch
+      automation.baby_room_occupancy_lights:
+        name: Babykamer Automagisch
+      automation.bedroom_occupancy_lights:
+        name: Slaapkamer Automagisch
+      automation.office_occupancy_lights:
+        name: Kantoor Automagisch
       automation.bathroom_occupancy_lights:
         name: Badkamer Automagisch
 
