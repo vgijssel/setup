@@ -174,11 +174,27 @@
       occupancy_sensor: binary_sensor.living_room_occupancy_presence
       occupancy_state_selector: input_select.living_room_room_occupancy_select
       occupancy_timer: timer.living_room_room_occupancy_timer
-      entering_timer_duration: 120
-      entering_confirm_timer_duration: 10
-      leaving_timer_duration: 120
-      leaving_confirm_timer_duration: 600
+      entering_timer_duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
+      entering_confirm_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 10
+      leaving_timer_duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
+      leaving_confirm_timer_duration:
+        hours: 0
+        minutes: 10
+        seconds: 0
       occupancy_toggle: input_boolean.living_room_room_occupancy_toggle
+      presence_timer_duration:
+        hours: 4
+        minutes: 0
+        seconds: 0
 - id: '1755176063280'
   alias: Hallway - Room Occupancy
   description: ''
@@ -193,10 +209,26 @@
       occupancy_state_selector: input_select.hallway_room_occupancy_select
       occupancy_timer: timer.hallway_room_occupancy_timer
       occupancy_toggle: input_boolean.hallway_room_occupancy_toggle
-      entering_timer_duration: 120
-      entering_confirm_timer_duration: 3
-      leaving_timer_duration: 120
-      leaving_confirm_timer_duration: 180
+      entering_timer_duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
+      entering_confirm_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 3
+      leaving_timer_duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
+      leaving_confirm_timer_duration:
+        hours: 0
+        minutes: 3
+        seconds: 0
+      presence_timer_duration:
+        hours: 1
+        minutes: 0
+        seconds: 0
 - id: '1755177390289'
   alias: Living Room - Occupancy Lights
   description: ''
@@ -228,9 +260,22 @@
       occupancy_state_selector: input_select.bathroom_room_occupancy_select
       occupancy_timer: timer.bathroom_room_occupancy_timer
       occupancy_toggle: input_boolean.bathroom_room_occupancy_toggle
-      leaving_timer_duration: 300
-      entering_confirm_timer_duration: 10
-      entering_timer_duration: 60
+      leaving_timer_duration:
+        hours: 0
+        minutes: 5
+        seconds: 0
+      entering_confirm_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 10
+      entering_timer_duration:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      presence_timer_duration:
+        hours: 1
+        minutes: 0
+        seconds: 0
 - id: '1755192139953'
   alias: Bathroom - Occupancy Lights
   description: ''
@@ -261,9 +306,18 @@
       occupancy_state_selector: input_select.bedroom_room_occupancy_select
       occupancy_timer: timer.bedroom_room_occupancy_timer
       occupancy_toggle: input_boolean.bedroom_room_occupancy_toggle
-      entering_timer_duration: 60
-      entering_confirm_timer_duration: 10
-      leaving_timer_duration: 120
+      entering_timer_duration:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      entering_confirm_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 10
+      leaving_timer_duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
 - id: '1755248312882'
   alias: Office - Room Occupancy
   description: ''
@@ -276,9 +330,18 @@
       occupancy_state_selector: input_select.office_room_occupancy_select
       occupancy_timer: timer.office_room_occupancy_timer
       occupancy_toggle: input_boolean.office_room_occupancy_toggle
-      entering_timer_duration: 60
-      entering_confirm_timer_duration: 10
-      leaving_timer_duration: 120
+      entering_timer_duration:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      entering_confirm_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 10
+      leaving_timer_duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
 - id: '1755248375721'
   alias: Office - Occupancy Lights
   description: ''
@@ -310,9 +373,18 @@
       occupancy_state_selector: input_select.baby_room_room_occupancy_select
       occupancy_timer: timer.baby_room_room_occupancy_timer
       occupancy_toggle: input_boolean.baby_room_room_occupancy_toggle
-      entering_confirm_timer_duration: 10
-      entering_timer_duration: 60
-      leaving_timer_duration: 120
+      entering_confirm_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 10
+      entering_timer_duration:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      leaving_timer_duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
 - id: '1755250382670'
   alias: Baby Room - Occupancy Lights
   description: ''
@@ -339,10 +411,26 @@
       occupancy_state_selector: input_select.landing_room_occupancy_select
       occupancy_timer: timer.landing_room_occupancy_timer
       occupancy_toggle: input_boolean.landing_room_occupancy_toggle
-      entering_timer_duration: 120
-      entering_confirm_timer_duration: 3
-      leaving_confirm_timer_duration: 300
-      leaving_timer_duration: 120
+      entering_timer_duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
+      entering_confirm_timer_duration:
+        hours: 0
+        minutes: 0
+        seconds: 3
+      leaving_confirm_timer_duration:
+        hours: 0
+        minutes: 5
+        seconds: 0
+      leaving_timer_duration:
+        hours: 0
+        minutes: 2
+        seconds: 0
+      presence_timer_duration:
+        hours: 1
+        minutes: 0
+        seconds: 0
 - id: '1755251260933'
   alias: Landing - Occupancy Lights
   description: ''
