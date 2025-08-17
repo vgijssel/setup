@@ -1,0 +1,188 @@
+blueprint:
+  name: Zone Occupancy
+  description: Automation to sync zone occupancy with room occupancy when door presence sensors trigger
+  domain: automation
+  input:
+    door_presence_sensors:
+      name: Door Presence Sensors
+      description: List of door presence sensor entities that trigger zone activation
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+    zone_occupancy_state_selector:
+      name: Zone Occupancy State Selector
+      description: The input_select entity that tracks zone occupancy state
+      selector:
+        entity:
+          domain: input_select
+    room_occupancy_state_selector:
+      name: Room Occupancy State Selector
+      description: The input_select entity that tracks room occupancy state
+      selector:
+        entity:
+          domain: input_select
+    occupancy_timer:
+      name: Occupancy Timer
+      description: The timer entity used for zone occupancy state transitions
+      selector:
+        entity:
+          domain: timer
+    occupancy_toggle:
+      name: Occupancy Toggle
+      description: The input_boolean entity that indicates if the zone is occupied
+      selector:
+        entity:
+          domain: input_boolean
+    presence_timer_duration:
+      name: Presence Timer Duration
+      description: Maximum time someone would typically be inside the zone. After this duration, the zone will transition back to absent state.
+      default:
+        hours: 1
+        minutes: 0
+        seconds: 0
+      selector:
+        duration:
+
+variables:
+  door_presence_sensors: !input door_presence_sensors
+  zone_occupancy_state_selector: !input zone_occupancy_state_selector
+  room_occupancy_state_selector: !input room_occupancy_state_selector
+  occupancy_timer: !input occupancy_timer
+  occupancy_toggle: !input occupancy_toggle
+  presence_timer_duration: !input presence_timer_duration
+  doors_have_activity: "{{ expand(door_presence_sensors) | selectattr('state', 'eq', 'on') | list | count > 0 }}"
+  room_state: "{{ states(room_occupancy_state_selector) }}"
+  zone_state: "{{ states(zone_occupancy_state_selector) }}"
+
+trigger:
+  - trigger: state
+    entity_id: !input door_presence_sensors
+    from:
+    to:
+    id: door
+  - trigger: state
+    entity_id: !input zone_occupancy_state_selector
+    id: zone_select
+  - trigger: state
+    entity_id: !input occupancy_timer
+    from:
+    to:
+    id: timer
+  - trigger: state
+    entity_id: !input occupancy_toggle
+    from:
+    to:
+    id: toggle
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - zone_select
+        sequence:
+          - if:
+              - condition: state
+                entity_id: !input zone_occupancy_state_selector
+                state:
+                  - present
+            then:
+              - action: timer.start
+                metadata: {}
+                data:
+                  duration: "{{ presence_timer_duration }}"
+                target:
+                  entity_id: !input occupancy_timer
+            else:
+              - action: timer.cancel
+                metadata: {}
+                target:
+                  entity_id: !input occupancy_timer
+
+          - if:
+              - condition: state
+                entity_id: !input zone_occupancy_state_selector
+                state:
+                  - entering
+                  - entering_confirm
+                  - present
+                  - leaving
+                  - leaving_confirm
+            then:
+              - action: input_boolean.turn_on
+                metadata: {}
+                target:
+                  entity_id: !input occupancy_toggle
+            else:
+              - action: input_boolean.turn_off
+                metadata: {}
+                target:
+                  entity_id: !input occupancy_toggle
+      - conditions:
+          - condition: trigger
+            id:
+              - toggle
+          - condition: template
+            value_template: "{{ trigger.to_state.context.user_id is not none or trigger.to_state.context.parent_id is none }}"
+        sequence:
+          - if:
+              - condition: state
+                entity_id: !input occupancy_toggle
+                state: "on"
+            then:
+              - action: input_select.select_option
+                metadata: {}
+                data:
+                  option: present
+                target:
+                  entity_id: !input zone_occupancy_state_selector
+            else:
+              - action: input_select.select_option
+                metadata: {}
+                data:
+                  option: absent
+                target:
+                  entity_id: !input zone_occupancy_state_selector
+      - conditions:
+          - condition: state
+            entity_id: !input zone_occupancy_state_selector
+            state: absent
+
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ doors_have_activity }}"
+            then:
+              - action: input_select.select_option
+                metadata: {}
+                data:
+                  option: "{{ room_state }}"
+                target:
+                  entity_id: !input zone_occupancy_state_selector
+
+      - conditions:
+          - condition: state
+            entity_id: !input zone_occupancy_state_selector
+            state: present
+
+        sequence:
+          - if:
+              - condition: state
+                entity_id: !input occupancy_timer
+                state: idle
+            then:
+              - action: input_select.select_option
+                metadata: {}
+                data:
+                  option: absent
+                target:
+                  entity_id: !input zone_occupancy_state_selector
+
+mode: queued
+max: 25
+max_exceeded: silent
+trace:
+  stored_traces: 500

@@ -104,6 +104,14 @@ action:
                   transition: 5
                 target:
                   entity_id: !input lights
+          - if:
+              - condition: template
+                value_template: "{{ switches | length > 0 }}"
+            then:
+              - action: switch.turn_off
+                metadata: {}
+                target:
+                  entity_id: !input switches
       - conditions:
           - condition: trigger
             id:
@@ -117,14 +125,6 @@ action:
                 metadata: {}
                 target:
                   entity_id: !input lights
-          - if:
-              - condition: template
-                value_template: "{{ switches | length > 0 }}"
-            then:
-              - action: switch.turn_off
-                metadata: {}
-                target:
-                  entity_id: !input switches
 
 mode: queued
 max: 25

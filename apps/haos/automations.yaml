@@ -241,6 +241,7 @@
       occupancy_toggle: input_boolean.living_room_room_occupancy_toggle
       lights:
       - light.living_room_lights
+      - light.kitchen_lights
 - id: '1755177432443'
   alias: Hallway - Occupancy Lights
   description: ''
@@ -367,6 +368,8 @@
       occupancy_toggle: input_boolean.bedroom_room_occupancy_toggle
       lights: []
       fade_delay: 0
+      switches:
+      - switch.bedroom_shelly
 - id: '1755250284225'
   alias: Baby Room - Room Occupancy
   description: ''
@@ -401,7 +404,9 @@
       occupancy_toggle: input_boolean.baby_room_room_occupancy_toggle
       lights:
       - light.baby_room_light
-      - light.baby_room_moon_light_moko_baby_room_moon_light_moko
+      switches:
+      - switch.baby_room_moon_light_moko
+      - switch.office_server_moko
 - id: '1755251175899'
   alias: Landing - Room Occupancy
   description: ''
@@ -448,3 +453,15 @@
       occupancy_toggle: input_boolean.landing_room_occupancy_toggle
       lights:
       - light.landing_lights
+- id: '1755411089438'
+  alias: Toilet - Zone Occupancy
+  description: ''
+  use_blueprint:
+    path: setup/zone_occupancy.yaml
+    input:
+      door_presence_sensors:
+      - binary_sensor.toilet_door_presence
+      zone_occupancy_state_selector: input_select.toilet_room_occupancy_select
+      room_occupancy_state_selector: input_select.hallway_room_occupancy_select
+      occupancy_timer: timer.toilet_room_occupancy_timer
+      occupancy_toggle: input_boolean.toilet_room_occupancy_toggle
