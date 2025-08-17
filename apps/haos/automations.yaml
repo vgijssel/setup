@@ -365,8 +365,7 @@
     path: setup/occupancy_lights.yaml
     input:
       occupancy_toggle: input_boolean.bedroom_room_occupancy_toggle
-      lights:
-      - light.bedroom_shelly_bedroom_shelly
+      lights: []
       fade_delay: 0
 - id: '1755250284225'
   alias: Baby Room - Room Occupancy

@@ -85,3 +85,8 @@ tasks:
     dir: images
     cmds:
       - packer build -only='build_image.*' -on-error=ask .
+
+  secrets:
+    desc: Download secrets for setup using 1Password
+    cmds:
+      - op inject -i .env.tpl -o .env
