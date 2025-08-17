@@ -12,9 +12,18 @@ blueprint:
     lights:
       name: Lights to Control
       description: List of light entities to control based on occupancy
+      default: []
       selector:
         entity:
           domain: light
+          multiple: true
+    switches:
+      name: Switches to Control
+      description: List of switch entities to control based on occupancy
+      default: []
+      selector:
+        entity:
+          domain: switch
           multiple: true
     fade_delay:
       name: Fade Delay
@@ -29,7 +38,9 @@ blueprint:
 variables:
   occupancy_toggle: !input occupancy_toggle
   lights: !input lights
+  switches: !input switches
   fade_delay: !input fade_delay
+  all_entities: "{{ lights + switches }}"
 
 trigger:
   - trigger: state
@@ -58,11 +69,25 @@ action:
             id:
               - occupancy_on
         sequence:
-          - action: adaptive_lighting.apply
-            target: {}
-            data:
-              lights: !input lights
-              turn_on_lights: true
+          - if:
+              - condition: template
+                value_template: "{{ lights | length > 0 }}"
+            then:
+              - repeat:
+                  for_each: "{{ lights }}"
+                  sequence:
+                    - action: adaptive_lighting.apply
+                      target: {}
+                      data:
+                        lights: "{{ repeat.item }}"
+                        turn_on_lights: true
+          - if:
+              - condition: template
+                value_template: "{{ switches | length > 0 }}"
+            then:
+              - action: switch.turn_on
+                target:
+                  entity_id: !input switches
       - conditions:
           - condition: trigger
             id:
@@ -84,10 +109,22 @@ action:
             id:
               - occupancy_off_delayed
         sequence:
-          - action: light.turn_off
-            metadata: {}
-            target:
-              entity_id: !input lights
+          - if:
+              - condition: template
+                value_template: "{{ lights | length > 0 }}"
+            then:
+              - action: light.turn_off
+                metadata: {}
+                target:
+                  entity_id: !input lights
+          - if:
+              - condition: template
+                value_template: "{{ switches | length > 0 }}"
+            then:
+              - action: switch.turn_off
+                metadata: {}
+                target:
+                  entity_id: !input switches
 
 mode: queued
 max: 25
