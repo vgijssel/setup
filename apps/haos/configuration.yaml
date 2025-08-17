@@ -36,6 +36,12 @@ input_boolean:
   bathroom_room_occupancy_toggle:
     name: Bathroom Occupancy Toggle
     icon: mdi:toggle-switch
+  toilet_room_occupancy_toggle:
+    name: Toilet Occupancy Toggle
+    icon: mdi:toggle-switch
+  laundry_room_room_occupancy_toggle:
+    name: Laundry Room Occupancy Toggle
+    icon: mdi:toggle-switch
 
 timer:
   living_room_room_occupancy_timer:
@@ -58,6 +64,12 @@ timer:
     icon: mdi:timer
   bathroom_room_occupancy_timer:
     name: Bathroom Occupancy Timer
+    icon: mdi:timer
+  toilet_room_occupancy_timer:
+    name: Toilet Occupancy Timer
+    icon: mdi:timer
+  laundry_room_room_occupancy_timer:
+    name: Laundry Room Occupancy Timer
     icon: mdi:timer
 
 input_select:
@@ -129,6 +141,28 @@ input_select:
     icon: mdi:home-account
   bathroom_room_occupancy_select:
     name: Bathroom Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  toilet_room_occupancy_select:
+    name: Toilet Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  laundry_room_room_occupancy_select:
+    name: Laundry Room Occupancy State
     options:
       - absent
       - entering
