@@ -173,7 +173,6 @@ light:
       - light.living_room_corner_light
       - light.living_room_dining_table_light
       - light.living_room_monkey_light
-      - light.living_room_mouse_light
       - light.living_room_tv_light
   - platform: group
     name: kitchen_lights
@@ -227,7 +226,6 @@ homekit:
         - light.living_room_corner_light
         - light.living_room_dining_table_light
         - light.living_room_monkey_light
-        - light.living_room_mouse_light
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.baby_room_light
@@ -242,7 +240,6 @@ homekit:
         - light.office_light
         - switch.supply_closet_shelly
         - light.toilet_lights
-        - switch.kitchen_oven_moko
         - switch.garden_shelly
         - binary_sensor.landing_smoke_alarm_status
         - binary_sensor.landing_carbon_alarm_status
@@ -269,8 +266,6 @@ homekit:
         name: Woonkamer Eetkamertafel
       light.living_room_monkey_light:
         name: Woonkamer Aap
-      light.living_room_mouse_light:
-        name: Woonkamer Muis
       light.living_room_tv_light:
         name: Woonkamer Tv Lamp
       climate.living_room_heat:
@@ -290,9 +285,6 @@ homekit:
         name: Gang Lampen
       light.kitchen_lights:
         name: Keuken Lamp
-      switch.kitchen_oven_moko:
-        name: Keuken Oven
-        type: outlet
       light.landing_lights:
         name: Overloop Lampen
       switch.laundry_room_shelly:
@@ -403,7 +395,6 @@ adaptive_lighting:
       - light.living_room_corner_light
       - light.living_room_dining_table_light
       - light.living_room_monkey_light
-      - light.living_room_mouse_light
       - light.living_room_tv_light
     take_over_control: true
     detect_non_ha_changes: true
@@ -416,7 +407,6 @@ cloud:
         - light.living_room_corner_light
         - light.living_room_dining_table_light
         - light.living_room_monkey_light
-        - light.living_room_mouse_light
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.kitchen_lights
@@ -435,11 +425,6 @@ cloud:
         name: Aap
         aliases:
           - Monkey
-        room: Woonkamer
-      light.living_room_mouse_light:
-        name: Muis
-        aliases:
-          - Mouse
         room: Woonkamer
       light.living_room_tv_light:
         name: Tv Lamp
