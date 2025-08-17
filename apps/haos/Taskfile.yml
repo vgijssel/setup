@@ -11,25 +11,25 @@ tasks:
     desc: Sync files between local and remote environment
     cmds:
       - unison haos {{.CLI_ARGS}}
+      - task: update
 
   update:
     desc: Check config and reload Home Assistant if valid
     cmds:
       - echo "Checking Home Assistant configuration..."
+      - task: validate
+      - echo "Reloading Home Assistant configuration..."
       - |
         curl -sf \
-           -H "Authorization: Bearer $HA_TOKEN" \
-           -H "Content-Type: application/json" \
-           -X POST \
-           http://192.168.1.32:8123/api/config/core/check_config 
-         echo ""
-      - echo "Configuration is valid. Reloading Home Assistant..."
-      - |
-        curl -sf \
-            -H "Authorization: Bearer $HA_TOKEN" \
-            -H "Content-Type: application/json" \
-            -X POST \
-            -d '{}' \
-            http://192.168.1.32:8123/api/services/homeassistant/reload_all
-          echo ""
+          -H "Authorization: Bearer $HA_TOKEN" \
+          -H "Content-Type: application/json" \
+          -X POST \
+          -d '{}' \
+          http://192.168.1.32:8123/api/services/homeassistant/reload_all
+        echo ""
       - echo "Home Assistant reload completed."
+
+  validate:
+    desc: Test Home Assistant configuration endpoint with Goss
+    cmds:
+      - goss validate
