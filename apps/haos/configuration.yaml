@@ -176,10 +176,10 @@ input_select:
 template:
   - binary_sensor:
       - name: bedroom_tv_occupancy
-        state: "{{ not is_state('media_player.bedroom_tv', 'off') }}"
+        state: "{{ is_state('media_player.bedroom_tv', 'playing') }}"
         device_class: occupancy
       - name: living_room_tv_occupancy
-        state: "{{ not is_state('media_player.living_room_tv', 'off') }}"
+        state: "{{ is_state('media_player.living_room_tv', 'playing') }}"
         device_class: occupancy
 
 nissan_leaf:

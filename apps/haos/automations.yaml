@@ -94,10 +94,23 @@
     to: idle
   conditions: []
   actions:
-  - type: turn_off
-    device_id: 254bd3f4675ebd884cf48e8432ade589
-    entity_id: c3c6a841bbf202032bd5ed1a881a54ff
-    domain: switch
+  - repeat:
+      sequence:
+      - type: turn_off
+        device_id: 254bd3f4675ebd884cf48e8432ade589
+        entity_id: c3c6a841bbf202032bd5ed1a881a54ff
+        domain: switch
+      - delay:
+          hours: 0
+          minutes: 5
+          seconds: 0
+          milliseconds: 0
+      until:
+      - condition: device
+        type: is_off
+        device_id: 254bd3f4675ebd884cf48e8432ade589
+        entity_id: c3c6a841bbf202032bd5ed1a881a54ff
+        domain: switch
   mode: single
 - id: '1754921354906'
   alias: Garden - Door Presence
@@ -209,6 +222,7 @@
       - binary_sensor.landing_motion_occupancy
       occupancy_sensors:
       - binary_sensor.hallway_occupancy_presence
+      - binary_sensor.toilet_motion
       occupancy_state_selector: input_select.hallway_room_occupancy_select
       occupancy_timer: timer.hallway_room_occupancy_timer
       occupancy_toggle: input_boolean.hallway_room_occupancy_toggle
@@ -421,6 +435,7 @@
       - binary_sensor.bathroom_door_presence
       occupancy_sensors:
       - binary_sensor.landing_occupancy_presence
+      - binary_sensor.laundry_room_motion_occupancy
       occupancy_state_selector: input_select.landing_room_occupancy_select
       occupancy_timer: timer.landing_room_occupancy_timer
       occupancy_toggle: input_boolean.landing_room_occupancy_toggle
@@ -465,3 +480,33 @@
       room_occupancy_state_selector: input_select.hallway_room_occupancy_select
       occupancy_timer: timer.toilet_room_occupancy_timer
       occupancy_toggle: input_boolean.toilet_room_occupancy_toggle
+- id: '1755417307449'
+  alias: Toilet - Occupancy Lights
+  description: ''
+  use_blueprint:
+    path: setup/occupancy_lights.yaml
+    input:
+      occupancy_toggle: input_boolean.toilet_room_occupancy_toggle
+      lights:
+      - light.toilet_lights
+- id: '1755417570297'
+  alias: Laundry Room - Room Occupancy
+  description: ''
+  use_blueprint:
+    path: setup/zone_occupancy.yaml
+    input:
+      door_presence_sensors:
+      - binary_sensor.laundry_room_motion_occupancy
+      zone_occupancy_state_selector: input_select.laundry_room_room_occupancy_select
+      room_occupancy_state_selector: input_select.landing_room_occupancy_select
+      occupancy_timer: timer.laundry_room_room_occupancy_timer
+      occupancy_toggle: input_boolean.laundry_room_room_occupancy_toggle
+- id: '1755419005688'
+  alias: Laundry Room - Occupancy Lights
+  description: ''
+  use_blueprint:
+    path: setup/occupancy_lights.yaml
+    input:
+      occupancy_toggle: input_boolean.laundry_room_room_occupancy_toggle
+      switches:
+      - switch.laundry_room_shelly

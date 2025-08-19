@@ -65,6 +65,9 @@ trigger:
     entity_id: !input zone_occupancy_state_selector
     id: zone_select
   - trigger: state
+    entity_id: !input room_occupancy_state_selector
+    id: room_select
+  - trigger: state
     entity_id: !input occupancy_timer
     from:
     to:
@@ -167,19 +170,30 @@ action:
           - condition: state
             entity_id: !input zone_occupancy_state_selector
             state: present
+          - condition: state
+            entity_id: !input occupancy_timer
+            state: idle
 
         sequence:
-          - if:
+          - action: input_select.select_option
+            metadata: {}
+            data:
+              option: absent
+            target:
+              entity_id: !input zone_occupancy_state_selector
+      - conditions:
+          - condition: not
+            conditions:
               - condition: state
-                entity_id: !input occupancy_timer
-                state: idle
-            then:
-              - action: input_select.select_option
-                metadata: {}
-                data:
-                  option: absent
-                target:
-                  entity_id: !input zone_occupancy_state_selector
+                entity_id: !input zone_occupancy_state_selector
+                state: absent
+        sequence:
+          - action: input_select.select_option
+            metadata: {}
+            data:
+              option: "{{ room_state }}"
+            target:
+              entity_id: !input zone_occupancy_state_selector
 
 mode: queued
 max: 25

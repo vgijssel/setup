@@ -16,9 +16,6 @@ tasks:
   update:
     desc: Check config and reload Home Assistant if valid
     cmds:
-      - echo "Checking Home Assistant configuration..."
-      - task: validate
-      - echo "Reloading Home Assistant configuration..."
       - |
         curl -sf \
           -H "Authorization: Bearer $HA_TOKEN" \
@@ -27,7 +24,7 @@ tasks:
           -d '{}' \
           http://192.168.1.32:8123/api/services/homeassistant/reload_all
         echo ""
-      - echo "Home Assistant reload completed."
+      - task: validate
 
   validate:
     desc: Test Home Assistant configuration endpoint with Goss

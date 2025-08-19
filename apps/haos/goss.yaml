@@ -5,3 +5,30 @@ command:
     stdout:
       - '{"result":"valid","errors":null,"warnings":null}'
     timeout: 10000
+
+  check-baby-room-door-presence-entity:
+    exec: "curl -sf -H 'Authorization: Bearer {{ .Env.HA_TOKEN }}' -H 'Content-Type: application/json' -X GET http://192.168.1.32:8123/api/states/automation.baby_room_door_presence"
+    exit-status: 0
+    stdout:
+      - '"entity_id":"automation.baby_room_door_presence"'
+      - '"state":"on"'
+    stderr: ""
+    timeout: 10000
+
+  check-baby-room-room-occupancy-entity:
+    exec: "curl -sf -H 'Authorization: Bearer {{ .Env.HA_TOKEN }}' -H 'Content-Type: application/json' -X GET http://192.168.1.32:8123/api/states/automation.baby_room_room_occupancy"
+    exit-status: 0
+    stdout:
+      - '"entity_id":"automation.baby_room_room_occupancy"'
+      - '"state":"on"'
+    stderr: ""
+    timeout: 10000
+
+  check-baby-room-occupancy-lights-entity:
+    exec: "curl -sf -H 'Authorization: Bearer {{ .Env.HA_TOKEN }}' -H 'Content-Type: application/json' -X GET http://192.168.1.32:8123/api/states/automation.baby_room_occupancy_lights"
+    exit-status: 0
+    stdout:
+      - '"entity_id":"automation.baby_room_occupancy_lights"'
+      - '"state":"on"'
+    stderr: ""
+    timeout: 10000
