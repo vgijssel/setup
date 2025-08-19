@@ -32,3 +32,12 @@ command:
       - '"state":"on"'
     stderr: ""
     timeout: 10000
+
+  check-toilet-zone-occupancy-entity:
+    exec: "curl -sf -H 'Authorization: Bearer {{ .Env.HA_TOKEN }}' -H 'Content-Type: application/json' -X GET http://192.168.1.32:8123/api/states/automation.toilet_zone_occupancy"
+    exit-status: 0
+    stdout:
+      - '"entity_id":"automation.toilet_zone_occupancy"'
+      - '"state":"on"'
+    stderr: ""
+    timeout: 10000
