@@ -287,6 +287,8 @@ homekit:
         - input_boolean.bedroom_room_occupancy_toggle
         - input_boolean.office_room_occupancy_toggle
         - input_boolean.bathroom_room_occupancy_toggle
+        - input_boolean.toilet_room_occupancy_toggle
+        - input_boolean.laundry_room_room_occupancy_toggle
         - automation.living_room_occupancy_lights
         - automation.hallway_occupancy_lights
         - automation.landing_occupancy_lights
@@ -294,6 +296,8 @@ homekit:
         - automation.bedroom_occupancy_lights
         - automation.office_occupancy_lights
         - automation.bathroom_occupancy_lights
+        - automation.toilet_occupancy_lights
+        - automation.laundry_room_occupancy_lights
 
     entity_config:
       light.living_room_corner_light:
@@ -353,6 +357,10 @@ homekit:
         name: Kantoor Aanwezigheid
       input_boolean.bathroom_room_occupancy_toggle:
         name: Badkamer Aanwezigheid
+      input_boolean.toilet_room_occupancy_toggle:
+        name: Wc Aanwezigheid
+      input_boolean.laundry_room_room_occupancy_toggle:
+        name: Waskamer Aanwezigheid
       automation.living_room_occupancy_lights:
         name: Woonkamer Automagisch
       automation.hallway_occupancy_lights:
@@ -367,6 +375,10 @@ homekit:
         name: Kantoor Automagisch
       automation.bathroom_occupancy_lights:
         name: Badkamer Automagisch
+      automation.toilet_occupancy_lights:
+        name: Wc Automagisch
+      automation.laundry_room_occupancy_lights:
+        name: Waskamer Automagisch
 
   - name: HA - Baby Cam
     port: 21064
