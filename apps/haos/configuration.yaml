@@ -429,6 +429,9 @@ adaptive_lighting:
   - name: baby_room
     lights:
       - light.baby_room_light
+  - name: bedroom
+    lights:
+      - light.bedroom_light
   - name: office
     lights:
       - light.office_light
