@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+exec kubectl exec -n cozy-linstor deploy/linstor-controller -- linstor "$@"

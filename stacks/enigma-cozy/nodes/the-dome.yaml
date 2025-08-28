@@ -14,12 +14,6 @@ machine:
   network:
     hostname: the-dome
     # -- Discovered interfaces:
-    # enp6s0:
-    #   hardwareAddr:bc:07:1d:dd:64:54
-    #   busPath: 0000:06:00.0
-    #   driver: r8169
-    #   vendor: Realtek Semiconductor Co., Ltd.
-    #   product: RTL8125 2.5GbE Controller)
     # eno1:
     #   hardwareAddr:60:cf:84:ab:35:97
     #   busPath: 0000:0a:00.0
@@ -38,6 +32,12 @@ machine:
     #   driver: mlx5_core
     #   vendor: Mellanox Technologies
     #   product: MT27710 Family [ConnectX-4 Lx])
+    # enp6s0:
+    #   hardwareAddr:bc:07:1d:dd:64:54
+    #   busPath: 0000:06:00.0
+    #   driver: r8169
+    #   vendor: Realtek Semiconductor Co., Ltd.
+    #   product: RTL8125 2.5GbE Controller)
     interfaces:
       - interface: br0
         addresses:
@@ -65,16 +65,16 @@ machine:
       - 192.168.50.1
   install:
     # -- Discovered disks:
-    # /dev/nvme1n1:
-    #    model: Patriot M.2 P300 128GB
-    #    serial: P300ZDBB24112203332
-    #    wwid: nvme.1e4b-503330305a4442423234313132323033333332-50617472696f74204d2e322050333030203132384742-00000001
-    #    size: 128 GB
     # /dev/nvme0n1:
     #    model: Micron_7400_MTFDKCC1T9TDZ
     #    serial: 223249F0F8D4
     #    wwid: eui.000000000000000100a0752249f0f8d4
     #    size: 1.9 TB
+    # /dev/nvme1n1:
+    #    model: Patriot M.2 P300 128GB
+    #    serial: P300ZDBB24112203332
+    #    wwid: nvme.1e4b-503330305a4442423234313132323033333332-50617472696f74204d2e322050333030203132384742-00000001
+    #    size: 128 GB
     disk: /dev/nvme1n1
     image: ghcr.io/cozystack/cozystack/talos:v1.10.5
   files:
@@ -120,6 +120,11 @@ cluster:
     serviceSubnets:
       - 10.96.0.0/16
   apiServer:
+    extraArgs:
+      oidc-client-id: kubernetes
+      oidc-groups-claim: groups
+      oidc-issuer-url: https://keycloak.enigma.vgijssel.nl/realms/cozy
+      oidc-username-claim: preferred_username
     certSANs:
       - 127.0.0.1
   controllerManager:

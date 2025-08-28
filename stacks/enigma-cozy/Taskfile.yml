@@ -45,6 +45,7 @@ tasks:
     cmds:
       - talm reboot --mode powercycle -f nodes/illusion.yaml -f nodes/the-dome.yaml -f nodes/the-toy-factory.yaml
 
+  # validate - the ingress controller lives at 192.168.50.100!! This is required by omada to forward traffic
   #   validate:
   #     desc: Validate Cluster Health
   #     cmds:

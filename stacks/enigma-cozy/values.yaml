@@ -10,7 +10,7 @@ serviceSubnets:
 # Therefore setting this to the public interface to make Cozystack work.
 advertisedSubnets:
   - 192.168.50.0/24
-oidcIssuerUrl: ""
+oidcIssuerUrl: "https://keycloak.enigma.vgijssel.nl/realms/cozy"
 certSANs: []
 nr_hugepages: 0
 nodes:
