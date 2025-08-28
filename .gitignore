@@ -68,3 +68,7 @@ services/kube-ovn/charts
 
 **/textual.log
 **/textual_serve.log
+3rdparty/javascript/bin
+
+stacks/enigma-cozy/secrets.yaml
+stacks/enigma-cozy/talosconfig
