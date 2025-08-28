@@ -1,6 +1,6 @@
-endpoint: "https://192.168.100.10:6443"
+endpoint: "https://192.168.50.50:6443"
 clusterDomain: cozy.local
-floatingIP: 192.168.100.10
+floatingIP: 192.168.50.50
 image: "ghcr.io/cozystack/cozystack/talos:v1.10.5"
 podSubnets:
   - 10.244.0.0/16
