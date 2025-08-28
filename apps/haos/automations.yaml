@@ -510,3 +510,151 @@
       occupancy_toggle: input_boolean.laundry_room_room_occupancy_toggle
       switches:
       - switch.laundry_room_shelly
+- id: '1755624179768'
+  alias: Garden - Heat Swimming Pool
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - switch.garden_pump_plug
+  - trigger: state
+    entity_id:
+    - climate.garden_heat_pump
+    attribute: current_temperature
+  - trigger: state
+    entity_id:
+    - input_boolean.garden_swimming_pool_heat_toggle
+  - trigger: homeassistant
+    event: start
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.garden_swimming_pool_heat_toggle
+        state: 'on'
+      sequence:
+      - choose:
+        - conditions:
+          - condition: numeric_state
+            entity_id: climate.garden_heat_pump
+            attribute: current_temperature
+            above: 32
+          sequence:
+          - action: input_boolean.turn_off
+            metadata: {}
+            data: {}
+            target:
+              entity_id: input_boolean.garden_swimming_pool_heat_toggle
+        - conditions:
+          - condition: numeric_state
+            entity_id: climate.garden_heat_pump
+            below: 33
+            attribute: current_temperature
+          sequence:
+          - repeat:
+              sequence:
+              - type: turn_on
+                device_id: 254bd3f4675ebd884cf48e8432ade589
+                entity_id: c3c6a841bbf202032bd5ed1a881a54ff
+                domain: switch
+              - device_id: f5e2a4276b3e4f7749d8096194ab65a6
+                domain: climate
+                entity_id: 72f7bba60e5d1631705c3087e7bd0160
+                type: set_hvac_mode
+                hvac_mode: heat
+              - device_id: f5e2a4276b3e4f7749d8096194ab65a6
+                domain: climate
+                entity_id: 72f7bba60e5d1631705c3087e7bd0160
+                type: set_preset_mode
+                preset_mode: quick_heat
+              - delay:
+                  hours: 0
+                  minutes: 0
+                  seconds: 5
+                  milliseconds: 0
+              count: 2
+    - conditions:
+      - condition: state
+        entity_id: input_boolean.garden_swimming_pool_heat_toggle
+        state: 'off'
+      - condition: state
+        entity_id: timer.garden_pump_timer
+        state: idle
+      sequence:
+      - repeat:
+          sequence:
+          - type: turn_off
+            device_id: 254bd3f4675ebd884cf48e8432ade589
+            entity_id: c3c6a841bbf202032bd5ed1a881a54ff
+            domain: switch
+          - device_id: f5e2a4276b3e4f7749d8096194ab65a6
+            domain: climate
+            entity_id: 72f7bba60e5d1631705c3087e7bd0160
+            type: set_hvac_mode
+            hvac_mode: 'off'
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: 5
+              milliseconds: 0
+          count: 2
+  mode: queued
+  max: 10
+- id: '1755850491459'
+  alias: Disable Lights During Night
+  description: ''
+  triggers:
+  - trigger: time
+    at: 07:00:00
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sat
+    - sun
+    id: morning
+  - trigger: time
+    at: '20:00:00'
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sun
+    - sat
+    id: evening
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - morning
+      sequence:
+      - action: automation.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - automation.baby_room_occupancy_lights
+          - automation.landing_occupancy_lights
+          - automation.bedroom_occupancy_lights
+    - conditions:
+      - condition: trigger
+        id:
+        - evening
+      sequence:
+      - action: automation.turn_off
+        metadata: {}
+        data:
+          stop_actions: true
+        target:
+          entity_id:
+          - automation.baby_room_occupancy_lights
+          - automation.landing_occupancy_lights
+          - automation.bedroom_occupancy_lights
+  mode: single
