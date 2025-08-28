@@ -6,6 +6,8 @@ podSubnets:
   - 10.244.0.0/16
 serviceSubnets:
   - 10.96.0.0/16
+# If we use 10.50.50.0/24 as the advertisedSubnets then Cilium won't boot
+# Therefore setting this to the public interface to make Cozystack work.
 advertisedSubnets:
   - 192.168.50.0/24
 oidcIssuerUrl: ""
