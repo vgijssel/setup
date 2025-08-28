@@ -38,6 +38,8 @@ lint:
         - services/windmill/f/**/*.script.yaml
         - services/windmill/f/**/flow.yaml
         - apps/haos/automations.yaml
+        - stacks/enigma-cozy/templates/controlplane.yaml
+        - stacks/enigma-cozy/templates/worker.yaml
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1
