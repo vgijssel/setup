@@ -14,14 +14,14 @@ esp32:
 
 output:
   - platform: gpio
-    id: "relay_output"
+    id: relay_output
     pin: GPIO25
 
 switch:
   - platform: output
     id: moko_relay
     name: "${entity_id}"
-    output: "relay_output"
+    output: relay_output
     # Attempt to restore state and default to OFF if not possible to restore.
     restore_mode: RESTORE_DEFAULT_OFF
 

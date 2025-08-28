@@ -1,8 +1,8 @@
 substitutions:
-  device_name: "baby-room-bed-light-moko"
-  entity_id: "baby_room_bed_light_moko"
+  device_name: baby-room-bed-light-moko
+  entity_id: baby_room_bed_light_moko
   room_name: baby_room_bed_light
-  static_ip: "192.168.1.81"
+  static_ip: 192.168.1.81
 
 packages:
   device_base: !include .moko-mk115.yaml

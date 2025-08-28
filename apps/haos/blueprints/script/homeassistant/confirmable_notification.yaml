@@ -15,37 +15,37 @@ blueprint:
           filter:
             integration: mobile_app
     title:
-      name: "Title"
-      description: "The title of the button shown in the notification."
+      name: Title
+      description: The title of the button shown in the notification.
       default: ""
       selector:
         text:
     message:
-      name: "Message"
-      description: "The message body"
+      name: Message
+      description: The message body
       selector:
         text:
     confirm_text:
-      name: "Confirmation Text"
-      description: "Text to show on the confirmation button"
-      default: "Confirm"
+      name: Confirmation Text
+      description: Text to show on the confirmation button
+      default: Confirm
       selector:
         text:
     confirm_action:
-      name: "Confirmation Action"
-      description: "Action to run when notification is confirmed"
+      name: Confirmation Action
+      description: Action to run when notification is confirmed
       default: []
       selector:
         action:
     dismiss_text:
-      name: "Dismiss Text"
-      description: "Text to show on the dismiss button"
-      default: "Dismiss"
+      name: Dismiss Text
+      description: Text to show on the dismiss button
+      default: Dismiss
       selector:
         text:
     dismiss_action:
-      name: "Dismiss Action"
-      description: "Action to run when notification is dismissed"
+      name: Dismiss Action
+      description: Action to run when notification is dismissed
       default: []
       selector:
         action:
@@ -53,11 +53,11 @@ blueprint:
 mode: restart
 
 sequence:
-  - alias: "Set up variables"
+  - alias: Set up variables
     variables:
       action_confirm: "{{ 'CONFIRM_' ~ context.id }}"
       action_dismiss: "{{ 'DISMISS_' ~ context.id }}"
-  - alias: "Send notification"
+  - alias: Send notification
     domain: mobile_app
     type: notify
     device_id: !input notify_device
@@ -69,7 +69,7 @@ sequence:
           title: !input confirm_text
         - action: "{{ action_dismiss }}"
           title: !input dismiss_text
-  - alias: "Awaiting response"
+  - alias: Awaiting response
     wait_for_trigger:
       - platform: event
         event_type: mobile_app_notification_action

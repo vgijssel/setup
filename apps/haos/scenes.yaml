@@ -1,5 +1,5 @@
 - name: bathroom_shower_lights
-  icon: "mdi:shower-head"
+  icon: mdi:shower-head
   entities:
     light.bathroom_1_light: "on"
     light.bathroom_2_light: "on"
@@ -8,7 +8,7 @@
     light.bathroom_5_light: "off"
     light.bathroom_6_light: "off"
 - name: bathroom_all_lights
-  icon: "mdi:shower-head"
+  icon: mdi:shower-head
   entities:
     light.bathroom_1_light: "on"
     light.bathroom_2_light: "on"

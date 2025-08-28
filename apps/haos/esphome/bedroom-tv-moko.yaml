@@ -1,8 +1,8 @@
 substitutions:
-  device_name: "bedroom-tv-moko"
-  entity_id: "bedroom_tv_moko"
+  device_name: bedroom-tv-moko
+  entity_id: bedroom_tv_moko
   room_name: bedroom_tv
-  static_ip: "192.168.1.80"
+  static_ip: 192.168.1.80
 
 packages:
   device_base: !include .moko-mk115.yaml

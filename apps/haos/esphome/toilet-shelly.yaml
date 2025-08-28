@@ -1,8 +1,8 @@
 substitutions:
-  device_name: "toilet-shelly"
-  entity_id: "toilet_shelly"
-  light_entity_id: "light.toilet_lights"
-  static_ip: "192.168.1.72"
+  device_name: toilet-shelly
+  entity_id: toilet_shelly
+  light_entity_id: light.toilet_lights
+  static_ip: 192.168.1.72
 
 packages:
   device_base: !include .shelly-1l.yaml

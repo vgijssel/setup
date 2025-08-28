@@ -1,8 +1,8 @@
 substitutions:
-  device_name: "office-server-moko"
-  entity_id: "office_server_moko"
+  device_name: office-server-moko
+  entity_id: office_server_moko
   room_name: office_server
-  static_ip: "192.168.1.78"
+  static_ip: 192.168.1.78
 
 packages:
   device_base: !include .moko-mk115.yaml

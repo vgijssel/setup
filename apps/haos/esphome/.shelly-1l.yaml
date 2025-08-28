@@ -16,12 +16,12 @@ wifi:
 
 output:
   - platform: gpio
-    id: "relay_output"
+    id: relay_output
     pin: GPIO5
 
 switch:
   - platform: output
     id: shelly_relay
     name: "${entity_id}"
-    output: "relay_output"
+    output: relay_output
     restore_mode: RESTORE_DEFAULT_OFF

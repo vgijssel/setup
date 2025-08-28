@@ -8,7 +8,7 @@ debug:
 text_sensor:
   - platform: debug
     device:
-      name: "device_info"
+      name: device_info
 
 # Enable Home Assistant API
 api:

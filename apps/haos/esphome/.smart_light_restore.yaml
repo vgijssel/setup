@@ -13,7 +13,7 @@ time:
                   - switch.is_off: shelly_relay
               then:
                 # Turn on the shelly relay with the zigbee lights
-                - logger.log: "Automatically turning on the shelly relay"
+                - logger.log: Automatically turning on the shelly relay
                 - switch.turn_on: shelly_relay
 
                 - logger.log: "Waiting for ${light_entity_id} to turn on"

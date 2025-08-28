@@ -1,9 +1,9 @@
 substitutions:
-  device_name: "office-shelly"
-  entity_id: "office_shelly"
+  device_name: office-shelly
+  entity_id: office_shelly
   light_entity_id: light.office_light
-  room_name: "office"
-  static_ip: "192.168.1.70"
+  room_name: office
+  static_ip: 192.168.1.70
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml

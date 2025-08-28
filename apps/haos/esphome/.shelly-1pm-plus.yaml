@@ -21,14 +21,14 @@ esp32:
 
 output:
   - platform: gpio
-    id: "relay_output"
+    id: relay_output
     pin: GPIO26
 
 switch:
   - platform: output
     id: shelly_relay
     name: "${entity_id}"
-    output: "relay_output"
+    output: relay_output
     restore_mode: RESTORE_DEFAULT_OFF
 
 status_led:

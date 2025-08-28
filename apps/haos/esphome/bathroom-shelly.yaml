@@ -1,8 +1,8 @@
 substitutions:
-  device_name: "bathroom-shelly"
-  entity_id: "bathroom_shelly"
-  light_entity_id: "light.bathroom_lights"
-  static_ip: "192.168.1.61"
+  device_name: bathroom-shelly
+  entity_id: bathroom_shelly
+  light_entity_id: light.bathroom_lights
+  static_ip: 192.168.1.61
 
 packages:
   device_base: !include .shelly-1l.yaml
@@ -29,7 +29,7 @@ binary_sensor:
             then:
               - if:
                   condition:
-                    binary_sensor.is_on: "bathroom_all_lights"
+                    binary_sensor.is_on: bathroom_all_lights
                   then:
                     - homeassistant.service:
                         service: input_boolean.turn_off
@@ -69,11 +69,11 @@ binary_sensor:
             then:
               - if:
                   condition:
-                    binary_sensor.is_off: "light_sensor"
+                    binary_sensor.is_off: light_sensor
                   then:
                     - if:
                         condition:
-                          binary_sensor.is_on: "bathroom_all_lights"
+                          binary_sensor.is_on: bathroom_all_lights
                         then:
                           - homeassistant.service:
                               service: scene.turn_on

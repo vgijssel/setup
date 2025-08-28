@@ -1,8 +1,8 @@
 substitutions:
-  device_name: "kitchen-oven-moko"
-  entity_id: "kitchen_oven_moko"
+  device_name: kitchen-oven-moko
+  entity_id: kitchen_oven_moko
   room_name: kitchen_oven
-  static_ip: "192.168.1.74"
+  static_ip: 192.168.1.74
 
 packages:
   device_base: !include .moko-mk115.yaml

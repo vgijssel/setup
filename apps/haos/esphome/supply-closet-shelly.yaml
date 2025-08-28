@@ -1,8 +1,8 @@
 substitutions:
-  device_name: "supply-closet-shelly"
-  entity_id: "supply_closet_shelly"
-  room_name: "supply_closet"
-  static_ip: "192.168.1.71"
+  device_name: supply-closet-shelly
+  entity_id: supply_closet_shelly
+  room_name: supply_closet
+  static_ip: 192.168.1.71
 
 packages:
   device_base: !include .shelly-1pm-plus.yaml

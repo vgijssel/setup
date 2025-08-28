@@ -27,7 +27,7 @@
 
 - name: Download Unison 2.53.7 binary
   get_url:
-    url: "https://github.com/bcpierce00/unison/releases/download/v2.53.7/unison-2.53.7-ubuntu-x86_64-static.tar.gz"
+    url: https://github.com/bcpierce00/unison/releases/download/v2.53.7/unison-2.53.7-ubuntu-x86_64-static.tar.gz
     dest: "{{ unison_temp_dir.path }}/unison-2.53.7.tar.gz"
     mode: "0644"
   when: unison_needs_install
@@ -43,7 +43,7 @@
 - name: Find extracted Unison binary
   find:
     paths: "{{ unison_temp_dir.path }}"
-    patterns: "unison"
+    patterns: unison
     file_type: file
     recurse: yes
   register: unison_binary_find

@@ -1,8 +1,8 @@
 substitutions:
-  device_name: "hallway-vacuum-moko"
-  entity_id: "hallway_vacuum_moko"
+  device_name: hallway-vacuum-moko
+  entity_id: hallway_vacuum_moko
   room_name: hallway_vacuum
-  static_ip: "192.168.1.76"
+  static_ip: 192.168.1.76
 
 packages:
   device_base: !include .moko-mk115.yaml

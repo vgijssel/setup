@@ -1,8 +1,8 @@
 substitutions:
-  device_name: "living-room-monkey-moko"
-  entity_id: "living_room_monkey_moko"
+  device_name: living-room-monkey-moko
+  entity_id: living_room_monkey_moko
   room_name: living_room_monkey
-  static_ip: "192.168.1.79"
+  static_ip: 192.168.1.79
 
 packages:
   device_base: !include .moko-mk115.yaml
