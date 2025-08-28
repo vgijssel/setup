@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cozystack
+  namespace: cozy-system
+data:
+  bundle-name: "paas-full"
+  root-host: "enigma.vgijssel.nl"
+  api-server-endpoint: "https://api.enigma.vgijssel.nl:443"
+  expose-services: "dashboard,api"
+  ipv4-pod-cidr: "10.244.0.0/16"
+  ipv4-pod-gateway: "10.244.0.1"
+  ipv4-svc-cidr: "10.96.0.0/16"
+  ipv4-join-cidr: "100.64.0.0/16"

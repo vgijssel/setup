@@ -7,7 +7,7 @@ podSubnets:
 serviceSubnets:
   - 10.96.0.0/16
 advertisedSubnets:
-  - 10.50.50.0/24
+  - 192.168.50.0/24
 oidcIssuerUrl: ""
 certSANs: []
 nr_hugepages: 0
@@ -25,6 +25,7 @@ nodes:
           stp:
             enabled: true
       - interface: eno1
+        addresses: []
         vlans:
           - addresses:
               - 192.168.50.10/24
@@ -52,6 +53,7 @@ nodes:
           stp:
             enabled: true
       - interface: eno1
+        addresses: []
         vlans:
           - addresses:
               - 192.168.50.11/24
@@ -79,6 +81,7 @@ nodes:
           stp:
             enabled: true
       - interface: eno1
+        addresses: []
         vlans:
           - addresses:
               - 192.168.50.12/24

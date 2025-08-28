@@ -10,10 +10,16 @@ machine:
       maxPods: 512
     nodeIP:
       validSubnets:
-        - 10.50.50.0/24
+        - 192.168.50.0/24
   network:
     hostname: the-toy-factory
     # -- Discovered interfaces:
+    # enp6s0:
+    #   hardwareAddr:bc:07:1d:dd:5b:be
+    #   busPath: 0000:06:00.0
+    #   driver: r8169
+    #   vendor: Realtek Semiconductor Co., Ltd.
+    #   product: RTL8125 2.5GbE Controller)
     # eno1:
     #   hardwareAddr:60:cf:84:a9:c7:65
     #   busPath: 0000:0a:00.0
@@ -32,12 +38,6 @@ machine:
     #   driver: mlx5_core
     #   vendor: Mellanox Technologies
     #   product: MT27710 Family [ConnectX-4 Lx])
-    # enp6s0:
-    #   hardwareAddr:bc:07:1d:dd:5b:be
-    #   busPath: 0000:06:00.0
-    #   driver: r8169
-    #   vendor: Realtek Semiconductor Co., Ltd.
-    #   product: RTL8125 2.5GbE Controller)
     interfaces:
       - interface: br0
         addresses:
@@ -144,5 +144,5 @@ cluster:
     enabled: false
   etcd:
     advertisedSubnets:
-      - 10.50.50.0/24
+      - 192.168.50.0/24
   allowSchedulingOnControlPlanes: true
