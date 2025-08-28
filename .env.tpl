@@ -1,0 +1,1 @@
+HA_TOKEN="{{ op://vgijssel-prod/haos-api/password }}"

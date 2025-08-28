@@ -8,8 +8,10 @@ packages:
       - zimfw
       - chezmoi
       - coreutils
+      - gnu-sed
       - zoxide
       - tmux
+      - httpie
     casks:
       - google-chrome
       - orbstack

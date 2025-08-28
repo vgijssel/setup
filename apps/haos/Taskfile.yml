@@ -1,0 +1,32 @@
+version: "3"
+
+tasks:
+  apply:
+    desc: Apply the Ansible playbook
+    dir: ansible
+    cmds:
+      - ansible-playbook -i hosts provision.yml
+
+  sync:
+    desc: Sync files between local and remote environment
+    cmds:
+      - unison haos {{.CLI_ARGS}}
+      - task: update
+
+  update:
+    desc: Check config and reload Home Assistant if valid
+    cmds:
+      - |
+        curl -sf \
+          -H "Authorization: Bearer $HA_TOKEN" \
+          -H "Content-Type: application/json" \
+          -X POST \
+          -d '{}' \
+          http://192.168.1.32:8123/api/services/homeassistant/reload_all
+        echo ""
+      - task: validate
+
+  validate:
+    desc: Test Home Assistant configuration endpoint with Goss
+    cmds:
+      - goss validate

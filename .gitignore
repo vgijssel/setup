@@ -49,8 +49,8 @@ keys
 nixos.qcow2
 result
 
-/haos/secrets.yaml
-/haos/esphome/secrets.yaml
+/apps/haos/secrets.yaml
+/apps/haos/esphome/secrets.yaml
 
 /.pants.d/
 /dist/
@@ -65,3 +65,6 @@ docs/.obsidian
 .aider*
 
 services/kube-ovn/charts
+
+**/textual.log
+**/textual_serve.log

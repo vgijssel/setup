@@ -1,0 +1,42 @@
+{{- $setup_dir := env "SETUP_DIR" }}
+{{- $haos_dir := printf "%s/apps/haos" $setup_dir }}
+
+# Local directory
+root = {{ $haos_dir }}
+
+# Remote directory over SSH
+root = ssh://root@192.168.1.32//root/config
+
+# Auto-approve safe changes (but not conflicts)
+# auto = true
+
+# Confirm if many deletions are about to occur
+confirmbigdel = true
+
+# Display progress and statistics
+log = true
+# logfile = ~/.unison/unison.log
+
+# Ignore permissions
+perms = 0
+owner = false
+group = false
+
+# Don't sync haos specific folders
+ignore = Name .cloud
+ignore = Name .storage
+ignore = Name deps
+ignore = Name home-assistant.log
+ignore = Name home-assistant.log.*
+ignore = Name home-assistant.log.fault
+ignore = Name home-assistant_v2.db
+ignore = Name home-assistant_v2.db-shm
+ignore = Name home-assistant_v2.db-wal
+ignore = Name tts
+ignore = Name zigbee.db
+ignore = Name custom_components
+ignore = Name cloud
+ignore = Name Taskfile.yml
+ignore = Name www
+ignore = Name ansible
+ignore = Name goss.yaml

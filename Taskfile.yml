@@ -33,6 +33,10 @@ includes:
     taskfile: ./3rdparty/Taskfile.yml
     dir: .
 
+  apps:haos:
+    taskfile: ./apps/haos/Taskfile.yml
+    dir: ./apps/haos
+
 tasks:
   # TODO: No longer necessary after https://github.com/mkdocs-publisher/mkdocs-publisher/pull/110
   docs:check:
@@ -81,3 +85,8 @@ tasks:
     dir: images
     cmds:
       - packer build -only='build_image.*' -on-error=ask .
+
+  secrets:
+    desc: Download secrets for setup using 1Password
+    cmds:
+      - op inject -i .env.tpl -o .env

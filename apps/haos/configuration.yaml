@@ -1,0 +1,496 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+api:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+input_boolean:
+  bathroom_all_lights:
+    name: Indicate if all lights in the Bathroom are on
+    icon: mdi:light
+  living_room_room_occupancy_toggle:
+    name: Living Room Occupancy Toggle
+    icon: mdi:toggle-switch
+  hallway_room_occupancy_toggle:
+    name: Hallway Occupancy Toggle
+    icon: mdi:toggle-switch
+  landing_room_occupancy_toggle:
+    name: Landing Occupancy Toggle
+    icon: mdi:toggle-switch
+  baby_room_room_occupancy_toggle:
+    name: Baby Room Occupancy Toggle
+    icon: mdi:toggle-switch
+  bedroom_room_occupancy_toggle:
+    name: Bedroom Occupancy Toggle
+    icon: mdi:toggle-switch
+  office_room_occupancy_toggle:
+    name: Office Occupancy Toggle
+    icon: mdi:toggle-switch
+  bathroom_room_occupancy_toggle:
+    name: Bathroom Occupancy Toggle
+    icon: mdi:toggle-switch
+  toilet_room_occupancy_toggle:
+    name: Toilet Occupancy Toggle
+    icon: mdi:toggle-switch
+  laundry_room_room_occupancy_toggle:
+    name: Laundry Room Occupancy Toggle
+    icon: mdi:toggle-switch
+
+timer:
+  living_room_room_occupancy_timer:
+    name: Living Room Occupancy Timer
+    icon: mdi:timer
+  hallway_room_occupancy_timer:
+    name: Hallway Occupancy Timer
+    icon: mdi:timer
+  landing_room_occupancy_timer:
+    name: Landing Occupancy Timer
+    icon: mdi:timer
+  baby_room_room_occupancy_timer:
+    name: Baby Room Occupancy Timer
+    icon: mdi:timer
+  bedroom_room_occupancy_timer:
+    name: Bedroom Occupancy Timer
+    icon: mdi:timer
+  office_room_occupancy_timer:
+    name: Office Occupancy Timer
+    icon: mdi:timer
+  bathroom_room_occupancy_timer:
+    name: Bathroom Occupancy Timer
+    icon: mdi:timer
+  toilet_room_occupancy_timer:
+    name: Toilet Occupancy Timer
+    icon: mdi:timer
+  laundry_room_room_occupancy_timer:
+    name: Laundry Room Occupancy Timer
+    icon: mdi:timer
+
+input_select:
+  living_room_room_occupancy_select:
+    name: Living Room Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  hallway_room_occupancy_select:
+    name: Hallway Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  landing_room_occupancy_select:
+    name: Landing Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  baby_room_room_occupancy_select:
+    name: Baby Room Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  bedroom_room_occupancy_select:
+    name: Bedroom Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  office_room_occupancy_select:
+    name: Office Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  bathroom_room_occupancy_select:
+    name: Bathroom Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  toilet_room_occupancy_select:
+    name: Toilet Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+  laundry_room_room_occupancy_select:
+    name: Laundry Room Occupancy State
+    options:
+      - absent
+      - entering
+      - entering_confirm
+      - present
+      - leaving
+      - leaving_confirm
+    initial: absent
+    icon: mdi:home-account
+
+template:
+  - binary_sensor:
+      - name: bedroom_tv_occupancy
+        state: "{{ is_state('media_player.bedroom_tv', 'playing') }}"
+        device_class: occupancy
+      - name: living_room_tv_occupancy
+        state: "{{ is_state('media_player.living_room_tv', 'playing') }}"
+        device_class: occupancy
+
+nissan_leaf:
+  username: !secret nissan_leaf_username
+  password: !secret nissan_leaf_password
+  region: !secret nissan_leaf_region
+  update_interval:
+    minutes: 30
+  update_interval_charging:
+    minutes: 15
+  update_interval_climate:
+    minutes: 5
+
+illuminance:
+  - unique_id: 1
+    entity_id: weather.home_forecast
+    fallback: 5
+    mode: normal
+    name: illuminance
+    scan_interval:
+      minutes: 10
+
+light:
+  - platform: group
+    name: living_room_lights
+    entities:
+      - light.living_room_corner_light
+      - light.living_room_dining_table_light
+      - light.living_room_monkey_light
+      - light.living_room_tv_light
+  - platform: group
+    name: kitchen_lights
+    entities:
+      - light.kitchen_1_light
+      - light.kitchen_2_light
+      - light.kitchen_3_light
+      - light.kitchen_4_light
+      - light.kitchen_5_light
+      - light.kitchen_6_light
+  - platform: group
+    name: hallway_lights
+    entities:
+      - light.hallway_1_light
+      - light.hallway_2_light
+      - light.hallway_3_light
+      - light.hallway_4_light
+  - platform: group
+    name: landing_lights
+    entities:
+      - light.landing_1_light
+      - light.landing_2_light
+      - light.landing_3_light
+  - platform: group
+    name: bathroom_lights
+    entities:
+      - light.bathroom_1_light
+      - light.bathroom_2_light
+      - light.bathroom_3_light
+      - light.bathroom_4_light
+      - light.bathroom_5_light
+      - light.bathroom_6_light
+  - platform: group
+    name: toilet_lights
+    entities:
+      - light.toilet_1_light
+      - light.toilet_2_light
+
+group:
+  baby_room_lights:
+    name: baby_room_lights
+    entities:
+      - light.baby_room_light
+      - switch.baby_room_moon_light_moko
+      - switch.office_server_moko
+
+homekit:
+  - mode: bridge
+    filter:
+      include_entities:
+        - light.living_room_corner_light
+        - light.living_room_dining_table_light
+        - light.living_room_monkey_light
+        - light.living_room_tv_light
+        - climate.living_room_heat
+        - light.baby_room_light
+        - switch.baby_room_moon_light_moko
+        - light.bathroom_lights
+        - switch.bedroom_shelly
+        - switch.driveway_shelly
+        - light.hallway_lights
+        - light.kitchen_lights
+        - light.landing_lights
+        - switch.laundry_room_shelly
+        - light.office_light
+        - switch.supply_closet_shelly
+        - light.toilet_lights
+        - switch.garden_shelly
+        - binary_sensor.landing_smoke_alarm_status
+        - binary_sensor.landing_carbon_alarm_status
+        - binary_sensor.hallway_smoke_alarm_status
+        - input_boolean.living_room_room_occupancy_toggle
+        - input_boolean.hallway_room_occupancy_toggle
+        - input_boolean.landing_room_occupancy_toggle
+        - input_boolean.baby_room_room_occupancy_toggle
+        - input_boolean.bedroom_room_occupancy_toggle
+        - input_boolean.office_room_occupancy_toggle
+        - input_boolean.bathroom_room_occupancy_toggle
+        - input_boolean.toilet_room_occupancy_toggle
+        - input_boolean.laundry_room_room_occupancy_toggle
+        - automation.living_room_occupancy_lights
+        - automation.hallway_occupancy_lights
+        - automation.landing_occupancy_lights
+        - automation.baby_room_occupancy_lights
+        - automation.bedroom_occupancy_lights
+        - automation.office_occupancy_lights
+        - automation.bathroom_occupancy_lights
+        - automation.toilet_occupancy_lights
+        - automation.laundry_room_occupancy_lights
+
+    entity_config:
+      light.living_room_corner_light:
+        name: Woonkamer Hoek
+      light.living_room_dining_table_light:
+        name: Woonkamer Eetkamertafel
+      light.living_room_monkey_light:
+        name: Woonkamer Aap
+      light.living_room_tv_light:
+        name: Woonkamer Tv Lamp
+      climate.living_room_heat:
+        name: Woonkamer Thermostaat
+      light.baby_room_light:
+        name: Babykamer Lamp
+      switch.baby_room_moon_light_moko:
+        name: Babykamer Maan Lamp
+        type: outlet
+      light.bathroom_lights:
+        name: Badkamer Lampen
+      switch.bedroom_shelly:
+        name: Slaapkamer Lamp
+      switch.driveway_shelly:
+        name: Oprit Lamp
+      light.hallway_lights:
+        name: Gang Lampen
+      light.kitchen_lights:
+        name: Keuken Lamp
+      light.landing_lights:
+        name: Overloop Lampen
+      switch.laundry_room_shelly:
+        name: Waskamer Lamp
+      light.office_light:
+        name: Kantoor Lamp
+      switch.supply_closet_shelly:
+        name: Voorraadkast Lamp
+      light.toilet_lights:
+        name: Wc Lampen
+      switch.garden_shelly:
+        name: Tuin Lamp
+      binary_sensor.landing_smoke_alarm_status:
+        name: Overloop Rookmelder
+      binary_sensor.landing_carbon_alarm_status:
+        name: Overloop Koolmonoxide Melder
+      binary_sensor.hallway_smoke_alarm_status:
+        name: Gang Rookmelder
+      input_boolean.living_room_room_occupancy_toggle:
+        name: Woonkamer Aanwezigheid
+      input_boolean.hallway_room_occupancy_toggle:
+        name: Gang Aanwezigheid
+      input_boolean.landing_room_occupancy_toggle:
+        name: Overloop Aanwezigheid
+      input_boolean.baby_room_room_occupancy_toggle:
+        name: Babykamer Aanwezigheid
+      input_boolean.bedroom_room_occupancy_toggle:
+        name: Slaapkamer Aanwezigheid
+      input_boolean.office_room_occupancy_toggle:
+        name: Kantoor Aanwezigheid
+      input_boolean.bathroom_room_occupancy_toggle:
+        name: Badkamer Aanwezigheid
+      input_boolean.toilet_room_occupancy_toggle:
+        name: Wc Aanwezigheid
+      input_boolean.laundry_room_room_occupancy_toggle:
+        name: Waskamer Aanwezigheid
+      automation.living_room_occupancy_lights:
+        name: Woonkamer Automagisch
+      automation.hallway_occupancy_lights:
+        name: Gang Automagisch
+      automation.landing_occupancy_lights:
+        name: Overloop Automagisch
+      automation.baby_room_occupancy_lights:
+        name: Babykamer Automagisch
+      automation.bedroom_occupancy_lights:
+        name: Slaapkamer Automagisch
+      automation.office_occupancy_lights:
+        name: Kantoor Automagisch
+      automation.bathroom_occupancy_lights:
+        name: Badkamer Automagisch
+      automation.toilet_occupancy_lights:
+        name: Wc Automagisch
+      automation.laundry_room_occupancy_lights:
+        name: Waskamer Automagisch
+
+  - name: HA - Baby Cam
+    port: 21064
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.baby_room_cam_high
+    entity_config:
+      camera.baby_room_cam_high:
+        name: Babykamer Camera
+
+  - name: HA - Driveway Cam
+    port: 21065
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.driveway_doorbell_high
+    entity_config:
+      camera.driveway_doorbell_high:
+        name: Oprit Camera
+
+  - name: HA - Garden Alley Cam
+    port: 21066
+    mode: accessory
+    filter:
+      include_entities:
+        - camera.tuingang_cam_medium_resolution_channel
+    entity_config:
+      camera.driveway_doorbell_high:
+        name: Tuin Gang Camera
+
+adaptive_lighting:
+  - name: hallway
+    lights:
+      - light.hallway_lights
+    min_brightness: 40
+  - name: landing
+    lights:
+      - light.landing_lights
+  - name: bathroom
+    lights:
+      - light.bathroom_lights
+  - name: toilet
+    lights:
+      - light.toilet_lights
+    min_brightness: 50
+    sleep_brightness: 50
+  - name: baby_room
+    lights:
+      - light.baby_room_light
+  - name: bedroom
+    lights:
+      - light.bedroom_light
+  - name: office
+    lights:
+      - light.office_light
+  - name: kitchen
+    lights:
+      - light.kitchen_lights
+    take_over_control: true
+    detect_non_ha_changes: true
+    min_brightness: 35
+  - name: living_room
+    lights:
+      - light.living_room_corner_light
+      - light.living_room_dining_table_light
+      - light.living_room_monkey_light
+      - light.living_room_tv_light
+    take_over_control: true
+    detect_non_ha_changes: true
+    min_brightness: 35
+
+cloud:
+  google_actions:
+    filter:
+      include_entities:
+        - light.living_room_corner_light
+        - light.living_room_dining_table_light
+        - light.living_room_monkey_light
+        - light.living_room_tv_light
+        - climate.living_room_heat
+        - light.kitchen_lights
+    entity_config:
+      light.living_room_corner_light:
+        name: Hoek
+        aliases:
+          - Corner
+        room: Woonkamer
+      light.living_room_dining_table_light:
+        name: Eetkamertafel
+        aliases:
+          - Dining Table
+        room: Woonkamer
+      light.living_room_monkey_light:
+        name: Aap
+        aliases:
+          - Monkey
+        room: Woonkamer
+      light.living_room_tv_light:
+        name: Tv Lamp
+        aliases:
+          - Tv Light
+        room: Woonkamer
+
+      climate.living_room_heat:
+        name: Thermostaat
+        aliases:
+          - Thermostat
+        room: Woonkamer
+
+      light.kitchen_lights:
+        name: Keuken
+        aliases:
+          - Kitchen
+        room: Keuken

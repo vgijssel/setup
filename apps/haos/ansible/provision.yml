@@ -1,0 +1,8 @@
+---
+- name: Install Unison on HAOS host
+  hosts: haos
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - haos

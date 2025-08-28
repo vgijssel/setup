@@ -1,0 +1,8 @@
+substitutions:
+  device_name: slimmelezer
+  entity_id: slimmelezer
+  static_ip: 192.168.1.85
+
+packages:
+  zuidwijk.slimmelezer: github://zuidwijk/dsmr/slimmelezer.yaml@main
+  base: !include .base.yaml

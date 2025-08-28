@@ -1,0 +1,2 @@
+[haos]
+192.168.1.32 ansible_user=root

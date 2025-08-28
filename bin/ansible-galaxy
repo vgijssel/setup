@@ -1,5 +1,1 @@
-#!/bin/bash
-
-set -eo pipefail
-
-exec pants run //3rdparty/python:ansible-galaxy -- "$@"
+.ansible-11.9.0.pkg

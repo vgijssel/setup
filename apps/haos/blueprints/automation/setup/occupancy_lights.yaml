@@ -1,0 +1,133 @@
+blueprint:
+  name: Occupancy Lights
+  description: Automation to control lights based on room occupancy toggle
+  domain: automation
+  input:
+    occupancy_toggle:
+      name: Occupancy Toggle
+      description: The input_boolean entity that indicates if the room is occupied
+      selector:
+        entity:
+          domain: input_boolean
+    lights:
+      name: Lights to Control
+      description: List of light entities to control based on occupancy
+      default: []
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    switches:
+      name: Switches to Control
+      description: List of switch entities to control based on occupancy
+      default: []
+      selector:
+        entity:
+          domain: switch
+          multiple: true
+    fade_delay:
+      name: Fade Delay
+      description: Time to wait after occupancy ends before turning lights completely off
+      default: 120
+      selector:
+        number:
+          min: 10
+          max: 3600
+          unit_of_measurement: seconds
+
+variables:
+  occupancy_toggle: !input occupancy_toggle
+  lights: !input lights
+  switches: !input switches
+  fade_delay: !input fade_delay
+  all_entities: "{{ lights + switches }}"
+
+trigger:
+  - trigger: state
+    entity_id: !input occupancy_toggle
+    from: "off"
+    to: "on"
+    id: occupancy_on
+  - trigger: state
+    entity_id: !input occupancy_toggle
+    from: "on"
+    to: "off"
+    id: occupancy_off
+  - trigger: state
+    entity_id: !input occupancy_toggle
+    to: "off"
+    for:
+      seconds: !input fade_delay
+    id: occupancy_off_delayed
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - occupancy_on
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ lights | length > 0 }}"
+            then:
+              - repeat:
+                  for_each: "{{ lights }}"
+                  sequence:
+                    - action: adaptive_lighting.apply
+                      target: {}
+                      data:
+                        lights: "{{ repeat.item }}"
+                        turn_on_lights: true
+          - if:
+              - condition: template
+                value_template: "{{ switches | length > 0 }}"
+            then:
+              - action: switch.turn_on
+                target:
+                  entity_id: !input switches
+      - conditions:
+          - condition: trigger
+            id:
+              - occupancy_off
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ expand(lights) | selectattr('state', 'eq', 'on') | list | count > 0 }}"
+            then:
+              - action: light.turn_on
+                metadata: {}
+                data:
+                  brightness_pct: 10
+                  transition: 5
+                target:
+                  entity_id: !input lights
+          - if:
+              - condition: template
+                value_template: "{{ switches | length > 0 }}"
+            then:
+              - action: switch.turn_off
+                metadata: {}
+                target:
+                  entity_id: !input switches
+      - conditions:
+          - condition: trigger
+            id:
+              - occupancy_off_delayed
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ lights | length > 0 }}"
+            then:
+              - action: light.turn_off
+                metadata: {}
+                target:
+                  entity_id: !input lights
+
+mode: queued
+max: 25
+max_exceeded: silent
+trace:
+  stored_traces: 500
