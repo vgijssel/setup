@@ -1,4 +1,4 @@
-Jinja2==3.1.2;
+Jinja2==3.1.6;
 bazel-runfiles==0.25.0;
 pytest==7.4.4;
 pytest-cov==4.1.0;
