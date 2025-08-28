@@ -1,0 +1,43 @@
+version: "3"
+
+tasks:
+  debug:
+    # TODO: Use "node-shell" kubectl extension!
+    #desc: Run a debug pod with elevated privileges
+    #interactive: true
+    #cmds:
+    #- kubectl -n kube-system debug node/the-toy-factory --image ubuntu --profile sysadmin -it
+    #preconditions:
+    #- sh: kubie info ctx
+    #msg: Make sure to be in a kubie shell
+
+  reset:
+    prompt: This will wipe the cluster and reset Talos nodes. Are you sure?
+    desc: Reset the cluster to start a fresh Talos install
+    cmds:
+      - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.42 -e 192.168.1.42 --reboot --graceful=false --wait=false
+      - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.41 -e 192.168.1.41 --reboot --graceful=false --wait=false
+      - talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.40 -e 192.168.1.40 --reboot --graceful=false --wait=false
+
+  validate:
+    desc: Validate Cluster Health
+    cmds:
+      - goss validate
+
+  reboot:
+    desc: Reboot Talos nodes
+    cmds:
+      - talosctl reboot -n 192.168.1.40,192.168.1.41,192.168.1.42
+
+  shutdown:
+    desc: Shutdown Talos nodes
+    cmds:
+      - talosctl shutdown -n 192.168.1.40,192.168.1.41,192.168.1.42
+
+  generate:
+    aliases: [gen, g]
+    desc: Generate the Talos configuration files
+    cmds:
+      - talm template -e 192.168.1.42 -n 192.168.1.42 -t templates/controlplane.yaml --set nodeName=illusion --insecure > nodes/illusion.yaml
+      - talm template -e 192.168.1.41 -n 192.168.1.41 -t templates/controlplane.yaml --set nodeName=the-dome --insecure > nodes/the-dome.yaml
+      - talm template -e 192.168.1.40 -n 192.168.1.40 -t templates/controlplane.yaml --set nodeName=the-toy-factory --insecure > nodes/the-toy-factory.yaml

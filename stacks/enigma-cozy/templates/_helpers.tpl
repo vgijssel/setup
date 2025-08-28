@@ -14,7 +14,7 @@ machine:
       cpuManagerPolicy: static
       maxPods: 512
   sysctls:
-    {{- if gt .Values.nr_hugepages 0 }}
+    {{- if gt (.Values.nr_hugepages | int) 0 }}
     vm.nr_hugepages: {{ .Values.nr_hugepages | quote }}
     {{- end }}
     net.ipv4.neigh.default.gc_thresh1: "4096"
@@ -56,6 +56,23 @@ machine:
     {{- (include "talm.discovered.disks_info" .) | nindent 4 }}
     disk: {{ include "talm.discovered.system_disk_name" . | quote }}
   network:
+    {{- $nodeName := .Values.nodeName | default "" }}
+    {{- $nodeConfig := dict }}
+    {{- if and .Values.nodes $nodeName }}
+    {{- $nodeConfig = index .Values.nodes $nodeName }}
+    {{- end }}
+    {{- if $nodeConfig.hostname }}
+    hostname: {{ $nodeConfig.hostname | quote }}
+    {{- if $nodeConfig.nameservers }}
+    nameservers:
+      {{- toYaml $nodeConfig.nameservers | nindent 6 }}
+    {{- else }}
+    nameservers: {{ include "talm.discovered.default_resolvers" . }}
+    {{- end }}
+    {{- (include "talm.discovered.physical_links_info" .) | nindent 4 }}
+    interfaces:
+      {{- toYaml $nodeConfig.interfaces | nindent 6 }}
+    {{- else }}
     hostname: {{ include "talm.discovered.hostname" . | quote }}
     nameservers: {{ include "talm.discovered.default_resolvers" . }}
     {{- (include "talm.discovered.physical_links_info" .) | nindent 4 }}
@@ -73,6 +90,7 @@ machine:
       vip:
         ip: {{ .Values.floatingIP }}
       {{- end }}
+    {{- end }}
     {{- end }}
 
 cluster:
