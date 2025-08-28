@@ -23,9 +23,9 @@ tasks:
     deps: [generate:bootstrap]
     desc: Apply the Talos configuration to bootstrap the cluster
     cmds:
-      - talm apply -f nodes/illusion.yaml --insecure
-      - talm apply -f nodes/the-dome.yaml --insecure
-      - talm apply -f nodes/the-toy-factory.yaml --insecure
+      - talm apply -f nodes/illusion.yaml --insecure -e 192.168.1.42 -n 192.168.1.42
+      - talm apply -f nodes/the-dome.yaml --insecure -e 192.168.1.41 -n 192.168.1.41
+      - talm apply -f nodes/the-toy-factory.yaml --insecure -e 192.168.1.40 -n 192.168.1.40
       - wait-for-it --service 192.168.50.10:50000
       - wait-for-it --service 192.168.50.11:50000
       - wait-for-it --service 192.168.50.12:50000
