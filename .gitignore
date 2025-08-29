@@ -72,3 +72,4 @@ services/kube-ovn/charts
 
 stacks/enigma-cozy/secrets.yaml
 stacks/enigma-cozy/talosconfig
+stacks/enigma-cozy/kubeconfig
