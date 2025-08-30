@@ -1,0 +1,30 @@
+{
+  "name": "vendir",
+  "projectType": "library",
+  "sourceRoot": "third_party/vendir",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vendir sync",
+        "cwd": "third_party/vendir"
+      },
+      "cache": true,
+      "inputs": ["{projectRoot}/vendir.yml"],
+      "outputs": ["{projectRoot}/charts", "{projectRoot}/vendir.lock.yml"]
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "cp -r charts charts.copy",
+          "nx build vendir",
+          "if diff -r charts charts.copy > /dev/null; then echo 'Test passed: charts content is identical'; rm -rf charts.copy; exit 0; else echo 'Test failed: charts content differs'; rm -rf charts.copy; exit 1; fi"
+        ],
+        "cwd": "third_party/vendir",
+        "parallel": false
+      },
+      "dependsOn": ["build"]
+    }
+  }
+}
