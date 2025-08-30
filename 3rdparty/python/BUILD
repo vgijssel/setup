@@ -7,8 +7,8 @@ python_requirements(
 pex_binary(
     name = "mkdocs",
     dependencies = [
-        "3rdparty/python:reqs#mkdocs",
-        "3rdparty/python:reqs#mkdocs-publisher",
+        "third_party/python:reqs#mkdocs",
+        "third_party/python:reqs#mkdocs-publisher",
     ],
     entry_point = "mkdocs.__main__:cli",
 )

@@ -30,7 +30,7 @@ includes:
     dir: .
 
   3rdparty:
-    taskfile: ./3rdparty/Taskfile.yml
+    taskfile: ./third_party/Taskfile.yml
     dir: .
 
   apps:haos:
