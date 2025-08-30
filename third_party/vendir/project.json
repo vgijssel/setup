@@ -22,7 +22,8 @@
         "cwd": "third_party/vendir",
         "parallel": false
       },
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "cache": true
     }
   }
 }
