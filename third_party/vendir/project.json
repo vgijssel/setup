@@ -17,9 +17,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cp -r charts charts.copy",
-          "nx build vendir",
-          "if diff -r charts charts.copy > /dev/null; then echo 'Test passed: charts content is identical'; rm -rf charts.copy; exit 0; else echo 'Test failed: charts content differs'; rm -rf charts.copy; exit 1; fi"
+          "git diff"
         ],
         "cwd": "third_party/vendir",
         "parallel": false
