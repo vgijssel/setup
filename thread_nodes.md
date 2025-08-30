@@ -1,9 +1,0 @@
-node 07: supply_closet_door
-node 08: toilet_door
-node 09: toilet_motion
-node 10: hallway_door
-node 11: living_room_door
-node 12: living_room_motion
-node 22: laundry_room_motion
-node 23: garden_motion
-node 27: garden_door
