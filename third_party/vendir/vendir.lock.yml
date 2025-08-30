@@ -3,7 +3,7 @@ directories:
 - contents:
   - helmChart:
       appVersion: 1.7.3
-      version: 2.0.2
+      version: 2.0.3
     path: .
   path: charts/1password-connect
 kind: LockConfig
