@@ -40,6 +40,7 @@ lint:
         - apps/haos/automations.yaml
         - stacks/enigma-cozy/templates/controlplane.yaml
         - stacks/enigma-cozy/templates/worker.yaml
+        - third_party/charts
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1

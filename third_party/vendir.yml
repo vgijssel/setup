@@ -1,0 +1,11 @@
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+directories:
+  - path: charts/1password-connect
+    contents:
+      - path: .
+        helmChart:
+          name: connect
+          version: 2.0.3
+          repository:
+            url: https://1password.github.io/connect-helm-charts
