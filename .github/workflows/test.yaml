@@ -62,12 +62,6 @@ jobs:
       # Connect your workspace by running "nx connect" and uncomment this line to enable task distribution
       - run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
 
-      # Cache node_modules
-#      - uses: actions/setup-node@v4
-#        with:
-#          node-version: 20
-#          cache: 'npm'
-
       # - run: npm ci --legacy-peer-deps
       - uses: nrwl/nx-set-shas@v4
 
