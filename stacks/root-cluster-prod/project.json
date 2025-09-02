@@ -7,8 +7,8 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "kubectl create secret generic 1password-credentials --namespace=1password --from-literal=1password-credentials.json=\"$(op read 'op://root-cluster-prod/root-cluster-prod Credentials File/1password-credentials.json')\" --dry-run=client -o yaml | kubectl apply -f -",
-          "kubectl create secret generic 1password-operator-token --namespace=1password --from-literal=token=\"$(op read 'op://root-cluster-prod/gfyeeek3sr5n4geqyj7ic2gkwi/credential')\" --dry-run=client -o yaml | kubectl apply -f -"
+          "kubectl create secret generic 1password-credentials --namespace=1password --from-literal=1password-credentials.json=\"$(op read 'op://root-cluster-prod/root-cluster-prod Credentials File/1password-credentials.json' | base64)\" --dry-run=client -o yaml | kubectl apply -f -",
+          "kubectl create secret generic 1password-operator-token --namespace=1password --from-literal=token=\"$(op read 'op://root-cluster-prod/gfyeeek3sr5n4geqyj7ic2gkwi/credential' | base64)\" --dry-run=client -o yaml | kubectl apply -f -"
         ],
         "parallel": false,
         "cwd": "{workspaceRoot}"

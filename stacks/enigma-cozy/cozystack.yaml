@@ -12,3 +12,4 @@ data:
   ipv4-pod-gateway: "10.244.0.1"
   ipv4-svc-cidr: "10.96.0.0/16"
   ipv4-join-cidr: "100.64.0.0/16"
+  clusterissuer: cloudflare
