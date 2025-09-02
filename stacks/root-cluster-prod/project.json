@@ -1,0 +1,18 @@
+{
+  "name": "root-cluster-prod",
+  "projectType": "application",
+  "sourceRoot": "stacks/root-cluster-prod",
+  "targets": {
+    "create-1password-secret": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "kubectl create secret generic 1password-credentials --namespace=1password --from-literal=1password-credentials.json=\"$(op read 'op://root-cluster-prod/root-cluster-prod Credentials File/1password-credentials.json')\" --dry-run=client -o yaml | kubectl apply -f -",
+        "cwd": "{workspaceRoot}"
+      },
+      "metadata": {
+        "description": "Create or replace the 1password-credentials Kubernetes secret"
+      }
+    }
+  },
+  "tags": ["stack", "kubernetes", "production"]
+}
