@@ -1,0 +1,21 @@
+{
+  "name": "internal-dns",
+  "projectType": "library",
+  "sourceRoot": "libs/internal-dns",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "kuttl test",
+        "cwd": "libs/internal-dns"
+      },
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/**/*",
+        "!{projectRoot}/kind-logs-*/**/*"
+      ],
+      "outputs": []
+    }
+  },
+  "tags": ["type:library", "scope:infrastructure", "platform:kubernetes"]
+}
