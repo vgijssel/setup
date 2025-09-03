@@ -5,4 +5,4 @@ testDirs:
 startKIND: false
 kindNodeCache: true
 skipClusterDelete: true
-timeout: 300
+# timeout: 300
