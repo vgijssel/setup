@@ -1,0 +1,9 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+metadata:
+  name: install-internal-dns
+spec:
+  commands:
+  - command: kubectl create namespace internal-dns-test || true
+  - command: kubectl create secret generic powerdns-api-key --from-literal=PDNS_RECURSOR_API_KEY=test-key-123 -n internal-dns-test || true
+  - command: helm install internal-dns-test ../../../ --namespace internal-dns-test --set persistence.enabled=false --set service.type=ClusterIP --set service.annotations=null --wait --timeout=120s

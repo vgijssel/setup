@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: internal-dns-test-internal-dns
+  namespace: internal-dns-test
+spec:
+  ports:
+  - port: 53
+    protocol: UDP
+    name: dns-udp
+  - port: 53
+    protocol: TCP
+    name: dns-tcp
