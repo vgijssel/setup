@@ -12,7 +12,8 @@
       "cache": true,
       "inputs": [
         "{projectRoot}/**/*",
-        "!{projectRoot}/kind-logs-*/**/*"
+        "!{projectRoot}/kind-logs-*/**/*",
+        "!{projectRoot}/kubeconfig"
       ],
       "outputs": []
     }
