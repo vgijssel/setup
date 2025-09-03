@@ -14,6 +14,26 @@ spec:
       labels:
         {{- include "internal-dns.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if .Values.persistence.enabled }}
+      initContainers:
+        - name: init-db
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              set -e
+              if [ ! -f /var/lib/powerdns/pdns.sqlite3 ]; then
+                echo "Creating PowerDNS SQLite database..."
+                sqlite3 /var/lib/powerdns/pdns.sqlite3 < /usr/local/share/doc/pdns/schema.sqlite3.sql
+                echo "Database created successfully"
+              else
+                echo "Database already exists"
+              fi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/powerdns
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"

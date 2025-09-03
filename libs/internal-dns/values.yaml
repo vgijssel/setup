@@ -1,6 +1,6 @@
 image:
-  repository: powerdns/pdns-auth-51
-  tag: 5.1.0
+  repository: powerdns/pdns-auth-50
+  tag: 5.0.0
   registry: docker.io
 
 replicaCount: 1

@@ -3,3 +3,5 @@ kind: TestSuite
 testDirs:
 - ./tests/internal-dns-basic/
 startKIND: true
+kindNodeCache: true
+skipClusterDelete: true
