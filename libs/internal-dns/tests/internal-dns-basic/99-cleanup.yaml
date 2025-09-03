@@ -1,8 +1,0 @@
-apiVersion: kuttl.dev/v1beta1
-kind: TestStep
-metadata:
-  name: cleanup-internal-dns
-spec:
-  commands:
-  - command: helm uninstall internal-dns-test -n internal-dns-test || true
-  - command: kubectl delete namespace internal-dns-test || true

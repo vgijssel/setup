@@ -2,14 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: internal-dns-test-internal-dns
-  namespace: internal-dns-test
 status:
   readyReplicas: 1
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  namespace: internal-dns-test
   labels:
     app.kubernetes.io/name: internal-dns
     app.kubernetes.io/instance: internal-dns-test

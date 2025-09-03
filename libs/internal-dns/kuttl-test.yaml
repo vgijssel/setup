@@ -1,7 +1,8 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestSuite
 testDirs:
-- ./tests/internal-dns-basic/
-startKIND: true
+- ./tests
+startKIND: false
 kindNodeCache: true
 skipClusterDelete: true
+timeout: 300
