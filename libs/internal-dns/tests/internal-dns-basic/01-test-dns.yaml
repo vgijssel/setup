@@ -4,5 +4,5 @@ metadata:
   name: test-dns-service
 spec:
   commands:
-  - command: kubectl get service internal-dns-test-internal-dns -o jsonpath='{.spec.ports[0].port}' | grep -q "53"
-  - command: kubectl get service internal-dns-test-internal-dns -o jsonpath='{.spec.ports[1].port}' | grep -q "53"
+  - command: kubectl get service internal-dns-test -o jsonpath='{.spec.ports[0].port}' | grep -q "53"
+  - command: kubectl get service internal-dns-test -o jsonpath='{.spec.ports[1].port}' | grep -q "53"

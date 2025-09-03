@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: internal-dns-test-internal-dns
+  name: internal-dns-test
 status:
   readyReplicas: 1
 ---
@@ -13,6 +13,3 @@ metadata:
     app.kubernetes.io/instance: internal-dns-test
 status:
   phase: Running
-  conditions:
-  - type: Ready
-    status: "True"
