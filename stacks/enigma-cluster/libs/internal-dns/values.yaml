@@ -1,0 +1,34 @@
+image:
+  repository: powerdns/pdns-auth-51
+  tag: 5.1.0
+  registry: docker.io
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: LoadBalancer
+  port: 53
+  annotations:
+    metallb.universe.tf/loadBalancer: true
+
+persistence:
+  enabled: true
+  storageClass: "replicated"
+  accessMode: ReadWriteOnce
+  size: 8Gi
+
+secrets:
+  apiKey:
+    name: powerdns-api-key
+    key: PDNS_RECURSOR_API_KEY
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
