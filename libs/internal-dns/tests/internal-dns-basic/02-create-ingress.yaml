@@ -1,0 +1,7 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+metadata:
+  name: create-test-ingress
+spec:
+  apply:
+  - 02-ingress-test.yaml

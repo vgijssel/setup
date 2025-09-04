@@ -10,3 +10,6 @@ spec:
   - port: 53
     protocol: TCP
     name: dns-tcp
+  - port: 8081
+    protocol: TCP
+    name: api

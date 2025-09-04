@@ -23,7 +23,7 @@ persistence:
 secrets:
   apiKey:
     name: powerdns-api-key
-    key: PDNS_RECURSOR_API_KEY
+    key: PDNS_AUTH_API_KEY
 
 resources: {}
 
@@ -32,3 +32,20 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+externalDns:
+  enabled: true
+  replicaCount: 1
+  image:
+    registry: registry.k8s.io
+    repository: external-dns/external-dns
+    tag: v0.12.2
+    pullPolicy: IfNotPresent
+  domainFilter: "enigma.vgijssel.nl"
+  logLevel: info
+  txtOwnerId: "internal-dns"
+  interval: 1m
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

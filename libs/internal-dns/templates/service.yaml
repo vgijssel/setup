@@ -19,5 +19,9 @@ spec:
       targetPort: dns-tcp
       protocol: TCP
       name: dns-tcp
+    - port: 8081
+      targetPort: api
+      protocol: TCP
+      name: api
   selector:
     {{- include "internal-dns.selectorLabels" . | nindent 4 }}

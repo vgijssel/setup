@@ -45,8 +45,11 @@ spec:
             - name: dns-tcp
               containerPort: 53
               protocol: TCP
+            - name: api
+              containerPort: 8081
+              protocol: TCP
           env:
-            - name: PDNS_RECURSOR_API_KEY
+            - name: PDNS_AUTH_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.secrets.apiKey.name }}

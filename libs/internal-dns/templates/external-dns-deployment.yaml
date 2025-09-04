@@ -1,0 +1,53 @@
+{{- if .Values.externalDns.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "internal-dns.fullname" . }}-external-dns
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: external-dns
+spec:
+  replicas: {{ .Values.externalDns.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "internal-dns.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: external-dns
+  template:
+    metadata:
+      labels:
+        {{- include "internal-dns.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: external-dns
+    spec:
+      containers:
+      - name: external-dns
+        image: "{{ .Values.externalDns.image.registry }}/{{ .Values.externalDns.image.repository }}:{{ .Values.externalDns.image.tag }}"
+        imagePullPolicy: {{ .Values.externalDns.image.pullPolicy }}
+        args:
+        - --source=ingress
+        - --provider=pdns
+        - --pdns-server={{ include "internal-dns.fullname" . }}:{{ .Values.service.port }}
+        - --domain-filter={{ .Values.externalDns.domainFilter }}
+        - --log-level={{ .Values.externalDns.logLevel }}
+        - --txt-owner-id={{ .Values.externalDns.txtOwnerId }}
+        - --interval={{ .Values.externalDns.interval }}
+        env:
+        - name: EXTERNAL_DNS_PDNS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.secrets.apiKey.name }}
+              key: {{ .Values.secrets.apiKey.key }}
+        resources:
+          {{- toYaml .Values.externalDns.resources | nindent 10 }}
+      {{- with .Values.externalDns.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.externalDns.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.externalDns.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
