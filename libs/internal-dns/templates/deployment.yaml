@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "internal-dns.fullname" . }}
+  name: {{ include "internal-dns.fullname" . }}-powerdns
   labels:
     {{- include "internal-dns.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.powerdns.replicaCount }}
   selector:
     matchLabels:
       {{- include "internal-dns.selectorLabels" . | nindent 6 }}
@@ -16,7 +16,7 @@ spec:
     spec:
       initContainers:
         - name: init-db
-          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.powerdns.image.registry }}/{{ .Values.powerdns.image.repository }}:{{ .Values.powerdns.image.tag }}"
           command: ["/bin/sh"]
           args:
             - -c
@@ -40,18 +40,18 @@ spec:
             - |
               set -e
               echo "Waiting for PowerDNS API to be ready..."
-              until curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://{{ include "internal-dns.fullname" . }}:8081/api/v1/servers/localhost/zones 2>/dev/null; do
+              until curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://{{ include "internal-dns.fullname" . }}-powerdns:8081/api/v1/servers/localhost/zones 2>/dev/null; do
                 echo "Waiting for PowerDNS API..."
                 sleep 2
               done
               
               echo "Checking if zone {{ .Values.domain }}. exists..."
-              if curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://{{ include "internal-dns.fullname" . }}:8081/api/v1/servers/localhost/zones/{{ .Values.domain }}. 2>/dev/null; then
+              if curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://{{ include "internal-dns.fullname" . }}-powerdns:8081/api/v1/servers/localhost/zones/{{ .Values.domain }}. 2>/dev/null; then
                 echo "Zone {{ .Values.domain }}. already exists"
               else
                 echo "Creating zone {{ .Values.domain }}."
                 curl -X POST -H "X-API-Key: $PDNS_AUTH_API_KEY" -H "Content-Type: application/json" \
-                  http://{{ include "internal-dns.fullname" . }}:8081/api/v1/servers/localhost/zones \
+                  http://{{ include "internal-dns.fullname" . }}-powerdns:8081/api/v1/servers/localhost/zones \
                   -d '{"name": "{{ .Values.domain }}.", "kind": "Native"}'
                 echo "Zone {{ .Values.domain }}. created successfully"
               fi
@@ -59,11 +59,11 @@ spec:
             - name: PDNS_AUTH_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.apiKey.name }}
-                  key: {{ .Values.secrets.apiKey.key }}
+                  name: {{ .Values.powerdns.secrets.apiKey.name }}
+                  key: {{ .Values.powerdns.secrets.apiKey.key }}
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        - name: powerdns
+          image: "{{ .Values.powerdns.image.registry }}/{{ .Values.powerdns.image.repository }}:{{ .Values.powerdns.image.tag }}"
           imagePullPolicy: IfNotPresent
           ports:
             - name: dns-udp
@@ -79,26 +79,26 @@ spec:
             - name: PDNS_AUTH_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.apiKey.name }}
-                  key: {{ .Values.secrets.apiKey.key }}
+                  name: {{ .Values.powerdns.secrets.apiKey.name }}
+                  key: {{ .Values.powerdns.secrets.apiKey.key }}
           volumeMounts:
             - name: data
               mountPath: /var/lib/powerdns
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.powerdns.resources | nindent 12 }}
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: {{ include "internal-dns.fullname" . }}-data
-      {{- with .Values.nodeSelector }}
+            claimName: {{ include "internal-dns.fullname" . }}-powerdns-data
+      {{- with .Values.powerdns.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.powerdns.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.powerdns.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
