@@ -14,7 +14,6 @@ spec:
       labels:
         {{- include "internal-dns.selectorLabels" . | nindent 8 }}
     spec:
-      {{- if .Values.persistence.enabled }}
       initContainers:
         - name: init-db
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -33,7 +32,35 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/powerdns
-      {{- end }}
+        - name: init-zone
+          image: curlimages/curl:latest
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              set -e
+              echo "Waiting for PowerDNS API to be ready..."
+              until curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://{{ include "internal-dns.fullname" . }}:8081/api/v1/servers/localhost/zones 2>/dev/null; do
+                echo "Waiting for PowerDNS API..."
+                sleep 2
+              done
+              
+              echo "Checking if zone {{ .Values.domain }}. exists..."
+              if curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://{{ include "internal-dns.fullname" . }}:8081/api/v1/servers/localhost/zones/{{ .Values.domain }}. 2>/dev/null; then
+                echo "Zone {{ .Values.domain }}. already exists"
+              else
+                echo "Creating zone {{ .Values.domain }}."
+                curl -X POST -H "X-API-Key: $PDNS_AUTH_API_KEY" -H "Content-Type: application/json" \
+                  http://{{ include "internal-dns.fullname" . }}:8081/api/v1/servers/localhost/zones \
+                  -d '{"name": "{{ .Values.domain }}.", "kind": "Native"}'
+                echo "Zone {{ .Values.domain }}. created successfully"
+              fi
+          env:
+            - name: PDNS_AUTH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.apiKey.name }}
+                  key: {{ .Values.secrets.apiKey.key }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -54,19 +81,15 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secrets.apiKey.name }}
                   key: {{ .Values.secrets.apiKey.key }}
-          {{- if .Values.persistence.enabled }}
           volumeMounts:
             - name: data
               mountPath: /var/lib/powerdns
-          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- if .Values.persistence.enabled }}
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "internal-dns.fullname" . }}-data
-      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

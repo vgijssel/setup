@@ -8,6 +8,8 @@ replicaCount: 1
 nameOverride: ""
 fullnameOverride: ""
 
+domain: "enigma.vgijssel.nl"
+
 service:
   type: LoadBalancer
   port: 53
@@ -15,8 +17,7 @@ service:
     metallb.universe.tf/loadBalancer: true
 
 persistence:
-  enabled: true
-  storageClass: "replicated"
+  storageClass: "standard"
   accessMode: ReadWriteOnce
   size: 8Gi
 
@@ -41,7 +42,6 @@ externalDns:
     repository: external-dns/external-dns
     tag: v0.12.2
     pullPolicy: IfNotPresent
-  domainFilter: "enigma.vgijssel.nl"
   logLevel: debug
   txtOwnerId: "internal-dns"
   interval: 30s

@@ -30,7 +30,7 @@ spec:
         - --events
         - --min-event-sync-interval=5s
         - --pdns-server=http://{{ include "internal-dns.fullname" . }}:8081
-        # - --domain-filter={{ .Values.externalDns.domainFilter }}
+        - --domain-filter={{ .Values.domain }}
         - --log-level={{ .Values.externalDns.logLevel }}
         - --txt-owner-id={{ .Values.externalDns.txtOwnerId }}
         - --interval={{ .Values.externalDns.interval }}
