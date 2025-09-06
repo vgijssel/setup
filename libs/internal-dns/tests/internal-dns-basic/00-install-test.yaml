@@ -7,3 +7,5 @@ commands:
   namespaced: true
 - command: helm install internal-dns-test ../../ --set persistence.enabled=false --set service.type=ClusterIP --set service.annotations=null --wait --timeout=120s
   namespaced: true
+- command: kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
+  namespaced: true

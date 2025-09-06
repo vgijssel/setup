@@ -18,15 +18,19 @@ spec:
         {{- include "internal-dns.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: external-dns
     spec:
+      serviceAccountName: {{ include "internal-dns.fullname" . }}-external-dns
       containers:
       - name: external-dns
         image: "{{ .Values.externalDns.image.registry }}/{{ .Values.externalDns.image.repository }}:{{ .Values.externalDns.image.tag }}"
         imagePullPolicy: {{ .Values.externalDns.image.pullPolicy }}
         args:
         - --source=ingress
+        - --source=service
         - --provider=pdns
-        - --pdns-server={{ include "internal-dns.fullname" . }}:{{ .Values.service.port }}
-        - --domain-filter={{ .Values.externalDns.domainFilter }}
+        - --events
+        - --min-event-sync-interval=5s
+        - --pdns-server=http://{{ include "internal-dns.fullname" . }}:8081
+        # - --domain-filter={{ .Values.externalDns.domainFilter }}
         - --log-level={{ .Values.externalDns.logLevel }}
         - --txt-owner-id={{ .Values.externalDns.txtOwnerId }}
         - --interval={{ .Values.externalDns.interval }}

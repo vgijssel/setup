@@ -42,9 +42,9 @@ externalDns:
     tag: v0.12.2
     pullPolicy: IfNotPresent
   domainFilter: "enigma.vgijssel.nl"
-  logLevel: info
+  logLevel: debug
   txtOwnerId: "internal-dns"
-  interval: 1m
+  interval: 30s
   resources: {}
   nodeSelector: {}
   tolerations: []
