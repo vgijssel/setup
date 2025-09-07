@@ -4,7 +4,17 @@ metadata:
   name: test-dns-resolution
 spec:
   commands:
-  - command: kubectl run dns-test --image=busybox:1.36 --rm -i --restart=Never -- nslookup testing.enigma.vgijssel.nl 172.19.255.202
+  - command: kubectl run dns-test --image=busybox:1.36 --rm -i --restart=Never -- nslookup testing.enigma.vgijssel.nl 172.19.255.200
     namespaced: true
-  - command: kubectl run dns-test-dig --image=busybox:1.36 --rm -i --restart=Never -- dig @172.19.255.202 testing.enigma.vgijssel.nl
+  - command: kubectl run dns-test-dig --image=busybox:1.36 --rm -i --restart=Never -- dig @172.19.255.200 testing.enigma.vgijssel.nl +short
+    namespaced: true
+  - command: |
+      kubectl run dns-validation --image=busybox:1.36 --rm -i --restart=Never -- sh -c '
+      RESULT=$(nslookup testing.enigma.vgijssel.nl 172.19.255.200 2>/dev/null | grep "Address:" | tail -1 | awk "{print \$2}")
+      if [ "$RESULT" != "172.19.255.200" ]; then
+        echo "DNS resolution failed: expected 172.19.255.200, got $RESULT"
+        exit 1
+      fi
+      echo "DNS resolution successful: $RESULT"
+      '
     namespaced: true
