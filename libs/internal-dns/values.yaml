@@ -7,7 +7,6 @@ replicaCount: 1
 service:
   type: LoadBalancer
   port: 53
-  loadBalancerIP: "172.19.255.200"
   annotations:
     metallb.universe.tf/loadBalancer: "true"
 

@@ -118,6 +118,7 @@ spec:
           - --domain-filter={{ .Values.domain }}
           - --log-level={{ .Values.logLevel }}
           - --txt-owner-id={{ .Values.txtOwnerId }}
+          - --txt-prefix=_externaldns-
           - --interval={{ .Values.interval }}
           env:
           - name: EXTERNAL_DNS_PDNS_API_KEY
