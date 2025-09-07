@@ -1,4 +1,3 @@
-{{- if .Values.externalDns.enabled }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -10,7 +9,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "internal-dns.fullname" . }}-external-dns
+  name: {{ include "internal-dns.rbacName" . }}-external-dns
   labels:
     {{- include "internal-dns.labels" . | nindent 4 }}
     app.kubernetes.io/component: external-dns
@@ -28,16 +27,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "internal-dns.fullname" . }}-external-dns
+  name: {{ include "internal-dns.rbacName" . }}-external-dns
   labels:
     {{- include "internal-dns.labels" . | nindent 4 }}
     app.kubernetes.io/component: external-dns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "internal-dns.fullname" . }}-external-dns
+  name: {{ include "internal-dns.rbacName" . }}-external-dns
 subjects:
 - kind: ServiceAccount
   name: {{ include "internal-dns.fullname" . }}-external-dns
   namespace: {{ .Release.Namespace }}
-{{- end }}

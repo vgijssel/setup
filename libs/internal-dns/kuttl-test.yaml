@@ -5,7 +5,7 @@ testDirs:
 startKIND: false
 kindNodeCache: true
 skipClusterDelete: true
-timeout: 30
+timeout: 90
 commands:
 - command: helm repo add metallb https://metallb.github.io/metallb
 - command: helm repo update

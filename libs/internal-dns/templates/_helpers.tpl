@@ -49,3 +49,13 @@ Selector labels
 app.kubernetes.io/name: {{ include "internal-dns.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+ClusterRole and ClusterRoleBinding have a global scope
+So we include the namespace in the name of the resource
+to prevent collisions with multiple installs.
+*/}}
+{{- define "internal-dns.rbacName" -}}
+{{- /* Include namespace to allow same release name in different namespaces */ -}}
+{{- printf "%s-%s" (include "internal-dns.fullname" .) .Release.Namespace | trunc 63 | trimSuffix "-" -}}
+{{- end -}}

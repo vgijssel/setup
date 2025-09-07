@@ -23,7 +23,3 @@ spec:
   - port: 8081
     protocol: TCP
     name: api
-status:
-  loadBalancer:
-    ingress:
-    - ip
