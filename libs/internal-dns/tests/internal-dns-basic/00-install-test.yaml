@@ -5,7 +5,5 @@ metadata:
 commands:
 - command: kubectl create secret generic powerdns-api-key --from-literal=PDNS_AUTH_API_KEY=test-key-123
   namespaced: true
-- command: helm install internal-dns-test ../../ --set service.type=LoadBalancer --wait --timeout=300s
-  namespaced: true
-- command: kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
+- command: helm install internal-dns-test ../../ --wait --timeout=300s
   namespaced: true

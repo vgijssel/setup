@@ -4,4 +4,4 @@ metadata:
   name: create-test-ingress
 spec:
   apply:
-  - 02-ingress-test.yaml
+  - deployment.yaml

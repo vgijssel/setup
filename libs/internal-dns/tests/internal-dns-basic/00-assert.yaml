@@ -4,6 +4,8 @@ metadata:
   name: internal-dns-test
 status:
   readyReplicas: 1
+  availableReplicas: 1
+
 ---
 apiVersion: v1
 kind: Service
@@ -11,6 +13,16 @@ metadata:
   name: internal-dns-test
 spec:
   type: LoadBalancer
+  ports:
+  - port: 53
+    protocol: UDP
+    name: dns-udp
+  - port: 53
+    protocol: TCP
+    name: dns-tcp
+  - port: 8081
+    protocol: TCP
+    name: api
 status:
   loadBalancer:
     ingress:

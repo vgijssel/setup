@@ -5,9 +5,10 @@ testDirs:
 startKIND: false
 kindNodeCache: true
 skipClusterDelete: true
-# timeout: 600
+timeout: 30
 commands:
 - command: helm repo add metallb https://metallb.github.io/metallb
 - command: helm repo update
-- command: helm install metallb metallb/metallb --namespace metallb-system --create-namespace --wait --timeout=300s
+- command: helm upgrade --install metallb metallb/metallb --namespace metallb-system --create-namespace --wait --timeout=300s
 - command: kubectl apply -f metallb-config.yaml
+- command: kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
