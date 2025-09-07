@@ -5,4 +5,9 @@ testDirs:
 startKIND: false
 kindNodeCache: true
 skipClusterDelete: true
-# timeout: 300
+# timeout: 600
+commands:
+- command: helm repo add metallb https://metallb.github.io/metallb
+- command: helm repo update
+- command: helm install metallb metallb/metallb --namespace metallb-system --create-namespace --wait --timeout=300s
+- command: kubectl apply -f metallb-config.yaml

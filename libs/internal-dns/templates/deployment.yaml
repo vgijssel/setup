@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "internal-dns.fullname" . }}-powerdns
+  name: {{ include "internal-dns.fullname" . }}
   labels:
     {{- include "internal-dns.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.powerdns.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       {{- include "internal-dns.selectorLabels" . | nindent 6 }}
@@ -14,6 +14,7 @@ spec:
       labels:
         {{- include "internal-dns.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "internal-dns.fullname" . }}-external-dns
       initContainers:
         - name: init-db
           image: "{{ .Values.powerdns.image.registry }}/{{ .Values.powerdns.image.repository }}:{{ .Values.powerdns.image.tag }}"
@@ -32,35 +33,6 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/powerdns
-        - name: init-zone
-          image: curlimages/curl:latest
-          command: ["/bin/sh"]
-          args:
-            - -c
-            - |
-              set -e
-              echo "Waiting for PowerDNS API to be ready..."
-              until curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://{{ include "internal-dns.fullname" . }}-powerdns:8081/api/v1/servers/localhost/zones 2>/dev/null; do
-                echo "Waiting for PowerDNS API..."
-                sleep 2
-              done
-              
-              echo "Checking if zone {{ .Values.domain }}. exists..."
-              if curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://{{ include "internal-dns.fullname" . }}-powerdns:8081/api/v1/servers/localhost/zones/{{ .Values.domain }}. 2>/dev/null; then
-                echo "Zone {{ .Values.domain }}. already exists"
-              else
-                echo "Creating zone {{ .Values.domain }}."
-                curl -X POST -H "X-API-Key: $PDNS_AUTH_API_KEY" -H "Content-Type: application/json" \
-                  http://{{ include "internal-dns.fullname" . }}-powerdns:8081/api/v1/servers/localhost/zones \
-                  -d '{"name": "{{ .Values.domain }}.", "kind": "Native"}'
-                echo "Zone {{ .Values.domain }}. created successfully"
-              fi
-          env:
-            - name: PDNS_AUTH_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.powerdns.secrets.apiKey.name }}
-                  key: {{ .Values.powerdns.secrets.apiKey.key }}
       containers:
         - name: powerdns
           image: "{{ .Values.powerdns.image.registry }}/{{ .Values.powerdns.image.repository }}:{{ .Values.powerdns.image.tag }}"
@@ -79,26 +51,95 @@ spec:
             - name: PDNS_AUTH_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.powerdns.secrets.apiKey.name }}
-                  key: {{ .Values.powerdns.secrets.apiKey.key }}
+                  name: {{ .Values.secrets.apiKey.name }}
+                  key: {{ .Values.secrets.apiKey.key }}
           volumeMounts:
             - name: data
               mountPath: /var/lib/powerdns
           resources:
-            {{- toYaml .Values.powerdns.resources | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
+        - name: zone-creator
+          image: curlimages/curl:latest
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              set -e
+              echo "Zone creator sidecar starting..."
+              
+              # Wait for PowerDNS API to be ready
+              echo "Waiting for PowerDNS API to be ready..."
+              until curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://localhost:8081/api/v1/servers/localhost/zones 2>/dev/null; do
+                echo "Waiting for PowerDNS API..."
+                sleep 5
+              done
+              
+              echo "PowerDNS API is ready!"
+              
+              # Check if zone exists and create if needed
+              echo "Checking if zone {{ .Values.domain }}. exists..."
+              if curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://localhost:8081/api/v1/servers/localhost/zones/{{ .Values.domain }}. 2>/dev/null; then
+                echo "Zone {{ .Values.domain }}. already exists"
+              else
+                echo "Creating zone {{ .Values.domain }}."
+                curl -X POST -H "X-API-Key: $PDNS_AUTH_API_KEY" -H "Content-Type: application/json" \
+                  http://localhost:8081/api/v1/servers/localhost/zones \
+                  -d '{"name": "{{ .Values.domain }}.", "kind": "Native"}'
+                echo "Zone {{ .Values.domain }}. created successfully"
+              fi
+              
+              # Keep running to maintain sidecar
+              echo "Zone creation complete. Monitoring for changes..."
+              while true; do
+                sleep 300  # Check every 5 minutes
+                if ! curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://localhost:8081/api/v1/servers/localhost/zones/{{ .Values.domain }}. 2>/dev/null; then
+                  echo "Zone {{ .Values.domain }}. missing, recreating..."
+                  curl -X POST -H "X-API-Key: $PDNS_AUTH_API_KEY" -H "Content-Type: application/json" \
+                    http://localhost:8081/api/v1/servers/localhost/zones \
+                    -d '{"name": "{{ .Values.domain }}.", "kind": "Native"}' || true
+                fi
+              done
+          env:
+            - name: PDNS_AUTH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.apiKey.name }}
+                  key: {{ .Values.secrets.apiKey.key }}
+        - name: external-dns
+          image: "{{ .Values.externalDns.image.registry }}/{{ .Values.externalDns.image.repository }}:{{ .Values.externalDns.image.tag }}"
+          imagePullPolicy: {{ .Values.externalDns.image.pullPolicy }}
+          args:
+          - --source=ingress
+          - --source=service
+          - --provider=pdns
+          - --events
+          - --min-event-sync-interval=5s
+          - --pdns-server=http://localhost:8081
+          - --domain-filter={{ .Values.domain }}
+          - --log-level={{ .Values.logLevel }}
+          - --txt-owner-id={{ .Values.txtOwnerId }}
+          - --interval={{ .Values.interval }}
+          env:
+          - name: EXTERNAL_DNS_PDNS_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secrets.apiKey.name }}
+                key: {{ .Values.secrets.apiKey.key }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: {{ include "internal-dns.fullname" . }}-powerdns-data
-      {{- with .Values.powerdns.nodeSelector }}
+            claimName: {{ include "internal-dns.fullname" . }}-data
+      {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.powerdns.affinity }}
+      {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.powerdns.tolerations }}
+      {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
