@@ -2,5 +2,8 @@
   "name": "setup",
   "version": "1.0.0",
   "private": true,
-  "description": "Infrastructure and application setup monorepo"
+  "description": "Infrastructure and application setup monorepo",
+  "devDependencies": {
+    "nx": "21.4.1"
+  }
 }
