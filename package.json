@@ -1,0 +1,10 @@
+{
+  "name": "setup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Infrastructure and application setup monorepo",
+  "packageManager": "pnpm@10.15.1",
+  "devDependencies": {
+    "nx": "21.4.1"
+  }
+}
