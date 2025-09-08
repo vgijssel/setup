@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: speaker
+  name: metallb-speaker
   namespace: metallb-system
 status:
   numberReady: 1
@@ -11,7 +11,7 @@ status:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller
+  name: metallb-controller
   namespace: metallb-system
 status:
   readyReplicas: 1
