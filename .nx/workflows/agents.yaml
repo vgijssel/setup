@@ -20,6 +20,9 @@ launch-templates:
      - name: Check Hermit version
        script: |
          hermit --version
+     - name: Check Nx version
+       script: |
+         nx --version
 
   linux-hermit-large:
     resource-class: 'docker_linux_amd64/large'
