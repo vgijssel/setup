@@ -1,4 +1,6 @@
 #!/bin/bash
 
-# Use pnpm dlx for on-demand execution without polluting node_modules
-exec pnpm --dir "$SETUP_DIR" dlx nx "$@"
+# Ensure dependencies are up-to-date
+pnpm install --quiet -C $SETUP_DIR
+
+exec pnpm --dir "$SETUP_DIR" exec nx "$@"
