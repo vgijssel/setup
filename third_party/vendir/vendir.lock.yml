@@ -6,4 +6,10 @@ directories:
       version: 2.0.3
     path: .
   path: charts/1password-connect
+- contents:
+  - helmChart:
+      appVersion: 1.12.0
+      version: 4.12.0
+    path: .
+  path: charts/ingress-nginx
 kind: LockConfig

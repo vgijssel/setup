@@ -1,16 +1,15 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestStep
 metadata:
-  name: test-dns-resolution
+  name: collect-dns-service-ip
 spec:
   commands:
   - command: |
-      kubectl run dns-validation --image=busybox:1.36 --rm -i --restart=Never -- sh -c '
-      RESULT=$(nslookup testing.enigma.vgijssel.nl 172.19.255.200 2>/dev/null | grep "Address:" | tail -1 | awk "{print \$2}")
-      if [ "$RESULT" != "172.19.255.200" ]; then
-        echo "DNS resolution failed: expected 172.19.255.200, got $RESULT"
+      DNS_SERVICE_IP=$(kubectl get service internal-dns-test -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+      echo "DNS Service IP: $DNS_SERVICE_IP"
+      if [ -z "$DNS_SERVICE_IP" ]; then
+        echo "Failed to get DNS service IP"
         exit 1
       fi
-      echo "DNS resolution successful: $RESULT"
-      '
+      echo "$DNS_SERVICE_IP" > /tmp/dns-service-ip.txt
     namespaced: true
