@@ -17,9 +17,9 @@ launch-templates:
       - name: Print the environment
         script: |
           env
-#      - name: Validate Hermit
-#        script: |
-#          hermit --version
+     - name: Check Hermit version
+       script: |
+         hermit --version
 
   linux-hermit-large:
     resource-class: 'docker_linux_amd64/large'
