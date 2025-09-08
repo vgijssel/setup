@@ -66,7 +66,7 @@ jobs:
       # Run this command as early as possible, before dependencies are installed
       # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
       # Connect your workspace by running "nx connect" and uncomment this line to enable task distribution
-      - run: nx start-ci-run --distribute-on="3 linux-hermit-medium" --stop-agents-after="build"
+      - run: nx start-ci-run --distribute-on="3 linux-hermit-medium" --stop-agents-after="lint,test,build"
 
       - uses: nrwl/nx-set-shas@v4
 
