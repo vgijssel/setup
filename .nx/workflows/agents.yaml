@@ -13,7 +13,10 @@ launch-templates:
           cat $NX_CLOUD_ENV
       - name: Export direnv environment
         script: |
-          bin/direnv exec / bin/direnv export bash >> $NX_CLOUD_ENV
+          bin/direnv export json | bin/jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $NX_CLOUD_ENV
+      - name: Print the environment
+        script: |
+          env
 #      - name: Validate Hermit
 #        script: |
 #          hermit --version
