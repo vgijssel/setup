@@ -24,19 +24,20 @@ jobs:
       - name: Trunk Check
         uses: trunk-io/trunk-action@v1
 
-  docs-build:
-    name: docs:build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Init Hermit
-        uses: cashapp/activate-hermit@v1
-      - uses: HatsuneMiku3939/direnv-action@v1
-        with:
-          direnvVersion: 2.35.0
-      - run: sudo apt install -y libjpeg-turbo-progs
-      - run: task docs:build
+  # TODO: implement this in nx cloud
+  # docs-build:
+  #   name: docs:build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Init Hermit
+  #       uses: cashapp/activate-hermit@v1
+  #     - uses: HatsuneMiku3939/direnv-action@v1
+  #       with:
+  #         direnvVersion: 2.35.0
+  #     - run: sudo apt install -y libjpeg-turbo-progs
+  #     - run: task docs:build
 
   codex-test:
     name: stacks:codex:test
