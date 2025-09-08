@@ -23,3 +23,6 @@ launch-templates:
       - name: Nx version
         script: |
           nx --version
+      - name: docker info
+        script: |
+          docker info
