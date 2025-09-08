@@ -1,3 +1,35 @@
+# Validate MetalLB is running
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: speaker
+  namespace: metallb-system
+status:
+  numberReady: 1
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller
+  namespace: metallb-system
+status:
+  readyReplicas: 1
+  availableReplicas: 1
+
+---
+# Validate nginx ingress is running
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+status:
+  readyReplicas: 1
+  availableReplicas: 1
+
+---
+# Validate internal-dns deployment is running
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,6 +39,7 @@ status:
   availableReplicas: 1
 
 ---
+# Validate internal-dns service is correct
 apiVersion: v1
 kind: Service
 metadata:
@@ -23,3 +56,12 @@ spec:
   - port: 8081
     protocol: TCP
     name: api
+
+---
+# Validate PVC is created
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: internal-dns-test-data
+status:
+  phase: Bound
