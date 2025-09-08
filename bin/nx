@@ -1,3 +1,4 @@
 #!/bin/bash
 
-exec npx --prefix "$SETUP_DIR" nx "$@"
+# Use pnpm dlx for on-demand execution without polluting node_modules
+exec pnpm --dir "$SETUP_DIR" dlx nx "$@"
