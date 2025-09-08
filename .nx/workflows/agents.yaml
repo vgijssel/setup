@@ -13,10 +13,10 @@ launch-templates:
           cat $NX_CLOUD_ENV
       - name: Export direnv environment
         script: |
-          $(bin/direnv exec / bin/direnv export bash) >> $NX_CLOUD_ENV
-      - name: Validate Hermit
-        script: |
-          hermit --version
+          bin/direnv exec / bin/direnv export bash >> $NX_CLOUD_ENV
+#      - name: Validate Hermit
+#        script: |
+#          hermit --version
 
   linux-hermit-large:
     resource-class: 'docker_linux_amd64/large'
