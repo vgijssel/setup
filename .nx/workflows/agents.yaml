@@ -8,12 +8,12 @@ launch-templates:
       - name: Setup direnv
         script: |
           bin/direnv allow
+      - name: Check NX_CLOUD_ENV
+        script: |
+          cat $NX_CLOUD_ENV
       - name: Export direnv environment
         script: |
-          eval $(direnv exec / direnv export bash)
-          echo "NX_CLOUD_ENV=$(direnv exec / direnv export bash)" >> $GITHUB_ENV
-        env:
-          NX_CLOUD_ENV: ""
+          $(bin/direnv exec / bin/direnv export bash) >> $NX_CLOUD_ENV
       - name: Validate Hermit
         script: |
           hermit --version
