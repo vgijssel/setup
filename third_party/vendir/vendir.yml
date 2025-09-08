@@ -17,3 +17,11 @@ directories:
           version: 4.12.0
           repository:
             url: https://kubernetes.github.io/ingress-nginx
+  - path: charts/metallb
+    contents:
+      - path: .
+        helmChart:
+          name: metallb
+          version: 0.14.8
+          repository:
+            url: https://metallb.github.io/metallb

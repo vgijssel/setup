@@ -12,4 +12,10 @@ directories:
       version: 4.12.0
     path: .
   path: charts/ingress-nginx
+- contents:
+  - helmChart:
+      appVersion: v0.14.8
+      version: 0.14.8
+    path: .
+  path: charts/metallb
 kind: LockConfig
