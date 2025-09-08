@@ -1,10 +1,10 @@
 launch-templates:
   linux-hermit-medium:
-    resource-class: 'docker_linux_amd64/medium'
-    image: 'ubuntu22.04-node20.11-v9'
+    resource-class: "docker_linux_amd64/medium"
+    image: "ubuntu22.04-node20.11-v9"
     init-steps:
       - name: Checkout
-        uses: 'nrwl/nx-cloud-workflows/v5/workflow-steps/checkout/main.yaml'
+        uses: "nrwl/nx-cloud-workflows/v5/workflow-steps/checkout/main.yaml"
       - name: Setup direnv
         script: |
           bin/direnv allow
@@ -13,13 +13,7 @@ launch-templates:
           cat $NX_CLOUD_ENV
       - name: Export direnv environment
         script: |
-          bin/direnv export json | bin/jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $NX_CLOUD_ENV
+          bin/direnv exec / bin/direnv export bash >> $NX_CLOUD_ENV
       - name: Print the environment
         script: |
           env
-      - name: Check Hermit version
-        script: |
-          hermit --version
-      - name: Check Nx version
-        script: |
-          nx --version

@@ -40,8 +40,8 @@ lint:
         - apps/haos/automations.yaml
         - stacks/enigma-cozy/templates/controlplane.yaml
         - stacks/enigma-cozy/templates/worker.yaml
-        - third_party/charts
-        - third_party/vendir.lock.yml
+        - third_party/vendir/charts
+        - third_party/vendir/vendir.lock.yml
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1

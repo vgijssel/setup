@@ -16,9 +16,7 @@
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "git diff --exit-code vendir.lock.yml charts"
-        ],
+        "commands": ["git diff --exit-code vendir.lock.yml charts"],
         "cwd": "third_party/vendir",
         "parallel": false
       },
