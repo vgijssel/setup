@@ -1,0 +1,6 @@
+{
+  "name": "setup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Infrastructure and application setup monorepo"
+}
