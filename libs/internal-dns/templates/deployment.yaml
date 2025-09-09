@@ -23,13 +23,23 @@ spec:
             - -c
             - |
               set -e
+              
+              # Fix permissions (running as root)
+              echo "Fixing permissions for /var/lib/powerdns..."
+              chown -R 953:953 /var/lib/powerdns
+              chmod -R 755 /var/lib/powerdns
+              echo "Permissions fixed"
+              
+              # Create database as pdns user
               if [ ! -f /var/lib/powerdns/pdns.sqlite3 ]; then
                 echo "Creating PowerDNS SQLite database..."
-                sqlite3 /var/lib/powerdns/pdns.sqlite3 < /usr/local/share/doc/pdns/schema.sqlite3.sql
+                runuser -u pdns -- sqlite3 /var/lib/powerdns/pdns.sqlite3 < /usr/local/share/doc/pdns/schema.sqlite3.sql
                 echo "Database created successfully"
               else
                 echo "Database already exists"
               fi
+          securityContext:
+            runAsUser: 0
           volumeMounts:
             - name: data
               mountPath: /var/lib/powerdns
