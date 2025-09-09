@@ -2,9 +2,7 @@ apiVersion: kuttl.dev/v1beta1
 kind: TestSuite
 testDirs:
   - ./tests
-startKIND: true
 kindNodeCache: true
-skipClusterDelete: false
 timeout: 90
 commands:
   - command: helm upgrade --install metallb ../../third_party/vendir/charts/metallb --namespace metallb-system --create-namespace --wait --timeout=300s

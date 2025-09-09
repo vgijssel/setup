@@ -7,13 +7,22 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "kuttl test",
-        "cwd": "libs/internal-dns"
+        "cwd": "libs/internal-dns",
+        "start-kind": false,
+        "skip-cluster-delete": true,
+        "configurations": {
+          "CI": {
+            "start-kind": true,
+            "skip-cluster-delete": false
+          }
+        }
       },
       "cache": true,
       "inputs": [
         "{projectRoot}/**/*",
         "!{projectRoot}/kind-logs-*/**/*",
-        "!{projectRoot}/kubeconfig"
+        "!{projectRoot}/kubeconfig",
+        { "env": "NX_TASK_TARGET_CONFIGURATION" }
       ],
       "outputs": []
     }
