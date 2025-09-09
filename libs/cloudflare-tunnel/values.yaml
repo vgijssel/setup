@@ -9,6 +9,11 @@ image:
   tag: 2025.8.1
   pullPolicy: IfNotPresent
 
+tunnel:
+  name: "testing-tunnel"
+  hostname: "testing.vgijssel-dev.nl"
+  service: "http://example-nginx:80"
+
 secrets:
   tunnelToken:
     name: cloudflare-tunnel-token
