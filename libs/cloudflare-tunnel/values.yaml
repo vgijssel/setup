@@ -9,6 +9,9 @@ image:
   tag: 2025.8.1
   pullPolicy: IfNotPresent
 
+cloudflare:
+  accountId: "example-account-id" # Replace with actual Cloudflare account ID
+
 tunnel:
   name: "testing-tunnel"
   hostname: "testing.vgijssel-dev.nl"

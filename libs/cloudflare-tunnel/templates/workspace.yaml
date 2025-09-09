@@ -21,24 +21,44 @@ spec:
         sensitive   = true
       }
 
+      variable "cloudflare_account_id" {
+        description = "Cloudflare account ID"
+        type        = string
+      }
+
+      variable "tunnel_name" {
+        description = "Cloudflare tunnel name"
+        type        = string
+      }
+
+      variable "tunnel_hostname" {
+        description = "Hostname for the tunnel"
+        type        = string
+      }
+
+      variable "tunnel_service" {
+        description = "Service URL for the tunnel"
+        type        = string
+      }
+
       provider "cloudflare" {
         api_token = var.cloudflare_api_token
       }
 
       resource "cloudflare_tunnel" "example" {
-        account_id = "{{ .Values.cloudflare.accountId }}"
-        name       = "{{ .Values.tunnel.name }}"
-        secret     = base64sha256("{{ .Values.tunnel.name }}-secret")
+        account_id = var.cloudflare_account_id
+        name       = var.tunnel_name
+        secret     = base64sha256("${var.tunnel_name}-secret")
       }
 
       resource "cloudflare_tunnel_config" "example" {
-        account_id = "{{ .Values.cloudflare.accountId }}"
+        account_id = var.cloudflare_account_id
         tunnel_id  = cloudflare_tunnel.example.id
 
         config {
           ingress_rule {
-            hostname = "{{ .Values.tunnel.hostname }}"
-            service  = "{{ .Values.tunnel.service }}"
+            hostname = var.tunnel_hostname
+            service  = var.tunnel_service
           }
           
           ingress_rule {
@@ -59,11 +79,18 @@ spec:
       - key: cloudflare_api_token
         source: Secret
         secretKeyRef:
-          namespace: default
           name: cloudflare-tunnel
           key: credential
+      - key: cloudflare_account_id
+        value: { { .Values.cloudflare.accountId | quote } }
+      - key: tunnel_name
+        value: { { .Values.tunnel.name | quote } }
+      - key: tunnel_hostname
+        value: { { .Values.tunnel.hostname | quote } }
+      - key: tunnel_service
+        value: { { .Values.tunnel.service | quote } }
   writeConnectionSecretsToRef:
     name: cloudflare-tunnel-outputs
-    namespace: default
+    namespace: { { .Release.Namespace } }
   providerConfigRef:
     name: default
