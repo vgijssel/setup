@@ -3,7 +3,7 @@ kind: TestStep
 metadata:
   name: install-internal-dns
 commands:
-- command: kubectl create secret generic powerdns-api-key --from-literal=PDNS_AUTH_API_KEY=test-key-123
-  namespaced: true
-- command: helm install internal-dns-test ../../ --wait --timeout=300s
-  namespaced: true
+  - command: kubectl create secret generic powerdns-api-key --from-literal=credential=test-key-123
+    namespaced: true
+  - command: helm install internal-dns-test ../../ --wait --timeout=300s
+    namespaced: true

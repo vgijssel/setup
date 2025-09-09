@@ -18,7 +18,7 @@ persistence:
 secrets:
   apiKey:
     name: powerdns-api-key
-    key: PDNS_AUTH_API_KEY
+    key: credential
 
 resources: {}
 nodeSelector: {}
