@@ -21,7 +21,6 @@ spec:
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            # Configures tunnel run parameters
             - cloudflared
             - tunnel
             - --no-autoupdate
@@ -30,6 +29,8 @@ spec:
             - --metrics
             - 0.0.0.0:2000
             - run
+            - --token
+            - $(TUNNEL_TOKEN)
           env:
             - name: TUNNEL_TOKEN
               valueFrom:
@@ -42,9 +43,9 @@ spec:
               # it has an active connection to Cloudflare's network.
               path: /ready
               port: 2000
-            failureThreshold: 1
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 30
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
