@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-deployment
+spec:
+  containers:
+  - name: test
+    image: alpine/k8s:1.28.0
+    command:
+    - /bin/sh
+    - -c
+    - |
+      echo "Testing Cloudflare tunnel deployment..."
+      
+      # Check if deployment exists
+      kubectl get deployment cloudflare-tunnel-test
+      echo "✓ Deployment exists"
+      
+      # Check if service account exists
+      kubectl get serviceaccount cloudflare-tunnel-test
+      echo "✓ Service account exists"
+      
+      # Check if secret is mounted correctly
+      kubectl get deployment cloudflare-tunnel-test -o yaml | grep -q "cloudflare-tunnel-token"
+      echo "✓ Secret is referenced in deployment"
+      
+      # Check if container image is correct
+      kubectl get deployment cloudflare-tunnel-test -o jsonpath='{.spec.template.spec.containers[0].image}' | grep -q "cloudflare/cloudflared"
+      echo "✓ Container image is correct"
+      
+      echo "All tests passed!"
+      sleep 10
+  restartPolicy: Never

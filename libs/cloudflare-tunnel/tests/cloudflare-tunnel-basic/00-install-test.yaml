@@ -1,0 +1,9 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+metadata:
+  name: install-cloudflare-tunnel
+commands:
+  - command: kubectl create secret generic cloudflare-tunnel-token --from-literal=credential=test-tunnel-token
+    namespaced: true
+  - command: helm install cloudflare-tunnel-test ../../ --timeout=300s
+    namespaced: true
