@@ -10,8 +10,8 @@ image:
   pullPolicy: IfNotPresent
 
 tunnel:
+  zone: "vgijssel-dev.nl"
   name: "testing-tunnel"
-  hostname: "testing.vgijssel-dev.nl"
   service: "http://example-nginx:80"
 
 secrets:
