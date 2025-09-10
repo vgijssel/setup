@@ -35,8 +35,8 @@ spec:
             - name: TUNNEL_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secrets.tunnelToken.name }}
-                  key: {{ .Values.secrets.tunnelToken.key }}
+                  name: cloudflare-tunnel-outputs
+                  key: tunnel_token
           livenessProbe:
             httpGet:
               # Cloudflared has a /ready endpoint which returns 200 if and only if

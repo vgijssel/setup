@@ -67,8 +67,30 @@ spec:
         }
       }
 
+      data "cloudflare_zero_trust_tunnel_cloudflared_token" "example" {
+        account_id = var.cloudflare_account_id
+        tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.example.id
+      }
+
+      resource "cloudflare_record" "tunnel_dns" {
+        zone_id = data.cloudflare_zone.example.id
+        name    = var.tunnel_hostname
+        content = "${cloudflare_zero_trust_tunnel_cloudflared.example.id}.cfargotunnel.com"
+        type    = "CNAME"
+        proxied = true
+      }
+
+      data "cloudflare_zone" "example" {
+        name = "vgijssel-dev.nl"
+      }
+
       output "tunnel_id" {
         value = cloudflare_zero_trust_tunnel_cloudflared.example.id
+      }
+
+      output "tunnel_token" {
+        value     = data.cloudflare_zero_trust_tunnel_cloudflared_token.example.token
+        sensitive = true
       }
     vars:
       - key: tunnel_name
