@@ -1,4 +1,4 @@
-apiVersion: tf.upbound.io/v1beta1
+apiVersion: opentofu.upbound.io/v1beta1
 kind: Workspace
 metadata:
   name: cloudflare-tunnel-workspace
@@ -45,42 +45,32 @@ spec:
         api_token = var.cloudflare_api_token
       }
 
-      resource "cloudflare_tunnel" "example" {
+      resource "cloudflare_zero_trust_tunnel_cloudflared" "example" {
         account_id = var.cloudflare_account_id
         name       = var.tunnel_name
-        secret     = base64sha256("${var.tunnel_name}-secret")
       }
 
-      resource "cloudflare_tunnel_config" "example" {
+      resource "cloudflare_zero_trust_tunnel_cloudflared_config" "example" {
         account_id = var.cloudflare_account_id
-        tunnel_id  = cloudflare_tunnel.example.id
+        tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.example.id
 
-        config {
-          ingress_rule {
-            hostname = var.tunnel_hostname
-            service  = var.tunnel_service
-          }
-          
-          ingress_rule {
-            service = "http_status:404"
-          }
+        config = {
+          ingress_rule = [
+            {
+              hostname = var.tunnel_hostname
+              service  = var.tunnel_service
+            },
+            {
+              service = "http_status:404"
+            }
+          ]
         }
       }
 
       output "tunnel_id" {
-        value = cloudflare_tunnel.example.id
-      }
-
-      output "tunnel_token" {
-        value = cloudflare_tunnel.example.tunnel_token
-        sensitive = true
+        value = cloudflare_zero_trust_tunnel_cloudflared.example.id
       }
     vars:
-      - key: cloudflare_api_token
-        source: Secret
-        secretKeyRef:
-          name: cloudflare-tunnel
-          key: credential
       - key: cloudflare_account_id
         value: { { .Values.cloudflare.accountId | quote } }
       - key: tunnel_name
@@ -89,7 +79,13 @@ spec:
         value: { { .Values.tunnel.hostname | quote } }
       - key: tunnel_service
         value: { { .Values.tunnel.service | quote } }
-  writeConnectionSecretsToRef:
+    env:
+      - name: TF_VAR_cloudflare_api_token
+        secretKeyRef:
+          name: cloudflare-tunnel
+          key: credential
+          namespace: { { .Release.Namespace } }
+  writeConnectionSecretToRef:
     name: cloudflare-tunnel-outputs
     namespace: { { .Release.Namespace } }
   providerConfigRef:

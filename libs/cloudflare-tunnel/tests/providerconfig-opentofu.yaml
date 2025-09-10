@@ -1,0 +1,10 @@
+apiVersion: opentofu.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  # Basic default configuration for OpenTofu provider
+  # This provides a minimal setup for Terraform workspaces
+  configuration: |
+    # Default OpenTofu configuration
+    # Additional provider configurations can be injected here
