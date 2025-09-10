@@ -72,21 +72,21 @@ spec:
       }
     vars:
       - key: cloudflare_account_id
-        value: { { .Values.cloudflare.accountId | quote } }
+        value: "{{ .Values.cloudflare.accountId }}"
       - key: tunnel_name
-        value: { { .Values.tunnel.name | quote } }
+        value: "{{ .Values.tunnel.name }}"
       - key: tunnel_hostname
-        value: { { .Values.tunnel.hostname | quote } }
+        value: "{{ .Values.tunnel.hostname }}"
       - key: tunnel_service
-        value: { { .Values.tunnel.service | quote } }
+        value: "{{ .Values.tunnel.service }}"
     env:
       - name: TF_VAR_cloudflare_api_token
         secretKeyRef:
           name: cloudflare-tunnel
           key: credential
-          namespace: { { .Release.Namespace } }
+          namespace: "{{ .Release.Namespace }}"
   writeConnectionSecretToRef:
     name: cloudflare-tunnel-outputs
-    namespace: { { .Release.Namespace } }
+    namespace: "{{ .Release.Namespace }}"
   providerConfigRef:
     name: default
