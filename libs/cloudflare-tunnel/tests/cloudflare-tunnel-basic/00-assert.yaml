@@ -36,13 +36,13 @@ kind: Secret
 metadata:
   name: cloudflare-tunnel
 type: Opaque
----
-# Validate cloudflare-tunnel workspace is ready (dynamic name based on release)
-apiVersion: opentofu.upbound.io/v1beta1
-kind: Workspace
-metadata:
-  name: cloudflare-tunnel-$NAMESPACE-workspace
-status:
-  conditions:
-    - type: Ready
-      status: "True"
+# ---
+# # Validate cloudflare-tunnel workspace is ready (dynamic name based on release)
+# apiVersion: opentofu.upbound.io/v1beta1
+# kind: Workspace
+# metadata:
+#   name: cloudflare-tunnel-$NAMESPACE-workspace
+# status:
+#   conditions:
+#     - type: Ready
+#       status: "True"
