@@ -55,7 +55,7 @@ spec:
         tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.example.id
 
         config = {
-          ingress_rule = [
+          ingress = [
             {
               hostname = var.tunnel_hostname
               service  = var.tunnel_service
@@ -71,8 +71,6 @@ spec:
         value = cloudflare_zero_trust_tunnel_cloudflared.example.id
       }
     vars:
-      - key: cloudflare_account_id
-        value: "{{ .Values.cloudflare.accountId }}"
       - key: tunnel_name
         value: "{{ .Values.tunnel.name }}"
       - key: tunnel_hostname
@@ -84,6 +82,11 @@ spec:
         secretKeyRef:
           name: cloudflare-tunnel
           key: credential
+          namespace: "{{ .Release.Namespace }}"
+      - name: TF_VAR_cloudflare_account_id
+        secretKeyRef:
+          name: cloudflare-tunnel
+          key: username
           namespace: "{{ .Release.Namespace }}"
   writeConnectionSecretToRef:
     name: cloudflare-tunnel-outputs

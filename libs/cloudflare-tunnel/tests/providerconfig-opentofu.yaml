@@ -3,8 +3,12 @@ kind: ProviderConfig
 metadata:
   name: default
 spec:
-  # Basic default configuration for OpenTofu provider
-  # This provides a minimal setup for Terraform workspaces
   configuration: |
     # Default OpenTofu configuration
     # Additional provider configurations can be injected here
+    terraform {
+      backend "kubernetes" {
+        secret_suffix    = "state"
+        in_cluster_config = true
+      }
+    }
