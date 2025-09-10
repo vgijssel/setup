@@ -1,11 +1,3 @@
-apiVersion: opentofu.upbound.io/v1beta1
-kind: Workspace
-metadata:
-  name: cloudflare-tunnel-workspace
-spec:
-  forProvider:
-    source: Inline
-    module: |
       terraform {
         required_providers {
           cloudflare = {
@@ -111,26 +103,3 @@ spec:
         value     = data.cloudflare_zero_trust_tunnel_cloudflared_token.example.token
         sensitive = true
       }
-    vars:
-      - key: tunnel_name
-        value: "{{ .Values.tunnel.name }}"
-      - key: tunnel_hostname
-        value: "{{ .Values.tunnel.hostname }}"
-      - key: tunnel_service
-        value: "{{ .Values.tunnel.service }}"
-    env:
-      - name: TF_VAR_cloudflare_api_token
-        secretKeyRef:
-          name: cloudflare-tunnel
-          key: credential
-          namespace: "{{ .Release.Namespace }}"
-      - name: TF_VAR_cloudflare_account_id
-        secretKeyRef:
-          name: cloudflare-tunnel
-          key: username
-          namespace: "{{ .Release.Namespace }}"
-  writeConnectionSecretToRef:
-    name: cloudflare-tunnel-outputs
-    namespace: "{{ .Release.Namespace }}"
-  providerConfigRef:
-    name: default

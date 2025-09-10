@@ -1,0 +1,23 @@
+# Terraform files
+*.tf
+.terraform/
+.terraform.lock.hcl
+
+# Development files
+*.tmp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Test files
+tests/
+
+# Git files
+.git/
+.gitignore
