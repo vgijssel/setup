@@ -7,4 +7,5 @@ timeout: 90
 commands:
   - command: helm upgrade --install crossplane ../../third_party/vendir/charts/crossplane --namespace crossplane-system --create-namespace --wait
   - command: kubectl apply -f ./tests/provider-opentofu.yaml -f ./tests/providerconfig-opentofu.yaml
-  - command: kubectl create secret generic cloudflare-tunnel --from-literal=credential=test-token-123
+  - script: kubectl create secret generic cloudflare-tunnel --from-literal=credential=$(op read "op://devenv/cloudflare-tunnel/credential") --from-literal=username=$(op read "op://devenv/cloudflare-tunnel/username")
+  - command: kubectl apply -f ./tests/example-nginx.yaml
