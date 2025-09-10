@@ -1,7 +1,7 @@
 apiVersion: opentofu.upbound.io/v1beta1
 kind: Workspace
 metadata:
-  name: cloudflare-tunnel-workspace
+  name: {{ .Release.Name }}-{{ .Release.Namespace }}-workspace
 spec:
   forProvider:
     source: Inline

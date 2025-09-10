@@ -1,16 +1,48 @@
-apiVersion: v1
-kind: Secret
+# Validate OpenTofu provider is running
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
 metadata:
-  name: cloudflare-tunnel-token
+  name: provider-opentofu
+status:
+  conditions:
+    - type: Healthy
+      status: "True"
+    - type: Installed
+      status: "True"
 ---
+# Validate example-nginx deployment is running
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudflare-tunnel-test
-spec:
-  replicas: 1
+  name: example-nginx
+  namespace: default
+status:
+  readyReplicas: 1
 ---
+# Validate example-nginx service exists
 apiVersion: v1
-kind: ServiceAccount
+kind: Service
 metadata:
-  name: cloudflare-tunnel-test
+  name: example-nginx
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+---
+# Validate cloudflare-tunnel secret exists
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-tunnel
+type: Opaque
+---
+# Validate cloudflare-tunnel workspace is ready (dynamic name based on release)
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: cloudflare-tunnel-$NAMESPACE-workspace
+status:
+  conditions:
+    - type: Ready
+      status: "True"
