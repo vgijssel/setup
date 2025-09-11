@@ -2,7 +2,7 @@ apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
   name: cloudflare-tunnel-composition
-  labels: {{ - include "cloudflare-tunnel.labels" . | nindent 4 }}
+  labels: {{- include "cloudflare-tunnel.labels" . | nindent 4 }}
 spec:
   compositeTypeRef:
     apiVersion: tunnel.crossplane.io/v1alpha1
@@ -210,3 +210,18 @@ spec:
                       requests:
                         cpu: 50m
                         memory: 64Mi
+    - step: automatically-detect-ready-composed-resources
+      functionRef:
+        name: crossplane-contrib-function-auto-ready
+      input:
+        apiVersion: autoready.fn.crossplane.io/v1beta1
+        kind: Input
+        rules:
+        - resource:
+            apiVersion: apps/v1
+            kind: Deployment
+          readinessChecks:
+          - type: MatchCondition
+            matchCondition:
+              type: Available
+              status: "True"
