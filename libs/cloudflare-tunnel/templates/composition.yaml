@@ -2,7 +2,7 @@ apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
   name: cloudflare-tunnel-composition
-  labels: { { - include "cloudflare-tunnel.labels" . | nindent 4 } }
+  labels: {{ - include "cloudflare-tunnel.labels" . | nindent 4 }}
 spec:
   compositeTypeRef:
     apiVersion: tunnel.crossplane.io/v1alpha1
