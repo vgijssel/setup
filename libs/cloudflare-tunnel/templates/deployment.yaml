@@ -1,25 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "cloudflare-tunnel.fullname" . }}
-  labels:
-    {{- include "cloudflare-tunnel.labels" . | nindent 4 }}
+  name: { { include "cloudflare-tunnel.fullname" . } }
+  labels: { { - include "cloudflare-tunnel.labels" . | nindent 4 } }
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
-      {{- include "cloudflare-tunnel.selectorLabels" . | nindent 6 }}
+      { { - include "cloudflare-tunnel.selectorLabels" . | nindent 6 } }
   template:
     metadata:
-      labels:
-        {{- include "cloudflare-tunnel.selectorLabels" . | nindent 8 }}
+      labels: { { - include "cloudflare-tunnel.selectorLabels" . | nindent 8 } }
     spec:
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      securityContext: { { - toYaml .Values.podSecurityContext | nindent 8 } }
       containers:
         - name: cloudflared
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          imagePullPolicy: { { .Values.image.pullPolicy } }
           command:
             - cloudflared
             - tunnel
@@ -47,16 +44,9 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 30
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
