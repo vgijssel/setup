@@ -1,4 +1,4 @@
-apiVersion: apiextensions.crossplane.io/v1
+apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: xcloudflare-tunnels.tunnel.crossplane.io
@@ -8,11 +8,8 @@ spec:
   names:
     kind: XCloudflareTunnel
     plural: xcloudflare-tunnels
-  claimNames:
-    kind: CloudflareTunnel
-    plural: cloudflare-tunnels
   versions:
-    - name: v1alpha1
+    - name: v1
       served: true
       referenceable: true
       schema:

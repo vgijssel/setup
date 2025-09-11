@@ -5,7 +5,7 @@ metadata:
   labels: {{- include "cloudflare-tunnel.labels" . | nindent 4 }}
 spec:
   compositeTypeRef:
-    apiVersion: tunnel.crossplane.io/v1alpha1
+    apiVersion: tunnel.crossplane.io/v1
     kind: XCloudflareTunnel
 
   mode: Pipeline
@@ -27,6 +27,11 @@ spec:
               annotations:
                 crossplane.io/external-name: {{`{{ .observed.composite.resource.metadata.name }}`}}-workspace
                 gotemplating.fn.crossplane.io/composition-resource-name: workspace
+            readinessChecks:
+            - type: MatchCondition
+              matchCondition:
+                type: Ready
+                status: "True"
             spec:
               forProvider:
                 source: Inline
@@ -164,6 +169,11 @@ spec:
               annotations:
                 crossplane.io/external-name: {{`{{ .observed.composite.resource.metadata.name }}`}}
                 gotemplating.fn.crossplane.io/composition-resource-name: deployment
+            readinessChecks:
+            - type: MatchCondition
+              matchCondition:
+                type: Available
+                status: "True"
             spec:
               replicas: 1
               selector:
@@ -210,18 +220,3 @@ spec:
                       requests:
                         cpu: 50m
                         memory: 64Mi
-    - step: automatically-detect-ready-composed-resources
-      functionRef:
-        name: crossplane-contrib-function-auto-ready
-      input:
-        apiVersion: autoready.fn.crossplane.io/v1beta1
-        kind: Input
-        rules:
-        - resource:
-            apiVersion: apps/v1
-            kind: Deployment
-          readinessChecks:
-          - type: MatchCondition
-            matchCondition:
-              type: Available
-              status: "True"
