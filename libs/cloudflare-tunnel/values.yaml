@@ -11,5 +11,5 @@ tunnel:
 
 secrets:
   tunnelToken:
-    name: cloudflare-tunnel-token
+    name: cloudflare-tunnel
     key: credential
