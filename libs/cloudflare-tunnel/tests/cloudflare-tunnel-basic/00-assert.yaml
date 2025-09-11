@@ -10,6 +10,18 @@ status:
     - type: Installed
       status: "True"
 ---
+# Validate Go Templating function is running
+apiVersion: pkg.crossplane.io/v1
+kind: Function
+metadata:
+  name: crossplane-contrib-function-go-templating
+status:
+  conditions:
+    - type: Healthy
+      status: "True"
+    - type: Installed
+      status: "True"
+---
 # Validate example-nginx deployment is running
 apiVersion: apps/v1
 kind: Deployment
@@ -36,13 +48,39 @@ kind: Secret
 metadata:
   name: cloudflare-tunnel
 type: Opaque
-# ---
-# # Validate cloudflare-tunnel workspace is ready (dynamic name based on release)
-# apiVersion: opentofu.upbound.io/v1beta1
-# kind: Workspace
-# metadata:
-#   name: cloudflare-tunnel-$NAMESPACE-workspace
-# status:
-#   conditions:
-#     - type: Ready
-#       status: "True"
+---
+# Validate CloudflareTunnel composite resource is ready
+apiVersion: tunnel.crossplane.io/v1alpha1
+kind: CloudflareTunnel
+metadata:
+  name: cloudflare-tunnel
+status:
+  conditions:
+    - type: Synced
+      status: "True"
+---
+# Validate that the CloudflareTunnel composition creates the expected managed resources
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+metadata:
+  name: validate-managed-resources
+timeout: 120
+---
+# Validate that a workspace is created with the expected name pattern
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: cloudflare-tunnel-*-workspace
+status:
+  conditions:
+    - type: Synced
+      status: "True"
+---
+# Validate that a deployment is created
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflare-tunnel-*
+  namespace: $NAMESPACE
+status:
+  readyReplicas: 1

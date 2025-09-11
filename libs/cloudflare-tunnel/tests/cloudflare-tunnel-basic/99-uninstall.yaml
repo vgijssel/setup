@@ -1,7 +1,0 @@
-apiVersion: kuttl.dev/v1beta1
-kind: TestStep
-metadata:
-  name: uninstall-cloudflare-tunnel
-commands:
-  - command: helm uninstall cloudflare-tunnel-test
-    namespaced: true
