@@ -51,8 +51,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    env:
-      NX_TASK_TARGET_CONFIGURATION: CI
     steps:
       - uses: actions/checkout@v4
         with:
@@ -77,7 +75,7 @@ jobs:
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
-      - run: NX_TASK_TARGET_CONFIGURATION=CI nx --configuration CI affected -t lint test build
+      - run: nx affected -t lint test build
       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
       - run: nx fix-ci
         if: always()

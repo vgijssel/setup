@@ -8,12 +8,12 @@
       "options": {
         "command": "kuttl test",
         "cwd": "libs/internal-dns",
-        "start-kind": false,
-        "skip-cluster-delete": true,
+        "start-kind": true,
+        "skip-cluster-delete": false,
         "configurations": {
-          "CI": {
-            "start-kind": true,
-            "skip-cluster-delete": false
+          "dev": {
+            "start-kind": false,
+            "skip-cluster-delete": true
           }
         }
       },
