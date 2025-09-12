@@ -6,8 +6,8 @@ spec:
   selector:
     app: test-app
   ports:
-  - port: 80
-    targetPort: 8080
+    - port: 80
+      targetPort: 8080
   type: ClusterIP
 ---
 apiVersion: apps/v1
@@ -25,25 +25,25 @@ spec:
         app: test-app
     spec:
       containers:
-      - name: app
-        image: nginx:alpine
-        ports:
-        - containerPort: 80
+        - name: app
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: test-ingress
 spec:
-  ingressClassName: "nginx"
+  ingressClassName: nginx
   rules:
-  - host: testing.enigma.vgijssel.nl
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: test-service
-            port:
-              number: 80
+    - host: testing.enigma.vgijssel.nl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: test-service
+                port:
+                  number: 80

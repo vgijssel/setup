@@ -5,9 +5,9 @@ image:
   pullPolicy: IfNotPresent
 
 tunnel:
-  zone: "vgijssel-dev.nl"
-  name: "testing-tunnel"
-  service: "http://example-nginx:80"
+  zone: vgijssel-dev.nl
+  name: testing-tunnel
+  service: http://example-nginx:80
 
 secrets:
   tunnelToken:

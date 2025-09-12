@@ -27,16 +27,16 @@ spec:
                       properties:
                         registry:
                           type: string
-                          default: "docker.io"
+                          default: docker.io
                         repository:
                           type: string
-                          default: "cloudflare/cloudflared"
+                          default: cloudflare/cloudflared
                         tag:
                           type: string
-                          default: "2025.8.1"
+                          default: 2025.8.1
                         pullPolicy:
                           type: string
-                          default: "IfNotPresent"
+                          default: IfNotPresent
                       required:
                         - registry
                         - repository
@@ -47,13 +47,13 @@ spec:
                       properties:
                         zone:
                           type: string
-                          description: "Cloudflare zone name"
+                          description: Cloudflare zone name
                         name:
                           type: string
-                          description: "Cloudflare tunnel name"
+                          description: Cloudflare tunnel name
                         service:
                           type: string
-                          description: "Service URL for the tunnel"
+                          description: Service URL for the tunnel
                       required:
                         - zone
                         - name
@@ -66,10 +66,10 @@ spec:
                           properties:
                             name:
                               type: string
-                              default: "cloudflare-tunnel-token"
+                              default: cloudflare-tunnel-token
                             key:
                               type: string
-                              default: "credential"
+                              default: credential
                           required:
                             - name
                             - key
@@ -84,7 +84,7 @@ spec:
               properties:
                 tunnelId:
                   type: string
-                  description: "The ID of the created Cloudflare tunnel"
+                  description: The ID of the created Cloudflare tunnel
                 ready:
                   type: boolean
-                  description: "Whether the tunnel is ready"
+                  description: Whether the tunnel is ready

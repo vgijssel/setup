@@ -1,17 +1,17 @@
 nameOverride: ""
 fullnameOverride: ""
 
-domain: "enigma.vgijssel.nl"
+domain: enigma.vgijssel.nl
 replicaCount: 1
 
 service:
   type: LoadBalancer
   port: 53
   annotations:
-    metallb.universe.tf/loadBalancer: "true"
+    metallb.universe.tf/loadBalancer: true
 
 persistence:
-  storageClass: "standard"
+  storageClass: standard
   accessMode: ReadWriteOnce
   size: 8Gi
 
@@ -27,7 +27,7 @@ affinity: {}
 
 # External DNS settings
 logLevel: debug
-txtOwnerId: "internal-dns"
+txtOwnerId: internal-dns
 interval: 30s
 
 powerdns:

@@ -1,7 +1,7 @@
-endpoint: "https://192.168.50.50:6443"
+endpoint: https://192.168.50.50:6443
 clusterDomain: cozy.local
 floatingIP: 192.168.50.50
-image: "ghcr.io/cozystack/cozystack/talos:v1.10.5"
+image: ghcr.io/cozystack/cozystack/talos:v1.10.5
 podSubnets:
   - 10.244.0.0/16
 serviceSubnets:
@@ -10,7 +10,7 @@ serviceSubnets:
 # Therefore setting this to the public interface to make Cozystack work.
 advertisedSubnets:
   - 192.168.50.0/24
-oidcIssuerUrl: "https://keycloak.enigma.vgijssel.nl/realms/cozy"
+oidcIssuerUrl: https://keycloak.enigma.vgijssel.nl/realms/cozy
 certSANs: []
 nr_hugepages: 0
 nodes:

@@ -15,14 +15,14 @@ metadata:
     app.kubernetes.io/component: external-dns
 rules:
 - apiGroups: [""]
-  resources: ["services", "endpoints", "pods", "nodes"]
-  verbs: ["get", "watch", "list"]
-- apiGroups: ["extensions", "networking.k8s.io"]
-  resources: ["ingresses"]
-  verbs: ["get", "watch", "list"]
+  resources: [services, endpoints, pods, nodes]
+  verbs: [get, watch, list]
+- apiGroups: [extensions, networking.k8s.io]
+  resources: [ingresses]
+  verbs: [get, watch, list]
 - apiGroups: [""]
-  resources: ["nodes"]
-  verbs: ["list", "watch"]
+  resources: [nodes]
+  verbs: [list, watch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

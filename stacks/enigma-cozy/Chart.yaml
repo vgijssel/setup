@@ -3,7 +3,7 @@ name: enigma-cozy
 type: application
 version: 0.1.0
 globalOptions:
-  talosconfig: "talosconfig"
+  talosconfig: talosconfig
 templateOptions:
   offline: false
   valueFiles: []
@@ -12,13 +12,13 @@ templateOptions:
   fileValues: []
   jsonValues: []
   literalValues: []
-  talosVersion: "v1.10"
-  withSecrets: "secrets.yaml"
+  talosVersion: v1.10
+  withSecrets: secrets.yaml
   kubernetesVersion: ""
   full: false
 applyOptions:
   preserve: false
-  timeout: "1m"
+  timeout: 1m
   certFingerprints: []
 upgradeOptions:
   preserve: false

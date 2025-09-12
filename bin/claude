@@ -2,4 +2,4 @@
 
 set -eo pipefail
 
-AWS_PROFILE=devel exec npx --yes --prefix "${SETUP_DIR}"/third_party/javascript @anthropic-ai/claude-code "$@"
+exec npx --yes --prefix "${SETUP_DIR}"/third_party/javascript @anthropic-ai/claude-code "$@"

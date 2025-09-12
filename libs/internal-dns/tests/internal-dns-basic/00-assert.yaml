@@ -47,15 +47,15 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 53
-    protocol: UDP
-    name: dns-udp
-  - port: 53
-    protocol: TCP
-    name: dns-tcp
-  - port: 8081
-    protocol: TCP
-    name: api
+    - port: 53
+      protocol: UDP
+      name: dns-udp
+    - port: 53
+      protocol: TCP
+      name: dns-tcp
+    - port: 8081
+      protocol: TCP
+      name: api
 
 ---
 # Validate PVC is created
