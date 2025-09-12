@@ -30,7 +30,7 @@ includes:
     dir: .
 
   3rdparty:
-    taskfile: ./3rdparty/Taskfile.yml
+    taskfile: ./third_party/Taskfile.yml
     dir: .
 
   apps:haos:
@@ -89,4 +89,4 @@ tasks:
   secrets:
     desc: Download secrets for setup using 1Password
     cmds:
-      - op inject -i .env.tpl -o .env
+      - op inject --force -i .env.tpl -o .env

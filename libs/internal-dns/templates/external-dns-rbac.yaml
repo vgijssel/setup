@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "internal-dns.fullname" . }}-external-dns
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: external-dns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "internal-dns.rbacName" . }}-external-dns
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: external-dns
+rules:
+- apiGroups: [""]
+  resources: [services, endpoints, pods, nodes]
+  verbs: [get, watch, list]
+- apiGroups: [extensions, networking.k8s.io]
+  resources: [ingresses]
+  verbs: [get, watch, list]
+- apiGroups: [""]
+  resources: [nodes]
+  verbs: [list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "internal-dns.rbacName" . }}-external-dns
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: external-dns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "internal-dns.rbacName" . }}-external-dns
+subjects:
+- kind: ServiceAccount
+  name: {{ include "internal-dns.fullname" . }}-external-dns
+  namespace: {{ .Release.Namespace }}

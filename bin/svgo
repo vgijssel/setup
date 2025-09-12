@@ -2,4 +2,4 @@
 
 set -eo pipefail
 
-exec npx --prefix "${SETUP_DIR}"/3rdparty/javascript svgo "$@"
+exec npx --prefix "${SETUP_DIR}"/third_party/javascript svgo "$@"

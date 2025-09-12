@@ -1,1 +1,1 @@
-HA_TOKEN="{{ op://vgijssel-prod/haos-api/password }}"
+OP_SERVICE_ACCOUNT_TOKEN="{{ op://devenv/ilo2tnsyhepzu2ffbmtywfxrke/credential }}"

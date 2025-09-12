@@ -1,0 +1,27 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - helmChart:
+      appVersion: 1.7.3
+      version: 2.0.3
+    path: .
+  path: charts/1password-connect
+- contents:
+  - helmChart:
+      appVersion: 1.12.0
+      version: 4.12.0
+    path: .
+  path: charts/ingress-nginx
+- contents:
+  - helmChart:
+      appVersion: v0.14.8
+      version: 0.14.8
+    path: .
+  path: charts/metallb
+- contents:
+  - helmChart:
+      appVersion: 2.0.2
+      version: 2.0.2
+    path: .
+  path: charts/crossplane
+kind: LockConfig

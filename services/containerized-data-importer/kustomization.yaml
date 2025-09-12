@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../../3rdparty/manifests/containerized-data-importer
+  - ../../third_party/manifests/containerized-data-importer
 
 patches:
   # We're letting Helmfile create the namespace for us, so deleting it here to prevent conflicts.
