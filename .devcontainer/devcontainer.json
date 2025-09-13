@@ -1,0 +1,18 @@
+{
+  "name": "Setup Development Environment",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "devcontainer",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-vscode.vscode-json"]
+    }
+  },
+  "postCreateCommand": "echo 'Development container ready!'",
+  "forwardPorts": [],
+  "features": {}
+}
