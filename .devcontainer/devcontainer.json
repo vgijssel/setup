@@ -12,7 +12,5 @@
       "extensions": ["ms-vscode.vscode-json"]
     }
   },
-  "postCreateCommand": "echo 'Development container ready!'",
-  "forwardPorts": [],
-  "features": {}
+  "postCreateCommand": "echo 'Development container ready!'"
 }
