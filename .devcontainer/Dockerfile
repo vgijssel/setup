@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     busybox \
     bash \
     sudo \
+    direnv \
     && rm -rf /var/lib/apt/lists/*
 
 # Create devcontainer user with dynamic UID/GID
@@ -22,6 +23,11 @@ RUN groupadd --gid ${USER_GID} devcontainer \
 
 # Set default user
 USER devcontainer
+
+# Create user-specific direnv configuration
+RUN mkdir -p /home/devcontainer/.config/direnv && \
+    echo '[whitelist]' > /home/devcontainer/.config/direnv/direnv.toml && \
+    echo 'prefix = [ "/opt/setup" ]' >> /home/devcontainer/.config/direnv/direnv.toml
 
 # Set working directory
 WORKDIR /home/devcontainer

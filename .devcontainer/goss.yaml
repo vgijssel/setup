@@ -3,6 +3,8 @@ package:
     installed: true
   ssh:
     installed: true
+  direnv:
+    installed: true
 
 command:
   git --version:
@@ -13,6 +15,8 @@ command:
     exit-status: 0
     stderr:
       - "OpenSSH"
+  which direnv:
+    exit-status: 0
 
 user:
   devcontainer:
@@ -34,3 +38,13 @@ file:
 
   /etc/sudoers.d/devcontainer:
     exists: true
+
+  /home/devcontainer/.config/direnv/direnv.toml:
+    exists: true
+    filetype: file
+    owner: devcontainer
+    group: devcontainer
+
+  /usr/bin/direnv:
+    exists: true
+    filetype: file
