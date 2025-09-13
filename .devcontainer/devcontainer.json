@@ -6,7 +6,11 @@
   "remoteUser": "devcontainer",
   "customizations": {
     "vscode": {
-      "extensions": ["ms-vscode.vscode-json", "ms-azuretools.vscode-docker"]
+      "extensions": [
+        "ms-vscode.vscode-json",
+        "ms-azuretools.vscode-docker",
+        "mkhl.direnv"
+      ]
     }
   },
   "features": {

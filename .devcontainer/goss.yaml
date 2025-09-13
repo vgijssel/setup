@@ -55,3 +55,9 @@ file:
   /usr/bin/direnv:
     exists: true
     filetype: file
+
+  /home/devcontainer/.config:
+    exists: true
+    filetype: directory
+    owner: devcontainer
+    group: devcontainer
