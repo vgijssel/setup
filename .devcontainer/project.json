@@ -8,6 +8,13 @@
       "options": {
         "command": "devcontainer build --workspace-folder ."
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": ".devcontainer/test.sh",
+        "cwd": "."
+      }
     }
   }
 }

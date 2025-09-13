@@ -1,0 +1,36 @@
+package:
+  git:
+    installed: true
+  ssh:
+    installed: true
+
+command:
+  git --version:
+    exit-status: 0
+    stdout:
+      - "git version"
+  ssh -V:
+    exit-status: 0
+    stderr:
+      - "OpenSSH"
+
+user:
+  devcontainer:
+    exists: true
+    home: /home/devcontainer
+    shell: /bin/bash
+
+group:
+  devcontainer:
+    exists: true
+
+file:
+  /home/devcontainer:
+    exists: true
+    owner: devcontainer
+    group: devcontainer
+    mode: "0750"
+    filetype: directory
+
+  /etc/sudoers.d/devcontainer:
+    exists: true
