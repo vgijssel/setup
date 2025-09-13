@@ -1,0 +1,19 @@
+{
+  "name": "devenv",
+  "projectType": "library",
+  "sourceRoot": "libs/devenv",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["goss validate"],
+        "parallel": false,
+        "cwd": "libs/devenv"
+      },
+      "metadata": {
+        "description": "Run goss validation tests for the devenv library"
+      }
+    }
+  },
+  "tags": ["devenv", "chezmoi", "development-environment"]
+}

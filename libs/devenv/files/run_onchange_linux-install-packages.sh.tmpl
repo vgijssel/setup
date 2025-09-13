@@ -1,0 +1,33 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+set -euo pipefail
+
+# Linux packages hash: {{ .packages.linux.apt_packages | toJson | sha256sum }}
+
+echo "📦 Updating apt package list..."
+sudo apt-get update
+
+echo "📦 Installing Linux packages..."
+{{ range .packages.linux.apt_packages -}}
+echo "➕ Installing {{ . }}..."
+sudo apt-get install -y {{ . | quote }}
+{{ end -}}
+
+# Install additional tools that might not be in apt
+echo "📦 Installing starship prompt..."
+if ! command -v starship &> /dev/null; then
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+fi
+
+echo "📦 Installing zoxide..."
+if ! command -v zoxide &> /dev/null; then
+    curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+fi
+
+echo "📦 Installing chezmoi..."
+if ! command -v chezmoi &> /dev/null; then
+    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+fi
+
+echo "✅ All Linux packages installed!"
+{{ end -}}

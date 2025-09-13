@@ -1,0 +1,158 @@
+package:
+  git:
+    installed: true
+  ssh:
+    installed: true
+  direnv:
+    installed: true
+  zsh:
+    installed: true
+  curl:
+    installed: true
+  wget:
+    installed: true
+  tmux:
+    installed: true
+  htop:
+    installed: true
+  jq:
+    installed: true
+  unzip:
+    installed: true
+  build-essential:
+    installed: true
+  python3-pip:
+    installed: true
+  nodejs:
+    installed: true
+  npm:
+    installed: true
+
+command:
+  git --version:
+    exit-status: 0
+    stdout:
+      - "git version"
+  ssh -V:
+    exit-status: 0
+    stderr:
+      - "OpenSSH"
+  which direnv:
+    exit-status: 0
+  which zsh:
+    exit-status: 0
+  zsh --version:
+    exit-status: 0
+    stdout:
+      - "zsh"
+  locale:
+    exit-status: 0
+    stdout:
+      - "en_US.UTF-8"
+  curl --version:
+    exit-status: 0
+    stdout:
+      - "curl"
+  wget --version:
+    exit-status: 0
+    stdout:
+      - "GNU Wget"
+  tmux -V:
+    exit-status: 0
+    stdout:
+      - "tmux"
+  htop --version:
+    exit-status: 0
+    stdout:
+      - "htop"
+  jq --version:
+    exit-status: 0
+    stdout:
+      - "jq"
+  python3 --version:
+    exit-status: 0
+    timeout: 30000
+    stdout:
+      - "Python"
+  node --version:
+    exit-status: 0
+    stdout:
+      - "v"
+  npm --version:
+    exit-status: 0
+
+user:
+  devcontainer:
+    exists: true
+    home: /home/devcontainer
+    shell: /bin/bash
+  root:
+    exists: true
+    shell: /bin/bash
+
+group:
+  devcontainer:
+    exists: true
+
+file:
+  /home/devcontainer:
+    exists: true
+    owner: devcontainer
+    group: devcontainer
+    mode: "0750"
+    filetype: directory
+
+  /etc/sudoers.d/devcontainer:
+    exists: true
+
+  /home/devcontainer/.config/direnv/direnv.toml:
+    exists: true
+    filetype: file
+    owner: devcontainer
+    group: devcontainer
+    contents:
+      - "/workspaces"
+
+  /usr/bin/direnv:
+    exists: true
+    filetype: file
+
+  /home/devcontainer/.config:
+    exists: true
+    filetype: directory
+    owner: devcontainer
+    group: devcontainer
+
+  /bin/zsh:
+    exists: true
+    filetype: file
+
+  # Chezmoi-managed configuration files
+  /home/devcontainer/.zshrc:
+    exists: true
+    filetype: file
+    owner: devcontainer
+    group: devcontainer
+
+  /home/devcontainer/.gitconfig:
+    exists: true
+    filetype: file
+    owner: devcontainer
+    group: devcontainer
+    contents:
+      - "[user]"
+      - "name=mvgijssel"
+
+  /home/devcontainer/.config/starship.toml:
+    exists: true
+    filetype: file
+    owner: devcontainer
+    group: devcontainer
+    contents:
+      - "add_newline = true"
+
+  /home/devcontainer/.zimrc:
+    exists: true
+    filetype: file
+    owner: devcontainer
+    group: devcontainer

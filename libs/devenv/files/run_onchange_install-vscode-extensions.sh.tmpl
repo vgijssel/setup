@@ -1,3 +1,4 @@
+{{ if eq .chezmoi.os "darwin" -}}
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -16,3 +17,4 @@ jq -r '.recommendations[]' "$EXT_FILE" | while read -r extension; do
 done
 
 echo "✅ All extensions installed!"
+{{ end -}}
