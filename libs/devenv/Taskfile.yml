@@ -6,11 +6,3 @@ tasks:
     desc: Apply the development environment configuration
     cmds:
       - chezmoi apply --verbose --no-pager
-
-  # TODO:
-  # - validate tmux is installed using brew (unless we can install using homebrew?)
-  # test:
-  #   desc: Test the development environment
-  #   dir: stacks/devenv
-  #   cmds:
-  #     - goss validate

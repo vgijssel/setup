@@ -4,3 +4,7 @@ Library
 darwin-install-packages.sh
 darwin-macos-perferences.sh
 {{- end }}
+
+{{ if ne .chezmoi.os "linux" -}}
+linux-install-packages.sh
+{{- end }}

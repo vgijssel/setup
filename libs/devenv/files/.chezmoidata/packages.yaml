@@ -7,11 +7,10 @@ packages:
       - fzf
       - zimfw
       - chezmoi
+      - zoxide
+      - httpie
       - coreutils
       - gnu-sed
-      - zoxide
-      - tmux
-      - httpie
     casks:
       - google-chrome
       - orbstack
@@ -36,22 +35,17 @@ packages:
       - obs
   linux:
     apt_packages:
-      - curl
-      - wget
       - git
       - zsh
-      - tmux
-      - htop
-      - jq
-      - unzip
-      - build-essential
-      - python3-pip
-      - nodejs
-      - npm
-      - docker.io
-      - docker-compose
-      - vim
-      - nano
-      - tree
-      - ripgrep
-      - fd-find
+      - fzf
+      # zimfw..? only in brew
+      - zoxide
+      - ca-certificates
+      - curl
+      - wget
+      - ssh
+      - busybox
+      - bash
+      - sudo
+      - direnv
+      - locales

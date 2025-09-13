@@ -18,7 +18,7 @@ includes:
     dir: ./stacks/enigma
 
   stacks:devenv:
-    taskfile: ./stacks/devenv/Taskfile.yml
+    taskfile: ./libs/devenv/Taskfile.yml
     dir: .
 
   stacks:provisioner:
