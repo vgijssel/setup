@@ -3,6 +3,7 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "remoteUser": "devcontainer",
   "customizations": {
     "vscode": {
       "extensions": ["ms-vscode.vscode-json", "ms-azuretools.vscode-docker"]
