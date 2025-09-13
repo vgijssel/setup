@@ -1,16 +1,14 @@
 {
-  "name": "Setup Development Environment",
+  "name": "Setup Development Environment (Docker-in-Docker)",
   "build": {
     "dockerfile": "Dockerfile"
   },
-  "remoteUser": "devcontainer",
-  "mounts": [
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-  ],
   "customizations": {
     "vscode": {
-      "extensions": ["ms-vscode.vscode-json"]
+      "extensions": ["ms-vscode.vscode-json", "ms-azuretools.vscode-docker"]
     }
   },
-  "postCreateCommand": "echo 'Development container ready!'"
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  }
 }
