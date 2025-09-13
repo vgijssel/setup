@@ -18,6 +18,11 @@ command:
   which direnv:
     exit-status: 0
 
+  locale:
+    exit-status: 0
+    stdout:
+      - "en_US.UTF-8"
+
 user:
   devcontainer:
     exists: true
@@ -44,6 +49,8 @@ file:
     filetype: file
     owner: devcontainer
     group: devcontainer
+    contents:
+      - "/workspaces"
 
   /usr/bin/direnv:
     exists: true

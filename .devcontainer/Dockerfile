@@ -11,7 +11,14 @@ RUN apt-get update && apt-get install -y \
     bash \
     sudo \
     direnv \
+    locales \
     && rm -rf /var/lib/apt/lists/*
+
+# Configure locale
+RUN locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 # Create devcontainer user with dynamic UID/GID
 ARG USER_UID=1001
@@ -21,13 +28,13 @@ RUN groupadd --gid ${USER_GID} devcontainer \
     && echo 'devcontainer ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/devcontainer \
     && chmod 0440 /etc/sudoers.d/devcontainer
 
+# Create user-specific direnv configuration directory and copy config file (as root)
+RUN mkdir -p /home/devcontainer/.config/direnv
+COPY direnv.toml /home/devcontainer/.config/direnv/direnv.toml
+RUN chown -R devcontainer:devcontainer /home/devcontainer/.config/direnv
+
 # Set default user
 USER devcontainer
-
-# Create user-specific direnv configuration
-RUN mkdir -p /home/devcontainer/.config/direnv && \
-    echo '[whitelist]' > /home/devcontainer/.config/direnv/direnv.toml && \
-    echo 'prefix = [ "/opt/setup" ]' >> /home/devcontainer/.config/direnv/direnv.toml
 
 # Set working directory
 WORKDIR /home/devcontainer
