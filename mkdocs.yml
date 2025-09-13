@@ -5,7 +5,7 @@ site_author: Maarten van Gijssel
 
 repo_name: setup
 repo_url: https://github.com/vgijssel/setup
-edit_uri: https://github.com/vgijssel/setup/edit/master/docs/
+edit_uri: https://github.com/vgijssel/setup/edit/main/docs/
 
 docs_dir: docs
 site_dir: tmp/docs_output

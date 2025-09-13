@@ -1,5 +1,5 @@
-load("//release:defs.bzl", "release")
 load("@rules_task//task:defs.bzl", "cmd", "task")
+load("//release:defs.bzl", "release")
 
 def release_changed_files(changed_file_paths, previous_revision_cmd = None, final_revision_cmd = None, **kwargs):
     name = kwargs.get("name")
@@ -13,7 +13,7 @@ def release_changed_files(changed_file_paths, previous_revision_cmd = None, fina
         task(
             name = previous_revision_cmd_name,
             cmds = [
-                "git rev-parse master",
+                "git rev-parse main",
             ],
             cwd = "$BUILD_WORKSPACE_DIRECTORY",
         )
@@ -39,9 +39,9 @@ def release_changed_files(changed_file_paths, previous_revision_cmd = None, fina
         ],
         cwd = "$BUILD_WORKSPACE_DIRECTORY",
         env = {
-            "PREVIOUS_REVISION_CMD": cmd.executable(previous_revision_cmd_name),
-            "FINAL_REVISION_CMD": cmd.executable(final_revision_cmd_name),
             "CHANGED_FILES": cmd.shell(*changed_file_paths),
+            "FINAL_REVISION_CMD": cmd.executable(final_revision_cmd_name),
+            "PREVIOUS_REVISION_CMD": cmd.executable(previous_revision_cmd_name),
         },
     )
 

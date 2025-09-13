@@ -7,5 +7,4 @@ spec:
   interval: 5m
   url: https://github.com/vgijssel/setup
   ref:
-    # branch: master
-    branch: mg/feat/install-cozystack-on-enigma
+    branch: main

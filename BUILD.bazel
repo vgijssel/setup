@@ -96,7 +96,7 @@ task(
         "GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL",
         "export GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL",
         "git -c credential.helper= commit -m 'chore(release_manager): update release files'",
-        "git -c credential.helper= push --tags https://$GIT_COMMITTER_NAME:$GIT_PUSH_PASSWORD@github.com/vgijssel/setup.git HEAD:master",
+        "git -c credential.helper= push --tags https://$GIT_COMMITTER_NAME:$GIT_PUSH_PASSWORD@github.com/vgijssel/setup.git HEAD:main",
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {

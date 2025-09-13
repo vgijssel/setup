@@ -1,5 +1,5 @@
-load("//release:defs.bzl", "release")
 load("@rules_task//task:defs.bzl", "task")
+load("//release:defs.bzl", "release")
 load("//release/private:utils.bzl", "label_to_string")
 
 def _release_bazel_differ_impl(ctx):
@@ -39,13 +39,13 @@ def _release_bazel_differ_impl(ctx):
 _release_bazel_differ = rule(
     implementation = _release_bazel_differ_impl,
     attrs = {
+        "diff_extra_args": attr.string_list(default = []),
+        "final_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
+        "generate_hashes_extra_args": attr.string_list(default = []),
+        "previous_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
+        "target": attr.label(mandatory = True),
         "_bazel_differ": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ")),
         "_bazel_differ_cli": attr.label(executable = True, cfg = "target", default = Label("//tools/bazel-differ:bazel-differ-change-cli")),
-        "generate_hashes_extra_args": attr.string_list(default = []),
-        "diff_extra_args": attr.string_list(default = []),
-        "target": attr.label(mandatory = True),
-        "previous_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
-        "final_revision_cmd": attr.label(executable = True, cfg = "target", mandatory = True),
     },
     executable = True,
 )
@@ -65,7 +65,7 @@ def release_bazel_differ(previous_revision_cmd = None, final_revision_cmd = None
         task(
             name = previous_revision_cmd_name,
             cmds = [
-                "git rev-parse master",
+                "git rev-parse main",
             ],
             cwd = "$BUILD_WORKSPACE_DIRECTORY",
         )

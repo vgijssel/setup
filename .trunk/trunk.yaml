@@ -6,7 +6,7 @@ cli:
   shell_hooks:
     enforce: true
 repo:
-  trunk_branch: master
+  trunk_branch: main
 plugins:
   sources:
     - id: trunk
