@@ -5,6 +5,8 @@ package:
     installed: true
   direnv:
     installed: true
+  zsh:
+    installed: true
 
 command:
   git --version:
@@ -17,6 +19,12 @@ command:
       - "OpenSSH"
   which direnv:
     exit-status: 0
+  which zsh:
+    exit-status: 0
+  zsh --version:
+    exit-status: 0
+    stdout:
+      - "zsh"
 
   locale:
     exit-status: 0
@@ -27,7 +35,10 @@ user:
   devcontainer:
     exists: true
     home: /home/devcontainer
-    shell: /bin/bash
+    shell: /bin/zsh
+  root:
+    exists: true
+    shell: /bin/zsh
 
 group:
   devcontainer:
@@ -61,3 +72,7 @@ file:
     filetype: directory
     owner: devcontainer
     group: devcontainer
+
+  /bin/zsh:
+    exists: true
+    filetype: file
