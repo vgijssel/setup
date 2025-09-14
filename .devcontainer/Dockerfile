@@ -41,3 +41,14 @@ USER devcontainer
 
 # Set working directory
 WORKDIR /home/devcontainer
+
+# # Install chezmoi binary
+# RUN sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /home/devcontainer/.local/bin
+
+# # Copy the libs/devenv directory (chezmoi source) into the container
+# COPY --chown=devcontainer:devcontainer libs/devenv /tmp/chezmoi-source
+
+# # Initialize and apply chezmoi configuration
+# ENV SETUP_DIR=/workspaces/setup
+# RUN /home/devcontainer/.local/bin/chezmoi init --apply --source=/tmp/chezmoi-source && \
+#     rm -rf /tmp/chezmoi-source

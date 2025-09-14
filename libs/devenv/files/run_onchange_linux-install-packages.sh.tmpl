@@ -9,5 +9,14 @@ sudo apt-get update
 echo "📦 Installing Linux packages..."
 sudo apt-get install -y {{ range .packages.linux.apt_packages }}{{ . | quote }} {{ end }}
 
+# Install Nerd Font (Fira Code)
+# echo "🔤 Installing Fira Code Nerd Font..."
+# FONT_DIR="/usr/share/fonts/truetype/firacode-nerd"
+# sudo mkdir -p "$FONT_DIR"
+# curl -fLo "/tmp/FiraCode.zip" https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip
+# sudo unzip -o /tmp/FiraCode.zip -d "$FONT_DIR"
+# rm /tmp/FiraCode.zip
+# sudo fc-cache -fv
+
 # Install starship not available in apt
 curl -sS https://starship.rs/install.sh | sh -s -- --force

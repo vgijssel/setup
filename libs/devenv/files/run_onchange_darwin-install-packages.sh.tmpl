@@ -1,4 +1,3 @@
-{{ if eq .chezmoi.os "darwin" -}}
 #!/bin/bash
 
 brew bundle --file=/dev/stdin <<EOF
@@ -9,4 +8,3 @@ brew {{ . | quote }}
 cask {{ . | quote }}
 {{ end -}}
 EOF
-{{ end -}}
