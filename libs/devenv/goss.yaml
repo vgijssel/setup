@@ -1,22 +1,43 @@
-package:
-  git:
-    installed: true
-  ssh:
-    installed: true
-  zsh:
-    installed: true
-  curl:
-    installed: true
-  wget:
-    installed: true
-
 command:
-  direnv exec / chezmoi --help:
-    title: "chezmoi binary works outside the repo root"
+  git_version:
+    title: "Git >=2.34.0 (supports SSH commit signing)"
+    meta:
+      url: https://developer.1password.com/docs/ssh/git-commit-signing/
+    exec: git --version | awk '{print $3}' | tr -d '\n'
+    exit-status: 0
     stdout:
-      - Use "chezmoi [command] --help" for more information about a command.
+      semver-constraint: ">=2.34.0"
+    stderr: ""
+    timeout: 60000
+
+  ssh_version:
+    title: "SSH client is installed"
+    exec: ssh -V 2>&1 | head -1
+    exit-status: 0
+    stdout:
+      - /OpenSSH/
+    timeout: 60000
+
+  zsh_version:
+    title: "Zsh shell is installed"
+    exec: zsh --version 
     exit-status: 0
     stderr: ""
+    timeout: 60000
+
+  curl_version:
+    title: "curl is installed"
+    exec: curl --version | head -1 | awk '{print $2}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=8.5.0"
+    stderr: ""
+    timeout: 60000
+
+  wget_version:
+    title: "wget is installed"
+    exec: wget --version
+    exit-status: 0
     timeout: 60000
 
   fzf --version:
@@ -30,21 +51,11 @@ command:
     stderr: ""
     timeout: 60000
 
-  git_version:
-    title: Git supports SSH commit signing from version 2.34.0
-    meta:
-      url: https://developer.1password.com/docs/ssh/git-commit-signing/
-    exec: git --version | awk '{print $3}' | tr -d '\n'
-    exit-status: 0
-    stdout:
-      semver-constraint: ">=2.34.0"
-    stderr: ""
-    timeout: 60000
-
   locale:
+    title: "Check locale settings"
+    exec: locale | grep -E "^LANG=" || echo "LANG not set"
     exit-status: 0
-    stdout:
-      - "LANG=en_US.UTF-8"
+    timeout: 60000
 
   chezmoi_version:
     exec: chezmoi --version | awk '{print $3}' | tr -d 'v,\n'
@@ -68,94 +79,60 @@ command:
     exit-status: 0
     stdout: "{{.Env.SETUP_DIR}}/bin/starship\n"
 
-  direnv exec / which starship:
-    title: "Starship is available in PATH outside of repo root"
+  starship_outside_repo:
+    title: "Starship is available outside of repo root"
+    exec: direnv exec / which starship 
     exit-status: 0
-    stdout: "{{.Env.HOME}}/.local/setup/bin/starship\n"
 
 user:
   devcontainer:
+    skip: {{.Env.IS_MACOS}}
     exists: true
     home: /home/devcontainer
     shell: /usr/bin/zsh
   root:
+    skip: {{.Env.IS_MACOS}}
     exists: true
     shell: /usr/bin/zsh
 
 group:
   devcontainer:
+    skip: {{.Env.IS_MACOS}}
     exists: true
-
 file:
-  /home/devcontainer:
-    exists: true
-    owner: devcontainer
-    group: devcontainer
-    mode: "0750"
-    filetype: directory
-
-  /etc/sudoers.d/devcontainer:
-    exists: true
-
-  /home/devcontainer/.config/direnv/direnv.toml:
-    exists: true
-    filetype: file
-    owner: devcontainer
-    group: devcontainer
-    contents:
-      - "/workspaces"
-
-  /home/devcontainer/.config:
+  {{.Env.HOME}}:
     exists: true
     filetype: directory
-    owner: devcontainer
-    group: devcontainer
 
-  /bin/zsh:
+  {{.Env.HOME}}/.config/direnv/direnv.toml:
     exists: true
     filetype: file
 
-  # Chezmoi-managed configuration files
-  /home/devcontainer/.zshrc:
+  {{.Env.HOME}}/.config:
     exists: true
-    filetype: file
-    owner: devcontainer
-    group: devcontainer
+    filetype: directory
 
-  /home/devcontainer/.gitconfig:
+  {{.Env.HOME}}/.zshrc:
     exists: true
     filetype: file
-    owner: devcontainer
-    group: devcontainer
+
+  {{.Env.HOME}}/.gitconfig:
+    exists: true
+    filetype: file
     contents:
       - "[user]"
       - "name=mvgijssel"
 
-  /home/devcontainer/.config/starship.toml:
+  {{.Env.HOME}}/.config/starship.toml:
     exists: true
     filetype: file
-    owner: devcontainer
-    group: devcontainer
     contents:
       - "add_newline = true"
 
-  /home/devcontainer/.zimrc:
+  {{.Env.HOME}}/.zimrc:
     exists: true
     filetype: file
-    owner: devcontainer
-    group: devcontainer
 
-  # Zim framework directory
-  /home/devcontainer/.zim:
+  {{.Env.HOME}}/.ssh:
     exists: true
     filetype: directory
-    owner: devcontainer
-    group: devcontainer
-
-  # SSH directory
-  /home/devcontainer/.ssh:
-    exists: true
-    filetype: directory
-    mode: "0755"
-    owner: devcontainer
-    group: devcontainer

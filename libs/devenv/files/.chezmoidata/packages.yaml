@@ -6,6 +6,8 @@ packages:
       - httpie
       - coreutils
       - gnu-sed
+      - curl
+      - wget
     casks:
       - google-chrome
       - orbstack
