@@ -1,2 +1,0 @@
-[whitelist]
-prefix = ["{{ env "SETUP_DIR" }}"]

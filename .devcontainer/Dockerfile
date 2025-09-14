@@ -31,11 +31,6 @@ RUN groupadd --gid ${USER_GID} devcontainer \
     && chmod 0440 /etc/sudoers.d/devcontainer \
     && chsh -s /usr/bin/zsh root
 
-# Create user-specific direnv configuration directory and copy config file (as root)
-RUN mkdir -p /home/devcontainer/.config/direnv \
-    && chown -R devcontainer:devcontainer /home/devcontainer/.config
-COPY --chown=devcontainer:devcontainer direnv.toml /home/devcontainer/.config/direnv/direnv.toml
-
 # Set default user
 USER devcontainer
 

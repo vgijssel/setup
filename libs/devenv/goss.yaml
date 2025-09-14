@@ -9,10 +9,16 @@ package:
     installed: true
   wget:
     installed: true
-  htop:
-    installed: true
 
 command:
+  direnv exec / chezmoi --help:
+    title: "chezmoi binary works outside the repo root"
+    stdout:
+      - Use "chezmoi [command] --help" for more information about a command.
+    exit-status: 0
+    stderr: ""
+    timeout: 60000
+
   fzf --version:
     title: "fzf >= 0.48.0 needs to be installed for zsh integration"
     meta:
@@ -56,7 +62,7 @@ user:
   devcontainer:
     exists: true
     home: /home/devcontainer
-    shell: /bin/bash
+    shell: /usr/bin/zsh
   root:
     exists: true
     shell: /usr/bin/zsh
