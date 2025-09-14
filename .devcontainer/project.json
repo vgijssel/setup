@@ -2,19 +2,26 @@
   "name": "devcontainer",
   "sourceRoot": ".devcontainer",
   "projectType": "application",
+  "implicitDependencies": ["devenv"],
   "targets": {
     "build": {
       "executor": "nx:run-commands",
       "options": {
         "command": "devcontainer build --workspace-folder ."
-      }
+      },
+      "cache": true
     },
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "command": ".devcontainer/test.sh",
+        "parallel": false,
+        "commands": [
+          "devcontainer build --workspace-folder . --image-name devcontainer-test",
+          "docker run --rm --workdir /workspaces/setup -v $(pwd):/workspaces/setup devcontainer-test bash -c \"nx test devenv\""
+        ],
         "cwd": "."
-      }
+      },
+      "cache": true
     }
   }
 }

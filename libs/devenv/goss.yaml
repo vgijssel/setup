@@ -81,6 +81,18 @@ command:
   npm --version:
     exit-status: 0
 
+  # Chezmoi tests
+  chezmoi --version:
+    exit-status: 0
+    stdout:
+      - "chezmoi version"
+
+  # Starship tests
+  starship --version:
+    exit-status: 0
+    stdout:
+      - "starship"
+
 user:
   devcontainer:
     exists: true
@@ -88,7 +100,7 @@ user:
     shell: /bin/bash
   root:
     exists: true
-    shell: /bin/bash
+    shell: /usr/bin/zsh
 
 group:
   devcontainer:
@@ -154,5 +166,26 @@ file:
   /home/devcontainer/.zimrc:
     exists: true
     filetype: file
+    owner: devcontainer
+    group: devcontainer
+
+  # Starship binary
+  /usr/local/bin/starship:
+    exists: true
+    filetype: file
+    mode: "0755"
+
+  # Zim framework directory
+  /home/devcontainer/.zim:
+    exists: true
+    filetype: directory
+    owner: devcontainer
+    group: devcontainer
+
+  # SSH directory
+  /home/devcontainer/.ssh:
+    exists: true
+    filetype: directory
+    mode: "0755"
     owner: devcontainer
     group: devcontainer
