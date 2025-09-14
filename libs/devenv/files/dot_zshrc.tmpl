@@ -1,9 +1,8 @@
-{{- $setup_dir := env "SETUP_DIR" }}
-{{- $hermit_dir := joinPath $setup_dir "bin" }}
-
 # Use 1Password for managing SSH keys
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
-export PATH="{{ $hermit_dir }}:$PATH"
+
+# Symlinked hermit binaries
+export PATH="$HOME/.local/setup/bin:$PATH"
 
 ZIM_HOME=~/.zim
 

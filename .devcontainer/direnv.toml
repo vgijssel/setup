@@ -1,2 +1,2 @@
 [whitelist]
-prefix = ["/workspaces/setup"]
+prefix = ["{{ env "SETUP_DIR" }}"]
