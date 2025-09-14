@@ -17,6 +17,3 @@ sudo apt-get install -y {{ range .packages.linux.apt_packages }}{{ . | quote }} 
 # sudo unzip -o /tmp/FiraCode.zip -d "$FONT_DIR"
 # rm /tmp/FiraCode.zip
 # sudo fc-cache -fv
-
-# Install starship not available in apt
-curl -sS https://starship.rs/install.sh | sh -s -- --force

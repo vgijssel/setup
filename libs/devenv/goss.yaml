@@ -20,13 +20,13 @@ command:
     timeout: 60000
 
   fzf --version:
-    title: "fzf >= 0.48.0 needs to be installed for zsh integration"
+    title: "fzf >=0.51.0 needs to be installed for zoxide"
     meta:
-      url: https://github.com/zimfw/fzf
+      url: https://github.com/ajeetdsouza/zoxide
     exec: fzf --version | awk '{print $1}' | tr -d '\n'
     exit-status: 0
     stdout:
-      semver-constraint: ">=0.48.0"
+      semver-constraint: ">=0.51.0"
     stderr: ""
     timeout: 60000
 
@@ -46,17 +46,32 @@ command:
     stdout:
       - "LANG=en_US.UTF-8"
 
-  # Chezmoi tests
-  chezmoi --version:
+  chezmoi_version:
+    exec: chezmoi --version | awk '{print $3}' | tr -d 'v,\n'
     exit-status: 0
     stdout:
-      - "chezmoi version"
+      semver-constraint: ">=2.62.5"
+    stderr: ""
+    timeout: 60000
 
-  # Starship tests
-  starship --version:
+  starship_version:
+    title: "Starship prompt is installed via Hermit"
+    exec: starship --version |  awk 'NR==1 {print $2}' | tr -d '\n'
     exit-status: 0
     stdout:
-      - "starship"
+      semver-constraint: ">=1.23.0"
+    stderr: ""
+    timeout: 60000
+
+  which starship:
+    title: "Starship is available in PATH via Hermit"
+    exit-status: 0
+    stdout: "{{.Env.SETUP_DIR}}/bin/starship\n"
+
+  direnv exec / which starship:
+    title: "Starship is available in PATH outside of repo root"
+    exit-status: 0
+    stdout: "{{.Env.HOME}}/.local/setup/bin/starship\n"
 
 user:
   devcontainer:

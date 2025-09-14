@@ -3,10 +3,6 @@ packages:
     brews:
       - git
       - zsh
-      - starship
-      - fzf
-      - zimfw
-      - chezmoi
       - zoxide
       - httpie
       - coreutils
