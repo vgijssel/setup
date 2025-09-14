@@ -3,7 +3,6 @@ packages:
     brews:
       - git
       - zsh
-      - zoxide
       - httpie
       - coreutils
       - gnu-sed
@@ -33,7 +32,6 @@ packages:
     apt_packages:
       - git
       - zsh
-      - zoxide
       - ca-certificates
       - curl
       - wget
