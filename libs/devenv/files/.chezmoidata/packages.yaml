@@ -37,8 +37,6 @@ packages:
     apt_packages:
       - git
       - zsh
-      - fzf
-      # zimfw..? only in brew
       - zoxide
       - ca-certificates
       - curl
@@ -47,5 +45,4 @@ packages:
       - busybox
       - bash
       - sudo
-      - direnv
       - locales

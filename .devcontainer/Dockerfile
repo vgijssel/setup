@@ -26,10 +26,10 @@ ENV LC_ALL=en_US.UTF-8
 ARG USER_UID=1001
 ARG USER_GID=1001
 RUN groupadd --gid ${USER_GID} devcontainer \
-    && useradd --uid ${USER_UID} --gid ${USER_GID} --shell /bin/zsh --create-home devcontainer \
+    && useradd --uid ${USER_UID} --gid ${USER_GID} --shell /usr/bin/zsh --create-home devcontainer \
     && echo 'devcontainer ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/devcontainer \
     && chmod 0440 /etc/sudoers.d/devcontainer \
-    && chsh -s /bin/zsh root
+    && chsh -s /usr/bin/zsh root
 
 # Create user-specific direnv configuration directory and copy config file (as root)
 RUN mkdir -p /home/devcontainer/.config/direnv \

@@ -1,13 +1,9 @@
-# Add any DataOne specific shell configuration here
-export DATAONE_DIR="/Users/maarten/Development/hackerone/dataone"
+{{- $setup_dir := env "SETUP_DIR" }}
+{{- $hermit_dir := joinPath $setup_dir "bin" }}
 
 # Use 1Password for managing SSH keys
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
-
-{{ if eq .chezmoi.os "linux" -}}
-# Skip global compinit on Linux to avoid conflicts
-skip_global_compinit=1
-{{- end }}
+export PATH="{{ $hermit_dir }}:$PATH"
 
 ZIM_HOME=~/.zim
 
@@ -26,5 +22,4 @@ fi
 source ${ZIM_HOME}/init.zsh
 
 # Aliases
-alias do="cd $DATAONE_DIR"
 alias ll='ls -lah'

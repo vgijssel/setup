@@ -3,83 +3,42 @@ package:
     installed: true
   ssh:
     installed: true
-  direnv:
-    installed: true
   zsh:
     installed: true
   curl:
     installed: true
   wget:
     installed: true
-  tmux:
-    installed: true
   htop:
-    installed: true
-  jq:
-    installed: true
-  unzip:
-    installed: true
-  build-essential:
-    installed: true
-  python3-pip:
-    installed: true
-  nodejs:
-    installed: true
-  npm:
     installed: true
 
 command:
-  git --version:
+  fzf --version:
+    title: "fzf >= 0.48.0 needs to be installed for zsh integration"
+    meta:
+      url: https://github.com/zimfw/fzf
+    exec: fzf --version | awk '{print $1}' | tr -d '\n'
     exit-status: 0
     stdout:
-      - "git version"
-  ssh -V:
-    exit-status: 0
-    stderr:
-      - "OpenSSH"
-  which direnv:
-    exit-status: 0
-  which zsh:
-    exit-status: 0
-  zsh --version:
+      semver-constraint: ">=0.48.0"
+    stderr: ""
+    timeout: 60000
+
+  git_version:
+    title: Git supports SSH commit signing from version 2.34.0
+    meta:
+      url: https://developer.1password.com/docs/ssh/git-commit-signing/
+    exec: git --version | awk '{print $3}' | tr -d '\n'
     exit-status: 0
     stdout:
-      - "zsh"
+      semver-constraint: ">=2.34.0"
+    stderr: ""
+    timeout: 60000
+
   locale:
     exit-status: 0
     stdout:
-      - "en_US.UTF-8"
-  curl --version:
-    exit-status: 0
-    stdout:
-      - "curl"
-  wget --version:
-    exit-status: 0
-    stdout:
-      - "GNU Wget"
-  tmux -V:
-    exit-status: 0
-    stdout:
-      - "tmux"
-  htop --version:
-    exit-status: 0
-    stdout:
-      - "htop"
-  jq --version:
-    exit-status: 0
-    stdout:
-      - "jq"
-  python3 --version:
-    exit-status: 0
-    timeout: 30000
-    stdout:
-      - "Python"
-  node --version:
-    exit-status: 0
-    stdout:
-      - "v"
-  npm --version:
-    exit-status: 0
+      - "LANG=en_US.UTF-8"
 
   # Chezmoi tests
   chezmoi --version:
@@ -125,10 +84,6 @@ file:
     contents:
       - "/workspaces"
 
-  /usr/bin/direnv:
-    exists: true
-    filetype: file
-
   /home/devcontainer/.config:
     exists: true
     filetype: directory
@@ -168,12 +123,6 @@ file:
     filetype: file
     owner: devcontainer
     group: devcontainer
-
-  # Starship binary
-  /usr/local/bin/starship:
-    exists: true
-    filetype: file
-    mode: "0755"
 
   # Zim framework directory
   /home/devcontainer/.zim:
