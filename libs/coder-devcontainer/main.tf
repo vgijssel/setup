@@ -7,9 +7,6 @@ terraform {
     docker = {
       source = "kreuzwerker/docker"
     }
-    envbuilder = {
-      source = "coder/envbuilder"
-    }
   }
 }
 
@@ -24,7 +21,6 @@ provider "docker" {
   # Defaulting to null if the variable is an empty string lets us have an optional variable without having to set our own default
   host = var.docker_socket != "" ? var.docker_socket : null
 }
-provider "envbuilder" {}
 
 data "coder_provisioner" "me" {}
 data "coder_workspace" "me" {}
@@ -169,24 +165,15 @@ resource "docker_volume" "workspaces" {
 
 # Check for the presence of a prebuilt image in the cache repo
 # that we can use instead.
-resource "envbuilder_cached_image" "cached" {
-  count         = var.cache_repo == "" ? 0 : data.coder_workspace.me.start_count
-  builder_image = local.devcontainer_builder_image
-  git_url       = local.repo_url
-  cache_repo    = var.cache_repo
-  extra_env     = local.envbuilder_env
-  insecure      = var.insecure_cache_repo
-}
 
 resource "docker_container" "workspace" {
   count = data.coder_workspace.me.start_count
-  image = var.cache_repo == "" ? local.devcontainer_builder_image : envbuilder_cached_image.cached.0.image
+  image = local.devcontainer_builder_image
   # Uses lower() to avoid Docker restriction on container names.
   name = "coder-${data.coder_workspace_owner.me.name}-${lower(data.coder_workspace.me.name)}"
   # Hostname makes the shell more user friendly: coder@my-workspace:~$
   hostname = data.coder_workspace.me.name
-  # Use the environment specified by the envbuilder provider, if available.
-  env = var.cache_repo == "" ? local.docker_env : envbuilder_cached_image.cached.0.env
+  env = local.docker_env
   # network_mode = "host" # Uncomment if testing with a registry running on `localhost`.
   host {
     host = "host.docker.internal"
@@ -343,7 +330,7 @@ resource "coder_metadata" "container_info" {
   resource_id = coder_agent.main.id
   item {
     key   = "workspace image"
-    value = var.cache_repo == "" ? local.devcontainer_builder_image : envbuilder_cached_image.cached.0.image
+    value = local.devcontainer_builder_image
   }
   item {
     key   = "git url"
