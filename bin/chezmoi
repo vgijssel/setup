@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Not using SETUP_DIR here, as this might not be available as this bin/ can be used outside the repo root
-# by symlinking it to ~/.local/setup/bin
-LOCAL_SETUP_DIR="$(dirname "$(realpath "$0")")/.."
-exec "${LOCAL_SETUP_DIR}"/bin/internal/bin/chezmoi --config "${LOCAL_SETUP_DIR}"/libs/devenv/chezmoi.yaml -S "${LOCAL_SETUP_DIR}" "$@"
+# Locating the SETUP_DIR and re-running direnv because this can be run outside the repo root
+LOCAL_SETUP_DIR="$(realpath $(dirname "$(realpath "$0")")/..)"
+DIRENV_BIN="${LOCAL_SETUP_DIR}"/bin/direnv
+INTERNAL_CHEZMOI_BIN="${LOCAL_SETUP_DIR}"/bin/internal/bin/chezmoi
+
+exec $DIRENV_BIN exec $LOCAL_SETUP_DIR $INTERNAL_CHEZMOI_BIN --config "${LOCAL_SETUP_DIR}"/libs/devenv/chezmoi.yaml -S "${LOCAL_SETUP_DIR}" "$@"
