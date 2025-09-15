@@ -1,0 +1,2 @@
+# Skip global compinit on Linux to avoid conflicts
+skip_global_compinit=1

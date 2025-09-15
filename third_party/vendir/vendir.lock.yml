@@ -24,4 +24,10 @@ directories:
       version: 2.0.2
     path: .
   path: charts/crossplane
+- contents:
+  - githubRelease:
+      tag: v1.18.0
+      url: https://api.github.com/repos/zimfw/zimfw/releases/207284508
+    path: .
+  path: shell/zimfw
 kind: LockConfig

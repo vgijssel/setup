@@ -1,0 +1,28 @@
+{
+  "name": "devcontainer",
+  "sourceRoot": ".devcontainer",
+  "projectType": "application",
+  "implicitDependencies": ["devenv"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "devcontainer build --workspace-folder ."
+      },
+      "cache": true
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "parallel": false,
+        "commands": [
+          "devcontainer build --workspace-folder . --image-name devcontainer-test",
+          "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer-test bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
+        ],
+        "cwd": "."
+      },
+      "cache": true
+    }
+  }
+}

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -eo pipefail
+
+exec npx --yes --prefix "${SETUP_DIR}"/third_party/javascript @devcontainers/cli "$@"

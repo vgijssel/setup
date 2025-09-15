@@ -1,7 +1,0 @@
-version: "3"
-
-tasks:
-  python:update:
-    desc: Update 3rd party lock files
-    cmds:
-      - pants generate-lockfiles

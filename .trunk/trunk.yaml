@@ -57,6 +57,7 @@ lint:
       paths:
         - libs/cloudflare-tunnel/templates/**
         - libs/internal-dns/templates/**
+        - libs/devenv/goss.yaml
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1

@@ -17,20 +17,12 @@ includes:
     taskfile: ./stacks/enigma/Taskfile.yml
     dir: ./stacks/enigma
 
-  stacks:devenv:
-    taskfile: ./stacks/devenv/Taskfile.yml
-    dir: .
-
   stacks:provisioner:
     taskfile: ./stacks/provisioner/Taskfile.yml
     dir: ./stacks/provisioner
 
   stacks:codex:
     taskfile: ./stacks/codex/Taskfile.yml
-    dir: .
-
-  3rdparty:
-    taskfile: ./third_party/Taskfile.yml
     dir: .
 
   apps:haos:

@@ -1,3 +1,9 @@
 #!/bin/bash
 
-exec "${SETUP_DIR}"/bin/internal/bin/chezmoi --config "${SETUP_DIR}"/stacks/devenv/chezmoi.yaml -S "${SETUP_DIR}" "$@"
+# Locating the SETUP_DIR and re-running direnv because this can be run outside the repo root
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
+DIRENV_BIN="${LOCAL_SETUP_DIR}"/bin/direnv
+INTERNAL_CHEZMOI_BIN="${LOCAL_SETUP_DIR}"/bin/internal/bin/chezmoi
+
+# Setting the direnv log format to empty to make direnv quiet
+DIRENV_LOG_FORMAT="" exec ${DIRENV_BIN} exec "${LOCAL_SETUP_DIR}" "${INTERNAL_CHEZMOI_BIN}" --config "${LOCAL_SETUP_DIR}"/libs/devenv/chezmoi.yaml -S "${LOCAL_SETUP_DIR}" "$@"

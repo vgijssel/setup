@@ -83,3 +83,5 @@ stacks/enigma-cozy/kubeconfig
 
 kind-logs-*
 kubeconfig
+
+**/.claude/settings.local.json

@@ -1,0 +1,48 @@
+packages:
+  darwin:
+    brews:
+      - git
+      - zsh
+      - httpie
+      - coreutils
+      - gnu-sed
+      - curl
+      - wget
+      - fontconfig
+    casks:
+      - google-chrome
+      - orbstack
+      - iterm2
+      - visual-studio-code
+      - font-fira-code-nerd-font
+      - alfred
+      - whatsapp
+      - spotify
+      - todoist
+      - raspberry-pi-imager
+      - balenaetcher
+      - steam
+      - 1password
+      - discord
+      - slack
+      - obsidian
+      - gimp
+      - chatgpt
+      - github
+      - finicky
+      - obs
+  linux:
+    apt_packages:
+      - git
+      - zsh
+      - ca-certificates
+      - curl
+      - wget
+      - ssh
+      - busybox
+      - bash
+      - sudo
+      - locales
+      - bash
+      - fontconfig
+      - unzip

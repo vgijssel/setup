@@ -1,0 +1,177 @@
+command:
+  git_version:
+    title: Git >=2.34.0 (supports SSH commit signing)
+    meta:
+      url: https://developer.1password.com/docs/ssh/git-commit-signing/
+    exec: git --version | awk '{print $3}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=2.34.0"
+    stderr: ""
+    timeout: 60000
+
+  ssh_version:
+    title: SSH client is installed
+    exec: ssh -V 2>&1 | head -1
+    exit-status: 0
+    stdout:
+      - /OpenSSH/
+    timeout: 60000
+
+  zsh_version:
+    title: Zsh shell is installed
+    exec: zsh --version 
+    exit-status: 0
+    stderr: ""
+    timeout: 60000
+
+  curl_version:
+    title: curl is installed
+    exec: curl --version | head -1 | awk '{print $2}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=8.5.0"
+    stderr: ""
+    timeout: 60000
+
+  wget_version:
+    title: wget is installed
+    exec: wget --version
+    exit-status: 0
+    timeout: 60000
+
+  fzf --version:
+    title: fzf >=0.51.0 needs to be installed for zoxide
+    meta:
+      url: https://github.com/ajeetdsouza/zoxide
+    exec: fzf --version | awk '{print $1}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=0.51.0"
+    stderr: ""
+    timeout: 60000
+
+  locale:
+    title: Check locale settings
+    exec: locale | grep -E "^LANG=" || echo "LANG not set"
+    exit-status: 0
+    timeout: 60000
+
+  chezmoi_version:
+    exec: chezmoi --version | awk '{print $3}' | tr -d 'v,\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=2.62.5"
+    stderr: ""
+    timeout: 60000
+
+  starship_version:
+    title: Starship prompt is installed via Hermit
+    exec: starship --version |  awk 'NR==1 {print $2}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=1.23.0"
+    stderr: ""
+    timeout: 60000
+
+  which starship:
+    title: Starship is available in PATH via Hermit
+    exit-status: 0
+    stdout: "{{.Env.SETUP_DIR}}/bin/starship\n"
+
+  starship_outside_repo:
+    title: Starship is available outside of repo root
+    exec: direnv exec / which starship
+    exit-status: 0
+
+  starship_prompt_integration:
+    title: Starship prompt is properly integrated with zsh
+    # Passing -i to similate an interactive shell
+    exec: zsh -ic 'env'
+    exit-status: 0
+    stdout:
+      - STARSHIP_SHELL=zsh
+    timeout: 60000
+
+  docker_storage_check_linux:
+    title: Docker storage is local to container (DinD)
+    skip: {{.Env.IS_MACOS}}
+    exec: docker info | grep "Docker Root Dir" | awk '{print $NF}'
+    exit-status: 0
+    stdout:
+      - /var/lib/docker
+    timeout: 60000
+
+  docker_version_linux:
+    title: Docker client is available
+    skip: {{.Env.IS_MACOS}}
+    exec: docker --version
+    exit-status: 0
+    timeout: 60000
+
+  firacode_font:
+    title: FiraCode Nerd Font is installed
+    stdout:
+      - FiraCode Nerd Font
+    exec: fc-list
+    exit-status: 0
+    timeout: 10000
+
+user:
+  devcontainer:
+    skip: {{.Env.IS_MACOS}}
+    exists: true
+    home: /home/devcontainer
+    shell: /usr/bin/zsh
+  root:
+    skip: {{.Env.IS_MACOS}}
+    exists: true
+    shell: /usr/bin/zsh
+
+group:
+  devcontainer:
+    skip: {{.Env.IS_MACOS}}
+    exists: true
+file:
+  '{{.Env.HOME}}':
+    exists: true
+    filetype: directory
+
+  '{{.Env.HOME}}/.config/direnv/direnv.toml':
+    exists: true
+    filetype: file
+
+  '{{.Env.HOME}}/.config':
+    exists: true
+    filetype: directory
+
+  '{{.Env.HOME}}/.zshrc':
+    exists: true
+    filetype: file
+
+  '{{.Env.HOME}}/.gitconfig':
+    exists: true
+    filetype: file
+    contents:
+      - '[user]'
+      - name=mvgijssel
+
+  '{{.Env.HOME}}/.config/starship.toml':
+    exists: true
+    filetype: file
+    contents:
+      - add_newline = true
+
+  '{{.Env.HOME}}/.zimrc':
+    exists: true
+    filetype: file
+
+  '{{.Env.HOME}}/.ssh':
+    exists: true
+    filetype: directory
+
+process:
+  dockerd:
+    title: Docker daemon is running inside container (Docker-in-Docker)
+    skip: {{.Env.IS_MACOS}}
+    running: true

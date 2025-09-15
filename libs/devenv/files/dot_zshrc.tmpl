@@ -1,0 +1,24 @@
+# Use 1Password for managing SSH keys
+export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+
+# Symlinked hermit binaries
+export PATH="$HOME/.local/setup/bin:$PATH"
+
+# Setting this to the default, otherwise initialising zim results into problems due to unknown reason.
+export HERMIT_LOCK_TIMEOUT=30s
+
+ZIM_HOME=~/.zim
+
+# Use vendored zimfw from setup directory
+ZIMFW_PATH="{{ env "SETUP_DIR" }}/third_party/vendir/shell/zimfw/zimfw.zsh"
+
+# Install missing modules, and update ${ZIM_HOME}/init.zsh if missing or outdated.
+if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
+  source ${ZIMFW_PATH} init -q
+fi
+
+# Initialize modules.
+source ${ZIM_HOME}/init.zsh
+
+# Aliases
+alias ll='ls -lah'

@@ -24,7 +24,7 @@ jobs:
       - name: Trunk Check
         uses: trunk-io/trunk-action@v1
 
-  # TODO: implement this in nx cloud
+  # TODO: implement this in nx
   # docs-build:
   #   name: docs:build
   #   runs-on: ubuntu-latest
@@ -39,17 +39,19 @@ jobs:
   #     - run: sudo apt install -y libjpeg-turbo-progs
   #     - run: task docs:build
 
-  codex-test:
-    name: stacks:codex:test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Init Hermit
-        uses: cashapp/activate-hermit@v1
-      - run: task stacks:codex:test
+  # TODO: implement this in nx
+  #   codex-test:
+  #     name: stacks:codex:test
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #       - name: Checkout
+  #         uses: actions/checkout@v3
+  #       - name: Init Hermit
+  #         uses: cashapp/activate-hermit@v1
+  #       - run: task stacks:codex:test
 
-  test:
+  test-linux:
+    name: Linux Tests (All Projects)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +65,9 @@ jobs:
         with:
           direnvVersion: 2.35.0
 
+      # Setup the .env file for direnv
+      - run: echo "" > .env
+
       # This enables task distribution via Nx Cloud
       # Run this command as early as possible, before dependencies are installed
       # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
@@ -75,7 +80,27 @@ jobs:
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
-      - run: nx affected -t lint test build
-      # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
-      - run: nx fix-ci
-        if: always()
+      - run: nx run-many -t lint test build --exclude=tag:macos
+
+  test-macos:
+    name: macOS Tests (Tagged Projects Only)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: tree:0
+          fetch-depth: 0
+
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+      - uses: HatsuneMiku3939/direnv-action@v1
+        with:
+          direnvVersion: 2.35.0
+
+      # Setup the .env file for direnv
+      - run: echo "" > .env
+
+      - uses: nrwl/nx-set-shas@v4
+
+      # Run only test, build, and lint targets for projects tagged with "macos"
+      - run: nx run-many -t lint test build --projects=tag:macos
