@@ -41,4 +41,5 @@ directories:
           tag: v1.18.0
           assetNames:
             - zimfw.zsh
+          # No checksums exist within the release
           disableAutoChecksumValidation: true
