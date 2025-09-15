@@ -1,7 +1,0 @@
-apiVersion: kubeovn.io/v1
-kind: Vlan
-metadata:
-  name: vlan-admin
-spec:
-  id: 0
-  provider: net1
