@@ -16,5 +16,5 @@
       }
     }
   },
-  "tags": ["devenv", "chezmoi", "development-environment"]
+  "tags": ["devenv", "chezmoi", "development-environment", "macos"]
 }

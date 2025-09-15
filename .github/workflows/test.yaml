@@ -49,7 +49,8 @@ jobs:
         uses: cashapp/activate-hermit@v1
       - run: task stacks:codex:test
 
-  test:
+  test-linux:
+    name: Linux Tests (All Projects)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,4 +76,24 @@ jobs:
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
-      - run: nx affected -t lint test build
+      - run: nx run-many -t lint test build
+
+  test-macos:
+    name: macOS Tests (Tagged Projects Only)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: tree:0
+          fetch-depth: 0
+
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+      - uses: HatsuneMiku3939/direnv-action@v1
+        with:
+          direnvVersion: 2.35.0
+
+      - uses: nrwl/nx-set-shas@v4
+
+      # Run only test, build, and lint targets for projects tagged with "macos"
+      - run: nx run-many -t lint test build --projects=tag:macos
