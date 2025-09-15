@@ -108,6 +108,14 @@ command:
     exit-status: 0
     timeout: 10000
 
+  starship_prompt_integration:
+    title: "Starship prompt is properly integrated with zsh"
+    exec: zsh -c 'env'
+    exit-status: 0
+    stdout:
+      - "STARSHIP_SHELL=zsh"
+    timeout: 60000
+
 user:
   devcontainer:
     skip: {{.Env.IS_MACOS}}
