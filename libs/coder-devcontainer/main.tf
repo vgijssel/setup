@@ -55,15 +55,6 @@ data "coder_parameter" "custom_repo_url" {
   order        = 2
 }
 
-data "coder_parameter" "fallback_image" {
-  default      = "codercom/enterprise-base:ubuntu"
-  description  = "This image runs if the devcontainer fails to build."
-  display_name = "Fallback Image"
-  mutable      = true
-  name         = "fallback_image"
-  order        = 3
-}
-
 data "coder_parameter" "devcontainer_builder" {
   description  = <<-EOF
 Image that will build the devcontainer.
@@ -106,7 +97,7 @@ locals {
   envbuilder_env = {
     # ENVBUILDER_GIT_URL and ENVBUILDER_CACHE_REPO will be overridden by the provider
     # if the cache repo is enabled.
-    "ENVBUILDER_GIT_URL" : local.repo_url,
+    "ENVBUILDER_GIT_URL" : "${local.repo_url}#refs/heads/mg/feat/setup-code-template",
     "ENVBUILDER_CACHE_REPO" : var.cache_repo,
     "ENVBUILDER_WORKSPACE_FOLDER" : "/workspaces/setup",
     "ENVBUILDER_DEVCONTAINER_DIR" : "/workspaces/setup/.devcontainer",
@@ -115,7 +106,6 @@ locals {
     "CODER_AGENT_URL" : replace(data.coder_workspace.me.access_url, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal"),
     # Use the docker gateway if the access URL is 127.0.0.1
     "ENVBUILDER_INIT_SCRIPT" : replace(coder_agent.main.init_script, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal"),
-    "ENVBUILDER_FALLBACK_IMAGE" : data.coder_parameter.fallback_image.value,
     "ENVBUILDER_DOCKER_CONFIG_BASE64" : try(data.local_sensitive_file.cache_repo_dockerconfigjson[0].content_base64, ""),
     "ENVBUILDER_PUSH_IMAGE" : var.cache_repo == "" ? "" : "true",
     "ENVBUILDER_INSECURE" : "${var.insecure_cache_repo}",
@@ -313,16 +303,6 @@ module "code-server" {
 
   agent_id = coder_agent.main.id
   order    = 1
-}
-
-# See https://registry.coder.com/modules/coder/jetbrains
-module "jetbrains" {
-  count      = data.coder_workspace.me.start_count
-  source     = "registry.coder.com/coder/jetbrains/coder"
-  version    = "~> 1.0"
-  agent_id   = coder_agent.main.id
-  agent_name = "main"
-  folder     = "/workspaces/setup"
 }
 
 resource "coder_metadata" "container_info" {
