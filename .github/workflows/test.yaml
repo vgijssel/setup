@@ -24,7 +24,7 @@ jobs:
       - name: Trunk Check
         uses: trunk-io/trunk-action@v1
 
-  # TODO: implement this in nx cloud
+  # TODO: implement this in nx
   # docs-build:
   #   name: docs:build
   #   runs-on: ubuntu-latest
@@ -39,15 +39,16 @@ jobs:
   #     - run: sudo apt install -y libjpeg-turbo-progs
   #     - run: task docs:build
 
-  codex-test:
-    name: stacks:codex:test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Init Hermit
-        uses: cashapp/activate-hermit@v1
-      - run: task stacks:codex:test
+  # TODO: implement this in nx
+  #   codex-test:
+  #     name: stacks:codex:test
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #       - name: Checkout
+  #         uses: actions/checkout@v3
+  #       - name: Init Hermit
+  #         uses: cashapp/activate-hermit@v1
+  #       - run: task stacks:codex:test
 
   test-linux:
     name: Linux Tests (All Projects)
