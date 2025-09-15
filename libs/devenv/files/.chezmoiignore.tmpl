@@ -1,4 +1,4 @@
-{{ if ne .chezmoi.os "darwin" -}}
+{{ if ne (env "IS_MACOS") "true" -}}
 Library
 .finicky.js
 darwin-install-packages.sh
@@ -6,6 +6,6 @@ darwin-macos-perferences.sh
 install-vscode-extensions.sh
 {{- end }}
 
-{{ if ne .chezmoi.os "linux" -}}
+{{ if ne (env "IS_LINUX") "true" -}}
 linux-install-packages.sh
 {{- end }}

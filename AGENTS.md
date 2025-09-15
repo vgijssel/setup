@@ -98,6 +98,15 @@ All binaries are available on-demand through the `bin/` directory:
 
 ## Best Practices
 
+### Platform Detection
+- **Environment Variables**: Use `IS_MACOS` and `IS_LINUX` for consistent platform detection
+- **Values**: Set to "true" or "false" in `.envrc` based on detected OS
+- **Usage**:
+  - Chezmoi templates: `{{ if eq (env "IS_MACOS") "true" }}`
+  - Goss tests: `skip: {{.Env.IS_MACOS}}`
+  - Shell scripts: `if [ "$IS_MACOS" = "true" ]; then`
+- **Consistency**: Apply across all tools for unified platform handling
+
 ### Kubernetes File Naming Convention
 
 Format: `<kind>-<name>.yaml`

@@ -26,3 +26,10 @@
 - Understand project dependencies with `nx graph`
 - Use `nx affected` commands to work efficiently with changed code
 - Follow the libs > apps > stacks hierarchy for dependencies
+
+### Platform Detection Convention
+- Use `IS_MACOS` and `IS_LINUX` environment variables for consistent platform detection
+- These variables are set to "true" or "false" in `.envrc`
+- Apply consistently across all tools: chezmoi templates, goss tests, scripts
+- Access in chezmoi templates: `{{ if eq (env "IS_MACOS") "true" }}`
+- Access in goss tests: `skip: {{.Env.IS_MACOS}}`

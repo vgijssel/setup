@@ -1,6 +1,6 @@
 command:
   git_version:
-    title: "Git >=2.34.0 (supports SSH commit signing)"
+    title: Git >=2.34.0 (supports SSH commit signing)
     meta:
       url: https://developer.1password.com/docs/ssh/git-commit-signing/
     exec: git --version | awk '{print $3}' | tr -d '\n'
@@ -11,7 +11,7 @@ command:
     timeout: 60000
 
   ssh_version:
-    title: "SSH client is installed"
+    title: SSH client is installed
     exec: ssh -V 2>&1 | head -1
     exit-status: 0
     stdout:
@@ -19,14 +19,14 @@ command:
     timeout: 60000
 
   zsh_version:
-    title: "Zsh shell is installed"
+    title: Zsh shell is installed
     exec: zsh --version 
     exit-status: 0
     stderr: ""
     timeout: 60000
 
   curl_version:
-    title: "curl is installed"
+    title: curl is installed
     exec: curl --version | head -1 | awk '{print $2}' | tr -d '\n'
     exit-status: 0
     stdout:
@@ -35,13 +35,13 @@ command:
     timeout: 60000
 
   wget_version:
-    title: "wget is installed"
+    title: wget is installed
     exec: wget --version
     exit-status: 0
     timeout: 60000
 
   fzf --version:
-    title: "fzf >=0.51.0 needs to be installed for zoxide"
+    title: fzf >=0.51.0 needs to be installed for zoxide
     meta:
       url: https://github.com/ajeetdsouza/zoxide
     exec: fzf --version | awk '{print $1}' | tr -d '\n'
@@ -52,7 +52,7 @@ command:
     timeout: 60000
 
   locale:
-    title: "Check locale settings"
+    title: Check locale settings
     exec: locale | grep -E "^LANG=" || echo "LANG not set"
     exit-status: 0
     timeout: 60000
@@ -66,7 +66,7 @@ command:
     timeout: 60000
 
   starship_version:
-    title: "Starship prompt is installed via Hermit"
+    title: Starship prompt is installed via Hermit
     exec: starship --version |  awk 'NR==1 {print $2}' | tr -d '\n'
     exit-status: 0
     stdout:
@@ -75,33 +75,33 @@ command:
     timeout: 60000
 
   which starship:
-    title: "Starship is available in PATH via Hermit"
+    title: Starship is available in PATH via Hermit
     exit-status: 0
     stdout: "{{.Env.SETUP_DIR}}/bin/starship\n"
 
   starship_outside_repo:
-    title: "Starship is available outside of repo root"
+    title: Starship is available outside of repo root
     exec: direnv exec / which starship
     exit-status: 0
 
   docker_storage_check_linux:
-    title: "Docker storage is local to container (DinD)"
+    title: Docker storage is local to container (DinD)
     skip: {{.Env.IS_MACOS}}
     exec: docker info | grep "Docker Root Dir" | awk '{print $NF}'
     exit-status: 0
     stdout:
-      - "/var/lib/docker"
+      - /var/lib/docker
     timeout: 60000
 
   docker_version_linux:
-    title: "Docker client is available"
+    title: Docker client is available
     skip: {{.Env.IS_MACOS}}
     exec: docker --version
     exit-status: 0
     timeout: 60000
 
   firacode_font:
-    title: "FiraCode Nerd Font is installed"
+    title: FiraCode Nerd Font is installed
     stdout:
       - FiraCode Nerd Font
     exec: fc-list
@@ -109,11 +109,11 @@ command:
     timeout: 10000
 
   starship_prompt_integration:
-    title: "Starship prompt is properly integrated with zsh"
+    title: Starship prompt is properly integrated with zsh
     exec: zsh -c 'env'
     exit-status: 0
     stdout:
-      - "STARSHIP_SHELL=zsh"
+      - STARSHIP_SHELL=zsh
     timeout: 60000
 
 user:
@@ -132,45 +132,45 @@ group:
     skip: {{.Env.IS_MACOS}}
     exists: true
 file:
-  {{.Env.HOME}}:
+  '{{.Env.HOME}}':
     exists: true
     filetype: directory
 
-  {{.Env.HOME}}/.config/direnv/direnv.toml:
+  '{{.Env.HOME}}/.config/direnv/direnv.toml':
     exists: true
     filetype: file
 
-  {{.Env.HOME}}/.config:
+  '{{.Env.HOME}}/.config':
     exists: true
     filetype: directory
 
-  {{.Env.HOME}}/.zshrc:
+  '{{.Env.HOME}}/.zshrc':
     exists: true
     filetype: file
 
-  {{.Env.HOME}}/.gitconfig:
-    exists: true
-    filetype: file
-    contents:
-      - "[user]"
-      - "name=mvgijssel"
-
-  {{.Env.HOME}}/.config/starship.toml:
+  '{{.Env.HOME}}/.gitconfig':
     exists: true
     filetype: file
     contents:
-      - "add_newline = true"
+      - '[user]'
+      - name=mvgijssel
 
-  {{.Env.HOME}}/.zimrc:
+  '{{.Env.HOME}}/.config/starship.toml':
+    exists: true
+    filetype: file
+    contents:
+      - add_newline = true
+
+  '{{.Env.HOME}}/.zimrc':
     exists: true
     filetype: file
 
-  {{.Env.HOME}}/.ssh:
+  '{{.Env.HOME}}/.ssh':
     exists: true
     filetype: directory
 
 process:
   dockerd:
-    title: "Docker daemon is running inside container (Docker-in-Docker)"
+    title: Docker daemon is running inside container (Docker-in-Docker)
     skip: {{.Env.IS_MACOS}}
     running: true
