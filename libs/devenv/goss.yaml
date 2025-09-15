@@ -81,8 +81,24 @@ command:
 
   starship_outside_repo:
     title: "Starship is available outside of repo root"
-    exec: direnv exec / which starship 
+    exec: direnv exec / which starship
     exit-status: 0
+
+  docker_storage_check:
+    title: "Docker storage is local to container (DinD)"
+    skip: {{.Env.IS_MACOS}}
+    exec: docker info | grep "Docker Root Dir" | awk '{print $NF}'
+    exit-status: 0
+    stdout:
+      - "/var/lib/docker"
+    timeout: 10000
+
+  docker_version:
+    title: "Docker client is available"
+    skip: {{.Env.IS_MACOS}}
+    exec: docker --version
+    exit-status: 0
+    timeout: 10000
 
 user:
   devcontainer:
@@ -136,3 +152,9 @@ file:
   {{.Env.HOME}}/.ssh:
     exists: true
     filetype: directory
+
+process:
+  dockerd:
+    title: "Docker daemon is running inside container (Docker-in-Docker)"
+    skip: {{.Env.IS_MACOS}}
+    running: true
