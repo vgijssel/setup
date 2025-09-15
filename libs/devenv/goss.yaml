@@ -91,14 +91,14 @@ command:
     exit-status: 0
     stdout:
       - "/var/lib/docker"
-    timeout: 10000
+    timeout: 60000
 
   docker_version_linux:
     title: "Docker client is available"
     skip: {{.Env.IS_MACOS}}
     exec: docker --version
     exit-status: 0
-    timeout: 10000
+    timeout: 60000
 
   firacode_font:
     title: "FiraCode Nerd Font is installed"

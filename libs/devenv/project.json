@@ -6,7 +6,10 @@
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["goss validate"],
+        "commands": [
+          "chezmoi apply",
+          "goss validate"
+        ],
         "parallel": false,
         "cwd": "libs/devenv"
       },

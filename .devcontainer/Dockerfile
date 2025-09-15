@@ -42,3 +42,7 @@ COPY --chown=devcontainer:devcontainer .chezmoiroot /workspaces/setup/.chezmoiro
 
 # Initialize and apply chezmoi configuration using direnv
 RUN bin/direnv allow && bin/direnv exec . bin/chezmoi apply --verbose
+
+# NOTE: this entrypoint is made available by the `ghcr.io/devcontainers/features/docker-in-docker:2` feature
+# which is specified in devcontainer.json. Building this Dockerfile directly will result in an error.
+ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]

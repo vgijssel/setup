@@ -76,7 +76,7 @@ jobs:
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
-      - run: nx run-many -t lint test build
+      - run: nx run-many -t lint test build --exclude=tag:macos
 
   test-macos:
     name: macOS Tests (Tagged Projects Only)

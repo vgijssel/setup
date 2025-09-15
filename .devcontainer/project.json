@@ -17,7 +17,7 @@
         "parallel": false,
         "commands": [
           "devcontainer build --workspace-folder . --image-name devcontainer-test",
-          "docker run --rm -v $(pwd):/workspaces/setup devcontainer-test bin/direnv exec . nx test devenv"
+          "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer-test bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
         ],
         "cwd": "."
       },
