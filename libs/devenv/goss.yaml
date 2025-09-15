@@ -84,6 +84,15 @@ command:
     exec: direnv exec / which starship
     exit-status: 0
 
+  starship_prompt_integration:
+    title: Starship prompt is properly integrated with zsh
+    # Passing -i to similate an interactive shell
+    exec: zsh -ic 'env'
+    exit-status: 0
+    stdout:
+      - STARSHIP_SHELL=zsh
+    timeout: 60000
+
   docker_storage_check_linux:
     title: Docker storage is local to container (DinD)
     skip: {{.Env.IS_MACOS}}
@@ -107,14 +116,6 @@ command:
     exec: fc-list
     exit-status: 0
     timeout: 10000
-
-  starship_prompt_integration:
-    title: Starship prompt is properly integrated with zsh
-    exec: zsh -c 'env'
-    exit-status: 0
-    stdout:
-      - STARSHIP_SHELL=zsh
-    timeout: 60000
 
 user:
   devcontainer:
