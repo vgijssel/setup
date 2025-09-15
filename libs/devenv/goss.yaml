@@ -84,7 +84,7 @@ command:
     exec: direnv exec / which starship
     exit-status: 0
 
-  docker_storage_check:
+  docker_storage_check_linux:
     title: "Docker storage is local to container (DinD)"
     skip: {{.Env.IS_MACOS}}
     exec: docker info | grep "Docker Root Dir" | awk '{print $NF}'
@@ -93,10 +93,18 @@ command:
       - "/var/lib/docker"
     timeout: 10000
 
-  docker_version:
+  docker_version_linux:
     title: "Docker client is available"
     skip: {{.Env.IS_MACOS}}
     exec: docker --version
+    exit-status: 0
+    timeout: 10000
+
+  firacode_font:
+    title: "FiraCode Nerd Font is installed"
+    stdout:
+      - FiraCode Nerd Font
+    exec: fc-list
     exit-status: 0
     timeout: 10000
 

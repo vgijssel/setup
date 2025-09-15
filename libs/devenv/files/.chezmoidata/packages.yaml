@@ -8,6 +8,7 @@ packages:
       - gnu-sed
       - curl
       - wget
+      - fontconfig
     casks:
       - google-chrome
       - orbstack
@@ -42,3 +43,6 @@ packages:
       - bash
       - sudo
       - locales
+      - bash
+      - fontconfig
+      - unzip

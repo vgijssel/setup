@@ -1,18 +1,14 @@
 FROM ubuntu:noble
 
-# Install prerequisites for Docker-in-Docker and zsh
-# TODO: maybe remove this and move to Chezmoi?
+# Some of these packages are duplicated in libs/devenv/files/.chezmoidata/packages.yaml
+# Becaue they are needed to bootstrap chezmoi.
 RUN apt-get update && apt-get install -y \
+    git \
     ca-certificates \
     curl \
-    wget \
-    git \
     ssh \
-    busybox \
-    bash \
     sudo \
     locales \
-    zsh \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure locale
