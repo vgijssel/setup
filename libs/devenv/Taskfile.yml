@@ -1,8 +1,0 @@
-version: "3"
-
-tasks:
-  # TODO: implement basic Ansible playbook to provision the devenv
-  apply:
-    desc: Apply the development environment configuration
-    cmds:
-      - chezmoi apply --verbose --no-pager
