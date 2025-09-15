@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y \
     busybox \
     bash \
     sudo \
-    direnv \
     locales \
     zsh \
     && rm -rf /var/lib/apt/lists/*
@@ -35,15 +34,15 @@ RUN groupadd --gid ${USER_GID} devcontainer \
 USER devcontainer
 
 # Set working directory
-WORKDIR /home/devcontainer
+WORKDIR /workspaces/setup
 
-# # Install chezmoi binary
-# RUN sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /home/devcontainer/.local/bin
+# Copy necessary files for chezmoi setup
+COPY --chown=devcontainer:devcontainer .envrc /workspaces/setup/.envrc
+COPY --chown=devcontainer:devcontainer bin /workspaces/setup/bin
+COPY --chown=devcontainer:devcontainer third_party/hermit /workspaces/setup/third_party/hermit
+COPY --chown=devcontainer:devcontainer third_party/vendir/shell /workspaces/setup/third_party/vendir/shell
+COPY --chown=devcontainer:devcontainer libs/devenv /workspaces/setup/libs/devenv
+COPY --chown=devcontainer:devcontainer .chezmoiroot /workspaces/setup/.chezmoiroot
 
-# # Copy the libs/devenv directory (chezmoi source) into the container
-# COPY --chown=devcontainer:devcontainer libs/devenv /tmp/chezmoi-source
-
-# # Initialize and apply chezmoi configuration
-# ENV SETUP_DIR=/workspaces/setup
-# RUN /home/devcontainer/.local/bin/chezmoi init --apply --source=/tmp/chezmoi-source && \
-#     rm -rf /tmp/chezmoi-source
+# Initialize and apply chezmoi configuration using direnv
+RUN bin/direnv allow && bin/direnv exec . bin/chezmoi apply --verbose

@@ -17,7 +17,7 @@
         "parallel": false,
         "commands": [
           "devcontainer build --workspace-folder . --image-name devcontainer-test",
-          "docker run --rm --workdir /workspaces/setup -v $(pwd):/workspaces/setup devcontainer-test bash -c \"nx test devenv\""
+          "docker run --rm -v $(pwd):/workspaces/setup devcontainer-test bin/direnv exec . nx test devenv"
         ],
         "cwd": "."
       },
