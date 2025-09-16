@@ -11,7 +11,11 @@
       "test": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "terraform validate",
+          "commands": [
+            "terraform init",
+            "terraform validate"
+          ],
+          "parallel": false,
           "cwd": "libs/coder-devcontainer"
         },
         "cache": true,
