@@ -1,6 +1,6 @@
 {
   "name": "devcontainer",
-  "version": "2.0.0",
+  "version": "0.0.0",
   "nx": {
     "sourceRoot": ".devcontainer",
     "projectType": "application",

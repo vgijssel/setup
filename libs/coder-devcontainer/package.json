@@ -1,35 +1,13 @@
 {
   "name": "coder-devcontainer",
-  "version": "1.0.1",
+  "version": "0.0.0",
   "dependencies": {
-    "devcontainer": "2.0.0"
+    "devcontainer": "0.0.0"
   },
   "nx": {
     "projectType": "library",
     "sourceRoot": "libs/coder-devcontainer",
     "targets": {
-      "validate": {
-        "executor": "nx:run-commands",
-        "options": {
-          "command": "terraform validate",
-          "cwd": "libs/coder-devcontainer"
-        },
-        "cache": true,
-        "metadata": {
-          "description": "Validate the Coder template Terraform configuration"
-        }
-      },
-      "format": {
-        "executor": "nx:run-commands",
-        "options": {
-          "command": "terraform fmt",
-          "cwd": "libs/coder-devcontainer"
-        },
-        "cache": false,
-        "metadata": {
-          "description": "Format the Coder template Terraform files"
-        }
-      },
       "test": {
         "executor": "nx:run-commands",
         "options": {
