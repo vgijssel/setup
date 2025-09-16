@@ -86,3 +86,4 @@ kubeconfig
 
 **/.claude/settings.local.json
 **/.terraform/
+.nx/key/key.ini

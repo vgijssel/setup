@@ -4,7 +4,6 @@
   },
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "main",
-  "nxCloudId": "68b34de6a0cec86944bec2d3",
   "release": {
     "projects": ["libs/devcontainer", "libs/coder-devcontainer", "libs/devenv"],
     "projectsRelationship": "independent",
@@ -23,6 +22,7 @@
     },
     "git": {
       "commit": true,
+      "commitMessage": "chore(release): publish [skip ci]",
       "tag": true
     },
     "releaseTagPattern": "{projectName}@{version}"

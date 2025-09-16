@@ -1,0 +1,32 @@
+name: Setup Environment
+description: Composite action to setup environment with checkout, hermit, direnv, and 1Password secrets
+inputs:
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        filter: tree:0
+        fetch-depth: 0
+
+    - name: Init Hermit
+      uses: cashapp/activate-hermit@v1
+
+    - name: Setup direnv
+      uses: HatsuneMiku3939/direnv-action@v1
+      with: 
+        direnvVersion: 2.35.0
+
+    - name: Create empty .env
+      shell: bash
+      run: touch .env
+
+    - uses: nrwl/nx-set-shas@v4
+
+    - name: Export NX_KEY
+      run: |
+        echo "NX_KEY=${{ secrets.NX_KEY }}" >> $GITHUB_ENV
+        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
