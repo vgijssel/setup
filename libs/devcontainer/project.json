@@ -4,8 +4,9 @@
   "projectType": "application",
   "implicitDependencies": ["devenv"],
   "release": {
+    "groupPreVersionCommand": "exit 1",
     "docker": {
-      "repositoryName": "acme/api"
+      "repositoryName": "devcontainer"
     }
   },
   "targets": {
@@ -15,6 +16,15 @@
         "command": "devcontainer build --workspace-folder . --image-name libs-devcontainer"
       },
       "cache": true
+    },
+    "update-coder-version": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./scripts/update-coder-docker-version.sh"
+      },
+      "metadata": {
+        "description": "Update Coder template with the latest Docker image version after release"
+      }
     },
     "run": {
       "executor": "nx:run-commands",
@@ -26,11 +36,9 @@
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {
-        "parallel": false,
         "commands": [
           "docker run --privileged --rm -v $(pwd):/workspaces/setup libs-devcontainer bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
-        ],
-        "cwd": "."
+        ]
       },
       "cache": true
     }

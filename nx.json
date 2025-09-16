@@ -8,6 +8,21 @@
   "release": {
     "projectsRelationship": "independent",
     "versionPlans": true,
+    "version": {
+      "conventionalCommits": true
+    },
+    "changelog": {
+      "projectChangelogs": {
+        "createRelease": "github",
+        "renderOptions": {
+          "authors": false
+        }
+      }
+    },
+    "git": {
+      "commit": true,
+      "tag": true
+    },
     "releaseTagPattern": "{projectName}@{version}",
     "groups": {
       "apps": {
@@ -15,16 +30,12 @@
         "projectsRelationship": "independent",
         "docker": {
           "skipVersionActions": true,
-          "registryUrl": "docker.io",
-          "groupPreVersionCommand": "echo BEFORE VERSIONING"
-        },
-        "changelog": {
-          "projectChangelogs": true
+          "registryUrl": "ghcr.io/vgijssel/setup"
         }
       }
     }
   },
-    "plugins": [
+  "plugins": [
     {
       "plugin": "@nx/docker",
       "exclude": [
