@@ -1,7 +1,5 @@
 name: Setup Environment
 description: Composite action to setup environment with checkout, hermit, direnv, and 1Password secrets
-inputs:
-
 runs:
   using: composite
   steps:
