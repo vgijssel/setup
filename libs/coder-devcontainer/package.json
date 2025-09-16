@@ -15,6 +15,7 @@
             "terraform init",
             "terraform validate"
           ],
+          "parallel": false,
           "cwd": "libs/coder-devcontainer"
         },
         "cache": true,
