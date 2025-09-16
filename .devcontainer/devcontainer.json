@@ -1,7 +1,7 @@
 {
   "name": "Setup Development Environment (Docker-in-Docker)",
   "build": {
-    "dockerfile": "Dockerfile",
+    "dockerfile": "../libs/devcontainer/Dockerfile",
     "context": ".."
   },
   "remoteUser": "devcontainer",

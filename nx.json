@@ -4,5 +4,27 @@
   },
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "main",
-  "nxCloudId": "68b34de6a0cec86944bec2d3"
+  "nxCloudId": "68b34de6a0cec86944bec2d3",
+  "release": {
+    "projects": ["libs/devcontainer", "libs/coder-devcontainer"],
+    "projectsRelationship": "independent",
+    "versionPlans": true,
+    "version": {
+      "conventionalCommits": true,
+      "fallbackCurrentVersionResolver": "disk"
+    },
+    "changelog": {
+      "projectChangelogs": {
+        "createRelease": "github",
+        "renderOptions": {
+          "authors": false
+        }
+      }
+    },
+    "git": {
+      "commit": true,
+      "tag": true
+    },
+    "releaseTagPattern": "{projectName}@{version}"
+  }
 }

@@ -1,0 +1,30 @@
+{
+  "name": "coder-devcontainer",
+  "version": "0.0.0",
+  "dependencies": {
+    "devcontainer": "0.0.0"
+  },
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/coder-devcontainer",
+    "targets": {
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "terraform validate",
+          "cwd": "libs/coder-devcontainer"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Test the Coder template configuration"
+        }
+      }
+    },
+    "tags": [
+      "coder",
+      "devcontainer",
+      "terraform",
+      "development-environment"
+    ]
+  }
+}

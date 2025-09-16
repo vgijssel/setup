@@ -1,5 +1,9 @@
 FROM ubuntu:noble
 
+# Labels to associate with the vgijssel/setup repository
+LABEL org.opencontainers.image.source=https://github.com/vgijssel/setup
+LABEL org.opencontainers.image.description="Development container for the vgijssel/setup repository"
+
 # Some of these packages are duplicated in libs/devenv/files/.chezmoidata/packages.yaml
 # Becaue they are needed to bootstrap chezmoi.
 RUN apt-get update && apt-get install -y \
