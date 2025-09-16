@@ -3,23 +3,23 @@
   "sourceRoot": ".devcontainer",
   "projectType": "application",
   "implicitDependencies": ["devenv"],
-    "release": {
-      "docker": {
-        "repositoryName": "acme/api"
-      }
-    },
+  "release": {
+    "docker": {
+      "repositoryName": "acme/api"
+    }
+  },
   "targets": {
     "build": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "devcontainer build --workspace-folder . --image-name devcontainer"
+        "command": "devcontainer build --workspace-folder . --image-name libs-devcontainer"
       },
       "cache": true
     },
     "run": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer zsh"
+        "command": "docker run --privileged --rm -v $(pwd):/workspaces/setup libs-devcontainer zsh"
       }
     },
     "test": {
@@ -28,8 +28,7 @@
       "options": {
         "parallel": false,
         "commands": [
-          "devcontainer build --workspace-folder . --image-name devcontainer-test",
-          "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer-test bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
+          "docker run --privileged --rm -v $(pwd):/workspaces/setup libs-devcontainer bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
         ],
         "cwd": "."
       },
