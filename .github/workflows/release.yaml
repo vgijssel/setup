@@ -9,6 +9,12 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          filter: tree:0
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup
 
       - name: Configure Git Credentials
@@ -24,9 +30,6 @@ jobs:
           username: vgijssel-bot
           password: ${{ secrets.PACKAGES_TOKEN_GITHUB }}
 
-      - uses: nrwl/nx-set-shas@v4
-
-      - name: Run nx release
-        run: nx release --yes
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+      - uses: ./.github/actions/nx
+        with:
+          command: nx release --yes

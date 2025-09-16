@@ -1,0 +1,21 @@
+name: Nx Command Runner
+description: Run nx commands with proper environment setup
+inputs:
+  command:
+    description: The nx command to run
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - uses: nrwl/nx-set-shas@v4
+
+    - name: Run nx command
+      shell: bash
+      run: ${{ inputs.command }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+        NX_KEY: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

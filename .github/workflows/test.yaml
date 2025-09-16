@@ -51,12 +51,28 @@ jobs:
     name: Linux Tests (All Projects)
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          filter: tree:0
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup
-      - run: nx run-many -t lint test build --exclude=tag:macos
+      - uses: ./.github/actions/nx
+        with:
+          command: nx run-many -t lint test build --exclude=tag:macos
 
   test-macos:
     name: macOS Tests (Tagged Projects Only)
     runs-on: macos-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          filter: tree:0
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup
-      - run: nx run-many -t lint test build --projects=tag:macos
+      - uses: ./.github/actions/nx
+        with:
+          command: nx run-many -t lint test build --projects=tag:macos
