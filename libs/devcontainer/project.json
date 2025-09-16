@@ -3,13 +3,24 @@
   "sourceRoot": ".devcontainer",
   "projectType": "application",
   "implicitDependencies": ["devenv"],
+    "release": {
+      "docker": {
+        "repositoryName": "acme/api"
+      }
+    },
   "targets": {
     "build": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "devcontainer build --workspace-folder ."
+        "command": "devcontainer build --workspace-folder . --image-name devcontainer"
       },
       "cache": true
+    },
+    "run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer zsh"
+      }
     },
     "test": {
       "executor": "nx:run-commands",
