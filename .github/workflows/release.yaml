@@ -50,6 +50,6 @@ jobs:
       - uses: nrwl/nx-set-shas@v4
 
       - name: Run nx release
-        run: nx release
+        run: nx release --yes
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}

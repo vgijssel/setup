@@ -1,6 +1,9 @@
 {
   "name": "devcontainer",
   "version": "0.1.0",
+  "dependencies": {
+    "devenv": "0.1.0"
+  },
   "nx": {
     "sourceRoot": ".devcontainer",
     "projectType": "application",
