@@ -9,9 +9,6 @@ permissions:
   packages: write # For pushing to GHCR
   id-token: write # For OIDC token generation
 
-env:
-  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
-
 jobs:
   release:
     name: Release
@@ -23,8 +20,8 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          GITHUB_TOKEN: "op://setup-ci/github-releases/credential"
-          DOCKER_TOKEN: "op://setup-ci/github-packages/credential"
+          GITHUB_TOKEN: op://setup-ci/github-releases/credential
+          DOCKER_TOKEN: op://setup-ci/github-packages/credential
 
       - uses: actions/checkout@v4
         with:
