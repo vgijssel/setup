@@ -4,24 +4,25 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write # For creating releases and pushing changes
-  packages: write # For pushing to GHCR
-  id-token: write # For OIDC token generation
-
-env:
-  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
-
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     steps:
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          GITHUB_TOKEN: op://setup-ci/github-releases/credential
+          DOCKER_TOKEN: op://setup-ci/github-packages/credential
+
       - uses: actions/checkout@v4
         with:
           filter: tree:0
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ env.GITHUB_TOKEN }}
 
       - name: Init Hermit
         uses: cashapp/activate-hermit@v1
@@ -35,19 +36,20 @@ jobs:
 
       - name: Configure Git Credentials
         run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git config user.name vgijssel-bot
+          git config user.email 147037532+vgijssel-bot@users.noreply.github.com
+          git remote set-url origin https://vgijssel-bot:${{ env.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: vgijssel-bot
+          password: ${{ env.DOCKER_TOKEN }}
 
       - uses: nrwl/nx-set-shas@v4
 
       - name: Run nx release
         run: nx release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
