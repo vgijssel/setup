@@ -30,7 +30,8 @@
         "projectsRelationship": "independent",
         "docker": {
           "skipVersionActions": true,
-          "registryUrl": "ghcr.io/vgijssel/setup"
+          "registryUrl": "ghcr.io/vgijssel/setup",
+          "groupPreVersionCommand": "nx run devcontainer:build"
         }
       }
     }
