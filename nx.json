@@ -26,5 +26,12 @@
       "tag": true
     },
     "releaseTagPattern": "{projectName}@{version}"
+  },
+  "s3": {
+    "endpoint": "https://s3.us-west-004.backblazeb2.com",
+    "region": "us-west-004",
+    "bucket": "setup-nx",
+    "forcePathStyle": true,
+    "localMode": "read-write"
   }
 }
