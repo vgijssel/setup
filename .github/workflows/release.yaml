@@ -30,6 +30,10 @@ jobs:
           username: vgijssel-bot
           password: ${{ secrets.PACKAGES_TOKEN_GITHUB }}
 
-      - uses: ./.github/actions/nx
-        with:
-          command: nx release --yes
+      - name: Run nx release
+        run: nx release --yes
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+          NX_KEY: ${{ secrets.NX_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

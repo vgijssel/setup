@@ -58,9 +58,13 @@ jobs:
           fetch-depth: 0
 
       - uses: ./.github/actions/setup
-      - uses: ./.github/actions/nx
-        with:
-          command: nx run-many -t lint test build --exclude=tag:macos
+
+      - name: Run nx tests
+        run: nx run-many -t lint test build --exclude=tag:macos
+        env:
+          NX_KEY: ${{ secrets.NX_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   test-macos:
     name: macOS Tests (Tagged Projects Only)
@@ -73,6 +77,10 @@ jobs:
           fetch-depth: 0
 
       - uses: ./.github/actions/setup
-      - uses: ./.github/actions/nx
-        with:
-          command: nx run-many -t lint test build --projects=tag:macos
+
+      - name: Run nx tests
+        run: nx run-many -t lint test build --projects=tag:macos
+        env:
+          NX_KEY: ${{ secrets.NX_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
