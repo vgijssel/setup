@@ -1,0 +1,44 @@
+{
+  "name": "devcontainer",
+  "version": "2.0.0",
+  "nx": {
+    "sourceRoot": ".devcontainer",
+    "projectType": "application",
+    "implicitDependencies": [
+      "devenv"
+    ],
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "devcontainer build --workspace-folder . --image-name libs-devcontainer"
+        },
+        "cache": true
+      },
+      "run": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "docker run --privileged --rm -v $(pwd):/workspaces/setup libs-devcontainer zsh"
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "commands": [
+            "docker run --privileged --rm -v $(pwd):/workspaces/setup libs-devcontainer bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
+          ]
+        },
+        "cache": true
+      },
+      "nx-release-publish": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "echo 'Skip publish for devcontainer'"
+        }
+      }
+    }
+  }
+}

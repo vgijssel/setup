@@ -6,10 +6,12 @@
   "defaultBase": "main",
   "nxCloudId": "68b34de6a0cec86944bec2d3",
   "release": {
+    "projects": ["libs/devcontainer", "libs/coder-devcontainer"],
     "projectsRelationship": "independent",
     "versionPlans": true,
     "version": {
-      "conventionalCommits": true
+      "conventionalCommits": true,
+      "fallbackCurrentVersionResolver": "disk"
     },
     "changelog": {
       "projectChangelogs": {
@@ -23,34 +25,6 @@
       "commit": true,
       "tag": true
     },
-    "releaseTagPattern": "{projectName}@{version}",
-    "groups": {
-      "apps": {
-        "projects": ["devcontainer"],
-        "projectsRelationship": "independent",
-        "docker": {
-          "skipVersionActions": true,
-          "registryUrl": "ghcr.io/vgijssel/setup",
-          "groupPreVersionCommand": "nx run devcontainer:build"
-        }
-      }
-    }
-  },
-  "plugins": [
-    {
-      "plugin": "@nx/docker",
-      "exclude": [
-        "apps/escaperoom/**",
-        "images/distrobuilder-image/**",
-        "images/ipxe-efi/**",
-        "occupancy_component/**",
-        "tools/spacelift/**",
-        "tools/template/test/**"
-      ],
-      "options": {
-        "buildTarget": "build",
-        "runTarget": "run"
-      }
-    }
-  ]
+    "releaseTagPattern": "{projectName}@{version}"
+  }
 }

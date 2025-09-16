@@ -1,6 +1,6 @@
 #!/bin/bash
 
 # Ensure dependencies are up-to-date
-pnpm install --quiet -C "${SETUP_DIR}"
+npm install --silent --prefix "${SETUP_DIR}"
 
-exec pnpm --dir "${SETUP_DIR}" exec nx "$@"
+exec npm --prefix "${SETUP_DIR}" exec nx -- "$@"
