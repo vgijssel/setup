@@ -4,11 +4,6 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write # For creating releases and pushing changes
-  packages: write # For pushing to GHCR
-  id-token: write # For OIDC token generation
-
 jobs:
   release:
     name: Release
