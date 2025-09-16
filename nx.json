@@ -6,7 +6,7 @@
   "defaultBase": "main",
   "nxCloudId": "68b34de6a0cec86944bec2d3",
   "release": {
-    "projects": ["libs/devcontainer", "libs/coder-devcontainer"],
+    "projects": ["libs/devcontainer", "libs/coder-devcontainer", "libs/devenv"],
     "projectsRelationship": "independent",
     "versionPlans": true,
     "version": {
