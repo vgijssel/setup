@@ -11,14 +11,14 @@
       "build": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "devcontainer build --workspace-folder . --image-name libs-devcontainer"
+          "command": "devcontainer build --workspace-folder . --image-name devcontainer"
         },
         "cache": true
       },
       "run": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "docker run --privileged --rm -v $(pwd):/workspaces/setup libs-devcontainer zsh"
+          "command": "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer zsh"
         }
       },
       "test": {
@@ -28,15 +28,21 @@
         ],
         "options": {
           "commands": [
-            "docker run --privileged --rm -v $(pwd):/workspaces/setup libs-devcontainer bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
+            "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
           ]
         },
         "cache": true
       },
       "nx-release-publish": {
         "executor": "nx:run-commands",
+        "dependsOn": [
+          "build"
+        ],
         "options": {
-          "command": "echo 'Skip publish for devcontainer'"
+          "cwd": "libs/devcontainer",
+          "commands": [
+            "./push-image.sh"
+          ]
         }
       }
     }
