@@ -16,7 +16,7 @@ terraform {
 locals {
   username      = data.coder_workspace_owner.me.name
   package_json  = jsondecode(file("${path.module}/package.json"))
-  image_version = local.package_json.version
+  image_version = local.package_json.dependencies.devcontainer
 }
 
 variable "docker_socket" {

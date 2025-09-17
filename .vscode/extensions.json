@@ -11,6 +11,7 @@
     "github.remotehub",
     "hashicorp.hcl",
     "mkhl.direnv",
-    "openai.chatgpt"
+    "openai.chatgpt",
+    "hashicorp.terraform"
   ]
 }
