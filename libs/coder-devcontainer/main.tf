@@ -144,7 +144,7 @@ module "git-clone" {
   source      = "registry.coder.com/coder/git-clone/coder"
   version     = "~> 1.0"
   agent_id    = coder_agent.main.id
-  url         = "https://github.com/vgijssel/setup"
+  url         = "git@github.com:vgijssel/setup.git"
   base_dir    = "/workspaces"
   folder_name = "setup"
 }

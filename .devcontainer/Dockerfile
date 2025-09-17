@@ -47,6 +47,17 @@ COPY --chown=devcontainer:devcontainer .chezmoiroot /workspaces/setup/.chezmoiro
 # Initialize and apply chezmoi configuration using direnv
 RUN bin/direnv allow && bin/direnv exec . bin/chezmoi apply --verbose
 
+# Remove all the files so Coder can clone the repository here.
+# If there are files inside the folder the clone will fail.
+RUN rm -rf /workspaces/setup
+
+# Ensure the /workspaces/setup directory exists and is owned by devcontainer
+RUN mkdir -p /workspaces/setup && chown devcontainer:devcontainer /workspaces/setup
+
+# Setup SSH known hosts for GitHub
+COPY --chown=devcontainer:devcontainer .devcontainer/ssh_known_hosts /home/devcontainer/.ssh/known_hosts
+RUN chmod 600 /home/devcontainer/.ssh/known_hosts
+
 # NOTE: this entrypoint is made available by the `ghcr.io/devcontainers/features/docker-in-docker:2` feature
 # which is specified in devcontainer.json. Building this Dockerfile directly will result in an error.
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
