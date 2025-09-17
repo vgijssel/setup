@@ -7,15 +7,10 @@
   "nx": {
     "sourceRoot": ".devcontainer",
     "projectType": "application",
-    "implicitDependencies": [
-      "devenv"
-    ],
     "targets": {
       "test": {
         "executor": "nx:run-commands",
-        "dependsOn": [
-          "build"
-        ],
+        "dependsOn": ["build"],
         "options": {
           "parallel": false,
           "commands": [
@@ -28,11 +23,15 @@
       "nx-release-publish": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "libs/devcontainer",
           "parallel": false,
           "commands": [
-            { "command": "devcontainer build --workspace-folder . --image-name devcontainer", "forwardAllArgs": false },
-            { "command": "./push-image.sh" }
+            {
+              "command": "devcontainer build --workspace-folder . --image-name devcontainer",
+              "forwardAllArgs": false
+            },
+            {
+              "command": "./push-image.sh"
+            }
           ]
         }
       }
