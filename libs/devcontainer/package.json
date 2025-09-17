@@ -31,8 +31,8 @@
           "cwd": "libs/devcontainer",
           "parallel": false,
           "commands": [
-            "devcontainer build --workspace-folder . --image-name devcontainer",
-            "./push-image.sh"
+            { "command": "devcontainer build --workspace-folder . --image-name devcontainer", "forwardAllArgs": false },
+            { "command": "./push-image.sh" }
           ]
         }
       }
