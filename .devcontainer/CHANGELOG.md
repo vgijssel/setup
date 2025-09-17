@@ -1,3 +1,13 @@
+## 0.2.0 (2025-09-17)
+
+### 🚀 Features
+
+- Move devcontainer from libs/ to .devcontainer/ for better IDE integration and standard devcontainer location ([#719](https://github.com/vgijssel/setup/pull/719))
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.2.0
+
 ## 0.1.2 (2025-09-17)
 
 ### 🩹 Fixes
