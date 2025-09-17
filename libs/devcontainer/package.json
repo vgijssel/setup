@@ -17,6 +17,7 @@
           "build"
         ],
         "options": {
+          "parallel": false,
           "commands": [
             "devcontainer build --workspace-folder . --image-name devcontainer",
             "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
@@ -28,6 +29,7 @@
         "executor": "nx:run-commands",
         "options": {
           "cwd": "libs/devcontainer",
+          "parallel": false,
           "commands": [
             "devcontainer build --workspace-folder . --image-name devcontainer",
             "./push-image.sh"
