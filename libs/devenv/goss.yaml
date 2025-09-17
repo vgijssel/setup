@@ -170,6 +170,14 @@ file:
     exists: true
     filetype: directory
 
+  '{{.Env.HOME}}/.ssh/known_hosts':
+    title: SSH known_hosts file exists with GitHub entry (Linux only)
+    skip: {{.Env.IS_MACOS}}
+    exists: true
+    filetype: file
+    contents:
+      - github.com
+
 process:
   dockerd:
     title: Docker daemon is running inside container (Docker-in-Docker)
