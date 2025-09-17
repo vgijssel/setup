@@ -11,26 +11,15 @@
       "devenv"
     ],
     "targets": {
-      "build": {
-        "executor": "nx:run-commands",
-        "options": {
-          "command": "devcontainer build --workspace-folder . --image-name devcontainer"
-        },
-        "cache": true
-      },
-      "run": {
-        "executor": "nx:run-commands",
-        "options": {
-          "command": "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer zsh"
-        }
-      },
       "test": {
         "executor": "nx:run-commands",
         "dependsOn": [
           "build"
         ],
         "options": {
+          "parallel": false,
           "commands": [
+            "devcontainer build --workspace-folder . --image-name devcontainer",
             "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
           ]
         },
@@ -38,12 +27,11 @@
       },
       "nx-release-publish": {
         "executor": "nx:run-commands",
-        "dependsOn": [
-          "build"
-        ],
         "options": {
           "cwd": "libs/devcontainer",
+          "parallel": false,
           "commands": [
+            "devcontainer build --workspace-folder . --image-name devcontainer",
             "./push-image.sh"
           ]
         }
