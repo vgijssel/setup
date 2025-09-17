@@ -1,7 +1,6 @@
 {
-  "name": "@setup/nx",
+  "name": "nx-internal",
   "version": "1.0.0",
-  "type": "commonjs",
   "nx": {
     "sourceRoot": ".",
     "projectType": "library",
