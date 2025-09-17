@@ -26,5 +26,6 @@
       "kubernetes",
       "production"
     ]
-  }
+  },
+  "private": true
 }

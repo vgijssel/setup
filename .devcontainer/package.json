@@ -10,7 +10,9 @@
     "targets": {
       "test": {
         "executor": "nx:run-commands",
-        "dependsOn": ["build"],
+        "dependsOn": [
+          "build"
+        ],
         "options": {
           "parallel": false,
           "commands": [
@@ -36,5 +38,6 @@
         }
       }
     }
-  }
+  },
+  "private": true
 }

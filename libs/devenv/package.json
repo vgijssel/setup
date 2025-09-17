@@ -38,5 +38,6 @@
       "development-environment",
       "macos"
     ]
-  }
+  },
+  "private": true
 }

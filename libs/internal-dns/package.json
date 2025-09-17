@@ -37,5 +37,6 @@
       "scope:infrastructure",
       "platform:kubernetes"
     ]
-  }
+  },
+  "private": true
 }
