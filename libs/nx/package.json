@@ -36,7 +36,11 @@
           "{workspaceRoot}/**/package-lock.json"
         ],
         "options": {
-          "command": "npm install --package-lock-only --dry-run",
+          "commands": [
+            "npm install",
+            "git diff --exit-code package-lock.json"
+          ],
+          "parallel": false,
           "cwd": "."
         }
       },
