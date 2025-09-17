@@ -16,7 +16,7 @@ terraform {
 locals {
   username      = data.coder_workspace_owner.me.name
   package_json  = jsondecode(file("${path.module}/package.json"))
-  image_version = local.package_json.version
+  image_version = local.package_json.dependencies.devcontainer
 }
 
 variable "docker_socket" {
@@ -144,7 +144,7 @@ module "git-clone" {
   source      = "registry.coder.com/coder/git-clone/coder"
   version     = "~> 1.0"
   agent_id    = coder_agent.main.id
-  url         = "https://github.com/vgijssel/setup"
+  url         = "git@github.com:vgijssel/setup.git"
   base_dir    = "/workspaces"
   folder_name = "setup"
 }
