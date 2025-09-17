@@ -1,7 +1,6 @@
 {
-  "name": "@setup/nx",
+  "name": "nx-internal",
   "version": "1.0.0",
-  "type": "commonjs",
   "nx": {
     "sourceRoot": ".",
     "projectType": "library",
@@ -44,14 +43,30 @@
           "cwd": "."
         }
       },
+      "release_publish_test": {
+        "executor": "nx:run-commands",
+        "cache": true,
+        "inputs": [
+          "{workspaceRoot}/**/package.json",
+          "{workspaceRoot}/**/package-lock.json",
+          "{workspaceRoot}/nx.json",
+          "{workspaceRoot}/.nx/version-plans/*.md"
+        ],
+        "options": {
+          "command": "nx release publish --dry-run",
+          "cwd": "."
+        }
+      },
       "test": {
         "executor": "nx:noop",
         "dependsOn": [
           "release_plan_test",
           "release_test",
-          "package_test"
+          "package_test",
+          "release_publish_test"
         ]
       }
     }
-  }
+  },
+  "private": true
 }
