@@ -1,3 +1,13 @@
+## 0.3.0 (2025-09-17)
+
+### 🚀 Features
+
+- Improve Coder template support by cleaning workspace directory for repository cloning and adding GitHub SSH known hosts ([#720](https://github.com/vgijssel/setup/pull/720))
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.3.0
+
 ## 0.2.0 (2025-09-17)
 
 ### 🚀 Features

@@ -1,3 +1,13 @@
+## 0.2.0 (2025-09-17)
+
+### 🚀 Features
+
+- Fix devcontainer image version reference and update Git clone URL to use SSH for authentication ([#720](https://github.com/vgijssel/setup/pull/720))
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.3.0
+
 ## 0.1.0 (2025-09-17)
 
 ### 🚀 Features
