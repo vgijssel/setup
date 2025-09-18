@@ -10,6 +10,10 @@ terraform {
       source  = "kreuzwerker/docker"
       version = "3.6.2"
     }
+    onepassword = {
+      source  = "1Password/onepassword"
+      version = "2.1.2"
+    }
   }
 }
 
@@ -25,17 +29,79 @@ variable "docker_socket" {
   type        = string
 }
 
+variable "op_service_account_token" {
+  description = "1Password Service Account Token"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 provider "docker" {
   # Defaulting to null if the variable is an empty string lets us have an optional variable without having to set our own default
   host = var.docker_socket != "" ? var.docker_socket : null
+}
+
+provider "onepassword" {
+  service_account_token = var.op_service_account_token != "" ? var.op_service_account_token : null
 }
 
 data "coder_provisioner" "me" {}
 data "coder_workspace" "me" {}
 data "coder_workspace_owner" "me" {}
 
+# 1Password data sources for Claude Code configuration
+data "onepassword_vault" "setup_devenv" {
+  name = "setup-devenv"
+}
+
+data "onepassword_item" "claude_code" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  title = "claude-code"
+}
+
+data "coder_parameter" "system_prompt" {
+  name         = "system_prompt"
+  display_name = "System Prompt"
+  type         = "string"
+  form_type    = "textarea"
+  description  = "System prompt for the agent with generalized instructions"
+  mutable      = false
+  default = "You are a helpful assistant that can help with code. You are running inside a Coder Workspace and provide status updates to the user via Coder MCP. Stay on track, feel free to debug, but when the original plan fails, do not choose a different route/architecture without checking the user first."
+}
+
+data "coder_parameter" "ai_prompt" {
+  type        = "string"
+  name        = "AI Prompt"
+  default     = ""
+  description = "Write a prompt for Claude Code"
+  mutable     = true
+}
+
+resource "coder_env" "claude_task_prompt" {
+  agent_id = coder_agent.main.id
+  name     = "CODER_MCP_CLAUDE_TASK_PROMPT"
+  value    = data.coder_parameter.ai_prompt.value
+}
+resource "coder_env" "app_status_slug" {
+  agent_id = coder_agent.main.id
+  name     = "CODER_MCP_APP_STATUS_SLUG"
+  value    = "ccw"
+}
+resource "coder_env" "claude_system_prompt" {
+  agent_id = coder_agent.main.id
+  name     = "CODER_MCP_CLAUDE_SYSTEM_PROMPT"
+  value    = data.coder_parameter.system_prompt.value
+}
+
+resource "coder_env" "claude_code_json" {
+  agent_id = coder_agent.main.id
+  name     = "CLAUDE_CODE_JSON"
+  value    = data.onepassword_item.claude_code.file[0].content
+}
+
 resource "coder_agent" "main" {
-  arch           = data.coder_provisioner.me.arch
+  # arch           = data.coder_provisioner.me.arch
+  arch           = "arm64"
   os             = "linux"
   startup_script = <<-EOT
     set -e
@@ -127,22 +193,82 @@ resource "coder_agent" "main" {
   }
 }
 
-# See https://registry.coder.com/modules/coder/code-server
-module "code-server" {
-  count  = data.coder_workspace.me.start_count
-  source = "registry.coder.com/coder/code-server/coder"
+# # See https://registry.coder.com/modules/coder/code-server
+# module "code-server" {
+#   count  = data.coder_workspace.me.start_count
+#   source = "registry.coder.com/coder/code-server/coder"
 
-  # This ensures that the latest non-breaking version of the module gets downloaded, you can also pin the module version to prevent breaking changes in production.
-  version = "~> 1.0"
+#   # This ensures that the latest non-breaking version of the module gets downloaded, you can also pin the module version to prevent breaking changes in production.
+#   version = "~> 1.0"
 
+#   agent_id = coder_agent.main.id
+#   order    = 1
+#   folder   = "/workspaces/setup"
+# }
+
+# module "vscode-web" {
+#   count          = data.coder_workspace.me.start_count
+#   source         = "registry.coder.com/coder/vscode-web/coder"
+#   version        = "1.4.1"
+#   agent_id       = coder_agent.main.id
+#   install_prefix = "/workspaces/setup/.vscode-web"
+#   folder         = "/workspaces/setup"
+#   accept_license = true
+# }
+
+# The Claude Code module does the automatic task reporting
+# Other agent modules: https://registry.coder.com/modules?search=agent
+# Or use a custom agent:  
+module "claude-code" {
+  count               = data.coder_workspace.me.start_count
+  source              = "registry.coder.com/coder/claude-code/coder"
+  version             = "2.2.0"
+  agent_id            = coder_agent.main.id
+  folder              = "/workspaces/setup"
+  install_claude_code = false
+  # claude_code_version = "latest"
+  order               = 999
+
+  experiment_pre_install_script = <<-EOT
+    #!/bin/bash
+    set -e
+    set -x
+    
+    echo "papi"
+
+    echo $PATH
+    pwd
+    env
+  EOT
+
+  # TODO: install MCP servers etc?
+  # experiment_post_install_script = data.coder_parameter.setup_script.value
+
+  # This enables Coder Tasks
+  experiment_report_tasks = true
+}
+
+# TODO: do we really need this thing for ai tasks?
+module "coder-login" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder/coder-login/coder"
+  version  = "1.1.0"
   agent_id = coder_agent.main.id
+}
+
+module "vscode" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder/vscode-desktop/coder"
+  version  = "1.1.1"
+  agent_id = coder_agent.main.id
+  folder   = "/workspaces/setup"
   order    = 1
 }
 
 # Git clone module to clone the setup repository
 module "git-clone" {
   source      = "registry.coder.com/coder/git-clone/coder"
-  version     = "~> 1.0"
+  version     = "1.1.1"
   agent_id    = coder_agent.main.id
   url         = "git@github.com:vgijssel/setup.git"
   base_dir    = "/workspaces"
@@ -209,10 +335,12 @@ resource "docker_container" "workspace" {
   # Uses lower() to avoid Docker restriction on container names.
   name = "coder-${data.coder_workspace_owner.me.name}-${lower(data.coder_workspace.me.name)}"
   # Hostname makes the shell more user friendly: coder@my-workspace:~$
-  hostname = data.coder_workspace.me.name
-  # Use the docker gateway if the access URL is 127.0.0.1
-  entrypoint = ["sh", "-c", replace(coder_agent.main.init_script, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal")]
-  env        = ["CODER_AGENT_TOKEN=${coder_agent.main.token}"]
+  hostname   = data.coder_workspace.me.name
+  privileged = true
+  # First run docker-init.sh, then the coder agent
+  # TODO: maybe run a coder script instead? the docker thing?
+  entrypoint = ["sh", "-c", "/usr/local/share/docker-init.sh ${replace(coder_agent.main.init_script, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal")}"]
+  env        = ["CODER_AGENT_TOKEN=${coder_agent.main.token}", "OP_SERVICE_ACCOUNT_TOKEN=${var.op_service_account_token}"]
   host {
     host = "host.docker.internal"
     ip   = "host-gateway"
