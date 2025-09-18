@@ -95,8 +95,8 @@ resource "coder_env" "claude_system_prompt" {
 
 resource "coder_env" "claude_code_json" {
   agent_id = coder_agent.main.id
-  name     = "CLAUDE_CODE_JSON"
-  value    = data.onepassword_item.claude_code.section[0].file[0].content
+  name     = "CLAUDE_CODE_JSON_BASE64"
+  value    = data.onepassword_item.claude_code.section[0].file[0].content_base64
 }
 
 resource "coder_agent" "main" {
@@ -106,10 +106,32 @@ resource "coder_agent" "main" {
   startup_script = <<-EOT
     set -e
 
+    # Print debugging information
+    echo "=== Startup Script Debug Information ==="
+    echo "Current environment variables:"
+    env | sort
+    echo ""
+    echo "Current PATH:"
+    echo $PATH
+    echo ""
+    echo "Current working directory:"
+    pwd
+    echo "=== End Debug Information ==="
+
     # Prepare user home with default files on first start.
     if [ ! -f ~/.init_done ]; then
       cp -rT /etc/skel ~
       touch ~/.init_done
+    fi
+
+    # Create ~/.claude.json from base64-encoded environment variable if it exists
+    if [ -n "$CLAUDE_CODE_JSON_BASE64" ]; then
+      echo "Creating ~/.claude.json from CLAUDE_CODE_JSON_BASE64 environment variable..."
+      echo "$CLAUDE_CODE_JSON_BASE64" | base64 -d > ~/.claude.json
+      chmod 600 ~/.claude.json
+      echo "~/.claude.json created successfully"
+    else
+      echo "CLAUDE_CODE_JSON_BASE64 environment variable not found, skipping ~/.claude.json creation"
     fi
 
     # Add any commands that should be executed at workspace startup (e.g install requirements, start a program, etc) here
