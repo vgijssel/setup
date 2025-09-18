@@ -6,10 +6,6 @@ set -euo pipefail
 DRY_RUN=false
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --dry-run)
-      DRY_RUN=true
-      shift
-      ;;
     --dryRun=*)
       VALUE="${1#*=}"
       if [[ "${VALUE}" == "true" ]]; then
@@ -40,31 +36,28 @@ if [[ -z "${VERSION}" ]] || [[ "${VERSION}" = "null" ]]; then
   exit 1
 fi
 
-LOCAL_IMAGE="devcontainer"
 VERSIONED_IMAGE="ghcr.io/vgijssel/setup/devcontainer:${VERSION}"
 LATEST_IMAGE="ghcr.io/vgijssel/setup/devcontainer:latest"
 
-echo "Local image: ${LOCAL_IMAGE}"
+echo "Building and pushing multi-architecture images:"
 echo "Versioned image: ${VERSIONED_IMAGE}"
 echo "Latest image: ${LATEST_IMAGE}"
 echo "Version: ${VERSION}"
+echo "Platforms: linux/amd64,linux/arm64"
 
 if [[ "${DRY_RUN}" = true ]]; then
-  echo "[DRY RUN] Would tag and push:"
-  echo "[DRY RUN]   docker tag ${LOCAL_IMAGE} ${VERSIONED_IMAGE}"
-  echo "[DRY RUN]   docker tag ${LOCAL_IMAGE} ${LATEST_IMAGE}"
-  echo "[DRY RUN]   docker push ${VERSIONED_IMAGE}"
-  echo "[DRY RUN]   docker push ${LATEST_IMAGE}"
+  echo "[DRY RUN] Would build and push multi-architecture images:"
+  echo "[DRY RUN]   devcontainer build --workspace-folder . --platform linux/amd64,linux/arm64 --push --image-name ${VERSIONED_IMAGE} --cache-from ${LATEST_IMAGE}"
+  echo "[DRY RUN]   devcontainer build --workspace-folder . --platform linux/amd64,linux/arm64 --push --image-name ${LATEST_IMAGE} --cache-from ${LATEST_IMAGE}"
 else
-  echo "Tagging images..."
-  docker tag "${LOCAL_IMAGE}" "${VERSIONED_IMAGE}"
-  docker tag "${LOCAL_IMAGE}" "${LATEST_IMAGE}"
+  echo "Building and pushing versioned image (${VERSIONED_IMAGE})..."
+  devcontainer build --workspace-folder . --platform linux/amd64,linux/arm64 --push --image-name "${VERSIONED_IMAGE}" --cache-from "${LATEST_IMAGE}"
 
-  echo "Pushing versioned image..."
-  docker push "${VERSIONED_IMAGE}"
+  echo "Building and pushing latest image (${LATEST_IMAGE})..."
+  devcontainer build --workspace-folder . --platform linux/amd64,linux/arm64 --push --image-name "${LATEST_IMAGE}" --cache-from "${LATEST_IMAGE}"
 
-  echo "Pushing latest image..."
-  docker push "${LATEST_IMAGE}"
-
-  echo "Successfully pushed ${VERSIONED_IMAGE} and ${LATEST_IMAGE}"
+  echo "Successfully built and pushed multi-architecture images:"
+  echo "  ${VERSIONED_IMAGE}"
+  echo "  ${LATEST_IMAGE}"
+  echo "Architectures: linux/amd64, linux/arm64"
 fi

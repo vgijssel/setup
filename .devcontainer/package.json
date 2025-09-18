@@ -7,16 +7,22 @@
   "nx": {
     "projectType": "application",
     "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "devcontainer build --workspace-folder . --image-name devcontainer --platform linux/amd64,linux/arm64 --cache-from ghcr.io/vgijssel/setup/devcontainer:latest"
+          ]
+        },
+        "cache": true
+      },
       "test": {
         "executor": "nx:run-commands",
-        "dependsOn": [
-          "build"
-        ],
         "options": {
           "parallel": false,
           "commands": [
-            "devcontainer build --workspace-folder . --image-name devcontainer",
-            "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
+            "devcontainer build --workspace-folder . --image-name devcontainer-test --cache-from ghcr.io/vgijssel/setup/devcontainer:latest",
+            "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer-test bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
           ]
         },
         "cache": true
@@ -27,11 +33,7 @@
           "parallel": false,
           "commands": [
             {
-              "command": "devcontainer build --workspace-folder . --image-name devcontainer",
-              "forwardAllArgs": false
-            },
-            {
-              "command": "{projectRoot}/push-image.sh",
+              "command": "{projectRoot}/build-and-push.sh",
               "forwardAllArgs": true
             }
           ]
