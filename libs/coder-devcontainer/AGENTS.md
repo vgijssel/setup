@@ -55,6 +55,12 @@ Push changes to Coder with:
 coder templates push
 ```
 
+### Inspecting Terraform State
+View the Terraform state of a workspace:
+```bash
+coder state pull <workspace_name>
+```
+
 ## File Structure
 - `main.tf`: Primary Terraform configuration
 - `package.json`: Version management for devcontainer image

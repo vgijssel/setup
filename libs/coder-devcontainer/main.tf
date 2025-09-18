@@ -96,7 +96,7 @@ resource "coder_env" "claude_system_prompt" {
 resource "coder_env" "claude_code_json" {
   agent_id = coder_agent.main.id
   name     = "CLAUDE_CODE_JSON"
-  value    = data.onepassword_item.claude_code.file[0].content
+  value    = data.onepassword_item.claude_code.section[0].file[0].content
 }
 
 resource "coder_agent" "main" {
@@ -219,36 +219,36 @@ resource "coder_agent" "main" {
 # The Claude Code module does the automatic task reporting
 # Other agent modules: https://registry.coder.com/modules?search=agent
 # Or use a custom agent:  
-module "claude-code" {
-  count               = data.coder_workspace.me.start_count
-  source              = "registry.coder.com/coder/claude-code/coder"
-  version             = "2.2.0"
-  agent_id            = coder_agent.main.id
-  folder              = "/workspaces/setup"
-  install_claude_code = false
-  # claude_code_version = "latest"
-  order               = 999
+# module "claude-code" {
+#   count               = data.coder_workspace.me.start_count
+#   source              = "registry.coder.com/coder/claude-code/coder"
+#   version             = "2.2.0"
+#   agent_id            = coder_agent.main.id
+#   folder              = "/workspaces/setup"
+#   install_claude_code = false
+#   # claude_code_version = "latest"
+#   order               = 999
 
-  experiment_pre_install_script = <<-EOT
-    #!/bin/bash
-    set -e
-    set -x
+#   experiment_pre_install_script = <<-EOT
+#     #!/bin/bash
+#     set -e
+#     set -x
     
-    echo "papi"
+#     echo "papi"
 
-    echo $PATH
-    pwd
-    env
-  EOT
+#     echo $PATH
+#     pwd
+#     env
+#   EOT
 
-  # TODO: install MCP servers etc?
-  # experiment_post_install_script = data.coder_parameter.setup_script.value
+#   # TODO: install MCP servers etc?
+#   # experiment_post_install_script = data.coder_parameter.setup_script.value
 
-  # This enables Coder Tasks
-  experiment_report_tasks = true
-}
+#   # This enables Coder Tasks
+#   experiment_report_tasks = true
+# }
 
-# TODO: do we really need this thing for ai tasks?
+# TODO: do we need this one?
 module "coder-login" {
   count    = data.coder_workspace.me.start_count
   source   = "registry.coder.com/coder/coder-login/coder"
