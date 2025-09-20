@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Get the directory where this script is located
-SCRIPT_DIR="$SETUP_DIR/.devcontainer"
+SCRIPT_DIR="${SETUP_DIR}/.devcontainer"
 
 # Check if .docker-version exists
 if [[ ! -f "${SCRIPT_DIR}/.docker-version" ]]; then

@@ -14,12 +14,16 @@
             "{projectRoot}/build.sh --tag ${NX_TASK_HASH}"
           ]
         },
-        "outputs": ["{projectRoot}/.docker-version"],
+        "outputs": [
+          "{projectRoot}/.docker-version"
+        ],
         "cache": true
       },
       "test": {
         "executor": "nx:run-commands",
-        "dependsOn": ["build"],
+        "dependsOn": [
+          "build"
+        ],
         "options": {
           "commands": [
             "{projectRoot}/test.sh"
@@ -29,7 +33,9 @@
       },
       "nx-release-publish": {
         "executor": "nx:run-commands",
-        "dependsOn": ["build"],
+        "dependsOn": [
+          "build"
+        ],
         "options": {
           "parallel": false,
           "commands": [

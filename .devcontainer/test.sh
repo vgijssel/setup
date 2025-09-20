@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # Get the directory where this script is located
-SCRIPT_DIR="$SETUP_DIR/.devcontainer"
+SCRIPT_DIR="${SETUP_DIR}/.devcontainer"
 
 # Check if .docker-version exists
 if [[ ! -f "${SCRIPT_DIR}/.docker-version" ]]; then
@@ -22,8 +22,9 @@ fi
 echo "Running tests with devcontainer image: ${IMAGE}"
 
 # Run the test using the specific image
+CURRENT_DIR=$(pwd)
 docker run --privileged --rm \
-  -v "$(pwd):/workspaces/setup" \
+  -v "${CURRENT_DIR}:/workspaces/setup" \
   "${IMAGE}" \
   bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate
 
