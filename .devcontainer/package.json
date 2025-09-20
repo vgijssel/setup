@@ -11,30 +11,30 @@
         "executor": "nx:run-commands",
         "options": {
           "commands": [
-            "devcontainer build --workspace-folder . --image-name devcontainer --platform linux/amd64,linux/arm64 --cache-from ghcr.io/vgijssel/setup/devcontainer:latest"
+            "{projectRoot}/build.sh --tag ${NX_TASK_HASH}"
           ]
         },
+        "outputs": ["{projectRoot}/.docker-version"],
         "cache": true
       },
       "test": {
         "executor": "nx:run-commands",
+        "dependsOn": ["build"],
         "options": {
-          "parallel": false,
           "commands": [
-            "devcontainer build --workspace-folder . --image-name devcontainer-test --cache-from ghcr.io/vgijssel/setup/devcontainer:latest",
-            "docker run --privileged --rm -v $(pwd):/workspaces/setup devcontainer-test bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate"
+            "{projectRoot}/test.sh"
           ]
         },
         "cache": true
       },
       "nx-release-publish": {
         "executor": "nx:run-commands",
+        "dependsOn": ["build"],
         "options": {
           "parallel": false,
           "commands": [
             {
-              "command": "{projectRoot}/build-and-push.sh",
-              "forwardAllArgs": true
+              "command": "{projectRoot}/release.sh"
             }
           ]
         }
