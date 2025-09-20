@@ -33,18 +33,21 @@ if [[ -z "${TAG}" ]]; then
 fi
 
 # Ensure buildx builder exists for multi-platform builds
-BUILDER_NAME="container-builder"
-if ! docker buildx inspect "${BUILDER_NAME}" >/dev/null 2>&1; then
+# Check for any existing docker-container builder
+EXISTING_BUILDER=$(docker buildx ls --format "table {{.Name}}\t{{.Driver}}" | grep "docker-container" | head -n1 | awk '{print $1}' || true)
+
+if [[ -n "${EXISTING_BUILDER}" ]]; then
+  echo "Using existing docker-container buildx builder: ${EXISTING_BUILDER}"
+  # Ensure the builder is selected and bootstrapped
+  docker buildx use "${EXISTING_BUILDER}"
+  docker buildx inspect --bootstrap "${EXISTING_BUILDER}" >/dev/null 2>&1 || true
+else
   echo "Creating buildx builder for multi-platform builds..."
+  BUILDER_NAME="container-builder"
   docker buildx create \
     --name "${BUILDER_NAME}" \
     --driver docker-container \
     --bootstrap --use
-else
-  echo "Using existing buildx builder: ${BUILDER_NAME}"
-  # Ensure the builder is selected and bootstrapped
-  docker buildx use "${BUILDER_NAME}"
-  docker buildx inspect --bootstrap "${BUILDER_NAME}" >/dev/null 2>&1 || true
 fi
 
 DEV_IMAGE="ghcr.io/vgijssel/setup/devcontainer-dev:${TAG}"
