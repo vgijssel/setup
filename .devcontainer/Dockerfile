@@ -33,14 +33,12 @@ RUN groupadd --gid ${USER_GID} devcontainer \
 # Copy and run docker-in-docker installation script
 COPY --chown=devcontainer:devcontainer third_party/vendir/shell/docker-in-docker/install.sh /tmp/docker-in-docker-install.sh
 
-# Install docker-in-docker
-# Using environment variables expected by the script
-ENV USERNAME=devcontainer
-ENV USE_MOBY="true"
-ENV DOCKERDASHCOMPOSEVERSION="none"
-ENV INSTALLDOCKERCOMPOSESWITCH="false"
-
+# Install docker-in-docker with inline environment variables
 RUN chmod +x /tmp/docker-in-docker-install.sh && \
+    USERNAME=devcontainer \
+    USE_MOBY="true" \
+    DOCKERDASHCOMPOSEVERSION="none" \
+    INSTALLDOCKERCOMPOSESWITCH="false" \
     /tmp/docker-in-docker-install.sh && \
     rm /tmp/docker-in-docker-install.sh
 
