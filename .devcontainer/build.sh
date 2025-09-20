@@ -42,7 +42,9 @@ if ! docker buildx inspect "${BUILDER_NAME}" >/dev/null 2>&1; then
     --bootstrap --use
 else
   echo "Using existing buildx builder: ${BUILDER_NAME}"
+  # Ensure the builder is selected and bootstrapped
   docker buildx use "${BUILDER_NAME}"
+  docker buildx inspect --bootstrap "${BUILDER_NAME}" >/dev/null 2>&1 || true
 fi
 
 DEV_IMAGE="ghcr.io/vgijssel/setup/devcontainer-dev:${TAG}"
