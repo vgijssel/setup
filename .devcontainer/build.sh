@@ -34,7 +34,7 @@ fi
 
 # Ensure buildx builder exists for multi-platform builds
 BUILDER_NAME="container-builder"
-if ! docker buildx ls | grep -q "^${BUILDER_NAME}"; then
+if ! docker buildx inspect "${BUILDER_NAME}" >/dev/null 2>&1; then
   echo "Creating buildx builder for multi-platform builds..."
   docker buildx create \
     --name "${BUILDER_NAME}" \
