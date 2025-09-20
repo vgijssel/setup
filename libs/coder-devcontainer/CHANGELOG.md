@@ -1,3 +1,13 @@
+## 0.3.0 (2025-09-20)
+
+### 🚀 Features
+
+- Enable Claude Code integration with automatic configuration injection, add AGENTS.md and CLAUDE.md project documentation, and update 1Password item references ([#721](https://github.com/vgijssel/setup/pull/721))
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.4.0
+
 ## 0.2.0 (2025-09-17)
 
 ### 🚀 Features

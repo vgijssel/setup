@@ -1,3 +1,13 @@
+## 0.4.0 (2025-09-20)
+
+### 🚀 Features
+
+- Multi-architecture build support for linux/amd64 and linux/arm64 platforms, improved shell script linting compliance, and enhanced build/test/release workflow scripts ([#721](https://github.com/vgijssel/setup/pull/721))
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.4.0
+
 ## 0.3.0 (2025-09-17)
 
 ### 🚀 Features

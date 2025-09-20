@@ -1,3 +1,9 @@
+## 0.4.0 (2025-09-20)
+
+### 🚀 Features
+
+- Add global Claude Code binary availability in development environment and update goss validation tests for Claude Code configuration ([#721](https://github.com/vgijssel/setup/pull/721))
+
 ## 0.3.0 (2025-09-17)
 
 ### 🚀 Features
