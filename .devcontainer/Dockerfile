@@ -36,14 +36,9 @@ COPY --chown=devcontainer:devcontainer third_party/vendir/shell/docker-in-docker
 # Install docker-in-docker
 # Using environment variables expected by the script
 ENV USERNAME=devcontainer
-ENV ENABLE_NONROOT_DOCKER="true"
-ENV SOURCE_SOCKET="/var/run/docker-host.sock"
-ENV TARGET_SOCKET="/var/run/docker.sock"
 ENV USE_MOBY="true"
-ENV DOCKER_VERSION="latest"
-ENV MOBY_BUILDX_VERSION="latest"
-ENV DOCKER_DASH_COMPOSE_VERSION="latest"
-ENV MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
+ENV DOCKERDASHCOMPOSEVERSION="none"
+ENV INSTALLDOCKERCOMPOSESWITCH="false"
 
 RUN chmod +x /tmp/docker-in-docker-install.sh && \
     /tmp/docker-in-docker-install.sh && \
