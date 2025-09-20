@@ -30,4 +30,13 @@ directories:
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508
     path: .
   path: shell/zimfw
+- contents:
+  - git:
+      commitTitle: '[docker-in-docker, docker-outside-of-docker] - Update documentation
+        and putting a check to stop installation for Debian Trixie(13) (#1482)...'
+      sha: 7c6ef0b7e5e9e5efb7a4b461d67482e1d6575f1e
+      tags:
+      - feature_docker-in-docker_2.12.4
+    path: .
+  path: shell/docker-in-docker
 kind: LockConfig

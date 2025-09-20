@@ -30,6 +30,28 @@ RUN groupadd --gid ${USER_GID} devcontainer \
     && chmod 0440 /etc/sudoers.d/devcontainer \
     && chsh -s /usr/bin/zsh root
 
+# Copy and run docker-in-docker installation script
+COPY --chown=devcontainer:devcontainer third_party/vendir/shell/docker-in-docker/install.sh /tmp/docker-in-docker-install.sh
+
+# Install docker-in-docker
+# Using environment variables expected by the script
+ENV USERNAME=devcontainer
+ENV ENABLE_NONROOT_DOCKER="true"
+ENV SOURCE_SOCKET="/var/run/docker-host.sock"
+ENV TARGET_SOCKET="/var/run/docker.sock"
+ENV USE_MOBY="true"
+ENV DOCKER_VERSION="latest"
+ENV MOBY_BUILDX_VERSION="latest"
+ENV DOCKER_DASH_COMPOSE_VERSION="latest"
+ENV MICROSOFT_GPG_KEYS_URI="https://packages.microsoft.com/keys/microsoft.asc"
+
+RUN chmod +x /tmp/docker-in-docker-install.sh && \
+    /tmp/docker-in-docker-install.sh && \
+    rm /tmp/docker-in-docker-install.sh
+
+# Entrypoint for docker-in-docker initialization
+ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
+
 # Set default user
 USER devcontainer
 
@@ -57,7 +79,3 @@ RUN mkdir -p /workspaces/setup && chown devcontainer:devcontainer /workspaces/se
 # Setup SSH known hosts for GitHub
 COPY --chown=devcontainer:devcontainer .devcontainer/ssh_known_hosts /home/devcontainer/.ssh/known_hosts
 RUN chmod 600 /home/devcontainer/.ssh/known_hosts
-
-# NOTE: this entrypoint is made available by the `ghcr.io/devcontainers/features/docker-in-docker:2` feature
-# which is specified in devcontainer.json. Building this Dockerfile directly will result in an error.
-ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
