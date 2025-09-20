@@ -100,8 +100,7 @@ resource "coder_env" "claude_code_json" {
 }
 
 resource "coder_agent" "main" {
-  # arch           = data.coder_provisioner.me.arch
-  arch           = "arm64"
+  arch           = data.coder_provisioner.me.arch
   os             = "linux"
   startup_script = <<-EOT
     set -e
