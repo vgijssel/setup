@@ -140,9 +140,16 @@ resource "coder_agent" "main" {
     # Create ~/.claude.json from base64-encoded environment variable if it exists
     if [ -n "$CLAUDE_CODE_JSON_BASE64" ]; then
       echo "Creating ~/.claude.json from CLAUDE_CODE_JSON_BASE64 environment variable..."
-      echo "$CLAUDE_CODE_JSON_BASE64" | base64 -d > ~/.claude.json
-      chmod 600 ~/.claude.json
-      echo "~/.claude.json created successfully"
+      if ! echo "$CLAUDE_CODE_JSON_BASE64" | base64 -d > ~/.claude.json; then
+        echo "Error: Failed to decode base64 data from CLAUDE_CODE_JSON_BASE64. ~/.claude.json not created."
+        rm -f ~/.claude.json
+      elif ! jq empty ~/.claude.json 2>/dev/null; then
+        echo "Error: Decoded data is not valid JSON. ~/.claude.json not created."
+        rm -f ~/.claude.json
+      else
+        chmod 600 ~/.claude.json
+        echo "~/.claude.json created successfully"
+      fi
     else
       echo "CLAUDE_CODE_JSON_BASE64 environment variable not found, skipping ~/.claude.json creation"
     fi
