@@ -57,7 +57,13 @@ echo "Image: ${DEV_IMAGE}"
 echo "Platforms: linux/amd64,linux/arm64"
 
 # Build and push the image with the NX_TASK_HASH tag
-devcontainer build --workspace-folder "${SETUP_DIR}" --platform linux/amd64,linux/arm64 --push --image-name "${DEV_IMAGE}" --cache-from "type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache" --cache-to "type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache,mode=max"
+devcontainer build \
+  --workspace-folder "${SETUP_DIR}" \
+  --platform linux/amd64,linux/arm64 \
+  --push \
+  --image-name "${DEV_IMAGE}" \
+  --cache-from "type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache" \
+  --cache-to "type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache,mode=max"
 
 # Save the image reference to .docker-version
 echo "${DEV_IMAGE}" > "${SCRIPT_DIR}/.docker-version"
