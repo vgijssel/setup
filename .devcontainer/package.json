@@ -16,6 +16,7 @@
         },
         "inputs": [
           "{projectRoot}/Dockerfile",
+          "{projectRoot}/build.sh",
           "{projectRoot}/ssh_known_hosts",
           "{workspaceRoot}/.envrc",
           "{workspaceRoot}/bin/**/*",

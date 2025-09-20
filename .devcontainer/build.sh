@@ -34,7 +34,7 @@ fi
 
 # Ensure buildx builder exists for multi-platform builds
 # Check for any existing docker-container builder
-EXISTING_BUILDER=$(docker buildx ls --format "table {{.Name}}\t{{.Driver}}" | grep "docker-container" | head -n1 | awk '{print $1}' || true)
+EXISTING_BUILDER=$(docker buildx ls | grep "docker-container" | head -n1 | awk '{print $1}' | sed 's/\*$//' || true)
 
 if [[ -n "${EXISTING_BUILDER}" ]]; then
   echo "Using existing docker-container buildx builder: ${EXISTING_BUILDER}"
