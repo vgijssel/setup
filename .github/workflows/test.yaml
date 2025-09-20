@@ -63,6 +63,16 @@ jobs:
       - run: docker info
       - run: docker buildx ls
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Add debug info
+      - run: docker info
+      - run: docker buildx ls
+
       - name: Run nx tests
         run: nx run-many -t lint test build --exclude=tag:macos
         env:
