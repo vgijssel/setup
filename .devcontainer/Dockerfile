@@ -1,4 +1,4 @@
-FROM ubuntu:noble
+FROM ubuntu:noble@sha256:353675e2a41babd526e2b837d7ec780c2a05bca0164f7ea5dbbd433d21d166fc
 
 # Labels to associate with the vgijssel/setup repository
 LABEL org.opencontainers.image.source=https://github.com/vgijssel/setup
@@ -30,6 +30,21 @@ RUN groupadd --gid ${USER_GID} devcontainer \
     && chmod 0440 /etc/sudoers.d/devcontainer \
     && chsh -s /usr/bin/zsh root
 
+# Copy and run docker-in-docker installation script
+COPY --chown=devcontainer:devcontainer third_party/vendir/shell/docker-in-docker/install.sh /tmp/docker-in-docker-install.sh
+
+# Install docker-in-docker with inline environment variables
+RUN chmod +x /tmp/docker-in-docker-install.sh && \
+    USERNAME=devcontainer \
+    USE_MOBY="true" \
+    DOCKERDASHCOMPOSEVERSION="none" \
+    INSTALLDOCKERCOMPOSESWITCH="false" \
+    /tmp/docker-in-docker-install.sh && \
+    rm /tmp/docker-in-docker-install.sh
+
+# Entrypoint for docker-in-docker initialization
+ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
+
 # Set default user
 USER devcontainer
 
@@ -57,7 +72,3 @@ RUN mkdir -p /workspaces/setup && chown devcontainer:devcontainer /workspaces/se
 # Setup SSH known hosts for GitHub
 COPY --chown=devcontainer:devcontainer .devcontainer/ssh_known_hosts /home/devcontainer/.ssh/known_hosts
 RUN chmod 600 /home/devcontainer/.ssh/known_hosts
-
-# NOTE: this entrypoint is made available by the `ghcr.io/devcontainers/features/docker-in-docker:2` feature
-# which is specified in devcontainer.json. Building this Dockerfile directly will result in an error.
-ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]

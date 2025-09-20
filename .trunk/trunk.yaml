@@ -42,6 +42,7 @@ lint:
         - stacks/enigma-cozy/templates/worker.yaml
         - third_party/vendir/charts
         - third_party/vendir/vendir.lock.yml
+        - third_party/vendir/shell/docker-in-docker/**
     # Ignore yamllint syntax errors for Helm chart templates
     - linters: [yamllint]
       paths:

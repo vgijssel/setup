@@ -84,6 +84,12 @@ command:
     exec: direnv exec / which starship
     exit-status: 0
 
+  claude_outside_repo:
+    title: Claude CLI is available outside of repo root
+    exec: direnv exec / claude --version
+    exit-status: 0
+    timeout: 60000
+
   starship_prompt_integration:
     title: Starship prompt is properly integrated with zsh
     # Passing -i to similate an interactive shell
