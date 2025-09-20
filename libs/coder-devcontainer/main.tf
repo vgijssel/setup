@@ -53,24 +53,12 @@ data "coder_workspace_owner" "me" {}
 # Ensure that a vault named "setup-devenv" exists in your 1Password account.
 data "onepassword_vault" "setup_devenv" {
   name = "setup-devenv"
-  lifecycle {
-    precondition {
-      condition     = length(self.uuid) > 0
-      error_message = "1Password vault 'setup-devenv' not found. Please create a vault named 'setup-devenv' in your 1Password account."
-    }
-  }
 }
 
 # Ensure that an item titled "claude-code" exists in the 'setup-devenv' vault.
 data "onepassword_item" "claude_code" {
   vault = data.onepassword_vault.setup_devenv.uuid
   title = "claude-code"
-  lifecycle {
-    precondition {
-      condition     = length(self.id) > 0
-      error_message = "1Password item 'claude-code' not found in vault 'setup-devenv'. Please create an item titled 'claude-code' in the 'setup-devenv' vault."
-    }
-  }
 }
 
 data "coder_parameter" "system_prompt" {
