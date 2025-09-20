@@ -72,6 +72,7 @@ jobs:
       # Add debug info
       - run: docker info
       - run: docker buildx ls
+      - run: docker buildx ls --format json
 
       - name: Run nx tests
         run: nx run-many -t lint test build --exclude=tag:macos
