@@ -115,26 +115,7 @@ resource "coder_agent" "main" {
   os             = "linux"
   startup_script = <<-EOT
     set -e
-
-    # Print debugging information
-    echo "=== Startup Script Debug Information ==="
-    echo "Current environment variables:"
-    env | sort
-    echo ""
-    echo "Current PATH:"
-    echo $PATH
-    echo ""
-    echo "Current working directory:"
-    pwd
-    echo "=== End Debug Information ==="
-
-    # Prepare user home with default files on first start.
-    if [ ! -f ~/.init_done ]; then
-      cp -rT /etc/skel ~
-      touch ~/.init_done
-    fi
-
-    # Add any commands that should be executed at workspace startup (e.g install requirements, start a program, etc) here
+    set +x
   EOT
 
   # These environment variables allow you to make Git commits right away after creating a
@@ -252,22 +233,80 @@ module "claude-code" {
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
 
-  # Pre-hook script to verify Claude is available
+  # Pre-hook script to wait for git repo and verify Claude is available
   pre_install_script = <<-EOT
     #!/bin/bash
-    set -euo pipefail
+
+    set -e
+    set +x
+
+    echo "⏳ Waiting for git repository at /workspaces/setup to be available..."
+
+    # Wait up to 60 seconds for the git repo to be available
+    WAIT_TIME=0
+    MAX_WAIT=60
+
+    while [ $WAIT_TIME -lt $MAX_WAIT ]; do
+      if [ -d "/workspaces/setup/.git" ]; then
+        # Check if git clone is complete by verifying:
+        # 1. Git operations work (git status doesn't fail)
+        # 2. The index file exists (created at the end of clone)
+        # 3. At least one ref exists (shows clone is complete)
+        if cd /workspaces/setup 2>/dev/null && \
+           git status >/dev/null 2>&1 && \
+           [ -f "/workspaces/setup/.git/index" ] && \
+           [ -d "/workspaces/setup/.git/refs" ] && \
+           [ "$(find /workspaces/setup/.git/refs -type f 2>/dev/null | head -n 1)" != "" ]; then
+          echo "✅ Git repository clone completed successfully"
+          echo "📋 Current branch: $(git branch --show-current 2>/dev/null || echo 'unknown')"
+          echo "📋 Repository status:"
+          git status --short
+          break
+        else
+          echo "⏳ Git clone in progress... (.git exists but clone not complete)"
+        fi
+      fi
+
+      if [ $WAIT_TIME -eq 0 ]; then
+        echo "⏳ Git repository not found yet, waiting up to $MAX_WAIT seconds..."
+      elif [ $(($WAIT_TIME % 10)) -eq 0 ]; then
+        echo "⏳ Still waiting... ($WAIT_TIME/$MAX_WAIT seconds)"
+      fi
+
+      sleep 1
+      WAIT_TIME=$((WAIT_TIME + 1))
+    done
+
+    # Check if we timed out
+    if [ $WAIT_TIME -ge $MAX_WAIT ]; then
+      echo "❌ Timeout: Git repository at /workspaces/setup not available after $MAX_WAIT seconds"
+      echo "Directory contents of /workspaces:"
+      ls -la /workspaces/ 2>/dev/null || echo "Cannot list /workspaces"
+      exit 1
+    fi
 
     echo "🔍 Verifying Claude Code is available..."
 
+    echo command -v claude
+
     if command -v claude >/dev/null 2>&1; then
       echo "✅ Claude command found at: $(which claude)"
-      echo "📋 Claude version: $(claude --version 2>&1 || echo 'version check failed')"
+
+      # Test if claude actually works
+      if claude --version >/dev/null 2>&1; then
+        echo "📋 Claude version: $(claude --version)"
+        echo "✅ Claude Code is working properly"
+      else
+        echo "❌ Claude command exists but failed to execute properly"
+        echo "Error output:"
+        claude --version 2>&1
+        exit 1
+      fi
     else
       echo "❌ Claude command not found in PATH"
       echo "PATH: $PATH"
-      echo "Available binaries in common locations:"
-      ls -la /usr/local/bin/claude* 2>/dev/null || echo "No claude binaries in /usr/local/bin/"
-      ls -la ~/.local/bin/claude* 2>/dev/null || echo "No claude binaries in ~/.local/bin/"
+      ls -la /home/coder/.local/setup/bin
+      ls -la /home/coder/.local/setup/bin/
       exit 1
     fi
 
