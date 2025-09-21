@@ -252,6 +252,28 @@ module "claude-code" {
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
 
+  # Pre-hook script to verify Claude is available
+  pre_install_script = <<-EOT
+    #!/bin/bash
+    set -euo pipefail
+
+    echo "🔍 Verifying Claude Code is available..."
+
+    if command -v claude >/dev/null 2>&1; then
+      echo "✅ Claude command found at: $(which claude)"
+      echo "📋 Claude version: $(claude --version 2>&1 || echo 'version check failed')"
+    else
+      echo "❌ Claude command not found in PATH"
+      echo "PATH: $PATH"
+      echo "Available binaries in common locations:"
+      ls -la /usr/local/bin/claude* 2>/dev/null || echo "No claude binaries in /usr/local/bin/"
+      ls -la ~/.local/bin/claude* 2>/dev/null || echo "No claude binaries in ~/.local/bin/"
+      exit 1
+    fi
+
+    echo "✅ Pre-hook validation completed successfully"
+  EOT
+
   # TODO: install MCP servers etc?
   # post_install_script = data.coder_parameter.setup_script.value
 
