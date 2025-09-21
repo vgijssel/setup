@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# This script modifies ~/.ssh/known_hosts to ensure GitHub's SSH keys are present
+# stdin contains the current content of ~/.ssh/known_hosts
+# stdout will become the new content of ~/.ssh/known_hosts
+
+tempfile="$(mktemp)"
+trap 'rm -rf "${tempfile}"' EXIT
+
+# Save the existing content from stdin
+cat > "${tempfile}"
+
+# Read the GitHub known hosts from our source file
+SOURCE_FILE="{{ .chezmoi.sourceDir }}/ssh_known_hosts"
+
+# Check if the source file exists
+if [ ! -f "$SOURCE_FILE" ]; then
+    echo "Warning: ssh_known_hosts source file not found at $SOURCE_FILE" >&2
+    cat "${tempfile}"
+    exit 0
+fi
+
+# Process each line from the source file and add if not already present
+while IFS= read -r line; do
+    # Skip empty lines and comments
+    if [ -z "$line" ] || [ "${line#\#}" != "$line" ]; then
+        continue
+    fi
+
+    # Check if this exact line already exists in the temp file
+    if ! grep -Fxq "$line" "${tempfile}"; then
+        echo "$line" >> "${tempfile}"
+    fi
+done < "$SOURCE_FILE"
+
+# Output the updated content
+cat "${tempfile}"

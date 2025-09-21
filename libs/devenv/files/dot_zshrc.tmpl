@@ -1,5 +1,7 @@
+{{ if eq (env "IS_MACOS") "true" -}}
 # Use 1Password for managing SSH keys
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+{{- end }}
 
 # Symlinked hermit binaries
 export PATH="$HOME/.local/setup/bin:$PATH"

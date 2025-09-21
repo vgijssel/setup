@@ -3,7 +3,7 @@
 
 provider "registry.terraform.io/1password/onepassword" {
   version     = "2.1.2"
-  constraints = "~> 2.0"
+  constraints = "2.1.2"
   hashes = [
     "h1:CitB4g+nkuRbKeCcIQVddTYjthbfPnY0vM5Hj/ysQu8=",
     "h1:GdQ0kRDSi6naVt37Ui42uGLpgDsIEGx8Q8qBC7Ja2vo=",
