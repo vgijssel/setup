@@ -35,13 +35,15 @@ WAIT_TIME=0
 
 while [[ "${WAIT_TIME}" -lt "${TIMEOUT}" ]]; do
     if [[ -d "${DIR}/.git" ]]; then
+        refs_check=$(find "${DIR}/.git/refs" -type f 2>/dev/null | head -n 1) || true
         if cd "${DIR}" 2>/dev/null && \
            git status >/dev/null 2>&1 && \
            [[ -f "${DIR}/.git/index" ]] && \
            [[ -d "${DIR}/.git/refs" ]] && \
-           [[ "$(find "${DIR}/.git/refs" -type f 2>/dev/null | head -n 1)" != "" ]]; then
+           [[ "${refs_check}" != "" ]]; then
             echo "✅ Git repository clone completed successfully"
-            echo "📋 Current branch: $(git branch --show-current 2>/dev/null || echo 'unknown')"
+            current_branch=$(git branch --show-current 2>/dev/null || echo 'unknown') || true
+            echo "📋 Current branch: ${current_branch}"
             echo "📋 Repository status:"
             git status --short
             exit 0
@@ -52,7 +54,7 @@ while [[ "${WAIT_TIME}" -lt "${TIMEOUT}" ]]; do
 
     if [[ "${WAIT_TIME}" -eq 0 ]]; then
         echo "⏳ Git repository not found yet, waiting up to ${TIMEOUT} seconds..."
-    elif [[ $((${WAIT_TIME} % 10)) -eq 0 ]]; then
+    elif [[ $((WAIT_TIME % 10)) -eq 0 ]]; then
         echo "⏳ Still waiting... (${WAIT_TIME}/${TIMEOUT} seconds)"
     fi
 
