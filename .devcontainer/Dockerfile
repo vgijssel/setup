@@ -73,6 +73,3 @@ RUN rm -rf /workspaces/setup
 # Ensure the /workspaces/setup directory exists and is owned by devcontainer
 RUN mkdir -p /workspaces/setup && chown devcontainer:devcontainer /workspaces/setup
 
-# Setup SSH known hosts for GitHub
-COPY --chown=devcontainer:devcontainer .devcontainer/ssh_known_hosts /home/devcontainer/.ssh/known_hosts
-RUN chmod 600 /home/devcontainer/.ssh/known_hosts

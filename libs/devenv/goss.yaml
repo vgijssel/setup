@@ -99,6 +99,42 @@ command:
       - STARSHIP_SHELL=zsh
     timeout: 60000
 
+  ssh_auth_sock_macos:
+    title: SSH_AUTH_SOCK is configured on macOS
+    skip: {{.Env.IS_LINUX}}
+    exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.zshrc
+    exit-status: 0
+    stdout:
+      - SSH_AUTH_SOCK
+    timeout: 60000
+
+  ssh_auth_sock_linux:
+    title: SSH_AUTH_SOCK is not configured on Linux
+    skip: {{.Env.IS_MACOS}}
+    exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.zshrc || echo "not found"
+    exit-status: 0
+    stdout:
+      - not found
+    timeout: 60000
+
+  gpg_ssh_macos:
+    title: GPG SSH signing is configured on macOS
+    skip: {{.Env.IS_LINUX}}
+    exec: grep -A1 'gpg "ssh"' {{.Env.HOME}}/.gitconfig | grep op-ssh-sign
+    exit-status: 0
+    stdout:
+      - op-ssh-sign
+    timeout: 60000
+
+  gpg_ssh_linux:
+    title: GPG SSH signing is not configured on Linux
+    skip: {{.Env.IS_MACOS}}
+    exec: grep 'gpg "ssh"' {{.Env.HOME}}/.gitconfig || echo "not found"
+    exit-status: 0
+    stdout:
+      - not found
+    timeout: 60000
+
   docker_storage_check_linux:
     title: Docker storage is local to container (DinD)
     skip: {{.Env.IS_MACOS}}
@@ -155,12 +191,14 @@ file:
     exists: true
     filetype: file
 
+
   '{{.Env.HOME}}/.gitconfig':
     exists: true
     filetype: file
     contents:
       - '[user]'
       - name=mvgijssel
+
 
   '{{.Env.HOME}}/.config/starship.toml':
     exists: true
@@ -177,8 +215,7 @@ file:
     filetype: directory
 
   '{{.Env.HOME}}/.ssh/known_hosts':
-    title: SSH known_hosts file exists with GitHub entry (Linux only)
-    skip: {{.Env.IS_MACOS}}
+    title: SSH known_hosts file exists with GitHub entry
     exists: true
     filetype: file
     contents:

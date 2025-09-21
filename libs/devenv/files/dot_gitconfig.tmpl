@@ -12,8 +12,10 @@
     rebase = false
 [gpg]
 	format = ssh
+{{ if eq (env "IS_MACOS") "true" -}}
 [gpg "ssh"]
 	program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+{{- end }}
 [commit]
 	gpgsign = true
 [tag]
