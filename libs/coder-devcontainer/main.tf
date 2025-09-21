@@ -94,22 +94,6 @@ data "coder_parameter" "ai_prompt" {
   mutable     = true
 }
 
-resource "coder_env" "claude_task_prompt" {
-  agent_id = coder_agent.main.id
-  name     = "CODER_MCP_CLAUDE_TASK_PROMPT"
-  value    = data.coder_parameter.ai_prompt.value
-}
-resource "coder_env" "app_status_slug" {
-  agent_id = coder_agent.main.id
-  name     = "CODER_MCP_APP_STATUS_SLUG"
-  value    = "ccw"
-}
-resource "coder_env" "claude_system_prompt" {
-  agent_id = coder_agent.main.id
-  name     = "CODER_MCP_CLAUDE_SYSTEM_PROMPT"
-  value    = data.coder_parameter.system_prompt.value
-}
-
 resource "coder_agent" "main" {
   arch           = data.coder_provisioner.me.arch
   os             = "linux"
@@ -222,14 +206,16 @@ resource "coder_agent" "main" {
 # The Claude Code module does the automatic task reporting
 # Other agent modules: https://registry.coder.com/modules?search=agent
 # Or use a custom agent:  
+
 module "claude-code" {
   count               = data.coder_workspace.me.start_count
   source              = "registry.coder.com/coder/claude-code/coder"
   version             = "3.0.0"
   agent_id            = coder_agent.main.id
   workdir             = "/workspaces/setup"
+  ai_prompt           = data.coder_parameter.ai_prompt.value
+  system_prompt       = data.coder_parameter.system_prompt.value
   install_claude_code = false
-  # claude_code_version = "latest"
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
 
