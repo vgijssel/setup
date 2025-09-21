@@ -242,7 +242,7 @@ module "claude-code" {
 
   # Pre-hook script to wait for git repo and verify Claude is available
   pre_install_script = <<-EOT
-    wait-for-git.sh --dir /workspaces/setup
+    wait-for-git --dir /workspaces/setup
   EOT
 
   # TODO: install MCP servers etc?

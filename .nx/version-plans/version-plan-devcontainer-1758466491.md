@@ -2,4 +2,4 @@
 devcontainer: minor
 ---
 
-Update devcontainer configuration to support improved Git workflow and linting compliance
+Update devcontainer user from "devcontainer" to "coder" to align with Coder's default user.
