@@ -23,6 +23,8 @@ locals {
   image_version = local.package_json.dependencies.devcontainer
   # Extract the Claude Code OAuth token from 1Password
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
+  # Extract the GitHub token from 1Password
+  github_token = try(data.onepassword_item.github_devcontainer_agent.credential, "")
 }
 
 variable "docker_socket" {
@@ -62,6 +64,12 @@ data "onepassword_item" "claude_code" {
   title = "claude-code"
 }
 
+# Ensure that an item titled "github-devcontainer-agent" exists in the 'setup-devenv' vault.
+data "onepassword_item" "github_devcontainer_agent" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  title = "github-devcontainer-agent"
+}
+
 check "onepassword_vault" {
   assert {
     condition     = can(data.onepassword_vault.setup_devenv.uuid)
@@ -73,6 +81,13 @@ check "claude_code_credential" {
   assert {
     condition     = local.claude_code_token != ""
     error_message = "The 'claude-code' item in 1Password must have a credential value with the OAuth token."
+  }
+}
+
+check "github_token_credential" {
+  assert {
+    condition     = local.github_token != ""
+    error_message = "The 'github-devcontainer-agent' item in 1Password must have a credential value with the GitHub token."
   }
 }
 
@@ -92,6 +107,12 @@ data "coder_parameter" "ai_prompt" {
   default     = ""
   description = "Write a prompt for Claude Code"
   mutable     = true
+}
+
+resource "coder_env" "github_token" {
+  agent_id = coder_agent.main.id
+  name     = "GH_TOKEN"
+  value    = local.github_token
 }
 
 resource "coder_agent" "main" {
