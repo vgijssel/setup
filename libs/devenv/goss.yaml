@@ -160,10 +160,10 @@ command:
     timeout: 10000
 
 user:
-  devcontainer:
+  coder:
     skip: {{.Env.IS_MACOS}}
     exists: true
-    home: /home/devcontainer
+    home: /home/coder
     shell: /usr/bin/zsh
   root:
     skip: {{.Env.IS_MACOS}}
@@ -171,7 +171,7 @@ user:
     shell: /usr/bin/zsh
 
 group:
-  devcontainer:
+  coder:
     skip: {{.Env.IS_MACOS}}
     exists: true
 file:
