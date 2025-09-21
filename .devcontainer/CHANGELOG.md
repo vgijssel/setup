@@ -1,3 +1,13 @@
+## 0.6.0 (2025-09-21)
+
+### 🚀 Features
+
+- Update devcontainer user from "devcontainer" to "coder" to align with Coder's default user. ([#724](https://github.com/vgijssel/setup/pull/724))
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.6.0
+
 ## 0.5.0 (2025-09-21)
 
 ### 🚀 Features

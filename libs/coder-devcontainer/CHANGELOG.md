@@ -1,3 +1,18 @@
+## 0.5.0 (2025-09-21)
+
+### 🚀 Features
+
+- Add 1Password integration for GitHub token (GH_TOKEN) environment variable using coder_env resource ([#724](https://github.com/vgijssel/setup/pull/724))
+
+### 🩹 Fixes
+
+- Pass coder prompt to Claude Code ([#724](https://github.com/vgijssel/setup/pull/724))
+- Upgrade Coder from version 2.25.2 to 2.26.0 ([#724](https://github.com/vgijssel/setup/pull/724))
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.6.0
+
 ## 0.4.0 (2025-09-21)
 
 ### 🚀 Features

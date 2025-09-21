@@ -1,3 +1,9 @@
+## 0.6.0 (2025-09-21)
+
+### 🚀 Features
+
+- Add wait-for-git script to orchestrate Coder script execution and ensure proper Git repository initialization ([#724](https://github.com/vgijssel/setup/pull/724))
+
 ## 0.5.0 (2025-09-21)
 
 ### 🚀 Features
