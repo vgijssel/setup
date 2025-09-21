@@ -1,3 +1,9 @@
+## 0.5.0 (2025-09-21)
+
+### 🚀 Features
+
+- Remove git commit signing configuration and update SSH known hosts management ([#722](https://github.com/vgijssel/setup/pull/722))
+
 ## 0.4.0 (2025-09-20)
 
 ### 🚀 Features

@@ -1,3 +1,13 @@
+## 0.4.0 (2025-09-21)
+
+### 🚀 Features
+
+- Remove git configuration and commit signing from Coder devcontainer template and add Claude module for Coder to enable tasks ([#722](https://github.com/vgijssel/setup/pull/722))
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.5.0
+
 ## 0.3.0 (2025-09-20)
 
 ### 🚀 Features

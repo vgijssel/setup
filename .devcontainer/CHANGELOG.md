@@ -1,3 +1,13 @@
+## 0.5.0 (2025-09-21)
+
+### 🚀 Features
+
+- Update devcontainer configuration and improve Claude Code installation process ([#722](https://github.com/vgijssel/setup/pull/722))
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.5.0
+
 ## 0.4.0 (2025-09-20)
 
 ### 🚀 Features
