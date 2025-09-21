@@ -51,6 +51,15 @@ command:
     stderr: ""
     timeout: 60000
 
+  gh --version:
+    title: Ensure Github CLI is installed for Claude Code
+    exec: gh --version | awk '{print $3}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=2.79.0"
+    stderr: ""
+    timeout: 60000
+
   locale:
     title: Check locale settings
     exec: locale | grep -E "^LANG=" || echo "LANG not set"
