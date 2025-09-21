@@ -62,10 +62,6 @@ COPY --chown=coder:coder .chezmoiroot /workspaces/setup/.chezmoiroot
 # Initialize and apply chezmoi configuration using direnv
 RUN bin/direnv allow && bin/direnv exec . bin/chezmoi apply --verbose
 
-# Add the setup scripts to the global PATH to make sure Claude Code is available for coder scripts
-# The Coder scripts are run as non-login shells, so we need to set the PATH globally.
-ENV PATH="/home/coder/.local/setup/bin:${PATH}"
-
 # Remove all the files so Coder can clone the repository here.
 # If there are files inside the folder the clone will fail.
 RUN rm -rf /workspaces/setup

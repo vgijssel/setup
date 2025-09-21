@@ -200,6 +200,10 @@ file:
     exists: true
     filetype: file
 
+  '{{.Env.HOME}}/.bashrc':
+    exists: true
+    filetype: file
+
 
   '{{.Env.HOME}}/.gitconfig':
     exists: true

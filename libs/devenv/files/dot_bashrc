@@ -1,0 +1,8 @@
+# Symlinked hermit binaries
+export PATH="$HOME/.local/setup/bin:$PATH"
+
+# Setting this to the default for consistency with zsh config
+export HERMIT_LOCK_TIMEOUT=30s
+
+# Aliases
+alias ll='ls -lah'
