@@ -52,7 +52,7 @@ command:
     timeout: 60000
 
   gh --version:
-    title: Ensure Github CLI is installed for Claude Code
+    title: Ensure GitHub CLI is installed for Claude Code
     exec: gh --version | awk '{print $3}' | tr -d '\n'
     exit-status: 0
     stdout:
