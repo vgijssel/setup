@@ -252,18 +252,6 @@ module "claude-code" {
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
 
-  pre_install_script = <<-EOT
-    #!/bin/bash
-    set -e
-    set -x
-
-    echo "papi"
-
-    echo $PATH
-    pwd
-    env
-  EOT
-
   # TODO: install MCP servers etc?
   # post_install_script = data.coder_parameter.setup_script.value
 

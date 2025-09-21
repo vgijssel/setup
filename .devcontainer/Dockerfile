@@ -73,3 +73,7 @@ RUN rm -rf /workspaces/setup
 # Ensure the /workspaces/setup directory exists and is owned by devcontainer
 RUN mkdir -p /workspaces/setup && chown devcontainer:devcontainer /workspaces/setup
 
+# TODO: Not sure where /home/coder is coming from, but without this Coder workspaces fail.
+# Ensure the /home/coder directory exists and is owned by devcontainer
+RUN sudo mkdir -p /home/coder && sudo chown devcontainer:devcontainer /home/coder
+
