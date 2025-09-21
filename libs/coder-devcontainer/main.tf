@@ -23,6 +23,8 @@ locals {
   image_version = local.package_json.dependencies.devcontainer
   # Extract the Claude Code OAuth token from 1Password
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
+  # Extract the GitHub token from 1Password
+  github_token = try(data.onepassword_item.github_devcontainer_agent.credential, "")
 }
 
 variable "docker_socket" {
@@ -62,6 +64,12 @@ data "onepassword_item" "claude_code" {
   title = "claude-code"
 }
 
+# Ensure that an item titled "github-devcontainer-agent" exists in the 'setup-devenv' vault.
+data "onepassword_item" "github_devcontainer_agent" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  title = "github-devcontainer-agent"
+}
+
 check "onepassword_vault" {
   assert {
     condition     = can(data.onepassword_vault.setup_devenv.uuid)
@@ -73,6 +81,13 @@ check "claude_code_credential" {
   assert {
     condition     = local.claude_code_token != ""
     error_message = "The 'claude-code' item in 1Password must have a credential value with the OAuth token."
+  }
+}
+
+check "github_token_credential" {
+  assert {
+    condition     = local.github_token != ""
+    error_message = "The 'github-devcontainer-agent' item in 1Password must have a credential value with the GitHub token."
   }
 }
 
@@ -94,20 +109,10 @@ data "coder_parameter" "ai_prompt" {
   mutable     = true
 }
 
-resource "coder_env" "claude_task_prompt" {
+resource "coder_env" "github_token" {
   agent_id = coder_agent.main.id
-  name     = "CODER_MCP_CLAUDE_TASK_PROMPT"
-  value    = data.coder_parameter.ai_prompt.value
-}
-resource "coder_env" "app_status_slug" {
-  agent_id = coder_agent.main.id
-  name     = "CODER_MCP_APP_STATUS_SLUG"
-  value    = "ccw"
-}
-resource "coder_env" "claude_system_prompt" {
-  agent_id = coder_agent.main.id
-  name     = "CODER_MCP_CLAUDE_SYSTEM_PROMPT"
-  value    = data.coder_parameter.system_prompt.value
+  name     = "GH_TOKEN"
+  value    = local.github_token
 }
 
 resource "coder_agent" "main" {
@@ -115,26 +120,7 @@ resource "coder_agent" "main" {
   os             = "linux"
   startup_script = <<-EOT
     set -e
-
-    # Print debugging information
-    echo "=== Startup Script Debug Information ==="
-    echo "Current environment variables:"
-    env | sort
-    echo ""
-    echo "Current PATH:"
-    echo $PATH
-    echo ""
-    echo "Current working directory:"
-    pwd
-    echo "=== End Debug Information ==="
-
-    # Prepare user home with default files on first start.
-    if [ ! -f ~/.init_done ]; then
-      cp -rT /etc/skel ~
-      touch ~/.init_done
-    fi
-
-    # Add any commands that should be executed at workspace startup (e.g install requirements, start a program, etc) here
+    set +x
   EOT
 
   # These environment variables allow you to make Git commits right away after creating a
@@ -241,16 +227,23 @@ resource "coder_agent" "main" {
 # The Claude Code module does the automatic task reporting
 # Other agent modules: https://registry.coder.com/modules?search=agent
 # Or use a custom agent:  
+
 module "claude-code" {
   count               = data.coder_workspace.me.start_count
   source              = "registry.coder.com/coder/claude-code/coder"
   version             = "3.0.0"
   agent_id            = coder_agent.main.id
   workdir             = "/workspaces/setup"
+  ai_prompt           = data.coder_parameter.ai_prompt.value
+  system_prompt       = data.coder_parameter.system_prompt.value
   install_claude_code = false
-  # claude_code_version = "latest"
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
+
+  # Pre-hook script to wait for git repo and verify Claude is available
+  pre_install_script = <<-EOT
+    wait-for-git --dir /workspaces/setup
+  EOT
 
   # TODO: install MCP servers etc?
   # post_install_script = data.coder_parameter.setup_script.value
@@ -357,7 +350,7 @@ resource "docker_container" "workspace" {
     ip   = "host-gateway"
   }
   volumes {
-    container_path = "/home/devcontainer"
+    container_path = "/home/coder"
     volume_name    = docker_volume.home_volume.name
     read_only      = false
   }
