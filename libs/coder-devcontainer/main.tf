@@ -21,6 +21,8 @@ locals {
   username      = data.coder_workspace_owner.me.name
   package_json  = jsondecode(file("${path.module}/package.json"))
   image_version = local.package_json.dependencies.devcontainer
+  # Extract the Claude Code OAuth token from 1Password
+  claude_code_token = try(data.onepassword_item.claude_code.credential, "")
 }
 
 variable "docker_socket" {
@@ -42,7 +44,6 @@ provider "docker" {
 }
 
 provider "onepassword" {
-  service_account_token = var.op_service_account_token != "" ? var.op_service_account_token : null
 }
 
 data "coder_provisioner" "me" {}
@@ -61,6 +62,20 @@ data "onepassword_item" "claude_code" {
   title = "claude-code"
 }
 
+check "onepassword_vault" {
+  assert {
+    condition     = can(data.onepassword_vault.setup_devenv.uuid)
+    error_message = "The 'setup-devenv' vault must exist in 1Password."
+  }
+}
+
+check "claude_code_credential" {
+  assert {
+    condition     = local.claude_code_token != ""
+    error_message = "The 'claude-code' item in 1Password must have a credential value with the OAuth token."
+  }
+}
+
 data "coder_parameter" "system_prompt" {
   name         = "system_prompt"
   display_name = "System Prompt"
@@ -68,7 +83,7 @@ data "coder_parameter" "system_prompt" {
   form_type    = "textarea"
   description  = "System prompt for the agent with generalized instructions"
   mutable      = false
-  default = "You are a helpful assistant that can help with code. You are running inside a Coder Workspace and provide status updates to the user via Coder MCP. Stay on track, feel free to debug, but when the original plan fails, do not choose a different route/architecture without checking the user first."
+  default      = "You are a helpful assistant that can help with code. You are running inside a Coder Workspace and provide status updates to the user via Coder MCP. Stay on track, feel free to debug, but when the original plan fails, do not choose a different route/architecture without checking the user first."
 }
 
 data "coder_parameter" "ai_prompt" {
@@ -95,12 +110,6 @@ resource "coder_env" "claude_system_prompt" {
   value    = data.coder_parameter.system_prompt.value
 }
 
-resource "coder_env" "claude_code_json" {
-  agent_id = coder_agent.main.id
-  name     = "CLAUDE_CODE_JSON_BASE64"
-  value    = data.onepassword_item.claude_code.section[0].file[0].content_base64
-}
-
 resource "coder_agent" "main" {
   arch           = data.coder_provisioner.me.arch
   os             = "linux"
@@ -123,23 +132,6 @@ resource "coder_agent" "main" {
     if [ ! -f ~/.init_done ]; then
       cp -rT /etc/skel ~
       touch ~/.init_done
-    fi
-
-    # Create ~/.claude.json from base64-encoded environment variable if it exists
-    if [ -n "$CLAUDE_CODE_JSON_BASE64" ]; then
-      echo "Creating ~/.claude.json from CLAUDE_CODE_JSON_BASE64 environment variable..."
-      if ! echo "$CLAUDE_CODE_JSON_BASE64" | base64 -d > ~/.claude.json; then
-        echo "Error: Failed to decode base64 data from CLAUDE_CODE_JSON_BASE64. ~/.claude.json not created."
-        rm -f ~/.claude.json
-      elif ! jq empty ~/.claude.json 2>/dev/null; then
-        echo "Error: Decoded data is not valid JSON. ~/.claude.json not created."
-        rm -f ~/.claude.json
-      else
-        chmod 600 ~/.claude.json
-        echo "~/.claude.json created successfully"
-      fi
-    else
-      echo "CLAUDE_CODE_JSON_BASE64 environment variable not found, skipping ~/.claude.json creation"
     fi
 
     # Add any commands that should be executed at workspace startup (e.g install requirements, start a program, etc) here
@@ -249,34 +241,35 @@ resource "coder_agent" "main" {
 # The Claude Code module does the automatic task reporting
 # Other agent modules: https://registry.coder.com/modules?search=agent
 # Or use a custom agent:  
-# module "claude-code" {
-#   count               = data.coder_workspace.me.start_count
-#   source              = "registry.coder.com/coder/claude-code/coder"
-#   version             = "2.2.0"
-#   agent_id            = coder_agent.main.id
-#   folder              = "/workspaces/setup"
-#   install_claude_code = false
-#   # claude_code_version = "latest"
-#   order               = 999
+module "claude-code" {
+  count               = data.coder_workspace.me.start_count
+  source              = "registry.coder.com/coder/claude-code/coder"
+  version             = "3.0.0"
+  agent_id            = coder_agent.main.id
+  workdir             = "/workspaces/setup"
+  install_claude_code = false
+  # claude_code_version = "latest"
+  order                   = 999
+  claude_code_oauth_token = local.claude_code_token
 
-#   experiment_pre_install_script = <<-EOT
-#     #!/bin/bash
-#     set -e
-#     set -x
-    
-#     echo "papi"
+  pre_install_script = <<-EOT
+    #!/bin/bash
+    set -e
+    set -x
 
-#     echo $PATH
-#     pwd
-#     env
-#   EOT
+    echo "papi"
 
-#   # TODO: install MCP servers etc?
-#   # experiment_post_install_script = data.coder_parameter.setup_script.value
+    echo $PATH
+    pwd
+    env
+  EOT
 
-#   # This enables Coder Tasks
-#   experiment_report_tasks = true
-# }
+  # TODO: install MCP servers etc?
+  # post_install_script = data.coder_parameter.setup_script.value
+
+  # This enables Coder Tasks
+  report_tasks = true
+}
 
 # TODO: do we need this one?
 module "coder-login" {
@@ -370,7 +363,7 @@ resource "docker_container" "workspace" {
   # First run docker-init.sh, then the coder agent
   # TODO: maybe run a coder script instead? the docker thing?
   entrypoint = ["sh", "-c", "/usr/local/share/docker-init.sh ${replace(coder_agent.main.init_script, "/localhost|127\\.0\\.0\\.1/", "host.docker.internal")}"]
-  env        = ["CODER_AGENT_TOKEN=${coder_agent.main.token}", "OP_SERVICE_ACCOUNT_TOKEN=${var.op_service_account_token}"]
+  env        = ["CODER_AGENT_TOKEN=${coder_agent.main.token}"]
   host {
     host = "host.docker.internal"
     ip   = "host-gateway"
