@@ -343,8 +343,7 @@ resource "docker_volume" "workspaces_volume" {
 
 resource "docker_container" "workspace" {
   count = data.coder_workspace.me.start_count
-  # image = "ghcr.io/vgijssel/setup/devcontainer:${local.image_version}"
-  image = "ghcr.io/vgijssel/setup/devcontainer-dev:15932696310725639292"
+  image = "ghcr.io/vgijssel/setup/devcontainer:${local.image_version}"
   # Uses lower() to avoid Docker restriction on container names.
   name = "coder-${data.coder_workspace_owner.me.name}-${lower(data.coder_workspace.me.name)}"
   # Hostname makes the shell more user friendly: coder@my-workspace:~$

@@ -8,5 +8,7 @@ install-vscode-extensions.sh
 
 {{ if ne (env "IS_LINUX") "true" -}}
 linux-install-packages.sh
+{{- else -}}
+.gitconfig.macos
 {{- end }}
 ssh_known_hosts

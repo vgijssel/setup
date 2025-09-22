@@ -64,7 +64,7 @@ command:
     title: jq is installed for Git commit signing module in Coder
     meta:
       url: https://developer.1password.com/docs/ssh/git-commit-signing/
-    exec: jq --version | tr -d "\njq-"
+    exec: jq --version | tr -d '\njq-'
     exit-status: 0
     stdout:
       semver-constraint: ">=1.7.0"
@@ -137,19 +137,45 @@ command:
       - not found
     timeout: 60000
 
-  gpg_ssh_macos:
-    title: GPG SSH signing is configured on macOS
+  gitconfig_include_setup:
+    title: Git config includes setup configuration
+    exec: git config --global --get-all include.path | grep -c "\.gitconfig\.setup" || echo "0"
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 60000
+
+  gitconfig_include_macos:
+    title: Git config includes macOS configuration on macOS
     skip: {{.Env.IS_LINUX}}
-    exec: grep -A1 'gpg "ssh"' {{.Env.HOME}}/.gitconfig | grep op-ssh-sign
+    exec: git config --global --get-all include.path | grep -c "\.gitconfig\.macos" || echo "0"
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 60000
+
+  gitconfig_no_macos_linux:
+    title: Git config does not include macOS configuration on Linux
+    skip: {{.Env.IS_MACOS}}
+    exec: git config --global --get-all include.path | grep "\.gitconfig\.macos" || echo "not found"
+    exit-status: 0
+    stdout:
+      - not found
+    timeout: 60000
+
+  gpg_ssh_macos:
+    title: GPG SSH signing is configured on macOS via include
+    skip: {{.Env.IS_LINUX}}
+    exec: grep -A1 'gpg "ssh"' {{.Env.HOME}}/.gitconfig.macos | grep op-ssh-sign
     exit-status: 0
     stdout:
       - op-ssh-sign
     timeout: 60000
 
   gpg_ssh_linux:
-    title: GPG SSH signing is not configured on Linux
+    title: GPG SSH signing macOS file does not exist on Linux
     skip: {{.Env.IS_MACOS}}
-    exec: grep 'gpg "ssh"' {{.Env.HOME}}/.gitconfig || echo "not found"
+    exec: test -f {{.Env.HOME}}/.gitconfig.macos && echo "file exists" || echo "not found"
     exit-status: 0
     stdout:
       - not found
@@ -216,12 +242,25 @@ file:
     filetype: file
 
 
-  '{{.Env.HOME}}/.gitconfig':
+  '{{.Env.HOME}}/.gitconfig.setup':
     exists: true
     filetype: file
     contents:
       - '[user]'
       - name=mvgijssel
+
+  '{{.Env.HOME}}/.gitconfig.macos':
+    skip: {{.Env.IS_LINUX}}
+    exists: true
+    filetype: file
+    contents:
+      - '[gpg]'
+      - format = ssh
+
+  '{{.Env.HOME}}/.gitconfig.macos-not-on-linux':
+    title: macOS gitconfig file should not exist on Linux
+    skip: {{.Env.IS_MACOS}}
+    exists: false
 
 
   '{{.Env.HOME}}/.config/starship.toml':
