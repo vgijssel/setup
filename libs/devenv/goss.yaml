@@ -237,8 +237,8 @@ file:
     filetype: file
     contents:
       - '[include]'
-      - 'path = ~/.gitconfig.setup'
-      - 'path = ~/.gitconfig.macos'
+      - path = ~/.gitconfig.setup
+      - path = ~/.gitconfig.macos
 
   '{{.Env.HOME}}/.gitconfig.setup':
     exists: true
