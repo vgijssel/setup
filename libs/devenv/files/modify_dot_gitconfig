@@ -1,0 +1,30 @@
+{{/* chezmoi:modify-template */}}
+{{- $config := fromIni .chezmoi.stdin -}}
+{{- /* Collect existing include paths */ -}}
+{{- $existingIncludes := list -}}
+{{- if hasKey $config "include" -}}
+  {{- if $config.include.path -}}
+    {{- if kindIs "slice" $config.include.path -}}
+      {{- $existingIncludes = $config.include.path -}}
+    {{- else -}}
+      {{- $existingIncludes = list $config.include.path -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- /* Remove existing include section to avoid conflicts */ -}}
+{{- $configWithoutInclude := dict -}}
+{{- range $key, $value := $config -}}
+  {{- if ne $key "include" -}}
+    {{- $configWithoutInclude = merge $configWithoutInclude (dict $key $value) -}}
+  {{- end -}}
+{{- end -}}
+{{- /* Output the config without include sections */ -}}
+{{ $configWithoutInclude | toIni }}
+{{- /* Combine existing and new includes, removing duplicates */ -}}
+{{- $newIncludes := list "~/.gitconfig.setup" "~/.gitconfig.macos" -}}
+{{- $allIncludes := concat $existingIncludes $newIncludes | uniq -}}
+{{- /* Add all include sections manually */ -}}
+{{- range $allIncludes }}
+[include]
+	path = {{ . }}
+{{- end }}

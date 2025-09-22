@@ -5,6 +5,8 @@
     "context": ".."
   },
   "remoteUser": "coder",
+  "privileged": true,
+  "overrideCommand": false,
   "customizations": {
     "vscode": {
       "extensions": [

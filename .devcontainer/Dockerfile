@@ -45,6 +45,9 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
 # Entrypoint for docker-in-docker initialization
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 
+# Default command to keep the container running when started with VSCode
+CMD [ "sleep", "infinity" ]
+
 # Set default user
 USER coder
 
@@ -61,6 +64,10 @@ COPY --chown=coder:coder .chezmoiroot /workspaces/setup/.chezmoiroot
 
 # Initialize and apply chezmoi configuration using direnv
 RUN bin/direnv allow && bin/direnv exec . bin/chezmoi apply --verbose
+
+# Eager load Spaceship prompt to avoid delays on first prompt
+# Passing the -i flag to zsh forces it to load as an interactive shell
+RUN zsh -ic 'exit 0'
 
 # Remove all the files so Coder can clone the repository here.
 # If there are files inside the folder the clone will fail.

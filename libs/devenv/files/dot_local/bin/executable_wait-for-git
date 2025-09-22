@@ -1,4 +1,6 @@
 #!/bin/bash
+# Necessary due to coder modules not being able to define order yet.
+# See: https://github.com/coder/coder/issues/10352
 
 set -e
 
