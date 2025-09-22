@@ -1,0 +1,2 @@
+{{/* chezmoi:modify-template */}}
+{{ fromIni .chezmoi.stdin | toIni }}

@@ -81,7 +81,7 @@ command:
     exec: chezmoi --version | awk '{print $3}' | tr -d 'v,\n'
     exit-status: 0
     stdout:
-      semver-constraint: ">=2.62.5"
+      semver-constraint: ">=2.65.1"
     stderr: ""
     timeout: 60000
 
@@ -146,21 +146,11 @@ command:
     timeout: 60000
 
   gitconfig_include_macos:
-    title: Git config includes macOS configuration on macOS
-    skip: {{.Env.IS_LINUX}}
+    title: Git config always includes macOS configuration path
     exec: grep -c "path = {{.Env.HOME}}/.gitconfig.macos" {{.Env.HOME}}/.gitconfig || echo "0"
     exit-status: 0
     stdout:
       - "1"
-    timeout: 60000
-
-  gitconfig_no_macos_linux:
-    title: Git config does not include macOS configuration on Linux
-    skip: {{.Env.IS_MACOS}}
-    exec: grep "path = {{.Env.HOME}}/.gitconfig.macos" {{.Env.HOME}}/.gitconfig || echo "not found"
-    exit-status: 0
-    stdout:
-      - not found
     timeout: 60000
 
   gpg_ssh_macos:
@@ -248,6 +238,7 @@ file:
     contents:
       - '[include]'
       - 'path = {{.Env.HOME}}/.gitconfig.setup'
+      - 'path = {{.Env.HOME}}/.gitconfig.macos'
 
   '{{.Env.HOME}}/.gitconfig.setup':
     exists: true
