@@ -139,7 +139,7 @@ command:
 
   gitconfig_include_setup:
     title: Git config includes setup configuration
-    exec: grep -c "path = {{.Env.HOME}}/.gitconfig.setup" {{.Env.HOME}}/.gitconfig || echo "0"
+    exec: grep -c "path = ~/.gitconfig.setup" {{.Env.HOME}}/.gitconfig || echo "0"
     exit-status: 0
     stdout:
       - "1"
@@ -147,7 +147,7 @@ command:
 
   gitconfig_include_macos:
     title: Git config always includes macOS configuration path
-    exec: grep -c "path = {{.Env.HOME}}/.gitconfig.macos" {{.Env.HOME}}/.gitconfig || echo "0"
+    exec: grep -c "path = ~/.gitconfig.macos" {{.Env.HOME}}/.gitconfig || echo "0"
     exit-status: 0
     stdout:
       - "1"
@@ -237,8 +237,8 @@ file:
     filetype: file
     contents:
       - '[include]'
-      - 'path = {{.Env.HOME}}/.gitconfig.setup'
-      - 'path = {{.Env.HOME}}/.gitconfig.macos'
+      - 'path = ~/.gitconfig.setup'
+      - 'path = ~/.gitconfig.macos'
 
   '{{.Env.HOME}}/.gitconfig.setup':
     exists: true
