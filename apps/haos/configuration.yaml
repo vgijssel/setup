@@ -246,9 +246,6 @@ light:
     entities:
       - light.toilet_1_light
       - light.toilet_2_light
-  - platform: switch
-    name: bedroom_light
-    entity_id: switch.bedroom_shelly
 
 group:
   baby_room_lights:
