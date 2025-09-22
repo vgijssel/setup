@@ -1,3 +1,9 @@
+## 0.7.0 (2025-09-22)
+
+### 🚀 Features
+
+- Refactor git configuration management to support platform-specific includes and improve chezmoi template handling ([#725](https://github.com/vgijssel/setup/pull/725))
+
 ## 0.6.0 (2025-09-21)
 
 ### 🚀 Features

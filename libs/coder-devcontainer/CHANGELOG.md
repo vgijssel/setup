@@ -1,3 +1,13 @@
+## 0.6.0 (2025-09-22)
+
+### 🚀 Features
+
+- Enable git commit signing support in Coder devcontainer with SSH agent forwarding and Docker socket configuration ([#725](https://github.com/vgijssel/setup/pull/725))
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.6.1
+
 ## 0.5.0 (2025-09-21)
 
 ### 🚀 Features

@@ -1,3 +1,13 @@
+## 0.6.1 (2025-09-22)
+
+### 🩹 Fixes
+
+- Fix devcontainer Docker-in-Docker startup issues and configuration ([#725](https://github.com/vgijssel/setup/pull/725))
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.7.0
+
 ## 0.6.0 (2025-09-21)
 
 ### 🚀 Features
