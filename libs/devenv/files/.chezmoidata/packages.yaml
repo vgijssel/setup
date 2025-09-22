@@ -46,3 +46,9 @@ packages:
       - bash
       - fontconfig
       - unzip
+      # NOTE: adding jq here because the `git-commit-signing` module
+      # needs it during setup and we currently don't have a way to
+      # control install order of coder modules.
+      # So we're not sure if Hermit jq's is available when the module runs.
+      # See: https://github.com/coder/coder/issues/10352
+      - jq

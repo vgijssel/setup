@@ -13,11 +13,6 @@ RUN apt-get update && apt-get install -y \
     ssh \
     sudo \
     locales \
-    # NOTE: adding jq here because the `git-commit-signing` module
-    # needs it during setup and we currently don't have a way to
-    # control install order of coder modules.
-    # See: https://github.com/coder/coder/issues/10352
-    jq \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure locale
@@ -49,6 +44,9 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
 
 # Entrypoint for docker-in-docker initialization
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
+
+# Default command to keep the container running when started with VSCode
+CMD [ "sleep", "infinity" ]
 
 # Set default user
 USER coder
