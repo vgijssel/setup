@@ -246,6 +246,9 @@ light:
     entities:
       - light.toilet_1_light
       - light.toilet_2_light
+  - platform: switch
+    name: bedroom_light
+    entity_id: switch.bedroom_shelly
 
 group:
   baby_room_lights:
@@ -267,7 +270,7 @@ homekit:
         - light.baby_room_light
         - switch.baby_room_moon_light_moko
         - light.bathroom_lights
-        - switch.bedroom_shelly
+        - light.bedroom_light
         - switch.driveway_shelly
         - light.hallway_lights
         - light.kitchen_lights
@@ -317,7 +320,7 @@ homekit:
         type: outlet
       light.bathroom_lights:
         name: Badkamer Lampen
-      switch.bedroom_shelly:
+      light.bedroom_light:
         name: Slaapkamer Lamp
       switch.driveway_shelly:
         name: Oprit Lamp
