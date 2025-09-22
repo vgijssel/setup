@@ -13,6 +13,11 @@ RUN apt-get update && apt-get install -y \
     ssh \
     sudo \
     locales \
+    # NOTE: adding jq here because the `git-commit-signing` module
+    # needs it during setup and we currently don't have a way to
+    # control install order of coder modules.
+    # See: https://github.com/coder/coder/issues/10352
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure locale
@@ -61,6 +66,10 @@ COPY --chown=coder:coder .chezmoiroot /workspaces/setup/.chezmoiroot
 
 # Initialize and apply chezmoi configuration using direnv
 RUN bin/direnv allow && bin/direnv exec . bin/chezmoi apply --verbose
+
+# Eager load Spaceship prompt to avoid delays on first prompt
+# Passing the -i flag to zsh forces it to load as an interactive shell
+RUN zsh -ic 'exit 0'
 
 # Remove all the files so Coder can clone the repository here.
 # If there are files inside the folder the clone will fail.

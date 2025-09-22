@@ -127,12 +127,12 @@ resource "coder_agent" "main" {
   # workspace. Note that they take precedence over configuration defined in ~/.gitconfig!
   # You can remove this block if you'd prefer to configure Git manually or using
   # dotfiles. (see docs/dotfiles.md)
-  # env = {
-  #   GIT_AUTHOR_NAME     = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
-  #   GIT_AUTHOR_EMAIL    = "${data.coder_workspace_owner.me.email}"
-  #   GIT_COMMITTER_NAME  = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
-  #   GIT_COMMITTER_EMAIL = "${data.coder_workspace_owner.me.email}"
-  # }
+#   env = {
+#     GIT_AUTHOR_NAME     = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
+#     GIT_AUTHOR_EMAIL    = "${data.coder_workspace_owner.me.email}"
+#     GIT_COMMITTER_NAME  = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
+#     GIT_COMMITTER_EMAIL = "${data.coder_workspace_owner.me.email}"
+#   }
 
   # The following metadata blocks are optional. They are used to display
   # information about your workspace in the dashboard. You can remove them
@@ -277,6 +277,14 @@ module "git-clone" {
   url         = "git@github.com:vgijssel/setup.git"
   base_dir    = "/workspaces"
   folder_name = "setup"
+}
+
+# Git commit signing module to configure commit signing with SSH keys
+module "git-commit-signing" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder/git-commit-signing/coder"
+  version  = "1.0.31"
+  agent_id = coder_agent.main.id
 }
 
 resource "docker_volume" "home_volume" {

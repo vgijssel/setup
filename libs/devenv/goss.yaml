@@ -60,6 +60,17 @@ command:
     stderr: ""
     timeout: 60000
 
+  jq_version:
+    title: jq is installed for Git commit signing module in Coder
+    meta:
+      url: https://developer.1password.com/docs/ssh/git-commit-signing/
+    exec: jq --version | tr -d "\njq-"
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=1.7.0"
+    stderr: ""
+    timeout: 60000
+
   locale:
     title: Check locale settings
     exec: locale | grep -E "^LANG=" || echo "LANG not set"
