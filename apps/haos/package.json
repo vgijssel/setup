@@ -26,8 +26,7 @@
       "lint": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "trunk check --no-fix",
-          "cwd": "apps/haos"
+          "command": "trunk check --no-fix apps/haos"
         },
         "cache": true,
         "inputs": [
