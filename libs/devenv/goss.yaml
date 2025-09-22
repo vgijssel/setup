@@ -139,7 +139,7 @@ command:
 
   gitconfig_include_setup:
     title: Git config includes setup configuration
-    exec: git config --global --get-all include.path | grep -c "\.gitconfig\.setup" || echo "0"
+    exec: grep -c "path = {{.Env.HOME}}/.gitconfig.setup" {{.Env.HOME}}/.gitconfig || echo "0"
     exit-status: 0
     stdout:
       - "1"
@@ -148,7 +148,7 @@ command:
   gitconfig_include_macos:
     title: Git config includes macOS configuration on macOS
     skip: {{.Env.IS_LINUX}}
-    exec: git config --global --get-all include.path | grep -c "\.gitconfig\.macos" || echo "0"
+    exec: grep -c "path = {{.Env.HOME}}/.gitconfig.macos" {{.Env.HOME}}/.gitconfig || echo "0"
     exit-status: 0
     stdout:
       - "1"
@@ -157,7 +157,7 @@ command:
   gitconfig_no_macos_linux:
     title: Git config does not include macOS configuration on Linux
     skip: {{.Env.IS_MACOS}}
-    exec: git config --global --get-all include.path | grep "\.gitconfig\.macos" || echo "not found"
+    exec: grep "path = {{.Env.HOME}}/.gitconfig.macos" {{.Env.HOME}}/.gitconfig || echo "not found"
     exit-status: 0
     stdout:
       - not found
@@ -241,6 +241,13 @@ file:
     exists: true
     filetype: file
 
+
+  '{{.Env.HOME}}/.gitconfig':
+    exists: true
+    filetype: file
+    contents:
+      - '[include]'
+      - 'path = {{.Env.HOME}}/.gitconfig.setup'
 
   '{{.Env.HOME}}/.gitconfig.setup':
     exists: true

@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# This script modifies ~/.gitconfig to ensure proper include paths are set
+# stdin contains the current content of ~/.gitconfig
+# stdout will become the new content of ~/.gitconfig
+
+tempfile="$(mktemp)"
+outputfile="$(mktemp)"
+trap 'rm -rf "${tempfile}" "${outputfile}"' EXIT
+
+# Save the existing content from stdin
+cat > "${tempfile}"
+
+# Copy everything except existing include paths we manage
+grep -v "path = $HOME/.gitconfig.setup" "${tempfile}" | grep -v "path = $HOME/.gitconfig.macos" > "${outputfile}" || true
+
+# Check if [include] section exists
+if ! grep -q "^\[include\]" "${outputfile}"; then
+    # No [include] section exists, add it at the end
+    echo "" >> "${outputfile}"
+    echo "[include]" >> "${outputfile}"
+fi
+
+# Add our managed include paths right after the [include] section
+awk -v home="$HOME" '
+/^\[include\]/ {
+    print
+    print "\tpath = " home "/.gitconfig.setup"
+{{ if eq (env "IS_MACOS") "true" -}}
+    print "\tpath = " home "/.gitconfig.macos"
+{{- end }}
+    next
+}
+{ print }
+' "${outputfile}"
