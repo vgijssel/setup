@@ -25,6 +25,8 @@ locals {
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
   # Extract the GitHub token from 1Password
   github_token = try(data.onepassword_item.github_devcontainer_agent.credential, "")
+  # Extract the Home Assistant API token from 1Password
+  ha_token = try(data.onepassword_item.haos_api.credential, "")
 }
 
 variable "docker_socket" {
@@ -70,6 +72,12 @@ data "onepassword_item" "github_devcontainer_agent" {
   title = "github-devcontainer-agent"
 }
 
+# Ensure that an item titled "haos-api" exists in the 'setup-devenv' vault.
+data "onepassword_item" "haos_api" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  title = "haos-api"
+}
+
 check "onepassword_vault" {
   assert {
     condition     = can(data.onepassword_vault.setup_devenv.uuid)
@@ -88,6 +96,13 @@ check "github_token_credential" {
   assert {
     condition     = local.github_token != ""
     error_message = "The 'github-devcontainer-agent' item in 1Password must have a credential value with the GitHub token."
+  }
+}
+
+check "ha_token_credential" {
+  assert {
+    condition     = local.ha_token != ""
+    error_message = "The 'haos-api' item in 1Password must have a password field with the Home Assistant API token."
   }
 }
 
@@ -113,6 +128,12 @@ resource "coder_env" "github_token" {
   agent_id = coder_agent.main.id
   name     = "GH_TOKEN"
   value    = local.github_token
+}
+
+resource "coder_env" "ha_token" {
+  agent_id = coder_agent.main.id
+  name     = "HA_TOKEN"
+  value    = local.ha_token
 }
 
 resource "coder_agent" "main" {
