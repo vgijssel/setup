@@ -5,12 +5,64 @@
   "nx": {
     "projectType": "application",
     "sourceRoot": "apps/haos",
-    "targets": {},
+    "targets": {
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "if [ -n \"$HA_TOKEN\" ]; then goss validate; else echo 'Skipping Home Assistant integration tests (HA_TOKEN not set)'; fi",
+          "cwd": "apps/haos"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.yaml",
+          "{projectRoot}/**/*.yml",
+          "!{projectRoot}/.HA_VERSION"
+        ],
+        "outputs": [],
+        "metadata": {
+          "description": "Validate Home Assistant configuration using goss (requires HA_TOKEN)"
+        }
+      },
+      "lint": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "trunk check --no-fix apps/haos"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.yaml",
+          "{projectRoot}/**/*.yml"
+        ],
+        "outputs": [],
+        "metadata": {
+          "description": "Lint Home Assistant configuration files"
+        }
+      },
+      "format": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "trunk fmt",
+          "cwd": "apps/haos"
+        },
+        "cache": false,
+        "metadata": {
+          "description": "Format Home Assistant configuration files"
+        }
+      }
+    },
     "tags": [
       "type:application",
       "scope:home-automation",
       "platform:home-assistant"
-    ]
+    ],
+    "release": {
+      "version": {
+        "generatorOptions": {
+          "fallbackCurrentVersionResolver": "disk",
+          "currentVersionResolver": "disk"
+        }
+      }
+    }
   },
   "private": true
 }
