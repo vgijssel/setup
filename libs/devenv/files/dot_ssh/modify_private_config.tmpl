@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# This script modifies ~/.ssh/config to ensure the Include directive for setup_config is present
+# stdin contains the current content of ~/.ssh/config
+# stdout will become the new content of ~/.ssh/config
+
+tempfile="$(mktemp)"
+trap 'rm -rf "${tempfile}"' EXIT
+
+# Save the existing content from stdin
+cat > "${tempfile}"
+
+# The include line we want to ensure is present
+INCLUDE_LINE="Include ~/.ssh/setup_config"
+
+# Check if the Include line already exists (case-insensitive, with potential variations in whitespace)
+if ! grep -qi "^[[:space:]]*Include[[:space:]]\+~/\.ssh/setup_config" "${tempfile}"; then
+    # If the file is empty or only contains whitespace, just add the include line
+    if [ ! -s "${tempfile}" ] || ! grep -q '[^[:space:]]' "${tempfile}"; then
+        echo "$INCLUDE_LINE" > "${tempfile}"
+    else
+        # Add the Include line at the beginning of the file
+        # This ensures it's processed before any Host directives
+        echo "$INCLUDE_LINE" | cat - "${tempfile}" > "${tempfile}.tmp" && mv "${tempfile}.tmp" "${tempfile}"
+    fi
+fi
+
+# Output the updated content
+cat "${tempfile}"
