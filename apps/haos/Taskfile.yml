@@ -17,7 +17,7 @@ tasks:
     desc: Check config and reload Home Assistant if valid
     cmds:
       - |
-        curl -sf \
+        curl -f \
           -H "Authorization: Bearer $HA_TOKEN" \
           -H "Content-Type: application/json" \
           -X POST \
