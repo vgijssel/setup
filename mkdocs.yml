@@ -5,9 +5,9 @@ site_author: Maarten van Gijssel
 
 repo_name: setup
 repo_url: https://github.com/vgijssel/setup
-edit_uri: https://github.com/vgijssel/setup/edit/main/docs/
+edit_uri: https://github.com/vgijssel/setup/edit/main/apps/docs/
 
-docs_dir: docs
+docs_dir: apps/docs
 site_dir: tmp/docs_output
 
 use_directory_urls: true

@@ -1,0 +1,40 @@
+{
+  "name": "docs",
+  "version": "0.1.0",
+  "description": "Documentation site built with MkDocs",
+  "nx": {
+    "projectType": "application",
+    "sourceRoot": "apps/docs",
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "mkdocs build",
+          "cwd": "."
+        },
+        "description": "Build documentation site"
+      },
+      "serve": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "mkdocs serve",
+          "cwd": "."
+        },
+        "description": "Serve documentation site locally"
+      }
+    },
+    "tags": [
+      "type:application",
+      "scope:documentation"
+    ],
+    "release": {
+      "version": {
+        "generatorOptions": {
+          "fallbackCurrentVersionResolver": "disk",
+          "currentVersionResolver": "disk"
+        }
+      }
+    }
+  },
+  "private": true
+}
