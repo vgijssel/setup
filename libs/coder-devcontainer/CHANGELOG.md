@@ -1,3 +1,14 @@
+## 0.7.0 (2025-09-24)
+
+### 🚀 Features
+
+- Update documentation and clean up configuration ([#726](https://github.com/vgijssel/setup/pull/726), [#728](https://github.com/vgijssel/setup/issues/728))
+- Add HA_TOKEN environment variable from 1Password to Coder workspace ([#726](https://github.com/vgijssel/setup/pull/726), [#728](https://github.com/vgijssel/setup/issues/728))
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.6.2
+
 ## 0.6.0 (2025-09-22)
 
 ### 🚀 Features

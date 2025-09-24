@@ -1,3 +1,9 @@
+## 0.8.0 (2025-09-24)
+
+### 🚀 Features
+
+- Make sure gitconfig is merged with existing config for Coder Workspaces. ([#726](https://github.com/vgijssel/setup/pull/726), [#728](https://github.com/vgijssel/setup/issues/728))
+
 ## 0.7.0 (2025-09-22)
 
 ### 🚀 Features
