@@ -354,13 +354,13 @@ operator:
 
   # 1Password Operator Service Account Configuration
   serviceAccount:
-    # The name of the 1Password Conenct Operator
+    # The name of the 1Password Connect Operator
     create: "{{ .Values.operator.create }}"
 
     # Annotations for the 1Password Connect Service Account
     annotations: {}
 
-    # The name of the 1Password Conenct Operator
+    # The name of the 1Password Connect Operator
     name: onepassword-connect-operator
 
   # 1Password Operator Role Binding Configuration
