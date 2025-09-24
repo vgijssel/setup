@@ -3,12 +3,6 @@ default_config:
 
 api:
 
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - 192.168.1.31   # pikvm as subnet router
-  ip_ban_enabled: false  # Optional, prevents banning
-
 # Load frontend themes from the themes folder
 frontend:
   themes: !include_dir_merge_named themes

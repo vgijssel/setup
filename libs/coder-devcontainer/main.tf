@@ -362,23 +362,12 @@ resource "docker_volume" "workspaces_volume" {
   }
 }
 
-# Home Assistant preview app
-resource "coder_app" "ha_preview" {
+resource "coder_app" "home-assistant" {
   agent_id     = coder_agent.main.id
-  slug         = "preview"
+  slug         = "home-assistant"
   display_name = "Home Assistant"
-  url          = "http://localhost:8123/"
-
-  # url          = "https://www.google.com/"
-  icon         = "/icon/home-assistant.svg"
-  subdomain    = false
-  share        = "owner"
-
-  healthcheck {
-    url       = "http://localhost:8123/"
-    interval  = 30
-    threshold = 10
-  }
+  url          = "http://192.168.1.32:8123/"
+  external = true
 }
 
 resource "docker_container" "workspace" {
