@@ -26,7 +26,7 @@ Focused applications built using the libraries. Examples:
 Environment-specific deployments of apps and libs. Examples:
 
 - `stacks/enigma/`: Talos-based Kubernetes cluster deployment
-- `stacks/devenv/`: Local MacOS-based dev environment
+- `stacks/devenv/`: Local macOS-based dev environment
 - `stacks/provisioner/`: PiKVM machine provisioned using Ansible
 
 ### `third_party/`
