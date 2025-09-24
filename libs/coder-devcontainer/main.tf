@@ -25,6 +25,8 @@ locals {
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
   # Extract the GitHub token from 1Password
   github_token = try(data.onepassword_item.github_devcontainer_agent.credential, "")
+  # Extract the Home Assistant API token from 1Password
+  ha_token = try(data.onepassword_item.haos_api.credential, "")
 }
 
 variable "docker_socket" {
@@ -70,6 +72,12 @@ data "onepassword_item" "github_devcontainer_agent" {
   title = "github-devcontainer-agent"
 }
 
+# Ensure that an item titled "haos-api" exists in the 'setup-devenv' vault.
+data "onepassword_item" "haos_api" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  title = "haos-api"
+}
+
 check "onepassword_vault" {
   assert {
     condition     = can(data.onepassword_vault.setup_devenv.uuid)
@@ -88,6 +96,13 @@ check "github_token_credential" {
   assert {
     condition     = local.github_token != ""
     error_message = "The 'github-devcontainer-agent' item in 1Password must have a credential value with the GitHub token."
+  }
+}
+
+check "ha_token_credential" {
+  assert {
+    condition     = local.ha_token != ""
+    error_message = "The 'haos-api' item in 1Password must have a password field with the Home Assistant API token."
   }
 }
 
@@ -115,6 +130,12 @@ resource "coder_env" "github_token" {
   value    = local.github_token
 }
 
+resource "coder_env" "ha_token" {
+  agent_id = coder_agent.main.id
+  name     = "HA_TOKEN"
+  value    = local.ha_token
+}
+
 resource "coder_agent" "main" {
   arch           = data.coder_provisioner.me.arch
   os             = "linux"
@@ -127,12 +148,12 @@ resource "coder_agent" "main" {
   # workspace. Note that they take precedence over configuration defined in ~/.gitconfig!
   # You can remove this block if you'd prefer to configure Git manually or using
   # dotfiles. (see docs/dotfiles.md)
-#   env = {
-#     GIT_AUTHOR_NAME     = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
-#     GIT_AUTHOR_EMAIL    = "${data.coder_workspace_owner.me.email}"
-#     GIT_COMMITTER_NAME  = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
-#     GIT_COMMITTER_EMAIL = "${data.coder_workspace_owner.me.email}"
-#   }
+  #   env = {
+  #     GIT_AUTHOR_NAME     = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
+  #     GIT_AUTHOR_EMAIL    = "${data.coder_workspace_owner.me.email}"
+  #     GIT_COMMITTER_NAME  = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
+  #     GIT_COMMITTER_EMAIL = "${data.coder_workspace_owner.me.email}"
+  #   }
 
   # The following metadata blocks are optional. They are used to display
   # information about your workspace in the dashboard. You can remove them
@@ -229,14 +250,14 @@ resource "coder_agent" "main" {
 # Or use a custom agent:  
 
 module "claude-code" {
-  count               = data.coder_workspace.me.start_count
-  source              = "registry.coder.com/coder/claude-code/coder"
-  version             = "3.0.0"
-  agent_id            = coder_agent.main.id
-  workdir             = "/workspaces/setup"
-  ai_prompt           = data.coder_parameter.ai_prompt.value
-  system_prompt       = data.coder_parameter.system_prompt.value
-  install_claude_code = false
+  count                   = data.coder_workspace.me.start_count
+  source                  = "registry.coder.com/coder/claude-code/coder"
+  version                 = "3.0.0"
+  agent_id                = coder_agent.main.id
+  workdir                 = "/workspaces/setup"
+  ai_prompt               = data.coder_parameter.ai_prompt.value
+  system_prompt           = data.coder_parameter.system_prompt.value
+  install_claude_code     = false
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
 
@@ -245,14 +266,10 @@ module "claude-code" {
     wait-for-git --dir /workspaces/setup
   EOT
 
-  # TODO: install MCP servers etc?
-  # post_install_script = data.coder_parameter.setup_script.value
-
   # This enables Coder Tasks
   report_tasks = true
 }
 
-# TODO: do we need this one?
 module "coder-login" {
   count    = data.coder_workspace.me.start_count
   source   = "registry.coder.com/coder/coder-login/coder"
@@ -339,6 +356,14 @@ resource "docker_volume" "workspaces_volume" {
     label = "coder.workspace_name_at_creation"
     value = data.coder_workspace.me.name
   }
+}
+
+resource "coder_app" "home-assistant" {
+  agent_id     = coder_agent.main.id
+  slug         = "home-assistant"
+  display_name = "Home Assistant"
+  url          = "http://192.168.1.32:8123/"
+  external = true
 }
 
 resource "docker_container" "workspace" {

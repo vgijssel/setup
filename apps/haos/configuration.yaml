@@ -267,7 +267,7 @@ homekit:
         - light.baby_room_light
         - switch.baby_room_moon_light_moko
         - light.bathroom_lights
-        - switch.bedroom_shelly
+        - light.bedroom_light
         - switch.driveway_shelly
         - light.hallway_lights
         - light.kitchen_lights
@@ -317,7 +317,7 @@ homekit:
         type: outlet
       light.bathroom_lights:
         name: Badkamer Lampen
-      switch.bedroom_shelly:
+      light.bedroom_light:
         name: Slaapkamer Lamp
       switch.driveway_shelly:
         name: Oprit Lamp

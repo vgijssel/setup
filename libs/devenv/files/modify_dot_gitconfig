@@ -1,29 +1,30 @@
 {{/* chezmoi:modify-template */}}
-{{- $config := fromIni .chezmoi.stdin -}}
-{{- /* Collect existing include paths */ -}}
+{{- $input := .chezmoi.stdin -}}
+{{- /* Simple approach: manually extract all include paths with a safer method */ -}}
 {{- $existingIncludes := list -}}
-{{- if hasKey $config "include" -}}
-  {{- if $config.include.path -}}
-    {{- if kindIs "slice" $config.include.path -}}
-      {{- $existingIncludes = $config.include.path -}}
-    {{- else -}}
-      {{- $existingIncludes = list $config.include.path -}}
+{{- $lines := splitList "\n" $input -}}
+{{- $cleanLines := list -}}
+{{- $skipNext := false -}}
+{{- range $i, $line := $lines -}}
+  {{- if $skipNext -}}
+    {{- $skipNext = false -}}
+    {{- if regexMatch `^\s*path\s*=\s*(.+)` $line -}}
+      {{- $path := regexReplaceAll `^\s*path\s*=\s*` $line "" | regexReplaceAll `\s*$` "" -}}
+      {{- if and (ne $path "") (ne $path "~/.gitconfig.macos") (ne $path "~/.gitconfig.setup") -}}
+        {{- $existingIncludes = append $existingIncludes $path -}}
+      {{- end -}}
     {{- end -}}
+  {{- else if regexMatch `^\s*\[include\]\s*$` $line -}}
+    {{- $skipNext = true -}}
+  {{- else -}}
+    {{- $cleanLines = append $cleanLines $line -}}
   {{- end -}}
 {{- end -}}
-{{- /* Remove existing include section to avoid conflicts */ -}}
-{{- $configWithoutInclude := dict -}}
-{{- range $key, $value := $config -}}
-  {{- if ne $key "include" -}}
-    {{- $configWithoutInclude = merge $configWithoutInclude (dict $key $value) -}}
-  {{- end -}}
-{{- end -}}
-{{- /* Output the config without include sections */ -}}
-{{ $configWithoutInclude | toIni }}
-{{- /* Combine existing and new includes, removing duplicates */ -}}
-{{- $newIncludes := list "~/.gitconfig.setup" "~/.gitconfig.macos" -}}
-{{- $allIncludes := concat $existingIncludes $newIncludes | uniq -}}
-{{- /* Add all include sections manually */ -}}
+{{- /* Output cleaned config */ -}}
+{{ $cleanLines | join "\n" }}
+{{- /* Add all includes back in sorted order */ -}}
+{{- $managedIncludes := list "~/.gitconfig.macos" "~/.gitconfig.setup" -}}
+{{- $allIncludes := concat $existingIncludes $managedIncludes | uniq | sortAlpha -}}
 {{- range $allIncludes }}
 [include]
 	path = {{ . }}

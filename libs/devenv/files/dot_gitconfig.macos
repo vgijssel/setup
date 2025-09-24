@@ -1,3 +1,5 @@
+[user]
+	signingKey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPnUEhcD4sCtja1Xfmnn+tGbjLZy1IvuAYgHiwybCgxE
 [gpg]
 	format = ssh
 [gpg "ssh"]

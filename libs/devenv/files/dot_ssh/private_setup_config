@@ -1,0 +1,8 @@
+# SSH configuration managed by chezmoi
+# This file is included by ~/.ssh/config via the Include directive
+
+# This key is used for SSH and available on coder workspaces
+Host *
+    AddKeysToAgent yes
+    IdentityFile ~/.ssh/git-commit-signing/coder
+    IdentitiesOnly no

@@ -25,10 +25,6 @@ includes:
     taskfile: ./stacks/codex/Taskfile.yml
     dir: .
 
-  apps:haos:
-    taskfile: ./apps/haos/Taskfile.yml
-    dir: ./apps/haos
-
 tasks:
   # TODO: No longer necessary after https://github.com/mkdocs-publisher/mkdocs-publisher/pull/110
   docs:check:
