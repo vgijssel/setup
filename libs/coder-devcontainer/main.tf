@@ -266,14 +266,10 @@ module "claude-code" {
     wait-for-git --dir /workspaces/setup
   EOT
 
-  # TODO: install MCP servers etc?
-  # post_install_script = data.coder_parameter.setup_script.value
-
   # This enables Coder Tasks
   report_tasks = true
 }
 
-# TODO: do we need this one?
 module "coder-login" {
   count    = data.coder_workspace.me.start_count
   source   = "registry.coder.com/coder/coder-login/coder"
