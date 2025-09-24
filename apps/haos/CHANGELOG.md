@@ -1,3 +1,9 @@
+## 0.3.0 (2025-09-24)
+
+### 🚀 Features
+
+- expose office server moko switch as Ballenlamp in HomeKit ([#729](https://github.com/vgijssel/setup/pull/729))
+
 ## 0.2.0 (2025-09-24)
 
 ### 🚀 Features
