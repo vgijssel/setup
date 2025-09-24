@@ -1,5 +1,5 @@
 # iPXE doesn't work on arm64 so forcing amd64
-FROM --platform=linux/amd64 ubuntu:noble
+FROM --platform=linux/amd64 ubuntu:24.04
 
 RUN apt-get update && apt-get install -y \
     git \
