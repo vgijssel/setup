@@ -12,7 +12,7 @@ echo ""
 
 # Get all projects
 echo -e "${BLUE}Available Projects:${NC}"
-nx show projects 2>/dev/null | sort | sed 's/^/  • /'
+nx show projects 2>/dev/null | sort | sed 's/^/  • /' || true
 echo ""
 
 # List common nx targets and their descriptions
