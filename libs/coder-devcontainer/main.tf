@@ -371,7 +371,7 @@ resource "coder_app" "ha_preview" {
 
   # url          = "https://www.google.com/"
   icon         = "/icon/home-assistant.svg"
-  subdomain    = true
+  subdomain    = false
   share        = "owner"
 
   healthcheck {
