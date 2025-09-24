@@ -1,6 +1,6 @@
 ---
 title: "Deploying PiKVM: 7 Lessons You Already Know"
-description: Reaquiantance with valuable devops lessons through deploying PiKVM in various ways.
+description: Reacquaintance with valuable devops lessons through deploying PiKVM in various ways.
 date: 2025-01-09 10:43:00
 publish: true
 slug: deploying-pikvm-7-lessons-you-already-know
