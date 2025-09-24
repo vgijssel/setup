@@ -5,7 +5,6 @@
 [user]
 	email=6029816+mvgijssel@users.noreply.github.com
 	name=mvgijssel
-	signingKey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPnUEhcD4sCtja1Xfmnn+tGbjLZy1IvuAYgHiwybCgxE
 [core]
     attributesfile = ~/.config/git/attributes
 [pull]
