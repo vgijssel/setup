@@ -148,12 +148,12 @@ resource "coder_agent" "main" {
   # workspace. Note that they take precedence over configuration defined in ~/.gitconfig!
   # You can remove this block if you'd prefer to configure Git manually or using
   # dotfiles. (see docs/dotfiles.md)
-#   env = {
-#     GIT_AUTHOR_NAME     = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
-#     GIT_AUTHOR_EMAIL    = "${data.coder_workspace_owner.me.email}"
-#     GIT_COMMITTER_NAME  = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
-#     GIT_COMMITTER_EMAIL = "${data.coder_workspace_owner.me.email}"
-#   }
+  #   env = {
+  #     GIT_AUTHOR_NAME     = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
+  #     GIT_AUTHOR_EMAIL    = "${data.coder_workspace_owner.me.email}"
+  #     GIT_COMMITTER_NAME  = coalesce(data.coder_workspace_owner.me.full_name, data.coder_workspace_owner.me.name)
+  #     GIT_COMMITTER_EMAIL = "${data.coder_workspace_owner.me.email}"
+  #   }
 
   # The following metadata blocks are optional. They are used to display
   # information about your workspace in the dashboard. You can remove them
@@ -250,14 +250,14 @@ resource "coder_agent" "main" {
 # Or use a custom agent:  
 
 module "claude-code" {
-  count               = data.coder_workspace.me.start_count
-  source              = "registry.coder.com/coder/claude-code/coder"
-  version             = "3.0.0"
-  agent_id            = coder_agent.main.id
-  workdir             = "/workspaces/setup"
-  ai_prompt           = data.coder_parameter.ai_prompt.value
-  system_prompt       = data.coder_parameter.system_prompt.value
-  install_claude_code = false
+  count                   = data.coder_workspace.me.start_count
+  source                  = "registry.coder.com/coder/claude-code/coder"
+  version                 = "3.0.0"
+  agent_id                = coder_agent.main.id
+  workdir                 = "/workspaces/setup"
+  ai_prompt               = data.coder_parameter.ai_prompt.value
+  system_prompt           = data.coder_parameter.system_prompt.value
+  install_claude_code     = false
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
 
@@ -359,6 +359,25 @@ resource "docker_volume" "workspaces_volume" {
   labels {
     label = "coder.workspace_name_at_creation"
     value = data.coder_workspace.me.name
+  }
+}
+
+# Home Assistant preview app
+resource "coder_app" "ha_preview" {
+  agent_id     = coder_agent.main.id
+  slug         = "preview"
+  display_name = "Home Assistant"
+  url          = "http://localhost:8123/"
+
+  # url          = "https://www.google.com/"
+  icon         = "/icon/home-assistant.svg"
+  subdomain    = true
+  share        = "owner"
+
+  healthcheck {
+    url       = "http://localhost:8123/"
+    interval  = 30
+    threshold = 10
   }
 }
 
