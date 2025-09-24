@@ -277,6 +277,7 @@ homekit:
         - switch.supply_closet_shelly
         - light.toilet_lights
         - switch.garden_shelly
+        - switch.office_server_moko
         - binary_sensor.landing_smoke_alarm_status
         - binary_sensor.landing_carbon_alarm_status
         - binary_sensor.hallway_smoke_alarm_status
@@ -337,6 +338,9 @@ homekit:
         name: Wc Lampen
       switch.garden_shelly:
         name: Tuin Lamp
+      switch.office_server_moko:
+        name: Ballenlamp
+        type: outlet
       binary_sensor.landing_smoke_alarm_status:
         name: Overloop Rookmelder
       binary_sensor.landing_carbon_alarm_status:
