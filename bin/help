@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -e
+
+# Colors for better readability
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${GREEN}=== Nx Monorepo Help ===${NC}"
+echo ""
+
+# Get all projects
+echo -e "${BLUE}Available Projects:${NC}"
+nx show projects 2>/dev/null | sort | sed 's/^/  • /'
+echo ""
+
+# List common nx targets and their descriptions
+echo -e "${BLUE}Common Nx Commands:${NC}"
+echo -e "${YELLOW}Project Commands:${NC}"
+echo "  • nx build <project>         - Build a specific project"
+echo "  • nx test <project>          - Run tests for a specific project"
+echo "  • nx lint <project>          - Lint a specific project"
+echo "  • nx serve <project>         - Serve/run a project (if applicable)"
+echo "  • nx e2e <project>           - Run end-to-end tests for a project"
+echo ""
+
+echo -e "${YELLOW}Workspace Commands:${NC}"
+echo "  • nx affected:build          - Build only affected projects"
+echo "  • nx affected:test           - Test only affected projects"
+echo "  • nx affected:lint           - Lint only affected projects"
+echo "  • nx affected:graph          - Show graph of affected projects"
+echo ""
+
+echo -e "${YELLOW}Management Commands:${NC}"
+echo "  • nx show projects           - List all projects in the workspace"
+echo "  • nx graph                   - Open interactive project dependency graph"
+echo "  • nx list                    - List installed Nx plugins"
+echo "  • nx release                 - Create releases with GitHub artifacts"
+echo "  • nx format:write            - Format code in the workspace"
+echo "  • nx format:check            - Check code formatting"
+echo "  • nx migrate latest          - Update Nx and workspace dependencies"
+echo "  • nx reset                   - Clear Nx cache and reset workspace"
+echo ""
+
+echo -e "${YELLOW}Analysis Commands:${NC}"
+echo "  • nx dep-graph               - Generate dependency graph"
+echo "  • nx run-many                - Run target for multiple projects"
+echo "  • nx print-affected          - Print affected projects information"
+echo ""
+
+# Check if specific project targets are available
+echo -e "${BLUE}Getting Project-Specific Targets...${NC}"
+echo "(Run 'nx show project <project-name>' for detailed project info)"
+echo ""
+
+# Show example for getting more details
+echo -e "${GREEN}Tips:${NC}"
+echo "  • Use 'nx show project <name>' to see all targets for a specific project"
+echo "  • Use 'nx run <project>:<target>' to run a specific target"
+echo "  • Use 'nx run-many -t <target>' to run a target for all projects"
+echo "  • Use '--help' flag with any nx command for detailed options"
+echo ""
+
+echo -e "${GREEN}Examples:${NC}"
+echo "  • nx build haos              - Build the 'haos' application"
+echo "  • nx affected:test           - Test all affected projects"
+echo "  • nx run-many -t build       - Build all projects"
+echo "  • nx show project haos       - Show all targets for the 'haos' project"
