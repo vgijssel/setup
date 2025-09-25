@@ -1,16 +1,15 @@
 # Structure pyinfra according to:
 # https://docs.pyinfra.com/en/1.x/deploys.html#layout
 
-from pyinfra import host
-from pyinfra.facts.server import OsVersion
-from pyinfra.operations import apt, server
-
 from hypervisor.tasks.install_cni import install_cni
 from hypervisor.tasks.install_consul import install_consul
 from hypervisor.tasks.install_docker import install_docker
 from hypervisor.tasks.install_envoy import install_envoy
 from hypervisor.tasks.install_nomad import install_nomad
 from hypervisor.tasks.install_qemu import install_qemu
+from pyinfra import host
+from pyinfra.facts.server import OsVersion
+from pyinfra.operations import apt, server
 
 apt.packages(
     name="Ensure all kernel modules are available",

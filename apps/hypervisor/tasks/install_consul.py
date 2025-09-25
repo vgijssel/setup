@@ -42,13 +42,13 @@ def install_consul(version):
 
     files.put(
         name="Copy the consul agent configuration",
-        src="hypervisor/files/consul.hcl",
+        src="apps/hypervisor/files/consul.hcl",
         dest="/etc/consul.d/consul.hcl",
     )
 
     files.put(
         name="Upload consul service file",
-        src="hypervisor/files/consul.service",
+        src="apps/hypervisor/files/consul.service",
         dest="/etc/systemd/system/consul.service",
         mode="644",
         user="root",

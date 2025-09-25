@@ -63,13 +63,13 @@ def install_nomad(version):
 
     files.put(
         name="Copy the Nomad agent configuration",
-        src="hypervisor/files/nomad.hcl",
+        src="apps/hypervisor/files/nomad.hcl",
         dest="/etc/nomad.d/nomad.hcl",
     )
 
     files.put(
         name="Upload Nomad service file",
-        src="hypervisor/files/nomad.service",
+        src="apps/hypervisor/files/nomad.service",
         dest="/etc/systemd/system/nomad.service",
         mode="644",
         user="root",

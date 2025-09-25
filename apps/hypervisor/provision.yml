@@ -1,6 +1,6 @@
 ---
 # TODO: add primary user to docker group
-- name: "Provision Hypervisor"
+- name: Provision Hypervisor
   hosts: all
   debugger: on_failed
   gather_facts: true
@@ -18,7 +18,7 @@
 
   tasks:
     - name: Install Network utilities
-      tags: ["network"]
+      tags: [network]
       package:
         name: "{{ item }}"
         state: present
@@ -32,7 +32,7 @@
     # To prevent ethernet adapter from crashing under heavy load
     # From https://forum.proxmox.com/threads/e1000-driver-hang.58284/page-8
     - name: Copy disable offloading
-      tags: ["network"]
+      tags: [network]
       ansible.builtin.template:
         src: 50-offloading-config.j2
         dest: /etc/networkd-dispatcher/routable.d/50-offloading-config
@@ -41,11 +41,11 @@
         mode: "0744"
 
     - name: Execute disable offloading
-      tags: ["network"]
+      tags: [network]
       command: /etc/networkd-dispatcher/routable.d/50-offloading-config
 
     - name: Copy network bridge config
-      tags: ["network"]
+      tags: [network]
       ansible.builtin.template:
         src: 50-network-bridge.yaml.j2
         dest: /etc/netplan/50-network-bridge.yaml
@@ -54,19 +54,19 @@
         mode: "0644"
 
     - name: Compile network config
-      tags: ["network"]
+      tags: [network]
       command: netplan generate
 
     # Make the task async to avoid hanging Ansible because of ip address change
     # https://stackoverflow.com/questions/55471178/changing-ip-address-restarting-netplan
     - name: Apply network config
-      tags: ["network"]
+      tags: [network]
       command: netplan apply
       async: 30
       poll: 5
 
     - name: Enable IP forwarding
-      tags: ["network"]
+      tags: [network]
       ansible.posix.sysctl:
         name: net.ipv4.ip_forward
         value: "1"
@@ -82,7 +82,7 @@
     # iptables --insert FORWARD --in-interface br0 -j ACCEPT
     # Save the iptables rules using iptables-save > /etc/iptables/rules.v4
     - name: Copy iptables rules
-      tags: ["network"]
+      tags: [network]
       ansible.builtin.template:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -90,25 +90,25 @@
         group: root
         mode: "0644"
       loop:
-        - { src: "rules.v4.j2", dest: "/etc/iptables/rules.v4" }
-        - { src: "rules.v6.j2", dest: "/etc/iptables/rules.v6" }
+        - { src: rules.v4.j2, dest: /etc/iptables/rules.v4 }
+        - { src: rules.v6.j2, dest: /etc/iptables/rules.v6 }
 
     - name: Apply iptables
-      tags: ["network"]
+      tags: [network]
       shell: "{{ item.command }} < {{ item.rules }}"
       loop:
-        - { command: "iptables-restore", rules: "/etc/iptables/rules.v4" }
-        - { command: "ip6tables-restore", rules: "/etc/iptables/rules.v6" }
+        - { command: iptables-restore, rules: /etc/iptables/rules.v4 }
+        - { command: ip6tables-restore, rules: /etc/iptables/rules.v6 }
 
     - name: Add latest ZFS repository
-      tags: ["storage"]
+      tags: [storage]
       ansible.builtin.apt_repository:
         repo: ppa:jonathonf/zfs
 
     # When upgrading ZFS don't forget to remove mount points?
     # https://launchpad.net/~jonathonf/+archive/ubuntu/zfs
     - name: Install storage utilities
-      tags: ["storage"]
+      tags: [storage]
       package:
         name: "{{ item }}"
         state: present
@@ -124,25 +124,25 @@
         - sqlite
 
     - name: Assume existence of ZFS pool new_data
-      tags: ["storage"]
+      tags: [storage]
       command: zpool status new_data
       changed_when: False
 
     - name: Configure ZFS data volume
-      tags: ["storage"]
+      tags: [storage]
       community.general.zfs:
         name: new_data
         state: present
         extra_zfs_properties:
-          dedup: "off"
-          sharenfs: "off"
-          compression: "lz4"
-          sync: "disabled"
-          xattr: "sa"
-          dnodesize: "auto"
+          dedup: off
+          sharenfs: off
+          compression: lz4
+          sync: disabled
+          xattr: sa
+          dnodesize: auto
 
     - name: Create ZFS volume for OpenNebula datastores
-      tags: ["storage"]
+      tags: [storage]
       community.general.zfs:
         name: new_data/opennebula_datastores
         state: present
@@ -150,7 +150,7 @@
           mountpoint: /var/lib/one/datastores
 
     - name: Ensure OpenNebula can read/write to the datastores
-      tags: ["storage"]
+      tags: [storage]
       ansible.builtin.file:
         path: /var/lib/one/datastores
         state: directory
@@ -161,12 +161,12 @@
     # cat /etc/exports.d/zfs.exports
     # mount -v -t nfs 192.168.1.30:/data/media /tmp/mnt
     - name: Create ZFS Filesystems for NFS
-      tags: ["storage", "nfs"]
+      tags: [storage, nfs]
       community.general.zfs:
         name: "{{ item }}"
         state: present
         extra_zfs_properties:
-          sharenfs: "rw=@172.16.0.0/24,no_root_squash,no_subtree_check"
+          sharenfs: rw=@172.16.0.0/24,no_root_squash,no_subtree_check
       loop:
         - new_data/media
         - new_data/downloads
@@ -175,7 +175,7 @@
     # From https://openzfs.github.io/openzfs-docs/man/8/zfs-create.8.html
     # -V creates a block device under /dev/zvol/new_data/<<name>>
     - name: Create ZFS Volumes for ISCSI
-      tags: ["storage", "iscsi"]
+      tags: [storage, iscsi]
       community.general.zfs:
         name: "{{ item }}"
         state: present
@@ -190,7 +190,7 @@
         - new_data/apps/bazarr
 
     - name: Create a ext4 filesystem on the volume
-      tags: ["storage", "iscsi"]
+      tags: [storage, iscsi]
       community.general.filesystem:
         fstype: ext4
         dev: "{{ item }}"
@@ -204,52 +204,52 @@
         - /dev/zvol/new_data/apps/bazarr
 
     - name: Setup ISCSI targets
-      tags: ["storage", "iscsi"]
+      tags: [storage, iscsi]
       block:
         - include_role:
             name: tgt
           vars:
-            tgt_iqn_date: "2022-01"
-            tgt_iqn_authority: "hypervisor"
+            tgt_iqn_date: 2022-01
+            tgt_iqn_authority: hypervisor
             tgt_targets:
               - name: radarr
-                backing_stores: ["/dev/zvol/new_data/apps/radarr"]
+                backing_stores: [/dev/zvol/new_data/apps/radarr]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: sonarr
-                backing_stores: ["/dev/zvol/new_data/apps/sonarr"]
+                backing_stores: [/dev/zvol/new_data/apps/sonarr]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: plex
-                backing_stores: ["/dev/zvol/new_data/apps/plex"]
+                backing_stores: [/dev/zvol/new_data/apps/plex]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: jackett
-                backing_stores: ["/dev/zvol/new_data/apps/jackett"]
+                backing_stores: [/dev/zvol/new_data/apps/jackett]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: bazarr
-                backing_stores: ["/dev/zvol/new_data/apps/bazarr"]
+                backing_stores: [/dev/zvol/new_data/apps/bazarr]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: transmission
-                backing_stores: ["/dev/zvol/new_data/apps/transmission"]
+                backing_stores: [/dev/zvol/new_data/apps/transmission]
                 options: |
                   initiator-address 172.16.0.0/24
 
     - name: Get DEB architecture
-      tags: ["docker"]
+      tags: [docker]
       shell: dpkg --print-architecture
       register: architecture
 
-    - tags: ["docker"]
+    - tags: [docker]
       set_fact:
         ubuntu_release: "{{ hostvars[inventory_hostname].ansible_distribution_release }}"
         architecture: "{{ architecture.stdout }}"
 
     # https://docs.docker.com/engine/install/ubuntu/
     - name: Install docker dependencies
-      tags: ["docker"]
+      tags: [docker]
       package:
         name: "{{ item }}"
         state: present
@@ -261,24 +261,24 @@
         - software-properties-common
 
     - name: Add Docker GPG apt Key
-      tags: ["docker"]
+      tags: [docker]
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
     - name: Add Docker Repository
-      tags: ["docker"]
+      tags: [docker]
       apt_repository:
         repo: "deb [arch={{ architecture }}] https://download.docker.com/linux/ubuntu {{ ubuntu_release }} stable"
         state: present
 
     - name: Update apt
-      tags: ["docker"]
+      tags: [docker]
       apt:
         update_cache: true
 
     - name: Install docker-ce
-      tags: ["docker"]
+      tags: [docker]
       apt:
         state: latest
         name: "{{ item }}"
@@ -288,7 +288,7 @@
         - containerd.io
 
     - name: Install pip
-      tags: ["docker"]
+      tags: [docker]
       ansible.builtin.package:
         name: "{{ item }}"
         state: present
@@ -296,7 +296,7 @@
         - python3-pip
 
     - name: Install Ansible docker dependencies
-      tags: ["docker"]
+      tags: [docker]
       pip:
         name: "{{ item.name }}"
         version: "{{ item.version }}"
@@ -305,7 +305,7 @@
         - { name: docker, version: 5.0.3 }
 
     - name: Install OpenNebula dependencies
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.package:
         name: "{{ item }}"
         state: present
@@ -316,13 +316,13 @@
 
     # https://docs.opennebula.io/6.0/installation_and_configuration/frontend_installation/opennebula_repository_configuration.html#repositories-ce
     - name: Add OpenNebula signing key
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.apt_key:
         url: https://downloads.opennebula.io/repo/repo.key
         state: present
 
     - name: Add OpenNebula repository
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.apt_repository:
         repo: deb https://downloads.opennebula.io/repo/6.0/Ubuntu/20.04 stable opennebula
         state: present
@@ -330,7 +330,7 @@
 
     # https://docs.opennebula.io/6.0/installation_and_configuration/frontend_installation/install.html
     - name: Install OpenNebula frontend
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.package:
         name: "{{ item }}"
         state: present
@@ -343,20 +343,20 @@
         - opennebula-provision
 
     - name: Add OpenNebula as docker user
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.user:
         name: oneadmin
         groups: docker
         append: yes
 
-    - tags: ["opennebula"]
+    - tags: [opennebula]
       set_fact:
         mysql_user: oneadmin
-        mysql_database: "opennebula"
+        mysql_database: opennebula
 
     # https://docs.opennebula.io/6.0/installation_and_configuration/frontend_installation/database.html#database-setup
     - name: Create mysql Secret
-      tags: ["opennebula"]
+      tags: [opennebula]
       delegate_to: localhost
       onepassword.connect.generic_item:
         title: OpenNebula MySQL
@@ -375,12 +375,12 @@
       no_log: true
       register: result_mysql_secret
 
-    - tags: ["opennebula"]
+    - tags: [opennebula]
       set_fact:
         mysql_password: "{{ result_mysql_secret.op_item.fields.password.value }}"
 
     - name: Setup mysql database
-      tags: ["opennebula"]
+      tags: [opennebula]
       docker_container:
         name: opennebula_mysql
         image: mysql:8.0.27
@@ -389,7 +389,7 @@
         keep_volumes: yes
         container_default_behavior: no_defaults
         ports:
-          - "127.0.0.1:3306:3306"
+          - 127.0.0.1:3306:3306
         volumes:
           - /var/lib/opennebula_mysql:/var/lib/mysql
         env:
@@ -399,7 +399,7 @@
           MYSQL_DATABASE: "{{ mysql_database }}"
 
     - name: Wait until MySQL is ready
-      tags: ["opennebula"]
+      tags: [opennebula]
       command: "docker exec opennebula_mysql mysqladmin -u {{ mysql_user }} -p{{ mysql_password }} ping"
       retries: 10
       delay: 10
@@ -407,12 +407,12 @@
       until: result.rc == 0
       no_log: true
 
-    - tags: ["opennebula"]
+    - tags: [opennebula]
       set_fact:
         hypervisor_hostname: "{{ inventory_hostname }}"
 
     - name: Setup OpenNebula configuration
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.template:
         src: oned.conf.j2
         dest: /etc/one/oned.conf
@@ -421,7 +421,7 @@
         mode: "0640"
 
     - name: Create oneadmin Secret
-      tags: ["opennebula"]
+      tags: [opennebula]
       delegate_to: localhost
       onepassword.connect.generic_item:
         category: login
@@ -443,12 +443,12 @@
       no_log: true
       register: result_oneadmin_secret
 
-    - tags: ["opennebula"]
+    - tags: [opennebula]
       set_fact:
         oneadmin_password: "{{ result_oneadmin_secret.op_item.fields.password.value }}"
 
     - name: Set OpenNebula oneadmin password
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.copy:
         content: "oneadmin:{{ oneadmin_password }}"
         dest: /var/lib/one/.one/one_auth
@@ -457,7 +457,7 @@
         mode: "0600"
 
     - name: Setup OpenNebula FireEdge configuration
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.template:
         src: sunstone-server.conf.j2
         dest: /etc/one/sunstone-server.conf
@@ -466,7 +466,7 @@
         mode: "0640"
 
     - name: Setup OpenNebula OneGate configuration
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.template:
         src: onegate-server.conf.j2
         dest: /etc/one/onegate-server.conf
@@ -475,7 +475,7 @@
         mode: "0640"
 
     - name: Setup OpenNebula networking
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.template:
         src: OpenNebulaNetwork.conf.j2
         dest: /var/lib/one/remotes/etc/vnm/OpenNebulaNetwork.conf
@@ -484,7 +484,7 @@
         mode: "0640"
 
     - name: Setup OpenNebula onevm config
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.template:
         src: onevm.yaml.j2
         dest: /etc/one/cli/onevm.yaml
@@ -493,7 +493,7 @@
         mode: "0644"
 
     - name: Make sure OpenNebula is started
-      tags: ["opennebula"]
+      tags: [opennebula]
       ansible.builtin.systemd:
         state: restarted
         enabled: yes
@@ -507,32 +507,32 @@
 
     # https://docs.opennebula.io/6.0/open_cluster_deployment/firecracker_node/firecracker_node_installation.html
     - name: Install OpenNebula Firecracker Node
-      tags: ["opennebula-firecracker"]
+      tags: [opennebula-firecracker]
       ansible.builtin.package:
         name: "{{ item }}"
         state: present
       loop:
         - opennebula-node-firecracker
 
-    - tags: ["opennebula-firecracker"]
+    - tags: [opennebula-firecracker]
       set_fact:
         hypervisor_hostname: "{{ inventory_hostname }}"
 
     - name: Check if node is already joined
-      tags: ["opennebula-firecracker"]
+      tags: [opennebula-firecracker]
       command: "onehost show {{ hypervisor_hostname }}"
       ignore_errors: yes
       register: result
       changed_when: False
 
     - name: Add Firecracker Node to frontend
-      tags: ["opennebula-firecracker"]
+      tags: [opennebula-firecracker]
       command: "onehost create {{ hypervisor_hostname }} -i firecracker -v firecracker"
-      when: "result.rc != 0"
+      when: result.rc != 0
 
     # https://docs.opennebula.io/6.0/open_cluster_deployment/firecracker_node/firecracker_driver.html#networking
     - name: Copy Firecracker networking scripts to bridge networking
-      tags: ["opennebula-firecracker"]
+      tags: [opennebula-firecracker]
       copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -542,17 +542,17 @@
         mode: "0750"
       loop:
         - {
-            src: "/var/lib/one/remotes/vnm/hooks/pre/firecracker",
-            dest: "/var/lib/one/remotes/vnm/bridge/pre.d/firecracker",
+            src: /var/lib/one/remotes/vnm/hooks/pre/firecracker,
+            dest: /var/lib/one/remotes/vnm/bridge/pre.d/firecracker,
           }
         - {
-            src: "/var/lib/one/remotes/vnm/hooks/clean/firecracker",
-            dest: "/var/lib/one/remotes/vnm/bridge/clean.d/firecracker",
+            src: /var/lib/one/remotes/vnm/hooks/clean/firecracker,
+            dest: /var/lib/one/remotes/vnm/bridge/clean.d/firecracker,
           }
 
     # https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md#appendix-a-setting-up-kvm-access
     - name: Add oneadmin as kvm user
-      tags: ["opennebula-firecracker"]
+      tags: [opennebula-firecracker]
       ansible.builtin.user:
         name: oneadmin
         groups: kvm
