@@ -10,9 +10,15 @@ This Nx monorepo follows a clear hierarchy:
 
 ## Core Commands
 
-All commands use `nx`:
+### Project Discovery
 ```bash
+bin/help                  # Interactive help with real targets and descriptions
 nx show projects          # List all projects
+nx show project <name>    # Show project details and available targets
+```
+
+### Common Operations
+```bash
 nx build <project>        # Build a project
 nx test <project>         # Test a project
 nx affected:test          # Test only affected projects
