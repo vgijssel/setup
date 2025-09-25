@@ -42,6 +42,18 @@ nx release               # Create releases with GitHub artifacts
 
 ## Best Practices
 
+### Dependency Management
+All external dependencies MUST be pinned to specific versions:
+- **npm/yarn**: Use exact versions (e.g., `"nx": "21.5.2"` not `"nx": "^21.5.2"`)
+- **Python**: Pin to exact versions in requirements.txt (e.g., `mkdocs==1.6.1`)
+- **Docker**: Use specific tags (e.g., `python:3.10.8-slim` not `python:3.10-slim` or `python:latest`)
+- **Terraform**: Pin provider versions (e.g., `version = "2.11.0"` not `version = "~> 2.11"`)
+- **GitHub Actions**: Use commit SHAs or exact tags (e.g., `actions/checkout@v4` or `actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11`)
+- **Go modules**: Use specific versions in go.mod
+- **Helm charts**: Pin chart versions in Chart.yaml
+
+This ensures reproducible builds and prevents unexpected breaking changes. Use Renovatebot for automated dependency updates.
+
 ### Platform Detection
 Use consistent environment variables:
 - Chezmoi templates: `{{ if eq (env "IS_MACOS") "true" }}`
