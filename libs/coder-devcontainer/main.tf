@@ -26,7 +26,7 @@ locals {
   # Extract the GitHub token from 1Password
   github_token = try(data.onepassword_item.github_devcontainer_agent.credential, "")
   # Extract the Home Assistant API token from 1Password
-  ha_token = try(data.onepassword_item.haos_api.credential, "")
+  ha_token = try(data.onepassword_item.haos_api.password, "")
 }
 
 variable "docker_socket" {

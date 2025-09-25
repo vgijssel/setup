@@ -26,15 +26,7 @@
     "tags": [
       "type:application",
       "scope:documentation"
-    ],
-    "release": {
-      "version": {
-        "generatorOptions": {
-          "fallbackCurrentVersionResolver": "disk",
-          "currentVersionResolver": "disk"
-        }
-      }
-    }
+    ]
   },
   "private": true
 }
