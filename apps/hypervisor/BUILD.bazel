@@ -8,7 +8,7 @@ task(
     cmds = [
         "nixos-rebuild switch --flake $flake#hypervisor --target-host maarten@192.168.1.30 --build-host maarten@192.168.1.30 --fast --use-remote-sudo",
     ],
-    cwd = "$BUILD_WORKSPACE_DIRECTORY/hypervisor",
+    cwd = "$BUILD_WORKSPACE_DIRECTORY/apps/hypervisor",
     env = {
         "NIX_SSHOPTS": "-o ForwardAgent=yes",
         "flake": cmd.file("flake.nix"),
