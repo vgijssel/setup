@@ -22,13 +22,13 @@ BOX_OVF_FILE="box.ovf"
 
 # copy box.ovf to the current directory so the tar archive
 # has all the files directly in the root.
-cp -v "$OVF_FILE" "$BOX_OVF_FILE"
+cp -v "${OVF_FILE}" "${BOX_OVF_FILE}"
 
 # Convert the qcow2 to vmdk
-qemu-img convert -f qcow2 -O vmdk $IMAGE_FILE $BOX_VMDK_FILE
+qemu-img convert -f qcow2 -O vmdk "${IMAGE_FILE}" "${BOX_VMDK_FILE}"
 
 # Create Vagrantfile metadata
-cat << EOF | tee $BOX_METADATA_FILE
+cat << EOF | tee "${BOX_METADATA_FILE}"
 {
   "provider": "virtualbox"
 }
@@ -36,11 +36,11 @@ EOF
 
 # Add additional info to the vagrant box
 # https://www.vagrantup.com/docs/boxes/format
-cat << EOF | tee $BOX_INFO_FILE
+cat << EOF | tee "${BOX_INFO_FILE}"
 {
-  "image_sha": "$IMAGE_SHA"
+  "image_sha": "${IMAGE_SHA}"
 }
 EOF
 
 # Create a tar with the specified files
-tar cvf "$VAGRANT_FILE" "$BOX_METADATA_FILE" "$BOX_INFO_FILE" "$BOX_OVF_FILE" "$BOX_VMDK_FILE"
+tar cvf "${VAGRANT_FILE}" "${BOX_METADATA_FILE}" "${BOX_INFO_FILE}" "${BOX_OVF_FILE}" "${BOX_VMDK_FILE}"

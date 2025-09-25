@@ -20,7 +20,7 @@
 set -euo pipefail
 
 cat_jvm_log () {
-  if [[ "$log_content" =~ \
+  if [[ "${log_content}" =~ \
       "(error code:".*", error message: '".*"', log file: '"(.*)"')" ]]; then
     echo >&2
     echo "Content of ${BASH_REMATCH[1]}:" >&2
@@ -33,13 +33,13 @@ die () {
   # second argument is optional, defaulting to 1
   local status_code=${2:-1}
   # Stop capturing stdout/stderr, and dump captured output
-  if [[ "$CAPTURED_STD_ERR" -ne 0 || "$CAPTURED_STD_OUT" -ne 0 ]]; then
+  if [[ "${CAPTURED_STD_ERR}" -ne 0 || "${CAPTURED_STD_OUT}" -ne 0 ]]; then
     restore_outputs
-    if [[ "$CAPTURED_STD_OUT" -ne 0 ]]; then
+    if [[ "${CAPTURED_STD_OUT}" -ne 0 ]]; then
         cat "${TEST_TMPDIR}/captured.out"
         CAPTURED_STD_OUT=0
     fi
-    if [[ "$CAPTURED_STD_ERR" -ne 0 ]]; then
+    if [[ "${CAPTURED_STD_ERR}" -ne 0 ]]; then
         cat "${TEST_TMPDIR}/captured.err" 1>&2
         cat_jvm_log "$(cat "${TEST_TMPDIR}/captured.err")"
         CAPTURED_STD_ERR=0
@@ -51,15 +51,15 @@ die () {
   fi
   if [[ -n "${BASH-}" ]]; then
     local caller_n=0
-    while [[ $caller_n -lt 4 ]] && \
-        caller_out=$(caller $caller_n 2>/dev/null); do
-      test $caller_n -eq 0 && echo "CALLER stack (max 4):"
-      echo "  $caller_out"
+    while [[ ${caller_n} -lt 4 ]] && \
+        caller_out=$(caller "${caller_n}" 2>/dev/null); do
+      test "${caller_n}" -eq 0 && echo "CALLER stack (max 4):"
+      echo "  ${caller_out}"
       let caller_n=caller_n+1
     done 1>&2
   fi
   if [[ -n "${status_code}" && "${status_code}" -ne 0 ]]; then
-      exit "$status_code"
+      exit "${status_code}"
   else
       exit 1
   fi
@@ -72,7 +72,7 @@ error () {
   if [[ -n "$1" ]] ; then
       echo "$1" 1>&2
   fi
-  ERROR_COUNT=$(($ERROR_COUNT + 1))
+  ERROR_COUNT=$((${ERROR_COUNT} + 1))
 }
 
 # Die if "$1" != "$2", print $3 as death reason
@@ -120,17 +120,17 @@ check_match ()
 # directly. So, don't do that.
 ATEXIT="${ATEXIT-}"
 atexit () {
-  if [[ -z "$ATEXIT" ]]; then
+  if [[ -z "${ATEXIT}" ]]; then
       ATEXIT="$1"
   else
-      ATEXIT="$1 ; $ATEXIT"
+      ATEXIT="$1 ; ${ATEXIT}"
   fi
-  trap "$ATEXIT" EXIT
+  trap "${ATEXIT}" EXIT
 }
 
 ## TEST_TMPDIR
 if [[ -z "${TEST_TMPDIR:-}" ]]; then
-  export TEST_TMPDIR="$(mktemp -d ${TMPDIR:-/tmp}/bazel-test.XXXXXXXX)"
+  export TEST_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}"/bazel-test.XXXXXXXX)"
 fi
 if [[ ! -e "${TEST_TMPDIR}" ]]; then
   mkdir -p -m 0700 "${TEST_TMPDIR}"

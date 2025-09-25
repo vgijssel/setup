@@ -38,8 +38,8 @@ def docker_local_tar(name, image, tag, format = "docker"):
             tag = tag,
         ),
         exec_properties = {
-            "workload-isolation-type": "firecracker",
             "init-dockerd": "true",
             "recycle-runner": "true",
+            "workload-isolation-type": "firecracker",
         },
     )

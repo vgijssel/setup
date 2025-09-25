@@ -1,7 +1,7 @@
-from homeassistant.core import State
-import homeassistant.util.dt as dt_util
-
 import logging
+
+import homeassistant.util.dt as dt_util
+from homeassistant.core import State
 
 _LOGGER = logging.getLogger(__name__)
 

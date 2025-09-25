@@ -88,14 +88,14 @@ def _packer_image_impl(ctx):
 _packer_image = rule(
     implementation = _packer_image_impl,
     attrs = {
-        "templates": attr.label_list(mandatory = True, allow_files = True),
-        "tools": attr.label_list(),
         "deps": attr.label_list(allow_files = True),
-        "variables": attr.string_dict(),
         "env": attr.string_dict(),
         "output_image": attr.output(mandatory = True),
         "sha256": attr.output(),
         "sha512": attr.output(),
+        "templates": attr.label_list(mandatory = True, allow_files = True),
+        "tools": attr.label_list(),
+        "variables": attr.string_dict(),
         "_runner_tpl": attr.label(
             default = Label("//tools/packer:runner.sh.tpl"),
             allow_single_file = True,

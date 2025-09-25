@@ -1,7 +1,7 @@
-from pyinfra.operations import apt
 from pyinfra import host
-from pyinfra.facts.server import LsbRelease
 from pyinfra.api.deploy import deploy
+from pyinfra.facts.server import LsbRelease
+from pyinfra.operations import apt
 
 
 @deploy("Install Docker")

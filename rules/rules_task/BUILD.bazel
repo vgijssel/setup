@@ -1,5 +1,5 @@
-load("@rules_release//tools:defs.bzl", "publish_github_release", release = "release_changed_files")
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
+load("@rules_release//tools:defs.bzl", "publish_github_release", release = "release_changed_files")
 load("//task:defs.bzl", "cmd")
 load("//tools:defs.bzl", "compile_pip_requirements")
 
@@ -15,10 +15,10 @@ compile_pip_requirements(
 filegroup(
     name = "all_files",
     srcs = glob(["**/*"]) + [
-        "//tests:all_files",
-        "//tools:all_files",
         "//task:all_files",
         "//task/private:all_files",
+        "//tests:all_files",
+        "//tools:all_files",
     ],
 )
 

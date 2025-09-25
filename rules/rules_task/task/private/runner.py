@@ -1,11 +1,8 @@
-import sys
-import json
-import subprocess
 import os
-import runfiles
-import jinja2
 import sys
-import signal
+
+import jinja2
+import runfiles
 
 r = runfiles.Create()
 environment = jinja2.Environment(undefined=jinja2.StrictUndefined)

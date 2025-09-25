@@ -87,28 +87,28 @@ def _python_entry_point(entry_point, args):
 
 cmd = struct(
     root = lambda args: {
-        "type": "root",
         "args": _wrap_root_args(args),
+        "type": "root",
     },
     env = lambda env: {
-        "type": "env",
         "env": _wrap_env(env),
+        "type": "env",
     },
     env_file = lambda node: {
-        "type": "env_file",
         "node": _wrap_env_file(node),
+        "type": "env_file",
     },
     defer = lambda node: {
-        "type": "defer",
         "node": _wrap_defer(node),
+        "type": "defer",
     },
     shell = lambda *args: {
-        "type": "shell",
         "args": _wrap_shell_args(args),
+        "type": "shell",
     },
     file = lambda label: {
-        "type": "file",
         "label": fq_label(label),
+        "type": "file",
     },
     version_file = lambda: {
         "type": "version_file",
@@ -117,22 +117,22 @@ cmd = struct(
         "type": "info_file",
     },
     files = lambda label: {
-        "type": "files",
         "label": fq_label(label),
+        "type": "files",
     },
     executable = lambda label: {
-        "type": "executable",
         "label": fq_label(label),
+        "type": "executable",
     },
     string = lambda string: {
         "type": "string",
         "value": string,
     },
     python = lambda code, *args: {
-        "type": "python",
-        "code": code,
         "args": _wrap_python_args(args),
+        "code": code,
         "label": None,
+        "type": "python",
     },
     python_entry_point = lambda entry_point, *args: _python_entry_point(entry_point, args),
 )

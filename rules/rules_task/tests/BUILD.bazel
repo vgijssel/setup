@@ -1,6 +1,6 @@
-load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
 load("@pip//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -174,9 +174,9 @@ task(
     ],
     env = {
         "FOO": "BAR's value",
+        "command": cmd.shell("echo", "some", "inline", "shell"),
         "hello": cmd.executable(":hello"),
         "python": cmd.executable(":python"),
-        "command": cmd.shell("echo", "some", "inline", "shell"),
     },
 )
 

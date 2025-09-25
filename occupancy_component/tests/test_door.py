@@ -1,8 +1,7 @@
 """Test component setup."""
 
-from homeassistant.const import STATE_ON, STATE_OFF, STATE_UNKNOWN
-from custom_components.occupancy.const import DOMAIN
-from tests.helpers import wait, contact_sensor, motion_sensor
+from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN
+from tests.helpers import contact_sensor, motion_sensor, wait
 
 
 async def test_door_opens(hass, init_integration, init_entities):

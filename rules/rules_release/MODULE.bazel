@@ -4,8 +4,8 @@ All the dependencies for rules_release
 
 module(
     name = "rules_release",
-    repo_name = "rules_release",
     version = "0.0.0",
+    repo_name = "rules_release",
 )
 
 non_module_dependencies = use_extension("//release:extensions.bzl", "non_module_dependencies")
@@ -33,30 +33,22 @@ bazel_dep(name = "rules_oci", version = "1.4.3")
 
 # ------------------------------------ github_cli ------------------------------------ #
 use_repo(non_module_dependencies, "github_cli_linux_arm64")
-
 use_repo(non_module_dependencies, "github_cli_linux_amd64")
-
 use_repo(non_module_dependencies, "github_cli_darwin_arm64")
 
 # ------------------------------------ onepassword ------------------------------------ #
 use_repo(non_module_dependencies, "onepassword_linux_arm64")
-
 use_repo(non_module_dependencies, "onepassword_linux_amd64")
-
 use_repo(non_module_dependencies, "onepassword_darwin_arm64")
 
 # ------------------------------------ regctl ------------------------------------ #
 use_repo(non_module_dependencies, "regctl_linux_arm64")
-
 use_repo(non_module_dependencies, "regctl_linux_amd64")
-
 use_repo(non_module_dependencies, "regctl_darwin_arm64")
 
 # ------------------------------------ bazel-differ ------------------------------------ #
 use_repo(non_module_dependencies, "bazel-differ_linux_arm64")
-
 use_repo(non_module_dependencies, "bazel-differ_linux_amd64")
-
 use_repo(non_module_dependencies, "bazel-differ_darwin_arm64")
 
 # ------------------------------------ examples ------------------------------------ #
@@ -77,7 +69,6 @@ bazel_dep(
 )
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
-
 node.toolchain(node_version = "16.14.2")
 #################################
 
@@ -85,18 +76,15 @@ npm = use_extension(
     "@aspect_rules_js//npm:extensions.bzl",
     "npm",
 )
-
 npm.npm_translate_lock(
     name = "npm",
     pnpm_lock = "//:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
 )
-
 use_repo(npm, "npm")
 
 # ------------------------------------ rules_task ------------------------------------ #
 bazel_dep(name = "rules_task", version = "0.0.0")
-
 local_path_override(
     module_name = "rules_task",
     path = "../rules_task",
@@ -112,11 +100,7 @@ bazel_binaries = use_extension(
     "@rules_bazel_integration_test//:extensions.bzl",
     "bazel_binaries",
 )
-
 bazel_binaries.download(version_file = "//:.bazelversion")
-
 use_repo(bazel_binaries, "bazel_binaries")
-
 use_repo(bazel_binaries, "bazel_binaries_bazelisk")
-
 use_repo(bazel_binaries, "build_bazel_bazel_.bazelversion")

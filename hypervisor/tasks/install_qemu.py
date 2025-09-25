@@ -1,5 +1,5 @@
-from pyinfra.operations import apt
 from pyinfra.api.deploy import deploy
+from pyinfra.operations import apt
 
 
 @deploy("Install Qemu")

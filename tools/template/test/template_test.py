@@ -1,6 +1,6 @@
-import unittest
-import filecmp
 import difflib
+import filecmp
+import unittest
 
 
 class templateTests(unittest.TestCase):

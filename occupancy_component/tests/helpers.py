@@ -1,13 +1,13 @@
-import homeassistant.util.dt as dt_util
 from datetime import timedelta
-from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+import homeassistant.util.dt as dt_util
+from custom_components.occupancy.const import ATTR_AREAS, OCCUPANCY_DATA
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.helpers.event import async_call_later
 from homeassistant.components.stream.core import IdleTimer
-from custom_components.occupancy.const import OCCUPANCY_DATA, ATTR_AREAS
+from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 
 async def wait(hass, seconds=10):

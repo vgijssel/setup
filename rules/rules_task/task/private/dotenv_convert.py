@@ -1,5 +1,5 @@
-import sys
 import shlex
+import sys
 
 _, input_file, output_file = sys.argv
 

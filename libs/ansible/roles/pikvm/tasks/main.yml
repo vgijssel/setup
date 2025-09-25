@@ -11,7 +11,7 @@
 
 # From https://docs.pikvm.org/_passwd/
 - name: Change password for admin
-  ansible.builtin.command: 
+  ansible.builtin.command:
     cmd: kvmd-htpasswd set admin -i
     stdin: "{{ pikvm_admin_user_password }}"
   become: true

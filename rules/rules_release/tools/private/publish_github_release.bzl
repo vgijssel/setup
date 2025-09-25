@@ -8,11 +8,11 @@ def publish_github_release(name, release, changelog_file = None, assets = [], be
     assets_to_upload = [cmd.file(a) for a in assets]
 
     target_env = {
-        "VERSION_FILE": cmd.file(version_file),
-        "CHANGELOG_FILE": cmd.file(changelog_file),
-        "RELEASE_NAME_FILE": cmd.file(release_name_file),
-        "GH": cmd.executable(Label("//tools/github_cli")),
         "ASSETS": cmd.shell(*assets_to_upload),
+        "CHANGELOG_FILE": cmd.file(changelog_file),
+        "GH": cmd.executable(Label("//tools/github_cli")),
+        "RELEASE_NAME_FILE": cmd.file(release_name_file),
+        "VERSION_FILE": cmd.file(version_file),
     }
 
     for k, v in env.items():
