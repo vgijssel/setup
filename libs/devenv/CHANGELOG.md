@@ -1,3 +1,9 @@
+## 0.8.1 (2025-09-25)
+
+### 🩹 Fixes
+
+- Add push.autoSetupRemote=true to gitconfig ([#741](https://github.com/vgijssel/setup/pull/741))
+
 ## 0.8.0 (2025-09-24)
 
 ### 🚀 Features
