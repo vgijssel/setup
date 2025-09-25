@@ -7,7 +7,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.components.stream.core import IdleTimer
-from homeassistant.helpers.event import async_call_later
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 

@@ -131,13 +131,13 @@ class Door(BinarySensorEntity, RestoreEntity):
         )
 
         # old_state is None happens when the entity is added to home assistant
-        if event.data["old_state"] == None:
+        if event.data["old_state"] is None:
             from_state = None
         else:
             from_state = event.data["old_state"].state
 
         # new_state is None happens when the entity is removed from home assisstant
-        if event.data["new_state"] == None:
+        if event.data["new_state"] is None:
             to_state = None
         else:
             to_state = event.data["new_state"].state
@@ -171,11 +171,11 @@ class Door(BinarySensorEntity, RestoreEntity):
         return self._internal_state.get(self._motion_sensor) == STATE_ON
 
     def _door_just_opened(self):
-        return self._door_is_open() and self._reset_contact_presence_timer.idle == False
+        return self._door_is_open() and self._reset_contact_presence_timer.idle is False
 
     def _door_just_closed(self):
         return (
-            self._door_is_closed() and self._reset_contact_presence_timer.idle == False
+            self._door_is_closed() and self._reset_contact_presence_timer.idle is False
         )
 
     def _calculate_presence(self):

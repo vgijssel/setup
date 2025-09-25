@@ -9,9 +9,9 @@ export PUBLISH=$3
 
 function convert_to_actual_file() {
     local file=$1
-    cat $file > $file.tmp
-    rm $file
-    mv $file.tmp $file
+    cat "${file}" > "${file}".tmp
+    rm "${file}"
+    mv "${file}".tmp "${file}"
 }
 
 # Convert the changelog and version into actual files,
@@ -21,9 +21,9 @@ convert_to_actual_file VERSION_foo.txt
 convert_to_actual_file CHANGELOG_bar.md
 convert_to_actual_file VERSION_bar.txt
 
-$GENERATE
-$VERSION
-$PUBLISH 2>&1 | tee publish_output.txt
+${GENERATE}
+${VERSION}
+${PUBLISH} 2>&1 | tee publish_output.txt
 
 function test_foo_updated_version() {
   assert_contains "0.0.1" "VERSION_foo.txt" 

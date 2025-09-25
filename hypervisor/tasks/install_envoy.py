@@ -1,7 +1,7 @@
 from pyinfra import host
 from pyinfra.api.deploy import deploy
 from pyinfra.facts.server import Arch
-from pyinfra.operations import apt, files, server, systemd
+from pyinfra.operations import files, server
 
 
 # https://learn.hashicorp.com/tutorials/envoy/deployment-guide#install-envoy

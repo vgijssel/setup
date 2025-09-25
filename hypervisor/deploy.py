@@ -2,8 +2,8 @@
 # https://docs.pyinfra.com/en/1.x/deploys.html#layout
 
 from pyinfra import host
-from pyinfra.facts.server import Arch, OsVersion
-from pyinfra.operations import apt, files, server, systemd
+from pyinfra.facts.server import OsVersion
+from pyinfra.operations import apt, server
 
 from hypervisor.tasks.install_cni import install_cni
 from hypervisor.tasks.install_consul import install_consul

@@ -1,6 +1,4 @@
-import json
 import os
-import subprocess
 
 is_dev = os.environ.get("SETUP_ENV", "dev") == "dev"
 hosts = None

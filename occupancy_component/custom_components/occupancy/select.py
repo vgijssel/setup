@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
-from homeassistant.components.select import SERVICE_SELECT_OPTION, SelectEntity
+from homeassistant.components.select import SelectEntity
 from homeassistant.components.timer import DOMAIN as TIMER_DOMAIN
 from homeassistant.components.timer import SERVICE_CANCEL as TIMER_SERVICE_CANCEL
 from homeassistant.components.timer import SERVICE_PAUSE as TIMER_SERVICE_PAUSE
@@ -13,7 +12,7 @@ from homeassistant.components.timer import SERVICE_START as TIMER_SERVICE_START
 from homeassistant.components.timer import STATUS_ACTIVE as TIMER_STATUS_ACTIVE
 from homeassistant.components.timer import STATUS_IDLE as TIMER_STATUS_IDLE
 from homeassistant.components.timer import STATUS_PAUSED as TIMER_STATUS_PAUSED
-from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.const import STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event

@@ -11,8 +11,6 @@ from custom_components.occupancy.const import (
     OCCUPANCY_DATA,
 )
 from homeassistant.components import binary_sensor
-from homeassistant.components.template.const import DOMAIN as TEMPLATE_DOMAIN
-from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockEntityPlatform
 from tests.helpers import wait
