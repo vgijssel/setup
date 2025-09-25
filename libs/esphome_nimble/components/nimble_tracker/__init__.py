@@ -1,12 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components.esp32 import add_idf_sdkconfig_option
-from esphome.const import (
-    CONF_ACTIVE,
-    CONF_ID,
-    CONF_INTERVAL,
-    CONF_DURATION,
-)
+from esphome.const import CONF_ACTIVE, CONF_DURATION, CONF_ID, CONF_INTERVAL
 
 DEPENDENCIES = ["esp32"]
 

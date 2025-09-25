@@ -30,8 +30,8 @@ def docker_load(name, tag, image, format = "docker"):
             "REGCTL": cmd.executable("@rules_release//tools/regctl"),
         },
         exec_properties = {
-            "workload-isolation-type": "firecracker",
             "init-dockerd": "true",
             "recycle-runner": "true",
+            "workload-isolation-type": "firecracker",
         },
     )

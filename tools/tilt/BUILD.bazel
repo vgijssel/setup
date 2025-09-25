@@ -5,9 +5,9 @@ package(default_visibility = ["//visibility:public"])
 exports_files(["post_build/Tiltfile"])
 
 tilt_binary = select({
+    "//:is_darwin_arm64": ["@tilt_darwin_arm64//:tilt"],
     "//:is_linux_amd64": ["@tilt_linux_amd64//:tilt"],
     "//:is_linux_arm64": ["@tilt_linux_arm64//:tilt"],
-    "//:is_darwin_arm64": ["@tilt_darwin_arm64//:tilt"],
 })
 
 sh_binary(

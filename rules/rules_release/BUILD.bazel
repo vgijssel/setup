@@ -1,11 +1,11 @@
-load("@rules_task//task:defs.bzl", "cmd")
-load("//tools:defs.bzl", "publish_github_release", release = "release_changed_files")
 load("@aspect_bazel_lib//lib:tar.bzl", "tar")
 load("@npm//:defs.bzl", "npm_link_all_packages")
-
-npm_link_all_packages()
+load("@rules_task//task:defs.bzl", "cmd")
+load("//tools:defs.bzl", "publish_github_release", release = "release_changed_files")
 
 package(default_visibility = ["//visibility:public"])
+
+npm_link_all_packages()
 
 _darwin_arm64 = [
     "@platforms//os:macos",
@@ -43,8 +43,8 @@ filegroup(
         "//release:all_files",
         "//release/private:all_files",
         "//tools:all_files",
-        "//tools/private:all_files",
         "//tools/bazel-differ:all_files",
+        "//tools/private:all_files",
     ],
 )
 

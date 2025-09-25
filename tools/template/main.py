@@ -1,8 +1,9 @@
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
-import sys
+import distutils
 import json
 import os
-import distutils
+import sys
+
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 
 def _create_value_boolean_method(value):

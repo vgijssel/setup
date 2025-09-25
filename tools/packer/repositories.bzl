@@ -45,8 +45,8 @@ def _packer_download_impl(rctx):
         template_label,
         executable = False,
         substitutions = {
-            "{host_os}": host_os,
             "{host_cpu}": host_cpu,
+            "{host_os}": host_os,
             "{rules_packer_repo_name}": template_label.workspace_name,
         },
     )

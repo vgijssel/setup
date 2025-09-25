@@ -1,26 +1,25 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import sensor, nimble_tracker
-from esphome.const import (
-    DEVICE_CLASS_SIGNAL_STRENGTH,
-    STATE_CLASS_MEASUREMENT,
-    UNIT_DECIBEL_MILLIWATT,
-)
+from esphome.components import nimble_tracker, sensor
+from esphome.const import DEVICE_CLASS_DISTANCE, STATE_CLASS_MEASUREMENT, UNIT_METER
 
 DEPENDENCIES = ["nimble_tracker"]
 
-nimble_rssi_ns = cg.esphome_ns.namespace("nimble_rssi")
-NimbleRssiSensor = nimble_rssi_ns.class_(
-    "NimbleRssiSensor", sensor.Sensor, cg.Component, nimble_tracker.NimbleDeviceListener
+nimble_distance_ns = cg.esphome_ns.namespace("nimble_distance")
+NimbleDistanceSensor = nimble_distance_ns.class_(
+    "NimbleDistanceSensor",
+    sensor.Sensor,
+    cg.Component,
+    nimble_tracker.NimbleDeviceListener,
 )
 
 
 CONFIG_SCHEMA = cv.All(
     sensor.sensor_schema(
-        NimbleRssiSensor,
-        unit_of_measurement=UNIT_DECIBEL_MILLIWATT,
-        accuracy_decimals=0,
-        device_class=DEVICE_CLASS_SIGNAL_STRENGTH,
+        NimbleDistanceSensor,
+        unit_of_measurement=UNIT_METER,
+        accuracy_decimals=2,
+        device_class=DEVICE_CLASS_DISTANCE,
         state_class=STATE_CLASS_MEASUREMENT,
     )
     .extend(nimble_tracker.NIMBLE_DEVICE_LISTENER_SCHEMA)
