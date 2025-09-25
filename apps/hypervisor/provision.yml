@@ -213,27 +213,27 @@
             tgt_iqn_authority: hypervisor
             tgt_targets:
               - name: radarr
-                backing_stores: ["/dev/zvol/new_data/apps/radarr"]
+                backing_stores: [/dev/zvol/new_data/apps/radarr]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: sonarr
-                backing_stores: ["/dev/zvol/new_data/apps/sonarr"]
+                backing_stores: [/dev/zvol/new_data/apps/sonarr]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: plex
-                backing_stores: ["/dev/zvol/new_data/apps/plex"]
+                backing_stores: [/dev/zvol/new_data/apps/plex]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: jackett
-                backing_stores: ["/dev/zvol/new_data/apps/jackett"]
+                backing_stores: [/dev/zvol/new_data/apps/jackett]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: bazarr
-                backing_stores: ["/dev/zvol/new_data/apps/bazarr"]
+                backing_stores: [/dev/zvol/new_data/apps/bazarr]
                 options: |
                   initiator-address 172.16.0.0/24
               - name: transmission
-                backing_stores: ["/dev/zvol/new_data/apps/transmission"]
+                backing_stores: [/dev/zvol/new_data/apps/transmission]
                 options: |
                   initiator-address 172.16.0.0/24
 
