@@ -2,7 +2,7 @@
 # trunk-ignore-all(checkov/CKV_DOCKER_7)
 # trunk-ignore-all(trivy/DS026)
 # trunk-ignore(trivy/DS001)
-FROM ghcr.io/spacelift-io/runner-ansible:latest AS spacelift
+FROM ghcr.io/spacelift-io/runner-ansible:11.2 AS spacelift
 
 LABEL org.opencontainers.image.source=https://github.com/vgijssel/setup
 
