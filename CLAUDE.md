@@ -3,7 +3,7 @@
 ## Project Structure
 
 This Nx monorepo follows a clear hierarchy:
-- `libs/`: Reusable libraries (ansible, cloudflare-tunnel, devenv, internal-dns)
+- `libs/`: Reusable libraries (ansible, cloudflare-tunnel, devenv, internal-dns, esphome_nimble)
 - `apps/`: Focused applications (haos, escaperoom)
 - `stacks/`: Environment-specific deployments (enigma, devenv, provisioner)
 - `third_party/`: External dependencies (hermit, python, javascript, shell, helm)
