@@ -1,3 +1,9 @@
+## 0.7.2 (2025-09-25)
+
+### 🩹 Fixes
+
+- Refactor Terraform checks to use postconditions ([#737](https://github.com/vgijssel/setup/pull/737))
+
 ## 0.7.1 (2025-09-25)
 
 ### 🩹 Fixes
