@@ -145,7 +145,7 @@ dependencies = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "specify-cli", git = "https://github.com/github/spec-kit.git" }]
+requires-dist = [{ name = "specify-cli", git = "https://github.com/github/spec-kit.git?tag=v0.0.53" }]
 
 [[package]]
 name = "readchar"
@@ -199,7 +199,7 @@ wheels = [
 [[package]]
 name = "specify-cli"
 version = "0.0.17"
-source = { git = "https://github.com/github/spec-kit.git#f3d55cff846efdb9df43f427a3f5c0e5840ba0e4" }
+source = { git = "https://github.com/github/spec-kit.git?tag=v0.0.53#f3d55cff846efdb9df43f427a3f5c0e5840ba0e4" }
 dependencies = [
     { name = "httpx", extra = ["socks"] },
     { name = "platformdirs" },
