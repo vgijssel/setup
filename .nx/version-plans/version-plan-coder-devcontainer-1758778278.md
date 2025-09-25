@@ -2,9 +2,10 @@
 coder-devcontainer: patch
 ---
 
-Fix Home Assistant API token reference in Terraform configuration
+Add NX_KEY support to coder-devcontainer template
 
-- Change HA token access from `.credential` to `.password` for 1Password item
-- This resolves authentication issues when accessing the Home Assistant API
+- Add extraction of NX_KEY from 1Password for build caching
+- Add corresponding coder_env resource to expose NX_KEY to workspace
+- Includes data source validation with postconditions
 
-This is a bug fix that corrects the proper field reference for extracting the HA token from 1Password.
+This enhancement enables Nx remote caching in Coder workspaces.
