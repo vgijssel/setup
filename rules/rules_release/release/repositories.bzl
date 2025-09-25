@@ -15,8 +15,8 @@ def _starlarkified_local_repository_impl(repository_ctx):
 starlarkified_local_repository = repository_rule(
     implementation = _starlarkified_local_repository_impl,
     attrs = {
-        "_root_file": attr.label(default = Label("//:MODULE.bazel")),
         "path": attr.string(mandatory = True),
+        "_root_file": attr.label(default = Label("//:MODULE.bazel")),
     },
 )
 

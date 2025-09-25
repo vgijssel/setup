@@ -4,21 +4,19 @@ from custom_components.occupancy.const import (
     STATUS_ABSENT,
     STATUS_ENTERING,
     STATUS_ENTERING_CONFIRM,
-    STATUS_PRESENT,
     STATUS_LEAVING,
     STATUS_LEAVING_CONFIRM,
+    STATUS_PRESENT,
 )
+from homeassistant.components.timer import STATUS_ACTIVE as TIMER_STATUS_ACTIVE
+from homeassistant.components.timer import STATUS_IDLE as TIMER_STATUS_IDLE
+from homeassistant.components.timer import STATUS_PAUSED as TIMER_STATUS_PAUSED
 from tests.helpers import (
-    wait,
     contact_sensor,
     motion_sensor,
     occupancy_sensor,
     update_area,
-)
-from homeassistant.components.timer import (
-    STATUS_IDLE as TIMER_STATUS_IDLE,
-    STATUS_PAUSED as TIMER_STATUS_PAUSED,
-    STATUS_ACTIVE as TIMER_STATUS_ACTIVE,
+    wait,
 )
 
 

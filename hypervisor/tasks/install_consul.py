@@ -1,7 +1,7 @@
-from pyinfra.operations import apt, files, server, systemd
 from pyinfra import host
-from pyinfra.facts.server import Arch
 from pyinfra.api.deploy import deploy
+from pyinfra.facts.server import Arch
+from pyinfra.operations import apt, files, server, systemd
 
 
 # https://learn.hashicorp.com/tutorials/consul/deployment-guide#install-consul

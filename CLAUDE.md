@@ -3,16 +3,22 @@
 ## Project Structure
 
 This Nx monorepo follows a clear hierarchy:
-- `libs/`: Reusable libraries (ansible, cloudflare-tunnel, devenv, internal-dns)
+- `libs/`: Reusable libraries (ansible, cloudflare-tunnel, devenv, internal-dns, esphome_nimble)
 - `apps/`: Focused applications (haos, escaperoom)
 - `stacks/`: Environment-specific deployments (enigma, devenv, provisioner)
 - `third_party/`: External dependencies (hermit, python, javascript, shell, helm)
 
 ## Core Commands
 
-All commands use `nx`:
+### Project Discovery
 ```bash
+bin/help                  # Interactive help with real targets and descriptions
 nx show projects          # List all projects
+nx show project <name>    # Show project details and available targets
+```
+
+### Common Operations
+```bash
 nx build <project>        # Build a project
 nx test <project>         # Test a project
 nx affected:test          # Test only affected projects
@@ -64,16 +70,16 @@ Use consistent environment variables:
 Format: `<kind>-<name>.yaml` (e.g., `deployment-app.yaml`, `service-app.yaml`)
 
 ### Terraform Best Practices
-Use `check` statements to validate `data` resources:
+Use `postconditions` in `data` resources to validate their state:
 ```hcl
 data "aws_instance" "example" {
   instance_id = "i-1234567890abcdef0"
-}
 
-check "instance_running" {
-  assert {
-    condition     = data.aws_instance.example.state == "running"
-    error_message = "Instance must be running"
+  lifecycle {
+    postcondition {
+      condition     = self.state == "running"
+      error_message = "Instance must be running"
+    }
   }
 }
 ```

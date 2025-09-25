@@ -77,7 +77,7 @@
 # This framework implements the "test sharding protocol".
 #
 
-[[ -n "$BASH_VERSION" ]] ||
+[[ -n "${BASH_VERSION}" ]] ||
   { echo "unittest.bash only works with bash!" >&2; exit 1; }
 
 export BAZEL_SHELL_TEST=1
@@ -91,7 +91,7 @@ source "${DIR}/unittest_utils.sh" || { echo "unittest_utils.sh not found" >&2; e
 
 TEST_name=""                    # The name of the current test.
 
-TEST_log=$TEST_TMPDIR/log       # The log file over which the
+TEST_log=${TEST_TMPDIR}/log       # The log file over which the
                                 # expect_log* assertions work.  Must
                                 # be absolute to be robust against
                                 # tests invoking 'cd'!
@@ -126,7 +126,7 @@ if (( $# > 0 )); then
   # the following line fails without || true.
   # TODO(dmarting): maybe we should revisit the way of selecting
   # test with that framework (use Bazel's environment variable instead).
-  TESTS=($(for i in "$@"; do echo $i; done | grep ^test_ || true))
+  TESTS=($(for i in "$@"; do echo "${i}"; done | grep ^test_ || true))
   if (( ${#TESTS[@]} == 0 )); then
     echo "WARNING: Arguments do not specify tests!" >&2
   fi
@@ -139,7 +139,7 @@ if [[ ${TESTBRIDGE_TEST_ONLY:-} != "" ]]; then
     TESTS=()
   fi
   # Split TESTBRIDGE_TEST_ONLY on colon and store it in `_TEST_FILTERS` array.
-  IFS=':' read -r -a _TEST_FILTERS <<< "$TESTBRIDGE_TEST_ONLY"
+  IFS=':' read -r -a _TEST_FILTERS <<< "${TESTBRIDGE_TEST_ONLY}"
 fi
 
 TEST_verbose="true"             # Whether or not to be verbose.  A
@@ -148,7 +148,7 @@ TEST_verbose="true"             # Whether or not to be verbose.  A
 
 TEST_script="$0"                # Full path to test script
 # Check if the script path is absolute, if not prefix the PWD.
-if [[ ! "$TEST_script" = /* ]]; then
+if [[ ! "${TEST_script}" = /* ]]; then
   TEST_script="${PWD}/$0"
 fi
 
@@ -157,7 +157,7 @@ fi
 
 function __show_log() {
     echo "-- Test log: -----------------------------------------------------------"
-    [[ -e $TEST_log ]] && cat "$TEST_log" || echo "(Log file did not exist.)"
+    [[ -e ${TEST_log} ]] && cat "${TEST_log}" || echo "(Log file did not exist.)"
     echo "------------------------------------------------------------------------"
 }
 
@@ -170,7 +170,7 @@ function __pad() {
     # end, therefore the subshell will get SIGPIPE while stuck in `write`.
     {
         echo -n "${pad}${pad} ${title} "
-        printf "%80s" " " | tr ' ' "$pad"
+        printf "%80s" " " | tr ' ' "${pad}"
     } | head -c 80 || true
     echo
 }
@@ -231,7 +231,7 @@ function fail() {
     __show_log >&2
     echo "${TEST_name} FAILED: $*." >&2
     # Keep the original error message if we fail in `tear_down` after a failure.
-    [[ "${TEST_passed}" == "true" ]] && echo "$@" >"$TEST_TMPDIR"/__fail
+    [[ "${TEST_passed}" == "true" ]] && echo "$@" >"${TEST_TMPDIR}"/__fail
     TEST_passed="false"
     __show_stack
     # Cleanup as we are leaving the subshell now
@@ -260,7 +260,7 @@ function warn() {
     __show_stack
 
     if [[ -n "${TEST_WARNINGS_OUTPUT_FILE:-}" ]]; then
-      echo "${TEST_name} WARNING: $1." >> "$TEST_WARNINGS_OUTPUT_FILE"
+      echo "${TEST_name} WARNING: $1." >> "${TEST_WARNINGS_OUTPUT_FILE}"
     fi
 }
 
@@ -296,10 +296,10 @@ __show_stack() {
 # returns non-zero.
 function expect_log() {
     local pattern=$1
-    local message=${2:-Expected regexp "$pattern" not found}
-    grep -sq -- "$pattern" $TEST_log && return 0
+    local message=${2:-Expected regexp "${pattern}" not found}
+    grep -sq -- "${pattern}" "${TEST_log}" && return 0
 
-    fail "$message"
+    fail "${message}"
     return 1
 }
 
@@ -308,10 +308,10 @@ function expect_log() {
 # $TEST_log and the specified (optional) error message on mismatch.
 function expect_log_warn() {
     local pattern=$1
-    local message=${2:-Expected regexp "$pattern" not found}
-    grep -sq -- "$pattern" $TEST_log && return 0
+    local message=${2:-Expected regexp "${pattern}" not found}
+    grep -sq -- "${pattern}" "${TEST_log}" && return 0
 
-    warn "$message"
+    warn "${message}"
     return 1
 }
 
@@ -321,8 +321,8 @@ function expect_log_warn() {
 # error message otherwise, and returns non-zero.
 function expect_log_once() {
     local pattern=$1
-    local message=${2:-Expected regexp "$pattern" not found exactly once}
-    expect_log_n "$pattern" 1 "$message"
+    local message=${2:-Expected regexp "${pattern}" not found exactly once}
+    expect_log_n "${pattern}" 1 "${message}"
 }
 
 # Usage: expect_log_n <regexp> <count> [error-message]
@@ -332,10 +332,10 @@ function expect_log_once() {
 function expect_log_n() {
     local pattern=$1
     local expectednum=${2:-1}
-    local message=${3:-Expected regexp "$pattern" not found exactly $expectednum times}
-    local count=$(grep -sc -- "$pattern" $TEST_log)
+    local message=${3:-Expected regexp "${pattern}" not found exactly ${expectednum} times}
+    local count=$(grep -sc -- "${pattern}" "${TEST_log}")
     (( count == expectednum )) && return 0
-    fail "$message"
+    fail "${message}"
     return 1
 }
 
@@ -345,10 +345,10 @@ function expect_log_n() {
 # returns non-zero.
 function expect_not_log() {
     local pattern=$1
-    local message=${2:-Unexpected regexp "$pattern" found}
-    grep -sq -- "$pattern" $TEST_log || return 0
+    local message=${2:-Unexpected regexp "${pattern}" found}
+    grep -sq -- "${pattern}" "${TEST_log}" || return 0
 
-    fail "$message"
+    fail "${message}"
     return 1
 }
 
@@ -356,7 +356,7 @@ function expect_not_log() {
 # Checks that log file contains exactly the targets in the argument list.
 function expect_query_targets() {
   for arg in "$@"; do
-    expect_log_once "^$arg$"
+    expect_log_once "^${arg}$"
   done
 
 # Checks that the number of lines started with '//' equals to the number of
@@ -371,16 +371,16 @@ function expect_query_targets() {
 function expect_log_with_timeout() {
     local pattern=$1
     local timeout=$2
-    local message=${3:-Regexp "$pattern" not found in "$timeout" seconds}
+    local message=${3:-Regexp "${pattern}" not found in "${timeout}" seconds}
     local count=0
     while (( count < timeout )); do
-      grep -sq -- "$pattern" "$TEST_log" && return 0
+      grep -sq -- "${pattern}" "${TEST_log}" && return 0
       let count=count+1
       sleep 1
     done
 
-    grep -sq -- "$pattern" "$TEST_log" && return 0
-    fail "$message"
+    grep -sq -- "${pattern}" "${TEST_log}" && return 0
+    fail "${message}"
     return 1
 }
 
@@ -394,13 +394,13 @@ function expect_cmd_with_timeout() {
     local timeout=${3:-10}
     local count=0
     while (( count < timeout )); do
-      local actual="$($cmd)"
-      [[ "$expected" == "$actual" ]] && return 0
+      local actual="$(${cmd})"
+      [[ "${expected}" == "${actual}" ]] && return 0
       (( ++count ))
       sleep 1
     done
 
-    [[ "$expected" == "$actual" ]] && return 0
+    [[ "${expected}" == "${actual}" ]] && return 0
     fail "Expected '${expected}' within ${timeout}s, was '${actual}'"
     return 1
 }
@@ -417,10 +417,10 @@ function assert_one_of() {
     local actual=${args[last_arg_index]}
     unset args[last_arg_index]
     for expected_item in "${args[@]}"; do
-      [[ "$expected_item" == "$actual" ]] && return 0
+      [[ "${expected_item}" == "${actual}" ]] && return 0
     done;
 
-    fail "Expected one of '${args[*]}', was '$actual'"
+    fail "Expected one of '${args[*]}', was '${actual}'"
     return 1
 }
 
@@ -436,8 +436,8 @@ function assert_not_one_of() {
     local actual=${args[last_arg_index]}
     unset args[last_arg_index]
     for expected_item in "${args[@]}"; do
-      if [[ "$expected_item" == "$actual" ]]; then
-        fail "'${args[*]}' contains '$actual'"
+      if [[ "${expected_item}" == "${actual}" ]]; then
+        fail "'${args[*]}' contains '${actual}'"
         return 1
       fi
     done;
@@ -449,9 +449,9 @@ function assert_not_one_of() {
 # Asserts [[ expected == actual ]].
 function assert_equals() {
     local expected=$1 actual=$2
-    [[ "$expected" == "$actual" ]] && return 0
+    [[ "${expected}" == "${actual}" ]] && return 0
 
-    fail "Expected '$expected', was '$actual'"
+    fail "Expected '${expected}', was '${actual}'"
     return 1
 }
 
@@ -459,7 +459,7 @@ function assert_equals() {
 # Asserts [[ unexpected != actual ]].
 function assert_not_equals() {
     local unexpected=$1 actual=$2
-    [[ "$unexpected" != "$actual" ]] && return 0;
+    [[ "${unexpected}" != "${actual}" ]] && return 0;
 
     fail "Expected not '${unexpected}', was '${actual}'"
     return 1
@@ -472,11 +472,11 @@ function assert_not_equals() {
 function assert_contains() {
     local pattern=$1
     local file=$2
-    local message=${3:-Expected regexp "$pattern" not found in "$file"}
-    grep -sq -- "$pattern" "$file" && return 0
+    local message=${3:-Expected regexp "${pattern}" not found in "${file}"}
+    grep -sq -- "${pattern}" "${file}" && return 0
 
-    cat "$file" >&2
-    fail "$message"
+    cat "${file}" >&2
+    fail "${message}"
     return 1
 }
 
@@ -487,17 +487,17 @@ function assert_contains() {
 function assert_not_contains() {
     local pattern=$1
     local file=$2
-    local message=${3:-Expected regexp "$pattern" found in "$file"}
+    local message=${3:-Expected regexp "${pattern}" found in "${file}"}
 
-    if [[ -f "$file" ]]; then
-      grep -sq -- "$pattern" "$file" || return 0
+    if [[ -f "${file}" ]]; then
+      grep -sq -- "${pattern}" "${file}" || return 0
     else
-      fail "$file is not a file: $message"
+      fail "${file} is not a file: ${message}"
       return 1
     fi
 
-    cat "$file" >&2
-    fail "$message"
+    cat "${file}" >&2
+    fail "${message}"
     return 1
 }
 
@@ -505,18 +505,18 @@ function assert_contains_n() {
     local pattern=$1
     local expectednum=${2:-1}
     local file=$3
-    local message=${4:-Expected regexp "$pattern" not found exactly $expectednum times}
+    local message=${4:-Expected regexp "${pattern}" not found exactly ${expectednum} times}
     local count
-    if [[ -f "$file" ]]; then
-      count=$(grep -sc -- "$pattern" "$file")
+    if [[ -f "${file}" ]]; then
+      count=$(grep -sc -- "${pattern}" "${file}")
     else
-      fail "$file is not a file: $message"
+      fail "${file} is not a file: ${message}"
       return 1
     fi
     (( count == expectednum )) && return 0
 
-    cat "$file" >&2
-    fail "$message"
+    cat "${file}" >&2
+    fail "${message}"
     return 1
 }
 
@@ -532,18 +532,18 @@ function __update_shards() {
       { echo "Invalid shard ${TEST_SHARD_INDEX}" >&2; exit 1; }
 
     IFS=$'\n' read -rd $'\0' -a TESTS < <(
-        for test in "${TESTS[@]}"; do echo "$test"; done |
+        for test in "${TESTS[@]}"; do echo "${test}"; done |
             awk "NR % ${TEST_TOTAL_SHARDS} == ${TEST_SHARD_INDEX}" &&
             echo -en '\0')
 
-    [[ -z "${TEST_SHARD_STATUS_FILE-}" ]] || touch "$TEST_SHARD_STATUS_FILE"
+    [[ -z "${TEST_SHARD_STATUS_FILE-}" ]] || touch "${TEST_SHARD_STATUS_FILE}"
 }
 
 # Usage: __test_terminated <signal-number>
 # Handler that is called when the test terminated unexpectedly
 function __test_terminated() {
     __show_log >&2
-    echo "$TEST_name FAILED: terminated by signal $1." >&2
+    echo "${TEST_name} FAILED: terminated by signal $1." >&2
     TEST_passed="false"
     __show_stack
     timeout
@@ -558,20 +558,20 @@ function __test_terminated_err() {
     # error message and stack trace multiple times. We're only interested
     # in the first one though, as it contains the most information, so ignore
     # all following.
-    if [[ -f $TEST_TMPDIR/__err_handled ]]; then
+    if [[ -f ${TEST_TMPDIR}/__err_handled ]]; then
       exit 1
     fi
     __show_log >&2
-    if [[ ! -z "$TEST_name" ]]; then
-      echo -n "$TEST_name " >&2
+    if [[ ! -z "${TEST_name}" ]]; then
+      echo -n "${TEST_name} " >&2
     fi
     echo "FAILED: terminated because this command returned a non-zero status:" >&2
-    touch $TEST_TMPDIR/__err_handled
+    touch "${TEST_TMPDIR}"/__err_handled
     TEST_passed="false"
     __show_stack
     # If $TEST_name is still empty, the test suite failed before we even started
     # to run tests, so we shouldn't call tear_down.
-    if [[ -n "$TEST_name" ]]; then
+    if [[ -n "${TEST_name}" ]]; then
       __run_tear_down_after_failure
     fi
     exit 1
@@ -583,7 +583,7 @@ function __test_terminated_err() {
 function __trap_with_arg() {
     func="$1" ; shift
     for sig ; do
-        trap "$func $sig" "$sig"
+        trap "${func} ${sig}" "${sig}"
     done
 }
 
@@ -593,9 +593,9 @@ function __trap_with_arg() {
 function __log_to_test_report() {
     local node="$1"
     local block="$2"
-    if [[ ! -e "$XML_OUTPUT_FILE" ]]; then
+    if [[ ! -e "${XML_OUTPUT_FILE}" ]]; then
         local xml_header='<?xml version="1.0" encoding="UTF-8"?>'
-        echo "${xml_header}<testsuites></testsuites>" > "$XML_OUTPUT_FILE"
+        echo "${xml_header}<testsuites></testsuites>" > "${XML_OUTPUT_FILE}"
     fi
 
     # replace match on node with block and match
@@ -603,13 +603,13 @@ function __log_to_test_report() {
     perl -e "\
 \$input = @ARGV[0]; \
 \$/=undef; \
-open FILE, '+<$XML_OUTPUT_FILE'; \
+open FILE, '+<${XML_OUTPUT_FILE}'; \
 \$content = <FILE>; \
-if (\$content =~ /($node.*)\$/) { \
+if (\$content =~ /(${node}.*)\$/) { \
   seek FILE, 0, 0; \
   print FILE \$\` . \$input . \$1; \
 }; \
-close FILE" "$block"
+close FILE" "${block}"
 }
 
 # Usage: <total> <passed>
@@ -622,20 +622,20 @@ function __finish_test_report() {
 
     # Update the xml output with the suite name and total number of
     # passed/failed tests.
-    cat "$XML_OUTPUT_FILE" | \
+    cat "${XML_OUTPUT_FILE}" | \
       sed \
-        "s/<testsuites>/<testsuites tests=\"$total\" failures=\"0\" errors=\"$failed\">/" | \
+        "s/<testsuites>/<testsuites tests=\"${total}\" failures=\"0\" errors=\"${failed}\">/" | \
       sed \
-        "s/<testsuite>/<testsuite name=\"${suite_name}\" tests=\"$total\" failures=\"0\" errors=\"$failed\">/" \
+        "s/<testsuite>/<testsuite name=\"${suite_name}\" tests=\"${total}\" failures=\"0\" errors=\"${failed}\">/" \
         > "${XML_OUTPUT_FILE}.bak"
 
-    rm -f "$XML_OUTPUT_FILE"
-    mv "${XML_OUTPUT_FILE}.bak" "$XML_OUTPUT_FILE"
+    rm -f "${XML_OUTPUT_FILE}"
+    mv "${XML_OUTPUT_FILE}.bak" "${XML_OUTPUT_FILE}"
 }
 
 # Multi-platform timestamp function
 UNAME=$(uname -s | tr 'A-Z' 'a-z')
-if [[ "$UNAME" == "linux" ]] || [[ "$UNAME" =~ msys_nt* ]]; then
+if [[ "${UNAME}" == "linux" ]] || [[ "${UNAME}" =~ msys_nt* ]]; then
     function timestamp() {
       echo $(($(date +%s%N)/1000000))
     }
@@ -654,7 +654,7 @@ function get_run_time() {
   local ts_start=$1
   local ts_end=$2
   run_time_ms=$((ts_end - ts_start))
-  echo $((run_time_ms / 1000)).${run_time_ms: -3}
+  echo $((run_time_ms / 1000))."${run_time_ms: -3}"
 }
 
 # Usage: run_tests <suite-comment>
@@ -667,7 +667,7 @@ function run_suite() {
   local suite_name="$(basename "$0")"
 
   echo >&2
-  echo "$message" >&2
+  echo "${message}" >&2
   echo >&2
 
   __log_to_test_report "<\/testsuites>" "<testsuite></testsuite>"
@@ -696,18 +696,18 @@ function run_suite() {
         for f in "${_TEST_FILTERS[@]}"; do
           # We purposely want to glob match.
           # shellcheck disable=SC2053
-          [[ "$t" = $f ]] && matches=1 && break
+          [[ "${t}" = ${f} ]] && matches=1 && break
         done
         if (( matches )); then
-          TESTS+=("$t")
+          TESTS+=("${t}")
         fi
       done
     fi
 
   elif [[ -n "${TEST_WARNINGS_OUTPUT_FILE:-}" ]]; then
-    if grep -q "TESTS=" "$TEST_script" ; then
+    if grep -q "TESTS=" "${TEST_script}" ; then
       echo "TESTS variable overridden in sh_test. Please remove before submitting" \
-        >> "$TEST_WARNINGS_OUTPUT_FILE"
+        >> "${TEST_WARNINGS_OUTPUT_FILE}"
     fi
   fi
 
@@ -721,21 +721,21 @@ function run_suite() {
 
   if [[ "${#TESTS[@]}" -ne 0 ]]; then
     for TEST_name in "${TESTS[@]}"; do
-      >"$TEST_log" # Reset the log.
+      >"${TEST_log}" # Reset the log.
       TEST_passed="true"
 
       (( ++total ))
-      if [[ "$TEST_verbose" == "true" ]]; then
+      if [[ "${TEST_verbose}" == "true" ]]; then
           date >&2
-          __pad "$TEST_name" '*' >&2
+          __pad "${TEST_name}" '*' >&2
       fi
 
       local run_time="0.0"
       rm -f "${TEST_TMPDIR}"/{__ts_start,__ts_end}
 
-      if [[ "$(type -t "$TEST_name")" == function ]]; then
+      if [[ "$(type -t "${TEST_name}")" == function ]]; then
         # Save exit handlers eventually set.
-        local SAVED_ATEXIT="$ATEXIT";
+        local SAVED_ATEXIT="${ATEXIT}";
         ATEXIT=
 
         # Run test in a subshell.
@@ -760,12 +760,12 @@ function run_suite() {
           timestamp >"${TEST_TMPDIR}"/__ts_start
           testenv_set_up
           set_up
-          eval "$TEST_name"
+          eval "${TEST_name}"
           __in_tear_down=1
           tear_down
           testenv_tear_down
           timestamp >"${TEST_TMPDIR}"/__ts_end
-          test "$TEST_passed" == "true"
+          test "${TEST_passed}" == "true"
         ) 2>&1 | tee "${TEST_TMPDIR}"/__log
         # Note that tee will prevent the control flow continuing if the test
         # spawned any processes which are still running and have not closed
@@ -777,7 +777,7 @@ function run_suite() {
           TEST_passed="false"
           # Ensure that an end time is recorded in case the test subshell
           # terminated prematurely.
-          [[ -f "$TEST_TMPDIR"/__ts_end ]] || timestamp >"$TEST_TMPDIR"/__ts_end
+          [[ -f "${TEST_TMPDIR}"/__ts_end ]] || timestamp >"${TEST_TMPDIR}"/__ts_end
         fi
 
         # Calculate run time for the testcase.
@@ -785,15 +785,15 @@ function run_suite() {
         ts_start=$(<"${TEST_TMPDIR}"/__ts_start)
         local ts_end
         ts_end=$(<"${TEST_TMPDIR}"/__ts_end)
-        run_time=$(get_run_time $ts_start $ts_end)
+        run_time=$(get_run_time "${ts_start}" "${ts_end}")
 
         # Eventually restore exit handlers.
-        if [[ -n "$SAVED_ATEXIT" ]]; then
-          ATEXIT="$SAVED_ATEXIT"
-          trap "$ATEXIT" EXIT
+        if [[ -n "${SAVED_ATEXIT}" ]]; then
+          ATEXIT="${SAVED_ATEXIT}"
+          trap "${ATEXIT}" EXIT
         fi
       else # Bad test explicitly specified in $TESTS.
-        fail "Not a function: '$TEST_name'"
+        fail "Not a function: '${TEST_name}'"
       fi
 
       local testcase_tag=""
@@ -802,12 +802,12 @@ function run_suite() {
       local green='\033[0;32m'
       local no_color='\033[0m'
 
-      if [[ "$TEST_verbose" == "true" ]]; then
+      if [[ "${TEST_verbose}" == "true" ]]; then
           echo >&2
       fi
 
-      if [[ "$TEST_passed" == "true" ]]; then
-        if [[ "$TEST_verbose" == "true" ]]; then
+      if [[ "${TEST_passed}" == "true" ]]; then
+        if [[ "${TEST_verbose}" == "true" ]]; then
           echo -e "${green}PASSED${no_color}: ${TEST_name}" >&2
         fi
         (( ++passed ))
@@ -818,18 +818,18 @@ function run_suite() {
         log=$(sed 's/]]>/]]>]]&gt;<![CDATA[/g' "${TEST_TMPDIR}"/__log)
         fail_msg=$(cat "${TEST_TMPDIR}"/__fail 2> /dev/null || echo "No failure message")
         # Replacing '&' with '&amp;', '<' with '&lt;', '>' with '&gt;', and '"' with '&quot;'
-        escaped_fail_msg=$(echo "$fail_msg" | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' | sed 's/"/\&quot;/g')
+        escaped_fail_msg=$(echo "${fail_msg}" | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' | sed 's/"/\&quot;/g')
         testcase_tag="<testcase name=\"${TEST_name}\" status=\"run\" time=\"${run_time}\" classname=\"\"><error message=\"${escaped_fail_msg}\"><![CDATA[${log}]]></error></testcase>"
       fi
 
-      if [[ "$TEST_verbose" == "true" ]]; then
+      if [[ "${TEST_verbose}" == "true" ]]; then
           echo >&2
       fi
-      __log_to_test_report "<\/testsuite>" "$testcase_tag"
+      __log_to_test_report "<\/testsuite>" "${testcase_tag}"
     done
   fi
 
-  __finish_test_report "$suite_name" $total $passed
+  __finish_test_report "${suite_name}" "${total}" "${passed}"
   __pad "${passed} / ${total} tests passed." '*' >&2
   if (( original_tests_size == 0 )); then
     __pad "No tests found." '*'

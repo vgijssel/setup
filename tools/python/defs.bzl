@@ -1,6 +1,6 @@
 load("@aspect_bazel_lib//lib:tar.bzl", "mtree_spec", "tar")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index")
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_image_index")
 load("//tools/docker:docker_load.bzl", "docker_load")
 
 def py_image_layer(name, binary, prefix = "", **kwargs):

@@ -1,11 +1,6 @@
-from homeassistant.components.timer import (
-    DOMAIN as TIMER_DOMAIN,
-    Timer,
-    CONF_ICON,
-    CONF_ID,
-    CONF_NAME,
-    CONF_DURATION,
-)
+from homeassistant.components.timer import CONF_DURATION, CONF_ICON, CONF_ID, CONF_NAME
+from homeassistant.components.timer import DOMAIN as TIMER_DOMAIN
+from homeassistant.components.timer import Timer
 from homeassistant.helpers.entity_platform import async_get_platforms
 from homeassistant.setup import async_setup_component
 

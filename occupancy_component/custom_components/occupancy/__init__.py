@@ -1,37 +1,33 @@
 # Setup is very similar to homeassistant/components/compensation/__init__.py
 import logging
-from homeassistant.helpers.typing import (
-    HomeAssistantType,
-)
 
-_LOGGER = logging.getLogger(__name__)
-
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from custom_components.occupancy.const import (
-    DOMAIN,
-    ATTR_DOORS,
-    ATTR_ENTRY,
-    ATTR_CONTACT_SENSOR,
-    ATTR_MOTION_SENSOR,
     ATTR_AREAS,
+    ATTR_CONTACT_SENSOR,
+    ATTR_DOORS,
+    ATTR_ENTERING_CONFIRM_TIMER,
+    ATTR_ENTERING_TIMER,
+    ATTR_ENTRY,
+    ATTR_LEAVING_CONFIRM_TIMER,
+    ATTR_LEAVING_TIMER,
+    ATTR_MOTION_SENSOR,
     ATTR_OCCUPANCY_SENSORS,
+    ATTR_TIMER_ENTITIES,
+    DOMAIN,
     OCCUPANCY_DATA,
     STATUS_ENTERING,
     STATUS_ENTERING_CONFIRM,
     STATUS_LEAVING,
     STATUS_LEAVING_CONFIRM,
-    ATTR_ENTERING_TIMER,
-    ATTR_ENTERING_CONFIRM_TIMER,
-    ATTR_LEAVING_TIMER,
-    ATTR_LEAVING_CONFIRM_TIMER,
-    ATTR_TIMER_ENTITIES,
 )
 from custom_components.occupancy.helpers import create_timer
-
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
+from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
+from homeassistant.helpers.typing import HomeAssistantType
 
+_LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = vol.Schema(
     {

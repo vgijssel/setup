@@ -3,9 +3,9 @@ load("@rules_task//task:defs.bzl", "cmd", "task")
 package(default_visibility = ["//visibility:public"])
 
 regctl_file = select({
+    "//:is_darwin_arm64": ["@regctl_darwin_arm64//file:file"],
     "//:is_linux_amd64": ["@regctl_linux_amd64//file:file"],
     "//:is_linux_arm64": ["@regctl_linux_arm64//file:file"],
-    "//:is_darwin_arm64": ["@regctl_darwin_arm64//file:file"],
 })
 
 sh_binary(

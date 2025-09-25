@@ -1,6 +1,6 @@
-load("@rules_task//task:defs.bzl", "cmd", "task")
-load("@rules_oci//oci:defs.bzl", "oci_push")
 load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
+load("@rules_oci//oci:defs.bzl", "oci_push")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 
 def publish_oci_image(name, image, repository, remote_tags, before_cmds = [], env = {}):
     oci_push_name = "{}.push_oci".format(name)
@@ -14,9 +14,9 @@ def publish_oci_image(name, image, repository, remote_tags, before_cmds = [], en
     )
 
     target_env = {
+        "PUSH_IMAGE": cmd.executable(oci_push_name),
         "REGCTL": cmd.executable(Label("//tools/regctl")),
         "REMOTE_TAGS_FILE": cmd.file(remote_tags),
-        "PUSH_IMAGE": cmd.executable(oci_push_name),
     }
 
     for k, v in env.items():

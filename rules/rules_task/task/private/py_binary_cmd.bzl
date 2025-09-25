@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
-load("@rules_python//python:defs.bzl", "py_binary")
 load("@pip//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary")
 
 def py_binary_cmd(name, code):
     main_name = "{}_main".format(name)

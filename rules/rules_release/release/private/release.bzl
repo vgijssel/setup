@@ -1,5 +1,5 @@
-load(":release_info.bzl", "ReleaseInfo")
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load(":release_info.bzl", "ReleaseInfo")
 load(":utils.bzl", "get_executable_from_target")
 
 def _release_impl(ctx):
@@ -13,12 +13,12 @@ def _release_impl(ctx):
         publish_cmds_paths.append(executable.short_path)
 
     release_config_data = {
-        "name": release_name,
-        "version_file": ctx.file.version_file.short_path,
-        "changelog_file": ctx.file.changelog_file.short_path,
-        "publish_cmds": publish_cmds_paths,
         "change_cmd": get_executable_from_target(ctx.attr.change_cmd).short_path,
+        "changelog_file": ctx.file.changelog_file.short_path,
         "deps": [dep[ReleaseInfo].name for dep in ctx.attr.deps],
+        "name": release_name,
+        "publish_cmds": publish_cmds_paths,
+        "version_file": ctx.file.version_file.short_path,
     }
 
     ctx.actions.write(
@@ -44,12 +44,12 @@ def _release_impl(ctx):
 _release = rule(
     implementation = _release_impl,
     attrs = {
+        "change_cmd": attr.label(cfg = "target", mandatory = True),
+        "changelog_file": attr.label(allow_single_file = True, mandatory = True),
         "deps": attr.label_list(providers = [ReleaseInfo]),
-        "version_file": attr.label(allow_single_file = True, mandatory = True),
         "publish_cmds": attr.label_list(cfg = "target"),
         "release_name": attr.string(mandatory = True),
-        "changelog_file": attr.label(allow_single_file = True, mandatory = True),
-        "change_cmd": attr.label(cfg = "target", mandatory = True),
+        "version_file": attr.label(allow_single_file = True, mandatory = True),
     },
 )
 
