@@ -37,7 +37,7 @@ get_project_targets() {
     project_data=$(nx show project "${project}" --json 2>/dev/null) || return 0
 
     if [[ -n "${project_data}" ]]; then
-        echo "  ${CYAN}${project}:${NC}"
+        printf "  %b%s:%b\n" "${CYAN}" "${project}" "${NC}"
 
         # Extract targets using jq
         echo "${project_data}" | jq -r '.targets | to_entries[] | "    • \(.key) - \(.value.description // "No description available")"' 2>/dev/null || {
