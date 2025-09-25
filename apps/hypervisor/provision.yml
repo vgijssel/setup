@@ -166,7 +166,7 @@
         name: "{{ item }}"
         state: present
         extra_zfs_properties:
-          sharenfs: "rw=@172.16.0.0/24,no_root_squash,no_subtree_check"
+          sharenfs: rw=@172.16.0.0/24,no_root_squash,no_subtree_check
       loop:
         - new_data/media
         - new_data/downloads
