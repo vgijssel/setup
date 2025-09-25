@@ -1,7 +1,8 @@
-import os
 import atexit
-from deepdiff import DeepDiff, Delta
+import os
 from shlex import quote
+
+from deepdiff import DeepDiff, Delta
 
 old_env = os.environ.copy()
 task_env_file = os.environ["TASK_ENV_FILE"]

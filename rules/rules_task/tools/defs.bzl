@@ -1,6 +1,6 @@
-load("@rules_task//task:defs.bzl", "cmd", "task")
-load("@pip//:requirements.bzl", "requirement")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@pip//:requirements.bzl", "requirement")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 
 def compile_pip_requirements(name, requirements_in, requirements_txt, extra_args = [], hidden_args = []):
     pip_compile_name = name

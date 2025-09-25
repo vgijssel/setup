@@ -1,7 +1,7 @@
 substitutions:
-  device_name: "nimble-shelly"
-  entity_id: "nimble_shelly"
-  room_name: "office"
+  device_name: nimble-shelly
+  entity_id: nimble_shelly
+  room_name: office
 
 mqtt:
   broker: !secret mqtt_broker
@@ -32,7 +32,7 @@ globals:
 sensor:
   - platform: nimble_distance
     irk: !secret apple_watch_irk
-    name: "Apple Watch Distance"
+    name: Apple Watch Distance
     id: apple_watch_distance
     internal: true
     # TODO: should we retain the mqtt message?
@@ -67,7 +67,7 @@ esp32:
 
 output:
   - platform: gpio
-    id: "relay_output"
+    id: relay_output
     pin: GPIO26
 
 status_led:
@@ -99,7 +99,7 @@ switch:
   - platform: output
     id: shelly_relay
     name: "${entity_id}"
-    output: "relay_output"
+    output: relay_output
     restore_mode: RESTORE_DEFAULT_OFF
 
 # From https://community.home-assistant.io/t/shelly-plus-1-esphome-bletracker/363549/38

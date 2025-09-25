@@ -53,8 +53,8 @@ _version = rule(
     implementation = _version_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
-        "_cli": attr.label(executable = True, default = Label("@rules_release//release:cli"), cfg = "target"),
         "_changesets_cli": attr.label(executable = True, default = Label("@rules_release//release:changesets_cli"), cfg = "target"),
+        "_cli": attr.label(executable = True, default = Label("@rules_release//release:cli"), cfg = "target"),
     },
     executable = True,
 )
@@ -74,8 +74,8 @@ _publish = rule(
     implementation = _publish_impl,
     attrs = {
         "deps": attr.label_list(providers = [ReleaseInfo]),
-        "_cli": attr.label(executable = True, default = Label("@rules_release//release:cli"), cfg = "target"),
         "publish_cmds": attr.label_list(cfg = "target"),
+        "_cli": attr.label(executable = True, default = Label("@rules_release//release:cli"), cfg = "target"),
     },
     executable = True,
 )

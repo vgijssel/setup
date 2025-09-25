@@ -3,9 +3,9 @@ load("@rules_task//task:defs.bzl", "cmd", "task")
 package(default_visibility = ["//visibility:public"])
 
 github_cli_file = select({
+    "//:is_darwin_arm64": ["@github_cli_darwin_arm64//:files"],
     "//:is_linux_amd64": ["@github_cli_linux_amd64//:files"],
     "//:is_linux_arm64": ["@github_cli_linux_arm64//:files"],
-    "//:is_darwin_arm64": ["@github_cli_darwin_arm64//:files"],
 })
 
 sh_binary(

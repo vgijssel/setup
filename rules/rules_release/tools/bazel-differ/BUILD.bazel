@@ -3,9 +3,9 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary")
 package(default_visibility = ["//visibility:public"])
 
 bazel_differ_file = select({
+    "//:is_darwin_arm64": ["@bazel-differ_darwin_arm64//file"],
     "//:is_linux_amd64": ["@bazel-differ_linux_amd64//file"],
     "//:is_linux_arm64": ["@bazel-differ_linux_arm64//file"],
-    "//:is_darwin_arm64": ["@bazel-differ_darwin_arm64//file"],
 })
 
 filegroup(

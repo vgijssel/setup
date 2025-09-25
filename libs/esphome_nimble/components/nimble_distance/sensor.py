@@ -1,11 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import sensor, nimble_tracker
-from esphome.const import (
-    DEVICE_CLASS_DISTANCE,
-    STATE_CLASS_MEASUREMENT,
-    UNIT_METER,
-)
+from esphome.components import nimble_tracker, sensor
+from esphome.const import DEVICE_CLASS_DISTANCE, STATE_CLASS_MEASUREMENT, UNIT_METER
 
 DEPENDENCIES = ["nimble_tracker"]
 

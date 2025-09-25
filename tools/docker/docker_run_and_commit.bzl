@@ -2,8 +2,8 @@
 For quickly loading and running docker images built by Bazel.
 """
 
-load(":docker_local_tar.bzl", "docker_local_tar")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load(":docker_local_tar.bzl", "docker_local_tar")
 
 def docker_run_and_commit(name, cmd, image, format = "docker", timeout = 300):
     local_tar_name = "{}.local_tar".format(name)
@@ -50,8 +50,8 @@ def docker_run_and_commit(name, cmd, image, format = "docker", timeout = 300):
             timeout = timeout,
         ),
         exec_properties = {
-            "workload-isolation-type": "firecracker",
             "init-dockerd": "true",
             "recycle-runner": "true",
+            "workload-isolation-type": "firecracker",
         },
     )

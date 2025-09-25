@@ -2,9 +2,9 @@
 Bazel macro to make it easy to run Pyinfra.
 """
 
-load("@rules_task//task:defs.bzl", "cmd", "task")
-load("@rules_python//python:defs.bzl", "py_binary")
 load("@pdm-setup//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_task//task:defs.bzl", "cmd", "task")
 
 def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = [], data = []):
     python_binary = "{name}_env".format(name = name)
@@ -26,10 +26,10 @@ def pyinfra_run(name, deploy, inventory, env = {}, srcs = [], deps = [], args = 
             "$pyinfra $PYINFRA_RUN_ARGS $ARGS $inventory_file $deploy_file",
         ],
         env = {
-            "pyinfra": cmd.executable(python_binary),
+            "default_args": " ".join(args),
             "deploy_file": cmd.file(deploy),
             "inventory_file": cmd.file(inventory),
-            "default_args": " ".join(args),
+            "pyinfra": cmd.executable(python_binary),
         } | env,
         data = data,
         deps = deps,

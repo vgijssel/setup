@@ -1,7 +1,7 @@
-from pyinfra.operations import files, server
 from pyinfra import host
-from pyinfra.facts.server import Arch
 from pyinfra.api.deploy import deploy
+from pyinfra.facts.server import Arch
+from pyinfra.operations import files, server
 
 
 @deploy("Install CNI")

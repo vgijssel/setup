@@ -1,12 +1,12 @@
-load("@bazel_skylib//lib:shell.bzl", "shell")
-load("@bazel_skylib//lib:new_sets.bzl", "sets")
-load("@bazel_skylib//rules:native_binary.bzl", "native_test")
-load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@aspect_bazel_lib//lib:base64.bzl", "base64")
+load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
+load("@bazel_skylib//lib:new_sets.bzl", "sets")
+load("@bazel_skylib//lib:shell.bzl", "shell")
+load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
-load(":py_binary_cmd.bzl", "py_binary_cmd")
 load(":cmd.bzl", "cmd")
+load(":py_binary_cmd.bzl", "py_binary_cmd")
 load(":utils.bzl", "fq_label")
 
 def _visit(context, node):
@@ -191,48 +191,48 @@ def _get_use_version_file(context):
     return context.state.get("version_file", False)
 
 _serializer = {
-    "visit_root": lambda context, node: _visit_root(context, node),
+    "visit_defer": lambda context, node: _serialize_defer(context, node),
     "visit_env": lambda context, node: _serialize_env(context, node),
     "visit_env_file": lambda context, node: _serialize_env_file(context, node),
-    "visit_defer": lambda context, node: _serialize_defer(context, node),
-    "visit_shell": lambda context, node: " ".join(_visit_shell(context, node)),
-    "visit_string": lambda context, node: _visit_string(context, node)["value"],
+    "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
     "visit_file": lambda context, node: _file_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_files": lambda context, node: _files_label_to_jinja_path(context.ctx, _visit_file(context, node)["label"]),
     "visit_info_file": lambda context, node: _file_to_jinja_path(context.ctx, context.info_file),
-    "visit_version_file": lambda context, node: _file_to_jinja_path(context.ctx, context.version_file),
-    "visit_executable": lambda context, node: _executable_label_to_jinja_path(context.ctx, _visit_executable(context, node)["label"]),
     "visit_python": lambda context, node: _serialize_python(context, node),
+    "visit_root": lambda context, node: _visit_root(context, node),
+    "visit_shell": lambda context, node: " ".join(_visit_shell(context, node)),
+    "visit_string": lambda context, node: _visit_string(context, node)["value"],
+    "visit_version_file": lambda context, node: _file_to_jinja_path(context.ctx, context.version_file),
 }
 
 _data_collector = {
-    "visit_root": lambda context, node: _compact(_flatten(_visit_root(context, node))),
+    "visit_defer": lambda context, node: _visit_defer(context, node),
     "visit_env": lambda context, node: _compact(_flatten(_visit_env(context, node))),
     "visit_env_file": lambda context, node: _visit_env_file(context, node),
-    "visit_defer": lambda context, node: _visit_defer(context, node),
-    "visit_shell": lambda context, node: _visit_shell(context, node),
-    "visit_string": lambda context, node: None,
+    "visit_executable": lambda context, node: _visit_executable(context, node)["label"],
     "visit_file": lambda context, node: _visit_file(context, node)["label"],
     "visit_files": lambda context, node: _visit_files(context, node)["label"],
     "visit_info_file": lambda context, node: None,
-    "visit_version_file": lambda context, node: None,
-    "visit_executable": lambda context, node: _visit_executable(context, node)["label"],
     "visit_python": lambda context, node: _compact(_flatten(_visit_python(context, node))) + [node["label"]],
+    "visit_root": lambda context, node: _compact(_flatten(_visit_root(context, node))),
+    "visit_shell": lambda context, node: _visit_shell(context, node),
+    "visit_string": lambda context, node: None,
+    "visit_version_file": lambda context, node: None,
 }
 
 _target_generator = {
-    "visit_root": lambda context, node: _visit_root(context, node),
+    "visit_defer": lambda context, node: _visit_defer(context, node),
     "visit_env": lambda context, node: _visit_env(context, node),
     "visit_env_file": lambda context, node: _visit_env_file(context, node),
-    "visit_defer": lambda context, node: _visit_defer(context, node),
-    "visit_shell": lambda context, node: _visit_shell(context, node),
-    "visit_string": lambda context, node: None,
+    "visit_executable": lambda context, node: None,
     "visit_file": lambda context, node: None,
     "visit_files": lambda context, node: None,
     "visit_info_file": lambda context, node: _set_use_info_file(context),
-    "visit_version_file": lambda context, node: _set_use_version_file(context),
-    "visit_executable": lambda context, node: None,
     "visit_python": lambda context, node: _generate_py_binary_cmd(context, node),
+    "visit_root": lambda context, node: _visit_root(context, node),
+    "visit_shell": lambda context, node: _visit_shell(context, node),
+    "visit_string": lambda context, node: None,
+    "visit_version_file": lambda context, node: _set_use_version_file(context),
 }
 
 def _visitor_context(ctx, visitor, name, info_file = None, version_file = None):
@@ -241,8 +241,8 @@ def _visitor_context(ctx, visitor, name, info_file = None, version_file = None):
         visitor = visitor,
         name = name,
         state = {
-            "target_index": 0,
             "defer_index": 0,
+            "target_index": 0,
         },
         info_file = info_file,
         version_file = version_file,
@@ -338,10 +338,10 @@ _task = rule(
     implementation = _task_impl,
     attrs = {
         "cmd_json": attr.string(mandatory = True),
+        "data": attr.label_list(allow_files = True, cfg = "target"),
         # cfg = "target" makes sure the deps, data and runner use the target platform toolchain
         # in case of Python this means we can leverage an alternative toolchain for example for inside a container.
         "deps": attr.label_list(cfg = "target"),  # TODO: only allow Python here?
-        "data": attr.label_list(allow_files = True, cfg = "target"),
         "stamp_stable": attr.bool(default = False),
         "stamp_volatile": attr.bool(default = False),
         # cfg = "exec" makes sure the dotenv_convert target is built with the host toolchain
