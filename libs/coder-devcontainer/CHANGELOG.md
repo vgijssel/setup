@@ -1,3 +1,9 @@
+## 0.7.1 (2025-09-25)
+
+### 🩹 Fixes
+
+- Add NX_KEY environment variable support ([#736](https://github.com/vgijssel/setup/pull/736))
+
 ## 0.7.0 (2025-09-24)
 
 ### 🚀 Features
