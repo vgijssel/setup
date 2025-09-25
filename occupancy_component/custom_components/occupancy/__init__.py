@@ -1,10 +1,6 @@
 # Setup is very similar to homeassistant/components/compensation/__init__.py
 import logging
 
-from homeassistant.helpers.typing import HomeAssistantType
-
-_LOGGER = logging.getLogger(__name__)
-
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from custom_components.occupancy.const import (
@@ -29,6 +25,9 @@ from custom_components.occupancy.const import (
 from custom_components.occupancy.helpers import create_timer
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.components.select import DOMAIN as SELECT_DOMAIN
+from homeassistant.helpers.typing import HomeAssistantType
+
+_LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = vol.Schema(
     {
