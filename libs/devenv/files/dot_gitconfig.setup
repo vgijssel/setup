@@ -2,6 +2,7 @@
     ui=true
 [push]
     default=simple
+    autoSetupRemote=true
 [user]
 	email=6029816+mvgijssel@users.noreply.github.com
 	name=mvgijssel
