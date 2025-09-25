@@ -64,16 +64,16 @@ Use consistent environment variables:
 Format: `<kind>-<name>.yaml` (e.g., `deployment-app.yaml`, `service-app.yaml`)
 
 ### Terraform Best Practices
-Use `check` statements to validate `data` resources:
+Use `postconditions` in `data` resources to validate their state:
 ```hcl
 data "aws_instance" "example" {
   instance_id = "i-1234567890abcdef0"
-}
 
-check "instance_running" {
-  assert {
-    condition     = data.aws_instance.example.state == "running"
-    error_message = "Instance must be running"
+  lifecycle {
+    postcondition {
+      condition     = self.state == "running"
+      error_message = "Instance must be running"
+    }
   }
 }
 ```

@@ -60,66 +60,67 @@ data "coder_workspace_owner" "me" {}
 # Ensure that a vault named "setup-devenv" exists in your 1Password account.
 data "onepassword_vault" "setup_devenv" {
   name = "setup-devenv"
+
+  lifecycle {
+    postcondition {
+      condition     = can(self.uuid)
+      error_message = "The 'setup-devenv' vault must exist in 1Password."
+    }
+  }
 }
 
 # Ensure that an item titled "claude-code" exists in the 'setup-devenv' vault.
 data "onepassword_item" "claude_code" {
   vault = data.onepassword_vault.setup_devenv.uuid
   title = "claude-code"
+
+  lifecycle {
+    postcondition {
+      condition     = try(self.credential, "") != ""
+      error_message = "The 'claude-code' item in 1Password must have a credential value with the OAuth token."
+    }
+  }
 }
 
 # Ensure that an item titled "github-devcontainer-agent" exists in the 'setup-devenv' vault.
 data "onepassword_item" "github_devcontainer_agent" {
   vault = data.onepassword_vault.setup_devenv.uuid
   title = "github-devcontainer-agent"
+
+  lifecycle {
+    postcondition {
+      condition     = try(self.credential, "") != ""
+      error_message = "The 'github-devcontainer-agent' item in 1Password must have a credential value with the GitHub token."
+    }
+  }
 }
 
 # Ensure that an item titled "haos-api" exists in the 'setup-devenv' vault.
 data "onepassword_item" "haos_api" {
   vault = data.onepassword_vault.setup_devenv.uuid
   title = "haos-api"
+
+  lifecycle {
+    postcondition {
+      condition     = try(self.credential, "") != ""
+      error_message = "The 'haos-api' item in 1Password must have a password field with the Home Assistant API token."
+    }
+  }
 }
 
 # Ensure that an item titled "NX_KEY" exists in the 'setup-devenv' vault.
 data "onepassword_item" "nx_key" {
   vault = data.onepassword_vault.setup_devenv.uuid
   title = "NX_KEY"
-}
 
-check "onepassword_vault" {
-  assert {
-    condition     = can(data.onepassword_vault.setup_devenv.uuid)
-    error_message = "The 'setup-devenv' vault must exist in 1Password."
+  lifecycle {
+    postcondition {
+      condition     = try(self.credential, "") != ""
+      error_message = "The 'NX_KEY' item in 1Password must have a credential value with the NX key."
+    }
   }
 }
 
-check "claude_code_credential" {
-  assert {
-    condition     = local.claude_code_token != ""
-    error_message = "The 'claude-code' item in 1Password must have a credential value with the OAuth token."
-  }
-}
-
-check "github_token_credential" {
-  assert {
-    condition     = local.github_token != ""
-    error_message = "The 'github-devcontainer-agent' item in 1Password must have a credential value with the GitHub token."
-  }
-}
-
-check "ha_token_credential" {
-  assert {
-    condition     = local.ha_token != ""
-    error_message = "The 'haos-api' item in 1Password must have a password field with the Home Assistant API token."
-  }
-}
-
-check "nx_key_credential" {
-  assert {
-    condition     = local.nx_key != ""
-    error_message = "The 'NX_KEY' item in 1Password must have a credential value with the NX key."
-  }
-}
 
 data "coder_parameter" "system_prompt" {
   name         = "system_prompt"
