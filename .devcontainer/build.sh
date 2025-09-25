@@ -56,14 +56,43 @@ echo "Building and pushing devcontainer to development registry..."
 echo "Image: ${DEV_IMAGE}"
 echo "Platforms: linux/amd64,linux/arm64"
 
-# Build and push the image with the NX_TASK_HASH tag
-devcontainer build \
-  --workspace-folder "${SETUP_DIR}" \
-  --platform linux/amd64,linux/arm64 \
-  --push \
-  --image-name "${DEV_IMAGE}" \
-  --cache-from "type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache" \
-  --cache-to "type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache,mode=max"
+# Check if we should skip pushing (for testing or when auth is not available)
+CAN_PUSH=true
+if [ "${SKIP_DOCKER_PUSH:-}" = "true" ]; then
+  echo "SKIP_DOCKER_PUSH is set, building without push"
+  CAN_PUSH=false
+elif [ -z "${GITHUB_TOKEN:-}" ] && [ -z "${DOCKER_PASSWORD:-}" ]; then
+  echo "Warning: No authentication tokens found, building without push"
+  CAN_PUSH=false
+fi
+
+# Build the image with or without push depending on authentication
+if [ "$CAN_PUSH" = "true" ]; then
+  echo "Building and pushing to registry..."
+  devcontainer build \
+    --workspace-folder "${SETUP_DIR}" \
+    --platform linux/amd64,linux/arm64 \
+    --push \
+    --image-name "${DEV_IMAGE}" \
+    --cache-from "type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache" \
+    --cache-to "type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache,mode=max"
+else
+  echo "Building locally only (no push, single platform)..."
+  # When building locally, use single platform to avoid manifest list issues
+  CURRENT_ARCH=$(uname -m)
+  if [ "$CURRENT_ARCH" = "x86_64" ]; then
+    PLATFORM="linux/amd64"
+  elif [ "$CURRENT_ARCH" = "arm64" ] || [ "$CURRENT_ARCH" = "aarch64" ]; then
+    PLATFORM="linux/arm64"
+  else
+    PLATFORM="linux/amd64"  # Default fallback
+  fi
+  echo "Building for platform: $PLATFORM"
+  devcontainer build \
+    --workspace-folder "${SETUP_DIR}" \
+    --platform "$PLATFORM" \
+    --image-name "${DEV_IMAGE}"
+fi
 
 # Save the image reference to .docker-version
 echo "${DEV_IMAGE}" > "${SCRIPT_DIR}/.docker-version"
