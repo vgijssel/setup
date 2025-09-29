@@ -1,5 +1,7 @@
 packages:
   darwin:
+    taps:
+      - coder/coder
     brews:
       - git
       - zsh
@@ -31,7 +33,7 @@ packages:
       - github
       - finicky
       - obs
-      - coder-desktop
+      - coder/coder/coder-desktop
       - motion
   linux:
     apt_packages:
