@@ -31,7 +31,7 @@ packages:
       - github
       - finicky
       - obs
-      - coder
+      - coder-desktop
       - motion
   linux:
     apt_packages:
