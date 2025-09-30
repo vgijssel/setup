@@ -1,3 +1,9 @@
+## 0.9.0 (2025-09-30)
+
+### 🚀 Features
+
+- Add Coder Desktop and Motion apps to Homebrew cask packages ([#743](https://github.com/vgijssel/setup/pull/743))
+
 ## 0.8.1 (2025-09-25)
 
 ### 🩹 Fixes
