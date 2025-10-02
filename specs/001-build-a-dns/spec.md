@@ -60,6 +60,11 @@ When creating this spec from a user prompt:
 - Q: What is the acceptable DNS query response time target? → A: < 500ms (acceptable for internal)
 - Q: Within what time period should a newly created ingress become queryable via DNS? → A: Within 2 minutes (eventual consistency)
 - Q: Should ingresses use arbitrary hostnames or a specific domain suffix pattern? → A: Must use specific suffix (e.g., *.internal.domain)
+- Q: What should happen when a client NOT connected to the Tailscale network attempts to query the DNS service? → A: Queries fail (NXDOMAIN response)
+- Q: How many concurrent ingresses should the DNS service support? → A: Up to 100 ingresses (small cluster)
+- Q: Should the DNS service log queries and monitor its own health? → A: No logging or monitoring required
+- Q: Should the DNS service have redundancy and fault tolerance? → A: Single instance (no redundancy)
+- Q: How should the system handle ingresses with multiple hostnames or wildcard domains? → A: Support both multiple hostnames and wildcards
 
 ---
 
@@ -73,14 +78,15 @@ As a developer or service connected to the Tailscale network, I need to resolve 
 2. **Given** a new ingress is created in the Kubernetes cluster, **When** the ingress becomes active, **Then** the DNS service automatically makes it queryable within 2 minutes
 3. **Given** an ingress is deleted from the Kubernetes cluster, **When** the deletion is complete, **Then** the DNS service stops resolving that hostname within 2 minutes
 4. **Given** multiple ingresses exist in the cluster, **When** a client queries the DNS service, **Then** all ingress hostnames are resolvable
-5. **Given** a client is not connected to the Tailscale network, **When** they attempt to query the DNS service, **Then** [NEEDS CLARIFICATION: should queries fail, timeout, or be rejected? Security posture not specified]
+5. **Given** a client is not connected to the Tailscale network, **When** they attempt to query the DNS service, **Then** the query fails with an NXDOMAIN response
+6. **Given** an ingress defines multiple hostnames or wildcard patterns, **When** a client queries any matching hostname, **Then** the DNS service resolves all hostnames and wildcards correctly
 
 ### Edge Cases
 - What happens when an ingress hostname conflicts with an existing DNS record? The system must reject the conflicting ingress and maintain global hostname uniqueness across all namespaces.
-- How does the system handle ingresses with multiple hostnames or wildcard domains?
-- What happens when the Kubernetes cluster is unreachable or the DNS service loses connectivity?
-- How does the system handle DNS queries for non-existent hostnames?
-- What happens when an ingress is updated (hostname change, IP change)?
+- How does the system handle ingresses with multiple hostnames or wildcard domains? The system supports both multiple hostnames per ingress and wildcard domain patterns, resolving all appropriately.
+- What happens when the Kubernetes cluster is unreachable or the DNS service loses connectivity? DNS queries will fail until connectivity is restored (no failover).
+- How does the system handle DNS queries for non-existent hostnames? Returns standard DNS NXDOMAIN response.
+- What happens when an ingress is updated (hostname change, IP change)? DNS records are updated within 2 minutes to reflect the changes.
 
 ## Requirements *(mandatory)*
 
@@ -91,14 +97,14 @@ As a developer or service connected to the Tailscale network, I need to resolve 
 - **FR-004**: System MUST integrate with Tailscale network to make DNS resolution available to Tailnet clients
 - **FR-005**: System MUST update DNS records within 2 minutes when ingresses are created, modified, or deleted
 - **FR-006**: System MUST return the correct routing address for each ingress hostname
-- **FR-007**: System MUST handle DNS queries only for clients connected to the Tailscale network
+- **FR-007**: System MUST return NXDOMAIN responses for DNS queries from clients not connected to the Tailscale network
 - **FR-008**: System MUST respond to DNS queries within 500 milliseconds
-- **FR-009**: System MUST handle [NEEDS CLARIFICATION: scale not specified - how many ingresses should be supported?]
-- **FR-010**: System MUST [NEEDS CLARIFICATION: logging/monitoring requirements not specified - should DNS queries be logged? Should service health be monitored?]
-- **FR-011**: System MUST discover and resolve ingresses from all namespaces in the cluster
-- **FR-012**: System MUST only resolve ingress hostnames that use a specific internal domain suffix pattern
-- **FR-013**: System MUST reject ingresses with duplicate hostnames across namespaces and require globally unique hostnames
-- **FR-014**: System MUST [NEEDS CLARIFICATION: high availability not specified - should the DNS service have redundancy? What happens during DNS service downtime?]
+- **FR-009**: System MUST support up to 100 concurrent ingresses in the cluster
+- **FR-010**: System MUST discover and resolve ingresses from all namespaces in the cluster
+- **FR-011**: System MUST only resolve ingress hostnames that use a specific internal domain suffix pattern
+- **FR-012**: System MUST reject ingresses with duplicate hostnames across namespaces and require globally unique hostnames
+- **FR-013**: System operates as a single instance without redundancy or failover capabilities
+- **FR-014**: System MUST support ingresses with multiple hostnames and wildcard domain patterns
 
 ### Key Entities *(include if feature involves data)*
 - **Ingress**: A Kubernetes ingress resource that exposes HTTP/HTTPS routes to services within the cluster. Key attributes include hostname(s), routing target address, namespace, and active/inactive status.
