@@ -1,3 +1,9 @@
+## 0.10.0 (2025-10-02)
+
+### 🚀 Features
+
+- Add Nx IDE configuration to disable automatic console extension installation ([#746](https://github.com/vgijssel/setup/pull/746))
+
 ## 0.9.0 (2025-09-30)
 
 ### 🚀 Features
