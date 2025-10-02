@@ -42,6 +42,7 @@ lint:
         - third_party/vendir/charts
         - third_party/vendir/vendir.lock.yml
         - third_party/vendir/shell/docker-in-docker/**
+        - .specify/**
     # Ignore yamllint syntax errors for Helm chart templates
     - linters: [yamllint]
       paths:
