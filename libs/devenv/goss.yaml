@@ -282,6 +282,20 @@ file:
     contents:
       - github.com
 
+  '{{.Env.HOME}}/.nx':
+    title: Nx configuration directory exists
+    exists: true
+    filetype: directory
+
+  '{{.Env.HOME}}/.nx/ide.json':
+    title: Nx IDE configuration exists to disable auto-install console
+    meta:
+      url: https://github.com/nrwl/nx/issues/31668#issuecomment-3306509489
+    exists: true
+    filetype: file
+    contents:
+      - auto_install_console
+
 process:
   dockerd:
     title: Docker daemon is running inside container (Docker-in-Docker)
