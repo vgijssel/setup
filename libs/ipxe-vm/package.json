@@ -19,6 +19,9 @@
         "outputs": [
           "{projectRoot}/output"
         ],
+        "dependsOn": [
+          "ipxe-efi:build"
+        ],
         "metadata": {
           "description": "Build the iPXE VM image using Packer"
         }
