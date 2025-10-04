@@ -1,0 +1,63 @@
+{
+  "name": "bunq2ynab",
+  "version": "0.1.0",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/bunq2ynab",
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "bazel build //libs/bunq2ynab:bunq2ynab_binary",
+          "cwd": "{workspaceRoot}"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Build bunq2ynab binary using Bazel"
+        }
+      },
+      "list-user": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "bazel run //libs/bunq2ynab:list_user",
+          "cwd": "{workspaceRoot}"
+        },
+        "cache": false,
+        "metadata": {
+          "description": "List bunq users"
+        }
+      },
+      "list-budget": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "bazel run //libs/bunq2ynab:list_budget",
+          "cwd": "{workspaceRoot}"
+        },
+        "cache": false,
+        "metadata": {
+          "description": "List YNAB budgets"
+        }
+      },
+      "sync": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "bazel run //libs/bunq2ynab:sync",
+          "cwd": "{workspaceRoot}"
+        },
+        "cache": false,
+        "metadata": {
+          "description": "Sync bunq transactions to YNAB"
+        }
+      }
+    },
+    "tags": [
+      "bunq",
+      "ynab",
+      "finance",
+      "bazel",
+      "python",
+      "skip-ci"
+    ]
+  },
+  "private": true
+}
