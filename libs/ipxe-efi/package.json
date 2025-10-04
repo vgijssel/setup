@@ -1,0 +1,29 @@
+{
+  "name": "ipxe-efi",
+  "version": "0.1.0",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/ipxe-efi",
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "packer build .",
+          "cwd": "libs/ipxe-efi"
+        },
+        "cache": true,
+        "outputs": ["{projectRoot}/output"],
+        "metadata": {
+          "description": "Build the iPXE EFI image using Packer"
+        }
+      }
+    },
+    "tags": [
+      "packer",
+      "image",
+      "ipxe",
+      "efi"
+    ]
+  },
+  "private": true
+}

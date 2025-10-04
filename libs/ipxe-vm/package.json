@@ -1,0 +1,29 @@
+{
+  "name": "ipxe-vm",
+  "version": "0.1.0",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/ipxe-vm",
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "packer build -var 'ipxe_efi=../ipxe-efi/output/ipxe.efi' -on-error=ask .",
+          "cwd": "libs/ipxe-vm"
+        },
+        "cache": true,
+        "outputs": ["{projectRoot}/output"],
+        "metadata": {
+          "description": "Build the iPXE VM image using Packer"
+        }
+      }
+    },
+    "tags": [
+      "packer",
+      "image",
+      "ipxe",
+      "vm"
+    ]
+  },
+  "private": true
+}
