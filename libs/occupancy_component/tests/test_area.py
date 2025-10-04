@@ -191,7 +191,7 @@ async def test_area_entering_without_occupancy(hass, init_integration, init_enti
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
 
 
-async def test_area_entering_door_opens(hass, init_integration, init_entities):
+async def test_area_entering_status_door_opens(hass, init_integration, init_entities):
     [front_door_contact, front_door_motion, hallway_occupancy] = await init_entities(
         contact_sensor("binary_sensor.front_door_contact", False),
         motion_sensor("binary_sensor.front_door_motion", False),
