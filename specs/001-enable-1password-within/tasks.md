@@ -42,7 +42,7 @@
 
 ## Phase 3.1: Setup
 
-### T001 Create library directory structure
+### [X] T001 Create library directory structure
 **Path**: `libs/onepassword-addon-xp/`
 **Description**: Create Nx library project structure for Crossplane AddOn package
 **Steps**:
@@ -56,7 +56,7 @@ cd libs/onepassword-addon-xp
 
 ---
 
-### T002 Download 1Password Connect Helm chart
+### [X] T002 Download 1Password Connect Helm chart
 **Path**: `libs/onepassword-addon-xp/helm/`
 **Description**: Pull official 1Password Connect Helm chart version 2.0.5
 **Steps**:
@@ -72,7 +72,7 @@ helm pull 1password/connect --version 2.0.5 --untar --untardir /tmp
 
 ---
 
-### T003 [P] Extract CRDs from Helm chart
+### [X] T003 [P] Extract CRDs from Helm chart
 **Path**: `libs/onepassword-addon-xp/crds/`
 **Description**: Extract CustomResourceDefinitions from 1Password chart
 **Steps**:
@@ -87,7 +87,7 @@ cp /tmp/connect/crds/*.yaml libs/onepassword-addon-xp/crds/
 
 ---
 
-### T004 [P] Package Helm chart as tarball
+### [X] T004 [P] Package Helm chart as tarball
 **Path**: `libs/onepassword-addon-xp/helm/`
 **Description**: Create tarball of 1Password Connect chart for embedding
 **Steps**:
@@ -102,7 +102,7 @@ rm -rf /tmp/connect
 
 ---
 
-### T005 Create package.json with Nx configuration
+### [X] T005 Create package.json with Nx configuration
 **Path**: `libs/onepassword-addon-xp/package.json`
 **Description**: Configure Nx project with build, test, and release targets
 **Content**:
@@ -164,7 +164,7 @@ rm -rf /tmp/connect
 
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
-### T006 Create kuttl test configuration
+### [X] T006 Create kuttl test configuration
 **Path**: `libs/onepassword-addon-xp/tests/kuttl-test.yaml`
 **Description**: Configure kuttl test suite settings
 **Content**:
@@ -183,7 +183,7 @@ startKIND: false
 
 ---
 
-### T007 Create kind cluster configuration
+### [X] T007 Create kind cluster configuration
 **Path**: `libs/onepassword-addon-xp/tests/kind-config.yaml`
 **Description**: Configure kind cluster with native storage for docker-in-docker
 **Content**:
@@ -202,7 +202,7 @@ nodes:
 
 ---
 
-### T008 [P] Contract test: AddOn installation
+### [X] T008 [P] Contract test: AddOn installation
 **Path**: `libs/onepassword-addon-xp/tests/e2e/00-addon-installation/`
 **Description**: kuttl test for Crossplane AddOn package installation
 **Reference**: `specs/001-enable-1password-within/contracts/00-addon-installation.yaml`
@@ -229,7 +229,7 @@ nodes:
 
 ---
 
-### T009 [P] Contract test: Secret synchronization
+### [X] T009 [P] Contract test: Secret synchronization
 **Path**: `libs/onepassword-addon-xp/tests/e2e/01-secret-sync/`
 **Description**: kuttl test for OnePasswordItem to Secret sync
 **Reference**: `specs/001-enable-1password-within/contracts/01-secret-sync.yaml`
@@ -245,7 +245,7 @@ nodes:
 
 ---
 
-### T010 [P] Contract test: Secret consumption patterns
+### [X] T010 [P] Contract test: Secret consumption patterns
 **Path**: `libs/onepassword-addon-xp/tests/e2e/02-secret-consumption/`
 **Description**: kuttl test for environment variables and volume mounts
 **Reference**: `specs/001-enable-1password-within/contracts/02-secret-consumption.yaml`
@@ -261,7 +261,7 @@ nodes:
 
 ---
 
-### T011 [P] Contract test: Workload restart on rotation
+### [X] T011 [P] Contract test: Workload restart on rotation
 **Path**: `libs/onepassword-addon-xp/tests/e2e/03-workload-restart-on-rotation/`
 **Description**: kuttl test for automatic restart with Reloader
 **Reference**: `specs/001-enable-1password-within/contracts/03-workload-restart-on-rotation.yaml`
@@ -278,7 +278,7 @@ nodes:
 
 ---
 
-### T012 [P] Contract test: Offline resilience
+### [X] T012 [P] Contract test: Offline resilience
 **Path**: `libs/onepassword-addon-xp/tests/e2e/04-offline-resilience/`
 **Description**: kuttl test for cached secrets when 1Password unavailable
 **Reference**: `specs/001-enable-1password-within/contracts/04-offline-resilience.yaml`
@@ -295,7 +295,7 @@ nodes:
 
 ---
 
-### T013 [P] Contract test: Namespace authorization
+### [X] T013 [P] Contract test: Namespace authorization
 **Path**: `libs/onepassword-addon-xp/tests/e2e/05-namespace-authorization/`
 **Description**: kuttl test for namespace isolation and auth
 **Reference**: `specs/001-enable-1password-within/contracts/05-namespace-authorization.yaml`
@@ -315,7 +315,7 @@ nodes:
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
-### T014 Create crossplane.yaml metadata file
+### [X] T014 Create crossplane.yaml metadata file
 **Path**: `libs/onepassword-addon-xp/crossplane.yaml`
 **Description**: Define Crossplane AddOn package metadata
 **Content**:
@@ -355,7 +355,7 @@ up xpkg build -f . -o ../../dist/libs/onepassword-addon-xp/onepassword-addon-xp.
 
 ---
 
-### T016 Configure Nx release settings
+### [X] T016 Configure Nx release settings
 **Path**: `libs/onepassword-addon-xp/package.json`
 **Description**: Add release configuration for OCI registry publishing
 **Steps**:
@@ -383,7 +383,7 @@ up xpkg build -f . -o ../../dist/libs/onepassword-addon-xp/onepassword-addon-xp.
 
 ## Phase 3.4: Integration (Flux Deployment)
 
-### T017 Create Flux deployment directory
+### [X] T017 Create Flux deployment directory
 **Path**: `stacks/enigma-cluster/flux/onepassword/`
 **Description**: Create directory for 1Password AddOn deployment manifests
 **Steps**:
@@ -394,7 +394,7 @@ mkdir -p stacks/enigma-cluster/flux/onepassword
 
 ---
 
-### T018 Create namespace manifest
+### [X] T018 Create namespace manifest
 **Path**: `stacks/enigma-cluster/flux/onepassword/namespace.yaml`
 **Description**: Define onepassword-system namespace for operator
 **Content**:
@@ -411,7 +411,7 @@ metadata:
 
 ---
 
-### T019 Create AddOn Custom Resource manifest
+### [X] T019 Create AddOn Custom Resource manifest
 **Path**: `stacks/enigma-cluster/flux/onepassword/addon.yaml`
 **Description**: Define Crossplane AddOn CR pointing to OCI package
 **Content**:
@@ -430,7 +430,7 @@ spec:
 
 ---
 
-### T020 Create Flux Kustomization manifest
+### [X] T020 Create Flux Kustomization manifest
 **Path**: `stacks/enigma-cluster/flux/onepassword/kustomization.yaml`
 **Description**: Define Flux Kustomization for GitOps deployment
 **Content**:
@@ -467,7 +467,7 @@ nx test onepassword-addon-xp
 
 ---
 
-### T022 [P] Validate package structure
+### [X] T022 [P] Validate package structure
 **Path**: `libs/onepassword-addon-xp/`
 **Description**: Verify all required files present and correctly formatted
 **Checklist**:

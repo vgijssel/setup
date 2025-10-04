@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: test-secret-sync
+  labels:
+    app: test-env-consumer
+status:
+  phase: Running
+  containerStatuses:
+  - name: app
+    ready: true

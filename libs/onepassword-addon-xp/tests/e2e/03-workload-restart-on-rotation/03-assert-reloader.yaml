@@ -1,0 +1,9 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reloader
+  namespace: reloader-system
+status:
+  conditions:
+  - type: Available
+    status: "True"

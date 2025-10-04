@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-env-consumer
+  namespace: test-secret-sync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-env-consumer
+  template:
+    metadata:
+      labels:
+        app: test-env-consumer
+    spec:
+      containers:
+      - name: app
+        image: busybox:1.36.1
+        command: ["sh", "-c", "env | grep TEST_ && sleep 3600"]
+        envFrom:
+        - secretRef:
+            name: test-plain-secret
+            optional: false

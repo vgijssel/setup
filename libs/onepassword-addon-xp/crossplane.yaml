@@ -1,0 +1,16 @@
+apiVersion: meta.pkg.upbound.io/v1beta1
+kind: AddOn
+metadata:
+  name: onepassword-operator
+  annotations:
+    friendly-name.meta.crossplane.io: "1Password Connect Operator"
+    meta.crossplane.io/description: "Synchronize secrets from 1Password vaults to Kubernetes"
+    meta.crossplane.io/maintainer: "Setup Monorepo <https://github.com/vgijssel/setup>"
+    meta.crossplane.io/source: "https://github.com/vgijssel/setup/tree/main/libs/onepassword-addon-xp"
+    meta.crossplane.io/license: "MIT"
+    meta.crossplane.io/readme: "See https://github.com/vgijssel/setup/blob/main/libs/onepassword-addon-xp/AGENTS.md"
+spec:
+  packagingType: Helm
+  helm:
+    releaseName: onepassword-connect
+    releaseNamespace: onepassword-system

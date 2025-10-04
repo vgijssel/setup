@@ -1,0 +1,9 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestSuite
+testDirs:
+- e2e/
+kindContainers: 0  # Use existing cluster
+skipDelete: false
+timeout: 300
+parallel: 1
+startKIND: false

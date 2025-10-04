@@ -1,0 +1,9 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: onepassword-test
+nodes:
+- role: control-plane
+  extraMounts:
+  - containerPath: /var/lib/containerd
+    hostPath: /var/lib/containerd
+    type: DirectoryOrCreate
