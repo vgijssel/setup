@@ -10,11 +10,22 @@
         "executor": "nx:run-commands",
         "options": {
           "commands": [
-            "up xpkg build -f libs/onepassword-addon-xp -o dist/libs/onepassword-addon-xp/onepassword-addon-xp.xpkg"
+            "helm repo add 1password https://1password.github.io/connect-helm-charts || true",
+            "helm repo update 1password",
+            "helm pull 1password/connect --version 2.0.5 --destination libs/onepassword-addon-xp/helm",
+            "up xpkg build -f libs/onepassword-addon-xp -o libs/onepassword-addon-xp/dist/onepassword-addon-xp.xpkg"
           ],
           "parallel": false
         },
-        "outputs": ["{workspaceRoot}/dist/libs/onepassword-addon-xp"],
+        "outputs": [
+          "{projectRoot}/dist",
+          "{projectRoot}/helm/*.tgz"
+        ],
+        "inputs": [
+          "{projectRoot}/crossplane.yaml",
+          "{projectRoot}/crds/**/*",
+          "{projectRoot}/package.json"
+        ],
         "cache": true,
         "metadata": {
           "description": "Build Crossplane AddOn package"
