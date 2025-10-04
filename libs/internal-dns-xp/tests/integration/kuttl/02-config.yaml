@@ -1,0 +1,7 @@
+# Install internal-dns XRD and Composition
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  - command: kubectl apply -f /workspaces/setup/libs/internal-dns-xp/definition.yaml
+  - command: kubectl apply -f /workspaces/setup/libs/internal-dns-xp/compositions/internal-dns.yaml
+  - command: kubectl wait --for=condition=established --timeout=60s xrd/xinternaldnses.dns.internal

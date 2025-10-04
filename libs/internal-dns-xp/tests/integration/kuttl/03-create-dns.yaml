@@ -1,0 +1,12 @@
+# Create InternalDNS resource
+apiVersion: dns.internal/v1alpha1
+kind: InternalDNS
+metadata:
+  name: test-dns
+  namespace: default
+spec:
+  domain: "test.internal"
+  storageSize: "1Gi"
+  externalDnsVersion: "v0.14.0"
+  powerdnsVersion: "powerdns/pdns-auth-50"
+  syncInterval: "30s"

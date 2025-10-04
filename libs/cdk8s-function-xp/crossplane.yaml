@@ -1,0 +1,50 @@
+apiVersion: meta.pkg.crossplane.io/v1alpha1
+kind: Function
+metadata:
+  name: function-cdk8s
+  annotations:
+    meta.crossplane.io/maintainer: Internal DNS Team
+    meta.crossplane.io/source: github.com/user/setup
+    meta.crossplane.io/license: Apache-2.0
+    meta.crossplane.io/description: |
+      Crossplane function for rendering cdk8s Python code into Kubernetes manifests.
+      Enables type-safe Kubernetes resource generation using cdk8s with Python.
+    meta.crossplane.io/readme: |
+      # cdk8s Crossplane Function
+
+      This function renders cdk8s Python code into Kubernetes manifests during Crossplane composition.
+
+      ## Usage
+
+      Add cdk8s code to your composite resource via annotation:
+
+      ```yaml
+      apiVersion: example.com/v1alpha1
+      kind: MyResource
+      metadata:
+        name: my-resource
+        annotations:
+          cdk8s-function.crossplane.io/code: |
+            from cdk8s import Chart
+            from imports import k8s
+
+            class MyChart(Chart):
+                def __init__(self, scope, id, props):
+                    super().__init__(scope, id)
+
+                    k8s.KubeService(self, 'svc',
+                        metadata=k8s.ObjectMeta(name='my-service'),
+                        spec=k8s.ServiceSpec(type='ClusterIP')
+                    )
+      spec:
+        # Your spec fields
+      ```
+
+      ## Props Mapping
+
+      Composite spec fields are automatically converted from camelCase to snake_case
+      and passed as props to your cdk8s Chart.
+spec:
+  crossplane:
+    version: ">=v2.0.2"
+  image: cdk8s-function:latest

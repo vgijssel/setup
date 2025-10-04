@@ -1,0 +1,183 @@
+# serializer version: 1
+# name: test_dns_resources_snapshot
+  '''
+  [
+    {
+      "apiVersion": "v1",
+      "data": {
+        "pdns.conf": "launch=gsqlite3\ngsqlite3-database=/var/lib/powerdns/pdns.sqlite3\nwebserver=yes\nwebserver-address=0.0.0.0\nwebserver-port=8081\napi=yes\nlocal-address=0.0.0.0\nlocal-port=53"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "labels": {
+          "app": "internal-dns"
+        },
+        "name": "powerdns-config"
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "labels": {
+          "app": "internal-dns"
+        },
+        "name": "internal-dns-deployment"
+      },
+      "spec": {
+        "replicas": 1,
+        "selector": {
+          "matchLabels": {
+            "app": "internal-dns"
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "internal-dns"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "args": [
+                  "--source=ingress",
+                  "--provider=pdns",
+                  "--pdns-server=http://localhost:8081",
+                  "--pdns-api-key=$(PDNS_API_KEY)",
+                  "--domain-filter=internal.test.com",
+                  "--interval=30s"
+                ],
+                "env": [
+                  {
+                    "name": "PDNS_API_KEY",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "key": "api-key",
+                        "name": "powerdns-api-key"
+                      }
+                    }
+                  }
+                ],
+                "image": "registry.k8s.io/external-dns/external-dns:v0.14.0",
+                "name": "external-dns"
+              },
+              {
+                "image": "powerdns/pdns-auth-50",
+                "name": "powerdns",
+                "ports": [
+                  {
+                    "containerPort": 53,
+                    "name": "dns",
+                    "protocol": "UDP"
+                  },
+                  {
+                    "containerPort": 53,
+                    "name": "dns-tcp",
+                    "protocol": "TCP"
+                  },
+                  {
+                    "containerPort": 8081,
+                    "name": "api"
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "mountPath": "/var/lib/powerdns",
+                    "name": "dns-data"
+                  },
+                  {
+                    "mountPath": "/etc/powerdns",
+                    "name": "config"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "dns-data",
+                "persistentVolumeClaim": {
+                  "claimName": "dns-storage"
+                }
+              },
+              {
+                "configMap": {
+                  "name": "powerdns-config"
+                },
+                "name": "config"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "labels": {
+          "app": "internal-dns"
+        },
+        "name": "dns-storage"
+      },
+      "spec": {
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "1Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Secret",
+      "metadata": {
+        "labels": {
+          "app": "internal-dns"
+        },
+        "name": "powerdns-api-key"
+      },
+      "stringData": {
+        "api-key": "NORMALIZED_API_KEY"
+      },
+      "type": "Opaque"
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "labels": {
+          "app": "internal-dns"
+        },
+        "name": "internal-dns-service"
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "dns-udp",
+            "port": 53,
+            "protocol": "UDP"
+          },
+          {
+            "name": "dns-tcp",
+            "port": 53,
+            "protocol": "TCP"
+          },
+          {
+            "name": "api",
+            "port": 8081,
+            "protocol": "TCP"
+          }
+        ],
+        "selector": {
+          "app": "internal-dns"
+        },
+        "type": "ClusterIP"
+      }
+    }
+  ]
+  '''
+# ---

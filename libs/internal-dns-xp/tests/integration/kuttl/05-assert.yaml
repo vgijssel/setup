@@ -1,0 +1,21 @@
+# Validate query response and performance
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 30
+commands:
+  # Wait for pod to be ready
+  - command: kubectl wait --for=condition=ready --timeout=30s pod/dns-test-query -n default
+  # Test DNS resolution (should resolve app.test.internal)
+  - command: |
+      kubectl exec -n default dns-test-query -- nslookup app.test.internal internal-dns-service.default.svc.cluster.local
+  # Validate response time < 500ms (performance requirement)
+  - command: |
+      START=$(date +%s%N)
+      kubectl exec -n default dns-test-query -- nslookup app.test.internal internal-dns-service.default.svc.cluster.local > /dev/null 2>&1
+      END=$(date +%s%N)
+      DURATION=$(( (END - START) / 1000000 ))
+      if [ $DURATION -gt 500 ]; then
+        echo "DNS query took ${DURATION}ms (> 500ms requirement)"
+        exit 1
+      fi
+      echo "DNS query took ${DURATION}ms (< 500ms ✓)"

@@ -1,0 +1,33 @@
+[project]
+name = "internal-dns-xp"
+version = "0.1.0"
+description = "Crossplane configuration for internal DNS service using external-dns and PowerDNS"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["cdk8s==2.68.84", "cdk8s-plus-27==2.7.77", "constructs==10.3.0"]
+
+[project.optional-dependencies]
+dev = ["pytest==7.4.3", "pytest-cov==4.1.0", "black==23.12.1", "ruff==0.1.9"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

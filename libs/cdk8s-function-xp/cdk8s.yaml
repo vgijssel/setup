@@ -1,0 +1,4 @@
+language: python
+app: echo "cdk8s imports only"
+imports:
+  - k8s

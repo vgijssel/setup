@@ -1,0 +1,179 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: internal-dns
+  labels:
+    crossplane.io/xrd: xinternaldnses.dns.internal
+spec:
+  compositeTypeRef:
+    apiVersion: dns.internal/v1alpha1
+    kind: XInternalDNS
+
+  mode: Pipeline
+  pipeline:
+    - step: render-dns-resources
+      functionRef:
+        name: function-cdk8s
+      input:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: dns-cdk8s-code
+        data:
+          code: |
+            from cdk8s import Chart, App
+            from constructs import Construct
+            import sys
+
+            # Import Kubernetes CRDs
+            try:
+                from imports import k8s
+            except ImportError:
+                # Fallback to inline k8s definitions if imports don't work
+                import cdk8s_plus_27 as kplus
+
+            class DNSChart(Chart):
+                def __init__(self, scope: Construct, id: str, props: dict):
+                    super().__init__(scope, id)
+
+                    domain = props.get('domain', 'internal.local')
+                    storage_size = props.get('storage_size', '1Gi')
+                    external_dns_version = props.get('external_dns_version', 'v0.14.0')
+                    powerdns_version = props.get('powerdns_version', 'powerdns/pdns-auth-50')
+                    sync_interval = props.get('sync_interval', '30s')
+
+                    # Generate API key
+                    import secrets
+                    api_key = secrets.token_urlsafe(32)
+
+                    # Create Deployment
+                    k8s.KubeDeployment(self, 'deployment',
+                        metadata=k8s.ObjectMeta(
+                            name='internal-dns-deployment',
+                            labels={'app': 'internal-dns'}
+                        ),
+                        spec=k8s.DeploymentSpec(
+                            replicas=1,
+                            selector=k8s.LabelSelector(
+                                match_labels={'app': 'internal-dns'}
+                            ),
+                            template=k8s.PodTemplateSpec(
+                                metadata=k8s.ObjectMeta(
+                                    labels={'app': 'internal-dns'}
+                                ),
+                                spec=k8s.PodSpec(
+                                    containers=[
+                                        k8s.Container(
+                                            name='external-dns',
+                                            image=f'registry.k8s.io/external-dns/external-dns:{external_dns_version}',
+                                            args=[
+                                                '--source=ingress',
+                                                '--provider=pdns',
+                                                '--pdns-server=http://localhost:8081',
+                                                '--pdns-api-key=$(PDNS_API_KEY)',
+                                                f'--domain-filter={domain}',
+                                                f'--interval={sync_interval}'
+                                            ],
+                                            env=[
+                                                k8s.EnvVar(
+                                                    name='PDNS_API_KEY',
+                                                    value_from=k8s.EnvVarSource(
+                                                        secret_key_ref=k8s.SecretKeySelector(
+                                                            name='powerdns-api-key',
+                                                            key='api-key'
+                                                        )
+                                                    )
+                                                )
+                                            ]
+                                        ),
+                                        k8s.Container(
+                                            name='powerdns',
+                                            image=powerdns_version,
+                                            ports=[
+                                                k8s.ContainerPort(container_port=53, name='dns', protocol='UDP'),
+                                                k8s.ContainerPort(container_port=53, name='dns-tcp', protocol='TCP'),
+                                                k8s.ContainerPort(container_port=8081, name='api')
+                                            ],
+                                            volume_mounts=[
+                                                k8s.VolumeMount(name='dns-data', mount_path='/var/lib/powerdns'),
+                                                k8s.VolumeMount(name='config', mount_path='/etc/powerdns')
+                                            ]
+                                        )
+                                    ],
+                                    volumes=[
+                                        k8s.Volume(
+                                            name='dns-data',
+                                            persistent_volume_claim=k8s.PersistentVolumeClaimVolumeSource(
+                                                claim_name='dns-storage'
+                                            )
+                                        ),
+                                        k8s.Volume(
+                                            name='config',
+                                            config_map=k8s.ConfigMapVolumeSource(
+                                                name='powerdns-config'
+                                            )
+                                        )
+                                    ]
+                                )
+                            )
+                        )
+                    )
+
+                    # Create Service
+                    k8s.KubeService(self, 'service',
+                        metadata=k8s.ObjectMeta(
+                            name='internal-dns-service',
+                            labels={'app': 'internal-dns'}
+                        ),
+                        spec=k8s.ServiceSpec(
+                            type='ClusterIP',
+                            selector={'app': 'internal-dns'},
+                            ports=[
+                                k8s.ServicePort(name='dns-udp', port=53, protocol='UDP'),
+                                k8s.ServicePort(name='dns-tcp', port=53, protocol='TCP'),
+                                k8s.ServicePort(name='api', port=8081, protocol='TCP')
+                            ]
+                        )
+                    )
+
+                    # Create PVC
+                    k8s.KubePersistentVolumeClaim(self, 'pvc',
+                        metadata=k8s.ObjectMeta(
+                            name='dns-storage',
+                            labels={'app': 'internal-dns'}
+                        ),
+                        spec=k8s.PersistentVolumeClaimSpec(
+                            access_modes=['ReadWriteOnce'],
+                            resources=k8s.ResourceRequirements(
+                                requests={'storage': storage_size}
+                            )
+                        )
+                    )
+
+                    # Create ConfigMap
+                    k8s.KubeConfigMap(self, 'config',
+                        metadata=k8s.ObjectMeta(
+                            name='powerdns-config',
+                            labels={'app': 'internal-dns'}
+                        ),
+                        data={
+                            'pdns.conf': '''launch=gsqlite3
+            gsqlite3-database=/var/lib/powerdns/pdns.sqlite3
+            webserver=yes
+            webserver-address=0.0.0.0
+            webserver-port=8081
+            api=yes
+            local-address=0.0.0.0
+            local-port=53'''
+                        }
+                    )
+
+                    # Create Secret
+                    k8s.KubeSecret(self, 'secret',
+                        metadata=k8s.ObjectMeta(
+                            name='powerdns-api-key',
+                            labels={'app': 'internal-dns'}
+                        ),
+                        type='Opaque',
+                        string_data={'api-key': api_key}
+                    )

@@ -1,0 +1,10 @@
+# Validate DNS record creation (checking PowerDNS API or external-dns logs)
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 120
+commands:
+  # Wait for external-dns to sync (up to 2 minutes as per requirements)
+  - command: sleep 60
+  # Check external-dns logs for record creation
+  - command: |
+      kubectl logs -n default deployment/internal-dns-deployment -c external-dns --tail=50 | grep -q "app.test.internal"

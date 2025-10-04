@@ -1,0 +1,37 @@
+{
+  "name": "cdk8s-function-xp",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/cdk8s-function-xp/src",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd libs/cdk8s-function-xp && uv run pytest tests/",
+        "cwd": "."
+      }
+    },
+    "docker-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker build -t cdk8s-function:latest -f libs/cdk8s-function-xp/Dockerfile libs/cdk8s-function-xp",
+        "cwd": "."
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "trunk check libs/cdk8s-function-xp",
+        "cwd": "."
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "trunk fmt libs/cdk8s-function-xp",
+        "cwd": "."
+      }
+    }
+  },
+  "tags": ["type:library", "lang:python", "crossplane:function"]
+}

@@ -1,0 +1,83 @@
+# Crossplane XRD Contract: InternalDNS
+# This defines the API contract for the InternalDNS composite resource
+
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xinternaldnses.dns.internal
+spec:
+  group: dns.internal
+  names:
+    kind: XInternalDNS
+    plural: xinternaldnses
+  claimNames:
+    kind: InternalDNS
+    plural: internaldnses
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - domain
+              properties:
+                domain:
+                  type: string
+                  description: "Internal domain suffix for ingresses (e.g., 'internal.example.com')"
+                  pattern: "^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$"
+                storageSize:
+                  type: string
+                  description: "PVC storage size for PowerDNS SQLite database"
+                  default: "1Gi"
+                  pattern: "^[0-9]+(Mi|Gi|Ti)$"
+                externalDnsVersion:
+                  type: string
+                  description: "external-dns image version tag"
+                  default: "v0.14.0"
+                  pattern: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+                powerdnsVersion:
+                  type: string
+                  description: "PowerDNS image version"
+                  default: "powerdns/pdns-auth-50"
+                syncInterval:
+                  type: string
+                  description: "external-dns sync interval (Go duration format)"
+                  default: "30s"
+                  pattern: "^[0-9]+(s|m|h)$"
+            status:
+              type: object
+              properties:
+                ready:
+                  type: boolean
+                  description: "Overall readiness status"
+                powerdnsEndpoint:
+                  type: string
+                  description: "PowerDNS API endpoint for debugging"
+                recordCount:
+                  type: integer
+                  description: "Number of DNS records currently stored"
+                conditions:
+                  type: array
+                  description: "Standard Kubernetes conditions"
+                  items:
+                    type: object
+                    required:
+                      - type
+                      - status
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                      reason:
+                        type: string
+                      message:
+                        type: string

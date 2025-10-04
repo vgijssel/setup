@@ -1,0 +1,44 @@
+{
+  "name": "internal-dns-xp",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/internal-dns-xp/src",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd libs/internal-dns-xp && uv run pytest tests/unit/",
+        "cwd": "."
+      }
+    },
+    "crossplane-render": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd libs/internal-dns-xp/tests/render && ./validate-render.sh",
+        "cwd": "."
+      }
+    },
+    "integration-test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "kubectl kuttl test --config libs/internal-dns-xp/tests/integration/kuttl/kuttl-test.yaml",
+        "cwd": "."
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "trunk check libs/internal-dns-xp",
+        "cwd": "."
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "trunk fmt libs/internal-dns-xp",
+        "cwd": "."
+      }
+    }
+  },
+  "tags": ["type:library", "lang:python", "crossplane:configuration"]
+}

@@ -1,0 +1,118 @@
+apiVersion: dns.internal/v1alpha1
+kind: InternalDNS
+metadata:
+  name: test-dns
+  annotations:
+    cdk8s-function.crossplane.io/code: |
+      from cdk8s import Chart, App
+      from imports import k8s
+
+      class DNSChart(Chart):
+          def __init__(self, scope, id, props):
+              super().__init__(scope, id)
+
+              # Create deployment
+              k8s.KubeDeployment(self, 'deployment',
+                  metadata=k8s.ObjectMeta(
+                      name='internal-dns-deployment',
+                      labels={'app': 'internal-dns'}
+                  ),
+                  spec=k8s.DeploymentSpec(
+                      replicas=1,
+                      selector=k8s.LabelSelector(
+                          match_labels={'app': 'internal-dns'}
+                      ),
+                      template=k8s.PodTemplateSpec(
+                          metadata=k8s.ObjectMeta(
+                              labels={'app': 'internal-dns'}
+                          ),
+                          spec=k8s.PodSpec(
+                              containers=[
+                                  k8s.Container(
+                                      name='external-dns',
+                                      image=f"registry.k8s.io/external-dns/external-dns:{props.get('external_dns_version', 'v0.14.0')}",
+                                      args=[
+                                          '--source=ingress',
+                                          '--provider=pdns',
+                                          f"--domain-filter={props.get('domain')}",
+                                          f"--interval={props.get('sync_interval', '30s')}"
+                                      ]
+                                  ),
+                                  k8s.Container(
+                                      name='powerdns',
+                                      image=props.get('powerdns_version', 'powerdns/pdns-auth-50'),
+                                      ports=[
+                                          k8s.ContainerPort(container_port=53, protocol='UDP'),
+                                          k8s.ContainerPort(container_port=53, protocol='TCP'),
+                                      ]
+                                  )
+                              ]
+                          )
+                      )
+                  )
+              )
+
+              # Create service
+              k8s.KubeService(self, 'service',
+                  metadata=k8s.ObjectMeta(
+                      name='internal-dns-service',
+                      labels={'app': 'internal-dns'}
+                  ),
+                  spec=k8s.ServiceSpec(
+                      type='ClusterIP',
+                      selector={'app': 'internal-dns'},
+                      ports=[
+                          k8s.ServicePort(name='dns-udp', port=53, protocol='UDP'),
+                          k8s.ServicePort(name='dns-tcp', port=53, protocol='TCP'),
+                      ]
+                  )
+              )
+
+              # Create PVC
+              k8s.KubePersistentVolumeClaim(self, 'pvc',
+                  metadata=k8s.ObjectMeta(
+                      name='dns-storage',
+                      labels={'app': 'internal-dns'}
+                  ),
+                  spec=k8s.PersistentVolumeClaimSpec(
+                      access_modes=['ReadWriteOnce'],
+                      resources=k8s.ResourceRequirements(
+                          requests={'storage': props.get('storage_size', '1Gi')}
+                      )
+                  )
+              )
+
+              # Create ConfigMap
+              k8s.KubeConfigMap(self, 'config',
+                  metadata=k8s.ObjectMeta(
+                      name='powerdns-config',
+                      labels={'app': 'internal-dns'}
+                  ),
+                  data={
+                      'pdns.conf': '''launch=gsqlite3
+      gsqlite3-database=/var/lib/powerdns/pdns.sqlite3
+      webserver=yes
+      webserver-address=0.0.0.0
+      webserver-port=8081
+      api=yes
+      local-address=0.0.0.0
+      local-port=53'''
+                  }
+              )
+
+              # Create Secret
+              import secrets
+              k8s.KubeSecret(self, 'secret',
+                  metadata=k8s.ObjectMeta(
+                      name='powerdns-api-key',
+                      labels={'app': 'internal-dns'}
+                  ),
+                  type='Opaque',
+                  string_data={'api-key': secrets.token_urlsafe(32)}
+              )
+spec:
+  domain: "internal.test.com"
+  storageSize: "1Gi"
+  externalDnsVersion: "v0.14.0"
+  powerdnsVersion: "powerdns/pdns-auth-50"
+  syncInterval: "30s"

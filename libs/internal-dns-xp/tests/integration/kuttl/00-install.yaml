@@ -1,0 +1,19 @@
+# Install Crossplane using Helm
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crossplane-system
+---
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  - command: helm repo add crossplane-stable https://charts.crossplane.io/stable
+  - command: helm repo update
+  - command: helm install crossplane crossplane-stable/crossplane --namespace crossplane-system --version 1.14.5 --wait --timeout 5m
+---
+# Wait for Crossplane to be ready
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 300
+commands:
+  - command: kubectl wait --for=condition=available --timeout=300s deployment/crossplane -n crossplane-system

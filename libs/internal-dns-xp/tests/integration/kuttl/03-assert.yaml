@@ -1,0 +1,52 @@
+# Validate that DNS deployment is running
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: internal-dns-deployment
+  namespace: default
+status:
+  availableReplicas: 1
+  readyReplicas: 1
+---
+# Validate Service exists
+apiVersion: v1
+kind: Service
+metadata:
+  name: internal-dns-service
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - name: dns-udp
+      port: 53
+      protocol: UDP
+    - name: dns-tcp
+      port: 53
+      protocol: TCP
+    - name: api
+      port: 8081
+      protocol: TCP
+---
+# Validate PVC is bound
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dns-storage
+  namespace: default
+status:
+  phase: Bound
+---
+# Validate ConfigMap exists
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: powerdns-config
+  namespace: default
+---
+# Validate Secret exists
+apiVersion: v1
+kind: Secret
+metadata:
+  name: powerdns-api-key
+  namespace: default
+type: Opaque

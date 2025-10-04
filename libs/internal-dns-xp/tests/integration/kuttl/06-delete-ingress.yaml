@@ -1,0 +1,7 @@
+# Delete test Ingress to verify DNS record cleanup
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  - command: kubectl delete ingress test-app -n default
+  # Wait for external-dns to sync deletion
+  - command: sleep 60

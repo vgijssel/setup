@@ -83,6 +83,13 @@ echo "  • trunk fmt                  - Format code using Trunk"
 echo "  • trunk check                - Run all linters and checks"
 echo ""
 
+echo -e "${YELLOW}Kubernetes & Crossplane Tools:${NC}"
+echo "  • crossplane (2.0.2)         - Kubernetes orchestration and composition"
+echo "  • kind (0.30.0)              - Kubernetes IN Docker - local clusters"
+echo "  • kuttl (0.22.0)             - Kubernetes Test TooL - integration testing"
+echo "  • kubectl                    - Kubernetes CLI (available in environment)"
+echo ""
+
 # Show tips
 echo -e "${GREEN}Tips:${NC}"
 echo "  • Use tab completion with nx commands when available"

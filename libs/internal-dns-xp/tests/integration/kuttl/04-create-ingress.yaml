@@ -1,0 +1,33 @@
+# Create test Ingress for DNS discovery
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: test-app
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: app.test.internal
+spec:
+  rules:
+    - host: app.test.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: test-service
+                port:
+                  number: 80
+---
+# Create a dummy service for the ingress to reference
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-service
+  namespace: default
+spec:
+  selector:
+    app: test
+  ports:
+    - port: 80
+      targetPort: 8080

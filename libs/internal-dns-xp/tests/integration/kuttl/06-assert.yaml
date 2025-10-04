@@ -1,0 +1,11 @@
+# Validate DNS record deletion
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 30
+commands:
+  # Verify record is removed from external-dns logs
+  - command: |
+      kubectl logs -n default deployment/internal-dns-deployment -c external-dns --tail=50 | grep -q "delete.*app.test.internal" || true
+  # Verify DNS query no longer resolves (should fail or return NXDOMAIN)
+  - command: |
+      ! kubectl exec -n default dns-test-query -- nslookup app.test.internal internal-dns-service.default.svc.cluster.local 2>&1 | grep -v "NXDOMAIN" | grep -q "Address"

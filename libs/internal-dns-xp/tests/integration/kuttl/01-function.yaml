@@ -1,0 +1,30 @@
+# Install provider-kubernetes for creating Kubernetes resources
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  - command: |
+      kubectl apply -f - <<EOF
+      apiVersion: pkg.crossplane.io/v1
+      kind: Provider
+      metadata:
+        name: provider-kubernetes
+      spec:
+        package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.11.4
+      EOF
+  - command: kubectl wait --for=condition=healthy --timeout=300s provider/provider-kubernetes
+---
+# Install cdk8s function (would normally be from a registry, using local build for testing)
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+commands:
+  - command: |
+      kubectl apply -f - <<EOF
+      apiVersion: pkg.crossplane.io/v1beta1
+      kind: Function
+      metadata:
+        name: function-cdk8s
+      spec:
+        package: cdk8s-function:latest
+        packagePullPolicy: Never
+      EOF
+  - command: kubectl wait --for=condition=healthy --timeout=300s function/function-cdk8s

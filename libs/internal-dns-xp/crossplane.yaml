@@ -1,0 +1,56 @@
+apiVersion: meta.pkg.crossplane.io/v1
+kind: Configuration
+metadata:
+  name: internal-dns-xp
+  annotations:
+    meta.crossplane.io/maintainer: Internal DNS Team
+    meta.crossplane.io/source: github.com/user/setup
+    meta.crossplane.io/license: Apache-2.0
+    meta.crossplane.io/description: |
+      Internal DNS service for Kubernetes using external-dns and PowerDNS.
+      Automatically discovers and resolves Kubernetes Ingress hostnames for Tailscale-connected clients.
+    meta.crossplane.io/readme: |
+      # Internal DNS Configuration
+
+      This Crossplane configuration provides an internal DNS service that:
+      - Automatically discovers Kubernetes Ingress resources
+      - Makes ingress hostnames resolvable via DNS
+      - Uses PowerDNS for internal-only DNS storage
+      - Integrates with external-dns for ingress synchronization
+
+      ## Usage
+
+      ```yaml
+      apiVersion: dns.internal/v1alpha1
+      kind: InternalDNS
+      metadata:
+        name: my-dns
+      spec:
+        domain: "internal.example.com"
+        storageSize: "1Gi"
+        externalDnsVersion: "v0.14.0"
+        powerdnsVersion: "powerdns/pdns-auth-50"
+        syncInterval: "30s"
+      ```
+
+      ## Requirements
+
+      - Crossplane >= 2.0.2
+      - provider-kubernetes for creating Kubernetes resources
+      - cdk8s-function-xp for rendering cdk8s code
+
+      ## Features
+
+      - Ingress discovery across all namespaces
+      - DNS query response < 500ms
+      - Automatic record updates within 2 minutes
+      - Support for up to 100 ingresses
+      - Single instance deployment (no redundancy)
+spec:
+  crossplane:
+    version: ">=v2.0.2"
+  dependsOn:
+    - configuration: xpkg.upbound.io/crossplane-contrib/provider-kubernetes
+      version: ">=v0.11.4"
+    - function: cdk8s-function-xp
+      version: ">=v0.1.0"

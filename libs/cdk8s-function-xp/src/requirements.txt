@@ -1,0 +1,8 @@
+# Crossplane function dependencies - all versions pinned
+cdk8s==2.68.84
+cdk8s-plus-27==2.7.77
+constructs==10.3.0
+pyyaml==6.0.1
+
+# Note: crossplane-function-sdk-python would be added here when available
+# For now, we implement the function protocol directly
