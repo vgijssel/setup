@@ -49,7 +49,7 @@ bazel_dep(
 )
 local_path_override(
     module_name = "rules_task",
-    path = "./rules/rules_task",
+    path = "./libs/rules_task",
 )
 
 # ------------------------------------ rules_python ------------------------------------ #
@@ -102,5 +102,5 @@ bazel_dep(
 )
 local_path_override(
     module_name = "rules_release",
-    path = "./rules/rules_release",
+    path = "./libs/rules_release",
 )
