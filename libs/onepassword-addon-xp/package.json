@@ -10,11 +10,18 @@
         "executor": "nx:run-commands",
         "options": {
           "commands": [
-            "up xpkg build -f libs/onepassword-addon-xp -o dist/libs/onepassword-addon-xp/onepassword-addon-xp.xpkg"
+            "up xpkg build -f libs/onepassword-addon-xp -o libs/onepassword-addon-xp/dist/onepassword-addon-xp.xpkg"
           ],
           "parallel": false
         },
-        "outputs": ["{workspaceRoot}/dist/libs/onepassword-addon-xp"],
+        "outputs": [
+          "{projectRoot}/dist"
+        ],
+        "inputs": [
+          "{projectRoot}/crossplane.yaml",
+          "{projectRoot}/crds/**/*",
+          "{projectRoot}/helm/**/*.tgz"
+        ],
         "cache": true,
         "metadata": {
           "description": "Build Crossplane AddOn package"

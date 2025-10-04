@@ -29,33 +29,6 @@ This directory contains contract test specifications for the 1Password Crossplan
 - Pod with volume mount secret reference starts successfully
 - Both consumption patterns work simultaneously
 
-### 03-workload-restart-on-rotation.yaml
-**Validates**: FR-002, FR-010 (automatic restart on rotation)
-**Purpose**: Verify workloads automatically restart when secrets are rotated
-**Key Assertions**:
-- Reloader is installed and running
-- Deployment with reloader.stakater.com/auto annotation exists
-- Secret update triggers Deployment rollout
-- Deployment observedGeneration increases after secret change
-
-### 04-offline-resilience.yaml
-**Validates**: FR-005 (handle connection failures gracefully)
-**Purpose**: Verify workloads can start with cached secrets when 1Password unavailable
-**Key Assertions**:
-- Deployment starts with existing cached Secret
-- Pods reach Running state despite no Connect credentials
-- OnePasswordItem shows error state when 1Password unreachable
-- Cached Secret persists and remains usable
-
-### 05-namespace-authorization.yaml
-**Validates**: FR-003 (namespace-based permissions), FR-006 (multi-cluster support)
-**Purpose**: Verify namespace isolation and authorization model
-**Key Assertions**:
-- Different namespaces use different Connect credentials
-- Secrets created only in same namespace as OnePasswordItem
-- Cross-namespace secret access is denied
-- Namespace isolation prevents credential leakage
-
 ## Running Tests
 
 ### Prerequisites
@@ -118,15 +91,9 @@ The following scenarios require manual or integration testing:
 | FR | Requirement | Test File | Test Case |
 |----|-------------|-----------|-----------|
 | FR-001 | Enable workloads to retrieve secrets | 00, 01 | AddOn install + secret sync |
-| FR-002 | Detect secret rotation | 03 | Workload restart on secret update |
-| FR-003 | Namespace-based authorization | 05 | Namespace isolation |
 | FR-004 | Support env vars and mounted files | 02 | Secret consumption patterns |
-| FR-005 | Handle connection failures | 04 | Offline resilience |
-| FR-006 | Multi-cluster support | 05 | Independent namespace credentials |
-| FR-007 | Audit secret access | N/A | Validated via logs (manual) |
 | FR-008 | Support all secret types | 01 | Plain text, binary, structured |
 | FR-009 | Validate secrets exist | 01 | OnePasswordItem Ready condition |
-| FR-010 | Auto-restart workloads | 03 | Reloader integration |
 
 ## Troubleshooting
 
