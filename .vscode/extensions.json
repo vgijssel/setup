@@ -6,7 +6,6 @@
     "github.copilot-chat",
     "github.remotehub",
     "hashicorp.hcl",
-    "mkhl.direnv",
     "openai.chatgpt",
     "hashicorp.terraform"
   ]
