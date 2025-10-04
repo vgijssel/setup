@@ -69,6 +69,29 @@ Use consistent environment variables:
 ### Kubernetes Naming
 Format: `<kind>-<name>.yaml` (e.g., `deployment-app.yaml`, `service-app.yaml`)
 
+### kind (Kubernetes in Docker) Configuration
+When creating kind clusters in Coder workspaces (docker-in-docker environment), **ALWAYS** use the native snapshotter instead of overlayfs to avoid overlay filesystem mount errors:
+
+```yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri".containerd]
+    snapshotter = "native"
+nodes:
+- role: control-plane
+```
+
+**Why**: The default overlayfs snapshotter fails in docker-in-docker with error:
+```
+failed to mount rootfs component: ... fstype: overlay, ... data: "...,index=off", err: invalid argument
+```
+
+The native snapshotter avoids this by using simple directory copies instead of overlay mounts.
+
+**DO NOT** use `extraMounts` or `type: DirectoryOrCreate` - these don't solve the overlay issue and the `type` field is invalid in kind v1alpha4.
+
 ### Terraform Best Practices
 Use `postconditions` in `data` resources to validate their state:
 ```hcl
