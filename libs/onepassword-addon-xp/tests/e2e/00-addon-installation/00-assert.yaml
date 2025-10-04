@@ -4,5 +4,5 @@ metadata:
   name: onepassword-operator
 status:
   conditions:
-  - type: Healthy
-    status: "True"
+    - type: Healthy
+      status: "True"

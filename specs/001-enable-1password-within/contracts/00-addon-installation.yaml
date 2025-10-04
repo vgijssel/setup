@@ -16,11 +16,11 @@ apiVersion: kuttl.dev/v1beta1
 kind: TestAssert
 timeout: 120
 collectors:
-- type: pod
-  selector: app=onepassword-connect
-  namespace: onepassword-system
-- type: events
-  namespace: onepassword-system
+  - type: pod
+    selector: app=onepassword-connect
+    namespace: onepassword-system
+  - type: events
+    namespace: onepassword-system
 ---
 # Expected: AddOn CR shows Healthy condition
 apiVersion: pkg.crossplane.io/v1beta1
@@ -29,9 +29,9 @@ metadata:
   name: onepassword-operator
 status:
   conditions:
-  - type: Healthy
-    status: "True"
-    reason: HealthyPackageRevision
+    - type: Healthy
+      status: "True"
+      reason: HealthyPackageRevision
 ---
 # Expected: Operator Deployment is available
 apiVersion: apps/v1
@@ -41,6 +41,6 @@ metadata:
   namespace: onepassword-system
 status:
   conditions:
-  - type: Available
-    status: "True"
+    - type: Available
+      status: "True"
   readyReplicas: 1
