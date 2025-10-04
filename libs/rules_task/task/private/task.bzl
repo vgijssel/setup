@@ -1,3 +1,5 @@
+"""Task rule implementation."""
+
 load("@aspect_bazel_lib//lib:base64.bzl", "base64")
 load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@bazel_skylib//lib:new_sets.bzl", "sets")
@@ -425,6 +427,16 @@ def task(**kwargs):
     _task_rule_prep(name, kwargs)
 
 def task_test(size = None, timeout = None, flaky = False, shard_count = None, local = False, **kwargs):
+    """Create a task test target.
+
+    Args:
+        size: Test size (small, medium, large, enormous)
+        timeout: Test timeout
+        flaky: Whether the test is flaky
+        shard_count: Number of shards
+        local: Whether to run locally
+        **kwargs: Additional arguments passed to the task rule
+    """
     name = kwargs.pop("name")
     out = "{}.out".format(name)
     task_name = "{}_task".format(name)

@@ -1,3 +1,5 @@
+"""Command building utilities for task rules."""
+
 load(":utils.bzl", "fq_label")
 
 def _wrap_root_args(args):

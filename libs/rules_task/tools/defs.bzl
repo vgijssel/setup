@@ -1,8 +1,19 @@
+"""Public API for task tools."""
+
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_task//task:defs.bzl", "cmd", "task")
 
 def compile_pip_requirements(name, requirements_in, requirements_txt, extra_args = [], hidden_args = []):
+    """Compile pip requirements using pip-compile.
+
+    Args:
+        name: Name of the target
+        requirements_in: Input requirements file
+        requirements_txt: Output requirements file
+        extra_args: Additional arguments for pip-compile
+        hidden_args: Hidden arguments for pip-compile
+    """
     pip_compile_name = name
     pip_compile_update_name = "{}.update".format(name)
     pip_compile_compare_name = "{}_compare".format(name)

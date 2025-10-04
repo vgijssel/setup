@@ -1,7 +1,17 @@
+"""Utilities for detecting changed files in a release."""
+
 load("@rules_task//task:defs.bzl", "cmd", "task")
 load("//release:defs.bzl", "release")
 
 def release_changed_files(changed_file_paths, previous_revision_cmd = None, final_revision_cmd = None, **kwargs):
+    """Create a release target that detects changed files.
+
+    Args:
+        changed_file_paths: List of file paths to check for changes
+        previous_revision_cmd: Command to determine the previous revision
+        final_revision_cmd: Command to determine the final revision
+        **kwargs: Additional arguments passed to the release rule
+    """
     name = kwargs.get("name")
     change_cmd_name = "{}.change_cmd".format(name)
     previous_revision_cmd_name = previous_revision_cmd

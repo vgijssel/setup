@@ -15,7 +15,9 @@ def _runfiles_path(path):
     return p
 
 
-def _run_task(name, args=[]):
+def _run_task(name, args=None):
+    if args is None:
+        args = []
     binary = _runfiles_path(os.path.join(os.environ["WORKSPACE_NAME"], "tests", name))
     return subprocess.run([binary] + args, capture_output=True)
 

@@ -1,3 +1,5 @@
+"""Python binary command utilities."""
+
 load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@pip//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
