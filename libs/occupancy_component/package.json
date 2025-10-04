@@ -5,7 +5,19 @@
   "nx": {
     "projectType": "library",
     "sourceRoot": "libs/occupancy_component",
-    "targets": {},
+    "targets": {
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run pytest",
+          "cwd": "libs/occupancy_component"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Run pytest tests using uv for the occupancy_component library"
+        }
+      }
+    },
     "tags": [
       "type:library",
       "scope:home-automation",
