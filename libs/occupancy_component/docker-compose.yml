@@ -2,20 +2,20 @@ services:
   mqtt:
     image: eclipse-mosquitto:2.0
     ports:
-      - "127.0.0.1:1883:1883"
-      - "127.0.0.1:9001:9001"
-    command: "mosquitto -c /mosquitto-no-auth.conf"
+      - 127.0.0.1:1883:1883
+      - 127.0.0.1:9001:9001
+    command: mosquitto -c /mosquitto-no-auth.conf
     volumes:
-      - "mosquitto_data:/mosquitto"
+      - mosquitto_data:/mosquitto
 
   home-assistant:
-    image: "setup/home-assistant"
+    image: setup/home-assistant
     ports:
-      - "127.0.0.1:8123:8123"
+      - 127.0.0.1:8123:8123
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - host.docker.internal:host-gateway
     volumes:
-      - "home-assistant_data:/config"
+      - home-assistant_data:/config
 
 volumes:
   mosquitto_data:

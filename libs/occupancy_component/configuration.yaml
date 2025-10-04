@@ -32,20 +32,20 @@ input_button:
 mqtt:
   binary_sensor:
     - name: front_door_contact
-      state_topic: "home-assistant/front_door/contact"
-      device_class: "door"
-      payload_on: "on"
-      payload_off: "off"
+      state_topic: home-assistant/front_door/contact
+      device_class: door
+      payload_on: on
+      payload_off: off
     - name: front_door_motion_occupancy
-      state_topic: "home-assistant/front_door/motion_occupancy"
-      device_class: "motion"
-      payload_on: "on"
-      payload_off: "off"
+      state_topic: home-assistant/front_door/motion_occupancy
+      device_class: motion
+      payload_on: on
+      payload_off: off
     - name: hallway_occupancy
-      state_topic: "home-assistant/hallway/occupancy"
-      device_class: "occupancy"
-      payload_on: "on"
-      payload_off: "off"
+      state_topic: home-assistant/hallway/occupancy
+      device_class: occupancy
+      payload_on: on
+      payload_off: off
 
 occupancy:
   doors:
@@ -58,5 +58,5 @@ occupancy:
       motion_sensor: binary_sensor.living_room_door_motion
   areas:
     hallway:
-      occupancy_sensors: ["binary_sensor.hallway_occupancy"]
-      doors: ["front_door", "living_room_door"]
+      occupancy_sensors: [binary_sensor.hallway_occupancy]
+      doors: [front_door, living_room_door]
