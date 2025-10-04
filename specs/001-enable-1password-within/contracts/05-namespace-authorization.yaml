@@ -1,0 +1,162 @@
+# Contract Test: Namespace-Based Authorization
+# Purpose: Verify namespace isolation and authorization model
+# Maps to: FR-003 (namespace-based permissions), FR-006 (multi-cluster support)
+
+---
+# Setup: Create two isolated namespaces
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-alpha
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-beta
+---
+# Setup: team-alpha credentials (different from team-beta)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onepassword-connect
+  namespace: team-alpha
+type: Opaque
+stringData:
+  1password-credentials.json: |
+    {"verifier": {"salt": "alpha-salt", "localHash": "alpha-hash"}}
+  token: "alpha-connect-token"
+---
+# Setup: team-beta credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onepassword-connect
+  namespace: team-beta
+type: Opaque
+stringData:
+  1password-credentials.json: |
+    {"verifier": {"salt": "beta-salt", "localHash": "beta-hash"}}
+  token: "beta-connect-token"
+---
+# Test: team-alpha creates secret from their vault
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: alpha-secret
+  namespace: team-alpha
+spec:
+  itemPath: "vaults/team-alpha-vault/items/database"
+---
+# Test: team-beta creates secret from their vault
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: beta-secret
+  namespace: team-beta
+spec:
+  itemPath: "vaults/team-beta-vault/items/api-keys"
+---
+# Assert: Both OnePasswordItems become Ready (isolated)
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 30
+---
+# Expected: alpha secret exists in team-alpha namespace only
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alpha-secret
+  namespace: team-alpha
+type: Opaque
+---
+# Expected: beta secret exists in team-beta namespace only
+apiVersion: v1
+kind: Secret
+metadata:
+  name: beta-secret
+  namespace: team-beta
+type: Opaque
+---
+# Test: Verify team-alpha cannot access team-beta secrets
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpha-app
+  namespace: team-alpha
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alpha-app
+  template:
+    metadata:
+      labels:
+        app: alpha-app
+    spec:
+      containers:
+      - name: app
+        image: busybox:1.36.1
+        command: ["sh", "-c", "sleep 3600"]
+        envFrom:
+        - secretRef:
+            name: alpha-secret  # Can access own namespace secret
+        # Attempting to access beta-secret would fail (cross-namespace not allowed)
+---
+# Assert: alpha-app runs successfully
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 60
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpha-app
+  namespace: team-alpha
+status:
+  conditions:
+  - type: Available
+    status: "True"
+---
+# Test: Verify namespace isolation (cross-namespace access denied)
+# This deployment should FAIL to start (Secret not found in namespace)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cross-namespace-attempt
+  namespace: team-alpha
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cross-namespace
+  template:
+    metadata:
+      labels:
+        app: cross-namespace
+    spec:
+      containers:
+      - name: app
+        image: busybox:1.36.1
+        command: ["sleep", "3600"]
+        envFrom:
+        - secretRef:
+            name: beta-secret  # From different namespace - should fail
+            optional: false
+---
+# Assert: Deployment fails due to missing secret
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 30
+---
+# Expected: Deployment unable to progress (ReplicaFailure)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cross-namespace-attempt
+  namespace: team-alpha
+status:
+  conditions:
+  - type: Available
+    status: "False"
+  replicas: 1
+  readyReplicas: 0
