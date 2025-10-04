@@ -1,0 +1,46 @@
+# Contract Test: AddOn Installation
+# Purpose: Verify Crossplane AddOn package installs and operator becomes ready
+# Maps to: FR-001 (system must enable workloads to retrieve secrets)
+
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: AddOn
+metadata:
+  name: onepassword-operator
+spec:
+  package: ghcr.io/vgijssel/setup/onepassword-addon-xp:latest
+  packagePullPolicy: IfNotPresent
+---
+# Assert: AddOn becomes healthy
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 120
+collectors:
+- type: pod
+  selector: app=onepassword-connect
+  namespace: onepassword-system
+- type: events
+  namespace: onepassword-system
+---
+# Expected: AddOn CR shows Healthy condition
+apiVersion: pkg.crossplane.io/v1beta1
+kind: AddOn
+metadata:
+  name: onepassword-operator
+status:
+  conditions:
+  - type: Healthy
+    status: "True"
+    reason: HealthyPackageRevision
+---
+# Expected: Operator Deployment is available
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onepassword-connect
+  namespace: onepassword-system
+status:
+  conditions:
+  - type: Available
+    status: "True"
+  readyReplicas: 1

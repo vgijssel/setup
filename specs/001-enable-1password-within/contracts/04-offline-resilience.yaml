@@ -1,0 +1,120 @@
+# Contract Test: Offline Resilience (Cached Secrets)
+# Purpose: Verify workloads can start with cached secrets when 1Password unavailable
+# Maps to: FR-005 (handle connection failures gracefully using cached values)
+
+---
+# Setup: Create namespace for offline test
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-offline
+---
+# Setup: Create cached secret (simulates previously synced state)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cached-secret
+  namespace: test-offline
+  labels:
+    onepassword.com/managed-by: "onepassword-connect"
+type: Opaque
+stringData:
+  api-key: "cached-api-key-value"
+  database-url: "postgresql://cached-connection"
+---
+# Test: Deployment starts despite 1Password being "unavailable"
+# (Simulated by not providing Connect credentials)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-offline-app
+  namespace: test-offline
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: test-offline-app
+  template:
+    metadata:
+      labels:
+        app: test-offline-app
+    spec:
+      containers:
+      - name: app
+        image: busybox:1.36.1
+        command: ["sh", "-c", "echo 'Using API key:' $API_KEY && sleep 3600"]
+        env:
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cached-secret
+              key: api-key
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: cached-secret
+              key: database-url
+---
+# Assert: Pods start successfully using cached secret
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 60
+collectors:
+- type: pod
+  selector: app=test-offline-app
+  namespace: test-offline
+- type: events
+  namespace: test-offline
+---
+# Expected: All pods are Running
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: test-offline
+  labels:
+    app: test-offline-app
+status:
+  phase: Running
+  containerStatuses:
+  - name: app
+    ready: true
+---
+# Expected: Deployment is fully available
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-offline-app
+  namespace: test-offline
+status:
+  conditions:
+  - type: Available
+    status: "True"
+  readyReplicas: 2
+  replicas: 2
+---
+# Test: OnePasswordItem in error state (no Connect credentials)
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: unreachable-item
+  namespace: test-offline
+spec:
+  itemPath: "vaults/offline-vault/items/offline-item"
+---
+# Assert: OnePasswordItem shows error condition
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 30
+---
+# Expected: OnePasswordItem is NOT Ready (1Password unavailable)
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: unreachable-item
+  namespace: test-offline
+status:
+  conditions:
+  - type: Ready
+    status: "False"
+    reason: SyncFailed
+# Note: Exact error message varies by operator version

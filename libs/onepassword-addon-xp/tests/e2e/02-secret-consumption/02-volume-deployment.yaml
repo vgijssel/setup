@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-volume-consumer
+  namespace: test-secret-sync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-volume-consumer
+  template:
+    metadata:
+      labels:
+        app: test-volume-consumer
+    spec:
+      containers:
+      - name: app
+        image: busybox:1.36.1
+        command: ["sh", "-c", "ls -la /secrets && sleep 3600"]
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+          readOnly: true
+      volumes:
+      - name: secrets
+        secret:
+          secretName: test-plain-secret

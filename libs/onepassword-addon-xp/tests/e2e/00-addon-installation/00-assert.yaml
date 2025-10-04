@@ -1,0 +1,8 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: AddOn
+metadata:
+  name: onepassword-operator
+status:
+  conditions:
+  - type: Healthy
+    status: "True"

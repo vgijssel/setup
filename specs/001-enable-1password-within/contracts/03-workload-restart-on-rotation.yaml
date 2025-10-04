@@ -1,0 +1,166 @@
+# Contract Test: Automatic Workload Restart on Secret Rotation
+# Purpose: Verify workloads automatically restart when secrets are rotated
+# Maps to: FR-002, FR-010 (automatic restart on rotation)
+
+---
+# Setup: Install Reloader (required for auto-restart)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: reloader-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reloader
+  namespace: reloader-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reloader
+  template:
+    metadata:
+      labels:
+        app: reloader
+    spec:
+      serviceAccountName: reloader
+      containers:
+      - name: reloader
+        image: stakater/reloader:v1.0.119
+        imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: reloader
+  namespace: reloader-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: reloader
+rules:
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets", "daemonsets"]
+  verbs: ["get", "list", "watch", "patch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: reloader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: reloader
+subjects:
+- kind: ServiceAccount
+  name: reloader
+  namespace: reloader-system
+---
+# Assert: Reloader is running
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 60
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reloader
+  namespace: reloader-system
+status:
+  conditions:
+  - type: Available
+    status: "True"
+---
+# Test: Deployment with reloader annotation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-restart-app
+  namespace: test-secret-sync
+  annotations:
+    reloader.stakater.com/auto: "true"  # Enable auto-restart
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-restart-app
+  template:
+    metadata:
+      labels:
+        app: test-restart-app
+    spec:
+      containers:
+      - name: app
+        image: busybox:1.36.1
+        command: ["sh", "-c", "echo 'Started at' $(date) && sleep 3600"]
+        envFrom:
+        - secretRef:
+            name: test-plain-secret
+---
+# Assert: Initial deployment is ready
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 60
+collectors:
+- type: pod
+  selector: app=test-restart-app
+  namespace: test-secret-sync
+- type: events
+  namespace: test-secret-sync
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-restart-app
+  namespace: test-secret-sync
+status:
+  conditions:
+  - type: Available
+    status: "True"
+  readyReplicas: 1
+---
+# Test: Update the Secret (simulates rotation)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-plain-secret
+  namespace: test-secret-sync
+  labels:
+    onepassword.com/managed-by: "onepassword-connect"
+type: Opaque
+stringData:
+  password: "rotated-password-value"
+  username: "rotated-username"
+---
+# Assert: Deployment restarts (new Pod created)
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 90
+collectors:
+- type: pod
+  selector: app=test-restart-app
+  namespace: test-secret-sync
+- type: events
+  namespace: test-secret-sync
+---
+# Expected: Deployment has triggered a rollout
+# (Verified by checking Pod age < test duration or ReplicaSet count increase)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-restart-app
+  namespace: test-secret-sync
+status:
+  conditions:
+  - type: Progressing
+    status: "True"
+    reason: NewReplicaSetAvailable
+  observedGeneration: 2  # Generation increases after update

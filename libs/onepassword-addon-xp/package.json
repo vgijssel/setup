@@ -1,0 +1,48 @@
+{
+  "name": "onepassword-addon-xp",
+  "version": "0.1.0",
+  "private": false,
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/onepassword-addon-xp",
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "up xpkg build -f libs/onepassword-addon-xp -o dist/libs/onepassword-addon-xp/onepassword-addon-xp.xpkg"
+          ],
+          "parallel": false
+        },
+        "outputs": ["{workspaceRoot}/dist/libs/onepassword-addon-xp"],
+        "cache": true,
+        "metadata": {
+          "description": "Build Crossplane AddOn package"
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "kind create cluster --name onepassword-test --config libs/onepassword-addon-xp/tests/kind-config.yaml || true",
+            "helm install crossplane crossplane-stable/crossplane --namespace crossplane-system --create-namespace --wait || true",
+            "kuttl test --config libs/onepassword-addon-xp/tests/kuttl-test.yaml",
+            "kind delete cluster --name onepassword-test || true"
+          ],
+          "parallel": false,
+          "cwd": "."
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Run kuttl e2e tests in kind cluster"
+        }
+      }
+    },
+    "tags": [
+      "crossplane",
+      "onepassword",
+      "kubernetes",
+      "secrets"
+    ]
+  }
+}

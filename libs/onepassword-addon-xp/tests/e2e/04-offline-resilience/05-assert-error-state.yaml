@@ -1,0 +1,10 @@
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: unreachable-item
+  namespace: test-offline
+status:
+  conditions:
+  - type: Ready
+    status: "False"
+    reason: SyncFailed
