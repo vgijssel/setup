@@ -1,7 +1,0 @@
-version: "3"
-
-tasks:
-  build:
-    desc: Build the ipxe-vm image
-    cmds:
-      - packer build -var 'ipxe_efi=../ipxe-efi/output/ipxe.efi' -on-error=ask .
