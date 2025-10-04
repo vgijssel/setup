@@ -1,0 +1,25 @@
+[project]
+name = "occupancy_component"
+version = "0.3.0"
+description = "Home Assistant custom component for occupancy tracking"
+requires-python = ">=3.12"
+dependencies = [
+  "pytest-homeassistant-custom-component>=0.13.0",
+  "tzdata>=2024.0",
+  "pytest>=8.0.0",
+  "pytest-asyncio>=0.24.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["custom_components"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.uv]
+dev-dependencies = []
