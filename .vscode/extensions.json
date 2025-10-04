@@ -2,7 +2,6 @@
   "recommendations": [
     "ms-vscode-remote.remote-containers",
     "ms-python.python",
-    "bee.git-temporal-vscode",
     "github.copilot",
     "github.copilot-chat",
     "vspacecode.vspacecode",
