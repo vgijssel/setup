@@ -1,0 +1,5 @@
+tests/
+*.md
+.git*
+package.json
+node_modules/

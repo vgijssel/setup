@@ -55,6 +55,10 @@ result
 /dist/
 /.task
 
+# onepassword-addon-xp
+libs/onepassword-addon-xp/helm/*.tgz
+libs/onepassword-addon-xp/dist/
+
 images/**/output/
 docs/.obsidian
 .pub_blog_temp/

@@ -1,0 +1,7 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: AddOn
+metadata:
+  name: onepassword-operator
+spec:
+  package: ghcr.io/vgijssel/setup/onepassword-addon-xp:latest
+  packagePullPolicy: IfNotPresent
