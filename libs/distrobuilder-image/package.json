@@ -1,0 +1,27 @@
+{
+  "name": "distrobuilder-image",
+  "version": "0.2.0",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/distrobuilder-image",
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "docker build -t distrobuilder-image .",
+          "cwd": "libs/distrobuilder-image"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Build the distrobuilder Docker image"
+        }
+      }
+    },
+    "tags": [
+      "docker",
+      "image",
+      "distrobuilder"
+    ]
+  },
+  "private": true
+}

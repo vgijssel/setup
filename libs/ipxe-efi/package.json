@@ -1,0 +1,16 @@
+{
+  "name": "ipxe-efi",
+  "version": "0.2.0",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/ipxe-efi",
+    "targets": {},
+    "tags": [
+      "packer",
+      "image",
+      "ipxe",
+      "efi"
+    ]
+  },
+  "private": true
+}
