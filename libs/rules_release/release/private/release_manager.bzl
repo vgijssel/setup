@@ -1,3 +1,5 @@
+"""Release manager rule implementation."""
+
 load(":release_info.bzl", "ReleaseInfo")
 load(":utils.bzl", "get_executable_from_target")
 
@@ -81,6 +83,14 @@ _publish = rule(
 )
 
 def release_manager(name, deps, publish_cmds = [], change_cmd = None):
+    """Macro for creating a release manager.
+
+    Args:
+        name: Name of the release manager target
+        deps: List of release dependencies
+        publish_cmds: List of publish commands to execute
+        change_cmd: Command to detect changes
+    """
     generate_name = "{}.generate".format(name)
     version_name = "{}.version".format(name)
     publish_name = "{}.publish".format(name)

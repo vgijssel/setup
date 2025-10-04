@@ -1,3 +1,5 @@
+"""Release rule implementation."""
+
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
 load(":release_info.bzl", "ReleaseInfo")
 load(":utils.bzl", "get_executable_from_target")
@@ -54,6 +56,11 @@ _release = rule(
 )
 
 def release(**kwargs):
+    """Macro for creating a release target.
+
+    Args:
+        **kwargs: Arguments passed to the release rule
+    """
     name = kwargs.get("name")
     release_name = kwargs.pop("release_name") or name
 

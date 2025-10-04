@@ -1,3 +1,5 @@
+"""Repository rules and dependencies for rules_release."""
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive", _http_file = "http_file", _http_jar = "http_jar")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
@@ -30,6 +32,7 @@ def http_file(**kwargs):
     maybe(_http_file, **kwargs)
 
 def rules_release_bazel_dependencies():
+    """Load Bazel-level dependencies for rules_release."""
     http_archive(
         name = "bazel_features",
         sha256 = "62c26e427e5cbc751024446927622e398a9dcdf32c64325238815709d11c11a8",
@@ -75,6 +78,7 @@ def rules_release_bazel_dependencies():
     )
 
 def rules_release_dependencies():
+    """Load repository dependencies for rules_release."""
     http_jar(
         name = "bazel_diff",
         sha256 = "7943790f690ad5115493da8495372c89f7895b09334cb4fee5174a8f213654dd",
