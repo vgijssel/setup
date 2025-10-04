@@ -21,7 +21,8 @@
       "spacelift",
       "docker",
       "ansible",
-      "infrastructure"
+      "infrastructure",
+      "skip-ci"
     ]
   },
   "private": true

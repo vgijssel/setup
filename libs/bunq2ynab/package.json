@@ -55,7 +55,8 @@
       "ynab",
       "finance",
       "bazel",
-      "python"
+      "python",
+      "skip-ci"
     ]
   },
   "private": true
