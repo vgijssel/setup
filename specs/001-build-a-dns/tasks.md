@@ -132,9 +132,9 @@ This feature uses Nx monorepo structure:
 ## Phase 3.7: Validation & Polish
 - [x] T058 Run all unit tests: `nx test cdk8s-function-xp` ✅ 35 tests passed
 - [x] T059 Run all unit tests: `nx test internal-dns-xp` ✅ 29 tests passed
-- [ ] T060 Run Crossplane render test: `nx crossplane-render internal-dns-xp` ⚠️ Requires Crossplane CLI
-- [ ] T061 Run kuttl integration tests: `nx integration-test internal-dns-xp` ⚠️ Requires Docker and kind
-- [ ] T062 Build function Docker image: `nx docker-build cdk8s-function-xp` ⚠️ Requires Docker daemon
+- [x] T060 Run Crossplane render test: `nx crossplane-render internal-dns-xp` ✅ All manifests validated
+- [ ] T061 Run kuttl integration tests: `nx integration-test internal-dns-xp` ⚠️ Kind cluster fails to start in current environment
+- [x] T062 Build function Docker image: `nx docker-build cdk8s-function-xp` ✅ Image built successfully
 - [x] T063 Run affected tests: `nx affected:test` ✅ All tests passed
 - [ ] T064 Execute quickstart guide validation at `specs/001-build-a-dns/quickstart.md` ⚠️ Requires full deployment
 - [x] T065 [P] Format all code: `trunk fmt` ✅ All files formatted

@@ -21,7 +21,7 @@
     "integration-test": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "kubectl kuttl test --config libs/internal-dns-xp/tests/integration/kuttl/kuttl-test.yaml",
+        "command": "kuttl test --config libs/internal-dns-xp/tests/integration/kuttl/kuttl-test.yaml",
         "cwd": "."
       }
     },
