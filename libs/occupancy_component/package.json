@@ -1,0 +1,29 @@
+{
+  "name": "occupancy_component",
+  "version": "0.3.0",
+  "description": "Home Assistant custom component for occupancy tracking",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/occupancy_component",
+    "targets": {
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "python3 -m pytest tests/ --asyncio-mode=auto",
+          "cwd": "libs/occupancy_component"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Run pytest tests for the occupancy_component library"
+        }
+      }
+    },
+    "tags": [
+      "type:library",
+      "scope:home-automation",
+      "platform:home-assistant",
+      "language:python"
+    ]
+  },
+  "private": true
+}
