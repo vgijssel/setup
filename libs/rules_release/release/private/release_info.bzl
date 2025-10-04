@@ -1,3 +1,5 @@
+"""Release info provider definition."""
+
 ReleaseInfo = provider(
     doc = "Release Info",
     fields = {
