@@ -28,7 +28,7 @@ def write_changed_env():
 
 
 def main():
-    {{python_code}}
+    {{python_code}}  # noqa: F821 - template variable
 
 
 if __name__ == "__main__":

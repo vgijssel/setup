@@ -1,3 +1,5 @@
+"""Bazel-differ utilities for release tooling."""
+
 load("@rules_task//task:defs.bzl", "task")
 load("//release:defs.bzl", "release")
 load("//release/private:utils.bzl", "label_to_string")
@@ -51,6 +53,13 @@ _release_bazel_differ = rule(
 )
 
 def release_bazel_differ(previous_revision_cmd = None, final_revision_cmd = None, **kwargs):
+    """Create a release target that uses bazel-differ to detect changes.
+
+    Args:
+        previous_revision_cmd: Command to determine the previous revision
+        final_revision_cmd: Command to determine the final revision
+        **kwargs: Additional arguments passed to the release rule
+    """
     name = kwargs.get("name")
     change_cmd_name = "{}.change_cmd".format(name)
     previous_revision_cmd_name = previous_revision_cmd

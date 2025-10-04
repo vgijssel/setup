@@ -1,6 +1,18 @@
+"""GitHub release publishing utilities."""
+
 load("@rules_task//task:defs.bzl", "cmd", "task")
 
 def publish_github_release(name, release, changelog_file = None, assets = [], before_cmds = [], env = {}):
+    """Publish a release to GitHub.
+
+    Args:
+        name: Name of the target
+        release: Release target name
+        changelog_file: Path to changelog file
+        assets: List of assets to upload
+        before_cmds: Commands to run before publishing
+        env: Environment variables
+    """
     version_file = "{}.version".format(release)
     changelog_file = changelog_file or "{}.version_changelog".format(release)
     release_name_file = "{}.release_name".format(release)
