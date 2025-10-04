@@ -1,6 +1,6 @@
 {
   "name": "ipxe-efi",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "nx": {
     "projectType": "library",
     "sourceRoot": "libs/ipxe-efi",
