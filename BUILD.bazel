@@ -110,8 +110,8 @@ release_manager(
         ":push_git_changes",
     ],
     deps = [
-        "//occupancy_component:release",
         "//libs/bunq2ynab:release",
+        "//occupancy_component:release",
         "@rules_release//:release",
         "@rules_task//:release",
     ],
