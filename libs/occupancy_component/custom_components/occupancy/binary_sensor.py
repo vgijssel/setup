@@ -4,18 +4,6 @@ from __future__ import annotations
 
 import logging
 
-from custom_components.occupancy.internal_state import InternalState
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.stream.core import IdleTimer
-from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-
-_LOGGER = logging.getLogger(__name__)
-
 from custom_components.occupancy.const import (
     ATTR_CONTACT_SENSOR,
     ATTR_DOORS,
@@ -23,6 +11,17 @@ from custom_components.occupancy.const import (
     ATTR_MOTION_SENSOR,
     OCCUPANCY_DATA,
 )
+from custom_components.occupancy.internal_state import InternalState
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.stream.core import IdleTimer
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import EventType, HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(
