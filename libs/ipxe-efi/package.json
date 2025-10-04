@@ -8,11 +8,17 @@
       "build": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "packer build .",
+          "commands": [
+            "packer init .",
+            "packer build ."
+          ],
+          "parallel": false,
           "cwd": "libs/ipxe-efi"
         },
         "cache": true,
-        "outputs": ["{projectRoot}/output"],
+        "outputs": [
+          "{projectRoot}/output"
+        ],
         "metadata": {
           "description": "Build the iPXE EFI image using Packer"
         }

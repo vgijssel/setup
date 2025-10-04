@@ -8,11 +8,17 @@
       "build": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "packer build .",
+          "commands": [
+            "packer init .",
+            "packer build ."
+          ],
+          "parallel": false,
           "cwd": "libs/pikvm-lxc"
         },
         "cache": true,
-        "outputs": ["{projectRoot}/output"],
+        "outputs": [
+          "{projectRoot}/output"
+        ],
         "metadata": {
           "description": "Build the PiKVM LXC image using Packer"
         }
