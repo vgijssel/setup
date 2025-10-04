@@ -47,7 +47,7 @@ async def init_integration(hass) -> None:
             },
         },
     }
-    await async_setup_component(hass, DOMAIN, config) is True
+    assert await async_setup_component(hass, DOMAIN, config) is True
 
     await hass.async_block_till_done()
 
