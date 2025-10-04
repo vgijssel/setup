@@ -4,26 +4,7 @@
   "nx": {
     "projectType": "library",
     "sourceRoot": "libs/pikvm-lxc",
-    "targets": {
-      "build": {
-        "executor": "nx:run-commands",
-        "options": {
-          "commands": [
-            "packer init .",
-            "packer build ."
-          ],
-          "parallel": false,
-          "cwd": "libs/pikvm-lxc"
-        },
-        "cache": true,
-        "outputs": [
-          "{projectRoot}/output"
-        ],
-        "metadata": {
-          "description": "Build the PiKVM LXC image using Packer"
-        }
-      }
-    },
+    "targets": {},
     "tags": [
       "packer",
       "image",
