@@ -82,14 +82,13 @@ _publish = rule(
     executable = True,
 )
 
-def release_manager(name, deps, publish_cmds = [], change_cmd = None):
+def release_manager(name, deps, publish_cmds = []):
     """Macro for creating a release manager.
 
     Args:
         name: Name of the release manager target
         deps: List of release dependencies
         publish_cmds: List of publish commands to execute
-        change_cmd: Command to detect changes
     """
     generate_name = "{}.generate".format(name)
     version_name = "{}.version".format(name)
