@@ -13,7 +13,6 @@ from custom_components.occupancy.const import (
 from homeassistant.components import binary_sensor
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockEntityPlatform
-from tests.helpers import wait
 
 _LOGGER = logging.getLogger(__name__)
 
