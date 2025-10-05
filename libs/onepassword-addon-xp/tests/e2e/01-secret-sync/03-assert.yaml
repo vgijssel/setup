@@ -4,5 +4,5 @@ metadata:
   name: test-plain-secret
   namespace: test-secret-sync
   labels:
-    onepassword.com/managed-by: "onepassword-connect"
+    onepassword.com/managed-by: onepassword-connect
 type: Opaque

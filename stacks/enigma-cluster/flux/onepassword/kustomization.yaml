@@ -2,5 +2,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: onepassword-system
 resources:
-- namespace.yaml
-- addon.yaml
+  - namespace.yaml
+  - addon.yaml

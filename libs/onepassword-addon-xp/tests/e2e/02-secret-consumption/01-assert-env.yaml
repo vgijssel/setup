@@ -7,5 +7,5 @@ metadata:
 status:
   phase: Running
   containerStatuses:
-  - name: app
-    ready: true
+    - name: app
+      ready: true
