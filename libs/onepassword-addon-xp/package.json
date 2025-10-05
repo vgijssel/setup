@@ -6,11 +6,31 @@
     "projectType": "library",
     "sourceRoot": "libs/onepassword-addon-xp",
     "targets": {
+      "pull-helm-chart": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "helm repo add 1password https://1password.github.io/connect-helm-charts || true",
+            "helm repo update 1password || true",
+            "helm pull 1password/connect --version 2.0.5 --destination /tmp --untar",
+            "tar -czf libs/onepassword-addon-xp/helm/connect-2.0.5.tgz -C /tmp/connect .",
+            "rm -rf /tmp/connect"
+          ],
+          "parallel": false
+        },
+        "outputs": [
+          "{projectRoot}/helm/connect-2.0.5.tgz"
+        ],
+        "cache": true,
+        "metadata": {
+          "description": "Pull and package 1Password Helm chart"
+        }
+      },
       "build": {
         "executor": "nx:run-commands",
         "options": {
           "commands": [
-            "up xpkg build -f libs/onepassword-addon-xp -o libs/onepassword-addon-xp/dist/onepassword-addon-xp.xpkg"
+            "up xpkg build -f libs/onepassword-addon-xp -o libs/onepassword-addon-xp/dist/onepassword-addon-xp.xpkg --ignore=tests/,*.md,.git*,package.json,kubeconfig"
           ],
           "parallel": false
         },
@@ -21,6 +41,9 @@
           "{projectRoot}/crossplane.yaml",
           "{projectRoot}/crds/**/*",
           "{projectRoot}/helm/**/*.tgz"
+        ],
+        "dependsOn": [
+          "pull-helm-chart"
         ],
         "cache": true,
         "metadata": {
