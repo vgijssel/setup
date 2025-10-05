@@ -9,7 +9,7 @@
       "test": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "uv run pytest || true",
+          "command": "uv run pytest",
           "cwd": "libs/occupancy_component"
         },
         "cache": true,
@@ -22,7 +22,7 @@
           "{projectRoot}/.pytest_cache"
         ],
         "metadata": {
-          "description": "Run pytest tests using uv for the occupancy_component library (|| true due to pre-existing test failures that need investigation)"
+          "description": "Run pytest tests using uv for the occupancy_component library"
         }
       }
     },

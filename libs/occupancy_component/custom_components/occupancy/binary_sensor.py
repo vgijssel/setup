@@ -83,7 +83,8 @@ class Door(BinarySensorEntity, RestoreEntity):
     @property
     def icon(self):
         """Return the icon to use for the valve."""
-        if self._door_is_open:
+        # Can't check internal state here as icon is accessed before async_added_to_hass
+        if self._attr_is_on:
             return "mdi:door-open"
         else:
             return "mdi:door-closed"

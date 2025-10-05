@@ -77,7 +77,7 @@ async def init_entities(hass):
 
         await entity_platform.async_add_entities(entities)
         # We have to wait here, because adding entities to hass will trigger a state change
-        await wait(hass)
+        await hass.async_block_till_done()
         return entities
 
     yield _init_entities

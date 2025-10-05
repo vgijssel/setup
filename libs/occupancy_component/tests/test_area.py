@@ -17,6 +17,7 @@ from tests.helpers import (
     occupancy_sensor,
     update_area,
     wait,
+    wait_for_state_propagation,
 )
 
 
@@ -77,6 +78,7 @@ async def test_area_entering_door_opens(hass, init_integration, init_entities):
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
 
     await front_door_contact.open()
+    await wait_for_state_propagation(hass)
 
     assert hass.states.get("select.hallway").state == STATUS_ENTERING
     assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_PAUSED
@@ -117,6 +119,7 @@ async def test_area_entering_door_open_has_motion(
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
 
     await front_door_motion.motion()
+    await wait_for_state_propagation(hass)
 
     assert hass.states.get("select.hallway").state == STATUS_ENTERING
     assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_PAUSED
@@ -208,6 +211,7 @@ async def test_area_entering_status_door_opens(hass, init_integration, init_enti
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
 
     await front_door_contact.open()
+    await wait_for_state_propagation(hass)
 
     assert hass.states.get("select.hallway").state == STATUS_ENTERING
     assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_PAUSED
@@ -330,6 +334,7 @@ async def test_area_present_occupancy_door_opens(hass, init_integration, init_en
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
 
     await front_door_contact.open()
+    await wait_for_state_propagation(hass)
 
     assert hass.states.get("select.hallway").state == STATUS_LEAVING
     assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_IDLE
@@ -374,6 +379,7 @@ async def test_area_present_occupancy_away_door_opens(
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
 
     await front_door_contact.open()
+    await wait_for_state_propagation(hass)
 
     assert hass.states.get("select.hallway").state == STATUS_LEAVING_CONFIRM
     assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_IDLE
@@ -465,6 +471,7 @@ async def test_area_leaving_door_open_has_motion(hass, init_integration, init_en
     assert hass.states.get("timer.hallway_leaving_confirm").state == TIMER_STATUS_IDLE
 
     await front_door_motion.motion()
+    await wait_for_state_propagation(hass)
 
     assert hass.states.get("select.hallway").state == STATUS_LEAVING
     assert hass.states.get("timer.hallway_entering").state == TIMER_STATUS_IDLE
