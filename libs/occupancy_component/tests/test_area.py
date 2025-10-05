@@ -65,8 +65,9 @@ async def test_area_absent_door_closed_has_motion(
 
 
 async def test_area_entering_door_opens(hass, init_integration, init_entities):
-    [front_door_contact] = await init_entities(
+    [front_door_contact, front_door_motion] = await init_entities(
         contact_sensor("binary_sensor.front_door_contact", False),
+        motion_sensor("binary_sensor.front_door_motion", False),
     )
 
     assert hass.states.get("select.hallway").state == STATUS_ABSENT

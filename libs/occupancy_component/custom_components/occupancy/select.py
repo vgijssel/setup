@@ -138,14 +138,20 @@ class Area(SelectEntity, RestoreEntity):
         self._internal_state.register_entity(self.entity_id, self._current_state)
 
         for door in self._doors:
-            self._internal_state.register_entity(door)
+            door_state = self.hass.states.get(door)
+            self._internal_state.register_entity(
+                door, door_state.state if door_state else None
+            )
 
             self.async_on_remove(
                 async_track_state_change_event(self.hass, door, self._door_event)
             )
 
         for occupancy_sensor in self._occupancy_sensors:
-            self._internal_state.register_entity(occupancy_sensor)
+            sensor_state = self.hass.states.get(occupancy_sensor)
+            self._internal_state.register_entity(
+                occupancy_sensor, sensor_state.state if sensor_state else None
+            )
 
             self.async_on_remove(
                 async_track_state_change_event(
@@ -154,7 +160,10 @@ class Area(SelectEntity, RestoreEntity):
             )
 
         for timer in self._timer_mapping.values():
-            self._internal_state.register_entity(timer)
+            timer_state = self.hass.states.get(timer)
+            self._internal_state.register_entity(
+                timer, timer_state.state if timer_state else None
+            )
 
             self.async_on_remove(
                 async_track_state_change_event(self.hass, timer, self._timer_event)

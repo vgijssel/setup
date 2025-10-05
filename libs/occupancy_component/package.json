@@ -12,9 +12,17 @@
           "command": "uv run pytest || true",
           "cwd": "libs/occupancy_component"
         },
-        "cache": false,
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.py",
+          "{projectRoot}/pyproject.toml",
+          "{projectRoot}/uv.lock"
+        ],
+        "outputs": [
+          "{projectRoot}/.pytest_cache"
+        ],
         "metadata": {
-          "description": "Run pytest tests using uv for the occupancy_component library (non-failing for migration)"
+          "description": "Run pytest tests using uv for the occupancy_component library (|| true due to pre-existing test failures that need investigation)"
         }
       }
     },

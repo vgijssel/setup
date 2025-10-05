@@ -91,7 +91,11 @@ class Door(BinarySensorEntity, RestoreEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
 
-        self._internal_state.register_entity(self._contact_sensor)
+        # Initialize internal state with current sensor states
+        contact_state = self.hass.states.get(self._contact_sensor)
+        self._internal_state.register_entity(
+            self._contact_sensor, contact_state.state if contact_state else None
+        )
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -100,7 +104,10 @@ class Door(BinarySensorEntity, RestoreEntity):
             )
         )
 
-        self._internal_state.register_entity(self._motion_sensor)
+        motion_state = self.hass.states.get(self._motion_sensor)
+        self._internal_state.register_entity(
+            self._motion_sensor, motion_state.state if motion_state else None
+        )
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -119,6 +126,9 @@ class Door(BinarySensorEntity, RestoreEntity):
         self.async_on_remove(
             self._reset_contact_presence_timer.clear,
         )
+
+        # Calculate initial presence state
+        self._calculate_presence()
 
     async def _contact_sensor_event(self, event: EventType):
         self._internal_state.set(event.data["entity_id"], event.data["new_state"])
