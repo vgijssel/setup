@@ -16,6 +16,14 @@ async def wait(hass, seconds=10):
     await hass.async_block_till_done()
 
 
+async def wait_for_state_propagation(hass):
+    """Wait for all state changes to propagate through the system."""
+    import asyncio
+
+    await asyncio.sleep(0.1)
+    await hass.async_block_till_done()
+
+
 class ContactSensor(BinarySensorEntity):
     def __init__(self, entity_id, state):
         self.entity_id = entity_id
