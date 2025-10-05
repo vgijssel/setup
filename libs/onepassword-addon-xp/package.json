@@ -32,6 +32,8 @@
         "options": {
           "commands": [
             "kind create cluster --name onepassword-test --config libs/onepassword-addon-xp/tests/kind-config.yaml || true",
+            "helm repo add crossplane-stable https://charts.crossplane.io/stable || true",
+            "helm repo update || true",
             "helm install crossplane crossplane-stable/crossplane --namespace crossplane-system --create-namespace --wait || true",
             "kuttl test --config libs/onepassword-addon-xp/tests/kuttl-test.yaml",
             "kind delete cluster --name onepassword-test || true"
