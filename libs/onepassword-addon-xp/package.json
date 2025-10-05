@@ -33,6 +33,7 @@
           "commands": [
             "mv libs/onepassword-addon-xp/tests /tmp/onepassword-addon-xp-tests-backup || true",
             "mv libs/onepassword-addon-xp/kubeconfig /tmp/onepassword-addon-xp-kubeconfig-backup || true",
+            "mkdir -p libs/onepassword-addon-xp/dist",
             "cd libs/onepassword-addon-xp && up xpkg build -f . -o dist/onepassword-addon-xp.xpkg",
             "mv /tmp/onepassword-addon-xp-tests-backup libs/onepassword-addon-xp/tests || true",
             "mv /tmp/onepassword-addon-xp-kubeconfig-backup libs/onepassword-addon-xp/kubeconfig || true"
