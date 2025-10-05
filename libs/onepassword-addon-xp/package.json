@@ -10,6 +10,7 @@
         "executor": "nx:run-commands",
         "options": {
           "commands": [
+            "mkdir -p libs/onepassword-addon-xp/helm",
             "helm repo add 1password https://1password.github.io/connect-helm-charts || true",
             "helm repo update 1password || true",
             "helm pull 1password/connect --version 2.0.5 --destination /tmp --untar",
