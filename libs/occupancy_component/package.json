@@ -1,6 +1,6 @@
 {
   "name": "occupancy_component",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Home Assistant custom component for occupancy tracking",
   "nx": {
     "projectType": "library",
