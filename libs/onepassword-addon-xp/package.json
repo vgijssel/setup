@@ -31,7 +31,7 @@
         "executor": "nx:run-commands",
         "options": {
           "commands": [
-            "up xpkg build -f libs/onepassword-addon-xp -o libs/onepassword-addon-xp/dist/onepassword-addon-xp.xpkg --ignore=tests/,*.md,.git*,package.json,kubeconfig"
+            "cd libs/onepassword-addon-xp && up xpkg build -f . -o dist/onepassword-addon-xp.xpkg"
           ],
           "parallel": false
         },
