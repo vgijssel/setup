@@ -7,21 +7,21 @@
         {
           "name": "build",
           "description": ""
-        }        ,
+        },
         {
           "name": "list-user",
           "description": ""
-        }        ,
+        },
         {
           "name": "list-budget",
           "description": ""
-        }        ,
+        },
         {
           "name": "sync",
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "coder-devcontainer",
       "description": "",
@@ -31,7 +31,7 @@
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "devcontainer",
       "description": "",
@@ -39,17 +39,17 @@
         {
           "name": "build",
           "description": ""
-        }        ,
+        },
         {
           "name": "test",
           "description": ""
-        }        ,
+        },
         {
           "name": "nx-release-publish",
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "devenv",
       "description": "",
@@ -57,13 +57,13 @@
         {
           "name": "apply",
           "description": ""
-        }        ,
+        },
         {
           "name": "test",
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "distrobuilder-image",
       "description": "",
@@ -73,7 +73,7 @@
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "docs",
       "description": "Documentation site built with MkDocs",
@@ -81,13 +81,13 @@
         {
           "name": "build",
           "description": "Build documentation site"
-        }        ,
+        },
         {
           "name": "serve",
           "description": "Serve documentation site locally"
         }
       ]
-    }    ,
+    },
     {
       "name": "enigma-cluster",
       "description": "",
@@ -97,7 +97,7 @@
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "haos",
       "description": "Home Assistant OS configuration and automation",
@@ -105,17 +105,17 @@
         {
           "name": "sync",
           "description": "Sync files between local and remote environment"
-        }        ,
+        },
         {
           "name": "update",
           "description": "Check config and reload Home Assistant if valid"
-        }        ,
+        },
         {
           "name": "validate",
           "description": "Test Home Assistant configuration endpoint with Goss"
         }
       ]
-    }    ,
+    },
     {
       "name": "internal-dns",
       "description": "",
@@ -125,28 +125,22 @@
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "ipxe-efi",
       "description": "",
-      "targets": [
-
-      ]
-    }    ,
+      "targets": []
+    },
     {
       "name": "ipxe-vm",
       "description": "",
-      "targets": [
-
-      ]
-    }    ,
+      "targets": []
+    },
     {
       "name": "javascript",
       "description": "",
-      "targets": [
-
-      ]
-    }    ,
+      "targets": []
+    },
     {
       "name": "nx-help",
       "description": "",
@@ -156,7 +150,7 @@
           "description": "Generate JSON containing all projects and their targets"
         }
       ]
-    }    ,
+    },
     {
       "name": "nx-internal",
       "description": "",
@@ -164,25 +158,25 @@
         {
           "name": "release_plan_test",
           "description": ""
-        }        ,
+        },
         {
           "name": "release_test",
           "description": ""
-        }        ,
+        },
         {
           "name": "package_test",
           "description": ""
-        }        ,
+        },
         {
           "name": "release_publish_test",
           "description": ""
-        }        ,
+        },
         {
           "name": "test",
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "occupancy_component",
       "description": "Home Assistant custom component for occupancy tracking",
@@ -192,14 +186,12 @@
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "pikvm-lxc",
       "description": "",
-      "targets": [
-
-      ]
-    }    ,
+      "targets": []
+    },
     {
       "name": "root-cluster-prod",
       "description": "",
@@ -209,7 +201,7 @@
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "spacelift",
       "description": "",
@@ -219,7 +211,7 @@
           "description": ""
         }
       ]
-    }    ,
+    },
     {
       "name": "vendir",
       "description": "",
@@ -227,7 +219,7 @@
         {
           "name": "build",
           "description": ""
-        }        ,
+        },
         {
           "name": "test",
           "description": ""
