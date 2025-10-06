@@ -11,9 +11,18 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}=== Nx Monorepo Help ===${NC}"
 echo ""
 
-# Get all projects dynamically
+# Build the help data using nx-help library (with TUI disabled)
+NX_RUNNER_TUI=false nx run nx-help:build > /dev/null 2>&1 || {
+    echo "Error: Failed to generate help data"
+    exit 1
+}
+
+# Load the generated JSON
+HELP_DATA=$(cat libs/nx-help/dist/projects.json)
+
+# Display all projects
 echo -e "${BLUE}Available Projects:${NC}"
-PROJECTS=$(nx show projects --json 2>/dev/null | jq -r '.[]' | sort) || true
+PROJECTS=$(echo "${HELP_DATA}" | jq -r '.projects[].name' | sort)
 if [[ -n "${PROJECTS}" ]]; then
     while IFS= read -r project; do
         echo "  • ${project}"
@@ -23,37 +32,16 @@ else
 fi
 echo ""
 
-# Collect all unique targets across all projects
+# Display targets by project
 echo -e "${BLUE}Available Targets by Project:${NC}"
 
-# Create associative arrays to store target info (unused for now but reserved for future use)
-# declare -A all_targets
-# declare -A target_descriptions
+echo "${HELP_DATA}" | jq -c '.projects[]' | while IFS= read -r project_data; do
+    project_name=$(echo "${project_data}" | jq -r '.name')
+    printf "  %b%s:%b\n" "${CYAN}" "${project_name}" "${NC}"
 
-# Function to get project details and extract targets
-get_project_targets() {
-    local project=$1
-    local project_data
-    project_data=$(nx show project "${project}" --json 2>/dev/null) || return 0
-
-    if [[ -n "${project_data}" ]]; then
-        printf "  %b%s:%b\n" "${CYAN}" "${project}" "${NC}"
-
-        # Extract targets using jq
-        echo "${project_data}" | jq -r '.targets | to_entries[] | "    • \(.key) - \(.value.description // "No description available")"' 2>/dev/null || {
-            # Fallback if description extraction fails
-            echo "${project_data}" | jq -r '.targets | keys[]' 2>/dev/null | sed 's/^/    • /' || echo "    No targets found"
-        } || true
-        echo ""
-    fi
-}
-
-# Get targets for each project
-if [[ -n "${PROJECTS}" ]]; then
-    while IFS= read -r project; do
-        get_project_targets "${project}"
-    done <<< "${PROJECTS}"
-fi
+    echo "${project_data}" | jq -r '.targets[] | "    • \(.name)" + (if .description != "" then " - \(.description)" else "" end)'
+    echo ""
+done
 
 # Show common workspace commands
 echo -e "${BLUE}Common Workspace Commands:${NC}"
@@ -100,7 +88,7 @@ if [[ -n "${PROJECTS}" ]]; then
 
     if [[ -n "${first_project}" ]]; then
         echo "  • nx show project ${first_project}"
-        first_targets=$(nx show project "${first_project}" --json 2>/dev/null | jq -r '.targets | keys[]' 2>/dev/null | head -2) || true
+        first_targets=$(echo "${HELP_DATA}" | jq -r --arg proj "${first_project}" '.projects[] | select(.name == $proj) | .targets[].name' | head -2) || true
         if [[ -n "${first_targets}" ]]; then
             echo "${first_targets}" | while read -r target; do
                 [[ -n "${target}" ]] && echo "  • nx run ${first_project}:${target}"
