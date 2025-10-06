@@ -1,6 +1,6 @@
 {
   "name": "nx-help",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "nx": {
     "sourceRoot": "libs/nx-help",
     "projectType": "library",
