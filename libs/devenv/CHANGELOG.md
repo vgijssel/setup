@@ -1,3 +1,15 @@
+## 0.10.2 (2025-10-06)
+
+### 🩹 Fixes
+
+- feat(devenv): add Claude desktop to macOS Homebrew packages ([#757](https://github.com/vgijssel/setup/pull/757))
+
+## 0.10.1 (2025-10-06)
+
+### 🩹 Fixes
+
+- fix: disable VSCode extension installation temporarily ([#753](https://github.com/vgijssel/setup/pull/753))
+
 ## 0.10.0 (2025-10-02)
 
 ### 🚀 Features

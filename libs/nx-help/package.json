@@ -1,0 +1,27 @@
+{
+  "name": "nx-help",
+  "version": "1.1.0",
+  "nx": {
+    "sourceRoot": "libs/nx-help",
+    "projectType": "library",
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "cache": true,
+        "inputs": [
+          "{workspaceRoot}/**/package.json",
+          "{workspaceRoot}/nx.json"
+        ],
+        "outputs": [
+          "{workspaceRoot}/libs/nx-help/dist/projects.json"
+        ],
+        "options": {
+          "command": "bash libs/nx-help/generate-help.sh",
+          "cwd": "."
+        },
+        "description": "Generate JSON containing all projects and their targets"
+      }
+    }
+  },
+  "private": true
+}
