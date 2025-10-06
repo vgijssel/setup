@@ -1,3 +1,9 @@
+## 0.10.3 (2025-10-06)
+
+### 🩹 Fixes
+
+- chore(devenv): upgrade coder CLI to 2.26.1 and add version validation ([#760](https://github.com/vgijssel/setup/pull/760), [#759](https://github.com/vgijssel/setup/issues/759))
+
 ## 0.10.2 (2025-10-06)
 
 ### 🩹 Fixes
