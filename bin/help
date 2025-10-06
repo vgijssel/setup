@@ -22,6 +22,7 @@ HELP_DATA=$(cat libs/nx-help/dist/projects.json)
 
 # Display all projects
 echo -e "${BLUE}Available Projects:${NC}"
+# shellcheck disable=SC2312
 PROJECTS=$(echo "${HELP_DATA}" | jq -r '.projects[].name' | sort)
 if [[ -n "${PROJECTS}" ]]; then
     while IFS= read -r project; do
@@ -35,7 +36,9 @@ echo ""
 # Display targets by project
 echo -e "${BLUE}Available Targets by Project:${NC}"
 
+# shellcheck disable=SC2312
 echo "${HELP_DATA}" | jq -c '.projects[]' | while IFS= read -r project_data; do
+    # shellcheck disable=SC2312
     project_name=$(echo "${project_data}" | jq -r '.name')
     printf "  %b%s:%b\n" "${CYAN}" "${project_name}" "${NC}"
 

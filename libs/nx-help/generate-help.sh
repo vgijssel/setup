@@ -5,6 +5,7 @@ set -e
 mkdir -p libs/nx-help/dist
 
 # Get all projects
+# shellcheck disable=SC2312
 PROJECTS=$(nx show projects --json 2>/dev/null | jq -r '.[]' | sort)
 
 # Initialize JSON structure
@@ -30,6 +31,7 @@ while IFS= read -r project; do
       description=$(echo "${project_data}" | jq -r '.metadata.description // ""')
 
       # Build project entry with targets
+      # shellcheck disable=SC2129
       echo "    {" >> libs/nx-help/dist/projects.json
       echo "      \"name\": \"${name}\"," >> libs/nx-help/dist/projects.json
       echo "      \"description\": \"${description}\"," >> libs/nx-help/dist/projects.json
@@ -49,6 +51,7 @@ while IFS= read -r project; do
             echo "        ," >> libs/nx-help/dist/projects.json
           fi
 
+          # shellcheck disable=SC2129
           echo "        {" >> libs/nx-help/dist/projects.json
           echo "          \"name\": \"${target_name}\"," >> libs/nx-help/dist/projects.json
           echo "          \"description\": \"${target_desc}\"" >> libs/nx-help/dist/projects.json
@@ -56,6 +59,7 @@ while IFS= read -r project; do
         fi
       done <<< "${targets}"
 
+      # shellcheck disable=SC2129
       echo "" >> libs/nx-help/dist/projects.json
       echo "      ]" >> libs/nx-help/dist/projects.json
       echo -n "    }" >> libs/nx-help/dist/projects.json
@@ -64,6 +68,7 @@ while IFS= read -r project; do
 done <<< "${PROJECTS}"
 
 # Close JSON structure
+# shellcheck disable=SC2129
 echo "" >> libs/nx-help/dist/projects.json
 echo "  ]" >> libs/nx-help/dist/projects.json
 echo "}" >> libs/nx-help/dist/projects.json
