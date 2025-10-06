@@ -80,7 +80,8 @@
       "crossplane",
       "onepassword",
       "kubernetes",
-      "secrets"
+      "secrets",
+      "skip-ci"
     ]
   }
 }
