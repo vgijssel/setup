@@ -1,3 +1,9 @@
+## 0.10.2 (2025-10-06)
+
+### 🩹 Fixes
+
+- feat(devenv): add Claude desktop to macOS Homebrew packages ([#757](https://github.com/vgijssel/setup/pull/757))
+
 ## 0.10.1 (2025-10-06)
 
 ### 🩹 Fixes
