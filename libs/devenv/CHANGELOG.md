@@ -1,3 +1,9 @@
+## 0.10.4 (2025-10-06)
+
+### 🩹 Fixes
+
+- Add zsh history file initialization to fix fzf-history-widget error ([#764](https://github.com/vgijssel/setup/pull/764))
+
 ## 0.10.3 (2025-10-06)
 
 ### 🩹 Fixes

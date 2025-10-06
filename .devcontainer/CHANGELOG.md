@@ -1,3 +1,9 @@
+## 0.6.9 (2025-10-06)
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.10.4
+
 ## 0.6.8 (2025-10-06)
 
 ### 🧱 Updated Dependencies
