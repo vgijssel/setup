@@ -4,18 +4,6 @@ from __future__ import annotations
 
 import logging
 
-from custom_components.occupancy.internal_state import InternalState
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.stream.core import IdleTimer
-from homeassistant.const import STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-
-_LOGGER = logging.getLogger(__name__)
-
 from custom_components.occupancy.const import (
     ATTR_CONTACT_SENSOR,
     ATTR_DOORS,
@@ -23,6 +11,17 @@ from custom_components.occupancy.const import (
     ATTR_MOTION_SENSOR,
     OCCUPANCY_DATA,
 )
+from custom_components.occupancy.internal_state import InternalState
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.stream.core import IdleTimer
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import EventType, HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(
@@ -84,7 +83,8 @@ class Door(BinarySensorEntity, RestoreEntity):
     @property
     def icon(self):
         """Return the icon to use for the valve."""
-        if self._door_is_open:
+        # Can't check internal state here as icon is accessed before async_added_to_hass
+        if self._attr_is_on:
             return "mdi:door-open"
         else:
             return "mdi:door-closed"
@@ -92,7 +92,11 @@ class Door(BinarySensorEntity, RestoreEntity):
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
 
-        self._internal_state.register_entity(self._contact_sensor)
+        # Initialize internal state with current sensor states
+        contact_state = self.hass.states.get(self._contact_sensor)
+        self._internal_state.register_entity(
+            self._contact_sensor, contact_state.state if contact_state else None
+        )
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -101,7 +105,10 @@ class Door(BinarySensorEntity, RestoreEntity):
             )
         )
 
-        self._internal_state.register_entity(self._motion_sensor)
+        motion_state = self.hass.states.get(self._motion_sensor)
+        self._internal_state.register_entity(
+            self._motion_sensor, motion_state.state if motion_state else None
+        )
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -120,6 +127,9 @@ class Door(BinarySensorEntity, RestoreEntity):
         self.async_on_remove(
             self._reset_contact_presence_timer.clear,
         )
+
+        # Calculate initial presence state
+        self._calculate_presence()
 
     async def _contact_sensor_event(self, event: EventType):
         self._internal_state.set(event.data["entity_id"], event.data["new_state"])

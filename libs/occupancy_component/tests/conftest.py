@@ -13,7 +13,6 @@ from custom_components.occupancy.const import (
 from homeassistant.components import binary_sensor
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockEntityPlatform
-from tests.helpers import wait
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ async def init_integration(hass) -> None:
             },
         },
     }
-    await async_setup_component(hass, DOMAIN, config) is True
+    assert await async_setup_component(hass, DOMAIN, config) is True
 
     await hass.async_block_till_done()
 
@@ -77,7 +76,7 @@ async def init_entities(hass):
 
         await entity_platform.async_add_entities(entities)
         # We have to wait here, because adding entities to hass will trigger a state change
-        await wait(hass)
+        await hass.async_block_till_done()
         return entities
 
     yield _init_entities

@@ -13,7 +13,7 @@ platform "linux" {
 description = "Secure environments for developers and their agents"
 homepage = "https://coder.com"
 
-version "2.24.2" "2.23.4" "2.24.3" "2.25.1" "2.25.2" "2.26.0" {
+version "2.24.2" "2.23.4" "2.24.3" "2.25.1" "2.25.2" "2.26.0" "2.25.3" "2.26.1" {
   auto-version {
     github-release = "coder/coder"
   }
@@ -44,4 +44,12 @@ sha256sums = {
   "https://github.com/coder/coder/releases/download/v2.26.0/coder_2.26.0_linux_amd64.tar.gz": "da675af800396d5a312093f3a10f5bd9b3f17e5a3a3c6458e36597e7212a12bb",
   "https://github.com/coder/coder/releases/download/v2.26.0/coder_2.26.0_darwin_amd64.zip": "61ffa58821620f4291ced046d2440bcbdcb5c05000d2caf4e65bea867ff9bb3b",
   "https://github.com/coder/coder/releases/download/v2.26.0/coder_2.26.0_darwin_arm64.zip": "162708de60d667af4b5d1c02a93fe5104df929bc0e2f297414a15911d7966096",
+  "https://github.com/coder/coder/releases/download/v2.25.3/coder_2.25.3_darwin_arm64.zip": "fe4c5ecb7cf85a3ab5874d634f49483605cc05164eefa85fea77d91c81aee85e",
+  "https://github.com/coder/coder/releases/download/v2.25.3/coder_2.25.3_linux_arm64.tar.gz": "8117ae55675d515b531ba81d9c9afbfb7a579ee5880346a8439f6d1761fe06b3",
+  "https://github.com/coder/coder/releases/download/v2.25.3/coder_2.25.3_linux_amd64.tar.gz": "69455380b249d42ba73b7979e179c0eb463b5f6c3c619caf513aa387e7f99cef",
+  "https://github.com/coder/coder/releases/download/v2.25.3/coder_2.25.3_darwin_amd64.zip": "1f71a3f2a7e0a1934d24033f2121797778f651f713d917a2544e3d73fa3e23d3",
+  "https://github.com/coder/coder/releases/download/v2.26.1/coder_2.26.1_linux_arm64.tar.gz": "64df7cda98bc65314e028dcee3a96c5af753c5c1ae2c9a0516921f4c208a74f0",
+  "https://github.com/coder/coder/releases/download/v2.26.1/coder_2.26.1_darwin_arm64.zip": "15fd2e2f015b8b7313bfe5f9880e4fd998b01636264014402c26f9599f629d95",
+  "https://github.com/coder/coder/releases/download/v2.26.1/coder_2.26.1_darwin_amd64.zip": "19b57042f2502a7e2ea51390a117fed6b95a99fb1b4525cd1e32ad6f572650c1",
+  "https://github.com/coder/coder/releases/download/v2.26.1/coder_2.26.1_linux_amd64.tar.gz": "b96de42d073ce3706da31bec48aae6c95d0fe96040361c6443bc43e181a617db",
 }

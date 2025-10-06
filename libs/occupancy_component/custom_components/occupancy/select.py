@@ -4,23 +4,6 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.select import SelectEntity
-from homeassistant.components.timer import DOMAIN as TIMER_DOMAIN
-from homeassistant.components.timer import SERVICE_CANCEL as TIMER_SERVICE_CANCEL
-from homeassistant.components.timer import SERVICE_PAUSE as TIMER_SERVICE_PAUSE
-from homeassistant.components.timer import SERVICE_START as TIMER_SERVICE_START
-from homeassistant.components.timer import STATUS_ACTIVE as TIMER_STATUS_ACTIVE
-from homeassistant.components.timer import STATUS_IDLE as TIMER_STATUS_IDLE
-from homeassistant.components.timer import STATUS_PAUSED as TIMER_STATUS_PAUSED
-from homeassistant.const import STATE_ON
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-
-_LOGGER = logging.getLogger(__name__)
-
 from custom_components.occupancy.const import (
     ATTR_AREAS,
     ATTR_DOORS,
@@ -38,6 +21,22 @@ from custom_components.occupancy.const import (
     STATUS_PRESENT,
 )
 from custom_components.occupancy.internal_state import InternalState
+from homeassistant.components.select import SelectEntity
+from homeassistant.components.timer import DOMAIN as TIMER_DOMAIN
+from homeassistant.components.timer import SERVICE_CANCEL as TIMER_SERVICE_CANCEL
+from homeassistant.components.timer import SERVICE_PAUSE as TIMER_SERVICE_PAUSE
+from homeassistant.components.timer import SERVICE_START as TIMER_SERVICE_START
+from homeassistant.components.timer import STATUS_ACTIVE as TIMER_STATUS_ACTIVE
+from homeassistant.components.timer import STATUS_IDLE as TIMER_STATUS_IDLE
+from homeassistant.components.timer import STATUS_PAUSED as TIMER_STATUS_PAUSED
+from homeassistant.const import STATE_ON
+from homeassistant.core import EventType, HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(
@@ -139,14 +138,20 @@ class Area(SelectEntity, RestoreEntity):
         self._internal_state.register_entity(self.entity_id, self._current_state)
 
         for door in self._doors:
-            self._internal_state.register_entity(door)
+            door_state = self.hass.states.get(door)
+            self._internal_state.register_entity(
+                door, door_state.state if door_state else None
+            )
 
             self.async_on_remove(
                 async_track_state_change_event(self.hass, door, self._door_event)
             )
 
         for occupancy_sensor in self._occupancy_sensors:
-            self._internal_state.register_entity(occupancy_sensor)
+            sensor_state = self.hass.states.get(occupancy_sensor)
+            self._internal_state.register_entity(
+                occupancy_sensor, sensor_state.state if sensor_state else None
+            )
 
             self.async_on_remove(
                 async_track_state_change_event(
@@ -155,7 +160,10 @@ class Area(SelectEntity, RestoreEntity):
             )
 
         for timer in self._timer_mapping.values():
-            self._internal_state.register_entity(timer)
+            timer_state = self.hass.states.get(timer)
+            self._internal_state.register_entity(
+                timer, timer_state.state if timer_state else None
+            )
 
             self.async_on_remove(
                 async_track_state_change_event(self.hass, timer, self._timer_event)
