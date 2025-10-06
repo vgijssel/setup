@@ -6,10 +6,13 @@ Implement the following prompt: $ARGUMENTS
 
 After implementing the prompt, follow these steps:
 
-1. Create a git branch for the change using a descriptive name based on the work done
+1. Check the current branch using `git branch --show-current`
+   - If on main branch: Create a new git branch for the change using a descriptive name based on the work done
 2. Commit all changes with an appropriate commit message
 3. Push the branch to the remote repository
-4. Create a GitHub pull request for the change with a clear title and description
+4. Check if a PR already exists using `gh pr view --json url,state`
+   - If a PR exists: Report the existing PR URL and skip PR creation
+   - If no PR exists: Create a GitHub pull request for the change with a clear title and description
 5. Report the GitHub pull request URL
 6. Monitor CI status using `gh pr checks --watch`
 7. If there are problems with the CI, analyze the failures, make fixes, commit and push the changes, then return to step 6
@@ -22,3 +25,4 @@ Important notes:
 - Ensure the PR description explains what was changed and why
 - Keep iterating on CI fixes until all checks pass
 - Do not give up on CI failures - debug and fix them
+- Avoid creating unnecessary branches when already working on a feature branch with a PR
