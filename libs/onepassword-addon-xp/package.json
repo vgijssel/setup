@@ -11,32 +11,31 @@
         "options": {
           "commands": [
             "mkdir -p libs/onepassword-addon-xp/helm",
-            "helm repo add 1password https://1password.github.io/connect-helm-charts || true",
-            "helm repo update 1password || true",
-            "helm pull 1password/connect --version 2.0.5 --destination /tmp --untar",
-            "tar -czf libs/onepassword-addon-xp/helm/connect-2.0.5.tgz -C /tmp/connect .",
-            "rm -rf /tmp/connect"
+            "tar -czf libs/onepassword-addon-xp/helm/connect-2.0.3.tgz -C third_party/vendir/charts/1password-connect ."
           ],
           "parallel": false
         },
         "outputs": [
-          "{projectRoot}/helm/connect-2.0.5.tgz"
+          "{projectRoot}/helm/connect-2.0.3.tgz"
+        ],
+        "inputs": [
+          "third_party/vendir/charts/1password-connect/**/*"
         ],
         "cache": true,
         "metadata": {
-          "description": "Pull and package 1Password Helm chart"
+          "description": "Package vendored 1Password Helm chart"
         }
       },
       "build": {
         "executor": "nx:run-commands",
         "options": {
           "commands": [
-            "mv libs/onepassword-addon-xp/tests /tmp/onepassword-addon-xp-tests-backup || true",
-            "mv libs/onepassword-addon-xp/kubeconfig /tmp/onepassword-addon-xp-kubeconfig-backup || true",
+            "test -d libs/onepassword-addon-xp/tests && mv libs/onepassword-addon-xp/tests /tmp/onepassword-addon-xp-tests-backup || true",
+            "test -d libs/onepassword-addon-xp/kubeconfig && mv libs/onepassword-addon-xp/kubeconfig /tmp/onepassword-addon-xp-kubeconfig-backup || true",
             "mkdir -p libs/onepassword-addon-xp/dist",
             "cd libs/onepassword-addon-xp && up xpkg build -f . -o dist/onepassword-addon-xp.xpkg",
-            "mv /tmp/onepassword-addon-xp-tests-backup libs/onepassword-addon-xp/tests || true",
-            "mv /tmp/onepassword-addon-xp-kubeconfig-backup libs/onepassword-addon-xp/kubeconfig || true"
+            "test -d /tmp/onepassword-addon-xp-tests-backup && mv /tmp/onepassword-addon-xp-tests-backup libs/onepassword-addon-xp/tests || true",
+            "test -d /tmp/onepassword-addon-xp-kubeconfig-backup && mv /tmp/onepassword-addon-xp-kubeconfig-backup libs/onepassword-addon-xp/kubeconfig || true"
           ],
           "parallel": false
         },
@@ -60,12 +59,12 @@
         "executor": "nx:run-commands",
         "options": {
           "commands": [
-            "kind create cluster --name onepassword-test --config libs/onepassword-addon-xp/tests/kind-config.yaml || true",
-            "helm repo add crossplane-stable https://charts.crossplane.io/stable || true",
-            "helm repo update || true",
-            "helm install crossplane crossplane-stable/crossplane --namespace crossplane-system --create-namespace --wait || true",
+            "kind create cluster --name onepassword-test --config libs/onepassword-addon-xp/tests/kind-config.yaml",
+            "helm repo add crossplane-stable https://charts.crossplane.io/stable",
+            "helm repo update",
+            "helm install crossplane crossplane-stable/crossplane --namespace crossplane-system --create-namespace --wait",
             "kuttl test --config libs/onepassword-addon-xp/tests/kuttl-test.yaml",
-            "kind delete cluster --name onepassword-test || true"
+            "kind delete cluster --name onepassword-test"
           ],
           "parallel": false,
           "cwd": "."
