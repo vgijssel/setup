@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# This script modifies ~/.zsh_history to ensure a sample history entry exists
+# This prevents fzf-history-widget from failing with "argument specifier out of range"
+# stdin contains the current content of ~/.zsh_history
+# stdout will become the new content of ~/.zsh_history
+
+tempfile="$(mktemp)"
+trap 'rm -rf "${tempfile}"' EXIT
+
+# Save the existing content from stdin
+cat > "${tempfile}"
+
+# The history entry we want to ensure is present
+HISTORY_ENTRY="claude --dangerously-skip-permissions"
+
+# Check if the history entry already exists
+if ! grep -Fq "${HISTORY_ENTRY}" "${tempfile}"; then
+    # Append the history entry to the file
+    echo "${HISTORY_ENTRY}" >> "${tempfile}"
+fi
+
+# Output the updated content
+cat "${tempfile}"

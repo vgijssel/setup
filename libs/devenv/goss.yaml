@@ -51,6 +51,24 @@ command:
     stderr: ""
     timeout: 60000
 
+  zhistory_file_exists:
+    title: .zhistory file exists with at least one entry to prevent fzf-history-widget errors
+    meta:
+      url: https://github.com/junegunn/fzf
+    exec: test -f ~/.zhistory && test -s ~/.zhistory && echo "exists and not empty" || echo "missing or empty"
+    exit-status: 0
+    stdout:
+      - exists and not empty
+    timeout: 10000
+
+  zhistory_fc_command:
+    title: fc command can read history from .zhistory file
+    exec: zsh -c 'HISTFILE=~/.zhistory; HISTSIZE=20000; SAVEHIST=20000; fc -R; fc -l | head -1' 2>&1 | grep -q 'claude --dangerously-skip-permissions' && echo 'history loaded' || echo 'history not loaded'
+    exit-status: 0
+    stdout:
+      - history loaded
+    timeout: 10000
+
   gh --version:
     title: Ensure GitHub CLI is installed for Claude Code
     exec: gh --version | awk '{print $3}' | tr -d '\n'
