@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+{{- $setup_dir := env "SETUP_DIR" }}
+{{- $extensions_file := joinPath $setup_dir ".vscode" "extensions.json" }}
+
+# extensions hash: {{ output "cat" $extensions_file | sha256sum }}
+
+EXT_FILE="{{ $extensions_file }}"
+
+# TEMPORARY: VSCode extension installation disabled due to CLI hanging on macOS
+# See: https://github.com/microsoft/vscode/issues/269737
+echo "⚠️  VSCode extension installation is temporarily disabled"
+echo "    Issue: VSCode CLI hangs on macOS runners"
+echo "    See: https://github.com/microsoft/vscode/issues/269737"
+echo "    Extensions list: $EXT_FILE"
+
+# TODO: Re-enable when VSCode issue is resolved
+# jq -r '.recommendations[]' "$EXT_FILE" | while read -r extension; do
+#     echo "➕ Installing $extension..."
+#     code --install-extension "$extension" --force
+# done
+
+echo "✅ Script completed (extensions not installed)"
