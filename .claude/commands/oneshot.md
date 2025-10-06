@@ -8,9 +8,6 @@ After implementing the prompt, follow these steps:
 
 1. Check the current branch using `git branch --show-current`
    - If on main branch: Create a new git branch for the change using a descriptive name based on the work done
-   - If on a different branch: Check if it's attached to a PR using `gh pr view --json url,state`
-     - If attached to a PR: Skip branch creation and use the existing branch
-     - If not attached to a PR: Create a new git branch for the change
 2. Commit all changes with an appropriate commit message
 3. Push the branch to the remote repository
 4. Check if a PR already exists using `gh pr view --json url,state`
