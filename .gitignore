@@ -87,3 +87,7 @@ kubeconfig
 **/.terraform/
 .nx/key/key.ini
 /.devcontainer/.docker-version
+
+# onepassword-addon-xp build artifacts
+libs/onepassword-addon-xp/helm/*.tgz
+libs/onepassword-addon-xp/dist/

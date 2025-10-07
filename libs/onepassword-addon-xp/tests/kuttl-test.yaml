@@ -1,0 +1,6 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestSuite
+testDirs:
+  - libs/onepassword-addon-xp/tests/e2e
+skipDelete: false
+startKIND: false
