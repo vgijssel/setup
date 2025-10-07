@@ -2,6 +2,7 @@ description = "Process manager for Procfile-based applications and tmux"
 homepage = "https://github.com/DarthSim/overmind"
 binaries = ["overmind"]
 test = "overmind --version"
+strip = 1
 
 platform "darwin" "amd64" {
   source = "https://github.com/DarthSim/overmind/releases/download/v${version}/overmind-v${version}-macos-amd64.gz"
@@ -22,22 +23,6 @@ platform "linux" "arm64" {
 version "2.5.1" {
   auto-version {
     github-release = "DarthSim/overmind"
-  }
-}
-
-vars = {
-  "os_": "${os}",
-}
-
-on "unpack" {
-  rename {
-    from = "${root}/overmind-v${version}-${os == "darwin" ? "macos" : os}-${arch}"
-    to = "${root}/overmind"
-  }
-
-  chmod {
-    file = "${root}/overmind"
-    mode = 493
   }
 }
 
