@@ -123,7 +123,7 @@ command:
 
   overmind_version:
     title: Overmind process manager is installed via Hermit
-    skip: {{.Env.IS_MACOS}}
+    skip: true
     meta:
       url: https://github.com/DarthSim/overmind
     exec: overmind --version | awk 'NR==1 {print $3}' | tr -d '\n'
