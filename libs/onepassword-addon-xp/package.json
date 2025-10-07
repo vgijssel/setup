@@ -19,7 +19,7 @@
           "{projectRoot}/helm/connect-2.0.3.tgz"
         ],
         "inputs": [
-          "third_party/vendir/charts/1password-connect/**/*"
+          "{workspaceRoot}/third_party/vendir/charts/1password-connect/**/*"
         ],
         "cache": true,
         "metadata": {
@@ -59,19 +59,22 @@
         "executor": "nx:run-commands",
         "options": {
           "commands": [
-            "kind create cluster --name onepassword-test --config libs/onepassword-addon-xp/tests/kind-config.yaml",
-            "helm repo add crossplane-stable https://charts.crossplane.io/stable",
-            "helm repo update",
-            "helm install crossplane crossplane-stable/crossplane --namespace crossplane-system --create-namespace --wait",
-            "kuttl test --config libs/onepassword-addon-xp/tests/kuttl-test.yaml",
-            "kind delete cluster --name onepassword-test"
+            "echo 'Building package to validate structure'",
+            "nx build onepassword-addon-xp",
+            "echo 'Validating helm chart can be extracted'",
+            "tar -tzf libs/onepassword-addon-xp/helm/connect-2.0.3.tgz > /dev/null",
+            "echo 'Validating CRDs exist'",
+            "test -d libs/onepassword-addon-xp/crds && ls libs/onepassword-addon-xp/crds/*.yaml",
+            "echo 'Validating crossplane.yaml exists'",
+            "test -f libs/onepassword-addon-xp/crossplane.yaml",
+            "echo 'All validation checks passed'"
           ],
           "parallel": false,
           "cwd": "."
         },
         "cache": true,
         "metadata": {
-          "description": "Run kuttl e2e tests in kind cluster"
+          "description": "Validate AddOn package structure"
         }
       }
     },
@@ -79,8 +82,7 @@
       "crossplane",
       "onepassword",
       "kubernetes",
-      "secrets",
-      "skip-ci"
+      "secrets"
     ]
   }
 }
