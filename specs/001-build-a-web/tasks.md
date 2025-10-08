@@ -46,12 +46,12 @@
 
 ## Phase 3.1: Setup & Infrastructure
 
-- [ ] **T001** [P] Create Nx app structure using `nx generate @nx/vite:application blueorange --directory=apps/blueorange --bundler=vite --unitTestRunner=vitest --e2eTestRunner=playwright --style=css --routing=false`
+- [X] **T001** [P] Create Nx app structure using `nx generate @nx/vite:application blueorange --directory=apps/blueorange --bundler=vite --unitTestRunner=vitest --e2eTestRunner=playwright --style=css --routing=false`
   - **Acceptance**: `apps/blueorange/` directory exists with basic Vite structure
   - **Files created**: `apps/blueorange/package.json`, `apps/blueorange/project.json`, `apps/blueorange/vite.config.js`
   - **Verify**: `nx build blueorange` runs without errors (may produce empty dist)
 
-- [ ] **T002** [P] Configure Vite for multi-page app in `apps/blueorange/vite.config.js`
+- [X] **T002** [P] Configure Vite for multi-page app in `apps/blueorange/vite.config.js`
   - **Acceptance**: Vite configured with 3 entry points (index.html, landing.html, countdown.html)
   - **Config**:
     ```javascript
@@ -75,7 +75,7 @@
     ```
   - **Verify**: Config file has correct structure
 
-- [ ] **T003** [P] Configure Vitest in `apps/blueorange/vitest.config.js`
+- [X] **T003** [P] Configure Vitest in `apps/blueorange/vitest.config.js`
   - **Acceptance**: Vitest configured for unit tests with jsdom environment
   - **Config**:
     ```javascript
@@ -95,7 +95,7 @@
     ```
   - **Verify**: `nx test blueorange` runs (no tests yet, should pass with 0 tests)
 
-- [ ] **T004** [P] Configure Playwright in `apps/blueorange/playwright.config.js`
+- [X] **T004** [P] Configure Playwright in `apps/blueorange/playwright.config.js`
   - **Acceptance**: Playwright configured for E2E tests
   - **Config**:
     ```javascript
@@ -126,7 +126,7 @@
     ```
   - **Verify**: Config file has correct structure
 
-- [ ] **T005** [P] Update `apps/blueorange/package.json` with exact dependency versions
+- [X] **T005** [P] Update `apps/blueorange/package.json` with exact dependency versions
   - **Acceptance**: All dependencies pinned to exact versions (no ^ or ~)
   - **Dependencies**:
     ```json
@@ -143,7 +143,7 @@
     ```
   - **Verify**: No version ranges, all exact versions
 
-- [ ] **T006** [P] Update `apps/blueorange/project.json` with Nx targets
+- [X] **T006** [P] Update `apps/blueorange/project.json` with Nx targets
   - **Acceptance**: Nx targets defined for build, serve, test, lint, e2e
   - **Targets**:
     ```json
@@ -187,7 +187,7 @@
     ```
   - **Verify**: `nx build blueorange`, `nx test blueorange` commands recognized
 
-- [ ] **T007** [P] Create Dockerfile in `apps/blueorange/Dockerfile`
+- [X] **T007** [P] Create Dockerfile in `apps/blueorange/Dockerfile`
   - **Acceptance**: Multi-stage build with nginx:1.27.3-alpine serving static files
   - **Dockerfile**:
     ```dockerfile
@@ -207,7 +207,7 @@
     ```
   - **Verify**: Dockerfile syntax correct, exact version tags used
 
-- [ ] **T008** [P] Create Kubernetes Deployment in `apps/blueorange/k8s/deployment.yaml`
+- [X] **T008** [P] Create Kubernetes Deployment in `apps/blueorange/k8s/deployment.yaml`
   - **Acceptance**: Deployment resource with 2 replicas, resource limits, health checks
   - **Manifest**:
     ```yaml
@@ -254,7 +254,7 @@
     ```
   - **Verify**: YAML syntax valid, resource limits defined
 
-- [ ] **T009** [P] Create Kubernetes Service in `apps/blueorange/k8s/service.yaml`
+- [X] **T009** [P] Create Kubernetes Service in `apps/blueorange/k8s/service.yaml`
   - **Acceptance**: ClusterIP service exposing port 80
   - **Manifest**:
     ```yaml
@@ -276,7 +276,7 @@
     ```
   - **Verify**: YAML syntax valid, selector matches deployment labels
 
-- [ ] **T010** [P] Create directory structure for source files
+- [X] **T010** [P] Create directory structure for source files
   - **Acceptance**: All required directories exist
   - **Directories**:
     - `apps/blueorange/src/pages/`
@@ -293,7 +293,7 @@
 
 ## Phase 3.2: Asset Creation
 
-- [ ] **T011** [P] Create Blue Orange logo SVG in `apps/blueorange/src/assets/logo.svg`
+- [X] **T011** [P] Create Blue Orange logo SVG in `apps/blueorange/src/assets/logo.svg`
   - **Acceptance**: Scalable SVG with green-yellow banana, brown outline, "BLUE ORANGE" text
   - **Specifications** (from design image):
     - Banana shape: curved path with green (#7AB800) to yellow (#C4D600) gradient
@@ -302,7 +302,7 @@
     - Viewbox: 0 0 400 500 (scalable)
   - **Verify**: SVG renders correctly in browser, colors match specification
 
-- [ ] **T012** [P] Create landing page styles in `apps/blueorange/src/styles/landing.css`
+- [X] **T012** [P] Create landing page styles in `apps/blueorange/src/styles/landing.css`
   - **Acceptance**: Beige background, centered layout, responsive design
   - **Styles**:
     - Body: background #F5F5DC (beige), flexbox centered
@@ -313,7 +313,7 @@
     - Responsive: mobile (<768px) reduces logo to 200px, input to 2rem
   - **Verify**: CSS valid, no syntax errors
 
-- [ ] **T013** [P] Create countdown page styles in `apps/blueorange/src/styles/countdown.css`
+- [X] **T013** [P] Create countdown page styles in `apps/blueorange/src/styles/countdown.css`
   - **Acceptance**: Dark gradient background, glitch effect text, responsive timer grid
   - **Styles** (from design image):
     - Body: linear-gradient(180deg, #1A3A3A 0%, #8B4513 100%), background-blend-mode overlay
@@ -334,7 +334,7 @@
 
 ### Unit Tests (Parallel)
 
-- [ ] **T014** [P] Unit test for SecretValidator in `apps/blueorange/tests/unit/secret-validator.test.js`
+- [X] **T014** [P] Unit test for SecretValidator in `apps/blueorange/tests/unit/secret-validator.test.js`
   - **Acceptance**: 6 test cases covering all validation scenarios from data-model.md
   - **Test cases**:
     1. `validate("sorry")` → true (valid input)
@@ -346,7 +346,7 @@
   - **Framework**: Vitest with `describe`, `it`, `expect`
   - **Verify**: `nx test blueorange` runs tests and they FAIL (no implementation yet)
 
-- [ ] **T015** [P] Unit test for SessionManager in `apps/blueorange/tests/unit/session-manager.test.js`
+- [X] **T015** [P] Unit test for SessionManager in `apps/blueorange/tests/unit/session-manager.test.js`
   - **Acceptance**: 5 test cases covering sessionStorage operations
   - **Test cases**:
     1. `isValidated()` returns false initially
@@ -357,7 +357,7 @@
   - **Mocking**: Mock sessionStorage (jsdom provides it)
   - **Verify**: Tests FAIL (no implementation yet)
 
-- [ ] **T016** [P] Unit test for Timer in `apps/blueorange/tests/unit/timer.test.js`
+- [X] **T016** [P] Unit test for Timer in `apps/blueorange/tests/unit/timer.test.js`
   - **Acceptance**: 8 test cases covering countdown calculations and interval management
   - **Test cases**:
     1. `getTimeRemaining()` with target 1 hour away → {days:0, hours:1, minutes:0, seconds:0}
@@ -373,7 +373,7 @@
 
 ### E2E Tests (Parallel)
 
-- [ ] **T017** [P] E2E test for landing page scenarios in `apps/blueorange/tests/e2e/landing-page.spec.js`
+- [X] **T017** [P] E2E test for landing page scenarios in `apps/blueorange/tests/e2e/landing-page.spec.js`
   - **Acceptance**: 4 test scenarios from quickstart.md (Scenarios 1-4)
   - **Test cases** (Playwright):
     1. **Scenario 1**: Landing page display
@@ -394,7 +394,7 @@
        - Assert still on landing page (no redirect)
   - **Verify**: Tests FAIL (no pages exist yet)
 
-- [ ] **T018** [P] E2E test for countdown page scenarios in `apps/blueorange/tests/e2e/countdown-page.spec.js`
+- [X] **T018** [P] E2E test for countdown page scenarios in `apps/blueorange/tests/e2e/countdown-page.spec.js`
   - **Acceptance**: 4 test scenarios from quickstart.md (Scenarios 5-8)
   - **Test cases** (Playwright):
     1. **Scenario 5**: Countdown page display
@@ -415,7 +415,7 @@
        - Assert timer stops (no negative values)
   - **Verify**: Tests FAIL (no implementation yet)
 
-- [ ] **T019** [P] E2E test for end-to-end flow in `apps/blueorange/tests/e2e/end-to-end-flow.spec.js`
+- [X] **T019** [P] E2E test for end-to-end flow in `apps/blueorange/tests/e2e/end-to-end-flow.spec.js`
   - **Acceptance**: 4 test scenarios from quickstart.md (Scenarios 9-12)
   - **Test cases** (Playwright):
     1. **Scenario 9**: Unauthorized countdown access
@@ -439,7 +439,7 @@
 
 ### Infrastructure Tests
 
-- [ ] **T020** [P] Goss deployment validation in `apps/blueorange/tests/goss/deployment.yaml`
+- [X] **T020** [P] Goss deployment validation in `apps/blueorange/tests/goss/deployment.yaml`
   - **Acceptance**: Goss tests validate Kubernetes deployment and service
   - **Tests**:
     ```yaml
@@ -473,7 +473,7 @@
 
 ### JavaScript Modules (Sequential due to integration dependencies)
 
-- [ ] **T021** Implement SecretValidator in `apps/blueorange/src/scripts/secret-validator.js`
+- [X] **T021** Implement SecretValidator in `apps/blueorange/src/scripts/secret-validator.js`
   - **Acceptance**: Unit tests pass (T014)
   - **Implementation**:
     ```javascript
@@ -491,7 +491,7 @@
     ```
   - **Verify**: `nx test blueorange` → T014 tests pass (6/6)
 
-- [ ] **T022** Implement SessionManager in `apps/blueorange/src/scripts/session-manager.js`
+- [X] **T022** Implement SessionManager in `apps/blueorange/src/scripts/session-manager.js`
   - **Acceptance**: Unit tests pass (T015)
   - **Implementation**:
     ```javascript
@@ -516,7 +516,7 @@
     ```
   - **Verify**: `nx test blueorange` → T015 tests pass (5/5)
 
-- [ ] **T023** Implement Timer in `apps/blueorange/src/scripts/timer.js`
+- [X] **T023** Implement Timer in `apps/blueorange/src/scripts/timer.js`
   - **Acceptance**: Unit tests pass (T016)
   - **Implementation**:
     ```javascript
@@ -568,7 +568,7 @@
 
 ### HTML Pages (Sequential due to asset dependencies)
 
-- [ ] **T024** Create index.html in `apps/blueorange/index.html`
+- [X] **T024** Create index.html in `apps/blueorange/index.html`
   - **Acceptance**: Root page that redirects to landing.html
   - **Implementation**:
     ```html
@@ -589,7 +589,7 @@
     ```
   - **Verify**: Opening index.html redirects to landing.html
 
-- [ ] **T025** Create landing page in `apps/blueorange/src/pages/landing.html`
+- [X] **T025** Create landing page in `apps/blueorange/src/pages/landing.html`
   - **Acceptance**: Page with logo, input, submit button, wired to SecretValidator and SessionManager
   - **Implementation**:
     ```html
@@ -656,7 +656,7 @@
     ```
   - **Verify**: E2E tests T017 pass (landing page scenarios)
 
-- [ ] **T026** Create countdown page in `apps/blueorange/src/pages/countdown.html`
+- [X] **T026** Create countdown page in `apps/blueorange/src/pages/countdown.html`
   - **Acceptance**: Page with timer display, wired to SessionManager and Timer
   - **Implementation**:
     ```html
@@ -739,19 +739,19 @@
 
 ## Phase 3.5: Integration & Validation
 
-- [ ] **T027** Run all unit tests and verify 100% pass rate
+- [X] **T027** Run all unit tests and verify 100% pass rate
   - **Command**: `nx test blueorange`
   - **Acceptance**: All unit tests pass (19 tests total: 6 + 5 + 8)
   - **Coverage**: Target >90% line coverage for JS modules
   - **Verify**: No failing tests, coverage report generated
 
-- [ ] **T028** Run all E2E tests and verify 100% pass rate
+- [X] **T028** Run all E2E tests and verify 100% pass rate
   - **Command**: `nx e2e blueorange`
   - **Acceptance**: All E2E tests pass (12 scenarios total)
   - **Browsers**: Test in Chromium, Firefox, WebKit
   - **Verify**: No failing tests, HTML report generated
 
-- [ ] **T029** Build production bundle and verify size constraints
+- [X] **T029** Build production bundle and verify size constraints
   - **Command**: `nx build blueorange`
   - **Acceptance**: Bundle size <100KB total (HTML+CSS+JS)
   - **Output**: `dist/apps/blueorange/`
@@ -761,7 +761,7 @@
     - All JS modules bundled and minified
     - Total bundle size <100KB
 
-- [ ] **T030** Run Lighthouse performance audit
+- [X] **T030** Run Lighthouse performance audit
   - **Command**: `lighthouse http://localhost:4173 --view`
   - **Acceptance**: Performance ≥90, Accessibility ≥90, Best Practices ≥90, SEO ≥80
   - **Metrics**:
@@ -771,7 +771,7 @@
     - Total Blocking Time <200ms
   - **Verify**: Lighthouse report meets all targets
 
-- [ ] **T031** Test Kubernetes deployment locally (kind/minikube)
+- [X] **T031** Test Kubernetes deployment locally (kind/minikube)
   - **Commands**:
     ```bash
     # Build Docker image
@@ -794,7 +794,7 @@
     - HTTP 200 from all endpoints
   - **Verify**: `kubectl logs` shows nginx serving files
 
-- [ ] **T032** Run Goss infrastructure validation
+- [X] **T032** Run Goss infrastructure validation
   - **Command**: `goss validate --format junit`
   - **Acceptance**: All Goss tests pass (HTTP endpoints, K8s resources)
   - **Tests** (from T020):
@@ -805,7 +805,7 @@
     - Service type is ClusterIP
   - **Verify**: Goss report shows 0 failures
 
-- [ ] **T033** Execute quickstart.md manual test scenarios
+- [X] **T033** Execute quickstart.md manual test scenarios
   - **Acceptance**: All 12 scenarios pass
   - **Scenarios**:
     1. Landing page display (FR-001, FR-002, FR-003)
@@ -822,7 +822,7 @@
     12. Target date already passed (FR-015)
   - **Verify**: All checkboxes in quickstart.md marked
 
-- [ ] **T034** Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- [X] **T034** Cross-browser testing (Chrome, Firefox, Safari, Edge)
   - **Acceptance**: All E2E tests pass in all 4 browsers
   - **Browsers**:
     - Chrome 120+ (Windows/macOS/Linux)
@@ -832,7 +832,7 @@
   - **Command**: `nx e2e blueorange --project=all`
   - **Verify**: Playwright test results show pass for all browser projects
 
-- [ ] **T035** Mobile responsiveness testing
+- [X] **T035** Mobile responsiveness testing
   - **Acceptance**: App usable on mobile devices (390px width minimum)
   - **Test devices**:
     - iPhone 14 Pro (390x844)

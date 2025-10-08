@@ -1,0 +1,158 @@
+/* Countdown Page Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(180deg, #1A3A3A 0%, #8B4513 100%);
+  background-blend-mode: overlay;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #C4D600;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.top-text {
+  font-size: 3rem;
+  font-weight: bold;
+  text-align: center;
+  color: #C4D600;
+  text-shadow: 2px 2px 0px #00FFFF, -2px -2px 0px #FF00FF;
+  animation: glitch 2s infinite;
+}
+
+.top-text .highlight {
+  color: #FF6347;
+}
+
+.timer-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  width: 100%;
+}
+
+.timer-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.timer-digit {
+  font-family: 'Courier New', monospace;
+  font-size: 10rem;
+  font-weight: bold;
+  color: #C4D600;
+  text-shadow: 0 0 20px rgba(196, 214, 0, 0.8),
+               0 0 40px rgba(196, 214, 0, 0.5);
+  line-height: 1;
+}
+
+.timer-label {
+  font-size: 2rem;
+  color: #C4D600;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.2rem;
+}
+
+.bottom-text {
+  font-size: 5rem;
+  font-weight: bold;
+  color: #DC143C;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Glitch Animation */
+@keyframes glitch {
+  0%, 100% {
+    text-shadow: 2px 2px 0px #00FFFF, -2px -2px 0px #FF00FF;
+  }
+  25% {
+    text-shadow: -2px 2px 0px #00FFFF, 2px -2px 0px #FF00FF;
+  }
+  50% {
+    text-shadow: 2px -2px 0px #00FFFF, -2px 2px 0px #FF00FF;
+  }
+  75% {
+    text-shadow: -2px -2px 0px #00FFFF, 2px 2px 0px #FF00FF;
+  }
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .top-text {
+    font-size: 1.5rem;
+  }
+
+  .timer-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .timer-digit {
+    font-size: 5rem;
+  }
+
+  .timer-label {
+    font-size: 1.5rem;
+  }
+
+  .bottom-text {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-text {
+    font-size: 1.2rem;
+  }
+
+  .timer-digit {
+    font-size: 3rem;
+  }
+
+  .timer-label {
+    font-size: 1rem;
+  }
+
+  .bottom-text {
+    font-size: 2rem;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .glitch,
+  .pulse {
+    animation: none;
+  }
+}

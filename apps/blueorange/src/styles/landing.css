@@ -1,0 +1,115 @@
+/* Landing Page Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #F5F5DC;
+  font-family: Arial, Helvetica, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.logo-container {
+  max-width: 300px;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.logo {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+#secret-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+#secret-input {
+  font-size: 3rem;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  border: 3px solid #4A2C2A;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5rem;
+  max-width: 300px;
+  width: 100%;
+  background: white;
+}
+
+#secret-input:focus {
+  outline: none;
+  border-color: #7AB800;
+  box-shadow: 0 0 10px rgba(122, 184, 0, 0.3);
+}
+
+#submit-btn {
+  font-size: 1.5rem;
+  padding: 0.75rem 2rem;
+  background: #7AB800;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+#submit-btn:hover:not(:disabled) {
+  background: #C4D600;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #DC143C;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .logo-container {
+    max-width: 200px;
+  }
+
+  #secret-input {
+    font-size: 2rem;
+    letter-spacing: 0.3rem;
+  }
+
+  #submit-btn {
+    font-size: 1.2rem;
+    padding: 0.5rem 1.5rem;
+  }
+}

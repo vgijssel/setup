@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blueorange
+  labels:
+    app: blueorange
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: blueorange
+  template:
+    metadata:
+      labels:
+        app: blueorange
+    spec:
+      containers:
+      - name: blueorange
+        image: blueorange:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /index.html
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /index.html
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5

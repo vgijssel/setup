@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blue Orange - Countdown</title>
+  <link rel="stylesheet" href="../styles/countdown.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="top-text">
+      SHE WILL MAKE <span class="highlight">Him</span> SORRY
+    </h1>
+
+    <div class="timer-container">
+      <div class="timer-unit">
+        <div class="timer-digit" id="days">00</div>
+        <div class="timer-label">DAYS</div>
+      </div>
+      <div class="timer-unit">
+        <div class="timer-digit" id="hours">00</div>
+        <div class="timer-label">HOURS</div>
+      </div>
+      <div class="timer-unit">
+        <div class="timer-digit" id="minutes">00</div>
+        <div class="timer-label">MINUTES</div>
+      </div>
+      <div class="timer-unit">
+        <div class="timer-digit" id="seconds">00</div>
+        <div class="timer-label">SECONDS</div>
+      </div>
+    </div>
+
+    <h2 class="bottom-text">KLAASSANDRA</h2>
+  </div>
+
+  <script type="module">
+    import { SessionManager } from '../scripts/session-manager.js';
+    import { Timer } from '../scripts/timer.js';
+
+    const sessionManager = new SessionManager();
+
+    // Check authorization
+    if (!sessionManager.isValidated()) {
+      window.location.href = '/src/pages/landing.html';
+    }
+
+    // Initialize timer
+    const targetDate = '2025-11-20T00:00:00+01:00'; // Europe/Amsterdam (CET)
+    const timer = new Timer(targetDate);
+
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+
+    function updateDisplay(time) {
+      daysEl.textContent = String(time.days).padStart(2, '0');
+      hoursEl.textContent = String(time.hours).padStart(2, '0');
+      minutesEl.textContent = String(time.minutes).padStart(2, '0');
+      secondsEl.textContent = String(time.seconds).padStart(2, '0');
+    }
+
+    timer.start(updateDisplay);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      timer.stop();
+    });
+  </script>
+</body>
+</html>

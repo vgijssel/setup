@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blue Orange - Enter Secret</title>
+  <link rel="stylesheet" href="../styles/landing.css">
+</head>
+<body>
+  <div class="container">
+    <div class="logo-container">
+      <img src="../assets/logo.svg" alt="Blue Orange Logo" class="logo">
+    </div>
+    <form id="secret-form">
+      <input
+        type="text"
+        id="secret-input"
+        maxlength="5"
+        placeholder="_ _ _ _ _"
+        autocomplete="off"
+        autofocus
+      >
+      <button type="submit" id="submit-btn" disabled>Enter</button>
+    </form>
+    <p id="error-msg" class="error hidden"></p>
+  </div>
+
+  <script type="module">
+    import { SecretValidator } from '../scripts/secret-validator.js';
+    import { SessionManager } from '../scripts/session-manager.js';
+
+    const validator = new SecretValidator();
+    const sessionManager = new SessionManager();
+    const form = document.getElementById('secret-form');
+    const input = document.getElementById('secret-input');
+    const button = document.getElementById('submit-btn');
+    const errorMsg = document.getElementById('error-msg');
+
+    // Enable/disable submit button based on input length
+    input.addEventListener('input', () => {
+      button.disabled = input.value.length !== 5;
+      errorMsg.classList.add('hidden');
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const secret = input.value;
+
+      if (validator.validate(secret)) {
+        sessionManager.markValidated();
+        window.location.href = '/src/pages/countdown.html';
+      } else {
+        errorMsg.textContent = 'Incorrect secret';
+        errorMsg.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
