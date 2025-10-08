@@ -88,3 +88,4 @@ kubeconfig
 .nx/key/key.ini
 /.devcontainer/.docker-version
 apps/blueorange/dist
+.playwright-mcp/
