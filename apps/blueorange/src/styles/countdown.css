@@ -7,7 +7,7 @@
 }
 
 html, body {
-  background: transparent;
+  background: #0a2e2e;
   font-family: 'Courier New', Courier, monospace;
   min-height: 100vh;
   margin: 0;
@@ -43,7 +43,8 @@ html, body {
   left: 0;
   z-index: 1;
   padding: clamp(1rem, 3vw, 2rem);
-  background: linear-gradient(135deg, #0a3a3a 0%, #1a4a4a 25%, #8b4513 50%, #d2691e 75%, #0a3a3a 100%);
+  background: url('../assets/background.png') center center / cover no-repeat,
+              linear-gradient(135deg, #0a2e2e 0%, #1a4e4e 25%, #0d3d3d 50%, #1a5555 75%, #0a2e2e 100%);
   pointer-events: none;
 }
 
@@ -51,17 +52,20 @@ html, body {
   font-size: clamp(1rem, 3vw, 3rem);
   font-weight: bold;
   text-align: center;
-  color: #9ACD32;
+  color: #00ffff;
   text-transform: uppercase;
   letter-spacing: clamp(0.05em, 0.5vw, 0.15em);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.6),
+               2px 2px 4px rgba(0, 0, 0, 0.9);
   line-height: 1.2;
   max-width: 95%;
   word-wrap: break-word;
 }
 
 .top-text .highlight {
-  color: #DC143C;
+  color: #00d4d4;
+  text-shadow: 0 0 15px rgba(0, 212, 212, 0.8),
+               2px 2px 4px rgba(0, 0, 0, 0.9);
 }
 
 .timer-container {
@@ -83,29 +87,32 @@ html, body {
   font-family: 'Courier New', monospace;
   font-size: clamp(2rem, 6vw, 6rem);
   font-weight: bold;
-  color: #D4AF37;
-  text-shadow: 0 0 10px rgba(212, 175, 55, 0.6),
-               2px 2px 6px rgba(0, 0, 0, 0.8);
+  color: #00ffcc;
+  text-shadow: 0 0 20px rgba(0, 255, 204, 0.8),
+               0 0 10px rgba(0, 255, 204, 0.5),
+               2px 2px 6px rgba(0, 0, 0, 0.9);
   line-height: 1;
 }
 
 .timer-label {
   font-size: clamp(0.6rem, 1.2vw, 1.2rem);
-  color: #9ACD32;
+  color: #5ee5d4;
   text-transform: uppercase;
   font-weight: bold;
   letter-spacing: clamp(0.05rem, 0.2vw, 0.2rem);
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 5px rgba(94, 229, 212, 0.6),
+               1px 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .bottom-text {
   font-size: clamp(1.5rem, 4.5vw, 4.5rem);
   font-weight: bold;
-  color: #DC143C;
+  color: #00e5e5;
   text-transform: uppercase;
   letter-spacing: clamp(0.1em, 0.5vw, 0.2em);
-  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.9),
-               0 0 20px rgba(220, 20, 60, 0.5);
+  text-shadow: 0 0 30px rgba(0, 229, 229, 0.9),
+               0 0 15px rgba(0, 229, 229, 0.6),
+               3px 3px 8px rgba(0, 0, 0, 0.9);
   line-height: 1.2;
   max-width: 95%;
   word-wrap: break-word;
@@ -115,15 +122,15 @@ html, body {
 /* Color Shift Animation */
 @keyframes colorShift {
   0% {
-    color: #DC143C;
+    color: #00e5e5;
     filter: hue-rotate(0deg);
   }
   50% {
-    color: #FF6347;
+    color: #00ffff;
     filter: hue-rotate(10deg);
   }
   100% {
-    color: #DC143C;
+    color: #00e5e5;
     filter: hue-rotate(0deg);
   }
 }
