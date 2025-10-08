@@ -37,6 +37,8 @@
   <script type="module">
     import { SessionManager } from '../scripts/session-manager.js';
     import { Timer } from '../scripts/timer.js';
+    import { CRTFilterWebGL } from '../scripts/CRTFilter.js';
+    import html2canvas from 'html2canvas';
 
     const sessionManager = new SessionManager();
 
@@ -63,9 +65,99 @@
 
     timer.start(updateDisplay);
 
+    // Initialize CRT Filter for full-screen effect
+    const canvas = document.getElementById('crt-canvas');
+    const container = document.querySelector('.container');
+    let crtEffect = null;
+    let updateIntervalId = null;
+
+    // Set canvas size to match window size
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Function to update canvas content
+    async function updateCanvasContent() {
+      try {
+        if (!container || container.style.display === 'none') return;
+
+        // Capture the page content
+        const pageCanvas = await html2canvas(container, {
+          backgroundColor: null,
+          scale: 1,
+          logging: false,
+          useCORS: true
+        });
+
+        // Copy the captured content to our canvas
+        const ctx = canvas.getContext('2d');
+
+        // Fill background first
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, '#0a3a3a');
+        gradient.addColorStop(0.25, '#1a4a4a');
+        gradient.addColorStop(0.5, '#8b4513');
+        gradient.addColorStop(0.75, '#d2691e');
+        gradient.addColorStop(1, '#0a3a3a');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Center and draw the captured content
+        const x = (canvas.width - pageCanvas.width) / 2;
+        const y = (canvas.height - pageCanvas.height) / 2;
+        ctx.drawImage(pageCanvas, x, y);
+      } catch (error) {
+        console.error('Error updating canvas:', error);
+      }
+    }
+
+    // Function to start CRT effect
+    async function startCRTEffect() {
+      // Update canvas content continuously before starting CRT
+      await updateCanvasContent();
+
+      // Set up interval to update content
+      updateIntervalId = setInterval(updateCanvasContent, 1000);
+
+      // Wait a bit for initial render, then start CRT effect
+      setTimeout(() => {
+        if (!crtEffect) {
+          crtEffect = new CRTFilterWebGL(canvas, {
+            barrelDistortion: 0.08,
+            chromaticAberration: 0.8,
+            staticNoise: 0.05,
+            brightness: 1.0,
+            contrast: 1.1,
+            curvature: 0.15,
+            scanlineIntensity: 0.3,
+            glowBloom: 0.002,
+            verticalJitter: 0.002,
+            horizontalTearing: 0.0002
+          });
+          crtEffect.start();
+
+          // Hide the original content after CRT starts
+          container.style.visibility = 'hidden';
+        }
+      }, 100);
+    }
+
+    // Start CRT effect after page loads
+    setTimeout(startCRTEffect, 100);
+
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
       timer.stop();
+      if (updateIntervalId) {
+        clearInterval(updateIntervalId);
+      }
+      if (crtEffect) {
+        crtEffect.stop();
+      }
     });
   </script>
 </body>

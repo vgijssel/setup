@@ -18,37 +18,15 @@ body {
   position: relative;
 }
 
-/* TV Scanline Effect */
-body::before {
-  content: '';
-  position: absolute;
+/* CRT Filter Canvas - Full Screen */
+#crt-canvas {
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.35) 0px,
-    rgba(0, 0, 0, 0.35) 2px,
-    transparent 2px,
-    transparent 4px
-  );
   pointer-events: none;
-  z-index: 10;
-  animation: scanlines 8s linear infinite;
-}
-
-/* TV Distortion Overlay */
-body::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
-  pointer-events: none;
-  z-index: 5;
+  z-index: 100;
 }
 
 .container {
@@ -72,7 +50,6 @@ body::after {
   text-transform: uppercase;
   letter-spacing: 0.15em;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-  animation: textGlitch 3s infinite;
 }
 
 .top-text .highlight {
@@ -102,7 +79,6 @@ body::after {
   text-shadow: 0 0 10px rgba(212, 175, 55, 0.6),
                2px 2px 6px rgba(0, 0, 0, 0.8);
   line-height: 1;
-  animation: digitFlicker 4s infinite;
 }
 
 .timer-label {
@@ -124,35 +100,6 @@ body::after {
                0 0 20px rgba(220, 20, 60, 0.5);
 }
 
-/* Scanlines Animation */
-@keyframes scanlines {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(10px);
-  }
-}
-
-/* Text Glitch Animation */
-@keyframes textGlitch {
-  0%, 90%, 100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  92% {
-    transform: translateX(-2px);
-    opacity: 0.9;
-  }
-  94% {
-    transform: translateX(2px);
-    opacity: 0.95;
-  }
-  96% {
-    transform: translateX(-1px);
-    opacity: 0.92;
-  }
-}
 
 /* Color Shift Animation */
 @keyframes colorShift {
@@ -170,21 +117,6 @@ body::after {
   }
 }
 
-/* Digit Flicker Animation */
-@keyframes digitFlicker {
-  0%, 95%, 100% {
-    opacity: 1;
-  }
-  96% {
-    opacity: 0.85;
-  }
-  97% {
-    opacity: 1;
-  }
-  98% {
-    opacity: 0.9;
-  }
-}
 
 /* Name Pulse Animation */
 @keyframes namePulse {
@@ -250,10 +182,7 @@ body::after {
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  body::before,
-  .top-text,
   .top-text .highlight,
-  .timer-digit,
   .bottom-text {
     animation: none;
   }

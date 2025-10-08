@@ -12,12 +12,14 @@
     "test:coverage": "vitest --coverage",
     "e2e": "playwright test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "html2canvas": "^1.4.1"
+  },
   "devDependencies": {
-    "vite": "6.0.1",
-    "vitest": "2.1.5",
     "@playwright/test": "1.48.2",
     "@vitest/ui": "2.1.5",
-    "jsdom": "25.0.1"
+    "jsdom": "25.0.1",
+    "vite": "6.0.1",
+    "vitest": "2.1.5"
   }
 }
