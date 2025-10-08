@@ -6,27 +6,28 @@
   box-sizing: border-box;
 }
 
-body {
-  background: linear-gradient(135deg, #0a3a3a 0%, #1a4a4a 25%, #8b4513 50%, #d2691e 75%, #0a3a3a 100%);
+html, body {
+  background: transparent;
   font-family: 'Courier New', Courier, monospace;
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin: 0;
   padding: 0;
   overflow: hidden;
   position: relative;
+  isolation: isolate;
 }
 
 /* CRT Filter Canvas - Full Screen */
-#crt-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 100;
+#crt-canvas,
+.crt-canvas-layer {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: auto !important;
+  z-index: 9999 !important;
+  background: transparent !important;
 }
 
 .container {
@@ -35,11 +36,17 @@ body {
   align-items: center;
   justify-content: center;
   gap: 4rem;
-  width: 100%;
+  width: 100vw;
+  height: 100vh;
   max-width: 1200px;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1;
   padding: 2rem;
+  background: linear-gradient(135deg, #0a3a3a 0%, #1a4a4a 25%, #8b4513 50%, #d2691e 75%, #0a3a3a 100%);
+  pointer-events: none;
 }
 
 .top-text {

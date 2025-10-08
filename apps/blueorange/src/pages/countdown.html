@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../styles/countdown.css">
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="content-container">
     <h1 class="top-text">
       SHE WILL MAKE <span class="highlight">Him</span> SORRY
     </h1>
@@ -33,6 +33,7 @@
 
     <h2 class="bottom-text">KLAASSANDRA</h2>
   </div>
+  <canvas id="crt-canvas" class="crt-canvas-layer"></canvas>
 
   <script type="module">
     import { SessionManager } from '../scripts/session-manager.js';
@@ -67,7 +68,7 @@
 
     // Initialize CRT Filter for full-screen effect
     const canvas = document.getElementById('crt-canvas');
-    const container = document.querySelector('.container');
+    const container = document.getElementById('content-container');
     let crtEffect = null;
     let updateIntervalId = null;
 
@@ -78,25 +79,19 @@
     }
 
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      // Force a canvas update after resize
+      updateCanvasContent();
+    });
 
-    // Function to update canvas content
+    // Function to render HTML content to canvas
     async function updateCanvasContent() {
       try {
-        if (!container || container.style.display === 'none') return;
+        // Get the 2D context and draw to our main canvas
+        const ctx = canvas.getContext('2d', { alpha: false });
 
-        // Capture the page content
-        const pageCanvas = await html2canvas(container, {
-          backgroundColor: null,
-          scale: 1,
-          logging: false,
-          useCORS: true
-        });
-
-        // Copy the captured content to our canvas
-        const ctx = canvas.getContext('2d');
-
-        // Fill background first
+        // Draw background gradient first (makes canvas opaque)
         const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
         gradient.addColorStop(0, '#0a3a3a');
         gradient.addColorStop(0.25, '#1a4a4a');
@@ -106,24 +101,34 @@
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Center and draw the captured content
-        const x = (canvas.width - pageCanvas.width) / 2;
-        const y = (canvas.height - pageCanvas.height) / 2;
-        ctx.drawImage(pageCanvas, x, y);
+        // Capture the HTML content as a canvas
+        const htmlCanvas = await html2canvas(container, {
+          backgroundColor: null,
+          scale: window.devicePixelRatio || 1,
+          logging: false,
+          useCORS: true,
+          width: container.offsetWidth,
+          height: container.offsetHeight
+        });
+
+        // Center the HTML content on canvas
+        const x = (canvas.width - htmlCanvas.width) / 2;
+        const y = (canvas.height - htmlCanvas.height) / 2;
+        ctx.drawImage(htmlCanvas, x, y);
       } catch (error) {
-        console.error('Error updating canvas:', error);
+        console.error('Error rendering HTML to canvas:', error);
       }
     }
 
     // Function to start CRT effect
     async function startCRTEffect() {
-      // Update canvas content continuously before starting CRT
+      // Initial render
       await updateCanvasContent();
 
-      // Set up interval to update content
+      // Update canvas content every second (for timer updates)
       updateIntervalId = setInterval(updateCanvasContent, 1000);
 
-      // Wait a bit for initial render, then start CRT effect
+      // Start CRT effect after initial render
       setTimeout(() => {
         if (!crtEffect) {
           crtEffect = new CRTFilterWebGL(canvas, {
@@ -139,9 +144,6 @@
             horizontalTearing: 0.0002
           });
           crtEffect.start();
-
-          // Hide the original content after CRT starts
-          container.style.visibility = 'hidden';
         }
       }, 100);
     }
