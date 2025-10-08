@@ -1,8 +1,8 @@
 {
   "name": "devcontainer",
-  "version": "0.6.10",
+  "version": "0.6.11",
   "dependencies": {
-    "devenv": "0.10.5"
+    "devenv": "0.11.0"
   },
   "nx": {
     "projectType": "application",
