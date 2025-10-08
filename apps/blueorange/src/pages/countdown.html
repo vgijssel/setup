@@ -64,13 +64,11 @@
       secondsEl.textContent = String(time.seconds).padStart(2, '0');
     }
 
-    timer.start(updateDisplay);
-
     // Initialize CRT Filter for full-screen effect
     const canvas = document.getElementById('crt-canvas');
     const container = document.getElementById('content-container');
     let crtEffect = null;
-    let updateIntervalId = null;
+    let baseCanvasImage = null;
 
     // Set canvas size to match window size
     function resizeCanvas() {
@@ -79,29 +77,15 @@
     }
 
     resizeCanvas();
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', async () => {
       resizeCanvas();
-      // Force a canvas update after resize
-      updateCanvasContent();
+      // Force a full canvas update after resize
+      await captureInitialCanvas();
     });
 
-    // Function to render HTML content to canvas
-    async function updateCanvasContent() {
+    // Capture the initial HTML as a canvas image (only once)
+    async function captureInitialCanvas() {
       try {
-        // Get the 2D context and draw to our main canvas
-        const ctx = canvas.getContext('2d', { alpha: false });
-
-        // Draw background gradient first (makes canvas opaque)
-        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-        gradient.addColorStop(0, '#0a3a3a');
-        gradient.addColorStop(0.25, '#1a4a4a');
-        gradient.addColorStop(0.5, '#8b4513');
-        gradient.addColorStop(0.75, '#d2691e');
-        gradient.addColorStop(1, '#0a3a3a');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Capture the HTML content as a canvas
         const htmlCanvas = await html2canvas(container, {
           backgroundColor: null,
           scale: 1,
@@ -115,20 +99,58 @@
           y: 0
         });
 
-        // Draw the captured content (it should already match canvas size)
-        ctx.drawImage(htmlCanvas, 0, 0);
+        baseCanvasImage = htmlCanvas;
+        renderCanvas();
       } catch (error) {
-        console.error('Error rendering HTML to canvas:', error);
+        console.error('Error capturing initial canvas:', error);
       }
     }
+
+    // Render the canvas with current state
+    function renderCanvas() {
+      if (!baseCanvasImage) return;
+
+      const ctx = canvas.getContext('2d', { alpha: false });
+
+      // Draw background gradient
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, '#0a3a3a');
+      gradient.addColorStop(0.25, '#1a4a4a');
+      gradient.addColorStop(0.5, '#8b4513');
+      gradient.addColorStop(0.75, '#d2691e');
+      gradient.addColorStop(1, '#0a3a3a');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw the base image
+      ctx.drawImage(baseCanvasImage, 0, 0);
+    }
+
+    // Update display function that also updates canvas
+    async function updateDisplayWithCanvas(time) {
+      const newDays = String(time.days).padStart(2, '0');
+      const newHours = String(time.hours).padStart(2, '0');
+      const newMinutes = String(time.minutes).padStart(2, '0');
+      const newSeconds = String(time.seconds).padStart(2, '0');
+
+      // Update DOM
+      daysEl.textContent = newDays;
+      hoursEl.textContent = newHours;
+      minutesEl.textContent = newMinutes;
+      secondsEl.textContent = newSeconds;
+
+      // Wait a tiny bit for DOM to update, then recapture
+      await new Promise(resolve => setTimeout(resolve, 10));
+      await captureInitialCanvas();
+    }
+
+    // Start timer with canvas update
+    timer.start(updateDisplayWithCanvas);
 
     // Function to start CRT effect
     async function startCRTEffect() {
       // Initial render
-      await updateCanvasContent();
-
-      // Update canvas content every second (for timer updates)
-      updateIntervalId = setInterval(updateCanvasContent, 1000);
+      await captureInitialCanvas();
 
       // Start CRT effect after initial render
       setTimeout(() => {
@@ -156,9 +178,6 @@
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
       timer.stop();
-      if (updateIntervalId) {
-        clearInterval(updateIntervalId);
-      }
       if (crtEffect) {
         crtEffect.stop();
       }
