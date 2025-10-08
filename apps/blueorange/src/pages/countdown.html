@@ -168,6 +168,11 @@
             horizontalTearing: 0.0002
           });
           crtEffect.start();
+
+          // Show content once CRT filter is ready - wait a bit for first frame to render
+          setTimeout(() => {
+            document.body.classList.add('ready');
+          }, 50);
         }
       }, 100);
     }

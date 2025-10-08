@@ -48,6 +48,16 @@ html, body {
   pointer-events: none;
 }
 
+/* Fade in effect */
+body {
+  opacity: 0;
+  transition: opacity 0.5s ease-in;
+}
+
+body.ready {
+  opacity: 1;
+}
+
 .top-text {
   font-size: clamp(1rem, 3vw, 3rem);
   font-weight: bold;
