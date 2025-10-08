@@ -6,9 +6,8 @@ namespace: blueorange
 resources:
   # Namespace must be created first
   - namespace-blueorange.yaml
-  # Service and ConfigMap before Deployments
+  # Service before Deployments
   - service-blueorange.yaml
-  - configmap-cloudflared.yaml
   # Deployments last
   - deployment-blueorange.yaml
   - deployment-cloudflared.yaml

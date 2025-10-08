@@ -5,29 +5,29 @@ This directory contains Kubernetes manifests for deploying the Blue Orange appli
 ## Prerequisites
 
 1. A Cloudflare account with a configured tunnel
-2. Tunnel credentials JSON file
+2. Cloudflare tunnel token
 3. Kubernetes cluster access
 
 ## Setup
 
-### 1. Create Cloudflare Tunnel Secret
+### 1. Create Cloudflare Tunnel Token Secret
 
-First, create the tunnel credentials secret. You need to obtain your tunnel credentials JSON from Cloudflare:
+First, obtain your tunnel token from Cloudflare Zero Trust dashboard, then create the secret:
 
 ```bash
 kubectl create namespace blueorange
-kubectl create secret generic cloudflared-credentials \
-  --from-file=credentials.json=/path/to/your/credentials.json \
+kubectl create secret generic tunnel-token \
+  --from-literal=token='YOUR_TUNNEL_TOKEN_HERE' \
   -n blueorange
 ```
 
-### 2. Update ConfigMap
+**To get your tunnel token:**
+1. Go to Cloudflare Zero Trust dashboard
+2. Navigate to Networks > Tunnels
+3. Create a new tunnel or select an existing one
+4. Copy the tunnel token (starts with `eyJ...`)
 
-Edit `configmap-cloudflared.yaml` and replace:
-- `blueorange-tunnel` with your actual tunnel name
-- `blueorange.example.com` with your actual domain
-
-### 3. Deploy with Kustomize (Recommended)
+### 2. Deploy with Kustomize (Recommended)
 
 Deploy all resources in the correct order using kustomize:
 
@@ -48,7 +48,6 @@ If you prefer to apply manifests individually without kustomize:
 ```bash
 kubectl apply -f k8s/namespace-blueorange.yaml
 kubectl apply -f k8s/service-blueorange.yaml
-kubectl apply -f k8s/configmap-cloudflared.yaml
 kubectl apply -f k8s/deployment-blueorange.yaml
 kubectl apply -f k8s/deployment-cloudflared.yaml
 ```
@@ -78,17 +77,23 @@ kubectl logs -n blueorange -l app=cloudflared -f
 
 - **blueorange deployment**: Runs 2 replicas of the nginx container serving the built application
 - **blueorange service**: ClusterIP service exposing port 80
-- **cloudflared deployment**: Runs 2 replicas of cloudflared tunnel connector
-- **cloudflared configmap**: Contains tunnel configuration
+- **cloudflared deployment**: Runs 2 replicas of cloudflared tunnel connector using tunnel token
+- **tunnel-token secret**: Contains the Cloudflare tunnel token for authentication
 
-The cloudflared tunnel connects to Cloudflare's edge and routes traffic to the blueorange service.
+The cloudflared tunnel connects to Cloudflare's edge using the tunnel token and routes traffic to the blueorange service based on the tunnel configuration in Cloudflare's dashboard.
 
 ## Troubleshooting
 
 If the cloudflared pods are not starting:
-1. Verify the secret exists: `kubectl get secret cloudflared-credentials -n blueorange`
-2. Check the tunnel name in configmap matches your Cloudflare tunnel
-3. View logs: `kubectl logs -n blueorange -l app=cloudflared`
+1. Verify the secret exists: `kubectl get secret tunnel-token -n blueorange`
+2. Check the tunnel token is valid (not expired)
+3. Verify tunnel configuration in Cloudflare dashboard includes the blueorange service
+4. View logs: `kubectl logs -n blueorange -l app=cloudflared`
+
+Common issues:
+- **Invalid token**: Make sure you copied the full tunnel token including any trailing characters
+- **Tunnel not found**: Verify the tunnel still exists in your Cloudflare dashboard
+- **Connection refused**: Ensure the blueorange service is running and accessible
 
 ## Cleanup
 
