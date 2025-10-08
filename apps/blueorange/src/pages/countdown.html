@@ -157,15 +157,16 @@
         if (!crtEffect) {
           crtEffect = new CRTFilterWebGL(canvas, {
             barrelDistortion: 0.08,
-            chromaticAberration: 0.8,
+            chromaticAberration: 0.001,
             staticNoise: 0.05,
             brightness: 1.0,
             contrast: 1.1,
             curvature: 0.15,
             scanlineIntensity: 0.3,
             glowBloom: 0.002,
-            verticalJitter: 0.002,
-            horizontalTearing: 0.0002
+            verticalJitter: 0.02,
+            horizontalTearing: 0.002,
+            desaturation: 0.0
           });
           crtEffect.start();
 
