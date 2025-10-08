@@ -104,17 +104,19 @@
         // Capture the HTML content as a canvas
         const htmlCanvas = await html2canvas(container, {
           backgroundColor: null,
-          scale: window.devicePixelRatio || 1,
+          scale: 1,
           logging: false,
           useCORS: true,
-          width: container.offsetWidth,
-          height: container.offsetHeight
+          windowWidth: canvas.width,
+          windowHeight: canvas.height,
+          width: canvas.width,
+          height: canvas.height,
+          x: 0,
+          y: 0
         });
 
-        // Center the HTML content on canvas
-        const x = (canvas.width - htmlCanvas.width) / 2;
-        const y = (canvas.height - htmlCanvas.height) / 2;
-        ctx.drawImage(htmlCanvas, x, y);
+        // Draw the captured content (it should already match canvas size)
+        ctx.drawImage(htmlCanvas, 0, 0);
       } catch (error) {
         console.error('Error rendering HTML to canvas:', error);
       }

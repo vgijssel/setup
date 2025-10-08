@@ -35,28 +35,29 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4rem;
+  gap: clamp(2rem, 5vh, 4rem);
   width: 100vw;
   height: 100vh;
-  max-width: 1200px;
   position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   z-index: 1;
-  padding: 2rem;
+  padding: clamp(1rem, 3vw, 2rem);
   background: linear-gradient(135deg, #0a3a3a 0%, #1a4a4a 25%, #8b4513 50%, #d2691e 75%, #0a3a3a 100%);
   pointer-events: none;
 }
 
 .top-text {
-  font-size: 4rem;
+  font-size: clamp(1rem, 3vw, 3rem);
   font-weight: bold;
   text-align: center;
   color: #9ACD32;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: clamp(0.05em, 0.5vw, 0.15em);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  line-height: 1.2;
+  max-width: 95%;
+  word-wrap: break-word;
 }
 
 .top-text .highlight {
@@ -66,21 +67,21 @@ html, body {
 .timer-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 3rem;
+  gap: clamp(0.5rem, 2vw, 2rem);
   width: 100%;
-  max-width: 1000px;
+  max-width: 95%;
 }
 
 .timer-unit {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: clamp(0.25rem, 1vh, 0.5rem);
 }
 
 .timer-digit {
   font-family: 'Courier New', monospace;
-  font-size: 8rem;
+  font-size: clamp(2rem, 6vw, 6rem);
   font-weight: bold;
   color: #D4AF37;
   text-shadow: 0 0 10px rgba(212, 175, 55, 0.6),
@@ -89,22 +90,25 @@ html, body {
 }
 
 .timer-label {
-  font-size: 1.5rem;
+  font-size: clamp(0.6rem, 1.2vw, 1.2rem);
   color: #9ACD32;
   text-transform: uppercase;
   font-weight: bold;
-  letter-spacing: 0.3rem;
+  letter-spacing: clamp(0.05rem, 0.2vw, 0.2rem);
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .bottom-text {
-  font-size: 6rem;
+  font-size: clamp(1.5rem, 4.5vw, 4.5rem);
   font-weight: bold;
   color: #DC143C;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: clamp(0.1em, 0.5vw, 0.2em);
   text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.9),
                0 0 20px rgba(220, 20, 60, 0.5);
+  line-height: 1.2;
+  max-width: 95%;
+  word-wrap: break-word;
 }
 
 
@@ -137,53 +141,10 @@ html, body {
   }
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .top-text {
-    font-size: 2rem;
-  }
-
+/* Responsive Design - Stack timer on very small screens */
+@media (max-width: 480px) {
   .timer-container {
     grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-  }
-
-  .timer-digit {
-    font-size: 4rem;
-  }
-
-  .timer-label {
-    font-size: 1rem;
-    letter-spacing: 0.2rem;
-  }
-
-  .bottom-text {
-    font-size: 3rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .top-text {
-    font-size: 1.5rem;
-    letter-spacing: 0.1em;
-  }
-
-  .timer-digit {
-    font-size: 3rem;
-  }
-
-  .timer-label {
-    font-size: 0.875rem;
-    letter-spacing: 0.15rem;
-  }
-
-  .bottom-text {
-    font-size: 2rem;
-    letter-spacing: 0.15em;
-  }
-
-  .container {
-    gap: 2rem;
   }
 }
 
