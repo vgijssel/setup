@@ -7,7 +7,7 @@
 }
 
 body {
-  background: #F5F5DC;
+  background: rgb(246, 239, 229);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   display: flex;
   justify-content: center;
@@ -32,23 +32,17 @@ body {
   gap: 1rem;
 }
 
-.banana-logo {
-  width: 120px;
-  height: 120px;
-}
-
-.title {
-  font-size: 4rem;
-  font-weight: 700;
-  color: #4A2C2A;
-  text-align: center;
-  line-height: 1;
-  letter-spacing: 0.05em;
+.logo-image {
+  width: 420px;
+  height: auto;
+  max-width: 90vw;
+  background-color: rgb(246, 239, 229);
+  opacity: 0.85;
 }
 
 .subtitle {
   font-size: 1.5rem;
-  color: #4A2C2A;
+  color: #573832;
   text-align: center;
   margin-top: -1rem;
 }
@@ -70,7 +64,7 @@ body {
 .input-box {
   width: 90px;
   height: 90px;
-  border: 3px solid #4A2C2A;
+  border: 3px solid #573832;
   border-radius: 12px;
   background: white;
   display: flex;
@@ -82,17 +76,17 @@ body {
 }
 
 .input-box:hover {
-  border-color: #7AB800;
+  border-color: #8DB615;
 }
 
 .input-box.active {
-  border-color: #7AB800;
-  box-shadow: 0 0 8px rgba(122, 184, 0, 0.3);
+  border-color: #8DB615;
+  box-shadow: 0 0 8px rgba(141, 182, 21, 0.3);
 }
 
 .input-box .dot {
   font-size: 4rem;
-  color: #4A2C2A;
+  color: #573832;
   font-weight: bold;
   user-select: none;
 }
@@ -109,12 +103,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #4A2C2A;
+  color: #573832;
   transition: color 0.2s ease;
 }
 
 .eye-btn:hover {
-  color: #7AB800;
+  color: #8DB615;
 }
 
 .eye-btn svg {
@@ -125,8 +119,8 @@ body {
 #submit-btn {
   font-size: 1.75rem;
   padding: 1rem 3rem;
-  background: #4A2C2A;
-  color: #F5F5DC;
+  background: #573832;
+  color: rgb(246, 239, 229);
   border: none;
   border-radius: 50px;
   cursor: pointer;
@@ -136,9 +130,9 @@ body {
 }
 
 #submit-btn:hover:not(:disabled) {
-  background: #5C3A38;
+  background: #6B4540;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 44, 42, 0.3);
+  box-shadow: 0 4px 12px rgba(87, 56, 50, 0.3);
 }
 
 #submit-btn:disabled {
@@ -167,28 +161,23 @@ body {
 }
 
 .footer a {
-  color: #4A2C2A;
+  color: #573832;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .footer a:hover {
-  color: #7AB800;
+  color: #8DB615;
 }
 
 .footer .separator {
-  color: #4A2C2A;
+  color: #573832;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .banana-logo {
-    width: 80px;
-    height: 80px;
-  }
-
-  .title {
-    font-size: 2.5rem;
+  .logo-image {
+    width: 300px;
   }
 
   .subtitle {
