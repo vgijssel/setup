@@ -8,21 +8,49 @@
 </head>
 <body>
   <div class="container">
-    <div class="logo-container">
-      <img src="../assets/logo.svg" alt="Blue Orange Logo" class="logo">
+    <div class="logo-section">
+      <svg class="banana-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <path d="M100 30 Q90 25 85 30 Q70 40 65 60 Q60 90 70 120 Q80 140 95 150 Q105 155 110 150 Q120 140 125 120 Q130 90 120 60 Q115 40 105 30 Q100 25 100 30 Z"
+              fill="#7AB800" stroke="#4A2C2A" stroke-width="3"/>
+        <path d="M100 30 Q105 28 108 30 L108 45 Q105 43 100 45 Z"
+              fill="#5C8A00" stroke="#4A2C2A" stroke-width="2"/>
+      </svg>
+      <h1 class="title">BLUE<br>ORANGE</h1>
     </div>
+
+    <p class="subtitle">Enter 5-character access code</p>
+
     <form id="secret-form">
-      <input
-        type="text"
-        id="secret-input"
-        maxlength="5"
-        placeholder="_ _ _ _ _"
-        autocomplete="off"
-        autofocus
-      >
-      <button type="submit" id="submit-btn" disabled>Enter</button>
+      <div class="input-boxes">
+        <div class="input-box" data-index="0">
+          <span class="dot hidden">•</span>
+        </div>
+        <div class="input-box" data-index="1">
+          <span class="dot hidden">•</span>
+        </div>
+        <div class="input-box" data-index="2">
+          <span class="dot hidden">•</span>
+        </div>
+        <div class="input-box" data-index="3">
+          <span class="dot hidden">•</span>
+        </div>
+        <div class="input-box" data-index="4">
+          <span class="dot hidden">•</span>
+        </div>
+      </div>
+      <input type="hidden" id="secret-input" maxlength="5" autocomplete="off">
+      <button type="submit" id="submit-btn" disabled>Unlock</button>
     </form>
+
     <p id="error-msg" class="error hidden"></p>
+
+    <footer class="footer">
+      <a href="#">Terms of Service</a>
+      <span class="separator">|</span>
+      <a href="#">Privacy Policy</a>
+      <span class="separator">|</span>
+      <a href="#">Contact</a>
+    </footer>
   </div>
 
   <script type="module">
@@ -32,20 +60,74 @@
     const validator = new SecretValidator();
     const sessionManager = new SessionManager();
     const form = document.getElementById('secret-form');
-    const input = document.getElementById('secret-input');
+    const hiddenInput = document.getElementById('secret-input');
     const button = document.getElementById('submit-btn');
     const errorMsg = document.getElementById('error-msg');
+    const inputBoxes = document.querySelectorAll('.input-box');
 
-    // Enable/disable submit button based on input length
-    input.addEventListener('input', () => {
-      button.disabled = input.value.length !== 5;
-      errorMsg.classList.add('hidden');
+    let secretValue = '';
+    let currentIndex = 0;
+
+    // Focus management
+    function focusBox(index) {
+      inputBoxes.forEach((box, i) => {
+        box.classList.toggle('active', i === index);
+      });
+    }
+
+    // Update display
+    function updateDisplay() {
+      inputBoxes.forEach((box, index) => {
+        const dot = box.querySelector('.dot');
+        if (index < secretValue.length) {
+          dot.textContent = secretValue[index];
+          dot.classList.remove('hidden');
+        } else {
+          dot.classList.add('hidden');
+        }
+      });
+
+      button.disabled = secretValue.length !== 5;
+      hiddenInput.value = secretValue;
+    }
+
+
+    // Handle keyboard input
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace') {
+        e.preventDefault();
+        if (secretValue.length > 0) {
+          secretValue = secretValue.slice(0, -1);
+          currentIndex = secretValue.length;
+          updateDisplay();
+          focusBox(currentIndex);
+          errorMsg.classList.add('hidden');
+        }
+      } else if (e.key === 'Enter' && secretValue.length === 5) {
+        e.preventDefault();
+        form.dispatchEvent(new Event('submit'));
+      } else if (e.key.length === 1 && secretValue.length < 5 && /[a-zA-Z0-9]/.test(e.key)) {
+        e.preventDefault();
+        secretValue += e.key.toUpperCase();
+        currentIndex = secretValue.length;
+        updateDisplay();
+        focusBox(currentIndex);
+        errorMsg.classList.add('hidden');
+      }
+    });
+
+    // Click on boxes to focus
+    inputBoxes.forEach((box, index) => {
+      box.addEventListener('click', () => {
+        currentIndex = Math.min(index, secretValue.length);
+        focusBox(currentIndex);
+      });
     });
 
     // Handle form submission
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const secret = input.value;
+      const secret = secretValue;
 
       if (validator.validate(secret)) {
         sessionManager.markValidated();
@@ -53,8 +135,15 @@
       } else {
         errorMsg.textContent = 'Incorrect secret';
         errorMsg.classList.remove('hidden');
+        secretValue = '';
+        currentIndex = 0;
+        updateDisplay();
+        focusBox(0);
       }
     });
+
+    // Initialize
+    focusBox(0);
   </script>
 </body>
 </html>
