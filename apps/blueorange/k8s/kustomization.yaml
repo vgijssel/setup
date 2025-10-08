@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: blueorange
+
+resources:
+  # Namespace must be created first
+  - namespace-blueorange.yaml
+  # Service and ConfigMap before Deployments
+  - service-blueorange.yaml
+  - configmap-cloudflared.yaml
+  # Deployments last
+  - deployment-blueorange.yaml
+  - deployment-cloudflared.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: blueorange
+
+images:
+  - name: ghcr.io/vgijssel/setup/blueorange-dev
+    newTag: latest
