@@ -32,7 +32,7 @@
           <span class="dot hidden">•</span>
         </div>
       </div>
-      <input type="hidden" id="secret-input" maxlength="5" autocomplete="off">
+      <input type="text" id="secret-input" maxlength="5" autocomplete="off" inputmode="text" style="position: absolute; opacity: 0; pointer-events: none; left: -9999px;">
       <button type="submit" id="submit-btn" disabled>Unlock</button>
     </form>
 
@@ -110,9 +110,21 @@
       }
     });
 
-    // Click on boxes to focus
+    // Handle input event for mobile devices
+    hiddenInput.addEventListener('input', (e) => {
+      const inputValue = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+      secretValue = inputValue;
+      currentIndex = secretValue.length;
+      updateDisplay();
+      focusBox(currentIndex);
+      errorMsg.classList.add('hidden');
+      e.target.value = inputValue;
+    });
+
+    // Click on boxes to focus input
     inputBoxes.forEach((box, index) => {
       box.addEventListener('click', () => {
+        hiddenInput.focus();
         currentIndex = Math.min(index, secretValue.length);
         focusBox(currentIndex);
       });
@@ -136,8 +148,9 @@
       }
     });
 
-    // Initialize
+    // Initialize - auto-focus the input on mobile
     focusBox(0);
+    hiddenInput.focus();
   </script>
 </body>
 </html>
