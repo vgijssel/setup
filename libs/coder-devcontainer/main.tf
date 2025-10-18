@@ -119,7 +119,7 @@ data "onepassword_item" "nx_key" {
 # Ensure that the service account token exists in the 'setup-devenv' vault using item ID.
 data "onepassword_item" "op_service_account_token" {
   vault = data.onepassword_vault.setup_devenv.uuid
-  uuid  = "ilo2tnsyhepzu2ffbmtywfxrke"
+  uuid  = "Service Account Auth Token: devenv"
 
   lifecycle {
     postcondition {
