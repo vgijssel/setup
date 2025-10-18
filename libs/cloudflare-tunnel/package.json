@@ -1,0 +1,62 @@
+{
+  "name": "cloudflare-tunnel",
+  "version": "0.2.0",
+  "description": "OpenTofu module for creating Cloudflare Tunnels",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/cloudflare-tunnel",
+    "targets": {
+      "validate": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "tofu validate",
+          "cwd": "libs/cloudflare-tunnel"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Validate OpenTofu configuration"
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "tofu test",
+          "cwd": "libs/cloudflare-tunnel"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Run OpenTofu tests"
+        }
+      },
+      "fmt": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "tofu fmt -recursive",
+          "cwd": "libs/cloudflare-tunnel"
+        },
+        "cache": false,
+        "metadata": {
+          "description": "Format OpenTofu files"
+        }
+      },
+      "init": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "tofu init",
+          "cwd": "libs/cloudflare-tunnel"
+        },
+        "cache": false,
+        "metadata": {
+          "description": "Initialize OpenTofu"
+        }
+      }
+    },
+    "tags": [
+      "cloudflare",
+      "tunnel",
+      "opentofu",
+      "infrastructure"
+    ]
+  },
+  "private": true
+}

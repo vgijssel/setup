@@ -1,6 +1,0 @@
-apiVersion: v2
-name: cloudflare-tunnel
-description: A Helm chart for Cloudflare Tunnel
-type: application
-version: 0.1.0
-appVersion: 2024.9.1
