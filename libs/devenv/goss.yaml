@@ -108,7 +108,7 @@ command:
     exec: coder version | awk 'NR==1 {print $2}' | sed 's/v//' | cut -d'+' -f1 | tr -d '\n'
     exit-status: 0
     stdout:
-      semver-constraint: ">=2.26.1"
+      semver-constraint: ">=2.27.1"
     stderr: ""
     timeout: 60000
 
