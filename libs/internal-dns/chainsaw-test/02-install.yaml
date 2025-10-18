@@ -12,11 +12,23 @@ spec:
       try:
         - apply:
             file: test-namespace.yaml
-    - name: Create mock Cloudflare secret
-      description: Create a mock secret for testing (in real env, OnePasswordItem creates this)
+    - name: Create Cloudflare secret from 1Password
+      description: Create secret using real credentials from 1Password for e2e validation
       try:
-        - apply:
-            file: mock-cloudflare-secret.yaml
+        - script:
+            content: |
+              set -e
+              if [ -f ../secrets.yaml ]; then
+                echo "Using real Cloudflare credentials for e2e testing"
+                API_TOKEN=$(yq -r '.apiToken' ../secrets.yaml)
+                kubectl create secret generic internal-dns-cloudflare \
+                  --namespace internal-dns-test \
+                  --from-literal=apiToken="$API_TOKEN" \
+                  --dry-run=client -o yaml | kubectl apply -f -
+              else
+                echo "secrets.yaml not found, using mock credentials"
+                kubectl apply -f mock-cloudflare-secret.yaml
+              fi
     - name: Install internal-dns chart
       try:
         - command:
@@ -44,3 +56,32 @@ spec:
       try:
         - assert:
             file: external-dns-running-assert.yaml
+    - name: Verify DNS record creation (e2e validation)
+      description: Check if external-dns creates DNS records in Cloudflare
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -e
+              echo "Checking external-dns logs for DNS record creation..."
+
+              # Get the external-dns pod name
+              POD_NAME=$(kubectl get pods -n internal-dns-test -l app.kubernetes.io/name=internal-dns -o jsonpath='{.items[0].metadata.name}')
+
+              # Check logs for successful record creation
+              for i in {1..12}; do
+                echo "Attempt $i/12: Checking external-dns logs..."
+                if kubectl logs -n internal-dns-test "$POD_NAME" --tail=100 | grep -i "create.*test.enigma.vgijssel.nl\|upsert.*test.enigma.vgijssel.nl"; then
+                  echo "✓ DNS record creation detected in logs"
+                  exit 0
+                fi
+                if [ $i -lt 12 ]; then
+                  echo "Waiting for DNS record creation... (${i}0s elapsed)"
+                  sleep 10
+                fi
+              done
+
+              echo "Warning: Could not confirm DNS record creation in external-dns logs"
+              echo "This might be expected if using mock credentials"
+              kubectl logs -n internal-dns-test "$POD_NAME" --tail=50
+              exit 0

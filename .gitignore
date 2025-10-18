@@ -82,6 +82,7 @@ stacks/enigma-cozy/kubeconfig
 
 kind-logs-*
 kubeconfig
+libs/internal-dns/secrets.yaml
 
 **/.claude/settings.local.json
 **/.terraform/
