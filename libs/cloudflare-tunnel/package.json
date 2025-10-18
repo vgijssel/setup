@@ -8,6 +8,9 @@
     "targets": {
       "validate": {
         "executor": "nx:run-commands",
+        "dependsOn": [
+          "init"
+        ],
         "options": {
           "command": "tofu validate",
           "cwd": "libs/cloudflare-tunnel"
@@ -19,6 +22,9 @@
       },
       "test": {
         "executor": "nx:run-commands",
+        "dependsOn": [
+          "init"
+        ],
         "options": {
           "command": "tofu test",
           "cwd": "libs/cloudflare-tunnel"
