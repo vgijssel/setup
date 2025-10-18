@@ -3,6 +3,9 @@ kind: Configuration
 metadata:
   name: internal-dns-test-config
 spec:
+  clusters:
+    kind:
+      create: true
   timeouts:
     apply: 30s
     assert: 1m
