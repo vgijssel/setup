@@ -17,6 +17,9 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "tunnel" {
   name       = local.tunnel_name
 }
 
+# Note: cloudflare_zero_trust_tunnel_cloudflared_config cannot be destroyed via Terraform.
+# If you need to delete it, you must do so manually via the Cloudflare dashboard.
+# This is a known limitation of the Cloudflare provider.
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "tunnel_config" {
   account_id = var.cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.tunnel.id

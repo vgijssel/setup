@@ -1,3 +1,8 @@
+# Note: These tests will show warnings about cloudflare_zero_trust_tunnel_cloudflared_config
+# not being destroyable via Terraform. This is expected behavior from the Cloudflare provider
+# and does not indicate a test failure. The resource must be manually deleted from the
+# Cloudflare dashboard when needed.
+
 run "test_random_id_configuration" {
   command = plan
 
@@ -71,5 +76,44 @@ run "test_dns_record_configuration" {
   assert {
     condition     = cloudflare_dns_record.tunnel_cname.ttl == 1
     error_message = "DNS record TTL should be 1 (automatic)"
+  }
+}
+
+run "test_apply_and_verify" {
+  command = apply
+
+  assert {
+    condition     = cloudflare_zero_trust_tunnel_cloudflared.tunnel.id != ""
+    error_message = "Tunnel ID should be generated after creation"
+  }
+
+  assert {
+    condition     = can(regex("^${var.tunnel_name}-[a-f0-9]{8}$", cloudflare_zero_trust_tunnel_cloudflared.tunnel.name))
+    error_message = "Tunnel name should have format '<prefix>-<hex>' but got '${cloudflare_zero_trust_tunnel_cloudflared.tunnel.name}'"
+  }
+
+  assert {
+    condition     = cloudflare_zero_trust_tunnel_cloudflared.tunnel.account_id == var.cloudflare_account_id
+    error_message = "Tunnel should be created in the correct account"
+  }
+
+  assert {
+    condition     = data.cloudflare_zero_trust_tunnel_cloudflared_token.tunnel_token.token != ""
+    error_message = "Tunnel token should be generated"
+  }
+
+  assert {
+    condition     = cloudflare_dns_record.tunnel_cname.id != ""
+    error_message = "DNS record should be created"
+  }
+
+  assert {
+    condition     = can(regex("\\.cfargotunnel\\.com$", cloudflare_dns_record.tunnel_cname.content))
+    error_message = "DNS record should point to cfargotunnel.com domain"
+  }
+
+  assert {
+    condition     = cloudflare_dns_record.tunnel_cname.name == local.tunnel_hostname
+    error_message = "DNS record name should match tunnel hostname"
   }
 }
