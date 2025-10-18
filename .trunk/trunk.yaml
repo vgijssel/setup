@@ -49,17 +49,10 @@ lint:
     # Ignore yamllint syntax errors for Helm chart templates
     - linters: [yamllint]
       paths:
-        - libs/cloudflare-tunnel/templates/cloudflare-tunnel.yaml
-        - libs/cloudflare-tunnel/templates/composition.yaml
-        - libs/cloudflare-tunnel/templates/xrd.yaml
         - libs/internal-dns/templates/deployment.yaml
         - libs/internal-dns/templates/service.yaml
         - libs/internal-dns/templates/pvc.yaml
         - libs/internal-dns/templates/external-dns-rbac.yaml
-    # Ignore prettier for Helm chart templates with special syntax
-    - linters: [prettier]
-      paths:
-        - libs/cloudflare-tunnel/templates/**
         - libs/internal-dns/templates/**
         - libs/devenv/goss.yaml
   enabled:
