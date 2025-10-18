@@ -1,3 +1,9 @@
+## 0.11.1 (2025-10-18)
+
+### 🩹 Fixes
+
+- chore(devenv): update Coder CLI to v2.27.1 ([#769](https://github.com/vgijssel/setup/pull/769))
+
 ## 0.11.0 (2025-10-08)
 
 ### 🚀 Features
