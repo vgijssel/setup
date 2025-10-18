@@ -1,3 +1,9 @@
+## 0.8.0 (2025-10-18)
+
+### 🚀 Features
+
+- Add OP_SERVICE_ACCOUNT_TOKEN environment variable from 1Password ([#771](https://github.com/vgijssel/setup/pull/771))
+
 ## 0.7.13 (2025-10-18)
 
 ### 🧱 Updated Dependencies
