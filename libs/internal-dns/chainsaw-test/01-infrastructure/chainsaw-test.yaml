@@ -16,7 +16,7 @@ spec:
               - upgrade
               - --install
               - metallb
-              - ../../third_party/vendir/charts/metallb
+              - ../../../../third_party/vendir/charts/metallb
               - --namespace
               - metallb-system
               - --create-namespace
@@ -36,7 +36,7 @@ spec:
               - upgrade
               - --install
               - ingress-nginx
-              - ../../third_party/vendir/charts/ingress-nginx
+              - ../../../../third_party/vendir/charts/ingress-nginx
               - --namespace
               - ingress-nginx
               - --create-namespace
@@ -54,7 +54,7 @@ spec:
               - upgrade
               - --install
               - onepassword-connect
-              - ../../third_party/vendir/charts/1password-connect
+              - ../../../../third_party/vendir/charts/1password-connect
               - --namespace
               - onepassword-operator
               - --create-namespace

@@ -18,9 +18,9 @@ spec:
         - script:
             content: |
               set -e
-              if [ -f ../secrets.yaml ]; then
+              if [ -f ../../secrets.yaml ]; then
                 echo "Using real Cloudflare credentials for e2e testing"
-                API_TOKEN=$(yq -r '.apiToken' ../secrets.yaml)
+                API_TOKEN=$(yq -r '.apiToken' ../../secrets.yaml)
                 kubectl create secret generic internal-dns-cloudflare \
                   --namespace internal-dns-test \
                   --from-literal=apiToken="$API_TOKEN" \
@@ -37,7 +37,7 @@ spec:
               - upgrade
               - --install
               - internal-dns
-              - .
+              - ../..
               - --namespace
               - internal-dns-test
               - --set
