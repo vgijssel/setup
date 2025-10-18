@@ -14,6 +14,9 @@ spec:
               echo "Creating kind cluster..."
               kind create cluster --name chainsaw-test --kubeconfig ./kubeconfig --wait 2m
               echo "Kind cluster created successfully"
+        - clusters:
+            chainsaw-test:
+              kubeconfig: ./kubeconfig
       cleanup:
         - script:
             content: |
