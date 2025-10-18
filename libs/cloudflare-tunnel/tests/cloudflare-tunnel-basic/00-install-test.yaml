@@ -1,7 +1,0 @@
-apiVersion: kuttl.dev/v1beta1
-kind: TestStep
-metadata:
-  name: install-cloudflare-tunnel
-commands:
-  - script: kubectl create secret generic cloudflare-tunnel --namespace $NAMESPACE --from-literal=credential=$(op read "op://devenv/cloudflare-tunnel/credential") --from-literal=username=$(op read "op://devenv/cloudflare-tunnel/username")
-  - script: helm upgrade --install cloudflare-tunnel ../../ --set tunnel.name=$NAMESPACE --namespace=$NAMESPACE

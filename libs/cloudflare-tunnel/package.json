@@ -1,0 +1,75 @@
+{
+  "name": "cloudflare-tunnel",
+  "version": "0.2.0",
+  "description": "OpenTofu module for creating Cloudflare Tunnels",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/cloudflare-tunnel",
+    "targets": {
+      "validate": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "init"
+        ],
+        "options": {
+          "command": "tofu validate",
+          "cwd": "libs/cloudflare-tunnel"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Validate OpenTofu configuration"
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "init",
+          "secrets"
+        ],
+        "options": {
+          "command": "tofu test",
+          "cwd": "libs/cloudflare-tunnel"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Run OpenTofu tests"
+        }
+      },
+      "init": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "tofu init",
+          "cwd": "libs/cloudflare-tunnel"
+        },
+        "cache": false,
+        "metadata": {
+          "description": "Initialize OpenTofu"
+        }
+      },
+      "secrets": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "op inject --force -i terraform.tfvars.tpl -o terraform.tfvars",
+          "cwd": "libs/cloudflare-tunnel"
+        },
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/terraform.tfvars"
+        ],
+        "inputs": [
+          "{projectRoot}/terraform.tfvars.tpl"
+        ],
+        "metadata": {
+          "description": "Generate terraform.tfvars file from 1Password secrets"
+        }
+      }
+    },
+    "tags": [
+      "cloudflare",
+      "tunnel",
+      "opentofu",
+      "infrastructure"
+    ]
+  },
+  "private": true
+}
