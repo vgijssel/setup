@@ -35,17 +35,6 @@
           "description": "Run OpenTofu tests"
         }
       },
-      "fmt": {
-        "executor": "nx:run-commands",
-        "options": {
-          "command": "tofu fmt -recursive",
-          "cwd": "libs/cloudflare-tunnel"
-        },
-        "cache": false,
-        "metadata": {
-          "description": "Format OpenTofu files"
-        }
-      },
       "init": {
         "executor": "nx:run-commands",
         "options": {
