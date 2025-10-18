@@ -1,7 +1,0 @@
-apiVersion: kuttl.dev/v1beta1
-kind: TestStep
-metadata:
-  name: uninstall-internal-dns
-commands:
-  - command: helm uninstall internal-dns-test
-    namespaced: true

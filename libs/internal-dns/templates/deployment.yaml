@@ -15,133 +15,29 @@ spec:
         {{- include "internal-dns.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "internal-dns.fullname" . }}-external-dns
-      initContainers:
-        - name: init-db
-          image: "{{ .Values.powerdns.image.registry }}/{{ .Values.powerdns.image.repository }}:{{ .Values.powerdns.image.tag }}"
-          command: ["/bin/sh"]
-          args:
-            - -c
-            - |
-              set -e
-              
-              # Fix permissions (running as root)
-              echo "Fixing permissions for /var/lib/powerdns..."
-              chown -R 953:953 /var/lib/powerdns
-              chmod -R 755 /var/lib/powerdns
-              echo "Permissions fixed"
-              
-              # Create database as pdns user
-              if [ ! -f /var/lib/powerdns/pdns.sqlite3 ]; then
-                echo "Creating PowerDNS SQLite database..."
-                runuser -u pdns -- sqlite3 /var/lib/powerdns/pdns.sqlite3 < /usr/local/share/doc/pdns/schema.sqlite3.sql
-                echo "Database created successfully"
-              else
-                echo "Database already exists"
-              fi
-          securityContext:
-            runAsUser: 0
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/powerdns
       containers:
-        - name: powerdns
-          image: "{{ .Values.powerdns.image.registry }}/{{ .Values.powerdns.image.repository }}:{{ .Values.powerdns.image.tag }}"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - name: dns-udp
-              containerPort: 53
-              protocol: UDP
-            - name: dns-tcp
-              containerPort: 53
-              protocol: TCP
-            - name: api
-              containerPort: 8081
-              protocol: TCP
-          env:
-            - name: PDNS_AUTH_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secrets.apiKey.name }}
-                  key: {{ .Values.secrets.apiKey.key }}
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/powerdns
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-        - name: zone-creator
-          image: curlimages/curl:latest
-          command: ["/bin/sh"]
-          args:
-            - -c
-            - |
-              set -e
-              echo "Zone creator sidecar starting..."
-              
-              # Wait for PowerDNS API to be ready
-              echo "Waiting for PowerDNS API to be ready..."
-              until curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://localhost:8081/api/v1/servers/localhost/zones 2>/dev/null; do
-                echo "Waiting for PowerDNS API..."
-                sleep 5
-              done
-              
-              echo "PowerDNS API is ready!"
-              
-              # Check if zone exists and create if needed
-              echo "Checking if zone {{ .Values.domain }}. exists..."
-              if curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://localhost:8081/api/v1/servers/localhost/zones/{{ .Values.domain }}. 2>/dev/null; then
-                echo "Zone {{ .Values.domain }}. already exists"
-              else
-                echo "Creating zone {{ .Values.domain }}."
-                curl -X POST -H "X-API-Key: $PDNS_AUTH_API_KEY" -H "Content-Type: application/json" \
-                  http://localhost:8081/api/v1/servers/localhost/zones \
-                  -d '{"name": "{{ .Values.domain }}.", "kind": "Native"}'
-                echo "Zone {{ .Values.domain }}. created successfully"
-              fi
-              
-              # Keep running to maintain sidecar
-              echo "Zone creation complete. Monitoring for changes..."
-              while true; do
-                sleep 300  # Check every 5 minutes
-                if ! curl -f -H "X-API-Key: $PDNS_AUTH_API_KEY" http://localhost:8081/api/v1/servers/localhost/zones/{{ .Values.domain }}. 2>/dev/null; then
-                  echo "Zone {{ .Values.domain }}. missing, recreating..."
-                  curl -X POST -H "X-API-Key: $PDNS_AUTH_API_KEY" -H "Content-Type: application/json" \
-                    http://localhost:8081/api/v1/servers/localhost/zones \
-                    -d '{"name": "{{ .Values.domain }}.", "kind": "Native"}' || true
-                fi
-              done
-          env:
-            - name: PDNS_AUTH_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secrets.apiKey.name }}
-                  key: {{ .Values.secrets.apiKey.key }}
         - name: external-dns
           image: "{{ .Values.externalDns.image.registry }}/{{ .Values.externalDns.image.repository }}:{{ .Values.externalDns.image.tag }}"
           imagePullPolicy: {{ .Values.externalDns.image.pullPolicy }}
           args:
           - --source=ingress
           - --source=service
-          - --provider=pdns
+          - --provider=cloudflare
           - --events
           - --min-event-sync-interval=5s
-          - --pdns-server=http://localhost:8081
           - --domain-filter={{ .Values.domain }}
           - --log-level={{ .Values.logLevel }}
           - --txt-owner-id={{ .Values.txtOwnerId }}
           - --txt-prefix=_externaldns-
           - --interval={{ .Values.interval }}
           env:
-          - name: EXTERNAL_DNS_PDNS_API_KEY
+          - name: CF_API_TOKEN
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.secrets.apiKey.name }}
-                key: {{ .Values.secrets.apiKey.key }}
+                name: {{ include "internal-dns.fullname" . }}-cloudflare
+                key: apiToken
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: {{ include "internal-dns.fullname" . }}-data
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -1,0 +1,46 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: install-internal-dns
+spec:
+  description: Install and test internal-dns helm chart
+  timeouts:
+    apply: 2m
+    assert: 3m
+  steps:
+    - name: Create test namespace
+      try:
+        - apply:
+            file: test-namespace.yaml
+    - name: Create mock Cloudflare secret
+      description: Create a mock secret for testing (in real env, OnePasswordItem creates this)
+      try:
+        - apply:
+            file: mock-cloudflare-secret.yaml
+    - name: Install internal-dns chart
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - upgrade
+              - --install
+              - internal-dns
+              - .
+              - --namespace
+              - internal-dns-test
+              - --set
+              - cloudflare.onePasswordItem.enabled=false
+              - --wait
+              - --timeout=120s
+        - assert:
+            file: internal-dns-assert.yaml
+    - name: Create test ingress
+      try:
+        - apply:
+            file: test-ingress.yaml
+        - sleep:
+            duration: 30s
+    - name: Verify external-dns is running
+      try:
+        - assert:
+            file: external-dns-running-assert.yaml

@@ -1,0 +1,8 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: internal-dns-test
+status:
+  conditions:
+    - type: Available
+      status: "True"

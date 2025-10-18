@@ -9,14 +9,11 @@
       "test": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "kuttl test",
+          "command": "chainsaw test --test-dir chainsaw-test --config chainsaw-test.yaml",
           "cwd": "libs/internal-dns",
-          "start-kind": true,
-          "skip-cluster-delete": false,
           "configurations": {
             "dev": {
-              "start-kind": false,
-              "skip-cluster-delete": true
+              "command": "chainsaw test --test-dir chainsaw-test --config chainsaw-test.yaml --no-cluster"
             }
           }
         },
