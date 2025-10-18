@@ -11,7 +11,7 @@ variable "cloudflare_account_id" {
 }
 
 variable "tunnel_name" {
-  description = "Cloudflare tunnel name"
+  description = "Cloudflare tunnel name prefix (a unique suffix will be appended)"
   type        = string
 }
 

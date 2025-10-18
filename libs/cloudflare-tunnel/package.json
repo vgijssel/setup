@@ -23,7 +23,8 @@
       "test": {
         "executor": "nx:run-commands",
         "dependsOn": [
-          "init"
+          "init",
+          "secrets"
         ],
         "options": {
           "command": "tofu test",
@@ -54,6 +55,23 @@
         "cache": false,
         "metadata": {
           "description": "Initialize OpenTofu"
+        }
+      },
+      "secrets": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "op inject --force -i terraform.tfvars.tpl -o terraform.tfvars",
+          "cwd": "libs/cloudflare-tunnel"
+        },
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/terraform.tfvars"
+        ],
+        "inputs": [
+          "{projectRoot}/terraform.tfvars.tpl"
+        ],
+        "metadata": {
+          "description": "Generate terraform.tfvars file from 1Password secrets"
         }
       }
     },

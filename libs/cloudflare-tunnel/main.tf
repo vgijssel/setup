@@ -1,4 +1,10 @@
+resource "random_id" "tunnel_suffix" {
+  byte_length = 4
+  prefix      = "${var.tunnel_name}-"
+}
+
 locals {
+  tunnel_name     = random_id.tunnel_suffix.hex
   tunnel_hostname = "${var.tunnel_name}.${var.zone_name}"
 }
 
@@ -8,7 +14,7 @@ provider "cloudflare" {
 
 resource "cloudflare_zero_trust_tunnel_cloudflared" "tunnel" {
   account_id = var.cloudflare_account_id
-  name       = var.tunnel_name
+  name       = local.tunnel_name
 }
 
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "tunnel_config" {
