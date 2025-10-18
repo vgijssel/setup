@@ -1,0 +1,36 @@
+{
+  "name": "coder-devcontainer-native",
+  "version": "0.1.0",
+  "dependencies": {
+    "workspace": "0.6.12"
+  },
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/coder-devcontainer-native",
+    "targets": {
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "terraform init",
+            "terraform validate"
+          ],
+          "parallel": false,
+          "cwd": "libs/coder-devcontainer-native"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Test the Coder template configuration with native devcontainer support"
+        }
+      }
+    },
+    "tags": [
+      "coder",
+      "devcontainer",
+      "devcontainer-native",
+      "terraform",
+      "development-environment"
+    ]
+  },
+  "private": true
+}
