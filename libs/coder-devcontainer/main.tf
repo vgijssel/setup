@@ -29,19 +29,14 @@ locals {
   ha_token = try(data.onepassword_item.haos_api.credential, "")
   # Extract the NX_KEY from 1Password
   nx_key = try(data.onepassword_item.nx_key.credential, "")
+  # Extract the OP_SERVICE_ACCOUNT_TOKEN from 1Password
+  op_service_account_token = try(data.onepassword_item.op_service_account_token.credential, "")
 }
 
 variable "docker_socket" {
   default     = ""
   description = "(Optional) Docker socket URI"
   type        = string
-}
-
-variable "op_service_account_token" {
-  description = "1Password Service Account Token"
-  type        = string
-  sensitive   = true
-  default     = ""
 }
 
 provider "docker" {
@@ -121,6 +116,19 @@ data "onepassword_item" "nx_key" {
   }
 }
 
+# Ensure that the service account token exists in the 'setup-devenv' vault using item ID.
+data "onepassword_item" "op_service_account_token" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  uuid  = "Service Account Auth Token: devenv"
+
+  lifecycle {
+    postcondition {
+      condition     = try(self.credential, "") != ""
+      error_message = "The service account token item in 1Password must have a credential value."
+    }
+  }
+}
+
 
 data "coder_parameter" "system_prompt" {
   name         = "system_prompt"
@@ -156,6 +164,12 @@ resource "coder_env" "nx_key" {
   agent_id = coder_agent.main.id
   name     = "NX_KEY"
   value    = local.nx_key
+}
+
+resource "coder_env" "op_service_account_token" {
+  agent_id = coder_agent.main.id
+  name     = "OP_SERVICE_ACCOUNT_TOKEN"
+  value    = local.op_service_account_token
 }
 
 resource "coder_agent" "main" {
