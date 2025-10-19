@@ -21,7 +21,6 @@ spec:
               - metallb-system
               - --create-namespace
               - --wait
-              - --timeout=300s
     - name: Configure MetalLB IP Pool
       try:
         - apply:
@@ -45,7 +44,6 @@ spec:
               - --set
               - controller.service.externalTrafficPolicy=Local
               - --wait
-              - --timeout=300s
     - name: Install 1Password Operator
       try:
         - command:
@@ -63,6 +61,5 @@ spec:
               - --set
               - connect.create=false
               - --wait
-              - --timeout=300s
         - assert:
             file: onepassword-assert.yaml
