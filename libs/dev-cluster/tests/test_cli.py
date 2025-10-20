@@ -68,7 +68,15 @@ def test_create_missing_prerequisites(mock_prereqs):
 @patch("dev_cluster.cli.kind.cluster_exists")
 @patch("dev_cluster.cli.kind.create_cluster")
 @patch("dev_cluster.cli.kind.get_cluster_context")
+@patch("dev_cluster.cli.flux.bootstrap_flux")
+@patch("dev_cluster.cli.flux.wait_for_flux_ready")
+@patch("dev_cluster.cli.flux.suspend_flux_reconciliation")
+@patch("dev_cluster.cli.subprocess.run")
 def test_create_cluster_new(
+    mock_subprocess,
+    mock_suspend,
+    mock_wait,
+    mock_bootstrap,
     mock_context,
     mock_create,
     mock_exists,
@@ -78,19 +86,33 @@ def test_create_cluster_new(
     mock_prereqs.return_value = True
     mock_exists.return_value = False
     mock_context.return_value = "kind-test-cluster"
+    mock_wait.return_value = True
+
+    # Mock git branch command
+    mock_git_result = type("obj", (object,), {"stdout": "main\n", "returncode": 0})()
+    mock_subprocess.return_value = mock_git_result
 
     runner = CliRunner()
-    result = runner.invoke(cli, ["create", "test-cluster", "--skip-flux"])
+    result = runner.invoke(cli, ["create", "test-cluster"])
     assert result.exit_code == 0
     assert "Creating cluster" in result.output
     assert "✓ Cluster created" in result.output
     mock_create.assert_called_once()
+    mock_bootstrap.assert_called_once()
 
 
 @patch("dev_cluster.cli.check_prerequisites")
 @patch("dev_cluster.cli.kind.cluster_exists")
 @patch("dev_cluster.cli.kind.get_cluster_context")
+@patch("dev_cluster.cli.flux.bootstrap_flux")
+@patch("dev_cluster.cli.flux.wait_for_flux_ready")
+@patch("dev_cluster.cli.flux.suspend_flux_reconciliation")
+@patch("dev_cluster.cli.subprocess.run")
 def test_create_cluster_exists(
+    mock_subprocess,
+    mock_suspend,
+    mock_wait,
+    mock_bootstrap,
     mock_context,
     mock_exists,
     mock_prereqs,
@@ -99,11 +121,17 @@ def test_create_cluster_exists(
     mock_prereqs.return_value = True
     mock_exists.return_value = True
     mock_context.return_value = "kind-test-cluster"
+    mock_wait.return_value = True
+
+    # Mock git branch command
+    mock_git_result = type("obj", (object,), {"stdout": "main\n", "returncode": 0})()
+    mock_subprocess.return_value = mock_git_result
 
     runner = CliRunner()
-    result = runner.invoke(cli, ["create", "test-cluster", "--skip-flux"])
+    result = runner.invoke(cli, ["create", "test-cluster"])
     assert result.exit_code == 0
     assert "already exists" in result.output
+    mock_bootstrap.assert_called_once()
 
 
 @patch("dev_cluster.cli.kind.check_kind_installed")

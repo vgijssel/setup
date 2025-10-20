@@ -25,18 +25,24 @@ def test_check_flux_installed_false(mock_run):
     assert check_flux_installed() is False
 
 
+@patch("dev_cluster.flux.os.path.exists")
+@patch("dev_cluster.flux.os.environ")
 @patch("dev_cluster.flux.subprocess.run")
-@patch("dev_cluster.flux.os.environ.get")
-def test_bootstrap_flux_install_success(mock_env, mock_run):
+def test_bootstrap_flux_install_success(mock_run, mock_environ, mock_exists):
     """Test bootstrap_flux with flux install + create."""
-    mock_env.side_effect = lambda k, default=None: {
-        "FLUX_REPO_URL": "https://github.com/vgijssel/setup",
-        "FLUX_PATH": "./stacks/dev-cluster",
-    }.get(k, default)
+    mock_environ.__getitem__.return_value = "/workspaces/setup"
+    mock_exists.return_value = True
     # All three commands succeed
     mock_run.return_value = MagicMock(returncode=0)
 
-    bootstrap_flux("kind-test", "test", branch="main")
+    bootstrap_flux(
+        "kind-test",
+        "test",
+        "https://github.com/vgijssel/setup",
+        "main",
+        "stacks/dev-cluster",
+        False,
+    )
 
     # Should be called 3 times: install, create source, create kustomization
     assert mock_run.call_count == 3
@@ -60,18 +66,33 @@ def test_bootstrap_flux_install_success(mock_env, mock_run):
     assert "kustomization" in kustomization_args
 
 
+@patch("dev_cluster.flux.os.path.exists")
+@patch("dev_cluster.flux.os.environ")
 @patch("dev_cluster.flux.subprocess.run")
-def test_bootstrap_flux_install_failure(mock_run):
+def test_bootstrap_flux_install_failure(mock_run, mock_environ, mock_exists):
     """Test bootstrap_flux when flux install fails."""
+    mock_environ.__getitem__.return_value = "/workspaces/setup"
+    mock_exists.return_value = True
     mock_run.return_value = MagicMock(returncode=1, stderr="error")
 
     with pytest.raises(RuntimeError, match="Failed to install Flux"):
-        bootstrap_flux("kind-test", "test")
+        bootstrap_flux(
+            "kind-test",
+            "test",
+            "https://github.com/vgijssel/setup",
+            "main",
+            "stacks/dev-cluster",
+            False,
+        )
 
 
+@patch("dev_cluster.flux.os.path.exists")
+@patch("dev_cluster.flux.os.environ")
 @patch("dev_cluster.flux.subprocess.run")
-def test_bootstrap_flux_source_failure(mock_run):
+def test_bootstrap_flux_source_failure(mock_run, mock_environ, mock_exists):
     """Test bootstrap_flux when create source fails."""
+    mock_environ.__getitem__.return_value = "/workspaces/setup"
+    mock_exists.return_value = True
     # First call (install) succeeds, second (create source) fails
     mock_run.side_effect = [
         MagicMock(returncode=0),
@@ -81,12 +102,23 @@ def test_bootstrap_flux_source_failure(mock_run):
     with pytest.raises(
         RuntimeError, match="Failed to create Flux GitRepository source"
     ):
-        bootstrap_flux("kind-test", "test")
+        bootstrap_flux(
+            "kind-test",
+            "test",
+            "https://github.com/vgijssel/setup",
+            "main",
+            "stacks/dev-cluster",
+            False,
+        )
 
 
+@patch("dev_cluster.flux.os.path.exists")
+@patch("dev_cluster.flux.os.environ")
 @patch("dev_cluster.flux.subprocess.run")
-def test_bootstrap_flux_kustomization_failure(mock_run):
+def test_bootstrap_flux_kustomization_failure(mock_run, mock_environ, mock_exists):
     """Test bootstrap_flux when create kustomization fails."""
+    mock_environ.__getitem__.return_value = "/workspaces/setup"
+    mock_exists.return_value = True
     # First two calls succeed, third (create kustomization) fails
     mock_run.side_effect = [
         MagicMock(returncode=0),
@@ -95,7 +127,14 @@ def test_bootstrap_flux_kustomization_failure(mock_run):
     ]
 
     with pytest.raises(RuntimeError, match="Failed to create Flux Kustomization"):
-        bootstrap_flux("kind-test", "test")
+        bootstrap_flux(
+            "kind-test",
+            "test",
+            "https://github.com/vgijssel/setup",
+            "main",
+            "stacks/dev-cluster",
+            False,
+        )
 
 
 @patch("dev_cluster.flux.subprocess.run")

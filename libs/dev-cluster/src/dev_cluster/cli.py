@@ -89,20 +89,21 @@ def cli(ctx, verbose):
 @click.option(
     "--repo-url",
     envvar="FLUX_REPO_URL",
+    default="https://github.com/vgijssel/setup",
     help="Git repository URL for Flux bootstrap",
 )
 @click.option(
     "--flux-path",
     envvar="FLUX_PATH",
-    help="Path in repository for Flux (default: clusters/<name>)",
+    default="stacks/dev-cluster",
+    help="Path in repository for Flux",
 )
 @click.option(
-    "--skip-flux",
-    is_flag=True,
-    help="Skip Flux bootstrap",
+    "--branch",
+    help="Git branch to use (defaults to current branch)",
 )
 @click.pass_context
-def create(ctx, name, config, wait, repo_url, flux_path, skip_flux):
+def create(ctx, name, config, wait, repo_url, flux_path, branch):
     """Create a development cluster."""
     verbose = ctx.obj.get("VERBOSE", False)
 
@@ -128,44 +129,41 @@ def create(ctx, name, config, wait, repo_url, flux_path, skip_flux):
         # Get cluster context
         context = kind.get_cluster_context(name)
 
-        # Bootstrap Flux
-        if not skip_flux:
-            # Get current git branch
+        # Get current git branch if not specified
+        if not branch:
             result = subprocess.run(
                 ["git", "branch", "--show-current"],
                 capture_output=True,
                 text=True,
                 check=False,
             )
-            current_branch = result.stdout.strip() if result.returncode == 0 else "main"
+            branch = result.stdout.strip() if result.returncode == 0 else "main"
 
-            click.echo(
-                f"Installing Flux and creating GitRepository (branch: {current_branch})..."
-            )
-            flux.bootstrap_flux(
-                context,
-                name,
-                repo_url=repo_url,
-                branch=current_branch,
-                path=flux_path,
-                verbose=verbose,
-            )
-            click.echo("✓ Flux installed with GitRepository and Kustomization")
+        click.echo(f"Installing Flux and creating GitRepository (branch: {branch})...")
+        flux.bootstrap_flux(
+            context,
+            name,
+            repo_url,
+            branch,
+            flux_path,
+            verbose,
+        )
+        click.echo("✓ Flux installed with GitRepository and Kustomization")
 
-            # Wait for Flux to be ready
-            click.echo("Waiting for Flux to be ready...")
-            start_time = time.time()
-            if flux.wait_for_flux_ready(context, timeout=timeout, verbose=verbose):
-                elapsed = int(time.time() - start_time)
-                click.echo(f"✓ Flux ready ({elapsed}s)")
-            else:
-                click.echo("✗ Flux did not become ready within timeout", err=True)
-                sys.exit(1)
+        # Wait for Flux to be ready
+        click.echo("Waiting for Flux to be ready...")
+        start_time = time.time()
+        if flux.wait_for_flux_ready(context, timeout=timeout, verbose=verbose):
+            elapsed = int(time.time() - start_time)
+            click.echo(f"✓ Flux ready ({elapsed}s)")
+        else:
+            click.echo("✗ Flux did not become ready within timeout", err=True)
+            sys.exit(1)
 
-            # Suspend Flux reconciliation
-            click.echo("Suspending Flux reconciliation...")
-            flux.suspend_flux_reconciliation(context, verbose=verbose)
-            click.echo("✓ Flux reconciliation suspended")
+        # Suspend Flux reconciliation
+        click.echo("Suspending Flux reconciliation...")
+        flux.suspend_flux_reconciliation(context, verbose=verbose)
+        click.echo("✓ Flux reconciliation suspended")
 
         # Success message
         click.echo(f"\nCluster '{name}' ready!")

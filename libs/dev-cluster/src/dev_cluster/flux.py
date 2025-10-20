@@ -4,7 +4,6 @@ import os
 import subprocess
 import sys
 import time
-from typing import Optional
 
 
 def check_flux_installed() -> bool:
@@ -24,31 +23,28 @@ def check_flux_installed() -> bool:
 def bootstrap_flux(
     cluster_context: str,
     cluster_name: str,
-    repo_url: Optional[str] = None,
-    branch: str = "main",
-    path: Optional[str] = None,
-    verbose: bool = False,
+    repo_url: str,
+    branch: str,
+    path: str,
+    verbose: bool,
 ) -> None:
     """Install Flux and create GitRepository and Kustomization resources.
 
     Args:
         cluster_context: Kubectl context for the cluster
         cluster_name: Name of the cluster
-        repo_url: Git repository URL (defaults to FLUX_REPO_URL env or https://github.com/vgijssel/setup)
+        repo_url: Git repository URL
         branch: Git branch to use
-        path: Path in repo (defaults to stacks/dev-cluster)
+        path: Path in repo
         verbose: Enable verbose output
 
     Raises:
         RuntimeError: If Flux installation fails
     """
-    # Get repo URL from parameter or environment
-    if not repo_url:
-        repo_url = os.environ.get("FLUX_REPO_URL", "https://github.com/vgijssel/setup")
+    path = os.path.join(os.environ["SETUP_DIR"], path)
 
-    # Get path
-    if not path:
-        path = os.environ.get("FLUX_PATH", "./stacks/dev-cluster")
+    if not os.path.exists(path):
+        raise RuntimeError(f"Specified path does not exist: {path}")
 
     # Step 1: Install Flux
     install_cmd = [

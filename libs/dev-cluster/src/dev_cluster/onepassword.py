@@ -119,22 +119,3 @@ def create_op_connect_token_secret(
         if not verbose:
             print(result.stderr, file=sys.stderr)
         raise RuntimeError("Failed to apply 1Password credentials secret")
-
-
-def install_op_operator(
-    cluster_context: str,
-    verbose: bool = False,
-) -> None:
-    """Install 1Password operator in the cluster.
-
-    Args:
-        cluster_context: Kubectl context for the cluster
-        verbose: Enable verbose output
-
-    Raises:
-        RuntimeError: If installation fails
-    """
-    # Note: The actual operator installation would typically be done via Helm or
-    # Kubernetes manifests. For now, we just ensure the secret is created.
-    # The operator itself will be installed by Flux after bootstrap.
-    create_op_connect_token_secret(cluster_context, verbose)

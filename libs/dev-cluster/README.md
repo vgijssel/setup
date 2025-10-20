@@ -1,11 +1,10 @@
 # dev-cluster
 
-Local development cluster orchestration tool for creating Kubernetes clusters with kind, complete with 1Password operator and Flux GitOps bootstrap.
+Local development cluster orchestration tool for creating Kubernetes clusters with kind and Flux GitOps bootstrap.
 
 ## Features
 
 - Create idempotent kind clusters with native snapshotter
-- Automatic 1Password operator secret installation
 - Flux GitOps bootstrap with suspended reconciliation
 - Simple, familiar CLI interface (similar to kind)
 - Progress feedback for each operation
@@ -17,7 +16,6 @@ The following tools must be installed:
 - **kind**: Kubernetes in Docker ([installation](https://kind.sigs.k8s.io/))
 - **kubectl**: Kubernetes CLI ([installation](https://kubernetes.io/docs/tasks/tools/))
 - **flux**: Flux CLI ([installation](https://fluxcd.io/flux/installation/))
-- **op**: 1Password CLI ([installation](https://developer.1password.com/docs/cli/))
 
 ## Installation
 
@@ -46,9 +44,8 @@ dev-cluster create my-cluster
 The create command will:
 1. Create a kind cluster (if it doesn't exist)
 2. Wait for the cluster to be ready
-3. Install 1Password operator credentials
-4. Bootstrap Flux GitOps
-5. Suspend Flux reconciliation
+3. Bootstrap Flux GitOps
+4. Suspend Flux reconciliation
 
 ### Create with Custom Config
 
@@ -76,16 +73,6 @@ Delete an existing cluster:
 dev-cluster delete my-cluster
 ```
 
-### Skip Optional Steps
-
-Skip 1Password or Flux installation:
-
-```bash
-dev-cluster create my-cluster --skip-onepassword
-dev-cluster create my-cluster --skip-flux
-dev-cluster create my-cluster --skip-onepassword --skip-flux
-```
-
 ### Verbose Output
 
 Enable verbose output for debugging:
@@ -101,20 +88,14 @@ dev-cluster --verbose create my-cluster
 
 The tool supports the following environment variables:
 
-#### 1Password Configuration
-
-- `OP_CONNECT_TOKEN`: 1Password Connect token (required for 1Password setup)
-
-#### Flux Configuration
-
 - `FLUX_REPO_URL`: Git repository URL (default: `https://github.com/vgijssel/setup`)
-- `FLUX_PATH`: Path in repository for Flux manifests (default: `clusters/<cluster-name>`)
+- `FLUX_PATH`: Path in repository for Flux manifests (default: `stacks/dev-cluster`)
 
 Example:
 
 ```bash
-export OP_CONNECT_TOKEN="your-1password-token"
 export FLUX_REPO_URL="https://github.com/myorg/myrepo"
+export FLUX_PATH="clusters/my-cluster"
 
 dev-cluster create my-cluster
 ```
@@ -158,10 +139,9 @@ dev-cluster create NAME [OPTIONS]
 **Options:**
 - `--config PATH`: Path to kind cluster config file
 - `--wait DURATION`: Wait duration for cluster to be ready (default: `5m`)
-- `--repo-url URL`: Git repository URL for Flux bootstrap
-- `--flux-path PATH`: Path in repository for Flux (default: `clusters/<name>`)
-- `--skip-flux`: Skip Flux bootstrap
-- `--skip-onepassword`: Skip 1Password operator setup
+- `--repo-url URL`: Git repository URL for Flux bootstrap (default: `https://github.com/vgijssel/setup`)
+- `--flux-path PATH`: Path in repository for Flux (default: `stacks/dev-cluster`)
+- `--branch BRANCH`: Git branch to use (defaults to current branch)
 
 #### `delete`
 
@@ -227,20 +207,6 @@ If you see an error about missing tools, install them:
 ```bash
 Error: Missing required tools:
   - kind: Install from https://kind.sigs.k8s.io/
-```
-
-### 1Password Token Not Set
-
-If you see:
-
-```
-Error: OP_CONNECT_TOKEN environment variable not set
-```
-
-Set the token:
-
-```bash
-export OP_CONNECT_TOKEN="your-token-here"
 ```
 
 ### Cluster Creation Fails
