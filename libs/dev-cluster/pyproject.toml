@@ -5,6 +5,9 @@ description = "Local development cluster orchestration"
 requires-python = ">=3.11"
 dependencies = ["click==8.1.8", "pyyaml==6.0.2"]
 
+[project.optional-dependencies]
+dev = ["pytest==8.3.4", "pytest-mock==3.14.0"]
+
 [project.scripts]
 dev-cluster = "dev_cluster.cli:cli"
 

@@ -5,7 +5,7 @@ import time
 
 import click
 
-from . import flux, kind, onepassword
+from . import flux, kind
 
 
 def check_prerequisites(verbose: bool = False) -> bool:
@@ -24,10 +24,6 @@ def check_prerequisites(verbose: bool = False) -> bool:
             "https://kubernetes.io/docs/tasks/tools/",
         ),
         "flux": (flux.check_flux_installed(), "https://fluxcd.io/flux/installation/"),
-        "op": (
-            onepassword.check_op_installed(),
-            "https://developer.1password.com/docs/cli/",
-        ),
     }
 
     missing = []
@@ -103,13 +99,8 @@ def cli(ctx, verbose):
     is_flag=True,
     help="Skip Flux bootstrap",
 )
-@click.option(
-    "--skip-onepassword",
-    is_flag=True,
-    help="Skip 1Password operator setup",
-)
 @click.pass_context
-def create(ctx, name, config, wait, repo_url, flux_path, skip_flux, skip_onepassword):
+def create(ctx, name, config, wait, repo_url, flux_path, skip_flux):
     """Create a development cluster."""
     verbose = ctx.obj.get("VERBOSE", False)
 
@@ -142,12 +133,6 @@ def create(ctx, name, config, wait, repo_url, flux_path, skip_flux, skip_onepass
         # Get cluster context
         context = kind.get_cluster_context(name)
 
-        # Install 1Password operator
-        if not skip_onepassword:
-            click.echo("Installing 1Password operator...")
-            onepassword.install_op_operator(context, verbose=verbose)
-            click.echo("✓ 1Password operator installed")
-
         # Bootstrap Flux
         if not skip_flux:
             click.echo("Bootstrapping Flux...")
@@ -159,6 +144,19 @@ def create(ctx, name, config, wait, repo_url, flux_path, skip_flux, skip_onepass
                 verbose=verbose,
             )
             click.echo(f"✓ Flux bootstrapped to {flux_path or f'clusters/{name}'}")
+
+            # Wait for Flux to be ready
+            click.echo("Waiting for Flux to be ready...")
+            start_time = time.time()
+            remaining_timeout = timeout - int(time.time() - start_time)
+            if flux.wait_for_flux_ready(
+                context, timeout=remaining_timeout, verbose=verbose
+            ):
+                elapsed = int(time.time() - start_time)
+                click.echo(f"✓ Flux ready ({elapsed}s)")
+            else:
+                click.echo("✗ Flux did not become ready within timeout", err=True)
+                sys.exit(1)
 
             # Suspend Flux reconciliation
             click.echo("Suspending Flux reconciliation...")

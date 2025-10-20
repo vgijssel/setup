@@ -1,0 +1,31 @@
+{
+  "name": "dev-cluster",
+  "version": "0.1.0",
+  "description": "Local development cluster orchestration tool",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/dev-cluster/src",
+    "targets": {
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run pytest",
+          "cwd": "libs/dev-cluster"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Run pytest unit tests"
+        }
+      }
+    },
+    "tags": [
+      "python",
+      "cli",
+      "kubernetes",
+      "kind",
+      "flux",
+      "development"
+    ]
+  },
+  "private": true
+}

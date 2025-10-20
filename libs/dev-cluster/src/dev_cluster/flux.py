@@ -3,6 +3,7 @@
 import os
 import subprocess
 import sys
+import time
 from typing import Optional
 
 
@@ -168,3 +169,70 @@ def suspend_flux_reconciliation(
         if not verbose:
             print(result.stderr, file=sys.stderr)
         raise RuntimeError("Failed to suspend Flux kustomization")
+
+
+def wait_for_flux_ready(
+    cluster_context: str,
+    timeout: int = 300,
+    verbose: bool = False,
+) -> bool:
+    """Wait for Flux to be ready.
+
+    Args:
+        cluster_context: Kubectl context for the cluster
+        timeout: Timeout in seconds
+        verbose: Enable verbose output
+
+    Returns:
+        True if Flux is ready, False if timeout
+    """
+    start_time = time.time()
+
+    while time.time() - start_time < timeout:
+        # Check if flux-system namespace exists and pods are running
+        result = subprocess.run(
+            [
+                "kubectl",
+                "--context",
+                cluster_context,
+                "get",
+                "pods",
+                "-n",
+                "flux-system",
+                "-o",
+                "jsonpath={.items[*].status.phase}",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if result.returncode == 0:
+            phases = result.stdout.strip().split()
+            if phases and all(phase in ["Running", "Succeeded"] for phase in phases):
+                # Also check that key Flux resources are ready
+                result = subprocess.run(
+                    [
+                        "kubectl",
+                        "--context",
+                        cluster_context,
+                        "get",
+                        "deploy",
+                        "-n",
+                        "flux-system",
+                        "-o",
+                        "jsonpath={.items[*].status.conditions[?(@.type=='Available')].status}",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+
+                if result.returncode == 0:
+                    statuses = result.stdout.strip().split()
+                    if statuses and all(status == "True" for status in statuses):
+                        return True
+
+        time.sleep(2)
+
+    return False
