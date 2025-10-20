@@ -9,7 +9,7 @@
       "test": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "uv run pytest",
+          "command": "uv run --all-extras pytest",
           "cwd": "libs/dev-cluster"
         },
         "cache": true,
