@@ -30,7 +30,6 @@ def test_check_flux_installed_false(mock_run):
 def test_bootstrap_flux_github_https(mock_env, mock_run):
     """Test bootstrap_flux with GitHub HTTPS URL."""
     mock_env.side_effect = lambda k, default=None: {
-        "FLUX_GITHUB_TOKEN": "test-token",
         "FLUX_REPO_URL": "https://github.com/owner/repo",
         "FLUX_PATH": "clusters/test",
     }.get(k, default)
@@ -47,12 +46,8 @@ def test_bootstrap_flux_github_https(mock_env, mock_run):
 
 
 @patch("dev_cluster.flux.subprocess.run")
-@patch("dev_cluster.flux.os.environ.get")
-def test_bootstrap_flux_github_ssh(mock_env, mock_run):
+def test_bootstrap_flux_github_ssh(mock_run):
     """Test bootstrap_flux with GitHub SSH URL."""
-    mock_env.side_effect = lambda k, default=None: {
-        "FLUX_GITHUB_TOKEN": "test-token",
-    }.get(k, default)
     mock_run.return_value = MagicMock(returncode=0)
 
     bootstrap_flux("kind-test", "test", repo_url="git@github.com:owner/repo.git")
@@ -62,41 +57,16 @@ def test_bootstrap_flux_github_ssh(mock_env, mock_run):
     assert "--repository=repo" in args
 
 
-@patch("dev_cluster.flux.os.environ.get")
-def test_bootstrap_flux_no_token(mock_env):
-    """Test bootstrap_flux when GitHub token is missing."""
-
-    # Mock get to return None for FLUX_GITHUB_TOKEN but default for others
-    def mock_get(key, default=None):
-        if key == "FLUX_GITHUB_TOKEN":
-            return None
-        return default
-
-    mock_env.side_effect = mock_get
-
-    with pytest.raises(RuntimeError, match="FLUX_GITHUB_TOKEN"):
-        bootstrap_flux("kind-test", "test")
-
-
 @patch("dev_cluster.flux.subprocess.run")
-@patch("dev_cluster.flux.os.environ.get")
-def test_bootstrap_flux_invalid_url(mock_env, mock_run):
+def test_bootstrap_flux_invalid_url(mock_run):
     """Test bootstrap_flux with invalid URL."""
-    mock_env.side_effect = lambda k, default=None: {
-        "FLUX_GITHUB_TOKEN": "test-token",
-    }.get(k, default)
-
     with pytest.raises(RuntimeError, match="Only GitHub repositories"):
         bootstrap_flux("kind-test", "test", repo_url="https://gitlab.com/owner/repo")
 
 
 @patch("dev_cluster.flux.subprocess.run")
-@patch("dev_cluster.flux.os.environ.get")
-def test_bootstrap_flux_failure(mock_env, mock_run):
+def test_bootstrap_flux_failure(mock_run):
     """Test bootstrap_flux when bootstrap fails."""
-    mock_env.side_effect = lambda k, default=None: {
-        "FLUX_GITHUB_TOKEN": "test-token",
-    }.get(k, default)
     mock_run.return_value = MagicMock(returncode=1, stderr="error")
 
     with pytest.raises(RuntimeError, match="Failed to bootstrap Flux"):

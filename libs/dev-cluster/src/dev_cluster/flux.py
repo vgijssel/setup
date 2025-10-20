@@ -72,14 +72,6 @@ def bootstrap_flux(
     if not path:
         path = os.environ.get("FLUX_PATH", f"clusters/{cluster_name}")
 
-    # Check for GitHub token
-    github_token = os.environ.get("FLUX_GITHUB_TOKEN")
-    if not github_token:
-        raise RuntimeError(
-            "FLUX_GITHUB_TOKEN environment variable not set. "
-            "Please set it before bootstrapping Flux."
-        )
-
     # Build bootstrap command
     cmd = [
         "flux",
@@ -89,21 +81,15 @@ def bootstrap_flux(
         f"--repository={repo}",
         f"--branch={branch}",
         f"--path={path}",
-        "--personal",
         "--context",
         cluster_context,
     ]
-
-    # Set GitHub token in environment for flux command
-    env = os.environ.copy()
-    env["GITHUB_TOKEN"] = github_token
 
     result = subprocess.run(
         cmd,
         capture_output=not verbose,
         text=True,
         check=False,
-        env=env,
     )
 
     if result.returncode != 0:

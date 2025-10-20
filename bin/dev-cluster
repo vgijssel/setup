@@ -1,11 +1,4 @@
 #!/usr/bin/env bash
 set -e
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Get the repo root (parent of bin/)
-REPO_ROOT="$(dirname "${SCRIPT_DIR}")"
-
-# Run dev-cluster using uv with the correct pyproject.toml
-cd "${REPO_ROOT}/libs/dev-cluster"
-exec uv run --project "${REPO_ROOT}/libs/dev-cluster" python -m dev_cluster "$@"
+exec uv run --project "${SETUP_DIR}/libs/dev-cluster" dev-cluster "$@"

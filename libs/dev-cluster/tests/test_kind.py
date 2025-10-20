@@ -9,7 +9,6 @@ from dev_cluster.kind import (
     create_cluster,
     delete_cluster,
     get_cluster_context,
-    wait_for_cluster_ready,
 )
 
 
@@ -97,27 +96,3 @@ def test_get_cluster_context():
     """Test get_cluster_context."""
     assert get_cluster_context("my-cluster") == "kind-my-cluster"
     assert get_cluster_context("test") == "kind-test"
-
-
-@patch("dev_cluster.kind.subprocess.run")
-@patch("dev_cluster.kind.time.sleep")
-def test_wait_for_cluster_ready_success(mock_sleep, mock_run):
-    """Test wait_for_cluster_ready when cluster becomes ready."""
-    # First call checks nodes
-    # Second call checks pods
-    mock_run.side_effect = [
-        MagicMock(returncode=0, stdout="True True"),
-        MagicMock(returncode=0, stdout="Running Running Running"),
-    ]
-    assert wait_for_cluster_ready("test-cluster", timeout=10) is True
-
-
-@patch("dev_cluster.kind.subprocess.run")
-@patch("dev_cluster.kind.time.sleep")
-@patch("dev_cluster.kind.time.time")
-def test_wait_for_cluster_ready_timeout(mock_time, mock_sleep, mock_run):
-    """Test wait_for_cluster_ready when timeout occurs."""
-    # Simulate time passing
-    mock_time.side_effect = [0, 0, 400]  # Start, loop check, timeout
-    mock_run.return_value = MagicMock(returncode=1)
-    assert wait_for_cluster_ready("test-cluster", timeout=300) is False

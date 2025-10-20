@@ -73,9 +73,9 @@ def create_cluster(
 
         try:
             cmd.extend(["--config", temp_config])
+            # Stream output to stdout/stderr in real-time
             result = subprocess.run(
                 cmd,
-                capture_output=not verbose,
                 text=True,
                 check=False,
             )
@@ -83,21 +83,17 @@ def create_cluster(
             Path(temp_config).unlink(missing_ok=True)
 
         if result.returncode != 0:
-            if not verbose:
-                print(result.stderr, file=sys.stderr)
             raise RuntimeError(f"Failed to create cluster '{name}'")
         return
 
+    # Stream output to stdout/stderr in real-time
     result = subprocess.run(
         cmd,
-        capture_output=not verbose,
         text=True,
         check=False,
     )
 
     if result.returncode != 0:
-        if not verbose:
-            print(result.stderr, file=sys.stderr)
         raise RuntimeError(f"Failed to create cluster '{name}'")
 
 

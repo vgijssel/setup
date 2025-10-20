@@ -1,9 +1,11 @@
 """Main CLI module for dev-cluster."""
 
+import subprocess
 import sys
 import time
 
 import click
+from pytimeparse import parse as parse_duration
 
 from . import flux, kind
 
@@ -82,7 +84,7 @@ def cli(ctx, verbose):
 @click.option(
     "--wait",
     default="5m",
-    help="Wait duration for cluster to be ready (e.g., 5m, 300s)",
+    help="Wait duration for Flux to be ready (e.g., 5m, 300s)",
 )
 @click.option(
     "--repo-url",
@@ -109,7 +111,10 @@ def create(ctx, name, config, wait, repo_url, flux_path, skip_flux):
         sys.exit(2)
 
     # Parse wait duration
-    timeout = _parse_duration(wait)
+    timeout = parse_duration(wait)
+    if timeout is None:
+        click.echo(f"Error: Invalid duration format: {wait}", err=True)
+        sys.exit(1)
 
     try:
         # Check if cluster exists
@@ -120,26 +125,26 @@ def create(ctx, name, config, wait, repo_url, flux_path, skip_flux):
             kind.create_cluster(name, config=config, verbose=verbose)
             click.echo("✓ Cluster created")
 
-        # Wait for cluster to be ready
-        click.echo("Waiting for cluster to be ready...")
-        start_time = time.time()
-        if kind.wait_for_cluster_ready(name, timeout=timeout, verbose=verbose):
-            elapsed = int(time.time() - start_time)
-            click.echo(f"✓ Cluster ready ({elapsed}s)")
-        else:
-            click.echo(f"✗ Cluster did not become ready within {wait}", err=True)
-            sys.exit(1)
-
         # Get cluster context
         context = kind.get_cluster_context(name)
 
         # Bootstrap Flux
         if not skip_flux:
-            click.echo("Bootstrapping Flux...")
+            # Get current git branch
+            result = subprocess.run(
+                ["git", "branch", "--show-current"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            current_branch = result.stdout.strip() if result.returncode == 0 else "main"
+
+            click.echo(f"Bootstrapping Flux (branch: {current_branch})...")
             flux.bootstrap_flux(
                 context,
                 name,
                 repo_url=repo_url,
+                branch=current_branch,
                 path=flux_path,
                 verbose=verbose,
             )
@@ -148,10 +153,7 @@ def create(ctx, name, config, wait, repo_url, flux_path, skip_flux):
             # Wait for Flux to be ready
             click.echo("Waiting for Flux to be ready...")
             start_time = time.time()
-            remaining_timeout = timeout - int(time.time() - start_time)
-            if flux.wait_for_flux_ready(
-                context, timeout=remaining_timeout, verbose=verbose
-            ):
+            if flux.wait_for_flux_ready(context, timeout=timeout, verbose=verbose):
                 elapsed = int(time.time() - start_time)
                 click.echo(f"✓ Flux ready ({elapsed}s)")
             else:
@@ -207,27 +209,6 @@ def delete(ctx, name):
     except KeyboardInterrupt:
         click.echo("\nOperation cancelled by user", err=True)
         sys.exit(1)
-
-
-def _parse_duration(duration: str) -> int:
-    """Parse duration string to seconds.
-
-    Args:
-        duration: Duration string (e.g., '5m', '300s', '1h')
-
-    Returns:
-        Duration in seconds
-    """
-    duration = duration.strip()
-    if duration.endswith("s"):
-        return int(duration[:-1])
-    elif duration.endswith("m"):
-        return int(duration[:-1]) * 60
-    elif duration.endswith("h"):
-        return int(duration[:-1]) * 3600
-    else:
-        # Assume seconds if no suffix
-        return int(duration)
 
 
 if __name__ == "__main__":
