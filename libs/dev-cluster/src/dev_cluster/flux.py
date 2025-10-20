@@ -3,7 +3,6 @@
 import os
 import subprocess
 import sys
-import time
 
 
 def check_flux_installed() -> bool:
@@ -182,66 +181,126 @@ def suspend_flux_reconciliation(
 
 def wait_for_flux_ready(
     cluster_context: str,
-    timeout: int = 300,
+    timeout: int = 1800,  # 30 minutes default
     verbose: bool = False,
 ) -> bool:
-    """Wait for Flux to be ready.
+    """Wait for Flux and all its resources to be ready.
+
+    This function waits for:
+    - Flux system deployments to be available
+    - All GitRepository sources to be ready
+    - All Kustomizations to be ready
+    - All HelmReleases to be ready
 
     Args:
         cluster_context: Kubectl context for the cluster
-        timeout: Timeout in seconds
+        timeout: Timeout in seconds (default 30 minutes)
         verbose: Enable verbose output
 
     Returns:
         True if Flux is ready, False if timeout
     """
-    start_time = time.time()
+    timeout_str = f"{timeout}s"
 
-    while time.time() - start_time < timeout:
-        # Check if flux-system namespace exists and pods are running
-        result = subprocess.run(
-            [
-                "kubectl",
-                "--context",
-                cluster_context,
-                "get",
-                "pods",
-                "-n",
-                "flux-system",
-                "-o",
-                "jsonpath={.items[*].status.phase}",
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+    # Step 1: Wait for Flux deployments to be ready
+    if verbose:
+        print("Waiting for Flux system deployments...")
+    result = subprocess.run(
+        [
+            "kubectl",
+            "--context",
+            cluster_context,
+            "wait",
+            "--for=condition=available",
+            f"--timeout={timeout_str}",
+            "deployment",
+            "-n",
+            "flux-system",
+            "--all",
+        ],
+        capture_output=not verbose,
+        text=True,
+        check=False,
+    )
 
-        if result.returncode == 0:
-            phases = result.stdout.strip().split()
-            if phases and all(phase in ["Running", "Succeeded"] for phase in phases):
-                # Also check that key Flux resources are ready
-                result = subprocess.run(
-                    [
-                        "kubectl",
-                        "--context",
-                        cluster_context,
-                        "get",
-                        "deploy",
-                        "-n",
-                        "flux-system",
-                        "-o",
-                        "jsonpath={.items[*].status.conditions[?(@.type=='Available')].status}",
-                    ],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
+    if result.returncode != 0:
+        if not verbose:
+            print(result.stderr, file=sys.stderr)
+        return False
 
-                if result.returncode == 0:
-                    statuses = result.stdout.strip().split()
-                    if statuses and all(status == "True" for status in statuses):
-                        return True
+    # Step 2: Wait for GitRepository sources to be ready
+    if verbose:
+        print("Waiting for GitRepository sources...")
+    result = subprocess.run(
+        [
+            "kubectl",
+            "--context",
+            cluster_context,
+            "wait",
+            "-A",
+            "--for=condition=ready",
+            f"--timeout={timeout_str}",
+            "gitrepositories.source.toolkit.fluxcd.io",
+            "--all",
+        ],
+        capture_output=not verbose,
+        text=True,
+        check=False,
+    )
 
-        time.sleep(2)
+    if result.returncode != 0:
+        if not verbose:
+            print(result.stderr, file=sys.stderr)
+        return False
 
-    return False
+    # Step 3: Wait for Kustomizations to be ready
+    if verbose:
+        print("Waiting for Kustomizations...")
+    result = subprocess.run(
+        [
+            "kubectl",
+            "--context",
+            cluster_context,
+            "wait",
+            "-A",
+            "--for=condition=ready",
+            f"--timeout={timeout_str}",
+            "kustomizations.kustomize.toolkit.fluxcd.io",
+            "--all",
+        ],
+        capture_output=not verbose,
+        text=True,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        if not verbose:
+            print(result.stderr, file=sys.stderr)
+        return False
+
+    # Step 4: Wait for HelmReleases to be ready
+    if verbose:
+        print("Waiting for HelmReleases...")
+    result = subprocess.run(
+        [
+            "kubectl",
+            "--context",
+            cluster_context,
+            "wait",
+            "-A",
+            "--for=condition=ready",
+            f"--timeout={timeout_str}",
+            "helmreleases.helm.toolkit.fluxcd.io",
+            "--all",
+        ],
+        capture_output=not verbose,
+        text=True,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        if not verbose:
+            print(result.stderr, file=sys.stderr)
+        return False
+
+    return True

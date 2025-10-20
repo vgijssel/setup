@@ -23,15 +23,15 @@ def get_op_token() -> str:
     """Get 1Password Connect token from environment.
 
     Returns:
-        The OP_CONNECT_TOKEN value
+        The OP_SERVICE_ACCOUNT_TOKEN value
 
     Raises:
         RuntimeError: If token is not found
     """
-    token = os.environ.get("OP_CONNECT_TOKEN")
+    token = os.environ.get("OP_SERVICE_ACCOUNT_TOKEN")
     if not token:
         raise RuntimeError(
-            "OP_CONNECT_TOKEN environment variable not set. "
+            "OP_SERVICE_ACCOUNT_TOKEN environment variable not set. "
             "Please set it before creating a cluster."
         )
     return token

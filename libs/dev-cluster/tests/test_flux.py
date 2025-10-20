@@ -167,23 +167,60 @@ def test_suspend_flux_reconciliation_kustomization_failure(mock_run):
 
 
 @patch("dev_cluster.flux.subprocess.run")
-@patch("dev_cluster.flux.time.sleep")
-def test_wait_for_flux_ready_success(mock_sleep, mock_run):
+def test_wait_for_flux_ready_success(mock_run):
     """Test wait_for_flux_ready when flux becomes ready."""
-    # First call checks pods, second checks deployments
-    mock_run.side_effect = [
-        MagicMock(returncode=0, stdout="Running Running"),
-        MagicMock(returncode=0, stdout="True True"),
-    ]
+    # All four kubectl wait calls succeed
+    # 1. deployments, 2. GitRepositories, 3. Kustomizations, 4. HelmReleases
+    mock_run.return_value = MagicMock(returncode=0)
     assert wait_for_flux_ready("kind-test", timeout=10) is True
+    # Should be called 4 times
+    assert mock_run.call_count == 4
 
 
 @patch("dev_cluster.flux.subprocess.run")
-@patch("dev_cluster.flux.time.sleep")
-@patch("dev_cluster.flux.time.time")
-def test_wait_for_flux_ready_timeout(mock_time, mock_sleep, mock_run):
-    """Test wait_for_flux_ready when timeout occurs."""
-    # Simulate time passing
-    mock_time.side_effect = [0, 0, 400]  # Start, loop check, timeout
-    mock_run.return_value = MagicMock(returncode=1)
-    assert wait_for_flux_ready("kind-test", timeout=300) is False
+def test_wait_for_flux_ready_deployment_timeout(mock_run):
+    """Test wait_for_flux_ready when deployment wait fails."""
+    # First call (deployments) fails
+    mock_run.return_value = MagicMock(returncode=1, stderr="timeout")
+    assert wait_for_flux_ready("kind-test", timeout=10) is False
+    # Should only be called once (fails at first step)
+    assert mock_run.call_count == 1
+
+
+@patch("dev_cluster.flux.subprocess.run")
+def test_wait_for_flux_ready_gitrepository_timeout(mock_run):
+    """Test wait_for_flux_ready when GitRepository wait fails."""
+    # First call succeeds, second fails
+    mock_run.side_effect = [
+        MagicMock(returncode=0),  # deployments
+        MagicMock(returncode=1, stderr="timeout"),  # GitRepositories
+    ]
+    assert wait_for_flux_ready("kind-test", timeout=10) is False
+    assert mock_run.call_count == 2
+
+
+@patch("dev_cluster.flux.subprocess.run")
+def test_wait_for_flux_ready_kustomization_timeout(mock_run):
+    """Test wait_for_flux_ready when Kustomization wait fails."""
+    # First two calls succeed, third fails
+    mock_run.side_effect = [
+        MagicMock(returncode=0),  # deployments
+        MagicMock(returncode=0),  # GitRepositories
+        MagicMock(returncode=1, stderr="timeout"),  # Kustomizations
+    ]
+    assert wait_for_flux_ready("kind-test", timeout=10) is False
+    assert mock_run.call_count == 3
+
+
+@patch("dev_cluster.flux.subprocess.run")
+def test_wait_for_flux_ready_helmrelease_timeout(mock_run):
+    """Test wait_for_flux_ready when HelmRelease wait fails."""
+    # First three calls succeed, fourth fails
+    mock_run.side_effect = [
+        MagicMock(returncode=0),  # deployments
+        MagicMock(returncode=0),  # GitRepositories
+        MagicMock(returncode=0),  # Kustomizations
+        MagicMock(returncode=1, stderr="timeout"),  # HelmReleases
+    ]
+    assert wait_for_flux_ready("kind-test", timeout=10) is False
+    assert mock_run.call_count == 4

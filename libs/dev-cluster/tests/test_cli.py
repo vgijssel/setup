@@ -68,6 +68,7 @@ def test_create_missing_prerequisites(mock_prereqs):
 @patch("dev_cluster.cli.kind.cluster_exists")
 @patch("dev_cluster.cli.kind.create_cluster")
 @patch("dev_cluster.cli.kind.get_cluster_context")
+@patch("dev_cluster.cli.onepassword.create_op_connect_token_secret")
 @patch("dev_cluster.cli.flux.bootstrap_flux")
 @patch("dev_cluster.cli.flux.wait_for_flux_ready")
 @patch("dev_cluster.cli.flux.suspend_flux_reconciliation")
@@ -77,6 +78,7 @@ def test_create_cluster_new(
     mock_suspend,
     mock_wait,
     mock_bootstrap,
+    mock_op_secret,
     mock_context,
     mock_create,
     mock_exists,
@@ -98,12 +100,14 @@ def test_create_cluster_new(
     assert "Creating cluster" in result.output
     assert "✓ Cluster created" in result.output
     mock_create.assert_called_once()
+    mock_op_secret.assert_called_once()
     mock_bootstrap.assert_called_once()
 
 
 @patch("dev_cluster.cli.check_prerequisites")
 @patch("dev_cluster.cli.kind.cluster_exists")
 @patch("dev_cluster.cli.kind.get_cluster_context")
+@patch("dev_cluster.cli.onepassword.create_op_connect_token_secret")
 @patch("dev_cluster.cli.flux.bootstrap_flux")
 @patch("dev_cluster.cli.flux.wait_for_flux_ready")
 @patch("dev_cluster.cli.flux.suspend_flux_reconciliation")
@@ -113,6 +117,7 @@ def test_create_cluster_exists(
     mock_suspend,
     mock_wait,
     mock_bootstrap,
+    mock_op_secret,
     mock_context,
     mock_exists,
     mock_prereqs,
@@ -131,6 +136,7 @@ def test_create_cluster_exists(
     result = runner.invoke(cli, ["create", "test-cluster"])
     assert result.exit_code == 0
     assert "already exists" in result.output
+    mock_op_secret.assert_called_once()
     mock_bootstrap.assert_called_once()
 
 

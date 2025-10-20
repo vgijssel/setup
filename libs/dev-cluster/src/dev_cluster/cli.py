@@ -7,7 +7,7 @@ import time
 import click
 from pytimeparse import parse as parse_duration
 
-from . import flux, kind
+from . import flux, kind, onepassword
 
 
 def check_prerequisites(verbose: bool = False) -> bool:
@@ -128,6 +128,7 @@ def create(ctx, name, config, wait, repo_url, flux_path, branch):
 
         # Get cluster context
         context = kind.get_cluster_context(name)
+        onepassword.create_op_connect_token_secret(context, verbose=verbose)
 
         # Get current git branch if not specified
         if not branch:
