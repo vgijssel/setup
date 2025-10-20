@@ -139,7 +139,9 @@ def create(ctx, name, config, wait, repo_url, flux_path, skip_flux):
             )
             current_branch = result.stdout.strip() if result.returncode == 0 else "main"
 
-            click.echo(f"Bootstrapping Flux (branch: {current_branch})...")
+            click.echo(
+                f"Installing Flux and creating GitRepository (branch: {current_branch})..."
+            )
             flux.bootstrap_flux(
                 context,
                 name,
@@ -148,7 +150,7 @@ def create(ctx, name, config, wait, repo_url, flux_path, skip_flux):
                 path=flux_path,
                 verbose=verbose,
             )
-            click.echo(f"✓ Flux bootstrapped to {flux_path or f'clusters/{name}'}")
+            click.echo("✓ Flux installed with GitRepository and Kustomization")
 
             # Wait for Flux to be ready
             click.echo("Waiting for Flux to be ready...")

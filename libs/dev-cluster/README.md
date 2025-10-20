@@ -107,7 +107,6 @@ The tool supports the following environment variables:
 
 #### Flux Configuration
 
-- `FLUX_GITHUB_TOKEN`: GitHub personal access token (required for Flux bootstrap)
 - `FLUX_REPO_URL`: Git repository URL (default: `https://github.com/vgijssel/setup`)
 - `FLUX_PATH`: Path in repository for Flux manifests (default: `clusters/<cluster-name>`)
 
@@ -115,7 +114,6 @@ Example:
 
 ```bash
 export OP_CONNECT_TOKEN="your-1password-token"
-export FLUX_GITHUB_TOKEN="your-github-token"
 export FLUX_REPO_URL="https://github.com/myorg/myrepo"
 
 dev-cluster create my-cluster
@@ -243,20 +241,6 @@ Set the token:
 
 ```bash
 export OP_CONNECT_TOKEN="your-token-here"
-```
-
-### Flux GitHub Token Not Set
-
-If you see:
-
-```
-Error: FLUX_GITHUB_TOKEN environment variable not set
-```
-
-Set the token:
-
-```bash
-export FLUX_GITHUB_TOKEN="your-github-token"
 ```
 
 ### Cluster Creation Fails

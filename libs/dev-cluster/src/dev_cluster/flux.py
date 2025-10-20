@@ -29,64 +29,37 @@ def bootstrap_flux(
     path: Optional[str] = None,
     verbose: bool = False,
 ) -> None:
-    """Bootstrap Flux on the cluster.
+    """Install Flux and create GitRepository and Kustomization resources.
 
     Args:
         cluster_context: Kubectl context for the cluster
         cluster_name: Name of the cluster
         repo_url: Git repository URL (defaults to FLUX_REPO_URL env or https://github.com/vgijssel/setup)
         branch: Git branch to use
-        path: Path in repo (defaults to clusters/<cluster-name>)
+        path: Path in repo (defaults to stacks/dev-cluster)
         verbose: Enable verbose output
 
     Raises:
-        RuntimeError: If bootstrap fails
+        RuntimeError: If Flux installation fails
     """
     # Get repo URL from parameter or environment
     if not repo_url:
         repo_url = os.environ.get("FLUX_REPO_URL", "https://github.com/vgijssel/setup")
 
-    # Parse repo URL to get owner and repo name
-    # Expected format: https://github.com/owner/repo or git@github.com:owner/repo.git
-    if "github.com" in repo_url:
-        if repo_url.startswith("https://"):
-            # https://github.com/owner/repo
-            parts = repo_url.replace("https://github.com/", "").strip("/").split("/")
-        elif repo_url.startswith("git@"):
-            # git@github.com:owner/repo.git
-            parts = (
-                repo_url.replace("git@github.com:", "").replace(".git", "").split("/")
-            )
-        else:
-            raise RuntimeError(f"Unsupported repository URL format: {repo_url}")
-
-        if len(parts) < 2:
-            raise RuntimeError(f"Could not parse owner and repo from URL: {repo_url}")
-
-        owner = parts[0]
-        repo = parts[1]
-    else:
-        raise RuntimeError(f"Only GitHub repositories are supported. Got: {repo_url}")
-
     # Get path
     if not path:
-        path = os.environ.get("FLUX_PATH", f"clusters/{cluster_name}")
+        path = os.environ.get("FLUX_PATH", "./stacks/dev-cluster")
 
-    # Build bootstrap command
-    cmd = [
+    # Step 1: Install Flux
+    install_cmd = [
         "flux",
-        "bootstrap",
-        "github",
-        f"--owner={owner}",
-        f"--repository={repo}",
-        f"--branch={branch}",
-        f"--path={path}",
+        "install",
         "--context",
         cluster_context,
     ]
 
     result = subprocess.run(
-        cmd,
+        install_cmd,
         capture_output=not verbose,
         text=True,
         check=False,
@@ -95,7 +68,59 @@ def bootstrap_flux(
     if result.returncode != 0:
         if not verbose:
             print(result.stderr, file=sys.stderr)
-        raise RuntimeError("Failed to bootstrap Flux")
+        raise RuntimeError("Failed to install Flux")
+
+    # Step 2: Create GitRepository source
+    git_source_cmd = [
+        "flux",
+        "create",
+        "source",
+        "git",
+        cluster_name,
+        f"--url={repo_url}",
+        f"--branch={branch}",
+        "--interval=1m",
+        "--context",
+        cluster_context,
+    ]
+
+    result = subprocess.run(
+        git_source_cmd,
+        capture_output=not verbose,
+        text=True,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        if not verbose:
+            print(result.stderr, file=sys.stderr)
+        raise RuntimeError("Failed to create Flux GitRepository source")
+
+    # Step 3: Create Kustomization
+    kustomization_cmd = [
+        "flux",
+        "create",
+        "kustomization",
+        "root",
+        "--source=GitRepository/" + cluster_name,
+        f"--path={path}",
+        "--prune=true",
+        "--interval=1m",
+        "--context",
+        cluster_context,
+    ]
+
+    result = subprocess.run(
+        kustomization_cmd,
+        capture_output=not verbose,
+        text=True,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        if not verbose:
+            print(result.stderr, file=sys.stderr)
+        raise RuntimeError("Failed to create Flux Kustomization")
 
 
 def suspend_flux_reconciliation(

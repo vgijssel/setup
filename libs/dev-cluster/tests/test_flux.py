@@ -27,49 +27,74 @@ def test_check_flux_installed_false(mock_run):
 
 @patch("dev_cluster.flux.subprocess.run")
 @patch("dev_cluster.flux.os.environ.get")
-def test_bootstrap_flux_github_https(mock_env, mock_run):
-    """Test bootstrap_flux with GitHub HTTPS URL."""
+def test_bootstrap_flux_install_success(mock_env, mock_run):
+    """Test bootstrap_flux with flux install + create."""
     mock_env.side_effect = lambda k, default=None: {
-        "FLUX_REPO_URL": "https://github.com/owner/repo",
-        "FLUX_PATH": "clusters/test",
+        "FLUX_REPO_URL": "https://github.com/vgijssel/setup",
+        "FLUX_PATH": "./stacks/dev-cluster",
     }.get(k, default)
+    # All three commands succeed
     mock_run.return_value = MagicMock(returncode=0)
 
-    bootstrap_flux("kind-test", "test")
-    mock_run.assert_called_once()
-    args = mock_run.call_args[0][0]
-    assert "flux" in args
-    assert "bootstrap" in args
-    assert "github" in args
-    assert "--owner=owner" in args
-    assert "--repository=repo" in args
+    bootstrap_flux("kind-test", "test", branch="main")
+
+    # Should be called 3 times: install, create source, create kustomization
+    assert mock_run.call_count == 3
+
+    # Check flux install was called
+    install_args = mock_run.call_args_list[0][0][0]
+    assert "flux" in install_args
+    assert "install" in install_args
+
+    # Check flux create source git was called
+    source_args = mock_run.call_args_list[1][0][0]
+    assert "flux" in source_args
+    assert "create" in source_args
+    assert "source" in source_args
+    assert "git" in source_args
+
+    # Check flux create kustomization was called
+    kustomization_args = mock_run.call_args_list[2][0][0]
+    assert "flux" in kustomization_args
+    assert "create" in kustomization_args
+    assert "kustomization" in kustomization_args
 
 
 @patch("dev_cluster.flux.subprocess.run")
-def test_bootstrap_flux_github_ssh(mock_run):
-    """Test bootstrap_flux with GitHub SSH URL."""
-    mock_run.return_value = MagicMock(returncode=0)
-
-    bootstrap_flux("kind-test", "test", repo_url="git@github.com:owner/repo.git")
-    mock_run.assert_called_once()
-    args = mock_run.call_args[0][0]
-    assert "--owner=owner" in args
-    assert "--repository=repo" in args
-
-
-@patch("dev_cluster.flux.subprocess.run")
-def test_bootstrap_flux_invalid_url(mock_run):
-    """Test bootstrap_flux with invalid URL."""
-    with pytest.raises(RuntimeError, match="Only GitHub repositories"):
-        bootstrap_flux("kind-test", "test", repo_url="https://gitlab.com/owner/repo")
-
-
-@patch("dev_cluster.flux.subprocess.run")
-def test_bootstrap_flux_failure(mock_run):
-    """Test bootstrap_flux when bootstrap fails."""
+def test_bootstrap_flux_install_failure(mock_run):
+    """Test bootstrap_flux when flux install fails."""
     mock_run.return_value = MagicMock(returncode=1, stderr="error")
 
-    with pytest.raises(RuntimeError, match="Failed to bootstrap Flux"):
+    with pytest.raises(RuntimeError, match="Failed to install Flux"):
+        bootstrap_flux("kind-test", "test")
+
+
+@patch("dev_cluster.flux.subprocess.run")
+def test_bootstrap_flux_source_failure(mock_run):
+    """Test bootstrap_flux when create source fails."""
+    # First call (install) succeeds, second (create source) fails
+    mock_run.side_effect = [
+        MagicMock(returncode=0),
+        MagicMock(returncode=1, stderr="error"),
+    ]
+
+    with pytest.raises(
+        RuntimeError, match="Failed to create Flux GitRepository source"
+    ):
+        bootstrap_flux("kind-test", "test")
+
+
+@patch("dev_cluster.flux.subprocess.run")
+def test_bootstrap_flux_kustomization_failure(mock_run):
+    """Test bootstrap_flux when create kustomization fails."""
+    # First two calls succeed, third (create kustomization) fails
+    mock_run.side_effect = [
+        MagicMock(returncode=0),
+        MagicMock(returncode=0),
+        MagicMock(returncode=1, stderr="error"),
+    ]
+
+    with pytest.raises(RuntimeError, match="Failed to create Flux Kustomization"):
         bootstrap_flux("kind-test", "test")
 
 
