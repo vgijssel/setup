@@ -41,10 +41,12 @@ def bootstrap_flux(
     Raises:
         RuntimeError: If Flux installation fails
     """
-    path = os.path.join(os.environ["SETUP_DIR"], path)
+    full_path = os.path.join(os.environ["SETUP_DIR"], path)
 
-    if not os.path.exists(path):
-        raise RuntimeError(f"Specified path does not exist: {path}")
+    if not os.path.exists(full_path):
+        raise RuntimeError(f"Specified path does not exist: {full_path}")
+
+    path = os.path.join("/", path)
 
     # Step 1: Install Flux
     install_cmd = [
