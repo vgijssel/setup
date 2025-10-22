@@ -20,6 +20,11 @@
           "cwd": "libs/dev-cluster"
         },
         "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**"
+        ],
         "metadata": {
           "description": "Run pytest unit tests"
         }
@@ -31,6 +36,11 @@
           "cwd": "libs/dev-cluster"
         },
         "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**"
+        ],
         "metadata": {
           "description": "Run Kyverno Chainsaw end-to-end tests"
         }
