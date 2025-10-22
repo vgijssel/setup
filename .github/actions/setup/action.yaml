@@ -3,9 +3,6 @@ description: Composite action to setup environment with checkout, hermit, direnv
 runs:
   using: composite
   steps:
-    - name: Ensure the branch name is correct for tooling
-      run: git checkout -B ${{ github.ref_name }}
-
     - name: Init Hermit
       uses: cashapp/activate-hermit@v1
 

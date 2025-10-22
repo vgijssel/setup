@@ -61,6 +61,9 @@ jobs:
           filter: tree:0
           fetch-depth: 0
 
+      - name: Ensure the branch name is correct for tooling
+        run: git checkout -B ${{ github.ref_name }}
+
       - uses: ./.github/actions/setup
 
       # Ensure the Github CI can push to GHR
@@ -92,6 +95,9 @@ jobs:
         with:
           filter: tree:0
           fetch-depth: 0
+
+      - name: Ensure the branch name is correct for tooling
+        run: git checkout -B ${{ github.ref_name }}
 
       - uses: ./.github/actions/setup
 
