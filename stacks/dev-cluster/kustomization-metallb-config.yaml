@@ -11,4 +11,10 @@ spec:
     kind: GitRepository
     name: setup
   dependsOn:
-    - name: metallb
+    - name: root
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: metallb
+      namespace: flux-system
+  wait: true
