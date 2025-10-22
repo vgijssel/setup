@@ -73,7 +73,7 @@ def create_op_connect_token_secret(
         [
             "op",
             "read",
-            "op://enigma-cluster/enigma-cluster Credentials File/1password-credentials.json",
+            "op://setup-devenv/setup-devenv Credentials File/1password-credentials.json",
         ],
         capture_output=True,
         text=True,
@@ -139,7 +139,7 @@ def create_op_connect_token_secret(
         [
             "op",
             "read",
-            "op://enigma-cluster/hxmp2hgt5iluzk5zfq2trx4oae/credential",
+            "op://setup-devenv/qgwskgubcvfg7qnzutarn75tue/credential",
         ],
         capture_output=True,
         text=True,
