@@ -34,7 +34,6 @@ The following environment variables are passed to the container:
 ### Parameters
 - `system_prompt`: System prompt for AI assistant
 - `ai_prompt`: Task-specific AI prompt (mutable)
-- `docker_socket`: Optional Docker socket URI
 
 ## Development Workflow
 
