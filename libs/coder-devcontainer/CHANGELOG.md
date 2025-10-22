@@ -1,3 +1,11 @@
+## 0.8.1 (2025-10-20)
+
+### 🩹 Fixes
+
+- Remove unused docker_socket variable from coder-devcontainer ([#774](https://github.com/vgijssel/setup/pull/774))
+
+  The docker_socket variable and its associated provider configuration were unused and have been removed to simplify the configuration.
+
 ## 0.8.0 (2025-10-18)
 
 ### 🚀 Features
