@@ -37,9 +37,9 @@
         "executor": "nx:run-commands",
         "options": {
           "commands": [
-            "kind create cluster --name internal-dns-test --kubeconfig ./kubeconfig --config kind-config.yaml",
-            "export KUBECONFIG=./kubeconfig && chainsaw test --test-dir chainsaw-test --config chainsaw-test.yaml",
-            "kind delete cluster --name internal-dns-test"
+            "dev-cluster create internal-dns-test",
+            "export KUBECONFIG=~/.kube/kind-internal-dns-test && chainsaw test --test-dir chainsaw-test --config chainsaw-test.yaml",
+            "dev-cluster delete internal-dns-test"
           ],
           "parallel": false,
           "cwd": "libs/internal-dns",

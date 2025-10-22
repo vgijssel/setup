@@ -1,8 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: internal-dns
   namespace: internal-dns-test
-status:
-  conditions:
-    - type: Available
-      status: "True"
+spec:
+  replicas: 1

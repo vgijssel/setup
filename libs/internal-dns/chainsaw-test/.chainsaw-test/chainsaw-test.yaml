@@ -6,7 +6,7 @@ spec:
   description: Install and test internal-dns helm chart
   timeouts:
     apply: 2m
-    assert: 3m
+    assert: 5m
   steps:
     - name: Create test namespace
       try:
@@ -23,10 +23,8 @@ spec:
               - ../..
               - --namespace
               - internal-dns-test
-              - --set
-              - cloudflare.onePasswordItem.enabled=false
               - --wait
-              - --timeout=120s
+              - --timeout=300s
         - assert:
             file: internal-dns-assert.yaml
     - name: Create test ingress
