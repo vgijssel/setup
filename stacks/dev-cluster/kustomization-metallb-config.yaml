@@ -5,7 +5,8 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  retryInterval: 30s
+  # Necessary because we have to wait on MetalLB CRDS to become ready
+  retryInterval: 5s
   path: ./stacks/dev-cluster/metallb-config
   prune: true
   sourceRef:
@@ -13,7 +14,6 @@ spec:
     name: setup
   dependsOn:
     - name: root
-  # Wait for MetalLB HelmRelease to be ready
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
