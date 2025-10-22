@@ -1,0 +1,67 @@
+{
+  "name": "dev-cluster",
+  "version": "0.1.0",
+  "description": "Local development cluster orchestration tool",
+  "dependencies": {
+    "dev-cluster-stack": "0.1.0"
+  },
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/dev-cluster/src",
+    "targets": {
+      "test": {
+        "executor": "nx:noop",
+        "dependsOn": [
+          "unit_test",
+          "e2e_test"
+        ]
+      },
+      "unit_test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run --all-extras pytest",
+          "cwd": "libs/dev-cluster"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**"
+        ],
+        "metadata": {
+          "description": "Run pytest unit tests"
+        }
+      },
+      "e2e_test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "dev-cluster create dev-cluster",
+            "chainsaw test --test-dir tests_e2e",
+            "dev-cluster delete dev-cluster"
+          ],
+          "cwd": "libs/dev-cluster",
+          "parallel": false
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**"
+        ],
+        "metadata": {
+          "description": "Run Kyverno Chainsaw end-to-end tests"
+        }
+      }
+    },
+    "tags": [
+      "python",
+      "cli",
+      "kubernetes",
+      "kind",
+      "flux",
+      "development"
+    ]
+  },
+  "private": true
+}

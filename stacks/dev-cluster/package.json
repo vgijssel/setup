@@ -1,0 +1,23 @@
+{
+  "name": "dev-cluster-stack",
+  "version": "0.1.0",
+  "nx": {
+    "projectType": "application",
+    "sourceRoot": "stacks/dev-cluster",
+    "namedInputs": {
+      "default": [
+        "{projectRoot}/**/*",
+        "{workspaceRoot}/third_party/vendir/charts/metallb/**/*",
+        "{workspaceRoot}/third_party/vendir/charts/ingress-nginx/**/*",
+        "{workspaceRoot}/third_party/vendir/charts/1password-connect/**/*"
+      ]
+    },
+    "targets": {},
+    "tags": [
+      "stack",
+      "kubernetes",
+      "development"
+    ]
+  },
+  "private": true
+}

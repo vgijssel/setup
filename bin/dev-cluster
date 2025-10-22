@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -e
+
+exec uv run --project "${SETUP_DIR}/libs/dev-cluster" dev-cluster "$@"
