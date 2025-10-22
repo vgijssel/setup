@@ -1,0 +1,32 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: dev-cluster-e2e
+spec:
+  description: End-to-end tests for dev-cluster setup
+  timeouts:
+    apply: 30s
+    assert: 2m
+    delete: 15s
+  steps:
+    - name: validate-onepassword-connect
+      description: Validate 1Password Connect deployment is ready
+      try:
+        - assert:
+            file: 01-assert-onepassword-connect.yaml
+
+    - name: validate-onepassword-operator
+      description: Validate 1Password Connect Operator deployment is ready
+      try:
+        - assert:
+            file: 02-assert-onepassword-operator.yaml
+
+    - name: validate-flux-system
+      description: Run flux check and validate Flux system is healthy
+      try:
+        - script:
+            content: |
+              set -e
+              flux check
+            check:
+              ($error == null): true

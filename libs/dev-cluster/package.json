@@ -7,6 +7,13 @@
     "sourceRoot": "libs/dev-cluster/src",
     "targets": {
       "test": {
+        "executor": "nx:noop",
+        "dependsOn": [
+          "unit_test",
+          "e2e_test"
+        ]
+      },
+      "unit_test": {
         "executor": "nx:run-commands",
         "options": {
           "command": "uv run --all-extras pytest",
@@ -15,6 +22,17 @@
         "cache": true,
         "metadata": {
           "description": "Run pytest unit tests"
+        }
+      },
+      "e2e_test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "chainsaw test --test-dir tests_e2e",
+          "cwd": "libs/dev-cluster"
+        },
+        "cache": true,
+        "metadata": {
+          "description": "Run Kyverno Chainsaw end-to-end tests"
         }
       }
     },
