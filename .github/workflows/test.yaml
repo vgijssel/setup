@@ -62,7 +62,7 @@ jobs:
           fetch-depth: 0
 
       - name: Ensure the branch name is correct for tooling
-        run: git checkout -B ${{ github.ref_name }}
+        run: git checkout -B ${{ github.head_ref }}
 
       - uses: ./.github/actions/setup
 
@@ -97,7 +97,7 @@ jobs:
           fetch-depth: 0
 
       - name: Ensure the branch name is correct for tooling
-        run: git checkout -B ${{ github.ref_name }}
+        run: git checkout -B ${{ github.head_ref }}
 
       - uses: ./.github/actions/setup
 
