@@ -2,6 +2,9 @@
   "name": "dev-cluster",
   "version": "0.1.0",
   "description": "Local development cluster orchestration tool",
+  "dependencies": {
+    "dev-cluster-stack": "0.1.0"
+  },
   "nx": {
     "projectType": "library",
     "sourceRoot": "libs/dev-cluster/src",
@@ -32,8 +35,13 @@
       "e2e_test": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "chainsaw test --test-dir tests_e2e",
-          "cwd": "libs/dev-cluster"
+          "commands": [
+            "dev-cluster create dev-cluster",
+            "chainsaw test --test-dir tests_e2e",
+            "dev-cluster delete dev-cluster"
+          ],
+          "cwd": "libs/dev-cluster",
+          "parallel": false
         },
         "cache": true,
         "inputs": [
