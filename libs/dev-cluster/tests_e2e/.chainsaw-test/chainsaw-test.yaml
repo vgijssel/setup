@@ -21,6 +21,18 @@ spec:
         - assert:
             file: 02-assert-onepassword-operator.yaml
 
+    - name: validate-metallb-controller
+      description: Validate MetalLB controller deployment is ready
+      try:
+        - assert:
+            file: 03-assert-metallb-controller.yaml
+
+    - name: validate-ingress-nginx-controller
+      description: Validate Ingress NGINX controller deployment is ready
+      try:
+        - assert:
+            file: 04-assert-ingress-nginx-controller.yaml
+
     - name: validate-flux-system
       description: Run flux check and validate Flux system is healthy
       try:
