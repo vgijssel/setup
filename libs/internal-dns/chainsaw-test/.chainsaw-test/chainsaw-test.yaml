@@ -12,6 +12,17 @@ spec:
       try:
         - apply:
             file: test-namespace.yaml
+    - name: Wait for 1Password operator
+      try:
+        - assert:
+            timeout: 2m
+            resource:
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                namespace: 1password
+              status:
+                phase: Running
     - name: Install internal-dns chart
       try:
         - command:
@@ -24,7 +35,7 @@ spec:
               - --namespace
               - internal-dns-test
               - --wait
-              - --timeout=300s
+              - --timeout=600s
         - assert:
             file: internal-dns-assert.yaml
     - name: Create test ingress
