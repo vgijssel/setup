@@ -41,7 +41,11 @@
           "command": "tofu init",
           "cwd": "libs/cloudflare-tunnel"
         },
-        "cache": false,
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/.terraform",
+          "{projectRoot}/.terraform.lock.hcl"
+        ],
         "metadata": {
           "description": "Initialize OpenTofu"
         }
