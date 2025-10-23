@@ -15,7 +15,7 @@ After implementing the prompt, follow these steps:
 3. Commit all changes with an appropriate commit message
 4. Push the branch to the remote repository
 5. Check if a PR already exists using `gh pr view --json url,state`
-   - If a PR exists: Report the existing PR URL and skip PR creation
+   - If a PR exists: Update the PR title and description to reflect the new changes, mark any todo items as done
    - If no PR exists: Create a GitHub pull request for the change with a clear title and description
 6. Report the GitHub pull request URL
 7. Monitor CI status using `gh pr checks --watch`
