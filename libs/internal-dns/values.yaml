@@ -14,7 +14,7 @@ cloudflare:
   # OnePasswordItem configuration
   onePasswordItem:
     enabled: true
-    itemPath: vaults/enigma-cluster/items/cloudflare-external-dns
+    itemPath: vaults/setup-devenv/items/cloudflare-tunnel
 
 externalDns:
   image:

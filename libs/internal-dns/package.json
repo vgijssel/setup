@@ -6,63 +6,27 @@
     "projectType": "library",
     "sourceRoot": "libs/internal-dns",
     "targets": {
-      "create-1password-secret": {
-        "executor": "nx:run-commands",
-        "options": {
-          "commands": [
-            "kubectl create namespace 1password --dry-run=client -o yaml | kubectl apply -f -",
-            "kubectl create secret generic 1password-credentials --namespace=1password --from-literal=1password-credentials.json=\"$(op read 'op://setup-devenv/setup-devenv Credentials File/1password-credentials.json' | base64)\" --dry-run=client -o yaml | kubectl apply -f -",
-            "kubectl create secret generic 1password-operator-token --namespace=1password --from-literal=token=\"$(op read 'op://setup-devenv/qgwskgubcvfg7qnzutarn75tue/credential')\" --dry-run=client -o yaml | kubectl apply -f -"
-          ],
-          "parallel": false,
-          "cwd": "{workspaceRoot}"
-        },
-        "metadata": {
-          "description": "Create or replace the 1password-credentials and 1password-operator-token Kubernetes secrets"
-        }
-      },
-      "secrets": {
-        "executor": "nx:run-commands",
-        "options": {
-          "command": "echo \"apiToken: $(op read 'op://setup-devenv/cloudflare-tunnel/credential')\" > secrets.yaml",
-          "cwd": "libs/internal-dns"
-        },
-        "cache": true,
-        "inputs": [],
-        "outputs": [
-          "{projectRoot}/secrets.yaml"
-        ]
-      },
       "test": {
         "executor": "nx:run-commands",
         "options": {
           "commands": [
             "dev-cluster create internal-dns-test",
-            "export KUBECONFIG=~/.kube/kind-internal-dns-test && chainsaw test --test-dir chainsaw-test --config chainsaw-test.yaml",
+            "chainsaw test --test-dir chainsaw-test --config chainsaw-test.yaml --kube-context kind-internal-dns-test",
             "dev-cluster delete internal-dns-test"
           ],
           "parallel": false,
-          "cwd": "libs/internal-dns",
-          "configurations": {
-            "dev": {
-              "command": "chainsaw test --test-dir chainsaw-test --config chainsaw-test.yaml --no-cluster"
-            }
-          }
+          "cwd": "libs/internal-dns"
         },
         "cache": true,
         "inputs": [
           "{projectRoot}/**/*",
           "!{projectRoot}/kind-logs-*/**/*",
           "!{projectRoot}/kubeconfig",
-          "!{projectRoot}/secrets.yaml",
           {
             "env": "NX_TASK_TARGET_CONFIGURATION"
           }
         ],
-        "outputs": [],
-        "dependsOn": [
-          "secrets"
-        ]
+        "outputs": []
       }
     },
     "tags": [
