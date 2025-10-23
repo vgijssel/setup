@@ -9,4 +9,4 @@ spec:
     cleanup: 30s
     delete: 30s
     error: 30s
-    exec: 5m
+    exec: 15m
