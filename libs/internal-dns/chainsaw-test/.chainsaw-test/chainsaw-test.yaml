@@ -12,36 +12,14 @@ spec:
       try:
         - apply:
             file: test-namespace.yaml
-    - name: Clean up any existing 1Password operator
+    - name: Create fake Cloudflare secret for testing
       try:
         - script:
             content: |
-              # Delete namespace if it exists to ensure clean state
-              kubectl delete namespace 1password --ignore-not-found=true --wait=true --timeout=60s || true
-    - name: Install 1Password operator
-      try:
-        - command:
-            entrypoint: helm
-            args:
-              - install
-              - 1password-operator
-              - ../../../../third_party/vendir/charts/1password-connect
-              - --namespace
-              - 1password
-              - --create-namespace
-              - --wait
-              - --timeout=600s
-    - name: Wait for 1Password operator
-      try:
-        - assert:
-            timeout: 2m
-            resource:
-              apiVersion: v1
-              kind: Pod
-              metadata:
-                namespace: 1password
-              status:
-                phase: Running
+              # Create a fake Cloudflare API token secret for testing
+              kubectl create secret generic internal-dns-cloudflare \
+                --from-literal=apiToken=fake-token-for-testing \
+                -n internal-dns-test
     - name: Install internal-dns chart
       try:
         - command:
@@ -53,6 +31,8 @@ spec:
               - ../..
               - --namespace
               - internal-dns-test
+              - --set
+              - cloudflare.onePasswordItem.enabled=false
               - --wait
               - --timeout=600s
         - assert:
