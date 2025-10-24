@@ -12,6 +12,20 @@ spec:
       try:
         - apply:
             file: test-namespace.yaml
+    - name: Install 1Password operator
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - upgrade
+              - --install
+              - onepassword-connect
+              - ../../../../third_party/vendir/charts/1password-connect
+              - --namespace
+              - 1password
+              - --create-namespace
+              - --wait
+              - --timeout=600s
     - name: Wait for 1Password operator
       try:
         - assert:
