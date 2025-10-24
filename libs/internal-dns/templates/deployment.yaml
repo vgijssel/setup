@@ -35,7 +35,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: {{ include "internal-dns.fullname" . }}-cloudflare
-                key: apiToken
+                key: credential
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

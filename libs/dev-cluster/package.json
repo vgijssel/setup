@@ -37,7 +37,7 @@
         "options": {
           "commands": [
             "dev-cluster create dev-cluster",
-            "chainsaw test --test-dir tests_e2e",
+            "chainsaw test --test-dir tests_e2e --kube-context kind-dev-cluster",
             "dev-cluster delete dev-cluster"
           ],
           "cwd": "libs/dev-cluster",

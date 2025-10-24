@@ -1,7 +1,7 @@
 nameOverride: ""
 fullnameOverride: ""
 
-domain: enigma.vgijssel.nl
+domain: vgijssel-dev.nl
 replicaCount: 1
 
 # External DNS settings
@@ -13,7 +13,7 @@ interval: 30s
 cloudflare:
   # OnePasswordItem configuration
   onePasswordItem:
-    enabled: true
+    enabled: true # TODO: remove enabled. Always required
     itemPath: vaults/setup-devenv/items/cloudflare-tunnel
 
 externalDns:

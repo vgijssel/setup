@@ -20,11 +20,7 @@
         "cache": true,
         "inputs": [
           "{projectRoot}/**/*",
-          "!{projectRoot}/kind-logs-*/**/*",
-          "!{projectRoot}/kubeconfig",
-          {
-            "env": "NX_TASK_TARGET_CONFIGURATION"
-          }
+          "!{projectRoot}/kind-logs-*/**/*"
         ],
         "outputs": []
       }

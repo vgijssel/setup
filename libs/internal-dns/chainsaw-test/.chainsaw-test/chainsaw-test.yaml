@@ -8,18 +8,6 @@ spec:
     apply: 2m
     assert: 5m
   steps:
-    - name: Create test namespace
-      try:
-        - apply:
-            file: test-namespace.yaml
-    - name: Create fake Cloudflare secret for testing
-      try:
-        - script:
-            content: |
-              # Create a fake Cloudflare API token secret for testing
-              kubectl create secret generic internal-dns-cloudflare \
-                --from-literal=apiToken=fake-token-for-testing \
-                -n internal-dns-test
     - name: Install internal-dns chart
       try:
         - command:
@@ -29,10 +17,6 @@ spec:
               - --install
               - internal-dns
               - ../..
-              - --namespace
-              - internal-dns-test
-              - --set
-              - cloudflare.onePasswordItem.enabled=false
               - --wait
               - --timeout=600s
         - assert:
