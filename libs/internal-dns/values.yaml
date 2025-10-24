@@ -11,9 +11,8 @@ interval: 30s
 
 # Cloudflare configuration
 cloudflare:
-  # OnePasswordItem configuration
+  # OnePasswordItem configuration - REQUIRED
   onePasswordItem:
-    enabled: true # TODO: remove enabled. Always required
     itemPath: vaults/setup-devenv/items/cloudflare-tunnel
 
 externalDns:

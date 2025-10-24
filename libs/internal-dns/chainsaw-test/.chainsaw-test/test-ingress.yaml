@@ -4,11 +4,11 @@ metadata:
   name: test-ingress
   namespace: default
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: test.enigma.vgijssel-dev.nl
+    external-dns.alpha.kubernetes.io/hostname: ($namespace).enigma.vgijssel-dev.nl
 spec:
   ingressClassName: nginx
   rules:
-    - host: test.enigma.vgijssel-dev.nl
+    - host: ($namespace).enigma.vgijssel-dev.nl
       http:
         paths:
           - path: /

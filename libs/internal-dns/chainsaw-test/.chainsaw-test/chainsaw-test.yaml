@@ -7,6 +7,7 @@ spec:
   timeouts:
     apply: 2m
     assert: 5m
+    exec: 3m
   steps:
     - name: Install internal-dns chart
       try:
@@ -29,3 +30,53 @@ spec:
       try:
         - assert:
             file: external-dns-running-assert.yaml
+    - name: Wait for DNS record creation
+      try:
+        - sleep:
+            duration: 60s
+    - name: Validate DNS record exists in Cloudflare
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              # Validate DNS record was created in Cloudflare
+              # Retry up to 12 times (2 minutes) to allow for DNS propagation
+              HOSTNAME="($namespace).enigma.vgijssel-dev.nl"
+
+              for i in $(seq 1 12); do
+                echo "Attempt $i: Checking DNS for $HOSTNAME"
+
+                # Use nslookup to check if DNS record exists
+                if nslookup "$HOSTNAME" 8.8.8.8 > /dev/null 2>&1; then
+                  echo "SUCCESS: DNS record found for $HOSTNAME"
+                  exit 0
+                fi
+
+                echo "DNS record not found yet, waiting 10 seconds..."
+                sleep 10
+              done
+
+              echo "ERROR: DNS record not found for $HOSTNAME after 2 minutes"
+              exit 1
+    - name: Uninstall internal-dns chart
+      try:
+        - command:
+            entrypoint: helm
+            args:
+              - uninstall
+              - internal-dns
+              - --wait
+              - --timeout=300s
+    - name: Wait for complete cleanup
+      try:
+        - script:
+            content: |
+              # Wait for deployment to be fully deleted
+              echo "Waiting for deployment to be deleted..."
+              kubectl wait --for=delete deployment/internal-dns --timeout=60s || true
+
+              # Verify OnePasswordItem is deleted
+              echo "Verifying OnePasswordItem cleanup..."
+              kubectl wait --for=delete onepassworditem/internal-dns-cloudflare --timeout=60s || true
+
+              echo "Cleanup complete"
