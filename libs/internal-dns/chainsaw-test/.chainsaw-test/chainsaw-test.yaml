@@ -67,8 +67,68 @@ spec:
               exit 1
     - name: Create test ingress
       try:
-        - apply:
-            file: test-ingress.yaml
+        - script:
+            timeout: 1m
+            content: |
+              # Create ingress with dynamic hostname based on namespace
+              HOSTNAME="$NAMESPACE.enigma.vgijssel-dev.nl"
+              echo "Creating test ingress with hostname: $HOSTNAME"
+
+              cat <<EOF | kubectl apply -f -
+              apiVersion: networking.k8s.io/v1
+              kind: Ingress
+              metadata:
+                name: test-ingress
+                namespace: default
+                annotations:
+                  external-dns.alpha.kubernetes.io/hostname: $HOSTNAME
+              spec:
+                ingressClassName: nginx
+                rules:
+                  - host: $HOSTNAME
+                    http:
+                      paths:
+                        - path: /
+                          pathType: Prefix
+                          backend:
+                            service:
+                              name: test-service
+                              port:
+                                number: 80
+              ---
+              apiVersion: v1
+              kind: Service
+              metadata:
+                name: test-service
+                namespace: default
+              spec:
+                ports:
+                  - port: 80
+                    targetPort: 8080
+                selector:
+                  app: test
+              ---
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: test-deployment
+                namespace: default
+              spec:
+                replicas: 1
+                selector:
+                  matchLabels:
+                    app: test
+                template:
+                  metadata:
+                    labels:
+                      app: test
+                  spec:
+                    containers:
+                      - name: nginx
+                        image: nginx:1.27.3-alpine
+                        ports:
+                          - containerPort: 8080
+              EOF
     - name: Verify external-dns is running
       try:
         - assert:
@@ -96,7 +156,7 @@ spec:
 
               # Validate DNS record was created in Cloudflare
               # Retry up to 12 times (2 minutes) to allow for DNS propagation
-              HOSTNAME="($namespace).enigma.vgijssel-dev.nl"
+              HOSTNAME="$NAMESPACE.enigma.vgijssel-dev.nl"
 
               for i in $(seq 1 12); do
                 echo "Attempt $i: Checking DNS for $HOSTNAME"
