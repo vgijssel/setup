@@ -55,6 +55,52 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Disk usage before cleanup
+        run: |
+          echo "=== Disk usage before cleanup ==="
+          df -h
+          echo ""
+          echo "=== Largest directories in /usr ==="
+          sudo du -sh /usr/local/* /usr/share/* 2>/dev/null | sort -hr | head -20 || true
+
+      - name: Free up disk space
+        run: |
+          echo "Freeing up disk space on Ubuntu runner..."
+
+          # Remove Android SDK
+          sudo rm -rf /usr/local/lib/android || true
+
+          # Remove .NET
+          sudo rm -rf /usr/share/dotnet || true
+
+          # Remove Haskell
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /usr/local/.ghcup || true
+
+          # Remove CodeQL
+          sudo rm -rf /opt/hostedtoolcache/CodeQL || true
+
+          # Remove large tools we don't need
+          sudo rm -rf /usr/local/share/boost || true
+          sudo rm -rf /usr/local/share/powershell || true
+          sudo rm -rf /usr/share/swift || true
+
+          # Clean apt cache
+          sudo apt-get clean || true
+
+          # Remove old kernels
+          sudo apt-get autoremove -y || true
+
+          # Clean docker
+          docker system prune -af || true
+
+          echo "Cleanup complete"
+
+      - name: Disk usage after cleanup
+        run: |
+          echo "=== Disk usage after cleanup ==="
+          df -h
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -84,6 +130,18 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
+      - name: Disk usage after tests
+        if: always()
+        run: |
+          echo "=== Disk usage after tests ==="
+          df -h
+          echo ""
+          echo "=== Hermit cache size ==="
+          du -sh ~/.cache/hermit || true
+          echo ""
+          echo "=== Docker disk usage ==="
+          docker system df || true
+
   test-macos:
     name: macOS Tests (Tagged Projects Only)
     runs-on: macos-latest
@@ -92,6 +150,11 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Disk usage before tests
+        run: |
+          echo "=== Disk usage before tests ==="
+          df -h
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -120,3 +183,12 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Disk usage after tests
+        if: always()
+        run: |
+          echo "=== Disk usage after tests ==="
+          df -h
+          echo ""
+          echo "=== Hermit cache size ==="
+          du -sh ~/.cache/hermit || true
