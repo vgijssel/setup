@@ -12,14 +12,19 @@ spec:
       try:
         - apply:
             file: test-namespace.yaml
+    - name: Clean up any existing 1Password operator
+      try:
+        - script:
+            content: |
+              # Delete namespace if it exists to ensure clean state
+              kubectl delete namespace 1password --ignore-not-found=true --wait=true --timeout=60s || true
     - name: Install 1Password operator
       try:
         - command:
             entrypoint: helm
             args:
-              - upgrade
-              - --install
-              - onepassword-connect
+              - install
+              - 1password-operator
               - ../../../../third_party/vendir/charts/1password-connect
               - --namespace
               - 1password
