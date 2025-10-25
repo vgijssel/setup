@@ -1,6 +1,6 @@
 apiVersion: v2
 name: internal-dns
-description: A Helm chart for PowerDNS Authoritative Server
+description: A Helm chart for external-dns with Cloudflare backend
 type: application
 version: 0.1.0
-appVersion: "5.1"
+appVersion: 0.15.0

@@ -50,8 +50,6 @@ lint:
     - linters: [yamllint]
       paths:
         - libs/internal-dns/templates/deployment.yaml
-        - libs/internal-dns/templates/service.yaml
-        - libs/internal-dns/templates/pvc.yaml
         - libs/internal-dns/templates/external-dns-rbac.yaml
         - libs/internal-dns/templates/**
         - libs/devenv/goss.yaml

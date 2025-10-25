@@ -1,7 +1,0 @@
-apiVersion: kuttl.dev/v1beta1
-kind: TestStep
-metadata:
-  name: create-test-ingress
-commands:
-  - command: kubectl apply -f deployment.yaml
-    namespaced: true
