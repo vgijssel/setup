@@ -59,14 +59,9 @@ jobs:
         run: |
           echo "=== Disk usage before cleanup ==="
           df -h
-          echo ""
-          echo "=== Largest directories in /usr ==="
-          sudo du -sh /usr/local/* /usr/share/* 2>/dev/null | sort -hr | head -20 || true
 
       - name: Free up disk space
         run: |
-          echo "Freeing up disk space on Ubuntu runner..."
-
           # Remove Android SDK
           sudo rm -rf /usr/local/lib/android || true
 

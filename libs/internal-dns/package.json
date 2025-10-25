@@ -19,16 +19,14 @@
         },
         "cache": true,
         "inputs": [
-          "{projectRoot}/**/*",
-          "!{projectRoot}/kind-logs-*/**/*"
+          "{projectRoot}/**/*"
         ],
         "outputs": []
       }
     },
     "tags": [
       "type:library",
-      "scope:infrastructure",
-      "platform:kubernetes"
+      "scope:infrastructure"
     ]
   },
   "private": true

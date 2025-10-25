@@ -8,18 +8,10 @@ spec:
     apply: 2m
     assert: 5m
     exec: 15m
+  bindings:
+    - name: testHostname
+      value: ($namespace | replace(`-`, ``) | to_lower(@)).enigma.vgijssel-dev.nl
   steps:
-    - name: Wait for 1Password operator to be ready
-      try:
-        - script:
-            timeout: 5m
-            content: |
-              echo "Waiting for 1Password operator deployment..."
-              kubectl wait --for=condition=available deployment/onepassword-connect-operator \
-                -n 1password --timeout=300s || echo "1Password operator not ready, tests may fail"
-
-              echo "Checking if 1Password operator pod is running..."
-              kubectl get pods -n 1password -l app.kubernetes.io/name=onepassword-connect
     - name: Install internal-dns chart
       try:
         - command:
@@ -29,6 +21,9 @@ spec:
               - --install
               - internal-dns
               - ../..
+              - --namespace
+              - ($namespace)
+              - --create-namespace
               - --wait
               - --timeout=600s
         - assert:
@@ -41,12 +36,12 @@ spec:
               echo "Waiting for OnePasswordItem to sync secret..."
               # Wait up to 3 minutes for the secret to be created by 1Password operator
               for i in $(seq 1 36); do
-                if kubectl get secret internal-dns-cloudflare -n default > /dev/null 2>&1; then
+                if kubectl get secret internal-dns-cloudflare -n ($namespace) > /dev/null 2>&1; then
                   echo "Secret internal-dns-cloudflare exists"
 
                   # Check if it has the expected key
-                  if kubectl get secret internal-dns-cloudflare -n default -o jsonpath='{.data.apiToken}' | base64 -d > /dev/null 2>&1; then
-                    TOKEN=$(kubectl get secret internal-dns-cloudflare -n default -o jsonpath='{.data.apiToken}' | base64 -d)
+                  if kubectl get secret internal-dns-cloudflare -n ($namespace) -o jsonpath='{.data.apiToken}' | base64 -d > /dev/null 2>&1; then
+                    TOKEN=$(kubectl get secret internal-dns-cloudflare -n ($namespace) -o jsonpath='{.data.apiToken}' | base64 -d)
 
                     # Check if it's a real token (CloudFlare tokens start with specific patterns)
                     # or a fake token used for testing
@@ -67,68 +62,8 @@ spec:
               exit 1
     - name: Create test ingress
       try:
-        - script:
-            timeout: 1m
-            content: |
-              # Create ingress with dynamic hostname based on namespace
-              HOSTNAME="$NAMESPACE.enigma.vgijssel-dev.nl"
-              echo "Creating test ingress with hostname: $HOSTNAME"
-
-              cat <<EOF | kubectl apply -f -
-              apiVersion: networking.k8s.io/v1
-              kind: Ingress
-              metadata:
-                name: test-ingress
-                namespace: default
-                annotations:
-                  external-dns.alpha.kubernetes.io/hostname: $HOSTNAME
-              spec:
-                ingressClassName: nginx
-                rules:
-                  - host: $HOSTNAME
-                    http:
-                      paths:
-                        - path: /
-                          pathType: Prefix
-                          backend:
-                            service:
-                              name: test-service
-                              port:
-                                number: 80
-              ---
-              apiVersion: v1
-              kind: Service
-              metadata:
-                name: test-service
-                namespace: default
-              spec:
-                ports:
-                  - port: 80
-                    targetPort: 8080
-                selector:
-                  app: test
-              ---
-              apiVersion: apps/v1
-              kind: Deployment
-              metadata:
-                name: test-deployment
-                namespace: default
-              spec:
-                replicas: 1
-                selector:
-                  matchLabels:
-                    app: test
-                template:
-                  metadata:
-                    labels:
-                      app: test
-                  spec:
-                    containers:
-                      - name: nginx
-                        image: nginx:1.27.3-alpine
-                        ports:
-                          - containerPort: 8080
-              EOF
+        - apply:
+            file: test-ingress.yaml
     - name: Verify external-dns is running
       try:
         - assert:
@@ -143,20 +78,20 @@ spec:
             timeout: 3m
             content: |
               # Check if we have real credentials before validating DNS
-              if kubectl get secret internal-dns-cloudflare -n default > /dev/null 2>&1; then
-                TOKEN=$(kubectl get secret internal-dns-cloudflare -n default -o jsonpath='{.data.apiToken}' | base64 -d)
+              if kubectl get secret internal-dns-cloudflare -n ($namespace) > /dev/null 2>&1; then
+                TOKEN=$(kubectl get secret internal-dns-cloudflare -n ($namespace) -o jsonpath='{.data.apiToken}' | base64 -d)
 
                 if [ "$TOKEN" = "fake-token-for-testing" ]; then
                   echo "Skipping DNS validation (fake credentials detected)"
                   echo "Checking external-dns logs for configuration..."
-                  kubectl logs -n default -l app.kubernetes.io/name=internal-dns --tail=50 || true
+                  kubectl logs -n ($namespace) -l app.kubernetes.io/name=internal-dns --tail=50 || true
                   exit 0
                 fi
               fi
 
               # Validate DNS record was created in Cloudflare
               # Retry up to 12 times (2 minutes) to allow for DNS propagation
-              HOSTNAME="$NAMESPACE.enigma.vgijssel-dev.nl"
+              HOSTNAME="($testHostname)"
 
               for i in $(seq 1 12); do
                 echo "Attempt $i: Checking DNS for $HOSTNAME"
@@ -173,7 +108,7 @@ spec:
 
               echo "ERROR: DNS record not found for $HOSTNAME after 2 minutes"
               echo "External-dns logs:"
-              kubectl logs -n default -l app.kubernetes.io/name=internal-dns --tail=100 || true
+              kubectl logs -n ($namespace) -l app.kubernetes.io/name=internal-dns --tail=100 || true
               exit 1
     - name: Uninstall internal-dns chart
       try:
@@ -182,6 +117,8 @@ spec:
             args:
               - uninstall
               - internal-dns
+              - --namespace
+              - ($namespace)
               - --wait
               - --timeout=300s
     - name: Wait for complete cleanup
@@ -190,10 +127,10 @@ spec:
             content: |
               # Wait for deployment to be fully deleted
               echo "Waiting for deployment to be deleted..."
-              kubectl wait --for=delete deployment/internal-dns --timeout=60s || true
+              kubectl wait --for=delete deployment/internal-dns -n ($namespace) --timeout=60s || true
 
               # Verify OnePasswordItem is deleted
               echo "Verifying OnePasswordItem cleanup..."
-              kubectl wait --for=delete onepassworditem/internal-dns-cloudflare --timeout=60s || true
+              kubectl wait --for=delete onepassworditem/internal-dns-cloudflare -n ($namespace) --timeout=60s || true
 
               echo "Cleanup complete"

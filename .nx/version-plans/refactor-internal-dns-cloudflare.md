@@ -1,5 +1,6 @@
 ---
 internal-dns: major
+dev-cluster: patch
 ---
 
 Refactor internal-dns to use Cloudflare backend with external-dns instead of PowerDNS. Migrate test suite from kuttl to Chainsaw.
@@ -17,3 +18,7 @@ Refactor internal-dns to use Cloudflare backend with external-dns instead of Pow
 - Added Cloudflare backend support via external-dns
 - Added OnePasswordItem integration for secure credential management
 - Migrated test suite from kuttl to Chainsaw for better testing experience
+
+## Other Changes
+
+- dev-cluster: Added 1Password operator wait step to Chainsaw tests for improved reliability
