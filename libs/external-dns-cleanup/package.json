@@ -26,16 +26,18 @@
           "secrets"
         ],
         "options": {
-          "command": "uv run --script external-dns-cleanup --help",
+          "command": "uv run --all-extras pytest -v",
           "cwd": "libs/external-dns-cleanup"
         },
         "cache": true,
         "inputs": [
-          "{projectRoot}/external-dns-cleanup",
-          "{projectRoot}/.env"
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/.env"
         ],
         "metadata": {
-          "description": "Test the script executes successfully"
+          "description": "Run pytest integration tests"
         }
       },
       "secrets": {

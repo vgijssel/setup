@@ -1,0 +1,190 @@
+interactions:
+  - request:
+      body: ""
+      headers:
+        accept:
+          - application/json
+        accept-encoding:
+          - gzip, deflate
+        api-version:
+          - "2025-10-26"
+        authorization:
+          - Bearer REDACTED
+        connection:
+          - keep-alive
+        content-type:
+          - application/json
+        host:
+          - api.cloudflare.com
+        user-agent:
+          - Cloudflare/Python 4.3.1
+        x-stainless-arch:
+          - arm64
+        x-stainless-async:
+          - "false"
+        x-stainless-lang:
+          - python
+        x-stainless-os:
+          - Linux
+        x-stainless-package-version:
+          - 4.3.1
+        x-stainless-read-timeout:
+          - "60"
+        x-stainless-retry-count:
+          - "0"
+        x-stainless-runtime:
+          - CPython
+        x-stainless-runtime-version:
+          - 3.12.3
+      method: GET
+      uri: https://api.cloudflare.com/client/v4/zones?name=vgijssel-dev.nl
+    response:
+      body:
+        string: !!binary |
+          H4sIAAAAAAAAA4VU247aMBD9FeR9aCuxKAkEkjy1VdUfaKtKXa0sx56wXjk267Hpsiv+vZMLAW1R
+          i3hgZo7P3M7wyjxgNIFVd69MK1axZV6nG9GIlSplnSRZURT1Gkol8wLqpFyzObOiBULut/oREcyt
+          gv3CGgpgECEihYQMeg/k2YmIQLSNMAhzFg677mUTTQend2DcrgUbeOsURZKBnCP4PXhiumP0E6wO
+          h4XFhTQuqsYIDwvpWmIIHvbOXwndz5nzequtMPwto2h1uMr2KBT8h8vDVmPwwlMXL88SZ++1qmYf
+          2AVEWXxwSBO11OWcUWO60aC4s/QmS7L8Ninp+z0tqyyrsnJRrDd5vvxFHNKDCNegBeGqdLXIylWR
+          lh20n/B18N+8e9FN8O0g7q8GuN7hVDsEwapX2ivsWJVRgRGDa7kEH6gpSfn5U3QdKOl2vQXuo5l8
+          S/I9aHzQdssVBJBhksKRBvbbgu/YO9kN+UZ5kGQ8VQ2t0GYIHbuGpYs2nB4wkQoo82UGar2Ryzov
+          C8izNE+SfCPTpUrOOv1MIgHk0lAdh1X6Uff77Vb7DmefRlrKEMCKc4KhooFiLGEA8Egzu0RRZAe+
+          1Yja2V5hN6QBkop0XmFFO1VUzM2LszAZlwBQxEfL2Blhp/aSBv75Obf31QPMfkKNOvQX57UcLklG
+          T6cjD4T58e0LhRoPT3H0kKmRY6xRel1fnKgU9uyevAa2Qh54XxrRdIlGl9I4LmaEwnMAT4dgDrwV
+          ljQx7fxITQ5/N1zbxnW9dpphVdpPkA9GRqUH0o/pbeyjY4b0FDnZNHqMUgISLPjYZffendTdkn+g
+          uLs//gEpDl+a6gQAAA==
+      headers:
+        CF-Cache-Status:
+          - DYNAMIC
+        CF-Ray:
+          - 994c6dc8bc262f85-AMS
+        Cache-Control:
+          - no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+        Connection:
+          - keep-alive
+        Content-Encoding:
+          - gzip
+        Content-Type:
+          - application/json
+        Date:
+          - Sun, 26 Oct 2025 19:41:02 GMT
+        Expires:
+          - Sun, 25 Jan 1981 05:00:00 GMT
+        Pragma:
+          - no-cache
+        RateLimit:
+          - '"default";r=1199;t=1'
+        RateLimit-Policy:
+          - '"default";q=1200;w=300'
+        Server:
+          - cloudflare
+        Set-Cookie:
+          - __cflb=0H28vgHxwvgAQtjUGU4yFBDJQfw1pfzuTqvhvYMfJcd; SameSite=Lax; path=/;
+            expires=Sun, 26-Oct-25 22:11:03 GMT; HttpOnly
+          - __cf_bm=cmSbKZJF2cLXVolbB4aZvvOYe0Ck3DcZIWRKjC9wKiw-1761507662-1.0.1.1-0rs_0Sh4PvsSNE4H7CNFdbirH4VcJMugnPn5NsKy.xql1oe8ZrLtx_szrjCPzzCcJnzi6StzhvslqRFGWq6E4PaM1iCViqZ6raYYL0QXHbQ;
+            path=/; expires=Sun, 26-Oct-25 20:11:02 GMT; domain=.api.cloudflare.com; HttpOnly;
+            Secure; SameSite=None
+          - _cfuvid=wWOXgCtrubs2RpisLpH9OrnGynXDnY6rOJ0OAyqEp5I-1761507662906-0.0.1.1-604800000;
+            path=/; domain=.api.cloudflare.com; HttpOnly; Secure; SameSite=None
+        Strict-Transport-Security:
+          - max-age=31536000
+        Transfer-Encoding:
+          - chunked
+        Vary:
+          - accept-encoding
+        X-Content-Type-Options:
+          - nosniff
+        X-Frame-Options:
+          - SAMEORIGIN
+        api-version:
+          - "2025-10-26"
+        cf-auditlog-id:
+          - 019a2209-d983-710d-b043-ee11ac87d7fd
+      status:
+        code: 200
+        message: OK
+  - request:
+      body: ""
+      headers:
+        accept:
+          - application/json
+        accept-encoding:
+          - gzip, deflate
+        api-version:
+          - "2025-10-26"
+        authorization:
+          - Bearer REDACTED
+        connection:
+          - keep-alive
+        content-type:
+          - application/json
+        cookie:
+          - __cflb=0H28vgHxwvgAQtjUGU4yFBDJQfw1pfzuTqvhvYMfJcd; __cf_bm=cmSbKZJF2cLXVolbB4aZvvOYe0Ck3DcZIWRKjC9wKiw-1761507662-1.0.1.1-0rs_0Sh4PvsSNE4H7CNFdbirH4VcJMugnPn5NsKy.xql1oe8ZrLtx_szrjCPzzCcJnzi6StzhvslqRFGWq6E4PaM1iCViqZ6raYYL0QXHbQ;
+            _cfuvid=wWOXgCtrubs2RpisLpH9OrnGynXDnY6rOJ0OAyqEp5I-1761507662906-0.0.1.1-604800000
+        host:
+          - api.cloudflare.com
+        user-agent:
+          - Cloudflare/Python 4.3.1
+        x-stainless-arch:
+          - arm64
+        x-stainless-async:
+          - "false"
+        x-stainless-lang:
+          - python
+        x-stainless-os:
+          - Linux
+        x-stainless-package-version:
+          - 4.3.1
+        x-stainless-read-timeout:
+          - "60"
+        x-stainless-retry-count:
+          - "0"
+        x-stainless-runtime:
+          - CPython
+        x-stainless-runtime-version:
+          - 3.12.3
+      method: GET
+      uri: https://api.cloudflare.com/client/v4/zones/35b17afa4d9cb002888b6e9dc58eb096/dns_records?page=1&per_page=100
+    response:
+      body:
+        string: !!binary |
+          H4sIAAAAAAAAA+xUTW/bMAz9LzrHjihLlm2gh/2HHIa1QyDLVKLBlgNZbjsE+e9jmo9uAwIExbBd
+          BvtAik/k4yPtPYs4zX1izeOe+Y41DFtoHUfNu7LkxqACqFF2ShTKWG0UW7BgBiSk3RofJvOSbedh
+          jOM8ZRsfjXOYY/CbweTPG/9tmrDPOnzOQ0830/fd8eYnMu0YEgYqzECLHOpcKJULzim0i+OrN21P
+          UGf6Cc8n2F39lHrWwIJNmJIPm4k1+8OCDZjMybLjMLwlD3PfE9wcIY9fKRDRJOzWY6DCgguVAc9E
+          uYKqEXUDkAOvOK+/EIth7Lzz92APi7N2ymkOKGzZVZ2THBFAGm6c1ZUqwIp37e6VRuic0wN/WxVe
+          03vptMqlVEKLG6rcwF5VqbVVrrRS15VqHRROVmUNAtqqrp0G967KGl8TxmD6LkyZyT6+YKvPq190
+          fGJbjJ4axodLiYxqLH52luNLwPjgw604fSnjHC0SZEP2tLzJb5lwStkZ9sT+8UprkEVx50pfsNfh
+          FVwXnCtjQEiurelkC7qVvKpcXUJrbwzv/+j+yOiKqhBK3je6C/ZAiafZWuLPmhRnIogxjvFcc6Bz
+          EvPsnf7+ax/cSFzZjiJvrewwrs8O58cO5iN/SeTHZPr17/7ulBEOhx8AAAD//wMADGNAbFEGAAA=
+      headers:
+        CF-Cache-Status:
+          - DYNAMIC
+        CF-Ray:
+          - 994c6dce18632f85-AMS
+        Connection:
+          - keep-alive
+        Content-Encoding:
+          - gzip
+        Content-Type:
+          - application/json
+        Date:
+          - Sun, 26 Oct 2025 19:41:03 GMT
+        RateLimit:
+          - '"default";r=1199;t=1'
+        RateLimit-Policy:
+          - '"default";q=1200;w=300'
+        Server:
+          - cloudflare
+        Transfer-Encoding:
+          - chunked
+        Vary:
+          - Accept-Encoding
+        api-version:
+          - "2025-10-26"
+        cf-auditlog-id:
+          - 019a2209-dcdd-7758-a3cc-0b466900becd
+      status:
+        code: 200
+        message: OK
+version: 1
