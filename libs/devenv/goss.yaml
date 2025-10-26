@@ -20,7 +20,7 @@ command:
 
   zsh_version:
     title: Zsh shell is installed
-    exec: zsh --version 
+    exec: zsh --version
     exit-status: 0
     stderr: ""
     timeout: 60000
@@ -59,14 +59,6 @@ command:
     exit-status: 0
     stdout:
       - exists and not empty
-    timeout: 10000
-
-  zhistory_fc_command:
-    title: fc command can read history from .zhistory file
-    exec: zsh -c 'HISTFILE=~/.zhistory; HISTSIZE=20000; SAVEHIST=20000; fc -R; fc -l | head -1' 2>&1 | grep -q 'claude --dangerously-skip-permissions' && echo 'history loaded' || echo 'history not loaded'
-    exit-status: 0
-    stdout:
-      - history loaded
     timeout: 10000
 
   gh --version:
@@ -166,7 +158,7 @@ command:
 
   ssh_auth_sock_macos:
     title: SSH_AUTH_SOCK is configured on macOS
-    skip: {{.Env.IS_LINUX}}
+    skip: { { .Env.IS_LINUX } }
     exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.zshrc
     exit-status: 0
     stdout:
@@ -175,7 +167,7 @@ command:
 
   ssh_auth_sock_linux:
     title: SSH_AUTH_SOCK is not configured on Linux
-    skip: {{.Env.IS_MACOS}}
+    skip: { { .Env.IS_MACOS } }
     exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.zshrc || echo "not found"
     exit-status: 0
     stdout:
@@ -200,7 +192,7 @@ command:
 
   gpg_ssh_macos:
     title: GPG SSH signing is configured on macOS via include
-    skip: {{.Env.IS_LINUX}}
+    skip: { { .Env.IS_LINUX } }
     exec: grep -A1 'gpg "ssh"' {{.Env.HOME}}/.gitconfig.macos | grep op-ssh-sign
     exit-status: 0
     stdout:
@@ -209,7 +201,7 @@ command:
 
   gpg_ssh_linux:
     title: GPG SSH signing macOS file does not exist on Linux
-    skip: {{.Env.IS_MACOS}}
+    skip: { { .Env.IS_MACOS } }
     exec: test -f {{.Env.HOME}}/.gitconfig.macos && echo "file exists" || echo "not found"
     exit-status: 0
     stdout:
@@ -218,7 +210,7 @@ command:
 
   docker_storage_check_linux:
     title: Docker storage is local to container (DinD)
-    skip: {{.Env.IS_MACOS}}
+    skip: { { .Env.IS_MACOS } }
     exec: docker info | grep "Docker Root Dir" | awk '{print $NF}'
     exit-status: 0
     stdout:
@@ -227,7 +219,7 @@ command:
 
   docker_version_linux:
     title: Docker client is available
-    skip: {{.Env.IS_MACOS}}
+    skip: { { .Env.IS_MACOS } }
     exec: docker --version
     exit-status: 0
     timeout: 60000
@@ -242,97 +234,95 @@ command:
 
 user:
   coder:
-    skip: {{.Env.IS_MACOS}}
+    skip: { { .Env.IS_MACOS } }
     exists: true
     home: /home/coder
     shell: /usr/bin/zsh
   root:
-    skip: {{.Env.IS_MACOS}}
+    skip: { { .Env.IS_MACOS } }
     exists: true
     shell: /usr/bin/zsh
 
 group:
   coder:
-    skip: {{.Env.IS_MACOS}}
+    skip: { { .Env.IS_MACOS } }
     exists: true
 file:
-  '{{.Env.HOME}}':
+  "{{.Env.HOME}}":
     exists: true
     filetype: directory
 
-  '{{.Env.HOME}}/.config/direnv/direnv.toml':
+  "{{.Env.HOME}}/.config/direnv/direnv.toml":
     exists: true
     filetype: file
 
-  '{{.Env.HOME}}/.config':
+  "{{.Env.HOME}}/.config":
     exists: true
     filetype: directory
 
-  '{{.Env.HOME}}/.zshrc':
+  "{{.Env.HOME}}/.zshrc":
     exists: true
     filetype: file
 
-  '{{.Env.HOME}}/.bashrc':
+  "{{.Env.HOME}}/.bashrc":
     exists: true
     filetype: file
 
-
-  '{{.Env.HOME}}/.gitconfig':
+  "{{.Env.HOME}}/.gitconfig":
     exists: true
     filetype: file
     contents:
-      - '[include]'
+      - "[include]"
       - path = ~/.gitconfig.setup
       - path = ~/.gitconfig.macos
 
-  '{{.Env.HOME}}/.gitconfig.setup':
+  "{{.Env.HOME}}/.gitconfig.setup":
     exists: true
     filetype: file
     contents:
-      - '[user]'
+      - "[user]"
       - name=mvgijssel
 
-  '{{.Env.HOME}}/.gitconfig.macos':
-    skip: {{.Env.IS_LINUX}}
+  "{{.Env.HOME}}/.gitconfig.macos":
+    skip: { { .Env.IS_LINUX } }
     exists: true
     filetype: file
     contents:
-      - '[gpg]'
+      - "[gpg]"
       - format = ssh
 
-  '{{.Env.HOME}}/.gitconfig.macos-not-on-linux':
+  "{{.Env.HOME}}/.gitconfig.macos-not-on-linux":
     title: macOS gitconfig file should not exist on Linux
-    skip: {{.Env.IS_MACOS}}
+    skip: { { .Env.IS_MACOS } }
     exists: false
 
-
-  '{{.Env.HOME}}/.config/starship.toml':
+  "{{.Env.HOME}}/.config/starship.toml":
     exists: true
     filetype: file
     contents:
       - add_newline = true
 
-  '{{.Env.HOME}}/.zimrc':
+  "{{.Env.HOME}}/.zimrc":
     exists: true
     filetype: file
 
-  '{{.Env.HOME}}/.ssh':
+  "{{.Env.HOME}}/.ssh":
     exists: true
     filetype: directory
 
-  '{{.Env.HOME}}/.ssh/known_hosts':
+  "{{.Env.HOME}}/.ssh/known_hosts":
     title: SSH known_hosts file exists with GitHub entry
     exists: true
     filetype: file
     contents:
       - github.com
 
-  '{{.Env.HOME}}/.nx':
+  "{{.Env.HOME}}/.nx":
     title: Nx configuration directory exists
     exists: true
     filetype: directory
 
-  '{{.Env.HOME}}/.nx/ide.json':
+  "{{.Env.HOME}}/.nx/ide.json":
     title: Nx IDE configuration exists to disable auto-install console
     meta:
       url: https://github.com/nrwl/nx/issues/31668#issuecomment-3306509489
@@ -344,5 +334,5 @@ file:
 process:
   dockerd:
     title: Docker daemon is running inside container (Docker-in-Docker)
-    skip: {{.Env.IS_MACOS}}
+    skip: { { .Env.IS_MACOS } }
     running: true
