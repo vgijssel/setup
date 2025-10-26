@@ -1,0 +1,220 @@
+{{- if .Values.cleanup.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "internal-dns.fullname" . }}-cleanup
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cleanup
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "internal-dns.fullname" . }}-cleanup
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cleanup
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+rules:
+- apiGroups: [""]
+  resources: [services, endpoints, pods]
+  verbs: [get, list]
+- apiGroups: [networking.k8s.io]
+  resources: [ingresses]
+  verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "internal-dns.fullname" . }}-cleanup
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cleanup
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "internal-dns.fullname" . }}-cleanup
+subjects:
+- kind: ServiceAccount
+  name: {{ include "internal-dns.fullname" . }}-cleanup
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "internal-dns.fullname" . }}-cleanup-script
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cleanup
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+data:
+  cleanup.sh: |
+    #!/bin/sh
+    set -e
+
+    echo "Starting DNS cleanup for domain: {{ .Values.domain }}"
+    echo "TXT Owner ID: {{ .Values.txtOwnerId }}"
+
+    # Check if CF_API_TOKEN is set
+    if [ -z "$CF_API_TOKEN" ]; then
+      echo "ERROR: CF_API_TOKEN is not set"
+      exit 1
+    fi
+
+    # Get zone ID for the domain
+    echo "Fetching zone ID for {{ .Values.domain }}..."
+    ZONE_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name={{ .Values.domain }}" \
+      -H "Authorization: Bearer $CF_API_TOKEN" \
+      -H "Content-Type: application/json")
+
+    ZONE_ID=$(echo "$ZONE_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+    if [ -z "$ZONE_ID" ]; then
+      echo "ERROR: Could not find zone ID for {{ .Values.domain }}"
+      echo "Response: $ZONE_RESPONSE"
+      exit 1
+    fi
+
+    echo "Zone ID: $ZONE_ID"
+
+    # Get all TXT records with our owner ID prefix
+    echo "Fetching TXT records with owner ID..."
+    TXT_RECORDS=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=TXT&name=_externaldns-" \
+      -H "Authorization: Bearer $CF_API_TOKEN" \
+      -H "Content-Type: application/json")
+
+    # Extract record IDs that contain our owner ID
+    RECORD_IDS=$(echo "$TXT_RECORDS" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+
+    # Get all DNS records in the zone
+    echo "Fetching all DNS records for cleanup..."
+    ALL_RECORDS=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?per_page=100" \
+      -H "Authorization: Bearer $CF_API_TOKEN" \
+      -H "Content-Type: application/json")
+
+    # Count records to delete
+    RECORDS_TO_DELETE=$(echo "$ALL_RECORDS" | grep -o '"name":"[^"]*\.{{ .Values.domain }}"' | wc -l)
+    echo "Found $RECORDS_TO_DELETE DNS records to potentially clean up"
+
+    # Delete all TXT records with our prefix
+    if [ -n "$RECORD_IDS" ]; then
+      echo "Deleting TXT records..."
+      for RECORD_ID in $RECORD_IDS; do
+        echo "Deleting TXT record: $RECORD_ID"
+        DELETE_RESPONSE=$(curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
+          -H "Authorization: Bearer $CF_API_TOKEN" \
+          -H "Content-Type: application/json")
+
+        if echo "$DELETE_RESPONSE" | grep -q '"success":true'; then
+          echo "Successfully deleted TXT record: $RECORD_ID"
+        else
+          echo "WARNING: Failed to delete TXT record: $RECORD_ID"
+          echo "Response: $DELETE_RESPONSE"
+        fi
+      done
+    fi
+
+    # Get all A and CNAME records managed by external-dns (excluding TXT records)
+    echo "Fetching managed DNS records (A, CNAME, etc.)..."
+    MANAGED_RECORDS=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?per_page=100" \
+      -H "Authorization: Bearer $CF_API_TOKEN" \
+      -H "Content-Type: application/json")
+
+    # Extract record IDs for A and CNAME records (excluding TXT)
+    # We'll be conservative and only delete records that were likely created by external-dns
+    # This is based on the assumption that external-dns creates corresponding TXT records
+    MANAGED_RECORD_IDS=$(echo "$MANAGED_RECORDS" | grep -B5 '"type":"A"' | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+    MANAGED_RECORD_IDS="$MANAGED_RECORD_IDS $(echo "$MANAGED_RECORDS" | grep -B5 '"type":"CNAME"' | grep -o '"id":"[^"]*"' | cut -d'"' -f4)"
+
+    # Delete managed records
+    if [ -n "$MANAGED_RECORD_IDS" ]; then
+      echo "Deleting managed DNS records..."
+      for RECORD_ID in $MANAGED_RECORD_IDS; do
+        # Get record details
+        RECORD_INFO=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
+          -H "Authorization: Bearer $CF_API_TOKEN" \
+          -H "Content-Type: application/json")
+
+        RECORD_NAME=$(echo "$RECORD_INFO" | grep -o '"name":"[^"]*"' | head -1 | cut -d'"' -f4)
+        RECORD_TYPE=$(echo "$RECORD_INFO" | grep -o '"type":"[^"]*"' | head -1 | cut -d'"' -f4)
+
+        # Check if there's a corresponding TXT record (indicates external-dns management)
+        TXT_NAME="_externaldns-.$RECORD_NAME"
+        HAS_TXT=$(echo "$TXT_RECORDS" | grep -c "\"name\":\"$TXT_NAME\"" || true)
+
+        if [ "$HAS_TXT" -gt 0 ] || [ "{{ .Values.cleanup.deleteAll }}" = "true" ]; then
+          echo "Deleting $RECORD_TYPE record: $RECORD_NAME ($RECORD_ID)"
+          DELETE_RESPONSE=$(curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json")
+
+          if echo "$DELETE_RESPONSE" | grep -q '"success":true'; then
+            echo "Successfully deleted $RECORD_TYPE record: $RECORD_NAME"
+          else
+            echo "WARNING: Failed to delete $RECORD_TYPE record: $RECORD_NAME"
+            echo "Response: $DELETE_RESPONSE"
+          fi
+        else
+          echo "Skipping $RECORD_TYPE record: $RECORD_NAME (no TXT record found, likely not managed by external-dns)"
+        fi
+      done
+    fi
+
+    echo "DNS cleanup completed successfully"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "internal-dns.fullname" . }}-cleanup
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+    app.kubernetes.io/component: cleanup
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "internal-dns.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: cleanup
+    spec:
+      serviceAccountName: {{ include "internal-dns.fullname" . }}-cleanup
+      restartPolicy: OnFailure
+      containers:
+      - name: cleanup
+        image: curlimages/curl:8.11.1
+        command: ["/bin/sh", "/scripts/cleanup.sh"]
+        env:
+        - name: CF_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "internal-dns.fullname" . }}-cloudflare
+              key: credential
+        volumeMounts:
+        - name: cleanup-script
+          mountPath: /scripts
+      volumes:
+      - name: cleanup-script
+        configMap:
+          name: {{ include "internal-dns.fullname" . }}-cleanup-script
+          defaultMode: 0755
+{{- end }}

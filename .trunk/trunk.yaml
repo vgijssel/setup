@@ -54,6 +54,10 @@ lint:
         - libs/internal-dns/templates/external-dns-rbac.yaml
         - libs/internal-dns/templates/**
         - libs/devenv/goss.yaml
+    # Ignore prettier syntax errors for Helm chart templates (Go template syntax)
+    - linters: [prettier]
+      paths:
+        - libs/internal-dns/templates/**
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1

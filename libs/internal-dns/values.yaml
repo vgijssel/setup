@@ -8,6 +8,7 @@ replicaCount: 1
 logLevel: debug
 txtOwnerId: internal-dns
 interval: 30s
+policy: sync # sync policy allows deletion of DNS records when k8s resources are deleted
 
 # Cloudflare configuration
 cloudflare:
@@ -25,3 +26,8 @@ resources: {}
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# Cleanup configuration
+cleanup:
+  enabled: true
+  deleteAll: false # If false, only delete records with corresponding TXT records (managed by external-dns)

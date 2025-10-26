@@ -30,6 +30,7 @@ spec:
           - --txt-owner-id={{ .Values.txtOwnerId }}
           - --txt-prefix=_externaldns-
           - --interval={{ .Values.interval }}
+          - --policy={{ .Values.policy }}
           env:
           - name: CF_API_TOKEN
             valueFrom:
