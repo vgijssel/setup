@@ -1,3 +1,9 @@
+## 0.11.2 (2025-10-26)
+
+### 🩹 Fixes
+
+- Add dnsutils package to provide nslookup for DNS testing in Chainsaw tests ([#768](https://github.com/vgijssel/setup/pull/768))
+
 ## 0.11.1 (2025-10-18)
 
 ### 🩹 Fixes
