@@ -1,0 +1,79 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: install-internal-dns
+spec:
+  description: Install and test internal-dns helm chart
+  timeouts:
+    apply: 2m
+    assert: 5m
+    exec: 15m
+  bindings:
+    - name: testHostname
+      value: (join('.', [$namespace, 'enigma.vgijssel-dev.nl']))
+  steps:
+    - name: Install internal-dns chart
+      try:
+        - script:
+            env:
+              - name: NAMESPACE
+                value: ($namespace)
+            content: |
+              helm upgrade --install internal-dns ../.. \
+                --namespace "$NAMESPACE" \
+                --create-namespace \
+                --wait
+        - assert:
+            file: internal-dns-assert.yaml
+      cleanup:
+        - script:
+            env:
+              - name: NAMESPACE
+                value: ($namespace)
+            content: |
+              helm uninstall internal-dns \
+                --namespace "$NAMESPACE" \
+                --wait
+    - name: Verify OnePasswordItem created secret
+      try:
+        - assert:
+            file: onepassword-secret-assert.yaml
+            timeout: 3m
+    - name: Create test ingress
+      try:
+        - apply:
+            file: test-ingress.yaml
+    - name: Verify external-dns is running
+      try:
+        - assert:
+            file: external-dns-running-assert.yaml
+    - name: Validate DNS record exists in Cloudflare
+      try:
+        - script:
+            timeout: 3m
+            env:
+              - name: NAMESPACE
+                value: ($namespace)
+              - name: TEST_HOSTNAME
+                value: ($testHostname)
+            content: |
+              # Validate DNS record was created in Cloudflare
+              # Retry up to 12 times (2 minutes) to allow for DNS propagation
+
+              for i in $(seq 1 12); do
+                echo "Attempt $i: Checking DNS for $TEST_HOSTNAME"
+
+                # Use nslookup to check if DNS record exists
+                if nslookup "$TEST_HOSTNAME" 1.1.1.1 > /dev/null 2>&1; then
+                  echo "SUCCESS: DNS record found for $TEST_HOSTNAME"
+                  exit 0
+                fi
+
+                echo "DNS record not found yet, waiting 10 seconds..."
+                sleep 10
+              done
+
+              echo "ERROR: DNS record not found for $TEST_HOSTNAME after 2 minutes"
+              echo "External-dns logs:"
+              kubectl logs -n $NAMESPACE -l app.kubernetes.io/name=internal-dns --tail=100 || true
+              exit 1

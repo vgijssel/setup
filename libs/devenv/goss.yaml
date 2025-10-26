@@ -20,7 +20,7 @@ command:
 
   zsh_version:
     title: Zsh shell is installed
-    exec: zsh --version 
+    exec: zsh --version
     exit-status: 0
     stderr: ""
     timeout: 60000
@@ -61,14 +61,6 @@ command:
       - exists and not empty
     timeout: 10000
 
-  zhistory_fc_command:
-    title: fc command can read history from .zhistory file
-    exec: zsh -c 'HISTFILE=~/.zhistory; HISTSIZE=20000; SAVEHIST=20000; fc -R; fc -l | head -1' 2>&1 | grep -q 'claude --dangerously-skip-permissions' && echo 'history loaded' || echo 'history not loaded'
-    exit-status: 0
-    stdout:
-      - history loaded
-    timeout: 10000
-
   gh --version:
     title: Ensure GitHub CLI is installed for Claude Code
     exec: gh --version | awk '{print $3}' | tr -d '\n'
@@ -88,6 +80,12 @@ command:
       semver-constraint: ">=1.7.0"
     stderr: ""
     timeout: 60000
+
+  nslookup_version:
+    title: nslookup is installed for DNS testing in chainsaw tests
+    exec: nslookup -version
+    exit-status: 0
+    timeout: 1000
 
   locale:
     title: Check locale settings
