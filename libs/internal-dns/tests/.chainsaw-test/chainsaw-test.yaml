@@ -10,56 +10,35 @@ spec:
     exec: 15m
   bindings:
     - name: testHostname
-      value: ($namespace | replace(`-`, ``) | to_lower(@)).enigma.vgijssel-dev.nl
+      value: (join('.', [$namespace, 'enigma.vgijssel-dev.nl']))
   steps:
     - name: Install internal-dns chart
       try:
-        - command:
-            entrypoint: helm
-            args:
-              - upgrade
-              - --install
-              - internal-dns
-              - ../..
-              - --namespace
-              - ($namespace)
-              - --create-namespace
-              - --wait
-              - --timeout=600s
+        - script:
+            env:
+              - name: NAMESPACE
+                value: ($namespace)
+            content: |
+              helm upgrade --install internal-dns ../.. \
+                --namespace "$NAMESPACE" \
+                --create-namespace \
+                --wait
         - assert:
             file: internal-dns-assert.yaml
+      cleanup:
+        - script:
+            env:
+              - name: NAMESPACE
+                value: ($namespace)
+            content: |
+              helm uninstall internal-dns \
+                --namespace "$NAMESPACE" \
+                --wait
     - name: Verify OnePasswordItem created secret
       try:
-        - script:
+        - assert:
+            file: onepassword-secret-assert.yaml
             timeout: 3m
-            content: |
-              echo "Waiting for OnePasswordItem to sync secret..."
-              # Wait up to 3 minutes for the secret to be created by 1Password operator
-              for i in $(seq 1 36); do
-                if kubectl get secret internal-dns-cloudflare -n $namespace > /dev/null 2>&1; then
-                  echo "Secret internal-dns-cloudflare exists"
-
-                  # Check if it has the expected key
-                  if kubectl get secret internal-dns-cloudflare -n $namespace -o jsonpath='{.data.apiToken}' | base64 -d > /dev/null 2>&1; then
-                    TOKEN=$(kubectl get secret internal-dns-cloudflare -n $namespace -o jsonpath='{.data.apiToken}' | base64 -d)
-
-                    # Check if it's a real token (CloudFlare tokens start with specific patterns)
-                    # or a fake token used for testing
-                    if [ "$TOKEN" = "fake-token-for-testing" ]; then
-                      echo "WARNING: Using fake token, DNS validation will be skipped"
-                      exit 0
-                    else
-                      echo "SUCCESS: Real Cloudflare credentials detected"
-                      exit 0
-                    fi
-                  fi
-                fi
-                echo "Attempt $i/36: Secret not ready yet, waiting 5 seconds..."
-                sleep 5
-              done
-
-              echo "ERROR: Secret not synced after 3 minutes"
-              exit 1
     - name: Create test ingress
       try:
         - apply:
@@ -68,37 +47,25 @@ spec:
       try:
         - assert:
             file: external-dns-running-assert.yaml
-    - name: Wait for DNS record creation
-      try:
-        - sleep:
-            duration: 60s
     - name: Validate DNS record exists in Cloudflare
       try:
         - script:
             timeout: 3m
+            env:
+              - name: NAMESPACE
+                value: ($namespace)
+              - name: TEST_HOSTNAME
+                value: ($testHostname)
             content: |
-              # Check if we have real credentials before validating DNS
-              if kubectl get secret internal-dns-cloudflare -n $namespace > /dev/null 2>&1; then
-                TOKEN=$(kubectl get secret internal-dns-cloudflare -n $namespace -o jsonpath='{.data.apiToken}' | base64 -d)
-
-                if [ "$TOKEN" = "fake-token-for-testing" ]; then
-                  echo "Skipping DNS validation (fake credentials detected)"
-                  echo "Checking external-dns logs for configuration..."
-                  kubectl logs -n $namespace -l app.kubernetes.io/name=internal-dns --tail=50 || true
-                  exit 0
-                fi
-              fi
-
               # Validate DNS record was created in Cloudflare
               # Retry up to 12 times (2 minutes) to allow for DNS propagation
-              HOSTNAME="($testHostname)"
 
               for i in $(seq 1 12); do
-                echo "Attempt $i: Checking DNS for $HOSTNAME"
+                echo "Attempt $i: Checking DNS for $TEST_HOSTNAME"
 
                 # Use nslookup to check if DNS record exists
-                if nslookup "$HOSTNAME" 8.8.8.8 > /dev/null 2>&1; then
-                  echo "SUCCESS: DNS record found for $HOSTNAME"
+                if nslookup "$TEST_HOSTNAME" 1.1.1.1 > /dev/null 2>&1; then
+                  echo "SUCCESS: DNS record found for $TEST_HOSTNAME"
                   exit 0
                 fi
 
@@ -106,31 +73,7 @@ spec:
                 sleep 10
               done
 
-              echo "ERROR: DNS record not found for $HOSTNAME after 2 minutes"
+              echo "ERROR: DNS record not found for $TEST_HOSTNAME after 2 minutes"
               echo "External-dns logs:"
-              kubectl logs -n $namespace -l app.kubernetes.io/name=internal-dns --tail=100 || true
+              kubectl logs -n $NAMESPACE -l app.kubernetes.io/name=internal-dns --tail=100 || true
               exit 1
-    - name: Uninstall internal-dns chart
-      try:
-        - command:
-            entrypoint: helm
-            args:
-              - uninstall
-              - internal-dns
-              - --namespace
-              - $namespace
-              - --wait
-              - --timeout=300s
-    - name: Wait for complete cleanup
-      try:
-        - script:
-            content: |
-              # Wait for deployment to be fully deleted
-              echo "Waiting for deployment to be deleted..."
-              kubectl wait --for=delete deployment/internal-dns -n $namespace --timeout=60s || true
-
-              # Verify OnePasswordItem is deleted
-              echo "Verifying OnePasswordItem cleanup..."
-              kubectl wait --for=delete onepassworditem/internal-dns-cloudflare -n $namespace --timeout=60s || true
-
-              echo "Cleanup complete"
