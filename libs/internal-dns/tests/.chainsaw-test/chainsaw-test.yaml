@@ -22,7 +22,7 @@ spec:
               - internal-dns
               - ../..
               - --namespace
-              - $namespace
+              - ($namespace)
               - --create-namespace
               - --wait
               - --timeout=600s
