@@ -55,45 +55,9 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Disk usage before cleanup
+      - name: Disk usage before tests
         run: |
           echo "=== Disk usage before cleanup ==="
-          df -h
-
-      - name: Free up disk space
-        run: |
-          # Remove Android SDK
-          sudo rm -rf /usr/local/lib/android || true
-
-          # Remove .NET
-          sudo rm -rf /usr/share/dotnet || true
-
-          # Remove Haskell
-          sudo rm -rf /opt/ghc || true
-          sudo rm -rf /usr/local/.ghcup || true
-
-          # Remove CodeQL
-          sudo rm -rf /opt/hostedtoolcache/CodeQL || true
-
-          # Remove large tools we don't need
-          sudo rm -rf /usr/local/share/boost || true
-          sudo rm -rf /usr/local/share/powershell || true
-          sudo rm -rf /usr/share/swift || true
-
-          # Clean apt cache
-          sudo apt-get clean || true
-
-          # Remove old kernels
-          sudo apt-get autoremove -y || true
-
-          # Clean docker
-          docker system prune -af || true
-
-          echo "Cleanup complete"
-
-      - name: Disk usage after cleanup
-        run: |
-          echo "=== Disk usage after cleanup ==="
           df -h
 
       - name: Checkout
