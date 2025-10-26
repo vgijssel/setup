@@ -1,0 +1,56 @@
+{
+  "name": "external-dns-cleanup",
+  "version": "0.1.0",
+  "description": "CLI to cleanup Cloudflare DNS records after external-dns shutdown",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/external-dns-cleanup/src",
+    "targets": {
+      "test": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "secrets"
+        ],
+        "options": {
+          "command": "uv run --all-extras pytest",
+          "cwd": "libs/external-dns-cleanup"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/.env"
+        ],
+        "metadata": {
+          "description": "Run pytest unit tests"
+        }
+      },
+      "secrets": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "op inject --force -i .env.tpl -o .env",
+          "cwd": "libs/external-dns-cleanup"
+        },
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/.env"
+        ],
+        "inputs": [
+          "{projectRoot}/.env.tpl"
+        ],
+        "metadata": {
+          "description": "Generate .env file from 1Password secrets"
+        }
+      }
+    },
+    "tags": [
+      "python",
+      "cli",
+      "cloudflare",
+      "dns",
+      "external-dns"
+    ]
+  },
+  "private": true
+}

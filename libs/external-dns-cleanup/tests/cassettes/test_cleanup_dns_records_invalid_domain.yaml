@@ -1,0 +1,96 @@
+interactions:
+  - request:
+      body: ""
+      headers:
+        accept:
+          - application/json
+        accept-encoding:
+          - gzip, deflate
+        api-version:
+          - "2025-10-26"
+        authorization:
+          - Bearer REDACTED
+        connection:
+          - keep-alive
+        content-type:
+          - application/json
+        host:
+          - api.cloudflare.com
+        user-agent:
+          - Cloudflare/Python 4.3.1
+        x-stainless-arch:
+          - arm64
+        x-stainless-async:
+          - "false"
+        x-stainless-lang:
+          - python
+        x-stainless-os:
+          - Linux
+        x-stainless-package-version:
+          - 4.3.1
+        x-stainless-read-timeout:
+          - "60"
+        x-stainless-retry-count:
+          - "0"
+        x-stainless-runtime:
+          - CPython
+        x-stainless-runtime-version:
+          - 3.12.3
+      method: GET
+      uri: https://api.cloudflare.com/client/v4/zones?name=invalid-domain-that-does-not-exist.example
+    response:
+      body:
+        string: !!binary |
+          H4sIAAAAAAAAAzWNwQqAMAxD/yXnHtTjfkVExqgiqJO2O439u2PTW14SkgxhTafBzQt9ej3uLcJl
+          PH5nuJHwsKwdpoFg0fzZWOEqh5hua6onPxeCphBYa80kMYFFomj/uqrfJ+alvJoGdTiHAAAA
+      headers:
+        CF-Cache-Status:
+          - DYNAMIC
+        CF-Ray:
+          - 994bf90a0abc0b6e-AMS
+        Cache-Control:
+          - no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+        Connection:
+          - keep-alive
+        Content-Encoding:
+          - gzip
+        Content-Type:
+          - application/json
+        Date:
+          - Sun, 26 Oct 2025 18:21:21 GMT
+        Expires:
+          - Sun, 25 Jan 1981 05:00:00 GMT
+        Pragma:
+          - no-cache
+        RateLimit:
+          - '"default";r=1199;t=1'
+        RateLimit-Policy:
+          - '"default";q=1200;w=300'
+        Server:
+          - cloudflare
+        Set-Cookie:
+          - __cflb=0H28vgHxwvgAQtjUGU4yFBDJQfw1pfzuL8GSWCwQRdf; SameSite=Lax; path=/;
+            expires=Sun, 26-Oct-25 20:51:22 GMT; HttpOnly
+          - __cf_bm=ed6SXkBMcCZIJkeJVyLGnDyKfaRNVkN.lGf4N.TcXSE-1761502881-1.0.1.1-3OXrg9QnDORiqfMHI.dNpNCgpwA1s2ZFkIg0hQgpN8GlJTJUGUbPoI5VveN3_tsgmTFTrCBPmcMIFuEATKpciiOjd5.DC_j68Yn7dQbHbzc;
+            path=/; expires=Sun, 26-Oct-25 18:51:21 GMT; domain=.api.cloudflare.com; HttpOnly;
+            Secure; SameSite=None
+          - _cfuvid=mOfKWptN7MBmBMGZGhV4aaNcFm5R44QUQYUzpytE4AI-1761502881032-0.0.1.1-604800000;
+            path=/; domain=.api.cloudflare.com; HttpOnly; Secure; SameSite=None
+        Strict-Transport-Security:
+          - max-age=31536000
+        Transfer-Encoding:
+          - chunked
+        Vary:
+          - accept-encoding
+        X-Content-Type-Options:
+          - nosniff
+        X-Frame-Options:
+          - SAMEORIGIN
+        api-version:
+          - "2025-10-26"
+        cf-auditlog-id:
+          - 019a21c0-e263-713e-8e46-af4368bae0e3
+      status:
+        code: 200
+        message: OK
+version: 1
