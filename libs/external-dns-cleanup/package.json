@@ -1,29 +1,41 @@
 {
   "name": "external-dns-cleanup",
   "version": "0.1.0",
-  "description": "CLI to cleanup Cloudflare DNS records after external-dns shutdown",
+  "description": "Single-file executable CLI to cleanup Cloudflare DNS records after external-dns shutdown",
   "nx": {
     "projectType": "library",
-    "sourceRoot": "libs/external-dns-cleanup/src",
+    "sourceRoot": "libs/external-dns-cleanup",
     "targets": {
+      "run": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "secrets"
+        ],
+        "options": {
+          "command": "./external-dns-cleanup",
+          "cwd": "libs/external-dns-cleanup"
+        },
+        "cache": false,
+        "metadata": {
+          "description": "Run the external-dns-cleanup script"
+        }
+      },
       "test": {
         "executor": "nx:run-commands",
         "dependsOn": [
           "secrets"
         ],
         "options": {
-          "command": "uv run --all-extras pytest",
+          "command": "uv run --script external-dns-cleanup --help",
           "cwd": "libs/external-dns-cleanup"
         },
         "cache": true,
         "inputs": [
-          "{projectRoot}/**/*.*",
-          "!{projectRoot}/.pytest_cache/**",
-          "!{projectRoot}/.venv/**",
-          "!{projectRoot}/.env"
+          "{projectRoot}/external-dns-cleanup",
+          "{projectRoot}/.env"
         ],
         "metadata": {
-          "description": "Run pytest unit tests"
+          "description": "Test the script executes successfully"
         }
       },
       "secrets": {
@@ -49,7 +61,8 @@
       "cli",
       "cloudflare",
       "dns",
-      "external-dns"
+      "external-dns",
+      "uv-script"
     ]
   },
   "private": true
