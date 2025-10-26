@@ -46,6 +46,7 @@ lint:
         - third_party/vendir/vendir.lock.yml
         - third_party/vendir/shell/docker-in-docker/**
         - .specify/**
+        - libs/devenv/goss.yaml
     # Ignore yamllint syntax errors for Helm chart templates
     - linters: [yamllint]
       paths:
