@@ -57,3 +57,4 @@ packages:
       # So we're not sure if Hermit jq's is available when the module runs.
       # See: https://github.com/coder/coder/issues/10352
       - jq
+      - dnsutils # Provides nslookup for DNS testing in chainsaw tests
