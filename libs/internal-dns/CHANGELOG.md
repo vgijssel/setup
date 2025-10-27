@@ -1,3 +1,9 @@
+## 2.1.0 (2025-10-27)
+
+### 🚀 Features
+
+- feat(internal-dns): add cleanup hook for DNS records on chart deletion ([#778](https://github.com/vgijssel/setup/pull/778))
+
 # 2.0.0 (2025-10-26)
 
 ### ⚠️  Breaking Changes
