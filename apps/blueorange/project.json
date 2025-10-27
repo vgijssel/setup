@@ -5,22 +5,25 @@
   "sourceRoot": "apps/blueorange/src",
   "targets": {
     "build": {
-      "executor": "@nx/vite:build",
-      "outputs": ["{options.outputPath}"],
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/dist/apps/blueorange"],
       "options": {
-        "outputPath": "dist/apps/blueorange"
+        "command": "vite build",
+        "cwd": "apps/blueorange"
       }
     },
     "serve": {
-      "executor": "@nx/vite:dev-server",
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "blueorange:build"
+        "command": "vite",
+        "cwd": "apps/blueorange"
       }
     },
     "preview": {
-      "executor": "@nx/vite:preview-server",
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "blueorange:build"
+        "command": "vite preview",
+        "cwd": "apps/blueorange"
       }
     },
     "test": {
