@@ -7,7 +7,7 @@
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pytest",
+        "command": "uv run pytest",
         "cwd": "apps/escaperoom"
       }
     },
