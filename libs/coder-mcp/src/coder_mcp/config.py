@@ -42,9 +42,7 @@ class Config:
 
         # Load and validate configuration
         self.session_token = self._get_required("CODER_SESSION_TOKEN")
-        self.base_url = self._get_optional(
-            "CODER_URL", "https://macbook-pro-van-maarten.tail2c33e2.ts.net"
-        )
+        self.base_url = self._get_required("CODER_URL")
 
         # Normalize URL format
         self.base_url = self._normalize_url(self.base_url)

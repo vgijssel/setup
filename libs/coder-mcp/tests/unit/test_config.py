@@ -28,15 +28,15 @@ def test_config_validates_missing_token(monkeypatch, tmp_path):
         Config(env_file=str(tmp_path / ".env.nonexistent"))
 
 
-def test_config_uses_default_url(monkeypatch):
-    """Test that Config uses default URL if not provided."""
+def test_config_requires_coder_url(monkeypatch, tmp_path):
+    """Test that Config requires CODER_URL to be set."""
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("CODER_SESSION_TOKEN", "test-token-123")
     monkeypatch.delenv("CODER_URL", raising=False)
 
-    config = Config()
-
-    assert config.base_url is not None
-    assert config.base_url.startswith("http")
+    # Use non-existent env file to prevent auto-discovery
+    with pytest.raises(ConfigValidationError, match="CODER_URL"):
+        Config(env_file=str(tmp_path / ".env.nonexistent"))
 
 
 def test_config_loads_from_dotenv_file(tmp_path, monkeypatch):
