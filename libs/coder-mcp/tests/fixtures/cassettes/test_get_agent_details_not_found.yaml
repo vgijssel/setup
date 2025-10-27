@@ -1,0 +1,54 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Coder-Session-Token:
+      - REDACTED
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-type:
+      - application/json
+      host:
+      - macbook-pro-van-maarten.tail2c33e2.ts.net
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://macbook-pro-van-maarten.tail2c33e2.ts.net/api/experimental/tasks/me/nonexistent-agent-id-12345
+  response:
+    body:
+      string: '{"message":"Invalid UUID \"nonexistent-agent-id-12345\" for task ID."}
+
+        '
+    headers:
+      Content-Length:
+      - '71'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 27 Oct 2025 13:11:14 GMT
+      Set-Cookie:
+      - csrf_token=55wvVvmqaWFFfUZAWSDQQmz9ferVoeBmxKed8Z6qSe4=; Path=/; HttpOnly;
+        SameSite=Lax
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 63fc1aac-1801-4a6d-9ae9-e3b324c7ca2f
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '511'
+      X-Ratelimit-Reset:
+      - '1761570720'
+    status:
+      code: 400
+      message: Bad Request
+version: 1
