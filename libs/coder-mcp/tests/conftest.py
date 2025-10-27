@@ -2,8 +2,6 @@
 
 import pytest
 import vcr
-import os
-
 
 # Configure VCR
 my_vcr = vcr.VCR(

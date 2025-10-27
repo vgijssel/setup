@@ -1,9 +1,9 @@
 """End-to-end tests for User Story 1: View Agent Fleet Status."""
 
 import pytest
-from coder_mcp.tools.list_agents import list_agents
-from coder_mcp.tools.get_fleet_status import get_fleet_status
 from coder_mcp.models import Agent, FleetStatus
+from coder_mcp.tools.get_fleet_status import get_fleet_status
+from coder_mcp.tools.list_agents import list_agents
 
 
 @pytest.mark.asyncio
@@ -52,12 +52,12 @@ async def test_get_fleet_status_tool_integration():
 
         # Verify metrics are consistent
         status_sum = (
-            fleet_status.agents_running +
-            fleet_status.agents_idle +
-            fleet_status.agents_busy +
-            fleet_status.agents_offline +
-            fleet_status.agents_error +
-            fleet_status.agents_stopped
+            fleet_status.agents_running
+            + fleet_status.agents_idle
+            + fleet_status.agents_busy
+            + fleet_status.agents_offline
+            + fleet_status.agents_error
+            + fleet_status.agents_stopped
         )
         assert status_sum == fleet_status.total_agents
 
@@ -92,7 +92,7 @@ async def test_user_story_1_complete_workflow():
 
         # If agents exist, verify utilization makes sense
         if len(agents) > 0:
-            busy_count = sum(1 for agent in agents if agent.status.value == 'busy')
+            busy_count = sum(1 for agent in agents if agent.status.value == "busy")
             expected_utilization = busy_count / len(agents)
             assert abs(fleet_status.fleet_utilization - expected_utilization) < 0.001
 

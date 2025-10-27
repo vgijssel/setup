@@ -3,18 +3,17 @@
 This module sets up the MCP server and registers all available tools.
 """
 
-import asyncio
-from typing import List, Optional, Dict, Any
-from fastmcp import FastMCP
-from coder_mcp.tools.list_agents import list_agents
-from coder_mcp.tools.get_fleet_status import get_fleet_status
-from coder_mcp.tools.get_agent_details import get_agent_details
-from coder_mcp.tools.get_agent_logs import get_agent_logs
+from typing import Any, Dict, List, Optional
+
+from coder_mcp.models import Agent, FleetStatus
 from coder_mcp.tools.create_task import create_agent_task
 from coder_mcp.tools.delete_agent import delete_agent
+from coder_mcp.tools.get_agent_details import get_agent_details
+from coder_mcp.tools.get_agent_logs import get_agent_logs
+from coder_mcp.tools.get_fleet_status import get_fleet_status
+from coder_mcp.tools.list_agents import list_agents
 from coder_mcp.tools.send_input import send_agent_input
-from coder_mcp.models import Agent, FleetStatus, LogEntry
-
+from fastmcp import FastMCP
 
 # Initialize FastMCP server
 mcp = FastMCP("Coder Agent Fleet Management")

@@ -2,22 +2,21 @@
 
 import pytest
 import vcr
-from coder_mcp.config import Config
 from coder_mcp.client import CoderAPIClient
+from coder_mcp.config import Config
 from coder_mcp.tools.list_agents import list_agents_from_api
-
 
 # Configure VCR for this test module
 my_vcr = vcr.VCR(
-    cassette_library_dir='tests/fixtures/cassettes',
-    record_mode='once',
-    match_on=['method', 'scheme', 'host', 'port', 'path', 'query'],
-    filter_headers=[('Coder-Session-Token', 'REDACTED')],
+    cassette_library_dir="tests/fixtures/cassettes",
+    record_mode="once",
+    match_on=["method", "scheme", "host", "port", "path", "query"],
+    filter_headers=[("Coder-Session-Token", "REDACTED")],
 )
 
 
 @pytest.mark.asyncio
-@my_vcr.use_cassette('integration/list_agents.yaml')
+@my_vcr.use_cassette("integration/list_agents.yaml")
 async def test_list_agents_integration_real_api():
     """Test list_agents with real Coder API (recorded via VCR)."""
     config = Config()
@@ -30,14 +29,14 @@ async def test_list_agents_integration_real_api():
         # If agents exist, verify structure
         if len(agents) > 0:
             agent = agents[0]
-            assert hasattr(agent, 'id')
-            assert hasattr(agent, 'user')
-            assert hasattr(agent, 'workspace_id')
-            assert hasattr(agent, 'status')
+            assert hasattr(agent, "id")
+            assert hasattr(agent, "user")
+            assert hasattr(agent, "workspace_id")
+            assert hasattr(agent, "status")
 
 
 @pytest.mark.asyncio
-@my_vcr.use_cassette('integration/list_agents_with_filter.yaml')
+@my_vcr.use_cassette("integration/list_agents_with_filter.yaml")
 async def test_list_agents_with_status_filter_integration():
     """Test list_agents with status filter against real API."""
     config = Config()
@@ -51,7 +50,7 @@ async def test_list_agents_with_status_filter_integration():
 
 
 @pytest.mark.asyncio
-@my_vcr.use_cassette('integration/list_agents_error.yaml')
+@my_vcr.use_cassette("integration/list_agents_error.yaml")
 async def test_list_agents_handles_api_errors():
     """Test that list_agents handles API errors gracefully."""
     config = Config()

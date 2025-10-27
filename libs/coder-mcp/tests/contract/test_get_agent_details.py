@@ -6,7 +6,6 @@ and returns data matching the Agent model schema.
 """
 
 import pytest
-from pydantic import ValidationError
 from coder_mcp.models import Agent, AgentStatus
 
 
@@ -27,7 +26,9 @@ class TestGetAgentDetailsContract:
         agent_to_test = agents[0]
 
         # Test get_agent_details with real agent
-        result = await get_agent_details(user=agent_to_test.user, agent_id=agent_to_test.id)
+        result = await get_agent_details(
+            user=agent_to_test.user, agent_id=agent_to_test.id
+        )
 
         # Verify result structure
         assert isinstance(result, dict)
@@ -82,7 +83,9 @@ class TestGetAgentDetailsContract:
             pytest.skip("No agents available for testing")
 
         agent_to_test = agents[0]
-        result = await get_agent_details(user=agent_to_test.user, agent_id=agent_to_test.id)
+        result = await get_agent_details(
+            user=agent_to_test.user, agent_id=agent_to_test.id
+        )
 
         if result["success"]:
             agent_data = result["data"]

@@ -1,8 +1,8 @@
 """Contract tests for get_fleet_status MCP tool."""
 
 import pytest
-from coder_mcp.tools.get_fleet_status import get_fleet_status
 from coder_mcp.models import FleetStatus
+from coder_mcp.tools.get_fleet_status import get_fleet_status
 
 
 @pytest.mark.asyncio
@@ -18,11 +18,11 @@ async def test_fleet_status_has_required_fields():
     """Test that FleetStatus has all required fields."""
     result = await get_fleet_status()
 
-    assert hasattr(result, 'total_agents')
+    assert hasattr(result, "total_agents")
     assert isinstance(result.total_agents, int)
     assert result.total_agents >= 0
 
-    assert hasattr(result, 'computed_at')
+    assert hasattr(result, "computed_at")
     assert result.computed_at is not None
 
 
@@ -33,12 +33,12 @@ async def test_fleet_status_metrics_are_consistent():
 
     # Sum of status counts should equal total_agents
     status_sum = (
-        result.agents_running +
-        result.agents_idle +
-        result.agents_busy +
-        result.agents_offline +
-        result.agents_error +
-        result.agents_stopped
+        result.agents_running
+        + result.agents_idle
+        + result.agents_busy
+        + result.agents_offline
+        + result.agents_error
+        + result.agents_stopped
     )
     assert status_sum == result.total_agents
 
@@ -70,7 +70,9 @@ async def test_fleet_status_health_calculation():
     assert result.unhealthy_agents == expected_unhealthy
 
     if result.total_agents > 0:
-        expected_healthy_pct = (result.total_agents - expected_unhealthy) / result.total_agents
+        expected_healthy_pct = (
+            result.total_agents - expected_unhealthy
+        ) / result.total_agents
         assert abs(result.healthy_percentage - expected_healthy_pct) < 0.001
     else:
         assert result.healthy_percentage == 1.0

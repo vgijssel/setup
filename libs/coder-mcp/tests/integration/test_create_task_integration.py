@@ -6,7 +6,6 @@ and record HTTP responses as VCR cassettes for offline testing.
 """
 
 import pytest
-import httpx
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config
 

@@ -5,11 +5,10 @@ Tests verify interaction with real Coder API endpoints and record HTTP
 responses as VCR cassettes for offline testing.
 """
 
-import pytest
 import httpx
+import pytest
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config
-from coder_mcp.models import Agent, AgentStatus
 
 
 @pytest.mark.asyncio

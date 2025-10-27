@@ -5,8 +5,9 @@ Tests verify that the tool conforms to the expected MCP interface
 and returns data matching the LogEntry model schema.
 """
 
-import pytest
 from datetime import datetime
+
+import pytest
 from coder_mcp.models import LogEntry, LogLevel
 
 
@@ -25,7 +26,9 @@ class TestGetAgentLogsContract:
             pytest.skip("No agents available for testing")
 
         agent_to_test = agents[0]
-        result = await get_agent_logs(user=agent_to_test.user, agent_id=agent_to_test.id)
+        result = await get_agent_logs(
+            user=agent_to_test.user, agent_id=agent_to_test.id
+        )
 
         # Verify result structure
         assert isinstance(result, dict)

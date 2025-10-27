@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -e
+
+exec uv run --project "${SETUP_DIR}/libs/coder-mcp" python -m coder_mcp.server "$@"

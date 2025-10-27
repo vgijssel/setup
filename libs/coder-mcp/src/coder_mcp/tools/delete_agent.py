@@ -4,7 +4,8 @@ Provides the delete_agent function that deletes a Coder workspace,
 which cancels all running tasks for that agent.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 import httpx
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config

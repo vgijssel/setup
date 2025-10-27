@@ -4,12 +4,13 @@ Provides the get_agent_logs function that queries Coder's experimental tasks API
 to retrieve execution logs for a specific AI agent.
 """
 
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import httpx
-from coder_mcp.models import LogEntry, LogLevel
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config
+from coder_mcp.models import LogEntry, LogLevel
 
 
 async def get_agent_logs_from_api(

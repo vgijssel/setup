@@ -1,6 +1,7 @@
 """Unit tests for configuration module."""
 
 import os
+
 import pytest
 from coder_mcp.config import Config, ConfigValidationError
 
@@ -21,7 +22,9 @@ def test_config_validates_missing_token(monkeypatch, tmp_path):
     # Change to temp directory to avoid loading .env from project
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("CODER_SESSION_TOKEN", raising=False)
-    monkeypatch.delenv("CODER_URL", raising=False)  # Also delete CODER_URL to avoid any .env loading
+    monkeypatch.delenv(
+        "CODER_URL", raising=False
+    )  # Also delete CODER_URL to avoid any .env loading
 
     # Explicitly pass an env_file that doesn't exist to prevent auto-discovery
     with pytest.raises(ConfigValidationError, match="CODER_SESSION_TOKEN"):
@@ -42,7 +45,9 @@ def test_config_requires_coder_url(monkeypatch, tmp_path):
 def test_config_loads_from_dotenv_file(tmp_path, monkeypatch):
     """Test that Config loads from .env file."""
     env_file = tmp_path / ".env"
-    env_file.write_text("CODER_SESSION_TOKEN=from-file-token\nCODER_URL=https://from-file.com")
+    env_file.write_text(
+        "CODER_SESSION_TOKEN=from-file-token\nCODER_URL=https://from-file.com"
+    )
 
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("CODER_SESSION_TOKEN", raising=False)

@@ -1,8 +1,9 @@
 """Unit tests for Coder API client."""
 
-import pytest
+from unittest.mock import Mock, patch
+
 import httpx
-from unittest.mock import AsyncMock, Mock, patch
+import pytest
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config
 
@@ -30,7 +31,10 @@ async def test_client_sets_auth_header(mock_config):
     client = CoderAPIClient(mock_config)
 
     # Should have auth header in default headers
-    assert "Coder-Session-Token" in client._client.headers or "authorization" in client._client.headers
+    assert (
+        "Coder-Session-Token" in client._client.headers
+        or "authorization" in client._client.headers
+    )
 
 
 @pytest.mark.asyncio

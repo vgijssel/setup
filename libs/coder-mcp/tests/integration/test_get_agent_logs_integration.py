@@ -5,8 +5,8 @@ Tests verify interaction with real Coder API logs endpoint and record HTTP
 responses as VCR cassettes for offline testing.
 """
 
-import pytest
 import httpx
+import pytest
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config
 

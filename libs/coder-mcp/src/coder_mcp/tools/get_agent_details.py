@@ -4,12 +4,13 @@ Provides the get_agent_details function that queries Coder's experimental tasks 
 to retrieve detailed information about a single AI agent by its ID.
 """
 
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, Optional
+
 import httpx
-from coder_mcp.models import Agent, AgentStatus
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config
+from coder_mcp.models import Agent, AgentStatus
 
 
 async def get_agent_details_from_api(
@@ -39,7 +40,9 @@ async def get_agent_details_from_api(
     # Map Coder task fields to Agent model
     agent = Agent(
         id=task_data.get("id", agent_id),
-        user=task_data.get("owner_name", task_data.get("username", task_data.get("user", user))),
+        user=task_data.get(
+            "owner_name", task_data.get("username", task_data.get("user", user))
+        ),
         workspace_id=task_data.get("workspace_id", task_data.get("id", "")),
         workspace_name=task_data.get("name", task_data.get("workspace_name", "")),
         status=_map_task_status(task_data.get("status", "unknown")),

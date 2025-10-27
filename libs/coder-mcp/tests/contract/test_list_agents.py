@@ -1,8 +1,8 @@
 """Contract tests for list_agents MCP tool."""
 
 import pytest
-from coder_mcp.tools.list_agents import list_agents
 from coder_mcp.models import Agent
+from coder_mcp.tools.list_agents import list_agents
 
 
 @pytest.mark.asyncio
@@ -45,11 +45,11 @@ async def test_list_agents_includes_required_fields():
 
     if len(result) > 0:
         agent = result[0]
-        assert hasattr(agent, 'id')
-        assert hasattr(agent, 'user')
-        assert hasattr(agent, 'workspace_id')
-        assert hasattr(agent, 'workspace_name')
-        assert hasattr(agent, 'status')
-        assert hasattr(agent, 'created_at')
-        assert hasattr(agent, 'updated_at')
-        assert hasattr(agent, 'connected')
+        assert hasattr(agent, "id")
+        assert hasattr(agent, "user")
+        assert hasattr(agent, "workspace_id")
+        assert hasattr(agent, "workspace_name")
+        assert hasattr(agent, "status")
+        assert hasattr(agent, "created_at")
+        assert hasattr(agent, "updated_at")
+        assert hasattr(agent, "connected")

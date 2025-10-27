@@ -4,12 +4,12 @@ Provides the list_agents function that queries Coder's experimental tasks API
 to retrieve all AI agents and their current status.
 """
 
-from typing import List, Optional
 from datetime import datetime
-import httpx
-from coder_mcp.models import Agent, AgentStatus
+from typing import List, Optional
+
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config
+from coder_mcp.models import Agent, AgentStatus
 
 
 async def list_agents_from_api(
@@ -39,21 +39,24 @@ async def list_agents_from_api(
 
     # Parse response into Agent objects
     agents = []
-    for task_data in data.get('tasks', []):
+    for task_data in data.get("tasks", []):
         # Map Coder task fields to Agent model
         agent = Agent(
-            id=task_data.get('id'),
-            user=task_data.get('owner_name', task_data.get('username', task_data.get('user', 'unknown'))),
-            workspace_id=task_data.get('workspace_id', task_data.get('id', '')),
-            workspace_name=task_data.get('name', task_data.get('workspace_name', '')),
-            status=_map_task_status(task_data.get('status', 'unknown')),
-            created_at=_parse_timestamp(task_data.get('created_at')),
-            updated_at=_parse_timestamp(task_data.get('updated_at')),
-            last_activity_at=_parse_timestamp(task_data.get('last_activity_at')),
-            connected=task_data.get('connected', False),
-            capabilities=task_data.get('capabilities', []),
-            current_assignment=task_data.get('initial_prompt', task_data.get('prompt')),
-            metadata=task_data.get('metadata', {}),
+            id=task_data.get("id"),
+            user=task_data.get(
+                "owner_name",
+                task_data.get("username", task_data.get("user", "unknown")),
+            ),
+            workspace_id=task_data.get("workspace_id", task_data.get("id", "")),
+            workspace_name=task_data.get("name", task_data.get("workspace_name", "")),
+            status=_map_task_status(task_data.get("status", "unknown")),
+            created_at=_parse_timestamp(task_data.get("created_at")),
+            updated_at=_parse_timestamp(task_data.get("updated_at")),
+            last_activity_at=_parse_timestamp(task_data.get("last_activity_at")),
+            connected=task_data.get("connected", False),
+            capabilities=task_data.get("capabilities", []),
+            current_assignment=task_data.get("initial_prompt", task_data.get("prompt")),
+            metadata=task_data.get("metadata", {}),
         )
         agents.append(agent)
 
@@ -96,14 +99,14 @@ def _map_task_status(status_str: str) -> AgentStatus:
         AgentStatus enum value.
     """
     status_map = {
-        'running': AgentStatus.RUNNING,
-        'idle': AgentStatus.IDLE,
-        'busy': AgentStatus.BUSY,
-        'offline': AgentStatus.OFFLINE,
-        'error': AgentStatus.ERROR,
-        'stopped': AgentStatus.STOPPED,
-        'pending': AgentStatus.IDLE,  # Map pending to idle
-        'failed': AgentStatus.ERROR,  # Map failed to error
+        "running": AgentStatus.RUNNING,
+        "idle": AgentStatus.IDLE,
+        "busy": AgentStatus.BUSY,
+        "offline": AgentStatus.OFFLINE,
+        "error": AgentStatus.ERROR,
+        "stopped": AgentStatus.STOPPED,
+        "pending": AgentStatus.IDLE,  # Map pending to idle
+        "failed": AgentStatus.ERROR,  # Map failed to error
     }
     return status_map.get(status_str.lower(), AgentStatus.OFFLINE)
 
@@ -122,7 +125,7 @@ def _parse_timestamp(ts_str: Optional[str]) -> datetime:
 
     try:
         # Try parsing with timezone
-        return datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
+        return datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
     except (ValueError, AttributeError):
         # Fallback to current time
         return datetime.now()

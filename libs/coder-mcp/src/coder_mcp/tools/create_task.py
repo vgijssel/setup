@@ -4,7 +4,8 @@ Provides the create_agent_task function that creates a new AI task/agent
 in a Coder workspace by sending a prompt to the experimental tasks API.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 import httpx
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config
@@ -235,7 +236,8 @@ async def check_agent_online(
             (
                 t
                 for t in tasks
-                if t.get("workspace_name") == workspace_name and t.get("username") == user
+                if t.get("workspace_name") == workspace_name
+                and t.get("username") == user
             ),
             None,
         )

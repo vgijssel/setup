@@ -6,7 +6,6 @@ and creates tasks with proper validation.
 """
 
 import pytest
-from pydantic import ValidationError
 
 
 class TestCreateAgentTaskContract:
@@ -40,7 +39,11 @@ class TestCreateAgentTaskContract:
             assert "data" in result
             # Verify created task data
             task_data = result["data"]
-            assert "id" in task_data or "workspace_id" in task_data or "status" in task_data
+            assert (
+                "id" in task_data
+                or "workspace_id" in task_data
+                or "status" in task_data
+            )
 
     @pytest.mark.asyncio
     async def test_create_agent_task_validates_required_params(self):

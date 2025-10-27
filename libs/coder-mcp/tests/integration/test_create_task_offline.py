@@ -6,9 +6,9 @@ assign tasks to offline or non-existent agents.
 """
 
 import pytest
-from coder_mcp.tools.create_task import create_agent_task, check_agent_online
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config
+from coder_mcp.tools.create_task import check_agent_online, create_agent_task
 
 
 @pytest.mark.asyncio

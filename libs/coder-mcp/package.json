@@ -12,7 +12,10 @@
   "nx": {
     "projectType": "library",
     "sourceRoot": "libs/coder-mcp/src",
-    "tags": ["type:library", "scope:infrastructure"],
+    "tags": [
+      "type:library",
+      "scope:infrastructure"
+    ],
     "targets": {
       "secrets": {
         "executor": "nx:run-commands",

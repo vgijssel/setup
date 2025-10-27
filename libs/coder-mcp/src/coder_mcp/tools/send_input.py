@@ -4,7 +4,8 @@ Provides the send_agent_input function that sends input to an agent
 via the Coder experimental tasks API.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 import httpx
 from coder_mcp.client import CoderAPIClient
 from coder_mcp.config import Config

@@ -7,6 +7,7 @@ All models map to Coder API responses with validation and type safety.
 from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -31,21 +32,33 @@ class Agent(BaseModel):
 
     status: AgentStatus = Field(..., description="Current operational status")
 
-    created_at: datetime = Field(..., description="Agent creation timestamp (ISO 8601 UTC)")
-    updated_at: datetime = Field(..., description="Last status update timestamp (ISO 8601 UTC)")
-    last_activity_at: Optional[datetime] = Field(None, description="Last agent activity timestamp")
+    created_at: datetime = Field(
+        ..., description="Agent creation timestamp (ISO 8601 UTC)"
+    )
+    updated_at: datetime = Field(
+        ..., description="Last status update timestamp (ISO 8601 UTC)"
+    )
+    last_activity_at: Optional[datetime] = Field(
+        None, description="Last agent activity timestamp"
+    )
 
     # Capabilities (derived from workspace template or task metadata)
-    capabilities: list[str] = Field(default_factory=list, description="List of agent capabilities")
+    capabilities: list[str] = Field(
+        default_factory=list, description="List of agent capabilities"
+    )
 
     # Current assignment
-    current_assignment: Optional[str] = Field(None, description="Current task description or None if idle")
+    current_assignment: Optional[str] = Field(
+        None, description="Current task description or None if idle"
+    )
 
     # Connection state
     connected: bool = Field(..., description="WebSocket connection status")
 
     # Metadata
-    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional agent metadata")
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, description="Additional agent metadata"
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -92,17 +105,25 @@ class TaskAssignment(BaseModel):
     task_id: str = Field(..., description="Unique task identifier")
     agent_id: str = Field(..., description="Target agent ID")
 
-    task_type: str = Field(..., description="Type of task (e.g., 'code-review', 'debug')")
+    task_type: str = Field(
+        ..., description="Type of task (e.g., 'code-review', 'debug')"
+    )
     task_parameters: dict[str, Any] = Field(..., description="Task-specific parameters")
 
     priority: TaskPriority = Field(TaskPriority.NORMAL, description="Task priority")
-    status: TaskStatus = Field(TaskStatus.PENDING, description="Current execution status")
+    status: TaskStatus = Field(
+        TaskStatus.PENDING, description="Current execution status"
+    )
 
     created_at: datetime = Field(..., description="Task creation timestamp")
-    started_at: Optional[datetime] = Field(None, description="Execution start timestamp")
+    started_at: Optional[datetime] = Field(
+        None, description="Execution start timestamp"
+    )
     completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
 
-    result_data: Optional[dict[str, Any]] = Field(None, description="Task output/results")
+    result_data: Optional[dict[str, Any]] = Field(
+        None, description="Task output/results"
+    )
     error_message: Optional[str] = Field(None, description="Error details if failed")
 
 
@@ -120,15 +141,21 @@ class FleetStatus(BaseModel):
     agents_stopped: int = Field(0, description="Agents in STOPPED state")
 
     # Aggregate metrics
-    total_active_tasks: int = Field(0, description="Sum of tasks executing across all agents")
-    fleet_utilization: float = Field(0.0, description="Percentage of agents busy (0.0-1.0)")
+    total_active_tasks: int = Field(
+        0, description="Sum of tasks executing across all agents"
+    )
+    fleet_utilization: float = Field(
+        0.0, description="Percentage of agents busy (0.0-1.0)"
+    )
 
     # Timestamps
     computed_at: datetime = Field(..., description="When this snapshot was computed")
 
     # Health indicators
     unhealthy_agents: int = Field(0, description="Agents in ERROR or OFFLINE state")
-    healthy_percentage: float = Field(1.0, description="Percentage of healthy agents (0.0-1.0)")
+    healthy_percentage: float = Field(
+        1.0, description="Percentage of healthy agents (0.0-1.0)"
+    )
 
 
 class LogLevel(str, Enum):
@@ -151,7 +178,9 @@ class LogEntry(BaseModel):
     # Optional structured fields
     agent_id: Optional[str] = Field(None, description="Source agent ID")
     task_id: Optional[str] = Field(None, description="Related task ID")
-    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional log context")
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, description="Additional log context"
+    )
 
 
 class EventType(str, Enum):
@@ -192,4 +221,6 @@ class MCPError(BaseModel):
     success: bool = False
     error: str = Field(..., description="Human-readable error message")
     error_code: str = Field(..., description="Machine-readable error code")
-    details: Optional[dict[str, Any]] = Field(None, description="Additional error context")
+    details: Optional[dict[str, Any]] = Field(
+        None, description="Additional error context"
+    )

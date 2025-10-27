@@ -1,8 +1,8 @@
 """Unit tests for Pydantic data models."""
 
-import pytest
 from datetime import datetime
-from pydantic import ValidationError
+
+import pytest
 from coder_mcp.models import (
     Agent,
     AgentStatus,
@@ -10,9 +10,10 @@ from coder_mcp.models import (
     LogEntry,
     LogLevel,
     TaskAssignment,
-    TaskStatus,
     TaskPriority,
+    TaskStatus,
 )
+from pydantic import ValidationError
 
 
 def test_agent_model_valid_data():

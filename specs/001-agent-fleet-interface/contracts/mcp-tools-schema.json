@@ -12,7 +12,15 @@
         "properties": {
           "filter_status": {
             "type": "string",
-            "enum": ["running", "idle", "busy", "offline", "error", "stopped", "all"],
+            "enum": [
+              "running",
+              "idle",
+              "busy",
+              "offline",
+              "error",
+              "stopped",
+              "all"
+            ],
             "default": "all",
             "description": "Filter agents by status (all returns agents in any state)"
           },
@@ -26,13 +34,13 @@
       "outputSchema": {
         "type": "object",
         "properties": {
-          "success": {"type": "boolean"},
+          "success": { "type": "boolean" },
           "agents": {
             "type": "array",
-            "items": {"$ref": "#/definitions/Agent"}
+            "items": { "$ref": "#/definitions/Agent" }
           },
-          "total_count": {"type": "integer"},
-          "error": {"type": "string"}
+          "total_count": { "type": "integer" },
+          "error": { "type": "string" }
         },
         "required": ["success"]
       }
@@ -60,13 +68,13 @@
       "outputSchema": {
         "type": "object",
         "properties": {
-          "success": {"type": "boolean"},
-          "agent": {"$ref": "#/definitions/Agent"},
+          "success": { "type": "boolean" },
+          "agent": { "$ref": "#/definitions/Agent" },
           "logs": {
             "type": "array",
-            "items": {"$ref": "#/definitions/LogEntry"}
+            "items": { "$ref": "#/definitions/LogEntry" }
           },
-          "error": {"type": "string"}
+          "error": { "type": "string" }
         },
         "required": ["success"]
       }
@@ -106,10 +114,10 @@
       "outputSchema": {
         "type": "object",
         "properties": {
-          "success": {"type": "boolean"},
-          "agent": {"$ref": "#/definitions/Agent"},
-          "task_id": {"type": "string"},
-          "error": {"type": "string"}
+          "success": { "type": "boolean" },
+          "agent": { "$ref": "#/definitions/Agent" },
+          "task_id": { "type": "string" },
+          "error": { "type": "string" }
         },
         "required": ["success"]
       }
@@ -137,10 +145,10 @@
       "outputSchema": {
         "type": "object",
         "properties": {
-          "success": {"type": "boolean"},
-          "agent_id": {"type": "string"},
-          "message": {"type": "string"},
-          "error": {"type": "string"}
+          "success": { "type": "boolean" },
+          "agent_id": { "type": "string" },
+          "message": { "type": "string" },
+          "error": { "type": "string" }
         },
         "required": ["success"]
       }
@@ -173,10 +181,10 @@
       "outputSchema": {
         "type": "object",
         "properties": {
-          "success": {"type": "boolean"},
-          "agent_id": {"type": "string"},
-          "message": {"type": "string"},
-          "error": {"type": "string"}
+          "success": { "type": "boolean" },
+          "agent_id": { "type": "string" },
+          "message": { "type": "string" },
+          "error": { "type": "string" }
         },
         "required": ["success"]
       }
@@ -217,13 +225,13 @@
       "outputSchema": {
         "type": "object",
         "properties": {
-          "success": {"type": "boolean"},
+          "success": { "type": "boolean" },
           "logs": {
             "type": "array",
-            "items": {"$ref": "#/definitions/LogEntry"}
+            "items": { "$ref": "#/definitions/LogEntry" }
           },
-          "total_count": {"type": "integer"},
-          "error": {"type": "string"}
+          "total_count": { "type": "integer" },
+          "error": { "type": "string" }
         },
         "required": ["success"]
       }
@@ -239,9 +247,9 @@
       "outputSchema": {
         "type": "object",
         "properties": {
-          "success": {"type": "boolean"},
-          "fleet_status": {"$ref": "#/definitions/FleetStatus"},
-          "error": {"type": "string"}
+          "success": { "type": "boolean" },
+          "fleet_status": { "$ref": "#/definitions/FleetStatus" },
+          "error": { "type": "string" }
         },
         "required": ["success"]
       }
@@ -290,7 +298,7 @@
         },
         "capabilities": {
           "type": "array",
-          "items": {"type": "string"},
+          "items": { "type": "string" },
           "description": "List of agent capabilities"
         },
         "current_assignment": {
@@ -307,7 +315,16 @@
           "description": "Additional metadata"
         }
       },
-      "required": ["id", "user", "workspace_id", "workspace_name", "status", "created_at", "updated_at", "connected"]
+      "required": [
+        "id",
+        "user",
+        "workspace_id",
+        "workspace_name",
+        "status",
+        "created_at",
+        "updated_at",
+        "connected"
+      ]
     },
     "LogEntry": {
       "type": "object",
@@ -350,12 +367,12 @@
           "type": "integer",
           "description": "Total registered agents"
         },
-        "agents_running": {"type": "integer"},
-        "agents_idle": {"type": "integer"},
-        "agents_busy": {"type": "integer"},
-        "agents_offline": {"type": "integer"},
-        "agents_error": {"type": "integer"},
-        "agents_stopped": {"type": "integer"},
+        "agents_running": { "type": "integer" },
+        "agents_idle": { "type": "integer" },
+        "agents_busy": { "type": "integer" },
+        "agents_offline": { "type": "integer" },
+        "agents_error": { "type": "integer" },
+        "agents_stopped": { "type": "integer" },
         "total_active_tasks": {
           "type": "integer",
           "description": "Tasks currently executing"

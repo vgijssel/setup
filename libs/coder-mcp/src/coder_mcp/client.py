@@ -4,8 +4,9 @@ Provides async HTTP client for communicating with Coder's REST API.
 Handles authentication, retries, and error responses.
 """
 
-import httpx
 from typing import Any, Dict, Optional
+
+import httpx
 from coder_mcp.config import Config
 
 
