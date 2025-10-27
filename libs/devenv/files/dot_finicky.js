@@ -9,6 +9,13 @@ export default {
       },
     },
     {
+      match: "https://hackerone.atlassian.net/*",
+      browser: {
+        name: "Google Chrome",
+        profile: "Profile 2",
+      },
+    },
+    {
       match: "*.inverselink.com/*",
       browser: {
         name: "Google Chrome",

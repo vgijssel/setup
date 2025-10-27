@@ -1,3 +1,15 @@
+## 0.11.4 (2025-10-27)
+
+### 🩹 Fixes
+
+- Add HackerOne Atlassian URLs to Profile 2 browser routing ([#782](https://github.com/vgijssel/setup/pull/782))
+
+## 0.11.3 (2025-10-27)
+
+### 🩹 Fixes
+
+- Set UV_LINK_MODE=copy on Linux to avoid symlink issues ([#779](https://github.com/vgijssel/setup/pull/779))
+
 ## 0.11.2 (2025-10-26)
 
 ### 🩹 Fixes
