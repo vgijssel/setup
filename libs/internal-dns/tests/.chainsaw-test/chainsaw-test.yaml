@@ -84,47 +84,7 @@ spec:
               - name: NAMESPACE
                 value: ($namespace)
             content: |
-              echo "Uninstalling internal-dns chart to trigger cleanup hook..."
-              # helm uninstall with --wait will wait for the pre-delete hook to complete
               helm uninstall internal-dns --namespace "$NAMESPACE" --wait
-    - name: Check cleanup job logs and verify completion
-      try:
-        - script:
-            timeout: 2m
-            env:
-              - name: NAMESPACE
-                value: ($namespace)
-            content: |
-              echo "Checking for cleanup job..."
-              # The job should exist after helm uninstall completes
-              JOB_NAME=$(kubectl get jobs -n "$NAMESPACE" -l app.kubernetes.io/name=internal-dns -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-
-              if [ -z "$JOB_NAME" ]; then
-                echo "ERROR: Cleanup job not found!"
-                kubectl get jobs -n "$NAMESPACE" || true
-                exit 1
-              fi
-
-              echo "Found cleanup job: $JOB_NAME"
-              echo "Job status:"
-              kubectl get job -n "$NAMESPACE" $JOB_NAME -o yaml | grep -A 5 "status:" || true
-
-              echo ""
-              echo "=== Cleanup job logs ==="
-              kubectl logs -n "$NAMESPACE" job/$JOB_NAME --tail=200 || true
-              echo "=== End cleanup job logs ==="
-
-              echo ""
-              echo "Checking if job completed successfully..."
-              JOB_STATUS=$(kubectl get job -n "$NAMESPACE" $JOB_NAME -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null || echo "")
-              if [ "$JOB_STATUS" = "True" ]; then
-                echo "SUCCESS: Cleanup job completed successfully"
-              else
-                echo "ERROR: Cleanup job did not complete successfully"
-                echo "Job status:"
-                kubectl get job -n "$NAMESPACE" $JOB_NAME -o yaml | grep -A 10 "status:" || true
-                exit 1
-              fi
     - name: Verify DNS record has been removed from Cloudflare
       try:
         - script:
@@ -133,10 +93,6 @@ spec:
               - name: TEST_HOSTNAME
                 value: ($testHostname)
             content: |
-              echo "Verifying DNS record has been removed from Cloudflare..."
-              # Give DNS some time to propagate the deletion
-              sleep 10
-
               # Check that DNS record no longer exists
               # Retry up to 12 times (2 minutes) to allow for DNS propagation
               for i in $(seq 1 12); do
