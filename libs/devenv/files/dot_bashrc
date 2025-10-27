@@ -7,5 +7,8 @@ export PATH="$HOME/.local/bin:$PATH"
 # Setting this to the default for consistency with zsh config
 export HERMIT_LOCK_TIMEOUT=30s
 
+# Use copy mode for uv on Linux to avoid symlink issues
+export UV_LINK_MODE=copy
+
 # Aliases
 alias ll='ls -lah'
