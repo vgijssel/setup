@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Agent Fleet Management MCP Tools",
+  "description": "MCP tool definitions for Coder agent fleet management interface",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "list_agents",
+      "description": "List all AI agents in the fleet with their current status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filter_status": {
+            "type": "string",
+            "enum": ["running", "idle", "busy", "offline", "error", "stopped", "all"],
+            "default": "all",
+            "description": "Filter agents by status (all returns agents in any state)"
+          },
+          "filter_capability": {
+            "type": "string",
+            "description": "Filter agents by specific capability (optional)"
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "agents": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/Agent"}
+          },
+          "total_count": {"type": "integer"},
+          "error": {"type": "string"}
+        },
+        "required": ["success"]
+      }
+    },
+    {
+      "name": "get_agent_details",
+      "description": "Get detailed information about a specific agent including current workload and history",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier of the agent"
+          },
+          "include_logs": {
+            "type": "boolean",
+            "default": false,
+            "description": "Include recent log entries in response"
+          }
+        },
+        "required": ["agent_id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "agent": {"$ref": "#/definitions/Agent"},
+          "logs": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/LogEntry"}
+          },
+          "error": {"type": "string"}
+        },
+        "required": ["success"]
+      }
+    },
+    {
+      "name": "create_agent_task",
+      "description": "Create a new AI task and assign it to an agent (or create new agent workspace)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "description": "Username that will own the agent/task"
+          },
+          "task_type": {
+            "type": "string",
+            "description": "Type of task to create (e.g., 'code-review', 'debugging')"
+          },
+          "task_parameters": {
+            "type": "object",
+            "description": "Task-specific parameters as JSON object",
+            "additionalProperties": true
+          },
+          "workspace_template": {
+            "type": "string",
+            "description": "Coder workspace template ID for new agent (optional)"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "normal", "high", "urgent"],
+            "default": "normal"
+          }
+        },
+        "required": ["user", "task_type", "task_parameters"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "agent": {"$ref": "#/definitions/Agent"},
+          "task_id": {"type": "string"},
+          "error": {"type": "string"}
+        },
+        "required": ["success"]
+      }
+    },
+    {
+      "name": "delete_agent",
+      "description": "Delete an agent by terminating its workspace",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier of the agent to delete"
+          },
+          "force": {
+            "type": "boolean",
+            "default": false,
+            "description": "Force deletion even if agent is busy"
+          }
+        },
+        "required": ["agent_id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "agent_id": {"type": "string"},
+          "message": {"type": "string"},
+          "error": {"type": "string"}
+        },
+        "required": ["success"]
+      }
+    },
+    {
+      "name": "send_agent_input",
+      "description": "Send input/command to a running agent",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Target agent identifier"
+          },
+          "input": {
+            "type": "string",
+            "description": "Input text to send to the agent"
+          },
+          "input_type": {
+            "type": "string",
+            "enum": ["text", "json", "command"],
+            "default": "text",
+            "description": "Format of the input data"
+          }
+        },
+        "required": ["agent_id", "input"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "agent_id": {"type": "string"},
+          "message": {"type": "string"},
+          "error": {"type": "string"}
+        },
+        "required": ["success"]
+      }
+    },
+    {
+      "name": "get_agent_logs",
+      "description": "Retrieve execution logs for a specific agent",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Agent identifier"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of log entries to return"
+          },
+          "level": {
+            "type": "string",
+            "enum": ["debug", "info", "warning", "error", "critical", "all"],
+            "default": "all",
+            "description": "Filter logs by severity level"
+          },
+          "since": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Return logs after this timestamp (ISO 8601)"
+          }
+        },
+        "required": ["agent_id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "logs": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/LogEntry"}
+          },
+          "total_count": {"type": "integer"},
+          "error": {"type": "string"}
+        },
+        "required": ["success"]
+      }
+    },
+    {
+      "name": "get_fleet_status",
+      "description": "Get aggregate metrics and health status for the entire agent fleet",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {"type": "boolean"},
+          "fleet_status": {"$ref": "#/definitions/FleetStatus"},
+          "error": {"type": "string"}
+        },
+        "required": ["success"]
+      }
+    }
+  ],
+  "definitions": {
+    "Agent": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique agent identifier"
+        },
+        "user": {
+          "type": "string",
+          "description": "Owner username"
+        },
+        "workspace_id": {
+          "type": "string",
+          "description": "Coder workspace ID"
+        },
+        "workspace_name": {
+          "type": "string",
+          "description": "Human-readable workspace name"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["running", "idle", "busy", "offline", "error", "stopped"],
+          "description": "Current operational status"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp (ISO 8601 UTC)"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        },
+        "last_activity_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last activity timestamp"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of agent capabilities"
+        },
+        "current_assignment": {
+          "type": "string",
+          "description": "Current task description or null if idle"
+        },
+        "connected": {
+          "type": "boolean",
+          "description": "WebSocket connection status"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Additional metadata"
+        }
+      },
+      "required": ["id", "user", "workspace_id", "workspace_name", "status", "created_at", "updated_at", "connected"]
+    },
+    "LogEntry": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Log entry timestamp"
+        },
+        "level": {
+          "type": "string",
+          "enum": ["debug", "info", "warning", "error", "critical"],
+          "description": "Log severity level"
+        },
+        "message": {
+          "type": "string",
+          "description": "Log message content"
+        },
+        "agent_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Source agent ID"
+        },
+        "task_id": {
+          "type": "string",
+          "description": "Related task ID"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Additional context"
+        }
+      },
+      "required": ["timestamp", "level", "message"]
+    },
+    "FleetStatus": {
+      "type": "object",
+      "properties": {
+        "total_agents": {
+          "type": "integer",
+          "description": "Total registered agents"
+        },
+        "agents_running": {"type": "integer"},
+        "agents_idle": {"type": "integer"},
+        "agents_busy": {"type": "integer"},
+        "agents_offline": {"type": "integer"},
+        "agents_error": {"type": "integer"},
+        "agents_stopped": {"type": "integer"},
+        "total_active_tasks": {
+          "type": "integer",
+          "description": "Tasks currently executing"
+        },
+        "fleet_utilization": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Percentage of agents busy"
+        },
+        "computed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Snapshot timestamp"
+        },
+        "unhealthy_agents": {
+          "type": "integer",
+          "description": "Agents in error or offline state"
+        },
+        "healthy_percentage": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Percentage of healthy agents"
+        }
+      },
+      "required": ["total_agents", "computed_at"]
+    }
+  }
+}
