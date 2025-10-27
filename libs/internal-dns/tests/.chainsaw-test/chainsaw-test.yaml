@@ -22,6 +22,7 @@ spec:
               helm upgrade --install internal-dns ../.. \
                 --namespace "$NAMESPACE" \
                 --create-namespace \
+                --set txtOwnerId="$NAMESPACE" \
                 --wait
         - assert:
             file: internal-dns-assert.yaml
