@@ -20,7 +20,7 @@ spec:
         sysctls:
           # Allows ICMP traffic (ping, traceroute) to resources behind cloudflared.
           - name: net.ipv4.ping_group_range
-            value: "65532 65532"
+            value: 65532 65532
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:latest
@@ -52,8 +52,8 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              memory: "64Mi"
-              cpu: "100m"
+              memory: 64Mi
+              cpu: 100m
             limits:
-              memory: "128Mi"
-              cpu: "200m"
+              memory: 128Mi
+              cpu: 200m
