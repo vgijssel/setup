@@ -115,17 +115,17 @@ This document provides a dependency-ordered, executable task breakdown for imple
 
 ### Tasks
 
-- [ ] T030 [P] [US2] Write failing contract test for get_agent_details tool in tests/contract/test_get_agent_details.py
-- [ ] T031 [P] [US2] Write failing contract test for get_agent_logs tool in tests/contract/test_get_agent_logs.py
-- [ ] T032 [US2] Write failing integration test with VCR for GET /api/experimental/tasks/{user}/{id} in tests/integration/test_get_agent_details_integration.py
-- [ ] T033 [US2] Write failing integration test with VCR for GET /api/experimental/tasks/{user}/{id}/logs in tests/integration/test_get_agent_logs_integration.py
-- [ ] T034 [US2] Implement get_agent_details MCP tool in src/coder_mcp/tools/get_agent_details.py
-- [ ] T035 [US2] Record VCR cassette for agent details: uv run pytest --record-mode=new_episodes tests/integration/test_get_agent_details_integration.py
-- [ ] T036 [US2] Implement get_agent_logs MCP tool in src/coder_mcp/tools/get_agent_logs.py
-- [ ] T037 [US2] Record VCR cassette for agent logs: uv run pytest --record-mode=new_episodes tests/integration/test_get_agent_logs_integration.py
-- [ ] T038 [US2] Register tools in server.py: get_agent_details, get_agent_logs
-- [ ] T039 [US2] Write end-to-end test: invoke tools via MCP protocol in tests/integration/test_server_us2.py
-- [ ] T040 [US2] Verify all US2 tests pass: uv run pytest tests/ -k "US2 or agent_details or agent_logs"
+- [X] T030 [P] [US2] Write failing contract test for get_agent_details tool in tests/contract/test_get_agent_details.py
+- [X] T031 [P] [US2] Write failing contract test for get_agent_logs tool in tests/contract/test_get_agent_logs.py
+- [X] T032 [US2] Write failing integration test with VCR for GET /api/experimental/tasks/{user}/{id} in tests/integration/test_get_agent_details_integration.py
+- [X] T033 [US2] Write failing integration test with VCR for GET /api/experimental/tasks/{user}/{id}/logs in tests/integration/test_get_agent_logs_integration.py
+- [X] T034 [US2] Implement get_agent_details MCP tool in src/coder_mcp/tools/get_agent_details.py
+- [X] T035 [US2] Record VCR cassette for agent details: uv run pytest --record-mode=new_episodes tests/integration/test_get_agent_details_integration.py
+- [X] T036 [US2] Implement get_agent_logs MCP tool in src/coder_mcp/tools/get_agent_logs.py
+- [X] T037 [US2] Record VCR cassette for agent logs: uv run pytest --record-mode=new_episodes tests/integration/test_get_agent_logs_integration.py
+- [X] T038 [US2] Register tools in server.py: get_agent_details, get_agent_logs
+- [X] T039 [US2] Write end-to-end test: invoke tools via MCP protocol in tests/integration/test_server_us2.py
+- [X] T040 [US2] Verify all US2 tests pass: uv run pytest tests/ -k "US2 or agent_details or agent_logs"
 
 **Completion Criteria**:
 - Superagent can query specific agent by ID
@@ -147,16 +147,16 @@ This document provides a dependency-ordered, executable task breakdown for imple
 
 ### Tasks
 
-- [ ] T041 [US3] Write failing contract test for create_agent_task tool in tests/contract/test_create_task.py
-- [ ] T042 [US3] Write failing integration test with VCR for POST /api/experimental/tasks/{user} in tests/integration/test_create_task_integration.py
-- [ ] T043 [US3] Implement create_agent_task MCP tool with capability validation in src/coder_mcp/tools/create_task.py
-- [ ] T044 [US3] Add capability validation logic to reject incompatible tasks in create_task.py
-- [ ] T045 [US3] Record VCR cassette for task creation: uv run pytest --record-mode=new_episodes tests/integration/test_create_task_integration.py
-- [ ] T046 [US3] Add offline agent detection to create_task tool (fail-fast behavior)
-- [ ] T047 [US3] Write test for offline agent rejection in tests/integration/test_create_task_offline.py
-- [ ] T048 [US3] Register create_agent_task tool in server.py
-- [ ] T049 [US3] Write end-to-end test: create task via MCP protocol in tests/integration/test_server_us3.py
-- [ ] T050 [US3] Verify all US3 tests pass: uv run pytest tests/ -k "US3 or create_task"
+- [X] T041 [US3] Write failing contract test for create_agent_task tool in tests/contract/test_create_task.py
+- [X] T042 [US3] Write failing integration test with VCR for POST /api/experimental/tasks/{user} in tests/integration/test_create_task_integration.py
+- [X] T043 [US3] Implement create_agent_task MCP tool with capability validation in src/coder_mcp/tools/create_task.py
+- [X] T044 [US3] Add capability validation logic to reject incompatible tasks in create_task.py
+- [X] T045 [US3] Record VCR cassette for task creation: uv run pytest --record-mode=new_episodes tests/integration/test_create_task_integration.py
+- [X] T046 [US3] Add offline agent detection to create_task tool (fail-fast behavior)
+- [X] T047 [US3] Write test for offline agent rejection in tests/integration/test_create_task_offline.py
+- [X] T048 [US3] Register create_agent_task tool in server.py
+- [X] T049 [US3] Write end-to-end test: create task via MCP protocol in tests/integration/test_server_us3.py
+- [X] T050 [US3] Verify all US3 tests pass: uv run pytest tests/ -k "US3 or create_task"
 
 **Completion Criteria**:
 - Superagent can create tasks with parameters
@@ -178,16 +178,16 @@ This document provides a dependency-ordered, executable task breakdown for imple
 
 ### Tasks
 
-- [ ] T051 [P] [US4] Write failing contract test for delete_agent tool in tests/contract/test_delete_agent.py
-- [ ] T052 [P] [US4] Write failing contract test for send_agent_input tool in tests/contract/test_send_input.py
-- [ ] T053 [US4] Write failing integration test with VCR for POST /api/v2/workspaces/{id}/builds (delete) in tests/integration/test_delete_agent_integration.py
-- [ ] T054 [US4] Write failing integration test with VCR for POST /api/experimental/tasks/{user}/{id}/send in tests/integration/test_send_input_integration.py
-- [ ] T055 [US4] Implement delete_agent MCP tool in src/coder_mcp/tools/delete_agent.py
-- [ ] T056 [US4] Implement send_agent_input MCP tool in src/coder_mcp/tools/send_input.py
-- [ ] T057 [US4] Record VCR cassettes: uv run pytest --record-mode=new_episodes tests/integration/test_delete_agent_integration.py tests/integration/test_send_input_integration.py
-- [ ] T058 [US4] Register tools in server.py: delete_agent, send_agent_input
-- [ ] T059 [US4] Write end-to-end test: cancel task scenario in tests/integration/test_server_us4.py
-- [ ] T060 [US4] Verify all US4 tests pass: uv run pytest tests/ -k "US4 or delete_agent or send_input"
+- [X] T051 [P] [US4] Write failing contract test for delete_agent tool in tests/contract/test_delete_agent.py
+- [X] T052 [P] [US4] Write failing contract test for send_agent_input tool in tests/contract/test_send_input.py
+- [X] T053 [US4] Write failing integration test with VCR for POST /api/v2/workspaces/{id}/builds (delete) in tests/integration/test_delete_agent_integration.py
+- [X] T054 [US4] Write failing integration test with VCR for POST /api/experimental/tasks/{user}/{id}/send in tests/integration/test_send_input_integration.py
+- [X] T055 [US4] Implement delete_agent MCP tool in src/coder_mcp/tools/delete_agent.py
+- [X] T056 [US4] Implement send_agent_input MCP tool in src/coder_mcp/tools/send_input.py
+- [X] T057 [US4] Record VCR cassettes: uv run pytest --record-mode=new_episodes tests/integration/test_delete_agent_integration.py tests/integration/test_send_input_integration.py
+- [X] T058 [US4] Register tools in server.py: delete_agent, send_agent_input
+- [X] T059 [US4] Write end-to-end test: cancel task scenario in tests/integration/test_server_us4.py
+- [X] T060 [US4] Verify all US4 tests pass: uv run pytest tests/ -k "US4 or delete_agent or send_input"
 
 **Completion Criteria**:
 - Superagent can delete agent workspaces
@@ -206,11 +206,11 @@ This document provides a dependency-ordered, executable task breakdown for imple
 
 ### Tasks
 
-- [ ] T061 [US5] Review get_fleet_status implementation for completeness against US5 acceptance criteria
-- [ ] T062 [US5] Add outlier detection logic to FleetStatus model if not present in src/coder_mcp/models.py
-- [ ] T063 [US5] Write test for performance outlier highlighting in tests/unit/test_models_outliers.py
-- [ ] T064 [US5] Update get_fleet_status to compute and return outlier agents
-- [ ] T065 [US5] Verify US5 acceptance scenarios met: uv run pytest tests/ -k US5
+- [X] T061 [US5] Review get_fleet_status implementation for completeness against US5 acceptance criteria
+- [X] T062 [US5] Add outlier detection logic to FleetStatus model if not present in src/coder_mcp/models.py
+- [X] T063 [US5] Write test for performance outlier highlighting in tests/unit/test_models_outliers.py
+- [X] T064 [US5] Update get_fleet_status to compute and return outlier agents
+- [X] T065 [US5] Verify US5 acceptance scenarios met: uv run pytest tests/ -k US5
 
 **Completion Criteria**:
 - Fleet metrics include outlier detection
@@ -227,8 +227,8 @@ This document provides a dependency-ordered, executable task breakdown for imple
 
 ### Tasks
 
-- [ ] T066 [US6] Document WebSocket alert requirements in libs/coder-mcp/docs/future-enhancements.md
-- [ ] T067 [US6] Create placeholder EventNotification model for future use in src/coder_mcp/models.py
+- [X] T066 [US6] Document WebSocket alert requirements in libs/coder-mcp/docs/future-enhancements.md
+- [X] T067 [US6] Create placeholder EventNotification model for future use in src/coder_mcp/models.py
 
 **Completion Criteria**:
 - WebSocket approach documented for future implementation
@@ -242,18 +242,18 @@ This document provides a dependency-ordered, executable task breakdown for imple
 
 ### Tasks
 
-- [ ] T068 [P] Add structured logging with JSON output to all MCP tools in src/coder_mcp/tools/
-- [ ] T069 [P] Implement error response formatting per data-model.md MCPError schema in src/coder_mcp/client.py
-- [ ] T070 [P] Add docstrings to all public functions and classes in src/coder_mcp/
-- [ ] T071 [P] Create libs/coder-mcp/README.md with usage instructions
-- [ ] T072 Run full test suite with coverage: uv run pytest --cov=src/coder_mcp --cov-report=html
-- [ ] T073 Run trunk fmt and trunk check for code quality
-- [ ] T074 Run type checking: uv run mypy src/coder_mcp
-- [ ] T075 Verify all Nx targets work: nx test coder-mcp, nx lint coder-mcp, nx secrets coder-mcp
-- [ ] T076 [P] Add .env.example file with placeholder values in libs/coder-mcp/
-- [ ] T077 Document deployment approach (systemd, container, or on-demand) in libs/coder-mcp/README.md
-- [ ] T078 Commit uv.lock to git for reproducible builds
-- [ ] T079 Final validation: Run uv run pytest with all VCR cassettes; confirm 100% pass rate
+- [X] T068 [P] Add structured logging with JSON output to all MCP tools in src/coder_mcp/tools/
+- [X] T069 [P] Implement error response formatting per data-model.md MCPError schema in src/coder_mcp/client.py
+- [X] T070 [P] Add docstrings to all public functions and classes in src/coder_mcp/
+- [X] T071 [P] Create libs/coder-mcp/README.md with usage instructions
+- [X] T072 Run full test suite with coverage: uv run pytest --cov=src/coder_mcp --cov-report=html
+- [X] T073 Run trunk fmt and trunk check for code quality
+- [X] T074 Run type checking: uv run mypy src/coder_mcp
+- [X] T075 Verify all Nx targets work: nx test coder-mcp, nx lint coder-mcp, nx secrets coder-mcp
+- [X] T076 [P] Add .env.example file with placeholder values in libs/coder-mcp/
+- [X] T077 Document deployment approach (systemd, container, or on-demand) in libs/coder-mcp/README.md
+- [X] T078 Commit uv.lock to git for reproducible builds
+- [X] T079 Final validation: Run uv run pytest with all VCR cassettes; confirm 100% pass rate
 
 **Completion Criteria**:
 - All tests pass (unit, integration, contract)

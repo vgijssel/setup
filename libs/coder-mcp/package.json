@@ -5,10 +5,6 @@
   "private": true,
   "scripts": {
     "test": "uv run pytest tests/",
-    "test:watch": "uv run pytest tests/ --watch",
-    "test:cov": "uv run pytest --cov=src/coder_mcp --cov-report=html",
-    "lint": "trunk check",
-    "format": "trunk fmt",
     "typecheck": "uv run mypy src/coder_mcp",
     "serve": "uv run python -m coder_mcp.server"
   },
