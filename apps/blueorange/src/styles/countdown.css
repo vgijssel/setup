@@ -6,9 +6,10 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   background: #0a2e2e;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -43,8 +44,16 @@ html, body {
   left: 0;
   z-index: 1;
   padding: clamp(1rem, 3vw, 2rem);
-  background: url('../assets/background.png') center center / cover no-repeat,
-              linear-gradient(135deg, #0a2e2e 0%, #1a4e4e 25%, #0d3d3d 50%, #1a5555 75%, #0a2e2e 100%);
+  background:
+    url("../assets/background.png") center center / cover no-repeat,
+    linear-gradient(
+      135deg,
+      #0a2e2e 0%,
+      #1a4e4e 25%,
+      #0d3d3d 50%,
+      #1a5555 75%,
+      #0a2e2e 100%
+    );
   pointer-events: none;
 }
 
@@ -65,8 +74,9 @@ body.ready {
   color: #00ffff;
   text-transform: uppercase;
   letter-spacing: clamp(0.05em, 0.5vw, 0.15em);
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.6),
-               2px 2px 4px rgba(0, 0, 0, 0.9);
+  text-shadow:
+    0 0 10px rgba(0, 255, 255, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.9);
   line-height: 1.2;
   max-width: 95%;
   word-wrap: break-word;
@@ -92,13 +102,14 @@ body.ready {
 }
 
 .timer-digit {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: clamp(2rem, 6vw, 6rem);
   font-weight: bold;
   color: #00ffcc;
-  text-shadow: 0 0 20px rgba(0, 255, 204, 0.8),
-               0 0 10px rgba(0, 255, 204, 0.5),
-               2px 2px 6px rgba(0, 0, 0, 0.9);
+  text-shadow:
+    0 0 20px rgba(0, 255, 204, 0.8),
+    0 0 10px rgba(0, 255, 204, 0.5),
+    2px 2px 6px rgba(0, 0, 0, 0.9);
   line-height: 1;
 }
 
@@ -108,8 +119,9 @@ body.ready {
   text-transform: uppercase;
   font-weight: bold;
   letter-spacing: clamp(0.05rem, 0.2vw, 0.2rem);
-  text-shadow: 0 0 5px rgba(94, 229, 212, 0.6),
-               1px 1px 3px rgba(0, 0, 0, 0.9);
+  text-shadow:
+    0 0 5px rgba(94, 229, 212, 0.6),
+    1px 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .bottom-text {
@@ -118,14 +130,14 @@ body.ready {
   color: #00e5e5;
   text-transform: uppercase;
   letter-spacing: clamp(0.1em, 0.5vw, 0.2em);
-  text-shadow: 0 0 30px rgba(0, 229, 229, 0.9),
-               0 0 15px rgba(0, 229, 229, 0.6),
-               3px 3px 8px rgba(0, 0, 0, 0.9);
+  text-shadow:
+    0 0 30px rgba(0, 229, 229, 0.9),
+    0 0 15px rgba(0, 229, 229, 0.6),
+    3px 3px 8px rgba(0, 0, 0, 0.9);
   line-height: 1.2;
   max-width: 95%;
   word-wrap: break-word;
 }
-
 
 /* Color Shift Animation */
 @keyframes colorShift {
@@ -143,10 +155,10 @@ body.ready {
   }
 }
 
-
 /* Name Pulse Animation */
 @keyframes namePulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }

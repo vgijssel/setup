@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Timer } from '../../src/scripts/timer.js';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { Timer } from "../../src/scripts/timer.js";
 
-describe('Timer', () => {
+describe("Timer", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -10,11 +10,11 @@ describe('Timer', () => {
     vi.restoreAllMocks();
   });
 
-  it('should return correct time remaining for 1 hour future', () => {
-    const now = new Date('2025-10-08T12:00:00Z');
+  it("should return correct time remaining for 1 hour future", () => {
+    const now = new Date("2025-10-08T12:00:00Z");
     vi.setSystemTime(now);
 
-    const targetDate = new Date('2025-10-08T13:00:00Z');
+    const targetDate = new Date("2025-10-08T13:00:00Z");
     const timer = new Timer(targetDate);
 
     const time = timer.getTimeRemaining();
@@ -24,11 +24,11 @@ describe('Timer', () => {
     expect(time.seconds).toBe(0);
   });
 
-  it('should return zeros for past target date', () => {
-    const now = new Date('2025-10-08T12:00:00Z');
+  it("should return zeros for past target date", () => {
+    const now = new Date("2025-10-08T12:00:00Z");
     vi.setSystemTime(now);
 
-    const targetDate = new Date('2020-01-01T00:00:00Z');
+    const targetDate = new Date("2020-01-01T00:00:00Z");
     const timer = new Timer(targetDate);
 
     const time = timer.getTimeRemaining();
@@ -39,11 +39,11 @@ describe('Timer', () => {
     expect(time.total).toBe(0);
   });
 
-  it('should call callback every 1000ms when started', () => {
-    const now = new Date('2025-10-08T12:00:00Z');
+  it("should call callback every 1000ms when started", () => {
+    const now = new Date("2025-10-08T12:00:00Z");
     vi.setSystemTime(now);
 
-    const targetDate = new Date('2025-10-08T13:00:00Z');
+    const targetDate = new Date("2025-10-08T13:00:00Z");
     const timer = new Timer(targetDate);
     const callback = vi.fn();
 
@@ -63,11 +63,11 @@ describe('Timer', () => {
     timer.stop();
   });
 
-  it('should stop calling callback after stop is called', () => {
-    const now = new Date('2025-10-08T12:00:00Z');
+  it("should stop calling callback after stop is called", () => {
+    const now = new Date("2025-10-08T12:00:00Z");
     vi.setSystemTime(now);
 
-    const targetDate = new Date('2025-10-08T13:00:00Z');
+    const targetDate = new Date("2025-10-08T13:00:00Z");
     const timer = new Timer(targetDate);
     const callback = vi.fn();
 
@@ -81,33 +81,33 @@ describe('Timer', () => {
     expect(callback.mock.calls.length).toBe(callCountAfterStop);
   });
 
-  it('should zero-pad single digit seconds', () => {
-    const now = new Date('2025-10-08T12:00:00Z');
+  it("should zero-pad single digit seconds", () => {
+    const now = new Date("2025-10-08T12:00:00Z");
     vi.setSystemTime(now);
 
-    const targetDate = new Date('2025-10-08T12:00:09Z');
+    const targetDate = new Date("2025-10-08T12:00:09Z");
     const timer = new Timer(targetDate);
 
     const time = timer.getTimeRemaining();
     expect(time.seconds).toBe(9);
   });
 
-  it('should handle days exceeding 99', () => {
-    const now = new Date('2025-01-01T00:00:00Z');
+  it("should handle days exceeding 99", () => {
+    const now = new Date("2025-01-01T00:00:00Z");
     vi.setSystemTime(now);
 
-    const targetDate = new Date('2025-11-20T00:00:00Z');
+    const targetDate = new Date("2025-11-20T00:00:00Z");
     const timer = new Timer(targetDate);
 
     const time = timer.getTimeRemaining();
     expect(time.days).toBeGreaterThan(99);
   });
 
-  it('should correctly handle minute boundary crossing', () => {
-    const now = new Date('2025-10-08T12:00:59Z');
+  it("should correctly handle minute boundary crossing", () => {
+    const now = new Date("2025-10-08T12:00:59Z");
     vi.setSystemTime(now);
 
-    const targetDate = new Date('2025-10-08T13:00:00Z');
+    const targetDate = new Date("2025-10-08T13:00:00Z");
     const timer = new Timer(targetDate);
 
     let time = timer.getTimeRemaining();
@@ -115,17 +115,17 @@ describe('Timer', () => {
     expect(time.seconds).toBe(1);
 
     // Advance 2 seconds
-    vi.setSystemTime(new Date('2025-10-08T12:01:01Z'));
+    vi.setSystemTime(new Date("2025-10-08T12:01:01Z"));
     time = timer.getTimeRemaining();
     expect(time.minutes).toBe(58);
     expect(time.seconds).toBe(59);
   });
 
-  it('should correctly handle hour boundary crossing', () => {
-    const now = new Date('2025-10-08T11:59:59Z');
+  it("should correctly handle hour boundary crossing", () => {
+    const now = new Date("2025-10-08T11:59:59Z");
     vi.setSystemTime(now);
 
-    const targetDate = new Date('2025-10-08T13:00:00Z');
+    const targetDate = new Date("2025-10-08T13:00:00Z");
     const timer = new Timer(targetDate);
 
     let time = timer.getTimeRemaining();
@@ -134,7 +134,7 @@ describe('Timer', () => {
     expect(time.seconds).toBe(1);
 
     // Advance 2 seconds
-    vi.setSystemTime(new Date('2025-10-08T12:00:01Z'));
+    vi.setSystemTime(new Date("2025-10-08T12:00:01Z"));
     time = timer.getTimeRemaining();
     expect(time.hours).toBe(0);
     expect(time.minutes).toBe(59);

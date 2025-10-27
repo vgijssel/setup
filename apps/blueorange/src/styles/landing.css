@@ -8,7 +8,8 @@
 
 body {
   background: rgb(246, 239, 229);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -76,11 +77,11 @@ body {
 }
 
 .input-box:hover {
-  border-color: #8DB615;
+  border-color: #8db615;
 }
 
 .input-box.active {
-  border-color: #8DB615;
+  border-color: #8db615;
   box-shadow: 0 0 8px rgba(141, 182, 21, 0.3);
 }
 
@@ -108,7 +109,7 @@ body {
 }
 
 .eye-btn:hover {
-  color: #8DB615;
+  color: #8db615;
 }
 
 .eye-btn svg {
@@ -130,7 +131,7 @@ body {
 }
 
 #submit-btn:hover:not(:disabled) {
-  background: #6B4540;
+  background: #6b4540;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(87, 56, 50, 0.3);
 }
@@ -141,7 +142,7 @@ body {
 }
 
 .error {
-  color: #DC143C;
+  color: #dc143c;
   font-size: 1.2rem;
   margin-top: -1rem;
   font-weight: 500;
@@ -167,7 +168,7 @@ body {
 }
 
 .footer a:hover {
-  color: #8DB615;
+  color: #8db615;
 }
 
 .footer .separator {

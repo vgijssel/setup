@@ -1,193 +1,198 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blue Orange - Countdown</title>
-  <link rel="stylesheet" href="../styles/countdown.css">
-</head>
-<body>
-  <div class="container" id="content-container">
-    <h1 class="top-text">
-      SHE WILL MAKE <span class="highlight">Him</span> SORRY
-    </h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blue Orange - Countdown</title>
+    <link rel="stylesheet" href="../styles/countdown.css" />
+  </head>
+  <body>
+    <div class="container" id="content-container">
+      <h1 class="top-text">
+        SHE WILL MAKE <span class="highlight">Him</span> SORRY
+      </h1>
 
-    <div class="timer-container">
-      <div class="timer-unit">
-        <div class="timer-digit" id="days">00</div>
-        <div class="timer-label">DAYS</div>
+      <div class="timer-container">
+        <div class="timer-unit">
+          <div class="timer-digit" id="days">00</div>
+          <div class="timer-label">DAYS</div>
+        </div>
+        <div class="timer-unit">
+          <div class="timer-digit" id="hours">00</div>
+          <div class="timer-label">HOURS</div>
+        </div>
+        <div class="timer-unit">
+          <div class="timer-digit" id="minutes">00</div>
+          <div class="timer-label">MINUTES</div>
+        </div>
+        <div class="timer-unit">
+          <div class="timer-digit" id="seconds">00</div>
+          <div class="timer-label">SECONDS</div>
+        </div>
       </div>
-      <div class="timer-unit">
-        <div class="timer-digit" id="hours">00</div>
-        <div class="timer-label">HOURS</div>
-      </div>
-      <div class="timer-unit">
-        <div class="timer-digit" id="minutes">00</div>
-        <div class="timer-label">MINUTES</div>
-      </div>
-      <div class="timer-unit">
-        <div class="timer-digit" id="seconds">00</div>
-        <div class="timer-label">SECONDS</div>
-      </div>
+
+      <h2 class="bottom-text">KLAASSANDRA</h2>
     </div>
+    <canvas id="crt-canvas" class="crt-canvas-layer"></canvas>
 
-    <h2 class="bottom-text">KLAASSANDRA</h2>
-  </div>
-  <canvas id="crt-canvas" class="crt-canvas-layer"></canvas>
+    <script type="module">
+      import { SessionManager } from "../scripts/session-manager.js";
+      import { Timer } from "../scripts/timer.js";
+      import { CRTFilterWebGL } from "../scripts/CRTFilter.js";
+      import html2canvas from "html2canvas";
 
-  <script type="module">
-    import { SessionManager } from '../scripts/session-manager.js';
-    import { Timer } from '../scripts/timer.js';
-    import { CRTFilterWebGL } from '../scripts/CRTFilter.js';
-    import html2canvas from 'html2canvas';
+      const sessionManager = new SessionManager();
 
-    const sessionManager = new SessionManager();
+      // Check authorization
+      if (!sessionManager.isValidated()) {
+        window.location.href = "/src/pages/landing.html";
+      }
 
-    // Check authorization
-    if (!sessionManager.isValidated()) {
-      window.location.href = '/src/pages/landing.html';
-    }
+      // Initialize timer
+      const targetDate = "2025-11-20T00:00:00+01:00"; // Europe/Amsterdam (CET)
+      const timer = new Timer(targetDate);
 
-    // Initialize timer
-    const targetDate = '2025-11-20T00:00:00+01:00'; // Europe/Amsterdam (CET)
-    const timer = new Timer(targetDate);
+      const daysEl = document.getElementById("days");
+      const hoursEl = document.getElementById("hours");
+      const minutesEl = document.getElementById("minutes");
+      const secondsEl = document.getElementById("seconds");
 
-    const daysEl = document.getElementById('days');
-    const hoursEl = document.getElementById('hours');
-    const minutesEl = document.getElementById('minutes');
-    const secondsEl = document.getElementById('seconds');
+      function updateDisplay(time) {
+        daysEl.textContent = String(time.days).padStart(2, "0");
+        hoursEl.textContent = String(time.hours).padStart(2, "0");
+        minutesEl.textContent = String(time.minutes).padStart(2, "0");
+        secondsEl.textContent = String(time.seconds).padStart(2, "0");
+      }
 
-    function updateDisplay(time) {
-      daysEl.textContent = String(time.days).padStart(2, '0');
-      hoursEl.textContent = String(time.hours).padStart(2, '0');
-      minutesEl.textContent = String(time.minutes).padStart(2, '0');
-      secondsEl.textContent = String(time.seconds).padStart(2, '0');
-    }
+      // Initialize CRT Filter for full-screen effect
+      const canvas = document.getElementById("crt-canvas");
+      const container = document.getElementById("content-container");
+      let crtEffect = null;
+      let baseCanvasImage = null;
 
-    // Initialize CRT Filter for full-screen effect
-    const canvas = document.getElementById('crt-canvas');
-    const container = document.getElementById('content-container');
-    let crtEffect = null;
-    let baseCanvasImage = null;
+      // Set canvas size to match window size
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
 
-    // Set canvas size to match window size
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-
-    resizeCanvas();
-    window.addEventListener('resize', async () => {
       resizeCanvas();
-      // Force a full canvas update after resize
-      await captureInitialCanvas();
-    });
+      window.addEventListener("resize", async () => {
+        resizeCanvas();
+        // Force a full canvas update after resize
+        await captureInitialCanvas();
+      });
 
-    // Capture the initial HTML as a canvas image (only once)
-    async function captureInitialCanvas() {
-      try {
-        const htmlCanvas = await html2canvas(container, {
-          backgroundColor: null,
-          scale: 1,
-          logging: false,
-          useCORS: true,
-          windowWidth: canvas.width,
-          windowHeight: canvas.height,
-          width: canvas.width,
-          height: canvas.height,
-          x: 0,
-          y: 0
-        });
-
-        baseCanvasImage = htmlCanvas;
-        renderCanvas();
-      } catch (error) {
-        console.error('Error capturing initial canvas:', error);
-      }
-    }
-
-    // Render the canvas with current state
-    function renderCanvas() {
-      if (!baseCanvasImage) return;
-
-      const ctx = canvas.getContext('2d', { alpha: false });
-
-      // Draw background gradient
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, '#0a2e2e');
-      gradient.addColorStop(0.25, '#1a4e4e');
-      gradient.addColorStop(0.5, '#0d3d3d');
-      gradient.addColorStop(0.75, '#1a5555');
-      gradient.addColorStop(1, '#0a2e2e');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Draw the base image
-      ctx.drawImage(baseCanvasImage, 0, 0);
-    }
-
-    // Update display function that also updates canvas
-    async function updateDisplayWithCanvas(time) {
-      const newDays = String(time.days).padStart(2, '0');
-      const newHours = String(time.hours).padStart(2, '0');
-      const newMinutes = String(time.minutes).padStart(2, '0');
-      const newSeconds = String(time.seconds).padStart(2, '0');
-
-      // Update DOM
-      daysEl.textContent = newDays;
-      hoursEl.textContent = newHours;
-      minutesEl.textContent = newMinutes;
-      secondsEl.textContent = newSeconds;
-
-      // Wait a tiny bit for DOM to update, then recapture
-      await new Promise(resolve => setTimeout(resolve, 10));
-      await captureInitialCanvas();
-    }
-
-    // Start timer with canvas update
-    timer.start(updateDisplayWithCanvas);
-
-    // Function to start CRT effect
-    async function startCRTEffect() {
-      // Initial render
-      await captureInitialCanvas();
-
-      // Start CRT effect after initial render
-      setTimeout(() => {
-        if (!crtEffect) {
-          crtEffect = new CRTFilterWebGL(canvas, {
-            barrelDistortion: 0.08,
-            chromaticAberration: 0.001,
-            staticNoise: 0.05,
-            brightness: 1.0,
-            contrast: 1.1,
-            curvature: 0.15,
-            scanlineIntensity: 0.3,
-            glowBloom: 0.002,
-            verticalJitter: 0.02,
-            horizontalTearing: 0.002,
-            desaturation: 0.0
+      // Capture the initial HTML as a canvas image (only once)
+      async function captureInitialCanvas() {
+        try {
+          const htmlCanvas = await html2canvas(container, {
+            backgroundColor: null,
+            scale: 1,
+            logging: false,
+            useCORS: true,
+            windowWidth: canvas.width,
+            windowHeight: canvas.height,
+            width: canvas.width,
+            height: canvas.height,
+            x: 0,
+            y: 0,
           });
-          crtEffect.start();
 
-          // Show content once CRT filter is ready - wait a bit for first frame to render
-          setTimeout(() => {
-            document.body.classList.add('ready');
-          }, 50);
+          baseCanvasImage = htmlCanvas;
+          renderCanvas();
+        } catch (error) {
+          console.error("Error capturing initial canvas:", error);
         }
-      }, 100);
-    }
-
-    // Start CRT effect after page loads
-    setTimeout(startCRTEffect, 100);
-
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      timer.stop();
-      if (crtEffect) {
-        crtEffect.stop();
       }
-    });
-  </script>
-</body>
+
+      // Render the canvas with current state
+      function renderCanvas() {
+        if (!baseCanvasImage) return;
+
+        const ctx = canvas.getContext("2d", { alpha: false });
+
+        // Draw background gradient
+        const gradient = ctx.createLinearGradient(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        gradient.addColorStop(0, "#0a2e2e");
+        gradient.addColorStop(0.25, "#1a4e4e");
+        gradient.addColorStop(0.5, "#0d3d3d");
+        gradient.addColorStop(0.75, "#1a5555");
+        gradient.addColorStop(1, "#0a2e2e");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the base image
+        ctx.drawImage(baseCanvasImage, 0, 0);
+      }
+
+      // Update display function that also updates canvas
+      async function updateDisplayWithCanvas(time) {
+        const newDays = String(time.days).padStart(2, "0");
+        const newHours = String(time.hours).padStart(2, "0");
+        const newMinutes = String(time.minutes).padStart(2, "0");
+        const newSeconds = String(time.seconds).padStart(2, "0");
+
+        // Update DOM
+        daysEl.textContent = newDays;
+        hoursEl.textContent = newHours;
+        minutesEl.textContent = newMinutes;
+        secondsEl.textContent = newSeconds;
+
+        // Wait a tiny bit for DOM to update, then recapture
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        await captureInitialCanvas();
+      }
+
+      // Start timer with canvas update
+      timer.start(updateDisplayWithCanvas);
+
+      // Function to start CRT effect
+      async function startCRTEffect() {
+        // Initial render
+        await captureInitialCanvas();
+
+        // Start CRT effect after initial render
+        setTimeout(() => {
+          if (!crtEffect) {
+            crtEffect = new CRTFilterWebGL(canvas, {
+              barrelDistortion: 0.08,
+              chromaticAberration: 0.001,
+              staticNoise: 0.05,
+              brightness: 1.0,
+              contrast: 1.1,
+              curvature: 0.15,
+              scanlineIntensity: 0.3,
+              glowBloom: 0.002,
+              verticalJitter: 0.02,
+              horizontalTearing: 0.002,
+              desaturation: 0.0,
+            });
+            crtEffect.start();
+
+            // Show content once CRT filter is ready - wait a bit for first frame to render
+            setTimeout(() => {
+              document.body.classList.add("ready");
+            }, 50);
+          }
+        }, 100);
+      }
+
+      // Start CRT effect after page loads
+      setTimeout(startCRTEffect, 100);
+
+      // Cleanup on page unload
+      window.addEventListener("beforeunload", () => {
+        timer.stop();
+        if (crtEffect) {
+          crtEffect.stop();
+        }
+      });
+    </script>
+  </body>
 </html>
