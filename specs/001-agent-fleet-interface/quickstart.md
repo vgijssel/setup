@@ -7,6 +7,7 @@
 ## Prerequisites
 
 - Python 3.12+ installed and available in PATH
+- **uv** installed (fast Python package manager): `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Nx monorepo environment set up (`direnv allow` executed)
 - Access to 1Password vault containing Coder API token
 - Network access to Coder instance at `https://macbook-pro-van-maarten.tail2c33e2.ts.net`
@@ -21,26 +22,41 @@ cd libs/coder-mcp
 
 ### 2. Install Dependencies
 
-Dependencies are managed via `requirements.txt` with exact version pinning:
+Dependencies are managed via `pyproject.toml` and locked in `uv.lock`. We use **uv's native workflow**:
 
 ```bash
-# Create/activate virtual environment (optional but recommended)
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+# Install all dependencies from uv.lock (includes dev dependencies)
+# This automatically creates .venv/ if it doesn't exist
+uv sync
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Install dev dependencies for testing
-pip install -r requirements-dev.txt
+# Or install without dev dependencies (production only)
+uv sync --no-dev
 ```
 
-Expected dependencies (versions to be pinned):
+**Alternative: Add dependencies manually**:
+```bash
+# Add a production dependency
+uv add fastmcp==0.5.0
+
+# Add a dev dependency
+uv add --dev pytest==8.0.0
+
+# uv automatically updates pyproject.toml and uv.lock
+```
+
+Expected dependencies (defined in `pyproject.toml`):
+
+**Production**:
 - `fastmcp==0.5.0` - MCP server framework
 - `httpx==0.27.0` - Async HTTP client
 - `pydantic==2.5.0` - Data validation
 - `python-dotenv==1.0.0` - Environment variable loading
-- `vcrpy==5.1.0` - HTTP recording for tests (dev dependency)
+
+**Development** (in `[project.optional-dependencies]`):
+- `pytest==8.0.0`, `pytest-asyncio==0.23.0`, `vcrpy==5.1.0`
+- `pytest-cov==4.1.0`, `mypy==1.8.0`, `black==24.1.0`, `ruff==0.1.0`
+
+**Note**: `uv sync` automatically creates `.venv/`, installs dependencies, and generates `uv.lock`. Use `uv run` to execute commands without manual venv activation.
 
 ### 3. Configure Credentials
 
@@ -70,25 +86,25 @@ CODER_URL=https://macbook-pro-van-maarten.tail2c33e2.ts.net
 
 ### 4. Run Tests (TDD Workflow)
 
-Before implementing any code, verify test infrastructure:
+Before implementing any code, verify test infrastructure. Use **uv run** to execute commands in the virtual environment:
 
 ```bash
-# Run all tests
+# Run all tests via Nx
 nx test coder-mcp
 
-# Run specific test categories
-pytest tests/unit/          # Unit tests only
-pytest tests/integration/   # Integration tests with VCR fixtures
-pytest tests/contract/      # Contract tests only
+# Run tests directly with uv (no venv activation needed!)
+uv run pytest tests/unit/          # Unit tests only
+uv run pytest tests/integration/   # Integration tests with VCR fixtures
+uv run pytest tests/contract/      # Contract tests only
 
 # Run with coverage
-pytest --cov=src/coder_mcp --cov-report=html
+uv run pytest --cov=src/coder_mcp --cov-report=html
 
 # Record new VCR cassettes (when writing new tests)
-pytest --record-mode=new_episodes
+uv run pytest --record-mode=new_episodes
 
 # Re-record all cassettes (after Coder API changes)
-pytest --record-mode=rewrite
+uv run pytest --record-mode=rewrite
 ```
 
 **VCR Cassettes**:
@@ -97,13 +113,15 @@ pytest --record-mode=rewrite
 - Delete cassette files to force re-recording
 - Cassettes are YAML files with real API responses
 
+**uv run benefit**: Automatically activates the virtual environment - no need for `source .venv/bin/activate`!
+
 **Expected initial state**: All tests should FAIL (red) - this is correct for TDD!
 
 ### 5. Start Development Server (Once Implemented)
 
 ```bash
-# Run MCP server (development mode)
-python -m coder_mcp.server
+# Run MCP server with uv (no venv activation needed)
+uv run python -m coder_mcp.server
 
 # Or via Nx
 nx serve coder-mcp
@@ -120,12 +138,35 @@ Use the MCP inspector or a simple client to invoke tools:
 
 ```bash
 # Example: List all agents
-echo '{"method": "tools/call", "params": {"name": "list_agents", "arguments": {}}}' | python -m coder_mcp.server
+echo '{"method": "tools/call", "params": {"name": "list_agents", "arguments": {}}}' | uv run python -m coder_mcp.server
 ```
 
 Or use the FastMCP test utilities (refer to FastMCP documentation).
 
 ## Development Workflow
+
+### uv Workflow Quick Reference
+
+```bash
+# One-time setup
+uv sync                          # Install all dependencies from uv.lock
+
+# Daily development
+uv run pytest tests/             # Run tests (auto-activates venv)
+uv run python -m coder_mcp.server  # Run server
+uv run mypy src/coder_mcp        # Type checking
+
+# Adding dependencies
+uv add httpx==0.27.0             # Add production dependency
+uv add --dev pytest==8.0.0       # Add dev dependency
+uv remove httpx                  # Remove dependency
+
+# Updating dependencies
+uv lock                          # Regenerate lockfile from pyproject.toml
+uv sync                          # Install updated dependencies
+
+# No manual venv activation needed! uv run handles it automatically
+```
 
 ### TDD Cycle for Each MCP Tool
 
@@ -133,7 +174,7 @@ Or use the FastMCP test utilities (refer to FastMCP documentation).
    ```bash
    # Create test file: tests/contract/test_list_agents.py
    # Define expected behavior and assertions
-   pytest tests/contract/test_list_agents.py  # Should FAIL
+   uv run pytest tests/contract/test_list_agents.py  # Should FAIL
    ```
 
 2. **Implement Tool** (Green Phase)
@@ -144,7 +185,7 @@ Or use the FastMCP test utilities (refer to FastMCP documentation).
 
 3. **Verify Test Passes**
    ```bash
-   pytest tests/contract/test_list_agents.py  # Should PASS
+   uv run pytest tests/contract/test_list_agents.py  # Should PASS
    ```
 
 4. **Refactor** (Keep Green)
@@ -174,8 +215,8 @@ trunk fmt
 # Run linters
 trunk check
 
-# Type checking
-mypy src/coder_mcp
+# Type checking with uv
+uv run mypy src/coder_mcp
 
 # Full test suite
 nx test coder-mcp
@@ -207,15 +248,21 @@ libs/coder-mcp/
 
 Follow this order to build functionality incrementally:
 
-1. **config.py** - Environment variable loading & validation (unit tests)
-2. **client.py** - Coder API HTTP client wrapper (unit tests)
-3. **models.py** - Pydantic data models (unit tests with example data)
-4. **tools/list_agents.py** - First MCP tool (contract + integration tests with VCR)
+1. **Setup pyproject.toml** - Define project metadata and dependencies
+   ```bash
+   uv init  # Creates basic pyproject.toml
+   uv add fastmcp httpx pydantic python-dotenv
+   uv add --dev pytest pytest-asyncio vcrpy pytest-cov mypy
+   ```
+2. **config.py** - Environment variable loading & validation (unit tests)
+3. **client.py** - Coder API HTTP client wrapper (unit tests)
+4. **models.py** - Pydantic data models (unit tests with example data)
+5. **tools/list_agents.py** - First MCP tool (contract + integration tests with VCR)
    - Run with `nx secrets coder-mcp` first to generate token
    - First test run records VCR cassette from real Coder API
    - Subsequent runs replay from cassette
-5. **server.py** - FastMCP server with tool registration (integration tests)
-6. Remaining tools in `tools/` (one at a time, TDD for each, record VCR cassettes)
+6. **server.py** - FastMCP server with tool registration (integration tests)
+7. Remaining tools in `tools/` (one at a time, TDD for each, record VCR cassettes)
 
 ## Common Issues & Solutions
 
@@ -264,7 +311,20 @@ op signin
 ```bash
 # Delete old cassette and re-record
 rm tests/fixtures/cassettes/test_something.yaml
-pytest tests/integration/test_something.py --record-mode=new_episodes
+uv run pytest tests/integration/test_something.py --record-mode=new_episodes
+```
+
+### Issue: uv.lock Conflicts
+
+**Error**: Merge conflicts in `uv.lock` after git pull
+
+**Solution**:
+```bash
+# Regenerate lockfile from pyproject.toml
+uv lock
+
+# Or sync to update dependencies
+uv sync
 ```
 
 ### Issue: Tests Fail with "Module not found"
@@ -273,8 +333,11 @@ pytest tests/integration/test_something.py --record-mode=new_episodes
 
 **Solution**:
 ```bash
-# Install package in editable mode
-pip install -e .
+# Sync dependencies (installs project in editable mode automatically)
+uv sync
+
+# Or use uv run to automatically handle the environment
+uv run pytest tests/
 ```
 
 ### Issue: httpx SSL Certificate Verification Fails
@@ -291,28 +354,38 @@ pip install -e .
 
 ## Next Steps
 
-1. **Read Design Documents**:
+1. **Initialize Project**:
+   ```bash
+   cd libs/coder-mcp
+   uv init  # Creates basic pyproject.toml
+   uv sync  # Will install once dependencies are added
+   ```
+
+2. **Read Design Documents**:
    - [research.md](./research.md) - Technology decisions
    - [data-model.md](./data-model.md) - Entity definitions
    - [contracts/](./contracts/) - MCP tool schemas
 
-2. **Implement TDD Workflow**:
-   - Start with `test_auth.py` and `auth.py`
+3. **Implement TDD Workflow**:
+   - Start with `test_config.py` and `config.py`
    - Progress through implementation order above
    - Keep all tests passing (green) before moving to next module
+   - Use `uv run pytest` for all test execution
 
-3. **Integration Testing**:
-   - Use pytest-httpx to mock Coder API responses
+4. **Integration Testing**:
+   - Use VCR.py to record real Coder API responses
    - Test error scenarios (network failures, 404s, invalid responses)
    - Validate all status code paths
+   - First run: `uv run pytest --record-mode=new_episodes`
 
-4. **Documentation**:
+5. **Documentation**:
    - Add docstrings to all public functions
    - Update this quickstart if you discover better patterns
    - Document any deviations from plan in commit messages
 
 ## Resources
 
+- **uv Documentation**: https://docs.astral.sh/uv/
 - **FastMCP Documentation**: https://github.com/jlowin/fastmcp
 - **Coder AI Tasks API Source**: https://github.com/coder/coder/blob/main/coderd/aitasks.go
 - **MCP Specification**: https://modelcontextprotocol.io/

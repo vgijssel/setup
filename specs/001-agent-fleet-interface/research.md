@@ -77,7 +77,59 @@ This document captures the research and technology decisions for building an MCP
 - Auth header format: `Coder-Session-Token: {token}`
 - Error handling for missing env var with clear instructions to run `nx secrets coder-mcp`
 
-### 4. Data Models: Pydantic
+### 4. Package Manager: uv (Native Workflow)
+
+**Decision**: Use uv's native workflow with `pyproject.toml` and `uv.lock` for dependency management
+
+**Rationale**:
+- **Speed**: 10-100x faster than pip for installations (written in Rust)
+- **Native Python packaging**: Uses PEP 621 `pyproject.toml` standard (same as Poetry, PDM)
+- **Lockfile**: `uv.lock` provides deterministic, reproducible installs (like package-lock.json)
+- **Unified tool**: Package management + venv + command runner + Python version management
+- **Command runner**: `uv run` executes commands in the project's virtual environment automatically
+- **Simple workflow**: `uv add` to add deps, `uv sync` to install, `uv remove` to remove
+- **Dev dependencies**: Optional dependencies in `[project.optional-dependencies]` section
+
+**Alternatives Considered**:
+- **pip + requirements.txt**: Traditional but lacks lockfile, slower, manual venv management
+- **poetry**: Feature-complete but slower than uv, more opinionated
+- **pipenv**: Outdated, slow, less active maintenance
+- **uv pip mode**: Backwards compatible but doesn't leverage uv's full potential
+
+**Implementation Notes**:
+- Install uv: `curl -LsSf https://astral.sh/uv/install.sh | sh` or via package manager
+- Initialize project: `uv init` creates pyproject.toml (or create manually)
+- Add dependency: `uv add fastmcp==0.5.0 httpx==0.27.0 pydantic==2.5.0`
+- Add dev dependency: `uv add --dev pytest==8.0.0 pytest-asyncio==0.23.0 vcrpy==5.1.0`
+- Sync dependencies: `uv sync` (installs from lockfile, creates venv if needed)
+- Run commands: `uv run pytest` (automatically activates venv)
+- Lock file: `uv.lock` committed to git for reproducible builds
+- Python version: Specify in pyproject.toml: `requires-python = ">=3.12"`
+
+**pyproject.toml Structure**:
+```toml
+[project]
+name = "coder-mcp"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp==0.5.0",
+    "httpx==0.27.0",
+    "pydantic==2.5.0",
+    "python-dotenv==1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.0.0",
+    "pytest-asyncio==0.23.0",
+    "vcrpy==5.1.0",
+    "pytest-cov==4.1.0",
+    "mypy==1.8.0",
+]
+```
+
+### 5. Data Models: Pydantic
 
 **Decision**: Use Pydantic v2 for Coder API response parsing and validation
 
@@ -98,7 +150,7 @@ This document captures the research and technology decisions for building an MCP
 - Key models: `Agent`, `Task`, `TaskStatus`, `LogEntry`, `WorkspaceBuild`
 - Validation for required fields, enum values, timestamp parsing
 
-### 5. Testing Strategy
+### 6. Testing Strategy
 
 **Decision**: pytest with pytest-asyncio, vcrpy (python-vcr), and contract testing approach
 
@@ -136,9 +188,9 @@ This document captures the research and technology decisions for building an MCP
 - Test fixtures in `tests/conftest.py` for VCR configuration, credentials
 - Separate test files per module: `test_client.py`, `test_tools.py`, etc.
 - CI integration with Nx: `nx test coder-mcp` runs full test suite with cassettes
-- Regenerate cassettes: `pytest --record-mode=rewrite` or delete cassette files
+- Regenerate cassettes: `uv run pytest --record-mode=rewrite` or delete cassette files
 
-### 6. MCP Tool Design
+### 7. MCP Tool Design
 
 **Decision**: Map each Coder API endpoint to a dedicated MCP tool with clear names
 
@@ -163,7 +215,7 @@ This document captures the research and technology decisions for building an MCP
 - Shared error handling via decorator pattern
 - Consistent response format: `{"success": bool, "data": ..., "error": ...}`
 
-### 7. Nx Integration
+### 8. Nx Integration
 
 **Decision**: Integrate as standard Nx library with Python support
 
@@ -191,9 +243,9 @@ This document captures the research and technology decisions for building an MCP
 **Implementation Notes**:
 - Python executor from `@nxlv/python` plugin
 - Lint target runs `trunk check` on Python files
-- Build target validates packaging with `python -m build --check`
+- Build target validates packaging with `uv build --check`
 
-### 8. Error Handling Strategy
+### 9. Error Handling Strategy
 
 **Decision**: Layered error handling with context preservation
 
@@ -222,8 +274,11 @@ This document captures the research and technology decisions for building an MCP
 
 ## Dependencies Summary
 
+All dependencies managed in `pyproject.toml` with exact versions pinned in `uv.lock`.
+
 ### Production Dependencies
-```
+```bash
+# Add with: uv add <package>==<version>
 fastmcp==0.5.0          # MCP server framework
 httpx==0.27.0           # Async HTTP client
 pydantic==2.5.0         # Data validation and models
@@ -231,7 +286,8 @@ python-dotenv==1.0.0    # Environment variable loading
 ```
 
 ### Development Dependencies
-```
+```bash
+# Add with: uv add --dev <package>==<version>
 pytest==8.0.0
 pytest-asyncio==0.23.0
 vcrpy==5.1.0            # HTTP request/response recording
@@ -240,6 +296,8 @@ black==24.1.0           # Code formatting
 ruff==0.1.0             # Linting
 mypy==1.8.0             # Type checking
 ```
+
+**Installation**: `uv sync` installs all dependencies from `uv.lock`
 
 ## Open Questions / Future Research
 
@@ -253,3 +311,4 @@ None - all technology decisions finalized for Phase 1 design.
 - httpx Documentation: https://www.python-httpx.org/
 - VCR.py Documentation: https://vcrpy.readthedocs.io/
 - python-dotenv: https://github.com/theskumar/python-dotenv
+- uv Documentation: https://docs.astral.sh/uv/
