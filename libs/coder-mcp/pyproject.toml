@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "coder-mcp"
 version = "0.1.0"
@@ -21,3 +25,6 @@ dev = [
   "pytest-cov>=7.0.0",
   "vcrpy>=7.0.0",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/coder_mcp"]

@@ -5,7 +5,7 @@
   "private": true,
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "scripts": {
-    "test": "uv run pytest tests/",
+    "test": "uv pip install --quiet -e . && uv run pytest tests/",
     "typecheck": "uv run mypy src/coder_mcp",
     "serve": "uv run python -m coder_mcp.server"
   },
@@ -34,7 +34,7 @@
       "test": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "uv run pytest tests/ -v",
+          "command": "uv pip install --quiet -e . && uv run pytest tests/ -v",
           "cwd": "libs/coder-mcp"
         },
         "dependsOn": [
