@@ -1,0 +1,23 @@
+{
+  "name": "escaperoom",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/escaperoom",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pip install --user -r requirements.txt && pytest",
+        "cwd": "apps/escaperoom"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker build -t escaperoom .",
+        "cwd": "apps/escaperoom"
+      }
+    }
+  },
+  "tags": []
+}

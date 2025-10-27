@@ -1,0 +1,21 @@
+http:
+  http://blueorange/index.html:
+    status: 200
+    timeout: 1000
+  http://blueorange/src/pages/landing.html:
+    status: 200
+    timeout: 1000
+  http://blueorange/src/pages/countdown.html:
+    status: 200
+    timeout: 1000
+
+kubernetes:
+  deployment/blueorange:
+    exists: true
+    running: true
+    replicas: 2
+  service/blueorange:
+    exists: true
+    type: ClusterIP
+    ports:
+      - 80

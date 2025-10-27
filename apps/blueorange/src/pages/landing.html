@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blue Orange - Enter Secret</title>
+    <link rel="stylesheet" href="../styles/landing.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo-section">
+        <img
+          src="../assets/blueorange-logo.png"
+          alt="Blue Orange"
+          class="logo-image"
+        />
+      </div>
+
+      <p class="subtitle">Enter 5-character access code</p>
+
+      <form id="secret-form">
+        <div class="input-boxes">
+          <div class="input-box" data-index="0">
+            <span class="dot hidden">•</span>
+          </div>
+          <div class="input-box" data-index="1">
+            <span class="dot hidden">•</span>
+          </div>
+          <div class="input-box" data-index="2">
+            <span class="dot hidden">•</span>
+          </div>
+          <div class="input-box" data-index="3">
+            <span class="dot hidden">•</span>
+          </div>
+          <div class="input-box" data-index="4">
+            <span class="dot hidden">•</span>
+          </div>
+        </div>
+        <input
+          type="text"
+          id="secret-input"
+          maxlength="5"
+          autocomplete="off"
+          inputmode="text"
+          style="
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            left: -9999px;
+          "
+        />
+        <button type="submit" id="submit-btn" disabled>Unlock</button>
+      </form>
+
+      <p id="error-msg" class="error hidden"></p>
+
+      <footer class="footer">
+        <a href="#">Terms of Service</a>
+        <span class="separator">|</span>
+        <a href="#">Privacy Policy</a>
+        <span class="separator">|</span>
+        <a href="#">Contact</a>
+      </footer>
+    </div>
+
+    <script type="module">
+      import { SecretValidator } from "../scripts/secret-validator.js";
+      import { SessionManager } from "../scripts/session-manager.js";
+
+      const validator = new SecretValidator();
+      const sessionManager = new SessionManager();
+      const form = document.getElementById("secret-form");
+      const hiddenInput = document.getElementById("secret-input");
+      const button = document.getElementById("submit-btn");
+      const errorMsg = document.getElementById("error-msg");
+      const inputBoxes = document.querySelectorAll(".input-box");
+
+      let secretValue = "";
+      let currentIndex = 0;
+
+      // Focus management
+      function focusBox(index) {
+        inputBoxes.forEach((box, i) => {
+          box.classList.toggle("active", i === index);
+        });
+      }
+
+      // Update display
+      function updateDisplay() {
+        inputBoxes.forEach((box, index) => {
+          const dot = box.querySelector(".dot");
+          if (index < secretValue.length) {
+            dot.textContent = secretValue[index];
+            dot.classList.remove("hidden");
+          } else {
+            dot.classList.add("hidden");
+          }
+        });
+
+        button.disabled = secretValue.length !== 5;
+        hiddenInput.value = secretValue;
+      }
+
+      // Handle keyboard input
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace") {
+          e.preventDefault();
+          if (secretValue.length > 0) {
+            secretValue = secretValue.slice(0, -1);
+            currentIndex = secretValue.length;
+            updateDisplay();
+            focusBox(currentIndex);
+            errorMsg.classList.add("hidden");
+          }
+        } else if (e.key === "Enter" && secretValue.length === 5) {
+          e.preventDefault();
+          form.dispatchEvent(new Event("submit"));
+        } else if (
+          e.key.length === 1 &&
+          secretValue.length < 5 &&
+          /[a-zA-Z0-9]/.test(e.key)
+        ) {
+          e.preventDefault();
+          secretValue += e.key.toUpperCase();
+          currentIndex = secretValue.length;
+          updateDisplay();
+          focusBox(currentIndex);
+          errorMsg.classList.add("hidden");
+        }
+      });
+
+      // Handle input event for mobile devices
+      hiddenInput.addEventListener("input", (e) => {
+        const inputValue = e.target.value
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "")
+          .slice(0, 5);
+        secretValue = inputValue;
+        currentIndex = secretValue.length;
+        updateDisplay();
+        focusBox(currentIndex);
+        errorMsg.classList.add("hidden");
+        e.target.value = inputValue;
+      });
+
+      // Click on boxes to focus input
+      inputBoxes.forEach((box, index) => {
+        box.addEventListener("click", () => {
+          hiddenInput.focus();
+          currentIndex = Math.min(index, secretValue.length);
+          focusBox(currentIndex);
+        });
+      });
+
+      // Handle form submission
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const secret = secretValue;
+
+        if (validator.validate(secret)) {
+          sessionManager.markValidated();
+          window.location.href = "/src/pages/countdown.html";
+        } else {
+          errorMsg.textContent = "Incorrect secret";
+          errorMsg.classList.remove("hidden");
+          secretValue = "";
+          currentIndex = 0;
+          updateDisplay();
+          focusBox(0);
+        }
+      });
+
+      // Initialize - auto-focus the input on mobile
+      focusBox(0);
+      hiddenInput.focus();
+    </script>
+  </body>
+</html>
