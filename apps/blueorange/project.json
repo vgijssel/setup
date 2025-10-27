@@ -27,9 +27,6 @@
       "executor": "@nx/vite:test",
       "options": {}
     },
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "e2e": {
       "executor": "nx:run-commands",
       "options": {

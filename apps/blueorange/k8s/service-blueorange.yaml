@@ -9,8 +9,8 @@ spec:
   selector:
     app: blueorange
   ports:
-  - name: http
-    port: 80
-    targetPort: 80
-    protocol: TCP
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
   type: ClusterIP

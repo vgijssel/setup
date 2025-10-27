@@ -18,7 +18,7 @@ spec:
     spec:
       securityContext:
         sysctls:
-        # Allows ICMP traffic (ping, traceroute) to resources behind cloudflared.
+          # Allows ICMP traffic (ping, traceroute) to resources behind cloudflared.
           - name: net.ipv4.ping_group_range
             value: "65532 65532"
       containers:
