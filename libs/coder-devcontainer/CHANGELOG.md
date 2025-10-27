@@ -1,3 +1,9 @@
+## 0.8.4 (2025-10-27)
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.6.15
+
 ## 0.8.3 (2025-10-27)
 
 ### 🧱 Updated Dependencies
