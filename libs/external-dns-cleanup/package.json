@@ -1,0 +1,71 @@
+{
+  "name": "external-dns-cleanup",
+  "version": "0.1.0",
+  "description": "Single-file executable CLI to cleanup Cloudflare DNS records after external-dns shutdown",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/external-dns-cleanup",
+    "targets": {
+      "run": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "secrets"
+        ],
+        "options": {
+          "command": "./external-dns-cleanup",
+          "cwd": "libs/external-dns-cleanup"
+        },
+        "cache": false,
+        "metadata": {
+          "description": "Run the external-dns-cleanup script"
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "secrets"
+        ],
+        "options": {
+          "command": "uv run --all-extras pytest -v",
+          "cwd": "libs/external-dns-cleanup"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/.env"
+        ],
+        "metadata": {
+          "description": "Run pytest integration tests"
+        }
+      },
+      "secrets": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "op inject --force -i .env.tpl -o .env",
+          "cwd": "libs/external-dns-cleanup"
+        },
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/.env"
+        ],
+        "inputs": [
+          "{projectRoot}/.env.tpl"
+        ],
+        "metadata": {
+          "description": "Generate .env file from 1Password secrets"
+        }
+      }
+    },
+    "tags": [
+      "python",
+      "cli",
+      "cloudflare",
+      "dns",
+      "external-dns",
+      "uv-script"
+    ]
+  },
+  "private": true
+}
