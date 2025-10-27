@@ -1,0 +1,23 @@
+{
+  "name": "@setup/coder-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for managing Coder AI agent fleet",
+  "private": true,
+  "scripts": {
+    "test": "uv run pytest tests/",
+    "test:watch": "uv run pytest tests/ --watch",
+    "test:cov": "uv run pytest --cov=src/coder_mcp --cov-report=html",
+    "lint": "trunk check",
+    "format": "trunk fmt",
+    "typecheck": "uv run mypy src/coder_mcp",
+    "serve": "uv run python -m coder_mcp.server"
+  },
+  "keywords": [
+    "mcp",
+    "coder",
+    "ai-agents",
+    "fleet-management"
+  ],
+  "author": "Setup Team",
+  "license": "UNLICENSED"
+}

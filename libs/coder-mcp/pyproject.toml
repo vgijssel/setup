@@ -1,0 +1,23 @@
+[project]
+name = "coder-mcp"
+version = "0.1.0"
+description = "MCP server for managing Coder AI agent fleet"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.13.0.1",
+    "httpx>=0.28.1",
+    "pydantic>=2.12.3",
+    "python-dotenv>=1.2.1",
+]
+
+[project.optional-dependencies]
+dev = []
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=7.0.0",
+    "vcrpy>=7.0.0",
+]

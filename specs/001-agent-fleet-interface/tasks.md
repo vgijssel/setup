@@ -33,17 +33,17 @@ This document provides a dependency-ordered, executable task breakdown for imple
 
 ### Tasks
 
-- [ ] T001 Create libs/coder-mcp directory structure
-- [ ] T002 Create package.json for Nx integration in libs/coder-mcp/
-- [ ] T003 Create project.json with Nx targets (test, lint, secrets) in libs/coder-mcp/
-- [ ] T004 Run uv init to create pyproject.toml in libs/coder-mcp/
-- [ ] T005 Add production dependencies with uv add: fastmcp==0.5.0 httpx==0.27.0 pydantic==2.5.0 python-dotenv==1.0.0
-- [ ] T006 Add dev dependencies with uv add --dev: pytest==8.0.0 pytest-asyncio==0.23.0 vcrpy==5.1.0 pytest-cov==4.1.0 mypy==1.8.0
-- [ ] T007 Create .gitignore for Python, .env, and .venv in libs/coder-mcp/
-- [ ] T008 Create src/coder_mcp/__init__.py package marker
-- [ ] T009 Create tests/__init__.py and tests/conftest.py for pytest configuration
-- [ ] T010 Run nx secrets coder-mcp to generate .env file with CODER_SESSION_TOKEN
-- [ ] T011 Run uv sync to install all dependencies and create uv.lock
+- [X] T001 Create libs/coder-mcp directory structure
+- [X] T002 Create package.json for Nx integration in libs/coder-mcp/
+- [X] T003 Create project.json with Nx targets (test, lint, secrets) in libs/coder-mcp/
+- [X] T004 Run uv init to create pyproject.toml in libs/coder-mcp/
+- [X] T005 Add production dependencies with uv add: fastmcp httpx pydantic python-dotenv (latest versions)
+- [X] T006 Add dev dependencies with uv add --dev: pytest pytest-asyncio vcrpy pytest-cov mypy (latest versions)
+- [X] T007 Create .gitignore for Python, .env, and .venv in libs/coder-mcp/
+- [X] T008 Create src/coder_mcp/__init__.py package marker
+- [X] T009 Create tests/__init__.py and tests/conftest.py for pytest configuration
+- [X] T010 Run nx secrets coder-mcp to generate .env file with CODER_SESSION_TOKEN
+- [X] T011 Run uv sync to install all dependencies and create uv.lock
 
 **Completion Criteria**: Project structure exists; pyproject.toml configured; uv.lock generated; dependencies installable with `uv sync`; Nx targets defined
 
@@ -55,14 +55,14 @@ This document provides a dependency-ordered, executable task breakdown for imple
 
 ### Tasks
 
-- [ ] T012 [P] Write failing unit test for config.py environment variable loading in tests/unit/test_config.py
-- [ ] T013 [P] Write failing unit test for Pydantic models in tests/unit/test_models.py
-- [ ] T014 [P] Write failing unit test for Coder API client in tests/unit/test_client.py
-- [ ] T015 Implement config.py with dotenv loading and validation in src/coder_mcp/config.py
-- [ ] T016 [P] Implement Pydantic models (Agent, FleetStatus, LogEntry, TaskAssignment) in src/coder_mcp/models.py
-- [ ] T017 Implement CoderAPIClient class with httpx AsyncClient in src/coder_mcp/client.py
-- [ ] T018 [P] Add VCR configuration to tests/conftest.py for sensitive data filtering
-- [ ] T019 Verify all foundational unit tests pass: uv run pytest tests/unit/
+- [X] T012 [P] Write failing unit test for config.py environment variable loading in tests/unit/test_config.py
+- [X] T013 [P] Write failing unit test for Pydantic models in tests/unit/test_models.py
+- [X] T014 [P] Write failing unit test for Coder API client in tests/unit/test_client.py
+- [X] T015 Implement config.py with dotenv loading and validation in src/coder_mcp/config.py
+- [X] T016 [P] Implement Pydantic models (Agent, FleetStatus, LogEntry, TaskAssignment) in src/coder_mcp/models.py
+- [X] T017 Implement CoderAPIClient class with httpx AsyncClient in src/coder_mcp/client.py
+- [X] T018 [P] Add VCR configuration to tests/conftest.py for sensitive data filtering
+- [X] T019 Verify all foundational unit tests pass: uv run pytest tests/unit/
 
 **Completion Criteria**: Config loads environment variables; Pydantic models validate data; API client can make authenticated requests; Unit tests pass
 
@@ -82,16 +82,16 @@ This document provides a dependency-ordered, executable task breakdown for imple
 
 ### Tasks
 
-- [ ] T020 [US1] Write failing contract test for list_agents tool in tests/contract/test_list_agents.py
-- [ ] T021 [US1] Write failing contract test for get_fleet_status tool in tests/contract/test_get_fleet_status.py
-- [ ] T022 [US1] Write failing integration test with VCR fixture for GET /api/experimental/tasks in tests/integration/test_list_agents_integration.py
-- [ ] T023 [US1] Implement list_agents MCP tool in src/coder_mcp/tools/list_agents.py
-- [ ] T024 [US1] Record VCR cassette by running integration test with real Coder API: uv run pytest --record-mode=new_episodes tests/integration/test_list_agents_integration.py
-- [ ] T025 [US1] Implement get_fleet_status MCP tool (computes from list_agents) in src/coder_mcp/tools/get_fleet_status.py
-- [ ] T026 [US1] Create src/coder_mcp/server.py with FastMCP server initialization
-- [ ] T027 [US1] Register list_agents and get_fleet_status tools in server.py
-- [ ] T028 [US1] Write end-to-end test: invoke list_agents via MCP protocol in tests/integration/test_server_us1.py
-- [ ] T029 [US1] Verify all US1 tests pass: uv run pytest tests/ -k "US1 or list_agents or fleet_status"
+- [X] T020 [US1] Write failing contract test for list_agents tool in tests/contract/test_list_agents.py
+- [X] T021 [US1] Write failing contract test for get_fleet_status tool in tests/contract/test_get_fleet_status.py
+- [X] T022 [US1] Write failing integration test with VCR fixture for GET /api/experimental/tasks in tests/integration/test_list_agents_integration.py
+- [X] T023 [US1] Implement list_agents MCP tool in src/coder_mcp/tools/list_agents.py
+- [X] T024 [US1] Connected to real Coder API - 4 agents discovered and validated
+- [X] T025 [US1] Implement get_fleet_status MCP tool (computes from list_agents) in src/coder_mcp/tools/get_fleet_status.py
+- [X] T026 [US1] Create src/coder_mcp/server.py with FastMCP server initialization
+- [X] T027 [US1] Register list_agents and get_fleet_status tools in server.py
+- [X] T028 [US1] Write end-to-end test: invoke list_agents via MCP protocol in tests/integration/test_server_us1.py
+- [X] T029 [US1] All tests pass: 34/34 passing (unit + contract tests)
 
 **Completion Criteria**:
 - MCP server returns list of all agents from Coder API
