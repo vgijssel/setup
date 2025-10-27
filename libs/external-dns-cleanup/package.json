@@ -1,6 +1,6 @@
 {
   "name": "external-dns-cleanup",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Single-file executable CLI to cleanup Cloudflare DNS records after external-dns shutdown",
   "nx": {
     "projectType": "library",
