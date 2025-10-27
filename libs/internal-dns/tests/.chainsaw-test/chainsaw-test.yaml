@@ -25,6 +25,16 @@ spec:
                 --wait
         - assert:
             file: internal-dns-assert.yaml
+      cleanup:
+        - script:
+            env:
+              - name: NAMESPACE
+                value: ($namespace)
+            content: |
+              # Make cleanup idempotent - don't fail if chart is already deleted
+              if helm list -n "$NAMESPACE" | grep -q "internal-dns"; then
+                helm uninstall internal-dns --namespace "$NAMESPACE" --wait || true
+              fi
     - name: Verify OnePasswordItem created secret
       try:
         - assert:
@@ -71,33 +81,36 @@ spec:
     - name: Test cleanup hook on chart deletion
       try:
         - script:
-            timeout: 5m
             env:
               - name: NAMESPACE
                 value: ($namespace)
-              - name: TEST_HOSTNAME
-                value: ($testHostname)
             content: |
               echo "Uninstalling internal-dns chart to trigger cleanup hook..."
               # helm uninstall with --wait will wait for the pre-delete hook to complete
-              # The hook will clean up DNS records before the chart is fully uninstalled
-              helm uninstall internal-dns --namespace "$NAMESPACE" --wait 2>&1 | tee /tmp/helm-uninstall.log
-
-              echo "Helm uninstall completed. The pre-delete hook should have run."
-              echo "The cleanup job is automatically deleted after successful completion due to hook-delete-policy."
-
-              # Verify that no cleanup jobs remain (they should be auto-deleted)
-              echo "Verifying cleanup job was auto-deleted..."
+              helm uninstall internal-dns --namespace "$NAMESPACE" --wait
+    - name: Verify cleanup job was auto-deleted
+      try:
+        - script:
+            env:
+              - name: NAMESPACE
+                value: ($namespace)
+            content: |
+              echo "Verifying no cleanup jobs exist..."
               JOB_COUNT=$(kubectl get jobs -n "$NAMESPACE" -l app.kubernetes.io/name=internal-dns --no-headers 2>/dev/null | wc -l)
               if [ "$JOB_COUNT" != "0" ]; then
-                echo "WARNING: Cleanup job still exists, checking status..."
+                echo "ERROR: Found $JOB_COUNT cleanup job(s), expected 0"
                 kubectl get jobs -n "$NAMESPACE" -l app.kubernetes.io/name=internal-dns || true
-                kubectl describe jobs -n "$NAMESPACE" -l app.kubernetes.io/name=internal-dns || true
-                kubectl logs -n "$NAMESPACE" -l app.kubernetes.io/name=internal-dns --tail=100 || true
-              else
-                echo "SUCCESS: Cleanup job has been auto-deleted after completion"
+                exit 1
               fi
-
+              echo "SUCCESS: No cleanup jobs found (auto-deleted after completion)"
+    - name: Verify DNS record has been removed from Cloudflare
+      try:
+        - script:
+            timeout: 3m
+            env:
+              - name: TEST_HOSTNAME
+                value: ($testHostname)
+            content: |
               echo "Verifying DNS record has been removed from Cloudflare..."
               # Give DNS some time to propagate the deletion
               sleep 10

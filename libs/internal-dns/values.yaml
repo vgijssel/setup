@@ -7,6 +7,7 @@ replicaCount: 1
 # External DNS settings
 logLevel: debug
 txtOwnerId: internal-dns
+txtPrefix: _externaldns-
 interval: 30s
 
 # Cloudflare configuration

@@ -28,7 +28,7 @@ spec:
           - --domain-filter={{ .Values.domain }}
           - --log-level={{ .Values.logLevel }}
           - --txt-owner-id={{ .Values.txtOwnerId }}
-          - --txt-prefix=_externaldns-
+          - --txt-prefix={{ .Values.txtPrefix }}
           - --interval={{ .Values.interval }}
           env:
           - name: CF_API_TOKEN

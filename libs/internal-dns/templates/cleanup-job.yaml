@@ -30,7 +30,7 @@ spec:
               /scripts/external-dns-cleanup \
                 --domain-filter={{ .Values.domain }} \
                 --txt-owner-id={{ .Values.txtOwnerId }} \
-                --txt-prefix=_externaldns- \
+                --txt-prefix={{ .Values.txtPrefix }} \
                 --verbose
           env:
             - name: CF_API_TOKEN
