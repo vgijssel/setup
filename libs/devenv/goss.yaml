@@ -156,6 +156,15 @@ command:
       - STARSHIP_SHELL=zsh
     timeout: 60000
 
+  uv_link_mode_linux:
+    title: UV_LINK_MODE is set to copy on Linux
+    skip: {{.Env.IS_MACOS}}
+    exec: zsh -ic 'echo $UV_LINK_MODE'
+    exit-status: 0
+    stdout:
+      - copy
+    timeout: 60000
+
   ssh_auth_sock_macos:
     title: SSH_AUTH_SOCK is configured on macOS
     skip: {{.Env.IS_LINUX}}
