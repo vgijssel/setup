@@ -1,0 +1,111 @@
+interactions:
+  - request:
+      body: ""
+      headers:
+        Coder-Session-Token:
+          - REDACTED
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        content-type:
+          - application/json
+        host:
+          - macbook-pro-van-maarten.tail2c33e2.ts.net
+        user-agent:
+          - python-httpx/0.28.1
+      method: GET
+      uri: https://macbook-pro-van-maarten.tail2c33e2.ts.net/api/experimental/tasks
+    response:
+      body:
+        string:
+          '{"tasks":[{"id":"54ebda62-9d13-4b1c-9537-dd2d322da1a6","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","owner_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","owner_name":"mvgijssel","name":"agent-of-agents","template_id":"cc29db59-0483-4520-869e-777e9a05bf65","template_name":"coder-devcontainer","template_display_name":"","template_icon":"","workspace_id":"54ebda62-9d13-4b1c-9537-dd2d322da1a6","workspace_agent_id":"a34a6bf6-80df-42cd-aafd-c66537b7f112","workspace_agent_lifecycle":"ready","workspace_agent_health":{"healthy":true},"initial_prompt":"agent-of-agents","status":"running","current_state":{"timestamp":"2025-10-27T16:14:21.843722+01:00","state":"idle","message":"Fix
+          pushed - monitoring CI for test results","uri":"https://github.com/vgijssel/setup/pull/783"},"created_at":"2025-10-27T10:27:44.422391+01:00","updated_at":"2025-10-27T10:27:44.422391+01:00"},{"id":"7e348e5c-9322-4335-9a13-efc3a6aad054","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","owner_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","owner_name":"mvgijssel","name":"task-pensive-goodall-8734","template_id":"cc29db59-0483-4520-869e-777e9a05bf65","template_name":"coder-devcontainer","template_display_name":"","template_icon":"","workspace_id":"7e348e5c-9322-4335-9a13-efc3a6aad054","workspace_agent_id":"530528e7-b1d5-4378-ba57-c8f65e1c05d0","workspace_agent_lifecycle":"starting","workspace_agent_health":{"healthy":true},"initial_prompt":"Find
+          typos","status":"running","current_state":null,"created_at":"2025-10-27T16:36:56.138529+01:00","updated_at":"2025-10-27T16:36:56.138529+01:00"}],"count":2}
+
+          '
+      headers:
+        Content-Length:
+          - "1600"
+        Content-Type:
+          - application/json; charset=utf-8
+        Date:
+          - Mon, 27 Oct 2025 15:37:18 GMT
+        Set-Cookie:
+          - csrf_token=apHhA94Fd2YKkN9WNzk/X/JmhH3GMLG8V9R6aY4OgCw=; Path=/; HttpOnly;
+            SameSite=Lax
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - d7d22962-494f-48a6-9585-2fda53ea3b7d
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "478"
+        X-Ratelimit-Reset:
+          - "1761579480"
+      status:
+        code: 200
+        message: OK
+  - request:
+      body: ""
+      headers:
+        Coder-Session-Token:
+          - REDACTED
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        content-type:
+          - application/json
+        host:
+          - macbook-pro-van-maarten.tail2c33e2.ts.net
+        user-agent:
+          - python-httpx/0.28.1
+      method: GET
+      uri: https://macbook-pro-van-maarten.tail2c33e2.ts.net/api/experimental/tasks/mvgijssel/54ebda62-9d13-4b1c-9537-dd2d322da1a6
+    response:
+      body:
+        string:
+          '{"id":"54ebda62-9d13-4b1c-9537-dd2d322da1a6","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","owner_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","owner_name":"mvgijssel","name":"agent-of-agents","template_id":"cc29db59-0483-4520-869e-777e9a05bf65","template_name":"coder-devcontainer","template_display_name":"","template_icon":"","workspace_id":"54ebda62-9d13-4b1c-9537-dd2d322da1a6","workspace_agent_id":"a34a6bf6-80df-42cd-aafd-c66537b7f112","workspace_agent_lifecycle":"ready","workspace_agent_health":{"healthy":true},"initial_prompt":"agent-of-agents","status":"running","current_state":{"timestamp":"2025-10-27T16:14:21.843722+01:00","state":"idle","message":"Fix
+          pushed - monitoring CI for test results","uri":"https://github.com/vgijssel/setup/pull/783"},"created_at":"2025-10-27T10:27:44.422391+01:00","updated_at":"2025-10-27T10:27:44.422391+01:00"}
+
+          '
+      headers:
+        Content-Length:
+          - "868"
+        Content-Type:
+          - application/json; charset=utf-8
+        Date:
+          - Mon, 27 Oct 2025 15:37:19 GMT
+        Set-Cookie:
+          - csrf_token=9B2Xn228gEDZ2LbwEn8SQpZ4cdqzB+aHDmvh6zZQS8U=; Path=/; HttpOnly;
+            SameSite=Lax
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - 32211376-7fe0-4bde-b966-54a727e909de
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "509"
+        X-Ratelimit-Reset:
+          - "1761579480"
+      status:
+        code: 200
+        message: OK
+version: 1

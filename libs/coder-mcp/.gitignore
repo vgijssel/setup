@@ -38,8 +38,6 @@ env/
 htmlcov/
 .tox/
 .hypothesis/
-tests/fixtures/cassettes/
-!tests/fixtures/cassettes/.gitkeep
 
 # Type checking
 .mypy_cache/

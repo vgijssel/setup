@@ -1,0 +1,57 @@
+interactions:
+  - request:
+      body: '{"workspace_name": "test-workspace"}'
+      headers:
+        Coder-Session-Token:
+          - REDACTED
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        content-length:
+          - "35"
+        content-type:
+          - application/json
+        host:
+          - macbook-pro-van-maarten.tail2c33e2.ts.net
+        user-agent:
+          - python-httpx/0.28.1
+      method: POST
+      uri: https://macbook-pro-van-maarten.tail2c33e2.ts.net/api/experimental/tasks/me
+    response:
+      body:
+        string:
+          '{"message":"Resource not found or you do not have access to this resource"}
+
+          '
+      headers:
+        Content-Length:
+          - "76"
+        Content-Type:
+          - application/json; charset=utf-8
+        Date:
+          - Mon, 27 Oct 2025 15:37:17 GMT
+        Set-Cookie:
+          - csrf_token=5A+/kWPTK347NiRZafiyW+CdeX6eU1oPXC9eNLpeaXo=; Path=/; HttpOnly;
+            SameSite=Lax
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - c8138942-b2c0-4e55-97b4-59a0a5e8831e
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "502"
+        X-Ratelimit-Reset:
+          - "1761579480"
+      status:
+        code: 404
+        message: Not Found
+version: 1

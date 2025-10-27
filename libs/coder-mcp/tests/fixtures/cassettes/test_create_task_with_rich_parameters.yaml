@@ -1,0 +1,59 @@
+interactions:
+  - request:
+      body:
+        '{"prompt": "Test task with rich parameters", "workspace_name": "test-workspace",
+        "rich_parameters": {"region": "us-east-1", "instance_type": "t3.medium"}}'
+      headers:
+        Coder-Session-Token:
+          - REDACTED
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        content-length:
+          - "146"
+        content-type:
+          - application/json
+        host:
+          - macbook-pro-van-maarten.tail2c33e2.ts.net
+        user-agent:
+          - python-httpx/0.28.1
+      method: POST
+      uri: https://macbook-pro-van-maarten.tail2c33e2.ts.net/api/experimental/tasks/me
+    response:
+      body:
+        string:
+          '{"message":"Resource not found or you do not have access to this resource"}
+
+          '
+      headers:
+        Content-Length:
+          - "76"
+        Content-Type:
+          - application/json; charset=utf-8
+        Date:
+          - Mon, 27 Oct 2025 15:37:17 GMT
+        Set-Cookie:
+          - csrf_token=76rt2Ov4AgCpbKW/KfyVWuO7XVhGImh00/WRGxscxSY=; Path=/; HttpOnly;
+            SameSite=Lax
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - 12e545e8-edac-4333-90e4-a90c39eb4550
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "503"
+        X-Ratelimit-Reset:
+          - "1761579480"
+      status:
+        code: 404
+        message: Not Found
+version: 1
