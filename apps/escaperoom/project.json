@@ -7,7 +7,7 @@
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "uv run pytest",
+        "command": "uv pip install --system -r requirements.txt && pytest",
         "cwd": "apps/escaperoom"
       }
     },
