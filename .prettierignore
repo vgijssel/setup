@@ -6,3 +6,7 @@ pnpm-lock.yaml
 
 # Use Obsidian Linter for formatting markdown files
 *.md
+
+# Helm templates with complex syntax cause prettier syntax errors
+libs/internal-dns/templates/cleanup-configmap.yaml
+libs/internal-dns/templates/cleanup-job.yaml

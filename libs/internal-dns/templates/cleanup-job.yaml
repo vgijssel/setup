@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "internal-dns.fullname" . }}-cleanup
+  labels:
+    {{- include "internal-dns.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "internal-dns.selectorLabels" . | nindent 8 }}
+        job-name: {{ include "internal-dns.fullname" . }}-cleanup
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: cleanup
+          image: ghcr.io/astral-sh/uv:0.5.11-python3.12-bookworm-slim
+          command:
+            - /bin/bash
+            - -c
+            - |
+              # Make the script executable and run it with uv
+              chmod +x /scripts/external-dns-cleanup
+              /scripts/external-dns-cleanup \
+                --domain-filter={{ .Values.domain }} \
+                --txt-owner-id={{ .Values.txtOwnerId }} \
+                --txt-prefix=_externaldns- \
+                --verbose
+          env:
+            - name: CF_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "internal-dns.fullname" . }}-cloudflare
+                  key: credential
+          volumeMounts:
+            - name: cleanup-script
+              mountPath: /scripts
+      volumes:
+        - name: cleanup-script
+          configMap:
+            name: {{ include "internal-dns.fullname" . }}-cleanup-script
+            defaultMode: 0755

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "internal-dns.fullname" . }}-cleanup-script
+  labels:
+{{ include "internal-dns.labels" . | indent 4 }}
+data:
+  external-dns-cleanup: |
+{{ .Files.Get "external-dns-cleanup" | indent 4 }}
