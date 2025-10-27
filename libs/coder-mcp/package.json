@@ -41,6 +41,7 @@
         "inputs": [
           "{projectRoot}/src/**/*.py",
           "{projectRoot}/tests/**/*.py",
+          "{projectRoot}/tests/**/*.yaml",
           "{projectRoot}/pyproject.toml",
           "{projectRoot}/.env"
         ]
