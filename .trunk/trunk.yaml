@@ -54,6 +54,11 @@ lint:
         - libs/internal-dns/templates/external-dns-rbac.yaml
         - libs/internal-dns/templates/**
         - libs/devenv/goss.yaml
+    # Ignore prettier syntax errors for Helm templates with complex syntax
+    - linters: [prettier]
+      paths:
+        - libs/internal-dns/templates/cleanup-configmap.yaml
+        - libs/internal-dns/templates/cleanup-job.yaml
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1
