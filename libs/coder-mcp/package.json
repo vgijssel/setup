@@ -3,10 +3,71 @@
   "version": "0.1.0",
   "description": "MCP server for managing Coder AI agent fleet",
   "private": true,
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "scripts": {
     "test": "uv run pytest tests/",
     "typecheck": "uv run mypy src/coder_mcp",
     "serve": "uv run python -m coder_mcp.server"
+  },
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/coder-mcp/src",
+    "tags": ["type:library", "scope:infrastructure"],
+    "targets": {
+      "secrets": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "op inject --force -i .env.tpl -o .env",
+          "cwd": "libs/coder-mcp"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/.env.tpl"
+        ],
+        "outputs": [
+          "{projectRoot}/.env"
+        ]
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run pytest tests/ -v",
+          "cwd": "libs/coder-mcp"
+        },
+        "dependsOn": [
+          "secrets"
+        ],
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/src/**/*.py",
+          "{projectRoot}/tests/**/*.py",
+          "{projectRoot}/pyproject.toml",
+          "{projectRoot}/.env"
+        ]
+      },
+      "typecheck": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run mypy src/coder_mcp",
+          "cwd": "libs/coder-mcp"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/src/**/*.py",
+          "{projectRoot}/pyproject.toml"
+        ]
+      },
+      "serve": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run python -m coder_mcp.server",
+          "cwd": "libs/coder-mcp"
+        },
+        "dependsOn": [
+          "secrets"
+        ]
+      }
+    }
   },
   "keywords": [
     "mcp",

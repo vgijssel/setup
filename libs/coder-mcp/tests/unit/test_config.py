@@ -16,13 +16,16 @@ def test_config_loads_from_environment(monkeypatch):
     assert config.base_url == "https://test.coder.com"
 
 
-def test_config_validates_missing_token(monkeypatch):
+def test_config_validates_missing_token(monkeypatch, tmp_path):
     """Test that Config raises error when session token is missing."""
+    # Change to temp directory to avoid loading .env from project
+    monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("CODER_SESSION_TOKEN", raising=False)
-    monkeypatch.setenv("CODER_URL", "https://test.coder.com")
+    monkeypatch.delenv("CODER_URL", raising=False)  # Also delete CODER_URL to avoid any .env loading
 
+    # Explicitly pass an env_file that doesn't exist to prevent auto-discovery
     with pytest.raises(ConfigValidationError, match="CODER_SESSION_TOKEN"):
-        Config()
+        Config(env_file=str(tmp_path / ".env.nonexistent"))
 
 
 def test_config_uses_default_url(monkeypatch):

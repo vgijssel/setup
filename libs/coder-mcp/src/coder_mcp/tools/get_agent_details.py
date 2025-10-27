@@ -39,16 +39,16 @@ async def get_agent_details_from_api(
     # Map Coder task fields to Agent model
     agent = Agent(
         id=task_data.get("id", agent_id),
-        user=task_data.get("username", task_data.get("user", user)),
+        user=task_data.get("owner_name", task_data.get("username", task_data.get("user", user))),
         workspace_id=task_data.get("workspace_id", task_data.get("id", "")),
-        workspace_name=task_data.get("workspace_name", ""),
+        workspace_name=task_data.get("name", task_data.get("workspace_name", "")),
         status=_map_task_status(task_data.get("status", "unknown")),
         created_at=_parse_timestamp(task_data.get("created_at")),
         updated_at=_parse_timestamp(task_data.get("updated_at")),
         last_activity_at=_parse_timestamp(task_data.get("last_activity_at")),
         connected=task_data.get("connected", False),
         capabilities=task_data.get("capabilities", []),
-        current_assignment=task_data.get("prompt"),
+        current_assignment=task_data.get("initial_prompt", task_data.get("prompt")),
         metadata=task_data.get("metadata", {}),
     )
 
@@ -81,7 +81,8 @@ async def get_agent_details(
                 "data": agent.model_dump(mode="json"),
             }
     except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
+        if e.response.status_code in [400, 404]:
+            # Coder API returns 400 for non-existent agents
             return {
                 "success": False,
                 "error": f"Agent not found: {agent_id}",

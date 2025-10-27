@@ -123,7 +123,8 @@ async def get_agent_logs(
                 "data": [log.model_dump(mode="json") for log in logs],
             }
     except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
+        if e.response.status_code in [400, 404]:
+            # Coder API returns 400 for non-existent agents
             return {
                 "success": False,
                 "error": f"Agent not found: {agent_id}",

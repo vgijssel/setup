@@ -16,10 +16,16 @@ class TestGetAgentLogsContract:
     @pytest.mark.asyncio
     async def test_get_agent_logs_returns_log_entries(self):
         """Test that get_agent_logs returns a list of valid LogEntry models."""
-        # This test will fail until the tool is implemented
         from coder_mcp.tools.get_agent_logs import get_agent_logs
+        from coder_mcp.tools.list_agents import list_agents
 
-        result = await get_agent_logs(user="me", agent_id="test-agent-id")
+        # Get a real agent to test with
+        agents = await list_agents()
+        if not agents:
+            pytest.skip("No agents available for testing")
+
+        agent_to_test = agents[0]
+        result = await get_agent_logs(user=agent_to_test.user, agent_id=agent_to_test.id)
 
         # Verify result structure
         assert isinstance(result, dict)
@@ -28,7 +34,7 @@ class TestGetAgentLogsContract:
         assert "data" in result
         assert isinstance(result["data"], list)
 
-        # Verify each log entry matches LogEntry model
+        # Verify each log entry matches LogEntry model (if any logs exist)
         if len(result["data"]) > 0:
             for log_data in result["data"]:
                 log_entry = LogEntry(**log_data)

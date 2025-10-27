@@ -97,8 +97,7 @@ async def test_us3_create_task_nonexistent_workspace(vcr_cassette):
 @pytest.mark.asyncio
 async def test_us3_mcp_tool_registered():
     """Verify that US3 tool is registered in the MCP server."""
-    tools = mcp.list_tools()
-    tool_names = [tool.name for tool in tools]
+    tool_names = await mcp.get_tools()
 
     # Verify US3 tool is present
     assert "create_new_agent_task" in tool_names
@@ -185,8 +184,7 @@ async def test_us3_completion_criteria():
     # Tested by test_us3_acceptance_scenario_2
 
     # Verify tool is registered
-    tools = mcp.list_tools()
-    tool_names = [tool.name for tool in tools]
+    tool_names = await mcp.get_tools()
     assert "create_new_agent_task" in tool_names
 
 

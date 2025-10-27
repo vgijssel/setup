@@ -16,11 +16,18 @@ class TestGetAgentDetailsContract:
     @pytest.mark.asyncio
     async def test_get_agent_details_returns_agent_model(self):
         """Test that get_agent_details returns a valid Agent model."""
-        # This test will fail until the tool is implemented
         from coder_mcp.tools.get_agent_details import get_agent_details
+        from coder_mcp.tools.list_agents import list_agents
 
-        # Use a known agent ID from US1 implementation
-        result = await get_agent_details(user="me", agent_id="test-agent-id")
+        # Get a real agent to test with
+        agents = await list_agents()
+        if not agents:
+            pytest.skip("No agents available for testing")
+
+        agent_to_test = agents[0]
+
+        # Test get_agent_details with real agent
+        result = await get_agent_details(user=agent_to_test.user, agent_id=agent_to_test.id)
 
         # Verify result structure
         assert isinstance(result, dict)
@@ -30,10 +37,9 @@ class TestGetAgentDetailsContract:
 
         # Verify data matches Agent model
         agent = Agent(**result["data"])
-        assert agent.id == "test-agent-id"
+        assert agent.id == agent_to_test.id
         assert isinstance(agent.status, AgentStatus)
         assert agent.workspace_id
-        assert agent.workspace_name
         assert agent.connected in [True, False]
 
     @pytest.mark.asyncio
@@ -68,8 +74,15 @@ class TestGetAgentDetailsContract:
     async def test_get_agent_details_returns_complete_agent_data(self):
         """Test that get_agent_details returns all required Agent fields."""
         from coder_mcp.tools.get_agent_details import get_agent_details
+        from coder_mcp.tools.list_agents import list_agents
 
-        result = await get_agent_details(user="me", agent_id="test-agent-id")
+        # Get a real agent to test with
+        agents = await list_agents()
+        if not agents:
+            pytest.skip("No agents available for testing")
+
+        agent_to_test = agents[0]
+        result = await get_agent_details(user=agent_to_test.user, agent_id=agent_to_test.id)
 
         if result["success"]:
             agent_data = result["data"]

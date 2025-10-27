@@ -126,8 +126,7 @@ async def test_us2_get_nonexistent_agent_logs(vcr_cassette):
 async def test_us2_mcp_tools_registered():
     """Verify that US2 tools are registered in the MCP server."""
     # Get list of registered tools
-    tools = mcp.list_tools()
-    tool_names = [tool.name for tool in tools]
+    tool_names = await mcp.get_tools()
 
     # Verify US2 tools are present
     assert "get_agent_details_by_id" in tool_names
@@ -214,8 +213,7 @@ async def test_us2_completion_criteria():
     # This entire test suite uses VCR cassettes
 
     # Verify tools are registered
-    tools = mcp.list_tools()
-    tool_names = [tool.name for tool in tools]
+    tool_names = await mcp.get_tools()
 
     assert "get_agent_details_by_id" in tool_names
     assert "get_agent_execution_logs" in tool_names
