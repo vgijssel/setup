@@ -1,44 +1,28 @@
 nameOverride: ""
 fullnameOverride: ""
 
-domain: enigma.vgijssel.nl
+domain: vgijssel-dev.nl
 replicaCount: 1
-
-service:
-  type: LoadBalancer
-  port: 53
-  annotations:
-    metallb.universe.tf/loadBalancer: "true"
-
-persistence:
-  storageClass: standard
-  accessMode: ReadWriteOnce
-  size: 8Gi
-
-secrets:
-  apiKey:
-    name: powerdns-api-key
-    key: credential
-
-resources: {}
-nodeSelector: {}
-tolerations: []
-affinity: {}
 
 # External DNS settings
 logLevel: debug
 txtOwnerId: internal-dns
+txtPrefix: _externaldns-
 interval: 30s
 
-powerdns:
-  image:
-    repository: powerdns/pdns-auth-50
-    tag: 5.0.0
-    registry: docker.io
+# Cloudflare configuration
+cloudflare:
+  onePasswordItem:
+    itemPath: vaults/setup-devenv/items/cloudflare-tunnel
 
 externalDns:
   image:
     registry: registry.k8s.io
     repository: external-dns/external-dns
-    tag: v0.12.2
+    tag: v0.15.0
     pullPolicy: IfNotPresent
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

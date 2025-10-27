@@ -1,3 +1,29 @@
+## 0.8.2 (2025-10-26)
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.6.13
+
+## 0.8.1 (2025-10-20)
+
+### 🩹 Fixes
+
+- Remove unused docker_socket variable from coder-devcontainer ([#774](https://github.com/vgijssel/setup/pull/774))
+
+  The docker_socket variable and its associated provider configuration were unused and have been removed to simplify the configuration.
+
+## 0.8.0 (2025-10-18)
+
+### 🚀 Features
+
+- Add OP_SERVICE_ACCOUNT_TOKEN environment variable from 1Password ([#771](https://github.com/vgijssel/setup/pull/771))
+
+## 0.7.13 (2025-10-18)
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.6.12
+
 ## 0.7.12 (2025-10-08)
 
 ### 🧱 Updated Dependencies

@@ -55,11 +55,21 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Disk usage before tests
+        run: |
+          echo "=== Disk usage before cleanup ==="
+          df -h
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           filter: tree:0
           fetch-depth: 0
+
+      - name: Ensure the branch name is correct for tooling
+        run: git checkout -B "$BRANCH_NAME"
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
 
       - uses: ./.github/actions/setup
 
@@ -77,6 +87,19 @@ jobs:
           NX_KEY: ${{ secrets.NX_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Disk usage after tests
+        if: always()
+        run: |
+          echo "=== Disk usage after tests ==="
+          df -h
+          echo ""
+          echo "=== Hermit cache size ==="
+          du -sh ~/.cache/hermit || true
+          echo ""
+          echo "=== Docker disk usage ==="
+          docker system df || true
 
   test-macos:
     name: macOS Tests (Tagged Projects Only)
@@ -86,11 +109,21 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Disk usage before tests
+        run: |
+          echo "=== Disk usage before tests ==="
+          df -h
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           filter: tree:0
           fetch-depth: 0
+
+      - name: Ensure the branch name is correct for tooling
+        run: git checkout -B "$BRANCH_NAME"
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
 
       - uses: ./.github/actions/setup
 
@@ -108,3 +141,13 @@ jobs:
           NX_KEY: ${{ secrets.NX_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Disk usage after tests
+        if: always()
+        run: |
+          echo "=== Disk usage after tests ==="
+          df -h
+          echo ""
+          echo "=== Hermit cache size ==="
+          du -sh ~/.cache/hermit || true
