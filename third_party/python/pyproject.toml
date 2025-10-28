@@ -7,4 +7,4 @@ requires-python = ">=3.12"
 dependencies = ["specify-cli"]
 
 [tool.uv.sources]
-specify-cli = { git = "https://github.com/github/spec-kit.git", tag = "v0.0.55" }
+specify-cli = { git = "https://github.com/github/spec-kit.git", tag = "v0.0.79" }
