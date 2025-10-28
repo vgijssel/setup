@@ -172,6 +172,13 @@ resource "coder_agent" "main" {
     set +x
   EOT
 
+  display_apps {
+    vscode          = false
+    vscode_insiders = false
+    web_terminal    = true
+    ssh_helper      = false
+  }
+
   # These environment variables allow you to make Git commits right away after creating a
   # workspace. Note that they take precedence over configuration defined in ~/.gitconfig!
   # You can remove this block if you'd prefer to configure Git manually or using

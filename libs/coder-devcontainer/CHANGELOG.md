@@ -1,3 +1,9 @@
+## 0.9.0 (2025-10-28)
+
+### 🚀 Features
+
+- Add display_apps configuration to Coder agent ([#788](https://github.com/vgijssel/setup/pull/788))
+
 ## 0.8.4 (2025-10-27)
 
 ### 🧱 Updated Dependencies
