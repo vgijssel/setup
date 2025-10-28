@@ -248,6 +248,46 @@ resource "coder_agent" "main" {
     interval     = 10
     timeout      = 1
   }
+
+  metadata {
+    display_name = "Pull Request URL"
+    key          = "8_pull_request_url"
+    script       = "echo $${PULL_REQUEST_URL:-n/a}"
+    interval     = 30
+    timeout      = 1
+  }
+
+  metadata {
+    display_name = "Pull Request Status"
+    key          = "9_pull_request_status"
+    script       = "echo $${PULL_REQUEST_STATUS:-n/a}"
+    interval     = 30
+    timeout      = 1
+  }
+
+  metadata {
+    display_name = "Pull Request Check Status"
+    key          = "10_pull_request_check_status"
+    script       = "echo $${PULL_REQUEST_CHECK_STATUS:-n/a}"
+    interval     = 30
+    timeout      = 1
+  }
+
+  metadata {
+    display_name = "Agent Name"
+    key          = "11_agent_name"
+    script       = "echo $${AGENT_NAME:-n/a}"
+    interval     = 30
+    timeout      = 1
+  }
+
+  metadata {
+    display_name = "Agent Spec"
+    key          = "12_agent_spec"
+    script       = "echo $${AGENT_SPEC:-n/a}"
+    interval     = 30
+    timeout      = 1
+  }
 }
 
 # # See https://registry.coder.com/modules/coder/code-server
