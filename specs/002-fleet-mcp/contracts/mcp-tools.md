@@ -370,9 +370,9 @@ Start a new task on an agent.
 
 ---
 
-## Tool: stop_agent_task
+## Tool: cancel_agent_task
 
-Stop the currently running task on an agent by sending an interrupt signal to the agent's message endpoint.
+Cancel the currently running task on an agent by sending an interrupt signal to the agent's message endpoint.
 
 **Implementation**: POST to the workspace's messages endpoint with `{"content": "\u001b", "type": "raw"}` to send an interrupt signal to the running agent.
 
@@ -386,7 +386,7 @@ Stop the currently running task on an agent by sending an interrupt signal to th
 
 ### Field Descriptions
 
-- **agent_name**: Name of the agent whose task should be stopped
+- **agent_name**: Name of the agent whose task should be canceled
 
 ### Output
 
@@ -414,13 +414,13 @@ Stop the currently running task on an agent by sending an interrupt signal to th
 ```json
 {
     "task": {
-        "message": "Fix authentication bug - work completed",
+        "message": "Fix authentication bug - work canceled",
         "uri": "https://github.com/org/repo/tree/fix/auth",
         "needs_user_attention": false,
         "created_at": "2025-10-29T10:00:00Z"
     },
     "agent_status": "idle",
-    "message": "Task stopped successfully"
+    "message": "Task canceled successfully"
 }
 ```
 
@@ -568,9 +568,17 @@ Example: 2025-10-29T10:30:45Z
 ### Status Enums
 
 **Agent Status**:
-- `busy`: Agent is working on a task
-- `idle`: Agent is ready for work
-- `offline`: Agent's workspace is not running
+- `pending`: Workspace is being provisioned
+- `starting`: Workspace is starting up
+- `busy`: Agent is working on a task (workspace running)
+- `idle`: Agent is ready for work (workspace running)
+- `stopping`: Workspace is shutting down
+- `stopped`: Workspace is stopped
+- `failed`: Workspace operation failed
+- `canceling`: Workspace operation is being canceled
+- `canceled`: Workspace operation was canceled
+- `deleting`: Workspace is being deleted
+- `deleted`: Workspace has been deleted
 
 ---
 

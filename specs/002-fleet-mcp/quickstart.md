@@ -313,9 +313,28 @@ from enum import Enum
 from pydantic import BaseModel, Field, field_validator
 
 class AgentStatus(str, Enum):
+    # Workspace lifecycle states
+    PENDING = "pending"
+    STARTING = "starting"
+
+    # Active states (workspace running)
     BUSY = "busy"
     IDLE = "idle"
-    OFFLINE = "offline"
+
+    # Shutdown states
+    STOPPING = "stopping"
+    STOPPED = "stopped"
+
+    # Error states
+    FAILED = "failed"
+
+    # Cancellation states
+    CANCELING = "canceling"
+    CANCELED = "canceled"
+
+    # Deletion states
+    DELETING = "deleting"
+    DELETED = "deleted"
 
 class Agent(BaseModel):
     name: str = Field(min_length=1, max_length=20, pattern=r"^[a-zA-Z0-9-]+$")
@@ -617,7 +636,7 @@ nx test fleet-mcp
 ### 4.3 Repeat for Other Tool Modules
 
 Follow same TDD cycle for:
-- `tools/task_management.py` (start_task, stop_task, show_task_history)
+- `tools/task_management.py` (start_task, cancel_task, show_task_history)
 - `tools/discovery.py` (list_roles, list_projects)
 
 ---

@@ -20,7 +20,7 @@ Represents a Claude Code instance running in a Coder workspace.
 **Attributes**:
 - `name` (str): Unique short memorable name (e.g., "Sony", "Papi")
 - `workspace_id` (str): Coder workspace UUID
-- `status` (AgentStatus): Current state - "busy", "idle", or "offline"
+- `status` (AgentStatus): Current state - see AgentStatus enum for all possible values
 - `role` (str): Agent role - "coder", "operator", or "manager"
 - `project` (str): Project name (e.g., "Setup", "DataOne")
 - `spec` (str): Agent specification defining objectives and constraints
@@ -35,9 +35,19 @@ Represents a Claude Code instance running in a Coder workspace.
 
 **Derived Fields**:
 - `status`: Computed from workspace build status + `current_task` presence
-  - offline: workspace.latest_build.status != "running"
-  - busy: workspace running AND current_task is not None
-  - idle: workspace running AND current_task is None
+  - When workspace status is "running":
+    - busy: current_task is not None (agent is working on a task)
+    - idle: current_task is None (agent is ready for work)
+  - Otherwise: Agent inherits workspace state directly
+    - pending: workspace is being provisioned
+    - starting: workspace is starting up
+    - stopping: workspace is shutting down
+    - stopped: workspace is stopped
+    - failed: workspace provisioning or operation failed
+    - canceling: workspace operation is being canceled
+    - canceled: workspace operation was canceled
+    - deleting: workspace is being deleted
+    - deleted: workspace has been deleted
 
 **Validation Rules**:
 - `name`: 1-20 characters, alphanumeric + hyphens only, must be unique
@@ -47,28 +57,37 @@ Represents a Claude Code instance running in a Coder workspace.
 
 **State Transitions**:
 ```
-               create_agent (with spec)
-    [none] ─────────────────────────────> [busy]
-                                             │
-                                             │ complete_task / stop_task
-                                             v
-                                          [idle]
-                                             │
-                                             │ start_task
-                                             v
-                                          [busy]
-                                             │
-                              delete_agent   │
-                         ┌───────────────────┘
-                         v
-                     [deleted]
-                         │
-         workspace_stopped
-                         v
-                    [offline]
+                          create_agent (with spec)
+    [none] ──────────────────────────────────────> [pending]
+                                                        │
+                                                        v
+                                                   [starting]
+                                                        │
+                                                        v
+                                                     [busy]  ◄─┐
+                                                        │      │
+                                  complete_task         │      │ start_task
+                                  cancel_task           │      │
+                                                        v      │
+                                                     [idle] ───┘
+                                                        │
+                       ┌────────────────────────────────┼────────────────┐
+                       │                                │                │
+            delete_agent                    stop_workspace    workspace_failed
+                       │                                │                │
+                       v                                v                v
+                  [deleting]                        [stopping]       [failed]
+                       │                                │
+                       v                                v
+                   [deleted]                         [stopped]
+
+    [canceling] ──> [canceled]   (operation interrupted)
 ```
 
-**Note**: Agents are created with a spec and immediately start working on it, so they begin in "busy" state. The current_task is set to the spec content.
+**Note**:
+- Agents are created with a spec and immediately start working on it once the workspace reaches "running" state
+- The agent begins in "pending" → "starting" → "busy" progression
+- Only "busy" and "idle" states indicate a running workspace; all other states reflect workspace lifecycle
 
 **Relationships**:
 - One Agent → Many Tasks (task history)
@@ -268,9 +287,9 @@ Represents a project that agents can work on. Projects map to Coder templates.
 
 ---
 
-### StopTaskRequest
+### CancelTaskRequest
 
-**Purpose**: MCP tool input for stopping a task
+**Purpose**: MCP tool input for canceling a task
 
 **Attributes** (flat):
 - `agent_name` (str): Target agent
@@ -310,9 +329,28 @@ Represents a project that agents can work on. Projects map to Coder templates.
 
 ```python
 class AgentStatus(str, Enum):
-    BUSY = "busy"
-    IDLE = "idle"
-    OFFLINE = "offline"
+    # Workspace lifecycle states
+    PENDING = "pending"      # Workspace being provisioned
+    STARTING = "starting"    # Workspace starting up
+
+    # Active states (workspace running)
+    BUSY = "busy"           # Agent working on a task
+    IDLE = "idle"           # Agent ready for work
+
+    # Shutdown states
+    STOPPING = "stopping"   # Workspace shutting down
+    STOPPED = "stopped"     # Workspace stopped
+
+    # Error states
+    FAILED = "failed"       # Workspace operation failed
+
+    # Cancellation states
+    CANCELING = "canceling" # Operation being canceled
+    CANCELED = "canceled"   # Operation was canceled
+
+    # Deletion states
+    DELETING = "deleting"   # Workspace being deleted
+    DELETED = "deleted"     # Workspace deleted
 ```
 
 ---
