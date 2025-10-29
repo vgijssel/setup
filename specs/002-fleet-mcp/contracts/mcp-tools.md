@@ -225,8 +225,6 @@ Show paginated task history for an agent.
             "id": str,
             "agent_name": str,
             "summary": str,
-            "status": str,          # "pending", "running", "completed", "failed", "stopped"
-            "source": str,          # "agent", "human", "ai_controller"
             "created_at": str,
             "started_at": str | None,
             "completed_at": str | None
@@ -255,8 +253,6 @@ Show paginated task history for an agent.
             "id": "task-uuid-1",
             "agent_name": "papi",
             "summary": "Implement OAuth2 authentication",
-            "status": "completed",
-            "source": "human",
             "created_at": "2025-10-29T10:00:00Z",
             "started_at": "2025-10-29T10:01:00Z",
             "completed_at": "2025-10-29T11:30:00Z"
@@ -344,7 +340,6 @@ Start a new task on an agent.
         "id": str,
         "agent_name": str,
         "summary": str,
-        "status": "running",        # Always "running" after start
         "created_at": str,
         "started_at": str
     },
@@ -395,8 +390,6 @@ Stop the currently running task on an agent.
         "id": str,
         "agent_name": str,
         "summary": str,
-        "status": "stopped",        # Always "stopped" after stop
-        "source": str,
         "created_at": str,
         "started_at": str,
         "completed_at": str         # Timestamp when stopped
@@ -420,8 +413,6 @@ Stop the currently running task on an agent.
         "id": "task-uuid",
         "agent_name": "papi",
         "summary": "Fix authentication bug",
-        "status": "stopped",
-        "source": "human",
         "created_at": "2025-10-29T10:00:00Z",
         "started_at": "2025-10-29T10:01:00Z",
         "completed_at": "2025-10-29T10:15:00Z"
@@ -578,18 +569,6 @@ Example: 2025-10-29T10:30:45Z
 - `busy`: Agent is working on a task
 - `idle`: Agent is ready for work
 - `offline`: Agent's workspace is not running
-
-**Task Status**:
-- `pending`: Task created but not started
-- `running`: Task currently executing
-- `completed`: Task finished successfully
-- `failed`: Task encountered an error
-- `stopped`: Task manually interrupted
-
-**Task Source**:
-- `agent`: Task assigned by the agent itself
-- `human`: Task assigned by human operator
-- `ai_controller`: Task assigned by controlling AI agent
 
 ---
 

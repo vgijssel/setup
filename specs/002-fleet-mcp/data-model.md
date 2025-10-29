@@ -87,7 +87,6 @@ Represents work assigned to an agent. Tasks are stored in Coder's AI task system
 - `agent_name` (str): Associated agent name
 - `workspace_id` (str): Coder workspace UUID
 - `summary` (str): Task description/summary
-- `status` (TaskStatus): "pending", "running", "completed", "failed", "stopped"
 - `created_at` (datetime): Task creation timestamp
 - `started_at` (datetime | None): When task execution began
 - `completed_at` (datetime | None): When task finished
@@ -95,25 +94,10 @@ Represents work assigned to an agent. Tasks are stored in Coder's AI task system
 
 **Validation Rules**:
 - `summary`: Non-empty string
-- `status`: Must be valid TaskStatus enum value
 - Timestamps: `started_at` >= `created_at`, `completed_at` >= `started_at`
-
-**State Transitions**:
-```
-    [pending] ──start_task──> [running] ──complete──> [completed]
-                                  │
-                                  │ stop_task
-                                  v
-                              [stopped]
-                                  │
-                                  │ error
-                                  v
-                              [failed]
-```
 
 **Relationships**:
 - Many Tasks → One Agent (via agent_name)
-- Tasks are immutable once completed/failed/stopped
 
 ---
 
@@ -330,17 +314,6 @@ class AgentStatus(str, Enum):
     OFFLINE = "offline"
 ```
 
-### TaskStatus
-
-```python
-class TaskStatus(str, Enum):
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    STOPPED = "stopped"
-```
-
 ---
 
 ## Metadata Mapping
@@ -399,7 +372,7 @@ def agent_to_metadata(agent: Agent) -> dict[str, str]:
 | Model | Key Validations |
 |-------|-----------------|
 | Agent | Unique name, valid role, valid project, non-empty spec |
-| Task | Valid status, valid source, timestamp ordering |
+| Task | Non-empty summary, timestamp ordering |
 | Role | Predefined name, non-empty prompt |
 | Project | Matches Coder template |
 | CreateAgentRequest | Name uniqueness, valid role/project |

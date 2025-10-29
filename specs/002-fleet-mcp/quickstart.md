@@ -350,7 +350,7 @@ nx test fleet-mcp
 ### 2.3 Repeat for Other Models
 
 Follow same TDD cycle for:
-- `models/task.py` (Task, TaskStatus)
+- `models/task.py` (Task)
 - `models/role.py` (Role - sourced from Coder template parameters)
 - `models/project.py` (Project - maps to Coder templates)
 - `models/requests.py` (CreateAgentRequest, TaskHistoryRequest, etc.)
