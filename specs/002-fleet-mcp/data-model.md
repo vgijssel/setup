@@ -51,7 +51,7 @@ Represents a Claude Code instance running in a Coder workspace.
 
 **Validation Rules**:
 - `name`: 1-20 characters, alphanumeric + hyphens only, must be unique
-- `role`: Must be one of ["coder", "operator", "manager"]
+- `role`: Must match a Coder workspace preset name defined in the project's template (dynamic, not hardcoded)
 - `project`: Must match existing Coder template name
 - `spec`: Required, non-empty string
 
@@ -226,7 +226,7 @@ MCP tool inputs use `Annotated` with `Field()` metadata directly in function sig
 - `name: Annotated[str, Field(description="...")]`: Agent name
 - `project: Annotated[str, Field(description="...")]`: Project name
 - `spec: Annotated[str, Field(description="...")]`: Agent specification
-- `role: Annotated[Literal["coder", "operator", "manager"], Field(description="...")] = "coder"`: Agent role (default: "coder")
+- `role: Annotated[str, Field(description="...")] = "coder"`: Agent role (default: "coder"). Must match a Coder workspace preset name.
 
 **Validation**:
 - Inherits Agent validation rules
@@ -477,11 +477,11 @@ def agent_to_metadata(agent: Agent) -> dict[str, str]:
 
 | Model/Parameters | Key Validations |
 |------------------|-----------------|
-| Agent | Unique name, valid role, valid project, non-empty spec |
+| Agent | Unique name, role string (validated against Coder workspace presets), valid project, non-empty spec |
 | Task | Non-empty message, valid URI, boolean needs_user_attention, valid created_at timestamp |
-| Role | Predefined name, non-empty display_name |
+| Role | Predefined name in Coder workspace preset, non-empty display_name |
 | Project | Matches Coder template |
-| create_agent parameters | Name uniqueness, valid role/project, non-empty spec |
+| create_agent parameters | Name uniqueness, role exists in Coder workspace presets, project matches template, non-empty spec |
 | show_agent_task_history parameters | Page >= 1, page_size in [1, 100] |
 
 ---

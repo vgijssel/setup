@@ -20,7 +20,7 @@ Create a new Claude Code agent in a Coder workspace.
 {
     "name": str,     # Required. Unique agent name (1-20 chars, alphanumeric + hyphens)
     "project": str,  # Required. Project name (must match Coder template)
-    "role": str,     # Optional. Default: "coder". One of: coder, operator, manager
+    "role": str,     # Optional. Default: "coder". Must match Coder workspace preset name (e.g., coder, operator, manager)
     "spec": str      # Required. Agent specification defining objectives
 }
 ```
@@ -29,7 +29,7 @@ Create a new Claude Code agent in a Coder workspace.
 
 - **name**: Unique short memorable name for the agent (e.g., "Sony", "Papi")
 - **project**: Project name matching a Coder template (e.g., "Setup", "DataOne")
-- **role**: Agent role defining system prompt behavior
+- **role**: Agent role matching a Coder workspace preset name. Defines system prompt behavior and environment configuration. Available roles are dynamic and defined per project template.
 - **spec**: Structured specification with agent objective, context, and deliverables
 
 ### Output
@@ -58,7 +58,7 @@ Create a new Claude Code agent in a Coder workspace.
 
 ### Errors
 
-- **400 Bad Request**: Invalid parameters (name already exists, invalid role/project, empty spec)
+- **400 Bad Request**: Invalid parameters (name already exists, role not found in Coder workspace presets, project template not found, empty spec)
 - **503 Service Unavailable**: Coder API unavailable or workspace provisioning failed
 
 ### Example Input

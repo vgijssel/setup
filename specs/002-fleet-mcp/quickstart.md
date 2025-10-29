@@ -281,20 +281,6 @@ def test_agent_name_validation():
             created_at=datetime.now(),
             updated_at=datetime.now()
         )
-
-def test_agent_role_validation():
-    """Test role must be valid"""
-    with pytest.raises(ValueError):
-        Agent(
-            name="test",
-            workspace_id="ws-123",
-            status=AgentStatus.IDLE,
-            role="invalid-role",  # Invalid role
-            project="Setup",
-            spec="Test",
-            created_at=datetime.now(),
-            updated_at=datetime.now()
-        )
 ```
 
 Run tests (should FAIL):
@@ -340,24 +326,13 @@ class Agent(BaseModel):
     name: str = Field(min_length=1, max_length=20, pattern=r"^[a-zA-Z0-9-]+$")
     workspace_id: str
     status: AgentStatus
-    role: str
+    role: str  # Dynamic - validated against Coder workspace presets
     project: str
     spec: str = Field(min_length=1)
     current_task: str | None = None
     created_at: datetime
     updated_at: datetime
     metadata: dict[str, str]  # Nested metadata with all fleet_mcp_* fields
-
-    @field_validator("role")
-    @classmethod
-    def validate_role(cls, v: str) -> str:
-        # Note: In production, roles are validated against Coder template
-        # parameter options. This simplified validator is for initial testing.
-        # See research.md section 6 for full implementation using template queries.
-        valid_roles = ["coder", "operator", "manager"]
-        if v not in valid_roles:
-            raise ValueError(f"Role must be one of {valid_roles}")
-        return v
 ```
 
 Run tests (should PASS):
@@ -575,10 +550,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         name: Annotated[str, Field(description="Unique short agent name (e.g., Sony, Papi)")],
         project: Annotated[str, Field(description="Project name (e.g., Setup, DataOne)")],
         spec: Annotated[str, Field(description="Agent specification defining objectives and constraints")],
-        role: Annotated[
-            Literal["coder", "operator", "manager"],
-            Field(description="Agent role: coder, operator, or manager")
-        ] = "coder",
+        role: Annotated[str, Field(description="Agent role matching Coder workspace preset (e.g., coder, operator, manager)")] = "coder",
     ) -> CreateAgentResponse:
         """Create a new Claude Code agent in a Coder workspace"""
         # Create workspace via Coder API

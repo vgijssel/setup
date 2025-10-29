@@ -59,10 +59,7 @@ def create_agent(
     name: Annotated[str, Field(description="Unique short agent name (e.g., Sony, Papi)")],
     project: Annotated[str, Field(description="Project name (e.g., Setup, DataOne)")],
     spec: Annotated[str, Field(description="Agent specification defining objectives and constraints")],
-    role: Annotated[
-        Literal["coder", "operator", "manager"],
-        Field(description="Agent role: coder, operator, or manager")
-    ] = "coder",
+    role: Annotated[str, Field(description="Agent role matching Coder workspace preset (e.g., coder, operator, manager)")] = "coder",
 ) -> CreateAgentResponse:
     """Create a new Claude Code agent in a Coder workspace"""
     # Implementation
