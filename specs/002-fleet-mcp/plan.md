@@ -29,7 +29,9 @@ Build a stateless MCP server using Python FastMCP that manages a fleet of Claude
   - POST /api/v2/workspaces/{id}/builds {"transition": "delete"} - Delete workspace
   - GET /api/v2/templates - List templates
   - GET /api/v2/templates/{id} - Get template details and parameters
-- Task Reporting: Tasks are reported by agents using the `coder_report_task` MCP tool provided by Coder
+- Task Management:
+  - Task Reporting: Tasks are reported by agents using the `coder_report_task` MCP tool provided by Coder
+  - Stop Agent: POST to messages endpoint with `{"content": "\u001b", "type": "raw"}` to interrupt agent execution
 
 **Key Design Constraints**:
 - MCP tools require flat parameter structures (no nested objects) per https://gofastmcp.com/servers/tools#type-annotations

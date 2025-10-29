@@ -373,7 +373,7 @@ def agent_to_metadata(agent: Agent) -> dict[str, str]:
 | Model | Key Validations |
 |-------|-----------------|
 | Agent | Unique name, valid role, valid project, non-empty spec |
-| Task | Non-empty message, valid URI, boolean needs_user_attention |
+| Task | Non-empty message, valid URI, boolean needs_user_attention, valid created_at timestamp |
 | Role | Predefined name, non-empty prompt |
 | Project | Matches Coder template |
 | CreateAgentRequest | Name uniqueness, valid role/project |

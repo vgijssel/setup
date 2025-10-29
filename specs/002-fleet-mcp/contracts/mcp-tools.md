@@ -227,7 +227,8 @@ Show paginated task history for an agent.
         {
             "message": str,
             "uri": str,
-            "needs_user_attention": bool
+            "needs_user_attention": bool,
+            "created_at": str  # ISO 8601 timestamp
         },
         ...
     ],
@@ -252,12 +253,14 @@ Show paginated task history for an agent.
         {
             "message": "Implementing OAuth2 authentication",
             "uri": "https://github.com/org/repo/tree/feature/oauth",
-            "needs_user_attention": false
+            "needs_user_attention": false,
+            "created_at": "2025-10-29T10:00:00Z"
         },
         {
             "message": "PR #123 requires review",
             "uri": "https://github.com/org/repo/pull/123",
-            "needs_user_attention": true
+            "needs_user_attention": true,
+            "created_at": "2025-10-29T11:30:00Z"
         }
     ],
     "total_count": 42,
@@ -341,7 +344,8 @@ Start a new task on an agent.
     "task": {
         "message": str,
         "uri": str,
-        "needs_user_attention": bool
+        "needs_user_attention": bool,
+        "created_at": str  # ISO 8601 timestamp
     },
     "agent_status": "busy",         # Agent status updated to busy
     "message": str
@@ -368,7 +372,9 @@ Start a new task on an agent.
 
 ## Tool: stop_agent_task
 
-Stop the currently running task on an agent.
+Stop the currently running task on an agent by sending an interrupt signal to the agent's message endpoint.
+
+**Implementation**: POST to the workspace's messages endpoint with `{"content": "\u001b", "type": "raw"}` to send an interrupt signal to the running agent.
 
 ### Input Parameters (Flat Structure)
 
@@ -389,7 +395,8 @@ Stop the currently running task on an agent.
     "task": {
         "message": str,
         "uri": str,
-        "needs_user_attention": bool
+        "needs_user_attention": bool,
+        "created_at": str  # ISO 8601 timestamp
     },
     "agent_status": "idle",         # Agent status updated to idle
     "message": str
@@ -409,7 +416,8 @@ Stop the currently running task on an agent.
     "task": {
         "message": "Fix authentication bug - work completed",
         "uri": "https://github.com/org/repo/tree/fix/auth",
-        "needs_user_attention": false
+        "needs_user_attention": false,
+        "created_at": "2025-10-29T10:00:00Z"
     },
     "agent_status": "idle",
     "message": "Task stopped successfully"
