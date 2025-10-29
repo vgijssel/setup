@@ -88,31 +88,31 @@ This is a single library project: `libs/fleet-mcp/`
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T033 [P] [US1] Write contract test for create_agent tool in libs/fleet-mcp/tests/contract/test_mcp_tools.py with pytest-vcr
-- [ ] T034 [P] [US1] Write contract test for create_agent with invalid name in libs/fleet-mcp/tests/contract/test_mcp_tools.py
-- [ ] T035 [P] [US1] Write contract test for create_agent with invalid project in libs/fleet-mcp/tests/contract/test_mcp_tools.py
-- [ ] T036 [P] [US1] Write contract test for list_agents tool in libs/fleet-mcp/tests/contract/test_mcp_tools.py with pytest-vcr
-- [ ] T037 [P] [US1] Write contract test for show_agent tool in libs/fleet-mcp/tests/contract/test_mcp_tools.py with pytest-vcr
-- [ ] T038 [P] [US1] Write contract test for show_agent with non-existent agent in libs/fleet-mcp/tests/contract/test_mcp_tools.py
-- [ ] T039 [P] [US1] Write contract test for show_agent_task_history tool in libs/fleet-mcp/tests/contract/test_mcp_tools.py with pytest-vcr
-- [ ] T040 [P] [US1] Write contract test for task history pagination in libs/fleet-mcp/tests/contract/test_mcp_tools.py
-- [ ] T041 [P] [US1] Write integration test for metadata extraction from workspace in libs/fleet-mcp/tests/integration/test_metadata.py
+- [X] T033 [P] [US1] Write contract test for create_agent tool in libs/fleet-mcp/tests/contract/test_mcp_tools.py with pytest-vcr
+- [X] T034 [P] [US1] Write contract test for create_agent with invalid name in libs/fleet-mcp/tests/contract/test_mcp_tools.py
+- [X] T035 [P] [US1] Write contract test for create_agent with invalid project in libs/fleet-mcp/tests/contract/test_mcp_tools.py
+- [X] T036 [P] [US1] Write contract test for list_agents tool in libs/fleet-mcp/tests/contract/test_mcp_tools.py with pytest-vcr
+- [X] T037 [P] [US1] Write contract test for show_agent tool in libs/fleet-mcp/tests/contract/test_mcp_tools.py with pytest-vcr
+- [X] T038 [P] [US1] Write contract test for show_agent with non-existent agent in libs/fleet-mcp/tests/contract/test_mcp_tools.py
+- [X] T039 [P] [US1] Write contract test for show_agent_task_history tool in libs/fleet-mcp/tests/contract/test_mcp_tools.py with pytest-vcr
+- [X] T040 [P] [US1] Write contract test for task history pagination in libs/fleet-mcp/tests/contract/test_mcp_tools.py
+- [X] T041 [P] [US1] Write integration test for metadata extraction from workspace in libs/fleet-mcp/tests/integration/test_metadata.py
 
 ### Implementation for User Story 1
 
-- [ ] T042 [P] [US1] Implement get_workspace_by_name helper in libs/fleet-mcp/src/fleet_mcp/coder/workspaces.py
-- [ ] T043 [P] [US1] Implement list_templates method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
-- [ ] T044 [P] [US1] Implement get_template method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
-- [ ] T045 [US1] Implement workspace metadata helpers in libs/fleet-mcp/src/fleet_mcp/coder/metadata.py (depends on T042)
-- [ ] T046 [US1] Implement task history pagination in libs/fleet-mcp/src/fleet_mcp/coder/tasks.py
-- [ ] T047 [US1] Create FastMCP server initialization in libs/fleet-mcp/src/fleet_mcp/server.py (depends on T027)
-- [ ] T048 [US1] Implement create_agent tool with flat parameters in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py (depends on T028, T043, T045, T047)
-- [ ] T049 [US1] Implement list_agents tool in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py (depends on T029, T045, T047)
-- [ ] T050 [US1] Implement show_agent tool in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py (depends on T030, T045, T047)
-- [ ] T051 [US1] Implement show_agent_task_history tool with pagination in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py (depends on T030, T046, T047)
-- [ ] T052 [US1] Add error handling for agent not found in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py
-- [ ] T053 [US1] Add error handling for invalid pagination parameters in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py
-- [ ] T054 [US1] Verify all US1 tests pass with nx test fleet-mcp
+- [X] T042 [P] [US1] Implement get_workspace_by_name helper in libs/fleet-mcp/src/fleet_mcp/coder/workspaces.py
+- [X] T043 [P] [US1] Implement list_templates method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
+- [X] T044 [P] [US1] Implement get_template method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
+- [X] T045 [US1] Implement workspace metadata helpers in libs/fleet-mcp/src/fleet_mcp/coder/metadata.py (depends on T042)
+- [X] T046 [US1] Implement task history pagination in libs/fleet-mcp/src/fleet_mcp/coder/tasks.py
+- [X] T047 [US1] Create FastMCP server initialization in libs/fleet-mcp/src/fleet_mcp/server.py (depends on T027)
+- [X] T048 [US1] Implement create_agent tool with flat parameters in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py (depends on T028, T043, T045, T047)
+- [X] T049 [US1] Implement list_agents tool in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py (depends on T029, T045, T047)
+- [X] T050 [US1] Implement show_agent tool in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py (depends on T030, T045, T047)
+- [X] T051 [US1] Implement show_agent_task_history tool with pagination in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py (depends on T030, T046, T047)
+- [X] T052 [US1] Add error handling for agent not found in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py
+- [X] T053 [US1] Add error handling for invalid pagination parameters in libs/fleet-mcp/src/fleet_mcp/tools/agent_management.py
+- [X] T054 [US1] Verify all US1 tests pass with nx test fleet-mcp
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. Operators can create agents, list them, view details, and check task history.
 

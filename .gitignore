@@ -96,4 +96,3 @@ venv/
 *.egg-info/
 .pytest_cache/
 libs/fleet-mcp/.env
-libs/fleet-mcp/tests/cassettes/*.yaml

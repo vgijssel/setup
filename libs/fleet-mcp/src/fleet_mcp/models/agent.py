@@ -72,11 +72,11 @@ class Agent(BaseModel):
         else:
             status = AgentStatus.IDLE
 
-        # Filter metadata to only fleet_mcp_* fields
+        # Filter metadata to only fleet_mcp_* fields (excluding None values)
         fleet_metadata = {
             key: value
             for key, value in metadata.items()
-            if key.startswith("fleet_mcp_")
+            if key.startswith("fleet_mcp_") and value is not None
         }
 
         return Agent(
