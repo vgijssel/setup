@@ -255,6 +255,38 @@ resource "coder_agent" "main" {
     interval     = 10
     timeout      = 1
   }
+
+  metadata {
+    display_name = "Pull Request URL"
+    key          = "8_pull_request_url"
+    script       = "cat /workspaces/dataone/tmp/agent_metadata/pull_request_url 2>/dev/null || echo n/a"
+    interval     = 5
+    timeout      = 1
+  }
+
+  metadata {
+    display_name = "Pull Request Status"
+    key          = "9_pull_request_status"
+    script       = "cat /workspaces/dataone/tmp/agent_metadata/pull_request_status 2>/dev/null || echo n/a"
+    interval     = 5
+    timeout      = 1
+  }
+
+  metadata {
+    display_name = "Pull Request Check Status"
+    key          = "10_pull_request_check_status"
+    script       = "cat /workspaces/dataone/tmp/agent_metadata/pull_request_check_status 2>/dev/null || echo n/a"
+    interval     = 5
+    timeout      = 1
+  }
+
+  metadata {
+    display_name = "Agent Spec"
+    key          = "11_agent_spec"
+    script       = "cat /workspaces/dataone/tmp/agent_metadata/agent_spec 2>/dev/null || echo n/a"
+    interval     = 5
+    timeout      = 1
+  }
 }
 
 # # See https://registry.coder.com/modules/coder/code-server
