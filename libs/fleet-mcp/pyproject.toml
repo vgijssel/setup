@@ -1,0 +1,38 @@
+[project]
+name = "fleet-mcp"
+version = "0.1.0"
+description = "MCP server for managing Claude Code agent fleet in Coder"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp==2.13.0.2",
+    "pydantic==2.12.3",
+    "httpx==0.28.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==7.4.3",
+    "pytest-vcr==1.0.2",
+    "pytest-asyncio==0.21.1",
+    "ruff==0.1.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+select = ["E", "F", "I", "N", "W"]
+ignore = []
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]

@@ -25,13 +25,13 @@ This is a single library project: `libs/fleet-mcp/`
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create directory structure: libs/fleet-mcp/{src/fleet_mcp/{models,coder,tools},tests/{unit,integration,contract,cassettes}}
-- [ ] T002 Initialize Python project with uv in libs/fleet-mcp/pyproject.toml
-- [ ] T003 [P] Configure pytest and pytest-vcr in libs/fleet-mcp/tests/conftest.py
-- [ ] T004 [P] Create Nx configuration in libs/fleet-mcp/package.json with targets (test, lint, build, secrets)
-- [ ] T005 [P] Create secrets template in libs/fleet-mcp/.env.tpl with Coder URL and token
-- [ ] T006 [P] Add libs/fleet-mcp/.env and libs/fleet-mcp/tests/cassettes/*.yaml to .gitignore
-- [ ] T007 Generate initial .env file using nx run fleet-mcp:secrets
+- [X] T001 Create directory structure: libs/fleet-mcp/{src/fleet_mcp/{models,coder,tools},tests/{unit,integration,contract,cassettes}}
+- [X] T002 Initialize Python project with uv in libs/fleet-mcp/pyproject.toml
+- [X] T003 [P] Configure pytest and pytest-vcr in libs/fleet-mcp/tests/conftest.py
+- [X] T004 [P] Create Nx configuration in libs/fleet-mcp/package.json with targets (test, lint, build, secrets)
+- [X] T005 [P] Create secrets template in libs/fleet-mcp/.env.tpl with Coder URL and token
+- [X] T006 [P] Add libs/fleet-mcp/.env and libs/fleet-mcp/tests/cassettes/*.yaml to .gitignore
+- [X] T007 Generate initial .env file using nx run fleet-mcp:secrets
 
 ---
 
@@ -45,34 +45,34 @@ This is a single library project: `libs/fleet-mcp/`
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T008 [P] Write unit test for AgentStatus enum in libs/fleet-mcp/tests/unit/test_models.py
-- [ ] T009 [P] Write unit test for Agent model validation in libs/fleet-mcp/tests/unit/test_models.py
-- [ ] T010 [P] Write unit test for Task model validation in libs/fleet-mcp/tests/unit/test_models.py
-- [ ] T011 [P] Write unit test for Role model validation in libs/fleet-mcp/tests/unit/test_models.py
-- [ ] T012 [P] Write unit test for Project model validation in libs/fleet-mcp/tests/unit/test_models.py
-- [ ] T013 [P] Write integration test for CoderClient initialization in libs/fleet-mcp/tests/integration/test_coder_client.py
-- [ ] T014 [P] Write integration test for workspace creation in libs/fleet-mcp/tests/integration/test_coder_client.py with pytest-vcr
-- [ ] T015 [P] Write integration test for workspace listing in libs/fleet-mcp/tests/integration/test_coder_client.py with pytest-vcr
-- [ ] T016 [P] Write integration test for workspace deletion in libs/fleet-mcp/tests/integration/test_coder_client.py with pytest-vcr
+- [X] T008 [P] Write unit test for AgentStatus enum in libs/fleet-mcp/tests/unit/test_models.py
+- [X] T009 [P] Write unit test for Agent model validation in libs/fleet-mcp/tests/unit/test_models.py
+- [X] T010 [P] Write unit test for Task model validation in libs/fleet-mcp/tests/unit/test_models.py
+- [X] T011 [P] Write unit test for Role model validation in libs/fleet-mcp/tests/unit/test_models.py
+- [X] T012 [P] Write unit test for Project model validation in libs/fleet-mcp/tests/unit/test_models.py
+- [X] T013 [P] Write integration test for CoderClient initialization in libs/fleet-mcp/tests/integration/test_coder_client.py
+- [X] T014 [P] Write integration test for workspace creation in libs/fleet-mcp/tests/integration/test_coder_client.py with pytest-vcr
+- [X] T015 [P] Write integration test for workspace listing in libs/fleet-mcp/tests/integration/test_coder_client.py with pytest-vcr
+- [X] T016 [P] Write integration test for workspace deletion in libs/fleet-mcp/tests/integration/test_coder_client.py with pytest-vcr
 
 ### Implementation for Foundational Layer
 
-- [ ] T017 [P] Implement AgentStatus enum in libs/fleet-mcp/src/fleet_mcp/models/agent.py
-- [ ] T018 [P] Implement Agent Pydantic model with metadata field in libs/fleet-mcp/src/fleet_mcp/models/agent.py
-- [ ] T019 [P] Implement Task Pydantic model in libs/fleet-mcp/src/fleet_mcp/models/task.py
-- [ ] T020 [P] Implement Role Pydantic model in libs/fleet-mcp/src/fleet_mcp/models/role.py
-- [ ] T021 [P] Implement Project Pydantic model in libs/fleet-mcp/src/fleet_mcp/models/project.py
-- [ ] T022 Implement agent_from_workspace helper in libs/fleet-mcp/src/fleet_mcp/models/agent.py (depends on T017-T018)
-- [ ] T023 [P] Implement response models (CreateAgentResponse, AgentListResponse, AgentSummary) in libs/fleet-mcp/src/fleet_mcp/models/responses.py
-- [ ] T024 [P] Implement additional response models (AgentDetailsResponse, TaskHistoryResponse) in libs/fleet-mcp/src/fleet_mcp/models/responses.py
-- [ ] T025 [P] Implement StartTaskResponse and CancelTaskResponse in libs/fleet-mcp/src/fleet_mcp/models/responses.py
-- [ ] T026 [P] Implement DeleteAgentResponse, ListRolesResponse, ListProjectsResponse in libs/fleet-mcp/src/fleet_mcp/models/responses.py
-- [ ] T027 Implement CoderClient class with httpx in libs/fleet-mcp/src/fleet_mcp/coder/client.py (depends on T013-T016)
-- [ ] T028 Implement create_workspace method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
-- [ ] T029 [P] Implement list_workspaces method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
-- [ ] T030 [P] Implement get_workspace method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
-- [ ] T031 [P] Implement delete_workspace method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
-- [ ] T032 Verify all foundational tests pass with nx test fleet-mcp
+- [X] T017 [P] Implement AgentStatus enum in libs/fleet-mcp/src/fleet_mcp/models/agent.py
+- [X] T018 [P] Implement Agent Pydantic model with metadata field in libs/fleet-mcp/src/fleet_mcp/models/agent.py
+- [X] T019 [P] Implement Task Pydantic model in libs/fleet-mcp/src/fleet_mcp/models/task.py
+- [X] T020 [P] Implement Role Pydantic model in libs/fleet-mcp/src/fleet_mcp/models/role.py
+- [X] T021 [P] Implement Project Pydantic model in libs/fleet-mcp/src/fleet_mcp/models/project.py
+- [X] T022 Implement agent_from_workspace helper in libs/fleet-mcp/src/fleet_mcp/models/agent.py (depends on T017-T018)
+- [X] T023 [P] Implement response models (CreateAgentResponse, AgentListResponse, AgentSummary) in libs/fleet-mcp/src/fleet_mcp/models/responses.py
+- [X] T024 [P] Implement additional response models (AgentDetailsResponse, TaskHistoryResponse) in libs/fleet-mcp/src/fleet_mcp/models/responses.py
+- [X] T025 [P] Implement StartTaskResponse and CancelTaskResponse in libs/fleet-mcp/src/fleet_mcp/models/responses.py
+- [X] T026 [P] Implement DeleteAgentResponse, ListRolesResponse, ListProjectsResponse in libs/fleet-mcp/src/fleet_mcp/models/responses.py
+- [X] T027 Implement CoderClient class with httpx in libs/fleet-mcp/src/fleet_mcp/coder/client.py (depends on T013-T016)
+- [X] T028 Implement create_workspace method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
+- [X] T029 [P] Implement list_workspaces method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
+- [X] T030 [P] Implement get_workspace method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
+- [X] T031 [P] Implement delete_workspace method in libs/fleet-mcp/src/fleet_mcp/coder/client.py
+- [X] T032 Verify all foundational tests pass with nx test fleet-mcp
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

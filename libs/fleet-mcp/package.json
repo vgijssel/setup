@@ -1,0 +1,80 @@
+{
+  "name": "@setup/fleet-mcp",
+  "version": "0.1.0",
+  "description": "Fleet MCP Server for Claude Code agents",
+  "private": true,
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/fleet-mcp/src",
+    "targets": {
+      "secrets": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "op inject --force -i .env.tpl -o .env",
+          "cwd": "libs/fleet-mcp"
+        },
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/.env"
+        ],
+        "inputs": [
+          "{projectRoot}/.env.tpl"
+        ],
+        "metadata": {
+          "description": "Generate .env file from 1Password secrets"
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "dependsOn": ["secrets"],
+        "options": {
+          "command": "uv run --all-extras pytest -v",
+          "cwd": "libs/fleet-mcp"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/.env"
+        ],
+        "metadata": {
+          "description": "Run pytest tests"
+        }
+      },
+      "lint": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run ruff check .",
+          "cwd": "libs/fleet-mcp"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.py"
+        ],
+        "metadata": {
+          "description": "Lint Python code with ruff"
+        }
+      },
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv build",
+          "cwd": "libs/fleet-mcp"
+        },
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/dist"
+        ],
+        "metadata": {
+          "description": "Build Python package"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "nx test fleet-mcp",
+    "lint": "nx lint fleet-mcp",
+    "build": "nx build fleet-mcp"
+  }
+}
