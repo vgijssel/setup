@@ -491,8 +491,9 @@ async def test_create_agent_tool(coder_base_url, coder_token):
     })
 
     assert result["agent"]["name"] == "test-papi"
-    assert result["agent"]["status"] == "idle"
+    assert result["agent"]["status"] == "busy"  # Agent starts working immediately
     assert result["agent"]["role"] == "coder"
+    assert result["agent"]["current_task"] == "Test specification for unit testing"
 
 @pytest.mark.vcr
 async def test_list_agents_tool(coder_base_url, coder_token):
@@ -573,7 +574,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                 "fleet_mcp_role": role,
                 "fleet_mcp_project": project,
                 "fleet_mcp_agent_spec": spec,
-                "fleet_mcp_current_task": ""
+                "fleet_mcp_current_task": spec  # Agent starts working immediately
             }
         )
 

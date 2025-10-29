@@ -39,15 +39,18 @@ Create a new Claude Code agent in a Coder workspace.
     "agent": {
         "name": str,
         "workspace_id": str,
-        "status": "idle",           # Always "idle" on creation
+        "status": "busy",           # Always "busy" on creation - agent starts working immediately
         "role": str,
         "project": str,
-        "spec": str,
-        "current_task": None,       # Always null on creation
+        "current_task": str,        # Populated with spec content - agent starts working on it
         "created_at": str,          # ISO 8601 timestamp
         "updated_at": str,          # ISO 8601 timestamp
         "metadata": {               # Nested Coder workspace metadata
+            "fleet_mcp_agent_name": str,
+            "fleet_mcp_role": str,
+            "fleet_mcp_project": str,
             "fleet_mcp_agent_spec": str,
+            "fleet_mcp_current_task": str,  # Populated with spec content
             "fleet_mcp_pull_request_url": str,   # Optional, may not be present
             "fleet_mcp_pull_request_status": str, # Optional, may not be present
             "fleet_mcp_pull_request_check_status": str # Optional, may not be present
@@ -584,7 +587,8 @@ def test_create_agent_success():
         "spec": "Test specification"
     })
     assert response["agent"]["name"] == "test-agent"
-    assert response["agent"]["status"] == "idle"
+    assert response["agent"]["status"] == "busy"
+    assert response["agent"]["current_task"] == "Test specification"
 
 @pytest.mark.vcr
 def test_create_agent_duplicate_name():

@@ -47,27 +47,28 @@ Represents a Claude Code instance running in a Coder workspace.
 
 **State Transitions**:
 ```
-               create_agent
-    [none] ──────────────────> [idle]
-                                  │
-                    start_task    │    complete_task
-                    ───────────>  │  <─────────────
-                   │              │               │
-                   v              v               │
-                [busy] ────────> [idle]          │
-                   │        stop_task            │
-                   │                             │
-                   └─────────────────────────────┘
-                                │
-                    delete_agent │
-                                v
-                            [deleted]
-                                │
-            workspace_stopped   │
-                   ┌────────────┘
-                   v
-              [offline]
+               create_agent (with spec)
+    [none] ─────────────────────────────> [busy]
+                                             │
+                                             │ complete_task / stop_task
+                                             v
+                                          [idle]
+                                             │
+                                             │ start_task
+                                             v
+                                          [busy]
+                                             │
+                              delete_agent   │
+                         ┌───────────────────┘
+                         v
+                     [deleted]
+                         │
+         workspace_stopped
+                         v
+                    [offline]
 ```
+
+**Note**: Agents are created with a spec and immediately start working on it, so they begin in "busy" state. The current_task is set to the spec content.
 
 **Relationships**:
 - One Agent → Many Tasks (task history)
@@ -88,11 +89,13 @@ Represents work assigned to an agent. Tasks are stored in Coder's workspace AI t
 - `message` (str): Task description/status message (e.g., "Implementing OAuth2 authentication")
 - `uri` (str): Link to related work (e.g., GitHub branch URL, PR URL)
 - `needs_user_attention` (bool): Whether the task requires user action
+- `created_at` (datetime): Timestamp when the task was created
 
 **Validation Rules**:
 - `message`: Non-empty string
 - `uri`: Valid URL string
 - `needs_user_attention`: Boolean value
+- `created_at`: Valid ISO 8601 timestamp
 
 **Relationships**:
 - Many Tasks → One Agent (via workspace association)
@@ -203,7 +206,7 @@ Represents a project that agents can work on. Projects map to Coder templates.
 - Inherits Agent validation rules
 - Additional: name must not already exist
 
-**Note**: Metadata fields (like PR URLs) are not set during creation. They can be updated later by modifying the Coder workspace metadata directly.
+**Note**: When an agent is created, it immediately starts working on the provided spec. The agent begins in "busy" state with `current_task` set to the spec content. Metadata fields (like PR URLs) are not set during creation but can be updated later by modifying the Coder workspace metadata directly.
 
 ---
 

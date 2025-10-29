@@ -381,6 +381,7 @@ async def create_agent(
             "fleet_mcp_role": role,
             "fleet_mcp_project": project,
             "fleet_mcp_agent_spec": spec,
+            "fleet_mcp_current_task": spec,  # Agent starts working immediately
         }
     )
 ```
