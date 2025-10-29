@@ -1,3 +1,9 @@
+## 0.10.0 (2025-10-29)
+
+### 🚀 Features
+
+- Add PR and agent metadata fields to coder-devcontainer template ([#789](https://github.com/vgijssel/setup/pull/789))
+
 ## 0.9.0 (2025-10-28)
 
 ### 🚀 Features
