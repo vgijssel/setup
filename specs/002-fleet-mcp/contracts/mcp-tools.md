@@ -46,11 +46,7 @@ Create a new Claude Code agent in a Coder workspace.
         "created_at": str,          # ISO 8601 timestamp
         "updated_at": str,          # ISO 8601 timestamp
         "metadata": {               # Nested Coder workspace metadata
-            "fleet_mcp_agent_name": str,
-            "fleet_mcp_role": str,
-            "fleet_mcp_project": str,
             "fleet_mcp_agent_spec": str,
-            "fleet_mcp_current_task": str,  # Populated with spec content
             "fleet_mcp_pull_request_url": str,   # Optional, may not be present
             "fleet_mcp_pull_request_status": str, # Optional, may not be present
             "fleet_mcp_pull_request_check_status": str # Optional, may not be present

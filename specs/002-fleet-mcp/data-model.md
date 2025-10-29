@@ -123,53 +123,58 @@ Represents work assigned to an agent. Tasks are stored in Coder's workspace AI t
 
 ### Role
 
-Represents an agent role configuration. Roles are defined as Coder workspace template parameters with options.
+Represents an agent role configuration. Roles are defined as Coder workspace presets.
 
-**Source**: Coder template parameters (queried via Templates API)
+**Source**: Coder workspace presets (queried via Templates API)
 
 **Attributes**:
-- `name` (str): Role identifier matching Coder parameter option value (e.g., "coder", "operator", "manager")
-- `display_name` (str): Human-readable name from Coder parameter option
-- `description` (str): Role purpose from Coder parameter option description
+- `name` (str): Role identifier matching Coder workspace preset name (e.g., "coder", "operator", "manager")
+- `display_name` (str): Human-readable name from Coder workspace preset
+- `description` (str): Role purpose from Coder workspace preset description
 - `template_id` (str): Coder template UUID that defines this role
 
 **Validation Rules**:
-- `name`: Must match a valid option value in the template's "role" parameter
-- `display_name`: Non-empty string from parameter option
+- `name`: Must match a valid workspace preset name in the template
+- `display_name`: Non-empty string from workspace preset
 
 **How Roles Work**:
 
-Roles are implemented as Coder workspace presets using template parameters. Each project's Coder template defines a "role" parameter with options:
+Roles are implemented as Coder workspace presets. Each project's Coder template defines workspace presets for different agent roles:
 
-```hcl
-resource "coder_parameter" "role" {
-  name         = "role"
-  display_name = "Agent Role"
-  type         = "string"
-  default      = "coder"
-  mutable      = false  # Role cannot change after workspace creation
+**Workspace Presets Configuration** (in template metadata):
 
-  option {
-    name  = "coder"
-    value = "coder"
-    description = "Software Engineer - Writes code, implements features, fixes bugs"
-  }
-
-  option {
-    name  = "operator"
-    value = "operator"
-    description = "Operations Engineer - Manages deployments, monitors systems"
-  }
-
-  option {
-    name  = "manager"
-    value = "manager"
-    description = "Engineering Manager - Coordinates work, reviews specs"
-  }
+```json
+{
+  "presets": [
+    {
+      "name": "coder",
+      "display_name": "Software Engineer",
+      "description": "Writes code, implements features, fixes bugs",
+      "parameters": {
+        "agent_role": "coder"
+      }
+    },
+    {
+      "name": "operator",
+      "display_name": "Operations Engineer",
+      "description": "Manages deployments, monitors systems, handles incidents",
+      "parameters": {
+        "agent_role": "operator"
+      }
+    },
+    {
+      "name": "manager",
+      "display_name": "Engineering Manager",
+      "description": "Coordinates work, reviews specs, verifies agent alignment",
+      "parameters": {
+        "agent_role": "manager"
+      }
+    }
+  ]
 }
 ```
 
-When an agent is created, the role parameter is passed to Coder and used to configure the workspace environment (system prompts, resources, etc.).
+When an agent is created, the workspace preset name is passed to Coder to configure the workspace environment (system prompts, resources, etc.).
 
 **Typical Roles** (project-dependent):
 
