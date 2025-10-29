@@ -120,40 +120,66 @@ Represents work assigned to an agent. Tasks are stored in Coder's AI task system
 
 ### Role
 
-Represents an agent role configuration. Roles are predefined in configuration.
+Represents an agent role configuration. Roles are defined as Coder workspace template parameters with options.
 
-**Source**: Configuration file (e.g., `roles.yaml`)
+**Source**: Coder template parameters (queried via Templates API)
 
 **Attributes**:
-- `name` (str): Role identifier - "coder", "operator", "manager"
-- `display_name` (str): Human-readable name
-- `description` (str): Role purpose and responsibilities
-- `system_prompt` (str): System prompt template for Claude Code
+- `name` (str): Role identifier matching Coder parameter option value (e.g., "coder", "operator", "manager")
+- `display_name` (str): Human-readable name from Coder parameter option
+- `description` (str): Role purpose from Coder parameter option description
+- `template_id` (str): Coder template UUID that defines this role
 
 **Validation Rules**:
-- `name`: Must match predefined role list
-- `system_prompt`: Non-empty string
+- `name`: Must match a valid option value in the template's "role" parameter
+- `display_name`: Non-empty string from parameter option
 
-**Default Roles**:
+**How Roles Work**:
 
-1. **coder** (default)
-   - Display: "Software Engineer"
-   - Description: "Writes code, implements features, fixes bugs"
-   - Prompt: "You are a software engineer working on {project}. Your goal is to write high-quality, tested code following best practices..."
+Roles are implemented as Coder workspace presets using template parameters. Each project's Coder template defines a "role" parameter with options:
 
-2. **operator**
-   - Display: "Operations Engineer"
-   - Description: "Manages deployments, monitors systems, handles incidents"
-   - Prompt: "You are an operations engineer managing {project}. Focus on reliability, monitoring, and incident response..."
+```hcl
+resource "coder_parameter" "role" {
+  name         = "role"
+  display_name = "Agent Role"
+  type         = "string"
+  default      = "coder"
+  mutable      = false  # Role cannot change after workspace creation
 
-3. **manager**
-   - Display: "Engineering Manager"
-   - Description: "Coordinates work, reviews specs, verifies agent alignment"
-   - Prompt: "You are an engineering manager overseeing {project}. Review work for spec alignment, quality, and completeness..."
+  option {
+    name  = "coder"
+    value = "coder"
+    description = "Software Engineer - Writes code, implements features, fixes bugs"
+  }
+
+  option {
+    name  = "operator"
+    value = "operator"
+    description = "Operations Engineer - Manages deployments, monitors systems"
+  }
+
+  option {
+    name  = "manager"
+    value = "manager"
+    description = "Engineering Manager - Coordinates work, reviews specs"
+  }
+}
+```
+
+When an agent is created, the role parameter is passed to Coder and used to configure the workspace environment (system prompts, resources, etc.).
+
+**Typical Roles** (project-dependent):
+
+1. **coder** (default) - Software Engineer role for writing code
+2. **operator** - Operations Engineer role for infrastructure/deployments
+3. **manager** - Engineering Manager role for coordination and review
+
+Note: Actual roles depend on what each project's Coder template defines.
 
 **Relationships**:
 - One Role → Many Agents (agents assigned to roles)
-- Roles are immutable (cannot be modified at runtime)
+- One Role → One Template (role options defined per template)
+- Roles are immutable per agent (cannot change after workspace creation)
 
 ---
 

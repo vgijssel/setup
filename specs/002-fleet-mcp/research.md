@@ -10,6 +10,7 @@
 3. How to map Coder workspace metadata to fleet_mcp fields?
 4. What is the optimal stateless query pattern for agent status?
 5. How to handle pagination in task history?
+6. How to implement agent roles using Coder workspace presets?
 
 ---
 
@@ -263,6 +264,177 @@ def paginate_tasks(tasks: list[Task], page: int, page_size: int) -> TaskHistoryR
 - **Server-side cursor pagination**: Rejected - requires state management
 - **Limit/offset only**: Rejected - less intuitive than page/page_size
 - **GraphQL connection pattern**: Rejected - not applicable to REST API
+
+---
+
+## 6. Agent Roles via Coder Workspace Presets
+
+### Decision
+Use Coder workspace presets to define agent roles. Each preset configures environment variables and parameters that control the Claude Code system prompt and agent behavior.
+
+### Rationale
+Coder workspace presets are a built-in template feature that allows defining multiple configuration variants within a single template. Presets can set parameter values and environment variables that control workspace initialization. This eliminates the need for external role configuration files and leverages Coder's native capabilities.
+
+### Implementation Pattern
+
+**In Coder Template (Terraform)**:
+
+```hcl
+# Define role parameter with presets
+resource "coder_parameter" "role" {
+  name         = "role"
+  display_name = "Agent Role"
+  description  = "The role this agent will assume"
+  type         = "string"
+  default      = "coder"
+  mutable      = false
+
+  option {
+    name  = "coder"
+    value = "coder"
+    icon  = "/icon/code.svg"
+    description = "Software Engineer - Writes code, implements features, fixes bugs"
+  }
+
+  option {
+    name  = "operator"
+    value = "operator"
+    icon  = "/icon/ops.svg"
+    description = "Operations Engineer - Manages deployments, monitors systems"
+  }
+
+  option {
+    name  = "manager"
+    value = "manager"
+    icon  = "/icon/manager.svg"
+    description = "Engineering Manager - Coordinates work, reviews specs"
+  }
+}
+
+# Use preset values to configure agent environment
+resource "coder_agent" "main" {
+  env = {
+    CLAUDE_ROLE = data.coder_parameter.role.value
+    CLAUDE_SYSTEM_PROMPT_OVERRIDE = lookup({
+      "coder"    = "You are a software engineer..."
+      "operator" = "You are an operations engineer..."
+      "manager"  = "You are an engineering manager..."
+    }, data.coder_parameter.role.value)
+  }
+}
+```
+
+**Workspace Presets** (optional, in template settings):
+
+```json
+{
+  "presets": [
+    {
+      "name": "Coder Role",
+      "description": "Standard software engineering agent",
+      "parameters": {
+        "role": "coder"
+      }
+    },
+    {
+      "name": "Operator Role",
+      "description": "Operations and infrastructure agent",
+      "parameters": {
+        "role": "operator"
+      }
+    },
+    {
+      "name": "Manager Role",
+      "description": "Coordination and review agent",
+      "parameters": {
+        "role": "manager"
+      }
+    }
+  ]
+}
+```
+
+### Fleet MCP Integration
+
+When creating an agent via MCP:
+
+```python
+@mcp.tool()
+async def create_agent(
+    name: str,
+    project: str,
+    role: str = "coder",  # Maps to Coder parameter
+    spec: str,
+) -> dict:
+    """Create agent with specified role"""
+
+    # Create workspace with role parameter
+    workspace = await coder_client.create_workspace(
+        name=f"agent-{name}",
+        template_name=f"{project.lower()}-devcontainer",
+        parameters={
+            "role": role  # Passed to Coder template parameter
+        },
+        metadata={
+            "fleet_mcp_agent_name": name,
+            "fleet_mcp_role": role,
+            "fleet_mcp_project": project,
+            "fleet_mcp_agent_spec": spec,
+        }
+    )
+```
+
+### Querying Available Roles
+
+Roles are discovered by querying the Coder template parameters:
+
+```python
+async def list_roles(project: str) -> list[Role]:
+    """List available roles for a project"""
+
+    # Get template for project
+    template = await coder_client.get_template(f"{project.lower()}-devcontainer")
+
+    # Find role parameter
+    role_param = next(
+        (p for p in template["parameters"] if p["name"] == "role"),
+        None
+    )
+
+    if not role_param:
+        # Return default role if parameter not defined
+        return [Role(name="coder", display_name="Software Engineer", description="...")]
+
+    # Convert parameter options to Role objects
+    return [
+        Role(
+            name=option["value"],
+            display_name=option["name"],
+            description=option.get("description", "")
+        )
+        for option in role_param.get("options", [])
+    ]
+```
+
+### Advantages
+
+1. **Native Integration**: Uses Coder's built-in parameter system
+2. **Template Flexibility**: Each project template can define its own roles
+3. **UI Support**: Roles appear in Coder UI workspace creation form
+4. **Immutable**: Role parameter can be marked `mutable = false` to prevent changes
+5. **Type Safety**: Coder validates role values against defined options
+6. **Environment Control**: Roles can set environment variables, resources, and configuration
+
+### Alternatives Considered
+
+- **Static configuration file**: Rejected - requires external file management, not template-specific
+- **Metadata-only roles**: Rejected - doesn't leverage Coder's parameter system or UI
+- **Separate templates per role**: Rejected - creates template sprawl, difficult to maintain
+
+### References
+
+- https://coder.com/docs/admin/templates/extending-templates/parameters
+- https://coder.com/docs/admin/templates/extending-templates/parameters#workspace-presets
 
 ---
 

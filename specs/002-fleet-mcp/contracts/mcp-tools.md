@@ -444,11 +444,19 @@ Stop the currently running task on an agent.
 
 ## Tool: list_agent_roles
 
-List all available agent roles.
+List all available agent roles for a specific project. Roles are defined as Coder template parameter options.
 
 ### Input Parameters (Flat Structure)
 
-No parameters required.
+```python
+{
+    "project": str  # Required. Project name to query roles for
+}
+```
+
+### Field Descriptions
+
+- **project**: Project name (e.g., "Setup", "DataOne"). Roles are queried from the project's Coder template parameters.
 
 ### Output
 
@@ -467,7 +475,8 @@ No parameters required.
 
 ### Errors
 
-None expected (reads from static configuration).
+- **404 Not Found**: Project template does not exist
+- **503 Service Unavailable**: Coder API unavailable
 
 ### Example Output
 

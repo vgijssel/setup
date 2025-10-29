@@ -249,6 +249,9 @@ class Agent(BaseModel):
     @field_validator("role")
     @classmethod
     def validate_role(cls, v: str) -> str:
+        # Note: In production, roles are validated against Coder template
+        # parameter options. This simplified validator is for initial testing.
+        # See research.md section 6 for full implementation using template queries.
         valid_roles = ["coder", "operator", "manager"]
         if v not in valid_roles:
             raise ValueError(f"Role must be one of {valid_roles}")
@@ -265,8 +268,8 @@ nx test fleet-mcp
 
 Follow same TDD cycle for:
 - `models/task.py` (Task, TaskStatus, TaskSource)
-- `models/role.py` (Role)
-- `models/project.py` (Project)
+- `models/role.py` (Role - sourced from Coder template parameters)
+- `models/project.py` (Project - maps to Coder templates)
 - `models/requests.py` (CreateAgentRequest, TaskHistoryRequest, etc.)
 - `models/responses.py` (AgentListResponse, TaskHistoryResponse, etc.)
 
