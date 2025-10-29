@@ -47,11 +47,10 @@ Create a new Claude Code agent in a Coder workspace.
         "created_at": str,          # ISO 8601 timestamp
         "updated_at": str,          # ISO 8601 timestamp
         "metadata": {               # Nested Coder workspace metadata
-            "fleet_mcp_agent_name": str,
-            "fleet_mcp_role": str,
-            "fleet_mcp_project": str,
             "fleet_mcp_agent_spec": str,
-            "fleet_mcp_current_task": str  # Empty string on creation
+            "fleet_mcp_pull_request_url": str,   # Optional, may not be present
+            "fleet_mcp_pull_request_status": str, # Optional, may not be present
+            "fleet_mcp_pull_request_check_status": str # Optional, may not be present
         }
     },
     "message": str                   # Success message
@@ -186,11 +185,7 @@ Show detailed information about a specific agent.
         "created_at": "2025-10-29T10:00:00Z",
         "updated_at": "2025-10-29T11:30:00Z",
         "metadata": {
-            "fleet_mcp_agent_name": "papi",
-            "fleet_mcp_role": "coder",
-            "fleet_mcp_project": "Setup",
             "fleet_mcp_agent_spec": "Implement OAuth2 authentication...",
-            "fleet_mcp_current_task": "Writing integration tests",
             "fleet_mcp_pull_request_url": "https://github.com/org/repo/pull/123",
             "fleet_mcp_pull_request_status": "open",
             "fleet_mcp_pull_request_check_status": "passing"

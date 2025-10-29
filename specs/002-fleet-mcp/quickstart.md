@@ -72,7 +72,90 @@ Install dependencies:
 uv sync
 ```
 
-### 1.3 Create Nx Integration
+### 1.3 Configure Secrets Management
+
+Create `.env.tpl` template file:
+
+```bash
+cat > .env.tpl << 'EOF'
+CODER_URL=https://macbook-pro-van-maarten.tail2c33e2.ts.net
+CODER_TOKEN={{ op://setup-devenv/coder-speckit/credential }}
+EOF
+```
+
+Add `.env` to `.gitignore`:
+
+```bash
+echo ".env" >> .gitignore
+```
+
+Update `package.json` to include the secrets target in the nx configuration:
+
+```json
+{
+  "name": "@setup/fleet-mcp",
+  "version": "0.1.0",
+  "description": "Fleet MCP Server for Claude Code agents",
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/fleet-mcp/src",
+    "targets": {
+      "secrets": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "op inject --force -i .env.tpl -o .env",
+          "cwd": "libs/fleet-mcp"
+        },
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/.env"
+        ],
+        "inputs": [
+          "{projectRoot}/.env.tpl"
+        ],
+        "metadata": {
+          "description": "Generate .env file from 1Password secrets"
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "dependsOn": ["secrets"],
+        "options": {
+          "command": "uv run --all-extras pytest -v",
+          "cwd": "libs/fleet-mcp"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/.env"
+        ],
+        "metadata": {
+          "description": "Run pytest tests"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "nx test fleet-mcp",
+    "lint": "nx lint fleet-mcp",
+    "build": "nx build fleet-mcp"
+  }
+}
+```
+
+Generate the `.env` file:
+
+```bash
+nx run fleet-mcp:secrets
+```
+
+This will use 1Password CLI (`op inject`) to replace the `{{ op://... }}` references with actual secret values.
+
+**Note**: Ensure you have 1Password CLI installed and authenticated (`op signin`) before running the secrets target.
+
+### 1.4 Create Nx Integration
 
 Create `package.json`:
 
@@ -119,7 +202,9 @@ Create `project.json`:
 }
 ```
 
-### 1.4 Configure pytest-vcr
+**Note**: The section 1.3 above shows the complete package.json with both secrets and test targets. The separate package.json in section 1.4 below is the minimal version without the nx configuration block.
+
+### 1.5 Configure pytest-vcr
 
 Create `tests/conftest.py`:
 
