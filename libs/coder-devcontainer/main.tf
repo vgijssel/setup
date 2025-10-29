@@ -281,16 +281,8 @@ resource "coder_agent" "main" {
   }
 
   metadata {
-    display_name = "Agent Name"
-    key          = "11_agent_name"
-    script       = "cat /workspaces/dataone/tmp/agent_metadata/agent_name 2>/dev/null || echo n/a"
-    interval     = 5
-    timeout      = 1
-  }
-
-  metadata {
     display_name = "Agent Spec"
-    key          = "12_agent_spec"
+    key          = "11_agent_spec"
     script       = "cat /workspaces/dataone/tmp/agent_metadata/agent_spec 2>/dev/null || echo n/a"
     interval     = 5
     timeout      = 1
