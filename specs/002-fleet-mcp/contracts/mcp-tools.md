@@ -424,7 +424,7 @@ Cancel the currently running task on an agent by sending an interrupt signal to 
 
 ## Tool: list_agent_roles
 
-List all available agent roles for a specific project. Roles are defined as Coder template parameter options.
+List all available agent roles for a specific project. Roles are defined as Coder workspace presets in the project's template.
 
 ### Input Parameters (Flat Structure)
 
@@ -436,7 +436,7 @@ List all available agent roles for a specific project. Roles are defined as Code
 
 ### Field Descriptions
 
-- **project**: Project name (e.g., "Setup", "DataOne"). Roles are queried from the project's Coder template parameters.
+- **project**: Project name (e.g., "Setup", "DataOne"). Roles are queried from the project's Coder template workspace presets.
 
 ### Output
 

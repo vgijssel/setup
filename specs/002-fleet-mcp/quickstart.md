@@ -134,6 +134,34 @@ Update `package.json` to include the secrets target in the nx configuration:
         "metadata": {
           "description": "Run pytest tests"
         }
+      },
+      "lint": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run ruff check .",
+          "cwd": "libs/fleet-mcp"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.py"
+        ],
+        "metadata": {
+          "description": "Lint Python code with ruff"
+        }
+      },
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv build",
+          "cwd": "libs/fleet-mcp"
+        },
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/dist"
+        ],
+        "metadata": {
+          "description": "Build Python package"
+        }
       }
     }
   },
@@ -155,56 +183,7 @@ This will use 1Password CLI (`op inject`) to replace the `{{ op://... }}` refere
 
 **Note**: Ensure you have 1Password CLI installed and authenticated (`op signin`) before running the secrets target.
 
-### 1.4 Create Nx Integration
-
-Create `package.json`:
-
-```json
-{
-  "name": "@setup/fleet-mcp",
-  "version": "0.1.0",
-  "description": "Fleet MCP Server for Claude Code agents",
-  "scripts": {
-    "test": "nx test fleet-mcp",
-    "lint": "nx lint fleet-mcp",
-    "build": "nx build fleet-mcp"
-  }
-}
-```
-
-Create `project.json`:
-
-```json
-{
-  "name": "fleet-mcp",
-  "sourceRoot": "libs/fleet-mcp/src",
-  "projectType": "library",
-  "targets": {
-    "test": {
-      "executor": "@nrwl/workspace:run-commands",
-      "options": {
-        "command": "cd libs/fleet-mcp && uv run pytest"
-      }
-    },
-    "lint": {
-      "executor": "@nrwl/workspace:run-commands",
-      "options": {
-        "command": "cd libs/fleet-mcp && uv run ruff check ."
-      }
-    },
-    "build": {
-      "executor": "@nrwl/workspace:run-commands",
-      "options": {
-        "command": "cd libs/fleet-mcp && uv build"
-      }
-    }
-  }
-}
-```
-
-**Note**: The section 1.3 above shows the complete package.json with both secrets and test targets. The separate package.json in section 1.4 below is the minimal version without the nx configuration block.
-
-### 1.5 Configure pytest-vcr
+### 1.4 Configure pytest-vcr
 
 Create `tests/conftest.py`:
 
@@ -713,7 +692,7 @@ If `uv sync` fails:
 
 If `nx test` doesn't find project:
 - Run `nx reset` to clear cache
-- Verify `project.json` exists in libs/fleet-mcp
+- Verify `package.json` with nx configuration exists in libs/fleet-mcp
 - Check workspace is properly registered in nx.json
 
 ---

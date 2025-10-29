@@ -118,7 +118,6 @@ libs/fleet-mcp/
 │       ├── models/                 # Pydantic models for data validation
 │       │   ├── __init__.py
 │       │   ├── agent.py           # Agent, Task, Role, Project models
-│       │   ├── requests.py        # MCP tool request models (flat structures)
 │       │   └── responses.py       # MCP tool response models
 │       ├── coder/                  # Coder API client
 │       │   ├── __init__.py
@@ -142,8 +141,7 @@ libs/fleet-mcp/
 │   └── contract/
 │       └── test_mcp_tools.py       # E2E MCP tool tests with vcr
 ├── pyproject.toml                  # uv project config, dependencies
-├── package.json                    # Nx integration
-├── project.json                    # Nx targets (build, test, lint)
+├── package.json                    # Nx integration with targets (build, test, lint, secrets)
 └── README.md
 ```
 
