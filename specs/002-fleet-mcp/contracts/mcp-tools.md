@@ -157,11 +157,7 @@ Show detailed information about a specific agent.
         "created_at": str,
         "updated_at": str,
         "metadata": {                            # Nested metadata with all fleet_mcp_* fields
-            "fleet_mcp_agent_name": str,
-            "fleet_mcp_role": str,
-            "fleet_mcp_project": str,
             "fleet_mcp_agent_spec": str,
-            "fleet_mcp_current_task": str,
             "fleet_mcp_pull_request_url": str,   # Optional, may not be present
             "fleet_mcp_pull_request_status": str, # Optional, may not be present
             "fleet_mcp_pull_request_check_status": str # Optional, may not be present
@@ -335,19 +331,15 @@ Start a new task on an agent.
 
 ```python
 {
-    "agent_name": str,     # Required. Target agent name
-    "task_summary": str,   # Required. Task description (max 500 chars)
-    "task_input": str,     # Optional. Additional task input/context
-    "source": str          # Required. One of: "agent", "human", "ai_controller"
+    "agent_name": str,         # Required. Target agent name
+    "task_description": str    # Required. Task description
 }
 ```
 
 ### Field Descriptions
 
 - **agent_name**: Name of the agent to assign the task to
-- **task_summary**: Brief description of the task to be performed
-- **task_input**: Optional detailed input or context for the task
-- **source**: Origin of the task (agent itself, human operator, or controlling AI)
+- **task_description**: Description of the task to be performed
 
 ### Output
 
@@ -358,7 +350,6 @@ Start a new task on an agent.
         "agent_name": str,
         "summary": str,
         "status": "running",        # Always "running" after start
-        "source": str,
         "created_at": str,
         "started_at": str
     },
@@ -370,7 +361,7 @@ Start a new task on an agent.
 ### Errors
 
 - **404 Not Found**: Agent with given name does not exist
-- **400 Bad Request**: Agent is offline, invalid source, or task summary too long
+- **400 Bad Request**: Agent is offline or task description is empty
 - **409 Conflict**: Agent already has a running task
 - **503 Service Unavailable**: Coder API unavailable
 
@@ -379,9 +370,7 @@ Start a new task on an agent.
 ```json
 {
     "agent_name": "papi",
-    "task_summary": "Fix authentication bug in login endpoint",
-    "task_input": "See issue #456 for details. Error occurs on invalid credentials.",
-    "source": "human"
+    "task_description": "Fix authentication bug in login endpoint"
 }
 ```
 

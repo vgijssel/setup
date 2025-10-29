@@ -88,17 +88,14 @@ Represents work assigned to an agent. Tasks are stored in Coder's AI task system
 - `workspace_id` (str): Coder workspace UUID
 - `summary` (str): Task description/summary
 - `status` (TaskStatus): "pending", "running", "completed", "failed", "stopped"
-- `source` (TaskSource): "agent", "human", or "ai_controller"
 - `created_at` (datetime): Task creation timestamp
 - `started_at` (datetime | None): When task execution began
 - `completed_at` (datetime | None): When task finished
-- `input` (str | None): Input provided to task
 - `output` (str | None): Task output/result
 
 **Validation Rules**:
-- `summary`: Non-empty string, max 500 characters
+- `summary`: Non-empty string
 - `status`: Must be valid TaskStatus enum value
-- `source`: Must be valid TaskSource enum value
 - Timestamps: `started_at` >= `created_at`, `completed_at` >= `started_at`
 
 **State Transitions**:
@@ -282,9 +279,7 @@ Represents a project that agents can work on. Projects map to Coder templates.
 
 **Attributes** (flat):
 - `agent_name` (str): Target agent
-- `task_summary` (str): Task description
-- `task_input` (str | None): Optional task input
-- `source` (str): "agent", "human", or "ai_controller"
+- `task_description` (str): Task description
 
 ---
 
@@ -344,15 +339,6 @@ class TaskStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     STOPPED = "stopped"
-```
-
-### TaskSource
-
-```python
-class TaskSource(str, Enum):
-    AGENT = "agent"
-    HUMAN = "human"
-    AI_CONTROLLER = "ai_controller"
 ```
 
 ---
