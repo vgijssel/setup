@@ -23,14 +23,13 @@ Build a stateless MCP server using Python FastMCP that manages a fleet of Claude
 **Scale/Scope**: Manage 10+ concurrent agents, support paginated task history (100+ tasks per agent)
 
 **API Integration**:
-- Coder Formal API (https://coder.com/docs/reference/api): Workspace management, template queries
-- Coder Beta API (coderd/aitasks.go): Task creation, status updates, log streaming
-  - GET /api/experimental/tasks - List all AI tasks
-  - POST /api/experimental/tasks/{user} - Create new task
-  - GET /api/experimental/tasks/{user}/{id} - Get specific task
+- Coder Formal API (https://coder.com/docs/reference/api): Workspace management, template queries, task history
+  - GET /api/v2/workspaces - List all workspaces
+  - GET /api/v2/users/{owner}/workspace/{workspace-name} - Get workspace details and task history
   - POST /api/v2/workspaces/{id}/builds {"transition": "delete"} - Delete workspace
-  - POST /api/experimental/tasks/{user}/{id}/send - Send input to task
-  - GET /api/experimental/tasks/{user}/{id}/logs - Get task logs
+  - GET /api/v2/templates - List templates
+  - GET /api/v2/templates/{id} - Get template details and parameters
+- Task Reporting: Tasks are reported by agents using the `coder_report_task` MCP tool provided by Coder
 
 **Key Design Constraints**:
 - MCP tools require flat parameter structures (no nested objects) per https://gofastmcp.com/servers/tools#type-annotations

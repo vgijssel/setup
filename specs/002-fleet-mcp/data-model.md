@@ -78,26 +78,24 @@ Represents a Claude Code instance running in a Coder workspace.
 
 ### Task
 
-Represents work assigned to an agent. Tasks are stored in Coder's AI task system.
+Represents work assigned to an agent. Tasks are stored in Coder's workspace AI task tracking system.
 
-**Source**: Coder AI Tasks API (`/api/experimental/tasks`)
+**Source**: Coder Workspace API (`GET /api/v2/users/{owner}/workspace/{workspace-name}`)
+
+**Note**: Tasks are reported by agents using the `coder_report_task` MCP tool and stored in the workspace's task history.
 
 **Attributes**:
-- `id` (str): Task UUID from Coder
-- `agent_name` (str): Associated agent name
-- `workspace_id` (str): Coder workspace UUID
-- `summary` (str): Task description/summary
-- `created_at` (datetime): Task creation timestamp
-- `started_at` (datetime | None): When task execution began
-- `completed_at` (datetime | None): When task finished
-- `output` (str | None): Task output/result
+- `message` (str): Task description/status message (e.g., "Implementing OAuth2 authentication")
+- `uri` (str): Link to related work (e.g., GitHub branch URL, PR URL)
+- `needs_user_attention` (bool): Whether the task requires user action
 
 **Validation Rules**:
-- `summary`: Non-empty string
-- Timestamps: `started_at` >= `created_at`, `completed_at` >= `started_at`
+- `message`: Non-empty string
+- `uri`: Valid URL string
+- `needs_user_attention`: Boolean value
 
 **Relationships**:
-- Many Tasks → One Agent (via agent_name)
+- Many Tasks → One Agent (via workspace association)
 
 ---
 
@@ -372,7 +370,7 @@ def agent_to_metadata(agent: Agent) -> dict[str, str]:
 | Model | Key Validations |
 |-------|-----------------|
 | Agent | Unique name, valid role, valid project, non-empty spec |
-| Task | Non-empty summary, timestamp ordering |
+| Task | Non-empty message, valid URI, boolean needs_user_attention |
 | Role | Predefined name, non-empty prompt |
 | Project | Matches Coder template |
 | CreateAgentRequest | Name uniqueness, valid role/project |
@@ -385,10 +383,10 @@ def agent_to_metadata(agent: Agent) -> dict[str, str]:
 **Stateless Design**: MCP server stores NO data locally. All queries fetch from Coder API.
 
 **Data Sources**:
-- **Agents**: Coder workspaces with `fleet_mcp_*` metadata
-- **Tasks**: Coder AI Tasks API
-- **Roles**: Static configuration file
-- **Projects**: Coder Templates API
+- **Agents**: Coder workspaces with `fleet_mcp_*` metadata (`GET /api/v2/workspaces`)
+- **Tasks**: Coder workspace task history (`GET /api/v2/users/{owner}/workspace/{workspace-name}`)
+- **Roles**: Coder template parameters (`GET /api/v2/templates/{id}`)
+- **Projects**: Coder Templates API (`GET /api/v2/templates`)
 
 **Query Pattern**:
 1. MCP tool receives request

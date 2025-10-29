@@ -196,8 +196,9 @@ agent = Agent.from_workspace(workspace)
 
 **Query task history:**
 ```python
-# GET /api/experimental/tasks?workspace_id={id}
-tasks = await coder_client.list_tasks(workspace_id)
+# GET /api/v2/users/{owner}/workspace/{workspace-name}
+workspace = await coder_client.get_workspace(owner, workspace_name)
+tasks = workspace.get("tasks", [])  # Tasks reported via coder_report_task MCP tool
 return paginate(tasks, page, page_size=20)
 ```
 

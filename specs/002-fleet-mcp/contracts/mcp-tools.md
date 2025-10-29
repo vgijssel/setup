@@ -222,12 +222,9 @@ Show paginated task history for an agent.
 {
     "tasks": [
         {
-            "id": str,
-            "agent_name": str,
-            "summary": str,
-            "created_at": str,
-            "started_at": str | None,
-            "completed_at": str | None
+            "message": str,
+            "uri": str,
+            "needs_user_attention": bool
         },
         ...
     ],
@@ -250,12 +247,14 @@ Show paginated task history for an agent.
 {
     "tasks": [
         {
-            "id": "task-uuid-1",
-            "agent_name": "papi",
-            "summary": "Implement OAuth2 authentication",
-            "created_at": "2025-10-29T10:00:00Z",
-            "started_at": "2025-10-29T10:01:00Z",
-            "completed_at": "2025-10-29T11:30:00Z"
+            "message": "Implementing OAuth2 authentication",
+            "uri": "https://github.com/org/repo/tree/feature/oauth",
+            "needs_user_attention": false
+        },
+        {
+            "message": "PR #123 requires review",
+            "uri": "https://github.com/org/repo/pull/123",
+            "needs_user_attention": true
         }
     ],
     "total_count": 42,
@@ -337,11 +336,9 @@ Start a new task on an agent.
 ```python
 {
     "task": {
-        "id": str,
-        "agent_name": str,
-        "summary": str,
-        "created_at": str,
-        "started_at": str
+        "message": str,
+        "uri": str,
+        "needs_user_attention": bool
     },
     "agent_status": "busy",         # Agent status updated to busy
     "message": str
@@ -387,12 +384,9 @@ Stop the currently running task on an agent.
 ```python
 {
     "task": {
-        "id": str,
-        "agent_name": str,
-        "summary": str,
-        "created_at": str,
-        "started_at": str,
-        "completed_at": str         # Timestamp when stopped
+        "message": str,
+        "uri": str,
+        "needs_user_attention": bool
     },
     "agent_status": "idle",         # Agent status updated to idle
     "message": str
@@ -410,12 +404,9 @@ Stop the currently running task on an agent.
 ```json
 {
     "task": {
-        "id": "task-uuid",
-        "agent_name": "papi",
-        "summary": "Fix authentication bug",
-        "created_at": "2025-10-29T10:00:00Z",
-        "started_at": "2025-10-29T10:01:00Z",
-        "completed_at": "2025-10-29T10:15:00Z"
+        "message": "Fix authentication bug - work completed",
+        "uri": "https://github.com/org/repo/tree/fix/auth",
+        "needs_user_attention": false
     },
     "agent_status": "idle",
     "message": "Task stopped successfully"
