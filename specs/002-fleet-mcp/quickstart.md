@@ -240,11 +240,9 @@ class Agent(BaseModel):
     project: str
     spec: str = Field(min_length=1)
     current_task: str | None = None
-    pull_request_url: str | None = None
-    pull_request_status: str | None = None
-    pull_request_check_status: str | None = None
     created_at: datetime
     updated_at: datetime
+    metadata: dict[str, str]  # Nested metadata with all fleet_mcp_* fields
 
     @field_validator("role")
     @classmethod
@@ -470,8 +468,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         name: str = Field(description="Unique agent name"),
         project: str = Field(description="Project name"),
         role: str = Field(default="coder", description="Agent role"),
-        spec: str = Field(description="Agent specification"),
-        pull_request_url: str | None = Field(default=None, description="Optional PR URL")
+        spec: str = Field(description="Agent specification")
     ) -> dict:
         """Create a new Claude Code agent"""
         # Validate request
@@ -479,8 +476,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             name=name,
             project=project,
             role=role,
-            spec=spec,
-            pull_request_url=pull_request_url
+            spec=spec
         )
 
         # Create workspace via Coder API
@@ -492,8 +488,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                 "fleet_mcp_role": role,
                 "fleet_mcp_project": project,
                 "fleet_mcp_agent_spec": spec,
-                "fleet_mcp_current_task": "",
-                "fleet_mcp_pull_request_url": pull_request_url or "",
+                "fleet_mcp_current_task": ""
             }
         )
 

@@ -18,11 +18,10 @@ Create a new Claude Code agent in a Coder workspace.
 
 ```python
 {
-    "name": str,                    # Required. Unique agent name (1-20 chars, alphanumeric + hyphens)
-    "project": str,                 # Required. Project name (must match Coder template)
-    "role": str,                    # Optional. Default: "coder". One of: coder, operator, manager
-    "spec": str,                    # Required. Agent specification defining objectives
-    "pull_request_url": str | None  # Optional. PR URL for spec tracking
+    "name": str,     # Required. Unique agent name (1-20 chars, alphanumeric + hyphens)
+    "project": str,  # Required. Project name (must match Coder template)
+    "role": str,     # Optional. Default: "coder". One of: coder, operator, manager
+    "spec": str      # Required. Agent specification defining objectives
 }
 ```
 
@@ -32,7 +31,6 @@ Create a new Claude Code agent in a Coder workspace.
 - **project**: Project name matching a Coder template (e.g., "Setup", "DataOne")
 - **role**: Agent role defining system prompt behavior
 - **spec**: Structured specification with agent objective, context, and deliverables
-- **pull_request_url**: Optional GitHub/GitLab PR URL associated with the spec
 
 ### Output
 
@@ -46,8 +44,15 @@ Create a new Claude Code agent in a Coder workspace.
         "project": str,
         "spec": str,
         "current_task": None,       # Always null on creation
-        "pull_request_url": str | None,
-        "created_at": str           # ISO 8601 timestamp
+        "created_at": str,          # ISO 8601 timestamp
+        "updated_at": str,          # ISO 8601 timestamp
+        "metadata": {               # Nested Coder workspace metadata
+            "fleet_mcp_agent_name": str,
+            "fleet_mcp_role": str,
+            "fleet_mcp_project": str,
+            "fleet_mcp_agent_spec": str,
+            "fleet_mcp_current_task": str  # Empty string on creation
+        }
     },
     "message": str                   # Success message
 }
@@ -58,15 +63,14 @@ Create a new Claude Code agent in a Coder workspace.
 - **400 Bad Request**: Invalid parameters (name already exists, invalid role/project, empty spec)
 - **503 Service Unavailable**: Coder API unavailable or workspace provisioning failed
 
-### Example
+### Example Input
 
 ```json
 {
     "name": "papi",
     "project": "Setup",
     "role": "coder",
-    "spec": "Implement user authentication with OAuth2. Include tests and documentation.",
-    "pull_request_url": "https://github.com/org/repo/pull/123"
+    "spec": "Implement user authentication with OAuth2. Include tests and documentation."
 }
 ```
 
@@ -150,21 +154,18 @@ Show detailed information about a specific agent.
         "project": str,
         "spec": str,
         "current_task": str | None,
-        "pull_request_url": str | None,
-        "pull_request_status": str | None,      # "open", "closed", "merged"
-        "pull_request_check_status": str | None, # "pending", "passing", "failing"
         "created_at": str,
-        "updated_at": str
-    },
-    "metadata": {
-        "fleet_mcp_agent_name": str,
-        "fleet_mcp_role": str,
-        "fleet_mcp_project": str,
-        "fleet_mcp_agent_spec": str,
-        "fleet_mcp_current_task": str,
-        "fleet_mcp_pull_request_url": str,
-        "fleet_mcp_pull_request_status": str,
-        "fleet_mcp_pull_request_check_status": str
+        "updated_at": str,
+        "metadata": {                            # Nested metadata with all fleet_mcp_* fields
+            "fleet_mcp_agent_name": str,
+            "fleet_mcp_role": str,
+            "fleet_mcp_project": str,
+            "fleet_mcp_agent_spec": str,
+            "fleet_mcp_current_task": str,
+            "fleet_mcp_pull_request_url": str,   # Optional, may not be present
+            "fleet_mcp_pull_request_status": str, # Optional, may not be present
+            "fleet_mcp_pull_request_check_status": str # Optional, may not be present
+        }
     }
 }
 ```
@@ -186,13 +187,19 @@ Show detailed information about a specific agent.
         "project": "Setup",
         "spec": "Implement OAuth2 authentication...",
         "current_task": "Writing integration tests",
-        "pull_request_url": "https://github.com/org/repo/pull/123",
-        "pull_request_status": "open",
-        "pull_request_check_status": "passing",
         "created_at": "2025-10-29T10:00:00Z",
-        "updated_at": "2025-10-29T11:30:00Z"
-    },
-    "metadata": { ... }
+        "updated_at": "2025-10-29T11:30:00Z",
+        "metadata": {
+            "fleet_mcp_agent_name": "papi",
+            "fleet_mcp_role": "coder",
+            "fleet_mcp_project": "Setup",
+            "fleet_mcp_agent_spec": "Implement OAuth2 authentication...",
+            "fleet_mcp_current_task": "Writing integration tests",
+            "fleet_mcp_pull_request_url": "https://github.com/org/repo/pull/123",
+            "fleet_mcp_pull_request_status": "open",
+            "fleet_mcp_pull_request_check_status": "passing"
+        }
+    }
 }
 ```
 

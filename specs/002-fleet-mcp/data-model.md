@@ -25,11 +25,13 @@ Represents a Claude Code instance running in a Coder workspace.
 - `project` (str): Project name (e.g., "Setup", "DataOne")
 - `spec` (str): Agent specification defining objectives and constraints
 - `current_task` (str | None): Summary of current task (null if idle)
-- `pull_request_url` (str | None): Optional PR URL for spec tracking
-- `pull_request_status` (str | None): PR state - "open", "closed", "merged"
-- `pull_request_check_status` (str | None): CI checks - "pending", "passing", "failing"
 - `created_at` (datetime): Workspace creation timestamp
 - `updated_at` (datetime): Last metadata update timestamp
+- `metadata` (dict[str, str]): All Coder workspace metadata with fleet_mcp_* prefix
+  - `fleet_mcp_agent_spec`: Agent specification
+  - `fleet_mcp_pull_request_url`: Optional PR URL (if set)
+  - `fleet_mcp_pull_request_status`: Optional PR status (if set)
+  - `fleet_mcp_pull_request_check_status`: Optional CI check status (if set)
 
 **Derived Fields**:
 - `status`: Computed from workspace build status + `current_task` presence
@@ -217,11 +219,12 @@ Represents a project that agents can work on. Projects map to Coder templates.
 - `project` (str): Project name
 - `role` (str): Agent role (default: "coder")
 - `spec` (str): Agent specification
-- `pull_request_url` (str | None): Optional PR URL
 
 **Validation**:
 - Inherits Agent validation rules
 - Additional: name must not already exist
+
+**Note**: Metadata fields (like PR URLs) are not set during creation. They can be updated later by modifying the Coder workspace metadata directly.
 
 ---
 
@@ -245,8 +248,7 @@ Represents a project that agents can work on. Projects map to Coder templates.
 **Purpose**: MCP tool output for agent details
 
 **Attributes**:
-- `agent` (Agent): Full agent details
-- `metadata` (dict[str, str]): All fleet_mcp_* metadata fields
+- `agent` (Agent): Full agent details including nested `metadata` field with all fleet_mcp_* fields
 
 ---
 
@@ -372,6 +374,13 @@ def agent_from_workspace(workspace: CoderWorkspace) -> Agent:
     else:
         status = AgentStatus.IDLE
 
+    # Filter metadata to only fleet_mcp_* fields
+    fleet_metadata = {
+        key: value
+        for key, value in metadata.items()
+        if key.startswith("fleet_mcp_")
+    }
+
     return Agent(
         name=metadata["fleet_mcp_agent_name"],
         workspace_id=workspace.id,
@@ -380,11 +389,9 @@ def agent_from_workspace(workspace: CoderWorkspace) -> Agent:
         project=metadata["fleet_mcp_project"],
         spec=metadata["fleet_mcp_agent_spec"],
         current_task=metadata.get("fleet_mcp_current_task"),
-        pull_request_url=metadata.get("fleet_mcp_pull_request_url"),
-        pull_request_status=metadata.get("fleet_mcp_pull_request_status"),
-        pull_request_check_status=metadata.get("fleet_mcp_pull_request_check_status"),
         created_at=workspace.created_at,
         updated_at=workspace.updated_at,
+        metadata=fleet_metadata,  # Nested metadata dict
     )
 ```
 
@@ -393,24 +400,11 @@ def agent_from_workspace(workspace: CoderWorkspace) -> Agent:
 ```python
 def agent_to_metadata(agent: Agent) -> dict[str, str]:
     """Convert Agent to Coder workspace metadata"""
-    metadata = {
-        "fleet_mcp_agent_name": agent.name,
-        "fleet_mcp_role": agent.role,
-        "fleet_mcp_project": agent.project,
-        "fleet_mcp_agent_spec": agent.spec,
-        "fleet_mcp_current_task": agent.current_task or "",
-    }
-
-    # Add optional PR metadata
-    if agent.pull_request_url:
-        metadata["fleet_mcp_pull_request_url"] = agent.pull_request_url
-    if agent.pull_request_status:
-        metadata["fleet_mcp_pull_request_status"] = agent.pull_request_status
-    if agent.pull_request_check_status:
-        metadata["fleet_mcp_pull_request_check_status"] = agent.pull_request_check_status
-
-    return metadata
+    # Return the agent's metadata dict directly - it already has fleet_mcp_* keys
+    return agent.metadata
 ```
+
+**Note**: The agent's nested `metadata` field contains all fleet_mcp_* prefixed keys ready for Coder API. Core agent fields (name, role, project, spec, current_task) are mirrored in the metadata dict with their fleet_mcp_* keys.
 
 ---
 
