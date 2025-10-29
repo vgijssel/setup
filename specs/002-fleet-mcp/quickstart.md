@@ -370,10 +370,11 @@ nx test fleet-mcp
 
 Follow same TDD cycle for:
 - `models/task.py` (Task)
-- `models/role.py` (Role - sourced from Coder template parameters)
+- `models/role.py` (Role - sourced from Coder workspace presets)
 - `models/project.py` (Project - maps to Coder templates)
-- `models/requests.py` (CreateAgentRequest, TaskHistoryRequest, etc.)
-- `models/responses.py` (AgentListResponse, TaskHistoryResponse, etc.)
+- `models/responses.py` (Response models: CreateAgentResponse, AgentListResponse, TaskHistoryResponse, etc.)
+
+**Note**: Request models are NOT separate classes. MCP tool parameters use `Annotated[type, Field(description="...")]` directly in function signatures for MCP introspection.
 
 ---
 
@@ -559,35 +560,32 @@ def create_mcp_server(base_url: str, token: str) -> FastMCP:
 Create `src/fleet_mcp/tools/agent_management.py`:
 
 ```python
+from typing import Annotated, Literal
 from fastmcp import FastMCP
 from pydantic import Field
 from fleet_mcp.coder.client import CoderClient
-from fleet_mcp.models.requests import CreateAgentRequest
 from fleet_mcp.models.agent import Agent
+from fleet_mcp.models.responses import CreateAgentResponse, AgentListResponse, AgentSummary
 
 def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
     """Register agent management tools"""
 
     @mcp.tool()
     async def create_agent(
-        name: str = Field(description="Unique agent name"),
-        project: str = Field(description="Project name"),
-        role: str = Field(default="coder", description="Agent role"),
-        spec: str = Field(description="Agent specification")
-    ) -> dict:
-        """Create a new Claude Code agent"""
-        # Validate request
-        request = CreateAgentRequest(
-            name=name,
-            project=project,
-            role=role,
-            spec=spec
-        )
-
+        name: Annotated[str, Field(description="Unique short agent name (e.g., Sony, Papi)")],
+        project: Annotated[str, Field(description="Project name (e.g., Setup, DataOne)")],
+        spec: Annotated[str, Field(description="Agent specification defining objectives and constraints")],
+        role: Annotated[
+            Literal["coder", "operator", "manager"],
+            Field(description="Agent role: coder, operator, or manager")
+        ] = "coder",
+    ) -> CreateAgentResponse:
+        """Create a new Claude Code agent in a Coder workspace"""
         # Create workspace via Coder API
         workspace = await coder_client.create_workspace(
             name=f"agent-{name}",
             template_name=f"{project.lower()}-devcontainer",
+            workspace_preset=role,  # Use workspace preset for role
             metadata={
                 "fleet_mcp_agent_name": name,
                 "fleet_mcp_role": role,
@@ -600,31 +598,31 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         # Convert to Agent model
         agent = Agent.from_workspace(workspace)
 
-        return {
-            "agent": agent.model_dump(),
-            "message": f"Agent '{name}' created successfully"
-        }
+        return CreateAgentResponse(
+            agent=agent,
+            message=f"Agent '{name}' created successfully"
+        )
 
     @mcp.tool()
-    async def list_agents() -> dict:
-        """List all agents in the fleet"""
+    async def list_agents() -> AgentListResponse:
+        """List all agents in the fleet with their current status"""
         workspaces = await coder_client.list_workspaces()
 
-        # Filter for fleet workspaces
+        # Filter for fleet workspaces and convert to AgentSummary
         agents = []
         for ws in workspaces:
             if "fleet_mcp_agent_name" in ws.get("metadata", {}):
                 agent = Agent.from_workspace(ws)
-                agents.append({
-                    "name": agent.name,
-                    "status": agent.status,
-                    "current_task": agent.current_task
-                })
+                agents.append(AgentSummary(
+                    name=agent.name,
+                    status=agent.status,
+                    current_task=agent.current_task
+                ))
 
-        return {
-            "agents": agents,
-            "total_count": len(agents)
-        }
+        return AgentListResponse(
+            agents=agents,
+            total_count=len(agents)
+        )
 ```
 
 Run tests (should PASS):

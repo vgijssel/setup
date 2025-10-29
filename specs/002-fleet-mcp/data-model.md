@@ -214,17 +214,19 @@ Represents a project that agents can work on. Projects map to Coder templates.
 
 ---
 
-## MCP Request/Response Models
+## MCP Tool Parameters and Response Models
 
-### CreateAgentRequest
+MCP tool inputs use `Annotated` with `Field()` metadata directly in function signatures. Response models are Pydantic classes for type safety and validation.
+
+### create_agent Parameters
 
 **Purpose**: MCP tool input for creating a new agent
 
-**Attributes** (all flat, with Field metadata):
-- `name` (str): Agent name
-- `project` (str): Project name
-- `role` (str): Agent role (default: "coder")
-- `spec` (str): Agent specification
+**Parameters** (flat, using Annotated with Field):
+- `name: Annotated[str, Field(description="...")]`: Agent name
+- `project: Annotated[str, Field(description="...")]`: Project name
+- `spec: Annotated[str, Field(description="...")]`: Agent specification
+- `role: Annotated[Literal["coder", "operator", "manager"], Field(description="...")] = "coder"`: Agent role (default: "coder")
 
 **Validation**:
 - Inherits Agent validation rules
@@ -232,7 +234,21 @@ Represents a project that agents can work on. Projects map to Coder templates.
 
 **Note**: When an agent is created, it immediately starts working on the provided spec. The agent begins in "busy" state with `current_task` set to the spec content. Metadata fields (like PR URLs) are not set during creation but can be updated later by modifying the Coder workspace metadata directly.
 
+### CreateAgentResponse
+
+**Purpose**: MCP tool output for creating a new agent
+
+**Attributes**:
+- `agent` (Agent): Full agent details
+- `message` (str): Success message
+
 ---
+
+### list_agents Parameters
+
+**Purpose**: MCP tool input for listing agents
+
+**Parameters**: None
 
 ### AgentListResponse
 
@@ -249,6 +265,13 @@ Represents a project that agents can work on. Projects map to Coder templates.
 
 ---
 
+### show_agent Parameters
+
+**Purpose**: MCP tool input for showing agent details
+
+**Parameters** (flat, using Annotated with Field):
+- `agent_name: Annotated[str, Field(description="...")]`: Agent name to query
+
 ### AgentDetailsResponse
 
 **Purpose**: MCP tool output for agent details
@@ -258,14 +281,14 @@ Represents a project that agents can work on. Projects map to Coder templates.
 
 ---
 
-### TaskHistoryRequest
+### show_agent_task_history Parameters
 
 **Purpose**: MCP tool input for querying task history
 
-**Attributes** (flat):
-- `agent_name` (str): Agent to query
-- `page` (int): Page number (default: 1)
-- `page_size` (int): Items per page (default: 20, max: 100)
+**Parameters** (flat, using Annotated with Field):
+- `agent_name: Annotated[str, Field(description="...")]`: Agent to query
+- `page: Annotated[int, Field(description="...", ge=1)] = 1`: Page number (default: 1)
+- `page_size: Annotated[int, Field(description="...", ge=1, le=100)] = 20`: Items per page (default: 20, max: 100)
 
 ---
 
@@ -282,33 +305,66 @@ Represents a project that agents can work on. Projects map to Coder templates.
 
 ---
 
-### StartTaskRequest
+### start_agent_task Parameters
 
 **Purpose**: MCP tool input for starting a task
 
-**Attributes** (flat):
-- `agent_name` (str): Target agent
-- `task_description` (str): Task description
+**Parameters** (flat, using Annotated with Field):
+- `agent_name: Annotated[str, Field(description="...")]`: Target agent
+- `task_description: Annotated[str, Field(description="...")]`: Task description
+
+### StartTaskResponse
+
+**Purpose**: MCP tool output for starting a task
+
+**Attributes**:
+- `task` (Task): Created task details
+- `agent_status` (str): Updated agent status ("busy")
+- `message` (str): Success message
 
 ---
 
-### CancelTaskRequest
+### cancel_agent_task Parameters
 
 **Purpose**: MCP tool input for canceling a task
 
-**Attributes** (flat):
-- `agent_name` (str): Target agent
+**Parameters** (flat, using Annotated with Field):
+- `agent_name: Annotated[str, Field(description="...")]`: Target agent
+
+### CancelTaskResponse
+
+**Purpose**: MCP tool output for canceling a task
+
+**Attributes**:
+- `task` (Task): Canceled task details
+- `agent_status` (str): Updated agent status ("idle")
+- `message` (str): Success message
 
 ---
 
-### DeleteAgentRequest
+### delete_agent Parameters
 
 **Purpose**: MCP tool input for deleting an agent
 
-**Attributes** (flat):
-- `agent_name` (str): Agent to delete
+**Parameters** (flat, using Annotated with Field):
+- `agent_name: Annotated[str, Field(description="...")]`: Agent to delete
+
+### DeleteAgentResponse
+
+**Purpose**: MCP tool output for deleting an agent
+
+**Attributes**:
+- `message` (str): Success message
+- `deleted_agent` (dict): Contains `name` and `workspace_id`
 
 ---
+
+### list_agent_roles Parameters
+
+**Purpose**: MCP tool input for listing available roles
+
+**Parameters** (flat, using Annotated with Field):
+- `project: Annotated[str, Field(description="...")]`: Project name to query roles for
 
 ### ListRolesResponse
 
@@ -318,6 +374,12 @@ Represents a project that agents can work on. Projects map to Coder templates.
 - `roles` (list[Role]): Available roles
 
 ---
+
+### list_agent_projects Parameters
+
+**Purpose**: MCP tool input for listing available projects
+
+**Parameters**: None
 
 ### ListProjectsResponse
 
@@ -413,14 +475,14 @@ def agent_to_metadata(agent: Agent) -> dict[str, str]:
 
 ## Validation Summary
 
-| Model | Key Validations |
-|-------|-----------------|
+| Model/Parameters | Key Validations |
+|------------------|-----------------|
 | Agent | Unique name, valid role, valid project, non-empty spec |
 | Task | Non-empty message, valid URI, boolean needs_user_attention, valid created_at timestamp |
-| Role | Predefined name, non-empty prompt |
+| Role | Predefined name, non-empty display_name |
 | Project | Matches Coder template |
-| CreateAgentRequest | Name uniqueness, valid role/project |
-| TaskHistoryRequest | Page >= 1, page_size in [1, 100] |
+| create_agent parameters | Name uniqueness, valid role/project, non-empty spec |
+| show_agent_task_history parameters | Page >= 1, page_size in [1, 100] |
 
 ---
 

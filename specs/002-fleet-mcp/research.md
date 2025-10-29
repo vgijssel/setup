@@ -17,38 +17,71 @@
 ## 1. FastMCP Tool Design with Flat Parameters
 
 ### Decision
-Use Pydantic models with `Field()` metadata for all tool parameters, ensuring flat structure (scalars only, no nested objects). Each parameter must have a description for MCP introspection.
+Use `Annotated` with `Field()` metadata directly in function parameters for all tool parameters, ensuring flat structure (scalars only, no nested objects). Each parameter must have a description for MCP introspection. Return Pydantic models from tools instead of dicts for type safety and validation.
 
 ### Rationale
-FastMCP documentation explicitly requires flat parameter structures for MCP protocol compatibility. Nested objects break MCP tool discovery and parameter validation. The `Field()` description metadata is exposed to AI agents via MCP introspection.
+FastMCP documentation explicitly requires flat parameter structures for MCP protocol compatibility. Nested objects break MCP tool discovery and parameter validation. Using `Annotated[type, Field(description="...")]` directly in function signatures makes parameters immediately visible to MCP introspection without requiring separate request classes. Returning Pydantic models ensures type-safe responses and enables validation at the output boundary.
 
 ### Implementation Pattern
 
 ```python
+from typing import Annotated, Literal
 from pydantic import BaseModel, Field
 
 # ❌ WRONG - Nested objects not supported
-class CreateAgentWrong(BaseModel):
-    metadata: dict  # Nested structure
+@mcp.tool()
+def create_agent_wrong(
+    metadata: dict  # Nested structure breaks MCP
+) -> dict:
+    """Don't do this"""
+    pass
 
-# ✅ CORRECT - Flat structure with Field metadata
+# ❌ WRONG - Request class adds unnecessary indirection
 class CreateAgentRequest(BaseModel):
-    name: str = Field(description="Unique short agent name (e.g., Sony, Papi)")
-    project: str = Field(description="Project name (e.g., Setup, DataOne)")
-    role: str = Field(default="coder", description="Agent role: coder, operator, or manager")
-    spec: str = Field(description="Agent specification defining objectives and constraints")
-    pull_request_url: str | None = Field(default=None, description="Optional PR URL for spec tracking")
+    name: str = Field(description="Agent name")
 
 @mcp.tool()
-def create_agent(request: CreateAgentRequest) -> dict:
+def create_agent_old(request: CreateAgentRequest) -> dict:
+    """Parameters hidden from MCP introspection"""
+    pass
+
+# ✅ CORRECT - Flat parameters with Annotated + Field, Pydantic response
+class CreateAgentResponse(BaseModel):
+    name: str
+    workspace_id: str
+    status: str
+    role: str
+    project: str
+    message: str
+
+@mcp.tool()
+def create_agent(
+    name: Annotated[str, Field(description="Unique short agent name (e.g., Sony, Papi)")],
+    project: Annotated[str, Field(description="Project name (e.g., Setup, DataOne)")],
+    spec: Annotated[str, Field(description="Agent specification defining objectives and constraints")],
+    role: Annotated[
+        Literal["coder", "operator", "manager"],
+        Field(description="Agent role: coder, operator, or manager")
+    ] = "coder",
+) -> CreateAgentResponse:
     """Create a new Claude Code agent in a Coder workspace"""
     # Implementation
+    agent = coder_client.create_agent(name, project, role, spec)
+    return CreateAgentResponse(
+        name=agent.name,
+        workspace_id=agent.workspace_id,
+        status=agent.status,
+        role=agent.role,
+        project=agent.project,
+        message=f"Agent '{name}' created successfully"
+    )
 ```
 
 ### Alternatives Considered
 - **Nested Pydantic models**: Rejected - breaks MCP protocol compatibility
 - **JSON string parameters**: Rejected - loses type safety and validation
-- **Separate parameters (no BaseModel)**: Considered but BaseModel provides validation and documentation structure
+- **Request/Response BaseModel classes**: Rejected for requests - adds indirection and hides parameters from MCP. Response models still used for type-safe returns.
+- **Dict returns**: Rejected - loses type safety and validation at output boundary
 
 ### References
 - https://gofastmcp.com/servers/tools#type-annotations
