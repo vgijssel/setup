@@ -19,14 +19,14 @@ async def test_create_workspace(coder_base_url, coder_token):
     client = CoderClient(base_url=coder_base_url, token=coder_token)
 
     workspace = await client.create_workspace(
-        name="test-agent-create",
+        name="test-ws-create-001",
         template_name="coder-devcontainer",
         workspace_preset="coder"
     )
 
     assert workspace is not None
     assert "id" in workspace
-    assert workspace.get("name") == "test-agent-create"
+    assert workspace.get("name") == "test-ws-create-001"
 
 
 # T015: Workspace listing test with pytest-vcr
@@ -47,14 +47,16 @@ async def test_list_workspaces(coder_base_url, coder_token):
 
 # T016: Workspace deletion test with pytest-vcr
 @pytest.mark.vcr
-async def test_delete_workspace(coder_base_url, coder_token):
+async def test_delete_workspace(coder_base_url, coder_token, vcr_cassette):
     """Test workspace deletion via Coder API"""
+    is_recording = not vcr_cassette.rewound
+
     import asyncio
     client = CoderClient(base_url=coder_base_url, token=coder_token)
 
     # First create a workspace to delete
     workspace = await client.create_workspace(
-        name="test-agent-delete",
+        name="test-ws-delete-001",
         template_name="coder-devcontainer",
         workspace_preset="coder"
     )
@@ -62,14 +64,17 @@ async def test_delete_workspace(coder_base_url, coder_token):
     workspace_id = workspace.get("id")
     assert workspace_id is not None
 
-    # Wait for workspace to be in a stable state (not pending/starting)
-    # This prevents 409 Conflict when trying to delete immediately
-    for _ in range(30):
+    # Wait for workspace to be fully running before deleting
+    # This prevents 409 Conflict when trying to delete too early
+    max_wait = 90  # 90 seconds max wait
+    for _ in range(45):
         ws = await client.get_workspace(workspace_id)
         status = ws.get("latest_build", {}).get("status")
-        if status not in ["pending", "starting"]:
+        if status == "running":
             break
-        await asyncio.sleep(2)
+
+        if is_recording:
+            await asyncio.sleep(2)
 
     # Now delete it
     result = await client.delete_workspace(workspace_id)

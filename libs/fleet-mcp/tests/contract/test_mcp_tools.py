@@ -298,6 +298,7 @@ async def test_start_agent_task_on_offline_agent(full_server):
 
 
 # T057: Test start_agent_task on busy agent
+@pytest.mark.vcr
 async def test_start_agent_task_on_busy_agent(full_server):
     """Test start_agent_task fails when agent is already busy"""
     async with Client(full_server) as client:
@@ -305,7 +306,7 @@ async def test_start_agent_task_on_busy_agent(full_server):
         create_result = await client.call_tool(
             "create_agent",
             {
-                "name": "busy-test-agent",
+                "name": "busy-agent-003",
                 "project": "Coder",
                 "role": "coder",
                 "spec": "This agent is busy with initial spec"
@@ -318,7 +319,7 @@ async def test_start_agent_task_on_busy_agent(full_server):
             await client.call_tool(
                 "start_agent_task",
                 {
-                    "agent_name": "busy-test-agent",
+                    "agent_name": "busy-agent-003",
                     "task_description": "This should fail - agent is busy"
                 }
             )
