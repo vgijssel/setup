@@ -62,7 +62,7 @@ This is a single library project: `libs/fleet-mcp/`
 - [X] T019 [P] Implement Task Pydantic model in libs/fleet-mcp/src/fleet_mcp/models/task.py
 - [X] T020 [P] Implement Role Pydantic model in libs/fleet-mcp/src/fleet_mcp/models/role.py
 - [X] T021 [P] Implement Project Pydantic model in libs/fleet-mcp/src/fleet_mcp/models/project.py
-- [X] T022 Implement agent_from_workspace helper in libs/fleet-mcp/src/fleet_mcp/models/agent.py (depends on T017-T018)
+- [X] T022 Implement agent_from_workspace helper in libs/fleet-mcp/src/fleet_mcp/models/agent.py with status derivation logic (implements FR-007, FR-008, FR-009, FR-010 by mapping workspace states to agent status) (depends on T017-T018)
 - [X] T023 [P] Implement response models (CreateAgentResponse, AgentListResponse, AgentSummary) in libs/fleet-mcp/src/fleet_mcp/models/responses.py
 - [X] T024 [P] Implement additional response models (AgentDetailsResponse, TaskHistoryResponse) in libs/fleet-mcp/src/fleet_mcp/models/responses.py
 - [X] T025 [P] Implement StartTaskResponse and CancelTaskResponse in libs/fleet-mcp/src/fleet_mcp/models/responses.py
@@ -145,7 +145,7 @@ This is a single library project: `libs/fleet-mcp/`
 - [ ] T066 [US2] Add validation for agent offline in start_agent_task in libs/fleet-mcp/src/fleet_mcp/tools/task_management.py
 - [ ] T067 [US2] Add validation for agent already busy in start_agent_task in libs/fleet-mcp/src/fleet_mcp/tools/task_management.py
 - [ ] T068 [US2] Add validation for agent not busy in cancel_agent_task in libs/fleet-mcp/src/fleet_mcp/tools/task_management.py
-- [ ] T069 [US2] Update agent status derivation logic in libs/fleet-mcp/src/fleet_mcp/models/agent.py for busy/idle states
+- [ ] T069 [US2] Verify agent status derivation logic in libs/fleet-mcp/src/fleet_mcp/models/agent.py correctly handles busy/idle transitions when current_task is set/unset (validation task - should already work from T022)
 - [ ] T070 [US2] Register task management tools in server.py in libs/fleet-mcp/src/fleet_mcp/server.py
 - [ ] T071 [US2] Verify all US2 tests pass with nx test fleet-mcp
 

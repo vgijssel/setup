@@ -92,8 +92,8 @@ A user or controlling system needs to understand what types of agents can be cre
 
 ### Edge Cases
 
-- What happens when a Coder workspace fails to provision during agent creation?
-- How does the system handle an agent going offline unexpectedly (workspace crash, network loss)?
+- What happens when a Coder workspace fails to provision during agent creation? (Answer: Agent status will reflect "failed" state from workspace)
+- How does the system handle an agent going offline unexpectedly (workspace crash, network loss)? (Answer: Passive detection via workspace state polling - agent status will transition to "stopped", "failed", or appropriate error state based on workspace build status)
 - What happens when multiple tasks are started on the same agent simultaneously?
 - How does the system detect and report when an agent is stuck (busy for an unusually long time)?
 - What happens when PR metadata fields are provided but the PR URL is invalid or inaccessible?
@@ -115,10 +115,10 @@ A user or controlling system needs to understand what types of agents can be cre
 - **FR-004**: System MUST allow listing all agents showing name, current status, and current task
 - **FR-005**: System MUST provide detailed agent information including name, status, current task, assigned spec, and fleet_mcp metadata fields
 - **FR-006**: System MUST support deleting an agent, which destroys the associated Coder workspace
-- **FR-007**: System MUST track agent status with possible states: "busy", "idle", "offline"
+- **FR-007**: System MUST track agent status using the AgentStatus enum with states: "pending", "starting", "busy", "idle", "stopping", "stopped", "failed", "canceling", "canceled", "deleting", "deleted"
 - **FR-008**: System MUST automatically set agent status to "busy" when working on a task
 - **FR-009**: System MUST automatically set agent status to "idle" when a task completes
-- **FR-010**: System MUST detect and set agent status to "offline" when the Coder workspace or Claude Code instance becomes unavailable
+- **FR-010**: System MUST detect and reflect workspace unavailability through appropriate status states ("stopped", "failed", "stopping", "deleting") when the Coder workspace or Claude Code instance becomes unavailable
 
 #### Task Management
 
@@ -130,9 +130,9 @@ A user or controlling system needs to understand what types of agents can be cre
 - **FR-016**: System MUST record task summary messages sent by Claude Code to the Coder agent API as task history entries
 - **FR-017**: System MUST associate each task history entry with a timestamp
 
-#### Specification Convergence
+#### Spec Convergence
 
-- **FR-018**: System MUST accept a structured specification when creating an agent that defines the agent's objective, context, and expected deliverables
+- **FR-018**: System MUST accept a structured spec when creating an agent that defines the agent's objective, context, and expected deliverables
 - **FR-019**: System MUST store the agent's spec in the fleet_mcp_agent_spec metadata field
 - **FR-020**: System MUST make the agent's spec available for manager agents to verify work alignment with intended outcomes
 
@@ -155,11 +155,11 @@ A user or controlling system needs to understand what types of agents can be cre
 
 ### Key Entities
 
-- **Agent**: Represents a Claude Code instance running inside a Coder devcontainer. Attributes include unique name (short and memorable), current status (busy/idle/offline), assigned role (coder/operator/manager), associated project, assigned spec, current task, and task history.
+- **Agent**: Represents a Claude Code instance running inside a Coder devcontainer. Attributes include unique name (short and memorable), current status (see AgentStatus enum: pending, starting, busy, idle, stopping, stopped, failed, canceling, canceled, deleting, deleted), assigned role (coder/operator/manager), associated project, assigned spec, current task, and task history.
 
 - **Task**: Represents work assigned to an agent. Attributes include task summary message, timestamp, completion status, and source (agent itself, human, or controlling AI). Tasks are what agents converge on to meet their spec.
 
-- **Spec**: A structured specification defining what an agent should accomplish, including objective, context, constraints, and expected deliverables. Acts as the source of truth for verifying agent work alignment.
+- **Spec**: A structured spec defining what an agent should accomplish, including objective, context, constraints, and expected deliverables. Acts as the source of truth for verifying agent work alignment.
 
 - **Role**: Defines the agent's persona and system prompt configuration. Examples include "coder" (default, for writing code), "operator" (for operational tasks), and "manager" (for coordinating and verifying work).
 
@@ -171,11 +171,11 @@ A user or controlling system needs to understand what types of agents can be cre
 
 ### Measurable Outcomes
 
-- **SC-001**: Operators can create a new agent and have it provisioned and ready to accept tasks within 3 minutes
-- **SC-002**: System accurately reflects agent status changes within 5 seconds of state transitions (idle ↔ busy ↔ offline)
+- **SC-001**: Operators can create a new agent and have it provisioned and ready to accept tasks within 3 minutes (measured from MCP tool call to workspace reaching "running" status with agent initialized)
+- **SC-002**: System accurately reflects agent status changes within 5 seconds (measured from Coder workspace state change to MCP server query returning updated status)
 - **SC-003**: Operators can retrieve complete task history for any agent with pagination supporting at least 100 tasks per agent
-- **SC-004**: System successfully provisions agents across at least 2 different projects (Setup, DataOne) using distinct Coder templates
-- **SC-005**: Metadata fields (fleet_mcp_pull_request_url, fleet_mcp_pull_request_status, fleet_mcp_pull_request_check_status, fleet_mcp_agent_spec) are visible in agent details within 5 seconds of being set in Coder workspace
+- **SC-004**: System successfully provisions agents across at least 2 different projects (specifically: Setup and DataOne) using distinct Coder templates
+- **SC-005**: Metadata fields (fleet_mcp_pull_request_url, fleet_mcp_pull_request_status, fleet_mcp_pull_request_check_status, fleet_mcp_agent_spec) are visible in agent details within 5 seconds (measured from metadata update in Coder to MCP show_agent query returning updated metadata)
 - **SC-006**: Agent deletion completes within 2 minutes and successfully removes all associated Coder workspace resources
 - **SC-007**: System supports managing at least 10 concurrent agents without degradation in status monitoring or command response times
 - **SC-008**: Task history pagination returns results in under 1 second for queries up to 1000 total tasks

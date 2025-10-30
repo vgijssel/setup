@@ -23,7 +23,7 @@ Represents a Claude Code instance running in a Coder workspace.
 - `status` (AgentStatus): Current state - see AgentStatus enum for all possible values
 - `role` (str): Agent role - "coder", "operator", or "manager"
 - `project` (str): Project name (e.g., "Setup", "DataOne")
-- `spec` (str): Agent specification defining objectives and constraints
+- `spec` (str): Agent spec defining objectives and constraints
 - `current_task` (str | None): Summary of current task (null if idle)
 - `created_at` (datetime): Workspace creation timestamp
 - `updated_at` (datetime): Last metadata update timestamp
@@ -225,14 +225,14 @@ MCP tool inputs use `Annotated` with `Field()` metadata directly in function sig
 **Parameters** (flat, using Annotated with Field):
 - `name: Annotated[str, Field(description="...")]`: Agent name
 - `project: Annotated[str, Field(description="...")]`: Project name
-- `spec: Annotated[str, Field(description="...")]`: Agent specification
+- `spec: Annotated[str, Field(description="...")]`: Agent spec
 - `role: Annotated[str, Field(description="...")] = "coder"`: Agent role (default: "coder"). Must match a Coder workspace preset name.
 
 **Validation**:
 - Inherits Agent validation rules
 - Additional: name must not already exist
 
-**Note**: When an agent is created, it immediately starts working on the provided spec. The agent begins in "busy" state with `current_task` set to the spec content. Metadata fields (like PR URLs) are not set during creation but can be updated later by modifying the Coder workspace metadata directly.
+**Note**: When an agent is created, it immediately starts working on the provided spec. The agent begins in "pending" → "starting" → "busy" progression with `fleet_mcp_current_task` set to the spec content. Core metadata fields (`fleet_mcp_agent_name`, `fleet_mcp_role`, `fleet_mcp_project`, `fleet_mcp_agent_spec`, `fleet_mcp_current_task`) are set during creation. Optional metadata fields (like PR URLs: `fleet_mcp_pull_request_url`, `fleet_mcp_pull_request_status`, `fleet_mcp_pull_request_check_status`) are not set during creation but can be updated later by modifying the Coder workspace metadata directly.
 
 ### CreateAgentResponse
 
@@ -432,12 +432,16 @@ def agent_from_workspace(workspace: CoderWorkspace) -> Agent:
     metadata = workspace.metadata
 
     # Derive status from workspace state
-    if workspace.latest_build.status != "running":
-        status = AgentStatus.OFFLINE
-    elif metadata.get("fleet_mcp_current_task"):
-        status = AgentStatus.BUSY
+    if workspace.latest_build.status == "running":
+        # Workspace is running - check if agent is busy or idle
+        if metadata.get("fleet_mcp_current_task"):
+            status = AgentStatus.BUSY
+        else:
+            status = AgentStatus.IDLE
     else:
-        status = AgentStatus.IDLE
+        # Workspace not running - map workspace state to agent status
+        # (e.g., "stopped" -> STOPPED, "failed" -> FAILED, "starting" -> STARTING)
+        status = AgentStatus(workspace.latest_build.status)
 
     # Filter metadata to only fleet_mcp_* fields
     fleet_metadata = {
