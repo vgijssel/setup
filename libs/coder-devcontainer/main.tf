@@ -127,9 +127,8 @@ data "coder_parameter" "system_prompt" {
   display_name = "System Prompt"
   type         = "string"
   form_type    = "textarea"
-  description  = "System prompt for the agent with generalized instructions"
+  description  = "System prompt for the agent with generalized instructions (required - select a preset)"
   mutable      = false
-  default      = "You are a helpful assistant that can help with code. You are running inside a Coder Workspace and provide status updates to the user via Coder MCP. Stay on track, feel free to debug, but when the original plan fails, do not choose a different route/architecture without checking the user first."
 }
 
 data "coder_parameter" "ai_prompt" {
@@ -142,7 +141,8 @@ data "coder_parameter" "ai_prompt" {
 
 # Workspace preset for coding agent
 data "coder_workspace_preset" "coder" {
-  name = "Coder"
+  name    = "Coder"
+  default = true
   parameters = {
     system_prompt = <<-EOT
       You are an expert software development assistant specialized in implementing features and fixing bugs.
