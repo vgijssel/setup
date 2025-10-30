@@ -49,6 +49,7 @@ async def test_list_workspaces(coder_base_url, coder_token):
 @pytest.mark.vcr
 async def test_delete_workspace(coder_base_url, coder_token):
     """Test workspace deletion via Coder API"""
+    import asyncio
     client = CoderClient(base_url=coder_base_url, token=coder_token)
 
     # First create a workspace to delete
@@ -61,6 +62,53 @@ async def test_delete_workspace(coder_base_url, coder_token):
     workspace_id = workspace.get("id")
     assert workspace_id is not None
 
+    # Wait for workspace to be in a stable state (not pending/starting)
+    # This prevents 409 Conflict when trying to delete immediately
+    for _ in range(30):
+        ws = await client.get_workspace(workspace_id)
+        status = ws.get("latest_build", {}).get("status")
+        if status not in ["pending", "starting"]:
+            break
+        await asyncio.sleep(2)
+
     # Now delete it
     result = await client.delete_workspace(workspace_id)
     assert result is not None
+
+
+# Test for get_template_version_rich_parameters
+@pytest.mark.vcr
+async def test_get_template_version_rich_parameters(coder_base_url, coder_token):
+    """Test getting rich parameters from a template version"""
+    client = CoderClient(base_url=coder_base_url, token=coder_token)
+
+    # Get coder-devcontainer template
+    templates = await client.list_templates()
+    coder_template = next((t for t in templates if t.get("name") == "coder-devcontainer"), None)
+    assert coder_template is not None, "coder-devcontainer template not found"
+
+    template_id = coder_template.get("id")
+
+    # Get template details to get active version
+    template_details = await client.get_template(template_id)
+    active_version_id = template_details.get("active_version_id")
+    assert active_version_id is not None, "No active version found"
+
+    # Get rich parameters for the active version
+    rich_params = await client.get_template_version_rich_parameters(active_version_id)
+
+    assert isinstance(rich_params, list)
+    assert len(rich_params) > 0, "Template should have rich parameters"
+
+    # Check for required parameters
+    param_names = [p.get("name") for p in rich_params]
+    assert any("ai" in name.lower() and "prompt" in name.lower() for name in param_names), \
+        "Should have ai_prompt or 'AI Prompt' parameter"
+    assert any("system" in name.lower() and "prompt" in name.lower() for name in param_names), \
+        "Should have system_prompt or 'System Prompt' parameter"
+
+    # Verify parameter structure
+    for param in rich_params:
+        assert "name" in param
+        assert "type" in param
+        assert "description" in param or "description_plaintext" in param

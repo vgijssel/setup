@@ -33,7 +33,9 @@ class CoderClient:
         self,
         name: str,
         template_name: str,
-        workspace_preset: str = "coder"
+        workspace_preset: str = "coder",
+        ai_prompt: str | None = None,
+        system_prompt: str | None = None
     ) -> dict[str, Any]:
         """
         Create a new workspace
@@ -42,6 +44,8 @@ class CoderClient:
             name: Workspace name
             template_name: Coder template name
             workspace_preset: Workspace preset name (role)
+            ai_prompt: AI prompt for the workspace (spec)
+            system_prompt: System prompt override (optional)
 
         Returns:
             Workspace data from Coder API
@@ -54,13 +58,73 @@ class CoderClient:
         templates = templates_response.json()
 
         template_id = None
+        template_data = None
         for template in templates:
             if template.get("name") == template_name:
                 template_id = template.get("id")
+                template_data = template
                 break
 
         if not template_id:
             raise ValueError(f"Template '{template_name}' not found")
+
+        # Get template details to get active version ID
+        template_details = await self.get_template(template_id)
+        active_version_id = template_details.get("active_version_id")
+
+        if not active_version_id:
+            raise ValueError(f"Template '{template_name}' has no active version")
+
+        # Get rich parameters from the active template version
+        rich_parameters = await self.get_template_version_rich_parameters(active_version_id)
+        param_names = {param.get("name") for param in rich_parameters}
+
+        # Check for required rich parameters (case-insensitive and handle spaces)
+        has_ai_prompt = any(
+            name.lower().replace(" ", "_") == "ai_prompt"
+            for name in param_names
+        )
+        has_system_prompt = any(
+            name.lower().replace(" ", "_") == "system_prompt"
+            for name in param_names
+        )
+
+        # Find the actual parameter names (may have different casing/spaces)
+        ai_prompt_param_name = next(
+            (name for name in param_names if name.lower().replace(" ", "_") == "ai_prompt"),
+            None
+        )
+        system_prompt_param_name = next(
+            (name for name in param_names if name.lower().replace(" ", "_") == "system_prompt"),
+            None
+        )
+
+        # Validate if ai_prompt or system_prompt are provided but template doesn't support them
+        if ai_prompt is not None and not ai_prompt_param_name:
+            raise ValueError(
+                f"Template '{template_name}' does not have 'ai_prompt' or 'AI Prompt' parameter. "
+                f"Please update the template to include this parameter or set ai_prompt=None."
+            )
+        if system_prompt is not None and not system_prompt_param_name:
+            raise ValueError(
+                f"Template '{template_name}' does not have 'system_prompt' or 'System Prompt' parameter. "
+                f"Please update the template to include this parameter or set system_prompt=None."
+            )
+
+        # Build rich parameter values using the actual parameter names
+        rich_parameter_values = []
+
+        if ai_prompt is not None and ai_prompt_param_name:
+            rich_parameter_values.append({
+                "name": ai_prompt_param_name,
+                "value": ai_prompt
+            })
+
+        if system_prompt is not None and system_prompt_param_name:
+            rich_parameter_values.append({
+                "name": system_prompt_param_name,
+                "value": system_prompt
+            })
 
         # Create workspace
         response = await self.client.post(
@@ -68,7 +132,7 @@ class CoderClient:
             json={
                 "name": name,
                 "template_id": template_id,
-                "rich_parameter_values": []
+                "rich_parameter_values": rich_parameter_values
             }
         )
         response.raise_for_status()
@@ -222,6 +286,22 @@ class CoderClient:
         """
         response = await self.client.get(
             f"{self.base_url}/api/v2/templates/{template_id}"
+        )
+        response.raise_for_status()
+        return response.json()
+
+    async def get_template_version_rich_parameters(self, template_version_id: str) -> list[dict[str, Any]]:
+        """
+        Get rich parameters for a template version
+
+        Args:
+            template_version_id: Template version UUID
+
+        Returns:
+            List of rich parameter definitions with name, type, description, etc.
+        """
+        response = await self.client.get(
+            f"{self.base_url}/api/v2/templateversions/{template_version_id}/rich-parameters"
         )
         response.raise_for_status()
         return response.json()

@@ -37,10 +37,12 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             raise ValueError(f"Agent with name '{name}' already exists")
 
         # Create workspace via Coder API
+        # Pass spec as ai_prompt parameter (required by user)
         workspace = await coder_client.create_workspace(
             name=f"agent-{name}",
             template_name=f"{project.lower()}-devcontainer",
-            workspace_preset=role
+            workspace_preset=role,
+            ai_prompt=spec  # Pass spec as ai_prompt rich parameter
         )
 
         # TODO: Write agent metadata to files in the workspace
@@ -57,8 +59,23 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         #     }
         # )
 
-        # Convert to Agent model
-        agent = Agent.from_workspace(workspace)
+        # Create synthetic metadata for MVP (will be replaced by file-based metadata later)
+        synthetic_metadata = {
+            "fleet_mcp_agent_name": name,
+            "fleet_mcp_role": role,
+            "fleet_mcp_project": project,
+            "fleet_mcp_agent_spec": spec,
+            "fleet_mcp_current_task": spec  # Agent starts working on the spec
+        }
+
+        # Convert to Agent model with synthetic metadata
+        agent = Agent.from_workspace(workspace, agent_metadata={
+            "15_agent_name": name,
+            "13_agent_role": role,
+            "14_agent_project": project,
+            "11_agent_spec": spec,
+            "12_current_task": spec
+        })
 
         return CreateAgentResponse(
             agent=agent,
@@ -108,8 +125,18 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             for resource in workspace_details["latest_build"]["resources"]:
                 if resource.get("agents"):
                     agent_id = resource["agents"][0]["id"]
-                    agent_metadata = await coder_client.get_agent_metadata(agent_id)
+                    try:
+                        agent_metadata = await coder_client.get_agent_metadata(agent_id)
+                    except:
+                        # Agent not fully started yet, metadata not available
+                        pass
                     break
+
+        # If no metadata available yet (agent starting), create synthetic metadata
+        # This is MVP behavior - production will wait for real metadata
+        if not agent_metadata and workspace.get("name", "").startswith("agent-"):
+            name = workspace["name"].replace("agent-", "")
+            agent_metadata = {"15_agent_name": name}
 
         agent = Agent.from_workspace(workspace, agent_metadata)
 
