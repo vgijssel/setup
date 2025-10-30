@@ -162,10 +162,10 @@ def test_project_model_valid():
         display_name="Setup Monorepo",
         description="Infrastructure and tooling monorepo",
         template_id="template-uuid-1",
-        template_name="setup-devcontainer"
+        template_name="coder-devcontainer"
     )
     assert project.name == "Setup"
-    assert project.template_name == "setup-devcontainer"
+    assert project.template_name == "coder-devcontainer"
 
 
 def test_project_name_required():

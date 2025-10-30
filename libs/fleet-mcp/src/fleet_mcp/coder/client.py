@@ -33,17 +33,15 @@ class CoderClient:
         self,
         name: str,
         template_name: str,
-        workspace_preset: str,
-        metadata: dict[str, str]
+        workspace_preset: str = "coder"
     ) -> dict[str, Any]:
         """
-        Create a new workspace with metadata
+        Create a new workspace
 
         Args:
             name: Workspace name
             template_name: Coder template name
             workspace_preset: Workspace preset name (role)
-            metadata: Workspace metadata (fleet_mcp_* fields)
 
         Returns:
             Workspace data from Coder API
@@ -70,8 +68,7 @@ class CoderClient:
             json={
                 "name": name,
                 "template_id": template_id,
-                "rich_parameter_values": [],
-                "metadata": metadata
+                "rich_parameter_values": []
             }
         )
         response.raise_for_status()
@@ -85,7 +82,7 @@ class CoderClient:
             List of workspace data
         """
         response = await self.client.get(
-            f"{self.base_url}/api/v2/users/me/workspaces"
+            f"{self.base_url}/api/v2/workspaces"
         )
         response.raise_for_status()
         workspaces = response.json()
@@ -125,27 +122,23 @@ class CoderClient:
         response.raise_for_status()
         return response.json()
 
-    async def update_workspace_metadata(
+    async def write_agent_metadata(
         self,
         workspace_id: str,
+        agent_name: str,
         metadata: dict[str, str]
-    ) -> dict[str, Any]:
+    ) -> None:
         """
-        Update workspace metadata
+        Write agent metadata by writing to files in the workspace
 
         Args:
             workspace_id: Workspace UUID
-            metadata: Metadata fields to update
-
-        Returns:
-            Updated workspace data
+            agent_name: Agent name (usually "main")
+            metadata: Metadata fields to write (e.g., {"agent_spec": "...", "current_task": "..."})
         """
-        response = await self.client.patch(
-            f"{self.base_url}/api/v2/workspaces/{workspace_id}",
-            json={"metadata": metadata}
-        )
-        response.raise_for_status()
-        return response.json()
+        # This will be implemented later using coder_workspace_bash MCP tool
+        # For now, this is a placeholder
+        pass
 
     async def send_interrupt(self, workspace_id: str) -> dict[str, Any]:
         """
@@ -165,6 +158,44 @@ class CoderClient:
         )
         response.raise_for_status()
         return response.json()
+
+    async def get_agent_metadata(self, agent_id: str) -> dict[str, str]:
+        """
+        Get agent metadata by fetching from watch-metadata endpoint
+
+        Args:
+            agent_id: Agent UUID
+
+        Returns:
+            Dictionary mapping metadata keys to their values
+        """
+        import asyncio
+
+        # Fetch one event from the SSE stream
+        async with self.client.stream(
+            "GET",
+            f"{self.base_url}/api/v2/workspaceagents/{agent_id}/watch-metadata",
+            headers={"Accept": "text/event-stream"},
+            timeout=5.0
+        ) as response:
+            response.raise_for_status()
+
+            # Read until we get the first data event
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    import json
+                    data = json.loads(line[6:])  # Remove "data: " prefix
+
+                    # Parse metadata into key-value dict
+                    metadata = {}
+                    for item in data:
+                        key = item["description"]["key"]
+                        value = item["result"]["value"].strip()
+                        metadata[key] = value
+
+                    return metadata
+
+        return {}
 
     async def list_templates(self) -> list[dict[str, Any]]:
         """

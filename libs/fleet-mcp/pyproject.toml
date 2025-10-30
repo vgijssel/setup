@@ -7,6 +7,7 @@ dependencies = [
     "fastmcp==2.13.0.2",
     "pydantic==2.12.3",
     "httpx==0.28.1",
+    "python-dotenv>=1.2.1",
 ]
 
 [project.optional-dependencies]

@@ -377,6 +377,7 @@ dependencies = [
     { name = "fastmcp" },
     { name = "httpx" },
     { name = "pydantic" },
+    { name = "python-dotenv" },
 ]
 
 [package.optional-dependencies]
@@ -395,6 +396,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = "==7.4.3" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = "==0.21.1" },
     { name = "pytest-vcr", marker = "extra == 'dev'", specifier = "==1.0.2" },
+    { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "ruff", marker = "extra == 'dev'", specifier = "==0.1.8" },
 ]
 provides-extras = ["dev"]

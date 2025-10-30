@@ -12,7 +12,8 @@ from fleet_mcp.models.responses import (
     AgentListResponse,
     AgentSummary,
     AgentDetailsResponse,
-    TaskHistoryResponse
+    TaskHistoryResponse,
+    DeleteAgentResponse
 )
 from datetime import datetime
 
@@ -39,15 +40,22 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         workspace = await coder_client.create_workspace(
             name=f"agent-{name}",
             template_name=f"{project.lower()}-devcontainer",
-            workspace_preset=role,
-            metadata={
-                "fleet_mcp_agent_name": name,
-                "fleet_mcp_role": role,
-                "fleet_mcp_project": project,
-                "fleet_mcp_agent_spec": spec,
-                "fleet_mcp_current_task": spec  # Agent starts working immediately
-            }
+            workspace_preset=role
         )
+
+        # TODO: Write agent metadata to files in the workspace
+        # This will be done using coder_workspace_bash MCP tool
+        # await coder_client.write_agent_metadata(
+        #     workspace["id"],
+        #     "main",
+        #     {
+        #         "agent_name": name,
+        #         "agent_role": role,
+        #         "agent_project": project,
+        #         "agent_spec": spec,
+        #         "current_task": spec
+        #     }
+        # )
 
         # Convert to Agent model
         agent = Agent.from_workspace(workspace)
@@ -91,7 +99,19 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         if not workspace:
             raise ValueError(f"Agent '{agent_name}' not found")
 
-        agent = Agent.from_workspace(workspace)
+        # Get workspace details to find agent ID
+        workspace_details = await coder_client.get_workspace(workspace["id"])
+
+        # Get agent metadata if agent exists
+        agent_metadata = {}
+        if workspace_details.get("latest_build", {}).get("resources"):
+            for resource in workspace_details["latest_build"]["resources"]:
+                if resource.get("agents"):
+                    agent_id = resource["agents"][0]["id"]
+                    agent_metadata = await coder_client.get_agent_metadata(agent_id)
+                    break
+
+        agent = Agent.from_workspace(workspace, agent_metadata)
 
         return AgentDetailsResponse(agent=agent)
 
@@ -125,3 +145,45 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
 
         # Paginate results
         return paginate_task_history(tasks, page, page_size)
+
+    # ========================================================================
+    # User Story 4: Agent Lifecycle Management
+    # ========================================================================
+
+    # T086: delete_agent tool
+    @mcp.tool()
+    async def delete_agent(
+        agent_name: Annotated[str, Field(description="Name of the agent to delete")],
+    ) -> DeleteAgentResponse:
+        """
+        Delete an agent and destroy its Coder workspace.
+
+        This operation is forceful and irreversible. The agent will be deleted
+        even if it is currently busy with a task.
+
+        Errors:
+        - Agent not found (404)
+        - Workspace deletion failed (503)
+        """
+        # T087: Validate agent exists
+        workspace = await get_workspace_by_name(coder_client, agent_name)
+        if not workspace:
+            raise ValueError(f"Agent '{agent_name}' not found")
+
+        workspace_id = workspace["id"]
+        workspace_name = workspace.get("name", agent_name)
+
+        # T088: Forceful deletion - delete even if busy
+        # No status check - we delete regardless of agent state
+        # This is intentional per spec: "Busy agents will be forcefully deleted"
+
+        # Delete the workspace
+        await coder_client.delete_workspace(workspace_id)
+
+        return DeleteAgentResponse(
+            message=f"Agent '{agent_name}' deleted successfully",
+            deleted_agent={
+                "name": agent_name,
+                "workspace_id": workspace_id
+            }
+        )

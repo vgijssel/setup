@@ -1,6 +1,12 @@
 import pytest
 import vcr
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env file from project root
+env_file = Path(__file__).parent.parent / ".env"
+load_dotenv(env_file)
 
 
 @pytest.fixture(scope="module")

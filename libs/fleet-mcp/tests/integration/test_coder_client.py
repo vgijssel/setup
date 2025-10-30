@@ -20,19 +20,13 @@ async def test_create_workspace(coder_base_url, coder_token):
 
     workspace = await client.create_workspace(
         name="test-agent-create",
-        template_name="setup-devcontainer",
-        workspace_preset="coder",
-        metadata={
-            "fleet_mcp_agent_name": "test-agent",
-            "fleet_mcp_role": "coder",
-            "fleet_mcp_project": "Setup",
-            "fleet_mcp_agent_spec": "Test specification"
-        }
+        template_name="coder-devcontainer",
+        workspace_preset="coder"
     )
 
     assert workspace is not None
-    assert "id" in workspace or "name" in workspace
-    assert workspace.get("metadata", {}).get("fleet_mcp_agent_name") == "test-agent"
+    assert "id" in workspace
+    assert workspace.get("name") == "test-agent-create"
 
 
 # T015: Workspace listing test with pytest-vcr
@@ -60,14 +54,8 @@ async def test_delete_workspace(coder_base_url, coder_token):
     # First create a workspace to delete
     workspace = await client.create_workspace(
         name="test-agent-delete",
-        template_name="setup-devcontainer",
-        workspace_preset="coder",
-        metadata={
-            "fleet_mcp_agent_name": "test-delete",
-            "fleet_mcp_role": "coder",
-            "fleet_mcp_project": "Setup",
-            "fleet_mcp_agent_spec": "Delete test"
-        }
+        template_name="coder-devcontainer",
+        workspace_preset="coder"
     )
 
     workspace_id = workspace.get("id")

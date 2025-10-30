@@ -45,9 +45,36 @@ class Agent(BaseModel):
     metadata: dict[str, str] = Field(default_factory=dict)  # Nested metadata with all fleet_mcp_* fields
 
     @staticmethod
-    def from_workspace(workspace: dict[str, Any]) -> "Agent":
-        """Convert Coder workspace to Agent model"""
-        metadata = workspace.get("metadata", {})
+    def from_workspace(workspace: dict[str, Any], agent_metadata: dict[str, str] | None = None) -> "Agent":
+        """
+        Convert Coder workspace to Agent model
+
+        Args:
+            workspace: Workspace data from Coder API
+            agent_metadata: Agent metadata from watch-metadata endpoint (optional)
+        """
+        # Parse agent metadata from watch-metadata endpoint
+        # Metadata keys are like "11_agent_spec", "8_pull_request_url", etc.
+        metadata = {}
+        if agent_metadata:
+            # Map agent metadata keys to fleet_mcp fields
+            key_mapping = {
+                "11_agent_spec": "fleet_mcp_agent_spec",
+                "12_current_task": "fleet_mcp_current_task",
+                "13_agent_role": "fleet_mcp_role",
+                "14_agent_project": "fleet_mcp_project",
+                "15_agent_name": "fleet_mcp_agent_name",
+                "8_pull_request_url": "fleet_mcp_pull_request_url",
+                "9_pull_request_status": "fleet_mcp_pull_request_status",
+                "10_pull_request_check_status": "fleet_mcp_pull_request_check_status",
+            }
+            for key, value in agent_metadata.items():
+                if key in key_mapping and value not in ("n/a", ""):
+                    metadata[key_mapping[key]] = value
+
+        # Extract from workspace name if no metadata (workspace name format: agent-{name})
+        workspace_name = workspace.get("name", "")
+        agent_name = workspace_name.replace("agent-", "") if workspace_name.startswith("agent-") else workspace_name
 
         # Derive status from workspace state
         workspace_status = workspace.get("latest_build", {}).get("status", "unknown")
@@ -80,12 +107,12 @@ class Agent(BaseModel):
         }
 
         return Agent(
-            name=metadata.get("fleet_mcp_agent_name", "unknown"),
+            name=metadata.get("fleet_mcp_agent_name", agent_name or "unknown"),
             workspace_id=workspace.get("id", "unknown"),
             status=status,
             role=metadata.get("fleet_mcp_role", "coder"),
             project=metadata.get("fleet_mcp_project", "unknown"),
-            spec=metadata.get("fleet_mcp_agent_spec", ""),
+            spec=metadata.get("fleet_mcp_agent_spec", "default spec"),
             current_task=current_task,
             created_at=datetime.fromisoformat(workspace.get("created_at", datetime.now().isoformat())),
             updated_at=datetime.fromisoformat(workspace.get("updated_at", datetime.now().isoformat())),
