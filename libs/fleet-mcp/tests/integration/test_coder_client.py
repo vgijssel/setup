@@ -1,4 +1,5 @@
 """Integration tests for Coder API client"""
+
 import pytest
 from fleet_mcp.coder.client import CoderClient
 
@@ -21,7 +22,7 @@ async def test_create_workspace(coder_base_url, coder_token):
     workspace = await client.create_workspace(
         name="test-ws-create-001",
         template_name="coder-devcontainer",
-        workspace_preset="coder"
+        workspace_preset="coder",
     )
 
     assert workspace is not None
@@ -39,8 +40,7 @@ async def test_list_workspaces(coder_base_url, coder_token):
     assert isinstance(workspaces, list)
     # Filter for fleet workspaces
     fleet_workspaces = [
-        ws for ws in workspaces
-        if "fleet_mcp_agent_name" in ws.get("metadata", {})
+        ws for ws in workspaces if "fleet_mcp_agent_name" in ws.get("metadata", {})
     ]
     assert len(fleet_workspaces) >= 0
 
@@ -52,13 +52,14 @@ async def test_delete_workspace(coder_base_url, coder_token, vcr_cassette):
     is_recording = not vcr_cassette.rewound
 
     import asyncio
+
     client = CoderClient(base_url=coder_base_url, token=coder_token)
 
     # First create a workspace to delete
     workspace = await client.create_workspace(
         name="test-ws-delete-001",
         template_name="coder-devcontainer",
-        workspace_preset="coder"
+        workspace_preset="coder",
     )
 
     workspace_id = workspace.get("id")
@@ -66,7 +67,6 @@ async def test_delete_workspace(coder_base_url, coder_token, vcr_cassette):
 
     # Wait for workspace to be fully running before deleting
     # This prevents 409 Conflict when trying to delete too early
-    max_wait = 90  # 90 seconds max wait
     for _ in range(45):
         ws = await client.get_workspace(workspace_id)
         status = ws.get("latest_build", {}).get("status")
@@ -89,7 +89,9 @@ async def test_get_template_version_rich_parameters(coder_base_url, coder_token)
 
     # Get coder-devcontainer template
     templates = await client.list_templates()
-    coder_template = next((t for t in templates if t.get("name") == "coder-devcontainer"), None)
+    coder_template = next(
+        (t for t in templates if t.get("name") == "coder-devcontainer"), None
+    )
     assert coder_template is not None, "coder-devcontainer template not found"
 
     template_id = coder_template.get("id")
@@ -107,10 +109,12 @@ async def test_get_template_version_rich_parameters(coder_base_url, coder_token)
 
     # Check for required parameters
     param_names = [p.get("name") for p in rich_params]
-    assert any("ai" in name.lower() and "prompt" in name.lower() for name in param_names), \
-        "Should have ai_prompt or 'AI Prompt' parameter"
-    assert any("system" in name.lower() and "prompt" in name.lower() for name in param_names), \
-        "Should have system_prompt or 'System Prompt' parameter"
+    assert any(
+        "ai" in name.lower() and "prompt" in name.lower() for name in param_names
+    ), "Should have ai_prompt or 'AI Prompt' parameter"
+    assert any(
+        "system" in name.lower() and "prompt" in name.lower() for name in param_names
+    ), "Should have system_prompt or 'System Prompt' parameter"
 
     # Verify parameter structure
     for param in rich_params:

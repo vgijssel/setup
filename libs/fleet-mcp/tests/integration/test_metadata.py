@@ -1,7 +1,6 @@
 """Integration tests for metadata extraction - User Story 1"""
-import pytest
+
 from fleet_mcp.models.agent import Agent
-from datetime import datetime
 
 
 # T041: Test metadata extraction from workspace
@@ -13,9 +12,7 @@ def test_metadata_extraction_from_workspace():
         "name": "agent-test",
         "created_at": "2025-10-29T10:00:00Z",
         "updated_at": "2025-10-29T11:30:00Z",
-        "latest_build": {
-            "status": "running"
-        }
+        "latest_build": {"status": "running"},
     }
 
     # Mock agent metadata from watch-metadata endpoint
@@ -26,7 +23,7 @@ def test_metadata_extraction_from_workspace():
         "11_agent_spec": "Test specification",
         "12_current_task": "Working on feature",
         "8_pull_request_url": "https://github.com/org/repo/pull/123",
-        "0_cpu_usage": "10%"  # Should be filtered out (not in key_mapping)
+        "0_cpu_usage": "10%",  # Should be filtered out (not in key_mapping)
     }
 
     agent = Agent.from_workspace(workspace, agent_metadata)
@@ -56,16 +53,14 @@ def test_metadata_extraction_idle_agent():
         "name": "agent-idle",
         "created_at": "2025-10-29T10:00:00Z",
         "updated_at": "2025-10-29T11:30:00Z",
-        "latest_build": {
-            "status": "running"
-        },
+        "latest_build": {"status": "running"},
         "metadata": {
             "fleet_mcp_agent_name": "idle-agent",
             "fleet_mcp_role": "coder",
             "fleet_mcp_project": "Setup",
             "fleet_mcp_agent_spec": "Test specification",
-            "fleet_mcp_current_task": None  # No current task
-        }
+            "fleet_mcp_current_task": None,  # No current task
+        },
     }
 
     agent = Agent.from_workspace(workspace)
@@ -82,15 +77,13 @@ def test_metadata_extraction_offline_agent():
         "name": "agent-offline",
         "created_at": "2025-10-29T10:00:00Z",
         "updated_at": "2025-10-29T11:30:00Z",
-        "latest_build": {
-            "status": "stopped"
-        },
+        "latest_build": {"status": "stopped"},
         "metadata": {
             "fleet_mcp_agent_name": "offline-agent",
             "fleet_mcp_role": "operator",
             "fleet_mcp_project": "DataOne",
-            "fleet_mcp_agent_spec": "Test specification"
-        }
+            "fleet_mcp_agent_spec": "Test specification",
+        },
     }
 
     agent = Agent.from_workspace(workspace)
@@ -112,9 +105,7 @@ def test_pr_metadata_extraction():
         "name": "agent-with-pr",
         "created_at": "2025-10-29T10:00:00Z",
         "updated_at": "2025-10-29T11:30:00Z",
-        "latest_build": {
-            "status": "running"
-        }
+        "latest_build": {"status": "running"},
     }
 
     # Mock agent metadata from watch-metadata endpoint
@@ -126,14 +117,17 @@ def test_pr_metadata_extraction():
         "12_current_task": "Creating PR for feature X",
         "8_pull_request_url": "https://github.com/org/repo/pull/456",
         "9_pull_request_status": "open",
-        "10_pull_request_check_status": "passing"
+        "10_pull_request_check_status": "passing",
     }
 
     agent = Agent.from_workspace(workspace, agent_metadata)
 
     # Verify PR metadata is present in agent.metadata
     assert "fleet_mcp_pull_request_url" in agent.metadata
-    assert agent.metadata["fleet_mcp_pull_request_url"] == "https://github.com/org/repo/pull/456"
+    assert (
+        agent.metadata["fleet_mcp_pull_request_url"]
+        == "https://github.com/org/repo/pull/456"
+    )
     assert agent.metadata["fleet_mcp_pull_request_status"] == "open"
     assert agent.metadata["fleet_mcp_pull_request_check_status"] == "passing"
 
@@ -175,9 +169,7 @@ def test_agent_model_metadata_field():
         "name": "agent-metadata",
         "created_at": "2025-10-29T10:00:00Z",
         "updated_at": "2025-10-29T11:30:00Z",
-        "latest_build": {
-            "status": "running"
-        }
+        "latest_build": {"status": "running"},
     }
 
     agent_metadata = {
@@ -185,7 +177,7 @@ def test_agent_model_metadata_field():
         "13_agent_role": "operator",
         "14_agent_project": "DataOne",
         "11_agent_spec": "Test spec",
-        "8_pull_request_url": "https://github.com/org/repo/pull/111"
+        "8_pull_request_url": "https://github.com/org/repo/pull/111",
     }
 
     agent = Agent.from_workspace(workspace, agent_metadata)
@@ -197,7 +189,10 @@ def test_agent_model_metadata_field():
     # Verify all fleet_mcp_* fields are in metadata
     assert agent.metadata["fleet_mcp_agent_name"] == "metadata-agent"
     assert agent.metadata["fleet_mcp_role"] == "operator"
-    assert agent.metadata["fleet_mcp_pull_request_url"] == "https://github.com/org/repo/pull/111"
+    assert (
+        agent.metadata["fleet_mcp_pull_request_url"]
+        == "https://github.com/org/repo/pull/111"
+    )
 
 
 # T076: Test agent spec metadata visibility
@@ -208,9 +203,7 @@ def test_agent_spec_visibility_in_metadata():
         "name": "agent-spec",
         "created_at": "2025-10-29T10:00:00Z",
         "updated_at": "2025-10-29T11:30:00Z",
-        "latest_build": {
-            "status": "running"
-        }
+        "latest_build": {"status": "running"},
     }
 
     agent_metadata = {
@@ -218,7 +211,7 @@ def test_agent_spec_visibility_in_metadata():
         "13_agent_role": "manager",
         "14_agent_project": "Setup",
         "11_agent_spec": "Coordinate team and review PRs",
-        "12_current_task": "Reviewing PR #123"
+        "12_current_task": "Reviewing PR #123",
     }
 
     agent = Agent.from_workspace(workspace, agent_metadata)

@@ -1,12 +1,11 @@
 """Task history and pagination helpers"""
-from fleet_mcp.models.task import Task
+
 from fleet_mcp.models.responses import TaskHistoryResponse
+from fleet_mcp.models.task import Task
 
 
 def paginate_task_history(
-    tasks: list[Task],
-    page: int,
-    page_size: int
+    tasks: list[Task], page: int, page_size: int
 ) -> TaskHistoryResponse:
     """
     Paginate task list
@@ -37,5 +36,5 @@ def paginate_task_history(
         total_count=total_count,
         page=page,
         page_size=page_size,
-        total_pages=total_pages
+        total_pages=total_pages,
     )

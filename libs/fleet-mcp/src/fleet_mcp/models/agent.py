@@ -1,38 +1,42 @@
 """Agent data model and related types"""
+
 from datetime import datetime
 from enum import Enum
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 
 class AgentStatus(str, Enum):
     """Agent status enum representing workspace and task states"""
+
     # Workspace lifecycle states
-    PENDING = "pending"      # Workspace being provisioned
-    STARTING = "starting"    # Workspace starting up
+    PENDING = "pending"  # Workspace being provisioned
+    STARTING = "starting"  # Workspace starting up
 
     # Active states (workspace running)
-    BUSY = "busy"           # Agent working on a task
-    IDLE = "idle"           # Agent ready for work
+    BUSY = "busy"  # Agent working on a task
+    IDLE = "idle"  # Agent ready for work
 
     # Shutdown states
-    STOPPING = "stopping"   # Workspace shutting down
-    STOPPED = "stopped"     # Workspace stopped
+    STOPPING = "stopping"  # Workspace shutting down
+    STOPPED = "stopped"  # Workspace stopped
 
     # Error states
-    FAILED = "failed"       # Workspace operation failed
+    FAILED = "failed"  # Workspace operation failed
 
     # Cancellation states
-    CANCELING = "canceling" # Operation being canceled
-    CANCELED = "canceled"   # Operation was canceled
+    CANCELING = "canceling"  # Operation being canceled
+    CANCELED = "canceled"  # Operation was canceled
 
     # Deletion states
-    DELETING = "deleting"   # Workspace being deleted
-    DELETED = "deleted"     # Workspace deleted
+    DELETING = "deleting"  # Workspace being deleted
+    DELETED = "deleted"  # Workspace deleted
 
 
 class Agent(BaseModel):
     """Agent model representing a Claude Code instance in a Coder workspace"""
+
     name: str = Field(min_length=1, max_length=20, pattern=r"^[a-zA-Z0-9-]+$")
     workspace_id: str
     status: AgentStatus
@@ -42,10 +46,14 @@ class Agent(BaseModel):
     current_task: str | None = None
     created_at: datetime
     updated_at: datetime
-    metadata: dict[str, str] = Field(default_factory=dict)  # Nested metadata with all fleet_mcp_* fields
+    metadata: dict[str, str] = Field(
+        default_factory=dict
+    )  # Nested metadata with all fleet_mcp_* fields
 
     @staticmethod
-    def from_workspace(workspace: dict[str, Any], agent_metadata: dict[str, str] | None = None) -> "Agent":
+    def from_workspace(
+        workspace: dict[str, Any], agent_metadata: dict[str, str] | None = None
+    ) -> "Agent":
         """
         Convert Coder workspace to Agent model
 
@@ -74,7 +82,11 @@ class Agent(BaseModel):
 
         # Extract from workspace name if no metadata (workspace name format: agent-{name})
         workspace_name = workspace.get("name", "")
-        agent_name = workspace_name.replace("agent-", "") if workspace_name.startswith("agent-") else workspace_name
+        agent_name = (
+            workspace_name.replace("agent-", "")
+            if workspace_name.startswith("agent-")
+            else workspace_name
+        )
 
         # Derive status from workspace state
         workspace_status = workspace.get("latest_build", {}).get("status", "unknown")
@@ -114,7 +126,11 @@ class Agent(BaseModel):
             project=metadata.get("fleet_mcp_project", "unknown"),
             spec=metadata.get("fleet_mcp_agent_spec", "default spec"),
             current_task=current_task,
-            created_at=datetime.fromisoformat(workspace.get("created_at", datetime.now().isoformat())),
-            updated_at=datetime.fromisoformat(workspace.get("updated_at", datetime.now().isoformat())),
+            created_at=datetime.fromisoformat(
+                workspace.get("created_at", datetime.now().isoformat())
+            ),
+            updated_at=datetime.fromisoformat(
+                workspace.get("updated_at", datetime.now().isoformat())
+            ),
             metadata=fleet_metadata,
         )

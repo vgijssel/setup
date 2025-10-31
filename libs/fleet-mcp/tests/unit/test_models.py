@@ -1,10 +1,12 @@
 """Unit tests for Pydantic data models"""
-import pytest
+
 from datetime import datetime
+
+import pytest
 from fleet_mcp.models.agent import Agent, AgentStatus
-from fleet_mcp.models.task import Task
-from fleet_mcp.models.role import Role
 from fleet_mcp.models.project import Project
+from fleet_mcp.models.role import Role
+from fleet_mcp.models.task import Task
 
 
 # T008: AgentStatus enum tests
@@ -37,7 +39,7 @@ def test_agent_model_valid():
         current_task=None,
         created_at=now,
         updated_at=now,
-        metadata={"fleet_mcp_agent_spec": "Test spec"}
+        metadata={"fleet_mcp_agent_spec": "Test spec"},
     )
     assert agent.name == "papi"
     assert agent.status == AgentStatus.IDLE
@@ -57,7 +59,7 @@ def test_agent_name_validation_empty():
             spec="Test",
             created_at=now,
             updated_at=now,
-            metadata={}
+            metadata={},
         )
 
 
@@ -74,7 +76,7 @@ def test_agent_name_validation_too_long():
             spec="Test",
             created_at=now,
             updated_at=now,
-            metadata={}
+            metadata={},
         )
 
 
@@ -91,7 +93,7 @@ def test_agent_name_validation_invalid_chars():
             spec="Test",
             created_at=now,
             updated_at=now,
-            metadata={}
+            metadata={},
         )
 
 
@@ -102,7 +104,7 @@ def test_task_model_valid():
         message="Implementing OAuth2 authentication",
         uri="https://github.com/org/repo/tree/feature/oauth",
         needs_user_attention=False,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
     assert task.message == "Implementing OAuth2 authentication"
     assert task.needs_user_attention is False
@@ -115,7 +117,7 @@ def test_task_message_required():
             message="",  # Empty message
             uri="https://github.com/org/repo",
             needs_user_attention=False,
-            created_at=datetime.now()
+            created_at=datetime.now(),
         )
 
 
@@ -125,7 +127,7 @@ def test_task_uri_format():
         message="Test task",
         uri="https://github.com/org/repo/pull/123",
         needs_user_attention=True,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
     assert task.uri.startswith("https://")
 
@@ -137,7 +139,7 @@ def test_role_model_valid():
         name="coder",
         display_name="Software Engineer",
         description="Writes code, implements features, fixes bugs",
-        template_id="template-uuid-1"
+        template_id="template-uuid-1",
     )
     assert role.name == "coder"
     assert role.display_name == "Software Engineer"
@@ -150,7 +152,7 @@ def test_role_name_required():
             name="",  # Empty name
             display_name="Test",
             description="Test",
-            template_id="uuid"
+            template_id="uuid",
         )
 
 
@@ -162,7 +164,7 @@ def test_project_model_valid():
         display_name="Setup Monorepo",
         description="Infrastructure and tooling monorepo",
         template_id="template-uuid-1",
-        template_name="coder-devcontainer"
+        template_name="coder-devcontainer",
     )
     assert project.name == "Setup"
     assert project.template_name == "coder-devcontainer"
@@ -176,5 +178,5 @@ def test_project_name_required():
             display_name="Test",
             description="Test",
             template_id="uuid",
-            template_name="test"
+            template_name="test",
         )

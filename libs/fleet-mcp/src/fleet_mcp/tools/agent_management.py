@@ -1,22 +1,27 @@
 """Agent management MCP tools"""
+
+from datetime import datetime
 from typing import Annotated
+
 from fastmcp import FastMCP
-from pydantic import Field
 from fleet_mcp.coder.client import CoderClient
-from fleet_mcp.coder.workspaces import get_workspace_by_name
+from fleet_mcp.coder.discovery import (
+    get_valid_fleet_mcp_project_names,
+    is_valid_fleet_mcp_project,
+)
 from fleet_mcp.coder.tasks import paginate_task_history
-from fleet_mcp.coder.discovery import is_valid_fleet_mcp_project, get_valid_fleet_mcp_project_names
-from fleet_mcp.models.agent import Agent, AgentStatus
-from fleet_mcp.models.task import Task
+from fleet_mcp.coder.workspaces import get_workspace_by_name
+from fleet_mcp.models.agent import Agent
 from fleet_mcp.models.responses import (
-    CreateAgentResponse,
+    AgentDetailsResponse,
     AgentListResponse,
     AgentSummary,
-    AgentDetailsResponse,
+    CreateAgentResponse,
+    DeleteAgentResponse,
     TaskHistoryResponse,
-    DeleteAgentResponse
 )
-from datetime import datetime
+from fleet_mcp.models.task import Task
+from pydantic import Field
 
 
 def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
@@ -25,10 +30,24 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
     # T048: create_agent tool
     @mcp.tool()
     async def create_agent(
-        name: Annotated[str, Field(description="Unique short agent name (e.g., Sony, Papi)")],
-        project: Annotated[str, Field(description="Project name (e.g., Setup, DataOne)")],
-        spec: Annotated[str, Field(description="Agent specification defining objectives and constraints")],
-        role: Annotated[str, Field(description="Agent role matching Coder workspace preset (e.g., coder, operator, manager)")] = "coder",
+        name: Annotated[
+            str, Field(description="Unique short agent name (e.g., Sony, Papi)")
+        ],
+        project: Annotated[
+            str, Field(description="Project name (e.g., Setup, DataOne)")
+        ],
+        spec: Annotated[
+            str,
+            Field(
+                description="Agent specification defining objectives and constraints"
+            ),
+        ],
+        role: Annotated[
+            str,
+            Field(
+                description="Agent role matching Coder workspace preset (e.g., coder, operator, manager)"
+            ),
+        ] = "coder",
     ) -> CreateAgentResponse:
         """Create a new Claude Code agent in a Coder workspace"""
 
@@ -53,7 +72,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             name=f"agent-{name}",
             template_name=project,
             workspace_preset=role,
-            ai_prompt=spec  # Pass spec as ai_prompt rich parameter
+            ai_prompt=spec,  # Pass spec as ai_prompt rich parameter
         )
 
         # TODO: Write agent metadata to files in the workspace
@@ -71,26 +90,21 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         # )
 
         # Create synthetic metadata for MVP (will be replaced by file-based metadata later)
-        synthetic_metadata = {
-            "fleet_mcp_agent_name": name,
-            "fleet_mcp_role": role,
-            "fleet_mcp_project": project,
-            "fleet_mcp_agent_spec": spec,
-            "fleet_mcp_current_task": spec  # Agent starts working on the spec
-        }
 
         # Convert to Agent model with synthetic metadata
-        agent = Agent.from_workspace(workspace, agent_metadata={
-            "15_agent_name": name,
-            "13_agent_role": role,
-            "14_agent_project": project,
-            "11_agent_spec": spec,
-            "12_current_task": spec
-        })
+        agent = Agent.from_workspace(
+            workspace,
+            agent_metadata={
+                "15_agent_name": name,
+                "13_agent_role": role,
+                "14_agent_project": project,
+                "11_agent_spec": spec,
+                "12_current_task": spec,
+            },
+        )
 
         return CreateAgentResponse(
-            agent=agent,
-            message=f"Agent '{name}' created successfully"
+            agent=agent, message=f"Agent '{name}' created successfully"
         )
 
     # T049: list_agents tool
@@ -119,19 +133,18 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             if template_name in valid_project_names:
                 try:
                     agent = Agent.from_workspace(ws)
-                    agents.append(AgentSummary(
-                        name=agent.name,
-                        status=agent.status.value,
-                        current_task=agent.current_task
-                    ))
+                    agents.append(
+                        AgentSummary(
+                            name=agent.name,
+                            status=agent.status.value,
+                            current_task=agent.current_task,
+                        )
+                    )
                 except Exception:
                     # Skip workspaces that fail to convert to Agent
                     continue
 
-        return AgentListResponse(
-            agents=agents,
-            total_count=len(agents)
-        )
+        return AgentListResponse(agents=agents, total_count=len(agents))
 
     # T050: show_agent tool
     @mcp.tool()
@@ -155,7 +168,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                     agent_id = resource["agents"][0]["id"]
                     try:
                         agent_metadata = await coder_client.get_agent_metadata(agent_id)
-                    except:
+                    except Exception:
                         # Agent not fully started yet, metadata not available
                         pass
                     break
@@ -175,7 +188,9 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
     async def show_agent_task_history(
         agent_name: Annotated[str, Field(description="Agent name to query")],
         page: Annotated[int, Field(description="Page number (1-indexed)", ge=1)] = 1,
-        page_size: Annotated[int, Field(description="Items per page (max 100)", ge=1, le=100)] = 20,
+        page_size: Annotated[
+            int, Field(description="Items per page (max 100)", ge=1, le=100)
+        ] = 20,
     ) -> TaskHistoryResponse:
         """Show paginated task history for an agent"""
         workspace = await get_workspace_by_name(coder_client, agent_name)
@@ -191,12 +206,16 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         task_data = workspace_details.get("tasks", [])
         tasks = []
         for task_item in task_data:
-            tasks.append(Task(
-                message=task_item.get("message", ""),
-                uri=task_item.get("uri", ""),
-                needs_user_attention=task_item.get("needs_user_attention", False),
-                created_at=datetime.fromisoformat(task_item.get("created_at", datetime.now().isoformat()))
-            ))
+            tasks.append(
+                Task(
+                    message=task_item.get("message", ""),
+                    uri=task_item.get("uri", ""),
+                    needs_user_attention=task_item.get("needs_user_attention", False),
+                    created_at=datetime.fromisoformat(
+                        task_item.get("created_at", datetime.now().isoformat())
+                    ),
+                )
+            )
 
         # Paginate results
         return paginate_task_history(tasks, page, page_size)
@@ -226,7 +245,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             raise ValueError(f"Agent '{agent_name}' not found")
 
         workspace_id = workspace["id"]
-        workspace_name = workspace.get("name", agent_name)
+        workspace.get("name", agent_name)
 
         # T088: Forceful deletion - delete even if busy
         # No status check - we delete regardless of agent state
@@ -237,8 +256,5 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
 
         return DeleteAgentResponse(
             message=f"Agent '{agent_name}' deleted successfully",
-            deleted_agent={
-                "name": agent_name,
-                "workspace_id": workspace_id
-            }
+            deleted_agent={"name": agent_name, "workspace_id": workspace_id},
         )

@@ -1,9 +1,13 @@
 """Helper functions for discovering valid fleet-mcp projects and roles"""
+
 from typing import Any
+
 from fleet_mcp.coder.client import CoderClient
 
 
-async def get_valid_fleet_mcp_projects(coder_client: CoderClient) -> list[dict[str, Any]]:
+async def get_valid_fleet_mcp_projects(
+    coder_client: CoderClient,
+) -> list[dict[str, Any]]:
     """
     Get all valid fleet-mcp projects from Coder templates.
 
@@ -39,10 +43,11 @@ async def get_valid_fleet_mcp_projects(coder_client: CoderClient) -> list[dict[s
                 continue
 
             # Get rich parameters
-            rich_params = await coder_client.get_template_version_rich_parameters(active_version_id)
+            rich_params = await coder_client.get_template_version_rich_parameters(
+                active_version_id
+            )
             param_names = {
-                param.get("name", "").lower().replace(" ", "_")
-                for param in rich_params
+                param.get("name", "").lower().replace(" ", "_") for param in rich_params
             }
 
             # Check for required parameters (case-insensitive with space handling)
@@ -73,7 +78,9 @@ async def get_valid_fleet_mcp_project_names(coder_client: CoderClient) -> set[st
     return {project.get("name") for project in projects if project.get("name")}
 
 
-async def is_valid_fleet_mcp_project(coder_client: CoderClient, project_name: str) -> bool:
+async def is_valid_fleet_mcp_project(
+    coder_client: CoderClient, project_name: str
+) -> bool:
     """
     Check if a project name is a valid fleet-mcp project.
 

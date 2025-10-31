@@ -1,5 +1,7 @@
 """Entry point for running the Fleet MCP server"""
+
 import os
+
 from dotenv import load_dotenv
 from fleet_mcp.server import create_mcp_server
 

@@ -1,6 +1,8 @@
 """Coder API client for workspace management"""
-import httpx
+
 from typing import Any
+
+import httpx
 
 
 class CoderClient:
@@ -17,8 +19,7 @@ class CoderClient:
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.client = httpx.AsyncClient(
-            headers={"Coder-Session-Token": token},
-            timeout=30.0
+            headers={"Coder-Session-Token": token}, timeout=30.0
         )
 
     async def __aenter__(self):
@@ -35,7 +36,7 @@ class CoderClient:
         template_name: str,
         workspace_preset: str = "coder",
         ai_prompt: str | None = None,
-        system_prompt: str | None = None
+        system_prompt: str | None = None,
     ) -> dict[str, Any]:
         """
         Create a new workspace
@@ -51,18 +52,14 @@ class CoderClient:
             Workspace data from Coder API
         """
         # Get template ID first
-        templates_response = await self.client.get(
-            f"{self.base_url}/api/v2/templates"
-        )
+        templates_response = await self.client.get(f"{self.base_url}/api/v2/templates")
         templates_response.raise_for_status()
         templates = templates_response.json()
 
         template_id = None
-        template_data = None
         for template in templates:
             if template.get("name") == template_name:
                 template_id = template.get("id")
-                template_data = template
                 break
 
         if not template_id:
@@ -76,27 +73,27 @@ class CoderClient:
             raise ValueError(f"Template '{template_name}' has no active version")
 
         # Get rich parameters from the active template version
-        rich_parameters = await self.get_template_version_rich_parameters(active_version_id)
+        rich_parameters = await self.get_template_version_rich_parameters(
+            active_version_id
+        )
         param_names = {param.get("name") for param in rich_parameters}
-
-        # Check for required rich parameters (case-insensitive and handle spaces)
-        has_ai_prompt = any(
-            name.lower().replace(" ", "_") == "ai_prompt"
-            for name in param_names
-        )
-        has_system_prompt = any(
-            name.lower().replace(" ", "_") == "system_prompt"
-            for name in param_names
-        )
 
         # Find the actual parameter names (may have different casing/spaces)
         ai_prompt_param_name = next(
-            (name for name in param_names if name.lower().replace(" ", "_") == "ai_prompt"),
-            None
+            (
+                name
+                for name in param_names
+                if name.lower().replace(" ", "_") == "ai_prompt"
+            ),
+            None,
         )
         system_prompt_param_name = next(
-            (name for name in param_names if name.lower().replace(" ", "_") == "system_prompt"),
-            None
+            (
+                name
+                for name in param_names
+                if name.lower().replace(" ", "_") == "system_prompt"
+            ),
+            None,
         )
 
         # Validate if ai_prompt or system_prompt are provided but template doesn't support them
@@ -115,16 +112,14 @@ class CoderClient:
         rich_parameter_values = []
 
         if ai_prompt is not None and ai_prompt_param_name:
-            rich_parameter_values.append({
-                "name": ai_prompt_param_name,
-                "value": ai_prompt
-            })
+            rich_parameter_values.append(
+                {"name": ai_prompt_param_name, "value": ai_prompt}
+            )
 
         if system_prompt is not None and system_prompt_param_name:
-            rich_parameter_values.append({
-                "name": system_prompt_param_name,
-                "value": system_prompt
-            })
+            rich_parameter_values.append(
+                {"name": system_prompt_param_name, "value": system_prompt}
+            )
 
         # Create workspace
         response = await self.client.post(
@@ -132,8 +127,8 @@ class CoderClient:
             json={
                 "name": name,
                 "template_id": template_id,
-                "rich_parameter_values": rich_parameter_values
-            }
+                "rich_parameter_values": rich_parameter_values,
+            },
         )
         response.raise_for_status()
         return response.json()
@@ -145,12 +140,14 @@ class CoderClient:
         Returns:
             List of workspace data
         """
-        response = await self.client.get(
-            f"{self.base_url}/api/v2/workspaces"
-        )
+        response = await self.client.get(f"{self.base_url}/api/v2/workspaces")
         response.raise_for_status()
         workspaces = response.json()
-        return workspaces.get("workspaces", []) if isinstance(workspaces, dict) else workspaces
+        return (
+            workspaces.get("workspaces", [])
+            if isinstance(workspaces, dict)
+            else workspaces
+        )
 
     async def get_workspace(self, workspace_id: str) -> dict[str, Any]:
         """
@@ -181,16 +178,13 @@ class CoderClient:
         # Trigger workspace deletion by creating a delete build
         response = await self.client.post(
             f"{self.base_url}/api/v2/workspaces/{workspace_id}/builds",
-            json={"transition": "delete"}
+            json={"transition": "delete"},
         )
         response.raise_for_status()
         return response.json()
 
     async def write_agent_metadata(
-        self,
-        workspace_id: str,
-        agent_name: str,
-        metadata: dict[str, str]
+        self, workspace_id: str, agent_name: str, metadata: dict[str, str]
     ) -> None:
         """
         Write agent metadata by writing to files in the workspace
@@ -203,6 +197,30 @@ class CoderClient:
         # This will be implemented later using coder_workspace_bash MCP tool
         # For now, this is a placeholder
         pass
+
+    async def update_workspace_metadata(
+        self, workspace_id: str, metadata_updates: dict[str, str | None]
+    ) -> dict[str, Any]:
+        """
+        Update workspace metadata fields (implementation note: Coder API doesn't support PATCH,
+        so we need to use the write_agent_metadata approach via workspace files)
+
+        Args:
+            workspace_id: Workspace UUID
+            metadata_updates: Metadata fields to update (None values clear the field)
+
+        Returns:
+            Updated workspace data
+        """
+        # Get agent name from workspace metadata
+        # For fleet-mcp agents, agent_name is typically "main"
+        agent_name = "main"
+
+        # Use write_agent_metadata to update the files
+        await self.write_agent_metadata(workspace_id, agent_name, metadata_updates)
+
+        # Return updated workspace
+        return await self.get_workspace(workspace_id)
 
     async def send_interrupt(self, workspace_id: str) -> dict[str, Any]:
         """
@@ -218,7 +236,7 @@ class CoderClient:
         # The interrupt is sent via POST to messages endpoint with escape sequence
         response = await self.client.post(
             f"{self.base_url}/api/v2/workspaces/{workspace_id}/messages",
-            json={"content": "\u001b", "type": "raw"}
+            json={"content": "\u001b", "type": "raw"},
         )
         response.raise_for_status()
         return response.json()
@@ -233,14 +251,13 @@ class CoderClient:
         Returns:
             Dictionary mapping metadata keys to their values
         """
-        import asyncio
 
         # Fetch one event from the SSE stream
         async with self.client.stream(
             "GET",
             f"{self.base_url}/api/v2/workspaceagents/{agent_id}/watch-metadata",
             headers={"Accept": "text/event-stream"},
-            timeout=5.0
+            timeout=5.0,
         ) as response:
             response.raise_for_status()
 
@@ -248,6 +265,7 @@ class CoderClient:
             async for line in response.aiter_lines():
                 if line.startswith("data: "):
                     import json
+
                     data = json.loads(line[6:])  # Remove "data: " prefix
 
                     # Parse metadata into key-value dict
@@ -268,9 +286,7 @@ class CoderClient:
         Returns:
             List of template data
         """
-        response = await self.client.get(
-            f"{self.base_url}/api/v2/templates"
-        )
+        response = await self.client.get(f"{self.base_url}/api/v2/templates")
         response.raise_for_status()
         return response.json()
 
@@ -290,7 +306,9 @@ class CoderClient:
         response.raise_for_status()
         return response.json()
 
-    async def get_template_version_rich_parameters(self, template_version_id: str) -> list[dict[str, Any]]:
+    async def get_template_version_rich_parameters(
+        self, template_version_id: str
+    ) -> list[dict[str, Any]]:
         """
         Get rich parameters for a template version
 

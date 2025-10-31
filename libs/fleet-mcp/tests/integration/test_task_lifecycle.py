@@ -1,8 +1,9 @@
 """Integration tests for task lifecycle management - User Story 2"""
-import pytest
+
 from datetime import datetime
+
+import pytest
 from fleet_mcp.coder.client import CoderClient
-from fleet_mcp.models.agent import AgentStatus
 
 
 # T060: Test task status transitions
@@ -21,8 +22,8 @@ async def test_task_status_transitions(coder_base_url, coder_token):
             "fleet_mcp_role": "coder",
             "fleet_mcp_project": "Setup",
             "fleet_mcp_agent_spec": "Initial task specification",
-            "fleet_mcp_current_task": "Initial task specification"
-        }
+            "fleet_mcp_current_task": "Initial task specification",
+        },
     }
 
     workspace = await client.create_workspace(**workspace_data)
@@ -30,12 +31,13 @@ async def test_task_status_transitions(coder_base_url, coder_token):
 
     # Check initial status (should be pending/starting/busy depending on timing)
     workspace = await client.get_workspace(workspace_id)
-    assert workspace["metadata"]["fleet_mcp_current_task"] == "Initial task specification"
+    assert (
+        workspace["metadata"]["fleet_mcp_current_task"] == "Initial task specification"
+    )
 
     # Simulate task completion by clearing current_task
     await client.update_workspace_metadata(
-        workspace_id,
-        {"fleet_mcp_current_task": None}
+        workspace_id, {"fleet_mcp_current_task": None}
     )
 
     # Check status transitioned to idle
@@ -44,8 +46,7 @@ async def test_task_status_transitions(coder_base_url, coder_token):
 
     # Start new task
     await client.update_workspace_metadata(
-        workspace_id,
-        {"fleet_mcp_current_task": "New task description"}
+        workspace_id, {"fleet_mcp_current_task": "New task description"}
     )
 
     # Check status transitioned back to busy
@@ -60,7 +61,6 @@ async def test_task_status_transitions(coder_base_url, coder_token):
 # T061: Test agent status derivation (busy/idle)
 async def test_agent_status_derivation(coder_base_url, coder_token):
     """Test that agent status is correctly derived from workspace state and current_task"""
-    from fleet_mcp.models.agent import Agent
 
     # Mock workspace data for different scenarios
 
@@ -68,18 +68,16 @@ async def test_agent_status_derivation(coder_base_url, coder_token):
     workspace_busy = {
         "id": "test-ws-1",
         "name": "agent-busy",
-        "latest_build": {
-            "status": "running"
-        },
+        "latest_build": {"status": "running"},
         "metadata": {
             "fleet_mcp_agent_name": "busy-agent",
             "fleet_mcp_role": "coder",
             "fleet_mcp_project": "Setup",
             "fleet_mcp_agent_spec": "Test spec",
-            "fleet_mcp_current_task": "Working on something"
+            "fleet_mcp_current_task": "Working on something",
         },
         "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat()
+        "updated_at": datetime.now().isoformat(),
     }
 
     # Note: agent_from_workspace will be implemented in T069
@@ -94,18 +92,16 @@ async def test_agent_status_derivation(coder_base_url, coder_token):
     workspace_idle = {
         "id": "test-ws-2",
         "name": "agent-idle",
-        "latest_build": {
-            "status": "running"
-        },
+        "latest_build": {"status": "running"},
         "metadata": {
             "fleet_mcp_agent_name": "idle-agent",
             "fleet_mcp_role": "coder",
             "fleet_mcp_project": "Setup",
             "fleet_mcp_agent_spec": "Test spec",
-            "fleet_mcp_current_task": None
+            "fleet_mcp_current_task": None,
         },
         "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat()
+        "updated_at": datetime.now().isoformat(),
     }
 
     # If workspace is running and has no current_task, status should be idle
@@ -117,18 +113,16 @@ async def test_agent_status_derivation(coder_base_url, coder_token):
     workspace_offline = {
         "id": "test-ws-3",
         "name": "agent-offline",
-        "latest_build": {
-            "status": "stopped"
-        },
+        "latest_build": {"status": "stopped"},
         "metadata": {
             "fleet_mcp_agent_name": "offline-agent",
             "fleet_mcp_role": "coder",
             "fleet_mcp_project": "Setup",
             "fleet_mcp_agent_spec": "Test spec",
-            "fleet_mcp_current_task": None
+            "fleet_mcp_current_task": None,
         },
         "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat()
+        "updated_at": datetime.now().isoformat(),
     }
 
     # If workspace is not running, status should match workspace build status

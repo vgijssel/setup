@@ -1,12 +1,14 @@
 """Discovery MCP tools for roles and projects"""
+
 from typing import Annotated
+
 from fastmcp import FastMCP
-from pydantic import Field
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.coder.discovery import get_valid_fleet_mcp_projects
-from fleet_mcp.models.responses import ListProjectsResponse, ListRolesResponse
 from fleet_mcp.models.project import Project
+from fleet_mcp.models.responses import ListProjectsResponse, ListRolesResponse
 from fleet_mcp.models.role import Role
+from pydantic import Field
 
 
 def register_discovery_tools(mcp: FastMCP, coder_client: CoderClient):
@@ -33,7 +35,7 @@ def register_discovery_tools(mcp: FastMCP, coder_client: CoderClient):
                 display_name=template.get("display_name", ""),
                 description=template.get("description", ""),
                 template_id=template.get("id", ""),
-                template_name=template.get("name", "")
+                template_name=template.get("name", ""),
             )
             projects.append(project)
 
@@ -79,18 +81,20 @@ def register_discovery_tools(mcp: FastMCP, coder_client: CoderClient):
                 name=preset.get("name", ""),
                 display_name=preset.get("display_name", preset.get("name", "")),
                 description=preset.get("description", ""),
-                template_id=template_id
+                template_id=template_id,
             )
             roles.append(role)
 
         # If no workspace presets are defined, provide a default "coder" role
         # This ensures the system is still usable even without preset configuration
         if not roles:
-            roles.append(Role(
-                name="coder",
-                display_name="Software Engineer",
-                description="Default role for writing code and implementing features",
-                template_id=template_id
-            ))
+            roles.append(
+                Role(
+                    name="coder",
+                    display_name="Software Engineer",
+                    description="Default role for writing code and implementing features",
+                    template_id=template_id,
+                )
+            )
 
         return ListRolesResponse(roles=roles)

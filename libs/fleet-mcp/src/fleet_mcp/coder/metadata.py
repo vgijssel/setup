@@ -1,4 +1,5 @@
 """Metadata helper functions"""
+
 from typing import Any
 
 

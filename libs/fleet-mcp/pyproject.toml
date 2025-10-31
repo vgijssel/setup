@@ -4,10 +4,10 @@ version = "0.1.0"
 description = "MCP server for managing Claude Code agent fleet in Coder"
 requires-python = ">=3.12"
 dependencies = [
-    "fastmcp==2.13.0.2",
-    "pydantic==2.12.3",
-    "httpx==0.28.1",
-    "python-dotenv>=1.2.1",
+  "fastmcp==2.13.0.2",
+  "pydantic==2.12.3",
+  "httpx==0.28.1",
+  "python-dotenv>=1.2.1",
 ]
 
 [project.scripts]
@@ -15,10 +15,10 @@ fleet-mcp = "fleet_mcp.__main__:main"
 
 [project.optional-dependencies]
 dev = [
-    "pytest==7.4.3",
-    "pytest-vcr==1.0.2",
-    "pytest-asyncio==0.21.1",
-    "ruff==0.1.8",
+  "pytest==7.4.3",
+  "pytest-vcr==1.0.2",
+  "pytest-asyncio==0.21.1",
+  "ruff==0.1.8",
 ]
 
 [build-system]

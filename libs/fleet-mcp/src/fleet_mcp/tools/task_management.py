@@ -1,12 +1,14 @@
 """Task lifecycle management tools for Fleet MCP Server - User Story 2"""
+
+from datetime import datetime
 from typing import Annotated
+
 from fastmcp import FastMCP
-from pydantic import Field
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.coder.workspaces import get_workspace_by_name
-from fleet_mcp.models.responses import StartTaskResponse, CancelTaskResponse
+from fleet_mcp.models.responses import CancelTaskResponse, StartTaskResponse
 from fleet_mcp.models.task import Task
-from datetime import datetime
+from pydantic import Field
 
 
 def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
@@ -14,8 +16,12 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
 
     @mcp.tool()
     async def start_agent_task(
-        agent_name: Annotated[str, Field(description="Name of the agent to assign the task to")],
-        task_description: Annotated[str, Field(description="Description of the task to be performed")],
+        agent_name: Annotated[
+            str, Field(description="Name of the agent to assign the task to")
+        ],
+        task_description: Annotated[
+            str, Field(description="Description of the task to be performed")
+        ],
     ) -> StartTaskResponse:
         """
         Start a new task on an agent.
@@ -58,8 +64,7 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
 
         # Update workspace metadata to set current_task
         await coder_client.update_workspace_metadata(
-            workspace_id,
-            {"fleet_mcp_current_task": task_description}
+            workspace_id, {"fleet_mcp_current_task": task_description}
         )
 
         # Create task record
@@ -67,18 +72,20 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
             message=task_description,
             uri="",  # URI can be set later by the agent
             needs_user_attention=False,
-            created_at=datetime.now()
+            created_at=datetime.now(),
         )
 
         return StartTaskResponse(
             task=task,
             agent_status="busy",
-            message=f"Task started successfully on agent '{agent_name}'"
+            message=f"Task started successfully on agent '{agent_name}'",
         )
 
     @mcp.tool()
     async def cancel_agent_task(
-        agent_name: Annotated[str, Field(description="Name of the agent whose task should be canceled")],
+        agent_name: Annotated[
+            str, Field(description="Name of the agent whose task should be canceled")
+        ],
     ) -> CancelTaskResponse:
         """
         Cancel the currently running task on an agent.
@@ -102,17 +109,14 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
         # T068: Validate agent is busy (has a current task)
         current_task = workspace.get("metadata", {}).get("fleet_mcp_current_task")
         if not current_task:
-            raise ValueError(
-                f"Agent '{agent_name}' is not busy. No task to cancel."
-            )
+            raise ValueError(f"Agent '{agent_name}' is not busy. No task to cancel.")
 
         # Send interrupt signal to agent
         await coder_client.send_interrupt(workspace_id)
 
         # Clear current_task metadata to transition agent to idle
         await coder_client.update_workspace_metadata(
-            workspace_id,
-            {"fleet_mcp_current_task": None}
+            workspace_id, {"fleet_mcp_current_task": None}
         )
 
         # Create task record for the canceled task
@@ -120,11 +124,11 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
             message=f"{current_task} - canceled",
             uri="",
             needs_user_attention=False,
-            created_at=datetime.now()
+            created_at=datetime.now(),
         )
 
         return CancelTaskResponse(
             task=task,
             agent_status="idle",
-            message=f"Task canceled successfully on agent '{agent_name}'"
+            message=f"Task canceled successfully on agent '{agent_name}'",
         )

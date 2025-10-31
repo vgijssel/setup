@@ -1,12 +1,8 @@
-import pytest
-import vcr
 import os
-import uuid
-import asyncio
 from pathlib import Path
+
+import pytest
 from dotenv import load_dotenv
-from fleet_mcp.coder.client import CoderClient
-from fleet_mcp.coder.workspaces import get_workspace_by_name
 
 # Load .env file from project root
 env_file = Path(__file__).parent.parent / ".env"
@@ -17,7 +13,12 @@ load_dotenv(env_file)
 def vcr_config():
     """Configure VCR for all tests with environment variable redaction"""
     return {
-        "filter_headers": ["authorization", "cookie", "x-coder-session-token", "coder-session-token"],
+        "filter_headers": [
+            "authorization",
+            "cookie",
+            "x-coder-session-token",
+            "coder-session-token",
+        ],
         "before_record_response": _redact_secrets,
         "before_record_request": _redact_secrets_from_request,
         "record_mode": "once",  # Only record once, don't overwrite
@@ -37,7 +38,9 @@ def _redact_secrets(response):
         "NX_KEY": os.getenv("NX_KEY", ""),
         "OP_SERVICE_ACCOUNT_TOKEN": os.getenv("OP_SERVICE_ACCOUNT_TOKEN", ""),
         "CLAUDE_CODE_OAUTH_TOKEN": os.getenv("CLAUDE_CODE_OAUTH_TOKEN", ""),
-        "CODER_SESSION_TOKEN": os.getenv("CODER_TOKEN", ""),  # Note: CODER_TOKEN is the env var
+        "CODER_SESSION_TOKEN": os.getenv(
+            "CODER_TOKEN", ""
+        ),  # Note: CODER_TOKEN is the env var
         "CODER_AGENT_TOKEN": os.getenv("CODER_AGENT_TOKEN", ""),
     }
 
@@ -46,42 +49,43 @@ def _redact_secrets(response):
     if coder_url:
         # Extract hostname from URL (e.g., macbook-pro-van-maarten.tail2c33e2.ts.net)
         from urllib.parse import urlparse
+
         parsed = urlparse(coder_url)
         if parsed.hostname:
             secrets_to_redact["CODER_HOSTNAME"] = parsed.hostname
 
     # Redact from response body
-    if 'body' in response and 'string' in response['body']:
-        body = response['body']['string']
+    if "body" in response and "string" in response["body"]:
+        body = response["body"]["string"]
 
         # Convert bytes to string if needed
         if isinstance(body, bytes):
-            body = body.decode('utf-8')
+            body = body.decode("utf-8")
 
         # Redact each secret by value
         for secret_name, secret_value in secrets_to_redact.items():
             if secret_value and secret_value in body:
-                body = body.replace(secret_value, f'***{secret_name}_REDACTED***')
+                body = body.replace(secret_value, f"***{secret_name}_REDACTED***")
 
         # Use regex to redact any CODER_SESSION_TOKEN values (agent tokens in responses)
         body = re.sub(
             r'"CODER_SESSION_TOKEN":"[^"]*"',
             '"CODER_SESSION_TOKEN":"***CODER_SESSION_TOKEN_REDACTED***"',
-            body
+            body,
         )
 
         # Use regex to redact any CODER_AGENT_TOKEN values
         body = re.sub(
             r'"CODER_AGENT_TOKEN":"[^"]*"',
             '"CODER_AGENT_TOKEN":"***CODER_AGENT_TOKEN_REDACTED***"',
-            body
+            body,
         )
 
         # Convert back to original format
-        if isinstance(response['body']['string'], bytes):
-            response['body']['string'] = body.encode('utf-8')
+        if isinstance(response["body"]["string"], bytes):
+            response["body"]["string"] = body.encode("utf-8")
         else:
-            response['body']['string'] = body
+            response["body"]["string"] = body
 
     return response
 
@@ -103,23 +107,24 @@ def _redact_secrets_from_request(request):
     hostname_to_redact = None
     if coder_url:
         from urllib.parse import urlparse
+
         parsed = urlparse(coder_url)
         if parsed.hostname:
             hostname_to_redact = parsed.hostname
             secrets_to_redact["CODER_HOSTNAME"] = hostname_to_redact
 
     # Redact from request body if present
-    if hasattr(request, 'body') and request.body:
+    if hasattr(request, "body") and request.body:
         body = request.body
         if isinstance(body, bytes):
-            body = body.decode('utf-8')
+            body = body.decode("utf-8")
 
         for secret_name, secret_value in secrets_to_redact.items():
             if secret_value and secret_value in body:
-                body = body.replace(secret_value, f'***{secret_name}_REDACTED***')
+                body = body.replace(secret_value, f"***{secret_name}_REDACTED***")
 
         if isinstance(request.body, bytes):
-            request.body = body.encode('utf-8')
+            request.body = body.encode("utf-8")
         else:
             request.body = body
 
@@ -128,9 +133,11 @@ def _redact_secrets_from_request(request):
         request.uri = request.uri.replace(hostname_to_redact, "coder.example.com")
 
     # Redact hostname from headers
-    if hostname_to_redact and hasattr(request, 'headers'):
-        if 'host' in request.headers:
-            request.headers['host'] = request.headers['host'].replace(hostname_to_redact, "coder.example.com")
+    if hostname_to_redact and hasattr(request, "headers"):
+        if "host" in request.headers:
+            request.headers["host"] = request.headers["host"].replace(
+                hostname_to_redact, "coder.example.com"
+            )
 
     return request
 
