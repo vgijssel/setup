@@ -84,11 +84,7 @@ class Agent(BaseModel):
 
         # Extract from workspace name if no metadata (workspace name format: agent-{name})
         workspace_name = workspace.get("name", "")
-        agent_name = (
-            workspace_name.replace("agent-", "")
-            if workspace_name.startswith("agent-")
-            else workspace_name
-        )
+        agent_name = workspace_name.removeprefix("agent-")
 
         # Derive status from workspace state and task API
         workspace_status = workspace.get("latest_build", {}).get("status", "unknown")

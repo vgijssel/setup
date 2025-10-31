@@ -97,6 +97,21 @@ def test_agent_name_validation_invalid_chars():
         )
 
 
+def test_agent_from_workspace_prefix_removal():
+    """Test that agent- prefix is only removed from the beginning, not everywhere"""
+    workspace = {
+        "id": "workspace-123",
+        "name": "agent-busy-agent-003",
+        "template_name": "test-template",
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat(),
+        "latest_build": {"status": "running"},
+    }
+    agent = Agent.from_workspace(workspace)
+    # Should be "busy-agent-003", not "busy-003"
+    assert agent.name == "busy-agent-003"
+
+
 # T010: Task model validation tests
 def test_task_model_valid():
     """Test valid task model creation"""
