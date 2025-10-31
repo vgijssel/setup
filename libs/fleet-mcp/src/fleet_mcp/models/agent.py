@@ -96,7 +96,7 @@ class Agent(BaseModel):
         # Get current task from task API if available
         current_task = None
         if task_data:
-            current_state = task_data.get("current_state", {})
+            current_state = task_data.get("current_state") or {}
             task_state = current_state.get("state")
             task_message = current_state.get("message", "")
 
@@ -120,7 +120,7 @@ class Agent(BaseModel):
             status = status_map.get(workspace_status, AgentStatus.FAILED)
         elif task_data:
             # Use task API state to determine status
-            current_state = task_data.get("current_state", {})
+            current_state = task_data.get("current_state") or {}
             task_state = current_state.get("state", "idle")
 
             if task_state == "working":
