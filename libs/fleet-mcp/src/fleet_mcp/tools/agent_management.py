@@ -5,6 +5,7 @@ from pydantic import Field
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.coder.workspaces import get_workspace_by_name
 from fleet_mcp.coder.tasks import paginate_task_history
+from fleet_mcp.coder.discovery import is_valid_fleet_mcp_project, get_valid_fleet_mcp_project_names
 from fleet_mcp.models.agent import Agent, AgentStatus
 from fleet_mcp.models.task import Task
 from fleet_mcp.models.responses import (
@@ -36,11 +37,21 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         if existing:
             raise ValueError(f"Agent with name '{name}' already exists")
 
+        # Validate that project is a valid fleet-mcp project
+        if not await is_valid_fleet_mcp_project(coder_client, project):
+            valid_projects = await get_valid_fleet_mcp_project_names(coder_client)
+            raise ValueError(
+                f"Project '{project}' is not a valid fleet-mcp project. "
+                f"Valid projects must have ai_prompt and system_prompt parameters. "
+                f"Available projects: {', '.join(sorted(valid_projects))}"
+            )
+
         # Create workspace via Coder API
         # Pass spec as ai_prompt parameter (required by user)
+        # Note: project is already the template name, no need to add suffix
         workspace = await coder_client.create_workspace(
             name=f"agent-{name}",
-            template_name=f"{project.lower()}-devcontainer",
+            template_name=project,
             workspace_preset=role,
             ai_prompt=spec  # Pass spec as ai_prompt rich parameter
         )
@@ -88,17 +99,34 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         """List all agents in the fleet with their current status"""
         workspaces = await coder_client.list_workspaces()
 
-        # Filter for fleet workspaces and convert to AgentSummary
+        # Get valid fleet-mcp project names for filtering
+        valid_project_names = await get_valid_fleet_mcp_project_names(coder_client)
+
+        # Filter for fleet workspaces associated with valid fleet-mcp projects
         agents = []
         for ws in workspaces:
-            metadata = ws.get("metadata", {})
-            if "fleet_mcp_agent_name" in metadata:
-                agent = Agent.from_workspace(ws)
-                agents.append(AgentSummary(
-                    name=agent.name,
-                    status=agent.status.value,
-                    current_task=agent.current_task
-                ))
+            # Check if workspace name starts with "agent-" prefix
+            workspace_name = ws.get("name", "")
+            if not workspace_name.startswith("agent-"):
+                continue
+
+            # Check if workspace is associated with a valid fleet-mcp project
+            # The template name should match one of the valid projects directly
+            template_name = ws.get("template_name", "")
+
+            # Only include workspaces for valid fleet-mcp projects
+            # Template names now match project names directly
+            if template_name in valid_project_names:
+                try:
+                    agent = Agent.from_workspace(ws)
+                    agents.append(AgentSummary(
+                        name=agent.name,
+                        status=agent.status.value,
+                        current_task=agent.current_task
+                    ))
+                except Exception:
+                    # Skip workspaces that fail to convert to Agent
+                    continue
 
         return AgentListResponse(
             agents=agents,

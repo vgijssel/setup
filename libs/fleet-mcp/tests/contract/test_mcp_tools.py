@@ -19,10 +19,13 @@ def parse_tool_result(result):
 # Fixture for testing agent management tools
 @pytest.fixture
 def agent_server(coder_base_url, coder_token):
-    """Create FastMCP server with agent tools for testing"""
+    """Create FastMCP server with agent and discovery tools for testing"""
+    from fleet_mcp.tools.discovery import register_discovery_tools
+
     mcp = FastMCP("Agent Test Server")
     coder_client = CoderClient(base_url=coder_base_url, token=coder_token)
     register_agent_tools(mcp, coder_client)
+    register_discovery_tools(mcp, coder_client)
     return mcp
 
 
@@ -30,10 +33,13 @@ def agent_server(coder_base_url, coder_token):
 @pytest.fixture
 def full_server(coder_base_url, coder_token):
     """Create FastMCP server with all tools for testing"""
+    from fleet_mcp.tools.discovery import register_discovery_tools
+
     mcp = FastMCP("Full Test Server")
     coder_client = CoderClient(base_url=coder_base_url, token=coder_token)
     register_agent_tools(mcp, coder_client)
     register_task_tools(mcp, coder_client)
+    register_discovery_tools(mcp, coder_client)
     return mcp
 
 
@@ -42,11 +48,16 @@ def full_server(coder_base_url, coder_token):
 async def test_create_agent_success(agent_server):
     """Test successful agent creation with vcr cassette"""
     async with Client(agent_server) as client:
+        # Get a valid project name first
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+        project_name = projects_data["projects"][0]["name"]
+
         result = await client.call_tool(
             "create_agent",
             {
                 "name": "test-papi",
-                "project": "Coder",
+                "project": project_name,
                 "role": "coder",
                 "spec": "Test specification for unit testing"
             }
@@ -67,12 +78,17 @@ async def test_create_agent_success(agent_server):
 async def test_create_agent_invalid_name(agent_server):
     """Test create_agent fails with invalid agent name"""
     async with Client(agent_server) as client:
+        # Get a valid project name first
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+        project_name = projects_data["projects"][0]["name"]
+
         with pytest.raises(Exception) as exc:
             await client.call_tool(
                 "create_agent",
                 {
                     "name": "invalid@name",  # Invalid characters
-                    "project": "Coder",
+                    "project": project_name,
                     "role": "coder",
                     "spec": "Test"
                 }
@@ -86,7 +102,7 @@ async def test_create_agent_invalid_name(agent_server):
 
 # T035: Test create_agent with invalid project
 async def test_create_agent_invalid_project(agent_server):
-    """Test create_agent fails with non-existent project"""
+    """Test create_agent fails with non-existent or invalid fleet-mcp project"""
     async with Client(agent_server) as client:
         with pytest.raises(Exception) as exc:
             await client.call_tool(
@@ -98,7 +114,11 @@ async def test_create_agent_invalid_project(agent_server):
                     "spec": "Test"
                 }
             )
-        assert "not found" in str(exc.value).lower() or "template" in str(exc.value).lower()
+        error_msg = str(exc.value).lower()
+        assert ("not found" in error_msg or
+                "template" in error_msg or
+                "not a valid fleet-mcp project" in error_msg or
+                "invalid" in error_msg)
 
 
 # T036: Test list_agents tool
@@ -121,12 +141,17 @@ async def test_list_agents_success(agent_server):
 async def test_show_agent_success(agent_server):
     """Test show_agent returns agent details"""
     async with Client(agent_server) as client:
+        # Get a valid project name first
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+        project_name = projects_data["projects"][0]["name"]
+
         # First create an agent to show
         create_result = await client.call_tool(
             "create_agent",
             {
                 "name": "test-show",
-                "project": "Coder",
+                "project": project_name,
                 "role": "coder",
                 "spec": "Test for show agent"
             }
@@ -165,12 +190,17 @@ async def test_show_agent_not_found(agent_server):
 async def test_show_agent_task_history_success(agent_server):
     """Test show_agent_task_history returns paginated task list"""
     async with Client(agent_server) as client:
+        # Get a valid project name first
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+        project_name = projects_data["projects"][0]["name"]
+
         # Create an agent first
         create_result = await client.call_tool(
             "create_agent",
             {
                 "name": "test-history",
-                "project": "Coder",
+                "project": project_name,
                 "role": "coder",
                 "spec": "Test for task history"
             }
@@ -302,12 +332,17 @@ async def test_start_agent_task_on_offline_agent(full_server):
 async def test_start_agent_task_on_busy_agent(full_server):
     """Test start_agent_task fails when agent is already busy"""
     async with Client(full_server) as client:
+        # Get a valid project name first
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+        project_name = projects_data["projects"][0]["name"]
+
         # Create a busy agent (it starts busy with initial spec)
         create_result = await client.call_tool(
             "create_agent",
             {
                 "name": "busy-agent-003",
-                "project": "Coder",
+                "project": project_name,
                 "role": "coder",
                 "spec": "This agent is busy with initial spec"
             }
@@ -502,3 +537,134 @@ async def test_delete_agent_on_busy_agent(coder_base_url, coder_token):
     assert result is not None
     assert "message" in result
     assert result["deleted_agent"]["name"] == "busy-delete-test"
+
+
+# ============================================================================
+# User Story 5: Role and Project Discovery Tests
+# ============================================================================
+
+
+# T092: Test list_agent_projects tool
+@pytest.mark.vcr
+async def test_list_agent_projects_success(agent_server):
+    """Test list_agent_projects returns valid fleet-mcp projects"""
+    async with Client(agent_server) as client:
+        result = await client.call_tool("list_agent_projects", {})
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert "projects" in data
+        assert isinstance(data["projects"], list)
+
+        # All projects should be valid fleet-mcp projects
+        for project in data["projects"]:
+            assert "name" in project
+            assert "display_name" in project
+            assert "description" in project
+            assert "template_id" in project
+            assert "template_name" in project
+            # Verify all required fields are non-empty
+            assert project["name"]
+            assert project["display_name"]
+
+
+# T090: Test list_agent_roles tool
+@pytest.mark.vcr
+async def test_list_agent_roles_success(agent_server):
+    """Test list_agent_roles returns roles for a valid project"""
+    async with Client(agent_server) as client:
+        # First get a valid project
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+
+        assert len(projects_data["projects"]) > 0, "No valid fleet-mcp projects found"
+        project_name = projects_data["projects"][0]["name"]
+
+        # Now list roles for that project
+        result = await client.call_tool("list_agent_roles", {"project": project_name})
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert "roles" in data
+        assert isinstance(data["roles"], list)
+        assert len(data["roles"]) > 0, "Project should have at least one role"
+
+        # Verify role structure
+        for role in data["roles"]:
+            assert "name" in role
+            assert "display_name" in role
+            assert "description" in role
+            assert role["name"]
+            assert role["display_name"]
+
+
+# T091: Test list_agent_roles with invalid project
+async def test_list_agent_roles_invalid_project(agent_server):
+    """Test list_agent_roles fails with non-existent or invalid project"""
+    async with Client(agent_server) as client:
+        with pytest.raises(Exception) as exc:
+            await client.call_tool("list_agent_roles", {"project": "NonExistentProject"})
+        assert "not found" in str(exc.value).lower() or "invalid" in str(exc.value).lower()
+
+
+# Additional test: Verify create_agent validates project against valid fleet-mcp projects
+@pytest.mark.vcr
+async def test_create_agent_validates_fleet_mcp_project(agent_server):
+    """Test create_agent validates that project is a valid fleet-mcp project"""
+    async with Client(agent_server) as client:
+        # Try to create agent with a template that exists but is NOT a fleet-mcp project
+        # (doesn't have ai_prompt and system_prompt parameters)
+        with pytest.raises(Exception) as exc:
+            await client.call_tool(
+                "create_agent",
+                {
+                    "name": "test-invalid-project",
+                    "project": "InvalidProject",
+                    "role": "coder",
+                    "spec": "This should fail"
+                }
+            )
+        error_msg = str(exc.value).lower()
+        assert ("not found" in error_msg or
+                "invalid" in error_msg or
+                "not a valid fleet-mcp project" in error_msg)
+
+
+# Additional test: Verify list_agents returns at least one agent
+@pytest.mark.vcr
+async def test_list_agents_returns_agents(agent_server):
+    """Test list_agents returns at least one agent for valid fleet-mcp projects"""
+    async with Client(agent_server) as client:
+        # First get a valid project name
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+        assert len(projects_data["projects"]) > 0, "No valid fleet-mcp projects found"
+        project_name = projects_data["projects"][0]["name"]
+
+        # Create an agent using the valid project name
+        create_result = await client.call_tool(
+            "create_agent",
+            {
+                "name": "test-list-verify",
+                "project": project_name,
+                "role": "coder",
+                "spec": "Test agent for list verification"
+            }
+        )
+        create_data = parse_tool_result(create_result)
+        assert create_data["agent"]["name"] == "test-list-verify"
+
+        # Now list agents - should return at least the one we just created
+        result = await client.call_tool("list_agents", {})
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert "agents" in data
+        assert "total_count" in data
+        assert isinstance(data["agents"], list)
+        assert len(data["agents"]) > 0, "list_agents should return at least one agent"
+        assert data["total_count"] > 0
+
+        # Verify the agent we created is in the list
+        agent_names = [agent["name"] for agent in data["agents"]]
+        assert "test-list-verify" in agent_names

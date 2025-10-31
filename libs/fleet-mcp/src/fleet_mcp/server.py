@@ -20,8 +20,10 @@ def create_mcp_server(base_url: str, token: str) -> FastMCP:
     # Register tool groups
     from fleet_mcp.tools.agent_management import register_agent_tools
     from fleet_mcp.tools.task_management import register_task_tools
+    from fleet_mcp.tools.discovery import register_discovery_tools
 
     register_agent_tools(mcp, coder_client)
     register_task_tools(mcp, coder_client)  # T070: Register task management tools
+    register_discovery_tools(mcp, coder_client)  # T099: Register discovery tools
 
     return mcp
