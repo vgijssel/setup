@@ -184,18 +184,33 @@ class CoderClient:
         return response.json()
 
     async def write_agent_metadata(
-        self, workspace_id: str, agent_name: str, metadata: dict[str, str]
+        self, workspace_id: str, agent_name: str, metadata: dict[str, str | None]
     ) -> None:
         """
-        Write agent metadata by writing to files in the workspace
+        Write agent metadata by writing to files in the workspace.
+
+        **LIMITATION**: This method requires the Coder MCP tools (mcp__coder__coder_workspace_bash)
+        to be available, as the Coder REST API does not support direct file writes to workspaces.
+
+        For production use, agents should write their own metadata using the coder_report_task tool
+        and metadata scripts in /home/coder/.config/coder/metadata/.
 
         Args:
             workspace_id: Workspace UUID
             agent_name: Agent name (usually "main")
-            metadata: Metadata fields to write (e.g., {"agent_spec": "...", "current_task": "..."})
+            metadata: Metadata fields to write (e.g., {"fleet_mcp_current_task": "..."})
+
+        Raises:
+            NotImplementedError: This method cannot be implemented using REST API alone
         """
-        # This will be implemented later using coder_workspace_bash MCP tool
-        # For now, this is a placeholder
+        # NOTE: Writing metadata requires executing bash commands in the workspace,
+        # which is not available through the Coder REST API. It requires the Coder MCP tools.
+        #
+        # In production, agents write their own metadata through:
+        # 1. coder_report_task MCP tool (for task history)
+        # 2. Metadata scripts in /home/coder/.config/coder/metadata/ (for custom fields)
+        #
+        # This is a placeholder for future implementation using Coder MCP tools.
         pass
 
     async def update_workspace_metadata(

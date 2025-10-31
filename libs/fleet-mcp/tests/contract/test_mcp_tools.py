@@ -269,7 +269,7 @@ async def test_task_history_pagination(agent_server):
 # T055: Test start_agent_task tool
 @pytest.mark.vcr
 @pytest.mark.skip(
-    reason="Requires write_agent_metadata implementation to clear current_task"
+    reason="Requires Coder MCP tools for metadata writing - REST API doesn't support workspace file writes"
 )
 async def test_start_agent_task_success(full_server, coder_base_url, coder_token):
     """Test successfully starting a task on an idle agent"""
@@ -279,21 +279,24 @@ async def test_start_agent_task_success(full_server, coder_base_url, coder_token
             "create_agent",
             {
                 "name": "test-task-agent",
-                "project": "Coder",
+                "project": "coder-devcontainer",
                 "role": "coder",
                 "spec": "Initial setup task",
             },
         )
-        parse_tool_result(create_result)
+        create_data = parse_tool_result(create_result)
 
-        # TODO: Clear current_task to make agent idle
-        # This requires write_agent_metadata implementation
-        # coder_client = CoderClient(base_url=coder_base_url, token=coder_token)
-        # await coder_client.write_agent_metadata(
-        #     create_data["agent"]["workspace_id"],
-        #     "main",
-        #     {"current_task": None}
-        # )
+        # Clear current_task to make agent idle
+        from fleet_mcp.coder.client import CoderClient
+
+        async with CoderClient(
+            base_url=coder_base_url, token=coder_token
+        ) as coder_client:
+            await coder_client.write_agent_metadata(
+                create_data["agent"]["workspace_id"],
+                "main",
+                {"fleet_mcp_current_task": None},
+            )
 
         # Start a new task
         result = await client.call_tool(
@@ -368,25 +371,34 @@ async def test_start_agent_task_on_busy_agent(full_server):
 # T058: Test cancel_agent_task tool
 @pytest.mark.vcr
 @pytest.mark.skip(
-    reason="Requires write_agent_metadata implementation to set current_task"
+    reason="Requires Coder MCP tools for metadata writing - REST API doesn't support workspace file writes"
 )
-async def test_cancel_agent_task_success(full_server):
+async def test_cancel_agent_task_success(full_server, coder_base_url, coder_token):
     """Test successfully canceling a running task"""
     async with Client(full_server) as client:
-        # Create a busy agent
+        # Create a busy agent (agent starts with spec, which makes it busy)
         create_result = await client.call_tool(
             "create_agent",
             {
                 "name": "cancel-test-agent",
-                "project": "Coder",
+                "project": "coder-devcontainer",
                 "role": "coder",
                 "spec": "Long running task that will be canceled",
             },
         )
-        parse_tool_result(create_result)
+        create_data = parse_tool_result(create_result)
 
-        # TODO: Set current_task to make agent busy
-        # This requires write_agent_metadata implementation
+        # Set current_task to make agent busy (use write_agent_metadata)
+        from fleet_mcp.coder.client import CoderClient
+
+        async with CoderClient(
+            base_url=coder_base_url, token=coder_token
+        ) as coder_client:
+            await coder_client.write_agent_metadata(
+                create_data["agent"]["workspace_id"],
+                "main",
+                {"fleet_mcp_current_task": "Long running task that will be canceled"},
+            )
 
         # Cancel the task
         result = await client.call_tool(
@@ -425,7 +437,7 @@ async def test_cancel_agent_task_on_idle_agent(full_server):
 # T074: Test show_agent with PR metadata
 @pytest.mark.vcr
 @pytest.mark.skip(
-    reason="Requires write_agent_metadata implementation to set PR metadata"
+    reason="Requires Coder MCP tools for metadata writing - REST API doesn't support workspace file writes"
 )
 async def test_show_agent_with_pr_metadata(agent_server, coder_base_url, coder_token):
     """Test that show_agent returns PR metadata in agent details"""
@@ -435,25 +447,28 @@ async def test_show_agent_with_pr_metadata(agent_server, coder_base_url, coder_t
             "create_agent",
             {
                 "name": "pr-integration-test",
-                "project": "Coder",
+                "project": "coder-devcontainer",
                 "role": "coder",
                 "spec": "Implement OAuth feature and create PR",
             },
         )
-        parse_tool_result(create_result)
+        create_data = parse_tool_result(create_result)
 
-        # TODO: Simulate PR metadata being set by agent or external system
-        # This requires write_agent_metadata implementation
-        # coder_client = CoderClient(base_url=coder_base_url, token=coder_token)
-        # await coder_client.write_agent_metadata(
-        #     create_data["agent"]["workspace_id"],
-        #     "main",
-        #     {
-        #         "pull_request_url": "https://github.com/org/repo/pull/123",
-        #         "pull_request_status": "open",
-        #         "pull_request_check_status": "passing"
-        #     }
-        # )
+        # Simulate PR metadata being set by agent or external system
+        from fleet_mcp.coder.client import CoderClient
+
+        async with CoderClient(
+            base_url=coder_base_url, token=coder_token
+        ) as coder_client:
+            await coder_client.write_agent_metadata(
+                create_data["agent"]["workspace_id"],
+                "main",
+                {
+                    "fleet_mcp_pull_request_url": "https://github.com/org/repo/pull/123",
+                    "fleet_mcp_pull_request_status": "open",
+                    "fleet_mcp_pull_request_check_status": "passing",
+                },
+            )
 
         # Query agent details
         result = await client.call_tool(
@@ -472,10 +487,17 @@ async def test_show_agent_with_pr_metadata(agent_server, coder_base_url, coder_t
         # Verify agent spec is in metadata
         assert "fleet_mcp_agent_spec" in data["agent"]["metadata"]
 
-        # TODO: Verify PR metadata is included (when write_agent_metadata is implemented)
-        # assert "fleet_mcp_pull_request_url" in data["agent"]["metadata"]
-        # assert data["agent"]["metadata"]["fleet_mcp_pull_request_url"] == "https://github.com/org/repo/pull/123"
-        # assert data["agent"]["metadata"]["fleet_mcp_pull_request_status"] == "open"
+        # Verify PR metadata is included
+        assert "fleet_mcp_pull_request_url" in data["agent"]["metadata"]
+        assert (
+            data["agent"]["metadata"]["fleet_mcp_pull_request_url"]
+            == "https://github.com/org/repo/pull/123"
+        )
+        assert data["agent"]["metadata"]["fleet_mcp_pull_request_status"] == "open"
+        assert (
+            data["agent"]["metadata"]["fleet_mcp_pull_request_check_status"]
+            == "passing"
+        )
 
 
 # ============================================================================
@@ -485,37 +507,40 @@ async def test_show_agent_with_pr_metadata(agent_server, coder_base_url, coder_t
 
 # T082: Test delete_agent tool
 @pytest.mark.vcr
-@pytest.mark.skip(reason="Requires delete_agent implementation")
-async def test_delete_agent_success(coder_base_url, coder_token):
+@pytest.mark.skip(
+    reason="Requires stable workspace state - delete may fail if workspace is still provisioning"
+)
+async def test_delete_agent_success(agent_server):
     """Test successfully deleting an agent"""
-    from fleet_mcp.server import create_mcp_server
+    async with Client(agent_server) as client:
+        # Create an agent to delete
+        await client.call_tool(
+            "create_agent",
+            {
+                "name": "delete-test-agent",
+                "project": "coder-devcontainer",
+                "role": "coder",
+                "spec": "Temporary agent for deletion test",
+            },
+        )
 
-    mcp = create_mcp_server(base_url=coder_base_url, token=coder_token)
+        # Delete the agent
+        result = await client.call_tool(
+            "delete_agent", {"agent_name": "delete-test-agent"}
+        )
+        data = parse_tool_result(result)
 
-    # Create an agent to delete
-    await mcp.call_tool(
-        "create_agent",
-        {
-            "name": "delete-test-agent",
-            "project": "Coder",
-            "role": "coder",
-            "spec": "Temporary agent for deletion test",
-        },
-    )
+        assert data is not None
+        assert "message" in data
+        assert "deleted_agent" in data
+        assert data["deleted_agent"]["name"] == "delete-test-agent"
+        assert "workspace_id" in data["deleted_agent"]
 
-    # Delete the agent
-    result = await mcp.call_tool("delete_agent", {"agent_name": "delete-test-agent"})
-
-    assert result is not None
-    assert "message" in result
-    assert "deleted_agent" in result
-    assert result["deleted_agent"]["name"] == "delete-test-agent"
-    assert "workspace_id" in result["deleted_agent"]
-
-    # Verify agent no longer appears in list
-    list_result = await mcp.call_tool("list_agents", {})
-    agent_names = [agent["name"] for agent in list_result["agents"]]
-    assert "delete-test-agent" not in agent_names
+        # Verify agent no longer appears in list
+        list_result = await client.call_tool("list_agents", {})
+        list_data = parse_tool_result(list_result)
+        agent_names = [agent["name"] for agent in list_data["agents"]]
+        assert "delete-test-agent" not in agent_names
 
 
 # T083: Test delete_agent with non-existent agent
@@ -531,34 +556,39 @@ async def test_delete_agent_not_found(agent_server):
 
 # T084: Test delete_agent on busy agent (forceful deletion)
 @pytest.mark.vcr
-@pytest.mark.skip(reason="Requires delete_agent implementation")
-async def test_delete_agent_on_busy_agent(coder_base_url, coder_token):
+@pytest.mark.skip(
+    reason="Requires stable workspace state - delete may fail if workspace is still provisioning"
+)
+async def test_delete_agent_on_busy_agent(agent_server):
     """Test delete_agent forcefully deletes even if agent is busy"""
-    from fleet_mcp.server import create_mcp_server
+    async with Client(agent_server) as client:
+        # Create a busy agent
+        await client.call_tool(
+            "create_agent",
+            {
+                "name": "busy-delete-test",
+                "project": "coder-devcontainer",
+                "role": "coder",
+                "spec": "Agent that will be forcefully deleted while busy",
+            },
+        )
 
-    mcp = create_mcp_server(base_url=coder_base_url, token=coder_token)
+        # Agent should be busy with the initial spec
+        show_result = await client.call_tool(
+            "show_agent", {"agent_name": "busy-delete-test"}
+        )
+        show_data = parse_tool_result(show_result)
+        assert show_data["agent"]["status"] in ["busy", "starting", "pending"]
 
-    # Create a busy agent
-    await mcp.call_tool(
-        "create_agent",
-        {
-            "name": "busy-delete-test",
-            "project": "Coder",
-            "role": "coder",
-            "spec": "Agent that will be forcefully deleted while busy",
-        },
-    )
+        # Delete the busy agent (should succeed with forceful deletion)
+        result = await client.call_tool(
+            "delete_agent", {"agent_name": "busy-delete-test"}
+        )
+        data = parse_tool_result(result)
 
-    # Agent should be busy with the initial spec
-    show_result = await mcp.call_tool("show_agent", {"agent_name": "busy-delete-test"})
-    assert show_result["agent"]["status"] in ["busy", "starting", "pending"]
-
-    # Delete the busy agent (should succeed with forceful deletion)
-    result = await mcp.call_tool("delete_agent", {"agent_name": "busy-delete-test"})
-
-    assert result is not None
-    assert "message" in result
-    assert result["deleted_agent"]["name"] == "busy-delete-test"
+        assert data is not None
+        assert "message" in data
+        assert data["deleted_agent"]["name"] == "busy-delete-test"
 
 
 # ============================================================================

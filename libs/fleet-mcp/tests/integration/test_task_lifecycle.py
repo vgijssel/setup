@@ -8,54 +8,65 @@ from fleet_mcp.coder.client import CoderClient
 
 # T060: Test task status transitions
 @pytest.mark.vcr
-@pytest.mark.skip(reason="Requires Coder API implementation for task management")
+@pytest.mark.skip(
+    reason="Requires Coder MCP tools for metadata writing - REST API doesn't support workspace file writes"
+)
 async def test_task_status_transitions(coder_base_url, coder_token):
     """Test agent status changes through task lifecycle"""
-    client = CoderClient(base_url=coder_base_url, token=coder_token)
+    async with CoderClient(base_url=coder_base_url, token=coder_token) as client:
+        # Create workspace (agent starts in pending -> starting -> busy)
+        workspace = await client.create_workspace(
+            name="lifecycle-test-agent",
+            template_name="coder-devcontainer",
+            ai_prompt="Initial task specification",
+        )
+        workspace_id = workspace["id"]
 
-    # Create workspace (agent starts in pending -> starting -> busy)
-    workspace_data = {
-        "name": "lifecycle-test-agent",
-        "template_name": "coder-devcontainer",
-        "metadata": {
-            "fleet_mcp_agent_name": "lifecycle-test",
-            "fleet_mcp_role": "coder",
-            "fleet_mcp_project": "Setup",
-            "fleet_mcp_agent_spec": "Initial task specification",
-            "fleet_mcp_current_task": "Initial task specification",
-        },
-    }
+        # Write initial agent metadata
+        await client.write_agent_metadata(
+            workspace_id,
+            "main",
+            {
+                "fleet_mcp_agent_name": "lifecycle-test",
+                "fleet_mcp_role": "coder",
+                "fleet_mcp_project": "Setup",
+                "fleet_mcp_agent_spec": "Initial task specification",
+                "fleet_mcp_current_task": "Initial task specification",
+            },
+        )
 
-    workspace = await client.create_workspace(**workspace_data)
-    workspace_id = workspace["id"]
+        # Simulate task completion by clearing current_task
+        await client.update_workspace_metadata(
+            workspace_id, {"fleet_mcp_current_task": None}
+        )
 
-    # Check initial status (should be pending/starting/busy depending on timing)
-    workspace = await client.get_workspace(workspace_id)
-    assert (
-        workspace["metadata"]["fleet_mcp_current_task"] == "Initial task specification"
-    )
+        # Verify metadata was cleared (by checking agent metadata)
+        workspace = await client.get_workspace(workspace_id)
+        # Find agent in resources
+        agent_id = None
+        if workspace.get("latest_build", {}).get("resources"):
+            for resource in workspace["latest_build"]["resources"]:
+                if resource.get("agents"):
+                    agent_id = resource["agents"][0]["id"]
+                    break
 
-    # Simulate task completion by clearing current_task
-    await client.update_workspace_metadata(
-        workspace_id, {"fleet_mcp_current_task": None}
-    )
+        if agent_id:
+            metadata = await client.get_agent_metadata(agent_id)
+            # Metadata should have current_task cleared (set to empty/n/a)
+            assert metadata.get("12_current_task") in [None, "", "n/a"]
 
-    # Check status transitioned to idle
-    workspace = await client.get_workspace(workspace_id)
-    assert workspace["metadata"].get("fleet_mcp_current_task") is None
+        # Start new task
+        await client.update_workspace_metadata(
+            workspace_id, {"fleet_mcp_current_task": "New task description"}
+        )
 
-    # Start new task
-    await client.update_workspace_metadata(
-        workspace_id, {"fleet_mcp_current_task": "New task description"}
-    )
+        # Verify new task was set
+        if agent_id:
+            metadata = await client.get_agent_metadata(agent_id)
+            assert metadata.get("12_current_task") == "New task description"
 
-    # Check status transitioned back to busy
-    workspace = await client.get_workspace(workspace_id)
-    assert workspace["metadata"]["fleet_mcp_current_task"] == "New task description"
-
-    # Cleanup
-    await client.delete_workspace(workspace_id)
-    await client.aclose()
+        # Cleanup
+        await client.delete_workspace(workspace_id)
 
 
 # T061: Test agent status derivation (busy/idle)

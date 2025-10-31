@@ -118,12 +118,19 @@ class Agent(BaseModel):
             if key.startswith("fleet_mcp_") and value is not None
         }
 
+        # Get project from metadata, or fall back to template name
+        project = metadata.get("fleet_mcp_project")
+        if not project or project == "unknown":
+            # Fall back to template name from workspace
+            template_name = workspace.get("template_name", "unknown")
+            project = template_name if template_name != "unknown" else "unknown"
+
         return Agent(
             name=metadata.get("fleet_mcp_agent_name", agent_name or "unknown"),
             workspace_id=workspace.get("id", "unknown"),
             status=status,
             role=metadata.get("fleet_mcp_role", "coder"),
-            project=metadata.get("fleet_mcp_project", "unknown"),
+            project=project,
             spec=metadata.get("fleet_mcp_agent_spec", "default spec"),
             current_task=current_task,
             created_at=datetime.fromisoformat(

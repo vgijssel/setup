@@ -198,26 +198,60 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         if not workspace:
             raise ValueError(f"Agent '{agent_name}' not found")
 
-        # Get workspace details which include task history
-        # Note: This is a simplified version - real implementation would query Coder's task API
+        # Get workspace details which include task history in the workspace resource
         workspace_details = await coder_client.get_workspace(workspace["id"])
 
-        # Extract tasks from workspace (placeholder - actual structure depends on Coder API)
-        task_data = workspace_details.get("tasks", [])
+        # Extract tasks from workspace.latest_build.resources[].metadata[].tasks
+        # Tasks are stored in the workspace resource metadata
         tasks = []
-        for task_item in task_data:
-            tasks.append(
-                Task(
-                    message=task_item.get("message", ""),
-                    uri=task_item.get("uri", ""),
-                    needs_user_attention=task_item.get("needs_user_attention", False),
-                    created_at=datetime.fromisoformat(
-                        task_item.get("created_at", datetime.now().isoformat())
-                    ),
-                )
-            )
 
-        # Paginate results
+        # Check if workspace has latest_build with resources
+        if workspace_details.get("latest_build", {}).get("resources"):
+            for resource in workspace_details["latest_build"]["resources"]:
+                # Check if this resource has metadata with tasks
+                if resource.get("metadata"):
+                    for metadata_item in resource["metadata"]:
+                        # Look for the tasks field in metadata
+                        if metadata_item.get("key") == "tasks":
+                            task_data = metadata_item.get("value", [])
+                            # task_data should be a list of task objects
+                            if isinstance(task_data, list):
+                                for task_item in task_data:
+                                    tasks.append(
+                                        Task(
+                                            message=task_item.get("message", ""),
+                                            uri=task_item.get("uri", ""),
+                                            needs_user_attention=task_item.get(
+                                                "needs_user_attention", False
+                                            ),
+                                            created_at=datetime.fromisoformat(
+                                                task_item.get(
+                                                    "created_at",
+                                                    datetime.now().isoformat(),
+                                                )
+                                            ),
+                                        )
+                                    )
+                            break
+
+        # Also check top-level tasks field if it exists
+        if not tasks and workspace_details.get("tasks"):
+            task_data = workspace_details.get("tasks", [])
+            for task_item in task_data:
+                tasks.append(
+                    Task(
+                        message=task_item.get("message", ""),
+                        uri=task_item.get("uri", ""),
+                        needs_user_attention=task_item.get(
+                            "needs_user_attention", False
+                        ),
+                        created_at=datetime.fromisoformat(
+                            task_item.get("created_at", datetime.now().isoformat())
+                        ),
+                    )
+                )
+
+        # Paginate results (client-side pagination since API returns all tasks)
         return paginate_task_history(tasks, page, page_size)
 
     # ========================================================================
