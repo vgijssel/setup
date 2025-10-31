@@ -45,3 +45,47 @@ async def test_get_task_not_found(coder_base_url, coder_token):
 
     # Should return None for 404
     assert task is None
+
+
+@pytest.mark.vcr
+async def test_send_task_input(coder_base_url, coder_token):
+    """Test sending input to a task via experimental API"""
+    client = CoderClient(base_url=coder_base_url, token=coder_token)
+
+    # Get current workspace for testing
+    workspaces = await client.list_workspaces()
+    assert len(workspaces) > 0, "At least one workspace should exist"
+
+    # Use the first workspace
+    workspace = workspaces[0]
+    workspace_id = workspace.get("id")
+    owner_name = workspace.get("owner_name")
+
+    # Send task input
+    task_input = "Test task input for VCR recording"
+    await client.send_task_input(owner_name, workspace_id, task_input)
+
+    # If we get here without exception, the send was successful (204 No Content)
+    # No assertion needed as httpx will raise on error
+
+
+@pytest.mark.vcr
+async def test_send_task_input_empty(coder_base_url, coder_token):
+    """Test sending empty input raises ValueError"""
+    client = CoderClient(base_url=coder_base_url, token=coder_token)
+
+    # Get current workspace for testing
+    workspaces = await client.list_workspaces()
+    assert len(workspaces) > 0, "At least one workspace should exist"
+
+    workspace = workspaces[0]
+    workspace_id = workspace.get("id")
+    owner_name = workspace.get("owner_name")
+
+    # Test empty string
+    with pytest.raises(ValueError, match="Task input cannot be empty"):
+        await client.send_task_input(owner_name, workspace_id, "")
+
+    # Test whitespace only
+    with pytest.raises(ValueError, match="Task input cannot be empty"):
+        await client.send_task_input(owner_name, workspace_id, "   ")

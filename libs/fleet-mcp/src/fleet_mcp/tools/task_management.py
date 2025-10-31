@@ -66,9 +66,8 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
                     "Cannot start a new task while agent is working."
                 )
 
-        # Note: The task will be sent to the agent via Coder MCP tools
-        # The agent will then report its status via coder_report_task
-        # which will be reflected in the task API
+        # Send task input to Coder workspace via experimental API
+        await coder_client.send_task_input(owner_name, workspace_id, task_description)
 
         # Create task record
         task = Task(

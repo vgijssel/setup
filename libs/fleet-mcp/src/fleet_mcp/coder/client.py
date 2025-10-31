@@ -361,6 +361,32 @@ class CoderClient:
         response.raise_for_status()
         return response.json()
 
+    async def send_task_input(
+        self, username: str, workspace_id: str, task_input: str
+    ) -> None:
+        """
+        Send input/message to an AI task via experimental task API
+
+        Submits new input to the task's sidebar app. This sends a message to
+        the AgentAPI running in the workspace.
+
+        Args:
+            username: Username of the workspace owner
+            workspace_id: Workspace UUID
+            task_input: Message/input to send to the task (must be non-empty)
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails (e.g., task not in stable state)
+        """
+        if not task_input or not task_input.strip():
+            raise ValueError("Task input cannot be empty")
+
+        response = await self.client.post(
+            f"{self.base_url}/api/experimental/tasks/{username}/{workspace_id}/send",
+            json={"input": task_input},
+        )
+        response.raise_for_status()
+
     async def _get_org_id(self) -> str:
         """
         Get the default organization ID for the authenticated user
