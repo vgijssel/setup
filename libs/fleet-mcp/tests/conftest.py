@@ -28,6 +28,8 @@ def vcr_config():
 
 def _redact_secrets(response):
     """Redact sensitive environment variables from VCR response"""
+    import re
+
     # Define all secrets to redact
     secrets_to_redact = {
         "GH_TOKEN": os.getenv("GH_TOKEN", ""),
@@ -56,10 +58,24 @@ def _redact_secrets(response):
         if isinstance(body, bytes):
             body = body.decode('utf-8')
 
-        # Redact each secret
+        # Redact each secret by value
         for secret_name, secret_value in secrets_to_redact.items():
             if secret_value and secret_value in body:
                 body = body.replace(secret_value, f'***{secret_name}_REDACTED***')
+
+        # Use regex to redact any CODER_SESSION_TOKEN values (agent tokens in responses)
+        body = re.sub(
+            r'"CODER_SESSION_TOKEN":"[^"]*"',
+            '"CODER_SESSION_TOKEN":"***CODER_SESSION_TOKEN_REDACTED***"',
+            body
+        )
+
+        # Use regex to redact any CODER_AGENT_TOKEN values
+        body = re.sub(
+            r'"CODER_AGENT_TOKEN":"[^"]*"',
+            '"CODER_AGENT_TOKEN":"***CODER_AGENT_TOKEN_REDACTED***"',
+            body
+        )
 
         # Convert back to original format
         if isinstance(response['body']['string'], bytes):
