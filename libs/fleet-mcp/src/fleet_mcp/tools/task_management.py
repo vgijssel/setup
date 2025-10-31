@@ -54,18 +54,21 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
                 "Cannot start task on offline agent."
             )
 
-        # T067: Validate agent is not already busy
-        current_task = workspace.get("metadata", {}).get("fleet_mcp_current_task")
-        if current_task:
-            raise ValueError(
-                f"Agent '{agent_name}' is already busy with task: '{current_task}'. "
-                "Cannot start a new task while agent is working."
-            )
+        # T067: Validate agent is not already busy using task API
+        owner_name = workspace.get("owner_name")
+        task_data = await coder_client.get_task(owner_name, workspace_id)
+        if task_data:
+            current_state = task_data.get("current_state", {})
+            if current_state.get("state") == "working":
+                current_message = current_state.get("message", "unknown task")
+                raise ValueError(
+                    f"Agent '{agent_name}' is already busy with task: '{current_message}'. "
+                    "Cannot start a new task while agent is working."
+                )
 
-        # Update workspace metadata to set current_task
-        await coder_client.update_workspace_metadata(
-            workspace_id, {"fleet_mcp_current_task": task_description}
-        )
+        # Note: The task will be sent to the agent via Coder MCP tools
+        # The agent will then report its status via coder_report_task
+        # which will be reflected in the task API
 
         # Create task record
         task = Task(
@@ -106,18 +109,23 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
 
         workspace_id = workspace["id"]
 
-        # T068: Validate agent is busy (has a current task)
-        current_task = workspace.get("metadata", {}).get("fleet_mcp_current_task")
+        # T068: Validate agent is busy using task API
+        owner_name = workspace.get("owner_name")
+        task_data = await coder_client.get_task(owner_name, workspace_id)
+        current_task = None
+        if task_data:
+            current_state = task_data.get("current_state", {})
+            if current_state.get("state") == "working":
+                current_task = current_state.get("message", "unknown task")
+
         if not current_task:
             raise ValueError(f"Agent '{agent_name}' is not busy. No task to cancel.")
 
         # Send interrupt signal to agent
         await coder_client.send_interrupt(workspace_id)
 
-        # Clear current_task metadata to transition agent to idle
-        await coder_client.update_workspace_metadata(
-            workspace_id, {"fleet_mcp_current_task": None}
-        )
+        # Note: The agent will transition to idle status by calling coder_report_task
+        # which will be reflected in the task API
 
         # Create task record for the canceled task
         task = Task(

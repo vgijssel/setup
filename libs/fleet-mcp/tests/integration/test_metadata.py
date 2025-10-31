@@ -21,12 +21,21 @@ def test_metadata_extraction_from_workspace():
         "13_agent_role": "coder",
         "14_agent_project": "Setup",
         "11_agent_spec": "Test specification",
-        "12_current_task": "Working on feature",
         "8_pull_request_url": "https://github.com/org/repo/pull/123",
         "0_cpu_usage": "10%",  # Should be filtered out (not in key_mapping)
     }
 
-    agent = Agent.from_workspace(workspace, agent_metadata)
+    # Mock task data from experimental task API
+    task_data = {
+        "workspace_id": "workspace-123",
+        "current_state": {
+            "state": "working",
+            "message": "Working on feature",
+            "timestamp": "2025-10-29T11:30:00Z",
+        },
+    }
+
+    agent = Agent.from_workspace(workspace, agent_metadata, task_data)
 
     # Verify core fields
     assert agent.name == "test"
@@ -36,7 +45,7 @@ def test_metadata_extraction_from_workspace():
     assert agent.spec == "Test specification"
     assert agent.current_task == "Working on feature"
 
-    # Verify status derivation (running + current_task = busy)
+    # Verify status derivation (running + task state working = busy)
     assert agent.status == "busy"
 
     # Verify metadata filtering (only fleet_mcp_* fields)

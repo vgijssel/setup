@@ -91,6 +91,13 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
 
         # Create synthetic metadata for MVP (will be replaced by file-based metadata later)
 
+        # Fetch task data from experimental API
+        workspace_id = workspace.get("id")
+        owner_name = workspace.get("owner_name")
+        task_data = None
+        if workspace_id and owner_name:
+            task_data = await coder_client.get_task(owner_name, workspace_id)
+
         # Convert to Agent model with synthetic metadata
         agent = Agent.from_workspace(
             workspace,
@@ -99,8 +106,8 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                 "13_agent_role": role,
                 "14_agent_project": project,
                 "11_agent_spec": spec,
-                "12_current_task": spec,
             },
+            task_data=task_data,
         )
 
         return CreateAgentResponse(
@@ -132,7 +139,16 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             # Template names now match project names directly
             if template_name in valid_project_names:
                 try:
-                    agent = Agent.from_workspace(ws)
+                    # Fetch task data from experimental API
+                    workspace_id = ws.get("id")
+                    owner_name = ws.get("owner_name")
+                    task_data = None
+                    if workspace_id and owner_name:
+                        task_data = await coder_client.get_task(
+                            owner_name, workspace_id
+                        )
+
+                    agent = Agent.from_workspace(ws, task_data=task_data)
                     agents.append(
                         AgentSummary(
                             name=agent.name,
@@ -179,7 +195,14 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             name = workspace["name"].replace("agent-", "")
             agent_metadata = {"15_agent_name": name}
 
-        agent = Agent.from_workspace(workspace, agent_metadata)
+        # Fetch task data from experimental API
+        workspace_id = workspace.get("id")
+        owner_name = workspace.get("owner_name")
+        task_data = None
+        if workspace_id and owner_name:
+            task_data = await coder_client.get_task(owner_name, workspace_id)
+
+        agent = Agent.from_workspace(workspace, agent_metadata, task_data)
 
         return AgentDetailsResponse(agent=agent)
 

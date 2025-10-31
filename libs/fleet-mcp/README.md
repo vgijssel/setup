@@ -137,7 +137,7 @@ All agent state is stored in Coder workspace metadata with `fleet_mcp_*` prefix:
 - `fleet_mcp_role`: Agent role (coder, operator, manager)
 - `fleet_mcp_project`: Project assignment
 - `fleet_mcp_agent_spec`: Full agent specification
-- `fleet_mcp_current_task`: Current task (null when idle)
+- Current task is determined via Coder's experimental task API (not metadata)
 
 ### Agent Status Derivation
 Agent status is computed from workspace state + metadata:

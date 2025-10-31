@@ -198,7 +198,7 @@ class CoderClient:
         Args:
             workspace_id: Workspace UUID
             agent_name: Agent name (usually "main")
-            metadata: Metadata fields to write (e.g., {"fleet_mcp_current_task": "..."})
+            metadata: Metadata fields to write (e.g., {"fleet_mcp_agent_name": "..."})
 
         Raises:
             NotImplementedError: This method cannot be implemented using REST API alone
@@ -336,6 +336,28 @@ class CoderClient:
         response = await self.client.get(
             f"{self.base_url}/api/v2/templateversions/{template_version_id}/rich-parameters"
         )
+        response.raise_for_status()
+        return response.json()
+
+    async def get_task(self, username: str, workspace_id: str) -> dict[str, Any] | None:
+        """
+        Get AI task status from experimental task API
+
+        Args:
+            username: Username of the workspace owner
+            workspace_id: Workspace UUID
+
+        Returns:
+            Task data from experimental API or None if no task exists
+        """
+        response = await self.client.get(
+            f"{self.base_url}/api/experimental/tasks/{username}/{workspace_id}"
+        )
+
+        # 404 or 400 means no task exists for this workspace (or invalid request)
+        if response.status_code in (400, 404):
+            return None
+
         response.raise_for_status()
         return response.json()
 

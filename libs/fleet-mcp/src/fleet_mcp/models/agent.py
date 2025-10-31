@@ -52,7 +52,9 @@ class Agent(BaseModel):
 
     @staticmethod
     def from_workspace(
-        workspace: dict[str, Any], agent_metadata: dict[str, str] | None = None
+        workspace: dict[str, Any],
+        agent_metadata: dict[str, str] | None = None,
+        task_data: dict[str, Any] | None = None,
     ) -> "Agent":
         """
         Convert Coder workspace to Agent model
@@ -60,6 +62,7 @@ class Agent(BaseModel):
         Args:
             workspace: Workspace data from Coder API
             agent_metadata: Agent metadata from watch-metadata endpoint (optional)
+            task_data: Task data from experimental task API (optional)
         """
         # Parse agent metadata from watch-metadata endpoint
         # Metadata keys are like "11_agent_spec", "8_pull_request_url", etc.
@@ -68,7 +71,6 @@ class Agent(BaseModel):
             # Map agent metadata keys to fleet_mcp fields
             key_mapping = {
                 "11_agent_spec": "fleet_mcp_agent_spec",
-                "12_current_task": "fleet_mcp_current_task",
                 "13_agent_role": "fleet_mcp_role",
                 "14_agent_project": "fleet_mcp_project",
                 "15_agent_name": "fleet_mcp_agent_name",
@@ -88,9 +90,19 @@ class Agent(BaseModel):
             else workspace_name
         )
 
-        # Derive status from workspace state
+        # Derive status from workspace state and task API
         workspace_status = workspace.get("latest_build", {}).get("status", "unknown")
-        current_task = metadata.get("fleet_mcp_current_task")
+
+        # Get current task from task API if available
+        current_task = None
+        if task_data:
+            current_state = task_data.get("current_state", {})
+            task_state = current_state.get("state")
+            task_message = current_state.get("message", "")
+
+            # Only set current_task if the agent is actually working
+            if task_state == "working" and task_message:
+                current_task = task_message
 
         if workspace_status != "running":
             # Map workspace status to agent status
@@ -106,9 +118,19 @@ class Agent(BaseModel):
                 "deleted": AgentStatus.DELETED,
             }
             status = status_map.get(workspace_status, AgentStatus.FAILED)
-        elif current_task:
-            status = AgentStatus.BUSY
+        elif task_data:
+            # Use task API state to determine status
+            current_state = task_data.get("current_state", {})
+            task_state = current_state.get("state", "idle")
+
+            if task_state == "working":
+                status = AgentStatus.BUSY
+            elif task_state == "failure":
+                status = AgentStatus.FAILED
+            else:  # idle or any other state
+                status = AgentStatus.IDLE
         else:
+            # Fallback to idle if no task data
             status = AgentStatus.IDLE
 
         # Filter metadata to only fleet_mcp_* fields (excluding None values)
