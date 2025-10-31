@@ -10,6 +10,9 @@ dependencies = [
     "python-dotenv>=1.2.1",
 ]
 
+[project.scripts]
+fleet-mcp = "fleet_mcp.__main__:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest==7.4.3",
