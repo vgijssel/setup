@@ -55,6 +55,7 @@ class Agent(BaseModel):
         workspace: dict[str, Any],
         agent_metadata: dict[str, str] | None = None,
         task_data: dict[str, Any] | None = None,
+        template_display_name: str | None = None,
     ) -> "Agent":
         """
         Convert Coder workspace to Agent model
@@ -63,6 +64,7 @@ class Agent(BaseModel):
             workspace: Workspace data from Coder API
             agent_metadata: Agent metadata from watch-metadata endpoint (optional)
             task_data: Task data from experimental task API (optional)
+            template_display_name: Template display name for the project (optional)
         """
         # Parse agent metadata from watch-metadata endpoint
         # Metadata keys are like "11_agent_spec", "8_pull_request_url", etc.
@@ -136,8 +138,10 @@ class Agent(BaseModel):
             if key.startswith("fleet_mcp_") and value is not None
         }
 
-        # Get project from metadata, or fall back to template name
-        project = metadata.get("fleet_mcp_project")
+        # Get project display name from parameter, metadata, or fall back to template name
+        project = template_display_name
+        if not project:
+            project = metadata.get("fleet_mcp_project")
         if not project or project == "unknown":
             # Fall back to template name from workspace
             template_name = workspace.get("template_name", "unknown")

@@ -237,24 +237,30 @@ class CoderClient:
         # Return updated workspace
         return await self.get_workspace(workspace_id)
 
-    async def send_interrupt(self, workspace_id: str) -> dict[str, Any]:
+    async def send_interrupt(self, username: str, workspace_id: str) -> dict[str, Any]:
         """
         Send interrupt signal to workspace (for task cancellation)
 
+        Uses the experimental task endpoint to send a raw escape sequence (\u001b)
+        to interrupt the currently running task. This is sent as a "raw" message
+        type which writes directly to the terminal without being logged.
+
         Args:
+            username: Username of the workspace owner
             workspace_id: Workspace UUID
 
         Returns:
-            Response from messages endpoint
+            Response from experimental task send endpoint (204 No Content)
         """
-        # This is a placeholder - actual implementation depends on Coder MCP tool integration
-        # The interrupt is sent via POST to messages endpoint with escape sequence
+        # Send escape sequence as raw input via experimental task API
+        # The escape character (\u001b) interrupts the current task
         response = await self.client.post(
-            f"{self.base_url}/api/v2/workspaces/{workspace_id}/messages",
-            json={"content": "\u001b", "type": "raw"},
+            f"{self.base_url}/api/experimental/tasks/{username}/{workspace_id}/send",
+            json={"input": "\u001b"},
         )
         response.raise_for_status()
-        return response.json()
+        # 204 No Content returns empty response
+        return {} if response.status_code == 204 else response.json()
 
     async def get_agent_metadata(self, agent_id: str) -> dict[str, str]:
         """

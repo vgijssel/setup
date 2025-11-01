@@ -121,7 +121,7 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
             raise ValueError(f"Agent '{agent_name}' is not busy. No task to cancel.")
 
         # Send interrupt signal to agent
-        await coder_client.send_interrupt(workspace_id)
+        await coder_client.send_interrupt(owner_name, workspace_id)
 
         # Note: The agent will transition to idle status by calling coder_report_task
         # which will be reflected in the task API

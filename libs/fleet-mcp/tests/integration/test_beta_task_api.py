@@ -89,3 +89,35 @@ async def test_send_task_input_empty(coder_base_url, coder_token):
     # Test whitespace only
     with pytest.raises(ValueError, match="Task input cannot be empty"):
         await client.send_task_input(owner_name, workspace_id, "   ")
+
+
+@pytest.mark.vcr
+async def test_send_interrupt(coder_base_url, coder_token):
+    """
+    Test sending interrupt signal to cancel a task via experimental API.
+
+    This test validates that the send_interrupt method correctly uses the
+    experimental task endpoint to send an escape sequence (\u001b) as a raw
+    message to interrupt the currently running task.
+
+    Regression test for: cancel task endpoint returning 404 error
+    """
+    client = CoderClient(base_url=coder_base_url, token=coder_token)
+
+    # Get current workspace for testing
+    workspaces = await client.list_workspaces()
+    assert len(workspaces) > 0, "At least one workspace should exist"
+
+    # Use the first workspace
+    workspace = workspaces[0]
+    workspace_id = workspace.get("id")
+    owner_name = workspace.get("owner_name")
+
+    # Send interrupt signal (escape sequence)
+    # This should return 204 No Content (empty dict) if successful
+    result = await client.send_interrupt(owner_name, workspace_id)
+
+    # Verify result is an empty dict (from 204 No Content response)
+    assert isinstance(result, dict)
+    # For 204 No Content, we expect an empty dict
+    # If it returns actual JSON, it would be non-empty

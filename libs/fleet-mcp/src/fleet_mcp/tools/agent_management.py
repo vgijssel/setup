@@ -98,6 +98,17 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         if workspace_id and owner_name:
             task_data = await coder_client.get_task(owner_name, workspace_id)
 
+        # Fetch template display name
+        template_display_name = None
+        template_id = workspace.get("template_id")
+        if template_id:
+            try:
+                template_details = await coder_client.get_template(template_id)
+                template_display_name = template_details.get("display_name")
+            except Exception:
+                # If template fetch fails, fall back to project name
+                pass
+
         # Convert to Agent model with synthetic metadata
         agent = Agent.from_workspace(
             workspace,
@@ -108,6 +119,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                 "11_agent_spec": spec,
             },
             task_data=task_data,
+            template_display_name=template_display_name,
         )
 
         return CreateAgentResponse(
@@ -122,6 +134,9 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
 
         # Get valid fleet-mcp project names for filtering
         valid_project_names = await get_valid_fleet_mcp_project_names(coder_client)
+
+        # Build a cache of template_id -> display_name to avoid duplicate API calls
+        template_cache: dict[str, str] = {}
 
         # Filter for fleet workspaces associated with valid fleet-mcp projects
         agents = []
@@ -148,11 +163,36 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                             owner_name, workspace_id
                         )
 
-                    agent = Agent.from_workspace(ws, task_data=task_data)
+                    # Fetch template display name (with caching)
+                    template_display_name = None
+                    template_id = ws.get("template_id")
+                    if template_id:
+                        if template_id in template_cache:
+                            template_display_name = template_cache[template_id]
+                        else:
+                            try:
+                                template_details = await coder_client.get_template(
+                                    template_id
+                                )
+                                template_display_name = template_details.get(
+                                    "display_name"
+                                )
+                                if template_display_name:
+                                    template_cache[template_id] = template_display_name
+                            except Exception:
+                                # If template fetch fails, fall back to template name
+                                pass
+
+                    agent = Agent.from_workspace(
+                        ws,
+                        task_data=task_data,
+                        template_display_name=template_display_name,
+                    )
                     agents.append(
                         AgentSummary(
                             name=agent.name,
                             status=agent.status.value,
+                            project=agent.project,
                             current_task=agent.current_task,
                         )
                     )
@@ -202,7 +242,20 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         if workspace_id and owner_name:
             task_data = await coder_client.get_task(owner_name, workspace_id)
 
-        agent = Agent.from_workspace(workspace, agent_metadata, task_data)
+        # Fetch template display name
+        template_display_name = None
+        template_id = workspace.get("template_id")
+        if template_id:
+            try:
+                template_details = await coder_client.get_template(template_id)
+                template_display_name = template_details.get("display_name")
+            except Exception:
+                # If template fetch fails, fall back to template name
+                pass
+
+        agent = Agent.from_workspace(
+            workspace, agent_metadata, task_data, template_display_name
+        )
 
         return AgentDetailsResponse(agent=agent)
 
