@@ -125,15 +125,19 @@ def test_task_model_valid():
     assert task.needs_user_attention is False
 
 
-def test_task_message_required():
-    """Test task message is required"""
-    with pytest.raises(ValueError):
-        Task(
-            message="",  # Empty message
-            uri="https://github.com/org/repo",
-            needs_user_attention=False,
-            created_at=datetime.now(),
-        )
+def test_task_message_empty_allowed():
+    """Test task message can be empty (regression test for agent startup)
+
+    When agents first start, they may report an empty message status.
+    This should not cause validation errors.
+    """
+    task = Task(
+        message="",  # Empty message should be allowed
+        uri="",
+        needs_user_attention=False,
+        created_at=datetime.now(),
+    )
+    assert task.message == ""
 
 
 def test_task_uri_format():

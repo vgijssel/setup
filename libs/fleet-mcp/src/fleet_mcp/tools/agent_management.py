@@ -215,7 +215,11 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             int, Field(description="Items per page (max 100)", ge=1, le=100)
         ] = 20,
     ) -> TaskHistoryResponse:
-        """Show paginated task history for an agent"""
+        """Show paginated task history for an agent
+
+        Returns task history ordered by created_at descending (newest first).
+        This ordering ensures the most recent task status appears first in the response.
+        """
         workspace = await get_workspace_by_name(coder_client, agent_name)
 
         if not workspace:
@@ -224,55 +228,42 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         # Get workspace details which include task history in the workspace resource
         workspace_details = await coder_client.get_workspace(workspace["id"])
 
-        # Extract tasks from workspace.latest_build.resources[].metadata[].tasks
-        # Tasks are stored in the workspace resource metadata
+        # Extract task history from workspace.latest_build.resources[].agents[].apps[].statuses[]
+        # Task history is stored in the Claude Code app's statuses array
         tasks = []
 
-        # Check if workspace has latest_build with resources
+        # Navigate through the workspace structure to find the Claude Code app statuses
         if workspace_details.get("latest_build", {}).get("resources"):
             for resource in workspace_details["latest_build"]["resources"]:
-                # Check if this resource has metadata with tasks
-                if resource.get("metadata"):
-                    for metadata_item in resource["metadata"]:
-                        # Look for the tasks field in metadata
-                        if metadata_item.get("key") == "tasks":
-                            task_data = metadata_item.get("value", [])
-                            # task_data should be a list of task objects
-                            if isinstance(task_data, list):
-                                for task_item in task_data:
-                                    tasks.append(
-                                        Task(
-                                            message=task_item.get("message", ""),
-                                            uri=task_item.get("uri", ""),
-                                            needs_user_attention=task_item.get(
-                                                "needs_user_attention", False
-                                            ),
-                                            created_at=datetime.fromisoformat(
-                                                task_item.get(
-                                                    "created_at",
-                                                    datetime.now().isoformat(),
-                                                )
-                                            ),
+                # Look for resources with agents
+                if resource.get("agents"):
+                    for agent in resource["agents"]:
+                        # Look for apps in the agent
+                        if agent.get("apps"):
+                            for app in agent["apps"]:
+                                # Find the Claude Code app (by slug or display_name)
+                                if app.get("slug") == "ccw" or "Claude Code" in app.get(
+                                    "display_name", ""
+                                ):
+                                    # Extract statuses from the app
+                                    statuses = app.get("statuses", [])
+                                    for status in statuses:
+                                        tasks.append(
+                                            Task(
+                                                message=status.get("message", ""),
+                                                uri=status.get("uri", ""),
+                                                needs_user_attention=status.get(
+                                                    "needs_user_attention", False
+                                                ),
+                                                created_at=datetime.fromisoformat(
+                                                    status.get(
+                                                        "created_at",
+                                                        datetime.now().isoformat(),
+                                                    )
+                                                ),
+                                            )
                                         )
-                                    )
-                            break
-
-        # Also check top-level tasks field if it exists
-        if not tasks and workspace_details.get("tasks"):
-            task_data = workspace_details.get("tasks", [])
-            for task_item in task_data:
-                tasks.append(
-                    Task(
-                        message=task_item.get("message", ""),
-                        uri=task_item.get("uri", ""),
-                        needs_user_attention=task_item.get(
-                            "needs_user_attention", False
-                        ),
-                        created_at=datetime.fromisoformat(
-                            task_item.get("created_at", datetime.now().isoformat())
-                        ),
-                    )
-                )
+                                    break  # Found Claude Code app, stop searching
 
         # Paginate results (client-side pagination since API returns all tasks)
         return paginate_task_history(tasks, page, page_size)

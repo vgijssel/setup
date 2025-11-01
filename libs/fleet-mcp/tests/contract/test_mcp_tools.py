@@ -199,9 +199,11 @@ async def test_show_agent_not_found(agent_server):
 
 # T039: Test show_agent_task_history tool
 @pytest.mark.vcr
-async def test_show_agent_task_history_success(agent_server):
+async def test_show_agent_task_history_success(full_server):
     """Test show_agent_task_history returns paginated task list"""
-    async with Client(agent_server) as client:
+    import asyncio
+
+    async with Client(full_server) as client:
         # Get a valid project name first
         projects_result = await client.call_tool("list_agent_projects", {})
         projects_data = parse_tool_result(projects_result)
@@ -219,6 +221,30 @@ async def test_show_agent_task_history_success(agent_server):
         )
         parse_tool_result(create_result)
 
+        # Wait for the agent to be running
+        max_retries = 30
+        for _ in range(max_retries):
+            show_result = await client.call_tool(
+                "show_agent", {"agent_name": "test-history"}
+            )
+            agent_data = parse_tool_result(show_result)
+            if agent_data["agent"]["status"] == "running":
+                break
+            await asyncio.sleep(2)
+
+        # Start a task on the agent to generate task history
+        start_task_result = await client.call_tool(
+            "start_agent_task",
+            {
+                "agent_name": "test-history",
+                "task_description": "Generate some task history for testing",
+            },
+        )
+        parse_tool_result(start_task_result)
+
+        # Wait a bit for the task to be recorded
+        await asyncio.sleep(5)
+
         # Get task history
         result = await client.call_tool(
             "show_agent_task_history",
@@ -233,6 +259,8 @@ async def test_show_agent_task_history_success(agent_server):
         assert data["page_size"] == 20
         assert data["total_pages"] is not None
         assert isinstance(data["tasks"], list)
+        # After starting a task, we should have at least one status entry
+        assert data["total_count"] > 0, "Expected at least one task history entry"
 
 
 # T040: Test task history pagination
