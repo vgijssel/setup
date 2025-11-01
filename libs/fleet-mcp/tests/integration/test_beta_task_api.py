@@ -121,3 +121,33 @@ async def test_send_interrupt(coder_base_url, coder_token):
     assert isinstance(result, dict)
     # For 204 No Content, we expect an empty dict
     # If it returns actual JSON, it would be non-empty
+
+
+@pytest.mark.vcr
+async def test_get_task_logs(coder_base_url, coder_token):
+    """Test getting task logs from experimental API"""
+    client = CoderClient(base_url=coder_base_url, token=coder_token)
+
+    # Get current workspace for testing
+    workspaces = await client.list_workspaces()
+    assert len(workspaces) > 0, "At least one workspace should exist"
+
+    # Use the first workspace
+    workspace = workspaces[0]
+    workspace_id = workspace.get("id")
+    owner_name = workspace.get("owner_name")
+
+    # Get task logs using experimental API
+    logs = await client.get_task_logs(owner_name, workspace_id)
+
+    # Verify logs structure
+    assert isinstance(logs, list)
+
+    # If logs exist, verify their structure
+    if len(logs) > 0:
+        log_entry = logs[0]
+        assert "id" in log_entry
+        assert "time" in log_entry
+        assert "type" in log_entry
+        assert log_entry["type"] in ["input", "output"]
+        assert "content" in log_entry

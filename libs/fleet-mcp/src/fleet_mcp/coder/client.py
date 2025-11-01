@@ -393,6 +393,35 @@ class CoderClient:
         )
         response.raise_for_status()
 
+    async def get_task_logs(
+        self, username: str, workspace_id: str
+    ) -> list[dict[str, Any]]:
+        """
+        Get AI task conversation logs from experimental task API
+
+        Retrieves conversation logs for a specific AI task. Logs include both
+        user inputs and assistant outputs.
+
+        Args:
+            username: Username of the workspace owner
+            workspace_id: Workspace UUID
+
+        Returns:
+            List of log entries, each containing id, timestamp, type, and content.
+            Returns empty list if no task exists or logs are not available.
+        """
+        response = await self.client.get(
+            f"{self.base_url}/api/experimental/tasks/{username}/{workspace_id}/logs"
+        )
+
+        # 400 or 404 means no task exists or logs are not available
+        if response.status_code in (400, 404):
+            return []
+
+        response.raise_for_status()
+        data = response.json()
+        return data.get("logs", [])
+
     async def _get_org_id(self) -> str:
         """
         Get the default organization ID for the authenticated user

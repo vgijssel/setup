@@ -1,6 +1,7 @@
 """Response models for MCP tools"""
 
 from fleet_mcp.models.agent import Agent
+from fleet_mcp.models.log import Log
 from fleet_mcp.models.project import Project
 from fleet_mcp.models.role import Role
 from fleet_mcp.models.task import Task
@@ -83,3 +84,13 @@ class ListProjectsResponse(BaseModel):
     """Response for list_agent_projects tool"""
 
     projects: list[Project]
+
+
+class LogHistoryResponse(BaseModel):
+    """Response for show_agent_log tool"""
+
+    logs: list[Log]
+    total_count: int
+    page: int
+    page_size: int
+    total_pages: int

@@ -754,3 +754,88 @@ async def test_list_agents_returns_agents(agent_server):
         # Verify the agent we created is in the list
         agent_names = [agent["name"] for agent in data["agents"]]
         assert "test-list-verify" in agent_names
+
+
+# T052: Test show_agent_log tool
+@pytest.mark.vcr
+async def test_show_agent_log_success(agent_server):
+    """Test show_agent_log returns paginated conversation logs"""
+    async with Client(agent_server) as client:
+        # Use an existing agent with log history (test-history was created earlier)
+        # Or create a new one if needed
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+        project_name = projects_data["projects"][0]["name"]
+
+        # Create an agent first
+        create_result = await client.call_tool(
+            "create_agent",
+            {
+                "name": "test-log",
+                "project": project_name,
+                "role": "coder",
+                "spec": "Test for agent logs",
+            },
+        )
+        parse_tool_result(create_result)
+
+        # Get agent logs (default page=1, page_size=1 should return latest log)
+        result = await client.call_tool(
+            "show_agent_log",
+            {"agent_name": "test-log", "page": 1, "page_size": 1},
+        )
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert data["logs"] is not None
+        assert data["total_count"] is not None
+        assert data["page"] == 1
+        assert data["page_size"] == 1
+        assert data["total_pages"] is not None
+        assert isinstance(data["logs"], list)
+
+        # If logs exist, verify their structure
+        if len(data["logs"]) > 0:
+            log_entry = data["logs"][0]
+            assert "id" in log_entry
+            assert "time" in log_entry
+            assert "type" in log_entry
+            assert log_entry["type"] in ["input", "output"]
+            assert "content" in log_entry
+
+
+# T053: Test show_agent_log pagination
+@pytest.mark.vcr
+async def test_show_agent_log_pagination(agent_server):
+    """Test agent log pagination with different page sizes"""
+    async with Client(agent_server) as client:
+        # Use existing agent with logs
+        result_page1 = await client.call_tool(
+            "show_agent_log",
+            {"agent_name": "test-log", "page": 1, "page_size": 5},
+        )
+        data_page1 = parse_tool_result(result_page1)
+
+        assert data_page1["page"] == 1
+        assert data_page1["page_size"] == 5
+
+        # Request page 2
+        result_page2 = await client.call_tool(
+            "show_agent_log",
+            {"agent_name": "test-log", "page": 2, "page_size": 5},
+        )
+        data_page2 = parse_tool_result(result_page2)
+
+        assert data_page2["page"] == 2
+        assert data_page2["page_size"] == 5
+
+
+# T054: Test show_agent_log with non-existent agent
+async def test_show_agent_log_not_found(agent_server):
+    """Test show_agent_log fails with non-existent agent"""
+    async with Client(agent_server) as client:
+        with pytest.raises(Exception) as exc:
+            await client.call_tool(
+                "show_agent_log", {"agent_name": "nonexistent-agent-xyz-log"}
+            )
+        assert "not found" in str(exc.value).lower()

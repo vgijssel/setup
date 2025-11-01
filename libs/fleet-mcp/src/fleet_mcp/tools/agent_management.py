@@ -9,15 +9,17 @@ from fleet_mcp.coder.discovery import (
     get_valid_fleet_mcp_project_names,
     is_valid_fleet_mcp_project,
 )
-from fleet_mcp.coder.tasks import paginate_task_history
+from fleet_mcp.coder.tasks import paginate_log_history, paginate_task_history
 from fleet_mcp.coder.workspaces import get_workspace_by_name
 from fleet_mcp.models.agent import Agent
+from fleet_mcp.models.log import Log
 from fleet_mcp.models.responses import (
     AgentDetailsResponse,
     AgentListResponse,
     AgentSummary,
     CreateAgentResponse,
     DeleteAgentResponse,
+    LogHistoryResponse,
     TaskHistoryResponse,
 )
 from fleet_mcp.models.task import Task
@@ -320,6 +322,41 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
 
         # Paginate results (client-side pagination since API returns all tasks)
         return paginate_task_history(tasks, page, page_size)
+
+    # T052: show_agent_log tool
+    @mcp.tool()
+    async def show_agent_log(
+        agent_name: Annotated[str, Field(description="Agent name to query")],
+        page: Annotated[int, Field(description="Page number (1-indexed)", ge=1)] = 1,
+        page_size: Annotated[
+            int, Field(description="Items per page (max 100)", ge=1, le=100)
+        ] = 1,
+    ) -> LogHistoryResponse:
+        """Show paginated conversation log for an agent
+
+        Returns conversation logs ordered by time descending (newest first).
+        Default page size is 1 to show only the latest message.
+        """
+        workspace = await get_workspace_by_name(coder_client, agent_name)
+
+        if not workspace:
+            raise ValueError(f"Agent '{agent_name}' not found")
+
+        # Get task logs from experimental API
+        workspace_id = workspace.get("id")
+        owner_name = workspace.get("owner_name")
+
+        if not workspace_id or not owner_name:
+            raise ValueError(f"Agent '{agent_name}' has invalid workspace data")
+
+        # Fetch logs from Coder API
+        log_data = await coder_client.get_task_logs(owner_name, workspace_id)
+
+        # Convert to Log models
+        logs = [Log(**log_entry) for log_entry in log_data]
+
+        # Paginate results (client-side pagination since API returns all logs)
+        return paginate_log_history(logs, page, page_size)
 
     # ========================================================================
     # User Story 4: Agent Lifecycle Management
