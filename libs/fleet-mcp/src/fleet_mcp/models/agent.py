@@ -42,7 +42,6 @@ class Agent(BaseModel):
     status: AgentStatus
     role: str  # Dynamic - validated against Coder workspace presets
     project: str
-    spec: str = Field(min_length=1)
     current_task: str | None = None
     created_at: datetime
     updated_at: datetime
@@ -67,12 +66,11 @@ class Agent(BaseModel):
             template_display_name: Template display name for the project (optional)
         """
         # Parse agent metadata from watch-metadata endpoint
-        # Metadata keys are like "11_agent_spec", "8_pull_request_url", etc.
+        # Metadata keys are like "15_agent_name", "8_pull_request_url", etc.
         metadata = {}
         if agent_metadata:
             # Map agent metadata keys to fleet_mcp fields
             key_mapping = {
-                "11_agent_spec": "fleet_mcp_agent_spec",
                 "13_agent_role": "fleet_mcp_role",
                 "14_agent_project": "fleet_mcp_project",
                 "15_agent_name": "fleet_mcp_agent_name",
@@ -153,7 +151,6 @@ class Agent(BaseModel):
             status=status,
             role=metadata.get("fleet_mcp_role", "coder"),
             project=project,
-            spec=metadata.get("fleet_mcp_agent_spec", "default spec"),
             current_task=current_task,
             created_at=datetime.fromisoformat(
                 workspace.get("created_at", datetime.now().isoformat())

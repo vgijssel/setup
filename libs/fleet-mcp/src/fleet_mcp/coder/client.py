@@ -45,7 +45,7 @@ class CoderClient:
             name: Workspace name
             template_name: Coder template name
             workspace_preset: Workspace preset name (role)
-            ai_prompt: AI prompt for the workspace (spec)
+            ai_prompt: AI prompt for the workspace (task description)
             system_prompt: System prompt override (optional)
 
         Returns:

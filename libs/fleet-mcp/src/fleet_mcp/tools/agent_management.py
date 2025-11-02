@@ -38,11 +38,9 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         project: Annotated[
             str, Field(description="Project name (e.g., Setup, DataOne)")
         ],
-        spec: Annotated[
+        task: Annotated[
             str,
-            Field(
-                description="Agent specification defining objectives and constraints"
-            ),
+            Field(description="Task description defining objectives and constraints"),
         ],
         role: Annotated[
             str,
@@ -68,13 +66,13 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             )
 
         # Create workspace via Coder API
-        # Pass spec as ai_prompt parameter (required by user)
+        # Pass task as ai_prompt parameter (required by user)
         # Note: project is already the template name, no need to add suffix
         workspace = await coder_client.create_workspace(
             name=f"agent-{name}",
             template_name=project,
             workspace_preset=role,
-            ai_prompt=spec,  # Pass spec as ai_prompt rich parameter
+            ai_prompt=task,  # Pass task as ai_prompt rich parameter
         )
 
         # TODO: Write agent metadata to files in the workspace
@@ -86,12 +84,11 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         #         "agent_name": name,
         #         "agent_role": role,
         #         "agent_project": project,
-        #         "agent_spec": spec,
-        #         "current_task": spec
         #     }
         # )
 
         # Create synthetic metadata for MVP (will be replaced by file-based metadata later)
+        # Note: We no longer store spec/task in agent metadata
 
         # Fetch task data from experimental API
         workspace_id = workspace.get("id")
@@ -118,7 +115,6 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                 "15_agent_name": name,
                 "13_agent_role": role,
                 "14_agent_project": project,
-                "11_agent_spec": spec,
             },
             task_data=task_data,
             template_display_name=template_display_name,
@@ -387,7 +383,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
 
         # T088: Forceful deletion - delete even if busy
         # No status check - we delete regardless of agent state
-        # This is intentional per spec: "Busy agents will be forcefully deleted"
+        # This is intentional as per requirements: "Busy agents will be forcefully deleted"
 
         # Delete the workspace
         await coder_client.delete_workspace(workspace_id)

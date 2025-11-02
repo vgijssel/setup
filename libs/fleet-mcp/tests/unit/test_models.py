@@ -35,11 +35,10 @@ def test_agent_model_valid():
         status=AgentStatus.IDLE,
         role="coder",
         project="Setup",
-        spec="Test spec",
         current_task=None,
         created_at=now,
         updated_at=now,
-        metadata={"fleet_mcp_agent_spec": "Test spec"},
+        metadata={},
     )
     assert agent.name == "papi"
     assert agent.status == AgentStatus.IDLE
@@ -56,7 +55,6 @@ def test_agent_name_validation_empty():
             status=AgentStatus.IDLE,
             role="coder",
             project="Setup",
-            spec="Test",
             created_at=now,
             updated_at=now,
             metadata={},
@@ -73,7 +71,6 @@ def test_agent_name_validation_too_long():
             status=AgentStatus.IDLE,
             role="coder",
             project="Setup",
-            spec="Test",
             created_at=now,
             updated_at=now,
             metadata={},
@@ -90,7 +87,6 @@ def test_agent_name_validation_invalid_chars():
             status=AgentStatus.IDLE,
             role="coder",
             project="Setup",
-            spec="Test",
             created_at=now,
             updated_at=now,
             metadata={},

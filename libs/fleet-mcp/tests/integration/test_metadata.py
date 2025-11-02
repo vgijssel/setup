@@ -20,7 +20,6 @@ def test_metadata_extraction_from_workspace():
         "15_agent_name": "test",
         "13_agent_role": "coder",
         "14_agent_project": "Setup",
-        "11_agent_spec": "Test specification",
         "8_pull_request_url": "https://github.com/org/repo/pull/123",
         "0_cpu_usage": "10%",  # Should be filtered out (not in key_mapping)
     }
@@ -42,7 +41,6 @@ def test_metadata_extraction_from_workspace():
     assert agent.workspace_id == "workspace-123"
     assert agent.role == "coder"
     assert agent.project == "Setup"
-    assert agent.spec == "Test specification"
     assert agent.current_task == "Working on feature"
 
     # Verify status derivation (running + task state working = busy)
@@ -67,7 +65,6 @@ def test_metadata_extraction_idle_agent():
             "fleet_mcp_agent_name": "idle-agent",
             "fleet_mcp_role": "coder",
             "fleet_mcp_project": "Setup",
-            "fleet_mcp_agent_spec": "Test specification",
             "fleet_mcp_current_task": None,  # No current task
         },
     }
@@ -91,7 +88,6 @@ def test_metadata_extraction_offline_agent():
             "fleet_mcp_agent_name": "offline-agent",
             "fleet_mcp_role": "operator",
             "fleet_mcp_project": "DataOne",
-            "fleet_mcp_agent_spec": "Test specification",
         },
     }
 
@@ -122,7 +118,6 @@ def test_pr_metadata_extraction():
         "15_agent_name": "pr-agent",
         "13_agent_role": "coder",
         "14_agent_project": "Setup",
-        "11_agent_spec": "Implement feature X",
         "12_current_task": "Creating PR for feature X",
         "8_pull_request_url": "https://github.com/org/repo/pull/456",
         "9_pull_request_status": "open",
@@ -185,7 +180,6 @@ def test_agent_model_metadata_field():
         "15_agent_name": "metadata-agent",
         "13_agent_role": "operator",
         "14_agent_project": "DataOne",
-        "11_agent_spec": "Test spec",
         "8_pull_request_url": "https://github.com/org/repo/pull/111",
     }
 
@@ -204,27 +198,27 @@ def test_agent_model_metadata_field():
     )
 
 
-# T076: Test agent spec metadata visibility
-def test_agent_spec_visibility_in_metadata():
-    """Test that agent spec is visible in metadata dict"""
+# T076: Test agent metadata without spec field
+def test_agent_metadata_without_spec():
+    """Test that agent works correctly without spec field"""
     workspace = {
-        "id": "workspace-spec-test",
-        "name": "agent-spec",
+        "id": "workspace-test",
+        "name": "agent-test",
         "created_at": "2025-10-29T10:00:00Z",
         "updated_at": "2025-10-29T11:30:00Z",
         "latest_build": {"status": "running"},
     }
 
     agent_metadata = {
-        "15_agent_name": "spec-agent",
+        "15_agent_name": "test-agent",
         "13_agent_role": "manager",
         "14_agent_project": "Setup",
-        "11_agent_spec": "Coordinate team and review PRs",
         "12_current_task": "Reviewing PR #123",
     }
 
     agent = Agent.from_workspace(workspace, agent_metadata)
 
-    # Verify spec is accessible both as field and in metadata
-    assert agent.spec == "Coordinate team and review PRs"
-    assert agent.metadata["fleet_mcp_agent_spec"] == "Coordinate team and review PRs"
+    # Verify agent has no spec field
+    assert not hasattr(agent, "spec")
+    # Verify metadata does not contain fleet_mcp_agent_spec
+    assert "fleet_mcp_agent_spec" not in agent.metadata

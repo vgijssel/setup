@@ -60,7 +60,7 @@ async def test_create_agent_success(agent_server):
                 "name": "test-papi",
                 "project": project_name,
                 "role": "coder",
-                "spec": "Test specification for unit testing",
+                "task": "Test specification for unit testing",
             },
         )
 
@@ -96,7 +96,7 @@ async def test_create_agent_invalid_name(agent_server):
                     "name": "invalid@name",  # Invalid characters
                     "project": project_name,
                     "role": "coder",
-                    "spec": "Test",
+                    "task": "Test",
                 },
             )
         error_msg = str(exc.value).lower()
@@ -119,7 +119,7 @@ async def test_create_agent_invalid_project(agent_server):
                     "name": "test-agent",
                     "project": "NonExistentProject",
                     "role": "coder",
-                    "spec": "Test",
+                    "task": "Test",
                 },
             )
         error_msg = str(exc.value).lower()
@@ -163,7 +163,7 @@ async def test_show_agent_success(agent_server):
                 "name": "test-show",
                 "project": project_name,
                 "role": "coder",
-                "spec": "Test for show agent",
+                "task": "Test for show agent",
             },
         )
         parse_tool_result(create_result)
@@ -181,7 +181,6 @@ async def test_show_agent_success(agent_server):
         # We only check for agent_name which is always available
         assert "fleet_mcp_agent_name" in data["agent"]["metadata"]
         # Agent model fields have fallback values even if metadata is incomplete
-        assert data["agent"]["spec"] is not None
         assert data["agent"]["role"] is not None
         assert data["agent"]["project"] is not None
 
@@ -214,7 +213,7 @@ async def test_show_agent_case_insensitive(agent_server):
                 "name": "test-case",
                 "project": project_name,
                 "role": "coder",
-                "spec": "Test for case-insensitive agent name lookup",
+                "task": "Test for case-insensitive agent name lookup",
             },
         )
         parse_tool_result(create_result)
@@ -254,7 +253,7 @@ async def test_show_agent_task_history_success(full_server):
                 "name": "test-history",
                 "project": project_name,
                 "role": "coder",
-                "spec": "Test for task history",
+                "task": "Test for task history",
             },
         )
         parse_tool_result(create_result)
@@ -347,7 +346,7 @@ async def test_start_agent_task_success(full_server, coder_base_url, coder_token
                 "name": "test-task-agent",
                 "project": "coder-devcontainer",
                 "role": "coder",
-                "spec": "Initial setup task",
+                "task": "Initial setup task",
             },
         )
         create_data = parse_tool_result(create_result)
@@ -410,14 +409,14 @@ async def test_start_agent_task_on_busy_agent(full_server):
         projects_data = parse_tool_result(projects_result)
         project_name = projects_data["projects"][0]["name"]
 
-        # Create a busy agent (it starts busy with initial spec)
+        # Create a busy agent (it starts busy with initial task)
         create_result = await client.call_tool(
             "create_agent",
             {
                 "name": "busy-agent-003",
                 "project": project_name,
                 "role": "coder",
-                "spec": "This agent is busy with initial spec",
+                "task": "This agent is busy with initial task",
             },
         )
         parse_tool_result(create_result)
@@ -442,14 +441,14 @@ async def test_start_agent_task_on_busy_agent(full_server):
 async def test_cancel_agent_task_success(full_server, coder_base_url, coder_token):
     """Test successfully canceling a running task"""
     async with Client(full_server) as client:
-        # Create a busy agent (agent starts with spec, which makes it busy)
+        # Create a busy agent (agent starts with task, which makes it busy)
         create_result = await client.call_tool(
             "create_agent",
             {
                 "name": "cancel-test-agent",
                 "project": "coder-devcontainer",
                 "role": "coder",
-                "spec": "Long running task that will be canceled",
+                "task": "Long running task that will be canceled",
             },
         )
         create_data = parse_tool_result(create_result)
@@ -515,7 +514,7 @@ async def test_show_agent_with_pr_metadata(agent_server, coder_base_url, coder_t
                 "name": "pr-integration-test",
                 "project": "coder-devcontainer",
                 "role": "coder",
-                "spec": "Implement OAuth feature and create PR",
+                "task": "Implement OAuth feature and create PR",
             },
         )
         create_data = parse_tool_result(create_result)
@@ -550,9 +549,6 @@ async def test_show_agent_with_pr_metadata(agent_server, coder_base_url, coder_t
         assert data["agent"]["metadata"] is not None
         assert isinstance(data["agent"]["metadata"], dict)
 
-        # Verify agent spec is in metadata
-        assert "fleet_mcp_agent_spec" in data["agent"]["metadata"]
-
         # Verify PR metadata is included
         assert "fleet_mcp_pull_request_url" in data["agent"]["metadata"]
         assert (
@@ -586,7 +582,7 @@ async def test_delete_agent_success(agent_server):
                 "name": "delete-test-agent",
                 "project": "coder-devcontainer",
                 "role": "coder",
-                "spec": "Temporary agent for deletion test",
+                "task": "Temporary agent for deletion test",
             },
         )
 
@@ -635,11 +631,11 @@ async def test_delete_agent_on_busy_agent(agent_server):
                 "name": "busy-delete-test",
                 "project": "coder-devcontainer",
                 "role": "coder",
-                "spec": "Agent that will be forcefully deleted while busy",
+                "task": "Agent that will be forcefully deleted while busy",
             },
         )
 
-        # Agent should be busy with the initial spec
+        # Agent should be busy with the initial task
         show_result = await client.call_tool(
             "show_agent", {"agent_name": "busy-delete-test"}
         )
@@ -743,7 +739,7 @@ async def test_create_agent_validates_fleet_mcp_project(agent_server):
                     "name": "test-invalid-project",
                     "project": "InvalidProject",
                     "role": "coder",
-                    "spec": "This should fail",
+                    "task": "This should fail",
                 },
             )
         error_msg = str(exc.value).lower()
@@ -772,7 +768,7 @@ async def test_list_agents_returns_agents(agent_server):
                 "name": "test-list-verify",
                 "project": project_name,
                 "role": "coder",
-                "spec": "Test agent for list verification",
+                "task": "Test agent for list verification",
             },
         )
         create_data = parse_tool_result(create_result)
@@ -812,7 +808,7 @@ async def test_show_agent_log_success(agent_server):
                 "name": "test-log",
                 "project": project_name,
                 "role": "coder",
-                "spec": "Test for agent logs",
+                "task": "Test for agent logs",
             },
         )
         parse_tool_result(create_result)
