@@ -20,11 +20,33 @@ Fleet MCP enables operators to create, monitor, and manage multiple Claude Code 
 - **show_agent**: Get detailed agent information including metadata
 - **show_agent_task_history**: Paginated task history per agent
 
-### ⏳ Phases 4-8: Additional Features (Pending)
-- Task lifecycle management (start/cancel tasks)
-- PR integration metadata
-- Agent deletion
-- Role and project discovery
+### ✅ Phase 4: User Story 2 - Task Management (Complete)
+- **start_agent_task**: Assign tasks to idle agents via experimental task API
+- **cancel_agent_task**: Cancel running tasks via AgentAPI application proxy (NEW!)
+  - Uses Coder's application URLs to access AgentAPI running in workspaces
+  - Bypasses 502 gateway timeout issues
+  - Sends Ctrl+C signal for graceful cancellation
+  - Based on research from agent Papi
+
+### ✅ Phase 5+: Discovery & Management (Complete)
+- **delete_agent**: Remove agents and destroy workspaces
+- **list_agent_projects**: Discover available projects (templates)
+- **list_agent_roles**: Discover roles for a project (workspace presets)
+- **show_agent_log**: View paginated agent conversation history
+
+### 🚀 Latest Features
+
+#### AgentAPI-Based Task Cancellation
+Fleet MCP now uses Coder's application URLs to access the AgentAPI running inside workspaces. This provides a reliable cancellation mechanism that bypasses gateway timeout issues (502 errors).
+
+**How it works:**
+1. Discovers AgentAPI application URL from workspace resources
+2. Sends Ctrl+C signal via POST to `{agentapi_url}/message`
+3. Agent gracefully handles cancellation and reports status
+
+**Requirements:**
+- Workspace template must include a `coder_app` resource with slug containing "ccw", "agentapi", or "claude"
+- Agent must be running Claude Code with AgentAPI enabled
 
 ## Installation
 
@@ -97,6 +119,74 @@ Get paginated task history for an agent.
 - `page_size` (int, optional): Items per page (default: 20, max: 100)
 
 **Returns:** Paginated task list
+
+#### start_agent_task
+Assign a new task to an idle agent.
+
+**Parameters:**
+- `agent_name` (str): Name of agent to assign task to
+- `task_description` (str): Description of the task to perform (max 160 chars, no control characters)
+
+**Returns:** Task confirmation with agent status change to "busy"
+
+**Errors:**
+- Agent not found (404)
+- Agent is offline (400)
+- Agent is already busy (409)
+- Invalid task description (validation error)
+
+#### cancel_agent_task
+Cancel the currently running task on an agent using AgentAPI.
+
+**Parameters:**
+- `agent_name` (str): Name of agent whose task should be canceled
+
+**Returns:** Cancellation confirmation with agent status "canceling"
+
+**Implementation:**
+- Discovers AgentAPI URL from workspace applications
+- Sends Ctrl+C signal (SIGINT) via AgentAPI's `/message` endpoint
+- Agent gracefully handles cancellation and reports "idle" status when complete
+
+**Errors:**
+- Agent not found (404)
+- Agent is not busy / has no running task (400)
+- AgentAPI not available - workspace template must include coder_app with slug "ccw", "agentapi", or "claude"
+
+**Note:** This method bypasses the 502 gateway timeout issues by using Coder's application proxy to access AgentAPI directly.
+
+#### delete_agent
+Delete an agent and destroy its Coder workspace.
+
+**Parameters:**
+- `agent_name` (str): Name of agent to delete
+
+**Returns:** Deletion confirmation
+
+**Warning:** This operation is irreversible and forceful (deletes even if agent is busy).
+
+#### list_agent_projects
+List all available projects mapped to Coder templates.
+
+**Returns:** Array of valid fleet-mcp projects (templates with ai_prompt and system_prompt parameters)
+
+#### list_agent_roles
+List all available agent roles for a specific project.
+
+**Parameters:**
+- `project` (str): Project name to query roles for
+
+**Returns:** Array of roles (workspace presets) available for the project
+
+#### show_agent_log
+Get paginated conversation log for an agent.
+
+**Parameters:**
+- `agent_name` (str): Name of agent to query
+- `page` (int, optional): Page number (default: 1)
+- `page_size` (int, optional): Items per page (default: 1, max: 100)
+
+**Returns:** Paginated conversation logs (newest first)
 
 ## Development
 

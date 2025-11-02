@@ -422,6 +422,118 @@ class CoderClient:
         data = response.json()
         return data.get("logs", [])
 
+    async def get_workspace_build_resources(
+        self, workspace_build_id: str
+    ) -> list[dict[str, Any]]:
+        """
+        Get resources from a workspace build
+
+        Retrieves all resources provisioned by a workspace build, including
+        agents and their associated applications.
+
+        Args:
+            workspace_build_id: Workspace build UUID
+
+        Returns:
+            List of resource data including agents and apps
+        """
+        response = await self.client.get(
+            f"{self.base_url}/api/v2/workspacebuilds/{workspace_build_id}/resources"
+        )
+        response.raise_for_status()
+        return response.json()
+
+    async def get_agentapi_url(self, workspace: dict[str, Any]) -> str | None:
+        """
+        Get the AgentAPI application URL for a workspace
+
+        Constructs the URL to access the AgentAPI (Claude Code) application
+        running inside a workspace. This URL can be used to send commands
+        like Ctrl+C for task cancellation.
+
+        Args:
+            workspace: Workspace data dict containing id, name, owner info
+
+        Returns:
+            AgentAPI URL (e.g., https://coder.com/@owner/workspace.id/apps/ccw/)
+            or None if AgentAPI app is not found
+
+        Raises:
+            ValueError: If workspace data is invalid
+        """
+        workspace_id = workspace.get("id")
+        workspace_name = workspace.get("name")
+        owner_name = workspace.get("owner_name")
+        latest_build = workspace.get("latest_build")
+
+        if not all([workspace_id, workspace_name, owner_name]):
+            raise ValueError("Invalid workspace data: missing id, name, or owner_name")
+
+        if not latest_build or not isinstance(latest_build, dict):
+            raise ValueError("Invalid workspace: latest_build is missing or invalid")
+
+        build_id = latest_build.get("id")
+        if not build_id:
+            raise ValueError("Invalid workspace: latest_build missing id")
+
+        # Get workspace build resources to find agents and apps
+        resources = await self.get_workspace_build_resources(build_id)
+
+        # Find the AgentAPI app
+        # Look for apps with slug containing "ccw" (Claude Code Web) or "agentapi"
+        for resource in resources:
+            agents = resource.get("agents", [])
+            for agent in agents:
+                apps = agent.get("apps", [])
+                for app in apps:
+                    app_slug = app.get("slug", "").lower()
+                    # Claude Code Web app or any app with agentapi in the name
+                    if (
+                        "ccw" in app_slug
+                        or "agentapi" in app_slug
+                        or "claude" in app_slug
+                    ):
+                        # Construct the application URL
+                        # Format: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/{app_slug}/
+                        app_url = f"{self.base_url}/@{owner_name}/{workspace_name}.{workspace_id}/apps/{app.get('slug')}/"
+                        return app_url
+
+        return None
+
+    async def send_agentapi_interrupt(self, agentapi_url: str) -> dict[str, Any]:
+        """
+        Send interrupt signal (Ctrl+C) to AgentAPI
+
+        Sends a SIGINT signal via the AgentAPI's /message endpoint to cancel
+        the currently running task. This bypasses gateway timeouts by using
+        the application proxy.
+
+        Based on research from agent Papi: AgentAPI accepts raw terminal
+        control characters via POST to /message endpoint.
+
+        Args:
+            agentapi_url: Base URL of the AgentAPI app (from get_agentapi_url)
+
+        Returns:
+            Response from AgentAPI (typically empty dict for success)
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails
+        """
+        # Send ESC (\\u001b) as a raw message
+        # This is equivalent to sending SIGINT to the running Claude Code process
+        response = await self.client.post(
+            f"{agentapi_url}message",  # agentapi_url already ends with /
+            json={"type": "raw", "content": "\u001b"},
+            headers={"Content-Type": "application/json"},
+        )
+        response.raise_for_status()
+
+        # AgentAPI might return empty response or JSON
+        if response.status_code == 204:
+            return {}
+        return response.json() if response.text else {}
+
     async def _get_org_id(self) -> str:
         """
         Get the default organization ID for the authenticated user
