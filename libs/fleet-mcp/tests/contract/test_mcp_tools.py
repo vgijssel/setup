@@ -197,6 +197,44 @@ async def test_show_agent_not_found(agent_server):
         assert "not found" in str(exc.value).lower()
 
 
+# Test case-insensitive agent name lookup
+@pytest.mark.vcr
+async def test_show_agent_case_insensitive(agent_server):
+    """Test show_agent works with different case variations of agent name"""
+    async with Client(agent_server) as client:
+        # Get a valid project name first
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+        project_name = projects_data["projects"][0]["name"]
+
+        # Create an agent with lowercase name
+        create_result = await client.call_tool(
+            "create_agent",
+            {
+                "name": "test-case",
+                "project": project_name,
+                "role": "coder",
+                "spec": "Test for case-insensitive agent name lookup",
+            },
+        )
+        parse_tool_result(create_result)
+
+        # Test with exact case
+        result = await client.call_tool("show_agent", {"agent_name": "test-case"})
+        data = parse_tool_result(result)
+        assert data["agent"]["name"] == "test-case"
+
+        # Test with uppercase
+        result = await client.call_tool("show_agent", {"agent_name": "TEST-CASE"})
+        data = parse_tool_result(result)
+        assert data["agent"]["name"] == "test-case"
+
+        # Test with mixed case
+        result = await client.call_tool("show_agent", {"agent_name": "Test-Case"})
+        data = parse_tool_result(result)
+        assert data["agent"]["name"] == "test-case"
+
+
 # T039: Test show_agent_task_history tool
 @pytest.mark.vcr
 async def test_show_agent_task_history_success(full_server):
