@@ -58,7 +58,7 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
         owner_name = workspace.get("owner_name")
         task_data = await coder_client.get_task(owner_name, workspace_id)
         if task_data:
-            current_state = task_data.get("current_state", {})
+            current_state = task_data.get("current_state") or {}
             if current_state.get("state") == "working":
                 current_message = current_state.get("message", "unknown task")
                 raise ValueError(

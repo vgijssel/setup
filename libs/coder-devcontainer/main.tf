@@ -127,7 +127,7 @@ data "coder_parameter" "system_prompt" {
   display_name = "System Prompt"
   type         = "string"
   form_type    = "textarea"
-  default = ""
+  default      = ""
   description  = "System prompt for the agent with generalized instructions (required - select a preset)"
   mutable      = false
 }
@@ -405,13 +405,21 @@ module "claude-code" {
   install_claude_code     = false
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
-  cli_app = true
-  continue = true
+  cli_app                 = true
+  continue                = true
 
   # Pre-hook script to wait for git repo and verify Claude is available
   pre_install_script = <<-EOT
     wait-for-git --dir /workspaces/setup
   EOT
+
+  post_install_script = <<-EOT
+    cd /workspaces/setup
+    # Wait for the Fleet MCP server to be available
+    wait-for-it --service 127.0.0.1:8000 --timeout 120
+    claude mcp add --transport http fleet-mcp http://127.0.0.1:8000/mcp
+  EOT
+
 
   # This enables Coder Tasks
   report_tasks = true
@@ -521,7 +529,7 @@ resource "coder_script" "fleet_mcp" {
   agent_id     = coder_agent.main.id
   display_name = "Fleet MCP Server"
   icon         = "/icon/cloud.svg"
-  script = <<-EOT
+  script       = <<-EOT
     #!/bin/bash
     set -e
     set -x
@@ -551,7 +559,7 @@ resource "coder_app" "fleet_mcp" {
   slug         = "fleet-mcp"
   display_name = "Fleet MCP"
   icon         = "/icon/cloud.svg"
-  url          = "http://127.0.0.1:8000/mcp"
+  url          = "http://127.0.0.1:8000/health"
   subdomain    = false
   share        = "owner"
 
