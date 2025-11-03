@@ -3,10 +3,10 @@
 from datetime import datetime
 
 import pytest
-from fleet_mcp.models.agent import Agent, AgentStatus
-from fleet_mcp.models.project import Project
-from fleet_mcp.models.role import Role
-from fleet_mcp.models.task import Task
+from fleet_mcp.schemas.agent import Agent, AgentStatus
+from fleet_mcp.schemas.project import Project
+from fleet_mcp.schemas.role import Role
+from fleet_mcp.schemas.task import Task
 
 
 # T008: AgentStatus enum tests

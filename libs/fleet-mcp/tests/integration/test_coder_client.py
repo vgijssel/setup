@@ -1,7 +1,7 @@
 """Integration tests for Coder API client"""
 
 import pytest
-from fleet_mcp.coder.client import CoderClient
+from fleet_mcp.clients.coder_client import CoderClient
 
 
 # T013: CoderClient initialization test

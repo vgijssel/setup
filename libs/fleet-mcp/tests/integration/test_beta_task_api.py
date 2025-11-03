@@ -1,7 +1,7 @@
 """Integration tests for Coder experimental task API"""
 
 import pytest
-from fleet_mcp.coder.client import CoderClient
+from fleet_mcp.clients.coder_client import CoderClient
 
 
 # Test getting task from experimental API

@@ -1,7 +1,7 @@
 """Unit tests for AgentAPI client methods"""
 
 import pytest
-from fleet_mcp.coder.client import CoderClient
+from fleet_mcp.clients.coder_client import CoderClient
 
 
 class TestAgentAPIURL:

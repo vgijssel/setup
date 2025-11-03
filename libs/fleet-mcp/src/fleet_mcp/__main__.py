@@ -1,8 +1,7 @@
 """Entry point for running the Fleet MCP server"""
 
-import os
-
 from dotenv import load_dotenv
+from fleet_mcp import config
 from fleet_mcp.server import create_mcp_server
 
 
@@ -11,15 +10,21 @@ def main():
     # Load environment variables
     load_dotenv()
 
-    # Get configuration from environment
-    base_url = os.getenv("CODER_URL")
-    token = os.getenv("CODER_TOKEN")
+    # Validate configuration
+    if not config.CODER_BASE_URL or config.CODER_BASE_URL == "https://coder.example.com":
+        raise ValueError(
+            "CODER_URL must be set in .env file or environment. "
+            "Example: CODER_URL=https://coder.example.com"
+        )
 
-    if not base_url or not token:
-        raise ValueError("CODER_URL and CODER_TOKEN must be set in .env file")
+    if not config.CODER_TOKEN or config.CODER_TOKEN == "changeme":
+        raise ValueError(
+            "CODER_TOKEN must be set in .env file or environment. "
+            "Get your token from: https://<coder-url>/settings/tokens"
+        )
 
     # Create and run the MCP server
-    mcp = create_mcp_server(base_url, token)
+    mcp = create_mcp_server()
     mcp.run()
 
 

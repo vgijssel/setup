@@ -1,10 +1,10 @@
 """Response models for MCP tools"""
 
-from fleet_mcp.models.agent import Agent
-from fleet_mcp.models.log import Log
-from fleet_mcp.models.project import Project
-from fleet_mcp.models.role import Role
-from fleet_mcp.models.task import Task
+from fleet_mcp.schemas.agent import Agent
+from fleet_mcp.schemas.log import Log
+from fleet_mcp.schemas.project import Project
+from fleet_mcp.schemas.role import Role
+from fleet_mcp.schemas.task import Task
 from pydantic import BaseModel
 
 

@@ -4,7 +4,7 @@ import json
 
 import pytest
 from fastmcp import Client, FastMCP
-from fleet_mcp.coder.client import CoderClient
+from fleet_mcp.clients.coder_client import CoderClient
 from fleet_mcp.tools.agent_management import register_agent_tools
 from fleet_mcp.tools.task_management import register_task_tools
 
@@ -19,28 +19,44 @@ def parse_tool_result(result):
 
 # Fixture for testing agent management tools
 @pytest.fixture
-def agent_server(coder_base_url, coder_token):
+def agent_server(coder_base_url, coder_token, monkeypatch):
     """Create FastMCP server with agent and discovery tools for testing"""
     from fleet_mcp.tools.discovery import register_discovery_tools
 
+    # Set config for services to use
+    monkeypatch.setenv("CODER_URL", coder_base_url)
+    monkeypatch.setenv("CODER_TOKEN", coder_token)
+
+    # Force reload of config to pick up new env vars
+    import fleet_mcp.config
+    import importlib
+    importlib.reload(fleet_mcp.config)
+
     mcp = FastMCP("Agent Test Server")
-    coder_client = CoderClient(base_url=coder_base_url, token=coder_token)
-    register_agent_tools(mcp, coder_client)
-    register_discovery_tools(mcp, coder_client)
+    register_agent_tools(mcp)
+    register_discovery_tools(mcp)
     return mcp
 
 
 # Fixture for testing all tools (agent + task management)
 @pytest.fixture
-def full_server(coder_base_url, coder_token):
+def full_server(coder_base_url, coder_token, monkeypatch):
     """Create FastMCP server with all tools for testing"""
     from fleet_mcp.tools.discovery import register_discovery_tools
 
+    # Set config for services to use
+    monkeypatch.setenv("CODER_URL", coder_base_url)
+    monkeypatch.setenv("CODER_TOKEN", coder_token)
+
+    # Force reload of config to pick up new env vars
+    import fleet_mcp.config
+    import importlib
+    importlib.reload(fleet_mcp.config)
+
     mcp = FastMCP("Full Test Server")
-    coder_client = CoderClient(base_url=coder_base_url, token=coder_token)
-    register_agent_tools(mcp, coder_client)
-    register_task_tools(mcp, coder_client)
-    register_discovery_tools(mcp, coder_client)
+    register_agent_tools(mcp)
+    register_task_tools(mcp)
+    register_discovery_tools(mcp)
     return mcp
 
 

@@ -2,8 +2,14 @@
 
 from datetime import datetime, timedelta
 
-from fleet_mcp.coder.tasks import paginate_task_history
-from fleet_mcp.models.task import Task
+from fleet_mcp.services.agent_service import AgentService
+from fleet_mcp.schemas.task import Task
+
+
+def paginate_task_history(tasks, page, page_size):
+    """Helper function to test pagination logic"""
+    service = AgentService()
+    return service._paginate_task_history(tasks, page, page_size)
 
 
 def test_paginate_task_history_newest_first():
