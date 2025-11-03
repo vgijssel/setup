@@ -268,18 +268,6 @@ resource "coder_env" "op_service_account_token" {
   value    = local.op_service_account_token
 }
 
-resource "coder_env" "coder_url" {
-  agent_id = coder_agent.main.id
-  name     = "CODER_URL"
-  value    = data.coder_workspace.me.access_url
-}
-
-resource "coder_env" "coder_token" {
-  agent_id = coder_agent.main.id
-  name     = "CODER_TOKEN"
-  value    = coder_agent.main.token
-}
-
 resource "coder_agent" "main" {
   arch           = data.coder_provisioner.me.arch
   os             = "linux"
@@ -406,33 +394,6 @@ resource "coder_agent" "main" {
   }
 }
 
-# # See https://registry.coder.com/modules/coder/code-server
-# module "code-server" {
-#   count  = data.coder_workspace.me.start_count
-#   source = "registry.coder.com/coder/code-server/coder"
-
-#   # This ensures that the latest non-breaking version of the module gets downloaded, you can also pin the module version to prevent breaking changes in production.
-#   version = "~> 1.0"
-
-#   agent_id = coder_agent.main.id
-#   order    = 1
-#   folder   = "/workspaces/setup"
-# }
-
-# module "vscode-web" {
-#   count          = data.coder_workspace.me.start_count
-#   source         = "registry.coder.com/coder/vscode-web/coder"
-#   version        = "1.4.1"
-#   agent_id       = coder_agent.main.id
-#   install_prefix = "/workspaces/setup/.vscode-web"
-#   folder         = "/workspaces/setup"
-#   accept_license = true
-# }
-
-# The Claude Code module does the automatic task reporting
-# Other agent modules: https://registry.coder.com/modules?search=agent
-# Or use a custom agent:  
-
 module "claude-code" {
   count                   = data.coder_workspace.me.start_count
   source                  = "registry.coder.com/coder/claude-code/coder"
@@ -454,6 +415,8 @@ module "claude-code" {
   report_tasks = true
 }
 
+# The coder-login module sets CODER_SESSION_TOKEN and CODER_URL inside the env
+# these automatically log the user into the Coder CLI and API!
 module "coder-login" {
   count    = data.coder_workspace.me.start_count
   source   = "registry.coder.com/coder/coder-login/coder"
@@ -558,15 +521,15 @@ resource "coder_script" "fleet_mcp" {
   script = <<-EOT
     #!/bin/bash
     set -e
+    set -x
 
     # Wait for git repo to be available
     wait-for-git --dir /workspaces/setup
 
-    # Navigate to the fleet-mcp project directory
-    cd "$${SETUP_DIR}/libs/fleet-mcp"
+    cd /workspaces/setup
 
     # Start uvicorn with hot reload
-    nx run --tui=false server
+    direnv exec . nx run --tui=false fleet-mcp:server
   EOT
   run_on_start = true
   run_on_stop  = false
