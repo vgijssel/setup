@@ -232,8 +232,10 @@ async def test_show_agent_case_insensitive(agent_server):
 
 # T039: Test show_agent_task_history tool
 @pytest.mark.vcr
-async def test_show_agent_task_history_success(full_server):
+async def test_show_agent_task_history_success(full_server, vcr_cassette):
     """Test show_agent_task_history returns paginated task list"""
+    is_recording = not vcr_cassette.rewound
+
     import asyncio
 
     async with Client(full_server) as client:
@@ -263,7 +265,9 @@ async def test_show_agent_task_history_success(full_server):
             agent_data = parse_tool_result(show_result)
             if agent_data["agent"]["status"] == "running":
                 break
-            await asyncio.sleep(2)
+
+            if is_recording:
+                await asyncio.sleep(2)
 
         # Start a task on the agent to generate task history
         start_task_result = await client.call_tool(
@@ -276,7 +280,8 @@ async def test_show_agent_task_history_success(full_server):
         parse_tool_result(start_task_result)
 
         # Wait a bit for the task to be recorded
-        await asyncio.sleep(5)
+        if is_recording:
+            await asyncio.sleep(5)
 
         # Get task history
         result = await client.call_tool(
