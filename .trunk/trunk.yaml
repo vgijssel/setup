@@ -47,6 +47,8 @@ lint:
         - third_party/vendir/shell/docker-in-docker/**
         - .specify/**
         - libs/devenv/goss.yaml
+        # VCR cassettes contain recorded HTTP interactions with secrets
+        - libs/fleet-mcp/tests/cassettes/**
     # Ignore yamllint syntax errors for Helm chart templates
     - linters: [yamllint]
       paths:
