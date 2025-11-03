@@ -3,12 +3,13 @@
 from typing import Annotated
 
 from fastmcp import FastMCP
+from pydantic import Field
+
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.coder.discovery import get_valid_fleet_mcp_projects
 from fleet_mcp.models.project import Project
 from fleet_mcp.models.responses import ListProjectsResponse, ListRolesResponse
 from fleet_mcp.models.role import Role
-from pydantic import Field
 
 
 def register_discovery_tools(mcp: FastMCP, coder_client: CoderClient):

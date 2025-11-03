@@ -1,6 +1,7 @@
 """FastMCP server initialization"""
 
 from fastmcp import FastMCP
+
 from fleet_mcp.coder.client import CoderClient
 
 

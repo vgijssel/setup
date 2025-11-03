@@ -2,9 +2,6 @@
 
 from datetime import datetime
 
-import pytest
-from fleet_mcp.coder.client import CoderClient
-
 
 # T061: Test agent status derivation (busy/idle)
 async def test_agent_status_derivation(coder_base_url, coder_token):

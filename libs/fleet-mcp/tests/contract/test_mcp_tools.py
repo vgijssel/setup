@@ -4,6 +4,7 @@ import json
 
 import pytest
 from fastmcp import Client, FastMCP
+
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.tools.agent_management import register_agent_tools
 from fleet_mcp.tools.task_management import register_task_tools

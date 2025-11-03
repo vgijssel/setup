@@ -403,7 +403,10 @@ class CoderClient:
                     ):
                         # Construct the application URL
                         # Format: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/{app_slug}/
-                        app_url = f"{self.base_url}/@{owner_name}/{workspace_name}.{workspace_id}/apps/{app.get('slug')}/"
+                        app_url = (
+                            f"{self.base_url}/@{owner_name}/{workspace_name}."
+                            f"{workspace_id}/apps/{app.get('slug')}/"
+                        )
                         return app_url
 
         return None
