@@ -72,6 +72,28 @@ class CoderClient:
         if not active_version_id:
             raise ValueError(f"Template '{template_name}' has no active version")
 
+        # Get workspace presets to find the preset ID
+        presets = await self.get_template_version_presets(active_version_id)
+        preset_id = None
+        for preset in presets:
+            # API returns keys with capital first letter: 'Name', 'ID'
+            preset_name = preset.get("Name") or preset.get("name")
+            if preset_name and preset_name.lower() == workspace_preset.lower():
+                preset_id = preset.get("ID") or preset.get("id")
+                break
+
+        if not preset_id:
+            # Handle both capitalized and lowercase keys
+            available_presets = [
+                p.get("Name") or p.get("name")
+                for p in presets
+                if p.get("Name") or p.get("name")
+            ]
+            raise ValueError(
+                f"Workspace preset '{workspace_preset}' not found in template '{template_name}'. "
+                f"Available presets: {', '.join(available_presets)}"
+            )
+
         # Get rich parameters from the active template version
         rich_parameters = await self.get_template_version_rich_parameters(
             active_version_id
@@ -121,12 +143,13 @@ class CoderClient:
                 {"name": system_prompt_param_name, "value": system_prompt}
             )
 
-        # Create workspace
+        # Create workspace with preset
         response = await self.client.post(
             f"{self.base_url}/api/v2/organizations/{await self._get_org_id()}/members/me/workspaces",
             json={
                 "name": name,
                 "template_id": template_id,
+                "template_version_preset_id": preset_id,
                 "rich_parameter_values": rich_parameter_values,
             },
         )
@@ -249,6 +272,24 @@ class CoderClient:
         """
         response = await self.client.get(
             f"{self.base_url}/api/v2/templateversions/{template_version_id}/rich-parameters"
+        )
+        response.raise_for_status()
+        return response.json()
+
+    async def get_template_version_presets(
+        self, template_version_id: str
+    ) -> list[dict[str, Any]]:
+        """
+        Get workspace presets for a template version
+
+        Args:
+            template_version_id: Template version UUID
+
+        Returns:
+            List of preset definitions with id, name, description, parameters, etc.
+        """
+        response = await self.client.get(
+            f"{self.base_url}/api/v2/templateversions/{template_version_id}/presets"
         )
         response.raise_for_status()
         return response.json()
