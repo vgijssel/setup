@@ -1,5 +1,5 @@
 {
-  "name": "@setup/fleet-mcp",
+  "name": "fleet-mcp",
   "version": "0.1.0",
   "description": "Fleet MCP Server for Claude Code agents",
   "private": true,
@@ -43,40 +43,7 @@
         "metadata": {
           "description": "Run pytest tests"
         }
-      },
-      "lint": {
-        "executor": "nx:run-commands",
-        "options": {
-          "command": "uv run ruff check .",
-          "cwd": "libs/fleet-mcp"
-        },
-        "cache": true,
-        "inputs": [
-          "{projectRoot}/**/*.py"
-        ],
-        "metadata": {
-          "description": "Lint Python code with ruff"
-        }
-      },
-      "build": {
-        "executor": "nx:run-commands",
-        "options": {
-          "command": "uv build",
-          "cwd": "libs/fleet-mcp"
-        },
-        "cache": true,
-        "outputs": [
-          "{projectRoot}/dist"
-        ],
-        "metadata": {
-          "description": "Build Python package"
-        }
       }
     }
-  },
-  "scripts": {
-    "test": "nx test fleet-mcp",
-    "lint": "nx lint fleet-mcp",
-    "build": "nx build fleet-mcp"
   }
 }
