@@ -15,7 +15,7 @@ class AgentSummary(BaseModel):
     name: str
     status: str
     project: str
-    current_task: str | None
+    last_task: str | None
 
 
 class CreateAgentResponse(BaseModel):

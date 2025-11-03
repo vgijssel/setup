@@ -75,8 +75,8 @@ async def test_create_agent_success(agent_server):
             "idle",
         ]  # Agent starts
         assert data["agent"]["role"] == "coder"
-        # Note: current_task is None until metadata is written to files (TODO)
-        # assert data["agent"]["current_task"] == "Test specification for unit testing"
+        # Note: last_task shows the most recent task message from task API
+        # assert data["agent"]["last_task"] == "Test specification for unit testing"
         assert data["message"] is not None
 
 

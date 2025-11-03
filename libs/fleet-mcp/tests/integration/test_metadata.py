@@ -41,7 +41,7 @@ def test_metadata_extraction_from_workspace():
     assert agent.workspace_id == "workspace-123"
     assert agent.role == "coder"
     assert agent.project == "Setup"
-    assert agent.current_task == "Working on feature"
+    assert agent.last_task == "Working on feature"
 
     # Verify status derivation (running + task state working = busy)
     assert agent.status == "busy"
@@ -54,7 +54,7 @@ def test_metadata_extraction_from_workspace():
 
 
 def test_metadata_extraction_idle_agent():
-    """Test status derivation for idle agent (no current_task)"""
+    """Test status derivation for idle agent (no last_task)"""
     workspace = {
         "id": "workspace-456",
         "name": "agent-idle",
@@ -65,15 +65,15 @@ def test_metadata_extraction_idle_agent():
             "fleet_mcp_agent_name": "idle-agent",
             "fleet_mcp_role": "coder",
             "fleet_mcp_project": "Setup",
-            "fleet_mcp_current_task": None,  # No current task
+            "fleet_mcp_current_task": None,  # No task
         },
     }
 
     agent = Agent.from_workspace(workspace)
 
-    # Idle agent: running workspace + no current_task
+    # Idle agent: running workspace + no last_task
     assert agent.status == "idle"
-    assert agent.current_task is None
+    assert agent.last_task is None
 
 
 def test_metadata_extraction_offline_agent():

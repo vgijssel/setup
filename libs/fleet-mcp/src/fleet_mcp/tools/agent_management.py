@@ -191,7 +191,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                             name=agent.name,
                             status=agent.status.value,
                             project=agent.project,
-                            current_task=agent.current_task,
+                            last_task=agent.last_task,
                         )
                     )
                 except Exception:

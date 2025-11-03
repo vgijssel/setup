@@ -70,11 +70,11 @@ async def test_task_status_transitions(coder_base_url, coder_token):
 
 # T061: Test agent status derivation (busy/idle)
 async def test_agent_status_derivation(coder_base_url, coder_token):
-    """Test that agent status is correctly derived from workspace state and current_task"""
+    """Test that agent status is correctly derived from workspace state and task data"""
 
     # Mock workspace data for different scenarios
 
-    # Scenario 1: Workspace running with current_task -> busy
+    # Scenario 1: Workspace running with task -> busy
     workspace_busy = {
         "id": "test-ws-1",
         "name": "agent-busy",
@@ -92,12 +92,12 @@ async def test_agent_status_derivation(coder_base_url, coder_token):
     # Note: agent_from_workspace will be implemented in T069
     # For now, test the logic manually
 
-    # If workspace is running and has current_task, status should be busy
+    # If workspace is running and has task, status should be busy
     assert workspace_busy["latest_build"]["status"] == "running"
     assert workspace_busy["metadata"].get("fleet_mcp_current_task") is not None
     # When implemented, this should yield AgentStatus.BUSY
 
-    # Scenario 2: Workspace running without current_task -> idle
+    # Scenario 2: Workspace running without task -> idle
     workspace_idle = {
         "id": "test-ws-2",
         "name": "agent-idle",
@@ -112,7 +112,7 @@ async def test_agent_status_derivation(coder_base_url, coder_token):
         "updated_at": datetime.now().isoformat(),
     }
 
-    # If workspace is running and has no current_task, status should be idle
+    # If workspace is running and has no task, status should be idle
     assert workspace_idle["latest_build"]["status"] == "running"
     assert workspace_idle["metadata"].get("fleet_mcp_current_task") is None
     # When implemented, this should yield AgentStatus.IDLE

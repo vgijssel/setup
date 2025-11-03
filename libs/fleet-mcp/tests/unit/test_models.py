@@ -35,7 +35,7 @@ def test_agent_model_valid():
         status=AgentStatus.IDLE,
         role="coder",
         project="Setup",
-        current_task=None,
+        last_task=None,
         created_at=now,
         updated_at=now,
         metadata={},

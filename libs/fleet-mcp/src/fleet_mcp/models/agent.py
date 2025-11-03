@@ -42,7 +42,7 @@ class Agent(BaseModel):
     status: AgentStatus
     role: str  # Dynamic - validated against Coder workspace presets
     project: str
-    current_task: str | None = None
+    last_task: str | None = None
     created_at: datetime
     updated_at: datetime
     metadata: dict[str, str] = Field(
@@ -89,16 +89,15 @@ class Agent(BaseModel):
         # Derive status from workspace state and task API
         workspace_status = workspace.get("latest_build", {}).get("status", "unknown")
 
-        # Get current task from task API if available
-        current_task = None
+        # Get last task from task API if available
+        last_task = None
         if task_data:
             current_state = task_data.get("current_state") or {}
-            task_state = current_state.get("state")
             task_message = current_state.get("message", "")
 
-            # Only set current_task if the agent is actually working
-            if task_state == "working" and task_message:
-                current_task = task_message
+            # Always set last_task if there's a message
+            if task_message:
+                last_task = task_message
 
         if workspace_status != "running":
             # Map workspace status to agent status
@@ -151,7 +150,7 @@ class Agent(BaseModel):
             status=status,
             role=metadata.get("fleet_mcp_role", "coder"),
             project=project,
-            current_task=current_task,
+            last_task=last_task,
             created_at=datetime.fromisoformat(
                 workspace.get("created_at", datetime.now().isoformat())
             ),
