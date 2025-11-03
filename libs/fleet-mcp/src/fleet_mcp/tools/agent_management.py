@@ -4,8 +4,6 @@ from datetime import datetime
 from typing import Annotated
 
 from fastmcp import FastMCP
-from pydantic import Field
-
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.coder.discovery import (
     get_valid_fleet_mcp_project_names,
@@ -25,6 +23,7 @@ from fleet_mcp.models.responses import (
     TaskHistoryResponse,
 )
 from fleet_mcp.models.task import Task
+from pydantic import Field
 
 
 def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):

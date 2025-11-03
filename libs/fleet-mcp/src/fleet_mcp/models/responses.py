@@ -1,12 +1,11 @@
 """Response models for MCP tools"""
 
-from pydantic import BaseModel
-
 from fleet_mcp.models.agent import Agent
 from fleet_mcp.models.log import Log
 from fleet_mcp.models.project import Project
 from fleet_mcp.models.role import Role
 from fleet_mcp.models.task import Task
+from pydantic import BaseModel
 
 
 # T023: Basic response models

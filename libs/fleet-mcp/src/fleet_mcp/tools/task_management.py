@@ -4,12 +4,11 @@ from datetime import datetime
 from typing import Annotated
 
 from fastmcp import FastMCP
-from pydantic import Field
-
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.coder.workspaces import get_workspace_by_name
 from fleet_mcp.models.responses import CancelTaskResponse, StartTaskResponse
 from fleet_mcp.models.task import Task
+from pydantic import Field
 
 
 def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
@@ -90,7 +89,7 @@ def register_task_tools(mcp: FastMCP, coder_client: CoderClient):
             str, Field(description="Name of the agent whose task should be canceled")
         ],
     ) -> CancelTaskResponse:
-        """
+        r"""
         Cancel the currently running task on an agent.
 
         Sends an interrupt signal (Ctrl+C / SIGINT) to the agent via the AgentAPI

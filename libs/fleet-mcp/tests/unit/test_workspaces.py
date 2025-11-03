@@ -1,7 +1,6 @@
 """Unit tests for workspace helper functions"""
 
 import pytest
-
 from fleet_mcp.coder.workspaces import get_workspace_by_name
 
 
