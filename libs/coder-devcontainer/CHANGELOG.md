@@ -1,3 +1,9 @@
+## 0.12.0 (2025-11-03)
+
+### 🚀 Features
+
+- feat: add researcher workspace preset with deep research system prompt ([#793](https://github.com/vgijssel/setup/pull/793))
+
 ## 0.11.0 (2025-10-30)
 
 ### 🚀 Features
