@@ -566,7 +566,7 @@ resource "coder_script" "fleet_mcp" {
     cd "$${SETUP_DIR}/libs/fleet-mcp"
 
     # Start uvicorn with hot reload
-    uv run --all-extras uvicorn fleet_mcp.__main__:app --host 0.0.0.0 --port 8000 --reload
+    nx run --tui=false server
   EOT
   run_on_start = true
   run_on_stop  = false
