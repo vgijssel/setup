@@ -49,10 +49,6 @@ lint:
         - libs/devenv/goss.yaml
         # VCR cassettes contain recorded HTTP interactions with secrets
         - libs/fleet-mcp/tests/cassettes/**
-    # Disable isort for fleet-mcp since ruff handles import sorting
-    - linters: [isort]
-      paths:
-        - libs/fleet-mcp/**
     # Ignore yamllint syntax errors for Helm chart templates
     - linters: [yamllint]
       paths:
