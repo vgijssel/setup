@@ -63,8 +63,8 @@ nx run fleet-mcp:secrets
 
 Create `.env` from template:
 ```bash
-CODER_URL=https://your-coder-instance.com
-CODER_TOKEN=your-api-token
+FLEET_MCP_CODER_URL=https://your-coder-instance.com
+FLEET_MCP_CODER_TOKEN=your-api-token
 ```
 
 ## Usage
@@ -77,8 +77,8 @@ import os
 
 # Initialize MCP server
 mcp = create_mcp_server(
-    base_url=os.getenv("CODER_URL"),
-    token=os.getenv("CODER_TOKEN")
+    base_url=os.getenv("FLEET_MCP_CODER_URL"),
+    token=os.getenv("FLEET_MCP_CODER_TOKEN")
 )
 
 # Server is ready to handle MCP tool requests
