@@ -127,6 +127,7 @@ data "coder_parameter" "system_prompt" {
   display_name = "System Prompt"
   type         = "string"
   form_type    = "textarea"
+  default = ""
   description  = "System prompt for the agent with generalized instructions (required - select a preset)"
   mutable      = false
 }
@@ -396,7 +397,7 @@ resource "coder_agent" "main" {
 module "claude-code" {
   count                   = data.coder_workspace.me.start_count
   source                  = "registry.coder.com/coder/claude-code/coder"
-  version                 = "3.0.0"
+  version                 = "3.4.4"
   agent_id                = coder_agent.main.id
   workdir                 = "/workspaces/setup"
   ai_prompt               = data.coder_parameter.ai_prompt.value
@@ -404,6 +405,8 @@ module "claude-code" {
   install_claude_code     = false
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
+  cli_app = true
+  continue = true
 
   # Pre-hook script to wait for git repo and verify Claude is available
   pre_install_script = <<-EOT
@@ -435,11 +438,12 @@ module "vscode" {
 # Git clone module to clone the setup repository
 module "git-clone" {
   source      = "registry.coder.com/coder/git-clone/coder"
-  version     = "1.1.1"
+  version     = "1.2.0"
   agent_id    = coder_agent.main.id
   url         = "git@github.com:vgijssel/setup.git"
   base_dir    = "/workspaces"
   folder_name = "setup"
+  branch_name = "feat/fleet-mcp-http-server"
 }
 
 # Git commit signing module to configure commit signing with SSH keys
@@ -527,8 +531,15 @@ resource "coder_script" "fleet_mcp" {
 
     cd /workspaces/setup
 
-    # Start uvicorn with hot reload
-    direnv exec . nx run --tui=false fleet-mcp:server
+    # Create log directory if it doesn't exist
+    mkdir -p /tmp/fleet-mcp
+
+    # Start uvicorn with hot reload in the background
+    # Redirect stdout and stderr to log file to prevent blocking pipes
+    nohup direnv exec . nx run --tui=false fleet-mcp:server > /tmp/fleet-mcp/server.log 2>&1 &
+
+    # Store the PID for potential cleanup
+    echo $! > /tmp/fleet-mcp/server.pid
   EOT
   run_on_start = true
   run_on_stop  = false
@@ -546,8 +557,8 @@ resource "coder_app" "fleet_mcp" {
 
   healthcheck {
     url       = "http://127.0.0.1:8000/health"
-    interval  = 5
-    threshold = 6
+    interval  = 10
+    threshold = 10
   }
 }
 
