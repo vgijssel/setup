@@ -81,6 +81,7 @@ async def test_create_agent_success(agent_server):
 
 
 # T034: Test create_agent with invalid name
+@pytest.mark.vcr
 async def test_create_agent_invalid_name(agent_server):
     """Test create_agent fails with invalid agent name"""
     async with Client(agent_server) as client:
@@ -109,6 +110,7 @@ async def test_create_agent_invalid_name(agent_server):
 
 
 # T035: Test create_agent with invalid project
+@pytest.mark.vcr
 async def test_create_agent_invalid_project(agent_server):
     """Test create_agent fails with non-existent or invalid fleet-mcp project"""
     async with Client(agent_server) as client:
@@ -182,6 +184,7 @@ async def test_show_agent_success(agent_server):
 
 
 # T038: Test show_agent with non-existent agent
+@pytest.mark.vcr
 async def test_show_agent_not_found(agent_server):
     """Test show_agent fails with non-existent agent"""
     async with Client(agent_server) as client:
@@ -333,6 +336,7 @@ async def test_task_history_pagination(agent_server):
 
 
 # T056: Test start_agent_task on offline agent
+@pytest.mark.vcr
 async def test_start_agent_task_on_offline_agent(full_server):
     """Test start_agent_task fails when agent workspace is offline"""
     async with Client(full_server) as client:
@@ -386,6 +390,7 @@ async def test_start_agent_task_on_busy_agent(full_server):
 
 
 # T059: Test cancel_agent_task on idle agent
+@pytest.mark.vcr
 async def test_cancel_agent_task_on_idle_agent(full_server):
     """Test cancel_agent_task fails when agent is idle (no task running)"""
     async with Client(full_server) as client:
@@ -471,6 +476,7 @@ async def test_delete_agent_success(agent_server, vcr_cassette):
 
 
 # T083: Test delete_agent with non-existent agent
+@pytest.mark.vcr
 async def test_delete_agent_not_found(agent_server):
     """Test delete_agent fails with non-existent agent"""
     async with Client(agent_server) as client:
@@ -600,6 +606,7 @@ async def test_list_agent_roles_success(agent_server):
 
 
 # T091: Test list_agent_roles with invalid project
+@pytest.mark.vcr
 async def test_list_agent_roles_invalid_project(agent_server):
     """Test list_agent_roles fails with non-existent or invalid project"""
     async with Client(agent_server) as client:
@@ -752,6 +759,7 @@ async def test_show_agent_log_pagination(agent_server):
 
 
 # T054: Test show_agent_log with non-existent agent
+@pytest.mark.vcr
 async def test_show_agent_log_not_found(agent_server):
     """Test show_agent_log fails with non-existent agent"""
     async with Client(agent_server) as client:
