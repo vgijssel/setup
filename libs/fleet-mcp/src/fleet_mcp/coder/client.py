@@ -183,60 +183,6 @@ class CoderClient:
         response.raise_for_status()
         return response.json()
 
-    async def write_agent_metadata(
-        self, workspace_id: str, agent_name: str, metadata: dict[str, str | None]
-    ) -> None:
-        """
-        Write agent metadata by writing to files in the workspace.
-
-        **LIMITATION**: This method requires the Coder MCP tools (mcp__coder__coder_workspace_bash)
-        to be available, as the Coder REST API does not support direct file writes to workspaces.
-
-        For production use, agents should write their own metadata using the coder_report_task tool
-        and metadata scripts in /home/coder/.config/coder/metadata/.
-
-        Args:
-            workspace_id: Workspace UUID
-            agent_name: Agent name (usually "main")
-            metadata: Metadata fields to write (e.g., {"fleet_mcp_agent_name": "..."})
-
-        Raises:
-            NotImplementedError: This method cannot be implemented using REST API alone
-        """
-        # NOTE: Writing metadata requires executing bash commands in the workspace,
-        # which is not available through the Coder REST API. It requires the Coder MCP tools.
-        #
-        # In production, agents write their own metadata through:
-        # 1. coder_report_task MCP tool (for task history)
-        # 2. Metadata scripts in /home/coder/.config/coder/metadata/ (for custom fields)
-        #
-        # This is a placeholder for future implementation using Coder MCP tools.
-        pass
-
-    async def update_workspace_metadata(
-        self, workspace_id: str, metadata_updates: dict[str, str | None]
-    ) -> dict[str, Any]:
-        """
-        Update workspace metadata fields (implementation note: Coder API doesn't support PATCH,
-        so we need to use the write_agent_metadata approach via workspace files)
-
-        Args:
-            workspace_id: Workspace UUID
-            metadata_updates: Metadata fields to update (None values clear the field)
-
-        Returns:
-            Updated workspace data
-        """
-        # Get agent name from workspace metadata
-        # For fleet-mcp agents, agent_name is typically "main"
-        agent_name = "main"
-
-        # Use write_agent_metadata to update the files
-        await self.write_agent_metadata(workspace_id, agent_name, metadata_updates)
-
-        # Return updated workspace
-        return await self.get_workspace(workspace_id)
-
     async def send_interrupt(self, username: str, workspace_id: str) -> dict[str, Any]:
         """
         Send interrupt signal to workspace (for task cancellation)
@@ -261,44 +207,6 @@ class CoderClient:
         response.raise_for_status()
         # 204 No Content returns empty response
         return {} if response.status_code == 204 else response.json()
-
-    async def get_agent_metadata(self, agent_id: str) -> dict[str, str]:
-        """
-        Get agent metadata by fetching from watch-metadata endpoint
-
-        Args:
-            agent_id: Agent UUID
-
-        Returns:
-            Dictionary mapping metadata keys to their values
-        """
-
-        # Fetch one event from the SSE stream
-        async with self.client.stream(
-            "GET",
-            f"{self.base_url}/api/v2/workspaceagents/{agent_id}/watch-metadata",
-            headers={"Accept": "text/event-stream"},
-            timeout=5.0,
-        ) as response:
-            response.raise_for_status()
-
-            # Read until we get the first data event
-            async for line in response.aiter_lines():
-                if line.startswith("data: "):
-                    import json
-
-                    data = json.loads(line[6:])  # Remove "data: " prefix
-
-                    # Parse metadata into key-value dict
-                    metadata = {}
-                    for item in data:
-                        key = item["description"]["key"]
-                        value = item["result"]["value"].strip()
-                        metadata[key] = value
-
-                    return metadata
-
-        return {}
 
     async def list_templates(self) -> list[dict[str, Any]]:
         """

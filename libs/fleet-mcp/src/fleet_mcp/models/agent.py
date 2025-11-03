@@ -45,9 +45,6 @@ class Agent(BaseModel):
     last_task: str | None = None
     created_at: datetime
     updated_at: datetime
-    metadata: dict[str, str] = Field(
-        default_factory=dict
-    )  # Nested metadata with all fleet_mcp_* fields
 
     @staticmethod
     def from_workspace(
@@ -61,28 +58,11 @@ class Agent(BaseModel):
 
         Args:
             workspace: Workspace data from Coder API
-            agent_metadata: Agent metadata from watch-metadata endpoint (optional)
+            agent_metadata: Agent metadata from watch-metadata endpoint (optional, unused)
             task_data: Task data from experimental task API (optional)
             template_display_name: Template display name for the project (optional)
         """
-        # Parse agent metadata from watch-metadata endpoint
-        # Metadata keys are like "15_agent_name", "8_pull_request_url", etc.
-        metadata = {}
-        if agent_metadata:
-            # Map agent metadata keys to fleet_mcp fields
-            key_mapping = {
-                "13_agent_role": "fleet_mcp_role",
-                "14_agent_project": "fleet_mcp_project",
-                "15_agent_name": "fleet_mcp_agent_name",
-                "8_pull_request_url": "fleet_mcp_pull_request_url",
-                "9_pull_request_status": "fleet_mcp_pull_request_status",
-                "10_pull_request_check_status": "fleet_mcp_pull_request_check_status",
-            }
-            for key, value in agent_metadata.items():
-                if key in key_mapping and value not in ("n/a", ""):
-                    metadata[key_mapping[key]] = value
-
-        # Extract from workspace name if no metadata (workspace name format: agent-{name})
+        # Extract agent name from workspace name (workspace name format: agent-{name})
         workspace_name = workspace.get("name", "")
         agent_name = workspace_name.removeprefix("agent-")
 
@@ -128,27 +108,18 @@ class Agent(BaseModel):
             # Fallback to idle if no task data
             status = AgentStatus.IDLE
 
-        # Filter metadata to only fleet_mcp_* fields (excluding None values)
-        fleet_metadata = {
-            key: value
-            for key, value in metadata.items()
-            if key.startswith("fleet_mcp_") and value is not None
-        }
-
-        # Get project display name from parameter, metadata, or fall back to template name
+        # Get project display name from parameter or fall back to template name
         project = template_display_name
-        if not project:
-            project = metadata.get("fleet_mcp_project")
         if not project or project == "unknown":
             # Fall back to template name from workspace
             template_name = workspace.get("template_name", "unknown")
             project = template_name if template_name != "unknown" else "unknown"
 
         return Agent(
-            name=metadata.get("fleet_mcp_agent_name", agent_name or "unknown"),
+            name=agent_name or "unknown",
             workspace_id=workspace.get("id", "unknown"),
             status=status,
-            role=metadata.get("fleet_mcp_role", "coder"),
+            role="coder",  # Default role
             project=project,
             last_task=last_task,
             created_at=datetime.fromisoformat(
@@ -157,5 +128,4 @@ class Agent(BaseModel):
             updated_at=datetime.fromisoformat(
                 workspace.get("updated_at", datetime.now().isoformat())
             ),
-            metadata=fleet_metadata,
         )

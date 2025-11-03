@@ -63,72 +63,6 @@ async def test_get_workspace_by_name_mixedcase():
 
 
 @pytest.mark.asyncio
-async def test_get_workspace_by_name_metadata_case_insensitive():
-    """Test get_workspace_by_name with metadata lookup (case-insensitive)"""
-    workspaces = [
-        {
-            "id": "ws-1",
-            "name": "agent-papi",
-            "metadata": {"fleet_mcp_agent_name": "papi"},
-        },
-        {
-            "id": "ws-2",
-            "name": "agent-sony",
-            "metadata": {"fleet_mcp_agent_name": "sony"},
-        },
-    ]
-    client = MockCoderClient(workspaces)
-
-    # Test with exact match
-    result = await get_workspace_by_name(client, "papi")
-    assert result is not None
-    assert result["id"] == "ws-1"
-
-    # Test with uppercase
-    result = await get_workspace_by_name(client, "PAPI")
-    assert result is not None
-    assert result["id"] == "ws-1"
-
-    # Test with mixed case
-    result = await get_workspace_by_name(client, "Papi")
-    assert result is not None
-    assert result["id"] == "ws-1"
-
-
-@pytest.mark.asyncio
-async def test_get_workspace_by_name_metadata_uppercase():
-    """Test get_workspace_by_name when metadata has uppercase name"""
-    workspaces = [
-        {
-            "id": "ws-1",
-            "name": "agent-papi",
-            "metadata": {"fleet_mcp_agent_name": "PAPI"},
-        },
-        {
-            "id": "ws-2",
-            "name": "agent-sony",
-            "metadata": {"fleet_mcp_agent_name": "Sony"},
-        },
-    ]
-    client = MockCoderClient(workspaces)
-
-    # Test lowercase query with uppercase metadata
-    result = await get_workspace_by_name(client, "papi")
-    assert result is not None
-    assert result["id"] == "ws-1"
-
-    # Test exact case match
-    result = await get_workspace_by_name(client, "PAPI")
-    assert result is not None
-    assert result["id"] == "ws-1"
-
-    # Test mixed case for second agent
-    result = await get_workspace_by_name(client, "sony")
-    assert result is not None
-    assert result["id"] == "ws-2"
-
-
-@pytest.mark.asyncio
 async def test_get_workspace_by_name_not_found():
     """Test get_workspace_by_name returns None when agent not found"""
     workspaces = [
@@ -165,36 +99,6 @@ async def test_get_workspace_by_name_workspace_name_uppercase():
     result = await get_workspace_by_name(client, "sony")
     assert result is not None
     assert result["id"] == "ws-2"
-
-
-@pytest.mark.asyncio
-async def test_get_workspace_by_name_metadata_preferred():
-    """Test that metadata lookup is preferred over workspace name"""
-    workspaces = [
-        {
-            "id": "ws-1",
-            "name": "agent-papi",
-            "metadata": {"fleet_mcp_agent_name": "actual-papi"},
-        },
-        {
-            "id": "ws-2",
-            "name": "agent-papi",  # Same workspace name as ws-1
-            "metadata": {"fleet_mcp_agent_name": "papi"},
-        },
-    ]
-    client = MockCoderClient(workspaces)
-
-    # Should find ws-2 by metadata "papi", not ws-1 by workspace name
-    result = await get_workspace_by_name(client, "papi")
-    assert result is not None
-    assert result["id"] == "ws-2"
-    assert result["metadata"]["fleet_mcp_agent_name"] == "papi"
-
-    # Should find ws-1 by metadata "actual-papi"
-    result = await get_workspace_by_name(client, "actual-papi")
-    assert result is not None
-    assert result["id"] == "ws-1"
-    assert result["metadata"]["fleet_mcp_agent_name"] == "actual-papi"
 
 
 @pytest.mark.asyncio
