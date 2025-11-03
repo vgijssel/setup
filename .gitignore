@@ -89,3 +89,10 @@ kubeconfig
 /.devcontainer/.docker-version
 apps/blueorange/dist
 .playwright-mcp/
+
+# Python library patterns (fleet-mcp)
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+libs/fleet-mcp/.env
