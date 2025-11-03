@@ -243,7 +243,7 @@ resource "coder_env" "op_service_account_token" {
 resource "coder_env" "coder_url" {
   agent_id = coder_agent.main.id
   name     = "CODER_URL"
-  value    = data.coder_provisioner.me.url
+  value    = data.coder_workspace.me.access_url
 }
 
 resource "coder_env" "coder_token" {
@@ -534,7 +534,7 @@ resource "coder_script" "fleet_mcp" {
     wait-for-git --dir /workspaces/setup
 
     # Navigate to the fleet-mcp project directory
-    cd "${SETUP_DIR}/libs/fleet-mcp"
+    cd "$${SETUP_DIR}/libs/fleet-mcp"
 
     # Start uvicorn with hot reload
     uv run --all-extras uvicorn fleet_mcp.__main__:app --host 0.0.0.0 --port 8000 --reload
