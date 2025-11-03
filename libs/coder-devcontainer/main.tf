@@ -271,7 +271,6 @@ resource "coder_env" "op_service_account_token" {
 resource "coder_agent" "main" {
   arch           = data.coder_provisioner.me.arch
   os             = "linux"
-  api_key_scope  = "all"
   startup_script = <<-EOT
     set -e
     set +x
@@ -541,12 +540,12 @@ resource "coder_app" "fleet_mcp" {
   slug         = "fleet-mcp"
   display_name = "Fleet MCP"
   icon         = "/icon/cloud.svg"
-  url          = "http://localhost:8000"
+  url          = "http://127.0.0.1:8000/mcp"
   subdomain    = false
   share        = "owner"
 
   healthcheck {
-    url       = "http://localhost:8000/health"
+    url       = "http://127.0.0.1:8000/health"
     interval  = 5
     threshold = 6
   }

@@ -38,14 +38,12 @@ def _redact_secrets(response):
         "NX_KEY": os.getenv("NX_KEY", ""),
         "OP_SERVICE_ACCOUNT_TOKEN": os.getenv("OP_SERVICE_ACCOUNT_TOKEN", ""),
         "CLAUDE_CODE_OAUTH_TOKEN": os.getenv("CLAUDE_CODE_OAUTH_TOKEN", ""),
-        "CODER_SESSION_TOKEN": os.getenv(
-            "FLEET_MCP_CODER_TOKEN", ""
-        ),  # Note: FLEET_MCP_CODER_TOKEN is the env var
+        "CODER_SESSION_TOKEN": os.getenv("CODER_SESSION_TOKEN", ""),
         "CODER_AGENT_TOKEN": os.getenv("CODER_AGENT_TOKEN", ""),
     }
 
-    # Also redact hostname from FLEET_MCP_CODER_URL
-    coder_url = os.getenv("FLEET_MCP_CODER_URL", "")
+    # Also redact hostname from CODER_URL
+    coder_url = os.getenv("CODER_URL", "")
     if coder_url:
         # Extract hostname from URL (e.g., macbook-pro-van-maarten.tail2c33e2.ts.net)
         from urllib.parse import urlparse
@@ -98,12 +96,12 @@ def _redact_secrets_from_request(request):
         "NX_KEY": os.getenv("NX_KEY", ""),
         "OP_SERVICE_ACCOUNT_TOKEN": os.getenv("OP_SERVICE_ACCOUNT_TOKEN", ""),
         "CLAUDE_CODE_OAUTH_TOKEN": os.getenv("CLAUDE_CODE_OAUTH_TOKEN", ""),
-        "CODER_SESSION_TOKEN": os.getenv("FLEET_MCP_CODER_TOKEN", ""),
+        "CODER_SESSION_TOKEN": os.getenv("CODER_SESSION_TOKEN", ""),
         "CODER_AGENT_TOKEN": os.getenv("CODER_AGENT_TOKEN", ""),
     }
 
     # Redact hostname
-    coder_url = os.getenv("FLEET_MCP_CODER_URL", "")
+    coder_url = os.getenv("CODER_URL", "")
     hostname_to_redact = None
     if coder_url:
         from urllib.parse import urlparse
@@ -145,10 +143,10 @@ def _redact_secrets_from_request(request):
 @pytest.fixture
 def coder_base_url():
     """Coder API base URL from environment"""
-    return os.getenv("FLEET_MCP_CODER_URL", "https://coder.example.com")
+    return os.getenv("CODER_URL", "https://coder.example.com")
 
 
 @pytest.fixture
 def coder_token():
     """Coder API token from environment"""
-    return os.getenv("FLEET_MCP_CODER_TOKEN", "test-token-placeholder")
+    return os.getenv("CODER_SESSION_TOKEN", "test-token-placeholder")
