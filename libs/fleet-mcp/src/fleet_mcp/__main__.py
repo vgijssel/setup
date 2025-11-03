@@ -1,27 +1,31 @@
-"""Entry point for running the Fleet MCP server"""
+"""Entry point for running the Fleet MCP server as an ASGI application"""
 
 import os
 
 from dotenv import load_dotenv
 from fleet_mcp.server import create_mcp_server
 
+# Load environment variables
+load_dotenv()
 
-def main():
-    """Run the Fleet MCP server"""
-    # Load environment variables
-    load_dotenv()
+# Get configuration from environment
+base_url = os.getenv("CODER_URL")
+token = os.getenv("CODER_TOKEN")
 
-    # Get configuration from environment
-    base_url = os.getenv("CODER_URL")
-    token = os.getenv("CODER_TOKEN")
+if not base_url or not token:
+    raise ValueError("CODER_URL and CODER_TOKEN must be set in .env file")
 
-    if not base_url or not token:
-        raise ValueError("CODER_URL and CODER_TOKEN must be set in .env file")
+# Create the MCP server and export the ASGI application
+mcp = create_mcp_server(base_url, token)
+app = mcp.http_app()
 
-    # Create and run the MCP server
-    mcp = create_mcp_server(base_url, token)
-    mcp.run()
-
-
+# For development: run with uvicorn
 if __name__ == "__main__":
-    main()
+    import uvicorn
+
+    uvicorn.run(
+        "fleet_mcp.__main__:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )

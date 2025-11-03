@@ -31,6 +31,8 @@ locals {
   nx_key = try(data.onepassword_item.nx_key.credential, "")
   # Extract the OP_SERVICE_ACCOUNT_TOKEN from 1Password
   op_service_account_token = try(data.onepassword_item.op_service_account_token.credential, "")
+  # Extract Coder token from 1Password
+  coder_token = try(data.onepassword_item.coder_token.credential, "")
 }
 
 provider "docker" {
@@ -117,6 +119,19 @@ data "onepassword_item" "op_service_account_token" {
     postcondition {
       condition     = try(self.credential, "") != ""
       error_message = "The service account token item in 1Password must have a credential value."
+    }
+  }
+}
+
+# Ensure that an item titled "coder-speckit" exists in the 'setup-devenv' vault.
+data "onepassword_item" "coder_token" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  title = "coder-speckit"
+
+  lifecycle {
+    postcondition {
+      condition     = try(self.credential, "") != ""
+      error_message = "The 'coder-speckit' item in 1Password must have a credential value with the Coder token."
     }
   }
 }
@@ -223,6 +238,18 @@ resource "coder_env" "op_service_account_token" {
   agent_id = coder_agent.main.id
   name     = "OP_SERVICE_ACCOUNT_TOKEN"
   value    = local.op_service_account_token
+}
+
+resource "coder_env" "coder_url" {
+  agent_id = coder_agent.main.id
+  name     = "CODER_URL"
+  value    = data.coder_provisioner.me.url
+}
+
+resource "coder_env" "coder_token" {
+  agent_id = coder_agent.main.id
+  name     = "CODER_TOKEN"
+  value    = local.coder_token
 }
 
 resource "coder_agent" "main" {
@@ -491,7 +518,46 @@ resource "coder_app" "home-assistant" {
   slug         = "home-assistant"
   display_name = "Home Assistant"
   url          = "http://192.168.1.32:8123/"
-  external = true
+  external     = true
+}
+
+# Fleet MCP server script - starts uvicorn with hot reload
+resource "coder_script" "fleet_mcp" {
+  agent_id     = coder_agent.main.id
+  display_name = "Fleet MCP Server"
+  icon         = "/icon/cloud.svg"
+  script = <<-EOT
+    #!/bin/bash
+    set -e
+
+    # Wait for git repo to be available
+    wait-for-git --dir /workspaces/setup
+
+    # Navigate to the fleet-mcp project directory
+    cd "${SETUP_DIR}/libs/fleet-mcp"
+
+    # Start uvicorn with hot reload
+    uv run --all-extras uvicorn fleet_mcp.__main__:app --host 0.0.0.0 --port 8000 --reload
+  EOT
+  run_on_start = true
+  run_on_stop  = false
+}
+
+# Fleet MCP server app - exposes the HTTP server with healthcheck
+resource "coder_app" "fleet_mcp" {
+  agent_id     = coder_agent.main.id
+  slug         = "fleet-mcp"
+  display_name = "Fleet MCP"
+  icon         = "/icon/cloud.svg"
+  url          = "http://localhost:8000"
+  subdomain    = false
+  share        = "owner"
+
+  healthcheck {
+    url       = "http://localhost:8000/health"
+    interval  = 5
+    threshold = 6
+  }
 }
 
 resource "docker_container" "workspace" {
