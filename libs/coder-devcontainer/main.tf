@@ -31,8 +31,6 @@ locals {
   nx_key = try(data.onepassword_item.nx_key.credential, "")
   # Extract the OP_SERVICE_ACCOUNT_TOKEN from 1Password
   op_service_account_token = try(data.onepassword_item.op_service_account_token.credential, "")
-  # Extract Coder token from 1Password
-  coder_token = try(data.onepassword_item.coder_token.credential, "")
 }
 
 provider "docker" {
@@ -119,19 +117,6 @@ data "onepassword_item" "op_service_account_token" {
     postcondition {
       condition     = try(self.credential, "") != ""
       error_message = "The service account token item in 1Password must have a credential value."
-    }
-  }
-}
-
-# Ensure that an item titled "coder-speckit" exists in the 'setup-devenv' vault.
-data "onepassword_item" "coder_token" {
-  vault = data.onepassword_vault.setup_devenv.uuid
-  title = "coder-speckit"
-
-  lifecycle {
-    postcondition {
-      condition     = try(self.credential, "") != ""
-      error_message = "The 'coder-speckit' item in 1Password must have a credential value with the Coder token."
     }
   }
 }
@@ -249,12 +234,13 @@ resource "coder_env" "coder_url" {
 resource "coder_env" "coder_token" {
   agent_id = coder_agent.main.id
   name     = "CODER_TOKEN"
-  value    = local.coder_token
+  value    = coder_agent.main.token
 }
 
 resource "coder_agent" "main" {
   arch           = data.coder_provisioner.me.arch
   os             = "linux"
+  api_key_scope  = "all"
   startup_script = <<-EOT
     set -e
     set +x
