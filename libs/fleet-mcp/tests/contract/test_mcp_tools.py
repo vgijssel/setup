@@ -332,55 +332,6 @@ async def test_task_history_pagination(agent_server):
 # ============================================================================
 
 
-# T055: Test start_agent_task tool
-@pytest.mark.vcr
-@pytest.mark.skip(
-    reason="Requires Coder MCP tools for metadata writing - REST API doesn't support workspace file writes"
-)
-async def test_start_agent_task_success(full_server, coder_base_url, coder_token):
-    """Test successfully starting a task on an idle agent"""
-    async with Client(full_server) as client:
-        # First create an agent
-        create_result = await client.call_tool(
-            "create_agent",
-            {
-                "name": "test-task-agent",
-                "project": "coder-devcontainer",
-                "role": "coder",
-                "task": "Initial setup task",
-            },
-        )
-        create_data = parse_tool_result(create_result)
-
-        # Clear current_task to make agent idle
-        from fleet_mcp.coder.client import CoderClient
-
-        async with CoderClient(
-            base_url=coder_base_url, token=coder_token
-        ) as coder_client:
-            await coder_client.write_agent_metadata(
-                create_data["agent"]["workspace_id"],
-                "main",
-                {"fleet_mcp_current_task": None},
-            )
-
-        # Start a new task
-        result = await client.call_tool(
-            "start_agent_task",
-            {
-                "agent_name": "test-task-agent",
-                "task_description": "Implement user authentication feature",
-            },
-        )
-        data = parse_tool_result(result)
-
-        assert data is not None
-        assert data["task"] is not None
-        assert data["agent_status"] == "busy"
-        assert data["task"]["message"] == "Implement user authentication feature"
-        assert data["message"] is not None
-
-
 # T056: Test start_agent_task on offline agent
 async def test_start_agent_task_on_offline_agent(full_server):
     """Test start_agent_task fails when agent workspace is offline"""
@@ -434,50 +385,6 @@ async def test_start_agent_task_on_busy_agent(full_server):
         assert "busy" in str(exc.value).lower() or "conflict" in str(exc.value).lower()
 
 
-# T058: Test cancel_agent_task tool
-@pytest.mark.vcr
-@pytest.mark.skip(
-    reason="Requires Coder MCP tools for metadata writing - REST API doesn't support workspace file writes"
-)
-async def test_cancel_agent_task_success(full_server, coder_base_url, coder_token):
-    """Test successfully canceling a running task"""
-    async with Client(full_server) as client:
-        # Create a busy agent (agent starts with task, which makes it busy)
-        create_result = await client.call_tool(
-            "create_agent",
-            {
-                "name": "cancel-test-agent",
-                "project": "coder-devcontainer",
-                "role": "coder",
-                "task": "Long running task that will be canceled",
-            },
-        )
-        create_data = parse_tool_result(create_result)
-
-        # Set current_task to make agent busy (use write_agent_metadata)
-        from fleet_mcp.coder.client import CoderClient
-
-        async with CoderClient(
-            base_url=coder_base_url, token=coder_token
-        ) as coder_client:
-            await coder_client.write_agent_metadata(
-                create_data["agent"]["workspace_id"],
-                "main",
-                {"fleet_mcp_current_task": "Long running task that will be canceled"},
-            )
-
-        # Cancel the task
-        result = await client.call_tool(
-            "cancel_agent_task", {"agent_name": "cancel-test-agent"}
-        )
-        data = parse_tool_result(result)
-
-        assert data is not None
-        assert data["task"] is not None
-        assert data["agent_status"] == "idle"
-        assert data["message"] is not None
-
-
 # T059: Test cancel_agent_task on idle agent
 async def test_cancel_agent_task_on_idle_agent(full_server):
     """Test cancel_agent_task fails when agent is idle (no task running)"""
@@ -492,74 +399,6 @@ async def test_cancel_agent_task_on_idle_agent(full_server):
             or "no task" in str(exc.value).lower()
             or "not busy" in str(exc.value).lower()
             or "not found" in str(exc.value).lower()
-        )
-
-
-# ============================================================================
-# User Story 3: PR Integration Tests
-# ============================================================================
-
-
-# T074: Test show_agent with PR metadata
-@pytest.mark.vcr
-@pytest.mark.skip(
-    reason="Requires Coder MCP tools for metadata writing - REST API doesn't support workspace file writes"
-)
-async def test_show_agent_with_pr_metadata(agent_server, coder_base_url, coder_token):
-    """Test that show_agent returns PR metadata in agent details"""
-    async with Client(agent_server) as client:
-        # Create an agent
-        create_result = await client.call_tool(
-            "create_agent",
-            {
-                "name": "pr-integration-test",
-                "project": "coder-devcontainer",
-                "role": "coder",
-                "task": "Implement OAuth feature and create PR",
-            },
-        )
-        create_data = parse_tool_result(create_result)
-
-        # Simulate PR metadata being set by agent or external system
-        from fleet_mcp.coder.client import CoderClient
-
-        async with CoderClient(
-            base_url=coder_base_url, token=coder_token
-        ) as coder_client:
-            await coder_client.write_agent_metadata(
-                create_data["agent"]["workspace_id"],
-                "main",
-                {
-                    "fleet_mcp_pull_request_url": "https://github.com/org/repo/pull/123",
-                    "fleet_mcp_pull_request_status": "open",
-                    "fleet_mcp_pull_request_check_status": "passing",
-                },
-            )
-
-        # Query agent details
-        result = await client.call_tool(
-            "show_agent", {"agent_name": "pr-integration-test"}
-        )
-        data = parse_tool_result(result)
-
-        assert data is not None
-        assert data["agent"] is not None
-        assert data["agent"]["name"] == "pr-integration-test"
-
-        # Verify metadata field is present and is a dict
-        assert data["agent"]["metadata"] is not None
-        assert isinstance(data["agent"]["metadata"], dict)
-
-        # Verify PR metadata is included
-        assert "fleet_mcp_pull_request_url" in data["agent"]["metadata"]
-        assert (
-            data["agent"]["metadata"]["fleet_mcp_pull_request_url"]
-            == "https://github.com/org/repo/pull/123"
-        )
-        assert data["agent"]["metadata"]["fleet_mcp_pull_request_status"] == "open"
-        assert (
-            data["agent"]["metadata"]["fleet_mcp_pull_request_check_status"]
-            == "passing"
         )
 
 
