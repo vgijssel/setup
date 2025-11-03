@@ -1,5 +1,5 @@
 {
-  "name": "fleet-mcp",
+  "name": "@setup/fleet-mcp",
   "version": "0.1.0",
   "description": "Fleet MCP Server for Claude Code agents",
   "private": true,
