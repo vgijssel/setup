@@ -18,6 +18,9 @@ preferences:
     autohide: bool
     autohide-delay: float
     mru-spaces: bool
+  "com.apple.desktopservices":
+    DSDontWriteNetworkStores: bool
+    DSDontWriteUSBStores: bool
 
 settings:
   recommended:
@@ -40,3 +43,6 @@ settings:
       autohide: true
       autohide-delay: 1000
       mru-spaces: false
+    "com.apple.desktopservices":
+      DSDontWriteNetworkStores: true
+      DSDontWriteUSBStores: true
