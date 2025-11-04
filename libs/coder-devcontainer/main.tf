@@ -395,18 +395,19 @@ resource "coder_agent" "main" {
 }
 
 module "claude-code" {
-  count                   = data.coder_workspace.me.start_count
-  source                  = "registry.coder.com/coder/claude-code/coder"
-  version                 = "3.4.4"
-  agent_id                = coder_agent.main.id
-  workdir                 = "/workspaces/setup"
-  ai_prompt               = data.coder_parameter.ai_prompt.value
-  system_prompt           = data.coder_parameter.system_prompt.value
-  install_claude_code     = false
-  order                   = 999
-  claude_code_oauth_token = local.claude_code_token
-  cli_app                 = true
-  continue                = true
+  count                        = data.coder_workspace.me.start_count
+  source                       = "registry.coder.com/coder/claude-code/coder"
+  version                      = "3.4.4"
+  agent_id                     = coder_agent.main.id
+  workdir                      = "/workspaces/setup"
+  ai_prompt                    = data.coder_parameter.ai_prompt.value
+  system_prompt                = data.coder_parameter.system_prompt.value
+  install_claude_code          = false
+  order                        = 999
+  claude_code_oauth_token      = local.claude_code_token
+  cli_app                      = true
+  continue                     = true
+  dangerously_skip_permissions = true
 
   # Pre-hook script to wait for git repo and verify Claude is available
   pre_install_script = <<-EOT
