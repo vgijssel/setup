@@ -1,3 +1,9 @@
+## 0.13.2 (2025-11-04)
+
+### 🩹 Fixes
+
+- Enable dangerously_skip_permissions for claude-code module to bypass permission prompts in trusted development environments ([#796](https://github.com/vgijssel/setup/pull/796))
+
 ## 0.13.1 (2025-11-04)
 
 ### 🩹 Fixes
