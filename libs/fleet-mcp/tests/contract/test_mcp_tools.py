@@ -254,13 +254,13 @@ async def test_show_agent_task_history_success(full_server, vcr_cassette):
                 "name": "test-history",
                 "project": project_name,
                 "role": "coder",
-                "task": "Test for task history",
+                "task": "",
             },
         )
         parse_tool_result(create_result)
 
         # Wait for the agent to be running
-        max_retries = 30
+        max_retries = 60
         for _ in range(max_retries):
             show_result = await client.call_tool(
                 "show_agent", {"agent_name": "test-history"}
@@ -439,7 +439,7 @@ async def test_delete_agent_success(agent_server, vcr_cassette):
 
         # Wait for workspace to reach a stable state (running, stopped, or failed)
         # This is necessary because delete will fail if workspace is still provisioning
-        max_retries = 30
+        max_retries = 150
         for _ in range(max_retries):
             show_result = await client.call_tool(
                 "show_agent", {"agent_name": "delete-test-agent"}
@@ -513,7 +513,7 @@ async def test_delete_agent_on_busy_agent(agent_server, vcr_cassette):
         )
 
         # Wait for workspace to reach running state (so it's actually busy, not just starting)
-        max_retries = 30
+        max_retries = 150
         for _ in range(max_retries):
             show_result = await client.call_tool(
                 "show_agent", {"agent_name": "busy-delete-test"}

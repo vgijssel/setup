@@ -47,6 +47,45 @@ class Agent(BaseModel):
     updated_at: datetime
 
     @staticmethod
+    def _are_all_workspace_agents_healthy(workspace: dict[str, Any]) -> bool:
+        """
+        Check if all agents within the workspace are healthy and ready
+
+        A workspace agent is considered healthy when:
+        - status is "connected"
+        - lifecycle_state is "ready"
+
+        Args:
+            workspace: Workspace data from Coder API
+
+        Returns:
+            True if all agents are healthy, False otherwise
+        """
+        latest_build = workspace.get("latest_build", {})
+        resources = latest_build.get("resources", [])
+
+        # If no resources, consider unhealthy
+        if not resources:
+            return False
+
+        # Check all agents in all resources
+        for resource in resources:
+            agents = resource.get("agents", [])
+            # If resource has no agents, skip it
+            if not agents:
+                continue
+
+            for agent in agents:
+                agent_status = agent.get("status", "")
+                lifecycle_state = agent.get("lifecycle_state", "")
+
+                # Agent must be connected and ready to be considered healthy
+                if agent_status != "connected" or lifecycle_state != "ready":
+                    return False
+
+        return True
+
+    @staticmethod
     def from_workspace(
         workspace: dict[str, Any],
         agent_metadata: dict[str, str] | None = None,
@@ -93,6 +132,9 @@ class Agent(BaseModel):
                 "deleted": AgentStatus.DELETED,
             }
             status = status_map.get(workspace_status, AgentStatus.FAILED)
+        elif not Agent._are_all_workspace_agents_healthy(workspace):
+            # Workspace is running but agents are not healthy yet
+            status = AgentStatus.STARTING
         elif task_data:
             # Use task API state to determine status
             current_state = task_data.get("current_state") or {}
