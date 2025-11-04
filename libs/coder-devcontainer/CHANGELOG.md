@@ -1,3 +1,9 @@
+## 0.13.0 (2025-11-04)
+
+### 🚀 Features
+
+- feat: Add HTTP server support with uvicorn for fleet-mcp and integrate with Coder devcontainer ([#792](https://github.com/vgijssel/setup/pull/792))
+
 ## 0.12.0 (2025-11-03)
 
 ### 🚀 Features
