@@ -194,7 +194,10 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                         if fleetmcp_url:
                             import httpx
 
-                            async with httpx.AsyncClient(timeout=5.0) as client:
+                            async with httpx.AsyncClient(
+                                headers={"Coder-Session-Token": coder_client.token},
+                                timeout=5.0,
+                            ) as client:
                                 response = await client.get(
                                     f"{fleetmcp_url}pr-url",
                                     params={"agent_name": agent.name},
@@ -282,7 +285,9 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             if fleetmcp_url:
                 import httpx
 
-                async with httpx.AsyncClient(timeout=5.0) as client:
+                async with httpx.AsyncClient(
+                    headers={"Coder-Session-Token": coder_client.token}, timeout=5.0
+                ) as client:
                     response = await client.get(
                         f"{fleetmcp_url}pr-url",
                         params={"agent_name": agent.name},
@@ -473,10 +478,12 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         if not fleetmcp_url:
             raise ValueError(f"Fleet-MCP application not found for agent {agent_name}")
 
-        # Call the POST /pr-url endpoint
+        # Call the POST /pr-url endpoint with Coder authentication
         import httpx
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(
+            headers={"Coder-Session-Token": coder_client.token}, timeout=30.0
+        ) as client:
             response = await client.post(
                 f"{fleetmcp_url}pr-url",
                 json={"agent_name": agent_name, "pr_url": pr_url},
