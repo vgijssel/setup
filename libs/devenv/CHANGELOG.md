@@ -1,3 +1,9 @@
+## 0.12.0 (2025-11-04)
+
+### 🚀 Features
+
+- feat(devenv): Prevent .DS_Store on external drives ([#798](https://github.com/vgijssel/setup/pull/798))
+
 ## 0.11.4 (2025-10-27)
 
 ### 🩹 Fixes
