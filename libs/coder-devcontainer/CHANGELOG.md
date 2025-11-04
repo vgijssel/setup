@@ -1,3 +1,9 @@
+## 0.13.1 (2025-11-04)
+
+### 🩹 Fixes
+
+- Use main branch for coder template ([#795](https://github.com/vgijssel/setup/pull/795))
+
 ## 0.13.0 (2025-11-04)
 
 ### 🚀 Features
