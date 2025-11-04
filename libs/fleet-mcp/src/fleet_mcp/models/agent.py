@@ -43,6 +43,7 @@ class Agent(BaseModel):
     role: str  # Dynamic - validated against Coder workspace presets
     project: str
     last_task: str | None = None
+    pull_request_url: str | None = None
     created_at: datetime
     updated_at: datetime
 
