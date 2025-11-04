@@ -451,7 +451,7 @@ module "git-clone" {
   url         = "git@github.com:vgijssel/setup.git"
   base_dir    = "/workspaces"
   folder_name = "setup"
-  branch_name = "feat/fleet-mcp-http-server"
+  branch_name = "main"
 }
 
 # Git commit signing module to configure commit signing with SSH keys
