@@ -7,28 +7,18 @@
     "projectType": "library",
     "sourceRoot": "libs/fleet-mcp/src",
     "targets": {
-      "secrets": {
+      "server": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "op inject --force -i .env.tpl -o .env",
+          "command": "uv run --all-extras uvicorn fleet_mcp.__main__:app --host 127.0.0.1 --port 8000 --reload --timeout-graceful-shutdown 3",
           "cwd": "libs/fleet-mcp"
         },
-        "cache": true,
-        "outputs": [
-          "{projectRoot}/.env"
-        ],
-        "inputs": [
-          "{projectRoot}/.env.tpl"
-        ],
         "metadata": {
-          "description": "Generate .env file from 1Password secrets"
+          "description": "Run the fleet-mcp server with hot reload"
         }
       },
       "test": {
         "executor": "nx:run-commands",
-        "dependsOn": [
-          "secrets"
-        ],
         "options": {
           "command": "uv run --all-extras pytest -v",
           "cwd": "libs/fleet-mcp"

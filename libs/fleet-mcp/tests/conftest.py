@@ -38,9 +38,7 @@ def _redact_secrets(response):
         "NX_KEY": os.getenv("NX_KEY", ""),
         "OP_SERVICE_ACCOUNT_TOKEN": os.getenv("OP_SERVICE_ACCOUNT_TOKEN", ""),
         "CLAUDE_CODE_OAUTH_TOKEN": os.getenv("CLAUDE_CODE_OAUTH_TOKEN", ""),
-        "CODER_SESSION_TOKEN": os.getenv(
-            "CODER_TOKEN", ""
-        ),  # Note: CODER_TOKEN is the env var
+        "CODER_SESSION_TOKEN": os.getenv("CODER_SESSION_TOKEN", ""),
         "CODER_AGENT_TOKEN": os.getenv("CODER_AGENT_TOKEN", ""),
     }
 
@@ -98,7 +96,7 @@ def _redact_secrets_from_request(request):
         "NX_KEY": os.getenv("NX_KEY", ""),
         "OP_SERVICE_ACCOUNT_TOKEN": os.getenv("OP_SERVICE_ACCOUNT_TOKEN", ""),
         "CLAUDE_CODE_OAUTH_TOKEN": os.getenv("CLAUDE_CODE_OAUTH_TOKEN", ""),
-        "CODER_SESSION_TOKEN": os.getenv("CODER_TOKEN", ""),
+        "CODER_SESSION_TOKEN": os.getenv("CODER_SESSION_TOKEN", ""),
         "CODER_AGENT_TOKEN": os.getenv("CODER_AGENT_TOKEN", ""),
     }
 
@@ -151,4 +149,4 @@ def coder_base_url():
 @pytest.fixture
 def coder_token():
     """Coder API token from environment"""
-    return os.getenv("CODER_TOKEN", "test-token-placeholder")
+    return os.getenv("CODER_SESSION_TOKEN", "test-token-placeholder")

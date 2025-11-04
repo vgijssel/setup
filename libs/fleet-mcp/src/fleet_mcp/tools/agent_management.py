@@ -292,9 +292,12 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                         # Look for apps in the agent
                         if agent.get("apps"):
                             for app in agent["apps"]:
-                                # Find the Claude Code app (by slug or display_name)
-                                if app.get("slug") == "ccw" or "Claude Code" in app.get(
-                                    "display_name", ""
+                                # Find the Claude Code app (by slug or exact display_name match)
+                                # Note: Check slug first as it's more reliable, and use exact match
+                                # for display_name to avoid matching "Claude Code CLI"
+                                if (
+                                    app.get("slug") == "ccw"
+                                    or app.get("display_name") == "Claude Code"
                                 ):
                                     # Extract statuses from the app
                                     statuses = app.get("statuses", [])

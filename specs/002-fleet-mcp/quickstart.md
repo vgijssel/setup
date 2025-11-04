@@ -79,7 +79,7 @@ Create `.env.tpl` template file:
 ```bash
 cat > .env.tpl << 'EOF'
 CODER_URL=https://macbook-pro-van-maarten.tail2c33e2.ts.net
-CODER_TOKEN={{ op://setup-devenv/coder-speckit/credential }}
+CODER_SESSION_TOKEN={{ op://setup-devenv/coder-speckit/credential }}
 EOF
 ```
 
@@ -427,7 +427,7 @@ Run tests with VCR recording:
 
 ```bash
 # First run records cassettes
-CODER_URL=https://your-coder.com CODER_TOKEN=your-token nx test fleet-mcp
+CODER_URL=https://your-coder.com CODER_SESSION_TOKEN=your-token nx test fleet-mcp
 
 # Subsequent runs replay cassettes
 nx test fleet-mcp
@@ -629,7 +629,7 @@ import os
 
 async def main():
     base_url = os.environ["CODER_URL"]
-    token = os.environ["CODER_TOKEN"]
+    token = os.environ["CODER_SESSION_TOKEN"]
 
     mcp = create_mcp_server(base_url, token)
 
@@ -655,7 +655,7 @@ if __name__ == "__main__":
 ```bash
 cd libs/fleet-mcp
 export CODER_URL=https://your-coder.com
-export CODER_TOKEN=your-api-token
+export CODER_SESSION_TOKEN=your-api-token
 uv run python scripts/test_local.py
 ```
 
@@ -677,7 +677,7 @@ After completing this quickstart:
 ### VCR Cassette Recording
 
 If tests fail with "Connection refused":
-- Ensure `CODER_URL` and `CODER_TOKEN` are set
+- Ensure `CODER_URL` and `CODER_SESSION_TOKEN` are set
 - Delete cassette files to force re-recording
 - Check Coder API is accessible
 

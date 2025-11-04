@@ -64,8 +64,10 @@ nx run fleet-mcp:secrets
 Create `.env` from template:
 ```bash
 CODER_URL=https://your-coder-instance.com
-CODER_TOKEN=your-api-token
+CODER_SESSION_TOKEN=your-api-token
 ```
+
+**Note:** When running inside a Coder workspace, these environment variables are automatically set by the `coder-login` module, so no manual configuration is needed.
 
 ## Usage
 
@@ -78,7 +80,7 @@ import os
 # Initialize MCP server
 mcp = create_mcp_server(
     base_url=os.getenv("CODER_URL"),
-    token=os.getenv("CODER_TOKEN")
+    token=os.getenv("CODER_SESSION_TOKEN")
 )
 
 # Server is ready to handle MCP tool requests

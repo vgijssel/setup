@@ -127,6 +127,7 @@ data "coder_parameter" "system_prompt" {
   display_name = "System Prompt"
   type         = "string"
   form_type    = "textarea"
+  default      = ""
   description  = "System prompt for the agent with generalized instructions (required - select a preset)"
   mutable      = false
 }
@@ -393,37 +394,10 @@ resource "coder_agent" "main" {
   }
 }
 
-# # See https://registry.coder.com/modules/coder/code-server
-# module "code-server" {
-#   count  = data.coder_workspace.me.start_count
-#   source = "registry.coder.com/coder/code-server/coder"
-
-#   # This ensures that the latest non-breaking version of the module gets downloaded, you can also pin the module version to prevent breaking changes in production.
-#   version = "~> 1.0"
-
-#   agent_id = coder_agent.main.id
-#   order    = 1
-#   folder   = "/workspaces/setup"
-# }
-
-# module "vscode-web" {
-#   count          = data.coder_workspace.me.start_count
-#   source         = "registry.coder.com/coder/vscode-web/coder"
-#   version        = "1.4.1"
-#   agent_id       = coder_agent.main.id
-#   install_prefix = "/workspaces/setup/.vscode-web"
-#   folder         = "/workspaces/setup"
-#   accept_license = true
-# }
-
-# The Claude Code module does the automatic task reporting
-# Other agent modules: https://registry.coder.com/modules?search=agent
-# Or use a custom agent:  
-
 module "claude-code" {
   count                   = data.coder_workspace.me.start_count
   source                  = "registry.coder.com/coder/claude-code/coder"
-  version                 = "3.0.0"
+  version                 = "3.4.4"
   agent_id                = coder_agent.main.id
   workdir                 = "/workspaces/setup"
   ai_prompt               = data.coder_parameter.ai_prompt.value
@@ -431,16 +405,28 @@ module "claude-code" {
   install_claude_code     = false
   order                   = 999
   claude_code_oauth_token = local.claude_code_token
+  cli_app                 = true
+  continue                = true
 
   # Pre-hook script to wait for git repo and verify Claude is available
   pre_install_script = <<-EOT
     wait-for-git --dir /workspaces/setup
   EOT
 
+  post_install_script = <<-EOT
+    cd /workspaces/setup
+    # Wait for the Fleet MCP server to be available
+    wait-for-it --service 127.0.0.1:8000 --timeout 120
+    claude mcp add --transport http fleet-mcp http://127.0.0.1:8000/mcp
+  EOT
+
+
   # This enables Coder Tasks
   report_tasks = true
 }
 
+# The coder-login module sets CODER_SESSION_TOKEN and CODER_URL inside the env
+# these automatically log the user into the Coder CLI and API!
 module "coder-login" {
   count    = data.coder_workspace.me.start_count
   source   = "registry.coder.com/coder/coder-login/coder"
@@ -460,11 +446,12 @@ module "vscode" {
 # Git clone module to clone the setup repository
 module "git-clone" {
   source      = "registry.coder.com/coder/git-clone/coder"
-  version     = "1.1.1"
+  version     = "1.2.0"
   agent_id    = coder_agent.main.id
   url         = "git@github.com:vgijssel/setup.git"
   base_dir    = "/workspaces"
   folder_name = "setup"
+  branch_name = "feat/fleet-mcp-http-server"
 }
 
 # Git commit signing module to configure commit signing with SSH keys
@@ -534,7 +521,53 @@ resource "coder_app" "home-assistant" {
   slug         = "home-assistant"
   display_name = "Home Assistant"
   url          = "http://192.168.1.32:8123/"
-  external = true
+  external     = true
+}
+
+# Fleet MCP server script - starts uvicorn with hot reload
+resource "coder_script" "fleet_mcp" {
+  agent_id     = coder_agent.main.id
+  display_name = "Fleet MCP Server"
+  icon         = "/icon/cloud.svg"
+  script       = <<-EOT
+    #!/bin/bash
+    set -e
+    set -x
+
+    # Wait for git repo to be available
+    wait-for-git --dir /workspaces/setup
+
+    cd /workspaces/setup
+
+    # Create log directory if it doesn't exist
+    mkdir -p /tmp/fleet-mcp
+
+    # Start uvicorn with hot reload in the background
+    # Redirect stdout and stderr to log file to prevent blocking pipes
+    nohup direnv exec . nx run --tui=false fleet-mcp:server > /tmp/fleet-mcp/server.log 2>&1 &
+
+    # Store the PID for potential cleanup
+    echo $! > /tmp/fleet-mcp/server.pid
+  EOT
+  run_on_start = true
+  run_on_stop  = false
+}
+
+# Fleet MCP server app - exposes the HTTP server with healthcheck
+resource "coder_app" "fleet_mcp" {
+  agent_id     = coder_agent.main.id
+  slug         = "fleet-mcp"
+  display_name = "Fleet MCP"
+  icon         = "/icon/cloud.svg"
+  url          = "http://127.0.0.1:8000/health"
+  subdomain    = false
+  share        = "owner"
+
+  healthcheck {
+    url       = "http://127.0.0.1:8000/health"
+    interval  = 10
+    threshold = 10
+  }
 }
 
 resource "docker_container" "workspace" {

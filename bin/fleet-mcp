@@ -1,5 +1,0 @@
-#!/bin/bash
-
-set -eo pipefail
-
-uv run --project "${SETUP_DIR}"/libs/fleet-mcp fleet-mcp "$@"

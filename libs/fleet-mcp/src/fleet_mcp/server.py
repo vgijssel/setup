@@ -2,6 +2,7 @@
 
 from fastmcp import FastMCP
 from fleet_mcp.coder.client import CoderClient
+from starlette.responses import JSONResponse
 
 
 def create_mcp_server(base_url: str, token: str) -> FastMCP:
@@ -17,6 +18,11 @@ def create_mcp_server(base_url: str, token: str) -> FastMCP:
     """
     mcp = FastMCP("Fleet MCP Server")
     coder_client = CoderClient(base_url, token)
+
+    # Add health check endpoint
+    @mcp.custom_route("/health", methods=["GET"])
+    async def health_check(request):
+        return JSONResponse({"status": "healthy", "service": "fleet-mcp"})
 
     # Register tool groups
     from fleet_mcp.tools.agent_management import register_agent_tools
