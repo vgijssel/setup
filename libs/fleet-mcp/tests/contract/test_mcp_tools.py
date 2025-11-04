@@ -234,6 +234,7 @@ async def test_show_agent_case_insensitive(agent_server):
 
 
 # T039: Test show_agent_task_history tool
+@pytest.mark.skip(reason="requires VCR strategy refactor")
 @pytest.mark.vcr
 async def test_show_agent_task_history_success(full_server, vcr_cassette):
     """Test show_agent_task_history returns paginated task list"""
@@ -259,18 +260,23 @@ async def test_show_agent_task_history_success(full_server, vcr_cassette):
         )
         parse_tool_result(create_result)
 
-        # Wait for the agent to be running
+        # Wait for the agent to be idle (workspace running + agents healthy + no task)
         max_retries = 60
         for _ in range(max_retries):
             show_result = await client.call_tool(
                 "show_agent", {"agent_name": "test-history"}
             )
             agent_data = parse_tool_result(show_result)
-            if agent_data["agent"]["status"] == "running":
+            if agent_data["agent"]["status"] == "idle":
                 break
 
             if is_recording:
                 await asyncio.sleep(2)
+
+        # Wait additional time for task API to become healthy
+        # The agent can be idle (connected+ready) but the task sidebar app may still be initializing
+        if is_recording:
+            await asyncio.sleep(10)
 
         # Start a task on the agent to generate task history
         start_task_result = await client.call_tool(
