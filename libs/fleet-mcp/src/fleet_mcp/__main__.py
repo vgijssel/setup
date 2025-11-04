@@ -17,4 +17,4 @@ if not base_url or not token:
 
 # Create the MCP server and export the ASGI application
 mcp = create_mcp_server(base_url, token)
-app = mcp.http_app()
+app = mcp.http_app(stateless_http=True)
