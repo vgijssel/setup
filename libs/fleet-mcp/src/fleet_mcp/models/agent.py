@@ -44,7 +44,6 @@ class Agent(BaseModel):
     project: str
     last_task: str | None = None
     pull_request_url: str | None = None
-    pull_request_status: str | None = None
     created_at: datetime
     updated_at: datetime
 

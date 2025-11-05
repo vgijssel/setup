@@ -190,9 +190,8 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                         template_display_name=template_display_name,
                     )
 
-                    # Fetch PR data from server via HTTP
+                    # Fetch PR URL from server via HTTP
                     pr_url = None
-                    pr_status = None
 
                     try:
                         fleetmcp_url = await coder_client.get_fleetmcp_url(ws)
@@ -201,7 +200,6 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                                 fleetmcp_url, agent.name
                             )
                             pr_url = server_data.get("pr_url")
-                            pr_status = server_data.get("pr_status")
                     except Exception:
                         # PR data is optional, continue without it
                         pass
@@ -213,7 +211,6 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                             project=agent.project,
                             last_task=agent.last_task,
                             pull_request_url=pr_url,
-                            pull_request_status=pr_status,
                         )
                     )
                 except Exception:
@@ -277,7 +274,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             workspace, agent_metadata, task_data, template_display_name
         )
 
-        # Fetch PR data from server via HTTP
+        # Fetch PR URL from server via HTTP
         try:
             fleetmcp_url = await coder_client.get_fleetmcp_url(workspace)
             if fleetmcp_url:
@@ -285,7 +282,6 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                     fleetmcp_url, agent.name
                 )
                 agent.pull_request_url = server_data.get("pr_url")
-                agent.pull_request_status = server_data.get("pr_status")
         except Exception:
             # PR data is optional, continue without it
             pass
@@ -446,14 +442,14 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         Set the pull request URL for an agent
 
         This tool allows agents to report their PR URL to the fleet-mcp server.
-        The data is stored on disk by the fleet-mcp server with status defaulting to 'open'.
+        The data is stored on disk by the fleet-mcp server.
 
         Args:
             agent_name: Name of the agent
             pr_url: Pull request URL (e.g., https://github.com/org/repo/pull/123)
 
         Returns:
-            Success response with agent_name, pr_url, and pr_status
+            Success response with agent_name and pr_url
 
         Raises:
             ValueError: If agent not found or fleet-mcp server unavailable
@@ -470,46 +466,4 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
 
         # Set via fleet-mcp server HTTP endpoint
         result = await fleet_mcp_client.set_pr_url(fleetmcp_url, agent_name, pr_url)
-        return result
-
-    @mcp.tool()
-    async def set_agent_pr_status(
-        agent_name: Annotated[str, Field(description="Name of the agent")],
-        pr_status: Annotated[
-            str,
-            Field(
-                description="PR status: open, closed, checks_running, checks_failed, needs_review, ready, merged"
-            ),
-        ],
-    ) -> dict[str, Any]:
-        """
-        Set the pull request status for an agent
-
-        This tool allows agents to update their PR status in the fleet-mcp server.
-        The PR URL must be set first using set_agent_pr_url.
-
-        Args:
-            agent_name: Name of the agent
-            pr_status: PR status (e.g., 'open', 'closed', 'checks_running', etc.)
-
-        Returns:
-            Success response with agent_name, pr_url, and pr_status
-
-        Raises:
-            ValueError: If agent not found, fleet-mcp server unavailable, or pr_url not set
-        """
-        # Get the agent's workspace
-        workspace = await get_workspace_by_name(coder_client, agent_name)
-        if not workspace:
-            raise ValueError(f"Agent '{agent_name}' not found")
-
-        # Get the fleet-mcp application URL
-        fleetmcp_url = await coder_client.get_fleetmcp_url(workspace)
-        if not fleetmcp_url:
-            raise ValueError(f"fleet-mcp server not available for agent '{agent_name}'")
-
-        # Set via fleet-mcp server HTTP endpoint
-        result = await fleet_mcp_client.set_pr_status(
-            fleetmcp_url, agent_name, pr_status
-        )
         return result
