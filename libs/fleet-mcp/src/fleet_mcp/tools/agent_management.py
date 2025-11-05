@@ -11,7 +11,7 @@ from fleet_mcp.coder.discovery import (
 )
 from fleet_mcp.coder.tasks import paginate_log_history, paginate_task_history
 from fleet_mcp.coder.workspaces import get_workspace_by_name
-from fleet_mcp.fleet_mcp_client import FleetMCPClient, PRStatus
+from fleet_mcp.fleet_mcp_client import FleetMCPClient
 from fleet_mcp.models.agent import Agent
 from fleet_mcp.models.log import Log
 from fleet_mcp.models.responses import (
