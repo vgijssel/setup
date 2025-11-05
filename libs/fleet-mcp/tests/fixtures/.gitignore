@@ -1,0 +1,4 @@
+# Ignore raw recordings that may contain unsanitized secrets
+# Only generated.py and manual.py should be committed
+recordings/
+*.json

@@ -1,0 +1,89 @@
+# Test fixture recording scenarios for fleet-mcp
+#
+# Each scenario defines a sequence of API calls to record
+# with optional setup/teardown steps for test isolation.
+
+agent_creation:
+  description: Record agent workspace creation flow
+  setup:
+    - create_template_if_missing
+  record:
+    - list_templates
+    - get_template_by_name:
+        name: Setup
+    - get_template_version_rich_parameters
+    - get_template_version_presets
+    - get_user_info
+    - get_user_organizations
+    - create_workspace:
+        name: fleet-record-test-001
+        template_name: Setup
+        workspace_preset: coder
+    - get_workspace
+    - list_workspace_builds
+    - get_build_resources
+  teardown:
+    - delete_workspace
+
+agent_lifecycle:
+  description: Record agent full lifecycle (create, start, stop, delete)
+  setup:
+    - create_template_if_missing
+  record:
+    - list_templates
+    - create_workspace:
+        name: fleet-record-test-002
+        template_name: Setup
+        workspace_preset: coder
+    - get_workspace
+    - watch_build_until_running
+    - get_workspace_agent
+    - list_workspace_apps
+    - stop_workspace
+    - watch_build_until_stopped
+    - start_workspace
+    - watch_build_until_running
+    - delete_workspace
+    - watch_build_until_deleted
+
+agent_list:
+  description: Record workspace and agent listing
+  setup:
+    - create_multiple_workspaces:
+        count: 3
+        template_name: Setup
+  record:
+    - list_workspaces
+    - list_workspaces_with_filter:
+        owner: me
+    - list_templates
+    - get_template_by_name:
+        name: Setup
+  teardown:
+    - delete_all_test_workspaces
+
+template_metadata:
+  description: Record template metadata and configuration
+  record:
+    - list_templates
+    - get_template_by_name:
+        name: Setup
+    - get_template_version_rich_parameters
+    - get_template_version_presets
+    - list_template_versions
+
+build_states:
+  description: Record various build states and transitions
+  setup:
+    - create_workspace:
+        name: fleet-record-test-003
+        template_name: Setup
+        workspace_preset: coder
+  record:
+    - get_workspace
+    - list_workspace_builds
+    - get_latest_build
+    - watch_build_states:
+        states: [pending, starting, running]
+  teardown:
+    - delete_workspace
