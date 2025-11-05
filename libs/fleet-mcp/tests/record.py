@@ -567,7 +567,6 @@ async def record_test_show_agent_success():
     coder_base_url = os.getenv("CODER_URL", "https://coder.example.com")
     coder_token = os.getenv("CODER_SESSION_TOKEN", "test-token")
     server = create_mcp_server(coder_base_url, coder_token)
-    client_obj = CoderClient(base_url=coder_base_url, token=coder_token)
 
     async with Client(server) as client:
         projects_result = await client.call_tool("list_agent_projects", {})
