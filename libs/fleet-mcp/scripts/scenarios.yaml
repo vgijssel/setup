@@ -10,14 +10,14 @@ agent_creation:
   record:
     - list_templates
     - get_template_by_name:
-        name: Setup
+        name: coder-devcontainer
     - get_template_version_rich_parameters
     - get_template_version_presets
     - get_user_info
     - get_user_organizations
     - create_workspace:
         name: fleet-record-test-001
-        template_name: Setup
+        template_name: coder-devcontainer
         workspace_preset: coder
     - get_workspace
     - list_workspace_builds
@@ -33,7 +33,7 @@ agent_lifecycle:
     - list_templates
     - create_workspace:
         name: fleet-record-test-002
-        template_name: Setup
+        template_name: coder-devcontainer
         workspace_preset: coder
     - get_workspace
     - watch_build_until_running
@@ -51,14 +51,14 @@ agent_list:
   setup:
     - create_multiple_workspaces:
         count: 3
-        template_name: Setup
+        template_name: coder-devcontainer
   record:
     - list_workspaces
     - list_workspaces_with_filter:
         owner: me
     - list_templates
     - get_template_by_name:
-        name: Setup
+        name: coder-devcontainer
   teardown:
     - delete_all_test_workspaces
 
@@ -67,7 +67,7 @@ template_metadata:
   record:
     - list_templates
     - get_template_by_name:
-        name: Setup
+        name: coder-devcontainer
     - get_template_version_rich_parameters
     - get_template_version_presets
     - list_template_versions
@@ -77,7 +77,7 @@ build_states:
   setup:
     - create_workspace:
         name: fleet-record-test-003
-        template_name: Setup
+        template_name: coder-devcontainer
         workspace_preset: coder
   record:
     - get_workspace
