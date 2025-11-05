@@ -203,13 +203,23 @@ async def test_get_template_version_rich_parameters(coder_base_url, coder_token)
     - Uses generated.make_list_templates_real() for real API data
     - Uses generated.make_get_template_version_rich_parameters_real() for real rich params
     """
-    # Use GENERATED fixtures from real Coder API!
-    templates = generated.make_list_templates_real()
-    template = templates[0]  # Get first template
+    # Use GENERATED fixtures from VCR cassettes (real API data)!
+    # Interaction 1: GET /api/v2/templates
+    templates_response = (
+        generated.make_test_get_template_version_rich_parameters_interaction_1()
+    )
+    templates = (
+        templates_response
+        if isinstance(templates_response, list)
+        else [templates_response]
+    )
+
+    # Interaction 2: GET /api/v2/templates/{id}
+    template = generated.make_test_get_template_version_rich_parameters_interaction_2()
     template_id = template["id"]
     version_id = template["active_version_id"]
 
-    # Setup mocks using REAL data
+    # Setup mocks using REAL data from cassettes
     respx.route(url=f"{coder_base_url}/api/v2/templates").mock(
         return_value=httpx.Response(200, json=templates)
     )
@@ -218,8 +228,11 @@ async def test_get_template_version_rich_parameters(coder_base_url, coder_token)
         return_value=httpx.Response(200, json=template)
     )
 
-    # Use GENERATED rich parameters from real API!
-    rich_params = generated.make_get_template_version_rich_parameters_real()
+    # Interaction 3: GET /api/v2/templateversions/{id}/rich-parameters
+    # Use GENERATED rich parameters from VCR cassettes (real API data)!
+    rich_params = (
+        generated.make_test_get_template_version_rich_parameters_interaction_3()
+    )
     respx.route(
         url=f"{coder_base_url}/api/v2/templateversions/{version_id}/rich-parameters"
     ).mock(return_value=httpx.Response(200, json=rich_params))
