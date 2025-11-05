@@ -39,7 +39,8 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             str, Field(description="Unique short agent name (e.g., Sony, Papi)")
         ],
         project: Annotated[
-            str, Field(description="Project name or display name (e.g., Setup, DataOne)")
+            str,
+            Field(description="Project name or display name (e.g., Setup, DataOne)"),
         ],
         task: Annotated[
             str,

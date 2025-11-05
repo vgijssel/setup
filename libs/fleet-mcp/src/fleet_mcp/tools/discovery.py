@@ -47,7 +47,9 @@ def register_discovery_tools(mcp: FastMCP, coder_client: CoderClient):
     # T096: list_agent_roles tool
     @mcp.tool()
     async def list_agent_roles(
-        project: Annotated[str, Field(description="Project name or display name to query roles for")]
+        project: Annotated[
+            str, Field(description="Project name or display name to query roles for")
+        ]
     ) -> ListRolesResponse:
         """
         List all available agent roles for a specific project.
