@@ -251,6 +251,12 @@ resource "coder_env" "github_token" {
   value    = local.github_token
 }
 
+resource "coder_env" "fleet_mcp_workspace_dir" {
+  agent_id = coder_agent.main.id
+  name     = "FLEET_MCP_WORKSPACE_DIR"
+  value    = "/workspaces/setup"
+}
+
 resource "coder_env" "ha_token" {
   agent_id = coder_agent.main.id
   name     = "HA_TOKEN"

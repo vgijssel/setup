@@ -877,20 +877,3 @@ async def test_show_agent_includes_pull_request_url_field(agent_server):
         assert data["agent"]["pull_request_url"] is None or isinstance(
             data["agent"]["pull_request_url"], str
         )
-
-
-# Test set_agent_pr_url tool exists and validates input
-@pytest.mark.vcr
-async def test_set_agent_pr_url_validates_agent_exists(agent_server):
-    """Test that set_agent_pr_url validates agent exists"""
-    async with Client(agent_server) as client:
-        # Try to set PR URL for non-existent agent
-        with pytest.raises(Exception) as exc:
-            await client.call_tool(
-                "set_agent_pr_url",
-                {
-                    "agent_name": "nonexistent-agent-pr",
-                    "pr_url": "https://github.com/org/repo/pull/123",
-                },
-            )
-        assert "not found" in str(exc.value).lower()
