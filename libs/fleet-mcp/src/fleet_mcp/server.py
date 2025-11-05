@@ -19,8 +19,8 @@ def create_mcp_server(base_url: str, token: str) -> FastMCP:
     mcp = FastMCP("Fleet MCP Server")
     coder_client = CoderClient(base_url, token)
 
-    # In-memory storage for PR URLs (agent_name -> pr_url)
-    pr_url_storage: dict[str, str] = {}
+    # In-memory storage for PR data (agent_name -> {pr_url, pr_status})
+    pr_data_storage: dict[str, dict[str, str]] = {}
 
     # Add health check endpoint
     @mcp.custom_route("/health", methods=["GET"])
@@ -30,10 +30,11 @@ def create_mcp_server(base_url: str, token: str) -> FastMCP:
     # PR URL management endpoints
     @mcp.custom_route("/pr-url", methods=["POST"])
     async def set_pr_url(request):
-        """Set the pull request URL for an agent"""
+        """Set the pull request URL and status for an agent"""
         data = await request.json()
         agent_name = data.get("agent_name")
         pr_url = data.get("pr_url")
+        pr_status = data.get("pr_status", "open")  # Default to 'open'
 
         # Validate inputs
         if not agent_name or not pr_url:
@@ -41,21 +42,32 @@ def create_mcp_server(base_url: str, token: str) -> FastMCP:
                 {"error": "agent_name and pr_url required"}, status_code=400
             )
 
-        pr_url_storage[agent_name] = pr_url
+        pr_data_storage[agent_name] = {"pr_url": pr_url, "pr_status": pr_status}
         return JSONResponse(
-            {"status": "success", "agent_name": agent_name, "pr_url": pr_url}
+            {
+                "status": "success",
+                "agent_name": agent_name,
+                "pr_url": pr_url,
+                "pr_status": pr_status,
+            }
         )
 
     @mcp.custom_route("/pr-url", methods=["GET"])
     async def get_pr_url(request):
-        """Get the pull request URL for an agent"""
+        """Get the pull request URL and status for an agent"""
         agent_name = request.query_params.get("agent_name")
 
         if not agent_name:
             return JSONResponse({"error": "agent_name required"}, status_code=400)
 
-        pr_url = pr_url_storage.get(agent_name)
-        return JSONResponse({"agent_name": agent_name, "pr_url": pr_url})
+        pr_data = pr_data_storage.get(agent_name, {})
+        return JSONResponse(
+            {
+                "agent_name": agent_name,
+                "pr_url": pr_data.get("pr_url"),
+                "pr_status": pr_data.get("pr_status"),
+            }
+        )
 
     # Register tool groups
     from fleet_mcp.tools.agent_management import register_agent_tools
