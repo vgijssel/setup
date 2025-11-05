@@ -1,6 +1,5 @@
 """Agent management MCP tools"""
 
-import os
 from datetime import datetime
 from typing import Annotated
 
@@ -119,7 +118,6 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             },
             task_data=task_data,
             template_display_name=template_display_name,
-            workspace_dir=os.getenv("FLEET_MCP_WORKSPACE_DIR"),
         )
 
         return CreateAgentResponse(
@@ -187,7 +185,6 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                         ws,
                         task_data=task_data,
                         template_display_name=template_display_name,
-                        workspace_dir=os.getenv("FLEET_MCP_WORKSPACE_DIR"),
                     )
 
                     agents.append(
@@ -261,7 +258,6 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             agent_metadata,
             task_data,
             template_display_name,
-            workspace_dir=os.getenv("FLEET_MCP_WORKSPACE_DIR"),
         )
 
         return AgentDetailsResponse(agent=agent)

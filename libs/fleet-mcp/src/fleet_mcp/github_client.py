@@ -1,20 +1,24 @@
 """GitHub CLI client for fetching PR information."""
 
 import json
+import os
 import subprocess
 from typing import Any
 
 
-def get_pr_info(workspace_dir: str) -> dict[str, Any] | None:
+def get_pr_info() -> dict[str, Any] | None:
     """
     Fetch PR info using gh CLI.
 
-    Args:
-        workspace_dir: Directory containing the git repository
+    Reads workspace directory from FLEET_MCP_WORKSPACE_DIR environment variable.
 
     Returns:
         Dict with PR info or None if no PR found or error occurred
     """
+    workspace_dir = os.getenv("FLEET_MCP_WORKSPACE_DIR")
+    if not workspace_dir:
+        return None
+
     try:
         result = subprocess.run(
             ["gh", "pr", "view", "--json", "url"],

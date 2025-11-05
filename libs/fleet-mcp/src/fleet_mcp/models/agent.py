@@ -93,7 +93,6 @@ class Agent(BaseModel):
         agent_metadata: dict[str, str] | None = None,
         task_data: dict[str, Any] | None = None,
         template_display_name: str | None = None,
-        workspace_dir: str | None = None,
     ) -> "Agent":
         """
         Convert Coder workspace to Agent model
@@ -103,7 +102,6 @@ class Agent(BaseModel):
             agent_metadata: Agent metadata from watch-metadata endpoint (optional, unused)
             task_data: Task data from experimental task API (optional)
             template_display_name: Template display name for the project (optional)
-            workspace_dir: Directory containing the git repository for PR lookup (optional)
         """
         # Extract agent name from workspace name (workspace name format: agent-{name})
         workspace_name = workspace.get("name", "")
@@ -161,12 +159,11 @@ class Agent(BaseModel):
             template_name = workspace.get("template_name", "unknown")
             project = template_name if template_name != "unknown" else "unknown"
 
-        # Fetch PR URL from GitHub if workspace_dir provided
+        # Fetch PR URL from GitHub
         pull_request_url = None
-        if workspace_dir:
-            pr_data = get_pr_info(workspace_dir)
-            if pr_data:
-                pull_request_url = pr_data.get("url")
+        pr_data = get_pr_info()
+        if pr_data:
+            pull_request_url = pr_data.get("url")
 
         return Agent(
             name=agent_name or "unknown",
