@@ -23,9 +23,9 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Set-Cookie:
-      - csrf_token=JVf+OWTvkxKFi3KQjdlMGCEOwlQf4OeBuZX2upWwvC8=; Path=/; HttpOnly;
+      - csrf_token=Hx3gqQNON98ZsBD3lFRwEk6Z2Mf4+8eM2urUAFXMm+A=; Path=/; HttpOnly;
         SameSite=Lax
       Transfer-Encoding:
       - chunked
@@ -35,15 +35,15 @@ interactions:
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - b9ee696d-a2f4-491b-bb33-7b5fa3d8e317
+      - f877b60f-5d42-437b-9884-31b2d2ed51f8
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '496'
+      - '507'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -73,22 +73,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 7d38f163-83ab-4308-81e0-8ce4c45afaa4
+      - 14c7a939-a779-4841-ba97-cc383bb6256a
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '495'
+      - '475'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -122,22 +122,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - a11e5a60-9b3b-4d79-bd6d-e0a70f8e0c06
+      - 4796ae6c-2947-4065-bac3-3d09239e3f27
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '496'
+      - '507'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -167,22 +167,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - d4b2069a-2788-43c8-a0a5-c9e36096090e
+      - 07b4ec08-b88b-4f00-b7a2-d369fa4246b3
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '495'
+      - '508'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -216,22 +216,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - fdd9961a-f94e-4b7a-8b5b-a5b38b214184
+      - 291ba5b7-6833-4ee6-96da-4fd3c6e8c470
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '496'
+      - '508'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -259,7 +259,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Transfer-Encoding:
       - chunked
       Vary:
@@ -268,15 +268,15 @@ interactions:
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 7ecb0e96-a580-4453-8448-2e18126fe9ab
+      - 22276cad-268d-4b6a-af31-40264725db73
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '495'
+      - '506'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -306,22 +306,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 0f2e51fb-5b03-4000-af4a-732265237b43
+      - 3c2a3481-715b-47ad-97aa-da4eab54d318
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '494'
+      - '474'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -355,22 +355,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 8edf87b3-5bbd-42b9-9fe9-51246e73d8dd
+      - d58d8de0-128f-4529-8f22-b30119db24c9
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '495'
+      - '506'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -400,22 +400,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 0d4d00ae-cdf4-4b3e-9a72-20fdaea57b2e
+      - d5e506bb-754a-440e-8566-c20bcdbd6e0b
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '494'
+      - '507'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -449,22 +449,67 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:44 GMT
+      - Wed, 05 Nov 2025 14:40:06 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 98aec52a-ca63-4b8e-b945-b166f83004ad
+      - f113270a-0b74-4e70-9f9c-2b2b1090ddd7
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '495'
+      - '507'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates/c53e716b-1d3f-4ac2-83af-9dbc6ea07029
+  response:
+    body:
+      string: '{"id":"c53e716b-1d3f-4ac2-83af-9dbc6ea07029","created_at":"2025-11-04T15:02:35.398297+01:00","updated_at":"2025-11-04T15:20:44.810323+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-dataone-devcontainer","display_name":"DataOne","provisioner":"terraform","active_version_id":"eac258c2-6818-43f5-b5e2-1a4e8cb9c4db","active_user_count":1,"build_time_stats":{"delete":{"P50":43618,"P95":45170},"start":{"P50":16852,"P95":18483},"stop":{"P50":25979,"P95":25979}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}
+
+        '
+    headers:
+      Content-Length:
+      - '1243'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 14:40:06 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 626aa0b3-5244-4b33-8d43-5d6345939f2b
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '473'
+      X-Ratelimit-Reset:
+      - '1762353660'
     status:
       code: 200
       message: OK

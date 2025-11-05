@@ -26,9 +26,9 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:47 GMT
+      - Wed, 05 Nov 2025 14:40:10 GMT
       Set-Cookie:
-      - csrf_token=NPJnSZ/S98oKWDt1di4n5UElap1G3iq69e6QCQyKnOo=; Path=/; HttpOnly;
+      - csrf_token=1f1An5AWFl3ASfvDQPFXFLaj/ob5Iram+s7Qtc7RzSc=; Path=/; HttpOnly;
         SameSite=Lax
       Vary:
       - Origin
@@ -36,7 +36,7 @@ interactions:
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - d0398364-e801-4317-a13e-2fc607a3edac
+      - ffb6abb7-7c1a-49ab-ab74-eb16f578f3d7
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -44,7 +44,7 @@ interactions:
       X-Ratelimit-Remaining:
       - '511'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 400
       message: Bad Request

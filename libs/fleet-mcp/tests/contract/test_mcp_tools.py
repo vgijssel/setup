@@ -804,7 +804,7 @@ async def test_create_agent_with_invalid_preset_error_message(agent_server):
                 {
                     "name": "test-invalid-preset",
                     "project": project_name,
-                    "role": "researcher",  # Assuming this preset doesn't exist
+                    "role": "nonexistent-preset-xyz",  # This preset definitely doesn't exist
                     "task": "Test with non-existent preset",
                 },
             )

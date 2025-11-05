@@ -23,9 +23,9 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:48 GMT
+      - Wed, 05 Nov 2025 14:40:12 GMT
       Set-Cookie:
-      - csrf_token=qfGsdR9VZZlnCEZtHkaAF+OQVeNhtMdxe16AxjShvhc=; Path=/; HttpOnly;
+      - csrf_token=kiHwZy3IItQaOM4o4bY/P2KC1wmgwxmm8yjIExbl90c=; Path=/; HttpOnly;
         SameSite=Lax
       Transfer-Encoding:
       - chunked
@@ -35,15 +35,15 @@ interactions:
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - ab52770b-037e-4cd1-82ea-007d8e77379d
+      - 3e4d32c2-23d4-4a8d-9c5f-51039849086b
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '473'
+      - '476'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -73,22 +73,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:48 GMT
+      - Wed, 05 Nov 2025 14:40:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - da2b69fa-0b1e-4f6a-b5a6-15f3d1cecf5e
+      - a748a176-bc86-4087-84b5-650de93e3ddf
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '474'
+      - '481'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -171,7 +171,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:48 GMT
+      - Wed, 05 Nov 2025 14:40:12 GMT
       Transfer-Encoding:
       - chunked
       Vary:
@@ -180,7 +180,7 @@ interactions:
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 604c8343-93e4-4564-bc6b-4f8af7d8a52d
+      - 839c3cb2-a2cc-4a84-86af-f07c629be098
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -188,7 +188,7 @@ interactions:
       X-Ratelimit-Remaining:
       - '511'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -222,22 +222,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:48 GMT
+      - Wed, 05 Nov 2025 14:40:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 7b88264c-758a-4dab-a2f4-2c69991822a9
+      - 0f8f58e4-cb9f-4d1e-9b71-92dcfc0c6b7e
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '476'
+      - '483'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -268,22 +268,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:48 GMT
+      - Wed, 05 Nov 2025 14:40:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 4d089a16-7d99-4cea-846d-e4af1d2c6709
+      - 48726397-60b9-4272-bf6f-2900dade52cf
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '508'
+      - '503'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
       code: 200
       message: OK
@@ -308,32 +308,33 @@ interactions:
     uri: https://coder.example.com/api/v2/organizations/1dd993f1-dec7-401f-bbc3-0df50c2bee9b/members/me/workspaces
   response:
     body:
-      string: '{"id":"f51cf4cf-8061-488c-b555-ad1e72bf3d37","created_at":"2025-11-05T15:13:48.751959+01:00","updated_at":"2025-11-05T15:13:48.751959+01:00","owner_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","owner_name":"mvgijssel","owner_avatar_url":"https://avatars.githubusercontent.com/u/6029816?v=4","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","template_id":"cc29db59-0483-4520-869e-777e9a05bf65","template_name":"coder-devcontainer","template_display_name":"Setup","template_icon":"","template_allow_user_cancel_workspace_jobs":false,"template_active_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","template_require_active_version":false,"template_use_classic_parameter_flow":false,"latest_build":{"id":"87287eff-e798-41b1-9fa6-e7a56b6c5422","created_at":"2025-11-05T15:13:48.820847+01:00","updated_at":"2025-11-05T15:13:48.820847+01:00","workspace_id":"f51cf4cf-8061-488c-b555-ad1e72bf3d37","workspace_name":"test-ws-create-001","workspace_owner_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","workspace_owner_name":"mvgijssel","workspace_owner_avatar_url":"https://avatars.githubusercontent.com/u/6029816?v=4","template_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","template_version_name":"","build_number":1,"transition":"start","initiator_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","initiator_name":"mvgijssel","job":{"id":"f686f312-8665-4c3d-9d61-7dc7a0261a51","created_at":"2025-11-05T15:13:48.820847+01:00","status":"pending","file_id":"9895e078-663a-42dd-a6e1-0c04a50a7586","tags":{"owner":"","scope":"organization"},"queue_position":0,"queue_size":0,"organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","input":{"workspace_build_id":"87287eff-e798-41b1-9fa6-e7a56b6c5422"},"type":"workspace_build","metadata":{"template_version_name":"","template_id":"00000000-0000-0000-0000-000000000000","template_name":"","template_display_name":"","template_icon":""},"logs_overflowed":false},"reason":"initiator","resources":[],"deadline":null,"max_deadline":null,"status":"pending","daily_cost":0,"matched_provisioners":{"count":3,"available":3,"most_recently_seen":"2025-11-05T15:13:17.310391+01:00"},"template_version_preset_id":"a1fcd85b-a4d4-4a72-a703-d542b45c0e0f"},"latest_app_status":null,"outdated":false,"name":"test-ws-create-001","last_used_at":"2025-11-05T15:13:48.751959+01:00","deleting_at":null,"dormant_at":null,"health":{"healthy":true,"failing_agents":[]},"automatic_updates":"never","allow_renames":false,"favorite":false,"next_start_at":null,"is_prebuild":false}
+      string: '{"message":"Workspace \"test-ws-create-001\" already exists.","validations":[{"field":"name","detail":"This
+        value is already in use and should be unique."}]}
 
         '
     headers:
+      Content-Length:
+      - '158'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 14:13:48 GMT
-      Transfer-Encoding:
-      - chunked
+      - Wed, 05 Nov 2025 14:40:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 978d539e-0b81-4fb1-b4b9-889e31e3b7bc
+      - d4648fa5-f8eb-4181-ad02-e37c4609e08c
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '508'
+      - '503'
       X-Ratelimit-Reset:
-      - '1762352040'
+      - '1762353660'
     status:
-      code: 201
-      message: Created
+      code: 409
+      message: Conflict
 version: 1
