@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Third party Python packages"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["specify-cli"]
+dependencies = ["specify-cli", "supervisor==4.2.5"]
 
 [tool.uv.sources]
 specify-cli = { git = "https://github.com/github/spec-kit.git", tag = "v0.0.79" }

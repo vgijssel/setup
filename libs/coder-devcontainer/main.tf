@@ -540,14 +540,17 @@ resource "coder_script" "fleet_mcp" {
 
     cd /workspaces/setup
 
-    # Start supervisord daemon
-    sudo supervisord -c /etc/supervisor/conf.d/fleet-mcp.conf
+    # Start supervisord daemon using uv-based binstub
+    sudo /workspaces/setup/bin/supervisord -c /etc/supervisor/conf.d/fleet-mcp.conf
 
-    # Wait a moment for supervisord to start
-    sleep 2
+    # Wait for supervisor socket to be available
+    echo "Waiting for supervisor socket..."
+    while [ ! -S /var/run/supervisor.sock ]; do
+      sleep 0.1
+    done
 
     # Verify fleet-mcp service is running
-    sudo supervisorctl status fleet-mcp
+    sudo /workspaces/setup/bin/supervisorctl -c /etc/supervisor/conf.d/fleet-mcp.conf status fleet-mcp
   EOT
   run_on_start = true
   run_on_stop  = false
@@ -563,11 +566,13 @@ resource "coder_script" "fleet_mcp_shutdown" {
     set -e
     set -x
 
+    cd /workspaces/setup
+
     # Gracefully stop fleet-mcp service
-    sudo supervisorctl stop fleet-mcp || true
+    sudo /workspaces/setup/bin/supervisorctl -c /etc/supervisor/conf.d/fleet-mcp.conf stop fleet-mcp || true
 
     # Stop supervisord
-    sudo supervisorctl shutdown || true
+    sudo /workspaces/setup/bin/supervisorctl -c /etc/supervisor/conf.d/fleet-mcp.conf shutdown || true
   EOT
   run_on_start = false
   run_on_stop  = true
