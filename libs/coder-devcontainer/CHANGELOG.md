@@ -1,3 +1,9 @@
+## 0.13.4 (2025-11-05)
+
+### 🩹 Fixes
+
+- Fix fleet-mcp Coder app URL path ([#797](https://github.com/vgijssel/setup/pull/797))
+
 ## 0.13.3 (2025-11-04)
 
 ### 🧱 Updated Dependencies

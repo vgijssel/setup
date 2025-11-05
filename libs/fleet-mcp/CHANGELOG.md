@@ -1,3 +1,9 @@
+## 0.4.0 (2025-11-05)
+
+### 🚀 Features
+
+- Add PR URL tracking for fleet-mcp agents ([#797](https://github.com/vgijssel/setup/pull/797))
+
 ## 0.3.0 (2025-11-04)
 
 ### 🚀 Features
