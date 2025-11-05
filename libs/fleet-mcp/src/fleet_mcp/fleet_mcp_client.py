@@ -1,9 +1,6 @@
 """Fleet-MCP client for PR tracking and agent communication"""
 
-import json
-import os
 from enum import Enum
-from pathlib import Path
 from typing import Any
 
 import httpx
@@ -22,59 +19,16 @@ class PRStatus(Enum):
 
 
 class FleetMCPClient:
-    """HTTP client for Fleet-MCP server interactions and PR tracking"""
+    """HTTP client for Fleet-MCP server interactions"""
 
-    def __init__(self, coder_token: str, storage_path: str | None = None):
+    def __init__(self, coder_token: str):
         """
         Initialize Fleet-MCP client
 
         Args:
             coder_token: Coder API authentication token for accessing fleet-mcp servers
-            storage_path: Path to store PR data (defaults to env var FLEET_MCP_STORAGE_PATH or /tmp/fleet-mcp-data)
         """
         self.coder_token = coder_token
-        self.storage_path = Path(
-            storage_path or os.getenv("FLEET_MCP_STORAGE_PATH", "/tmp/fleet-mcp-data")
-        )
-        self.storage_path.mkdir(parents=True, exist_ok=True)
-
-    def _get_pr_data_file(self, agent_name: str) -> Path:
-        """Get the file path for an agent's PR data"""
-        return self.storage_path / f"{agent_name}.json"
-
-    def _load_pr_data(self, agent_name: str) -> dict[str, Any]:
-        """Load PR data from disk for an agent"""
-        pr_file = self._get_pr_data_file(agent_name)
-        if pr_file.exists():
-            try:
-                with open(pr_file, "r") as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, IOError):
-                return {}
-        return {}
-
-    def _save_pr_data(self, agent_name: str, pr_url: str, pr_status: str) -> None:
-        """Save PR data to disk for an agent"""
-        pr_file = self._get_pr_data_file(agent_name)
-        data = {"pr_url": pr_url, "pr_status": pr_status, "agent_name": agent_name}
-        try:
-            with open(pr_file, "w") as f:
-                json.dump(data, f, indent=2)
-        except IOError as e:
-            # Log error but don't fail - PR tracking is optional
-            print(f"Warning: Failed to save PR data for {agent_name}: {e}")
-
-    def get_pr_data(self, agent_name: str) -> dict[str, Any]:
-        """
-        Get PR data for an agent from disk
-
-        Args:
-            agent_name: Name of the agent
-
-        Returns:
-            Dict with pr_url and pr_status, or empty dict if not found
-        """
-        return self._load_pr_data(agent_name)
 
     async def set_pr_url(
         self,
@@ -87,7 +41,7 @@ class FleetMCPClient:
         Set the pull request URL for an agent via fleet-mcp server
 
         This method sends the PR URL to the fleet-mcp server running in the agent's
-        workspace and also persists it to disk locally.
+        workspace. The server handles persistence to disk.
 
         Args:
             fleetmcp_url: Fleet-MCP server URL
@@ -101,10 +55,6 @@ class FleetMCPClient:
         Raises:
             httpx.HTTPStatusError: If the request fails
         """
-        # Save to disk first
-        self._save_pr_data(agent_name, pr_url, pr_status)
-
-        # Send to fleet-mcp server
         async with httpx.AsyncClient(
             headers={"Coder-Session-Token": self.coder_token}, timeout=30.0
         ) as client:
@@ -144,15 +94,3 @@ class FleetMCPClient:
             if response.status_code == 200:
                 return response.json()
             return {"pr_url": None, "pr_status": None}
-
-    def update_pr_status(self, agent_name: str, pr_status: str) -> None:
-        """
-        Update the PR status for an agent (disk only)
-
-        Args:
-            agent_name: Name of the agent
-            pr_status: New PR status
-        """
-        data = self._load_pr_data(agent_name)
-        if data and "pr_url" in data:
-            self._save_pr_data(agent_name, data["pr_url"], pr_status)

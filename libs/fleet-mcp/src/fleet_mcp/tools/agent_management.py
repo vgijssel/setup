@@ -190,30 +190,21 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                         template_display_name=template_display_name,
                     )
 
-                    # Fetch PR data from disk first, then try server
+                    # Fetch PR data from server via HTTP
                     pr_url = None
                     pr_status = None
 
-                    # Try disk storage first (fast and reliable)
-                    pr_data = fleet_mcp_client.get_pr_data(agent.name)
-                    if pr_data:
-                        pr_url = pr_data.get("pr_url")
-                        pr_status = pr_data.get("pr_status")
-                    else:
-                        # Fallback to server if not found on disk
-                        try:
-                            fleetmcp_url = await coder_client.get_fleetmcp_url(ws)
-                            if fleetmcp_url:
-                                server_data = (
-                                    await fleet_mcp_client.get_pr_url_from_server(
-                                        fleetmcp_url, agent.name
-                                    )
-                                )
-                                pr_url = server_data.get("pr_url")
-                                pr_status = server_data.get("pr_status")
-                        except Exception:
-                            # PR data is optional, continue without it
-                            pass
+                    try:
+                        fleetmcp_url = await coder_client.get_fleetmcp_url(ws)
+                        if fleetmcp_url:
+                            server_data = await fleet_mcp_client.get_pr_url_from_server(
+                                fleetmcp_url, agent.name
+                            )
+                            pr_url = server_data.get("pr_url")
+                            pr_status = server_data.get("pr_status")
+                    except Exception:
+                        # PR data is optional, continue without it
+                        pass
 
                     agents.append(
                         AgentSummary(
@@ -286,24 +277,18 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             workspace, agent_metadata, task_data, template_display_name
         )
 
-        # Fetch PR data from disk first, then try server
-        pr_data = fleet_mcp_client.get_pr_data(agent.name)
-        if pr_data:
-            agent.pull_request_url = pr_data.get("pr_url")
-            agent.pull_request_status = pr_data.get("pr_status")
-        else:
-            # Fallback to server if not found on disk
-            try:
-                fleetmcp_url = await coder_client.get_fleetmcp_url(workspace)
-                if fleetmcp_url:
-                    server_data = await fleet_mcp_client.get_pr_url_from_server(
-                        fleetmcp_url, agent.name
-                    )
-                    agent.pull_request_url = server_data.get("pr_url")
-                    agent.pull_request_status = server_data.get("pr_status")
-            except Exception:
-                # PR data is optional, continue without it
-                pass
+        # Fetch PR data from server via HTTP
+        try:
+            fleetmcp_url = await coder_client.get_fleetmcp_url(workspace)
+            if fleetmcp_url:
+                server_data = await fleet_mcp_client.get_pr_url_from_server(
+                    fleetmcp_url, agent.name
+                )
+                agent.pull_request_url = server_data.get("pr_url")
+                agent.pull_request_status = server_data.get("pr_status")
+        except Exception:
+            # PR data is optional, continue without it
+            pass
 
         return AgentDetailsResponse(agent=agent)
 
@@ -467,7 +452,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         Set the pull request URL and status for an agent
 
         This tool allows agents to report their PR URLs and status to the fleet-mcp server.
-        The data is stored both on disk and in the fleet-mcp server (if available).
+        The data is stored on disk by the fleet-mcp server.
 
         Args:
             agent_name: Name of the agent
@@ -478,7 +463,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             Success response with agent_name, pr_url, and pr_status
 
         Raises:
-            ValueError: If agent not found
+            ValueError: If agent not found or fleet-mcp server unavailable
         """
         # Get the agent's workspace
         workspace = await get_workspace_by_name(coder_client, agent_name)
@@ -487,24 +472,11 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
 
         # Get the fleet-mcp application URL
         fleetmcp_url = await coder_client.get_fleetmcp_url(workspace)
+        if not fleetmcp_url:
+            raise ValueError(f"fleet-mcp server not available for agent '{agent_name}'")
 
-        # Try to set via fleet-mcp server, but fallback to disk-only if unavailable
-        if fleetmcp_url:
-            try:
-                result = await fleet_mcp_client.set_pr_url(
-                    fleetmcp_url, agent_name, pr_url, pr_status
-                )
-                return result
-            except Exception:
-                # Fallback to disk-only storage
-                pass
-
-        # Store to disk only if fleet-mcp server unavailable
-        fleet_mcp_client._save_pr_data(agent_name, pr_url, pr_status)
-        return {
-            "status": "success",
-            "agent_name": agent_name,
-            "pr_url": pr_url,
-            "pr_status": pr_status,
-            "storage": "disk-only",
-        }
+        # Set via fleet-mcp server HTTP endpoint
+        result = await fleet_mcp_client.set_pr_url(
+            fleetmcp_url, agent_name, pr_url, pr_status
+        )
+        return result
