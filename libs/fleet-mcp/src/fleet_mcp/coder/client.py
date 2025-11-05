@@ -452,6 +452,60 @@ class CoderClient:
 
         return None
 
+    async def get_fleetmcp_url(self, workspace: dict[str, Any]) -> str | None:
+        """
+        Get the fleet-mcp application URL for the agent's workspace
+
+        Similar to get_agentapi_url(), searches for fleet-mcp app in workspace resources
+
+        Args:
+            workspace: Workspace data dict containing id, name, owner info
+
+        Returns:
+            Application URL like: https://coder.com/@owner/workspace.id/apps/fleet-mcp/
+            or None if not found
+
+        Raises:
+            ValueError: If workspace data is invalid
+        """
+        workspace_id = workspace.get("id")
+        workspace_name = workspace.get("name")
+        owner_name = workspace.get("owner_name")
+        latest_build = workspace.get("latest_build")
+
+        if not all([workspace_id, workspace_name, owner_name]):
+            raise ValueError("Invalid workspace data: missing id, name, or owner_name")
+
+        if not latest_build or not isinstance(latest_build, dict):
+            raise ValueError("Invalid workspace: latest_build is missing or invalid")
+
+        build_id = latest_build.get("id")
+        if not build_id:
+            raise ValueError("Invalid workspace: latest_build missing id")
+
+        # Get workspace build resources to find agents and apps
+        resources = await self.get_workspace_build_resources(build_id)
+
+        # Find the fleet-mcp app
+        # Look for apps with slug containing "fleet" or "mcp"
+        for resource in resources:
+            agents = resource.get("agents", [])
+            for agent in agents:
+                apps = agent.get("apps", [])
+                for app in apps:
+                    app_slug = app.get("slug", "").lower()
+                    # Look for fleet-mcp app
+                    if "fleet" in app_slug or "mcp" in app_slug:
+                        # Construct the application URL
+                        # Format: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/{app_slug}/
+                        app_url = (
+                            f"{self.base_url}/@{owner_name}/{workspace_name}."
+                            f"{workspace_id}/apps/{app.get('slug')}/"
+                        )
+                        return app_url
+
+        return None
+
     async def send_agentapi_interrupt(self, agentapi_url: str) -> dict[str, Any]:
         """
         Send interrupt signal (Ctrl+C) to AgentAPI

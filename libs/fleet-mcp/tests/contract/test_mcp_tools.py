@@ -816,3 +816,81 @@ async def test_create_agent_with_invalid_preset_error_message(agent_server):
         # Verify the error message lists available presets
         # (This would crash before the fix if any preset name was None)
         assert "available" in error_msg.lower() or "coder" in error_msg.lower()
+
+
+# ============================================================================
+# PR URL Tracking Tests
+# ============================================================================
+
+
+# Test that list_agents returns pull_request_url field
+@pytest.mark.vcr
+async def test_list_agents_includes_pull_request_url_field(agent_server):
+    """Test that list_agents response includes pull_request_url field"""
+    async with Client(agent_server) as client:
+        result = await client.call_tool("list_agents", {})
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert "agents" in data
+
+        # If there are any agents, verify they have the pull_request_url field
+        if len(data["agents"]) > 0:
+            agent = data["agents"][0]
+            assert "pull_request_url" in agent
+            # The field can be None if no PR URL was set
+            assert agent["pull_request_url"] is None or isinstance(
+                agent["pull_request_url"], str
+            )
+
+
+# Test that show_agent returns pull_request_url field
+@pytest.mark.vcr
+async def test_show_agent_includes_pull_request_url_field(agent_server):
+    """Test that show_agent response includes pull_request_url field"""
+    async with Client(agent_server) as client:
+        # Get a valid project name first
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+        project_name = projects_data["projects"][0]["name"]
+
+        # Create an agent
+        create_result = await client.call_tool(
+            "create_agent",
+            {
+                "name": "test-pr-url",
+                "project": project_name,
+                "role": "coder",
+                "task": "Test PR URL field",
+            },
+        )
+        parse_tool_result(create_result)
+
+        # Show agent details
+        result = await client.call_tool("show_agent", {"agent_name": "test-pr-url"})
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert "agent" in data
+        assert "pull_request_url" in data["agent"]
+        # The field can be None if no PR URL was set
+        assert data["agent"]["pull_request_url"] is None or isinstance(
+            data["agent"]["pull_request_url"], str
+        )
+
+
+# Test set_agent_pr_url tool exists and validates input
+@pytest.mark.vcr
+async def test_set_agent_pr_url_validates_agent_exists(agent_server):
+    """Test that set_agent_pr_url validates agent exists"""
+    async with Client(agent_server) as client:
+        # Try to set PR URL for non-existent agent
+        with pytest.raises(Exception) as exc:
+            await client.call_tool(
+                "set_agent_pr_url",
+                {
+                    "agent_name": "nonexistent-agent-pr",
+                    "pr_url": "https://github.com/org/repo/pull/123",
+                },
+            )
+        assert "not found" in str(exc.value).lower()

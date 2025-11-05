@@ -16,6 +16,7 @@ class AgentSummary(BaseModel):
     status: str
     project: str
     last_task: str | None
+    pull_request_url: str | None
 
 
 class CreateAgentResponse(BaseModel):
