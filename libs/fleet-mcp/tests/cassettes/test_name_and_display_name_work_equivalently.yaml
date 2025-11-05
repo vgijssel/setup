@@ -23,9 +23,9 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Set-Cookie:
-      - csrf_token=CQElAl1GT8ujBqeFwgqiLAlzwBL8k9jIgGBSg1vYV+Q=; Path=/; HttpOnly;
+      - csrf_token=ePsV0UBGP4ch38TBcQyRoeDzaqcvlGX0Sn8NC4VPNd4=; Path=/; HttpOnly;
         SameSite=Lax
       Transfer-Encoding:
       - chunked
@@ -35,15 +35,15 @@ interactions:
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 14512517-734d-463b-8289-cfc7a345c3b4
+      - 37adeebe-f555-4131-a15b-1139d6a7e6d6
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '488'
+      - '489'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -73,14 +73,480 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - a4164092-f0b5-4bae-9485-01523e23d550
+      - ab809b69-08ae-473d-99ef-afc6ed3dff64
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '482'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templateversions/eac258c2-6818-43f5-b5e2-1a4e8cb9c4db/rich-parameters
+  response:
+    body:
+      string: '[{"name":"AI Prompt","description":"Write a prompt for Claude Code","description_plaintext":"Write
+        a prompt for Claude Code","type":"string","form_type":"input","mutable":true,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false},{"name":"system_prompt","display_name":"System
+        Prompt","description":"System prompt for the agent with generalized instructions
+        (required - select a preset)","description_plaintext":"System prompt for the
+        agent with generalized instructions (required - select a preset)","type":"string","form_type":"textarea","mutable":false,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false}]
+
+        '
+    headers:
+      Content-Length:
+      - '659'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - f652ae29-18c6-4d78-bf2f-1dbc75f05764
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '489'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates/cc29db59-0483-4520-869e-777e9a05bf65
+  response:
+    body:
+      string: '{"id":"cc29db59-0483-4520-869e-777e9a05bf65","created_at":"2025-09-15T15:12:57.164266+02:00","updated_at":"2025-11-05T09:09:36.227234+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-devcontainer","display_name":"Setup","provisioner":"terraform","active_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","active_user_count":1,"build_time_stats":{"delete":{"P50":23803,"P95":35666},"start":{"P50":21526,"P95":60026},"stop":{"P50":31383,"P95":32823}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}
+
+        '
+    headers:
+      Content-Length:
+      - '1233'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 8a75c5cf-617f-44b9-a451-ff61212ebe93
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '493'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templateversions/0fcd782d-6e4f-4566-abb2-5c57c9003412/rich-parameters
+  response:
+    body:
+      string: '[{"name":"AI Prompt","description":"Write a prompt for Claude Code","description_plaintext":"Write
+        a prompt for Claude Code","type":"string","form_type":"input","mutable":true,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false},{"name":"system_prompt","display_name":"System
+        Prompt","description":"System prompt for the agent with generalized instructions
+        (required - select a preset)","description_plaintext":"System prompt for the
+        agent with generalized instructions (required - select a preset)","type":"string","form_type":"textarea","mutable":false,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false}]
+
+        '
+    headers:
+      Content-Length:
+      - '659'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 94a56a79-2271-43e8-9a79-54e7efe9cf0d
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '493'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates
+  response:
+    body:
+      string: '[{"id":"c53e716b-1d3f-4ac2-83af-9dbc6ea07029","created_at":"2025-11-04T15:02:35.398297+01:00","updated_at":"2025-11-04T15:20:44.810323+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-dataone-devcontainer","display_name":"DataOne","provisioner":"terraform","active_version_id":"eac258c2-6818-43f5-b5e2-1a4e8cb9c4db","active_user_count":1,"build_time_stats":{"delete":{"P50":43618,"P95":45170},"start":{"P50":16852,"P95":18483},"stop":{"P50":25979,"P95":25979}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false},{"id":"cc29db59-0483-4520-869e-777e9a05bf65","created_at":"2025-09-15T15:12:57.164266+02:00","updated_at":"2025-11-05T09:09:36.227234+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-devcontainer","display_name":"Setup","provisioner":"terraform","active_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","active_user_count":1,"build_time_stats":{"delete":{"P50":23803,"P95":35666},"start":{"P50":21526,"P95":60026},"stop":{"P50":31383,"P95":32823}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}]
+
+        '
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - d770f4a2-e3f2-4370-84bd-b52a9c4c6972
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '488'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates/c53e716b-1d3f-4ac2-83af-9dbc6ea07029
+  response:
+    body:
+      string: '{"id":"c53e716b-1d3f-4ac2-83af-9dbc6ea07029","created_at":"2025-11-04T15:02:35.398297+01:00","updated_at":"2025-11-04T15:20:44.810323+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-dataone-devcontainer","display_name":"DataOne","provisioner":"terraform","active_version_id":"eac258c2-6818-43f5-b5e2-1a4e8cb9c4db","active_user_count":1,"build_time_stats":{"delete":{"P50":43618,"P95":45170},"start":{"P50":16852,"P95":18483},"stop":{"P50":25979,"P95":25979}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}
+
+        '
+    headers:
+      Content-Length:
+      - '1243'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 44a94276-bf94-4089-abaa-0b419b3c80d3
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '481'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templateversions/eac258c2-6818-43f5-b5e2-1a4e8cb9c4db/rich-parameters
+  response:
+    body:
+      string: '[{"name":"AI Prompt","description":"Write a prompt for Claude Code","description_plaintext":"Write
+        a prompt for Claude Code","type":"string","form_type":"input","mutable":true,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false},{"name":"system_prompt","display_name":"System
+        Prompt","description":"System prompt for the agent with generalized instructions
+        (required - select a preset)","description_plaintext":"System prompt for the
+        agent with generalized instructions (required - select a preset)","type":"string","form_type":"textarea","mutable":false,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false}]
+
+        '
+    headers:
+      Content-Length:
+      - '659'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - b86c3a4e-a71b-4ff0-ae2a-c636365112de
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '488'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates/cc29db59-0483-4520-869e-777e9a05bf65
+  response:
+    body:
+      string: '{"id":"cc29db59-0483-4520-869e-777e9a05bf65","created_at":"2025-09-15T15:12:57.164266+02:00","updated_at":"2025-11-05T09:09:36.227234+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-devcontainer","display_name":"Setup","provisioner":"terraform","active_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","active_user_count":1,"build_time_stats":{"delete":{"P50":23803,"P95":35666},"start":{"P50":21526,"P95":60026},"stop":{"P50":31383,"P95":32823}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}
+
+        '
+    headers:
+      Content-Length:
+      - '1233'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - b93f3438-a73d-4b61-a50d-065ced976c24
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '492'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templateversions/0fcd782d-6e4f-4566-abb2-5c57c9003412/rich-parameters
+  response:
+    body:
+      string: '[{"name":"AI Prompt","description":"Write a prompt for Claude Code","description_plaintext":"Write
+        a prompt for Claude Code","type":"string","form_type":"input","mutable":true,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false},{"name":"system_prompt","display_name":"System
+        Prompt","description":"System prompt for the agent with generalized instructions
+        (required - select a preset)","description_plaintext":"System prompt for the
+        agent with generalized instructions (required - select a preset)","type":"string","form_type":"textarea","mutable":false,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false}]
+
+        '
+    headers:
+      Content-Length:
+      - '659'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - da2e99fd-a171-4cff-93ec-12843f4eaa79
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '492'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates
+  response:
+    body:
+      string: '[{"id":"c53e716b-1d3f-4ac2-83af-9dbc6ea07029","created_at":"2025-11-04T15:02:35.398297+01:00","updated_at":"2025-11-04T15:20:44.810323+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-dataone-devcontainer","display_name":"DataOne","provisioner":"terraform","active_version_id":"eac258c2-6818-43f5-b5e2-1a4e8cb9c4db","active_user_count":1,"build_time_stats":{"delete":{"P50":43618,"P95":45170},"start":{"P50":16852,"P95":18483},"stop":{"P50":25979,"P95":25979}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false},{"id":"cc29db59-0483-4520-869e-777e9a05bf65","created_at":"2025-09-15T15:12:57.164266+02:00","updated_at":"2025-11-05T09:09:36.227234+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-devcontainer","display_name":"Setup","provisioner":"terraform","active_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","active_user_count":1,"build_time_stats":{"delete":{"P50":23803,"P95":35666},"start":{"P50":21526,"P95":60026},"stop":{"P50":31383,"P95":32823}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}]
+
+        '
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - e0d9e97f-b7b4-452f-8d7f-ed04af5f9b0c
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '487'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates/c53e716b-1d3f-4ac2-83af-9dbc6ea07029
+  response:
+    body:
+      string: '{"id":"c53e716b-1d3f-4ac2-83af-9dbc6ea07029","created_at":"2025-11-04T15:02:35.398297+01:00","updated_at":"2025-11-04T15:20:44.810323+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-dataone-devcontainer","display_name":"DataOne","provisioner":"terraform","active_version_id":"eac258c2-6818-43f5-b5e2-1a4e8cb9c4db","active_user_count":1,"build_time_stats":{"delete":{"P50":43618,"P95":45170},"start":{"P50":16852,"P95":18483},"stop":{"P50":25979,"P95":25979}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}
+
+        '
+    headers:
+      Content-Length:
+      - '1243'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 76cc8200-3429-4dc9-b827-612ace077c77
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -88,7 +554,7 @@ interactions:
       X-Ratelimit-Remaining:
       - '480'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -122,22 +588,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - f84b43af-abbb-4306-80ce-c09cda8da56b
+      - 7e32937b-9d7c-4860-9935-2f3aa6bcc537
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '488'
+      - '487'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -167,14 +633,14 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 27bfd037-8a90-41ff-b70e-985932e761da
+      - 2cc130ea-0ab7-4dd7-a1fd-9cf675759fcf
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -182,7 +648,7 @@ interactions:
       X-Ratelimit-Remaining:
       - '491'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -216,14 +682,14 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 9e53ab81-ed8b-4f59-bb33-494ab48458ec
+      - b7de99c4-87de-4d8e-a651-c941aa4ac8ff
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -231,52 +697,7 @@ interactions:
       X-Ratelimit-Remaining:
       - '491'
       X-Ratelimit-Reset:
-      - '1762350060'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      connection:
-      - keep-alive
-      host:
-      - coder.example.com
-      user-agent:
-      - python-httpx/0.28.1
-    method: GET
-    uri: https://coder.example.com/api/v2/templates
-  response:
-    body:
-      string: '[{"id":"c53e716b-1d3f-4ac2-83af-9dbc6ea07029","created_at":"2025-11-04T15:02:35.398297+01:00","updated_at":"2025-11-04T15:20:44.810323+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-dataone-devcontainer","display_name":"DataOne","provisioner":"terraform","active_version_id":"eac258c2-6818-43f5-b5e2-1a4e8cb9c4db","active_user_count":1,"build_time_stats":{"delete":{"P50":43618,"P95":45170},"start":{"P50":16852,"P95":18483},"stop":{"P50":25979,"P95":25979}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false},{"id":"cc29db59-0483-4520-869e-777e9a05bf65","created_at":"2025-09-15T15:12:57.164266+02:00","updated_at":"2025-11-05T09:09:36.227234+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-devcontainer","display_name":"Setup","provisioner":"terraform","active_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","active_user_count":1,"build_time_stats":{"delete":{"P50":23803,"P95":35666},"start":{"P50":21526,"P95":60026},"stop":{"P50":31383,"P95":32823}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}]
-
-        '
-    headers:
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Origin
-      - Cookie
-      X-Coder-Build-Version:
-      - v2.27.1+230b55b
-      X-Coder-Request-Id:
-      - 4cd75413-d862-4729-b66f-167bd0bb91a0
-      X-Content-Type-Options:
-      - nosniff
-      X-Ratelimit-Limit:
-      - '512'
-      X-Ratelimit-Remaining:
-      - '487'
-      X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -306,14 +727,14 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 487add3d-4b5f-4a32-bfc9-b28f51e350a5
+      - 4b76af39-deee-441f-8a30-687d7cba955b
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -321,150 +742,7 @@ interactions:
       X-Ratelimit-Remaining:
       - '479'
       X-Ratelimit-Reset:
-      - '1762350060'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      connection:
-      - keep-alive
-      host:
-      - coder.example.com
-      user-agent:
-      - python-httpx/0.28.1
-    method: GET
-    uri: https://coder.example.com/api/v2/templateversions/eac258c2-6818-43f5-b5e2-1a4e8cb9c4db/rich-parameters
-  response:
-    body:
-      string: '[{"name":"AI Prompt","description":"Write a prompt for Claude Code","description_plaintext":"Write
-        a prompt for Claude Code","type":"string","form_type":"input","mutable":true,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false},{"name":"system_prompt","display_name":"System
-        Prompt","description":"System prompt for the agent with generalized instructions
-        (required - select a preset)","description_plaintext":"System prompt for the
-        agent with generalized instructions (required - select a preset)","type":"string","form_type":"textarea","mutable":false,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false}]
-
-        '
-    headers:
-      Content-Length:
-      - '659'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
-      Vary:
-      - Origin
-      - Cookie
-      X-Coder-Build-Version:
-      - v2.27.1+230b55b
-      X-Coder-Request-Id:
-      - eb8a3c82-e556-4d6d-9a7e-cf20a4190f5b
-      X-Content-Type-Options:
-      - nosniff
-      X-Ratelimit-Limit:
-      - '512'
-      X-Ratelimit-Remaining:
-      - '487'
-      X-Ratelimit-Reset:
-      - '1762350060'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      connection:
-      - keep-alive
-      host:
-      - coder.example.com
-      user-agent:
-      - python-httpx/0.28.1
-    method: GET
-    uri: https://coder.example.com/api/v2/templates/cc29db59-0483-4520-869e-777e9a05bf65
-  response:
-    body:
-      string: '{"id":"cc29db59-0483-4520-869e-777e9a05bf65","created_at":"2025-09-15T15:12:57.164266+02:00","updated_at":"2025-11-05T09:09:36.227234+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-devcontainer","display_name":"Setup","provisioner":"terraform","active_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","active_user_count":1,"build_time_stats":{"delete":{"P50":23803,"P95":35666},"start":{"P50":21526,"P95":60026},"stop":{"P50":31383,"P95":32823}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}
-
-        '
-    headers:
-      Content-Length:
-      - '1233'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
-      Vary:
-      - Origin
-      - Cookie
-      X-Coder-Build-Version:
-      - v2.27.1+230b55b
-      X-Coder-Request-Id:
-      - c468e524-9d37-4e80-95ec-e86abc93ead2
-      X-Content-Type-Options:
-      - nosniff
-      X-Ratelimit-Limit:
-      - '512'
-      X-Ratelimit-Remaining:
-      - '490'
-      X-Ratelimit-Reset:
-      - '1762350060'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      connection:
-      - keep-alive
-      host:
-      - coder.example.com
-      user-agent:
-      - python-httpx/0.28.1
-    method: GET
-    uri: https://coder.example.com/api/v2/templateversions/0fcd782d-6e4f-4566-abb2-5c57c9003412/rich-parameters
-  response:
-    body:
-      string: '[{"name":"AI Prompt","description":"Write a prompt for Claude Code","description_plaintext":"Write
-        a prompt for Claude Code","type":"string","form_type":"input","mutable":true,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false},{"name":"system_prompt","display_name":"System
-        Prompt","description":"System prompt for the agent with generalized instructions
-        (required - select a preset)","description_plaintext":"System prompt for the
-        agent with generalized instructions (required - select a preset)","type":"string","form_type":"textarea","mutable":false,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false}]
-
-        '
-    headers:
-      Content-Length:
-      - '659'
-      Content-Type:
-      - application/json; charset=utf-8
-      Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
-      Vary:
-      - Origin
-      - Cookie
-      X-Coder-Build-Version:
-      - v2.27.1+230b55b
-      X-Coder-Request-Id:
-      - 5910a46e-44b0-41cb-8da6-3ee3c7adfb0a
-      X-Content-Type-Options:
-      - nosniff
-      X-Ratelimit-Limit:
-      - '512'
-      X-Ratelimit-Remaining:
-      - '490'
-      X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -492,7 +770,7 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Transfer-Encoding:
       - chunked
       Vary:
@@ -501,7 +779,7 @@ interactions:
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 9f094edd-2b4b-4b57-b5ea-3678a0e3235c
+      - 8017f30c-7a89-4d98-b0b4-9b5c58e506f0
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -509,7 +787,7 @@ interactions:
       X-Ratelimit-Remaining:
       - '486'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -539,14 +817,14 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 45f3d9e5-75ff-4bf9-b7d2-aa386558626e
+      - 87c210ad-5c79-4fa4-b070-09c574889a7e
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -554,7 +832,7 @@ interactions:
       X-Ratelimit-Remaining:
       - '478'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -588,14 +866,14 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 15057539-2e52-4c1e-a2db-46ec0bc40a67
+      - a3494a92-b646-441a-8e0a-31f9db1641ad
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -603,7 +881,7 @@ interactions:
       X-Ratelimit-Remaining:
       - '486'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -633,22 +911,22 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - bcc7be08-cb1e-4652-b477-6331f3ae7a04
+      - 5a09946d-28f7-40ad-8f25-a969c910b6f5
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '489'
+      - '490'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -682,22 +960,67 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - fd6d3b85-f362-4d4d-b403-8f97265fea5f
+      - d8f82d34-3b5c-4fac-8566-50fd5847b71c
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
       - '512'
       X-Ratelimit-Remaining:
-      - '489'
+      - '490'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates
+  response:
+    body:
+      string: '[{"id":"c53e716b-1d3f-4ac2-83af-9dbc6ea07029","created_at":"2025-11-04T15:02:35.398297+01:00","updated_at":"2025-11-04T15:20:44.810323+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-dataone-devcontainer","display_name":"DataOne","provisioner":"terraform","active_version_id":"eac258c2-6818-43f5-b5e2-1a4e8cb9c4db","active_user_count":1,"build_time_stats":{"delete":{"P50":43618,"P95":45170},"start":{"P50":16852,"P95":18483},"stop":{"P50":25979,"P95":25979}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false},{"id":"cc29db59-0483-4520-869e-777e9a05bf65","created_at":"2025-09-15T15:12:57.164266+02:00","updated_at":"2025-11-05T09:09:36.227234+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-devcontainer","display_name":"Setup","provisioner":"terraform","active_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","active_user_count":1,"build_time_stats":{"delete":{"P50":23803,"P95":35666},"start":{"P50":21526,"P95":60026},"stop":{"P50":31383,"P95":32823}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}]
+
+        '
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 7bf49b3f-26aa-47b2-81d7-0f42e4d350ae
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '485'
+      X-Ratelimit-Reset:
+      - '1762350000'
     status:
       code: 200
       message: OK
@@ -727,14 +1050,14 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Wed, 05 Nov 2025 13:40:08 GMT
+      - Wed, 05 Nov 2025 13:39:12 GMT
       Vary:
       - Origin
       - Cookie
       X-Coder-Build-Version:
       - v2.27.1+230b55b
       X-Coder-Request-Id:
-      - 3e530d0a-2bcb-4bbc-a8b4-fa034cf95fa5
+      - 9187e993-1090-47c1-b129-9b6541af6930
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -742,7 +1065,195 @@ interactions:
       X-Ratelimit-Remaining:
       - '477'
       X-Ratelimit-Reset:
-      - '1762350060'
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templateversions/eac258c2-6818-43f5-b5e2-1a4e8cb9c4db/rich-parameters
+  response:
+    body:
+      string: '[{"name":"AI Prompt","description":"Write a prompt for Claude Code","description_plaintext":"Write
+        a prompt for Claude Code","type":"string","form_type":"input","mutable":true,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false},{"name":"system_prompt","display_name":"System
+        Prompt","description":"System prompt for the agent with generalized instructions
+        (required - select a preset)","description_plaintext":"System prompt for the
+        agent with generalized instructions (required - select a preset)","type":"string","form_type":"textarea","mutable":false,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false}]
+
+        '
+    headers:
+      Content-Length:
+      - '659'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 9159d863-6dfa-4963-974a-db28b2234e16
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '485'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates/cc29db59-0483-4520-869e-777e9a05bf65
+  response:
+    body:
+      string: '{"id":"cc29db59-0483-4520-869e-777e9a05bf65","created_at":"2025-09-15T15:12:57.164266+02:00","updated_at":"2025-11-05T09:09:36.227234+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-devcontainer","display_name":"Setup","provisioner":"terraform","active_version_id":"0fcd782d-6e4f-4566-abb2-5c57c9003412","active_user_count":1,"build_time_stats":{"delete":{"P50":23803,"P95":35666},"start":{"P50":21526,"P95":60026},"stop":{"P50":31383,"P95":32823}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}
+
+        '
+    headers:
+      Content-Length:
+      - '1233'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 863cc608-8c1c-484c-bb5f-1f32968378e3
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '489'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templateversions/0fcd782d-6e4f-4566-abb2-5c57c9003412/rich-parameters
+  response:
+    body:
+      string: '[{"name":"AI Prompt","description":"Write a prompt for Claude Code","description_plaintext":"Write
+        a prompt for Claude Code","type":"string","form_type":"input","mutable":true,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false},{"name":"system_prompt","display_name":"System
+        Prompt","description":"System prompt for the agent with generalized instructions
+        (required - select a preset)","description_plaintext":"System prompt for the
+        agent with generalized instructions (required - select a preset)","type":"string","form_type":"textarea","mutable":false,"default_value":"","icon":"","options":[],"required":false,"ephemeral":false}]
+
+        '
+    headers:
+      Content-Length:
+      - '659'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - cc15ba83-119a-48f6-80b7-9aef2526d7d9
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '489'
+      X-Ratelimit-Reset:
+      - '1762350000'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - coder.example.com
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://coder.example.com/api/v2/templates/c53e716b-1d3f-4ac2-83af-9dbc6ea07029
+  response:
+    body:
+      string: '{"id":"c53e716b-1d3f-4ac2-83af-9dbc6ea07029","created_at":"2025-11-04T15:02:35.398297+01:00","updated_at":"2025-11-04T15:20:44.810323+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-dataone-devcontainer","display_name":"DataOne","provisioner":"terraform","active_version_id":"eac258c2-6818-43f5-b5e2-1a4e8cb9c4db","active_user_count":1,"build_time_stats":{"delete":{"P50":43618,"P95":45170},"start":{"P50":16852,"P95":18483},"stop":{"P50":25979,"P95":25979}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}
+
+        '
+    headers:
+      Content-Length:
+      - '1243'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 05 Nov 2025 13:39:12 GMT
+      Vary:
+      - Origin
+      - Cookie
+      X-Coder-Build-Version:
+      - v2.27.1+230b55b
+      X-Coder-Request-Id:
+      - 375a55ef-d7c6-4a83-938a-47b2460a84a9
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '512'
+      X-Ratelimit-Remaining:
+      - '476'
+      X-Ratelimit-Reset:
+      - '1762350000'
     status:
       code: 200
       message: OK

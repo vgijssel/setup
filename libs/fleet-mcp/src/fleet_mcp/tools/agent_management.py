@@ -7,7 +7,7 @@ from fastmcp import FastMCP
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.coder.discovery import (
     get_valid_fleet_mcp_project_names,
-    is_valid_fleet_mcp_project,
+    resolve_project_identifier_to_template_name,
 )
 from fleet_mcp.coder.tasks import paginate_log_history, paginate_task_history
 from fleet_mcp.coder.workspaces import get_workspace_by_name
@@ -39,7 +39,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             str, Field(description="Unique short agent name (e.g., Sony, Papi)")
         ],
         project: Annotated[
-            str, Field(description="Project name (e.g., Setup, DataOne)")
+            str, Field(description="Project name or display name (e.g., Setup, DataOne)")
         ],
         task: Annotated[
             str,
@@ -59,21 +59,18 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         if existing:
             raise ValueError(f"Agent with name '{name}' already exists")
 
-        # Validate that project is a valid fleet-mcp project
-        if not await is_valid_fleet_mcp_project(coder_client, project):
-            valid_projects = await get_valid_fleet_mcp_project_names(coder_client)
-            raise ValueError(
-                f"Project '{project}' is not a valid fleet-mcp project. "
-                f"Valid projects must have ai_prompt and system_prompt parameters. "
-                f"Available projects: {', '.join(sorted(valid_projects))}"
-            )
+        # Resolve project identifier (name or display_name) to template name
+        # This validates that the project is a valid fleet-mcp project
+        # and raises ValueError with helpful message if not found
+        template_name = await resolve_project_identifier_to_template_name(
+            coder_client, project
+        )
 
         # Create workspace via Coder API
         # Pass task as ai_prompt parameter (required by user)
-        # Note: project is already the template name, no need to add suffix
         workspace = await coder_client.create_workspace(
             name=f"agent-{name}",
-            template_name=project,
+            template_name=template_name,
             workspace_preset=role,
             ai_prompt=task,  # Pass task as ai_prompt rich parameter
         )

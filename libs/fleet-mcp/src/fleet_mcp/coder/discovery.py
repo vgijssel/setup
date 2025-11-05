@@ -93,3 +93,59 @@ async def is_valid_fleet_mcp_project(
     """
     valid_names = await get_valid_fleet_mcp_project_names(coder_client)
     return project_name in valid_names
+
+
+async def resolve_project_identifier_to_template_name(
+    coder_client: CoderClient, project_identifier: str
+) -> str:
+    """
+    Resolve project name OR display_name to template name.
+
+    Tries exact match on template name first (for backwards compatibility),
+    then tries display_name match (case-insensitive for better UX).
+
+    Args:
+        coder_client: CoderClient instance
+        project_identifier: Project template name or display name (e.g., "Setup", "coder-devcontainer")
+
+    Returns:
+        Template name that matches the identifier
+
+    Raises:
+        ValueError: If no matching project found, with helpful message listing both valid names and display_names
+    """
+    projects = await get_valid_fleet_mcp_projects(coder_client)
+
+    # First pass: Try exact match on template name (backwards compatibility)
+    for project in projects:
+        if project.get("name") == project_identifier:
+            return project.get("name")
+
+    # Second pass: Try case-insensitive match on display_name
+    project_identifier_lower = project_identifier.lower()
+    for project in projects:
+        display_name = project.get("display_name", "")
+        if display_name.lower() == project_identifier_lower:
+            return project.get("name")
+
+    # Not found - build helpful error message with both names and display_names
+    if not projects:
+        raise ValueError(
+            f"Project '{project_identifier}' not found. No valid fleet-mcp projects are available."
+        )
+
+    # Build list showing both display_name and technical name
+    project_list = []
+    for project in projects:
+        name = project.get("name", "")
+        display_name = project.get("display_name", "")
+        if display_name and display_name != name:
+            project_list.append(f"{display_name} ({name})")
+        else:
+            project_list.append(name)
+
+    raise ValueError(
+        f"Project '{project_identifier}' not found or is not a valid fleet-mcp project. "
+        f"Valid projects must have ai_prompt and system_prompt parameters. "
+        f"Available projects: {', '.join(sorted(project_list))}"
+    )

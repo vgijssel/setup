@@ -4,7 +4,10 @@ from typing import Annotated
 
 from fastmcp import FastMCP
 from fleet_mcp.coder.client import CoderClient
-from fleet_mcp.coder.discovery import get_valid_fleet_mcp_projects
+from fleet_mcp.coder.discovery import (
+    get_valid_fleet_mcp_projects,
+    resolve_project_identifier_to_template_name,
+)
 from fleet_mcp.models.project import Project
 from fleet_mcp.models.responses import ListProjectsResponse, ListRolesResponse
 from fleet_mcp.models.role import Role
@@ -44,7 +47,7 @@ def register_discovery_tools(mcp: FastMCP, coder_client: CoderClient):
     # T096: list_agent_roles tool
     @mcp.tool()
     async def list_agent_roles(
-        project: Annotated[str, Field(description="Project name to query roles for")]
+        project: Annotated[str, Field(description="Project name or display name to query roles for")]
     ) -> ListRolesResponse:
         """
         List all available agent roles for a specific project.
@@ -52,15 +55,24 @@ def register_discovery_tools(mcp: FastMCP, coder_client: CoderClient):
         Roles are defined as Coder workspace presets in the project's template.
         Only considers projects that are valid fleet-mcp projects.
         """
-        # Validate that project is a valid fleet-mcp project
+        # Resolve project identifier (name or display_name) to template name
+        # This validates that the project is a valid fleet-mcp project
+        # and raises ValueError with helpful message if not found
+        template_name = await resolve_project_identifier_to_template_name(
+            coder_client, project
+        )
+
+        # Get the template data
         templates = await get_valid_fleet_mcp_projects(coder_client)
         template_data = None
 
         for template in templates:
-            if template.get("name") == project:
+            if template.get("name") == template_name:
                 template_data = template
                 break
 
+        # This should never happen since resolve_project_identifier_to_template_name
+        # already validated the project exists, but keep for safety
         if not template_data:
             raise ValueError(
                 f"Project '{project}' not found or is not a valid fleet-mcp project. "

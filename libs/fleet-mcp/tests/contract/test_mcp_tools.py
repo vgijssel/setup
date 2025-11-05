@@ -894,3 +894,263 @@ async def test_set_agent_pr_url_validates_agent_exists(agent_server):
                 },
             )
         assert "not found" in str(exc.value).lower()
+
+
+# ============================================================================
+# Display Name Support Tests
+# ============================================================================
+
+
+# Test create_agent with display_name
+@pytest.mark.vcr
+async def test_create_agent_with_display_name(agent_server):
+    """Test create_agent accepts project display_name (e.g., 'Setup' instead of 'coder-devcontainer')"""
+    async with Client(agent_server) as client:
+        # Get a valid project with both name and display_name
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+
+        assert len(projects_data["projects"]) > 0, "No valid fleet-mcp projects found"
+        project = projects_data["projects"][0]
+        project_display_name = project["display_name"]
+
+        # Create agent using display_name instead of template name
+        result = await client.call_tool(
+            "create_agent",
+            {
+                "name": "test-displayname",
+                "project": project_display_name,  # Use display_name
+                "role": "coder",
+                "task": "Test with display name",
+            },
+        )
+
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert data["agent"]["name"] == "test-displayname"
+        assert data["agent"]["status"] in ["busy", "starting", "pending", "idle"]
+        assert data["message"] is not None
+
+
+# Test create_agent with case-insensitive display_name
+@pytest.mark.vcr
+async def test_create_agent_with_case_insensitive_display_name(agent_server):
+    """Test create_agent accepts case-insensitive display_name (e.g., 'setup' or 'SETUP')"""
+    async with Client(agent_server) as client:
+        # Get a valid project
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+
+        assert len(projects_data["projects"]) > 0
+        project = projects_data["projects"][0]
+        project_display_name = project["display_name"]
+
+        # Test with lowercase display_name
+        result = await client.call_tool(
+            "create_agent",
+            {
+                "name": "test-lowercase",
+                "project": project_display_name.lower(),  # Use lowercase
+                "role": "coder",
+                "task": "Test with lowercase display name",
+            },
+        )
+
+        data = parse_tool_result(result)
+        assert data["agent"]["name"] == "test-lowercase"
+
+        # Test with uppercase display_name
+        result = await client.call_tool(
+            "create_agent",
+            {
+                "name": "test-uppercase",
+                "project": project_display_name.upper(),  # Use uppercase
+                "role": "coder",
+                "task": "Test with uppercase display name",
+            },
+        )
+
+        data = parse_tool_result(result)
+        assert data["agent"]["name"] == "test-uppercase"
+
+
+# Test create_agent with template name still works (backwards compatibility)
+@pytest.mark.vcr
+async def test_create_agent_with_template_name_still_works(agent_server):
+    """Test create_agent still accepts template name for backwards compatibility"""
+    async with Client(agent_server) as client:
+        # Get a valid project
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+
+        assert len(projects_data["projects"]) > 0
+        project = projects_data["projects"][0]
+        project_template_name = project["name"]  # Use template name, not display_name
+
+        # Create agent using template name (old behavior)
+        result = await client.call_tool(
+            "create_agent",
+            {
+                "name": "test-template-name",
+                "project": project_template_name,  # Use template name
+                "role": "coder",
+                "task": "Test with template name",
+            },
+        )
+
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert data["agent"]["name"] == "test-template-name"
+        assert data["message"] is not None
+
+
+# Test create_agent error message includes both names and display_names
+@pytest.mark.vcr
+async def test_create_agent_invalid_project_shows_display_names(agent_server):
+    """Test create_agent error message lists both display_names and template names"""
+    async with Client(agent_server) as client:
+        with pytest.raises(Exception) as exc:
+            await client.call_tool(
+                "create_agent",
+                {
+                    "name": "test-invalid",
+                    "project": "InvalidProjectName",
+                    "role": "coder",
+                    "task": "This should fail",
+                },
+            )
+        error_msg = str(exc.value)
+
+        # Error message should mention it's not a valid fleet-mcp project
+        assert "not a valid fleet-mcp project" in error_msg.lower()
+
+        # Error message should list available projects
+        assert "available projects" in error_msg.lower()
+
+
+# Test list_agent_roles with display_name
+@pytest.mark.vcr
+async def test_list_agent_roles_with_display_name(agent_server):
+    """Test list_agent_roles accepts project display_name"""
+    async with Client(agent_server) as client:
+        # Get a valid project
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+
+        assert len(projects_data["projects"]) > 0
+        project = projects_data["projects"][0]
+        project_display_name = project["display_name"]
+
+        # List roles using display_name
+        result = await client.call_tool(
+            "list_agent_roles", {"project": project_display_name}
+        )
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert "roles" in data
+        assert isinstance(data["roles"], list)
+        assert len(data["roles"]) > 0
+
+
+# Test list_agent_roles with case-insensitive display_name
+@pytest.mark.vcr
+async def test_list_agent_roles_with_case_insensitive_display_name(agent_server):
+    """Test list_agent_roles accepts case-insensitive display_name"""
+    async with Client(agent_server) as client:
+        # Get a valid project
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+
+        assert len(projects_data["projects"]) > 0
+        project = projects_data["projects"][0]
+        project_display_name = project["display_name"]
+
+        # List roles using lowercase display_name
+        result = await client.call_tool(
+            "list_agent_roles", {"project": project_display_name.lower()}
+        )
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert "roles" in data
+        assert len(data["roles"]) > 0
+
+
+# Test list_agent_roles with template name still works (backwards compatibility)
+@pytest.mark.vcr
+async def test_list_agent_roles_with_template_name_still_works(agent_server):
+    """Test list_agent_roles still accepts template name for backwards compatibility"""
+    async with Client(agent_server) as client:
+        # Get a valid project
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+
+        assert len(projects_data["projects"]) > 0
+        project = projects_data["projects"][0]
+        project_template_name = project["name"]  # Use template name
+
+        # List roles using template name (old behavior)
+        result = await client.call_tool(
+            "list_agent_roles", {"project": project_template_name}
+        )
+        data = parse_tool_result(result)
+
+        assert data is not None
+        assert "roles" in data
+        assert len(data["roles"]) > 0
+
+
+# Test list_agent_roles error message includes both names and display_names
+@pytest.mark.vcr
+async def test_list_agent_roles_invalid_project_shows_display_names(agent_server):
+    """Test list_agent_roles error message lists both display_names and template names"""
+    async with Client(agent_server) as client:
+        with pytest.raises(Exception) as exc:
+            await client.call_tool(
+                "list_agent_roles", {"project": "InvalidProjectName"}
+            )
+        error_msg = str(exc.value)
+
+        # Error message should mention it's not a valid fleet-mcp project
+        assert "not a valid fleet-mcp project" in error_msg.lower()
+
+        # Error message should list available projects
+        assert "available projects" in error_msg.lower()
+
+
+# Test that both name and display_name work equivalently
+@pytest.mark.vcr
+async def test_name_and_display_name_work_equivalently(agent_server):
+    """Test that using template name and display_name produce the same result"""
+    async with Client(agent_server) as client:
+        # Get a valid project with both name and display_name
+        projects_result = await client.call_tool("list_agent_projects", {})
+        projects_data = parse_tool_result(projects_result)
+
+        assert len(projects_data["projects"]) > 0
+        project = projects_data["projects"][0]
+        project_name = project["name"]
+        project_display_name = project["display_name"]
+
+        # List roles using template name
+        result_name = await client.call_tool(
+            "list_agent_roles", {"project": project_name}
+        )
+        data_name = parse_tool_result(result_name)
+
+        # List roles using display_name
+        result_display = await client.call_tool(
+            "list_agent_roles", {"project": project_display_name}
+        )
+        data_display = parse_tool_result(result_display)
+
+        # Both should return the same roles
+        assert len(data_name["roles"]) == len(data_display["roles"])
+
+        # Compare role names (order should be same)
+        role_names_from_name = [role["name"] for role in data_name["roles"]]
+        role_names_from_display = [role["name"] for role in data_display["roles"]]
+        assert role_names_from_name == role_names_from_display
