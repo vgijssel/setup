@@ -35,19 +35,17 @@ class FleetMCPClient:
         fleetmcp_url: str,
         agent_name: str,
         pr_url: str,
-        pr_status: str = PRStatus.OPEN.value,
     ) -> dict[str, Any]:
         """
         Set the pull request URL for an agent via fleet-mcp server
 
         This method sends the PR URL to the fleet-mcp server running in the agent's
-        workspace. The server handles persistence to disk.
+        workspace. The server handles persistence to disk and sets status to 'open' by default.
 
         Args:
             fleetmcp_url: Fleet-MCP server URL
             agent_name: Name of the agent
             pr_url: Pull request URL
-            pr_status: PR status (defaults to 'open')
 
         Returns:
             Response from the fleet-mcp server
@@ -63,6 +61,41 @@ class FleetMCPClient:
                 json={
                     "agent_name": agent_name,
                     "pr_url": pr_url,
+                },
+            )
+            response.raise_for_status()
+            return response.json()
+
+    async def set_pr_status(
+        self,
+        fleetmcp_url: str,
+        agent_name: str,
+        pr_status: str,
+    ) -> dict[str, Any]:
+        """
+        Set the pull request status for an agent via fleet-mcp server
+
+        This method sends the PR status to the fleet-mcp server running in the agent's
+        workspace. The server handles persistence to disk. PR URL must be set first.
+
+        Args:
+            fleetmcp_url: Fleet-MCP server URL
+            agent_name: Name of the agent
+            pr_status: PR status (e.g., 'open', 'closed', 'checks_running', etc.)
+
+        Returns:
+            Response from the fleet-mcp server
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails or pr_url not set
+        """
+        async with httpx.AsyncClient(
+            headers={"Coder-Session-Token": self.coder_token}, timeout=30.0
+        ) as client:
+            response = await client.post(
+                f"{fleetmcp_url}pr-status",
+                json={
+                    "agent_name": agent_name,
                     "pr_status": pr_status,
                 },
             )

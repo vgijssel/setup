@@ -431,7 +431,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             deleted_agent={"name": agent_name, "workspace_id": workspace_id},
         )
 
-    # PR URL management tool
+    # PR URL management tools
     @mcp.tool()
     async def set_agent_pr_url(
         agent_name: Annotated[str, Field(description="Name of the agent")],
@@ -441,23 +441,16 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
                 description="Pull request URL (e.g., https://github.com/org/repo/pull/123)"
             ),
         ],
-        pr_status: Annotated[
-            str,
-            Field(
-                description="PR status: open, closed, checks_running, checks_failed, needs_review, ready, merged"
-            ),
-        ] = PRStatus.OPEN.value,
     ) -> dict[str, Any]:
         """
-        Set the pull request URL and status for an agent
+        Set the pull request URL for an agent
 
-        This tool allows agents to report their PR URLs and status to the fleet-mcp server.
-        The data is stored on disk by the fleet-mcp server.
+        This tool allows agents to report their PR URL to the fleet-mcp server.
+        The data is stored on disk by the fleet-mcp server with status defaulting to 'open'.
 
         Args:
             agent_name: Name of the agent
             pr_url: Pull request URL (e.g., https://github.com/org/repo/pull/123)
-            pr_status: PR status (defaults to 'open')
 
         Returns:
             Success response with agent_name, pr_url, and pr_status
@@ -476,7 +469,47 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
             raise ValueError(f"fleet-mcp server not available for agent '{agent_name}'")
 
         # Set via fleet-mcp server HTTP endpoint
-        result = await fleet_mcp_client.set_pr_url(
-            fleetmcp_url, agent_name, pr_url, pr_status
+        result = await fleet_mcp_client.set_pr_url(fleetmcp_url, agent_name, pr_url)
+        return result
+
+    @mcp.tool()
+    async def set_agent_pr_status(
+        agent_name: Annotated[str, Field(description="Name of the agent")],
+        pr_status: Annotated[
+            str,
+            Field(
+                description="PR status: open, closed, checks_running, checks_failed, needs_review, ready, merged"
+            ),
+        ],
+    ) -> dict[str, Any]:
+        """
+        Set the pull request status for an agent
+
+        This tool allows agents to update their PR status in the fleet-mcp server.
+        The PR URL must be set first using set_agent_pr_url.
+
+        Args:
+            agent_name: Name of the agent
+            pr_status: PR status (e.g., 'open', 'closed', 'checks_running', etc.)
+
+        Returns:
+            Success response with agent_name, pr_url, and pr_status
+
+        Raises:
+            ValueError: If agent not found, fleet-mcp server unavailable, or pr_url not set
+        """
+        # Get the agent's workspace
+        workspace = await get_workspace_by_name(coder_client, agent_name)
+        if not workspace:
+            raise ValueError(f"Agent '{agent_name}' not found")
+
+        # Get the fleet-mcp application URL
+        fleetmcp_url = await coder_client.get_fleetmcp_url(workspace)
+        if not fleetmcp_url:
+            raise ValueError(f"fleet-mcp server not available for agent '{agent_name}'")
+
+        # Set via fleet-mcp server HTTP endpoint
+        result = await fleet_mcp_client.set_pr_status(
+            fleetmcp_url, agent_name, pr_status
         )
         return result

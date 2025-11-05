@@ -42,13 +42,26 @@ def create_mcp_server(base_url: str, token: str) -> FastMCP:
                 return {}
         return {}
 
-    def _save_pr_data(agent_name: str, pr_url: str, pr_status: str) -> None:
-        """Save PR data to disk for an agent"""
+    def _update_pr_data(
+        agent_name: str, pr_url: str | None = None, pr_status: str | None = None
+    ) -> None:
+        """Update PR data on disk for an agent (partial updates supported)"""
         pr_file = _get_pr_data_file(agent_name)
-        data = {"pr_url": pr_url, "pr_status": pr_status, "agent_name": agent_name}
+
+        # Load existing data
+        existing_data = _load_pr_data(agent_name)
+
+        # Update only provided fields
+        if pr_url is not None:
+            existing_data["pr_url"] = pr_url
+        if pr_status is not None:
+            existing_data["pr_status"] = pr_status
+
+        existing_data["agent_name"] = agent_name
+
         try:
             with open(pr_file, "w") as f:
-                json.dump(data, f, indent=2)
+                json.dump(existing_data, f, indent=2)
         except IOError as e:
             # Log error but don't fail - PR tracking is optional
             print(f"Warning: Failed to save PR data for {agent_name}: {e}")
@@ -61,11 +74,10 @@ def create_mcp_server(base_url: str, token: str) -> FastMCP:
     # PR URL management endpoints
     @mcp.custom_route("/pr-url", methods=["POST"])
     async def set_pr_url(request):
-        """Set the pull request URL and status for an agent"""
+        """Set the pull request URL for an agent"""
         data = await request.json()
         agent_name = data.get("agent_name")
         pr_url = data.get("pr_url")
-        pr_status = data.get("pr_status", "open")  # Default to 'open'
 
         # Validate inputs
         if not agent_name or not pr_url:
@@ -73,13 +85,49 @@ def create_mcp_server(base_url: str, token: str) -> FastMCP:
                 {"error": "agent_name and pr_url required"}, status_code=400
             )
 
-        # Save to disk
-        _save_pr_data(agent_name, pr_url, pr_status)
+        # Load existing data to check if status exists
+        existing_data = _load_pr_data(agent_name)
+        pr_status = existing_data.get("pr_status", "open")  # Default to 'open' if new
+
+        # Update PR URL (and set default status if new)
+        _update_pr_data(agent_name, pr_url=pr_url, pr_status=pr_status)
         return JSONResponse(
             {
                 "status": "success",
                 "agent_name": agent_name,
                 "pr_url": pr_url,
+                "pr_status": pr_status,
+            }
+        )
+
+    @mcp.custom_route("/pr-status", methods=["POST"])
+    async def set_pr_status(request):
+        """Set the pull request status for an agent"""
+        data = await request.json()
+        agent_name = data.get("agent_name")
+        pr_status = data.get("pr_status")
+
+        # Validate inputs
+        if not agent_name or not pr_status:
+            return JSONResponse(
+                {"error": "agent_name and pr_status required"}, status_code=400
+            )
+
+        # Load existing data to ensure pr_url exists
+        existing_data = _load_pr_data(agent_name)
+        if not existing_data.get("pr_url"):
+            return JSONResponse(
+                {"error": "pr_url must be set before setting pr_status"},
+                status_code=400,
+            )
+
+        # Update PR status only
+        _update_pr_data(agent_name, pr_status=pr_status)
+        return JSONResponse(
+            {
+                "status": "success",
+                "agent_name": agent_name,
+                "pr_url": existing_data["pr_url"],
                 "pr_status": pr_status,
             }
         )
