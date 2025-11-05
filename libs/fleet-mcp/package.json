@@ -20,7 +20,7 @@
       "test": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "uv run --all-extras pytest -v",
+          "command": "uv run --all-extras pytest tests/unit tests/integration -v",
           "cwd": "libs/fleet-mcp"
         },
         "cache": true,
@@ -31,7 +31,7 @@
           "!{projectRoot}/.env"
         ],
         "metadata": {
-          "description": "Run pytest tests"
+          "description": "Run pytest tests (excludes contract tests that require live Coder)"
         }
       }
     }

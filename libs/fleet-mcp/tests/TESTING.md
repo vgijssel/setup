@@ -37,6 +37,7 @@ libs/fleet-mcp/tests/
 ### 3. Contract Tests (`tests/contract/`) ⚠️ PARTIAL MIGRATION
 - **Purpose**: Test MCP tool behavior end-to-end
 - **Status**: Currently make live HTTP calls (pytest-vcr decorators commented out)
+- **CI**: Excluded from automated testing (require live Coder instance)
 - **TODO**: Migrate to VCR.py direct usage like integration tests
 
 ## VCR Testing Strategy (NEW)
@@ -194,9 +195,11 @@ VCR automatically redacts sensitive data from cassettes:
 
 ## Running Tests
 
-### All Tests
+### All Tests (Unit + Integration)
 ```bash
-uv run pytest tests/
+# Default: Runs unit and integration tests only
+uv run pytest tests/unit tests/integration -v
+# ✓ 53 passed in 0.44s
 ```
 
 ### Unit Tests Only (fastest)
@@ -211,11 +214,18 @@ uv run pytest tests/integration/ -v
 # ✓ 12 passed in 0.22s
 ```
 
-### Contract Tests (live HTTP calls currently)
+### Contract Tests (live HTTP calls - not run in CI)
 ```bash
 uv run pytest tests/contract/ -v
-# ⚠️ Makes live HTTP calls to Coder
+# ⚠️ Makes live HTTP calls to Coder (requires CODER_URL and CODER_SESSION_TOKEN)
+# ⚠️ Excluded from CI/nx test target
 # TODO: Migrate to VCR.py direct usage
+```
+
+### All Tests Including Contract (requires Coder)
+```bash
+uv run pytest tests/ -v
+# Runs all tests including contract tests (requires live Coder instance)
 ```
 
 ## Migration Status
