@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     ssh \
     sudo \
     locales \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure locale
@@ -41,6 +42,13 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
     INSTALLDOCKERCOMPOSESWITCH="false" \
     /tmp/docker-in-docker-install.sh && \
     rm /tmp/docker-in-docker-install.sh
+
+# Create log directories for supervisor and fleet-mcp
+RUN mkdir -p /var/log/supervisor /var/log/fleet-mcp \
+    && chown -R coder:coder /var/log/fleet-mcp
+
+# Copy supervisord configuration
+COPY libs/coder-devcontainer/supervisord.conf /etc/supervisor/conf.d/fleet-mcp.conf
 
 # Entrypoint for docker-in-docker initialization
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]

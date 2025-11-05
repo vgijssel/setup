@@ -525,7 +525,7 @@ resource "coder_app" "home-assistant" {
   external     = true
 }
 
-# Fleet MCP server script - starts uvicorn with hot reload
+# Fleet MCP server script - starts fleet-mcp via supervisord
 resource "coder_script" "fleet_mcp" {
   agent_id     = coder_agent.main.id
   display_name = "Fleet MCP Server"
@@ -540,18 +540,37 @@ resource "coder_script" "fleet_mcp" {
 
     cd /workspaces/setup
 
-    # Create log directory if it doesn't exist
-    mkdir -p /tmp/fleet-mcp
+    # Start supervisord daemon
+    sudo supervisord -c /etc/supervisor/conf.d/fleet-mcp.conf
 
-    # Start uvicorn with hot reload in the background
-    # Redirect stdout and stderr to log file to prevent blocking pipes
-    nohup direnv exec . nx run --tui=false fleet-mcp:server > /tmp/fleet-mcp/server.log 2>&1 &
+    # Wait a moment for supervisord to start
+    sleep 2
 
-    # Store the PID for potential cleanup
-    echo $! > /tmp/fleet-mcp/server.pid
+    # Verify fleet-mcp service is running
+    sudo supervisorctl status fleet-mcp
   EOT
   run_on_start = true
   run_on_stop  = false
+}
+
+# Fleet MCP server shutdown script - gracefully stops fleet-mcp
+resource "coder_script" "fleet_mcp_shutdown" {
+  agent_id     = coder_agent.main.id
+  display_name = "Fleet MCP Server Shutdown"
+  icon         = "/icon/cloud.svg"
+  script       = <<-EOT
+    #!/bin/bash
+    set -e
+    set -x
+
+    # Gracefully stop fleet-mcp service
+    sudo supervisorctl stop fleet-mcp || true
+
+    # Stop supervisord
+    sudo supervisorctl shutdown || true
+  EOT
+  run_on_start = false
+  run_on_stop  = true
 }
 
 # Fleet MCP server app - exposes the HTTP server with healthcheck
