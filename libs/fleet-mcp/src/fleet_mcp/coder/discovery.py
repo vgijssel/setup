@@ -95,57 +95,48 @@ async def is_valid_fleet_mcp_project(
     return project_name in valid_names
 
 
-async def resolve_project_identifier_to_template_name(
-    coder_client: CoderClient, project_identifier: str
-) -> str:
+async def resolve_project_name_to_template(
+    coder_client: CoderClient, project_name: str
+) -> dict[str, Any]:
     """
-    Resolve project name OR display_name to template name.
+    Resolve project name to template.
 
-    Tries exact match on template name first (for backwards compatibility),
-    then tries display_name match (case-insensitive for better UX).
+    Performs case-insensitive match on project display_name.
 
     Args:
         coder_client: CoderClient instance
-        project_identifier: Project template name or display name (e.g., "Setup", "coder-devcontainer")
+        project_name: Project name (e.g., "Setup", "DataOne")
 
     Returns:
-        Template name that matches the identifier
+        Template dict that matches the project name
 
     Raises:
-        ValueError: If no matching project found, with helpful message listing both valid names and display_names
+        ValueError: If no matching project found, with helpful message listing valid project names
     """
     projects = await get_valid_fleet_mcp_projects(coder_client)
 
-    # First pass: Try exact match on template name (backwards compatibility)
-    for project in projects:
-        if project.get("name") == project_identifier:
-            return project.get("name")
-
-    # Second pass: Try case-insensitive match on display_name
-    project_identifier_lower = project_identifier.lower()
+    # Try case-insensitive match on display_name
+    project_name_lower = project_name.lower()
     for project in projects:
         display_name = project.get("display_name", "")
-        if display_name.lower() == project_identifier_lower:
-            return project.get("name")
+        if display_name.lower() == project_name_lower:
+            return project
 
-    # Not found - build helpful error message with both names and display_names
+    # Not found - build helpful error message with project names
     if not projects:
         raise ValueError(
-            f"Project '{project_identifier}' not found. No valid fleet-mcp projects are available."
+            f"Project '{project_name}' not found. No valid fleet-mcp projects are available."
         )
 
-    # Build list showing both display_name and technical name
+    # Build list showing only display names
     project_list = []
     for project in projects:
-        name = project.get("name", "")
         display_name = project.get("display_name", "")
-        if display_name and display_name != name:
-            project_list.append(f"{display_name} ({name})")
-        else:
-            project_list.append(name)
+        if display_name:
+            project_list.append(display_name)
 
     raise ValueError(
-        f"Project '{project_identifier}' not found or is not a valid fleet-mcp project. "
+        f"Project '{project_name}' not found or is not a valid fleet-mcp project. "
         f"Valid projects must have ai_prompt and system_prompt parameters. "
         f"Available projects: {', '.join(sorted(project_list))}"
     )

@@ -6,7 +6,7 @@ from fastmcp import FastMCP
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.coder.discovery import (
     get_valid_fleet_mcp_projects,
-    resolve_project_identifier_to_template_name,
+    resolve_project_name_to_template,
 )
 from fleet_mcp.models.project import Project
 from fleet_mcp.models.responses import ListProjectsResponse, ListRolesResponse
@@ -47,9 +47,7 @@ def register_discovery_tools(mcp: FastMCP, coder_client: CoderClient):
     # T096: list_agent_roles tool
     @mcp.tool()
     async def list_agent_roles(
-        project: Annotated[
-            str, Field(description="Project name or display name to query roles for")
-        ]
+        project: Annotated[str, Field(description="Project name to query roles for")]
     ) -> ListRolesResponse:
         """
         List all available agent roles for a specific project.
@@ -57,32 +55,13 @@ def register_discovery_tools(mcp: FastMCP, coder_client: CoderClient):
         Roles are defined as Coder workspace presets in the project's template.
         Only considers projects that are valid fleet-mcp projects.
         """
-        # Resolve project identifier (name or display_name) to template name
+        # Resolve project name to template
         # This validates that the project is a valid fleet-mcp project
         # and raises ValueError with helpful message if not found
-        template_name = await resolve_project_identifier_to_template_name(
-            coder_client, project
-        )
-
-        # Get the template data
-        templates = await get_valid_fleet_mcp_projects(coder_client)
-        template_data = None
-
-        for template in templates:
-            if template.get("name") == template_name:
-                template_data = template
-                break
-
-        # This should never happen since resolve_project_identifier_to_template_name
-        # already validated the project exists, but keep for safety
-        if not template_data:
-            raise ValueError(
-                f"Project '{project}' not found or is not a valid fleet-mcp project. "
-                f"Valid fleet-mcp projects must have ai_prompt and system_prompt parameters."
-            )
+        template = await resolve_project_name_to_template(coder_client, project)
 
         # Get template details to access workspace presets
-        template_id = template_data.get("id")
+        template_id = template.get("id")
         template_details = await coder_client.get_template(template_id)
 
         # Extract workspace presets (roles)

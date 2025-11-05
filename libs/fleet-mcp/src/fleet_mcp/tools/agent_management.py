@@ -7,7 +7,7 @@ from fastmcp import FastMCP
 from fleet_mcp.coder.client import CoderClient
 from fleet_mcp.coder.discovery import (
     get_valid_fleet_mcp_project_names,
-    resolve_project_identifier_to_template_name,
+    resolve_project_name_to_template,
 )
 from fleet_mcp.coder.tasks import paginate_log_history, paginate_task_history
 from fleet_mcp.coder.workspaces import get_workspace_by_name
@@ -40,7 +40,7 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         ],
         project: Annotated[
             str,
-            Field(description="Project name or display name (e.g., Setup, DataOne)"),
+            Field(description="Project name (e.g., Setup, DataOne)"),
         ],
         task: Annotated[
             str,
@@ -60,18 +60,16 @@ def register_agent_tools(mcp: FastMCP, coder_client: CoderClient):
         if existing:
             raise ValueError(f"Agent with name '{name}' already exists")
 
-        # Resolve project identifier (name or display_name) to template name
+        # Resolve project name to template
         # This validates that the project is a valid fleet-mcp project
         # and raises ValueError with helpful message if not found
-        template_name = await resolve_project_identifier_to_template_name(
-            coder_client, project
-        )
+        template = await resolve_project_name_to_template(coder_client, project)
 
         # Create workspace via Coder API
         # Pass task as ai_prompt parameter (required by user)
         workspace = await coder_client.create_workspace(
             name=f"agent-{name}",
-            template_name=template_name,
+            template_name=template.get("name"),
             workspace_preset=role,
             ai_prompt=task,  # Pass task as ai_prompt rich parameter
         )
