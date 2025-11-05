@@ -45,7 +45,7 @@ def full_server(coder_base_url, coder_token):
 
 
 # T033: Test create_agent tool success case
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_create_agent_success(agent_server):
     """Test successful agent creation with vcr cassette"""
     async with Client(agent_server) as client:
@@ -81,7 +81,7 @@ async def test_create_agent_success(agent_server):
 
 
 # T034: Test create_agent with invalid name
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_create_agent_invalid_name(agent_server):
     """Test create_agent fails with invalid agent name"""
     async with Client(agent_server) as client:
@@ -110,7 +110,7 @@ async def test_create_agent_invalid_name(agent_server):
 
 
 # T035: Test create_agent with invalid project
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_create_agent_invalid_project(agent_server):
     """Test create_agent fails with non-existent or invalid fleet-mcp project"""
     async with Client(agent_server) as client:
@@ -134,7 +134,7 @@ async def test_create_agent_invalid_project(agent_server):
 
 
 # T036: Test list_agents tool
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_list_agents_success(agent_server):
     """Test list_agents returns agent list"""
     async with Client(agent_server) as client:
@@ -149,7 +149,7 @@ async def test_list_agents_success(agent_server):
 
 
 # T037: Test show_agent tool
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_show_agent_success(agent_server):
     """Test show_agent returns agent details"""
     async with Client(agent_server) as client:
@@ -184,7 +184,7 @@ async def test_show_agent_success(agent_server):
 
 
 # T038: Test show_agent with non-existent agent
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_show_agent_not_found(agent_server):
     """Test show_agent fails with non-existent agent"""
     async with Client(agent_server) as client:
@@ -196,7 +196,7 @@ async def test_show_agent_not_found(agent_server):
 
 
 # Test case-insensitive agent name lookup
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_show_agent_case_insensitive(agent_server):
     """Test show_agent works with different case variations of agent name"""
     async with Client(agent_server) as client:
@@ -235,12 +235,9 @@ async def test_show_agent_case_insensitive(agent_server):
 
 # T039: Test show_agent_task_history tool
 @pytest.mark.skip(reason="requires VCR strategy refactor")
-@pytest.mark.vcr
-async def test_show_agent_task_history_success(full_server, vcr_cassette):
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
+async def test_show_agent_task_history_success(full_server):
     """Test show_agent_task_history returns paginated task list"""
-    is_recording = not vcr_cassette.rewound
-
-    import asyncio
 
     async with Client(full_server) as client:
         # Get a valid project name first
@@ -270,13 +267,8 @@ async def test_show_agent_task_history_success(full_server, vcr_cassette):
             if agent_data["agent"]["status"] == "idle":
                 break
 
-            if is_recording:
-                await asyncio.sleep(2)
-
         # Wait additional time for task API to become healthy
         # The agent can be idle (connected+ready) but the task sidebar app may still be initializing
-        if is_recording:
-            await asyncio.sleep(10)
 
         # Start a task on the agent to generate task history
         start_task_result = await client.call_tool(
@@ -289,8 +281,6 @@ async def test_show_agent_task_history_success(full_server, vcr_cassette):
         parse_tool_result(start_task_result)
 
         # Wait a bit for the task to be recorded
-        if is_recording:
-            await asyncio.sleep(5)
 
         # Get task history
         result = await client.call_tool(
@@ -311,7 +301,7 @@ async def test_show_agent_task_history_success(full_server, vcr_cassette):
 
 
 # T040: Test task history pagination
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_task_history_pagination(agent_server):
     """Test task history pagination with different page sizes"""
     async with Client(agent_server) as client:
@@ -342,7 +332,7 @@ async def test_task_history_pagination(agent_server):
 
 
 # T056: Test start_agent_task on offline agent
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_start_agent_task_on_offline_agent(full_server):
     """Test start_agent_task fails when agent workspace is offline"""
     async with Client(full_server) as client:
@@ -362,7 +352,7 @@ async def test_start_agent_task_on_offline_agent(full_server):
 
 
 # T057: Test start_agent_task on busy agent
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_start_agent_task_on_busy_agent(full_server):
     """Test start_agent_task fails when agent is already busy"""
     async with Client(full_server) as client:
@@ -396,7 +386,7 @@ async def test_start_agent_task_on_busy_agent(full_server):
 
 
 # T059: Test cancel_agent_task on idle agent
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_cancel_agent_task_on_idle_agent(full_server):
     """Test cancel_agent_task fails when agent is idle (no task running)"""
     async with Client(full_server) as client:
@@ -419,12 +409,9 @@ async def test_cancel_agent_task_on_idle_agent(full_server):
 
 
 # T082: Test delete_agent tool
-@pytest.mark.vcr
-async def test_delete_agent_success(agent_server, vcr_cassette):
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
+async def test_delete_agent_success(agent_server):
     """Test successfully deleting an agent"""
-    is_recording = not vcr_cassette.rewound
-
-    import asyncio
 
     async with Client(agent_server) as client:
         # Get a valid project name first
@@ -457,9 +444,6 @@ async def test_delete_agent_success(agent_server, vcr_cassette):
             if status not in ["pending", "starting"]:
                 break
 
-            if is_recording:
-                await asyncio.sleep(2)
-
         # Delete the agent
         result = await client.call_tool(
             "delete_agent", {"agent_name": "delete-test-agent"}
@@ -482,7 +466,7 @@ async def test_delete_agent_success(agent_server, vcr_cassette):
 
 
 # T083: Test delete_agent with non-existent agent
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_delete_agent_not_found(agent_server):
     """Test delete_agent fails with non-existent agent"""
     async with Client(agent_server) as client:
@@ -494,12 +478,9 @@ async def test_delete_agent_not_found(agent_server):
 
 
 # T084: Test delete_agent on busy agent (forceful deletion)
-@pytest.mark.vcr
-async def test_delete_agent_on_busy_agent(agent_server, vcr_cassette):
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
+async def test_delete_agent_on_busy_agent(agent_server):
     """Test delete_agent forcefully deletes even if agent is busy"""
-    is_recording = not vcr_cassette.rewound
-
-    import asyncio
 
     async with Client(agent_server) as client:
         # Get a valid project name first
@@ -531,9 +512,6 @@ async def test_delete_agent_on_busy_agent(agent_server, vcr_cassette):
             if status not in ["pending", "starting"]:
                 break
 
-            if is_recording:
-                await asyncio.sleep(2)
-
         # Agent should be busy with the initial task
         show_result = await client.call_tool(
             "show_agent", {"agent_name": "busy-delete-test"}
@@ -558,7 +536,7 @@ async def test_delete_agent_on_busy_agent(agent_server, vcr_cassette):
 
 
 # T092: Test list_agent_projects tool
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_list_agent_projects_success(agent_server):
     """Test list_agent_projects returns valid fleet-mcp projects"""
     async with Client(agent_server) as client:
@@ -582,7 +560,7 @@ async def test_list_agent_projects_success(agent_server):
 
 
 # T090: Test list_agent_roles tool
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_list_agent_roles_success(agent_server):
     """Test list_agent_roles returns roles for a valid project"""
     async with Client(agent_server) as client:
@@ -612,7 +590,7 @@ async def test_list_agent_roles_success(agent_server):
 
 
 # T091: Test list_agent_roles with invalid project
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_list_agent_roles_invalid_project(agent_server):
     """Test list_agent_roles fails with non-existent or invalid project"""
     async with Client(agent_server) as client:
@@ -626,7 +604,7 @@ async def test_list_agent_roles_invalid_project(agent_server):
 
 
 # Additional test: Verify create_agent validates project against valid fleet-mcp projects
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_create_agent_validates_fleet_mcp_project(agent_server):
     """Test create_agent validates that project is a valid fleet-mcp project"""
     async with Client(agent_server) as client:
@@ -651,7 +629,7 @@ async def test_create_agent_validates_fleet_mcp_project(agent_server):
 
 
 # Additional test: Verify list_agents returns at least one agent
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_list_agents_returns_agents(agent_server):
     """Test list_agents returns at least one agent for valid fleet-mcp projects"""
     async with Client(agent_server) as client:
@@ -691,7 +669,7 @@ async def test_list_agents_returns_agents(agent_server):
 
 
 # T052: Test show_agent_log tool
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_show_agent_log_success(agent_server):
     """Test show_agent_log returns paginated conversation logs"""
     async with Client(agent_server) as client:
@@ -739,7 +717,7 @@ async def test_show_agent_log_success(agent_server):
 
 
 # T053: Test show_agent_log pagination
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_show_agent_log_pagination(agent_server):
     """Test agent log pagination with different page sizes"""
     async with Client(agent_server) as client:
@@ -765,7 +743,7 @@ async def test_show_agent_log_pagination(agent_server):
 
 
 # T054: Test show_agent_log with non-existent agent
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_show_agent_log_not_found(agent_server):
     """Test show_agent_log fails with non-existent agent"""
     async with Client(agent_server) as client:
@@ -782,7 +760,7 @@ async def test_show_agent_log_not_found(agent_server):
 
 
 # Regression test for workspace preset None bug
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_create_agent_with_invalid_preset_error_message(agent_server):
     """Regression test: verify error message when preset doesn't exist doesn't crash
 
@@ -824,7 +802,7 @@ async def test_create_agent_with_invalid_preset_error_message(agent_server):
 
 
 # Test that list_agents returns pull_request_url field
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_list_agents_includes_pull_request_url_field(agent_server):
     """Test that list_agents response includes pull_request_url field"""
     async with Client(agent_server) as client:
@@ -845,7 +823,7 @@ async def test_list_agents_includes_pull_request_url_field(agent_server):
 
 
 # Test that show_agent returns pull_request_url field
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_show_agent_includes_pull_request_url_field(agent_server):
     """Test that show_agent response includes pull_request_url field"""
     async with Client(agent_server) as client:
@@ -880,7 +858,7 @@ async def test_show_agent_includes_pull_request_url_field(agent_server):
 
 
 # Test set_agent_pr_url tool exists and validates input
-@pytest.mark.vcr
+# @pytest.mark.vcr  # TODO: Migrate to VCR.py directly
 async def test_set_agent_pr_url_validates_agent_exists(agent_server):
     """Test that set_agent_pr_url validates agent exists"""
     async with Client(agent_server) as client:

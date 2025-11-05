@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import pytest
+import vcr
 from dotenv import load_dotenv
 
 # Load .env file from project root
@@ -21,10 +22,22 @@ def vcr_config():
         ],
         "before_record_response": _redact_secrets,
         "before_record_request": _redact_secrets_from_request,
-        "record_mode": "once",  # Only record once, don't overwrite
+        "record_mode": "none",  # Never record, only playback
         "match_on": ["method", "scheme", "host", "port", "path"],
         "cassette_library_dir": "tests/cassettes",
     }
+
+
+@pytest.fixture(scope="module")
+def vcr_cassette_dir():
+    """Return cassette directory path"""
+    return Path(__file__).parent / "cassettes"
+
+
+@pytest.fixture(scope="module")
+def my_vcr(vcr_config):
+    """Create VCR instance with config"""
+    return vcr.VCR(**vcr_config)
 
 
 def _redact_secrets(response):
