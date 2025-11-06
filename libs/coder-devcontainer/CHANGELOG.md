@@ -1,3 +1,13 @@
+## 0.14.0 (2025-11-06)
+
+### 🚀 Features
+
+- Replace nohup with Supervisord for fleet-mcp server process management ([#803](https://github.com/vgijssel/setup/pull/803))
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.7.0
+
 ## 0.13.5 (2025-11-06)
 
 ### 🧱 Updated Dependencies

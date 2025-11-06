@@ -1,3 +1,9 @@
+## 0.12.2 (2025-11-06)
+
+### 🩹 Fixes
+
+- Replace nohup with Supervisord for fleet-mcp server process management ([#803](https://github.com/vgijssel/setup/pull/803))
+
 ## 0.12.1 (2025-11-06)
 
 ### 🩹 Fixes
