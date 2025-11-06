@@ -9,4 +9,4 @@ DIRENV_BIN="${LOCAL_SETUP_DIR}"/bin/direnv
 # Automatically connect to supervisord on localhost:9001
 # This allows supervisorctl to work without passing -c config file
 # Setting the direnv log format to empty to make direnv quiet
-DIRENV_LOG_FORMAT="" exec ${DIRENV_BIN} exec "${LOCAL_SETUP_DIR}" "${LOCAL_SETUP_DIR}"/bin/uv run --project "${LOCAL_SETUP_DIR}"/third_party/python supervisorctl --serverurl http://127.0.0.1:9001 "$@"
+DIRENV_LOG_FORMAT="" exec ${DIRENV_BIN} exec "${LOCAL_SETUP_DIR}" uv run --project "${LOCAL_SETUP_DIR}"/third_party/python supervisorctl --serverurl http://127.0.0.1:9001 "$@"

@@ -71,7 +71,6 @@ RUN zsh -ic 'exit 0'
 
 # Eager load commonly used tools for coder-devcontainer
 RUN bin/direnv exec . python --version
-RUN bin/direnv exec . claude --version
 RUN bin/direnv exec . supervisord --version
 RUN bin/direnv exec . wait-for-it --version
 
