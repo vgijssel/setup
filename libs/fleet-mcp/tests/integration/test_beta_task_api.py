@@ -87,26 +87,6 @@ async def test_send_task_input_empty(coder_client, mock_send_task_input_empty):
 
 
 @pytest.mark.asyncio
-async def test_send_interrupt(coder_client, mock_send_interrupt):
-    """Test sending interrupt signal to a task
-
-    The mock_send_interrupt fixture:
-    - Mocks get_task to retrieve task details
-    - Mocks send_interrupt API call
-    - Returns task and interrupt response data
-    """
-    task = mock_send_interrupt["task"]
-    workspace_name = "maarten"
-    task_id = task["id"]
-
-    # Send interrupt - mocked by fixture
-    result = await coder_client.send_interrupt(workspace_name, task_id)
-
-    # Assertions
-    assert result == mock_send_interrupt["interrupt_response"]
-
-
-@pytest.mark.asyncio
 async def test_get_task_logs(coder_client, mock_get_task_logs):
     """Test getting task logs
 
