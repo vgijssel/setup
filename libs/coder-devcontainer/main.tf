@@ -540,7 +540,7 @@ resource "coder_script" "fleet_mcp" {
     supervisord -c /workspaces/setup/libs/coder-devcontainer/supervisord.conf
 
     # Wait for supervisord to be available on port 9001
-    wait-for-it 127.0.0.1:9001 -t 30
+    wait-for-it --service 127.0.0.1:9001 --timeout 60
 
     # Verify fleet-mcp service is running
     supervisorctl status fleet-mcp
