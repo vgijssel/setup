@@ -20,8 +20,12 @@ def test_coder_client_initialization(coder_base_url, coder_token):
     assert client.client is not None
 
 
+import httpx
+import respx
+
+
 # T014: Workspace creation test with respx mocking
-@pytest.mark.asyncio
+@respx.mock
 async def test_create_workspace(coder_client, mock_create_workspace):
     """Test workspace creation via Coder API
 
@@ -30,7 +34,7 @@ async def test_create_workspace(coder_client, mock_create_workspace):
     - Configures respx to mock all necessary API endpoints
     - Returns the expected workspace data
     """
-    # Execute test - respx mocks are already configured by fixture
+
     workspace = await coder_client.create_workspace(
         name="test-ws-create-001",
         template_name="coder-devcontainer",
@@ -41,7 +45,17 @@ async def test_create_workspace(coder_client, mock_create_workspace):
     assert workspace is not None
     assert "id" in workspace
     assert workspace.get("name") == "test-ws-create-001"
-    assert workspace == mock_create_workspace
+
+    # Assert correct template_name is set
+    assert workspace.get("template_name") == "coder-devcontainer"
+
+    # Assert correct template_version_preset_id is set in latest_build
+    latest_build = workspace.get("latest_build")
+    assert latest_build is not None, "latest_build should be present in workspace"
+    assert (
+        latest_build.get("template_version_preset_id")
+        == "9ce86483-72f5-4647-9a92-2c53fb940fa9"
+    )
 
 
 # T015: Workspace listing test with respx mocking

@@ -190,55 +190,58 @@ def coder_client(coder_base_url, coder_token):
 # See REFACTORING_STATUS.md for details on respx API pattern needed
 # ============================================================================
 
+import respx
+
 
 @pytest.fixture
 def mock_create_workspace(respx_mock, coder_base_url, cassette_dir):
-    """Mock for create_workspace test
+    with respx.mock(base_url=coder_base_url, assert_all_called=True) as respx_mock:
+        """Mock for create_workspace test
 
-    Mocks the full workspace creation flow:
-    1. GET /api/v2/templates - list templates
-    2. GET /api/v2/templates/{id} - get template details
-    3. GET /api/v2/templateversions/{id}/presets - get workspace presets
-    4. GET /api/v2/templateversions/{id}/rich-parameters - get parameters
-    5. GET /api/v2/users/me/organizations - get user's organizations
-    6. POST /api/v2/organizations/{id}/members/me/workspaces - create workspace
-    """
-    # Get version-aware cassette path
-    cassette_path = get_cassette_path(cassette_dir, "test_create_workspace")
+        Mocks the full workspace creation flow:
+        1. GET /api/v2/templates - list templates
+        2. GET /api/v2/templates/{id} - get template details
+        3. GET /api/v2/templateversions/{id}/presets - get workspace presets
+        4. GET /api/v2/templateversions/{id}/rich-parameters - get parameters
+        5. GET /api/v2/users/me/organizations - get user's organizations
+        6. POST /api/v2/organizations/{id}/members/me/workspaces - create workspace
+        """
 
-    # Load all responses from cassette
-    responses = load_all_cassette_responses(cassette_path)
+        # Get version-aware cassette path
+        cassette_path = get_cassette_path(cassette_dir, "test_create_workspace")
 
-    # Mock each endpoint explicitly with regex for dynamic IDs
-    # 1. GET /api/v2/templates
-    route = respx_mock.get(f"{coder_base_url}/api/v2/templates")
-    route.mock(return_value=Response(200, json=responses[0]["parsed_body"]))
+        #         # Load all responses from cassette
+        responses = load_all_cassette_responses(cassette_path)
 
-    # 2. GET /api/v2/templates/{id} - using regex to match any template ID
-    route = respx_mock.get(url__regex=f"^{coder_base_url}/api/v2/templates/[a-f0-9-]+$")
-    route.mock(return_value=Response(200, json=responses[1]["parsed_body"]))
+        # Mock each endpoint explicitly with regex for dynamic IDs
+        # 1. GET /api/v2/templates
+        route = respx_mock.get("/api/v2/templates")
+        route.mock(return_value=Response(200, json=responses[0]["parsed_body"]))
 
-    # 3. GET /api/v2/templateversions/{id}/presets
-    route = respx_mock.get(
-        url__regex=f"^{coder_base_url}/api/v2/templateversions/[a-f0-9-]+/presets$"
-    )
-    route.mock(return_value=Response(200, json=responses[2]["parsed_body"]))
+        # 2. GET /api/v2/templates/{id} - using regex to match any template ID
+        route = respx_mock.get(path__regex=f"^/api/v2/templates/[a-f0-9-]+$")
+        route.mock(return_value=Response(200, json=responses[1]["parsed_body"]))
 
-    # 4. GET /api/v2/templateversions/{id}/rich-parameters
-    route = respx_mock.get(
-        url__regex=f"^{coder_base_url}/api/v2/templateversions/[a-f0-9-]+/rich-parameters$"
-    )
-    route.mock(return_value=Response(200, json=responses[3]["parsed_body"]))
+        # 3. GET /api/v2/templateversions/{id}/presets
+        route = respx_mock.get(
+            path__regex=f"^/api/v2/templateversions/[a-f0-9-]+/presets$"
+        )
+        route.mock(return_value=Response(200, json=responses[2]["parsed_body"]))
 
-    # 5. GET /api/v2/users/me/organizations
-    route = respx_mock.get(f"{coder_base_url}/api/v2/users/me/organizations")
-    route.mock(return_value=Response(200, json=responses[4]["parsed_body"]))
+        # 4. GET /api/v2/templateversions/{id}/rich-parameters
+        route = respx_mock.get(
+            path__regex=f"^/api/v2/templateversions/[a-f0-9-]+/rich-parameters$"
+        )
+        route.mock(return_value=Response(200, json=responses[3]["parsed_body"]))
 
-    # 6. POST /api/v2/organizations/{id}/members/me/workspaces
-    route = respx_mock.post(
-        url__regex=f"^{coder_base_url}/api/v2/organizations/[a-f0-9-]+/members/me/workspaces$"
-    )
-    route.mock(return_value=Response(201, json=responses[5]["parsed_body"]))
+        # 5. GET /api/v2/users/me/organizations
+        route = respx_mock.get(f"/api/v2/users/me/organizations")
+        route.mock(return_value=Response(200, json=responses[4]["parsed_body"]))
 
-    # Return the created workspace data
-    return responses[5]["parsed_body"]
+        # 6. POST /api/v2/organizations/{id}/members/me/workspaces
+        route = respx_mock.post(
+            path__regex=f"^/api/v2/organizations/[a-f0-9-]+/members/me/workspaces$"
+        )
+        route.mock(return_value=Response(201, json=responses[5]["parsed_body"]))
+
+        yield responses[5]["parsed_body"]
