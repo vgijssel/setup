@@ -525,7 +525,7 @@ resource "coder_app" "home-assistant" {
   external     = true
 }
 
-# Fleet MCP server script - starts uvicorn with hot reload
+# Fleet MCP server script - starts fleet-mcp via supervisord
 resource "coder_script" "fleet_mcp" {
   agent_id     = coder_agent.main.id
   display_name = "Fleet MCP Server"
@@ -533,22 +533,19 @@ resource "coder_script" "fleet_mcp" {
   script       = <<-EOT
     #!/bin/bash
     set -e
-    set -x
+
+    echo "Starting fleet-mcp"
 
     # Wait for git repo to be available
     wait-for-git --dir /workspaces/setup
 
-    cd /workspaces/setup
+    supervisord -c /workspaces/setup/libs/coder-devcontainer/supervisord.conf
 
-    # Create log directory if it doesn't exist
-    mkdir -p /tmp/fleet-mcp
+    # Wait for supervisord to be available on port 9001
+    wait-for-it --service 127.0.0.1:9001 --timeout 60
 
-    # Start uvicorn with hot reload in the background
-    # Redirect stdout and stderr to log file to prevent blocking pipes
-    nohup direnv exec . nx run --tui=false fleet-mcp:server > /tmp/fleet-mcp/server.log 2>&1 &
-
-    # Store the PID for potential cleanup
-    echo $! > /tmp/fleet-mcp/server.pid
+    # Verify fleet-mcp service is running
+    supervisorctl status fleet-mcp
   EOT
   run_on_start = true
   run_on_stop  = false
@@ -567,7 +564,7 @@ resource "coder_app" "fleet_mcp" {
   healthcheck {
     url       = "http://127.0.0.1:8000/health"
     interval  = 10
-    threshold = 10
+    threshold = 24
   }
 }
 

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -eo pipefail
+
+# Locating the SETUP_DIR and re-running direnv because this can be run outside the repo root
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
+DIRENV_BIN="${LOCAL_SETUP_DIR}"/bin/direnv
+
+# Setting the direnv log format to empty to make direnv quiet
+DIRENV_LOG_FORMAT="" exec ${DIRENV_BIN} exec "${LOCAL_SETUP_DIR}" uv run --project "${LOCAL_SETUP_DIR}"/third_party/python supervisord "$@"
