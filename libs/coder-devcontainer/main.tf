@@ -534,6 +534,8 @@ resource "coder_script" "fleet_mcp" {
     #!/bin/bash
     set -e
 
+    echo "Starting fleet-mcp"
+
     # Wait for git repo to be available
     wait-for-git --dir /workspaces/setup
 
@@ -562,7 +564,7 @@ resource "coder_app" "fleet_mcp" {
   healthcheck {
     url       = "http://127.0.0.1:8000/health"
     interval  = 10
-    threshold = 10
+    threshold = 24
   }
 }
 
