@@ -1,3 +1,9 @@
+## 0.12.1 (2025-11-06)
+
+### 🩹 Fixes
+
+- Update Coder version requirement to >=2.27.3 in devenv tests ([#806](https://github.com/vgijssel/setup/pull/806))
+
 ## 0.12.0 (2025-11-04)
 
 ### 🚀 Features
