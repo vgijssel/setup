@@ -5,7 +5,7 @@ export PATH="$HOME/.local/setup/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 
 # Setting this to the default for consistency with zsh config
-export HERMIT_LOCK_TIMEOUT=30s
+export HERMIT_LOCK_TIMEOUT=180s
 
 # Aliases
 alias ll='ls -lah'
