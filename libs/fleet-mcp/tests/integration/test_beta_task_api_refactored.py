@@ -1,56 +1,26 @@
-"""Integration tests for Coder experimental task API (refactored with RESPX mocking)
+"""Integration tests for Coder experimental task API (Refactored)
 
-This test file demonstrates the new testing approach:
-- Uses pre-recorded VCR cassettes as fixtures
-- Uses RESPX to mock HTTP responses
-- Tests are deterministic, offline, and fast
-- No external state dependencies
+These tests demonstrate the new fixture-based testing approach:
+- All mocking is handled by fixtures
+- Tests are clean and focus only on assertions
+- Respx fails on unmocked requests
+- Version-aware cassette caching
 """
 
 import pytest
-import respx
-from fleet_mcp.coder.client import CoderClient
-from httpx import Response
-from tests.fixtures import get_all_responses
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_get_task_exists():
-    """Test getting task from experimental API when task exists"""
-    base_url = "https://coder.example.com"
-    token = "test-token"
-    client = CoderClient(base_url=base_url, token=token)
+async def test_get_task_exists(coder_client, mock_get_task_exists):
+    """Test getting task when it exists"""
+    workspace = mock_get_task_exists["workspace"]
+    task = mock_get_task_exists["task"]
 
-    # Load responses from cassette
-    responses = get_all_responses("test_get_task_exists")
-
-    # Mock list workspaces
-    workspaces = responses[0].get("parsed_body")
-    respx.get(f"{base_url}/api/v2/workspaces").mock(
-        return_value=Response(200, json=workspaces)
-    )
-
-    # Get workspace details from cassette
-    workspace = workspaces[0]
     workspace_id = workspace.get("id")
     owner_name = workspace.get("owner_name")
 
-    # Mock get task
-    task = responses[1].get("parsed_body")
-    respx.get(
-        f"{base_url}/api/v2/users/{owner_name}/workspace/{workspace_id}/tasks/ai"
-    ).mock(return_value=Response(200, json=task))
-
-    # Execute test
-    workspaces_result = await client.list_workspaces()
-    assert len(workspaces_result) > 0, "At least one workspace should exist"
-
-    workspace_result = workspaces_result[0]
-    workspace_id_result = workspace_result.get("id")
-    owner_name_result = workspace_result.get("owner_name")
-
-    task_result = await client.get_task(owner_name_result, workspace_id_result)
+    # Get the task
+    task_result = await coder_client.get_task(owner_name, workspace_id)
 
     # Assertions
     assert task_result is not None, "Task should exist for active workspace"
@@ -63,118 +33,56 @@ async def test_get_task_exists():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_get_task_not_found():
+async def test_get_task_not_found(coder_client, mock_get_task_not_found):
     """Test getting task returns None for 404 responses"""
-    base_url = "https://coder.example.com"
-    token = "test-token"
-    client = CoderClient(base_url=base_url, token=token)
+    fake_workspace_id = mock_get_task_not_found["workspace_id"]
+    fake_username = mock_get_task_not_found["username"]
 
-    # Mock 404 response
-    fake_workspace_id = "00000000-0000-0000-0000-000000000000"
-    fake_username = "nonexistent"
-
-    respx.get(
-        f"{base_url}/api/v2/users/{fake_username}/workspace/{fake_workspace_id}/tasks/ai"
-    ).mock(return_value=Response(404, json={"message": "Not found"}))
-
-    # Execute test
-    task = await client.get_task(fake_username, fake_workspace_id)
+    # Get the task (should return None)
+    task = await coder_client.get_task(fake_username, fake_workspace_id)
 
     # Assertions
     assert task is None
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_send_task_input():
-    """Test sending input to a task via experimental API"""
-    base_url = "https://coder.example.com"
-    token = "test-token"
-    client = CoderClient(base_url=base_url, token=token)
-
-    # Load responses from cassette
-    responses = get_all_responses("test_send_task_input")
-
-    # Mock list workspaces
-    workspaces = responses[0].get("parsed_body")
-    respx.get(f"{base_url}/api/v2/workspaces").mock(
-        return_value=Response(200, json=workspaces)
-    )
-
-    workspace = workspaces[0]
+async def test_send_task_input(coder_client, mock_send_task_input):
+    """Test sending input to a task"""
+    workspace = mock_send_task_input["workspace"]
     workspace_id = workspace.get("id")
     owner_name = workspace.get("owner_name")
 
-    # Mock send task input (204 No Content)
-    respx.post(
-        f"{base_url}/api/v2/users/{owner_name}/workspace/{workspace_id}/tasks/ai/messages"
-    ).mock(return_value=Response(204))
-
-    # Execute test
-    workspaces_result = await client.list_workspaces()
-    workspace_result = workspaces_result[0]
-    workspace_id_result = workspace_result.get("id")
-    owner_name_result = workspace_result.get("owner_name")
-
+    # Send task input
     task_input = "Test task input for VCR recording"
-    await client.send_task_input(owner_name_result, workspace_id_result, task_input)
+    await coder_client.send_task_input(owner_name, workspace_id, task_input)
 
     # If we get here without exception, the send was successful
 
 
 @pytest.mark.asyncio
-async def test_send_task_input_empty():
+async def test_send_task_input_empty(coder_client):
     """Test sending empty input raises ValueError"""
-    base_url = "https://coder.example.com"
-    token = "test-token"
-    client = CoderClient(base_url=base_url, token=token)
-
     workspace_id = "test-workspace-id"
     owner_name = "test-owner"
 
     # Test empty string
     with pytest.raises(ValueError, match="Task input cannot be empty"):
-        await client.send_task_input(owner_name, workspace_id, "")
+        await coder_client.send_task_input(owner_name, workspace_id, "")
 
     # Test whitespace only
     with pytest.raises(ValueError, match="Task input cannot be empty"):
-        await client.send_task_input(owner_name, workspace_id, "   ")
+        await coder_client.send_task_input(owner_name, workspace_id, "   ")
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_send_interrupt():
-    """Test sending interrupt signal to cancel a task via experimental API"""
-    base_url = "https://coder.example.com"
-    token = "test-token"
-    client = CoderClient(base_url=base_url, token=token)
-
-    # Load responses from cassette
-    responses = get_all_responses("test_send_interrupt")
-
-    # Mock list workspaces
-    workspaces = responses[0].get("parsed_body")
-    respx.get(f"{base_url}/api/v2/workspaces").mock(
-        return_value=Response(200, json=workspaces)
-    )
-
-    workspace = workspaces[0]
+async def test_send_interrupt(coder_client, mock_send_interrupt):
+    """Test sending interrupt signal to cancel a task"""
+    workspace = mock_send_interrupt["workspace"]
     workspace_id = workspace.get("id")
     owner_name = workspace.get("owner_name")
 
-    # Mock send interrupt (204 No Content)
-    respx.post(
-        f"{base_url}/api/v2/users/{owner_name}/workspace/{workspace_id}/tasks/ai/messages"
-    ).mock(return_value=Response(204))
-
-    # Execute test
-    workspaces_result = await client.list_workspaces()
-    workspace_result = workspaces_result[0]
-    workspace_id_result = workspace_result.get("id")
-    owner_name_result = workspace_result.get("owner_name")
-
-    result = await client.send_interrupt(owner_name_result, workspace_id_result)
+    # Send interrupt signal
+    result = await coder_client.send_interrupt(owner_name, workspace_id)
 
     # Assertions
     assert isinstance(result, dict)
@@ -182,39 +90,16 @@ async def test_send_interrupt():
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_get_task_logs():
-    """Test getting task logs from experimental API"""
-    base_url = "https://coder.example.com"
-    token = "test-token"
-    client = CoderClient(base_url=base_url, token=token)
+async def test_get_task_logs(coder_client, mock_get_task_logs):
+    """Test getting task logs"""
+    workspace = mock_get_task_logs["workspace"]
+    logs = mock_get_task_logs["logs"]
 
-    # Load responses from cassette
-    responses = get_all_responses("test_get_task_logs")
-
-    # Mock list workspaces
-    workspaces = responses[0].get("parsed_body")
-    respx.get(f"{base_url}/api/v2/workspaces").mock(
-        return_value=Response(200, json=workspaces)
-    )
-
-    workspace = workspaces[0]
     workspace_id = workspace.get("id")
     owner_name = workspace.get("owner_name")
 
-    # Mock get task logs
-    logs = responses[1].get("parsed_body")
-    respx.get(
-        f"{base_url}/api/v2/users/{owner_name}/workspace/{workspace_id}/tasks/ai/logs"
-    ).mock(return_value=Response(200, json=logs))
-
-    # Execute test
-    workspaces_result = await client.list_workspaces()
-    workspace_result = workspaces_result[0]
-    workspace_id_result = workspace_result.get("id")
-    owner_name_result = workspace_result.get("owner_name")
-
-    logs_result = await client.get_task_logs(owner_name_result, workspace_id_result)
+    # Get task logs
+    logs_result = await coder_client.get_task_logs(owner_name, workspace_id)
 
     # Assertions
     assert isinstance(logs_result, list)

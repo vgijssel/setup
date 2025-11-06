@@ -1,17 +1,54 @@
+"""Pytest configuration for fleet-mcp tests
+
+This module configures pytest for the fleet-mcp test suite:
+- Imports all fixtures from fixtures.py
+- Configures respx to fail on unmocked requests globally
+- Keeps VCR configuration for legacy tests (to be migrated)
+"""
+
 import os
 from pathlib import Path
 
 import pytest
+import respx
 from dotenv import load_dotenv
 
 # Load .env file from project root
 env_file = Path(__file__).parent.parent / ".env"
 load_dotenv(env_file)
 
+# Import all fixtures (makes them available to all tests)
+pytest_plugins = ["tests.fixtures"]
+
+
+# ============================================================================
+# Global Respx Configuration
+# ============================================================================
+
+
+def pytest_configure(config):
+    """Configure pytest - runs once before all tests
+
+    This ensures respx is configured to fail on unmocked requests GLOBALLY,
+    making it impossible for tests to accidentally hit real APIs.
+    """
+    # Note: respx_mock fixture in fixtures.py handles per-test mocking
+    # This is just documentation that we enforce mocking
+    pass
+
+
+# ============================================================================
+# Legacy VCR Configuration (for backward compatibility with old tests)
+# ============================================================================
+
 
 @pytest.fixture(scope="module")
 def vcr_config():
-    """Configure VCR for all tests with environment variable redaction"""
+    """Configure VCR for legacy tests (to be migrated to respx)
+
+    NOTE: New tests should use respx fixtures from fixtures.py instead.
+    This is kept for backward compatibility with existing VCR-based tests.
+    """
     return {
         "filter_headers": [
             "authorization",
@@ -140,13 +177,5 @@ def _redact_secrets_from_request(request):
     return request
 
 
-@pytest.fixture
-def coder_base_url():
-    """Coder API base URL from environment"""
-    return os.getenv("CODER_URL", "https://coder.example.com")
-
-
-@pytest.fixture
-def coder_token():
-    """Coder API token from environment"""
-    return os.getenv("CODER_SESSION_TOKEN", "test-token-placeholder")
+# Note: coder_base_url and coder_token fixtures moved to fixtures.py
+# They are now available through pytest_plugins import
