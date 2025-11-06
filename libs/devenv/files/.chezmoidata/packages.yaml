@@ -48,7 +48,6 @@ packages:
       - bash
       - sudo
       - locales
-      - supervisor
       - bash
       - fontconfig
       - unzip

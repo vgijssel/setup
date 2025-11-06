@@ -533,24 +533,17 @@ resource "coder_script" "fleet_mcp" {
   script       = <<-EOT
     #!/bin/bash
     set -e
-    set -x
 
     # Wait for git repo to be available
     wait-for-git --dir /workspaces/setup
 
-    cd /workspaces/setup
-
-    # Create log directories for supervisor and fleet-mcp
-    mkdir -p logs/supervisor logs/fleet-mcp
-
-    # Start supervisord daemon with config file (use -E to preserve environment)
-    sudo -E bin/supervisord -c libs/coder-devcontainer/supervisord.conf
+    supervisord -c /workspaces/setup/libs/coder-devcontainer/supervisord.conf
 
     # Wait for supervisord to be available on port 9001
-    wait-for-it localhost:9001 -t 30
+    wait-for-it 127.0.0.1:9001 -t 30
 
-    # Verify fleet-mcp service is running (supervisorctl works without config file)
-    sudo -E bin/supervisorctl status fleet-mcp
+    # Verify fleet-mcp service is running
+    supervisorctl status fleet-mcp
   EOT
   run_on_start = true
   run_on_stop  = false
