@@ -1,12 +1,21 @@
-"""Integration tests for task lifecycle management - User Story 2"""
+"""Integration tests for task lifecycle management - User Story 2
+
+This test doesn't require HTTP mocking as it tests data logic only.
+"""
 
 from datetime import datetime
 
+import pytest
+
 
 # T061: Test agent status derivation (busy/idle)
-async def test_agent_status_derivation(coder_base_url, coder_token):
-    """Test that agent status is correctly derived from workspace state and task data"""
+@pytest.mark.asyncio
+async def test_agent_status_derivation():
+    """Test that agent status is correctly derived from workspace state and task data
 
+    This test validates the logic for deriving agent status from workspace data.
+    No HTTP mocking needed as this is pure data logic.
+    """
     # Mock workspace data for different scenarios
 
     # Scenario 1: Workspace running with task -> busy

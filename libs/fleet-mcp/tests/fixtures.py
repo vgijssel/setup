@@ -1,9 +1,9 @@
-"""Test fixtures and utilities for fleet-mcp tests
+"""Pytest fixtures for fleet-mcp tests
 
-This module provides:
-- Version-aware cassette caching
-- Cassette loading utilities
-- Helper functions for tests
+Utilities for loading VCR cassettes and version-aware caching.
+Respx-based mock fixtures to be completed in follow-up work.
+
+See REFACTORING_STATUS.md for details.
 """
 
 import json
@@ -30,7 +30,6 @@ def get_coder_version() -> str:
         result = subprocess.run(
             ["coder", "--version"], capture_output=True, text=True, timeout=5
         )
-        # Parse version from output like "Coder v2.27.1+230b55b ..."
         match = re.search(r"Coder (v[\d.]+)", result.stdout)
         if match:
             return match.group(1)
@@ -158,3 +157,26 @@ def parse_tool_result(result):
     content = result.content[0]
     assert hasattr(content, "text"), "Content has no text attribute"
     return json.loads(content.text)
+
+
+# ============================================================================
+# Base Configuration Fixtures
+# ============================================================================
+
+
+@pytest.fixture
+def coder_base_url():
+    """Base URL for Coder API (used in mocks)"""
+    return "https://coder.example.com"
+
+
+@pytest.fixture
+def coder_token():
+    """Coder API token (placeholder for mocked requests)"""
+    return "test-token"
+
+
+# ============================================================================
+# NOTE: Respx-based mock fixtures to be added in follow-up work
+# See REFACTORING_STATUS.md for details on respx API pattern needed
+# ============================================================================

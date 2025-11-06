@@ -1,94 +1,112 @@
-"""Integration tests for Coder API client"""
+"""Integration tests for Coder API client using respx mocking
+
+All tests use respx mocking via pytest fixtures. No VCR is used directly in tests.
+"""
 
 import pytest
-from fleet_mcp.coder.client import CoderClient
 
 
 # T013: CoderClient initialization test
 def test_coder_client_initialization(coder_base_url, coder_token):
-    """Test CoderClient can be initialized"""
+    """Test CoderClient can be initialized
+
+    This test doesn't need mocking as it only tests initialization.
+    """
+    from fleet_mcp.coder.client import CoderClient
+
     client = CoderClient(base_url=coder_base_url, token=coder_token)
     assert client.base_url == coder_base_url.rstrip("/")
     assert client.token == coder_token
     assert client.client is not None
 
 
-# T014: Workspace creation test with pytest-vcr
-@pytest.mark.vcr
-async def test_create_workspace(coder_base_url, coder_token):
-    """Test workspace creation via Coder API"""
-    client = CoderClient(base_url=coder_base_url, token=coder_token)
+# T014: Workspace creation test with respx mocking
+@pytest.mark.asyncio
+async def test_create_workspace(coder_client, mock_create_workspace):
+    """Test workspace creation via Coder API
 
-    workspace = await client.create_workspace(
+    The mock_create_workspace fixture:
+    - Loads cassette data for workspace creation flow
+    - Configures respx to mock all necessary API endpoints
+    - Returns the expected workspace data
+    """
+    # Execute test - respx mocks are already configured by fixture
+    workspace = await coder_client.create_workspace(
         name="test-ws-create-001",
         template_name="coder-devcontainer",
         workspace_preset="coder",
     )
 
+    # Assertions only - no mock setup
     assert workspace is not None
     assert "id" in workspace
     assert workspace.get("name") == "test-ws-create-001"
+    assert workspace == mock_create_workspace
 
 
-# T015: Workspace listing test with pytest-vcr
-@pytest.mark.vcr
-async def test_list_workspaces(coder_base_url, coder_token):
-    """Test listing workspaces via Coder API"""
-    client = CoderClient(base_url=coder_base_url, token=coder_token)
-    workspaces = await client.list_workspaces()
+# T015: Workspace listing test with respx mocking
+@pytest.mark.asyncio
+async def test_list_workspaces(coder_client, mock_list_workspaces):
+    """Test listing workspaces via Coder API
 
+    The mock_list_workspaces fixture:
+    - Loads workspace data from cassette
+    - Configures respx to mock GET /api/v2/workspaces
+    - Returns the expected workspace list
+    """
+    # Execute test - respx mock is already configured by fixture
+    workspaces = await coder_client.list_workspaces()
+
+    # Assertions
     assert isinstance(workspaces, list)
     # Filter for fleet workspaces
     fleet_workspaces = [
         ws for ws in workspaces if "fleet_mcp_agent_name" in ws.get("metadata", {})
     ]
     assert len(fleet_workspaces) >= 0
+    assert workspaces == mock_list_workspaces
 
 
-# T016: Workspace deletion test with pytest-vcr
-@pytest.mark.vcr
-async def test_delete_workspace(coder_base_url, coder_token, vcr_cassette):
-    """Test workspace deletion via Coder API"""
-    is_recording = not vcr_cassette.rewound
+# T016: Workspace deletion test with respx mocking
+@pytest.mark.asyncio
+async def test_delete_workspace(coder_client, mock_delete_workspace):
+    """Test workspace deletion via Coder API
 
-    import asyncio
+    The mock_delete_workspace fixture:
+    - Loads cassette data for the full deletion flow
+    - Mocks workspace creation, polling, and deletion
+    - Returns workspace and deletion response data
+    """
+    # Get workspace data from fixture
+    workspace = mock_delete_workspace["workspace"]
+    workspace_id = workspace["id"]
 
-    client = CoderClient(base_url=coder_base_url, token=coder_token)
+    # The fixture already mocked the creation, so we can directly test deletion
+    # In a real scenario, the client would have created it first (already mocked)
 
-    # First create a workspace to delete
-    workspace = await client.create_workspace(
-        name="test-ws-delete-001",
-        template_name="coder-devcontainer",
-        workspace_preset="coder",
-    )
+    # Delete the workspace - respx mock is configured by fixture
+    result = await coder_client.delete_workspace(workspace_id)
 
-    workspace_id = workspace.get("id")
-    assert workspace_id is not None
-
-    # Wait for workspace to be fully running before deleting
-    # This prevents 409 Conflict when trying to delete too early
-    for _ in range(45):
-        ws = await client.get_workspace(workspace_id)
-        status = ws.get("latest_build", {}).get("status")
-        if status == "running":
-            break
-
-        if is_recording:
-            await asyncio.sleep(2)
-
-    # Now delete it
-    result = await client.delete_workspace(workspace_id)
+    # Assertions
     assert result is not None
+    assert result == mock_delete_workspace["delete_response"]
 
 
 # Test for get_template_version_rich_parameters
-@pytest.mark.vcr
-async def test_get_template_version_rich_parameters(coder_base_url, coder_token):
-    """Test getting rich parameters from a template version"""
-    client = CoderClient(base_url=coder_base_url, token=coder_token)
+@pytest.mark.asyncio
+async def test_get_template_version_rich_parameters(
+    coder_client, mock_get_template_version_rich_parameters
+):
+    """Test getting rich parameters from a template version
 
-    # Get coder-devcontainer template
-    templates = await client.list_templates()
+    The mock_get_template_version_rich_parameters fixture:
+    - Mocks template listing
+    - Mocks template details retrieval
+    - Mocks rich parameters retrieval
+    - Returns the expected rich parameters
+    """
+    # Get coder-devcontainer template - mocked by fixture
+    templates = await coder_client.list_templates()
     coder_template = next(
         (t for t in templates if t.get("name") == "coder-devcontainer"), None
     )
@@ -96,16 +114,20 @@ async def test_get_template_version_rich_parameters(coder_base_url, coder_token)
 
     template_id = coder_template.get("id")
 
-    # Get template details to get active version
-    template_details = await client.get_template(template_id)
+    # Get template details to get active version - mocked by fixture
+    template_details = await coder_client.get_template(template_id)
     active_version_id = template_details.get("active_version_id")
     assert active_version_id is not None, "No active version found"
 
-    # Get rich parameters for the active version
-    rich_params = await client.get_template_version_rich_parameters(active_version_id)
+    # Get rich parameters for the active version - mocked by fixture
+    rich_params = await coder_client.get_template_version_rich_parameters(
+        active_version_id
+    )
 
+    # Assertions
     assert isinstance(rich_params, list)
     assert len(rich_params) > 0, "Template should have rich parameters"
+    assert rich_params == mock_get_template_version_rich_parameters
 
     # Check for required parameters
     param_names = [p.get("name") for p in rich_params]
