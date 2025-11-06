@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -eo pipefail
+
+"${SETUP_BIN_DIR}"/uv run --project "${SETUP_DIR}"/third_party/python supervisord "$@"

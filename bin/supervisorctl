@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -eo pipefail
+
+# Automatically connect to supervisord on localhost:9001
+# This allows supervisorctl to work without passing -c config file
+"${SETUP_BIN_DIR}"/uv run --project "${SETUP_DIR}"/third_party/python supervisorctl --serverurl http://127.0.0.1:9001 "$@"

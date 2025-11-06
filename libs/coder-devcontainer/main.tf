@@ -543,14 +543,14 @@ resource "coder_script" "fleet_mcp" {
     # Create log directories for supervisor and fleet-mcp
     mkdir -p logs/supervisor logs/fleet-mcp
 
-    # Start supervisord daemon
-    sudo supervisord -c libs/coder-devcontainer/supervisord.conf
+    # Start supervisord daemon with config file (use -E to preserve environment)
+    sudo -E bin/supervisord -c libs/coder-devcontainer/supervisord.conf
 
     # Wait for supervisord to be available on port 9001
     wait-for-it localhost:9001 -t 30
 
-    # Verify fleet-mcp service is running
-    sudo supervisorctl -c libs/coder-devcontainer/supervisord.conf status fleet-mcp
+    # Verify fleet-mcp service is running (supervisorctl works without config file)
+    sudo -E bin/supervisorctl status fleet-mcp
   EOT
   run_on_start = true
   run_on_stop  = false
