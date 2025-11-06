@@ -1,32 +1,31 @@
-### VCR Testing Strategy
+# VCR Testing Strategy
 
-This directory uses a decoupled approach to HTTP recording and testing:
+This directory uses a decoupled approach to HTTP recording and testing.
 
 ## Overview
 
-**Problem:** Tests that call live APIs through VCR are brittle and confusing because:
-- Cassette data can get out of sync with system state
+**Problem:** Tests that directly interact with live APIs are brittle and slow:
 - Long setup/teardown times for real workspaces
 - Tests depend on external state (Coder API availability)
-- Difficult for AI agents and developers to understand test failures
+- Difficult to debug when API state changes
+- Cannot run tests offline
 
-**Solution:** Separate HTTP recording from test execution:
+**Solution:** Use VCR.py to record HTTP interactions once, replay many times:
 1. **Record once** using `record.py` script (only when API changes)
-2. **Test many times** using pre-recorded cassettes as fixtures with mocking
+2. **Test many times** using pre-recorded cassettes
+3. **Version-aware caching** to invalidate cassettes when Coder version changes
 
 ## Directory Structure
 
 ```
 tests/
 ├── cassettes/              # Pre-recorded HTTP interactions (YAML)
-├── fixtures.py             # Utility functions to load cassette data
-├── record.py               # Script to record new cassettes
-├── integration/            # Tests for Coder API client
-│   ├── test_coder_client_refactored.py
-│   └── test_beta_task_api_refactored.py
-├── contract/               # Tests for MCP tools
-│   └── test_mcp_tools.py
-└── unit/                   # Tests for data models
+├── fixtures.py             # Version-aware cassette utilities
+├── record.py               # Standalone script to record cassettes
+├── conftest.py             # Pytest configuration and VCR setup
+├── integration/            # Integration tests for Coder API client
+├── contract/               # Contract tests for MCP tools
+└── unit/                   # Unit tests for data models
 ```
 
 ## Recording New Cassettes
@@ -44,9 +43,9 @@ python tests/record.py
 ```
 
 The script will:
-- Clean up existing test workspaces
-- Record all HTTP interactions
-- Filter sensitive data (tokens, hostnames)
+- Clean up existing test workspaces (prefix: `fleet-mcp-test-`)
+- Record all HTTP interactions needed for tests
+- Filter sensitive data (tokens, hostnames, API keys)
 - Save cassettes to `tests/cassettes/`
 - Clean up created resources
 
@@ -54,69 +53,82 @@ The script will:
 
 ## Writing Tests
 
-### Approach 1: Integration Tests (Direct API Client)
-
-Use RESPX to mock HTTPX requests with cassette data:
+Tests use the pytest-vcr integration. The cassettes are pre-recorded, so tests never hit the live API:
 
 ```python
 import pytest
-import respx
-from httpx import Response
 from fleet_mcp.coder.client import CoderClient
-from tests.fixtures import get_all_responses
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_list_workspaces():
-    """Test listing workspaces using mocked responses"""
-    base_url = "https://coder.example.com"
-    token = "test-token"
-    client = CoderClient(base_url=base_url, token=token)
-
-    # Load response from cassette
-    workspaces = get_response_body("test_list_workspaces")
-
-    # Mock the API call
-    respx.get(f"{base_url}/api/v2/workspaces").mock(
-        return_value=Response(200, json=workspaces)
-    )
-
-    # Execute test
-    result = await client.list_workspaces()
-
-    # Assertions
-    assert isinstance(result, list)
-```
-
-### Approach 2: Contract Tests (MCP Tools)
-
-For MCP tool tests, you can still use VCR with pytest-vcr since the cassettes are pre-recorded:
-
-```python
-import pytest
-from fastmcp import Client
-from fleet_mcp.tools.agent_management import register_agent_tools
 
 @pytest.mark.vcr
-async def test_list_agents(agent_server):
-    """Test list_agents MCP tool"""
-    async with Client(agent_server) as client:
-        result = await client.call_tool("list_agents", {})
-        # Assertions...
+async def test_list_workspaces(coder_base_url, coder_token):
+    """Test listing workspaces using VCR cassette"""
+    client = CoderClient(base_url=coder_base_url, token=coder_token)
+
+    # This will replay from cassette, not hit live API
+    workspaces = await client.list_workspaces()
+
+    assert isinstance(workspaces, list)
+    assert len(workspaces) > 0
 ```
 
-The test will replay the cassette interactions without hitting the live API.
+The test uses the cassette named after the test function (e.g., `test_list_workspaces.yaml`).
+
+## Version-Aware Cassette Caching
+
+The test suite supports version-specific cassettes for automatic cache invalidation:
+
+```python
+from tests.fixtures import get_cassette_path, coder_version
+
+# In a test
+def test_with_version_aware_cassette(cassette_dir, coder_version):
+    cassette_path = get_cassette_path(cassette_dir, "test_my_feature", coder_version)
+    # cassette_path will be:
+    # - test_my_feature_v2.27.1.yaml (if exists)
+    # - test_my_feature.yaml (fallback)
+```
+
+### How It Works
+
+1. `get_coder_version()` extracts version from `coder --version`
+2. `get_cassette_path()` checks for version-specific cassette first
+3. Falls back to base cassette if version-specific doesn't exist
+4. Opt-in per cassette (backward compatible)
+
+### Benefits
+
+- **Automatic invalidation**: Re-record when Coder API changes
+- **Gradual migration**: Add version suffixes only when needed
+- **Backward compatible**: Existing cassettes work without changes
+
+## Cassette Loading Utilities
+
+For advanced use cases, load cassette data directly:
+
+```python
+from tests.fixtures import load_cassette_response, load_all_cassette_responses
+
+# Load single response
+response = load_cassette_response(cassette_path, interaction_index=0)
+body = response["parsed_body"]
+
+# Load all responses from cassette
+responses = load_all_cassette_responses(cassette_path)
+for response in responses:
+    body = response["parsed_body"]
+    # Process each response
+```
 
 ## Benefits of This Approach
 
 ### For Developers
-- **Fast tests**: No network calls, no waiting for workspaces
+- **Fast tests**: No network calls, no waiting for API responses
 - **Deterministic**: Same results every time
 - **Offline**: Work without Coder API access
 - **Easy debugging**: Inspect cassette YAML files directly
 
 ### For AI Agents
-- **Clear test intent**: Tests show expected behavior without API noise
+- **Clear test intent**: Tests show expected behavior without API complexity
 - **Predictable**: No race conditions or timing issues
 - **Maintainable**: Update cassettes separately from test logic
 
@@ -125,37 +137,6 @@ The test will replay the cassette interactions without hitting the live API.
 - **Cheap**: No API costs for test runs
 - **Parallel**: Run tests concurrently without conflicts
 
-## Fixture Utilities
-
-The `fixtures.py` module provides helper functions:
-
-```python
-from tests.fixtures import (
-    get_response_body,      # Get parsed JSON from cassette
-    get_all_responses,      # Get all responses from cassette
-    workspace_list_response,  # Pre-defined fixture
-    agent_create_response,   # Pre-defined fixture
-)
-```
-
-### Custom Fixtures
-
-Load any cassette response:
-
-```python
-# Load the first response body
-data = get_response_body("test_my_api_call")
-
-# Load a specific interaction
-data = get_response_body("test_my_api_call", interaction_index=2)
-
-# Load all responses from a cassette
-responses = get_all_responses("test_my_api_call")
-for response in responses:
-    body = response.get("parsed_body")
-    # Process each response
-```
-
 ## Maintenance
 
 ### When to Re-record
@@ -163,16 +144,16 @@ for response in responses:
 Re-run `record.py` when:
 - Coder API changes (new fields, endpoints, behavior)
 - You add new test scenarios
-- Cassettes become outdated (e.g., new template format)
+- Cassettes become outdated (e.g., new Coder version)
 
 ### What Gets Filtered
 
 The recording script automatically redacts:
-- Authorization headers
-- Session tokens (CODER_SESSION_TOKEN, CODER_AGENT_TOKEN)
+- Authorization headers (all auth headers)
+- Session tokens (`CODER_SESSION_TOKEN`, `CODER_AGENT_TOKEN`)
 - API keys (query parameters)
-- Hostnames (replaced with coder.example.com)
-- Other secrets from .env file
+- Hostnames (replaced with `coder.example.com`)
+- Environment secrets (`GH_TOKEN`, `HA_TOKEN`, `NX_KEY`, etc.)
 
 ### Troubleshooting
 
@@ -183,57 +164,50 @@ The recording script automatically redacts:
 **Solution**: Re-record cassettes with updated API responses
 
 **Problem**: Recording script fails with authentication error
-**Solution**: Check CODER_URL and CODER_SESSION_TOKEN environment variables
+**Solution**: Check `CODER_URL` and `CODER_SESSION_TOKEN` environment variables
 
 **Problem**: Tests pass locally but fail in CI
 **Solution**: Ensure cassettes are committed to version control
 
-## Migration Guide
+**Problem**: Test fails after Coder version upgrade
+**Solution**: Re-record cassettes with new Coder version
 
-### Migrating Old VCR Tests
+## Test Organization
 
-1. **Keep the cassette**: The cassette is still useful as a fixture
-2. **Add RESPX mocking**: Mock HTTP calls with cassette data
-3. **Remove VCR dependency**: Use pytest.mark.asyncio instead of pytest.mark.vcr
-4. **Update fixtures**: Use fixture utilities instead of VCR internals
+### Integration Tests (`integration/`)
+Test the Coder API client directly. These tests:
+- Use `@pytest.mark.vcr` to replay cassettes
+- Test async methods of `CoderClient`
+- Validate request/response handling
+- Check error handling
 
-Example migration:
+### Contract Tests (`contract/`)
+Test MCP tools through the FastMCP server. These tests:
+- Use `@pytest.mark.vcr` to replay cassettes
+- Test MCP tool inputs/outputs
+- Validate tool contract compliance
+- Check MCP protocol handling
 
-```python
-# Before (brittle, slow, dependent on live API)
-@pytest.mark.vcr
-async def test_list_workspaces(coder_base_url, coder_token):
-    client = CoderClient(base_url=coder_base_url, token=coder_token)
-    workspaces = await client.list_workspaces()
-    assert isinstance(workspaces, list)
-
-# After (fast, deterministic, offline)
-@pytest.mark.asyncio
-@respx.mock
-async def test_list_workspaces():
-    base_url = "https://coder.example.com"
-    client = CoderClient(base_url=base_url, token="test-token")
-
-    workspaces = get_response_body("test_list_workspaces")
-    respx.get(f"{base_url}/api/v2/workspaces").mock(
-        return_value=Response(200, json=workspaces)
-    )
-
-    result = await client.list_workspaces()
-    assert isinstance(result, list)
-```
+### Unit Tests (`unit/`)
+Test data models and utilities. These tests:
+- Don't use VCR (no HTTP calls)
+- Test Pydantic models
+- Validate data transformations
+- Check pure functions
 
 ## Best Practices
 
 1. **One cassette per test**: Makes it easy to understand what's being tested
-2. **Descriptive names**: Use test function name as cassette name
+2. **Descriptive test names**: Test function name becomes cassette name
 3. **Minimal interactions**: Only record what's necessary for the test
 4. **Keep cassettes small**: Large cassettes are hard to review and maintain
 5. **Review before commit**: Check that sensitive data is filtered
 6. **Document changes**: Update this guide when adding new recording patterns
+7. **Use record mode "once"**: Prevents accidental overwriting (set in `conftest.py`)
 
 ## References
 
 - [VCR.py Documentation](https://vcrpy.readthedocs.io/)
-- [RESPX Documentation](https://lundberg.github.io/respx/)
+- [pytest-vcr Documentation](https://pytest-vcr.readthedocs.io/)
 - [pytest-asyncio Documentation](https://pytest-asyncio.readthedocs.io/)
+- [FastMCP Documentation](https://github.com/jlowin/fastmcp)

@@ -200,7 +200,7 @@ nx test fleet-mcp
 
 # Run specific test suites
 uv run pytest tests/unit -v          # Unit tests (data models)
-uv run pytest tests/integration -v    # Integration tests (uses RESPX mocking)
+uv run pytest tests/integration -v    # Integration tests (uses VCR cassettes)
 uv run pytest tests/contract -v       # Contract tests (MCP tools - uses VCR cassettes)
 ```
 
@@ -258,15 +258,16 @@ Following **Test-Driven Development (TDD)**:
 
 Tests use a **decoupled recording approach**:
 - **Recording**: `tests/record.py` script records HTTP interactions once
-- **Testing**: Tests use pre-recorded cassettes as fixtures with mocking
+- **Testing**: Tests replay pre-recorded cassettes via pytest-vcr
+- **Version-aware caching**: Automatic cache invalidation on Coder version changes
 - **Benefits**: Fast, deterministic, offline tests
 
 See [tests/TESTING.md](tests/TESTING.md) for complete documentation.
 
 Test types:
 - **Unit tests**: Data models and validation (no network calls)
-- **Integration tests**: Coder API client (uses RESPX mocking with cassettes)
-- **Contract tests**: MCP tool behavior (uses VCR replay mode)
+- **Integration tests**: Coder API client (uses VCR cassettes)
+- **Contract tests**: MCP tool behavior (uses VCR cassettes)
 
 ## License
 

@@ -177,5 +177,14 @@ def _redact_secrets_from_request(request):
     return request
 
 
-# Note: coder_base_url and coder_token fixtures moved to fixtures.py
-# They are now available through pytest_plugins import
+# Restore fixtures that tests depend on
+@pytest.fixture
+def coder_base_url():
+    """Coder API base URL from environment"""
+    return os.getenv("CODER_URL", "https://coder.example.com")
+
+
+@pytest.fixture
+def coder_token():
+    """Coder API token from environment"""
+    return os.getenv("CODER_SESSION_TOKEN", "test-token-placeholder")
