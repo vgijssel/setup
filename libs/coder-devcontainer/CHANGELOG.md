@@ -1,3 +1,9 @@
+## 0.13.5 (2025-11-06)
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.6.17
+
 ## 0.13.4 (2025-11-05)
 
 ### 🩹 Fixes
