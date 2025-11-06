@@ -1,5 +1,0 @@
-#!/bin/bash
-
-set -eo pipefail
-
-uv run --project "${SETUP_DIR}"/third_party/python supervisorctl "$@"

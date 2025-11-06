@@ -540,42 +540,20 @@ resource "coder_script" "fleet_mcp" {
 
     cd /workspaces/setup
 
-    # Start supervisord daemon using uv-based binstub
-    sudo /workspaces/setup/bin/supervisord -c /etc/supervisor/conf.d/fleet-mcp.conf
+    # Create log directories for supervisor and fleet-mcp
+    mkdir -p logs/supervisor logs/fleet-mcp
 
-    # Wait for supervisor socket to be available
-    echo "Waiting for supervisor socket..."
-    while [ ! -S /var/run/supervisor.sock ]; do
-      sleep 0.1
-    done
+    # Start supervisord daemon
+    sudo supervisord -c libs/coder-devcontainer/supervisord.conf
+
+    # Wait for supervisord to be available on port 9001
+    wait-for-it localhost:9001 -t 30
 
     # Verify fleet-mcp service is running
-    sudo /workspaces/setup/bin/supervisorctl -c /etc/supervisor/conf.d/fleet-mcp.conf status fleet-mcp
+    sudo supervisorctl -c libs/coder-devcontainer/supervisord.conf status fleet-mcp
   EOT
   run_on_start = true
   run_on_stop  = false
-}
-
-# Fleet MCP server shutdown script - gracefully stops fleet-mcp
-resource "coder_script" "fleet_mcp_shutdown" {
-  agent_id     = coder_agent.main.id
-  display_name = "Fleet MCP Server Shutdown"
-  icon         = "/icon/cloud.svg"
-  script       = <<-EOT
-    #!/bin/bash
-    set -e
-    set -x
-
-    cd /workspaces/setup
-
-    # Gracefully stop fleet-mcp service
-    sudo /workspaces/setup/bin/supervisorctl -c /etc/supervisor/conf.d/fleet-mcp.conf stop fleet-mcp || true
-
-    # Stop supervisord
-    sudo /workspaces/setup/bin/supervisorctl -c /etc/supervisor/conf.d/fleet-mcp.conf shutdown || true
-  EOT
-  run_on_start = false
-  run_on_stop  = true
 }
 
 # Fleet MCP server app - exposes the HTTP server with healthcheck
