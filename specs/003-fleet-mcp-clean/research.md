@@ -4,11 +4,145 @@
 
 ## Overview
 
-This document captures research findings and technology decisions for implementing fleet-mcp-clean with clean architecture and AI-compatible testing.
+This document captures research findings and technology decisions for implementing fleet-mcp-clean with clean architecture, AI-compatible testing, **uv package management (no pip)**, and **Nx monorepo integration**.
 
 ## Technology Decisions
 
-### 1. MCP Server Framework: FastMCP
+### 0. Package Manager: uv (NOT pip)
+
+**Decision**: Use uv 0.7.20+ exclusively for all Python package management
+
+**Rationale**:
+- **Speed**: 10-100x faster than pip for dependency resolution and installation
+- **Determinism**: uv.lock provides fully reproducible builds (like poetry.lock or Pipfile.lock)
+- **Monorepo-friendly**: Handles multiple Python projects efficiently
+- **Modern**: Built in Rust, actively maintained, follows Python packaging standards (PEP 517/518)
+- **Nx Integration**: Works seamlessly with Nx run-commands executor
+- **Existing Pattern**: libs/fleet-mcp already uses uv successfully (see libs/fleet-mcp/package.json)
+- **Virtual Environment Management**: Automatic .venv creation and management
+- **Constitution Compliance**: Pinned dependencies + uv.lock ensures deterministic builds (Principle II)
+
+**How uv Replaces pip**:
+| pip Command | uv Equivalent |
+|-------------|---------------|
+| `pip install` | `uv pip install` or `uv sync` |
+| `pip install -e .` | `uv pip install -e .` |
+| `pip freeze` | `uv pip freeze` (or use uv.lock) |
+| `python -m pip install` | `uv pip install` |
+| `pip-compile` | `uv pip compile` |
+| Run scripts | `uv run <command>` |
+
+**Best Practices**:
+- **Never use pip directly** - always use uv commands
+- Use `uv sync` to ensure venv matches uv.lock exactly
+- Use `uv run` to execute commands in managed virtual environment
+- Use `uv pip install --all-extras` for dev dependencies
+- Commit uv.lock to version control
+- Pin all dependencies to exact versions in pyproject.toml (see Principle II)
+
+**Nx Target Integration**:
+```json
+{
+  "test": {
+    "executor": "nx:run-commands",
+    "options": {
+      "command": "uv run --all-extras pytest -v",
+      "cwd": "libs/fleet-mcp-clean"
+    }
+  }
+}
+```
+
+**Alternatives Considered**:
+- **pip**: Traditional but slow (1-10 minutes), lacks lock file, non-deterministic
+- **poetry**: Good but heavier, has own venv management that conflicts with Nx patterns
+- **pipenv**: Similar to poetry but less maintained, slower than uv
+- **conda**: Too heavy, not suitable for monorepo
+
+### 1. Build System: Nx Monorepo Integration
+
+**Decision**: Configure fleet-mcp-clean as Nx library with package.json configuration
+
+**Rationale**:
+- **Existing Pattern**: libs/fleet-mcp uses this exact pattern (see libs/fleet-mcp/package.json)
+- **Build Orchestration**: Nx caches test results and runs only affected tests
+- **Monorepo Consistency**: All projects (Python, JS, Go) use Nx for task execution
+- **Target Definition**: Use `nx:run-commands` executor to wrap uv commands
+- **Smart Caching**: Nx invalidates cache when source or test files change
+- **Affected Command**: `nx affected:test` runs tests only for changed code
+- **Independent Versioning**: Uses `nx release` for semantic versioning
+- **Constitution Compliance**: Follows Principle IV (Nx Monorepo Structure)
+
+**Configuration Pattern** (from libs/fleet-mcp):
+```json
+{
+  "name": "fleet-mcp-clean",
+  "version": "0.1.0",
+  "description": "Fleet MCP Clean Architecture Server",
+  "private": true,
+  "nx": {
+    "projectType": "library",
+    "sourceRoot": "libs/fleet-mcp-clean/src",
+    "targets": {
+      "server": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8001 --reload --timeout-graceful-shutdown 3",
+          "cwd": "libs/fleet-mcp-clean"
+        },
+        "metadata": {
+          "description": "Run the fleet-mcp-clean server with hot reload"
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run --all-extras pytest -v",
+          "cwd": "libs/fleet-mcp-clean"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/.env"
+        ],
+        "metadata": {
+          "description": "Run pytest tests"
+        }
+      }
+    }
+  }
+}
+```
+
+**Nx Commands**:
+- `nx server fleet-mcp-clean` - Run development server
+- `nx test fleet-mcp-clean` - Run tests (with caching)
+- `nx affected:test` - Run tests for changed projects only
+- `nx show project fleet-mcp-clean` - Show project configuration
+
+**Key Configuration Details**:
+- Use port 8001 (not 8000) to avoid conflict with original fleet-mcp
+- `cache: true` enables Nx caching for test target
+- `inputs` array defines which files invalidate cache
+- Exclude `.venv` and `.pytest_cache` from inputs
+- Use `{projectRoot}` placeholder for portability
+
+**Alternatives Considered**:
+- **Bazel**: Too heavy, requires BUILD files, Python support not as mature
+- **Just Makefile**: No caching, no affected command, not monorepo-aware
+- **project.json**: Possible but package.json is monorepo convention
+- **No Build System**: Manual test execution, no caching, no affected detection
+
+**Best Practices**:
+- Always use `uv run` prefix in Nx commands
+- Set `cache: true` for deterministic tasks (tests, builds)
+- Properly define `inputs` to invalidate cache correctly
+- Use different ports for different MCP servers (8000, 8001, 8002...)
+- Follow naming convention: `fleet-mcp-clean` (not `fleet_mcp_clean`)
+
+### 2. MCP Server Framework: FastMCP
 
 **Decision**: Use FastMCP (https://github.com/jlowin/fastmcp) as the MCP server framework
 

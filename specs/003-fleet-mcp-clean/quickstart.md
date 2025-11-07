@@ -8,10 +8,11 @@ This guide provides a step-by-step walkthrough for developers to understand, bui
 
 ## Prerequisites
 
-- Python 3.11+
+- Python 3.12+
+- **uv 0.7.20+** (package manager - NOT pip)
 - Access to a Coder instance with API token
 - Coder templates configured with `ai_prompt` and `system_prompt` rich parameters
-- Nx monorepo environment (already configured in this repository)
+- Nx 21.4.1+ monorepo environment (already configured in this repository)
 
 ## Installation
 
@@ -21,17 +22,35 @@ This guide provides a step-by-step walkthrough for developers to understand, bui
 cd libs/fleet-mcp-clean
 ```
 
-### 2. Install Dependencies
+### 2. Install Dependencies with uv
+
+**IMPORTANT**: Use `uv`, NOT `pip`. This project uses uv for all package management.
 
 ```bash
-# Using pip
-pip install -r requirements.txt
+# Install dependencies from pyproject.toml (creates .venv automatically)
+uv sync
 
-# Or using poetry (if project uses it)
-poetry install
+# Or install with dev dependencies
+uv sync --all-extras
 ```
 
-### 3. Environment Configuration
+**What uv does**:
+- Creates `.venv/` directory automatically
+- Installs all dependencies from `pyproject.toml`
+- Generates/updates `uv.lock` for reproducible builds
+- 10-100x faster than pip
+
+### 3. Verify Installation
+
+```bash
+# Check that uv created the virtual environment
+ls .venv/
+
+# Run a simple check using uv
+uv run python -c "import fleet_mcp_clean; print('Installation successful!')"
+```
+
+### 4. Environment Configuration
 
 **No configuration needed!** When running inside a Coder workspace agent, the following environment variables are automatically available:
 
@@ -98,8 +117,10 @@ Fleet-mcp-clean follows strict TDD:
 # CODER_URL and CODER_SESSION_TOKEN are automatically available
 
 # Run the recording script (uses live Coder API)
-python tests/record.py
+uv run python tests/record.py
 ```
+
+**Note**: Always use `uv run` to execute Python scripts in this project.
 
 This creates cassettes in `tests/cassettes/`:
 - `create_workspace_success.yaml`
@@ -229,19 +250,38 @@ class CoderClient:
 
 #### Step 4: Run Tests
 
+**Using uv** (preferred):
 ```bash
 # Run all tests
-pytest
+uv run pytest -v
 
 # Run specific layer tests
-pytest tests/clients/
-pytest tests/repositories/
-pytest tests/services/
-pytest tests/tools/
+uv run pytest tests/clients/ -v
+uv run pytest tests/repositories/ -v
+uv run pytest tests/services/ -v
+uv run pytest tests/tools/ -v
 
 # Run with coverage
-pytest --cov=fleet_mcp_clean --cov-report=term-missing
+uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing
 ```
+
+**Using Nx** (monorepo integration):
+```bash
+# Run tests via Nx (with caching)
+nx test fleet-mcp-clean
+
+# Run affected tests only
+nx affected:test
+
+# View test configuration
+nx show project fleet-mcp-clean
+```
+
+**Benefits of Nx**:
+- Caches test results (faster subsequent runs)
+- Only runs tests for affected projects
+- Parallel execution across monorepo
+- Integrated with CI/CD
 
 ### 3. Adding a New Feature
 
@@ -260,13 +300,21 @@ Follow this TDD workflow:
 
 ### Local Development
 
+**Using uv**:
 ```bash
-# Start the server
-python -m fleet_mcp_clean.server
-
-# Or using FastMCP CLI
-fastmcp run fleet_mcp_clean.server:mcp
+# Start the server with hot reload
+uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8001 --reload
 ```
+
+**Using Nx** (preferred):
+```bash
+# Start the server via Nx target
+nx server fleet-mcp-clean
+
+# This runs: uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8001 --reload --timeout-graceful-shutdown 3
+```
+
+**Note**: Port 8001 is used to avoid conflict with the original fleet-mcp (port 8000).
 
 ### Production Deployment
 
