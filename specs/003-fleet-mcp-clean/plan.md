@@ -1,7 +1,7 @@
 # Implementation Plan: Fleet MCP Clean Architecture
 
-**Branch**: `001-fleet-mcp-clean` | **Date**: 2025-11-07 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/specs/001-fleet-mcp-clean/spec.md`
+**Branch**: `003-fleet-mcp-clean` | **Date**: 2025-11-07 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/specs/003-fleet-mcp-clean/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 

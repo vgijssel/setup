@@ -1,6 +1,6 @@
 # Feature Specification: Fleet MCP Clean Architecture Implementation
 
-**Feature Branch**: `001-fleet-mcp-clean`
+**Feature Branch**: `003-fleet-mcp-clean`
 **Created**: 2025-11-07
 **Status**: Draft
 **Input**: User description: "Create a clone of the existing fleet-mcp server in libs/fleet-mcp called libs/fleet-mcp-clean but with two architectural differences: it uses clean architecture and it uses a better AI compatible testing strategy. It's a completely new implementation and there is no need for backwards compatibility. The fleet-mcp-clean has the following MCP tool calls similar to the existing fleet-mcp implementation: 1. List agents 2. Show agent 3. Create agent 4. Send task to agent 5. Cancel whatever task agent is working on 6. Show agent task history 7. Show agent logs 8. Delete agent 9. Restart agent 10. List agent projects 11. List agent roles per project"

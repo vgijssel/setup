@@ -1,6 +1,6 @@
 # Tasks: Fleet MCP Clean Architecture Implementation
 
-**Input**: Design documents from `/specs/001-fleet-mcp-clean/`
+**Input**: Design documents from `/specs/003-fleet-mcp-clean/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md
 **Context**: TDD approach - tests written and verified to FAIL before implementation
 
