@@ -49,7 +49,7 @@ This is a Python library in Nx monorepo:
 - [ ] T013 [P] Create models/responses.py with all MCP Response models (ListAgentsResponse, CreateAgentResponse, etc.)
 - [ ] T014 [P] Create models/errors.py with custom exception classes
 - [ ] T015 Create clients/__init__.py for HTTP client layer
-- [ ] T016 Create clients/coder_client.py with CoderClient class (HTTPX async client)
+- [X] T016 Create clients/coder_client.py with CoderClient class (HTTPX async client)
 - [ ] T017 Create clients/exceptions.py with HTTP error handling
 - [ ] T018 Create repositories/__init__.py for data access layer
 - [ ] T019 Create services/__init__.py for business logic layer

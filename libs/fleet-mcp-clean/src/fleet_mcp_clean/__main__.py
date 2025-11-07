@@ -1,8 +1,12 @@
 """FastMCP server entry point for fleet-mcp-clean."""
 
 import os
+from typing import Optional
+
 from dotenv import load_dotenv
 from fastmcp import FastMCP
+from typing_extensions import Annotated
+from pydantic import Field
 
 # Load environment variables
 load_dotenv()
@@ -20,20 +24,186 @@ if not CODER_URL or not CODER_SESSION_TOKEN:
     )
 
 # Initialize clients, repositories, and services
-# These will be imported and initialized when tools are registered
-# from .clients import CoderClient
-# from .repositories import AgentRepository, TaskRepository, ProjectRepository
-# from .services import AgentService, TaskService, ProjectService
+from .clients import CoderClient
+from .repositories import AgentRepository, ProjectRepository
+from .services import AgentService, ProjectService
+from .models import AgentStatus
 
-# Tools will be registered here as they are implemented
-# Example:
-# @mcp.tool()
-# async def list_agents(...):
-#     pass
+# Create singletons for dependency injection
+_coder_client: CoderClient | None = None
+_agent_repo: AgentRepository | None = None
+_project_repo: ProjectRepository | None = None
+_agent_service: AgentService | None = None
+_project_service: ProjectService | None = None
 
-# For now, register a health check tool
+
+def get_coder_client() -> CoderClient:
+    """Get or create CoderClient singleton."""
+    global _coder_client
+    if _coder_client is None:
+        _coder_client = CoderClient(base_url=CODER_URL, token=CODER_SESSION_TOKEN)
+    return _coder_client
+
+
+def get_agent_repository() -> AgentRepository:
+    """Get or create AgentRepository singleton."""
+    global _agent_repo
+    if _agent_repo is None:
+        _agent_repo = AgentRepository(get_coder_client())
+    return _agent_repo
+
+
+def get_project_repository() -> ProjectRepository:
+    """Get or create ProjectRepository singleton."""
+    global _project_repo
+    if _project_repo is None:
+        _project_repo = ProjectRepository(get_coder_client())
+    return _project_repo
+
+
+def get_agent_service() -> AgentService:
+    """Get or create AgentService singleton."""
+    global _agent_service
+    if _agent_service is None:
+        _agent_service = AgentService(
+            get_agent_repository(), get_project_repository()
+        )
+    return _agent_service
+
+
+def get_project_service() -> ProjectService:
+    """Get or create ProjectService singleton."""
+    global _project_service
+    if _project_service is None:
+        _project_service = ProjectService(get_project_repository())
+    return _project_service
+
+
+# ========================================================================
+# User Story 1: Agent Discovery Tools
+# ========================================================================
+
+
 @mcp.tool()
-async def health_check() -> dict:
+async def list_agents(
+    status_filter: Annotated[
+        Optional[str], Field(None, description="Optional filter by agent status (starting, idle, busy, offline, failed)")
+    ] = None,
+    project_filter: Annotated[
+        Optional[str], Field(None, description="Optional filter by project name")
+    ] = None,
+):
+    """List all agents in the fleet with optional filtering."""
+    from .tools.list_agents import list_agents as list_agents_impl
+
+    # Convert status_filter string to AgentStatus enum if provided
+    status_enum = None
+    if status_filter:
+        try:
+            status_enum = AgentStatus(status_filter.lower())
+        except ValueError:
+            pass
+
+    result = await list_agents_impl(
+        get_agent_service(), status_filter=status_enum, project_filter=project_filter
+    )
+    return result.model_dump()
+
+
+@mcp.tool()
+async def show_agent(
+    agent_name: Annotated[
+        str, Field(min_length=1, max_length=20, description="Name of the agent to retrieve")
+    ],
+):
+    """Show detailed information about a specific agent."""
+    from .tools.show_agent import show_agent as show_agent_impl
+
+    result = await show_agent_impl(get_agent_service(), agent_name=agent_name)
+    return result.model_dump()
+
+
+@mcp.tool()
+async def list_agent_projects():
+    """List all available projects (templates) that can be used to create agents."""
+    from .tools.list_projects import list_agent_projects as list_projects_impl
+
+    result = await list_projects_impl(get_project_service())
+    return result.model_dump()
+
+
+@mcp.tool()
+async def list_agent_roles(
+    project: Annotated[str, Field(description="Project name to query roles for")],
+):
+    """List all available roles (workspace presets) for a specific project."""
+    from .tools.list_roles import list_agent_roles as list_roles_impl
+
+    result = await list_roles_impl(get_project_service(), project=project)
+    return result.model_dump()
+
+
+# ========================================================================
+# User Story 2: Agent Lifecycle Management Tools
+# ========================================================================
+
+
+@mcp.tool()
+async def create_agent(
+    name: Annotated[str, Field(description="Unique short agent name (e.g., Sony, Papi)")],
+    project: Annotated[str, Field(description="Project name (e.g., Setup, DataOne)")],
+    task: Annotated[
+        str, Field(description="Task description defining objectives and constraints")
+    ],
+    role: Annotated[
+        str,
+        Field(
+            description="Agent role matching Coder workspace preset (e.g., coder, operator, manager)"
+        ),
+    ] = "coder",
+):
+    """Create a new Claude Code agent in a Coder workspace."""
+    from .tools.create_agent import create_agent as create_agent_impl
+
+    result = await create_agent_impl(
+        get_agent_service(), name=name, project=project, task=task, role=role
+    )
+    return result.model_dump()
+
+
+@mcp.tool()
+async def delete_agent(
+    agent_name: Annotated[
+        str, Field(min_length=1, max_length=20, description="Name of the agent to delete")
+    ],
+):
+    """Delete an agent and destroy its underlying workspace (forceful deletion)."""
+    from .tools.delete_agent import delete_agent as delete_agent_impl
+
+    result = await delete_agent_impl(get_agent_service(), agent_name=agent_name)
+    return result.model_dump()
+
+
+@mcp.tool()
+async def restart_agent(
+    agent_name: Annotated[
+        str, Field(min_length=1, max_length=20, description="Name of the agent to restart")
+    ],
+):
+    """Restart an agent's workspace to refresh its environment."""
+    from .tools.restart_agent import restart_agent as restart_agent_impl
+
+    result = await restart_agent_impl(get_agent_service(), agent_name=agent_name)
+    return result.model_dump()
+
+
+# ========================================================================
+# Health Check
+# ========================================================================
+
+
+@mcp.tool()
+async def health_check():
     """Check if the fleet-mcp-clean server is running."""
     return {
         "status": "healthy",
