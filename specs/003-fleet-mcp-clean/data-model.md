@@ -1,6 +1,6 @@
 # Data Model: Fleet MCP Clean Architecture
 
-**Branch**: `001-fleet-mcp-clean` | **Date**: 2025-11-07
+**Branch**: `003-fleet-mcp-clean` | **Date**: 2025-11-07
 
 ## Overview
 
