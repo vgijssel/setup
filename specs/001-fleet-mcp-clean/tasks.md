@@ -43,9 +43,9 @@
 
 ### VCR Cassette Recording (One-Time Operation)
 
-- [ ] T012 Create VCR recording script in tests/record.py following quickstart.md example
+- [ ] T012 Create VCR recording script in tests/record.py following plan.md:L149-280 with error handling, environment validation, and async setup
 - [ ] T013 Create tests/cassettes/ directory for storing cassettes
-- [ ] T014 Run tests/record.py to record all Coder API interactions as VCR cassettes
+- [ ] T014 Run tests/record.py to record all Coder API interactions as VCR cassettes (requires CODER_URL and CODER_SESSION_TOKEN env vars)
 - [ ] T015 Create cassette loader utility in tests/fixtures/cassette_loader.py
 
 ### Client Layer (HTTP Communication)
@@ -376,6 +376,21 @@
 - [ ] T158 Performance test: verify list_agents with 100+ agents completes <2s
 - [ ] T159 Stress test: verify agent creation completes within 60s
 - [ ] T160 Stress test: verify task cancellation completes within 5s
+
+### Edge Case Testing (spec.md L80-89)
+
+- [ ] T161 [P] Write test for agent name validation: test valid names (alphanumeric, hyphens, 1-20 chars) and invalid names (special chars, empty, too long) in tests/services/test_agent_service.py
+- [ ] T162 [P] Write test for empty task description rejection in tests/services/test_task_service.py
+- [ ] T163 [P] Write test for pagination page_size limit enforcement (max 100) in tests/repositories/test_task_repository.py
+- [ ] T164 [P] Write test for pagination beyond available data (page 100 when only 3 pages exist) in tests/repositories/test_task_repository.py
+- [ ] T165 [P] Write test for Coder API unavailability handling in tests/clients/test_coder_client.py using respx to mock network errors
+- [ ] T166 [P] Write test for agent task assignment when workspace in transitional state (starting/stopping) in tests/services/test_task_service.py
+- [ ] T167 [P] Write test for very long task descriptions (>10KB) in tests/services/test_task_service.py
+
+### Architecture Validation (SC-007)
+
+- [ ] T168 Create import-linter configuration in libs/fleet-mcp-clean/.importlinter to enforce layer boundaries: tools→services, services→repositories, repositories→clients
+- [ ] T169 Add import-linter check to CI pipeline and verify no cross-layer imports exist
 
 ---
 

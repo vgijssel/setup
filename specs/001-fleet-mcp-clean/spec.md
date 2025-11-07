@@ -79,13 +79,22 @@ As a fleet manager, I need to review task history and conversation logs for agen
 
 ### Edge Cases
 
-- What happens when an agent name contains uppercase letters, numbers, or hyphens (valid), but not special characters like @ or spaces (invalid)?
-- How does the system handle attempts to create an agent with a project that doesn't have required parameters (ai_prompt, system_prompt)?
-- What happens when Coder API is temporarily unavailable during agent creation or task assignment?
-- How does the system handle pagination when requesting page numbers beyond available data (e.g., page 100 when only 3 pages exist)?
-- What happens when an agent's workspace is in a transitional state (starting, stopping) during task assignment?
-- How does the system handle very long task descriptions or log entries that might exceed storage limits?
-- What happens when attempting to show details for an agent that was just deleted by another user?
+**Note**: Each edge case below maps to specific test tasks (see tasks.md Phase 7: T161-T167)
+
+- **T161**: What happens when an agent name contains uppercase letters, numbers, or hyphens (valid), but not special characters like @ or spaces (invalid)?
+  - Expected: Validation error with clear message listing valid characters
+- **T162**: How does the system handle attempts to create an agent with a project that doesn't have required parameters (ai_prompt, system_prompt)?
+  - Expected: Validation error indicating missing required template parameters
+- **T163**: What happens when Coder API is temporarily unavailable during agent creation or task assignment?
+  - Expected: Network error with retry suggestion or timeout message
+- **T164**: How does the system handle pagination when requesting page numbers beyond available data (e.g., page 100 when only 3 pages exist)?
+  - Expected: Empty result set with pagination metadata showing actual available pages
+- **T165**: What happens when an agent's workspace is in a transitional state (starting, stopping) during task assignment?
+  - Expected: Agent status check fails with message indicating agent is not online
+- **T166**: How does the system handle very long task descriptions or log entries that might exceed storage limits?
+  - Expected: Truncation or chunking with warning about length limit
+- **T167**: What happens when attempting to show details for an agent that was just deleted by another user?
+  - Expected: 404 error with clear message that agent no longer exists
 
 ## Requirements *(mandatory)*
 
@@ -158,21 +167,27 @@ As a fleet manager, I need to review task history and conversation logs for agen
   - Attributes: tasks (ordered list), total_count, page, page_size
   - Business rules: Ordered newest-first; pagination required for large histories
 
-- **ConversationLog**: Collection of log entries for an agent
-  - Attributes: logs (ordered list), total_count, page, page_size
-  - Business rules: Ordered newest-first; default page size is 1 (latest only)
+- **LogEntry**: A single log entry from an agent's conversation history
+  - Attributes: timestamp (when logged), content (log message), level (info/error/debug)
+  - Business rules: Immutable once created; ordered by timestamp
+
+- **ConversationLog**: Collection of LogEntry records for an agent
+  - Attributes: logs (ordered list of LogEntry), total_count, page, page_size
+  - Business rules: Ordered newest-first; default page size is 1 (latest only); each log is a LogEntry
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: Fleet managers can create a new agent and have it become operational within 60 seconds
+**Terminology**: An "online" agent means an agent in either `idle` or `busy` status (i.e., workspace is running and agent is connected). An "offline" agent has status other than idle/busy (e.g., `starting`, `stopped`, `failed`).
+
+- **SC-001**: Fleet managers can create a new agent and have it become online (status=idle, workspace.latest_build.status="running") within 60 seconds
 - **SC-002**: Fleet managers can discover all agents in a fleet of 100+ agents in under 2 seconds
-- **SC-003**: Fleet managers can assign tasks to idle agents with 100% success rate when agents are online
+- **SC-003**: Fleet managers can assign tasks to idle agents with 100% success rate when agents are online (status=idle)
 - **SC-004**: Fleet managers can cancel running tasks and have agents return to idle status within 5 seconds
 - **SC-005**: Fleet managers can delete agents in any state (busy, idle, starting) with 100% success rate
 - **SC-006**: Developers can understand the purpose and expected behavior of any test by reading its description in under 10 seconds
-- **SC-007**: The codebase maintains clear architectural boundaries with each layer depending only on the layer directly below it (Tool → Service → Repository → Client)
+- **SC-007**: The codebase maintains clear architectural boundaries verified by: (a) No import statements cross layer boundaries (Tool imports only Service, Service imports only Repository, Repository imports only Client), and (b) Static analysis via import-linter configuration passes in CI
 - **SC-008**: All tests use mocks derived from VCR cassettes, ensuring 100% reproducibility without requiring a live Coder instance
 - **SC-009**: Fleet managers receive clear, actionable error messages for all failure scenarios (duplicate names, offline agents, busy agents)
 - **SC-010**: The system handles pagination correctly for histories with 1000+ entries without performance degradation

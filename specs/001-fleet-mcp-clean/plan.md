@@ -150,77 +150,141 @@ libs/fleet-mcp-clean/
 
 The record.py script is used to record all Coder API interactions as VCR cassettes. This is a one-time operation that captures real API responses for use in tests.
 
+**Prerequisites**:
+- Live Coder instance accessible
+- Environment variables set:
+  - `CODER_URL`: Base URL of Coder instance (e.g., `https://coder.example.com`)
+  - `CODER_SESSION_TOKEN`: Valid authentication token from `coder tokens create`
+- Test workspace template available with required parameters (ai_prompt, system_prompt)
+
 **Example Implementation**:
 
 ```python
+import asyncio
+import os
+from fleet_mcp_clean.clients.coder_client import CoderClient
+
+# Configuration from environment
+CODER_URL = os.environ["CODER_URL"]
+CODER_SESSION_TOKEN = os.environ["CODER_SESSION_TOKEN"]
+
 async def record(vcr_instance):
     """Record all Coder API interactions to VCR cassettes
 
     This function executes a complete workflow against a live Coder instance,
     recording each API interaction as a separate cassette file.
+
+    Raises:
+        ValueError: If required environment variables are missing
+        httpx.HTTPError: If Coder API requests fail
+        TimeoutError: If workspace provisioning exceeds timeout
     """
+    if not CODER_URL or not CODER_SESSION_TOKEN:
+        raise ValueError("Missing required environment variables: CODER_URL, CODER_SESSION_TOKEN")
+
     client = CoderClient(base_url=CODER_URL, token=CODER_SESSION_TOKEN)
 
-    # Create workspace
-    with vcr_instance.use_cassette("create_workspace_success.yaml"):
-        client.create_workspace()
+    try:
 
-    # Waiting for client readiness doesn't need to be recorded
-    await wait_for_workspace_until_is_idle(client)
+        # Create workspace
+        with vcr_instance.use_cassette("create_workspace_success.yaml"):
+            workspace = await client.create_workspace(
+                name="test-agent",
+                template_id="<template-id>",
+                rich_parameters={"ai_prompt": "Test task", "system_prompt": "Test system"}
+            )
 
-    # Get workspace details
-    with vcr_instance.use_cassette("get_workspace_success.yaml"):
-        client.get_workspace()
+        # Waiting for client readiness doesn't need to be recorded
+        # Poll workspace status until build completes
+        await wait_for_workspace_until_is_idle(client, workspace.id, timeout=120)
 
-    # List all workspaces
-    with vcr_instance.use_cassette("list_workspaces_success.yaml"):
-        client.list_workspaces()
+        # Get workspace details
+        with vcr_instance.use_cassette("get_workspace_success.yaml"):
+            client.get_workspace()
 
-    # List templates (projects)
-    with vcr_instance.use_cassette("list_templates_success.yaml"):
-        client.list_templates()
+        # List all workspaces
+        with vcr_instance.use_cassette("list_workspaces_success.yaml"):
+            client.list_workspaces()
 
-    # Get specific template
-    with vcr_instance.use_cassette("get_template_success.yaml"):
-        client.get_template()
+        # List templates (projects)
+        with vcr_instance.use_cassette("list_templates_success.yaml"):
+            client.list_templates()
 
-    # Get template rich parameters
-    with vcr_instance.use_cassette("get_template_version_rich_parameters_success.yaml"):
-        client.get_template_version_rich_parameters()
+        # Get specific template
+        with vcr_instance.use_cassette("get_template_success.yaml"):
+            client.get_template()
 
-    # Get template version presets (roles)
-    with vcr_instance.use_cassette("get_template_version_presets_success.yaml"):
-        client.get_template_version_presets()
+        # Get template rich parameters
+        with vcr_instance.use_cassette("get_template_version_rich_parameters_success.yaml"):
+            client.get_template_version_rich_parameters()
 
-    # Get organization ID
-    with vcr_instance.use_cassette("get_organization_success.yaml"):
-        client._get_org_id()
+        # Get template version presets (roles)
+        with vcr_instance.use_cassette("get_template_version_presets_success.yaml"):
+            client.get_template_version_presets()
 
-    # Send super simple task input
-    with vcr_instance.use_cassette("send_task_input_success.yaml"):
-        client.send_task_input()
+        # Get organization ID
+        with vcr_instance.use_cassette("get_organization_success.yaml"):
+            client._get_org_id()
 
-    # Wait until task is complete
-    await wait_for_workspace_until_is_idle(client)
+        # Send super simple task input
+        with vcr_instance.use_cassette("send_task_input_success.yaml"):
+            client.send_task_input()
 
-    # Get task logs
-    with vcr_instance.use_cassette("get_task_logs_success.yaml"):
-        client.get_task_logs()
+        # Wait until task is complete
+        await wait_for_workspace_until_is_idle(client)
 
-    # Get task status
-    with vcr_instance.use_cassette("get_task_success.yaml"):
-        client.get_task()
+        # Get task logs
+        with vcr_instance.use_cassette("get_task_logs_success.yaml"):
+            client.get_task_logs()
 
-    # Send AgentAPI interrupt (Ctrl+C)
-    with vcr_instance.use_cassette("send_agentapi_interrupt_success.yaml"):
-        client.send_interrupt()
+        # Get task status
+        with vcr_instance.use_cassette("get_task_success.yaml"):
+            client.get_task()
 
-    # Delete workspace
-    with vcr_instance.use_cassette("delete_workspace_success.yaml"):
-        client.delete_workspace()
+        # Send AgentAPI interrupt (Ctrl+C)
+        with vcr_instance.use_cassette("send_agentapi_interrupt_success.yaml"):
+            client.send_interrupt()
 
-    # Wait until deletion is complete
-    await wait_until_workspace_is_deleted(client)
+        # Delete workspace
+        with vcr_instance.use_cassette("delete_workspace_success.yaml"):
+            await client.delete_workspace(workspace.id)
+
+        # Wait until deletion is complete
+        await wait_until_workspace_is_deleted(client, workspace.id, timeout=60)
+
+    except Exception as e:
+        print(f"Error during VCR recording: {e}")
+        # Cleanup: attempt to delete test workspace if it exists
+        try:
+            await client.delete_workspace(workspace.id)
+        except:
+            pass
+        raise
+
+# Entry point for recording script
+if __name__ == "__main__":
+    import vcr
+
+    vcr_instance = vcr.VCR(
+        cassette_library_dir="tests/cassettes",
+        record_mode="new_episodes",
+        match_on=["method", "scheme", "host", "port", "path", "query"],
+        filter_headers=["authorization"],  # Remove sensitive tokens from cassettes
+    )
+
+    asyncio.run(record(vcr_instance))
+    print("✓ All VCR cassettes recorded successfully")
+```
+
+**Usage**:
+```bash
+# Set environment variables
+export CODER_URL="https://coder.example.com"
+export CODER_SESSION_TOKEN="$(coder tokens create --lifetime 24h)"
+
+# Run recording script
+cd libs/fleet-mcp-clean
+python tests/record.py
 ```
 
 **Key Characteristics**:
