@@ -1,0 +1,618 @@
+# Tasks: Fleet MCP Clean Architecture
+
+**Input**: Design documents from `/specs/003-fleet-mcp-clean/`
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
+
+**Tests**: TDD approach requested - test tasks included for all user stories
+
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3, US4)
+- Include exact file paths in descriptions
+
+## Path Conventions
+
+This is a Python library in Nx monorepo:
+- Source: `libs/fleet-mcp-clean/src/fleet_mcp_clean/`
+- Tests: `libs/fleet-mcp-clean/tests/`
+
+---
+
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Project initialization and basic structure
+
+- [ ] T001 Create project directory structure at libs/fleet-mcp-clean/
+- [ ] T002 Create pyproject.toml with uv dependencies (fastmcp==2.13.0.2, pydantic==2.12.3, httpx==0.28.1, etc.)
+- [ ] T003 Create package.json with Nx configuration (server and test targets)
+- [ ] T004 [P] Create .env.example with CODER_URL and CODER_SESSION_TOKEN
+- [ ] T005 [P] Create README.md with project overview
+- [ ] T006 [P] Create src/fleet_mcp_clean/__init__.py (package initialization)
+- [ ] T007 Run uv sync to create .venv and install dependencies
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+
+- [ ] T008 [P] Create models/__init__.py with shared Pydantic models (Agent, Task, Project, Role, etc.) in src/fleet_mcp_clean/models/
+- [ ] T009 [P] Create models/agent.py with Agent and AgentStatus models
+- [ ] T010 [P] Create models/task.py with Task, TaskHistory, LogEntry, ConversationLog models
+- [ ] T011 [P] Create models/project.py with Project and Role models
+- [ ] T012 [P] Create models/remote.py with WorkspaceRemote, WorkspaceBuildRemote, TemplateRemote models
+- [ ] T013 [P] Create models/responses.py with all MCP Response models (ListAgentsResponse, CreateAgentResponse, etc.)
+- [ ] T014 [P] Create models/errors.py with custom exception classes
+- [ ] T015 Create clients/__init__.py for HTTP client layer
+- [ ] T016 Create clients/coder_client.py with CoderClient class (HTTPX async client)
+- [ ] T017 Create clients/exceptions.py with HTTP error handling
+- [ ] T018 Create repositories/__init__.py for data access layer
+- [ ] T019 Create services/__init__.py for business logic layer
+- [ ] T020 Create tools/__init__.py for MCP tool entry points
+- [ ] T021 [P] Create tests/conftest.py with pytest configuration and shared fixtures
+- [ ] T022 [P] Create tests/fixtures/__init__.py with cassette loading utilities
+- [ ] T023 Create __main__.py with FastMCP server entry point in src/fleet_mcp_clean/
+
+**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
+
+---
+
+## Phase 3: User Story 1 - Agent Discovery and Inspection (Priority: P1) 🎯 MVP
+
+**Goal**: Enable fleet managers to discover available agent capabilities and inspect individual agents to understand fleet capacity and current workload distribution
+
+**Independent Test**: Can be fully tested by calling list operations and show operations, verifying that agent metadata is returned correctly without requiring any agent creation or task execution
+
+### Tests for User Story 1 (TDD - Write FIRST, ensure they FAIL)
+
+#### Test Fixtures and Cassettes
+
+- [ ] T024 [P] [US1] Create VCR recording script in tests/record.py for list_workspaces interaction
+- [ ] T025 [P] [US1] Create VCR recording script entries for get_workspace interaction
+- [ ] T026 [P] [US1] Create VCR recording script entries for list_templates interaction
+- [ ] T027 [P] [US1] Create VCR recording script entries for get_template_parameters interaction
+- [ ] T028 [P] [US1] Create VCR recording script entries for list_workspace_presets interaction
+- [ ] T029 [US1] Record cassettes by running tests/record.py (creates YAML files in tests/cassettes/)
+- [ ] T030 [P] [US1] Create reusable fixture mock_list_workspaces_success in tests/fixtures/workspace_fixtures.py
+- [ ] T031 [P] [US1] Create reusable fixture mock_get_workspace_success in tests/fixtures/workspace_fixtures.py
+- [ ] T032 [P] [US1] Create reusable fixture mock_list_templates_success in tests/fixtures/template_fixtures.py
+- [ ] T033 [P] [US1] Create reusable fixture mock_get_template_parameters_success in tests/fixtures/template_fixtures.py
+- [ ] T034 [P] [US1] Create reusable fixture mock_list_workspace_presets_success in tests/fixtures/template_fixtures.py
+
+#### Client Layer Tests (Layer 4 - Mock HTTP with respx from cassettes)
+
+- [ ] T035 [P] [US1] Test CoderClient.list_workspaces() in tests/clients/test_coder_client.py using mock_list_workspaces_success
+- [ ] T036 [P] [US1] Test CoderClient.get_workspace(workspace_id) in tests/clients/test_coder_client.py using mock_get_workspace_success
+- [ ] T037 [P] [US1] Test CoderClient.list_templates() in tests/clients/test_coder_client.py using mock_list_templates_success
+- [ ] T038 [P] [US1] Test CoderClient.get_template_parameters(template_id) in tests/clients/test_coder_client.py using mock_get_template_parameters_success
+- [ ] T039 [P] [US1] Test CoderClient.list_workspace_presets(template_id) in tests/clients/test_coder_client.py using mock_list_workspace_presets_success
+- [ ] T040 [P] [US1] Test CoderClient error handling for 404 responses in tests/clients/test_coder_client.py
+
+#### Repository Layer Tests (Layer 3 - Mock Client)
+
+- [ ] T041 [P] [US1] Test AgentRepository.list_all() in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [ ] T042 [P] [US1] Test AgentRepository.get_by_name(name) in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [ ] T043 [P] [US1] Test AgentRepository.get_by_name() raises AgentNotFoundError in tests/repositories/test_agent_repository.py
+- [ ] T044 [P] [US1] Test ProjectRepository.list_all() in tests/repositories/test_project_repository.py with mocked CoderClient
+- [ ] T045 [P] [US1] Test ProjectRepository.list_roles(project_name) in tests/repositories/test_project_repository.py with mocked CoderClient
+- [ ] T046 [P] [US1] Test ProjectRepository filters templates without ai_prompt/system_prompt in tests/repositories/test_project_repository.py
+
+#### Service Layer Tests (Layer 2 - Mock Repository)
+
+- [ ] T047 [P] [US1] Test AgentService.list_agents() in tests/services/test_agent_service.py with mocked AgentRepository
+- [ ] T048 [P] [US1] Test AgentService.list_agents(status_filter) in tests/services/test_agent_service.py with mocked AgentRepository
+- [ ] T049 [P] [US1] Test AgentService.list_agents(project_filter) in tests/services/test_agent_service.py with mocked AgentRepository
+- [ ] T050 [P] [US1] Test AgentService.get_agent(name) in tests/services/test_agent_service.py with mocked AgentRepository
+- [ ] T051 [P] [US1] Test ProjectService.list_projects() in tests/services/test_project_service.py with mocked ProjectRepository
+- [ ] T052 [P] [US1] Test ProjectService.list_roles(project_name) in tests/services/test_project_service.py with mocked ProjectRepository
+
+#### Tool Layer Tests (Layer 1 - Mock Service)
+
+- [ ] T053 [P] [US1] Test list_agents tool in tests/tools/test_list_agents.py with mocked AgentService
+- [ ] T054 [P] [US1] Test list_agents tool with status_filter in tests/tools/test_list_agents.py with mocked AgentService
+- [ ] T055 [P] [US1] Test show_agent tool in tests/tools/test_show_agent.py with mocked AgentService
+- [ ] T056 [P] [US1] Test show_agent tool raises error for non-existent agent in tests/tools/test_show_agent.py
+- [ ] T057 [P] [US1] Test list_agent_projects tool in tests/tools/test_list_projects.py with mocked ProjectService
+- [ ] T058 [P] [US1] Test list_agent_roles tool in tests/tools/test_list_roles.py with mocked ProjectService
+
+### Implementation for User Story 1 (After tests are written and failing)
+
+#### Client Layer Implementation (Layer 4)
+
+- [ ] T059 [P] [US1] Implement CoderClient.list_workspaces() in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T060 [P] [US1] Implement CoderClient.get_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T061 [P] [US1] Implement CoderClient.list_templates() in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T062 [P] [US1] Implement CoderClient.get_template_parameters(template_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T063 [P] [US1] Implement CoderClient.list_workspace_presets(template_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T064 [US1] Add HTTP error handling and retries in src/fleet_mcp_clean/clients/coder_client.py
+
+#### Repository Layer Implementation (Layer 3)
+
+- [ ] T065 [P] [US1] Implement AgentRepository.list_all() in src/fleet_mcp_clean/repositories/agent_repository.py
+- [ ] T066 [P] [US1] Implement AgentRepository.get_by_name(name) in src/fleet_mcp_clean/repositories/agent_repository.py
+- [ ] T067 [US1] Implement WorkspaceRemote → Agent transformation in src/fleet_mcp_clean/repositories/agent_repository.py
+- [ ] T068 [P] [US1] Implement ProjectRepository.list_all() in src/fleet_mcp_clean/repositories/project_repository.py
+- [ ] T069 [P] [US1] Implement ProjectRepository.list_roles(project_name) in src/fleet_mcp_clean/repositories/project_repository.py
+- [ ] T070 [US1] Implement TemplateRemote → Project transformation in src/fleet_mcp_clean/repositories/project_repository.py
+
+#### Service Layer Implementation (Layer 2)
+
+- [ ] T071 [P] [US1] Implement AgentService.list_agents() in src/fleet_mcp_clean/services/agent_service.py
+- [ ] T072 [P] [US1] Implement AgentService.get_agent(name) in src/fleet_mcp_clean/services/agent_service.py
+- [ ] T073 [US1] Add status and project filtering logic in src/fleet_mcp_clean/services/agent_service.py
+- [ ] T074 [P] [US1] Implement ProjectService.list_projects() in src/fleet_mcp_clean/services/project_service.py
+- [ ] T075 [P] [US1] Implement ProjectService.list_roles(project_name) in src/fleet_mcp_clean/services/project_service.py
+
+#### Tool Layer Implementation (Layer 1)
+
+- [ ] T076 [P] [US1] Implement list_agents MCP tool in src/fleet_mcp_clean/tools/list_agents.py with scalar parameters
+- [ ] T077 [P] [US1] Implement show_agent MCP tool in src/fleet_mcp_clean/tools/show_agent.py with scalar parameters
+- [ ] T078 [P] [US1] Implement list_agent_projects MCP tool in src/fleet_mcp_clean/tools/list_projects.py
+- [ ] T079 [P] [US1] Implement list_agent_roles MCP tool in src/fleet_mcp_clean/tools/list_roles.py with scalar parameters
+
+#### Verification
+
+- [ ] T080 [US1] Run nx test fleet-mcp-clean to verify all User Story 1 tests pass
+- [ ] T081 [US1] Run manual smoke test: list agents, show specific agent, list projects, list roles for a project
+
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
+
+---
+
+## Phase 4: User Story 2 - Agent Lifecycle Management (Priority: P1)
+
+**Goal**: Enable fleet managers to create new agents and remove agents from the fleet to scale workforce based on workload demands
+
+**Independent Test**: Can be fully tested by creating agents with different configurations and then deleting them, verifying creation success and cleanup completion
+
+### Tests for User Story 2 (TDD - Write FIRST, ensure they FAIL)
+
+#### Test Fixtures and Cassettes
+
+- [ ] T082 [P] [US2] Add create_workspace recording to tests/record.py
+- [ ] T083 [P] [US2] Add delete_workspace recording to tests/record.py
+- [ ] T084 [P] [US2] Add restart_workspace recording to tests/record.py
+- [ ] T085 [US2] Record new cassettes by running tests/record.py
+- [ ] T086 [P] [US2] Create reusable fixture mock_create_workspace_success in tests/fixtures/workspace_fixtures.py
+- [ ] T087 [P] [US2] Create reusable fixture mock_delete_workspace_success in tests/fixtures/workspace_fixtures.py
+- [ ] T088 [P] [US2] Create reusable fixture mock_restart_workspace_success in tests/fixtures/workspace_fixtures.py
+- [ ] T089 [P] [US2] Create reusable fixture mock_create_workspace_conflict in tests/fixtures/workspace_fixtures.py (duplicate name)
+
+#### Client Layer Tests (Layer 4 - Mock HTTP with respx from cassettes)
+
+- [ ] T090 [P] [US2] Test CoderClient.create_workspace() in tests/clients/test_coder_client.py using mock_create_workspace_success
+- [ ] T091 [P] [US2] Test CoderClient.delete_workspace(workspace_id) in tests/clients/test_coder_client.py using mock_delete_workspace_success
+- [ ] T092 [P] [US2] Test CoderClient.restart_workspace(workspace_id) in tests/clients/test_coder_client.py using mock_restart_workspace_success
+- [ ] T093 [P] [US2] Test CoderClient.get_organization_id() in tests/clients/test_coder_client.py (helper method)
+- [ ] T094 [P] [US2] Test CoderClient error handling for workspace creation conflict in tests/clients/test_coder_client.py
+
+#### Repository Layer Tests (Layer 3 - Mock Client)
+
+- [ ] T095 [P] [US2] Test AgentRepository.create(name, project, role, task) in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [ ] T096 [P] [US2] Test AgentRepository.delete(agent_name) in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [ ] T097 [P] [US2] Test AgentRepository.restart(agent_name) in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [ ] T098 [P] [US2] Test AgentRepository maps workspace creation response to Agent model in tests/repositories/test_agent_repository.py
+
+#### Service Layer Tests (Layer 2 - Mock Repository)
+
+- [ ] T099 [P] [US2] Test AgentService.create_agent(name, project, role, task) in tests/services/test_agent_service.py with mocked AgentRepository
+- [ ] T100 [P] [US2] Test AgentService.create_agent() validates name format in tests/services/test_agent_service.py
+- [ ] T101 [P] [US2] Test AgentService.create_agent() checks name uniqueness in tests/services/test_agent_service.py
+- [ ] T102 [P] [US2] Test AgentService.create_agent() validates project exists in tests/services/test_agent_service.py
+- [ ] T103 [P] [US2] Test AgentService.delete_agent(name) in tests/services/test_agent_service.py with mocked AgentRepository
+- [ ] T104 [P] [US2] Test AgentService.restart_agent(name) in tests/services/test_agent_service.py with mocked AgentRepository
+- [ ] T105 [P] [US2] Test validators.validate_agent_name() in tests/services/test_validators.py
+
+#### Tool Layer Tests (Layer 1 - Mock Service)
+
+- [ ] T106 [P] [US2] Test create_agent tool in tests/tools/test_create_agent.py with mocked AgentService
+- [ ] T107 [P] [US2] Test create_agent tool validates parameters with scalar Annotated types in tests/tools/test_create_agent.py
+- [ ] T108 [P] [US2] Test create_agent tool error handling for duplicate names in tests/tools/test_create_agent.py
+- [ ] T109 [P] [US2] Test delete_agent tool in tests/tools/test_delete_agent.py with mocked AgentService
+- [ ] T110 [P] [US2] Test restart_agent tool in tests/tools/test_restart_agent.py with mocked AgentService
+
+### Implementation for User Story 2 (After tests are written and failing)
+
+#### Client Layer Implementation (Layer 4)
+
+- [ ] T111 [P] [US2] Implement CoderClient.create_workspace() in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T112 [P] [US2] Implement CoderClient.delete_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T113 [P] [US2] Implement CoderClient.restart_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T114 [P] [US2] Implement CoderClient.get_organization_id() helper in src/fleet_mcp_clean/clients/coder_client.py
+
+#### Repository Layer Implementation (Layer 3)
+
+- [ ] T115 [P] [US2] Implement AgentRepository.create(name, project, role, task) in src/fleet_mcp_clean/repositories/agent_repository.py
+- [ ] T116 [P] [US2] Implement AgentRepository.delete(agent_name) in src/fleet_mcp_clean/repositories/agent_repository.py
+- [ ] T117 [P] [US2] Implement AgentRepository.restart(agent_name) in src/fleet_mcp_clean/repositories/agent_repository.py
+
+#### Service Layer Implementation (Layer 2)
+
+- [ ] T118 [P] [US2] Implement AgentService.create_agent(name, project, role, task) in src/fleet_mcp_clean/services/agent_service.py
+- [ ] T119 [P] [US2] Implement AgentService.delete_agent(name) in src/fleet_mcp_clean/services/agent_service.py
+- [ ] T120 [P] [US2] Implement AgentService.restart_agent(name) in src/fleet_mcp_clean/services/agent_service.py
+- [ ] T121 [US2] Implement validators.validate_agent_name() in src/fleet_mcp_clean/services/validators.py
+- [ ] T122 [US2] Add business logic for name uniqueness check in src/fleet_mcp_clean/services/agent_service.py
+- [ ] T123 [US2] Add business logic for project/role validation in src/fleet_mcp_clean/services/agent_service.py
+
+#### Tool Layer Implementation (Layer 1)
+
+- [ ] T124 [P] [US2] Implement create_agent MCP tool in src/fleet_mcp_clean/tools/create_agent.py with scalar parameters (name, project, task, role)
+- [ ] T125 [P] [US2] Implement delete_agent MCP tool in src/fleet_mcp_clean/tools/delete_agent.py
+- [ ] T126 [P] [US2] Implement restart_agent MCP tool in src/fleet_mcp_clean/tools/restart_agent.py
+
+#### Verification
+
+- [ ] T127 [US2] Run nx test fleet-mcp-clean to verify all User Story 2 tests pass
+- [ ] T128 [US2] Run manual smoke test: create agent, verify it exists, delete agent, verify it's gone, restart agent
+
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+
+---
+
+## Phase 5: User Story 3 - Task Assignment and Cancellation (Priority: P2)
+
+**Goal**: Enable fleet managers to assign tasks to idle agents and cancel tasks on busy agents to control workload execution and respond to changing priorities
+
+**Independent Test**: Can be fully tested by creating an agent, assigning it a task, verifying busy status, canceling the task, and verifying idle status
+
+### Tests for User Story 3 (TDD - Write FIRST, ensure they FAIL)
+
+#### Test Fixtures and Cassettes
+
+- [ ] T129 [P] [US3] Add send_task recording to tests/record.py
+- [ ] T130 [P] [US3] Add cancel_task (via AgentAPI) recording to tests/record.py
+- [ ] T131 [P] [US3] Add get_workspace_applications recording to tests/record.py (for AgentAPI URL)
+- [ ] T132 [US3] Record new cassettes by running tests/record.py
+- [ ] T133 [P] [US3] Create reusable fixture mock_send_task_success in tests/fixtures/task_fixtures.py
+- [ ] T134 [P] [US3] Create reusable fixture mock_cancel_task_success in tests/fixtures/task_fixtures.py
+- [ ] T135 [P] [US3] Create reusable fixture mock_get_workspace_applications_success in tests/fixtures/workspace_fixtures.py
+
+#### Client Layer Tests (Layer 4 - Mock HTTP with respx from cassettes)
+
+- [ ] T136 [P] [US3] Test CoderClient.send_task_to_workspace() in tests/clients/test_coder_client.py using mock_send_task_success
+- [ ] T137 [P] [US3] Test CoderClient.get_workspace_applications() in tests/clients/test_coder_client.py using mock_get_workspace_applications_success
+- [ ] T138 [P] [US3] Test CoderClient.send_interrupt_signal() via AgentAPI in tests/clients/test_coder_client.py using mock_cancel_task_success
+- [ ] T139 [P] [US3] Test CoderClient error handling for task assignment to offline agent in tests/clients/test_coder_client.py
+- [ ] T140 [P] [US3] Test CoderClient error handling for task assignment to busy agent in tests/clients/test_coder_client.py
+
+#### Repository Layer Tests (Layer 3 - Mock Client)
+
+- [ ] T141 [P] [US3] Test TaskRepository.assign_task(agent_name, task_description) in tests/repositories/test_task_repository.py with mocked CoderClient
+- [ ] T142 [P] [US3] Test TaskRepository.cancel_task(agent_name) in tests/repositories/test_task_repository.py with mocked CoderClient
+- [ ] T143 [P] [US3] Test TaskRepository finds AgentAPI URL and sends interrupt in tests/repositories/test_task_repository.py
+
+#### Service Layer Tests (Layer 2 - Mock Repository)
+
+- [ ] T144 [P] [US3] Test TaskService.assign_task(agent_name, task_description) in tests/services/test_task_service.py with mocked TaskRepository
+- [ ] T145 [P] [US3] Test TaskService.assign_task() validates agent is idle in tests/services/test_task_service.py
+- [ ] T146 [P] [US3] Test TaskService.assign_task() validates agent is online in tests/services/test_task_service.py
+- [ ] T147 [P] [US3] Test TaskService.assign_task() validates task description is not empty in tests/services/test_task_service.py
+- [ ] T148 [P] [US3] Test TaskService.cancel_task(agent_name) in tests/services/test_task_service.py with mocked TaskRepository
+- [ ] T149 [P] [US3] Test TaskService.cancel_task() validates agent is busy in tests/services/test_task_service.py
+
+#### Tool Layer Tests (Layer 1 - Mock Service)
+
+- [ ] T150 [P] [US3] Test start_agent_task tool in tests/tools/test_start_task.py with mocked TaskService
+- [ ] T151 [P] [US3] Test start_agent_task tool error handling for busy agent in tests/tools/test_start_task.py
+- [ ] T152 [P] [US3] Test start_agent_task tool error handling for offline agent in tests/tools/test_start_task.py
+- [ ] T153 [P] [US3] Test cancel_agent_task tool in tests/tools/test_cancel_task.py with mocked TaskService
+- [ ] T154 [P] [US3] Test cancel_agent_task tool error handling for idle agent in tests/tools/test_cancel_task.py
+
+### Implementation for User Story 3 (After tests are written and failing)
+
+#### Client Layer Implementation (Layer 4)
+
+- [ ] T155 [P] [US3] Implement CoderClient.send_task_to_workspace() in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T156 [P] [US3] Implement CoderClient.get_workspace_applications() in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T157 [P] [US3] Implement CoderClient.send_interrupt_signal() via AgentAPI POST in src/fleet_mcp_clean/clients/coder_client.py
+
+#### Repository Layer Implementation (Layer 3)
+
+- [ ] T158 [P] [US3] Implement TaskRepository.assign_task(agent_name, task_description) in src/fleet_mcp_clean/repositories/task_repository.py
+- [ ] T159 [P] [US3] Implement TaskRepository.cancel_task(agent_name) in src/fleet_mcp_clean/repositories/task_repository.py
+
+#### Service Layer Implementation (Layer 2)
+
+- [ ] T160 [P] [US3] Implement TaskService.assign_task(agent_name, task_description) in src/fleet_mcp_clean/services/task_service.py
+- [ ] T161 [P] [US3] Implement TaskService.cancel_task(agent_name) in src/fleet_mcp_clean/services/task_service.py
+- [ ] T162 [US3] Add business logic for agent status validation (idle/online checks) in src/fleet_mcp_clean/services/task_service.py
+- [ ] T163 [US3] Add business logic for task description validation in src/fleet_mcp_clean/services/task_service.py
+
+#### Tool Layer Implementation (Layer 1)
+
+- [ ] T164 [P] [US3] Implement start_agent_task MCP tool in src/fleet_mcp_clean/tools/start_task.py with scalar parameters
+- [ ] T165 [P] [US3] Implement cancel_agent_task MCP tool in src/fleet_mcp_clean/tools/cancel_task.py
+
+#### Verification
+
+- [ ] T166 [US3] Run nx test fleet-mcp-clean to verify all User Story 3 tests pass
+- [ ] T167 [US3] Run manual smoke test: create agent, assign task, verify busy status, cancel task, verify idle status
+
+**Checkpoint**: All user stories 1, 2, AND 3 should now be independently functional
+
+---
+
+## Phase 6: User Story 4 - Task and Log History Tracking (Priority: P3)
+
+**Goal**: Enable fleet managers to review task history and conversation logs for agents to monitor productivity, debug issues, and understand completed work
+
+**Independent Test**: Can be fully tested by creating an agent, executing multiple tasks, and then paginating through task history and logs to verify data persistence and retrieval
+
+### Tests for User Story 4 (TDD - Write FIRST, ensure they FAIL)
+
+#### Test Fixtures and Cassettes
+
+- [ ] T168 [P] [US4] Add get_task_history recording to tests/record.py
+- [ ] T169 [P] [US4] Add get_conversation_logs recording to tests/record.py
+- [ ] T170 [US4] Record new cassettes by running tests/record.py
+- [ ] T171 [P] [US4] Create reusable fixture mock_get_task_history_success in tests/fixtures/task_fixtures.py
+- [ ] T172 [P] [US4] Create reusable fixture mock_get_conversation_logs_success in tests/fixtures/task_fixtures.py
+- [ ] T173 [P] [US4] Create reusable fixture mock_get_task_history_empty in tests/fixtures/task_fixtures.py
+
+#### Client Layer Tests (Layer 4 - Mock HTTP with respx from cassettes)
+
+- [ ] T174 [P] [US4] Test CoderClient.get_task_history() in tests/clients/test_coder_client.py using mock_get_task_history_success
+- [ ] T175 [P] [US4] Test CoderClient.get_conversation_logs() in tests/clients/test_coder_client.py using mock_get_conversation_logs_success
+- [ ] T176 [P] [US4] Test CoderClient pagination parameters (page, page_size) in tests/clients/test_coder_client.py
+- [ ] T177 [P] [US4] Test CoderClient empty history response in tests/clients/test_coder_client.py
+
+#### Repository Layer Tests (Layer 3 - Mock Client)
+
+- [ ] T178 [P] [US4] Test TaskRepository.get_task_history(agent_name, page, page_size) in tests/repositories/test_task_repository.py with mocked CoderClient
+- [ ] T179 [P] [US4] Test TaskRepository.get_conversation_logs(agent_name, page, page_size) in tests/repositories/test_task_repository.py with mocked CoderClient
+- [ ] T180 [P] [US4] Test TaskRepository maps API responses to TaskHistory model in tests/repositories/test_task_repository.py
+- [ ] T181 [P] [US4] Test TaskRepository maps API responses to ConversationLog model in tests/repositories/test_task_repository.py
+- [ ] T182 [P] [US4] Test TaskRepository handles pagination metadata correctly in tests/repositories/test_task_repository.py
+
+#### Service Layer Tests (Layer 2 - Mock Repository)
+
+- [ ] T183 [P] [US4] Test TaskService.get_task_history(agent_name, page, page_size) in tests/services/test_task_service.py with mocked TaskRepository
+- [ ] T184 [P] [US4] Test TaskService.get_conversation_logs(agent_name, page, page_size) in tests/services/test_task_service.py with mocked TaskRepository
+- [ ] T185 [P] [US4] Test TaskService validates page size <= 100 in tests/services/test_task_service.py
+- [ ] T186 [P] [US4] Test TaskService validates page >= 1 in tests/services/test_task_service.py
+- [ ] T187 [P] [US4] Test TaskService handles empty history gracefully in tests/services/test_task_service.py
+
+#### Tool Layer Tests (Layer 1 - Mock Service)
+
+- [ ] T188 [P] [US4] Test show_agent_task_history tool in tests/tools/test_show_task_history.py with mocked TaskService
+- [ ] T189 [P] [US4] Test show_agent_task_history tool with pagination parameters in tests/tools/test_show_task_history.py
+- [ ] T190 [P] [US4] Test show_agent_log tool in tests/tools/test_show_logs.py with mocked TaskService
+- [ ] T191 [P] [US4] Test show_agent_log tool default page_size=1 in tests/tools/test_show_logs.py
+- [ ] T192 [P] [US4] Test pagination metadata (has_next_page, has_previous_page) in tests/tools/test_show_task_history.py
+
+### Implementation for User Story 4 (After tests are written and failing)
+
+#### Client Layer Implementation (Layer 4)
+
+- [ ] T193 [P] [US4] Implement CoderClient.get_task_history(workspace_id, page, page_size) in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T194 [P] [US4] Implement CoderClient.get_conversation_logs(workspace_id, page, page_size) in src/fleet_mcp_clean/clients/coder_client.py
+- [ ] T195 [US4] Add pagination query parameter handling in src/fleet_mcp_clean/clients/coder_client.py
+
+#### Repository Layer Implementation (Layer 3)
+
+- [ ] T196 [P] [US4] Implement TaskRepository.get_task_history(agent_name, page, page_size) in src/fleet_mcp_clean/repositories/task_repository.py
+- [ ] T197 [P] [US4] Implement TaskRepository.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp_clean/repositories/task_repository.py
+- [ ] T198 [US4] Implement API response → TaskHistory transformation in src/fleet_mcp_clean/repositories/task_repository.py
+- [ ] T199 [US4] Implement API response → ConversationLog transformation in src/fleet_mcp_clean/repositories/task_repository.py
+
+#### Service Layer Implementation (Layer 2)
+
+- [ ] T200 [P] [US4] Implement TaskService.get_task_history(agent_name, page, page_size) in src/fleet_mcp_clean/services/task_service.py
+- [ ] T201 [P] [US4] Implement TaskService.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp_clean/services/task_service.py
+- [ ] T202 [US4] Add pagination validation logic in src/fleet_mcp_clean/services/task_service.py
+
+#### Tool Layer Implementation (Layer 1)
+
+- [ ] T203 [P] [US4] Implement show_agent_task_history MCP tool in src/fleet_mcp_clean/tools/show_task_history.py with scalar parameters
+- [ ] T204 [P] [US4] Implement show_agent_log MCP tool in src/fleet_mcp_clean/tools/show_logs.py with scalar parameters
+
+#### Verification
+
+- [ ] T205 [US4] Run nx test fleet-mcp-clean to verify all User Story 4 tests pass
+- [ ] T206 [US4] Run manual smoke test: create agent, run multiple tasks, paginate through history and logs
+
+**Checkpoint**: All user stories should now be independently functional
+
+---
+
+## Phase 7: Edge Cases and Error Handling
+
+**Purpose**: Handle edge cases and ensure robust error handling across all user stories
+
+- [ ] T207 [P] Test agent name validation rejects invalid characters in tests/services/test_validators.py
+- [ ] T208 [P] Test agent name validation rejects names >20 characters in tests/services/test_validators.py
+- [ ] T209 [P] Test project validation rejects templates without required parameters in tests/services/test_project_service.py
+- [ ] T210 [P] Test Coder API unavailable error handling in tests/clients/test_coder_client.py
+- [ ] T211 [P] Test pagination beyond available data returns empty results in tests/services/test_task_service.py
+- [ ] T212 [P] Test task assignment to agent in transitional state (starting) in tests/services/test_task_service.py
+- [ ] T213 [P] Test very long task description handling in tests/services/test_task_service.py
+- [ ] T214 [P] Test showing details for recently deleted agent in tests/services/test_agent_service.py
+- [ ] T215 Implement edge case handling identified in tests
+
+---
+
+## Phase 8: Polish & Cross-Cutting Concerns
+
+**Purpose**: Improvements that affect multiple user stories
+
+- [ ] T216 [P] Add comprehensive docstrings to all public methods in src/fleet_mcp_clean/
+- [ ] T217 [P] Add type hints validation across all layers
+- [ ] T218 [P] Update README.md with usage examples and architecture diagram
+- [ ] T219 [P] Create .gitignore with .venv, .pytest_cache, __pycache__, *.pyc
+- [ ] T220 [P] Add logging configuration in src/fleet_mcp_clean/__main__.py
+- [ ] T221 Run uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing to verify test coverage
+- [ ] T222 Run nx test fleet-mcp-clean to verify all tests pass with caching
+- [ ] T223 Run manual end-to-end test following quickstart.md validation steps
+- [ ] T224 [P] Add import-linter configuration to verify layer boundaries
+- [ ] T225 Run import-linter to verify no layer boundary violations
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: No dependencies - can start immediately
+- **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
+- **User Stories (Phase 3-6)**: All depend on Foundational phase completion
+  - User stories can then proceed in parallel (if staffed)
+  - Or sequentially in priority order (P1 → P1 → P2 → P3)
+- **Edge Cases (Phase 7)**: Depends on all user stories being complete
+- **Polish (Phase 8)**: Depends on all desired user stories being complete
+
+### User Story Dependencies
+
+- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
+- **User Story 2 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories (but logically follows US1)
+- **User Story 3 (P2)**: Can start after Foundational (Phase 2) - Should have US2 complete (need agents to assign tasks to)
+- **User Story 4 (P3)**: Can start after Foundational (Phase 2) - Should have US3 complete (need task data to retrieve history)
+
+### Within Each User Story (TDD Approach)
+
+1. **Record Cassettes**: VCR recording script must run first to capture API interactions
+2. **Create Fixtures**: Reusable test fixtures from cassette data
+3. **Write Tests**: All layer tests (Client → Repository → Service → Tool) MUST be written and FAIL before implementation
+4. **Implement**: Bottom-up implementation (Client → Repository → Service → Tool) to make tests pass
+5. **Verify**: Run all tests to ensure story is complete
+
+### Parallel Opportunities
+
+- **Setup (Phase 1)**: Tasks T002-T007 can run in parallel
+- **Foundational (Phase 2)**: Model creation tasks T008-T014 can run in parallel
+- **Within Each User Story**:
+  - All test fixture creation tasks marked [P] can run in parallel
+  - All client layer test tasks marked [P] can run in parallel (same layer, different test files)
+  - All repository layer test tasks marked [P] can run in parallel
+  - All service layer test tasks marked [P] can run in parallel
+  - All tool layer test tasks marked [P] can run in parallel
+  - After tests pass: All implementation tasks at the same layer marked [P] can run in parallel
+- **User Stories**: Once Foundational completes, US1 and US2 can start in parallel; US3 can start after US2; US4 can start after US3
+
+---
+
+## Parallel Example: User Story 1 Testing Phase
+
+```bash
+# Record cassettes first (sequential):
+Task T024-T028: Record all cassettes in tests/record.py
+
+# Create all fixtures in parallel:
+Task T030: Create mock_list_workspaces_success
+Task T031: Create mock_get_workspace_success
+Task T032: Create mock_list_templates_success
+Task T033: Create mock_get_template_parameters_success
+Task T034: Create mock_list_workspace_presets_success
+
+# Write all Client layer tests in parallel:
+Task T035: Test list_workspaces()
+Task T036: Test get_workspace()
+Task T037: Test list_templates()
+Task T038: Test get_template_parameters()
+Task T039: Test list_workspace_presets()
+Task T040: Test error handling
+
+# Then implement Client layer (after tests fail):
+Task T059: Implement list_workspaces()
+Task T060: Implement get_workspace()
+Task T061: Implement list_templates()
+Task T062: Implement get_template_parameters()
+Task T063: Implement list_workspace_presets()
+```
+
+---
+
+## Implementation Strategy
+
+### MVP First (User Stories 1 + 2 Only)
+
+1. Complete Phase 1: Setup
+2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
+3. Complete Phase 3: User Story 1 (Agent Discovery) - TDD approach
+4. Complete Phase 4: User Story 2 (Agent Lifecycle) - TDD approach
+5. **STOP and VALIDATE**: Test User Stories 1 and 2 independently
+6. Deploy/demo if ready
+
+**MVP Justification**: User Stories 1 and 2 together provide the core value - users can discover, create, inspect, and delete agents. This is sufficient for initial fleet management use cases.
+
+### Incremental Delivery
+
+1. Complete Setup + Foundational → Foundation ready
+2. Add User Story 1 → Test independently → Agent discovery works
+3. Add User Story 2 → Test independently → Agent lifecycle works → **Deploy MVP**
+4. Add User Story 3 → Test independently → Task management works → Deploy
+5. Add User Story 4 → Test independently → History tracking works → Deploy
+6. Add Edge Cases → Robust error handling → Deploy
+7. Add Polish → Production-ready → Final Deploy
+
+### Parallel Team Strategy
+
+With multiple developers:
+
+1. Team completes Setup + Foundational together
+2. Once Foundational is done:
+   - Developer A: User Story 1 (all layers, TDD)
+   - Developer B: User Story 2 (all layers, TDD)
+3. After US1 and US2 complete:
+   - Developer A: User Story 3 (depends on US2 agents existing)
+   - Developer B: User Story 4 (depends on US3 task data)
+4. Both developers: Edge Cases and Polish
+
+---
+
+## Summary Statistics
+
+**Total Tasks**: 225
+- Phase 1 (Setup): 7 tasks
+- Phase 2 (Foundational): 16 tasks
+- Phase 3 (User Story 1): 58 tasks (29 test + 29 implementation)
+- Phase 4 (User Story 2): 47 tasks (24 test + 23 implementation)
+- Phase 5 (User Story 3): 39 tasks (20 test + 19 implementation)
+- Phase 6 (User Story 4): 39 tasks (20 test + 19 implementation)
+- Phase 7 (Edge Cases): 9 tasks
+- Phase 8 (Polish): 10 tasks
+
+**Tasks Per User Story**:
+- US1: 58 tasks (test fixtures, 4 layers × tests + implementations)
+- US2: 47 tasks (test fixtures, 4 layers × tests + implementations)
+- US3: 39 tasks (test fixtures, 4 layers × tests + implementations)
+- US4: 39 tasks (test fixtures, 4 layers × tests + implementations)
+
+**Parallel Opportunities**: 156 tasks marked [P] can run in parallel when dependencies allow
+
+**MVP Scope**: Phases 1 + 2 + 3 + 4 = ~77 tasks (Setup + Foundational + US1 + US2)
+
+**TDD Approach**: Every user story follows strict TDD:
+1. Record VCR cassettes
+2. Create reusable test fixtures
+3. Write tests for all 4 layers (Client, Repository, Service, Tool)
+4. Ensure tests FAIL
+5. Implement bottom-up (Client → Repository → Service → Tool)
+6. Verify tests PASS
+
+**Independent Test Criteria**:
+- US1: Call list_agents, show_agent, list_projects, list_roles - verify data returned
+- US2: Create agent, verify exists, delete agent, verify gone, restart agent
+- US3: Create agent, assign task, verify busy, cancel task, verify idle
+- US4: Create agent, run tasks, paginate history and logs, verify data
+
+**Format Validation**: ✅ ALL tasks follow the checklist format: `- [ ] [ID] [P?] [Story?] Description with file path`
+
+---
+
+## Notes
+
+- [P] tasks = different files, no dependencies within the same phase/layer
+- [Story] label maps task to specific user story for traceability (US1, US2, US3, US4)
+- Each user story should be independently completable and testable
+- **TDD CRITICAL**: Verify tests FAIL before implementing - this ensures tests are actually testing the right thing
+- Tests use reusable fixtures from VCR cassettes - no direct VCR usage in tests
+- Bottom-up implementation: Client → Repository → Service → Tool
+- Commit after each task or logical group
+- Stop at any checkpoint to validate story independently
+- Follow clean architecture: strict layer boundaries, unidirectional dependencies
