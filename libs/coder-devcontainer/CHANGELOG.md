@@ -1,3 +1,9 @@
+## 0.14.1 (2025-11-07)
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.7.1
+
 ## 0.14.0 (2025-11-06)
 
 ### 🚀 Features

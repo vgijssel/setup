@@ -1,6 +1,6 @@
 {
   "name": "devenv",
-  "version": "0.12.2",
+  "version": "0.13.0",
   "nx": {
     "projectType": "library",
     "sourceRoot": "libs/devenv",
