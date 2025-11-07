@@ -16,7 +16,7 @@ Implement a clean architecture version of fleet-mcp (fleet-mcp-clean) that manag
 - fastmcp==2.13.0.2 (MCP server framework)
 - pydantic==2.12.3 (data validation)
 - httpx==0.28.1 (async HTTP client for Coder API)
-- python-dotenv>=1.2.1 (environment configuration)
+- python-dotenv==1.2.1 (environment configuration)
 - uvicorn==0.34.0 (ASGI server)
 
 **Package Manager**: uv 0.7.20+ (NOT pip - all dependency management via uv)

@@ -134,7 +134,7 @@ As a fleet manager, I need to review task history and conversation logs for agen
 **Architecture Requirements**
 - **FR-024**: System MUST implement clean architecture with 5 distinct layers: Tool → Service → Repository → Client → Coder API
 - **FR-025**: System MUST enforce dependency flow where each layer only depends on the layer directly below it
-- **FR-026**: System MUST implement business logic in the Service layer, data access logic in the Repository layer, and API communication in the Client layer
+- **FR-026**: System MUST implement business logic in the Service layer, data access logic in the Repository layer, and API communication in the Client layer. Specifically: Service layer = business validation (name uniqueness checks, agent status validation, orchestrating multi-step operations), Repository layer = data transformation (mapping Coder API WorkspaceRemote responses to Agent domain entities), Client layer = HTTP communication (making requests, parsing JSON responses, handling network errors)
 - **FR-027**: System MUST expose MCP tools as thin entry points that instantiate and delegate to Service layer
 
 **Testing Requirements**

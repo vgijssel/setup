@@ -215,6 +215,8 @@ This is a Python library in Nx monorepo:
 - [ ] T108 [P] [US2] Test create_agent tool error handling for duplicate names in tests/tools/test_create_agent.py
 - [ ] T109 [P] [US2] Test delete_agent tool in tests/tools/test_delete_agent.py with mocked AgentService
 - [ ] T110 [P] [US2] Test restart_agent tool in tests/tools/test_restart_agent.py with mocked AgentService
+- [ ] T110a [P] [US2] Test restart_agent tool error handling for non-existent agent in tests/tools/test_restart_agent.py
+- [ ] T110b [P] [US2] Test restart_agent tool validates agent_name parameter in tests/tools/test_restart_agent.py
 
 ### Implementation for User Story 2 (After tests are written and failing)
 
@@ -567,11 +569,11 @@ With multiple developers:
 
 ## Summary Statistics
 
-**Total Tasks**: 225
+**Total Tasks**: 227
 - Phase 1 (Setup): 7 tasks
 - Phase 2 (Foundational): 16 tasks
 - Phase 3 (User Story 1): 58 tasks (29 test + 29 implementation)
-- Phase 4 (User Story 2): 47 tasks (24 test + 23 implementation)
+- Phase 4 (User Story 2): 49 tasks (26 test + 23 implementation)
 - Phase 5 (User Story 3): 39 tasks (20 test + 19 implementation)
 - Phase 6 (User Story 4): 39 tasks (20 test + 19 implementation)
 - Phase 7 (Edge Cases): 9 tasks
@@ -579,13 +581,13 @@ With multiple developers:
 
 **Tasks Per User Story**:
 - US1: 58 tasks (test fixtures, 4 layers × tests + implementations)
-- US2: 47 tasks (test fixtures, 4 layers × tests + implementations)
+- US2: 49 tasks (test fixtures, 4 layers × tests + implementations)
 - US3: 39 tasks (test fixtures, 4 layers × tests + implementations)
 - US4: 39 tasks (test fixtures, 4 layers × tests + implementations)
 
-**Parallel Opportunities**: 156 tasks marked [P] can run in parallel when dependencies allow
+**Parallel Opportunities**: 158 tasks marked [P] can run in parallel when dependencies allow
 
-**MVP Scope**: Phases 1 + 2 + 3 + 4 = ~77 tasks (Setup + Foundational + US1 + US2)
+**MVP Scope**: Phases 1 + 2 + 3 + 4 = ~79 tasks (Setup + Foundational + US1 + US2)
 
 **TDD Approach**: Every user story follows strict TDD:
 1. Record VCR cassettes
