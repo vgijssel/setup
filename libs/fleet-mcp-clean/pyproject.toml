@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fleet-mcp-clean"
+version = "0.1.0"
+description = "Clean architecture fleet management for Claude Code agents in Coder workspaces"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp==2.13.0.2",
+    "pydantic==2.12.3",
+    "httpx==0.28.1",
+    "python-dotenv==1.2.1",
+    "uvicorn==0.34.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==7.4.3",
+    "pytest-asyncio==0.21.1",
+    "pytest-cov==4.1.0",
+    "respx==0.21.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fleet_mcp_clean"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--cov=fleet_mcp_clean",
+    "--cov-report=term-missing",
+]
+
+[tool.coverage.run]
+source = ["src/fleet_mcp_clean"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false

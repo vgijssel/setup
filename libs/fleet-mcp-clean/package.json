@@ -1,0 +1,38 @@
+{
+  "name": "fleet-mcp-clean",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Clean architecture fleet management for Claude Code agents",
+  "nx": {
+    "tags": ["type:lib", "scope:infrastructure"],
+    "targets": {
+      "server": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run fastmcp run src/fleet_mcp_clean/__main__.py",
+          "cwd": "libs/fleet-mcp-clean"
+        }
+      },
+      "test": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run pytest",
+          "cwd": "libs/fleet-mcp-clean"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/src/**/*.py",
+          "{projectRoot}/tests/**/*.py",
+          "{projectRoot}/pyproject.toml",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/**/__pycache__/**"
+        ],
+        "outputs": [
+          "{projectRoot}/.coverage",
+          "{projectRoot}/htmlcov"
+        ]
+      }
+    }
+  }
+}
