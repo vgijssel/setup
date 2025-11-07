@@ -180,7 +180,7 @@ command:
   ssh_auth_sock_macos:
     title: SSH_AUTH_SOCK is configured on macOS
     skip: {{.Env.IS_LINUX}}
-    exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.zshrc
+    exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.terminal_env.sh
     exit-status: 0
     stdout:
       - SSH_AUTH_SOCK
@@ -189,7 +189,7 @@ command:
   ssh_auth_sock_linux:
     title: SSH_AUTH_SOCK is not configured on Linux
     skip: {{.Env.IS_MACOS}}
-    exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.zshrc || echo "not found"
+    exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.terminal_env.sh || echo "not found"
     exit-status: 0
     stdout:
       - not found

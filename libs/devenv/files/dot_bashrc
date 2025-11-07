@@ -1,11 +1,2 @@
-# Symlinked hermit binaries
-export PATH="$HOME/.local/setup/bin:$PATH"
-
-# Local user binaries
-export PATH="$HOME/.local/bin:$PATH"
-
-# Setting this to the default for consistency with zsh config
-export HERMIT_LOCK_TIMEOUT=180s
-
-# Aliases
-alias ll='ls -lah'
+# Source shared terminal environment variables
+source ~/.terminal_env.sh
