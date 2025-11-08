@@ -25,16 +25,18 @@ if not CODER_URL or not CODER_SESSION_TOKEN:
 
 # Initialize clients, repositories, and services
 from .clients import CoderClient
-from .repositories import AgentRepository, ProjectRepository
-from .services import AgentService, ProjectService
+from .repositories import AgentRepository, ProjectRepository, TaskRepository
+from .services import AgentService, ProjectService, TaskService
 from .models import AgentStatus
 
 # Create singletons for dependency injection
 _coder_client: CoderClient | None = None
 _agent_repo: AgentRepository | None = None
 _project_repo: ProjectRepository | None = None
+_task_repo: TaskRepository | None = None
 _agent_service: AgentService | None = None
 _project_service: ProjectService | None = None
+_task_service: TaskService | None = None
 
 
 def get_coder_client() -> CoderClient:
@@ -77,6 +79,22 @@ def get_project_service() -> ProjectService:
     if _project_service is None:
         _project_service = ProjectService(get_project_repository())
     return _project_service
+
+
+def get_task_repository() -> TaskRepository:
+    """Get or create TaskRepository singleton."""
+    global _task_repo
+    if _task_repo is None:
+        _task_repo = TaskRepository(get_coder_client())
+    return _task_repo
+
+
+def get_task_service() -> TaskService:
+    """Get or create TaskService singleton."""
+    global _task_service
+    if _task_service is None:
+        _task_service = TaskService(get_task_repository(), get_agent_repository())
+    return _task_service
 
 
 # ========================================================================
@@ -194,6 +212,42 @@ async def restart_agent(
     from .tools.restart_agent import restart_agent as restart_agent_impl
 
     result = await restart_agent_impl(get_agent_service(), agent_name=agent_name)
+    return result.model_dump()
+
+
+# ========================================================================
+# User Story 3: Task Assignment and Cancellation Tools
+# ========================================================================
+
+
+@mcp.tool()
+async def start_agent_task(
+    agent_name: Annotated[
+        str, Field(min_length=1, max_length=20, description="Name of the agent to assign task to")
+    ],
+    task_description: Annotated[
+        str, Field(min_length=1, description="Task description defining objectives and constraints")
+    ],
+):
+    """Start a task on an idle agent."""
+    from .tools.start_task import start_agent_task as start_task_impl
+
+    result = await start_task_impl(
+        get_task_service(), agent_name=agent_name, task_description=task_description
+    )
+    return result.model_dump()
+
+
+@mcp.tool()
+async def cancel_agent_task(
+    agent_name: Annotated[
+        str, Field(min_length=1, max_length=20, description="Name of the agent to cancel task for")
+    ],
+):
+    """Cancel the current task on a busy agent by sending Ctrl+C interrupt signal."""
+    from .tools.cancel_task import cancel_agent_task as cancel_task_impl
+
+    result = await cancel_task_impl(get_task_service(), agent_name=agent_name)
     return result.model_dump()
 
 

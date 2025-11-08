@@ -267,74 +267,76 @@ This is a Python library in Nx monorepo:
 
 #### Test Fixtures and Cassettes
 
-- [ ] T129 [P] [US3] Add send_task recording to tests/record.py
-- [ ] T130 [P] [US3] Add cancel_task (via AgentAPI) recording to tests/record.py
-- [ ] T131 [P] [US3] Add get_workspace_applications recording to tests/record.py (for AgentAPI URL)
-- [ ] T132 [US3] Record new cassettes by running tests/record.py
-- [ ] T133 [P] [US3] Create reusable fixture mock_send_task_success in tests/fixtures/task_fixtures.py
-- [ ] T134 [P] [US3] Create reusable fixture mock_cancel_task_success in tests/fixtures/task_fixtures.py
-- [ ] T135 [P] [US3] Create reusable fixture mock_get_workspace_applications_success in tests/fixtures/workspace_fixtures.py
+- [X] T129 [P] [US3] Add send_task recording to tests/record.py
+- [X] T130 [P] [US3] Add cancel_task (via AgentAPI) recording to tests/record.py
+- [X] T131 [P] [US3] Add get_workspace_applications recording to tests/record.py (for AgentAPI URL)
+- [X] T132 [US3] Record new cassettes by running tests/record.py
+- [X] T133 [P] [US3] Create reusable fixture mock_send_task_success in tests/fixtures/task_fixtures.py
+- [X] T134 [P] [US3] Create reusable fixture mock_cancel_task_success in tests/fixtures/task_fixtures.py
+- [X] T135 [P] [US3] Create reusable fixture mock_get_workspace_applications_success in tests/fixtures/workspace_fixtures.py
 
 #### Client Layer Tests (Layer 4 - Mock HTTP with respx from cassettes)
 
-- [ ] T136 [P] [US3] Test CoderClient.send_task_to_workspace() in tests/clients/test_coder_client.py using mock_send_task_success
-- [ ] T137 [P] [US3] Test CoderClient.get_workspace_applications() in tests/clients/test_coder_client.py using mock_get_workspace_applications_success
-- [ ] T138 [P] [US3] Test CoderClient.send_interrupt_signal() via AgentAPI in tests/clients/test_coder_client.py using mock_cancel_task_success
-- [ ] T139 [P] [US3] Test CoderClient error handling for task assignment to offline agent in tests/clients/test_coder_client.py
-- [ ] T140 [P] [US3] Test CoderClient error handling for task assignment to busy agent in tests/clients/test_coder_client.py
+- [X] T136 [P] [US3] Test CoderClient.send_task_to_workspace() in tests/clients/test_coder_client.py using mock_send_task_success
+- [X] T137 [P] [US3] Test CoderClient.get_workspace_applications() in tests/clients/test_coder_client.py using mock_get_workspace_applications_success
+- [X] T138 [P] [US3] Test CoderClient.send_interrupt_signal() via AgentAPI in tests/clients/test_coder_client.py using mock_cancel_task_success
+- [X] T139 [P] [US3] Test CoderClient error handling for task assignment to offline agent in tests/clients/test_coder_client.py
+- [X] T140 [P] [US3] Test CoderClient error handling for task assignment to busy agent in tests/clients/test_coder_client.py
 
 #### Repository Layer Tests (Layer 3 - Mock Client)
 
-- [ ] T141 [P] [US3] Test TaskRepository.assign_task(agent_name, task_description) in tests/repositories/test_task_repository.py with mocked CoderClient
-- [ ] T142 [P] [US3] Test TaskRepository.cancel_task(agent_name) in tests/repositories/test_task_repository.py with mocked CoderClient
-- [ ] T143 [P] [US3] Test TaskRepository finds AgentAPI URL and sends interrupt in tests/repositories/test_task_repository.py
+- [X] T141 [P] [US3] Test TaskRepository.assign_task(agent_name, task_description) in tests/repositories/test_task_repository.py with mocked CoderClient
+- [X] T142 [P] [US3] Test TaskRepository.cancel_task(agent_name) in tests/repositories/test_task_repository.py with mocked CoderClient
+- [X] T143 [P] [US3] Test TaskRepository finds AgentAPI URL and sends interrupt in tests/repositories/test_task_repository.py
 
 #### Service Layer Tests (Layer 2 - Mock Repository)
 
-- [ ] T144 [P] [US3] Test TaskService.assign_task(agent_name, task_description) in tests/services/test_task_service.py with mocked TaskRepository
-- [ ] T145 [P] [US3] Test TaskService.assign_task() validates agent is idle in tests/services/test_task_service.py
-- [ ] T146 [P] [US3] Test TaskService.assign_task() validates agent is online in tests/services/test_task_service.py
-- [ ] T147 [P] [US3] Test TaskService.assign_task() validates task description is not empty in tests/services/test_task_service.py
-- [ ] T148 [P] [US3] Test TaskService.cancel_task(agent_name) in tests/services/test_task_service.py with mocked TaskRepository
-- [ ] T149 [P] [US3] Test TaskService.cancel_task() validates agent is busy in tests/services/test_task_service.py
+- [X] T144 [P] [US3] Test TaskService.assign_task(agent_name, task_description) in tests/services/test_task_service.py with mocked TaskRepository
+- [X] T145 [P] [US3] Test TaskService.assign_task() validates agent is idle in tests/services/test_task_service.py
+- [X] T146 [P] [US3] Test TaskService.assign_task() validates agent is online in tests/services/test_task_service.py
+- [X] T147 [P] [US3] Test TaskService.assign_task() validates task description is not empty in tests/services/test_task_service.py
+- [X] T148 [P] [US3] Test TaskService.cancel_task(agent_name) in tests/services/test_task_service.py with mocked TaskRepository
+- [X] T149 [P] [US3] Test TaskService.cancel_task() validates agent is busy in tests/services/test_task_service.py
 
 #### Tool Layer Tests (Layer 1 - Mock Service)
 
-- [ ] T150 [P] [US3] Test start_agent_task tool in tests/tools/test_start_task.py with mocked TaskService
-- [ ] T151 [P] [US3] Test start_agent_task tool error handling for busy agent in tests/tools/test_start_task.py
-- [ ] T152 [P] [US3] Test start_agent_task tool error handling for offline agent in tests/tools/test_start_task.py
-- [ ] T153 [P] [US3] Test cancel_agent_task tool in tests/tools/test_cancel_task.py with mocked TaskService
-- [ ] T154 [P] [US3] Test cancel_agent_task tool error handling for idle agent in tests/tools/test_cancel_task.py
+- [X] T150 [P] [US3] Test start_agent_task tool in tests/tools/test_start_task.py with mocked TaskService
+- [X] T151 [P] [US3] Test start_agent_task tool error handling for busy agent in tests/tools/test_start_task.py
+- [X] T152 [P] [US3] Test start_agent_task tool error handling for offline agent in tests/tools/test_start_task.py
+- [X] T153 [P] [US3] Test cancel_agent_task tool in tests/tools/test_cancel_task.py with mocked TaskService
+- [X] T154 [P] [US3] Test cancel_agent_task tool error handling for idle agent in tests/tools/test_cancel_task.py
 
 ### Implementation for User Story 3 (After tests are written and failing)
 
 #### Client Layer Implementation (Layer 4)
 
-- [ ] T155 [P] [US3] Implement CoderClient.send_task_to_workspace() in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T156 [P] [US3] Implement CoderClient.get_workspace_applications() in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T157 [P] [US3] Implement CoderClient.send_interrupt_signal() via AgentAPI POST in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T155 [P] [US3] Implement CoderClient.send_task_to_workspace() in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T156 [P] [US3] Implement CoderClient.get_workspace_applications() in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T157 [P] [US3] Implement CoderClient.send_interrupt_signal() via AgentAPI POST in src/fleet_mcp_clean/clients/coder_client.py
 
 #### Repository Layer Implementation (Layer 3)
 
-- [ ] T158 [P] [US3] Implement TaskRepository.assign_task(agent_name, task_description) in src/fleet_mcp_clean/repositories/task_repository.py
-- [ ] T159 [P] [US3] Implement TaskRepository.cancel_task(agent_name) in src/fleet_mcp_clean/repositories/task_repository.py
+- [X] T158 [P] [US3] Implement TaskRepository.assign_task(agent_name, task_description) in src/fleet_mcp_clean/repositories/task_repository.py
+- [X] T159 [P] [US3] Implement TaskRepository.cancel_task(agent_name) in src/fleet_mcp_clean/repositories/task_repository.py
 
 #### Service Layer Implementation (Layer 2)
 
-- [ ] T160 [P] [US3] Implement TaskService.assign_task(agent_name, task_description) in src/fleet_mcp_clean/services/task_service.py
-- [ ] T161 [P] [US3] Implement TaskService.cancel_task(agent_name) in src/fleet_mcp_clean/services/task_service.py
-- [ ] T162 [US3] Add business logic for agent status validation (idle/online checks) in src/fleet_mcp_clean/services/task_service.py
-- [ ] T163 [US3] Add business logic for task description validation in src/fleet_mcp_clean/services/task_service.py
+- [X] T160 [P] [US3] Implement TaskService.assign_task(agent_name, task_description) in src/fleet_mcp_clean/services/task_service.py
+- [X] T161 [P] [US3] Implement TaskService.cancel_task(agent_name) in src/fleet_mcp_clean/services/task_service.py
+- [X] T162 [US3] Add business logic for agent status validation (idle/online checks) in src/fleet_mcp_clean/services/task_service.py
+- [X] T163 [US3] Add business logic for task description validation in src/fleet_mcp_clean/services/task_service.py
 
 #### Tool Layer Implementation (Layer 1)
 
-- [ ] T164 [P] [US3] Implement start_agent_task MCP tool in src/fleet_mcp_clean/tools/start_task.py with scalar parameters
-- [ ] T165 [P] [US3] Implement cancel_agent_task MCP tool in src/fleet_mcp_clean/tools/cancel_task.py
+- [X] T164 [P] [US3] Implement start_agent_task MCP tool in src/fleet_mcp_clean/tools/start_task.py with scalar parameters
+- [X] T165 [P] [US3] Implement cancel_agent_task MCP tool in src/fleet_mcp_clean/tools/cancel_task.py
 
 #### Verification
 
-- [ ] T166 [US3] Run nx test fleet-mcp-clean to verify all User Story 3 tests pass
-- [ ] T167 [US3] Run manual smoke test: create agent, assign task, verify busy status, cancel task, verify idle status
+- [X] T166 [US3] Run nx test fleet-mcp-clean to verify all User Story 3 tests pass
+- [X] T167 [US3] Run manual smoke test: create agent, assign task, verify busy status, cancel task, verify idle status
+
+**Checkpoint**: ✅ User Stories 1, 2, AND 3 are fully functional and tested - 112 tests passing!
 
 **Checkpoint**: All user stories 1, 2, AND 3 should now be independently functional
 
@@ -455,6 +457,8 @@ This is a Python library in Nx monorepo:
 - [ ] T225 Run import-linter to verify no layer boundary violations
 - [ ] T226 Remove all secrets / tokens from VCR cassettes. Follow same approach as libs/fleet-mcp in libs/fleet-mcp/tests/conftest.py how secrets are removed and redacted.
 - [ ] T227 Setup integration tests which test calling the MCP tools end-to-end. These tests use the respx mocking framework to mock out HTTP calls to the Coder API, similar to how the client layer tests are structured. Ensure these tests cover all MCP tools. Ensure that these tests only mock out HTTP calls, and do not mock any internal layers of the fleet-mcp-clean library.
+- [ ] T228 remove all VCR cassettes and re-record them after T226 and T227 are complete to ensure no secrets are present and integration tests are passing. This is to make sure we're only committing the casettes which we need.
+- [ ] T229 Add return type hints to methods in libs/fleet-mcp-clean/src/fleet_mcp_clean/__main__.py
 
 ---
 
