@@ -1,4 +1,10 @@
 {
   "editor.formatOnSave": true,
-  "terminal.integrated.fontFamily": "FiraCode Nerd Font"
+  "terminal.integrated.fontFamily": "FiraCode Nerd Font",
+  "remote.portsAttributes": {
+    "8000": {
+      "label": "Ultrathink",
+      "onAutoForward": "ignore"
+    }
+  }
 }
