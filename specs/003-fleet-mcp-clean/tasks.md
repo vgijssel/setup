@@ -453,6 +453,7 @@ This is a Python library in Nx monorepo:
 - [ ] T223 Run manual end-to-end test following quickstart.md validation steps
 - [ ] T224 [P] Add import-linter configuration to verify layer boundaries
 - [ ] T225 Run import-linter to verify no layer boundary violations
+- [ ] T226 Remove all secrets / tokens from VCR cassettes. Follow same approach as libs/fleet-mcp in libs/fleet-mcp/tests/conftest.py how secrets are removed and redacted.
 
 ---
 

@@ -103,7 +103,7 @@ class AgentService:
 
         # Validate task description
         if not task or not task.strip():
-            raise ValidationError("Task description cannot be empty")
+            raise ValidationError("task", "Task description cannot be empty")
 
         # Validate project exists
         projects = await self.project_repo.list_all()
@@ -111,6 +111,7 @@ class AgentService:
 
         if project not in project_names:
             raise ValidationError(
+                "project",
                 f"Project '{project}' not found. Available projects: {', '.join(project_names)}"
             )
 
@@ -172,7 +173,7 @@ class AgentService:
             ValidationError: If name is invalid
         """
         if not name or not name.strip():
-            raise ValidationError("Agent name cannot be empty")
+            raise ValidationError("name", "Agent name cannot be empty")
 
         await self.agent_repo.delete(name)
 
@@ -190,7 +191,7 @@ class AgentService:
             ValidationError: If name is invalid
         """
         if not name or not name.strip():
-            raise ValidationError("Agent name cannot be empty")
+            raise ValidationError("name", "Agent name cannot be empty")
 
         return await self.agent_repo.restart(name)
 
@@ -209,14 +210,16 @@ class AgentService:
             ValidationError: If name is invalid
         """
         if not name or not name.strip():
-            raise ValidationError("Agent name cannot be empty")
+            raise ValidationError("name", "Agent name cannot be empty")
 
         if len(name) > 20:
             raise ValidationError(
+                "name",
                 f"Agent name must be 20 characters or less (got {len(name)})"
             )
 
         if not all(c.isalnum() or c == "-" for c in name):
             raise ValidationError(
+                "name",
                 "Agent name must contain only alphanumeric characters and hyphens"
             )
