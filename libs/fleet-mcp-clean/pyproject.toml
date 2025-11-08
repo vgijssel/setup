@@ -16,40 +16,14 @@ dependencies = [
     "uvicorn==0.34.0",
 ]
 
-[project.optional-dependencies]
+[tool.hatch.build.targets.wheel]
+packages = ["src/fleet_mcp_clean"]
+
+[dependency-groups]
 dev = [
+    "vcrpy==7.0.0",
     "pytest==7.4.3",
     "pytest-asyncio==0.21.1",
     "pytest-cov==4.1.0",
     "respx==0.22.0",
 ]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/fleet_mcp_clean"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-asyncio_mode = "auto"
-addopts = [
-    "-v",
-    "--strict-markers",
-    "--tb=short",
-    "--cov=fleet_mcp_clean",
-    "--cov-report=term-missing",
-]
-
-[tool.coverage.run]
-source = ["src/fleet_mcp_clean"]
-omit = [
-    "*/tests/*",
-    "*/__pycache__/*",
-    "*/.venv/*",
-]
-
-[tool.coverage.report]
-precision = 2
-show_missing = true
-skip_covered = false
