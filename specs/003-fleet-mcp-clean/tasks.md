@@ -95,72 +95,72 @@ This is a Python library in Nx monorepo:
 
 #### Repository Layer Tests (Layer 3 - Mock Client)
 
-- [ ] T041 [P] [US1] Test AgentRepository.list_all() in tests/repositories/test_agent_repository.py with mocked CoderClient
-- [ ] T042 [P] [US1] Test AgentRepository.get_by_name(name) in tests/repositories/test_agent_repository.py with mocked CoderClient
-- [ ] T043 [P] [US1] Test AgentRepository.get_by_name() raises AgentNotFoundError in tests/repositories/test_agent_repository.py
-- [ ] T044 [P] [US1] Test ProjectRepository.list_all() in tests/repositories/test_project_repository.py with mocked CoderClient
-- [ ] T045 [P] [US1] Test ProjectRepository.list_roles(project_name) in tests/repositories/test_project_repository.py with mocked CoderClient
-- [ ] T046 [P] [US1] Test ProjectRepository filters templates without ai_prompt/system_prompt in tests/repositories/test_project_repository.py
+- [X] T041 [P] [US1] Test AgentRepository.list_all() in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [X] T042 [P] [US1] Test AgentRepository.get_by_name(name) in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [X] T043 [P] [US1] Test AgentRepository.get_by_name() raises AgentNotFoundError in tests/repositories/test_agent_repository.py
+- [X] T044 [P] [US1] Test ProjectRepository.list_all() in tests/repositories/test_project_repository.py with mocked CoderClient
+- [X] T045 [P] [US1] Test ProjectRepository.list_roles(project_name) in tests/repositories/test_project_repository.py with mocked CoderClient
+- [X] T046 [P] [US1] Test ProjectRepository filters templates without ai_prompt/system_prompt in tests/repositories/test_project_repository.py
 
 #### Service Layer Tests (Layer 2 - Mock Repository)
 
-- [ ] T047 [P] [US1] Test AgentService.list_agents() in tests/services/test_agent_service.py with mocked AgentRepository
-- [ ] T048 [P] [US1] Test AgentService.list_agents(status_filter) in tests/services/test_agent_service.py with mocked AgentRepository
-- [ ] T049 [P] [US1] Test AgentService.list_agents(project_filter) in tests/services/test_agent_service.py with mocked AgentRepository
-- [ ] T050 [P] [US1] Test AgentService.get_agent(name) in tests/services/test_agent_service.py with mocked AgentRepository
-- [ ] T051 [P] [US1] Test ProjectService.list_projects() in tests/services/test_project_service.py with mocked ProjectRepository
-- [ ] T052 [P] [US1] Test ProjectService.list_roles(project_name) in tests/services/test_project_service.py with mocked ProjectRepository
+- [X] T047 [P] [US1] Test AgentService.list_agents() in tests/services/test_agent_service.py with mocked AgentRepository
+- [X] T048 [P] [US1] Test AgentService.list_agents(status_filter) in tests/services/test_agent_service.py with mocked AgentRepository
+- [X] T049 [P] [US1] Test AgentService.list_agents(project_filter) in tests/services/test_agent_service.py with mocked AgentRepository
+- [X] T050 [P] [US1] Test AgentService.get_agent(name) in tests/services/test_agent_service.py with mocked AgentRepository
+- [X] T051 [P] [US1] Test ProjectService.list_projects() in tests/services/test_project_service.py with mocked ProjectRepository
+- [X] T052 [P] [US1] Test ProjectService.list_roles(project_name) in tests/services/test_project_service.py with mocked ProjectRepository
 
 #### Tool Layer Tests (Layer 1 - Mock Service)
 
-- [ ] T053 [P] [US1] Test list_agents tool in tests/tools/test_list_agents.py with mocked AgentService
-- [ ] T054 [P] [US1] Test list_agents tool with status_filter in tests/tools/test_list_agents.py with mocked AgentService
-- [ ] T055 [P] [US1] Test show_agent tool in tests/tools/test_show_agent.py with mocked AgentService
-- [ ] T056 [P] [US1] Test show_agent tool raises error for non-existent agent in tests/tools/test_show_agent.py
-- [ ] T057 [P] [US1] Test list_agent_projects tool in tests/tools/test_list_projects.py with mocked ProjectService
-- [ ] T058 [P] [US1] Test list_agent_roles tool in tests/tools/test_list_roles.py with mocked ProjectService
+- [X] T053 [P] [US1] Test list_agents tool in tests/tools/test_list_agents.py with mocked AgentService
+- [X] T054 [P] [US1] Test list_agents tool with status_filter in tests/tools/test_list_agents.py with mocked AgentService
+- [X] T055 [P] [US1] Test show_agent tool in tests/tools/test_show_agent.py with mocked AgentService
+- [X] T056 [P] [US1] Test show_agent tool raises error for non-existent agent in tests/tools/test_show_agent.py
+- [X] T057 [P] [US1] Test list_agent_projects tool in tests/tools/test_list_projects.py with mocked ProjectService
+- [X] T058 [P] [US1] Test list_agent_roles tool in tests/tools/test_list_roles.py with mocked ProjectService
 
 ### Implementation for User Story 1 (After tests are written and failing)
 
 #### Client Layer Implementation (Layer 4)
 
-- [ ] T059 [P] [US1] Implement CoderClient.list_workspaces() in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T060 [P] [US1] Implement CoderClient.get_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T061 [P] [US1] Implement CoderClient.list_templates() in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T062 [P] [US1] Implement CoderClient.get_template_parameters(template_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T063 [P] [US1] Implement CoderClient.list_workspace_presets(template_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T064 [US1] Add HTTP error handling and retries in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T059 [P] [US1] Implement CoderClient.list_workspaces() in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T060 [P] [US1] Implement CoderClient.get_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T061 [P] [US1] Implement CoderClient.list_templates() in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T062 [P] [US1] Implement CoderClient.get_template_parameters(template_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T063 [P] [US1] Implement CoderClient.list_workspace_presets(template_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T064 [US1] Add HTTP error handling and retries in src/fleet_mcp_clean/clients/coder_client.py
 
 #### Repository Layer Implementation (Layer 3)
 
-- [ ] T065 [P] [US1] Implement AgentRepository.list_all() in src/fleet_mcp_clean/repositories/agent_repository.py
-- [ ] T066 [P] [US1] Implement AgentRepository.get_by_name(name) in src/fleet_mcp_clean/repositories/agent_repository.py
-- [ ] T067 [US1] Implement WorkspaceRemote → Agent transformation in src/fleet_mcp_clean/repositories/agent_repository.py
-- [ ] T068 [P] [US1] Implement ProjectRepository.list_all() in src/fleet_mcp_clean/repositories/project_repository.py
-- [ ] T069 [P] [US1] Implement ProjectRepository.list_roles(project_name) in src/fleet_mcp_clean/repositories/project_repository.py
-- [ ] T070 [US1] Implement TemplateRemote → Project transformation in src/fleet_mcp_clean/repositories/project_repository.py
+- [X] T065 [P] [US1] Implement AgentRepository.list_all() in src/fleet_mcp_clean/repositories/agent_repository.py
+- [X] T066 [P] [US1] Implement AgentRepository.get_by_name(name) in src/fleet_mcp_clean/repositories/agent_repository.py
+- [X] T067 [US1] Implement WorkspaceRemote → Agent transformation in src/fleet_mcp_clean/repositories/agent_repository.py
+- [X] T068 [P] [US1] Implement ProjectRepository.list_all() in src/fleet_mcp_clean/repositories/project_repository.py
+- [X] T069 [P] [US1] Implement ProjectRepository.list_roles(project_name) in src/fleet_mcp_clean/repositories/project_repository.py
+- [X] T070 [US1] Implement TemplateRemote → Project transformation in src/fleet_mcp_clean/repositories/project_repository.py
 
 #### Service Layer Implementation (Layer 2)
 
-- [ ] T071 [P] [US1] Implement AgentService.list_agents() in src/fleet_mcp_clean/services/agent_service.py
-- [ ] T072 [P] [US1] Implement AgentService.get_agent(name) in src/fleet_mcp_clean/services/agent_service.py
-- [ ] T073 [US1] Add status and project filtering logic in src/fleet_mcp_clean/services/agent_service.py
-- [ ] T074 [P] [US1] Implement ProjectService.list_projects() in src/fleet_mcp_clean/services/project_service.py
-- [ ] T075 [P] [US1] Implement ProjectService.list_roles(project_name) in src/fleet_mcp_clean/services/project_service.py
+- [X] T071 [P] [US1] Implement AgentService.list_agents() in src/fleet_mcp_clean/services/agent_service.py
+- [X] T072 [P] [US1] Implement AgentService.get_agent(name) in src/fleet_mcp_clean/services/agent_service.py
+- [X] T073 [US1] Add status and project filtering logic in src/fleet_mcp_clean/services/agent_service.py
+- [X] T074 [P] [US1] Implement ProjectService.list_projects() in src/fleet_mcp_clean/services/project_service.py
+- [X] T075 [P] [US1] Implement ProjectService.list_roles(project_name) in src/fleet_mcp_clean/services/project_service.py
 
 #### Tool Layer Implementation (Layer 1)
 
-- [ ] T076 [P] [US1] Implement list_agents MCP tool in src/fleet_mcp_clean/tools/list_agents.py with scalar parameters
-- [ ] T077 [P] [US1] Implement show_agent MCP tool in src/fleet_mcp_clean/tools/show_agent.py with scalar parameters
-- [ ] T078 [P] [US1] Implement list_agent_projects MCP tool in src/fleet_mcp_clean/tools/list_projects.py
-- [ ] T079 [P] [US1] Implement list_agent_roles MCP tool in src/fleet_mcp_clean/tools/list_roles.py with scalar parameters
+- [X] T076 [P] [US1] Implement list_agents MCP tool in src/fleet_mcp_clean/tools/list_agents.py with scalar parameters
+- [X] T077 [P] [US1] Implement show_agent MCP tool in src/fleet_mcp_clean/tools/show_agent.py with scalar parameters
+- [X] T078 [P] [US1] Implement list_agent_projects MCP tool in src/fleet_mcp_clean/tools/list_projects.py
+- [X] T079 [P] [US1] Implement list_agent_roles MCP tool in src/fleet_mcp_clean/tools/list_roles.py with scalar parameters
 
 #### Verification
 
-- [ ] T080 [US1] Run nx test fleet-mcp-clean to verify all User Story 1 tests pass
-- [ ] T081 [US1] Run manual smoke test: list agents, show specific agent, list projects, list roles for a project
+- [X] T080 [US1] Run nx test fleet-mcp-clean to verify all User Story 1 tests pass
+- [X] T081 [US1] Run manual smoke test: list agents, show specific agent, list projects, list roles for a project
 
-**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
+**Checkpoint**: ✅ User Story 1 is fully functional and testable independently - All tests passing!
 
 ---
 
@@ -174,86 +174,86 @@ This is a Python library in Nx monorepo:
 
 #### Test Fixtures and Cassettes
 
-- [ ] T082 [P] [US2] Add create_workspace recording to tests/record.py
-- [ ] T083 [P] [US2] Add delete_workspace recording to tests/record.py
-- [ ] T084 [P] [US2] Add restart_workspace recording to tests/record.py
-- [ ] T085 [US2] Record new cassettes by running tests/record.py
-- [ ] T086 [P] [US2] Create reusable fixture mock_create_workspace_success in tests/fixtures/workspace_fixtures.py
-- [ ] T087 [P] [US2] Create reusable fixture mock_delete_workspace_success in tests/fixtures/workspace_fixtures.py
-- [ ] T088 [P] [US2] Create reusable fixture mock_restart_workspace_success in tests/fixtures/workspace_fixtures.py
-- [ ] T089 [P] [US2] Create reusable fixture mock_create_workspace_conflict in tests/fixtures/workspace_fixtures.py (duplicate name)
+- [X] T082 [P] [US2] Add create_workspace recording to tests/record.py
+- [X] T083 [P] [US2] Add delete_workspace recording to tests/record.py
+- [X] T084 [P] [US2] Add restart_workspace recording to tests/record.py
+- [X] T085 [US2] Record new cassettes by running tests/record.py
+- [X] T086 [P] [US2] Create reusable fixture mock_create_workspace_success in tests/fixtures/workspace_fixtures.py
+- [X] T087 [P] [US2] Create reusable fixture mock_delete_workspace_success in tests/fixtures/workspace_fixtures.py
+- [X] T088 [P] [US2] Create reusable fixture mock_restart_workspace_success in tests/fixtures/workspace_fixtures.py
+- [X] T089 [P] [US2] Create reusable fixture mock_create_workspace_conflict in tests/fixtures/workspace_fixtures.py (duplicate name)
 
 #### Client Layer Tests (Layer 4 - Mock HTTP with respx from cassettes)
 
-- [ ] T090 [P] [US2] Test CoderClient.create_workspace() in tests/clients/test_coder_client.py using mock_create_workspace_success
-- [ ] T091 [P] [US2] Test CoderClient.delete_workspace(workspace_id) in tests/clients/test_coder_client.py using mock_delete_workspace_success
-- [ ] T092 [P] [US2] Test CoderClient.restart_workspace(workspace_id) in tests/clients/test_coder_client.py using mock_restart_workspace_success
-- [ ] T093 [P] [US2] Test CoderClient.get_organization_id() in tests/clients/test_coder_client.py (helper method)
-- [ ] T094 [P] [US2] Test CoderClient error handling for workspace creation conflict in tests/clients/test_coder_client.py
+- [X] T090 [P] [US2] Test CoderClient.create_workspace() in tests/clients/test_coder_client.py using mock_create_workspace_success
+- [X] T091 [P] [US2] Test CoderClient.delete_workspace(workspace_id) in tests/clients/test_coder_client.py using mock_delete_workspace_success
+- [X] T092 [P] [US2] Test CoderClient.restart_workspace(workspace_id) in tests/clients/test_coder_client.py using mock_restart_workspace_success
+- [X] T093 [P] [US2] Test CoderClient.get_organization_id() in tests/clients/test_coder_client.py (helper method)
+- [X] T094 [P] [US2] Test CoderClient error handling for workspace creation conflict in tests/clients/test_coder_client.py
 
 #### Repository Layer Tests (Layer 3 - Mock Client)
 
-- [ ] T095 [P] [US2] Test AgentRepository.create(name, project, role, task) in tests/repositories/test_agent_repository.py with mocked CoderClient
-- [ ] T096 [P] [US2] Test AgentRepository.delete(agent_name) in tests/repositories/test_agent_repository.py with mocked CoderClient
-- [ ] T097 [P] [US2] Test AgentRepository.restart(agent_name) in tests/repositories/test_agent_repository.py with mocked CoderClient
-- [ ] T098 [P] [US2] Test AgentRepository maps workspace creation response to Agent model in tests/repositories/test_agent_repository.py
+- [X] T095 [P] [US2] Test AgentRepository.create(name, project, role, task) in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [X] T096 [P] [US2] Test AgentRepository.delete(agent_name) in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [X] T097 [P] [US2] Test AgentRepository.restart(agent_name) in tests/repositories/test_agent_repository.py with mocked CoderClient
+- [X] T098 [P] [US2] Test AgentRepository maps workspace creation response to Agent model in tests/repositories/test_agent_repository.py
 
 #### Service Layer Tests (Layer 2 - Mock Repository)
 
-- [ ] T099 [P] [US2] Test AgentService.create_agent(name, project, role, task) in tests/services/test_agent_service.py with mocked AgentRepository
-- [ ] T100 [P] [US2] Test AgentService.create_agent() validates name format in tests/services/test_agent_service.py
-- [ ] T101 [P] [US2] Test AgentService.create_agent() checks name uniqueness in tests/services/test_agent_service.py
-- [ ] T102 [P] [US2] Test AgentService.create_agent() validates project exists in tests/services/test_agent_service.py
-- [ ] T103 [P] [US2] Test AgentService.delete_agent(name) in tests/services/test_agent_service.py with mocked AgentRepository
-- [ ] T104 [P] [US2] Test AgentService.restart_agent(name) in tests/services/test_agent_service.py with mocked AgentRepository
-- [ ] T105 [P] [US2] Test validators.validate_agent_name() in tests/services/test_validators.py
+- [X] T099 [P] [US2] Test AgentService.create_agent(name, project, role, task) in tests/services/test_agent_service.py with mocked AgentRepository
+- [X] T100 [P] [US2] Test AgentService.create_agent() validates name format in tests/services/test_agent_service.py
+- [X] T101 [P] [US2] Test AgentService.create_agent() checks name uniqueness in tests/services/test_agent_service.py
+- [X] T102 [P] [US2] Test AgentService.create_agent() validates project exists in tests/services/test_agent_service.py
+- [X] T103 [P] [US2] Test AgentService.delete_agent(name) in tests/services/test_agent_service.py with mocked AgentRepository
+- [X] T104 [P] [US2] Test AgentService.restart_agent(name) in tests/services/test_agent_service.py with mocked AgentRepository
+- [X] T105 [P] [US2] Test validators.validate_agent_name() in tests/services/test_validators.py
 
 #### Tool Layer Tests (Layer 1 - Mock Service)
 
-- [ ] T106 [P] [US2] Test create_agent tool in tests/tools/test_create_agent.py with mocked AgentService
-- [ ] T107 [P] [US2] Test create_agent tool validates parameters with scalar Annotated types in tests/tools/test_create_agent.py
-- [ ] T108 [P] [US2] Test create_agent tool error handling for duplicate names in tests/tools/test_create_agent.py
-- [ ] T109 [P] [US2] Test delete_agent tool in tests/tools/test_delete_agent.py with mocked AgentService
-- [ ] T110 [P] [US2] Test restart_agent tool in tests/tools/test_restart_agent.py with mocked AgentService
-- [ ] T110a [P] [US2] Test restart_agent tool error handling for non-existent agent in tests/tools/test_restart_agent.py
-- [ ] T110b [P] [US2] Test restart_agent tool validates agent_name parameter in tests/tools/test_restart_agent.py
+- [X] T106 [P] [US2] Test create_agent tool in tests/tools/test_create_agent.py with mocked AgentService
+- [X] T107 [P] [US2] Test create_agent tool validates parameters with scalar Annotated types in tests/tools/test_create_agent.py
+- [X] T108 [P] [US2] Test create_agent tool error handling for duplicate names in tests/tools/test_create_agent.py
+- [X] T109 [P] [US2] Test delete_agent tool in tests/tools/test_delete_agent.py with mocked AgentService
+- [X] T110 [P] [US2] Test restart_agent tool in tests/tools/test_restart_agent.py with mocked AgentService
+- [X] T110a [P] [US2] Test restart_agent tool error handling for non-existent agent in tests/tools/test_restart_agent.py
+- [X] T110b [P] [US2] Test restart_agent tool validates agent_name parameter in tests/tools/test_restart_agent.py
 
 ### Implementation for User Story 2 (After tests are written and failing)
 
 #### Client Layer Implementation (Layer 4)
 
-- [ ] T111 [P] [US2] Implement CoderClient.create_workspace() in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T112 [P] [US2] Implement CoderClient.delete_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T113 [P] [US2] Implement CoderClient.restart_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [ ] T114 [P] [US2] Implement CoderClient.get_organization_id() helper in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T111 [P] [US2] Implement CoderClient.create_workspace() in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T112 [P] [US2] Implement CoderClient.delete_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T113 [P] [US2] Implement CoderClient.restart_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T114 [P] [US2] Implement CoderClient.get_organization_id() helper in src/fleet_mcp_clean/clients/coder_client.py
 
 #### Repository Layer Implementation (Layer 3)
 
-- [ ] T115 [P] [US2] Implement AgentRepository.create(name, project, role, task) in src/fleet_mcp_clean/repositories/agent_repository.py
-- [ ] T116 [P] [US2] Implement AgentRepository.delete(agent_name) in src/fleet_mcp_clean/repositories/agent_repository.py
-- [ ] T117 [P] [US2] Implement AgentRepository.restart(agent_name) in src/fleet_mcp_clean/repositories/agent_repository.py
+- [X] T115 [P] [US2] Implement AgentRepository.create(name, project, role, task) in src/fleet_mcp_clean/repositories/agent_repository.py
+- [X] T116 [P] [US2] Implement AgentRepository.delete(agent_name) in src/fleet_mcp_clean/repositories/agent_repository.py
+- [X] T117 [P] [US2] Implement AgentRepository.restart(agent_name) in src/fleet_mcp_clean/repositories/agent_repository.py
 
 #### Service Layer Implementation (Layer 2)
 
-- [ ] T118 [P] [US2] Implement AgentService.create_agent(name, project, role, task) in src/fleet_mcp_clean/services/agent_service.py
-- [ ] T119 [P] [US2] Implement AgentService.delete_agent(name) in src/fleet_mcp_clean/services/agent_service.py
-- [ ] T120 [P] [US2] Implement AgentService.restart_agent(name) in src/fleet_mcp_clean/services/agent_service.py
-- [ ] T121 [US2] Implement validators.validate_agent_name() in src/fleet_mcp_clean/services/validators.py
-- [ ] T122 [US2] Add business logic for name uniqueness check in src/fleet_mcp_clean/services/agent_service.py
-- [ ] T123 [US2] Add business logic for project/role validation in src/fleet_mcp_clean/services/agent_service.py
+- [X] T118 [P] [US2] Implement AgentService.create_agent(name, project, role, task) in src/fleet_mcp_clean/services/agent_service.py
+- [X] T119 [P] [US2] Implement AgentService.delete_agent(name) in src/fleet_mcp_clean/services/agent_service.py
+- [X] T120 [P] [US2] Implement AgentService.restart_agent(name) in src/fleet_mcp_clean/services/agent_service.py
+- [X] T121 [US2] Implement validators.validate_agent_name() in src/fleet_mcp_clean/services/validators.py
+- [X] T122 [US2] Add business logic for name uniqueness check in src/fleet_mcp_clean/services/agent_service.py
+- [X] T123 [US2] Add business logic for project/role validation in src/fleet_mcp_clean/services/agent_service.py
 
 #### Tool Layer Implementation (Layer 1)
 
-- [ ] T124 [P] [US2] Implement create_agent MCP tool in src/fleet_mcp_clean/tools/create_agent.py with scalar parameters (name, project, task, role)
-- [ ] T125 [P] [US2] Implement delete_agent MCP tool in src/fleet_mcp_clean/tools/delete_agent.py
-- [ ] T126 [P] [US2] Implement restart_agent MCP tool in src/fleet_mcp_clean/tools/restart_agent.py
+- [X] T124 [P] [US2] Implement create_agent MCP tool in src/fleet_mcp_clean/tools/create_agent.py with scalar parameters (name, project, task, role)
+- [X] T125 [P] [US2] Implement delete_agent MCP tool in src/fleet_mcp_clean/tools/delete_agent.py
+- [X] T126 [P] [US2] Implement restart_agent MCP tool in src/fleet_mcp_clean/tools/restart_agent.py
 
 #### Verification
 
-- [ ] T127 [US2] Run nx test fleet-mcp-clean to verify all User Story 2 tests pass
-- [ ] T128 [US2] Run manual smoke test: create agent, verify it exists, delete agent, verify it's gone, restart agent
+- [X] T127 [US2] Run nx test fleet-mcp-clean to verify all User Story 2 tests pass
+- [X] T128 [US2] Run manual smoke test: create agent, verify it exists, delete agent, verify it's gone, restart agent
 
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
+**Checkpoint**: ✅ User Stories 1 AND 2 are fully functional and tested - 78 tests passing!
 
 ---
 
@@ -454,6 +454,7 @@ This is a Python library in Nx monorepo:
 - [ ] T224 [P] Add import-linter configuration to verify layer boundaries
 - [ ] T225 Run import-linter to verify no layer boundary violations
 - [ ] T226 Remove all secrets / tokens from VCR cassettes. Follow same approach as libs/fleet-mcp in libs/fleet-mcp/tests/conftest.py how secrets are removed and redacted.
+- [ ] T227 Setup integration tests which test calling the MCP tools end-to-end. These tests use the respx mocking framework to mock out HTTP calls to the Coder API, similar to how the client layer tests are structured. Ensure these tests cover all MCP tools. Ensure that these tests only mock out HTTP calls, and do not mock any internal layers of the fleet-mcp-clean library.
 
 ---
 
