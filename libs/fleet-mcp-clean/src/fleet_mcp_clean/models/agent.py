@@ -22,13 +22,13 @@ class Agent(BaseModel):
 
     Business Rules:
     1. Agent names MUST be unique across the fleet
-    2. Agent names MUST match pattern: ^[a-zA-Z0-9-]{1,20}$
+    2. Agent names MUST match pattern: ^[a-zA-Z0-9-]{1,64}$
     3. Agents can only accept tasks when status is idle
     4. Agents can be deleted in any status (forceful deletion)
     5. Status transitions: starting → idle → busy → idle (or offline, failed)
     """
 
-    name: str = Field(..., min_length=1, max_length=20, pattern=r"^[a-zA-Z0-9-]+$")
+    name: str = Field(..., min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9-]+$")
     workspace_id: str = Field(..., description="Coder workspace UUID")
     status: AgentStatus
     role: str = Field(..., description="Workspace preset name")

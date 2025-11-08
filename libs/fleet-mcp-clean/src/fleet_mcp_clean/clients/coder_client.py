@@ -298,16 +298,24 @@ class CoderClient:
             HTTPError: If API request fails
         """
         try:
-            # Get organization first to construct proper URL
-            org_id = await self.get_organization_id()
+            # First try the simpler endpoint without organization
             response = await self.client.get(
-                f"{self.base_url}/api/v2/organizations/{org_id}/templates/{template_id}"
+                f"{self.base_url}/api/v2/templates/{template_id}"
             )
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
-                raise NotFoundError(f"Template {template_id} not found") from e
+                # Try with organization prefix as fallback
+                try:
+                    org_id = await self.get_organization_id()
+                    response = await self.client.get(
+                        f"{self.base_url}/api/v2/organizations/{org_id}/templates/{template_id}"
+                    )
+                    response.raise_for_status()
+                    return response.json()
+                except httpx.HTTPStatusError:
+                    raise NotFoundError(f"Template {template_id} not found") from e
             self._handle_http_error(e)
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e

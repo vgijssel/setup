@@ -1,8 +1,14 @@
 """Pytest configuration and shared fixtures."""
 
 import pytest
+import respx
 from typing import AsyncGenerator
 import httpx
+import os
+
+# Set test environment variables
+os.environ["CODER_URL"] = "https://test-coder.example.com"
+os.environ["CODER_SESSION_TOKEN"] = "test-token-12345"
 
 
 @pytest.fixture
@@ -40,3 +46,10 @@ def sample_template_id() -> str:
 def sample_agent_name() -> str:
     """Sample agent name for testing."""
     return "test-agent"
+
+
+@pytest.fixture
+def respx_mock():
+    """Respx mock for HTTP mocking."""
+    with respx.mock(assert_all_mocked=False) as mock_router:
+        yield mock_router
