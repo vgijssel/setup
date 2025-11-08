@@ -51,7 +51,7 @@ class ProjectService:
             CoderAPIError: If project not found or API request fails
         """
         if not project_name or not project_name.strip():
-            raise ValidationError("Project name cannot be empty")
+            raise ValidationError("project_name", "cannot be empty")
 
         return await self.project_repo.list_roles(project_name)
 
@@ -68,7 +68,7 @@ class ProjectService:
             ValidationError: If project_name is invalid
         """
         if not project_name or not project_name.strip():
-            raise ValidationError("Project name cannot be empty")
+            raise ValidationError("project_name", "cannot be empty")
 
         projects = await self.project_repo.list_all()
 

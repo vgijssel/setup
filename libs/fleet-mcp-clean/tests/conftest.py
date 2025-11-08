@@ -6,6 +6,18 @@ from typing import AsyncGenerator
 import httpx
 import os
 
+# Import fixtures to make them available to all tests
+from fixtures.workspace_fixtures import (
+    mock_list_workspaces_success,
+    mock_get_workspace_success,
+    mock_get_workspace_applications_success,
+)
+from fixtures.template_fixtures import (
+    mock_list_templates_success,
+    mock_get_template_parameters_success,
+    mock_list_workspace_presets_success,
+)
+
 # Set test environment variables
 os.environ["CODER_URL"] = "https://test-coder.example.com"
 os.environ["CODER_SESSION_TOKEN"] = "test-token-12345"

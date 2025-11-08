@@ -25,13 +25,13 @@ This is a Python library in Nx monorepo:
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project directory structure at libs/fleet-mcp-clean/
-- [ ] T002 Create pyproject.toml with uv dependencies (fastmcp==2.13.0.2, pydantic==2.12.3, httpx==0.28.1, etc.)
-- [ ] T003 Create package.json with Nx configuration (server and test targets)
-- [ ] T004 [P] Create .env.example with CODER_URL and CODER_SESSION_TOKEN
-- [ ] T005 [P] Create README.md with project overview
-- [ ] T006 [P] Create src/fleet_mcp_clean/__init__.py (package initialization)
-- [ ] T007 Run uv sync to create .venv and install dependencies
+- [X] T001 Create project directory structure at libs/fleet-mcp-clean/
+- [X] T002 Create pyproject.toml with uv dependencies (fastmcp==2.13.0.2, pydantic==2.12.3, httpx==0.28.1, etc.)
+- [X] T003 Create package.json with Nx configuration (server and test targets)
+- [X] T004 [P] Create .env.example with CODER_URL and CODER_SESSION_TOKEN
+- [X] T005 [P] Create README.md with project overview
+- [X] T006 [P] Create src/fleet_mcp_clean/__init__.py (package initialization)
+- [X] T007 Run uv sync to create .venv and install dependencies
 
 ---
 
@@ -41,22 +41,22 @@ This is a Python library in Nx monorepo:
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 [P] Create models/__init__.py with shared Pydantic models (Agent, Task, Project, Role, etc.) in src/fleet_mcp_clean/models/
-- [ ] T009 [P] Create models/agent.py with Agent and AgentStatus models
-- [ ] T010 [P] Create models/task.py with Task, TaskHistory, LogEntry, ConversationLog models
-- [ ] T011 [P] Create models/project.py with Project and Role models
-- [ ] T012 [P] Create models/remote.py with WorkspaceRemote, WorkspaceBuildRemote, TemplateRemote models
-- [ ] T013 [P] Create models/responses.py with all MCP Response models (ListAgentsResponse, CreateAgentResponse, etc.)
-- [ ] T014 [P] Create models/errors.py with custom exception classes
-- [ ] T015 Create clients/__init__.py for HTTP client layer
+- [X] T008 [P] Create models/__init__.py with shared Pydantic models (Agent, Task, Project, Role, etc.) in src/fleet_mcp_clean/models/
+- [X] T009 [P] Create models/agent.py with Agent and AgentStatus models
+- [X] T010 [P] Create models/task.py with Task, TaskHistory, LogEntry, ConversationLog models
+- [X] T011 [P] Create models/project.py with Project and Role models
+- [X] T012 [P] Create models/remote.py with WorkspaceRemote, WorkspaceBuildRemote, TemplateRemote models
+- [X] T013 [P] Create models/responses.py with all MCP Response models (ListAgentsResponse, CreateAgentResponse, etc.)
+- [X] T014 [P] Create models/errors.py with custom exception classes
+- [X] T015 Create clients/__init__.py for HTTP client layer
 - [X] T016 Create clients/coder_client.py with CoderClient class (HTTPX async client)
-- [ ] T017 Create clients/exceptions.py with HTTP error handling
-- [ ] T018 Create repositories/__init__.py for data access layer
-- [ ] T019 Create services/__init__.py for business logic layer
-- [ ] T020 Create tools/__init__.py for MCP tool entry points
-- [ ] T021 [P] Create tests/conftest.py with pytest configuration and shared fixtures
-- [ ] T022 [P] Create tests/fixtures/__init__.py with cassette loading utilities
-- [ ] T023 Create __main__.py with FastMCP server entry point in src/fleet_mcp_clean/
+- [X] T017 Create clients/exceptions.py with HTTP error handling
+- [X] T018 Create repositories/__init__.py for data access layer
+- [X] T019 Create services/__init__.py for business logic layer
+- [X] T020 Create tools/__init__.py for MCP tool entry points
+- [X] T021 [P] Create tests/conftest.py with pytest configuration and shared fixtures
+- [X] T022 [P] Create tests/fixtures/__init__.py with cassette loading utilities
+- [X] T023 Create __main__.py with FastMCP server entry point in src/fleet_mcp_clean/
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -72,26 +72,26 @@ This is a Python library in Nx monorepo:
 
 #### Test Fixtures and Cassettes
 
-- [ ] T024 [P] [US1] Create VCR recording script in tests/record.py for list_workspaces interaction
-- [ ] T025 [P] [US1] Create VCR recording script entries for get_workspace interaction
-- [ ] T026 [P] [US1] Create VCR recording script entries for list_templates interaction
-- [ ] T027 [P] [US1] Create VCR recording script entries for get_template_parameters interaction
-- [ ] T028 [P] [US1] Create VCR recording script entries for list_workspace_presets interaction
-- [ ] T029 [US1] Record cassettes by running tests/record.py (creates YAML files in tests/cassettes/)
-- [ ] T030 [P] [US1] Create reusable fixture mock_list_workspaces_success in tests/fixtures/workspace_fixtures.py
-- [ ] T031 [P] [US1] Create reusable fixture mock_get_workspace_success in tests/fixtures/workspace_fixtures.py
-- [ ] T032 [P] [US1] Create reusable fixture mock_list_templates_success in tests/fixtures/template_fixtures.py
-- [ ] T033 [P] [US1] Create reusable fixture mock_get_template_parameters_success in tests/fixtures/template_fixtures.py
-- [ ] T034 [P] [US1] Create reusable fixture mock_list_workspace_presets_success in tests/fixtures/template_fixtures.py
+- [X] T024 [P] [US1] Create VCR recording script in tests/record.py for list_workspaces interaction
+- [X] T025 [P] [US1] Create VCR recording script entries for get_workspace interaction
+- [X] T026 [P] [US1] Create VCR recording script entries for list_templates interaction
+- [X] T027 [P] [US1] Create VCR recording script entries for get_template_parameters interaction
+- [X] T028 [P] [US1] Create VCR recording script entries for list_workspace_presets interaction
+- [X] T029 [US1] Record cassettes by running tests/record.py (creates YAML files in tests/cassettes/)
+- [X] T030 [P] [US1] Create reusable fixture mock_list_workspaces_success in tests/fixtures/workspace_fixtures.py
+- [X] T031 [P] [US1] Create reusable fixture mock_get_workspace_success in tests/fixtures/workspace_fixtures.py
+- [X] T032 [P] [US1] Create reusable fixture mock_list_templates_success in tests/fixtures/template_fixtures.py
+- [X] T033 [P] [US1] Create reusable fixture mock_get_template_parameters_success in tests/fixtures/template_fixtures.py
+- [X] T034 [P] [US1] Create reusable fixture mock_list_workspace_presets_success in tests/fixtures/template_fixtures.py
 
 #### Client Layer Tests (Layer 4 - Mock HTTP with respx from cassettes)
 
-- [ ] T035 [P] [US1] Test CoderClient.list_workspaces() in tests/clients/test_coder_client.py using mock_list_workspaces_success
-- [ ] T036 [P] [US1] Test CoderClient.get_workspace(workspace_id) in tests/clients/test_coder_client.py using mock_get_workspace_success
-- [ ] T037 [P] [US1] Test CoderClient.list_templates() in tests/clients/test_coder_client.py using mock_list_templates_success
-- [ ] T038 [P] [US1] Test CoderClient.get_template_parameters(template_id) in tests/clients/test_coder_client.py using mock_get_template_parameters_success
-- [ ] T039 [P] [US1] Test CoderClient.list_workspace_presets(template_id) in tests/clients/test_coder_client.py using mock_list_workspace_presets_success
-- [ ] T040 [P] [US1] Test CoderClient error handling for 404 responses in tests/clients/test_coder_client.py
+- [X] T035 [P] [US1] Test CoderClient.list_workspaces() in tests/clients/test_coder_client.py using mock_list_workspaces_success
+- [X] T036 [P] [US1] Test CoderClient.get_workspace(workspace_id) in tests/clients/test_coder_client.py using mock_get_workspace_success
+- [X] T037 [P] [US1] Test CoderClient.list_templates() in tests/clients/test_coder_client.py using mock_list_templates_success
+- [X] T038 [P] [US1] Test CoderClient.get_template_parameters(template_id) in tests/clients/test_coder_client.py using mock_get_template_parameters_success
+- [X] T039 [P] [US1] Test CoderClient.list_workspace_presets(template_id) in tests/clients/test_coder_client.py using mock_list_workspace_presets_success
+- [X] T040 [P] [US1] Test CoderClient error handling for 404 responses in tests/clients/test_coder_client.py
 
 #### Repository Layer Tests (Layer 3 - Mock Client)
 
