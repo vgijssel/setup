@@ -276,9 +276,12 @@ class TestMCPToolsIntegration:
                 }
             })
         )
-        # Mock delete workspace
-        respx_mock.delete(f"{coder_base_url}/api/v2/workspaces/ws-1").mock(
-            return_value=Response(200, json={"message": "Deleted"})
+        # Mock delete workspace (POST to create delete build)
+        respx_mock.post(f"{coder_base_url}/api/v2/workspaces/ws-1/builds").mock(
+            return_value=Response(201, json={
+                "id": "b-delete", "workspace_id": "ws-1", "status": "pending",
+                "transition": "delete", "created_at": "2025-01-01T00:00:00Z"
+            })
         )
 
         # Call tool
@@ -352,7 +355,7 @@ class TestMCPToolsIntegration:
             })
         )
         # Mock send task input
-        respx_mock.post(f"{coder_base_url}/api/v2/workspaces/testuser/ws-1/task-input").mock(
+        respx_mock.post(f"{coder_base_url}/api/experimental/tasks/testuser/ws-1/send").mock(
             return_value=Response(200, json={"success": True})
         )
 
@@ -378,14 +381,20 @@ class TestMCPToolsIntegration:
                 "latest_build": {
                     "id": "b-1",
                     "status": "running",
+                    "has_ai_task": True,
                     "resources": [{
                         "agents": [{
                             "apps": [{
                                 "slug": "agentapi",
-                                "url": "http://localhost:8080"
+                                "url": "http://localhost:8080",
+                                "health": "http://localhost:8080"
                             }]
                         }]
                     }]
+                },
+                "latest_app_status": {
+                    "state": "working",
+                    "message": "Agent is busy"
                 }
             }])
         )
@@ -400,14 +409,20 @@ class TestMCPToolsIntegration:
                 "latest_build": {
                     "id": "b-1",
                     "status": "running",
+                    "has_ai_task": True,
                     "resources": [{
                         "agents": [{
                             "apps": [{
                                 "slug": "agentapi",
-                                "url": "http://localhost:8080"
+                                "url": "http://localhost:8080",
+                                "health": "http://localhost:8080"
                             }]
                         }]
                     }]
+                },
+                "latest_app_status": {
+                    "state": "working",
+                    "message": "Agent is busy"
                 }
             })
         )
@@ -420,7 +435,8 @@ class TestMCPToolsIntegration:
         result = await cancel_agent_task(full_stack["task_service"], agent_name="agent-1")
 
         # Assert
-        assert result.interrupt_sent is True
+        assert "canceled" in result.message.lower()
+        assert result.agent_name == "agent-1"
 
     async def test_show_task_history_tool(self, respx_mock, coder_base_url, full_stack):
         """Test show_agent_task_history tool end-to-end."""
@@ -447,9 +463,10 @@ class TestMCPToolsIntegration:
             page_size=10
         )
 
-        # Assert
-        assert hasattr(result, "agent_name")
-        assert hasattr(result, "tasks")
+        # Assert - result is a dict, not a Pydantic model
+        assert isinstance(result, dict)
+        assert result["agent_name"] == "agent-1"
+        assert "tasks" in result
 
     async def test_show_logs_tool(self, respx_mock, coder_base_url, full_stack):
         """Test show_agent_log tool end-to-end."""
@@ -477,12 +494,14 @@ class TestMCPToolsIntegration:
             })
         )
         # Mock get task logs
-        respx_mock.get(f"{coder_base_url}/api/v2/workspaces/testuser/ws-1/task-logs").mock(
-            return_value=Response(200, json=[{
-                "timestamp": "2025-01-01T00:00:00Z",
-                "message": "Log entry",
-                "level": "INFO"
-            }])
+        respx_mock.get(f"{coder_base_url}/api/experimental/tasks/testuser/ws-1/logs").mock(
+            return_value=Response(200, json={
+                "logs": [{
+                    "timestamp": "2025-01-01T00:00:00Z",
+                    "message": "Log entry",
+                    "level": "INFO"
+                }]
+            })
         )
 
         # Call tool
@@ -493,6 +512,7 @@ class TestMCPToolsIntegration:
             page_size=1
         )
 
-        # Assert
-        assert hasattr(result, "agent_name")
-        assert hasattr(result, "logs")
+        # Assert - result is a dict, not a Pydantic model
+        assert isinstance(result, dict)
+        assert result["agent_name"] == "agent-1"
+        assert "logs" in result

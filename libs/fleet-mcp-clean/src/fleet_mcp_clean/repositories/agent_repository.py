@@ -183,6 +183,13 @@ class AgentRepository:
 
         agent_status = status_map.get(build_status, AgentStatus.OFFLINE)
 
+        # Check if agent is busy (has an active AI task)
+        # This is indicated by has_ai_task=true and latest_app_status.state="working"
+        if workspace.get("latest_build", {}).get("has_ai_task"):
+            latest_app_status = workspace.get("latest_app_status", {})
+            if latest_app_status.get("state") == "working":
+                agent_status = AgentStatus.BUSY
+
         # Extract role from preset (if available in workspace metadata)
         # For now, default to "coder" - will be enhanced when metadata is available
         role = "coder"

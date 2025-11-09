@@ -27,11 +27,13 @@ def sample_workspaces():
             "id": "ws-123",
             "name": "idle-agent",
             "status": "running",
+            "owner_name": "alice",
         },
         {
             "id": "ws-456",
             "name": "busy-agent",
             "status": "running",
+            "owner_name": "bob",
         }
     ]
 
@@ -61,15 +63,15 @@ class TestTaskRepositoryAssignTask:
         """Test successful task assignment (T141)."""
         # Arrange
         mock_coder_client.list_workspaces.return_value = sample_workspaces
-        mock_coder_client.send_task_to_workspace.return_value = {"status": "sent"}
+        mock_coder_client.send_task_input.return_value = None
 
         # Act
         await task_repository.assign_task("idle-agent", "Process data")
 
         # Assert
         mock_coder_client.list_workspaces.assert_called_once()
-        mock_coder_client.send_task_to_workspace.assert_called_once_with(
-            "ws-123", "Process data"
+        mock_coder_client.send_task_input.assert_called_once_with(
+            "alice", "ws-123", "Process data"
         )
 
     async def test_assign_task_raises_not_found_for_nonexistent_agent(
@@ -83,7 +85,7 @@ class TestTaskRepositoryAssignTask:
         with pytest.raises(NotFoundError, match="Agent 'nonexistent' not found"):
             await task_repository.assign_task("nonexistent", "Task")
 
-        mock_coder_client.send_task_to_workspace.assert_not_called()
+        mock_coder_client.send_task_input.assert_not_called()
 
     async def test_assign_task_sends_to_correct_workspace(
         self, task_repository, mock_coder_client, sample_workspaces
@@ -91,14 +93,14 @@ class TestTaskRepositoryAssignTask:
         """Test assign_task sends task to correct workspace ID (T142)."""
         # Arrange
         mock_coder_client.list_workspaces.return_value = sample_workspaces
-        mock_coder_client.send_task_to_workspace.return_value = {"status": "sent"}
+        mock_coder_client.send_task_input.return_value = None
 
         # Act
         await task_repository.assign_task("busy-agent", "New task")
 
         # Assert
-        mock_coder_client.send_task_to_workspace.assert_called_once_with(
-            "ws-456", "New task"
+        mock_coder_client.send_task_input.assert_called_once_with(
+            "bob", "ws-456", "New task"
         )
 
 

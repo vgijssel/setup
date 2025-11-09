@@ -44,9 +44,10 @@ class TaskRepository:
             raise NotFoundError(f"Agent '{agent_name}' not found")
 
         workspace_id = workspace["id"]
+        owner_name = workspace.get("owner_name", "")
 
         # Send task to workspace
-        await self.client.send_task_to_workspace(workspace_id, task_description)
+        await self.client.send_task_input(owner_name, workspace_id, task_description)
 
     async def cancel_task(self, agent_name: str) -> None:
         """Cancel the current task on an agent by sending interrupt signal.
