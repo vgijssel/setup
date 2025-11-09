@@ -72,7 +72,7 @@ class TestCoderClientGetWorkspace:
             base_url="https://test.coder.com",
             token="test-token"
         )
-        workspace_id = "d9332e0d-4a63-4d32-b8d6-c14cda90694c"
+        workspace_id = "6af63b3e-8151-45f4-88d1-9b9afd7c7e6e"
 
         # Act
         result = await client.get_workspace(workspace_id)
