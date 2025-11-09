@@ -49,13 +49,130 @@ for cassette_file in CASSETTE_DIR.glob("*.yaml"):
     cassette_file.unlink()
     print(f"  Deleted: {cassette_file.name}")
 
+
+def _redact_secrets(response):
+    """Redact sensitive environment variables from VCR response."""
+    import re
+
+    # Define all secrets to redact
+    secrets_to_redact = {
+        "GH_TOKEN": os.getenv("GH_TOKEN", ""),
+        "HA_TOKEN": os.getenv("HA_TOKEN", ""),
+        "NX_KEY": os.getenv("NX_KEY", ""),
+        "OP_SERVICE_ACCOUNT_TOKEN": os.getenv("OP_SERVICE_ACCOUNT_TOKEN", ""),
+        "CLAUDE_CODE_OAUTH_TOKEN": os.getenv("CLAUDE_CODE_OAUTH_TOKEN", ""),
+        "CODER_SESSION_TOKEN": os.getenv("CODER_SESSION_TOKEN", ""),
+        "CODER_AGENT_TOKEN": os.getenv("CODER_AGENT_TOKEN", ""),
+    }
+
+    # Also redact hostname from CODER_URL
+    coder_url = os.getenv("CODER_URL", "")
+    if coder_url:
+        # Extract hostname from URL
+        from urllib.parse import urlparse
+
+        parsed = urlparse(coder_url)
+        if parsed.hostname:
+            secrets_to_redact["CODER_HOSTNAME"] = parsed.hostname
+
+    # Redact from response body
+    if "body" in response and "string" in response["body"]:
+        body = response["body"]["string"]
+
+        # Convert bytes to string if needed
+        if isinstance(body, bytes):
+            body = body.decode("utf-8")
+
+        # Redact each secret by value
+        for secret_name, secret_value in secrets_to_redact.items():
+            if secret_value and secret_value in body:
+                body = body.replace(secret_value, f"***{secret_name}_REDACTED***")
+
+        # Use regex to redact any CODER_SESSION_TOKEN values (agent tokens in responses)
+        body = re.sub(
+            r'"CODER_SESSION_TOKEN":"[^"]*"',
+            '"CODER_SESSION_TOKEN":"***CODER_SESSION_TOKEN_REDACTED***"',
+            body,
+        )
+
+        # Use regex to redact any CODER_AGENT_TOKEN values
+        body = re.sub(
+            r'"CODER_AGENT_TOKEN":"[^"]*"',
+            '"CODER_AGENT_TOKEN":"***CODER_AGENT_TOKEN_REDACTED***"',
+            body,
+        )
+
+        # Convert back to original format
+        if isinstance(response["body"]["string"], bytes):
+            response["body"]["string"] = body.encode("utf-8")
+        else:
+            response["body"]["string"] = body
+
+    return response
+
+
+def _redact_secrets_from_request(request):
+    """Redact sensitive environment variables from VCR request."""
+    secrets_to_redact = {
+        "GH_TOKEN": os.getenv("GH_TOKEN", ""),
+        "HA_TOKEN": os.getenv("HA_TOKEN", ""),
+        "NX_KEY": os.getenv("NX_KEY", ""),
+        "OP_SERVICE_ACCOUNT_TOKEN": os.getenv("OP_SERVICE_ACCOUNT_TOKEN", ""),
+        "CLAUDE_CODE_OAUTH_TOKEN": os.getenv("CLAUDE_CODE_OAUTH_TOKEN", ""),
+        "CODER_SESSION_TOKEN": os.getenv("CODER_SESSION_TOKEN", ""),
+        "CODER_AGENT_TOKEN": os.getenv("CODER_AGENT_TOKEN", ""),
+    }
+
+    # Redact hostname
+    coder_url = os.getenv("CODER_URL", "")
+    hostname_to_redact = None
+    if coder_url:
+        from urllib.parse import urlparse
+
+        parsed = urlparse(coder_url)
+        if parsed.hostname:
+            hostname_to_redact = parsed.hostname
+            secrets_to_redact["CODER_HOSTNAME"] = hostname_to_redact
+
+    # Redact from request body if present
+    if hasattr(request, "body") and request.body:
+        body = request.body
+        if isinstance(body, bytes):
+            body = body.decode("utf-8")
+
+        for secret_name, secret_value in secrets_to_redact.items():
+            if secret_value and secret_value in body:
+                body = body.replace(secret_value, f"***{secret_name}_REDACTED***")
+
+        if isinstance(request.body, bytes):
+            request.body = body.encode("utf-8")
+        else:
+            request.body = body
+
+    # Redact hostname from URI
+    if hostname_to_redact and request.uri:
+        request.uri = request.uri.replace(hostname_to_redact, "coder.example.com")
+
+    # Redact hostname from headers
+    if hostname_to_redact and hasattr(request, "headers"):
+        if "host" in request.headers:
+            request.headers["host"] = request.headers["host"].replace(
+                hostname_to_redact, "coder.example.com"
+            )
+
+    return request
+
+
 # Configure VCR with "all" mode to always re-record everything
+# Use redaction functions to ensure secrets are filtered
 vcr_instance = vcr.VCR(
     serializer="yaml",
     cassette_library_dir=str(CASSETTE_DIR),
     record_mode="all",  # ALWAYS re-record, never reuse existing cassettes
     match_on=["uri", "method"],
-    filter_headers=["Coder-Session-Token", "Authorization"],
+    filter_headers=["Coder-Session-Token", "Authorization", "Cookie"],
+    before_record_response=_redact_secrets,
+    before_record_request=_redact_secrets_from_request,
 )
 
 

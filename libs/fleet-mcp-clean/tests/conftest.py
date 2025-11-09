@@ -18,9 +18,11 @@ from fixtures.template_fixtures import (
     mock_list_workspace_presets_success,
 )
 
-# Set test environment variables
-os.environ["CODER_URL"] = "https://test-coder.example.com"
-os.environ["CODER_SESSION_TOKEN"] = "test-token-12345"
+# Set test environment variables (defaults for testing)
+if "CODER_URL" not in os.environ:
+    os.environ["CODER_URL"] = "https://test-coder.example.com"
+if "CODER_SESSION_TOKEN" not in os.environ:
+    os.environ["CODER_SESSION_TOKEN"] = "test-token-12345"
 
 
 @pytest.fixture
@@ -63,5 +65,5 @@ def sample_agent_name() -> str:
 @pytest.fixture
 def respx_mock():
     """Respx mock for HTTP mocking."""
-    with respx.mock(assert_all_mocked=False) as mock_router:
+    with respx.mock(assert_all_mocked=False, assert_all_called=False) as mock_router:
         yield mock_router

@@ -20,8 +20,8 @@ vcr_instance = vcr.VCR(
 
 @pytest.fixture
 def coder_base_url():
-    """Test Coder API base URL (must match cassettes)."""
-    return "https://macbook-pro-van-maarten.tail2c33e2.ts.net"
+    """Test Coder API base URL (must match redacted cassettes)."""
+    return "https://coder.example.com"
 
 
 @pytest.mark.asyncio
