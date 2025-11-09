@@ -352,9 +352,9 @@ This is a Python library in Nx monorepo:
 
 #### Test Fixtures and Cassettes
 
-- [ ] T168 [P] [US4] Add get_task_history recording to tests/record.py
-- [ ] T169 [P] [US4] Add get_conversation_logs recording to tests/record.py
-- [ ] T170 [US4] Record new cassettes by running tests/record.py
+- [X] T168 [P] [US4] Add get_task_history recording to tests/record.py
+- [X] T169 [P] [US4] Add get_conversation_logs recording to tests/record.py
+- [X] T170 [US4] Record new cassettes by running tests/record.py
 - [ ] T171 [P] [US4] Create reusable fixture mock_get_task_history_success in tests/fixtures/task_fixtures.py
 - [ ] T172 [P] [US4] Create reusable fixture mock_get_conversation_logs_success in tests/fixtures/task_fixtures.py
 - [ ] T173 [P] [US4] Create reusable fixture mock_get_task_history_empty in tests/fixtures/task_fixtures.py
@@ -459,6 +459,7 @@ This is a Python library in Nx monorepo:
 - [ ] T227 Setup integration tests which test calling the MCP tools end-to-end. These tests use the respx mocking framework to mock out HTTP calls to the Coder API, similar to how the client layer tests are structured. Ensure these tests cover all MCP tools. Ensure that these tests only mock out HTTP calls, and do not mock any internal layers of the fleet-mcp-clean library.
 - [ ] T228 remove all VCR cassettes and re-record them after T226 and T227 are complete to ensure no secrets are present and integration tests are passing. This is to make sure we're only committing the casettes which we need.
 - [ ] T229 Add return type hints to methods in libs/fleet-mcp-clean/src/fleet_mcp_clean/__main__.py
+- [ ] T230 Ensure workspace is deleted after record.py is done, whether successful or failed, to avoid orphaned workspaces in Coder instance. Don't stop but actually delete the workspace in the finally block.
 
 ---
 

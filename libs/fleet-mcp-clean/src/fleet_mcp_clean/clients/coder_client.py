@@ -161,24 +161,26 @@ class CoderClient:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e
 
     async def delete_workspace(self, workspace_id: str) -> dict[str, Any]:
-        """Delete a workspace by ID (forceful deletion).
+        """Delete a workspace by triggering a delete build.
 
         Args:
             workspace_id: Workspace UUID
 
         Returns:
-            Deletion result dictionary from Coder API
+            Deletion build result dictionary from Coder API
 
         Raises:
             NotFoundError: If workspace doesn't exist
             HTTPError: If API request fails
         """
         try:
-            response = await self.client.delete(
-                f"{self.base_url}/api/v2/workspaces/{workspace_id}"
+            # Trigger workspace deletion by creating a delete build
+            response = await self.client.post(
+                f"{self.base_url}/api/v2/workspaces/{workspace_id}/builds",
+                json={"transition": "delete"},
             )
             response.raise_for_status()
-            return response.json() if response.content else {"status": "deleted"}
+            return response.json()
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 raise NotFoundError(f"Workspace {workspace_id} not found") from e
@@ -398,28 +400,63 @@ class CoderClient:
     # Task Operations (via AgentAPI and Experimental Task API)
     # ========================================================================
 
-    async def send_task_to_workspace(
-        self, workspace_id: str, task_description: str
-    ) -> dict[str, Any]:
-        """Send a task to a workspace via experimental task API.
+    async def get_task(self, username: str, workspace_id: str) -> dict[str, Any] | None:
+        """Get AI task status from experimental task API.
 
         Args:
+            username: Username of the workspace owner
             workspace_id: Workspace UUID
-            task_description: Task description/instructions
 
         Returns:
-            Task assignment result dictionary
+            Task data from experimental API or None if no task exists
 
         Raises:
             HTTPError: If API request fails
         """
         try:
+            response = await self.client.get(
+                f"{self.base_url}/api/experimental/tasks/{username}/{workspace_id}"
+            )
+
+            # 404 or 400 means no task exists for this workspace
+            if response.status_code in (400, 404):
+                return None
+
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code in (400, 404):
+                return None
+            self._handle_http_error(e)
+        except httpx.RequestError as e:
+            raise HTTPError(f"Failed to connect to Coder API: {e}") from e
+
+    async def send_task_input(
+        self, username: str, workspace_id: str, task_input: str
+    ) -> None:
+        """Send input/message to an AI task via experimental task API.
+
+        Submits new input to the task's sidebar app. This sends a message to
+        the AgentAPI running in the workspace.
+
+        Args:
+            username: Username of the workspace owner
+            workspace_id: Workspace UUID
+            task_input: Message/input to send to the task (must be non-empty)
+
+        Raises:
+            ValueError: If task_input is empty
+            HTTPError: If the request fails (e.g., task not in stable state)
+        """
+        if not task_input or not task_input.strip():
+            raise ValueError("Task input cannot be empty")
+
+        try:
             response = await self.client.post(
-                f"{self.base_url}/api/v2/workspaces/{workspace_id}/tasks",
-                json={"description": task_description},
+                f"{self.base_url}/api/experimental/tasks/{username}/{workspace_id}/send",
+                json={"input": task_input},
             )
             response.raise_for_status()
-            return response.json() if response.content else {"status": "sent"}
         except httpx.HTTPStatusError as e:
             self._handle_http_error(e)
         except httpx.RequestError as e:
@@ -449,61 +486,11 @@ class CoderClient:
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to AgentAPI: {e}") from e
 
-    async def get_task_history(
-        self, workspace_id: str, page: int = 1, page_size: int = 20
-    ) -> dict[str, Any]:
-        """Get paginated task history for a workspace.
-
-        Args:
-            workspace_id: Workspace UUID
-            page: Page number (1-indexed)
-            page_size: Items per page (max 100)
-
-        Returns:
-            Task history with pagination metadata
-
-        Raises:
-            HTTPError: If API request fails
-        """
-        try:
-            response = await self.client.get(
-                f"{self.base_url}/api/v2/workspaces/{workspace_id}/tasks/history",
-                params={"page": page, "page_size": min(page_size, 100)},
-            )
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            self._handle_http_error(e)
-        except httpx.RequestError as e:
-            raise HTTPError(f"Failed to connect to Coder API: {e}") from e
-
-    async def get_conversation_logs(
-        self, workspace_id: str, page: int = 1, page_size: int = 1
-    ) -> dict[str, Any]:
-        """Get paginated conversation logs for a workspace.
-
-        Args:
-            workspace_id: Workspace UUID
-            page: Page number (1-indexed)
-            page_size: Items per page (max 100, default 1)
-
-        Returns:
-            Conversation logs with pagination metadata
-
-        Raises:
-            HTTPError: If API request fails
-        """
-        try:
-            response = await self.client.get(
-                f"{self.base_url}/api/v2/workspaces/{workspace_id}/logs",
-                params={"page": page, "page_size": min(page_size, 100)},
-            )
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            self._handle_http_error(e)
-        except httpx.RequestError as e:
-            raise HTTPError(f"Failed to connect to Coder API: {e}") from e
+    # NOTE: Task history is NOT a separate API endpoint
+    # Task history is extracted from workspace.latest_build.resources[].agents[].apps[]
+    # where app.slug == "ccw" or app.display_name == "Claude Code"
+    # The app.statuses[] array contains the task history items
+    # This extraction should be done in the repository/service layer
 
     # ========================================================================
     # Helper Methods
@@ -535,6 +522,43 @@ class CoderClient:
             self._org_id_cache = orgs[0]["id"]
             return self._org_id_cache
         except httpx.HTTPStatusError as e:
+            self._handle_http_error(e)
+        except httpx.RequestError as e:
+            raise HTTPError(f"Failed to connect to Coder API: {e}") from e
+
+    async def get_task_logs(self, username: str, workspace_id: str) -> list[dict]:
+        """Get conversation logs from experimental task API.
+
+        Retrieves conversation logs for a workspace's AI task. Logs include both
+        user inputs and assistant outputs.
+
+        Args:
+            username: Username of the workspace owner
+            workspace_id: Workspace UUID
+
+        Returns:
+            List of log entries. Each entry contains: id, time, type, content.
+            Returns empty list if no task exists or logs are not available.
+
+        Raises:
+            HTTPError: If the API request fails (except 404/400 which return empty list)
+        """
+        try:
+            response = await self.client.get(
+                f"{self.base_url}/api/experimental/tasks/{username}/{workspace_id}/logs"
+            )
+
+            # 400 or 404 means no task exists or logs are not available
+            if response.status_code in (400, 404):
+                return []
+
+            response.raise_for_status()
+            data = response.json()
+            return data.get("logs", [])
+        except httpx.HTTPStatusError as e:
+            # Don't raise for 404/400, just return empty
+            if e.response.status_code in (400, 404):
+                return []
             self._handle_http_error(e)
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e
