@@ -95,3 +95,83 @@ class TaskService:
 
         # Cancel the task
         await self.task_repository.cancel_task(agent_name)
+
+    async def get_task_history(
+        self, agent_name: str, page: int = 1, page_size: int = 20
+    ) -> tuple[list[dict], int]:
+        """Get paginated task history for an agent.
+
+        Args:
+            agent_name: Name of the agent
+            page: Page number (1-indexed)
+            page_size: Items per page (max 100)
+
+        Returns:
+            Tuple of (task list, total count)
+
+        Raises:
+            AgentNotFoundError: If agent doesn't exist
+            ValueError: If page or page_size is invalid
+        """
+        # Validate pagination parameters
+        if page < 1:
+            raise ValueError("Page must be >= 1")
+        if page_size < 1 or page_size > 100:
+            raise ValueError("Page size must be between 1 and 100")
+
+        # Get all tasks from repository
+        all_tasks = await self.task_repository.get_task_history(agent_name)
+
+        # Sort by created_at descending (newest first)
+        sorted_tasks = sorted(
+            all_tasks,
+            key=lambda t: t.get("created_at", ""),
+            reverse=True
+        )
+
+        # Calculate pagination
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_tasks = sorted_tasks[start_idx:end_idx]
+
+        return paginated_tasks, len(sorted_tasks)
+
+    async def get_conversation_logs(
+        self, agent_name: str, page: int = 1, page_size: int = 1
+    ) -> tuple[list[dict], int]:
+        """Get paginated conversation logs for an agent.
+
+        Args:
+            agent_name: Name of the agent
+            page: Page number (1-indexed)
+            page_size: Items per page (max 100, default 1)
+
+        Returns:
+            Tuple of (log list, total count)
+
+        Raises:
+            AgentNotFoundError: If agent doesn't exist
+            ValueError: If page or page_size is invalid
+        """
+        # Validate pagination parameters
+        if page < 1:
+            raise ValueError("Page must be >= 1")
+        if page_size < 1 or page_size > 100:
+            raise ValueError("Page size must be between 1 and 100")
+
+        # Get all logs from repository
+        all_logs = await self.task_repository.get_conversation_logs(agent_name)
+
+        # Sort by time descending (newest first)
+        sorted_logs = sorted(
+            all_logs,
+            key=lambda l: l.get("time", ""),
+            reverse=True
+        )
+
+        # Calculate pagination
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_logs = sorted_logs[start_idx:end_idx]
+
+        return paginated_logs, len(sorted_logs)

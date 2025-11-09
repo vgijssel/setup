@@ -355,9 +355,9 @@ This is a Python library in Nx monorepo:
 - [X] T168 [P] [US4] Add get_task_history recording to tests/record.py
 - [X] T169 [P] [US4] Add get_conversation_logs recording to tests/record.py
 - [X] T170 [US4] Record new cassettes by running tests/record.py
-- [ ] T171 [P] [US4] Create reusable fixture mock_get_task_history_success in tests/fixtures/task_fixtures.py
-- [ ] T172 [P] [US4] Create reusable fixture mock_get_conversation_logs_success in tests/fixtures/task_fixtures.py
-- [ ] T173 [P] [US4] Create reusable fixture mock_get_task_history_empty in tests/fixtures/task_fixtures.py
+- [X] T171 [P] [US4] Create reusable fixture mock_get_task_history_success in tests/fixtures/task_fixtures.py
+- [X] T172 [P] [US4] Create reusable fixture mock_get_conversation_logs_success in tests/fixtures/task_fixtures.py
+- [X] T173 [P] [US4] Create reusable fixture mock_get_task_history_empty in tests/fixtures/task_fixtures.py
 
 #### Client Layer Tests (Layer 4 - Mock HTTP with respx from cassettes)
 
@@ -368,8 +368,8 @@ This is a Python library in Nx monorepo:
 
 #### Repository Layer Tests (Layer 3 - Mock Client)
 
-- [ ] T178 [P] [US4] Test TaskRepository.get_task_history(agent_name, page, page_size) in tests/repositories/test_task_repository.py with mocked CoderClient
-- [ ] T179 [P] [US4] Test TaskRepository.get_conversation_logs(agent_name, page, page_size) in tests/repositories/test_task_repository.py with mocked CoderClient
+- [X] T178 [P] [US4] Test TaskRepository.get_task_history(agent_name, page, page_size) in tests/repositories/test_task_repository.py with mocked CoderClient
+- [X] T179 [P] [US4] Test TaskRepository.get_conversation_logs(agent_name, page, page_size) in tests/repositories/test_task_repository.py with mocked CoderClient
 - [ ] T180 [P] [US4] Test TaskRepository maps API responses to TaskHistory model in tests/repositories/test_task_repository.py
 - [ ] T181 [P] [US4] Test TaskRepository maps API responses to ConversationLog model in tests/repositories/test_task_repository.py
 - [ ] T182 [P] [US4] Test TaskRepository handles pagination metadata correctly in tests/repositories/test_task_repository.py
@@ -400,21 +400,21 @@ This is a Python library in Nx monorepo:
 
 #### Repository Layer Implementation (Layer 3)
 
-- [ ] T196 [P] [US4] Implement TaskRepository.get_task_history(agent_name, page, page_size) in src/fleet_mcp_clean/repositories/task_repository.py
-- [ ] T197 [P] [US4] Implement TaskRepository.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp_clean/repositories/task_repository.py
+- [X] T196 [P] [US4] Implement TaskRepository.get_task_history(agent_name, page, page_size) in src/fleet_mcp_clean/repositories/task_repository.py
+- [X] T197 [P] [US4] Implement TaskRepository.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp_clean/repositories/task_repository.py
 - [ ] T198 [US4] Implement API response → TaskHistory transformation in src/fleet_mcp_clean/repositories/task_repository.py
 - [ ] T199 [US4] Implement API response → ConversationLog transformation in src/fleet_mcp_clean/repositories/task_repository.py
 
 #### Service Layer Implementation (Layer 2)
 
-- [ ] T200 [P] [US4] Implement TaskService.get_task_history(agent_name, page, page_size) in src/fleet_mcp_clean/services/task_service.py
-- [ ] T201 [P] [US4] Implement TaskService.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp_clean/services/task_service.py
+- [X] T200 [P] [US4] Implement TaskService.get_task_history(agent_name, page, page_size) in src/fleet_mcp_clean/services/task_service.py
+- [X] T201 [P] [US4] Implement TaskService.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp_clean/services/task_service.py
 - [ ] T202 [US4] Add pagination validation logic in src/fleet_mcp_clean/services/task_service.py
 
 #### Tool Layer Implementation (Layer 1)
 
-- [ ] T203 [P] [US4] Implement show_agent_task_history MCP tool in src/fleet_mcp_clean/tools/show_task_history.py with scalar parameters
-- [ ] T204 [P] [US4] Implement show_agent_log MCP tool in src/fleet_mcp_clean/tools/show_logs.py with scalar parameters
+- [X] T203 [P] [US4] Implement show_agent_task_history MCP tool in src/fleet_mcp_clean/tools/show_task_history.py with scalar parameters
+- [X] T204 [P] [US4] Implement show_agent_log MCP tool in src/fleet_mcp_clean/tools/show_logs.py with scalar parameters
 
 #### Verification
 

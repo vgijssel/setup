@@ -252,6 +252,35 @@ async def cancel_agent_task(
 
 
 # ========================================================================
+# User Story 4: Task History and Logs
+# ========================================================================
+
+
+@mcp.tool()
+async def show_agent_task_history(
+    agent_name: Annotated[str, Field(description="Name of the agent to query")],
+    page: Annotated[int, Field(ge=1, description="Page number (1-indexed)")] = 1,
+    page_size: Annotated[int, Field(ge=1, le=100, description="Items per page (max 100)")] = 20,
+):
+    """Show paginated task history for an agent ordered by created_at descending (newest first)."""
+    from .tools.show_task_history import show_agent_task_history as show_history_impl
+
+    return await show_history_impl(get_task_service(), agent_name, page, page_size)
+
+
+@mcp.tool()
+async def show_agent_log(
+    agent_name: Annotated[str, Field(description="Name of the agent to query")],
+    page: Annotated[int, Field(ge=1, description="Page number (1-indexed)")] = 1,
+    page_size: Annotated[int, Field(ge=1, le=100, description="Items per page (max 100)")] = 1,
+):
+    """Show paginated conversation logs for an agent ordered by time descending (newest first). Default page size is 1 for latest only."""
+    from .tools.show_logs import show_agent_log as show_logs_impl
+
+    return await show_logs_impl(get_task_service(), agent_name, page, page_size)
+
+
+# ========================================================================
 # Health Check
 # ========================================================================
 
