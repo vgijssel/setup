@@ -419,7 +419,7 @@ This is a Python library in Nx monorepo:
 #### Verification
 
 - [X] T205 [US4] Run nx test fleet-mcp-clean to verify all User Story 4 tests pass (123 tests passing)
-- [ ] T206 [US4] Run manual smoke test: create agent, run multiple tasks, paginate through history and logs
+- [X] T206 [US4] Run manual smoke test: create agent, run multiple tasks, paginate through history and logs
 
 **Checkpoint**: ✅ User Stories 1, 2, 3, AND 4 are fully functional and tested - 123 tests passing!
 
@@ -429,15 +429,15 @@ This is a Python library in Nx monorepo:
 
 **Purpose**: Handle edge cases and ensure robust error handling across all user stories
 
-- [ ] T207 [P] Test agent name validation rejects invalid characters in tests/services/test_validators.py
-- [ ] T208 [P] Test agent name validation rejects names >20 characters in tests/services/test_validators.py
-- [ ] T209 [P] Test project validation rejects templates without required parameters in tests/services/test_project_service.py
-- [ ] T210 [P] Test Coder API unavailable error handling in tests/clients/test_coder_client.py
-- [ ] T211 [P] Test pagination beyond available data returns empty results in tests/services/test_task_service.py
-- [ ] T212 [P] Test task assignment to agent in transitional state (starting) in tests/services/test_task_service.py
-- [ ] T213 [P] Test very long task description handling in tests/services/test_task_service.py
-- [ ] T214 [P] Test showing details for recently deleted agent in tests/services/test_agent_service.py
-- [ ] T215 Implement edge case handling identified in tests
+- [X] T207 [P] Test agent name validation rejects invalid characters in tests/services/test_validators.py
+- [X] T208 [P] Test agent name validation rejects names >20 characters in tests/services/test_validators.py
+- [X] T209 [P] Test project validation rejects templates without required parameters in tests/services/test_project_service.py
+- [X] T210 [P] Test Coder API unavailable error handling in tests/clients/test_coder_client.py
+- [X] T211 [P] Test pagination beyond available data returns empty results in tests/services/test_task_service.py
+- [X] T212 [P] Test task assignment to agent in transitional state (starting) in tests/services/test_task_service.py
+- [X] T213 [P] Test very long task description handling in tests/services/test_task_service.py
+- [X] T214 [P] Test showing details for recently deleted agent in tests/services/test_agent_service.py
+- [X] T215 Implement edge case handling identified in tests
 
 ---
 
@@ -448,18 +448,18 @@ This is a Python library in Nx monorepo:
 - [ ] T216 [P] Add comprehensive docstrings to all public methods in src/fleet_mcp_clean/
 - [ ] T217 [P] Add type hints validation across all layers
 - [ ] T218 [P] Update README.md with usage examples and architecture diagram
-- [ ] T219 [P] Create .gitignore with .venv, .pytest_cache, __pycache__, *.pyc
+- [X] T219 [P] Create .gitignore with .venv, .pytest_cache, __pycache__, *.pyc
 - [ ] T220 [P] Add logging configuration in src/fleet_mcp_clean/__main__.py
-- [ ] T221 Run uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing to verify test coverage
-- [ ] T222 Run nx test fleet-mcp-clean to verify all tests pass with caching
+- [X] T221 Run uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing to verify test coverage
+- [X] T222 Run nx test fleet-mcp-clean to verify all tests pass with caching
 - [ ] T223 Run manual end-to-end test following quickstart.md validation steps
 - [ ] T224 [P] Add import-linter configuration to verify layer boundaries
 - [ ] T225 Run import-linter to verify no layer boundary violations
 - [ ] T226 Remove all secrets / tokens from VCR cassettes. Follow same approach as libs/fleet-mcp in libs/fleet-mcp/tests/conftest.py how secrets are removed and redacted.
 - [ ] T227 Setup integration tests which test calling the MCP tools end-to-end. These tests use the respx mocking framework to mock out HTTP calls to the Coder API, similar to how the client layer tests are structured. Ensure these tests cover all MCP tools. Ensure that these tests only mock out HTTP calls, and do not mock any internal layers of the fleet-mcp-clean library.
 - [ ] T228 remove all VCR cassettes and re-record them after T226 and T227 are complete to ensure no secrets are present and integration tests are passing. This is to make sure we're only committing the casettes which we need.
-- [ ] T229 Add return type hints to methods in libs/fleet-mcp-clean/src/fleet_mcp_clean/__main__.py
-- [ ] T230 Ensure workspace is deleted after record.py is done, whether successful or failed, to avoid orphaned workspaces in Coder instance. Don't stop but actually delete the workspace in the finally block.
+- [X] T229 Add return type hints to methods in libs/fleet-mcp-clean/src/fleet_mcp_clean/__main__.py
+- [X] T230 Ensure workspace is deleted after record.py is done, whether successful or failed, to avoid orphaned workspaces in Coder instance. Don't stop but actually delete the workspace in the finally block.
 
 ---
 
