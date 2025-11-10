@@ -135,7 +135,7 @@ class TestListAgents:
         assert result.total_count == 2
 
     async def test_list_agents_excludes_workspace_id(self, mock_agent_service, sample_agents):
-        """Test that workspace_id is excluded from list view for security."""
+        """Test that workspace_id and updated_at are excluded from list view."""
         # Arrange
         mock_agent_service.list_agents.return_value = sample_agents
 
@@ -146,11 +146,13 @@ class TestListAgents:
         assert isinstance(result, ListAgentsResponse)
         assert len(result.agents) == 2
 
-        # Verify agents in list don't expose workspace_id
+        # Verify agents in list don't expose workspace_id or updated_at
         for agent_view in result.agents:
-            # Agent view should not have workspace_id attribute
+            # Agent view should not have workspace_id or updated_at attributes
             assert not hasattr(agent_view, 'workspace_id'), \
                 "workspace_id should not be exposed in list view"
+            assert not hasattr(agent_view, 'updated_at'), \
+                "updated_at should not be exposed in list view"
 
             # Agent view should have other fields
             assert hasattr(agent_view, 'name')
@@ -159,4 +161,3 @@ class TestListAgents:
             assert hasattr(agent_view, 'project')
             assert hasattr(agent_view, 'last_task')
             assert hasattr(agent_view, 'created_at')
-            assert hasattr(agent_view, 'updated_at')

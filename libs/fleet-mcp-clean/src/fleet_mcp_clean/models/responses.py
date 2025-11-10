@@ -11,10 +11,10 @@ from .project import Project, Role
 
 
 class AgentListView(BaseModel):
-    """View model for agent list - excludes workspace_id for security.
+    """View model for agent list - excludes workspace_id and updated_at.
 
-    This model is used in list operations where workspace_id is internal
-    infrastructure detail that should not be exposed to clients.
+    This model is used in list operations where workspace_id and updated_at are
+    internal details that should not be exposed to clients in list views.
     """
 
     name: str = Field(..., description="Unique agent name")
@@ -23,7 +23,6 @@ class AgentListView(BaseModel):
     project: str = Field(..., description="Template name")
     last_task: Optional[str] = Field(None, description="Most recent task description")
     created_at: datetime = Field(..., description="Agent creation timestamp")
-    updated_at: datetime = Field(..., description="Last modification timestamp")
 
     @classmethod
     def from_agent(cls, agent: Agent) -> "AgentListView":
@@ -33,7 +32,7 @@ class AgentListView(BaseModel):
             agent: Agent domain model
 
         Returns:
-            AgentListView with workspace_id excluded
+            AgentListView with workspace_id and updated_at excluded
         """
         return cls(
             name=agent.name,
@@ -42,7 +41,6 @@ class AgentListView(BaseModel):
             project=agent.project,
             last_task=agent.last_task,
             created_at=agent.created_at,
-            updated_at=agent.updated_at,
         )
 
 
