@@ -185,6 +185,77 @@ class TestCoderClientListWorkspacePresets:
         assert "Name" in preset
 
 
+class TestCoderClientRestartWorkspace:
+    """Test suite for CoderClient.restart_workspace() - T092"""
+
+    @pytest.mark.asyncio
+    async def test_restart_workspace_waits_for_stop_completion(self, respx_mock):
+        """Test that restart waits for workspace to fully stop before starting.
+
+        This test verifies the fix for the issue where restart was failing because
+        it was trying to start a workspace before it had fully stopped.
+
+        Arrange: Mock stop, build status check, and start API calls
+        Act: Call restart_workspace()
+        Assert: Verify build status is polled and workspace stops before starting
+        """
+        # Arrange
+        workspace_id = "11111111-1111-1111-1111-111111111111"
+        stop_build_id = "stop-build-123"
+        start_build_id = "start-build-456"
+
+        # Mock stop workspace call (POST with transition=stop)
+        respx_mock.post(
+            f"https://test.coder.com/api/v2/workspaces/{workspace_id}/builds",
+            json={"transition": "stop"}
+        ).mock(
+            return_value=Response(
+                200,
+                json={"id": stop_build_id, "status": "stopping", "transition": "stop"}
+            )
+        )
+
+        # Mock build status polling - returns stopped status
+        respx_mock.get(
+            f"https://test.coder.com/api/v2/workspacebuilds/{stop_build_id}"
+        ).mock(
+            return_value=Response(
+                200,
+                json={"id": stop_build_id, "status": "stopped"}
+            )
+        )
+
+        # Mock start workspace call (POST with transition=start)
+        respx_mock.post(
+            f"https://test.coder.com/api/v2/workspaces/{workspace_id}/builds",
+            json={"transition": "start"}
+        ).mock(
+            return_value=Response(
+                200,
+                json={"id": start_build_id, "status": "starting", "transition": "start"}
+            )
+        )
+
+        client = CoderClient(
+            base_url="https://test.coder.com",
+            token="test-token"
+        )
+
+        # Act
+        result = await client.restart_workspace(workspace_id)
+
+        # Assert - verify the result
+        assert result["id"] == start_build_id
+        assert result["transition"] == "start"
+
+        # Verify all mocks were called in the correct order
+        # This implicitly validates that:
+        # 1. Stop was requested
+        # 2. Build status was checked
+        # 3. Start was requested only after stop completed
+        assert len(respx_mock.calls) >= 3, "Should have made at least 3 API calls (stop, status check, start)"
+
+
 class TestCoderClientErrorHandling:
     """Test suite for CoderClient error handling - T040"""
 

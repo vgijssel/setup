@@ -431,8 +431,27 @@ class TestMCPToolsIntegration:
                 }
             })
         )
-        # Mock restart workspace
-        respx_mock.post(f"{coder_base_url}/api/v2/workspaces/ws-1/builds").mock(
+        # Mock stop workspace (first call with transition=stop)
+        respx_mock.post(
+            f"{coder_base_url}/api/v2/workspaces/ws-1/builds",
+            json={"transition": "stop"}
+        ).mock(
+            return_value=Response(201, json={
+                "id": "b-stop", "workspace_id": "ws-1", "status": "stopping",
+                "transition": "stop", "created_at": "2025-01-01T00:00:00Z"
+            })
+        )
+        # Mock build status polling (returns stopped status)
+        respx_mock.get(f"{coder_base_url}/api/v2/workspacebuilds/b-stop").mock(
+            return_value=Response(200, json={
+                "id": "b-stop", "status": "stopped"
+            })
+        )
+        # Mock start workspace (second call with transition=start)
+        respx_mock.post(
+            f"{coder_base_url}/api/v2/workspaces/ws-1/builds",
+            json={"transition": "start"}
+        ).mock(
             return_value=Response(201, json={
                 "id": "b-2", "workspace_id": "ws-1", "status": "pending",
                 "transition": "start", "created_at": "2025-01-01T00:00:00Z"

@@ -191,6 +191,9 @@ class CoderClient:
     async def restart_workspace(self, workspace_id: str) -> dict[str, Any]:
         """Restart a workspace by stopping and starting it.
 
+        This method ensures the workspace is fully stopped before starting it again
+        to avoid race conditions and build conflicts.
+
         Args:
             workspace_id: Workspace UUID
 
@@ -208,6 +211,12 @@ class CoderClient:
                 json={"transition": "stop"},
             )
             stop_response.raise_for_status()
+            stop_build_data = stop_response.json()
+            stop_build_id = stop_build_data.get("id")
+
+            # Wait for the stop build to complete
+            if stop_build_id:
+                await self._wait_for_build_completion(stop_build_id)
 
             # Start the workspace
             start_response = await self.client.post(
@@ -222,6 +231,53 @@ class CoderClient:
             self._handle_http_error(e)
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e
+
+    async def _wait_for_build_completion(
+        self, build_id: str, max_attempts: int = 60, delay_seconds: float = 1.0
+    ) -> None:
+        """Wait for a workspace build to complete.
+
+        Polls the build status until it reaches a terminal state (stopped, failed, canceled)
+        or the maximum number of attempts is reached.
+
+        Args:
+            build_id: Workspace build UUID
+            max_attempts: Maximum number of polling attempts (default: 60)
+            delay_seconds: Delay between polling attempts in seconds (default: 1.0)
+
+        Raises:
+            HTTPError: If polling fails or max attempts exceeded
+        """
+        import asyncio
+
+        terminal_states = {"stopped", "failed", "canceled"}
+
+        for attempt in range(max_attempts):
+            try:
+                response = await self.client.get(
+                    f"{self.base_url}/api/v2/workspacebuilds/{build_id}"
+                )
+                response.raise_for_status()
+                build_data = response.json()
+                status = build_data.get("status", "").lower()
+
+                if status in terminal_states:
+                    return  # Build completed
+
+                # Wait before next poll
+                await asyncio.sleep(delay_seconds)
+
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 404:
+                    # Build not found, it may have completed and been cleaned up
+                    return
+                raise HTTPError(f"Failed to check build status: {e}") from e
+            except httpx.RequestError as e:
+                raise HTTPError(f"Failed to connect to Coder API: {e}") from e
+
+        raise HTTPError(
+            f"Build {build_id} did not complete after {max_attempts} attempts"
+        )
 
     async def get_workspace_applications(
         self, workspace_id: str
