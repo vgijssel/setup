@@ -502,9 +502,8 @@ class TestMCPToolsIntegration:
                     "resources": [{
                         "agents": [{
                             "apps": [{
-                                "slug": "agentapi",
-                                "url": "http://localhost:8080",
-                                "health": "http://localhost:8080"
+                                "slug": "ccw",
+                                "url": "http://localhost:3284"
                             }]
                         }]
                     }]
@@ -530,9 +529,8 @@ class TestMCPToolsIntegration:
                     "resources": [{
                         "agents": [{
                             "apps": [{
-                                "slug": "agentapi",
-                                "url": "http://localhost:8080",
-                                "health": "http://localhost:8080"
+                                "slug": "ccw",
+                                "url": "http://localhost:3284"
                             }]
                         }]
                     }]
@@ -543,9 +541,9 @@ class TestMCPToolsIntegration:
                 }
             })
         )
-        # Mock send interrupt
-        respx_mock.post("http://localhost:8080/interrupt").mock(
-            return_value=Response(200, json={"interrupt_sent": True})
+        # Mock send interrupt via AgentAPI
+        respx_mock.post(f"{coder_base_url}/@testuser/agent-1.ws-1/apps/ccw/message").mock(
+            return_value=Response(200, json={})
         )
 
         # Call tool

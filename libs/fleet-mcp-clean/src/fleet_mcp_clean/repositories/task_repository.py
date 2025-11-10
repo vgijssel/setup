@@ -52,13 +52,13 @@ class TaskRepository:
     async def cancel_task(self, agent_name: str) -> None:
         """Cancel the current task on an agent by sending interrupt signal.
 
-        Tries to use AgentAPI first, falls back to experimental API if unavailable.
+        Sends interrupt signal to the Claude Code (ccw) app via AgentAPI.
 
         Args:
             agent_name: Name of the agent to cancel task for
 
         Raises:
-            NotFoundError: If agent doesn't exist
+            NotFoundError: If agent doesn't exist or ccw app not found
             CoderAPIError: If cancellation fails
         """
         # Get agent workspace
@@ -73,39 +73,23 @@ class TaskRepository:
         workspace_name = workspace.get("name", agent_name)
         owner_name = workspace.get("owner_name", "")
 
-        # Get workspace applications to find AgentAPI (Claude Code app)
+        # Get workspace applications to find Claude Code app
         applications = await self.client.get_workspace_applications(workspace_id)
 
-        # Find Claude Code / AgentAPI application
-        # Look for apps with specific slugs, prioritizing exact matches
-        agent_api_app = None
-        for app in applications:
-            app_slug = app.get("slug", "").lower()
-            # Prioritize exact matches first
-            if app_slug in ("ccw", "agentapi", "claude"):
-                agent_api_app = app
-                break
+        # Find Claude Code app (slug: "ccw")
+        ccw_app = next((app for app in applications if app.get("slug") == "ccw"), None)
 
-        # If no exact match, look for slugs containing these strings
-        if not agent_api_app:
-            for app in applications:
-                app_slug = app.get("slug", "").lower()
-                if "agentapi" in app_slug or "claude" in app_slug:
-                    agent_api_app = app
-                    break
-
-        # Try AgentAPI first, fall back to experimental API
-        if agent_api_app:
-            # Primary method: Use AgentAPI via application proxy
-            # Construct the application URL
-            # Format: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/{app_slug}/
-            agent_api_url = f"{self.client.base_url}/@{owner_name}/{workspace_name}.{workspace_id}/apps/{agent_api_app.get('slug')}/"
-            await self.client.send_interrupt_signal(agent_api_url)
-        else:
-            # Fallback method: Use experimental task API
-            await self.client.send_interrupt_via_experimental_api(
-                owner_name, workspace_id
+        if not ccw_app:
+            from ..clients.exceptions import NotFoundError
+            raise NotFoundError(
+                f"Claude Code app not found for agent '{agent_name}'. "
+                "The workspace must have a 'ccw' app to cancel tasks."
             )
+
+        # Construct the AgentAPI URL
+        # Format: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/ccw/
+        agent_api_url = f"{self.client.base_url}/@{owner_name}/{workspace_name}.{workspace_id}/apps/ccw/"
+        await self.client.send_interrupt(agent_api_url)
 
     async def get_task_history(self, agent_name: str) -> list[dict]:
         """Get task history for an agent by extracting from workspace JSON.

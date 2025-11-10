@@ -115,7 +115,7 @@ class TestTaskRepositoryCancelTask:
         # Arrange
         mock_coder_client.list_workspaces.return_value = sample_workspaces
         mock_coder_client.get_workspace_applications.return_value = sample_applications
-        mock_coder_client.send_interrupt_signal.return_value = {"status": "interrupted"}
+        mock_coder_client.send_interrupt.return_value = {}
 
         # Act
         await task_repository.cancel_task("busy-agent")
@@ -123,8 +123,8 @@ class TestTaskRepositoryCancelTask:
         # Assert
         mock_coder_client.list_workspaces.assert_called_once()
         mock_coder_client.get_workspace_applications.assert_called_once_with("ws-456")
-        # URL should be constructed as: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/{app_slug}/
-        mock_coder_client.send_interrupt_signal.assert_called_once_with(
+        # URL should be constructed as: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/ccw/
+        mock_coder_client.send_interrupt.assert_called_once_with(
             "https://coder.example.com/@bob/busy-agent.ws-456/apps/ccw/"
         )
 
@@ -140,94 +140,47 @@ class TestTaskRepositoryCancelTask:
             await task_repository.cancel_task("nonexistent")
 
         mock_coder_client.get_workspace_applications.assert_not_called()
-        mock_coder_client.send_interrupt_signal.assert_not_called()
+        mock_coder_client.send_interrupt.assert_not_called()
 
-    async def test_cancel_task_uses_experimental_api_when_agentapi_missing(
+    async def test_cancel_task_raises_not_found_when_ccw_app_missing(
         self, task_repository, mock_coder_client, sample_workspaces
     ):
-        """Test cancel_task falls back to experimental API when AgentAPI not found (T143)."""
+        """Test cancel_task raises NotFoundError when ccw app not found (T143)."""
         # Arrange
         mock_coder_client.list_workspaces.return_value = sample_workspaces
+        # No ccw app in applications list
         mock_coder_client.get_workspace_applications.return_value = [
-            {"slug": "code-server", "health": "https://coder.example.com/code"}
+            {"slug": "code-server"}
         ]
-        mock_coder_client.send_interrupt_via_experimental_api.return_value = {}
 
-        # Act
-        await task_repository.cancel_task("busy-agent")
+        # Act & Assert
+        with pytest.raises(NotFoundError, match="Claude Code app not found"):
+            await task_repository.cancel_task("busy-agent")
 
-        # Assert - should use experimental API fallback
-        mock_coder_client.send_interrupt_signal.assert_not_called()
-        mock_coder_client.send_interrupt_via_experimental_api.assert_called_once_with(
-            "bob", "ws-456"
-        )
+        mock_coder_client.send_interrupt.assert_not_called()
 
-    async def test_cancel_task_uses_agentapi_when_app_exists(
+    async def test_cancel_task_finds_ccw_among_multiple_apps(
         self, task_repository, mock_coder_client, sample_workspaces
     ):
-        """Test cancel_task uses AgentAPI when the app exists (T143)."""
-        # Arrange
-        mock_coder_client.list_workspaces.return_value = sample_workspaces
-        mock_coder_client.get_workspace_applications.return_value = [
-            {"slug": "agentapi"}  # AgentAPI app exists
-        ]
-        mock_coder_client.send_interrupt_signal.return_value = {}
-
-        # Act
-        await task_repository.cancel_task("busy-agent")
-
-        # Assert - should use AgentAPI since app exists
-        mock_coder_client.send_interrupt_signal.assert_called_once_with(
-            "https://coder.example.com/@bob/busy-agent.ws-456/apps/agentapi/"
-        )
-        mock_coder_client.send_interrupt_via_experimental_api.assert_not_called()
-
-    async def test_cancel_task_finds_agentapi_among_multiple_apps(
-        self, task_repository, mock_coder_client, sample_workspaces
-    ):
-        """Test cancel_task correctly identifies AgentAPI among multiple applications (T142)."""
+        """Test cancel_task correctly identifies ccw app among multiple applications (T142)."""
         # Arrange
         mock_coder_client.list_workspaces.return_value = sample_workspaces
         multiple_apps = [
             {"slug": "web-terminal"},
             {"slug": "code-server"},
-            {"slug": "agentapi"},  # AgentAPI app found
+            {"slug": "ccw"},  # Claude Code app found
             {"slug": "jupyter"},
         ]
         mock_coder_client.get_workspace_applications.return_value = multiple_apps
-        mock_coder_client.send_interrupt_signal.return_value = {"status": "interrupted"}
+        mock_coder_client.send_interrupt.return_value = {}
 
         # Act
         await task_repository.cancel_task("busy-agent")
 
-        # Assert - should construct URL with agentapi slug
-        mock_coder_client.send_interrupt_signal.assert_called_once_with(
-            "https://coder.example.com/@bob/busy-agent.ws-456/apps/agentapi/"
+        # Assert - should construct URL with ccw slug
+        mock_coder_client.send_interrupt.assert_called_once_with(
+            "https://coder.example.com/@bob/busy-agent.ws-456/apps/ccw/"
         )
-
-    async def test_cancel_task_falls_back_to_experimental_api_when_agentapi_unavailable(
-        self, task_repository, mock_coder_client, sample_workspaces
-    ):
-        """Test cancel_task falls back to experimental API when AgentAPI not available (T143 - fallback behavior)."""
-        # Arrange
-        mock_coder_client.list_workspaces.return_value = sample_workspaces
-        # AgentAPI not in applications list
-        mock_coder_client.get_workspace_applications.return_value = [
-            {"slug": "code-server", "health": "https://coder.example.com/code"}
-        ]
-        mock_coder_client.send_interrupt_via_experimental_api.return_value = {}
-
-        # Act
-        await task_repository.cancel_task("busy-agent")
-
-        # Assert
-        mock_coder_client.get_workspace_applications.assert_called_once_with("ws-456")
-        # Should fall back to experimental API with owner_name and workspace_id
-        mock_coder_client.send_interrupt_via_experimental_api.assert_called_once_with(
-            "bob", "ws-456"
-        )
-        # Should not call AgentAPI method
-        mock_coder_client.send_interrupt_signal.assert_not_called()
 
 
 # ============================================================================
