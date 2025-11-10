@@ -1,0 +1,49 @@
+interactions:
+  - request:
+      body: ""
+      headers:
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        host:
+          - coder.example.com
+        user-agent:
+          - python-httpx/0.28.1
+      method: GET
+      uri: https://coder.example.com/api/v2/workspaces/non-existent-id
+    response:
+      body:
+        string:
+          '{"message":"Invalid UUID \"non-existent-id\".","detail":"invalid UUID
+          length: 15"}
+
+          '
+      headers:
+        Content-Length:
+          - "83"
+        Content-Type:
+          - application/json; charset=utf-8
+        Date:
+          - Mon, 10 Nov 2025 10:40:18 GMT
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - b0ad94bc-a338-41ce-a64f-85f215ba6359
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "511"
+        X-Ratelimit-Reset:
+          - "1762771260"
+      status:
+        code: 400
+        message: Bad Request
+version: 1

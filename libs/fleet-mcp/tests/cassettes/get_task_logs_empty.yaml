@@ -1,0 +1,79 @@
+interactions:
+  - request:
+      body: ""
+      headers:
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        host:
+          - coder.example.com
+        user-agent:
+          - python-httpx/0.28.1
+      method: GET
+      uri: https://coder.example.com/api/experimental/tasks/mvgijssel/5d9aa1c3-c2a1-4205-875e-978ba2189bbf/logs
+    response:
+      body:
+        string:
+          "{\"logs\":[{\"id\":0,\"content\":\"\u256D\u2500 Claude Code \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256E\\n\u2502
+          \                                                                \u2502\\n\u2502
+          \                         Welcome back!                          \u2502\\n\u2502
+          \                                                                \u2502\\n\u2502
+          \                                                                \u2502\\n\u2502
+          \                            \u2590\u259B\u2588\u2588\u2588\u259C\u258C                             \u2502\\n\u2502
+          \                           \u259D\u259C\u2588\u2588\u2588\u2588\u2588\u259B\u2598
+          \                           \u2502\\n\u2502                              \u2598\u2598
+          \u259D\u259D                              \u2502\\n\u2502                                                                 \u2502\\n\u2502
+          \                                                                \u2502\\n\u2502
+          \                          Sonnet 4.5                            \u2502\\n\u2502
+          \                          Claude API                            \u2502\\n\u2502
+          \                       /workspaces/setup                        \u2502\\n\u2502
+          \                                                                \u2502\\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256F\\n
+          \                                                                  \\n\\u003e
+          Test recording task                                              \\n                                                                   \\n\u25CF
+          I'll help you with test recording. Let me report my status       \\n  and
+          understand what you need.                                    \\n                                                                   \\n\u25CF
+          coder - coder_report_task (MCP)(summary: \\\"Understanding test     \\n                                 recording
+          requirements\\\", link: \\\"\\\",\\n                                  state:
+          \\\"failure\\\")                \\n  \u23BF \_{                                                             \\n
+          \      \\\"message\\\": \\\"Thanks for reporting!\\\"                          \\n
+          \    }                                                             \\n                                                                   \\n\u25CF
+          Could you please provide more details about the test             \\n  recording
+          task? For example:                                     \\n                                                                   \\n
+          \ - What type of tests do you want to record? (unit tests,         \\n  integration
+          tests, e2e tests, etc.)                              \\n  - Which project
+          or library should the tests be for?              \\n  - Are you looking to:
+          \                                           \\n    - Record/capture test fixtures
+          or snapshots?                   \\n    - Add test coverage for existing functionality?
+          \               \\n    - Set up a test recording framework?                           \\n
+          \   - Something else?                                              \\n                                                                   \\n
+          \ This will help me understand exactly what you need and           \\n  provide
+          the best solution.                                       \",\"type\":\"output\",\"time\":\"2025-11-10T10:40:10.44468609Z\"}]}\n"
+      headers:
+        Content-Type:
+          - application/json; charset=utf-8
+        Date:
+          - Mon, 10 Nov 2025 10:40:16 GMT
+        Transfer-Encoding:
+          - chunked
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - e40f728d-3682-4a36-a1b9-2ec9d661b72d
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "511"
+        X-Ratelimit-Reset:
+          - "1762771260"
+      status:
+        code: 200
+        message: OK
+version: 1

@@ -1,0 +1,50 @@
+interactions:
+  - request:
+      body: ""
+      headers:
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        host:
+          - coder.example.com
+        user-agent:
+          - python-httpx/0.28.1
+      method: GET
+      uri: https://coder.example.com/api/experimental/tasks/mvgijssel/5d9aa1c3-c2a1-4205-875e-978ba2189bbf
+    response:
+      body:
+        string:
+          '{"id":"5d9aa1c3-c2a1-4205-875e-978ba2189bbf","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","owner_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","owner_name":"mvgijssel","name":"test-recording-agent","template_id":"cc29db59-0483-4520-869e-777e9a05bf65","template_name":"coder-devcontainer","template_display_name":"Setup","template_icon":"","workspace_id":"5d9aa1c3-c2a1-4205-875e-978ba2189bbf","workspace_agent_id":"c15a59b8-2d04-4016-8eaa-8449da9373f9","workspace_agent_lifecycle":"ready","workspace_agent_health":{"healthy":true},"initial_prompt":"Test
+          recording task","status":"running","current_state":{"timestamp":"2025-11-10T11:40:12.875825+01:00","state":"idle","message":"Understanding
+          test recording requirements","uri":""},"created_at":"2025-11-10T11:38:10.64715+01:00","updated_at":"2025-11-10T11:38:10.64715+01:00"}
+
+          '
+      headers:
+        Content-Length:
+          - "836"
+        Content-Type:
+          - application/json; charset=utf-8
+        Date:
+          - Mon, 10 Nov 2025 10:40:18 GMT
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - befeed46-bf7e-47a8-ba2d-a7cead61bcc0
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "511"
+        X-Ratelimit-Reset:
+          - "1762771260"
+      status:
+        code: 200
+        message: OK
+version: 1

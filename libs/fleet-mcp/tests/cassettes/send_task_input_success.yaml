@@ -1,0 +1,45 @@
+interactions:
+  - request:
+      body: '{"input":"Write hello world to a file"}'
+      headers:
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        content-length:
+          - "39"
+        content-type:
+          - application/json
+        host:
+          - coder.example.com
+        user-agent:
+          - python-httpx/0.28.1
+      method: POST
+      uri: https://coder.example.com/api/experimental/tasks/mvgijssel/5d9aa1c3-c2a1-4205-875e-978ba2189bbf/send
+    response:
+      body:
+        string: ""
+      headers:
+        Date:
+          - Mon, 10 Nov 2025 10:40:18 GMT
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - 0c459136-21d8-40cd-8dee-fc85106dbd0c
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "511"
+        X-Ratelimit-Reset:
+          - "1762771260"
+      status:
+        code: 204
+        message: No Content
+version: 1

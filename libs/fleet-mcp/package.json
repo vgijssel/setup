@@ -1,11 +1,13 @@
 {
   "name": "fleet-mcp",
-  "version": "0.4.0",
-  "description": "Fleet MCP Server for Claude Code agents",
+  "version": "0.1.0",
   "private": true,
+  "description": "Clean architecture fleet management for Claude Code agents",
   "nx": {
-    "projectType": "library",
-    "sourceRoot": "libs/fleet-mcp/src",
+    "tags": [
+      "type:lib",
+      "scope:infrastructure"
+    ],
     "targets": {
       "server": {
         "executor": "nx:run-commands",
@@ -14,24 +16,44 @@
           "cwd": "libs/fleet-mcp"
         },
         "metadata": {
-          "description": "Run the fleet-mcp server with hot reload"
+          "description": "Run the fleet-mcp server with hot reload in stateless HTTP mode"
         }
       },
       "test": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "uv run --all-extras pytest -v",
+          "command": "uv run pytest",
           "cwd": "libs/fleet-mcp"
         },
         "cache": true,
         "inputs": [
-          "{projectRoot}/**/*.*",
-          "!{projectRoot}/.pytest_cache/**",
+          "{projectRoot}/src/**/*.py",
+          "{projectRoot}/tests/**/*.py",
+          "{projectRoot}/pyproject.toml",
           "!{projectRoot}/.venv/**",
-          "!{projectRoot}/.env"
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/**/__pycache__/**"
+        ],
+        "outputs": [
+          "{projectRoot}/.coverage",
+          "{projectRoot}/htmlcov"
+        ]
+      },
+      "lint": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run lint-imports",
+          "cwd": "libs/fleet-mcp"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/src/**/*.py",
+          "{projectRoot}/pyproject.toml",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/**/__pycache__/**"
         ],
         "metadata": {
-          "description": "Run pytest tests"
+          "description": "Verify clean architecture layer boundaries with import-linter"
         }
       }
     }
