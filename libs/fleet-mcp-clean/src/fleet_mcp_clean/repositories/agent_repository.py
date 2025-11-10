@@ -162,7 +162,7 @@ class AgentRepository:
         Business Logic:
         - Maps workspace.name → agent.name
         - Maps workspace.id → agent.workspace_id
-        - Maps workspace.template_name → agent.project
+        - Maps workspace.template_display_name → agent.project (user-facing name)
         - Derives agent.status from latest_build.status
         - Extracts agent.role from workspace metadata
         - Extracts agent.last_task from rich parameters if present
@@ -204,7 +204,7 @@ class AgentRepository:
             workspace_id=workspace.get("id", ""),
             status=agent_status,
             role=role,
-            project=workspace.get("template_name", "unknown"),
+            project=workspace.get("template_display_name", "unknown"),
             last_task=last_task,
             created_at=self._parse_datetime(workspace.get("created_at")),
             updated_at=self._parse_datetime(workspace.get("updated_at")),

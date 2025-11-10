@@ -9,8 +9,11 @@
       "server": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "uv run fastmcp run src/fleet_mcp_clean/__main__.py",
+          "command": "uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8000 --reload --timeout-graceful-shutdown 3",
           "cwd": "libs/fleet-mcp-clean"
+        },
+        "metadata": {
+          "description": "Run the fleet-mcp-clean server with hot reload in stateless HTTP mode"
         }
       },
       "test": {

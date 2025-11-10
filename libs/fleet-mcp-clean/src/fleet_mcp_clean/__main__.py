@@ -308,6 +308,9 @@ async def health_check() -> dict:
     }
 
 
-# Entry point for uv run
+# Create the ASGI application for stateless HTTP mode (uvicorn)
+app = mcp.http_app(stateless_http=True)
+
+# Entry point for fastmcp run (stdio mode)
 if __name__ == "__main__":
     mcp.run()

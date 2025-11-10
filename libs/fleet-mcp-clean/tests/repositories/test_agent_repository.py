@@ -33,7 +33,8 @@ class TestAgentRepositoryListAll:
             {
                 "id": "ws-1",
                 "name": "agent-1",
-                "template_name": "Setup",
+                "template_name": "coder-devcontainer",
+                "template_display_name": "Setup",
                 "template_id": "tpl-1",
                 "created_at": "2025-11-07T10:00:00Z",
                 "updated_at": "2025-11-07T10:30:00Z",
@@ -42,7 +43,8 @@ class TestAgentRepositoryListAll:
             {
                 "id": "ws-2",
                 "name": "agent-2",
-                "template_name": "DataOne",
+                "template_name": "coder-devcontainer-dataone",
+                "template_display_name": "DataOne",
                 "template_id": "tpl-2",
                 "created_at": "2025-11-07T11:00:00Z",
                 "updated_at": "2025-11-07T11:30:00Z",
@@ -88,7 +90,8 @@ class TestAgentRepositoryGetByName:
         mock_workspace = {
             "id": "ws-1",
             "name": "test-agent",
-            "template_name": "Setup",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
             "template_id": "tpl-1",
             "created_at": "2025-11-07T10:00:00Z",
             "updated_at": "2025-11-07T10:30:00Z",
@@ -123,7 +126,8 @@ class TestAgentRepositoryCreate:
         mock_workspace = {
             "id": "ws-new",
             "name": "new-agent",
-            "template_name": "Setup",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
             "template_id": "tpl-1",
             "created_at": "2025-11-07T12:00:00Z",
             "updated_at": "2025-11-07T12:00:00Z",
@@ -153,7 +157,8 @@ class TestAgentRepositoryDelete:
         mock_workspace = {
             "id": "ws-1",
             "name": "test-agent",
-            "template_name": "Setup",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
             "template_id": "tpl-1",
             "created_at": "2025-11-07T10:00:00Z",
             "updated_at": "2025-11-07T10:30:00Z",
@@ -175,3 +180,42 @@ class TestAgentRepositoryDelete:
 
         with pytest.raises(Exception):  # AgentNotFoundError
             await agent_repo.delete("nonexistent")
+
+
+@pytest.mark.asyncio
+class TestAgentRepositoryTemplateDisplayNameMapping:
+    """Test that agent.project maps to template.display_name, not template.name."""
+
+    async def test_workspace_to_agent_uses_template_display_name(
+        self, agent_repo, mock_coder_client
+    ):
+        """Test that _workspace_to_agent maps template_display_name to agent.project.
+
+        This is critical because:
+        - template.name is the technical identifier (e.g., "coder-devcontainer")
+        - template.display_name is the user-facing name (e.g., "Setup")
+        - Per data-model.md:134-140, agent.project should show "Setup" not "coder-devcontainer"
+        """
+        # Mock workspace data with BOTH template_name and template_display_name
+        # (as returned by real Coder API - see cassettes/get_workspace_success.yaml:19)
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",  # Technical name
+            "template_display_name": "Setup",  # User-facing display name
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:30:00Z",
+            "latest_build": {"status": "running"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+        mock_coder_client.get_workspace.return_value = mock_workspace
+
+        # Execute
+        agent = await agent_repo.get_by_name("test-agent")
+
+        # Verify agent.project uses display_name ("Setup"), not template_name ("coder-devcontainer")
+        assert agent.project == "Setup", (
+            f"Expected agent.project to be 'Setup' (template_display_name), "
+            f"but got '{agent.project}' (template_name)"
+        )
