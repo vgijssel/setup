@@ -16,13 +16,13 @@ from datetime import datetime
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.models import Agent, AgentStatus, Project, Role
-from fleet_mcp_clean.models.errors import (
+from fleet_mcp.models import Agent, AgentStatus, Project, Role
+from fleet_mcp.models.errors import (
     AgentConflictError,
     AgentNotFoundError,
     ValidationError,
 )
-from fleet_mcp_clean.services import AgentService
+from fleet_mcp.services import AgentService
 
 
 @pytest.fixture

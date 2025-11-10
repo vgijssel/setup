@@ -3,9 +3,9 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.models import Agent, AgentStatus
-from fleet_mcp_clean.models.errors import AgentNotFoundError, CoderAPIError
-from fleet_mcp_clean.repositories import AgentRepository
+from fleet_mcp.models import Agent, AgentStatus
+from fleet_mcp.models.errors import AgentNotFoundError, CoderAPIError
+from fleet_mcp.repositories import AgentRepository
 
 
 @pytest.fixture

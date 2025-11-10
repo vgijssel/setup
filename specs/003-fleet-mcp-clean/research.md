@@ -87,7 +87,7 @@ This document captures research findings and technology decisions for implementi
       "server": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8001 --reload --timeout-graceful-shutdown 3",
+          "command": "uv run --all-extras uvicorn fleet_mcp.__main__:app --host 127.0.0.1 --port 8001 --reload --timeout-graceful-shutdown 3",
           "cwd": "libs/fleet-mcp"
         },
         "metadata": {
@@ -140,7 +140,7 @@ This document captures research findings and technology decisions for implementi
 - Set `cache: true` for deterministic tasks (tests, builds)
 - Properly define `inputs` to invalidate cache correctly
 - Use different ports for different MCP servers (8000, 8001, 8002...)
-- Follow naming convention: `fleet-mcp` (not `fleet_mcp_clean`)
+- Follow naming convention: `fleet-mcp` (not `fleet_mcp`)
 
 ### 2. MCP Server Framework: FastMCP
 

@@ -16,7 +16,7 @@
 ## Path Conventions
 
 This is a Python library in Nx monorepo:
-- Source: `libs/fleet-mcp/src/fleet_mcp_clean/`
+- Source: `libs/fleet-mcp/src/fleet_mcp/`
 - Tests: `libs/fleet-mcp/tests/`
 
 ---
@@ -30,7 +30,7 @@ This is a Python library in Nx monorepo:
 - [X] T003 Create package.json with Nx configuration (server and test targets)
 - [X] T004 [P] Create .env.example with CODER_URL and CODER_SESSION_TOKEN
 - [X] T005 [P] Create README.md with project overview
-- [X] T006 [P] Create src/fleet_mcp_clean/__init__.py (package initialization)
+- [X] T006 [P] Create src/fleet_mcp/__init__.py (package initialization)
 - [X] T007 Run uv sync to create .venv and install dependencies
 
 ---
@@ -41,7 +41,7 @@ This is a Python library in Nx monorepo:
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [X] T008 [P] Create models/__init__.py with shared Pydantic models (Agent, Task, Project, Role, etc.) in src/fleet_mcp_clean/models/
+- [X] T008 [P] Create models/__init__.py with shared Pydantic models (Agent, Task, Project, Role, etc.) in src/fleet_mcp/models/
 - [X] T009 [P] Create models/agent.py with Agent and AgentStatus models
 - [X] T010 [P] Create models/task.py with Task, TaskHistory, LogEntry, ConversationLog models
 - [X] T011 [P] Create models/project.py with Project and Role models
@@ -56,7 +56,7 @@ This is a Python library in Nx monorepo:
 - [X] T020 Create tools/__init__.py for MCP tool entry points
 - [X] T021 [P] Create tests/conftest.py with pytest configuration and shared fixtures
 - [X] T022 [P] Create tests/fixtures/__init__.py with cassette loading utilities
-- [X] T023 Create __main__.py with FastMCP server entry point in src/fleet_mcp_clean/
+- [X] T023 Create __main__.py with FastMCP server entry point in src/fleet_mcp/
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -124,36 +124,36 @@ This is a Python library in Nx monorepo:
 
 #### Client Layer Implementation (Layer 4)
 
-- [X] T059 [P] [US1] Implement CoderClient.list_workspaces() in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T060 [P] [US1] Implement CoderClient.get_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T061 [P] [US1] Implement CoderClient.list_templates() in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T062 [P] [US1] Implement CoderClient.get_template_parameters(template_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T063 [P] [US1] Implement CoderClient.list_workspace_presets(template_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T064 [US1] Add HTTP error handling and retries in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T059 [P] [US1] Implement CoderClient.list_workspaces() in src/fleet_mcp/clients/coder_client.py
+- [X] T060 [P] [US1] Implement CoderClient.get_workspace(workspace_id) in src/fleet_mcp/clients/coder_client.py
+- [X] T061 [P] [US1] Implement CoderClient.list_templates() in src/fleet_mcp/clients/coder_client.py
+- [X] T062 [P] [US1] Implement CoderClient.get_template_parameters(template_id) in src/fleet_mcp/clients/coder_client.py
+- [X] T063 [P] [US1] Implement CoderClient.list_workspace_presets(template_id) in src/fleet_mcp/clients/coder_client.py
+- [X] T064 [US1] Add HTTP error handling and retries in src/fleet_mcp/clients/coder_client.py
 
 #### Repository Layer Implementation (Layer 3)
 
-- [X] T065 [P] [US1] Implement AgentRepository.list_all() in src/fleet_mcp_clean/repositories/agent_repository.py
-- [X] T066 [P] [US1] Implement AgentRepository.get_by_name(name) in src/fleet_mcp_clean/repositories/agent_repository.py
-- [X] T067 [US1] Implement WorkspaceRemote → Agent transformation in src/fleet_mcp_clean/repositories/agent_repository.py
-- [X] T068 [P] [US1] Implement ProjectRepository.list_all() in src/fleet_mcp_clean/repositories/project_repository.py
-- [X] T069 [P] [US1] Implement ProjectRepository.list_roles(project_name) in src/fleet_mcp_clean/repositories/project_repository.py
-- [X] T070 [US1] Implement TemplateRemote → Project transformation in src/fleet_mcp_clean/repositories/project_repository.py
+- [X] T065 [P] [US1] Implement AgentRepository.list_all() in src/fleet_mcp/repositories/agent_repository.py
+- [X] T066 [P] [US1] Implement AgentRepository.get_by_name(name) in src/fleet_mcp/repositories/agent_repository.py
+- [X] T067 [US1] Implement WorkspaceRemote → Agent transformation in src/fleet_mcp/repositories/agent_repository.py
+- [X] T068 [P] [US1] Implement ProjectRepository.list_all() in src/fleet_mcp/repositories/project_repository.py
+- [X] T069 [P] [US1] Implement ProjectRepository.list_roles(project_name) in src/fleet_mcp/repositories/project_repository.py
+- [X] T070 [US1] Implement TemplateRemote → Project transformation in src/fleet_mcp/repositories/project_repository.py
 
 #### Service Layer Implementation (Layer 2)
 
-- [X] T071 [P] [US1] Implement AgentService.list_agents() in src/fleet_mcp_clean/services/agent_service.py
-- [X] T072 [P] [US1] Implement AgentService.get_agent(name) in src/fleet_mcp_clean/services/agent_service.py
-- [X] T073 [US1] Add status and project filtering logic in src/fleet_mcp_clean/services/agent_service.py
-- [X] T074 [P] [US1] Implement ProjectService.list_projects() in src/fleet_mcp_clean/services/project_service.py
-- [X] T075 [P] [US1] Implement ProjectService.list_roles(project_name) in src/fleet_mcp_clean/services/project_service.py
+- [X] T071 [P] [US1] Implement AgentService.list_agents() in src/fleet_mcp/services/agent_service.py
+- [X] T072 [P] [US1] Implement AgentService.get_agent(name) in src/fleet_mcp/services/agent_service.py
+- [X] T073 [US1] Add status and project filtering logic in src/fleet_mcp/services/agent_service.py
+- [X] T074 [P] [US1] Implement ProjectService.list_projects() in src/fleet_mcp/services/project_service.py
+- [X] T075 [P] [US1] Implement ProjectService.list_roles(project_name) in src/fleet_mcp/services/project_service.py
 
 #### Tool Layer Implementation (Layer 1)
 
-- [X] T076 [P] [US1] Implement list_agents MCP tool in src/fleet_mcp_clean/tools/list_agents.py with scalar parameters
-- [X] T077 [P] [US1] Implement show_agent MCP tool in src/fleet_mcp_clean/tools/show_agent.py with scalar parameters
-- [X] T078 [P] [US1] Implement list_agent_projects MCP tool in src/fleet_mcp_clean/tools/list_projects.py
-- [X] T079 [P] [US1] Implement list_agent_roles MCP tool in src/fleet_mcp_clean/tools/list_roles.py with scalar parameters
+- [X] T076 [P] [US1] Implement list_agents MCP tool in src/fleet_mcp/tools/list_agents.py with scalar parameters
+- [X] T077 [P] [US1] Implement show_agent MCP tool in src/fleet_mcp/tools/show_agent.py with scalar parameters
+- [X] T078 [P] [US1] Implement list_agent_projects MCP tool in src/fleet_mcp/tools/list_projects.py
+- [X] T079 [P] [US1] Implement list_agent_roles MCP tool in src/fleet_mcp/tools/list_roles.py with scalar parameters
 
 #### Verification
 
@@ -222,31 +222,31 @@ This is a Python library in Nx monorepo:
 
 #### Client Layer Implementation (Layer 4)
 
-- [X] T111 [P] [US2] Implement CoderClient.create_workspace() in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T112 [P] [US2] Implement CoderClient.delete_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T113 [P] [US2] Implement CoderClient.restart_workspace(workspace_id) in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T114 [P] [US2] Implement CoderClient.get_organization_id() helper in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T111 [P] [US2] Implement CoderClient.create_workspace() in src/fleet_mcp/clients/coder_client.py
+- [X] T112 [P] [US2] Implement CoderClient.delete_workspace(workspace_id) in src/fleet_mcp/clients/coder_client.py
+- [X] T113 [P] [US2] Implement CoderClient.restart_workspace(workspace_id) in src/fleet_mcp/clients/coder_client.py
+- [X] T114 [P] [US2] Implement CoderClient.get_organization_id() helper in src/fleet_mcp/clients/coder_client.py
 
 #### Repository Layer Implementation (Layer 3)
 
-- [X] T115 [P] [US2] Implement AgentRepository.create(name, project, role, task) in src/fleet_mcp_clean/repositories/agent_repository.py
-- [X] T116 [P] [US2] Implement AgentRepository.delete(agent_name) in src/fleet_mcp_clean/repositories/agent_repository.py
-- [X] T117 [P] [US2] Implement AgentRepository.restart(agent_name) in src/fleet_mcp_clean/repositories/agent_repository.py
+- [X] T115 [P] [US2] Implement AgentRepository.create(name, project, role, task) in src/fleet_mcp/repositories/agent_repository.py
+- [X] T116 [P] [US2] Implement AgentRepository.delete(agent_name) in src/fleet_mcp/repositories/agent_repository.py
+- [X] T117 [P] [US2] Implement AgentRepository.restart(agent_name) in src/fleet_mcp/repositories/agent_repository.py
 
 #### Service Layer Implementation (Layer 2)
 
-- [X] T118 [P] [US2] Implement AgentService.create_agent(name, project, role, task) in src/fleet_mcp_clean/services/agent_service.py
-- [X] T119 [P] [US2] Implement AgentService.delete_agent(name) in src/fleet_mcp_clean/services/agent_service.py
-- [X] T120 [P] [US2] Implement AgentService.restart_agent(name) in src/fleet_mcp_clean/services/agent_service.py
-- [X] T121 [US2] Implement validators.validate_agent_name() in src/fleet_mcp_clean/services/validators.py
-- [X] T122 [US2] Add business logic for name uniqueness check in src/fleet_mcp_clean/services/agent_service.py
-- [X] T123 [US2] Add business logic for project/role validation in src/fleet_mcp_clean/services/agent_service.py
+- [X] T118 [P] [US2] Implement AgentService.create_agent(name, project, role, task) in src/fleet_mcp/services/agent_service.py
+- [X] T119 [P] [US2] Implement AgentService.delete_agent(name) in src/fleet_mcp/services/agent_service.py
+- [X] T120 [P] [US2] Implement AgentService.restart_agent(name) in src/fleet_mcp/services/agent_service.py
+- [X] T121 [US2] Implement validators.validate_agent_name() in src/fleet_mcp/services/validators.py
+- [X] T122 [US2] Add business logic for name uniqueness check in src/fleet_mcp/services/agent_service.py
+- [X] T123 [US2] Add business logic for project/role validation in src/fleet_mcp/services/agent_service.py
 
 #### Tool Layer Implementation (Layer 1)
 
-- [X] T124 [P] [US2] Implement create_agent MCP tool in src/fleet_mcp_clean/tools/create_agent.py with scalar parameters (name, project, task, role)
-- [X] T125 [P] [US2] Implement delete_agent MCP tool in src/fleet_mcp_clean/tools/delete_agent.py
-- [X] T126 [P] [US2] Implement restart_agent MCP tool in src/fleet_mcp_clean/tools/restart_agent.py
+- [X] T124 [P] [US2] Implement create_agent MCP tool in src/fleet_mcp/tools/create_agent.py with scalar parameters (name, project, task, role)
+- [X] T125 [P] [US2] Implement delete_agent MCP tool in src/fleet_mcp/tools/delete_agent.py
+- [X] T126 [P] [US2] Implement restart_agent MCP tool in src/fleet_mcp/tools/restart_agent.py
 
 #### Verification
 
@@ -310,26 +310,26 @@ This is a Python library in Nx monorepo:
 
 #### Client Layer Implementation (Layer 4)
 
-- [X] T155 [P] [US3] Implement CoderClient.send_task_to_workspace() in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T156 [P] [US3] Implement CoderClient.get_workspace_applications() in src/fleet_mcp_clean/clients/coder_client.py
-- [X] T157 [P] [US3] Implement CoderClient.send_interrupt_signal() via AgentAPI POST in src/fleet_mcp_clean/clients/coder_client.py
+- [X] T155 [P] [US3] Implement CoderClient.send_task_to_workspace() in src/fleet_mcp/clients/coder_client.py
+- [X] T156 [P] [US3] Implement CoderClient.get_workspace_applications() in src/fleet_mcp/clients/coder_client.py
+- [X] T157 [P] [US3] Implement CoderClient.send_interrupt_signal() via AgentAPI POST in src/fleet_mcp/clients/coder_client.py
 
 #### Repository Layer Implementation (Layer 3)
 
-- [X] T158 [P] [US3] Implement TaskRepository.assign_task(agent_name, task_description) in src/fleet_mcp_clean/repositories/task_repository.py
-- [X] T159 [P] [US3] Implement TaskRepository.cancel_task(agent_name) in src/fleet_mcp_clean/repositories/task_repository.py
+- [X] T158 [P] [US3] Implement TaskRepository.assign_task(agent_name, task_description) in src/fleet_mcp/repositories/task_repository.py
+- [X] T159 [P] [US3] Implement TaskRepository.cancel_task(agent_name) in src/fleet_mcp/repositories/task_repository.py
 
 #### Service Layer Implementation (Layer 2)
 
-- [X] T160 [P] [US3] Implement TaskService.assign_task(agent_name, task_description) in src/fleet_mcp_clean/services/task_service.py
-- [X] T161 [P] [US3] Implement TaskService.cancel_task(agent_name) in src/fleet_mcp_clean/services/task_service.py
-- [X] T162 [US3] Add business logic for agent status validation (idle/online checks) in src/fleet_mcp_clean/services/task_service.py
-- [X] T163 [US3] Add business logic for task description validation in src/fleet_mcp_clean/services/task_service.py
+- [X] T160 [P] [US3] Implement TaskService.assign_task(agent_name, task_description) in src/fleet_mcp/services/task_service.py
+- [X] T161 [P] [US3] Implement TaskService.cancel_task(agent_name) in src/fleet_mcp/services/task_service.py
+- [X] T162 [US3] Add business logic for agent status validation (idle/online checks) in src/fleet_mcp/services/task_service.py
+- [X] T163 [US3] Add business logic for task description validation in src/fleet_mcp/services/task_service.py
 
 #### Tool Layer Implementation (Layer 1)
 
-- [X] T164 [P] [US3] Implement start_agent_task MCP tool in src/fleet_mcp_clean/tools/start_task.py with scalar parameters
-- [X] T165 [P] [US3] Implement cancel_agent_task MCP tool in src/fleet_mcp_clean/tools/cancel_task.py
+- [X] T164 [P] [US3] Implement start_agent_task MCP tool in src/fleet_mcp/tools/start_task.py with scalar parameters
+- [X] T165 [P] [US3] Implement cancel_agent_task MCP tool in src/fleet_mcp/tools/cancel_task.py
 
 #### Verification
 
@@ -394,27 +394,27 @@ This is a Python library in Nx monorepo:
 
 #### Client Layer Implementation (Layer 4)
 
-- [X] T193 [P] [US4] Implement CoderClient.get_task_history(workspace_id, page, page_size) in src/fleet_mcp_clean/clients/coder_client.py (N/A - uses existing get_workspace method)
-- [X] T194 [P] [US4] Implement CoderClient.get_conversation_logs(workspace_id, page, page_size) in src/fleet_mcp_clean/clients/coder_client.py (N/A - uses existing get_task_logs method)
-- [X] T195 [US4] Add pagination query parameter handling in src/fleet_mcp_clean/clients/coder_client.py (N/A - pagination handled at Service layer)
+- [X] T193 [P] [US4] Implement CoderClient.get_task_history(workspace_id, page, page_size) in src/fleet_mcp/clients/coder_client.py (N/A - uses existing get_workspace method)
+- [X] T194 [P] [US4] Implement CoderClient.get_conversation_logs(workspace_id, page, page_size) in src/fleet_mcp/clients/coder_client.py (N/A - uses existing get_task_logs method)
+- [X] T195 [US4] Add pagination query parameter handling in src/fleet_mcp/clients/coder_client.py (N/A - pagination handled at Service layer)
 
 #### Repository Layer Implementation (Layer 3)
 
-- [X] T196 [P] [US4] Implement TaskRepository.get_task_history(agent_name, page, page_size) in src/fleet_mcp_clean/repositories/task_repository.py
-- [X] T197 [P] [US4] Implement TaskRepository.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp_clean/repositories/task_repository.py
-- [X] T198 [US4] Implement API response → TaskHistory transformation in src/fleet_mcp_clean/repositories/task_repository.py (Data extraction from workspace JSON in get_task_history)
-- [X] T199 [US4] Implement API response → ConversationLog transformation in src/fleet_mcp_clean/repositories/task_repository.py (Uses get_task_logs API response directly)
+- [X] T196 [P] [US4] Implement TaskRepository.get_task_history(agent_name, page, page_size) in src/fleet_mcp/repositories/task_repository.py
+- [X] T197 [P] [US4] Implement TaskRepository.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp/repositories/task_repository.py
+- [X] T198 [US4] Implement API response → TaskHistory transformation in src/fleet_mcp/repositories/task_repository.py (Data extraction from workspace JSON in get_task_history)
+- [X] T199 [US4] Implement API response → ConversationLog transformation in src/fleet_mcp/repositories/task_repository.py (Uses get_task_logs API response directly)
 
 #### Service Layer Implementation (Layer 2)
 
-- [X] T200 [P] [US4] Implement TaskService.get_task_history(agent_name, page, page_size) in src/fleet_mcp_clean/services/task_service.py
-- [X] T201 [P] [US4] Implement TaskService.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp_clean/services/task_service.py
-- [X] T202 [US4] Add pagination validation logic in src/fleet_mcp_clean/services/task_service.py (Pydantic validation via Annotated Field constraints in tools)
+- [X] T200 [P] [US4] Implement TaskService.get_task_history(agent_name, page, page_size) in src/fleet_mcp/services/task_service.py
+- [X] T201 [P] [US4] Implement TaskService.get_conversation_logs(agent_name, page, page_size) in src/fleet_mcp/services/task_service.py
+- [X] T202 [US4] Add pagination validation logic in src/fleet_mcp/services/task_service.py (Pydantic validation via Annotated Field constraints in tools)
 
 #### Tool Layer Implementation (Layer 1)
 
-- [X] T203 [P] [US4] Implement show_agent_task_history MCP tool in src/fleet_mcp_clean/tools/show_task_history.py with scalar parameters
-- [X] T204 [P] [US4] Implement show_agent_log MCP tool in src/fleet_mcp_clean/tools/show_logs.py with scalar parameters
+- [X] T203 [P] [US4] Implement show_agent_task_history MCP tool in src/fleet_mcp/tools/show_task_history.py with scalar parameters
+- [X] T204 [P] [US4] Implement show_agent_log MCP tool in src/fleet_mcp/tools/show_logs.py with scalar parameters
 
 #### Verification
 
@@ -445,12 +445,12 @@ This is a Python library in Nx monorepo:
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [X] T216 [P] Add comprehensive docstrings to all public methods in src/fleet_mcp_clean/
+- [X] T216 [P] Add comprehensive docstrings to all public methods in src/fleet_mcp/
 - [X] T217 [P] Add type hints validation across all layers
 - [X] T218 [P] Update README.md with usage examples and architecture diagram
 - [X] T219 [P] Create .gitignore with .venv, .pytest_cache, __pycache__, *.pyc
-- [X] T220 [P] Add logging configuration in src/fleet_mcp_clean/__main__.py
-- [X] T221 Run uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing to verify test coverage
+- [X] T220 [P] Add logging configuration in src/fleet_mcp/__main__.py
+- [X] T221 Run uv run pytest --cov=fleet_mcp --cov-report=term-missing to verify test coverage
 - [X] T222 Run nx test fleet-mcp to verify all tests pass with caching
 - [ ] T223 Run manual end-to-end test following quickstart.md validation steps (SKIPPED: Requires live Coder instance, integration tests cover this)
 - [X] T224 [P] Add import-linter configuration to verify layer boundaries (Added to pyproject.toml and package.json as Nx target)
@@ -458,10 +458,10 @@ This is a Python library in Nx monorepo:
 - [X] T226 Remove all secrets / tokens from VCR cassettes. Follow same approach as libs/fleet-mcp in libs/fleet-mcp/tests/conftest.py how secrets are removed and redacted.
 - [X] T227 Setup integration tests which test calling the MCP tools end-to-end. These tests use the respx mocking framework to mock out HTTP calls to the Coder API, similar to how the client layer tests are structured. Ensure these tests cover all MCP tools. Ensure that these tests only mock out HTTP calls, and do not mock any internal layers of the fleet-mcp library.
 - [X] T228 remove all VCR cassettes and re-record them after T226 and T227 are complete to ensure no secrets are present and integration tests are passing. This is to make sure we're only committing the casettes which we need.
-- [X] T229 Add return type hints to methods in libs/fleet-mcp/src/fleet_mcp_clean/__main__.py (Completed: Added dict return type to all MCP tool functions)
+- [X] T229 Add return type hints to methods in libs/fleet-mcp/src/fleet_mcp/__main__.py (Completed: Added dict return type to all MCP tool functions)
 - [X] T230 Ensure workspace is deleted after record.py is done, whether successful or failed, to avoid orphaned workspaces in Coder instance. Don't stop but actually delete the workspace in the finally block.
 - [X] T231 Implement a /health endpoint in the MCP tool to Coder can verify it's running correctly
-- [ ] T232 Add type hints to all methods in src/fleet_mcp_clean/clients/coder_client.py. Use models named "Remote" for return types where applicable, for example, CoderClient.list_workspaces() should have return type List[WorkspaceRemote].
+- [ ] T232 Add type hints to all methods in src/fleet_mcp/clients/coder_client.py. Use models named "Remote" for return types where applicable, for example, CoderClient.list_workspaces() should have return type List[WorkspaceRemote].
 - [X] T233 Ensure that agent_name, project_name and role_name are case insensitive across all layers. For example, creating an agent with name "AgentOne" and then trying to get it with name "agentone" should succeed.
 
 ---

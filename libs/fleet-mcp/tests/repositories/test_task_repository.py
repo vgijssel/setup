@@ -3,8 +3,8 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.clients.exceptions import NotFoundError
-from fleet_mcp_clean.repositories.task_repository import TaskRepository
+from fleet_mcp.clients.exceptions import NotFoundError
+from fleet_mcp.repositories.task_repository import TaskRepository
 
 
 @pytest.fixture

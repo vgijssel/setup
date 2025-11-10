@@ -27,9 +27,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import vcr
-from fleet_mcp_clean.clients.coder_client import CoderClient
-from fleet_mcp_clean.models import AgentStatus
-from fleet_mcp_clean.repositories.agent_repository import AgentRepository
+from fleet_mcp.clients.coder_client import CoderClient
+from fleet_mcp.models import AgentStatus
+from fleet_mcp.repositories.agent_repository import AgentRepository
 
 # Configuration
 CODER_URL = os.getenv("CODER_URL")

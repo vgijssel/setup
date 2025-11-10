@@ -3,9 +3,9 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.clients.exceptions import NotFoundError
-from fleet_mcp_clean.models import DeleteAgentResponse
-from fleet_mcp_clean.tools.delete_agent import delete_agent
+from fleet_mcp.clients.exceptions import NotFoundError
+from fleet_mcp.models import DeleteAgentResponse
+from fleet_mcp.tools.delete_agent import delete_agent
 
 
 @pytest.fixture

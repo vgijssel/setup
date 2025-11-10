@@ -14,7 +14,7 @@ This test file validates that the show_agent_task_history tool correctly:
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.tools.show_task_history import show_agent_task_history
+from fleet_mcp.tools.show_task_history import show_agent_task_history
 
 
 @pytest.fixture

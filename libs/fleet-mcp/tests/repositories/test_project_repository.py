@@ -12,8 +12,8 @@ Test Coverage:
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.models.project import Project, Role
-from fleet_mcp_clean.repositories.project_repository import ProjectRepository
+from fleet_mcp.models.project import Project, Role
+from fleet_mcp.repositories.project_repository import ProjectRepository
 
 
 @pytest.fixture
@@ -330,7 +330,7 @@ class TestProjectRepositoryListRoles:
         Assert: Raises CoderAPIError
         """
         # Arrange
-        from fleet_mcp_clean.models.errors import CoderAPIError
+        from fleet_mcp.models.errors import CoderAPIError
 
         mock_templates = [
             {

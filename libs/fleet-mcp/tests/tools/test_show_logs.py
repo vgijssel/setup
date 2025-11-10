@@ -14,7 +14,7 @@ This test file validates that the show_agent_log tool correctly:
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.tools.show_logs import show_agent_log
+from fleet_mcp.tools.show_logs import show_agent_log
 
 
 @pytest.fixture

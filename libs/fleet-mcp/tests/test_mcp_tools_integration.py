@@ -9,26 +9,22 @@ import os
 import pytest
 
 # Import stack components
-from fleet_mcp_clean.clients import CoderClient
-from fleet_mcp_clean.repositories import (
-    AgentRepository,
-    ProjectRepository,
-    TaskRepository,
-)
-from fleet_mcp_clean.services import AgentService, ProjectService, TaskService
-from fleet_mcp_clean.tools.cancel_task import cancel_agent_task
-from fleet_mcp_clean.tools.create_agent import create_agent
-from fleet_mcp_clean.tools.delete_agent import delete_agent
+from fleet_mcp.clients import CoderClient
+from fleet_mcp.repositories import AgentRepository, ProjectRepository, TaskRepository
+from fleet_mcp.services import AgentService, ProjectService, TaskService
+from fleet_mcp.tools.cancel_task import cancel_agent_task
+from fleet_mcp.tools.create_agent import create_agent
+from fleet_mcp.tools.delete_agent import delete_agent
 
 # Import all MCP tools
-from fleet_mcp_clean.tools.list_agents import list_agents
-from fleet_mcp_clean.tools.list_projects import list_agent_projects
-from fleet_mcp_clean.tools.list_roles import list_agent_roles
-from fleet_mcp_clean.tools.restart_agent import restart_agent
-from fleet_mcp_clean.tools.show_agent import show_agent
-from fleet_mcp_clean.tools.show_logs import show_agent_log
-from fleet_mcp_clean.tools.show_task_history import show_agent_task_history
-from fleet_mcp_clean.tools.start_task import start_agent_task
+from fleet_mcp.tools.list_agents import list_agents
+from fleet_mcp.tools.list_projects import list_agent_projects
+from fleet_mcp.tools.list_roles import list_agent_roles
+from fleet_mcp.tools.restart_agent import restart_agent
+from fleet_mcp.tools.show_agent import show_agent
+from fleet_mcp.tools.show_logs import show_agent_log
+from fleet_mcp.tools.show_task_history import show_agent_task_history
+from fleet_mcp.tools.start_task import start_agent_task
 from httpx import Response
 
 
@@ -406,7 +402,7 @@ class TestMCPToolsIntegration:
         )
 
         # This should raise a ValidationError with proper field and message
-        from fleet_mcp_clean.models.errors import ValidationError
+        from fleet_mcp.models.errors import ValidationError
 
         with pytest.raises(ValidationError) as exc_info:
             await create_agent(
@@ -480,7 +476,7 @@ class TestMCPToolsIntegration:
         )
 
         # This should raise a ValidationError with proper field and message
-        from fleet_mcp_clean.models.errors import ValidationError
+        from fleet_mcp.models.errors import ValidationError
 
         with pytest.raises(ValidationError) as exc_info:
             await create_agent(
@@ -942,7 +938,7 @@ class TestMCPToolsIntegration:
 
         # Since this is a custom HTTP route (not a tool), we verify it exists
         # by checking the __main__ module has the health_check function
-        import fleet_mcp_clean.__main__ as main_module
+        import fleet_mcp.__main__ as main_module
 
         # Verify the health check route is defined
         assert hasattr(main_module, "health_check")

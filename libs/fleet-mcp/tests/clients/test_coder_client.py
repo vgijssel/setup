@@ -13,8 +13,8 @@ Test Coverage:
 """
 
 import pytest
-from fleet_mcp_clean.clients.coder_client import CoderClient
-from fleet_mcp_clean.clients.exceptions import NotFoundError
+from fleet_mcp.clients.coder_client import CoderClient
+from fleet_mcp.clients.exceptions import NotFoundError
 from httpx import Response
 
 

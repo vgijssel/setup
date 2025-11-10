@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/fleet_mcp_clean"]
+packages = ["src/fleet_mcp"]
 
 [dependency-groups]
 dev = [
@@ -30,15 +30,15 @@ dev = [
 ]
 
 [tool.importlinter]
-root_package = "fleet_mcp_clean"
+root_package = "fleet_mcp"
 source_root = "src"
 
 [[tool.importlinter.contracts]]
 name = "Layer boundaries"
 type = "layers"
 layers = [
-  "fleet_mcp_clean.tools",
-  "fleet_mcp_clean.services",
-  "fleet_mcp_clean.repositories",
-  "fleet_mcp_clean.clients",
+  "fleet_mcp.tools",
+  "fleet_mcp.services",
+  "fleet_mcp.repositories",
+  "fleet_mcp.clients",
 ]

@@ -4,9 +4,9 @@ from datetime import datetime
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.clients.exceptions import ConflictError
-from fleet_mcp_clean.models import Agent, AgentStatus, CreateAgentResponse
-from fleet_mcp_clean.tools.create_agent import create_agent
+from fleet_mcp.clients.exceptions import ConflictError
+from fleet_mcp.models import Agent, AgentStatus, CreateAgentResponse
+from fleet_mcp.tools.create_agent import create_agent
 
 
 @pytest.fixture

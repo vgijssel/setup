@@ -12,10 +12,10 @@ Test Coverage:
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.models.errors import ValidationError
-from fleet_mcp_clean.models.project import Role
-from fleet_mcp_clean.models.responses import ListRolesResponse
-from fleet_mcp_clean.tools.list_roles import list_agent_roles
+from fleet_mcp.models.errors import ValidationError
+from fleet_mcp.models.project import Role
+from fleet_mcp.models.responses import ListRolesResponse
+from fleet_mcp.tools.list_roles import list_agent_roles
 
 
 @pytest.fixture

@@ -2,9 +2,9 @@
 
 import pytest
 import vcr
-from fleet_mcp_clean.clients import CoderClient
-from fleet_mcp_clean.repositories import AgentRepository, ProjectRepository
-from fleet_mcp_clean.services import AgentService, ProjectService
+from fleet_mcp.clients import CoderClient
+from fleet_mcp.repositories import AgentRepository, ProjectRepository
+from fleet_mcp.services import AgentService, ProjectService
 
 # VCR instance for recording/replaying HTTP interactions
 vcr_instance = vcr.VCR(

@@ -47,7 +47,7 @@ uv sync --all-extras
 ls .venv/
 
 # Run a simple check using uv
-uv run python -c "import fleet_mcp_clean; print('Installation successful!')"
+uv run python -c "import fleet_mcp; print('Installation successful!')"
 ```
 
 ### 4. Environment Configuration
@@ -69,11 +69,11 @@ Tool (MCP Entry) → Service (Business Logic) → Repository (Data Access) → C
 
 ### Layer Responsibilities
 
-- **Tool Layer** (`fleet_mcp_clean/tools/`): FastMCP tool definitions, input validation
-- **Service Layer** (`fleet_mcp_clean/services/`): Business logic, orchestration, rule enforcement
-- **Repository Layer** (`fleet_mcp_clean/repositories/`): Data access patterns, entity transformation
-- **Client Layer** (`fleet_mcp_clean/clients/`): HTTP communication with Coder API
-- **Models** (`fleet_mcp_clean/models/`): Pydantic models shared across layers
+- **Tool Layer** (`fleet_mcp/tools/`): FastMCP tool definitions, input validation
+- **Service Layer** (`fleet_mcp/services/`): Business logic, orchestration, rule enforcement
+- **Repository Layer** (`fleet_mcp/repositories/`): Data access patterns, entity transformation
+- **Client Layer** (`fleet_mcp/clients/`): HTTP communication with Coder API
+- **Models** (`fleet_mcp/models/`): Pydantic models shared across layers
 
 ### Dependency Flow
 
@@ -89,7 +89,7 @@ Each layer only depends on the layer directly below it:
 
 ```
 libs/fleet-mcp/
-├── fleet_mcp_clean/
+├── fleet_mcp/
 │   ├── tools/              # 11 MCP tools (list, show, create, delete, etc.)
 │   ├── services/           # Business logic (AgentService, TaskService, ProjectService)
 │   ├── repositories/       # Data access (AgentRepository, TaskRepository, TemplateRepository)
@@ -166,7 +166,7 @@ def mock_create_workspace_success(respx_mock, coder_base_url, cassette_dir):
 ```python
 # tests/clients/test_coder_client.py
 import pytest
-from fleet_mcp_clean.clients import CoderClient
+from fleet_mcp.clients import CoderClient
 
 async def test_create_workspace(coder_client, mock_create_workspace_success):
     """Test workspace creation via Coder API
@@ -211,7 +211,7 @@ async def test_create_workspace(coder_client, mock_create_workspace_success):
 Implement the layer being tested, ensuring tests pass:
 
 ```python
-# fleet_mcp_clean/clients/coder_client.py
+# fleet_mcp/clients/coder_client.py
 import httpx
 from typing import Any
 
@@ -262,7 +262,7 @@ uv run pytest tests/services/ -v
 uv run pytest tests/tools/ -v
 
 # Run with coverage
-uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing
+uv run pytest --cov=fleet_mcp --cov-report=term-missing
 ```
 
 **Using Nx** (monorepo integration):
@@ -303,7 +303,7 @@ Follow this TDD workflow:
 **Using uv**:
 ```bash
 # Start the server with hot reload
-uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8001 --reload
+uv run --all-extras uvicorn fleet_mcp.__main__:app --host 127.0.0.1 --port 8001 --reload
 ```
 
 **Using Nx** (preferred):
@@ -311,7 +311,7 @@ uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port
 # Start the server via Nx target
 nx server fleet-mcp
 
-# This runs: uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8001 --reload --timeout-graceful-shutdown 3
+# This runs: uv run --all-extras uvicorn fleet_mcp.__main__:app --host 127.0.0.1 --port 8001 --reload --timeout-graceful-shutdown 3
 ```
 
 **Note**: Port 8001 is used to avoid conflict with the original fleet-mcp (port 8000).
@@ -327,7 +327,7 @@ resource "coder_script" "fleet_mcp" {
   display_name = "Fleet MCP Server"
   script = <<-EOT
     cd /workspace/libs/fleet-mcp
-    python -m fleet_mcp_clean.server
+    python -m fleet_mcp.server
   EOT
   run_on_start = true
 }
@@ -518,7 +518,7 @@ python tests/record.py
 
 ### Issue 1: Import Errors
 
-**Problem**: `ModuleNotFoundError: No module named 'fleet_mcp_clean'`
+**Problem**: `ModuleNotFoundError: No module named 'fleet_mcp'`
 
 **Solution**: Install package in editable mode:
 ```bash

@@ -3,9 +3,9 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.clients.exceptions import NotFoundError
-from fleet_mcp_clean.models import StartTaskResponse
-from fleet_mcp_clean.tools.start_task import start_agent_task
+from fleet_mcp.clients.exceptions import NotFoundError
+from fleet_mcp.models import StartTaskResponse
+from fleet_mcp.tools.start_task import start_agent_task
 
 
 @pytest.fixture

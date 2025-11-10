@@ -4,8 +4,8 @@ from datetime import datetime
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.models import Agent, AgentStatus, ListAgentsResponse
-from fleet_mcp_clean.tools.list_agents import list_agents
+from fleet_mcp.models import Agent, AgentStatus, ListAgentsResponse
+from fleet_mcp.tools.list_agents import list_agents
 
 
 @pytest.fixture

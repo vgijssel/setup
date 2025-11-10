@@ -89,7 +89,7 @@ nx server fleet-mcp
 
 # Or directly with uv
 cd libs/fleet-mcp
-uv run fastmcp run src/fleet_mcp_clean/__main__.py
+uv run fastmcp run src/fleet_mcp/__main__.py
 ```
 
 ## Testing
@@ -103,7 +103,7 @@ cd libs/fleet-mcp
 uv run pytest
 
 # With coverage
-uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing
+uv run pytest --cov=fleet_mcp --cov-report=term-missing
 
 # Verify layer boundaries with import-linter
 nx lint-imports fleet-mcp
@@ -194,7 +194,7 @@ for task in result["tasks"]:
 
 ```
 libs/fleet-mcp/
-├── src/fleet_mcp_clean/
+├── src/fleet_mcp/
 │   ├── __init__.py
 │   ├── __main__.py          # FastMCP server entry point
 │   ├── models/              # Pydantic domain models

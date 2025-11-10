@@ -4,9 +4,9 @@ from datetime import datetime
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.clients.exceptions import NotFoundError
-from fleet_mcp_clean.models import Agent, AgentStatus
-from fleet_mcp_clean.services.task_service import TaskService
+from fleet_mcp.clients.exceptions import NotFoundError
+from fleet_mcp.models import Agent, AgentStatus
+from fleet_mcp.services.task_service import TaskService
 
 
 @pytest.fixture

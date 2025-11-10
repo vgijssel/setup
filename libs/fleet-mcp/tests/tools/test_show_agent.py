@@ -4,9 +4,9 @@ from datetime import datetime
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.models import Agent, AgentStatus, ShowAgentResponse
-from fleet_mcp_clean.models.errors import AgentNotFoundError
-from fleet_mcp_clean.tools.show_agent import show_agent
+from fleet_mcp.models import Agent, AgentStatus, ShowAgentResponse
+from fleet_mcp.models.errors import AgentNotFoundError
+from fleet_mcp.tools.show_agent import show_agent
 
 
 @pytest.fixture

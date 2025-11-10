@@ -12,9 +12,9 @@ Test Coverage:
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.models.project import Project
-from fleet_mcp_clean.models.responses import ListProjectsResponse
-from fleet_mcp_clean.tools.list_projects import list_agent_projects
+from fleet_mcp.models.project import Project
+from fleet_mcp.models.responses import ListProjectsResponse
+from fleet_mcp.tools.list_projects import list_agent_projects
 
 
 @pytest.fixture

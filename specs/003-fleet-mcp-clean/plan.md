@@ -133,7 +133,7 @@ libs/fleet-mcp/
 ├── .env.example             # Environment variable template
 │
 ├── src/
-│   └── fleet_mcp_clean/
+│   └── fleet_mcp/
 │       ├── __init__.py
 │       ├── __main__.py      # FastMCP server entry point
 │       │

@@ -505,7 +505,7 @@ Agent Status FSM (follows Coder workspace lifecycle):
 Models are organized by usage layer:
 
 ```
-fleet_mcp_clean/models/
+fleet_mcp/models/
 ├── __init__.py           # Export all models
 ├── agent.py              # Agent, AgentStatus (domain)
 ├── task.py               # Task, TaskHistory, LogEntry, ConversationLog (domain)

@@ -643,8 +643,8 @@ All tools follow this structure using scalar parameters (NOT input models):
 ```python
 from typing import Annotated
 from fastmcp import FastMCP, Field
-from fleet_mcp_clean.services import AgentService
-from fleet_mcp_clean.models import CreateAgentResponse
+from fleet_mcp.services import AgentService
+from fleet_mcp.models import CreateAgentResponse
 
 mcp = FastMCP("fleet-mcp")
 

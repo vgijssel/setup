@@ -15,9 +15,9 @@ Test Coverage:
 from unittest.mock import AsyncMock
 
 import pytest
-from fleet_mcp_clean.models.errors import ValidationError
-from fleet_mcp_clean.models.project import Project, Role
-from fleet_mcp_clean.services.project_service import ProjectService
+from fleet_mcp.models.errors import ValidationError
+from fleet_mcp.models.project import Project, Role
+from fleet_mcp.services.project_service import ProjectService
 
 
 @pytest.fixture
