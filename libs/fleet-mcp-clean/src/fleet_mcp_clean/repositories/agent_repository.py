@@ -40,7 +40,9 @@ class AgentRepository:
         """
         try:
             workspaces = await self.client.list_workspaces(owner="me")
-            agents = [self._workspace_to_agent(ws) for ws in workspaces]
+            # Filter out None workspaces (can happen during race conditions or after creation)
+            valid_workspaces = [ws for ws in workspaces if ws is not None]
+            agents = [self._workspace_to_agent(ws) for ws in valid_workspaces]
             return agents
         except Exception as e:
             raise CoderAPIError(f"Failed to list agents: {e}") from e

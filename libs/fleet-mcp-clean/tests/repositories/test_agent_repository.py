@@ -80,6 +80,49 @@ class TestAgentRepositoryListAll:
         with pytest.raises(CoderAPIError, match="Failed to list agents"):
             await agent_repo.list_all()
 
+    async def test_list_all_with_none_workspace(self, agent_repo, mock_coder_client):
+        """Test listing agents when list contains None workspaces.
+
+        This can happen when the Coder API returns a workspace list where
+        some workspaces are None (e.g., during certain race conditions or
+        after agent creation).
+        """
+        # Mock workspace data with None in the list
+        mock_workspaces = [
+            {
+                "id": "ws-1",
+                "name": "agent-1",
+                "template_name": "coder-devcontainer",
+                "template_display_name": "Setup",
+                "template_id": "tpl-1",
+                "created_at": "2025-11-07T10:00:00Z",
+                "updated_at": "2025-11-07T10:30:00Z",
+                "latest_build": {"status": "running"},
+            },
+            None,  # This simulates the bug
+            {
+                "id": "ws-2",
+                "name": "agent-2",
+                "template_name": "coder-devcontainer-dataone",
+                "template_display_name": "DataOne",
+                "template_id": "tpl-2",
+                "created_at": "2025-11-07T11:00:00Z",
+                "updated_at": "2025-11-07T11:30:00Z",
+                "latest_build": {"status": "stopped"},
+            },
+        ]
+        mock_coder_client.list_workspaces.return_value = mock_workspaces
+
+        # Execute - this should not raise an error
+        agents = await agent_repo.list_all()
+
+        # Verify - should skip None workspace and return only valid ones
+        assert len(agents) == 2
+        assert all(isinstance(agent, Agent) for agent in agents)
+        assert agents[0].name == "agent-1"
+        assert agents[1].name == "agent-2"
+        mock_coder_client.list_workspaces.assert_called_once_with(owner="me")
+
 
 @pytest.mark.asyncio
 class TestAgentRepositoryGetByName:
