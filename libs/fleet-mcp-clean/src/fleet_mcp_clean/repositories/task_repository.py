@@ -27,17 +27,22 @@ class TaskRepository:
         """Assign a task to an agent workspace.
 
         Args:
-            agent_name: Name of the agent to assign task to
+            agent_name: Name of the agent to assign task to (case insensitive)
             task_description: Description of the task to assign
 
         Raises:
             NotFoundError: If agent doesn't exist
             ValidationError: If task description is empty
             CoderAPIError: If task assignment fails
+
+        Note:
+            Agent name comparison is case insensitive because the Coder API
+            backend is case insensitive.
         """
-        # Get agent workspace
+        # Get agent workspace (case insensitive lookup)
         agents = await self.client.list_workspaces()
-        workspace = next((w for w in agents if w["name"] == agent_name), None)
+        agent_name_lower = agent_name.lower()
+        workspace = next((w for w in agents if w["name"].lower() == agent_name_lower), None)
 
         if not workspace:
             from ..clients.exceptions import NotFoundError
@@ -55,15 +60,20 @@ class TaskRepository:
         Sends interrupt signal to the Claude Code (ccw) app via AgentAPI.
 
         Args:
-            agent_name: Name of the agent to cancel task for
+            agent_name: Name of the agent to cancel task for (case insensitive)
 
         Raises:
             NotFoundError: If agent doesn't exist or ccw app not found
             CoderAPIError: If cancellation fails
+
+        Note:
+            Agent name comparison is case insensitive because the Coder API
+            backend is case insensitive.
         """
-        # Get agent workspace
+        # Get agent workspace (case insensitive lookup)
         agents = await self.client.list_workspaces()
-        workspace = next((w for w in agents if w["name"] == agent_name), None)
+        agent_name_lower = agent_name.lower()
+        workspace = next((w for w in agents if w["name"].lower() == agent_name_lower), None)
 
         if not workspace:
             from ..clients.exceptions import NotFoundError
@@ -99,17 +109,22 @@ class TaskRepository:
         The app.statuses[] array contains the task history items.
 
         Args:
-            agent_name: Name of the agent to get history for
+            agent_name: Name of the agent to get history for (case insensitive)
 
         Returns:
             List of task status dictionaries
 
         Raises:
             NotFoundError: If agent doesn't exist
+
+        Note:
+            Agent name comparison is case insensitive because the Coder API
+            backend is case insensitive.
         """
-        # Get agent workspace
+        # Get agent workspace (case insensitive lookup)
         agents = await self.client.list_workspaces()
-        workspace = next((w for w in agents if w["name"] == agent_name), None)
+        agent_name_lower = agent_name.lower()
+        workspace = next((w for w in agents if w["name"].lower() == agent_name_lower), None)
 
         if not workspace:
             from ..clients.exceptions import NotFoundError
@@ -140,17 +155,22 @@ class TaskRepository:
         """Get conversation logs for an agent from experimental task API.
 
         Args:
-            agent_name: Name of the agent to get logs for
+            agent_name: Name of the agent to get logs for (case insensitive)
 
         Returns:
             List of log entry dictionaries
 
         Raises:
             NotFoundError: If agent doesn't exist
+
+        Note:
+            Agent name comparison is case insensitive because the Coder API
+            backend is case insensitive.
         """
-        # Get agent workspace
+        # Get agent workspace (case insensitive lookup)
         agents = await self.client.list_workspaces()
-        workspace = next((w for w in agents if w["name"] == agent_name), None)
+        agent_name_lower = agent_name.lower()
+        workspace = next((w for w in agents if w["name"].lower() == agent_name_lower), None)
 
         if not workspace:
             from ..clients.exceptions import NotFoundError

@@ -80,21 +80,30 @@ class ProjectRepository:
         """List all roles (workspace presets) for a specific project.
 
         Args:
-            project_name: Project name (template display_name)
+            project_name: Project name (template display_name) - case insensitive
 
         Returns:
             List of Role domain models
 
         Raises:
             CoderAPIError: If project not found or API request fails
+
+        Note:
+            Project name comparison is case insensitive because the Coder API
+            backend is case insensitive. For example, "Setup", "SETUP", and
+            "setup" all refer to the same project.
         """
         try:
-            # Find template by display_name
+            # Find template by display_name (case insensitive)
             templates = await self.client.list_templates()
             template_id = None
 
+            # Normalize the search name to lowercase for case-insensitive comparison
+            project_name_lower = project_name.lower()
+
             for template in templates:
-                if template.get("display_name") == project_name:
+                display_name = template.get("display_name", "")
+                if display_name.lower() == project_name_lower:
                     template_id = template.get("id")
                     break
 

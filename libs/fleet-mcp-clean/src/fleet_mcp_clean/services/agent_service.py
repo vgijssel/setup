@@ -42,13 +42,18 @@ class AgentService:
 
         Args:
             status_filter: Filter by agent status (optional)
-            project_filter: Filter by project name (optional)
+            project_filter: Filter by project name (optional, case-insensitive)
 
         Returns:
             List of Agent domain models matching filters
 
         Raises:
             ValidationError: If filters are invalid
+
+        Note:
+            Project name filtering is case insensitive because the Coder API
+            backend is case insensitive. For example, filtering by "Setup",
+            "SETUP", or "setup" will all return the same agents.
         """
         agents = await self.agent_repo.list_all()
 
@@ -57,7 +62,9 @@ class AgentService:
             agents = [a for a in agents if a.status == status_filter]
 
         if project_filter:
-            agents = [a for a in agents if a.project == project_filter]
+            # Case-insensitive project filter comparison
+            project_filter_lower = project_filter.lower()
+            agents = [a for a in agents if a.project.lower() == project_filter_lower]
 
         return agents
 

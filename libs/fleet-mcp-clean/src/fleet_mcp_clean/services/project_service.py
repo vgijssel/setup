@@ -56,24 +56,32 @@ class ProjectService:
         return await self.project_repo.list_roles(project_name)
 
     async def get_project_by_name(self, project_name: str) -> Project | None:
-        """Get project by name.
+        """Get project by name (case-insensitive).
 
         Args:
-            project_name: Project name to find
+            project_name: Project name to find (case-insensitive)
 
         Returns:
             Project domain model or None if not found
 
         Raises:
             ValidationError: If project_name is invalid
+
+        Note:
+            Project name comparison is case insensitive because the Coder API
+            backend is case insensitive. For example, "Setup", "SETUP", and
+            "setup" all refer to the same project.
         """
         if not project_name or not project_name.strip():
             raise ValidationError("project_name", "cannot be empty")
 
         projects = await self.project_repo.list_all()
 
+        # Normalize to lowercase for case-insensitive comparison
+        project_name_lower = project_name.lower()
+
         for project in projects:
-            if project.name == project_name:
+            if project.name.lower() == project_name_lower:
                 return project
 
         return None

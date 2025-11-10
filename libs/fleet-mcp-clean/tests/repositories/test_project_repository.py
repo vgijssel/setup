@@ -250,6 +250,80 @@ class TestProjectRepositoryListRoles:
         assert roles[1].name == "Operator"
 
     @pytest.mark.asyncio
+    async def test_list_roles_case_insensitive_uppercase(
+        self, project_repo, mock_coder_client
+    ):
+        """Test list_roles() with case insensitive project name - uppercase.
+
+        When a project is created with name "Setup", it should be
+        retrievable with "SETUP" (all uppercase).
+        This is because the Coder API backend is case insensitive.
+
+        Arrange: Mock template with project name "Setup"
+        Act: Call list_roles() with "SETUP"
+        Assert: Returns roles for the project
+        """
+        # Arrange
+        mock_templates = [
+            {
+                "id": "tpl-1",
+                "name": "coder-devcontainer",
+                "display_name": "Setup",
+                "active_version_id": "ver-1"
+            }
+        ]
+        mock_presets = [
+            {"id": "preset-1", "name": "Coder", "template_version_id": "ver-1"}
+        ]
+        mock_coder_client.list_templates.return_value = mock_templates
+        mock_coder_client.list_workspace_presets.return_value = mock_presets
+
+        # Act - try with uppercase
+        roles = await project_repo.list_roles("SETUP")
+
+        # Assert
+        assert len(roles) == 1
+        assert roles[0].name == "Coder"
+        assert roles[0].project_name == "SETUP"  # Should preserve the input case
+
+    @pytest.mark.asyncio
+    async def test_list_roles_case_insensitive_lowercase(
+        self, project_repo, mock_coder_client
+    ):
+        """Test list_roles() with case insensitive project name - lowercase.
+
+        When a project is created with name "Setup", it should be
+        retrievable with "setup" (all lowercase).
+        This is because the Coder API backend is case insensitive.
+
+        Arrange: Mock template with project name "Setup"
+        Act: Call list_roles() with "setup"
+        Assert: Returns roles for the project
+        """
+        # Arrange
+        mock_templates = [
+            {
+                "id": "tpl-1",
+                "name": "coder-devcontainer",
+                "display_name": "Setup",
+                "active_version_id": "ver-1"
+            }
+        ]
+        mock_presets = [
+            {"id": "preset-1", "name": "Coder", "template_version_id": "ver-1"}
+        ]
+        mock_coder_client.list_templates.return_value = mock_templates
+        mock_coder_client.list_workspace_presets.return_value = mock_presets
+
+        # Act - try with lowercase
+        roles = await project_repo.list_roles("setup")
+
+        # Assert
+        assert len(roles) == 1
+        assert roles[0].name == "Coder"
+        assert roles[0].project_name == "setup"  # Should preserve the input case
+
+    @pytest.mark.asyncio
     async def test_list_roles_for_nonexistent_project_raises_error(
         self, project_repo, mock_coder_client
     ):

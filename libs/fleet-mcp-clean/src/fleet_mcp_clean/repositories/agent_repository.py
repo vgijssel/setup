@@ -52,7 +52,7 @@ class AgentRepository:
         """Get agent by name by finding matching workspace.
 
         Args:
-            name: Agent name (workspace name)
+            name: Agent name (workspace name) - case insensitive
 
         Returns:
             Agent domain model
@@ -60,14 +60,23 @@ class AgentRepository:
         Raises:
             AgentNotFoundError: If no workspace with that name exists
             CoderAPIError: If Coder API request fails
+
+        Note:
+            Agent name comparison is case insensitive because the Coder API
+            backend is case insensitive. For example, "WorkspaceStates",
+            "WORKSPACESTATES", and "workspacestates" all refer to the same agent.
         """
         try:
             workspaces = await self.client.list_workspaces(owner="me")
             # Filter out None workspaces (can happen during race conditions or after creation)
             valid_workspaces = [ws for ws in workspaces if ws is not None]
 
+            # Normalize the search name to lowercase for case-insensitive comparison
+            name_lower = name.lower()
+
             for workspace in valid_workspaces:
-                if workspace.get("name") == name:
+                workspace_name = workspace.get("name", "")
+                if workspace_name.lower() == name_lower:
                     # Get full workspace details with metadata
                     workspace_id = workspace.get("id")
                     full_workspace = await self.client.get_workspace(workspace_id)

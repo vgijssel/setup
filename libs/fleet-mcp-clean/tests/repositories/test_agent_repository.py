@@ -220,6 +220,90 @@ class TestAgentRepositoryGetByName:
         assert agent.name == "test-agent"
         assert agent.workspace_id == "ws-1"
 
+    async def test_get_by_name_case_insensitive_uppercase(self, agent_repo, mock_coder_client):
+        """Test getting agent by name with case insensitive lookup - uppercase.
+
+        When an agent is created with name "WorkspaceStates", it should be
+        retrievable with "WORKSPACESTATES" (all uppercase).
+        This is because the Coder API backend is case insensitive.
+        """
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "WorkspaceStates",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:30:00Z",
+            "latest_build": {"status": "running"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+        mock_coder_client.get_workspace.return_value = mock_workspace
+
+        # Try to get agent with uppercase name
+        agent = await agent_repo.get_by_name("WORKSPACESTATES")
+
+        # Verify we found the agent
+        assert isinstance(agent, Agent)
+        assert agent.name == "WorkspaceStates"
+        assert agent.workspace_id == "ws-1"
+
+    async def test_get_by_name_case_insensitive_lowercase(self, agent_repo, mock_coder_client):
+        """Test getting agent by name with case insensitive lookup - lowercase.
+
+        When an agent is created with name "WorkspaceStates", it should be
+        retrievable with "workspacestates" (all lowercase).
+        This is because the Coder API backend is case insensitive.
+        """
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "WorkspaceStates",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:30:00Z",
+            "latest_build": {"status": "running"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+        mock_coder_client.get_workspace.return_value = mock_workspace
+
+        # Try to get agent with lowercase name
+        agent = await agent_repo.get_by_name("workspacestates")
+
+        # Verify we found the agent
+        assert isinstance(agent, Agent)
+        assert agent.name == "WorkspaceStates"
+        assert agent.workspace_id == "ws-1"
+
+    async def test_get_by_name_case_insensitive_mixed(self, agent_repo, mock_coder_client):
+        """Test getting agent by name with case insensitive lookup - mixed case.
+
+        When an agent is created with name "WorkspaceStates", it should be
+        retrievable with "workspaceSTATES" (mixed case).
+        This is because the Coder API backend is case insensitive.
+        """
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "WorkspaceStates",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:30:00Z",
+            "latest_build": {"status": "running"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+        mock_coder_client.get_workspace.return_value = mock_workspace
+
+        # Try to get agent with mixed case name
+        agent = await agent_repo.get_by_name("workspaceSTATES")
+
+        # Verify we found the agent
+        assert isinstance(agent, Agent)
+        assert agent.name == "WorkspaceStates"
+        assert agent.workspace_id == "ws-1"
+
 
 @pytest.mark.asyncio
 class TestAgentRepositoryCreate:
