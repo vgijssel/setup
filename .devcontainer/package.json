@@ -1,6 +1,6 @@
 {
   "name": "devcontainer",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "dependencies": {
     "devenv": "0.13.0"
   },
