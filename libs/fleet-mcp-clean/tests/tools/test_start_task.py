@@ -1,11 +1,11 @@
 """Tests for start_agent_task MCP tool (Layer 1 - Tool Layer)."""
 
-import pytest
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.tools.start_task import start_agent_task
-from fleet_mcp_clean.models import StartTaskResponse
+import pytest
 from fleet_mcp_clean.clients.exceptions import NotFoundError
+from fleet_mcp_clean.models import StartTaskResponse
+from fleet_mcp_clean.tools.start_task import start_agent_task
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ class TestStartAgentTask:
         result = await start_agent_task(
             mock_task_service,
             agent_name="test-agent",
-            task_description="Analyze data and create report"
+            task_description="Analyze data and create report",
         )
 
         # Assert
@@ -38,9 +38,7 @@ class TestStartAgentTask:
         assert result.task_description == "Analyze data and create report"
         assert result.message == "Task assigned to agent 'test-agent' successfully"
 
-    async def test_start_agent_task_delegates_to_service(
-        self, mock_task_service
-    ):
+    async def test_start_agent_task_delegates_to_service(self, mock_task_service):
         """Test that start_agent_task correctly delegates to TaskService (T150)."""
         # Arrange
         mock_task_service.assign_task.return_value = None
@@ -49,7 +47,7 @@ class TestStartAgentTask:
         await start_agent_task(
             mock_task_service,
             agent_name="data-analyst",
-            task_description="Process quarterly reports"
+            task_description="Process quarterly reports",
         )
 
         # Assert
@@ -57,9 +55,7 @@ class TestStartAgentTask:
             "data-analyst", "Process quarterly reports"
         )
 
-    async def test_start_agent_task_with_long_description(
-        self, mock_task_service
-    ):
+    async def test_start_agent_task_with_long_description(self, mock_task_service):
         """Test start_agent_task with a detailed task description (T151)."""
         # Arrange
         mock_task_service.assign_task.return_value = None
@@ -73,7 +69,7 @@ class TestStartAgentTask:
         result = await start_agent_task(
             mock_task_service,
             agent_name="analyst-pro",
-            task_description=long_description
+            task_description=long_description,
         )
 
         # Assert
@@ -83,9 +79,7 @@ class TestStartAgentTask:
             "analyst-pro", long_description
         )
 
-    async def test_start_agent_task_propagates_not_found_error(
-        self, mock_task_service
-    ):
+    async def test_start_agent_task_propagates_not_found_error(self, mock_task_service):
         """Test start_agent_task propagates NotFoundError for non-existent agents (T151)."""
         # Arrange
         mock_task_service.assign_task.side_effect = NotFoundError(
@@ -97,7 +91,7 @@ class TestStartAgentTask:
             await start_agent_task(
                 mock_task_service,
                 agent_name="nonexistent",
-                task_description="Test task"
+                task_description="Test task",
             )
 
     async def test_start_agent_task_propagates_validation_error_for_non_idle_agent(
@@ -112,9 +106,7 @@ class TestStartAgentTask:
         # Act & Assert
         with pytest.raises(ValueError, match="non-idle"):
             await start_agent_task(
-                mock_task_service,
-                agent_name="busy-agent",
-                task_description="New task"
+                mock_task_service, agent_name="busy-agent", task_description="New task"
             )
 
     async def test_start_agent_task_propagates_validation_error_for_offline_agent(
@@ -131,7 +123,7 @@ class TestStartAgentTask:
             await start_agent_task(
                 mock_task_service,
                 agent_name="offline-agent",
-                task_description="Test task"
+                task_description="Test task",
             )
 
     async def test_start_agent_task_propagates_empty_description_error(
@@ -146,9 +138,7 @@ class TestStartAgentTask:
         # Act & Assert
         with pytest.raises(ValueError, match="empty"):
             await start_agent_task(
-                mock_task_service,
-                agent_name="test-agent",
-                task_description=""
+                mock_task_service, agent_name="test-agent", task_description=""
             )
 
     async def test_start_agent_task_message_includes_agent_name(
@@ -162,7 +152,7 @@ class TestStartAgentTask:
         result = await start_agent_task(
             mock_task_service,
             agent_name="special-agent",
-            task_description="Special mission"
+            task_description="Special mission",
         )
 
         # Assert

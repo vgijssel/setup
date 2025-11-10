@@ -28,7 +28,9 @@ class AgentRepository:
             coder_client: Async HTTP client for Coder API
         """
         self.client = coder_client
-        self._preset_cache: dict[str, dict[str, str]] = {}  # template_id -> {preset_id: role_name}
+        self._preset_cache: dict[str, dict[str, str]] = (
+            {}
+        )  # template_id -> {preset_id: role_name}
 
     async def list_all(self) -> list[Agent]:
         """List all agents by fetching all workspaces for authenticated user.
@@ -359,7 +361,10 @@ class AgentRepository:
                 apps = agent.get("apps", [])
                 for app in apps:
                     # Find Claude Code app by slug or display name
-                    if app.get("slug") == "ccw" or app.get("display_name") == "Claude Code":
+                    if (
+                        app.get("slug") == "ccw"
+                        or app.get("display_name") == "Claude Code"
+                    ):
                         statuses = app.get("statuses", [])
                         all_tasks.extend(statuses)
                         break  # Found Claude Code app, stop searching this agent
@@ -370,9 +375,7 @@ class AgentRepository:
 
         # Sort tasks by created_at (newest first) and return the most recent message
         sorted_tasks = sorted(
-            all_tasks,
-            key=lambda t: t.get("created_at", ""),
-            reverse=True
+            all_tasks, key=lambda t: t.get("created_at", ""), reverse=True
         )
 
         return sorted_tasks[0].get("message") if sorted_tasks else None

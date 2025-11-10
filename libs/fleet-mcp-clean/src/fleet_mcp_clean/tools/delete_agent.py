@@ -11,7 +11,8 @@ from ..services import AgentService
 async def delete_agent(
     agent_service: AgentService,
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=32, description="Name of the agent to delete")
+        str,
+        Field(min_length=1, max_length=32, description="Name of the agent to delete"),
     ],
 ) -> DeleteAgentResponse:
     """Delete an agent and destroy its underlying workspace.

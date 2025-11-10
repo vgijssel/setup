@@ -8,7 +8,6 @@ are re-recorded.
 """
 
 import pytest
-import respx
 from httpx import Response
 
 from .helpers import load_cassette_response
@@ -23,9 +22,7 @@ def mock_list_templates_success(respx_mock):
     """
     status_code, body = load_cassette_response("list_templates_success")
 
-    route = respx_mock.get(
-        url__regex=r".*/api/v2/templates$"
-    ).mock(
+    route = respx_mock.get(url__regex=r".*/api/v2/templates$").mock(
         return_value=Response(status_code, json=body)
     )
     return route
@@ -43,20 +40,20 @@ def mock_get_template_parameters_success(respx_mock):
     2. get_template_parameters() - returns rich parameters for the version
     """
     # First interaction: get_template()
-    status_code_1, body_1 = load_cassette_response("get_template_parameters_success", interaction_index=0)
-    respx_mock.get(
-        url__regex=r".*/api/v2/templates/[a-f0-9-]+$"
-    ).mock(
+    status_code_1, body_1 = load_cassette_response(
+        "get_template_parameters_success", interaction_index=0
+    )
+    respx_mock.get(url__regex=r".*/api/v2/templates/[a-f0-9-]+$").mock(
         return_value=Response(status_code_1, json=body_1)
     )
 
     # Second interaction: get template parameters
-    status_code_2, body_2 = load_cassette_response("get_template_parameters_success", interaction_index=1)
+    status_code_2, body_2 = load_cassette_response(
+        "get_template_parameters_success", interaction_index=1
+    )
     route = respx_mock.get(
         url__regex=r".*/api/v2/templateversions/[a-f0-9-]+/rich-parameters$"
-    ).mock(
-        return_value=Response(status_code_2, json=body_2)
-    )
+    ).mock(return_value=Response(status_code_2, json=body_2))
     return route
 
 
@@ -72,18 +69,18 @@ def mock_list_workspace_presets_success(respx_mock):
     2. list_workspace_presets() - returns workspace presets for the version
     """
     # First interaction: get_template()
-    status_code_1, body_1 = load_cassette_response("list_workspace_presets_success", interaction_index=0)
-    respx_mock.get(
-        url__regex=r".*/api/v2/templates/[a-f0-9-]+$"
-    ).mock(
+    status_code_1, body_1 = load_cassette_response(
+        "list_workspace_presets_success", interaction_index=0
+    )
+    respx_mock.get(url__regex=r".*/api/v2/templates/[a-f0-9-]+$").mock(
         return_value=Response(status_code_1, json=body_1)
     )
 
     # Second interaction: list workspace presets
-    status_code_2, body_2 = load_cassette_response("list_workspace_presets_success", interaction_index=1)
+    status_code_2, body_2 = load_cassette_response(
+        "list_workspace_presets_success", interaction_index=1
+    )
     route = respx_mock.get(
         url__regex=r".*/api/v2/templateversions/[a-f0-9-]+/presets$"
-    ).mock(
-        return_value=Response(status_code_2, json=body_2)
-    )
+    ).mock(return_value=Response(status_code_2, json=body_2))
     return route

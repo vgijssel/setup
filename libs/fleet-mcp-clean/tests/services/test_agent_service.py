@@ -12,17 +12,17 @@ Test Coverage:
 - T104: restart_agent() restarts agent
 """
 
-import pytest
-from unittest.mock import AsyncMock
 from datetime import datetime
+from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.services import AgentService
+import pytest
 from fleet_mcp_clean.models import Agent, AgentStatus, Project, Role
 from fleet_mcp_clean.models.errors import (
+    AgentConflictError,
     AgentNotFoundError,
     ValidationError,
-    AgentConflictError,
 )
+from fleet_mcp_clean.services import AgentService
 
 
 @pytest.fixture
@@ -69,25 +69,35 @@ class TestAgentServiceCreate:
     """Test create_agent method - T099-T102."""
 
     async def test_create_agent_success(
-        self, agent_service, mock_agent_repo, mock_project_repo, sample_agent, sample_project
+        self,
+        agent_service,
+        mock_agent_repo,
+        mock_project_repo,
+        sample_agent,
+        sample_project,
     ):
         """Test successfully creating an agent - T099."""
         # Arrange
         mock_agent_repo.list_all.return_value = []  # No existing agents
-        mock_agent_repo.get_by_name.side_effect = AgentNotFoundError("test-agent")  # Name is available
+        mock_agent_repo.get_by_name.side_effect = AgentNotFoundError(
+            "test-agent"
+        )  # Name is available
         mock_project_repo.list_all.return_value = [sample_project]  # Available projects
         mock_project_repo.get_by_name.return_value = sample_project
         mock_project_repo.list_roles.return_value = [
-            Role(id="role-1", name="coder", project_id="proj-123", project_name="Setup", default=True)
+            Role(
+                id="role-1",
+                name="coder",
+                project_id="proj-123",
+                project_name="Setup",
+                default=True,
+            )
         ]
         mock_agent_repo.create.return_value = sample_agent
 
         # Act
         result = await agent_service.create_agent(
-            name="test-agent",
-            project="Setup",
-            role="coder",
-            task="Test task"
+            name="test-agent", project="Setup", role="coder", task="Test task"
         )
 
         # Assert
@@ -97,20 +107,45 @@ class TestAgentServiceCreate:
         mock_agent_repo.create.assert_called_once()
 
     async def test_create_agent_with_no_role_uses_first_available_role(
-        self, agent_service, mock_agent_repo, mock_project_repo, sample_agent, sample_project
+        self,
+        agent_service,
+        mock_agent_repo,
+        mock_project_repo,
+        sample_agent,
+        sample_project,
     ):
         """Test creating agent with role=None queries backend and uses first available role."""
         # Arrange
         mock_agent_repo.list_all.return_value = []  # No existing agents
-        mock_agent_repo.get_by_name.side_effect = AgentNotFoundError("test-agent")  # Name is available
+        mock_agent_repo.get_by_name.side_effect = AgentNotFoundError(
+            "test-agent"
+        )  # Name is available
         mock_project_repo.list_all.return_value = [sample_project]  # Available projects
         mock_project_repo.get_by_name.return_value = sample_project
 
         # Mock roles with multiple options - should pick the one marked as default
         mock_project_repo.list_roles.return_value = [
-            Role(id="role-operator", name="operator", project_id="proj-123", project_name="Setup", default=False),
-            Role(id="role-coder", name="coder", project_id="proj-123", project_name="Setup", default=True),
-            Role(id="role-manager", name="manager", project_id="proj-123", project_name="Setup", default=False),
+            Role(
+                id="role-operator",
+                name="operator",
+                project_id="proj-123",
+                project_name="Setup",
+                default=False,
+            ),
+            Role(
+                id="role-coder",
+                name="coder",
+                project_id="proj-123",
+                project_name="Setup",
+                default=True,
+            ),
+            Role(
+                id="role-manager",
+                name="manager",
+                project_id="proj-123",
+                project_name="Setup",
+                default=False,
+            ),
         ]
 
         # Mock agent creation with coder role (the default one)
@@ -128,10 +163,7 @@ class TestAgentServiceCreate:
 
         # Act - role=None means "query backend for default"
         result = await agent_service.create_agent(
-            name="test-agent",
-            project="Setup",
-            role=None,
-            task="Test task"
+            name="test-agent", project="Setup", role=None, task="Test task"
         )
 
         # Assert
@@ -161,10 +193,7 @@ class TestAgentServiceCreate:
             # Act & Assert
             with pytest.raises((ValidationError, ValueError)):
                 await agent_service.create_agent(
-                    name=invalid_name,
-                    project="Setup",
-                    role="coder",
-                    task="Test task"
+                    name=invalid_name, project="Setup", role="coder", task="Test task"
                 )
 
     async def test_create_agent_checks_name_uniqueness(
@@ -180,7 +209,7 @@ class TestAgentServiceCreate:
                 name="test-agent",  # Same as sample_agent
                 project="Setup",
                 role="coder",
-                task="Test task"
+                task="Test task",
             )
 
     async def test_create_agent_validates_project_exists(
@@ -197,7 +226,7 @@ class TestAgentServiceCreate:
                 name="test-agent",
                 project="NonexistentProject",
                 role="coder",
-                task="Test task"
+                task="Test task",
             )
 
 
@@ -219,9 +248,7 @@ class TestAgentServiceDelete:
         # Assert
         mock_agent_repo.delete.assert_called_once_with("test-agent")
 
-    async def test_delete_agent_not_found(
-        self, agent_service, mock_agent_repo
-    ):
+    async def test_delete_agent_not_found(self, agent_service, mock_agent_repo):
         """Test deleting non-existent agent raises error."""
         # Arrange
         mock_agent_repo.delete.side_effect = AgentNotFoundError("nonexistent")
@@ -347,9 +374,7 @@ class TestAgentServiceRestart:
         assert result.name == "test-agent"
         mock_agent_repo.restart.assert_called_once_with("test-agent")
 
-    async def test_restart_agent_not_found(
-        self, agent_service, mock_agent_repo
-    ):
+    async def test_restart_agent_not_found(self, agent_service, mock_agent_repo):
         """Test restarting non-existent agent raises error."""
         # Arrange
         mock_agent_repo.restart.side_effect = AgentNotFoundError("nonexistent")
@@ -386,7 +411,12 @@ class TestAgentServiceCaseInsensitive:
         assert all(name == name.lower() for name in calls)
 
     async def test_create_agent_case_insensitive_duplicate_check(
-        self, agent_service, mock_agent_repo, mock_project_repo, sample_agent, sample_project
+        self,
+        agent_service,
+        mock_agent_repo,
+        mock_project_repo,
+        sample_agent,
+        sample_project,
     ):
         """Test creating agent with different case of existing name is rejected."""
         # Arrange
@@ -404,7 +434,13 @@ class TestAgentServiceCaseInsensitive:
         mock_project_repo.list_all.return_value = [sample_project]
         mock_project_repo.get_by_name.return_value = sample_project
         mock_project_repo.list_roles.return_value = [
-            Role(id="role-1", name="coder", project_id="proj-123", project_name="Setup", default=True)
+            Role(
+                id="role-1",
+                name="coder",
+                project_id="proj-123",
+                project_name="Setup",
+                default=True,
+            )
         ]
 
         # Act & Assert - Try to create with different case
@@ -413,5 +449,5 @@ class TestAgentServiceCaseInsensitive:
                 name="MyAgent",  # Different case
                 project="Setup",
                 role="coder",
-                task="Test task"
+                task="Test task",
             )

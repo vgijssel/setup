@@ -33,6 +33,4 @@ async def list_agent_roles(
         result = await list_agent_roles(project_service, project="Setup")
     """
     roles = await project_service.list_roles(project)
-    return ListRolesResponse(
-        roles=roles, project_name=project, total_count=len(roles)
-    )
+    return ListRolesResponse(roles=roles, project_name=project, total_count=len(roles))

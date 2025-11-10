@@ -9,13 +9,13 @@ Test Coverage:
 - T058: list_agent_roles() handles validation errors
 """
 
-import pytest
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.tools.list_roles import list_agent_roles
+import pytest
+from fleet_mcp_clean.models.errors import ValidationError
 from fleet_mcp_clean.models.project import Role
 from fleet_mcp_clean.models.responses import ListRolesResponse
-from fleet_mcp_clean.models.errors import ValidationError
+from fleet_mcp_clean.tools.list_roles import list_agent_roles
 
 
 @pytest.fixture
@@ -40,8 +40,20 @@ class TestListAgentRoles:
         # Arrange
         project_name = "Setup"
         mock_roles = [
-            Role(id="role-1", name="Coder", project_id="proj-1", project_name="Setup", default=True),
-            Role(id="role-2", name="Operator", project_id="proj-1", project_name="Setup", default=False)
+            Role(
+                id="role-1",
+                name="Coder",
+                project_id="proj-1",
+                project_name="Setup",
+                default=True,
+            ),
+            Role(
+                id="role-2",
+                name="Operator",
+                project_id="proj-1",
+                project_name="Setup",
+                default=False,
+            ),
         ]
         mock_project_service.list_roles.return_value = mock_roles
 
@@ -55,9 +67,7 @@ class TestListAgentRoles:
         assert result.total_count == 2
 
     @pytest.mark.asyncio
-    async def test_list_agent_roles_delegates_to_service(
-        self, mock_project_service
-    ):
+    async def test_list_agent_roles_delegates_to_service(self, mock_project_service):
         """Test list_agent_roles() calls service.list_roles() - T057.
 
         Arrange: Mock service to return roles
@@ -67,7 +77,13 @@ class TestListAgentRoles:
         # Arrange
         project_name = "DataOne"
         mock_roles = [
-            Role(id="role-1", name="Analyst", project_id="proj-2", project_name="DataOne", default=True)
+            Role(
+                id="role-1",
+                name="Analyst",
+                project_id="proj-2",
+                project_name="DataOne",
+                default=True,
+            )
         ]
         mock_project_service.list_roles.return_value = mock_roles
 
@@ -102,9 +118,7 @@ class TestListAgentRoles:
         mock_project_service.list_roles.assert_called_once_with("")
 
     @pytest.mark.asyncio
-    async def test_list_agent_roles_calculates_total_count(
-        self, mock_project_service
-    ):
+    async def test_list_agent_roles_calculates_total_count(self, mock_project_service):
         """Test list_agent_roles() correctly counts roles.
 
         Arrange: Mock service to return varying numbers of roles
@@ -122,7 +136,13 @@ class TestListAgentRoles:
 
         # Arrange - 4 roles
         mock_roles = [
-            Role(id=f"r{i}", name=f"Role{i}", project_id="proj-1", project_name="Test", default=(i==0))
+            Role(
+                id=f"r{i}",
+                name=f"Role{i}",
+                project_id="proj-1",
+                project_name="Test",
+                default=(i == 0),
+            )
             for i in range(4)
         ]
         mock_project_service.list_roles.return_value = mock_roles

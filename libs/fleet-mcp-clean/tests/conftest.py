@@ -1,21 +1,23 @@
 """Pytest configuration and shared fixtures."""
 
+import os
+from typing import AsyncGenerator
+
+import httpx
 import pytest
 import respx
-from typing import AsyncGenerator
-import httpx
-import os
 
 # Import fixtures to make them available to all tests
-from fixtures.workspace_fixtures import (
-    mock_list_workspaces_success,
-    mock_get_workspace_success,
-    mock_get_workspace_applications_success,
-)
+# ruff: noqa: F401
 from fixtures.template_fixtures import (
-    mock_list_templates_success,
     mock_get_template_parameters_success,
+    mock_list_templates_success,
     mock_list_workspace_presets_success,
+)
+from fixtures.workspace_fixtures import (
+    mock_get_workspace_applications_success,
+    mock_get_workspace_success,
+    mock_list_workspaces_success,
 )
 
 # Set test environment variables (defaults for testing)

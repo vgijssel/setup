@@ -21,9 +21,7 @@ class AgentService:
     - Status filtering and projection
     """
 
-    def __init__(
-        self, agent_repo: AgentRepository, project_repo: ProjectRepository
-    ):
+    def __init__(self, agent_repo: AgentRepository, project_repo: ProjectRepository):
         """Initialize service with repositories.
 
         Args:
@@ -123,7 +121,7 @@ class AgentService:
             available_names = [p.name for p in projects]
             raise ValidationError(
                 "project",
-                f"Project '{project}' not found. Available projects: {', '.join(available_names)}"
+                f"Project '{project}' not found. Available projects: {', '.join(available_names)}",
             )
 
         # Get project details to find template_id
@@ -134,10 +132,7 @@ class AgentService:
         roles = await self.project_repo.list_roles(matched_project.name)
 
         if not roles:
-            raise ValidationError(
-                "role",
-                f"No roles available for project '{project}'"
-            )
+            raise ValidationError("role", f"No roles available for project '{project}'")
 
         role_map = {r.name.lower(): r for r in roles}  # Case-insensitive lookup
 
@@ -159,7 +154,7 @@ class AgentService:
                 available_roles = [r.name for r in roles]
                 raise ValidationError(
                     "role",
-                    f"Role '{role}' not found in project '{project}'. Available roles: {', '.join(available_roles)}"
+                    f"Role '{role}' not found in project '{project}'. Available roles: {', '.join(available_roles)}",
                 )
             matched_role = role_map[normalized_role]
 
@@ -239,26 +234,23 @@ class AgentService:
 
         if len(name) > 32:
             raise ValidationError(
-                "name",
-                f"Agent name must be 32 characters or less (got {len(name)})"
+                "name", f"Agent name must be 32 characters or less (got {len(name)})"
             )
 
         if not all(c.isalnum() or c == "-" for c in name):
             raise ValidationError(
                 "name",
-                "Agent name must contain only alphanumeric characters and hyphens"
+                "Agent name must contain only alphanumeric characters and hyphens",
             )
 
         # Must start with alphanumeric (not hyphen)
         if name[0] == "-":
             raise ValidationError(
-                "name",
-                "Agent name must start with a letter or number (not hyphen)"
+                "name", "Agent name must start with a letter or number (not hyphen)"
             )
 
         # Check reserved names (case-insensitive)
         if name.lower() in ["new", "create"]:
             raise ValidationError(
-                "name",
-                f"Agent name '{name}' is reserved and cannot be used"
+                "name", f"Agent name '{name}' is reserved and cannot be used"
             )

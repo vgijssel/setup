@@ -28,8 +28,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import vcr
 from fleet_mcp_clean.clients.coder_client import CoderClient
-from fleet_mcp_clean.repositories.agent_repository import AgentRepository
 from fleet_mcp_clean.models import AgentStatus
+from fleet_mcp_clean.repositories.agent_repository import AgentRepository
 
 # Configuration
 CODER_URL = os.getenv("CODER_URL")
@@ -39,7 +39,9 @@ CASSETTE_DIR = Path(__file__).parent / "cassettes"
 TEST_WORKSPACE_NAME = "test-recording-agent"
 
 if not CODER_URL or not CODER_SESSION_TOKEN:
-    print("❌ Error: CODER_URL and CODER_SESSION_TOKEN environment variables are required")
+    print(
+        "❌ Error: CODER_URL and CODER_SESSION_TOKEN environment variables are required"
+    )
     sys.exit(1)
 
 # Ensure cassette directory exists
@@ -178,7 +180,9 @@ vcr_instance = vcr.VCR(
 )
 
 
-async def wait_for_workspace_ready(client: CoderClient, workspace_id: str, timeout: int = 180) -> None:
+async def wait_for_workspace_ready(
+    client: CoderClient, workspace_id: str, timeout: int = 180
+) -> None:
     """Wait for workspace to reach running status."""
     print(f"⏳ Waiting for workspace {workspace_id} to be ready...")
     for _ in range(timeout // 5):
@@ -192,15 +196,19 @@ async def wait_for_workspace_ready(client: CoderClient, workspace_id: str, timeo
 
         await asyncio.sleep(5)
 
-    raise TimeoutError(f"Workspace {workspace_id} did not become ready within {timeout}s")
+    raise TimeoutError(
+        f"Workspace {workspace_id} did not become ready within {timeout}s"
+    )
 
 
-async def wait_for_apps_healthy(client: CoderClient, workspace_id: str, timeout: int = 180) -> None:
+async def wait_for_apps_healthy(
+    client: CoderClient, workspace_id: str, timeout: int = 180
+) -> None:
     """Wait for all enabled workspace apps to be healthy.
 
     This is required before using experimental task API.
     """
-    print(f"⏳ Waiting for all enabled apps to be healthy...")
+    print("⏳ Waiting for all enabled apps to be healthy...")
     for attempt in range(timeout // 5):
         try:
             workspace = await client.get_workspace(workspace_id)
@@ -247,7 +255,9 @@ async def wait_for_apps_healthy(client: CoderClient, workspace_id: str, timeout:
     raise TimeoutError(f"Apps did not become healthy within {timeout}s")
 
 
-async def wait_for_workspace_deleted(client: CoderClient, workspace_id: str, timeout: int = 60) -> None:
+async def wait_for_workspace_deleted(
+    client: CoderClient, workspace_id: str, timeout: int = 60
+) -> None:
     """Wait for workspace to be deleted."""
     print(f"⏳ Waiting for workspace {workspace_id} to be deleted...")
     for _ in range(timeout // 5):
@@ -262,7 +272,9 @@ async def wait_for_workspace_deleted(client: CoderClient, workspace_id: str, tim
     raise TimeoutError(f"Workspace {workspace_id} was not deleted within {timeout}s")
 
 
-async def wait_for_agent_idle(agent_repo: AgentRepository, agent_name: str, timeout: int = 300) -> None:
+async def wait_for_agent_idle(
+    agent_repo: AgentRepository, agent_name: str, timeout: int = 300
+) -> None:
     """Wait for agent to reach idle status using AgentRepository.
 
     This waits for the workspace to be fully initialized and Claude Code to be idle,
@@ -292,7 +304,8 @@ async def wait_for_agent_idle(agent_repo: AgentRepository, agent_name: str, time
 
 async def record(vcr_inst) -> None:
     """Record all cassettes in a single linear flow."""
-    print(f"""
+    print(
+        f"""
 ╔══════════════════════════════════════════════════════════════╗
 ║  Fleet MCP Clean - VCR Cassette Recorder                   ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -303,7 +316,8 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
 
 ⚠️  WARNING: This will create and delete a test workspace on your Coder instance.
 
-""")
+"""
+    )
 
     client = CoderClient(base_url=CODER_URL, token=CODER_SESSION_TOKEN)
     agent_repo = AgentRepository(client)
@@ -313,7 +327,9 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
     try:
         print("🧹 Checking for existing test workspace...")
         workspaces = await client.list_workspaces(owner="me")
-        existing = next((w for w in workspaces if w.get("name") == TEST_WORKSPACE_NAME), None)
+        existing = next(
+            (w for w in workspaces if w.get("name") == TEST_WORKSPACE_NAME), None
+        )
         if existing:
             existing_id = existing["id"]
             print(f"  Found existing workspace {existing_id}, deleting...")
@@ -370,7 +386,7 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
         print(f"✓ Using preset: {preset_name} ({preset_id})")
 
         # Create workspace
-        print(f"\n📼 Recording: create_workspace_success.yaml")
+        print("\n📼 Recording: create_workspace_success.yaml")
         with vcr_inst.use_cassette("create_workspace_success.yaml"):
             workspace = await client.create_workspace(
                 name=TEST_WORKSPACE_NAME,
@@ -400,7 +416,9 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
         with vcr_inst.use_cassette("get_workspace_success.yaml"):
             workspace_details = await client.get_workspace(workspace_id)
         owner_name = workspace_details.get("owner_name", "me")
-        print(f"✓ Workspace status: {workspace_details.get('latest_build', {}).get('status')}")
+        print(
+            f"✓ Workspace status: {workspace_details.get('latest_build', {}).get('status')}"
+        )
 
         # List workspaces
         print("\n📼 Recording: list_workspaces_success.yaml")
@@ -423,7 +441,9 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
         # Send task input
         print("\n📼 Recording: send_task_input_success.yaml")
         with vcr_inst.use_cassette("send_task_input_success.yaml"):
-            await client.send_task_input(owner_name, workspace_id, "Write hello world to a file")
+            await client.send_task_input(
+                owner_name, workspace_id, "Write hello world to a file"
+            )
         print("✓ Task input sent")
 
         # Get task status
@@ -434,7 +454,9 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
 
         # Send interrupt signal via AgentAPI
         # Skip for now - this requires additional implementation
-        print("\n⚠️  Skipping send_agentapi_interrupt_success.yaml (not implemented yet)")
+        print(
+            "\n⚠️  Skipping send_agentapi_interrupt_success.yaml (not implemented yet)"
+        )
 
         # Get task logs (with data after task execution)
         print("\n📼 Recording: get_task_logs_success.yaml")
@@ -455,7 +477,8 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
         except Exception as e:
             print(f"✓ Recorded 404 error: {type(e).__name__}")
 
-        print(f"""
+        print(
+            f"""
 ╔══════════════════════════════════════════════════════════════╗
 ║  ✓ Recording Complete!                                       ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -466,13 +489,16 @@ Next steps:
 1. Review the cassette files to ensure they contain expected data
 2. Update test fixtures if needed
 3. Run the test suite: nx test fleet-mcp-clean
-""")
+"""
+        )
 
     finally:
         # Ensure workspace is always cleaned up, even if recording fails
         if workspace_id:
             try:
-                print(f"\n🧹 Cleaning up test workspace: {TEST_WORKSPACE_NAME} ({workspace_id})")
+                print(
+                    f"\n🧹 Cleaning up test workspace: {TEST_WORKSPACE_NAME} ({workspace_id})"
+                )
                 # Check if workspace still exists
                 try:
                     await client.get_workspace(workspace_id)
@@ -497,5 +523,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Error during recording: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

@@ -1,11 +1,11 @@
 """Tests for delete_agent MCP tool (Layer 1 - Tool Layer)."""
 
-import pytest
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.tools.delete_agent import delete_agent
-from fleet_mcp_clean.models import DeleteAgentResponse
+import pytest
 from fleet_mcp_clean.clients.exceptions import NotFoundError
+from fleet_mcp_clean.models import DeleteAgentResponse
+from fleet_mcp_clean.tools.delete_agent import delete_agent
 
 
 @pytest.fixture
@@ -55,9 +55,7 @@ class TestDeleteAgent:
         with pytest.raises(NotFoundError, match="not found"):
             await delete_agent(mock_agent_service, agent_name="nonexistent")
 
-    async def test_delete_agent_message_includes_agent_name(
-        self, mock_agent_service
-    ):
+    async def test_delete_agent_message_includes_agent_name(self, mock_agent_service):
         """Test that success message includes the agent name (T109)."""
         # Arrange
         mock_agent_service.delete_agent.return_value = None

@@ -1,11 +1,11 @@
 """Tests for cancel_agent_task MCP tool (Layer 1 - Tool Layer)."""
 
-import pytest
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.tools.cancel_task import cancel_agent_task
-from fleet_mcp_clean.models import CancelTaskResponse
+import pytest
 from fleet_mcp_clean.clients.exceptions import NotFoundError
+from fleet_mcp_clean.models import CancelTaskResponse
+from fleet_mcp_clean.tools.cancel_task import cancel_agent_task
 
 
 @pytest.fixture
@@ -33,9 +33,7 @@ class TestCancelAgentTask:
         assert result.agent_name == "busy-agent"
         assert result.message == "Task canceled for agent 'busy-agent' successfully"
 
-    async def test_cancel_agent_task_delegates_to_service(
-        self, mock_task_service
-    ):
+    async def test_cancel_agent_task_delegates_to_service(self, mock_task_service):
         """Test that cancel_agent_task correctly delegates to TaskService (T153)."""
         # Arrange
         mock_task_service.cancel_task.return_value = None
@@ -100,9 +98,7 @@ class TestCancelAgentTask:
         assert "canceled" in result.message.lower()
         assert "successfully" in result.message.lower()
 
-    async def test_cancel_agent_task_sends_interrupt_signal(
-        self, mock_task_service
-    ):
+    async def test_cancel_agent_task_sends_interrupt_signal(self, mock_task_service):
         """Test cancel_agent_task triggers interrupt signal sending (T153)."""
         # Arrange
         mock_task_service.cancel_task.return_value = None

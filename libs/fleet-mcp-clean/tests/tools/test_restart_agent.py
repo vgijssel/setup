@@ -1,12 +1,12 @@
 """Tests for restart_agent MCP tool (Layer 1 - Tool Layer)."""
 
-import pytest
-from unittest.mock import AsyncMock
 from datetime import datetime
+from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.tools.restart_agent import restart_agent
-from fleet_mcp_clean.models import Agent, AgentStatus, RestartAgentResponse
+import pytest
 from fleet_mcp_clean.clients.exceptions import NotFoundError
+from fleet_mcp_clean.models import Agent, AgentStatus, RestartAgentResponse
+from fleet_mcp_clean.tools.restart_agent import restart_agent
 
 
 @pytest.fixture
@@ -115,9 +115,7 @@ class TestRestartAgent:
         assert result.agent.status == AgentStatus.STARTING
         assert result.agent.updated_at > result.agent.created_at
 
-    async def test_restart_agent_propagates_service_errors(
-        self, mock_agent_service
-    ):
+    async def test_restart_agent_propagates_service_errors(self, mock_agent_service):
         """Test restart_agent propagates other service errors (T110a)."""
         # Arrange
         mock_agent_service.restart_agent.side_effect = RuntimeError(

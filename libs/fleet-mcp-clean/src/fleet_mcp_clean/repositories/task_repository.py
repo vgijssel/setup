@@ -42,10 +42,13 @@ class TaskRepository:
         # Get agent workspace (case insensitive lookup)
         agents = await self.client.list_workspaces()
         agent_name_lower = agent_name.lower()
-        workspace = next((w for w in agents if w["name"].lower() == agent_name_lower), None)
+        workspace = next(
+            (w for w in agents if w["name"].lower() == agent_name_lower), None
+        )
 
         if not workspace:
             from ..clients.exceptions import NotFoundError
+
             raise NotFoundError(f"Agent '{agent_name}' not found")
 
         workspace_id = workspace["id"]
@@ -73,10 +76,13 @@ class TaskRepository:
         # Get agent workspace (case insensitive lookup)
         agents = await self.client.list_workspaces()
         agent_name_lower = agent_name.lower()
-        workspace = next((w for w in agents if w["name"].lower() == agent_name_lower), None)
+        workspace = next(
+            (w for w in agents if w["name"].lower() == agent_name_lower), None
+        )
 
         if not workspace:
             from ..clients.exceptions import NotFoundError
+
             raise NotFoundError(f"Agent '{agent_name}' not found")
 
         workspace_id = workspace["id"]
@@ -91,6 +97,7 @@ class TaskRepository:
 
         if not ccw_app:
             from ..clients.exceptions import NotFoundError
+
             raise NotFoundError(
                 f"Claude Code app not found for agent '{agent_name}'. "
                 "The workspace must have a 'ccw' app to cancel tasks."
@@ -124,10 +131,13 @@ class TaskRepository:
         # Get agent workspace (case insensitive lookup)
         agents = await self.client.list_workspaces()
         agent_name_lower = agent_name.lower()
-        workspace = next((w for w in agents if w["name"].lower() == agent_name_lower), None)
+        workspace = next(
+            (w for w in agents if w["name"].lower() == agent_name_lower), None
+        )
 
         if not workspace:
             from ..clients.exceptions import NotFoundError
+
             raise NotFoundError(f"Agent '{agent_name}' not found")
 
         # Get full workspace details
@@ -144,7 +154,10 @@ class TaskRepository:
                 apps = agent.get("apps", [])
                 for app in apps:
                     # Find Claude Code app by slug or display name
-                    if app.get("slug") == "ccw" or app.get("display_name") == "Claude Code":
+                    if (
+                        app.get("slug") == "ccw"
+                        or app.get("display_name") == "Claude Code"
+                    ):
                         statuses = app.get("statuses", [])
                         tasks.extend(statuses)
                         break  # Found Claude Code app, stop searching
@@ -170,10 +183,13 @@ class TaskRepository:
         # Get agent workspace (case insensitive lookup)
         agents = await self.client.list_workspaces()
         agent_name_lower = agent_name.lower()
-        workspace = next((w for w in agents if w["name"].lower() == agent_name_lower), None)
+        workspace = next(
+            (w for w in agents if w["name"].lower() == agent_name_lower), None
+        )
 
         if not workspace:
             from ..clients.exceptions import NotFoundError
+
             raise NotFoundError(f"Agent '{agent_name}' not found")
 
         workspace_id = workspace["id"]

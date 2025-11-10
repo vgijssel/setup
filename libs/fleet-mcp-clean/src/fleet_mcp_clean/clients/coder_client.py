@@ -252,7 +252,7 @@ class CoderClient:
 
         terminal_states = {"stopped", "failed", "canceled"}
 
-        for attempt in range(max_attempts):
+        for _attempt in range(max_attempts):
             try:
                 response = await self.client.get(
                     f"{self.base_url}/api/v2/workspacebuilds/{build_id}"
@@ -378,9 +378,7 @@ class CoderClient:
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e
 
-    async def get_template_parameters(
-        self, template_id: str
-    ) -> list[dict[str, Any]]:
+    async def get_template_parameters(self, template_id: str) -> list[dict[str, Any]]:
         """Get rich parameters for a template's active version.
 
         Args:
@@ -398,9 +396,7 @@ class CoderClient:
             active_version_id = template.get("active_version_id")
 
             if not active_version_id:
-                raise NotFoundError(
-                    f"Template {template_id} has no active version"
-                )
+                raise NotFoundError(f"Template {template_id} has no active version")
 
             response = await self.client.get(
                 f"{self.base_url}/api/v2/templateversions/{active_version_id}/rich-parameters"
@@ -434,9 +430,7 @@ class CoderClient:
             active_version_id = template.get("active_version_id")
 
             if not active_version_id:
-                raise NotFoundError(
-                    f"Template {template_id} has no active version"
-                )
+                raise NotFoundError(f"Template {template_id} has no active version")
 
             response = await self.client.get(
                 f"{self.base_url}/api/v2/templateversions/{active_version_id}/presets"
@@ -518,9 +512,7 @@ class CoderClient:
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e
 
-    async def send_interrupt(
-        self, agent_api_url: str
-    ) -> dict[str, Any]:
+    async def send_interrupt(self, agent_api_url: str) -> dict[str, Any]:
         """Send interrupt signal to workspace via AgentAPI.
 
         Sends an escape sequence (\u001b) to the AgentAPI /message endpoint

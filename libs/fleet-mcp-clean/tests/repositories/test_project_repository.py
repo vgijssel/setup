@@ -9,11 +9,11 @@ Test Coverage:
 - T046: Filters templates without ai_prompt/system_prompt
 """
 
-import pytest
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.repositories.project_repository import ProjectRepository
+import pytest
 from fleet_mcp_clean.models.project import Project, Role
+from fleet_mcp_clean.repositories.project_repository import ProjectRepository
 
 
 @pytest.fixture
@@ -47,20 +47,20 @@ class TestProjectRepositoryListAll:
                 "id": "tpl-1",
                 "name": "coder-devcontainer",
                 "display_name": "Setup",
-                "active_version_id": "ver-1"
+                "active_version_id": "ver-1",
             },
             {
                 "id": "tpl-2",
                 "name": "coder-dataone",
                 "display_name": "DataOne",
-                "active_version_id": "ver-2"
+                "active_version_id": "ver-2",
             },
             {
                 "id": "tpl-3",
                 "name": "invalid-template",
                 "display_name": "",  # No display_name - should be filtered
-                "active_version_id": "ver-3"
-            }
+                "active_version_id": "ver-3",
+            },
         ]
 
         # Mock template parameters
@@ -72,14 +72,14 @@ class TestProjectRepositoryListAll:
                 # Valid - has both ai_prompt and system_prompt
                 return [
                     {"name": "ai_prompt", "type": "string"},
-                    {"name": "system_prompt", "type": "string"}
+                    {"name": "system_prompt", "type": "string"},
                 ]
             elif template_id == "tpl-2":
                 # Valid - has both required parameters
                 return [
                     {"name": "ai_prompt", "type": "string"},
                     {"name": "system_prompt", "type": "string"},
-                    {"name": "other_param", "type": "string"}
+                    {"name": "other_param", "type": "string"},
                 ]
             else:
                 # Invalid - missing required parameters
@@ -114,20 +114,20 @@ class TestProjectRepositoryListAll:
                 "id": "tpl-1",
                 "name": "with-display",
                 "display_name": "Valid Project",
-                "active_version_id": "ver-1"
+                "active_version_id": "ver-1",
             },
             {
                 "id": "tpl-2",
                 "name": "without-display",
                 "display_name": "",  # Empty display_name
-                "active_version_id": "ver-2"
-            }
+                "active_version_id": "ver-2",
+            },
         ]
 
         mock_coder_client.list_templates.return_value = mock_templates
         mock_coder_client.get_template_parameters.return_value = [
             {"name": "ai_prompt", "type": "string"},
-            {"name": "system_prompt", "type": "string"}
+            {"name": "system_prompt", "type": "string"},
         ]
 
         # Act
@@ -153,32 +153,36 @@ class TestProjectRepositoryListAll:
                 "id": "tpl-1",
                 "name": "template-1",
                 "display_name": "Has Both",
-                "active_version_id": "ver-1"
+                "active_version_id": "ver-1",
             },
             {
                 "id": "tpl-2",
                 "name": "template-2",
                 "display_name": "Missing System Prompt",
-                "active_version_id": "ver-2"
+                "active_version_id": "ver-2",
             },
             {
                 "id": "tpl-3",
                 "name": "template-3",
                 "display_name": "Missing AI Prompt",
-                "active_version_id": "ver-3"
-            }
+                "active_version_id": "ver-3",
+            },
         ]
 
         async def get_params_side_effect(template_id):
             if template_id == "tpl-1":
                 return [
                     {"name": "ai_prompt", "type": "string"},
-                    {"name": "system_prompt", "type": "string"}
+                    {"name": "system_prompt", "type": "string"},
                 ]
             elif template_id == "tpl-2":
-                return [{"name": "ai_prompt", "type": "string"}]  # Missing system_prompt
+                return [
+                    {"name": "ai_prompt", "type": "string"}
+                ]  # Missing system_prompt
             else:
-                return [{"name": "system_prompt", "type": "string"}]  # Missing ai_prompt
+                return [
+                    {"name": "system_prompt", "type": "string"}
+                ]  # Missing ai_prompt
 
         mock_coder_client.list_templates.return_value = mock_templates
         mock_coder_client.get_template_parameters.side_effect = get_params_side_effect
@@ -213,28 +217,20 @@ class TestProjectRepositoryListRoles:
                 "id": "tpl-1",
                 "name": "coder-devcontainer",
                 "display_name": "Setup",
-                "active_version_id": "ver-1"
+                "active_version_id": "ver-1",
             }
         ]
 
         # Mock workspace presets (roles)
         mock_presets = [
-            {
-                "id": "preset-1",
-                "name": "Coder",
-                "template_version_id": "ver-1"
-            },
-            {
-                "id": "preset-2",
-                "name": "Operator",
-                "template_version_id": "ver-1"
-            }
+            {"id": "preset-1", "name": "Coder", "template_version_id": "ver-1"},
+            {"id": "preset-2", "name": "Operator", "template_version_id": "ver-1"},
         ]
 
         mock_coder_client.list_templates.return_value = mock_templates
         mock_coder_client.get_template_parameters.return_value = [
             {"name": "ai_prompt", "type": "string"},
-            {"name": "system_prompt", "type": "string"}
+            {"name": "system_prompt", "type": "string"},
         ]
         mock_coder_client.list_workspace_presets.return_value = mock_presets
 
@@ -269,7 +265,7 @@ class TestProjectRepositoryListRoles:
                 "id": "tpl-1",
                 "name": "coder-devcontainer",
                 "display_name": "Setup",
-                "active_version_id": "ver-1"
+                "active_version_id": "ver-1",
             }
         ]
         mock_presets = [
@@ -306,7 +302,7 @@ class TestProjectRepositoryListRoles:
                 "id": "tpl-1",
                 "name": "coder-devcontainer",
                 "display_name": "Setup",
-                "active_version_id": "ver-1"
+                "active_version_id": "ver-1",
             }
         ]
         mock_presets = [
@@ -341,14 +337,14 @@ class TestProjectRepositoryListRoles:
                 "id": "tpl-1",
                 "name": "other-template",
                 "display_name": "Other Project",
-                "active_version_id": "ver-1"
+                "active_version_id": "ver-1",
             }
         ]
 
         mock_coder_client.list_templates.return_value = mock_templates
         mock_coder_client.get_template_parameters.return_value = [
             {"name": "ai_prompt", "type": "string"},
-            {"name": "system_prompt", "type": "string"}
+            {"name": "system_prompt", "type": "string"},
         ]
 
         # Act & Assert

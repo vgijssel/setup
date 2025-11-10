@@ -12,12 +12,12 @@ Test Coverage:
 - T052: get_project_by_name() returns None when not found
 """
 
-import pytest
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.services.project_service import ProjectService
+import pytest
+from fleet_mcp_clean.models.errors import ValidationError
 from fleet_mcp_clean.models.project import Project, Role
-from fleet_mcp_clean.models.errors import ValidationError, CoderAPIError
+from fleet_mcp_clean.services.project_service import ProjectService
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ class TestProjectServiceListProjects:
         # Arrange
         mock_projects = [
             Project(id="proj-1", name="Setup", description="Dev setup"),
-            Project(id="proj-2", name="DataOne", description="Data project")
+            Project(id="proj-2", name="DataOne", description="Data project"),
         ]
         mock_project_repo.list_all.return_value = mock_projects
 
@@ -76,8 +76,20 @@ class TestProjectServiceListRoles:
         # Arrange
         project_name = "Setup"
         mock_roles = [
-            Role(id="role-1", name="Coder", project_id="proj-1", project_name="Setup", default=True),
-            Role(id="role-2", name="Operator", project_id="proj-1", project_name="Setup", default=False)
+            Role(
+                id="role-1",
+                name="Coder",
+                project_id="proj-1",
+                project_name="Setup",
+                default=True,
+            ),
+            Role(
+                id="role-2",
+                name="Operator",
+                project_id="proj-1",
+                project_name="Setup",
+                default=False,
+            ),
         ]
         mock_project_repo.list_roles.return_value = mock_roles
 
@@ -129,7 +141,7 @@ class TestProjectServiceGetProjectByName:
         # Arrange
         mock_projects = [
             Project(id="proj-1", name="Setup", description="Dev setup"),
-            Project(id="proj-2", name="DataOne", description="Data project")
+            Project(id="proj-2", name="DataOne", description="Data project"),
         ]
         mock_project_repo.list_all.return_value = mock_projects
 

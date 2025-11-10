@@ -13,20 +13,16 @@ Test Coverage:
 """
 
 import pytest
-import respx
-from httpx import Response
-
 from fleet_mcp_clean.clients.coder_client import CoderClient
 from fleet_mcp_clean.clients.exceptions import NotFoundError
+from httpx import Response
 
 
 class TestCoderClientListWorkspaces:
     """Test suite for CoderClient.list_workspaces() - T035"""
 
     @pytest.mark.asyncio
-    async def test_list_workspaces_success(
-        self, mock_list_workspaces_success
-    ):
+    async def test_list_workspaces_success(self, mock_list_workspaces_success):
         """Test successful workspace listing returns workspace data.
 
         Arrange: Create CoderClient with mocked HTTP response
@@ -34,10 +30,7 @@ class TestCoderClientListWorkspaces:
         Assert: Returns list of workspaces with correct structure
         """
         # Arrange
-        client = CoderClient(
-            base_url="https://test.coder.com",
-            token="test-token"
-        )
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
 
         # Act
         result = await client.list_workspaces()
@@ -58,9 +51,7 @@ class TestCoderClientGetWorkspace:
     """Test suite for CoderClient.get_workspace() - T036"""
 
     @pytest.mark.asyncio
-    async def test_get_workspace_success(
-        self, mock_get_workspace_success
-    ):
+    async def test_get_workspace_success(self, mock_get_workspace_success):
         """Test successful workspace retrieval returns detailed data.
 
         Arrange: Create CoderClient with mocked workspace response
@@ -68,10 +59,7 @@ class TestCoderClientGetWorkspace:
         Assert: Returns workspace details including build information
         """
         # Arrange
-        client = CoderClient(
-            base_url="https://test.coder.com",
-            token="test-token"
-        )
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
         workspace_id = "5d9aa1c3-c2a1-4205-875e-978ba2189bbf"
 
         # Act
@@ -89,9 +77,7 @@ class TestCoderClientListTemplates:
     """Test suite for CoderClient.list_templates() - T037"""
 
     @pytest.mark.asyncio
-    async def test_list_templates_success(
-        self, mock_list_templates_success
-    ):
+    async def test_list_templates_success(self, mock_list_templates_success):
         """Test successful template listing returns template data.
 
         Arrange: Create CoderClient with mocked template response
@@ -99,10 +85,7 @@ class TestCoderClientListTemplates:
         Assert: Returns list of templates with display_name field
         """
         # Arrange
-        client = CoderClient(
-            base_url="https://test.coder.com",
-            token="test-token"
-        )
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
 
         # Act
         result = await client.list_templates()
@@ -133,10 +116,7 @@ class TestCoderClientGetTemplateParameters:
         Assert: Returns list of rich parameters
         """
         # Arrange
-        client = CoderClient(
-            base_url="https://test.coder.com",
-            token="test-token"
-        )
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
         template_id = "cc29db59-0483-4520-869e-777e9a05bf65"
 
         # Act
@@ -166,10 +146,7 @@ class TestCoderClientListWorkspacePresets:
         Assert: Returns list of workspace presets (roles)
         """
         # Arrange
-        client = CoderClient(
-            base_url="https://test.coder.com",
-            token="test-token"
-        )
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
         template_id = "cc29db59-0483-4520-869e-777e9a05bf65"
 
         # Act
@@ -207,11 +184,11 @@ class TestCoderClientRestartWorkspace:
         # Mock stop workspace call (POST with transition=stop)
         respx_mock.post(
             f"https://test.coder.com/api/v2/workspaces/{workspace_id}/builds",
-            json={"transition": "stop"}
+            json={"transition": "stop"},
         ).mock(
             return_value=Response(
                 200,
-                json={"id": stop_build_id, "status": "stopping", "transition": "stop"}
+                json={"id": stop_build_id, "status": "stopping", "transition": "stop"},
             )
         )
 
@@ -219,27 +196,25 @@ class TestCoderClientRestartWorkspace:
         respx_mock.get(
             f"https://test.coder.com/api/v2/workspacebuilds/{stop_build_id}"
         ).mock(
-            return_value=Response(
-                200,
-                json={"id": stop_build_id, "status": "stopped"}
-            )
+            return_value=Response(200, json={"id": stop_build_id, "status": "stopped"})
         )
 
         # Mock start workspace call (POST with transition=start)
         respx_mock.post(
             f"https://test.coder.com/api/v2/workspaces/{workspace_id}/builds",
-            json={"transition": "start"}
+            json={"transition": "start"},
         ).mock(
             return_value=Response(
                 200,
-                json={"id": start_build_id, "status": "starting", "transition": "start"}
+                json={
+                    "id": start_build_id,
+                    "status": "starting",
+                    "transition": "start",
+                },
             )
         )
 
-        client = CoderClient(
-            base_url="https://test.coder.com",
-            token="test-token"
-        )
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
 
         # Act
         result = await client.restart_workspace(workspace_id)
@@ -253,7 +228,9 @@ class TestCoderClientRestartWorkspace:
         # 1. Stop was requested
         # 2. Build status was checked
         # 3. Start was requested only after stop completed
-        assert len(respx_mock.calls) >= 3, "Should have made at least 3 API calls (stop, status check, start)"
+        assert (
+            len(respx_mock.calls) >= 3
+        ), "Should have made at least 3 API calls (stop, status check, start)"
 
 
 class TestCoderClientErrorHandling:
@@ -269,19 +246,14 @@ class TestCoderClientErrorHandling:
         """
         # Arrange
         import json
-        respx_mock.get(
-            url__regex=r".*/api/v2/workspaces/[a-f0-9-]+$"
-        ).mock(
+
+        respx_mock.get(url__regex=r".*/api/v2/workspaces/[a-f0-9-]+$").mock(
             return_value=Response(
-                404,
-                text=json.dumps({"message": "Workspace not found"})
+                404, text=json.dumps({"message": "Workspace not found"})
             )
         )
 
-        client = CoderClient(
-            base_url="https://test.coder.com",
-            token="test-token"
-        )
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
         workspace_id = "00000000-0000-0000-0000-000000000000"
 
         # Act & Assert

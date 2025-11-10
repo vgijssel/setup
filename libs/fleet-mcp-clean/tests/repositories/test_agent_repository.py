@@ -1,13 +1,11 @@
 """Tests for AgentRepository (Layer 3 - Repository Layer)."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime
+from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.repositories import AgentRepository
+import pytest
 from fleet_mcp_clean.models import Agent, AgentStatus
-from fleet_mcp_clean.models.errors import CoderAPIError
-from fleet_mcp_clean.clients import NotFoundError
+from fleet_mcp_clean.models.errors import AgentNotFoundError, CoderAPIError
+from fleet_mcp_clean.repositories import AgentRepository
 
 
 @pytest.fixture
@@ -164,7 +162,9 @@ class TestAgentRepositoryListAll:
         # Verify - should handle None latest_build gracefully
         assert len(agents) == 1
         assert agents[0].name == "agent-1"
-        assert agents[0].status == AgentStatus.FAILED  # Should default to FAILED when status unknown
+        assert (
+            agents[0].status == AgentStatus.FAILED
+        )  # Should default to FAILED when status unknown
         mock_coder_client.list_workspaces.assert_called_once_with(owner="me")
 
 
@@ -200,7 +200,7 @@ class TestAgentRepositoryGetByName:
         # Mock list_workspaces to return empty list
         mock_coder_client.list_workspaces.return_value = []
 
-        with pytest.raises(Exception):  # AgentNotFoundError
+        with pytest.raises(AgentNotFoundError):
             await agent_repo.get_by_name("nonexistent")
 
     async def test_get_by_name_with_none_workspace(self, agent_repo, mock_coder_client):
@@ -233,7 +233,9 @@ class TestAgentRepositoryGetByName:
         assert agent.name == "test-agent"
         assert agent.workspace_id == "ws-1"
 
-    async def test_get_by_name_case_insensitive_uppercase(self, agent_repo, mock_coder_client):
+    async def test_get_by_name_case_insensitive_uppercase(
+        self, agent_repo, mock_coder_client
+    ):
         """Test getting agent by name with case insensitive lookup - uppercase.
 
         When an agent is created with name "WorkspaceStates", it should be
@@ -261,7 +263,9 @@ class TestAgentRepositoryGetByName:
         assert agent.name == "WorkspaceStates"
         assert agent.workspace_id == "ws-1"
 
-    async def test_get_by_name_case_insensitive_lowercase(self, agent_repo, mock_coder_client):
+    async def test_get_by_name_case_insensitive_lowercase(
+        self, agent_repo, mock_coder_client
+    ):
         """Test getting agent by name with case insensitive lookup - lowercase.
 
         When an agent is created with name "WorkspaceStates", it should be
@@ -289,7 +293,9 @@ class TestAgentRepositoryGetByName:
         assert agent.name == "WorkspaceStates"
         assert agent.workspace_id == "ws-1"
 
-    async def test_get_by_name_case_insensitive_mixed(self, agent_repo, mock_coder_client):
+    async def test_get_by_name_case_insensitive_mixed(
+        self, agent_repo, mock_coder_client
+    ):
         """Test getting agent by name with case insensitive lookup - mixed case.
 
         When an agent is created with name "WorkspaceStates", it should be
@@ -352,7 +358,9 @@ class TestAgentRepositoryCreate:
         # See: https://coder.com/docs/ai-coder/tasks#option-2-create-or-duplicate-your-own-template
         call_args = mock_coder_client.create_workspace.call_args
         rich_params = call_args.kwargs["rich_parameter_values"]
-        assert len(rich_params) == 1, f"Expected exactly 1 rich parameter, got {len(rich_params)}"
+        assert (
+            len(rich_params) == 1
+        ), f"Expected exactly 1 rich parameter, got {len(rich_params)}"
         assert rich_params[0]["name"] == "AI Prompt", (
             f"Expected rich parameter name to be 'AI Prompt' (per Coder AI docs), "
             f"but got: {rich_params[0]['name']}"
@@ -393,7 +401,7 @@ class TestAgentRepositoryDelete:
         # Mock list_workspaces to return empty list
         mock_coder_client.list_workspaces.return_value = []
 
-        with pytest.raises(Exception):  # AgentNotFoundError
+        with pytest.raises(AgentNotFoundError):
             await agent_repo.delete("nonexistent")
 
 
@@ -471,21 +479,21 @@ class TestAgentRepositoryLastTaskPopulation:
                                             {
                                                 "created_at": "2025-11-07T10:15:00Z",
                                                 "message": "First task completed",
-                                                "state": "complete"
+                                                "state": "complete",
                                             },
                                             {
                                                 "created_at": "2025-11-07T10:25:00Z",
                                                 "message": "Second task in progress",
-                                                "state": "working"
-                                            }
-                                        ]
+                                                "state": "working",
+                                            },
+                                        ],
                                     }
                                 ]
                             }
                         ]
                     }
-                ]
-            }
+                ],
+            },
         }
         mock_coder_client.list_workspaces.return_value = [mock_workspace]
 
@@ -512,10 +520,7 @@ class TestAgentRepositoryLastTaskPopulation:
             "template_id": "tpl-1",
             "created_at": "2025-11-07T10:00:00Z",
             "updated_at": "2025-11-07T10:30:00Z",
-            "latest_build": {
-                "status": "running",
-                "resources": []
-            }
+            "latest_build": {"status": "running", "resources": []},
         }
         mock_coder_client.list_workspaces.return_value = [mock_workspace]
 
@@ -557,21 +562,21 @@ class TestAgentRepositoryLastTaskPopulation:
                                             {
                                                 "created_at": "2025-11-07T10:15:00Z",
                                                 "message": "Old task",
-                                                "state": "complete"
+                                                "state": "complete",
                                             },
                                             {
                                                 "created_at": "2025-11-07T10:25:00Z",
                                                 "message": "Latest task",
-                                                "state": "working"
-                                            }
-                                        ]
+                                                "state": "working",
+                                            },
+                                        ],
                                     }
                                 ]
                             }
                         ]
                     }
-                ]
-            }
+                ],
+            },
         }
         mock_coder_client.list_workspaces.return_value = [mock_workspace]
         mock_coder_client.get_workspace.return_value = mock_workspace
@@ -581,8 +586,7 @@ class TestAgentRepositoryLastTaskPopulation:
 
         # Verify last_task is populated
         assert agent.last_task == "Latest task", (
-            f"Expected last_task to be 'Latest task', "
-            f"but got '{agent.last_task}'"
+            f"Expected last_task to be 'Latest task', " f"but got '{agent.last_task}'"
         )
 
 
@@ -831,7 +835,9 @@ class TestAgentRepositoryStatusMapping:
         assert len(agents) == 1
         assert agents[0].status == AgentStatus.DELETED
 
-    async def test_status_mapping_unknown_defaults_to_failed(self, agent_repo, mock_coder_client):
+    async def test_status_mapping_unknown_defaults_to_failed(
+        self, agent_repo, mock_coder_client
+    ):
         """Test unknown workspace build status defaults to FAILED."""
         mock_workspace = {
             "id": "ws-1",
@@ -1007,9 +1013,7 @@ class TestAgentRepositoryHealthChecking:
                 "status": "running",
                 "has_ai_task": False,
                 "resources": [
-                    {
-                        "agents": []  # Empty agents array - workspace still starting
-                    }
+                    {"agents": []}  # Empty agents array - workspace still starting
                 ],
             },
         }

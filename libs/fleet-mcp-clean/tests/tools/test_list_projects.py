@@ -9,12 +9,12 @@ Test Coverage:
 - T055: list_agent_projects() calculates total_count
 """
 
-import pytest
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.tools.list_projects import list_agent_projects
+import pytest
 from fleet_mcp_clean.models.project import Project
 from fleet_mcp_clean.models.responses import ListProjectsResponse
+from fleet_mcp_clean.tools.list_projects import list_agent_projects
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ class TestListAgentProjects:
         # Arrange
         mock_projects = [
             Project(id="proj-1", name="Setup", description="Dev setup"),
-            Project(id="proj-2", name="DataOne", description="Data project")
+            Project(id="proj-2", name="DataOne", description="Data project"),
         ]
         mock_project_service.list_projects.return_value = mock_projects
 
@@ -52,9 +52,7 @@ class TestListAgentProjects:
         assert result.total_count == 2
 
     @pytest.mark.asyncio
-    async def test_list_agent_projects_delegates_to_service(
-        self, mock_project_service
-    ):
+    async def test_list_agent_projects_delegates_to_service(self, mock_project_service):
         """Test list_agent_projects() calls service.list_projects() - T054.
 
         Arrange: Mock service to return projects

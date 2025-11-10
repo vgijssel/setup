@@ -1,11 +1,11 @@
 """Tests for list_agents MCP tool (Layer 1 - Tool Layer)."""
 
-import pytest
+from datetime import datetime
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.tools.list_agents import list_agents
+import pytest
 from fleet_mcp_clean.models import Agent, AgentStatus, ListAgentsResponse
-from datetime import datetime
+from fleet_mcp_clean.tools.list_agents import list_agents
 
 
 @pytest.fixture
@@ -62,7 +62,9 @@ class TestListAgents:
         assert result.agents[0].name == "agent-1"
         assert result.agents[1].name == "agent-2"
 
-    async def test_list_agents_delegates_to_service(self, mock_agent_service, sample_agents):
+    async def test_list_agents_delegates_to_service(
+        self, mock_agent_service, sample_agents
+    ):
         """Test that list_agents delegates to AgentService."""
         # Arrange
         mock_agent_service.list_agents.return_value = sample_agents
@@ -75,7 +77,9 @@ class TestListAgents:
             status_filter=None, project_filter=None
         )
 
-    async def test_list_agents_with_status_filter(self, mock_agent_service, sample_agents):
+    async def test_list_agents_with_status_filter(
+        self, mock_agent_service, sample_agents
+    ):
         """Test list_agents with status filter parameter."""
         # Arrange
         idle_agents = [a for a in sample_agents if a.status == AgentStatus.IDLE]
@@ -92,7 +96,9 @@ class TestListAgents:
             status_filter=AgentStatus.IDLE, project_filter=None
         )
 
-    async def test_list_agents_with_project_filter(self, mock_agent_service, sample_agents):
+    async def test_list_agents_with_project_filter(
+        self, mock_agent_service, sample_agents
+    ):
         """Test list_agents with project filter parameter."""
         # Arrange
         setup_agents = [a for a in sample_agents if a.project == "Setup"]
@@ -122,7 +128,9 @@ class TestListAgents:
         assert len(result.agents) == 0
         assert result.total_count == 0
 
-    async def test_list_agents_calculates_total_count(self, mock_agent_service, sample_agents):
+    async def test_list_agents_calculates_total_count(
+        self, mock_agent_service, sample_agents
+    ):
         """Test that total_count is accurately calculated."""
         # Arrange
         mock_agent_service.list_agents.return_value = sample_agents
@@ -134,7 +142,9 @@ class TestListAgents:
         assert result.total_count == len(sample_agents)
         assert result.total_count == 2
 
-    async def test_list_agents_excludes_workspace_id(self, mock_agent_service, sample_agents):
+    async def test_list_agents_excludes_workspace_id(
+        self, mock_agent_service, sample_agents
+    ):
         """Test that workspace_id and updated_at are excluded from list view."""
         # Arrange
         mock_agent_service.list_agents.return_value = sample_agents
@@ -149,15 +159,17 @@ class TestListAgents:
         # Verify agents in list don't expose workspace_id or updated_at
         for agent_view in result.agents:
             # Agent view should not have workspace_id or updated_at attributes
-            assert not hasattr(agent_view, 'workspace_id'), \
-                "workspace_id should not be exposed in list view"
-            assert not hasattr(agent_view, 'updated_at'), \
-                "updated_at should not be exposed in list view"
+            assert not hasattr(
+                agent_view, "workspace_id"
+            ), "workspace_id should not be exposed in list view"
+            assert not hasattr(
+                agent_view, "updated_at"
+            ), "updated_at should not be exposed in list view"
 
             # Agent view should have other fields
-            assert hasattr(agent_view, 'name')
-            assert hasattr(agent_view, 'status')
-            assert hasattr(agent_view, 'role')
-            assert hasattr(agent_view, 'project')
-            assert hasattr(agent_view, 'last_task')
-            assert hasattr(agent_view, 'created_at')
+            assert hasattr(agent_view, "name")
+            assert hasattr(agent_view, "status")
+            assert hasattr(agent_view, "role")
+            assert hasattr(agent_view, "project")
+            assert hasattr(agent_view, "last_task")
+            assert hasattr(agent_view, "created_at")

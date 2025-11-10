@@ -1,12 +1,12 @@
 """Tests for show_agent MCP tool (Layer 1 - Tool Layer)."""
 
-import pytest
+from datetime import datetime
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.tools.show_agent import show_agent
+import pytest
 from fleet_mcp_clean.models import Agent, AgentStatus, ShowAgentResponse
 from fleet_mcp_clean.models.errors import AgentNotFoundError
-from datetime import datetime
+from fleet_mcp_clean.tools.show_agent import show_agent
 
 
 @pytest.fixture
@@ -50,7 +50,9 @@ class TestShowAgent:
         assert result.agent.workspace_id == "ws-123"
         assert result.agent.status == AgentStatus.IDLE
 
-    async def test_show_agent_delegates_to_service(self, mock_agent_service, sample_agent):
+    async def test_show_agent_delegates_to_service(
+        self, mock_agent_service, sample_agent
+    ):
         """Test that show_agent delegates to AgentService."""
         # Arrange
         mock_agent_service.get_agent.return_value = sample_agent

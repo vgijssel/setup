@@ -34,4 +34,6 @@ class Role(BaseModel):
     name: str = Field(..., description="Role name from coder_workspace_preset name")
     project_id: str = Field(..., description="Associated project (template) UUID")
     project_name: str = Field(..., description="Associated project name")
-    default: bool = Field(False, description="Whether this is the default role for the project")
+    default: bool = Field(
+        False, description="Whether this is the default role for the project"
+    )

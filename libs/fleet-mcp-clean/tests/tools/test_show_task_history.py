@@ -11,9 +11,9 @@ This test file validates that the show_agent_task_history tool correctly:
 - Handles default and custom pagination parameters
 """
 
-import pytest
 from unittest.mock import AsyncMock
 
+import pytest
 from fleet_mcp_clean.tools.show_task_history import show_agent_task_history
 
 
@@ -121,9 +121,7 @@ class TestShowAgentTaskHistory:
         assert result["has_next_page"] is True  # Page 2 of 5 (50/10)
         assert result["has_previous_page"] is True  # Not on page 1
 
-        mock_task_service.get_task_history.assert_called_once_with(
-            agent_name, 2, 10
-        )
+        mock_task_service.get_task_history.assert_called_once_with(agent_name, 2, 10)
 
     @pytest.mark.asyncio
     async def test_show_agent_task_history_empty_results(self, mock_task_service):

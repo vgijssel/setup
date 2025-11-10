@@ -2,12 +2,9 @@
 
 import pytest
 import vcr
-
 from fleet_mcp_clean.clients import CoderClient
 from fleet_mcp_clean.repositories import AgentRepository, ProjectRepository
 from fleet_mcp_clean.services import AgentService, ProjectService
-from fleet_mcp_clean.models import AgentStatus
-
 
 # VCR instance for recording/replaying HTTP interactions
 vcr_instance = vcr.VCR(
@@ -83,7 +80,7 @@ class TestUserStory2AgentLifecycleVCR:
         client = CoderClient(base_url=coder_base_url, token="test-token")
         agent_repo = AgentRepository(client)
         project_repo = ProjectRepository(client)
-        service = AgentService(agent_repo, project_repo)
+        AgentService(agent_repo, project_repo)
 
         # This will replay the recorded workspace creation
         # Note: In the cassette, the workspace name and template are fixed
@@ -97,7 +94,7 @@ class TestUserStory2AgentLifecycleVCR:
         client = CoderClient(base_url=coder_base_url, token="test-token")
         agent_repo = AgentRepository(client)
         project_repo = ProjectRepository(client)
-        service = AgentService(agent_repo, project_repo)
+        AgentService(agent_repo, project_repo)
 
         # This tests that the delete flow works with recorded interaction
         # await service.delete_agent("test-agent")  # Name must match cassette

@@ -1,10 +1,10 @@
 """Tests for TaskRepository (Layer 3 - Data Access)."""
 
-import pytest
 from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.repositories.task_repository import TaskRepository
+import pytest
 from fleet_mcp_clean.clients.exceptions import NotFoundError
+from fleet_mcp_clean.repositories.task_repository import TaskRepository
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def sample_workspaces():
             "name": "busy-agent",
             "status": "running",
             "owner_name": "bob",
-        }
+        },
     ]
 
 
@@ -49,7 +49,7 @@ def sample_applications():
         },
         {
             "slug": "ccw",  # Claude Code Web app that includes AgentAPI
-        }
+        },
     ]
 
 
@@ -187,6 +187,7 @@ class TestTaskRepositoryCancelTask:
 # User Story 4: Task History and Logs Tests (T178-T182)
 # ============================================================================
 
+
 class TestTaskRepositoryGetTaskHistory:
     """Test suite for TaskRepository.get_task_history() - T178"""
 
@@ -195,40 +196,46 @@ class TestTaskRepositoryGetTaskHistory:
         self, task_repository, mock_coder_client
     ):
         """Test task history extraction from workspace JSON.
-        
+
         Task history is in workspace.latest_build.resources[].agents[].apps[]
         where app.slug == "ccw". The app.statuses[] contains task history.
         """
         # Arrange
         workspace_data = {
             "latest_build": {
-                "resources": [{
-                    "agents": [{
-                        "apps": [
-                            {"slug": "other", "statuses": []},
+                "resources": [
+                    {
+                        "agents": [
                             {
-                                "slug": "ccw",
-                                "statuses": [
+                                "apps": [
+                                    {"slug": "other", "statuses": []},
                                     {
-                                        "message": "Task 1",
-                                        "uri": "file://test.py",
-                                        "needs_user_attention": False,
-                                        "created_at": "2025-11-08T10:00:00Z"
+                                        "slug": "ccw",
+                                        "statuses": [
+                                            {
+                                                "message": "Task 1",
+                                                "uri": "file://test.py",
+                                                "needs_user_attention": False,
+                                                "created_at": "2025-11-08T10:00:00Z",
+                                            },
+                                            {
+                                                "message": "Task 2",
+                                                "uri": "",
+                                                "needs_user_attention": True,
+                                                "created_at": "2025-11-08T11:00:00Z",
+                                            },
+                                        ],
                                     },
-                                    {
-                                        "message": "Task 2", 
-                                        "uri": "",
-                                        "needs_user_attention": True,
-                                        "created_at": "2025-11-08T11:00:00Z"
-                                    }
                                 ]
                             }
                         ]
-                    }]
-                }]
+                    }
+                ]
             }
         }
-        mock_coder_client.list_workspaces.return_value = [{"id": "ws-1", "name": "test-agent"}]
+        mock_coder_client.list_workspaces.return_value = [
+            {"id": "ws-1", "name": "test-agent"}
+        ]
         mock_coder_client.get_workspace.return_value = workspace_data
 
         # Act
@@ -254,7 +261,12 @@ class TestTaskRepositoryGetConversationLogs:
             {"id": "ws-1", "name": "test-agent", "owner_name": "user1"}
         ]
         mock_coder_client.get_task_logs.return_value = [
-            {"id": 0, "content": "log1", "type": "output", "time": "2025-11-08T10:00:00Z"}
+            {
+                "id": 0,
+                "content": "log1",
+                "type": "output",
+                "time": "2025-11-08T10:00:00Z",
+            }
         ]
 
         # Act

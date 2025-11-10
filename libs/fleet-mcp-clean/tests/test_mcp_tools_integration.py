@@ -4,28 +4,32 @@ These tests exercise the full stack (Tool → Service → Repository → Client)
 with only HTTP calls mocked using respx. No internal layers are mocked.
 """
 
-import pytest
-import respx
-from httpx import Response
 import os
 
-# Import all MCP tools
-from fleet_mcp_clean.tools.list_agents import list_agents
-from fleet_mcp_clean.tools.show_agent import show_agent
-from fleet_mcp_clean.tools.create_agent import create_agent
-from fleet_mcp_clean.tools.delete_agent import delete_agent
-from fleet_mcp_clean.tools.restart_agent import restart_agent
-from fleet_mcp_clean.tools.start_task import start_agent_task
-from fleet_mcp_clean.tools.cancel_task import cancel_agent_task
-from fleet_mcp_clean.tools.show_task_history import show_agent_task_history
-from fleet_mcp_clean.tools.show_logs import show_agent_log
-from fleet_mcp_clean.tools.list_projects import list_agent_projects
-from fleet_mcp_clean.tools.list_roles import list_agent_roles
+import pytest
 
 # Import stack components
 from fleet_mcp_clean.clients import CoderClient
-from fleet_mcp_clean.repositories import AgentRepository, ProjectRepository, TaskRepository
+from fleet_mcp_clean.repositories import (
+    AgentRepository,
+    ProjectRepository,
+    TaskRepository,
+)
 from fleet_mcp_clean.services import AgentService, ProjectService, TaskService
+from fleet_mcp_clean.tools.cancel_task import cancel_agent_task
+from fleet_mcp_clean.tools.create_agent import create_agent
+from fleet_mcp_clean.tools.delete_agent import delete_agent
+
+# Import all MCP tools
+from fleet_mcp_clean.tools.list_agents import list_agents
+from fleet_mcp_clean.tools.list_projects import list_agent_projects
+from fleet_mcp_clean.tools.list_roles import list_agent_roles
+from fleet_mcp_clean.tools.restart_agent import restart_agent
+from fleet_mcp_clean.tools.show_agent import show_agent
+from fleet_mcp_clean.tools.show_logs import show_agent_log
+from fleet_mcp_clean.tools.show_task_history import show_agent_task_history
+from fleet_mcp_clean.tools.start_task import start_agent_task
+from httpx import Response
 
 
 @pytest.fixture
@@ -66,16 +70,28 @@ class TestMCPToolsIntegration:
         """Test list_agents tool end-to-end."""
         # Mock HTTP
         respx_mock.get(f"{coder_base_url}/api/v2/workspaces").mock(
-            return_value=Response(200, json=[{
-                "id": "ws-1", "name": "agent-1", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_id": "u-1", "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1", "status": "running", "template_version_id": "v-1",
-                    "template_version_preset_id": "p-1", "created_at": "2025-01-01T00:00:00Z"
-                }
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "ws-1",
+                        "name": "agent-1",
+                        "template_id": "t-1",
+                        "template_name": "coder-devcontainer",
+                        "template_display_name": "Setup",
+                        "owner_id": "u-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z",
+                        "latest_build": {
+                            "id": "b-1",
+                            "status": "running",
+                            "template_version_id": "v-1",
+                            "template_version_preset_id": "p-1",
+                            "created_at": "2025-01-01T00:00:00Z",
+                        },
+                    }
+                ],
+            )
         )
 
         # Call tool
@@ -90,29 +106,51 @@ class TestMCPToolsIntegration:
         """Test show_agent tool end-to-end."""
         # Mock HTTP
         respx_mock.get(f"{coder_base_url}/api/v2/workspaces").mock(
-            return_value=Response(200, json=[{
-                "id": "ws-1", "name": "agent-1", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_id": "u-1", "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1", "status": "running", "template_version_id": "v-1",
-                    "template_version_preset_id": "p-1", "created_at": "2025-01-01T00:00:00Z"
-                }
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "ws-1",
+                        "name": "agent-1",
+                        "template_id": "t-1",
+                        "template_name": "coder-devcontainer",
+                        "template_display_name": "Setup",
+                        "owner_id": "u-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z",
+                        "latest_build": {
+                            "id": "b-1",
+                            "status": "running",
+                            "template_version_id": "v-1",
+                            "template_version_preset_id": "p-1",
+                            "created_at": "2025-01-01T00:00:00Z",
+                        },
+                    }
+                ],
+            )
         )
         respx_mock.get(path__startswith="/api/v2/workspaces/ws-1").mock(
-            return_value=Response(200, json={
-                "id": "ws-1", "name": "agent-1", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_id": "u-1", "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1", "status": "running", "template_version_id": "v-1",
-                    "template_version_preset_id": "p-1", "created_at": "2025-01-01T00:00:00Z",
-                    "resources": []
-                }
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "ws-1",
+                    "name": "agent-1",
+                    "template_id": "t-1",
+                    "template_name": "coder-devcontainer",
+                    "template_display_name": "Setup",
+                    "owner_id": "u-1",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "latest_build": {
+                        "id": "b-1",
+                        "status": "running",
+                        "template_version_id": "v-1",
+                        "template_version_preset_id": "p-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "resources": [],
+                    },
+                },
+            )
         )
 
         # Call tool
@@ -125,26 +163,45 @@ class TestMCPToolsIntegration:
         """Test list_agent_projects tool end-to-end."""
         # Mock list templates
         respx_mock.get(f"{coder_base_url}/api/v2/templates").mock(
-            return_value=Response(200, json=[{
-                "id": "t-1", "name": "coder-devcontainer", "display_name": "Setup",
-                "description": "Test", "active_version_id": "v-1",
-                "created_at": "2025-01-01T00:00:00Z"
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "t-1",
+                        "name": "coder-devcontainer",
+                        "display_name": "Setup",
+                        "description": "Test",
+                        "active_version_id": "v-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                    }
+                ],
+            )
         )
         # Mock get template (to extract active_version_id)
         respx_mock.get(f"{coder_base_url}/api/v2/templates/t-1").mock(
-            return_value=Response(200, json={
-                "id": "t-1", "name": "coder-devcontainer", "display_name": "Setup",
-                "description": "Test", "active_version_id": "v-1",
-                "created_at": "2025-01-01T00:00:00Z"
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "t-1",
+                    "name": "coder-devcontainer",
+                    "display_name": "Setup",
+                    "description": "Test",
+                    "active_version_id": "v-1",
+                    "created_at": "2025-01-01T00:00:00Z",
+                },
+            )
         )
         # Mock get rich parameters
-        respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters").mock(
-            return_value=Response(200, json=[
-                {"name": "ai_prompt", "type": "string", "required": True},
-                {"name": "system_prompt", "type": "string", "required": False}
-            ])
+        respx_mock.get(
+            f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters"
+        ).mock(
+            return_value=Response(
+                200,
+                json=[
+                    {"name": "ai_prompt", "type": "string", "required": True},
+                    {"name": "system_prompt", "type": "string", "required": False},
+                ],
+            )
         )
 
         # Call tool
@@ -158,30 +215,45 @@ class TestMCPToolsIntegration:
         """Test list_agent_roles tool end-to-end."""
         # Mock list templates
         respx_mock.get(f"{coder_base_url}/api/v2/templates").mock(
-            return_value=Response(200, json=[{
-                "id": "t-1", "name": "coder-devcontainer", "display_name": "Setup",
-                "description": "Test", "active_version_id": "v-1",
-                "created_at": "2025-01-01T00:00:00Z"
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "t-1",
+                        "name": "coder-devcontainer",
+                        "display_name": "Setup",
+                        "description": "Test",
+                        "active_version_id": "v-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                    }
+                ],
+            )
         )
         # Mock get template
         respx_mock.get(f"{coder_base_url}/api/v2/templates/t-1").mock(
-            return_value=Response(200, json={
-                "id": "t-1", "name": "coder-devcontainer", "display_name": "Setup",
-                "active_version_id": "v-1"
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "t-1",
+                    "name": "coder-devcontainer",
+                    "display_name": "Setup",
+                    "active_version_id": "v-1",
+                },
+            )
         )
         # Mock get rich parameters
-        respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters").mock(
-            return_value=Response(200, json=[
-                {"name": "ai_prompt", "type": "string", "required": True}
-            ])
+        respx_mock.get(
+            f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters"
+        ).mock(
+            return_value=Response(
+                200, json=[{"name": "ai_prompt", "type": "string", "required": True}]
+            )
         )
         # Mock list workspace presets
         respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/presets").mock(
-            return_value=Response(200, json=[
-                {"id": "p-1", "name": "coder", "description": "Default"}
-            ])
+            return_value=Response(
+                200, json=[{"id": "p-1", "name": "coder", "description": "Default"}]
+            )
         )
 
         # Call tool
@@ -195,24 +267,42 @@ class TestMCPToolsIntegration:
         """Test create_agent tool end-to-end."""
         # Mock list templates
         respx_mock.get(f"{coder_base_url}/api/v2/templates").mock(
-            return_value=Response(200, json=[{
-                "id": "t-1", "name": "coder-devcontainer", "display_name": "Setup",
-                "active_version_id": "v-1", "created_at": "2025-01-01T00:00:00Z"
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "t-1",
+                        "name": "coder-devcontainer",
+                        "display_name": "Setup",
+                        "active_version_id": "v-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                    }
+                ],
+            )
         )
         # Mock get template
         respx_mock.get(f"{coder_base_url}/api/v2/templates/t-1").mock(
-            return_value=Response(200, json={
-                "id": "t-1", "name": "coder-devcontainer", "display_name": "Setup",
-                "active_version_id": "v-1"
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "t-1",
+                    "name": "coder-devcontainer",
+                    "display_name": "Setup",
+                    "active_version_id": "v-1",
+                },
+            )
         )
         # Mock get rich parameters (MUST include both ai_prompt and system_prompt for filtering)
-        respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters").mock(
-            return_value=Response(200, json=[
-                {"name": "ai_prompt", "type": "string", "required": True},
-                {"name": "system_prompt", "type": "string", "required": False}
-            ])
+        respx_mock.get(
+            f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters"
+        ).mock(
+            return_value=Response(
+                200,
+                json=[
+                    {"name": "ai_prompt", "type": "string", "required": True},
+                    {"name": "system_prompt", "type": "string", "required": False},
+                ],
+            )
         )
         # Mock list presets
         respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/presets").mock(
@@ -227,17 +317,29 @@ class TestMCPToolsIntegration:
             return_value=Response(200, json=[{"id": "org-1", "name": "test"}])
         )
         # Mock create workspace
-        respx_mock.post(f"{coder_base_url}/api/v2/organizations/org-1/members/me/workspaces").mock(
-            return_value=Response(201, json={
-                "id": "new-ws", "name": "new-agent", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_id": "u-1", "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1", "status": "starting", "template_version_id": "v-1",
-                    "template_version_preset_id": "p-1", "created_at": "2025-01-01T00:00:00Z"
-                }
-            })
+        respx_mock.post(
+            f"{coder_base_url}/api/v2/organizations/org-1/members/me/workspaces"
+        ).mock(
+            return_value=Response(
+                201,
+                json={
+                    "id": "new-ws",
+                    "name": "new-agent",
+                    "template_id": "t-1",
+                    "template_name": "coder-devcontainer",
+                    "template_display_name": "Setup",
+                    "owner_id": "u-1",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "latest_build": {
+                        "id": "b-1",
+                        "status": "starting",
+                        "template_version_id": "v-1",
+                        "template_version_preset_id": "p-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                    },
+                },
+            )
         )
 
         # Call tool
@@ -246,7 +348,7 @@ class TestMCPToolsIntegration:
             name="new-agent",
             project="Setup",
             task="Test task",
-            role="coder"
+            role="coder",
         )
 
         # Assert
@@ -265,40 +367,54 @@ class TestMCPToolsIntegration:
         """
         # Mock list templates - return a template that is NOT "Setup"
         respx_mock.get(f"{coder_base_url}/api/v2/templates").mock(
-            return_value=Response(200, json=[{
-                "id": "t-1",
-                "name": "other-template",
-                "display_name": "OtherProject",
-                "active_version_id": "v-1",
-                "created_at": "2025-01-01T00:00:00Z"
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "t-1",
+                        "name": "other-template",
+                        "display_name": "OtherProject",
+                        "active_version_id": "v-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                    }
+                ],
+            )
         )
         # Mock get template
         respx_mock.get(f"{coder_base_url}/api/v2/templates/t-1").mock(
-            return_value=Response(200, json={
-                "id": "t-1",
-                "name": "other-template",
-                "display_name": "OtherProject",
-                "active_version_id": "v-1"
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "t-1",
+                    "name": "other-template",
+                    "display_name": "OtherProject",
+                    "active_version_id": "v-1",
+                },
+            )
         )
         # Mock get rich parameters
-        respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters").mock(
-            return_value=Response(200, json=[
-                {"name": "ai_prompt", "type": "string", "required": True},
-                {"name": "system_prompt", "type": "string", "required": False}
-            ])
+        respx_mock.get(
+            f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters"
+        ).mock(
+            return_value=Response(
+                200,
+                json=[
+                    {"name": "ai_prompt", "type": "string", "required": True},
+                    {"name": "system_prompt", "type": "string", "required": False},
+                ],
+            )
         )
 
         # This should raise a ValidationError with proper field and message
         from fleet_mcp_clean.models.errors import ValidationError
+
         with pytest.raises(ValidationError) as exc_info:
             await create_agent(
                 full_stack["agent_service"],
                 name="PapiChulo",
                 project="Setup",  # This project doesn't exist!
                 task="search for typos",
-                role="coder"
+                role="coder",
             )
 
         # Assert: Should get a proper ValidationError, not a TypeError about missing 'message' argument
@@ -321,29 +437,42 @@ class TestMCPToolsIntegration:
         """
         # Mock list templates
         respx_mock.get(f"{coder_base_url}/api/v2/templates").mock(
-            return_value=Response(200, json=[{
-                "id": "t-1",
-                "name": "coder-devcontainer",
-                "display_name": "Setup",
-                "active_version_id": "v-1",
-                "created_at": "2025-01-01T00:00:00Z"
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "t-1",
+                        "name": "coder-devcontainer",
+                        "display_name": "Setup",
+                        "active_version_id": "v-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                    }
+                ],
+            )
         )
         # Mock get template
         respx_mock.get(f"{coder_base_url}/api/v2/templates/t-1").mock(
-            return_value=Response(200, json={
-                "id": "t-1",
-                "name": "coder-devcontainer",
-                "display_name": "Setup",
-                "active_version_id": "v-1"
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "t-1",
+                    "name": "coder-devcontainer",
+                    "display_name": "Setup",
+                    "active_version_id": "v-1",
+                },
+            )
         )
         # Mock get rich parameters
-        respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters").mock(
-            return_value=Response(200, json=[
-                {"name": "ai_prompt", "type": "string", "required": True},
-                {"name": "system_prompt", "type": "string", "required": False}
-            ])
+        respx_mock.get(
+            f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters"
+        ).mock(
+            return_value=Response(
+                200,
+                json=[
+                    {"name": "ai_prompt", "type": "string", "required": True},
+                    {"name": "system_prompt", "type": "string", "required": False},
+                ],
+            )
         )
         # Mock list workspace presets - return roles that DON'T include "coder"
         respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/presets").mock(
@@ -352,13 +481,14 @@ class TestMCPToolsIntegration:
 
         # This should raise a ValidationError with proper field and message
         from fleet_mcp_clean.models.errors import ValidationError
+
         with pytest.raises(ValidationError) as exc_info:
             await create_agent(
                 full_stack["agent_service"],
                 name="PapiChulo",
                 project="Setup",
                 task="search for typos",
-                role="coder"  # This role doesn't exist!
+                role="coder",  # This role doesn't exist!
             )
 
         # Assert: Should get a proper ValidationError, not a TypeError
@@ -373,32 +503,52 @@ class TestMCPToolsIntegration:
         """Test delete_agent tool end-to-end."""
         # Mock list workspaces
         respx_mock.get(f"{coder_base_url}/api/v2/workspaces").mock(
-            return_value=Response(200, json=[{
-                "id": "ws-1", "name": "agent-1", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_id": "u-1", "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {"id": "b-1", "status": "running"}
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "ws-1",
+                        "name": "agent-1",
+                        "template_id": "t-1",
+                        "template_name": "coder-devcontainer",
+                        "template_display_name": "Setup",
+                        "owner_id": "u-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z",
+                        "latest_build": {"id": "b-1", "status": "running"},
+                    }
+                ],
+            )
         )
         # Mock get workspace (called by get_by_name to get full details)
         respx_mock.get(path__startswith="/api/v2/workspaces/ws-1").mock(
-            return_value=Response(200, json={
-                "id": "ws-1", "name": "agent-1", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_id": "u-1", "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1", "status": "running", "resources": []
-                }
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "ws-1",
+                    "name": "agent-1",
+                    "template_id": "t-1",
+                    "template_name": "coder-devcontainer",
+                    "template_display_name": "Setup",
+                    "owner_id": "u-1",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "latest_build": {"id": "b-1", "status": "running", "resources": []},
+                },
+            )
         )
         # Mock delete workspace (POST to create delete build)
         respx_mock.post(f"{coder_base_url}/api/v2/workspaces/ws-1/builds").mock(
-            return_value=Response(201, json={
-                "id": "b-delete", "workspace_id": "ws-1", "status": "pending",
-                "transition": "delete", "created_at": "2025-01-01T00:00:00Z"
-            })
+            return_value=Response(
+                201,
+                json={
+                    "id": "b-delete",
+                    "workspace_id": "ws-1",
+                    "status": "pending",
+                    "transition": "delete",
+                    "created_at": "2025-01-01T00:00:00Z",
+                },
+            )
         )
 
         # Call tool
@@ -411,51 +561,75 @@ class TestMCPToolsIntegration:
         """Test restart_agent tool end-to-end."""
         # Mock list workspaces
         respx_mock.get(f"{coder_base_url}/api/v2/workspaces").mock(
-            return_value=Response(200, json=[{
-                "id": "ws-1", "name": "agent-1", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_id": "u-1", "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {"id": "b-1", "status": "running"}
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "ws-1",
+                        "name": "agent-1",
+                        "template_id": "t-1",
+                        "template_name": "coder-devcontainer",
+                        "template_display_name": "Setup",
+                        "owner_id": "u-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z",
+                        "latest_build": {"id": "b-1", "status": "running"},
+                    }
+                ],
+            )
         )
         # Mock get workspace
         respx_mock.get(path__startswith="/api/v2/workspaces/ws-1").mock(
-            return_value=Response(200, json={
-                "id": "ws-1", "name": "agent-1", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_id": "u-1", "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1", "status": "running", "resources": []
-                }
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "ws-1",
+                    "name": "agent-1",
+                    "template_id": "t-1",
+                    "template_name": "coder-devcontainer",
+                    "template_display_name": "Setup",
+                    "owner_id": "u-1",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "latest_build": {"id": "b-1", "status": "running", "resources": []},
+                },
+            )
         )
         # Mock stop workspace (first call with transition=stop)
         respx_mock.post(
             f"{coder_base_url}/api/v2/workspaces/ws-1/builds",
-            json={"transition": "stop"}
+            json={"transition": "stop"},
         ).mock(
-            return_value=Response(201, json={
-                "id": "b-stop", "workspace_id": "ws-1", "status": "stopping",
-                "transition": "stop", "created_at": "2025-01-01T00:00:00Z"
-            })
+            return_value=Response(
+                201,
+                json={
+                    "id": "b-stop",
+                    "workspace_id": "ws-1",
+                    "status": "stopping",
+                    "transition": "stop",
+                    "created_at": "2025-01-01T00:00:00Z",
+                },
+            )
         )
         # Mock build status polling (returns stopped status)
         respx_mock.get(f"{coder_base_url}/api/v2/workspacebuilds/b-stop").mock(
-            return_value=Response(200, json={
-                "id": "b-stop", "status": "stopped"
-            })
+            return_value=Response(200, json={"id": "b-stop", "status": "stopped"})
         )
         # Mock start workspace (second call with transition=start)
         respx_mock.post(
             f"{coder_base_url}/api/v2/workspaces/ws-1/builds",
-            json={"transition": "start"}
+            json={"transition": "start"},
         ).mock(
-            return_value=Response(201, json={
-                "id": "b-2", "workspace_id": "ws-1", "status": "pending",
-                "transition": "start", "created_at": "2025-01-01T00:00:00Z"
-            })
+            return_value=Response(
+                201,
+                json={
+                    "id": "b-2",
+                    "workspace_id": "ws-1",
+                    "status": "pending",
+                    "transition": "start",
+                    "created_at": "2025-01-01T00:00:00Z",
+                },
+            )
         )
 
         # Call tool
@@ -468,64 +642,80 @@ class TestMCPToolsIntegration:
         """Test start_agent_task tool end-to-end."""
         # Mock list workspaces
         respx_mock.get(f"{coder_base_url}/api/v2/workspaces").mock(
-            return_value=Response(200, json=[{
-                "id": "ws-1", "name": "agent-1", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_name": "testuser", "owner_id": "u-1",
-                "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1",
-                    "status": "running",
-                    "has_ai_task": False,
-                    "resources": [
-                        {
-                            "agents": [
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "ws-1",
+                        "name": "agent-1",
+                        "template_id": "t-1",
+                        "template_name": "coder-devcontainer",
+                        "template_display_name": "Setup",
+                        "owner_name": "testuser",
+                        "owner_id": "u-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z",
+                        "latest_build": {
+                            "id": "b-1",
+                            "status": "running",
+                            "has_ai_task": False,
+                            "resources": [
                                 {
-                                    "status": "connected",
-                                    "lifecycle_state": "ready",
+                                    "agents": [
+                                        {
+                                            "status": "connected",
+                                            "lifecycle_state": "ready",
+                                        }
+                                    ]
                                 }
-                            ]
-                        }
-                    ],
-                }
-            }])
+                            ],
+                        },
+                    }
+                ],
+            )
         )
         # Mock get workspace
         respx_mock.get(path__startswith="/api/v2/workspaces/ws-1").mock(
-            return_value=Response(200, json={
-                "id": "ws-1", "name": "agent-1", "template_id": "t-1",
-                "template_name": "coder-devcontainer", "template_display_name": "Setup",
-                "owner_name": "testuser", "owner_id": "u-1",
-                "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1",
-                    "status": "running",
-                    "has_ai_task": False,
-                    "resources": [
-                        {
-                            "agents": [
-                                {
-                                    "status": "connected",
-                                    "lifecycle_state": "ready",
-                                }
-                            ]
-                        }
-                    ],
-                }
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "ws-1",
+                    "name": "agent-1",
+                    "template_id": "t-1",
+                    "template_name": "coder-devcontainer",
+                    "template_display_name": "Setup",
+                    "owner_name": "testuser",
+                    "owner_id": "u-1",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "latest_build": {
+                        "id": "b-1",
+                        "status": "running",
+                        "has_ai_task": False,
+                        "resources": [
+                            {
+                                "agents": [
+                                    {
+                                        "status": "connected",
+                                        "lifecycle_state": "ready",
+                                    }
+                                ]
+                            }
+                        ],
+                    },
+                },
+            )
         )
         # Mock send task input
-        respx_mock.post(f"{coder_base_url}/api/experimental/tasks/testuser/ws-1/send").mock(
-            return_value=Response(200, json={"success": True})
-        )
+        respx_mock.post(
+            f"{coder_base_url}/api/experimental/tasks/testuser/ws-1/send"
+        ).mock(return_value=Response(200, json={"success": True}))
 
         # Call tool
         result = await start_agent_task(
             full_stack["task_service"],
             agent_name="agent-1",
-            task_description="Test task"
+            task_description="Test task",
         )
 
         # Assert
@@ -535,68 +725,99 @@ class TestMCPToolsIntegration:
         """Test cancel_agent_task tool end-to-end."""
         # Mock list workspaces
         respx_mock.get(f"{coder_base_url}/api/v2/workspaces").mock(
-            return_value=Response(200, json=[{
-                "id": "ws-1", "name": "agent-1", "owner_name": "testuser",
-                "template_id": "t-1", "template_name": "coder-devcontainer",
-                "template_display_name": "Setup", "owner_id": "u-1",
-                "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1",
-                    "status": "running",
-                    "has_ai_task": True,
-                    "resources": [{
-                        "agents": [{
-                            "status": "connected",
-                            "lifecycle_state": "ready",
-                            "apps": [{
-                                "slug": "ccw",
-                                "url": "http://localhost:3284"
-                            }]
-                        }]
-                    }]
-                },
-                "latest_app_status": {
-                    "state": "working",
-                    "message": "Agent is busy"
-                }
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "ws-1",
+                        "name": "agent-1",
+                        "owner_name": "testuser",
+                        "template_id": "t-1",
+                        "template_name": "coder-devcontainer",
+                        "template_display_name": "Setup",
+                        "owner_id": "u-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z",
+                        "latest_build": {
+                            "id": "b-1",
+                            "status": "running",
+                            "has_ai_task": True,
+                            "resources": [
+                                {
+                                    "agents": [
+                                        {
+                                            "status": "connected",
+                                            "lifecycle_state": "ready",
+                                            "apps": [
+                                                {
+                                                    "slug": "ccw",
+                                                    "url": "http://localhost:3284",
+                                                }
+                                            ],
+                                        }
+                                    ]
+                                }
+                            ],
+                        },
+                        "latest_app_status": {
+                            "state": "working",
+                            "message": "Agent is busy",
+                        },
+                    }
+                ],
+            )
         )
         # Mock get workspace
         respx_mock.get(path__startswith="/api/v2/workspaces/ws-1").mock(
-            return_value=Response(200, json={
-                "id": "ws-1", "name": "agent-1", "owner_name": "testuser",
-                "template_id": "t-1", "template_name": "coder-devcontainer",
-                "template_display_name": "Setup", "owner_id": "u-1",
-                "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1",
-                    "status": "running",
-                    "has_ai_task": True,
-                    "resources": [{
-                        "agents": [{
-                            "status": "connected",
-                            "lifecycle_state": "ready",
-                            "apps": [{
-                                "slug": "ccw",
-                                "url": "http://localhost:3284"
-                            }]
-                        }]
-                    }]
+            return_value=Response(
+                200,
+                json={
+                    "id": "ws-1",
+                    "name": "agent-1",
+                    "owner_name": "testuser",
+                    "template_id": "t-1",
+                    "template_name": "coder-devcontainer",
+                    "template_display_name": "Setup",
+                    "owner_id": "u-1",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "latest_build": {
+                        "id": "b-1",
+                        "status": "running",
+                        "has_ai_task": True,
+                        "resources": [
+                            {
+                                "agents": [
+                                    {
+                                        "status": "connected",
+                                        "lifecycle_state": "ready",
+                                        "apps": [
+                                            {
+                                                "slug": "ccw",
+                                                "url": "http://localhost:3284",
+                                            }
+                                        ],
+                                    }
+                                ]
+                            }
+                        ],
+                    },
+                    "latest_app_status": {
+                        "state": "working",
+                        "message": "Agent is busy",
+                    },
                 },
-                "latest_app_status": {
-                    "state": "working",
-                    "message": "Agent is busy"
-                }
-            })
+            )
         )
         # Mock send interrupt via AgentAPI
-        respx_mock.post(f"{coder_base_url}/@testuser/agent-1.ws-1/apps/ccw/message").mock(
-            return_value=Response(200, json={})
-        )
+        respx_mock.post(
+            f"{coder_base_url}/@testuser/agent-1.ws-1/apps/ccw/message"
+        ).mock(return_value=Response(200, json={}))
 
         # Call tool
-        result = await cancel_agent_task(full_stack["task_service"], agent_name="agent-1")
+        result = await cancel_agent_task(
+            full_stack["task_service"], agent_name="agent-1"
+        )
 
         # Assert
         assert "canceled" in result.message.lower()
@@ -606,25 +827,34 @@ class TestMCPToolsIntegration:
         """Test show_agent_task_history tool end-to-end."""
         # Mock list workspaces
         respx_mock.get(f"{coder_base_url}/api/v2/workspaces").mock(
-            return_value=Response(200, json=[{
-                "id": "ws-1", "name": "agent-1", "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z", "latest_build": {"status": "running"}
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "ws-1",
+                        "name": "agent-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z",
+                        "latest_build": {"status": "running"},
+                    }
+                ],
+            )
         )
         # Mock get workspace
         respx_mock.get(path__startswith="/api/v2/workspaces/ws-1").mock(
-            return_value=Response(200, json={
-                "id": "ws-1", "name": "agent-1",
-                "latest_build": {"resources": [{"metadata": []}]}
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "ws-1",
+                    "name": "agent-1",
+                    "latest_build": {"resources": [{"metadata": []}]},
+                },
+            )
         )
 
         # Call tool
         result = await show_agent_task_history(
-            full_stack["task_service"],
-            agent_name="agent-1",
-            page=1,
-            page_size=10
+            full_stack["task_service"], agent_name="agent-1", page=1, page_size=10
         )
 
         # Assert - result is a dict, not a Pydantic model
@@ -636,44 +866,63 @@ class TestMCPToolsIntegration:
         """Test show_agent_log tool end-to-end."""
         # Mock list workspaces
         respx_mock.get(f"{coder_base_url}/api/v2/workspaces").mock(
-            return_value=Response(200, json=[{
-                "id": "ws-1", "name": "agent-1", "owner_name": "testuser",
-                "template_id": "t-1", "template_name": "coder-devcontainer",
-                "template_display_name": "Setup", "owner_id": "u-1",
-                "created_at": "2025-01-01T00:00:00Z", "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {"id": "b-1", "status": "running"}
-            }])
+            return_value=Response(
+                200,
+                json=[
+                    {
+                        "id": "ws-1",
+                        "name": "agent-1",
+                        "owner_name": "testuser",
+                        "template_id": "t-1",
+                        "template_name": "coder-devcontainer",
+                        "template_display_name": "Setup",
+                        "owner_id": "u-1",
+                        "created_at": "2025-01-01T00:00:00Z",
+                        "updated_at": "2025-01-01T00:00:00Z",
+                        "latest_build": {"id": "b-1", "status": "running"},
+                    }
+                ],
+            )
         )
         # Mock get workspace
         respx_mock.get(path__startswith="/api/v2/workspaces/ws-1").mock(
-            return_value=Response(200, json={
-                "id": "ws-1", "name": "agent-1", "owner_name": "testuser",
-                "template_id": "t-1", "template_name": "coder-devcontainer",
-                "template_display_name": "Setup", "owner_id": "u-1",
-                "created_at": "2025-01-01T00:00:00Z",
-                "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {
-                    "id": "b-1", "status": "running", "resources": []
-                }
-            })
+            return_value=Response(
+                200,
+                json={
+                    "id": "ws-1",
+                    "name": "agent-1",
+                    "owner_name": "testuser",
+                    "template_id": "t-1",
+                    "template_name": "coder-devcontainer",
+                    "template_display_name": "Setup",
+                    "owner_id": "u-1",
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                    "latest_build": {"id": "b-1", "status": "running", "resources": []},
+                },
+            )
         )
         # Mock get task logs
-        respx_mock.get(f"{coder_base_url}/api/experimental/tasks/testuser/ws-1/logs").mock(
-            return_value=Response(200, json={
-                "logs": [{
-                    "timestamp": "2025-01-01T00:00:00Z",
-                    "message": "Log entry",
-                    "level": "INFO"
-                }]
-            })
+        respx_mock.get(
+            f"{coder_base_url}/api/experimental/tasks/testuser/ws-1/logs"
+        ).mock(
+            return_value=Response(
+                200,
+                json={
+                    "logs": [
+                        {
+                            "timestamp": "2025-01-01T00:00:00Z",
+                            "message": "Log entry",
+                            "level": "INFO",
+                        }
+                    ]
+                },
+            )
         )
 
         # Call tool
         result = await show_agent_log(
-            full_stack["task_service"],
-            agent_name="agent-1",
-            page=1,
-            page_size=1
+            full_stack["task_service"], agent_name="agent-1", page=1, page_size=1
         )
 
         # Assert - result is a dict, not a Pydantic model
@@ -696,7 +945,7 @@ class TestMCPToolsIntegration:
         import fleet_mcp_clean.__main__ as main_module
 
         # Verify the health check route is defined
-        assert hasattr(main_module, 'health_check')
+        assert hasattr(main_module, "health_check")
         assert callable(main_module.health_check)
 
         # The actual endpoint testing would be:

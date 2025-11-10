@@ -11,7 +11,9 @@ async def show_agent_log(
     task_service: TaskService,
     agent_name: Annotated[str, Field(description="Name of the agent")],
     page: Annotated[int, Field(ge=1, description="Page number (1-indexed)")] = 1,
-    page_size: Annotated[int, Field(ge=1, le=100, description="Items per page (max 100)")] = 1,
+    page_size: Annotated[
+        int, Field(ge=1, le=100, description="Items per page (max 100)")
+    ] = 1,
 ) -> dict:
     """Show paginated conversation logs for an agent.
 
@@ -35,7 +37,9 @@ async def show_agent_log(
         AgentNotFoundError: If agent doesn't exist
         ValueError: If pagination parameters are invalid
     """
-    logs, total_count = await task_service.get_conversation_logs(agent_name, page, page_size)
+    logs, total_count = await task_service.get_conversation_logs(
+        agent_name, page, page_size
+    )
 
     # Calculate pagination metadata
     has_next_page = (page * page_size) < total_count

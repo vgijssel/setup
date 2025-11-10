@@ -8,7 +8,6 @@ are re-recorded.
 """
 
 import pytest
-import respx
 from httpx import Response
 
 from .helpers import load_cassette_response
@@ -23,9 +22,7 @@ def mock_list_workspaces_success(respx_mock):
     """
     status_code, body = load_cassette_response("list_workspaces_success")
 
-    route = respx_mock.get(
-        url__regex=r".*/api/v2/workspaces$"
-    ).mock(
+    route = respx_mock.get(url__regex=r".*/api/v2/workspaces$").mock(
         return_value=Response(status_code, json=body)
     )
     return route
@@ -40,9 +37,7 @@ def mock_get_workspace_success(respx_mock):
     """
     status_code, body = load_cassette_response("get_workspace_success")
 
-    route = respx_mock.get(
-        url__regex=r".*/api/v2/workspaces/[a-f0-9-]+$"
-    ).mock(
+    route = respx_mock.get(url__regex=r".*/api/v2/workspaces/[a-f0-9-]+$").mock(
         return_value=Response(status_code, json=body)
     )
     return route
@@ -57,9 +52,7 @@ def mock_get_workspace_applications_success(respx_mock):
     """
     status_code, body = load_cassette_response("get_workspace_applications_success")
 
-    route = respx_mock.get(
-        url__regex=r".*/api/v2/workspaces/[a-f0-9-]+$"
-    ).mock(
+    route = respx_mock.get(url__regex=r".*/api/v2/workspaces/[a-f0-9-]+$").mock(
         return_value=Response(status_code, json=body)
     )
     return route

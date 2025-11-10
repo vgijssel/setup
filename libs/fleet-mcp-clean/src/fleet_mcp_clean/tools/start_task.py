@@ -11,10 +11,19 @@ from ..services import TaskService
 async def start_agent_task(
     task_service: TaskService,
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=20, description="Name of the agent to assign task to")
+        str,
+        Field(
+            min_length=1,
+            max_length=20,
+            description="Name of the agent to assign task to",
+        ),
     ],
     task_description: Annotated[
-        str, Field(min_length=1, description="Task description defining objectives and constraints")
+        str,
+        Field(
+            min_length=1,
+            description="Task description defining objectives and constraints",
+        ),
     ],
 ) -> StartTaskResponse:
     """Start a task on an agent.
@@ -54,5 +63,5 @@ async def start_agent_task(
     return StartTaskResponse(
         agent_name=agent_name,
         task_description=task_description,
-        message=f"Task assigned to agent '{agent_name}' successfully"
+        message=f"Task assigned to agent '{agent_name}' successfully",
     )

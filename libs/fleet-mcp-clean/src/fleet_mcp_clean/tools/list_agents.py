@@ -4,14 +4,15 @@ from typing import Annotated, Optional
 
 from pydantic import Field
 
-from ..models import AgentStatus, AgentListView, ListAgentsResponse
+from ..models import AgentListView, AgentStatus, ListAgentsResponse
 from ..services import AgentService
 
 
 async def list_agents(
     agent_service: AgentService,
     status_filter: Annotated[
-        Optional[AgentStatus], Field(None, description="Optional filter by agent status")
+        Optional[AgentStatus],
+        Field(None, description="Optional filter by agent status"),
     ] = None,
     project_filter: Annotated[
         Optional[str], Field(None, description="Optional filter by project name")

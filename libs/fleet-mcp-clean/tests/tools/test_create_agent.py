@@ -1,12 +1,12 @@
 """Tests for create_agent MCP tool (Layer 1 - Tool Layer)."""
 
-import pytest
-from unittest.mock import AsyncMock
 from datetime import datetime
+from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.tools.create_agent import create_agent
-from fleet_mcp_clean.models import Agent, AgentStatus, CreateAgentResponse
+import pytest
 from fleet_mcp_clean.clients.exceptions import ConflictError
+from fleet_mcp_clean.models import Agent, AgentStatus, CreateAgentResponse
+from fleet_mcp_clean.tools.create_agent import create_agent
 
 
 @pytest.fixture
@@ -73,7 +73,10 @@ class TestCreateAgent:
 
         # Assert
         mock_agent_service.create_agent.assert_called_once_with(
-            name="test-agent", project="Setup", task="Implement new feature X", role="coder"
+            name="test-agent",
+            project="Setup",
+            task="Implement new feature X",
+            role="coder",
         )
 
     async def test_create_agent_with_all_parameters(
@@ -96,7 +99,10 @@ class TestCreateAgent:
         assert result.agent.name == "test-agent"  # From mock
         assert result.message == "Agent 'custom-agent' created successfully"
         mock_agent_service.create_agent.assert_called_once_with(
-            name="custom-agent", project="DataOne", task="Analyze dataset Y", role="analyst"
+            name="custom-agent",
+            project="DataOne",
+            task="Analyze dataset Y",
+            role="analyst",
         )
 
     async def test_create_agent_without_role_queries_default_from_backend(
@@ -107,7 +113,7 @@ class TestCreateAgent:
         mock_agent_service.create_agent.return_value = sample_agent
 
         # Act
-        result = await create_agent(
+        await create_agent(
             mock_agent_service,
             name="test-agent",
             project="Setup",
@@ -138,9 +144,7 @@ class TestCreateAgent:
                 role="coder",
             )
 
-    async def test_create_agent_propagates_service_errors(
-        self, mock_agent_service
-    ):
+    async def test_create_agent_propagates_service_errors(self, mock_agent_service):
         """Test create_agent propagates other service errors (T108)."""
         # Arrange
         mock_agent_service.create_agent.side_effect = ValueError(

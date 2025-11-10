@@ -1,12 +1,12 @@
 """Tests for TaskService (Layer 2 - Business Logic)."""
 
-import pytest
-from unittest.mock import AsyncMock
 from datetime import datetime
+from unittest.mock import AsyncMock
 
-from fleet_mcp_clean.services.task_service import TaskService
-from fleet_mcp_clean.models import Agent, AgentStatus
+import pytest
 from fleet_mcp_clean.clients.exceptions import NotFoundError
+from fleet_mcp_clean.models import Agent, AgentStatus
+from fleet_mcp_clean.services.task_service import TaskService
 
 
 @pytest.fixture

@@ -6,8 +6,8 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from .agent import Agent, AgentStatus
-from .task import TaskHistory, ConversationLog
 from .project import Project, Role
+from .task import ConversationLog, TaskHistory
 
 
 class AgentListView(BaseModel):

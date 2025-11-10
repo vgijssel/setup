@@ -4,7 +4,10 @@
   "private": true,
   "description": "Clean architecture fleet management for Claude Code agents",
   "nx": {
-    "tags": ["type:lib", "scope:infrastructure"],
+    "tags": [
+      "type:lib",
+      "scope:infrastructure"
+    ],
     "targets": {
       "server": {
         "executor": "nx:run-commands",

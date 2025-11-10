@@ -1,8 +1,8 @@
 """Task service for task assignment business logic (Layer 2 - Business Logic)."""
 
-from ..repositories.task_repository import TaskRepository
-from ..repositories.agent_repository import AgentRepository
 from ..models import AgentStatus
+from ..repositories.agent_repository import AgentRepository
+from ..repositories.task_repository import TaskRepository
 
 
 class TaskService:
@@ -17,7 +17,9 @@ class TaskService:
     - Coordinate between repositories
     """
 
-    def __init__(self, task_repository: TaskRepository, agent_repository: AgentRepository):
+    def __init__(
+        self, task_repository: TaskRepository, agent_repository: AgentRepository
+    ):
         """Initialize TaskService.
 
         Args:
@@ -133,9 +135,7 @@ class TaskService:
 
         # Sort by created_at descending (newest first)
         sorted_tasks = sorted(
-            all_tasks,
-            key=lambda t: t.get("created_at", ""),
-            reverse=True
+            all_tasks, key=lambda t: t.get("created_at", ""), reverse=True
         )
 
         # Calculate pagination
@@ -176,9 +176,7 @@ class TaskService:
 
         # Sort by time descending (newest first)
         sorted_logs = sorted(
-            all_logs,
-            key=lambda l: l.get("time", ""),
-            reverse=True
+            all_logs, key=lambda log: log.get("time", ""), reverse=True
         )
 
         # Calculate pagination

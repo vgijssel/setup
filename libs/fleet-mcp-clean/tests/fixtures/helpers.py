@@ -14,7 +14,9 @@ import yaml
 CASSETTE_DIR = Path(__file__).parent.parent / "cassettes"
 
 
-def load_cassette_response(cassette_name: str, interaction_index: int = 0) -> tuple[int, dict | list | str]:
+def load_cassette_response(
+    cassette_name: str, interaction_index: int = 0
+) -> tuple[int, dict | list | str]:
     """Load response data from a VCR cassette file.
 
     Args:
@@ -61,7 +63,9 @@ def load_cassette_response(cassette_name: str, interaction_index: int = 0) -> tu
     return status_code, body
 
 
-def load_cassette_request(cassette_name: str, interaction_index: int = 0) -> dict[str, Any]:
+def load_cassette_request(
+    cassette_name: str, interaction_index: int = 0
+) -> dict[str, Any]:
     """Load request data from a VCR cassette file.
 
     Useful for verifying request parameters in tests.

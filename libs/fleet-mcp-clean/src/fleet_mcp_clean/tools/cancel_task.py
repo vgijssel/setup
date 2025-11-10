@@ -11,7 +11,12 @@ from ..services import TaskService
 async def cancel_agent_task(
     task_service: TaskService,
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=20, description="Name of the agent to cancel task for")
+        str,
+        Field(
+            min_length=1,
+            max_length=20,
+            description="Name of the agent to cancel task for",
+        ),
     ],
 ) -> CancelTaskResponse:
     """Cancel the current task on an agent by sending Ctrl+C interrupt signal.
@@ -47,5 +52,5 @@ async def cancel_agent_task(
 
     return CancelTaskResponse(
         agent_name=agent_name,
-        message=f"Task canceled for agent '{agent_name}' successfully"
+        message=f"Task canceled for agent '{agent_name}' successfully",
     )

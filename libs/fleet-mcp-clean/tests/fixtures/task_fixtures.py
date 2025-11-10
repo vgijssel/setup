@@ -5,8 +5,6 @@ based on recorded VCR cassettes.
 """
 
 import pytest
-import respx
-from httpx import Response
 
 from .helpers import load_cassette_response
 
@@ -57,7 +55,10 @@ def mock_get_task_history_empty(coder_base_url: str) -> dict:
                 for agent in resource["agents"]:
                     if agent.get("apps"):
                         for app in agent["apps"]:
-                            if app.get("slug") == "ccw" or app.get("display_name") == "Claude Code":
+                            if (
+                                app.get("slug") == "ccw"
+                                or app.get("display_name") == "Claude Code"
+                            ):
                                 app["statuses"] = []
                                 break
 

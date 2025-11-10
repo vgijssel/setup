@@ -11,9 +11,9 @@ This test file validates that the show_agent_log tool correctly:
 - Includes pagination metadata
 """
 
-import pytest
 from unittest.mock import AsyncMock
 
+import pytest
 from fleet_mcp_clean.tools.show_logs import show_agent_log
 
 
@@ -91,7 +91,11 @@ class TestShowAgentLog:
         # Arrange
         agent_name = "test-agent"
         mock_logs = [
-            {"timestamp": f"2025-11-09T12:0{i}:00Z", "message": f"Log {i}", "level": "INFO"}
+            {
+                "timestamp": f"2025-11-09T12:0{i}:00Z",
+                "message": f"Log {i}",
+                "level": "INFO",
+            }
             for i in range(10)
         ]
         total_count = 50

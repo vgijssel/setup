@@ -6,8 +6,13 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from fastmcp import FastMCP
-from typing_extensions import Annotated
 from pydantic import Field
+from typing_extensions import Annotated
+
+from .clients import CoderClient
+from .models import AgentStatus
+from .repositories import AgentRepository, ProjectRepository, TaskRepository
+from .services import AgentService, ProjectService, TaskService
 
 # Configure logging
 logging.basicConfig(
@@ -29,18 +34,14 @@ CODER_URL = os.getenv("CODER_URL")
 CODER_SESSION_TOKEN = os.getenv("CODER_SESSION_TOKEN")
 
 if not CODER_URL or not CODER_SESSION_TOKEN:
-    logger.error("Missing required environment variables: CODER_URL and/or CODER_SESSION_TOKEN")
+    logger.error(
+        "Missing required environment variables: CODER_URL and/or CODER_SESSION_TOKEN"
+    )
     raise ValueError(
         "CODER_URL and CODER_SESSION_TOKEN environment variables are required"
     )
 
 logger.info(f"Configured Coder API connection to: {CODER_URL}")
-
-# Initialize clients, repositories, and services
-from .clients import CoderClient
-from .repositories import AgentRepository, ProjectRepository, TaskRepository
-from .services import AgentService, ProjectService, TaskService
-from .models import AgentStatus
 
 # Create singletons for dependency injection
 _coder_client: CoderClient | None = None
@@ -80,9 +81,7 @@ def get_agent_service() -> AgentService:
     """Get or create AgentService singleton."""
     global _agent_service
     if _agent_service is None:
-        _agent_service = AgentService(
-            get_agent_repository(), get_project_repository()
-        )
+        _agent_service = AgentService(get_agent_repository(), get_project_repository())
     return _agent_service
 
 
@@ -118,7 +117,11 @@ def get_task_service() -> TaskService:
 @mcp.tool()
 async def list_agents(
     status_filter: Annotated[
-        Optional[str], Field(None, description="Optional filter by agent status (starting, idle, busy, offline, failed)")
+        Optional[str],
+        Field(
+            None,
+            description="Optional filter by agent status (starting, idle, busy, offline, failed)",
+        ),
     ] = None,
     project_filter: Annotated[
         Optional[str], Field(None, description="Optional filter by project name")
@@ -144,7 +147,8 @@ async def list_agents(
 @mcp.tool()
 async def show_agent(
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=20, description="Name of the agent to retrieve")
+        str,
+        Field(min_length=1, max_length=20, description="Name of the agent to retrieve"),
     ],
 ) -> dict:
     """Show detailed information about a specific agent."""
@@ -181,7 +185,9 @@ async def list_agent_roles(
 
 @mcp.tool()
 async def create_agent(
-    name: Annotated[str, Field(description="Unique short agent name (e.g., Sony, Papi)")],
+    name: Annotated[
+        str, Field(description="Unique short agent name (e.g., Sony, Papi)")
+    ],
     project: Annotated[str, Field(description="Project name (e.g., Setup, DataOne)")],
     task: Annotated[
         str, Field(description="Task description defining objectives and constraints")
@@ -205,7 +211,8 @@ async def create_agent(
 @mcp.tool()
 async def delete_agent(
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=32, description="Name of the agent to delete")
+        str,
+        Field(min_length=1, max_length=32, description="Name of the agent to delete"),
     ],
 ) -> dict:
     """Delete an agent and destroy its underlying workspace (forceful deletion)."""
@@ -218,7 +225,8 @@ async def delete_agent(
 @mcp.tool()
 async def restart_agent(
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=32, description="Name of the agent to restart")
+        str,
+        Field(min_length=1, max_length=32, description="Name of the agent to restart"),
     ],
 ) -> dict:
     """Restart an agent's workspace to refresh its environment."""
@@ -236,10 +244,19 @@ async def restart_agent(
 @mcp.tool()
 async def start_agent_task(
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=20, description="Name of the agent to assign task to")
+        str,
+        Field(
+            min_length=1,
+            max_length=20,
+            description="Name of the agent to assign task to",
+        ),
     ],
     task_description: Annotated[
-        str, Field(min_length=1, description="Task description defining objectives and constraints")
+        str,
+        Field(
+            min_length=1,
+            description="Task description defining objectives and constraints",
+        ),
     ],
 ) -> dict:
     """Start a task on an idle agent."""
@@ -254,7 +271,12 @@ async def start_agent_task(
 @mcp.tool()
 async def cancel_agent_task(
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=20, description="Name of the agent to cancel task for")
+        str,
+        Field(
+            min_length=1,
+            max_length=20,
+            description="Name of the agent to cancel task for",
+        ),
     ],
 ) -> dict:
     """Cancel the current task on a busy agent by sending Ctrl+C interrupt signal."""
@@ -273,7 +295,9 @@ async def cancel_agent_task(
 async def show_agent_task_history(
     agent_name: Annotated[str, Field(description="Name of the agent to query")],
     page: Annotated[int, Field(ge=1, description="Page number (1-indexed)")] = 1,
-    page_size: Annotated[int, Field(ge=1, le=100, description="Items per page (max 100)")] = 20,
+    page_size: Annotated[
+        int, Field(ge=1, le=100, description="Items per page (max 100)")
+    ] = 20,
 ) -> dict:
     """Show paginated task history for an agent ordered by created_at descending (newest first)."""
     from .tools.show_task_history import show_agent_task_history as show_history_impl
@@ -285,7 +309,9 @@ async def show_agent_task_history(
 async def show_agent_log(
     agent_name: Annotated[str, Field(description="Name of the agent to query")],
     page: Annotated[int, Field(ge=1, description="Page number (1-indexed)")] = 1,
-    page_size: Annotated[int, Field(ge=1, le=100, description="Items per page (max 100)")] = 1,
+    page_size: Annotated[
+        int, Field(ge=1, le=100, description="Items per page (max 100)")
+    ] = 1,
 ) -> dict:
     """Show paginated conversation logs for an agent ordered by time descending (newest first). Default page size is 1 for latest only."""
     from .tools.show_logs import show_agent_log as show_logs_impl
@@ -307,12 +333,14 @@ async def health_check(request):
     """
     from starlette.responses import JSONResponse
 
-    return JSONResponse({
-        "status": "healthy",
-        "service": "fleet-mcp-clean",
-        "version": "0.1.0",
-        "coder_url": CODER_URL,
-    })
+    return JSONResponse(
+        {
+            "status": "healthy",
+            "service": "fleet-mcp-clean",
+            "version": "0.1.0",
+            "coder_url": CODER_URL,
+        }
+    )
 
 
 # Create the ASGI application for stateless HTTP mode (uvicorn)
