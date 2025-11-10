@@ -96,9 +96,11 @@ class AgentRepository:
             CoderAPIError: If workspace creation fails
         """
         try:
-            # Build rich parameter values for ai_prompt
+            # Build rich parameter values for AI Prompt
+            # Per Coder AI docs, the parameter name is always "AI Prompt" (with space and capitals)
+            # See: https://coder.com/docs/ai-coder/tasks#option-2-create-or-duplicate-your-own-template
             rich_parameters = [
-                {"name": "ai_prompt", "value": task},
+                {"name": "AI Prompt", "value": task},
             ]
 
             workspace = await self.client.create_workspace(

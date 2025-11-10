@@ -251,6 +251,20 @@ class TestAgentRepositoryCreate:
         assert agent.status == AgentStatus.STARTING
         mock_coder_client.create_workspace.assert_called_once()
 
+        # Verify the rich_parameter_values use "AI Prompt" as per Coder AI docs
+        # See: https://coder.com/docs/ai-coder/tasks#option-2-create-or-duplicate-your-own-template
+        call_args = mock_coder_client.create_workspace.call_args
+        rich_params = call_args.kwargs["rich_parameter_values"]
+        assert len(rich_params) == 1, f"Expected exactly 1 rich parameter, got {len(rich_params)}"
+        assert rich_params[0]["name"] == "AI Prompt", (
+            f"Expected rich parameter name to be 'AI Prompt' (per Coder AI docs), "
+            f"but got: {rich_params[0]['name']}"
+        )
+        assert rich_params[0]["value"] == "Test task", (
+            f"Expected rich parameter value to be 'Test task', "
+            f"but got: {rich_params[0]['value']}"
+        )
+
 
 @pytest.mark.asyncio
 class TestAgentRepositoryDelete:
