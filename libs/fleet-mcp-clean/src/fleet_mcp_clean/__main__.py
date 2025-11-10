@@ -294,18 +294,25 @@ async def show_agent_log(
 
 
 # ========================================================================
-# Health Check
+# Health Check (Custom HTTP Route)
 # ========================================================================
 
 
-@mcp.tool()
-async def health_check() -> dict:
-    """Check if the fleet-mcp-clean server is running."""
-    return {
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(request):
+    """Health check endpoint for monitoring and load balancers.
+
+    Returns a JSON response indicating the server's operational status.
+    This endpoint is accessible at http://host:port/health
+    """
+    from starlette.responses import JSONResponse
+
+    return JSONResponse({
         "status": "healthy",
+        "service": "fleet-mcp-clean",
         "version": "0.1.0",
         "coder_url": CODER_URL,
-    }
+    })
 
 
 # Create the ASGI application for stateless HTTP mode (uvicorn)

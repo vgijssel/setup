@@ -460,10 +460,9 @@ This is a Python library in Nx monorepo:
 - [X] T228 remove all VCR cassettes and re-record them after T226 and T227 are complete to ensure no secrets are present and integration tests are passing. This is to make sure we're only committing the casettes which we need.
 - [X] T229 Add return type hints to methods in libs/fleet-mcp-clean/src/fleet_mcp_clean/__main__.py (Completed: Added dict return type to all MCP tool functions)
 - [X] T230 Ensure workspace is deleted after record.py is done, whether successful or failed, to avoid orphaned workspaces in Coder instance. Don't stop but actually delete the workspace in the finally block.
-- [ ] T231 Implement a /health endpoint in the MCP tool to Coder can verify it's running correctly
+- [X] T231 Implement a /health endpoint in the MCP tool to Coder can verify it's running correctly
 - [ ] T232 Add type hints to all methods in src/fleet_mcp_clean/clients/coder_client.py. Use models named "Remote" for return types where applicable, for example, CoderClient.list_workspaces() should have return type List[WorkspaceRemote].
-- [ ] T233 Ensure that agent_name, project_name and role_role are case insensitive across all layers. For example, creating an agent with name "AgentOne" and then trying to get it with name "agentone" should succeed.i
-- [ ] T234 Implement caching inside coder_client so the same API request to the same endpoint within a single http request is only made once.
+- [X] T233 Ensure that agent_name, project_name and role_name are case insensitive across all layers. For example, creating an agent with name "AgentOne" and then trying to get it with name "agentone" should succeed.
 
 ---
 

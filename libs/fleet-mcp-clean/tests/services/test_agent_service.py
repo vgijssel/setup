@@ -271,3 +271,61 @@ class TestAgentServiceRestart:
         # Act & Assert
         with pytest.raises(AgentNotFoundError):
             await agent_service.restart_agent("nonexistent")
+
+
+@pytest.mark.asyncio
+class TestAgentServiceCaseInsensitive:
+    """Test case-insensitive name handling - T233."""
+
+    async def test_get_agent_case_insensitive(
+        self, agent_service, mock_agent_repo, sample_agent
+    ):
+        """Test getting agent with different case returns same agent."""
+        # Arrange - mock repository to return agent for any case variant
+        mock_agent_repo.get_by_name.return_value = sample_agent
+
+        # Act - try different case variants
+        result_lower = await agent_service.get_agent("test-agent")
+        result_upper = await agent_service.get_agent("TEST-AGENT")
+        result_mixed = await agent_service.get_agent("Test-Agent")
+
+        # Assert - all variants return the same agent
+        assert result_lower.name == sample_agent.name
+        assert result_upper.name == sample_agent.name
+        assert result_mixed.name == sample_agent.name
+
+        # Verify repository was called with lowercase normalized names
+        assert mock_agent_repo.get_by_name.call_count == 3
+        calls = [call.args[0] for call in mock_agent_repo.get_by_name.call_args_list]
+        assert all(name == name.lower() for name in calls)
+
+    async def test_create_agent_case_insensitive_duplicate_check(
+        self, agent_service, mock_agent_repo, mock_project_repo, sample_agent, sample_project
+    ):
+        """Test creating agent with different case of existing name is rejected."""
+        # Arrange
+        existing_agent = Agent(
+            name="myagent",  # lowercase
+            workspace_id="ws-123",
+            status=AgentStatus.IDLE,
+            role="coder",
+            project="Setup",
+            last_task=None,
+            created_at=datetime(2025, 11, 7, 10, 0, 0),
+            updated_at=datetime(2025, 11, 7, 10, 0, 0),
+        )
+        mock_agent_repo.list_all.return_value = [existing_agent]
+        mock_project_repo.list_all.return_value = [sample_project]
+        mock_project_repo.get_by_name.return_value = sample_project
+        mock_project_repo.list_roles.return_value = [
+            Role(id="role-1", name="coder", project_id="proj-123", project_name="Setup", default=True)
+        ]
+
+        # Act & Assert - Try to create with different case
+        with pytest.raises(AgentConflictError, match="already exists"):
+            await agent_service.create_agent(
+                name="MyAgent",  # Different case
+                project="Setup",
+                role="coder",
+                task="Test task"
+            )

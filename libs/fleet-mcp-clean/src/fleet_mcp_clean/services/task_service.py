@@ -28,7 +28,7 @@ class TaskService:
         self.agent_repository = agent_repository
 
     async def assign_task(self, agent_name: str, task_description: str) -> None:
-        """Assign a task to an agent.
+        """Assign a task to an agent (case-insensitive agent name).
 
         Business Rules:
         1. Agent must exist
@@ -37,7 +37,7 @@ class TaskService:
         4. Task description must not be empty
 
         Args:
-            agent_name: Name of the agent to assign task to
+            agent_name: Name of the agent to assign task to (case-insensitive)
             task_description: Description of the task to assign
 
         Raises:
@@ -49,8 +49,11 @@ class TaskService:
         if not task_description or not task_description.strip():
             raise ValueError("Task description cannot be empty")
 
+        # Normalize agent name to lowercase for case-insensitive lookup
+        normalized_name = agent_name.lower()
+
         # Get agent to validate status
-        agent = await self.agent_repository.get_by_name(agent_name)
+        agent = await self.agent_repository.get_by_name(normalized_name)
 
         # Validate agent is online (not offline or failed)
         if agent.status in (AgentStatus.OFFLINE, AgentStatus.FAILED):
@@ -67,24 +70,27 @@ class TaskService:
             )
 
         # Assign the task
-        await self.task_repository.assign_task(agent_name, task_description)
+        await self.task_repository.assign_task(normalized_name, task_description)
 
     async def cancel_task(self, agent_name: str) -> None:
-        """Cancel the current task on an agent.
+        """Cancel the current task on an agent (case-insensitive agent name).
 
         Business Rules:
         1. Agent must exist
         2. Agent must be busy (has a running task)
 
         Args:
-            agent_name: Name of the agent to cancel task for
+            agent_name: Name of the agent to cancel task for (case-insensitive)
 
         Raises:
             AgentNotFoundError: If agent doesn't exist
             ValueError: If agent is not busy
         """
+        # Normalize agent name to lowercase for case-insensitive lookup
+        normalized_name = agent_name.lower()
+
         # Get agent to validate status
-        agent = await self.agent_repository.get_by_name(agent_name)
+        agent = await self.agent_repository.get_by_name(normalized_name)
 
         # Validate agent is busy
         if agent.status != AgentStatus.BUSY:
@@ -94,15 +100,15 @@ class TaskService:
             )
 
         # Cancel the task
-        await self.task_repository.cancel_task(agent_name)
+        await self.task_repository.cancel_task(normalized_name)
 
     async def get_task_history(
         self, agent_name: str, page: int = 1, page_size: int = 20
     ) -> tuple[list[dict], int]:
-        """Get paginated task history for an agent.
+        """Get paginated task history for an agent (case-insensitive agent name).
 
         Args:
-            agent_name: Name of the agent
+            agent_name: Name of the agent (case-insensitive)
             page: Page number (1-indexed)
             page_size: Items per page (max 100)
 
@@ -119,8 +125,11 @@ class TaskService:
         if page_size < 1 or page_size > 100:
             raise ValueError("Page size must be between 1 and 100")
 
+        # Normalize agent name to lowercase for case-insensitive lookup
+        normalized_name = agent_name.lower()
+
         # Get all tasks from repository
-        all_tasks = await self.task_repository.get_task_history(agent_name)
+        all_tasks = await self.task_repository.get_task_history(normalized_name)
 
         # Sort by created_at descending (newest first)
         sorted_tasks = sorted(
@@ -139,10 +148,10 @@ class TaskService:
     async def get_conversation_logs(
         self, agent_name: str, page: int = 1, page_size: int = 1
     ) -> tuple[list[dict], int]:
-        """Get paginated conversation logs for an agent.
+        """Get paginated conversation logs for an agent (case-insensitive agent name).
 
         Args:
-            agent_name: Name of the agent
+            agent_name: Name of the agent (case-insensitive)
             page: Page number (1-indexed)
             page_size: Items per page (max 100, default 1)
 
@@ -159,8 +168,11 @@ class TaskService:
         if page_size < 1 or page_size > 100:
             raise ValueError("Page size must be between 1 and 100")
 
+        # Normalize agent name to lowercase for case-insensitive lookup
+        normalized_name = agent_name.lower()
+
         # Get all logs from repository
-        all_logs = await self.task_repository.get_conversation_logs(agent_name)
+        all_logs = await self.task_repository.get_conversation_logs(normalized_name)
 
         # Sort by time descending (newest first)
         sorted_logs = sorted(
