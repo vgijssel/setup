@@ -463,10 +463,10 @@ class CoderClient:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e
 
     async def send_interrupt_signal(self, agent_api_url: str) -> dict[str, Any]:
-        """Send Ctrl+C interrupt signal to workspace via AgentAPI.
+        """Send interrupt signal (escape sequence) to workspace via AgentAPI.
 
         Args:
-            agent_api_url: Full URL to AgentAPI /message endpoint
+            agent_api_url: Base URL to AgentAPI app (e.g., https://coder.com/@owner/workspace.id/apps/ccw/)
 
         Returns:
             Interrupt signal result dictionary
@@ -475,9 +475,12 @@ class CoderClient:
             HTTPError: If API request fails
         """
         try:
-            # Send Ctrl+C signal as raw message (\u0003 is ASCII ETX / Ctrl+C)
+            # Send escape sequence as raw message (\u001b interrupts the current task)
+            # agent_api_url already ends with /, so we append "message"
             response = await self.client.post(
-                agent_api_url, json={"type": "raw", "content": "\u0003"}
+                f"{agent_api_url}message",
+                json={"type": "raw", "content": "\u001b"},
+                headers={"Content-Type": "application/json"},
             )
             response.raise_for_status()
             return response.json() if response.content else {"status": "interrupted"}
@@ -485,6 +488,41 @@ class CoderClient:
             self._handle_http_error(e)
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to AgentAPI: {e}") from e
+
+    async def send_interrupt_via_experimental_api(
+        self, owner_name: str, workspace_id: str
+    ) -> dict[str, Any]:
+        """Send interrupt signal via experimental task API (fallback method).
+
+        This is a fallback method when AgentAPI is not available.
+        Sends an escape sequence (\u001b) to interrupt the currently running task.
+
+        Args:
+            owner_name: Username of the workspace owner
+            workspace_id: Workspace UUID
+
+        Returns:
+            Response dictionary (usually empty for 204 No Content)
+
+        Raises:
+            HTTPError: If API request fails
+        """
+        try:
+            # Send escape sequence as raw input via experimental task API
+            # The escape character (\u001b) interrupts the current task
+            response = await self.client.post(
+                f"{self.base_url}/api/experimental/tasks/{owner_name}/{workspace_id}/send",
+                json={"input": "\u001b"},
+            )
+            response.raise_for_status()
+            # 204 No Content returns empty response
+            return {} if response.status_code == 204 else response.json()
+        except httpx.HTTPStatusError as e:
+            self._handle_http_error(e)
+        except httpx.RequestError as e:
+            raise HTTPError(
+                f"Failed to send interrupt via experimental API: {e}"
+            ) from e
 
     # NOTE: Task history is NOT a separate API endpoint
     # Task history is extracted from workspace.latest_build.resources[].agents[].apps[]

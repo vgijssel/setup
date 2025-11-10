@@ -20,12 +20,12 @@ async def cancel_agent_task(
     User Story: US3 (Task Assignment and Cancellation)
     Architecture: Layer 1 (Tool Layer)
 
-    This sends a SIGINT (Ctrl+C) interrupt signal to the agent's workspace via AgentAPI,
-    which should stop the currently running task.
+    This sends a SIGINT (Ctrl+C) interrupt signal to the agent's workspace.
+    It tries AgentAPI first, and falls back to experimental task API if unavailable.
 
     Business Rules:
     - Agent must be busy (has a running task)
-    - Sends interrupt signal via AgentAPI
+    - Sends interrupt signal via AgentAPI (primary) or experimental API (fallback)
 
     Args:
         task_service: Service instance for task business logic
@@ -36,7 +36,7 @@ async def cancel_agent_task(
 
     Raises:
         ValidationError: If agent_name is invalid
-        AgentNotFoundError: If agent doesn't exist or AgentAPI is unavailable
+        AgentNotFoundError: If agent doesn't exist
         ValueError: If agent is not busy
         CoderAPIError: If cancellation fails
 
