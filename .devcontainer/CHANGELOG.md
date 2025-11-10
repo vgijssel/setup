@@ -1,3 +1,15 @@
+## 0.7.2 (2025-11-10)
+
+### 🩹 Fixes
+
+- chore(devcontainer): move port 8000 config to devcontainer settings ([#810](https://github.com/vgijssel/setup/pull/810))
+
+## 0.7.1 (2025-11-07)
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.13.0
+
 ## 0.7.0 (2025-11-06)
 
 ### 🚀 Features

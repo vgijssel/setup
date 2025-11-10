@@ -24,7 +24,15 @@
         "github.remotehub",
         "hashicorp.hcl",
         "hashicorp.terraform"
-      ]
+      ],
+      "settings": {
+        "remote.portsAttributes": {
+          "8000": {
+            "label": "fleet-mcp",
+            "onAutoForward": "ignore"
+          }
+        }
+      }
     }
   }
 }

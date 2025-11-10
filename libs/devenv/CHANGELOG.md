@@ -1,3 +1,14 @@
+## 0.13.0 (2025-11-07)
+
+### 🚀 Features
+
+- Refactor terminal environment variables into shared dot_terminal_env.sh.tmpl file ([#809](https://github.com/vgijssel/setup/pull/809))
+
+  - Create new `dot_terminal_env.sh.tmpl` to centralize shared environment variables
+  - Source shared environment file from both `dot_bashrc` and `dot_zshrc.tmpl`
+  - Remove duplicate environment variable declarations from both shell configs
+  - Remove `ll` alias (already provided by zimrc modules)
+
 ## 0.12.2 (2025-11-06)
 
 ### 🩹 Fixes
