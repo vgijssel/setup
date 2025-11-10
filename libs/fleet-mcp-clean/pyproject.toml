@@ -26,4 +26,19 @@ dev = [
     "pytest-asyncio==0.21.1",
     "pytest-cov==4.1.0",
     "respx==0.22.0",
+    "import-linter==2.2",
+]
+
+[tool.importlinter]
+root_package = "fleet_mcp_clean"
+source_root = "src"
+
+[[tool.importlinter.contracts]]
+name = "Layer boundaries"
+type = "layers"
+layers = [
+    "fleet_mcp_clean.tools",
+    "fleet_mcp_clean.services",
+    "fleet_mcp_clean.repositories",
+    "fleet_mcp_clean.clients",
 ]

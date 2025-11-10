@@ -32,6 +32,23 @@
           "{projectRoot}/.coverage",
           "{projectRoot}/htmlcov"
         ]
+      },
+      "lint": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv run lint-imports",
+          "cwd": "libs/fleet-mcp-clean"
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/src/**/*.py",
+          "{projectRoot}/pyproject.toml",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/**/__pycache__/**"
+        ],
+        "metadata": {
+          "description": "Verify clean architecture layer boundaries with import-linter"
+        }
       }
     }
   }

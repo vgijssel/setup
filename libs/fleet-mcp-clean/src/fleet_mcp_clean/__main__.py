@@ -1,5 +1,6 @@
 """FastMCP server entry point for fleet-mcp-clean."""
 
+import logging
 import os
 from typing import Optional
 
@@ -8,8 +9,17 @@ from fastmcp import FastMCP
 from typing_extensions import Annotated
 from pydantic import Field
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+
 # Load environment variables
 load_dotenv()
+logger.info("Loading environment variables")
 
 # Initialize FastMCP server
 mcp = FastMCP("Fleet MCP Clean", version="0.1.0")
@@ -19,9 +29,12 @@ CODER_URL = os.getenv("CODER_URL")
 CODER_SESSION_TOKEN = os.getenv("CODER_SESSION_TOKEN")
 
 if not CODER_URL or not CODER_SESSION_TOKEN:
+    logger.error("Missing required environment variables: CODER_URL and/or CODER_SESSION_TOKEN")
     raise ValueError(
         "CODER_URL and CODER_SESSION_TOKEN environment variables are required"
     )
+
+logger.info(f"Configured Coder API connection to: {CODER_URL}")
 
 # Initialize clients, repositories, and services
 from .clients import CoderClient
@@ -110,7 +123,7 @@ async def list_agents(
     project_filter: Annotated[
         Optional[str], Field(None, description="Optional filter by project name")
     ] = None,
-):
+) -> dict:
     """List all agents in the fleet with optional filtering."""
     from .tools.list_agents import list_agents as list_agents_impl
 
@@ -133,7 +146,7 @@ async def show_agent(
     agent_name: Annotated[
         str, Field(min_length=1, max_length=20, description="Name of the agent to retrieve")
     ],
-):
+) -> dict:
     """Show detailed information about a specific agent."""
     from .tools.show_agent import show_agent as show_agent_impl
 
@@ -142,7 +155,7 @@ async def show_agent(
 
 
 @mcp.tool()
-async def list_agent_projects():
+async def list_agent_projects() -> dict:
     """List all available projects (templates) that can be used to create agents."""
     from .tools.list_projects import list_agent_projects as list_projects_impl
 
@@ -153,7 +166,7 @@ async def list_agent_projects():
 @mcp.tool()
 async def list_agent_roles(
     project: Annotated[str, Field(description="Project name to query roles for")],
-):
+) -> dict:
     """List all available roles (workspace presets) for a specific project."""
     from .tools.list_roles import list_agent_roles as list_roles_impl
 
@@ -179,7 +192,7 @@ async def create_agent(
             description="Agent role matching Coder workspace preset (e.g., coder, operator, manager)"
         ),
     ] = "coder",
-):
+) -> dict:
     """Create a new Claude Code agent in a Coder workspace."""
     from .tools.create_agent import create_agent as create_agent_impl
 
@@ -194,7 +207,7 @@ async def delete_agent(
     agent_name: Annotated[
         str, Field(min_length=1, max_length=20, description="Name of the agent to delete")
     ],
-):
+) -> dict:
     """Delete an agent and destroy its underlying workspace (forceful deletion)."""
     from .tools.delete_agent import delete_agent as delete_agent_impl
 
@@ -207,7 +220,7 @@ async def restart_agent(
     agent_name: Annotated[
         str, Field(min_length=1, max_length=20, description="Name of the agent to restart")
     ],
-):
+) -> dict:
     """Restart an agent's workspace to refresh its environment."""
     from .tools.restart_agent import restart_agent as restart_agent_impl
 
@@ -228,7 +241,7 @@ async def start_agent_task(
     task_description: Annotated[
         str, Field(min_length=1, description="Task description defining objectives and constraints")
     ],
-):
+) -> dict:
     """Start a task on an idle agent."""
     from .tools.start_task import start_agent_task as start_task_impl
 
@@ -243,7 +256,7 @@ async def cancel_agent_task(
     agent_name: Annotated[
         str, Field(min_length=1, max_length=20, description="Name of the agent to cancel task for")
     ],
-):
+) -> dict:
     """Cancel the current task on a busy agent by sending Ctrl+C interrupt signal."""
     from .tools.cancel_task import cancel_agent_task as cancel_task_impl
 
@@ -261,7 +274,7 @@ async def show_agent_task_history(
     agent_name: Annotated[str, Field(description="Name of the agent to query")],
     page: Annotated[int, Field(ge=1, description="Page number (1-indexed)")] = 1,
     page_size: Annotated[int, Field(ge=1, le=100, description="Items per page (max 100)")] = 20,
-):
+) -> dict:
     """Show paginated task history for an agent ordered by created_at descending (newest first)."""
     from .tools.show_task_history import show_agent_task_history as show_history_impl
 
@@ -273,7 +286,7 @@ async def show_agent_log(
     agent_name: Annotated[str, Field(description="Name of the agent to query")],
     page: Annotated[int, Field(ge=1, description="Page number (1-indexed)")] = 1,
     page_size: Annotated[int, Field(ge=1, le=100, description="Items per page (max 100)")] = 1,
-):
+) -> dict:
     """Show paginated conversation logs for an agent ordered by time descending (newest first). Default page size is 1 for latest only."""
     from .tools.show_logs import show_agent_log as show_logs_impl
 
@@ -286,7 +299,7 @@ async def show_agent_log(
 
 
 @mcp.tool()
-async def health_check():
+async def health_check() -> dict:
     """Check if the fleet-mcp-clean server is running."""
     return {
         "status": "healthy",

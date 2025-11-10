@@ -445,20 +445,20 @@ This is a Python library in Nx monorepo:
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T216 [P] Add comprehensive docstrings to all public methods in src/fleet_mcp_clean/
-- [ ] T217 [P] Add type hints validation across all layers
-- [ ] T218 [P] Update README.md with usage examples and architecture diagram
+- [X] T216 [P] Add comprehensive docstrings to all public methods in src/fleet_mcp_clean/
+- [X] T217 [P] Add type hints validation across all layers
+- [X] T218 [P] Update README.md with usage examples and architecture diagram
 - [X] T219 [P] Create .gitignore with .venv, .pytest_cache, __pycache__, *.pyc
-- [ ] T220 [P] Add logging configuration in src/fleet_mcp_clean/__main__.py
+- [X] T220 [P] Add logging configuration in src/fleet_mcp_clean/__main__.py
 - [X] T221 Run uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing to verify test coverage
 - [X] T222 Run nx test fleet-mcp-clean to verify all tests pass with caching
-- [ ] T223 Run manual end-to-end test following quickstart.md validation steps
-- [ ] T224 [P] Add import-linter configuration to verify layer boundaries
-- [ ] T225 Run import-linter to verify no layer boundary violations
+- [ ] T223 Run manual end-to-end test following quickstart.md validation steps (SKIPPED: Requires live Coder instance, integration tests cover this)
+- [X] T224 [P] Add import-linter configuration to verify layer boundaries (Added to pyproject.toml and package.json as Nx target)
+- [X] T225 Run import-linter to verify no layer boundary violations (PASSED: 1 contract kept, 0 broken - Available via: nx lint-imports fleet-mcp-clean)
 - [X] T226 Remove all secrets / tokens from VCR cassettes. Follow same approach as libs/fleet-mcp in libs/fleet-mcp/tests/conftest.py how secrets are removed and redacted.
 - [X] T227 Setup integration tests which test calling the MCP tools end-to-end. These tests use the respx mocking framework to mock out HTTP calls to the Coder API, similar to how the client layer tests are structured. Ensure these tests cover all MCP tools. Ensure that these tests only mock out HTTP calls, and do not mock any internal layers of the fleet-mcp-clean library.
 - [X] T228 remove all VCR cassettes and re-record them after T226 and T227 are complete to ensure no secrets are present and integration tests are passing. This is to make sure we're only committing the casettes which we need.
-- [X] T229 Add return type hints to methods in libs/fleet-mcp-clean/src/fleet_mcp_clean/__main__.py
+- [X] T229 Add return type hints to methods in libs/fleet-mcp-clean/src/fleet_mcp_clean/__main__.py (Completed: Added dict return type to all MCP tool functions)
 - [X] T230 Ensure workspace is deleted after record.py is done, whether successful or failed, to avoid orphaned workspaces in Coder instance. Don't stop but actually delete the workspace in the finally block.
 
 ---
