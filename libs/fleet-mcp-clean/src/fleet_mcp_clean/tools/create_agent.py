@@ -10,7 +10,7 @@ from ..services import AgentService
 
 async def create_agent(
     agent_service: AgentService,
-    name: Annotated[str, Field(description="Unique short agent name (e.g., Sony, Papi)")],
+    name: Annotated[str, Field(min_length=1, max_length=32, description="Unique short agent name (e.g., Sony, Papi)")],
     project: Annotated[str, Field(description="Project name (e.g., Setup, DataOne)")],
     task: Annotated[
         str, Field(description="Task description defining objectives and constraints")
@@ -30,7 +30,7 @@ async def create_agent(
 
     Args:
         agent_service: Service instance for agent business logic
-        name: Unique agent name (1-20 alphanumeric + hyphens)
+        name: Unique agent name (1-32 chars, alphanumeric + hyphens, must start with letter/number)
         project: Project name (must exist)
         task: Initial task description (non-empty)
         role: Agent role name (optional, defaults to backend's default role for project)

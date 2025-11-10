@@ -230,6 +230,92 @@ class TestAgentServiceDelete:
         with pytest.raises(AgentNotFoundError):
             await agent_service.delete_agent("nonexistent")
 
+    async def test_delete_agent_validates_name_format(
+        self, agent_service, mock_agent_repo
+    ):
+        """Test delete_agent rejects names with invalid characters."""
+        # Arrange - invalid characters
+        invalid_name = "test_agent!"
+
+        # Act & Assert
+        with pytest.raises(ValidationError) as exc_info:
+            await agent_service.delete_agent(invalid_name)
+
+        assert "alphanumeric characters and hyphens" in str(exc_info.value)
+        mock_agent_repo.delete.assert_not_called()
+
+    async def test_delete_agent_validates_empty_name(
+        self, agent_service, mock_agent_repo
+    ):
+        """Test delete_agent rejects empty names."""
+        # Act & Assert - empty string
+        with pytest.raises(ValidationError) as exc_info:
+            await agent_service.delete_agent("")
+
+        assert "cannot be empty" in str(exc_info.value)
+        mock_agent_repo.delete.assert_not_called()
+
+        # Act & Assert - whitespace only
+        with pytest.raises(ValidationError) as exc_info:
+            await agent_service.delete_agent("   ")
+
+        assert "cannot be empty" in str(exc_info.value)
+
+    async def test_delete_agent_validates_max_length(
+        self, agent_service, mock_agent_repo
+    ):
+        """Test delete_agent rejects names longer than 32 characters."""
+        # Arrange - 33 character name
+        long_name = "a" * 33
+
+        # Act & Assert
+        with pytest.raises(ValidationError) as exc_info:
+            await agent_service.delete_agent(long_name)
+
+        assert "32 characters or less" in str(exc_info.value)
+        assert "33" in str(exc_info.value)
+        mock_agent_repo.delete.assert_not_called()
+
+    async def test_delete_agent_validates_starts_with_hyphen(
+        self, agent_service, mock_agent_repo
+    ):
+        """Test delete_agent rejects names starting with hyphen."""
+        # Arrange
+        invalid_name = "-test-agent"
+
+        # Act & Assert
+        with pytest.raises(ValidationError) as exc_info:
+            await agent_service.delete_agent(invalid_name)
+
+        assert "must start with a letter or number" in str(exc_info.value)
+        mock_agent_repo.delete.assert_not_called()
+
+    async def test_delete_agent_validates_reserved_names(
+        self, agent_service, mock_agent_repo
+    ):
+        """Test delete_agent rejects reserved names."""
+        # Test "new" (lowercase)
+        with pytest.raises(ValidationError) as exc_info:
+            await agent_service.delete_agent("new")
+        assert "reserved" in str(exc_info.value)
+
+        # Test "NEW" (uppercase - case insensitive)
+        with pytest.raises(ValidationError) as exc_info:
+            await agent_service.delete_agent("NEW")
+        assert "reserved" in str(exc_info.value)
+
+        # Test "create" (lowercase)
+        with pytest.raises(ValidationError) as exc_info:
+            await agent_service.delete_agent("create")
+        assert "reserved" in str(exc_info.value)
+
+        # Test "Create" (mixed case)
+        with pytest.raises(ValidationError) as exc_info:
+            await agent_service.delete_agent("Create")
+        assert "reserved" in str(exc_info.value)
+
+        mock_agent_repo.delete.assert_not_called()
+
 
 @pytest.mark.asyncio
 class TestAgentServiceRestart:

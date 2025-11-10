@@ -205,7 +205,7 @@ async def create_agent(
 @mcp.tool()
 async def delete_agent(
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=20, description="Name of the agent to delete")
+        str, Field(min_length=1, max_length=32, description="Name of the agent to delete")
     ],
 ) -> dict:
     """Delete an agent and destroy its underlying workspace (forceful deletion)."""
@@ -218,7 +218,7 @@ async def delete_agent(
 @mcp.tool()
 async def restart_agent(
     agent_name: Annotated[
-        str, Field(min_length=1, max_length=20, description="Name of the agent to restart")
+        str, Field(min_length=1, max_length=32, description="Name of the agent to restart")
     ],
 ) -> dict:
     """Restart an agent's workspace to refresh its environment."""

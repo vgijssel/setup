@@ -191,8 +191,8 @@ class AgentService:
             AgentNotFoundError: If agent doesn't exist
             ValidationError: If name is invalid
         """
-        if not name or not name.strip():
-            raise ValidationError("name", "Agent name cannot be empty")
+        # Validate agent name format
+        self._validate_agent_name(name)
 
         # Normalize to lowercase for case-insensitive lookup
         normalized_name = name.lower()
@@ -211,19 +211,21 @@ class AgentService:
             AgentNotFoundError: If agent doesn't exist
             ValidationError: If name is invalid
         """
-        if not name or not name.strip():
-            raise ValidationError("name", "Agent name cannot be empty")
+        # Validate agent name format
+        self._validate_agent_name(name)
 
         # Normalize to lowercase for case-insensitive lookup
         normalized_name = name.lower()
         return await self.agent_repo.restart(normalized_name)
 
     def _validate_agent_name(self, name: str) -> None:
-        """Validate agent name format.
+        """Validate agent name format according to Coder workspace constraints.
 
-        Business Rules:
-        - Must be 1-20 characters
-        - Must contain only alphanumeric characters and hyphens
+        Business Rules (from Coder API):
+        - Max length: 32 characters
+        - Pattern: Alphanumeric + hyphens only
+        - Must start with letter or number (not hyphen)
+        - Reserved names: "new" and "create" are blocked
         - Cannot be empty or whitespace-only
 
         Args:
@@ -235,14 +237,28 @@ class AgentService:
         if not name or not name.strip():
             raise ValidationError("name", "Agent name cannot be empty")
 
-        if len(name) > 20:
+        if len(name) > 32:
             raise ValidationError(
                 "name",
-                f"Agent name must be 20 characters or less (got {len(name)})"
+                f"Agent name must be 32 characters or less (got {len(name)})"
             )
 
         if not all(c.isalnum() or c == "-" for c in name):
             raise ValidationError(
                 "name",
                 "Agent name must contain only alphanumeric characters and hyphens"
+            )
+
+        # Must start with alphanumeric (not hyphen)
+        if name[0] == "-":
+            raise ValidationError(
+                "name",
+                "Agent name must start with a letter or number (not hyphen)"
+            )
+
+        # Check reserved names (case-insensitive)
+        if name.lower() in ["new", "create"]:
+            raise ValidationError(
+                "name",
+                f"Agent name '{name}' is reserved and cannot be used"
             )
