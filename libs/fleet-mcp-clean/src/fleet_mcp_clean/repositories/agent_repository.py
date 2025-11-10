@@ -231,13 +231,13 @@ class AgentRepository:
             preset_id: Preset UUID
 
         Returns:
-            Role name (preset name) or "coder" as fallback
+            Role name (preset name) or "Unknown" as fallback
 
         Note:
             Uses caching to avoid repeated API calls for the same template
         """
         if not preset_id:
-            return "coder"  # Default fallback
+            return "Unknown"  # Default fallback
 
         # Check cache first
         if template_id in self._preset_cache:
@@ -261,11 +261,11 @@ class AgentRepository:
                     self._preset_cache[template_id][preset_uuid] = preset_name
 
             # Return the role name for this preset_id
-            return self._preset_cache[template_id].get(preset_id, "coder")
+            return self._preset_cache[template_id].get(preset_id, "Unknown")
 
         except Exception:
             # If we can't fetch presets, return default
-            return "coder"
+            return "Unknown"
 
     @staticmethod
     def _extract_last_task_from_workspace(workspace: dict[str, Any]) -> str | None:
