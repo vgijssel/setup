@@ -123,6 +123,37 @@ class TestAgentRepositoryListAll:
         assert agents[1].name == "agent-2"
         mock_coder_client.list_workspaces.assert_called_once_with(owner="me")
 
+    async def test_list_all_with_none_latest_build(self, agent_repo, mock_coder_client):
+        """Test listing agents when workspace has None latest_build.
+
+        This can happen when the Coder API returns a workspace where
+        latest_build is None instead of missing (e.g., during workspace creation).
+        The bug manifests as: 'NoneType' object has no attribute 'get'
+        """
+        # Mock workspace data with latest_build = None
+        mock_workspaces = [
+            {
+                "id": "ws-1",
+                "name": "agent-1",
+                "template_name": "coder-devcontainer",
+                "template_display_name": "Setup",
+                "template_id": "tpl-1",
+                "created_at": "2025-11-07T10:00:00Z",
+                "updated_at": "2025-11-07T10:30:00Z",
+                "latest_build": None,  # This simulates the bug
+            },
+        ]
+        mock_coder_client.list_workspaces.return_value = mock_workspaces
+
+        # Execute - this should not raise an AttributeError
+        agents = await agent_repo.list_all()
+
+        # Verify - should handle None latest_build gracefully
+        assert len(agents) == 1
+        assert agents[0].name == "agent-1"
+        assert agents[0].status == AgentStatus.OFFLINE  # Should default to OFFLINE
+        mock_coder_client.list_workspaces.assert_called_once_with(owner="me")
+
 
 @pytest.mark.asyncio
 class TestAgentRepositoryGetByName:
@@ -158,6 +189,36 @@ class TestAgentRepositoryGetByName:
 
         with pytest.raises(Exception):  # AgentNotFoundError
             await agent_repo.get_by_name("nonexistent")
+
+    async def test_get_by_name_with_none_workspace(self, agent_repo, mock_coder_client):
+        """Test getting agent by name when list contains None workspaces.
+
+        This can happen when the Coder API returns a workspace list where
+        some workspaces are None (e.g., during race conditions after agent creation).
+        The bug manifests as: 'NoneType' object has no attribute 'get'
+        """
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:30:00Z",
+            "latest_build": {"status": "running"},
+        }
+        # Mock list_workspaces to return list with None workspace
+        mock_coder_client.list_workspaces.return_value = [None, mock_workspace]
+        # Mock get_workspace to return full details
+        mock_coder_client.get_workspace.return_value = mock_workspace
+
+        # Execute - this should not raise an AttributeError
+        agent = await agent_repo.get_by_name("test-agent")
+
+        # Verify - should skip None workspace and find the valid one
+        assert isinstance(agent, Agent)
+        assert agent.name == "test-agent"
+        assert agent.workspace_id == "ws-1"
 
 
 @pytest.mark.asyncio

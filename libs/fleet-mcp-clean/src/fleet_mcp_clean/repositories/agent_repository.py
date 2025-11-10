@@ -62,8 +62,10 @@ class AgentRepository:
         """
         try:
             workspaces = await self.client.list_workspaces(owner="me")
+            # Filter out None workspaces (can happen during race conditions or after creation)
+            valid_workspaces = [ws for ws in workspaces if ws is not None]
 
-            for workspace in workspaces:
+            for workspace in valid_workspaces:
                 if workspace.get("name") == name:
                     # Get full workspace details with metadata
                     workspace_id = workspace.get("id")
@@ -169,7 +171,7 @@ class AgentRepository:
         - Extracts agent.role from workspace metadata
         - Extracts agent.last_task from rich parameters if present
         """
-        latest_build = workspace.get("latest_build", {})
+        latest_build = workspace.get("latest_build") or {}
         build_status = latest_build.get("status", "unknown")
 
         # Map Coder workspace build status to Agent status
@@ -187,8 +189,8 @@ class AgentRepository:
 
         # Check if agent is busy (has an active AI task)
         # This is indicated by has_ai_task=true and latest_app_status.state="working"
-        if workspace.get("latest_build", {}).get("has_ai_task"):
-            latest_app_status = workspace.get("latest_app_status", {})
+        if (workspace.get("latest_build") or {}).get("has_ai_task"):
+            latest_app_status = workspace.get("latest_app_status") or {}
             if latest_app_status.get("state") == "working":
                 agent_status = AgentStatus.BUSY
 
