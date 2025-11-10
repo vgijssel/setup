@@ -38,7 +38,20 @@ class TestAgentRepositoryListAll:
                 "template_id": "tpl-1",
                 "created_at": "2025-11-07T10:00:00Z",
                 "updated_at": "2025-11-07T10:30:00Z",
-                "latest_build": {"status": "running"},
+                "latest_build": {
+                    "status": "running",
+                    "has_ai_task": False,
+                    "resources": [
+                        {
+                            "agents": [
+                                {
+                                    "status": "connected",
+                                    "lifecycle_state": "ready",
+                                }
+                            ]
+                        }
+                    ],
+                },
             },
             {
                 "id": "ws-2",
@@ -62,7 +75,7 @@ class TestAgentRepositoryListAll:
         assert agents[0].name == "agent-1"
         assert agents[0].status == AgentStatus.IDLE
         assert agents[1].name == "agent-2"
-        assert agents[1].status == AgentStatus.OFFLINE
+        assert agents[1].status == AgentStatus.STOPPED
         mock_coder_client.list_workspaces.assert_called_once_with(owner="me")
 
     async def test_list_all_empty(self, agent_repo, mock_coder_client):
@@ -151,7 +164,7 @@ class TestAgentRepositoryListAll:
         # Verify - should handle None latest_build gracefully
         assert len(agents) == 1
         assert agents[0].name == "agent-1"
-        assert agents[0].status == AgentStatus.OFFLINE  # Should default to OFFLINE
+        assert agents[0].status == AgentStatus.FAILED  # Should default to FAILED when status unknown
         mock_coder_client.list_workspaces.assert_called_once_with(owner="me")
 
 
@@ -571,3 +584,438 @@ class TestAgentRepositoryLastTaskPopulation:
             f"Expected last_task to be 'Latest task', "
             f"but got '{agent.last_task}'"
         )
+
+
+@pytest.mark.asyncio
+class TestAgentRepositoryStatusMapping:
+    """Test Coder workspace status to Agent status mapping.
+
+    Tests verify that all Coder workspace states are mapped 1:1 to Agent status,
+    except 'running' which is split into 'idle' (no active task) and 'busy' (task running).
+    An agent can only transition from 'starting' to 'idle'/'busy' when all apps are healthy.
+    """
+
+    async def test_status_mapping_pending(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'pending' maps to PENDING."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "pending"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.PENDING
+
+    async def test_status_mapping_starting(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'starting' maps to STARTING."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "starting"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.STARTING
+
+    async def test_status_mapping_running_idle(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'running' with healthy agents and no active task maps to IDLE."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {
+                "status": "running",
+                "has_ai_task": False,
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "status": "connected",
+                                "lifecycle_state": "ready",
+                            }
+                        ]
+                    }
+                ],
+            },
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.IDLE
+
+    async def test_status_mapping_running_busy(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'running' with healthy agents and active task maps to BUSY."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {
+                "status": "running",
+                "has_ai_task": True,
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "status": "connected",
+                                "lifecycle_state": "ready",
+                            }
+                        ]
+                    }
+                ],
+            },
+            "latest_app_status": {"state": "working"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.BUSY
+
+    async def test_status_mapping_stopping(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'stopping' maps to STOPPING."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "stopping"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.STOPPING
+
+    async def test_status_mapping_stopped(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'stopped' maps to STOPPED."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "stopped"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.STOPPED
+
+    async def test_status_mapping_failed(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'failed' maps to FAILED."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "failed"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.FAILED
+
+    async def test_status_mapping_canceling(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'canceling' maps to CANCELING."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "canceling"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.CANCELING
+
+    async def test_status_mapping_canceled(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'canceled' maps to CANCELED."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "canceled"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.CANCELED
+
+    async def test_status_mapping_deleting(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'deleting' maps to DELETING."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "deleting"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.DELETING
+
+    async def test_status_mapping_deleted(self, agent_repo, mock_coder_client):
+        """Test workspace build status 'deleted' maps to DELETED."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "deleted"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.DELETED
+
+    async def test_status_mapping_unknown_defaults_to_failed(self, agent_repo, mock_coder_client):
+        """Test unknown workspace build status defaults to FAILED."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {"status": "unknown-status"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.FAILED
+
+
+@pytest.mark.asyncio
+class TestAgentRepositoryHealthChecking:
+    """Test workspace agent health checking logic.
+
+    Tests verify that workspace status 'running' is properly split into
+    STARTING/IDLE/BUSY based on workspace agent health and task state.
+    """
+
+    async def test_running_workspace_with_unhealthy_agents_starting(
+        self, agent_repo, mock_coder_client
+    ):
+        """Test workspace status 'running' with unhealthy agents maps to STARTING."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {
+                "status": "running",
+                "has_ai_task": False,
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "status": "connecting",  # Not connected
+                                "lifecycle_state": "starting",  # Not ready
+                            }
+                        ]
+                    }
+                ],
+            },
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.STARTING
+
+    async def test_running_workspace_with_healthy_agents_idle(
+        self, agent_repo, mock_coder_client
+    ):
+        """Test workspace status 'running' with healthy agents and no task maps to IDLE."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {
+                "status": "running",
+                "has_ai_task": False,
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "status": "connected",  # Connected
+                                "lifecycle_state": "ready",  # Ready
+                            }
+                        ]
+                    }
+                ],
+            },
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.IDLE
+
+    async def test_running_workspace_with_healthy_agents_and_task_busy(
+        self, agent_repo, mock_coder_client
+    ):
+        """Test workspace status 'running' with healthy agents and active task maps to BUSY."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {
+                "status": "running",
+                "has_ai_task": True,
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "status": "connected",
+                                "lifecycle_state": "ready",
+                            }
+                        ]
+                    }
+                ],
+            },
+            "latest_app_status": {"state": "working"},
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.BUSY
+
+    async def test_running_workspace_with_no_resources_starting(
+        self, agent_repo, mock_coder_client
+    ):
+        """Test workspace status 'running' with no resources maps to STARTING."""
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {
+                "status": "running",
+                "has_ai_task": False,
+                "resources": [],  # No resources
+            },
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.STARTING
+
+    async def test_running_workspace_with_empty_agents_array_starting(
+        self, agent_repo, mock_coder_client
+    ):
+        """Test workspace status 'running' with resources but no agents maps to STARTING.
+
+        Regression test: This is the bug we're fixing. Workspace with resources
+        but empty agents array should be considered unhealthy and marked as STARTING.
+        """
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "test-agent",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:00:00Z",
+            "latest_build": {
+                "status": "running",
+                "has_ai_task": False,
+                "resources": [
+                    {
+                        "agents": []  # Empty agents array - workspace still starting
+                    }
+                ],
+            },
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        agents = await agent_repo.list_all()
+
+        assert len(agents) == 1
+        assert agents[0].status == AgentStatus.STARTING

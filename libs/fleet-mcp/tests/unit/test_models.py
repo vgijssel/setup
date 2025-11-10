@@ -448,3 +448,37 @@ def test_agent_from_workspace_healthy_with_task_data_busy():
     agent = Agent.from_workspace(workspace, task_data=task_data)
     assert agent.status == AgentStatus.BUSY
     assert agent.last_task == "Implementing feature"
+
+
+def test_agent_from_workspace_resources_without_agents():
+    """Test workspace with resources but no agents is marked as STARTING
+
+    Regression test: Workspace with resources but no agents array
+    should be considered unhealthy and marked as STARTING, not IDLE.
+
+    Bug: _are_all_workspace_agents_healthy returns True when resources
+    exist but have no agents, causing workspace to be marked as IDLE
+    even when it's still starting up.
+    """
+    workspace = {
+        "id": "workspace-505",
+        "name": "agent-NoAgents",
+        "template_name": "coder-devcontainer",
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat(),
+        "latest_build": {
+            "id": "build-505",
+            "status": "running",
+            "resources": [
+                {
+                    "id": "resource-7",
+                    "name": "workspace",
+                    "agents": [],  # Empty agents array - no agents yet
+                }
+            ],
+        },
+    }
+
+    agent = Agent.from_workspace(workspace)
+    # Should be STARTING because no agents are present
+    assert agent.status == AgentStatus.STARTING

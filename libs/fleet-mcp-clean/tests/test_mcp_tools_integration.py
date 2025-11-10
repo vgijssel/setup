@@ -474,7 +474,21 @@ class TestMCPToolsIntegration:
                 "owner_name": "testuser", "owner_id": "u-1",
                 "created_at": "2025-01-01T00:00:00Z",
                 "updated_at": "2025-01-01T00:00:00Z",
-                "latest_build": {"id": "b-1", "status": "running"}
+                "latest_build": {
+                    "id": "b-1",
+                    "status": "running",
+                    "has_ai_task": False,
+                    "resources": [
+                        {
+                            "agents": [
+                                {
+                                    "status": "connected",
+                                    "lifecycle_state": "ready",
+                                }
+                            ]
+                        }
+                    ],
+                }
             }])
         )
         # Mock get workspace
@@ -486,7 +500,19 @@ class TestMCPToolsIntegration:
                 "created_at": "2025-01-01T00:00:00Z",
                 "updated_at": "2025-01-01T00:00:00Z",
                 "latest_build": {
-                    "id": "b-1", "status": "running", "resources": []
+                    "id": "b-1",
+                    "status": "running",
+                    "has_ai_task": False,
+                    "resources": [
+                        {
+                            "agents": [
+                                {
+                                    "status": "connected",
+                                    "lifecycle_state": "ready",
+                                }
+                            ]
+                        }
+                    ],
                 }
             })
         )
@@ -520,6 +546,8 @@ class TestMCPToolsIntegration:
                     "has_ai_task": True,
                     "resources": [{
                         "agents": [{
+                            "status": "connected",
+                            "lifecycle_state": "ready",
                             "apps": [{
                                 "slug": "ccw",
                                 "url": "http://localhost:3284"
@@ -547,6 +575,8 @@ class TestMCPToolsIntegration:
                     "has_ai_task": True,
                     "resources": [{
                         "agents": [{
+                            "status": "connected",
+                            "lifecycle_state": "ready",
                             "apps": [{
                                 "slug": "ccw",
                                 "url": "http://localhost:3284"

@@ -53,7 +53,7 @@ Represents a Claude Code instance running in a Coder workspace.
 2. Agent names MUST match pattern: `^[a-zA-Z0-9-]{1,20}$`
 3. Agents can only accept tasks when status is `idle`
 4. Agents can be deleted in any status (forceful deletion)
-5. Status transitions: `starting` → `idle` → `busy` → `idle` (or `offline`, `failed`)
+5. Status transitions follow Coder workspace lifecycle (see Status Transitions section below)
 
 **Pydantic Model**:
 ```python
@@ -62,11 +62,23 @@ from datetime import datetime
 from enum import Enum
 
 class AgentStatus(str, Enum):
-    STARTING = "starting"
-    IDLE = "idle"
-    BUSY = "busy"
-    OFFLINE = "offline"
-    FAILED = "failed"
+    """Agent lifecycle status.
+
+    Maps 1:1 to Coder workspace states, except:
+    - Coder "running" state is split into "idle" (no active task) and "busy" (task running)
+    - An agent can only transition from "starting" to "idle" or "busy" when all apps are healthy
+    """
+    PENDING = "pending"       # Workspace build queued and waiting to start
+    STARTING = "starting"     # Workspace being started (provisioning resources)
+    IDLE = "idle"             # Workspace running and no active task
+    BUSY = "busy"             # Workspace running with active task
+    STOPPING = "stopping"     # Workspace being stopped (destroying ephemeral resources)
+    STOPPED = "stopped"       # Workspace stopped; ephemeral resources destroyed
+    FAILED = "failed"         # Build failed during provisioning
+    CANCELING = "canceling"   # Build cancellation in progress
+    CANCELED = "canceled"     # Build was successfully canceled
+    DELETING = "deleting"     # Workspace being permanently deleted
+    DELETED = "deleted"       # Workspace completely destroyed
 
 class Agent(BaseModel):
     name: str = Field(..., min_length=1, max_length=20, pattern=r"^[a-zA-Z0-9-]+$")
@@ -444,13 +456,27 @@ ListAgentsResponse(
 - **ConversationLog.page_size**: Default 1 (show latest only)
 
 ### Status Transitions
+
+Agent statuses map 1:1 to Coder workspace build states, except "running" is split into "idle"/"busy":
+
 ```
-Agent Status FSM:
-  STARTING → IDLE
-  IDLE ↔ BUSY
-  * → OFFLINE (network issues)
-  * → FAILED (errors)
+Agent Status FSM (follows Coder workspace lifecycle):
+  PENDING → STARTING → RUNNING (mapped to IDLE or BUSY)
+  IDLE ↔ BUSY (when workspace is running)
+  RUNNING → STOPPING → STOPPED
+
+  Any state → FAILED (build/provisioning failure)
+  Any state → CANCELING → CANCELED (user cancellation)
+  Any state → DELETING → DELETED (workspace deletion)
+
+  STOPPED → STARTING (restart)
 ```
+
+**Key Rules**:
+- Agent can only transition from STARTING to IDLE/BUSY when all apps are healthy
+- IDLE → BUSY when task is assigned and agent begins working
+- BUSY → IDLE when task completes or is canceled
+- Agent can only accept new tasks when status is IDLE
 
 ## Error Scenarios
 

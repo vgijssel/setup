@@ -55,11 +55,11 @@ class TaskService:
         # Get agent to validate status
         agent = await self.agent_repository.get_by_name(normalized_name)
 
-        # Validate agent is online (not offline or failed)
-        if agent.status in (AgentStatus.OFFLINE, AgentStatus.FAILED):
+        # Validate agent is online (workspace must be running, not stopped/failed/etc)
+        if not agent.is_online():
             raise ValueError(
                 f"Cannot assign task to offline agent '{agent_name}' "
-                f"(status: {agent.status.value})"
+                f"(status: {agent.status.value}). Agent must be running (idle or busy)."
             )
 
         # Validate agent is idle (not busy or starting)

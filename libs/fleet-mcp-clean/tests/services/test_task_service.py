@@ -59,11 +59,11 @@ def busy_agent():
 
 @pytest.fixture
 def offline_agent():
-    """Sample offline agent."""
+    """Sample offline agent (stopped workspace)."""
     return Agent(
         name="offline-agent",
         workspace_id="ws-789",
-        status=AgentStatus.OFFLINE,
+        status=AgentStatus.STOPPED,
         role="coder",
         project="Setup",
         last_task=None,

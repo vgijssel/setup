@@ -165,12 +165,9 @@ class AgentService:
 
         preset_id = matched_role.id
 
-        # Normalize name to lowercase for case-insensitive handling
-        normalized_name = name.lower()
-
         # Check name uniqueness (case-insensitive)
         try:
-            existing = await self.agent_repo.get_by_name(normalized_name)
+            existing = await self.agent_repo.get_by_name(name)
             if existing:
                 from ..models.errors import AgentConflictError
 
@@ -181,7 +178,7 @@ class AgentService:
 
         # Create the agent with normalized name
         return await self.agent_repo.create(
-            name=normalized_name, template_id=template_id, preset_id=preset_id, task=task
+            name=name, template_id=template_id, preset_id=preset_id, task=task
         )
 
     async def delete_agent(self, name: str) -> None:

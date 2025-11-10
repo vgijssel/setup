@@ -166,6 +166,50 @@ class AgentRepository:
         except Exception as e:
             raise CoderAPIError(f"Failed to restart agent '{agent_name}': {e}") from e
 
+    def _are_all_workspace_agents_healthy(self, workspace: dict[str, Any]) -> bool:
+        """Check if all agents within the workspace are healthy and ready.
+
+        A workspace agent is considered healthy when:
+        - status is "connected"
+        - lifecycle_state is "ready"
+
+        Args:
+            workspace: Workspace data from Coder API
+
+        Returns:
+            True if all agents are healthy, False otherwise
+        """
+        latest_build = workspace.get("latest_build", {})
+        resources = latest_build.get("resources", [])
+
+        # If no resources, consider unhealthy
+        if not resources:
+            return False
+
+        # Track if we found at least one agent
+        found_any_agent = False
+
+        # Check all agents in all resources
+        for resource in resources:
+            agents = resource.get("agents", [])
+            # If resource has no agents, skip it
+            if not agents:
+                continue
+
+            # We found at least one agent
+            found_any_agent = True
+
+            for agent in agents:
+                agent_status = agent.get("status", "")
+                lifecycle_state = agent.get("lifecycle_state", "")
+
+                # Agent must be connected and ready to be considered healthy
+                if agent_status != "connected" or lifecycle_state != "ready":
+                    return False
+
+        # Healthy only if we found at least one agent and all were healthy
+        return found_any_agent
+
     async def _workspace_to_agent(self, workspace: dict[str, Any]) -> Agent:
         """Transform Coder workspace API response to Agent domain model.
 
@@ -180,6 +224,7 @@ class AgentRepository:
         - Maps workspace.id → agent.workspace_id
         - Maps workspace.template_display_name → agent.project (user-facing name)
         - Derives agent.status from latest_build.status
+        - Checks workspace agent health before marking as IDLE/BUSY
         - Extracts agent.role from workspace metadata
         - Extracts agent.last_task from rich parameters if present
         """
@@ -187,24 +232,37 @@ class AgentRepository:
         build_status = latest_build.get("status", "unknown")
 
         # Map Coder workspace build status to Agent status
-        status_map = {
-            "starting": AgentStatus.STARTING,
-            "running": AgentStatus.IDLE,  # Running workspace = idle agent
-            "stopped": AgentStatus.OFFLINE,
-            "failed": AgentStatus.FAILED,
-            "canceling": AgentStatus.OFFLINE,
-            "canceled": AgentStatus.OFFLINE,
-            "deleting": AgentStatus.OFFLINE,
-        }
-
-        agent_status = status_map.get(build_status, AgentStatus.OFFLINE)
-
-        # Check if agent is busy (has an active AI task)
-        # This is indicated by has_ai_task=true and latest_app_status.state="working"
-        if (workspace.get("latest_build") or {}).get("has_ai_task"):
-            latest_app_status = workspace.get("latest_app_status") or {}
-            if latest_app_status.get("state") == "working":
-                agent_status = AgentStatus.BUSY
+        # Maps 1:1 except "running" which is split into "idle" (no active task) and "busy" (task running)
+        if build_status != "running":
+            # Non-running states map directly
+            status_map = {
+                "pending": AgentStatus.PENDING,
+                "starting": AgentStatus.STARTING,
+                "stopping": AgentStatus.STOPPING,
+                "stopped": AgentStatus.STOPPED,
+                "failed": AgentStatus.FAILED,
+                "canceling": AgentStatus.CANCELING,
+                "canceled": AgentStatus.CANCELED,
+                "deleting": AgentStatus.DELETING,
+                "deleted": AgentStatus.DELETED,
+            }
+            agent_status = status_map.get(build_status, AgentStatus.FAILED)
+        elif not self._are_all_workspace_agents_healthy(workspace):
+            # Workspace is running but agents are not healthy yet
+            agent_status = AgentStatus.STARTING
+        else:
+            # Workspace is running and agents are healthy
+            # Check if agent is busy (has an active AI task)
+            # This is indicated by has_ai_task=true and latest_app_status.state="working"
+            if (workspace.get("latest_build") or {}).get("has_ai_task"):
+                latest_app_status = workspace.get("latest_app_status") or {}
+                if latest_app_status.get("state") == "working":
+                    agent_status = AgentStatus.BUSY
+                else:
+                    agent_status = AgentStatus.IDLE
+            else:
+                # No task data, default to idle
+                agent_status = AgentStatus.IDLE
 
         # Extract role from preset ID in latest_build
         # The preset_id is stored in latest_build.template_version_preset_id

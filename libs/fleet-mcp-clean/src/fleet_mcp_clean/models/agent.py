@@ -8,13 +8,24 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class AgentStatus(str, Enum):
-    """Agent lifecycle status."""
+    """Agent lifecycle status.
 
-    STARTING = "starting"
-    IDLE = "idle"
-    BUSY = "busy"
-    OFFLINE = "offline"
-    FAILED = "failed"
+    Maps 1:1 to Coder workspace states, except:
+    - Coder "running" state is split into "idle" (no active task) and "busy" (task running)
+    - An agent can only transition from "starting" to "idle" or "busy" when all apps are healthy
+    """
+
+    PENDING = "pending"  # Workspace build queued and waiting to start
+    STARTING = "starting"  # Workspace being started (provisioning resources)
+    IDLE = "idle"  # Workspace running and no active task
+    BUSY = "busy"  # Workspace running with active task
+    STOPPING = "stopping"  # Workspace being stopped (destroying ephemeral resources)
+    STOPPED = "stopped"  # Workspace stopped; ephemeral resources destroyed
+    FAILED = "failed"  # Build failed during provisioning
+    CANCELING = "canceling"  # Build cancellation in progress
+    CANCELED = "canceled"  # Build was successfully canceled
+    DELETING = "deleting"  # Workspace being permanently deleted
+    DELETED = "deleted"  # Workspace completely destroyed
 
 
 class Agent(BaseModel):
@@ -58,3 +69,7 @@ class Agent(BaseModel):
     def is_online(self) -> bool:
         """Check if agent is online (idle or busy)."""
         return self.status in (AgentStatus.IDLE, AgentStatus.BUSY)
+
+    def can_accept_tasks(self) -> bool:
+        """Check if agent can accept new tasks (must be idle and fully started)."""
+        return self.status == AgentStatus.IDLE
