@@ -1,6 +1,6 @@
 # Tasks: Fleet MCP Clean Architecture
 
-**Input**: Design documents from `/specs/003-fleet-mcp-clean/`
+**Input**: Design documents from `/specs/003-fleet-mcp/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
 
 **Tests**: TDD approach requested - test tasks included for all user stories
@@ -16,8 +16,8 @@
 ## Path Conventions
 
 This is a Python library in Nx monorepo:
-- Source: `libs/fleet-mcp-clean/src/fleet_mcp_clean/`
-- Tests: `libs/fleet-mcp-clean/tests/`
+- Source: `libs/fleet-mcp/src/fleet_mcp_clean/`
+- Tests: `libs/fleet-mcp/tests/`
 
 ---
 
@@ -25,7 +25,7 @@ This is a Python library in Nx monorepo:
 
 **Purpose**: Project initialization and basic structure
 
-- [X] T001 Create project directory structure at libs/fleet-mcp-clean/
+- [X] T001 Create project directory structure at libs/fleet-mcp/
 - [X] T002 Create pyproject.toml with uv dependencies (fastmcp==2.13.0.2, pydantic==2.12.3, httpx==0.28.1, etc.)
 - [X] T003 Create package.json with Nx configuration (server and test targets)
 - [X] T004 [P] Create .env.example with CODER_URL and CODER_SESSION_TOKEN
@@ -157,7 +157,7 @@ This is a Python library in Nx monorepo:
 
 #### Verification
 
-- [X] T080 [US1] Run nx test fleet-mcp-clean to verify all User Story 1 tests pass
+- [X] T080 [US1] Run nx test fleet-mcp to verify all User Story 1 tests pass
 - [X] T081 [US1] Run manual smoke test: list agents, show specific agent, list projects, list roles for a project
 
 **Checkpoint**: ✅ User Story 1 is fully functional and testable independently - All tests passing!
@@ -250,7 +250,7 @@ This is a Python library in Nx monorepo:
 
 #### Verification
 
-- [X] T127 [US2] Run nx test fleet-mcp-clean to verify all User Story 2 tests pass
+- [X] T127 [US2] Run nx test fleet-mcp to verify all User Story 2 tests pass
 - [X] T128 [US2] Run manual smoke test: create agent, verify it exists, delete agent, verify it's gone, restart agent
 
 **Checkpoint**: ✅ User Stories 1 AND 2 are fully functional and tested - 78 tests passing!
@@ -333,7 +333,7 @@ This is a Python library in Nx monorepo:
 
 #### Verification
 
-- [X] T166 [US3] Run nx test fleet-mcp-clean to verify all User Story 3 tests pass
+- [X] T166 [US3] Run nx test fleet-mcp to verify all User Story 3 tests pass
 - [X] T167 [US3] Run manual smoke test: create agent, assign task, verify busy status, cancel task, verify idle status
 
 **Checkpoint**: ✅ User Stories 1, 2, AND 3 are fully functional and tested - 112 tests passing!
@@ -418,7 +418,7 @@ This is a Python library in Nx monorepo:
 
 #### Verification
 
-- [X] T205 [US4] Run nx test fleet-mcp-clean to verify all User Story 4 tests pass (123 tests passing)
+- [X] T205 [US4] Run nx test fleet-mcp to verify all User Story 4 tests pass (123 tests passing)
 - [X] T206 [US4] Run manual smoke test: create agent, run multiple tasks, paginate through history and logs
 
 **Checkpoint**: ✅ User Stories 1, 2, 3, AND 4 are fully functional and tested - 123 tests passing!
@@ -451,14 +451,14 @@ This is a Python library in Nx monorepo:
 - [X] T219 [P] Create .gitignore with .venv, .pytest_cache, __pycache__, *.pyc
 - [X] T220 [P] Add logging configuration in src/fleet_mcp_clean/__main__.py
 - [X] T221 Run uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing to verify test coverage
-- [X] T222 Run nx test fleet-mcp-clean to verify all tests pass with caching
+- [X] T222 Run nx test fleet-mcp to verify all tests pass with caching
 - [ ] T223 Run manual end-to-end test following quickstart.md validation steps (SKIPPED: Requires live Coder instance, integration tests cover this)
 - [X] T224 [P] Add import-linter configuration to verify layer boundaries (Added to pyproject.toml and package.json as Nx target)
-- [X] T225 Run import-linter to verify no layer boundary violations (PASSED: 1 contract kept, 0 broken - Available via: nx lint-imports fleet-mcp-clean)
+- [X] T225 Run import-linter to verify no layer boundary violations (PASSED: 1 contract kept, 0 broken - Available via: nx lint-imports fleet-mcp)
 - [X] T226 Remove all secrets / tokens from VCR cassettes. Follow same approach as libs/fleet-mcp in libs/fleet-mcp/tests/conftest.py how secrets are removed and redacted.
-- [X] T227 Setup integration tests which test calling the MCP tools end-to-end. These tests use the respx mocking framework to mock out HTTP calls to the Coder API, similar to how the client layer tests are structured. Ensure these tests cover all MCP tools. Ensure that these tests only mock out HTTP calls, and do not mock any internal layers of the fleet-mcp-clean library.
+- [X] T227 Setup integration tests which test calling the MCP tools end-to-end. These tests use the respx mocking framework to mock out HTTP calls to the Coder API, similar to how the client layer tests are structured. Ensure these tests cover all MCP tools. Ensure that these tests only mock out HTTP calls, and do not mock any internal layers of the fleet-mcp library.
 - [X] T228 remove all VCR cassettes and re-record them after T226 and T227 are complete to ensure no secrets are present and integration tests are passing. This is to make sure we're only committing the casettes which we need.
-- [X] T229 Add return type hints to methods in libs/fleet-mcp-clean/src/fleet_mcp_clean/__main__.py (Completed: Added dict return type to all MCP tool functions)
+- [X] T229 Add return type hints to methods in libs/fleet-mcp/src/fleet_mcp_clean/__main__.py (Completed: Added dict return type to all MCP tool functions)
 - [X] T230 Ensure workspace is deleted after record.py is done, whether successful or failed, to avoid orphaned workspaces in Coder instance. Don't stop but actually delete the workspace in the finally block.
 - [X] T231 Implement a /health endpoint in the MCP tool to Coder can verify it's running correctly
 - [ ] T232 Add type hints to all methods in src/fleet_mcp_clean/clients/coder_client.py. Use models named "Remote" for return types where applicable, for example, CoderClient.list_workspaces() should have return type List[WorkspaceRemote].

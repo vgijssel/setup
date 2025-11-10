@@ -65,7 +65,7 @@ This project uses `uv` for dependency management. Ensure you have uv installed:
 
 ```bash
 # Install dependencies
-cd libs/fleet-mcp-clean
+cd libs/fleet-mcp
 uv sync
 
 # Install with dev dependencies
@@ -85,10 +85,10 @@ cp .env.example .env
 
 ```bash
 # Using Nx
-nx server fleet-mcp-clean
+nx server fleet-mcp
 
 # Or directly with uv
-cd libs/fleet-mcp-clean
+cd libs/fleet-mcp
 uv run fastmcp run src/fleet_mcp_clean/__main__.py
 ```
 
@@ -96,20 +96,20 @@ uv run fastmcp run src/fleet_mcp_clean/__main__.py
 
 ```bash
 # Run tests with Nx
-nx test fleet-mcp-clean
+nx test fleet-mcp
 
 # Or directly with uv
-cd libs/fleet-mcp-clean
+cd libs/fleet-mcp
 uv run pytest
 
 # With coverage
 uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing
 
 # Verify layer boundaries with import-linter
-nx lint-imports fleet-mcp-clean
+nx lint-imports fleet-mcp
 
 # Run all validation together
-nx run-many -t test lint-imports -p fleet-mcp-clean
+nx run-many -t test lint-imports -p fleet-mcp
 ```
 
 ## Available MCP Tools
@@ -193,7 +193,7 @@ for task in result["tasks"]:
 ### Project Structure
 
 ```
-libs/fleet-mcp-clean/
+libs/fleet-mcp/
 ├── src/fleet_mcp_clean/
 │   ├── __init__.py
 │   ├── __main__.py          # FastMCP server entry point

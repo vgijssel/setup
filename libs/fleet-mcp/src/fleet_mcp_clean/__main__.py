@@ -1,4 +1,4 @@
-"""FastMCP server entry point for fleet-mcp-clean."""
+"""FastMCP server entry point for fleet-mcp."""
 
 import logging
 import os
@@ -336,7 +336,7 @@ async def health_check(request):
     return JSONResponse(
         {
             "status": "healthy",
-            "service": "fleet-mcp-clean",
+            "service": "fleet-mcp",
             "version": "0.1.0",
             "coder_url": CODER_URL,
         }

@@ -1,10 +1,10 @@
 # Quickstart Guide: Fleet MCP Clean Architecture
 
-**Branch**: `003-fleet-mcp-clean` | **Date**: 2025-11-07
+**Branch**: `003-fleet-mcp` | **Date**: 2025-11-07
 
 ## Overview
 
-This guide provides a step-by-step walkthrough for developers to understand, build, test, and use fleet-mcp-clean. It covers the clean architecture implementation, testing strategy, and common workflows.
+This guide provides a step-by-step walkthrough for developers to understand, build, test, and use fleet-mcp. It covers the clean architecture implementation, testing strategy, and common workflows.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ This guide provides a step-by-step walkthrough for developers to understand, bui
 ### 1. Navigate to the Project
 
 ```bash
-cd libs/fleet-mcp-clean
+cd libs/fleet-mcp
 ```
 
 ### 2. Install Dependencies with uv
@@ -61,7 +61,7 @@ Live Coder API access is available out of the box.
 
 ## Architecture Overview
 
-Fleet-mcp-clean uses a 5-layer clean architecture:
+fleet-mcp uses a 5-layer clean architecture:
 
 ```
 Tool (MCP Entry) → Service (Business Logic) → Repository (Data Access) → Client (HTTP) → Coder API
@@ -88,7 +88,7 @@ Each layer only depends on the layer directly below it:
 ### 1. Understanding the Code Structure
 
 ```
-libs/fleet-mcp-clean/
+libs/fleet-mcp/
 ├── fleet_mcp_clean/
 │   ├── tools/              # 11 MCP tools (list, show, create, delete, etc.)
 │   ├── services/           # Business logic (AgentService, TaskService, ProjectService)
@@ -108,7 +108,7 @@ libs/fleet-mcp-clean/
 
 ### 2. Test-Driven Development (TDD)
 
-Fleet-mcp-clean follows strict TDD:
+fleet-mcp follows strict TDD:
 
 #### Step 1: Record VCR Cassettes (One-Time)
 
@@ -268,13 +268,13 @@ uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing
 **Using Nx** (monorepo integration):
 ```bash
 # Run tests via Nx (with caching)
-nx test fleet-mcp-clean
+nx test fleet-mcp
 
 # Run affected tests only
 nx affected:test
 
 # View test configuration
-nx show project fleet-mcp-clean
+nx show project fleet-mcp
 ```
 
 **Benefits of Nx**:
@@ -309,7 +309,7 @@ uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port
 **Using Nx** (preferred):
 ```bash
 # Start the server via Nx target
-nx server fleet-mcp-clean
+nx server fleet-mcp
 
 # This runs: uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8001 --reload --timeout-graceful-shutdown 3
 ```
@@ -326,7 +326,7 @@ resource "coder_script" "fleet_mcp" {
   agent_id = coder_agent.main.id
   display_name = "Fleet MCP Server"
   script = <<-EOT
-    cd /workspace/libs/fleet-mcp-clean
+    cd /workspace/libs/fleet-mcp
     python -m fleet_mcp_clean.server
   EOT
   run_on_start = true
@@ -341,7 +341,7 @@ resource "coder_script" "fleet_mcp" {
 # Using MCP client (from another Claude Code instance)
 from mcp import Client
 
-client = Client("fleet-mcp-clean")
+client = Client("fleet-mcp")
 result = await client.call_tool("list_agents", {})
 
 print(result["agents"])
@@ -420,16 +420,16 @@ print(result["message"])
 
 Traditional VCR usage:
 ```python
-# ❌ Traditional approach (NOT used in fleet-mcp-clean)
+# ❌ Traditional approach (NOT used in fleet-mcp)
 @pytest.mark.vcr
 def test_create_workspace():
     client = CoderClient(...)
     workspace = client.create_workspace(...)  # Uses VCR cassette
 ```
 
-Fleet-mcp-clean approach:
+fleet-mcp approach:
 ```python
-# ✅ Fleet-mcp-clean approach
+# ✅ fleet-mcp approach
 def test_create_workspace(respx_mock):
     # Explicit mock setup from cassette data
     cassette_data = load_cassette("create_workspace_success")
@@ -608,7 +608,7 @@ def get_template_by_name(self, name: str) -> Template:
 
 ## Summary
 
-Fleet-mcp-clean provides a clean, testable architecture for managing Claude Code agent fleets:
+fleet-mcp provides a clean, testable architecture for managing Claude Code agent fleets:
 
 - **5-layer architecture**: Clear separation of concerns
 - **TDD approach**: VCR cassettes → respx mocks → layer-specific tests

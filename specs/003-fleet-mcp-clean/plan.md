@@ -1,13 +1,13 @@
 # Implementation Plan: Fleet MCP Clean Architecture with uv and Nx
 
-**Branch**: `003-fleet-mcp-clean` | **Date**: 2025-11-07 | **Spec**: [spec.md](./spec.md)
+**Branch**: `003-fleet-mcp` | **Date**: 2025-11-07 | **Spec**: [spec.md](./spec.md)
 **Input**: Update to use uv as the package manager, no pip. Also make it an Nx project.
 
-**Note**: This plan implements the fleet-mcp-clean architecture with clean architecture patterns, using uv for Python package management and integrating as an Nx monorepo project.
+**Note**: This plan implements the fleet-mcp architecture with clean architecture patterns, using uv for Python package management and integrating as an Nx monorepo project.
 
 ## Summary
 
-Implement a clean architecture version of fleet-mcp (fleet-mcp-clean) that manages Claude Code agent fleets in Coder workspaces. The implementation uses a 5-layer architecture (Tool → Service → Repository → Client → Coder API) with AI-compatible testing patterns. Package management is handled by uv (not pip), and the project is fully integrated into the Nx monorepo structure for build orchestration and caching.
+Implement a clean architecture version of fleet-mcp (fleet-mcp) that manages Claude Code agent fleets in Coder workspaces. The implementation uses a 5-layer architecture (Tool → Service → Repository → Client → Coder API) with AI-compatible testing patterns. Package management is handled by uv (not pip), and the project is fully integrated into the Nx monorepo structure for build orchestration and caching.
 
 ## Technical Context
 
@@ -36,7 +36,7 @@ Implement a clean architecture version of fleet-mcp (fleet-mcp-clean) that manag
 
 **Target Platform**: Linux server (Coder workspace environment)
 
-**Project Type**: Single Python library in Nx monorepo (libs/fleet-mcp-clean)
+**Project Type**: Single Python library in Nx monorepo (libs/fleet-mcp)
 
 **Performance Goals**:
 - List 100+ agents in <2 seconds
@@ -80,7 +80,7 @@ uv.lock ensures fully deterministic builds. Renovatebot configured for automated
 
 ### ✅ IV. Nx Monorepo Structure
 **Status**: PASS
-**Rationale**: Project located in libs/fleet-mcp-clean following Nx convention. Uses Nx run-commands executor for server and test targets. Configured in package.json with proper nx metadata. Independent versioning via nx release. Follows existing fleet-mcp pattern.
+**Rationale**: Project located in libs/fleet-mcp following Nx convention. Uses Nx run-commands executor for server and test targets. Configured in package.json with proper nx metadata. Independent versioning via nx release. Follows existing fleet-mcp pattern.
 
 ### ✅ V. Third-Party Dependency Management
 **Status**: PASS
@@ -104,7 +104,7 @@ uv.lock ensures fully deterministic builds. Renovatebot configured for automated
 
 ### ✅ X. Modular Library Design
 **Status**: PASS
-**Rationale**: Single focused library (libs/fleet-mcp-clean) with clear responsibility (fleet management). Clean architecture with 5 distinct layers ensures modularity. Isolated test suite. Independent build/test. Minimal dependencies (only Coder API client).
+**Rationale**: Single focused library (libs/fleet-mcp) with clear responsibility (fleet management). Clean architecture with 5 distinct layers ensures modularity. Isolated test suite. Independent build/test. Minimal dependencies (only Coder API client).
 
 **GATE VERDICT**: ✅ ALL CHECKS PASS - Proceed to Phase 0 research
 
@@ -125,7 +125,7 @@ specs/[###-feature]/
 ### Source Code (repository root)
 
 ```text
-libs/fleet-mcp-clean/
+libs/fleet-mcp/
 ├── pyproject.toml           # Python project config with uv dependencies
 ├── uv.lock                  # Locked dependency versions
 ├── package.json             # Nx project config with targets
@@ -276,7 +276,7 @@ After completing Phase 0 (Research) and Phase 1 (Design), re-checking all consti
 
 ### ✅ X. Modular Library Design
 **Status**: PASS (validated by architecture design)
-- Single focused library (libs/fleet-mcp-clean)
+- Single focused library (libs/fleet-mcp)
 - 5-layer clean architecture ensures internal modularity
 - Clear layer boundaries enforced
 - Isolated test suite per layer

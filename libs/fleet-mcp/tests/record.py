@@ -488,7 +488,7 @@ Cassettes have been recorded to: {CASSETTE_DIR}
 Next steps:
 1. Review the cassette files to ensure they contain expected data
 2. Update test fixtures if needed
-3. Run the test suite: nx test fleet-mcp-clean
+3. Run the test suite: nx test fleet-mcp
 """
         )
 

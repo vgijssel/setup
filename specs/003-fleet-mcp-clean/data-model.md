@@ -1,14 +1,14 @@
 # Data Model: Fleet MCP Clean Architecture
 
-**Branch**: `003-fleet-mcp-clean` | **Date**: 2025-11-07
+**Branch**: `003-fleet-mcp` | **Date**: 2025-11-07
 
 ## Overview
 
-This document defines the domain entities and their relationships for the fleet-mcp-clean system. All entities are implemented as Pydantic models to provide validation, serialization, and type safety.
+This document defines the domain entities and their relationships for the fleet-mcp system. All entities are implemented as Pydantic models to provide validation, serialization, and type safety.
 
 ## Model Naming Conventions
 
-Fleet-mcp-clean follows a consistent naming pattern for Pydantic models:
+fleet-mcp follows a consistent naming pattern for Pydantic models:
 
 1. **Domain Models** (no suffix): Core business entities like `Agent`, `Task`, `Project`, `Role`
 2. **Remote Models** ("Remote" suffix): Models representing HTTP responses from external APIs like `WorkspaceRemote`, `TemplateRemote`

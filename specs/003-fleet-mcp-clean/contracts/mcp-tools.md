@@ -1,10 +1,10 @@
 # MCP Tool Contracts: Fleet MCP Clean Architecture
 
-**Branch**: `003-fleet-mcp-clean` | **Date**: 2025-11-07
+**Branch**: `003-fleet-mcp` | **Date**: 2025-11-07
 
 ## Overview
 
-This document defines the contracts for all 11 MCP tools exposed by fleet-mcp-clean. Each tool is a thin entry point that delegates to the Service layer and returns results in MCP format.
+This document defines the contracts for all 11 MCP tools exposed by fleet-mcp. Each tool is a thin entry point that delegates to the Service layer and returns results in MCP format.
 
 ## Model Naming Conventions
 
@@ -646,7 +646,7 @@ from fastmcp import FastMCP, Field
 from fleet_mcp_clean.services import AgentService
 from fleet_mcp_clean.models import CreateAgentResponse
 
-mcp = FastMCP("fleet-mcp-clean")
+mcp = FastMCP("fleet-mcp")
 
 @mcp.tool()
 async def create_agent(

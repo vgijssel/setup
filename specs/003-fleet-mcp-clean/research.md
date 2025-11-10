@@ -1,10 +1,10 @@
 # Research: Fleet MCP Clean Architecture
 
-**Branch**: `003-fleet-mcp-clean` | **Date**: 2025-11-07
+**Branch**: `003-fleet-mcp` | **Date**: 2025-11-07
 
 ## Overview
 
-This document captures research findings and technology decisions for implementing fleet-mcp-clean with clean architecture, AI-compatible testing, **uv package management (no pip)**, and **Nx monorepo integration**.
+This document captures research findings and technology decisions for implementing fleet-mcp with clean architecture, AI-compatible testing, **uv package management (no pip)**, and **Nx monorepo integration**.
 
 ## Technology Decisions
 
@@ -47,7 +47,7 @@ This document captures research findings and technology decisions for implementi
     "executor": "nx:run-commands",
     "options": {
       "command": "uv run --all-extras pytest -v",
-      "cwd": "libs/fleet-mcp-clean"
+      "cwd": "libs/fleet-mcp"
     }
   }
 }
@@ -61,7 +61,7 @@ This document captures research findings and technology decisions for implementi
 
 ### 1. Build System: Nx Monorepo Integration
 
-**Decision**: Configure fleet-mcp-clean as Nx library with package.json configuration
+**Decision**: Configure fleet-mcp as Nx library with package.json configuration
 
 **Rationale**:
 - **Existing Pattern**: libs/fleet-mcp uses this exact pattern (see libs/fleet-mcp/package.json)
@@ -76,29 +76,29 @@ This document captures research findings and technology decisions for implementi
 **Configuration Pattern** (from libs/fleet-mcp):
 ```json
 {
-  "name": "fleet-mcp-clean",
+  "name": "fleet-mcp",
   "version": "0.1.0",
   "description": "Fleet MCP Clean Architecture Server",
   "private": true,
   "nx": {
     "projectType": "library",
-    "sourceRoot": "libs/fleet-mcp-clean/src",
+    "sourceRoot": "libs/fleet-mcp/src",
     "targets": {
       "server": {
         "executor": "nx:run-commands",
         "options": {
           "command": "uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8001 --reload --timeout-graceful-shutdown 3",
-          "cwd": "libs/fleet-mcp-clean"
+          "cwd": "libs/fleet-mcp"
         },
         "metadata": {
-          "description": "Run the fleet-mcp-clean server with hot reload"
+          "description": "Run the fleet-mcp server with hot reload"
         }
       },
       "test": {
         "executor": "nx:run-commands",
         "options": {
           "command": "uv run --all-extras pytest -v",
-          "cwd": "libs/fleet-mcp-clean"
+          "cwd": "libs/fleet-mcp"
         },
         "cache": true,
         "inputs": [
@@ -117,10 +117,10 @@ This document captures research findings and technology decisions for implementi
 ```
 
 **Nx Commands**:
-- `nx server fleet-mcp-clean` - Run development server
-- `nx test fleet-mcp-clean` - Run tests (with caching)
+- `nx server fleet-mcp` - Run development server
+- `nx test fleet-mcp` - Run tests (with caching)
 - `nx affected:test` - Run tests for changed projects only
-- `nx show project fleet-mcp-clean` - Show project configuration
+- `nx show project fleet-mcp` - Show project configuration
 
 **Key Configuration Details**:
 - Use port 8001 (not 8000) to avoid conflict with original fleet-mcp
@@ -140,7 +140,7 @@ This document captures research findings and technology decisions for implementi
 - Set `cache: true` for deterministic tasks (tests, builds)
 - Properly define `inputs` to invalidate cache correctly
 - Use different ports for different MCP servers (8000, 8001, 8002...)
-- Follow naming convention: `fleet-mcp-clean` (not `fleet_mcp_clean`)
+- Follow naming convention: `fleet-mcp` (not `fleet_mcp_clean`)
 
 ### 2. MCP Server Framework: FastMCP
 

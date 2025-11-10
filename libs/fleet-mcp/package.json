@@ -1,5 +1,5 @@
 {
-  "name": "fleet-mcp-clean",
+  "name": "fleet-mcp",
   "version": "0.1.0",
   "private": true,
   "description": "Clean architecture fleet management for Claude Code agents",
@@ -13,17 +13,17 @@
         "executor": "nx:run-commands",
         "options": {
           "command": "uv run --all-extras uvicorn fleet_mcp_clean.__main__:app --host 127.0.0.1 --port 8000 --reload --timeout-graceful-shutdown 3",
-          "cwd": "libs/fleet-mcp-clean"
+          "cwd": "libs/fleet-mcp"
         },
         "metadata": {
-          "description": "Run the fleet-mcp-clean server with hot reload in stateless HTTP mode"
+          "description": "Run the fleet-mcp server with hot reload in stateless HTTP mode"
         }
       },
       "test": {
         "executor": "nx:run-commands",
         "options": {
           "command": "uv run pytest",
-          "cwd": "libs/fleet-mcp-clean"
+          "cwd": "libs/fleet-mcp"
         },
         "cache": true,
         "inputs": [
@@ -43,7 +43,7 @@
         "executor": "nx:run-commands",
         "options": {
           "command": "uv run lint-imports",
-          "cwd": "libs/fleet-mcp-clean"
+          "cwd": "libs/fleet-mcp"
         },
         "cache": true,
         "inputs": [

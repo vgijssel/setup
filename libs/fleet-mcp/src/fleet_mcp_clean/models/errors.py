@@ -1,8 +1,8 @@
-"""Custom exception classes for fleet-mcp-clean."""
+"""Custom exception classes for fleet-mcp."""
 
 
 class FleetMCPError(Exception):
-    """Base exception for all fleet-mcp-clean errors."""
+    """Base exception for all fleet-mcp errors."""
 
     pass
 

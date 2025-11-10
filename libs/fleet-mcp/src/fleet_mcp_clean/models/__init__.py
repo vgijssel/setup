@@ -1,4 +1,4 @@
-"""Domain models for fleet-mcp-clean."""
+"""Domain models for fleet-mcp."""
 
 from .agent import Agent, AgentStatus
 from .errors import (

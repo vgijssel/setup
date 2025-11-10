@@ -1,4 +1,4 @@
-"""Integration tests for fleet-mcp-clean MVP using VCR cassettes."""
+"""Integration tests for fleet-mcp MVP using VCR cassettes."""
 
 import pytest
 import vcr
