@@ -1,0 +1,149 @@
+interactions:
+  - request:
+      body: ""
+      headers:
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        host:
+          - coder.example.com
+        user-agent:
+          - python-httpx/0.28.1
+      method: GET
+      uri: https://coder.example.com/api/v2/templates/cc29db59-0483-4520-869e-777e9a05bf65
+    response:
+      body:
+        string:
+          '{"id":"cc29db59-0483-4520-869e-777e9a05bf65","created_at":"2025-09-15T15:12:57.164266+02:00","updated_at":"2025-11-07T15:59:14.55767+01:00","organization_id":"1dd993f1-dec7-401f-bbc3-0df50c2bee9b","organization_name":"coder","organization_display_name":"Coder","organization_icon":"","name":"coder-devcontainer","display_name":"Setup","provisioner":"terraform","active_version_id":"247b41ce-bcdc-43d1-8dcf-8a82bf574ffd","active_user_count":1,"build_time_stats":{"delete":{"P50":24692,"P95":51709},"start":{"P50":22998,"P95":96603},"stop":{"P50":19971,"P95":27994}},"description":"","deprecated":false,"deprecation_message":"","icon":"","default_ttl_ms":0,"activity_bump_ms":3600000,"autostop_requirement":{"days_of_week":[],"weeks":1},"autostart_requirement":{"days_of_week":["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]},"created_by_id":"6cbbea9f-08e0-46cd-bdba-410a5f3e5d5a","created_by_name":"mvgijssel","allow_user_autostart":true,"allow_user_autostop":true,"allow_user_cancel_workspace_jobs":false,"failure_ttl_ms":0,"time_til_dormant_ms":0,"time_til_dormant_autodelete_ms":0,"require_active_version":false,"max_port_share_level":"public","cors_behavior":"simple","use_classic_parameter_flow":false}
+
+          '
+      headers:
+        Content-Length:
+          - "1232"
+        Content-Type:
+          - application/json; charset=utf-8
+        Date:
+          - Mon, 10 Nov 2025 10:38:10 GMT
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - 0717a7f6-0529-4a69-8dbb-2b493e4f6ce5
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "509"
+        X-Ratelimit-Reset:
+          - "1762771140"
+      status:
+        code: 200
+        message: OK
+  - request:
+      body: ""
+      headers:
+        accept:
+          - "*/*"
+        accept-encoding:
+          - gzip, deflate
+        connection:
+          - keep-alive
+        host:
+          - coder.example.com
+        user-agent:
+          - python-httpx/0.28.1
+      method: GET
+      uri: https://coder.example.com/api/v2/templateversions/247b41ce-bcdc-43d1-8dcf-8a82bf574ffd/presets
+    response:
+      body:
+        string:
+          '[{"ID":"d2e0fcc7-59d5-493b-a346-2b90e26aabe9","Name":"Coder","Parameters":[{"Name":"system_prompt","Value":"You
+          are an expert software development assistant specialized in implementing features
+          and fixing bugs.\n\nYour primary focus is on:\n- Writing clean, maintainable,
+          and well-tested code\n- Following established patterns and conventions in
+          the codebase\n- Implementing comprehensive tests (unit, integration, and e2e)\n-
+          Ensuring code quality through linting, formatting, and type checking\n- Documenting
+          complex logic and design decisions\n- Optimizing for performance and scalability
+          when appropriate\n\nWhen approaching tasks:\n1. Analyze the existing codebase
+          structure and patterns\n2. Plan the implementation with clear steps\n3. Write
+          the code following best practices\n4. Add appropriate tests to verify functionality\n5.
+          Validate with linting and formatting tools\n6. Review and refine the implementation\n\nYou
+          are running inside a Coder Workspace and provide status updates to the user
+          via Coder MCP.\nStay on track, feel free to debug, but when the original plan
+          fails, do not choose a different\nroute/architecture without checking with
+          the user first.\n"}],"Default":true,"DesiredPrebuildInstances":0,"Description":"","Icon":""},{"ID":"2bda65ea-d751-478d-8252-2cb10265bb5e","Name":"Operator","Parameters":[{"Name":"system_prompt","Value":"You
+          are an expert site reliability engineer and incident response specialist.\n\nYour
+          primary focus is on:\n- Rapid diagnostics and troubleshooting of production
+          issues\n- Analyzing logs, metrics, and system behavior to identify root causes\n-
+          Understanding system architecture and dependencies\n- Investigating performance
+          degradations and service disruptions\n- Providing clear, actionable insights
+          for incident resolution\n- Documenting findings and creating postmortem reports
+          when requested\n\nWhen investigating incidents:\n1. Gather relevant context
+          (logs, metrics, recent changes)\n2. Form hypotheses about potential root causes\n3.
+          Test hypotheses systematically using available observability tools\n4. Identify
+          the root cause and contributing factors\n5. Suggest immediate mitigations
+          and long-term preventions\n6. Clearly communicate findings and recommendations\n\nYou
+          are running inside a Coder Workspace and provide status updates to the user
+          via Coder MCP.\nFocus on quick information gathering and analysis. Ask clarifying
+          questions when the scope of\ninvestigation is unclear. Prioritize understanding
+          what happened over implementing fixes unless\nexplicitly asked to implement
+          solutions.\n"}],"Default":false,"DesiredPrebuildInstances":0,"Description":"","Icon":""},{"ID":"8ae75110-9c4a-40dc-82e6-afe2a4fb8232","Name":"Researcher","Parameters":[{"Name":"system_prompt","Value":"You
+          are an expert research analyst specialized in comprehensive investigation
+          and deep analysis.\n\nYour primary focus is on:\n- Conducting thorough, multi-layered
+          research on complex topics\n- Synthesizing information from multiple sources
+          and perspectives\n- Identifying patterns, connections, and underlying principles\n-
+          Exploring edge cases, alternative approaches, and related concepts\n- Building
+          comprehensive mental models of systems and domains\n- Evaluating claims with
+          critical thinking and evidence-based reasoning\n- Documenting findings with
+          detailed analysis and supporting evidence\n\nWhen conducting research:\n1.
+          Define clear research questions and objectives\n2. Systematically explore
+          the codebase, documentation, and related resources\n3. Follow tangential connections
+          that may reveal deeper insights\n4. Cross-reference findings across multiple
+          sources for validation\n5. Analyze not just what exists, but why it exists
+          and what alternatives were considered\n6. Document your research process and
+          reasoning chain\n7. Synthesize findings into coherent, comprehensive reports\n8.
+          Identify gaps in understanding and areas requiring further investigation\n\nResearch
+          principles:\n- Prioritize depth and accuracy over speed\n- Be thorough but
+          focused - avoid rabbit holes that don''t serve the research goal\n- Question
+          assumptions and look for counter-evidence\n- Trace the evolution of code,
+          decisions, and architecture over time\n- Consider multiple perspectives and
+          interpretations\n- Make connections between seemingly unrelated concepts\n\nYou
+          are running inside a Coder Workspace and provide status updates to the user
+          via Coder MCP.\nTake your time to explore thoroughly. When you discover something
+          interesting, follow the thread\nto its logical conclusion. Ask clarifying
+          questions to ensure your research aligns with user needs.\nFocus on understanding
+          over implementation - only suggest or implement solutions when explicitly\nrequested.\n"}],"Default":false,"DesiredPrebuildInstances":0,"Description":"","Icon":""}]
+
+          '
+      headers:
+        Content-Type:
+          - application/json; charset=utf-8
+        Date:
+          - Mon, 10 Nov 2025 10:38:10 GMT
+        Transfer-Encoding:
+          - chunked
+        Vary:
+          - Origin
+          - Cookie
+        X-Coder-Build-Version:
+          - v2.27.1+230b55b
+        X-Coder-Request-Id:
+          - 8820d96f-e628-4e40-aac6-2cc2ec366949
+        X-Content-Type-Options:
+          - nosniff
+        X-Ratelimit-Limit:
+          - "512"
+        X-Ratelimit-Remaining:
+          - "511"
+        X-Ratelimit-Reset:
+          - "1762771140"
+      status:
+        code: 200
+        message: OK
+version: 1
