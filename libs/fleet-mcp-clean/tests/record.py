@@ -28,6 +28,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import vcr
 from fleet_mcp_clean.clients.coder_client import CoderClient
+from fleet_mcp_clean.repositories.agent_repository import AgentRepository
+from fleet_mcp_clean.models import AgentStatus
 
 # Configuration
 CODER_URL = os.getenv("CODER_URL")
@@ -260,6 +262,34 @@ async def wait_for_workspace_deleted(client: CoderClient, workspace_id: str, tim
     raise TimeoutError(f"Workspace {workspace_id} was not deleted within {timeout}s")
 
 
+async def wait_for_agent_idle(agent_repo: AgentRepository, agent_name: str, timeout: int = 300) -> None:
+    """Wait for agent to reach idle status using AgentRepository.
+
+    This waits for the workspace to be fully initialized and Claude Code to be idle,
+    which means task history and other metadata will be populated in the workspace response.
+    """
+    print(f"⏳ Waiting for agent {agent_name} to be idle...")
+    for attempt in range(timeout // 5):
+        try:
+            agent = await agent_repo.get_by_name(agent_name)
+            print(f"  Status: {agent.status.value}")
+
+            if agent.status == AgentStatus.IDLE:
+                print(f"✓ Agent is idle (last_task: {agent.last_task})")
+                return
+
+            if agent.status == AgentStatus.FAILED:
+                raise RuntimeError(f"Agent {agent_name} failed to start")
+
+        except Exception as e:
+            if attempt % 3 == 0:  # Only print every 15 seconds
+                print(f"  Error checking agent: {e}")
+
+        await asyncio.sleep(5)
+
+    raise TimeoutError(f"Agent {agent_name} did not become idle within {timeout}s")
+
+
 async def record(vcr_inst) -> None:
     """Record all cassettes in a single linear flow."""
     print(f"""
@@ -276,6 +306,7 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
 """)
 
     client = CoderClient(base_url=CODER_URL, token=CODER_SESSION_TOKEN)
+    agent_repo = AgentRepository(client)
     workspace_id = None
 
     # Cleanup any existing test workspace first
@@ -346,7 +377,9 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
                 template_id=template_id,
                 preset_id=preset_id,
                 rich_parameter_values=[
-                    {"name": "ai_prompt", "value": "Test recording task"},
+                    # Per Coder AI docs, the parameter name is "AI Prompt" (with space and capitals)
+                    # See: https://coder.com/docs/ai-coder/tasks#option-2-create-or-duplicate-your-own-template
+                    {"name": "AI Prompt", "value": "Test recording task"},
                 ],
             )
 
@@ -358,6 +391,9 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
 
         # Wait for all apps to be healthy (required for experimental API)
         await wait_for_apps_healthy(client, workspace_id)
+
+        # Wait for agent to become idle (this ensures task history is populated)
+        await wait_for_agent_idle(agent_repo, TEST_WORKSPACE_NAME)
 
         # Get workspace details
         print("\n📼 Recording: get_workspace_success.yaml")

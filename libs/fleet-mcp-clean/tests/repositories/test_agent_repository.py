@@ -337,3 +337,153 @@ class TestAgentRepositoryTemplateDisplayNameMapping:
             f"Expected agent.project to be 'Setup' (template_display_name), "
             f"but got '{agent.project}' (template_name)"
         )
+
+
+@pytest.mark.asyncio
+class TestAgentRepositoryLastTaskPopulation:
+    """Test that agent.last_task is populated from task history."""
+
+    async def test_list_all_populates_last_task_when_history_exists(
+        self, agent_repo, mock_coder_client
+    ):
+        """Test that list_all() populates last_task from task history.
+
+        Bug: last_task is always NULL even when task history exists.
+        Expected: last_task should show the most recent task description.
+        """
+        # Mock workspace data with a running agent
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "brappa",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:30:00Z",
+            "latest_build": {
+                "status": "running",
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "apps": [
+                                    {
+                                        "slug": "ccw",
+                                        "display_name": "Claude Code",
+                                        "statuses": [
+                                            {
+                                                "created_at": "2025-11-07T10:15:00Z",
+                                                "message": "First task completed",
+                                                "state": "complete"
+                                            },
+                                            {
+                                                "created_at": "2025-11-07T10:25:00Z",
+                                                "message": "Second task in progress",
+                                                "state": "working"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        # Execute
+        agents = await agent_repo.list_all()
+
+        # Verify last_task is populated with most recent task
+        assert len(agents) == 1
+        assert agents[0].last_task == "Second task in progress", (
+            f"Expected last_task to be 'Second task in progress', "
+            f"but got '{agents[0].last_task}'"
+        )
+
+    async def test_list_all_last_task_is_none_when_no_history(
+        self, agent_repo, mock_coder_client
+    ):
+        """Test that list_all() sets last_task to None when no history exists."""
+        # Mock workspace data without task history
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "brappa",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:30:00Z",
+            "latest_build": {
+                "status": "running",
+                "resources": []
+            }
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+
+        # Execute
+        agents = await agent_repo.list_all()
+
+        # Verify last_task is None
+        assert len(agents) == 1
+        assert agents[0].last_task is None
+
+    async def test_get_by_name_populates_last_task_when_history_exists(
+        self, agent_repo, mock_coder_client
+    ):
+        """Test that get_by_name() populates last_task from task history.
+
+        Bug: last_task is always NULL even when task history exists.
+        Expected: last_task should show the most recent task description.
+        """
+        # Mock workspace data with task history
+        mock_workspace = {
+            "id": "ws-1",
+            "name": "brappa",
+            "template_name": "coder-devcontainer",
+            "template_display_name": "Setup",
+            "template_id": "tpl-1",
+            "created_at": "2025-11-07T10:00:00Z",
+            "updated_at": "2025-11-07T10:30:00Z",
+            "latest_build": {
+                "status": "running",
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "apps": [
+                                    {
+                                        "slug": "ccw",
+                                        "display_name": "Claude Code",
+                                        "statuses": [
+                                            {
+                                                "created_at": "2025-11-07T10:15:00Z",
+                                                "message": "Old task",
+                                                "state": "complete"
+                                            },
+                                            {
+                                                "created_at": "2025-11-07T10:25:00Z",
+                                                "message": "Latest task",
+                                                "state": "working"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+        mock_coder_client.list_workspaces.return_value = [mock_workspace]
+        mock_coder_client.get_workspace.return_value = mock_workspace
+
+        # Execute
+        agent = await agent_repo.get_by_name("brappa")
+
+        # Verify last_task is populated
+        assert agent.last_task == "Latest task", (
+            f"Expected last_task to be 'Latest task', "
+            f"but got '{agent.last_task}'"
+        )

@@ -200,10 +200,10 @@ class AgentRepository:
         # For now, default to "coder" - will be enhanced when metadata is available
         role = "coder"
 
-        # Extract last_task from rich parameters if present
-        last_task = None
-        # Note: This would need to query workspace build parameters
-        # For now, we'll leave it as None and populate when task service updates it
+        # Extract last_task from task history in workspace build
+        # Task history is stored in latest_build.resources[].agents[].apps[]
+        # where app.slug == "ccw" (Claude Code)
+        last_task = self._extract_last_task_from_workspace(workspace)
 
         return Agent(
             name=workspace.get("name", "unknown"),
@@ -215,6 +215,49 @@ class AgentRepository:
             created_at=self._parse_datetime(workspace.get("created_at")),
             updated_at=self._parse_datetime(workspace.get("updated_at")),
         )
+
+    @staticmethod
+    def _extract_last_task_from_workspace(workspace: dict[str, Any]) -> str | None:
+        """Extract the last task from workspace task history.
+
+        Task history is stored in workspace.latest_build.resources[].agents[].apps[]
+        where app.slug == "ccw" or app.display_name == "Claude Code".
+        The app.statuses[] array contains the task history items.
+
+        Args:
+            workspace: Workspace dictionary from Coder API
+
+        Returns:
+            Last task summary string or None if no history exists
+        """
+        latest_build = workspace.get("latest_build") or {}
+        resources = latest_build.get("resources", [])
+
+        # Collect all task statuses from Claude Code app
+        all_tasks = []
+        for resource in resources:
+            agents_list = resource.get("agents", [])
+            for agent in agents_list:
+                apps = agent.get("apps", [])
+                for app in apps:
+                    # Find Claude Code app by slug or display name
+                    if app.get("slug") == "ccw" or app.get("display_name") == "Claude Code":
+                        statuses = app.get("statuses", [])
+                        all_tasks.extend(statuses)
+                        break  # Found Claude Code app, stop searching this agent
+
+        # If no tasks found, return None
+        if not all_tasks:
+            return None
+
+        # Sort tasks by created_at (newest first) and return the most recent message
+        sorted_tasks = sorted(
+            all_tasks,
+            key=lambda t: t.get("created_at", ""),
+            reverse=True
+        )
+
+        return sorted_tasks[0].get("message") if sorted_tasks else None
 
     @staticmethod
     def _parse_datetime(dt_str: str | datetime | None) -> datetime:
