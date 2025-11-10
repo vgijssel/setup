@@ -252,6 +252,123 @@ class TestMCPToolsIntegration:
         # Assert
         assert result.agent.name == "new-agent"
 
+    async def test_create_agent_with_invalid_project_returns_proper_error(
+        self, respx_mock, coder_base_url, full_stack
+    ):
+        """Regression test: Ensure creating agent with invalid project returns proper ValidationError.
+
+        Bug: ValidationError was being raised with 1 argument instead of 2 (field, message),
+        causing "ValidationError.__init__() missing 1 required positional argument: 'message'"
+
+        Scenario: User tries "Create agent PapiChulo for Setup which will search for typos"
+        but Setup project doesn't exist or isn't a valid fleet-mcp project.
+        """
+        # Mock list templates - return a template that is NOT "Setup"
+        respx_mock.get(f"{coder_base_url}/api/v2/templates").mock(
+            return_value=Response(200, json=[{
+                "id": "t-1",
+                "name": "other-template",
+                "display_name": "OtherProject",
+                "active_version_id": "v-1",
+                "created_at": "2025-01-01T00:00:00Z"
+            }])
+        )
+        # Mock get template
+        respx_mock.get(f"{coder_base_url}/api/v2/templates/t-1").mock(
+            return_value=Response(200, json={
+                "id": "t-1",
+                "name": "other-template",
+                "display_name": "OtherProject",
+                "active_version_id": "v-1"
+            })
+        )
+        # Mock get rich parameters
+        respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters").mock(
+            return_value=Response(200, json=[
+                {"name": "ai_prompt", "type": "string", "required": True},
+                {"name": "system_prompt", "type": "string", "required": False}
+            ])
+        )
+
+        # This should raise a ValidationError with proper field and message
+        from fleet_mcp_clean.models.errors import ValidationError
+        with pytest.raises(ValidationError) as exc_info:
+            await create_agent(
+                full_stack["agent_service"],
+                name="PapiChulo",
+                project="Setup",  # This project doesn't exist!
+                task="search for typos",
+                role="coder"
+            )
+
+        # Assert: Should get a proper ValidationError, not a TypeError about missing 'message' argument
+        error = exc_info.value
+        error_str = str(error)
+        # It should NOT be "ValidationError.__init__() missing 1 required positional argument: 'message'"
+        assert "missing 1 required positional argument" not in error_str
+        # Should mention the project and available options
+        assert "Project" in error_str or "project" in error_str
+        assert "Setup" in error_str
+        assert "not found" in error_str.lower()
+
+    async def test_create_agent_with_invalid_role_returns_proper_error(
+        self, respx_mock, coder_base_url, full_stack
+    ):
+        """Regression test: Ensure creating agent with invalid role returns proper ValidationError.
+
+        This tests the line: raise ValidationError(f"Role '{role}' not found...")
+        which was missing the 'field' parameter.
+        """
+        # Mock list templates
+        respx_mock.get(f"{coder_base_url}/api/v2/templates").mock(
+            return_value=Response(200, json=[{
+                "id": "t-1",
+                "name": "coder-devcontainer",
+                "display_name": "Setup",
+                "active_version_id": "v-1",
+                "created_at": "2025-01-01T00:00:00Z"
+            }])
+        )
+        # Mock get template
+        respx_mock.get(f"{coder_base_url}/api/v2/templates/t-1").mock(
+            return_value=Response(200, json={
+                "id": "t-1",
+                "name": "coder-devcontainer",
+                "display_name": "Setup",
+                "active_version_id": "v-1"
+            })
+        )
+        # Mock get rich parameters
+        respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/rich-parameters").mock(
+            return_value=Response(200, json=[
+                {"name": "ai_prompt", "type": "string", "required": True},
+                {"name": "system_prompt", "type": "string", "required": False}
+            ])
+        )
+        # Mock list workspace presets - return roles that DON'T include "coder"
+        respx_mock.get(f"{coder_base_url}/api/v2/templateversions/v-1/presets").mock(
+            return_value=Response(200, json=[{"id": "p-1", "name": "operator"}])
+        )
+
+        # This should raise a ValidationError with proper field and message
+        from fleet_mcp_clean.models.errors import ValidationError
+        with pytest.raises(ValidationError) as exc_info:
+            await create_agent(
+                full_stack["agent_service"],
+                name="PapiChulo",
+                project="Setup",
+                task="search for typos",
+                role="coder"  # This role doesn't exist!
+            )
+
+        # Assert: Should get a proper ValidationError, not a TypeError
+        error = exc_info.value
+        error_str = str(error)
+        assert "missing 1 required positional argument" not in error_str
+        assert "Role" in error_str or "role" in error_str
+        assert "coder" in error_str
+        assert "not found" in error_str.lower()
+
     async def test_delete_agent_tool(self, respx_mock, coder_base_url, full_stack):
         """Test delete_agent tool end-to-end."""
         # Mock list workspaces

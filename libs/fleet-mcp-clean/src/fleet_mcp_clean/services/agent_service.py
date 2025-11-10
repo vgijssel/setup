@@ -75,7 +75,7 @@ class AgentService:
             ValidationError: If name is invalid
         """
         if not name or not name.strip():
-            raise ValidationError("Agent name cannot be empty")
+            raise ValidationError("name", "Agent name cannot be empty")
 
         return await self.agent_repo.get_by_name(name)
 
@@ -123,7 +123,7 @@ class AgentService:
                 break
 
         if not template_id:
-            raise ValidationError(f"Template ID not found for project '{project}'")
+            raise ValidationError("project", f"Template ID not found for project '{project}'")
 
         # Validate role exists in project
         roles = await self.project_repo.list_roles(project)
@@ -131,6 +131,7 @@ class AgentService:
 
         if role not in role_names:
             raise ValidationError(
+                "role",
                 f"Role '{role}' not found in project '{project}'. Available roles: {', '.join(role_names)}"
             )
 
@@ -143,6 +144,7 @@ class AgentService:
 
         if not preset_id:
             raise ValidationError(
+                "role",
                 f"Preset ID not found for role '{role}' in project '{project}'"
             )
 
