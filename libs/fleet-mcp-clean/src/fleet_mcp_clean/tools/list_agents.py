@@ -4,7 +4,7 @@ from typing import Annotated, Optional
 
 from pydantic import Field
 
-from ..models import AgentStatus, ListAgentsResponse
+from ..models import AgentStatus, AgentListView, ListAgentsResponse
 from ..services import AgentService
 
 
@@ -29,7 +29,7 @@ async def list_agents(
         project_filter: Filter by project name (optional)
 
     Returns:
-        ListAgentsResponse with agents and total count
+        ListAgentsResponse with agents (workspace_id excluded) and total count
 
     Example:
         # List all agents
@@ -45,4 +45,7 @@ async def list_agents(
         status_filter=status_filter, project_filter=project_filter
     )
 
-    return ListAgentsResponse(agents=agents, total_count=len(agents))
+    # Convert Agent models to AgentListView (excludes workspace_id)
+    agent_views = [AgentListView.from_agent(agent) for agent in agents]
+
+    return ListAgentsResponse(agents=agent_views, total_count=len(agent_views))

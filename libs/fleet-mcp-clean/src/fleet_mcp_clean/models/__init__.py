@@ -5,6 +5,7 @@ from .task import Task, TaskHistory, ConversationLog, LogEntry
 from .project import Project, Role
 from .remote import WorkspaceRemote, WorkspaceBuildRemote, TemplateRemote, TemplateParameterRemote, WorkspacePresetRemote
 from .responses import (
+    AgentListView,
     ListAgentsResponse,
     ShowAgentResponse,
     CreateAgentResponse,
@@ -43,6 +44,7 @@ __all__ = [
     "TemplateParameterRemote",
     "WorkspacePresetRemote",
     # Response models
+    "AgentListView",
     "ListAgentsResponse",
     "ShowAgentResponse",
     "CreateAgentResponse",

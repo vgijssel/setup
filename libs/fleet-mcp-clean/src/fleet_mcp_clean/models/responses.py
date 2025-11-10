@@ -1,18 +1,55 @@
 """Response models for MCP tools."""
 
+from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from .agent import Agent
+from .agent import Agent, AgentStatus
 from .task import TaskHistory, ConversationLog
 from .project import Project, Role
+
+
+class AgentListView(BaseModel):
+    """View model for agent list - excludes workspace_id for security.
+
+    This model is used in list operations where workspace_id is internal
+    infrastructure detail that should not be exposed to clients.
+    """
+
+    name: str = Field(..., description="Unique agent name")
+    status: AgentStatus = Field(..., description="Current agent status")
+    role: str = Field(..., description="Workspace preset name")
+    project: str = Field(..., description="Template name")
+    last_task: Optional[str] = Field(None, description="Most recent task description")
+    created_at: datetime = Field(..., description="Agent creation timestamp")
+    updated_at: datetime = Field(..., description="Last modification timestamp")
+
+    @classmethod
+    def from_agent(cls, agent: Agent) -> "AgentListView":
+        """Create an AgentListView from an Agent domain model.
+
+        Args:
+            agent: Agent domain model
+
+        Returns:
+            AgentListView with workspace_id excluded
+        """
+        return cls(
+            name=agent.name,
+            status=agent.status,
+            role=agent.role,
+            project=agent.project,
+            last_task=agent.last_task,
+            created_at=agent.created_at,
+            updated_at=agent.updated_at,
+        )
 
 
 class ListAgentsResponse(BaseModel):
     """Response for list_agents tool."""
 
-    agents: list[Agent]
+    agents: list[AgentListView]
     total_count: int
 
 
