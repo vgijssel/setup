@@ -78,7 +78,7 @@ class TestAgentServiceCreate:
         mock_project_repo.list_all.return_value = [sample_project]  # Available projects
         mock_project_repo.get_by_name.return_value = sample_project
         mock_project_repo.list_roles.return_value = [
-            Role(id="role-1", name="coder", project_id="proj-123", project_name="Setup")
+            Role(id="role-1", name="coder", project_id="proj-123", project_name="Setup", default=True)
         ]
         mock_agent_repo.create.return_value = sample_agent
 
@@ -95,6 +95,54 @@ class TestAgentServiceCreate:
         assert result.name == "test-agent"
         assert result.project == "Setup"
         mock_agent_repo.create.assert_called_once()
+
+    async def test_create_agent_with_no_role_uses_first_available_role(
+        self, agent_service, mock_agent_repo, mock_project_repo, sample_agent, sample_project
+    ):
+        """Test creating agent with role=None queries backend and uses first available role."""
+        # Arrange
+        mock_agent_repo.list_all.return_value = []  # No existing agents
+        mock_agent_repo.get_by_name.side_effect = AgentNotFoundError("test-agent")  # Name is available
+        mock_project_repo.list_all.return_value = [sample_project]  # Available projects
+        mock_project_repo.get_by_name.return_value = sample_project
+
+        # Mock roles with multiple options - should pick the one marked as default
+        mock_project_repo.list_roles.return_value = [
+            Role(id="role-operator", name="operator", project_id="proj-123", project_name="Setup", default=False),
+            Role(id="role-coder", name="coder", project_id="proj-123", project_name="Setup", default=True),
+            Role(id="role-manager", name="manager", project_id="proj-123", project_name="Setup", default=False),
+        ]
+
+        # Mock agent creation with coder role (the default one)
+        agent_with_coder_role = Agent(
+            name="test-agent",
+            workspace_id="ws-123",
+            status=AgentStatus.STARTING,
+            role="coder",  # Default role
+            project="Setup",
+            last_task="Test task",
+            created_at=datetime(2025, 11, 7, 10, 0, 0),
+            updated_at=datetime(2025, 11, 7, 10, 0, 0),
+        )
+        mock_agent_repo.create.return_value = agent_with_coder_role
+
+        # Act - role=None means "query backend for default"
+        result = await agent_service.create_agent(
+            name="test-agent",
+            project="Setup",
+            role=None,
+            task="Test task"
+        )
+
+        # Assert
+        assert isinstance(result, Agent)
+        assert result.name == "test-agent"
+        assert result.role == "coder"  # Should use the default role
+
+        # Verify that create was called with default role's preset_id
+        mock_agent_repo.create.assert_called_once()
+        call_args = mock_agent_repo.create.call_args
+        assert call_args.kwargs["preset_id"] == "role-coder"
 
     async def test_create_agent_validates_name_format(
         self, agent_service, mock_agent_repo, mock_project_repo

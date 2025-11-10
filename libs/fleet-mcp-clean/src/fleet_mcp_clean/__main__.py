@@ -187,11 +187,11 @@ async def create_agent(
         str, Field(description="Task description defining objectives and constraints")
     ],
     role: Annotated[
-        str,
+        str | None,
         Field(
-            description="Agent role matching Coder workspace preset (e.g., coder, operator, manager)"
+            description="Agent role matching Coder workspace preset (e.g., coder, operator, manager). If not specified, the default role will be chosen by the Coder backend."
         ),
-    ] = "coder",
+    ] = None,
 ) -> dict:
     """Create a new Claude Code agent in a Coder workspace."""
     from .tools.create_agent import create_agent as create_agent_impl

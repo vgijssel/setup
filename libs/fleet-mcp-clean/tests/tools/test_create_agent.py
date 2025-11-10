@@ -99,10 +99,10 @@ class TestCreateAgent:
             name="custom-agent", project="DataOne", task="Analyze dataset Y", role="analyst"
         )
 
-    async def test_create_agent_with_default_role(
+    async def test_create_agent_without_role_queries_default_from_backend(
         self, mock_agent_service, sample_agent
     ):
-        """Test create_agent uses default role when not specified (T107)."""
+        """Test create_agent queries backend for default role when not specified."""
         # Arrange
         mock_agent_service.create_agent.return_value = sample_agent
 
@@ -114,9 +114,9 @@ class TestCreateAgent:
             task="Default role test",
         )
 
-        # Assert
+        # Assert - role should be None, letting service layer query backend for default
         mock_agent_service.create_agent.assert_called_once_with(
-            name="test-agent", project="Setup", task="Default role test", role="coder"
+            name="test-agent", project="Setup", task="Default role test", role=None
         )
 
     async def test_create_agent_propagates_duplicate_name_error(

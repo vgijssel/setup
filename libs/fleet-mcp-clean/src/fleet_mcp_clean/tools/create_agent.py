@@ -16,11 +16,11 @@ async def create_agent(
         str, Field(description="Task description defining objectives and constraints")
     ],
     role: Annotated[
-        str,
+        str | None,
         Field(
-            description="Agent role matching Coder workspace preset (e.g., coder, operator, manager)"
+            description="Agent role matching Coder workspace preset (e.g., coder, operator, manager). If not specified, the default role will be chosen by the Coder backend."
         ),
-    ] = "coder",
+    ] = None,
 ) -> CreateAgentResponse:
     """Create a new Claude Code agent in a Coder workspace.
 
@@ -33,7 +33,7 @@ async def create_agent(
         name: Unique agent name (1-20 alphanumeric + hyphens)
         project: Project name (must exist)
         task: Initial task description (non-empty)
-        role: Agent role name (default: "coder")
+        role: Agent role name (optional, defaults to backend's default role for project)
 
     Returns:
         CreateAgentResponse with created agent and success message

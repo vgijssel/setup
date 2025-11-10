@@ -27,9 +27,11 @@ class Role(BaseModel):
     2. The role name field maps directly to the coder_workspace_preset name
     3. Role names MUST exist in the project's template definition
     4. Each role may have different resource allocations or permissions
+    5. One role per project should be marked as default
     """
 
     id: str = Field(..., description="Coder workspace preset UUID")
     name: str = Field(..., description="Role name from coder_workspace_preset name")
     project_id: str = Field(..., description="Associated project (template) UUID")
     project_name: str = Field(..., description="Associated project name")
+    default: bool = Field(False, description="Whether this is the default role for the project")

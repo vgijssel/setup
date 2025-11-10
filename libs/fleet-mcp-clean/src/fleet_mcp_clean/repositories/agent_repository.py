@@ -28,6 +28,7 @@ class AgentRepository:
             coder_client: Async HTTP client for Coder API
         """
         self.client = coder_client
+        self._preset_cache: dict[str, dict[str, str]] = {}  # template_id -> {preset_id: role_name}
 
     async def list_all(self) -> list[Agent]:
         """List all agents by fetching all workspaces for authenticated user.
@@ -42,7 +43,7 @@ class AgentRepository:
             workspaces = await self.client.list_workspaces(owner="me")
             # Filter out None workspaces (can happen during race conditions or after creation)
             valid_workspaces = [ws for ws in workspaces if ws is not None]
-            agents = [self._workspace_to_agent(ws) for ws in valid_workspaces]
+            agents = [await self._workspace_to_agent(ws) for ws in valid_workspaces]
             return agents
         except Exception as e:
             raise CoderAPIError(f"Failed to list agents: {e}") from e
@@ -70,7 +71,7 @@ class AgentRepository:
                     # Get full workspace details with metadata
                     workspace_id = workspace.get("id")
                     full_workspace = await self.client.get_workspace(workspace_id)
-                    return self._workspace_to_agent(full_workspace)
+                    return await self._workspace_to_agent(full_workspace)
 
             raise AgentNotFoundError(f"Agent '{name}' not found")
         except AgentNotFoundError:
@@ -110,7 +111,7 @@ class AgentRepository:
                 rich_parameter_values=rich_parameters,
             )
 
-            return self._workspace_to_agent(workspace)
+            return await self._workspace_to_agent(workspace)
         except Exception as e:
             raise CoderAPIError(f"Failed to create agent '{name}': {e}") from e
 
@@ -150,13 +151,13 @@ class AgentRepository:
             # Find workspace ID by name
             agent = await self.get_by_name(agent_name)
             workspace = await self.client.restart_workspace(agent.workspace_id)
-            return self._workspace_to_agent(workspace)
+            return await self._workspace_to_agent(workspace)
         except AgentNotFoundError:
             raise
         except Exception as e:
             raise CoderAPIError(f"Failed to restart agent '{agent_name}': {e}") from e
 
-    def _workspace_to_agent(self, workspace: dict[str, Any]) -> Agent:
+    async def _workspace_to_agent(self, workspace: dict[str, Any]) -> Agent:
         """Transform Coder workspace API response to Agent domain model.
 
         Args:
@@ -196,9 +197,13 @@ class AgentRepository:
             if latest_app_status.get("state") == "working":
                 agent_status = AgentStatus.BUSY
 
-        # Extract role from preset (if available in workspace metadata)
-        # For now, default to "coder" - will be enhanced when metadata is available
-        role = "coder"
+        # Extract role from preset ID in latest_build
+        # The preset_id is stored in latest_build.template_version_preset_id
+        template_id = workspace.get("template_id")
+        preset_id = latest_build.get("template_version_preset_id")
+
+        # Resolve preset_id to role name (with caching to avoid extra API calls)
+        role = await self._get_role_name_from_preset_id(template_id, preset_id)
 
         # Extract last_task from task history in workspace build
         # Task history is stored in latest_build.resources[].agents[].apps[]
@@ -215,6 +220,52 @@ class AgentRepository:
             created_at=self._parse_datetime(workspace.get("created_at")),
             updated_at=self._parse_datetime(workspace.get("updated_at")),
         )
+
+    async def _get_role_name_from_preset_id(
+        self, template_id: str, preset_id: str | None
+    ) -> str:
+        """Get role name from preset ID by querying template presets.
+
+        Args:
+            template_id: Template UUID
+            preset_id: Preset UUID
+
+        Returns:
+            Role name (preset name) or "coder" as fallback
+
+        Note:
+            Uses caching to avoid repeated API calls for the same template
+        """
+        if not preset_id:
+            return "coder"  # Default fallback
+
+        # Check cache first
+        if template_id in self._preset_cache:
+            role_name = self._preset_cache[template_id].get(preset_id)
+            if role_name:
+                return role_name
+
+        # Fetch presets from API
+        try:
+            presets = await self.client.list_workspace_presets(template_id)
+
+            # Build cache for this template
+            if template_id not in self._preset_cache:
+                self._preset_cache[template_id] = {}
+
+            for preset in presets:
+                # Preset structure from Coder API: {"ID": "...", "Name": "...", ...}
+                preset_uuid = preset.get("ID")
+                preset_name = preset.get("Name", "unknown")
+                if preset_uuid:
+                    self._preset_cache[template_id][preset_uuid] = preset_name
+
+            # Return the role name for this preset_id
+            return self._preset_cache[template_id].get(preset_id, "coder")
+
+        except Exception:
+            # If we can't fetch presets, return default
+            return "coder"
 
     @staticmethod
     def _extract_last_task_from_workspace(workspace: dict[str, Any]) -> str | None:

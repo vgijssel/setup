@@ -109,6 +109,7 @@ class ProjectRepository:
                 # Handle both capitalized and lowercase keys from API
                 preset_id = preset.get("ID") or preset.get("id")
                 preset_name = preset.get("Name") or preset.get("name")
+                preset_default = preset.get("Default") or preset.get("default", False)
 
                 if preset_id and preset_name:
                     roles.append(
@@ -117,6 +118,7 @@ class ProjectRepository:
                             name=preset_name,
                             project_id=template_id,
                             project_name=project_name,
+                            default=preset_default,
                         )
                     )
 

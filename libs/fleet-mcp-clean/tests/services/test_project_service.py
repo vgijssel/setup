@@ -76,8 +76,8 @@ class TestProjectServiceListRoles:
         # Arrange
         project_name = "Setup"
         mock_roles = [
-            Role(id="role-1", name="Coder", project_id="proj-1", project_name="Setup"),
-            Role(id="role-2", name="Operator", project_id="proj-1", project_name="Setup")
+            Role(id="role-1", name="Coder", project_id="proj-1", project_name="Setup", default=True),
+            Role(id="role-2", name="Operator", project_id="proj-1", project_name="Setup", default=False)
         ]
         mock_project_repo.list_roles.return_value = mock_roles
 

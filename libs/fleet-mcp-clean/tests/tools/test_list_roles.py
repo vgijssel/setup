@@ -40,8 +40,8 @@ class TestListAgentRoles:
         # Arrange
         project_name = "Setup"
         mock_roles = [
-            Role(id="role-1", name="Coder", project_id="proj-1", project_name="Setup"),
-            Role(id="role-2", name="Operator", project_id="proj-1", project_name="Setup")
+            Role(id="role-1", name="Coder", project_id="proj-1", project_name="Setup", default=True),
+            Role(id="role-2", name="Operator", project_id="proj-1", project_name="Setup", default=False)
         ]
         mock_project_service.list_roles.return_value = mock_roles
 
@@ -67,7 +67,7 @@ class TestListAgentRoles:
         # Arrange
         project_name = "DataOne"
         mock_roles = [
-            Role(id="role-1", name="Analyst", project_id="proj-2", project_name="DataOne")
+            Role(id="role-1", name="Analyst", project_id="proj-2", project_name="DataOne", default=True)
         ]
         mock_project_service.list_roles.return_value = mock_roles
 
@@ -122,7 +122,7 @@ class TestListAgentRoles:
 
         # Arrange - 4 roles
         mock_roles = [
-            Role(id=f"r{i}", name=f"Role{i}", project_id="proj-1", project_name="Test")
+            Role(id=f"r{i}", name=f"Role{i}", project_id="proj-1", project_name="Test", default=(i==0))
             for i in range(4)
         ]
         mock_project_service.list_roles.return_value = mock_roles

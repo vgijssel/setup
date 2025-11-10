@@ -80,7 +80,7 @@ class AgentService:
         return await self.agent_repo.get_by_name(name)
 
     async def create_agent(
-        self, name: str, project: str, task: str, role: str = "coder"
+        self, name: str, project: str, task: str, role: str | None = None
     ) -> Agent:
         """Create a new agent with validation.
 
@@ -88,7 +88,7 @@ class AgentService:
             name: Unique agent name (1-20 alphanumeric + hyphens)
             project: Project name (must exist)
             task: Initial task description (non-empty)
-            role: Agent role name (must exist in project, default: "coder")
+            role: Agent role name (optional, if None uses first available role for project)
 
         Returns:
             Created Agent domain model
@@ -125,10 +125,30 @@ class AgentService:
         if not template_id:
             raise ValidationError("project", f"Template ID not found for project '{project}'")
 
-        # Validate role exists in project
+        # Query available roles for the project
         roles = await self.project_repo.list_roles(project)
+
+        if not roles:
+            raise ValidationError(
+                "role",
+                f"No roles available for project '{project}'"
+            )
+
         role_names = [r.name for r in roles]
 
+        # If role is not specified, use the default role from backend
+        if role is None:
+            # Find the role marked as default
+            default_role = None
+            for r in roles:
+                if r.default:
+                    default_role = r.name
+                    break
+
+            # If no default found, fall back to first role
+            role = default_role if default_role else roles[0].name
+
+        # Validate role exists in project
         if role not in role_names:
             raise ValidationError(
                 "role",
