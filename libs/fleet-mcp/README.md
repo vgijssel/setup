@@ -1,269 +1,224 @@
-# Fleet MCP Server
+# Fleet MCP Clean
 
-A stateless MCP (Model Context Protocol) server for managing a fleet of Claude Code agents running in Coder workspaces.
+Clean architecture implementation of fleet management for Claude Code agents in Coder workspaces.
 
 ## Overview
 
-Fleet MCP enables operators to create, monitor, and manage multiple Claude Code agents working in parallel across different projects. All agent state is stored in Coder workspace metadata, making the MCP server completely stateless.
+Fleet MCP Clean provides MCP (Model Context Protocol) tools for managing Claude Code agent fleets running in Coder workspaces. It follows clean architecture principles with strict layer separation for maintainability and testability.
 
-## Features
+## Architecture
 
-### ✅ Phase 1 & 2: Foundation (Complete)
-- **Pydantic Data Models**: Agent, Task, Role, Project with full validation
-- **Coder API Client**: HTTP client for workspace management
-- **AgentStatus Enum**: 11 distinct states (pending, starting, busy, idle, etc.)
-- **Response Models**: Type-safe MCP tool responses
+The project uses a 5-layer clean architecture with unidirectional dependencies:
 
-### ✅ Phase 3: User Story 1 - MVP (Complete)
-- **create_agent**: Provision new Claude Code agents with roles and specs
-- **list_agents**: View all agents with current status
-- **show_agent**: Get detailed agent information including metadata
-- **show_agent_task_history**: Paginated task history per agent
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 1: MCP Tools (FastMCP Entry Points)                 │
+│  Files: tools/list_agents.py, create_agent.py, etc.        │
+│  Responsibility: MCP protocol, input validation            │
+└──────────────────┬──────────────────────────────────────────┘
+                   │ depends on
+                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 2: Services (Business Logic)                        │
+│  Files: services/agent_service.py, task_service.py         │
+│  Responsibility: Business rules, orchestration              │
+└──────────────────┬──────────────────────────────────────────┘
+                   │ depends on
+                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 3: Repositories (Data Access)                       │
+│  Files: repositories/agent_repository.py, etc.             │
+│  Responsibility: Entity transformation, data access         │
+└──────────────────┬──────────────────────────────────────────┘
+                   │ depends on
+                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 4: Clients (HTTP Communication)                     │
+│  Files: clients/coder_client.py                            │
+│  Responsibility: HTTP requests, error handling              │
+└──────────────────┬──────────────────────────────────────────┘
+                   │ uses
+                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│  External: Coder API                                        │
+│  Endpoints: workspaces, templates, presets, tasks           │
+└─────────────────────────────────────────────────────────────┘
 
-### ✅ Phase 4: User Story 2 - Task Management (Complete)
-- **start_agent_task**: Assign tasks to idle agents via experimental task API
-- **cancel_agent_task**: Cancel running tasks via AgentAPI application proxy (NEW!)
-  - Uses Coder's application URLs to access AgentAPI running in workspaces
-  - Bypasses 502 gateway timeout issues
-  - Sends Ctrl+C signal for graceful cancellation
-  - Based on research from agent Papi
+         ┌──────────────────────────────┐
+         │  Shared: Models (Pydantic)   │
+         │  Files: models/*.py          │
+         │  Used by: All layers         │
+         └──────────────────────────────┘
+```
 
-### ✅ Phase 5+: Discovery & Management (Complete)
-- **delete_agent**: Remove agents and destroy workspaces
-- **list_agent_projects**: Discover available projects (templates)
-- **list_agent_roles**: Discover roles for a project (workspace presets)
-- **show_agent_log**: View paginated agent conversation history
+### Layer Responsibilities
 
-### 🚀 Latest Features
-
-#### AgentAPI-Based Task Cancellation
-Fleet MCP now uses Coder's application URLs to access the AgentAPI running inside workspaces. This provides a reliable cancellation mechanism that bypasses gateway timeout issues (502 errors).
-
-**How it works:**
-1. Discovers AgentAPI application URL from workspace resources
-2. Sends Ctrl+C signal via POST to `{agentapi_url}/message`
-3. Agent gracefully handles cancellation and reports status
-
-**Requirements:**
-- Workspace template must include a `coder_app` resource with slug containing "ccw", "agentapi", or "claude"
-- Agent must be running Claude Code with AgentAPI enabled
+1. **Tools Layer** (`tools/`): MCP tool entry points with FastMCP, parameter validation
+2. **Services Layer** (`services/`): Business logic, orchestration, rule enforcement
+3. **Repositories Layer** (`repositories/`): Data access patterns, entity transformation
+4. **Clients Layer** (`clients/`): HTTP communication with Coder API, error handling
+5. **Models Layer** (`models/`): Shared Pydantic domain entities, validation
 
 ## Installation
 
+This project uses `uv` for dependency management. Ensure you have uv installed:
+
 ```bash
 # Install dependencies
-cd libs/fleet-mcp
-uv sync --all-extras
+cd libs/fleet-mcp-clean
+uv sync
 
-# Generate secrets
-nx run fleet-mcp:secrets
+# Install with dev dependencies
+uv sync --all-extras
 ```
 
 ## Configuration
 
-Create `.env` from template:
+Copy `.env.example` to `.env` and configure:
+
 ```bash
-CODER_URL=https://your-coder-instance.com
-CODER_SESSION_TOKEN=your-api-token
+cp .env.example .env
+# Edit .env with your Coder instance URL and session token
 ```
 
-**Note:** When running inside a Coder workspace, these environment variables are automatically set by the `coder-login` module, so no manual configuration is needed.
+## Running the Server
 
-## Usage
+```bash
+# Using Nx
+nx server fleet-mcp-clean
 
-### As a Library
+# Or directly with uv
+cd libs/fleet-mcp-clean
+uv run fastmcp run src/fleet_mcp_clean/__main__.py
+```
+
+## Testing
+
+```bash
+# Run tests with Nx
+nx test fleet-mcp-clean
+
+# Or directly with uv
+cd libs/fleet-mcp-clean
+uv run pytest
+
+# With coverage
+uv run pytest --cov=fleet_mcp_clean --cov-report=term-missing
+
+# Verify layer boundaries with import-linter
+nx lint-imports fleet-mcp-clean
+
+# Run all validation together
+nx run-many -t test lint-imports -p fleet-mcp-clean
+```
+
+## Available MCP Tools
+
+### Agent Discovery & Inspection
+- `list_agents`: List all agents with optional filtering by status and project
+- `show_agent`: Show detailed information about a specific agent
+- `list_agent_projects`: List available projects (templates)
+- `list_agent_roles`: List available roles for a project
+
+### Agent Lifecycle
+- `create_agent`: Create a new agent with specified name, project, role, and task
+- `delete_agent`: Delete an agent and destroy its workspace
+- `restart_agent`: Restart an agent workspace to refresh environment
+
+### Task Management
+- `start_agent_task`: Assign a task to an idle agent
+- `cancel_agent_task`: Cancel a running task by sending Ctrl+C interrupt
+
+### History & Logs
+- `show_agent_task_history`: View paginated task history (ordered newest first)
+- `show_agent_log`: View paginated conversation logs (default: latest entry only)
+
+## Usage Examples
+
+### Example 1: List All Agents
 
 ```python
-from fleet_mcp.server import create_mcp_server
-import os
-
-# Initialize MCP server
-mcp = create_mcp_server(
-    base_url=os.getenv("CODER_URL"),
-    token=os.getenv("CODER_SESSION_TOKEN")
-)
-
-# Server is ready to handle MCP tool requests
+# Using MCP client
+result = await client.call_tool("list_agents", {})
+print(result["agents"])
+# [{"name": "agent-1", "status": "idle", "project": "Setup", ...}, ...]
 ```
 
-### Available Tools
+### Example 2: Create a New Agent
 
-#### create_agent
-Create a new agent in a Coder workspace.
+```python
+result = await client.call_tool("create_agent", {
+    "name": "data-scientist",
+    "project": "Setup",
+    "role": "coder",
+    "task": "Analyze sales data from Q4"
+})
 
-**Parameters:**
-- `name` (str): Unique short agent name (e.g., "Sony", "Papi")
-- `project` (str): Project name matching Coder template (e.g., "Setup")
-- `spec` (str): Agent specification defining objectives
-- `role` (str, optional): Agent role preset (default: "coder")
+print(result["agent"]["workspace_id"])
+# "workspace-uuid-here"
+```
 
-**Returns:** Agent details and success message
+### Example 3: Send Task to Agent
 
-#### list_agents
-List all agents in the fleet.
+```python
+# First, verify agent is idle
+agent = await client.call_tool("show_agent", {
+    "agent_name": "data-scientist"
+})
 
-**Returns:** Array of agent summaries with name, status, current task
+if agent["agent"]["status"] == "idle":
+    result = await client.call_tool("start_agent_task", {
+        "agent_name": "data-scientist",
+        "task_description": "Generate sales report for Q4"
+    })
+    print(result["message"])
+    # "Task assigned to agent 'data-scientist'"
+```
 
-#### show_agent
-Get detailed information about a specific agent.
+### Example 4: View Task History
 
-**Parameters:**
-- `agent_name` (str): Name of agent to query
+```python
+result = await client.call_tool("show_agent_task_history", {
+    "agent_name": "data-scientist",
+    "page": 1,
+    "page_size": 10
+})
 
-**Returns:** Full agent details including metadata
-
-#### show_agent_task_history
-Get paginated task history for an agent.
-
-**Parameters:**
-- `agent_name` (str): Name of agent to query
-- `page` (int, optional): Page number (default: 1)
-- `page_size` (int, optional): Items per page (default: 20, max: 100)
-
-**Returns:** Paginated task list
-
-#### start_agent_task
-Assign a new task to an idle agent.
-
-**Parameters:**
-- `agent_name` (str): Name of agent to assign task to
-- `task_description` (str): Description of the task to perform (max 160 chars, no control characters)
-
-**Returns:** Task confirmation with agent status change to "busy"
-
-**Errors:**
-- Agent not found (404)
-- Agent is offline (400)
-- Agent is already busy (409)
-- Invalid task description (validation error)
-
-#### cancel_agent_task
-Cancel the currently running task on an agent using AgentAPI.
-
-**Parameters:**
-- `agent_name` (str): Name of agent whose task should be canceled
-
-**Returns:** Cancellation confirmation with agent status "canceling"
-
-**Implementation:**
-- Discovers AgentAPI URL from workspace applications
-- Sends Ctrl+C signal (SIGINT) via AgentAPI's `/message` endpoint
-- Agent gracefully handles cancellation and reports "idle" status when complete
-
-**Errors:**
-- Agent not found (404)
-- Agent is not busy / has no running task (400)
-- AgentAPI not available - workspace template must include coder_app with slug "ccw", "agentapi", or "claude"
-
-**Note:** This method bypasses the 502 gateway timeout issues by using Coder's application proxy to access AgentAPI directly.
-
-#### delete_agent
-Delete an agent and destroy its Coder workspace.
-
-**Parameters:**
-- `agent_name` (str): Name of agent to delete
-
-**Returns:** Deletion confirmation
-
-**Warning:** This operation is irreversible and forceful (deletes even if agent is busy).
-
-#### list_agent_projects
-List all available projects mapped to Coder templates.
-
-**Returns:** Array of valid fleet-mcp projects (templates with ai_prompt and system_prompt parameters)
-
-#### list_agent_roles
-List all available agent roles for a specific project.
-
-**Parameters:**
-- `project` (str): Project name to query roles for
-
-**Returns:** Array of roles (workspace presets) available for the project
-
-#### show_agent_log
-Get paginated conversation log for an agent.
-
-**Parameters:**
-- `agent_name` (str): Name of agent to query
-- `page` (int, optional): Page number (default: 1)
-- `page_size` (int, optional): Items per page (default: 1, max: 100)
-
-**Returns:** Paginated conversation logs (newest first)
+for task in result["tasks"]:
+    print(f"{task['created_at']}: {task['message']}")
+```
 
 ## Development
-
-### Running Tests
-
-```bash
-# Run all tests
-nx test fleet-mcp
-
-# Run specific test suites
-uv run pytest tests/unit -v          # Unit tests (data models)
-uv run pytest tests/integration -v    # Integration tests (metadata)
-uv run pytest tests/contract -v       # Contract tests (MCP tools - requires VCR cassettes)
-```
 
 ### Project Structure
 
 ```
-libs/fleet-mcp/
-├── src/fleet_mcp/
-│   ├── models/          # Pydantic data models
-│   ├── coder/           # Coder API client and helpers
-│   ├── tools/           # MCP tool implementations
-│   └── server.py        # FastMCP server initialization
-├── tests/
-│   ├── unit/            # Model validation tests
-│   ├── integration/     # API integration tests
-│   └── contract/        # MCP tool contract tests
-├── pyproject.toml       # Dependencies and configuration
-└── package.json         # Nx targets
+libs/fleet-mcp-clean/
+├── src/fleet_mcp_clean/
+│   ├── __init__.py
+│   ├── __main__.py          # FastMCP server entry point
+│   ├── models/              # Pydantic domain models
+│   ├── clients/             # Coder API HTTP client
+│   ├── repositories/        # Data access layer
+│   ├── services/            # Business logic layer
+│   └── tools/               # MCP tool definitions
+└── tests/
+    ├── fixtures/            # Test data and mocks
+    ├── cassettes/           # VCR cassettes (if used)
+    ├── clients/             # Client layer tests
+    ├── repositories/        # Repository layer tests
+    ├── services/            # Service layer tests
+    └── tools/               # Tool layer tests
 ```
 
-## Architecture
+### Layer Responsibilities
 
-### Stateless Design
-All agent state is stored in Coder workspace metadata with `fleet_mcp_*` prefix:
-- `fleet_mcp_agent_name`: Unique agent identifier
-- `fleet_mcp_role`: Agent role (coder, operator, manager)
-- `fleet_mcp_project`: Project assignment
-- `fleet_mcp_agent_spec`: Full agent specification
-- Current task is determined via Coder's experimental task API (not metadata)
-
-### Agent Status Derivation
-Agent status is computed from workspace state + metadata:
-- **Workspace Running + Task**: `busy`
-- **Workspace Running + No Task**: `idle`
-- **Workspace Stopped**: `stopped`
-- **Workspace Failed**: `failed`
-- etc.
-
-### Dependencies
-- **fastmcp** 2.13.0.2: MCP server framework
-- **pydantic** 2.12.3: Data validation
-- **httpx** 0.28.1: Async HTTP client for Coder API
-- **pytest** + **pytest-vcr**: Testing framework
-
-## Testing Approach
-
-Following **Test-Driven Development (TDD)**:
-1. **RED**: Write tests first (they fail)
-2. **GREEN**: Implement code to pass tests
-3. **REFACTOR**: Clean up while keeping tests green
-
-All tests follow this pattern:
-- Unit tests for models and validation
-- Integration tests for Coder API interactions
-- Contract tests for MCP tool behavior
+- **Tools**: Parameter validation, MCP protocol handling, response formatting
+- **Services**: Business rules, cross-cutting concerns, orchestration
+- **Repositories**: Entity mapping, data access patterns
+- **Clients**: HTTP requests, error handling, retries
+- **Models**: Data validation, serialization, type safety
 
 ## License
 
-Part of the Setup monorepo.
-
-## Contributing
-
-1. Follow TDD workflow
-2. Run `trunk fmt` and `trunk check` before committing
-3. Ensure all tests pass: `nx test fleet-mcp`
-4. Pin all dependency versions
+See repository root for license information.
