@@ -81,6 +81,68 @@ cp .env.example .env
 # Edit .env with your Coder instance URL and session token
 ```
 
+### Authentication (Optional)
+
+Fleet MCP supports header-based Bearer token authentication for secure deployment. Authentication is disabled by default and can be enabled via environment variables.
+
+#### Enable Authentication
+
+```bash
+# In your .env file
+FLEET_MCP_AUTH_ENABLED=true
+
+# Optional: Custom token file location (default: ~/.fleet-mcp/auth_token)
+FLEET_MCP_AUTH_TOKEN_FILE=/custom/path/auth_token
+```
+
+#### Token Generation
+
+On first startup with authentication enabled, the server will:
+1. Generate a cryptographically secure access token (256-bit entropy)
+2. Store it in `~/.fleet-mcp/auth_token` (file permissions: 0600)
+3. Log the token to stdout for distribution
+
+The token persists across server restarts - it won't be regenerated unless the file is deleted.
+
+#### Using the Token
+
+Configure your MCP client with the Authorization header:
+
+```json
+{
+  "mcpServers": {
+    "fleet-mcp": {
+      "url": "https://fleet-mcp.example.com",
+      "headers": {
+        "Authorization": "Bearer <your-token-here>"
+      }
+    }
+  }
+}
+```
+
+#### Retrieve the Token
+
+```bash
+# From the token file
+cat ~/.fleet-mcp/auth_token | jq -r '.value'
+
+# Or from server logs (shown on first startup)
+```
+
+#### Rotate the Token
+
+To generate a new token:
+
+```bash
+# Stop the server
+# Delete the token file
+rm ~/.fleet-mcp/auth_token
+# Restart the server (generates new token)
+```
+
+For more details, see the [authentication documentation](../../specs/004-fleet-mcp-auth/quickstart.md).
+
 ## Running the Server
 
 ```bash

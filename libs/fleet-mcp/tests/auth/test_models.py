@@ -20,7 +20,9 @@ class TestAccessToken:
 
     def test_access_token_invalid_length_too_short(self):
         """Test AccessToken rejects tokens that are too short."""
-        with pytest.raises(Exception):  # Pydantic raises ValidationError
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
             AccessToken(
                 value="NU7DLFd8TmGe5BnNKPq9exHlKB3OO8Z7xnXw6",  # 40 chars
                 created_at=datetime(2025, 11, 11, 10, 30, 0),
@@ -28,7 +30,9 @@ class TestAccessToken:
 
     def test_access_token_invalid_length_too_long(self):
         """Test AccessToken rejects tokens that are too long."""
-        with pytest.raises(Exception):  # Pydantic raises ValidationError
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
             AccessToken(
                 value="NU7DLFd8TmGe5BnNKPq9exHlKB3OO8Z7xnXw6_zGsh0EXTRA",  # 48 chars
                 created_at=datetime(2025, 11, 11, 10, 30, 0),
@@ -46,13 +50,13 @@ class TestAccessToken:
 
     def test_access_token_immutable(self):
         """Test AccessToken is immutable after creation."""
+        from pydantic import ValidationError
+
         token = AccessToken(
             value="NU7DLFd8TmGe5BnNKPq9exHlKB3OO8Z7xnXw6_zGsh0",
             created_at=datetime(2025, 11, 11, 10, 30, 0),
         )
-        with pytest.raises(
-            Exception
-        ):  # Pydantic raises ValidationError or AttributeError
+        with pytest.raises(ValidationError):
             token.value = "new_value"
 
 

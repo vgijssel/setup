@@ -113,7 +113,9 @@ class TestTokenManager:
 
         manager = TokenManager(token_file_path=token_file)
 
-        with pytest.raises(Exception):  # Pydantic ValidationError
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
             manager._load_token()
 
     def test_get_or_create_token_generates_when_absent(self, tmp_path):

@@ -27,7 +27,7 @@ load_dotenv()
 logger.info("Loading environment variables")
 
 # Initialize FastMCP server
-mcp = FastMCP("Fleet MCP Clean", version="0.1.0")
+mcp = FastMCP("Fleet MCP Clean", version="0.2.0")
 
 # Coder API configuration
 CODER_URL = os.getenv("CODER_URL")
@@ -337,7 +337,7 @@ async def health_check(request):
         {
             "status": "healthy",
             "service": "fleet-mcp",
-            "version": "0.1.0",
+            "version": "0.2.0",
             "coder_url": CODER_URL,
         }
     )
