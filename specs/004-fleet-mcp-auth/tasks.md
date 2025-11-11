@@ -38,9 +38,9 @@ libs/fleet-mcp/
 
 **Purpose**: Create authentication module structure
 
-- [ ] T001 Create auth module directory at libs/fleet-mcp/src/fleet_mcp/auth/ with __init__.py
-- [ ] T002 Create auth tests directory at libs/fleet-mcp/tests/auth/ with __init__.py
-- [ ] T003 [P] Create placeholder files: libs/fleet-mcp/src/fleet_mcp/auth/models.py, token_manager.py, middleware.py
+- [X] T001 Create auth module directory at libs/fleet-mcp/src/fleet_mcp/auth/ with __init__.py
+- [X] T002 Create auth tests directory at libs/fleet-mcp/tests/auth/ with __init__.py
+- [X] T003 [P] Create placeholder files: libs/fleet-mcp/src/fleet_mcp/auth/models.py, token_manager.py, middleware.py
 
 **Checkpoint**: Directory structure ready for TDD implementation
 
@@ -54,20 +54,20 @@ libs/fleet-mcp/
 
 ### Tests First (TDD RED Phase)
 
-- [ ] T004 [P] Write failing test for AccessToken model validation in libs/fleet-mcp/tests/auth/test_models.py (verify test fails with "ModuleNotFoundError" or similar)
-- [ ] T005 [P] Write failing test for AuthErrorCode enum in libs/fleet-mcp/tests/auth/test_models.py (verify test fails)
-- [ ] T006 [P] Write failing test for AuthError model in libs/fleet-mcp/tests/auth/test_models.py (verify test fails)
-- [ ] T007 [P] Write failing test for AuthRequest model and computed properties in libs/fleet-mcp/tests/auth/test_models.py (verify test fails)
+- [X] T004 [P] Write failing test for AccessToken model validation in libs/fleet-mcp/tests/auth/test_models.py (verify test fails with "ModuleNotFoundError" or similar)
+- [X] T005 [P] Write failing test for AuthErrorCode enum in libs/fleet-mcp/tests/auth/test_models.py (verify test fails)
+- [X] T006 [P] Write failing test for AuthError model in libs/fleet-mcp/tests/auth/test_models.py (verify test fails)
+- [X] T007 [P] Write failing test for AuthRequest model and computed properties in libs/fleet-mcp/tests/auth/test_models.py (verify test fails)
 
 ### Implementation (TDD GREEN Phase)
 
-- [ ] T008 Implement AccessToken Pydantic model in libs/fleet-mcp/src/fleet_mcp/auth/models.py with field validators (run pytest libs/fleet-mcp/tests/auth/test_models.py::test_access_token* - verify tests PASS)
-- [ ] T009 Implement AuthErrorCode enum and AuthError model in libs/fleet-mcp/src/fleet_mcp/auth/models.py (run pytest libs/fleet-mcp/tests/auth/test_models.py::test_auth_error* - verify tests PASS)
-- [ ] T010 Implement AuthRequest model with is_exempted and bearer_token computed fields in libs/fleet-mcp/src/fleet_mcp/auth/models.py (run pytest libs/fleet-mcp/tests/auth/test_models.py::test_auth_request* - verify tests PASS)
+- [X] T008 Implement AccessToken Pydantic model in libs/fleet-mcp/src/fleet_mcp/auth/models.py with field validators (run pytest libs/fleet-mcp/tests/auth/test_models.py::test_access_token* - verify tests PASS)
+- [X] T009 Implement AuthErrorCode enum and AuthError model in libs/fleet-mcp/src/fleet_mcp/auth/models.py (run pytest libs/fleet-mcp/tests/auth/test_models.py::test_auth_error* - verify tests PASS)
+- [X] T010 Implement AuthRequest model with is_exempted and bearer_token computed fields in libs/fleet-mcp/src/fleet_mcp/auth/models.py (run pytest libs/fleet-mcp/tests/auth/test_models.py::test_auth_request* - verify tests PASS)
 
 ### Verification
 
-- [ ] T011 Run full auth models test suite: pytest libs/fleet-mcp/tests/auth/test_models.py -v (all tests must PASS before proceeding)
+- [X] T011 Run full auth models test suite: pytest libs/fleet-mcp/tests/auth/test_models.py -v (all tests must PASS before proceeding)
 
 **Checkpoint**: Foundation models complete and tested - user story implementation can now begin
 
