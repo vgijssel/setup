@@ -120,45 +120,45 @@ libs/fleet-mcp/
 
 ### Tests First (TDD RED Phase - Middleware Unit Tests)
 
-- [ ] T028 [P] [US2] Write failing test for extracting Authorization header from request in libs/fleet-mcp/tests/auth/test_middleware.py::test_extract_auth_header (verify test fails with "NameError: name 'AuthMiddleware' is not defined")
-- [ ] T029 [P] [US2] Write failing test for validating Bearer token format in libs/fleet-mcp/tests/auth/test_middleware.py::test_validate_bearer_token_format (verify test fails)
-- [ ] T030 [P] [US2] Write failing test for comparing token with stored token (timing-safe) in libs/fleet-mcp/tests/auth/test_middleware.py::test_validate_token_timing_safe_comparison (verify test fails)
-- [ ] T031 [P] [US2] Write failing test for exempted path bypass (/health) in libs/fleet-mcp/tests/auth/test_middleware.py::test_exempted_path_bypasses_auth (verify test fails)
-- [ ] T032 [P] [US2] Write failing test for missing Authorization header returns 401 in libs/fleet-mcp/tests/auth/test_middleware.py::test_missing_authorization_returns_401 (verify test fails)
-- [ ] T033 [P] [US2] Write failing test for invalid token returns 401 in libs/fleet-mcp/tests/auth/test_middleware.py::test_invalid_token_returns_401 (verify test fails)
-- [ ] T034 [P] [US2] Write failing test for malformed header returns 401 in libs/fleet-mcp/tests/auth/test_middleware.py::test_malformed_header_returns_401 (verify test fails)
-- [ ] T035 [P] [US2] Write failing test for valid token allows request through in libs/fleet-mcp/tests/auth/test_middleware.py::test_valid_token_allows_request (verify test fails)
+- [X] T028 [P] [US2] Write failing test for extracting Authorization header from request in libs/fleet-mcp/tests/auth/test_middleware.py::test_extract_auth_header (verify test fails with "NameError: name 'AuthMiddleware' is not defined")
+- [X] T029 [P] [US2] Write failing test for validating Bearer token format in libs/fleet-mcp/tests/auth/test_middleware.py::test_validate_bearer_token_format (verify test fails)
+- [X] T030 [P] [US2] Write failing test for comparing token with stored token (timing-safe) in libs/fleet-mcp/tests/auth/test_middleware.py::test_validate_token_timing_safe_comparison (verify test fails)
+- [X] T031 [P] [US2] Write failing test for exempted path bypass (/health) in libs/fleet-mcp/tests/auth/test_middleware.py::test_exempted_path_bypasses_auth (verify test fails)
+- [X] T032 [P] [US2] Write failing test for missing Authorization header returns 401 in libs/fleet-mcp/tests/auth/test_middleware.py::test_missing_authorization_returns_401 (verify test fails)
+- [X] T033 [P] [US2] Write failing test for invalid token returns 401 in libs/fleet-mcp/tests/auth/test_middleware.py::test_invalid_token_returns_401 (verify test fails)
+- [X] T034 [P] [US2] Write failing test for malformed header returns 401 in libs/fleet-mcp/tests/auth/test_middleware.py::test_malformed_header_returns_401 (verify test fails)
+- [X] T035 [P] [US2] Write failing test for valid token allows request through in libs/fleet-mcp/tests/auth/test_middleware.py::test_valid_token_allows_request (verify test fails)
 
 ### Implementation (TDD GREEN Phase - Middleware)
 
-- [ ] T036 [US2] Implement AuthMiddleware class inheriting from Starlette BaseHTTPMiddleware in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py with __init__(app, token_manager, enabled) parameters
-- [ ] T037 [US2] Implement AuthMiddleware._create_auth_request() extracting path and Authorization header in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py (run pytest libs/fleet-mcp/tests/auth/test_middleware.py::test_extract_auth_header - verify PASS)
-- [ ] T038 [US2] Implement AuthMiddleware._validate_token() using secrets.compare_digest for timing-safe comparison in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py (run pytest libs/fleet-mcp/tests/auth/test_middleware.py::test_validate_token_timing_safe_comparison - verify PASS)
-- [ ] T039 [US2] Implement AuthMiddleware._create_error_response() returning JSONResponse with AuthError model in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py
-- [ ] T040 [US2] Implement AuthMiddleware.dispatch() with exempted path check, token extraction, validation, and error handling in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py (run pytest libs/fleet-mcp/tests/auth/test_middleware.py::test_exempted_path* test_missing_authorization* test_invalid_token* test_malformed_header* test_valid_token* - verify ALL PASS)
+- [X] T036 [US2] Implement AuthMiddleware class inheriting from Starlette BaseHTTPMiddleware in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py with __init__(app, token_manager, enabled) parameters
+- [X] T037 [US2] Implement AuthMiddleware._create_auth_request() extracting path and Authorization header in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py (run pytest libs/fleet-mcp/tests/auth/test_middleware.py::test_extract_auth_header - verify PASS)
+- [X] T038 [US2] Implement AuthMiddleware._validate_token() using secrets.compare_digest for timing-safe comparison in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py (run pytest libs/fleet-mcp/tests/auth/test_middleware.py::test_validate_token_timing_safe_comparison - verify PASS)
+- [X] T039 [US2] Implement AuthMiddleware._create_error_response() returning JSONResponse with AuthError model in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py
+- [X] T040 [US2] Implement AuthMiddleware.dispatch() with exempted path check, token extraction, validation, and error handling in libs/fleet-mcp/src/fleet_mcp/auth/middleware.py (run pytest libs/fleet-mcp/tests/auth/test_middleware.py::test_exempted_path* test_missing_authorization* test_invalid_token* test_malformed_header* test_valid_token* - verify ALL PASS)
 
 ### Verification (Middleware Unit Tests Complete)
 
-- [ ] T041 [US2] Run full AuthMiddleware test suite: pytest libs/fleet-mcp/tests/auth/test_middleware.py -v (all tests must PASS)
+- [X] T041 [US2] Run full AuthMiddleware test suite: pytest libs/fleet-mcp/tests/auth/test_middleware.py -v (all tests must PASS)
 
 ### Integration Tests (TDD RED Phase - End-to-End)
 
-- [ ] T042 [P] [US2] Write failing integration test for unauthenticated request to /mcp/list_agents returns 401 in libs/fleet-mcp/tests/auth/test_integration.py::test_unauthenticated_request_returns_401 (verify test fails)
-- [ ] T043 [P] [US2] Write failing integration test for authenticated request to /mcp/list_agents succeeds in libs/fleet-mcp/tests/auth/test_integration.py::test_authenticated_request_succeeds (verify test fails)
-- [ ] T044 [P] [US2] Write failing integration test for /health endpoint bypasses auth in libs/fleet-mcp/tests/auth/test_integration.py::test_health_endpoint_bypasses_auth (verify test fails)
-- [ ] T045 [P] [US2] Write failing integration test for invalid token returns specific error code in libs/fleet-mcp/tests/auth/test_integration.py::test_invalid_token_returns_correct_error_code (verify test fails)
-- [ ] T046 [P] [US2] Write failing integration test for malformed Authorization header in libs/fleet-mcp/tests/auth/test_integration.py::test_malformed_authorization_header_returns_401 (verify test fails)
+- [X] T042 [P] [US2] Write failing integration test for unauthenticated request to /mcp/list_agents returns 401 in libs/fleet-mcp/tests/auth/test_integration.py::test_unauthenticated_request_returns_401 (verify test fails)
+- [X] T043 [P] [US2] Write failing integration test for authenticated request to /mcp/list_agents succeeds in libs/fleet-mcp/tests/auth/test_integration.py::test_authenticated_request_succeeds (verify test fails)
+- [X] T044 [P] [US2] Write failing integration test for /health endpoint bypasses auth in libs/fleet-mcp/tests/auth/test_integration.py::test_health_endpoint_bypasses_auth (verify test fails)
+- [X] T045 [P] [US2] Write failing integration test for invalid token returns specific error code in libs/fleet-mcp/tests/auth/test_integration.py::test_invalid_token_returns_correct_error_code (verify test fails)
+- [X] T046 [P] [US2] Write failing integration test for malformed Authorization header in libs/fleet-mcp/tests/auth/test_integration.py::test_malformed_authorization_header_returns_401 (verify test fails)
 
 ### Integration (TDD GREEN Phase - Wire into FastMCP)
 
-- [ ] T047 [US2] Modify libs/fleet-mcp/src/fleet_mcp/__main__.py to initialize TokenManager with default token path
-- [ ] T048 [US2] Modify libs/fleet-mcp/src/fleet_mcp/__main__.py to wrap mcp.http_app() with AuthMiddleware after app creation
-- [ ] T049 [US2] Update libs/fleet-mcp/src/fleet_mcp/auth/__init__.py to export TokenManager, AuthMiddleware, and models
-- [ ] T050 [US2] Run integration tests: pytest libs/fleet-mcp/tests/auth/test_integration.py -v (all tests must PASS)
+- [X] T047 [US2] Modify libs/fleet-mcp/src/fleet_mcp/__main__.py to initialize TokenManager with default token path
+- [X] T048 [US2] Modify libs/fleet-mcp/src/fleet_mcp/__main__.py to wrap mcp.http_app() with AuthMiddleware after app creation
+- [X] T049 [US2] Update libs/fleet-mcp/src/fleet_mcp/auth/__init__.py to export TokenManager, AuthMiddleware, and models
+- [X] T050 [US2] Run integration tests: pytest libs/fleet-mcp/tests/auth/test_integration.py -v (all tests must PASS)
 
 ### Verification (All Authentication Tests)
 
-- [ ] T051 [US2] Run complete auth test suite: pytest libs/fleet-mcp/tests/auth/ -v --cov=fleet_mcp.auth (all tests must PASS, coverage >90%)
+- [X] T051 [US2] Run complete auth test suite: pytest libs/fleet-mcp/tests/auth/ -v --cov=fleet_mcp.auth (all tests must PASS, coverage >90%)
 
 **Checkpoint**: Authentication middleware complete and integrated - requests are authenticated, unauthorized requests rejected
 
