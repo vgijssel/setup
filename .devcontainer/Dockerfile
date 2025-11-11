@@ -72,6 +72,7 @@ RUN zsh -ic 'exit 0'
 # Eager load commonly used tools for coder-devcontainer
 RUN bin/direnv exec . python --version
 RUN bin/direnv exec . wait-for-it --version
+RUN bin/direnv exec . tailscale version
 
 # Remove all the files so Coder can clone the repository here.
 # If there are files inside the folder the clone will fail.
