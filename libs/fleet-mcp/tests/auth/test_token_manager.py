@@ -1,14 +1,10 @@
 """Tests for TokenManager."""
 
 import json
-import os
 import stat
 from datetime import datetime
-from pathlib import Path
-from unittest.mock import patch
 
 import pytest
-
 from fleet_mcp.auth.models import AccessToken
 from fleet_mcp.auth.token_manager import TokenManager
 
@@ -24,7 +20,10 @@ class TestTokenManager:
         token = manager._generate_token()
 
         assert len(token) == 43
-        assert all(c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-" for c in token)
+        assert all(
+            c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-"
+            for c in token
+        )
 
     def test_ensure_token_directory_creates_with_correct_permissions(self, tmp_path):
         """Test directory creation with 0700 permissions."""
@@ -76,10 +75,9 @@ class TestTokenManager:
         created_at = datetime(2025, 11, 11, 10, 30, 0)
 
         # Create token file manually
-        token_file.write_text(json.dumps({
-            "value": token_value,
-            "created_at": created_at.isoformat()
-        }))
+        token_file.write_text(
+            json.dumps({"value": token_value, "created_at": created_at.isoformat()})
+        )
         token_file.chmod(0o600)
 
         manager = TokenManager(token_file_path=token_file)
@@ -103,10 +101,14 @@ class TestTokenManager:
     def test_load_token_invalid_token_format_raises_error(self, tmp_path):
         """Test loading malformed token raises error."""
         token_file = tmp_path / "auth_token"
-        token_file.write_text(json.dumps({
-            "value": "invalid_short",  # Too short
-            "created_at": datetime.now().isoformat()
-        }))
+        token_file.write_text(
+            json.dumps(
+                {
+                    "value": "invalid_short",  # Too short
+                    "created_at": datetime.now().isoformat(),
+                }
+            )
+        )
         token_file.chmod(0o600)
 
         manager = TokenManager(token_file_path=token_file)
@@ -132,10 +134,9 @@ class TestTokenManager:
         created_at = datetime(2025, 11, 11, 10, 30, 0)
 
         # Create existing token file
-        token_file.write_text(json.dumps({
-            "value": token_value,
-            "created_at": created_at.isoformat()
-        }))
+        token_file.write_text(
+            json.dumps({"value": token_value, "created_at": created_at.isoformat()})
+        )
         token_file.chmod(0o600)
 
         manager = TokenManager(token_file_path=token_file)

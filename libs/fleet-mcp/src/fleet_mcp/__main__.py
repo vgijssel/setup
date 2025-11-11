@@ -343,8 +343,36 @@ async def health_check(request):
     )
 
 
+# ========================================================================
+# Authentication Configuration
+# ========================================================================
+
+from pathlib import Path
+
+from .auth.middleware import AuthMiddleware
+
+# Initialize TokenManager for authentication
+from .auth.token_manager import TokenManager
+
+# Get auth configuration from environment
+AUTH_ENABLED = os.getenv("FLEET_MCP_AUTH_ENABLED", "false").lower() == "true"
+AUTH_TOKEN_FILE = os.getenv(
+    "FLEET_MCP_AUTH_TOKEN_FILE",
+    str(Path.home() / ".fleet-mcp" / "auth_token"),
+)
+
+logger.info(f"Authentication enabled: {AUTH_ENABLED}")
+if AUTH_ENABLED:
+    logger.info(f"Token file location: {AUTH_TOKEN_FILE}")
+
+# Create TokenManager singleton
+_token_manager = TokenManager(token_file_path=AUTH_TOKEN_FILE)
+
 # Create the ASGI application for stateless HTTP mode (uvicorn)
 app = mcp.http_app(stateless_http=True)
+
+# Wrap with authentication middleware
+app.add_middleware(AuthMiddleware, token_manager=_token_manager, enabled=AUTH_ENABLED)
 
 # Entry point for fastmcp run (stdio mode)
 if __name__ == "__main__":
