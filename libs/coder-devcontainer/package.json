@@ -1,8 +1,8 @@
 {
   "name": "coder-devcontainer",
-  "version": "0.14.2",
+  "version": "0.14.3",
   "dependencies": {
-    "devcontainer": "0.7.2"
+    "devcontainer": "0.7.3"
   },
   "nx": {
     "projectType": "library",

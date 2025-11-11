@@ -1,3 +1,9 @@
+## 0.7.3 (2025-11-11)
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.14.0
+
 ## 0.7.2 (2025-11-10)
 
 ### 🩹 Fixes

@@ -1,3 +1,9 @@
+## 0.14.0 (2025-11-11)
+
+### 🚀 Features
+
+- Add Tailscale Hermit manifest with version validation test ([#811](https://github.com/vgijssel/setup/pull/811))
+
 ## 0.13.0 (2025-11-07)
 
 ### 🚀 Features
