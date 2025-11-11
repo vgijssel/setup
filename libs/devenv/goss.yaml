@@ -131,6 +131,18 @@ command:
     stderr: ""
     timeout: 60000
 
+  tailscale_version:
+    title: Tailscale is installed via Hermit
+    skip: {{.Env.IS_MACOS}}
+    meta:
+      url: https://tailscale.com
+    exec: tailscale version | head -1 | awk '{print $1}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=1.90.6"
+    stderr: ""
+    timeout: 60000
+
   which starship:
     title: Starship is available in PATH via Hermit
     exit-status: 0
