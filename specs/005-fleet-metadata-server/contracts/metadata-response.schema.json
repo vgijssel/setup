@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fleet.internal/schemas/metadata-response.json",
+  "title": "MetadataResponse",
+  "description": "Response schema for /metadata endpoint",
+  "type": "object",
+  "required": ["data", "meta"],
+  "properties": {
+    "data": {
+      "type": "object",
+      "description": "Metadata entries keyed by name",
+      "additionalProperties": {
+        "$ref": "#/definitions/MetadataEntry"
+      }
+    },
+    "meta": {
+      "type": "object",
+      "description": "Response metadata",
+      "required": ["version"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "API version",
+          "pattern": "^[0-9]+\\.[0-9]+$"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "MetadataEntry": {
+      "type": "object",
+      "description": "Single metadata key-value pair with schema",
+      "required": ["value", "schema"],
+      "properties": {
+        "value": {
+          "description": "Current metadata value (type depends on schema.type)"
+        },
+        "schema": {
+          "$ref": "#/definitions/MetadataSchema"
+        }
+      }
+    },
+    "MetadataSchema": {
+      "type": "object",
+      "description": "Schema definition for a metadata value",
+      "required": ["type", "description", "includeInList"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["string", "number", "boolean", "enum"],
+          "description": "Data type of the metadata value"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Human-readable description of the metadata"
+        },
+        "includeInList": {
+          "type": "boolean",
+          "description": "Whether to show this metadata in summary lists"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Valid values for enum type (required if type=enum)"
+        }
+      },
+      "if": {
+        "properties": {
+          "type": {
+            "const": "enum"
+          }
+        }
+      },
+      "then": {
+        "required": ["values"]
+      }
+    }
+  }
+}

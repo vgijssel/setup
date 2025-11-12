@@ -1,0 +1,296 @@
+openapi: 3.1.0
+
+info:
+  title: Fleet Metadata Server API
+  version: 1.0.0
+  description: |
+    Stateless metadata server that automatically collects workspace metadata (git status, PRs, tasks)
+    and exposes it via a read-only HTTP API. Each fleet agent runs its own instance.
+  contact:
+    name: Fleet Infrastructure Team
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: http://{workspace_id}.metadata.fleet.internal
+    description: Production (Coder workspace)
+    variables:
+      workspace_id:
+        default: fcb6fc42-ba88-4175-9508-88e6a554a61a
+        description: Coder workspace ID
+
+tags:
+  - name: metadata
+    description: Workspace metadata operations
+  - name: health
+    description: Health check and monitoring
+
+paths:
+  /metadata:
+    get:
+      summary: Get all workspace metadata
+      description: |
+        Collects and returns all metadata for the current workspace, including git status,
+        GitHub PR information, and workspace task state. Metadata is collected on-demand
+        (not cached) to ensure current state.
+
+        Performance: <100ms p95 (FR-004, SC-002)
+        Size limits: 1MB total, 4KB per value, 256 char keys (FR-015)
+      operationId: getMetadata
+      tags:
+        - metadata
+      responses:
+        '200':
+          description: Metadata successfully collected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetadataResponse'
+              examples:
+                full_metadata:
+                  summary: Complete metadata with git, GitHub, and workspace info
+                  value:
+                    data:
+                      git_branch:
+                        value: 005-fleet-metadata-server
+                        schema:
+                          type: string
+                          description: Current git branch name
+                          includeInList: true
+                      git_commit_hash:
+                        value: 32ca8fd
+                        schema:
+                          type: string
+                          description: Short commit hash (7 chars)
+                          includeInList: true
+                      git_status:
+                        value: clean
+                        schema:
+                          type: enum
+                          values: [clean, modified, staged]
+                          description: Working tree status
+                          includeInList: true
+                      github_pr_number:
+                        value: 810
+                        schema:
+                          type: number
+                          description: Pull request number for current branch
+                          includeInList: true
+                      github_pr_status:
+                        value: open
+                        schema:
+                          type: enum
+                          values: [open, closed, merged]
+                          description: Status of the pull request
+                          includeInList: false
+                      workspace_task_status:
+                        value: running
+                        schema:
+                          type: enum
+                          values: [idle, running, completed, failed]
+                          description: Current task execution status
+                          includeInList: true
+                    meta:
+                      version: "1.0"
+                minimal_metadata:
+                  summary: Minimal metadata (no git repo, no PR)
+                  value:
+                    data:
+                      workspace_id:
+                        value: fcb6fc42-ba88-4175-9508-88e6a554a61a
+                        schema:
+                          type: string
+                          description: Coder workspace ID
+                          includeInList: true
+                      workspace_name:
+                        value: fleet-agent-001
+                        schema:
+                          type: string
+                          description: Coder workspace name
+                          includeInList: true
+                    meta:
+                      version: "1.0"
+        '500':
+          description: Internal server error during metadata collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Internal server error
+                message: Failed to collect metadata
+                details: null
+        '503':
+          description: Service temporarily unavailable (e.g., rate limited)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Service unavailable
+                message: GitHub API rate limit exceeded
+                details:
+                  retry_after: 60
+
+  /health:
+    get:
+      summary: Health check
+      description: |
+        Returns server health status. Used by fleet-mcp and monitoring systems
+        to verify metadata server availability.
+
+        Performance: <50ms (FR-010)
+      operationId: healthCheck
+      tags:
+        - health
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: healthy
+                version: "1.0.0"
+                uptime_seconds: 3600
+        '503':
+          description: Server is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: unhealthy
+                version: "1.0.0"
+                error: Workspace environment not available
+
+components:
+  schemas:
+    MetadataSchema:
+      type: object
+      description: Schema definition for a metadata value
+      required:
+        - type
+        - description
+        - includeInList
+      properties:
+        type:
+          type: string
+          enum: [string, number, boolean, enum]
+          description: Data type of the metadata value
+        description:
+          type: string
+          maxLength: 256
+          description: Human-readable description of the metadata
+        includeInList:
+          type: boolean
+          description: Whether to show this metadata in summary lists
+        values:
+          type: array
+          items:
+            type: string
+          description: Valid values for enum type (required if type=enum)
+          nullable: true
+
+    MetadataEntry:
+      type: object
+      description: Single metadata key-value pair with schema
+      required:
+        - value
+        - schema
+      properties:
+        value:
+          description: Current metadata value (type must match schema.type)
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+        schema:
+          $ref: '#/components/schemas/MetadataSchema'
+
+    MetadataResponse:
+      type: object
+      description: Complete metadata response
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: object
+          description: Metadata entries keyed by name (e.g., git_branch, github_pr_number)
+          additionalProperties:
+            $ref: '#/components/schemas/MetadataEntry'
+          example:
+            git_branch:
+              value: main
+              schema:
+                type: string
+                description: Current git branch name
+                includeInList: true
+        meta:
+          type: object
+          description: Response metadata
+          properties:
+            version:
+              type: string
+              description: API version
+              example: "1.0"
+          additionalProperties:
+            type: string
+
+    HealthResponse:
+      type: object
+      description: Health check response
+      required:
+        - status
+        - version
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Server health status
+        version:
+          type: string
+          description: Server version
+          example: "1.0.0"
+        uptime_seconds:
+          type: integer
+          description: Server uptime in seconds
+          example: 3600
+        error:
+          type: string
+          description: Error message if status is unhealthy
+          nullable: true
+
+    Error:
+      type: object
+      description: Error response
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: Internal server error
+        message:
+          type: string
+          description: Human-readable error message
+          example: Failed to collect metadata
+        details:
+          description: Additional error details
+          nullable: true
+          oneOf:
+            - type: object
+            - type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Optional: Bearer token for authentication if server is deployed with auth.
+        Not required for internal fleet deployments.
+
+security: []  # No authentication required for internal deployment
