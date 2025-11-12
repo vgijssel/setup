@@ -1,3 +1,9 @@
+## 0.7.1 (2025-11-12)
+
+### 🩹 Fixes
+
+- Fix release script invocation ([#824](https://github.com/vgijssel/setup/pull/824))
+
 ## 0.7.0 (2025-11-12)
 
 ### 🚀 Features
