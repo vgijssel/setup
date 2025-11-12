@@ -3,7 +3,6 @@
 These tests verify that authentication operations meet performance requirements.
 """
 
-import asyncio
 import time
 from concurrent.futures import ThreadPoolExecutor
 

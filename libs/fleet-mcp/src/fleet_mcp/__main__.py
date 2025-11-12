@@ -2,13 +2,17 @@
 
 import logging
 import os
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from pydantic import Field
+from starlette.responses import JSONResponse
 from typing_extensions import Annotated
 
+from .auth.middleware import AuthMiddleware
+from .auth.token_manager import TokenManager
 from .clients import CoderClient
 from .models import AgentStatus
 from .repositories import AgentRepository, ProjectRepository, TaskRepository
@@ -331,8 +335,6 @@ async def health_check(request):
     Returns a JSON response indicating the server's operational status.
     This endpoint is accessible at http://host:port/health
     """
-    from starlette.responses import JSONResponse
-
     return JSONResponse(
         {
             "status": "healthy",
@@ -346,13 +348,6 @@ async def health_check(request):
 # ========================================================================
 # Authentication Configuration
 # ========================================================================
-
-from pathlib import Path
-
-from .auth.middleware import AuthMiddleware
-
-# Initialize TokenManager for authentication
-from .auth.token_manager import TokenManager
 
 # Get auth configuration from environment
 AUTH_ENABLED = os.getenv("FLEET_MCP_AUTH_ENABLED", "false").lower() == "true"
