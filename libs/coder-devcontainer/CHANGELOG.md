@@ -1,3 +1,9 @@
+## 0.14.5 (2025-11-12)
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.7.4
+
 ## 0.14.4 (2025-11-12)
 
 ### 🩹 Fixes

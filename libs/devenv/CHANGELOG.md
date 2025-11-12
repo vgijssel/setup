@@ -1,3 +1,9 @@
+## 0.14.1 (2025-11-12)
+
+### 🩹 Fixes
+
+- Upgrade Coder to v2.27.4 ([#815](https://github.com/vgijssel/setup/pull/815))
+
 ## 0.14.0 (2025-11-11)
 
 ### 🚀 Features
