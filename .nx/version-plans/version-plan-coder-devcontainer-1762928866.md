@@ -2,4 +2,4 @@
 coder-devcontainer: minor
 ---
 
-Standardize MCP configuration with declarative .mcp.json file format, replacing imperative CLI commands with environment variable expansion for dynamic token injection
+Implement idempotent MCP server configuration using programmatic `claude mcp remove` followed by `claude mcp add` commands with dynamic bearer token injection from fleet-mcp auth_token file
