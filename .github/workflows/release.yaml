@@ -9,6 +9,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      # Needed for mint API token for pypi
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,6 +39,9 @@ jobs:
       - name: mint API token
         id: mint-token
         run: |
+          echo $ACTIONS_ID_TOKEN_REQUEST_TOKEN
+          echo $ACTIONS_ID_TOKEN_REQUEST_URL
+
           # retrieve the ambient OIDC token
           resp=$(curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=pypi")
