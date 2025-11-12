@@ -150,6 +150,34 @@ class TestIntegration:
 class TestConfiguration:
     """Tests for authentication configuration."""
 
+    def test_token_created_on_startup_when_auth_enabled(self, temp_token_file):
+        """Test that token is created during startup, not on first request.
+
+        This test simulates the expected behavior in __main__.py:
+        When AUTH_ENABLED=true, the token should be created immediately
+        during server startup, not lazily on first authenticated request.
+        """
+        # Simulate what happens in __main__.py when AUTH_ENABLED=true
+        manager = TokenManager(token_file_path=str(temp_token_file))
+
+        # When auth is enabled, token should be created immediately
+        auth_enabled = True
+        if auth_enabled:
+            manager.get_or_create_token()
+
+        # Simulate creating the app with middleware
+        async def list_agents(request: Request):
+            return JSONResponse({"agents": []})
+
+        app = Starlette(routes=[Route("/mcp/list_agents", list_agents)])
+        app.add_middleware(AuthMiddleware, token_manager=manager, enabled=auth_enabled)
+
+        # At this point, token file should exist because it was created during startup
+        assert temp_token_file.exists(), (
+            "Token should be created during startup when AUTH_ENABLED=true, "
+            "not lazily on first request"
+        )
+
     def test_auth_disabled_by_default(self, token_manager):
         """Test that authentication is disabled by default."""
 

@@ -368,6 +368,12 @@ if AUTH_ENABLED:
 # Create TokenManager singleton
 _token_manager = TokenManager(token_file_path=AUTH_TOKEN_FILE)
 
+# If authentication is enabled, create token immediately on startup
+# This ensures the token is available before the first request
+if AUTH_ENABLED:
+    _token_manager.get_or_create_token()
+    logger.info("Authentication token initialized")
+
 # Create the ASGI application for stateless HTTP mode (uvicorn)
 app = mcp.http_app(stateless_http=True)
 
