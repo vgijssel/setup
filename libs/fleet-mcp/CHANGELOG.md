@@ -1,3 +1,9 @@
+## 0.7.0 (2025-11-12)
+
+### 🚀 Features
+
+- Enable publishing of the fleet-mcp package to pypi under "setup-fleet-mcp"  ([#823](https://github.com/vgijssel/setup/pull/823))
+
 ## 0.6.0 (2025-11-12)
 
 ### 🚀 Features
