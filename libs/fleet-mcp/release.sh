@@ -41,10 +41,8 @@ echo "Publishing fleet-mcp version ${VERSION}"
 if [[ "${DRY_RUN}" = true ]]; then
   echo "[DRY RUN] Would run:"
   echo "[DRY RUN]   uv version --dry-run ${VERSION}"
-  echo "[DRY RUN]   uv publish --dry-run --trusted-publishing=always"
 
   uv version --dry-run "${VERSION}"
-  uv publish --dry-run --trusted-publishing=always
 else
   echo "Running release commands..."
   uv version "${VERSION}"
