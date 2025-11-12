@@ -406,7 +406,34 @@ module "claude-code" {
     # Also set it for the current shell to ensure it's available immediately
     export FLEET_MCP_TOKEN="$TOKEN"
 
-    echo "MCP configuration completed. Fleet MCP token has been set."
+    # Idempotent MCP server configuration - remove then add for consistency
+    echo "Configuring MCP servers idempotently..."
+
+    # Remove existing fleet-mcp server if it exists (ignore errors)
+    claude mcp remove "fleet-mcp" 2>/dev/null || true
+
+    # Add fleet-mcp server with current token
+    claude mcp add "fleet-mcp" '{
+      "type": "http",
+      "url": "http://127.0.0.1:8000/mcp",
+      "headers": {
+        "Authorization": "Bearer '"$TOKEN"'"
+      }
+    }'
+
+    # Remove existing coder server if it exists (ignore errors)
+    claude mcp remove "coder" 2>/dev/null || true
+
+    # Add coder MCP server
+    claude mcp add "coder" '{
+      "type": "http",
+      "url": "'"$${CODER_URL:-http://host.docker.internal:3000}"'/api/v2/workspaces/me/mcp",
+      "headers": {
+        "Coder-Session-Token": "'"$${CODER_SESSION_TOKEN}"'"
+      }
+    }'
+
+    echo "MCP configuration completed. MCP servers configured idempotently."
   EOT
 
 
