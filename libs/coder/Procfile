@@ -1,2 +1,2 @@
 coder: coder server
-tailscale: tailscale serve http://localhost:3000
+tailscale: tailscale funnel http://localhost:3000
