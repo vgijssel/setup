@@ -29,7 +29,7 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Extract version from package.json
-VERSION=$(cat "${SCRIPT_DIR}/package.json" | jq -r .version)
+VERSION=$(jq -r .version < "${SCRIPT_DIR}/package.json")
 
 if [[ -z "${VERSION}" ]] || [[ "${VERSION}" = "null" ]]; then
   echo "Error: Could not extract version from package.json"
