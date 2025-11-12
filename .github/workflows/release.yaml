@@ -1,8 +1,9 @@
 name: Release
-on:
-  push:
-    branches:
-      - main
+on: [pull_request]
+# on:
+#   push:
+#     branches:
+#       - main
 
 jobs:
   release:
@@ -31,6 +32,25 @@ jobs:
           username: vgijssel-bot
           password: ${{ secrets.PACKAGES_TOKEN_GITHUB }}
 
+      # From https://docs.pypi.org/trusted-publishers/using-a-publisher/
+      - name: mint API token
+        id: mint-token
+        run: |
+          # retrieve the ambient OIDC token
+          resp=$(curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=pypi")
+          oidc_token=$(jq -r '.value' <<< "${resp}")
+
+          # exchange the OIDC token for an API token
+          resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\": \"${oidc_token}\"}")
+          api_token=$(jq -r '.token' <<< "${resp}")
+
+          # mask the newly minted API token, so that we don't accidentally leak it
+          echo "::add-mask::${api_token}"
+
+          # see the next step in the workflow for an example of using this step output
+          echo "api-token=${api_token}" >> "${GITHUB_OUTPUT}"
+
       - name: Run nx release
         run: nx release --yes
         env:
@@ -39,3 +59,5 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          UV_PUBLISH_TOKEN: ${{ steps.mint-token.outputs.api-token }}
+
