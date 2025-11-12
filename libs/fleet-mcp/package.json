@@ -65,6 +65,7 @@
         "inputs": [
           "{projectRoot}/**/*.*",
           "!{projectRoot}/.venv/**",
+          "!{projectRoot}/dist/**",
           "!{projectRoot}/.pytest_cache/**",
           "!{projectRoot}/**/__pycache__/**"
         ],
@@ -86,7 +87,7 @@
           "cwd": "libs/fleet-mcp",
           "commands": [
             "uv version $(cat package.json | jq -r .version)",
-            "uv publish"
+            "uv publish --trusted-publishing=always"
           ]
         }
       }
