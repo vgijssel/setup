@@ -55,6 +55,38 @@
         "metadata": {
           "description": "Verify clean architecture layer boundaries with import-linter"
         }
+      },
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "uv build",
+          "cwd": "libs/fleet-mcp"
+        },
+        "inputs": [
+          "{projectRoot}/**/*.*",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/dist/**",
+          "!{projectRoot}/.pytest_cache/**",
+          "!{projectRoot}/**/__pycache__/**"
+        ],
+        "cache": true,
+        "outputs": [
+          "{projectRoot}/libs/fleet-mcp/dist"
+        ],
+        "metadata": {
+          "description": "Build the fleet-mcp Python package as a wheel"
+        }
+      },
+      "nx-release-publish": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "parallel": false,
+          "cwd": "libs/fleet-mcp",
+          "command": "./release.sh --dryRun={args.dryRun}"
+        }
       }
     }
   }

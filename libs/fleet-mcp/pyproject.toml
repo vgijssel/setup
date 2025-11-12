@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fleet-mcp"
-version = "0.2.0"
-description = "Clean architecture fleet management for Claude Code agents in Coder workspaces"
+name = "setup-fleet-mcp"
+version = "0.0.0"
+description = "Fleet management using MCP for AI agents in Coder workspaces"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
