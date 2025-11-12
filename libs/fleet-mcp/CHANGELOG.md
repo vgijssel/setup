@@ -1,3 +1,9 @@
+## 0.7.4 (2025-11-12)
+
+### 🩹 Fixes
+
+- Add console script entrypoint and lower Python version to 3.10 ([#827](https://github.com/vgijssel/setup/pull/827))
+
 ## 0.7.3 (2025-11-12)
 
 ### 🩹 Fixes
