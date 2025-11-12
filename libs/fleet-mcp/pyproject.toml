@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fleet-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Clean architecture fleet management for Claude Code agents in Coder workspaces"
 readme = "README.md"
 requires-python = ">=3.12"

@@ -2,13 +2,17 @@
 
 import logging
 import os
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from pydantic import Field
+from starlette.responses import JSONResponse
 from typing_extensions import Annotated
 
+from .auth.middleware import AuthMiddleware
+from .auth.token_manager import TokenManager
 from .clients import CoderClient
 from .models import AgentStatus
 from .repositories import AgentRepository, ProjectRepository, TaskRepository
@@ -27,7 +31,7 @@ load_dotenv()
 logger.info("Loading environment variables")
 
 # Initialize FastMCP server
-mcp = FastMCP("Fleet MCP Clean", version="0.1.0")
+mcp = FastMCP("Fleet MCP Clean", version="0.2.0")
 
 # Coder API configuration
 CODER_URL = os.getenv("CODER_URL")
@@ -331,20 +335,45 @@ async def health_check(request):
     Returns a JSON response indicating the server's operational status.
     This endpoint is accessible at http://host:port/health
     """
-    from starlette.responses import JSONResponse
-
     return JSONResponse(
         {
             "status": "healthy",
             "service": "fleet-mcp",
-            "version": "0.1.0",
+            "version": "0.2.0",
             "coder_url": CODER_URL,
         }
     )
 
 
+# ========================================================================
+# Authentication Configuration
+# ========================================================================
+
+# Get auth configuration from environment
+AUTH_ENABLED = os.getenv("FLEET_MCP_AUTH_ENABLED", "false").lower() == "true"
+AUTH_TOKEN_FILE = os.getenv(
+    "FLEET_MCP_AUTH_TOKEN_FILE",
+    str(Path.home() / ".fleet-mcp" / "auth_token"),
+)
+
+logger.info(f"Authentication enabled: {AUTH_ENABLED}")
+if AUTH_ENABLED:
+    logger.info(f"Token file location: {AUTH_TOKEN_FILE}")
+
+# Create TokenManager singleton
+_token_manager = TokenManager(token_file_path=AUTH_TOKEN_FILE)
+
+# If authentication is enabled, create token immediately on startup
+# This ensures the token is available before the first request
+if AUTH_ENABLED:
+    _token_manager.get_or_create_token()
+    logger.info("Authentication token initialized")
+
 # Create the ASGI application for stateless HTTP mode (uvicorn)
 app = mcp.http_app(stateless_http=True)
+
+# Wrap with authentication middleware
+app.add_middleware(AuthMiddleware, token_manager=_token_manager, enabled=AUTH_ENABLED)
 
 # Entry point for fastmcp run (stdio mode)
 if __name__ == "__main__":

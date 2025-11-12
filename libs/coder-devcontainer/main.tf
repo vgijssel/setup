@@ -387,7 +387,18 @@ module "claude-code" {
     cd /workspaces/setup
     # Wait for the Fleet MCP server to be available
     wait-for-it --service 127.0.0.1:8000 --timeout 120
-    claude mcp add --transport http fleet-mcp http://127.0.0.1:8000/mcp
+    # Extract the bearer token from the token file with error handling
+    TOKEN_FILE="$HOME/.fleet-mcp/auth_token"
+    if [ ! -f "$TOKEN_FILE" ]; then
+      echo "Error: Token file $TOKEN_FILE does not exist." >&2
+      exit 1
+    fi
+    TOKEN=$(jq -r '.value' "$TOKEN_FILE" 2>/dev/null)
+    if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+      echo "Error: Failed to extract token from $TOKEN_FILE." >&2
+      exit 1
+    fi
+    claude mcp add --transport http fleet-mcp http://127.0.0.1:8000/mcp --header "Authorization: Bearer $TOKEN"
   EOT
 
 
