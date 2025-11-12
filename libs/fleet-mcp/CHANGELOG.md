@@ -1,3 +1,9 @@
+## 0.7.3 (2025-11-12)
+
+### 🩹 Fixes
+
+- Let uv handle trusted publisher token ([#826](https://github.com/vgijssel/setup/pull/826))
+
 ## 0.7.2 (2025-11-12)
 
 ### 🩹 Fixes
