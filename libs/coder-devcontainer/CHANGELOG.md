@@ -1,3 +1,9 @@
+## 0.14.4 (2025-11-12)
+
+### 🩹 Fixes
+
+- Remove unused agent metadata blocks (PR URL, PR Status, PR Check Status, Agent Spec) ([#814](https://github.com/vgijssel/setup/pull/814))
+
 ## 0.14.3 (2025-11-11)
 
 ### 🧱 Updated Dependencies

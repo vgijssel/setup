@@ -1,6 +1,6 @@
 {
   "name": "coder-devcontainer",
-  "version": "0.14.3",
+  "version": "0.14.4",
   "dependencies": {
     "devcontainer": "0.7.3"
   },
