@@ -66,4 +66,3 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           UV_PUBLISH_TOKEN: ${{ steps.mint-token.outputs.api-token }}
-
