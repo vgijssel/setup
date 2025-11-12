@@ -418,7 +418,9 @@ module "claude-code" {
     cd /workspaces/setup
     # Wait for the Fleet MCP server to be available
     wait-for-it --service 127.0.0.1:8000 --timeout 120
-    claude mcp add --transport http fleet-mcp http://127.0.0.1:8000/mcp
+    # Extract the bearer token from the token file
+    TOKEN=$(cat ~/.fleet-mcp/auth_token | jq -r '.value')
+    claude mcp add --transport http fleet-mcp http://127.0.0.1:8000/mcp --header "Authorization: Bearer $TOKEN"
   EOT
 
 
