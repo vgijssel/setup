@@ -85,7 +85,7 @@
         "options": {
           "parallel": false,
           "cwd": "libs/fleet-mcp",
-          "command": "./release.sh --dryRun={args.dryRun}"
+          "command": "./release.sh"
         }
       }
     }
