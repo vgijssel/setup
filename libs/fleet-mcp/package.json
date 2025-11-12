@@ -85,18 +85,7 @@
         "options": {
           "parallel": false,
           "cwd": "libs/fleet-mcp",
-          "commands": [
-            "uv version $(cat package.json | jq -r .version)",
-            "uv publish --trusted-publishing=always"
-          ]
-        },
-        "configurations": {
-          "test": {
-            "commands": [
-              "uv version --dry-run $(cat package.json | jq -r .version)",
-              "uv publish --trusted-publishing=always --dry-run"
-            ]
-          }
+          "command": "./release.sh --dryRun={args.dryRun}"
         }
       }
     }

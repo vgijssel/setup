@@ -38,9 +38,6 @@ jobs:
       - name: mint API token
         id: mint-token
         run: |
-          echo $ACTIONS_ID_TOKEN_REQUEST_TOKEN
-          echo $ACTIONS_ID_TOKEN_REQUEST_URL
-
           # retrieve the ambient OIDC token
           resp=$(curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=pypi")
