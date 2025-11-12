@@ -1,3 +1,9 @@
+## 0.7.2 (2025-11-12)
+
+### 🩹 Fixes
+
+- Build the right version for fleet-mcp publish ([#825](https://github.com/vgijssel/setup/pull/825))
+
 ## 0.7.1 (2025-11-12)
 
 ### 🩹 Fixes
