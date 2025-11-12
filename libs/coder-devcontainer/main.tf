@@ -361,21 +361,6 @@ resource "coder_agent" "main" {
     timeout      = 1
   }
 
-  metadata {
-    display_name = "Fleet MCP Token"
-    key          = "8_fleet_mcp_token"
-    script       = <<EOT
-      TOKEN_FILE="$HOME/.fleet-mcp/auth_token"
-      if [ -f "$TOKEN_FILE" ]; then
-        jq -r '.value // "Token not available"' "$TOKEN_FILE" 2>/dev/null || echo "Error reading token"
-      else
-        echo "Token file not found"
-      fi
-    EOT
-    interval     = 3600
-    timeout      = 5
-  }
-
 }
 
 module "claude-code" {
@@ -569,6 +554,27 @@ resource "coder_app" "fleet_mcp" {
     url       = "http://127.0.0.1:8000/health"
     interval  = 10
     threshold = 24
+  }
+}
+
+# Fleet MCP resource metadata - displays information about the bearer token
+resource "coder_metadata" "fleet_mcp_token" {
+  resource_id = coder_app.fleet_mcp.id
+  icon        = "/icon/cloud.svg"
+
+  item {
+    key   = "Bearer Token File"
+    value = "$HOME/.fleet-mcp/auth_token"
+  }
+
+  item {
+    key   = "Token Format"
+    value = "JSON with 'value' field"
+  }
+
+  item {
+    key   = "Read Command"
+    value = "jq -r '.value' $HOME/.fleet-mcp/auth_token"
   }
 }
 
