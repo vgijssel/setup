@@ -32,17 +32,25 @@
 ## Validation Summary
 
 **Validation Date**: 2025-11-11
+**Last Updated**: 2025-11-11
 **Status**: ✅ ALL CHECKS PASSED
 
+**Scope Changes**:
+- Changed from read-write to read-only architecture
+- Metadata is automatically collected from workspace (git, GitHub/GitLab, tasks)
+- No external write/update/delete endpoints exposed
+- Server collects fresh metadata on each query
+
 **Clarifications Resolved**:
-- FR-011: Persistence mechanism → File-based storage (JSON/YAML)
-- FR-015: Size limits → 256 char keys, 4KB values, 1MB total per agent
+- Architecture: Read-only with automatic workspace metadata collection
+- Size limits: 256 char keys, 4KB values, 1MB total per agent
 
 **Key Strengths**:
-- 4 prioritized user stories with clear acceptance scenarios
-- 15 testable functional requirements
+- 3 prioritized user stories with clear acceptance scenarios
+- 16 testable functional requirements
 - 7 measurable, technology-agnostic success criteria
-- Comprehensive edge case coverage
-- Clear scope boundaries (single agent, stateless architecture)
+- Comprehensive edge case coverage for workspace states
+- Clear scope boundaries (single agent, stateless, read-only architecture)
+- Zero-configuration design (automatic metadata discovery)
 
 **Ready for**: `/speckit.plan` - Proceed to implementation planning phase
