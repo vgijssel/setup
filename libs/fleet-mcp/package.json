@@ -79,9 +79,6 @@
       },
       "nx-release-publish": {
         "executor": "nx:run-commands",
-        "dependsOn": [
-          "build"
-        ],
         "options": {
           "parallel": false,
           "cwd": "libs/fleet-mcp",
