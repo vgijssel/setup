@@ -1,0 +1,32 @@
+# Default Metadata Configuration for Fleet MCP
+# This configuration is shipped with fleet-mcp and provides basic git metadata
+# Users can override by creating ~/.config/fleet-mcp/metadata.yaml
+
+# No variables needed for simple git commands (fast enough to run directly)
+variables: {}
+
+# Git metadata fields (safe fallbacks for non-git workspaces)
+data:
+  git_branch:
+    cmd: "git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown'"
+    type: string
+    description: "Current git branch name"
+    includeInList: true
+
+  git_sha:
+    cmd: "git rev-parse --short HEAD 2>/dev/null || echo 'unknown'"
+    type: string
+    description: "Short commit SHA (7 characters)"
+    includeInList: true
+
+  git_dirty:
+    cmd: "test -n \"$(git status --porcelain 2>/dev/null)\" && echo 'true' || echo 'false'"
+    type: boolean
+    description: "Whether workspace has uncommitted changes"
+    includeInList: false
+
+  git_remote_url:
+    cmd: "git config --get remote.origin.url 2>/dev/null || echo 'unknown'"
+    type: string
+    description: "Remote repository URL"
+    includeInList: false

@@ -1,0 +1,207 @@
+openapi: 3.0.3
+info:
+  title: Fleet MCP Metadata API
+  description: HTTP API for workspace metadata collection
+  version: 1.0.0
+  contact:
+    name: Fleet MCP Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /metadata:
+    get:
+      summary: Get workspace metadata
+      description: |
+        Retrieves metadata for a specific workspace. Metadata is defined in YAML configuration
+        and collected by executing commands within the workspace context.
+
+        Responses include both values and schema definitions to support dynamic rendering.
+
+      operationId: getWorkspaceMetadata
+      tags:
+        - metadata
+
+      parameters:
+        - name: workspace_name
+          in: query
+          required: true
+          description: Name of the workspace to get metadata for (case-insensitive)
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+            pattern: '^[a-zA-Z0-9-]+$'
+          example: yaml-researcher
+
+        - name: force_refresh
+          in: query
+          required: false
+          description: Skip cache and force fresh metadata collection
+          schema:
+            type: boolean
+            default: false
+
+      responses:
+        '200':
+          description: Metadata successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetadataResponse'
+              examples:
+                with_pr_metadata:
+                  summary: Workspace with PR metadata
+                  value:
+                    data:
+                      pull_request_number:
+                        value: 810
+                        schema:
+                          type: number
+                          description: The number of the pull request.
+                          includeInList: true
+                      pull_request_status:
+                        value: open
+                        schema:
+                          type: enum
+                          values: [open, closed, merged]
+                          description: The status of the pull request.
+                          includeInList: false
+                      git_branch:
+                        value: 005-workspace-metadata
+                        schema:
+                          type: string
+                          description: Current git branch name
+                          includeInList: true
+                    meta:
+                      version: "1.0"
+                      collected_at: "2025-11-12T10:30:45.123456+00:00"
+
+                with_null_values:
+                  summary: Workspace with failed metadata collection
+                  value:
+                    data:
+                      pull_request_number:
+                        value: null
+                        schema:
+                          type: number
+                          description: The number of the pull request.
+                          includeInList: true
+                      git_branch:
+                        value: main
+                        schema:
+                          type: string
+                          description: Current git branch name
+                          includeInList: true
+                    meta:
+                      version: "1.0"
+                      collected_at: "2025-11-12T10:30:45.123456+00:00"
+
+        '404':
+          description: Workspace not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Workspace 'invalid-name' not found"
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Failed to collect metadata: timeout"
+
+components:
+  schemas:
+    MetadataResponse:
+      type: object
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: object
+          description: Map of field names to field definitions
+          additionalProperties:
+            $ref: '#/components/schemas/MetadataField'
+        meta:
+          type: object
+          required:
+            - version
+            - collected_at
+          properties:
+            version:
+              type: string
+              description: API version
+              example: "1.0"
+            collected_at:
+              type: string
+              format: date-time
+              description: ISO 8601 timestamp when metadata was collected
+              example: "2025-11-12T10:30:45.123456+00:00"
+
+    MetadataField:
+      type: object
+      required:
+        - value
+        - schema
+      properties:
+        value:
+          description: Field value (null if collection failed)
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: "null"
+          example: 810
+        schema:
+          $ref: '#/components/schemas/FieldSchema'
+
+    FieldSchema:
+      type: object
+      required:
+        - type
+        - description
+        - includeInList
+      properties:
+        type:
+          type: string
+          enum: [string, number, boolean, enum]
+          description: Field data type
+          example: number
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Human-readable field description
+          example: The number of the pull request.
+        includeInList:
+          type: boolean
+          description: Whether field appears in list_agents MCP response
+          example: true
+        values:
+          type: array
+          items:
+            type: string
+          description: Allowed values (required if type=enum)
+          example: [open, closed, merged]
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: Workspace not found
+
+tags:
+  - name: metadata
+    description: Workspace metadata operations

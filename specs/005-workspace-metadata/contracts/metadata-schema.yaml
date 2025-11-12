@@ -1,0 +1,74 @@
+# Metadata Configuration Schema
+# Version: 1.0
+# Description: Defines workspace metadata collection for fleet-mcp agents
+
+# Variables are expensive operations executed once per request
+# Results are cached and reusable across multiple data fields
+variables:
+  # Example: Fetch PR info once, extract multiple fields
+  pr_info:
+    cmd: "gh pr view --json number,state,title,author"
+
+  # Example: Get git status once
+  git_status:
+    cmd: "git status --porcelain --branch"
+
+# Data fields define the actual metadata exposed to clients
+# Commands can reference variables using Jinja2 syntax: {{ variable_name }}
+data:
+  # Example: Extract PR number from cached pr_info variable
+  pull_request_number:
+    cmd: "echo {{ pr_info }} | jq '.number'"
+    type: number
+    description: "The number of the pull request."
+    includeInList: true
+
+  # Example: Extract PR status with enum validation
+  pull_request_status:
+    cmd: "echo {{ pr_info }} | jq -r '.state'"
+    type: enum
+    values: [open, closed, merged]
+    description: "The status of the pull request."
+    includeInList: false
+
+  # Example: Extract PR title
+  pull_request_title:
+    cmd: "echo {{ pr_info }} | jq -r '.title'"
+    type: string
+    description: "The title of the pull request."
+    includeInList: false
+
+  # Example: Git branch (standalone command, no variable)
+  git_branch:
+    cmd: "git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown'"
+    type: string
+    description: "Current git branch name"
+    includeInList: true
+
+  # Example: Git commit SHA
+  git_sha:
+    cmd: "git rev-parse --short HEAD 2>/dev/null || echo 'unknown'"
+    type: string
+    description: "Short commit SHA (7 characters)"
+    includeInList: true
+
+  # Example: Boolean for dirty working tree
+  git_dirty:
+    cmd: "test -n \"$(git status --porcelain)\" && echo 'true' || echo 'false'"
+    type: boolean
+    description: "Whether workspace has uncommitted changes"
+    includeInList: false
+
+# Schema Validation Rules:
+# 1. At least one data field MUST be defined
+# 2. Variables are optional (can be empty dict)
+# 3. Variable names MUST be valid Python identifiers (used in Jinja2)
+# 4. Commands MUST be valid shell commands
+# 5. Enum types MUST define 'values' field
+# 6. includeInList defaults to false if not specified
+
+# Security Notes:
+# - Variable values are automatically escaped via shlex.quote before substitution
+# - Commands run in sandboxed workspace context (no cross-workspace access)
+# - Timeout enforced per field (default 10s, configurable)
+# - Command failures result in null values (non-blocking)
