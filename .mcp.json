@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "fleet-mcp": {
+      "type": "http",
+      "url": "http://127.0.0.1:8000/mcp",
+      "headers": {
+        "Authorization": "Bearer ${FLEET_MCP_TOKEN}"
+      }
+    },
+    "coder": {
+      "type": "http",
+      "url": "${CODER_URL:-http://host.docker.internal:3000}/api/v2/workspaces/me/mcp",
+      "headers": {
+        "Coder-Session-Token": "${CODER_SESSION_TOKEN}"
+      }
+    }
+  }
+}

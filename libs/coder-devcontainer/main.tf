@@ -387,6 +387,7 @@ module "claude-code" {
     cd /workspaces/setup
     # Wait for the Fleet MCP server to be available
     wait-for-it --service 127.0.0.1:8000 --timeout 120
+
     # Extract the bearer token from the token file with error handling
     TOKEN_FILE="$HOME/.fleet-mcp/auth_token"
     if [ ! -f "$TOKEN_FILE" ]; then
@@ -398,7 +399,14 @@ module "claude-code" {
       echo "Error: Failed to extract token from $TOKEN_FILE." >&2
       exit 1
     fi
-    claude mcp add --transport http fleet-mcp http://127.0.0.1:8000/mcp --header "Authorization: Bearer $TOKEN"
+
+    # Export FLEET_MCP_TOKEN for .mcp.json environment variable expansion
+    echo "export FLEET_MCP_TOKEN='$TOKEN'" >> "$HOME/.bashrc"
+
+    # Also set it for the current shell to ensure it's available immediately
+    export FLEET_MCP_TOKEN="$TOKEN"
+
+    echo "MCP configuration completed. Fleet MCP token has been set."
   EOT
 
 
