@@ -7,7 +7,7 @@ name = "setup-fleet-mcp"
 version = "0.0.0"
 description = "Fleet management using MCP for AI agents in Coder workspaces"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
   "fastmcp==2.13.0.2",
   "pydantic==2.12.3",
@@ -15,6 +15,9 @@ dependencies = [
   "python-dotenv==1.2.1",
   "uvicorn==0.34.0",
 ]
+
+[project.scripts]
+setup-fleet-mcp = "fleet_mcp.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fleet_mcp"]

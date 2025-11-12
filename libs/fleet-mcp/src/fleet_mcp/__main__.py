@@ -375,6 +375,12 @@ app = mcp.http_app(stateless_http=True)
 # Wrap with authentication middleware
 app.add_middleware(AuthMiddleware, token_manager=_token_manager, enabled=AUTH_ENABLED)
 
+
+def main():
+    """Main entry point for the console script."""
+    mcp.run()
+
+
 # Entry point for fastmcp run (stdio mode)
 if __name__ == "__main__":
-    mcp.run()
+    main()
