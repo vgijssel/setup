@@ -1,3 +1,9 @@
+## 0.14.6 (2025-11-12)
+
+### 🩹 Fixes
+
+- Configure Claude MCP client to use Bearer token authentication for fleet-mcp server ([#817](https://github.com/vgijssel/setup/pull/817))
+
 ## 0.14.5 (2025-11-12)
 
 ### 🧱 Updated Dependencies

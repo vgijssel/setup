@@ -1,3 +1,13 @@
+## 0.6.0 (2025-11-12)
+
+### 🚀 Features
+
+- Add header-based Bearer token authentication with opt-in configuration support ([#817](https://github.com/vgijssel/setup/pull/817))
+
+### 🩹 Fixes
+
+- Initialize authentication token on startup when auth is enabled ([#817](https://github.com/vgijssel/setup/pull/817))
+
 ## 0.5.0 (2025-11-10)
 
 ### 🚀 Features
