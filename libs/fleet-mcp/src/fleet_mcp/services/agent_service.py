@@ -1,10 +1,13 @@
 """Agent service for business logic and orchestration."""
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from ..models import Agent, AgentStatus
 from ..models.errors import AgentNotFoundError, ValidationError
 from ..repositories import AgentRepository, ProjectRepository
+
+if TYPE_CHECKING:
+    from ..repositories.metadata_repository import MetadataRepository
 
 
 class AgentService:
@@ -43,15 +46,19 @@ class AgentService:
         self,
         status_filter: Optional[AgentStatus] = None,
         project_filter: Optional[str] = None,
+        include_metadata: bool = False,
     ) -> list[Agent]:
         """List all agents with optional filtering.
 
         Args:
             status_filter: Filter by agent status (optional)
             project_filter: Filter by project name (optional, case-insensitive)
+            include_metadata: Whether to collect and include workspace metadata (default: False)
+                             When True, each agent will have metadata field populated with
+                             filtered metadata (only include_in_list=true fields)
 
         Returns:
-            List of Agent domain models matching filters
+            List of Agent domain models matching filters (with metadata if requested)
 
         Raises:
             ValidationError: If filters are invalid
@@ -60,6 +67,11 @@ class AgentService:
             Project name filtering is case insensitive because the Coder API
             backend is case insensitive. For example, filtering by "Setup",
             "SETUP", or "setup" will all return the same agents.
+
+            For metadata in list view:
+            - Only fields with include_in_list=true are included
+            - Only values are returned (no schema objects)
+            - Failed fields show null values
         """
         agents = await self.agent_repo.list_all()
 
@@ -71,6 +83,13 @@ class AgentService:
             # Case-insensitive project filter comparison
             project_filter_lower = project_filter.lower()
             agents = [a for a in agents if a.project.lower() == project_filter_lower]
+
+        # Collect metadata if requested and metadata_repo is available
+        if include_metadata and self.metadata_repo is not None:
+            for agent in agents:
+                metadata = await self.metadata_repo.collect_metadata(agent.workspace_id)
+                # Convert WorkspaceMetadata to dict for Agent model
+                agent.metadata = metadata.model_dump()
 
         return agents
 
