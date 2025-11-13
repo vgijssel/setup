@@ -62,7 +62,7 @@ class TaskfileParser:
         try:
             data = yaml.safe_load(content)
         except yaml.YAMLError as e:
-            raise yaml.YAMLError(f"Failed to parse Taskfile YAML: {e}")
+            raise yaml.YAMLError(f"Failed to parse Taskfile YAML: {e}") from e
 
         if not data or "tasks" not in data:
             return {}

@@ -4,10 +4,11 @@ TDD Approach: These tests are written FIRST, before the parser is implemented.
 Expected to FAIL until parser is created in fleet_mcp/services/taskfile_parser.py
 """
 
-import pytest
-import yaml
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+
+import pytest
+import yaml
 
 
 def test_parse_taskfile_with_metadata_tasks():
@@ -252,9 +253,10 @@ tasks:
         with pytest.raises(ValueError) as exc_info:
             parser.parse_metadata_tasks(taskfile_path)
 
-        assert "additional properties" in str(exc_info.value).lower() or "extra" in str(
-            exc_info.value
-        ).lower()
+        assert (
+            "additional properties" in str(exc_info.value).lower()
+            or "extra" in str(exc_info.value).lower()
+        )
     finally:
         Path(taskfile_path).unlink()
 

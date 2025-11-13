@@ -127,7 +127,11 @@ def test_workspace_metadata_creation_empty():
 
 def test_workspace_metadata_creation_with_data():
     """Test WorkspaceMetadata with metadata fields."""
-    from fleet_mcp.models.metadata import MetadataField, MetadataSchema, WorkspaceMetadata
+    from fleet_mcp.models.metadata import (
+        MetadataField,
+        MetadataSchema,
+        WorkspaceMetadata,
+    )
 
     pr_schema = MetadataSchema(description="PR number", include_in_list=True)
     branch_schema = MetadataSchema(description="Git branch", include_in_list=False)
@@ -135,7 +139,9 @@ def test_workspace_metadata_creation_with_data():
     metadata = WorkspaceMetadata(
         data={
             "pull_request_number": MetadataField(value=819, schema=pr_schema),
-            "git_branch": MetadataField(value="005-workspace-metadata", schema=branch_schema),
+            "git_branch": MetadataField(
+                value="005-workspace-metadata", schema=branch_schema
+            ),
         }
     )
 
@@ -147,14 +153,20 @@ def test_workspace_metadata_creation_with_data():
 
 def test_workspace_metadata_with_partial_failures():
     """Test WorkspaceMetadata with some failed fields."""
-    from fleet_mcp.models.metadata import MetadataField, MetadataSchema, WorkspaceMetadata
+    from fleet_mcp.models.metadata import (
+        MetadataField,
+        MetadataSchema,
+        WorkspaceMetadata,
+    )
 
     pr_schema = MetadataSchema(description="PR number", include_in_list=True)
     status_schema = MetadataSchema(description="PR status", include_in_list=True)
 
     metadata = WorkspaceMetadata(
         data={
-            "pull_request_number": MetadataField(value=819, error=None, schema=pr_schema),
+            "pull_request_number": MetadataField(
+                value=819, error=None, schema=pr_schema
+            ),
             "pull_request_status": MetadataField(
                 value=None, error="Command timeout", schema=status_schema
             ),
@@ -169,7 +181,11 @@ def test_workspace_metadata_with_partial_failures():
 
 def test_workspace_metadata_serialization():
     """Test WorkspaceMetadata JSON serialization."""
-    from fleet_mcp.models.metadata import MetadataField, MetadataSchema, WorkspaceMetadata
+    from fleet_mcp.models.metadata import (
+        MetadataField,
+        MetadataSchema,
+        WorkspaceMetadata,
+    )
 
     schema = MetadataSchema(description="PR number", include_in_list=True)
     metadata = WorkspaceMetadata(
@@ -196,7 +212,11 @@ def test_workspace_metadata_custom_meta_version():
 
 def test_metadata_field_schema_include_in_list_filtering():
     """Test filtering metadata fields by include_in_list flag."""
-    from fleet_mcp.models.metadata import MetadataField, MetadataSchema, WorkspaceMetadata
+    from fleet_mcp.models.metadata import (
+        MetadataField,
+        MetadataSchema,
+        WorkspaceMetadata,
+    )
 
     pr_schema = MetadataSchema(description="PR number", include_in_list=True)
     branch_schema = MetadataSchema(description="Git branch", include_in_list=False)

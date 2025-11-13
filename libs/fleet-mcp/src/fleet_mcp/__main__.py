@@ -15,7 +15,12 @@ from .auth.middleware import AuthMiddleware
 from .auth.token_manager import TokenManager
 from .clients import CoderClient
 from .models import AgentStatus
-from .repositories import AgentRepository, ProjectRepository, TaskRepository
+from .repositories import (
+    AgentRepository,
+    MetadataRepository,
+    ProjectRepository,
+    TaskRepository,
+)
 from .services import AgentService, ProjectService, TaskService
 
 # Configure logging
@@ -52,7 +57,7 @@ _coder_client: CoderClient | None = None
 _agent_repo: AgentRepository | None = None
 _project_repo: ProjectRepository | None = None
 _task_repo: TaskRepository | None = None
-_metadata_repo: "MetadataRepository | None" = None
+_metadata_repo: MetadataRepository | None = None
 _agent_service: AgentService | None = None
 _project_service: ProjectService | None = None
 _task_service: TaskService | None = None

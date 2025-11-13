@@ -5,8 +5,6 @@ the WorkspaceMetadata model schema. Written FIRST before endpoint implementation
 """
 
 import pytest
-import respx
-from httpx import AsyncClient, Response
 
 # Mark all tests in this module as asyncio
 pytestmark = pytest.mark.asyncio

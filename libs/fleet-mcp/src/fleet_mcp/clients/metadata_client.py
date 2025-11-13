@@ -5,7 +5,6 @@ to retrieve workspace metadata (git branch, PR number, etc.).
 """
 
 import logging
-from typing import Optional
 
 import httpx
 from pydantic import ValidationError
