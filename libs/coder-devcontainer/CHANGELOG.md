@@ -1,3 +1,9 @@
+## 0.15.0 (2025-11-12)
+
+### 🚀 Features
+
+- Implement idempotent MCP server configuration using programmatic `claude mcp remove` followed by `claude mcp add` commands with dynamic bearer token injection from fleet-mcp auth_token file ([#818](https://github.com/vgijssel/setup/pull/818))
+
 ## 0.14.6 (2025-11-12)
 
 ### 🩹 Fixes

@@ -1,10 +1,10 @@
-# Fleet MCP Clean
+# Fleet MCP
 
-Clean architecture implementation of fleet management for Claude Code agents in Coder workspaces.
+Fleet management using MCP for AI agents in [Coder](https://coder.com) workspaces.
 
 ## Overview
 
-Fleet MCP Clean provides MCP (Model Context Protocol) tools for managing Claude Code agent fleets running in Coder workspaces. It follows clean architecture principles with strict layer separation for maintainability and testability.
+Fleet MCP provides MCP (Model Context Protocol) tools for managing Claude Code agent fleets running in Coder workspaces. It follows clean architecture principles with strict layer separation for maintainability and testability.
 
 ## Architecture
 

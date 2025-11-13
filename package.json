@@ -11,9 +11,9 @@
     ".devcontainer"
   ],
   "devDependencies": {
-    "@nx/js": "21.5.2",
-    "@nx/s3-cache": "3.1.1",
-    "nx": "21.5.2",
+    "@nx/js": "22.0.3",
+    "@nx/s3-cache": "5.0.0",
+    "nx": "22.0.3",
     "picomatch": "4.0.2"
   }
 }

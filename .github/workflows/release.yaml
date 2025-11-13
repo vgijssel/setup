@@ -8,6 +8,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      # Needed for publishing packages using uv and pypi trusted publisher
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4

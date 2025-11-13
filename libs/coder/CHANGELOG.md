@@ -1,3 +1,9 @@
+## 0.3.0 (2025-11-12)
+
+### 🚀 Features
+
+- Expose Coder using Tailscale funnel instead of serve ([#823](https://github.com/vgijssel/setup/pull/823))
+
 ## 0.2.0 (2025-10-08)
 
 ### 🚀 Features

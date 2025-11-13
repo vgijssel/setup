@@ -375,6 +375,32 @@ app = mcp.http_app(stateless_http=True)
 # Wrap with authentication middleware
 app.add_middleware(AuthMiddleware, token_manager=_token_manager, enabled=AUTH_ENABLED)
 
+
+def main():
+    """Main entry point for the console script (stdio mode)."""
+    mcp.run()
+
+
+def serve():
+    """Console script entry point to run the server in HTTP mode with uvicorn.
+
+    This starts the FastMCP server in stateless HTTP mode using uvicorn with:
+    - Host: 127.0.0.1
+    - Port: 8000
+    - Auto-reload enabled for development
+    - Graceful shutdown timeout: 3 seconds
+    """
+    import uvicorn
+
+    uvicorn.run(
+        "fleet_mcp.__main__:app",
+        host="127.0.0.1",
+        port=8000,
+        reload=True,
+        timeout_graceful_shutdown=3,
+    )
+
+
 # Entry point for fastmcp run (stdio mode)
 if __name__ == "__main__":
-    mcp.run()
+    main()
