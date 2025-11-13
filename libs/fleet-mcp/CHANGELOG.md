@@ -1,3 +1,9 @@
+## 0.8.0 (2025-11-13)
+
+### 🚀 Features
+
+- Add HTTP server console script entry point (setup-fleet-mcp-serve) ([#828](https://github.com/vgijssel/setup/pull/828))
+
 ## 0.7.5 (2025-11-13)
 
 ### 🩹 Fixes
