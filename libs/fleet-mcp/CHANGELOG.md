@@ -1,3 +1,9 @@
+## 0.7.5 (2025-11-13)
+
+### 🩹 Fixes
+
+- Pin Python version to 3.10 to ensure consistent environment and validate compatibility with lower Python versions ([#829](https://github.com/vgijssel/setup/pull/829))
+
 ## 0.7.4 (2025-11-12)
 
 ### 🩹 Fixes
