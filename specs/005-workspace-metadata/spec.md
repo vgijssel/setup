@@ -80,7 +80,7 @@ Fleet operators need to correlate agents with their GitHub pull requests to trac
 - **FR-009**: Metadata collection MUST not modify the workspace state (read-only operations)
 - **FR-010**: System MUST support extensible metadata fields defined in the Taskfile
 - **FR-011**: System MUST handle workspaces that are not git repositories gracefully
-- **FR-012**: Metadata retrieval MUST complete within a reasonable timeout to avoid blocking agent queries
+- **FR-012**: Metadata retrieval MUST complete within 5 seconds per field to avoid blocking agent queries
 
 ### Key Entities
 
@@ -100,12 +100,12 @@ Fleet operators need to correlate agents with their GitHub pull requests to trac
 
 ### Measurable Outcomes
 
-- **SC-001**: Operators can view complete workspace metadata (branch, SHA, PR) for any agent in under 3 seconds
+- **SC-001**: Operators can view complete workspace metadata (branch, SHA, PR) for any agent with less than 2 seconds overhead added to base query time
 - **SC-002**: Metadata retrieval succeeds for 99% of queries when workspace is in valid git state
 - **SC-003**: Fleet operators can identify which agents are working on which PRs through a single list query
 - **SC-004**: System correctly handles and reports status for 100% of edge cases (non-git repos, detached HEAD, git errors) without crashing
 - **SC-005**: Metadata collection adds less than 2 seconds overhead to agent query response time
-- **SC-006**: Operators can extend metadata fields by modifying only the Taskfile without code changes
+- **SC-006**: Operators can extend metadata fields by modifying only the Taskfile.yml without modifying Python code or restarting services
 
 ## Assumptions
 

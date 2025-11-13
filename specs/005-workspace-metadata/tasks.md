@@ -47,10 +47,10 @@ Repository structure: `libs/fleet-mcp/` (single library project)
 
 ### Implement Core Models
 
-- [ ] T009 [P] Implement MetadataSchema model in libs/fleet-mcp/src/fleet_mcp/models/metadata.py
-- [ ] T010 [P] Implement MetadataField model in libs/fleet-mcp/src/fleet_mcp/models/metadata.py
-- [ ] T011 [P] Implement WorkspaceMetadata model in libs/fleet-mcp/src/fleet_mcp/models/metadata.py
-- [ ] T012 Run tests to verify they PASS
+- [ ] T009 [P] Implement MetadataSchema model in libs/fleet-mcp/src/fleet_mcp/models/metadata.py, run unit tests to verify they PASS
+- [ ] T010 [P] Implement MetadataField model in libs/fleet-mcp/src/fleet_mcp/models/metadata.py, run unit tests to verify they PASS
+- [ ] T011 [P] Implement WorkspaceMetadata model in libs/fleet-mcp/src/fleet_mcp/models/metadata.py, run unit tests to verify they PASS
+- [ ] T012 Run all model tests together to verify they PASS
 
 ### TDD: Write Tests for Taskfile Parsing
 
@@ -59,8 +59,8 @@ Repository structure: `libs/fleet-mcp/` (single library project)
 
 ### Implement Taskfile Parsing
 
-- [ ] T015 Implement Taskfile.yml parser (read, parse YAML, extract tasks with meta key) in libs/fleet-mcp/src/fleet_mcp/services/taskfile_parser.py
-- [ ] T016 Run tests to verify they PASS
+- [ ] T015 Implement Taskfile.yml parser (read, parse YAML, extract tasks with meta key) in libs/fleet-mcp/src/fleet_mcp/services/taskfile_parser.py, run unit tests to verify they PASS
+- [ ] T016 Run all Taskfile parsing tests together to verify they PASS
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -83,23 +83,23 @@ Repository structure: `libs/fleet-mcp/` (single library project)
 
 ### Implement User Story 1: /metadata Endpoint
 
-- [ ] T021 [US1] Implement MetadataClient for HTTP GET to agent's /metadata endpoint in libs/fleet-mcp/src/fleet_mcp/clients/metadata_client.py
-- [ ] T022 [US1] Run MetadataClient tests to verify they PASS
-- [ ] T023 [US1] Implement /metadata endpoint handler in libs/fleet-mcp/src/fleet_mcp/__main__.py using @mcp.custom_route decorator
-- [ ] T024 [US1] Add Taskfile.yml reading and task execution to /metadata endpoint handler
-- [ ] T025 [US1] Add error handling for missing Taskfile, failed tasks, timeouts in /metadata endpoint
-- [ ] T026 [US1] Run contract tests to verify they PASS
-- [ ] T027 [US1] Run integration tests to verify they PASS
+- [ ] T021 [US1] Implement MetadataClient for HTTP GET to agent's /metadata endpoint in libs/fleet-mcp/src/fleet_mcp/clients/metadata_client.py, run unit tests to verify they PASS
+- [ ] T022 [US1] Run all MetadataClient tests together to verify they PASS
+- [ ] T023 [US1] Implement /metadata endpoint handler in libs/fleet-mcp/src/fleet_mcp/__main__.py using @mcp.custom_route decorator, verify endpoint responds
+- [ ] T024 [US1] Add Taskfile.yml reading and task execution to /metadata endpoint handler, test with sample Taskfile
+- [ ] T025 [US1] Add error handling for missing Taskfile, failed tasks, timeouts in /metadata endpoint, test error cases
+- [ ] T026 [US1] Run all contract tests to verify they PASS
+- [ ] T027 [US1] Run all integration tests to verify they PASS
 
 ### Implement User Story 1: show_agent Integration
 
 - [ ] T028 [US1] Write unit tests for MetadataRepository in libs/fleet-mcp/tests/unit/repositories/test_metadata_repository.py (verify FAILS)
 - [ ] T029 [US1] Run tests to verify they FAIL
-- [ ] T030 [US1] Implement MetadataRepository.collect_metadata() in libs/fleet-mcp/src/fleet_mcp/repositories/metadata_repository.py
-- [ ] T031 [US1] Extend Agent model to add metadata field in libs/fleet-mcp/src/fleet_mcp/models/agent.py
-- [ ] T032 [US1] Extend AgentService to call MetadataRepository in libs/fleet-mcp/src/fleet_mcp/services/agent_service.py
-- [ ] T033 [US1] Update show_agent response to include metadata and metadata_count in libs/fleet-mcp/src/fleet_mcp/tools/show_agent.py
-- [ ] T034 [US1] Run all User Story 1 tests to verify they PASS
+- [ ] T030 [US1] Implement MetadataRepository.collect_metadata() in libs/fleet-mcp/src/fleet_mcp/repositories/metadata_repository.py, run unit tests to verify they PASS
+- [ ] T031 [US1] Extend Agent model to add metadata field in libs/fleet-mcp/src/fleet_mcp/models/agent.py, run model tests to verify they PASS
+- [ ] T032 [US1] Extend AgentService to call MetadataRepository in libs/fleet-mcp/src/fleet_mcp/services/agent_service.py, run service tests to verify they PASS
+- [ ] T033 [US1] Update show_agent response to include metadata and metadata_count in libs/fleet-mcp/src/fleet_mcp/tools/show_agent.py, run tool tests to verify they PASS
+- [ ] T034 [US1] Run all User Story 1 tests together to verify they PASS
 - [ ] T035 [US1] Manual test: Create Taskfile.yml in test workspace, call show_agent, verify metadata returned
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - show_agent returns workspace metadata
@@ -120,10 +120,10 @@ Repository structure: `libs/fleet-mcp/` (single library project)
 
 ### Implement User Story 2: list_agents Integration
 
-- [ ] T039 [US2] Extend AgentService to collect metadata for all agents in list operation in libs/fleet-mcp/src/fleet_mcp/services/agent_service.py
-- [ ] T040 [US2] Implement metadata filtering logic (include_in_list=true, values only) in libs/fleet-mcp/src/fleet_mcp/services/agent_service.py
-- [ ] T041 [US2] Update list_agents response to include metadata and metadata_count per agent in libs/fleet-mcp/src/fleet_mcp/tools/list_agents.py
-- [ ] T042 [US2] Run all User Story 2 tests to verify they PASS
+- [ ] T039 [US2] Extend AgentService to collect metadata for all agents in list operation in libs/fleet-mcp/src/fleet_mcp/services/agent_service.py, run service tests to verify they PASS
+- [ ] T040 [US2] Implement metadata filtering logic (include_in_list=true, values only) in libs/fleet-mcp/src/fleet_mcp/services/agent_service.py, run filtering tests to verify they PASS
+- [ ] T041 [US2] Update list_agents response to include metadata and metadata_count per agent in libs/fleet-mcp/src/fleet_mcp/tools/list_agents.py, run tool tests to verify they PASS
+- [ ] T042 [US2] Run all User Story 2 tests together to verify they PASS
 - [ ] T043 [US2] Manual test: Create multiple agents with different Taskfiles, call list_agents, verify filtered metadata
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work - show_agent returns full metadata, list_agents returns filtered metadata
@@ -144,9 +144,9 @@ Repository structure: `libs/fleet-mcp/` (single library project)
 
 ### Implement User Story 3: PR Metadata
 
-- [ ] T047 [US3] Create example Taskfile.yml with PR metadata tasks (pull_request_number, pull_request_state) in libs/fleet-mcp/examples/Taskfile.yml
-- [ ] T048 [US3] Document PR tracking workflow in quickstart.md
-- [ ] T049 [US3] Run all User Story 3 tests to verify they PASS (tests validate example Taskfile works)
+- [ ] T047 [US3] Create example Taskfile.yml with PR metadata tasks (pull_request_number, pull_request_state) in libs/fleet-mcp/examples/Taskfile.yml, test example manually
+- [ ] T048 [US3] Document PR tracking workflow in quickstart.md with working examples
+- [ ] T049 [US3] Run all User Story 3 tests to verify they PASS (tests validate example Taskfile works correctly)
 - [ ] T050 [US3] Manual test: Create workspace with PR, add Taskfile with gh commands, verify PR metadata returned
 
 **Checkpoint**: All user stories should now be independently functional - PR tracking enabled through Taskfile configuration
@@ -169,13 +169,13 @@ Repository structure: `libs/fleet-mcp/` (single library project)
 
 ### Implement Edge Case Handling
 
-- [ ] T058 Add graceful degradation for non-git workspaces (return empty metadata) in libs/fleet-mcp/src/fleet_mcp/repositories/metadata_repository.py
-- [ ] T059 Add error handling for detached HEAD state in Taskfile examples
-- [ ] T060 Add error handling for missing Taskfile (return empty metadata) in libs/fleet-mcp/src/fleet_mcp/__main__.py
-- [ ] T061 Add error handling for malformed Taskfile YAML in libs/fleet-mcp/src/fleet_mcp/services/taskfile_parser.py
-- [ ] T062 Add timeout handling (5 seconds per task) in /metadata endpoint in libs/fleet-mcp/src/fleet_mcp/__main__.py
-- [ ] T063 Add HTTP error handling (404, timeout, connection errors) in libs/fleet-mcp/src/fleet_mcp/clients/metadata_client.py
-- [ ] T064 Run all edge case tests to verify they PASS
+- [ ] T058 Add graceful degradation for non-git workspaces (return empty metadata) in libs/fleet-mcp/src/fleet_mcp/repositories/metadata_repository.py, run tests to verify they PASS
+- [ ] T059 Add error handling for detached HEAD state in Taskfile examples, test with detached HEAD workspace
+- [ ] T060 Add error handling for missing Taskfile (return empty metadata) in libs/fleet-mcp/src/fleet_mcp/__main__.py, run tests to verify they PASS
+- [ ] T061 Add error handling for malformed Taskfile YAML in libs/fleet-mcp/src/fleet_mcp/services/taskfile_parser.py, run tests to verify they PASS
+- [ ] T062 Add timeout handling (5 seconds per task) in /metadata endpoint in libs/fleet-mcp/src/fleet_mcp/__main__.py, run timeout tests to verify they PASS
+- [ ] T063 Add HTTP error handling (404, timeout, connection errors) in libs/fleet-mcp/src/fleet_mcp/clients/metadata_client.py, run error handling tests to verify they PASS
+- [ ] T064 Run all edge case tests together to verify they PASS
 
 ---
 
