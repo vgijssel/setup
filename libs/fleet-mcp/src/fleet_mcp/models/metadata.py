@@ -17,10 +17,13 @@ class MetadataSchema(BaseModel):
     """
 
     description: str = Field(
-        ..., min_length=1, description="Human-readable description of what this field represents"
+        ...,
+        min_length=1,
+        description="Human-readable description of what this field represents",
     )
     include_in_list: bool = Field(
-        default=False, description="Whether to include this field in list_agents response"
+        default=False,
+        description="Whether to include this field in list_agents response",
     )
 
 

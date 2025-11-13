@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -47,6 +47,9 @@ class Agent(BaseModel):
     last_task: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    metadata: Optional[dict[str, Any]] = Field(
+        default=None, description="Workspace metadata collected from Taskfile"
+    )
 
     @field_validator("name")
     @classmethod

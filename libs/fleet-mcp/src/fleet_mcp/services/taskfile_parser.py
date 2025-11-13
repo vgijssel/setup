@@ -44,7 +44,9 @@ class TaskfileParser:
 
         return self.parse_metadata_tasks_from_string(content)
 
-    def parse_metadata_tasks_from_string(self, content: str) -> dict[str, dict[str, Any]]:
+    def parse_metadata_tasks_from_string(
+        self, content: str
+    ) -> dict[str, dict[str, Any]]:
         """Parse Taskfile content string and extract tasks with meta key.
 
         Args:
