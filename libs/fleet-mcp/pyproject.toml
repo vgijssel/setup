@@ -18,6 +18,7 @@ dependencies = [
 
 [project.scripts]
 setup-fleet-mcp = "fleet_mcp.__main__:main"
+setup-fleet-mcp-serve = "fleet_mcp.__main__:serve"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fleet_mcp"]
