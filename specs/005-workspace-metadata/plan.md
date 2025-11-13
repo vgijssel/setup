@@ -1,163 +1,119 @@
 # Implementation Plan: Workspace Metadata for Fleet-MCP
 
-**Branch**: `005-workspace-metadata` | **Date**: 2025-11-12 | **Spec**: [spec.md](./spec.md)
+**Branch**: `005-workspace-metadata` | **Date**: 2025-11-13 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/005-workspace-metadata/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-Extend the fleet-mcp MCP server to expose workspace metadata (git branch, commit SHA, GitHub PR number) through the show_agent and list_agents tools. The metadata will be collected from agent workspaces using Taskfile commands and exposed via a new HTTP GET /metadata endpoint in the fleet-mcp server. This enables fleet operators to track which branches and PRs each agent is working on without manual inspection.
+Extend the fleet-mcp MCP server to return workspace metadata (git branch, commit SHA, PR number) from agent workspaces in both `show_agent` and `list_agents` tools. Metadata fields are defined as individual Taskfile tasks with a `meta` key containing only `include_in_list` flag (description comes from task `desc` field), executed within the workspace context, and returned with error handling (null value + error field) for graceful degradation.
 
 ## Technical Context
 
-**Language/Version**: Python 3.12
+**Language/Version**: Python 3.10
 **Primary Dependencies**:
-- FastMCP 2.13.0.2 (MCP server framework)
-- Pydantic 2.12.3 (data validation)
-- httpx 0.28.1 (HTTP client for metadata endpoint calls)
-- uvicorn 0.34.0 (ASGI server)
-- task (Taskfile CLI - external binary for metadata collection)
-
-**Storage**: N/A (metadata fetched on-demand from workspaces, not persisted)
-**Testing**:
-- pytest 7.4.3 (unit tests)
-- pytest-asyncio 0.21.1 (async test support)
-- respx 0.22.0 (HTTP mocking for metadata endpoint tests)
-- pytest-cov 4.1.0 (coverage reporting)
-
-**Target Platform**: Linux server (Coder workspace environment)
-**Project Type**: Single library project (libs/fleet-mcp)
-**Performance Goals**:
-- Metadata retrieval adds <2 seconds overhead to agent queries (SC-005)
-- Agent query with metadata completes in <3 seconds (SC-001)
-- Taskfile command execution timeout: 5 seconds per task
-
+- Pydantic (data validation and models)
+- httpx (HTTP client for agent app communication)
+- go-task/task (Taskfile YAML format for metadata commands)
+- Coder SDK (workspace info and URL construction)
+**Storage**: N/A (metadata collected on-demand, not persisted)
+**Testing**: pytest with fixtures and contract tests
+**Target Platform**: Linux server (Coder workspaces run on Linux containers)
+**Project Type**: Single library (`libs/fleet-mcp`)
+**Performance Goals**: Metadata retrieval adds <2 seconds overhead to agent queries
 **Constraints**:
-- Must not modify workspace state (read-only operations - FR-009)
-- Must handle non-git workspaces gracefully (FR-011)
-- Metadata collection timeout must prevent blocking agent queries (FR-012)
-- Must execute metadata commands within agent workspace context (FR-008)
-
+- Read-only operations (no workspace state modification)
+- Graceful degradation on failures (partial metadata returned with error field populated)
+- Metadata collection timeout: 5 seconds per field
 **Scale/Scope**:
-- Fleet size: ~20 concurrent agents
-- Metadata fields: 3-10 per agent (extensible via Taskfile)
-- Query frequency: ~1-5 queries/minute per operator
+- 10-50 agents in typical fleet
+- 3-5 metadata fields initially (extensible via Taskfile)
+- Tasks with `meta` key are identified as metadata fields (MVP requirement)
+- `meta` key contains only `include_in_list: true/false`
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-### I. Minimal Code & Dependency Reuse
-✅ **PASS** - Using existing third-party solutions:
-- Taskfile (go-task/task) for metadata collection - battle-tested task runner
-- FastMCP for HTTP endpoint - already in use
-- httpx for HTTP client - already in use
-- No custom git command parsing - delegated to Taskfile/shell commands
+### Principle I: Minimal Code & Dependency Reuse
+✅ **PASS** - Reusing existing infrastructure:
+- httpx for HTTP client (already in use by CoderClient)
+- Coder SDK for workspace URL construction (existing pattern from TaskRepository)
+- go-task/task for metadata command definitions (well-maintained, battle-tested)
+- Pydantic for data validation (already in use)
+- No custom task runner or command executor needed
 
-### II. Deterministic Dependencies
-✅ **PASS** - All dependencies use exact versions:
-- fastmcp==2.13.0.2
-- pydantic==2.12.3
-- httpx==0.28.1
-- pytest==7.4.3, pytest-asyncio==0.21.1, respx==0.22.0
-- Taskfile binary version will be pinned in third_party/
+### Principle II: Deterministic Dependencies
+✅ **PASS** - All dependencies already pinned in `libs/fleet-mcp/pyproject.toml`:
+- Pydantic pinned to exact version
+- Coder SDK integration uses MCP tools (already available)
+- Taskfile format is version 3 (stable specification)
 
-### III. Test-Driven Design (TDD)
+### Principle III: Test-Driven Design (TDD)
 ✅ **PASS** - TDD workflow planned:
-- Phase 0: Write failing tests for metadata models
-- Phase 1: Write failing tests for HTTP endpoint
-- Phase 2: Write failing tests for MetadataRepository
-- Phase 3: Implement to make tests pass
-- All components will have unit + integration tests
+1. Write contract tests for metadata response schema (with error field)
+2. Write unit tests for Taskfile parsing (meta key extraction)
+3. Write integration tests for metadata collection (including failure cases)
+4. Implement metadata collection service
+5. Implement tool extensions for show_agent and list_agents
 
-### IV. Nx Monorepo Structure
-✅ **PASS** - Extends existing libs/fleet-mcp library:
-- No new projects created
-- Follows existing structure: models/, repositories/, services/, clients/
-- Changes contained within single library boundary
+### Principle IV: Nx Monorepo Structure
+✅ **PASS** - Follows existing structure:
+- Feature implemented in `libs/fleet-mcp` (existing library)
+- No new projects or apps needed
+- Extends existing models and services
 
-### V. Third-Party Dependency Management
-✅ **PASS** - Taskfile binary will be managed in third_party/:
-- third_party/hermit/taskfile.hcl (Hermit package definition)
-- Version pinned and documented
-- No scattered dependencies
+### Principle V: Third-Party Dependency Management
+✅ **PASS** - No new third-party dependencies:
+- Taskfile YAML format is a specification, not a runtime dependency
+- All required tools (git, gh) expected in workspace environment
+- Coder SDK already integrated via MCP
 
-### VI. Semantic Versioning & Independent Releases
-✅ **PASS** - Library versioning:
-- Current version: 0.2.0
-- This feature adds new capability (metadata) → MINOR bump to 0.3.0
-- Backward compatible (extends existing tools without breaking changes)
+### Principle VI: Semantic Versioning & Independent Releases
+✅ **PASS** - Minor version bump:
+- MINOR increment (backward-compatible functionality addition)
+- New optional fields in response models (metadata, error)
+- Existing clients unaffected (metadata fields are additive)
 
-### VII. GitOps Deployment
-✅ **PASS** - No deployment changes required:
-- fleet-mcp already deployed via GitOps
-- Configuration changes (Taskfile.yml) version-controlled
-- No manual deployment steps
+### Principle VII: GitOps Deployment
+✅ **PASS** - No deployment changes:
+- MCP server configuration unchanged
+- Feature enabled automatically via library update
+- No infrastructure or GitOps changes required
 
-### VIII. Tool Availability
-✅ **PASS** - Taskfile binary available via:
-- third_party/hermit/taskfile.hcl
-- Hermit auto-downloads on direnv allow
-- No manual installation required
+### Principle VIII: Tool Availability
+✅ **PASS** - Workspace tools already available:
+- git, gh, and other workspace tools provisioned in Coder templates
+- Taskfile execution via shell commands (no additional tooling)
+- Error handling for missing tools (graceful degradation)
 
-### IX. On-Demand Dependency Provisioning
-✅ **PASS** - Dependencies auto-provisioned:
-- Hermit handles Taskfile binary
-- Python deps handled by uv
-- direnv allow is sufficient
+### Principle IX: On-Demand Dependency Provisioning
+✅ **PASS** - No new provisioning needed:
+- Metadata collected on-demand (no background processes)
+- Workspace tools already provisioned via Coder templates
+- Taskfile YAML parsed at runtime
 
-### X. Modular Library Design
-✅ **PASS** - Single focused library:
-- fleet-mcp library has clear responsibility (fleet management)
-- Metadata feature fits within existing scope
-- Minimal dependencies on other libraries
-- Independent test suite preserved
+### Principle X: Modular Library Design
+✅ **PASS** - Focused library extension:
+- Single responsibility: workspace metadata collection
+- Isolated test suite additions
+- Minimal coupling (new service layer component)
 
-**GATE STATUS: ✅ ALL CHECKS PASSED - Ready for Phase 0**
-
----
-
-## Post-Design Constitution Re-Check
-
-*Re-evaluated after Phase 1 (Design & Contracts)*
-
-### Design Review Against Constitution
-
-✅ **ALL PRINCIPLES STILL SATISFIED**
-
-**Phase 1 Deliverables**:
-1. **research.md** - All unknowns resolved, decisions documented
-2. **data-model.md** - Pydantic models for metadata entities
-3. **contracts/** - HTTP API and MCP tool contracts
-4. **quickstart.md** - User-facing documentation
-
-**Architecture Validation**:
-- No new dependencies added (using existing: FastMCP, Pydantic, httpx, Taskfile)
-- Clean architecture layers maintained (models → repositories → services → tools)
-- TDD-ready: All components designed with testability in mind
-- Modular: Changes contained within libs/fleet-mcp boundary
-- Deterministic: Taskfile binary will be pinned in third_party/hermit/
-
-**Complexity Assessment**:
-- No new projects created
-- No custom parsers (using Taskfile CLI's JSON output)
-- Reusing existing patterns (FastMCP custom routes, Pydantic models, async repositories)
-- Error handling follows existing fleet-mcp patterns
-
-**Post-Design Gate**: ✅ **PASSED** - Ready for Phase 2 (Implementation)
+**Overall**: ✅ **ALL GATES PASS** - No violations, no complexity justification needed
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
+specs/005-workspace-metadata/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (/speckit.plan command)
 ├── data-model.md        # Phase 1 output (/speckit.plan command)
 ├── quickstart.md        # Phase 1 output (/speckit.plan command)
 ├── contracts/           # Phase 1 output (/speckit.plan command)
+│   └── metadata-schema.json  # JSON Schema for metadata response
 └── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
@@ -167,61 +123,176 @@ specs/[###-feature]/
 libs/fleet-mcp/
 ├── src/fleet_mcp/
 │   ├── models/
-│   │   ├── agent.py              # [MODIFIED] Add metadata field
-│   │   ├── metadata.py           # [NEW] Metadata domain models
-│   │   └── responses.py          # [MODIFIED] Add metadata to AgentResponse/ListAgentsResponse
-│   │
-│   ├── repositories/
-│   │   ├── metadata_repository.py # [NEW] Metadata collection from workspaces
-│   │   └── agent_repository.py    # [MODIFIED] Use MetadataRepository
-│   │
+│   │   ├── agent.py              # [EXTEND] Add metadata field to Agent model
+│   │   ├── responses.py          # [EXTEND] Add metadata to AgentListView and ShowAgentResponse
+│   │   └── metadata.py           # [NEW] WorkspaceMetadata, MetadataField models
 │   ├── clients/
-│   │   └── metadata_client.py    # [NEW] HTTP client for /metadata endpoint
-│   │
+│   │   └── metadata_client.py    # [NEW] HTTP client for agent /metadata endpoint
+│   ├── repositories/
+│   │   └── metadata_repository.py # [NEW] Metadata collection orchestration
 │   ├── services/
-│   │   └── agent_service.py      # [MODIFIED] Aggregate metadata in responses
-│   │
-│   ├── server/
-│   │   ├── __init__.py           # [NEW] FastAPI/FastMCP HTTP server
-│   │   └── metadata_endpoint.py  # [NEW] GET /metadata endpoint
-│   │
-│   └── tools/
-│       ├── show_agent.py         # [MODIFIED] Include metadata in response
-│       └── list_agents.py        # [MODIFIED] Include metadata in response
+│   │   └── agent_service.py      # [EXTEND] Integrate metadata collection
+│   ├── tools/
+│   │   ├── show_agent.py         # [NO CHANGE] Already returns ShowAgentResponse
+│   │   └── list_agents.py        # [NO CHANGE] Already returns ListAgentsResponse
+│   └── __main__.py               # [EXTEND] Add /metadata endpoint handler
 │
-├── tests/
-│   ├── models/
-│   │   └── test_metadata.py      # [NEW] Metadata model tests
-│   │
-│   ├── repositories/
-│   │   └── test_metadata_repository.py # [NEW] Repository tests
-│   │
-│   ├── clients/
-│   │   └── test_metadata_client.py # [NEW] Client tests
-│   │
-│   ├── server/
-│   │   └── test_metadata_endpoint.py # [NEW] Endpoint tests
-│   │
-│   └── integration/
-│       └── test_metadata_e2e.py  # [NEW] End-to-end metadata flow
-│
-└── Taskfile.yml                  # [NEW] Metadata collection task definitions
-
-third_party/hermit/
-└── taskfile.hcl                  # [NEW] Taskfile binary definition
+└── tests/
+    ├── unit/
+    │   ├── services/
+    │   │   └── test_metadata_service.py  # [NEW] Taskfile parsing, error handling
+    │   └── models/
+    │       └── test_metadata.py           # [NEW] Metadata model validation
+    ├── integration/
+    │   └── test_metadata_collection.py    # [NEW] End-to-end metadata retrieval
+    └── contract/
+        └── test_metadata_schema.py        # [NEW] Response schema validation
 ```
 
-**Structure Decision**: Extends existing single-project structure (libs/fleet-mcp). New components follow clean architecture layers:
-- **Domain Layer**: models/metadata.py (entities, value objects)
-- **Data Access Layer**: repositories/metadata_repository.py, clients/metadata_client.py
-- **Service Layer**: services/agent_service.py (orchestration)
-- **Tool Layer**: tools/show_agent.py, tools/list_agents.py (MCP tools)
-- **Server Layer**: server/metadata_endpoint.py (HTTP endpoint)
+**Structure Decision**: Single library extension within `libs/fleet-mcp`. No new projects needed. Metadata collection implemented as a new service layer component (`metadata_service.py`) with minimal changes to existing tools (responses extended via model updates only).
 
-No new projects required - all changes within libs/fleet-mcp boundary.
+## Metadata Schema (Data Model Preview)
+
+Based on the requirements, here's the key schema structure:
+
+### WorkspaceMetadata Model
+
+```python
+class MetadataField(BaseModel):
+    """Individual metadata field with value and error tracking."""
+    name: str
+    value: Optional[str] = None  # NULL indicates failure
+    error: Optional[str] = None  # Populated on failure, NULL on success
+
+class WorkspaceMetadata(BaseModel):
+    """Complete workspace metadata from Taskfile execution."""
+    fields: list[MetadataField]
+    collected_at: datetime
+```
+
+**Key Design Decisions**:
+1. **Error Field**: `error` is NULL on success, populated with error message on failure
+2. **Null Value**: When `value` is NULL AND `error` is populated, indicates partial failure
+3. **Graceful Degradation**: Failed fields don't block entire metadata response
+4. **Extensibility**: New fields added via Taskfile without code changes
+
+### Agent Model Extension
+
+```python
+class Agent(BaseModel):
+    # ... existing fields ...
+    metadata: Optional[WorkspaceMetadata] = None  # Added for workspace context
+```
+
+### Response Model Extensions
+
+```python
+class AgentListView(BaseModel):
+    # ... existing fields ...
+    metadata: Optional[WorkspaceMetadata] = None  # Added for list view
+
+class ShowAgentResponse(BaseModel):
+    agent: Agent  # Agent model already includes metadata field
+```
+
+## Taskfile Integration
+
+### Meta Key Structure (MVP Requirement)
+
+Metadata fields defined as individual Taskfile tasks with `meta` key containing ONLY `include_in_list`:
+
+```yaml
+version: "3"
+
+vars:
+  gh_info:
+    sh: gh pr view --json number,url,state 2>/dev/null || echo '{}'
+
+tasks:
+  pull_request_number:
+    desc: "The number of the current pull request on GitHub"
+    meta:
+      include_in_list: true
+    cmds:
+      - echo '{{.gh_info}}' | jq -r '.number // empty'
+
+  git_branch:
+    desc: "The name of the current git branch"
+    meta:
+      include_in_list: false
+    cmds:
+      - git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"
+```
+
+**Meta Key Requirements**:
+- Each metadata field is a separate task (not nested under one task)
+- The `meta` key ONLY contains `include_in_list: true/false`
+- Description comes from the standard Taskfile `desc` field
+- Commands are in the standard `cmds` array
+- Tasks MUST be read-only (no workspace modifications)
+- Tasks MUST handle failures gracefully (exit code 0 or error captured)
+- Empty output indicates unavailable metadata (not an error)
+
+### Metadata Collection Flow
+
+**Architecture**: Fleet-mcp server makes HTTP calls to each agent's fleet-mcp app instance
+
+```
+Fleet-MCP Server (MCP Tools)
+  ↓
+AgentService.get_agent()
+  ↓
+MetadataRepository.collect_metadata(workspace_id)
+  ↓
+MetadataClient.get_metadata(agent_api_url)
+  ↓
+HTTP GET {agent_api_url}/metadata
+  ↓
+Agent's Fleet-MCP App (/metadata endpoint)
+  ↓
+Read Taskfile.yml → Execute metadata tasks → Return results
+```
+
+**Application URL Construction** (similar to TaskRepository pattern):
+```python
+# From existing TaskRepository pattern for ccw app
+agent_api_url = f"{coder_base_url}/@{owner}/{workspace}.{workspace_id}/apps/fleet-mcp/"
+
+# Metadata endpoint
+metadata_url = f"{agent_api_url}metadata"
+```
+
+**Flow Steps**:
+1. **Construct URL**: Build agent-specific fleet-mcp app URL using workspace info
+2. **HTTP GET**: MetadataClient makes GET request to `{agent_api_url}/metadata`
+3. **Agent Processing**: Agent's fleet-mcp app reads its Taskfile.yml and executes metadata tasks
+4. **Response**: Agent returns JSON with metadata fields (value, error, schema)
+5. **Parse Response**: MetadataClient parses JSON into WorkspaceMetadata model
+
+## Endpoint Behavior
+
+### `/metadata` Endpoint (Agent-Specific)
+
+**IMPORTANT**: The `/metadata` endpoint is exposed by EACH agent's fleet-mcp app instance (not the main MCP server). Each agent workspace runs its own fleet-mcp app that exposes this endpoint.
+
+**Endpoint Location**: `{coder_base_url}/@{owner}/{workspace}.{workspace_id}/apps/fleet-mcp/metadata`
+
+**Example URLs**:
+- Agent "test-agent": `https://coder.example.com/@alice/test-agent.abc123/apps/fleet-mcp/metadata`
+- Agent "prod-runner": `https://coder.example.com/@bob/prod-runner.def456/apps/fleet-mcp/metadata`
+
+**Request Flow**:
+1. Main fleet-mcp server receives MCP tool call (e.g., `show_agent`)
+2. MetadataRepository constructs agent-specific URL
+3. MetadataClient makes HTTP GET to agent's `/metadata` endpoint
+4. Agent's fleet-mcp app reads its local Taskfile.yml
+5. Agent executes metadata tasks and returns results
+6. Main server aggregates metadata into MCP response
+
+**No Query Parameters**: The endpoint doesn't need workspace identification because it runs INSIDE the workspace - it already knows its own context.
 
 ## Complexity Tracking
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-No violations - all constitutional principles satisfied.
+No violations detected. This section is intentionally empty.

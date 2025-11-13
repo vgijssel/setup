@@ -8,18 +8,18 @@
 
 ### GET /metadata
 
-Retrieve workspace metadata from a specific agent's workspace by executing Taskfile commands.
+Retrieve workspace metadata from the current agent's workspace by executing Taskfile commands defined in the `meta` key.
+
+**IMPORTANT**: This endpoint does NOT require a `?workspace=` query parameter. The workspace context is automatically determined from the request context (e.g., which agent workspace the MCP server is running in, or from authentication headers).
 
 #### Query Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `workspace` | string | Yes | Name of the workspace/agent to query |
+None. Workspace context is implicit.
 
 #### Request Example
 
 ```http
-GET /metadata?workspace=test-agent HTTP/1.1
+GET /metadata HTTP/1.1
 Host: fleet-mcp-server:8000
 Accept: application/json
 ```
@@ -34,6 +34,7 @@ Accept: application/json
   "data": {
     "<field_name>": {
       "value": "<any JSON value or null>",
+      "error": "<string or null>",
       "schema": {
         "description": "<string>",
         "include_in_list": "<boolean>"
@@ -48,9 +49,10 @@ Accept: application/json
 
 **Field Descriptions**:
 - `data`: Map of metadata field names to MetadataField objects
-- `data.<field_name>.value`: Actual value from Taskfile execution (null if failed)
-- `data.<field_name>.schema.description`: Human-readable field description from Taskfile
-- `data.<field_name>.schema.include_in_list`: Whether field should appear in list views
+- `data.<field_name>.value`: Actual value from command execution (null if failed)
+- `data.<field_name>.error`: Error message if command failed (null on success)
+- `data.<field_name>.schema.description`: Human-readable field description from Taskfile `meta` key
+- `data.<field_name>.schema.include_in_list`: Whether field should appear in list views (from Taskfile `meta` key)
 - `meta.version`: Metadata schema version (currently "1.0")
 
 **Example**:
@@ -59,6 +61,7 @@ Accept: application/json
   "data": {
     "pull_request_number": {
       "value": 819,
+      "error": null,
       "schema": {
         "description": "The number of the current pull request on GitHub",
         "include_in_list": true
@@ -66,6 +69,7 @@ Accept: application/json
     },
     "pull_request_state": {
       "value": "OPEN",
+      "error": null,
       "schema": {
         "description": "The state of the current pull request on GitHub",
         "include_in_list": false
@@ -73,6 +77,7 @@ Accept: application/json
     },
     "git_branch": {
       "value": "005-workspace-metadata",
+      "error": null,
       "schema": {
         "description": "The name of the current git branch",
         "include_in_list": false
@@ -87,21 +92,12 @@ Accept: application/json
 
 #### Error Responses
 
-##### 400 Bad Request
-**Condition**: Missing `workspace` query parameter
-
-```json
-{
-  "error": "Missing required query parameter: workspace"
-}
-```
-
 ##### 404 Not Found
-**Condition**: Workspace does not exist
+**Condition**: Workspace context could not be determined
 
 ```json
 {
-  "error": "Workspace 'nonexistent-agent' not found"
+  "error": "Workspace context not found"
 }
 ```
 
@@ -129,22 +125,24 @@ Accept: application/json
 ```
 
 ##### Partial Metadata
-**Condition**: Some tasks succeeded, some failed
+**Condition**: Some commands succeeded, some failed
 
 ```json
 {
   "data": {
     "successful_field": {
       "value": "some-value",
+      "error": null,
       "schema": {
-        "description": "This task succeeded",
+        "description": "This command succeeded",
         "include_in_list": true
       }
     },
     "failed_field": {
       "value": null,
+      "error": "Command 'gh pr view' failed: not found",
       "schema": {
-        "description": "This task failed",
+        "description": "This command failed",
         "include_in_list": false
       }
     }

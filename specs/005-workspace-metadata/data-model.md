@@ -58,10 +58,15 @@ class MetadataField(BaseModel):
 
     Represents one piece of workspace metadata (e.g., git branch, PR number).
     The value may be null if the metadata could not be collected.
+    The error field is populated when collection fails.
     """
     value: Optional[Any] = Field(
         default=None,
         description="The actual metadata value, or null if unavailable"
+    )
+    error: Optional[str] = Field(
+        default=None,
+        description="Error message if collection failed, null on success"
     )
     schema: MetadataSchema = Field(
         ...,
@@ -70,7 +75,9 @@ class MetadataField(BaseModel):
 ```
 
 **Business Rules**:
-- `value=None` indicates metadata collection failed for this field
+- `value=None` AND `error=None` indicates field was not collected (Taskfile missing)
+- `value=None` AND `error!=None` indicates collection failed with error
+- `value!=None` AND `error=None` indicates successful collection
 - `value` can be any JSON-serializable type (str, int, bool, list, dict)
 - Schema MUST always be present (even if value is null)
 
@@ -79,15 +86,27 @@ class MetadataField(BaseModel):
 # Successful collection
 MetadataField(
     value=819,
+    error=None,
     schema=MetadataSchema(
         description="Pull request number",
         include_in_list=True
     )
 )
 
-# Failed collection
+# Failed collection with error
 MetadataField(
     value=None,
+    error="Command 'gh pr view' failed: not found",
+    schema=MetadataSchema(
+        description="Pull request status",
+        include_in_list=False
+    )
+)
+
+# Field not collected (Taskfile missing)
+MetadataField(
+    value=None,
+    error=None,
     schema=MetadataSchema(
         description="Pull request status",
         include_in_list=False
@@ -328,6 +347,7 @@ class ListAgentsResponse(BaseModel):
     "metadata": {
       "pull_request_number": {
         "value": 819,
+        "error": null,
         "schema": {
           "description": "The number of the current pull request on GitHub",
           "include_in_list": true
@@ -335,6 +355,7 @@ class ListAgentsResponse(BaseModel):
       },
       "git_branch": {
         "value": "005-workspace-metadata",
+        "error": null,
         "schema": {
           "description": "The name of the current git branch",
           "include_in_list": false
@@ -372,6 +393,7 @@ class ListAgentsResponse(BaseModel):
   "data": {
     "pull_request_number": {
       "value": 819,
+      "error": null,
       "schema": {
         "description": "The number of the current pull request on GitHub",
         "include_in_list": true
@@ -379,6 +401,7 @@ class ListAgentsResponse(BaseModel):
     },
     "git_branch": {
       "value": "005-workspace-metadata",
+      "error": null,
       "schema": {
         "description": "The name of the current git branch",
         "include_in_list": false

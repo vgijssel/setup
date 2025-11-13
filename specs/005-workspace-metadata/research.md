@@ -8,41 +8,56 @@
 Based on the technical context, the following areas require research to resolve unknowns:
 
 ### 1. Taskfile Integration Pattern
-**Question**: How should the fleet-mcp server invoke Taskfile commands in remote agent workspaces?
+**Question**: How should the fleet-mcp server retrieve metadata from agent workspaces?
 
 **Options Considered**:
-1. Use Coder workspace bash execution (coder_workspace_bash MCP tool)
+1. Use Coder MCP workspace_bash tool to execute commands remotely
 2. SSH into workspace and execute
-3. Execute via workspace agent API
+3. HTTP call to agent's fleet-mcp app instance
 
-**Decision**: ✅ **Use Coder MCP workspace_bash tool**
+**Decision**: ✅ **HTTP call to agent's fleet-mcp app `/metadata` endpoint**
 
 **Rationale**:
-- Fleet-mcp runs INSIDE a Coder workspace itself, so it has access to Coder MCP tools
-- The `coder_workspace_bash` MCP tool allows executing commands in other workspaces
-- This aligns with the user's requirement to execute Taskfile commands in agent workspaces
-- Current architecture uses HTTP task API for Claude Code communication, but for shell commands we need direct execution
+- Each agent workspace runs its own fleet-mcp app instance (similar to ccw app for tasks)
+- The coder_workspace_bash MCP tool does NOT work for this use case
+- HTTP calls leverage existing application URL pattern (same as TaskRepository uses for ccw app)
+- Agent's fleet-mcp app reads its local Taskfile.yml and executes tasks internally
+- Clean separation: main server orchestrates, agent apps execute
 
 **Implementation**:
 ```python
-# MetadataRepository will use Coder MCP client
-from mcp import ClientSession
+# MetadataRepository orchestrates the collection
+from .clients.metadata_client import MetadataClient
 
-async def collect_metadata(self, workspace_name: str) -> dict:
-    """Execute Taskfile commands in workspace to collect metadata."""
-    # Use coder_workspace_bash MCP tool
-    result = await mcp_client.call_tool(
-        "coder_workspace_bash",
-        arguments={
-            "workspace": workspace_name,
-            "command": "task --list --json",
-            "timeout_ms": 5000
-        }
-    )
-    # Parse result and extract metadata
+class MetadataRepository:
+    def __init__(self, coder_client: CoderClient):
+        self.coder_client = coder_client
+        self.metadata_client = MetadataClient()
+
+    async def collect_metadata(self, workspace_id: str) -> WorkspaceMetadata:
+        """Collect metadata from agent's fleet-mcp app."""
+        # Construct agent-specific URL (similar to TaskRepository pattern)
+        workspace = await self.coder_client.get_workspace(workspace_id)
+        agent_api_url = (
+            f"{self.coder_client.base_url}/@{workspace.owner_name}/"
+            f"{workspace.name}.{workspace_id}/apps/fleet-mcp/"
+        )
+
+        # MetadataClient makes HTTP GET to agent's /metadata endpoint
+        metadata = await self.metadata_client.get_metadata(agent_api_url)
+        return metadata
 ```
 
-**Note**: Fleet-mcp server has access to Coder MCP tools because it runs as a Coder workspace application itself. This is different from the task assignment flow which uses Coder's experimental task API.
+**Architecture Flow**:
+```
+Main Fleet-MCP Server → HTTP GET → Agent's Fleet-MCP App
+                                       ↓
+                                   Read Taskfile.yml
+                                       ↓
+                                   Execute tasks
+                                       ↓
+                                   Return JSON
+```
 
 ---
 
@@ -129,35 +144,58 @@ async def health_check(request):
 
 **Implementation**:
 
-**Phase 1: Get task metadata (schema)**
+**Phase 1: Get task metadata (schema from tasks with meta key)**
+
+**IMPORTANT**: Metadata fields are individual Taskfile tasks with a `meta` key:
+
+```yaml
+version: "3"
+
+vars:
+  gh_info:
+    sh: gh pr view --json number,url,state 2>/dev/null || echo '{}'
+
+tasks:
+  pull_request_number:
+    desc: "The number of the current pull request on GitHub"
+    meta:
+      include_in_list: true
+    cmds:
+      - echo '{{.gh_info}}' | jq -r '.number // empty'
+
+  git_branch:
+    desc: "The name of the current git branch"
+    meta:
+      include_in_list: false
+    cmds:
+      - git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"
+```
+
+The implementation will:
+1. Read Taskfile.yml from workspace
+2. Parse `--list --json` output to find all tasks
+3. Identify tasks that have a `meta` key
+4. For each metadata task: read `desc` (description) and `meta.include_in_list` (boolean flag)
+
+**Phase 2: Execute metadata tasks**
+
+Use Task CLI to execute the identified tasks:
+
 ```bash
-task --list --json --taskfile Taskfile.yml
+# Get list of metadata tasks first
+task --list --json | jq -r '.tasks[] | select(.meta != null) | .name'
+
+# Execute each metadata task
+task pull_request_number --silent
+task git_branch --silent
 ```
 
-Output:
-```json
-{
-  "tasks": [
-    {
-      "name": "pull_request_number",
-      "desc": "The number of the current pull request on GitHub",
-      "up_to_date": false
-    }
-  ]
-}
-```
-
-**Phase 2: Execute tasks to get values**
+Or execute in parallel:
 ```bash
-task --silent --parallel --output prefixed task1 task2 task3 --taskfile Taskfile.yml
+task --silent --parallel --output prefixed pull_request_number git_branch
 ```
 
-Output:
-```
-[task1] value1
-[task2] value2
-[task3] value3
-```
+**Note**: Task CLI executes the full task workflow (vars, cmds, etc.), providing better compatibility with Taskfile features.
 
 **Parsing Logic**:
 ```python
@@ -215,8 +253,9 @@ class MetadataSchema(BaseModel):
     include_in_list: bool = False
 
 class MetadataField(BaseModel):
-    """A single metadata field with value and schema."""
+    """A single metadata field with value, error, and schema."""
     value: Optional[Any] = None  # null when task fails or returns empty
+    error: Optional[str] = None  # populated on failure, null on success
     schema: MetadataSchema
 
 class WorkspaceMetadata(BaseModel):
@@ -224,6 +263,11 @@ class WorkspaceMetadata(BaseModel):
     data: dict[str, MetadataField] = Field(default_factory=dict)
     meta: dict[str, str] = Field(default_factory=lambda: {"version": "1.0"})
 ```
+
+**Error Field Design**:
+- `error=None` indicates successful collection
+- `error="<message>"` indicates collection failure with error message
+- `value=None` AND `error!=None` indicates partial failure (some fields failed)
 
 **Serialization Behavior**:
 - `value: None` → JSON: `"value": null`
@@ -236,41 +280,57 @@ class WorkspaceMetadata(BaseModel):
 ### 5. Workspace Application URL Construction
 **Question**: How to construct the metadata endpoint URL for an agent's workspace?
 
-**Context**: User input mentions "similar to how TaskRepository creates agent_api_url for ccw app"
+**Context**: User requirement: "similar to how TaskRepository creates agent_api_url for ccw app"
 
 **Current Pattern** (from task_repository.py:108):
 ```python
 agent_api_url = f"{self.client.base_url}/@{owner_name}/{workspace_name}.{workspace_id}/apps/ccw/"
 ```
 
-**Decision**: ✅ **NOT APPLICABLE - Use Coder MCP tools instead**
+**Decision**: ✅ **Use same URL pattern for fleet-mcp app's /metadata endpoint**
 
 **Rationale**:
-- Re-reading the user requirements: The /metadata endpoint is on the fleet-mcp server itself, NOT in each agent workspace
-- The flow is: `fleet-mcp /metadata endpoint → Coder MCP workspace_bash → Execute Taskfile in agent workspace`
-- The metadata HTTP endpoint doesn't need to be deployed to each workspace
-- Fleet-mcp calls Coder MCP tools to execute commands remotely
+- Each agent workspace runs its own fleet-mcp app instance (same as ccw app)
+- Fleet-mcp app exposes a `/metadata` endpoint that reads local Taskfile.yml
+- Main fleet-mcp server constructs agent-specific URL and makes HTTP GET request
+- Follows existing proven pattern from TaskRepository
 
-**Clarified Architecture**:
-```
-Claude Code (user)
-  → MCP Tool: show_agent
-  → AgentService
-  → MetadataRepository
-  → Coder MCP: workspace_bash (execute "task ..." in agent workspace)
-  → Parse results
-  → Return in Agent response
-```
+**Implementation**:
+```python
+# MetadataRepository constructs URL (similar to TaskRepository)
+workspace = await self.coder_client.get_workspace(workspace_id)
+agent_api_url = (
+    f"{self.coder_client.base_url}/@{workspace.owner_name}/"
+    f"{workspace.name}.{workspace_id}/apps/fleet-mcp/"
+)
+metadata_url = f"{agent_api_url}metadata"
 
-For the HTTP endpoint mentioned in requirements:
-```
-External HTTP client
-  → GET fleet-mcp-server/metadata?workspace=agent-name
-  → MetadataRepository (same as above)
-  → Return JSON
+# MetadataClient makes HTTP GET
+async with httpx.AsyncClient(timeout=10.0) as client:
+    response = await client.get(metadata_url)
+    return WorkspaceMetadata.model_validate(response.json())
 ```
 
-The HTTP endpoint is on the fleet-mcp server, not in agent workspaces.
+**Architecture**:
+```
+Main Fleet-MCP Server (MCP Tools)
+  ↓
+MetadataRepository.collect_metadata(workspace_id)
+  ↓
+Construct: https://coder.example.com/@owner/workspace.id/apps/fleet-mcp/metadata
+  ↓
+MetadataClient.get_metadata(url)
+  ↓
+HTTP GET to agent's /metadata endpoint
+  ↓
+Agent's Fleet-MCP App
+  ↓
+Read Taskfile.yml → Execute tasks → Return JSON
+```
+
+**Endpoint Locations**:
+- **Agent's /metadata**: `{coder_base}/@{owner}/{workspace}.{id}/apps/fleet-mcp/metadata`
+- **No main server endpoint**: Main server only calls agent endpoints, doesn't expose its own /metadata
 
 ---
 
@@ -300,99 +360,111 @@ The HTTP endpoint is on the fleet-mcp server, not in agent workspaces.
 
 **Implementation**:
 ```python
-async def collect_metadata(self, workspace_name: str) -> WorkspaceMetadata:
-    """Collect metadata from workspace, returning partial results on errors."""
-    # Phase 1: Get schema from Taskfile
+async def collect_metadata(self, workspace_id: str) -> WorkspaceMetadata:
+    """Collect metadata from agent via HTTP, returning partial results on errors."""
     try:
-        schema = await self._get_task_schema(workspace_name)
-    except Exception as e:
-        # Taskfile missing or invalid - return empty metadata
-        logger.warning(f"Failed to get metadata schema for {workspace_name}: {e}")
-        return WorkspaceMetadata(data={})
-
-    # Phase 2: Execute tasks (with timeout per task)
-    results = await self._execute_tasks(workspace_name, list(schema.keys()))
-
-    # Phase 3: Combine schema + results
-    metadata_fields = {}
-    for task_name, task_desc in schema.items():
-        value = results.get(task_name)  # None if task failed
-        metadata_fields[task_name] = MetadataField(
-            value=value,
-            schema=MetadataSchema(
-                description=task_desc,
-                include_in_list=False  # Parsed from Taskfile meta
-            )
+        # Construct agent URL
+        workspace = await self.coder_client.get_workspace(workspace_id)
+        agent_api_url = (
+            f"{self.coder_client.base_url}/@{workspace.owner_name}/"
+            f"{workspace.name}.{workspace_id}/apps/fleet-mcp/"
         )
 
-    return WorkspaceMetadata(data=metadata_fields)
+        # Make HTTP GET to agent's /metadata endpoint
+        metadata = await self.metadata_client.get_metadata(f"{agent_api_url}metadata")
+        return metadata
+
+    except httpx.TimeoutException:
+        logger.warning(f"Metadata request timeout for workspace {workspace_id}")
+        return WorkspaceMetadata(data={})
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            logger.warning(f"Metadata endpoint not found for workspace {workspace_id}")
+        else:
+            logger.error(f"HTTP error collecting metadata for {workspace_id}: {e}")
+        return WorkspaceMetadata(data={})
+    except Exception as e:
+        logger.error(f"Unexpected error collecting metadata for {workspace_id}: {e}")
+        return WorkspaceMetadata(data={})
 ```
 
-**Error Logging**:
-- Log warnings for individual task failures (don't raise)
-- Log error if entire Taskfile is missing/invalid
-- Include workspace_name in all log messages for debugging
+**Error Handling**:
+- HTTP 404: Agent app not running or /metadata endpoint not available → return empty metadata
+- Timeout: Agent not responding within timeout → return empty metadata
+- Connection error: Network issue → return empty metadata
+- Agent returns partial data with error fields → preserve partial results
+- Log warnings for retriable errors, errors for unexpected failures
 
 ---
 
-### 7. Testing Strategy for External Commands
-**Question**: How to test Taskfile execution and output parsing without real Taskfile binary?
+### 7. Testing Strategy for HTTP Client
+**Question**: How to test HTTP calls to agent /metadata endpoints without real agents?
 
 **Options Considered**:
-1. Mock subprocess calls with pytest fixtures
-2. Use VCR.py to record/replay command outputs
-3. Create test Taskfile fixtures with known outputs
-4. Dependency injection for command executor
+1. Mock httpx calls with pytest fixtures
+2. Use VCR.py to record/replay HTTP responses
+3. Create test server with known responses
+4. Dependency injection for HTTP client
 
-**Decision**: ✅ **Mock Coder MCP client calls with pytest fixtures**
+**Decision**: ✅ **Mock httpx client with pytest fixtures and respx**
 
 **Rationale**:
-- Fleet-mcp already uses mocking patterns extensively (see test_task_repository.py)
-- No subprocess calls - we use Coder MCP `workspace_bash` tool
-- Mock the MCP client's `call_tool` method to return test data
-- Fast, deterministic, no external dependencies
+- Fleet-mcp already uses httpx for HTTP calls (CoderClient)
+- respx library provides clean httpx mocking for pytest
+- Can test both success and failure scenarios deterministically
+- No need for real agent instances or Coder infrastructure
 
-**Implementation Pattern** (from existing tests):
+**Implementation Pattern**:
 ```python
-@pytest.fixture
-def mock_mcp_client(mocker):
-    """Mock Coder MCP client for metadata tests."""
-    client = mocker.AsyncMock()
-    client.call_tool = mocker.AsyncMock()
-    return client
+import respx
+from httpx import Response
 
 @pytest.mark.asyncio
-async def test_collect_metadata_success(metadata_repository, mock_mcp_client):
-    """Test successful metadata collection."""
-    # Arrange: Mock Taskfile --list --json response
-    mock_mcp_client.call_tool.side_effect = [
-        # First call: task --list --json
-        {"content": [{"type": "text", "text": json.dumps({
-            "tasks": [
-                {"name": "git_branch", "desc": "Current git branch"},
-                {"name": "pr_number", "desc": "PR number"}
-            ]
-        })}]},
-        # Second call: task --silent --parallel --output prefixed ...
-        {"content": [{"type": "text", "text": "[git_branch] main\n[pr_number] 123"}]}
-    ]
+@respx.mock
+async def test_collect_metadata_success(metadata_repository):
+    """Test successful metadata collection via HTTP."""
+    # Arrange: Mock agent's /metadata endpoint
+    agent_url = "https://coder.example.com/@alice/test-agent.abc123/apps/fleet-mcp/metadata"
+    respx.get(agent_url).mock(return_value=Response(
+        status_code=200,
+        json={
+            "data": {
+                "git_branch": {
+                    "value": "main",
+                    "error": None,
+                    "schema": {
+                        "description": "Current git branch",
+                        "include_in_list": True
+                    }
+                },
+                "pr_number": {
+                    "value": 123,
+                    "error": None,
+                    "schema": {
+                        "description": "PR number",
+                        "include_in_list": True
+                    }
+                }
+            },
+            "meta": {"version": "1.0"}
+        }
+    ))
 
     # Act
-    metadata = await metadata_repository.collect_metadata("test-agent")
+    metadata = await metadata_repository.collect_metadata("workspace-id")
 
     # Assert
     assert metadata.data["git_branch"].value == "main"
-    assert metadata.data["pr_number"].value == "123"
-    assert mock_mcp_client.call_tool.call_count == 2
+    assert metadata.data["pr_number"].value == 123
 ```
 
 **Test Categories**:
-1. **Unit Tests**: Test parsing functions with known inputs
-2. **Integration Tests**: Test MetadataRepository with mocked MCP client
-3. **Contract Tests**: Validate HTTP endpoint responses match schema
-4. **Error Tests**: Test timeout, missing Taskfile, task failures
+1. **Unit Tests**: Test MetadataClient HTTP parsing with known responses
+2. **Integration Tests**: Test MetadataRepository with mocked httpx responses
+3. **Contract Tests**: Validate response JSON matches WorkspaceMetadata schema
+4. **Error Tests**: Test 404, timeout, invalid JSON, partial failures
 
-**No VCR.py needed**: VCR.py is for HTTP recordings; we're mocking MCP tool calls directly.
+**Use respx**: respx is the recommended library for mocking httpx in pytest tests.
 
 ---
 

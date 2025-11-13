@@ -24,16 +24,22 @@ vars:
 tasks:
   pull_request_number:
     desc: "The number of the current pull request on GitHub"
+    meta:
+      include_in_list: true
     cmds:
       - echo '{{.gh_info}}' | jq -r '.number // empty'
 
   pull_request_state:
-    desc: "The state of the current pull request (open, closed, merged)"
+    desc: "The state of the current pull request (OPEN, CLOSED, MERGED)"
+    meta:
+      include_in_list: false
     cmds:
       - echo '{{.gh_info}}' | jq -r '.state // empty'
 
   git_branch:
     desc: "The name of the current git branch"
+    meta:
+      include_in_list: false
     cmds:
       - git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"
 ```
@@ -54,8 +60,10 @@ print(result["agent"]["metadata"])
 
 ### 3. Query Metadata via HTTP
 
+**Note**: The `/metadata` endpoint does NOT require a `?workspace=` parameter. It automatically knows the workspace context from the request.
+
 ```bash
-curl "http://fleet-mcp-server:8000/metadata?workspace=your-workspace"
+curl "http://fleet-mcp-server:8000/metadata"
 ```
 
 ```json
@@ -63,6 +71,7 @@ curl "http://fleet-mcp-server:8000/metadata?workspace=your-workspace"
   "data": {
     "pull_request_number": {
       "value": 819,
+      "error": null,
       "schema": {
         "description": "The number of the current pull request on GitHub",
         "include_in_list": false
@@ -70,6 +79,7 @@ curl "http://fleet-mcp-server:8000/metadata?workspace=your-workspace"
     },
     "git_branch": {
       "value": "main",
+      "error": null,
       "schema": {
         "description": "The name of the current git branch",
         "include_in_list": false
@@ -84,7 +94,9 @@ curl "http://fleet-mcp-server:8000/metadata?workspace=your-workspace"
 
 ## Taskfile Configuration
 
-### Basic Structure
+### Basic Structure (Using Meta Key - MVP Requirement)
+
+**IMPORTANT**: Metadata fields are defined as individual tasks with a `meta` key containing ONLY `include_in_list`.
 
 ```yaml
 version: "3"
@@ -92,73 +104,58 @@ version: "3"
 tasks:
   <field_name>:
     desc: "<Human-readable description>"
+    meta:
+      include_in_list: true  # or false
     cmds:
       - echo "<value>"
 ```
 
 ### Advanced Features
 
-#### 1. Variables (Reusable Data)
+#### 1. Include in List View
 
-```yaml
-vars:
-  project_root:
-    sh: git rev-parse --show-toplevel
+Use the `include_in_list` flag in the `meta` key for each task:
 
-tasks:
-  project_path:
-    desc: "Root directory of the project"
-    cmds:
-      - echo "{{.project_root}}"
-```
-
-#### 2. Include in List View
-
-Use a custom metadata convention in the task description or create a separate metadata file:
-
-**Option A: Convention in Description**
-```yaml
-tasks:
-  pr_number:
-    desc: "[LIST] The pull request number"  # [LIST] prefix means include_in_list=true
-    cmds:
-      - gh pr view --json number -q .number
-```
-
-**Option B: Separate Meta Fields (Future)**
 ```yaml
 tasks:
   pr_number:
     desc: "The pull request number"
     meta:
-      include_in_list: true  # Custom field (requires Taskfile extension)
+      include_in_list: true  # Show in list_agents response
     cmds:
       - gh pr view --json number -q .number
+
+  git_sha:
+    desc: "Current commit SHA"
+    meta:
+      include_in_list: false  # Only show in show_agent response
+    cmds:
+      - git rev-parse HEAD
 ```
 
-**Current Implementation**: Uses Option A (parse `[LIST]` prefix from description)
-
-#### 3. Error Handling
+#### 2. Error Handling
 
 **Graceful Degradation**:
 ```yaml
 tasks:
   pr_number:
     desc: "PR number if available"
+    meta:
+      include_in_list: true
     cmds:
       - gh pr view --json number -q .number 2>/dev/null || echo ""
-```
 
-**Default Values**:
-```yaml
-tasks:
   environment:
-    desc: "Deployment environment"
+    desc: "Deployment environment with default"
+    meta:
+      include_in_list: false
     cmds:
       - echo "${DEPLOY_ENV:-development}"
 ```
 
-#### 4. Complex Queries
+**Note**: If a task command fails, the `error` field will be populated in the response.
+
+#### 3. Complex Queries
 
 ```yaml
 vars:
@@ -168,11 +165,15 @@ vars:
 tasks:
   pod_count:
     desc: "Number of running pods"
+    meta:
+      include_in_list: true
     cmds:
       - echo '{{.k8s_status}}' | jq '.items | length'
 
   pod_ready:
     desc: "Number of ready pods"
+    meta:
+      include_in_list: false
     cmds:
       - echo '{{.k8s_status}}' | jq '[.items[].status.conditions[] | select(.type=="Ready" and .status=="True")] | length'
 ```
@@ -187,21 +188,31 @@ tasks:
 
 **Taskfile**:
 ```yaml
+vars:
+  gh_pr:
+    sh: gh pr view --json number,state 2>/dev/null || echo '{}'
+
 tasks:
   pr_number:
-    desc: "[LIST] PR number"
+    desc: "PR number"
+    meta:
+      include_in_list: true
     cmds:
-      - gh pr view --json number -q .number || echo "null"
+      - echo '{{.gh_pr}}' | jq -r '.number // empty'
 
   pr_status:
     desc: "PR status"
+    meta:
+      include_in_list: false
     cmds:
-      - gh pr view --json state -q .state || echo "unknown"
+      - echo '{{.gh_pr}}' | jq -r '.state // "unknown"'
 
   pr_checks:
     desc: "PR CI status"
+    meta:
+      include_in_list: false
     cmds:
-      - gh pr checks --json state -q 'map(.state) | join(",")'
+      - gh pr checks --json state -q 'map(.state) | join(",")' 2>/dev/null || echo ""
 ```
 
 **Query**:
@@ -218,12 +229,16 @@ for agent in agents["agents"]:
 ```yaml
 tasks:
   kubernetes_namespace:
-    desc: "[LIST] Current k8s namespace"
+    desc: "Current k8s namespace"
+    meta:
+      include_in_list: true
     cmds:
       - kubectl config view --minify -o jsonpath='{..namespace}' || echo "default"
 
   deployed_version:
     desc: "Currently deployed version"
+    meta:
+      include_in_list: false
     cmds:
       - kubectl get deployment myapp -o jsonpath='{.spec.template.spec.containers[0].image}' | cut -d: -f2
 ```
@@ -234,17 +249,23 @@ tasks:
 ```yaml
 tasks:
   git_status:
-    desc: "[LIST] Git working tree status"
+    desc: "Number of changed files"
+    meta:
+      include_in_list: true
     cmds:
-      - git status --porcelain | wc -l | xargs echo "files changed:"
+      - git status --porcelain | wc -l
 
   last_commit:
     desc: "Last commit message"
+    meta:
+      include_in_list: false
     cmds:
       - git log -1 --pretty=%B
 
   branch_ahead:
     desc: "Commits ahead of main"
+    meta:
+      include_in_list: false
     cmds:
       - git rev-list --count main..HEAD
 ```
@@ -271,8 +292,11 @@ mcp.call_tool("list_agents", {})
 
 #### GET /metadata
 **Returns**: Full metadata with schemas
+
+**Note**: No `?workspace=` parameter needed - context is automatic.
+
 ```bash
-curl "http://fleet-mcp:8000/metadata?workspace=my-agent"
+curl "http://fleet-mcp:8000/metadata"
 ```
 
 ---
@@ -404,7 +428,9 @@ version: "3"
 
 tasks:
   git_branch:
-    desc: "[LIST] Current branch"
+    desc: "Current branch"
+    meta:
+      include_in_list: true
     cmds:
       - git branch --show-current
 ```
@@ -415,43 +441,55 @@ version: "3"
 
 vars:
   gh_pr:
-    sh: gh pr view --json number,state,url,title 2>/dev/null || echo '{}'
-  git_info:
-    sh: git log -1 --pretty=format:'{"sha":"%H","message":"%s"}' 2>/dev/null || echo '{}'
+    sh: gh pr view --json number,state,title 2>/dev/null || echo '{}'
 
 tasks:
   pr_number:
-    desc: "[LIST] GitHub PR number"
+    desc: "GitHub PR number"
+    meta:
+      include_in_list: true
     cmds:
-      - echo '{{.gh_pr}}' | jq -r '.number // "N/A"'
+      - echo '{{.gh_pr}}' | jq -r '.number // empty'
 
   pr_status:
     desc: "PR status (OPEN, CLOSED, MERGED)"
+    meta:
+      include_in_list: false
     cmds:
-      - echo '{{.gh_pr}}' | jq -r '.state // "N/A"'
+      - echo '{{.gh_pr}}' | jq -r '.state // empty'
 
   pr_title:
     desc: "PR title"
+    meta:
+      include_in_list: false
     cmds:
-      - echo '{{.gh_pr}}' | jq -r '.title // "N/A"'
+      - echo '{{.gh_pr}}' | jq -r '.title // empty'
 
   git_branch:
-    desc: "[LIST] Git branch"
+    desc: "Git branch"
+    meta:
+      include_in_list: true
     cmds:
       - git branch --show-current 2>/dev/null || echo "detached"
 
   git_sha:
     desc: "Commit SHA (short)"
+    meta:
+      include_in_list: false
     cmds:
       - git rev-parse --short HEAD 2>/dev/null || echo "unknown"
 
   git_commit_message:
     desc: "Last commit message"
+    meta:
+      include_in_list: false
     cmds:
-      - echo '{{.git_info}}' | jq -r '.message // "N/A"'
+      - git log -1 --pretty=%s 2>/dev/null || echo ""
 
   workspace_age:
     desc: "Time since workspace creation"
+    meta:
+      include_in_list: false
     cmds:
       - echo $(($(date +%s) - $(stat -c %Y /workspaces 2>/dev/null || echo $(date +%s)))) | awk '{print int($1/3600)"h"}'
 ```

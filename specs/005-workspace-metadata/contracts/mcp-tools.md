@@ -45,6 +45,7 @@ Show detailed information about a specific agent, now including workspace metada
     "metadata": {
       "<field_name>": {
         "value": "any | null",
+        "error": "string | null",
         "schema": {
           "description": "string",
           "include_in_list": "boolean"
@@ -72,6 +73,7 @@ Show detailed information about a specific agent, now including workspace metada
     "metadata": {
       "pull_request_number": {
         "value": 810,
+        "error": null,
         "schema": {
           "description": "The number of the pull request.",
           "include_in_list": true
@@ -79,6 +81,7 @@ Show detailed information about a specific agent, now including workspace metada
       },
       "pull_request_status": {
         "value": "open",
+        "error": null,
         "schema": {
           "description": "The status of the pull request.",
           "include_in_list": false
@@ -86,6 +89,7 @@ Show detailed information about a specific agent, now including workspace metada
       },
       "git_branch": {
         "value": "005-workspace-metadata",
+        "error": null,
         "schema": {
           "description": "The name of the current git branch",
           "include_in_list": false
@@ -122,6 +126,7 @@ Show detailed information about a specific agent, now including workspace metada
     "metadata": {
       "git_branch": {
         "value": "main",
+        "error": null,
         "schema": {
           "description": "Current git branch",
           "include_in_list": false
@@ -129,6 +134,7 @@ Show detailed information about a specific agent, now including workspace metada
       },
       "pr_number": {
         "value": null,
+        "error": "Command 'gh pr view' failed: not found",
         "schema": {
           "description": "PR number (if available)",
           "include_in_list": true
@@ -236,12 +242,13 @@ List all agents with optional filtering, now including summary metadata for each
 # For each agent:
 full_metadata = collect_metadata(agent.workspace_id)
 
-# Filter to only include_in_list=True fields
+# Filter to only include_in_list=True fields (values only, no error field)
 list_metadata = {
     field_name: field.value
     for field_name, field in full_metadata.data.items()
     if field.schema.include_in_list
 }
+# Note: error field is NOT included in list view to keep response compact
 
 agent_dict["metadata"] = list_metadata
 agent_dict["metadata_count"] = len(full_metadata.data)  # Total, not filtered
