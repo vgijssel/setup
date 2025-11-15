@@ -116,6 +116,31 @@ class CoderClient:
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e
 
+    def extract_bearer_token_from_workspace(
+        self, workspace: dict[str, Any]
+    ) -> str | None:
+        """Extract fleet_mcp_bearer_token from workspace metadata.
+
+        The bearer token is stored in workspace.latest_build.resources[].metadata[]
+        where metadata.key == "fleet_mcp_bearer_token".
+
+        Args:
+            workspace: Workspace dictionary from Coder API
+
+        Returns:
+            Bearer token string or None if not found
+        """
+        latest_build = workspace.get("latest_build") or {}
+        resources = latest_build.get("resources", [])
+
+        for resource in resources:
+            metadata_items = resource.get("metadata", [])
+            for item in metadata_items:
+                if item.get("key") == "fleet_mcp_bearer_token":
+                    return item.get("value")
+
+        return None
+
     async def create_workspace(
         self,
         name: str,

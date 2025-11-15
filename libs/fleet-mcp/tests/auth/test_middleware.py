@@ -119,6 +119,30 @@ class TestAuthMiddleware:
         assert response.status_code == 200
         assert response.json() == {"status": "healthy"}
 
+    def test_metadata_endpoint_requires_auth(self, token_manager, valid_token):
+        """Test that /metadata endpoint requires authentication."""
+
+        async def metadata_endpoint(request: Request):
+            return JSONResponse({"data": {}})
+
+        app = Starlette(routes=[Route("/metadata", metadata_endpoint)])
+        app.add_middleware(AuthMiddleware, token_manager=token_manager, enabled=True)
+
+        client = TestClient(app)
+
+        # Test metadata endpoint without auth - should return 401
+        response = client.get("/metadata")
+        assert response.status_code == 401
+        data = response.json()
+        assert data["error"] == AuthErrorCode.MISSING_TOKEN.value
+
+        # Test metadata endpoint with valid auth - should succeed
+        response = client.get(
+            "/metadata", headers={"Authorization": f"Bearer {valid_token}"}
+        )
+        assert response.status_code == 200
+        assert response.json() == {"data": {}}
+
     def test_missing_authorization_returns_401(self, token_manager):
         """Test that missing Authorization header returns 401."""
 

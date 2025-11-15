@@ -63,7 +63,7 @@ class AuthRequest(BaseModel):
     @property
     def is_exempted(self) -> bool:
         """Check if this path is exempt from authentication."""
-        UNAUTHENTICATED_PATHS = {"/health", "/metadata"}
+        UNAUTHENTICATED_PATHS = {"/health"}
         return self.path in UNAUTHENTICATED_PATHS
 
     @computed_field
