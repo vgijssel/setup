@@ -3,7 +3,7 @@ version: "3"
 vars:
   # Pre-fetch git info to avoid multiple gh API calls
   gh_pr_info:
-    sh: gh pr view --json number,url,state,title 2>/dev/null || echo '{}'
+    sh: gh pr view --json number,url,state,title,statusCheckRollup,reviewThreads 2>/dev/null || echo '{}'
 
 tasks:
   # Metadata fields: Tasks with 'meta' key are collected as workspace metadata
@@ -38,3 +38,35 @@ tasks:
       include_in_list: false
     cmds:
       - git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"
+
+  pull_request_ci_status:
+    desc: Whether all GitHub CI status checks passed (PASS, FAIL, PENDING, or empty if no PR)
+    meta:
+      include_in_list: true
+    cmds:
+      - |
+        echo '{{.gh_pr_info}}' | jq -r '
+          if .statusCheckRollup == null or (.statusCheckRollup | length) == 0 then
+            empty
+          elif all(.statusCheckRollup[]; .conclusion == "SUCCESS" or .conclusion == "SKIPPED" or .conclusion == "NEUTRAL") then
+            "PASS"
+          elif any(.statusCheckRollup[]; .status == "IN_PROGRESS" or .status == "QUEUED" or .status == "PENDING") then
+            "PENDING"
+          else
+            "FAIL"
+          end
+        '
+
+  pull_request_unresolved_comments:
+    desc: Number of unresolved review threads on the PR
+    meta:
+      include_in_list: true
+    cmds:
+      - |
+        echo '{{.gh_pr_info}}' | jq -r '
+          if .reviewThreads == null then
+            empty
+          else
+            [.reviewThreads[] | select(.isResolved == false)] | length
+          end
+        '
