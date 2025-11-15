@@ -38,10 +38,3 @@ tasks:
       include_in_list: false
     cmds:
       - git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"
-
-  git_commit_sha:
-    desc: The current git commit SHA (short)
-    meta:
-      include_in_list: false
-    cmds:
-      - git rev-parse --short HEAD 2>/dev/null || echo "unknown"
