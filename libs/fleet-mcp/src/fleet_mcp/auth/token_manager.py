@@ -115,12 +115,12 @@ class TokenManager:
         # Check for token in environment variable first
         env_token = os.getenv("FLEET_MCP_AUTH_TOKEN")
         if env_token:
-            logger.info("Using bearer token from FLEET_MCP_AUTH_TOKEN environment variable")
+            logger.info(
+                "Using bearer token from FLEET_MCP_AUTH_TOKEN environment variable"
+            )
             # Create AccessToken from environment variable
             # Token from environment should be pre-generated with correct format
-            self._cached_token = AccessToken(
-                value=env_token, created_at=datetime.now()
-            )
+            self._cached_token = AccessToken(value=env_token, created_at=datetime.now())
             # Save to file for consistency and future reference
             self._save_token(env_token)
             logger.info(f"Token from environment saved to {self.token_file_path}")
