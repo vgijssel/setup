@@ -14,6 +14,10 @@ terraform {
       source  = "1Password/onepassword"
       version = "2.1.2"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.6.3"
+    }
   }
 }
 
@@ -245,6 +249,16 @@ data "coder_workspace_preset" "researcher" {
   }
 }
 
+# Generate a random bearer token for fleet-mcp authentication
+# Uses 32 random bytes which produces a 43-character URL-safe base64 string
+resource "random_id" "fleet_mcp_bearer_token" {
+  byte_length = 32
+  keepers = {
+    # Regenerate token when workspace is recreated
+    workspace_id = data.coder_workspace.me.id
+  }
+}
+
 resource "coder_env" "github_token" {
   agent_id = coder_agent.main.id
   name     = "GH_TOKEN"
@@ -267,6 +281,12 @@ resource "coder_env" "op_service_account_token" {
   agent_id = coder_agent.main.id
   name     = "OP_SERVICE_ACCOUNT_TOKEN"
   value    = local.op_service_account_token
+}
+
+resource "coder_env" "fleet_mcp_bearer_token" {
+  agent_id = coder_agent.main.id
+  name     = "FLEET_MCP_AUTH_TOKEN"
+  value    = random_id.fleet_mcp_bearer_token.b64_url
 }
 
 resource "coder_agent" "main" {
@@ -554,6 +574,15 @@ resource "coder_app" "fleet_mcp" {
     url       = "http://127.0.0.1:8000/health"
     interval  = 10
     threshold = 24
+  }
+}
+
+# Store the bearer token as workspace metadata for fleet-mcp
+resource "coder_metadata" "fleet_mcp_bearer_token" {
+  resource_id = coder_agent.main.id
+  item {
+    key       = "fleet_mcp_bearer_token"
+    value     = random_id.fleet_mcp_bearer_token.b64_url
   }
 }
 

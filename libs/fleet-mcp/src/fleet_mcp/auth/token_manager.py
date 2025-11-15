@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import secrets
 import tempfile
 from datetime import datetime
@@ -102,15 +103,30 @@ class TokenManager:
             AccessToken: Existing or newly generated token
 
         This is the main entry point for token management:
-        - First call: Generates and persists new token
-        - Subsequent calls: Loads token from file
+        - First: Check for FLEET_MCP_AUTH_TOKEN environment variable
+        - Second: Try to load existing token from file
+        - Last: Generate and persist new token
         - Token is cached in memory after first load
         """
         # Return cached token if available
         if self._cached_token is not None:
             return self._cached_token
 
-        # Try to load existing token
+        # Check for token in environment variable first
+        env_token = os.getenv("FLEET_MCP_AUTH_TOKEN")
+        if env_token:
+            logger.info(
+                "Using bearer token from FLEET_MCP_AUTH_TOKEN environment variable"
+            )
+            # Create AccessToken from environment variable
+            # Token from environment should be pre-generated with correct format
+            self._cached_token = AccessToken(value=env_token, created_at=datetime.now())
+            # Save to file for consistency and future reference
+            self._save_token(env_token)
+            logger.info(f"Token from environment saved to {self.token_file_path}")
+            return self._cached_token
+
+        # Try to load existing token from file
         if self.token_file_path.exists():
             logger.info(f"Loading token from {self.token_file_path}")
             self._cached_token = self._load_token()
