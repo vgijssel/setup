@@ -17,7 +17,7 @@ class TestRootEndpoint:
     """Tests for the root (/) endpoint."""
 
     async def test_root_endpoint_success(self):
-        """Test root endpoint returns health and metadata successfully."""
+        """Test root endpoint returns metadata successfully."""
         from fleet_mcp.__main__ import app
         from fleet_mcp.models.metadata import (
             MetadataField,
@@ -64,17 +64,15 @@ class TestRootEndpoint:
 
         data = response.json()
 
-        # Verify health check fields
-        assert data["status"] == "healthy"
-        assert data["service"] == "fleet-mcp"
-        assert data["version"] == "0.2.0"
-        assert "coder_url" in data
+        # Root endpoint should return ONLY metadata (no health fields)
+        assert "status" not in data
+        assert "service" not in data
+        assert "version" not in data
 
-        # Verify metadata is included
-        assert "metadata" in data
-        assert data["metadata"]["data"]["git_branch"]["value"] == "main"
-        assert data["metadata"]["data"]["pull_request_number"]["value"] == 123
-        assert data["metadata"]["meta"]["version"] == "1.0"
+        # Verify metadata structure
+        assert data["data"]["git_branch"]["value"] == "main"
+        assert data["data"]["pull_request_number"]["value"] == 123
+        assert data["meta"]["version"] == "1.0"
 
     async def test_root_endpoint_with_empty_metadata(self):
         """Test root endpoint when metadata collection returns empty data."""
@@ -100,15 +98,9 @@ class TestRootEndpoint:
 
         data = response.json()
 
-        # Verify health check fields are still present
-        assert data["status"] == "healthy"
-        assert data["service"] == "fleet-mcp"
-        assert data["version"] == "0.2.0"
-
         # Verify metadata is empty but present
-        assert "metadata" in data
-        assert data["metadata"]["data"] == {}
-        assert data["metadata"]["meta"]["version"] == "1.0"
+        assert data["data"] == {}
+        assert data["meta"]["version"] == "1.0"
 
     async def test_root_endpoint_metadata_collection_failure(self):
         """Test root endpoint handles metadata collection failures gracefully."""
@@ -131,13 +123,8 @@ class TestRootEndpoint:
 
         data = response.json()
 
-        # Verify health check fields are still present
-        assert data["status"] == "healthy"
-        assert data["service"] == "fleet-mcp"
-
         # Verify metadata is empty (graceful degradation)
-        assert "metadata" in data
-        assert data["metadata"]["data"] == {}
+        assert data["data"] == {}
 
     async def test_root_endpoint_uses_taskfile_env_var(self):
         """Test root endpoint respects FLEET_MCP_TASKFILE environment variable."""
@@ -218,15 +205,12 @@ class TestRootEndpoint:
         data = response.json()
 
         # Verify successful field
-        assert data["metadata"]["data"]["git_branch"]["value"] == "feature/test"
-        assert data["metadata"]["data"]["git_branch"]["error"] is None
+        assert data["data"]["git_branch"]["value"] == "feature/test"
+        assert data["data"]["git_branch"]["error"] is None
 
         # Verify failed field
-        assert data["metadata"]["data"]["pr_number"]["value"] is None
-        assert (
-            data["metadata"]["data"]["pr_number"]["error"]
-            == "Command 'gh pr view' failed"
-        )
+        assert data["data"]["pr_number"]["value"] is None
+        assert data["data"]["pr_number"]["error"] == "Command 'gh pr view' failed"
 
 
 class TestHealthEndpoint:
