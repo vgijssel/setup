@@ -1,3 +1,17 @@
+## 0.11.0 (2025-11-15)
+
+### 🚀 Features
+
+- Add workspace metadata to root endpoint ([#834](https://github.com/vgijssel/setup/pull/834))
+
+  Updated the root endpoint (/) to return workspace metadata (git branch, PR number, etc.) collected from the workspace's Taskfile. This provides easy access to workspace context at the root URL for improved observability and monitoring.
+
+## 0.10.0 (2025-11-15)
+
+### 🚀 Features
+
+- Add support for environment-based bearer token configuration. TokenManager now prioritizes FLEET_MCP_AUTH_TOKEN environment variable over file-based tokens, enabling secure token injection from workspace provisioners while maintaining backward compatibility. ([#833](https://github.com/vgijssel/setup/pull/833))
+
 ## 0.9.1 (2025-11-15)
 
 ### 🩹 Fixes
