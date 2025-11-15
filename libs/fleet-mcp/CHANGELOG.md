@@ -1,3 +1,9 @@
+## 0.9.1 (2025-11-15)
+
+### 🩹 Fixes
+
+- docs: Document Taskfile metadata collection in README ([#832](https://github.com/vgijssel/setup/pull/832))
+
 ## 0.9.0 (2025-11-15)
 
 ### 🚀 Features
