@@ -1,3 +1,9 @@
+## 0.18.0 (2025-11-15)
+
+### 🚀 Features
+
+- feat(coder-devcontainer): Add CI status and unresolved comments to PR metadata ([#835](https://github.com/vgijssel/setup/pull/835))
+
 ## 0.17.0 (2025-11-15)
 
 ### 🚀 Features
