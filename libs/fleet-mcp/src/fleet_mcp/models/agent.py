@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 
 class AgentStatus(str, Enum):
@@ -50,6 +50,22 @@ class Agent(BaseModel):
     metadata: Optional[dict[str, Any]] = Field(
         default=None, description="Workspace metadata collected from Taskfile"
     )
+
+    @computed_field  # type: ignore[misc]
+    @property
+    def metadata_count(self) -> int:
+        """Count of metadata fields.
+
+        Returns the total number of metadata fields in the metadata.data dict.
+        Returns 0 if metadata is None or empty.
+
+        This matches the behavior of AgentListView.metadata_count for consistency.
+        """
+        if self.metadata and isinstance(self.metadata, dict):
+            data = self.metadata.get("data", {})
+            if data:
+                return len(data)
+        return 0
 
     @field_validator("name")
     @classmethod
