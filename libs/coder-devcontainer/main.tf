@@ -389,7 +389,6 @@ resource "coder_metadata" "fleet_mcp_bearer_token" {
   item {
     key       = "fleet_mcp_bearer_token"
     value     = random_id.fleet_mcp_token.b64_url
-    sensitive = true
   }
 }
 
