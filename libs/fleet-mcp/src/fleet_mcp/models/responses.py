@@ -59,7 +59,7 @@ class AgentListView(BaseModel):
                     if isinstance(field_data, dict)
                     and field_data.get("schema", {}).get("include_in_list", False)
                 }
-                metadata_count = len(filtered_metadata)
+                metadata_count = len(data)
                 # If no fields to include, set to None
                 if not filtered_metadata:
                     filtered_metadata = None
