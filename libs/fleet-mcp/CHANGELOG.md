@@ -1,3 +1,11 @@
+## 0.11.0 (2025-11-15)
+
+### 🚀 Features
+
+- Add workspace metadata to root endpoint ([#834](https://github.com/vgijssel/setup/pull/834))
+
+  Updated the root endpoint (/) to return workspace metadata (git branch, PR number, etc.) collected from the workspace's Taskfile. This provides easy access to workspace context at the root URL for improved observability and monitoring.
+
 ## 0.10.0 (2025-11-15)
 
 ### 🚀 Features
