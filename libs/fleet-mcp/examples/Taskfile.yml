@@ -15,37 +15,37 @@ tasks:
   # - include_in_list: false → only shown in show_agent (detail view)
 
   pull_request_number:
-    desc: "The number of the current pull request on GitHub"
+    desc: The number of the current pull request on GitHub
     meta:
       include_in_list: true
     cmds:
       - echo '{{.gh_pr_info}}' | jq -r '.number // empty'
 
   pull_request_url:
-    desc: "The URL of the current pull request on GitHub"
+    desc: The URL of the current pull request on GitHub
     meta:
       include_in_list: false
     cmds:
       - echo '{{.gh_pr_info}}' | jq -r '.url // empty'
 
   pull_request_state:
-    desc: "The state of the current pull request (OPEN, CLOSED, MERGED)"
+    desc: The state of the current pull request (OPEN, CLOSED, MERGED)
     meta:
       include_in_list: true
     cmds:
       - echo '{{.gh_pr_info}}' | jq -r '.state // empty'
 
   git_branch:
-    desc: "The name of the current git branch"
+    desc: The name of the current git branch
     meta:
       include_in_list: false
     cmds:
       - git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"
 
   git_commit_sha:
-    desc: "The current git commit SHA (short)"
+    desc: The current git commit SHA (short)
     meta:
-      include_in_list: true
+      include_in_list: false
     cmds:
       - git rev-parse --short HEAD 2>/dev/null || echo "unknown"
 
@@ -53,11 +53,11 @@ tasks:
   # They can be used for helper functions, builds, tests, etc.
 
   setup:
-    desc: "Setup workspace dependencies"
+    desc: Setup workspace dependencies
     cmds:
       - echo "Installing dependencies..."
 
   test:
-    desc: "Run tests"
+    desc: Run tests
     cmds:
       - echo "Running tests..."

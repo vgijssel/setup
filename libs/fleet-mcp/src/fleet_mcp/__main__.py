@@ -170,7 +170,7 @@ async def list_agents(
 async def show_agent(
     agent_name: Annotated[
         str,
-        Field(min_length=1, max_length=20, description="Name of the agent to retrieve"),
+        Field(min_length=1, max_length=32, description="Name of the agent to retrieve"),
     ],
 ) -> dict:
     """Show detailed information about a specific agent."""
@@ -269,7 +269,7 @@ async def start_agent_task(
         str,
         Field(
             min_length=1,
-            max_length=20,
+            max_length=32,
             description="Name of the agent to assign task to",
         ),
     ],
@@ -296,7 +296,7 @@ async def cancel_agent_task(
         str,
         Field(
             min_length=1,
-            max_length=20,
+            max_length=32,
             description="Name of the agent to cancel task for",
         ),
     ],
@@ -374,11 +374,12 @@ async def get_workspace_metadata(request):
     """
     from .services.metadata_service import MetadataService
 
-    # Get workspace directory from environment or use current directory
-    workspace_dir = os.getenv("WORKSPACE_DIR", os.getcwd())
+    # Get Taskfile path from environment or use default
+    # FLEET_MCP_TASKFILE should be an absolute path to the Taskfile.yml
+    taskfile_path = os.getenv("FLEET_MCP_TASKFILE", str(Path.cwd() / "Taskfile.yml"))
 
     try:
-        service = MetadataService(workspace_dir=workspace_dir)
+        service = MetadataService(taskfile_path=taskfile_path)
         metadata = await service.collect_metadata()
 
         # Return WorkspaceMetadata as JSON

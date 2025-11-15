@@ -60,9 +60,11 @@ class MetadataRepository:
 
             # Construct agent-specific app URL (same pattern as TaskRepository)
             # URL format: {coder_url}/@{owner}/{workspace_name}.{workspace_id}/apps/fleet-mcp/
+            owner_name = workspace.get("owner_name", "me")
+            workspace_name = workspace.get("name", "unknown")
             agent_api_url = (
-                f"{self.coder_client.base_url}/@{workspace.owner_name}/"
-                f"{workspace.name}.{workspace_id}/apps/fleet-mcp/"
+                f"{self.coder_client.base_url}/@{owner_name}/"
+                f"{workspace_name}.{workspace_id}/apps/fleet-mcp/"
             )
             metadata_url = f"{agent_api_url}metadata"
 

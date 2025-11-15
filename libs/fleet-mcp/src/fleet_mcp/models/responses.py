@@ -15,6 +15,9 @@ class AgentListView(BaseModel):
 
     This model is used in list operations where workspace_id and updated_at are
     internal details that should not be exposed to clients in list views.
+
+    For metadata, only includes fields with include_in_list=true and shows values only
+    (no schema objects).
     """
 
     name: str = Field(..., description="Unique agent name")
@@ -23,6 +26,13 @@ class AgentListView(BaseModel):
     project: str = Field(..., description="Template name")
     last_task: Optional[str] = Field(None, description="Most recent task description")
     created_at: datetime = Field(..., description="Agent creation timestamp")
+    metadata: Optional[dict] = Field(
+        None,
+        description="Filtered workspace metadata (only include_in_list=true fields, values only)",
+    )
+    metadata_count: int = Field(
+        0, description="Count of metadata fields included in list view"
+    )
 
     @classmethod
     def from_agent(cls, agent: Agent) -> "AgentListView":
@@ -32,8 +42,28 @@ class AgentListView(BaseModel):
             agent: Agent domain model
 
         Returns:
-            AgentListView with workspace_id and updated_at excluded
+            AgentListView with workspace_id and updated_at excluded,
+            and metadata filtered to include_in_list=true fields only
         """
+        # Filter metadata for list view
+        filtered_metadata = None
+        metadata_count = 0
+
+        if agent.metadata and isinstance(agent.metadata, dict):
+            data = agent.metadata.get("data", {})
+            if data:
+                # Extract only fields with include_in_list=true, values only
+                filtered_metadata = {
+                    name: field_data.get("value")
+                    for name, field_data in data.items()
+                    if isinstance(field_data, dict)
+                    and field_data.get("schema", {}).get("include_in_list", False)
+                }
+                metadata_count = len(filtered_metadata)
+                # If no fields to include, set to None
+                if not filtered_metadata:
+                    filtered_metadata = None
+
         return cls(
             name=agent.name,
             status=agent.status,
@@ -41,6 +71,8 @@ class AgentListView(BaseModel):
             project=agent.project,
             last_task=agent.last_task,
             created_at=agent.created_at,
+            metadata=filtered_metadata,
+            metadata_count=metadata_count,
         )
 
 

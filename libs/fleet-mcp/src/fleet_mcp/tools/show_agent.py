@@ -12,7 +12,7 @@ async def show_agent(
     agent_service: AgentService,
     agent_name: Annotated[
         str,
-        Field(min_length=1, max_length=20, description="Name of the agent to retrieve"),
+        Field(min_length=1, max_length=32, description="Name of the agent to retrieve"),
     ],
 ) -> ShowAgentResponse:
     """Show detailed information about a specific agent.

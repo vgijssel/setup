@@ -173,3 +173,80 @@ class TestListAgents:
             assert hasattr(agent_view, "project")
             assert hasattr(agent_view, "last_task")
             assert hasattr(agent_view, "created_at")
+
+    async def test_list_agents_includes_metadata_field(self, mock_agent_service):
+        """Test that list_agents includes metadata field with count and PR number."""
+        # Arrange - Create agents with metadata
+        agents_with_metadata = [
+            Agent(
+                name="agent-1",
+                workspace_id="ws-1",
+                status=AgentStatus.IDLE,
+                role="coder",
+                project="Setup",
+                last_task="Test task 1",
+                created_at=datetime(2025, 11, 7, 10, 0, 0),
+                updated_at=datetime(2025, 11, 7, 10, 30, 0),
+                metadata={
+                    "data": {
+                        "pull_request_number": {
+                            "value": 819,
+                            "error": None,
+                            "schema": {
+                                "description": "PR number",
+                                "include_in_list": True,
+                            },
+                        },
+                        "git_branch": {
+                            "value": "feature/metadata",
+                            "error": None,
+                            "schema": {
+                                "description": "Git branch",
+                                "include_in_list": True,
+                            },
+                        },
+                    },
+                    "meta": {"version": "1.0"},
+                },
+            ),
+            Agent(
+                name="agent-2",
+                workspace_id="ws-2",
+                status=AgentStatus.BUSY,
+                role="analyst",
+                project="DataOne",
+                last_task="Test task 2",
+                created_at=datetime(2025, 11, 7, 11, 0, 0),
+                updated_at=datetime(2025, 11, 7, 11, 30, 0),
+                metadata=None,  # Agent without metadata
+            ),
+        ]
+        mock_agent_service.list_agents.return_value = agents_with_metadata
+
+        # Act
+        result = await list_agents(mock_agent_service)
+
+        # Assert
+        assert isinstance(result, ListAgentsResponse)
+        assert len(result.agents) == 2
+
+        # Verify first agent has metadata field
+        assert hasattr(result.agents[0], "metadata"), "Agent should have metadata field"
+        assert hasattr(
+            result.agents[0], "metadata_count"
+        ), "Agent should have metadata_count field"
+        assert result.agents[0].metadata is not None
+        assert result.agents[0].metadata_count == 2
+        # Verify metadata contains only include_in_list=True fields and values only
+        assert "pull_request_number" in result.agents[0].metadata
+        assert "git_branch" in result.agents[0].metadata
+        assert result.agents[0].metadata["pull_request_number"] == 819
+        assert result.agents[0].metadata["git_branch"] == "feature/metadata"
+
+        # Verify second agent has no metadata
+        assert hasattr(result.agents[1], "metadata"), "Agent should have metadata field"
+        assert hasattr(
+            result.agents[1], "metadata_count"
+        ), "Agent should have metadata_count field"
+        assert result.agents[1].metadata is None
+        assert result.agents[1].metadata_count == 0

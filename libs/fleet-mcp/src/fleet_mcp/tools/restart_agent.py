@@ -12,7 +12,7 @@ async def restart_agent(
     agent_service: AgentService,
     agent_name: Annotated[
         str,
-        Field(min_length=1, max_length=20, description="Name of the agent to restart"),
+        Field(min_length=1, max_length=32, description="Name of the agent to restart"),
     ],
 ) -> RestartAgentResponse:
     """Restart an agent's workspace to refresh its environment.

@@ -46,19 +46,15 @@ class AgentService:
         self,
         status_filter: Optional[AgentStatus] = None,
         project_filter: Optional[str] = None,
-        include_metadata: bool = False,
     ) -> list[Agent]:
         """List all agents with optional filtering.
 
         Args:
             status_filter: Filter by agent status (optional)
             project_filter: Filter by project name (optional, case-insensitive)
-            include_metadata: Whether to collect and include workspace metadata (default: False)
-                             When True, each agent will have metadata field populated with
-                             filtered metadata (only include_in_list=true fields)
 
         Returns:
-            List of Agent domain models matching filters (with metadata if requested)
+            List of Agent domain models matching filters (with metadata always included)
 
         Raises:
             ValidationError: If filters are invalid
@@ -68,8 +64,8 @@ class AgentService:
             backend is case insensitive. For example, filtering by "Setup",
             "SETUP", or "setup" will all return the same agents.
 
-            For metadata in list view:
-            - Only fields with include_in_list=true are included
+            Metadata is ALWAYS collected for list operations when metadata_repo is available:
+            - Only fields with include_in_list=true are included in the response
             - Only values are returned (no schema objects)
             - Failed fields show null values
         """
@@ -84,8 +80,8 @@ class AgentService:
             project_filter_lower = project_filter.lower()
             agents = [a for a in agents if a.project.lower() == project_filter_lower]
 
-        # Collect metadata if requested and metadata_repo is available
-        if include_metadata and self.metadata_repo is not None:
+        # Always collect metadata if metadata_repo is available
+        if self.metadata_repo is not None:
             for agent in agents:
                 metadata = await self.metadata_repo.collect_metadata(agent.workspace_id)
                 # Convert WorkspaceMetadata to dict for Agent model

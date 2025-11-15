@@ -14,7 +14,7 @@ async def start_agent_task(
         str,
         Field(
             min_length=1,
-            max_length=20,
+            max_length=32,
             description="Name of the agent to assign task to",
         ),
     ],
@@ -39,7 +39,7 @@ async def start_agent_task(
 
     Args:
         task_service: Service instance for task business logic
-        agent_name: Name of the agent to assign task to (1-20 alphanumeric + hyphens)
+        agent_name: Name of the agent to assign task to (1-32 alphanumeric + hyphens)
         task_description: Description of the task to assign (non-empty)
 
     Returns:

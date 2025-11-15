@@ -25,13 +25,24 @@ class MetadataService:
     4. Returns WorkspaceMetadata with results
     """
 
-    def __init__(self, workspace_dir: Optional[str] = None):
+    def __init__(self, taskfile_path: Optional[str] = None):
         """Initialize MetadataService.
 
         Args:
-            workspace_dir: Workspace directory (defaults to current directory)
+            taskfile_path: Absolute path to Taskfile.yml (defaults to FLEET_MCP_TASKFILE env var or ./Taskfile.yml)
         """
-        self.workspace_dir = Path(workspace_dir or Path.cwd())
+        import os
+
+        # Priority: parameter > env var > default
+        if taskfile_path:
+            self.taskfile_path = Path(taskfile_path)
+        else:
+            env_taskfile = os.getenv("FLEET_MCP_TASKFILE")
+            if env_taskfile:
+                self.taskfile_path = Path(env_taskfile)
+            else:
+                self.taskfile_path = Path.cwd() / "Taskfile.yml"
+
         self.parser = TaskfileParser()
 
     async def collect_metadata(self) -> WorkspaceMetadata:
@@ -43,16 +54,14 @@ class MetadataService:
         Note:
             Returns empty metadata if Taskfile missing or all tasks fail
         """
-        taskfile_path = self.workspace_dir / "Taskfile.yml"
-
         # Check if Taskfile exists
-        if not taskfile_path.exists():
-            logger.info(f"No Taskfile found at {taskfile_path}")
+        if not self.taskfile_path.exists():
+            logger.info(f"No Taskfile found at {self.taskfile_path}")
             return WorkspaceMetadata(data={})
 
         try:
             # Parse metadata tasks
-            metadata_tasks = self.parser.parse_metadata_tasks(str(taskfile_path))
+            metadata_tasks = self.parser.parse_metadata_tasks(str(self.taskfile_path))
 
             if not metadata_tasks:
                 logger.info("No metadata tasks found in Taskfile")
@@ -89,13 +98,15 @@ class MetadataService:
 
         try:
             # Execute task using Task CLI
+            # Use the directory containing the Taskfile as the working directory
+            taskfile_dir = self.taskfile_path.parent
             result = await asyncio.create_subprocess_exec(
                 "task",
                 task_name,
                 "--silent",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                cwd=self.workspace_dir,
+                cwd=taskfile_dir,
             )
 
             stdout, stderr = await asyncio.wait_for(result.communicate(), timeout=5.0)
