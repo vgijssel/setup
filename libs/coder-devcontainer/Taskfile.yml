@@ -3,7 +3,7 @@ version: "3"
 vars:
   # Pre-fetch git info to avoid multiple gh API calls
   gh_pr_info:
-    sh: gh pr view --json number,url,state,title,statusCheckRollup,reviewThreads 2>/dev/null || echo '{}'
+    sh: gh pr view --json number,url,state,title,statusCheckRollup,baseRefOid 2>/dev/null || echo '{}'
 
 tasks:
   # Metadata fields: Tasks with 'meta' key are collected as workspace metadata
@@ -57,16 +57,17 @@ tasks:
           end
         '
 
-  pull_request_unresolved_comments:
-    desc: Number of unresolved review threads on the PR
+  pull_request_needs_update:
+    desc: Whether the PR branch is behind the base branch and needs to be updated (true/false)
     meta:
       include_in_list: true
     cmds:
       - |
-        echo '{{.gh_pr_info}}' | jq -r '
-          if .reviewThreads == null then
-            empty
-          else
-            [.reviewThreads[] | select(.isResolved == false)] | length
-          end
-        '
+        BASE_REF=$(echo '{{.gh_pr_info}}' | jq -r '.baseRefOid // empty')
+        if [ -z "$BASE_REF" ]; then
+          echo ""
+        elif git merge-base --is-ancestor "$BASE_REF" HEAD 2>/dev/null; then
+          echo "false"
+        else
+          echo "true"
+        fi
