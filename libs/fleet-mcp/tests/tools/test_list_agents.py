@@ -250,3 +250,73 @@ class TestListAgents:
         ), "Agent should have metadata_count field"
         assert result.agents[1].metadata is None
         assert result.agents[1].metadata_count == 0
+
+
+@pytest.mark.asyncio
+async def test_list_agents_metadata_count_shows_total_not_filtered(
+    mock_agent_service,
+):
+    """Test that metadata_count shows total fields, not just filtered fields."""
+    # Arrange: Create agent with 3 total fields, but only 1 with include_in_list=true
+    agents_with_metadata = [
+        Agent(
+            name="test-agent",
+            workspace_id="ws-123",
+            status=AgentStatus.IDLE,
+            role="coder",
+            project="TestProject",
+            last_task="Test task",
+            created_at=datetime(2025, 11, 7, 10, 0, 0),
+            updated_at=datetime(2025, 11, 7, 10, 30, 0),
+            metadata={
+                "data": {
+                    "pull_request_number": {
+                        "value": 819,
+                        "error": None,
+                        "schema": {
+                            "description": "PR number",
+                            "include_in_list": True,  # This one is included in list
+                        },
+                    },
+                    "git_branch": {
+                        "value": "feature/metadata",
+                        "error": None,
+                        "schema": {
+                            "description": "Git branch",
+                            "include_in_list": False,  # This one is NOT included
+                        },
+                    },
+                    "commit_sha": {
+                        "value": "abc123",
+                        "error": None,
+                        "schema": {
+                            "description": "Commit SHA",
+                            "include_in_list": False,  # This one is NOT included
+                        },
+                    },
+                },
+                "meta": {"version": "1.0"},
+            },
+        ),
+    ]
+    mock_agent_service.list_agents.return_value = agents_with_metadata
+
+    # Act
+    result = await list_agents(mock_agent_service)
+
+    # Assert
+    assert isinstance(result, ListAgentsResponse)
+    assert len(result.agents) == 1
+
+    # Verify metadata_count shows TOTAL (3), not filtered count (1)
+    assert (
+        result.agents[0].metadata_count == 3
+    ), "metadata_count should show total fields (3), not just filtered (1)"
+
+    # Verify metadata contains only the 1 field with include_in_list=true
+    assert result.agents[0].metadata is not None
+    assert len(result.agents[0].metadata) == 1
+    assert "pull_request_number" in result.agents[0].metadata
+    assert "git_branch" not in result.agents[0].metadata
+    assert "commit_sha" not in result.agents[0].metadata
+    assert result.agents[0].metadata["pull_request_number"] == 819

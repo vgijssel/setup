@@ -29,14 +29,14 @@ class AgentService:
         self,
         agent_repo: AgentRepository,
         project_repo: ProjectRepository,
-        metadata_repo: Optional["MetadataRepository"] = None,
+        metadata_repo: "MetadataRepository",
     ):
         """Initialize service with repositories.
 
         Args:
             agent_repo: Repository for agent data access
             project_repo: Repository for project data access
-            metadata_repo: Optional repository for metadata collection (optional)
+            metadata_repo: Repository for metadata collection
         """
         self.agent_repo = agent_repo
         self.project_repo = project_repo
@@ -80,12 +80,11 @@ class AgentService:
             project_filter_lower = project_filter.lower()
             agents = [a for a in agents if a.project.lower() == project_filter_lower]
 
-        # Always collect metadata if metadata_repo is available
-        if self.metadata_repo is not None:
-            for agent in agents:
-                metadata = await self.metadata_repo.collect_metadata(agent.workspace_id)
-                # Convert WorkspaceMetadata to dict for Agent model
-                agent.metadata = metadata.model_dump()
+        # Always collect metadata for all agents
+        for agent in agents:
+            metadata = await self.metadata_repo.collect_metadata(agent.workspace_id)
+            # Convert WorkspaceMetadata to dict for Agent model
+            agent.metadata = metadata.model_dump()
 
         return agents
 
@@ -97,7 +96,7 @@ class AgentService:
             include_metadata: Whether to collect and include workspace metadata (default: True)
 
         Returns:
-            Agent domain model (with metadata if include_metadata=True and metadata_repo available)
+            Agent domain model (with metadata if include_metadata=True)
 
         Raises:
             AgentNotFoundError: If agent doesn't exist
@@ -110,8 +109,8 @@ class AgentService:
         normalized_name = name.lower()
         agent = await self.agent_repo.get_by_name(normalized_name)
 
-        # Collect metadata if requested and metadata_repo is available
-        if include_metadata and self.metadata_repo is not None:
+        # Collect metadata if requested
+        if include_metadata:
             metadata = await self.metadata_repo.collect_metadata(agent.workspace_id)
             # Convert WorkspaceMetadata to dict for Agent model
             agent.metadata = metadata.model_dump()

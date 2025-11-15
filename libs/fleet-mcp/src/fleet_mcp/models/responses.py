@@ -31,7 +31,7 @@ class AgentListView(BaseModel):
         description="Filtered workspace metadata (only include_in_list=true fields, values only)",
     )
     metadata_count: int = Field(
-        0, description="Count of metadata fields included in list view"
+        0, description="Total count of all metadata fields (not just filtered fields)"
     )
 
     @classmethod
