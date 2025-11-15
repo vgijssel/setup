@@ -3,7 +3,7 @@ version: "3"
 vars:
   # Pre-fetch git info to avoid multiple gh API calls
   gh_pr_info:
-    sh: gh pr view --json number,url,state,title,statusCheckRollup,baseRefOid 2>/dev/null || echo '{}'
+    sh: gh pr view --json number,url,state,title,statusCheckRollup,baseRefName 2>/dev/null || echo '{}'
 
 tasks:
   # Metadata fields: Tasks with 'meta' key are collected as workspace metadata
@@ -63,11 +63,17 @@ tasks:
       include_in_list: true
     cmds:
       - |
-        BASE_REF=$(echo '{{.gh_pr_info}}' | jq -r '.baseRefOid // empty')
-        if [ -z "$BASE_REF" ]; then
+        BASE_BRANCH=$(echo '{{.gh_pr_info}}' | jq -r '.baseRefName // empty')
+        if [ -z "$BASE_BRANCH" ]; then
           echo ""
-        elif git merge-base --is-ancestor "$BASE_REF" HEAD 2>/dev/null; then
-          echo "false"
         else
-          echo "true"
+          # Fetch the latest state of the base branch
+          git fetch origin "$BASE_BRANCH" 2>/dev/null || true
+          # Count commits in base branch that aren't in current branch
+          COMMITS_BEHIND=$(git rev-list --count HEAD..origin/"$BASE_BRANCH" 2>/dev/null || echo "0")
+          if [ "$COMMITS_BEHIND" -gt 0 ]; then
+            echo "true"
+          else
+            echo "false"
+          fi
         fi
