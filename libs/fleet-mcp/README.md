@@ -8,50 +8,7 @@ Fleet MCP provides MCP (Model Context Protocol) tools for managing Claude Code a
 
 ## Architecture
 
-The project uses a 5-layer clean architecture with unidirectional dependencies:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 1: MCP Tools (FastMCP Entry Points)                 │
-│  Files: tools/list_agents.py, create_agent.py, etc.        │
-│  Responsibility: MCP protocol, input validation            │
-└──────────────────┬──────────────────────────────────────────┘
-                   │ depends on
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 2: Services (Business Logic)                        │
-│  Files: services/agent_service.py, task_service.py         │
-│  Responsibility: Business rules, orchestration              │
-└──────────────────┬──────────────────────────────────────────┘
-                   │ depends on
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 3: Repositories (Data Access)                       │
-│  Files: repositories/agent_repository.py, etc.             │
-│  Responsibility: Entity transformation, data access         │
-└──────────────────┬──────────────────────────────────────────┘
-                   │ depends on
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Layer 4: Clients (HTTP Communication)                     │
-│  Files: clients/coder_client.py                            │
-│  Responsibility: HTTP requests, error handling              │
-└──────────────────┬──────────────────────────────────────────┘
-                   │ uses
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│  External: Coder API                                        │
-│  Endpoints: workspaces, templates, presets, tasks           │
-└─────────────────────────────────────────────────────────────┘
-
-         ┌──────────────────────────────┐
-         │  Shared: Models (Pydantic)   │
-         │  Files: models/*.py          │
-         │  Used by: All layers         │
-         └──────────────────────────────┘
-```
-
-### Layer Responsibilities
+The project uses a clean architecture with layer separation:
 
 1. **Tools Layer** (`tools/`): MCP tool entry points with FastMCP, parameter validation
 2. **Services Layer** (`services/`): Business logic, orchestration, rule enforcement
@@ -194,6 +151,92 @@ nx run-many -t test lint-imports -p fleet-mcp
 ### History & Logs
 - `show_agent_task_history`: View paginated task history (ordered newest first)
 - `show_agent_log`: View paginated conversation logs (default: latest entry only)
+
+## Workspace Metadata Collection
+
+Fleet MCP supports collecting workspace metadata (git branch, PR number, etc.) through a `Taskfile.yml` configuration file. This enables tracking which agents are working on which features, PRs, and branches.
+
+### Quick Start
+
+1. **Create a Taskfile.yml** in your workspace root:
+
+```yaml
+version: "3"
+
+vars:
+  gh_pr_info:
+    sh: gh pr view --json number,url,state,title 2>/dev/null || echo '{}'
+
+tasks:
+  # Tasks with 'meta' key are collected as workspace metadata
+  # include_in_list: true  → shown in list_agents (summary view)
+  # include_in_list: false → only shown in show_agent (detail view)
+
+  pull_request_number:
+    desc: The number of the current pull request on GitHub
+    meta:
+      include_in_list: true
+    cmds:
+      - echo '{{.gh_pr_info}}' | jq -r '.number // empty'
+
+  git_branch:
+    desc: The name of the current git branch
+    meta:
+      include_in_list: false
+    cmds:
+      - git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"
+```
+
+2. **Configure the Taskfile location** (optional):
+
+```bash
+# Set FLEET_MCP_TASKFILE to specify a custom Taskfile location
+export FLEET_MCP_TASKFILE=/workspaces/setup/Taskfile.yml
+```
+
+3. **Query metadata** via MCP tools:
+
+```python
+# Full metadata in show_agent
+agent = await client.call_tool("show_agent", {"agent_name": "my-agent"})
+print(agent["agent"]["metadata"])
+# {"pull_request_number": {"value": 819, "schema": {...}}, ...}
+
+# Summary metadata in list_agents (only include_in_list=true fields)
+agents = await client.call_tool("list_agents", {})
+for agent in agents["agents"]:
+    print(f"{agent['name']}: PR #{agent['metadata'].get('pull_request_number')}")
+```
+
+### Taskfile Configuration
+
+Each metadata field is defined as a task with a `meta` key:
+
+```yaml
+tasks:
+  <field_name>:
+    desc: "<Human-readable description>"
+    meta:
+      include_in_list: true  # Show in list_agents? (true/false)
+    cmds:
+      - echo "<command to get value>"
+```
+
+**Best Practices**:
+- Keep tasks fast (<1 second each) - use caching with `vars` for expensive operations
+- Handle errors gracefully with fallbacks: `command 2>/dev/null || echo "default"`
+- Use `include_in_list: true` for 2-3 most important fields
+- Test your Taskfile: `task --list --json` and `task <task_name>`
+
+**Example Use Cases**:
+- PR tracking: `pull_request_number`, `pull_request_state`, `pull_request_url`
+- Git context: `git_branch`, `git_commit_sha`, `git_commit_message`
+- Environment tracking: `kubernetes_namespace`, `deployed_version`
+- Development status: `git_status`, `branch_ahead`, `last_commit`
+
+For complete documentation, examples, and troubleshooting, see:
+- [Workspace Metadata Quickstart](../../specs/005-workspace-metadata/quickstart.md)
+- [Example Taskfile](examples/Taskfile.yml)
 
 ## Usage Examples
 
