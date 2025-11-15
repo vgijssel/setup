@@ -1,3 +1,11 @@
+## 0.9.0 (2025-11-15)
+
+### 🚀 Features
+
+- Add workspace metadata collection via Taskfile integration ([#830](https://github.com/vgijssel/setup/pull/830))
+
+  Fleet-mcp now collects and returns workspace metadata (git branch, commit SHA, PR number, etc.) through both `show_agent` and `list_agents` tools. Metadata fields are dynamically defined in workspace Taskfile.yml files, enabling flexible tracking of agent workspace context for PR workflows and fleet coordination.
+
 ## 0.8.0 (2025-11-13)
 
 ### 🚀 Features

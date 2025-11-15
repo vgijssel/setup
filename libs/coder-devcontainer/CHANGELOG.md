@@ -1,3 +1,11 @@
+## 0.16.0 (2025-11-15)
+
+### 🚀 Features
+
+- Add Taskfile.yml with workspace metadata collection tasks ([#830](https://github.com/vgijssel/setup/pull/830))
+
+  Added Taskfile.yml defining metadata collection tasks (pull request number, URL, state, and git branch) for fleet-mcp workspace metadata integration. This enables agent workspaces to expose contextual information to the fleet management system.
+
 ## 0.15.1 (2025-11-13)
 
 ### 🧱 Updated Dependencies

@@ -1,3 +1,11 @@
+## 0.3.1 (2025-11-15)
+
+### 🩹 Fixes
+
+- No functional changes - dependency update only ([#830](https://github.com/vgijssel/setup/pull/830))
+
+  This release includes no code changes to the coder library itself, but is being versioned due to dependency updates from related workspace changes.
+
 ## 0.3.0 (2025-11-12)
 
 ### 🚀 Features

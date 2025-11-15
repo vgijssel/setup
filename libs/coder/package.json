@@ -1,6 +1,6 @@
 {
   "name": "coder",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "nx": {
     "projectType": "library",
     "sourceRoot": "libs/coder",
