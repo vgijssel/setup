@@ -346,6 +346,43 @@ async def show_agent_log(
 # ========================================================================
 
 
+@mcp.custom_route("/", methods=["GET"])
+async def root_endpoint(request):
+    """Root endpoint combining health status and workspace metadata.
+
+    Returns a JSON response with both service status and workspace metadata.
+    This endpoint is accessible at http://host:port/
+    """
+    from .services.metadata_service import MetadataService
+
+    # Get Taskfile path from environment or use default
+    taskfile_path = os.getenv("FLEET_MCP_TASKFILE", str(Path.cwd() / "Taskfile.yml"))
+
+    # Collect metadata
+    try:
+        service = MetadataService(taskfile_path=taskfile_path)
+        metadata = await service.collect_metadata()
+        metadata_dict = metadata.model_dump()
+    except Exception as e:
+        logger.error(f"Error collecting workspace metadata: {e}")
+        # Return empty metadata on error (graceful degradation)
+        from .models.metadata import WorkspaceMetadata
+
+        empty_metadata = WorkspaceMetadata(data={})
+        metadata_dict = empty_metadata.model_dump()
+
+    # Combine health and metadata
+    return JSONResponse(
+        {
+            "status": "healthy",
+            "service": "fleet-mcp",
+            "version": "0.2.0",
+            "coder_url": CODER_URL,
+            "metadata": metadata_dict,
+        }
+    )
+
+
 @mcp.custom_route("/health", methods=["GET"])
 async def health_check(request):
     """Health check endpoint for monitoring and load balancers.
