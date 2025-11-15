@@ -251,7 +251,7 @@ data "coder_workspace_preset" "researcher" {
 
 # Generate a random bearer token for fleet-mcp authentication
 # Uses 32 random bytes which produces a 43-character URL-safe base64 string
-resource "random_id" "fleet_mcp_token" {
+resource "random_id" "fleet_mcp_bearer_token" {
   byte_length = 32
   keepers = {
     # Regenerate token when workspace is recreated
@@ -286,7 +286,7 @@ resource "coder_env" "op_service_account_token" {
 resource "coder_env" "fleet_mcp_bearer_token" {
   agent_id = coder_agent.main.id
   name     = "FLEET_MCP_AUTH_TOKEN"
-  value    = random_id.fleet_mcp_token.b64_url
+  value    = random_id.fleet_mcp_bearer_token.b64_url
 }
 
 resource "coder_agent" "main" {
@@ -381,15 +381,6 @@ resource "coder_agent" "main" {
     timeout      = 1
   }
 
-}
-
-# Store the bearer token as workspace metadata for fleet-mcp
-resource "coder_metadata" "fleet_mcp_bearer_token" {
-  resource_id = coder_agent.main.id
-  item {
-    key       = "fleet_mcp_bearer_token"
-    value     = random_id.fleet_mcp_token.b64_url
-  }
 }
 
 module "claude-code" {
@@ -583,6 +574,15 @@ resource "coder_app" "fleet_mcp" {
     url       = "http://127.0.0.1:8000/health"
     interval  = 10
     threshold = 24
+  }
+}
+
+# Store the bearer token as workspace metadata for fleet-mcp
+resource "coder_metadata" "fleet_mcp_bearer_token" {
+  resource_id = coder_agent.main.id
+  item {
+    key       = "fleet_mcp_bearer_token"
+    value     = random_id.fleet_mcp_bearer_token.b64_url
   }
 }
 
