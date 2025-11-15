@@ -1,3 +1,9 @@
+## 0.17.0 (2025-11-15)
+
+### 🚀 Features
+
+- Add bearer token authentication for fleet-mcp server integration. Generates a unique cryptographically secure 43-character bearer token per workspace using hashicorp/random provider and passes it to fleet-mcp via FLEET_MCP_AUTH_TOKEN environment variable. Token is also stored as sensitive workspace metadata. ([#833](https://github.com/vgijssel/setup/pull/833))
+
 ## 0.16.0 (2025-11-15)
 
 ### 🚀 Features
