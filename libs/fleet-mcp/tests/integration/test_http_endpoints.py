@@ -4,7 +4,6 @@ Tests the custom HTTP routes: /, /health, /metadata
 """
 
 import os
-from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -20,7 +19,11 @@ class TestRootEndpoint:
     async def test_root_endpoint_success(self):
         """Test root endpoint returns health and metadata successfully."""
         from fleet_mcp.__main__ import app
-        from fleet_mcp.models.metadata import MetadataField, MetadataSchema, WorkspaceMetadata
+        from fleet_mcp.models.metadata import (
+            MetadataField,
+            MetadataSchema,
+            WorkspaceMetadata,
+        )
 
         # Mock the MetadataService to return test metadata
         test_metadata = WorkspaceMetadata(
@@ -45,12 +48,16 @@ class TestRootEndpoint:
             meta={"version": "1.0"},
         )
 
-        with patch("fleet_mcp.services.metadata_service.MetadataService") as mock_service_class:
+        with patch(
+            "fleet_mcp.services.metadata_service.MetadataService"
+        ) as mock_service_class:
             mock_service = AsyncMock()
             mock_service.collect_metadata.return_value = test_metadata
             mock_service_class.return_value = mock_service
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 response = await client.get("/")
 
         assert response.status_code == 200
@@ -77,12 +84,16 @@ class TestRootEndpoint:
         # Mock the MetadataService to return empty metadata
         empty_metadata = WorkspaceMetadata(data={}, meta={"version": "1.0"})
 
-        with patch("fleet_mcp.services.metadata_service.MetadataService") as mock_service_class:
+        with patch(
+            "fleet_mcp.services.metadata_service.MetadataService"
+        ) as mock_service_class:
             mock_service = AsyncMock()
             mock_service.collect_metadata.return_value = empty_metadata
             mock_service_class.return_value = mock_service
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 response = await client.get("/")
 
         assert response.status_code == 200
@@ -104,12 +115,16 @@ class TestRootEndpoint:
         from fleet_mcp.__main__ import app
 
         # Mock the MetadataService to raise an exception
-        with patch("fleet_mcp.services.metadata_service.MetadataService") as mock_service_class:
+        with patch(
+            "fleet_mcp.services.metadata_service.MetadataService"
+        ) as mock_service_class:
             mock_service = AsyncMock()
             mock_service.collect_metadata.side_effect = Exception("Taskfile not found")
             mock_service_class.return_value = mock_service
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 response = await client.get("/")
 
         assert response.status_code == 200
@@ -135,23 +150,33 @@ class TestRootEndpoint:
         empty_metadata = WorkspaceMetadata(data={}, meta={"version": "1.0"})
 
         with patch.dict(os.environ, {"FLEET_MCP_TASKFILE": custom_taskfile}):
-            with patch("fleet_mcp.services.metadata_service.MetadataService") as mock_service_class:
+            with patch(
+                "fleet_mcp.services.metadata_service.MetadataService"
+            ) as mock_service_class:
                 mock_service = AsyncMock()
                 mock_service.collect_metadata.return_value = empty_metadata
                 mock_service_class.return_value = mock_service
 
-                async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+                async with AsyncClient(
+                    transport=ASGITransport(app=app), base_url="http://test"
+                ) as client:
                     response = await client.get("/")
 
                 # Verify MetadataService was called with custom taskfile path
-                mock_service_class.assert_called_once_with(taskfile_path=custom_taskfile)
+                mock_service_class.assert_called_once_with(
+                    taskfile_path=custom_taskfile
+                )
 
         assert response.status_code == 200
 
     async def test_root_endpoint_with_partial_metadata_failures(self):
         """Test root endpoint with some metadata fields failing."""
         from fleet_mcp.__main__ import app
-        from fleet_mcp.models.metadata import MetadataField, MetadataSchema, WorkspaceMetadata
+        from fleet_mcp.models.metadata import (
+            MetadataField,
+            MetadataSchema,
+            WorkspaceMetadata,
+        )
 
         # Mock metadata with partial failures
         partial_metadata = WorkspaceMetadata(
@@ -176,12 +201,16 @@ class TestRootEndpoint:
             meta={"version": "1.0"},
         )
 
-        with patch("fleet_mcp.services.metadata_service.MetadataService") as mock_service_class:
+        with patch(
+            "fleet_mcp.services.metadata_service.MetadataService"
+        ) as mock_service_class:
             mock_service = AsyncMock()
             mock_service.collect_metadata.return_value = partial_metadata
             mock_service_class.return_value = mock_service
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 response = await client.get("/")
 
         assert response.status_code == 200
@@ -194,7 +223,10 @@ class TestRootEndpoint:
 
         # Verify failed field
         assert data["metadata"]["data"]["pr_number"]["value"] is None
-        assert data["metadata"]["data"]["pr_number"]["error"] == "Command 'gh pr view' failed"
+        assert (
+            data["metadata"]["data"]["pr_number"]["error"]
+            == "Command 'gh pr view' failed"
+        )
 
 
 class TestHealthEndpoint:
@@ -204,7 +236,9 @@ class TestHealthEndpoint:
         """Test /health endpoint returns healthy status."""
         from fleet_mcp.__main__ import app
 
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             response = await client.get("/health")
 
         assert response.status_code == 200
@@ -225,7 +259,11 @@ class TestMetadataEndpoint:
     async def test_metadata_endpoint_success(self):
         """Test /metadata endpoint returns metadata successfully."""
         from fleet_mcp.__main__ import app
-        from fleet_mcp.models.metadata import MetadataField, MetadataSchema, WorkspaceMetadata
+        from fleet_mcp.models.metadata import (
+            MetadataField,
+            MetadataSchema,
+            WorkspaceMetadata,
+        )
 
         test_metadata = WorkspaceMetadata(
             data={
@@ -241,12 +279,16 @@ class TestMetadataEndpoint:
             meta={"version": "1.0"},
         )
 
-        with patch("fleet_mcp.services.metadata_service.MetadataService") as mock_service_class:
+        with patch(
+            "fleet_mcp.services.metadata_service.MetadataService"
+        ) as mock_service_class:
             mock_service = AsyncMock()
             mock_service.collect_metadata.return_value = test_metadata
             mock_service_class.return_value = mock_service
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 response = await client.get("/metadata")
 
         assert response.status_code == 200
@@ -266,12 +308,16 @@ class TestMetadataEndpoint:
         """Test /metadata endpoint handles failures gracefully."""
         from fleet_mcp.__main__ import app
 
-        with patch("fleet_mcp.services.metadata_service.MetadataService") as mock_service_class:
+        with patch(
+            "fleet_mcp.services.metadata_service.MetadataService"
+        ) as mock_service_class:
             mock_service = AsyncMock()
             mock_service.collect_metadata.side_effect = Exception("Taskfile error")
             mock_service_class.return_value = mock_service
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 response = await client.get("/metadata")
 
         assert response.status_code == 200
