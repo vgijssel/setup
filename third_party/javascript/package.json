@@ -4,7 +4,7 @@
   "main": "index.js",
   "description": "",
   "dependencies": {
-    "@anthropic-ai/claude-code": "^1.0.96",
+    "@anthropic-ai/claude-code": "^1.0.120",
     "@devcontainers/cli": "^0.80.1",
     "cssnano": "^7.0.6",
     "html-minifier-terser": "^7.2.0",
