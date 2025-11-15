@@ -58,6 +58,17 @@ class MetadataRepository:
             # Get workspace info from Coder API
             workspace = await self.coder_client.get_workspace(workspace_id)
 
+            # Extract bearer token from workspace metadata
+            bearer_token = self.coder_client.extract_bearer_token_from_workspace(
+                workspace
+            )
+
+            if not bearer_token:
+                logger.warning(
+                    f"No fleet_mcp_bearer_token found in workspace {workspace_id} metadata"
+                )
+                return WorkspaceMetadata(data={})
+
             # Construct agent-specific app URL (same pattern as TaskRepository)
             # URL format: {coder_url}/@{owner}/{workspace_name}.{workspace_id}/apps/fleet-mcp/
             owner_name = workspace.get("owner_name", "me")
@@ -70,8 +81,10 @@ class MetadataRepository:
 
             logger.info(f"Collecting metadata from {metadata_url}")
 
-            # Call agent's /metadata endpoint via MetadataClient
-            metadata = await self.metadata_client.get_metadata(metadata_url)
+            # Call agent's /metadata endpoint via MetadataClient with bearer token
+            metadata = await self.metadata_client.get_metadata(
+                metadata_url, bearer_token=bearer_token
+            )
 
             return metadata
 

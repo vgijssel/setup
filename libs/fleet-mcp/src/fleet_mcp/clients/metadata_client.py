@@ -36,12 +36,16 @@ class MetadataClient:
         """
         self.timeout = timeout
 
-    async def get_metadata(self, url: str) -> WorkspaceMetadata:
+    async def get_metadata(
+        self, url: str, bearer_token: str | None = None
+    ) -> WorkspaceMetadata:
         """Fetch metadata from agent's /metadata endpoint.
 
         Args:
             url: Full URL to the /metadata endpoint
                 Example: https://coder.example.com/@alice/ws.123/apps/fleet-mcp/metadata
+            bearer_token: Optional bearer token for authentication.
+                If provided, will be sent as "Authorization: Bearer <token>"
 
         Returns:
             WorkspaceMetadata object (empty on failure)
@@ -51,8 +55,12 @@ class MetadataClient:
             to ensure graceful degradation per FR-007 requirement.
         """
         try:
+            headers = {}
+            if bearer_token:
+                headers["Authorization"] = f"Bearer {bearer_token}"
+
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url)
+                response = await client.get(url, headers=headers)
 
                 # Check for HTTP errors
                 if response.status_code == 404:

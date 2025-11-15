@@ -261,3 +261,134 @@ class TestCoderClientErrorHandling:
             await client.get_workspace(workspace_id)
 
         assert "not found" in str(exc_info.value).lower()
+
+
+class TestCoderClientExtractBearerToken:
+    """Test suite for CoderClient.extract_bearer_token_from_workspace()"""
+
+    def test_extract_bearer_token_success(self):
+        """Test successful extraction of bearer token from workspace metadata.
+
+        Arrange: Create workspace data with bearer token in metadata
+        Act: Call extract_bearer_token_from_workspace()
+        Assert: Returns the correct bearer token
+        """
+        # Arrange
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
+        workspace = {
+            "id": "workspace-123",
+            "latest_build": {
+                "resources": [
+                    {
+                        "id": "resource-1",
+                        "metadata": [
+                            {"key": "other_key", "value": "other_value"},
+                            {
+                                "key": "fleet_mcp_bearer_token",
+                                "value": "test_bearer_token_1234567890abcdefghij",
+                            },
+                        ],
+                    }
+                ]
+            },
+        }
+
+        # Act
+        result = client.extract_bearer_token_from_workspace(workspace)
+
+        # Assert
+        assert result == "test_bearer_token_1234567890abcdefghij"
+
+    def test_extract_bearer_token_not_found(self):
+        """Test extraction when bearer token is not present in metadata.
+
+        Arrange: Create workspace data without bearer token
+        Act: Call extract_bearer_token_from_workspace()
+        Assert: Returns None
+        """
+        # Arrange
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
+        workspace = {
+            "id": "workspace-123",
+            "latest_build": {
+                "resources": [
+                    {
+                        "id": "resource-1",
+                        "metadata": [{"key": "other_key", "value": "other_value"}],
+                    }
+                ]
+            },
+        }
+
+        # Act
+        result = client.extract_bearer_token_from_workspace(workspace)
+
+        # Assert
+        assert result is None
+
+    def test_extract_bearer_token_empty_resources(self):
+        """Test extraction when resources list is empty.
+
+        Arrange: Create workspace data with empty resources
+        Act: Call extract_bearer_token_from_workspace()
+        Assert: Returns None
+        """
+        # Arrange
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
+        workspace = {"id": "workspace-123", "latest_build": {"resources": []}}
+
+        # Act
+        result = client.extract_bearer_token_from_workspace(workspace)
+
+        # Assert
+        assert result is None
+
+    def test_extract_bearer_token_no_latest_build(self):
+        """Test extraction when latest_build is missing.
+
+        Arrange: Create workspace data without latest_build
+        Act: Call extract_bearer_token_from_workspace()
+        Assert: Returns None
+        """
+        # Arrange
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
+        workspace = {"id": "workspace-123"}
+
+        # Act
+        result = client.extract_bearer_token_from_workspace(workspace)
+
+        # Assert
+        assert result is None
+
+    def test_extract_bearer_token_multiple_resources(self):
+        """Test extraction when bearer token is in second resource.
+
+        Arrange: Create workspace data with multiple resources
+        Act: Call extract_bearer_token_from_workspace()
+        Assert: Returns the bearer token from any resource
+        """
+        # Arrange
+        client = CoderClient(base_url="https://test.coder.com", token="test-token")
+        workspace = {
+            "id": "workspace-123",
+            "latest_build": {
+                "resources": [
+                    {"id": "resource-1", "metadata": []},
+                    {
+                        "id": "resource-2",
+                        "metadata": [
+                            {
+                                "key": "fleet_mcp_bearer_token",
+                                "value": "token_from_second_resource",
+                            }
+                        ],
+                    },
+                ]
+            },
+        }
+
+        # Act
+        result = client.extract_bearer_token_from_workspace(workspace)
+
+        # Assert
+        assert result == "token_from_second_resource"
