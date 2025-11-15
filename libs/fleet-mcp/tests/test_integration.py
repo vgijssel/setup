@@ -1,5 +1,7 @@
 """Integration tests for fleet-mcp MVP using VCR cassettes."""
 
+from unittest.mock import AsyncMock
+
 import pytest
 import vcr
 from fleet_mcp.clients import CoderClient
@@ -31,7 +33,9 @@ class TestUserStory1AgentDiscoveryVCR:
         client = CoderClient(base_url=coder_base_url, token="test-token")
         agent_repo = AgentRepository(client)
         project_repo = ProjectRepository(client)
-        service = AgentService(agent_repo, project_repo)
+        metadata_repo = AsyncMock()
+        metadata_repo.collect_metadata.return_value.model_dump.return_value = {}
+        service = AgentService(agent_repo, project_repo, metadata_repo)
 
         agents = await service.list_agents()
 
@@ -80,7 +84,9 @@ class TestUserStory2AgentLifecycleVCR:
         client = CoderClient(base_url=coder_base_url, token="test-token")
         agent_repo = AgentRepository(client)
         project_repo = ProjectRepository(client)
-        AgentService(agent_repo, project_repo)
+        metadata_repo = AsyncMock()
+        metadata_repo.collect_metadata.return_value.model_dump.return_value = {}
+        AgentService(agent_repo, project_repo, metadata_repo)
 
         # This will replay the recorded workspace creation
         # Note: In the cassette, the workspace name and template are fixed
@@ -94,7 +100,9 @@ class TestUserStory2AgentLifecycleVCR:
         client = CoderClient(base_url=coder_base_url, token="test-token")
         agent_repo = AgentRepository(client)
         project_repo = ProjectRepository(client)
-        AgentService(agent_repo, project_repo)
+        metadata_repo = AsyncMock()
+        metadata_repo.collect_metadata.return_value.model_dump.return_value = {}
+        AgentService(agent_repo, project_repo, metadata_repo)
 
         # This tests that the delete flow works with recorded interaction
         # await service.delete_agent("test-agent")  # Name must match cassette
@@ -121,7 +129,9 @@ class TestBugReproduction:
         client = CoderClient(base_url=coder_base_url, token="test-token")
         agent_repo = AgentRepository(client)
         project_repo = ProjectRepository(client)
-        agent_service = AgentService(agent_repo, project_repo)
+        metadata_repo = AsyncMock()
+        metadata_repo.collect_metadata.return_value.model_dump.return_value = {}
+        agent_service = AgentService(agent_repo, project_repo, metadata_repo)
 
         # NOTE: This test uses VCR cassettes, so we need to record the sequence:
         # 1. list_templates (to validate project exists)

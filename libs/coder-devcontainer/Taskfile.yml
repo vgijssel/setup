@@ -1,0 +1,40 @@
+version: "3"
+
+vars:
+  # Pre-fetch git info to avoid multiple gh API calls
+  gh_pr_info:
+    sh: gh pr view --json number,url,state,title 2>/dev/null || echo '{}'
+
+tasks:
+  # Metadata fields: Tasks with 'meta' key are collected as workspace metadata
+  # Meta key format: { include_in_list: boolean }
+  # - include_in_list: true  → shown in list_agents (summary view)
+  # - include_in_list: false → only shown in show_agent (detail view)
+
+  pull_request_number:
+    desc: The number of the current pull request on GitHub
+    meta:
+      include_in_list: true
+    cmds:
+      - echo '{{.gh_pr_info}}' | jq -r '.number // empty'
+
+  pull_request_url:
+    desc: The URL of the current pull request on GitHub
+    meta:
+      include_in_list: false
+    cmds:
+      - echo '{{.gh_pr_info}}' | jq -r '.url // empty'
+
+  pull_request_state:
+    desc: The state of the current pull request (OPEN, CLOSED, MERGED)
+    meta:
+      include_in_list: true
+    cmds:
+      - echo '{{.gh_pr_info}}' | jq -r '.state // empty'
+
+  git_branch:
+    desc: The name of the current git branch
+    meta:
+      include_in_list: false
+    cmds:
+      - git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"

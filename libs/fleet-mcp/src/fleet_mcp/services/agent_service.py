@@ -1,17 +1,20 @@
 """Agent service for business logic and orchestration."""
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from ..models import Agent, AgentStatus
 from ..models.errors import AgentNotFoundError, ValidationError
 from ..repositories import AgentRepository, ProjectRepository
+
+if TYPE_CHECKING:
+    from ..repositories.metadata_repository import MetadataRepository
 
 
 class AgentService:
     """Service for agent business logic and validation.
 
     Architecture: Layer 2 (Service Layer)
-    Dependencies: AgentRepository, ProjectRepository (Layer 3)
+    Dependencies: AgentRepository, ProjectRepository, MetadataRepository (Layer 3)
     Used by: MCP Tools (Layer 1)
 
     Responsibilities:
@@ -19,17 +22,25 @@ class AgentService:
     - Input validation and business rule enforcement
     - Orchestration across multiple repositories
     - Status filtering and projection
+    - Metadata collection integration
     """
 
-    def __init__(self, agent_repo: AgentRepository, project_repo: ProjectRepository):
+    def __init__(
+        self,
+        agent_repo: AgentRepository,
+        project_repo: ProjectRepository,
+        metadata_repo: "MetadataRepository",
+    ):
         """Initialize service with repositories.
 
         Args:
             agent_repo: Repository for agent data access
             project_repo: Repository for project data access
+            metadata_repo: Repository for metadata collection
         """
         self.agent_repo = agent_repo
         self.project_repo = project_repo
+        self.metadata_repo = metadata_repo
 
     async def list_agents(
         self,
@@ -43,7 +54,7 @@ class AgentService:
             project_filter: Filter by project name (optional, case-insensitive)
 
         Returns:
-            List of Agent domain models matching filters
+            List of Agent domain models matching filters (with metadata always included)
 
         Raises:
             ValidationError: If filters are invalid
@@ -52,6 +63,11 @@ class AgentService:
             Project name filtering is case insensitive because the Coder API
             backend is case insensitive. For example, filtering by "Setup",
             "SETUP", or "setup" will all return the same agents.
+
+            Metadata is ALWAYS collected for list operations when metadata_repo is available:
+            - Only fields with include_in_list=true are included in the response
+            - Only values are returned (no schema objects)
+            - Failed fields show null values
         """
         agents = await self.agent_repo.list_all()
 
@@ -64,16 +80,23 @@ class AgentService:
             project_filter_lower = project_filter.lower()
             agents = [a for a in agents if a.project.lower() == project_filter_lower]
 
+        # Always collect metadata for all agents
+        for agent in agents:
+            metadata = await self.metadata_repo.collect_metadata(agent.workspace_id)
+            # Convert WorkspaceMetadata to dict for Agent model
+            agent.metadata = metadata.model_dump()
+
         return agents
 
-    async def get_agent(self, name: str) -> Agent:
+    async def get_agent(self, name: str, include_metadata: bool = True) -> Agent:
         """Get agent details by name (case-insensitive).
 
         Args:
             name: Agent name (case-insensitive)
+            include_metadata: Whether to collect and include workspace metadata (default: True)
 
         Returns:
-            Agent domain model
+            Agent domain model (with metadata if include_metadata=True)
 
         Raises:
             AgentNotFoundError: If agent doesn't exist
@@ -84,7 +107,15 @@ class AgentService:
 
         # Normalize to lowercase for case-insensitive lookup
         normalized_name = name.lower()
-        return await self.agent_repo.get_by_name(normalized_name)
+        agent = await self.agent_repo.get_by_name(normalized_name)
+
+        # Collect metadata if requested
+        if include_metadata:
+            metadata = await self.metadata_repo.collect_metadata(agent.workspace_id)
+            # Convert WorkspaceMetadata to dict for Agent model
+            agent.metadata = metadata.model_dump()
+
+        return agent
 
     async def create_agent(
         self, name: str, project: str, task: str, role: str | None = None

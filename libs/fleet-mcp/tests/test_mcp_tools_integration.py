@@ -5,6 +5,7 @@ with only HTTP calls mocked using respx. No internal layers are mocked.
 """
 
 import os
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -44,9 +45,11 @@ def full_stack(coder_base_url):
     agent_repo = AgentRepository(client)
     project_repo = ProjectRepository(client)
     task_repo = TaskRepository(client)
+    metadata_repo = AsyncMock()
+    metadata_repo.collect_metadata.return_value.model_dump.return_value = {}
 
     # Create services
-    agent_service = AgentService(agent_repo, project_repo)
+    agent_service = AgentService(agent_repo, project_repo, metadata_repo)
     project_service = ProjectService(project_repo)
     task_service = TaskService(task_repo, agent_repo)
 

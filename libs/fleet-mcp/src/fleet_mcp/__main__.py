@@ -15,7 +15,12 @@ from .auth.middleware import AuthMiddleware
 from .auth.token_manager import TokenManager
 from .clients import CoderClient
 from .models import AgentStatus
-from .repositories import AgentRepository, ProjectRepository, TaskRepository
+from .repositories import (
+    AgentRepository,
+    MetadataRepository,
+    ProjectRepository,
+    TaskRepository,
+)
 from .services import AgentService, ProjectService, TaskService
 
 # Configure logging
@@ -52,6 +57,7 @@ _coder_client: CoderClient | None = None
 _agent_repo: AgentRepository | None = None
 _project_repo: ProjectRepository | None = None
 _task_repo: TaskRepository | None = None
+_metadata_repo: MetadataRepository | None = None
 _agent_service: AgentService | None = None
 _project_service: ProjectService | None = None
 _task_service: TaskService | None = None
@@ -81,11 +87,23 @@ def get_project_repository() -> ProjectRepository:
     return _project_repo
 
 
+def get_metadata_repository():
+    """Get or create MetadataRepository singleton."""
+    from .repositories.metadata_repository import MetadataRepository
+
+    global _metadata_repo
+    if _metadata_repo is None:
+        _metadata_repo = MetadataRepository(get_coder_client())
+    return _metadata_repo
+
+
 def get_agent_service() -> AgentService:
     """Get or create AgentService singleton."""
     global _agent_service
     if _agent_service is None:
-        _agent_service = AgentService(get_agent_repository(), get_project_repository())
+        _agent_service = AgentService(
+            get_agent_repository(), get_project_repository(), get_metadata_repository()
+        )
     return _agent_service
 
 
@@ -152,7 +170,7 @@ async def list_agents(
 async def show_agent(
     agent_name: Annotated[
         str,
-        Field(min_length=1, max_length=20, description="Name of the agent to retrieve"),
+        Field(min_length=1, max_length=32, description="Name of the agent to retrieve"),
     ],
 ) -> dict:
     """Show detailed information about a specific agent."""
@@ -251,7 +269,7 @@ async def start_agent_task(
         str,
         Field(
             min_length=1,
-            max_length=20,
+            max_length=32,
             description="Name of the agent to assign task to",
         ),
     ],
@@ -278,7 +296,7 @@ async def cancel_agent_task(
         str,
         Field(
             min_length=1,
-            max_length=20,
+            max_length=32,
             description="Name of the agent to cancel task for",
         ),
     ],
@@ -343,6 +361,37 @@ async def health_check(request):
             "coder_url": CODER_URL,
         }
     )
+
+
+@mcp.custom_route("/metadata", methods=["GET"])
+async def get_workspace_metadata(request):
+    """Workspace metadata endpoint for agent context.
+
+    Returns metadata about the workspace (git branch, PR number, etc.)
+    by executing tasks defined in the workspace's Taskfile.yml.
+
+    This endpoint is accessible at http://host:port/metadata
+    """
+    from .services.metadata_service import MetadataService
+
+    # Get Taskfile path from environment or use default
+    # FLEET_MCP_TASKFILE should be an absolute path to the Taskfile.yml
+    taskfile_path = os.getenv("FLEET_MCP_TASKFILE", str(Path.cwd() / "Taskfile.yml"))
+
+    try:
+        service = MetadataService(taskfile_path=taskfile_path)
+        metadata = await service.collect_metadata()
+
+        # Return WorkspaceMetadata as JSON
+        return JSONResponse(metadata.model_dump())
+
+    except Exception as e:
+        logger.error(f"Error collecting workspace metadata: {e}")
+        # Return empty metadata on error (graceful degradation)
+        from .models.metadata import WorkspaceMetadata
+
+        empty_metadata = WorkspaceMetadata(data={})
+        return JSONResponse(empty_metadata.model_dump())
 
 
 # ========================================================================

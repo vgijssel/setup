@@ -103,3 +103,79 @@ class TestShowAgent:
         # Act & Assert
         with pytest.raises(Exception, match="Service error"):
             await show_agent(mock_agent_service, agent_name="test-agent")
+
+    async def test_show_agent_includes_metadata_count(self, mock_agent_service):
+        """Test that show_agent includes metadata_count field same as list_agents."""
+        # Arrange - Create agent with metadata
+        agent_with_metadata = Agent(
+            name="test-agent",
+            workspace_id="ws-123",
+            status=AgentStatus.IDLE,
+            role="coder",
+            project="Setup",
+            last_task="Test task",
+            created_at=datetime(2025, 11, 7, 10, 0, 0),
+            updated_at=datetime(2025, 11, 7, 10, 30, 0),
+            metadata={
+                "data": {
+                    "pull_request_number": {
+                        "value": 819,
+                        "error": None,
+                        "schema": {
+                            "description": "PR number",
+                            "include_in_list": True,
+                        },
+                    },
+                    "git_branch": {
+                        "value": "main",
+                        "error": None,
+                        "schema": {
+                            "description": "Git branch",
+                            "include_in_list": False,
+                        },
+                    },
+                },
+                "meta": {"version": "1.0"},
+            },
+        )
+        mock_agent_service.get_agent.return_value = agent_with_metadata
+
+        # Act
+        result = await show_agent(mock_agent_service, agent_name="test-agent")
+
+        # Assert
+        assert isinstance(result, ShowAgentResponse)
+        assert hasattr(
+            result.agent, "metadata_count"
+        ), "Agent should have metadata_count field"
+        assert result.agent.metadata_count == 2  # Both fields in metadata.data
+        assert result.agent.metadata is not None
+
+    async def test_show_agent_metadata_count_zero_when_no_metadata(
+        self, mock_agent_service
+    ):
+        """Test that show_agent includes metadata_count=0 when agent has no metadata."""
+        # Arrange - Create agent without metadata
+        agent_without_metadata = Agent(
+            name="test-agent",
+            workspace_id="ws-123",
+            status=AgentStatus.IDLE,
+            role="coder",
+            project="Setup",
+            last_task="Test task",
+            created_at=datetime(2025, 11, 7, 10, 0, 0),
+            updated_at=datetime(2025, 11, 7, 10, 30, 0),
+            metadata=None,
+        )
+        mock_agent_service.get_agent.return_value = agent_without_metadata
+
+        # Act
+        result = await show_agent(mock_agent_service, agent_name="test-agent")
+
+        # Assert
+        assert isinstance(result, ShowAgentResponse)
+        assert hasattr(
+            result.agent, "metadata_count"
+        ), "Agent should have metadata_count field"
+        assert result.agent.metadata_count == 0
+        assert result.agent.metadata is None

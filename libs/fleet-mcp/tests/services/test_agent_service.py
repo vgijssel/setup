@@ -38,9 +38,15 @@ def mock_project_repo():
 
 
 @pytest.fixture
-def agent_service(mock_agent_repo, mock_project_repo):
+def mock_metadata_repo():
+    """Mock MetadataRepository for testing."""
+    return AsyncMock()
+
+
+@pytest.fixture
+def agent_service(mock_agent_repo, mock_project_repo, mock_metadata_repo):
     """AgentService instance with mocked repositories."""
-    return AgentService(mock_agent_repo, mock_project_repo)
+    return AgentService(mock_agent_repo, mock_project_repo, mock_metadata_repo)
 
 
 @pytest.fixture
