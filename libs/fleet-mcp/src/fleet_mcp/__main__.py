@@ -93,9 +93,7 @@ def get_metadata_repository():
 
     global _metadata_repo
     if _metadata_repo is None:
-        _metadata_repo = MetadataRepository(
-            get_coder_client(), coder_session_token=CODER_SESSION_TOKEN
-        )
+        _metadata_repo = MetadataRepository(get_coder_client(), CODER_SESSION_TOKEN)
     return _metadata_repo
 
 

@@ -35,7 +35,7 @@ async def test_metadata_client_get_success():
         )
     )
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     metadata = await client.get_metadata(url)
 
     assert metadata.data["test_field"].value == "test_value"
@@ -50,7 +50,7 @@ async def test_metadata_client_get_404_returns_empty():
 
     respx.get(url).mock(return_value=Response(status_code=404))
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     metadata = await client.get_metadata(url)
 
     assert len(metadata.data) == 0
@@ -66,7 +66,7 @@ async def test_metadata_client_get_500_returns_empty():
 
     respx.get(url).mock(return_value=Response(status_code=500))
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     metadata = await client.get_metadata(url)
 
     assert len(metadata.data) == 0
@@ -81,7 +81,7 @@ async def test_metadata_client_timeout_returns_empty():
 
     respx.get(url).mock(side_effect=TimeoutException("Timeout"))
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     metadata = await client.get_metadata(url)
 
     assert len(metadata.data) == 0
@@ -96,7 +96,7 @@ async def test_metadata_client_connection_error_returns_empty():
 
     respx.get(url).mock(side_effect=ConnectError("Connection failed"))
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     metadata = await client.get_metadata(url)
 
     assert len(metadata.data) == 0
@@ -111,7 +111,7 @@ async def test_metadata_client_invalid_json_returns_empty():
 
     respx.get(url).mock(return_value=Response(status_code=200, text="invalid json{{{"))
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     metadata = await client.get_metadata(url)
 
     assert len(metadata.data) == 0
@@ -131,7 +131,7 @@ async def test_metadata_client_timeout_value():
         )
     )
 
-    client = MetadataClient(timeout=10.0)
+    client = MetadataClient(coder_session_token="test-token", timeout=10.0)
     await client.get_metadata(url)
 
     # Verify request was made
@@ -152,7 +152,7 @@ async def test_metadata_client_custom_headers():
         )
     )
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     await client.get_metadata(url)
 
     assert route.called
@@ -282,46 +282,3 @@ async def test_metadata_fetch_with_auth_succeeds():
     assert "pr_number" in metadata.data
     assert metadata.data["pr_number"].value == "42"
     assert route.called
-
-
-@respx.mock
-async def test_metadata_fetch_without_token_graceful():
-    """Test MetadataClient gracefully handles missing token for local development.
-
-    When no token is provided (e.g., local testing), the client should still
-    make requests but may receive empty metadata if authentication is required.
-    This ensures backward compatibility with local development environments.
-    """
-    from fleet_mcp.clients.metadata_client import MetadataClient
-
-    url = "http://localhost:8000/metadata"
-
-    # Mock local endpoint that doesn't require authentication
-    route = respx.get(url).mock(
-        return_value=Response(
-            status_code=200,
-            json={
-                "data": {
-                    "local_test": {
-                        "value": "works",
-                        "error": None,
-                        "schema": {
-                            "description": "Local test",
-                            "include_in_list": True,
-                        },
-                    }
-                },
-                "meta": {"version": "1.0"},
-            },
-        )
-    )
-
-    # Create client without token (backward compatibility)
-    client = MetadataClient(coder_session_token=None)
-    metadata = await client.get_metadata(url)
-
-    # Verify request was made without Coder-Session-Token header
-    assert route.called
-    # For local endpoints that don't require auth, metadata should be returned
-    assert len(metadata.data) == 1
-    assert metadata.data["local_test"].value == "works"
