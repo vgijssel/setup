@@ -30,16 +30,21 @@ class MetadataRepository:
     def __init__(
         self,
         coder_client: CoderClient,
+        coder_session_token: str,
         metadata_client: Optional[MetadataClient] = None,
     ):
         """Initialize MetadataRepository.
 
         Args:
             coder_client: CoderClient for workspace API calls
+            coder_session_token: Coder session token for authenticated metadata requests.
+                Required for fetching metadata from Coder proxy URLs.
             metadata_client: Optional MetadataClient (creates new if not provided)
         """
         self.coder_client = coder_client
-        self.metadata_client = metadata_client or MetadataClient()
+        self.metadata_client = metadata_client or MetadataClient(
+            coder_session_token=coder_session_token
+        )
 
     async def collect_metadata(self, workspace_id: str) -> WorkspaceMetadata:
         """Collect metadata from agent's /metadata endpoint.

@@ -40,7 +40,7 @@ async def test_collect_metadata_success():
         )
     )
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     metadata = await client.get_metadata(metadata_url)
 
     assert metadata.data["pull_request_number"].value == 819
@@ -63,7 +63,7 @@ async def test_collect_metadata_empty():
         )
     )
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     metadata = await client.get_metadata(metadata_url)
 
     assert len(metadata.data) == 0
@@ -82,7 +82,7 @@ async def test_collect_metadata_http_404():
         return_value=Response(status_code=404, text="Not Found")
     )
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
 
     # Should return empty metadata on 404
     metadata = await client.get_metadata(metadata_url)
@@ -101,7 +101,7 @@ async def test_collect_metadata_http_timeout():
 
     respx.get(metadata_url).mock(side_effect=TimeoutException("Request timeout"))
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
 
     # Should return empty metadata on timeout
     metadata = await client.get_metadata(metadata_url)
@@ -141,7 +141,7 @@ async def test_collect_metadata_partial_failures():
         )
     )
 
-    client = MetadataClient()
+    client = MetadataClient(coder_session_token="test-token")
     metadata = await client.get_metadata(metadata_url)
 
     assert metadata.data["git_branch"].value == "main"

@@ -28,13 +28,16 @@ class MetadataClient:
     - Invalid JSON: Returns empty metadata (malformed response)
     """
 
-    def __init__(self, timeout: float = 10.0):
+    def __init__(self, coder_session_token: str, timeout: float = 10.0):
         """Initialize MetadataClient.
 
         Args:
+            coder_session_token: Coder session token for authenticated requests.
+                Required for fetching metadata from Coder proxy URLs to avoid 303 redirects.
             timeout: Request timeout in seconds (default: 10.0)
         """
         self.timeout = timeout
+        self.coder_session_token = coder_session_token
 
     async def get_metadata(self, url: str) -> WorkspaceMetadata:
         """Fetch metadata from agent's /metadata endpoint.
@@ -51,8 +54,11 @@ class MetadataClient:
             to ensure graceful degradation per FR-007 requirement.
         """
         try:
+            # Build headers with authentication token
+            headers = {"Coder-Session-Token": self.coder_session_token}
+
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url)
+                response = await client.get(url, headers=headers)
 
                 # Check for HTTP errors
                 if response.status_code == 404:

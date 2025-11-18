@@ -28,7 +28,7 @@ tasks:
   pull_request_state:
     desc: The state of the current pull request (OPEN, CLOSED, MERGED)
     meta:
-      include_in_list: true
+      include_in_list: false
     cmds:
       - echo '{{.gh_pr_info}}' | jq -r '.state // empty'
 
@@ -42,7 +42,7 @@ tasks:
   pull_request_ci_status:
     desc: Whether all GitHub CI status checks passed (PASS, FAIL, PENDING, or empty if no PR)
     meta:
-      include_in_list: true
+      include_in_list: false
     cmds:
       - |
         echo '{{.gh_pr_info}}' | jq -r '
@@ -60,7 +60,7 @@ tasks:
   pull_request_needs_update:
     desc: Whether the PR branch is behind the base branch and needs to be updated (true/false)
     meta:
-      include_in_list: true
+      include_in_list: false
     cmds:
       - |
         BASE_BRANCH=$(echo '{{.gh_pr_info}}' | jq -r '.baseRefName // empty')
