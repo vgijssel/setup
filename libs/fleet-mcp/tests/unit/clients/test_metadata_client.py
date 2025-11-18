@@ -188,7 +188,10 @@ async def test_metadata_fetch_without_auth_fails():
                         "git_branch": {
                             "value": "main",
                             "error": None,
-                            "schema": {"description": "Git branch", "include_in_list": True},
+                            "schema": {
+                                "description": "Git branch",
+                                "include_in_list": True,
+                            },
                         }
                     },
                     "meta": {"version": "1.0"},
@@ -243,12 +246,18 @@ async def test_metadata_fetch_with_auth_succeeds():
                         "git_branch": {
                             "value": "feature/auth-fix",
                             "error": None,
-                            "schema": {"description": "Git branch", "include_in_list": True},
+                            "schema": {
+                                "description": "Git branch",
+                                "include_in_list": True,
+                            },
                         },
                         "pr_number": {
                             "value": "42",
                             "error": None,
-                            "schema": {"description": "PR number", "include_in_list": True},
+                            "schema": {
+                                "description": "PR number",
+                                "include_in_list": True,
+                            },
                         },
                     },
                     "meta": {"version": "1.0"},
@@ -296,7 +305,10 @@ async def test_metadata_fetch_without_token_graceful():
                     "local_test": {
                         "value": "works",
                         "error": None,
-                        "schema": {"description": "Local test", "include_in_list": True},
+                        "schema": {
+                            "description": "Local test",
+                            "include_in_list": True,
+                        },
                     }
                 },
                 "meta": {"version": "1.0"},
