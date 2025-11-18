@@ -88,7 +88,9 @@ class AgentService:
                 self.metadata_repo.collect_metadata(agent.workspace_id)
                 for agent in agents
             ]
-            metadata_results = await asyncio.gather(*metadata_tasks, return_exceptions=True)
+            metadata_results = await asyncio.gather(
+                *metadata_tasks, return_exceptions=True
+            )
 
             # Assign metadata to corresponding agents
             for agent, metadata_result in zip(agents, metadata_results):
@@ -96,6 +98,7 @@ class AgentService:
                     # If metadata collection failed, use empty metadata
                     # This preserves graceful degradation behavior
                     from ..models.metadata import WorkspaceMetadata
+
                     agent.metadata = WorkspaceMetadata(data={}).model_dump()
                 else:
                     agent.metadata = metadata_result.model_dump()
