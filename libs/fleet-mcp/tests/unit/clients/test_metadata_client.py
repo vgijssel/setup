@@ -162,15 +162,19 @@ async def test_metadata_client_custom_headers():
 async def test_metadata_fetch_without_auth_fails():
     """REGRESSION TEST: Metadata fetch without authentication should fail.
 
-    This test demonstrates the current bug where MetadataClient makes
-    unauthenticated requests to Coder proxy URLs, resulting in 303 redirects
-    to the login page and empty metadata being returned.
+    This test demonstrates the bug where MetadataClient makes unauthenticated
+    requests to Coder proxy URLs, resulting in 303 redirects to the login page
+    and empty metadata being returned.
 
-    This test should FAIL with the current implementation and PASS after the fix.
+    After the fix, the client should support authentication and successfully
+    fetch metadata when a token is provided.
+
+    This test should FAIL with the old implementation and PASS after the fix.
     """
     from fleet_mcp.clients.metadata_client import MetadataClient
 
     url = "https://coder.example.com/@user/workspace.123/apps/fleet-mcp/metadata"
+    token = "test-token-123"
 
     # Mock endpoint that returns 303 redirect when no auth token is provided
     # This simulates Coder's behavior when accessing proxy URLs without authentication
@@ -198,18 +202,20 @@ async def test_metadata_fetch_without_auth_fails():
 
     route = respx.get(url).mock(side_effect=check_auth_header)
 
-    # Current implementation: MetadataClient without token support
-    client = MetadataClient()
+    # After fix: MetadataClient WITH token support
+    # The old implementation would not accept coder_session_token parameter
+    # and would return empty metadata due to 303 redirect
+    client = MetadataClient(coder_session_token=token)
     metadata = await client.get_metadata(url)
 
-    # EXPECTED BEHAVIOR (after fix): Should receive metadata successfully
-    # CURRENT BEHAVIOR (before fix): Returns empty metadata due to 303 redirect
-    # This assertion will FAIL until we implement authentication
+    # EXPECTED BEHAVIOR (after fix): Should receive metadata successfully with auth
+    # OLD BEHAVIOR (before fix): Would return empty metadata due to 303 redirect
     assert len(metadata.data) > 0, (
         "Metadata should be populated when authentication is provided. "
-        "Current implementation returns empty metadata due to 303 redirect."
+        "Old implementation returned empty metadata due to 303 redirect."
     )
     assert "git_branch" in metadata.data
+    assert metadata.data["git_branch"].value == "main"
     assert route.called
 
 

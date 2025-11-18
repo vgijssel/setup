@@ -5,6 +5,7 @@ to retrieve workspace metadata (git branch, PR number, etc.).
 """
 
 import logging
+from typing import Optional
 
 import httpx
 from pydantic import ValidationError
@@ -28,13 +29,18 @@ class MetadataClient:
     - Invalid JSON: Returns empty metadata (malformed response)
     """
 
-    def __init__(self, timeout: float = 10.0):
+    def __init__(
+        self, timeout: float = 10.0, coder_session_token: Optional[str] = None
+    ):
         """Initialize MetadataClient.
 
         Args:
             timeout: Request timeout in seconds (default: 10.0)
+            coder_session_token: Optional Coder session token for authenticated requests.
+                Required when fetching metadata from Coder proxy URLs to avoid 303 redirects.
         """
         self.timeout = timeout
+        self.coder_session_token = coder_session_token
 
     async def get_metadata(self, url: str) -> WorkspaceMetadata:
         """Fetch metadata from agent's /metadata endpoint.
@@ -51,8 +57,13 @@ class MetadataClient:
             to ensure graceful degradation per FR-007 requirement.
         """
         try:
+            # Build headers with authentication if token is provided
+            headers = {}
+            if self.coder_session_token:
+                headers["Coder-Session-Token"] = self.coder_session_token
+
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url)
+                response = await client.get(url, headers=headers)
 
                 # Check for HTTP errors
                 if response.status_code == 404:
