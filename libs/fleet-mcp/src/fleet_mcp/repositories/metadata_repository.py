@@ -31,15 +31,20 @@ class MetadataRepository:
         self,
         coder_client: CoderClient,
         metadata_client: Optional[MetadataClient] = None,
+        coder_session_token: Optional[str] = None,
     ):
         """Initialize MetadataRepository.
 
         Args:
             coder_client: CoderClient for workspace API calls
             metadata_client: Optional MetadataClient (creates new if not provided)
+            coder_session_token: Optional Coder session token for authenticated metadata requests.
+                If not provided and metadata_client is None, MetadataClient will be created without auth.
         """
         self.coder_client = coder_client
-        self.metadata_client = metadata_client or MetadataClient()
+        self.metadata_client = metadata_client or MetadataClient(
+            coder_session_token=coder_session_token
+        )
 
     async def collect_metadata(self, workspace_id: str) -> WorkspaceMetadata:
         """Collect metadata from agent's /metadata endpoint.
