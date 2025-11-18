@@ -342,44 +342,6 @@ async def show_agent_log(
 
 
 # ========================================================================
-# Resources
-# ========================================================================
-
-
-@mcp.resource("config://coder_metadata")
-def get_coder_metadata_config() -> str:
-    """MCP server configuration for fleet-mcp.
-
-    This resource provides the Claude desktop MCP server configuration for connecting
-    to the fleet-mcp server via mcp-remote. Copy and paste this JSON configuration
-    into your Claude desktop config file at:
-    - macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
-    - Windows: %APPDATA%/Claude/claude_desktop_config.json
-
-    Replace <<THE FLEET MCP BEARER TOKEN>> with your actual bearer token.
-    """
-    import json
-
-    config = {
-        "mcpServers": {
-            "fleet-mcp": {
-                "command": "/Users/maarten/Development/setup/bin/npx",
-                "args": [
-                    "-y",
-                    "mcp-remote",
-                    "https://macbook-pro-van-maarten.tail2c33e2.ts.net/@maarten/maarten.main/apps/fleet-mcp/mcp",
-                    "--header",
-                    "Authorization:${AUTH_HEADER}",
-                ],
-                "env": {"AUTH_HEADER": "Bearer <<THE FLEET MCP BEARER TOKEN>>"},
-            }
-        }
-    }
-
-    return json.dumps(config, indent=2)
-
-
-# ========================================================================
 # Health Check (Custom HTTP Route)
 # ========================================================================
 

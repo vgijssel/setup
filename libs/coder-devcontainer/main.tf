@@ -581,8 +581,36 @@ resource "coder_app" "fleet_mcp" {
 resource "coder_metadata" "fleet_mcp_bearer_token" {
   resource_id = coder_agent.main.id
   item {
-    key       = "fleet_mcp_bearer_token"
-    value     = random_id.fleet_mcp_bearer_token.b64_url
+    key   = "fleet_mcp_bearer_token"
+    value = random_id.fleet_mcp_bearer_token.b64_url
+  }
+}
+
+# Store the MCP server configuration as workspace metadata
+resource "coder_metadata" "fleet_mcp_config" {
+  resource_id = coder_agent.main.id
+  item {
+    key       = "fleet_mcp_mcp_config"
+    value     = <<-JSON
+      {
+        "mcpServers": {
+          "fleet-mcp": {
+            "command": "/Users/maarten/Development/setup/bin/npx",
+            "args": [
+              "-y",
+              "mcp-remote",
+              "https://macbook-pro-van-maarten.tail2c33e2.ts.net/@maarten/maarten.main/apps/fleet-mcp/mcp",
+              "--header",
+              "Authorization:$${AUTH_HEADER}"
+            ],
+            "env": {
+              "AUTH_HEADER": "Bearer ${random_id.fleet_mcp_bearer_token.b64_url}"
+            }
+          }
+        }
+      }
+    JSON
+    sensitive = false
   }
 }
 
