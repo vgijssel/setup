@@ -1,3 +1,11 @@
+## 0.12.0 (2025-11-18)
+
+### 🚀 Features
+
+- Add authentication support to metadata client ([#838](https://github.com/vgijssel/setup/pull/838))
+
+  Add Coder session token authentication to MetadataClient to fix issue where metadata fetches from Coder proxy URLs resulted in 303 redirects and empty metadata. The CODER_SESSION_TOKEN is now passed through the application stack and included as a Coder-Session-Token header in HTTP requests when available.
+
 ## 0.11.0 (2025-11-15)
 
 ### 🚀 Features

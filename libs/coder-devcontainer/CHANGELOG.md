@@ -1,3 +1,22 @@
+## 0.19.0 (2025-11-18)
+
+### 🚀 Features
+
+- Add fleet-mcp dependency to coder-devcontainer ([#838](https://github.com/vgijssel/setup/pull/838))
+
+  Added fleet-mcp package as a dependency to enable integration between devcontainer workspaces and the fleet management system.
+
+
+### 🩹 Fixes
+
+- Update Taskfile metadata visibility settings ([#838](https://github.com/vgijssel/setup/pull/838))
+
+  Changed include_in_list to false for pull_request_state, pull_request_ci_status, and pull_request_needs_update tasks to reduce noise in task listings.
+
+### 🧱 Updated Dependencies
+
+- Updated fleet-mcp to 0.12.0
+
 ## 0.18.0 (2025-11-15)
 
 ### 🚀 Features
