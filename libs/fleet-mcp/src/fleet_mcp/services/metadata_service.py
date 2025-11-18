@@ -104,6 +104,7 @@ class MetadataService:
                 "task",
                 task_name,
                 "--silent",
+                "--parallel",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=taskfile_dir,
