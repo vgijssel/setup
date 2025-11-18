@@ -30,6 +30,7 @@ from .responses import (
     ShowLogsResponse,
     ShowTaskHistoryResponse,
     StartTaskResponse,
+    UpdateAgentResponse,
 )
 from .task import ConversationLog, LogEntry, Task, TaskHistory
 
@@ -56,6 +57,7 @@ __all__ = [
     "CreateAgentResponse",
     "DeleteAgentResponse",
     "RestartAgentResponse",
+    "UpdateAgentResponse",
     "StartTaskResponse",
     "CancelTaskResponse",
     "ShowTaskHistoryResponse",
