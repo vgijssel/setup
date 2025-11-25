@@ -568,7 +568,7 @@ resource "coder_app" "fleet_mcp" {
   icon         = "/icon/cloud.svg"
   url          = "http://127.0.0.1:8000"
   subdomain    = false
-  share        = "owner"
+  share        = "public"
 
   healthcheck {
     url       = "http://127.0.0.1:8000/health"
