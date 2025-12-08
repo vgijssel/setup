@@ -26,6 +26,7 @@ spec:
   values:
     provider:
       name: cloudflare
+    policy: sync
     env:
       - name: CF_API_TOKEN
         valueFrom:
@@ -34,4 +35,3 @@ spec:
             key: credential
     extraArgs:
       - --ingress-class=tailscale
-      - --policy=sync
