@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - namespace-flux-system.yaml
   - gitrepository-setup.yaml
+  - kustomization-root.yaml
   - kustomization-helmreleases.yaml
   - kustomization-configs.yaml
