@@ -57,8 +57,7 @@ spec:
             defaultBackend:
               service:
                 name: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.name }}"}}"
-                port:
-                  number: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port.number }}"}}"
+                port: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port }}"}}"
             tls:
               - hosts:
                   - "{{"{{ request.object.metadata.name }}"}}"
