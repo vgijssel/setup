@@ -51,7 +51,7 @@ spec:
               kyverno.io/generated-by: generate-tailscale-ingress
             annotations:
               external-dns.alpha.kubernetes.io/hostname: "{{"{{ request.object.spec.rules[0].host }}"}}"
-              external-dns.alpha.kubernetes.io/target: "{{"{{ split(request.object.spec.rules[0].host, '.') | [0] }}"}}.{{ .Values.tailscaleIngress.tailscaleDomain }}"
+              external-dns.alpha.kubernetes.io/target: "{{`{{`}} replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', '') {{`}}`}}.{{ .Values.tailscaleIngress.tailscaleDomain }}"
           spec:
             ingressClassName: tailscale
             defaultBackend:
@@ -60,5 +60,5 @@ spec:
                 port: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port }}"}}"
             tls:
               - hosts:
-                  - "{{"{{ split(request.object.spec.rules[0].host, '.') | [0] }}"}}"
+                  - "{{`{{`}} replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', '') {{`}}`}}"
 {{- end }}
