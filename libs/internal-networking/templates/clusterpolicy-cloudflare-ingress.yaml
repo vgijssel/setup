@@ -53,7 +53,3 @@ spec:
                     - path: "{{"{{ request.object.spec.rules[0].http.paths[0].path }}"}}"
                       pathType: "{{"{{ request.object.spec.rules[0].http.paths[0].pathType }}"}}"
                       backend: "{{"{{ request.object.spec.rules[0].http.paths[0].backend }}"}}"
-            tls:
-              - hosts:
-                  - "{{"{{ request.object.spec.rules[0].host }}"}}"
-                secretName: "{{"{{ request.object.spec.tls[0].secretName }}"}}"
