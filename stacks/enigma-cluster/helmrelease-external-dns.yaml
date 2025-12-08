@@ -33,5 +33,7 @@ spec:
           secretKeyRef:
             name: external-dns-cloudflare-api-token
             key: credential
+    sources:
+      - service
     extraArgs:
-      - --ingress-class=tailscale
+      - --label-filter=tailscale-dns=true

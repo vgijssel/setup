@@ -12,6 +12,11 @@ spec:
           - resources:
               kinds:
                 - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - tailscale
       validate:
         message: "The label '{{ .Values.policy.labelName }}' is required."
         pattern:
