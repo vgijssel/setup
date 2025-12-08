@@ -134,11 +134,52 @@ Modify these files:
 </output>
 
 <verification>
-After making changes:
+After making changes, validate in stages:
+
+**Stage 1: Local Validation**
 1. Run `helm template libs/internal-networking` to verify the chart renders correctly
 2. Check that the ClusterPolicy YAML is valid and Kyverno expressions are properly escaped
 3. Verify the external-dns HelmRelease has the correct extraArgs configuration
 4. Ensure the chart version was bumped
+
+**Stage 2: Cluster Validation**
+1. Install the helm chart directly to the cluster for testing:
+   ```bash
+   helm install internal-networking libs/internal-networking -n kyverno
+   ```
+2. Verify the ClusterPolicy was created:
+   ```bash
+   kubectl get clusterpolicy generate-tailscale-ingress
+   ```
+3. Check if existing nginx ingresses triggered Tailscale ingress generation:
+   ```bash
+   kubectl get ingress -A | grep tailscale
+   ```
+4. Verify the generated ingresses have correct annotations for external-dns
+5. Check external-dns logs to confirm it's processing the Tailscale ingresses and creating CNAME records
+6. Verify keycloak ingresses were NOT mirrored (exclusion working)
+
+**Stage 3: Cleanup Test Installation**
+Once validation is successful, uninstall the test helm release:
+```bash
+helm uninstall internal-networking -n kyverno
+```
+Verify the ClusterPolicy and generated ingresses are removed.
+
+**Stage 4: Commit, Push, and Reconcile**
+1. Commit all changes with a descriptive message
+2. Push to remote repository
+3. Trigger Flux reconciliation:
+   ```bash
+   flux reconcile source git setup -n flux-system
+   flux reconcile helmrelease internal-networking -n flux-system
+   flux reconcile helmrelease external-dns -n flux-system
+   ```
+4. Verify the resources are deployed via Flux:
+   ```bash
+   kubectl get clusterpolicy generate-tailscale-ingress
+   kubectl get ingress -A | grep tailscale
+   ```
 </verification>
 
 <success_criteria>
@@ -150,4 +191,9 @@ After making changes:
 - Helm chart renders without errors
 - All Kyverno JMESPath expressions are properly escaped in Helm templates
 - Full lifecycle works: nginx ingress created → Tailscale ingress generated → DNS record created → nginx ingress deleted → Tailscale ingress removed → DNS record removed
+- Test helm installation validates the policy works in the cluster
+- Test helm uninstallation cleans up properly
+- Changes are committed and pushed to remote
+- Flux successfully reconciles all resources
+- Final verification shows Tailscale ingresses exist and are managed by Flux
 </success_criteria>
