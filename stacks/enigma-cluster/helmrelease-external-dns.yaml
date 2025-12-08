@@ -32,3 +32,6 @@ spec:
           secretKeyRef:
             name: external-dns-cloudflare-api-token
             key: credential
+    extraArgs:
+      - --ingress-class=tailscale
+      - --policy=sync

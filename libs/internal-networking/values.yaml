@@ -3,3 +3,10 @@ policy:
   background: true
   labelName: app.kubernetes.io/name
   labelRequired: true
+
+tailscaleIngress:
+  enabled: true
+  tailscaleDomain: "tail2c33e2.ts.net"
+  excludeNamespaces: []
+  excludeNames:
+    - keycloak
