@@ -30,5 +30,5 @@ spec:
         items:
           - key: username
             path: client_id
-          - key: password
+          - key: credential
             path: client_secret
