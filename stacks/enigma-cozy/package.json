@@ -1,0 +1,20 @@
+{
+  "name": "enigma-cozy",
+  "version": "0.0.0",
+  "nx": {
+    "projectType": "application",
+    "sourceRoot": "stacks/enigma-cozy",
+    "namedInputs": {
+      "default": [
+        "{projectRoot}/**/*"
+      ]
+    },
+    "targets": {},
+    "tags": [
+      "stack",
+      "kubernetes",
+      "development"
+    ]
+  },
+  "private": true
+}
