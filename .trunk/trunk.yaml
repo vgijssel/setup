@@ -52,16 +52,16 @@ lint:
     # Ignore yamllint syntax errors for Helm chart templates
     - linters: [yamllint]
       paths:
-        - libs/internal-dns/templates/deployment.yaml
-        - libs/internal-dns/templates/external-dns-rbac.yaml
         - libs/internal-dns/templates/**
+        - libs/1password-secrets/templates/**
+        - libs/internal-networking/templates/**
         - libs/devenv/goss.yaml
     # Ignore prettier syntax errors for Helm templates with complex syntax
     - linters: [prettier]
       paths:
-        - libs/internal-dns/templates/cleanup-configmap.yaml
-        - libs/internal-dns/templates/cleanup-job.yaml
-        - libs/1password-secrets/templates/onepassworditem.yaml
+        - libs/internal-dns/templates/**
+        - libs/1password-secrets/templates/**
+        - libs/internal-networking/templates/**
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1
