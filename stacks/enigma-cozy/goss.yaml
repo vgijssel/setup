@@ -1,4 +1,12 @@
 command:
+  clusterkeycloak_connected:
+    title: Validate ClusterKeycloak is connected
+    exec: kubectl get clusterkeycloak keycloak-cozy -o jsonpath='{.status.connected}'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 10000
   helm_releases_ready:
     title: Validate all HelmRelease resources are Ready
     exec: kubectl get hr -A -o json | jq -r '.items[] | select(any(.status.conditions[]; .type=="Ready" and (.status == "True" | not))) | "\(.metadata.namespace)/\(.metadata.name)"'
@@ -14,6 +22,10 @@ command:
     stderr: ""
     timeout: 10000
 addr:
+  tcp://192.168.50.50:6443:
+    title: Validate Kubernetes API reachability on kubevip
+    reachable: true
+    timeout: 5000
   tcp://192.168.50.10:50000:
     title: Validate Talos API port reachability on illusion node
     reachable: true
@@ -25,4 +37,9 @@ addr:
   tcp://192.168.50.12:50000:
     title: Validate Talos API port reachability on the-toy-factory node
     reachable: true
+    timeout: 5000
+http:
+  https://dashboard.enigma.vgijssel.nl:
+    title: Validate CozyStack dashboard is accessible
+    status: 200
     timeout: 5000
