@@ -9,12 +9,12 @@ metadata:
     policies.kyverno.io/severity: medium
     policies.kyverno.io/subject: Ingress
     policies.kyverno.io/description: >-
-      Automatically generates a Tailscale Ingress for every nginx Ingress,
+      Automatically generates a Tailscale Ingress for every {{ .Values.tailscaleIngress.sourceIngressClass }} Ingress,
       enabling internal access via Tailscale with DNS records managed by external-dns.
 spec:
   generateExisting: true
   rules:
-    - name: mirror-nginx-to-tailscale
+    - name: mirror-ingress-to-tailscale
       match:
         any:
           - resources:
@@ -22,10 +22,10 @@ spec:
                 - Ingress
       preconditions:
         all:
-          # Only process nginx ingresses
+          # Only process ingresses with the configured source ingress class
           - key: "{{"{{ request.object.spec.ingressClassName || '' }}"}}"
             operator: Equals
-            value: "nginx"
+            value: {{ .Values.tailscaleIngress.sourceIngressClass | quote }}
           # Skip if ingress has skip annotation
           - key: '{{"{{ request.object.metadata.annotations.\"tailscale-mirror/skip\" || ''false'' }}"}}'
             operator: NotEquals
