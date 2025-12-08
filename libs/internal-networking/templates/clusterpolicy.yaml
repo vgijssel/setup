@@ -13,8 +13,8 @@ spec:
               kinds:
                 - Pod
       validate:
-        message: The label '{{ .Values.policy.labelName }}' is required.
+        message: "The label '{{ .Values.policy.labelName }}' is required."
         pattern:
           metadata:
             labels:
-              { { .Values.policy.labelName } }: ?*
+              { { .Values.policy.labelName } }: "?*"
