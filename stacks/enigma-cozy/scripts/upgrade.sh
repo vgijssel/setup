@@ -37,7 +37,7 @@ ELAPSED=0
 
 while [ $ELAPSED -lt $TIMEOUT ]; do
     echo "Running health checks... (${ELAPSED}s / ${TIMEOUT}s)"
-    if nx run --tui=false enigma-cozy:validate --output-style=stream; then
+    if nx run --tui=false enigma-cozy:validate; then
         echo ""
         echo "Upgrade completed successfully!"
         exit 0
