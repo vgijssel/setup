@@ -4,5 +4,7 @@ resources:
   - namespace-flux-system.yaml
   - gitrepository-setup.yaml
   - kustomization-root.yaml
-  - kustomization-helmreleases.yaml
-  - kustomization-configs.yaml
+  - kustomization-infrastructure-helmreleases.yaml
+  - kustomization-infrastructure-configs.yaml
+  - kustomization-apps-configs.yaml
+  - kustomization-apps-helmreleases.yaml

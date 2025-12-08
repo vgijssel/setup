@@ -1,0 +1,21 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infrastructure-configs
+  namespace: flux-system
+spec:
+  interval: 30m
+  sourceRef:
+    kind: GitRepository
+    name: setup
+  path: ./stacks/enigma-cluster/infrastructure/configs
+  prune: true
+  wait: true
+  timeout: 10m
+  dependsOn:
+    - name: infrastructure-helmreleases
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: kyverno
+      namespace: flux-system
