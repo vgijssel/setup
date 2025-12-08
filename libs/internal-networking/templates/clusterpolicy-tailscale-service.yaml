@@ -33,6 +33,11 @@ spec:
           - key: "{{"{{ request.object.spec.rules[0].host }}"}}"
             operator: NotIn
             value: {{ toJson .Values.publicIngress }}
+      context:
+        - name: backendService
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{"{{request.object.metadata.namespace}}"}}/services/{{"{{request.object.spec.rules[0].http.paths[0].backend.service.name}}"}}"
+            jmesPath: "spec.selector"
       generate:
         synchronize: true
         apiVersion: v1
@@ -48,12 +53,13 @@ spec:
             annotations:
               external-dns.alpha.kubernetes.io/hostname: "{{"{{ request.object.spec.rules[0].host }}"}}"
               tailscale.com/hostname: "{{`{{`}} replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', '') {{`}}`}}"
-              tailscale.com/tailnet-target-ip: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.name }}"}}.{{"{{ request.object.metadata.namespace }}"}}.svc.{{ .Values.tailscaleIngress.clusterDomain }}:{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port.number }}"}}"
           spec:
             type: LoadBalancer
             loadBalancerClass: tailscale
             externalTrafficPolicy: Cluster
+            selector: "{{"{{ backendService }}"}}"
             ports:
               - name: https
                 port: 443
+                targetPort: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port.number }}"}}"
                 protocol: TCP
