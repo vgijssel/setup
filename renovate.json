@@ -4,6 +4,16 @@
   "semanticCommits": "enabled",
   "semanticCommitType": "chore",
   "semanticCommitScope": "deps",
+  "customManagers": [
+    {
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "managerFilePatterns": ["stacks/*/package.json"],
+      "matchStrings": [
+        "$each(nx.metadata.dependencies, function($v, $k) { { \"depName\": $k, \"currentValue\": $v.version, \"datasource\": $v.datasource } })"
+      ]
+    }
+  ],
   "pip-compile": {
     "fileMatch": ["(^|/)requirements\\.in$"]
   },

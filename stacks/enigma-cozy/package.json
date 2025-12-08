@@ -9,12 +9,33 @@
         "{projectRoot}/**/*"
       ]
     },
-    "targets": {},
+    "targets": {
+      "validate": {
+        "command": "goss validate",
+        "options": {
+          "cwd": "{projectRoot}"
+        }
+      },
+      "upgrade": {
+        "command": "./scripts/upgrade.sh",
+        "options": {
+          "cwd": "{projectRoot}"
+        }
+      }
+    },
     "tags": [
       "stack",
       "kubernetes",
       "development"
-    ]
+    ],
+    "metadata": {
+      "dependencies": {
+        "cozystack/cozystack": {
+          "version": "v0.38.3",
+          "datasource": "github-releases"
+        }
+      }
+    }
   },
   "private": true
 }
