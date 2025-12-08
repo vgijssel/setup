@@ -48,7 +48,7 @@ spec:
             annotations:
               external-dns.alpha.kubernetes.io/hostname: "{{"{{ request.object.spec.rules[0].host }}"}}"
               tailscale.com/hostname: "{{`{{`}} replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', '') {{`}}`}}"
-              tailscale.com/tailnet-target-ip: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.name }}"}}.{{"{{ request.object.metadata.namespace }}"}}.svc.cluster.local:{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port.number }}"}}"
+              tailscale.com/tailnet-target-ip: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.name }}"}}.{{"{{ request.object.metadata.namespace }}"}}.svc.{{ .Values.tailscaleIngress.clusterDomain }}:{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port.number }}"}}"
           spec:
             type: LoadBalancer
             loadBalancerClass: tailscale
