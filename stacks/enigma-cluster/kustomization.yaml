@@ -4,7 +4,10 @@ resources:
   - namespace-flux-system.yaml
   - gitrepository-setup.yaml
   - kustomization-root.yaml
-  - kustomization-infrastructure-helmreleases.yaml
-  - kustomization-infrastructure-configs.yaml
-  - kustomization-apps-configs.yaml
-  - kustomization-apps-helmreleases.yaml
+  - helmrelease-1password-operator.yaml
+  - helmrelease-1password-secrets.yaml
+  - helmrelease-kyverno.yaml
+  - helmrelease-internal-networking.yaml
+  - helmrelease-cloudflare-tunnel.yaml
+  - helmrelease-external-dns.yaml
+  - helmrelease-tailscale-operator.yaml

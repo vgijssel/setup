@@ -3,8 +3,8 @@ kind: ClusterPolicy
 metadata:
   name: require-labels
 spec:
-  validationFailureAction: Audit
-  background: true
+  validationFailureAction: { { .Values.policy.validationFailureAction } }
+  background: { { .Values.policy.background } }
   rules:
     - name: check-for-labels
       match:
@@ -13,8 +13,8 @@ spec:
               kinds:
                 - Pod
       validate:
-        message: The label 'app.kubernetes.io/name' is required.
+        message: The label '{{ .Values.policy.labelName }}' is required.
         pattern:
           metadata:
             labels:
-              app.kubernetes.io/name: ?*
+              { { .Values.policy.labelName } }: ?*

@@ -1,0 +1,5 @@
+policy:
+  validationFailureAction: Audit
+  background: true
+  labelName: app.kubernetes.io/name
+  labelRequired: true

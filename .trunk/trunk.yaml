@@ -61,6 +61,7 @@ lint:
       paths:
         - libs/internal-dns/templates/cleanup-configmap.yaml
         - libs/internal-dns/templates/cleanup-job.yaml
+        - libs/1password-secrets/templates/onepassworditem.yaml
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1

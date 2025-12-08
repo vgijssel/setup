@@ -14,6 +14,8 @@ spec:
         namespace: flux-system
       interval: 12h
   targetNamespace: tailscale
+  dependsOn:
+    - name: 1password-secrets
   install:
     createNamespace: true
     remediation:
