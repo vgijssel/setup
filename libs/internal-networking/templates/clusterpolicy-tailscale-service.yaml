@@ -1,4 +1,3 @@
-{{- if .Values.tailscaleIngress.enabled }}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -30,14 +29,10 @@ spec:
           - key: '{{"{{ request.object.metadata.annotations.\"tailscale-mirror/skip\" || ''false'' }}"}}'
             operator: NotEquals
             value: "true"
-          # Exclude by name
-          - key: "{{"{{ request.object.metadata.name }}"}}"
+          # Skip hosts that should be public (CloudFlare tunnel)
+          - key: "{{"{{ request.object.spec.rules[0].host }}"}}"
             operator: NotIn
-            value: {{ toJson .Values.tailscaleIngress.excludeNames }}
-          # Exclude by namespace
-          - key: "{{"{{ request.object.metadata.namespace }}"}}"
-            operator: NotIn
-            value: {{ toJson .Values.tailscaleIngress.excludeNamespaces }}
+            value: {{ toJson .Values.publicIngress }}
       generate:
         synchronize: true
         apiVersion: v1
@@ -62,4 +57,3 @@ spec:
               - name: https
                 port: 443
                 protocol: TCP
-{{- end }}

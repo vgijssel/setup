@@ -1,0 +1,59 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-cloudflare-ingress
+  annotations:
+    policies.kyverno.io/title: Generate CloudFlare Tunnel Ingress
+    policies.kyverno.io/category: Networking
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Ingress
+    policies.kyverno.io/description: >-
+      Automatically generates a CloudFlare Tunnel Ingress for hosts listed in publicIngress,
+      enabling public access via CloudFlare tunnels.
+spec:
+  generateExisting: true
+  rules:
+    - name: mirror-ingress-to-cloudflare
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+      preconditions:
+        all:
+          # Only process ingresses with the configured source ingress class
+          - key: "{{"{{ request.object.spec.ingressClassName || '' }}"}}"
+            operator: Equals
+            value: {{ .Values.tailscaleIngress.sourceIngressClass | quote }}
+          # Skip if ingress has skip annotation
+          - key: '{{"{{ request.object.metadata.annotations.\"cloudflare-mirror/skip\" || ''false'' }}"}}'
+            operator: NotEquals
+            value: "true"
+          # Only match hosts that should be public (in publicIngress list)
+          - key: "{{"{{ request.object.spec.rules[0].host }}"}}"
+            operator: In
+            value: {{ toJson .Values.publicIngress }}
+      generate:
+        synchronize: true
+        apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        name: "{{"{{ request.object.metadata.name }}"}}-cloudflare"
+        namespace: "{{"{{ request.object.metadata.namespace }}"}}"
+        data:
+          metadata:
+            labels:
+              app.kubernetes.io/managed-by: kyverno
+              kyverno.io/generated-by: generate-cloudflare-ingress
+          spec:
+            ingressClassName: cloudflare-tunnel
+            rules:
+              - host: "{{"{{ request.object.spec.rules[0].host }}"}}"
+                http:
+                  paths:
+                    - path: "{{"{{ request.object.spec.rules[0].http.paths[0].path }}"}}"
+                      pathType: "{{"{{ request.object.spec.rules[0].http.paths[0].pathType }}"}}"
+                      backend: "{{"{{ request.object.spec.rules[0].http.paths[0].backend }}"}}"
+            tls:
+              - hosts:
+                  - "{{"{{ request.object.spec.rules[0].host }}"}}"
+                secretName: "{{"{{ request.object.spec.tls[0].secretName }}"}}"

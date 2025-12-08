@@ -1,4 +1,3 @@
-{{- if .Values.tailscaleIngress.enabled }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -13,6 +12,17 @@ rules:
       - ""
     resources:
       - services
+    verbs:
+      - create
+      - update
+      - patch
+      - delete
+      - get
+      - list
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
     verbs:
       - create
       - update
@@ -37,4 +47,3 @@ subjects:
   - kind: ServiceAccount
     name: kyverno-background-controller
     namespace: kyverno
-{{- end }}
