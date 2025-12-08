@@ -28,24 +28,10 @@ echo ""
 echo "Applying upgrade..."
 kubectl apply -f "$MANIFEST_URL"
 
-# Step 5: Validation loop
+# Step 5: Validate cluster health with retries
 echo ""
-echo "Waiting for cluster to become healthy..."
-TIMEOUT=600
-INTERVAL=30
-ELAPSED=0
-
-while [ $ELAPSED -lt $TIMEOUT ]; do
-    echo "Running health checks... (${ELAPSED}s / ${TIMEOUT}s)"
-    if nx run --tui=false enigma-cozy:validate; then
-        echo ""
-        echo "Upgrade completed successfully!"
-        exit 0
-    fi
-    sleep $INTERVAL
-    ELAPSED=$((ELAPSED + INTERVAL))
-done
+echo "Waiting for cluster to become healthy (retrying for up to 10 minutes)..."
+goss validate -s 10s -r 10m
 
 echo ""
-echo "ERROR: Timeout waiting for cluster to become healthy"
-exit 1
+echo "Upgrade completed successfully!"

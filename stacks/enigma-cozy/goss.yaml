@@ -1,9 +1,9 @@
 command:
   helm_releases_ready:
     title: Validate all HelmRelease resources are Ready
-    exec: kubectl get hr -A -o json | jq -e '[.items[].status.conditions[] | select(.type=="Ready" and .status!="True")] | length == 0'
+    exec: kubectl get hr -A -o json | jq -r '.items[] | select(any(.status.conditions[]; .type=="Ready" and (.status == "True" | not))) | "\(.metadata.namespace)/\(.metadata.name)"'
     exit-status: 0
-    stdout: []
+    stdout: ""
     stderr: ""
     timeout: 10000
   cozy_system_pods_healthy:
