@@ -1,0 +1,23 @@
+annotations:
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/operator: "true"
+  artifacthub.io/operatorCapabilities: Seamless Upgrades
+  artifacthub.io/prerelease: "true"
+apiVersion: v2
+appVersion: 0.0.21
+description: Ingress Controller based on Cloudflare Tunnel
+home: https://github.com/STRRL/cloudflare-tunnel-ingress-controller
+keywords:
+- cloudflare
+- cloudflare-tunnel
+- ingress
+- ingress-controller
+maintainers:
+- email: im@strrl.dev
+  name: STRRL
+name: cloudflare-tunnel-ingress-controller
+sources:
+- https://github.com/STRRL/cloudflare-tunnel-ingress-controller
+type: application
+version: 0.0.21

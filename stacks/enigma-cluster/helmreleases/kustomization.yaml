@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - helmrelease-1password-operator.yaml
+  - helmrelease-kyverno.yaml
+  - helmrelease-tailscale-operator.yaml
+  - helmrelease-cloudflare-tunnel.yaml
+  - helmrelease-external-dns.yaml

@@ -6,7 +6,7 @@ directories:
       - path: .
         helmChart:
           name: connect
-          version: 2.0.3
+          version: 2.0.5
           repository:
             url: https://1password.github.io/connect-helm-charts
   - path: charts/ingress-nginx
@@ -33,6 +33,38 @@ directories:
           version: 2.0.2
           repository:
             url: https://charts.crossplane.io/stable
+  - path: charts/kyverno
+    contents:
+      - path: .
+        helmChart:
+          name: kyverno
+          version: 3.6.1
+          repository:
+            url: https://kyverno.github.io/kyverno/
+  - path: charts/tailscale-operator
+    contents:
+      - path: .
+        helmChart:
+          name: tailscale-operator
+          version: 1.90.9
+          repository:
+            url: https://pkgs.tailscale.com/helmcharts
+  - path: charts/cloudflare-tunnel-ingress-controller
+    contents:
+      - path: .
+        helmChart:
+          name: cloudflare-tunnel-ingress-controller
+          version: 0.0.21
+          repository:
+            url: https://helm.strrl.dev
+  - path: charts/external-dns
+    contents:
+      - path: .
+        helmChart:
+          name: external-dns
+          version: 1.19.0
+          repository:
+            url: https://kubernetes-sigs.github.io/external-dns/
   - path: shell/zimfw
     contents:
       - path: .

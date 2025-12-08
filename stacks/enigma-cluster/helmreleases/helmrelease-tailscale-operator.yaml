@@ -1,0 +1,32 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tailscale-operator
+  namespace: flux-system
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: third_party/vendir/charts/tailscale-operator
+      sourceRef:
+        kind: GitRepository
+        name: setup
+        namespace: flux-system
+      interval: 12h
+  targetNamespace: tailscale
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    oauthSecretVolume:
+      secret:
+        secretName: tailscale-operator-oauth
+        items:
+          - key: username
+            path: client_id
+          - key: password
+            path: client_secret
