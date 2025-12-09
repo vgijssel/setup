@@ -10,11 +10,12 @@ metadata:
     policies.kyverno.io/description: >-
       Automatically generates a Tailscale-backed Service for every {{ .Values.tailscaleIngress.sourceIngressClass }} Ingress
       that points to the nginx-ingress controller pods. This enables per-service Tailscale ACLs while leveraging
-      nginx's TLS termination with cert-manager certificates.
+      nginx's TLS termination with cert-manager certificates. Hosts in funnelHosts get public access via Tailscale Funnel.
 spec:
   generateExisting: true
   rules:
-    - name: mirror-ingress-to-tailscale-service
+    # Rule 1: Internal hosts (not in funnelHosts) - no funnel annotation
+    - name: mirror-ingress-to-tailscale-service-internal
       match:
         any:
           - resources:
@@ -34,10 +35,10 @@ spec:
           - key: '{{"{{ request.object.metadata.annotations.\"tailscale-ingress-mirror/skip\" || ''false'' }}"}}'
             operator: NotEquals
             value: "true"
-          # Skip hosts that should be public (CloudFlare tunnel)
+          # Only match hosts NOT in funnelHosts (internal hosts)
           - key: "{{"{{ request.object.spec.rules[0].host }}"}}"
             operator: NotIn
-            value: {{ toJson .Values.publicIngress }}
+            value: {{ toJson .Values.funnelHosts }}
       generate:
         synchronize: true
         apiVersion: v1
@@ -53,6 +54,60 @@ spec:
             annotations:
               external-dns.alpha.kubernetes.io/hostname: "{{"{{ request.object.spec.rules[0].host }}"}}"
               tailscale.com/hostname: "{{`{{`}} replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', '') {{`}}`}}"
+          spec:
+            type: LoadBalancer
+            loadBalancerClass: tailscale
+            externalTrafficPolicy: Cluster
+            selector:
+              {{- range $key, $value := .Values.tailscaleIngress.nginxSelector }}
+              {{ $key }}: {{ $value | quote }}
+              {{- end }}
+            ports:
+              - name: https
+                port: 443
+                targetPort: 443
+                protocol: TCP
+    # Rule 2: Funnel hosts (in funnelHosts) - with tailscale.com/funnel annotation
+    - name: mirror-ingress-to-tailscale-service-funnel
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+      preconditions:
+        all:
+          # Only process ingresses with the configured source ingress class
+          - key: "{{"{{ request.object.spec.ingressClassName || '' }}"}}"
+            operator: Equals
+            value: {{ .Values.tailscaleIngress.sourceIngressClass | quote }}
+          # CRITICAL: Skip ingresses with internal-networking label (prevents infinite loops)
+          - key: '{{"{{ request.object.metadata.labels.\"internal-networking\" || '''' }}"}}'
+            operator: NotEquals
+            value: "true"
+          # Skip if ingress has skip annotation
+          - key: '{{"{{ request.object.metadata.annotations.\"tailscale-ingress-mirror/skip\" || ''false'' }}"}}'
+            operator: NotEquals
+            value: "true"
+          # Only match hosts IN funnelHosts (public hosts)
+          - key: "{{"{{ request.object.spec.rules[0].host }}"}}"
+            operator: In
+            value: {{ toJson .Values.funnelHosts }}
+      generate:
+        synchronize: true
+        apiVersion: v1
+        kind: Service
+        name: "{{"{{ request.object.metadata.name }}"}}-tailscale"
+        namespace: {{ .Values.tailscaleIngress.nginxNamespace | quote }}
+        data:
+          metadata:
+            labels:
+              internal-networking: "true"
+              app.kubernetes.io/managed-by: kyverno
+              kyverno.io/generated-by: generate-tailscale-ingress
+            annotations:
+              external-dns.alpha.kubernetes.io/hostname: "{{"{{ request.object.spec.rules[0].host }}"}}"
+              tailscale.com/hostname: "{{`{{`}} replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', '') {{`}}`}}"
+              tailscale.com/funnel: "true"
           spec:
             type: LoadBalancer
             loadBalancerClass: tailscale

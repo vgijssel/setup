@@ -12,6 +12,6 @@ tailscaleIngress:
     app.kubernetes.io/name: ingress-nginx
     app.kubernetes.io/instance: ingress-nginx-system
 
-# List of hostnames that should get CloudFlare tunnel ingress instead of Tailscale service
-publicIngress:
+# List of hostnames that should get Tailscale Funnel for public access
+funnelHosts:
   - keycloak.enigma.vgijssel.nl

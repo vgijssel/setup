@@ -8,6 +8,5 @@ resources:
   - helmrelease-1password-secrets.yaml
   - helmrelease-kyverno.yaml
   - helmrelease-internal-networking.yaml
-  - helmrelease-cloudflare-tunnel.yaml
   - helmrelease-external-dns.yaml
   - helmrelease-tailscale-operator.yaml
