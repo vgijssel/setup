@@ -47,9 +47,9 @@ spec:
         data:
           metadata:
             labels:
+              internal-networking: "true"
               app.kubernetes.io/managed-by: kyverno
               kyverno.io/generated-by: generate-tailscale-service
-              tailscale-dns: "true"
             annotations:
               external-dns.alpha.kubernetes.io/hostname: "{{"{{ request.object.spec.rules[0].host }}"}}"
               tailscale.com/hostname: "{{`{{`}} replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', '') {{`}}`}}"

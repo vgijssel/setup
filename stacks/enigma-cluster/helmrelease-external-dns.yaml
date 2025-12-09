@@ -36,4 +36,4 @@ spec:
     sources:
       - service
     extraArgs:
-      - --label-filter=tailscale-dns=true
+      - --label-filter=internal-networking=true
