@@ -3,13 +3,14 @@ kind: ClusterPolicy
 metadata:
   name: generate-tailscale-ingress
   annotations:
-    policies.kyverno.io/title: Generate Tailscale Service
+    policies.kyverno.io/title: Generate Tailscale Service Pointing to Nginx
     policies.kyverno.io/category: Networking
     policies.kyverno.io/severity: medium
     policies.kyverno.io/subject: Service
     policies.kyverno.io/description: >-
-      Automatically generates a Tailscale-backed Service for every {{ .Values.tailscaleIngress.sourceIngressClass }} Ingress,
-      enabling zero-trust access via Tailscale with DNS records managed by external-dns.
+      Automatically generates a Tailscale-backed Service for every {{ .Values.tailscaleIngress.sourceIngressClass }} Ingress
+      that points to the nginx-ingress controller pods. This enables per-service Tailscale ACLs while leveraging
+      nginx's TLS termination with cert-manager certificates.
 spec:
   generateExisting: true
   rules:
@@ -37,17 +38,12 @@ spec:
           - key: "{{"{{ request.object.spec.rules[0].host }}"}}"
             operator: NotIn
             value: {{ toJson .Values.publicIngress }}
-      context:
-        - name: backendService
-          apiCall:
-            urlPath: "/api/v1/namespaces/{{"{{request.object.metadata.namespace}}"}}/services/{{"{{request.object.spec.rules[0].http.paths[0].backend.service.name}}"}}"
-            jmesPath: "spec.selector"
       generate:
         synchronize: true
         apiVersion: v1
         kind: Service
         name: "{{"{{ request.object.metadata.name }}"}}-tailscale"
-        namespace: "{{"{{ request.object.metadata.namespace }}"}}"
+        namespace: {{ .Values.tailscaleIngress.nginxNamespace | quote }}
         data:
           metadata:
             labels:
@@ -61,9 +57,12 @@ spec:
             type: LoadBalancer
             loadBalancerClass: tailscale
             externalTrafficPolicy: Cluster
-            selector: "{{"{{ backendService }}"}}"
+            selector:
+              {{- range $key, $value := .Values.tailscaleIngress.nginxSelector }}
+              {{ $key }}: {{ $value | quote }}
+              {{- end }}
             ports:
               - name: https
                 port: 443
-                targetPort: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port.number }}"}}"
+                targetPort: 443
                 protocol: TCP
