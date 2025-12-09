@@ -3,12 +3,12 @@ kind: ClusterPolicy
 metadata:
   name: generate-tailscale-ingress
   annotations:
-    policies.kyverno.io/title: Generate Tailscale Ingress and Service
+    policies.kyverno.io/title: Generate Tailscale Service
     policies.kyverno.io/category: Networking
     policies.kyverno.io/severity: medium
-    policies.kyverno.io/subject: Ingress, Service
+    policies.kyverno.io/subject: Service
     policies.kyverno.io/description: >-
-      Automatically generates a Tailscale-backed Ingress and Service for every {{ .Values.tailscaleIngress.sourceIngressClass }} Ingress,
+      Automatically generates a Tailscale-backed Service for every {{ .Values.tailscaleIngress.sourceIngressClass }} Ingress,
       enabling zero-trust access via Tailscale with DNS records managed by external-dns.
 spec:
   generateExisting: true
@@ -67,6 +67,22 @@ spec:
                 port: 443
                 targetPort: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port.number }}"}}"
                 protocol: TCP
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-tailscale-ingress-mirror
+  annotations:
+    policies.kyverno.io/title: Generate Tailscale Ingress Mirror
+    policies.kyverno.io/category: Networking
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Ingress
+    policies.kyverno.io/description: >-
+      Automatically generates a mirrored Ingress for every {{ .Values.tailscaleIngress.sourceIngressClass }} Ingress,
+      pointing to the Tailscale-backed Service for zero-trust access.
+spec:
+  generateExisting: true
+  rules:
     - name: mirror-ingress-to-tailscale-ingress
       match:
         any:
@@ -102,7 +118,7 @@ spec:
             labels:
               internal-networking: "true"
               app.kubernetes.io/managed-by: kyverno
-              kyverno.io/generated-by: generate-tailscale-ingress
+              kyverno.io/generated-by: generate-tailscale-ingress-mirror
             annotations:
               # Copy cert-manager annotations from source ingress
               cert-manager.io/cluster-issuer: '{{"{{ request.object.metadata.annotations.\"cert-manager.io/cluster-issuer\" || '''' }}"}}'
