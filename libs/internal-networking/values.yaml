@@ -1,5 +1,4 @@
 tailscaleIngress:
-  sourceIngressClass: tenant-root
   tailscaleDomain: tail2c33e2.ts.net
   # Domain suffix to strip from hostnames (e.g., grafana.enigma.vgijssel.nl -> grafana)
   domainSuffix: .enigma.vgijssel.nl
