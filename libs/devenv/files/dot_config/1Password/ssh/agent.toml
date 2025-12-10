@@ -4,44 +4,38 @@
 #
 # More examples can be found here:
 # https://developer.1password.com/docs/ssh/agent/config
+
 [[ssh-keys]]
+item = "SSH - Hackerone - Authentication"
 vault = "Personal"
 account = "HackerOne"
 
 [[ssh-keys]]
+item = "SSH - Setup"
+vault = "vgijssel-prod"
+account = "Van Gijssel"
+
+[[ssh-keys]]
+item = "SSH - HomeAssistant"
 vault = "Private"
 account = "Van Gijssel"
 
 [[ssh-keys]]
-vault = "vgijssel-prod"
+item = "SSH - Hypervisor"
+vault = "Private"
 account = "Van Gijssel"
 
-# [[ssh-keys]]
-# item = "SSH - CloudWays"
-# vault = "Private"
-# account = "Van Gijssel"
+[[ssh-keys]]
+item = "SSH - GitHub - Authentication"
+vault = "Private"
+account = "Van Gijssel"
 
-# [[ssh-keys]]
-# item = "SSH - Setup"
-# vault = "vgijssel-prod"
-# account = "Van Gijssel"
+[[ssh-keys]]
+item = "SSH - CloudWays"
+vault = "Private"
+account = "Van Gijssel"
 
-# [[ssh-keys]]
-# item = "SSH - Hypervisor"
-# vault = "Private"
-# account = "Van Gijssel"
-
-# [[ssh-keys]]
-# item = "SSH - HomeAssistant"
-# vault = "Private"
-# account = "Van Gijssel"
-
-# [[ssh-keys]]
-# item = "SSH - GitHub - Authentication"
-# vault = "Private"
-# account = "Van Gijssel"
-
-# [[ssh-keys]]
-# item = "SSH - GitHub - Commit Signing"
-# vault = "Private"
-# account = "Van Gijssel"
+[[ssh-keys]]
+item = "SSH - GitHub - Commit Signing"
+vault = "Private"
+account = "Van Gijssel"
