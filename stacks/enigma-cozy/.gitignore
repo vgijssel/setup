@@ -1,0 +1,5 @@
+# Generated Talos configuration files contain secrets and should not be committed
+dist/
+
+# Baseline files used for comparison during refactoring
+baseline/

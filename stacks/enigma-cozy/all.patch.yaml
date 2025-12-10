@@ -1,0 +1,77 @@
+machine:
+  type: controlplane
+  certSANs:
+    - 127.0.0.1
+  kubelet:
+    extraConfig:
+      cpuManagerPolicy: static
+      maxPods: 512
+    nodeIP:
+      validSubnets:
+        - 192.168.50.0/24
+  sysctls:
+    net.ipv4.neigh.default.gc_thresh1: "4096"
+    net.ipv4.neigh.default.gc_thresh2: "8192"
+    net.ipv4.neigh.default.gc_thresh3: "16384"
+  kernel:
+    modules:
+      - name: openvswitch
+      - name: drbd
+        parameters:
+          - usermode_helper=disabled
+      - name: zfs
+      - name: spl
+      - name: vfio_pci
+      - name: vfio_iommu_type1
+  install:
+    image: ghcr.io/cozystack/cozystack/talos:v1.10.5
+  registries:
+    mirrors:
+      docker.io:
+        endpoints:
+          - https://mirror.gcr.io
+  files:
+    - content: |
+        [plugins]
+          [plugins."io.containerd.grpc.v1.cri"]
+            device_ownership_from_security_context = true
+          [plugins."io.containerd.cri.v1.runtime"]
+            device_ownership_from_security_context = true
+      permissions: 0
+      path: /etc/cri/conf.d/20-customization.part
+      op: create
+
+cluster:
+  clusterName: enigma-cozy
+  controlPlane:
+    endpoint: https://192.168.50.50:6443
+  network:
+    cni:
+      name: none
+    dnsDomain: cozy.local
+    podSubnets:
+      - 10.244.0.0/16
+    serviceSubnets:
+      - 10.96.0.0/16
+  allowSchedulingOnControlPlanes: true
+  apiServer:
+    extraArgs:
+      oidc-issuer-url: https://keycloak.enigma.vgijssel.nl/realms/cozy
+      oidc-client-id: kubernetes
+      oidc-username-claim: preferred_username
+      oidc-groups-claim: groups
+    certSANs:
+      - 127.0.0.1
+  controllerManager:
+    extraArgs:
+      bind-address: 0.0.0.0
+  scheduler:
+    extraArgs:
+      bind-address: 0.0.0.0
+  proxy:
+    disabled: true
+  discovery:
+    enabled: false
+  etcd:
+    advertisedSubnets:
+      - 192.168.50.0/24
