@@ -82,7 +82,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: delete-policies
-          image: bitnami/kubectl:1.31.4
+          image: bitnami/kubectl:1.31
           command:
             - /bin/bash
             - -c
