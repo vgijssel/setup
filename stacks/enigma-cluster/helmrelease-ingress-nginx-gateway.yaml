@@ -34,6 +34,12 @@ spec:
       nodeSelector:
         kubernetes.io/os: linux
         node.kubernetes.io/role: gateway
+      # Tolerate the storage-exclude taint on gateway nodes
+      tolerations:
+        - key: storage
+          operator: Equal
+          value: exclude
+          effect: NoSchedule
       # Use host network to bind directly to the node's ports
       hostNetwork: true
       hostPort:
@@ -45,6 +51,9 @@ spec:
       reportNodeInternalIp: true
       # DNS policy for host network
       dnsPolicy: ClusterFirstWithHostNet
+      # Disable publish-service to use node IP reporting instead
+      publishService:
+        enabled: false
       # Service configuration - not needed with hostNetwork but keep for metrics
       service:
         enabled: true
