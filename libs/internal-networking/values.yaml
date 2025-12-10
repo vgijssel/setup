@@ -13,8 +13,5 @@ tailscaleIngress:
     app.kubernetes.io/instance: ingress-nginx-system
 
 # Gateway exposure configuration
-# Node selector for gateway ingress controllers
-gatewayNodeSelector:
-  node.kubernetes.io/role: gateway
-# Controller name for gateway nginx-ingress (must be different from tenant controllers)
-gatewayControllerName: k8s.io/ingress-nginx-gateway
+# Static IngressClass name for gateway nginx-ingress controller
+gatewayIngressClass: internal-networking-gateway

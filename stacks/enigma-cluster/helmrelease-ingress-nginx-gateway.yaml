@@ -1,0 +1,57 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ingress-nginx-gateway
+  namespace: flux-system
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: third_party/vendir/charts/ingress-nginx
+      sourceRef:
+        kind: GitRepository
+        name: setup
+        namespace: flux-system
+      interval: 12h
+  targetNamespace: ingress-nginx-gateway
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controller:
+      # IngressClass configuration
+      ingressClassResource:
+        name: internal-networking-gateway
+        enabled: true
+        default: false
+        controllerValue: k8s.io/ingress-nginx-gateway
+      ingressClass: internal-networking-gateway
+      # Node selector to run only on gateway nodes
+      nodeSelector:
+        kubernetes.io/os: linux
+        node.kubernetes.io/role: gateway
+      # Use host network to bind directly to the node's ports
+      hostNetwork: true
+      hostPort:
+        enabled: true
+        ports:
+          http: 80
+          https: 443
+      # Since we're using host network, report the node's internal IP
+      reportNodeInternalIp: true
+      # DNS policy for host network
+      dnsPolicy: ClusterFirstWithHostNet
+      # Service configuration - not needed with hostNetwork but keep for metrics
+      service:
+        enabled: true
+        type: ClusterIP
+      # Admission webhooks - disable to avoid conflicts with tenant nginx
+      admissionWebhooks:
+        enabled: false
+      # Metrics
+      metrics:
+        enabled: false
