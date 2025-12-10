@@ -3,10 +3,9 @@ kind: Ingress
 metadata:
   name: test-gateway-exposure
   namespace: tenant-root
-  labels:
-    # This label triggers gateway exposure via Kyverno policy
-    internal-networking/expose: "true"
   annotations:
+    # This annotation triggers gateway exposure via Kyverno policy
+    internal-networking/expose: "true"
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: tenant-root

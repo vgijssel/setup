@@ -10,7 +10,7 @@ metadata:
     policies.kyverno.io/description: >-
       Automatically generates a Tailscale-backed Service for every {{ .Values.tailscaleIngress.sourceIngressClass }} Ingress
       that points to the nginx-ingress controller pods. This enables per-service Tailscale ACLs while leveraging
-      nginx's TLS termination with cert-manager certificates. Ingresses with internal-networking/expose label are
+      nginx's TLS termination with cert-manager certificates. Ingresses with internal-networking/expose annotation are
       skipped as they use gateway ingress controllers instead.
 spec:
   generateExisting: true
@@ -37,7 +37,7 @@ spec:
             operator: NotEquals
             value: "true"
           # Skip ingresses marked for gateway exposure (public internet via VPS)
-          - key: '{{"{{ request.object.metadata.labels.\"internal-networking/expose\" || ''false'' }}"}}'
+          - key: '{{"{{ request.object.metadata.annotations.\"internal-networking/expose\" || ''false'' }}"}}'
             operator: NotEquals
             value: "true"
       generate:
