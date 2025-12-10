@@ -45,9 +45,9 @@ spec:
               # Metadata for identifying gateway IngressClasses
               internal-networking.io/gateway-node-selector: {{ toJson .Values.gatewayNodeSelector | quote }}
           spec:
-            # Use the same controller - the controller deployment needs to be configured
-            # separately to schedule on gateway nodes and watch for -gateway IngressClasses
-            controller: "{{"{{ request.object.spec.controller }}"}}"
+            # Use a dedicated gateway controller - a separate nginx-ingress deployment
+            # must be created that runs on gateway nodes and uses this controller name
+            controller: {{ .Values.gatewayControllerName | quote }}
     # Rule 2: Mirror ingresses with internal-networking/expose label to gateway IngressClass
     - name: mirror-ingress-to-gateway
       match:
