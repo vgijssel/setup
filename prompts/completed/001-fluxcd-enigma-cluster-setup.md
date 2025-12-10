@@ -101,7 +101,7 @@ metadata:
   name: external-dns-cloudflare-api-token
   namespace: external-dns
 spec:
-  itemPath: vaults/enigma-cluster/items/cloudflare-external-dns
+  itemPath: vaults/setup-enigma-cluster/items/cloudflare-external-dns
 ```
 
 **onepasswordsecret-cloudflare-tunnel.yaml**:
@@ -112,7 +112,7 @@ metadata:
   name: cloudflare-tunnel-api-token
   namespace: cloudflare-tunnel
 spec:
-  itemPath: vaults/enigma-cluster/items/cloudflare-tunnel-ingress-controller
+  itemPath: vaults/setup-enigma-cluster/items/cloudflare-tunnel-ingress-controller
 ```
 
 **onepasswordsecret-tailscale-operator.yaml**:
@@ -123,7 +123,7 @@ metadata:
   name: tailscale-operator-oauth
   namespace: tailscale
 spec:
-  itemPath: vaults/enigma-cluster/items/tailscale-operator
+  itemPath: vaults/setup-enigma-cluster/items/tailscale-operator
 ```
 Note: The tailscale-operator 1Password item has OAuth client ID stored in "username" field and OAuth secret in "password" field.
 

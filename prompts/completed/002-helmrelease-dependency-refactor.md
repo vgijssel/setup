@@ -54,16 +54,16 @@ libs/1password-secrets/
 secrets:
   - name: external-dns-cloudflare-api-token
     namespace: external-dns
-    itemPath: vaults/enigma-cluster/items/cloudflare-external-dns
+    itemPath: vaults/setup-enigma-cluster/items/cloudflare-external-dns
   - name: cloudflare-tunnel-api-token
     namespace: cloudflare-tunnel
-    itemPath: vaults/enigma-cluster/items/cloudflare-tunnel-ingress-controller
+    itemPath: vaults/setup-enigma-cluster/items/cloudflare-tunnel-ingress-controller
   - name: tailscale-operator-oauth
     namespace: tailscale
-    itemPath: vaults/enigma-cluster/items/tailscale-operator
+    itemPath: vaults/setup-enigma-cluster/items/tailscale-operator
   - name: cloudflare-api-token-secret
     namespace: cozy-cert-manager
-    itemPath: vaults/enigma-cluster/items/cloudflare-cert-manager
+    itemPath: vaults/setup-enigma-cluster/items/cloudflare-cert-manager
 ```
 
 **Template logic:**
