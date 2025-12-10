@@ -39,7 +39,7 @@ spec:
         - key: storage
           operator: Equal
           value: exclude
-          effect: NoSchedule
+          effect: NoExecute
       # Use host network to bind directly to the node's ports
       hostNetwork: true
       hostPort:
