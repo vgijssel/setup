@@ -1,0 +1,93 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-gateway-ingress
+  annotations:
+    policies.kyverno.io/title: Generate Gateway IngressClass and Mirror Ingresses
+    policies.kyverno.io/category: Networking
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: IngressClass, Ingress
+    policies.kyverno.io/description: >-
+      Creates gateway-specific IngressClasses for tenant IngressClasses and mirrors ingresses
+      with internal-networking/expose label to use gateway ingress controllers for public internet exposure.
+spec:
+  generateExisting: true
+  rules:
+    # Rule 1: Generate gateway IngressClass for each tenant-* IngressClass
+    - name: generate-gateway-ingressclass
+      match:
+        any:
+          - resources:
+              kinds:
+                - IngressClass
+      preconditions:
+        all:
+          # Only process ingresses classes matching tenant-* pattern
+          - key: "{{"{{ request.object.metadata.name }}"}}"
+            operator: Matches
+            value: "tenant-*"
+          # Don't process gateway classes themselves to avoid recursion
+          - key: "{{"{{ request.object.metadata.name }}"}}"
+            operator: NotEquals
+            value: "*-gateway"
+      generate:
+        synchronize: true
+        apiVersion: networking.k8s.io/v1
+        kind: IngressClass
+        name: "{{"{{ request.object.metadata.name }}"}}-gateway"
+        data:
+          metadata:
+            labels:
+              app.kubernetes.io/managed-by: kyverno
+              kyverno.io/generated-by: generate-gateway-ingress
+              internal-networking.io/type: gateway
+            annotations:
+              # Metadata for identifying gateway IngressClasses
+              internal-networking.io/gateway-node-selector: {{ toJson .Values.gatewayNodeSelector | quote }}
+          spec:
+            # Use the same controller - the controller deployment needs to be configured
+            # separately to schedule on gateway nodes and watch for -gateway IngressClasses
+            controller: "{{"{{ request.object.spec.controller }}"}}"
+    # Rule 2: Mirror ingresses with internal-networking/expose label to gateway IngressClass
+    - name: mirror-ingress-to-gateway
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+      preconditions:
+        all:
+          # Only process ingresses with expose label set to true
+          - key: '{{"{{ request.object.metadata.labels.\"internal-networking/expose\" || '''' }}"}}'
+            operator: Equals
+            value: "true"
+          # Don't process gateway ingresses themselves to avoid recursion
+          - key: "{{"{{ request.object.metadata.name }}"}}"
+            operator: NotEquals
+            value: "*-gateway"
+          # Skip if ingress has skip annotation
+          - key: '{{"{{ request.object.metadata.annotations.\"internal-networking/skip-gateway-mirror\" || ''false'' }}"}}'
+            operator: NotEquals
+            value: "true"
+      generate:
+        synchronize: true
+        apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        name: "{{"{{ request.object.metadata.name }}"}}-gateway"
+        namespace: "{{"{{ request.object.metadata.namespace }}"}}"
+        data:
+          metadata:
+            labels:
+              # Add internal-networking label for external-dns to track
+              internal-networking: "true"
+              app.kubernetes.io/managed-by: kyverno
+              kyverno.io/generated-by: generate-gateway-ingress
+            annotations:
+              internal-networking.io/original-ingress: "{{"{{ request.object.metadata.name }}"}}"
+          spec:
+            # Switch to gateway IngressClass
+            ingressClassName: "{{"{{ request.object.spec.ingressClassName }}"}}-gateway"
+            # Copy the entire spec from the original ingress
+            rules: "{{"{{ request.object.spec.rules }}"}}"
+            tls: "{{"{{ request.object.spec.tls || '' }}"}}"
+            defaultBackend: "{{"{{ request.object.spec.defaultBackend || '' }}"}}"
