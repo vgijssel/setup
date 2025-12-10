@@ -15,7 +15,7 @@ spec:
       interval: 12h
   targetNamespace: ingress-nginx-gateway
   install:
-    createNamespace: true
+    createNamespace: false
     remediation:
       retries: 3
   upgrade:

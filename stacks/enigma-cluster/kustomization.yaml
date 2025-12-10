@@ -10,4 +10,5 @@ resources:
   - helmrelease-internal-networking.yaml
   - helmrelease-external-dns.yaml
   - helmrelease-tailscale-operator.yaml
+  - namespace-ingress-nginx-gateway.yaml
   - helmrelease-ingress-nginx-gateway.yaml
