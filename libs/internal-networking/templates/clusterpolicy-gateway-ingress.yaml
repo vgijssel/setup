@@ -87,7 +87,7 @@ spec:
           spec:
             # Switch to gateway IngressClass
             ingressClassName: "{{"{{ request.object.spec.ingressClassName }}"}}-gateway"
-            # Copy the entire spec from the original ingress
+            # Copy rules from the original ingress
             rules: "{{"{{ request.object.spec.rules }}"}}"
-            tls: "{{"{{ request.object.spec.tls || '' }}"}}"
-            defaultBackend: "{{"{{ request.object.spec.defaultBackend || '' }}"}}"
+            # Copy TLS config if present (use merge to conditionally include)
+            tls: "{{"{{ request.object.spec.tls }}"}}"
