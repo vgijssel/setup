@@ -1,4 +1,20 @@
 command:
+  kubespan_peers_up:
+    title: Validate KubeSpan peers are up on all nodes
+    exec: talosctl get kubespanpeerstatuses -n 192.168.50.10,192.168.50.11,192.168.50.12 -e 192.168.50.10 -o json | jq -e '[.[].spec.state] | all(. == "up")'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 10000
+  kubespan_discovery_enabled:
+    title: Validate cluster discovery is enabled
+    exec: talosctl get discoveryconfig -n 192.168.50.10 -e 192.168.50.10 -o json | jq -e '.[0].spec.enabled'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 10000
   clusterkeycloak_connected:
     title: Validate ClusterKeycloak is connected
     exec: kubectl get clusterkeycloak keycloak-cozy -o jsonpath='{.status.connected}'

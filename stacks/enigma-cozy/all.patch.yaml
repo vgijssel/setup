@@ -2,6 +2,9 @@ machine:
   type: controlplane
   certSANs:
     - 127.0.0.1
+  network:
+    kubespan:
+      enabled: true
   kubelet:
     extraConfig:
       cpuManagerPolicy: static
@@ -71,7 +74,7 @@ cluster:
   proxy:
     disabled: true
   discovery:
-    enabled: false
+    enabled: true
   etcd:
     advertisedSubnets:
       - 192.168.50.0/24
