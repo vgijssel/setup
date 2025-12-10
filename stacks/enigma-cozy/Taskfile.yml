@@ -26,9 +26,11 @@ tasks:
       - talosctl apply-config --insecure -n 192.168.1.42 -e 192.168.1.42 --file dist/illusion.yaml
       - talosctl apply-config --insecure -n 192.168.1.41 -e 192.168.1.41 --file dist/the-dome.yaml
       - talosctl apply-config --insecure -n 192.168.1.40 -e 192.168.1.40 --file dist/the-toy-factory.yaml
+      - talosctl apply-config --insecure -n 46.224.93.115 -e 46.224.93.115 --file dist/here-i-am.yaml
       - wait-for-it --service 192.168.50.10:50000
       - wait-for-it --service 192.168.50.11:50000
       - wait-for-it --service 192.168.50.12:50000
+      - wait-for-it --service 46.224.93.115:50000
       - talosctl bootstrap -n 192.168.50.10 -e 192.168.50.10
       - talosctl kubeconfig --force -n 192.168.50.50 ~/.kube/configs/enigma-cozy.yaml
 

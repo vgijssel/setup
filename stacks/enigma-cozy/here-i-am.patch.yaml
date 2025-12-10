@@ -16,3 +16,7 @@ machine:
     linstor.linbit.com/storage: "false"
   nodeTaints:
     node.kubernetes.io/role: gateway:NoSchedule
+
+cluster:
+  etcd:
+    $patch: delete
