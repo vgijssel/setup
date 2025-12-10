@@ -1,0 +1,106 @@
+{{- if .Release.IsUpgrade }}
+---
+# Pre-upgrade hook to delete ClusterPolicies before upgrade
+# This is necessary because Kyverno's admission webhook prevents in-place updates
+# to immutable fields in ClusterPolicy generate rules (spec.rules.match,
+# spec.rules.preconditions, spec.generate.apiVersion, etc.)
+#
+# The hook ensures that when template content changes, existing ClusterPolicies
+# are deleted before new ones are created, avoiding validation errors.
+#
+# Hook lifecycle:
+# 1. pre-upgrade: Runs after templates are rendered but before resources are applied
+# 2. before-hook-creation: Deletes any previous hook Job before creating new one
+# 3. hook-succeeded: Deletes the Job after successful completion
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "internal-networking.fullname" . }}-pre-upgrade-hook
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    {{- include "internal-networking.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "internal-networking.fullname" . }}-pre-upgrade-hook
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    {{- include "internal-networking.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["kyverno.io"]
+    resources: ["clusterpolicies"]
+    verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "internal-networking.fullname" . }}-pre-upgrade-hook
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    {{- include "internal-networking.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "internal-networking.fullname" . }}-pre-upgrade-hook
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "internal-networking.fullname" . }}-pre-upgrade-hook
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "internal-networking.fullname" . }}-pre-upgrade-hook
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    {{- include "internal-networking.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        {{- include "internal-networking.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: pre-upgrade-hook
+    spec:
+      serviceAccountName: {{ include "internal-networking.fullname" . }}-pre-upgrade-hook
+      restartPolicy: OnFailure
+      containers:
+        - name: delete-policies
+          image: bitnami/kubectl:1.31.4
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Checking for ClusterPolicies managed by this Helm release..."
+
+              # Delete ClusterPolicies managed by this chart if they exist
+              POLICIES="generate-gateway-ingress generate-tailscale-ingress"
+              for policy in $POLICIES; do
+                if kubectl get clusterpolicy "$policy" 2>/dev/null; then
+                  echo "Deleting ClusterPolicy: $policy"
+                  kubectl delete clusterpolicy "$policy" --ignore-not-found=true --wait=true --timeout=60s
+                  echo "Successfully deleted ClusterPolicy: $policy"
+                else
+                  echo "ClusterPolicy $policy does not exist, skipping"
+                fi
+              done
+
+              echo "Pre-upgrade hook completed successfully"
+{{- end }}

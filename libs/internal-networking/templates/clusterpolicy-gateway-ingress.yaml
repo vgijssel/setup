@@ -11,6 +11,8 @@ metadata:
       Mirrors tenant-* ingresses with internal-networking/expose annotation to use the gateway
       ingress controller for public internet exposure via the gateway node. Generated ingresses
       are marked with internal-networking/processed annotation to prevent recursion.
+  labels:
+    {{- include "internal-networking.labels" . | nindent 4 }}
 spec:
   generateExisting: true
   rules:

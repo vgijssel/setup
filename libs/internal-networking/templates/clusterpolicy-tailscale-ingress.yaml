@@ -13,6 +13,8 @@ metadata:
       nginx's TLS termination with cert-manager certificates. Ingresses with internal-networking/expose annotation are
       skipped as they use gateway ingress controllers instead. Generated services are marked with
       internal-networking/processed annotation to prevent recursion.
+  labels:
+    {{- include "internal-networking.labels" . | nindent 4 }}
 spec:
   generateExisting: true
   rules:
