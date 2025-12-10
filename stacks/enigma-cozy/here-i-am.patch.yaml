@@ -1,0 +1,18 @@
+machine:
+  type: worker
+  install:
+    disk: /dev/sda
+  kubelet:
+    nodeIP:
+      validSubnets:
+        - 0.0.0.0/0
+  network:
+    hostname: here-i-am
+    interfaces:
+      - interface: eth0
+        dhcp: true
+  nodeLabels:
+    node.kubernetes.io/role: gateway
+    linstor.linbit.com/storage: "false"
+  nodeTaints:
+    node.kubernetes.io/role: gateway:NoSchedule
