@@ -22,14 +22,14 @@ spec:
                 - IngressClass
       preconditions:
         all:
-          # Only process ingresses classes matching tenant-* pattern
-          - key: "{{"{{ request.object.metadata.name }}"}}"
-            operator: Matches
-            value: "tenant-*"
-          # Don't process gateway classes themselves to avoid recursion
-          - key: "{{"{{ request.object.metadata.name }}"}}"
+          # Only process ingresses classes matching tenant-* pattern (starts with "tenant-")
+          - key: "{{"{{"}} starts_with(request.object.metadata.name, 'tenant-') {{"}}"}}"
+            operator: Equals
+            value: true
+          # Don't process gateway classes themselves to avoid recursion (ends with "-gateway")
+          - key: "{{"{{"}} ends_with(request.object.metadata.name, '-gateway') {{"}}"}}"
             operator: NotEquals
-            value: "*-gateway"
+            value: true
       generate:
         synchronize: true
         apiVersion: networking.k8s.io/v1
@@ -61,10 +61,10 @@ spec:
           - key: '{{"{{ request.object.metadata.labels.\"internal-networking/expose\" || '''' }}"}}'
             operator: Equals
             value: "true"
-          # Don't process gateway ingresses themselves to avoid recursion
-          - key: "{{"{{ request.object.metadata.name }}"}}"
+          # Don't process gateway ingresses themselves to avoid recursion (ends with "-gateway")
+          - key: "{{"{{"}} ends_with(request.object.metadata.name, '-gateway') {{"}}"}}"
             operator: NotEquals
-            value: "*-gateway"
+            value: true
           # Skip if ingress has skip annotation
           - key: '{{"{{ request.object.metadata.annotations.\"internal-networking/skip-gateway-mirror\" || ''false'' }}"}}'
             operator: NotEquals

@@ -14,6 +14,7 @@ data:
   ipv4-svc-cidr: 10.96.0.0/16
   oidc-enabled: "true"
   root-host: enigma.vgijssel.nl
-  values-kubeovn: |
-    kube-ovn:
-      mtu: 1222
+# This seems to break networking but is recommended by Cozystack.
+#  values-kubeovn: |
+#    kube-ovn:
+#      mtu: 1222
