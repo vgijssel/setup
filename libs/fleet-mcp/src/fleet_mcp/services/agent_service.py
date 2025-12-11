@@ -244,6 +244,42 @@ class AgentService:
         normalized_name = name.lower()
         return await self.agent_repo.restart(normalized_name)
 
+    async def update_agent(
+        self, name: str, template_version_id: str | None = None
+    ) -> Agent:
+        """Update an agent to a new template version (case-insensitive).
+
+        This updates the agent's workspace to use a new template version by:
+        1. Stopping the workspace
+        2. Starting it with the new template version
+
+        Args:
+            name: Agent name (case-insensitive)
+            template_version_id: Template version UUID to update to.
+                                If None, uses the active version of the agent's template.
+
+        Returns:
+            Updated Agent domain model
+
+        Raises:
+            AgentNotFoundError: If agent doesn't exist
+            ValidationError: If name or template_version_id is invalid
+            CoderAPIError: If update operation fails
+        """
+        # Validate agent name format
+        self._validate_agent_name(name)
+
+        # Validate template_version_id if provided
+        if template_version_id is not None:
+            if not template_version_id or not template_version_id.strip():
+                raise ValidationError(
+                    "template_version_id", "Template version ID cannot be empty"
+                )
+
+        # Normalize to lowercase for case-insensitive lookup
+        normalized_name = name.lower()
+        return await self.agent_repo.update(normalized_name, template_version_id)
+
     def _validate_agent_name(self, name: str) -> None:
         """Validate agent name format according to Coder workspace constraints.
 
