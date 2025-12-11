@@ -6,10 +6,24 @@
     "projectType": "application",
     "sourceRoot": "apps/gateway-prod",
     "targets": {
-      "init": {
+      "secrets": {
         "executor": "nx:run-commands",
         "options": {
-          "command": "tofu init",
+          "command": "op inject --force -i .env.tpl -o .env",
+          "cwd": "apps/gateway-prod"
+        },
+        "cache": false,
+        "outputs": ["{projectRoot}/.env"],
+        "inputs": ["{projectRoot}/.env.tpl"],
+        "metadata": {
+          "description": "Generate .env file from 1Password secrets"
+        }
+      },
+      "init": {
+        "executor": "nx:run-commands",
+        "dependsOn": ["secrets"],
+        "options": {
+          "command": "set -a && source .env && set +a && tofu init -backend-config=\"bucket=$TF_VAR_s3_bucket\"",
           "cwd": "apps/gateway-prod"
         },
         "metadata": {
@@ -18,8 +32,9 @@
       },
       "plan": {
         "executor": "nx:run-commands",
+        "dependsOn": ["init"],
         "options": {
-          "command": "tofu plan",
+          "command": "set -a && source .env && set +a && tofu plan",
           "cwd": "apps/gateway-prod"
         },
         "metadata": {
@@ -28,8 +43,9 @@
       },
       "apply": {
         "executor": "nx:run-commands",
+        "dependsOn": ["init"],
         "options": {
-          "command": "tofu apply -auto-approve",
+          "command": "set -a && source .env && set +a && tofu apply -auto-approve",
           "cwd": "apps/gateway-prod"
         },
         "metadata": {
@@ -38,8 +54,9 @@
       },
       "destroy": {
         "executor": "nx:run-commands",
+        "dependsOn": ["init"],
         "options": {
-          "command": "tofu destroy -auto-approve",
+          "command": "set -a && source .env && set +a && tofu destroy -auto-approve",
           "cwd": "apps/gateway-prod"
         },
         "metadata": {
@@ -48,8 +65,9 @@
       },
       "output": {
         "executor": "nx:run-commands",
+        "dependsOn": ["init"],
         "options": {
-          "command": "tofu output",
+          "command": "set -a && source .env && set +a && tofu output",
           "cwd": "apps/gateway-prod"
         },
         "metadata": {

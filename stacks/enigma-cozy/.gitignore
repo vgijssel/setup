@@ -3,3 +3,6 @@ dist/
 
 # Baseline files used for comparison during refactoring
 baseline/
+
+# Task runner checksum files
+.task/
