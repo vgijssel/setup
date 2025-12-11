@@ -11,6 +11,8 @@ metadata:
       Mirrors tenant-* ingresses with internal-networking/expose annotation to use the gateway
       ingress controller for public internet exposure via the gateway node. Generated ingresses
       are marked with internal-networking/processed annotation to prevent recursion.
+    # Hash of immutable fields - used by pre-upgrade hook to detect changes
+    internal-networking/immutable-hash: {{ include "internal-networking.gatewayPolicyHash" . | quote }}
   labels:
     {{- include "internal-networking.labels" . | nindent 4 }}
 spec:

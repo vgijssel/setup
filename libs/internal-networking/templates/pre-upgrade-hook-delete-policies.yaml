@@ -1,12 +1,17 @@
 {{- if .Release.IsUpgrade }}
 ---
-# Pre-upgrade hook to delete ClusterPolicies before upgrade
+# Pre-upgrade hook to delete ClusterPolicies ONLY when their immutable fields have changed.
 # This is necessary because Kyverno's admission webhook prevents in-place updates
 # to immutable fields in ClusterPolicy generate rules (spec.rules.match,
 # spec.rules.preconditions, spec.generate.apiVersion, etc.)
 #
-# The hook ensures that when template content changes, existing ClusterPolicies
-# are deleted before new ones are created, avoiding validation errors.
+# The hook compares the hash annotation on existing policies with the new hash.
+# Only if they differ will the policy be deleted and recreated.
+#
+# This prevents unnecessary deletions which would cause:
+# - Deletion of all generated resources (Tailscale Services, Gateway Ingresses)
+# - New Tailscale IPs being assigned
+# - DNS propagation delays and downtime
 #
 # Hook lifecycle:
 # 1. pre-upgrade: Runs after templates are rendered but before resources are applied
@@ -82,23 +87,38 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: delete-policies
-          image: bitnami/kubectl:latest
+          image: bitnami/kubectl:1.32.1
           command:
             - /bin/bash
             - -c
             - |
               set -e
-              echo "Checking for ClusterPolicies managed by this Helm release..."
+              echo "Checking ClusterPolicies for immutable field changes..."
 
-              # Delete ClusterPolicies managed by this chart if they exist
-              POLICIES="generate-gateway-ingress generate-tailscale-ingress"
-              for policy in $POLICIES; do
-                if kubectl get clusterpolicy "$policy" 2>/dev/null; then
-                  echo "Deleting ClusterPolicy: $policy"
-                  kubectl delete clusterpolicy "$policy" --ignore-not-found=true --wait=true --timeout=60s
-                  echo "Successfully deleted ClusterPolicy: $policy"
+              # Expected hashes from the new Helm templates
+              declare -A NEW_HASHES
+              NEW_HASHES["generate-gateway-ingress"]={{ include "internal-networking.gatewayPolicyHash" . | quote }}
+              NEW_HASHES["generate-tailscale-ingress"]={{ include "internal-networking.tailscalePolicyHash" . | quote }}
+
+              for policy in "${!NEW_HASHES[@]}"; do
+                NEW_HASH="${NEW_HASHES[$policy]}"
+
+                # Get current hash from the existing policy (if it exists)
+                CURRENT_HASH=$(kubectl get clusterpolicy "$policy" -o jsonpath='{.metadata.annotations.internal-networking/immutable-hash}' 2>/dev/null || echo "")
+
+                if [ -z "$CURRENT_HASH" ]; then
+                  echo "Policy $policy: No existing hash found (new policy or missing annotation)"
+                  # Delete if exists but has no hash (legacy policy)
+                  if kubectl get clusterpolicy "$policy" 2>/dev/null; then
+                    echo "Policy $policy: Deleting legacy policy without hash annotation"
+                    kubectl delete clusterpolicy "$policy" --wait=true --timeout=60s
+                  fi
+                elif [ "$CURRENT_HASH" != "$NEW_HASH" ]; then
+                  echo "Policy $policy: Hash changed from '$CURRENT_HASH' to '$NEW_HASH'"
+                  echo "Policy $policy: Deleting to allow recreation with new immutable fields"
+                  kubectl delete clusterpolicy "$policy" --wait=true --timeout=60s
                 else
-                  echo "ClusterPolicy $policy does not exist, skipping"
+                  echo "Policy $policy: Hash unchanged ($CURRENT_HASH), skipping deletion"
                 fi
               done
 
