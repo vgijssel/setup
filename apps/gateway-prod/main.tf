@@ -65,6 +65,10 @@ resource "hcloud_server" "gateway" {
     managed_by  = "terraform"
   }
 
+  lifecycle {
+    ignore_changes = [user_data]
+  }
+
   # Cloud-init user data to run boot-to-talos automatically
   user_data = <<-EOT
     #cloud-config
