@@ -1,3 +1,9 @@
+## 0.3.2 (2025-12-15)
+
+### 🩹 Fixes
+
+- Maintenance updates and configuration changes ([#845](https://github.com/vgijssel/setup/pull/845))
+
 ## 0.3.1 (2025-11-15)
 
 ### 🩹 Fixes

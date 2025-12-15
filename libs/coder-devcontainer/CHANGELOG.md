@@ -1,3 +1,13 @@
+## 0.19.1 (2025-12-15)
+
+### 🩹 Fixes
+
+- Maintenance updates and configuration changes ([#845](https://github.com/vgijssel/setup/pull/845))
+
+### 🧱 Updated Dependencies
+
+- Updated devcontainer to 0.7.6
+
 ## 0.19.0 (2025-11-18)
 
 ### 🚀 Features

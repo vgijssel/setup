@@ -1,3 +1,9 @@
+## 0.4.0 (2025-12-15)
+
+### 🚀 Features
+
+- Deploy Sonoff TX Ultimate in baby room ([#845](https://github.com/vgijssel/setup/pull/845))
+
 ## 0.3.0 (2025-09-24)
 
 ### 🚀 Features
