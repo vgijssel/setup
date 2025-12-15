@@ -6,3 +6,7 @@ baseline/
 
 # Task runner checksum files
 .task/
+
+secrets.yaml
+secrets.yaml.backup.*
+kubeconfig.admin

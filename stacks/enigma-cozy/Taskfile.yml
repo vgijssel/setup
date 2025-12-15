@@ -32,7 +32,7 @@ tasks:
       - wait-for-it --service 192.168.50.12:50000
       - wait-for-it --service 46.224.93.115:50000
       - talosctl bootstrap -n 192.168.50.10 -e 192.168.50.10
-      - talosctl kubeconfig --force -n 192.168.50.50 ~/.kube/configs/enigma-cozy.yaml
+      - talosctl kubeconfig --force -n 192.168.50.50 kubeconfig.admin
 
   apply:
     deps: [generate]
@@ -47,17 +47,6 @@ tasks:
     desc: Reboot Talos nodes
     cmds:
       - talosctl reboot -n 192.168.50.10,192.168.50.11,192.168.50.12
-
-  # validate - the ingress controller lives at 192.168.50.100!! This is required by omada to forward traffic
-  #   validate:
-  #     desc: Validate Cluster Health
-  #     cmds:
-  #       - goss validate
-
-  #shutdown:
-  #desc: Shutdown Talos nodes
-  #cmds:
-  #- talosctl shutdown -n 192.168.1.40,192.168.1.41,192.168.1.42
 
   generate:bootstrap:
     desc: Generate the Talos configuration files for bootstrapping
