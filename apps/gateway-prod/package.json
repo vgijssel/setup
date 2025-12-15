@@ -13,15 +13,21 @@
           "cwd": "apps/gateway-prod"
         },
         "cache": false,
-        "outputs": ["{projectRoot}/.env"],
-        "inputs": ["{projectRoot}/.env.tpl"],
+        "outputs": [
+          "{projectRoot}/.env"
+        ],
+        "inputs": [
+          "{projectRoot}/.env.tpl"
+        ],
         "metadata": {
           "description": "Generate .env file from 1Password secrets"
         }
       },
       "init": {
         "executor": "nx:run-commands",
-        "dependsOn": ["secrets"],
+        "dependsOn": [
+          "secrets"
+        ],
         "options": {
           "command": "set -a && source .env && set +a && tofu init -backend-config=\"bucket=$TF_VAR_s3_bucket\"",
           "cwd": "apps/gateway-prod"
@@ -32,7 +38,9 @@
       },
       "plan": {
         "executor": "nx:run-commands",
-        "dependsOn": ["init"],
+        "dependsOn": [
+          "init"
+        ],
         "options": {
           "command": "set -a && source .env && set +a && tofu plan",
           "cwd": "apps/gateway-prod"
@@ -43,7 +51,9 @@
       },
       "apply": {
         "executor": "nx:run-commands",
-        "dependsOn": ["init"],
+        "dependsOn": [
+          "init"
+        ],
         "options": {
           "command": "set -a && source .env && set +a && tofu apply -auto-approve",
           "cwd": "apps/gateway-prod"
@@ -54,7 +64,9 @@
       },
       "destroy": {
         "executor": "nx:run-commands",
-        "dependsOn": ["init"],
+        "dependsOn": [
+          "init"
+        ],
         "options": {
           "command": "set -a && source .env && set +a && tofu destroy -auto-approve",
           "cwd": "apps/gateway-prod"
@@ -65,7 +77,9 @@
       },
       "output": {
         "executor": "nx:run-commands",
-        "dependsOn": ["init"],
+        "dependsOn": [
+          "init"
+        ],
         "options": {
           "command": "set -a && source .env && set +a && tofu output",
           "cwd": "apps/gateway-prod"

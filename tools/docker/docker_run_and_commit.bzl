@@ -6,6 +6,15 @@ load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load(":docker_local_tar.bzl", "docker_local_tar")
 
 def docker_run_and_commit(name, cmd, image, format = "docker", timeout = 300):
+    """Runs a command in a Docker container and exports the result.
+
+    Args:
+        name: Target name
+        cmd: Command to run inside the container
+        image: Base OCI image target
+        format: Image format (default: "docker")
+        timeout: Container timeout in seconds (default: 300)
+    """
     local_tar_name = "{}.local_tar".format(name)
     script_name = "{}.script".format(name)
     script_file = "{}.sh".format(script_name)
