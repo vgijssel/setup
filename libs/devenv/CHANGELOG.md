@@ -1,3 +1,9 @@
+## 0.15.0 (2025-12-15)
+
+### 🚀 Features
+
+- Update finicky configuration, 1Password SSH setup, and install Resilio Sync ([#845](https://github.com/vgijssel/setup/pull/845))
+
 ## 0.14.2 (2025-11-13)
 
 ### 🩹 Fixes
