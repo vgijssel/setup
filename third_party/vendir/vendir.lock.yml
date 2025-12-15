@@ -38,12 +38,6 @@ directories:
   path: charts/tailscale-operator
 - contents:
   - helmChart:
-      appVersion: 0.0.21
-      version: 0.0.21
-    path: .
-  path: charts/cloudflare-tunnel-ingress-controller
-- contents:
-  - helmChart:
       appVersion: 0.19.0
       version: 1.19.0
     path: .

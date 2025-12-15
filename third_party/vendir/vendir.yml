@@ -49,14 +49,6 @@ directories:
           version: 1.90.9
           repository:
             url: https://pkgs.tailscale.com/helmcharts
-  - path: charts/cloudflare-tunnel-ingress-controller
-    contents:
-      - path: .
-        helmChart:
-          name: cloudflare-tunnel-ingress-controller
-          version: 0.0.21
-          repository:
-            url: https://helm.strrl.dev
   - path: charts/external-dns
     contents:
       - path: .
