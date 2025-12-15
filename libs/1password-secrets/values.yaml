@@ -1,0 +1,2 @@
+# Secrets are defined inline in the HelmRelease for environment-specific configuration
+secrets: []

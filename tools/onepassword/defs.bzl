@@ -1,6 +1,13 @@
+"""1Password integration helpers for Bazel."""
+
 load("@rules_task//task:defs.bzl", "cmd")
 
 def secrets(data):
+    """Generates a command to load secrets from 1Password into environment variables.
+
+    Args:
+        data: Dict mapping environment variable names to 1Password item paths
+    """
     json_data = json.encode(data)
 
     code = """

@@ -1,0 +1,16 @@
+tailscaleIngress:
+  tailscaleDomain: tail2c33e2.ts.net
+  # Domain suffix to strip from hostnames (e.g., grafana.enigma.vgijssel.nl -> grafana)
+  domainSuffix: .enigma.vgijssel.nl
+  # Kubernetes cluster domain suffix for service DNS resolution
+  clusterDomain: cozy.local
+  # Nginx ingress controller configuration
+  # Tailscale Services will point to these nginx pods instead of backend pods
+  nginxNamespace: tenant-root
+  nginxSelector:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/instance: ingress-nginx-system
+
+# Gateway exposure configuration
+# Static IngressClass name for gateway nginx-ingress controller
+gatewayIngressClass: internal-networking-gateway

@@ -1,2 +1,0 @@
-{{- $_ := set . "MachineType" "worker" -}}
-{{- include "talos.config" . }}

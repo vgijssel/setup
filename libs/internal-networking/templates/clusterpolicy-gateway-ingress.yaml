@@ -1,0 +1,68 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-gateway-ingress
+  annotations:
+    policies.kyverno.io/title: Mirror Ingresses to Gateway IngressClass
+    policies.kyverno.io/category: Networking
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Ingress
+    policies.kyverno.io/description: >-
+      Mirrors tenant-* ingresses with internal-networking/expose annotation to use the gateway
+      ingress controller for public internet exposure via the gateway node. Generated ingresses
+      are marked with internal-networking/processed annotation to prevent recursion.
+    # Hash of immutable fields - used by pre-upgrade hook to detect changes
+    internal-networking/immutable-hash: {{ include "internal-networking.gatewayPolicyHash" . | quote }}
+  labels:
+    {{- include "internal-networking.labels" . | nindent 4 }}
+spec:
+  generateExisting: true
+  rules:
+    # Mirror ingresses with internal-networking/expose annotation to gateway IngressClass
+    - name: mirror-ingress-to-gateway
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+      preconditions:
+        all:
+          # Only process tenant-* ingress classes
+          - key: "{{"{{"}} starts_with(request.object.spec.ingressClassName || '', 'tenant-') {{"}}"}}"
+            operator: Equals
+            value: true
+          # Only process ingresses with expose annotation set to true
+          - key: '{{"{{ request.object.metadata.annotations.\"internal-networking/expose\" || '''' }}"}}'
+            operator: Equals
+            value: "true"
+          # Don't process already-processed ingresses to avoid recursion
+          - key: '{{"{{ request.object.metadata.annotations.\"internal-networking/processed\" || '''' }}"}}'
+            operator: NotEquals
+            value: "true"
+          # Skip if ingress has skip annotation
+          - key: '{{"{{ request.object.metadata.annotations.\"internal-networking/skip-gateway-mirror\" || ''false'' }}"}}'
+            operator: NotEquals
+            value: "true"
+      generate:
+        synchronize: true
+        apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        name: "{{"{{ request.object.metadata.name }}"}}-gateway"
+        namespace: "{{"{{ request.object.metadata.namespace }}"}}"
+        data:
+          metadata:
+            labels:
+              # Add internal-networking label for external-dns to track
+              internal-networking: "true"
+              app.kubernetes.io/managed-by: kyverno
+              kyverno.io/generated-by: generate-gateway-ingress
+            annotations:
+              internal-networking/processed: "true"
+              internal-networking.io/original-ingress: "{{"{{ request.object.metadata.name }}"}}"
+          spec:
+            # Use the static gateway IngressClass
+            ingressClassName: {{ .Values.gatewayIngressClass | quote }}
+            # Copy rules from the original ingress
+            rules: "{{"{{ request.object.spec.rules }}"}}"
+            # Copy TLS config if present
+            tls: "{{"{{ request.object.spec.tls }}"}}"

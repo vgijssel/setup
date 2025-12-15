@@ -36,6 +36,7 @@ packages:
       - obs
       - coder/coder/coder-desktop
       - motion
+      - resilio-sync
   linux:
     apt_packages:
       - git

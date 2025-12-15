@@ -14,7 +14,6 @@ VAGRANT_FILE="$3"
 # sha of the image
 IMAGE_SHA="$4"
 
-NEW_QCOW_FILE="image.qcow2"
 BOX_VMDK_FILE="box-disk001.vmdk"
 BOX_METADATA_FILE="metadata.json"
 BOX_INFO_FILE="info.json"

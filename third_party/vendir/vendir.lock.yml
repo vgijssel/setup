@@ -2,8 +2,8 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - helmChart:
-      appVersion: 1.7.3
-      version: 2.0.3
+      appVersion: 1.8.1
+      version: 2.0.5
     path: .
   path: charts/1password-connect
 - contents:
@@ -24,6 +24,24 @@ directories:
       version: 2.0.2
     path: .
   path: charts/crossplane
+- contents:
+  - helmChart:
+      appVersion: v1.16.1
+      version: 3.6.1
+    path: .
+  path: charts/kyverno
+- contents:
+  - helmChart:
+      appVersion: v1.90.9
+      version: 1.90.9
+    path: .
+  path: charts/tailscale-operator
+- contents:
+  - helmChart:
+      appVersion: 0.19.0
+      version: 1.19.0
+    path: .
+  path: charts/external-dns
 - contents:
   - githubRelease:
       tag: v1.18.0

@@ -96,3 +96,5 @@ venv/
 *.egg-info/
 .pytest_cache/
 libs/fleet-mcp/.env
+
+stacks/enigma-cozy/enigma.yaml

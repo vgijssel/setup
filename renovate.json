@@ -4,6 +4,16 @@
   "semanticCommits": "enabled",
   "semanticCommitType": "chore",
   "semanticCommitScope": "deps",
+  "customManagers": [
+    {
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "fileMatch": ["stacks/[^/]+/package\\.json$"],
+      "matchStrings": [
+        "$each(nx.metadata.dependencies, function($v, $k) { { \"depName\": $k, \"currentValue\": $v.version, \"datasource\": $v.datasource } })"
+      ]
+    }
+  ],
   "pip-compile": {
     "fileMatch": ["(^|/)requirements\\.in$"]
   },
@@ -28,16 +38,6 @@
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
-    }
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "fileMatch": ["(^|/)install_teleport\\.py$"],
-      "matchStrings": ["TELEPORT_VERSION = \"(?<currentValue>.*?)\""],
-      "depNameTemplate": "gravitational/teleport",
-      "datasourceTemplate": "github-releases",
-      "versioningTemplate": "semver-coerced"
     }
   ],
   "pip_requirements": {

@@ -1,0 +1,12 @@
+# Generated Talos configuration files contain secrets and should not be committed
+dist/
+
+# Baseline files used for comparison during refactoring
+baseline/
+
+# Task runner checksum files
+.task/
+
+secrets.yaml
+secrets.yaml.backup.*
+kubeconfig.admin

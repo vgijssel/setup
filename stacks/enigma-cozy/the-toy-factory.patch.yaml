@@ -1,0 +1,30 @@
+machine:
+  install:
+    disk: /dev/nvme0n1
+  network:
+    hostname: the-toy-factory
+    nameservers:
+      - 192.168.50.1
+    interfaces:
+      - interface: br0
+        addresses:
+          - 10.50.50.12/24
+        bridge:
+          interfaces:
+            - enp4s0f0np0
+            - enp4s0f1np1
+          stp:
+            enabled: true
+      - interface: eno1
+        vlans:
+          - addresses:
+              - 192.168.50.12/24
+            routes:
+              - network: 0.0.0.0/0
+                gateway: 192.168.50.1
+            dhcp: false
+            vlanId: 50
+        vip:
+          ip: 192.168.50.50
+      - interface: enp6s0
+        ignore: true

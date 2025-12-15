@@ -24,8 +24,9 @@ chmod 600 "${AUTHORIZED_KEYS}"
 chmod 700 "${HOME}/.ssh"
 
 # add the public key to the authorized_keys file if it is not already there
-if ! grep -q "$(cat "${SECRETS_DIR}"/id_rsa.pub)" "${AUTHORIZED_KEYS}"; then
-  cat "${SECRETS_DIR}"/id_rsa.pub >> "${AUTHORIZED_KEYS}"
+PUBLIC_KEY=$(cat "${SECRETS_DIR}"/id_rsa.pub)
+if ! grep -q "${PUBLIC_KEY}" "${AUTHORIZED_KEYS}"; then
+  echo "${PUBLIC_KEY}" >> "${AUTHORIZED_KEYS}"
 fi
 
 # if localhost is not listening to port 22, enable macos remote login

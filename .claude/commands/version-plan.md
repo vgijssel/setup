@@ -1,6 +1,10 @@
 ---
+name: version-plan
 description: Create version plans for changed projects
+argument-hint: [High level description of changes]
 ---
+
+## Plan
 
 The goal is to have a clear description for each change for the release notes for each project. 
 
@@ -21,3 +25,9 @@ Add support for Node 20 in the devcontainer
 ```
 
 Once this is done run `nx release plan:check` to validate if a version plan exists for each changed project. If the check fails redo the steps above until the check passes.
+
+## User Input
+
+```
+$ARGUMENTS
+```

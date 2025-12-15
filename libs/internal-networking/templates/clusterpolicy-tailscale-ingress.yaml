@@ -1,0 +1,76 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-tailscale-ingress
+  annotations:
+    policies.kyverno.io/title: Generate Tailscale Service Pointing to Nginx
+    policies.kyverno.io/category: Networking
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Service
+    policies.kyverno.io/description: >-
+      Automatically generates a Tailscale-backed Service for every tenant-* Ingress
+      that points to the nginx-ingress controller pods. This enables per-service Tailscale ACLs while leveraging
+      nginx's TLS termination with cert-manager certificates. Ingresses with internal-networking/expose annotation are
+      skipped as they use gateway ingress controllers instead. Generated services are marked with
+      internal-networking/processed annotation to prevent recursion.
+    # Hash of immutable fields - used by pre-upgrade hook to detect changes
+    internal-networking/immutable-hash: {{ include "internal-networking.tailscalePolicyHash" . | quote }}
+  labels:
+    {{- include "internal-networking.labels" . | nindent 4 }}
+spec:
+  generateExisting: true
+  rules:
+    # Generate Tailscale service for ingresses (excluding those marked for gateway exposure)
+    - name: mirror-ingress-to-tailscale-service
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+      preconditions:
+        all:
+          # Only process tenant-* ingress classes
+          - key: "{{"{{"}} starts_with(request.object.spec.ingressClassName || '', 'tenant-') {{"}}"}}"
+            operator: Equals
+            value: true
+          # CRITICAL: Skip already-processed resources (prevents infinite loops)
+          - key: '{{"{{ request.object.metadata.annotations.\"internal-networking/processed\" || '''' }}"}}'
+            operator: NotEquals
+            value: "true"
+          # Skip if ingress has skip annotation
+          - key: '{{"{{ request.object.metadata.annotations.\"tailscale-ingress-mirror/skip\" || ''false'' }}"}}'
+            operator: NotEquals
+            value: "true"
+          # Skip ingresses marked for gateway exposure (public internet via VPS)
+          - key: '{{"{{ request.object.metadata.annotations.\"internal-networking/expose\" || ''false'' }}"}}'
+            operator: NotEquals
+            value: "true"
+      generate:
+        synchronize: true
+        apiVersion: v1
+        kind: Service
+        name: "{{"{{ request.object.metadata.name }}"}}-tailscale"
+        namespace: {{ .Values.tailscaleIngress.nginxNamespace | quote }}
+        data:
+          metadata:
+            labels:
+              internal-networking: "true"
+              app.kubernetes.io/managed-by: kyverno
+              kyverno.io/generated-by: generate-tailscale-ingress
+            annotations:
+              internal-networking/processed: "true"
+              external-dns.alpha.kubernetes.io/hostname: "{{"{{ request.object.spec.rules[0].host }}"}}"
+              tailscale.com/hostname: "{{`{{`}} replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', '') {{`}}`}}"
+          spec:
+            type: LoadBalancer
+            loadBalancerClass: tailscale
+            externalTrafficPolicy: Cluster
+            selector:
+              {{- range $key, $value := .Values.tailscaleIngress.nginxSelector }}
+              {{ $key }}: {{ $value | quote }}
+              {{- end }}
+            ports:
+              - name: https
+                port: 443
+                targetPort: 443
+                protocol: TCP

@@ -1,0 +1,61 @@
+command:
+  kubespan_peers_up:
+    title: Validate KubeSpan peers are up on all nodes
+    exec: talosctl get kubespanpeerstatuses -n 192.168.50.10,192.168.50.11,192.168.50.12 -e 192.168.50.10 -o json | jq -se '[.[].spec.state] | all(. == "up")'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 10000
+  kubespan_discovery_enabled:
+    title: Validate cluster discovery is enabled
+    exec: talosctl get discoveryconfig -n 192.168.50.10 -e 192.168.50.10 -o json | jq -e '.spec.discoveryEnabled'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 10000
+  clusterkeycloak_connected:
+    title: Validate ClusterKeycloak is connected
+    exec: kubectl get clusterkeycloak keycloak-cozy -o jsonpath='{.status.connected}'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 10000
+  helm_releases_ready:
+    title: Validate all HelmRelease resources are Ready
+    exec: kubectl get hr -A -o json | jq -r '.items[] | select(any(.status.conditions[]; .type=="Ready" and (.status == "True" | not))) | "\(.metadata.namespace)/\(.metadata.name)"'
+    exit-status: 0
+    stdout: ""
+    stderr: ""
+    timeout: 10000
+  cozy_system_pods_healthy:
+    title: Validate all pods in cozy-system namespace are Running or Succeeded
+    exec: kubectl get pods -n cozy-system -o json | jq -e '[.items[] | select(.status.phase != "Running" and .status.phase != "Succeeded")] | length == 0'
+    exit-status: 0
+    stdout: []
+    stderr: ""
+    timeout: 10000
+addr:
+  tcp://192.168.50.50:6443:
+    title: Validate Kubernetes API reachability on kubevip
+    reachable: true
+    timeout: 5000
+  tcp://192.168.50.10:50000:
+    title: Validate Talos API port reachability on illusion node
+    reachable: true
+    timeout: 5000
+  tcp://192.168.50.11:50000:
+    title: Validate Talos API port reachability on the-dome node
+    reachable: true
+    timeout: 5000
+  tcp://192.168.50.12:50000:
+    title: Validate Talos API port reachability on the-toy-factory node
+    reachable: true
+    timeout: 5000
+http:
+  https://dashboard.enigma.vgijssel.nl:
+    title: Validate CozyStack dashboard is accessible
+    status: 200
+    timeout: 5000

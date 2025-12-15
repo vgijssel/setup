@@ -23,49 +23,67 @@ tasks:
     deps: [generate:bootstrap]
     desc: Apply the Talos configuration to bootstrap the cluster
     cmds:
-      - talm apply -f nodes/illusion.yaml --insecure -e 192.168.1.42 -n 192.168.1.42
-      - talm apply -f nodes/the-dome.yaml --insecure -e 192.168.1.41 -n 192.168.1.41
-      - talm apply -f nodes/the-toy-factory.yaml --insecure -e 192.168.1.40 -n 192.168.1.40
+      - talosctl apply-config --insecure -n 192.168.1.42 -e 192.168.1.42 --file dist/illusion.yaml
+      - talosctl apply-config --insecure -n 192.168.1.41 -e 192.168.1.41 --file dist/the-dome.yaml
+      - talosctl apply-config --insecure -n 192.168.1.40 -e 192.168.1.40 --file dist/the-toy-factory.yaml
+      - talosctl apply-config --insecure -n 46.224.93.115 -e 46.224.93.115 --file dist/here-i-am.yaml
       - wait-for-it --service 192.168.50.10:50000
       - wait-for-it --service 192.168.50.11:50000
       - wait-for-it --service 192.168.50.12:50000
-      - talm bootstrap -f nodes/illusion.yaml
-      - talm kubeconfig ~/.kube/configs/enigma.yaml --force -f nodes/illusion.yaml
+      - wait-for-it --service 46.224.93.115:50000
+      - talosctl bootstrap -n 192.168.50.10 -e 192.168.50.10
+      - talosctl kubeconfig --force -n 192.168.50.50 kubeconfig.admin
 
   apply:
     deps: [generate]
     desc: Apply the Talos configuration to the cluster
     cmds:
-      - talm apply -f nodes/illusion.yaml
-      - talm apply -f nodes/the-dome.yaml
-      - talm apply -f nodes/the-toy-factory.yaml
+      - talosctl apply-config -n 192.168.50.10 -e 192.168.50.10 --file dist/illusion.yaml
+      - talosctl apply-config -n 192.168.50.11 -e 192.168.50.11 --file dist/the-dome.yaml
+      - talosctl apply-config -n 192.168.50.12 -e 192.168.50.12 --file dist/the-toy-factory.yaml
+      - talosctl apply-config -n 46.224.93.115 -e 46.224.93.115 --file dist/here-i-am.yaml
 
   reboot:
     desc: Reboot Talos nodes
     cmds:
-      - talm reboot --mode powercycle -f nodes/illusion.yaml -f nodes/the-dome.yaml -f nodes/the-toy-factory.yaml
-
-  # validate - the ingress controller lives at 192.168.50.100!! This is required by omada to forward traffic
-  #   validate:
-  #     desc: Validate Cluster Health
-  #     cmds:
-  #       - goss validate
-
-  #shutdown:
-  #desc: Shutdown Talos nodes
-  #cmds:
-  #- talosctl shutdown -n 192.168.1.40,192.168.1.41,192.168.1.42
+      - talosctl reboot -n 192.168.50.10,192.168.50.11,192.168.50.12
 
   generate:bootstrap:
     desc: Generate the Talos configuration files for bootstrapping
     cmds:
-      - talm template -e 192.168.1.42 -n 192.168.1.42 -t templates/controlplane.yaml --set nodeName=illusion --insecure > nodes/illusion.yaml
-      - talm template -e 192.168.1.41 -n 192.168.1.41 -t templates/controlplane.yaml --set nodeName=the-dome --insecure > nodes/the-dome.yaml
-      - talm template -e 192.168.1.40 -n 192.168.1.40 -t templates/controlplane.yaml --set nodeName=the-toy-factory --insecure > nodes/the-toy-factory.yaml
+      - mkdir -p dist
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o dist/illusion.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
+    sources:
+      - all.patch.yaml
+      - illusion.patch.yaml
+      - the-dome.patch.yaml
+      - the-toy-factory.patch.yaml
+      - here-i-am.patch.yaml
+    generates:
+      - dist/illusion.yaml
+      - dist/the-dome.yaml
+      - dist/the-toy-factory.yaml
+      - dist/here-i-am.yaml
 
   generate:
     desc: Generate the Talos configuration files
     cmds:
-      - talm template -e 192.168.50.10 -n 192.168.50.10 -t templates/controlplane.yaml --set nodeName=illusion > nodes/illusion.yaml
-      - talm template -e 192.168.50.11 -n 192.168.50.11 -t templates/controlplane.yaml --set nodeName=the-dome > nodes/the-dome.yaml
-      - talm template -e 192.168.50.12 -n 192.168.50.12 -t templates/controlplane.yaml --set nodeName=the-toy-factory > nodes/the-toy-factory.yaml
+      - mkdir -p dist
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o dist/illusion.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
+    sources:
+      - all.patch.yaml
+      - illusion.patch.yaml
+      - the-dome.patch.yaml
+      - the-toy-factory.patch.yaml
+      - here-i-am.patch.yaml
+    generates:
+      - dist/illusion.yaml
+      - dist/the-dome.yaml
+      - dist/the-toy-factory.yaml
+      - dist/here-i-am.yaml

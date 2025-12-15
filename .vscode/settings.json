@@ -1,4 +1,10 @@
 {
   "editor.formatOnSave": true,
-  "terminal.integrated.fontFamily": "FiraCode Nerd Font"
+  "terminal.integrated.fontFamily": "FiraCode Nerd Font",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "third_party/vendir/**": true
+  }
 }
