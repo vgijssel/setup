@@ -9,4 +9,3 @@ resources:
   - helmrelease-1password-operator.yaml
   - helmrelease-1password-secrets.yaml
   - helmrelease-coder.yaml
-  - ingress-coder.yaml

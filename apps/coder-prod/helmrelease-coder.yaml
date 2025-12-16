@@ -52,15 +52,22 @@ spec:
           value: postgres://$(PG_USER):$(PG_PASSWORD)@$(PG_HOST):5432/$(PG_DATABASE)?sslmode=require
         # Access URLs for Tailscale ingress
         - name: CODER_ACCESS_URL
-          value: https://coder
+          value: https://coder.enigma.vgijssel.nl
         - name: CODER_WILDCARD_ACCESS_URL
-          value: "*.coder"
+          value: "*.coder.enigma.vgijssel.nl"
       # Use ClusterIP since we expose via Tailscale Ingress
       service:
         type: ClusterIP
-      # Disable built-in ingress - we use Tailscale Ingress instead
+      # Enable built-in ingress
       ingress:
-        enable: false
+        enable: true
+        className: "nginx"
+        host: "coder.enigma.vgijssel.nl"
+        wildcardHost: "*.coder.enigma.vgijssel.nl"
+        tls:
+          enable: true
+          secretName: "coder-tls"
+          wildcardSecretName: "coder-wildcard-tls"
       # Resource constraints
       resources:
         requests:
