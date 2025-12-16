@@ -66,9 +66,10 @@ spec:
             loadBalancerClass: tailscale
             externalTrafficPolicy: Cluster
             selector:
-              {{- range $key, $value := .Values.tailscaleIngress.nginxSelector }}
-              {{ $key }}: {{ $value | quote }}
-              {{- end }}
+              # Target only ingress controller pods, not the default-backend
+              app.kubernetes.io/name: "ingress-nginx"
+              app.kubernetes.io/instance: "ingress-nginx-system"
+              app.kubernetes.io/component: "controller"
             ports:
               - name: http
                 port: 80
