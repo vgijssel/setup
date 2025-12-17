@@ -48,6 +48,11 @@ tasks:
     cmds:
       - talosctl reboot -n 192.168.50.10,192.168.50.11,192.168.50.12
 
+  upgrade:talos:
+    desc: Upgrade Talos OS images on cluster nodes (rolling upgrade)
+    cmds:
+      - ./scripts/upgrade-talos.sh {{.CLI_ARGS}}
+
   generate:bootstrap:
     desc: Generate the Talos configuration files for bootstrapping
     cmds:

@@ -21,6 +21,12 @@
         "options": {
           "cwd": "{projectRoot}"
         }
+      },
+      "upgrade-talos": {
+        "command": "./scripts/upgrade-talos.sh",
+        "options": {
+          "cwd": "{projectRoot}"
+        }
       }
     },
     "tags": [
@@ -33,6 +39,11 @@
         "cozystack/cozystack": {
           "version": "v0.38.3",
           "datasource": "github-releases"
+        },
+        "cozystack/talos": {
+          "version": "v1.11.3",
+          "datasource": "docker",
+          "packageName": "ghcr.io/cozystack/cozystack/talos"
         }
       }
     }
