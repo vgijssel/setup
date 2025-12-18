@@ -13,10 +13,10 @@ tasks:
     deps: [generate:bootstrap]
     desc: Apply the Talos configuration to bootstrap the cluster
     cmds:
-      - talosctl apply-config --insecure -n 192.168.1.42 -e 192.168.1.42 --file secrets.tmpfs/dist/illusion.yaml
-      - talosctl apply-config --insecure -n 192.168.1.41 -e 192.168.1.41 --file secrets.tmpfs/dist/the-dome.yaml
-      - talosctl apply-config --insecure -n 192.168.1.40 -e 192.168.1.40 --file secrets.tmpfs/dist/the-toy-factory.yaml
-      - talosctl apply-config --insecure -n 46.224.93.115 -e 46.224.93.115 --file secrets.tmpfs/dist/here-i-am.yaml
+      - talosctl apply-config --insecure -n 192.168.1.42 -e 192.168.1.42 --file /secrets/setup-enigma-cozy/dist/illusion.yaml
+      - talosctl apply-config --insecure -n 192.168.1.41 -e 192.168.1.41 --file /secrets/setup-enigma-cozy/dist/the-dome.yaml
+      - talosctl apply-config --insecure -n 192.168.1.40 -e 192.168.1.40 --file /secrets/setup-enigma-cozy/dist/the-toy-factory.yaml
+      - talosctl apply-config --insecure -n 46.224.93.115 -e 46.224.93.115 --file /secrets/setup-enigma-cozy/dist/here-i-am.yaml
       - wait-for-it --service 192.168.50.10:50000
       - wait-for-it --service 192.168.50.11:50000
       - wait-for-it --service 192.168.50.12:50000
@@ -28,10 +28,10 @@ tasks:
     deps: [generate]
     desc: Apply the Talos configuration to the cluster
     cmds:
-      - talosctl apply-config -n 192.168.50.10 -e 192.168.50.10 --file secrets.tmpfs/dist/illusion.yaml
-      - talosctl apply-config -n 192.168.50.11 -e 192.168.50.11 --file secrets.tmpfs/dist/the-dome.yaml
-      - talosctl apply-config -n 192.168.50.12 -e 192.168.50.12 --file secrets.tmpfs/dist/the-toy-factory.yaml
-      - talosctl apply-config -n 46.224.93.115 -e 46.224.93.115 --file secrets.tmpfs/dist/here-i-am.yaml
+      - talosctl apply-config -n 192.168.50.10 -e 192.168.50.10 --file /secrets/setup-enigma-cozy/dist/illusion.yaml
+      - talosctl apply-config -n 192.168.50.11 -e 192.168.50.11 --file /secrets/setup-enigma-cozy/dist/the-dome.yaml
+      - talosctl apply-config -n 192.168.50.12 -e 192.168.50.12 --file /secrets/setup-enigma-cozy/dist/the-toy-factory.yaml
+      - talosctl apply-config -n 46.224.93.115 -e 46.224.93.115 --file /secrets/setup-enigma-cozy/dist/here-i-am.yaml
 
   reboot:
     desc: Reboot Talos nodes
@@ -46,41 +46,17 @@ tasks:
   generate:bootstrap:
     desc: Generate the Talos configuration files for bootstrapping
     cmds:
-      - mkdir -p secrets.tmpfs/dist
-      - talosctl gen config --with-secrets secrets.tmpfs/secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o secrets.tmpfs/dist/illusion.yaml enigma-cozy https://192.168.50.50:6443 --force
-      - talosctl gen config --with-secrets secrets.tmpfs/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o secrets.tmpfs/dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
-      - talosctl gen config --with-secrets secrets.tmpfs/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o secrets.tmpfs/dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
-      - talosctl gen config --with-secrets secrets.tmpfs/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o secrets.tmpfs/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
-    sources:
-      - secrets.tmpfs/secrets.yaml
-      - all.patch.yaml
-      - illusion.patch.yaml
-      - the-dome.patch.yaml
-      - the-toy-factory.patch.yaml
-      - here-i-am.patch.yaml
-    generates:
-      - secrets.tmpfs/dist/illusion.yaml
-      - secrets.tmpfs/dist/the-dome.yaml
-      - secrets.tmpfs/dist/the-toy-factory.yaml
-      - secrets.tmpfs/dist/here-i-am.yaml
+      - mkdir -p /secrets/setup-enigma-cozy/dist
+      - talosctl gen config --with-secrets /secrets/setup-enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o /secrets/setup-enigma-cozy/dist/illusion.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets /secrets/setup-enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o /secrets/setup-enigma-cozy/dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets /secrets/setup-enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o /secrets/setup-enigma-cozy/dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets /secrets/setup-enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o /secrets/setup-enigma-cozy/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
 
   generate:
     desc: Generate the Talos configuration files
     cmds:
-      - mkdir -p secrets.tmpfs/dist
-      - talosctl gen config --with-secrets secrets.tmpfs/secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o secrets.tmpfs/dist/illusion.yaml enigma-cozy https://192.168.50.50:6443 --force
-      - talosctl gen config --with-secrets secrets.tmpfs/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o secrets.tmpfs/dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
-      - talosctl gen config --with-secrets secrets.tmpfs/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o secrets.tmpfs/dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
-      - talosctl gen config --with-secrets secrets.tmpfs/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o secrets.tmpfs/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
-    sources:
-      - secrets.tmpfs/secrets.yaml
-      - all.patch.yaml
-      - illusion.patch.yaml
-      - the-dome.patch.yaml
-      - the-toy-factory.patch.yaml
-      - here-i-am.patch.yaml
-    generates:
-      - secrets.tmpfs/dist/illusion.yaml
-      - secrets.tmpfs/dist/the-dome.yaml
-      - secrets.tmpfs/dist/the-toy-factory.yaml
-      - secrets.tmpfs/dist/here-i-am.yaml
+      - mkdir -p /secrets/setup-enigma-cozy/dist
+      - talosctl gen config --with-secrets /secrets/setup-enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o /secrets/setup-enigma-cozy/dist/illusion.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets /secrets/setup-enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o /secrets/setup-enigma-cozy/dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets /secrets/setup-enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o /secrets/setup-enigma-cozy/dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
+      - talosctl gen config --with-secrets /secrets/setup-enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o /secrets/setup-enigma-cozy/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force

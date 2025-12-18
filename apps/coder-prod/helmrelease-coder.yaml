@@ -65,9 +65,7 @@ spec:
         host: "coder.enigma.vgijssel.nl"
         wildcardHost: "*.coder.enigma.vgijssel.nl"
         tls:
-          enable: true
-          secretName: "coder-tls"
-          wildcardSecretName: "coder-wildcard-tls"
+          enable: false
       # Resource constraints
       resources:
         requests:

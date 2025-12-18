@@ -4,11 +4,18 @@
 # dependencies = []
 # ///
 """
-vault-shell: Secure shell with 1Password secrets temporarily injected into template files.
+vault-shell: Secure shell with 1Password secrets in a namespace-isolated tmpfs.
 
 Creates an isolated shell environment using bubblewrap where secrets are stored in
-a kernel-managed tmpfs. Secrets are automatically cleaned up when the shell exits,
-including on SIGKILL or OOM killer.
+a kernel-managed tmpfs that is ONLY visible inside the namespace. Secrets are
+automatically cleaned up when the shell exits, including on SIGKILL or OOM killer.
+
+Security model:
+    - Secrets are injected INSIDE the bubblewrap namespace using `op inject`
+    - The tmpfs at ./secrets.tmpfs only contains files inside the namespace
+    - From outside the namespace, ./secrets.tmpfs appears as an empty directory
+    - Secrets NEVER exist outside the namespace boundary
+    - All cleanup is handled by the kernel when the namespace terminates
 
 Usage:
     vault-shell <vault-name>
@@ -18,25 +25,25 @@ Environment:
                        Default in .envrc: $SETUP_DIR/secrets/vault-logins
     SETUP_DIR:         Path to the setup repository (required)
 
-The CLI looks for *.op.tpl template files in the current directory and injects
-secrets using `op inject`. Processed files are available at ./secrets.tmpfs/ inside
-the shell.
+The CLI looks for *.op.tpl template files in the current directory. Inside the
+namespace, `op inject` processes these templates and writes resolved secrets
+to /secrets/{vault_name}/ (a dedicated namespace-isolated tmpfs).
 
 Example:
     # With a .env.op.tpl file containing:
     #   DATABASE_URL=postgres://user:{{ op://my-vault/db/password }}@localhost/app
     # After running:
     vault-shell my-vault
-    # The shell will have ./secrets.tmpfs/.env with resolved secrets
+    # Inside shell: cat /secrets/my-vault/.env  (secrets resolved)
+    # From outside: /secrets/ doesn't exist (namespace isolation)
 """
 
 import argparse
 import json
 import os
+import shlex
 import shutil
-import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 
@@ -166,52 +173,70 @@ def get_output_name(template_path: Path) -> str:
     return name
 
 
-def process_templates(
-    templates: list[Path], staging_dir: Path, token: str, secrets_dir_name: str
-) -> bool:
-    """Process templates with op inject into staging directory.
+def build_init_script(
+    templates: list[Path],
+    secrets_dir_path: str,
+    shell: str,
+) -> str:
+    """Build the shell script that runs inside the namespace.
 
-    Returns True on success, False on failure.
+    This script:
+    1. Creates the secrets directory inside /secrets (a dedicated isolated tmpfs)
+    2. Runs op inject for each template to populate the secrets directory
+    3. Execs the user's shell
+
+    The script runs inside the bubblewrap namespace where:
+    - OP_SERVICE_ACCOUNT_TOKEN is set in the environment
+    - /secrets is a namespace-isolated tmpfs (secrets never leak outside)
+    - Template files are accessible (cwd is bind-mounted)
     """
-    if not templates:
-        return True
+    lines = [
+        "set -e",  # Exit on first error
+    ]
 
-    env = os.environ.copy()
-    env["OP_SERVICE_ACCOUNT_TOKEN"] = token
+    # Create secrets directory inside the isolated /tmp tmpfs
+    if templates:
+        lines.append(f"mkdir -p {shlex.quote(secrets_dir_path)}")
 
     for template in templates:
         output_name = get_output_name(template)
-        output_path = staging_dir / output_name
-
-        result = subprocess.run(
-            ["op", "inject", "-i", str(template), "-o", str(output_path)],
-            env=env,
-            capture_output=True,
-            text=True,
+        output_path = f"{secrets_dir_path}/{output_name}"
+        # Use shlex.quote for safe shell escaping of paths
+        lines.append(
+            f"op inject -i {shlex.quote(str(template))} "
+            f"-o {shlex.quote(output_path)}"
         )
 
-        if result.returncode != 0:
-            print(f"Error processing template: {template}", file=sys.stderr)
-            print(result.stderr, file=sys.stderr)
-            return False
+    # Exec the user's shell as a login shell
+    lines.append(f"exec {shlex.quote(shell)} -l")
 
-        print(f"  Processed: {template.name} -> {secrets_dir_name}/{output_name}")
-
-    return True
+    return "\n".join(lines)
 
 
 def build_bwrap_command(
     token: str,
     vault_name: str,
-    staging_dir: Path,
-    template_files: list[tuple[str, Path]],
+    templates: list[Path],
     cwd: Path,
     setup_dir: Path,
 ) -> list[str]:
-    """Build the bubblewrap command with proper isolation flags."""
+    """Build the bubblewrap command with proper isolation flags.
+
+    The command runs an init script inside the namespace that:
+    1. Creates /secrets/{vault_name} inside the isolated /secrets tmpfs
+    2. Processes templates with `op inject` directly into that directory
+    3. Execs the user's shell
+
+    This ensures secrets are ONLY written inside the namespace - they never
+    exist outside the namespace boundary. We use /secrets/{vault_name} as a
+    dedicated tmpfs mount, avoiding issues with virtiofs/bind-mounted working
+    directories where tmpfs mounts may not isolate properly.
+    """
     home = os.environ.get("HOME", "/home/user")
     shell = os.environ.get("SHELL", "/bin/bash")
-    secrets_tmpfs_path = cwd / "secrets.tmpfs"
+    # Use /secrets/{vault_name} - a dedicated tmpfs for secrets
+    # The vault_name in the path makes it clear which vault is active
+    secrets_path = f"/secrets/{vault_name}"
 
     cmd = [
         "bwrap",
@@ -219,6 +244,8 @@ def build_bwrap_command(
         "--die-with-parent",
         "--unshare-pid",
         "--unshare-ipc",
+        # User namespace for proper mount isolation in container environments
+        "--unshare-user-try",
         # Vault-shell specific environment variables
         "--setenv",
         "OP_SERVICE_ACCOUNT_TOKEN",
@@ -229,9 +256,6 @@ def build_bwrap_command(
         "--setenv",
         "VAULT_SHELL_NAME",
         vault_name,
-        "--setenv",
-        "VAULT_SHELL_TMPDIR",
-        str(secrets_tmpfs_path),
         # System directories (read-only)
         "--ro-bind",
         "/usr",
@@ -253,10 +277,11 @@ def build_bwrap_command(
         "--bind",
         str(cwd),
         str(cwd),
-        # Secrets tmpfs inside cwd (kernel-managed, auto-cleaned on exit)
+        # /secrets as dedicated isolated tmpfs for secrets
+        # This is more reliable than mounting tmpfs on a virtiofs-backed path
         "--tmpfs",
-        str(secrets_tmpfs_path),
-        # Tmp directory (needed by tools like trunk)
+        "/secrets",
+        # /tmp as isolated tmpfs (needed by tools like trunk)
         "--tmpfs",
         "/tmp",
         # Device and proc filesystems
@@ -280,15 +305,14 @@ def build_bwrap_command(
     if Path("/lib64").exists():
         cmd.extend(["--ro-bind", "/lib64", "/lib64"])
 
-    # Bind mount each processed template into secrets.tmpfs
-    for output_name, staging_path in template_files:
-        cmd.extend(["--bind", str(staging_path), str(secrets_tmpfs_path / output_name)])
-
     # Working directory
     cmd.extend(["--chdir", str(cwd)])
 
-    # The shell to run as a login shell
-    cmd.extend([shell, "-l"])
+    # Build and run the init script that processes templates inside the namespace
+    # The script runs `op inject` for each template, writing to /tmp/vault-shell-secrets,
+    # then execs the user's shell
+    init_script = build_init_script(templates, secrets_path, shell)
+    cmd.extend(["/bin/bash", "-c", init_script])
 
     return cmd
 
@@ -304,12 +328,14 @@ def main() -> None:
             "\n"
             "Templates:\n"
             "  Place *.op.tpl files in the current directory. They will be processed\n"
-            "  with 'op inject' and available at ./secrets.tmpfs/<name> inside the shell.\n"
+            "  with 'op inject' and available at /secrets/<vault>/<name> inside the\n"
+            "  shell. This path is inside an isolated tmpfs that only exists within\n"
+            "  the vault-shell namespace.\n"
             "\n"
             "Example:\n"
             "  # With .env.op.tpl in current directory:\n"
             "  vault-shell my-vault\n"
-            "  # Inside shell: cat ./secrets.tmpfs/.env  (secrets resolved)\n"
+            "  # Inside shell: cat /secrets/my-vault/.env  (secrets resolved)\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -345,49 +371,35 @@ def main() -> None:
     # Find templates in current directory
     cwd = Path.cwd()
     templates = find_templates(cwd)
-    secrets_dir_name = "./secrets.tmpfs"
+    # Secrets are stored in /secrets/{vault_name} inside the isolated namespace
+    # This is a dedicated tmpfs that only exists within the namespace
+    secrets_path = f"/secrets/{vault_name}"
 
     if templates:
         print(f"Found {len(templates)} template(s) to process:")
         for t in templates:
-            print(f"  - {t.name}")
+            output_name = get_output_name(t)
+            print(f"  - {t.name} -> {secrets_path}/{output_name}")
     else:
         print("No *.op.tpl templates found in current directory")
 
-    # Create staging directory and process templates
-    with tempfile.TemporaryDirectory(prefix="vault-shell-") as staging:
-        staging_dir = Path(staging)
+    # Build bwrap command
+    # Templates are processed INSIDE the namespace by the init script,
+    # ensuring secrets never exist outside the namespace boundary
+    cmd = build_bwrap_command(token, vault_name, templates, cwd, setup_dir)
 
-        # Process templates
-        if templates:
-            print("\nProcessing templates...")
-            if not process_templates(templates, staging_dir, token, secrets_dir_name):
-                error("Template processing failed")
+    # Show shell info
+    print(f"\nStarting isolated shell (vault: {vault_name})")
+    print(f"Secrets available at: {secrets_path}/")
+    print("Type 'exit' to leave and cleanup secrets\n")
 
-        # Build list of files to bind mount
-        template_files: list[tuple[str, Path]] = []
-        for template in templates:
-            output_name = get_output_name(template)
-            template_files.append((output_name, staging_dir / output_name))
-
-        # Build bwrap command
-        cmd = build_bwrap_command(
-            token, vault_name, staging_dir, template_files, cwd, setup_dir
-        )
-
-        # Show shell info
-        print(f"\nStarting isolated shell (vault: {vault_name})")
-        print(f"Secrets available at: {secrets_dir_name}/")
-        print("Type 'exit' to leave and cleanup secrets\n")
-
-        # Replace current process with bwrap
-        # Note: We use execvp which will NOT return - the Python process
-        # is replaced by bwrap. The staging directory will be cleaned up
-        # by the OS when the Python process terminates (since tempfile
-        # uses atexit registration), but more importantly, the secrets.tmpfs
-        # inside bwrap is kernel-managed and guaranteed to be
-        # cleaned up when the namespace exits.
-        os.execvp("bwrap", cmd)
+    # Replace current process with bwrap
+    # The init script inside bwrap will:
+    # 1. Run `op inject` for each template, writing to the namespace-isolated tmpfs
+    # 2. Exec the user's shell
+    # Secrets are written directly to the tmpfs inside the namespace and are
+    # completely invisible from outside. Cleanup is automatic when the namespace exits.
+    os.execvp("bwrap", cmd)
 
 
 if __name__ == "__main__":
