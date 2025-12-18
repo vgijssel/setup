@@ -42,6 +42,31 @@ command:
     exec: echo | openssl s_client -connect api.enigma.vgijssel.nl:443 -servername api.enigma.vgijssel.nl 2>/dev/null | openssl x509 -noout -text | grep -q "DNS:api.enigma.vgijssel.nl"
     exit-status: 0
     timeout: 10000
+  keycloak_db_primary_has_endpoints:
+    title: Validate Keycloak PostgreSQL primary service has endpoints
+    exec: kubectl get endpoints keycloak-db-rw -n cozy-keycloak -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null
+    exit-status: 0
+    stdout:
+      - "/^10\\./"
+    stderr: ""
+    timeout: 10000
+  multus_pods_running_on_all_nodes:
+    title: Validate Multus CNI pods are running on all nodes
+    exec: |
+      expected=$(kubectl get nodes --no-headers | wc -l)
+      running=$(kubectl get pods -n cozy-multus -l app=multus --field-selector=status.phase=Running --no-headers | wc -l)
+      [ "$expected" -eq "$running" ] && echo "true" || echo "false: expected $expected, got $running"
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 10000
+  cnpg_operator_running:
+    title: Validate CloudNativePG operator is running
+    exec: kubectl get pods -n cozy-postgres-operator -l app.kubernetes.io/name=cloudnative-pg --field-selector=status.phase=Running --no-headers | wc -l | xargs test 1 -le
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip
