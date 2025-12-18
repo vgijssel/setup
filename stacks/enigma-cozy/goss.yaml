@@ -1,12 +1,15 @@
 command:
   kubespan_peers_up:
     title: Validate KubeSpan peers are up on all nodes
-    exec: talosctl get kubespanpeerstatuses -n 192.168.50.10,192.168.50.11,192.168.50.12 -e 192.168.50.10 -o json | jq -se '[.[].spec.state] | all(. == "up")'
+    exec: |
+      for node in 192.168.50.10 192.168.50.11 192.168.50.12; do
+        talosctl get kubespanpeerstatuses -n $node -e $node -o json 2>/dev/null | jq -se '[.[].spec.state] | all(. == "up")' || echo "false"
+      done | grep -v true && echo "false" || echo "true"
     exit-status: 0
     stdout:
       - "true"
     stderr: ""
-    timeout: 10000
+    timeout: 30000
   kubespan_discovery_enabled:
     title: Validate cluster discovery is enabled
     exec: talosctl get discoveryconfig -n 192.168.50.10 -e 192.168.50.10 -o json | jq -e '.spec.discoveryEnabled'
@@ -59,6 +62,23 @@ command:
     exit-status: 0
     stdout:
       - "true"
+    stderr: ""
+    timeout: 10000
+  multus_memory_limit_sufficient:
+    title: Validate Multus CNI has sufficient memory limit (>=500Mi) to handle post-reboot burst
+    exec: |
+      limit=$(kubectl get daemonset cozy-multus -n cozy-multus -o jsonpath='{.spec.template.spec.containers[?(@.name=="kube-multus")].resources.limits.memory}')
+      # Convert to bytes for comparison (handles Mi, Gi suffixes)
+      limit_bytes=$(echo "$limit" | awk '/Gi/{print $1*1024*1024*1024; next} /Mi/{print $1*1024*1024; next} /Ki/{print $1*1024; next} {print $1}' | sed 's/[^0-9]//g')
+      min_bytes=$((500 * 1024 * 1024))
+      if [ "$limit_bytes" -ge "$min_bytes" ]; then
+        echo "true: $limit"
+      else
+        echo "false: $limit is below 500Mi minimum"
+      fi
+    exit-status: 0
+    stdout:
+      - "/^true:/"
     stderr: ""
     timeout: 10000
   cnpg_operator_running:
