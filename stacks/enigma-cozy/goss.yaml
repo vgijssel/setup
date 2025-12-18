@@ -59,3 +59,7 @@ http:
     title: Validate CozyStack dashboard is accessible
     status: 200
     timeout: 5000
+  https://api.enigma.vgijssel.nl:
+    title: Validate Kubernetes API certificate matches domain
+    status: 401
+    timeout: 5000

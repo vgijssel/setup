@@ -1,9 +1,9 @@
 #!/bin/bash
-# Binstub for supervisord
+# Binstub for vault-login CLI tool
 
 set -eo pipefail
 
 LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
 EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
 
-exec ${EXEC_BIN} uv run --project "${LOCAL_SETUP_DIR}"/third_party/python supervisord "$@"
+exec ${EXEC_BIN} uv run "${LOCAL_SETUP_DIR}"/libs/vault-login/vault-login.py "$@"

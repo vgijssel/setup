@@ -65,6 +65,7 @@ cluster:
       oidc-groups-claim: groups
     certSANs:
       - 127.0.0.1
+      - api.enigma.vgijssel.nl
   controllerManager:
     extraArgs:
       bind-address: 0.0.0.0
