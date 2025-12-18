@@ -16,16 +16,18 @@ Usage:
 Environment:
     VAULT_SECRETS_DIR: Directory containing vault token files (required)
                        Default in .envrc: $SETUP_DIR/secrets/vault-logins
+    SETUP_DIR:         Path to the setup repository (required)
 
 The CLI looks for *.op.tpl template files in the current directory and injects
-secrets using `op inject`. Processed files are available at /secrets inside the shell.
+secrets using `op inject`. Processed files are available at ./secrets.tmpfs/ inside
+the shell.
 
 Example:
     # With a .env.op.tpl file containing:
     #   DATABASE_URL=postgres://user:{{ op://my-vault/db/password }}@localhost/app
     # After running:
     vault-shell my-vault
-    # The shell will have /secrets/.env with resolved secrets
+    # The shell will have ./secrets.tmpfs/.env with resolved secrets
 """
 
 import argparse
@@ -74,6 +76,17 @@ def check_op_available() -> None:
             "'op' (1Password CLI) is not installed.",
             "Install from: https://developer.1password.com/docs/cli/",
         )
+
+
+def get_setup_dir() -> Path:
+    """Get the setup directory from environment variable."""
+    setup_dir = os.environ.get("SETUP_DIR")
+    if not setup_dir:
+        error(
+            "SETUP_DIR environment variable not set.",
+            "This should be set by direnv. Run 'direnv allow' in the setup directory.",
+        )
+    return Path(setup_dir)
 
 
 def get_secrets_dir() -> Path:
@@ -153,7 +166,9 @@ def get_output_name(template_path: Path) -> str:
     return name
 
 
-def process_templates(templates: list[Path], staging_dir: Path, token: str) -> bool:
+def process_templates(
+    templates: list[Path], staging_dir: Path, token: str, secrets_dir_name: str
+) -> bool:
     """Process templates with op inject into staging directory.
 
     Returns True on success, False on failure.
@@ -180,21 +195,23 @@ def process_templates(templates: list[Path], staging_dir: Path, token: str) -> b
             print(result.stderr, file=sys.stderr)
             return False
 
-        print(f"  Processed: {template.name} -> /secrets/{output_name}")
+        print(f"  Processed: {template.name} -> {secrets_dir_name}/{output_name}")
 
     return True
 
 
 def build_bwrap_command(
     token: str,
+    vault_name: str,
     staging_dir: Path,
     template_files: list[tuple[str, Path]],
     cwd: Path,
+    setup_dir: Path,
 ) -> list[str]:
     """Build the bubblewrap command with proper isolation flags."""
     home = os.environ.get("HOME", "/home/user")
     shell = os.environ.get("SHELL", "/bin/bash")
-    setup_dir = os.environ.get("SETUP_DIR")
+    secrets_tmpfs_path = cwd / "secrets.tmpfs"
 
     cmd = [
         "bwrap",
@@ -210,8 +227,11 @@ def build_bwrap_command(
         "VAULT_SHELL_ACTIVE",
         "1",
         "--setenv",
+        "VAULT_SHELL_NAME",
+        vault_name,
+        "--setenv",
         "VAULT_SHELL_TMPDIR",
-        "/secrets",
+        str(secrets_tmpfs_path),
         # System directories (read-only)
         "--ro-bind",
         "/usr",
@@ -233,9 +253,9 @@ def build_bwrap_command(
         "--bind",
         str(cwd),
         str(cwd),
-        # Secrets tmpfs (kernel-managed, auto-cleaned on exit)
+        # Secrets tmpfs inside cwd (kernel-managed, auto-cleaned on exit)
         "--tmpfs",
-        "/secrets",
+        str(secrets_tmpfs_path),
         # Tmp directory (needed by tools like trunk)
         "--tmpfs",
         "/tmp",
@@ -246,24 +266,23 @@ def build_bwrap_command(
         "/proc",
     ]
 
-    # Mount SETUP_DIR if it exists and differs from cwd
+    # Mount SETUP_DIR if it differs from cwd
     # This ensures hermit-managed binaries (starship, etc.) remain accessible
     # when running from a subdirectory
-    if setup_dir:
-        setup_path = Path(setup_dir).resolve()
-        cwd_resolved = cwd.resolve()
-        # Mount SETUP_DIR if cwd is within it (subdirectory) or completely separate
-        # Only skip if cwd IS setup_dir or setup_dir is within cwd
-        if setup_path != cwd_resolved and not setup_path.is_relative_to(cwd_resolved):
-            cmd.extend(["--bind", str(setup_path), str(setup_path)])
+    setup_path = setup_dir.resolve()
+    cwd_resolved = cwd.resolve()
+    # Mount SETUP_DIR if cwd is within it (subdirectory) or completely separate
+    # Only skip if cwd IS setup_dir or setup_dir is within cwd
+    if setup_path != cwd_resolved and not setup_path.is_relative_to(cwd_resolved):
+        cmd.extend(["--bind", str(setup_path), str(setup_path)])
 
     # Conditionally add /lib64 if it exists (some distros don't have it)
     if Path("/lib64").exists():
         cmd.extend(["--ro-bind", "/lib64", "/lib64"])
 
-    # Bind mount each processed template into /secrets
+    # Bind mount each processed template into secrets.tmpfs
     for output_name, staging_path in template_files:
-        cmd.extend(["--bind", str(staging_path), f"/secrets/{output_name}"])
+        cmd.extend(["--bind", str(staging_path), str(secrets_tmpfs_path / output_name)])
 
     # Working directory
     cmd.extend(["--chdir", str(cwd)])
@@ -281,15 +300,16 @@ def main() -> None:
         epilog=(
             "Environment variables:\n"
             "  VAULT_SECRETS_DIR  Directory containing vault token files (required)\n"
+            "  SETUP_DIR          Path to the setup repository (required)\n"
             "\n"
             "Templates:\n"
             "  Place *.op.tpl files in the current directory. They will be processed\n"
-            "  with 'op inject' and available at /secrets/<name> inside the shell.\n"
+            "  with 'op inject' and available at ./secrets.tmpfs/<name> inside the shell.\n"
             "\n"
             "Example:\n"
             "  # With .env.op.tpl in current directory:\n"
             "  vault-shell my-vault\n"
-            "  # Inside shell: cat /secrets/.env  (secrets resolved)\n"
+            "  # Inside shell: cat ./secrets.tmpfs/.env  (secrets resolved)\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -306,7 +326,8 @@ def main() -> None:
     check_bwrap_available()
     check_op_available()
 
-    # Get secrets directory
+    # Get required directories
+    setup_dir = get_setup_dir()
     secrets_dir = get_secrets_dir()
 
     # Handle missing vault name
@@ -324,6 +345,7 @@ def main() -> None:
     # Find templates in current directory
     cwd = Path.cwd()
     templates = find_templates(cwd)
+    secrets_dir_name = "./secrets.tmpfs"
 
     if templates:
         print(f"Found {len(templates)} template(s) to process:")
@@ -339,7 +361,7 @@ def main() -> None:
         # Process templates
         if templates:
             print("\nProcessing templates...")
-            if not process_templates(templates, staging_dir, token):
+            if not process_templates(templates, staging_dir, token, secrets_dir_name):
                 error("Template processing failed")
 
         # Build list of files to bind mount
@@ -349,19 +371,21 @@ def main() -> None:
             template_files.append((output_name, staging_dir / output_name))
 
         # Build bwrap command
-        cmd = build_bwrap_command(token, staging_dir, template_files, cwd)
+        cmd = build_bwrap_command(
+            token, vault_name, staging_dir, template_files, cwd, setup_dir
+        )
 
         # Show shell info
         print(f"\nStarting isolated shell (vault: {vault_name})")
-        print("Secrets available at: /secrets/")
+        print(f"Secrets available at: {secrets_dir_name}/")
         print("Type 'exit' to leave and cleanup secrets\n")
 
         # Replace current process with bwrap
         # Note: We use execvp which will NOT return - the Python process
         # is replaced by bwrap. The staging directory will be cleaned up
         # by the OS when the Python process terminates (since tempfile
-        # uses atexit registration), but more importantly, the /secrets
-        # tmpfs inside bwrap is kernel-managed and guaranteed to be
+        # uses atexit registration), but more importantly, the secrets.tmpfs
+        # inside bwrap is kernel-managed and guaranteed to be
         # cleaned up when the namespace exits.
         os.execvp("bwrap", cmd)
 
