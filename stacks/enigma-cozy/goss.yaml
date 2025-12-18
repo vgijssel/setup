@@ -37,6 +37,11 @@ command:
     stdout: []
     stderr: ""
     timeout: 10000
+  api_certificate_san:
+    title: Validate Kubernetes API certificate includes api.enigma.vgijssel.nl SAN
+    exec: echo | openssl s_client -connect api.enigma.vgijssel.nl:443 -servername api.enigma.vgijssel.nl 2>/dev/null | openssl x509 -noout -text | grep -q "DNS:api.enigma.vgijssel.nl"
+    exit-status: 0
+    timeout: 10000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip
@@ -60,6 +65,7 @@ http:
     status: 200
     timeout: 5000
   https://api.enigma.vgijssel.nl:
-    title: Validate Kubernetes API certificate matches domain
+    title: Validate Kubernetes API is reachable
     status: 401
+    allow-insecure: true
     timeout: 5000
