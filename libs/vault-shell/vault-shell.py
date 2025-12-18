@@ -194,6 +194,7 @@ def build_bwrap_command(
     """Build the bubblewrap command with proper isolation flags."""
     home = os.environ.get("HOME", "/home/user")
     shell = os.environ.get("SHELL", "/bin/bash")
+    setup_dir = os.environ.get("SETUP_DIR")
 
     cmd = [
         "bwrap",
@@ -244,6 +245,17 @@ def build_bwrap_command(
         "--proc",
         "/proc",
     ]
+
+    # Mount SETUP_DIR if it exists and differs from cwd
+    # This ensures hermit-managed binaries (starship, etc.) remain accessible
+    # when running from a subdirectory
+    if setup_dir:
+        setup_path = Path(setup_dir).resolve()
+        cwd_resolved = cwd.resolve()
+        # Mount SETUP_DIR if cwd is within it (subdirectory) or completely separate
+        # Only skip if cwd IS setup_dir or setup_dir is within cwd
+        if setup_path != cwd_resolved and not setup_path.is_relative_to(cwd_resolved):
+            cmd.extend(["--bind", str(setup_path), str(setup_path)])
 
     # Conditionally add /lib64 if it exists (some distros don't have it)
     if Path("/lib64").exists():
