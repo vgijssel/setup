@@ -132,13 +132,14 @@ get_etcd_version() {
 get_etcd_major_minor_version() {
     local version=$1
     # Extract major.minor (e.g., "3.5" from "v3.5.21")
-    echo "${version}" | sed 's/v\([0-9]*\.[0-9]*\)\..*/\1/'
+    local temp="${version#v}"  # Remove leading 'v'
+    echo "${temp%.*}"          # Remove last .patch
 }
 
 get_etcd_patch_version() {
     local version=$1
     # Extract patch number (e.g., "21" from "v3.5.21")
-    echo "${version}" | sed 's/v[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/'
+    echo "${version##*.}"
 }
 
 # Minimum etcd 3.5.x version required before upgrading to 3.6
@@ -151,7 +152,6 @@ log_info "=== Checking etcd Versions ==="
 declare -A ETCD_VERSIONS
 declare -a ETCD_MINOR_VERSIONS=()
 declare -a ETCD_35_BELOW_MIN=()
-etcd_check_failed=false
 etcd_mixed_versions=false
 
 for entry in "${CONTROL_PLANE_NODES[@]}"; do
@@ -166,6 +166,7 @@ for entry in "${CONTROL_PLANE_NODES[@]}"; do
         echo -e "  ${name} (${ip}): etcd ${etcd_ver} (series: ${minor_ver})"
 
         # Track unique major.minor versions (e.g., 3.5, 3.6)
+        # shellcheck disable=SC2076 # We intentionally use literal matching with spaces
         if [[ ! " ${ETCD_MINOR_VERSIONS[*]} " =~ " ${minor_ver} " ]]; then
             ETCD_MINOR_VERSIONS+=("${minor_ver}")
         fi
@@ -176,7 +177,6 @@ for entry in "${CONTROL_PLANE_NODES[@]}"; do
         fi
     else
         echo -e "  ${name} (${ip}): etcd ${RED}unknown${NC}"
-        etcd_check_failed=true
     fi
 done
 
@@ -193,7 +193,7 @@ if [[ ${#ETCD_MINOR_VERSIONS[@]} -gt 1 ]]; then
     echo ""
     log_warn "Control plane nodes are running different etcd versions:"
     for name in "${!ETCD_VERSIONS[@]}"; do
-        echo -e "  ${YELLOW}${name}: ${ETCD_VERSIONS[$name]}${NC}"
+        echo -e "  ${YELLOW}${name}: ${ETCD_VERSIONS[${name}]}${NC}"
     done
     echo ""
     log_info "This indicates a PARTIAL UPGRADE is in progress."
@@ -421,7 +421,7 @@ upgrade_node() {
             break
         fi
         log_info "  Waiting for ${name} to become healthy... (${waited}s/${max_wait}s)"
-        sleep ${interval}
+        sleep "${interval}"
         waited=$((waited + interval))
     done
 
@@ -455,6 +455,7 @@ for entry in "${NODES_TO_UPGRADE[@]}"; do
     name="${entry%%:*}"
     ip="${entry##*:}"
 
+    # shellcheck disable=SC2310 # set -e is intentionally disabled in conditionals; function returns explicit exit codes
     if ! upgrade_node "${name}" "${ip}"; then
         failed_nodes+=("${name}")
         log_error "Upgrade failed for ${name}. Stopping to prevent further issues."

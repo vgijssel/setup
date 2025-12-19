@@ -61,8 +61,8 @@ spec:
       # Enable built-in ingress
       ingress:
         enable: true
-        className: "nginx"
-        host: "coder.enigma.vgijssel.nl"
+        className: nginx
+        host: coder.enigma.vgijssel.nl
         wildcardHost: "*.coder.enigma.vgijssel.nl"
         tls:
           enable: false
