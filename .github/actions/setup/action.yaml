@@ -4,6 +4,7 @@ runs:
   using: composite
   steps:
     - name: Disk usage before cleanup
+      shell: bash
       run: |
         echo "=== Disk usage before cleanup ==="
         df -h
@@ -17,6 +18,7 @@ runs:
         rm_cmd: "rmz" # Faster cleanup
 
     - name: Disk usage after cleanup
+      shell: bash
       run: |
         echo "=== Disk usage after cleanup ==="
         df -h
