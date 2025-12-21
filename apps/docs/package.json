@@ -12,7 +12,18 @@
           "command": "mkdocs build",
           "cwd": "."
         },
-        "description": "Build documentation site"
+        "description": "Build documentation site",
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.md",
+          "{projectRoot}/**/*.yml",
+          "{projectRoot}/**/*.yaml",
+          "{workspaceRoot}/mkdocs.yml",
+          "{workspaceRoot}/docs/**/*"
+        ],
+        "outputs": [
+          "{workspaceRoot}/site"
+        ]
       },
       "serve": {
         "executor": "nx:run-commands",

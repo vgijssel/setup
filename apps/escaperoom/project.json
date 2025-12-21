@@ -9,7 +9,13 @@
       "options": {
         "command": "pip install --user -r requirements.txt && pytest",
         "cwd": "apps/escaperoom"
-      }
+      },
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/**/*.py",
+        "{projectRoot}/requirements.txt",
+        "!{projectRoot}/__pycache__/**"
+      ]
     },
     "build": {
       "executor": "nx:run-commands",

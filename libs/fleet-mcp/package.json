@@ -83,7 +83,16 @@
           "parallel": false,
           "cwd": "libs/fleet-mcp",
           "command": "./release.sh"
-        }
+        },
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/src/**/*.py",
+          "{projectRoot}/pyproject.toml",
+          "{projectRoot}/release.sh",
+          "!{projectRoot}/.venv/**",
+          "!{projectRoot}/dist/**",
+          "!{projectRoot}/**/__pycache__/**"
+        ]
       }
     }
   }
