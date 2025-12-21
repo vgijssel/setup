@@ -1,3 +1,9 @@
+## 1.1.1 (2025-12-21)
+
+### 🩹 Fixes
+
+- Update internal-networking to exclude default-backend from Tailscale selector and add port 80 support ([#859](https://github.com/vgijssel/setup/pull/859))
+
 ## 1.1.0 (2025-12-15)
 
 ### 🚀 Features

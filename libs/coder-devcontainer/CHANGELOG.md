@@ -1,3 +1,14 @@
+## 0.19.2 (2025-12-21)
+
+### 🩹 Fixes
+
+- Update dependencies and devcontainer configuration ([#859](https://github.com/vgijssel/setup/pull/859))
+
+### 🧱 Updated Dependencies
+
+- Updated fleet-mcp to 0.12.1
+- Updated devcontainer to 0.7.7
+
 ## 0.19.1 (2025-12-15)
 
 ### 🩹 Fixes

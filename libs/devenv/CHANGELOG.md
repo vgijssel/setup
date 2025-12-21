@@ -1,3 +1,10 @@
+## 0.15.1 (2025-12-21)
+
+### 🩹 Fixes
+
+- Add kubie configuration for enigma-cozy cluster OIDC authentication ([#859](https://github.com/vgijssel/setup/pull/859))
+- Add kubelogin package for OIDC authentication support ([#859](https://github.com/vgijssel/setup/pull/859))
+
 ## 0.15.0 (2025-12-15)
 
 ### 🚀 Features

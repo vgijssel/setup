@@ -1,9 +1,9 @@
 {
   "name": "coder-devcontainer",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "dependencies": {
-    "devcontainer": "0.7.6",
-    "fleet-mcp": "0.12.0"
+    "devcontainer": "0.7.7",
+    "fleet-mcp": "0.12.1"
   },
   "nx": {
     "projectType": "library",

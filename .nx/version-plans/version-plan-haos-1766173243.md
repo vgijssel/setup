@@ -1,5 +1,0 @@
----
-haos: patch
----
-
-Update dependencies

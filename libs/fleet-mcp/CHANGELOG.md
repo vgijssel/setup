@@ -1,3 +1,9 @@
+## 0.12.1 (2025-12-21)
+
+### 🩹 Fixes
+
+- Update project configuration to cache release outputs ([#859](https://github.com/vgijssel/setup/pull/859))
+
 ## 0.12.0 (2025-11-18)
 
 ### 🚀 Features

@@ -1,3 +1,10 @@
+## 1.2.1 (2025-12-21)
+
+### 🩹 Fixes
+
+- Add Multus CNI memory limit ClusterPolicy to prevent OOM during post-reboot burst ([#859](https://github.com/vgijssel/setup/pull/859))
+- Add OIDC kubeconfig template for secure cluster authentication ([#859](https://github.com/vgijssel/setup/pull/859))
+
 ## 1.2.0 (2025-12-15)
 
 ### 🚀 Features

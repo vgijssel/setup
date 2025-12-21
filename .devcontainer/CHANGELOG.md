@@ -1,3 +1,13 @@
+## 0.7.7 (2025-12-21)
+
+### 🩹 Fixes
+
+- Update chezmoi and starship configuration files ([#859](https://github.com/vgijssel/setup/pull/859))
+
+### 🧱 Updated Dependencies
+
+- Updated devenv to 0.15.1
+
 ## 0.7.6 (2025-12-15)
 
 ### 🧱 Updated Dependencies

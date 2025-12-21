@@ -1,6 +1,6 @@
 {
   "name": "vault-login",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "CLI tool to generate 1Password service account tokens for setup- vaults",
   "nx": {
