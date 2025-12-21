@@ -1,2 +1,0 @@
-coder: coder server
-tailscale: tailscale funnel http://localhost:3000
