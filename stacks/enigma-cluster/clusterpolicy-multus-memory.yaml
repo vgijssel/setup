@@ -1,0 +1,32 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: mutate-multus-memory-limit
+  annotations:
+    policies.kyverno.io/title: Increase Multus CNI Memory Limit
+    policies.kyverno.io/description: >-
+      Mutates the Multus DaemonSet to increase the kube-multus container memory limit
+      from 300Mi to 500Mi. This prevents OOMKilled errors during post-reboot pod creation
+      bursts when many pods need network configuration simultaneously.
+spec:
+  rules:
+    - name: increase-multus-memory-limit
+      match:
+        any:
+          - resources:
+              kinds:
+                - DaemonSet
+              names:
+                - cozy-multus
+              namespaces:
+                - cozy-multus
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: kube-multus
+                    resources:
+                      limits:
+                        memory: 500Mi

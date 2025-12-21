@@ -7,6 +7,19 @@
   "scripts": {
     "test": "echo \"Bazel project - tests run via Bazel\""
   },
+  "nx": {
+    "targets": {
+      "test": {
+        "cache": true,
+        "inputs": [
+          "{projectRoot}/**/*.js",
+          "{projectRoot}/**/*.bzl",
+          "{projectRoot}/BUILD.bazel",
+          "{projectRoot}/package.json"
+        ]
+      }
+    }
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

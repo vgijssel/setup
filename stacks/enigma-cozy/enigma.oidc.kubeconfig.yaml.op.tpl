@@ -1,0 +1,1 @@
+{{ op://setup-enigma-cozy/enigma.oidc.kubeconfig.yaml/enigma.oidc.kubeconfig.yaml }}

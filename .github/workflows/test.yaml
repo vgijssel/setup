@@ -55,11 +55,6 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Disk usage before tests
-        run: |
-          echo "=== Disk usage before cleanup ==="
-          df -h
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -94,12 +89,6 @@ jobs:
         run: |
           echo "=== Disk usage after tests ==="
           df -h
-          echo ""
-          echo "=== Hermit cache size ==="
-          du -sh ~/.cache/hermit || true
-          echo ""
-          echo "=== Docker disk usage ==="
-          docker system df || true
 
   test-macos:
     name: macOS Tests (Tagged Projects Only)

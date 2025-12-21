@@ -1,0 +1,1 @@
+{{ op://setup-enigma-cozy/talosconfig/talosconfig }}

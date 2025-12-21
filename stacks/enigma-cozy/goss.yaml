@@ -1,12 +1,15 @@
 command:
   kubespan_peers_up:
     title: Validate KubeSpan peers are up on all nodes
-    exec: talosctl get kubespanpeerstatuses -n 192.168.50.10,192.168.50.11,192.168.50.12 -e 192.168.50.10 -o json | jq -se '[.[].spec.state] | all(. == "up")'
+    exec: |
+      for node in 192.168.50.10 192.168.50.11 192.168.50.12; do
+        talosctl get kubespanpeerstatuses -n $node -e $node -o json 2>/dev/null | jq -se '[.[].spec.state] | all(. == "up")' || echo "false"
+      done | grep -v true && echo "false" || echo "true"
     exit-status: 0
     stdout:
       - "true"
     stderr: ""
-    timeout: 10000
+    timeout: 30000
   kubespan_discovery_enabled:
     title: Validate cluster discovery is enabled
     exec: talosctl get discoveryconfig -n 192.168.50.10 -e 192.168.50.10 -o json | jq -e '.spec.discoveryEnabled'
@@ -37,6 +40,53 @@ command:
     stdout: []
     stderr: ""
     timeout: 10000
+  api_certificate_san:
+    title: Validate Kubernetes API certificate includes api.enigma.vgijssel.nl SAN
+    exec: echo | openssl s_client -connect api.enigma.vgijssel.nl:443 -servername api.enigma.vgijssel.nl 2>/dev/null | openssl x509 -noout -text | grep -q "DNS:api.enigma.vgijssel.nl"
+    exit-status: 0
+    timeout: 10000
+  keycloak_db_primary_has_endpoints:
+    title: Validate Keycloak PostgreSQL primary service has endpoints
+    exec: kubectl get endpoints keycloak-db-rw -n cozy-keycloak -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null
+    exit-status: 0
+    stdout:
+      - /^10\./
+    stderr: ""
+    timeout: 10000
+  multus_pods_running_on_all_nodes:
+    title: Validate Multus CNI pods are running on all nodes
+    exec: |
+      expected=$(kubectl get nodes --no-headers | wc -l)
+      running=$(kubectl get pods -n cozy-multus -l app=multus --field-selector=status.phase=Running --no-headers | wc -l)
+      [ "$expected" -eq "$running" ] && echo "true" || echo "false: expected $expected, got $running"
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 10000
+  multus_memory_limit_sufficient:
+    title: Validate Multus CNI has sufficient memory limit (>=500Mi) to handle post-reboot burst
+    exec: |
+      limit=$(kubectl get daemonset cozy-multus -n cozy-multus -o jsonpath='{.spec.template.spec.containers[?(@.name=="kube-multus")].resources.limits.memory}')
+      # Convert to bytes for comparison (handles Mi, Gi suffixes)
+      limit_bytes=$(echo "$limit" | awk '/Gi/{print $1*1024*1024*1024; next} /Mi/{print $1*1024*1024; next} /Ki/{print $1*1024; next} {print $1}' | sed 's/[^0-9]//g')
+      min_bytes=$((500 * 1024 * 1024))
+      if [ "$limit_bytes" -ge "$min_bytes" ]; then
+        echo "true: $limit"
+      else
+        echo "false: $limit is below 500Mi minimum"
+      fi
+    exit-status: 0
+    stdout:
+      - /^true:/
+    stderr: ""
+    timeout: 10000
+  cnpg_operator_running:
+    title: Validate CloudNativePG operator is running
+    exec: kubectl get pods -n cozy-postgres-operator -l app.kubernetes.io/name=cloudnative-pg --field-selector=status.phase=Running --no-headers | wc -l | xargs test 1 -le
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip
@@ -58,4 +108,9 @@ http:
   https://dashboard.enigma.vgijssel.nl:
     title: Validate CozyStack dashboard is accessible
     status: 200
+    timeout: 5000
+  https://api.enigma.vgijssel.nl:
+    title: Validate Kubernetes API is reachable
+    status: 401
+    allow-insecure: true
     timeout: 5000

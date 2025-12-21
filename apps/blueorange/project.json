@@ -10,7 +10,16 @@
       "options": {
         "command": "vite build",
         "cwd": "apps/blueorange"
-      }
+      },
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/public/**/*",
+        "{projectRoot}/index.html",
+        "{projectRoot}/vite.config.*",
+        "{projectRoot}/package.json",
+        "{projectRoot}/tsconfig*.json"
+      ]
     },
     "serve": {
       "executor": "nx:run-commands",
@@ -31,7 +40,16 @@
       "options": {
         "command": "vitest run",
         "cwd": "apps/blueorange"
-      }
+      },
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tests/**/*",
+        "{projectRoot}/vite.config.*",
+        "{projectRoot}/vitest.config.*",
+        "{projectRoot}/package.json",
+        "{projectRoot}/tsconfig*.json"
+      ]
     },
     "e2e": {
       "executor": "nx:run-commands",

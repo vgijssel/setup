@@ -43,6 +43,12 @@ directories:
     path: .
   path: charts/external-dns
 - contents:
+  - helmChart:
+      appVersion: 2.29.1
+      version: 2.29.1
+    path: .
+  path: charts/coder
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508

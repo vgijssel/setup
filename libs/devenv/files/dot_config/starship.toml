@@ -39,3 +39,8 @@ $character"""
 
 [direnv]
 disabled = false
+
+[env_var.VAULT_SHELL_NAME]
+symbol = "vault:"
+style = "bold red"
+format = "[$symbol$env_value]($style) "

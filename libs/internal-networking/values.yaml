@@ -4,12 +4,8 @@ tailscaleIngress:
   domainSuffix: .enigma.vgijssel.nl
   # Kubernetes cluster domain suffix for service DNS resolution
   clusterDomain: cozy.local
-  # Nginx ingress controller configuration
-  # Tailscale Services will point to these nginx pods instead of backend pods
+  # Namespace where nginx ingress controller runs
   nginxNamespace: tenant-root
-  nginxSelector:
-    app.kubernetes.io/name: ingress-nginx
-    app.kubernetes.io/instance: ingress-nginx-system
 
 # Gateway exposure configuration
 # Static IngressClass name for gateway nginx-ingress controller

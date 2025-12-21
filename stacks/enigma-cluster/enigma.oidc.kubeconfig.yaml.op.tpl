@@ -1,0 +1,1 @@
+{{ op://setup-enigma-cluster/enigma.oidc.kubeconfig.yaml/enigma.oidc.kubeconfig.yaml }}
