@@ -1,5 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Note: devcontainer CLI requires Node.js-specific functionality (umask, etc.)
+# that Deno's compatibility layer doesn't support, so we use npx directly.
+set -euo pipefail
 
-set -eo pipefail
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+EXEC_BIN="${REPO_ROOT}/bin/exec"
 
-exec npx --yes --prefix "${SETUP_DIR}"/third_party/javascript @devcontainers/cli "$@"
+# Version pinned in third_party/javascript/deno.json for tracking
+exec ${EXEC_BIN} npx --yes @devcontainers/cli@0.80.3 "$@"

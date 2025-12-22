@@ -1,0 +1,13 @@
+{
+  "imports": {
+    "claude-code": "npm:@anthropic-ai/claude-code@2.0.75",
+    "devcontainer": "npm:@devcontainers/cli@0.80.3",
+    "html-minifier-terser": "npm:html-minifier-terser@7.2.0",
+    "postcss-cli": "npm:postcss-cli@11.0.1",
+    "react": "npm:react@18.3.1",
+    "svgo": "npm:svgo@4.0.0",
+    "task-master-ai": "npm:task-master-ai@0.40.0",
+    "uglify-js": "npm:uglify-js@3.19.3",
+    "windmill-cli": "npm:windmill-cli@1.596.0"
+  }
+}
