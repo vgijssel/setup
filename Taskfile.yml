@@ -9,10 +9,6 @@ includes:
     taskfile: ./services/tinkerbell/Taskfile.yml
     dir: ./services/tinkerbell
 
-  stacks:enigma:
-    taskfile: ./stacks/enigma/Taskfile.yml
-    dir: ./stacks/enigma
-
   stacks:provisioner:
     taskfile: ./stacks/provisioner/Taskfile.yml
     dir: ./stacks/provisioner
