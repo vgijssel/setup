@@ -63,4 +63,12 @@ directories:
       - feature_docker-in-docker_2.12.4
     path: .
   path: shell/docker-in-docker
+- contents:
+  - git:
+      commitTitle: 'Merge pull request #1540 from eyaltoledano/changeset-release/main'
+      sha: f961235442aa88e4983b29ab458b6a476fadf370
+      tags:
+      - task-master-ai@0.40.0
+    path: .
+  path: claude-task-master
 kind: LockConfig

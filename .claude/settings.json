@@ -1,0 +1,13 @@
+{
+  "enabledPlugins": {
+    "taskmaster@local": true
+  },
+  "extraKnownMarketplaces": {
+    "local": {
+      "source": {
+        "source": "directory",
+        "path": ".claude/local_marketplace"
+      }
+    }
+  }
+}

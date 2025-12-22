@@ -106,3 +106,7 @@ data "aws_instance" "example" {
 
 ### Releases
 Releases are managed by `nx release`. Artifacts are automatically published to GitHub as part of the release process.
+
+## Task Master AI Instructions
+**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
+@./.taskmaster/CLAUDE.md
