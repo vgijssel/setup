@@ -1,5 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -eo pipefail
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+EXEC_BIN="$REPO_ROOT/bin/exec"
+RUNNER="$REPO_ROOT/third_party/javascript/uglifyjs-runner.ts"
 
-exec npx --prefix "${SETUP_DIR}"/third_party/javascript uglifyjs "$@"
+exec $EXEC_BIN deno run \
+    --allow-all \
+    --config="$REPO_ROOT/third_party/javascript/deno.json" \
+    --lock="$REPO_ROOT/third_party/javascript/deno.lock" \
+    --frozen \
+    --quiet \
+    "$RUNNER" "$@"
