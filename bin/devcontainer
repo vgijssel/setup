@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-EXEC_BIN="$REPO_ROOT/bin/exec"
+EXEC_BIN="${REPO_ROOT}/bin/exec"
 
 # Version pinned in third_party/javascript/deno.json for tracking
-exec $EXEC_BIN npx --yes @devcontainers/cli@0.80.3 "$@"
+exec ${EXEC_BIN} npx --yes @devcontainers/cli@0.80.3 "$@"
