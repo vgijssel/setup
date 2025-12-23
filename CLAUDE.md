@@ -2,11 +2,25 @@
 
 ## Project Structure
 
-This Nx monorepo follows a clear hierarchy:
-- `libs/`: Reusable libraries (ansible, cloudflare-tunnel, devenv, internal-dns, esphome_nimble)
-- `apps/`: Focused applications (haos, escaperoom)
-- `stacks/`: Environment-specific deployments (enigma, devenv, provisioner)
-- `third_party/`: External dependencies (hermit, python, javascript, shell, helm)
+This Nx monorepo uses a **two-directory structure**. All code MUST go into one of these directories:
+
+- **`apps/`**: Deployable applications, services, and environment-specific configurations (clusters, stacks)
+- **`libs/`**: Reusable libraries, shared utilities, build tools, and external dependency wrappers
+
+### Code Placement Rules
+
+**DO NOT** place new code in `stacks/`, `services/`, `tools/`, `third_party/`, or any other top-level directory. These directories are deprecated and being migrated. The `specs/` directory is managed by speckit and should be left as-is.
+
+| If your code... | Place it in |
+|-----------------|-------------|
+| Is deployable independently | `apps/` |
+| Has its own CI/CD pipeline | `apps/` |
+| Is environment-specific (cluster config) | `apps/` |
+| Is reusable across projects | `libs/` |
+| Is a build tool or utility | `libs/` |
+| Wraps an external dependency | `third_party/` |
+
+See `.taskmaster/docs/prd-monorepo-consolidation.md` for the full migration plan.
 
 ## Core Commands
 
@@ -106,3 +120,7 @@ data "aws_instance" "example" {
 
 ### Releases
 Releases are managed by `nx release`. Artifacts are automatically published to GitHub as part of the release process.
+
+## Task Master AI Instructions
+**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
+@./.taskmaster/CLAUDE.md

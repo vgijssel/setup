@@ -55,8 +55,9 @@
       }
     },
     "tags": [
+      "scope:lib",
+      "type:cli",
       "python",
-      "cli",
       "kubernetes",
       "kind",
       "flux",

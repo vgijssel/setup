@@ -6,7 +6,6 @@
   "workspaces": [
     "libs/*",
     "apps/*",
-    "stacks/*",
     "third_party/*",
     ".devcontainer"
   ],

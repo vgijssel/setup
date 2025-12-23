@@ -37,8 +37,8 @@ lint:
         - bin/internal/bin/hermit
 
         # Generated files from Windmill
-        - services/windmill/f/**/*.script.yaml
-        - services/windmill/f/**/flow.yaml
+        - apps/windmill/f/**/*.script.yaml
+        - apps/windmill/f/**/flow.yaml
         - apps/haos/automations.yaml
         - third_party/vendir/charts
         - third_party/vendir/vendir.lock.yml

@@ -1,0 +1,8 @@
+{
+  "name": "testing",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/testing",
+  "targets": {},
+  "tags": ["scope:app", "type:service", "platform:kubernetes"]
+}

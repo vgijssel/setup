@@ -1,0 +1,22 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: metallb-config
+  namespace: flux-system
+spec:
+  interval: 10m
+  # Necessary because we have to wait on MetalLB CRDS to become ready
+  retryInterval: 5s
+  path: ./apps/dev-cluster-stack/metallb-config
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: setup
+  dependsOn:
+    - name: root
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: metallb
+      namespace: flux-system
+  wait: true

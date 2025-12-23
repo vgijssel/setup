@@ -69,9 +69,7 @@ services/kube-ovn/charts
 **/textual_serve.log
 third_party/javascript/bin
 
-stacks/enigma-cozy/secrets.yaml
-stacks/enigma-cozy/talosconfig
-stacks/enigma-cozy/kubeconfig
+talosconfig
 .nx/installation
 .nx/cache
 .nx/workspace-data
@@ -101,3 +99,28 @@ stacks/enigma-cozy/enigma.yaml
 
 # vault-shell tmpfs mount points (created by bwrap as mount targets)
 **/secrets.tmpfs/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files
+tasks.json
+tasks/ 
+.taskmaster/reports

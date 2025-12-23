@@ -1,0 +1,32 @@
+{
+  "name": "codex",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/codex",
+  "targets": {
+    "setup": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "./setup.sh",
+        "cwd": "apps/codex"
+      },
+      "metadata": {
+        "description": "Prepare the Codex CI environment"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./setup.sh", "direnv --version"],
+        "cwd": "apps/codex",
+        "parallel": false
+      },
+      "cache": true,
+      "inputs": ["{projectRoot}/**/*"],
+      "metadata": {
+        "description": "Run setup script and verify required tools"
+      }
+    }
+  },
+  "tags": ["scope:app", "type:tooling", "ci"]
+}

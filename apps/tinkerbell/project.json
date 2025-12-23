@@ -1,0 +1,29 @@
+{
+  "name": "tinkerbell",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/tinkerbell",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "task dev",
+        "cwd": "apps/tinkerbell"
+      },
+      "metadata": {
+        "description": "Start the tinkerbell development environment"
+      }
+    },
+    "ipxe": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "task ipxe",
+        "cwd": "apps/tinkerbell"
+      },
+      "metadata": {
+        "description": "Start the ipxe machine"
+      }
+    }
+  },
+  "tags": ["scope:app", "type:service", "platform:kubernetes"]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "local",
+  "owner": {
+    "name": "Local Plugins"
+  },
+  "plugins": [
+    {
+      "name": "taskmaster",
+      "source": "./taskmaster"
+    }
+  ]
+}

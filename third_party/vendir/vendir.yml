@@ -84,3 +84,14 @@ directories:
         includePaths:
           - src/docker-in-docker/install.sh
         newRootPath: src/docker-in-docker
+  - path: claude-task-master
+    contents:
+      - path: .
+        git:
+          url: https://github.com/eyaltoledano/claude-task-master
+          ref: task-master-ai@0.40.0
+        includePaths:
+          - packages/claude-code-plugin/**
+        excludePaths:
+          - packages/claude-code-plugin/mcp.json
+        newRootPath: packages/claude-code-plugin

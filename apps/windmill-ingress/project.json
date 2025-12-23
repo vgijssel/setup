@@ -1,0 +1,8 @@
+{
+  "name": "windmill-ingress",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/windmill-ingress",
+  "targets": {},
+  "tags": ["scope:app", "type:service", "platform:kubernetes"]
+}
