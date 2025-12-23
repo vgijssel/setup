@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-EXEC_BIN="${REPO_ROOT}/bin/exec"
-RUNNER="${REPO_ROOT}/third_party/javascript/claude-runner.ts"
+REPO_ROOT="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
+EXEC_BIN="${REPO_ROOT}"/bin/exec
+LOCK="${REPO_ROOT}/third_party/javascript/deno.lock"
 
-exec "${EXEC_BIN}" deno run \
-    --allow-all \
-    --config="${REPO_ROOT}/third_party/javascript/deno.json" \
-    --lock="${REPO_ROOT}/third_party/javascript/deno.lock" \
-    --frozen \
-    --quiet \
-    "${RUNNER}" "$@"
+exec "${EXEC_BIN}" deno run -A --lock="${LOCK}" --frozen --quiet npm:@anthropic-ai/claude-code "$@"
