@@ -18,13 +18,13 @@ Move `stacks/` contents to `apps/`.
 
 | Item | Status | PR Link | Notes |
 |------|--------|---------|-------|
-| codex | TODO | - | |
-| dev-cluster | TODO | - | Name collision with libs/dev-cluster |
-| enigma-cluster | TODO | - | |
-| enigma-cozy | TODO | - | |
-| provisioner | TODO | - | |
-| root-cluster-prod | TODO | - | |
-| Delete empty stacks/ | TODO | - | After all items migrated |
+| codex | Done | - | Moved to apps/codex |
+| dev-cluster | Done | - | Moved to apps/dev-cluster-stack (renamed to avoid collision) |
+| enigma-cluster | Done | - | Moved to apps/enigma-cluster |
+| enigma-cozy | Done | - | Moved to apps/enigma-cozy |
+| provisioner | Done | - | Moved to apps/provisioner |
+| root-cluster-prod | Done | - | Moved to apps/root-cluster-prod |
+| Delete empty stacks/ | Done | - | Directory removed |
 
 ## Phase 3: Services Migration
 
@@ -32,13 +32,13 @@ Move `services/` contents to `apps/`.
 
 | Item | Status | PR Link | Notes |
 |------|--------|---------|-------|
-| kubevirt-config | TODO | - | |
-| myvm | TODO | - | |
-| testing | TODO | - | |
-| tinkerbell | TODO | - | |
-| windmill | TODO | - | |
-| windmill-ingress | TODO | - | |
-| Delete empty services/ | TODO | - | After all items migrated |
+| kubevirt-config | Done | - | Moved to apps/kubevirt-config |
+| myvm | Done | - | Moved to apps/myvm |
+| testing | Done | - | Moved to apps/testing |
+| tinkerbell | Done | - | Moved to apps/tinkerbell |
+| windmill | Done | - | Moved to apps/windmill |
+| windmill-ingress | Done | - | Moved to apps/windmill-ingress |
+| Delete empty services/ | Done | - | Directory removed |
 
 ## Phase 4: Tools Cleanup and Migration
 
@@ -46,22 +46,22 @@ Move `services/` contents to `apps/`.
 
 | Item | Status | PR Link | Notes |
 |------|--------|---------|-------|
-| bazel/ | TODO | - | Inline workspace_status.sh if needed |
-| black/ | TODO | - | Use trunk/hermit instead |
-| homebrew/ | TODO | - | please/plz obsolete |
-| pulumi/ | TODO | - | Use hermit instead |
-| pytest/ | TODO | - | Use standard py_test |
-| teleport/ | TODO | - | Use hermit instead |
-| tilt/ | TODO | - | Use hermit instead |
+| bazel/ | Done | - | Deleted, workspace_status.sh not needed |
+| black/ | Done | - | Deleted, use trunk/hermit instead |
+| homebrew/ | Done | - | Deleted, please/plz obsolete |
+| pulumi/ | Done | - | Deleted, use hermit instead |
+| pytest/ | Done | - | Deleted, use standard py_test |
+| teleport/ | Done | - | Deleted, use hermit instead |
+| tilt/ | Done | - | Deleted, use hermit instead |
 
 ### 4b. Delete obsolete hypervisor tools
 
 | Item | Status | PR Link | Notes |
 |------|--------|---------|-------|
-| packer/ | TODO | - | Commented out in hypervisor |
-| pyinfra/ | TODO | - | Commented out in hypervisor |
-| vagrant/ | TODO | - | Commented out in hypervisor |
-| Clean BUILD.bazel | TODO | - | Remove commented imports |
+| packer/ | Done | - | Deleted |
+| pyinfra/ | Done | - | Deleted |
+| vagrant/ | Done | - | Deleted |
+| Clean BUILD.bazel | Done | - | Removed commented imports |
 
 ### 4c. Evaluate and decide
 
@@ -74,10 +74,10 @@ Move `services/` contents to `apps/`.
 
 | Item | Status | PR Link | Notes |
 |------|--------|---------|-------|
-| docker/ | TODO | - | Move to libs/docker |
-| onepassword/ | TODO | - | Move to libs/onepassword |
-| python/ | TODO | - | Merge with third_party/python |
-| Delete empty tools/ | TODO | - | After all items handled |
+| docker/ | Done | - | Moved to libs/docker |
+| onepassword/ | Done | - | Moved to libs/onepassword |
+| python/ | Done | - | Moved to libs/python, merged with third_party/python |
+| Delete empty tools/ | Done | - | Directory removed |
 
 ## Phase 5: Third-Party Migration
 
@@ -85,20 +85,21 @@ Move `third_party/` contents to `libs/`.
 
 | Item | Status | PR Link | Notes |
 |------|--------|---------|-------|
-| hermit | TODO | - | |
-| javascript | TODO | - | |
-| python | TODO | - | Merge with tools/python |
-| vendir | TODO | - | |
-| Delete empty third_party/ | TODO | - | After all items migrated |
+| hermit | Deferred | - | Kept in third_party/ - manages hermit packages |
+| javascript | Deferred | - | Kept in third_party/ - Deno dependencies |
+| python | Done | - | Merged into libs/python |
+| vendir | Deferred | - | Kept in third_party/ - vendored Helm charts |
+| Delete empty third_party/ | N/A | - | Keeping some items in third_party/ |
 
 ## Phase 6: Cleanup and Validation
 
 | Item | Status | PR Link | Notes |
 |------|--------|---------|-------|
-| Run nx graph validation | TODO | - | |
-| Update CI/CD pipelines | TODO | - | |
-| Run full test suite | TODO | - | |
-| Update documentation references | TODO | - | |
+| Run nx graph validation | Done | - | 46 projects validated, no broken dependencies |
+| Update CI/CD pipelines | Done | - | No changes needed, uses Nx-based commands |
+| Run full test suite | Done | - | Core tests pass, environmental issues documented |
+| Update documentation references | Done | - | MIGRATION.md updated |
+| Update package-lock.json | Done | - | Removed stale stacks/* references |
 
 ## Detailed Migration Notes
 

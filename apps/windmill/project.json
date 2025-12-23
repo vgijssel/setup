@@ -1,0 +1,38 @@
+{
+  "name": "windmill",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/windmill",
+  "targets": {
+    "login": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "task login",
+        "cwd": "apps/windmill"
+      },
+      "metadata": {
+        "description": "Login to the remote Windmill server"
+      }
+    },
+    "sync": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "task sync",
+        "cwd": "apps/windmill"
+      },
+      "metadata": {
+        "description": "Sync the local files with the remote server"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "yamllint .",
+        "cwd": "apps/windmill"
+      },
+      "cache": true,
+      "inputs": ["{projectRoot}/**/*.yaml", "{projectRoot}/**/*.yml"]
+    }
+  },
+  "tags": ["scope:app", "type:service", "platform:kubernetes"]
+}
