@@ -68,14 +68,14 @@ platform(
 platform(
     name = "python_container_linux_amd64",
     constraint_values = _linux_amd64 + [
-        "//tools/python:python_run_in_container",
+        "//libs/python:python_run_in_container",
     ],
 )
 
 platform(
     name = "python_container_linux_arm64",
     constraint_values = _linux_arm64 + [
-        "//tools/python:python_run_in_container",
+        "//libs/python:python_run_in_container",
     ],
 )
 
@@ -100,7 +100,7 @@ task(
     ],
     cwd = "$BUILD_WORKSPACE_DIRECTORY",
     env = {
-        "OP": cmd.executable("//tools/onepassword:op"),
+        "OP": cmd.executable("//libs/onepassword:op"),
     },
 )
 
@@ -129,7 +129,7 @@ alias(
 
 alias(
     name = "op",
-    actual = "//tools/onepassword:op",
+    actual = "//libs/onepassword:op",
 )
 
 alias(

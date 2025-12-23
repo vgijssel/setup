@@ -8,7 +8,7 @@
     {
       "customType": "jsonata",
       "fileFormat": "json",
-      "fileMatch": ["stacks/[^/]+/package\\.json$"],
+      "fileMatch": ["apps/[^/]+/package\\.json$"],
       "matchStrings": [
         "$each(nx.metadata.dependencies, function($v, $k) { { \"depName\": $k, \"currentValue\": $v.version, \"datasource\": $v.datasource } })"
       ]

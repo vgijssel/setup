@@ -1,6 +1,0 @@
-package(default_visibility = ["//visibility:public"])
-
-sh_binary(
-    name = "macos-remote-setup",
-    srcs = ["macos-remote-setup.sh"],
-)

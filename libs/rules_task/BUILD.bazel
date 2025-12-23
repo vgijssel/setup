@@ -77,7 +77,7 @@ publish_github_release(
     ],
     changelog_file = ":github_release_template",
     env = {
-        "OP": cmd.executable("@rules_release//tools/onepassword:op"),
+        "OP": cmd.executable("@rules_release//libs/onepassword:op"),
     },
     release = ":release",
 )

@@ -2,7 +2,7 @@ load("@pdm-setup//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
 load("@rules_release//tools:defs.bzl", "publish_github_release", "publish_oci_image", release = "release_bazel_differ")
 load("@rules_task//task:defs.bzl", "cmd", "task", "task_test")
-load("//tools/python:defs.bzl", "py_image")
+load("//libs/python:defs.bzl", "py_image")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -50,7 +50,7 @@ task(
     env = {
         "BINARY": cmd.executable("list_user_binary"),
         "CONFIG_FILE_TPL": cmd.file("config-dev.json.tpl"),
-        "OP": cmd.executable("//tools/onepassword:op"),
+        "OP": cmd.executable("//libs/onepassword:op"),
     },
 )
 
@@ -65,7 +65,7 @@ task(
     env = {
         "BINARY": cmd.executable("list_user_binary"),
         "CONFIG_FILE_TPL": cmd.file("config-prod.json.tpl"),
-        "OP": cmd.executable("//tools/onepassword:op"),
+        "OP": cmd.executable("//libs/onepassword:op"),
     },
 )
 
@@ -88,7 +88,7 @@ task(
     env = {
         "BINARY": cmd.executable("list_budget_binary"),
         "CONFIG_FILE_TPL": cmd.file("config-dev.json.tpl"),
-        "OP": cmd.executable("//tools/onepassword:op"),
+        "OP": cmd.executable("//libs/onepassword:op"),
     },
 )
 
@@ -112,7 +112,7 @@ task(
         "BINARY": cmd.executable("bunq2ynab_binary"),
         "CONFIG_DEV_FILE_TPL": cmd.file("config-dev.json.tpl"),
         "CONFIG_PROD_FILE_TPL": cmd.file("config-prod.json.tpl"),
-        "OP": cmd.executable("//tools/onepassword:op"),
+        "OP": cmd.executable("//libs/onepassword:op"),
     },
 )
 
@@ -136,13 +136,13 @@ task(
     ],
     env = {
         "BINARY": cmd.executable("generate_oauth_token_binary"),
-        "OP": cmd.executable("//tools/onepassword:op"),
+        "OP": cmd.executable("//libs/onepassword:op"),
     },
 )
 
 py_image(
     name = "bunq2ynab_image",
-    base = "//tools/python:python_base_image_file",
+    base = "//libs/python:python_base_image_file",
     binary = ":bunq2ynab",
     labels = "container-labels.txt",
     platforms = [
@@ -181,7 +181,7 @@ publish_github_release(
         "export GH_TOKEN",
     ],
     env = {
-        "OP": cmd.executable("//tools/onepassword:op"),
+        "OP": cmd.executable("//libs/onepassword:op"),
     },
     release = ":release",
 )
@@ -209,7 +209,7 @@ publish_oci_image(
         "docker login ghcr.io --username $REGISTRY_LOGIN --password $REGISTRY_PASSWORD",
     ],
     env = {
-        "OP": cmd.executable("//tools/onepassword:op"),
+        "OP": cmd.executable("//libs/onepassword:op"),
     },
     image = ":bunq2ynab_image",
     remote_tags = "version.txt",
@@ -225,7 +225,7 @@ publish_oci_image(
         "docker login ghcr.io --username $REGISTRY_LOGIN --password $REGISTRY_PASSWORD",
     ],
     env = {
-        "OP": cmd.executable("//tools/onepassword:op"),
+        "OP": cmd.executable("//libs/onepassword:op"),
     },
     image = ":bunq2ynab_image",
     remote_tags = ":hash",

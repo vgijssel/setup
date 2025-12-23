@@ -11,7 +11,7 @@ module(
 # It's important that this toolchain is registered before the toolchains from rules_python
 # so this one can be picked when we run Python inside a container.
 register_toolchains(
-    "//tools/python:python_container_py_toolchain",
+    "//libs/python:python_container_py_toolchain",
 )
 
 # ------------------------------------ platforms ------------------------------------ #

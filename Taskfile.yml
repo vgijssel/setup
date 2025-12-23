@@ -1,20 +1,20 @@
 version: "3"
 
 includes:
-  services:windmill:
-    taskfile: ./services/windmill/Taskfile.yml
-    dir: ./services/windmill
+  apps:windmill:
+    taskfile: ./apps/windmill/Taskfile.yml
+    dir: ./apps/windmill
 
-  services:tinkerbell:
-    taskfile: ./services/tinkerbell/Taskfile.yml
-    dir: ./services/tinkerbell
+  apps:tinkerbell:
+    taskfile: ./apps/tinkerbell/Taskfile.yml
+    dir: ./apps/tinkerbell
 
-  stacks:provisioner:
-    taskfile: ./stacks/provisioner/Taskfile.yml
-    dir: ./stacks/provisioner
+  apps:provisioner:
+    taskfile: ./apps/provisioner/Taskfile.yml
+    dir: ./apps/provisioner
 
-  stacks:codex:
-    taskfile: ./stacks/codex/Taskfile.yml
+  apps:codex:
+    taskfile: ./apps/codex/Taskfile.yml
     dir: .
 
 tasks:

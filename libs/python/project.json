@@ -1,0 +1,33 @@
+{
+  "name": "python",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/python",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bazel build //libs/python:all",
+        "cwd": "."
+      },
+      "cache": true,
+      "inputs": ["{projectRoot}/**/*"],
+      "metadata": {
+        "description": "Build Python Bazel rules"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bazel test //libs/python:all",
+        "cwd": "."
+      },
+      "cache": true,
+      "inputs": ["{projectRoot}/**/*"],
+      "metadata": {
+        "description": "Test Python Bazel rules"
+      }
+    }
+  },
+  "tags": ["scope:lib", "type:tool"]
+}

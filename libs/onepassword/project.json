@@ -1,0 +1,33 @@
+{
+  "name": "onepassword",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/onepassword",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bazel build //libs/onepassword:all",
+        "cwd": "."
+      },
+      "cache": true,
+      "inputs": ["{projectRoot}/**/*"],
+      "metadata": {
+        "description": "Build 1Password Bazel rules"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bazel test //libs/onepassword:all",
+        "cwd": "."
+      },
+      "cache": true,
+      "inputs": ["{projectRoot}/**/*"],
+      "metadata": {
+        "description": "Test 1Password Bazel rules"
+      }
+    }
+  },
+  "tags": ["scope:lib", "type:tool"]
+}

@@ -111,21 +111,21 @@ def rules_release_dependencies():
     # From https://app-updates.agilebits.com/product_history/CLI2
     http_archive(
         name = "onepassword_linux_arm64",
-        build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
+        build_file = "//libs/onepassword:BUILD.repositories.bazel.tpl",
         sha256 = "b93a8e0dc42c0979bb13047ac4412bd73092be57bb84ad223eeca295151159fa",
         url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_arm64_v2.18.0.zip",
     )
 
     http_archive(
         name = "onepassword_linux_amd64",
-        build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
+        build_file = "//libs/onepassword:BUILD.repositories.bazel.tpl",
         sha256 = "2baf610b476727f24c62cc843419f55b157e1a05521a698c1c8b4ed676a766aa",
         url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_amd64_v2.18.0.zip",
     )
 
     http_archive(
         name = "onepassword_darwin_arm64",
-        build_file = "//tools/onepassword:BUILD.repositories.bazel.tpl",
+        build_file = "//libs/onepassword:BUILD.repositories.bazel.tpl",
         sha256 = "b9ae52df3003216b454f6ac0a402c71bcfb4804eafb3ee3593a84a2002930d27",
         url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.22.0/op_darwin_arm64_v2.22.0.zip",
     )
