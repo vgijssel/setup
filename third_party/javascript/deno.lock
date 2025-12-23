@@ -9853,7 +9853,7 @@
       "libs/dev-cluster": {
         "packageJson": {
           "dependencies": [
-            "npm:dev-cluster-stack@0.2.0"
+            "npm:dev-cluster-stack@0.2.1"
           ]
         }
       },
