@@ -27,3 +27,38 @@ resource "keycloak_openid_client" "coder" {
 
   login_theme = "keycloak"
 }
+
+# Data source for the target vault
+data "onepassword_vault" "coder_prod" {
+  name = "setup-coder-prod"
+}
+
+# Store OIDC credentials in 1Password for Coder deployment
+resource "onepassword_item" "coder_oidc_credentials" {
+  vault = data.onepassword_vault.coder_prod.uuid
+  title = "coder-oidc-credentials"
+
+  category = "login"
+
+  section {
+    label = "OIDC Configuration"
+
+    field {
+      label = "client_id"
+      type  = "STRING"
+      value = keycloak_openid_client.coder.client_id
+    }
+
+    field {
+      label = "client_secret"
+      type  = "CONCEALED"
+      value = keycloak_openid_client.coder.client_secret
+    }
+
+    field {
+      label = "issuer_url"
+      type  = "STRING"
+      value = "https://keycloak.enigma.vgijssel.nl/realms/cozy"
+    }
+  }
+}

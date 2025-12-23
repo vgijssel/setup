@@ -6,5 +6,9 @@ terraform {
       source  = "mrparkers/keycloak"
       version = "4.4.0"
     }
+    onepassword = {
+      source  = "1Password/onepassword"
+      version = "2.1.2"
+    }
   }
 }

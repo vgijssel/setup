@@ -4,3 +4,7 @@ provider "keycloak" {
   username  = "admin"
   password  = var.keycloak_admin_password
 }
+
+provider "onepassword" {
+  # Uses OP_SERVICE_ACCOUNT_TOKEN from environment
+}
