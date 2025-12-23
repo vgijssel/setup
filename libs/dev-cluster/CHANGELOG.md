@@ -1,3 +1,13 @@
+## 0.2.2 (2025-12-23)
+
+### 🩹 Fixes
+
+- chore: monorepo migration cleanup ([#861](https://github.com/vgijssel/setup/pull/861))
+
+### 🧱 Updated Dependencies
+
+- Updated dev-cluster-stack to 0.2.1
+
 ## 0.2.1 (2025-10-26)
 
 ### 🩹 Fixes

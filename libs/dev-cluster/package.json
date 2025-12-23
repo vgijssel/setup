@@ -1,9 +1,9 @@
 {
   "name": "dev-cluster",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Local development cluster orchestration tool",
   "dependencies": {
-    "dev-cluster-stack": "0.2.0"
+    "dev-cluster-stack": "0.2.1"
   },
   "nx": {
     "projectType": "library",
