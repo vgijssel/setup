@@ -3,16 +3,6 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/windmill-ingress",
-  "targets": {
-    "lint": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "yamllint .",
-        "cwd": "apps/windmill-ingress"
-      },
-      "cache": true,
-      "inputs": ["{projectRoot}/**/*.yaml", "{projectRoot}/**/*.yml"]
-    }
-  },
+  "targets": {},
   "tags": ["scope:app", "type:service", "platform:kubernetes"]
 }

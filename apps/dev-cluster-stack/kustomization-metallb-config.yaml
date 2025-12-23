@@ -7,7 +7,7 @@ spec:
   interval: 10m
   # Necessary because we have to wait on MetalLB CRDS to become ready
   retryInterval: 5s
-  path: ./stacks/dev-cluster/metallb-config
+  path: ./apps/dev-cluster-stack/metallb-config
   prune: true
   sourceRef:
     kind: GitRepository

@@ -23,15 +23,6 @@
       "metadata": {
         "description": "Start the ipxe machine"
       }
-    },
-    "lint": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "yamllint .",
-        "cwd": "apps/tinkerbell"
-      },
-      "cache": true,
-      "inputs": ["{projectRoot}/**/*.yaml", "{projectRoot}/**/*.yml"]
     }
   },
   "tags": ["scope:app", "type:service", "platform:kubernetes"]

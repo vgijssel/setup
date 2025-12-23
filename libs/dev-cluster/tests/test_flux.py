@@ -40,7 +40,7 @@ def test_bootstrap_flux_install_success(mock_run, mock_environ, mock_exists):
         "test",
         "https://github.com/vgijssel/setup",
         "main",
-        "stacks/dev-cluster",
+        "apps/dev-cluster-stack",
         False,
     )
 
@@ -81,7 +81,7 @@ def test_bootstrap_flux_install_failure(mock_run, mock_environ, mock_exists):
             "test",
             "https://github.com/vgijssel/setup",
             "main",
-            "stacks/dev-cluster",
+            "apps/dev-cluster-stack",
             False,
         )
 
@@ -107,7 +107,7 @@ def test_bootstrap_flux_source_failure(mock_run, mock_environ, mock_exists):
             "test",
             "https://github.com/vgijssel/setup",
             "main",
-            "stacks/dev-cluster",
+            "apps/dev-cluster-stack",
             False,
         )
 
@@ -132,7 +132,7 @@ def test_bootstrap_flux_kustomization_failure(mock_run, mock_environ, mock_exist
             "test",
             "https://github.com/vgijssel/setup",
             "main",
-            "stacks/dev-cluster",
+            "apps/dev-cluster-stack",
             False,
         )
 

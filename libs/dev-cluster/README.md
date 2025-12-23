@@ -89,7 +89,7 @@ dev-cluster --verbose create my-cluster
 The tool supports the following environment variables:
 
 - `FLUX_REPO_URL`: Git repository URL (default: `https://github.com/vgijssel/setup`)
-- `FLUX_PATH`: Path in repository for Flux manifests (default: `stacks/dev-cluster`)
+- `FLUX_PATH`: Path in repository for Flux manifests (default: `apps/dev-cluster-stack`)
 
 Example:
 
@@ -140,7 +140,7 @@ dev-cluster create NAME [OPTIONS]
 - `--config PATH`: Path to kind cluster config file
 - `--wait DURATION`: Wait duration for cluster to be ready (default: `5m`)
 - `--repo-url URL`: Git repository URL for Flux bootstrap (default: `https://github.com/vgijssel/setup`)
-- `--flux-path PATH`: Path in repository for Flux (default: `stacks/dev-cluster`)
+- `--flux-path PATH`: Path in repository for Flux (default: `apps/dev-cluster-stack`)
 - `--branch BRANCH`: Git branch to use (defaults to current branch)
 
 #### `delete`

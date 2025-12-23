@@ -95,7 +95,7 @@ def cli(ctx, verbose):
 @click.option(
     "--flux-path",
     envvar="FLUX_PATH",
-    default="stacks/dev-cluster",
+    default="apps/dev-cluster-stack",
     help="Path in repository for Flux",
 )
 @click.option(

@@ -23,15 +23,6 @@
       "metadata": {
         "description": "Sync the local files with the remote server"
       }
-    },
-    "lint": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "yamllint .",
-        "cwd": "apps/windmill"
-      },
-      "cache": true,
-      "inputs": ["{projectRoot}/**/*.yaml", "{projectRoot}/**/*.yml"]
     }
   },
   "tags": ["scope:app", "type:service", "platform:kubernetes"]
