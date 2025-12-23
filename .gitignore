@@ -69,9 +69,7 @@ services/kube-ovn/charts
 **/textual_serve.log
 third_party/javascript/bin
 
-stacks/enigma-cozy/secrets.yaml
-stacks/enigma-cozy/talosconfig
-stacks/enigma-cozy/kubeconfig
+talosconfig
 .nx/installation
 .nx/cache
 .nx/workspace-data
@@ -125,3 +123,4 @@ node_modules/
 # Task files
 tasks.json
 tasks/ 
+.taskmaster/reports

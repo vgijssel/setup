@@ -18,7 +18,7 @@ This Nx monorepo uses a **two-directory structure**. All code MUST go into one o
 | Is environment-specific (cluster config) | `apps/` |
 | Is reusable across projects | `libs/` |
 | Is a build tool or utility | `libs/` |
-| Wraps an external dependency | `libs/` |
+| Wraps an external dependency | `third_party/` |
 
 See `.taskmaster/docs/prd-monorepo-consolidation.md` for the full migration plan.
 
