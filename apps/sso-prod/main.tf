@@ -12,10 +12,10 @@ resource "keycloak_openid_client" "coder" {
   name      = "Coder"
   enabled   = true
 
-  access_type              = "CONFIDENTIAL"
-  standard_flow_enabled    = true
+  access_type                  = "CONFIDENTIAL"
+  standard_flow_enabled        = true
   direct_access_grants_enabled = false
-  service_accounts_enabled = false
+  service_accounts_enabled     = false
 
   valid_redirect_uris = [
     "https://coder.enigma.vgijssel.nl/*"
