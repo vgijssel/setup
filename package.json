@@ -6,7 +6,8 @@
   "workspaces": [
     "libs/*",
     "apps/*",
-    ".devcontainer"
+    ".devcontainer",
+    "third_party/*"
   ],
   "devDependencies": {
     "@nx/js": "22.0.3",
