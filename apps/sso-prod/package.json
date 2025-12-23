@@ -1,0 +1,100 @@
+{
+  "name": "sso-prod",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "nx": {
+    "projectType": "application",
+    "sourceRoot": "apps/sso-prod",
+    "targets": {
+      "secrets": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "op inject --force -i .env.tpl -o .env",
+          "cwd": "apps/sso-prod"
+        },
+        "cache": false,
+        "outputs": [
+          "{projectRoot}/.env"
+        ],
+        "inputs": [
+          "{projectRoot}/.env.tpl"
+        ],
+        "metadata": {
+          "description": "Generate .env file from 1Password secrets"
+        }
+      },
+      "init": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "secrets"
+        ],
+        "options": {
+          "command": "set -a && source .env && set +a && tofu init -backend-config=\"bucket=$TF_VAR_s3_bucket\"",
+          "cwd": "apps/sso-prod"
+        },
+        "metadata": {
+          "description": "Initialize Terraform/OpenTofu"
+        }
+      },
+      "plan": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "init"
+        ],
+        "options": {
+          "command": "set -a && source .env && set +a && tofu plan",
+          "cwd": "apps/sso-prod"
+        },
+        "metadata": {
+          "description": "Run Terraform/OpenTofu plan"
+        }
+      },
+      "apply": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "init"
+        ],
+        "options": {
+          "command": "set -a && source .env && set +a && tofu apply -auto-approve",
+          "cwd": "apps/sso-prod"
+        },
+        "metadata": {
+          "description": "Apply Terraform/OpenTofu configuration"
+        }
+      },
+      "destroy": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "init"
+        ],
+        "options": {
+          "command": "set -a && source .env && set +a && tofu destroy -auto-approve",
+          "cwd": "apps/sso-prod"
+        },
+        "metadata": {
+          "description": "Destroy Terraform/OpenTofu resources"
+        }
+      },
+      "output": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          "init"
+        ],
+        "options": {
+          "command": "set -a && source .env && set +a && tofu output",
+          "cwd": "apps/sso-prod"
+        },
+        "metadata": {
+          "description": "Show Terraform/OpenTofu outputs"
+        }
+      }
+    },
+    "tags": [
+      "app",
+      "terraform",
+      "keycloak",
+      "infrastructure"
+    ]
+  },
+  "private": true
+}
