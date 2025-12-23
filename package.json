@@ -6,7 +6,6 @@
   "workspaces": [
     "libs/*",
     "apps/*",
-    "third_party/*",
     ".devcontainer"
   ],
   "devDependencies": {
