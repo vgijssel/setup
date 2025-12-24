@@ -103,8 +103,21 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Start bazel-remote cache
-        run: moon run bazel-remote:start
+        run: |
+          mkdir -p /tmp/bazel-remote-cache
+          nohup bazel-remote \
+            --dir /tmp/bazel-remote-cache \
+            --max_size 5 \
+            --http_address 0.0.0.0:9090 \
+            --grpc_address 0.0.0.0:9092 \
+            > /tmp/bazel-remote.log 2>&1 &
+          wait-for-it -s localhost:9090 -t 30
         env:
+          BAZEL_REMOTE_S3_BUCKET: setup-nx
+          BAZEL_REMOTE_S3_ENDPOINT: s3.us-west-004.backblazeb2.com
+          BAZEL_REMOTE_S3_REGION: us-west-004
+          BAZEL_REMOTE_S3_BUCKET_LOOKUP_TYPE: path
+          BAZEL_REMOTE_S3_AUTH_METHOD: access_key
           BAZEL_REMOTE_S3_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           BAZEL_REMOTE_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 

@@ -1,6 +1,8 @@
 $schema: ./cache/schemas/workspace.json
 hasher:
   walkStrategy: vcs
+unstable_remote:
+  host: grpc://localhost:9092
 projects:
   globs:
     - apps/*
