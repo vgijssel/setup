@@ -54,6 +54,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        index: [0, 1]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -76,15 +79,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clean moon cache
-        run: moon clean
+      #       - name: Clean moon cache
+      #         run: moon clean
 
       - name: Run moon ci tests
-        run: moon ci ${{ github.event.pull_request.base.sha }} ${{ github.sha }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: moon ci --job ${{ matrix.index }} --jobTotal 2
+      #        env:
+      #          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - uses: "moonrepo/run-report-action@v1"
+        if: success() || failure()
+        with:
+          access-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Disk usage after tests
         if: always()
@@ -126,8 +134,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clean moon cache
-        run: moon clean
+      #      - name: Clean moon cache
+      #        run: moon clean
 
       - name: Run moon ci tests (macOS tagged projects)
         run: moon run :lint :test :build --query "tag=macos"
