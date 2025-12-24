@@ -2,7 +2,7 @@ $schema: ./cache/schemas/workspace.json
 hasher:
   walkStrategy: vcs
 unstable_remote:
-  host: grpc://localhost:9092
+  host: grpc://0.0.0.0:9092
   cache:
     compression: zstd
 projects:

@@ -113,7 +113,7 @@ jobs:
             --grpc_address 0.0.0.0:9092 \
             --access_log_level all \
             > /tmp/bazel-remote.log 2>&1 &
-          wait-for-it -s localhost:9090 -t 30
+          wait-for-it -s 0.0.0.0:9090 -t 30
         env:
           BAZEL_REMOTE_S3_BUCKET: setup-nx
           BAZEL_REMOTE_S3_ENDPOINT: s3.us-west-004.backblazeb2.com
