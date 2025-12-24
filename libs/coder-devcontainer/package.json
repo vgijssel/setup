@@ -1,0 +1,7 @@
+{
+  "name": "coder-devcontainer",
+  "private": true,
+  "dependencies": {
+    "devcontainer": "0.19.2"
+  }
+}
