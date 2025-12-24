@@ -152,6 +152,10 @@ jobs:
           access-token: ${{ secrets.GITHUB_TOKEN }}
           matrix: ${{ toJSON(matrix) }}
 
+      - name: "Collect/retrospect on results"
+        uses: "appthrust/moon-ci-retrospect@v2"
+        if: success() || failure()
+
       - name: bazel-remote debug
         if: always()
         run: |
