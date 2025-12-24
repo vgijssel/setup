@@ -1,0 +1,33 @@
+language: bash
+layer: library
+tags:
+  - scope.lib
+  - type.tool
+  - bazel
+  - cache
+
+# bazel-remote S3-compatible cache (Backblaze B2)
+#
+# All settings via environment variables (config files disable env var support).
+#
+# Required secrets (passed by CI):
+#   BAZEL_REMOTE_S3_ACCESS_KEY_ID       - Backblaze application key ID
+#   BAZEL_REMOTE_S3_SECRET_ACCESS_KEY   - Backblaze application key
+#
+# Usage:
+#   moon run bazel-remote:start
+
+tasks:
+  start:
+    command: |
+      mkdir -p /tmp/bazel-remote-cache
+      bazel-remote --dir /tmp/bazel-remote-cache --max_size 5 --http_address 0.0.0.0:9090 --grpc_address 0.0.0.0:9092 &
+      wait-for-it -s localhost:9090 -t 30
+    env:
+      BAZEL_REMOTE_S3_BUCKET: setup-nx
+      BAZEL_REMOTE_S3_ENDPOINT: s3.us-west-004.backblazeb2.com
+      BAZEL_REMOTE_S3_REGION: us-west-004
+      BAZEL_REMOTE_S3_BUCKET_LOOKUP_TYPE: path
+      BAZEL_REMOTE_S3_AUTH_METHOD: access_key
+    options:
+      cache: false
