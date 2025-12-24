@@ -109,11 +109,11 @@ jobs:
             --dir /tmp/bazel-remote-cache \
             --max_size 5 \
             --storage_mode zstd \
-            --http_address 0.0.0.0:9090 \
-            --grpc_address 0.0.0.0:9092 \
+            --http_address 127.0.0.1:9090 \
+            --grpc_address 127.0.0.1:9092 \
             --access_log_level all \
             > /tmp/bazel-remote.log 2>&1 &
-          wait-for-it -s 0.0.0.0:9090 -t 30
+          wait-for-it -s 127.0.0.1:9090 -t 30
         env:
           BAZEL_REMOTE_S3_BUCKET: setup-nx
           BAZEL_REMOTE_S3_ENDPOINT: s3.us-west-004.backblazeb2.com
