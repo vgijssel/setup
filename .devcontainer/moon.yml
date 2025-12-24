@@ -2,7 +2,7 @@ language: javascript
 layer: application
 tasks:
   build:
-    command: "{projectRoot}/build.sh --tag ${NX_TASK_HASH}"
+    command: "$projectRoot/build.sh --tag ${NX_TASK_HASH}"
     inputs:
       - file: Dockerfile
       - file: build.sh
@@ -22,12 +22,12 @@ tasks:
     options:
       cache: true
   release:
-    command: '{"command":"{projectRoot}/release.sh"}'
+    command: '{"command":"$projectRoot/release.sh"}'
     deps:
       - ~:build
     local: true
   test:
-    command: "{projectRoot}/test.sh"
+    command: "$projectRoot/test.sh"
     deps:
       - ~:build
     options:
