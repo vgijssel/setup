@@ -26,6 +26,6 @@ CURRENT_DIR=$(pwd)
 docker run --privileged --rm \
   -v "${CURRENT_DIR}:/workspaces/setup" \
   "${IMAGE}" \
-  bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate
+  bin/exec goss --gossfile ./libs/devenv/goss.yaml validate
 
 echo "Tests completed successfully!"

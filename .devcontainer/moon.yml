@@ -2,7 +2,7 @@ language: javascript
 layer: application
 tasks:
   build:
-    command: "$projectRoot/build.sh --tag ${MOON_TASK_HASH}"
+    command: ./build.sh --tag $MOON_TASK_HASH
     inputs:
       - file: Dockerfile
       - file: build.sh
@@ -22,12 +22,12 @@ tasks:
     options:
       cache: true
   release:
-    command: '{"command":"$projectRoot/release.sh"}'
+    command: ./release.sh
     deps:
       - ~:build
     local: true
   test:
-    command: $projectRoot/test.sh
+    command: ./test.sh
     deps:
       - ~:build
     options:
