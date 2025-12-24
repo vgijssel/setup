@@ -24,6 +24,7 @@ tasks:
       - /site
     options:
       cache: true
+      runInCI: false
   serve:
     command: mkdocs serve
     env:
