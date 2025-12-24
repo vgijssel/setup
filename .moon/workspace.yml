@@ -3,6 +3,10 @@ hasher:
   walkStrategy: vcs
 unstable_remote:
   host: grpc://localhost:9092
+  auth:
+    token: BAZEL_REMOTE_TOKEN
+  cache:
+    compression: zstd
 projects:
   globs:
     - apps/*

@@ -108,6 +108,7 @@ jobs:
           nohup bazel-remote \
             --dir /tmp/bazel-remote-cache \
             --max_size 5 \
+            --storage_mode zstd \
             --http_address 0.0.0.0:9090 \
             --grpc_address 0.0.0.0:9092 \
             > /tmp/bazel-remote.log 2>&1 &
@@ -124,11 +125,14 @@ jobs:
       - name: Run moon ci tests (Linux)
         if: runner.os == 'Linux'
         run: moon ci --job ${{ matrix.index }} --jobTotal ${{ matrix.total }}
+        env:
+          BAZEL_REMOTE_TOKEN: "enabled"
 
       - name: Run moon ci tests (macOS)
         if: runner.os == 'macOS'
         run: moon run :lint :test :build --query "tag=macos"
         env:
+          BAZEL_REMOTE_TOKEN: "enabled"
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
@@ -138,6 +142,12 @@ jobs:
         with:
           access-token: ${{ secrets.GITHUB_TOKEN }}
           matrix: ${{ toJSON(matrix) }}
+
+      - name: Show bazel-remote logs
+        if: always()
+        run: |
+          echo "=== bazel-remote logs ==="
+          cat /tmp/bazel-remote.log 2>/dev/null || echo "No bazel-remote logs found"
 
       - name: Disk usage after tests
         if: always()
