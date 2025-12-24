@@ -111,7 +111,8 @@ jobs:
             --storage_mode zstd \
             --http_address 0.0.0.0:9090 \
             --grpc_address 0.0.0.0:9092 \
-            --access_log_level all &
+            --access_log_level all \
+            > /tmp/bazel-remote.log 2>&1 &
           wait-for-it -s 0.0.0.0:9090 -t 30
         env:
           BAZEL_REMOTE_S3_BUCKET: setup-nx
@@ -145,6 +146,8 @@ jobs:
         run: |
           echo "=== bazel-remote process ==="
           pgrep -a bazel-remote || echo "bazel-remote is not running"
+          echo "=== bazel-remote logs ==="
+          cat /tmp/bazel-remote.log 2>/dev/null || echo "No logs found"
 
       - name: Disk usage after tests
         if: always()
