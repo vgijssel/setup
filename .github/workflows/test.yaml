@@ -137,12 +137,14 @@ jobs:
         run: moon ci --job ${{ matrix.index }} --jobTotal ${{ matrix.total }}
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          VENDIR_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run moon ci tests (macOS)
         if: runner.os == 'macOS'
         run: moon run :lint :test :build --query "tag=macos"
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          VENDIR_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: moonrepo/run-report-action@v1
         if: (success() || failure())
