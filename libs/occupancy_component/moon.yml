@@ -11,7 +11,7 @@ tags:
   - language.python
 tasks:
   test:
-    command: $SETUP_DIR/bin/uv run pytest
+    command: uv run pytest
     env:
       CWD: libs/occupancy_component
     inputs:
@@ -19,8 +19,5 @@ tasks:
         cache: true
       - file: pyproject.toml
       - file: uv.lock
-    outputs:
-      - .pytest_cache
     options:
       cache: true
-      runInCI: false
