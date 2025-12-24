@@ -11,7 +11,7 @@ tags:
   - language.python
 tasks:
   test:
-    command: uv run pytest
+    command: $SETUP_DIR/bin/uv run pytest
     env:
       CWD: libs/occupancy_component
     inputs:
@@ -23,3 +23,4 @@ tasks:
       - .pytest_cache
     options:
       cache: true
+      runInCI: false
