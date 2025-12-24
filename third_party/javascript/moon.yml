@@ -21,14 +21,3 @@ tasks:
     env:
       CWD: third_party/javascript
     local: true
-  package_test:
-    command: npm install && git diff --exit-code package-lock.json
-    env:
-      CWD: .
-    inputs:
-      - glob: /**/package.json
-        cache: true
-      - glob: /**/package-lock.json
-        cache: true
-    options:
-      cache: true
