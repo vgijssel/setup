@@ -111,6 +111,7 @@ jobs:
             --storage_mode zstd \
             --http_address 0.0.0.0:9090 \
             --grpc_address 0.0.0.0:9092 \
+            --log_level debug \
             > /tmp/bazel-remote.log 2>&1 &
           wait-for-it -s localhost:9090 -t 30
         env:
@@ -126,14 +127,14 @@ jobs:
         if: runner.os == 'Linux'
         run: moon ci --job ${{ matrix.index }} --jobTotal ${{ matrix.total }}
         env:
-          BAZEL_REMOTE_TOKEN: "enabled"
+          BAZEL_REMOTE_TOKEN: enabled
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Run moon ci tests (macOS)
         if: runner.os == 'macOS'
         run: moon run :lint :test :build --query "tag=macos"
         env:
-          BAZEL_REMOTE_TOKEN: "enabled"
+          BAZEL_REMOTE_TOKEN: enabled
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - uses: moonrepo/run-report-action@v1
