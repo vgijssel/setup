@@ -11,8 +11,10 @@ echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
 # Allow the current project
 direnv allow >&2
 
-# Ensure Trunk CLI is installed
-direnv exec . trunk install --ci --verbose >&2
+# Ensure Trunk CLI is installed (use absolute path since trunk is managed by Hermit)
+# Get the project root directory (2 levels up from apps/codex)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+direnv exec . "$PROJECT_ROOT/bin/trunk" install --ci --verbose >&2
 
 # Print direnv hook to stdout to be eval'ed by the calling process
 direnv hook bash
