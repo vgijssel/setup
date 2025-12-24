@@ -1,0 +1,20 @@
+language: javascript
+layer: library
+tags:
+  - type.library
+  - scope.infrastructure
+  - type.library
+  - scope.infrastructure
+tasks:
+  test:
+    command: dev-cluster create internal-dns-test && chainsaw test --test-dir tests --kube-context kind-internal-dns-test && dev-cluster delete internal-dns-test
+    env:
+      CWD: libs/internal-dns
+    inputs:
+      - glob: "**/*"
+        cache: true
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

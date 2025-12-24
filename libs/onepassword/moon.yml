@@ -1,0 +1,11 @@
+id: onepassword
+language: javascript
+layer: library
+tags:
+  - scope.lib
+  - type.tool
+  - scope.lib
+  - type.tool
+tasks: {}
+toolchain:
+  default: node

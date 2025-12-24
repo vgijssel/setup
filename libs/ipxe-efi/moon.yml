@@ -1,0 +1,14 @@
+language: javascript
+layer: library
+tags:
+  - packer
+  - image
+  - ipxe
+  - efi
+  - packer
+  - image
+  - ipxe
+  - efi
+tasks: {}
+toolchain:
+  default: node

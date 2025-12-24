@@ -1,0 +1,14 @@
+language: javascript
+tasks:
+  test:
+    inputs:
+      - glob: "**/*.js"
+        cache: true
+      - glob: "**/*.bzl"
+        cache: true
+      - file: BUILD.bazel
+      - file: package.json
+    options:
+      cache: true
+toolchain:
+  default: node

@@ -1,0 +1,26 @@
+language: javascript
+layer: library
+tags:
+  - devenv
+  - chezmoi
+  - development-environment
+  - macos
+  - devenv
+  - chezmoi
+  - development-environment
+  - macos
+tasks:
+  apply:
+    command: chezmoi apply --verbose
+    env:
+      CWD: libs/devenv
+    toolchain: system
+  test:
+    command: chezmoi apply --force --verbose && goss validate
+    env:
+      CWD: libs/devenv
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

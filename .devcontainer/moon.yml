@@ -1,0 +1,38 @@
+language: javascript
+layer: application
+tasks:
+  build:
+    command: "{projectRoot}/build.sh --tag ${NX_TASK_HASH}"
+    inputs:
+      - file: Dockerfile
+      - file: build.sh
+      - file: ssh_known_hosts
+      - file: /.envrc
+      - glob: /bin/**/*
+        cache: true
+      - glob: /third_party/hermit/**/*
+        cache: true
+      - glob: /third_party/vendir/shell/**/*
+        cache: true
+      - glob: /libs/devenv/**/*
+        cache: true
+      - file: /.chezmoiroot
+    outputs:
+      - ".docker-version"
+    options:
+      cache: true
+    toolchain: system
+  nx-release-publish:
+    command: '{"command":"{projectRoot}/release.sh"}'
+    deps:
+      - ~:build
+    toolchain: system
+  test:
+    command: "{projectRoot}/test.sh"
+    deps:
+      - ~:build
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

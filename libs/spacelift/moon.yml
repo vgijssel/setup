@@ -1,0 +1,23 @@
+language: javascript
+layer: library
+tags:
+  - spacelift
+  - docker
+  - ansible
+  - infrastructure
+  - skip-ci
+  - spacelift
+  - docker
+  - ansible
+  - infrastructure
+  - skip-ci
+tasks:
+  build:
+    command: docker build -t spacelift-runner .
+    env:
+      CWD: libs/spacelift
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

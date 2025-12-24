@@ -1,0 +1,26 @@
+language: javascript
+layer: library
+tasks:
+  build:
+    command: vendir sync
+    env:
+      CWD: third_party/vendir
+    inputs:
+      - file: vendir.yml
+    outputs:
+      - charts
+      - vendir.lock.yml
+    options:
+      cache: true
+    toolchain: system
+  test:
+    command: git diff --exit-code vendir.lock.yml charts
+    deps:
+      - ~:build
+    env:
+      CWD: third_party/vendir
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

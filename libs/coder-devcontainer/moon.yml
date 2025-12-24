@@ -1,0 +1,21 @@
+language: javascript
+layer: library
+tags:
+  - coder
+  - devcontainer
+  - terraform
+  - development-environment
+  - coder
+  - devcontainer
+  - terraform
+  - development-environment
+tasks:
+  test:
+    command: terraform init && terraform validate
+    env:
+      CWD: libs/coder-devcontainer
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

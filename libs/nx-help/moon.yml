@@ -1,0 +1,18 @@
+language: javascript
+layer: library
+tasks:
+  build:
+    command: bash libs/nx-help/generate-help.sh
+    env:
+      CWD: "."
+    inputs:
+      - glob: /**/package.json
+        cache: true
+      - file: /nx.json
+    outputs:
+      - /libs/nx-help/dist/projects.json
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

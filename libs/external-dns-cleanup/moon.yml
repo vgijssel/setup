@@ -1,0 +1,54 @@
+language: javascript
+layer: library
+tags:
+  - python
+  - cli
+  - cloudflare
+  - dns
+  - external-dns
+  - uv-script
+  - python
+  - cli
+  - cloudflare
+  - dns
+  - external-dns
+  - uv-script
+tasks:
+  run:
+    command: "./external-dns-cleanup"
+    deps:
+      - ~:secrets
+    env:
+      CWD: libs/external-dns-cleanup
+    toolchain: system
+  secrets:
+    command: op inject --force -i .env.tpl -o .env
+    env:
+      CWD: libs/external-dns-cleanup
+    inputs:
+      - file: ".env.tpl"
+    outputs:
+      - ".env"
+    options:
+      cache: true
+    toolchain: system
+  test:
+    command: uv run --all-extras pytest -v
+    deps:
+      - ~:secrets
+    env:
+      CWD: libs/external-dns-cleanup
+    inputs:
+      - glob: "**/*.*"
+        cache: true
+      - glob: "!.pytest_cache/**"
+        cache: true
+      - glob: "!.venv/**"
+        cache: true
+      - glob: "!.env"
+        cache: true
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

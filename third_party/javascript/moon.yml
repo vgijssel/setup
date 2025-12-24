@@ -1,0 +1,29 @@
+language: javascript
+layer: library
+tags:
+  - javascript
+  - deno
+  - npm
+  - javascript
+  - deno
+  - npm
+tasks:
+  test:
+    command: deno install --config=deno.json --lock=deno.lock --frozen
+    env:
+      CWD: third_party/javascript
+    inputs:
+      - file: deno.json
+      - file: deno.lock
+      - glob: "*-runner.ts"
+        cache: true
+    options:
+      cache: true
+    toolchain: system
+  update-lockfile:
+    command: deno install --config=deno.json --lock=deno.lock
+    env:
+      CWD: third_party/javascript
+    toolchain: system
+toolchain:
+  default: node

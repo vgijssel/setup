@@ -1,0 +1,28 @@
+id: codex
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.tooling
+  - ci
+  - scope.app
+  - type.tooling
+  - ci
+tasks:
+  setup:
+    command: "./setup.sh"
+    env:
+      CWD: apps/codex
+    toolchain: system
+  test:
+    command: "./setup.sh && direnv --version"
+    env:
+      CWD: apps/codex
+    inputs:
+      - glob: "**/*"
+        cache: true
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

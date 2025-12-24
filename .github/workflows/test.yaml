@@ -76,10 +76,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run nx tests
-        run: nx run-many -t lint test build --exclude=tag:macos --exclude=tag:skip-ci
+      - name: Clean moon cache
+        run: moon clean
+
+      - name: Run moon ci tests
+        run: moon ci ${{ github.event.pull_request.base.sha }} ${{ github.sha }}
         env:
-          NX_KEY: ${{ secrets.NX_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
@@ -124,10 +126,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run nx tests
-        run: nx run-many -t lint test build --projects=tag:macos
+      - name: Clean moon cache
+        run: moon clean
+
+      - name: Run moon ci tests (macOS tagged projects)
+        run: moon run :lint :test :build --query "tag=macos"
         env:
-          NX_KEY: ${{ secrets.NX_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}

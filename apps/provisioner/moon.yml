@@ -1,0 +1,45 @@
+id: provisioner
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.infrastructure
+  - ansible
+  - provisioning
+  - scope.app
+  - type.infrastructure
+  - ansible
+  - provisioning
+tasks:
+  k8s-provision:
+    command: ansible-playbook -i production provisioner-k8s.yml --diff
+    env:
+      CWD: apps/provisioner
+    toolchain: system
+  k8s-provision-local:
+    command: ansible-playbook -i production.local provisioner-k8s.yml --diff
+    env:
+      CWD: apps/provisioner
+    toolchain: system
+  pikvm-provision:
+    command: ansible-playbook -i production pikvm.yml --diff
+    env:
+      CWD: apps/provisioner
+    toolchain: system
+  pikvm-provision-local:
+    command: ansible-playbook -i production.local pikvm.yml --diff
+    env:
+      CWD: apps/provisioner
+    toolchain: system
+  provision:
+    command: ansible-playbook -i production provisioner.yml --diff
+    env:
+      CWD: apps/provisioner
+    toolchain: system
+  provision-local:
+    command: ansible-playbook -i production.local provisioner.yml --diff
+    env:
+      CWD: apps/provisioner
+    toolchain: system
+toolchain:
+  default: node

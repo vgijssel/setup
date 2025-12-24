@@ -1,0 +1,27 @@
+language: javascript
+layer: library
+tags:
+  - type.lib
+  - scope.tools
+  - "1password"
+  - type.lib
+  - scope.tools
+  - "1password"
+tasks:
+  run:
+    command: uv run libs/vault-login/vault-login.py
+    env:
+      CWD: "."
+    toolchain: system
+  test:
+    command: uv run libs/vault-login/test_vault_login.py
+    env:
+      CWD: "."
+    inputs:
+      - glob: "*.py"
+        cache: true
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

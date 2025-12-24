@@ -1,0 +1,53 @@
+language: javascript
+layer: library
+tags:
+  - scope.lib
+  - type.cli
+  - python
+  - kubernetes
+  - kind
+  - flux
+  - development
+  - scope.lib
+  - type.cli
+  - python
+  - kubernetes
+  - kind
+  - flux
+  - development
+tasks:
+  e2e_test:
+    command: dev-cluster create dev-cluster && chainsaw test --test-dir tests_e2e --kube-context kind-dev-cluster && dev-cluster delete dev-cluster
+    env:
+      CWD: libs/dev-cluster
+    inputs:
+      - glob: "**/*.*"
+        cache: true
+      - glob: "!.pytest_cache/**"
+        cache: true
+      - glob: "!.venv/**"
+        cache: true
+    options:
+      cache: true
+    toolchain: system
+  test:
+    command: noop
+    deps:
+      - ~:unit_test
+      - ~:e2e_test
+  unit_test:
+    command: uv run --all-extras pytest
+    env:
+      CWD: libs/dev-cluster
+    inputs:
+      - glob: "**/*.*"
+        cache: true
+      - glob: "!.pytest_cache/**"
+        cache: true
+      - glob: "!.venv/**"
+        cache: true
+    options:
+      cache: true
+    toolchain: system
+toolchain:
+  default: node

@@ -1,0 +1,34 @@
+language: javascript
+layer: application
+tags:
+  - type.application
+  - scope.documentation
+  - type.application
+  - scope.documentation
+tasks:
+  build:
+    command: mkdocs build
+    env:
+      CWD: "."
+    inputs:
+      - glob: "**/*.md"
+        cache: true
+      - glob: "**/*.yml"
+        cache: true
+      - glob: "**/*.yaml"
+        cache: true
+      - file: /mkdocs.yml
+      - glob: /docs/**/*
+        cache: true
+    outputs:
+      - /site
+    options:
+      cache: true
+    toolchain: system
+  serve:
+    command: mkdocs serve
+    env:
+      CWD: "."
+    toolchain: system
+toolchain:
+  default: node
