@@ -7,11 +7,11 @@ tags:
   - development-environment
 tasks:
   init:
-    command: terraform init -backend=false
+    command: $SETUP_DIR/bin/terraform init -backend=false
     options:
       cache: true
   test:
-    command: terraform validate
+    command: $SETUP_DIR/bin/terraform validate
     deps:
       - ~:init
     options:
