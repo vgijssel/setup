@@ -48,7 +48,7 @@ jobs:
   #       - run: task stacks:codex:test
 
   test:
-    name: ${{ matrix.name }} (${{ matrix.index + 1 }}/${{ matrix.total }})
+    name: ${{ matrix.name }} (${{ matrix.job_number }}/${{ matrix.total }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     permissions:
@@ -56,20 +56,24 @@ jobs:
       packages: write
       pull-requests: write
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             name: Linux
             index: 0
             total: 2
+            job_number: 1
           - os: ubuntu-latest
             name: Linux
             index: 1
             total: 2
+            job_number: 2
           - os: macos-latest
             name: macOS
             index: 0
             total: 1
+            job_number: 1
     steps:
       - name: Disk usage before tests
         if: runner.os == 'macOS'
