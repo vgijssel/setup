@@ -14,12 +14,10 @@ tasks:
     inputs:
       - file: deno.json
       - file: deno.lock
-      - glob: "*-runner.ts"
-        cache: true
     options:
       cache: true
   update-lockfile:
-    command: deno install --config=deno.json --lock=deno.lock
+    command: deno install --config=deno.json --lock=deno.lock --frozen=false
     env:
       CWD: third_party/javascript
     local: true

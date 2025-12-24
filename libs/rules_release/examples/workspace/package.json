@@ -1,9 +1,0 @@
-{
-  "name": "examples_workspace",
-  "version": "0.0.0",
-  "private": true,
-  "dependencies": {},
-  "workspaces": [
-    "tmp/rules_release/packages/*"
-  ]
-}
