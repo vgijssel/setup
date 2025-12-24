@@ -19,7 +19,7 @@ tags:
 
 tasks:
   start:
-    command: mkdir -p /tmp/bazel-remote-cache && bazel-remote --dir /tmp/bazel-remote-cache --max_size 5 --http_address 0.0.0.0:9090 --grpc_address 0.0.0.0:9092 & wait-for-it -s localhost:9090 -t 30
+    command: mkdir -p /tmp/bazel-remote-cache && nohup bazel-remote --dir /tmp/bazel-remote-cache --max_size 5 --http_address 0.0.0.0:9090 --grpc_address 0.0.0.0:9092 > /tmp/bazel-remote.log 2>&1 & disown && wait-for-it -s localhost:9090 -t 30
     env:
       BAZEL_REMOTE_S3_BUCKET: setup-nx
       BAZEL_REMOTE_S3_ENDPOINT: s3.us-west-004.backblazeb2.com
