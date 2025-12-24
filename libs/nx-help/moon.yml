@@ -2,7 +2,7 @@ language: javascript
 layer: library
 tasks:
   build:
-    command: bash libs/nx-help/generate-help.sh
+    command: bash generate-help.sh
     env:
       CWD: .
     inputs:

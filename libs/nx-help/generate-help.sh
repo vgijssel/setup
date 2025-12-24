@@ -4,9 +4,9 @@ set -e
 # Create output directory
 mkdir -p libs/nx-help/dist
 
-# Get all projects
+# Get all projects using Moon
 # shellcheck disable=SC2312
-PROJECTS=$(nx show projects --json 2>/dev/null | jq -r '.[]' | sort)
+PROJECTS=$(moon query projects --json 2>/dev/null | jq -r '.projects[].id' | sort)
 
 # Initialize JSON structure
 echo '{
@@ -15,8 +15,8 @@ echo '{
 first=true
 while IFS= read -r project; do
   if [[ -n "${project}" ]]; then
-    # Get project details
-    project_data=$(nx show project "${project}" --json 2>/dev/null) || continue
+    # Get project details from Moon
+    project_data=$(moon query projects --json 2>/dev/null | jq ".projects[] | select(.id == \"${project}\")") || continue
 
     if [[ -n "${project_data}" ]]; then
       # Add comma separator for all but first entry
@@ -26,9 +26,12 @@ while IFS= read -r project; do
         echo "    ," >> libs/nx-help/dist/projects.json
       fi
 
-      # Extract project name and targets
-      name=$(echo "${project_data}" | jq -r '.name')
-      description=$(echo "${project_data}" | jq -r '.metadata.description // ""')
+      # Extract project name and description
+      name=$(echo "${project_data}" | jq -r '.id')
+      description=$(echo "${project_data}" | jq -r '.description // ""')
+
+      # Get tasks for this project
+      tasks_data=$(moon query tasks --json 2>/dev/null | jq ".tasks[\"${project}\"] // {}") || tasks_data="{}"
 
       # Build project entry with targets
       # shellcheck disable=SC2129
@@ -37,14 +40,10 @@ while IFS= read -r project; do
       echo "      \"description\": \"${description}\"," >> libs/nx-help/dist/projects.json
       echo "      \"targets\": [" >> libs/nx-help/dist/projects.json
 
-      # Extract targets
-      targets=$(echo "${project_data}" | jq -r '.targets | to_entries[] | @json')
+      # Extract targets from tasks
       target_first=true
-      while IFS= read -r target_entry; do
-        if [[ -n "${target_entry}" ]]; then
-          target_name=$(echo "${target_entry}" | jq -r '.key')
-          target_desc=$(echo "${target_entry}" | jq -r '.value.description // ""')
-
+      while IFS= read -r task_name; do
+        if [[ -n "${task_name}" ]]; then
           if [[ "${target_first}" == "true" ]]; then
             target_first=false
           else
@@ -53,11 +52,11 @@ while IFS= read -r project; do
 
           # shellcheck disable=SC2129
           echo "        {" >> libs/nx-help/dist/projects.json
-          echo "          \"name\": \"${target_name}\"," >> libs/nx-help/dist/projects.json
-          echo "          \"description\": \"${target_desc}\"" >> libs/nx-help/dist/projects.json
+          echo "          \"name\": \"${task_name}\"," >> libs/nx-help/dist/projects.json
+          echo "          \"description\": \"\"" >> libs/nx-help/dist/projects.json
           echo -n "        }" >> libs/nx-help/dist/projects.json
         fi
-      done <<< "${targets}"
+      done <<< "$(echo "${tasks_data}" | jq -r 'keys[]' 2>/dev/null || echo "")"
 
       # shellcheck disable=SC2129
       echo "" >> libs/nx-help/dist/projects.json
