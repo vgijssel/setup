@@ -54,6 +54,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      pull-requests: write
     strategy:
       matrix:
         index: [0, 1]
