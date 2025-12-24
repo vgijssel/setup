@@ -16,6 +16,7 @@ first=true
 while IFS= read -r project; do
   if [[ -n "${project}" ]]; then
     # Get project details from Moon
+    # shellcheck disable=SC2312
     project_data=$(moon query projects --json 2>/dev/null | jq ".projects[] | select(.id == \"${project}\")") || continue
 
     if [[ -n "${project_data}" ]]; then
@@ -31,6 +32,7 @@ while IFS= read -r project; do
       description=$(echo "${project_data}" | jq -r '.description // ""')
 
       # Get tasks for this project
+      # shellcheck disable=SC2312
       tasks_data=$(moon query tasks --json 2>/dev/null | jq ".tasks[\"${project}\"] // {}") || tasks_data="{}"
 
       # Build project entry with targets
@@ -42,6 +44,7 @@ while IFS= read -r project; do
 
       # Extract targets from tasks
       target_first=true
+      # shellcheck disable=SC2312
       while IFS= read -r task_name; do
         if [[ -n "${task_name}" ]]; then
           if [[ "${target_first}" == "true" ]]; then

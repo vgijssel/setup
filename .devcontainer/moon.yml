@@ -27,7 +27,7 @@ tasks:
       - ~:build
     local: true
   test:
-    command: "$projectRoot/test.sh"
+    command: $projectRoot/test.sh
     deps:
       - ~:build
     options:
