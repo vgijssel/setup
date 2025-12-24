@@ -5,14 +5,14 @@ tags:
   - devcontainer
   - terraform
   - development-environment
-  - coder
-  - devcontainer
-  - terraform
-  - development-environment
 tasks:
+  init:
+    command: terraform init -backend=false
+    options:
+      cache: true
   test:
-    command: terraform init && terraform validate
-    env:
-      CWD: libs/coder-devcontainer
+    command: terraform validate
+    deps:
+      - ~:init
     options:
       cache: true
