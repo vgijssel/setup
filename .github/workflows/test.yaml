@@ -47,9 +47,9 @@ jobs:
   #         uses: cashapp/activate-hermit@v1
   #       - run: task stacks:codex:test
 
-  test-linux:
-    name: Linux Tests (All Projects)
-    runs-on: ubuntu-latest
+  test:
+    name: ${{ matrix.name }} (${{ matrix.index + 1 }}/${{ matrix.total }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     permissions:
       contents: read
@@ -57,60 +57,22 @@ jobs:
       pull-requests: write
     strategy:
       matrix:
-        index: [0, 1]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          filter: tree:0
-          fetch-depth: 0
-
-      - name: Ensure the branch name is correct for tooling
-        run: git checkout -B "$BRANCH_NAME"
-        env:
-          BRANCH_NAME: ${{ github.head_ref }}
-
-      - uses: ./.github/actions/setup
-
-      # Ensure the Github CI can push to GHR
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      #       - name: Clean moon cache
-      #         run: moon clean
-
-      - name: Run moon ci tests
-        run: moon ci --job ${{ matrix.index }} --jobTotal 2
-      #        env:
-      #          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-
-      - uses: moonrepo/run-report-action@v1
-        if: success() || failure()
-        with:
-          access-token: ${{ secrets.GITHUB_TOKEN }}
-          matrix: ${{ toJSON(matrix) }}
-
-      - name: Disk usage after tests
-        if: always()
-        run: |
-          echo "=== Disk usage after tests ==="
-          df -h
-
-  test-macos:
-    name: macOS Tests (Tagged Projects Only)
-    runs-on: macos-latest
-    timeout-minutes: 60
-    permissions:
-      contents: read
-      packages: write
+        include:
+          - os: ubuntu-latest
+            name: Linux
+            index: 0
+            total: 2
+          - os: ubuntu-latest
+            name: Linux
+            index: 1
+            total: 2
+          - os: macos-latest
+            name: macOS
+            index: 0
+            total: 1
     steps:
       - name: Disk usage before tests
+        if: runner.os == 'macOS'
         run: |
           echo "=== Disk usage before tests ==="
           df -h
@@ -136,21 +98,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      #      - name: Clean moon cache
-      #        run: moon clean
+      - name: Run moon ci tests (Linux)
+        if: runner.os == 'Linux'
+        run: moon ci --job ${{ matrix.index }} --jobTotal ${{ matrix.total }}
 
-      - name: Run moon ci tests (macOS tagged projects)
+      - name: Run moon ci tests (macOS)
+        if: runner.os == 'macOS'
         run: moon run :lint :test :build --query "tag=macos"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
+      - uses: moonrepo/run-report-action@v1
+        if: (success() || failure()) && runner.os == 'Linux'
+        with:
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+          matrix: ${{ toJSON(matrix) }}
+
       - name: Disk usage after tests
         if: always()
         run: |
           echo "=== Disk usage after tests ==="
           df -h
-          echo ""
-          echo "=== Hermit cache size ==="
-          du -sh ~/.cache/hermit || true
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            echo ""
+            echo "=== Hermit cache size ==="
+            du -sh ~/.cache/hermit || true
+          fi

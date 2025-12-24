@@ -62,7 +62,6 @@ def _redact_secrets(response):
     secrets_to_redact = {
         "GH_TOKEN": os.getenv("GH_TOKEN", ""),
         "HA_TOKEN": os.getenv("HA_TOKEN", ""),
-        "NX_KEY": os.getenv("NX_KEY", ""),
         "OP_SERVICE_ACCOUNT_TOKEN": os.getenv("OP_SERVICE_ACCOUNT_TOKEN", ""),
         "CLAUDE_CODE_OAUTH_TOKEN": os.getenv("CLAUDE_CODE_OAUTH_TOKEN", ""),
         "CODER_SESSION_TOKEN": os.getenv("CODER_SESSION_TOKEN", ""),
@@ -120,7 +119,6 @@ def _redact_secrets_from_request(request):
     secrets_to_redact = {
         "GH_TOKEN": os.getenv("GH_TOKEN", ""),
         "HA_TOKEN": os.getenv("HA_TOKEN", ""),
-        "NX_KEY": os.getenv("NX_KEY", ""),
         "OP_SERVICE_ACCOUNT_TOKEN": os.getenv("OP_SERVICE_ACCOUNT_TOKEN", ""),
         "CLAUDE_CODE_OAUTH_TOKEN": os.getenv("CLAUDE_CODE_OAUTH_TOKEN", ""),
         "CODER_SESSION_TOKEN": os.getenv("CODER_SESSION_TOKEN", ""),
