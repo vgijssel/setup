@@ -2,7 +2,7 @@ language: javascript
 layer: application
 tasks:
   build:
-    command: "$projectRoot/build.sh --tag ${NX_TASK_HASH}"
+    command: "$projectRoot/build.sh --tag ${MOON_TASK_HASH}"
     inputs:
       - file: Dockerfile
       - file: build.sh
