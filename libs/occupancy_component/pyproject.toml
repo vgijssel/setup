@@ -22,4 +22,9 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.uv]
-dev-dependencies = []
+# Override ciso8601 to use version with precompiled linux aarch64 wheels
+# Version 2.3.1 lacks aarch64 wheels, causing build failures without gcc
+override-dependencies = ["ciso8601>=2.3.3"]
+
+[dependency-groups]
+dev = []
