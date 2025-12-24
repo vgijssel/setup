@@ -26,12 +26,12 @@ else
 fi
 echo ""
 
-# Display targets by project (first 5 projects to avoid overwhelming output)
-echo -e "${BLUE}Available Tasks by Project (first 5):${NC}"
+# Display targets by project
+echo -e "${BLUE}Available Tasks by Project:${NC}"
 
-"${MOON}" query projects --json 2>/dev/null | jq -r '.projects[].id' | sort | head -5 | while IFS= read -r project_name; do
+"${MOON}" query projects --json 2>/dev/null | jq -r '.projects[].id' | sort  | while IFS= read -r project_name; do
     printf "  %b%s:%b\n" "${CYAN}" "${project_name}" "${NC}"
-    "${MOON}" query tasks --json 2>/dev/null | jq -r --arg proj "${project_name}" '.tasks[$proj] // {} | keys[]' 2>/dev/null | head -5 | while read -r task; do
+    "${MOON}" query tasks --json 2>/dev/null | jq -r --arg proj "${project_name}" '.tasks[$proj] // {} | keys[]' 2>/dev/null | while read -r task; do
         echo "    - ${task}"
     done
     echo ""

@@ -4,6 +4,7 @@ hasher:
 projects:
   - apps/*
   - libs/*
+  - third_party/*
 vcs:
   defaultBranch: main
   manager: git
