@@ -2,9 +2,12 @@
 name = "occupancy_component"
 version = "0.3.0"
 description = "Home Assistant custom component for occupancy tracking"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-  "pytest-homeassistant-custom-component>=0.13.0",
+  # Pinned to 0.13.205: last version supporting Python 3.12
+  # Uses homeassistant==2025.1.4 with ciso8601==2.3.2 (has linux aarch64 wheels)
+  # Version 0.13.206+ requires Python 3.13+ via homeassistant 2025.2.0+
+  "pytest-homeassistant-custom-component==0.13.205",
   "tzdata>=2024.0",
   "pytest>=8.0.0",
   "pytest-asyncio>=0.24.0",
@@ -22,9 +25,8 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.uv]
-# Override ciso8601 to use version with precompiled linux aarch64 wheels
-# Version 2.3.1 lacks aarch64 wheels, causing build failures without gcc
-override-dependencies = ["ciso8601>=2.3.3"]
+# homeassistant 2025.1.4 depends on aiohasupervisor==0.2.2b5 (a prerelease)
+prerelease = "allow"
 
 [dependency-groups]
 dev = []
