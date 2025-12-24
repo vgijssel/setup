@@ -8,7 +8,7 @@ tags:
   - type.webapp
 tasks:
   build:
-    command: vite build
+    command: npx vite build
     env:
       CWD: apps/blueorange
     inputs:
@@ -17,31 +17,31 @@ tasks:
       - glob: public/**/*
         cache: true
       - file: index.html
+      - file: package.json
       - glob: vite.config.*
         cache: true
-      - file: package.json
       - glob: tsconfig*.json
         cache: true
     outputs:
-      - /dist/apps/blueorange
+      - dist
     options:
       cache: true
   e2e_test:
-    command: playwright test
+    command: npx playwright test
     env:
       CWD: apps/blueorange
   preview:
-    command: vite preview
+    command: npx vite preview
     env:
       CWD: apps/blueorange
     local: true
   serve:
-    command: vite
+    command: npx vite
     env:
       CWD: apps/blueorange
     local: true
   test:
-    command: vitest run
+    command: npx vitest run
     env:
       CWD: apps/blueorange
     inputs:
@@ -53,7 +53,6 @@ tasks:
         cache: true
       - glob: vitest.config.*
         cache: true
-      - file: package.json
       - glob: tsconfig*.json
         cache: true
     options:
