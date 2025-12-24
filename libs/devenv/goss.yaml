@@ -267,18 +267,18 @@ command:
 
 user:
   coder:
-    skip: {{.Env.IS_MACOS}}
+    skip: {{.Env.SKIP_CODER_USER_TEST}}
     exists: true
     home: /home/coder
     shell: /usr/bin/zsh
   root:
-    skip: {{.Env.IS_MACOS}}
+    skip: {{.Env.SKIP_CODER_USER_TEST}}
     exists: true
     shell: /usr/bin/zsh
 
 group:
   coder:
-    skip: {{.Env.IS_MACOS}}
+    skip: {{.Env.SKIP_CODER_USER_TEST}}
     exists: true
 file:
   '{{.Env.HOME}}':
