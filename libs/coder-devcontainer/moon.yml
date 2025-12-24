@@ -16,6 +16,3 @@ tasks:
       CWD: libs/coder-devcontainer
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

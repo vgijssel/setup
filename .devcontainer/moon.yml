@@ -21,18 +21,14 @@ tasks:
       - ".docker-version"
     options:
       cache: true
-    toolchain: system
-  nx-release-publish:
+  release:
     command: '{"command":"{projectRoot}/release.sh"}'
     deps:
       - ~:build
-    toolchain: system
+    local: true
   test:
     command: "{projectRoot}/test.sh"
     deps:
       - ~:build
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

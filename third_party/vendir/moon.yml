@@ -12,7 +12,6 @@ tasks:
       - vendir.lock.yml
     options:
       cache: true
-    toolchain: system
   test:
     command: git diff --exit-code vendir.lock.yml charts
     deps:
@@ -21,6 +20,3 @@ tasks:
       CWD: third_party/vendir
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

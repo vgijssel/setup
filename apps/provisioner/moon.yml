@@ -15,31 +15,29 @@ tasks:
     command: ansible-playbook -i production provisioner-k8s.yml --diff
     env:
       CWD: apps/provisioner
-    toolchain: system
+    local: true
   k8s-provision-local:
     command: ansible-playbook -i production.local provisioner-k8s.yml --diff
     env:
       CWD: apps/provisioner
-    toolchain: system
+    local: true
   pikvm-provision:
     command: ansible-playbook -i production pikvm.yml --diff
     env:
       CWD: apps/provisioner
-    toolchain: system
+    local: true
   pikvm-provision-local:
     command: ansible-playbook -i production.local pikvm.yml --diff
     env:
       CWD: apps/provisioner
-    toolchain: system
+    local: true
   provision:
     command: ansible-playbook -i production provisioner.yml --diff
     env:
       CWD: apps/provisioner
-    toolchain: system
+    local: true
   provision-local:
     command: ansible-playbook -i production.local provisioner.yml --diff
     env:
       CWD: apps/provisioner
-    toolchain: system
-toolchain:
-  default: node
+    local: true

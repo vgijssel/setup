@@ -1,4 +1,3 @@
-language: javascript
 layer: library
 tags:
   - javascript
@@ -19,11 +18,19 @@ tasks:
         cache: true
     options:
       cache: true
-    toolchain: system
   update-lockfile:
     command: deno install --config=deno.json --lock=deno.lock
     env:
       CWD: third_party/javascript
-    toolchain: system
-toolchain:
-  default: node
+    local: true
+  package_test:
+    command: npm install && git diff --exit-code package-lock.json
+    env:
+      CWD: "."
+    inputs:
+      - glob: /**/package.json
+        cache: true
+      - glob: /**/package-lock.json
+        cache: true
+    options:
+      cache: true

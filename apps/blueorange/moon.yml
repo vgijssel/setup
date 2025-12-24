@@ -26,22 +26,20 @@ tasks:
       - /dist/apps/blueorange
     options:
       cache: true
-    toolchain: system
-  e2e:
+  e2e_test:
     command: playwright test
     env:
       CWD: apps/blueorange
-    toolchain: system
   preview:
     command: vite preview
     env:
       CWD: apps/blueorange
-    toolchain: system
+    local: true
   serve:
     command: vite
     env:
       CWD: apps/blueorange
-    toolchain: system
+    local: true
   test:
     command: vitest run
     env:
@@ -60,6 +58,3 @@ tasks:
         cache: true
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

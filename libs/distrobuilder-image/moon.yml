@@ -14,6 +14,3 @@ tasks:
       CWD: libs/distrobuilder-image
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

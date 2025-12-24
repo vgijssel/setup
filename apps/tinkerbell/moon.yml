@@ -13,11 +13,9 @@ tasks:
     command: task dev
     env:
       CWD: apps/tinkerbell
-    toolchain: system
+    local: true
   ipxe:
     command: task ipxe
     env:
       CWD: apps/tinkerbell
-    toolchain: system
-toolchain:
-  default: node
+    local: true

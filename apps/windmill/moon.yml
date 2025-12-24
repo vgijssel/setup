@@ -13,11 +13,9 @@ tasks:
     command: task login
     env:
       CWD: apps/windmill
-    toolchain: system
+    local: true
   sync:
     command: task sync
     env:
       CWD: apps/windmill
-    toolchain: system
-toolchain:
-  default: node
+    local: true

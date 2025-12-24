@@ -29,12 +29,6 @@ tasks:
         cache: true
     options:
       cache: true
-    toolchain: system
-  test:
-    command: noop
-    deps:
-      - ~:unit_test
-      - ~:e2e_test
   unit_test:
     command: uv run --all-extras pytest
     env:
@@ -48,6 +42,3 @@ tasks:
         cache: true
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

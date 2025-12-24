@@ -13,6 +13,3 @@ tasks:
       - /libs/nx-help/dist/projects.json
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

@@ -24,7 +24,6 @@ tasks:
       - libs/fleet-mcp/dist
     options:
       cache: true
-    toolchain: system
   lint:
     command: uv run lint-imports
     env:
@@ -39,8 +38,7 @@ tasks:
         cache: true
     options:
       cache: true
-    toolchain: system
-  nx-release-publish:
+  release:
     command: "./release.sh"
     env:
       CWD: libs/fleet-mcp
@@ -55,14 +53,14 @@ tasks:
         cache: true
       - glob: "!**/__pycache__/**"
         cache: true
+    local: true
     options:
       cache: true
-    toolchain: system
   server:
     command: FLEET_MCP_AUTH_ENABLED=true FLEET_MCP_TASKFILE=/workspaces/setup/libs/coder-devcontainer/Taskfile.yml uv run --all-extras uvicorn fleet_mcp.__main__:app --host 127.0.0.1 --port 8000 --reload --timeout-graceful-shutdown 3
     env:
       CWD: libs/fleet-mcp
-    toolchain: system
+    local: true
   test:
     command: uv run pytest
     env:
@@ -84,6 +82,3 @@ tasks:
       - htmlcov
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

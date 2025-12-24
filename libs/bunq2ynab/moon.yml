@@ -20,21 +20,18 @@ tasks:
       CWD: "{workspaceRoot}"
     options:
       cache: true
-    toolchain: system
   list-budget:
     command: bazel run //libs/bunq2ynab:list_budget
     env:
       CWD: "{workspaceRoot}"
-    toolchain: system
+    local: true
   list-user:
     command: bazel run //libs/bunq2ynab:list_user
     env:
       CWD: "{workspaceRoot}"
-    toolchain: system
+    local: true
   sync:
     command: bazel run //libs/bunq2ynab:sync
     env:
       CWD: "{workspaceRoot}"
-    toolchain: system
-toolchain:
-  default: node
+    local: true

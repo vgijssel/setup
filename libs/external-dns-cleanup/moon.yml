@@ -14,13 +14,13 @@ tags:
   - external-dns
   - uv-script
 tasks:
-  run:
+  start:
     command: "./external-dns-cleanup"
     deps:
       - ~:secrets
     env:
       CWD: libs/external-dns-cleanup
-    toolchain: system
+    local: true
   secrets:
     command: op inject --force -i .env.tpl -o .env
     env:
@@ -31,7 +31,6 @@ tasks:
       - ".env"
     options:
       cache: true
-    toolchain: system
   test:
     command: uv run --all-extras pytest -v
     deps:
@@ -47,8 +46,6 @@ tasks:
         cache: true
       - glob: "!.env"
         cache: true
+    local: true
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

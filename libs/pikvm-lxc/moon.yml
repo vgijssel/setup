@@ -10,5 +10,3 @@ tags:
   - pikvm
   - lxc
 tasks: {}
-toolchain:
-  default: node

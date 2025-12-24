@@ -10,5 +10,3 @@ tags:
   - ipxe
   - vm
 tasks: {}
-toolchain:
-  default: node

@@ -14,13 +14,10 @@ tasks:
     command: chezmoi apply --verbose
     env:
       CWD: libs/devenv
-    toolchain: system
+    local: true
   test:
     command: chezmoi apply --force --verbose && goss validate
     env:
       CWD: libs/devenv
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

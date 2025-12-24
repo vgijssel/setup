@@ -12,16 +12,14 @@ tasks:
     command: unison haos && {"command":"nx run haos:update","forwardAllArgs":false}
     env:
       CWD: apps/haos
-    toolchain: system
+    local: true
   update:
     command: '{"command":"curl -f -H \"Authorization: Bearer $HA_TOKEN\" -H \"Content-Type: application/json\" -X POST -d ''{}'' http://192.168.1.32:8123/api/services/homeassistant/reload_all && echo \"\"","forwardAllArgs":false} && nx run haos:validate'
     env:
       CWD: apps/haos
-    toolchain: system
+    local: true
   validate:
     command: goss validate
     env:
       CWD: apps/haos
-    toolchain: system
-toolchain:
-  default: node
+    local: true

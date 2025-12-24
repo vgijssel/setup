@@ -20,5 +20,3 @@ tags:
   - kubernetes
   - development
 tasks: {}
-toolchain:
-  default: node

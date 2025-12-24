@@ -77,7 +77,7 @@
           "description": "Build the fleet-mcp Python package as a wheel"
         }
       },
-      "nx-release-publish": {
+      "release": {
         "executor": "nx:run-commands",
         "options": {
           "parallel": false,

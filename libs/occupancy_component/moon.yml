@@ -23,6 +23,3 @@ tasks:
       - ".pytest_cache"
     options:
       cache: true
-    toolchain: system
-toolchain:
-  default: node

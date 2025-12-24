@@ -9,5 +9,3 @@ tags:
   - type.service
   - platform.kubernetes
 tasks: {}
-toolchain:
-  default: node

@@ -24,11 +24,7 @@ tasks:
       - /site
     options:
       cache: true
-    toolchain: system
   serve:
     command: mkdocs serve
     env:
       CWD: "."
-    toolchain: system
-toolchain:
-  default: node

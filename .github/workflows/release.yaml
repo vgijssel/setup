@@ -34,11 +34,10 @@ jobs:
           username: vgijssel-bot
           password: ${{ secrets.PACKAGES_TOKEN_GITHUB }}
 
-      - name: Run nx release
-        run: nx release --yes
+      - name: Run moon release tasks
+        run: moon run :release --query "task=release"
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN_GITHUB }}
-          NX_KEY: ${{ secrets.NX_KEY }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}

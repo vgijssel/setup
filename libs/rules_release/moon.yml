@@ -10,5 +10,3 @@ tasks:
       - file: package.json
     options:
       cache: true
-toolchain:
-  default: node

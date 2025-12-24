@@ -42,7 +42,7 @@
         },
         "cache": true
       },
-      "nx-release-publish": {
+      "release": {
         "executor": "nx:run-commands",
         "dependsOn": [
           "build"

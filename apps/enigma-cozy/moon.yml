@@ -30,15 +30,16 @@ tasks:
     args:
       - "--cwd"
       - $projectRoot
+    local: true
   upgrade-talos:
     command: "./scripts/upgrade-talos.sh"
     args:
       - "--cwd"
       - $projectRoot
+    local: true
   validate:
     command: goss validate
     args:
       - "--cwd"
       - $projectRoot
-toolchain:
-  default: node
+    local: true
