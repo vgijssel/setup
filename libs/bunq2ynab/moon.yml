@@ -7,31 +7,17 @@ tags:
   - bazel
   - python
   - skip-ci
-  - bunq
-  - ynab
-  - finance
-  - bazel
-  - python
-  - skip-ci
 tasks:
   build:
     command: bazel build //libs/bunq2ynab:bunq2ynab_binary
-    env:
-      CWD: "{workspaceRoot}"
     options:
       cache: true
   list-budget:
     command: bazel run //libs/bunq2ynab:list_budget
-    env:
-      CWD: "{workspaceRoot}"
     local: true
   list-user:
     command: bazel run //libs/bunq2ynab:list_user
-    env:
-      CWD: "{workspaceRoot}"
     local: true
   sync:
     command: bazel run //libs/bunq2ynab:sync
-    env:
-      CWD: "{workspaceRoot}"
     local: true

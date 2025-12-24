@@ -5,19 +5,12 @@ tags:
   - scope.app
   - type.tooling
   - ci
-  - scope.app
-  - type.tooling
-  - ci
 tasks:
   setup:
     command: "./setup.sh"
-    env:
-      CWD: apps/codex
     local: true
   test:
-    command: "./setup.sh && direnv --version"
-    env:
-      CWD: apps/codex
+    command: bash -c './setup.sh && command -v direnv && direnv --version'
     inputs:
       - glob: "**/*"
         cache: true

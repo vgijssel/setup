@@ -9,14 +9,10 @@ tags:
   - "1password"
 tasks:
   start:
-    command: uv run libs/vault-login/vault-login.py
-    env:
-      CWD: "."
+    command: uv run vault-login.py
     local: true
   test:
-    command: uv run libs/vault-login/test_vault_login.py
-    env:
-      CWD: "."
+    command: uv run test_vault_login.py
     inputs:
       - glob: "*.py"
         cache: true

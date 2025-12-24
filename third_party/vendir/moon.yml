@@ -1,10 +1,12 @@
 language: javascript
 layer: library
+tags:
+  - vendir
+  - helm
+  - infrastructure
 tasks:
   build:
     command: vendir sync
-    env:
-      CWD: third_party/vendir
     inputs:
       - file: vendir.yml
     outputs:
@@ -16,7 +18,5 @@ tasks:
     command: git diff --exit-code vendir.lock.yml charts
     deps:
       - ~:build
-    env:
-      CWD: third_party/vendir
     options:
       cache: true
