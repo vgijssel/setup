@@ -13,3 +13,4 @@ tasks:
         cache: true
     options:
       cache: true
+      runInCI: false
