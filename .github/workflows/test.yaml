@@ -105,14 +105,13 @@ jobs:
       - name: Start bazel-remote cache
         run: |
           mkdir -p /tmp/bazel-remote-cache
-          nohup bazel-remote \
+          bazel-remote \
             --dir /tmp/bazel-remote-cache \
             --max_size 5 \
             --storage_mode zstd \
             --http_address 0.0.0.0:9090 \
             --grpc_address 0.0.0.0:9092 \
-            --access_log_level all \
-            > /tmp/bazel-remote.log 2>&1 &
+            --access_log_level all &
           wait-for-it -s 0.0.0.0:9090 -t 30
         env:
           BAZEL_REMOTE_S3_BUCKET: setup-nx
@@ -141,11 +140,11 @@ jobs:
           access-token: ${{ secrets.GITHUB_TOKEN }}
           matrix: ${{ toJSON(matrix) }}
 
-      - name: Show bazel-remote logs
+      - name: bazel-remote debug
         if: always()
         run: |
-          echo "=== bazel-remote logs ==="
-          cat /tmp/bazel-remote.log 2>/dev/null || echo "No bazel-remote logs found"
+          echo "=== bazel-remote process ==="
+          pgrep -a bazel-remote || echo "bazel-remote is not running"
 
       - name: Disk usage after tests
         if: always()
