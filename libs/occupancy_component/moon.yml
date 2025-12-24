@@ -20,6 +20,6 @@ tasks:
       - file: pyproject.toml
       - file: uv.lock
     outputs:
-      - ".pytest_cache"
+      - .pytest_cache
     options:
       cache: true

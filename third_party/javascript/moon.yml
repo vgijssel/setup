@@ -24,7 +24,7 @@ tasks:
   package_test:
     command: npm install && git diff --exit-code package-lock.json
     env:
-      CWD: "."
+      CWD: .
     inputs:
       - glob: /**/package.json
         cache: true

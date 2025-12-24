@@ -18,7 +18,7 @@ tasks:
         cache: true
       - file: /.chezmoiroot
     outputs:
-      - ".docker-version"
+      - .docker-version
     options:
       cache: true
   release:

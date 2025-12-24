@@ -50,6 +50,6 @@ tasks:
     env:
       CWD: apps/gateway-prod
     inputs:
-      - file: ".env.tpl"
+      - file: .env.tpl
     outputs:
-      - ".env"
+      - .env

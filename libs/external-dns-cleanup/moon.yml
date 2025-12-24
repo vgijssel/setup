@@ -15,7 +15,7 @@ tags:
   - uv-script
 tasks:
   start:
-    command: "./external-dns-cleanup"
+    command: ./external-dns-cleanup
     deps:
       - ~:secrets
     env:
@@ -26,9 +26,9 @@ tasks:
     env:
       CWD: libs/external-dns-cleanup
     inputs:
-      - file: ".env.tpl"
+      - file: .env.tpl
     outputs:
-      - ".env"
+      - .env
     options:
       cache: true
   test:

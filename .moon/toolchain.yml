@@ -1,4 +1,4 @@
 # https://moonrepo.dev/docs/config/toolchain
-$schema: "./cache/schemas/toolchain.json"
+$schema: ./cache/schemas/toolchain.json
 # Empty toolchain - Hermit manages all tools
 # See bin/hermit.hcl for tool configurations

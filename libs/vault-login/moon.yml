@@ -3,10 +3,10 @@ layer: library
 tags:
   - type.lib
   - scope.tools
-  - "1password"
+  - 1password
   - type.lib
   - scope.tools
-  - "1password"
+  - 1password
 tasks:
   start:
     command: uv run vault-login.py

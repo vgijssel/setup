@@ -39,7 +39,7 @@ tasks:
     options:
       cache: true
   release:
-    command: "./release.sh"
+    command: ./release.sh
     env:
       CWD: libs/fleet-mcp
     inputs:
@@ -78,7 +78,7 @@ tasks:
       - glob: "!**/__pycache__/**"
         cache: true
     outputs:
-      - ".coverage"
+      - .coverage
       - htmlcov
     options:
       cache: true

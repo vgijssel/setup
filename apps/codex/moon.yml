@@ -7,7 +7,7 @@ tags:
   - ci
 tasks:
   setup:
-    command: "./setup.sh"
+    command: ./setup.sh
     local: true
   test:
     command: bash -c './setup.sh && command -v direnv && direnv --version'

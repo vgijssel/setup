@@ -4,7 +4,7 @@ tasks:
   build:
     command: bash libs/nx-help/generate-help.sh
     env:
-      CWD: "."
+      CWD: .
     inputs:
       - glob: /**/package.json
         cache: true

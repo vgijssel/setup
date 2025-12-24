@@ -9,7 +9,7 @@ tasks:
   build:
     command: mkdocs build
     env:
-      CWD: "."
+      CWD: .
     inputs:
       - glob: "**/*.md"
         cache: true
@@ -27,4 +27,4 @@ tasks:
   serve:
     command: mkdocs serve
     env:
-      CWD: "."
+      CWD: .

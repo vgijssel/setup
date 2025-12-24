@@ -16,7 +16,7 @@ echo ""
 
 # Display all projects
 echo -e "${BLUE}Available Projects:${NC}"
-PROJECTS=$("${MOON}" query projects --json 2>/dev/null | jq -r '.projects[].id' | sort)
+PROJECTS=$( ("${MOON}" query projects --json 2>/dev/null || true) | (jq -r '.projects[].id' || true) | (sort || true) )
 if [[ -n "${PROJECTS}" ]]; then
     while IFS= read -r project; do
         echo "  - ${project}"
@@ -29,9 +29,9 @@ echo ""
 # Display targets by project
 echo -e "${BLUE}Available Tasks by Project:${NC}"
 
-"${MOON}" query projects --json 2>/dev/null | jq -r '.projects[].id' | sort  | while IFS= read -r project_name; do
+("${MOON}" query projects --json 2>/dev/null || true) | (jq -r '.projects[].id' || true) | (sort || true) | while IFS= read -r project_name; do
     printf "  %b%s:%b\n" "${CYAN}" "${project_name}" "${NC}"
-    "${MOON}" query tasks --json 2>/dev/null | jq -r --arg proj "${project_name}" '.tasks[$proj] // {} | keys[]' 2>/dev/null | while read -r task; do
+    ("${MOON}" query tasks --json 2>/dev/null || true) | (jq -r --arg proj "${project_name}" '.tasks[$proj] // {} | keys[]' 2>/dev/null || true) | while read -r task; do
         echo "    - ${task}"
     done
     echo ""
