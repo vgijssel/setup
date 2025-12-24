@@ -2,9 +2,12 @@ $schema: "./cache/schemas/workspace.json"
 hasher:
   walkStrategy: vcs
 projects:
-  - apps/*
-  - libs/*
-  - third_party/*
+  globs:
+    - apps/*
+    - libs/*
+    - third_party/*
+  sources:
+    devcontainer: .devcontainer
 vcs:
   defaultBranch: main
   manager: git
