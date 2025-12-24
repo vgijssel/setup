@@ -53,3 +53,5 @@ tasks:
       - file: .env.tpl
     outputs:
       - .env
+    options:
+      runInCI: false
