@@ -14,4 +14,4 @@ if ! DIRENV_LOG_FORMAT="" "${DIRENV_BIN}" status 2>/dev/null | grep -q "Found RC
 fi
 
 # Execute the command with direnv exec, passing all arguments
-DIRENV_LOG_FORMAT="" exec "${DIRENV_BIN}" exec ${REPO_ROOT} "$@"
+DIRENV_LOG_FORMAT="" exec "${DIRENV_BIN}" exec "${REPO_ROOT}" "$@"
