@@ -17,7 +17,7 @@ tasks:
     options:
       cache: true
   update-lockfile:
-    command: deno install --config=deno.json --lock=deno.lock --frozen=false
+    command: deno install --config=deno.json --lock=deno.lock --lockfile-only
     env:
       CWD: third_party/javascript
     local: true

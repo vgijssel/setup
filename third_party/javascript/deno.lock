@@ -6,7 +6,6 @@
     "npm:@devcontainers/cli@0.80.3": "0.80.3",
     "npm:html-minifier-terser@7.2.0": "7.2.0",
     "npm:postcss-cli@11.0.1": "11.0.1_postcss@8.5.6",
-    "npm:react@18.3.1": "18.3.1",
     "npm:svgo@4.0.0": "4.0.0",
     "npm:task-master-ai@0.40.0": "0.40.0_zod@4.2.1_ai@5.0.116__zod@4.2.1_ajv@8.17.1_marked@15.0.12",
     "npm:uglify-js@3.19.3": "3.19.3",
@@ -4327,13 +4326,6 @@
     "long@5.3.2": {
       "integrity": "sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA=="
     },
-    "loose-envify@1.4.0": {
-      "integrity": "sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==",
-      "dependencies": [
-        "js-tokens"
-      ],
-      "bin": true
-    },
     "lower-case@2.0.2": {
       "integrity": "sha512-7fm3l3NAF9WfN6W3JOmf5drwpVqX78JtoGJ3A6W0a6ZnldM41w2fV5D490psKFTpMds8TJse/eHLFFsNHHjHgg==",
       "dependencies": [
@@ -4899,12 +4891,6 @@
         "http-errors",
         "iconv-lite@0.7.1",
         "unpipe"
-      ]
-    },
-    "react@18.3.1": {
-      "integrity": "sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==",
-      "dependencies": [
-        "loose-envify"
       ]
     },
     "read-cache@1.0.0": {
@@ -5819,7 +5805,6 @@
       "npm:@devcontainers/cli@0.80.3",
       "npm:html-minifier-terser@7.2.0",
       "npm:postcss-cli@11.0.1",
-      "npm:react@18.3.1",
       "npm:svgo@4.0.0",
       "npm:task-master-ai@0.40.0",
       "npm:uglify-js@3.19.3",
