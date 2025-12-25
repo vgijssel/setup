@@ -1,0 +1,17 @@
+$schema: ./cache/schemas/workspace.json
+hasher:
+  walkStrategy: vcs
+unstable_remote:
+  host: grpc://127.0.0.1:9092
+  cache:
+    compression: zstd
+projects:
+  globs:
+    - apps/*
+    - libs/*
+    - third_party/*
+  sources:
+    devcontainer: .devcontainer
+vcs:
+  defaultBranch: main
+  manager: git

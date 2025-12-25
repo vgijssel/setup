@@ -1,0 +1,11 @@
+id: kubevirt-config
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.service
+  - platform.kubernetes
+  - scope.app
+  - type.service
+  - platform.kubernetes
+tasks: {}

@@ -1,0 +1,16 @@
+language: javascript
+layer: library
+tags:
+  - docker
+  - image
+  - distrobuilder
+  - docker
+  - image
+  - distrobuilder
+tasks:
+  build:
+    command: docker build -t distrobuilder-image .
+    env:
+      CWD: libs/distrobuilder-image
+    options:
+      cache: true

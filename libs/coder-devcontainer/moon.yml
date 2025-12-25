@@ -1,0 +1,18 @@
+language: javascript
+layer: library
+tags:
+  - coder
+  - devcontainer
+  - terraform
+  - development-environment
+tasks:
+  init:
+    command: $SETUP_DIR/bin/terraform init -backend=false
+    options:
+      cache: true
+  test:
+    command: $SETUP_DIR/bin/terraform validate
+    deps:
+      - ~:init
+    options:
+      cache: true

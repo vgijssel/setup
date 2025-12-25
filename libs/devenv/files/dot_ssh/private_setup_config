@@ -1,6 +1,22 @@
 # SSH configuration managed by chezmoi
 # This file is included by ~/.ssh/config via the Include directive
 
+# Include 1Password-managed SSH key mappings (bookmarks)
+Include ~/.ssh/1Password/config
+
+Host github.com-personal
+  User git
+  HostName github.com
+  IdentitiesOnly yes
+  IdentityFile ~/.ssh/1Password/SHA256_7ZkdaIGQOhCsuUApLJp44KjZfVAQqFj8Vsbon0qyDhg.pub
+
+# 1Password Item: SSH - Hackerone - Authentication
+Host github.com-emu 
+  User git
+  HostName github.com
+  IdentitiesOnly yes
+  IdentityFile ~/.ssh/1Password/SHA256_UHPxZkjpLXkAjbYbmBDwKjB_yfX9aaesUsO8kMDUW2A.pub
+
 # This key is used for SSH and available on coder workspaces
 Host *
     AddKeysToAgent yes

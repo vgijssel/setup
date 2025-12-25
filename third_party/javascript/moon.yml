@@ -1,0 +1,23 @@
+layer: library
+tags:
+  - javascript
+  - deno
+  - npm
+  - javascript
+  - deno
+  - npm
+tasks:
+  test:
+    command: deno install --config=deno.json --lock=deno.lock --frozen
+    env:
+      CWD: third_party/javascript
+    inputs:
+      - file: deno.json
+      - file: deno.lock
+    options:
+      cache: true
+  update-lockfile:
+    command: deno install --config=deno.json --lock=deno.lock --lockfile-only
+    env:
+      CWD: third_party/javascript
+    local: true

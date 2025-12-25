@@ -1,0 +1,22 @@
+fileGroups:
+  default:
+    - glob: "**/*"
+      cache: true
+    - glob: /third_party/vendir/charts/metallb/**/*
+      cache: true
+    - glob: /third_party/vendir/charts/ingress-nginx/**/*
+      cache: true
+    - glob: /third_party/vendir/charts/1password-connect/**/*
+      cache: true
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.stack
+  - kubernetes
+  - development
+  - scope.app
+  - type.stack
+  - kubernetes
+  - development
+tasks: {}

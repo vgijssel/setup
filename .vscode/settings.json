@@ -8,7 +8,7 @@
     "third_party/vendir/**": true
   },
   "taskmaster.mcp.args": [],
-  "taskmaster.mcp.command": "task-master-ai",
+  "taskmaster.mcp.command": "task-master-mcp",
   "taskmaster.mcp.env": {
     "TASK_MASTER_TOOLS": "all"
   }

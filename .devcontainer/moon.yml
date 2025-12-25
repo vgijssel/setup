@@ -1,0 +1,34 @@
+language: javascript
+layer: application
+tasks:
+  build:
+    command: ./build.sh --tag $MOON_TASK_HASH
+    inputs:
+      - file: Dockerfile
+      - file: build.sh
+      - file: ssh_known_hosts
+      - file: /.envrc
+      - glob: /bin/**/*
+        cache: true
+      - glob: /third_party/hermit/**/*
+        cache: true
+      - glob: /third_party/vendir/shell/**/*
+        cache: true
+      - glob: /libs/devenv/**/*
+        cache: true
+      - file: /.chezmoiroot
+    outputs:
+      - .docker-version
+    options:
+      cache: true
+  release:
+    command: ./release.sh
+    deps:
+      - ~:build
+    local: true
+  test:
+    command: ./test.sh
+    deps:
+      - ~:build
+    options:
+      cache: true

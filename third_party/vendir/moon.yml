@@ -1,0 +1,22 @@
+language: javascript
+layer: library
+tags:
+  - vendir
+  - helm
+  - infrastructure
+tasks:
+  build:
+    command: vendir sync
+    inputs:
+      - file: vendir.yml
+    outputs:
+      - charts
+      - vendir.lock.yml
+    options:
+      cache: true
+  test:
+    command: git diff --exit-code vendir.lock.yml charts
+    deps:
+      - ~:build
+    options:
+      cache: true

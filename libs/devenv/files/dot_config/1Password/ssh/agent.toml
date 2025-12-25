@@ -6,6 +6,11 @@
 # https://developer.1password.com/docs/ssh/agent/config
 
 [[ssh-keys]]
+item = "SSH - GitHub - Authentication"
+vault = "Private"
+account = "Van Gijssel"
+
+[[ssh-keys]]
 item = "SSH - Hackerone - Authentication"
 vault = "Personal"
 account = "HackerOne"
@@ -22,11 +27,6 @@ account = "Van Gijssel"
 
 [[ssh-keys]]
 item = "SSH - Hypervisor"
-vault = "Private"
-account = "Van Gijssel"
-
-[[ssh-keys]]
-item = "SSH - GitHub - Authentication"
 vault = "Private"
 account = "Van Gijssel"
 

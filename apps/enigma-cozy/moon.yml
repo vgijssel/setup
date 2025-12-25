@@ -1,0 +1,45 @@
+fileGroups:
+  default:
+    - glob: "**/*"
+      cache: true
+language: javascript
+layer: application
+project:
+  description: Cozystack configuration for Enigma cluster
+  metadata:
+    dependencies:
+      cozystack/cozystack:
+        version: v0.38.3
+        datasource: github-releases
+      cozystack/talos:
+        version: v1.11.3
+        datasource: docker
+        packageName: ghcr.io/cozystack/cozystack/talos
+tags:
+  - scope.app
+  - type.stack
+  - kubernetes
+  - development
+  - scope.app
+  - type.stack
+  - kubernetes
+  - development
+tasks:
+  upgrade:
+    command: ./scripts/upgrade.sh
+    args:
+      - --cwd
+      - $projectRoot
+    local: true
+  upgrade-talos:
+    command: ./scripts/upgrade-talos.sh
+    args:
+      - --cwd
+      - $projectRoot
+    local: true
+  validate:
+    command: goss validate
+    args:
+      - --cwd
+      - $projectRoot
+    local: true

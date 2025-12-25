@@ -1,0 +1,23 @@
+language: javascript
+layer: library
+tags:
+  - type.library
+  - scope.home-automation
+  - platform.home-assistant
+  - language.python
+  - type.library
+  - scope.home-automation
+  - platform.home-assistant
+  - language.python
+tasks:
+  test:
+    command: uv run pytest
+    env:
+      CWD: libs/occupancy_component
+    inputs:
+      - glob: "**/*.py"
+        cache: true
+      - file: pyproject.toml
+      - file: uv.lock
+    options:
+      cache: true

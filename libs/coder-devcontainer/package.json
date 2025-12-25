@@ -1,36 +1,7 @@
 {
   "name": "coder-devcontainer",
-  "version": "0.19.2",
+  "private": true,
   "dependencies": {
-    "devcontainer": "0.7.7",
-    "fleet-mcp": "0.12.1"
-  },
-  "nx": {
-    "projectType": "library",
-    "sourceRoot": "libs/coder-devcontainer",
-    "targets": {
-      "test": {
-        "executor": "nx:run-commands",
-        "options": {
-          "commands": [
-            "terraform init",
-            "terraform validate"
-          ],
-          "parallel": false,
-          "cwd": "libs/coder-devcontainer"
-        },
-        "cache": true,
-        "metadata": {
-          "description": "Test the Coder template configuration"
-        }
-      }
-    },
-    "tags": [
-      "coder",
-      "devcontainer",
-      "terraform",
-      "development-environment"
-    ]
-  },
-  "private": true
+    "devcontainer": "0.19.2"
+  }
 }

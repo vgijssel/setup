@@ -1,0 +1,21 @@
+id: tinkerbell
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.service
+  - platform.kubernetes
+  - scope.app
+  - type.service
+  - platform.kubernetes
+tasks:
+  dev:
+    command: task dev
+    env:
+      CWD: apps/tinkerbell
+    local: true
+  ipxe:
+    command: task ipxe
+    env:
+      CWD: apps/tinkerbell
+    local: true

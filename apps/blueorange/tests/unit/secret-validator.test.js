@@ -7,9 +7,19 @@ describe("SecretValidator", () => {
     expect(validator.validate("sorry")).toBe(true);
   });
 
-  it('should reject wrong case "Sorry"', () => {
+  it('should accept mixed case "Sorry"', () => {
     const validator = new SecretValidator();
-    expect(validator.validate("Sorry")).toBe(false);
+    expect(validator.validate("Sorry")).toBe(true);
+  });
+
+  it("should be case insensitive - uppercase", () => {
+    const validator = new SecretValidator();
+    expect(validator.validate("SORRY")).toBe(true);
+  });
+
+  it("should be case insensitive - mixed case", () => {
+    const validator = new SecretValidator();
+    expect(validator.validate("sOrRy")).toBe(true);
   });
 
   it('should reject wrong value "hello"', () => {
