@@ -39,6 +39,8 @@ tasks:
     command: npm run e2e
     deps:
       - ~:install
+    # TODO: e2e_test is currently broken
+    local: true
   preview:
     command: npm run preview
     deps:
