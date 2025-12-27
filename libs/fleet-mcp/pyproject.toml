@@ -9,7 +9,7 @@ description = "Fleet management using MCP for AI agents in Coder workspaces"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "fastmcp==2.13.0.2",
+  "fastmcp==2.14.0",
   "pydantic==2.12.3",
   "httpx==0.28.1",
   "python-dotenv==1.2.1",
