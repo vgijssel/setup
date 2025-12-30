@@ -17,7 +17,7 @@ tasks:
 
   start:
     # Use explicit path to avoid PATH fallback to bin/claude which causes recursion
-    command: ./node_modules/.bin/claude
+    command: ls -la && ./node_modules/.bin/claude
     deps:
       - ~:install
     local: true
