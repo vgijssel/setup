@@ -137,11 +137,11 @@ jobs:
 
       - name: Check claude-code version
         if: runner.os == 'Linux'
-        run: bin/exec moon run claude-code:start -- --version
+        run: bin/run moon run claude-code:start -- --version
 
       - name: Check devcontainers-cli version
         if: runner.os == 'Linux'
-        run: bin/exec moon run devcontainers-cli:start -- --version
+        run: bin/run moon run devcontainers-cli:start -- --version
 
       - name: Run moon ci tests (Linux)
         if: runner.os == 'Linux'

@@ -63,15 +63,15 @@ COPY --chown=coder:coder libs/devenv /workspaces/setup/libs/devenv
 COPY --chown=coder:coder .chezmoiroot /workspaces/setup/.chezmoiroot
 
 # Initialize and apply chezmoi configuration using direnv
-RUN bin/exec chezmoi apply --verbose
+RUN bin/run chezmoi apply --verbose
 
 # Eager load Spaceship prompt to avoid delays on first prompt
 # Passing the -i flag to zsh forces it to load as an interactive shell
 RUN zsh -ic 'exit 0'
 
 # Eager load commonly used tools for coder-devcontainer
-RUN bin/exec python --version
-RUN bin/exec wait-for-it --version
+RUN bin/run python --version
+RUN bin/run wait-for-it --version
 
 # Remove all the files so Coder can clone the repository here.
 # If there are files inside the folder the clone will fail.
