@@ -23,6 +23,7 @@ tasks:
       - .docker-version
     options:
       cache: true
+      mutex: heavy-builds
   release:
     command: ./release.sh
     deps:
@@ -35,3 +36,4 @@ tasks:
       - devcontainers-cli:install
     options:
       cache: true
+      mutex: heavy-builds
