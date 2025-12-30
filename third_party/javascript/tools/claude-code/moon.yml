@@ -8,6 +8,7 @@ tasks:
     inputs:
       - file: package.json
       - file: /pnpm-lock.yaml
+      - file: /pnpm-workspace.yaml
     outputs:
       - node_modules
     options:
