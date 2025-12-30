@@ -1,0 +1,7 @@
+{
+  "name": "task-master",
+  "private": true,
+  "dependencies": {
+    "task-master-ai": "0.40.1"
+  }
+}

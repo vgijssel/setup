@@ -1,0 +1,7 @@
+{
+  "name": "windmill-cli",
+  "private": true,
+  "dependencies": {
+    "windmill-cli": "1.596.0"
+  }
+}

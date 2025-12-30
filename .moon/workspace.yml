@@ -10,6 +10,7 @@ projects:
     - apps/*
     - libs/*
     - third_party/*
+    - third_party/javascript/tools/*
   sources:
     devcontainer: .devcontainer
 vcs:

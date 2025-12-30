@@ -4,4 +4,4 @@ set -euo pipefail
 REPO_ROOT="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
 EXEC_BIN="${REPO_ROOT}"/bin/exec
 
-exec "${EXEC_BIN}" moon run --interactive --quiet --log error javascript:svgo -- "$@"
+exec "${EXEC_BIN}" moon run --interactive --quiet --log error svgo:start -- "$@"

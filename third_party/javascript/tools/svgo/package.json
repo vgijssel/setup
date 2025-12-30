@@ -1,0 +1,7 @@
+{
+  "name": "svgo",
+  "private": true,
+  "dependencies": {
+    "svgo": "4.0.0"
+  }
+}

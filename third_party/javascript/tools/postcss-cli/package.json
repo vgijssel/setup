@@ -1,0 +1,7 @@
+{
+  "name": "postcss-cli",
+  "private": true,
+  "dependencies": {
+    "postcss-cli": "11.0.1"
+  }
+}

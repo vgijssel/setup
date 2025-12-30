@@ -1,0 +1,7 @@
+{
+  "name": "devcontainers-cli",
+  "private": true,
+  "dependencies": {
+    "@devcontainers/cli": "0.80.3"
+  }
+}

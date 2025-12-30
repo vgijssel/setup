@@ -1,0 +1,22 @@
+layer: library
+tags:
+  - javascript
+  - npm
+tasks:
+  install:
+    command: pnpm install --filter .
+    inputs:
+      - file: package.json
+      - file: /pnpm-lock.yaml
+    outputs:
+      - node_modules
+    options:
+      cache: true
+      mutex: pnpm-install
+    local: true
+
+  start:
+    command: pnpm exec devcontainer
+    deps:
+      - ~:install
+    local: true

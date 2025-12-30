@@ -1,0 +1,7 @@
+{
+  "name": "uglify-js",
+  "private": true,
+  "dependencies": {
+    "uglify-js": "3.19.3"
+  }
+}
