@@ -13,7 +13,6 @@ tasks:
     options:
       cache: true
       mutex: pnpm-install
-    local: true
 
   start:
     command: pnpm exec devcontainer
