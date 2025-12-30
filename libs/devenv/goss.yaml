@@ -81,6 +81,17 @@ command:
     stderr: ""
     timeout: 60000
 
+  pnpm_version:
+    title: pnpm >=10 prevents lifecycle hooks from running automatically
+    meta:
+      url: https://github.com/pnpm/pnpm/releases/tag/v10.0.0
+    exec: pnpm --version | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=10.0.0"
+    stderr: ""
+    timeout: 60000
+
   nslookup_version:
     title: nslookup is installed for DNS testing in chainsaw tests
     exec: nslookup -version

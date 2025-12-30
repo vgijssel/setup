@@ -3,7 +3,5 @@ set -euo pipefail
 
 REPO_ROOT="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
 EXEC_BIN="${REPO_ROOT}"/bin/exec
-CONFIG="${REPO_ROOT}/third_party/javascript/deno.json"
-LOCK="${REPO_ROOT}/third_party/javascript/deno.lock"
 
-exec "${EXEC_BIN}" deno run -A --config="${CONFIG}" --lock="${LOCK}" --frozen --quiet npm:task-master-ai/dist/task-master.js "$@"
+exec "${EXEC_BIN}" moon run --interactive --quiet --log error javascript:task-master-ai -- "$@"

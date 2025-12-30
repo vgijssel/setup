@@ -1,23 +1,83 @@
 layer: library
 tags:
   - javascript
-  - deno
-  - npm
-  - javascript
-  - deno
   - npm
 tasks:
-  test:
-    command: deno install --config=deno.json --lock=deno.lock --frozen
-    env:
-      CWD: third_party/javascript
+  install:
+    command: pnpm install
     inputs:
-      - file: deno.json
-      - file: deno.lock
+        - file: package.json
+        - file: pnpm-lock.yaml
+    outputs:
+      - node_modules
     options:
       cache: true
-  update-lockfile:
-    command: deno install --config=deno.json --lock=deno.lock --lockfile-only
-    env:
-      CWD: third_party/javascript
+    local: true
+
+  test:
+    command: pnpm install --frozen-lockfile
+    inputs:
+      - file: package.json
+      - file: pnpm-lock.yaml
+    options:
+      cache: true
+
+  claude:
+    command: pnpm exec claude
+    deps:
+      - ~:install
+    local: true
+
+  devcontainer:
+    command: pnpm exec devcontainer
+    deps:
+      - ~:install
+    local: true
+
+  html-minifier-terser:
+    command: pnpm exec html-minifier-terser
+    deps:
+      - ~:install
+    local: true
+
+  postcss:
+    command: pnpm exec postcss
+    deps:
+      - ~:install
+    local: true
+
+  svgo:
+    command: pnpm exec svgo
+    deps:
+      - ~:install
+    local: true
+
+  task-master:
+    command: pnpm exec task-master
+    deps:
+      - ~:install
+    local: true
+
+  task-master-ai:
+    command: pnpm exec task-master
+    deps:
+      - ~:install
+    local: true
+
+  task-master-mcp:
+    command: pnpm exec task-master-mcp
+    deps:
+      - ~:install
+    local: true
+
+  uglifyjs:
+    command: pnpm exec uglifyjs
+    deps:
+      - ~:install
+    local: true
+
+  wmill:
+    command: pnpm exec wmill
+    deps:
+      - ~:install
     local: true
