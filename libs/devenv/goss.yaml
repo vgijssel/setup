@@ -166,7 +166,6 @@ command:
 
   claude_outside_repo:
     title: Claude CLI is available outside of repo root
-    skip: {{.Env.IS_CI}}
     exec: direnv exec / claude --version
     exit-status: 0
     timeout: 60000
@@ -185,7 +184,6 @@ command:
 
   starship_prompt_integration:
     title: Starship prompt is properly integrated with zsh
-    skip: {{.Env.IS_CI}}
     # Passing -i to similate an interactive shell
     exec: zsh -ic 'env'
     exit-status: 0
