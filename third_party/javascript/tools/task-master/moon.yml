@@ -22,7 +22,7 @@ tasks:
     local: true
 
   start-ai:
-    command: pnpm exec task-master
+    command: pnpm exec task-master-ai
     deps:
       - ~:install
     local: true
