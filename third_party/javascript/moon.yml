@@ -1,0 +1,14 @@
+layer: library
+tags:
+  - javascript
+  - pnpm
+tasks:
+  test:
+    command: pnpm install --frozen-lockfile --lockfile-only
+    inputs:
+      - file: package.json
+      - file: /pnpm-lock.yaml
+      - file: /pnpm-workspace.yaml
+    options:
+      cache: true
+      mutex: pnpm-install
