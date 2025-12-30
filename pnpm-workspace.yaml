@@ -1,2 +1,2 @@
 packages:
-  - "third_party/javascript/tools/*"
+  - third_party/javascript/tools/*
