@@ -4,9 +4,9 @@ tags:
   - pnpm
 tasks:
   test:
-    command: pnpm install --frozen-lockfile --lockfile-only
+    command: pnpm install --frozen-lockfile
     inputs:
-      - file: package.json
+      - glob: tools/*/package.json
       - file: /pnpm-lock.yaml
       - file: /pnpm-workspace.yaml
     options:
