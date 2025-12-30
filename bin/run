@@ -11,6 +11,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Path to the internal direnv binary
 DIRENV_BIN="${REPO_ROOT}/bin/direnv"
 
+echo "calling from bin/run"
+
 # Check if .envrc is allowed (status shows "Found RC allowed 0" when allowed)
 if ! DIRENV_LOG_FORMAT="" "${DIRENV_BIN}" status 2>/dev/null | grep -q "Found RC allowed 0"; then
     DIRENV_LOG_FORMAT="" "${DIRENV_BIN}" allow "${REPO_ROOT}" >/dev/null 2>&1
