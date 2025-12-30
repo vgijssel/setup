@@ -162,11 +162,13 @@ command:
   starship_outside_repo:
     title: Starship is available outside of repo root
     exec: direnv exec / which starship
+    stderr: ""
     exit-status: 0
 
   claude_outside_repo:
     title: Claude CLI is available outside of repo root
     exec: direnv exec / claude --version
+    stderr: ""
     exit-status: 0
     timeout: 120000
 
