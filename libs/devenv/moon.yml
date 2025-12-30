@@ -12,12 +12,9 @@ tags:
 tasks:
   apply:
     command: chezmoi apply --verbose
-    env:
-      CWD: libs/devenv
     local: true
+
   test:
-    command: chezmoi apply --force --verbose && goss validate
-    env:
-      CWD: libs/devenv
+    command: bash -c "chezmoi apply --force --verbose && goss validate"
     options:
       cache: true
