@@ -12,9 +12,9 @@ tasks:
       - node_modules
     options:
       cache: true
-      # mutex: pnpm-install
+      mutex: pnpm-install
 
-  run:
+  start:
     command: pnpm exec claude
     deps:
       - ~:install

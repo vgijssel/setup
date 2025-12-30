@@ -4,6 +4,6 @@
 set -eo pipefail
 
 LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
-EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
+EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/run
 
 exec ${EXEC_BIN} uv run --project "${LOCAL_SETUP_DIR}"/third_party/python supervisord "$@"

@@ -1,4 +1,7 @@
 #!/bin/bash
+# Note: This script was previously named bin/exec but was renamed to bin/run
+# because "exec" in binstub scripts was being interpreted as this script instead
+# of the shell's "exec" builtin, causing a recursive loop.
 
 set -eo pipefail
 

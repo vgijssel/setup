@@ -4,7 +4,7 @@
 set -eo pipefail
 
 LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
-EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
+EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/run
 
 # Automatically connect to supervisord on localhost:9001
 # This allows supervisorctl to work without passing -c config file
