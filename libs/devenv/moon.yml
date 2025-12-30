@@ -19,7 +19,7 @@ tasks:
     deps:
       - claude-code:install
     inputs:
-      - glob: "files/**/*"
+      - glob: files/**/*
         cache: true
       - file: goss.yaml
       - file: chezmoi.yaml
