@@ -16,5 +16,11 @@ tasks:
 
   test:
     command: bash -c "chezmoi apply --force --verbose && goss validate"
+    inputs:
+      - glob: "files/**/*"
+        cache: true
+      - file: goss.yaml
+      - file: chezmoi.yaml
+      - file: /.chezmoiroot
     options:
       cache: true
