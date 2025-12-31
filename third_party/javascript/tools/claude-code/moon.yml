@@ -16,7 +16,7 @@ tasks:
       mutex: pnpm-install
 
   start:
-    command: pnpm --dir ./dist exec claude
+    command: find ./dist && pnpm --dir ./dist exec claude
     deps:
       - ~:install
     local: true
