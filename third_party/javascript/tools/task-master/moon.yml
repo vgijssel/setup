@@ -4,31 +4,31 @@ tags:
   - npm
 tasks:
   install:
-    command: pnpm install --filter .
+    command: rm -rf ./dist && pnpm deploy --filter . ./dist
     inputs:
       - file: package.json
       - file: /pnpm-lock.yaml
+      - file: /pnpm-workspace.yaml
     outputs:
-      - node_modules
+      - ./dist
     options:
       cache: true
       mutex: pnpm-install
-    local: true
 
   start:
-    command: pnpm exec task-master
+    command: pnpm --dir ./dist exec task-master
     deps:
       - ~:install
     local: true
 
   start-ai:
-    command: pnpm exec task-master-ai
+    command: pnpm --dir ./dist exec task-master-ai
     deps:
       - ~:install
     local: true
 
   start-mcp:
-    command: pnpm exec task-master-mcp
+    command: pnpm --dir ./dist exec task-master-mcp
     deps:
       - ~:install
     local: true

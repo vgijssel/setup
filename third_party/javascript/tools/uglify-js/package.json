@@ -1,6 +1,9 @@
 {
   "name": "uglify-js",
   "private": true,
+  "files": [
+    "package.json"
+  ],
   "dependencies": {
     "uglify-js": "3.19.3"
   }

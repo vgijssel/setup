@@ -1,6 +1,9 @@
 {
   "name": "postcss-cli",
   "private": true,
+  "files": [
+    "package.json"
+  ],
   "dependencies": {
     "postcss-cli": "11.0.1"
   }

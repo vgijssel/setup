@@ -1,6 +1,9 @@
 {
   "name": "task-master",
   "private": true,
+  "files": [
+    "package.json"
+  ],
   "dependencies": {
     "task-master-ai": "0.40.1"
   }

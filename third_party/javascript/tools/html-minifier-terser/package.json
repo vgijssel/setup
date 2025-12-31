@@ -1,6 +1,9 @@
 {
   "name": "html-minifier-terser",
   "private": true,
+  "files": [
+    "package.json"
+  ],
   "dependencies": {
     "html-minifier-terser": "7.2.0"
   }

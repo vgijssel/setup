@@ -1,6 +1,9 @@
 {
   "name": "devcontainers-cli",
   "private": true,
+  "files": [
+    "package.json"
+  ],
   "dependencies": {
     "@devcontainers/cli": "0.80.3"
   }

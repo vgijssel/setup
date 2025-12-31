@@ -1,6 +1,9 @@
 {
   "name": "svgo",
   "private": true,
+  "files": [
+    "package.json"
+  ],
   "dependencies": {
     "svgo": "4.0.0"
   }

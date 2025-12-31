@@ -4,18 +4,19 @@ tags:
   - npm
 tasks:
   install:
-    command: pnpm install --filter .
+    command: rm -rf ./dist && pnpm deploy --filter . ./dist
     inputs:
       - file: package.json
       - file: /pnpm-lock.yaml
+      - file: /pnpm-workspace.yaml
     outputs:
-      - node_modules
+      - ./dist
     options:
       cache: true
       mutex: pnpm-install
 
   start:
-    command: pnpm exec devcontainer
+    command: pnpm --dir ./dist exec devcontainer
     deps:
       - ~:install
     local: true
