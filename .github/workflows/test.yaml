@@ -126,19 +126,6 @@ jobs:
           BAZEL_REMOTE_S3_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           BAZEL_REMOTE_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Debug moon version
-        run: |
-          echo "=== moon binary location ==="
-          which moon
-          echo "=== moon version ==="
-          moon --version
-          echo "=== Hermit bin directory ==="
-          ls -la "$HERMIT_BIN/moon" 2>/dev/null || echo "moon not in HERMIT_BIN"
-
-      - name: Check claude-code version
-        if: runner.os == 'Linux'
-        run: moon run claude-code:start -- --version
-
       - name: Run moon ci tests (Linux)
         if: runner.os == 'Linux'
         run: moon ci --job ${{ matrix.index }} --jobTotal ${{ matrix.total }}
@@ -170,6 +157,13 @@ jobs:
           pgrep -a bazel-remote || echo "bazel-remote is not running"
           echo "=== bazel-remote logs ==="
           cat /tmp/bazel-remote.log 2>/dev/null || echo "No logs found"
+
+      - name: version debug
+        if: always()
+        run: |
+          echo "=== Versions ==="
+          echo "hermit: $(hermit version)"
+          echo "moon: $(moon --version)"
 
       - name: Disk usage after tests
         if: always()

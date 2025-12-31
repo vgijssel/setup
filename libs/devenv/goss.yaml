@@ -170,19 +170,19 @@ command:
     exec: direnv exec / claude --version
     stderr: ""
     exit-status: 0
-    timeout: 300000
+    timeout: 60000
 
   supervisord_outside_repo:
     title: supervisord is available outside of repo root
     exec: direnv exec / supervisord --help
     exit-status: 0
-    timeout: 120000
+    timeout: 60000
 
   supervisorctl_outside_repo:
     title: supervisorctl is available outside of repo root
     exec: direnv exec / supervisorctl --help
     exit-status: 0
-    timeout: 120000
+    timeout: 60000
 
   starship_prompt_integration:
     title: Starship prompt is properly integrated with zsh
@@ -191,7 +191,7 @@ command:
     exit-status: 0
     stdout:
       - STARSHIP_SHELL=zsh
-    timeout: 120000
+    timeout: 60000
 
   uv_link_mode_linux:
     title: UV_LINK_MODE is set to copy on Linux
