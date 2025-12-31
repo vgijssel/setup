@@ -5,6 +5,7 @@ unstable_remote:
   host: grpc://127.0.0.1:9092
   cache:
     compression: zstd
+    verifyIntegrity: true
 projects:
   globs:
     - apps/*

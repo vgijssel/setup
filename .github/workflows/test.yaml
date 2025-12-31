@@ -128,7 +128,15 @@ jobs:
 
       - name: Check claude-code version
         if: runner.os == 'Linux'
-        run: moon run claude-code:start -- --version
+        run: |
+          # First run install separately to debug cache hydration
+          moon run claude-code:install
+          echo "=== Contents of dist after install ==="
+          find third_party/javascript/tools/claude-code/dist -type f | head -50 || true
+          echo "=== Now running start ==="
+          moon run claude-code:start -- --version
+        env:
+          MOON_DEBUG_REMOTE: "1"
 
       - name: Run moon ci tests (Linux)
         if: runner.os == 'Linux'
