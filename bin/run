@@ -24,11 +24,11 @@ export BIN_RUN_DEPTH="${BIN_RUN_DEPTH:-0}"
 BIN_RUN_DEPTH=$((BIN_RUN_DEPTH + 1))
 export BIN_RUN_DEPTH
 
-if [ "${BIN_RUN_DEPTH}" -gt 3 ]; then
+if [[ "${BIN_RUN_DEPTH}" -gt 3 ]]; then
     echo "[bin/run] ERROR: Recursion detected (depth=${BIN_RUN_DEPTH}). This usually means a moon task" >&2
     echo "[bin/run] is using 'pnpm exec <cmd>' which falls back to bin/<cmd> instead of node_modules/.bin/<cmd>." >&2
     echo "[bin/run] Fix: Use './node_modules/.bin/<cmd>' instead of 'pnpm exec <cmd>' in moon.yml." >&2
-    echo "[bin/run] The current path: $PATH" >&2
+    echo "[bin/run] The current path: ${PATH}" >&2
     exit 1
 fi
 

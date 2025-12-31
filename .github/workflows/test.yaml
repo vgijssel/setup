@@ -126,6 +126,10 @@ jobs:
           BAZEL_REMOTE_S3_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           BAZEL_REMOTE_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Check claude-code version
+        if: runner.os == 'Linux'
+        run: moon run claude-code:start -- --version
+
       - name: Run moon ci tests (Linux)
         if: runner.os == 'Linux'
         run: moon ci --job ${{ matrix.index }} --jobTotal ${{ matrix.total }}
