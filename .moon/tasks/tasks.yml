@@ -1,0 +1,4 @@
+$schema: ../cache/schemas/tasks.json
+fileGroups:
+  pnpm_bin:
+    - $workspaceRoot/bin/pnpm
