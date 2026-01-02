@@ -73,7 +73,7 @@ moon ci <base> <head>         # Run affected tasks in CI mode
 ## Best Practices
 
 ### Dependency Management
-All external dependencies MUST be pinned to specific versions:
+All external dependencies MUST be pinned to specific versions to prevent security vulnerabilities and unexpected behavior changes:
 - **npm/yarn**: Use exact versions (e.g., `"lodash": "4.17.21"` not `"lodash": "^4.17.21"`)
 - **Python**: Pin to exact versions in requirements.txt (e.g., `mkdocs==1.6.1`)
 - **Docker**: Use specific tags (e.g., `python:3.12.8-slim` not `python:3.12-slim` or `python:latest`)
@@ -82,7 +82,13 @@ All external dependencies MUST be pinned to specific versions:
 - **Go modules**: Use specific versions in go.mod
 - **Helm charts**: Pin chart versions in Chart.yaml
 
-This ensures reproducible builds and prevents unexpected breaking changes. Use Renovatebot for automated dependency updates.
+**NEVER** use tools that run unpinned packages:
+- **`npx`**: Fetches and runs the latest version of packages without version control
+- **`uvx`**: Same issue - runs packages without pinning versions
+
+Instead, install dependencies explicitly with pinned versions, then run them directly.
+
+This ensures reproducible builds, prevents security vulnerabilities from compromised package updates, and avoids unexpected breaking changes. Use Renovatebot for automated dependency updates.
 
 ### Platform Detection
 Use consistent environment variables:

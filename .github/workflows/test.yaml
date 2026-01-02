@@ -94,9 +94,6 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Debug hermit version
-        run: hermit version
-
       # Ensure the Github CI can push to GHR
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -125,18 +122,6 @@ jobs:
           BAZEL_REMOTE_S3_AUTH_METHOD: access_key
           BAZEL_REMOTE_S3_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           BAZEL_REMOTE_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Check claude-code version
-        if: runner.os == 'Linux'
-        run: |
-          # First run install separately to debug cache hydration
-          moon run claude-code:build
-          echo "=== Contents of dist after install ==="
-          find third_party/javascript/tools/claude-code/dist -type f | head -50 || true
-          echo "=== Now running start ==="
-          moon run claude-code:start -- --version
-        env:
-          MOON_DEBUG_REMOTE: "1"
 
       - name: Run moon ci tests (Linux)
         if: runner.os == 'Linux'

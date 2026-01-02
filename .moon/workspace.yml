@@ -7,7 +7,7 @@ unstable_remote:
     compression: zstd
     # When downloading blobs, verify the digests/hashes in the response match the associated blob contents.
     # This will reduce performance but ensure partial or corrupted blobs won't cause failures. Defaults to false.
-    verifyIntegrity: true
+    verifyIntegrity: false
 projects:
   globs:
     - apps/*

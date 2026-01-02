@@ -4,7 +4,7 @@
 # of the shell's "exec" builtin, causing a recursive loop.
 #
 # CAUTION: bin/run can still recurse if:
-# 1. A binstub (e.g., bin/claude) calls: bin/run moon run <project>:start
+# 1. A binstub (e.g., bin/claude) calls: bin/run moon run <project>:exec -- <binary>
 # 2. The moon task uses "pnpm exec <cmd>" which falls back to PATH
 # 3. PATH includes bin/ (from Hermit), finding bin/<cmd> instead of node_modules/.bin/<cmd>
 # 4. The binstub calls bin/run again → infinite loop

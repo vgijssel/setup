@@ -3,9 +3,3 @@ tags:
   - javascript
   - npm
   - pnpm-tool
-tasks:
-  start:
-    command: pnpm --dir ./dist exec wmill
-    deps:
-      - ~:build
-    local: true

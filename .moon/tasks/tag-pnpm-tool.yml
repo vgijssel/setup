@@ -7,7 +7,15 @@ tasks:
       - file: /pnpm-workspace.yaml
     outputs:
       - ./dist
+      - ./dist/node_modules
+      - ./dist/node_modules/.bin
     options:
       cache: true
       mutex: pnpm-install
       cacheKey: "v3"
+
+  exec:
+    command: pnpm --dir ./dist exec
+    deps:
+      - ~:build
+    local: true
