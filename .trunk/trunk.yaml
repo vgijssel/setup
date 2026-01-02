@@ -41,8 +41,9 @@ lint:
         - apps/windmill/f/**/flow.yaml
         - apps/haos/automations.yaml
         - third_party/vendir/charts
+        - third_party/vendir/claude-task-master
         - third_party/vendir/vendir.lock.yml
-        - third_party/vendir/shell/docker-in-docker/**
+        - third_party/vendir/shell
         - .specify/**
         - libs/devenv/goss.yaml
         # VCR cassettes contain recorded HTTP interactions with secrets
