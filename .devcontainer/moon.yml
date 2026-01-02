@@ -1,5 +1,7 @@
 language: javascript
-layer: application
+layer: library
+dependsOn:
+  - devenv
 tasks:
   build:
     command: ./build.sh --tag $MOON_TASK_HASH

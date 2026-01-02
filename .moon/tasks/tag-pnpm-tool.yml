@@ -5,7 +5,7 @@ tasks:
       - file: package.json
       - file: /pnpm-lock.yaml
       - file: /pnpm-workspace.yaml
-      - group: pnpm_bin
+      - "@files(pnpm_bin)"
     outputs:
       - ./dist
       - ./dist/node_modules
