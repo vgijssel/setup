@@ -12,7 +12,7 @@ tasks:
     options:
       cache: true
       mutex: pnpm-install
-      cacheKey: "v3"
+      cacheKey: v3
 
   exec:
     command: pnpm --dir ./dist exec
