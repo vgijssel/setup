@@ -130,18 +130,6 @@ command:
     stderr: ""
     timeout: 60000
 
-  overmind_version:
-    title: Overmind process manager is installed via Hermit
-    skip: true
-    meta:
-      url: https://github.com/DarthSim/overmind
-    exec: overmind --version | awk 'NR==1 {print $3}' | tr -d '\n'
-    exit-status: 0
-    stdout:
-      semver-constraint: ">=2.5.1"
-    stderr: ""
-    timeout: 60000
-
   tailscale_version:
     title: Tailscale is installed via Hermit
     skip: {{.Env.IS_MACOS}}
@@ -168,7 +156,6 @@ command:
   claude_outside_repo:
     title: Claude CLI is available outside of repo root
     exec: direnv exec / claude --version
-    stderr: ""
     exit-status: 0
     timeout: 60000
 
@@ -289,9 +276,12 @@ user:
     exists: true
     shell: /usr/bin/zsh
 
+
 group:
+  skip: {{ or .Env.IS_LINUX_HOST .Env.IS_MACOS }}
   coder:
     exists: true
+
 file:
   '{{.Env.HOME}}':
     exists: true
