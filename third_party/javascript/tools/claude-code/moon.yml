@@ -11,6 +11,7 @@ tasks:
       - file: /pnpm-workspace.yaml
     outputs:
       - ./dist
+      - ./dist/node_modules
     options:
       cache: true
       cacheKey: "v1"
