@@ -2,6 +2,6 @@
 set -euo pipefail
 
 REPO_ROOT="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
-EXEC_BIN="${REPO_ROOT}"/bin/run
+EXEC_BIN="${REPO_ROOT}"/bin/exec
 
 exec "${EXEC_BIN}" moon run --quiet --log error --interactive devcontainers-cli:exec -- devcontainer "$@"

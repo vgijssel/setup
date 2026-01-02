@@ -2,7 +2,7 @@
 # Binstub for chezmoi
 
 LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
-EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/run
+EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
 INTERNAL_CHEZMOI_BIN="${LOCAL_SETUP_DIR}"/bin/internal/bin/chezmoi
 
 exec ${EXEC_BIN} "${INTERNAL_CHEZMOI_BIN}" --config "${LOCAL_SETUP_DIR}"/libs/devenv/chezmoi.yaml -S "${LOCAL_SETUP_DIR}" "$@"
