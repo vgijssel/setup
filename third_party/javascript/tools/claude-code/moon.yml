@@ -4,26 +4,8 @@ tags:
   - npm
   - pnpm-tool
 tasks:
-  build:
-    command: rm -rf ./dist && pnpm deploy --filter . --config.node-linker=hoisted --config.prefer-symlinked-executables=false ./dist
-    inputs:
-      - file: package.json
-      - file: /pnpm-lock.yaml
-      - file: /pnpm-workspace.yaml
-    outputs:
-      - ./dist
-      - ./dist/node_modules
-      - ./dist/node_modules/.bin
-    options:
-      cache: true
-      cacheKey: "v3"
-      mutex: pnpm-install
-      merge: replace
-
   start:
-    # Unsure why pnpm --dir doesn't work here, calling binary directly
-    # command: find ./dist && pnpm --dir ./dist exec claude
-    command: find ./dist && ./dist/node_modules/.bin/claude
+    command: pnpm --dir ./dist exec claude
     deps:
       - ~:build
     local: true

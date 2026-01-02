@@ -1,6 +1,6 @@
 tasks:
   build:
-    command: rm -rf ./dist && pnpm deploy --filter . ./dist
+    script: rm -rf ./dist && pnpm deploy --filter . --config.node-linker=hoisted --config.prefer-symlinked-executables=false ./dist
     inputs:
       - file: package.json
       - file: /pnpm-lock.yaml
@@ -10,3 +10,4 @@ tasks:
     options:
       cache: true
       mutex: pnpm-install
+      cacheKey: "v3"
