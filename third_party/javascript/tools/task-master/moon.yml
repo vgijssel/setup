@@ -2,33 +2,22 @@ layer: library
 tags:
   - javascript
   - npm
+  - pnpm-tool
 tasks:
-  install:
-    command: rm -rf ./dist && pnpm deploy --filter . ./dist
-    inputs:
-      - file: package.json
-      - file: /pnpm-lock.yaml
-      - file: /pnpm-workspace.yaml
-    outputs:
-      - ./dist
-    options:
-      cache: true
-      mutex: pnpm-install
-
   start:
     command: pnpm --dir ./dist exec task-master
     deps:
-      - ~:install
+      - ~:build
     local: true
 
   start-ai:
     command: pnpm --dir ./dist exec task-master-ai
     deps:
-      - ~:install
+      - ~:build
     local: true
 
   start-mcp:
     command: pnpm --dir ./dist exec task-master-mcp
     deps:
-      - ~:install
+      - ~:build
     local: true

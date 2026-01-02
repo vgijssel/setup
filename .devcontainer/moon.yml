@@ -4,7 +4,7 @@ tasks:
   build:
     command: ./build.sh --tag $MOON_TASK_HASH
     deps:
-      - devcontainers-cli:install
+      - devcontainers-cli:build
     inputs:
       - file: Dockerfile
       - file: build.sh
@@ -33,7 +33,7 @@ tasks:
     command: ./test.sh
     deps:
       - ~:build
-      - devcontainers-cli:install
+      - devcontainers-cli:build
     options:
       cache: true
       mutex: heavy-builds

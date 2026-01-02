@@ -121,8 +121,7 @@ node_modules/
 # OS specific
 
 # Task files
-tasks.json
-tasks/ 
+.taskmaster/tasks
 .taskmaster/reports
 
 # moon

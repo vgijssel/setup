@@ -130,7 +130,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           # First run install separately to debug cache hydration
-          moon run claude-code:install
+          moon run claude-code:build
           echo "=== Contents of dist after install ==="
           find third_party/javascript/tools/claude-code/dist -type f | head -50 || true
           echo "=== Now running start ==="

@@ -2,8 +2,9 @@ layer: library
 tags:
   - javascript
   - npm
+  - pnpm-tool
 tasks:
-  install:
+  build:
     command: rm -rf ./dist && pnpm deploy --filter . --config.node-linker=hoisted --config.prefer-symlinked-executables=false ./dist
     inputs:
       - file: package.json
@@ -17,11 +18,12 @@ tasks:
       cache: true
       cacheKey: "v3"
       mutex: pnpm-install
+      merge: replace
 
   start:
     # Unsure why pnpm --dir doesn't work here, calling binary directly
     # command: find ./dist && pnpm --dir ./dist exec claude
     command: find ./dist && ./dist/node_modules/.bin/claude
     deps:
-      - ~:install
+      - ~:build
     local: true

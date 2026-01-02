@@ -17,7 +17,7 @@ tasks:
   test:
     command: bash -c "chezmoi apply --force --verbose && goss validate"
     deps:
-      - claude-code:install
+      - claude-code:build
     inputs:
       - glob: files/**/*
         cache: true

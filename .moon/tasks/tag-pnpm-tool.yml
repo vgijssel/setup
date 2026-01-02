@@ -1,0 +1,12 @@
+tasks:
+  build:
+    command: rm -rf ./dist && pnpm deploy --filter . ./dist
+    inputs:
+      - file: package.json
+      - file: /pnpm-lock.yaml
+      - file: /pnpm-workspace.yaml
+    outputs:
+      - ./dist
+    options:
+      cache: true
+      mutex: pnpm-install

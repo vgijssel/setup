@@ -2,21 +2,10 @@ layer: library
 tags:
   - javascript
   - npm
+  - pnpm-tool
 tasks:
-  install:
-    command: rm -rf ./dist && pnpm deploy --filter . ./dist
-    inputs:
-      - file: package.json
-      - file: /pnpm-lock.yaml
-      - file: /pnpm-workspace.yaml
-    outputs:
-      - ./dist
-    options:
-      cache: true
-      mutex: pnpm-install
-
   start:
     command: pnpm --dir ./dist exec uglifyjs
     deps:
-      - ~:install
+      - ~:build
     local: true
