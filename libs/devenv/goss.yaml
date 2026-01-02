@@ -280,10 +280,12 @@ command:
 
 user:
   coder:
+    skip: {{ or .Env.IS_LINUX_HOST .Env.IS_MACOS }}
     exists: true
     home: /home/coder
     shell: /usr/bin/zsh
   root:
+    skip: {{ or .Env.IS_LINUX_HOST .Env.IS_MACOS }}
     exists: true
     shell: /usr/bin/zsh
 

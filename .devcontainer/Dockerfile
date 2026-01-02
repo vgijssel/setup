@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     ssh \
     sudo \
     locales \
+    zsh \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure locale
