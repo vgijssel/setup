@@ -13,6 +13,7 @@ tasks:
       - ./dist
     options:
       cache: true
+      cacheKey: "v1"
       mutex: pnpm-install
 
   start:
