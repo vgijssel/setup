@@ -12,6 +12,7 @@
     "hashicorp.hcl",
     "mkhl.direnv",
     "openai.chatgpt",
-    "hashicorp.terraform"
+    "hashicorp.terraform",
+    "hamster.task-master-hamster"
   ]
 }

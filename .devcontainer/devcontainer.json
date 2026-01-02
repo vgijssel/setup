@@ -23,7 +23,8 @@
         "tilt-dev.tiltfile",
         "github.remotehub",
         "hashicorp.hcl",
-        "hashicorp.terraform"
+        "hashicorp.terraform",
+        "Hamster.task-master-hamster"
       ],
       "settings": {
         "remote.portsAttributes": {
