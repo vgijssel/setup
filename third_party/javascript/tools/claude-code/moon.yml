@@ -18,7 +18,9 @@ tasks:
       mutex: pnpm-install
 
   start:
-    command: find ./dist && pnpm --dir ./dist exec claude
+    # Unsure why pnpm --dir doesn't work here, calling binary directly
+    # command: find ./dist && pnpm --dir ./dist exec claude
+    command: find ./dist && ./dist/node_modules/.bin/claude
     deps:
       - ~:install
     local: true
