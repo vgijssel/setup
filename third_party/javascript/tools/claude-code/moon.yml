@@ -12,9 +12,10 @@ tasks:
     outputs:
       - ./dist
       - ./dist/node_modules
+      - ./dist/node_modules/.bin
     options:
       cache: true
-      cacheKey: "v1"
+      cacheKey: "v3"
       mutex: pnpm-install
 
   start:
