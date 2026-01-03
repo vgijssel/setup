@@ -1,0 +1,42 @@
+$schema: ../cache/schemas/tasks.json
+
+fileGroups:
+  python_sources:
+    - src/**/*.py
+    - "!.venv/**"
+    - "!**/__pycache__/**"
+    - "!dist/**"
+    - "!.pytest_cache/**"
+    - "!.import_linter_cache/**"
+  python_tests:
+    - tests/**/*.py
+    - tests/**/*.yaml
+    - tests/**/*.yml
+    - "!.venv/**"
+    - "!**/__pycache__/**"
+    - "!dist/**"
+    - "!.pytest_cache/**"
+    - "!.import_linter_cache/**"
+  python_configs:
+    - pyproject.toml
+    - uv.lock
+
+tasks:
+  build:
+    command: uv build
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_configs)"
+    outputs:
+      - dist
+    options:
+      cache: true
+
+  test:
+    command: uv run pytest
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_tests)"
+      - "@files(python_configs)"
+    options:
+      cache: true

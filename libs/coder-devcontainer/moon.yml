@@ -2,6 +2,7 @@ language: javascript
 layer: library
 dependsOn:
   - devcontainer
+  - fleet-mcp
 tags:
   - coder
   - devcontainer

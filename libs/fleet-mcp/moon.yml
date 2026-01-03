@@ -1,52 +1,23 @@
-language: javascript
+language: python
+layer: library
+stack: backend
 tags:
-  - type.lib
-  - scope.infrastructure
-  - type.lib
-  - scope.infrastructure
+  - python
 tasks:
-  build:
-    command: uv build
-    inputs:
-      - glob: "**/*.*"
-        cache: true
-      - glob: "!.venv/**"
-        cache: true
-      - glob: "!dist/**"
-        cache: true
-      - glob: "!.pytest_cache/**"
-        cache: true
-      - glob: "!**/__pycache__/**"
-        cache: true
-    outputs:
-      - dist
-    options:
-      cache: true
   lint:
     command: uv run lint-imports
     inputs:
-      - glob: src/**/*.py
-        cache: true
-      - file: pyproject.toml
-      - glob: "!.venv/**"
-        cache: true
-      - glob: "!**/__pycache__/**"
-        cache: true
+      - "@files(python_sources)"
+      - "@files(python_configs)"
     options:
       cache: true
   release:
     command: ./release.sh
     inputs:
-      - glob: src/**/*.py
-        cache: true
-      - file: pyproject.toml
+      - "@files(python_sources)"
+      - "@files(python_configs)"
       - file: release.sh
-      - glob: "!.venv/**"
-        cache: true
-      - glob: "!dist/**"
-        cache: true
-      - glob: "!**/__pycache__/**"
-        cache: true
+      - "!dist/**"
     local: true
     options:
       cache: true
@@ -55,19 +26,3 @@ tasks:
     env:
       CWD: libs/fleet-mcp
     local: true
-  test:
-    command: uv run pytest
-    inputs:
-      - glob: src/**/*.py
-        cache: true
-      - glob: tests/**/*.py
-        cache: true
-      - file: pyproject.toml
-      - glob: "!.venv/**"
-        cache: true
-      - glob: "!.pytest_cache/**"
-        cache: true
-      - glob: "!**/__pycache__/**"
-        cache: true
-    options:
-      cache: true
