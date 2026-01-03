@@ -267,19 +267,19 @@ command:
 
 user:
   coder:
-    skip: {{ or .Env.IS_LINUX_HOST .Env.IS_MACOS }}
+    skip: {{ or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") }}
     exists: true
     home: /home/coder
     shell: /usr/bin/zsh
   root:
-    skip: {{ or .Env.IS_LINUX_HOST .Env.IS_MACOS }}
+    skip: {{ or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") }}
     exists: true
     shell: /usr/bin/zsh
 
 
 group:
   coder:
-    skip: {{ or .Env.IS_LINUX_HOST .Env.IS_MACOS }}
+    skip: {{ or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") }}
     exists: true
 
 file:
