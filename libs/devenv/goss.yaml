@@ -278,8 +278,8 @@ user:
 
 
 group:
-  skip: {{ or .Env.IS_LINUX_HOST .Env.IS_MACOS }}
   coder:
+    skip: {{ or .Env.IS_LINUX_HOST .Env.IS_MACOS }}
     exists: true
 
 file:
