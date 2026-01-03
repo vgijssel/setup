@@ -18,6 +18,7 @@ tasks:
     inputs:
       - glob: ./**/*.tf
       - glob: ./**/*.hcl
+      - "!.terraform/**"
 
   test:
     command: terraform validate
@@ -32,3 +33,4 @@ tasks:
       - file: ./supervisord.conf
       - file: ./Taskfile.yml
       - file: ./version.txt
+      - "!.terraform/**"
