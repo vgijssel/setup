@@ -5,7 +5,6 @@ tags:
   - ynab
   - finance
   - bazel
-  - python
   - skip-ci
 tasks:
   build:

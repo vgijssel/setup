@@ -33,7 +33,7 @@ tasks:
       cache: true
 
   test:
-    command: uv run pytest
+    command: uv run --all-extras pytest
     inputs:
       - "@files(python_sources)"
       - "@files(python_tests)"
