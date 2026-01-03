@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-exec uv run --project "${SETUP_DIR}/libs/dev-cluster" dev-cluster "$@"
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
+
+exec uv run --project "${LOCAL_SETUP_DIR}/libs/dev-cluster" dev-cluster "$@"

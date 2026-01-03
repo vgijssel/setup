@@ -11,10 +11,10 @@
 set -eo pipefail
 
 # Get the repository root directory
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
 
 # Path to the internal direnv binary
-DIRENV_BIN="${REPO_ROOT}/bin/direnv"
+DIRENV_BIN="${LOCAL_SETUP_DIR}/bin/direnv"
 
 # Safety: prevent deep recursion (can happen if pnpm exec falls back to bin/ binstubs)
 export BIN_RUN_DEPTH="${BIN_RUN_DEPTH:-0}"
@@ -31,8 +31,8 @@ fi
 
 # Check if .envrc is allowed (status shows "Found RC allowed 0" when allowed)
 if ! DIRENV_LOG_FORMAT="" "${DIRENV_BIN}" status 2>/dev/null | grep -q "Found RC allowed 0"; then
-    DIRENV_LOG_FORMAT="" "${DIRENV_BIN}" allow "${REPO_ROOT}" >/dev/null 2>&1
+    DIRENV_LOG_FORMAT="" "${DIRENV_BIN}" allow "${LOCAL_SETUP_DIR}" >/dev/null 2>&1
 fi
 
 # Execute the command with direnv exec, passing all arguments
-DIRENV_LOG_FORMAT="" exec "${DIRENV_BIN}" exec "${REPO_ROOT}" "$@"
+DIRENV_LOG_FORMAT="" exec "${DIRENV_BIN}" exec "${LOCAL_SETUP_DIR}" "$@"

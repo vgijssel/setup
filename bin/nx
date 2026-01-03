@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Ensure dependencies are up-to-date
-npm install --silent --prefix "${SETUP_DIR}"
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
 
-exec npm --prefix "${SETUP_DIR}" exec nx -- "$@"
+# Ensure dependencies are up-to-date
+npm install --silent --prefix "${LOCAL_SETUP_DIR}"
+
+exec npm --prefix "${LOCAL_SETUP_DIR}" exec nx -- "$@"
