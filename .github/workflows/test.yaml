@@ -84,7 +84,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          filter: tree:0
+          # Full history needed for moon ci to detect affected projects via git diff.
+          # Don't use filter: tree:0 (treeless partial clone) - it causes on-demand
+          # network fetches that fail in devcontainer build with "Process git failed: terminated"
           fetch-depth: 0
 
       - name: Ensure the branch name is correct for tooling
