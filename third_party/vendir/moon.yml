@@ -17,6 +17,7 @@ tasks:
       - vendir.lock.yml
     options:
       cache: true
+      cacheKey: v2
 
   test:
     command: git diff --exit-code vendir.lock.yml charts claude-task-master shell
