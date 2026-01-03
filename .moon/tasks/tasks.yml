@@ -4,3 +4,8 @@ fileGroups:
     - /bin/pnpm
     - /bin/.pnpm-*
     - /bin/hermit
+
+  vendir_bin:
+    - /bin/vendir
+    - /bin/.vendir-*
+    - /bin/hermit

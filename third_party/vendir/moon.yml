@@ -9,6 +9,7 @@ tasks:
     command: vendir sync
     inputs:
       - file: vendir.yml
+      - "@group(vendir_bin)"
     outputs:
       - charts
       - claude-task-master
@@ -16,6 +17,7 @@ tasks:
       - vendir.lock.yml
     options:
       cache: true
+
   test:
     command: git diff --exit-code vendir.lock.yml charts claude-task-master shell
     deps:
