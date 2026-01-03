@@ -7,6 +7,7 @@ tasks:
     command: ./build.sh --tag $MOON_TASK_HASH
     deps:
       - devcontainers-cli:build
+      - vendir:build
     inputs:
       - file: Dockerfile
       - file: build.sh
@@ -34,6 +35,5 @@ tasks:
     command: ./test.sh
     deps:
       - ~:build
-      - devcontainers-cli:build
     options:
       cache: true
