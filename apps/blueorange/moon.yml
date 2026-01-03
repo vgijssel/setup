@@ -12,10 +12,11 @@ tasks:
     inputs:
       - file: package.json
       - file: package-lock.json
-    outputs:
-      - node_modules
-    options:
-      cache: true
+  # TODO: currently too large to cache with bazel-remote and Backblaze B2
+  #    outputs:
+  #      - node_modules
+  options:
+    cache: true
   build:
     command: npm run build
     deps:
