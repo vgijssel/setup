@@ -33,6 +33,9 @@ tasks:
     local: true
   test:
     command: ./test.sh
+    inputs:
+      - file: .docker-version
+      - file: ./test.sh
     deps:
       - ~:build
     options:
