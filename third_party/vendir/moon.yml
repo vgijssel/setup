@@ -11,12 +11,20 @@ tasks:
       - file: vendir.yml
     outputs:
       - charts
+      - claude-task-master
+      - shell
       - vendir.lock.yml
     options:
       cache: true
   test:
-    command: git diff --exit-code vendir.lock.yml charts
+    command: git diff --exit-code vendir.lock.yml charts claude-task-master shell
     deps:
       - ~:build
+    inputs:
+      - file: vendir.yml
+      - file: vendir.lock.yml
+      - glob: charts/**/*
+      - glob: claude-task-master/**/*
+      - glob: shell/**/*
     options:
       cache: true
