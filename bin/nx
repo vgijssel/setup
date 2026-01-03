@@ -1,8 +1,0 @@
-#!/bin/bash
-
-LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
-
-# Ensure dependencies are up-to-date
-npm install --silent --prefix "${LOCAL_SETUP_DIR}"
-
-exec npm --prefix "${LOCAL_SETUP_DIR}" exec nx -- "$@"
