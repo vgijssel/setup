@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Wrapper for OVN appctl via the ovn-central pod
+# Usage: ovn-appctl [args...]
+# Example: ovn-appctl -t /var/run/ovn/ovnnb_db.ctl cluster/status OVN_Northbound
+set -euo pipefail
+
+exec kubectl -n cozy-kubeovn exec deploy/ovn-central -c ovn-central -- ovn-appctl "$@"

@@ -87,6 +87,62 @@ command:
     exit-status: 0
     stderr: ""
     timeout: 10000
+  # Cozystack troubleshooting checklist checks
+  # https://cozystack.io/docs/operations/troubleshooting/#troubleshooting-checklist
+  kubernetes_nodes_ready:
+    title: Validate all Kubernetes nodes are in Ready state
+    exec: kubectl get nodes --no-headers | awk '{print $2}' | grep -v "^Ready$" | wc -l | xargs test 0 -eq
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
+  all_pods_healthy:
+    title: Validate all pods cluster-wide are Running or Completed
+    exec: kubectl get pod -A --no-headers | grep -v 'Running\|Completed' | wc -l | xargs test 0 -eq
+    exit-status: 0
+    stderr: ""
+    timeout: 30000
+  linstor_nodes_online:
+    title: Validate all LINSTOR nodes are Online
+    exec: linstor -m node list | jq -e '[.[][] | select(.connection_status != "ONLINE")] | length == 0'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 30000
+  linstor_storage_pools_ok:
+    title: Validate all LINSTOR storage pools are Ok
+    exec: linstor -m storage-pool list | jq -e '[.[][] | select(.reports != null and (.reports | length > 0))] | length == 0'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 30000
+  linstor_no_faulty_resources:
+    title: Validate no LINSTOR resources are in faulty state
+    exec: linstor resource list --faulty
+    exit-status: 0
+    stdout:
+      - /^\+------------------------------------------------------------------\+$/
+      - /^\| ResourceName \| Node \| Layers \| Usage \| Conns \| State \| CreatedOn \|$/
+      - /^\|==================================================================\|$/
+    stderr: ""
+    timeout: 30000
+  ovn_northbound_db_healthy:
+    title: Validate OVN Northbound DB cluster is healthy
+    exec: ovn-appctl -t /var/run/ovn/ovnnb_db.ctl cluster/status OVN_Northbound 2>/dev/null | grep -q "Role:" && echo "healthy" || echo "unhealthy"
+    exit-status: 0
+    stdout:
+      - "healthy"
+    stderr: ""
+    timeout: 30000
+  ovn_southbound_db_healthy:
+    title: Validate OVN Southbound DB cluster is healthy
+    exec: ovn-appctl -t /var/run/ovn/ovnsb_db.ctl cluster/status OVN_Southbound 2>/dev/null | grep -q "Role:" && echo "healthy" || echo "unhealthy"
+    exit-status: 0
+    stdout:
+      - "healthy"
+    stderr: ""
+    timeout: 30000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip

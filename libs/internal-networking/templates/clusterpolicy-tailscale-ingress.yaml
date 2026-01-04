@@ -19,6 +19,7 @@ metadata:
     {{- include "internal-networking.labels" . | nindent 4 }}
 spec:
   generateExisting: true
+  useServerSideApply: true
   rules:
     # Generate Tailscale service for ingresses (excluding those marked for gateway exposure)
     - name: mirror-ingress-to-tailscale-service

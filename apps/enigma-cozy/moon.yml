@@ -9,7 +9,7 @@ project:
   metadata:
     dependencies:
       cozystack/cozystack:
-        version: v0.38.3
+        version: v0.39.2
         datasource: github-releases
       cozystack/talos:
         version: v1.11.3
@@ -27,19 +27,10 @@ tags:
 tasks:
   upgrade:
     command: ./scripts/upgrade.sh
-    args:
-      - --cwd
-      - $projectRoot
     local: true
   upgrade-talos:
     command: ./scripts/upgrade-talos.sh
-    args:
-      - --cwd
-      - $projectRoot
     local: true
   validate:
     command: goss validate
-    args:
-      - --cwd
-      - $projectRoot
     local: true

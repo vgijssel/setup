@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Wrapper for LINSTOR CLI via the linstor-controller pod
+# Usage: linstor [command] [args...]
+# Example: linstor node list
+#          linstor -m storage-pool list
 set -euo pipefail
 
 exec kubectl exec -n cozy-linstor deploy/linstor-controller -- linstor "$@"
