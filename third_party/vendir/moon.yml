@@ -6,15 +6,16 @@ tags:
   - infrastructure
 fileGroups:
   vendir_config:
-    - "vendir.yml"
-    - "vendir.lock.yml"
+    - vendir.yml
+    - vendir.lock.yml
+  # Ensure in the globs to include both regular and hidden files
   vendir_outputs:
-    - "charts/**/*"
-    - "charts/**/.*"
-    - "shell/**/*"
-    - "shell/**/.*"
-    - "markdown/**/*"
-    - "markdown/**/.*"
+    - charts/**/*
+    - charts/**/.*
+    - shell/**/*
+    - shell/**/.*
+    - markdown/**/*
+    - markdown/**/.*
 tasks:
   build:
     command: vendir sync
