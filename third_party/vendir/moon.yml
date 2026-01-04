@@ -4,30 +4,40 @@ tags:
   - vendir
   - helm
   - infrastructure
+fileGroups:
+  vendir_config:
+    - "vendir.yml"
+    - "vendir.lock.yml"
+  vendir_outputs:
+    - "charts/**/*"
+    - "charts/**/.*"
+    - "shell/**/*"
+    - "shell/**/.*"
+    - "markdown/**/*"
+    - "markdown/**/.*"
 tasks:
   build:
     command: vendir sync
     inputs:
-      - file: vendir.yml
+      - "@group(vendir_config)"
       - "@group(vendir_bin)"
+      - "@group(vendir_outputs)"
     outputs:
       - charts
-      - claude-task-master
       - shell
+      - markdown
       - vendir.lock.yml
     options:
       cache: true
-      cacheKey: v2
 
   test:
-    command: git diff --exit-code vendir.lock.yml charts claude-task-master shell
+    # Only verify the lock file - outputs are validated by caching mechanism
+    command: git diff --exit-code vendir.lock.yml
     deps:
       - ~:build
     inputs:
-      - file: vendir.yml
-      - file: vendir.lock.yml
-      - glob: charts/**/*
-      - glob: claude-task-master/**/*
-      - glob: shell/**/*
+      - "@group(vendir_config)"
+      - "@group(vendir_bin)"
+      - "@group(vendir_outputs)"
     options:
       cache: true

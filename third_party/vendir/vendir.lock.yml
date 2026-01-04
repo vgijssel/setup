@@ -70,5 +70,5 @@ directories:
       tags:
       - task-master-ai@0.40.0
     path: .
-  path: claude-task-master
+  path: markdown/claude-task-master
 kind: LockConfig
