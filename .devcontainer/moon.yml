@@ -39,3 +39,5 @@ tasks:
       - ~:build
     options:
       cache: true
+      # This test can be flacky due to external network calls, so we allow retries
+      retryCount: 3
