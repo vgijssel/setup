@@ -1,11 +1,38 @@
 #!/bin/bash
-# Execute a command with direnv environment loaded from the setup repo.
-# This allows binstubs to work correctly when run outside the repo root.
+#
+# CAUTION: bin/exec cann recurse if:
+# 1. A binstub (e.g., bin/claude) calls: bin/exec moon run <project>:exec -- <binary>
+# 2. The moon task uses "pnpm exec <cmd>" which falls back to PATH
+# 3. PATH includes bin/ (from Hermit), finding bin/<cmd> instead of node_modules/.bin/<cmd>
+# 4. The binstub calls bin/exec again → infinite loop
+#
+# Fix: Moon tasks should use explicit paths (./node_modules/.bin/<cmd>) not pnpm exec.
 
 set -eo pipefail
 
+# Get the repository root directory
 LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
-DIRENV_BIN="${LOCAL_SETUP_DIR}"/bin/direnv
 
-# Setting the direnv log format to empty to make direnv quiet
-DIRENV_LOG_FORMAT="" exec ${DIRENV_BIN} exec "${LOCAL_SETUP_DIR}" "$@"
+# Path to the internal direnv binary
+DIRENV_BIN="${LOCAL_SETUP_DIR}/bin/direnv"
+
+# Safety: prevent deep recursion (can happen if pnpm exec falls back to bin/ binstubs)
+export BIN_RUN_DEPTH="${BIN_RUN_DEPTH:-0}"
+BIN_RUN_DEPTH=$((BIN_RUN_DEPTH + 1))
+export BIN_RUN_DEPTH
+
+if [[ "${BIN_RUN_DEPTH}" -gt 3 ]]; then
+    echo "[bin/exec] ERROR: Recursion detected (depth=${BIN_RUN_DEPTH}). This usually means a moon task" >&2
+    echo "[bin/exec] is using 'pnpm exec <cmd>' which falls back to bin/<cmd> instead of node_modules/.bin/<cmd>." >&2
+    echo "[bin/exec] Fix: double check node_modules directory" >&2
+    echo "[bin/exec] The current path: ${PATH}" >&2
+    exit 1
+fi
+
+# Check if .envrc is allowed (status shows "Found RC allowed 0" when allowed)
+if ! DIRENV_LOG_FORMAT="" "${DIRENV_BIN}" status 2>/dev/null | grep -q "Found RC allowed 0"; then
+    DIRENV_LOG_FORMAT="" "${DIRENV_BIN}" allow "${LOCAL_SETUP_DIR}" >/dev/null 2>&1
+fi
+
+# Execute the command with direnv exec, passing all arguments
+DIRENV_LOG_FORMAT="" exec "${DIRENV_BIN}" exec "${LOCAL_SETUP_DIR}" "$@"

@@ -1,0 +1,23 @@
+language: javascript
+layer: library
+tags:
+  - bunq
+  - ynab
+  - finance
+  - bazel
+  - skip-ci
+tasks:
+  build:
+    command: bazel build //libs/bunq2ynab:bunq2ynab_binary
+    options:
+      cache: true
+    local: true
+  list-budget:
+    command: bazel run //libs/bunq2ynab:list_budget
+    local: true
+  list-user:
+    command: bazel run //libs/bunq2ynab:list_user
+    local: true
+  sync:
+    command: bazel run //libs/bunq2ynab:sync
+    local: true

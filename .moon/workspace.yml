@@ -1,0 +1,21 @@
+$schema: ./cache/schemas/workspace.json
+hasher:
+  walkStrategy: vcs
+unstable_remote:
+  host: grpc://127.0.0.1:9092
+  cache:
+    compression: zstd
+    # When downloading blobs, verify the digests/hashes in the response match the associated blob contents.
+    # This will reduce performance but ensure partial or corrupted blobs won't cause failures. Defaults to false.
+    verifyIntegrity: false
+projects:
+  globs:
+    - apps/*
+    - libs/*
+    - third_party/*
+    - third_party/javascript/tools/*
+  sources:
+    devcontainer: .devcontainer
+vcs:
+  defaultBranch: main
+  manager: git

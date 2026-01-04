@@ -1,0 +1,25 @@
+id: escaperoom
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.service
+  - scope.app
+  - type.service
+tasks:
+  build:
+    command: docker build -t escaperoom .
+    env:
+      CWD: apps/escaperoom
+  test:
+    command: $SETUP_DIR/bin/pip install --user -r requirements.txt && $SETUP_DIR/bin/python -m pytest
+    env:
+      CWD: apps/escaperoom
+    inputs:
+      - glob: "**/*.py"
+        cache: true
+      - file: requirements.txt
+      - glob: "!__pycache__/**"
+        cache: true
+    options:
+      cache: true

@@ -2,4 +2,6 @@
 
 set -eo pipefail
 
-uv run --project "${SETUP_DIR}"/third_party/python specify "$@"
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
+
+uv run --project "${LOCAL_SETUP_DIR}"/third_party/python specify "$@"

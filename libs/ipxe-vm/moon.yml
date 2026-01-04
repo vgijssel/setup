@@ -1,0 +1,12 @@
+language: javascript
+layer: library
+tags:
+  - packer
+  - image
+  - ipxe
+  - vm
+  - packer
+  - image
+  - ipxe
+  - vm
+tasks: {}

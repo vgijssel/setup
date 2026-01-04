@@ -2,7 +2,7 @@
 
 ## Project Structure
 
-This Nx monorepo uses a **two-directory structure**. All code MUST go into one of these directories:
+This Moon monorepo uses a **two-directory structure**. All code MUST go into one of these directories:
 
 - **`apps/`**: Deployable applications, services, and environment-specific configurations (clusters, stacks)
 - **`libs/`**: Reusable libraries, shared utilities, build tools, and external dependency wrappers
@@ -26,17 +26,19 @@ See `.taskmaster/docs/prd-monorepo-consolidation.md` for the full migration plan
 
 ### Project Discovery
 ```bash
-bin/help                  # Interactive help with real targets and descriptions
-nx show projects          # List all projects
-nx show project <name>    # Show project details and available targets
+bin/help                      # Interactive help with real targets and descriptions
+moon query projects           # List all projects
+moon project <name>           # Show project details
+moon query tasks              # List all tasks
 ```
 
 ### Common Operations
 ```bash
-nx build <project>        # Build a project
-nx test <project>         # Test a project
-nx affected:test          # Test only affected projects
-nx release               # Create releases with GitHub artifacts
+moon run <project>:build      # Build a project
+moon run <project>:test       # Test a project
+moon run :test --affected     # Test only affected projects
+moon check --all              # Run build/test/lint on all projects
+moon ci <base> <head>         # Run affected tasks in CI mode
 ```
 
 ## Code Quality Standards
@@ -55,16 +57,24 @@ nx release               # Create releases with GitHub artifacts
 
 ## Technology Stack
 
-- **Build**: Nx monorepo orchestration
+- **Build**: Moon monorepo orchestration (https://moonrepo.dev)
 - **Infrastructure**: Talos Linux, Kubernetes
 - **Automation**: Home Assistant, ESPHome, Ansible
 - **Quality**: Trunk CLI with ansible-lint, black, ruff, shellcheck, yamllint
 
+## Moon Concepts
+
+- **Tasks**: Defined in `moon.yml` files in each project, or globally in `.moon/tasks/`
+- **Caching**: Automatic content-based caching - repeated runs are instant
+- **Dependencies**: Use `deps: ['^:build']` to depend on upstream project builds
+- **CI Mode**: `moon ci <base> <head>` detects and runs only affected tasks
+- **Sharding**: Use `--shard current/total` for parallel CI execution
+
 ## Best Practices
 
 ### Dependency Management
-All external dependencies MUST be pinned to specific versions:
-- **npm/yarn**: Use exact versions (e.g., `"nx": "21.5.2"` not `"nx": "^21.5.2"`)
+All external dependencies MUST be pinned to specific versions to prevent security vulnerabilities and unexpected behavior changes:
+- **npm/yarn**: Use exact versions (e.g., `"lodash": "4.17.21"` not `"lodash": "^4.17.21"`)
 - **Python**: Pin to exact versions in requirements.txt (e.g., `mkdocs==1.6.1`)
 - **Docker**: Use specific tags (e.g., `python:3.12.8-slim` not `python:3.12-slim` or `python:latest`)
 - **Terraform**: Pin provider versions (e.g., `version = "2.11.0"` not `version = "~> 2.11"`)
@@ -72,7 +82,13 @@ All external dependencies MUST be pinned to specific versions:
 - **Go modules**: Use specific versions in go.mod
 - **Helm charts**: Pin chart versions in Chart.yaml
 
-This ensures reproducible builds and prevents unexpected breaking changes. Use Renovatebot for automated dependency updates.
+**NEVER** use tools that run unpinned packages:
+- **`npx`**: Fetches and runs the latest version of packages without version control
+- **`uvx`**: Same issue - runs packages without pinning versions
+
+Instead, install dependencies explicitly with pinned versions, then run them directly.
+
+This ensures reproducible builds, prevents security vulnerabilities from compromised package updates, and avoids unexpected breaking changes. Use Renovatebot for automated dependency updates.
 
 ### Platform Detection
 Use consistent environment variables:
@@ -119,7 +135,7 @@ data "aws_instance" "example" {
 ```
 
 ### Releases
-Releases are managed by `nx release`. Artifacts are automatically published to GitHub as part of the release process.
+Releases are managed via project-specific release tasks. Artifacts are automatically published to GitHub as part of the release process.
 
 ## Task Master AI Instructions
 **Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**

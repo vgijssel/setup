@@ -1,14 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-EXEC_BIN="${REPO_ROOT}/bin/exec"
-RUNNER="${REPO_ROOT}/third_party/javascript/wmill-runner.ts"
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
+EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
 
-exec "${EXEC_BIN}" deno run \
-    --allow-all \
-    --config="${REPO_ROOT}/third_party/javascript/deno.json" \
-    --lock="${REPO_ROOT}/third_party/javascript/deno.lock" \
-    --frozen \
-    --quiet \
-    "${RUNNER}" "$@"
+exec "${EXEC_BIN}" moon run --interactive --quiet --log error windmill-cli:exec -- wmill "$@"

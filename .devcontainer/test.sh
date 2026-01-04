@@ -21,11 +21,9 @@ fi
 
 echo "Running tests with devcontainer image: ${IMAGE}"
 
-# Run the test using the specific image
-CURRENT_DIR=$(pwd)
 docker run --privileged --rm \
-  -v "${CURRENT_DIR}:/workspaces/setup" \
+  -v "${SETUP_DIR}:/workspaces/setup" \
   "${IMAGE}" \
-  bin/direnv exec . goss --gossfile ./libs/devenv/goss.yaml validate
+  bin/exec goss --gossfile ./libs/devenv/goss.yaml validate
 
 echo "Tests completed successfully!"

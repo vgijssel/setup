@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# Ensure dependencies are up-to-date
-npm install --silent --prefix "${SETUP_DIR}"
-
-exec npm --prefix "${SETUP_DIR}" exec nx -- "$@"

@@ -1,0 +1,44 @@
+language: javascript
+layer: library
+tags:
+  - vendir
+  - helm
+  - infrastructure
+fileGroups:
+  vendir_config:
+    - vendir.yml
+    - vendir.lock.yml
+  # Ensure in the globs to include both regular and hidden files
+  vendir_outputs:
+    - charts/**/*
+    - charts/**/.*
+    - shell/**/*
+    - shell/**/.*
+    - markdown/**/*
+    - markdown/**/.*
+tasks:
+  build:
+    command: vendir sync
+    inputs:
+      - "@group(vendir_config)"
+      - "@group(vendir_bin)"
+      - "@group(vendir_outputs)"
+    outputs:
+      - charts
+      - shell
+      - markdown
+      - vendir.lock.yml
+    options:
+      cache: true
+
+  test:
+    # Only verify the lock file - outputs are validated by caching mechanism
+    command: git diff --exit-code vendir.lock.yml
+    deps:
+      - ~:build
+    inputs:
+      - "@group(vendir_config)"
+      - "@group(vendir_bin)"
+      - "@group(vendir_outputs)"
+    options:
+      cache: true

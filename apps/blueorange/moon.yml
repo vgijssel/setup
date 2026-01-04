@@ -1,0 +1,71 @@
+id: blueorange
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.webapp
+  - scope.app
+  - type.webapp
+tasks:
+  install:
+    command: npm install
+    inputs:
+      - file: package.json
+      - file: package-lock.json
+    # TODO: currently too large to cache with bazel-remote and Backblaze B2
+    #    outputs:
+    #      - node_modules
+    options:
+      cache: true
+  build:
+    command: npm run build
+    deps:
+      - ~:install
+    inputs:
+      - glob: src/**/*
+        cache: true
+      - glob: public/**/*
+        cache: true
+      - file: index.html
+      - file: package.json
+      - glob: vite.config.*
+        cache: true
+      - glob: tsconfig*.json
+        cache: true
+    outputs:
+      - dist
+    options:
+      cache: true
+  e2e_test:
+    command: npm run e2e
+    deps:
+      - ~:install
+    # TODO: e2e_test is currently broken
+    local: true
+  preview:
+    command: npm run preview
+    deps:
+      - ~:install
+    local: true
+  serve:
+    command: npm run dev
+    deps:
+      - ~:install
+    local: true
+  test:
+    command: npm test -- --run
+    deps:
+      - ~:install
+    inputs:
+      - glob: src/**/*
+        cache: true
+      - glob: tests/**/*
+        cache: true
+      - glob: vite.config.*
+        cache: true
+      - glob: vitest.config.*
+        cache: true
+      - glob: tsconfig*.json
+        cache: true
+    options:
+      cache: true

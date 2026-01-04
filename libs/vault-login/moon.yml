@@ -1,0 +1,20 @@
+language: javascript
+layer: library
+tags:
+  - type.lib
+  - scope.tools
+  - 1password
+  - type.lib
+  - scope.tools
+  - 1password
+tasks:
+  start:
+    command: uv run vault-login.py
+    local: true
+  test:
+    command: uv run test_vault_login.py
+    inputs:
+      - glob: "*.py"
+        cache: true
+    options:
+      cache: true

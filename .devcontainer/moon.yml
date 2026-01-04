@@ -1,0 +1,43 @@
+language: javascript
+layer: library
+dependsOn:
+  - devenv
+tasks:
+  build:
+    command: ./build.sh --tag $MOON_TASK_HASH
+    deps:
+      - devcontainers-cli:build
+      - vendir:build
+    inputs:
+      - file: Dockerfile
+      - file: build.sh
+      - file: /.envrc
+      - glob: /bin/**/*
+        cache: true
+      - glob: /third_party/hermit/**/*
+        cache: true
+      - glob: /third_party/vendir/shell/**/*
+        cache: true
+      - glob: /libs/devenv/**/*
+        cache: true
+      - file: /.chezmoiroot
+    outputs:
+      - .docker-version
+    options:
+      cache: true
+  release:
+    command: ./release.sh
+    deps:
+      - ~:build
+    local: true
+  test:
+    command: ./test.sh
+    inputs:
+      - file: .docker-version
+      - file: ./test.sh
+    deps:
+      - ~:build
+    options:
+      cache: true
+      # This test can be flacky due to external network calls, so we allow retries
+      retryCount: 3

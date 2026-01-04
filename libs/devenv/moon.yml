@@ -1,0 +1,28 @@
+language: javascript
+layer: library
+tags:
+  - devenv
+  - chezmoi
+  - development-environment
+  - macos
+  - devenv
+  - chezmoi
+  - development-environment
+  - macos
+tasks:
+  apply:
+    command: chezmoi apply --verbose
+    local: true
+
+  test:
+    command: bash -c "chezmoi apply --force --verbose && goss validate"
+    deps:
+      - claude-code:build
+    inputs:
+      - glob: files/**/*
+        cache: true
+      - file: goss.yaml
+      - file: chezmoi.yaml
+      - file: /.chezmoiroot
+    options:
+      cache: true

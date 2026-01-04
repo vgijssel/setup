@@ -1,0 +1,11 @@
+$schema: ../cache/schemas/tasks.json
+fileGroups:
+  pnpm_bin:
+    - /bin/pnpm
+    - /bin/.pnpm-*
+    - /bin/hermit
+
+  vendir_bin:
+    - /bin/vendir
+    - /bin/.vendir-*
+    - /bin/hermit

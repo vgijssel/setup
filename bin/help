@@ -8,25 +8,18 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}=== Nx Monorepo Help ===${NC}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MOON="${SCRIPT_DIR}/moon"
+
+echo -e "${GREEN}=== Moon Monorepo Help ===${NC}"
 echo ""
-
-# Build the help data using nx-help library (with TUI disabled)
-NX_RUNNER_TUI=false nx run nx-help:build > /dev/null 2>&1 || {
-    echo "Error: Failed to generate help data"
-    exit 1
-}
-
-# Load the generated JSON
-HELP_DATA=$(cat libs/nx-help/dist/projects.json)
 
 # Display all projects
 echo -e "${BLUE}Available Projects:${NC}"
-# shellcheck disable=SC2312
-PROJECTS=$(echo "${HELP_DATA}" | jq -r '.projects[].name' | sort)
+PROJECTS=$( ("${MOON}" query projects --json 2>/dev/null || true) | (jq -r '.projects[].id' || true) | (sort || true) )
 if [[ -n "${PROJECTS}" ]]; then
     while IFS= read -r project; do
-        echo "  • ${project}"
+        echo "  - ${project}"
     done <<< "${PROJECTS}"
 else
     echo "  No projects found"
@@ -34,52 +27,55 @@ fi
 echo ""
 
 # Display targets by project
-echo -e "${BLUE}Available Targets by Project:${NC}"
+echo -e "${BLUE}Available Tasks by Project:${NC}"
 
-# shellcheck disable=SC2312
-echo "${HELP_DATA}" | jq -c '.projects[]' | while IFS= read -r project_data; do
-    # shellcheck disable=SC2312
-    project_name=$(echo "${project_data}" | jq -r '.name')
+("${MOON}" query projects --json 2>/dev/null || true) | (jq -r '.projects[].id' || true) | (sort || true) | while IFS= read -r project_name; do
     printf "  %b%s:%b\n" "${CYAN}" "${project_name}" "${NC}"
-
-    echo "${project_data}" | jq -r '.targets[] | "    • \(.name)" + (if .description != "" then " - \(.description)" else "" end)'
+    ("${MOON}" query tasks --json 2>/dev/null || true) | (jq -r --arg proj "${project_name}" '.tasks[$proj] // {} | keys[]' 2>/dev/null || true) | while read -r task; do
+        echo "    - ${task}"
+    done
     echo ""
 done
 
 # Show common workspace commands
 echo -e "${BLUE}Common Workspace Commands:${NC}"
 echo -e "${YELLOW}Project Commands:${NC}"
-echo "  • nx run <project>:<target>  - Run a specific target for a project"
-echo "  • nx show project <name>     - Show detailed information about a project"
+echo "  - moon run <project>:<task>  - Run a specific task for a project"
+echo "  - moon project <name>        - Show detailed information about a project"
+echo "  - moon task <project>:<task> - Show detailed information about a task"
 echo ""
 
 echo -e "${YELLOW}Multi-Project Commands:${NC}"
-echo "  • nx run-many -t <target>    - Run a target across multiple projects"
-echo "  • nx affected:<target>       - Run target only on affected projects"
-echo "  • nx affected:graph          - Show dependency graph of affected projects"
+echo "  - moon run :<task>           - Run a task across all projects"
+echo "  - moon run :<task> --affected - Run task only on affected projects"
+echo "  - moon check                 - Run build/test/lint on current project"
+echo "  - moon check --all           - Run build/test/lint on all projects"
 echo ""
 
 echo -e "${YELLOW}Workspace Management:${NC}"
-echo "  • nx show projects           - List all projects in the workspace"
-echo "  • nx graph                   - Open interactive project dependency graph"
-echo "  • nx list                    - List installed Nx plugins"
-echo "  • nx release                 - Create releases with GitHub artifacts"
-echo "  • nx reset                   - Clear Nx cache and reset workspace"
+echo "  - moon query projects        - List all projects in the workspace"
+echo "  - moon query tasks           - List all tasks in the workspace"
+echo "  - moon project-graph         - Open interactive project dependency graph"
+echo "  - moon task-graph            - Open interactive task dependency graph"
+echo "  - moon clean                 - Clear moon cache"
+echo ""
+
+echo -e "${YELLOW}CI/CD Commands:${NC}"
+echo "  - moon ci <base> <head>      - Run tasks affected between commits"
+echo "  - moon ci --affected         - Run affected tasks in CI mode"
 echo ""
 
 echo -e "${YELLOW}Code Quality:${NC}"
-echo "  • nx format:write            - Format all code in the workspace"
-echo "  • nx format:check            - Check code formatting"
-echo "  • trunk fmt                  - Format code using Trunk"
-echo "  • trunk check                - Run all linters and checks"
+echo "  - trunk fmt                  - Format code using Trunk"
+echo "  - trunk check                - Run all linters and checks"
 echo ""
 
 # Show tips
 echo -e "${GREEN}Tips:${NC}"
-echo "  • Use tab completion with nx commands when available"
-echo "  • Add '--dry-run' to see what would be executed without running it"
-echo "  • Use '--verbose' for detailed output"
-echo "  • Use '--help' with any nx command for detailed options"
+echo "  - Use '--log debug' for detailed output"
+echo "  - Use '--help' with any moon command for detailed options"
+echo "  - Caching is automatic - repeated runs are instant"
+echo "  - Use '--force' to bypass cache and re-run tasks"
 echo ""
 
 # Dynamic examples based on actual projects
@@ -90,21 +86,18 @@ if [[ -n "${PROJECTS}" ]]; then
     second_project=$(echo "${PROJECTS}" | head -2 | tail -1) || true
 
     if [[ -n "${first_project}" ]]; then
-        echo "  • nx show project ${first_project}"
-        first_targets=$(echo "${HELP_DATA}" | jq -r --arg proj "${first_project}" '.projects[] | select(.name == $proj) | .targets[].name' | head -2) || true
-        if [[ -n "${first_targets}" ]]; then
-            echo "${first_targets}" | while read -r target; do
-                [[ -n "${target}" ]] && echo "  • nx run ${first_project}:${target}"
-            done
-        fi
+        echo "  - moon project ${first_project}"
+        echo "  - moon run ${first_project}:build"
+        echo "  - moon run ${first_project}:test"
     fi
 
     if [[ -n "${second_project}" && "${second_project}" != "${first_project}" ]]; then
-        echo "  • nx show project ${second_project}"
+        echo "  - moon project ${second_project}"
     fi
 else
-    echo "  • nx show projects"
+    echo "  - moon query projects"
 fi
 
-echo "  • nx affected:test --base=main"
-echo "  • nx run-many -t build --parallel"
+echo "  - moon ci origin/main HEAD"
+echo "  - moon run :build --affected"
+echo "  - moon check --all"

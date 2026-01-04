@@ -1,0 +1,13 @@
+language: python
+layer: library
+tags:
+  - python
+tasks:
+  e2e_test:
+    script: dev-cluster create dev-cluster && chainsaw test --test-dir tests_e2e --kube-context kind-dev-cluster && dev-cluster delete dev-cluster
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_tests)"
+      - "@files(python_configs)"
+    options:
+      cache: true

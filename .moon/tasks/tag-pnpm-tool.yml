@@ -1,0 +1,26 @@
+tasks:
+  build:
+    script: rm -rf ./dist && pnpm deploy --filter . --config.node-linker=hoisted --config.prefer-symlinked-executables=false ./dist >&2
+    inputs:
+      - file: package.json
+      - file: /pnpm-lock.yaml
+      - file: /pnpm-workspace.yaml
+      - "@files(pnpm_bin)"
+    outputs:
+      - ./dist
+      - ./dist/node_modules
+      - ./dist/node_modules/.bin
+    options:
+      cache: true
+      mutex: pnpm-install
+      outputStyle: buffer-only-failure
+      cacheKey: v3
+
+  exec:
+    command: pnpm --dir ./dist exec
+    deps:
+      - ~:build
+    local: true
+    options:
+      cache: false
+      outputStyle: stream

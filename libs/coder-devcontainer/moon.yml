@@ -1,0 +1,37 @@
+language: javascript
+layer: library
+dependsOn:
+  - devcontainer
+  - fleet-mcp
+tags:
+  - coder
+  - devcontainer
+  - terraform
+  - development-environment
+tasks:
+  init:
+    command: terraform init -backend=false
+    options:
+      cache: true
+    # TODO: currently too large to cache with bazel-remote and Backblaze B2
+    #    outputs:
+    #      - .terraform
+    inputs:
+      - glob: ./**/*.tf
+      - glob: ./**/*.hcl
+      - "!.terraform/**"
+
+  test:
+    command: terraform validate
+    deps:
+      - ~:init
+    options:
+      cache: true
+    inputs:
+      - glob: ./**/*.tf
+      - glob: ./**/*.hcl
+      - file: ./package.json
+      - file: ./supervisord.conf
+      - file: ./Taskfile.yml
+      - file: ./version.txt
+      - "!.terraform/**"

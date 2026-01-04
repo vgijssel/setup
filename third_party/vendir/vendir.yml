@@ -84,7 +84,7 @@ directories:
         includePaths:
           - src/docker-in-docker/install.sh
         newRootPath: src/docker-in-docker
-  - path: claude-task-master
+  - path: markdown/claude-task-master
     contents:
       - path: .
         git:

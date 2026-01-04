@@ -1,0 +1,10 @@
+{
+  "name": "windmill-cli",
+  "private": true,
+  "files": [
+    "package.json"
+  ],
+  "dependencies": {
+    "windmill-cli": "1.596.0"
+  }
+}

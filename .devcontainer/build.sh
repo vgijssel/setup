@@ -56,7 +56,7 @@ echo "Building and pushing devcontainer to development registry..."
 echo "Image: ${DEV_IMAGE}"
 echo "Platforms: linux/amd64,linux/arm64"
 
-# Build and push the image with the NX_TASK_HASH tag
+# Build and push the image with the MOON_TASK_HASH tag
 devcontainer build \
   --workspace-folder "${SETUP_DIR}" \
   --platform linux/amd64,linux/arm64 \

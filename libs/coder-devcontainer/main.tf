@@ -31,8 +31,6 @@ locals {
   github_token = try(data.onepassword_item.github_devcontainer_agent.credential, "")
   # Extract the Home Assistant API token from 1Password
   ha_token = try(data.onepassword_item.haos_api.credential, "")
-  # Extract the NX_KEY from 1Password
-  nx_key = try(data.onepassword_item.nx_key.credential, "")
   # Extract the OP_SERVICE_ACCOUNT_TOKEN from 1Password
   op_service_account_token = try(data.onepassword_item.op_service_account_token.credential, "")
 }
@@ -95,19 +93,6 @@ data "onepassword_item" "haos_api" {
     postcondition {
       condition     = try(self.credential, "") != ""
       error_message = "The 'haos-api' item in 1Password must have a password field with the Home Assistant API token."
-    }
-  }
-}
-
-# Ensure that an item titled "NX_KEY" exists in the 'setup-devenv' vault.
-data "onepassword_item" "nx_key" {
-  vault = data.onepassword_vault.setup_devenv.uuid
-  title = "NX_KEY"
-
-  lifecycle {
-    postcondition {
-      condition     = try(self.credential, "") != ""
-      error_message = "The 'NX_KEY' item in 1Password must have a credential value with the NX key."
     }
   }
 }
@@ -269,12 +254,6 @@ resource "coder_env" "ha_token" {
   agent_id = coder_agent.main.id
   name     = "HA_TOKEN"
   value    = local.ha_token
-}
-
-resource "coder_env" "nx_key" {
-  agent_id = coder_agent.main.id
-  name     = "NX_KEY"
-  value    = local.nx_key
 }
 
 resource "coder_env" "op_service_account_token" {

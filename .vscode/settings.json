@@ -5,10 +5,12 @@
     "**/node_modules": true,
     "**/bower_components": true,
     "**/*.code-search": true,
-    "third_party/vendir/**": true
+    "third_party/vendir/charts/**": true,
+    "third_party/vendir/shell/**": true,
+    "third_party/vendir/markdown/**": true
   },
   "taskmaster.mcp.args": [],
-  "taskmaster.mcp.command": "task-master-ai",
+  "taskmaster.mcp.command": "task-master-mcp",
   "taskmaster.mcp.env": {
     "TASK_MASTER_TOOLS": "all"
   }
