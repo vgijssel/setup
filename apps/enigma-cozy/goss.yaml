@@ -132,7 +132,7 @@ command:
     exec: ovn-appctl -t /var/run/ovn/ovnnb_db.ctl cluster/status OVN_Northbound 2>/dev/null | grep -q "Role:" && echo "healthy" || echo "unhealthy"
     exit-status: 0
     stdout:
-      - "healthy"
+      - healthy
     stderr: ""
     timeout: 30000
   ovn_southbound_db_healthy:
@@ -140,7 +140,7 @@ command:
     exec: ovn-appctl -t /var/run/ovn/ovnsb_db.ctl cluster/status OVN_Southbound 2>/dev/null | grep -q "Role:" && echo "healthy" || echo "unhealthy"
     exit-status: 0
     stdout:
-      - "healthy"
+      - healthy
     stderr: ""
     timeout: 30000
 addr:
