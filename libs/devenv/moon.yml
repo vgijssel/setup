@@ -15,10 +15,10 @@ tasks:
     local: true
 
   test:
-    # Initialize zsh after chezmoi apply to ensure zimfw downloads modules before goss tests
-    command: bash -c "chezmoi apply --force --verbose && zsh -ic 'true' && goss validate"
+    script: chezmoi apply --force --verbose && goss validate
     deps:
       - claude-code:build
+      - vendir:build
     inputs:
       - glob: files/**/*
         cache: true
