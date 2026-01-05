@@ -15,9 +15,9 @@ terraform {
 
 provider "keycloak" {
   client_id = "admin-cli"
-  username  = local.keycloak_username
-  password  = local.keycloak_password
-  url       = local.keycloak_url
+  url       = var.keycloak_url
+  username  = var.keycloak_user
+  password  = var.keycloak_password
 }
 
 provider "onepassword" {

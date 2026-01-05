@@ -11,19 +11,19 @@ tasks:
     local: true
 
   plan:
-    command: tofu plan
+    command: tofu plan -var-file=/secrets/keycloak-prod/secrets.tfvars
     deps:
       - ~:init
     local: true
 
   apply:
-    command: tofu apply -auto-approve
+    command: tofu apply -auto-approve -var-file=/secrets/keycloak-prod/secrets.tfvars
     deps:
       - ~:init
     local: true
 
   destroy:
-    command: tofu destroy -auto-approve
+    command: tofu destroy -auto-approve -var-file=/secrets/keycloak-prod/secrets.tfvars
     deps:
       - ~:init
     local: true

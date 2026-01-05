@@ -1,6 +1,7 @@
 output "oidc_issuer_url" {
   description = "Keycloak OIDC issuer URL for Coder"
   value       = local.issuer_url
+  sensitive   = true
 }
 
 output "oidc_client_id" {

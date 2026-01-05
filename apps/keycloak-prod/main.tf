@@ -1,55 +1,13 @@
-# 1Password data sources for Keycloak credentials
-# Credentials are fetched at runtime - never written to disk
-
-data "onepassword_vault" "keycloak_prod" {
-  name = "setup-keycloak-prod"
-
-  lifecycle {
-    postcondition {
-      condition     = can(self.uuid)
-      error_message = "The 'setup-keycloak-prod' vault must exist in 1Password."
-    }
-  }
-}
-
-data "onepassword_item" "keycloak_api" {
-  vault = data.onepassword_vault.keycloak_prod.uuid
-  title = "keycloak-api"
-
-  lifecycle {
-    postcondition {
-      condition     = can(self.url)
-      error_message = "The 'keycloak-api' item must have a url field."
-    }
-    postcondition {
-      condition     = can(self.username)
-      error_message = "The 'keycloak-api' item must have a username field."
-    }
-    postcondition {
-      condition     = can(self.credential)
-      error_message = "The 'keycloak-api' item must have a credential/password field."
-    }
-  }
-}
-
 locals {
-  keycloak_url      = data.onepassword_item.keycloak_api.url
-  keycloak_username = data.onepassword_item.keycloak_api.username
-  keycloak_password = data.onepassword_item.keycloak_api.credential
-  keycloak_realm = one([
-    for s in data.onepassword_item.keycloak_api.section :
-    one([for f in s.field : f.value if f.label == "realm"])
-  ])
-
   # Coder OIDC configuration
   coder_callback_url = "https://coder.enigma.vgijssel.nl/api/v2/users/oidc/callback"
   coder_origin       = "https://coder.enigma.vgijssel.nl"
-  issuer_url         = "${local.keycloak_url}/realms/${local.keycloak_realm}"
+  issuer_url         = "${var.keycloak_url}/realms/${var.keycloak_realm}"
 }
 
 # Keycloak OIDC Client for Coder authentication
 resource "keycloak_openid_client" "coder" {
-  realm_id              = local.keycloak_realm
+  realm_id              = var.keycloak_realm
   client_id             = "coder"
   name                  = "Coder"
   enabled               = true
