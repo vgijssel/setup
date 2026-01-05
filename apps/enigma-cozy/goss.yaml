@@ -81,6 +81,17 @@ command:
       - /^true:/
     stderr: ""
     timeout: 10000
+  kube_ovn_controller_memory_limit_sufficient:
+    title: Validate kube-ovn-controller memory limit is 2Gi to prevent OOM kills
+    # kube-ovn-controller with 1Gi limit gets OOM-killed under load, causing networking failures
+    # for pods on affected nodes. This results in intermittent 504 errors for services like
+    # coder.enigma.vgijssel.nl when ingress routes to VMs on nodes with degraded networking.
+    exec: kubectl get deploy kube-ovn-controller -n cozy-kubeovn -o jsonpath='{.spec.template.spec.containers[0].resources.limits.memory}'
+    exit-status: 0
+    stdout:
+      - "2Gi"
+    stderr: ""
+    timeout: 30000
   cnpg_operator_running:
     title: Validate CloudNativePG operator is running
     exec: kubectl get pods -n cozy-postgres-operator -l app.kubernetes.io/name=cloudnative-pg --field-selector=status.phase=Running --no-headers | wc -l | xargs test 1 -le
