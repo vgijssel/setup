@@ -1,12 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Parse arguments
+AUTO_CONFIRM=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -y|--yes)
+            AUTO_CONFIRM=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [-y|--yes]"
+            exit 1
+            ;;
+    esac
+done
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STACK_DIR="$(dirname "${SCRIPT_DIR}")"
 cd "${STACK_DIR}"
 
 # Step 1: Extract version from dependencies
-VERSION=$(jq -r '.nx.metadata.dependencies["cozystack/cozystack"].version' package.json)
+VERSION=$(yq -r '.project.metadata.dependencies["cozystack/cozystack"].version' moon.yml)
 echo "Upgrading CozyStack to version: ${VERSION}"
 
 # Step 2: Show diff
@@ -16,11 +32,13 @@ MANIFEST_URL="https://github.com/cozystack/cozystack/releases/download/${VERSION
 curl -sL "${MANIFEST_URL}" | kubectl diff -f - || true
 echo "=== End of changes ==="
 
-# Step 3: Confirm with gum
+# Step 3: Confirm with gum (skip if --yes flag provided)
 echo ""
-if ! gum confirm "Apply CozyStack upgrade to ${VERSION}?"; then
-    echo "Upgrade cancelled."
-    exit 0
+if [[ "${AUTO_CONFIRM}" != "true" ]]; then
+    if ! gum confirm "Apply CozyStack upgrade to ${VERSION}?"; then
+        echo "Upgrade cancelled."
+        exit 0
+    fi
 fi
 
 # Step 4: Apply upgrade

@@ -1,0 +1,1 @@
+{{ op://setup-coder-prod/kubeconfig.yaml/kubeconfig.yaml }}

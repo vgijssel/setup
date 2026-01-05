@@ -1,5 +1,7 @@
 language: javascript
 layer: application
+dependsOn:
+  - internal-networking
 tags:
   - scope.app
   - type.stack

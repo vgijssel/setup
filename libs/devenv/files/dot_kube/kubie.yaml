@@ -9,6 +9,7 @@ configs:
     - ~/.kube/configs/*.yaml
     # vault-shell secrets are in /secrets/{vault} (namespace-isolated tmpfs)
     - /secrets/**/*.kubeconfig.yaml
+    - /secrets/**/kubeconfig.yaml
 
 # Prompt settings.
 prompt:

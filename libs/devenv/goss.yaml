@@ -368,6 +368,11 @@ file:
     contents:
       - auto_install_console
 
+  '{{.Env.SETUP_DIR}}/third_party/vendir/shell/zimfw/zimfw.zsh':
+    title: zimfw.zsh exists for zsh plugin management
+    exists: true
+    filetype: file
+
 process:
   dockerd:
     title: Docker daemon is running inside container (Docker-in-Docker)

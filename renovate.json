@@ -7,10 +7,10 @@
   "customManagers": [
     {
       "customType": "jsonata",
-      "fileFormat": "json",
-      "fileMatch": ["apps/[^/]+/package\\.json$"],
+      "fileFormat": "yaml",
+      "fileMatch": ["(^|/)moon\\.yml$"],
       "matchStrings": [
-        "$each(nx.metadata.dependencies, function($v, $k) { { \"depName\": $k, \"currentValue\": $v.version, \"datasource\": $v.datasource } })"
+        "$each(project.metadata.dependencies, function($v, $k) { { \"depName\": $k, \"currentValue\": $v.version, \"datasource\": $v.datasource, \"packageName\": $v.packageName } })"
       ]
     }
   ],
