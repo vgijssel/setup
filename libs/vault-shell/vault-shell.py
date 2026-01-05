@@ -336,6 +336,10 @@ def build_bwrap_command(
     if Path("/lib64").exists():
         cmd.extend(["--ro-bind", "/lib64", "/lib64"])
 
+    # Pass through /var/run for Docker socket and other runtime state
+    if Path("/var/run").exists():
+        cmd.extend(["--bind", "/var/run", "/var/run"])
+
     # Working directory is always SETUP_DIR (project root)
     cmd.extend(["--chdir", str(setup_path)])
 
