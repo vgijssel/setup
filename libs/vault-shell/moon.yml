@@ -1,17 +1,11 @@
-language: javascript
+language: python
 layer: library
 tags:
-  - type.lib
-  - scope.tools
-  - 1password
+  - python
 tasks:
   start:
     command: uv run vault-shell.py
     local: true
+
   test:
     command: uv run test_vault_shell.py
-    inputs:
-      - glob: "*.py"
-        cache: true
-    options:
-      cache: true
