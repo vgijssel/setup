@@ -146,7 +146,7 @@ def create_service_account(
 
     # Build vault grant arguments
     vault_args = []
-    for vault_name, vault_id in vault_grants:
+    for _vault_name, vault_id in vault_grants:
         vault_args.append(f"--vault={vault_id}:read_items,write_items")
 
     result = run_op_command(

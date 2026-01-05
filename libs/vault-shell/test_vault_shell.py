@@ -9,7 +9,7 @@
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -441,7 +441,6 @@ class TestMainCLI:
     def test_main_with_dir_flag(self, monkeypatch, mock_environment, tmp_path):
         """Test --dir flag specifies template directory."""
         secrets_dir = mock_environment["secrets_dir"]
-        setup_dir = mock_environment["setup_dir"]
 
         # Create token
         (secrets_dir / "test-sa").write_text("ops_token_test")
@@ -476,7 +475,6 @@ class TestMainCLI:
     ):
         """Test default behavior uses current directory for templates."""
         secrets_dir = mock_environment["secrets_dir"]
-        setup_dir = mock_environment["setup_dir"]
 
         # Create token
         (secrets_dir / "test-sa").write_text("ops_token_test")
