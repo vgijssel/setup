@@ -89,7 +89,7 @@ command:
     exec: kubectl get deploy kube-ovn-controller -n cozy-kubeovn -o jsonpath='{.spec.template.spec.containers[0].resources.limits.memory}'
     exit-status: 0
     stdout:
-      - "2Gi"
+      - 2Gi
     stderr: ""
     timeout: 30000
   cnpg_operator_running:
