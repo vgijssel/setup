@@ -154,6 +154,17 @@ command:
       - healthy
     stderr: ""
     timeout: 30000
+  no_cilium_kubeovn_ip_collision:
+    title: Validate no IP collision between Cilium router IPs and kube-ovn pod IPs
+    # IP collisions occur when Cilium assigns a router IP to cilium_host on node A,
+    # but kube-ovn assigns the same IP to a pod on node B. Traffic destined for that
+    # pod gets misrouted to node A (which intercepts it locally) instead of being
+    # forwarded via OVN to node B, causing connection timeouts.
+    exec: ./scripts/detect-cilium-kubeovn-ip-collision.sh
+    exit-status: 0
+    stdout: ""
+    stderr: ""
+    timeout: 60000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip
