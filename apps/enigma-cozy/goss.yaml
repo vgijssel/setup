@@ -65,16 +65,18 @@ command:
     stderr: ""
     timeout: 10000
   multus_memory_limit_sufficient:
-    title: Validate Multus CNI has sufficient memory limit (>=500Mi) to handle post-reboot burst
+    title: Validate Multus CNI has sufficient memory limit (>=1Gi) to handle post-reboot burst
+    # 500Mi was insufficient when multiple CNI operations spawn concurrent processes,
+    # causing daily OOM kills on illusion node (19 OOMs in 18 days). Increased to 1Gi.
     exec: |
       limit=$(kubectl get daemonset cozy-multus -n cozy-multus -o jsonpath='{.spec.template.spec.containers[?(@.name=="kube-multus")].resources.limits.memory}')
       # Convert to bytes for comparison (handles Mi, Gi suffixes)
       limit_bytes=$(echo "$limit" | awk '/Gi/{print $1*1024*1024*1024; next} /Mi/{print $1*1024*1024; next} /Ki/{print $1*1024; next} {print $1}' | sed 's/[^0-9]//g')
-      min_bytes=$((500 * 1024 * 1024))
+      min_bytes=$((1024 * 1024 * 1024))
       if [ "$limit_bytes" -ge "$min_bytes" ]; then
         echo "true: $limit"
       else
-        echo "false: $limit is below 500Mi minimum"
+        echo "false: $limit is below 1Gi minimum"
       fi
     exit-status: 0
     stdout:
