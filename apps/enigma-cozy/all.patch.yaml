@@ -16,6 +16,9 @@ machine:
     net.ipv4.neigh.default.gc_thresh1: "4096"
     net.ipv4.neigh.default.gc_thresh2: "8192"
     net.ipv4.neigh.default.gc_thresh3: "16384"
+    net.core.rmem_max: "134217728"
+    net.core.wmem_max: "134217728"
+    net.core.netdev_max_backlog: "5000"
   kernel:
     modules:
       - name: openvswitch
@@ -27,7 +30,7 @@ machine:
       - name: vfio_pci
       - name: vfio_iommu_type1
   install:
-    image: ghcr.io/cozystack/cozystack/talos:v1.10.5
+    image: ghcr.io/cozystack/cozystack/talos:v1.11.3
   registries:
     mirrors:
       docker.io:
@@ -51,6 +54,7 @@ cluster:
   network:
     cni:
       name: none
+    # Keep dnsDomain to cozy.local to prevent issues with Cozystack components
     dnsDomain: cozy.local
     podSubnets:
       - 10.244.0.0/16

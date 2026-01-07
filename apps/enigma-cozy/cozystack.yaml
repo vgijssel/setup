@@ -16,6 +16,11 @@ data:
   root-host: enigma.vgijssel.nl
   values-kubeovn: |
     kube-ovn:
+      # MTU 1222 for KubeSpan compatibility
+      # KubeSpan uses WireGuard encapsulation (~80 bytes) + GENEVE overlay (~100 bytes)
+      # 1500 - 80 (WireGuard) - 100 (GENEVE) - ~100 (safety margin) = 1222
+      # See: https://cozystack.io/docs/install/how-to/kubespan/
+      mtu: 1222
       kube-ovn-controller:
         limits:
           memory: 2Gi

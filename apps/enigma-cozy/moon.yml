@@ -9,7 +9,9 @@ project:
   metadata:
     dependencies:
       cozystack/cozystack:
-        version: v0.39.2
+        # version: v0.39.2
+        # Downgraded to 0.38.6 to disable topolgy aware routing and kamaji routing problems.
+        version: v0.38.6
         datasource: github-releases
       cozystack/talos:
         version: v1.11.3

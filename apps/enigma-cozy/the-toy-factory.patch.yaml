@@ -1,21 +1,18 @@
 machine:
   install:
     disk: /dev/nvme0n1
+  nodeAnnotations:
+    ovn.kubernetes.io/tunnel_interface: enp6s0.50
   network:
     hostname: the-toy-factory
     nameservers:
       - 192.168.50.1
+    extraHostEntries:
+      - ip: 192.168.50.12
+        aliases:
+          - the-toy-factory
     interfaces:
-      - interface: br0
-        addresses:
-          - 10.50.50.12/24
-        bridge:
-          interfaces:
-            - enp4s0f0np0
-            - enp4s0f1np1
-          stp:
-            enabled: true
-      - interface: eno1
+      - interface: enp6s0
         vlans:
           - addresses:
               - 192.168.50.12/24
@@ -26,5 +23,21 @@ machine:
             vlanId: 50
         vip:
           ip: 192.168.50.50
-      - interface: enp6s0
+      # - interface: br0
+      #   addresses:
+      #     - 10.50.50.12/24
+      #   bridge:
+      #     interfaces:
+      #       - enp4s0f0np0
+      #       - enp4s0f1np1
+      #     stp:
+      #       enabled: true
+      - interface: eno1
+        dhcp: false
+        ignore: true
+      - interface: enp4s0f0np0
+        dhcp: false
+        ignore: true
+      - interface: enp4s0f1np1
+        dhcp: false
         ignore: true
