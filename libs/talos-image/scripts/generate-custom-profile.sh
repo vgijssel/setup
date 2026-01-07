@@ -6,10 +6,14 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 PROFILES_DIR="${PROJECT_DIR}/../../third_party/vendir/config/cozystack-talos-profiles/profiles"
 OUT_DIR="${PROJECT_DIR}/dist"
 
-# Version configuration from environment
-REALTEK_VERSION="${REALTEK_FIRMWARE_VERSION:-20251125}"
-REALTEK_DIGEST="${REALTEK_FIRMWARE_DIGEST:-sha256:b959398fc4072441be8e04a95422c15b3d5e54c227185c0ff463932506053f60}"
-REALTEK_IMAGE="ghcr.io/siderolabs/realtek-firmware:${REALTEK_VERSION}@${REALTEK_DIGEST}"
+# Version configuration from environment (DEPENDENCIES is JSON from moon.yml @meta)
+DEPENDENCIES="${DEPENDENCIES:?DEPENDENCIES must be set}"
+REALTEK_VERSION=$(echo "$DEPENDENCIES" | jq -r '.["siderolabs/realtek-firmware"].version')
+REALTEK_PACKAGE=$(echo "$DEPENDENCIES" | jq -r '.["siderolabs/realtek-firmware"].packageName')
+
+# Read digest from generated sha file
+REALTEK_DIGEST=$(cat "${OUT_DIR}/realtek-firmware.sha")
+REALTEK_IMAGE="${REALTEK_PACKAGE}:${REALTEK_VERSION}@${REALTEK_DIGEST}"
 
 mkdir -p "$OUT_DIR"
 

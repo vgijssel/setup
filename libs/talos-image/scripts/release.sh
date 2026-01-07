@@ -5,8 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 OUT_DIR="${PROJECT_DIR}/dist"
 
-# Version configuration from environment
-TALOS_VERSION="${TALOS_VERSION:-v1.11.3}"
+# Version configuration from environment (DEPENDENCIES is JSON from moon.yml @meta)
+DEPENDENCIES="${DEPENDENCIES:?DEPENDENCIES must be set}"
+TALOS_VERSION=$(echo "$DEPENDENCIES" | jq -r '.["siderolabs/talos"].version')
 ARCH="${ARCH:-amd64}"
 REGISTRY="${REGISTRY:-ghcr.io/vgijssel/setup}"
 

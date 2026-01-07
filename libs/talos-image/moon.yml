@@ -17,17 +17,27 @@ tags:
   - talos
   - cozystack
 env:
-  TALOS_VERSION: v1.11.3
-  REALTEK_FIRMWARE_VERSION: "20251125"
-  REALTEK_FIRMWARE_DIGEST: sha256:b959398fc4072441be8e04a95422c15b3d5e54c227185c0ff463932506053f60
+  DEPENDENCIES: "@meta(dependencies)"
   REGISTRY: ghcr.io/vgijssel/setup
   ARCH: amd64
 tasks:
-  generate:
+  generate-sha:
+    command: scripts/generate-sha.sh
+    inputs:
+      - scripts/generate-sha.sh
+    outputs:
+      - dist/realtek-firmware.sha
+    options:
+      cache: true
+
+  generate-profile:
     command: scripts/generate-custom-profile.sh
+    deps:
+      - generate-sha
     inputs:
       - /third_party/vendir/config/cozystack-talos-profiles/profiles/**/*
-      - scripts/**/*
+      - scripts/generate-custom-profile.sh
+      - dist/realtek-firmware.sha
     outputs:
       - dist/installer.yaml
     options:
@@ -36,7 +46,7 @@ tasks:
   build:
     command: scripts/build-installer.sh
     deps:
-      - generate
+      - generate-profile
     inputs:
       - scripts/**/*
       - dist/installer.yaml
