@@ -16,35 +16,35 @@ declare -A nodes=(
 
 # Check each node
 for node in illusion the-dome the-toy-factory; do
-  node_ip="${nodes[$node]}"
+  node_ip="${nodes[${node}]}"
 
   output="${output}${node} (${node_ip}):\n"
 
   # Query etcd service status
-  service_output=$(talosctl -n "$node_ip" -e "$node_ip" service etcd 2>/dev/null || echo "ERROR")
+  service_output=$(talosctl -n "${node_ip}" -e "${node_ip}" service etcd 2>/dev/null || echo "ERROR")
 
-  if echo "$service_output" | grep -q "ERROR"; then
-    errors="${errors}Unable to query etcd service on $node; "
+  if echo "${service_output}" | grep -q "ERROR"; then
+    errors="${errors}Unable to query etcd service on ${node}; "
     output="${output}  - ERROR: Unable to query service\n"
   else
     # Extract STATE and HEALTH from service output
-    state=$(echo "$service_output" | grep "^STATE" | awk '{print $2}')
-    health=$(echo "$service_output" | grep "^HEALTH" | awk '{print $2}')
+    state=$(echo "${service_output}" | grep "^STATE" | awk '{print $2}')
+    health=$(echo "${service_output}" | grep "^HEALTH" | awk '{print $2}')
 
     # Validate STATE
-    if [ "$state" = "Running" ]; then
-      output="${output}  - STATE: $state ✅\n"
+    if [[ "${state}" = "Running" ]]; then
+      output="${output}  - STATE: ${state} ✅\n"
     else
-      errors="${errors}$node etcd STATE is $state (expected Running); "
-      output="${output}  - STATE: $state ❌\n"
+      errors="${errors}${node} etcd STATE is ${state} (expected Running); "
+      output="${output}  - STATE: ${state} ❌\n"
     fi
 
     # Validate HEALTH
-    if [ "$health" = "OK" ]; then
-      output="${output}  - HEALTH: $health ✅\n"
+    if [[ "${health}" = "OK" ]]; then
+      output="${output}  - HEALTH: ${health} ✅\n"
     else
-      errors="${errors}$node etcd HEALTH is $health (expected OK); "
-      output="${output}  - HEALTH: $health ❌\n"
+      errors="${errors}${node} etcd HEALTH is ${health} (expected OK); "
+      output="${output}  - HEALTH: ${health} ❌\n"
     fi
   fi
 
@@ -52,11 +52,11 @@ for node in illusion the-dome the-toy-factory; do
 done
 
 # Output the formatted result
-echo -e "$output"
+echo -e "${output}"
 
 # Exit with error if any issues found
-if [ -n "$errors" ]; then
-  echo "ERRORS: $errors" >&2
+if [[ -n "${errors}" ]]; then
+  echo "ERRORS: ${errors}" >&2
   exit 1
 fi
 

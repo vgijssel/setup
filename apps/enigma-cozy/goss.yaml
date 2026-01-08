@@ -164,28 +164,28 @@ command:
     exit-status: 0
     stdout:
       - "illusion:"
-      - "127.0.0.1     localhost"
-      - "192.168.50.10 illusion"
-      - "::1           localhost ip6-localhost ip6-loopback"
-      - "ff02::1       ip6-allnodes"
-      - "ff02::2       ip6-allrouters"
-      - "192.168.50.10 illusion"
+      - 127.0.0.1     localhost
+      - 192.168.50.10 illusion
+      - ::1           localhost ip6-localhost ip6-loopback
+      - ff02::1       ip6-allnodes
+      - ff02::2       ip6-allrouters
+      - 192.168.50.10 illusion
       - ""
       - "the-dome:"
-      - "127.0.0.1     localhost"
-      - "192.168.50.11 the-dome"
-      - "::1           localhost ip6-localhost ip6-loopback"
-      - "ff02::1       ip6-allnodes"
-      - "ff02::2       ip6-allrouters"
-      - "192.168.50.11 the-dome"
+      - 127.0.0.1     localhost
+      - 192.168.50.11 the-dome
+      - ::1           localhost ip6-localhost ip6-loopback
+      - ff02::1       ip6-allnodes
+      - ff02::2       ip6-allrouters
+      - 192.168.50.11 the-dome
       - ""
       - "the-toy-factory:"
-      - "127.0.0.1     localhost"
-      - "192.168.50.12 the-toy-factory"
-      - "::1           localhost ip6-localhost ip6-loopback"
-      - "ff02::1       ip6-allnodes"
-      - "ff02::2       ip6-allrouters"
-      - "192.168.50.12 the-toy-factory"
+      - 127.0.0.1     localhost
+      - 192.168.50.12 the-toy-factory
+      - ::1           localhost ip6-localhost ip6-loopback
+      - ff02::1       ip6-allnodes
+      - ff02::2       ip6-allrouters
+      - 192.168.50.12 the-toy-factory
       - ""
     stderr: ""
     timeout: 30000
@@ -252,14 +252,14 @@ command:
     exit-status: 0
     stdout:
       - "Network Interface Error Rates:"
-      - "/illusion \\(192\\.168\\.50\\.10\\):/"
+      - /illusion \(192\.168\.50\.10\):/
       - "/genev_sys_6081 TX errors: .* ✅/"
       - "/genev_sys_6081 TX drops: .* ✅/"
       - "/genev_sys_6081 RX errors: .* ✅/"
       - "/ovn0 MTU: 1222 ✅/"
-      - "/the-dome \\(192\\.168\\.50\\.11\\):/"
-      - "/the-toy-factory \\(192\\.168\\.50\\.12\\):/"
-      - "/here-i-am \\([0-9.]+\\):/"
+      - /the-dome \(192\.168\.50\.11\):/
+      - /the-toy-factory \(192\.168\.50\.12\):/
+      - /here-i-am \([0-9.]+\):/
       - "/Node type: (local|WAN)/"
     stderr: ""
     timeout: 60000
@@ -328,11 +328,11 @@ command:
     exit-status: 0
     stdout:
       - "etcd Sync Performance:"
-      - "/illusion \\(192\\.168\\.50\\.10\\):/"
+      - /illusion \(192\.168\.50\.10\):/
       - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
-      - "/the-dome \\(192\\.168\\.50\\.11\\):/"
+      - /the-dome \(192\.168\.50\.11\):/
       - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
-      - "/the-toy-factory \\(192\\.168\\.50\\.12\\):/"
+      - /the-toy-factory \(192\.168\.50\.12\):/
       - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
     stderr: ""
     timeout: 60000

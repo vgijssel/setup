@@ -41,6 +41,7 @@ lint:
         - apps/windmill/f/**/flow.yaml
         - apps/haos/automations.yaml
         - third_party/vendir/charts
+        - third_party/vendir/config
         - third_party/vendir/markdown
         - third_party/vendir/vendir.lock.yml
         - third_party/vendir/shell
