@@ -1,0 +1,77 @@
+{{/*
+External service resources: Endpoints, Service, and Ingress for each configured service.
+These resources enable exposing external (non-cluster) HTTPS endpoints via Ingress.
+*/}}
+{{- range .Values.services }}
+{{- $hostname := required "hostname is required for each service" .hostname }}
+{{- $endpoint := required "endpoint (IP address) is required for each service" .endpoint }}
+{{- $port := .port | default 443 }}
+{{- $name := $hostname | replace "." "-" | lower }}
+---
+# Endpoints resource pointing to external IP
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+subsets:
+  - addresses:
+      - ip: {{ $endpoint | quote }}
+    ports:
+      - port: {{ $port }}
+        protocol: TCP
+        name: https
+---
+# Headless Service (no selector) to route traffic to Endpoints
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ $port }}
+      targetPort: {{ $port }}
+      protocol: TCP
+      name: https
+---
+# Ingress with cert-manager and nginx backend-protocol annotations
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+  annotations:
+    # Request Let's Encrypt certificate via cert-manager
+    cert-manager.io/cluster-issuer: {{ $.Values.clusterIssuer | quote }}
+    # Backend uses HTTPS with potentially self-signed certificate
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+spec:
+  ingressClassName: {{ $.Values.ingressClassName | quote }}
+  tls:
+    - hosts:
+        - {{ $hostname | quote }}
+      secretName: {{ $name }}-tls
+  rules:
+    - host: {{ $hostname | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $name }}
+                port:
+                  number: {{ $port }}
+{{- end }}

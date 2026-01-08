@@ -1,0 +1,33 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-service
+  namespace: flux-system
+spec:
+  interval: 30m
+  targetNamespace: external-services
+  chart:
+    spec:
+      chart: ./libs/external-service
+      sourceRef:
+        kind: GitRepository
+        name: setup
+        namespace: flux-system
+      interval: 12h
+      reconcileStrategy: Revision
+  dependsOn:
+    - name: internal-networking
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    services:
+      - hostname: pikvm.enigma.vgijssel.nl
+        endpoint: 192.168.1.31
+        port: 443
+    ingressClassName: tenant-root
+    clusterIssuer: letsencrypt-prod

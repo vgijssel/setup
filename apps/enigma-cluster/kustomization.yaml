@@ -1,7 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - namespace-flux-system.yaml
   - gitrepository-setup.yaml
   - kustomization-root.yaml
   - helmrelease-1password-operator.yaml
@@ -9,6 +8,7 @@ resources:
   - helmrelease-kyverno.yaml
   - clusterpolicy-multus-memory.yaml
   - helmrelease-internal-networking.yaml
+  - helmrelease-external-service.yaml
   - helmrelease-external-dns.yaml
   - helmrelease-tailscale-operator.yaml
   - namespace-ingress-nginx-gateway.yaml
