@@ -2,6 +2,7 @@ machine:
   type: worker
   install:
     disk: /dev/sda
+  nodeAnnotations:
   kubelet:
     nodeIP:
       validSubnets:

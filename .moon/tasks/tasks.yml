@@ -9,3 +9,8 @@ fileGroups:
     - /bin/vendir
     - /bin/.vendir-*
     - /bin/hermit
+
+  regctl_bin:
+    - /bin/regctl
+    - /bin/.regctl-*
+    - /bin/hermit

@@ -65,16 +65,18 @@ command:
     stderr: ""
     timeout: 10000
   multus_memory_limit_sufficient:
-    title: Validate Multus CNI has sufficient memory limit (>=500Mi) to handle post-reboot burst
+    title: Validate Multus CNI has sufficient memory limit (>=1Gi) to handle post-reboot burst
+    # 500Mi was insufficient when multiple CNI operations spawn concurrent processes,
+    # causing daily OOM kills on illusion node (19 OOMs in 18 days). Increased to 1Gi.
     exec: |
       limit=$(kubectl get daemonset cozy-multus -n cozy-multus -o jsonpath='{.spec.template.spec.containers[?(@.name=="kube-multus")].resources.limits.memory}')
       # Convert to bytes for comparison (handles Mi, Gi suffixes)
       limit_bytes=$(echo "$limit" | awk '/Gi/{print $1*1024*1024*1024; next} /Mi/{print $1*1024*1024; next} /Ki/{print $1*1024; next} {print $1}' | sed 's/[^0-9]//g')
-      min_bytes=$((500 * 1024 * 1024))
+      min_bytes=$((1024 * 1024 * 1024))
       if [ "$limit_bytes" -ge "$min_bytes" ]; then
         echo "true: $limit"
       else
-        echo "false: $limit is below 500Mi minimum"
+        echo "false: $limit is below 1Gi minimum"
       fi
     exit-status: 0
     stdout:
@@ -154,6 +156,211 @@ command:
       - healthy
     stderr: ""
     timeout: 30000
+  etc_hosts_uses_management_ips:
+    title: Validate /etc/hosts maps hostnames to management IPs (not br0 IPs)
+    # After br0 removal, hostnames should resolve to management network (192.168.50.x)
+    # not the old br0 network (10.50.50.x). This prevents OVN ports from binding to wrong IPs.
+    exec: ./scripts/validate-etc-hosts.sh
+    exit-status: 0
+    stdout:
+      - "illusion:"
+      - 127.0.0.1     localhost
+      - 192.168.50.10 illusion
+      - ::1           localhost ip6-localhost ip6-loopback
+      - ff02::1       ip6-allnodes
+      - ff02::2       ip6-allrouters
+      - 192.168.50.10 illusion
+      - ""
+      - "the-dome:"
+      - 127.0.0.1     localhost
+      - 192.168.50.11 the-dome
+      - ::1           localhost ip6-localhost ip6-loopback
+      - ff02::1       ip6-allnodes
+      - ff02::2       ip6-allrouters
+      - 192.168.50.11 the-dome
+      - ""
+      - "the-toy-factory:"
+      - 127.0.0.1     localhost
+      - 192.168.50.12 the-toy-factory
+      - ::1           localhost ip6-localhost ip6-loopback
+      - ff02::1       ip6-allnodes
+      - ff02::2       ip6-allrouters
+      - 192.168.50.12 the-toy-factory
+      - ""
+    stderr: ""
+    timeout: 30000
+  ovn_ports_bound_to_management_ips:
+    title: Validate OVN database ports (6641-6644) bind to management IPs
+    # OVN Northbound (6641), Southbound (6642), and RAFT cluster ports (6643, 6644)
+    # must bind to management network IPs (192.168.50.x), not br0 IPs (10.50.50.x).
+    # Incorrect binding causes connection refused errors and virtual cluster failures.
+    exec: ./scripts/validate-ovn-port-bindings.sh
+    exit-status: 0
+    stdout:
+      - "illusion (192.168.50.10):"
+      - "  - Port 6641: 192.168.50.10 ✅"
+      - "  - Port 6642: 192.168.50.10 ✅"
+      - "  - Port 6643: 192.168.50.10 ✅"
+      - "  - Port 6644: 192.168.50.10 ✅"
+      - ""
+      - "the-dome (192.168.50.11):"
+      - "  - Port 6641: 192.168.50.11 ✅"
+      - "  - Port 6642: 192.168.50.11 ✅"
+      - "  - Port 6643: 192.168.50.11 ✅"
+      - "  - Port 6644: 192.168.50.11 ✅"
+      - ""
+      - "the-toy-factory (192.168.50.12):"
+      - "  - Port 6641: 192.168.50.12 ✅"
+      - "  - Port 6642: 192.168.50.12 ✅"
+      - "  - Port 6643: 192.168.50.12 ✅"
+      - "  - Port 6644: 192.168.50.12 ✅"
+      - ""
+    stderr: ""
+    timeout: 60000
+  ovn_raft_cluster_uses_management_ips:
+    title: Validate OVN RAFT clusters use management network IPs
+    # RAFT cluster addresses in OVN database must use ssl://192.168.50.x:6643-6644
+    # not ssl://10.50.50.x:6643-6644 (old br0 IPs). This ensures proper cluster communication.
+    # Members are sorted by IP for stable ordering. Server IDs may change but IPs are constant.
+    exec: ./scripts/validate-ovn-raft-cluster.sh
+    exit-status: 0
+    stdout:
+      - "OVN Northbound RAFT Cluster:"
+      - "/Cluster ID: d192/"
+      - "/Leader: (5ac6|61ec|839a)/"
+      - "Members:"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.10 ✅/"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.11 ✅/"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.12 ✅/"
+      - ""
+      - "OVN Southbound RAFT Cluster:"
+      - "/Cluster ID: b37c/"
+      - "/Leader: (7866|8e60|75e3)/"
+      - "Members:"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.10 ✅/"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.11 ✅/"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.12 ✅/"
+      - ""
+    stderr: ""
+    timeout: 60000
+  network_error_rates_acceptable:
+    title: Validate network interface error and drop rates are within acceptable thresholds
+    # After MTU 1222 fix for KubeSpan compatibility, TX errors should be 0% on local nodes.
+    # Thresholds: <0.01% for local nodes (192.168.50.x), <0.5% for WAN nodes (KubeSpan over internet).
+    # See research.md for background on KubeSpan MTU requirements and the fixes applied.
+    exec: ./scripts/validate-network-error-rates.sh
+    exit-status: 0
+    stdout:
+      - "Network Interface Error Rates:"
+      - /illusion \(192\.168\.50\.10\):/
+      - "/genev_sys_6081 TX errors: .* ✅/"
+      - "/genev_sys_6081 TX drops: .* ✅/"
+      - "/genev_sys_6081 RX errors: .* ✅/"
+      - "/ovn0 MTU: 1222 ✅/"
+      - /the-dome \(192\.168\.50\.11\):/
+      - /the-toy-factory \(192\.168\.50\.12\):/
+      - /here-i-am \([0-9.]+\):/
+      - "/Node type: (local|WAN)/"
+    stderr: ""
+    timeout: 60000
+  no_cilium_kubeovn_ip_collision:
+    title: Validate no IP collision between Cilium router IPs and kube-ovn pod IPs
+    # IP collisions occur when Cilium assigns a router IP to cilium_host on node A,
+    # but kube-ovn assigns the same IP to a pod on node B. Traffic destined for that
+    # pod gets misrouted to node A (which intercepts it locally) instead of being
+    # forwarded via OVN to node B, causing connection timeouts.
+    exec: ./scripts/detect-cilium-kubeovn-ip-collision.sh
+    exit-status: 0
+    stdout: ""
+    stderr: ""
+    timeout: 60000
+  etcd_members_use_management_ips:
+    title: Validate etcd members use management network IPs (192.168.50.x)
+    # After br0 removal, etcd peer and client URLs must use management network IPs
+    # (192.168.50.x), not old br0 IPs (10.50.50.x). This ensures proper cluster
+    # communication and prevents 13+ second RAFT consensus latencies.
+    exec: ./scripts/validate-etcd-member-ips.sh
+    exit-status: 0
+    stdout:
+      - "etcd Member Configuration:"
+      - "illusion:"
+      - "  - Peer URL: https://192.168.50.10:2380 ✅"
+      - "  - Client URL: https://192.168.50.10:2379 ✅"
+      - ""
+      - "the-dome:"
+      - "  - Peer URL: https://192.168.50.11:2380 ✅"
+      - "  - Client URL: https://192.168.50.11:2379 ✅"
+      - ""
+      - "the-toy-factory:"
+      - "  - Peer URL: https://192.168.50.12:2380 ✅"
+      - "  - Client URL: https://192.168.50.12:2379 ✅"
+      - ""
+    stderr: ""
+    timeout: 30000
+  etcd_service_healthy:
+    title: Validate etcd service is running and healthy on all control plane nodes
+    # etcd health failures cause API server unresponsiveness and 13+ second timeouts.
+    # All control plane nodes must report STATE=Running and HEALTH=OK.
+    exec: ./scripts/validate-etcd-health.sh
+    exit-status: 0
+    stdout:
+      - "etcd Service Health:"
+      - "illusion (192.168.50.10):"
+      - "  - STATE: Running ✅"
+      - "  - HEALTH: OK ✅"
+      - ""
+      - "the-dome (192.168.50.11):"
+      - "  - STATE: Running ✅"
+      - "  - HEALTH: OK ✅"
+      - ""
+      - "the-toy-factory (192.168.50.12):"
+      - "  - STATE: Running ✅"
+      - "  - HEALTH: OK ✅"
+      - ""
+    stderr: ""
+    timeout: 30000
+  etcd_sync_latency_acceptable:
+    title: Validate etcd RAFT consensus latency is within acceptable thresholds (<500ms avg, <1000ms P99)
+    # RAFT consensus latency directly impacts Kubernetes API performance. High latencies
+    # (13+ seconds) indicate network issues and cause cluster-wide API timeouts.
+    # Monitors recent consensus operations and fails if latencies exceed critical thresholds.
+    exec: ./scripts/validate-etcd-latency.sh
+    exit-status: 0
+    stdout:
+      - "etcd Sync Performance:"
+      - /illusion \(192\.168\.50\.10\):/
+      - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
+      - /the-dome \(192\.168\.50\.11\):/
+      - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
+      - /the-toy-factory \(192\.168\.50\.12\):/
+      - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
+    stderr: ""
+    timeout: 60000
+  talos_kernel_extensions:
+    title: Validate Talos kernel extensions are installed on all nodes
+    # Kernel extensions provide hardware support (GPU, network firmware) and storage
+    # capabilities (ZFS, DRBD) required by the cluster. Missing extensions can cause
+    # hardware failures or storage unavailability.
+    exec: |
+      for node in 192.168.50.10 192.168.50.11 192.168.50.12; do
+        talosctl get extensions -n $node -e $node 2>&1
+      done
+    exit-status: 0
+    stdout:
+      # Expected kernel extensions on all nodes:
+      - amd-ucode
+      - amdgpu
+      - bnx2-bnx2x
+      - intel-ice-firmware
+      - i915
+      - intel-ucode
+      - qlogic-firmware
+      - drbd
+      - zfs
+      # Realtek firmware for network hardware support
+      - realtek
+    stderr: ""
+    timeout: 60000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip

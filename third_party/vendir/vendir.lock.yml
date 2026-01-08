@@ -71,4 +71,12 @@ directories:
       - task-master-ai@0.40.0
     path: .
   path: markdown/claude-task-master
+- contents:
+  - git:
+      commitTitle: Release v0.38.6 (#1799)...
+      sha: 4dfb3086a19e93ec8ce29357d7532a601df6d3d8
+      tags:
+      - v0.38.6
+    path: .
+  path: config/cozystack-talos-profiles
 kind: LockConfig

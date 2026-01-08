@@ -16,6 +16,23 @@ data:
   root-host: enigma.vgijssel.nl
   values-kubeovn: |
     kube-ovn:
+      # MTU 1222 for KubeSpan compatibility
+      # KubeSpan uses WireGuard encapsulation (~80 bytes) + GENEVE overlay (~100 bytes)
+      # 1500 - 80 (WireGuard) - 100 (GENEVE) - ~100 (safety margin) = 1222
+      # See: https://cozystack.io/docs/install/how-to/kubespan/
+      mtu: 1222
       kube-ovn-controller:
         limits:
           memory: 2Gi
+  # VPA recommender memory increased from 512Mi to 1Gi to prevent OOMKilled (exit code 137)
+  # The recommender processes decaying histograms and percentile calculations which can
+  # spike memory usage. 512Mi was insufficient causing CrashLoopBackOff.
+  values-vertical-pod-autoscaler: |
+    vertical-pod-autoscaler:
+      recommender:
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 512Mi

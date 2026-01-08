@@ -95,3 +95,12 @@ directories:
         excludePaths:
           - packages/claude-code-plugin/mcp.json
         newRootPath: packages/claude-code-plugin
+  - path: config/cozystack-talos-profiles
+    contents:
+      - path: .
+        git:
+          url: https://github.com/cozystack/cozystack
+          ref: v0.38.6
+        includePaths:
+          - packages/core/installer/images/talos/**
+        newRootPath: packages/core/installer/images/talos

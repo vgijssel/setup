@@ -3,6 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STACK_DIR="$(dirname "${SCRIPT_DIR}")"
+REPO_ROOT="$(cd "${STACK_DIR}/../.." && pwd)"
+TALOS_IMAGE_MOON_YML="${REPO_ROOT}/libs/talos-image/moon.yml"
 cd "${STACK_DIR}"
 
 # Node definitions (control planes first, then workers)
@@ -27,14 +29,45 @@ log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
+# META key for storing installed image digest (0x80 is in the user-defined range)
+TALOS_IMAGE_DIGEST_META_KEY="0x80"
+
+# Get installed image digest from META partition
+get_installed_image_digest() {
+    local ip=$1
+    local digest
+    digest=$(talosctl get meta "${TALOS_IMAGE_DIGEST_META_KEY}" --nodes "${ip}" --endpoints "${ip}" -o yaml 2>/dev/null | grep "value:" | sed 's/.*value: //' | tr -d '"' || echo "")
+    echo "${digest}"
+}
+
+# Store image digest in META partition after successful upgrade
+store_image_digest() {
+    local ip=$1
+    local digest=$2
+    if talosctl meta write "${TALOS_IMAGE_DIGEST_META_KEY}" "${digest}" --nodes "${ip}" --endpoints "${ip}" 2>/dev/null; then
+        log_info "Stored image digest in META for ${ip}"
+        return 0
+    else
+        log_warn "Failed to store image digest in META for ${ip}"
+        return 1
+    fi
+}
+
 usage() {
     cat <<EOF
 Usage: $(basename "$0") [OPTIONS]
 
 Upgrade Talos OS images on the enigma-cozy cluster nodes.
 
-The target version is read from package.json metadata:
-  nx.metadata.dependencies["cozystack/talos"].version
+The target version is read from libs/talos-image/moon.yml metadata:
+  project.metadata.dependencies["siderolabs/talos"].version
+
+The script compares both the version tag AND the image digest (SHA) to determine
+if an upgrade is needed. This allows detecting image changes even when the version
+tag remains the same (e.g., when firmware or extensions are updated).
+
+The image digest is stored in Talos META partition (key 0x80) after each successful
+upgrade for future comparison.
 
 Options:
     -h, --help          Show this help message
@@ -86,40 +119,34 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Step 1: Extract version from package.json
-if ! command -v jq &> /dev/null; then
-    log_error "jq is required but not installed"
+TARGET_VERSION=$(yq '.project.metadata.dependencies["siderolabs/talos"].version' "${TALOS_IMAGE_MOON_YML}")
+if [[ -z "${TARGET_VERSION}" || "${TARGET_VERSION}" == "null" ]]; then
+    log_error "Could not find Talos version in ${TALOS_IMAGE_MOON_YML}"
+    log_error "Expected path: project.metadata.dependencies[\"siderolabs/talos\"].version"
     exit 1
 fi
 
-TARGET_VERSION=$(jq -r '.nx.metadata.dependencies["cozystack/talos"].version // empty' package.json)
-if [[ -z "${TARGET_VERSION}" ]]; then
-    log_error "Could not find Talos version in package.json"
-    log_error "Expected path: nx.metadata.dependencies[\"cozystack/talos\"].version"
-    exit 1
-fi
-
-TARGET_IMAGE="ghcr.io/cozystack/cozystack/talos:${TARGET_VERSION}"
+TARGET_IMAGE="ghcr.io/vgijssel/setup/talos:${TARGET_VERSION}"
 log_info "Target Talos version: ${TARGET_VERSION}"
 log_info "Target image: ${TARGET_IMAGE}"
 
-# Step 2: Pre-flight checks
-log_info "Running pre-flight checks..."
-
-# Check talosconfig exists
-if [[ ! -f "talosconfig" ]]; then
-    log_error "talosconfig not found in ${STACK_DIR}"
-    exit 1
-fi
-export TALOSCONFIG="${STACK_DIR}/talosconfig"
-
-# Verify image exists
+# Verify image exists and get its digest
 log_info "Verifying target image exists..."
-if ! docker manifest inspect "${TARGET_IMAGE}" &> /dev/null; then
+if ! regctl manifest head "${TARGET_IMAGE}" &> /dev/null; then
     log_error "Target image does not exist: ${TARGET_IMAGE}"
+    log_error "GitHub package: https://github.com/orgs/vgijssel/packages/container/package/setup%2Ftalos"
     exit 1
 fi
 log_success "Target image verified"
+
+# Get target image digest for comparison
+TARGET_IMAGE_DIGEST=$(regctl image digest "${TARGET_IMAGE}" 2>/dev/null)
+if [[ -z "${TARGET_IMAGE_DIGEST}" ]]; then
+    log_warn "Could not get image digest for ${TARGET_IMAGE}"
+    log_warn "Will fall back to version-only comparison"
+else
+    log_info "Target image digest: ${TARGET_IMAGE_DIGEST}"
+fi
 
 # Step 2b: Check etcd versions across control plane nodes
 get_etcd_version() {
@@ -306,17 +333,39 @@ for entry in "${ALL_NODES[@]}"; do
     fi
 
     current_version=$(get_node_version "${name}" "${ip}")
+    installed_digest=$(get_installed_image_digest "${ip}")
 
-    if [[ "${current_version}" == "${TARGET_VERSION}" ]]; then
-        echo -e "  ${name} (${ip}): ${GREEN}${current_version}${NC} (already at target)"
-    else
-        echo -e "  ${name} (${ip}): ${YELLOW}${current_version}${NC} → ${GREEN}${TARGET_VERSION}${NC}"
+    # Check if upgrade is needed based on version AND image digest
+    needs_upgrade=false
+    upgrade_reason=""
+
+    if [[ "${current_version}" != "${TARGET_VERSION}" ]]; then
+        needs_upgrade=true
+        upgrade_reason="version change"
+    elif [[ -n "${TARGET_IMAGE_DIGEST}" && -n "${installed_digest}" && "${installed_digest}" != "${TARGET_IMAGE_DIGEST}" ]]; then
+        needs_upgrade=true
+        upgrade_reason="image changed (same version, different digest)"
+    elif [[ -n "${TARGET_IMAGE_DIGEST}" && -z "${installed_digest}" ]]; then
+        # No stored digest - could be first run or pre-digest-tracking upgrade
+        # Mark for upgrade to ensure we have the latest image and store the digest
+        needs_upgrade=true
+        upgrade_reason="no stored digest (first digest-tracked upgrade)"
+    fi
+
+    if [[ "${needs_upgrade}" == "true" ]]; then
+        if [[ "${current_version}" == "${TARGET_VERSION}" ]]; then
+            echo -e "  ${name} (${ip}): ${YELLOW}${current_version}${NC} (${upgrade_reason})"
+        else
+            echo -e "  ${name} (${ip}): ${YELLOW}${current_version}${NC} → ${GREEN}${TARGET_VERSION}${NC}"
+        fi
         NODES_TO_UPGRADE+=("${entry}")
+    else
+        echo -e "  ${name} (${ip}): ${GREEN}${current_version}${NC} (already at target, digest matches)"
     fi
 done
 
 if [[ ${#NODES_TO_UPGRADE[@]} -eq 0 ]]; then
-    log_success "All nodes are already at target version ${TARGET_VERSION}"
+    log_success "All nodes are already at target version ${TARGET_VERSION} with matching image digest"
     exit 0
 fi
 
@@ -446,6 +495,11 @@ upgrade_node() {
         return 1
     fi
 
+    # Store image digest in META for future comparison
+    if [[ -n "${TARGET_IMAGE_DIGEST}" ]]; then
+        store_image_digest "${ip}" "${TARGET_IMAGE_DIGEST}"
+    fi
+
     return 0
 }
 
@@ -504,10 +558,11 @@ fi
 echo ""
 log_info "Updating all.patch.yaml with new image version..."
 
-CURRENT_IMAGE_LINE=$(grep -E "^\s+image: ghcr.io/cozystack/cozystack/talos:" all.patch.yaml || true)
+# Check for either the old cozystack image or the new vgijssel/setup image
+CURRENT_IMAGE_LINE=$(grep -E "^\s+image: ghcr.io/(cozystack/cozystack|vgijssel/setup)/talos:" all.patch.yaml || true)
 if [[ -n "${CURRENT_IMAGE_LINE}" ]]; then
-    # Use sed to update the image version in place
-    if sed -i.bak "s|ghcr.io/cozystack/cozystack/talos:v[0-9.]*|ghcr.io/cozystack/cozystack/talos:${TARGET_VERSION}|g" all.patch.yaml; then
+    # Use sed to update the image version in place (handles both old and new image URLs)
+    if sed -i.bak "s|ghcr.io/cozystack/cozystack/talos:v[0-9.]*|ghcr.io/vgijssel/setup/talos:${TARGET_VERSION}|g; s|ghcr.io/vgijssel/setup/talos:v[0-9.]*|ghcr.io/vgijssel/setup/talos:${TARGET_VERSION}|g" all.patch.yaml; then
         rm -f all.patch.yaml.bak
         log_success "Updated all.patch.yaml to use ${TARGET_IMAGE}"
         echo ""

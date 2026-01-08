@@ -177,13 +177,22 @@ class TestCLI:
         assert result.exit_code == 0
         assert "Generate a 1Password service account token" in result.output
 
+    def test_no_vault_specified(self, runner):
+        """Error when no --vault options are provided."""
+        with patch.object(vault_login, "check_op_authenticated", return_value=True):
+            result = runner.invoke(vault_login.main, ["my-service-account"])
+            assert result.exit_code == 2  # Click validation error
+            assert "--vault" in result.output or "required" in result.output.lower()
+
     def test_invalid_vault_prefix(self, runner, mock_vaults):
         """Vault without setup- prefix is rejected."""
         with patch.object(vault_login, "check_op_authenticated", return_value=True):
             with patch.object(
                 vault_login, "get_setup_vaults", return_value=mock_vaults
             ):
-                result = runner.invoke(vault_login.main, ["invalid-vault"])
+                result = runner.invoke(
+                    vault_login.main, ["my-sa", "--vault", "invalid-vault"]
+                )
                 assert result.exit_code == 1
                 assert "must start with 'setup-'" in result.output
                 assert "setup-ci" in result.output
@@ -196,7 +205,9 @@ class TestCLI:
             with patch.object(
                 vault_login, "get_setup_vaults", return_value=mock_vaults
             ):
-                result = runner.invoke(vault_login.main, ["setup-nonexistent"])
+                result = runner.invoke(
+                    vault_login.main, ["my-sa", "--vault", "setup-nonexistent"]
+                )
                 assert result.exit_code == 1
                 assert "not found" in result.output
                 assert "setup-ci" in result.output
@@ -209,28 +220,57 @@ class TestCLI:
                 vault_login, "get_setup_vaults", return_value=mock_vaults
             ):
                 result = runner.invoke(
-                    vault_login.main, ["setup-ci", "--expiration", "30min"]
+                    vault_login.main,
+                    ["my-sa", "--vault", "setup-ci", "--expiration", "30min"],
                 )
                 assert result.exit_code == 1
                 assert "at least 1 hour" in result.output
 
-    def test_dry_run(self, runner, mock_vaults, monkeypatch, tmp_path):
-        """Dry run shows planned actions without creating token."""
+    def test_dry_run_single_vault(self, runner, mock_vaults, monkeypatch, tmp_path):
+        """Dry run shows planned actions without creating token (single vault)."""
         monkeypatch.setenv("VAULT_LOGIN_SECRETS_DIR", str(tmp_path))
         with patch.object(vault_login, "check_op_authenticated", return_value=True):
             with patch.object(
                 vault_login, "get_setup_vaults", return_value=mock_vaults
             ):
-                result = runner.invoke(vault_login.main, ["setup-ci", "--dry-run"])
+                result = runner.invoke(
+                    vault_login.main, ["my-sa", "--vault", "setup-ci", "--dry-run"]
+                )
                 assert result.exit_code == 0
                 assert "Dry run" in result.output
-                assert "vault-login-setup-ci" in result.output
+                assert "vault-login-my-sa" in result.output
                 assert "vault-id-ci" in result.output
+
+    def test_dry_run_multiple_vaults(self, runner, mock_vaults, monkeypatch, tmp_path):
+        """Dry run shows all vaults being granted access."""
+        monkeypatch.setenv("VAULT_LOGIN_SECRETS_DIR", str(tmp_path))
+        with patch.object(vault_login, "check_op_authenticated", return_value=True):
+            with patch.object(
+                vault_login, "get_setup_vaults", return_value=mock_vaults
+            ):
+                result = runner.invoke(
+                    vault_login.main,
+                    [
+                        "gateway-prod",
+                        "--vault",
+                        "setup-ci",
+                        "--vault",
+                        "setup-prod",
+                        "--dry-run",
+                    ],
+                )
+                assert result.exit_code == 0
+                assert "Dry run" in result.output
+                assert "vault-login-gateway-prod" in result.output
+                assert "setup-ci" in result.output
+                assert "vault-id-ci" in result.output
+                assert "setup-prod" in result.output
+                assert "vault-id-prod" in result.output
 
     def test_not_authenticated(self, runner):
         """Error when not authenticated with op CLI."""
         with patch.object(vault_login, "check_op_authenticated", return_value=False):
-            result = runner.invoke(vault_login.main, ["setup-ci"])
+            result = runner.invoke(vault_login.main, ["my-sa", "--vault", "setup-ci"])
             assert result.exit_code == 1
             assert "Not authenticated" in result.output
 
@@ -241,7 +281,9 @@ class TestCLI:
             with patch.object(
                 vault_login, "get_setup_vaults", return_value=mock_vaults
             ):
-                result = runner.invoke(vault_login.main, ["setup-ci"])
+                result = runner.invoke(
+                    vault_login.main, ["my-sa", "--vault", "setup-ci"]
+                )
                 assert result.exit_code == 1
                 assert "VAULT_LOGIN_SECRETS_DIR" in result.output
 
@@ -288,13 +330,37 @@ class TestServiceAccountCreation:
         with patch.object(
             vault_login, "run_op_command", return_value=mock_result
         ) as mock_cmd:
-            vault_login.create_service_account("setup-test", "vault-id", 3600)
+            vault_login.create_service_account(
+                "test-sa", [("setup-test", "vault-id")], 3600
+            )
 
             # Verify --raw flag is in the command
             call_args = mock_cmd.call_args[0][0]
             assert "--raw" in call_args
             assert "service-account" in call_args
             assert "create" in call_args
+            assert "vault-login-test-sa" in call_args
+
+    def test_create_service_account_multiple_vaults(self):
+        """Verify multiple vault grants are added to command."""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "ops_fake_token_for_testing"
+
+        with patch.object(
+            vault_login, "run_op_command", return_value=mock_result
+        ) as mock_cmd:
+            vault_login.create_service_account(
+                "gateway-prod",
+                [("setup-gateway", "vault-id-1"), ("setup-cozy", "vault-id-2")],
+                3600,
+            )
+
+            # Verify both vault grants are in the command
+            call_args = mock_cmd.call_args[0][0]
+            assert "--vault=vault-id-1:read_items,write_items" in call_args
+            assert "--vault=vault-id-2:read_items,write_items" in call_args
+            assert "vault-login-gateway-prod" in call_args
 
     def test_create_service_account_returns_clean_token(self):
         """Token should be stripped of whitespace."""
@@ -304,7 +370,9 @@ class TestServiceAccountCreation:
         mock_result.stdout = "ops_fake_token_blablabla\n"
 
         with patch.object(vault_login, "run_op_command", return_value=mock_result):
-            token = vault_login.create_service_account("setup-test", "vault-id", 3600)
+            token = vault_login.create_service_account(
+                "test-sa", [("setup-test", "vault-id")], 3600
+            )
             assert token == "ops_fake_token_blablabla"
             assert "\n" not in token
 
@@ -330,11 +398,13 @@ class TestServiceAccountCreation:
                 with patch.object(
                     vault_login, "run_op_command", return_value=mock_create_result
                 ):
-                    result = runner.invoke(vault_login.main, ["setup-ci"])
+                    result = runner.invoke(
+                        vault_login.main, ["my-sa", "--vault", "setup-ci"]
+                    )
                     assert result.exit_code == 0
 
-        # Verify the token file contains exactly the token
-        token_file = tmp_path / "setup-ci.token"
+        # Verify the token file contains exactly the token (new path: service account name)
+        token_file = tmp_path / "my-sa"
         assert token_file.exists()
         file_contents = token_file.read_text()
         assert file_contents == expected_token

@@ -4,29 +4,25 @@ fileGroups:
       cache: true
 language: javascript
 layer: application
+dependsOn:
+  - talos-image
 project:
   description: Cozystack configuration for Enigma cluster
   metadata:
     dependencies:
       cozystack/cozystack:
-        version: v0.39.2
+        # version: v0.39.2
+        # Downgraded to 0.38.6 to disable topolgy aware routing and kamaji routing problems.
+        version: v0.38.6
         datasource: github-releases
-      cozystack/talos:
-        version: v1.11.3
-        datasource: docker
-        packageName: ghcr.io/cozystack/cozystack/talos
 tags:
   - scope.app
   - type.stack
   - kubernetes
   - development
-  - scope.app
-  - type.stack
-  - kubernetes
-  - development
 tasks:
-  upgrade:
-    command: ./scripts/upgrade.sh
+  upgrade-cozy:
+    command: ./scripts/upgrade-cozy.sh
     local: true
   upgrade-talos:
     command: ./scripts/upgrade-talos.sh

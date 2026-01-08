@@ -1,0 +1,35 @@
+language: javascript
+layer: application
+tags:
+  - app
+  - terraform
+  - keycloak
+  - infrastructure
+tasks:
+  init:
+    command: tofu init -backend-config=/secrets/keycloak-prod/backend.hcl
+    local: true
+
+  plan:
+    command: tofu plan -var-file=/secrets/keycloak-prod/secrets.tfvars
+    deps:
+      - ~:init
+    local: true
+
+  apply:
+    command: tofu apply -auto-approve -var-file=/secrets/keycloak-prod/secrets.tfvars
+    deps:
+      - ~:init
+    local: true
+
+  destroy:
+    command: tofu destroy -auto-approve -var-file=/secrets/keycloak-prod/secrets.tfvars
+    deps:
+      - ~:init
+    local: true
+
+  output:
+    command: tofu output
+    deps:
+      - ~:init
+    local: true

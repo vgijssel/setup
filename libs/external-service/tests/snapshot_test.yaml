@@ -1,0 +1,11 @@
+# Test values for external-service Helm chart snapshot testing
+services:
+  - hostname: pikvm.enigma.vgijssel.nl
+    endpoint: 192.168.1.31
+    port: 443
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "604800"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "604800"
+
+ingressClassName: tenant-root
+clusterIssuer: letsencrypt-prod

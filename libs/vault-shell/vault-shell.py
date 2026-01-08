@@ -18,23 +18,24 @@ Security model:
     - All cleanup is handled by the kernel when the namespace terminates
 
 Usage:
-    vault-shell <vault-name>
+    vault-shell <service-account-name> [--dir <directory>]
 
 Environment:
-    VAULT_SECRETS_DIR: Directory containing vault token files (required)
-                       Default in .envrc: $SETUP_DIR/secrets/vault-logins
+    VAULT_SECRETS_DIR: Directory containing service account token files (required)
+                       Default in .envrc: $SETUP_DIR/tmp/secrets
     SETUP_DIR:         Path to the setup repository (required)
 
-The CLI looks for *.op.tpl template files in the current directory. Inside the
-namespace, `op inject` processes these templates and writes resolved secrets
-to /secrets/{vault_name}/ (a dedicated namespace-isolated tmpfs).
+The CLI looks for *.op.tpl template files in the current directory (or the directory
+specified with --dir). Inside the namespace, `op inject` processes these templates
+and writes resolved secrets to /secrets/{service_account_name}/ (a dedicated
+namespace-isolated tmpfs).
 
 Example:
     # With a .env.op.tpl file containing:
     #   DATABASE_URL=postgres://user:{{ op://my-vault/db/password }}@localhost/app
     # After running:
-    vault-shell my-vault
-    # Inside shell: cat /secrets/my-vault/.env  (secrets resolved)
+    vault-shell gateway-prod --dir apps/gateway-prod
+    # Inside shell: cat /secrets/gateway-prod/.env  (secrets resolved)
     # From outside: /secrets/ doesn't exist (namespace isolation)
 """
 
@@ -102,42 +103,56 @@ def get_secrets_dir() -> Path:
     if not secrets_dir:
         error(
             "VAULT_SECRETS_DIR environment variable not set.",
-            'Add to your .envrc: export VAULT_SECRETS_DIR="$SETUP_DIR/secrets/vault-logins"',
+            'Add to your .envrc: export VAULT_SECRETS_DIR="$SETUP_DIR/tmp/secrets"',
         )
     return Path(secrets_dir)
 
 
-def list_available_vaults(secrets_dir: Path) -> list[str]:
-    """List available vault names based on token files."""
+def list_available_service_accounts(secrets_dir: Path) -> list[str]:
+    """List available service account names based on token files."""
     if not secrets_dir.exists():
         return []
-    # Support both .json and .token file extensions
-    vaults = []
+    # Service account tokens are stored as files without extensions
+    # Also support legacy .json and .token file extensions for compatibility
+    service_accounts = []
     for f in secrets_dir.iterdir():
-        if f.is_file() and f.suffix in (".json", ".token"):
-            vaults.append(f.stem)
-    return sorted(set(vaults))
+        if f.is_file():
+            # Include files without extension (new format) and legacy formats
+            if f.suffix == "" or f.suffix in (".json", ".token"):
+                service_accounts.append(f.stem if f.suffix else f.name)
+    return sorted(set(service_accounts))
 
 
-def print_available_vaults(secrets_dir: Path) -> None:
-    """Print list of available vaults."""
-    vaults = list_available_vaults(secrets_dir)
-    if vaults:
-        print("Available vaults:", file=sys.stderr)
-        for v in vaults:
-            print(f"  - {v}", file=sys.stderr)
+def print_available_service_accounts(secrets_dir: Path) -> None:
+    """Print list of available service accounts."""
+    service_accounts = list_available_service_accounts(secrets_dir)
+    if service_accounts:
+        print("Available service accounts:", file=sys.stderr)
+        for sa in service_accounts:
+            print(f"  - {sa}", file=sys.stderr)
     else:
-        print(f"No vault token files found in {secrets_dir}", file=sys.stderr)
-        print("Create tokens with: vault-login <vault-name>", file=sys.stderr)
+        print(f"No service account token files found in {secrets_dir}", file=sys.stderr)
+        print(
+            "Create tokens with: vault-login <service-account-name> --vault <vault-name>",
+            file=sys.stderr,
+        )
 
 
-def load_token(secrets_dir: Path, vault_name: str) -> str:
-    """Load the service account token for the given vault."""
-    # Try .json first (structured format), then .token (raw format)
-    json_file = secrets_dir / f"{vault_name}.json"
-    token_file = secrets_dir / f"{vault_name}.token"
+def load_token(secrets_dir: Path, service_account_name: str) -> str:
+    """Load the service account token for the given service account."""
+    # Try new format first (no extension), then legacy formats
+    token_file = secrets_dir / service_account_name
+    json_file = secrets_dir / f"{service_account_name}.json"
+    legacy_token_file = secrets_dir / f"{service_account_name}.token"
 
-    if json_file.exists():
+    if token_file.exists() and token_file.is_file():
+        # New format: raw token, no extension
+        token = token_file.read_text().strip()
+        if not token:
+            error(f"Token file {token_file} is empty.")
+        return token
+    elif json_file.exists():
+        # Legacy format: JSON with token field
         try:
             data = json.loads(json_file.read_text())
             token = data.get("token")
@@ -146,22 +161,32 @@ def load_token(secrets_dir: Path, vault_name: str) -> str:
             return token
         except json.JSONDecodeError:
             error(f"Invalid JSON in {json_file}")
-    elif token_file.exists():
-        # Raw token format (from vault-login)
-        token = token_file.read_text().strip()
+    elif legacy_token_file.exists():
+        # Legacy format: raw token with .token extension
+        token = legacy_token_file.read_text().strip()
         if not token:
-            error(f"Token file {token_file} is empty.")
+            error(f"Token file {legacy_token_file} is empty.")
         return token
     else:
-        print(f"Error: No token file found for vault '{vault_name}'", file=sys.stderr)
-        print(f"Looked for: {json_file} or {token_file}", file=sys.stderr)
+        print(
+            f"Error: No token file found for service account '{service_account_name}'",
+            file=sys.stderr,
+        )
+        print(
+            f"Looked for: {token_file}, {json_file}, or {legacy_token_file}",
+            file=sys.stderr,
+        )
         print(file=sys.stderr)
-        print_available_vaults(secrets_dir)
+        print_available_service_accounts(secrets_dir)
         sys.exit(1)
 
 
 def find_templates(directory: Path) -> list[Path]:
     """Find all *.op.tpl files in the given directory (non-recursive)."""
+    if not directory.exists():
+        error(f"Directory does not exist: {directory}")
+    if not directory.is_dir():
+        error(f"Not a directory: {directory}")
     return sorted(directory.glob("*.op.tpl"))
 
 
@@ -215,28 +240,28 @@ def build_init_script(
 
 def build_bwrap_command(
     token: str,
-    vault_name: str,
+    service_account_name: str,
     templates: list[Path],
-    cwd: Path,
+    template_dir: Path,
     setup_dir: Path,
 ) -> list[str]:
     """Build the bubblewrap command with proper isolation flags.
 
     The command runs an init script inside the namespace that:
-    1. Creates /secrets/{vault_name} inside the isolated /secrets tmpfs
+    1. Creates /secrets/{service_account_name} inside the isolated /secrets tmpfs
     2. Processes templates with `op inject` directly into that directory
     3. Execs the user's shell
 
     This ensures secrets are ONLY written inside the namespace - they never
-    exist outside the namespace boundary. We use /secrets/{vault_name} as a
+    exist outside the namespace boundary. We use /secrets/{service_account_name} as a
     dedicated tmpfs mount, avoiding issues with virtiofs/bind-mounted working
     directories where tmpfs mounts may not isolate properly.
     """
     home = os.environ.get("HOME", "/home/user")
     shell = os.environ.get("SHELL", "/bin/bash")
-    # Use /secrets/{vault_name} - a dedicated tmpfs for secrets
-    # The vault_name in the path makes it clear which vault is active
-    secrets_path = f"/secrets/{vault_name}"
+    # Use /secrets/{service_account_name} - a dedicated tmpfs for secrets
+    # The service account name in the path makes it clear which service account is active
+    secrets_path = f"/secrets/{service_account_name}"
 
     cmd = [
         "bwrap",
@@ -255,7 +280,10 @@ def build_bwrap_command(
         "1",
         "--setenv",
         "VAULT_SHELL_NAME",
-        vault_name,
+        service_account_name,
+        "--setenv",
+        "VAULT_SHELL_SERVICE_ACCOUNT",
+        service_account_name,
         # System directories (read-only)
         "--ro-bind",
         "/usr",
@@ -273,10 +301,10 @@ def build_bwrap_command(
         "--bind",
         home,
         home,
-        # Current working directory (read-write)
+        # Template directory (where *.op.tpl files are located)
         "--bind",
-        str(cwd),
-        str(cwd),
+        str(template_dir),
+        str(template_dir),
         # /secrets as dedicated isolated tmpfs for secrets
         # This is more reliable than mounting tmpfs on a virtiofs-backed path
         "--tmpfs",
@@ -291,25 +319,32 @@ def build_bwrap_command(
         "/proc",
     ]
 
-    # Mount SETUP_DIR if it differs from cwd
-    # This ensures hermit-managed binaries (starship, etc.) remain accessible
-    # when running from a subdirectory
+    # Mount SETUP_DIR - always mount it as this is the working directory inside the shell
+    # This ensures hermit-managed binaries (starship, etc.) and all project files
+    # remain accessible regardless of where templates are located
     setup_path = setup_dir.resolve()
-    cwd_resolved = cwd.resolve()
-    # Mount SETUP_DIR if cwd is within it (subdirectory) or completely separate
-    # Only skip if cwd IS setup_dir or setup_dir is within cwd
-    if setup_path != cwd_resolved and not setup_path.is_relative_to(cwd_resolved):
-        cmd.extend(["--bind", str(setup_path), str(setup_path)])
+    template_dir_resolved = template_dir.resolve()
+
+    # Always bind SETUP_DIR
+    cmd.extend(["--bind", str(setup_path), str(setup_path)])
+
+    # Also bind template_dir if it's outside SETUP_DIR
+    if not template_dir_resolved.is_relative_to(setup_path):
+        cmd.extend(["--bind", str(template_dir_resolved), str(template_dir_resolved)])
 
     # Conditionally add /lib64 if it exists (some distros don't have it)
     if Path("/lib64").exists():
         cmd.extend(["--ro-bind", "/lib64", "/lib64"])
 
-    # Working directory
-    cmd.extend(["--chdir", str(cwd)])
+    # Pass through /var/run for Docker socket and other runtime state
+    if Path("/var/run").exists():
+        cmd.extend(["--bind", "/var/run", "/var/run"])
+
+    # Working directory is always SETUP_DIR (project root)
+    cmd.extend(["--chdir", str(setup_path)])
 
     # Build and run the init script that processes templates inside the namespace
-    # The script runs `op inject` for each template, writing to /tmp/vault-shell-secrets,
+    # The script runs `op inject` for each template, writing to /secrets/{service_account_name},
     # then execs the user's shell
     init_script = build_init_script(templates, secrets_path, shell)
     cmd.extend(["/bin/bash", "-c", init_script])
@@ -323,26 +358,35 @@ def main() -> None:
         description="Secure shell with 1Password secrets in namespace-isolated tmpfs.",
         epilog=(
             "Environment variables:\n"
-            "  VAULT_SECRETS_DIR  Directory containing vault token files (required)\n"
+            "  VAULT_SECRETS_DIR  Directory containing service account token files (required)\n"
             "  SETUP_DIR          Path to the setup repository (required)\n"
             "\n"
             "Templates:\n"
-            "  Place *.op.tpl files in the current directory. They will be processed\n"
-            "  with 'op inject' and available at /secrets/<vault>/<name> inside the\n"
-            "  shell. This path is inside an isolated tmpfs that only exists within\n"
-            "  the vault-shell namespace.\n"
+            "  Place *.op.tpl files in the current directory or use --dir to specify\n"
+            "  a different directory. Templates will be processed with 'op inject' and\n"
+            "  available at /secrets/<service-account>/<name> inside the shell.\n"
+            "  This path is inside an isolated tmpfs that only exists within the\n"
+            "  vault-shell namespace.\n"
             "\n"
             "Example:\n"
-            "  # With .env.op.tpl in current directory:\n"
-            "  vault-shell my-vault\n"
-            "  # Inside shell: cat /secrets/my-vault/.env  (secrets resolved)\n"
+            "  # With .env.op.tpl in apps/gateway-prod:\n"
+            "  vault-shell gateway-prod --dir apps/gateway-prod\n"
+            "  # Inside shell: cat /secrets/gateway-prod/.env  (secrets resolved)\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "vault_name",
+        "service_account_name",
         nargs="?",
-        help="Name of the vault to use for secrets",
+        help="Name of the service account to use for secrets",
+    )
+    parser.add_argument(
+        "--dir",
+        "-d",
+        dest="template_dir",
+        type=Path,
+        default=None,
+        help="Directory containing *.op.tpl template files (default: current directory)",
     )
 
     args = parser.parse_args()
@@ -356,24 +400,27 @@ def main() -> None:
     setup_dir = get_setup_dir()
     secrets_dir = get_secrets_dir()
 
-    # Handle missing vault name
-    if not args.vault_name:
-        print("Error: vault name is required", file=sys.stderr)
+    # Handle missing service account name
+    if not args.service_account_name:
+        print("Error: service account name is required", file=sys.stderr)
         print(file=sys.stderr)
-        print_available_vaults(secrets_dir)
+        print_available_service_accounts(secrets_dir)
         sys.exit(1)
 
-    vault_name = args.vault_name
+    service_account_name = args.service_account_name
 
     # Load token (will exit with helpful message if not found)
-    token = load_token(secrets_dir, vault_name)
+    token = load_token(secrets_dir, service_account_name)
 
-    # Find templates in current directory
-    cwd = Path.cwd()
-    templates = find_templates(cwd)
-    # Secrets are stored in /secrets/{vault_name} inside the isolated namespace
+    # Determine template directory
+    template_dir = args.template_dir if args.template_dir else Path.cwd()
+    template_dir = template_dir.resolve()
+
+    # Find templates in the specified directory
+    templates = find_templates(template_dir)
+    # Secrets are stored in /secrets/{service_account_name} inside the isolated namespace
     # This is a dedicated tmpfs that only exists within the namespace
-    secrets_path = f"/secrets/{vault_name}"
+    secrets_path = f"/secrets/{service_account_name}"
 
     if templates:
         print(f"Found {len(templates)} template(s) to process:")
@@ -381,15 +428,18 @@ def main() -> None:
             output_name = get_output_name(t)
             print(f"  - {t.name} -> {secrets_path}/{output_name}")
     else:
-        print("No *.op.tpl templates found in current directory")
+        print(f"No *.op.tpl templates found in {template_dir}")
 
     # Build bwrap command
     # Templates are processed INSIDE the namespace by the init script,
     # ensuring secrets never exist outside the namespace boundary
-    cmd = build_bwrap_command(token, vault_name, templates, cwd, setup_dir)
+    cmd = build_bwrap_command(
+        token, service_account_name, templates, template_dir, setup_dir
+    )
 
     # Show shell info
-    print(f"\nStarting isolated shell (vault: {vault_name})")
+    print(f"\nStarting isolated shell (service account: {service_account_name})")
+    print(f"Working directory: {setup_dir}")
     print(f"Secrets available at: {secrets_path}/")
     print("Type 'exit' to leave and cleanup secrets\n")
 

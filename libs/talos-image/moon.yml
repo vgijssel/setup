@@ -1,0 +1,68 @@
+language: bash
+layer: library
+project:
+  description: Custom Talos Linux installer image with Realtek drivers for Cozystack
+  metadata:
+    dependencies:
+      siderolabs/talos:
+        version: v1.11.3
+        datasource: github-releases
+      siderolabs/realtek-firmware:
+        version: "20251125"
+        datasource: docker
+        packageName: ghcr.io/siderolabs/realtek-firmware
+tags:
+  - docker
+  - image
+  - talos
+  - cozystack
+env:
+  DEPENDENCIES: "@meta(dependencies)"
+  REGISTRY: ghcr.io/vgijssel/setup
+  ARCH: amd64
+tasks:
+  generate-sha:
+    command: scripts/generate-sha.sh
+    inputs:
+      - scripts/generate-sha.sh
+      - "@globs(regctl_bin)"
+    outputs:
+      - dist/realtek-firmware.sha
+    options:
+      cache: true
+
+  generate-profile:
+    command: scripts/generate-custom-profile.sh
+    deps:
+      - generate-sha
+    inputs:
+      - /third_party/vendir/config/cozystack-talos-profiles/profiles/**/*
+      - scripts/generate-custom-profile.sh
+      - dist/realtek-firmware.sha
+    outputs:
+      - dist/installer.yaml
+    options:
+      cache: true
+
+  build:
+    command: scripts/build-installer.sh
+    deps:
+      - generate-profile
+    inputs:
+      - scripts/**/*
+      - dist/installer.yaml
+    outputs:
+      - dist/installer-amd64.tar
+    options:
+      cache: true
+
+  release:
+    command: scripts/release.sh
+    deps:
+      - build
+    inputs:
+      - scripts/release.sh
+      - "@globs(regctl_bin)"
+    local: true
+    options:
+      runInCI: false

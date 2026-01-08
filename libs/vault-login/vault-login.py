@@ -119,7 +119,7 @@ def get_secrets_dir() -> Path:
             "Error: VAULT_LOGIN_SECRETS_DIR environment variable not set.", err=True
         )
         click.echo(
-            'Add to your .envrc: export VAULT_LOGIN_SECRETS_DIR="$SETUP_DIR/secrets/vault-logins"',
+            'Add to your .envrc: export VAULT_LOGIN_SECRETS_DIR="$SETUP_DIR/tmp/secrets"',
             err=True,
         )
         sys.exit(1)
@@ -127,18 +127,34 @@ def get_secrets_dir() -> Path:
 
 
 def create_service_account(
-    vault_name: str, vault_id: str, expiration_seconds: int
+    service_account_name: str,
+    vault_grants: list[tuple[str, str]],
+    expiration_seconds: int,
 ) -> str:
-    """Create a service account for the given vault and return the token."""
+    """Create a service account with access to multiple vaults and return the token.
+
+    Args:
+        service_account_name: Name of the service account (e.g., 'gateway-prod')
+        vault_grants: List of (vault_name, vault_id) tuples to grant access to
+        expiration_seconds: Token expiration duration in seconds
+
+    Returns:
+        The service account token
+    """
     expiration_str = format_duration_for_op(expiration_seconds)
-    service_account_name = f"vault-login-{vault_name}"
+    sa_name = f"vault-login-{service_account_name}"
+
+    # Build vault grant arguments
+    vault_args = []
+    for _vault_name, vault_id in vault_grants:
+        vault_args.append(f"--vault={vault_id}:read_items,write_items")
 
     result = run_op_command(
         [
             "service-account",
             "create",
-            service_account_name,
-            f"--vault={vault_id}:read_items,write_items",
+            sa_name,
+            *vault_args,
             f"--expires-in={expiration_str}",
             "--raw",
         ]
@@ -158,7 +174,15 @@ def create_service_account(
 
 
 @click.command()
-@click.argument("vault_name")
+@click.argument("service_account_name")
+@click.option(
+    "--vault",
+    "-v",
+    "vault_names",
+    multiple=True,
+    required=True,
+    help="Vault name to grant access to (can be specified multiple times). Must start with 'setup-' prefix.",
+)
 @click.option(
     "--expiration",
     "-e",
@@ -170,11 +194,24 @@ def create_service_account(
     is_flag=True,
     help="Show what would be done without creating the token.",
 )
-def main(vault_name: str, expiration: str, dry_run: bool) -> None:
-    """Generate a 1Password service account token for a vault.
+def main(
+    service_account_name: str,
+    vault_names: tuple[str, ...],
+    expiration: str,
+    dry_run: bool,
+) -> None:
+    """Generate a 1Password service account token with access to multiple vaults.
 
-    VAULT_NAME must start with 'setup-' prefix. The generated token will be
-    saved to $VAULT_LOGIN_SECRETS_DIR/<vault-name>.token
+    SERVICE_ACCOUNT_NAME is the name of the service account (e.g., 'gateway-prod').
+    The service account will be created as 'vault-login-<service-account-name>'.
+
+    Use --vault to specify each vault to grant access to. At least one vault is required.
+    All vault names must start with 'setup-' prefix.
+
+    The generated token will be saved to $VAULT_LOGIN_SECRETS_DIR/<service-account-name>
+
+    Example:
+        vault-login gateway-prod --vault setup-gateway-prod --vault setup-enigma-cozy
     """
     # Check authentication
     if not check_op_authenticated():
@@ -182,12 +219,19 @@ def main(vault_name: str, expiration: str, dry_run: bool) -> None:
         click.echo("Run 'op signin' to authenticate first.", err=True)
         sys.exit(1)
 
-    # Validate vault name prefix
-    if not vault_name.startswith(VAULT_PREFIX):
+    # Validate at least one vault is specified
+    if not vault_names:
+        click.echo("Error: At least one --vault must be specified.", err=True)
+        sys.exit(1)
+
+    # Validate all vault names have the setup- prefix
+    invalid_vaults = [v for v in vault_names if not v.startswith(VAULT_PREFIX)]
+    if invalid_vaults:
         click.echo(
-            f"Error: Vault name must start with '{VAULT_PREFIX}' prefix.", err=True
+            f"Error: All vault names must start with '{VAULT_PREFIX}' prefix.", err=True
         )
-        click.echo(f"Got: '{vault_name}'", err=True)
+        for v in invalid_vaults:
+            click.echo(f"  Invalid: '{v}'", err=True)
         click.echo()
         setup_vaults = get_setup_vaults()
         if setup_vaults:
@@ -201,43 +245,54 @@ def main(vault_name: str, expiration: str, dry_run: bool) -> None:
     # Parse and validate expiration
     expiration_seconds = parse_expiration(expiration)
 
-    # Get setup vaults and check if the requested vault exists
+    # Get setup vaults and validate all requested vaults exist
     setup_vaults = get_setup_vaults()
-    if not vault_exists(vault_name, setup_vaults):
-        click.echo(f"Error: Vault '{vault_name}' not found.", err=True)
-        click.echo()
-        if setup_vaults:
-            click.echo(f"Available '{VAULT_PREFIX}' vaults:")
-            for v in setup_vaults:
-                click.echo(f"  - {v.get('name')}")
-        else:
-            click.echo(f"No vaults found with '{VAULT_PREFIX}' prefix.", err=True)
-        sys.exit(1)
+    vault_grants = []  # List of (vault_name, vault_id) tuples
 
-    vault_id = get_vault_id(vault_name, setup_vaults)
-    if not vault_id:
-        click.echo(f"Error: Could not get ID for vault '{vault_name}'.", err=True)
-        sys.exit(1)
+    for vault_name in vault_names:
+        if not vault_exists(vault_name, setup_vaults):
+            click.echo(f"Error: Vault '{vault_name}' not found.", err=True)
+            click.echo()
+            if setup_vaults:
+                click.echo(f"Available '{VAULT_PREFIX}' vaults:")
+                for v in setup_vaults:
+                    click.echo(f"  - {v.get('name')}")
+            else:
+                click.echo(f"No vaults found with '{VAULT_PREFIX}' prefix.", err=True)
+            sys.exit(1)
+
+        vault_id = get_vault_id(vault_name, setup_vaults)
+        if not vault_id:
+            click.echo(f"Error: Could not get ID for vault '{vault_name}'.", err=True)
+            sys.exit(1)
+
+        vault_grants.append((vault_name, vault_id))
 
     # Get secrets directory
     secrets_dir = get_secrets_dir()
-    token_file = secrets_dir / f"{vault_name}.token"
+    token_file = secrets_dir / service_account_name
 
     if dry_run:
         click.echo("Dry run - would perform the following actions:")
-        click.echo(f"  1. Create service account 'vault-login-{vault_name}'")
+        click.echo(f"  1. Create service account 'vault-login-{service_account_name}'")
+        for i, (vault_name, vault_id) in enumerate(vault_grants, start=2):
+            click.echo(
+                f"  {i}. Grant read_items,write_items access to vault '{vault_name}' (ID: {vault_id})"
+            )
         click.echo(
-            f"  2. Grant read_items,write_items access to vault '{vault_name}' (ID: {vault_id})"
+            f"  {len(vault_grants) + 2}. Set expiration to {format_duration_for_op(expiration_seconds)}"
         )
-        click.echo(
-            f"  3. Set expiration to {format_duration_for_op(expiration_seconds)}"
-        )
-        click.echo(f"  4. Save token to: {token_file}")
+        click.echo(f"  {len(vault_grants) + 3}. Save token to: {token_file}")
         return
 
     # Create service account and get token
-    click.echo(f"Creating service account for vault '{vault_name}'...")
-    token = create_service_account(vault_name, vault_id, expiration_seconds)
+    vault_list = ", ".join(v[0] for v in vault_grants)
+    click.echo(
+        f"Creating service account '{service_account_name}' with access to: {vault_list}..."
+    )
+    token = create_service_account(
+        service_account_name, vault_grants, expiration_seconds
+    )
 
     # Ensure secrets directory exists
     secrets_dir.mkdir(parents=True, exist_ok=True)

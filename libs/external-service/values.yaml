@@ -1,0 +1,16 @@
+# External service configuration
+# Define services to expose external HTTPS endpoints via Ingress
+
+# services:
+#   - hostname: pikvm.enigma.vgijssel.nl
+#     endpoint: 192.168.1.31
+#     port: 443
+#     annotations:  # Optional additional ingress annotations
+#       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+services: []
+
+# Ingress class to use (integrates with internal-networking Kyverno policy)
+ingressClassName: tenant-root
+
+# Cert-manager cluster issuer for Let's Encrypt certificates
+clusterIssuer: letsencrypt-prod

@@ -17,7 +17,7 @@ tasks:
       cacheKey: v3
 
   exec:
-    command: pnpm --dir ./dist exec
+    command: $workspaceRoot/.moon/scripts/pnpm-exec-in-cwd.sh
     deps:
       - ~:build
     local: true

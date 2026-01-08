@@ -1,0 +1,11 @@
+language: python
+layer: library
+tags:
+  - python
+tasks:
+  start:
+    command: uv run vault-shell.py
+    local: true
+
+  test:
+    command: uv run test_vault_shell.py

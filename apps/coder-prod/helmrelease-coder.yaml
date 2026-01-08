@@ -55,6 +55,26 @@ spec:
           value: https://coder.enigma.vgijssel.nl
         - name: CODER_WILDCARD_ACCESS_URL
           value: "*.coder.enigma.vgijssel.nl"
+        # OIDC authentication with Keycloak
+        - name: CODER_OIDC_ISSUER_URL
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-oidc
+              key: issuer_url
+        - name: CODER_OIDC_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-oidc
+              key: client_id
+        - name: CODER_OIDC_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-oidc
+              key: client_secret
+        - name: CODER_OIDC_USERNAME_FIELD
+          value: preferred_username
+        - name: CODER_DISABLE_PASSWORD_AUTH
+          value: "true"
       # Use ClusterIP since we expose via Tailscale Ingress
       service:
         type: ClusterIP

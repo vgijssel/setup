@@ -1,0 +1,72 @@
+---
+# Source: external-service/templates/resources.yaml
+# Headless Service (no selector) to route traffic to Endpoints
+apiVersion: v1
+kind: Service
+metadata:
+  name: pikvm-enigma-vgijssel-nl
+  namespace: external-services
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: external-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https
+---
+# Source: external-service/templates/resources.yaml
+# Ingress with cert-manager and nginx backend-protocol annotations
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pikvm-enigma-vgijssel-nl
+  namespace: external-services
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: external-service
+  annotations:
+    # Request Let's Encrypt certificate via cert-manager
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Backend uses HTTPS with potentially self-signed certificate
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "604800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "604800"
+spec:
+  ingressClassName: "tenant-root"
+  tls:
+    - hosts:
+        - "pikvm.enigma.vgijssel.nl"
+      secretName: pikvm-enigma-vgijssel-nl-tls
+  rules:
+    - host: "pikvm.enigma.vgijssel.nl"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pikvm-enigma-vgijssel-nl
+                port:
+                  number: 443
+---
+# Source: external-service/templates/resources.yaml
+# Endpoints resource pointing to external IP
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: pikvm-enigma-vgijssel-nl
+  namespace: external-services
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/instance: external-service
+subsets:
+  - addresses:
+      - ip: "192.168.1.31"
+    ports:
+      - port: 443
+        protocol: TCP
+        name: https

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: external-service
+description: Expose external HTTPS endpoints via Tailscale-ingressed Ingress
+type: application
+version: 0.1.0
+appVersion: 1.0.0
