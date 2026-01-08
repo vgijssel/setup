@@ -22,13 +22,13 @@ duration_to_ms() {
 
   # Handle seconds (e.g., "13.972s")
   if [[ $duration =~ ([0-9.]+)s$ ]]; then
-    echo "$(echo "${BASH_REMATCH[1]} * 1000" | bc | cut -d. -f1)"
+    echo "${BASH_REMATCH[1]}" | awk '{printf "%.0f", $1 * 1000}'
     return
   fi
 
   # Handle milliseconds (e.g., "147.767ms")
   if [[ $duration =~ ([0-9.]+)ms$ ]]; then
-    echo "$(echo "${BASH_REMATCH[1]}" | cut -d. -f1)"
+    echo "${BASH_REMATCH[1]}" | awk '{printf "%.0f", $1}'
     return
   fi
 
