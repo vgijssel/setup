@@ -16,8 +16,9 @@ mkdir -p "$OUT_DIR"
 
 echo "Fetching digest for ${IMAGE_REF}..."
 
-# Get the amd64 digest from the manifest
-DIGEST=$(docker manifest inspect "$IMAGE_REF" 2>/dev/null | jq -r '.manifests[] | select(.platform.architecture == "amd64") | .digest')
+# Get the amd64 digest from the manifest using regctl
+# regctl returns the digest for a specific platform
+DIGEST=$(regctl manifest get "${IMAGE_REF}" --platform linux/amd64 --format '{{.GetDescriptor.Digest}}')
 
 if [[ -z "$DIGEST" || "$DIGEST" == "null" ]]; then
     echo "Error: Could not fetch digest for ${IMAGE_REF}"

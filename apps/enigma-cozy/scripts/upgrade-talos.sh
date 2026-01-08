@@ -33,8 +33,8 @@ Usage: $(basename "$0") [OPTIONS]
 
 Upgrade Talos OS images on the enigma-cozy cluster nodes.
 
-The target version is read from package.json metadata:
-  nx.metadata.dependencies["cozystack/talos"].version
+The target version is read from libs/talos-image/moon.yml metadata:
+  project.metadata.dependencies["siderolabs/talos"].version
 
 Options:
     -h, --help          Show this help message
@@ -86,37 +86,22 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Step 1: Extract version from package.json
-if ! command -v jq &> /dev/null; then
-    log_error "jq is required but not installed"
+TARGET_VERSION=$(yq '.project.metadata.dependencies["siderolabs/talos"].version' "${TALOS_IMAGE_MOON_YML}")
+if [[ -z "${TARGET_VERSION}" || "${TARGET_VERSION}" == "null" ]]; then
+    log_error "Could not find Talos version in ${TALOS_IMAGE_MOON_YML}"
+    log_error "Expected path: project.metadata.dependencies[\"siderolabs/talos\"].version"
     exit 1
 fi
 
-TARGET_VERSION=$(jq -r '.nx.metadata.dependencies["cozystack/talos"].version // empty' package.json)
-if [[ -z "${TARGET_VERSION}" ]]; then
-    log_error "Could not find Talos version in package.json"
-    log_error "Expected path: nx.metadata.dependencies[\"cozystack/talos\"].version"
-    exit 1
-fi
-
-TARGET_IMAGE="ghcr.io/cozystack/cozystack/talos:${TARGET_VERSION}"
+TARGET_IMAGE="ghcr.io/vgijssel/setup/talos:${TARGET_VERSION}"
 log_info "Target Talos version: ${TARGET_VERSION}"
 log_info "Target image: ${TARGET_IMAGE}"
 
-# Step 2: Pre-flight checks
-log_info "Running pre-flight checks..."
-
-# Check talosconfig exists
-if [[ ! -f "talosconfig" ]]; then
-    log_error "talosconfig not found in ${STACK_DIR}"
-    exit 1
-fi
-export TALOSCONFIG="${STACK_DIR}/talosconfig"
-
 # Verify image exists
 log_info "Verifying target image exists..."
-if ! docker manifest inspect "${TARGET_IMAGE}" &> /dev/null; then
+if ! regctl manifest head "${TARGET_IMAGE}" &> /dev/null; then
     log_error "Target image does not exist: ${TARGET_IMAGE}"
+    log_error "GitHub package: https://github.com/orgs/vgijssel/packages/container/package/setup%2Ftalos"
     exit 1
 fi
 log_success "Target image verified"
@@ -504,10 +489,11 @@ fi
 echo ""
 log_info "Updating all.patch.yaml with new image version..."
 
-CURRENT_IMAGE_LINE=$(grep -E "^\s+image: ghcr.io/cozystack/cozystack/talos:" all.patch.yaml || true)
+# Check for either the old cozystack image or the new vgijssel/setup image
+CURRENT_IMAGE_LINE=$(grep -E "^\s+image: ghcr.io/(cozystack/cozystack|vgijssel/setup)/talos:" all.patch.yaml || true)
 if [[ -n "${CURRENT_IMAGE_LINE}" ]]; then
-    # Use sed to update the image version in place
-    if sed -i.bak "s|ghcr.io/cozystack/cozystack/talos:v[0-9.]*|ghcr.io/cozystack/cozystack/talos:${TARGET_VERSION}|g" all.patch.yaml; then
+    # Use sed to update the image version in place (handles both old and new image URLs)
+    if sed -i.bak "s|ghcr.io/cozystack/cozystack/talos:v[0-9.]*|ghcr.io/vgijssel/setup/talos:${TARGET_VERSION}|g; s|ghcr.io/vgijssel/setup/talos:v[0-9.]*|ghcr.io/vgijssel/setup/talos:${TARGET_VERSION}|g" all.patch.yaml; then
         rm -f all.patch.yaml.bak
         log_success "Updated all.patch.yaml to use ${TARGET_IMAGE}"
         echo ""

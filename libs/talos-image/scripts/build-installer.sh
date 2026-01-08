@@ -28,12 +28,13 @@ echo "  Output: ${OUTPUT_PATH}"
 echo ""
 
 # Run the imager with the custom profile
-# The imager reads the profile from stdin and outputs a tar archive
+# The imager outputs a gzipped tar that needs to be extracted
+# The extracted content is the docker archive (installer-amd64.tar)
 cat "$PROFILE_PATH" | docker run --rm -i \
     -v /dev:/dev \
     --privileged \
     "$IMAGER_IMAGE" \
-    --tar-to-stdout - > "$OUTPUT_PATH"
+    --tar-to-stdout - | tar -C "$OUT_DIR" -xzf-
 
 echo ""
 echo "Build complete!"

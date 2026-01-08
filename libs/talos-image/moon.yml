@@ -25,6 +25,7 @@ tasks:
     command: scripts/generate-sha.sh
     inputs:
       - scripts/generate-sha.sh
+      - "@globs(regctl_bin)"
     outputs:
       - dist/realtek-firmware.sha
     options:
@@ -59,6 +60,9 @@ tasks:
     command: scripts/release.sh
     deps:
       - build
+    inputs:
+      - scripts/release.sh
+      - "@globs(regctl_bin)"
     local: true
     options:
       runInCI: false
