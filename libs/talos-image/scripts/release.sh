@@ -32,7 +32,7 @@ echo ""
 # The build script extracts the gzipped output from the imager,
 # producing the docker archive directly at installer-amd64.tar
 # Import the image directly to the registry using regctl
-regctl image import "$IMAGE_REF" "$INPUT_PATH"
+regctl image import -v debug "$IMAGE_REF" "$INPUT_PATH"
 
 # Add OCI annotation to link to the source repository
 # This enables GitHub Container Registry to show the package linked to the repo
