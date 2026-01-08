@@ -24,3 +24,15 @@ data:
       kube-ovn-controller:
         limits:
           memory: 2Gi
+  # VPA recommender memory increased from 512Mi to 1Gi to prevent OOMKilled (exit code 137)
+  # The recommender processes decaying histograms and percentile calculations which can
+  # spike memory usage. 512Mi was insufficient causing CrashLoopBackOff.
+  values-vertical-pod-autoscaler: |
+    vertical-pod-autoscaler:
+      recommender:
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 512Mi

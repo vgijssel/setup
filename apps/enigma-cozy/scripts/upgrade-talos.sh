@@ -3,6 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STACK_DIR="$(dirname "${SCRIPT_DIR}")"
+REPO_ROOT="$(cd "${STACK_DIR}/../.." && pwd)"
+TALOS_IMAGE_MOON_YML="${REPO_ROOT}/libs/talos-image/moon.yml"
 cd "${STACK_DIR}"
 
 # Node definitions (control planes first, then workers)

@@ -3,15 +3,20 @@ set -euo pipefail
 
 # Parse arguments
 AUTO_CONFIRM=false
+DRY_RUN=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         -y|--yes)
             AUTO_CONFIRM=true
             shift
             ;;
+        -n|--dry-run)
+            DRY_RUN=true
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
-            echo "Usage: $0 [-y|--yes]"
+            echo "Usage: $0 [-y|--yes] [-n|--dry-run]"
             exit 1
             ;;
     esac
@@ -31,6 +36,13 @@ echo "=== Changes to be applied ==="
 MANIFEST_URL="https://github.com/cozystack/cozystack/releases/download/${VERSION}/cozystack-installer.yaml"
 curl -sL "${MANIFEST_URL}" | kubectl diff -f - || true
 echo "=== End of changes ==="
+
+# Exit early if dry-run
+if [[ "${DRY_RUN}" == "true" ]]; then
+    echo ""
+    echo "Dry run complete. No changes applied."
+    exit 0
+fi
 
 # Step 3: Confirm with gum (skip if --yes flag provided)
 echo ""

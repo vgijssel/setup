@@ -8,7 +8,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: setup
-  path: ./stacks/enigma-cluster
+  path: ./apps/enigma-cluster
   prune: true
   wait: true
   timeout: 10m

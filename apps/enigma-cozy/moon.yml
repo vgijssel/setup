@@ -21,8 +21,8 @@ tags:
   - kubernetes
   - development
 tasks:
-  upgrade:
-    command: ./scripts/upgrade.sh
+  upgrade-cozy:
+    command: ./scripts/upgrade-cozy.sh
     local: true
   upgrade-talos:
     command: ./scripts/upgrade-talos.sh

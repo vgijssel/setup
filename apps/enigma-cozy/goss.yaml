@@ -226,20 +226,20 @@ command:
     exit-status: 0
     stdout:
       - "OVN Northbound RAFT Cluster:"
-      - /Cluster ID: d192/
-      - /Leader: (5ac6|61ec|839a)/
+      - "/Cluster ID: d192/"
+      - "/Leader: (5ac6|61ec|839a)/"
       - "Members:"
-      - /  - [a-f0-9]+: 192\.168\.50\.10 ✅/
-      - /  - [a-f0-9]+: 192\.168\.50\.11 ✅/
-      - /  - [a-f0-9]+: 192\.168\.50\.12 ✅/
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.10 ✅/"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.11 ✅/"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.12 ✅/"
       - ""
       - "OVN Southbound RAFT Cluster:"
-      - /Cluster ID: b37c/
-      - /Leader: (7866|8e60|75e3)/
+      - "/Cluster ID: b37c/"
+      - "/Leader: (7866|8e60|75e3)/"
       - "Members:"
-      - /  - [a-f0-9]+: 192\.168\.50\.10 ✅/
-      - /  - [a-f0-9]+: 192\.168\.50\.11 ✅/
-      - /  - [a-f0-9]+: 192\.168\.50\.12 ✅/
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.10 ✅/"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.11 ✅/"
+      - "/  - [a-f0-9]+: 192\\.168\\.50\\.12 ✅/"
       - ""
     stderr: ""
     timeout: 60000
@@ -334,6 +334,31 @@ command:
       - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
       - "/the-toy-factory \\(192\\.168\\.50\\.12\\):/"
       - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
+    stderr: ""
+    timeout: 60000
+  talos_kernel_extensions:
+    title: Validate Talos kernel extensions are installed on all nodes
+    # Kernel extensions provide hardware support (GPU, network firmware) and storage
+    # capabilities (ZFS, DRBD) required by the cluster. Missing extensions can cause
+    # hardware failures or storage unavailability.
+    exec: |
+      for node in 192.168.50.10 192.168.50.11 192.168.50.12; do
+        talosctl get extensions -n $node -e $node 2>&1
+      done
+    exit-status: 0
+    stdout:
+      # Expected kernel extensions on all nodes:
+      - amd-ucode
+      - amdgpu
+      - bnx2-bnx2x
+      - intel-ice-firmware
+      - i915
+      - intel-ucode
+      - qlogic-firmware
+      - drbd
+      - zfs
+      # Realtek firmware for network hardware support
+      - realtek
     stderr: ""
     timeout: 60000
 addr:

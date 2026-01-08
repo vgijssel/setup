@@ -95,7 +95,7 @@ venv/
 .pytest_cache/
 libs/fleet-mcp/.env
 
-stacks/enigma-cozy/enigma.yaml
+apps/enigma-cozy/enigma.yaml
 
 # vault-shell tmpfs mount points (created by bwrap as mount targets)
 **/secrets.tmpfs/
