@@ -33,6 +33,8 @@ metadata:
     # Backend uses HTTPS with potentially self-signed certificate
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
     nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "604800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "604800"
 spec:
   ingressClassName: "tenant-root"
   tls:

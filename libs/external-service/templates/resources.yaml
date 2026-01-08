@@ -57,6 +57,9 @@ metadata:
     # Backend uses HTTPS with potentially self-signed certificate
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS
     nginx.ingress.kubernetes.io/proxy-ssl-verify: "false"
+    {{- with .annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   ingressClassName: {{ $.Values.ingressClassName | quote }}
   tls:

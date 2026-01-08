@@ -29,5 +29,11 @@ spec:
       - hostname: pikvm.enigma.vgijssel.nl
         endpoint: 192.168.1.31
         port: 443
+        annotations:
+          # WebSocket support for PiKVM KVM sessions (7 days timeout)
+          # https://pikvm.github.io/pikvm/reverse_proxy/
+          nginx.ingress.kubernetes.io/proxy-read-timeout: "604800"
+          nginx.ingress.kubernetes.io/proxy-send-timeout: "604800"
+          nginx.ingress.kubernetes.io/proxy-connect-timeout: "604800"
     ingressClassName: tenant-root
     clusterIssuer: letsencrypt-prod
