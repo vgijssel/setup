@@ -5,6 +5,10 @@ machine:
   network:
     kubespan:
       enabled: true
+      filters:
+        endpoints:
+          - 0.0.0.0/0 # Allow all IPv4
+          - "!100.64.0.0/10" # Exclude Kubespan overlay range to force LAN direct connections
   kubelet:
     extraConfig:
       cpuManagerPolicy: static

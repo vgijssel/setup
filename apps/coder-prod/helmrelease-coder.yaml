@@ -80,6 +80,8 @@ spec:
               key: client_secret
         - name: CODER_OIDC_USERNAME_FIELD
           value: preferred_username
+        - name: CODER_OIDC_SCOPES
+          value: openid profile email offline_access
         - name: CODER_DISABLE_PASSWORD_AUTH
           value: "true"
         # GitHub OAuth configuration

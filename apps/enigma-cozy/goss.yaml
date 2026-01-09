@@ -10,6 +10,22 @@ command:
       - "true"
     stderr: ""
     timeout: 30000
+  kubespan_lan_peers_use_direct_ips:
+    title: Validate LAN Kubespan peers use direct LAN IPs (not overlay 100.64.x.x)
+    # LAN nodes (192.168.50.x) should communicate via direct LAN IPs, not via Kubespan
+    # overlay addresses (100.64.0.x). Using overlay for LAN traffic adds latency and
+    # creates fragility during discovery service issues. See research.md for details.
+    exec: ./scripts/validate-kubespan-lan-endpoints.sh
+    exit-status: 0
+    stdout:
+      - "illusion -> the-dome: 192.168.50.11:51820 ✅"
+      - "the-dome -> illusion: 192.168.50.10:51820 ✅"
+      - "illusion -> the-toy-factory: 192.168.50.12:51820 ✅"
+      - "the-dome -> the-toy-factory: 192.168.50.12:51820 ✅"
+      - "the-toy-factory -> illusion: 192.168.50.10:51820 ✅"
+      - "the-toy-factory -> the-dome: 192.168.50.11:51820 ✅"
+    stderr: ""
+    timeout: 60000
   kubespan_discovery_enabled:
     title: Validate cluster discovery is enabled
     exec: talosctl get discoveryconfig -n 192.168.50.10 -e 192.168.50.10 -o json | jq -e '.spec.discoveryEnabled'
@@ -227,7 +243,7 @@ command:
     stdout:
       - "OVN Northbound RAFT Cluster:"
       - "/Cluster ID: d192/"
-      - "/Leader: (5ac6|61ec|839a)/"
+      - "/Leader: (5ac6|61ec|839a|self)/"
       - "Members:"
       - "/  - [a-f0-9]+: 192\\.168\\.50\\.10 ✅/"
       - "/  - [a-f0-9]+: 192\\.168\\.50\\.11 ✅/"
@@ -235,7 +251,7 @@ command:
       - ""
       - "OVN Southbound RAFT Cluster:"
       - "/Cluster ID: b37c/"
-      - "/Leader: (7866|8e60|75e3)/"
+      - "/Leader: (7866|8e60|75e3|self)/"
       - "Members:"
       - "/  - [a-f0-9]+: 192\\.168\\.50\\.10 ✅/"
       - "/  - [a-f0-9]+: 192\\.168\\.50\\.11 ✅/"
@@ -336,6 +352,26 @@ command:
       - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
     stderr: ""
     timeout: 60000
+  etcd_fsync_performance:
+    title: Validate etcd disk fsync performance is within acceptable thresholds (<5ms good, <10ms warning)
+    # Disk fsync latency directly impacts etcd write performance and RAFT consensus.
+    # High fsync latency (>10ms) indicates disk I/O contention from competing workloads
+    # (VictoriaMetrics, SeaweedFS, etc.) and will cause etcd instability, leader elections,
+    # and cluster-wide control plane failures. Measures actual disk flush time over 5 seconds
+    # on the etcd boot disk (nvme0n1). See etcd-disk-io-contention-resolved.md for details.
+    exec: ./scripts/validate-etcd-fsync.sh
+    exit-status: 0
+    stdout:
+      - "etcd Disk fsync Performance:"
+      - /illusion \(192\.168\.50\.10\):/
+      - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
+      - /the-dome \(192\.168\.50\.11\):/
+      - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
+      - /the-toy-factory \(192\.168\.50\.12\):/
+      - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
+      - All nodes have acceptable fsync performance for etcd workloads.
+    stderr: ""
+    timeout: 120000
   talos_kernel_extensions:
     title: Validate Talos kernel extensions are installed on all nodes
     # Kernel extensions provide hardware support (GPU, network firmware) and storage
@@ -376,6 +412,21 @@ addr:
     timeout: 5000
   tcp://192.168.50.12:50000:
     title: Validate Talos API port reachability on the-toy-factory node
+    reachable: true
+    timeout: 5000
+  # WireGuard/Kubespan UDP port checks
+  # WireGuard uses UDP port 51820 for Kubespan mesh communication.
+  # If this port is not reachable, nodes cannot establish direct peer connections.
+  udp://192.168.50.10:51820:
+    title: Validate WireGuard UDP port reachability on illusion node
+    reachable: true
+    timeout: 5000
+  udp://192.168.50.11:51820:
+    title: Validate WireGuard UDP port reachability on the-dome node
+    reachable: true
+    timeout: 5000
+  udp://192.168.50.12:51820:
+    title: Validate WireGuard UDP port reachability on the-toy-factory node
     reachable: true
     timeout: 5000
 http:

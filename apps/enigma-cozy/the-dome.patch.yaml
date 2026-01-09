@@ -6,7 +6,7 @@ machine:
   network:
     hostname: the-dome
     nameservers:
-      - 192.168.50.1
+      - 192.168.50.2
     extraHostEntries:
       - ip: 192.168.50.11
         aliases:
