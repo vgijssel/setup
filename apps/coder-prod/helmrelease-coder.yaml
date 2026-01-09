@@ -74,7 +74,7 @@ spec:
         - name: CODER_OIDC_USERNAME_FIELD
           value: preferred_username
         - name: CODER_DISABLE_PASSWORD_AUTH
-          value: "true"
+          value: "false"
       # Use ClusterIP since we expose via Tailscale Ingress
       service:
         type: ClusterIP
