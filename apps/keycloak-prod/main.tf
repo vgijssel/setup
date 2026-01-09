@@ -15,6 +15,11 @@ resource "keycloak_openid_client" "coder" {
   standard_flow_enabled = true
   valid_redirect_uris   = [local.coder_callback_url]
   web_origins           = [local.coder_origin]
+
+  # Enable refresh tokens for token refresh support
+  use_refresh_tokens              = true
+  client_offline_session_idle_timeout = 2592000  # 30 days
+  client_session_idle_timeout         = 1800     # 30 minutes
 }
 
 # 1Password vault for storing Coder OIDC credentials
