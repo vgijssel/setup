@@ -369,7 +369,7 @@ command:
       - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
       - /the-toy-factory \(192\.168\.50\.12\):/
       - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
-      - "All nodes have acceptable fsync performance for etcd workloads."
+      - All nodes have acceptable fsync performance for etcd workloads.
     stderr: ""
     timeout: 120000
   talos_kernel_extensions:

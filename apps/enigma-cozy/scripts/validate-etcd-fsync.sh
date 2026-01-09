@@ -47,10 +47,14 @@ test_fsync_latency() {
   fi
 
   # Extract flush count (field 16) and flush time (field 17)
-  local flush1_count=$(echo "${stat1}" | awk '{print $16}')
-  local flush1_time=$(echo "${stat1}" | awk '{print $17}')
-  local flush2_count=$(echo "${stat2}" | awk '{print $16}')
-  local flush2_time=$(echo "${stat2}" | awk '{print $17}')
+  local flush1_count
+  flush1_count=$(echo "${stat1}" | awk '{print $16}')
+  local flush1_time
+  flush1_time=$(echo "${stat1}" | awk '{print $17}')
+  local flush2_count
+  flush2_count=$(echo "${stat2}" | awk '{print $16}')
+  local flush2_time
+  flush2_time=$(echo "${stat2}" | awk '{print $17}')
 
   # Calculate deltas
   local flush_delta_count=$((flush2_count - flush1_count))
