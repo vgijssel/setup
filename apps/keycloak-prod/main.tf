@@ -18,7 +18,7 @@ resource "keycloak_openid_client" "coder" {
 
   # Enable refresh tokens for token refresh support
   use_refresh_tokens              = true
-  client_offline_session_idle_timeout = 2592000  # 30 days
+  client_offline_session_idle_timeout = 604800   # 7 days
   client_session_idle_timeout         = 1800     # 30 minutes
 }
 
