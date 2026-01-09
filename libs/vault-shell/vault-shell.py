@@ -309,8 +309,9 @@ def build_bwrap_command(
         # This is more reliable than mounting tmpfs on a virtiofs-backed path
         "--tmpfs",
         "/secrets",
-        # /tmp as isolated tmpfs (needed by tools like trunk)
-        "--tmpfs",
+        # /tmp bind-mounted from host (needed for SSH agent sockets and git over SSH)
+        "--bind",
+        "/tmp",
         "/tmp",
         # Device and proc filesystems
         "--dev",

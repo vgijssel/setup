@@ -394,6 +394,35 @@ class TestBwrapCommandBuilding:
         chdir_idx = cmd.index("--chdir")
         assert cmd[chdir_idx + 1] == str(setup_dir)
 
+    def test_build_bwrap_command_tmp_bind_mount(self, tmp_path):
+        """Verify /tmp is bind-mounted from host (for SSH agent sockets)."""
+        template_dir = tmp_path / "templates"
+        template_dir.mkdir()
+        setup_dir = tmp_path / "setup"
+        setup_dir.mkdir()
+
+        cmd = vault_shell.build_bwrap_command(
+            "test_token", "test-sa", [], template_dir, setup_dir
+        )
+
+        # /tmp should be bind-mounted, not tmpfs
+        # Find the bind mount for /tmp
+        tmp_bind_found = False
+        for i, arg in enumerate(cmd):
+            if arg == "--bind" and i + 2 < len(cmd):
+                if cmd[i + 1] == "/tmp" and cmd[i + 2] == "/tmp":
+                    tmp_bind_found = True
+                    break
+
+        assert (
+            tmp_bind_found
+        ), "/tmp should be bind-mounted from host for SSH agent sockets"
+
+        # Ensure /tmp is NOT mounted as tmpfs
+        for i, arg in enumerate(cmd):
+            if arg == "--tmpfs" and i + 1 < len(cmd):
+                assert cmd[i + 1] != "/tmp", "/tmp should not be mounted as tmpfs"
+
 
 class TestMainCLI:
     """Tests for the main CLI entry point."""
