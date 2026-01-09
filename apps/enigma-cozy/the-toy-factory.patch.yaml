@@ -6,7 +6,7 @@ machine:
   network:
     hostname: the-toy-factory
     nameservers:
-      - 192.168.50.1
+      - 192.168.50.2
     extraHostEntries:
       - ip: 192.168.50.12
         aliases:

@@ -9,6 +9,8 @@ machine:
         - 0.0.0.0/0
   network:
     hostname: here-i-am
+    nameservers:
+      - 192.168.50.2
     interfaces:
       - interface: eth0
         dhcp: true
