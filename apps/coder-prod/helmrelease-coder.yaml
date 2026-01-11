@@ -101,7 +101,7 @@ spec:
         - name: OP_CONNECT_TOKEN
           valueFrom:
             secretKeyRef:
-              name: onepassword-connect-token
+              name: onepassword-connect-token-setup-devenv
               key: credential
       # Use ClusterIP since we expose via Tailscale Ingress
       service:

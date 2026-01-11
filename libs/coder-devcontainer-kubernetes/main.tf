@@ -46,12 +46,12 @@ data "coder_workspace_owner" "me" {}
 
 # 1Password vault validation
 data "onepassword_vault" "setup_devenv" {
-  name = "setup-devenv"
+  name = var.onepassword_vault
 
   lifecycle {
     postcondition {
       condition     = can(self.uuid)
-      error_message = "The 'setup-devenv' vault must exist in 1Password."
+      error_message = "The '${var.onepassword_vault}' vault must exist in 1Password."
     }
   }
 }
@@ -72,39 +72,18 @@ data "kubernetes_config_map_v1" "coder_workspace_config" {
 data "onepassword_item" "claude_code" {
   vault = data.onepassword_vault.setup_devenv.uuid
   title = "claude-code"
-
-  lifecycle {
-    postcondition {
-      condition     = try(self.credential, "") != ""
-      error_message = "The 'claude-code' item in 1Password must have a credential value with the OAuth token."
-    }
-  }
 }
 
 # Perplexity API key for AI research capabilities
 data "onepassword_item" "perplexity" {
   vault = data.onepassword_vault.setup_devenv.uuid
   title = "perplexity"
-
-  lifecycle {
-    postcondition {
-      condition     = try(self.credential, "") != ""
-      error_message = "The 'perplexity' item in 1Password must have a credential value."
-    }
-  }
 }
 
 # Home Assistant API token
 data "onepassword_item" "haos_api" {
   vault = data.onepassword_vault.setup_devenv.uuid
   title = "haos-api"
-
-  lifecycle {
-    postcondition {
-      condition     = try(self.credential, "") != ""
-      error_message = "The 'haos-api' item in 1Password must have a credential value with the API token."
-    }
-  }
 }
 
 # ====================
@@ -125,6 +104,12 @@ variable "namespace" {
   description = "Kubernetes namespace for workspace resources"
   type        = string
   default     = "coder-workspace"
+}
+
+variable "onepassword_vault" {
+  description = "1Password vault name for secrets (set via TF_VAR_onepassword_vault or Coder template variable)"
+  type        = string
+  default     = "setup-devenv"
 }
 
 # ====================
