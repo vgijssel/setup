@@ -37,7 +37,7 @@ This refactor enables:
 - Uses the Kubernetes Terraform provider instead of Docker provider
 - Creates Deployment with single replica (Recreate strategy)
 - Attaches PersistentVolumeClaim for `/workspaces` directory
-- Uses service account with IRSA for ECR authentication
+- Uses KubeVirt CSI driver for persistent storage from parent cluster
 
 ## 2. Envbuilder Integration
 **What it does**: Uses Envbuilder to build and cache devcontainer images in a local image registry.
@@ -131,7 +131,7 @@ This refactor enables:
 - Claude Code module automatically reports task progress
 - Each task runs in isolated workspace environment
 - Task sidebar shows workspace apps for monitoring
-- Proper task naming via `ANTHROPIC_API_KEY` environment variable
+- Proper task naming via `CLAUDE_CODE_OAUTH_TOKEN` (serves dual purpose for auth and task naming)
 - Follows Coder Tasks best practices for template design
 
 ## 10. Monitoring and Metadata
@@ -177,7 +177,7 @@ This refactor enables:
 - Inconsistent environments
 
 **How This Helps**:
-- ECR caching reduces startup from 5+ minutes to <1 minute
+- Local registry caching reduces startup from 5+ minutes to <1 minute
 - Automatic secret injection eliminates manual setup
 - Kubernetes ensures consistent resource allocation
 
@@ -298,7 +298,24 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.6"
     }
+    onepassword = {
+      source  = "1Password/onepassword"
+      version = "~> 2.1"
+    }
   }
+}
+
+provider "coder" {}
+provider "kubernetes" {
+  # Authenticate via Coder-specific ServiceAccount - Coder host is running inside Kubernetes
+}
+provider "envbuilder" {}
+provider "random" {}
+provider "onepassword" {
+  # Connect to 1Password Connect server running in apps/coder-prod cluster
+  # Configured via environment variables (set by Coder deployment):
+  #   OP_CONNECT_HOST - URL of Connect server (e.g., http://onepassword-connect.1password.svc.cluster.local:8080)
+  #   OP_CONNECT_TOKEN - Connect token from op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential
 }
 ```
 
@@ -306,6 +323,7 @@ terraform {
 **Kubernetes Provider**: Uses in-cluster authentication (no explicit config needed)
 **Envbuilder Provider**: Detects cached images and manages devcontainer builds
 **Random Provider**: Generates bearer tokens for Fleet MCP authentication
+**1Password Provider**: Connects to 1Password Connect server running in `apps/coder-prod` cluster to retrieve secrets from vault
 
 ### 2. Data Sources
 
@@ -321,9 +339,10 @@ terraform {
 
 #### Coder Parameters
 - `cpu`: CPU cores (1-99999, default 2)
-- `memory`: Memory in GiB (1-99999, default 2)
+- `memory`: Memory in GiB (1-99999, default 4)
 - `workspaces_volume_size`: Storage in GiB (1-99999, default 10)
 - `devcontainer_builder`: Envbuilder image (default: `ghcr.io/coder/envbuilder:latest`)
+- `git_branch`: Git branch to checkout (default: "main")
 - `system_prompt`: AI system prompt (from preset)
 - `ai_prompt`: User-provided AI task prompt
 
@@ -369,10 +388,9 @@ coder_env resources
 ├── FLEET_MCP_AUTH_TOKEN
 ├── FLEET_MCP_AUTH_ENABLED
 ├── FLEET_MCP_TASKFILE
-├── CLAUDE_CODE_OAUTH_TOKEN
+├── CLAUDE_CODE_OAUTH_TOKEN (dual purpose: auth + task naming)
 ├── PERPLEXITY_API_KEY
-├── HA_TOKEN
-└── ANTHROPIC_API_KEY (for proper Coder task naming)
+└── HA_TOKEN
 
 coder_ai_task resource
 └── app_id: Links to Claude Code module for task reporting
@@ -439,16 +457,16 @@ port=127.0.0.1:9001
 ### External APIs
 1. **GitHub API**: OAuth authentication for Git operations (already configured)
 2. **Local Image Registry API**: Pull/push devcontainer images (cluster-internal)
-3. **1Password API**: Retrieve secrets (via operator or CLI)
+3. **1Password Connect API**: Retrieve secrets via Connect server (cluster-internal)
 4. **Coder API**: Workspace management, template deployment, task reporting
 5. **Kubernetes API**: Pod/PVC management, logs retrieval
-6. **Anthropic API**: For proper Coder task naming
 
 ### Internal Integrations
 1. **Fleet MCP Server**: HTTP server on port 8000, MCP protocol
 2. **Supervisord**: Process manager on port 9001, XML-RPC protocol
 3. **Coder Agent**: Communicates with Coder control plane via WebSocket
 4. **Envbuilder**: Builds devcontainer during workspace startup
+5. **1Password Connect Server**: REST API on port 8080 for secret retrieval (deployed in apps/coder-prod)
 
 ## Infrastructure Requirements
 
@@ -461,9 +479,15 @@ port=127.0.0.1:9001
   - Reclaim policy: Delete
   - Volume expansion: Enabled
   - Gets persistent storage from parent `enigma-cluster` via KubeVirt CSI driver
-- **ConfigMap**: `coder-workspace-config` in `coder` namespace with registry URL
-- **Secrets**: Created by 1Password operator (or manually for testing)
-  - `coder-workspace-secrets`: Contains `CLAUDE_CODE_OAUTH_TOKEN`, `PERPLEXITY_API_KEY`, `HA_TOKEN`, `ANTHROPIC_API_KEY`
+- **ConfigMap**: `coder-workspace-config` in `coder` namespace with registry URL (deployed via FluxCD)
+- **1Password Connect Server**: Already running in `apps/coder-prod` cluster (deployed via FluxCD)
+- **Connect Token**: Retrieved from 1Password vault `setup-coder-prod`
+  - Path: `op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential`
+  - Must be set as `OP_CONNECT_TOKEN` environment variable for Coder deployment
+- **Secrets**: Retrieved via 1Password Terraform provider connecting to Connect server
+  - Vault: `setup-devenv`
+  - Items: `claude-code`, `perplexity`, `haos-api`
+  - Provider uses environment variables: `OP_CONNECT_HOST`, `OP_CONNECT_TOKEN`
 
 ### Local Image Registry Requirements
 - **Deployment**: Container registry (Harbor, Docker Registry, or similar) in `coder` namespace
@@ -486,33 +510,65 @@ port=127.0.0.1:9001
 # Development Roadmap
 
 ## Phase 0: Infrastructure Setup - Local Registry and Namespaces
-**Goal**: Deploy local image registry and prepare cluster infrastructure.
+**Goal**: Deploy local image registry and prepare cluster infrastructure via FluxCD.
 
 **Scope**:
-1. Verify `coder-workspace` namespace exists (create if it doesn't exist)
+1. Create FluxCD Kustomization for `coder-workspace` namespace in `apps/coder-prod/`:
+   - Create `namespace-coder-workspace.yaml` manifest
+   - Add to `kustomization.yaml` resources list
+   - Commit and push to trigger FluxCD reconciliation
 2. Research and select image registry solution (Harbor, Docker Registry v2, or other)
-3. Deploy image registry in `coder` namespace:
-   - Create PVC for registry storage
-   - Create Deployment with registry container
-   - Create ClusterIP Service on port 5000
+3. Create FluxCD manifests for image registry in `apps/coder-prod/`:
+   - `pvc-registry.yaml`: PVC for registry storage (kubevirt storage class)
+   - `deployment-registry.yaml`: Deployment with registry container
+   - `service-registry.yaml`: ClusterIP Service on port 5000
    - Configure registry for insecure access (cluster-internal) or basic auth
-4. Set up automatic image cleanup:
-   - Option A: Use registry garbage collection feature
-   - Option B: Deploy CronJob to clean old images
-   - Option C: Use registry-specific cleanup features (e.g., Harbor retention policies)
-5. Create ConfigMap `coder-workspace-config` in `coder` namespace:
-   - `registry_url`: `registry.coder.svc.cluster.local:5000` (or appropriate service DNS)
-6. Test registry accessibility from `coder-workspace` namespace
-7. Validate GitHub OAuth is configured (check `coder external-auth list` shows `primary-github`)
+4. Create FluxCD manifest for automatic image cleanup:
+   - Option A: `cronjob-registry-gc.yaml` for Docker Registry garbage collection
+   - Option B: Use registry-specific cleanup features (e.g., Harbor retention policies)
+5. Create ConfigMap manifest `configmap-workspace-config.yaml` in `apps/coder-prod/`:
+   - Key: `registry_url`
+   - Value: `registry.coder.svc.cluster.local:5000` (or appropriate service DNS)
+6. Update `apps/coder-prod/kustomization.yaml` to include all new manifests
+7. Commit, push, and wait for FluxCD to reconcile
+8. Test registry accessibility from `coder-workspace` namespace
+9. Validate 1Password Connect server is running and accessible
+10. Add 1Password Connect environment variables to Coder deployment via FluxCD:
+    - Check if `apps/coder-prod/helmrelease-coder.yaml` already has `OP_CONNECT_HOST` and `OP_CONNECT_TOKEN`
+    - If not present, create 1Password secret reference in `apps/coder-prod/`:
+      - Create or update `helmrelease-1password-secrets.yaml` or similar file
+      - Add `OnePasswordItem` for Connect token: `vaults/setup-coder-prod/items/kzsqg7xbgiz7jbvxksugadymne`
+      - This creates Kubernetes Secret `onepassword-connect-token` in `coder` namespace
+    - Edit `apps/coder-prod/helmrelease-coder.yaml` to add to `spec.values.coder.env`:
+      ```yaml
+      - name: OP_CONNECT_HOST
+        value: "http://onepassword-connect.1password.svc.cluster.local:8080"
+      - name: OP_CONNECT_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: onepassword-connect-token
+            key: token
+      ```
+    - Commit, push, and wait for FluxCD to reconcile and Coder pod to restart
+11. Validate GitHub OAuth is configured (check `coder external-auth list` shows `primary-github`)
 
 **Acceptance Criteria**:
-- ✅ `coder` and `coder-workspace` namespaces exist
-- ✅ Registry deployed and accessible via service DNS
+- ✅ `coder-workspace` namespace created via FluxCD
+- ✅ Registry deployed via FluxCD and accessible via service DNS
 - ✅ Registry PVC created with `kubevirt` storage class
-- ✅ ConfigMap created with registry URL
+- ✅ ConfigMap created via FluxCD with registry URL
 - ✅ Registry can be pushed to and pulled from
-- ✅ Cleanup mechanism configured and tested
+- ✅ Cleanup mechanism deployed via FluxCD
+- ✅ 1Password Connect server validated (already running from apps/coder-prod)
+- ✅ Coder deployment updated via FluxCD with 1Password Connect environment variables:
+  - 1Password secret `onepassword-connect-token` created in `coder` namespace
+  - Secret references `op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential`
+  - `OP_CONNECT_HOST` added to Coder Helm values
+  - `OP_CONNECT_TOKEN` added to Coder Helm values via secretKeyRef
+  - Coder pod restarted and healthy with new env vars
+  - Test: `kubectl exec -n coder <coder-pod> -- env | grep OP_CONNECT` shows variables
 - ✅ GitHub external auth confirmed working
+- ✅ All changes committed to Git and reconciled by FluxCD
 
 ## Phase 1: Foundation - Basic Kubernetes Template
 **Goal**: Create minimal working Kubernetes-based Coder template without advanced features.
@@ -520,22 +576,33 @@ port=127.0.0.1:9001
 **Scope**:
 1. Create `libs/coder-devcontainer-kubernetes` directory structure
 2. Create `moon.yml` for Moon build system integration
-3. Create `main.tf` with Terraform providers (coder, kubernetes, random)
+3. Create `main.tf` with Terraform providers (coder, kubernetes, random, onepassword)
 4. Define Coder data sources (provisioner, workspace, workspace_owner)
-5. Define basic Coder parameters (cpu, memory, workspaces_volume_size) with defaults (2 CPU, 4GB RAM, 10GB storage)
-6. Set `variable.namespace` default to `"coder-workspace"`
-7. Create PersistentVolumeClaim for `/workspaces` directory in `coder-workspace` namespace:
+5. Verify Coder deployment has 1Password Connect environment variables set:
+   - `OP_CONNECT_HOST`: URL of Connect server (e.g., `http://onepassword-connect.1password.svc.cluster.local:8080`)
+   - `OP_CONNECT_TOKEN`: From `op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential`
+6. Define 1Password data sources for secrets (vault: setup-devenv)
+7. Define basic Coder parameters with defaults:
+   - `cpu`: 2 cores
+   - `memory`: 4 GiB
+   - `workspaces_volume_size`: 10 GiB
+   - `git_branch`: "main"
+8. Set `variable.namespace` default to `"coder-workspace"`
+9. Create PersistentVolumeClaim for `/workspaces` directory in `coder-workspace` namespace:
    - Use storage class `kubevirt` (default)
    - Access mode: ReadWriteOnce
    - Storage size from parameter (default 10Gi)
-8. Create Deployment with single container using hardcoded image (e.g., `codercom/enterprise-base:ubuntu`)
-9. Create coder_agent resource with minimal startup script
-10. Add basic metadata blocks (CPU, RAM, disk)
-11. Test: Validate template creates workspace successfully in `coder-workspace` namespace
+10. Create Deployment with single container using hardcoded image (e.g., `codercom/enterprise-base:ubuntu`)
+11. Create coder_agent resource with minimal startup script
+12. Add basic metadata blocks (CPU, RAM, disk)
+13. Test: Validate template creates workspace successfully in `coder-workspace` namespace
+14. Verify 1Password provider can connect to Connect server and retrieve test secret
 
 **Acceptance Criteria**:
 - ✅ Template validates with `terraform validate`
 - ✅ Template pushes to Coder with `coder templates push`
+- ✅ 1Password provider successfully connects to Connect server
+- ✅ 1Password provider can retrieve test secret from vault
 - ✅ Workspace starts successfully
 - ✅ Coder agent connects and reports healthy
 - ✅ PVC is created with `kubevirt` storage class and bound successfully
@@ -547,25 +614,30 @@ port=127.0.0.1:9001
 
 **Scope**:
 1. Add `envbuilder` provider to Terraform configuration
-2. Define `local.repo_url` variable: `https://github.com/vgijssel/setup.git#refs/heads/main`
-3. Define `local.devcontainer_builder_image` with default `ghcr.io/coder/envbuilder:latest`
-4. Add `devcontainer_builder` parameter to allow user overrides
-5. Create `local.envbuilder_env` map with required environment variables:
+2. Add `git_branch` parameter (default: "main") to allow testing with feature branches
+3. Define `local.git_branch` from parameter value
+4. Define `local.repo_url` variable: `https://github.com/vgijssel/setup.git#refs/heads/${local.git_branch}`
+5. Define `local.devcontainer_builder_image` with default `ghcr.io/coder/envbuilder:latest`
+6. Add `devcontainer_builder` parameter to allow user overrides
+7. Create `local.envbuilder_env` map with required environment variables:
    - `CODER_AGENT_TOKEN`
    - `CODER_AGENT_URL`
    - `ENVBUILDER_INIT_SCRIPT`
    - `ENVBUILDER_WORKSPACE_FOLDER=/workspaces/setup`
    - `ENVBUILDER_DEVCONTAINER_DIR=.devcontainer/beta` (or TBD)
-6. Create `envbuilder_cached_image` resource WITHOUT registry initially (use `insecure = false`, `cache_repo = ""`)
-7. Update Deployment to use `envbuilder_cached_image` as container image
-8. Add dynamic `env` blocks in Deployment using `envbuilder_cached_image.env_map`
-9. Test: Validate workspace builds devcontainer from repository
+   - `ENVBUILDER_GIT_URL=${local.repo_url}` (includes branch from parameter)
+8. Create `envbuilder_cached_image` resource WITHOUT registry initially (use `insecure = false`, `cache_repo = ""`)
+9. Update Deployment to use `envbuilder_cached_image` as container image
+10. Add dynamic `env` blocks in Deployment using `envbuilder_cached_image.env_map`
+11. Test: Validate workspace builds devcontainer from repository using specified branch
 
 **Acceptance Criteria**:
 - ✅ Envbuilder builds devcontainer on first workspace start
+- ✅ Workspace uses branch specified in `git_branch` parameter
 - ✅ Workspace has correct devcontainer environment
 - ✅ Build logs visible in Coder startup logs
 - ✅ Subsequent starts reuse built image (via Envbuilder cache)
+- ✅ Testing with feature branch works correctly (change git_branch parameter)
 
 ## Phase 3: Local Registry Cache Integration - Fast Startup
 **Goal**: Enable local registry caching for significantly faster workspace creation.
@@ -602,31 +674,29 @@ port=127.0.0.1:9001
 **Goal**: Inject required secrets from 1Password into workspace environment.
 
 **Scope**:
-1. Research: Validate 1Password operator is deployed in `apps/coder-prod` cluster
-   - Check namespace `1password` exists
-   - Check `OnePasswordItem` CRDs can create secrets
-   - Identify existing secret patterns
-2. Option A (if 1Password operator available):
-   - Document expected Kubernetes Secret name (e.g., `coder-workspace-secrets`)
-   - Define locals to read from Kubernetes secrets
-   - Use `data.kubernetes_secret_v1` to reference secrets in `coder` or `coder-workspace` namespace
-3. Option B (if no operator, for testing):
-   - Use `onepassword` provider temporarily
-   - Define `data.onepassword_item` resources for each secret
-   - Extract credentials into locals
-4. Required secrets:
-   - `CLAUDE_CODE_OAUTH_TOKEN`: From `op://setup-devenv/claude-code/credential`
-   - `PERPLEXITY_API_KEY`: From `op://setup-devenv/perplexity/credential`
-   - `HA_TOKEN`: From `op://setup-devenv/haos-api/password`
-   - `ANTHROPIC_API_KEY`: From 1Password (or reuse Claude Code token) - required for Coder task naming
-5. Create `coder_env` resources for each secret
-6. Test: Validate environment variables are set correctly in workspace
+1. Verify 1Password Connect server is accessible from Coder host:
+   - Check Connect server endpoint: `http://onepassword-connect.1password.svc.cluster.local:8080`
+   - Verify Connect token from `op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential` is set in Coder environment as `OP_CONNECT_TOKEN`
+   - Verify `OP_CONNECT_HOST` is set in Coder environment
+2. Confirm 1Password provider automatically uses environment variables (no explicit configuration needed)
+3. Define `data.onepassword_vault` for `setup-devenv` vault with postcondition validation
+4. Define `data.onepassword_item` resources for each secret:
+   - `claude-code`: For `CLAUDE_CODE_OAUTH_TOKEN` (dual purpose: auth + task naming)
+   - `perplexity`: For `PERPLEXITY_API_KEY`
+   - `haos-api`: For `HA_TOKEN`
+5. Extract credentials into locals with proper error handling
+6. Create `coder_env` resources for each secret
+7. Test: Validate environment variables are set correctly in workspace
 
 **Acceptance Criteria**:
-- ✅ All required secrets injected into workspace environment
-- ✅ Secrets not visible in Terraform state output
+- ✅ 1Password Connect server accessible from Coder host
+- ✅ Provider configured with Connect server URL and token
+- ✅ 1Password vault `setup-devenv` validated with postcondition
+- ✅ All required secrets retrieved from 1Password via Terraform provider
+- ✅ Secrets injected into workspace environment as `coder_env` resources
+- ✅ `CLAUDE_CODE_OAUTH_TOKEN` used for both Claude Code auth and Coder task naming
+- ✅ Secrets not visible in Terraform state output or logs
 - ✅ Workspace can use secrets for API calls
-- ✅ Documentation explains how secrets are managed
 
 ## Phase 5: GitHub OAuth - Git Authentication
 **Goal**: Enable GitHub authentication for Git operations using already-configured external auth.
@@ -703,7 +773,7 @@ port=127.0.0.1:9001
    - Remove existing fleet-mcp MCP server configuration (idempotent)
    - Add fleet-mcp MCP server with bearer token authentication
 4. Add `resource "coder_ai_task" "task"` with `app_id = module.claude-code.task_app_id` to enable Coder Tasks
-5. Verify `ANTHROPIC_API_KEY` is set for proper task naming
+5. Verify `CLAUDE_CODE_OAUTH_TOKEN` is set (serves dual purpose for auth and task naming)
 6. Test: Validate Claude Code can use Fleet MCP for task management
 7. Test: Validate Coder Tasks tab shows workspace and task reporting works
 
@@ -714,7 +784,7 @@ port=127.0.0.1:9001
 - ✅ Task reporting works correctly (appears in Tasks tab)
 - ✅ AI prompt and system prompt are applied
 - ✅ `coder_ai_task` resource properly configured
-- ✅ Tasks have meaningful names (not random UUIDs) thanks to ANTHROPIC_API_KEY
+- ✅ Tasks have meaningful names (not random UUIDs) thanks to CLAUDE_CODE_OAUTH_TOKEN
 
 ## Phase 8: Workspace Presets - Role-Specific Prompts
 **Goal**: Provide predefined workspace configurations for different use cases.
@@ -776,7 +846,7 @@ port=127.0.0.1:9001
 2. Create `coder_metadata.container_info` showing:
    - Workspace image (from envbuilder_cached_image)
    - Git URL
-   - Cache repo (ECR)
+   - Cache repo (local registry)
 3. Test: Validate metrics appear correctly in Coder dashboard
 
 **Acceptance Criteria**:
@@ -821,7 +891,7 @@ port=127.0.0.1:9001
 2. Create test checklist covering:
    - ✅ Workspace creation and deletion
    - ✅ Devcontainer build (first time)
-   - ✅ ECR cache usage (second time)
+   - ✅ Local registry cache usage (second time)
    - ✅ All secrets accessible
    - ✅ GitHub authentication works
    - ✅ Fleet MCP server healthy
@@ -844,7 +914,7 @@ port=127.0.0.1:9001
 **Scope**:
 1. Create or update `libs/coder-devcontainer-kubernetes/README.md`:
    - Overview and purpose
-   - Prerequisites (Kubernetes cluster, 1Password, ECR, etc.)
+   - Prerequisites (Kubernetes cluster with KubeVirt CSI, 1Password, local registry, etc.)
    - Usage instructions
    - Parameter descriptions
    - Troubleshooting guide
@@ -878,10 +948,10 @@ The development phases must be executed in order due to these dependencies:
    - Provides baseline for all subsequent features
 
 ## Build System Dependencies
-2. **Phase 1** → **Phase 2 (Envbuilder)** → **Phase 3 (ECR Cache)**
+2. **Phase 1** → **Phase 2 (Envbuilder)** → **Phase 3 (Local Registry Cache)**
    - Phase 2 requires working Kubernetes deployment from Phase 1
    - Phase 3 requires Envbuilder integration from Phase 2
-   - ECR caching only makes sense once devcontainer builds are working
+   - Local registry caching only makes sense once devcontainer builds are working
 
 ## Authentication Dependencies
 3. **Phase 4 (Secrets)** + **Phase 5 (GitHub OAuth)** → **Phase 6 (Fleet MCP)**
@@ -981,25 +1051,36 @@ For fastest path to usable workspace:
 
 **Detection**: Phase 3 testing will show registry push/pull failures in Envbuilder logs.
 
-## Risk 3: 1Password Operator Not Available
-**Risk**: 1Password operator may not be deployed in cluster, requiring alternative secret management.
+## Risk 3: 1Password Connect Server Access Issues
+**Risk**: 1Password Terraform provider may not reach Connect server or authentication may fail.
 
-**Impact**: Medium - Workspaces need secrets but can use alternative methods temporarily.
+**Impact**: High - Workspaces cannot start without required secrets.
 
-**Likelihood**: Low - `apps/coder-prod` includes 1Password operator Helm release.
+**Likelihood**: Low - Connect server already deployed via FluxCD in apps/coder-prod.
 
 **Mitigation**:
-1. **Validation**: Check for 1Password operator deployment in Phase 4
+1. **Validation**: Verify Connect server is running and accessible before Phase 4
    ```bash
-   kubectl get pods -n 1password
-   kubectl get onepassworditem -A
-   ```
-2. **Alternative 1**: Use `onepassword` Terraform provider to fetch secrets directly
-3. **Alternative 2**: Create Kubernetes secrets manually for testing
-4. **Alternative 3**: Use Coder's built-in secret management
-5. **Migration Plan**: Document how to switch from manual secrets to 1Password operator
+   # Check Connect server pod status
+   kubectl get pods -n 1password -l app=onepassword-connect
 
-**Detection**: Phase 4 will fail when trying to reference 1Password secrets.
+   # Verify Connect server service
+   kubectl get svc -n 1password onepassword-connect
+
+   # Test connectivity from Coder namespace
+   kubectl run -n coder test-connect --rm -it --image=curlimages/curl -- \
+     curl -v http://onepassword-connect.1password.svc.cluster.local:8080/health
+   ```
+2. **Environment Variables**: Ensure Coder deployment has environment variables set (check `apps/coder-prod/helmrelease-coder.yaml`):
+   - `OP_CONNECT_HOST`: `http://onepassword-connect.1password.svc.cluster.local:8080`
+   - `OP_CONNECT_TOKEN`: From `op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential`
+   - If missing, add to Coder Helm values via FluxCD with 1Password secret reference
+3. **Network Policy**: Verify no NetworkPolicies block Coder → Connect server traffic
+4. **Postconditions**: Use lifecycle postconditions to validate vault and items exist
+5. **Error Handling**: Use try() function to provide clear error messages
+6. **Fallback**: Document manual secret creation for emergency testing
+
+**Detection**: Phase 4 will fail with clear error message if Connect server is unreachable.
 
 ## Risk 4: Devcontainer Build Failures
 **Risk**: Envbuilder may fail to build devcontainer due to missing dependencies, network issues, or Dockerfile errors.
@@ -1217,26 +1298,42 @@ kubectl run -n coder-workspace test-registry --rm -it --image=docker:latest \
   --command -- sh -c "echo 'test' && docker pull registry.coder.svc.cluster.local:5000/test || echo 'Registry not accessible'"
 ```
 
-### 3. 1Password Operator Status
-**Status**: Likely Available (from `apps/coder-prod` config)
+### 3. 1Password Connect Server and Terraform Provider
+**Status**: Connect server already deployed in `apps/coder-prod`, provider will connect to it
 
-**Files to Check**:
-- `apps/coder-prod/helmrelease-1password-operator.yaml`
-- `apps/coder-prod/helmrelease-1password-secrets.yaml`
+**Connect Server**:
+- Deployed via FluxCD in `apps/coder-prod` (helmrelease-1password-operator.yaml)
+- Namespace: `1password`
+- Service: `onepassword-connect.1password.svc.cluster.local:8080`
+- Provides REST API for secret access without direct cloud connection
 
-**Investigation Commands**:
+**Terraform Provider Configuration**:
+- Connects to Connect server (not 1Password cloud)
+- Requires environment variables (must be set in Coder deployment):
+  - `OP_CONNECT_HOST`: URL of Connect server (e.g., `http://onepassword-connect.1password.svc.cluster.local:8080`)
+  - `OP_CONNECT_TOKEN`: Connect token retrieved from `op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential` in `setup-coder-prod` vault
+- Retrieves secrets from `setup-devenv` vault
+- Items: `claude-code`, `perplexity`, `haos-api`
+
+**Validation Commands**:
 ```bash
-# Check operator deployment
-kubectl get pods -n 1password
+# Check Connect server deployment
+kubectl get pods -n 1password -l app=onepassword-connect
+kubectl get svc -n 1password onepassword-connect
 
-# Check OnePasswordItem CRD
-kubectl get crd onepassworditems.onepassword.com
+# Verify service is healthy
+kubectl run -n coder test-connect --rm -it --image=curlimages/curl -- \
+  curl http://onepassword-connect.1password.svc.cluster.local:8080/health
 
-# List existing OnePasswordItem resources
-kubectl get onepassworditem -A
+# Retrieve Connect token from 1Password (requires 1Password CLI with access to setup-coder-prod vault)
+op read "op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential"
 
-# Check for existing workspace secrets
-kubectl get secret -n coder | grep workspace
+# Test from Coder pod (if OP_CONNECT_TOKEN is available)
+# The token should be set in Coder deployment environment
+curl -H "Authorization: Bearer $OP_CONNECT_TOKEN" \
+  http://onepassword-connect.1password.svc.cluster.local:8080/v1/vaults
+
+# Expected: JSON response with vaults including setup-devenv
 ```
 
 ### 4. Coder External Authentication
@@ -1300,6 +1397,39 @@ labels:
 
 annotations:
   com.coder.user.email: {user_email}
+```
+
+### Coder Deployment Environment Variables (Add to helmrelease-coder.yaml)
+```yaml
+# In apps/coder-prod/helmrelease-coder.yaml, add to spec.values.coder.env:
+- name: OP_CONNECT_HOST
+  value: "http://onepassword-connect.1password.svc.cluster.local:8080"
+- name: OP_CONNECT_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: onepassword-connect-token
+      key: token
+```
+
+### 1Password Secret for Connect Token (Create via helmrelease-1password-secrets.yaml pattern)
+```yaml
+# Add to apps/coder-prod/helmrelease-1password-secrets.yaml or create new file
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: onepassword-connect-token
+  namespace: coder
+spec:
+  itemPath: "vaults/setup-coder-prod/items/kzsqg7xbgiz7jbvxksugadymne"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onepassword-connect-token
+  namespace: coder
+type: Opaque
+stringData:
+  token: ""  # Populated by 1Password operator from itemPath
 ```
 
 ### Local Image Registry Deployment (Example: Docker Registry v2)
@@ -1400,24 +1530,75 @@ metadata:
   name: coder-workspace-config
   namespace: coder
 data:
-  ecr_cache_repo: "{account_id}.dkr.ecr.{region}.amazonaws.com/coder-cache"
-  ecr_role_arn: "arn:aws:iam::{account_id}:role/coder-workspace-ecr"
-  service_account_name: "coder-workspace"
+  registry_url: "registry.coder.svc.cluster.local:5000"
 ```
 
-### Expected Kubernetes Secrets (from 1Password)
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: coder-workspace-secrets
-  namespace: coder  # or coder-workspace
-type: Opaque
-stringData:
-  CLAUDE_CODE_OAUTH_TOKEN: "op://setup-devenv/claude-code/credential"
-  PERPLEXITY_API_KEY: "op://setup-devenv/perplexity/credential"
-  HA_TOKEN: "op://setup-devenv/haos-api/password"
-  ANTHROPIC_API_KEY: "op://setup-devenv/anthropic-api/credential"  # For Coder task naming
+### 1Password Data Sources (Terraform Provider)
+```hcl
+# Provider connects to Connect server via environment variables:
+# - OP_CONNECT_HOST: http://onepassword-connect.1password.svc.cluster.local:8080 (set by Coder deployment)
+# - OP_CONNECT_TOKEN: From op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential (set by Coder deployment)
+
+# Vault validation
+data "onepassword_vault" "setup_devenv" {
+  name = "setup-devenv"
+
+  lifecycle {
+    postcondition {
+      condition     = can(self.uuid)
+      error_message = "The 'setup-devenv' vault must exist in 1Password."
+    }
+  }
+}
+
+# Secret items
+data "onepassword_item" "claude_code" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  title = "claude-code"
+
+  lifecycle {
+    postcondition {
+      condition     = try(self.credential, "") != ""
+      error_message = "The 'claude-code' item must have a credential value."
+    }
+  }
+}
+
+data "onepassword_item" "perplexity" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  title = "perplexity"
+}
+
+data "onepassword_item" "haos_api" {
+  vault = data.onepassword_vault.setup_devenv.uuid
+  title = "haos-api"
+}
+
+# Locals to extract credentials
+locals {
+  claude_code_token = try(data.onepassword_item.claude_code.credential, "")
+  perplexity_key    = try(data.onepassword_item.perplexity.credential, "")
+  ha_token          = try(data.onepassword_item.haos_api.credential, "")
+}
+
+# Coder environment variables
+resource "coder_env" "claude_code_token" {
+  agent_id = coder_agent.main.id
+  name     = "CLAUDE_CODE_OAUTH_TOKEN"
+  value    = local.claude_code_token
+}
+
+resource "coder_env" "perplexity_key" {
+  agent_id = coder_agent.main.id
+  name     = "PERPLEXITY_API_KEY"
+  value    = local.perplexity_key
+}
+
+resource "coder_env" "ha_token" {
+  agent_id = coder_agent.main.id
+  name     = "HA_TOKEN"
+  value    = local.ha_token
+}
 ```
 
 ## Testing Checklist
@@ -1427,12 +1608,24 @@ stringData:
 - [ ] `terraform validate` passes
 - [ ] `trunk fmt` completes without errors
 - [ ] `trunk check` passes all linters
-- [ ] All secrets exist in 1Password vault (including ANTHROPIC_API_KEY)
+- [ ] 1Password Connect server accessible:
+  - [ ] Connect server running in `1password` namespace
+  - [ ] Connect server service accessible from `coder` namespace
+  - [ ] Coder deployment has environment variables:
+    - [ ] `OP_CONNECT_HOST`: `http://onepassword-connect.1password.svc.cluster.local:8080`
+    - [ ] `OP_CONNECT_TOKEN`: From `op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential`
+- [ ] All secrets accessible in 1Password:
+  - [ ] Vault `setup-coder-prod` contains Connect token at `kzsqg7xbgiz7jbvxksugadymne`
+  - [ ] Vault `setup-devenv` contains:
+    - [ ] `claude-code` item with credential
+    - [ ] `perplexity` item with credential
+    - [ ] `haos-api` item with password
 - [ ] GitHub OAuth configured in Coder (`coder external-auth list` shows `primary-github`)
-- [ ] Local image registry deployed in `coder` namespace
-- [ ] Registry service accessible via DNS from `coder-workspace` namespace
-- [ ] ConfigMap `coder-workspace-config` exists in `coder` namespace with `registry_url`
-- [ ] `coder` and `coder-workspace` namespaces exist
+- [ ] FluxCD infrastructure changes reconciled:
+  - [ ] `coder-workspace` namespace exists (created via FluxCD)
+  - [ ] Local registry deployed in `coder` namespace (via FluxCD)
+  - [ ] Registry service accessible via DNS from `coder-workspace` namespace
+  - [ ] ConfigMap `coder-workspace-config` exists with `registry_url` (via FluxCD)
 
 ### Deployment Testing
 - [ ] Template pushes successfully: `coder templates push`
@@ -1445,10 +1638,14 @@ stringData:
 - [ ] PVC is created with correct size in `coder-workspace` namespace
 - [ ] Deployment is created with correct image in `coder-workspace` namespace
 - [ ] Pod starts and reaches Running state
-- [ ] Envbuilder builds devcontainer (check logs)
+- [ ] Envbuilder builds devcontainer from correct branch (check logs)
 - [ ] Envbuilder pushes image to local registry
 - [ ] Coder agent connects successfully
-- [ ] All environment variables are set (including ANTHROPIC_API_KEY)
+- [ ] All environment variables are set:
+  - [ ] `CLAUDE_CODE_OAUTH_TOKEN` (from 1Password)
+  - [ ] `PERPLEXITY_API_KEY` (from 1Password)
+  - [ ] `HA_TOKEN` (from 1Password)
+  - [ ] `GH_TOKEN` (from GitHub external auth)
 - [ ] Supervisord starts
 - [ ] Fleet MCP server starts and passes healthcheck
 - [ ] All Coder apps show healthy status
@@ -1495,7 +1692,8 @@ stringData:
 - [ ] Kubernetes logs accessible via `kubectl logs -n coder-workspace <pod>`
 - [ ] Supervisord status shows fleet-mcp running
 - [ ] Coder Tasks tab shows task execution and logs
-- [ ] Task names are meaningful (not UUIDs) thanks to ANTHROPIC_API_KEY
+- [ ] Task names are meaningful (not UUIDs) thanks to CLAUDE_CODE_OAUTH_TOKEN
+- [ ] Can create workspace with different `git_branch` parameter for testing
 
 ## Success Criteria
 
@@ -1506,10 +1704,12 @@ The template is considered complete and ready for production when:
 3. ✅ **Documentation**: Complete README, CLAUDE.md, and AGENTS.md files
 4. ✅ **Performance**: Workspace startup time < 1 minute with local registry cache
 5. ✅ **Reliability**: Workspace restarts work 100% of the time
-6. ✅ **Security**: No secrets exposed in logs or Terraform state, all secrets managed via 1Password
-7. ✅ **Coder Tasks**: Full task automation support with proper naming and reporting
-8. ✅ **Usability**: Non-technical users can create workspaces without assistance
-9. ✅ **Maintainability**: Developers can modify template with clear guidance
+6. ✅ **Security**: No secrets exposed in logs or Terraform state, all secrets from 1Password
+7. ✅ **Coder Tasks**: Full task automation with proper naming via CLAUDE_CODE_OAUTH_TOKEN
+8. ✅ **Branch Flexibility**: Can test changes by specifying git_branch parameter
+9. ✅ **Infrastructure as Code**: All cluster changes via FluxCD (GitOps)
+10. ✅ **Usability**: Non-technical users can create workspaces without assistance
+11. ✅ **Maintainability**: Developers can modify template with clear guidance
 
 ## References
 
