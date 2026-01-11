@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coder-workspace-config
+  namespace: coder
+  labels:
+    app.kubernetes.io/name: coder-workspace-config
+    app.kubernetes.io/part-of: coder
+data:
+  registry_url: registry.coder.svc.cluster.local:5000

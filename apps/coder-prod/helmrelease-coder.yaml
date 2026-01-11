@@ -79,12 +79,12 @@ spec:
         - name: CODER_OAUTH2_GITHUB_ALLOW_SIGNUPS
           value: "false"
         - name: CODER_OAUTH2_GITHUB_ALLOWED_ORGS
-          value: "vgijssel"
+          value: vgijssel
         # GitHub external authentication
         - name: CODER_EXTERNAL_AUTH_0_ID
-          value: "primary-github"
+          value: primary-github
         - name: CODER_EXTERNAL_AUTH_0_TYPE
-          value: "github"
+          value: github
         - name: CODER_EXTERNAL_AUTH_0_CLIENT_ID
           valueFrom:
             secretKeyRef:
@@ -94,6 +94,14 @@ spec:
           valueFrom:
             secretKeyRef:
               name: github-coder-prod-external-authentication
+              key: credential
+        # 1Password Connect configuration for Terraform provider
+        - name: OP_CONNECT_HOST
+          value: http://onepassword-connect.1password.svc.cluster.local:8080
+        - name: OP_CONNECT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: onepassword-connect-token
               key: credential
       # Use ClusterIP since we expose via Tailscale Ingress
       service:

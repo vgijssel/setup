@@ -1,0 +1,34 @@
+language: javascript
+layer: library
+dependsOn:
+  - devcontainer
+  - fleet-mcp
+tags:
+  - coder
+  - devcontainer
+  - terraform
+  - kubernetes
+  - development-environment
+tasks:
+  init:
+    command: terraform init -backend=false
+    options:
+      cache: true
+    inputs:
+      - glob: ./**/*.tf
+      - glob: ./**/*.hcl
+      - "!.terraform/**"
+
+  test:
+    command: terraform validate
+    deps:
+      - ~:init
+    options:
+      cache: true
+    inputs:
+      - glob: ./**/*.tf
+      - glob: ./**/*.hcl
+      - file: ./supervisord.conf
+      - file: ./Taskfile.yml
+      - file: ./version.txt
+      - "!.terraform/**"
