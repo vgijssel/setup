@@ -349,10 +349,10 @@ resource "envbuilder_cached_image" "workspace" {
   git_url                = local.repo_url
   cache_repo             = "${local.cache_repo}/coder-cache"
   insecure               = true # Local registry doesn't use TLS
-  devcontainer_dir       = ".devcontainer/beta"
+  devcontainer_dir       = ".devcontainer"
   workspace_folder       = "/workspaces/setup"
   fallback_image         = "codercom/enterprise-base:ubuntu"
-  remote_repo_build_mode = true
+  remote_repo_build_mode = false
 
   # GitHub credentials for private repository access (optional)
   git_username = local.github_token != "" ? "oauth2" : null
@@ -426,6 +426,14 @@ resource "kubernetes_deployment_v1" "workspace" {
         }
       }
       spec {
+        # Pod-level security context - envbuilder needs root to build images
+        # The devcontainer.json will set the correct user for the workspace
+        security_context {
+          run_as_user  = 0
+          run_as_group = 0
+          fs_group     = 0
+        }
+
         container {
           name  = "dev"
           image = envbuilder_cached_image.workspace.image
@@ -458,8 +466,9 @@ resource "kubernetes_deployment_v1" "workspace" {
             name       = "workspaces"
             mount_path = "/workspaces"
           }
+          # Envbuilder needs root to build images - user is set by devcontainer.json
           security_context {
-            run_as_user = 1000
+            run_as_user = 0
           }
         }
         volume {
