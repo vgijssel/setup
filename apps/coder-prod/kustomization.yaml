@@ -10,6 +10,10 @@ resources:
   - helmrelease-1password-operator.yaml
   - helmrelease-1password-secrets.yaml
   - helmrelease-coder.yaml
+  - role-template-configmap-reader.yaml
+  - rolebinding-template-configmap-reader.yaml
+  - role-workspace-manager.yaml
+  - rolebinding-workspace-manager.yaml
   - pvc-registry.yaml
   - deployment-registry.yaml
   - service-registry.yaml
