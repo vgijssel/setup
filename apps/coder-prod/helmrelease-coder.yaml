@@ -25,6 +25,13 @@ spec:
       retries: 3
   values:
     coder:
+      serviceAccount:
+        workspacePerms: true
+        enableDeployments: true
+        workspaceNamespaces:
+          - name: coder-workspace
+            workspacePerms: true
+            enableDeployments: true
       env:
         # PostgreSQL connection components from 1Password
         - name: PG_USER
