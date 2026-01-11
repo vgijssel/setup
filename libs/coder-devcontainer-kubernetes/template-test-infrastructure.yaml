@@ -1,0 +1,30 @@
+---
+# Additional RBAC permissions required for Coder template
+# The Coder service account needs permission to read ConfigMaps in its namespace
+# for workspace configuration (registry URL, etc.)
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: coder-template-resources
+  namespace: coder
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+    resourceNames: ["coder-workspace-config"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: coder-template-resources
+  namespace: coder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: coder-template-resources
+subjects:
+  - kind: ServiceAccount
+    name: coder
+    namespace: coder

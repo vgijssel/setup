@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: coder-template-configmap-reader
+  namespace: coder
+  labels:
+    app.kubernetes.io/name: coder
+    app.kubernetes.io/component: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: coder-template-configmap-reader
+subjects:
+  - kind: ServiceAccount
+    name: coder
+    namespace: coder

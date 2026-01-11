@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: coder-template-configmap-reader
+  namespace: coder
+  labels:
+    app.kubernetes.io/name: coder
+    app.kubernetes.io/component: rbac
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+    resourceNames: ["coder-workspace-config"]

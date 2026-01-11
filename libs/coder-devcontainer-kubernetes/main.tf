@@ -168,7 +168,7 @@ data "coder_parameter" "devcontainer_builder" {
   name         = "devcontainer_builder"
   display_name = "Devcontainer Builder Image"
   type         = "string"
-  default      = "ghcr.io/coder/envbuilder:v1.2.0"
+  default      = "ghcr.io/coder/envbuilder:latest"
   description  = "Envbuilder image to use for building devcontainers"
   mutable      = false
 }
