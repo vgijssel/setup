@@ -75,6 +75,26 @@ spec:
           value: preferred_username
         - name: CODER_DISABLE_PASSWORD_AUTH
           value: "true"
+        # GitHub OAuth configuration
+        - name: CODER_OAUTH2_GITHUB_ALLOW_SIGNUPS
+          value: "false"
+        - name: CODER_OAUTH2_GITHUB_ALLOWED_ORGS
+          value: "vgijssel"
+        # GitHub external authentication
+        - name: CODER_EXTERNAL_AUTH_0_ID
+          value: "primary-github"
+        - name: CODER_EXTERNAL_AUTH_0_TYPE
+          value: "github"
+        - name: CODER_EXTERNAL_AUTH_0_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-coder-prod-external-authentication
+              key: username
+        - name: CODER_EXTERNAL_AUTH_0_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: github-coder-prod-external-authentication
+              key: credential
       # Use ClusterIP since we expose via Tailscale Ingress
       service:
         type: ClusterIP
