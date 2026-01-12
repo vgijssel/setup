@@ -121,6 +121,11 @@ spec:
         className: nginx
         host: coder.enigma.vgijssel.nl
         wildcardHost: "*.coder.enigma.vgijssel.nl"
+        annotations:
+          # WebSocket support - prevent 60s idle timeout disconnections
+          nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+          nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+          nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
         tls:
           enable: false
       # Resource constraints
