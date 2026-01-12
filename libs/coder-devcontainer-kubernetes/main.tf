@@ -346,8 +346,9 @@ locals {
 
 # Envbuilder cached image - detects and reuses cached devcontainer images from local registry
 resource "envbuilder_cached_image" "workspace" {
-  builder_image          = local.devcontainer_builder_image
-  git_url                = local.repo_url
+  builder_image = local.devcontainer_builder_image
+  # Include branch in git_url - ENVBUILDER_GIT_URL cannot be overridden via extra_env
+  git_url                = "${local.repo_url}#${local.git_branch}"
   cache_repo             = "${local.cache_repo}/coder-cache"
   insecure               = true # Local registry doesn't use TLS
   devcontainer_dir       = ".devcontainer"
@@ -366,8 +367,6 @@ resource "envbuilder_cached_image" "workspace" {
     # Envbuilder configuration
     "ENVBUILDER_INIT_SCRIPT" = coder_agent.main.init_script
     "ENVBUILDER_PUSH_IMAGE"  = "true"
-    # Git branch configuration
-    "ENVBUILDER_GIT_URL" = "${local.repo_url}#${local.git_branch}"
   }
 }
 
