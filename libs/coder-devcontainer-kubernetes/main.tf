@@ -91,9 +91,10 @@ data "onepassword_item" "haos_api" {
 # ====================
 
 # GitHub external auth (configured in Coder deployment as primary-github)
+# Required: Users must connect GitHub before creating workspace
 data "coder_external_auth" "github" {
   id       = "primary-github"
-  optional = true # Makes it optional so workspace creation doesn't fail if user hasn't connected
+  optional = false
 }
 
 # ====================
@@ -323,8 +324,8 @@ locals {
   perplexity_key    = try(data.onepassword_item.perplexity.credential, "")
   ha_token          = try(data.onepassword_item.haos_api.credential, "")
 
-  # GitHub token from external auth (optional, may be empty if user hasn't connected)
-  github_token = try(data.coder_external_auth.github.access_token, "")
+  # GitHub token from external auth (required - users must connect GitHub before workspace creation)
+  github_token = data.coder_external_auth.github.access_token
 
   # Kubernetes labels for all resources
   labels = {
@@ -353,9 +354,9 @@ resource "envbuilder_cached_image" "workspace" {
   workspace_folder       = "/workspaces/setup"
   remote_repo_build_mode = false
 
-  # GitHub credentials for private repository access (optional)
-  git_username = local.github_token != "" ? "oauth2" : null
-  git_password = local.github_token != "" ? local.github_token : null
+  # GitHub credentials for private repository access (required via external auth)
+  git_username = "oauth2"
+  git_password = local.github_token
 
   # Extra environment variables passed to envbuilder
   extra_env = {
