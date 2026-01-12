@@ -75,7 +75,9 @@ COPY --chown=coder:coder bin/mkdocs bin/ovn-appctl bin/postcss bin/specify /work
 COPY --chown=coder:coder bin/supervisorctl bin/supervisord bin/svgo /workspaces/setup/bin/
 COPY --chown=coder:coder bin/task-master bin/task-master-ai bin/task-master-mcp /workspaces/setup/bin/
 COPY --chown=coder:coder bin/uglifyjs bin/vault-login bin/vault-shell bin/wmill /workspaces/setup/bin/
-COPY --chown=coder:coder bin/internal /workspaces/setup/bin/internal
+# Copy non-symlink files from bin/internal/bin (same Hermit symlink issue)
+COPY --chown=coder:coder bin/internal/bin/hermit bin/internal/bin/hermit.hcl bin/internal/bin/README.hermit.md /workspaces/setup/bin/internal/bin/
+COPY --chown=coder:coder bin/internal/bin/activate-hermit bin/internal/bin/activate-hermit.fish /workspaces/setup/bin/internal/bin/
 
 # Recreate Hermit symlinks - all .pkg files point to hermit, command symlinks point to .pkg
 # This is done with RUN to avoid Kaniko's alphabetical file processing issue
@@ -145,7 +147,11 @@ RUN cd /workspaces/setup/bin && \
     ln -sf .virtctl-1.5.0.pkg virtctl && \
     ln -sf .wait-for-it-2.3.0.pkg wait-for-it && \
     ln -sf '.yq@4.pkg' yq && \
-    ln -sf .zoxide-0.9.8.pkg zoxide
+    ln -sf .zoxide-0.9.8.pkg zoxide && \
+    # Create bin/internal/bin symlinks (chezmoi hermit environment)
+    cd /workspaces/setup/bin/internal/bin && \
+    ln -sf hermit .chezmoi-2.65.1.pkg && \
+    ln -sf .chezmoi-2.65.1.pkg chezmoi
 COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell
 COPY --chown=coder:coder libs/devenv /workspaces/setup/libs/devenv
