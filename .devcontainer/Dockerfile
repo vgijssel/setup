@@ -57,6 +57,11 @@ WORKDIR /workspaces/setup
 
 # Copy necessary files for chezmoi setup
 COPY --chown=coder:coder .envrc /workspaces/setup/.envrc
+
+# Copy bin directory - first copy hermit binary alone so symlink targets exist,
+# then copy entire bin/ directory. This fixes Kaniko symlink issues where .pkg
+# files are symlinks to hermit.
+COPY --chown=coder:coder bin/hermit /workspaces/setup/bin/hermit
 COPY --chown=coder:coder bin /workspaces/setup/bin
 COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell
@@ -74,9 +79,3 @@ RUN zsh -ic 'exit 0'
 RUN bin/exec python --version
 RUN bin/exec wait-for-it --version
 
-# Remove all the files so Coder can clone the repository here.
-# If there are files inside the folder the clone will fail.
-RUN rm -rf /workspaces/setup
-
-# Ensure the /workspaces/setup directory exists and is owned by coder
-RUN mkdir -p /workspaces/setup && chown coder:coder /workspaces/setup

@@ -351,7 +351,6 @@ resource "envbuilder_cached_image" "workspace" {
   insecure               = true # Local registry doesn't use TLS
   devcontainer_dir       = ".devcontainer"
   workspace_folder       = "/workspaces/setup"
-  fallback_image         = "codercom/enterprise-base:ubuntu"
   remote_repo_build_mode = false
 
   # GitHub credentials for private repository access (optional)
