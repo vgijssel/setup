@@ -58,10 +58,19 @@ WORKDIR /workspaces/setup
 # Copy necessary files for chezmoi setup
 COPY --chown=coder:coder .envrc /workspaces/setup/.envrc
 
-# Copy bin directory - first copy hermit binary alone so symlink targets exist,
-# then copy entire bin/ directory. This fixes Kaniko symlink issues where .pkg
-# files are symlinks to hermit.
+# Copy bin directory in stages to fix Kaniko symlink ordering issues.
+# Kaniko processes files alphabetically within a COPY command, but symlinks
+# require their targets to exist. The Hermit symlink structure is:
+#   - bin/hermit                    (binary - target for .pkg symlinks)
+#   - bin/.*.pkg -> hermit          (package symlinks pointing to hermit)
+#   - bin/ansible -> .ansible.pkg   (command symlinks pointing to .pkg files)
+#
+# Copy order ensures each symlink's target exists before the symlink is created:
+# 1. Copy hermit binary first (target for .pkg symlinks)
 COPY --chown=coder:coder bin/hermit /workspaces/setup/bin/hermit
+# 2. Copy .pkg symlinks (they point to hermit, which now exists)
+COPY --chown=coder:coder bin/.*.pkg /workspaces/setup/bin/
+# 3. Copy everything else (other symlinks point to .pkg files, which now exist)
 COPY --chown=coder:coder bin /workspaces/setup/bin
 COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell
