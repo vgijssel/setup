@@ -1,11 +1,12 @@
 # AGENTS.md - Coder Devcontainer Kubernetes
 
-This library provides the Terraform configuration for Coder workspaces using Kubernetes and Envbuilder.
+This library provides the Terraform configuration for Coder workspaces using Kubernetes and the devcontainer CLI.
 
 ## Overview
 
 The `coder-devcontainer-kubernetes` library deploys Kubernetes-based development environments through Coder, providing:
-- Envbuilder-based devcontainer builds with local registry caching
+- Devcontainer CLI-based builds with Docker-in-Docker support
+- Local registry caching for devcontainer layers
 - Persistent workspace volumes on Kubernetes
 - GitHub OAuth integration for private repository access
 - 1Password Connect integration for secrets management
@@ -16,14 +17,15 @@ The `coder-devcontainer-kubernetes` library deploys Kubernetes-based development
 ## Architecture
 
 ### Core Components
-- **Terraform Providers**: Coder, Kubernetes, 1Password, Envbuilder
-- **Kubernetes Deployment**: Pod-based workspace with resource limits
-- **Envbuilder**: Builds devcontainer images with layer caching
+- **Terraform Providers**: Coder, Kubernetes, 1Password
+- **Kubernetes Deployment**: Pod-based workspace with Docker-in-Docker (privileged mode)
+- **Devcontainer CLI**: Builds devcontainer images using standard Docker daemon
 - **Local Registry**: Cluster-local registry cache for fast rebuilds
 - **Fleet MCP**: Model Context Protocol server for Claude Code integration
 
 ### Key Features
 - Kubernetes-native workspace deployment
+- Docker-in-Docker for proper symlink handling (fixes Kaniko limitations)
 - Automatic devcontainer image caching via local registry
 - Integration with 1Password Connect for secrets
 - GitHub external authentication for git push operations
@@ -44,7 +46,6 @@ The `coder-devcontainer-kubernetes` library deploys Kubernetes-based development
 - `memory`: Memory allocation in GiB
 - `workspaces_volume_size`: PVC size for /workspaces
 - `git_branch`: Git branch to checkout
-- `devcontainer_builder`: Envbuilder image version
 - `system_prompt`: AI assistant system prompt
 - `ai_prompt`: Task-specific AI prompt
 
@@ -82,8 +83,9 @@ coder templates push
 - Coder provider (2.11.0)
 - Kubernetes provider (2.35.1)
 - 1Password provider (2.1.2)
-- Envbuilder provider (1.0.0)
 - Random provider (3.6.3)
+- Git Clone module (~> 1.0)
+- Devcontainers CLI module (~> 1.0)
 - Claude Code module (3.4.4)
 - Coder Login module (1.1.0)
 - VS Code Desktop module (1.1.1)
@@ -108,6 +110,13 @@ coder templates push
 ## Best Practices
 - Always validate Terraform before pushing
 - Use workspace presets for consistent AI behavior
-- Monitor envbuilder cache hit rates for optimization
+- Monitor devcontainer build cache performance via local registry
 - Preserve PVC lifecycle to prevent data loss
 - Use proper labeling for resource tracking
+
+## Migration from Envbuilder
+
+This template has been migrated from Envbuilder to devcontainer CLI for better symlink support:
+- **Reason**: Kaniko (used by Envbuilder) doesn't properly handle symlinks, breaking Hermit bin/internal symlinks
+- **Solution**: Docker-in-Docker with standard Docker daemon handles symlinks correctly
+- **Caching**: Configured via devcontainer.json `build.cacheFrom` and `build.options` for registry-based caching

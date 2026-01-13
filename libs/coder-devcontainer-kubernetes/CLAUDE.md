@@ -64,10 +64,10 @@ coder templates push
 2. Extract value in locals block
 3. Create coder_env resource
 
-### Updating Envbuilder Configuration
-1. Modify envbuilder_cached_image resource
-2. Ensure cache_repo points to local registry
-3. Configure git credentials if needed
+### Updating Devcontainer Configuration
+1. Modify devcontainer.json in .devcontainer directory
+2. Update caching configuration via build.cacheFrom and build.options
+3. Ensure Docker-in-Docker is properly configured in deployment
 
 ### Adding New Workspace Presets
 1. Define new coder_workspace_preset data source
@@ -77,9 +77,19 @@ coder templates push
 ## Debugging Tips
 - Check pod logs in coder-workspace namespace
 - Verify 1Password Connect connectivity
-- Test envbuilder cache hit by checking metadata
+- Monitor Docker daemon logs in workspace: `/var/log/dockerd.log`
+- Check devcontainer build progress via Coder agent logs
+- Verify local registry connectivity for cache operations
 - Validate Kubernetes RBAC permissions
 - Check Fleet MCP server logs via supervisord
+
+## Devcontainer CLI vs Envbuilder
+
+This template uses the devcontainer CLI with Docker-in-Docker instead of Envbuilder:
+- **Docker-in-Docker**: Properly handles symlinks (fixes Hermit bin/internal symlinks)
+- **Privileged Mode**: Required for Docker daemon in container
+- **Caching**: Configured in devcontainer.json via `build.cacheFrom` and `build.options`
+- **Build Process**: Uses standard Docker daemon instead of Kaniko
 
 ## Security Considerations
 - Never commit secrets to the repository

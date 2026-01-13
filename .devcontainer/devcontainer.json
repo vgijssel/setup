@@ -2,7 +2,11 @@
   "name": "Setup Development Environment (Docker-in-Docker)",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": "..",
+    "cacheFrom": ["registry.local/coder-cache:latest"],
+    "options": [
+      "--cache-to=type=registry,ref=registry.local/coder-cache:latest,mode=max"
+    ]
   },
   "remoteUser": "coder",
   "privileged": true,

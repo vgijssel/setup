@@ -18,10 +18,6 @@ terraform {
       source  = "hashicorp/random"
       version = "3.6.3"
     }
-    envbuilder = {
-      source  = "coder/envbuilder"
-      version = "1.0.0"
-    }
   }
 }
 
@@ -160,19 +156,11 @@ data "coder_parameter" "git_branch" {
   name         = "git_branch"
   display_name = "Git Branch"
   type         = "string"
-  default      = "main"
+  default      = "mg/feat/refactor-coder-workspace"
   description  = "Git branch to checkout for the workspace"
   mutable      = true
 }
 
-data "coder_parameter" "devcontainer_builder" {
-  name         = "devcontainer_builder"
-  display_name = "Devcontainer Builder Image"
-  type         = "string"
-  default      = "ghcr.io/coder/envbuilder:latest"
-  description  = "Envbuilder image to use for building devcontainers"
-  mutable      = false
-}
 
 data "coder_parameter" "system_prompt" {
   name         = "system_prompt"
@@ -316,9 +304,6 @@ locals {
   # Local registry cache URL from ConfigMap
   cache_repo = data.kubernetes_config_map_v1.coder_workspace_config.data["registry_url"]
 
-  # Envbuilder image
-  devcontainer_builder_image = data.coder_parameter.devcontainer_builder.value
-
   # Extract credentials from 1Password
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
   perplexity_key    = try(data.onepassword_item.perplexity.credential, "")
@@ -341,33 +326,35 @@ locals {
 }
 
 # ====================
-# Envbuilder Cache
+# Git Clone and Devcontainer CLI Modules
 # ====================
 
-# Envbuilder cached image - detects and reuses cached devcontainer images from local registry
-resource "envbuilder_cached_image" "workspace" {
-  builder_image = local.devcontainer_builder_image
-  # Include branch in git_url - ENVBUILDER_GIT_URL cannot be overridden via extra_env
-  git_url                = "${local.repo_url}#${local.git_branch}"
-  cache_repo             = "${local.cache_repo}/coder-cache"
-  insecure               = true # Local registry doesn't use TLS
-  devcontainer_dir       = ".devcontainer"
-  workspace_folder       = "/workspaces/setup"
-  remote_repo_build_mode = false
+# Git clone module - clones repository before devcontainer builds
+module "git_clone" {
+  count       = data.coder_workspace.me.start_count
+  source      = "registry.coder.com/coder/git-clone/coder"
+  version     = "~> 1.0"
+  agent_id    = coder_agent.main.id
+  url         = local.repo_url
+  base_dir    = "/workspaces"
+  branch_name = local.git_branch
+}
 
-  # GitHub credentials for private repository access (required via external auth)
-  git_username = "oauth2"
-  git_password = local.github_token
+# Devcontainer CLI module - provides devcontainer CLI for building
+module "devcontainers_cli" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder/devcontainers-cli/coder"
+  version  = "~> 1.0"
+  agent_id = coder_agent.main.id
+}
 
-  # Extra environment variables passed to envbuilder
-  extra_env = {
-    # Coder agent configuration
-    "CODER_AGENT_TOKEN" = coder_agent.main.token
-    "CODER_AGENT_URL"   = data.coder_workspace.me.access_url
-    # Envbuilder configuration
-    "ENVBUILDER_INIT_SCRIPT" = coder_agent.main.init_script
-    "ENVBUILDER_PUSH_IMAGE"  = "true"
-  }
+# Devcontainer resource - defines the devcontainer project
+resource "coder_devcontainer" "workspace" {
+  count            = data.coder_workspace.me.start_count
+  agent_id         = coder_agent.main.id
+  workspace_folder = "/workspaces/setup"
+
+  depends_on = [module.git_clone]
 }
 
 # ====================
@@ -393,11 +380,11 @@ resource "kubernetes_persistent_volume_claim_v1" "workspaces" {
   lifecycle {
     ignore_changes = all
   }
-  wait_until_bound = false
+  wait_until_bound = true
 }
 
 resource "kubernetes_deployment_v1" "workspace" {
-  count = data.coder_workspace.me.start_count
+  count            = data.coder_workspace.me.start_count
   wait_for_rollout = true
 
   metadata {
@@ -426,31 +413,38 @@ resource "kubernetes_deployment_v1" "workspace" {
         }
       }
       spec {
-        # Pod-level security context - envbuilder needs root to build images
-        # The devcontainer.json will set the correct user for the workspace
-        security_context { }
-#        security_context {
-#          run_as_user  = 0
-#          run_as_group = 0
-#          fs_group     = 0
-#        }
+        # Pod-level security context - Docker-in-Docker needs root
+        security_context {
+          run_as_user  = 0
+          run_as_group = 0
+          fs_group     = 0
+        }
 
         container {
-          name  = "dev"
-          image = envbuilder_cached_image.workspace.image
-          # When using a cached image, run init_script; otherwise envbuilder handles startup
-#           command = envbuilder_cached_image.workspace.exists ? [
-#             "sh", "-c",
-#             coder_agent.main.init_script
-#           ] : null
+          name = "dev"
+          # Using Ubuntu Noble as base - includes Docker-in-Docker setup
+          image = "ubuntu:noble@sha256:353675e2a41babd526e2b837d7ec780c2a05bca0164f7ea5dbbd433d21d166fc"
 
-          # Dynamic environment variables from envbuilder
-          dynamic "env" {
-            for_each = envbuilder_cached_image.workspace.env_map
-            content {
-              name  = env.key
-              value = env.value
-            }
+          # Run agent init script
+          command = ["sh", "-c", coder_agent.main.init_script]
+
+          # Environment variables for Coder agent
+          env {
+            name  = "CODER_AGENT_TOKEN"
+            value = coder_agent.main.token
+          }
+          env {
+            name  = "CODER_AGENT_URL"
+            value = data.coder_workspace.me.access_url
+          }
+          # Enable devcontainer integration
+          env {
+            name  = "CODER_AGENT_DEVCONTAINERS_ENABLE"
+            value = "true"
+          }
+          env {
+            name  = "CODER_AGENT_DEVCONTAINERS_PROJECT_DISCOVERY_ENABLE"
+            value = "false"
           }
 
           resources {
@@ -467,10 +461,14 @@ resource "kubernetes_deployment_v1" "workspace" {
             name       = "workspaces"
             mount_path = "/workspaces"
           }
-#           # Envbuilder needs root to build images - user is set by devcontainer.json
-#           security_context {
-#             run_as_user = 0
-#           }
+          volume_mount {
+            name       = "docker"
+            mount_path = "/var/lib/docker"
+          }
+          # Docker-in-Docker requires privileged mode
+          security_context {
+            privileged = true
+          }
         }
         volume {
           name = "workspaces"
@@ -478,22 +476,26 @@ resource "kubernetes_deployment_v1" "workspace" {
             claim_name = kubernetes_persistent_volume_claim_v1.workspaces.metadata[0].name
           }
         }
+        volume {
+          name = "docker"
+          empty_dir {}
+        }
         # Pod anti-affinity to spread workspaces across nodes
-#        affinity {
-#          pod_anti_affinity {
-#            preferred_during_scheduling_ignored_during_execution {
-#              weight = 1
-#              pod_affinity_term {
-#                topology_key = "kubernetes.io/hostname"
-#                label_selector {
-#                  match_labels = {
-#                    "app.kubernetes.io/name" = "coder-workspace"
-#                  }
-#                }
-#              }
-#            }
-#          }
-#        }
+        #        affinity {
+        #          pod_anti_affinity {
+        #            preferred_during_scheduling_ignored_during_execution {
+        #              weight = 1
+        #              pod_affinity_term {
+        #                topology_key = "kubernetes.io/hostname"
+        #                label_selector {
+        #                  match_labels = {
+        #                    "app.kubernetes.io/name" = "coder-workspace"
+        #                  }
+        #                }
+        #              }
+        #            }
+        #          }
+        #        }
       }
     }
   }
@@ -504,12 +506,38 @@ resource "kubernetes_deployment_v1" "workspace" {
 # ====================
 
 resource "coder_agent" "main" {
-  arch           = data.coder_provisioner.me.arch
-  os             = "linux"
-  dir            = "/workspaces/setup"
+  arch                    = data.coder_provisioner.me.arch
+  os                      = "linux"
+  dir                     = "/workspaces/setup"
+  startup_script_behavior = "blocking"
+
+  # Install dependencies and start Docker daemon
   startup_script = <<-EOT
+    #!/bin/bash
     set -e
-    set +x
+
+    # Install basic dependencies
+    apt-get update && apt-get install -y \
+      ca-certificates \
+      curl \
+      gnupg \
+      lsb-release \
+      sudo \
+      git \
+      && rm -rf /var/lib/apt/lists/*
+
+    # Install Docker
+    curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+    sh /tmp/get-docker.sh
+    rm /tmp/get-docker.sh
+
+    # Start Docker daemon
+    dockerd > /var/log/dockerd.log 2>&1 &
+
+    # Wait for Docker to be ready
+    timeout 60 sh -c 'until docker info > /dev/null 2>&1; do sleep 1; done'
+
+    echo "Docker daemon started successfully"
   EOT
 
   display_apps {
@@ -783,12 +811,12 @@ resource "coder_metadata" "workspace_info" {
   count       = data.coder_workspace.me.start_count
   resource_id = kubernetes_deployment_v1.workspace[0].id
   item {
-    key   = "image"
-    value = envbuilder_cached_image.workspace.image
+    key   = "base_image"
+    value = "ubuntu:noble"
   }
   item {
-    key   = "cached"
-    value = envbuilder_cached_image.workspace.exists ? "yes" : "no (building)"
+    key   = "devcontainer_cli"
+    value = "enabled"
   }
   item {
     key   = "cache_repo"
