@@ -422,29 +422,18 @@ resource "kubernetes_deployment_v1" "workspace" {
 
         container {
           name = "dev"
-          # Using Ubuntu Noble as base - includes Docker-in-Docker setup
-          image = "ubuntu:noble@sha256:353675e2a41babd526e2b837d7ec780c2a05bca0164f7ea5dbbd433d21d166fc"
+          # Using codercom/enterprise-node:ubuntu - pre-configured for Coder workspaces
+          # This image includes Docker-in-Docker support
+          image = "codercom/enterprise-node:ubuntu"
 
-          # Run agent init script
+          # Run agent init script (same approach as official docker-devcontainer example)
           command = ["sh", "-c", coder_agent.main.init_script]
 
           # Environment variables for Coder agent
+          # Only CODER_AGENT_TOKEN is required - init_script handles the URL
           env {
             name  = "CODER_AGENT_TOKEN"
             value = coder_agent.main.token
-          }
-          env {
-            name  = "CODER_AGENT_URL"
-            value = data.coder_workspace.me.access_url
-          }
-          # Enable devcontainer integration
-          env {
-            name  = "CODER_AGENT_DEVCONTAINERS_ENABLE"
-            value = "true"
-          }
-          env {
-            name  = "CODER_AGENT_DEVCONTAINERS_PROJECT_DISCOVERY_ENABLE"
-            value = "false"
           }
 
           resources {
@@ -511,28 +500,13 @@ resource "coder_agent" "main" {
   dir                     = "/workspaces/setup"
   startup_script_behavior = "blocking"
 
-  # Install dependencies and start Docker daemon
+  # Start Docker daemon (codercom/enterprise-node:ubuntu has Docker pre-installed)
   startup_script = <<-EOT
     #!/bin/bash
     set -e
 
-    # Install basic dependencies
-    apt-get update && apt-get install -y \
-      ca-certificates \
-      curl \
-      gnupg \
-      lsb-release \
-      sudo \
-      git \
-      && rm -rf /var/lib/apt/lists/*
-
-    # Install Docker
-    curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
-    sh /tmp/get-docker.sh
-    rm /tmp/get-docker.sh
-
-    # Start Docker daemon
-    dockerd > /var/log/dockerd.log 2>&1 &
+    # Start Docker daemon in background
+    sudo dockerd > /var/log/dockerd.log 2>&1 &
 
     # Wait for Docker to be ready
     timeout 60 sh -c 'until docker info > /dev/null 2>&1; do sleep 1; done'
@@ -642,69 +616,6 @@ resource "coder_env" "ha_token" {
 }
 
 # ====================
-# Fleet MCP Server
-# ====================
-
-# Generate a random bearer token for fleet-mcp authentication
-resource "random_id" "fleet_mcp_bearer_token" {
-  byte_length = 32
-  keepers = {
-    # Regenerate token when workspace is recreated
-    workspace_id = data.coder_workspace.me.id
-  }
-}
-
-# Fleet MCP auth token for the agent
-resource "coder_env" "fleet_mcp_auth_token" {
-  agent_id = coder_agent.main.id
-  name     = "FLEET_MCP_AUTH_TOKEN"
-  value    = random_id.fleet_mcp_bearer_token.b64_url
-}
-
-# Fleet MCP server script - starts fleet-mcp via supervisord
-resource "coder_script" "fleet_mcp" {
-  agent_id     = coder_agent.main.id
-  display_name = "Fleet MCP Server"
-  icon         = "/icon/cloud.svg"
-  script       = <<-EOT
-    #!/bin/bash
-    set -e
-
-    echo "Starting fleet-mcp"
-
-    # Wait for git repo to be available
-    wait-for-git --dir /workspaces/setup
-
-    supervisord -c /workspaces/setup/libs/coder-devcontainer/supervisord.conf
-
-    # Wait for supervisord to be available on port 9001
-    wait-for-it --service 127.0.0.1:9001 --timeout 60
-
-    # Verify fleet-mcp service is running
-    supervisorctl status fleet-mcp
-  EOT
-  run_on_start = true
-  run_on_stop  = false
-}
-
-# Fleet MCP server app - exposes the HTTP server with healthcheck
-resource "coder_app" "fleet_mcp" {
-  agent_id     = coder_agent.main.id
-  slug         = "fleet-mcp"
-  display_name = "Fleet MCP"
-  icon         = "/icon/cloud.svg"
-  url          = "http://127.0.0.1:8000"
-  subdomain    = false
-  share        = "owner"
-
-  healthcheck {
-    url       = "http://127.0.0.1:8000/health"
-    interval  = 10
-    threshold = 24
-  }
-}
-
-# ====================
 # Claude Code Integration
 # ====================
 
@@ -716,43 +627,27 @@ module "claude_code" {
   workdir                      = "/workspaces/setup"
   ai_prompt                    = data.coder_parameter.ai_prompt.value
   system_prompt                = data.coder_parameter.system_prompt.value
-  install_claude_code          = false
+  install_claude_code          = true
   order                        = 999
   claude_code_oauth_token      = local.claude_code_token
   cli_app                      = true
   continue                     = true
   dangerously_skip_permissions = true
 
-  # Pre-hook script to wait for git repo and verify Claude is available
+  # Pre-hook script to wait for git repo to be cloned
   pre_install_script = <<-EOT
-    wait-for-git --dir /workspaces/setup
-  EOT
-
-  post_install_script = <<-EOT
-    cd /workspaces/setup
-    # Wait for the Fleet MCP server to be available
-    wait-for-it --service 127.0.0.1:8000 --timeout 120
-
-    # Extract the bearer token from the token file with error handling
-    TOKEN_FILE="$HOME/.fleet-mcp/auth_token"
-    if [ ! -f "$TOKEN_FILE" ]; then
-      echo "Error: Token file $TOKEN_FILE does not exist." >&2
-      exit 1
+    # Wait for git clone to complete (check for .git directory)
+    echo "Waiting for git clone to complete..."
+    for i in $(seq 1 120); do
+      if [ -d "/workspaces/setup/.git" ]; then
+        echo "Git repository ready."
+        break
+      fi
+      sleep 1
+    done
+    if [ ! -d "/workspaces/setup/.git" ]; then
+      echo "Warning: Git repository not found after 120 seconds, continuing anyway..."
     fi
-    TOKEN=$(jq -r '.value' "$TOKEN_FILE" 2>/dev/null)
-    if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
-      echo "Error: Failed to extract token from $TOKEN_FILE." >&2
-      exit 1
-    fi
-
-    # Idempotent MCP server configuration - remove then add for consistency
-    echo "Configuring MCP servers idempotently..."
-
-    # Remove existing fleet-mcp server if it exists (ignore errors)
-    claude mcp remove "fleet-mcp" 2>/dev/null || true
-    claude mcp add --transport http "fleet-mcp" http://127.0.0.1:8000/mcp --header "Authorization: Bearer $TOKEN"
-
-    echo "MCP configuration completed. MCP servers configured idempotently."
   EOT
 
   # This enables Coder Tasks
@@ -833,14 +728,5 @@ resource "coder_metadata" "workspace_info" {
   item {
     key   = "volume_size"
     value = "${data.coder_parameter.workspaces_volume_size.value}Gi"
-  }
-}
-
-# Store the bearer token as workspace metadata for fleet-mcp
-resource "coder_metadata" "fleet_mcp_bearer_token" {
-  resource_id = coder_agent.main.id
-  item {
-    key   = "fleet_mcp_bearer_token"
-    value = random_id.fleet_mcp_bearer_token.b64_url
   }
 }

@@ -31,17 +31,20 @@ RUN groupadd --gid ${USER_GID} coder \
     && chmod 0440 /etc/sudoers.d/coder \
     && chsh -s /usr/bin/zsh root
 
-# Copy and run docker-in-docker installation script
+# Copy pre-cached Docker GPG key and docker-in-docker installation script
+COPY --chown=coder:coder .devcontainer/docker-gpg.key /tmp/docker-gpg.key
 COPY --chown=coder:coder third_party/vendir/shell/docker-in-docker/install.sh /tmp/docker-in-docker-install.sh
 
 # Install docker-in-docker with inline environment variables
+# Patch the install script to use the pre-cached GPG key instead of downloading
 RUN chmod +x /tmp/docker-in-docker-install.sh && \
+    sed -i 's|curl -fsSL https://download.docker.com/linux/\${ID}/gpg|cat /tmp/docker-gpg.key|g' /tmp/docker-in-docker-install.sh && \
     USERNAME=coder \
     USE_MOBY="true" \
     DOCKERDASHCOMPOSEVERSION="none" \
     INSTALLDOCKERCOMPOSESWITCH="false" \
     /tmp/docker-in-docker-install.sh && \
-    rm /tmp/docker-in-docker-install.sh
+    rm /tmp/docker-in-docker-install.sh /tmp/docker-gpg.key
 
 # Entrypoint for docker-in-docker initialization
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]

@@ -5,7 +5,8 @@
     "context": "..",
     "cacheFrom": ["registry.local/coder-cache:latest"],
     "options": [
-      "--cache-to=type=registry,ref=registry.local/coder-cache:latest,mode=max"
+      "--cache-to=type=registry,ref=registry.local/coder-cache:latest,mode=max",
+      "--network=host"
     ]
   },
   "remoteUser": "coder",
