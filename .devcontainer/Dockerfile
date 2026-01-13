@@ -58,27 +58,26 @@ USER coder
 # Set working directory
 WORKDIR /workspaces/setup
 
+# Build argument to control bin directory location
+# - envbuilder/Kaniko: /tmp/bin (default) - avoids symlink issues
+# - devcontainer/docker: /workspaces/setup/bin
+ARG BIN_DIR=/tmp/bin
+
 # Copy necessary files for chezmoi setup
 COPY --chown=coder:coder .envrc /workspaces/setup/.envrc
-
-# Copy bin directory - first copy hermit binary alone so symlink targets exist,
-# then copy entire bin/ directory. This fixes Kaniko symlink issues where .pkg
-# files are symlinks to hermit.
-COPY --chown=coder:coder bin/hermit /workspaces/setup/bin/hermit
-COPY --chown=coder:coder bin /workspaces/setup/bin
+COPY --chown=coder:coder bin ${BIN_DIR}
 COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell
 COPY --chown=coder:coder libs/devenv /workspaces/setup/libs/devenv
 COPY --chown=coder:coder .chezmoiroot /workspaces/setup/.chezmoiroot
 
-# Initialize and apply chezmoi configuration using direnv
+# Initialize and apply chezmoi configuration
 RUN bin/exec chezmoi apply --verbose
 
 # Eager load Spaceship prompt to avoid delays on first prompt
-# Passing the -i flag to zsh forces it to load as an interactive shell
 RUN zsh -ic 'exit 0'
 
-# Eager load commonly used tools for coder-devcontainer
+# Eager load commonly used tools
 RUN bin/exec python --version
 RUN bin/exec wait-for-it --version
 

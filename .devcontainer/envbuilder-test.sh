@@ -20,12 +20,12 @@ set -euo pipefail
 ENVBUILDER_IMAGE="${ENVBUILDER_IMAGE:-ghcr.io/coder/envbuilder:1.2.0}"
 
 # Local repo path - mount local directory instead of git clone
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOCAL_REPO_PATH="${LOCAL_REPO_PATH:-$(dirname "${SCRIPT_DIR}")}"
+LOCAL_REPO_PATH="$SETUP_DIR"
 
 # Container name
 CONTAINER_NAME="envbuilder-test-$$"
 
+# TODO: do we need this?
 # Create a temporary Docker config directory without broken credential helpers
 # This avoids issues with VS Code devcontainer credential helpers
 DOCKER_CONFIG_DIR=$(mktemp -d)
@@ -89,8 +89,8 @@ docker run \
     -e ENVBUILDER_CACHE_REPO="host.docker.internal:${REGISTRY_PORT}/envbuilder-cache" \
     -e ENVBUILDER_INSECURE="true" \
     -e ENVBUILDER_PUSH_IMAGE="true" \
-    -e ENVBUILDER_INIT_SCRIPT="echo 'Envbuilder test complete'" \
     -e ENVBUILDER_VERBOSE="true" \
+    -e ENVBUILDER_INIT_SCRIPT="exit 0" \
     "${ENVBUILDER_IMAGE}"
 
 echo ""
