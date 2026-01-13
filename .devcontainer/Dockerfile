@@ -61,11 +61,21 @@ WORKDIR /workspaces/setup
 # Build argument to control bin directory location
 # - envbuilder/Kaniko: /tmp/bin (default) - avoids symlink issues
 # - devcontainer/docker: /workspaces/setup/bin
-ARG BIN_DIR=/tmp/bin
 
 # Copy necessary files for chezmoi setup
 COPY --chown=coder:coder .envrc /workspaces/setup/.envrc
-COPY --chown=coder:coder bin ${BIN_DIR}
+
+# Workaround for Kaniko/envbuilder symlink issue:
+# Direct COPY to /workspaces/setup/bin fails with:
+#   "copying dir: symlink .bazel-remote-2.5.0.pkg: no such file or directory"
+# Kaniko (used by envbuilder) mounts files from the git checkout. Copying a symlink
+# from mounted files into the image layer fails if the symlink target isn't already
+# in the layer. By first copying to /tmp/bin (outside the mount), then using RUN to
+# copy to the final location, the symlinks are resolved within the container runtime.
+# Note: Any directory containing symlinks added to this Dockerfile needs this workaround.
+COPY --chown=coder:coder bin /tmp/bin
+RUN mkdir -p /workspaces/setup/bin && cp -r /tmp/bin/* /workspaces/setup/bin/ && rm -rf /tmp/bin
+
 COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell
 COPY --chown=coder:coder libs/devenv /workspaces/setup/libs/devenv
