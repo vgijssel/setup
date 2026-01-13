@@ -18,6 +18,10 @@ terraform {
       source  = "hashicorp/random"
       version = "3.6.3"
     }
+    envbuilder = {
+      source  = "coder/envbuilder"
+      version = "1.0.0"
+    }
   }
 }
 
@@ -161,6 +165,14 @@ data "coder_parameter" "git_branch" {
   mutable      = true
 }
 
+data "coder_parameter" "devcontainer_builder" {
+  name         = "devcontainer_builder"
+  display_name = "Devcontainer Builder Image"
+  type         = "string"
+  default      = "ghcr.io/coder/envbuilder:latest"
+  description  = "Envbuilder image to use for building devcontainers"
+  mutable      = false
+}
 
 data "coder_parameter" "system_prompt" {
   name         = "system_prompt"
@@ -304,6 +316,9 @@ locals {
   # Local registry cache URL from ConfigMap
   cache_repo = data.kubernetes_config_map_v1.coder_workspace_config.data["registry_url"]
 
+  # Envbuilder image
+  devcontainer_builder_image = data.coder_parameter.devcontainer_builder.value
+
   # Extract credentials from 1Password
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
   perplexity_key    = try(data.onepassword_item.perplexity.credential, "")
@@ -326,35 +341,33 @@ locals {
 }
 
 # ====================
-# Git Clone and Devcontainer CLI Modules
+# Envbuilder Cache
 # ====================
 
-# Git clone module - clones repository before devcontainer builds
-module "git_clone" {
-  count       = data.coder_workspace.me.start_count
-  source      = "registry.coder.com/coder/git-clone/coder"
-  version     = "~> 1.0"
-  agent_id    = coder_agent.main.id
-  url         = local.repo_url
-  base_dir    = "/workspaces"
-  branch_name = local.git_branch
-}
+# Envbuilder cached image - detects and reuses cached devcontainer images from local registry
+resource "envbuilder_cached_image" "workspace" {
+  builder_image = local.devcontainer_builder_image
+  # Include branch in git_url - ENVBUILDER_GIT_URL cannot be overridden via extra_env
+  git_url                = "${local.repo_url}#${local.git_branch}"
+  cache_repo             = "${local.cache_repo}/coder-cache"
+  insecure               = true # Local registry doesn't use TLS
+  devcontainer_dir       = ".devcontainer"
+  workspace_folder       = "/workspaces/setup"
+  remote_repo_build_mode = false
 
-# Devcontainer CLI module - provides devcontainer CLI for building
-module "devcontainers_cli" {
-  count    = data.coder_workspace.me.start_count
-  source   = "registry.coder.com/coder/devcontainers-cli/coder"
-  version  = "~> 1.0"
-  agent_id = coder_agent.main.id
-}
+  # GitHub credentials for private repository access (required via external auth)
+  git_username = "oauth2"
+  git_password = local.github_token
 
-# Devcontainer resource - defines the devcontainer project
-resource "coder_devcontainer" "workspace" {
-  count            = data.coder_workspace.me.start_count
-  agent_id         = coder_agent.main.id
-  workspace_folder = "/workspaces/setup"
-
-  depends_on = [module.git_clone]
+  # Extra environment variables passed to envbuilder
+  extra_env = {
+    # Coder agent configuration
+    "CODER_AGENT_TOKEN" = coder_agent.main.token
+    "CODER_AGENT_URL"   = data.coder_workspace.me.access_url
+    # Envbuilder configuration
+    "ENVBUILDER_INIT_SCRIPT" = coder_agent.main.init_script
+    "ENVBUILDER_PUSH_IMAGE"  = "true"
+  }
 }
 
 # ====================
@@ -380,7 +393,7 @@ resource "kubernetes_persistent_volume_claim_v1" "workspaces" {
   lifecycle {
     ignore_changes = all
   }
-  wait_until_bound = true
+  wait_until_bound = false
 }
 
 resource "kubernetes_deployment_v1" "workspace" {
@@ -413,27 +426,31 @@ resource "kubernetes_deployment_v1" "workspace" {
         }
       }
       spec {
-        # Pod-level security context - Docker-in-Docker needs root
-        security_context {
-          run_as_user  = 0
-          run_as_group = 0
-          fs_group     = 0
-        }
+        # Pod-level security context - envbuilder needs root to build images
+        # The devcontainer.json will set the correct user for the workspace
+        security_context {}
+        #        security_context {
+        #          run_as_user  = 0
+        #          run_as_group = 0
+        #          fs_group     = 0
+        #        }
 
         container {
-          name = "dev"
-          # Using codercom/enterprise-node:ubuntu - pre-configured for Coder workspaces
-          # This image includes Docker-in-Docker support
-          image = "codercom/enterprise-node:ubuntu"
+          name  = "dev"
+          image = envbuilder_cached_image.workspace.image
+          # When using a cached image, run init_script; otherwise envbuilder handles startup
+          #           command = envbuilder_cached_image.workspace.exists ? [
+          #             "sh", "-c",
+          #             coder_agent.main.init_script
+          #           ] : null
 
-          # Run agent init script (same approach as official docker-devcontainer example)
-          command = ["sh", "-c", coder_agent.main.init_script]
-
-          # Environment variables for Coder agent
-          # Only CODER_AGENT_TOKEN is required - init_script handles the URL
-          env {
-            name  = "CODER_AGENT_TOKEN"
-            value = coder_agent.main.token
+          # Dynamic environment variables from envbuilder
+          dynamic "env" {
+            for_each = envbuilder_cached_image.workspace.env_map
+            content {
+              name  = env.key
+              value = env.value
+            }
           }
 
           resources {
@@ -450,24 +467,16 @@ resource "kubernetes_deployment_v1" "workspace" {
             name       = "workspaces"
             mount_path = "/workspaces"
           }
-          volume_mount {
-            name       = "docker"
-            mount_path = "/var/lib/docker"
-          }
-          # Docker-in-Docker requires privileged mode
-          security_context {
-            privileged = true
-          }
+          #           # Envbuilder needs root to build images - user is set by devcontainer.json
+          #           security_context {
+          #             run_as_user = 0
+          #           }
         }
         volume {
           name = "workspaces"
           persistent_volume_claim {
             claim_name = kubernetes_persistent_volume_claim_v1.workspaces.metadata[0].name
           }
-        }
-        volume {
-          name = "docker"
-          empty_dir {}
         }
         # Pod anti-affinity to spread workspaces across nodes
         #        affinity {
@@ -495,23 +504,12 @@ resource "kubernetes_deployment_v1" "workspace" {
 # ====================
 
 resource "coder_agent" "main" {
-  arch                    = data.coder_provisioner.me.arch
-  os                      = "linux"
-  dir                     = "/workspaces/setup"
-  startup_script_behavior = "blocking"
-
-  # Start Docker daemon (codercom/enterprise-node:ubuntu has Docker pre-installed)
+  arch           = data.coder_provisioner.me.arch
+  os             = "linux"
+  dir            = "/workspaces/setup"
   startup_script = <<-EOT
-    #!/bin/bash
     set -e
-
-    # Start Docker daemon in background
-    sudo dockerd > /var/log/dockerd.log 2>&1 &
-
-    # Wait for Docker to be ready
-    timeout 60 sh -c 'until docker info > /dev/null 2>&1; do sleep 1; done'
-
-    echo "Docker daemon started successfully"
+    set +x
   EOT
 
   display_apps {
@@ -616,6 +614,69 @@ resource "coder_env" "ha_token" {
 }
 
 # ====================
+# Fleet MCP Server
+# ====================
+
+# Generate a random bearer token for fleet-mcp authentication
+resource "random_id" "fleet_mcp_bearer_token" {
+  byte_length = 32
+  keepers = {
+    # Regenerate token when workspace is recreated
+    workspace_id = data.coder_workspace.me.id
+  }
+}
+
+# Fleet MCP auth token for the agent
+resource "coder_env" "fleet_mcp_auth_token" {
+  agent_id = coder_agent.main.id
+  name     = "FLEET_MCP_AUTH_TOKEN"
+  value    = random_id.fleet_mcp_bearer_token.b64_url
+}
+
+# Fleet MCP server script - starts fleet-mcp via supervisord
+resource "coder_script" "fleet_mcp" {
+  agent_id     = coder_agent.main.id
+  display_name = "Fleet MCP Server"
+  icon         = "/icon/cloud.svg"
+  script       = <<-EOT
+    #!/bin/bash
+    set -e
+
+    echo "Starting fleet-mcp"
+
+    # Wait for git repo to be available
+    wait-for-git --dir /workspaces/setup
+
+    supervisord -c /workspaces/setup/libs/coder-devcontainer/supervisord.conf
+
+    # Wait for supervisord to be available on port 9001
+    wait-for-it --service 127.0.0.1:9001 --timeout 60
+
+    # Verify fleet-mcp service is running
+    supervisorctl status fleet-mcp
+  EOT
+  run_on_start = true
+  run_on_stop  = false
+}
+
+# Fleet MCP server app - exposes the HTTP server with healthcheck
+resource "coder_app" "fleet_mcp" {
+  agent_id     = coder_agent.main.id
+  slug         = "fleet-mcp"
+  display_name = "Fleet MCP"
+  icon         = "/icon/cloud.svg"
+  url          = "http://127.0.0.1:8000"
+  subdomain    = false
+  share        = "owner"
+
+  healthcheck {
+    url       = "http://127.0.0.1:8000/health"
+    interval  = 10
+    threshold = 24
+  }
+}
+
+# ====================
 # Claude Code Integration
 # ====================
 
@@ -627,27 +688,43 @@ module "claude_code" {
   workdir                      = "/workspaces/setup"
   ai_prompt                    = data.coder_parameter.ai_prompt.value
   system_prompt                = data.coder_parameter.system_prompt.value
-  install_claude_code          = true
+  install_claude_code          = false
   order                        = 999
   claude_code_oauth_token      = local.claude_code_token
   cli_app                      = true
   continue                     = true
   dangerously_skip_permissions = true
 
-  # Pre-hook script to wait for git repo to be cloned
+  # Pre-hook script to wait for git repo and verify Claude is available
   pre_install_script = <<-EOT
-    # Wait for git clone to complete (check for .git directory)
-    echo "Waiting for git clone to complete..."
-    for i in $(seq 1 120); do
-      if [ -d "/workspaces/setup/.git" ]; then
-        echo "Git repository ready."
-        break
-      fi
-      sleep 1
-    done
-    if [ ! -d "/workspaces/setup/.git" ]; then
-      echo "Warning: Git repository not found after 120 seconds, continuing anyway..."
+    wait-for-git --dir /workspaces/setup
+  EOT
+
+  post_install_script = <<-EOT
+    cd /workspaces/setup
+    # Wait for the Fleet MCP server to be available
+    wait-for-it --service 127.0.0.1:8000 --timeout 120
+
+    # Extract the bearer token from the token file with error handling
+    TOKEN_FILE="$HOME/.fleet-mcp/auth_token"
+    if [ ! -f "$TOKEN_FILE" ]; then
+      echo "Error: Token file $TOKEN_FILE does not exist." >&2
+      exit 1
     fi
+    TOKEN=$(jq -r '.value' "$TOKEN_FILE" 2>/dev/null)
+    if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+      echo "Error: Failed to extract token from $TOKEN_FILE." >&2
+      exit 1
+    fi
+
+    # Idempotent MCP server configuration - remove then add for consistency
+    echo "Configuring MCP servers idempotently..."
+
+    # Remove existing fleet-mcp server if it exists (ignore errors)
+    claude mcp remove "fleet-mcp" 2>/dev/null || true
+    claude mcp add --transport http "fleet-mcp" http://127.0.0.1:8000/mcp --header "Authorization: Bearer $TOKEN"
+
+    echo "MCP configuration completed. MCP servers configured idempotently."
   EOT
 
   # This enables Coder Tasks
@@ -706,12 +783,12 @@ resource "coder_metadata" "workspace_info" {
   count       = data.coder_workspace.me.start_count
   resource_id = kubernetes_deployment_v1.workspace[0].id
   item {
-    key   = "base_image"
-    value = "ubuntu:noble"
+    key   = "image"
+    value = envbuilder_cached_image.workspace.image
   }
   item {
-    key   = "devcontainer_cli"
-    value = "enabled"
+    key   = "cached"
+    value = envbuilder_cached_image.workspace.exists ? "yes" : "no (building)"
   }
   item {
     key   = "cache_repo"
@@ -728,5 +805,14 @@ resource "coder_metadata" "workspace_info" {
   item {
     key   = "volume_size"
     value = "${data.coder_parameter.workspaces_volume_size.value}Gi"
+  }
+}
+
+# Store the bearer token as workspace metadata for fleet-mcp
+resource "coder_metadata" "fleet_mcp_bearer_token" {
+  resource_id = coder_agent.main.id
+  item {
+    key   = "fleet_mcp_bearer_token"
+    value = random_id.fleet_mcp_bearer_token.b64_url
   }
 }

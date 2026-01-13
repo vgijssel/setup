@@ -2,8 +2,7 @@
   "name": "Setup Development Environment (Docker-in-Docker)",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": "..",
-    "options": ["--network=host"]
+    "context": ".."
   },
   "remoteUser": "coder",
   "privileged": true,
