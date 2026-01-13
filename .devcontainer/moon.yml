@@ -42,8 +42,6 @@ tasks:
       # This test can be flacky due to external network calls, so we allow retries
       retryCount: 3
 
-  # Test envbuilder locally with similar flags to coder-devcontainer-kubernetes/main.tf
-  # This provides a fast validation loop for testing envbuilder compatibility
   envbuilder-test:
     command: ./envbuilder-test.sh
     inputs:
@@ -56,4 +54,3 @@ tasks:
       - glob: /third_party/vendir/shell/**/*
       - glob: /libs/devenv/**/*
       - file: /.chezmoiroot
-    local: true
