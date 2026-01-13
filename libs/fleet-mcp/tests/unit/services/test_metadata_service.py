@@ -97,10 +97,12 @@ async def test_metadata_service_executes_task_from_taskfile_directory():
         mock_process.returncode = 0
         mock_subprocess.return_value = mock_process
 
-        # Execute a task
-        task_def = {"desc": "Test task", "meta": {"include_in_list": True}}
+        # Execute all tasks (now uses batch execution)
+        metadata_tasks = {
+            "test_task": {"desc": "Test task", "meta": {"include_in_list": True}}
+        }
 
-        await service._execute_task("test_task", task_def)
+        await service._execute_all_tasks(metadata_tasks)
 
         # Verify task was executed with correct cwd
         mock_subprocess.assert_called_once()
