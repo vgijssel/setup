@@ -19,23 +19,23 @@ set -euo pipefail
 # Pin to specific version for reproducibility (avoid :latest)
 ENVBUILDER_IMAGE="${ENVBUILDER_IMAGE:-ghcr.io/coder/envbuilder:1.2.0}"
 
-# Local repo path - mount local directory instead of git clone
-LOCAL_REPO_PATH="$SETUP_DIR"
+# Clone local repo to a temporary directory for clean testing
+# This ensures envbuilder sees a clean git state without uncommitted changes
+TEMP_REPO_DIR=$(mktemp -d)
+echo "Cloning local repo to temporary directory..."
+git clone "$SETUP_DIR" "$TEMP_REPO_DIR"
+LOCAL_REPO_PATH="$TEMP_REPO_DIR"
 
 # Container name
 CONTAINER_NAME="envbuilder-test-$$"
 
-# TODO: do we need this?
-# Create a temporary Docker config directory without broken credential helpers
-# This avoids issues with VS Code devcontainer credential helpers
-DOCKER_CONFIG_DIR=$(mktemp -d)
-echo '{"auths":{}}' > "${DOCKER_CONFIG_DIR}/config.json"
-export DOCKER_CONFIG="${DOCKER_CONFIG_DIR}"
+# Unset DOCKER_CONFIG to avoid issues with VS Code devcontainer credential helpers
+unset DOCKER_CONFIG
 
 echo "=== Envbuilder Test Configuration ==="
 echo "ENVBUILDER_IMAGE: ${ENVBUILDER_IMAGE}"
-echo "LOCAL_REPO_PATH: ${LOCAL_REPO_PATH}"
-echo "MODE: Local files (no git clone)"
+echo "TEMP_REPO_DIR: ${TEMP_REPO_DIR}"
+echo "MODE: Git clone of local repo"
 echo "CONTAINER_NAME: ${CONTAINER_NAME}"
 echo "======================================"
 echo ""
@@ -45,7 +45,7 @@ cleanup() {
     echo ""
     echo "=== Cleanup ==="
     docker rm -f "${CONTAINER_NAME}" 2>/dev/null || true
-    rm -rf "${DOCKER_CONFIG_DIR}" 2>/dev/null || true
+    rm -rf "${TEMP_REPO_DIR}" 2>/dev/null || true
     # Note: Registry persists between runs for cache
     # To clear: docker volume rm envbuilder-registry-data
     # To stop:  docker rm -f envbuilder-registry
@@ -71,12 +71,11 @@ CACHED_TAGS=$(curl -s "http://localhost:${REGISTRY_PORT}/v2/envbuilder-cache/tag
 echo "Cached layers: ${CACHED_TAGS}"
 echo ""
 
-# Run envbuilder with local files mode
-# See: https://github.com/coder/envbuilder/blob/main/docs/using-local-files.md
+# Run envbuilder with cloned local repo
 #
 # Key difference from main.tf:
-#   - No ENVBUILDER_GIT_URL: Uses mounted local files instead
-#   - Mount LOCAL_REPO_PATH to /workspaces/setup
+#   - No ENVBUILDER_GIT_URL: Uses mounted local clone instead of remote git
+#   - Mount cloned repo to /workspaces/setup
 #   - Much faster iteration since no network git clone
 echo "=== Running Envbuilder ==="
 docker run \
