@@ -32,25 +32,28 @@ RUN groupadd --gid ${USER_GID} coder \
     && chsh -s /usr/bin/zsh root
 
 # Copy pre-cached Docker GPG key and docker-in-docker installation script
-COPY --chown=coder:coder .devcontainer/docker-gpg.key /tmp/docker-gpg.key
 COPY --chown=coder:coder third_party/vendir/shell/docker-in-docker/install.sh /tmp/docker-in-docker-install.sh
 
 # Install docker-in-docker with inline environment variables
 # Patch the install script to use the pre-cached GPG key instead of downloading
 RUN chmod +x /tmp/docker-in-docker-install.sh && \
-    sed -i 's|curl -fsSL https://download.docker.com/linux/\${ID}/gpg|cat /tmp/docker-gpg.key|g' /tmp/docker-in-docker-install.sh && \
     USERNAME=coder \
     USE_MOBY="true" \
     DOCKERDASHCOMPOSEVERSION="none" \
     INSTALLDOCKERCOMPOSESWITCH="false" \
     /tmp/docker-in-docker-install.sh && \
-    rm /tmp/docker-in-docker-install.sh /tmp/docker-gpg.key
+    rm /tmp/docker-in-docker-install.sh 
 
 # Entrypoint for docker-in-docker initialization
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 
 # Default command to keep the container running when started with VSCode
 CMD [ "sleep", "infinity" ]
+
+# Create workspace directory with proper ownership before switching to coder user
+# This ensures coder user can write to /workspaces/setup in all container builders
+# (WORKDIR creates directories as root in Kaniko/envbuilder)
+RUN mkdir -p /workspaces/setup && chown coder:coder /workspaces/setup
 
 # Set default user
 USER coder
