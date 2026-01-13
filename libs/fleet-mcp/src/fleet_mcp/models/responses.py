@@ -110,6 +110,13 @@ class RestartAgentResponse(BaseModel):
     message: str
 
 
+class UpdateAgentResponse(BaseModel):
+    """Response for update_agent tool."""
+
+    agent: Agent
+    message: str
+
+
 class StartTaskResponse(BaseModel):
     """Response for start_agent_task tool."""
 

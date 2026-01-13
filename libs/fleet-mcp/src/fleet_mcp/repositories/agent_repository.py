@@ -168,6 +168,62 @@ class AgentRepository:
         except Exception as e:
             raise CoderAPIError(f"Failed to restart agent '{agent_name}': {e}") from e
 
+    async def update(
+        self, agent_name: str, template_version_id: str | None = None
+    ) -> Agent:
+        """Update an agent to a new template version and restart.
+
+        This method implements the two-step workflow required by Coder API:
+        1. Stop the workspace and wait for completion
+        2. Start with the new template version
+
+        Args:
+            agent_name: Agent name (workspace name)
+            template_version_id: Template version UUID to update to.
+                                If None, uses the active version of the agent's template.
+
+        Returns:
+            Updated Agent domain model after update and restart
+
+        Raises:
+            AgentNotFoundError: If agent doesn't exist
+            CoderAPIError: If workspace update fails
+        """
+        try:
+            # Find workspace by name
+            agent = await self.get_by_name(agent_name)
+
+            # If no template_version_id provided, get the active version
+            if template_version_id is None:
+                # Get the workspace to find its template_id
+                workspace = await self.client.get_workspace(agent.workspace_id)
+                template_id = workspace.get("template_id")
+
+                if not template_id:
+                    raise CoderAPIError(
+                        f"Agent '{agent_name}' has no template_id in workspace data"
+                    )
+
+                # Get the template's active version
+                template = await self.client.get_template(template_id)
+                template_version_id = template.get("active_version_id")
+
+                if not template_version_id:
+                    raise CoderAPIError(
+                        f"Template {template_id} has no active version available"
+                    )
+
+            # Update the workspace with the new template version
+            workspace = await self.client.update_workspace(
+                agent.workspace_id, template_version_id
+            )
+
+            return await self._workspace_to_agent(workspace)
+        except AgentNotFoundError:
+            raise
+        except Exception as e:
+            raise CoderAPIError(f"Failed to update agent '{agent_name}': {e}") from e
+
     def _are_all_workspace_agents_healthy(self, workspace: dict[str, Any]) -> bool:
         """Check if all agents within the workspace are healthy and ready.
 

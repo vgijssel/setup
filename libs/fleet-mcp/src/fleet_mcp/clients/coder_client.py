@@ -232,13 +232,86 @@ class CoderClient:
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e
 
+    async def update_workspace(
+        self,
+        workspace_id: str,
+        template_version_id: str,
+        max_stop_attempts: int = 60,
+        max_start_attempts: int = 120,
+    ) -> dict[str, Any]:
+        """Update a workspace to a new template version by stopping and restarting.
+
+        This implements the two-step workflow required by Coder API:
+        1. Stop the workspace and wait for completion
+        2. Start with the new template version
+
+        Note: Coder does not provide a single "update & restart" endpoint.
+        See: https://github.com/coder/coder/issues/19331
+
+        Args:
+            workspace_id: Workspace UUID
+            template_version_id: New template version UUID to apply
+            max_stop_attempts: Maximum polling attempts for stop completion (default: 60)
+            max_start_attempts: Maximum polling attempts for start completion (default: 120)
+
+        Returns:
+            Started workspace data from Coder API with updated template version
+
+        Raises:
+            NotFoundError: If workspace doesn't exist
+            HTTPError: If API request fails or build doesn't complete in time
+        """
+        try:
+            # Step 1: Stop the workspace
+            stop_response = await self.client.post(
+                f"{self.base_url}/api/v2/workspaces/{workspace_id}/builds",
+                json={"transition": "stop"},
+            )
+            stop_response.raise_for_status()
+            stop_build_data = stop_response.json()
+            stop_build_id = stop_build_data.get("id")
+
+            # Step 2: Wait for the stop build to complete
+            if stop_build_id:
+                await self._wait_for_build_completion(
+                    stop_build_id, max_attempts=max_stop_attempts
+                )
+
+            # Step 3: Start with new template version
+            start_response = await self.client.post(
+                f"{self.base_url}/api/v2/workspaces/{workspace_id}/builds",
+                json={
+                    "transition": "start",
+                    "template_version_id": template_version_id,
+                },
+            )
+            start_response.raise_for_status()
+            start_build_data = start_response.json()
+            start_build_id = start_build_data.get("id")
+
+            # Step 4: Wait for the start build to complete
+            if start_build_id:
+                await self._wait_for_build_completion(
+                    start_build_id, max_attempts=max_start_attempts
+                )
+
+            # Step 5: Return the updated workspace data
+            return await self.get_workspace(workspace_id)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                raise NotFoundError(f"Workspace {workspace_id} not found") from e
+            self._handle_http_error(e)
+        except httpx.RequestError as e:
+            raise HTTPError(f"Failed to connect to Coder API: {e}") from e
+
     async def _wait_for_build_completion(
         self, build_id: str, max_attempts: int = 60, delay_seconds: float = 1.0
     ) -> None:
         """Wait for a workspace build to complete.
 
-        Polls the build status until it reaches a terminal state (stopped, failed, canceled)
-        or the maximum number of attempts is reached.
+        Polls the build status until it reaches a completion state:
+        - For stop/delete builds: "stopped", "failed", "canceled", "deleted"
+        - For start builds: "running", "failed", "canceled"
 
         Args:
             build_id: Workspace build UUID
@@ -250,7 +323,8 @@ class CoderClient:
         """
         import asyncio
 
-        terminal_states = {"stopped", "failed", "canceled"}
+        # States that indicate build completion (any transition type)
+        completion_states = {"stopped", "running", "failed", "canceled", "deleted"}
 
         for _attempt in range(max_attempts):
             try:
@@ -261,7 +335,7 @@ class CoderClient:
                 build_data = response.json()
                 status = build_data.get("status", "").lower()
 
-                if status in terminal_states:
+                if status in completion_states:
                     return  # Build completed
 
                 # Wait before next poll
@@ -442,6 +516,32 @@ class CoderClient:
                 raise NotFoundError(
                     f"Workspace presets not found for template {template_id}"
                 ) from e
+            self._handle_http_error(e)
+        except httpx.RequestError as e:
+            raise HTTPError(f"Failed to connect to Coder API: {e}") from e
+
+    async def get_template_version(self, version_id: str) -> dict[str, Any]:
+        """Get template version details by ID.
+
+        Args:
+            version_id: Template version UUID
+
+        Returns:
+            Template version dictionary from Coder API
+
+        Raises:
+            NotFoundError: If template version doesn't exist
+            HTTPError: If API request fails
+        """
+        try:
+            response = await self.client.get(
+                f"{self.base_url}/api/v2/templateversions/{version_id}"
+            )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 404:
+                raise NotFoundError(f"Template version {version_id} not found") from e
             self._handle_http_error(e)
         except httpx.RequestError as e:
             raise HTTPError(f"Failed to connect to Coder API: {e}") from e
