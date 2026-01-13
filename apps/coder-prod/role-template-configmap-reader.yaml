@@ -8,6 +8,6 @@ metadata:
     app.kubernetes.io/component: rbac
 rules:
   - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "list"]
-    resourceNames: ["coder-workspace-config"]
+    resources: [configmaps]
+    verbs: [get, list]
+    resourceNames: [coder-workspace-config]

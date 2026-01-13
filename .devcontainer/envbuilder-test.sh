@@ -23,8 +23,8 @@ ENVBUILDER_IMAGE="${ENVBUILDER_IMAGE:-ghcr.io/coder/envbuilder:1.2.0}"
 # This ensures envbuilder sees a clean git state without uncommitted changes
 TEMP_REPO_DIR=$(mktemp -d)
 echo "Cloning local repo to temporary directory..."
-git clone "$SETUP_DIR" "$TEMP_REPO_DIR"
-LOCAL_REPO_PATH="$TEMP_REPO_DIR"
+git clone "${SETUP_DIR}" "${TEMP_REPO_DIR}"
+LOCAL_REPO_PATH="${TEMP_REPO_DIR}"
 
 # Container name
 CONTAINER_NAME="envbuilder-test-$$"

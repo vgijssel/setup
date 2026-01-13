@@ -10,9 +10,9 @@ metadata:
   namespace: coder
 rules:
   - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "list"]
-    resourceNames: ["coder-workspace-config"]
+    resources: [configmaps]
+    verbs: [get, list]
+    resourceNames: [coder-workspace-config]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
