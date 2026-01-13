@@ -33,9 +33,6 @@ lint:
         - bin/activate-hermit
         - bin/activate-hermit.fish
         - bin/hermit
-        - bin/internal/bin/activate-hermit
-        - bin/internal/bin/activate-hermit.fish
-        - bin/internal/bin/hermit
 
         # Generated files from Windmill
         - apps/windmill/f/**/*.script.yaml
