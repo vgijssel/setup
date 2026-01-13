@@ -1,2 +1,5 @@
 # Skip global compinit on Linux to avoid conflicts
 skip_global_compinit=1
+
+# Source shared terminal environment variables (must be in .zshenv for all shell types)
+source ~/.terminal_env.sh
