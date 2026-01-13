@@ -3,11 +3,7 @@
   "build": {
     "dockerfile": "Dockerfile",
     "context": "..",
-    "cacheFrom": ["registry.local/coder-cache:latest"],
-    "options": [
-      "--cache-to=type=registry,ref=registry.local/coder-cache:latest,mode=max",
-      "--network=host"
-    ]
+    "options": ["--network=host"]
   },
   "remoteUser": "coder",
   "privileged": true,
