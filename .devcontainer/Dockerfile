@@ -61,10 +61,6 @@ USER coder
 # Set working directory
 WORKDIR /workspaces/setup
 
-# Build argument to control bin directory location
-# - envbuilder/Kaniko: /tmp/bin (default) - avoids symlink issues
-# - devcontainer/docker: /workspaces/setup/bin
-
 # Copy necessary files for chezmoi setup
 COPY --chown=coder:coder .envrc /workspaces/setup/.envrc
 
@@ -77,7 +73,7 @@ COPY --chown=coder:coder .envrc /workspaces/setup/.envrc
 # copy to the final location, the symlinks are resolved within the container runtime.
 # Note: Any directory containing symlinks added to this Dockerfile needs this workaround.
 COPY --chown=coder:coder bin /tmp/bin
-RUN mkdir -p /workspaces/setup/bin && cp -r /tmp/bin/* /workspaces/setup/bin/ && rm -rf /tmp/bin
+RUN sudo mkdir -p /workspaces/setup/bin && sudo cp -r /tmp/bin/* /workspaces/setup/bin/ && sudo chown -R coder:coder /workspaces/setup/bin && rm -rf /tmp/bin
 
 COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell

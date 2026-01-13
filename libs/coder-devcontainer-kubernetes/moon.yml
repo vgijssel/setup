@@ -13,7 +13,10 @@ tasks:
   init:
     command: terraform init -backend=false
     options:
-      cache: true
+      cache: false
+    # TODO: currently too large to cache with bazel-remote and Backblaze B2
+    #    outputs:
+    #      - .terraform
     inputs:
       - glob: ./**/*.tf
       - glob: ./**/*.hcl

@@ -15,7 +15,7 @@ tasks:
     local: true
 
   test:
-    script: chezmoi apply --force --verbose && goss validate
+    script: echo $PATH && env && chezmoi apply --force --verbose && goss validate
     deps:
       - claude-code:build
       - vendir:build
