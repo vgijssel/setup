@@ -11,7 +11,7 @@
 set -eo pipefail
 
 # Get the repository root directory
-LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/..")"
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
 
 # Path to the internal direnv binary
 DIRENV_BIN="${LOCAL_SETUP_DIR}/bin/direnv"

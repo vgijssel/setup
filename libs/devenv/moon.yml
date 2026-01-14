@@ -14,11 +14,8 @@ tasks:
     command: chezmoi-wrapper apply --verbose
     local: true
 
-  kerk:
-    script: ../../bin/exec echo $PATH
-
   test:
-    script: echo $PATH && env && chezmoi-wrapper apply --force --verbose && goss validate
+    script: chezmoi apply --force --verbose && goss validate
     deps:
       - claude-code:build
       - vendir:build
