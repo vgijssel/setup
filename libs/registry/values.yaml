@@ -10,7 +10,7 @@ replicaCount: 1
 # Storage configuration
 storage:
   size: 40Gi
-  storageClassName: kubevirt
+  storageClassName: replicated
 
 # Garbage collection configuration
 gc:

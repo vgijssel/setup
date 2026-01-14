@@ -51,7 +51,7 @@ spec:
   resources:
     requests:
       storage: 40Gi
-  storageClassName: kubevirt
+  storageClassName: replicated
 ---
 # Source: registry/templates/service.yaml
 apiVersion: v1

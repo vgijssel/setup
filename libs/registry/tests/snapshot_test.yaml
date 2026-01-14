@@ -8,7 +8,7 @@ replicaCount: 1
 
 storage:
   size: 40Gi
-  storageClassName: kubevirt
+  storageClassName: replicated
 
 gc:
   schedule: "0 */4 * * *"
