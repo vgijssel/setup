@@ -39,7 +39,7 @@ def ensure_directory_exists(directory):
 
 def run_chezmoi_command(command):
     """Run a chezmoi command and return its output."""
-    full_command = ["chezmoi"] + command
+    full_command = ["chezmoi-wrapper"] + command
     try:
         result = subprocess.run(
             full_command,

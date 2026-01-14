@@ -81,7 +81,7 @@ COPY --chown=coder:coder libs/devenv /workspaces/setup/libs/devenv
 COPY --chown=coder:coder .chezmoiroot /workspaces/setup/.chezmoiroot
 
 # Initialize and apply chezmoi configuration
-RUN bin/exec chezmoi apply --verbose
+RUN bin/chezmoi-wrapper apply --verbose
 
 # Eager load Spaceship prompt to avoid delays on first prompt
 RUN zsh -ic 'exit 0'

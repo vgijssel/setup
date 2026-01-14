@@ -1,7 +1,7 @@
 #!/bin/bash
-# Binstub for chezmoi
+# Wrapper for chezmoi that sets the correct source directory and config
 
-LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/../../.." || true)"
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
 EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
 CHEZMOI_BIN="${LOCAL_SETUP_DIR}"/bin/chezmoi
 

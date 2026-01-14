@@ -11,11 +11,14 @@ tags:
   - macos
 tasks:
   apply:
-    command: chezmoi apply --verbose
+    command: chezmoi-wrapper apply --verbose
     local: true
 
+  kerk:
+    script: ../../bin/exec echo $PATH
+
   test:
-    script: echo $PATH && env && chezmoi apply --force --verbose && goss validate
+    script: echo $PATH && env && chezmoi-wrapper apply --force --verbose && goss validate
     deps:
       - claude-code:build
       - vendir:build
