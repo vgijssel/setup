@@ -426,23 +426,11 @@ resource "kubernetes_deployment_v1" "workspace" {
         }
       }
       spec {
-        # Pod-level security context - envbuilder needs root to build images
-        # The devcontainer.json will set the correct user for the workspace
         security_context {}
-        #        security_context {
-        #          run_as_user  = 0
-        #          run_as_group = 0
-        #          fs_group     = 0
-        #        }
 
         container {
           name  = "dev"
           image = envbuilder_cached_image.workspace.image
-          # When using a cached image, run init_script; otherwise envbuilder handles startup
-          #           command = envbuilder_cached_image.workspace.exists ? [
-          #             "sh", "-c",
-          #             coder_agent.main.init_script
-          #           ] : null
 
           # Dynamic environment variables from envbuilder
           dynamic "env" {
@@ -482,10 +470,6 @@ resource "kubernetes_deployment_v1" "workspace" {
             name       = "workspaces"
             mount_path = "/workspaces"
           }
-          #           # Envbuilder needs root to build images - user is set by devcontainer.json
-          #           security_context {
-          #             run_as_user = 0
-          #           }
         }
         volume {
           name = "workspaces"
@@ -494,21 +478,21 @@ resource "kubernetes_deployment_v1" "workspace" {
           }
         }
         # Pod anti-affinity to spread workspaces across nodes
-        #        affinity {
-        #          pod_anti_affinity {
-        #            preferred_during_scheduling_ignored_during_execution {
-        #              weight = 1
-        #              pod_affinity_term {
-        #                topology_key = "kubernetes.io/hostname"
-        #                label_selector {
-        #                  match_labels = {
-        #                    "app.kubernetes.io/name" = "coder-workspace"
-        #                  }
-        #                }
-        #              }
-        #            }
-        #          }
-        #        }
+        affinity {
+          pod_anti_affinity {
+            preferred_during_scheduling_ignored_during_execution {
+              weight = 1
+              pod_affinity_term {
+                topology_key = "kubernetes.io/hostname"
+                label_selector {
+                  match_labels = {
+                    "app.kubernetes.io/name" = "coder-workspace"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
