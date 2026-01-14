@@ -8,8 +8,8 @@ vars:
 tasks:
   # Metadata fields: Tasks with 'meta' key are collected as workspace metadata
   # Meta key format: { include_in_list: boolean }
-  # - include_in_list: true  → shown in list_agents (summary view)
-  # - include_in_list: false → only shown in show_agent (detail view)
+  # - include_in_list: true  -> shown in list_agents (summary view)
+  # - include_in_list: false -> only shown in show_agent (detail view)
 
   pull_request_number:
     desc: The number of the current pull request on GitHub

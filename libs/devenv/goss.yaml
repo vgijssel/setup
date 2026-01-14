@@ -105,7 +105,7 @@ command:
     timeout: 60000
 
   chezmoi_version:
-    exec: chezmoi --version | awk '{print $3}' | tr -d 'v,\n'
+    exec: chezmoi-wrapper --version | awk '{print $3}' | tr -d 'v,\n'
     exit-status: 0
     stdout:
       semver-constraint: ">=2.65.1"

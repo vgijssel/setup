@@ -33,9 +33,6 @@ lint:
         - bin/activate-hermit
         - bin/activate-hermit.fish
         - bin/hermit
-        - bin/internal/bin/activate-hermit
-        - bin/internal/bin/activate-hermit.fish
-        - bin/internal/bin/hermit
 
         # Generated files from Windmill
         - apps/windmill/f/**/*.script.yaml
@@ -57,6 +54,7 @@ lint:
         - libs/1password-secrets/templates/**
         - libs/internal-networking/templates/**
         - libs/external-service/templates/**
+        - libs/registry/templates/**
         - libs/devenv/goss.yaml
     # Ignore prettier syntax errors for Helm templates with complex syntax
     - linters: [prettier]
@@ -65,6 +63,7 @@ lint:
         - libs/1password-secrets/templates/**
         - libs/internal-networking/templates/**
         - libs/external-service/templates/**
+        - libs/registry/templates/**
   enabled:
     - ansible-lint@24.10.0
     - actionlint@1.7.1

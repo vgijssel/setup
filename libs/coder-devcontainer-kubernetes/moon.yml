@@ -7,12 +7,13 @@ tags:
   - coder
   - devcontainer
   - terraform
+  - kubernetes
   - development-environment
 tasks:
   init:
     command: terraform init -backend=false
     options:
-      cache: true
+      cache: false
     # TODO: currently too large to cache with bazel-remote and Backblaze B2
     #    outputs:
     #      - .terraform
@@ -30,7 +31,6 @@ tasks:
     inputs:
       - glob: ./**/*.tf
       - glob: ./**/*.hcl
-      - file: ./package.json
       - file: ./supervisord.conf
       - file: ./Taskfile.yml
       - file: ./version.txt

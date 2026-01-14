@@ -25,6 +25,8 @@ runs:
 
     - name: Init Hermit
       uses: cashapp/activate-hermit@v1
+      with:
+        cache: true
 
     - name: Setup direnv
       uses: HatsuneMiku3939/direnv-action@v1

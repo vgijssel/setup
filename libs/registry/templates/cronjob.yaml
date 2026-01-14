@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "registry.fullname" . }}-gc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "registry.gcLabels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.gc.schedule }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.gc.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.gc.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "registry.gcSelectorLabels" . | nindent 12 }}
+        spec:
+          containers:
+            - name: gc
+              image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+              command:
+                - /bin/registry
+                - garbage-collect
+                - /etc/docker/registry/config.yml
+              volumeMounts:
+                - name: registry-data
+                  mountPath: /var/lib/registry
+                - name: registry-config
+                  mountPath: /etc/docker/registry
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+          restartPolicy: OnFailure
+          volumes:
+            - name: registry-data
+              persistentVolumeClaim:
+                claimName: {{ include "registry.pvcName" . }}
+            - name: registry-config
+              configMap:
+                name: {{ include "registry.configMapName" . }}

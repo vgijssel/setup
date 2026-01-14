@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     sudo \
     locales \
     zsh \
+    openssl \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure locale
@@ -49,6 +50,11 @@ ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 # Default command to keep the container running when started with VSCode
 CMD [ "sleep", "infinity" ]
 
+# Create workspace directory with proper ownership before switching to coder user
+# This ensures coder user can write to /workspaces/setup in all container builders
+# (WORKDIR creates directories as root in Kaniko/envbuilder)
+RUN mkdir -p /workspaces/setup && chown coder:coder /workspaces/setup
+
 # Set default user
 USER coder
 
@@ -57,26 +63,31 @@ WORKDIR /workspaces/setup
 
 # Copy necessary files for chezmoi setup
 COPY --chown=coder:coder .envrc /workspaces/setup/.envrc
-COPY --chown=coder:coder bin /workspaces/setup/bin
+
+# Workaround for Kaniko/envbuilder symlink issue:
+# Direct COPY to /workspaces/setup/bin fails with:
+#   "copying dir: symlink .bazel-remote-2.5.0.pkg: no such file or directory"
+# Kaniko (used by envbuilder) mounts files from the git checkout. Copying a symlink
+# from mounted files into the image layer fails if the symlink target isn't already
+# in the layer. By first copying to /tmp/bin (outside the mount), then using RUN to
+# copy to the final location, the symlinks are resolved within the container runtime.
+# Note: Any directory containing symlinks added to this Dockerfile needs this workaround.
+# IMPORTANT: Use /tmp/bin/. instead of /tmp/bin/* to include dotfiles (.direnv-*.pkg etc.)
+COPY --chown=coder:coder bin /tmp/bin
+RUN sudo mkdir -p /workspaces/setup/bin && sudo cp -r /tmp/bin/. /workspaces/setup/bin/ && sudo chown -R coder:coder /workspaces/setup/bin && rm -rf /tmp/bin
+
 COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell
 COPY --chown=coder:coder libs/devenv /workspaces/setup/libs/devenv
 COPY --chown=coder:coder .chezmoiroot /workspaces/setup/.chezmoiroot
 
-# Initialize and apply chezmoi configuration using direnv
-RUN bin/exec chezmoi apply --verbose
+# Initialize and apply chezmoi configuration
+RUN bin/chezmoi-wrapper apply --verbose
 
 # Eager load Spaceship prompt to avoid delays on first prompt
-# Passing the -i flag to zsh forces it to load as an interactive shell
 RUN zsh -ic 'exit 0'
 
-# Eager load commonly used tools for coder-devcontainer
+# Eager load commonly used tools
 RUN bin/exec python --version
 RUN bin/exec wait-for-it --version
 
-# Remove all the files so Coder can clone the repository here.
-# If there are files inside the folder the clone will fail.
-RUN rm -rf /workspaces/setup
-
-# Ensure the /workspaces/setup directory exists and is owned by coder
-RUN mkdir -p /workspaces/setup && chown coder:coder /workspaces/setup

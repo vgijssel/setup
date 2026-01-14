@@ -41,3 +41,16 @@ tasks:
       cache: true
       # This test can be flacky due to external network calls, so we allow retries
       retryCount: 3
+
+  envbuilder-test:
+    command: ./envbuilder-test.sh
+    inputs:
+      - file: Dockerfile
+      - file: devcontainer.json
+      - file: envbuilder-test.sh
+      - file: /.envrc
+      - glob: /bin/**/*
+      - glob: /third_party/hermit/**/*
+      - glob: /third_party/vendir/shell/**/*
+      - glob: /libs/devenv/**/*
+      - file: /.chezmoiroot

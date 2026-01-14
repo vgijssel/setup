@@ -1,0 +1,44 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: registry
+  namespace: flux-system
+spec:
+  interval: 30m
+  targetNamespace: coder
+  chart:
+    spec:
+      chart: ./libs/registry
+      sourceRef:
+        kind: GitRepository
+        name: setup
+        namespace: flux-system
+      interval: 12h
+      reconcileStrategy: Revision
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    image:
+      repository: registry
+      tag: 2.8.3
+      pullPolicy: IfNotPresent
+    replicaCount: 1
+    storage:
+      size: 40Gi
+      storageClassName: kubevirt
+    gc:
+      schedule: 0 */4 * * *
+      successfulJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 3
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi

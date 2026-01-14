@@ -16,6 +16,7 @@ spec:
   targetNamespace: coder
   dependsOn:
     - name: 1password-secrets
+    - name: registry
   install:
     createNamespace: true
     remediation:
@@ -25,6 +26,32 @@ spec:
       retries: 3
   values:
     coder:
+      serviceAccount:
+        workspacePerms: true
+        enableDeployments: true
+        extraRules:
+          # Allow reading workspace config for templates
+          - apiGroups: [""]
+            resources: [configmaps]
+            resourceNames: [coder-workspace-config]
+            verbs: [get, list]
+        workspaceNamespaces:
+          - name: coder-workspace
+            workspacePerms: true
+            enableDeployments: true
+            extraRules:
+              # For web terminal and log viewing in Coder UI
+              - apiGroups: [""]
+                resources: [pods/log, pods/exec]
+                verbs: [get, list, create]
+              # For workspace networking
+              - apiGroups: [""]
+                resources: [services]
+                verbs: [get, list, watch, create, update, patch, delete]
+              # For workspace configuration
+              - apiGroups: [""]
+                resources: [configmaps, secrets]
+                verbs: [get, list, watch, create, update, patch, delete]
       env:
         # PostgreSQL connection components from 1Password
         - name: PG_USER
@@ -77,8 +104,34 @@ spec:
           value: openid profile email offline_access
         - name: CODER_DISABLE_PASSWORD_AUTH
           value: "true"
-        - name: CODER_DISABLE_GITHUB_AUTH
-          value: "true"
+        # GitHub OAuth configuration
+        - name: CODER_OAUTH2_GITHUB_ALLOW_SIGNUPS
+          value: "false"
+        - name: CODER_OAUTH2_GITHUB_ALLOWED_ORGS
+          value: vgijssel
+        # GitHub external authentication
+        - name: CODER_EXTERNAL_AUTH_0_ID
+          value: primary-github
+        - name: CODER_EXTERNAL_AUTH_0_TYPE
+          value: github
+        - name: CODER_EXTERNAL_AUTH_0_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-coder-prod-external-authentication
+              key: username
+        - name: CODER_EXTERNAL_AUTH_0_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: github-coder-prod-external-authentication
+              key: credential
+        # 1Password Connect configuration for Terraform provider
+        - name: OP_CONNECT_HOST
+          value: http://onepassword-connect.1password.svc.cluster.local:8080
+        - name: OP_CONNECT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: onepassword-connect-token-setup-devenv
+              key: credential
       # Use ClusterIP since we expose via Tailscale Ingress
       service:
         type: ClusterIP
@@ -88,6 +141,11 @@ spec:
         className: nginx
         host: coder.enigma.vgijssel.nl
         wildcardHost: "*.coder.enigma.vgijssel.nl"
+        annotations:
+          # WebSocket support - prevent 60s idle timeout disconnections
+          nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+          nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+          nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
         tls:
           enable: false
       # Resource constraints

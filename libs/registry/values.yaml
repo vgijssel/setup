@@ -1,0 +1,32 @@
+# Docker Registry configuration
+
+image:
+  repository: registry
+  tag: 2.8.3
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Storage configuration
+storage:
+  size: 40Gi
+  storageClassName: replicated
+
+# Garbage collection configuration
+gc:
+  schedule: 0 */4 * * * # Every 4 hours
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+# Resource configuration
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Optional overrides
+nameOverride: ""
+fullnameOverride: ""
