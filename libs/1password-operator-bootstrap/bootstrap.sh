@@ -60,11 +60,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate required arguments
-if [[ -z "$CREDENTIALS_REF" ]]; then
+if [[ -z "${CREDENTIALS_REF}" ]]; then
     error "Missing required argument: --credentials-ref"
 fi
 
-if [[ -z "$TOKEN_REF" ]]; then
+if [[ -z "${TOKEN_REF}" ]]; then
     error "Missing required argument: --token-ref"
 fi
 
@@ -78,22 +78,22 @@ kubectl create namespace 1password 2>/dev/null || true
 
 # Read and apply credentials secret
 log "Reading credentials from 1Password..."
-CREDS=$(op read "$CREDENTIALS_REF" | base64)
+CREDS=$(op read "${CREDENTIALS_REF}" | base64)
 
 log "Applying 1password-credentials secret..."
 kubectl create secret generic 1password-credentials \
     --namespace=1password \
-    --from-literal=1password-credentials.json="$CREDS" \
+    --from-literal=1password-credentials.json="${CREDS}" \
     --dry-run=client -o yaml | kubectl apply -f -
 
 # Read and apply operator token secret
 log "Reading operator token from 1Password..."
-TOKEN=$(op read "$TOKEN_REF")
+TOKEN=$(op read "${TOKEN_REF}")
 
 log "Applying 1password-operator-token secret..."
 kubectl create secret generic 1password-operator-token \
     --namespace=1password \
-    --from-literal=token="$TOKEN" \
+    --from-literal=token="${TOKEN}" \
     --dry-run=client -o yaml | kubectl apply -f -
 
 log "1Password operator secrets bootstrapped successfully!"
