@@ -160,7 +160,7 @@ data "coder_parameter" "git_branch" {
   name         = "git_branch"
   display_name = "Git Branch"
   type         = "string"
-  default      = "mg/feat/refactor-coder-workspace"
+  default      = "main"
   description  = "Git branch to checkout for the workspace"
   mutable      = true
 }

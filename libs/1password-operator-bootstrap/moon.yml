@@ -1,0 +1,7 @@
+language: bash
+layer: library
+tags:
+  - scope.lib
+  - type.tool
+  - kubernetes
+tasks: {}

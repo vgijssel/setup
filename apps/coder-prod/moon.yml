@@ -9,7 +9,8 @@ tags:
   - production
 tasks:
   create-1password-secret:
-    command: kubectl create namespace 1password || true && kubectl create secret generic 1password-credentials --namespace=1password --from-literal=1password-credentials.json=\"$(op read 'op://setup-coder-prod/coder-prod Credentials File/1password-credentials.json' | base64)\" --dry-run=client -o yaml | kubectl apply -f - && kubectl create secret generic 1password-operator-token --namespace=1password --from-literal=token=\"$(op read 'op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential')\" --dry-run=client -o yaml | kubectl apply -f -
+    command: $MOON_WORKSPACE_ROOT/libs/1password-operator-bootstrap/bootstrap.sh --credentials-ref "$CREDENTIALS_REF" --token-ref "$TOKEN_REF"
     env:
-      CWD: "{workspaceRoot}"
+      CREDENTIALS_REF: op://setup-coder-prod/coder-prod Credentials File/1password-credentials.json
+      TOKEN_REF: op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential
     local: true
