@@ -2,7 +2,7 @@
 
 image:
   repository: registry
-  tag: "2.8.3"
+  tag: 2.8.3
   pullPolicy: IfNotPresent
 
 replicaCount: 1
@@ -14,7 +14,7 @@ storage:
 
 # Garbage collection configuration
 gc:
-  schedule: "0 */4 * * *" # Every 4 hours
+  schedule: 0 */4 * * * # Every 4 hours
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
 

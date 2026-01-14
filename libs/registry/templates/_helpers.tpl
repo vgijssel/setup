@@ -37,7 +37,7 @@ Common labels
 helm.sh/chart: {{ include "registry.chart" . }}
 {{ include "registry.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/part-of: coder
@@ -60,7 +60,7 @@ helm.sh/chart: {{ include "registry.chart" . }}
 app.kubernetes.io/name: {{ include "registry.name" . }}-gc
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/part-of: coder

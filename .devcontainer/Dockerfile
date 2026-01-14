@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     sudo \
     locales \
     zsh \
+    openssl \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure locale
@@ -71,8 +72,9 @@ COPY --chown=coder:coder .envrc /workspaces/setup/.envrc
 # in the layer. By first copying to /tmp/bin (outside the mount), then using RUN to
 # copy to the final location, the symlinks are resolved within the container runtime.
 # Note: Any directory containing symlinks added to this Dockerfile needs this workaround.
+# IMPORTANT: Use /tmp/bin/. instead of /tmp/bin/* to include dotfiles (.direnv-*.pkg etc.)
 COPY --chown=coder:coder bin /tmp/bin
-RUN sudo mkdir -p /workspaces/setup/bin && sudo cp -r /tmp/bin/* /workspaces/setup/bin/ && sudo chown -R coder:coder /workspaces/setup/bin && rm -rf /tmp/bin
+RUN sudo mkdir -p /workspaces/setup/bin && sudo cp -r /tmp/bin/. /workspaces/setup/bin/ && sudo chown -R coder:coder /workspaces/setup/bin && rm -rf /tmp/bin
 
 COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell

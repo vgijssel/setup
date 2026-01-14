@@ -46,6 +46,7 @@ packages:
       - curl
       - wget
       - ssh
+      - openssl
       - busybox
       - bash
       - sudo

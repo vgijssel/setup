@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/name: registry
     app.kubernetes.io/instance: registry
     app: registry
-    app.kubernetes.io/version: "2.8.3"
+    app.kubernetes.io/version: 2.8.3
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: coder
 data:
@@ -42,7 +42,7 @@ metadata:
     app.kubernetes.io/name: registry
     app.kubernetes.io/instance: registry
     app: registry
-    app.kubernetes.io/version: "2.8.3"
+    app.kubernetes.io/version: 2.8.3
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: coder
 spec:
@@ -64,7 +64,7 @@ metadata:
     app.kubernetes.io/name: registry
     app.kubernetes.io/instance: registry
     app: registry
-    app.kubernetes.io/version: "2.8.3"
+    app.kubernetes.io/version: 2.8.3
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: coder
 spec:
@@ -90,7 +90,7 @@ metadata:
     app.kubernetes.io/name: registry
     app.kubernetes.io/instance: registry
     app: registry
-    app.kubernetes.io/version: "2.8.3"
+    app.kubernetes.io/version: 2.8.3
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: coder
 spec:
@@ -109,7 +109,7 @@ spec:
     spec:
       containers:
         - name: registry
-          image: "registry:2.8.3"
+          image: registry:2.8.3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
@@ -155,12 +155,12 @@ metadata:
     helm.sh/chart: registry-0.1.0
     app.kubernetes.io/name: registry-gc
     app.kubernetes.io/instance: registry
-    app.kubernetes.io/version: "2.8.3"
+    app.kubernetes.io/version: 2.8.3
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: coder
     app: registry-gc
 spec:
-  schedule: "0 */4 * * *"
+  schedule: 0 */4 * * *
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -173,7 +173,7 @@ spec:
         spec:
           containers:
             - name: gc
-              image: "registry:2.8.3"
+              image: registry:2.8.3
               command:
                 - /bin/registry
                 - garbage-collect

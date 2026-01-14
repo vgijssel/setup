@@ -14,3 +14,9 @@ fileGroups:
     - /bin/regctl
     - /bin/.regctl-*
     - /bin/hermit
+
+  chezmoi_bin:
+    - /bin/chezmoi
+    - /bin/.chezmoi-*
+    - /bin/hermit
+    - /bin/chezmoi-wrapper

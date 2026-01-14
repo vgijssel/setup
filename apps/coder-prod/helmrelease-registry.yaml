@@ -25,14 +25,14 @@ spec:
   values:
     image:
       repository: registry
-      tag: "2.8.3"
+      tag: 2.8.3
       pullPolicy: IfNotPresent
     replicaCount: 1
     storage:
       size: 40Gi
       storageClassName: replicated
     gc:
-      schedule: "0 */4 * * *"
+      schedule: 0 */4 * * *
       successfulJobsHistoryLimit: 3
       failedJobsHistoryLimit: 3
     resources:

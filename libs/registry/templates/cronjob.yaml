@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "registry.gcLabels" . | nindent 4 }}
 spec:
-  schedule: {{ .Values.gc.schedule | quote }}
+  schedule: {{ .Values.gc.schedule }}
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: {{ .Values.gc.successfulJobsHistoryLimit }}
   failedJobsHistoryLimit: {{ .Values.gc.failedJobsHistoryLimit }}
@@ -19,7 +19,7 @@ spec:
         spec:
           containers:
             - name: gc
-              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
               command:
                 - /bin/registry
                 - garbage-collect
