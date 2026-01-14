@@ -1,7 +1,9 @@
 #!/bin/bash
 # Wrapper for chezmoi that sets the correct source directory and config
 
-LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
+# Get the directory where this script is located (portable, no realpath needed)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOCAL_SETUP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
 CHEZMOI_BIN="${LOCAL_SETUP_DIR}"/bin/chezmoi
 

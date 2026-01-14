@@ -11,8 +11,8 @@ resources:
   - helmrelease-1password-secrets.yaml
   - helmrelease-registry.yaml
   - helmrelease-coder.yaml
-  - role-template-configmap-reader.yaml
-  - rolebinding-template-configmap-reader.yaml
-  - role-workspace-manager.yaml
-  - rolebinding-workspace-manager.yaml
+  - role-coder-server.yaml
+  - rolebinding-coder-server.yaml
+  - role-coder-workspace.yaml
+  - rolebinding-coder-workspace.yaml
   - configmap-workspace-config.yaml

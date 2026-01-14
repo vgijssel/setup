@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: coder-workspace-manager
+  name: coder-workspace
   namespace: coder-workspace
   labels:
     app.kubernetes.io/name: coder
