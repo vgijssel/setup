@@ -453,6 +453,21 @@ resource "kubernetes_deployment_v1" "workspace" {
             }
           }
 
+          # Disable devcontainer features at container level (must be set before agent starts)
+          # See: https://coder.com/docs/admin/integrations/devcontainers/integration
+          env {
+            name  = "CODER_AGENT_DEVCONTAINERS_ENABLE"
+            value = "false"
+          }
+          env {
+            name  = "CODER_AGENT_DEVCONTAINERS_PROJECT_DISCOVERY_ENABLE"
+            value = "false"
+          }
+          env {
+            name  = "CODER_AGENT_DEVCONTAINERS_DISCOVERY_AUTOSTART_ENABLE"
+            value = "false"
+          }
+
           resources {
             requests = {
               cpu    = "250m"
