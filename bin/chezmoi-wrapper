@@ -2,7 +2,7 @@
 # Wrapper for chezmoi that sets the correct source directory and config
 
 # Get the repository root directory
-LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/..")"
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
 EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
 CHEZMOI_BIN="${LOCAL_SETUP_DIR}"/bin/chezmoi
 
