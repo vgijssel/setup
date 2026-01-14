@@ -1,27 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: registry
-  namespace: coder
+  name: {{ include "registry.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    app: registry
-    app.kubernetes.io/name: registry
-    app.kubernetes.io/part-of: coder
+    {{- include "registry.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: registry
+      {{- include "registry.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: registry
-        app.kubernetes.io/name: registry
-        app.kubernetes.io/part-of: coder
+        {{- include "registry.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: registry
-          image: registry:2.8.3
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 5000
               name: http
@@ -33,12 +30,7 @@ spec:
             - name: registry-data
               mountPath: /var/lib/registry
           resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
+            {{- toYaml .Values.resources | nindent 12 }}
           livenessProbe:
             httpGet:
               path: /v2/
@@ -54,4 +46,4 @@ spec:
       volumes:
         - name: registry-data
           persistentVolumeClaim:
-            claimName: registry-data
+            claimName: {{ include "registry.pvcName" . }}

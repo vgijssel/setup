@@ -16,6 +16,7 @@ spec:
   targetNamespace: coder
   dependsOn:
     - name: 1password-secrets
+    - name: registry
   install:
     createNamespace: true
     remediation:

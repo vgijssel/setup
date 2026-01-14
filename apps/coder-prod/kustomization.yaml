@@ -9,15 +9,10 @@ resources:
   - kustomization-root.yaml
   - helmrelease-1password-operator.yaml
   - helmrelease-1password-secrets.yaml
+  - helmrelease-registry.yaml
   - helmrelease-coder.yaml
   - role-template-configmap-reader.yaml
   - rolebinding-template-configmap-reader.yaml
   - role-workspace-manager.yaml
   - rolebinding-workspace-manager.yaml
-  - clusterrole-workspace-manager.yaml
-  - clusterrolebinding-workspace-manager.yaml
-  - pvc-registry.yaml
-  - deployment-registry.yaml
-  - service-registry.yaml
-  - cronjob-registry-gc.yaml
   - configmap-workspace-config.yaml
