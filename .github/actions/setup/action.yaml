@@ -23,8 +23,8 @@ runs:
         echo "=== Disk usage after cleanup ==="
         df -h
 
-    - name: Init Hermit
-      uses: cashapp/activate-hermit@v1
+    #    - name: Init Hermit
+    #      uses: cashapp/activate-hermit@v1
 
     - name: Setup direnv
       uses: HatsuneMiku3939/direnv-action@v1
