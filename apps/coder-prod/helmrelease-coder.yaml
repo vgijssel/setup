@@ -29,10 +29,29 @@ spec:
       serviceAccount:
         workspacePerms: true
         enableDeployments: true
+        extraRules:
+          # Allow reading workspace config for templates
+          - apiGroups: [""]
+            resources: [configmaps]
+            resourceNames: [coder-workspace-config]
+            verbs: [get, list]
         workspaceNamespaces:
           - name: coder-workspace
             workspacePerms: true
             enableDeployments: true
+            extraRules:
+              # For web terminal and log viewing in Coder UI
+              - apiGroups: [""]
+                resources: [pods/log, pods/exec]
+                verbs: [get, list, create]
+              # For workspace networking
+              - apiGroups: [""]
+                resources: [services]
+                verbs: [get, list, watch, create, update, patch, delete]
+              # For workspace configuration
+              - apiGroups: [""]
+                resources: [configmaps, secrets]
+                verbs: [get, list, watch, create, update, patch, delete]
       env:
         # PostgreSQL connection components from 1Password
         - name: PG_USER
