@@ -7,4 +7,4 @@ metadata:
     app.kubernetes.io/name: coder-workspace-config
     app.kubernetes.io/part-of: coder
 data:
-  registry_url: registry.coder.svc.cluster.local:5000
+  registry_url: coder-registry.coder.svc.cluster.local:5000
