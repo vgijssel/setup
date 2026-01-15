@@ -6,8 +6,15 @@ tags:
   - type.application
   - scope.documentation
 tasks:
+  check:
+    command: |
+      djpeg -version
+      cjpeg -version
+      jpegtran -version
   build:
-    command: mkdocs build
+    command: |
+      djpeg -version && cjpeg -version && jpegtran -version
+      mkdocs build
     env:
       CWD: .
     inputs:
@@ -26,6 +33,16 @@ tasks:
       cache: true
       runInCI: false
   serve:
-    command: mkdocs serve
+    command: |
+      djpeg -version && cjpeg -version && jpegtran -version
+      mkdocs serve -a localhost:8000
     env:
       CWD: .
+    local: true
+  publish:
+    command: |
+      djpeg -version && cjpeg -version && jpegtran -version
+      mkdocs gh-deploy --clean
+    env:
+      CWD: .
+    local: true
