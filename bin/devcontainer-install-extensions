@@ -26,29 +26,29 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate arguments
-if [ -z "$DEVCONTAINER_FILE" ]; then
+if [[ -z "${DEVCONTAINER_FILE}" ]]; then
   echo "Error: --file argument is required" >&2
   echo "Usage: devcontainer-install-extensions --file <path-to-devcontainer.json>" >&2
   exit 1
 fi
 
-if [ ! -f "$DEVCONTAINER_FILE" ]; then
-  echo "Error: File not found: $DEVCONTAINER_FILE" >&2
+if [[ ! -f "${DEVCONTAINER_FILE}" ]]; then
+  echo "Error: File not found: ${DEVCONTAINER_FILE}" >&2
   exit 1
 fi
 
-echo "Installing VSCode extensions from $DEVCONTAINER_FILE..."
+echo "Installing VSCode extensions from ${DEVCONTAINER_FILE}..."
 
 # Extract extensions list using jq
-EXTENSIONS=$(jq -r '.customizations.vscode.extensions[]?' "$DEVCONTAINER_FILE" 2>/dev/null || true)
+EXTENSIONS=$(jq -r '.customizations.vscode.extensions[]?' "${DEVCONTAINER_FILE}" 2>/dev/null || true)
 
-if [ -z "$EXTENSIONS" ]; then
-  echo "No extensions found in $DEVCONTAINER_FILE"
+if [[ -z "${EXTENSIONS}" ]]; then
+  echo "No extensions found in ${DEVCONTAINER_FILE}"
   exit 0
 fi
 
-EXTENSION_COUNT=$(echo "$EXTENSIONS" | wc -l | tr -d ' ')
-echo "Found $EXTENSION_COUNT extensions to install"
+EXTENSION_COUNT=$(echo "${EXTENSIONS}" | wc -l | tr -d ' ' || true)
+echo "Found ${EXTENSION_COUNT} extensions to install"
 
 # Ensure code CLI is available
 if ! command -v code >/dev/null 2>&1; then
@@ -61,13 +61,13 @@ fi
 mkdir -p ~/.vscode-server/extensions
 
 # Install each extension
-echo "$EXTENSIONS" | while read -r extension; do
-  if [ -n "$extension" ]; then
-    echo "Installing extension: $extension"
-    if code --extensions-dir ~/.vscode-server/extensions --install-extension "$extension"; then
-      echo "✓ Successfully installed $extension"
+echo "${EXTENSIONS}" | while read -r extension; do
+  if [[ -n "${extension}" ]]; then
+    echo "Installing extension: ${extension}"
+    if code --extensions-dir ~/.vscode-server/extensions --install-extension "${extension}"; then
+      echo "✓ Successfully installed ${extension}"
     else
-      echo "⚠ Warning: Failed to install $extension" >&2
+      echo "⚠ Warning: Failed to install ${extension}" >&2
     fi
   fi
 done
