@@ -691,6 +691,7 @@ module "claude_code" {
   order                        = 999
   claude_code_oauth_token      = local.claude_code_token
   cli_app                      = true
+  subdomain                    = true
   continue                     = true
   dangerously_skip_permissions = true
 
