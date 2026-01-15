@@ -1,6 +1,7 @@
 """Task repository for task assignment operations (Layer 3 - Data Access)."""
 
 from ..clients import CoderClient
+from ..helpers import construct_app_url
 
 
 class TaskRepository:
@@ -105,8 +106,8 @@ class TaskRepository:
             )
 
         # Construct the AgentAPI URL based on subdomain configuration
-        agent_api_url = self._construct_app_url(
-            workspace_details, ccw_app, workspace_id
+        agent_api_url = construct_app_url(
+            self.client.base_url, workspace_details, ccw_app, workspace_id
         )
         await self.client.send_interrupt(agent_api_url)
 
@@ -201,53 +202,3 @@ class TaskRepository:
         logs = await self.client.get_task_logs(owner_name, workspace_id)
 
         return logs
-
-    def _construct_app_url(self, workspace: dict, app: dict, workspace_id: str) -> str:
-        """Construct app URL based on subdomain configuration.
-
-        Args:
-            workspace: Workspace data from Coder API
-            app: App configuration with subdomain field
-            workspace_id: Workspace UUID
-
-        Returns:
-            App base URL (with trailing slash)
-        """
-        from urllib.parse import urlparse
-
-        owner_name = workspace.get("owner_name", "me")
-        workspace_name = workspace.get("name", "unknown")
-        app_slug = app.get("slug", "")
-        uses_subdomain = app.get("subdomain", False)
-
-        if uses_subdomain:
-            # Subdomain format: {port}--{agent}--{workspace}--{owner}.{wildcard_domain}/
-            # Extract port from app URL (e.g., "http://localhost:3284" -> "3284")
-            app_url = app.get("url", "")
-            parsed = urlparse(app_url)
-            port = parsed.port or 80
-
-            # Extract agent name from workspace resources (typically "main")
-            agent_name = "main"
-            latest_build = workspace.get("latest_build", {})
-            resources = latest_build.get("resources", [])
-            for resource in resources:
-                agents = resource.get("agents", [])
-                if agents:
-                    agent_name = agents[0].get("name", "main")
-                    break
-
-            # Extract wildcard domain from base URL
-            # e.g., "https://coder.enigma.vgijssel.nl" -> "coder.enigma.vgijssel.nl"
-            base_parsed = urlparse(self.client.base_url)
-            wildcard_domain = base_parsed.netloc
-
-            # Construct subdomain URL
-            subdomain_url = f"{base_parsed.scheme}://{port}--{agent_name}--{workspace_name}--{owner_name}.{wildcard_domain}/"
-            return subdomain_url
-        else:
-            # Path-based format: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/{slug}/
-            return (
-                f"{self.client.base_url}/@{owner_name}/"
-                f"{workspace_name}.{workspace_id}/apps/{app_slug}/"
-            )

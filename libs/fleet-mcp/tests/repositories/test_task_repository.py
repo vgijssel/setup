@@ -47,12 +47,12 @@ def sample_applications():
         {
             "slug": "code-server",
             "url": "http://localhost:8080",
-            "subdomain": False,
+            "subdomain": True,
         },
         {
             "slug": "ccw",  # Claude Code Web app that includes AgentAPI
             "url": "http://localhost:3284",
-            "subdomain": False,
+            "subdomain": True,
         },
     ]
 
@@ -145,9 +145,9 @@ class TestTaskRepositoryCancelTask:
         mock_coder_client.list_workspaces.assert_called_once()
         mock_coder_client.get_workspace.assert_called_once_with("ws-456")
         mock_coder_client.get_workspace_applications.assert_called_once_with("ws-456")
-        # URL should be constructed as: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/ccw/
+        # URL should be constructed as subdomain: {port}--{agent}--{workspace}--{owner}.{wildcard_domain}/
         mock_coder_client.send_interrupt.assert_called_once_with(
-            "https://coder.example.com/@bob/busy-agent.ws-456/apps/ccw/"
+            "https://3284--main--busy-agent--bob.coder.example.com/"
         )
 
     async def test_cancel_task_raises_not_found_for_nonexistent_agent(
@@ -225,15 +225,15 @@ class TestTaskRepositoryCancelTask:
             {
                 "slug": "web-terminal",
                 "url": "http://localhost:7681",
-                "subdomain": False,
+                "subdomain": True,
             },
-            {"slug": "code-server", "url": "http://localhost:8080", "subdomain": False},
+            {"slug": "code-server", "url": "http://localhost:8080", "subdomain": True},
             {
                 "slug": "ccw",
                 "url": "http://localhost:3284",
-                "subdomain": False,
+                "subdomain": True,
             },  # Claude Code app found
-            {"slug": "jupyter", "url": "http://localhost:8888", "subdomain": False},
+            {"slug": "jupyter", "url": "http://localhost:8888", "subdomain": True},
         ]
         mock_coder_client.get_workspace_applications.return_value = multiple_apps
         mock_coder_client.send_interrupt.return_value = {}
@@ -241,9 +241,9 @@ class TestTaskRepositoryCancelTask:
         # Act
         await task_repository.cancel_task("busy-agent")
 
-        # Assert - should construct URL with ccw slug
+        # Assert - should construct subdomain URL with ccw port
         mock_coder_client.send_interrupt.assert_called_once_with(
-            "https://coder.example.com/@bob/busy-agent.ws-456/apps/ccw/"
+            "https://3284--main--busy-agent--bob.coder.example.com/"
         )
 
 
