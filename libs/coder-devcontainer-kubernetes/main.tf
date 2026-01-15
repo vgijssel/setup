@@ -510,47 +510,11 @@ resource "coder_agent" "main" {
     set -e
     set +x
 
-    # Install VSCode extensions from devcontainer.json
-    echo "Installing VSCode extensions from devcontainer.json..."
-
     # Wait for git repo to be available
     wait-for-git --dir /workspaces/setup
 
-    DEVCONTAINER_JSON="/workspaces/setup/.devcontainer/devcontainer.json"
-
-    if [ -f "$DEVCONTAINER_JSON" ]; then
-      # Extract extensions list using jq
-      EXTENSIONS=$(jq -r '.customizations.vscode.extensions[]?' "$DEVCONTAINER_JSON" 2>/dev/null || true)
-
-      if [ -n "$EXTENSIONS" ]; then
-        echo "Found $(echo "$EXTENSIONS" | wc -l) extensions to install"
-
-        # Install VSCode CLI if not already available
-        if ! command -v code >/dev/null 2>&1; then
-          echo "Installing VSCode CLI..."
-          curl -fsSL "https://code.visualstudio.com/sha/download?build=stable&os=cli-linux-x64" | tar -xz -C /tmp
-          sudo mv /tmp/code /usr/local/bin/code
-          sudo chmod +x /usr/local/bin/code
-        fi
-
-        # Create extensions directory
-        mkdir -p ~/.vscode-server/extensions
-
-        # Install each extension
-        echo "$EXTENSIONS" | while read -r extension; do
-          if [ -n "$extension" ]; then
-            echo "Installing extension: $extension"
-            code --extensions-dir ~/.vscode-server/extensions --install-extension "$extension" || echo "Warning: Failed to install $extension"
-          fi
-        done
-
-        echo "VSCode extension installation complete"
-      else
-        echo "No extensions found in devcontainer.json"
-      fi
-    else
-      echo "Warning: devcontainer.json not found at $DEVCONTAINER_JSON"
-    fi
+    # Install VSCode extensions from devcontainer.json
+    devcontainer-install-extensions --file /workspaces/setup/.devcontainer/devcontainer.json
   EOT
 
   display_apps {
