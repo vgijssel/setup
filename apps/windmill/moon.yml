@@ -10,12 +10,8 @@ tags:
   - platform.kubernetes
 tasks:
   login:
-    command: task login
-    env:
-      CWD: apps/windmill
+    command: wmill workspace add setup https://windmill.tail2c33e2.ts.net
     local: true
   sync:
-    command: task sync
-    env:
-      CWD: apps/windmill
+    command: wmill sync pull
     local: true
