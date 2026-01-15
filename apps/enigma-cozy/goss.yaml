@@ -116,6 +116,24 @@ command:
     exit-status: 0
     stderr: ""
     timeout: 10000
+  external_dns_running:
+    title: Validate external-dns deployment is ready
+    exec: kubectl get deploy external-dns-external-dns -n external-dns -o jsonpath='{.status.readyReplicas}' | xargs test 1 -le
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
+  tailscale_operator_running:
+    title: Validate Tailscale operator deployment is ready
+    exec: kubectl get deploy operator -n tailscale -o jsonpath='{.status.readyReplicas}' | xargs test 1 -le
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
+  kyverno_running:
+    title: Validate Kyverno admission controller is ready
+    exec: kubectl get deploy kyverno-admission-controller -n kyverno -o jsonpath='{.status.readyReplicas}' | xargs test 1 -le
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
   # Cozystack troubleshooting checklist checks
   # https://cozystack.io/docs/operations/troubleshooting/#troubleshooting-checklist
   kubernetes_nodes_ready:

@@ -1,10 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  # Namespaces must be created first
+  - namespace-flux-system.yaml
+  - namespace-coder.yaml
+  # FluxCD source
   - gitrepository-setup.yaml
   - kustomization-root.yaml
+  # HelmReleases (order matters for dependencies)
   - helmrelease-1password-operator.yaml
   - helmrelease-1password-secrets.yaml
   - helmrelease-registry.yaml
   - helmrelease-coder.yaml
+  # ConfigMaps deployed to coder namespace
   - configmap-workspace-config.yaml

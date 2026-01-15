@@ -80,20 +80,24 @@ kubectl create namespace 1password 2>/dev/null || true
 log "Reading credentials from 1Password..."
 CREDS=$(op read "${CREDENTIALS_REF}" | base64)
 
-log "Applying 1password-credentials secret..."
+log "Deleting existing 1password-credentials secret (if any)..."
+kubectl delete secret 1password-credentials --namespace=1password --ignore-not-found
+
+log "Creating 1password-credentials secret..."
 kubectl create secret generic 1password-credentials \
     --namespace=1password \
-    --from-literal=1password-credentials.json="${CREDS}" \
-    --dry-run=client -o yaml | kubectl apply -f -
+    --from-literal=1password-credentials.json="${CREDS}"
 
 # Read and apply operator token secret
 log "Reading operator token from 1Password..."
 TOKEN=$(op read "${TOKEN_REF}")
 
-log "Applying 1password-operator-token secret..."
+log "Deleting existing 1password-operator-token secret (if any)..."
+kubectl delete secret 1password-operator-token --namespace=1password --ignore-not-found
+
+log "Creating 1password-operator-token secret..."
 kubectl create secret generic 1password-operator-token \
     --namespace=1password \
-    --from-literal=token="${TOKEN}" \
-    --dry-run=client -o yaml | kubectl apply -f -
+    --from-literal=token="${TOKEN}"
 
 log "1Password operator secrets bootstrapped successfully!"

@@ -5,6 +5,8 @@ metadata:
   namespace: flux-system
 spec:
   interval: 30m
+  driftDetection:
+    mode: enabled
   targetNamespace: external-services
   chart:
     spec:

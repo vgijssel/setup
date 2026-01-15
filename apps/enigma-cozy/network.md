@@ -66,6 +66,47 @@ Worker + Gateway                     ├─ the-dome (192.168.50.11)
           (Encrypted WireGuard Mesh)
 ```
 
+## Ingress Traffic Routing
+
+### Tailscale Integration
+
+Every ingress inside the enigma-cozy cluster gets a dedicated Tailscale service. For example, an ingress route like `dashboard.enigma.vijgssel.nl` will have its own Tailscale service named "dashboard". This architecture enables individual ACL control for each ingress through Tailscale's access control system.
+
+### Internal Traffic (LAN)
+
+The enigma nodes reside in VLAN `192.168.50.0/24`. A Pihole instance within this VLAN contains DNS entries for all cluster ingresses, mapping them to their internal MetalLB IPs.
+
+When a service inside the enigma-cozy cluster accesses `dashboard.enigma.vijgssel.nl`, the traffic is routed directly to the local MetalLB IP (e.g., `192.168.50.100`) via Pihole DNS resolution—**not** through Tailscale.
+
+### External Traffic (Outside VLAN)
+
+Traffic from outside the `192.168.50.0/24` VLAN is routed through the individual Tailscale services, providing:
+
+- Secure encrypted access to cluster ingresses
+- Per-ingress ACL enforcement via Tailscale
+- No direct exposure of MetalLB IPs to external networks
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Ingress Traffic Flow                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  External Client                    Internal Client (LAN)       │
+│        │                                   │                    │
+│        ▼                                   ▼                    │
+│  Tailscale Service              Pihole DNS Resolution           │
+│  (e.g., "dashboard")           (dashboard.enigma.vijgssel.nl)   │
+│        │                                   │                    │
+│        │                                   ▼                    │
+│        │                          MetalLB IP (192.168.50.x)     │
+│        │                                   │                    │
+│        └───────────────┬───────────────────┘                    │
+│                        ▼                                        │
+│                   Ingress Pod                                   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ## Configuration Files
 
 - **Kubespan Configuration**: Managed through Talos machine config
