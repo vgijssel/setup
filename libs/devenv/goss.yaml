@@ -121,6 +121,17 @@ command:
     stderr: ""
     timeout: 60000
 
+  no_dangling_symlinks_in_bin:
+    title: No dangling symlinks in bin/ directory
+    meta:
+      url: https://github.com/cashapp/hermit
+    exec: find {{.Env.SETUP_DIR}}/bin -type l ! -exec test -e {} \; -print 2>/dev/null | wc -l | tr -d ' \n'
+    exit-status: 0
+    stdout:
+      - "0"
+    stderr: ""
+    timeout: 60000
+
   starship_version:
     title: Starship prompt is installed via Hermit
     exec: starship --version |  awk 'NR==1 {print $2}' | tr -d '\n'
