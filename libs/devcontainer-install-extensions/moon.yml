@@ -1,0 +1,22 @@
+type: library
+language: bash
+
+tasks:
+  run:
+    command: ./devcontainer-install-extensions.sh
+    args: $args
+    local: true
+    options:
+      runInCI: false
+
+  test:
+    command: ./test.sh
+    inputs:
+      - devcontainer-install-extensions.sh
+      - test.sh
+      - fixtures/**
+    outputs:
+      - .moon/cache/outputs/**
+    options:
+      cache: true
+      runInCI: true
