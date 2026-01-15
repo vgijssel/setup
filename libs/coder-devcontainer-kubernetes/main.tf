@@ -646,7 +646,7 @@ resource "coder_script" "fleet_mcp" {
     # Wait for git repo to be available
     wait-for-git --dir /workspaces/setup
 
-    supervisord -c /workspaces/setup/libs/coder-devcontainer/supervisord.conf
+    supervisord -c /workspaces/setup/libs/coder-devcontainer-kubernetes/supervisord.conf
 
     # Wait for supervisord to be available on port 9001
     wait-for-it --service 127.0.0.1:9001 --timeout 60
