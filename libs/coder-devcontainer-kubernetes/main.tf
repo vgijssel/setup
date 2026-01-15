@@ -743,6 +743,13 @@ module "coder_login" {
   agent_id = coder_agent.main.id
 }
 
+module "git-commit-signing" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder/git-commit-signing/coder"
+  version  = "1.0.32"
+  agent_id = coder_agent.main.id
+}
+
 # VS Code Desktop integration
 module "vscode" {
   count    = data.coder_workspace.me.start_count
