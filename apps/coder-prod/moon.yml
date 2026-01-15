@@ -13,4 +13,12 @@ tasks:
     env:
       CREDENTIALS_REF: op://setup-coder-prod/coder-prod Credentials File/1password-credentials.json
       TOKEN_REF: op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential
-    local: true
+    options:
+      runInCI: false
+
+  bootstrap:
+    command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/coder-prod/
+    deps:
+      - create-1password-secret
+    options:
+      runInCI: false

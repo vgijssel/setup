@@ -15,6 +15,15 @@ tasks:
   create-1password-secret:
     command: $MOON_WORKSPACE_ROOT/libs/1password-operator-bootstrap/bootstrap.sh --credentials-ref "$CREDENTIALS_REF" --token-ref "$TOKEN_REF"
     env:
-      CREDENTIALS_REF: op://enigma-cluster/enigma-cluster Credentials File/1password-credentials.json
-      TOKEN_REF: op://enigma-cluster/hxmp2hgt5iluzk5zfq2trx4oae/credential
-    local: true
+      CREDENTIALS_REF: op://setup-enigma-cluster/enigma-cluster Credentials File/1password-credentials.json
+      TOKEN_REF: op://setup-enigma-cluster/gpbfafh2i2fa22lnkzud3gwdom/credential
+
+    options:
+      runInCI: false
+
+  bootstrap:
+    command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/enigma-cluster/
+    deps:
+      - create-1password-secret
+    options:
+      runInCI: false

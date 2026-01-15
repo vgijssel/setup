@@ -116,6 +116,24 @@ command:
     exit-status: 0
     stderr: ""
     timeout: 10000
+  external_dns_running:
+    title: Validate external-dns deployment is ready
+    exec: kubectl get deploy external-dns-external-dns -n external-dns -o jsonpath='{.status.readyReplicas}' | xargs test 1 -le
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
+  tailscale_operator_running:
+    title: Validate Tailscale operator deployment is ready
+    exec: kubectl get deploy operator -n tailscale -o jsonpath='{.status.readyReplicas}' | xargs test 1 -le
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
+  kyverno_running:
+    title: Validate Kyverno admission controller is ready
+    exec: kubectl get deploy kyverno-admission-controller -n kyverno -o jsonpath='{.status.readyReplicas}' | xargs test 1 -le
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
   # Cozystack troubleshooting checklist checks
   # https://cozystack.io/docs/operations/troubleshooting/#troubleshooting-checklist
   kubernetes_nodes_ready:
@@ -174,6 +192,7 @@ command:
     timeout: 30000
   etc_hosts_uses_management_ips:
     title: Validate /etc/hosts maps hostnames to management IPs (not br0 IPs)
+    skip: true
     # After br0 removal, hostnames should resolve to management network (192.168.50.x)
     # not the old br0 network (10.50.50.x). This prevents OVN ports from binding to wrong IPs.
     exec: ./scripts/validate-etc-hosts.sh

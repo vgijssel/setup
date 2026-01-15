@@ -353,7 +353,7 @@ resource "envbuilder_cached_image" "workspace" {
   insecure               = true # Local registry doesn't use TLS
   devcontainer_dir       = ".devcontainer"
   workspace_folder       = "/workspaces/setup"
-  remote_repo_build_mode = false
+  remote_repo_build_mode = true
 
   # GitHub credentials for private repository access (required via external auth)
   git_username = "oauth2"
@@ -646,7 +646,7 @@ resource "coder_script" "fleet_mcp" {
     # Wait for git repo to be available
     wait-for-git --dir /workspaces/setup
 
-    supervisord -c /workspaces/setup/libs/coder-devcontainer/supervisord.conf
+    supervisord -c /workspaces/setup/libs/coder-devcontainer-kubernetes/supervisord.conf
 
     # Wait for supervisord to be available on port 9001
     wait-for-it --service 127.0.0.1:9001 --timeout 60
@@ -740,6 +740,13 @@ module "coder_login" {
   count    = data.coder_workspace.me.start_count
   source   = "registry.coder.com/coder/coder-login/coder"
   version  = "1.1.0"
+  agent_id = coder_agent.main.id
+}
+
+module "git-commit-signing" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder/git-commit-signing/coder"
+  version  = "1.0.32"
   agent_id = coder_agent.main.id
 }
 
