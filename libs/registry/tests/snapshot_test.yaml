@@ -6,6 +6,10 @@ image:
 
 replicaCount: 1
 
+service:
+  port: 5000
+  nodePort: 31500
+
 storage:
   size: 40Gi
   storageClassName: replicated

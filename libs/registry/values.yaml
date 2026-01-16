@@ -15,9 +15,8 @@ image:
 replicaCount: 1
 
 # Service configuration
+# NOTE: Service type is always NodePort (hardcoded in template) for kubelet image pulls
 service:
-  # NodePort is required for kubelet image pulls (see comment above)
-  type: NodePort
   port: 5000
   # Fixed NodePort for predictable localhost URL in Coder templates
   nodePort: 31500

@@ -6,14 +6,15 @@ metadata:
   labels:
     {{- include "registry.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type | default "ClusterIP" }}
+  # NodePort is mandatory for kubelet image pulls.
+  # Kubelet uses host DNS (systemd-resolved) which cannot resolve .svc.cluster.local addresses.
+  # NodePort allows kubelet to pull images via localhost:<nodeport>, bypassing DNS.
+  type: NodePort
   ports:
-    - port: {{ .Values.service.port | default 5000 }}
+    - port: {{ .Values.service.port }}
       targetPort: 5000
       protocol: TCP
       name: http
-      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePort }}
       nodePort: {{ .Values.service.nodePort }}
-      {{- end }}
   selector:
     {{- include "registry.selectorLabels" . | nindent 4 }}
