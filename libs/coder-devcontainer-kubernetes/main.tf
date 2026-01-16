@@ -321,6 +321,10 @@ locals {
   # See: https://discuss.kubernetes.io/t/how-does-kubelet-dns-resolution-before-pod-creation-work/9489
   registry_pull_url = data.kubernetes_config_map_v1.coder_workspace_config.data["registry_pull_url"]
 
+  # Coder URL from ConfigMap (for agent-to-server communication - uses cluster DNS)
+  # Agents inside the cluster use this to avoid DNS mismatch with external URL
+  coder_url = data.kubernetes_config_map_v1.coder_workspace_config.data["coder_url"]
+
   # Envbuilder image
   devcontainer_builder_image = data.coder_parameter.devcontainer_builder.value
 
@@ -368,7 +372,9 @@ resource "envbuilder_cached_image" "workspace" {
   extra_env = {
     # Coder agent configuration
     "CODER_AGENT_TOKEN" = coder_agent.main.token
-    "CODER_AGENT_URL"   = data.coder_workspace.me.access_url
+    # Use internal Kubernetes DNS for agent-to-server communication
+    # Avoids DNS mismatch when external URL resolves to wrong IP inside the cluster
+    "CODER_AGENT_URL" = local.coder_url
     # Envbuilder configuration
     "ENVBUILDER_INIT_SCRIPT" = coder_agent.main.init_script
     "ENVBUILDER_PUSH_IMAGE"  = "true"

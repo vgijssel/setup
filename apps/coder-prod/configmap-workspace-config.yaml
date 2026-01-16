@@ -7,6 +7,9 @@ metadata:
     app.kubernetes.io/name: coder-workspace-config
     app.kubernetes.io/part-of: coder
 data:
+  # Internal URL for Coder agent-to-server communication (uses cluster DNS)
+  # Agents inside the cluster use this to avoid DNS mismatch with external URL
+  coder_url: http://coder.coder.svc.cluster.local:80
   # Internal URL for envbuilder to push cached images (runs inside pods, uses cluster DNS)
   registry_url: coder-registry.coder.svc.cluster.local:5000
   # NodePort URL for kubelet to pull cached images (runs on host, uses host DNS)
