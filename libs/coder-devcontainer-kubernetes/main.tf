@@ -658,9 +658,6 @@ resource "coder_script" "fleet_mcp" {
 
     echo "Starting fleet-mcp"
 
-    # Wait for git repo to be available
-    wait-for-git --dir /workspaces/setup
-
     supervisord -c /workspaces/setup/libs/coder-devcontainer-kubernetes/supervisord.conf
 
     # Wait for supervisord to be available on port 9001
@@ -708,11 +705,6 @@ module "claude_code" {
   cli_app                      = true
   continue                     = true
   dangerously_skip_permissions = true
-
-  # Pre-hook script to wait for git repo and verify Claude is available
-  pre_install_script = <<-EOT
-    wait-for-git --dir /workspaces/setup
-  EOT
 
   post_install_script = <<-EOT
     cd /workspaces/setup
