@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
 
 # Configuration
 TEMPLATE_NAME="${TEMPLATE_NAME:-coder-devcontainer-kubernetes}"
@@ -20,8 +20,9 @@ GIT_BRANCH="${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 
 # Track whether cleanup is needed
 CLEANUP_NEEDED=false
 
+# shellcheck disable=SC2317  # Function is called via trap
 cleanup() {
-    if [ "$CLEANUP_NEEDED" = true ]; then
+    if [[ "${CLEANUP_NEEDED}" = true ]]; then
         echo "==> Cleaning up workspace: ${WORKSPACE_NAME}"
         coder delete --yes "${WORKSPACE_NAME}" 2>/dev/null || true
     fi
@@ -38,7 +39,7 @@ main() {
     echo "    Goss file: ${GOSS_FILE}"
 
     # Verify goss file exists
-    if [ ! -f "$GOSS_FILE" ]; then
+    if [[ ! -f "${GOSS_FILE}" ]]; then
         echo "ERROR: Goss file not found: ${GOSS_FILE}"
         exit 1
     fi
@@ -71,9 +72,9 @@ main() {
 
     # Run goss validation with retry logic
     echo "==> Running goss validation (timeout: ${RETRY_TIMEOUT}, sleep: ${RETRY_SLEEP})"
-    cd "$PROJECT_DIR"
+    cd "${PROJECT_DIR}"
 
-    if goss -g "$GOSS_FILE" validate --retry-timeout "$RETRY_TIMEOUT" --sleep "$RETRY_SLEEP"; then
+    if goss -g "${GOSS_FILE}" validate --retry-timeout "${RETRY_TIMEOUT}" --sleep "${RETRY_SLEEP}"; then
         echo "==> All health checks passed!"
         exit 0
     else
