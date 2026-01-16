@@ -17,8 +17,6 @@ tasks:
       - devcontainer-install-extensions.sh
       - test.bats
       - fixtures/**
-    outputs:
-      - .moon/cache/outputs/**
     options:
-      cache: true
+      cache: false
       runInCI: true
