@@ -56,13 +56,6 @@ fi
 EXTENSION_COUNT=$(echo "${EXTENSIONS}" | wc -l | tr -d ' ' || true)
 echo "Found ${EXTENSION_COUNT} extensions to install"
 
-# Ensure code CLI is available
-if ! command -v code >/dev/null 2>&1; then
-  echo "Error: VSCode CLI 'code' not found in PATH" >&2
-  echo "Please ensure the vscode-cli tool is installed via Hermit" >&2
-  exit 1
-fi
-
 # Create extensions directory
 mkdir -p "${OUTPUT_DIR}"
 

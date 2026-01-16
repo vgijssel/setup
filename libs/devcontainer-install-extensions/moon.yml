@@ -18,5 +18,5 @@ tasks:
       - test.bats
       - fixtures/**
     options:
-      cache: false
+      cache: true
       runInCI: true

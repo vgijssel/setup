@@ -9,47 +9,11 @@ setup() {
   # Create temporary directory for test output
   TEST_OUTPUT_DIR="$(mktemp -d)"
 
-  # Create a mock 'code' command that simulates successful installation
-  # This allows tests to run without requiring actual VSCode CLI
-  MOCK_CODE_DIR="${TEST_OUTPUT_DIR}/.bin"
-  mkdir -p "${MOCK_CODE_DIR}"
-  cat > "${MOCK_CODE_DIR}/code" <<'EOF'
-#!/usr/bin/env bash
-# Mock VSCode CLI for testing
-# Parse arguments to extract extension name and output directory
-EXTENSIONS_DIR=""
-EXTENSION_NAME=""
-
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --extensions-dir)
-      EXTENSIONS_DIR="$2"
-      shift 2
-      ;;
-    --install-extension)
-      EXTENSION_NAME="$2"
-      shift 2
-      ;;
-    *)
-      shift
-      ;;
-  esac
-done
-
-# Create a mock extension directory to simulate successful installation
-if [[ -n "${EXTENSIONS_DIR}" && -n "${EXTENSION_NAME}" ]]; then
-  mkdir -p "${EXTENSIONS_DIR}/${EXTENSION_NAME}"
-  echo "Mock extension installed" > "${EXTENSIONS_DIR}/${EXTENSION_NAME}/package.json"
-  echo "Extension '${EXTENSION_NAME}' installed successfully."
-  exit 0
-fi
-
-exit 1
-EOF
-  chmod +x "${MOCK_CODE_DIR}/code"
-
-  # Prepend mock code to PATH for tests
-  export PATH="${MOCK_CODE_DIR}:${PATH}"
+  # Verify VSCode CLI is available via Hermit
+  run code --version
+  if [ "$status" -ne 0 ]; then
+    skip "VSCode CLI not available"
+  fi
 }
 
 # Teardown function runs after each test
