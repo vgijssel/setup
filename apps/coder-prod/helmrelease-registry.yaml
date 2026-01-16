@@ -30,6 +30,12 @@ spec:
       tag: 2.8.3
       pullPolicy: IfNotPresent
     replicaCount: 1
+    # NodePort service for kubelet image pulls
+    # Kubelet uses host DNS which cannot resolve .svc.cluster.local addresses
+    service:
+      type: NodePort
+      port: 5000
+      nodePort: 31500
     storage:
       size: 40Gi
       storageClassName: kubevirt
