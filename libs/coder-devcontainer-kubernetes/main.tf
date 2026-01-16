@@ -313,8 +313,13 @@ locals {
   git_branch = data.coder_parameter.git_branch.value
   repo_url   = "https://github.com/vgijssel/setup.git"
 
-  # Local registry cache URL from ConfigMap
+  # Local registry cache URL from ConfigMap (for envbuilder push - uses cluster DNS)
   cache_repo = data.kubernetes_config_map_v1.coder_workspace_config.data["registry_url"]
+
+  # Registry pull URL from ConfigMap (for kubelet pull - uses localhost NodePort)
+  # Kubelet uses host DNS which cannot resolve .svc.cluster.local addresses
+  # See: https://discuss.kubernetes.io/t/how-does-kubelet-dns-resolution-before-pod-creation-work/9489
+  registry_pull_url = data.kubernetes_config_map_v1.coder_workspace_config.data["registry_pull_url"]
 
   # Envbuilder image
   devcontainer_builder_image = data.coder_parameter.devcontainer_builder.value
@@ -436,8 +441,11 @@ resource "kubernetes_deployment_v1" "workspace" {
         termination_grace_period_seconds = 30
 
         container {
-          name  = "dev"
-          image = envbuilder_cached_image.workspace.image
+          name = "dev"
+          # Replace registry URL with localhost NodePort for kubelet image pulls
+          # Envbuilder pushes to cluster DNS (coder-registry.coder.svc.cluster.local:5000)
+          # but kubelet needs localhost:31500 (host DNS can't resolve .svc.cluster.local)
+          image = replace(envbuilder_cached_image.workspace.image, local.cache_repo, local.registry_pull_url)
 
           # Dynamic environment variables from envbuilder
           dynamic "env" {

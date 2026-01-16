@@ -1,48 +1,56 @@
 # Goss tests for validating Coder workspace health
 # Run with: WORKSPACE_NAME=<name> goss -g goss-workspace.yaml validate --retry-timeout 10m --sleep 15s
+#
+# Note: coder list -o json returns workspace data with:
+#   - .latest_build.status for build status (running, pending, etc)
+#   - .health.healthy for overall health boolean
+#   - .latest_build.resources[] | select(.agents) for resources with agents
 
 command:
   workspace_running:
     title: Workspace is running
     exec: |
-      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].status'
+      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].latest_build.status' | tr -d '\n'
     exit-status: 0
-    stdout:
-      - Running
+    stdout: running
     timeout: 30000
 
   workspace_healthy:
     title: Workspace is healthy (all apps healthy)
     exec: |
-      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].healthy'
+      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].health.healthy' | tr -d '\n'
     exit-status: 0
-    stdout:
-      - "true"
+    stdout: "true"
     timeout: 30000
 
   agent_connected:
     title: Coder agent is connected
     exec: |
-      coder show {{.Env.WORKSPACE_NAME}} --json | jq -r '.agents[0].status'
+      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].latest_build.resources[] | select(.agents) | .agents[0].status' | tr -d '\n'
     exit-status: 0
-    stdout:
-      - connected
+    stdout: connected
     timeout: 30000
 
   fleet_mcp_app_healthy:
     title: Fleet MCP app is healthy
     exec: |
-      coder show {{.Env.WORKSPACE_NAME}} --json | jq -r '.agents[0].apps[] | select(.slug == "fleet-mcp") | .health'
+      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].latest_build.resources[] | select(.agents) | .agents[0].apps[] | select(.slug == "fleet-mcp") | .health' | tr -d '\n'
     exit-status: 0
-    stdout:
-      - healthy
+    stdout: healthy
     timeout: 30000
 
   claude_code_app_exists:
     title: Claude Code app is available
     exec: |
-      coder show {{.Env.WORKSPACE_NAME}} --json | jq -r '.agents[0].apps[] | select(.slug == "claude-code") | .slug'
+      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].latest_build.resources[] | select(.agents) | .agents[0].apps[] | select(.slug == "ccw") | .slug' | tr -d '\n'
     exit-status: 0
-    stdout:
-      - claude-code
+    stdout: ccw
+    timeout: 30000
+
+  claude_code_app_healthy:
+    title: Claude Code app is healthy
+    exec: |
+      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].latest_build.resources[] | select(.agents) | .agents[0].apps[] | select(.slug == "ccw") | .health' | tr -d '\n'
+    exit-status: 0
+    stdout: healthy
     timeout: 30000
