@@ -35,3 +35,16 @@ tasks:
       - file: ./Taskfile.yml
       - file: ./version.txt
       - "!.terraform/**"
+
+  workspace_test:
+    command: ./scripts/workspace-test.sh
+    options:
+      cache: false
+      runInCI: false
+    inputs:
+      - glob: ./**/*.tf
+      - glob: ./**/*.hcl
+      - file: ./supervisord.conf
+      - file: ./goss-workspace.yaml
+      - file: ./scripts/workspace-test.sh
+      - "!.terraform/**"

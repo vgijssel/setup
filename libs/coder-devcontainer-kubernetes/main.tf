@@ -400,6 +400,12 @@ resource "kubernetes_deployment_v1" "workspace" {
   count            = data.coder_workspace.me.start_count
   wait_for_rollout = true
 
+  timeouts {
+    create = "5m"
+    update = "5m"
+    delete = "3m"
+  }
+
   metadata {
     name      = "coder-${local.workspace_id}"
     namespace = var.namespace
@@ -427,6 +433,7 @@ resource "kubernetes_deployment_v1" "workspace" {
       }
       spec {
         security_context {}
+        termination_grace_period_seconds = 30
 
         container {
           name  = "dev"

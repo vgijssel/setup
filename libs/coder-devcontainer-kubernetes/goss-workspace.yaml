@@ -1,0 +1,48 @@
+# Goss tests for validating Coder workspace health
+# Run with: WORKSPACE_NAME=<name> goss -g goss-workspace.yaml validate --retry-timeout 10m --sleep 15s
+
+command:
+  workspace_running:
+    title: Workspace is running
+    exec: |
+      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].status'
+    exit-status: 0
+    stdout:
+      - Running
+    timeout: 30000
+
+  workspace_healthy:
+    title: Workspace is healthy (all apps healthy)
+    exec: |
+      coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].healthy'
+    exit-status: 0
+    stdout:
+      - "true"
+    timeout: 30000
+
+  agent_connected:
+    title: Coder agent is connected
+    exec: |
+      coder show {{.Env.WORKSPACE_NAME}} --json | jq -r '.agents[0].status'
+    exit-status: 0
+    stdout:
+      - connected
+    timeout: 30000
+
+  fleet_mcp_app_healthy:
+    title: Fleet MCP app is healthy
+    exec: |
+      coder show {{.Env.WORKSPACE_NAME}} --json | jq -r '.agents[0].apps[] | select(.slug == "fleet-mcp") | .health'
+    exit-status: 0
+    stdout:
+      - healthy
+    timeout: 30000
+
+  claude_code_app_exists:
+    title: Claude Code app is available
+    exec: |
+      coder show {{.Env.WORKSPACE_NAME}} --json | jq -r '.agents[0].apps[] | select(.slug == "claude-code") | .slug'
+    exit-status: 0
+    stdout:
+      - claude-code
+    timeout: 30000
