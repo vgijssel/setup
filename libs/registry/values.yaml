@@ -1,4 +1,11 @@
 # Docker Registry configuration
+#
+# IMPORTANT: This registry uses NodePort instead of ClusterIP.
+# Reason: Kubelet on worker nodes uses host DNS (systemd-resolved) for image pulls,
+# NOT cluster DNS (CoreDNS). Host DNS cannot resolve .svc.cluster.local addresses.
+# NodePort allows kubelet to pull images via localhost:<nodeport>, bypassing DNS.
+# See: https://github.com/kubernetes/minikube/issues/2162
+# See: https://discuss.kubernetes.io/t/how-does-kubelet-dns-resolution-before-pod-creation-work/9489
 
 image:
   repository: registry
@@ -6,6 +13,13 @@ image:
   pullPolicy: IfNotPresent
 
 replicaCount: 1
+
+# Service configuration
+# NOTE: Service type is always NodePort (hardcoded in template) for kubelet image pulls
+service:
+  port: 5000
+  # Fixed NodePort for predictable localhost URL in Coder templates
+  nodePort: 31500
 
 # Storage configuration
 storage:

@@ -20,8 +20,3 @@ fileGroups:
     - /bin/.chezmoi-*
     - /bin/hermit
     - /bin/chezmoi-wrapper
-
-tasks:
-  secrets:
-    command: op inject --force -i .env.tpl -o .env
-    local: true

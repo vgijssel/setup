@@ -7,4 +7,9 @@ metadata:
     app.kubernetes.io/name: coder-workspace-config
     app.kubernetes.io/part-of: coder
 data:
+  # Internal URL for envbuilder to push cached images (runs inside pods, uses cluster DNS)
   registry_url: coder-registry.coder.svc.cluster.local:5000
+  # NodePort URL for kubelet to pull cached images (runs on host, uses host DNS)
+  # Kubelet cannot resolve .svc.cluster.local addresses - it uses host DNS (systemd-resolved)
+  # See: https://discuss.kubernetes.io/t/how-does-kubelet-dns-resolution-before-pod-creation-work/9489
+  registry_pull_url: localhost:31500

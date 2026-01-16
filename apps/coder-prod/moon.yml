@@ -1,5 +1,7 @@
 language: javascript
 layer: application
+dependsOn:
+  - registry
 tags:
   - stack
   - kubernetes
