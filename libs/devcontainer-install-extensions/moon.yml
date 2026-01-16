@@ -10,10 +10,12 @@ tasks:
       runInCI: false
 
   test:
-    command: ./test.sh
+    command: bats
+    args:
+      - test.bats
     inputs:
       - devcontainer-install-extensions.sh
-      - test.sh
+      - test.bats
       - fixtures/**
     outputs:
       - .moon/cache/outputs/**
