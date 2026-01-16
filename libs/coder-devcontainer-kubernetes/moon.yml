@@ -38,13 +38,11 @@ tasks:
 
   workspace_test:
     command: ./scripts/workspace-test.sh
+    deps:
+      - ~:test
     options:
-      cache: false
+      cache: true
       runInCI: false
     inputs:
-      - glob: ./**/*.tf
-      - glob: ./**/*.hcl
-      - file: ./supervisord.conf
       - file: ./goss-workspace.yaml
       - file: ./scripts/workspace-test.sh
-      - "!.terraform/**"
