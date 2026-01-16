@@ -30,6 +30,10 @@ spec:
       tag: 2.8.3
       pullPolicy: IfNotPresent
     replicaCount: 1
+    # Service is always NodePort (hardcoded in chart) for kubelet image pulls
+    service:
+      port: 5000
+      nodePort: 31500
     storage:
       size: 40Gi
       storageClassName: kubevirt

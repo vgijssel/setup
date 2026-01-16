@@ -313,8 +313,17 @@ locals {
   git_branch = data.coder_parameter.git_branch.value
   repo_url   = "https://github.com/vgijssel/setup.git"
 
-  # Local registry cache URL from ConfigMap
+  # Local registry cache URL from ConfigMap (for envbuilder push - uses cluster DNS)
   cache_repo = data.kubernetes_config_map_v1.coder_workspace_config.data["registry_url"]
+
+  # Registry pull URL from ConfigMap (for kubelet pull - uses localhost NodePort)
+  # Kubelet uses host DNS which cannot resolve .svc.cluster.local addresses
+  # See: https://discuss.kubernetes.io/t/how-does-kubelet-dns-resolution-before-pod-creation-work/9489
+  registry_pull_url = data.kubernetes_config_map_v1.coder_workspace_config.data["registry_pull_url"]
+
+  # Coder URL from ConfigMap (for agent-to-server communication - uses cluster DNS)
+  # Agents inside the cluster use this to avoid DNS mismatch with external URL
+  coder_url = data.kubernetes_config_map_v1.coder_workspace_config.data["coder_url"]
 
   # Envbuilder image
   devcontainer_builder_image = data.coder_parameter.devcontainer_builder.value
@@ -353,7 +362,7 @@ resource "envbuilder_cached_image" "workspace" {
   insecure               = true # Local registry doesn't use TLS
   devcontainer_dir       = ".devcontainer"
   workspace_folder       = "/workspaces/setup"
-  remote_repo_build_mode = true
+  remote_repo_build_mode = false
 
   # GitHub credentials for private repository access (required via external auth)
   git_username = "oauth2"
@@ -363,7 +372,9 @@ resource "envbuilder_cached_image" "workspace" {
   extra_env = {
     # Coder agent configuration
     "CODER_AGENT_TOKEN" = coder_agent.main.token
-    "CODER_AGENT_URL"   = data.coder_workspace.me.access_url
+    # Use internal Kubernetes DNS for agent-to-server communication
+    # Avoids DNS mismatch when external URL resolves to wrong IP inside the cluster
+    "CODER_AGENT_URL" = local.coder_url
     # Envbuilder configuration
     "ENVBUILDER_INIT_SCRIPT" = coder_agent.main.init_script
     "ENVBUILDER_PUSH_IMAGE"  = "true"
@@ -400,6 +411,12 @@ resource "kubernetes_deployment_v1" "workspace" {
   count            = data.coder_workspace.me.start_count
   wait_for_rollout = true
 
+  timeouts {
+    create = "5m"
+    update = "5m"
+    delete = "3m"
+  }
+
   metadata {
     name      = "coder-${local.workspace_id}"
     namespace = var.namespace
@@ -427,10 +444,14 @@ resource "kubernetes_deployment_v1" "workspace" {
       }
       spec {
         security_context {}
+        termination_grace_period_seconds = 30
 
         container {
-          name  = "dev"
-          image = envbuilder_cached_image.workspace.image
+          name = "dev"
+          # Replace registry URL with localhost NodePort for kubelet image pulls
+          # Envbuilder pushes to cluster DNS (coder-registry.coder.svc.cluster.local:5000)
+          # but kubelet needs localhost:31500 (host DNS can't resolve .svc.cluster.local)
+          image = replace(envbuilder_cached_image.workspace.image, local.cache_repo, local.registry_pull_url)
 
           # Dynamic environment variables from envbuilder
           dynamic "env" {
@@ -649,9 +670,6 @@ resource "coder_script" "fleet_mcp" {
 
     echo "Starting fleet-mcp"
 
-    # Wait for git repo to be available
-    wait-for-git --dir /workspaces/setup
-
     supervisord -c /workspaces/setup/libs/coder-devcontainer-kubernetes/supervisord.conf
 
     # Wait for supervisord to be available on port 9001
@@ -699,11 +717,6 @@ module "claude_code" {
   cli_app                      = true
   continue                     = true
   dangerously_skip_permissions = true
-
-  # Pre-hook script to wait for git repo and verify Claude is available
-  pre_install_script = <<-EOT
-    wait-for-git --dir /workspaces/setup
-  EOT
 
   post_install_script = <<-EOT
     cd /workspaces/setup
