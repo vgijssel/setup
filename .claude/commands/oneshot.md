@@ -2,6 +2,8 @@
 description: Implement a prompt in a new branch with automated PR creation and CI monitoring
 ---
 
+Ultrathink
+
 Implement the following prompt: $ARGUMENTS
 
 After implementing the prompt, follow these steps:
@@ -9,7 +11,6 @@ After implementing the prompt, follow these steps:
 1. Check the current branch using `git branch --show-current`
    - If on main branch: Create a new git branch for the change using a descriptive name based on the work done
 2. Run validation commands:
-   - Run `nx run-many -t release_plan_test package_test` to validate releases and packages
    - Run `trunk check` to verify code quality standards
    - If either command fails, fix the issues before proceeding
 3. Commit all changes with an appropriate commit message

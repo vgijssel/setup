@@ -35,3 +35,14 @@ tasks:
       - file: ./Taskfile.yml
       - file: ./version.txt
       - "!.terraform/**"
+
+  workspace_test:
+    command: ./scripts/workspace-test.sh
+    deps:
+      - ~:test
+    options:
+      cache: true
+      runInCI: false
+    inputs:
+      - file: ./goss-workspace.yaml
+      - file: ./scripts/workspace-test.sh

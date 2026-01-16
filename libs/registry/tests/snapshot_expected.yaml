@@ -68,12 +68,16 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/part-of: coder
 spec:
-  type: ClusterIP
+  # NodePort is mandatory for kubelet image pulls.
+  # Kubelet uses host DNS (systemd-resolved) which cannot resolve .svc.cluster.local addresses.
+  # NodePort allows kubelet to pull images via localhost:<nodeport>, bypassing DNS.
+  type: NodePort
   ports:
     - port: 5000
       targetPort: 5000
       protocol: TCP
       name: http
+      nodePort: 31500
   selector:
     app.kubernetes.io/name: registry
     app.kubernetes.io/instance: registry
