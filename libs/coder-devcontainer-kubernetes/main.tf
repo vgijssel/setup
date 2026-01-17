@@ -530,6 +530,9 @@ resource "coder_agent" "main" {
   startup_script = <<-EOT
     set -e
     set +x
+
+    # Install VSCode extensions from devcontainer.json
+    devcontainer-install-extensions --file /workspaces/setup/.devcontainer/devcontainer.json
   EOT
 
   display_apps {
