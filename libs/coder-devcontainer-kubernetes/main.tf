@@ -531,9 +531,6 @@ resource "coder_agent" "main" {
     set -e
     set +x
 
-    # Wait for git repo to be available
-    wait-for-git --dir /workspaces/setup
-
     # Install VSCode extensions from devcontainer.json
     devcontainer-install-extensions --file /workspaces/setup/.devcontainer/devcontainer.json
   EOT
