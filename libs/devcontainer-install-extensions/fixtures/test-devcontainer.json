@@ -1,0 +1,8 @@
+{
+  "name": "Test Dev Container",
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+    }
+  }
+}
