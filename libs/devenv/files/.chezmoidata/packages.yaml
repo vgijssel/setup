@@ -62,3 +62,4 @@ packages:
       - jq
       - dnsutils # Provides nslookup for DNS testing in chainsaw tests
       - bubblewrap # Provides bwrap for vault-shell namespace isolation
+      - whois # Provides mkpasswd for generating password hashes
