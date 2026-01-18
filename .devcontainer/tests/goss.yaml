@@ -143,7 +143,7 @@ command:
 
   tailscale_version:
     title: Tailscale is installed via Hermit
-    skip: { { .Env.IS_MACOS } }
+    skip: {{.Env.IS_MACOS}}
     meta:
       url: https://tailscale.com
     exec: tailscale version | head -1 | awk '{print $1}' | tr -d '\n'
@@ -193,7 +193,7 @@ command:
 
   uv_link_mode_linux:
     title: UV_LINK_MODE is set to copy on Linux
-    skip: { { .Env.IS_MACOS } }
+    skip: {{.Env.IS_MACOS}}
     exec: zsh -ic 'echo $UV_LINK_MODE'
     exit-status: 0
     stdout:
@@ -202,7 +202,7 @@ command:
 
   ssh_auth_sock_macos:
     title: SSH_AUTH_SOCK is configured on macOS
-    skip: { { .Env.IS_LINUX } }
+    skip: {{.Env.IS_LINUX}}
     exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.terminal_env.sh
     exit-status: 0
     stdout:
@@ -211,7 +211,7 @@ command:
 
   ssh_auth_sock_linux:
     title: SSH_AUTH_SOCK is not configured on Linux
-    skip: { { .Env.IS_MACOS } }
+    skip: {{.Env.IS_MACOS}}
     exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.terminal_env.sh || echo "not found"
     exit-status: 0
     stdout:
@@ -236,7 +236,7 @@ command:
 
   gpg_ssh_macos:
     title: GPG SSH signing is configured on macOS via include
-    skip: { { .Env.IS_LINUX } }
+    skip: {{.Env.IS_LINUX}}
     exec: grep -A1 'gpg "ssh"' {{.Env.HOME}}/.gitconfig.macos | grep op-ssh-sign
     exit-status: 0
     stdout:
@@ -245,7 +245,7 @@ command:
 
   gpg_ssh_linux:
     title: GPG SSH signing macOS file does not exist on Linux
-    skip: { { .Env.IS_MACOS } }
+    skip: {{.Env.IS_MACOS}}
     exec: test -f {{.Env.HOME}}/.gitconfig.macos && echo "file exists" || echo "not found"
     exit-status: 0
     stdout:
@@ -254,7 +254,7 @@ command:
 
   docker_storage_check_linux:
     title: Docker storage is local to container (DinD)
-    skip: { { .Env.IS_MACOS } }
+    skip: {{.Env.IS_MACOS}}
     exec: docker info | grep "Docker Root Dir" | awk '{print $NF}'
     exit-status: 0
     stdout:
@@ -263,7 +263,7 @@ command:
 
   docker_version_linux:
     title: Docker client is available
-    skip: { { .Env.IS_MACOS } }
+    skip: {{.Env.IS_MACOS}}
     exec: docker --version
     exit-status: 0
     timeout: 60000
@@ -278,18 +278,18 @@ command:
 
 user:
   coder:
-    skip: { { or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") } }
+    skip: {{ or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") }}
     exists: true
     home: /home/coder
     shell: /usr/bin/zsh
   root:
-    skip: { { or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") } }
+    skip: {{ or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") }}
     exists: true
     shell: /usr/bin/zsh
 
 group:
   coder:
-    skip: { { or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") } }
+    skip: {{ or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") }}
     exists: true
 
 file:
@@ -329,7 +329,7 @@ file:
       - name=mvgijssel
 
   "{{.Env.HOME}}/.gitconfig.macos":
-    skip: { { .Env.IS_LINUX } }
+    skip: {{.Env.IS_LINUX}}
     exists: true
     filetype: file
     contents:
@@ -338,7 +338,7 @@ file:
 
   "{{.Env.HOME}}/.gitconfig.macos-not-on-linux":
     title: macOS gitconfig file should not exist on Linux
-    skip: { { .Env.IS_MACOS } }
+    skip: {{.Env.IS_MACOS}}
     exists: false
 
   "{{.Env.HOME}}/.config/starship.toml":
@@ -384,5 +384,5 @@ file:
 process:
   dockerd:
     title: Docker daemon is running inside container (Docker-in-Docker)
-    skip: { { .Env.IS_MACOS } }
+    skip: {{.Env.IS_MACOS}}
     running: true
