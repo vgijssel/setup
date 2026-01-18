@@ -46,9 +46,13 @@ def sample_applications():
     return [
         {
             "slug": "code-server",
+            "url": "http://localhost:8080",
+            "subdomain": True,
         },
         {
             "slug": "ccw",  # Claude Code Web app that includes AgentAPI
+            "url": "http://localhost:3284",
+            "subdomain": True,
         },
     ]
 
@@ -114,6 +118,23 @@ class TestTaskRepositoryCancelTask:
         """Test successful task cancellation (T143)."""
         # Arrange
         mock_coder_client.list_workspaces.return_value = sample_workspaces
+        # Mock get_workspace to return full workspace details
+        mock_coder_client.get_workspace.return_value = {
+            "id": "ws-456",
+            "name": "busy-agent",
+            "owner_name": "bob",
+            "latest_build": {
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "name": "main",
+                            }
+                        ]
+                    }
+                ]
+            },
+        }
         mock_coder_client.get_workspace_applications.return_value = sample_applications
         mock_coder_client.send_interrupt.return_value = {}
 
@@ -122,10 +143,11 @@ class TestTaskRepositoryCancelTask:
 
         # Assert
         mock_coder_client.list_workspaces.assert_called_once()
+        mock_coder_client.get_workspace.assert_called_once_with("ws-456")
         mock_coder_client.get_workspace_applications.assert_called_once_with("ws-456")
-        # URL should be constructed as: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/ccw/
+        # URL should be constructed as subdomain: {port}--{agent}--{workspace}--{owner}.{wildcard_domain}/
         mock_coder_client.send_interrupt.assert_called_once_with(
-            "https://coder.example.com/@bob/busy-agent.ws-456/apps/ccw/"
+            "https://3284--main--busy-agent--bob.coder.example.com/"
         )
 
     async def test_cancel_task_raises_not_found_for_nonexistent_agent(
@@ -148,6 +170,23 @@ class TestTaskRepositoryCancelTask:
         """Test cancel_task raises NotFoundError when ccw app not found (T143)."""
         # Arrange
         mock_coder_client.list_workspaces.return_value = sample_workspaces
+        # Mock get_workspace to return full workspace details
+        mock_coder_client.get_workspace.return_value = {
+            "id": "ws-456",
+            "name": "busy-agent",
+            "owner_name": "bob",
+            "latest_build": {
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "name": "main",
+                            }
+                        ]
+                    }
+                ]
+            },
+        }
         # No ccw app in applications list
         mock_coder_client.get_workspace_applications.return_value = [
             {"slug": "code-server"}
@@ -165,11 +204,36 @@ class TestTaskRepositoryCancelTask:
         """Test cancel_task correctly identifies ccw app among multiple applications (T142)."""
         # Arrange
         mock_coder_client.list_workspaces.return_value = sample_workspaces
+        # Mock get_workspace to return full workspace details
+        mock_coder_client.get_workspace.return_value = {
+            "id": "ws-456",
+            "name": "busy-agent",
+            "owner_name": "bob",
+            "latest_build": {
+                "resources": [
+                    {
+                        "agents": [
+                            {
+                                "name": "main",
+                            }
+                        ]
+                    }
+                ]
+            },
+        }
         multiple_apps = [
-            {"slug": "web-terminal"},
-            {"slug": "code-server"},
-            {"slug": "ccw"},  # Claude Code app found
-            {"slug": "jupyter"},
+            {
+                "slug": "web-terminal",
+                "url": "http://localhost:7681",
+                "subdomain": True,
+            },
+            {"slug": "code-server", "url": "http://localhost:8080", "subdomain": True},
+            {
+                "slug": "ccw",
+                "url": "http://localhost:3284",
+                "subdomain": True,
+            },  # Claude Code app found
+            {"slug": "jupyter", "url": "http://localhost:8888", "subdomain": True},
         ]
         mock_coder_client.get_workspace_applications.return_value = multiple_apps
         mock_coder_client.send_interrupt.return_value = {}
@@ -177,9 +241,9 @@ class TestTaskRepositoryCancelTask:
         # Act
         await task_repository.cancel_task("busy-agent")
 
-        # Assert - should construct URL with ccw slug
+        # Assert - should construct subdomain URL with ccw port
         mock_coder_client.send_interrupt.assert_called_once_with(
-            "https://coder.example.com/@bob/busy-agent.ws-456/apps/ccw/"
+            "https://3284--main--busy-agent--bob.coder.example.com/"
         )
 
 

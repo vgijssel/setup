@@ -686,7 +686,7 @@ resource "coder_app" "fleet_mcp" {
   display_name = "Fleet MCP"
   icon         = "/icon/cloud.svg"
   url          = "http://127.0.0.1:8000"
-  subdomain    = false
+  subdomain    = true
   share        = "owner"
 
   healthcheck {
@@ -712,6 +712,7 @@ module "claude_code" {
   order                        = 999
   claude_code_oauth_token      = local.claude_code_token
   cli_app                      = true
+  subdomain                    = true
   continue                     = true
   dangerously_skip_permissions = true
 

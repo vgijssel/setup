@@ -84,6 +84,9 @@ spec:
           value: https://coder.enigma.vgijssel.nl
         - name: CODER_WILDCARD_ACCESS_URL
           value: "*.coder.enigma.vgijssel.nl"
+        # Disable path-based apps for security (only allow subdomain apps)
+        - name: CODER_DISABLE_PATH_APPS
+          value: "true"
         # OIDC authentication with Keycloak
         - name: CODER_OIDC_ISSUER_URL
           valueFrom:

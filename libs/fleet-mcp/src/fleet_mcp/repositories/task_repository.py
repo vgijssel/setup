@@ -1,6 +1,7 @@
 """Task repository for task assignment operations (Layer 3 - Data Access)."""
 
 from ..clients import CoderClient
+from ..helpers import construct_app_url
 
 
 class TaskRepository:
@@ -86,8 +87,9 @@ class TaskRepository:
             raise NotFoundError(f"Agent '{agent_name}' not found")
 
         workspace_id = workspace["id"]
-        workspace_name = workspace.get("name", agent_name)
-        owner_name = workspace.get("owner_name", "")
+
+        # Get full workspace details for app URL construction
+        workspace_details = await self.client.get_workspace(workspace_id)
 
         # Get workspace applications to find Claude Code app
         applications = await self.client.get_workspace_applications(workspace_id)
@@ -103,9 +105,10 @@ class TaskRepository:
                 "The workspace must have a 'ccw' app to cancel tasks."
             )
 
-        # Construct the AgentAPI URL
-        # Format: {base_url}/@{owner}/{workspace}.{workspace_id}/apps/ccw/
-        agent_api_url = f"{self.client.base_url}/@{owner_name}/{workspace_name}.{workspace_id}/apps/ccw/"
+        # Construct the AgentAPI URL based on subdomain configuration
+        agent_api_url = construct_app_url(
+            self.client.base_url, workspace_details, ccw_app, workspace_id
+        )
         await self.client.send_interrupt(agent_api_url)
 
     async def get_task_history(self, agent_name: str) -> list[dict]:

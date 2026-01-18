@@ -9,6 +9,7 @@ from typing import Optional
 
 from ..clients.coder_client import CoderClient
 from ..clients.metadata_client import MetadataClient
+from ..helpers import construct_app_url
 from ..models.metadata import WorkspaceMetadata
 
 logger = logging.getLogger(__name__)
@@ -63,14 +64,33 @@ class MetadataRepository:
             # Get workspace info from Coder API
             workspace = await self.coder_client.get_workspace(workspace_id)
 
-            # Construct agent-specific app URL (same pattern as TaskRepository)
-            # URL format: {coder_url}/@{owner}/{workspace_name}.{workspace_id}/apps/fleet-mcp/
-            owner_name = workspace.get("owner_name", "me")
-            workspace_name = workspace.get("name", "unknown")
-            agent_api_url = (
-                f"{self.coder_client.base_url}/@{owner_name}/"
-                f"{workspace_name}.{workspace_id}/apps/fleet-mcp/"
+            # Get workspace applications to find fleet-mcp app
+            applications = await self.coder_client.get_workspace_applications(
+                workspace_id
             )
+
+            # Find fleet-mcp app
+            fleet_mcp_app = next(
+                (app for app in applications if app.get("slug") == "fleet-mcp"), None
+            )
+
+            if not fleet_mcp_app:
+                logger.warning(
+                    f"fleet-mcp app not found for workspace {workspace_id}, using fallback URL construction"
+                )
+                # Fallback to path-based URL construction
+                owner_name = workspace.get("owner_name", "me")
+                workspace_name = workspace.get("name", "unknown")
+                agent_api_url = (
+                    f"{self.coder_client.base_url}/@{owner_name}/"
+                    f"{workspace_name}.{workspace_id}/apps/fleet-mcp/"
+                )
+            else:
+                # Construct URL based on app configuration
+                agent_api_url = construct_app_url(
+                    self.coder_client.base_url, workspace, fleet_mcp_app, workspace_id
+                )
+
             metadata_url = f"{agent_api_url}metadata"
 
             logger.info(f"Collecting metadata from {metadata_url}")
