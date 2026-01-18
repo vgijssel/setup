@@ -6,6 +6,8 @@
   when: ansible_distribution != 'Archlinux'
 - import_tasks: localisation.yml
   tags: localisation
+- import_tasks: hostname.yml
+  tags: hostname
 - import_tasks: ssh.yml
   tags: ssh
 - import_tasks: users.yml

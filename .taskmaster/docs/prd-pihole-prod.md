@@ -1,17 +1,19 @@
 <context>
 # Overview
 
-This PRD defines the conversion of the existing Pi-hole production deployment on DietPi (Raspberry Pi) into infrastructure as code using Ansible. The goal is to create a reproducible, maintainable deployment that follows the monorepo's established patterns.
+This PRD defines the conversion of the existing Pi-hole production deployment on Ubuntu (Raspberry Pi) into infrastructure as code using Ansible. The goal is to create a reproducible, maintainable deployment that follows the monorepo's established patterns.
 
 **Current State:**
-- DietPi (Debian 13 Trixie) on Raspberry Pi at 192.168.1.137 (VLAN 1)
+- Ubuntu Server on Raspberry Pi at 192.168.1.15 (admin LAN)
 - Pi-hole running in Docker with macvlan networking on VLAN 50 at 192.168.50.2
 - Manual deployment documented in `apps/pihole-prod/README.md`
 - Manual security hardening tasks listed as TODOs in README
+- No Pi-hole instance serving the admin LAN directly
 
 **Target State:**
 - Fully automated Ansible playbook for provisioning and maintenance
-- Two-stage deployment: `bootstrap` (initial setup) and `apply` (regular deployment)
+- Two targets: `bootstrap` (first run with DHCP IP) and `apply` (subsequent runs with static IP)
+- Two Pi-hole instances: VLAN 50 (192.168.50.2) and Admin LAN (192.168.1.16)
 - 1Password integration for secrets management
 - Moon build system integration for consistent monorepo workflows
 
@@ -20,24 +22,27 @@ This PRD defines the conversion of the existing Pi-hole production deployment on
 ## 1. Two-Stage Deployment Model
 
 **Bootstrap Stage:**
-- Uses default DietPi credentials (root/dietpi) for initial SSH access
-- Performs one-time system hardening (password changes, SSH key setup, user creation)
-- Configures the `dietpi` user for subsequent non-root access
-- After bootstrap, password authentication and root SSH login are disabled
+- Used for first-time provisioning when the host has a DHCP-assigned IP
+- Takes IP address as argument: `moon run pihole-prod:bootstrap -- <dhcp-ip>`
+- Configures static IP (192.168.1.15) via netplan bridge networking
+- After bootstrap, host will be accessible at the static IP
 
 **Apply Stage:**
-- Uses SSH key authentication with the `dietpi` user
-- Handles all regular deployments and configuration updates
+- Uses SSH key authentication with the `maarten` user (SSH key pre-configured)
+- Connects to static IP (192.168.1.15)
+- Handles all subsequent deployments and configuration updates
 - Idempotent - can be run repeatedly without side effects
 
 ## 2. Docker and Pi-hole Deployment
 
-**What it does:** Automates the complete Docker and Pi-hole stack deployment
-**Why it's important:** Ensures consistent, reproducible Pi-hole deployments
+**What it does:** Automates the complete Docker and Pi-hole stack deployment with two Pi-hole instances
+**Why it's important:** Ensures consistent, reproducible Pi-hole deployments serving both VLANs
 **How it works:**
 - Installs Docker and Docker Compose via official repositories
 - Creates VLAN 50 interface (eth0.50) with macvlan networking
-- Deploys Pi-hole container with proper network configuration
+- Deploys two Pi-hole containers:
+  1. **VLAN 50 Pi-hole** (192.168.50.2): Serves Kubernetes VLAN via macvlan on eth0.50
+  2. **Admin LAN Pi-hole** (192.168.1.16): Serves admin network via macvlan on br0
 - Configures custom DNS records for *.enigma.vgijssel.nl domains
 
 ## 3. Security Hardening
@@ -47,9 +52,9 @@ This PRD defines the conversion of the existing Pi-hole production deployment on
 **Components:**
 - Disable SSH password authentication
 - Disable SSH root login
-- Configure dietpi user with sudo (password required)
+- Configure maarten user with sudo (password required)
 - Set strong passwords from 1Password vault
-- Configure SSH key-only authentication
+- Maintain SSH key-only authentication (already configured)
 
 ## 4. 1Password Secrets Integration
 
@@ -57,28 +62,29 @@ This PRD defines the conversion of the existing Pi-hole production deployment on
 **Why it's important:** Keeps secrets out of version control
 **Secrets required:**
 - `op://setup-pihole-prod/root-pihole/password` - Root user password
-- `op://setup-pihole-prod/dietpi-pihole/password` - DietPi user password
-- Public SSH key: `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAvXN6EpJc9+19awLUuqdVvvjZ1v/ofx9dee9UzM3xXp`
+- `op://setup-pihole-prod/maarten-pihole/password` - Maarten user password (for sudo)
+- SSH private key: `/secrets/pihole-prod/ssh_private_key` (used by Ansible to connect)
+- Public SSH key (pre-configured on host): `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKbI3UZOhsVGi1lbnH7Sd0KWtP5m6zUJgrxbHMTxhRcW`
 
 # User Experience
 
 ## User Personas
 
 **Infrastructure Administrator:**
-- Runs `moon run pihole-prod:bootstrap` for initial deployment
+- Runs `moon run pihole-prod:bootstrap -- <ip>` for first-time provisioning
 - Runs `moon run pihole-prod:apply` for updates
 - Manages DNS records via Ansible or Pi-hole web UI
 
 ## Key User Flows
 
-**Initial Deployment:**
-1. Ensure DietPi is freshly installed with default credentials
+**Initial Deployment (Bootstrap):**
+1. Install Ubuntu Server with `maarten` user and SSH key configured
 2. Find the DHCP-assigned IP address (e.g., check router DHCP leases)
-3. Run `moon run pihole-prod:bootstrap -- <ip-address>` (e.g., `moon run pihole-prod:bootstrap -- 192.168.1.137`)
-4. The playbook will configure a static IP (192.168.1.137) during bootstrap
+3. Run `moon run pihole-prod:bootstrap -- <dhcp-ip>` (e.g., `moon run pihole-prod:bootstrap -- 192.168.1.100`)
+4. The playbook configures static IP (192.168.1.15) - host will reboot/reconnect at new IP
 5. Verify Pi-hole is accessible at http://192.168.50.2/admin
 
-**Regular Updates:**
+**Subsequent Updates:**
 1. Modify Ansible playbook/roles as needed
 2. Run `moon run pihole-prod:apply`
 3. Changes are applied idempotently
@@ -93,14 +99,13 @@ This PRD defines the conversion of the existing Pi-hole production deployment on
 apps/pihole-prod/
 ├── moon.yml                    # Moon task definitions
 ├── ansible.cfg                 # Ansible configuration (roles_path + vars_plugins)
-├── pihole.yml                  # Main playbook
-├── bootstrap                   # Bootstrap inventory (password auth)
-├── production                  # Production inventory (SSH key auth)
+├── pihole.yml                  # Main playbook (uses common + pihole roles)
+├── bootstrap                   # Bootstrap inventory (for first run with DHCP IP)
+├── inventory                   # Production inventory (static IP 192.168.1.15)
 ├── group_vars/
 │   ├── all.yml                 # Common variables (non-secrets)
-│   ├── pihole.yml              # Pi-hole specific variables (non-secrets)
-│   ├── bootstrap.op.yml        # 1Password secrets for bootstrap (root password)
-│   └── production.op.yml       # 1Password secrets for production
+│   ├── pihole.yml              # Common role config + Pi-hole variables (non-secrets)
+│   └── pihole.op.yml           # 1Password secrets
 └── README.md                   # Documentation (update with Ansible instructions)
 ```
 
@@ -109,15 +114,15 @@ apps/pihole-prod/
 libs/ansible/roles/pihole/
 ├── tasks/
 │   ├── main.yml                # Task orchestration
-│   ├── system.yml              # DietPi system setup (users, SSH, packages)
 │   ├── docker.yml              # Docker installation
 │   ├── vlan.yml                # VLAN 50 interface setup
-│   ├── container.yml           # Pi-hole container deployment
+│   ├── macvlan_networks.yml    # Docker macvlan network creation
+│   ├── containers.yml          # Pi-hole containers deployment (both instances)
 │   └── dns_records.yml         # Custom DNS configuration
 ├── templates/
-│   ├── docker-compose.yml.j2
-│   ├── interfaces.eth0.50.j2
-│   └── sshd_config.conf.j2
+│   ├── docker-compose.yml.j2   # Compose file with both Pi-hole containers
+│   ├── netplan-vlan.yaml.j2    # VLAN 50 interface config
+│   └── pihole.toml.j2          # Pi-hole v6 configuration
 ├── handlers/
 │   └── main.yml
 └── defaults/
@@ -128,14 +133,68 @@ libs/ansible/roles/pihole/
 
 ## Roles
 
-**New role to create:**
-- `libs/ansible/roles/pihole/` - Self-contained Pi-hole deployment role
-  - DietPi system configuration (users, SSH, packages)
-  - Docker installation from official repository
-  - VLAN interface configuration
-  - Pi-hole container deployment and DNS configuration
+**Existing `common` role** (`libs/ansible/roles/common/`):
+The common role handles all base system configuration and will be used with the following features:
 
-**Note:** The `common` role is designed for Ubuntu/Debian/Arch and DietPi has a significantly different setup. All functionality will be implemented directly in the `pihole` role first. Common patterns can be extracted to shared roles later if needed.
+| Feature | Task File | What it does |
+|---------|-----------|--------------|
+| Package management | `package_management_ubuntu.yml` | apt update/upgrade, unattended-upgrades |
+| Localisation | `localisation.yml` | Sets locale (en_GB.UTF-8) and timezone (Europe/Amsterdam) |
+| Hostname | `hostname.yml` | Sets system hostname via `common_hostname` variable |
+| SSH hardening | `ssh.yml` | Disables password auth and root login |
+| Users | `users.yml` | Creates `maarten` user with SSH key, sets root password, removes `ubuntu` user |
+| Networking | `networking.yml` | Bridge networking with static IP via netplan |
+
+**Common role variables for pihole-prod:**
+```yaml
+# Hostname
+common_hostname: peace-at-last
+
+# Networking (bridge with static IP)
+network_interface: eth0
+ip_address: 192.168.1.15
+gateway: 192.168.1.1
+nameservers:
+  - 192.168.1.1
+
+# Required secrets (from 1Password)
+root_user_password_encrypted: "{{ from 1Password }}"
+maarten_user_password_encrypted: "{{ from 1Password }}"
+maarten_user_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKbI3UZOhsVGi1lbnH7Sd0KWtP5m6zUJgrxbHMTxhRcW"
+```
+
+**New `pihole` role** (`libs/ansible/roles/pihole/`):
+Pi-hole specific deployment role that handles:
+- Docker installation
+- VLAN interface configuration (eth0.50 via netplan)
+- Docker macvlan networks (for both VLAN 50 and admin LAN)
+- Two Pi-hole container deployments:
+  - VLAN 50 Pi-hole (192.168.50.2) on `pihole-vlan50-net`
+  - Admin LAN Pi-hole (192.168.1.16) on `pihole-admin-net`
+- Custom DNS records configuration
+
+## Main Playbook
+
+The `pihole.yml` playbook uses both the `common` and `pihole` roles. Variables from `group_vars/` are automatically loaded by Ansible and propagated to the roles:
+
+```yaml
+# pihole.yml
+---
+- name: Configure Pi-hole server
+  hosts: pihole
+  become: true
+
+  roles:
+    - role: common
+    - role: pihole
+```
+
+**Variable propagation:** Ansible automatically loads variables from `group_vars/pihole.yml` and `group_vars/pihole.op.yml` (via the 1Password vars plugin) for hosts in the `[pihole]` inventory group. These variables are then available to all roles in the play. The common role receives:
+- `common_hostname` - for hostname configuration
+- `network_interface`, `ip_address`, `gateway`, `nameservers` - for bridge networking
+- `root_user_password_encrypted` - for root password
+- `maarten_user_password_encrypted` - for maarten password
+- `maarten_user_public_key` - for SSH authorized_keys
 
 ## Ansible Configuration
 
@@ -155,53 +214,58 @@ The custom vars plugin (`libs/ansible/vars_plugins/op.py`) automatically:
 
 ## Inventory Files
 
-**bootstrap inventory:**
+**bootstrap inventory** (`bootstrap`):
 
-The bootstrap inventory uses a placeholder that is replaced at runtime with the actual IP address passed as an argument:
+Used for first-time provisioning when the host has a DHCP-assigned IP. The IP is passed via command line:
 
 ```ini
 [pihole]
-# IP address is passed via -e ansible_host=<ip> on command line
+peace-at-last
 
 [pihole:vars]
-ansible_user=root
+ansible_user=maarten
+ansible_ssh_private_key_file=/secrets/pihole-prod/ssh_private_key
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
-
-[bootstrap:children]
-pihole
 ```
 
-The `ansible_password` is injected via `group_vars/bootstrap.op.yml`:
-```yaml
-# group_vars/bootstrap.op.yml
-ansible_password: op://setup-pihole-prod/root-pihole/password
-```
+**production inventory** (`inventory`):
 
-**production inventory:**
-
-After bootstrap, the static IP (192.168.1.137) is configured and used for all subsequent runs:
+Used for subsequent runs after static IP is configured:
 
 ```ini
 [pihole]
-192.168.1.137
+peace-at-last ansible_host=192.168.1.15
 
 [pihole:vars]
-ansible_user=dietpi
-
-[production:children]
-pihole
+ansible_user=maarten
+ansible_ssh_private_key_file=/secrets/pihole-prod/ssh_private_key
 ```
 
-Secrets for production are in `group_vars/production.op.yml`:
+Non-secret variables are in `group_vars/pihole.yml`:
 ```yaml
-# group_vars/production.op.yml
-# The dietpi user's password is used for sudo (become) operations
-ansible_become_pass: op://setup-pihole-prod/dietpi-pihole/password
-# Encrypted passwords for the Ansible user module
-dietpi_user_password_encrypted: op://setup-pihole-prod/dietpi-pihole/password_encrypted
+# group_vars/pihole.yml
+# Common role configuration
+common_hostname: peace-at-last
+
+# Networking (bridge with static IP)
+network_interface: eth0
+ip_address: 192.168.1.15
+gateway: 192.168.1.1
+nameservers:
+  - 192.168.1.1
+
+# SSH public key for maarten user (already configured on the host)
+maarten_user_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKbI3UZOhsVGi1lbnH7Sd0KWtP5m6zUJgrxbHMTxhRcW"
+```
+
+Secrets are in `group_vars/pihole.op.yml`:
+```yaml
+# group_vars/pihole.op.yml
+# The maarten user's password is used for sudo (become) operations
+ansible_become_pass: op://setup-pihole-prod/maarten-pihole/password
+# Encrypted passwords for the Ansible user module (used by common role)
+maarten_user_password_encrypted: op://setup-pihole-prod/maarten-pihole/password_encrypted
 root_user_password_encrypted: op://setup-pihole-prod/root-pihole/password_encrypted
-# SSH public key for authorized_keys
-ssh_public_key: op://setup-pihole-prod/SSH - Setup/public key
 ```
 
 This follows the same pattern as `apps/provisioner/group_vars/production.op.yml` where the non-root user's password is used for `ansible_become_pass`.
@@ -225,16 +289,16 @@ tasks:
     local: true
     args:
       - name: ip
-        description: "IP address of the DietPi host (from DHCP)"
+        description: "DHCP-assigned IP address of the host"
         required: true
   apply:
-    command: ansible-playbook -i production pihole.yml --diff
+    command: ansible-playbook -i inventory pihole.yml --diff
     local: true
 ```
 
 **Usage:**
-- Bootstrap (first run): `moon run pihole-prod:bootstrap -- 192.168.1.100` (use DHCP-assigned IP)
-- Apply (subsequent runs): `moon run pihole-prod:apply` (uses static IP 192.168.1.137)
+- `moon run pihole-prod:bootstrap -- <dhcp-ip>` - First-time provisioning (e.g., `moon run pihole-prod:bootstrap -- 192.168.1.100`)
+- `moon run pihole-prod:apply` - Subsequent deployments and updates (uses static IP 192.168.1.15)
 
 The `dependsOn: [ansible]` ensures that:
 1. Moon recognizes the relationship between pihole-prod and the shared ansible library
@@ -243,24 +307,41 @@ The `dependsOn: [ansible]` ensures that:
 
 ## System Components
 
-1. **VLAN 50 Interface (eth0.50):** macvlan parent interface for Pi-hole container
-2. **Docker Engine:** Container runtime from official Docker repository
-3. **Pi-hole Container:** DNS server with custom configuration
-4. **macvlan Network:** Docker network attached to eth0.50
+1. **Bridge Interface (br0):** Host networking with static IP, also macvlan parent for admin LAN Pi-hole
+2. **VLAN 50 Interface (eth0.50):** macvlan parent interface for VLAN 50 Pi-hole container
+3. **Docker Engine:** Container runtime from official Docker repository
+4. **Pi-hole Containers:**
+   - VLAN 50 Pi-hole (192.168.50.2): DNS server for Kubernetes VLAN
+   - Admin LAN Pi-hole (192.168.1.16): DNS server for admin network
+5. **macvlan Networks:**
+   - `pihole-vlan50-net`: Attached to eth0.50 for VLAN 50
+   - `pihole-admin-net`: Attached to br0 for admin LAN
 
 ## Data Models
 
 **Host Configuration Variables:**
-- `host_static_ip`: 192.168.1.137 (static IP configured during bootstrap)
-- `host_gateway`: 192.168.1.1
-- `host_interface`: eth0
+- `common_hostname`: peace-at-last
+- `ip_address`: 192.168.1.15 (static IP configured via netplan)
+- `gateway`: 192.168.1.1
+- `network_interface`: eth0
+- `nameservers`: [192.168.1.1]
 
-**Pi-hole Configuration Variables:**
-- `pihole_ip`: 192.168.50.2
-- `pihole_gateway`: 192.168.50.1
-- `pihole_upstream_dns`: 192.168.50.1
+**Pi-hole VLAN 50 Configuration:**
+- `pihole_vlan50_ip`: 192.168.50.2
+- `pihole_vlan50_gateway`: 192.168.50.1
+- `pihole_vlan50_parent_interface`: eth0.50
+- `pihole_vlan50_subnet`: 192.168.50.0/24
+
+**Pi-hole Admin LAN Configuration:**
+- `pihole_admin_ip`: 192.168.1.16
+- `pihole_admin_gateway`: 192.168.1.1
+- `pihole_admin_parent_interface`: br0
+- `pihole_admin_subnet`: 192.168.1.0/24
+
+**Shared Pi-hole Configuration:**
+- `pihole_upstream_dns`: 192.168.1.1
 - `pihole_web_password`: From 1Password
-- `pihole_timezone`: America/New_York
+- `pihole_timezone`: Europe/Amsterdam
 
 **DNS Records:**
 ```yaml
@@ -277,8 +358,8 @@ pihole_dns_records:
 
 ## Infrastructure Requirements
 
-- **Target Host:** Raspberry Pi running DietPi (Debian 13 Trixie)
-- **Network:** Access to 192.168.1.141, VLAN 50 tagging support on switch
+- **Target Host:** Raspberry Pi running Ubuntu Server 25.10 (64-bit)
+- **Network:** Access to 192.168.1.15 (after bootstrap), VLAN 50 tagging support on switch
 - **1Password CLI:** `op` command available and authenticated (the custom vars plugin uses `op inject`)
 - **Ansible Requirements:**
   - `community.general` collection (for sudoers module)
@@ -291,7 +372,7 @@ pihole_dns_records:
 ### 1.1 Project Structure Setup
 - Create `apps/pihole-prod/moon.yml` with bootstrap and apply tasks
 - Create `ansible.cfg` referencing shared roles path
-- Create inventory files (bootstrap and production)
+- Create bootstrap inventory (for DHCP IP) and production inventory (for static IP 192.168.1.15)
 - Create group_vars with 1Password references
 
 ### 1.2 Pi-hole Role Structure
@@ -300,18 +381,19 @@ pihole_dns_records:
 - Create `libs/ansible/roles/pihole/handlers/main.yml` for service restarts
 - Create `libs/ansible/roles/pihole/tasks/main.yml` to orchestrate task imports
 
-### 1.3 System Configuration (Bootstrap)
-- Create `libs/ansible/roles/pihole/tasks/system.yml`
-- Configure static IP address (192.168.1.137) to replace DHCP
-- Configure dietpi user with SSH key and sudo access
-- Set passwords for root and dietpi users from 1Password
-- Disable SSH password authentication and root login
-- Create `libs/ansible/roles/pihole/templates/sshd_config.conf.j2`
+### 1.3 Configure Common Role Variables
+- Set `common_hostname: peace-at-last` in group_vars
+- Set networking variables: `network_interface: eth0`, `ip_address: 192.168.1.15`, `gateway: 192.168.1.1`, `nameservers: [192.168.1.1]`
+- Configure 1Password references for `maarten_user_password_encrypted` and `root_user_password_encrypted`
+- Set `maarten_user_public_key` with the SSH public key
 
-### 1.4 Bootstrap Capability
-- Implement playbook that works with default DietPi credentials
-- Test connection and basic provisioning
-- Verify transition from password to key-based authentication
+The `common` role handles:
+- Package updates and unattended-upgrades
+- Hostname configuration
+- Locale and timezone settings
+- SSH hardening (disables password auth and root login)
+- User management (maarten user with SSH key, root password)
+- Bridge networking with static IP via netplan
 
 ## Phase 2: Docker and Pi-hole Deployment
 
@@ -323,17 +405,24 @@ pihole_dns_records:
 
 ### 2.2 VLAN Interface Configuration
 - Create `libs/ansible/roles/pihole/tasks/vlan.yml`
-- Create `libs/ansible/roles/pihole/templates/interfaces.eth0.50.j2`
+- Create `libs/ansible/roles/pihole/templates/netplan-vlan.yaml.j2` (Ubuntu uses netplan for network configuration)
 - Load 8021q kernel module persistently
-- Create eth0.50 VLAN interface
+- Create eth0.50 VLAN interface via netplan
 - Make interface persistent across reboots
 
-### 2.3 Pi-hole Container Deployment
-- Create `libs/ansible/roles/pihole/tasks/container.yml`
-- Create `libs/ansible/roles/pihole/templates/docker-compose.yml.j2`
-- Create required volume directories (`/opt/pihole-vlan50/`)
-- Deploy and start Pi-hole container
-- Configure container restart policy
+### 2.3 Docker macvlan Networks
+- Create `libs/ansible/roles/pihole/tasks/macvlan_networks.yml`
+- Create `pihole-vlan50-net` macvlan network on eth0.50 (subnet 192.168.50.0/24)
+- Create `pihole-admin-net` macvlan network on br0 (subnet 192.168.1.0/24)
+
+### 2.4 Pi-hole Containers Deployment
+- Create `libs/ansible/roles/pihole/tasks/containers.yml`
+- Create `libs/ansible/roles/pihole/templates/docker-compose.yml.j2` with both containers
+- Create required volume directories:
+  - `/opt/pihole-vlan50/` for VLAN 50 Pi-hole
+  - `/opt/pihole-admin/` for Admin LAN Pi-hole
+- Deploy and start both Pi-hole containers
+- Configure container restart policies
 
 ## Phase 3: DNS Configuration
 
@@ -356,7 +445,7 @@ pihole_dns_records:
 - Add troubleshooting section for Ansible deployments
 
 ### 4.2 Testing and Validation
-- Test full bootstrap flow from fresh DietPi
+- Test bootstrap flow with DHCP IP
 - Test apply flow for idempotent updates
 - Verify security hardening is complete
 
@@ -364,39 +453,32 @@ pihole_dns_records:
 
 ## Foundation First
 1. **Project structure and moon.yml** - Required for all subsequent work
-2. **Inventory files** - Required before any playbook can run
-3. **group_vars with 1Password** - Required for secret injection
+2. **Inventory file** - Required before any playbook can run
+3. **group_vars with common role config and 1Password secrets** - Required for role configuration
 4. **Pi-hole role structure** (`libs/ansible/roles/pihole/`) - Role scaffolding
 
-## Bootstrap (System Configuration)
-5. **System configuration** (pihole role `system.yml`) - Users, SSH, packages
-6. **Bootstrap playbook capability** - Initial access with default credentials
-7. **SSH key and user setup** - Enables transition to production workflow
+## System Configuration (via `common` role)
+5. **Common role execution** - Package updates, hostname, locale, SSH hardening, user management, bridge networking
 
-## Infrastructure
-8. **Docker installation** (pihole role `docker.yml`) - Required before container deployment
-9. **VLAN interface setup** (pihole role `vlan.yml`) - Required for macvlan networking
+## Infrastructure (via `pihole` role)
+6. **Docker installation** (pihole role `docker.yml`) - Required before container deployment
+7. **VLAN interface setup** (pihole role `vlan.yml`) - Required for VLAN 50 macvlan networking
+8. **macvlan networks** (pihole role `macvlan_networks.yml`) - Docker networks for both Pi-hole instances
 
 ## Application Deployment
-10. **Pi-hole container deployment** (pihole role `container.yml`) - Core application
-11. **DNS record configuration** (pihole role `dns_records.yml`) - Custom domain resolution
-12. **Validation and testing** - Verify correct operation
+9. **Pi-hole containers deployment** (pihole role `containers.yml`) - Both Pi-hole instances
+10. **DNS record configuration** (pihole role `dns_records.yml`) - Custom domain resolution
+11. **Validation and testing** - Verify correct operation
 
 ## Documentation Last
-13. **README updates** - Document the completed solution
+12. **README updates** - Document the completed solution
 
 # Risks and Mitigations
 
 ## Technical Challenges
 
-**Risk:** DietPi has different base packages than Ubuntu/Debian
-**Mitigation:** Implement all system configuration directly in the `pihole` role's `system.yml` task file. Do not attempt to reuse the `common` role. Extract common patterns later if needed.
-
-**Risk:** Bootstrap could lock out access if SSH keys not set correctly
-**Mitigation:** Test bootstrap in isolated environment first. Ensure SSH key is set before disabling password auth. Add verification step.
-
-**Risk:** VLAN interface may not persist across DietPi upgrades
-**Mitigation:** Use DietPi's native network configuration methods where possible. Document manual recovery steps.
+**Risk:** VLAN interface may not persist across Ubuntu upgrades
+**Mitigation:** Use Ubuntu's native netplan configuration for VLAN interfaces. Document manual recovery steps.
 
 **Risk:** Pi-hole v6 configuration format may change
 **Mitigation:** Pin Pi-hole Docker image version in docker-compose.yml template.
@@ -404,16 +486,17 @@ pihole_dns_records:
 ## MVP Definition
 
 The MVP includes:
-1. Working bootstrap flow from fresh DietPi
-2. Working apply flow for subsequent runs
-3. Docker and Pi-hole deployed with basic configuration
-4. Custom DNS records configured
-5. Security hardening (SSH keys, no password auth, no root login)
+1. Working bootstrap flow for first-time provisioning (DHCP to static IP)
+2. Working apply flow for subsequent deployments and updates
+3. Docker and both Pi-hole instances deployed:
+   - VLAN 50 Pi-hole at 192.168.50.2
+   - Admin LAN Pi-hole at 192.168.1.16
+4. Custom DNS records configured on both instances
+5. Security hardening (no password auth, no root login)
 
 Out of scope for MVP:
 - Automated backup/restore
 - Monitoring integration
-- DietPi welcome menu customization (can be done later)
 
 ## Resource Constraints
 
@@ -438,13 +521,11 @@ Vault: `setup-pihole-prod`
 
 **Required items:**
 - `root-pihole`
-  - `password` - Plain text password for root user (used for bootstrap SSH)
+  - `password` - Plain text password for root user
   - `password_encrypted` - SHA-512 hashed password for Ansible user module
-- `dietpi-pihole`
-  - `password` - Plain text password for dietpi user (used for sudo/become)
+- `maarten-pihole`
+  - `password` - Plain text password for maarten user (used for sudo/become)
   - `password_encrypted` - SHA-512 hashed password for Ansible user module
-- `SSH - Setup`
-  - `public key` - SSH public key for authorized_keys
 
 **Generating encrypted passwords:**
 ```bash
@@ -454,18 +535,27 @@ mkpasswd --method=sha-512 'your-password-here'
 
 **Note:** The vault naming follows the pattern `setup-{project-name}` used elsewhere in the monorepo.
 
-## SSH Public Key
+## SSH Keys
 
+The `maarten` user on the Ubuntu Pi4 is pre-configured with the SSH public key:
 ```
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAvXN6EpJc9+19awLUuqdVvvjZ1v/ofx9dee9UzM3xXp
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKbI3UZOhsVGi1lbnH7Sd0KWtP5m6zUJgrxbHMTxhRcW
 ```
+
+The corresponding private key used by Ansible is located at:
+```
+/secrets/pihole-prod/ssh_private_key
+```
+
+This key is configured in the inventory files via `ansible_ssh_private_key_file`.
 
 ## Network Topology
 
 ```
-Regular LAN (192.168.1.0/24)
-├─ DietPi Host: 192.168.1.137 (SSH access, static IP after bootstrap)
-│   └─ Initial boot: DHCP-assigned IP (varies)
+Admin LAN (192.168.1.0/24)
+├─ peace-at-last: 192.168.1.15 (SSH access via maarten user, static IP after bootstrap)
+├─ Admin LAN Pi-hole: 192.168.1.16 (DNS server for admin network, macvlan on br0)
+├─ Gateway/Nameserver: 192.168.1.1
 │
 └─ VLAN Trunk (eth0.50)
     │
@@ -489,7 +579,7 @@ collections:
 The monorepo includes a custom Ansible vars plugin at `libs/ansible/vars_plugins/op.py` that provides lazy 1Password secret injection:
 
 **How it works:**
-1. For each inventory group (e.g., `bootstrap`, `production`), the plugin looks for `group_vars/{group}.op.yml`
+1. For each inventory group (e.g., `pihole`), the plugin looks for `group_vars/{group}.op.yml`
 2. Uses `op inject --in-file={path}` to replace `op://` references with actual values
 3. Caches results to avoid repeated 1Password API calls
 
