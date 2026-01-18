@@ -80,7 +80,7 @@ This PRD defines the conversion of the existing Pi-hole production deployment on
 **Initial Deployment (Bootstrap):**
 1. Install Ubuntu Server with `maarten` user and SSH key configured
 2. Find the DHCP-assigned IP address (e.g., check router DHCP leases)
-3. Run `moon run pihole-prod:bootstrap -- <dhcp-ip>` (e.g., `moon run pihole-prod:bootstrap -- 192.168.1.100`)
+3. Run `moon run pihole-prod:bootstrap -- <dhcp-ip>` (e.g., `moon run pihole-prod:bootstrap -- 192.168.1.126`)
 4. The playbook configures static IP (192.168.1.15) - host will reboot/reconnect at new IP
 5. Verify Pi-hole is accessible at http://192.168.50.2/admin
 
@@ -297,7 +297,7 @@ tasks:
 ```
 
 **Usage:**
-- `moon run pihole-prod:bootstrap -- <dhcp-ip>` - First-time provisioning (e.g., `moon run pihole-prod:bootstrap -- 192.168.1.100`)
+- `moon run pihole-prod:bootstrap -- <dhcp-ip>` - First-time provisioning (e.g., `moon run pihole-prod:bootstrap -- 192.168.1.126`)
 - `moon run pihole-prod:apply` - Subsequent deployments and updates (uses static IP 192.168.1.15)
 
 The `dependsOn: [ansible]` ensures that:
