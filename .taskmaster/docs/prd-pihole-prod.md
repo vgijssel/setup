@@ -4,7 +4,7 @@
 This PRD defines the conversion of the existing Pi-hole production deployment on DietPi (Raspberry Pi) into infrastructure as code using Ansible. The goal is to create a reproducible, maintainable deployment that follows the monorepo's established patterns.
 
 **Current State:**
-- DietPi (Debian 13 Trixie) on Raspberry Pi at 192.168.1.141 (VLAN 1)
+- DietPi (Debian 13 Trixie) on Raspberry Pi at 192.168.1.137 (VLAN 1)
 - Pi-hole running in Docker with macvlan networking on VLAN 50 at 192.168.50.2
 - Manual deployment documented in `apps/pihole-prod/README.md`
 - Manual security hardening tasks listed as TODOs in README
@@ -73,9 +73,10 @@ This PRD defines the conversion of the existing Pi-hole production deployment on
 
 **Initial Deployment:**
 1. Ensure DietPi is freshly installed with default credentials
-2. Ensure network connectivity to 192.168.1.141
-3. Run `moon run pihole-prod:bootstrap`
-4. Verify Pi-hole is accessible at http://192.168.50.2/admin
+2. Find the DHCP-assigned IP address (e.g., check router DHCP leases)
+3. Run `moon run pihole-prod:bootstrap -- <ip-address>` (e.g., `moon run pihole-prod:bootstrap -- 192.168.1.137`)
+4. The playbook will configure a static IP (192.168.1.137) during bootstrap
+5. Verify Pi-hole is accessible at http://192.168.50.2/admin
 
 **Regular Updates:**
 1. Modify Ansible playbook/roles as needed
@@ -155,9 +156,12 @@ The custom vars plugin (`libs/ansible/vars_plugins/op.py`) automatically:
 ## Inventory Files
 
 **bootstrap inventory:**
+
+The bootstrap inventory uses a placeholder that is replaced at runtime with the actual IP address passed as an argument:
+
 ```ini
 [pihole]
-192.168.1.141
+# IP address is passed via -e ansible_host=<ip> on command line
 
 [pihole:vars]
 ansible_user=root
@@ -174,9 +178,12 @@ ansible_password: op://setup-pihole-prod/root-pihole/password
 ```
 
 **production inventory:**
+
+After bootstrap, the static IP (192.168.1.137) is configured and used for all subsequent runs:
+
 ```ini
 [pihole]
-192.168.1.141
+192.168.1.137
 
 [pihole:vars]
 ansible_user=dietpi
@@ -214,12 +221,20 @@ tags:
   - pihole
 tasks:
   bootstrap:
-    command: ansible-playbook -i bootstrap pihole.yml --diff
+    command: ansible-playbook -i bootstrap pihole.yml --diff -e "ansible_host=$@"
     local: true
+    args:
+      - name: ip
+        description: "IP address of the DietPi host (from DHCP)"
+        required: true
   apply:
     command: ansible-playbook -i production pihole.yml --diff
     local: true
 ```
+
+**Usage:**
+- Bootstrap (first run): `moon run pihole-prod:bootstrap -- 192.168.1.100` (use DHCP-assigned IP)
+- Apply (subsequent runs): `moon run pihole-prod:apply` (uses static IP 192.168.1.137)
 
 The `dependsOn: [ansible]` ensures that:
 1. Moon recognizes the relationship between pihole-prod and the shared ansible library
@@ -234,6 +249,11 @@ The `dependsOn: [ansible]` ensures that:
 4. **macvlan Network:** Docker network attached to eth0.50
 
 ## Data Models
+
+**Host Configuration Variables:**
+- `host_static_ip`: 192.168.1.137 (static IP configured during bootstrap)
+- `host_gateway`: 192.168.1.1
+- `host_interface`: eth0
 
 **Pi-hole Configuration Variables:**
 - `pihole_ip`: 192.168.50.2
@@ -282,6 +302,7 @@ pihole_dns_records:
 
 ### 1.3 System Configuration (Bootstrap)
 - Create `libs/ansible/roles/pihole/tasks/system.yml`
+- Configure static IP address (192.168.1.137) to replace DHCP
 - Configure dietpi user with SSH key and sudo access
 - Set passwords for root and dietpi users from 1Password
 - Disable SSH password authentication and root login
@@ -443,7 +464,8 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAvXN6EpJc9+19awLUuqdVvvjZ1v/ofx9dee9UzM3xXp
 
 ```
 Regular LAN (192.168.1.0/24)
-├─ DietPi Host: 192.168.1.141 (SSH access)
+├─ DietPi Host: 192.168.1.137 (SSH access, static IP after bootstrap)
+│   └─ Initial boot: DHCP-assigned IP (varies)
 │
 └─ VLAN Trunk (eth0.50)
     │
