@@ -1,0 +1,388 @@
+command:
+  git_version:
+    title: Git >=2.34.0 (supports SSH commit signing)
+    meta:
+      url: https://developer.1password.com/docs/ssh/git-commit-signing/
+    exec: git --version | awk '{print $3}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=2.34.0"
+    stderr: ""
+    timeout: 60000
+
+  ssh_version:
+    title: SSH client is installed
+    exec: ssh -V 2>&1 | head -1
+    exit-status: 0
+    stdout:
+      - /OpenSSH/
+    timeout: 60000
+
+  zsh_version:
+    title: Zsh shell is installed
+    exec: zsh --version
+    exit-status: 0
+    stderr: ""
+    timeout: 60000
+
+  curl_version:
+    title: curl is installed
+    exec: curl --version | head -1 | awk '{print $2}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=8.5.0"
+    stderr: ""
+    timeout: 60000
+
+  wget_version:
+    title: wget is installed
+    exec: wget --version
+    exit-status: 0
+    timeout: 60000
+
+  fzf --version:
+    title: fzf >=0.51.0 needs to be installed for zoxide
+    meta:
+      url: https://github.com/ajeetdsouza/zoxide
+    exec: fzf --version | awk '{print $1}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=0.51.0"
+    stderr: ""
+    timeout: 60000
+
+  zhistory_file_exists:
+    title: .zhistory file exists with at least one entry to prevent fzf-history-widget errors
+    meta:
+      url: https://github.com/junegunn/fzf
+    exec: test -f ~/.zhistory && test -s ~/.zhistory && echo "exists and not empty" || echo "missing or empty"
+    exit-status: 0
+    stdout:
+      - exists and not empty
+    timeout: 10000
+
+  gh --version:
+    title: Ensure GitHub CLI is installed for Claude Code
+    exec: gh --version | awk '{print $3}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=2.79.0"
+    stderr: ""
+    timeout: 60000
+
+  jq_version:
+    title: jq is installed for Git commit signing module in Coder
+    meta:
+      url: https://developer.1password.com/docs/ssh/git-commit-signing/
+    exec: jq --version | tr -d '\njq-'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=1.7.0"
+    stderr: ""
+    timeout: 60000
+
+  pnpm_version:
+    title: pnpm >=10 prevents lifecycle hooks from running automatically
+    meta:
+      url: https://github.com/pnpm/pnpm/releases/tag/v10.0.0
+    exec: pnpm --version | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=10.0.0"
+    stderr: ""
+    timeout: 60000
+
+  nslookup_version:
+    title: nslookup is installed for DNS testing in chainsaw tests
+    exec: nslookup -version
+    exit-status: 0
+    timeout: 1000
+
+  locale:
+    title: Check locale settings
+    exec: locale | grep -E "^LANG=" || echo "LANG not set"
+    exit-status: 0
+    timeout: 60000
+
+  chezmoi_version:
+    exec: chezmoi-wrapper --version | awk '{print $3}' | tr -d 'v,\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=2.65.1"
+    stderr: ""
+    timeout: 60000
+
+  coder_version:
+    title: Coder CLI is installed via Hermit
+    exec: coder version | awk 'NR==1 {print $2}' | sed 's/v//' | cut -d'+' -f1 | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=2.27.6"
+    stderr: ""
+    timeout: 60000
+
+  no_dangling_symlinks_in_bin:
+    title: No dangling symlinks in bin/ directory
+    meta:
+      url: https://github.com/cashapp/hermit
+    exec: find {{.Env.SETUP_DIR}}/bin -type l ! -exec test -e {} \; -print 2>/dev/null | wc -l | tr -d ' \n'
+    exit-status: 0
+    stdout:
+      - "0"
+    stderr: ""
+    timeout: 60000
+
+  starship_version:
+    title: Starship prompt is installed via Hermit
+    exec: starship --version |  awk 'NR==1 {print $2}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=1.23.0"
+    stderr: ""
+    timeout: 60000
+
+  tailscale_version:
+    title: Tailscale is installed via Hermit
+    skip: { { .Env.IS_MACOS } }
+    meta:
+      url: https://tailscale.com
+    exec: tailscale version | head -1 | awk '{print $1}' | tr -d '\n'
+    exit-status: 0
+    stdout:
+      semver-constraint: ">=1.90.6"
+    stderr: ""
+    timeout: 60000
+
+  which starship:
+    title: Starship is available in PATH via Hermit
+    exit-status: 0
+    stdout: "{{.Env.SETUP_DIR}}/bin/starship\n"
+
+  starship_outside_repo:
+    title: Starship is available outside of repo root
+    exec: direnv exec / which starship
+    stderr: ""
+    exit-status: 0
+
+  claude_outside_repo:
+    title: Claude CLI is available outside of repo root
+    exec: direnv exec / claude --version
+    exit-status: 0
+    timeout: 60000
+
+  supervisord_outside_repo:
+    title: supervisord is available outside of repo root
+    exec: direnv exec / supervisord --help
+    exit-status: 0
+    timeout: 60000
+
+  supervisorctl_outside_repo:
+    title: supervisorctl is available outside of repo root
+    exec: direnv exec / supervisorctl --help
+    exit-status: 0
+    timeout: 60000
+
+  starship_prompt_integration:
+    title: Starship prompt is properly integrated with zsh
+    # Passing -i to similate an interactive shell
+    exec: zsh -ic 'env'
+    exit-status: 0
+    stdout:
+      - STARSHIP_SHELL=zsh
+    timeout: 60000
+
+  uv_link_mode_linux:
+    title: UV_LINK_MODE is set to copy on Linux
+    skip: { { .Env.IS_MACOS } }
+    exec: zsh -ic 'echo $UV_LINK_MODE'
+    exit-status: 0
+    stdout:
+      - copy
+    timeout: 60000
+
+  ssh_auth_sock_macos:
+    title: SSH_AUTH_SOCK is configured on macOS
+    skip: { { .Env.IS_LINUX } }
+    exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.terminal_env.sh
+    exit-status: 0
+    stdout:
+      - SSH_AUTH_SOCK
+    timeout: 60000
+
+  ssh_auth_sock_linux:
+    title: SSH_AUTH_SOCK is not configured on Linux
+    skip: { { .Env.IS_MACOS } }
+    exec: grep "export SSH_AUTH_SOCK" {{.Env.HOME}}/.terminal_env.sh || echo "not found"
+    exit-status: 0
+    stdout:
+      - not found
+    timeout: 60000
+
+  gitconfig_include_setup:
+    title: Git config includes setup configuration
+    exec: grep -c "path = ~/.gitconfig.setup" {{.Env.HOME}}/.gitconfig || echo "0"
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 60000
+
+  gitconfig_include_macos:
+    title: Git config always includes macOS configuration path
+    exec: grep -c "path = ~/.gitconfig.macos" {{.Env.HOME}}/.gitconfig || echo "0"
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 60000
+
+  gpg_ssh_macos:
+    title: GPG SSH signing is configured on macOS via include
+    skip: { { .Env.IS_LINUX } }
+    exec: grep -A1 'gpg "ssh"' {{.Env.HOME}}/.gitconfig.macos | grep op-ssh-sign
+    exit-status: 0
+    stdout:
+      - op-ssh-sign
+    timeout: 60000
+
+  gpg_ssh_linux:
+    title: GPG SSH signing macOS file does not exist on Linux
+    skip: { { .Env.IS_MACOS } }
+    exec: test -f {{.Env.HOME}}/.gitconfig.macos && echo "file exists" || echo "not found"
+    exit-status: 0
+    stdout:
+      - not found
+    timeout: 60000
+
+  docker_storage_check_linux:
+    title: Docker storage is local to container (DinD)
+    skip: { { .Env.IS_MACOS } }
+    exec: docker info | grep "Docker Root Dir" | awk '{print $NF}'
+    exit-status: 0
+    stdout:
+      - /var/lib/docker
+    timeout: 60000
+
+  docker_version_linux:
+    title: Docker client is available
+    skip: { { .Env.IS_MACOS } }
+    exec: docker --version
+    exit-status: 0
+    timeout: 60000
+
+  firacode_font:
+    title: FiraCode Nerd Font is installed
+    stdout:
+      - FiraCode Nerd Font
+    exec: fc-list
+    exit-status: 0
+    timeout: 10000
+
+user:
+  coder:
+    skip: { { or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") } }
+    exists: true
+    home: /home/coder
+    shell: /usr/bin/zsh
+  root:
+    skip: { { or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") } }
+    exists: true
+    shell: /usr/bin/zsh
+
+group:
+  coder:
+    skip: { { or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") } }
+    exists: true
+
+file:
+  "{{.Env.HOME}}":
+    exists: true
+    filetype: directory
+
+  "{{.Env.HOME}}/.config/direnv/direnv.toml":
+    exists: true
+    filetype: file
+
+  "{{.Env.HOME}}/.config":
+    exists: true
+    filetype: directory
+
+  "{{.Env.HOME}}/.zshrc":
+    exists: true
+    filetype: file
+
+  "{{.Env.HOME}}/.bashrc":
+    exists: true
+    filetype: file
+
+  "{{.Env.HOME}}/.gitconfig":
+    exists: true
+    filetype: file
+    contents:
+      - "[include]"
+      - path = ~/.gitconfig.setup
+      - path = ~/.gitconfig.macos
+
+  "{{.Env.HOME}}/.gitconfig.setup":
+    exists: true
+    filetype: file
+    contents:
+      - "[user]"
+      - name=mvgijssel
+
+  "{{.Env.HOME}}/.gitconfig.macos":
+    skip: { { .Env.IS_LINUX } }
+    exists: true
+    filetype: file
+    contents:
+      - "[gpg]"
+      - format = ssh
+
+  "{{.Env.HOME}}/.gitconfig.macos-not-on-linux":
+    title: macOS gitconfig file should not exist on Linux
+    skip: { { .Env.IS_MACOS } }
+    exists: false
+
+  "{{.Env.HOME}}/.config/starship.toml":
+    exists: true
+    filetype: file
+    contents:
+      - add_newline = true
+
+  "{{.Env.HOME}}/.zimrc":
+    exists: true
+    filetype: file
+
+  "{{.Env.HOME}}/.ssh":
+    exists: true
+    filetype: directory
+
+  "{{.Env.HOME}}/.ssh/known_hosts":
+    title: SSH known_hosts file exists with GitHub entry
+    exists: true
+    filetype: file
+    contents:
+      - github.com
+
+  "{{.Env.HOME}}/.nx":
+    title: Nx configuration directory exists
+    exists: true
+    filetype: directory
+
+  "{{.Env.HOME}}/.nx/ide.json":
+    title: Nx IDE configuration exists to disable auto-install console
+    meta:
+      url: https://github.com/nrwl/nx/issues/31668#issuecomment-3306509489
+    exists: true
+    filetype: file
+    contents:
+      - auto_install_console
+
+  "{{.Env.SETUP_DIR}}/third_party/vendir/shell/zimfw/zimfw.zsh":
+    title: zimfw.zsh exists for zsh plugin management
+    exists: true
+    filetype: file
+
+process:
+  dockerd:
+    title: Docker daemon is running inside container (Docker-in-Docker)
+    skip: { { .Env.IS_MACOS } }
+    running: true
