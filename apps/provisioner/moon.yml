@@ -1,6 +1,8 @@
 id: provisioner
 language: javascript
 layer: application
+dependsOn:
+  - ansible
 tags:
   - scope.app
   - type.infrastructure
