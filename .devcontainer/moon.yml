@@ -31,10 +31,11 @@ tasks:
       - ~:build
     local: true
   test:
-    command: ./test.sh
+    command: bats tests/test.bats
     inputs:
       - file: .docker-version
-      - file: ./test.sh
+      - file: tests/test.bats
+      - file: tests/goss.yaml
     deps:
       - ~:build
     options:
