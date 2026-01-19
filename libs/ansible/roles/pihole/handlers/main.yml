@@ -1,16 +1,14 @@
 ---
 - name: restart pihole-vlan50
-  community.docker.docker_container:
-    name: "{{ pihole_vlan50_container_name }}"
-    state: started
-    restart: true
+  ansible.builtin.command:
+    cmd: docker compose restart pihole-vlan50
+    chdir: "{{ pihole_compose_dir }}"
   become: true
 
 - name: restart pihole-admin
-  community.docker.docker_container:
-    name: "{{ pihole_admin_container_name }}"
-    state: started
-    restart: true
+  ansible.builtin.command:
+    cmd: docker compose restart pihole-admin
+    chdir: "{{ pihole_compose_dir }}"
   become: true
 
 - name: apply netplan

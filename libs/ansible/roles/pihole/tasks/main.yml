@@ -5,9 +5,6 @@
 - import_tasks: vlan.yml
   tags: vlan
 
-- import_tasks: macvlan_networks.yml
-  tags: macvlan
-
 - import_tasks: containers.yml
   tags: containers
 

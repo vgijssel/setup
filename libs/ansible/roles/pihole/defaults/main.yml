@@ -4,6 +4,9 @@
 # Docker image (pinned version)
 pihole_docker_image: pihole/pihole:2024.07.0
 
+# Docker Compose directory
+pihole_compose_dir: /opt/pihole
+
 # VLAN 50 Pi-hole defaults (Kubernetes network)
 pihole_vlan50_ip: 192.168.50.2
 pihole_vlan50_gateway: 192.168.50.1

@@ -1,6 +1,13 @@
 ---
 # Pi-hole Container Deployment Tasks
-# Deploys Pi-hole containers for VLAN 50 and Admin LAN
+# Deploys Pi-hole containers using docker-compose
+
+- name: Create Pi-hole compose directory
+  ansible.builtin.file:
+    path: "{{ pihole_compose_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
 
 - name: Create VLAN 50 Pi-hole data directory
   ansible.builtin.file:
@@ -16,56 +23,25 @@
     mode: "0755"
   become: true
 
-- name: Deploy VLAN 50 Pi-hole container
-  community.docker.docker_container:
-    name: "{{ pihole_vlan50_container_name }}"
-    image: "{{ pihole_docker_image }}"
-    hostname: "{{ pihole_vlan50_container_name }}"
-    state: started
-    restart_policy: unless-stopped
-    networks:
-      - name: macvlan_vlan50
-        ipv4_address: "{{ pihole_vlan50_ip }}"
-    env:
-      TZ: "{{ pihole_timezone }}"
-      WEBPASSWORD: "{{ pihole_web_password }}"
-      PIHOLE_DNS_: "{{ pihole_upstream_dns }}"
-      DNSMASQ_LISTENING: "all"
-      VIRTUAL_HOST: "{{ pihole_vlan50_container_name }}.local"
-      FTLCONF_LOCAL_IPV4: "{{ pihole_vlan50_ip }}"
-    volumes:
-      - "{{ pihole_vlan50_data_dir }}/etc-pihole:/etc/pihole"
-      - "{{ pihole_vlan50_data_dir }}/etc-dnsmasq.d:/etc/dnsmasq.d"
-    capabilities:
-      - NET_ADMIN
-    dns_servers:
-      - "127.0.0.1"
-      - "{{ pihole_upstream_dns }}"
+- name: Deploy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ pihole_compose_dir }}/docker-compose.yml"
+    mode: "0600"
   become: true
+  register: compose_config
 
-- name: Deploy Admin LAN Pi-hole container
-  community.docker.docker_container:
-    name: "{{ pihole_admin_container_name }}"
-    image: "{{ pihole_docker_image }}"
-    hostname: "{{ pihole_admin_container_name }}"
-    state: started
-    restart_policy: unless-stopped
-    networks:
-      - name: macvlan_admin
-        ipv4_address: "{{ pihole_admin_ip }}"
-    env:
-      TZ: "{{ pihole_timezone }}"
-      WEBPASSWORD: "{{ pihole_web_password }}"
-      PIHOLE_DNS_: "{{ pihole_upstream_dns }}"
-      DNSMASQ_LISTENING: "all"
-      VIRTUAL_HOST: "{{ pihole_admin_container_name }}.local"
-      FTLCONF_LOCAL_IPV4: "{{ pihole_admin_ip }}"
-    volumes:
-      - "{{ pihole_admin_data_dir }}/etc-pihole:/etc/pihole"
-      - "{{ pihole_admin_data_dir }}/etc-dnsmasq.d:/etc/dnsmasq.d"
-    capabilities:
-      - NET_ADMIN
-    dns_servers:
-      - "127.0.0.1"
-      - "{{ pihole_upstream_dns }}"
+- name: Pull Pi-hole Docker image
+  ansible.builtin.command:
+    cmd: docker compose pull
+    chdir: "{{ pihole_compose_dir }}"
   become: true
+  changed_when: false
+
+- name: Start Pi-hole containers
+  ansible.builtin.command:
+    cmd: docker compose up -d
+    chdir: "{{ pihole_compose_dir }}"
+  become: true
+  register: compose_up
+  changed_when: "'Started' in compose_up.stderr or 'Creating' in compose_up.stderr or compose_config.changed"

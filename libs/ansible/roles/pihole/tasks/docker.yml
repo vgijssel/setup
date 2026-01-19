@@ -1,6 +1,6 @@
 ---
 # Docker Installation Tasks
-# Installs Docker and Docker Compose on DietPi (Debian-based)
+# Installs Docker and Docker Compose on Ubuntu/Debian
 
 - name: Install required packages for Docker
   ansible.builtin.apt:
@@ -20,21 +20,35 @@
     mode: "0755"
   become: true
 
+- name: Get distribution ID (lowercase)
+  ansible.builtin.command: lsb_release -is
+  register: distro_id
+  changed_when: false
+
+- name: Set distribution name for Docker repo
+  ansible.builtin.set_fact:
+    docker_distro: "{{ distro_id.stdout | lower }}"
+
 - name: Add Docker GPG key
   ansible.builtin.get_url:
-    url: https://download.docker.com/linux/debian/gpg
+    url: "https://download.docker.com/linux/{{ docker_distro }}/gpg"
     dest: /etc/apt/keyrings/docker.asc
     mode: "0644"
   become: true
 
-- name: Get Debian codename
+- name: Get OS codename
   ansible.builtin.command: lsb_release -cs
-  register: debian_codename
+  register: os_codename
+  changed_when: false
+
+- name: Get architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_arch
   changed_when: false
 
 - name: Add Docker repository
   ansible.builtin.apt_repository:
-    repo: "deb [arch=arm64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ debian_codename.stdout }} stable"
+    repo: "deb [arch={{ dpkg_arch.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/{{ docker_distro }} {{ os_codename.stdout }} stable"
     state: present
     filename: docker
   become: true
