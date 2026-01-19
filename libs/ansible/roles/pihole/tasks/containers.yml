@@ -24,12 +24,27 @@
   become: true
 
 - name: Deploy docker-compose.yml
-  ansible.builtin.template:
-    src: docker-compose.yml.j2
+  ansible.builtin.copy:
+    src: docker-compose.yml
     dest: "{{ pihole_compose_dir }}/docker-compose.yml"
-    mode: "0600"
+    mode: "0644"
   become: true
   register: compose_config
+
+- name: Deploy .env file with secrets
+  ansible.builtin.template:
+    src: pihole.env.j2
+    dest: "{{ pihole_compose_dir }}/.env"
+    mode: "0600"
+  become: true
+  register: env_config
+
+- name: Deploy .env.example for documentation
+  ansible.builtin.copy:
+    src: .env.example
+    dest: "{{ pihole_compose_dir }}/.env.example"
+    mode: "0644"
+  become: true
 
 - name: Pull Pi-hole Docker image
   ansible.builtin.command:
@@ -44,4 +59,4 @@
     chdir: "{{ pihole_compose_dir }}"
   become: true
   register: compose_up
-  changed_when: "'Started' in compose_up.stderr or 'Creating' in compose_up.stderr or compose_config.changed"
+  changed_when: "'Started' in compose_up.stderr or 'Creating' in compose_up.stderr or compose_config.changed or env_config.changed"

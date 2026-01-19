@@ -1,0 +1,72 @@
+# Pi-hole Docker Compose Configuration
+# Uses .env file for configuration - see .env.example
+
+services:
+  pihole-vlan50:
+    container_name: ${PIHOLE_VLAN50_CONTAINER_NAME:-pihole-vlan50}
+    image: ${PIHOLE_DOCKER_IMAGE:-pihole/pihole:2025.11.1}
+    hostname: ${PIHOLE_VLAN50_CONTAINER_NAME:-pihole-vlan50}
+    networks:
+      vlan50:
+        ipv4_address: ${PIHOLE_VLAN50_IP:-192.168.50.2}
+    environment:
+      TZ: ${PIHOLE_TIMEZONE:-Europe/Amsterdam}
+      WEBPASSWORD: ${PIHOLE_WEB_PASSWORD}
+      PIHOLE_DNS_: ${PIHOLE_UPSTREAM_DNS:-192.168.1.1}
+      DNSMASQ_LISTENING: all
+      VIRTUAL_HOST: ${PIHOLE_VLAN50_CONTAINER_NAME:-pihole-vlan50}.local
+      FTLCONF_LOCAL_IPV4: ${PIHOLE_VLAN50_IP:-192.168.50.2}
+    volumes:
+      - ${PIHOLE_VLAN50_DATA_DIR:-/opt/pihole-vlan50}/etc-pihole:/etc/pihole
+      - ${PIHOLE_VLAN50_DATA_DIR:-/opt/pihole-vlan50}/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    dns:
+      - 127.0.0.1
+      - ${PIHOLE_UPSTREAM_DNS:-192.168.1.1}
+
+  pihole-admin:
+    container_name: ${PIHOLE_ADMIN_CONTAINER_NAME:-pihole-admin}
+    image: ${PIHOLE_DOCKER_IMAGE:-pihole/pihole:2025.11.1}
+    hostname: ${PIHOLE_ADMIN_CONTAINER_NAME:-pihole-admin}
+    networks:
+      admin:
+        ipv4_address: ${PIHOLE_ADMIN_IP:-192.168.1.16}
+    environment:
+      TZ: ${PIHOLE_TIMEZONE:-Europe/Amsterdam}
+      WEBPASSWORD: ${PIHOLE_WEB_PASSWORD}
+      PIHOLE_DNS_: ${PIHOLE_UPSTREAM_DNS:-192.168.1.1}
+      DNSMASQ_LISTENING: all
+      VIRTUAL_HOST: ${PIHOLE_ADMIN_CONTAINER_NAME:-pihole-admin}.local
+      FTLCONF_LOCAL_IPV4: ${PIHOLE_ADMIN_IP:-192.168.1.16}
+    volumes:
+      - ${PIHOLE_ADMIN_DATA_DIR:-/opt/pihole-admin}/etc-pihole:/etc/pihole
+      - ${PIHOLE_ADMIN_DATA_DIR:-/opt/pihole-admin}/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    dns:
+      - 127.0.0.1
+      - ${PIHOLE_UPSTREAM_DNS:-192.168.1.1}
+
+networks:
+  vlan50:
+    driver: macvlan
+    driver_opts:
+      parent: ${PIHOLE_VLAN50_PARENT_INTERFACE:-eth0.50}
+    ipam:
+      config:
+        - subnet: ${PIHOLE_VLAN50_SUBNET:-192.168.50.0/24}
+          gateway: ${PIHOLE_VLAN50_GATEWAY:-192.168.50.1}
+          ip_range: ${PIHOLE_VLAN50_IP:-192.168.50.2}/32
+
+  admin:
+    driver: macvlan
+    driver_opts:
+      parent: ${PIHOLE_ADMIN_PARENT_INTERFACE:-br0}
+    ipam:
+      config:
+        - subnet: ${PIHOLE_ADMIN_SUBNET:-192.168.1.0/24}
+          gateway: ${PIHOLE_ADMIN_GATEWAY:-192.168.1.1}
+          ip_range: ${PIHOLE_ADMIN_IP:-192.168.1.16}/32
