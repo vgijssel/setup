@@ -1,0 +1,71 @@
+---
+# Pi-hole Container Deployment Tasks
+# Deploys Pi-hole containers for VLAN 50 and Admin LAN
+
+- name: Create VLAN 50 Pi-hole data directory
+  ansible.builtin.file:
+    path: "{{ pihole_vlan50_data_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Create Admin LAN Pi-hole data directory
+  ansible.builtin.file:
+    path: "{{ pihole_admin_data_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Deploy VLAN 50 Pi-hole container
+  community.docker.docker_container:
+    name: "{{ pihole_vlan50_container_name }}"
+    image: "{{ pihole_docker_image }}"
+    hostname: "{{ pihole_vlan50_container_name }}"
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: macvlan_vlan50
+        ipv4_address: "{{ pihole_vlan50_ip }}"
+    env:
+      TZ: "{{ pihole_timezone }}"
+      WEBPASSWORD: "{{ pihole_web_password }}"
+      PIHOLE_DNS_: "{{ pihole_upstream_dns }}"
+      DNSMASQ_LISTENING: "all"
+      VIRTUAL_HOST: "{{ pihole_vlan50_container_name }}.local"
+      FTLCONF_LOCAL_IPV4: "{{ pihole_vlan50_ip }}"
+    volumes:
+      - "{{ pihole_vlan50_data_dir }}/etc-pihole:/etc/pihole"
+      - "{{ pihole_vlan50_data_dir }}/etc-dnsmasq.d:/etc/dnsmasq.d"
+    capabilities:
+      - NET_ADMIN
+    dns_servers:
+      - "127.0.0.1"
+      - "{{ pihole_upstream_dns }}"
+  become: true
+
+- name: Deploy Admin LAN Pi-hole container
+  community.docker.docker_container:
+    name: "{{ pihole_admin_container_name }}"
+    image: "{{ pihole_docker_image }}"
+    hostname: "{{ pihole_admin_container_name }}"
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: macvlan_admin
+        ipv4_address: "{{ pihole_admin_ip }}"
+    env:
+      TZ: "{{ pihole_timezone }}"
+      WEBPASSWORD: "{{ pihole_web_password }}"
+      PIHOLE_DNS_: "{{ pihole_upstream_dns }}"
+      DNSMASQ_LISTENING: "all"
+      VIRTUAL_HOST: "{{ pihole_admin_container_name }}.local"
+      FTLCONF_LOCAL_IPV4: "{{ pihole_admin_ip }}"
+    volumes:
+      - "{{ pihole_admin_data_dir }}/etc-pihole:/etc/pihole"
+      - "{{ pihole_admin_data_dir }}/etc-dnsmasq.d:/etc/dnsmasq.d"
+    capabilities:
+      - NET_ADMIN
+    dns_servers:
+      - "127.0.0.1"
+      - "{{ pihole_upstream_dns }}"
+  become: true

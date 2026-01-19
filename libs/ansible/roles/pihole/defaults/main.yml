@@ -1,0 +1,26 @@
+---
+# Pi-hole role defaults
+
+# Docker image (pinned version)
+pihole_docker_image: pihole/pihole:2024.07.0
+
+# VLAN 50 Pi-hole defaults (Kubernetes network)
+pihole_vlan50_ip: 192.168.50.2
+pihole_vlan50_gateway: 192.168.50.1
+pihole_vlan50_subnet: 192.168.50.0/24
+pihole_vlan50_parent_interface: eth0.50
+pihole_vlan50_container_name: pihole-vlan50
+pihole_vlan50_data_dir: /opt/pihole-vlan50
+
+# Admin LAN Pi-hole defaults
+pihole_admin_ip: 192.168.1.16
+pihole_admin_gateway: 192.168.1.1
+pihole_admin_subnet: 192.168.1.0/24
+pihole_admin_parent_interface: br0
+pihole_admin_container_name: pihole-admin
+pihole_admin_data_dir: /opt/pihole-admin
+
+# Shared defaults
+pihole_upstream_dns: 192.168.1.1
+pihole_timezone: Europe/Amsterdam
+pihole_dns_records: []
