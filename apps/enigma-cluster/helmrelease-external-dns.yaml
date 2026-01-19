@@ -37,6 +37,5 @@ spec:
             key: credential
     sources:
       - service
-      - ingress
     extraArgs:
       - --label-filter=internal-networking=true
