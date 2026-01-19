@@ -1,5 +1,3 @@
-# trunk-ignore-all(yamllint/syntax)
-# trunk-ignore-all(prettier/SyntaxError)
 # Become password for sudo operations
 ansible_become_pass: op://setup-pihole-prod/maarten-pihole/password
 # Encrypted passwords for Ansible user module

@@ -15,8 +15,6 @@ tasks:
   bootstrap:
     command: ansible-playbook -i bootstrap pihole.yml --diff -e "ansible_host=@ARGS"
     local: true
-    args:
-      passthrough: true
   apply:
     command: ansible-playbook -i inventory pihole.yml --diff
     local: true

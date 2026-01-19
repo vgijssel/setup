@@ -1,16 +1,8 @@
 ---
-- name: restart pihole-vlan50
-  ansible.builtin.command:
-    cmd: docker compose restart pihole-vlan50
-    chdir: "{{ pihole_compose_dir }}"
-  become: true
+# Pi-hole Container Handlers
 
-- name: restart pihole-admin
-  ansible.builtin.command:
-    cmd: docker compose restart pihole-admin
+- name: restart pihole containers
+  ansible.builtin.shell:
+    cmd: docker compose down && docker compose up -d --remove-orphans --build
     chdir: "{{ pihole_compose_dir }}"
-  become: true
-
-- name: apply netplan
-  ansible.builtin.command: netplan apply
   become: true

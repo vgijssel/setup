@@ -14,3 +14,5 @@
   tags: users
 - import_tasks: networking.yml
   tags: networking
+- import_tasks: kernel_modules.yml
+  tags: kernel_modules

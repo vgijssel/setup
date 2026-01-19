@@ -2,7 +2,7 @@
 # Pi-hole role defaults
 
 # Docker image (pinned version)
-pihole_docker_image: pihole/pihole:2024.07.0
+pihole_docker_image: pihole/pihole:2025.11.1
 
 # Docker Compose directory
 pihole_compose_dir: /opt/pihole
@@ -26,4 +26,3 @@ pihole_admin_data_dir: /opt/pihole-admin
 # Shared defaults
 pihole_upstream_dns: 192.168.1.1
 pihole_timezone: Europe/Amsterdam
-pihole_dns_records: []

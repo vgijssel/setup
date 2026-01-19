@@ -9,7 +9,7 @@ nameservers:
   - 192.168.1.1
 
 # SSH public key for maarten user
-maarten_user_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAvXN6EpJc9+19awLUuqdVvvjZ1v/ofx9dee9UzM3xXp"
+maarten_user_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKbI3UZOhsVGi1lbnH7Sd0KWtP5m6zUJgrxbHMTxhRcW
 
 # Pi-hole VLAN 50 configuration
 pihole_vlan50_ip: 192.168.50.2
@@ -26,17 +26,3 @@ pihole_admin_subnet: 192.168.1.0/24
 # Shared Pi-hole configuration
 pihole_upstream_dns: 192.168.1.1
 pihole_timezone: Europe/Amsterdam
-
-# DNS records for *.enigma.vgijssel.nl
-pihole_dns_records:
-  - { ip: "192.168.50.100", domain: "dashboard.enigma.vgijssel.nl" }
-  - { ip: "192.168.50.100", domain: "keycloak.enigma.vgijssel.nl" }
-  - { ip: "192.168.50.100", domain: "api.enigma.vgijssel.nl" }
-  - { ip: "192.168.50.100", domain: "pikvm.enigma.vgijssel.nl" }
-  - { ip: "192.168.50.100", domain: "bucket-terraform.enigma.vgijssel.nl" }
-  - { ip: "192.168.50.100", domain: "coder.enigma.vgijssel.nl" }
-  - { ip: "192.168.50.100", domain: "s3.enigma.vgijssel.nl" }
-  - {
-      ip: "192.168.50.100",
-      domain: "kubernetes-coder-cluster-prod.enigma.vgijssel.nl",
-    }

@@ -2,11 +2,5 @@
 - import_tasks: docker.yml
   tags: docker
 
-- import_tasks: vlan.yml
-  tags: vlan
-
 - import_tasks: containers.yml
   tags: containers
-
-- import_tasks: dns_records.yml
-  tags: dns
