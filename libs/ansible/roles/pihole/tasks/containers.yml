@@ -4,29 +4,29 @@
 
 - name: Create Pi-hole compose directory
   ansible.builtin.file:
-    path: "{{ pihole_compose_dir }}"
+    path: /opt/pihole
     state: directory
     mode: "0755"
   become: true
 
 - name: Create VLAN 50 Pi-hole data directory
   ansible.builtin.file:
-    path: "{{ pihole_vlan50_data_dir }}"
+    path: /opt/pihole-vlan50
     state: directory
     mode: "0755"
   become: true
 
 - name: Create Admin LAN Pi-hole data directory
   ansible.builtin.file:
-    path: "{{ pihole_admin_data_dir }}"
+    path: /opt/pihole-admin
     state: directory
     mode: "0755"
   become: true
 
 - name: Deploy docker-compose.yml
   ansible.builtin.copy:
-    src: docker-compose.yml
-    dest: "{{ pihole_compose_dir }}/docker-compose.yml"
+    src: "{{ playbook_dir }}/docker-compose.yml"
+    dest: /opt/pihole/docker-compose.yml
     mode: "0644"
   become: true
   register: compose_config
@@ -34,29 +34,22 @@
 - name: Deploy .env file with secrets
   ansible.builtin.template:
     src: pihole.env.j2
-    dest: "{{ pihole_compose_dir }}/.env"
+    dest: /opt/pihole/.env
     mode: "0600"
   become: true
   register: env_config
 
-- name: Deploy .env.example for documentation
-  ansible.builtin.copy:
-    src: .env.example
-    dest: "{{ pihole_compose_dir }}/.env.example"
-    mode: "0644"
-  become: true
-
 - name: Pull Pi-hole Docker image
   ansible.builtin.command:
     cmd: docker compose pull
-    chdir: "{{ pihole_compose_dir }}"
+    chdir: /opt/pihole
   become: true
   changed_when: false
 
 - name: Start Pi-hole containers
   ansible.builtin.command:
     cmd: docker compose up -d
-    chdir: "{{ pihole_compose_dir }}"
+    chdir: /opt/pihole
   become: true
   register: compose_up
   changed_when: "'Started' in compose_up.stderr or 'Creating' in compose_up.stderr or compose_config.changed or env_config.changed"

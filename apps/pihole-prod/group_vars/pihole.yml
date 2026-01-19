@@ -10,19 +10,3 @@ nameservers:
 
 # SSH public key for maarten user
 maarten_user_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKbI3UZOhsVGi1lbnH7Sd0KWtP5m6zUJgrxbHMTxhRcW
-
-# Pi-hole VLAN 50 configuration
-pihole_vlan50_ip: 192.168.50.2
-pihole_vlan50_gateway: 192.168.50.1
-pihole_vlan50_parent_interface: eth0.50
-pihole_vlan50_subnet: 192.168.50.0/24
-
-# Pi-hole Admin LAN configuration
-pihole_admin_ip: 192.168.1.16
-pihole_admin_gateway: 192.168.1.1
-pihole_admin_parent_interface: br0
-pihole_admin_subnet: 192.168.1.0/24
-
-# Shared Pi-hole configuration
-pihole_upstream_dns: 192.168.1.1
-pihole_timezone: Europe/Amsterdam

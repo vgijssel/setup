@@ -1,0 +1,72 @@
+# Pi-hole Docker Compose Configuration
+# Deployed to /opt/pihole/docker-compose.yml
+
+services:
+  pihole-vlan50:
+    container_name: pihole-vlan50
+    image: pihole/pihole:2025.11.1
+    hostname: pihole-vlan50
+    networks:
+      vlan50:
+        ipv4_address: 192.168.50.2
+    environment:
+      TZ: Europe/Amsterdam
+      WEBPASSWORD: ${PIHOLE_WEB_PASSWORD}
+      PIHOLE_DNS_: 192.168.1.1
+      DNSMASQ_LISTENING: all
+      VIRTUAL_HOST: pihole-vlan50.local
+      FTLCONF_LOCAL_IPV4: 192.168.50.2
+    volumes:
+      - /opt/pihole-vlan50/etc-pihole:/etc/pihole
+      - /opt/pihole-vlan50/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    dns:
+      - 127.0.0.1
+      - 192.168.1.1
+
+  pihole-admin:
+    container_name: pihole-admin
+    image: pihole/pihole:2025.11.1
+    hostname: pihole-admin
+    networks:
+      admin:
+        ipv4_address: 192.168.1.16
+    environment:
+      TZ: Europe/Amsterdam
+      WEBPASSWORD: ${PIHOLE_WEB_PASSWORD}
+      PIHOLE_DNS_: 192.168.1.1
+      DNSMASQ_LISTENING: all
+      VIRTUAL_HOST: pihole-admin.local
+      FTLCONF_LOCAL_IPV4: 192.168.1.16
+    volumes:
+      - /opt/pihole-admin/etc-pihole:/etc/pihole
+      - /opt/pihole-admin/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    dns:
+      - 127.0.0.1
+      - 192.168.1.1
+
+networks:
+  vlan50:
+    driver: macvlan
+    driver_opts:
+      parent: eth0.50
+    ipam:
+      config:
+        - subnet: 192.168.50.0/24
+          gateway: 192.168.50.1
+          ip_range: 192.168.50.2/32
+
+  admin:
+    driver: macvlan
+    driver_opts:
+      parent: br0
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+          ip_range: 192.168.1.16/32
