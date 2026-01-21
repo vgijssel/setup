@@ -24,6 +24,8 @@ services:
       FTLCONF_webserver_api_app_sudo: "true"
       # Enable loading of custom dnsmasq.d config files (required for wildcard DNS)
       FTLCONF_misc_etc_dnsmasq_d: "true"
+      # HTTPS only - disable HTTP
+      FTLCONF_webserver_port: "443s,[::]:443s"
       VIRTUAL_HOST: pihole-vlan50.local
     volumes:
       - /opt/pihole/vlan50/etc-pihole:/etc/pihole
@@ -67,6 +69,8 @@ services:
       FTLCONF_webserver_api_app_sudo: "true"
       # Enable loading of custom dnsmasq.d config files (required for wildcard DNS)
       FTLCONF_misc_etc_dnsmasq_d: "true"
+      # HTTPS only - disable HTTP
+      FTLCONF_webserver_port: "443s,[::]:443s"
       VIRTUAL_HOST: pihole-admin.local
     volumes:
       - /opt/pihole/admin/etc-pihole:/etc/pihole
