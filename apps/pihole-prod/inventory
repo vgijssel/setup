@@ -5,3 +5,4 @@ peace-at-last ansible_host=192.168.1.15
 ansible_user=maarten
 ansible_ssh_private_key_file=/secrets/pihole-prod/ssh_private_key
 ansible_ssh_common_args=-o IdentitiesOnly=yes
+ansible_python_interpreter=/usr/bin/python3
