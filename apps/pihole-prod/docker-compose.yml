@@ -20,6 +20,8 @@ services:
       # Required for macvlan network - listen on all interfaces
       FTLCONF_dns_listeningMode: all
       FTLCONF_LOCAL_IPV4: 192.168.50.2
+      # Allow app password sessions to modify configuration
+      FTLCONF_webserver_api_app_sudo: "true"
       VIRTUAL_HOST: pihole-vlan50.local
     volumes:
       - /opt/pihole/vlan50/etc-pihole:/etc/pihole
@@ -59,6 +61,8 @@ services:
       # Required for macvlan network - listen on all interfaces
       FTLCONF_dns_listeningMode: all
       FTLCONF_LOCAL_IPV4: 192.168.1.16
+      # Allow app password sessions to modify configuration
+      FTLCONF_webserver_api_app_sudo: "true"
       VIRTUAL_HOST: pihole-admin.local
     volumes:
       - /opt/pihole/admin/etc-pihole:/etc/pihole

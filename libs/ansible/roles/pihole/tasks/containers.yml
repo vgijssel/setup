@@ -90,17 +90,4 @@
   delay: 5
   changed_when: false
   become: true
-
-- name: Set Pi-hole web password on VLAN 50 instance
-  ansible.builtin.command:
-    cmd: docker exec pihole-vlan50 pihole setpassword "{{ pihole_web_password }}"
-  become: true
-  no_log: true
-  changed_when: true
-
-- name: Set Pi-hole web password on Admin LAN instance
-  ansible.builtin.command:
-    cmd: docker exec pihole-admin pihole setpassword "{{ pihole_web_password }}"
-  become: true
-  no_log: true
-  changed_when: true
+# Password is set via FTLCONF_webserver_api_password environment variable in docker-compose.yml
