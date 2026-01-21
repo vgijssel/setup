@@ -4,31 +4,10 @@
 # common_hostname: my-hostname
 
 # Network configuration (optional)
-# Set to empty dict to skip networking configuration
-# Uses Netplan format - supports ethernets, vlans, and bridges
-common_network: {}
-# Example configuration with VLAN support:
-# common_network:
-#   renderer: networkd
-#   ethernets:
-#     eth0:
-#       dhcp4: false
-#       dhcp6: false
-#   vlans:
-#     eth0.50:
-#       id: 50
-#       link: eth0
-#       dhcp4: false
-#       dhcp6: false
-#   bridges:
-#     br0:
-#       interfaces:
-#         - eth0
-#       addresses:
-#         - 192.168.1.15/24
-#       routes:
-#         - to: default
-#           via: 192.168.1.1
-#       nameservers:
-#         addresses:
-#           - 192.168.1.1
+# Place a 90-common-network.yaml file in the playbook directory to configure netplan
+# The file will be copied to /etc/netplan/ if it exists
+# See apps/pihole-prod/90-common-network.yaml for an example
+
+# Netplan try/revert configuration
+# Delay in seconds after netplan try before validating SSH (default: 5)
+common_network_validation_delay: 5

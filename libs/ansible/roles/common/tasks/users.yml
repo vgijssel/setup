@@ -40,7 +40,7 @@
     exclusive: true
   become: true
 
-# Note: DietPi requires NOPASSWD for unattended Ansible runs via SSH key
+# Note: NOPASSWD required for unattended Ansible runs via SSH key authentication
 # The user can still manually enter password when using sudo interactively
 - name: Configure sudo for maarten user
   ansible.builtin.copy:

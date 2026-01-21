@@ -25,15 +25,75 @@
     state: present
   become: true
 
+- name: Check if netplan configuration exists in playbook directory
+  ansible.builtin.stat:
+    path: "{{ playbook_dir }}/network.yaml"
+  register: netplan_source_file
+  delegate_to: localhost
+  become: false
+
 - name: Copy Netplan configuration
-  ansible.builtin.template:
-    src: 90-common-network.yaml.j2
-    dest: /etc/netplan/90-common-network.yaml
-    group: root
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/network.yaml"
+    dest: /etc/netplan/network.yaml
     owner: root
+    group: root
     mode: "0600"
   become: true
-  notify: apply netplan
+  register: netplan_config
   when:
     - ansible_distribution != 'Archlinux'
-    - common_network | length > 0
+    - netplan_source_file.stat.exists
+
+# Safe netplan apply using try/revert strategy
+# This prevents lockout from bad network configurations by automatically
+# reverting if SSH connectivity cannot be validated after applying changes
+- name: Apply netplan with try/revert strategy
+  when:
+    - netplan_config is changed
+    - ansible_distribution != 'Archlinux'
+    - netplan_source_file.stat.exists
+  block:
+    - name: Apply netplan configuration with automatic revert (120s timeout)
+      ansible.builtin.command:
+        cmd: netplan try --timeout 120
+      become: true
+      async: 150 # Must be longer than netplan timeout
+      poll: 0
+      register: netplan_try_job
+
+    - name: Wait for network to stabilize
+      ansible.builtin.pause:
+        seconds: "{{ common_network_validation_delay | default(5) }}"
+
+    - name: Validate SSH connection is still working
+      ansible.builtin.wait_for_connection:
+        delay: 2
+        timeout: 30
+      register: ssh_check
+
+    - name: Apply netplan permanently after successful validation
+      ansible.builtin.command:
+        cmd: netplan apply
+      become: true
+      when: ssh_check is succeeded
+
+  rescue:
+    - name: Connection lost - netplan will auto-revert in remaining timeout
+      ansible.builtin.debug:
+        msg: >-
+          SSH connection validation failed. The netplan try command will
+          automatically revert to the previous configuration after timeout.
+          Please check the network configuration and try again.
+
+    - name: Wait for auto-revert and reconnection
+      ansible.builtin.wait_for_connection:
+        delay: 120 # Wait for netplan try timeout
+        timeout: 180
+
+    - name: Fail with helpful message
+      ansible.builtin.fail:
+        msg: >-
+          Network configuration change failed validation. The configuration
+          has been automatically reverted. Please review the netplan file
+          at {{ playbook_dir }}/network.yaml and ensure it allows SSH connectivity.
