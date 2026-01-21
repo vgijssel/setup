@@ -32,6 +32,18 @@
   delegate_to: localhost
   become: false
 
+- name: Remove old netplan configuration files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  become: true
+  loop:
+    - /etc/netplan/90-common-network.yaml
+    - /etc/netplan/91-vlan50.yaml
+  when:
+    - ansible_distribution != 'Archlinux'
+    - netplan_source_file.stat.exists
+
 - name: Copy Netplan configuration
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/network.yaml"

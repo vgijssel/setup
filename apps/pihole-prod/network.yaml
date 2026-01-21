@@ -5,18 +5,6 @@ network:
   renderer: networkd
   ethernets:
     eth0:
-      dhcp4: false
-      dhcp6: false
-  vlans:
-    eth0.50:
-      id: 50
-      link: eth0
-      dhcp4: false
-      dhcp6: false
-  bridges:
-    br0:
-      interfaces:
-        - eth0
       addresses:
         - 192.168.1.15/24
       routes:
@@ -25,3 +13,9 @@ network:
       nameservers:
         addresses:
           - 192.168.1.1
+  vlans:
+    eth0.50:
+      id: 50
+      link: eth0
+      dhcp4: false
+      dhcp6: false
