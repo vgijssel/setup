@@ -41,5 +41,6 @@ spec:
     sources:
       - ingress
     extraArgs:
-      - --pihole-server=http://192.168.50.2
+      - --pihole-server=https://192.168.50.2
       - --pihole-api-version=6
+      - --pihole-tls-skip-verify
