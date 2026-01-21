@@ -40,6 +40,22 @@
     - /opt/pihole-vlan50
     - /opt/pihole-admin
 
+- name: Deploy custom dnsmasq configuration to VLAN 50 instance
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/05-coder-wildcard.conf"
+    dest: /opt/pihole/vlan50/etc-dnsmasq.d/05-coder-wildcard.conf
+    mode: "0644"
+  become: true
+  register: dnsmasq_vlan50_config
+
+- name: Deploy custom dnsmasq configuration to Admin LAN instance
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/05-coder-wildcard.conf"
+    dest: /opt/pihole/admin/etc-dnsmasq.d/05-coder-wildcard.conf
+    mode: "0644"
+  become: true
+  register: dnsmasq_admin_config
+
 - name: Deploy docker-compose.yml
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/docker-compose.yml"
@@ -62,6 +78,13 @@
     chdir: /opt/pihole
   become: true
   changed_when: false
+
+- name: Restart Pi-hole containers if dnsmasq config changed
+  ansible.builtin.command:
+    cmd: docker compose restart
+    chdir: /opt/pihole
+  become: true
+  when: dnsmasq_vlan50_config.changed or dnsmasq_admin_config.changed
 
 - name: Start Pi-hole containers
   ansible.builtin.command:

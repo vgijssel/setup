@@ -22,6 +22,8 @@ services:
       FTLCONF_LOCAL_IPV4: 192.168.50.2
       # Allow app password sessions to modify configuration
       FTLCONF_webserver_api_app_sudo: "true"
+      # Enable loading of custom dnsmasq.d config files (required for wildcard DNS)
+      FTLCONF_misc_etc_dnsmasq_d: "true"
       VIRTUAL_HOST: pihole-vlan50.local
     volumes:
       - /opt/pihole/vlan50/etc-pihole:/etc/pihole
@@ -63,6 +65,8 @@ services:
       FTLCONF_LOCAL_IPV4: 192.168.1.16
       # Allow app password sessions to modify configuration
       FTLCONF_webserver_api_app_sudo: "true"
+      # Enable loading of custom dnsmasq.d config files (required for wildcard DNS)
+      FTLCONF_misc_etc_dnsmasq_d: "true"
       VIRTUAL_HOST: pihole-admin.local
     volumes:
       - /opt/pihole/admin/etc-pihole:/etc/pihole
