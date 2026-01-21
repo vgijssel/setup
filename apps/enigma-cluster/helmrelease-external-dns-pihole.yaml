@@ -26,6 +26,7 @@ spec:
     remediation:
       retries: 3
   values:
+    logLevel: debug
     provider:
       name: pihole
     # Pi-hole doesn't support TXT records, so disable ownership tracking
