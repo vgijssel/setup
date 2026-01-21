@@ -1,12 +1,32 @@
 # Common role configuration
 common_hostname: peace-at-last
 
-# Networking (bridge with static IP)
-network_interface: eth0
-ip_address: 192.168.1.15
-gateway: 192.168.1.1
-nameservers:
-  - 192.168.1.1
+# Network configuration - bridge with static IP and VLAN 50 for Pi-hole macvlan
+# See docs/networking/docker-macvlan-architecture.md for architecture details
+common_network:
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: false
+      dhcp6: false
+  vlans:
+    eth0.50:
+      id: 50
+      link: eth0
+      dhcp4: false
+      dhcp6: false
+  bridges:
+    br0:
+      interfaces:
+        - eth0
+      addresses:
+        - 192.168.1.15/24
+      routes:
+        - to: default
+          via: 192.168.1.1
+      nameservers:
+        addresses:
+          - 192.168.1.1
 
 # SSH public key for maarten user
 maarten_user_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKbI3UZOhsVGi1lbnH7Sd0KWtP5m6zUJgrxbHMTxhRcW

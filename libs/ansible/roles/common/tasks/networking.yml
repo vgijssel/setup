@@ -25,7 +25,7 @@
     state: present
   become: true
 
-- name: Copy Netplan template
+- name: Copy Netplan configuration
   ansible.builtin.template:
     src: 90-common-network.yaml.j2
     dest: /etc/netplan/90-common-network.yaml
@@ -34,4 +34,6 @@
     mode: "0600"
   become: true
   notify: apply netplan
-  when: ansible_distribution != 'Archlinux'
+  when:
+    - ansible_distribution != 'Archlinux'
+    - common_network | length > 0

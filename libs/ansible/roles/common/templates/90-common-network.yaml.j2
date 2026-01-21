@@ -1,21 +1,89 @@
+# Netplan configuration - Managed by Ansible
+# DO NOT EDIT MANUALLY
 network:
   version: 2
-  renderer: networkd
+  renderer: {{ common_network.renderer | default('networkd') }}
+{% if common_network.ethernets is defined %}
   ethernets:
-    {{ network_interface }}:
-      dhcp4: no
-      dhcp6: no
-  bridges:
-    br0:
-      interfaces:
-        - {{ network_interface }}
+{% for name, config in common_network.ethernets.items() %}
+    {{ name }}:
+{% if config.dhcp4 is defined %}
+      dhcp4: {{ config.dhcp4 | string | lower }}
+{% endif %}
+{% if config.dhcp6 is defined %}
+      dhcp6: {{ config.dhcp6 | string | lower }}
+{% endif %}
+{% if config.addresses is defined %}
       addresses:
-        - {{ ip_address }}/24
+{% for addr in config.addresses %}
+        - {{ addr }}
+{% endfor %}
+{% endif %}
+{% if config.routes is defined %}
       routes:
-        - to: 0.0.0.0/0
-          via: {{ gateway }}
+{% for route in config.routes %}
+        - to: {{ route.to }}
+          via: {{ route.via }}
+{% endfor %}
+{% endif %}
+{% if config.nameservers is defined %}
       nameservers:
         addresses:
-          {% for ns in nameservers %}
+{% for ns in config.nameservers.addresses %}
           - {{ ns }}
-          {% endfor %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if common_network.vlans is defined %}
+  vlans:
+{% for name, config in common_network.vlans.items() %}
+    {{ name }}:
+      id: {{ config.id }}
+      link: {{ config.link }}
+{% if config.dhcp4 is defined %}
+      dhcp4: {{ config.dhcp4 | string | lower }}
+{% endif %}
+{% if config.dhcp6 is defined %}
+      dhcp6: {{ config.dhcp6 | string | lower }}
+{% endif %}
+{% if config.addresses is defined %}
+      addresses:
+{% for addr in config.addresses %}
+        - {{ addr }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if common_network.bridges is defined %}
+  bridges:
+{% for name, config in common_network.bridges.items() %}
+    {{ name }}:
+{% if config.interfaces is defined %}
+      interfaces:
+{% for iface in config.interfaces %}
+        - {{ iface }}
+{% endfor %}
+{% endif %}
+{% if config.addresses is defined %}
+      addresses:
+{% for addr in config.addresses %}
+        - {{ addr }}
+{% endfor %}
+{% endif %}
+{% if config.routes is defined %}
+      routes:
+{% for route in config.routes %}
+        - to: {{ route.to }}
+          via: {{ route.via }}
+{% endfor %}
+{% endif %}
+{% if config.nameservers is defined %}
+      nameservers:
+        addresses:
+{% for ns in config.nameservers.addresses %}
+          - {{ ns }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
