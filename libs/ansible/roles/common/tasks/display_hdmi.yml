@@ -1,0 +1,48 @@
+---
+# HDMI Display Configuration Tasks for Raspberry Pi
+# Configures HDMI output for login terminal visibility on Ubuntu Server
+
+- name: Ensure /boot/firmware directory exists
+  ansible.builtin.file:
+    path: /boot/firmware
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Configure HDMI display settings in config.txt
+  ansible.builtin.lineinfile:
+    path: /boot/firmware/config.txt
+    regexp: "{{ item.regex }}"
+    line: "{{ item.line }}"
+    create: true
+    mode: "0644"
+  become: true
+  loop:
+    # Force HDMI output even if no display is detected at boot
+    - regex: ^hdmi_force_hotplug=
+      line: hdmi_force_hotplug=1
+    # Use HDMI mode (with audio) instead of DVI
+    - regex: ^hdmi_drive=
+      line: hdmi_drive=2
+    # Use DMT (Display Monitor Timings) mode group for computer monitors
+    - regex: ^hdmi_group=
+      line: hdmi_group=2
+    # Mode 82 = 1920x1080@60Hz - common resolution for most monitors
+    - regex: ^hdmi_mode=
+      line: hdmi_mode=82
+  notify: reboot system
+
+- name: Check current cmdline.txt content
+  ansible.builtin.slurp:
+    src: /boot/firmware/cmdline.txt
+  register: cmdline_content
+  become: true
+
+- name: Add consoleblank=0 if not present in cmdline.txt
+  ansible.builtin.replace:
+    path: /boot/firmware/cmdline.txt
+    regexp: ^(.*)$
+    replace: \1 consoleblank=0
+  become: true
+  when: "'consoleblank=0' not in (cmdline_content.content | b64decode)"
+  notify: reboot system

@@ -24,3 +24,8 @@
     enabled: true
     state: restarted
   become: true
+
+- name: reboot system
+  ansible.builtin.reboot:
+    reboot_timeout: 300
+  become: true

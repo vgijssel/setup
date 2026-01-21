@@ -1,3 +1,24 @@
+---
+# Network Configuration Tasks
+# Includes kernel modules required for networking features (e.g., VLAN support)
+
+# Kernel module loading for VLAN support
+- name: Load 8021q kernel module
+  community.general.modprobe:
+    name: 8021q
+    state: present
+  become: true
+
+- name: Ensure 8021q module loads on boot
+  ansible.builtin.lineinfile:
+    path: /etc/modules
+    line: 8021q
+    state: present
+    create: true
+    mode: "0644"
+  become: true
+
+# Network tools and configuration
 - name: Install net-tools to inspect routing table
   ansible.builtin.package:
     name: net-tools
