@@ -37,5 +37,11 @@ spec:
           nginx.ingress.kubernetes.io/proxy-read-timeout: "604800"
           nginx.ingress.kubernetes.io/proxy-send-timeout: "604800"
           nginx.ingress.kubernetes.io/proxy-connect-timeout: "604800"
+      - hostname: pihole-50.enigma.vgijssel.nl
+        endpoint: 192.168.50.2
+        port: 443
+      - hostname: pihole-admin.enigma.vgijssel.nl
+        endpoint: 192.168.1.16
+        port: 443
     ingressClassName: tenant-root
     clusterIssuer: letsencrypt-prod
