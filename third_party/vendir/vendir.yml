@@ -62,7 +62,7 @@ directories:
       - path: .
         helmChart:
           name: coder
-          version: 2.29.1
+          version: 2.29.2
           repository:
             url: https://helm.coder.com/v2
   - path: shell/zimfw
