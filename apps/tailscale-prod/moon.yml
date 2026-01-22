@@ -12,6 +12,8 @@ tasks:
       - glob: ./**/*.tf
       - glob: ./**/*.hcl
       - "!.terraform/**"
+    options:
+      runInCI: false
 
   validate:
     command: tofu validate
@@ -23,6 +25,7 @@ tasks:
       - "!.terraform/**"
     options:
       cache: true
+      runInCI: false
 
   plan:
     command: tofu plan -var-file=/secrets/tailscale-prod/secrets.tfvars

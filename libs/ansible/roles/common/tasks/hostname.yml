@@ -7,7 +7,7 @@
 - name: Update /etc/hosts with hostname
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    regexp: "^127\\.0\\.1\\.1"
+    regexp: ^127\.0\.1\.1
     line: "127.0.1.1 {{ common_hostname }}"
     state: present
   become: true
