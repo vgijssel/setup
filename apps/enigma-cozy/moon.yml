@@ -79,3 +79,6 @@ tasks:
   validate:
     command: goss validate
     local: true
+  snapshot-etcd:
+    command: ./scripts/snapshot-etcd.sh
+    local: true
