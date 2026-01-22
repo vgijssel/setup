@@ -1,0 +1,56 @@
+language: javascript
+layer: application
+tags:
+  - app
+  - terraform
+  - tailscale
+  - infrastructure
+tasks:
+  init:
+    command: tofu init -backend-config=/secrets/tailscale-prod/backend.hcl
+    inputs:
+      - glob: ./**/*.tf
+      - glob: ./**/*.hcl
+      - "!.terraform/**"
+    options:
+      runInCI: false
+
+  validate:
+    command: tofu validate
+    deps:
+      - ~:init
+    inputs:
+      - glob: ./**/*.tf
+      - glob: ./**/*.hcl
+      - "!.terraform/**"
+    options:
+      cache: true
+      runInCI: false
+
+  plan:
+    command: tofu plan -var-file=/secrets/tailscale-prod/secrets.tfvars
+    deps:
+      - ~:init
+    options:
+      runInCI: false
+
+  apply:
+    command: tofu apply -auto-approve -var-file=/secrets/tailscale-prod/secrets.tfvars
+    deps:
+      - ~:init
+    options:
+      runInCI: false
+
+  destroy:
+    command: tofu destroy -auto-approve -var-file=/secrets/tailscale-prod/secrets.tfvars
+    deps:
+      - ~:init
+    options:
+      runInCI: false
+
+  output:
+    command: tofu output
+    deps:
+      - ~:init
+    options:
+      runInCI: false

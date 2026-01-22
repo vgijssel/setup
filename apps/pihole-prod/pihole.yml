@@ -1,0 +1,22 @@
+---
+# Pi-hole Server Configuration Playbook
+#
+# This playbook configures an Ubuntu Server host as a Pi-hole DNS server.
+#
+# Role execution order:
+# 1. common - System configuration (hostname, users, SSH hardening, networking)
+# 2. tailscale - Tailscale VPN client installation and registration
+# 3. pihole - Docker and Pi-hole container deployment
+#
+# Variables are automatically loaded from:
+# - group_vars/pihole.yml - Non-secret configuration
+# - group_vars/pihole.op.yml - 1Password secret references (via vars_plugins)
+
+- name: Configure Pi-hole server
+  hosts: pihole
+  become: true
+
+  roles:
+    - role: common
+    - role: tailscale
+    - role: pihole

@@ -40,58 +40,20 @@
     exclusive: true
   become: true
 
-- name: Ensure maarten needs to enter password for sudo
-  community.general.sudoers:
-    name: 99_maarten-sudo
-    user: maarten
-    nopassword: false
-    commands: ALL
-    validation: required
+# Note: NOPASSWD required for unattended Ansible runs via SSH key authentication
+# The user can still manually enter password when using sudo interactively
+- name: Configure sudo for maarten user
+  ansible.builtin.copy:
+    content: |
+      # This file is managed by Ansible
+      # Allow maarten passwordless sudo (required for Ansible SSH key auth)
+      maarten ALL=(ALL:ALL) NOPASSWD: ALL
+    dest: /etc/sudoers.d/99_maarten-sudo
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
   become: true
-
-- name: Set authorized key for maarten
-  ansible.posix.authorized_key:
-    user: maarten
-    state: present
-    key: "{{ maarten_user_public_key }}"
-    exclusive: true
-  become: true
-
-- name: Update deploy user
-  user:
-    name: deploy
-    password: "{{ deploy_user_password_encrypted }}"
-    state: present
-    create_home: true
-    shell: /bin/bash
-    groups: [sudo]
-  become: true
-
-- name: Ensure deploy needs to enter password for sudo
-  community.general.sudoers:
-    name: 99_deploy-sudo
-    user: deploy
-    nopassword: false
-    commands: ALL
-    validation: required
-  become: true
-
-- name: Remove authorized keys for deploy
-  ansible.builtin.file:
-    path: /home/deploy/.ssh/authorized_keys
-    state: absent
-  become: true
-
-- name: Ensure the Ansible tmp directory exists for the "deploy" user to prevent permission issues
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    group: deploy
-    owner: deploy
-  become: true
-  loop:
-    - "{{ ansible_remote_tmp }}"
-    - "{{ ansible_remote_parent_tmp }}"
 
 - name: Remove ubuntu user
   ansible.builtin.user:
@@ -109,13 +71,31 @@
     validate: /usr/sbin/visudo -cf %s
   become: true
 
-- name: Authenticate sudo per tty session
+# Note: tty_tickets is not supported by sudo-rs (used in Ubuntu 25.10+)
+# Skip this on systems without traditional sudo
+- name: Check if sudo-rs is installed
+  ansible.builtin.command: dpkg -l sudo-rs
+  register: sudo_rs_check
+  changed_when: false
+  failed_when: false
+
+- name: Remove tty_tickets if sudo-rs is installed (not supported)
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: absent
+    line: Defaults tty_tickets
+    validate: /usr/sbin/visudo -cf %s
+  become: true
+  when: sudo_rs_check.rc == 0
+
+- name: Authenticate sudo per tty session (traditional sudo only)
   ansible.builtin.lineinfile:
     path: /etc/sudoers
     state: present
     line: Defaults tty_tickets
     validate: /usr/sbin/visudo -cf %s
   become: true
+  when: sudo_rs_check.rc != 0
 
 - name: Install vim
   ansible.builtin.package:

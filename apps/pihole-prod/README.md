@@ -4,7 +4,7 @@ This directory documents the Pi-hole deployment for VLAN 50 (Kubernetes network)
 
 ## Overview
 
-- **Host**: DietPi (Debian 13 Trixie) on Raspberry Pi
+- **Host**: Ubuntu Server 25.10 on Raspberry Pi
 - **Host IP (VLAN 1)**: 192.168.1.141
 - **Pi-hole IP (VLAN 50)**: 192.168.50.2
 - **Gateway**: 192.168.50.1
@@ -14,7 +14,7 @@ This directory documents the Pi-hole deployment for VLAN 50 (Kubernetes network)
 
 ```
 Regular LAN (192.168.1.0/24)
-├─ DietPi Host: 192.168.1.141
+├─ Ubuntu Server Host: 192.168.1.141
 └─ Manages Pi-hole container
 
         │ VLAN Tagging (eth0.50)
@@ -30,7 +30,7 @@ Kubernetes VLAN 50 (192.168.50.0/24)
 
 ### 1. Initial Setup
 
-SSH into the DietPi host:
+SSH into the Ubuntu Server host:
 ```bash
 ssh root@192.168.1.141
 # Password: <configured password>
@@ -412,7 +412,7 @@ docker compose restart
 - `/opt/pihole-vlan50/docker-compose.yml` - Container orchestration
 
 **Network Configuration:**
-- `/etc/network/interfaces.d/eth0.50` - VLAN 50 interface (on DietPi host)
+- `/etc/netplan/90-common-network.yaml` - Network and VLAN configuration (on Ubuntu Server host)
 
 ### Deprecated/Removed Configuration Methods
 
@@ -431,7 +431,7 @@ The following are **NOT USED** in Pi-hole v6 and have been removed:
 - **Pi-hole Web**: v6.4
 - **Pi-hole FTL**: v6.4.1
 - **Pi-hole Image**: pihole/pihole:latest
-- **OS**: DietPi (Debian 13 Trixie)
+- **OS**: Ubuntu Server 25.10
 - **Platform**: Raspberry Pi (ARM64)
 
 ## TODO - Security Hardening & Improvements
@@ -466,62 +466,21 @@ The following tasks should be completed to improve security and operational prac
   sudo systemctl restart ssh
   ```
 
-- [ ] **Disable DietPi welcome menu on SSH login**
-  ```bash
-  # Run DietPi configuration
-  sudo dietpi-autostart
-
-  # Select option 0 (Console) to disable the welcome menu
-  # Or edit the configuration file:
-  sudo nano /boot/dietpi/.dietpi-autostart_index
-  # Set to 0
-  ```
-
-### Operational Improvements
-
-- [ ] **Add sudo password to dietpi user**
-  ```bash
-  # Set password for dietpi user
-  sudo passwd dietpi
-  # Enter a secure password
-
-  # Verify sudo access
-  su - dietpi
-  sudo whoami  # Should prompt for password and return 'root'
-  ```
-
-- [ ] **Run Docker Compose as dietpi user (not root)**
-  ```bash
-  # Add dietpi user to docker group
-  sudo usermod -aG docker dietpi
-
-  # Change ownership of Pi-hole directory
-  sudo chown -R dietpi:dietpi /opt/pihole-vlan50
-
-  # Test as dietpi user
-  su - dietpi
-  cd /opt/pihole-vlan50
-  docker compose ps  # Should work without sudo
-  ```
-
 ### Implementation Order
 
 It's recommended to implement these changes in the following order:
 
-1. **First**: Add sudo password to dietpi user (ensure you have working non-root access)
-2. **Second**: Run Docker Compose as dietpi user
-3. **Third**: Disable DietPi welcome menu
-4. **Fourth**: Disable root login via SSH
-5. **Last**: Disable password authentication via SSH (ensure SSH key auth is working!)
+1. **First**: Disable root login via SSH
+2. **Last**: Disable password authentication via SSH (ensure SSH key auth is working!)
 
-**⚠️ Important**: Before disabling password authentication and root login, verify that:
-- SSH key authentication is working correctly
-- The dietpi user has sudo access with password
-- You can run Docker commands as the dietpi user
+**Note**: The maarten user is already configured by Ansible with:
+- SSH key authentication
+- Passwordless sudo access (for Ansible automation)
+- Docker group membership
 
 ## References
 
 - [Pi-hole Documentation](https://docs.pi-hole.net/)
 - [Pi-hole Docker Documentation](https://github.com/pi-hole/docker-pi-hole)
 - [Docker Macvlan Networking](https://docs.docker.com/network/macvlan/)
-- [DietPi Documentation](https://dietpi.com/docs/)
+- [Ubuntu Server Documentation](https://ubuntu.com/server/docs)

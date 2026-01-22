@@ -14,8 +14,21 @@ spec:
     - hosts:
         - coder.enigma.vgijssel.nl
       secretName: coder-tls
+    - hosts:
+        - "*.coder.enigma.vgijssel.nl"
+      secretName: coder-wildcard-tls
   rules:
     - host: coder.enigma.vgijssel.nl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: adfc788849eea4e4981f8e354b3491a3
+                port:
+                  number: 80
+    - host: "*.coder.enigma.vgijssel.nl"
       http:
         paths:
           - path: /

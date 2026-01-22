@@ -35,6 +35,7 @@ spec:
           secretKeyRef:
             name: external-dns-cloudflare-api-token
             key: credential
+    # Sync both services (Tailscale) and ingresses (gateway) with internal-networking label
     sources:
       - service
       - ingress

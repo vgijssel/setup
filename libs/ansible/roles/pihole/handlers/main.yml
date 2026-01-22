@@ -1,0 +1,8 @@
+---
+# Pi-hole Container Handlers
+
+- name: restart pihole containers
+  ansible.builtin.shell:
+    cmd: docker compose down && docker compose up -d --remove-orphans --build
+    chdir: "{{ pihole_compose_dir }}"
+  become: true

@@ -4,7 +4,6 @@ language: bash
 tasks:
   run:
     command: ./devcontainer-install-extensions.sh
-    args: $args
     local: true
     options:
       runInCI: false
