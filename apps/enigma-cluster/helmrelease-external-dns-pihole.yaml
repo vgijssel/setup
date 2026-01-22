@@ -31,8 +31,8 @@ spec:
       name: pihole
     # Pi-hole doesn't support TXT records, so disable ownership tracking
     registry: noop
-    # Prevent deletion of manually-managed records
-    policy: upsert-only
+    # Sync policy: creates, updates, and deletes records for full synchronization
+    policy: sync
     env:
       - name: EXTERNAL_DNS_PIHOLE_PASSWORD
         valueFrom:
