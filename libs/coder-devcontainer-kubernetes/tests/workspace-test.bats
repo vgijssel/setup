@@ -9,7 +9,7 @@ setup() {
   # Configuration
   TEMPLATE_NAME="${TEMPLATE_NAME:-coder-devcontainer-kubernetes}"
   WORKSPACE_NAME="test-$(date +%s)"
-  GOSS_FILE="${PROJECT_DIR}/goss-workspace.yaml"
+  GOSS_FILE="${TEST_DIR}/goss.yaml"
   RETRY_TIMEOUT="${RETRY_TIMEOUT:-10m}"
   RETRY_SLEEP="${RETRY_SLEEP:-15s}"
 
@@ -59,7 +59,6 @@ teardown() {
     --parameter memory=4 \
     --parameter workspaces_volume_size=10 \
     --parameter "git_branch=${GIT_BRANCH}" \
-    --parameter "devcontainer_builder=ghcr.io/coder/envbuilder:1.2.0" \
     --parameter "AI Prompt=Workspace test - no action needed"
 
   [ "$status" -eq 0 ]

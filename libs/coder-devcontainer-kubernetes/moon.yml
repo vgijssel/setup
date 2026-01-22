@@ -46,5 +46,5 @@ tasks:
       cache: true
       runInCI: false
     inputs:
-      - file: ./goss-workspace.yaml
+      - file: ./tests/goss.yaml
       - file: ./tests/workspace-test.bats
