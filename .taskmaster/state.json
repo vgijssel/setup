@@ -1,6 +1,8 @@
 {
-  "currentTag": "master",
-  "lastSwitched": "2025-12-22T14:24:26.444Z",
-  "branchTagMapping": {},
+  "currentTag": "mg-fix-coder-subdomain-apps",
+  "lastSwitched": "2026-01-18T12:21:26.688Z",
+  "branchTagMapping": {
+    "mg/fix/coder-subdomain-apps": "mg-fix-coder-subdomain-apps"
+  },
   "migrationNoticeShown": true
 }

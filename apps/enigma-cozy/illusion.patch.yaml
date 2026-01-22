@@ -1,6 +1,7 @@
 machine:
   install:
-    disk: /dev/nvme0n1
+    diskSelector:
+      wwid: naa.55cd2e414da16911
   nodeAnnotations:
     ovn.kubernetes.io/tunnel_interface: enp6s0.50
   network:

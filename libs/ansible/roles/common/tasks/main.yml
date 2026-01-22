@@ -6,9 +6,16 @@
   when: ansible_distribution != 'Archlinux'
 - import_tasks: localisation.yml
   tags: localisation
+- import_tasks: hostname.yml
+  tags: hostname
 - import_tasks: ssh.yml
   tags: ssh
 - import_tasks: users.yml
   tags: users
 - import_tasks: networking.yml
-  tags: networking
+  tags:
+    - networking
+    - kernel_modules
+- import_tasks: display_hdmi.yml
+  tags: display_hdmi
+  when: ansible_facts['machine'] is defined and 'aarch64' in ansible_facts['machine']

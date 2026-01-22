@@ -1,0 +1,108 @@
+---
+# Pi-hole Container Deployment Tasks
+# Deploys Pi-hole containers using docker-compose
+
+- name: Create Pi-hole compose directory
+  ansible.builtin.file:
+    path: /opt/pihole
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Create VLAN 50 Pi-hole data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  become: true
+  loop:
+    - /opt/pihole/vlan50
+    - /opt/pihole/vlan50/etc-pihole
+    - /opt/pihole/vlan50/etc-dnsmasq.d
+
+- name: Create Admin LAN Pi-hole data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  become: true
+  loop:
+    - /opt/pihole/admin
+    - /opt/pihole/admin/etc-pihole
+    - /opt/pihole/admin/etc-dnsmasq.d
+
+- name: Remove legacy Pi-hole data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  become: true
+  loop:
+    - /opt/pihole-vlan50
+    - /opt/pihole-admin
+
+- name: Deploy custom dnsmasq configuration to VLAN 50 instance
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/05-coder-wildcard-vlan50.conf"
+    dest: /opt/pihole/vlan50/etc-dnsmasq.d/05-coder-wildcard.conf
+    mode: "0644"
+  become: true
+  register: dnsmasq_vlan50_config
+
+- name: Deploy docker-compose.yml
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/docker-compose.yml"
+    dest: /opt/pihole/docker-compose.yml
+    mode: "0644"
+  become: true
+  register: compose_config
+
+- name: Deploy .env file with secrets
+  ansible.builtin.template:
+    src: pihole.env.j2
+    dest: /opt/pihole/.env
+    mode: "0600"
+  become: true
+  register: env_config
+
+- name: Pull Pi-hole Docker image
+  ansible.builtin.command:
+    cmd: docker compose pull
+    chdir: /opt/pihole
+  become: true
+  changed_when: false
+
+- name: Restart Pi-hole containers if dnsmasq config changed
+  ansible.builtin.command:
+    cmd: docker compose restart
+    chdir: /opt/pihole
+  become: true
+  when: dnsmasq_vlan50_config.changed
+
+- name: Start Pi-hole containers
+  ansible.builtin.command:
+    cmd: docker compose up -d
+    chdir: /opt/pihole
+  become: true
+  register: compose_up
+  changed_when: "'Started' in compose_up.stderr or 'Creating' in compose_up.stderr or compose_config.changed or env_config.changed"
+
+- name: Wait for pihole-vlan50 container to be healthy
+  ansible.builtin.command:
+    cmd: docker inspect --format='{{ '{{' }}.State.Health.Status{{ '}}' }}' pihole-vlan50
+  register: vlan50_health
+  until: vlan50_health.stdout == 'healthy'
+  retries: 30
+  delay: 5
+  changed_when: false
+  become: true
+
+- name: Wait for pihole-admin container to be healthy
+  ansible.builtin.command:
+    cmd: docker inspect --format='{{ '{{' }}.State.Health.Status{{ '}}' }}' pihole-admin
+  register: admin_health
+  until: admin_health.stdout == 'healthy'
+  retries: 30
+  delay: 5
+  changed_when: false
+  become: true
+# Password is set via FTLCONF_webserver_api_password environment variable in docker-compose.yml

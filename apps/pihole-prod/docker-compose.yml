@@ -1,0 +1,116 @@
+# Pi-hole Docker Compose Configuration
+# Deployed to /opt/pihole/docker-compose.yml
+# Following official docker-pi-hole best practices:
+# https://github.com/pi-hole/docker-pi-hole
+
+services:
+  pihole-vlan50:
+    container_name: pihole-vlan50
+    image: pihole/pihole:2025.11.1
+    hostname: pihole-vlan50
+    networks:
+      vlan50:
+        ipv4_address: 192.168.50.2
+    environment:
+      # Timezone for log rotation at local midnight
+      TZ: Europe/Amsterdam
+      # Pi-hole v6+ uses FTLCONF_* prefix for configuration
+      FTLCONF_webserver_api_password: ${PIHOLE_WEB_PASSWORD}
+      FTLCONF_dns_upstreams: 192.168.1.1
+      # Required for macvlan network - listen on all interfaces
+      FTLCONF_dns_listeningMode: all
+      FTLCONF_LOCAL_IPV4: 192.168.50.2
+      # Allow app password sessions to modify configuration
+      FTLCONF_webserver_api_app_sudo: "true"
+      # Enable loading of custom dnsmasq.d config files (required for wildcard DNS)
+      FTLCONF_misc_etc_dnsmasq_d: "true"
+      # HTTPS only - disable HTTP
+      FTLCONF_webserver_port: 443s,[::]:443s
+      VIRTUAL_HOST: pihole-vlan50.local
+    volumes:
+      - /opt/pihole/vlan50/etc-pihole:/etc/pihole
+      - /opt/pihole/vlan50/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    dns:
+      - 127.0.0.1
+      - 192.168.1.1
+    healthcheck:
+      test:
+        - CMD
+        - dig
+        - +norecurse
+        - +retry=0
+        - "@127.0.0.1"
+        - pi.hole
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  pihole-admin:
+    container_name: pihole-admin
+    image: pihole/pihole:2025.11.1
+    hostname: pihole-admin
+    networks:
+      admin:
+        ipv4_address: 192.168.1.16
+    environment:
+      # Timezone for log rotation at local midnight
+      TZ: Europe/Amsterdam
+      # Pi-hole v6+ uses FTLCONF_* prefix for configuration
+      FTLCONF_webserver_api_password: ${PIHOLE_WEB_PASSWORD}
+      FTLCONF_dns_upstreams: 192.168.1.1
+      # Required for macvlan network - listen on all interfaces
+      FTLCONF_dns_listeningMode: all
+      FTLCONF_LOCAL_IPV4: 192.168.1.16
+      # Allow app password sessions to modify configuration
+      FTLCONF_webserver_api_app_sudo: "true"
+      # Enable loading of custom dnsmasq.d config files (required for wildcard DNS)
+      FTLCONF_misc_etc_dnsmasq_d: "true"
+      # HTTPS only - disable HTTP
+      FTLCONF_webserver_port: 443s,[::]:443s
+      VIRTUAL_HOST: pihole-admin.local
+    volumes:
+      - /opt/pihole/admin/etc-pihole:/etc/pihole
+      - /opt/pihole/admin/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    dns:
+      - 127.0.0.1
+      - 192.168.1.1
+    healthcheck:
+      test:
+        - CMD
+        - dig
+        - +norecurse
+        - +retry=0
+        - "@127.0.0.1"
+        - pi.hole
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  vlan50:
+    driver: macvlan
+    driver_opts:
+      parent: eth0.50
+    ipam:
+      config:
+        - subnet: 192.168.50.0/24
+          gateway: 192.168.50.1
+          ip_range: 192.168.50.2/32
+
+  admin:
+    driver: macvlan
+    driver_opts:
+      parent: eth0
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+          ip_range: 192.168.1.16/32

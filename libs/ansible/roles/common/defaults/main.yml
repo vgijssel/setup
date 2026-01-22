@@ -1,0 +1,13 @@
+# Common role defaults
+
+# Hostname configuration (optional)
+# common_hostname: my-hostname
+
+# Network configuration (optional)
+# Place a 90-common-network.yaml file in the playbook directory to configure netplan
+# The file will be copied to /etc/netplan/ if it exists
+# See apps/pihole-prod/90-common-network.yaml for an example
+
+# Netplan try/revert configuration
+# Delay in seconds after netplan try before validating SSH (default: 5)
+common_network_validation_delay: 5

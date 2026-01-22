@@ -1,0 +1,7 @@
+# Common role configuration
+common_hostname: peace-at-last
+
+# Network configuration is in apps/pihole-prod/90-common-network.yaml
+
+# SSH public key for maarten user
+maarten_user_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKbI3UZOhsVGi1lbnH7Sd0KWtP5m6zUJgrxbHMTxhRcW

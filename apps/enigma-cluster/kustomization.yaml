@@ -10,6 +10,7 @@ resources:
   - helmrelease-internal-networking.yaml
   - helmrelease-external-service.yaml
   - helmrelease-external-dns.yaml
+  - helmrelease-external-dns-pihole.yaml
   - namespace-tailscale.yaml
   - helmrelease-tailscale-operator.yaml
   - namespace-ingress-nginx-gateway.yaml
