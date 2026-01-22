@@ -42,7 +42,7 @@
 
 - name: Deploy custom dnsmasq configuration to VLAN 50 instance
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/05-coder-wildcard.conf"
+    src: "{{ playbook_dir }}/05-coder-wildcard-vlan50.conf"
     dest: /opt/pihole/vlan50/etc-dnsmasq.d/05-coder-wildcard.conf
     mode: "0644"
   become: true
@@ -50,7 +50,7 @@
 
 - name: Deploy custom dnsmasq configuration to Admin LAN instance
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/05-coder-wildcard.conf"
+    src: "{{ playbook_dir }}/05-coder-wildcard-admin.conf"
     dest: /opt/pihole/admin/etc-dnsmasq.d/05-coder-wildcard.conf
     mode: "0644"
   become: true
