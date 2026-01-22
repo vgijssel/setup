@@ -1,0 +1,9 @@
+# Become password for sudo operations
+ansible_become_pass: op://setup-pihole-prod/maarten-pihole/password
+# Encrypted passwords for Ansible user module
+maarten_user_password_encrypted: op://setup-pihole-prod/maarten-pihole/password_encrypted
+root_user_password_encrypted: op://setup-pihole-prod/root-pihole/password_encrypted
+# Pi-hole web interface password (same for both admin and v50)
+pihole_web_password: op://setup-pihole-prod/pihole-admin-web/password
+# Tailscale auth key for registering the device
+tailscale_auth_key: op://setup-pihole-prod/tailscale-auth-key/Tailscale Auth Key/authKey

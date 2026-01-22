@@ -14,13 +14,14 @@
   become: true
   when: ansible_distribution == 'Archlinux'
 
-- name: apply netplan
-  ansible.builtin.command: netplan apply
-  become: true
-
 - name: restart unattended-upgrades
   ansible.builtin.service:
     name: unattended-upgrades
     enabled: true
     state: restarted
+  become: true
+
+- name: reboot system
+  ansible.builtin.reboot:
+    reboot_timeout: 300
   become: true

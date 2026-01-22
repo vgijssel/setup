@@ -1,0 +1,80 @@
+---
+# Docker Installation Tasks
+# Installs Docker and Docker Compose on Ubuntu/Debian
+
+- name: Install required packages for Docker
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: true
+  become: true
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Get distribution ID (lowercase)
+  ansible.builtin.command: lsb_release -is
+  register: distro_id
+  changed_when: false
+
+- name: Set distribution name for Docker repo
+  ansible.builtin.set_fact:
+    docker_distro: "{{ distro_id.stdout | lower }}"
+
+- name: Add Docker GPG key
+  ansible.builtin.get_url:
+    url: "https://download.docker.com/linux/{{ docker_distro }}/gpg"
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+  become: true
+
+- name: Get OS codename
+  ansible.builtin.command: lsb_release -cs
+  register: os_codename
+  changed_when: false
+
+- name: Get architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_arch
+  changed_when: false
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ dpkg_arch.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/{{ docker_distro }} {{ os_codename.stdout }} stable"
+    state: present
+    filename: docker
+  become: true
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  become: true
+
+- name: Ensure Docker service is started and enabled
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+  become: true
+
+- name: Add maarten user to docker group
+  ansible.builtin.user:
+    name: maarten
+    groups: docker
+    append: true
+  become: true

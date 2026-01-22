@@ -1,0 +1,6 @@
+---
+- import_tasks: docker.yml
+  tags: docker
+
+- import_tasks: containers.yml
+  tags: containers

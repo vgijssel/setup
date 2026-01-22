@@ -1,0 +1,106 @@
+---
+# HDMI Display Configuration Tasks for Raspberry Pi
+# Configures HDMI output for login terminal visibility on Ubuntu Server
+#
+# Ubuntu Server 25.10 uses the KMS (Kernel Mode Setting) driver vc4-kms-v3d
+# which ignores legacy hdmi_* settings in config.txt. This configuration
+# addresses HDMI output at multiple levels:
+# 1. Firmware level: Legacy settings for early boot
+# 2. Kernel level: KMS video parameters in cmdline.txt
+# 3. Userspace level: Disable DPMS power management
+
+- name: Ensure /boot/firmware directory exists
+  ansible.builtin.file:
+    path: /boot/firmware
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Configure HDMI display settings in config.txt
+  ansible.builtin.lineinfile:
+    path: /boot/firmware/config.txt
+    regexp: "{{ item.regex }}"
+    line: "{{ item.line }}"
+    create: true
+    mode: "0644"
+  become: true
+  loop:
+    # Force HDMI output even if no display is detected at boot
+    - regex: ^hdmi_force_hotplug=
+      line: hdmi_force_hotplug=1
+    # Use HDMI mode (with audio) instead of DVI
+    - regex: ^hdmi_drive=
+      line: hdmi_drive=2
+    # Use DMT (Display Monitor Timings) mode group for computer monitors
+    - regex: ^hdmi_group=
+      line: hdmi_group=2
+    # Mode 82 = 1920x1080@60Hz - common resolution for most monitors
+    - regex: ^hdmi_mode=
+      line: hdmi_mode=82
+    # Ignore EDID from monitor - use config.txt settings instead
+    # This prevents KMS from disabling output due to bad/missing EDID
+    - regex: ^hdmi_ignore_edid=
+      line: hdmi_ignore_edid=0xa5000080
+  notify: reboot system
+
+- name: Read current cmdline.txt content
+  ansible.builtin.slurp:
+    src: /boot/firmware/cmdline.txt
+  register: cmdline_content
+  become: true
+
+- name: Build list of required kernel parameters
+  ansible.builtin.set_fact:
+    cmdline_current: "{{ cmdline_content.content | b64decode | trim }}"
+    cmdline_params_required:
+      # Disable console blanking (screen saver)
+      - consoleblank=0
+      # Force HDMI-A-1 output with 1920x1080@60Hz for KMS driver
+      # This is critical for vc4-kms-v3d to output to HDMI even without EDID
+      - video=HDMI-A-1:1920x1080@60e
+
+- name: Determine missing kernel parameters
+  ansible.builtin.set_fact:
+    cmdline_params_missing: >-
+      {{ cmdline_params_required | reject('in', cmdline_current) | list }}
+
+- name: Add missing kernel parameters to cmdline.txt
+  ansible.builtin.copy:
+    content: "{{ cmdline_current }} {{ cmdline_params_missing | join(' ') }}\n"
+    dest: /boot/firmware/cmdline.txt
+    mode: "0644"
+  become: true
+  when: cmdline_params_missing | length > 0
+  notify: reboot system
+
+- name: Create systemd service to disable DPMS at boot
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/disable-dpms.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Disable DPMS (Display Power Management)
+      After=multi-user.target
+
+      [Service]
+      Type=oneshot
+      # Disable screen blanking via setterm
+      ExecStart=/usr/bin/setterm --blank 0 --powerdown 0 --powersave off
+      # Disable DPMS via kernel sysfs if available
+      ExecStart=-/bin/sh -c 'echo 0 > /sys/module/kernel/parameters/consoleblank'
+      StandardInput=tty
+      TTYPath=/dev/tty1
+      TTYReset=yes
+      TTYVHangup=yes
+
+      [Install]
+      WantedBy=multi-user.target
+  become: true
+  register: dpms_service
+
+- name: Enable disable-dpms service
+  ansible.builtin.systemd:
+    name: disable-dpms.service
+    enabled: true
+    daemon_reload: "{{ dpms_service.changed }}"
+  become: true
