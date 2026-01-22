@@ -45,3 +45,6 @@ spec:
       - --pihole-server=https://192.168.50.2
       - --pihole-api-version=6
       - --pihole-tls-skip-verify
+      # Exclude gateway ingresses (internal-networking=true) to avoid syncing external IPs
+      # Pi-hole should only sync internal MetalLB IPs (192.168.50.x) from tenant-root ingresses
+      - --label-filter=internal-networking!=true
