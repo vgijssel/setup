@@ -145,10 +145,8 @@ for node_num in 10 11 12; do
         output="${output}  - ${server_id}: ${server_addr} ⚠️ (unexpected IP)\n"
       fi
     done
-    
-    output="${output}\n"
   fi
-  
+
   # We only need to check from one node
   break
 done
@@ -159,8 +157,8 @@ if [[ -z "${pod}" ]]; then
   exit 1
 fi
 
-# Output the formatted result
-echo -e "${output}"
+# Output the formatted result (use -n to suppress extra trailing newline)
+echo -n -e "${output}"
 
 # Exit with error if any issues found
 if [[ -n "${errors}" ]]; then
