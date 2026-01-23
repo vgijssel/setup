@@ -44,6 +44,13 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
     /tmp/docker-in-docker-install.sh && \
     rm /tmp/docker-in-docker-install.sh
 
+# Fix Docker 29.x nested overlayfs issue by configuring native storage driver
+# Docker 29 made containerd snapshotters default, which doesn't work with nested overlayfs
+# Using native snapshotter avoids the "invalid argument" error in docker-in-docker
+# See: https://github.com/docker/cli/issues/6646
+RUN mkdir -p /etc/docker && \
+    echo '{"storage-driver": "native"}' > /etc/docker/daemon.json
+
 # Entrypoint for docker-in-docker initialization
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 
