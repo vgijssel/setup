@@ -1,3 +1,9 @@
+---
+name: coder.debug
+description: Debug a Coder workspace by analyzing logs and Kubernetes state to identify root causes and solutions
+argument-hint: [workspace ID]
+---
+
 # Coder Workspace Debugger
 
 Debug a Coder workspace by analyzing logs and Kubernetes state to identify root causes and solutions.
