@@ -56,11 +56,11 @@ directories:
   path: shell/zimfw
 - contents:
   - git:
-      commitTitle: '[docker-in-docker, docker-outside-of-docker] - Update documentation
-        and putting a check to stop installation for Debian Trixie(13) (#1482)...'
-      sha: 7c6ef0b7e5e9e5efb7a4b461d67482e1d6575f1e
+      commitTitle: '[docker-in-docker] - Fix for multiple vulnerability issues related
+        to docker compose-switch component. (#1541)...'
+      sha: 97fccabe1f86208940af5f133115729cf74046ca
       tags:
-      - feature_docker-in-docker_2.12.4
+      - feature_docker-in-docker_2.14.0
     path: .
   path: shell/docker-in-docker
 - contents:
