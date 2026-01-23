@@ -270,7 +270,7 @@ command:
 
       OVN Southbound RAFT Cluster:
       Cluster ID: efeb (efeb3e62-6271-42dd-82a7-7640b9ebfeb3)
-      Leader: self
+      Leader: 4592
       Members:
         - d699: 192.168.50.10 ✅
         - c89c: 192.168.50.11 ✅
