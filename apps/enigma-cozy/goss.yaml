@@ -259,23 +259,22 @@ command:
     # Members are sorted by IP for stable ordering. Server IDs may change but IPs are constant.
     exec: ./scripts/validate-ovn-raft-cluster.sh
     exit-status: 0
-    stdout:
-      - "OVN Northbound RAFT Cluster:"
-      - "/Cluster ID: d192/"
-      - "/Leader: (5ac6|61ec|839a|self)/"
-      - "Members:"
-      - "/  - [a-f0-9]+: 192\\.168\\.50\\.10 ✅/"
-      - "/  - [a-f0-9]+: 192\\.168\\.50\\.11 ✅/"
-      - "/  - [a-f0-9]+: 192\\.168\\.50\\.12 ✅/"
-      - ""
-      - "OVN Southbound RAFT Cluster:"
-      - "/Cluster ID: b37c/"
-      - "/Leader: (7866|8e60|75e3|self)/"
-      - "Members:"
-      - "/  - [a-f0-9]+: 192\\.168\\.50\\.10 ✅/"
-      - "/  - [a-f0-9]+: 192\\.168\\.50\\.11 ✅/"
-      - "/  - [a-f0-9]+: 192\\.168\\.50\\.12 ✅/"
-      - ""
+    stdout: |
+      OVN Northbound RAFT Cluster:
+      Cluster ID: 4e69 (4e69184e-18bb-480f-af60-e70a6030b1d8)
+      Leader: self
+      Members:
+        - 133c: 192.168.50.10 ✅
+        - af56: 192.168.50.11 ✅
+        - 9276: 192.168.50.12 ✅
+
+      OVN Southbound RAFT Cluster:
+      Cluster ID: efeb (efeb3e62-6271-42dd-82a7-7640b9ebfeb3)
+      Leader: self
+      Members:
+        - d699: 192.168.50.10 ✅
+        - c89c: 192.168.50.11 ✅
+        - 4592: 192.168.50.12 ✅
     stderr: ""
     timeout: 60000
   network_error_rates_acceptable:
