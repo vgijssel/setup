@@ -1,10 +1,10 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: setup
+  name: coder-cluster-prod
   namespace: flux-system
 spec:
   interval: 5m
   url: https://github.com/vgijssel/setup
   ref:
-    branch: main
+    branch: mg/fix/coder-agent-stability
