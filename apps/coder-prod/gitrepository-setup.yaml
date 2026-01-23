@@ -7,4 +7,4 @@ spec:
   interval: 5m
   url: https://github.com/vgijssel/setup
   ref:
-    branch: mg/fix/coder-agent-stability
+    branch: main
