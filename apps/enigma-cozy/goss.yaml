@@ -416,6 +416,23 @@ command:
       - realtek
     stderr: ""
     timeout: 60000
+  dns_upstream_configured:
+    title: Validate DNS upstream servers are configured and healthy on all nodes
+    # DNS upstream configuration is critical for cluster bootstrap and ongoing resolution.
+    # Control plane nodes use cluster DNS (192.168.50.2), while remote WAN nodes (here-i-am)
+    # must have public DNS (1.1.1.1, 8.8.8.8) listed first to prevent bootstrap deadlock when
+    # KubeSpan tunnel disconnects and needs to resolve discovery.talos.dev to re-establish.
+    exec: |
+      talosctl get dnsupstream --nodes 192.168.50.10,192.168.50.11,192.168.50.12,46.224.93.115 --endpoints 192.168.50.10 -o json | jq -s -r '.[] | "\(.node): \(.spec.addr) healthy=\(.spec.healthy)"'
+    exit-status: 0
+    stdout: |
+      192.168.50.10: 192.168.50.2:53 healthy=true
+      192.168.50.11: 192.168.50.2:53 healthy=true
+      192.168.50.12: 192.168.50.2:53 healthy=true
+      46.224.93.115: 1.1.1.1:53 healthy=true
+      46.224.93.115: 8.8.8.8:53 healthy=true
+    stderr: ""
+    timeout: 60000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip
