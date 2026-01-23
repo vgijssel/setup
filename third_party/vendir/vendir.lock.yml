@@ -73,10 +73,10 @@ directories:
   path: markdown/claude-task-master
 - contents:
   - git:
-      commitTitle: Release v0.38.6 (#1799)...
-      sha: 4dfb3086a19e93ec8ce29357d7532a601df6d3d8
+      commitTitle: Release v0.41.2 (#1907)...
+      sha: f1f1ff5681b424ac240d28e14867a4e92c1f1478
       tags:
-      - v0.38.6
+      - v0.41.2
     path: .
   path: config/cozystack-talos-profiles
 kind: LockConfig
