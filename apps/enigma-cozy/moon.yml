@@ -11,9 +11,7 @@ project:
   metadata:
     dependencies:
       cozystack/cozystack:
-        # version: v0.39.2
-        # Downgraded to 0.38.6 to disable topolgy aware routing and kamaji routing problems.
-        version: v0.38.6
+        version: v0.41.2
         datasource: github-releases
 tags:
   - scope.app
