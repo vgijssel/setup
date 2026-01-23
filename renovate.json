@@ -8,14 +8,14 @@
     {
       "customType": "jsonata",
       "fileFormat": "yaml",
-      "fileMatch": ["(^|/)moon\\.yml$"],
+      "managerFilePatterns": ["/(^|/)moon\\.yml$/"],
       "matchStrings": [
         "$each(project.metadata.dependencies, function($v, $k) { { \"depName\": $k, \"currentValue\": $v.version, \"datasource\": $v.datasource, \"packageName\": $v.packageName } })"
       ]
     }
   ],
   "pip-compile": {
-    "fileMatch": ["(^|/)requirements\\.in$"]
+    "managerFilePatterns": ["/(^|/)requirements\\.txt$/"]
   },
   "addLabels": ["dependencies"],
   "constraints": {
@@ -41,17 +41,17 @@
     }
   ],
   "pip_requirements": {
-    "fileMatch": ["(^|/)requirements\\.in$"],
+    "managerFilePatterns": ["/(^|/)requirements\\.in$/"],
     "ignorePaths": ["**/requirements.txt"]
   },
   "bazel-module": {
     "enabled": true
   },
   "bazel": {
-    "fileMatch": ["(^|/)WORKSPACE\\.bzlmod$"]
+    "managerFilePatterns": ["/(^|/)WORKSPACE\\.bzlmod$/"]
   },
   "docker-compose": {
-    "fileMatch": ["(^|/)docker-compose\\.yml\\.j2$"]
+    "managerFilePatterns": ["/(^|/)docker-compose\\.yml\\.j2$/"]
   },
   "automergeSchedule": ["after 9am every weekday", "before 5pm every weekday"]
 }
