@@ -1,0 +1,21 @@
+apiVersion: apps.cozystack.io/v1alpha1
+kind: Postgres
+metadata:
+  name: coder-cluster-db-prod
+  namespace: tenant-root
+spec:
+  replicas: 2
+  size: 10Gi
+  resourcesPreset: micro
+  version: v17
+  external: false
+  postgresql:
+    parameters:
+      max_connections: 100
+  quorum:
+    minSyncReplicas: 0
+    maxSyncReplicas: 0
+  backup:
+    enabled: false
+  bootstrap:
+    enabled: false
