@@ -15,8 +15,8 @@ tasks:
     # TODO: currently too large to cache with bazel-remote and Backblaze B2
     #    outputs:
     #      - node_modules
-    options:
-      cache: true
+    #    options:
+    #      cache: true
   build:
     command: npm run build
     deps:
