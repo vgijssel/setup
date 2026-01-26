@@ -3,20 +3,14 @@ language: bash
 
 tasks:
   build:
-    command: echo $MOON_TASK_HASH > run.sha
+    command: echo $MOON_TASK_HASH > dist/run.sha
     inputs:
       - devcontainer-install-extensions.sh
     outputs:
-      - run.sha
+      - dist/run.sha
     options:
       cache: true
       runInCI: true
-
-  run:
-    command: ./devcontainer-install-extensions.sh
-    local: true
-    options:
-      runInCI: false
 
   test:
     command: bats
