@@ -1,6 +1,6 @@
 {
-  "currentTag": "mg-fix-coder-subdomain-apps",
-  "lastSwitched": "2026-01-18T12:21:26.688Z",
+  "currentTag": "mg-fix-coder-agent-stability",
+  "lastSwitched": "2026-01-26T14:06:50.278Z",
   "branchTagMapping": {
     "mg/fix/coder-subdomain-apps": "mg-fix-coder-subdomain-apps"
   },
