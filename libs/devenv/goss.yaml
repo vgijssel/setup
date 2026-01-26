@@ -278,7 +278,6 @@ command:
 
   claude_code_vscode_extension:
     title: Claude Code extension installed for VSCode Server
-    skip: {{.Env.IS_MACOS}}
     exec: ls -d {{.Env.HOME}}/.vscode-server/extensions/anthropic.claude-code-* 2>/dev/null | head -1 | xargs -I {} basename {} || echo "not found"
     exit-status: 0
     stdout:
@@ -287,7 +286,6 @@ command:
 
   claude_code_codeserver_extension:
     title: Claude Code extension installed for code-server
-    skip: {{.Env.IS_MACOS}}
     exec: ls -d {{.Env.HOME}}/.local/share/code-server/extensions/anthropic.claude-code-* 2>/dev/null | head -1 | xargs -I {} basename {} || echo "not found"
     exit-status: 0
     stdout:
