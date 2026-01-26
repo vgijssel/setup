@@ -2,4 +2,4 @@
 # Binstub for devcontainer-install-extensions
 # This wrapper calls the Moon task with all arguments passed through
 
-exec moon run devcontainer-install-extensions:run -- "$@"
+exec moon run --quiet --log error devcontainer-install-extensions:run -- "$@"

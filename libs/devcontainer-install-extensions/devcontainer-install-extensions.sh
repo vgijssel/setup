@@ -6,11 +6,13 @@ set -e
 # Usage: devcontainer-install-extensions.sh --file <path-to-devcontainer.json> [--output <extensions-dir>]
 #
 # This script reads a devcontainer.json file and installs all VSCode extensions
-# specified in customizations.vscode.extensions using the VSCode CLI.
+# specified in customizations.vscode.extensions using code-server CLI.
 
 # Parse command line arguments
 DEVCONTAINER_FILE=""
 OUTPUT_DIR="${HOME}/.vscode-server/extensions"
+
+cd $MOON_WORKING_DIR
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -63,7 +65,7 @@ mkdir -p "${OUTPUT_DIR}"
 echo "${EXTENSIONS}" | while read -r extension; do
   if [[ -n "${extension}" ]]; then
     echo "Installing extension: ${extension}"
-    if code --extensions-dir "${OUTPUT_DIR}" --install-extension "${extension}"; then
+    if code-server --extensions-dir "${OUTPUT_DIR}" --install-extension "${extension}"; then
       echo "✓ Successfully installed ${extension}"
     else
       echo "⚠ Warning: Failed to install ${extension}" >&2

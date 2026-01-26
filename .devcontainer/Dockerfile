@@ -97,4 +97,3 @@ RUN zsh -ic 'exit 0'
 # Eager load commonly used tools
 RUN bin/exec python --version
 RUN bin/exec wait-for-it --version
-

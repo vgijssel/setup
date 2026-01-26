@@ -4,16 +4,10 @@
 setup() {
   # Get the directory where this test file is located
   TEST_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")" && pwd)"
-  SCRIPT="${TEST_DIR}/devcontainer-install-extensions.sh"
+  SCRIPT="${TEST_DIR}/../devcontainer-install-extensions.sh"
 
   # Create temporary directory for test output
   TEST_OUTPUT_DIR="$(mktemp -d)"
-
-  # Verify VSCode CLI is available via Hermit
-  run code --version
-  if [ "$status" -ne 0 ]; then
-    skip "VSCode CLI not available"
-  fi
 }
 
 # Teardown function runs after each test
@@ -42,12 +36,6 @@ teardown() {
 }
 
 @test "script extracts and installs extensions from devcontainer.json" {
-  # Skip actual extension installation in CI as it takes too long (30+ minutes)
-  # The integration is tested by verifying code CLI is available in setup()
-  if [ "${CI:-false}" = "true" ]; then
-    skip "Skipping actual extension installation in CI (too slow)"
-  fi
-
   run "${SCRIPT}" --file "${TEST_DIR}/fixtures/test-devcontainer.json" --output "${TEST_OUTPUT_DIR}/extensions"
 
   [ "$status" -eq 0 ]

@@ -2,6 +2,7 @@ language: javascript
 layer: library
 dependsOn:
   - devenv
+  - devcontainer-install-extensions
 tasks:
   build:
     command: ./build.sh --tag $MOON_TASK_HASH

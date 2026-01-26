@@ -27,3 +27,8 @@ setup() {
   echo "Output: ${output}"
   [ "$status" -eq 0 ]
 }
+
+@test "code-server CLI is available" {
+  run code-server --version
+  [ "$status" -eq 0 ]
+}
