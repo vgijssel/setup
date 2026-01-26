@@ -1,7 +1,5 @@
 language: javascript
 layer: library
-dependsOn:
-  - devcontainer-install-extensions
 tags:
   - devenv
   - chezmoi
@@ -14,8 +12,6 @@ tags:
 tasks:
   apply:
     command: chezmoi-wrapper apply --verbose
-    deps:
-      - devcontainer-install-extensions:build
     local: true
 
   test:
@@ -23,7 +19,6 @@ tasks:
     deps:
       - claude-code:build
       - vendir:build
-      - devcontainer-install-extensions:build
     inputs:
       - glob: files/**/*
         cache: true
