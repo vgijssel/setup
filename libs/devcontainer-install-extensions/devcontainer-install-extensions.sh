@@ -12,7 +12,7 @@ set -e
 DEVCONTAINER_FILE=""
 OUTPUT_DIR="${HOME}/.vscode-server/extensions"
 
-cd $MOON_WORKING_DIR
+cd "${MOON_WORKING_DIR}"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
