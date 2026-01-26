@@ -2,17 +2,16 @@
 set -euo pipefail
 
 {{- $setup_dir := env "SETUP_DIR" }}
-{{- $extensions_file := joinPath $setup_dir ".vscode" "extensions.json" }}
+{{- $devcontainer_file := joinPath $setup_dir ".devcontainer" "devcontainer.json" }}
+{{- $run_sha_file := joinPath $setup_dir "libs" "devcontainer-install-extensions" "run.sha" }}
 
-# extensions hash: {{ output "cat" $extensions_file | sha256sum }}
+# devcontainer.json hash: {{ output "cat" $devcontainer_file | sha256sum }}
+# run.sha: {{ output "cat" $run_sha_file | trim }}
 
-EXT_FILE="{{ $extensions_file }}"
+DEVCONTAINER_FILE="{{ $devcontainer_file }}"
 
-echo "📦 Installing VSCode extensions from $EXT_FILE"
+echo "📦 Installing VSCode extensions from $DEVCONTAINER_FILE"
 
-jq -r '.recommendations[]' "$EXT_FILE" | while read -r extension; do
-    echo "➕ Installing $extension..."
-    code --install-extension "$extension" --force
-done
+devcontainer-install-extensions --file "$DEVCONTAINER_FILE"
 
 echo "✅ VSCode extensions installed successfully"
