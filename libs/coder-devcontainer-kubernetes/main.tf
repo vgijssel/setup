@@ -376,8 +376,8 @@ resource "envbuilder_cached_image" "workspace" {
     # Avoids DNS mismatch when external URL resolves to wrong IP inside the cluster
     "CODER_AGENT_URL" = local.coder_url
     # Envbuilder configuration
-    "ENVBUILDER_INIT_SCRIPT" = coder_agent.main.init_script
-    "ENVBUILDER_PUSH_IMAGE"  = "true"
+    "ENVBUILDER_INIT_SCRIPT"           = coder_agent.main.init_script
+    "ENVBUILDER_PUSH_IMAGE"            = "true"
   }
 }
 
@@ -412,8 +412,8 @@ resource "kubernetes_deployment_v1" "workspace" {
   wait_for_rollout = true
 
   timeouts {
-    create = "5m"
-    update = "5m"
+    create = "15m"
+    update = "15m"
     delete = "3m"
   }
 
@@ -524,9 +524,9 @@ resource "kubernetes_deployment_v1" "workspace" {
 # ====================
 
 resource "coder_agent" "main" {
-  arch           = data.coder_provisioner.me.arch
-  os             = "linux"
-  dir            = "/workspaces/setup"
+  arch = data.coder_provisioner.me.arch
+  os   = "linux"
+  dir  = "/workspaces/setup"
 
   display_apps {
     vscode          = false
