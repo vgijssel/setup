@@ -16,13 +16,10 @@ mkdir -p "${VSCODE_EXT_DIR}" "${CODE_SERVER_EXT_DIR}"
 echo "Installing extension: {{ . }}"
 
 # Install for VSCode (remote server)
-# if ! code-server-internal --accept-server-license-terms --extensions-dir "${VSCODE_EXT_DIR}" --install-extension "{{ . }}"; then
-#   echo "❌ Failed to install {{ . }} for VSCode" >&2
-#   exit 1
-# fi
-
-code-server-internal --version
-
+if ! code-server-internal --accept-server-license-terms --extensions-dir "${VSCODE_EXT_DIR}" --install-extension "{{ . }}"; then
+  echo "❌ Failed to install {{ . }} for VSCode" >&2
+  exit 1
+fi
 echo "✓ Successfully installed {{ . }} for VSCode"
 
 {{ end -}}
