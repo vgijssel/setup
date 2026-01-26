@@ -284,14 +284,6 @@ command:
       - /^anthropic\.claude-code-/
     timeout: 10000
 
-  claude_code_codeserver_extension:
-    title: Claude Code extension installed for code-server
-    exec: ls -d {{.Env.HOME}}/.local/share/code-server/extensions/anthropic.claude-code-* 2>/dev/null | head -1 | xargs -I {} basename {} || echo "not found"
-    exit-status: 0
-    stdout:
-      - /^anthropic\.claude-code-/
-    timeout: 10000
-
 user:
   coder:
     skip: {{ or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") }}
