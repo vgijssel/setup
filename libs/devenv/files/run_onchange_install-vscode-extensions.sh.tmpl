@@ -3,7 +3,7 @@ set -euo pipefail
 
 {{- $setup_dir := env "SETUP_DIR" }}
 {{- $devcontainer_file := joinPath $setup_dir ".devcontainer" "devcontainer.json" }}
-{{- $run_sha_file := joinPath $setup_dir "libs" "devcontainer-install-extensions" "run.sha" }}
+{{- $run_sha_file := joinPath $setup_dir "libs" "devcontainer-install-extensions" "dist" "run.sha" }}
 
 # devcontainer.json hash: {{ output "cat" $devcontainer_file | sha256sum }}
 # run.sha: {{ output "cat" $run_sha_file | trim }}
