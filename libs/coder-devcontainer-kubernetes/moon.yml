@@ -45,6 +45,7 @@ tasks:
     options:
       cache: true
       runInCI: false
+      timeout: 600
     inputs:
       - file: ./tests/goss.yaml
       - file: ./tests/workspace-test.bats

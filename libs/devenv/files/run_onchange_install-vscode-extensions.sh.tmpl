@@ -22,12 +22,5 @@ if ! code-server-internal --accept-server-license-terms --extensions-dir "${VSCO
 fi
 echo "✓ Successfully installed {{ . }} for VSCode"
 
-# Install for code-server
-if ! code-server-internal --accept-server-license-terms --extensions-dir "${CODE_SERVER_EXT_DIR}" --install-extension "{{ . }}"; then
-  echo "❌ Failed to install {{ . }} for code-server" >&2
-  exit 1
-fi
-echo "✓ Successfully installed {{ . }} for code-server"
-
 {{ end -}}
 echo "✅ VSCode extensions installed successfully"
