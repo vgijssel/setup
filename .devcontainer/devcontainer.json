@@ -24,7 +24,8 @@
         "github.remotehub",
         "hashicorp.hcl",
         "hashicorp.terraform",
-        "Hamster.task-master-hamster"
+        "Hamster.task-master-hamster",
+        "jetmartin.bats"
       ],
       "settings": {
         "remote.portsAttributes": {

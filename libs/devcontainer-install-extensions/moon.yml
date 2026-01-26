@@ -11,11 +11,11 @@ tasks:
   test:
     command: bats
     args:
-      - test.bats
+      - tests/test.bats
     inputs:
       - devcontainer-install-extensions.sh
-      - test.bats
-      - fixtures/**
+      - tests/**
+      - "@globs(code-server_bin)"
     options:
       cache: true
       runInCI: true
