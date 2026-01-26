@@ -16,18 +16,18 @@ mkdir -p "${OUTPUT_DIR}"
 echo "Installing extension: {{ . }}"
 
 # Install for VSCode (remote server)
-if code-server --extensions-dir "${OUTPUT_DIR}" --install-extension "{{ . }}"; then
-  echo "✓ Successfully installed {{ . }} for VSCode"
-else
-  echo "⚠ Warning: Failed to install {{ . }} for VSCode" >&2
+if ! code-server --extensions-dir "${OUTPUT_DIR}" --install-extension "{{ . }}"; then
+  echo "❌ Failed to install {{ . }} for VSCode" >&2
+  exit 1
 fi
+echo "✓ Successfully installed {{ . }} for VSCode"
 
 # Install for code-server (default location)
-if code-server --install-extension "{{ . }}"; then
-  echo "✓ Successfully installed {{ . }} for code-server"
-else
-  echo "⚠ Warning: Failed to install {{ . }} for code-server" >&2
+if ! code-server --install-extension "{{ . }}"; then
+  echo "❌ Failed to install {{ . }} for code-server" >&2
+  exit 1
 fi
+echo "✓ Successfully installed {{ . }} for code-server"
 
 {{ end -}}
 echo "✅ VSCode extensions installed successfully"
