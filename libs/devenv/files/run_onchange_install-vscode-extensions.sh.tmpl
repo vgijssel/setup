@@ -3,15 +3,31 @@ set -euo pipefail
 
 {{- $setup_dir := env "SETUP_DIR" }}
 {{- $devcontainer_file := joinPath $setup_dir ".devcontainer" "devcontainer.json" }}
-{{- $run_sha_file := joinPath $setup_dir "libs" "devcontainer-install-extensions" "dist" "run.sha" }}
+{{- $devcontainer := include $devcontainer_file | fromJson }}
 
-# devcontainer.json hash: {{ output "cat" $devcontainer_file | sha256sum }}
-# run.sha: {{ output "cat" $run_sha_file | trim }}
+OUTPUT_DIR="${HOME}/.vscode-server/extensions"
 
-DEVCONTAINER_FILE="{{ $devcontainer_file }}"
+echo "📦 Installing VSCode extensions from {{ $devcontainer_file }}"
+echo "Output directory: ${OUTPUT_DIR}"
 
-echo "📦 Installing VSCode extensions from $DEVCONTAINER_FILE"
+mkdir -p "${OUTPUT_DIR}"
 
-devcontainer-install-extensions --file "$DEVCONTAINER_FILE"
+{{ range $devcontainer.customizations.vscode.extensions -}}
+echo "Installing extension: {{ . }}"
 
+# Install for VSCode (remote server)
+if code-server --extensions-dir "${OUTPUT_DIR}" --install-extension "{{ . }}"; then
+  echo "✓ Successfully installed {{ . }} for VSCode"
+else
+  echo "⚠ Warning: Failed to install {{ . }} for VSCode" >&2
+fi
+
+# Install for code-server (default location)
+if code-server --install-extension "{{ . }}"; then
+  echo "✓ Successfully installed {{ . }} for code-server"
+else
+  echo "⚠ Warning: Failed to install {{ . }} for code-server" >&2
+fi
+
+{{ end -}}
 echo "✅ VSCode extensions installed successfully"

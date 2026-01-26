@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
-EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
-
-exec "${EXEC_BIN}" "${LOCAL_SETUP_DIR}"/libs/devcontainer-install-extensions/devcontainer-install-extensions.sh "$@"
