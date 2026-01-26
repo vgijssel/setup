@@ -20,6 +20,9 @@ echo "Installing extension: {{ . }}"
 #   echo "❌ Failed to install {{ . }} for VSCode" >&2
 #   exit 1
 # fi
+
+code-server-internal --version
+
 echo "✓ Successfully installed {{ . }} for VSCode"
 
 {{ end -}}
