@@ -302,8 +302,7 @@ async def wait_for_agent_idle(
 
 async def record(vcr_inst) -> None:
     """Record all cassettes in a single linear flow."""
-    print(
-        f"""
+    print(f"""
 ╔══════════════════════════════════════════════════════════════╗
 ║  Fleet MCP Clean - VCR Cassette Recorder                   ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -314,8 +313,7 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
 
 ⚠️  WARNING: This will create and delete a test workspace on your Coder instance.
 
-"""
-    )
+""")
 
     client = CoderClient(base_url=CODER_URL, token=CODER_SESSION_TOKEN)
     agent_repo = AgentRepository(client)
@@ -475,8 +473,7 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
         except Exception as e:
             print(f"✓ Recorded 404 error: {type(e).__name__}")
 
-        print(
-            f"""
+        print(f"""
 ╔══════════════════════════════════════════════════════════════╗
 ║  ✓ Recording Complete!                                       ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -487,8 +484,7 @@ Next steps:
 1. Review the cassette files to ensure they contain expected data
 2. Update test fixtures if needed
 3. Run the test suite: nx test fleet-mcp
-"""
-        )
+""")
 
     finally:
         # Ensure workspace is always cleaned up, even if recording fails
