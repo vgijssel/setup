@@ -17,5 +17,6 @@ resources:
   - helmrelease-1password-secrets.yaml
   - helmrelease-registry.yaml
   - helmrelease-coder.yaml
+  - helmrelease-coder-logstream-kube.yaml
   # ConfigMaps deployed to coder namespace
   - configmap-workspace-config.yaml
