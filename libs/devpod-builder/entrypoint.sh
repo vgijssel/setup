@@ -101,25 +101,38 @@ create_workspace() {
         cmd="${cmd} --workspace-env CODER_AGENT_URL=${CODER_AGENT_URL}"
     fi
 
-    # Add init script if provided (for Coder agent startup)
-    if [ -n "${CODER_INIT_SCRIPT}" ]; then
-        # Write init script to a file to pass it properly
-        echo "${CODER_INIT_SCRIPT}" > /tmp/coder-init.sh
-        chmod +x /tmp/coder-init.sh
-        cmd="${cmd} --workspace-env CODER_INIT_SCRIPT_PATH=/tmp/coder-init.sh"
-    fi
-
     # Execute devpod command (log streaming disabled for now as it requires agent auth)
     log_info "Running DevPod..."
     eval "${cmd}"
 }
 
-# Inject Coder agent into the workspace pod
-inject_coder_agent() {
-    log_info "Coder agent injection will be handled by Terraform..."
-    # Note: The actual Coder agent injection happens via Terraform
-    # by setting environment variables in the DevPod-created pod.
-    # This function is a placeholder for any additional post-creation steps.
+# Start the Coder agent in the workspace
+start_coder_agent() {
+    if [ -z "${CODER_INIT_SCRIPT}" ]; then
+        log_warn "CODER_INIT_SCRIPT not provided, skipping agent startup"
+        return
+    fi
+
+    log_info "Starting Coder agent in workspace..."
+
+    # Get the workspace name from the repository
+    local workspace_name
+    workspace_name=$(basename "${DEVPOD_REPOSITORY}" .git | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+
+    # Write the init script to a temp file
+    local init_script_file="/tmp/coder-init-script.sh"
+    echo "${CODER_INIT_SCRIPT}" > "${init_script_file}"
+    chmod +x "${init_script_file}"
+
+    # Copy the init script to the workspace and execute it in the background
+    # Using devpod ssh to execute the script inside the workspace container
+    log_info "Copying init script to workspace..."
+    cat "${init_script_file}" | devpod ssh "${workspace_name}" -- bash -c 'cat > /tmp/coder-init.sh && chmod +x /tmp/coder-init.sh'
+
+    log_info "Executing Coder agent init script (running in background)..."
+    devpod ssh "${workspace_name}" -- bash -c 'nohup /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &'
+
+    log_info "Coder agent startup initiated"
 }
 
 # Main execution
@@ -136,8 +149,8 @@ main() {
     # Create workspace
     create_workspace
 
-    # Post-creation steps
-    inject_coder_agent
+    # Start Coder agent in the workspace
+    start_coder_agent
 
     log_info "DevPod workspace creation complete!"
 }
