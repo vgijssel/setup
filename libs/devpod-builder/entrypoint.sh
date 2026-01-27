@@ -134,15 +134,21 @@ start_coder_agent() {
     chmod +x "${init_script_file}"
 
     # Copy the init script to the workspace and execute it in the background
-    # Using devpod ssh to execute the script inside the workspace container
     # NOTE: The workspace uses zsh which has a read-only 'status' variable that conflicts
-    # with the Coder init script. We use 'bash -c' but devpod ssh still invokes zsh first.
-    # Solution: Run the init script explicitly with /bin/bash
-    log_info "Copying init script to workspace..."
-    cat "${init_script_file}" | devpod ssh "${workspace_name}" -- bash -c 'cat > /tmp/coder-init.sh && chmod +x /tmp/coder-init.sh'
+    # with the Coder init script. We use base64 encoding to safely transfer the script
+    # without any shell interpretation, then decode and run it explicitly with /bin/bash.
 
-    log_info "Executing Coder agent init script (running in background)..."
-    devpod ssh "${workspace_name}" -- bash -c 'nohup /bin/bash /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &'
+    # Base64 encode the script to avoid shell interpretation issues
+    local encoded_script
+    encoded_script=$(base64 -w0 "${init_script_file}")
+
+    log_info "Copying init script to workspace (base64 encoded)..."
+    # Use a single command to decode and write the script, avoiding any shell interpretation
+    devpod ssh "${workspace_name}" -- /bin/bash -c "echo '${encoded_script}' | base64 -d > /tmp/coder-init.sh && chmod +x /tmp/coder-init.sh"
+
+    log_info "Executing Coder agent init script (running in background with bash)..."
+    # Run with explicit /bin/bash to avoid zsh read-only variable conflicts
+    devpod ssh "${workspace_name}" -- /bin/bash -c 'nohup /bin/bash /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &'
 
     log_info "Coder agent startup initiated"
 }
