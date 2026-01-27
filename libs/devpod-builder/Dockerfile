@@ -21,6 +21,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-requests \
     && rm -rf /var/lib/apt/lists/*
 
+# Install kubectl
+ARG KUBECTL_VERSION=1.32.0
+RUN curl -L -o /usr/local/bin/kubectl \
+    "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" \
+    && chmod +x /usr/local/bin/kubectl
+
 # Install DevPod
 RUN curl -L -o /usr/local/bin/devpod \
     "https://github.com/loft-sh/devpod/releases/download/v${DEVPOD_VERSION}/devpod-linux-${TARGETARCH}" \
