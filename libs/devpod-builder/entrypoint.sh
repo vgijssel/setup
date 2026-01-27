@@ -222,9 +222,11 @@ start_coder_agent() {
     fi
     log_info "Init script copied successfully"
 
-    # Execute the init script in the background
+    # Execute the init script in the background with required environment variables
+    # The CODER_AGENT_TOKEN must be passed explicitly since kubectl exec doesn't inherit the
+    # workspace environment variables set by DevPod's --workspace-env
     log_info "Executing Coder agent init script (running in background with bash)..."
-    kubectl exec -n "${namespace}" "${pod_name}" -c devpod -- /bin/bash -c 'nohup /bin/bash /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &' 2>&1
+    kubectl exec -n "${namespace}" "${pod_name}" -c devpod -- /bin/bash -c "export CODER_AGENT_TOKEN='${CODER_AGENT_TOKEN}'; nohup /bin/bash /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &" 2>&1
 
     # Give the agent a moment to start
     sleep 3
