@@ -101,9 +101,16 @@ create_workspace() {
         cmd="${cmd} --workspace-env CODER_AGENT_URL=${CODER_AGENT_URL}"
     fi
 
-    # Execute devpod command (log streaming disabled for now as it requires agent auth)
+    # Execute devpod command and stream logs to Coder
     log_info "Running DevPod..."
-    eval "${cmd}"
+    # Pipe devpod output through log-streamer.py to send build logs to Coder UI
+    if [ -n "${CODER_AGENT_URL}" ] && [ -n "${CODER_AGENT_TOKEN}" ]; then
+        log_info "Streaming DevPod logs to Coder..."
+        eval "${cmd}" 2>&1 | /app/log-streamer.py --source-name "DevPod Build"
+    else
+        log_warn "CODER_AGENT_URL or CODER_AGENT_TOKEN not set, logs won't be streamed to Coder"
+        eval "${cmd}"
+    fi
 }
 
 # Start the Coder agent in the workspace

@@ -166,7 +166,7 @@ data "coder_parameter" "devcontainer_builder" {
   name         = "devcontainer_builder"
   display_name = "DevPod Builder Image"
   type         = "string"
-  default      = "ghcr.io/vgijssel/setup/devpod-builder:0.1.7"
+  default      = "ghcr.io/vgijssel/setup/devpod-builder:0.1.8"
   description  = "DevPod builder image for creating devcontainer workspaces"
   mutable      = false
 }
