@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devpod-builder
+  namespace: coder-workspace
+  labels:
+    app.kubernetes.io/name: devpod-builder
+    app.kubernetes.io/part-of: coder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: devpod-builder
+subjects:
+  - kind: ServiceAccount
+    name: devpod-builder
+    namespace: coder-workspace

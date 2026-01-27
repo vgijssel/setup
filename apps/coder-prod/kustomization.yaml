@@ -4,6 +4,11 @@ resources:
   # Namespaces must be created first
   - namespace-flux-system.yaml
   - namespace-coder.yaml
+  - namespace-coder-workspace.yaml
+  # DevPod RBAC resources
+  - serviceaccount-devpod-builder.yaml
+  - role-devpod-builder.yaml
+  - rolebinding-devpod-builder.yaml
   # FluxCD source
   - gitrepository-setup.yaml
   - kustomization-root.yaml
