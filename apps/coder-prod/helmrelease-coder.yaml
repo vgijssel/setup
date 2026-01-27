@@ -54,6 +54,10 @@ spec:
               - apiGroups: [""]
                 resources: [configmaps, secrets]
                 verbs: [get, list, watch, create, update, patch, delete]
+              # For DevPod builder jobs
+              - apiGroups: ["batch"]
+                resources: [jobs]
+                verbs: [create, delete, get, list, patch, update, watch]
       env:
         # PostgreSQL connection components from 1Password
         - name: PG_USER
