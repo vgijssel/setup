@@ -434,7 +434,8 @@ resource "kubernetes_job_v1" "devpod_builder" {
     }
   }
 
-  wait_for_completion = true
+  # Set to false so DevPod logs stream to Coder startup logs via coder-logstream-kube
+  wait_for_completion = false
 
   timeouts {
     create = "30m"
