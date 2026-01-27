@@ -113,6 +113,28 @@ create_workspace() {
     fi
 }
 
+# Retry a command with exponential backoff
+retry_command() {
+    local max_attempts="$1"
+    local delay="$2"
+    shift 2
+    local attempt=1
+
+    while [ $attempt -le $max_attempts ]; do
+        log_info "Attempt $attempt/$max_attempts: $*"
+        if "$@"; then
+            return 0
+        fi
+        log_warn "Attempt $attempt failed, waiting ${delay}s before retry..."
+        sleep "$delay"
+        # Exponential backoff: double the delay for next attempt
+        delay=$((delay * 2))
+        attempt=$((attempt + 1))
+    done
+    log_error "All $max_attempts attempts failed for: $*"
+    return 1
+}
+
 # Start the Coder agent in the workspace
 start_coder_agent() {
     if [ -z "${CODER_INIT_SCRIPT}" ]; then
@@ -135,6 +157,24 @@ start_coder_agent() {
 
     log_info "DevPod workspace name: ${workspace_name}"
 
+    # Wait for the container to be ready by checking SSH connectivity
+    log_info "Waiting for workspace container to be ready..."
+    local ready=false
+    for i in {1..30}; do
+        if devpod ssh "${workspace_name}" -- echo "Container ready" 2>/dev/null; then
+            ready=true
+            break
+        fi
+        log_info "Waiting for container... ($i/30)"
+        sleep 5
+    done
+
+    if [ "$ready" != "true" ]; then
+        log_error "Workspace container failed to become ready after 150s"
+        return 1
+    fi
+    log_info "Workspace container is ready"
+
     # Write the init script to a temp file
     local init_script_file="/tmp/coder-init-script.sh"
     echo "${CODER_INIT_SCRIPT}" > "${init_script_file}"
@@ -151,11 +191,33 @@ start_coder_agent() {
 
     log_info "Copying init script to workspace (base64 encoded)..."
     # Use a single command to decode and write the script, avoiding any shell interpretation
-    devpod ssh "${workspace_name}" -- /bin/bash -c "echo '${encoded_script}' | base64 -d > /tmp/coder-init.sh && chmod +x /tmp/coder-init.sh"
+    if ! retry_command 3 5 devpod ssh "${workspace_name}" -- /bin/bash -c "echo '${encoded_script}' | base64 -d > /tmp/coder-init.sh && chmod +x /tmp/coder-init.sh"; then
+        log_error "Failed to copy init script to workspace"
+        return 1
+    fi
+
+    log_info "Verifying init script was copied..."
+    if ! devpod ssh "${workspace_name}" -- /bin/bash -c "test -f /tmp/coder-init.sh && echo 'Script exists'"; then
+        log_error "Init script was not created in workspace"
+        return 1
+    fi
 
     log_info "Executing Coder agent init script (running in background with bash)..."
     # Run with explicit /bin/bash to avoid zsh read-only variable conflicts
-    devpod ssh "${workspace_name}" -- /bin/bash -c 'nohup /bin/bash /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &'
+    if ! retry_command 3 5 devpod ssh "${workspace_name}" -- /bin/bash -c 'nohup /bin/bash /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &'; then
+        log_error "Failed to start Coder agent in workspace"
+        return 1
+    fi
+
+    # Give the agent a moment to start
+    sleep 2
+
+    log_info "Verifying Coder agent is running..."
+    if devpod ssh "${workspace_name}" -- /bin/bash -c "pgrep -f coder > /dev/null && echo 'Agent running'" 2>/dev/null; then
+        log_info "Coder agent started successfully"
+    else
+        log_warn "Could not verify agent process, but init script was executed"
+    fi
 
     log_info "Coder agent startup initiated"
 }
