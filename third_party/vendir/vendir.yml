@@ -65,6 +65,14 @@ directories:
           version: 2.29.2
           repository:
             url: https://helm.coder.com/v2
+  - path: charts/coder-logstream-kube
+    contents:
+      - path: .
+        helmChart:
+          name: coder-logstream-kube
+          version: 0.0.13
+          repository:
+            url: https://helm.coder.com/logstream-kube
   - path: shell/zimfw
     contents:
       - path: .
