@@ -135,11 +135,14 @@ start_coder_agent() {
 
     # Copy the init script to the workspace and execute it in the background
     # Using devpod ssh to execute the script inside the workspace container
+    # NOTE: The workspace uses zsh which has a read-only 'status' variable that conflicts
+    # with the Coder init script. We use 'bash -c' but devpod ssh still invokes zsh first.
+    # Solution: Run the init script explicitly with /bin/bash
     log_info "Copying init script to workspace..."
     cat "${init_script_file}" | devpod ssh "${workspace_name}" -- bash -c 'cat > /tmp/coder-init.sh && chmod +x /tmp/coder-init.sh'
 
     log_info "Executing Coder agent init script (running in background)..."
-    devpod ssh "${workspace_name}" -- bash -c 'nohup /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &'
+    devpod ssh "${workspace_name}" -- bash -c 'nohup /bin/bash /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &'
 
     log_info "Coder agent startup initiated"
 }
