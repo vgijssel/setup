@@ -115,9 +115,18 @@ start_coder_agent() {
 
     log_info "Starting Coder agent in workspace..."
 
-    # Get the workspace name from the repository
+    # Get the workspace name - DevPod uses the branch name if available, otherwise repo name
+    # When building repo@branch, DevPod derives workspace name from the branch
     local workspace_name
-    workspace_name=$(basename "${DEVPOD_REPOSITORY}" .git | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+    if [ -n "${DEVPOD_BRANCH}" ]; then
+        # Use branch name, sanitized the same way DevPod does it
+        workspace_name=$(echo "${DEVPOD_BRANCH}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+    else
+        # Fall back to repository name
+        workspace_name=$(basename "${DEVPOD_REPOSITORY}" .git | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+    fi
+
+    log_info "DevPod workspace name: ${workspace_name}"
 
     # Write the init script to a temp file
     local init_script_file="/tmp/coder-init-script.sh"
