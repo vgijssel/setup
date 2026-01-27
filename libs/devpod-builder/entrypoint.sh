@@ -157,66 +157,85 @@ start_coder_agent() {
 
     log_info "DevPod workspace name: ${workspace_name}"
 
-    # Wait for the container to be ready by checking SSH connectivity
-    log_info "Waiting for workspace container to be ready..."
-    local ready=false
+    # Find the DevPod workspace pod using kubectl (more reliable than devpod ssh)
+    local namespace="${DEVPOD_NAMESPACE:-coder-workspace}"
+    local pod_name
+
+    log_info "Looking for DevPod workspace pod in namespace ${namespace}..."
     for i in {1..30}; do
-        if devpod ssh "${workspace_name}" -- echo "Container ready" 2>/dev/null; then
-            ready=true
-            break
+        # DevPod creates pods with names like devpod-default-mg-XXXXX
+        # We look for pods starting with "devpod-default-" that are Running
+        pod_name=$(kubectl get pods -n "${namespace}" -l "devpod.sh/created=true" -o jsonpath='{.items[?(@.status.phase=="Running")].metadata.name}' 2>/dev/null | tr ' ' '\n' | grep "devpod-default-" | tail -1)
+
+        # If label selector doesn't work, try pattern matching on recent pods
+        if [ -z "${pod_name}" ]; then
+            pod_name=$(kubectl get pods -n "${namespace}" --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[?(@.status.phase=="Running")].metadata.name}' 2>/dev/null | tr ' ' '\n' | grep "^devpod-default-" | tail -1)
         fi
-        log_info "Waiting for container... ($i/30)"
+
+        if [ -n "${pod_name}" ]; then
+            # Verify pod is ready
+            if kubectl exec -n "${namespace}" "${pod_name}" -c devpod -- echo "ready" >/dev/null 2>&1; then
+                break
+            fi
+        fi
+        log_info "Waiting for workspace pod... ($i/30)"
         sleep 5
     done
 
-    if [ "$ready" != "true" ]; then
-        log_error "Workspace container failed to become ready after 150s"
+    if [ -z "${pod_name}" ]; then
+        log_error "Could not find DevPod workspace pod"
         return 1
     fi
-    log_info "Workspace container is ready"
+    log_info "Found DevPod workspace pod: ${pod_name}"
 
     # Write the init script to a temp file
     local init_script_file="/tmp/coder-init-script.sh"
     echo "${CODER_INIT_SCRIPT}" > "${init_script_file}"
     chmod +x "${init_script_file}"
 
-    # Copy the init script to the workspace and execute it in the background
-    # NOTE: The workspace uses zsh which has a read-only 'status' variable that conflicts
-    # with the Coder init script. We use base64 encoding to safely transfer the script
-    # without any shell interpretation, then decode and run it explicitly with /bin/bash.
-
     # Base64 encode the script to avoid shell interpretation issues
     local encoded_script
     encoded_script=$(base64 -w0 "${init_script_file}")
 
-    log_info "Copying init script to workspace (base64 encoded)..."
-    # Use a single command to decode and write the script, avoiding any shell interpretation
-    if ! retry_command 3 5 devpod ssh "${workspace_name}" -- /bin/bash -c "echo '${encoded_script}' | base64 -d > /tmp/coder-init.sh && chmod +x /tmp/coder-init.sh"; then
-        log_error "Failed to copy init script to workspace"
-        return 1
-    fi
+    # Copy the init script using kubectl exec (more reliable than devpod ssh)
+    log_info "Copying init script to workspace using kubectl exec..."
+    local copy_cmd="echo '${encoded_script}' | base64 -d > /tmp/coder-init.sh && chmod +x /tmp/coder-init.sh"
 
+    for attempt in 1 2 3; do
+        log_info "Attempt ${attempt}/3: Copying init script..."
+        if kubectl exec -n "${namespace}" "${pod_name}" -c devpod -- /bin/bash -c "${copy_cmd}" 2>&1; then
+            break
+        fi
+        if [ "${attempt}" -eq 3 ]; then
+            log_error "Failed to copy init script after 3 attempts"
+            return 1
+        fi
+        log_warn "Copy attempt ${attempt} failed, retrying in 5s..."
+        sleep 5
+    done
+
+    # Verify init script was copied
     log_info "Verifying init script was copied..."
-    if ! devpod ssh "${workspace_name}" -- /bin/bash -c "test -f /tmp/coder-init.sh && echo 'Script exists'"; then
+    if ! kubectl exec -n "${namespace}" "${pod_name}" -c devpod -- test -f /tmp/coder-init.sh; then
         log_error "Init script was not created in workspace"
         return 1
     fi
+    log_info "Init script copied successfully"
 
+    # Execute the init script in the background
     log_info "Executing Coder agent init script (running in background with bash)..."
-    # Run with explicit /bin/bash to avoid zsh read-only variable conflicts
-    if ! retry_command 3 5 devpod ssh "${workspace_name}" -- /bin/bash -c 'nohup /bin/bash /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &'; then
-        log_error "Failed to start Coder agent in workspace"
-        return 1
-    fi
+    kubectl exec -n "${namespace}" "${pod_name}" -c devpod -- /bin/bash -c 'nohup /bin/bash /tmp/coder-init.sh > /tmp/coder-agent.log 2>&1 &' 2>&1
 
     # Give the agent a moment to start
-    sleep 2
+    sleep 3
 
+    # Verify Coder agent is running
     log_info "Verifying Coder agent is running..."
-    if devpod ssh "${workspace_name}" -- /bin/bash -c "pgrep -f coder > /dev/null && echo 'Agent running'" 2>/dev/null; then
-        log_info "Coder agent started successfully"
+    if kubectl exec -n "${namespace}" "${pod_name}" -c devpod -- pgrep -f "coder agent" >/dev/null 2>&1; then
+        log_info "Coder agent process is running"
     else
-        log_warn "Could not verify agent process, but init script was executed"
+        log_warn "Could not verify agent process, checking logs..."
+        kubectl exec -n "${namespace}" "${pod_name}" -c devpod -- head -20 /tmp/coder-agent.log 2>&1 || true
     fi
 
     log_info "Coder agent startup initiated"
