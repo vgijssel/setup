@@ -1,0 +1,64 @@
+language: bash
+type: library
+
+tags:
+  - devpod
+  - docker
+  - coder
+
+fileGroups:
+  sources:
+    - "Dockerfile"
+    - "entrypoint.sh"
+    - "log-streamer.py"
+    - "version.txt"
+
+tasks:
+  build:
+    command: bash -c 'VERSION=$(cat version.txt | tr -d "\n") && docker build -t ghcr.io/vgijssel/setup/devpod-builder:${VERSION} -t ghcr.io/vgijssel/setup/devpod-builder:latest -t coder-registry.coder.svc.cluster.local:5000/devpod-builder:${VERSION} -t coder-registry.coder.svc.cluster.local:5000/devpod-builder:latest .'
+    inputs:
+      - "@group(sources)"
+    options:
+      runInCI: false
+
+  test:
+    command: docker run --rm ghcr.io/vgijssel/setup/devpod-builder:latest devpod version
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  test-python:
+    command: docker run --rm ghcr.io/vgijssel/setup/devpod-builder:latest python3 --version
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  test-provider:
+    command: bash -c 'docker run --rm ghcr.io/vgijssel/setup/devpod-builder:latest devpod provider list | grep kubernetes'
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  push-local:
+    command: bash -c 'kubectl port-forward -n coder svc/coder-registry 5000:5000 & sleep 3 && VERSION=$(cat version.txt | tr -d "\n") && docker push localhost:5000/devpod-builder:${VERSION} && docker push localhost:5000/devpod-builder:latest && kill %1'
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  push-ghcr:
+    command: bash -c 'VERSION=$(cat version.txt | tr -d "\n") && docker push ghcr.io/vgijssel/setup/devpod-builder:${VERSION} && docker push ghcr.io/vgijssel/setup/devpod-builder:latest'
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  release:
+    command: bash -c 'VERSION=$(cat version.txt | tr -d "\n") && COMMIT_SHA=$(git rev-parse --short HEAD) && docker tag ghcr.io/vgijssel/setup/devpod-builder:${VERSION} ghcr.io/vgijssel/setup/devpod-builder:${VERSION}-${COMMIT_SHA} && docker push ghcr.io/vgijssel/setup/devpod-builder:${VERSION} && docker push ghcr.io/vgijssel/setup/devpod-builder:${VERSION}-${COMMIT_SHA} && docker push ghcr.io/vgijssel/setup/devpod-builder:latest && echo "Released version ${VERSION} (${COMMIT_SHA})"'
+    deps:
+      - ~:build
+    options:
+      runInCI: false
