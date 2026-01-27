@@ -83,13 +83,14 @@ create_workspace() {
     log_info "  IDE: ${ide}"
     log_info "  Timeout: ${timeout}"
 
-    # Build devpod up command with Coder environment variables
-    local cmd="devpod up ${repo} --ide ${ide} --provider kubernetes"
-
-    # Add branch if specified
+    # Add branch to repository URL if specified (DevPod format: repo@branch)
+    local repo_with_branch="${repo}"
     if [ -n "${branch}" ]; then
-        cmd="${cmd} --git-branch ${branch}"
+        repo_with_branch="${repo}@${branch}"
     fi
+
+    # Build devpod up command with Coder environment variables
+    local cmd="devpod up ${repo_with_branch} --ide ${ide} --provider kubernetes"
 
     # Inject Coder agent environment variables into the workspace
     # These allow the Coder agent to connect back to the Coder server
@@ -108,16 +109,9 @@ create_workspace() {
         cmd="${cmd} --workspace-env CODER_INIT_SCRIPT_PATH=/tmp/coder-init.sh"
     fi
 
-    # Execute with log streaming if Coder API is available
-    if [ -n "${CODER_AGENT_URL}" ] && [ -n "${CODER_AGENT_TOKEN}" ]; then
-        log_info "Streaming logs to Coder..."
-        log_info "Injecting Coder agent environment variables into workspace..."
-        # Run devpod and pipe through log streamer
-        eval "${cmd}" 2>&1 | python3 /app/log-streamer.py
-    else
-        # Run without log streaming
-        eval "${cmd}"
-    fi
+    # Execute devpod command (log streaming disabled for now as it requires agent auth)
+    log_info "Running DevPod..."
+    eval "${cmd}"
 }
 
 # Inject Coder agent into the workspace pod
