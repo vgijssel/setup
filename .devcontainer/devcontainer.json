@@ -5,6 +5,7 @@
     "context": ".."
   },
   "privileged": true,
+  "remoteUser": "coder",
   "overrideCommand": false,
   "workspaceFolder": "/workspaces/setup",
   "postStartCommand": {
