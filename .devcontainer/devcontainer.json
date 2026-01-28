@@ -7,7 +7,7 @@
   "privileged": true,
   "overrideCommand": false,
   "postStartCommand": {
-    "coder-agent": "if [ -n \"$CODER_INIT_SCRIPT\" ]; then printf '%s' \"$CODER_INIT_SCRIPT\" > /tmp/coder-init.sh && chmod +x /tmp/coder-init.sh && /tmp/coder-init.sh; fi"
+    "coder_init_script": ".devcontainer/coder_init_script.sh"
   },
   "customizations": {
     "vscode": {
