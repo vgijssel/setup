@@ -7,6 +7,9 @@
   "remoteUser": "coder",
   "privileged": true,
   "overrideCommand": false,
+  "postStartCommand": {
+    "coder-agent": "if [ -n \"$CODER_INIT_SCRIPT\" ]; then echo \"$CODER_INIT_SCRIPT\" | bash; fi"
+  },
   "customizations": {
     "vscode": {
       "extensions": [
