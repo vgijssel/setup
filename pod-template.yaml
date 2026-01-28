@@ -9,12 +9,4 @@ spec:
         - name: CODER_AGENT_TOKEN
           value: "test-token-12345"
         - name: CODER_INIT_SCRIPT
-          value: |
-            #!/bin/bash
-            echo "=== CODER INIT SCRIPT START ==="
-            echo "hello world"
-            echo "Timestamp: $(date)"
-            echo "CODER_AGENT_URL: $CODER_AGENT_URL"
-            echo "CODER_AGENT_TOKEN: $CODER_AGENT_TOKEN"
-            echo "Workspace: $DEVPOD_WORKSPACE_ID"
-            echo "=== CODER INIT SCRIPT END ==="
+          value: "#!/bin/bash\necho hello world\necho done"
