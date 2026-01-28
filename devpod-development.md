@@ -1,3 +1,25 @@
+# TODO
+
+ - [ ] Disable the majority of options inside `devpod context options`
+ - [ ] Enable caching. Doesn't seem to work? Also not with prebuild? Is this an architecture thing?
+ - [ ] Can we run devpod up with the entire devcontainer image?
+ - [ ] Can we run with ide vscode and get all extensions preinstalled? `devpod ide list`
+
+Command to run:
+ ```
+ devpod up github.com/vgijssel/setup@mg/fix/coder-agent-stability \
+  --provider kubernetes \
+  --provider-option KUBERNETES_CONFIG=/secrets/coder-prod/kubeconfig.yaml \
+  --provider-option KUBERNETES_NAMESPACE=test-workspace-1 \
+  --provider-option STORAGE_CLASS=kubevirt \
+  --provider-option POD_MANIFEST_TEMPLATE=/workspaces/setup/pod-template.yaml \
+  --disable-daemon \
+  --id test-workspace-1 \
+  --open-ide=false \
+  --ide=vscode \
+  --prebuild-repository ghcr.io/vgijssel/setup/devpod-builder
+ ```
+
 # DevPod Kubernetes Development Notes
 
 This document captures configuration options and CLI flags for creating DevPod workspaces in Kubernetes with specific requirements.
