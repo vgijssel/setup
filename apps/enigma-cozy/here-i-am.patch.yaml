@@ -9,8 +9,12 @@ machine:
         - 0.0.0.0/0
   network:
     hostname: here-i-am
+    # Public nameservers MUST be listed first to prevent DNS bootstrap deadlock:
+    # This remote node connects to the cluster via KubeSpan (WireGuard over internet).
+    # If the tunnel disconnects, it needs DNS to resolve discovery.talos.dev to re-establish.
     nameservers:
-      - 192.168.50.2
+      - 1.1.1.1 # Cloudflare DNS (public, always reachable)
+      - 8.8.8.8 # Google DNS (public, fallback)
     interfaces:
       - interface: eth0
         dhcp: true

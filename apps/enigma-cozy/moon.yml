@@ -11,9 +11,7 @@ project:
   metadata:
     dependencies:
       cozystack/cozystack:
-        # version: v0.39.2
-        # Downgraded to 0.38.6 to disable topolgy aware routing and kamaji routing problems.
-        version: v0.38.6
+        version: v0.41.2
         datasource: github-releases
 tags:
   - scope.app
@@ -22,13 +20,13 @@ tags:
   - development
 tasks:
   reset:
-    command: |
+    script: |
       talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.42 -e 192.168.1.42 --reboot --graceful=false --wait=false
       talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.41 -e 192.168.1.41 --reboot --graceful=false --wait=false
       talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.40 -e 192.168.1.40 --reboot --graceful=false --wait=false
     local: true
   generate-bootstrap:
-    command: |
+    script: |
       mkdir -p /secrets/enigma-cozy/dist
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @illusion.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/illusion.yaml enigma-cozy https://192.168.50.50:6443 --force
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
@@ -36,7 +34,7 @@ tasks:
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o /secrets/enigma-cozy/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
     local: true
   apply-bootstrap:
-    command: |
+    script: |
       talosctl apply-config --insecure -n 192.168.1.42 -e 192.168.1.42 --file /secrets/enigma-cozy/dist/illusion.yaml
       talosctl apply-config --insecure -n 192.168.1.41 -e 192.168.1.41 --file /secrets/enigma-cozy/dist/the-dome.yaml
       talosctl apply-config --insecure -n 192.168.1.40 -e 192.168.1.40 --file /secrets/enigma-cozy/dist/the-toy-factory.yaml
@@ -59,7 +57,7 @@ tasks:
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o /secrets/enigma-cozy/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
     local: true
   apply:
-    command: |
+    script: |
       talosctl apply-config -n 192.168.50.10 -e 192.168.50.10 --file /secrets/enigma-cozy/dist/illusion.yaml
       talosctl apply-config -n 192.168.50.11 -e 192.168.50.11 --file /secrets/enigma-cozy/dist/the-dome.yaml
       talosctl apply-config -n 192.168.50.12 -e 192.168.50.12 --file /secrets/enigma-cozy/dist/the-toy-factory.yaml

@@ -4,3 +4,4 @@ resources:
   - gitrepository-setup.yaml
   - kustomization-root.yaml
   - ingress-coder.yaml
+  - postgres-coder-cluster-db-prod.yaml

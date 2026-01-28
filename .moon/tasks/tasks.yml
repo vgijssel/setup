@@ -20,3 +20,8 @@ fileGroups:
     - /bin/.chezmoi-*
     - /bin/hermit
     - /bin/chezmoi-wrapper
+
+  code-server_bin:
+    - /bin/code-server
+    - /bin/.code-server-*
+    - /bin/hermit

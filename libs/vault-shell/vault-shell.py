@@ -269,8 +269,6 @@ def build_bwrap_command(
         "--die-with-parent",
         "--unshare-pid",
         "--unshare-ipc",
-        # User namespace for proper mount isolation in container environments
-        "--unshare-user-try",
         # Vault-shell specific environment variables
         "--setenv",
         "OP_SERVICE_ACCOUNT_TOKEN",
@@ -318,6 +316,11 @@ def build_bwrap_command(
         "/dev",
         "--proc",
         "/proc",
+        # Sysfs (read-only) - needed by Go runtime to read cgroup limits
+        # Without this, Go programs may fail with "newosproc" errors
+        "--ro-bind",
+        "/sys",
+        "/sys",
     ]
 
     # Mount SETUP_DIR - always mount it as this is the working directory inside the shell

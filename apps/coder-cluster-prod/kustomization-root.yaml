@@ -7,7 +7,7 @@ spec:
   interval: 30m
   sourceRef:
     kind: GitRepository
-    name: setup
+    name: coder-cluster-prod
   path: ./apps/coder-cluster-prod
   prune: true
   wait: true

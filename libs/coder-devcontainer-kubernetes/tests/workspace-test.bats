@@ -59,7 +59,8 @@ teardown() {
     --parameter memory=4 \
     --parameter workspaces_volume_size=10 \
     --parameter "git_branch=${GIT_BRANCH}" \
-    --parameter "AI Prompt=Workspace test - no action needed"
+    --parameter "ai_prompt=Workspace test - no action needed" \
+    --parameter "devcontainer_builder=ghcr.io/vgijssel/setup/devpod-builder:0.1.11"
 
   [ "$status" -eq 0 ]
 

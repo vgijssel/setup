@@ -65,6 +65,14 @@ directories:
           version: 2.29.2
           repository:
             url: https://helm.coder.com/v2
+  - path: charts/coder-logstream-kube
+    contents:
+      - path: .
+        helmChart:
+          name: coder-logstream-kube
+          version: 0.0.13
+          repository:
+            url: https://helm.coder.com/logstream-kube
   - path: shell/zimfw
     contents:
       - path: .
@@ -80,7 +88,7 @@ directories:
       - path: .
         git:
           url: https://github.com/devcontainers/features
-          ref: feature_docker-in-docker_2.12.4
+          ref: feature_docker-in-docker_2.14.0
         includePaths:
           - src/docker-in-docker/install.sh
         newRootPath: src/docker-in-docker
@@ -100,7 +108,7 @@ directories:
       - path: .
         git:
           url: https://github.com/cozystack/cozystack
-          ref: v0.38.6
+          ref: v0.41.2
         includePaths:
-          - packages/core/installer/images/talos/**
-        newRootPath: packages/core/installer/images/talos
+          - packages/core/talos/images/talos/**
+        newRootPath: packages/core/talos/images/talos
