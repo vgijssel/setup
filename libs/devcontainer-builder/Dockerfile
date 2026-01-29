@@ -1,15 +1,13 @@
 # Devcontainer Builder Image
 # This image contains the @devcontainers/cli for building and running devcontainers,
-# Docker CLI for interacting with Docker daemon, Python for log streaming to Coder,
-# and an entrypoint script for workspace creation.
+# Podman for container operations (daemonless alternative to Docker),
+# Python for log streaming to Coder, and an entrypoint script for workspace creation.
 
 FROM ubuntu:24.04
 
 # Pin versions for reproducibility
 ARG NODE_VERSION=22
 ARG DEVCONTAINER_CLI_VERSION=0.81.1
-ARG DOCKER_VERSION=5:27.5.1-1~ubuntu.24.04~noble
-ARG TARGETARCH=amd64
 
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -35,16 +33,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Docker daemon and CLI (for running Docker inside the container)
-# We need the full docker-ce package to run dockerd in privileged mode
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu noble stable" | tee /etc/apt/sources.list.d/docker.list \
-    && apt-get update && apt-get install -y \
-        docker-ce=${DOCKER_VERSION} \
-        docker-ce-cli=${DOCKER_VERSION} \
-        containerd.io \
-        iptables \
+# Install Podman and dependencies for container-in-container
+# Podman is daemonless - uses a socket service instead of a persistent daemon
+# fuse-overlayfs provides better storage driver support in nested containers
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    podman \
+    fuse-overlayfs \
+    slirp4netns \
+    uidmap \
     && rm -rf /var/lib/apt/lists/*
+
+# Configure Podman for rootful operation in container
+# Use vfs storage driver which works reliably in nested containers
+RUN mkdir -p /etc/containers /var/lib/containers/storage /run/containers/storage && \
+    printf '[storage]\ndriver = "vfs"\nrunroot = "/run/containers/storage"\ngraphroot = "/var/lib/containers/storage"\n' > /etc/containers/storage.conf && \
+    printf '[engine]\ncgroup_manager = "cgroupfs"\nevents_logger = "file"\n' > /etc/containers/containers.conf
 
 # Install git and Python for log streaming
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -57,8 +60,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV HOME=/root
 WORKDIR /app
 
+# Set DOCKER_HOST to point to Podman socket for devcontainer CLI compatibility
+ENV DOCKER_HOST=unix:///run/podman/podman.sock
+
 # Create workspaces directory for devcontainer builds
 RUN mkdir -p /workspaces
+
+# Create directory for Podman socket
+RUN mkdir -p /run/podman
 
 # Copy log streaming script
 COPY log-streamer.py /app/log-streamer.py

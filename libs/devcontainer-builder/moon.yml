@@ -12,40 +12,64 @@ fileGroups:
     - "entrypoint.sh"
     - "log-streamer.py"
     - "version.txt"
+  scripts:
+    - "scripts/*.sh"
 
 tasks:
   build:
-    command: bash -c 'VERSION=$(cat version.txt | tr -d "\n") && docker build -t ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} -t ghcr.io/vgijssel/setup/devcontainer-builder:latest -t coder-registry.coder.svc.cluster.local:5000/devcontainer-builder:${VERSION} -t coder-registry.coder.svc.cluster.local:5000/devcontainer-builder:latest .'
+    command: scripts/build.sh
     inputs:
       - "@group(sources)"
+      - "@group(scripts)"
     options:
       runInCI: false
 
   test:
-    command: bash -c 'GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main) bats tests/devcontainer-builder.bats'
+    command: scripts/test.sh
     inputs:
       - "@group(sources)"
+      - "@group(scripts)"
       - "tests/**/*.bats"
     options:
       runInCI: false
 
-  push-local:
-    command: bash -c 'kubectl port-forward -n coder svc/coder-registry 5000:5000 & sleep 3 && VERSION=$(cat version.txt | tr -d "\n") && docker push localhost:5000/devcontainer-builder:${VERSION} && docker push localhost:5000/devcontainer-builder:latest && kill %1'
+  run:
+    command: scripts/run.sh
     deps:
       - ~:build
     options:
       runInCI: false
+    local: true
+
+  push-local:
+    command:
+      - bash
+      - -c
+      - 'kubectl port-forward -n coder svc/coder-registry 5000:5000 & sleep 3 && VERSION=$(cat version.txt | tr -d "\n") && docker push localhost:5000/devcontainer-builder:${VERSION} && docker push localhost:5000/devcontainer-builder:latest && kill %1'
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+      shell: false
 
   push-ghcr:
-    command: bash -c 'VERSION=$(cat version.txt | tr -d "\n") && docker push ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:latest'
+    command:
+      - bash
+      - -c
+      - 'VERSION=$(cat version.txt | tr -d "\n") && docker push ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:latest'
     deps:
       - ~:build
     options:
       runInCI: false
+      shell: false
 
   release:
-    command: bash -c 'VERSION=$(cat version.txt | tr -d "\n") && COMMIT_SHA=$(git rev-parse --short HEAD) && docker tag ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION}-${COMMIT_SHA} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION}-${COMMIT_SHA} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:latest && echo "Released version ${VERSION} (${COMMIT_SHA})"'
+    command:
+      - bash
+      - -c
+      - 'VERSION=$(cat version.txt | tr -d "\n") && COMMIT_SHA=$(git rev-parse --short HEAD) && docker tag ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION}-${COMMIT_SHA} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION}-${COMMIT_SHA} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:latest && echo "Released version ${VERSION} (${COMMIT_SHA})"'
     deps:
       - ~:build
     options:
       runInCI: false
+      shell: false

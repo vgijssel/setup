@@ -38,10 +38,16 @@ setup() {
   [[ "$output" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]
 }
 
-@test "docker CLI is available" {
-  run docker run --rm "${IMAGE_NAME}" docker --version
+@test "podman CLI is available" {
+  run docker run --rm "${IMAGE_NAME}" podman --version
   [ "$status" -eq 0 ]
-  [[ "$output" =~ "Docker version" ]]
+  [[ "$output" =~ "podman version" ]]
+}
+
+@test "DOCKER_HOST is set to podman socket" {
+  run docker run --rm "${IMAGE_NAME}" printenv DOCKER_HOST
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "unix:///run/podman/podman.sock" ]]
 }
 
 @test "git is available" {
@@ -97,22 +103,22 @@ setup() {
 }
 
 # =============================================================================
-# Docker Daemon Tests (requires privileged mode)
+# Podman Socket Tests (requires privileged mode)
 # =============================================================================
 
-@test "dockerd can start in privileged mode" {
-  # Run container in privileged mode and check if dockerd starts
+@test "podman socket can start in privileged mode" {
+  # Run container in privileged mode and check if podman socket starts
   run timeout 60 docker run --rm --privileged \
     -e CODER_AGENT_URL=https://coder.example.com \
     -e CODER_AGENT_TOKEN=test-token \
     -e DEVCONTAINER_REPOSITORY="${TEST_REPO}" \
     -e DEVCONTAINER_BRANCH="${GIT_BRANCH}" \
     "${IMAGE_NAME}" \
-    bash -c 'dockerd --host=unix:///var/run/docker.sock &>/dev/null & sleep 10 && docker info &>/dev/null && echo "Docker daemon started successfully"'
+    bash -c 'mkdir -p /run/podman && podman system service -t 0 unix:///run/podman/podman.sock &>/dev/null & sleep 5 && podman info &>/dev/null && echo "Podman socket started successfully"'
 
   # We expect this to either succeed or fail with specific error (not just timeout)
-  # The key is that dockerd attempts to start
-  [[ "$output" =~ "Docker daemon started" ]] || [[ "$output" =~ "Devcontainer Builder starting" ]]
+  # The key is that podman service attempts to start
+  [[ "$output" =~ "Podman socket started" ]] || [[ "$output" =~ "Devcontainer Builder starting" ]]
 }
 
 # =============================================================================

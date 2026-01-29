@@ -22,32 +22,37 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
-# Start Docker daemon internally (for privileged container mode)
-start_docker() {
+# Start Podman socket service (daemonless - starts API socket for Docker compatibility)
+start_podman() {
     local max_attempts=30
     local attempt=1
 
-    log_info "Starting Docker daemon..."
+    log_info "Starting Podman socket service..."
 
-    # Start dockerd in the background
-    dockerd --host=unix:///var/run/docker.sock --storage-driver=overlay2 > /var/log/dockerd.log 2>&1 &
-    DOCKERD_PID=$!
+    # Ensure the socket directory exists
+    mkdir -p /run/podman
 
-    log_info "Waiting for Docker daemon to be ready (PID: ${DOCKERD_PID})..."
+    # Start Podman system service in the background
+    # -t 0 means no timeout (run indefinitely)
+    podman system service -t 0 unix:///run/podman/podman.sock > /var/log/podman.log 2>&1 &
+    PODMAN_PID=$!
+
+    log_info "Waiting for Podman socket to be ready (PID: ${PODMAN_PID})..."
 
     while [ $attempt -le $max_attempts ]; do
-        if docker info >/dev/null 2>&1; then
-            log_info "Docker daemon is ready"
+        if podman info >/dev/null 2>&1; then
+            log_info "Podman socket is ready"
+            log_info "Podman version: $(podman version --format '{{.Client.Version}}')"
             return 0
         fi
-        log_info "Attempt ${attempt}/${max_attempts}: Docker not ready, waiting..."
+        log_info "Attempt ${attempt}/${max_attempts}: Podman not ready, waiting..."
         sleep 2
         attempt=$((attempt + 1))
     done
 
-    log_error "Docker daemon did not become ready after ${max_attempts} attempts"
-    log_error "Docker daemon logs:"
-    cat /var/log/dockerd.log >&2 || true
+    log_error "Podman socket did not become ready after ${max_attempts} attempts"
+    log_error "Podman service logs:"
+    cat /var/log/podman.log >&2 || true
     return 1
 }
 
@@ -106,6 +111,21 @@ clone_repository() {
     echo "${workspace_folder}"
 }
 
+# Check if Coder API is reachable
+check_coder_reachable() {
+    if [ -z "${CODER_AGENT_URL}" ] || [ -z "${CODER_AGENT_TOKEN}" ]; then
+        return 1
+    fi
+
+    # Try to reach the Coder API (with 5 second timeout)
+    if curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 \
+        -H "Coder-Session-Token: ${CODER_AGENT_TOKEN}" \
+        "${CODER_AGENT_URL}/api/v2/buildinfo" 2>/dev/null | grep -q "^2"; then
+        return 0
+    fi
+    return 1
+}
+
 # Run devcontainer up
 run_devcontainer() {
     local workspace_folder="$1"
@@ -128,18 +148,20 @@ run_devcontainer() {
         log_info "  Cache to: ${cache_to}"
     fi
 
-    # Add remote environment variables for Coder agent
-    cmd="${cmd} --remote-env CODER_AGENT_URL=${CODER_AGENT_URL}"
-    cmd="${cmd} --remote-env CODER_AGENT_TOKEN=${CODER_AGENT_TOKEN}"
+    # Add remote environment variables for Coder agent (only if Coder is reachable)
+    if check_coder_reachable; then
+        cmd="${cmd} --remote-env CODER_AGENT_URL=${CODER_AGENT_URL}"
+        cmd="${cmd} --remote-env CODER_AGENT_TOKEN=${CODER_AGENT_TOKEN}"
+    fi
 
     log_info "Running: ${cmd}"
 
-    # Execute with log streaming
-    if [ -n "${CODER_AGENT_URL}" ] && [ -n "${CODER_AGENT_TOKEN}" ]; then
+    # Execute with log streaming only if Coder is reachable
+    if check_coder_reachable; then
         log_info "Streaming devcontainer logs to Coder..."
         eval "${cmd}" 2>&1 | /app/log-streamer.py --source-name "Devcontainer Build"
     else
-        log_warn "CODER_AGENT_URL or CODER_AGENT_TOKEN not set, logs won't be streamed to Coder"
+        log_warn "Coder not reachable, running without log streaming"
         eval "${cmd}"
     fi
 }
@@ -148,6 +170,11 @@ run_devcontainer() {
 start_coder_agent() {
     if [ -z "${CODER_INIT_SCRIPT}" ]; then
         log_warn "CODER_INIT_SCRIPT not provided, skipping agent startup"
+        return
+    fi
+
+    if ! check_coder_reachable; then
+        log_warn "Coder not reachable, skipping agent startup"
         return
     fi
 
@@ -216,8 +243,8 @@ main() {
     # Validate environment
     validate_env
 
-    # Start Docker daemon (running in privileged mode)
-    start_docker
+    # Start Podman socket service (running in privileged mode)
+    start_podman
 
     # Clone repository
     local workspace_folder
