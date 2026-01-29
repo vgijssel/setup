@@ -25,7 +25,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: adfc788849eea4e4981f8e354b3491a3
+                name: a18c2be1873b84bcd8630e79298a07cf
                 port:
                   number: 80
     - host: "*.coder.enigma.vgijssel.nl"
@@ -35,6 +35,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: adfc788849eea4e4981f8e354b3491a3
+                name: a18c2be1873b84bcd8630e79298a07cf
                 port:
                   number: 80
