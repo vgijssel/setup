@@ -141,22 +141,14 @@ spec:
             secretKeyRef:
               name: onepassword-connect-token-setup-devenv
               key: credential
-      # Use ClusterIP since we expose via Tailscale Ingress
+      # Use LoadBalancer to expose via KubeVirt CCM forwarding
+      # KubeVirt CCM will create a corresponding service in the enigma cluster
       service:
-        type: ClusterIP
-      # Enable built-in ingress
+        type: LoadBalancer
+      # Ingress disabled - using KubeVirt CCM LoadBalancer forwarding instead
+      # Traffic path: enigma ingress → CCM-forwarded service → Coder
       ingress:
-        enable: true
-        className: nginx
-        host: coder.enigma.vgijssel.nl
-        wildcardHost: "*.coder.enigma.vgijssel.nl"
-        annotations:
-          # WebSocket support - prevent 60s idle timeout disconnections
-          nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-          nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-          nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-        tls:
-          enable: false
+        enable: false
       # Resource constraints
       resources:
         requests:
