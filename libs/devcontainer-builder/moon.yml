@@ -17,7 +17,7 @@ fileGroups:
 
 tasks:
   build:
-    command: scripts/build.sh
+    command: scripts/build.sh $MOON_TASK_HASH
     inputs:
       - "@group(sources)"
       - "@group(scripts)"
