@@ -16,22 +16,35 @@ fileGroups:
     - "scripts/*.sh"
 
 tasks:
+  hermit-bundle:
+    command: hermit-bundle dist python3 node
+    inputs:
+      - "@group(hermit_bundle_bin)"
+      - "@group(python_bin)"
+      - "@group(node_bin)"
+    outputs:
+      - "dist/hermit-bundle.tar.gz"
+
   build:
     command: scripts/build.sh $MOON_TASK_HASH
+    deps:
+      - ~:hermit-bundle
     inputs:
       - "@group(sources)"
       - "@group(scripts)"
-    options:
-      runInCI: false
+      - "dist/hermit-bundle.tar.gz"
+    outputs:
+      - "dist/image.json"
 
   test:
-    command: scripts/test.sh
+    command: bats tests/devcontainer-builder.bats
+    deps:
+      - ~:build
     inputs:
       - "@group(sources)"
       - "@group(scripts)"
       - "tests/**/*.bats"
-    options:
-      runInCI: false
+      - "dist/image.json"
 
   run:
     command: scripts/run.sh

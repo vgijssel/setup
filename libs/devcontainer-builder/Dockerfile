@@ -44,5 +44,25 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
     /tmp/docker-in-docker-install.sh && \
     rm /tmp/docker-in-docker-install.sh
 
-# Entrypoint for docker-in-docker initialization
-ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
+# Add and extract hermit bundle for python3 and nodejs (ADD auto-extracts tar.gz)
+ADD --chown=coder:coder libs/devcontainer-builder/dist/hermit-bundle.tar.gz /opt/hermit/
+ENV PATH="/opt/hermit/bin:${PATH}"
+
+# Create app directory for scripts
+RUN mkdir -p /app && chown coder:coder /app
+
+# Copy application files
+COPY --chown=coder:coder --chmod=755 libs/devcontainer-builder/entrypoint.sh /app/entrypoint.sh
+COPY --chown=coder:coder libs/devcontainer-builder/log-streamer.py /app/log-streamer.py
+
+# Create workspaces directory
+RUN mkdir -p /workspaces && chown coder:coder /workspaces
+
+# Set default user
+USER coder
+
+# Set working directory
+WORKDIR /workspaces
+
+# Entrypoint for docker-in-docker initialization, then run our entrypoint
+ENTRYPOINT [ "/usr/local/share/docker-init.sh", "/app/entrypoint.sh" ]

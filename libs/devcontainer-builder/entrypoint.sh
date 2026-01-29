@@ -22,37 +22,25 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
-# Start Podman socket service (daemonless - starts API socket for Docker compatibility)
-start_podman() {
+# Wait for Docker to be ready (docker-init.sh starts the daemon)
+wait_for_docker() {
     local max_attempts=30
     local attempt=1
 
-    log_info "Starting Podman socket service..."
-
-    # Ensure the socket directory exists
-    mkdir -p /run/podman
-
-    # Start Podman system service in the background
-    # -t 0 means no timeout (run indefinitely)
-    podman system service -t 0 unix:///run/podman/podman.sock > /var/log/podman.log 2>&1 &
-    PODMAN_PID=$!
-
-    log_info "Waiting for Podman socket to be ready (PID: ${PODMAN_PID})..."
+    log_info "Waiting for Docker daemon to be ready..."
 
     while [ $attempt -le $max_attempts ]; do
-        if podman info >/dev/null 2>&1; then
-            log_info "Podman socket is ready"
-            log_info "Podman version: $(podman version --format '{{.Client.Version}}')"
+        if docker info >/dev/null 2>&1; then
+            log_info "Docker daemon is ready"
+            log_info "Docker version: $(docker version --format '{{.Server.Version}}')"
             return 0
         fi
-        log_info "Attempt ${attempt}/${max_attempts}: Podman not ready, waiting..."
+        log_info "Attempt ${attempt}/${max_attempts}: Docker not ready, waiting..."
         sleep 2
         attempt=$((attempt + 1))
     done
 
-    log_error "Podman socket did not become ready after ${max_attempts} attempts"
-    log_error "Podman service logs:"
-    cat /var/log/podman.log >&2 || true
+    log_error "Docker daemon did not become ready after ${max_attempts} attempts"
     return 1
 }
 
@@ -243,8 +231,8 @@ main() {
     # Validate environment
     validate_env
 
-    # Start Podman socket service (running in privileged mode)
-    start_podman
+    # Wait for Docker daemon to be ready (started by docker-init.sh)
+    wait_for_docker
 
     # Clone repository
     local workspace_folder
