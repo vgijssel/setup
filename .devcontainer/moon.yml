@@ -4,13 +4,12 @@ dependsOn:
   - devenv
 tasks:
   build:
-    command: ./build.sh --tag $MOON_TASK_HASH
+    command: devcontainer build --workspace-folder $SETUP_DIR --platform linux/amd64,linux/arm64 --push --image-name ghcr.io/vgijssel/setup/devcontainer:$MOON_TASK_HASH --cache-from type=registry,ref=ghcr.io/vgijssel/setup/devcontainer:cache --cache-to type=registry,ref=ghcr.io/vgijssel/setup/devcontainer:cache,mode=max && echo "ghcr.io/vgijssel/setup/devcontainer:$MOON_TASK_HASH" > $SETUP_DIR/.devcontainer/.docker-version
     deps:
       - devcontainers-cli:build
-      - vendir:build
     inputs:
       - file: Dockerfile
-      - file: build.sh
+      - file: devcontainer.json
       - file: /.envrc
       - glob: /bin/**/*
         cache: true

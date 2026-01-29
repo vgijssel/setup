@@ -11,15 +11,44 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+    echo -e "${GREEN}[INFO]${NC} $1" >&2
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    echo -e "${YELLOW}[WARN]${NC} $1" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1" >&2
+}
+
+# Start Docker daemon internally (for privileged container mode)
+start_docker() {
+    local max_attempts=30
+    local attempt=1
+
+    log_info "Starting Docker daemon..."
+
+    # Start dockerd in the background
+    dockerd --host=unix:///var/run/docker.sock --storage-driver=overlay2 > /var/log/dockerd.log 2>&1 &
+    DOCKERD_PID=$!
+
+    log_info "Waiting for Docker daemon to be ready (PID: ${DOCKERD_PID})..."
+
+    while [ $attempt -le $max_attempts ]; do
+        if docker info >/dev/null 2>&1; then
+            log_info "Docker daemon is ready"
+            return 0
+        fi
+        log_info "Attempt ${attempt}/${max_attempts}: Docker not ready, waiting..."
+        sleep 2
+        attempt=$((attempt + 1))
+    done
+
+    log_error "Docker daemon did not become ready after ${max_attempts} attempts"
+    log_error "Docker daemon logs:"
+    cat /var/log/dockerd.log >&2 || true
+    return 1
 }
 
 # Validate required environment variables
@@ -40,18 +69,18 @@ validate_env() {
 
     if [ -n "${missing}" ]; then
         log_error "Missing required environment variables: ${missing}"
-        echo ""
-        echo "Required environment variables:"
-        echo "  CODER_AGENT_URL         - Coder server URL (e.g., https://coder.example.com)"
-        echo "  CODER_AGENT_TOKEN       - Coder workspace agent token"
-        echo "  DEVCONTAINER_REPOSITORY - Git repository URL for workspace"
-        echo ""
-        echo "Optional environment variables:"
-        echo "  DEVCONTAINER_BRANCH     - Git branch to checkout (default: main)"
-        echo "  DEVCONTAINER_CACHE_FROM - Cache source for devcontainer build"
-        echo "  DEVCONTAINER_CACHE_TO   - Cache destination for devcontainer build"
-        echo "  DEVCONTAINER_TIMEOUT    - Workspace creation timeout (default: 30m)"
-        echo "  CODER_INIT_SCRIPT       - Script to run Coder agent in container"
+        echo "" >&2
+        echo "Required environment variables:" >&2
+        echo "  CODER_AGENT_URL         - Coder server URL (e.g., https://coder.example.com)" >&2
+        echo "  CODER_AGENT_TOKEN       - Coder workspace agent token" >&2
+        echo "  DEVCONTAINER_REPOSITORY - Git repository URL for workspace" >&2
+        echo "" >&2
+        echo "Optional environment variables:" >&2
+        echo "  DEVCONTAINER_BRANCH     - Git branch to checkout (default: main)" >&2
+        echo "  DEVCONTAINER_CACHE_FROM - Cache source for devcontainer build" >&2
+        echo "  DEVCONTAINER_CACHE_TO   - Cache destination for devcontainer build" >&2
+        echo "  DEVCONTAINER_TIMEOUT    - Workspace creation timeout (default: 30m)" >&2
+        echo "  CODER_INIT_SCRIPT       - Script to run Coder agent in container" >&2
         exit 1
     fi
 }
@@ -67,12 +96,13 @@ clone_repository() {
     if [ ! -d "${workspace_folder}" ]; then
         log_info "Cloning ${repo_url} (branch: ${branch}) to ${workspace_folder}"
         mkdir -p /workspaces
-        git clone --branch "${branch}" --single-branch "${repo_url}" "${workspace_folder}"
+        git clone --branch "${branch}" --single-branch "${repo_url}" "${workspace_folder}" >&2
     else
         log_info "Workspace already exists at ${workspace_folder}, pulling latest..."
-        cd "${workspace_folder}" && git pull origin "${branch}"
+        (cd "${workspace_folder}" && git pull origin "${branch}") >&2
     fi
 
+    # Only output the workspace folder path to stdout (for capture)
     echo "${workspace_folder}"
 }
 
@@ -185,6 +215,9 @@ main() {
 
     # Validate environment
     validate_env
+
+    # Start Docker daemon (running in privileged mode)
+    start_docker
 
     # Clone repository
     local workspace_folder

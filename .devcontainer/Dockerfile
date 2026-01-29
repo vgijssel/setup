@@ -80,6 +80,7 @@ COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell
 COPY --chown=coder:coder libs/devenv /workspaces/setup/libs/devenv
 COPY --chown=coder:coder .chezmoiroot /workspaces/setup/.chezmoiroot
+COPY --chown=coder:coder .devcontainer/devcontainer.json /workspaces/setup/.devcontainer/devcontainer.json
 
 # Initialize and apply chezmoi configuration
 RUN bin/chezmoi-wrapper apply --verbose

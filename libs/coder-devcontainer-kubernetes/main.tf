@@ -166,7 +166,7 @@ data "coder_parameter" "devcontainer_builder" {
   name         = "devcontainer_builder"
   display_name = "Devcontainer Builder Image"
   type         = "string"
-  default      = "ghcr.io/vgijssel/setup/devcontainer-builder:0.1.0"
+  default      = "ghcr.io/vgijssel/setup/devcontainer-builder:0.2.0"
   description  = "Devcontainer builder image for creating devcontainer workspaces"
   mutable      = false
 }
@@ -326,8 +326,8 @@ locals {
   # Devcontainer builder image
   devcontainer_builder_image = data.coder_parameter.devcontainer_builder.value
 
-  # DinD (Docker-in-Docker) sidecar image
-  dind_image = "docker:27.5.1-dind"
+  # Devcontainer cache image for build caching
+  devcontainer_cache_from = "ghcr.io/vgijssel/setup/devcontainer"
 
   # Extract credentials from 1Password
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
@@ -354,8 +354,8 @@ locals {
 # Devcontainer Builder Deployment
 # ====================
 
-# Devcontainer workspace deployment - uses devcontainer-builder as init container
-# with Docker-in-Docker sidecar for building devcontainer images
+# Devcontainer workspace deployment - uses devcontainer-builder in privileged mode
+# to run Docker daemon internally and build devcontainer images
 resource "kubernetes_deployment_v1" "workspace" {
   count = data.coder_workspace.me.start_count
 
@@ -381,10 +381,14 @@ resource "kubernetes_deployment_v1" "workspace" {
       spec {
         service_account_name = "devcontainer-builder"
 
-        # Init container runs devcontainer-builder to set up the workspace
-        init_container {
+        # Devcontainer builder container - runs Docker daemon internally in privileged mode
+        container {
           name  = "devcontainer-builder"
           image = local.devcontainer_builder_image
+
+          security_context {
+            privileged = true
+          }
 
           # Environment variables for devcontainer builder
           env {
@@ -407,42 +411,9 @@ resource "kubernetes_deployment_v1" "workspace" {
             name  = "CODER_INIT_SCRIPT"
             value = coder_agent.main.init_script
           }
-          # Docker host pointing to DinD sidecar
           env {
-            name  = "DOCKER_HOST"
-            value = "tcp://localhost:2375"
-          }
-
-          volume_mount {
-            name       = "workspaces"
-            mount_path = "/workspaces"
-          }
-
-          resources {
-            requests = {
-              cpu    = "250m"
-              memory = "256Mi"
-            }
-            limits = {
-              cpu    = "1"
-              memory = "1Gi"
-            }
-          }
-        }
-
-        # DinD (Docker-in-Docker) sidecar for building devcontainer images
-        container {
-          name  = "dind"
-          image = local.dind_image
-
-          security_context {
-            privileged = true
-          }
-
-          # Disable TLS for simplicity (communication is localhost only)
-          env {
-            name  = "DOCKER_TLS_CERTDIR"
-            value = ""
+            name  = "DEVCONTAINER_CACHE_FROM"
+            value = local.devcontainer_cache_from
           }
 
           volume_mount {
@@ -515,9 +486,8 @@ resource "kubernetes_persistent_volume_claim_v1" "workspaces" {
 }
 
 # NOTE: The workspace pod is created by the kubernetes_deployment_v1.workspace resource
-# The devcontainer-builder runs as an init container to build/start the devcontainer
-# The DinD sidecar provides Docker daemon for building devcontainer images
-# The Coder agent runs inside the devcontainer created by the init container
+# The devcontainer-builder runs in privileged mode with Docker daemon internally
+# The Coder agent runs inside the devcontainer created by the builder
 
 # ====================
 # Coder Agent

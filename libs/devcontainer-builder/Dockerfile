@@ -35,10 +35,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Docker CLI (for interacting with Docker daemon)
+# Install Docker daemon and CLI (for running Docker inside the container)
+# We need the full docker-ce package to run dockerd in privileged mode
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu noble stable" | tee /etc/apt/sources.list.d/docker.list \
-    && apt-get update && apt-get install -y docker-ce-cli=${DOCKER_VERSION} \
+    && apt-get update && apt-get install -y \
+        docker-ce=${DOCKER_VERSION} \
+        docker-ce-cli=${DOCKER_VERSION} \
+        containerd.io \
+        iptables \
     && rm -rf /var/lib/apt/lists/*
 
 # Install git and Python for log streaming
@@ -51,6 +56,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set HOME and working directory
 ENV HOME=/root
 WORKDIR /app
+
+# Create workspaces directory for devcontainer builds
+RUN mkdir -p /workspaces
 
 # Copy log streaming script
 COPY log-streamer.py /app/log-streamer.py
