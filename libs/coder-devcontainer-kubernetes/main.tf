@@ -18,7 +18,7 @@ terraform {
       source  = "hashicorp/random"
       version = "3.6.3"
     }
-    # Removed envbuilder provider - using DevPod instead for devcontainer builds
+    # Removed envbuilder provider - using devcontainer CLI instead for devcontainer builds
   }
 }
 
@@ -164,10 +164,10 @@ data "coder_parameter" "git_branch" {
 
 data "coder_parameter" "devcontainer_builder" {
   name         = "devcontainer_builder"
-  display_name = "DevPod Builder Image"
+  display_name = "Devcontainer Builder Image"
   type         = "string"
-  default      = "ghcr.io/vgijssel/setup/devpod-builder:0.1.11"
-  description  = "DevPod builder image for creating devcontainer workspaces"
+  default      = "ghcr.io/vgijssel/setup/devcontainer-builder:0.1.0"
+  description  = "Devcontainer builder image for creating devcontainer workspaces"
   mutable      = false
 }
 
@@ -323,11 +323,11 @@ locals {
   # Agents inside the cluster use this to avoid DNS mismatch with external URL
   coder_url = data.kubernetes_config_map_v1.coder_workspace_config.data["coder_url"]
 
-  # DevPod builder image
-  devpod_builder_image = data.coder_parameter.devcontainer_builder.value
+  # Devcontainer builder image
+  devcontainer_builder_image = data.coder_parameter.devcontainer_builder.value
 
-  # DevPod workspace name (must be unique per workspace)
-  devpod_workspace_name = "coder-${local.workspace_id}"
+  # DinD (Docker-in-Docker) sidecar image
+  dind_image = "docker:27.5.1-dind"
 
   # Extract credentials from 1Password
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
@@ -351,40 +351,42 @@ locals {
 }
 
 # ====================
-# DevPod Builder Job
+# Devcontainer Builder Deployment
 # ====================
 
-# DevPod builder job - creates workspace using DevPod with Kubernetes provider
-# This job runs the DevPod CLI to build and deploy the devcontainer workspace
-resource "kubernetes_job_v1" "devpod_builder" {
+# Devcontainer workspace deployment - uses devcontainer-builder as init container
+# with Docker-in-Docker sidecar for building devcontainer images
+resource "kubernetes_deployment_v1" "workspace" {
   count = data.coder_workspace.me.start_count
 
   metadata {
-    name      = "devpod-${local.workspace_id}"
+    name      = "coder-${local.workspace_id}"
     namespace = var.namespace
     labels    = local.labels
   }
 
   spec {
-    # Don't retry - if it fails, let Coder handle the error
-    backoff_limit = 0
+    replicas = 1
 
-    # Clean up completed jobs after 1 hour
-    ttl_seconds_after_finished = 3600
+    selector {
+      match_labels = {
+        "app.kubernetes.io/instance" = "coder-${local.workspace_id}"
+      }
+    }
 
     template {
       metadata {
         labels = local.labels
       }
       spec {
-        service_account_name = "devpod-builder"
-        restart_policy       = "Never"
+        service_account_name = "devcontainer-builder"
 
-        container {
-          name  = "devpod"
-          image = local.devpod_builder_image
+        # Init container runs devcontainer-builder to set up the workspace
+        init_container {
+          name  = "devcontainer-builder"
+          image = local.devcontainer_builder_image
 
-          # Environment variables for DevPod builder
+          # Environment variables for devcontainer builder
           env {
             name  = "CODER_AGENT_URL"
             value = local.coder_url
@@ -394,29 +396,26 @@ resource "kubernetes_job_v1" "devpod_builder" {
             value = coder_agent.main.token
           }
           env {
-            name  = "DEVPOD_REPOSITORY"
+            name  = "DEVCONTAINER_REPOSITORY"
             value = local.repo_url
           }
           env {
-            name  = "DEVPOD_BRANCH"
+            name  = "DEVCONTAINER_BRANCH"
             value = local.git_branch
           }
           env {
-            name  = "DEVPOD_NAMESPACE"
-            value = var.namespace
-          }
-          env {
-            name  = "DEVPOD_IDE"
-            value = "none"
-          }
-          env {
-            name  = "DEVPOD_TIMEOUT"
-            value = "30m"
-          }
-          # Coder agent init script - runs inside the workspace to start the agent
-          env {
             name  = "CODER_INIT_SCRIPT"
             value = coder_agent.main.init_script
+          }
+          # Docker host pointing to DinD sidecar
+          env {
+            name  = "DOCKER_HOST"
+            value = "tcp://localhost:2375"
+          }
+
+          volume_mount {
+            name       = "workspaces"
+            mount_path = "/workspaces"
           }
 
           resources {
@@ -430,12 +429,58 @@ resource "kubernetes_job_v1" "devpod_builder" {
             }
           }
         }
+
+        # DinD (Docker-in-Docker) sidecar for building devcontainer images
+        container {
+          name  = "dind"
+          image = local.dind_image
+
+          security_context {
+            privileged = true
+          }
+
+          # Disable TLS for simplicity (communication is localhost only)
+          env {
+            name  = "DOCKER_TLS_CERTDIR"
+            value = ""
+          }
+
+          volume_mount {
+            name       = "workspaces"
+            mount_path = "/workspaces"
+          }
+          volume_mount {
+            name       = "docker-graph"
+            mount_path = "/var/lib/docker"
+          }
+
+          resources {
+            requests = {
+              cpu    = "${data.coder_parameter.cpu.value}"
+              memory = "${data.coder_parameter.memory.value}Gi"
+            }
+            limits = {
+              cpu    = "${data.coder_parameter.cpu.value}"
+              memory = "${data.coder_parameter.memory.value}Gi"
+            }
+          }
+        }
+
+        volume {
+          name = "workspaces"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim_v1.workspaces.metadata[0].name
+          }
+        }
+        volume {
+          name = "docker-graph"
+          empty_dir {}
+        }
       }
     }
   }
 
-  # Set to false so DevPod logs stream to Coder startup logs via coder-logstream-kube
-  wait_for_completion = false
+  wait_for_rollout = false
 
   timeouts {
     create = "30m"
@@ -469,10 +514,10 @@ resource "kubernetes_persistent_volume_claim_v1" "workspaces" {
   wait_until_bound = false
 }
 
-# NOTE: Deployment removed - DevPod creates and manages the workspace pod
-# The kubernetes_job_v1.devpod_builder resource handles workspace creation
-# DevPod's pod will be named: devpod-<workspace-name>-<hash> in the same namespace
-# The Coder agent runs inside the DevPod-created container via the devcontainer's entrypoint
+# NOTE: The workspace pod is created by the kubernetes_deployment_v1.workspace resource
+# The devcontainer-builder runs as an init container to build/start the devcontainer
+# The DinD sidecar provides Docker daemon for building devcontainer images
+# The Coder agent runs inside the devcontainer created by the init container
 
 # ====================
 # Coder Agent
@@ -744,14 +789,14 @@ resource "coder_app" "home_assistant" {
 
 resource "coder_metadata" "workspace_info" {
   count       = data.coder_workspace.me.start_count
-  resource_id = kubernetes_job_v1.devpod_builder[0].id
+  resource_id = kubernetes_deployment_v1.workspace[0].id
   item {
     key   = "builder"
-    value = "devpod"
+    value = "devcontainer"
   }
   item {
     key   = "builder_image"
-    value = local.devpod_builder_image
+    value = local.devcontainer_builder_image
   }
   item {
     key   = "git_branch"

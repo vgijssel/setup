@@ -55,12 +55,22 @@ command:
     stdout: healthy
     timeout: 30000
 
-  devpod_builder_job_completed:
-    title: DevPod builder job completed successfully
+  devcontainer_deployment_ready:
+    title: Devcontainer deployment is ready
     exec: |
       WORKSPACE_ID=$(coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].id')
-      kubectl get jobs -n coder-workspace -l "com.coder.workspace.id=${WORKSPACE_ID}" -o jsonpath='{.items[0].status.succeeded}' 2>/dev/null || echo "0"
+      kubectl get deployment -n coder-workspace -l "com.coder.workspace.id=${WORKSPACE_ID}" -o jsonpath='{.items[0].status.readyReplicas}' 2>/dev/null || echo "0"
     exit-status: 0
     stdout:
       - "1"
+    timeout: 60000
+
+  devcontainer_pod_running:
+    title: Devcontainer pod is running
+    exec: |
+      WORKSPACE_ID=$(coder list -o json --search "name:{{.Env.WORKSPACE_NAME}}" | jq -r '.[0].id')
+      POD_NAME=$(kubectl get pods -n coder-workspace -l "com.coder.workspace.id=${WORKSPACE_ID}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+      kubectl get pod -n coder-workspace "${POD_NAME}" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Unknown"
+    exit-status: 0
+    stdout: Running
     timeout: 60000

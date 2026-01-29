@@ -60,7 +60,7 @@ teardown() {
     --parameter workspaces_volume_size=10 \
     --parameter "git_branch=${GIT_BRANCH}" \
     --parameter "ai_prompt=Workspace test - no action needed" \
-    --parameter "devcontainer_builder=ghcr.io/vgijssel/setup/devpod-builder:0.1.11"
+    --parameter "devcontainer_builder=ghcr.io/vgijssel/setup/devcontainer-builder:0.1.0"
 
   [ "$status" -eq 0 ]
 
@@ -77,4 +77,19 @@ teardown() {
   [ "$status" -eq 0 ]
 
   echo "==> All health checks passed!"
+}
+
+@test "workspace uses devcontainer builder" {
+  # Skip in CI if runInCI is false
+  if [ "${CI:-false}" = "true" ]; then
+    skip "Skipping in CI (configured with runInCI: false)"
+  fi
+
+  # This test requires a running workspace from the previous test
+  # Verify metadata shows devcontainer builder
+  run coder show "${WORKSPACE_NAME}" --json
+  [ "$status" -eq 0 ]
+
+  # Check that the builder is "devcontainer" not "devpod"
+  echo "$output" | jq -e '.latest_build.resources[] | select(.metadata) | .metadata[] | select(.key == "builder") | .value == "devcontainer"'
 }

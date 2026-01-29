@@ -1,0 +1,85 @@
+language: bash
+type: library
+
+tags:
+  - devcontainer
+  - docker
+  - coder
+
+fileGroups:
+  sources:
+    - "Dockerfile"
+    - "entrypoint.sh"
+    - "log-streamer.py"
+    - "version.txt"
+
+tasks:
+  build:
+    command: bash -c 'VERSION=$(cat version.txt | tr -d "\n") && docker build -t ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} -t ghcr.io/vgijssel/setup/devcontainer-builder:latest -t coder-registry.coder.svc.cluster.local:5000/devcontainer-builder:${VERSION} -t coder-registry.coder.svc.cluster.local:5000/devcontainer-builder:latest .'
+    inputs:
+      - "@group(sources)"
+    options:
+      runInCI: false
+
+  test:
+    command: docker run --rm ghcr.io/vgijssel/setup/devcontainer-builder:latest devcontainer --version
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  test-python:
+    command: docker run --rm ghcr.io/vgijssel/setup/devcontainer-builder:latest python3 --version
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  test-git:
+    command: docker run --rm ghcr.io/vgijssel/setup/devcontainer-builder:latest git --version
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  test-docker:
+    command: docker run --rm ghcr.io/vgijssel/setup/devcontainer-builder:latest docker --version
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  test-log-streamer:
+    command: docker run --rm ghcr.io/vgijssel/setup/devcontainer-builder:latest python3 /app/log-streamer.py --help
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  test-entrypoint-validation:
+    command: bash -c 'docker run --rm ghcr.io/vgijssel/setup/devcontainer-builder:latest 2>&1 | grep -q "Missing required environment variables"'
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  push-local:
+    command: bash -c 'kubectl port-forward -n coder svc/coder-registry 5000:5000 & sleep 3 && VERSION=$(cat version.txt | tr -d "\n") && docker push localhost:5000/devcontainer-builder:${VERSION} && docker push localhost:5000/devcontainer-builder:latest && kill %1'
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  push-ghcr:
+    command: bash -c 'VERSION=$(cat version.txt | tr -d "\n") && docker push ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:latest'
+    deps:
+      - ~:build
+    options:
+      runInCI: false
+
+  release:
+    command: bash -c 'VERSION=$(cat version.txt | tr -d "\n") && COMMIT_SHA=$(git rev-parse --short HEAD) && docker tag ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION}-${COMMIT_SHA} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION}-${COMMIT_SHA} && docker push ghcr.io/vgijssel/setup/devcontainer-builder:latest && echo "Released version ${VERSION} (${COMMIT_SHA})"'
+    deps:
+      - ~:build
+    options:
+      runInCI: false
