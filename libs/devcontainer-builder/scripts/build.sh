@@ -7,7 +7,16 @@ IMAGE_TAG="${IMAGE_NAME}:${IMAGE_HASH}"
 
 echo "Building devcontainer-builder version: ${IMAGE_HASH}"
 
-docker build -t "${IMAGE_TAG}" -f "$SETUP_DIR/libs/devcontainer-builder/Dockerfile" "$SETUP_DIR"
+# Pull latest image for cache (ignore failures if image doesn't exist yet)
+docker pull "${IMAGE_NAME}:latest" 2>/dev/null || true
+
+# Build with cache from latest image
+DOCKER_BUILDKIT=1 docker build \
+    --cache-from "${IMAGE_NAME}:latest" \
+    -t "${IMAGE_TAG}" \
+    -t "${IMAGE_NAME}:latest" \
+    -f "$SETUP_DIR/libs/devcontainer-builder/Dockerfile" \
+    "$SETUP_DIR"
 
 # Get the image digest (sha256)
 IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE_TAG}" 2>/dev/null || echo "")

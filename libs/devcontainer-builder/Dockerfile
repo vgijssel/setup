@@ -44,6 +44,11 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
     /tmp/docker-in-docker-install.sh && \
     rm /tmp/docker-in-docker-install.sh
 
+# Configure Docker to use vfs storage driver for nested docker-in-docker compatibility
+# The default overlay2 driver fails in nested environments with "invalid argument" errors
+RUN mkdir -p /etc/docker && \
+    echo '{"storage-driver": "vfs"}' > /etc/docker/daemon.json
+
 # Add and extract hermit bundle for python3 and nodejs (ADD auto-extracts tar.gz)
 ADD --chown=coder:coder libs/devcontainer-builder/dist/hermit-bundle.tar.gz /opt/hermit/
 ENV PATH="/opt/hermit/bin:${PATH}"
