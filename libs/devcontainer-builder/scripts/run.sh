@@ -6,10 +6,22 @@ PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
 
 cd "${PROJECT_DIR}"
 
-VERSION=$(cat version.txt | tr -d '\n')
+# Read image reference from dist/image.json
+IMAGE_JSON="${PROJECT_DIR}/dist/image.json"
+if [ ! -f "${IMAGE_JSON}" ]; then
+    echo "Error: ${IMAGE_JSON} not found. Run 'moon run devcontainer-builder:build' first." >&2
+    exit 1
+fi
+
+IMAGE_NAME=$(jq -r '.image' "${IMAGE_JSON}")
+if [ -z "${IMAGE_NAME}" ]; then
+    echo "Error: Could not extract image name from ${IMAGE_JSON}" >&2
+    exit 1
+fi
+
 GIT_BRANCH="${GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)}"
 
-echo "Running devcontainer-builder version: ${VERSION}"
+echo "Running devcontainer-builder image: ${IMAGE_NAME}"
 echo "  Branch: ${GIT_BRANCH}"
 echo "  Repository: https://github.com/vgijssel/setup.git"
 echo "  Cache from: ghcr.io/vgijssel/setup/devcontainer"
@@ -22,4 +34,4 @@ docker run --rm --privileged \
     -e DEVCONTAINER_BRANCH="${GIT_BRANCH}" \
     -e DEVCONTAINER_CACHE_FROM=ghcr.io/vgijssel/setup/devcontainer \
     -e DEVCONTAINER_CACHE_TO=ghcr.io/vgijssel/setup/devcontainer \
-    "ghcr.io/vgijssel/setup/devcontainer-builder:${VERSION}"
+    "${IMAGE_NAME}"

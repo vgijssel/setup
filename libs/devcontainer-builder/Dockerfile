@@ -48,6 +48,11 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
 ADD --chown=coder:coder libs/devcontainer-builder/dist/hermit-bundle.tar.gz /opt/hermit/
 ENV PATH="/opt/hermit/bin:${PATH}"
 
+# Install @devcontainers/cli globally via npm (pinned version for reproducibility)
+# Then create a symlink in hermit bin so it's on PATH
+RUN npm install -g @devcontainers/cli@0.72.0 && \
+    ln -s /opt/hermit/node-*/bin/devcontainer /opt/hermit/bin/devcontainer
+
 # Create app directory for scripts
 RUN mkdir -p /app && chown coder:coder /app
 

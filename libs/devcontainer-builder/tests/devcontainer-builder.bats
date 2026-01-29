@@ -49,3 +49,9 @@ setup() {
   [ "$status" -eq 0 ]
   [[ "$output" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]
 }
+
+@test "devcontainer CLI is available" {
+  run docker run --rm --entrypoint devcontainer "${IMAGE_NAME}" --version
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]
+}
