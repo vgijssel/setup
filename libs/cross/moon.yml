@@ -1,0 +1,35 @@
+language: python
+layer: library
+stack: backend
+tags:
+  - python
+  - build
+  - docker
+tasks:
+  run:
+    command: uv run cross
+
+  test:
+    command: uv run pytest tests/ -v
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_tests)"
+      - "@files(python_configs)"
+    options:
+      cache: true
+      mergeArgs: replace
+
+  # Simple validation task that creates an output file
+  validation:
+    command: bash -c 'mkdir -p dist && echo "hello from validation" > dist/validation.txt'
+    outputs:
+      - dist/validation.txt
+
+  # Cross-compile the validation task for arm64
+  validation_cross:
+    command: uv run cross --platform linux/arm64 bash -c 'mkdir -p dist && echo "hello from cross validation" > dist/validation.txt'
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_configs)"
+    outputs:
+      - dist/validation.txt
