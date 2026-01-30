@@ -44,10 +44,11 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
     /tmp/docker-in-docker-install.sh && \
     rm /tmp/docker-in-docker-install.sh
 
-# Configure Docker to use vfs storage driver for nested docker-in-docker compatibility
-# The default overlay2 driver fails in nested environments with "invalid argument" errors
+# Configure Docker daemon for nested docker-in-docker compatibility:
+# - vfs storage driver: overlay2 fails in nested environments with "invalid argument" errors
+# - buildkit enabled: modern build features and better caching
 RUN mkdir -p /etc/docker && \
-    echo '{"storage-driver": "vfs"}' > /etc/docker/daemon.json
+    echo '{"storage-driver": "vfs", "features": {"buildkit": true}}' > /etc/docker/daemon.json
 
 # Add and extract hermit bundle for python3 and nodejs (ADD auto-extracts tar.gz)
 ADD --chown=coder:coder libs/devcontainer-builder/dist/hermit-bundle.tar.gz /opt/hermit/
@@ -63,7 +64,9 @@ RUN mkdir -p /app && chown coder:coder /app
 
 # Copy application files
 COPY --chown=coder:coder --chmod=755 libs/devcontainer-builder/entrypoint.sh /app/entrypoint.sh
-COPY --chown=coder:coder libs/devcontainer-builder/log-streamer.py /app/log-streamer.py
+
+# Copy coder-logstream-process PEX into PATH
+COPY --chown=coder:coder --chmod=755 libs/coder-logstream-process/dist/coder-logstream-process.pex /opt/hermit/bin/coder-logstream-process
 
 # Create workspaces directory
 RUN mkdir -p /workspaces && chown coder:coder /workspaces

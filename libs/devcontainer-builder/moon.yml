@@ -10,7 +10,6 @@ fileGroups:
   sources:
     - "Dockerfile"
     - "entrypoint.sh"
-    - "log-streamer.py"
     - "version.txt"
   scripts:
     - "scripts/*.sh"
@@ -29,10 +28,12 @@ tasks:
     command: scripts/build.sh $MOON_TASK_HASH
     deps:
       - ~:hermit-bundle
+      - coder-logstream-process:build
     inputs:
       - "@group(sources)"
       - "@group(scripts)"
       - "dist/hermit-bundle.tar.gz"
+      - "/workspaces/setup/libs/coder-logstream-process/dist/coder-logstream-process.pex"
     outputs:
       - "dist/image.json"
 

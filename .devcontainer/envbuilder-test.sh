@@ -88,7 +88,7 @@ docker run \
     -e ENVBUILDER_CACHE_REPO="host.docker.internal:${REGISTRY_PORT}/envbuilder-cache" \
     -e ENVBUILDER_INSECURE="true" \
     -e ENVBUILDER_PUSH_IMAGE="true" \
-    -e ENVBUILDER_VERBOSE="true" \
+    -e ENVBUILDER_VERBOSE="false" \
     -e ENVBUILDER_INIT_SCRIPT="exit 0" \
     "${ENVBUILDER_IMAGE}"
 

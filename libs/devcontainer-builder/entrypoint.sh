@@ -144,14 +144,9 @@ run_devcontainer() {
 
     log_info "Running: ${cmd}"
 
-    # Execute with log streaming only if Coder is reachable
-    if check_coder_reachable; then
-        log_info "Streaming devcontainer logs to Coder..."
-        eval "${cmd}" 2>&1 | /app/log-streamer.py --source-name "Devcontainer Build"
-    else
-        log_warn "Coder not reachable, running without log streaming"
-        eval "${cmd}"
-    fi
+    # Execute with log streaming (coder-logstream-process handles missing credentials gracefully)
+    log_info "Running devcontainer with log streaming..."
+    coder-logstream-process "${cmd}"
 }
 
 # Start Coder agent in the devcontainer

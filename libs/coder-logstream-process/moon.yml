@@ -1,0 +1,39 @@
+language: python
+layer: library
+stack: backend
+tags:
+  - python
+  - coder
+  - logging
+tasks:
+  test:
+    command: uv run pytest tests/ -v --ignore=tests/test_pex_integration.py
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_configs)"
+      - "tests/cassettes/**/*"
+    options:
+      cache: true
+      mergeArgs: replace
+
+  test-integration:
+    command: uv run pytest tests/test_pex_integration.py -v -m integration
+    deps:
+      - ~:build
+    inputs:
+      - "@files(python_sources)"
+      - "dist/coder-logstream-process.pex"
+    options:
+      cache: true
+
+  build:
+    command: pex . -o dist/coder-logstream-process.pex -c coder-logstream-process --venv --interpreter-constraint 'CPython>=3.10,<3.13'
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_configs)"
+    outputs:
+      - dist/coder-logstream-process.pex
+    deps:
+      - ~:test
+    options:
+      mergeArgs: replace
