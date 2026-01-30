@@ -27,13 +27,23 @@ tasks:
       cache: true
 
   build:
-    command: pex . -o dist/coder-logstream-process.pex -c coder-logstream-process --venv --interpreter-constraint 'CPython>=3.10,<3.13'
+    command: noop
+    deps:
+      - ~:build_linux_amd64
+      - ~:build_linux_arm64
+
+  build_linux_amd64:
+    command: cross --platform linux/amd64 pex . -o dist/linux_amd64/coder-logstream-process.pex -c coder-logstream-process --venv --interpreter-constraint 'CPython>=3.10,<3.13'
     inputs:
       - "@files(python_sources)"
       - "@files(python_configs)"
     outputs:
-      - dist/coder-logstream-process.pex
-    deps:
-      - ~:test
-    options:
-      mergeArgs: replace
+      - dist/linux_amd64/coder-logstream-process.pex
+
+  build_linux_arm64:
+    command: cross --platform linux/arm64 pex . -o dist/linux_arm64/coder-logstream-process.pex -c coder-logstream-process --venv --interpreter-constraint 'CPython>=3.10,<3.13'
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_configs)"
+    outputs:
+      - dist/linux_arm64/coder-logstream-process.pex
