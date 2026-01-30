@@ -1,5 +1,6 @@
 """Docker build and extraction logic for cross-platform builds."""
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -69,13 +70,17 @@ def build_image(
         str(workspace_root),
     ]
 
-    # Stream output in real-time to stdout/stderr
+    # Enable BuildKit and stream output in real-time
+    env = os.environ.copy()
+    env["DOCKER_BUILDKIT"] = "1"
+
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,  # Line buffered
+        env=env,
     )
 
     # Stream output line by line
