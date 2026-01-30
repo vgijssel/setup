@@ -1,59 +1,12 @@
 """Docker build and extraction logic for cross-platform builds."""
 
 import subprocess
-import tempfile
 from pathlib import Path
 
 from .moon import MoonError, get_task_output_files
 
-DOCKERFILE_TEMPLATE = """\
-#### BASE STAGE
-#### Installs moon and system dependencies.
-
-FROM ubuntu:22.04 AS base
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
-
-# Install moon binary
-RUN curl -fsSL https://moonrepo.dev/install/moon.sh | bash
-ENV PATH="/root/.moon/bin:$PATH"
-
-# Set cross-compilation marker to prevent infinite loops
-ENV CROSS_MOON=true
-
-#### SKELETON STAGE
-#### Scaffolds repository skeleton structures.
-
-FROM base AS skeleton
-
-ARG CROSS_MOON_PROJECT_ID
-
-# Copy entire repository and scaffold
-COPY . .
-RUN moon docker scaffold $CROSS_MOON_PROJECT_ID
-
-#### BUILD STAGE
-#### Builds the project.
-
-FROM base AS build
-
-ARG CROSS_MOON_PROJECT_ID
-ARG CROSS_MOON_TASK_ID
-
-# Copy workspace configs
-COPY --from=skeleton /app/.moon/docker/workspace .
-
-# Install dependencies
-RUN moon docker setup
-
-# Copy project sources
-COPY --from=skeleton /app/.moon/docker/sources .
-
-# Build the project
-RUN moon run $CROSS_MOON_PROJECT_ID:$CROSS_MOON_TASK_ID
-"""
+# Path to the Dockerfile relative to this module
+_DOCKERFILE_PATH = Path(__file__).parent.parent.parent / "Dockerfile"
 
 
 class DockerError(Exception):
@@ -62,13 +15,18 @@ class DockerError(Exception):
     pass
 
 
-def generate_dockerfile() -> str:
-    """Generate the multi-stage Dockerfile for cross-platform builds.
+def get_dockerfile_path() -> Path:
+    """Get the path to the cross-build Dockerfile.
 
     Returns:
-        Dockerfile content as a string.
+        Path to the Dockerfile.
+
+    Raises:
+        DockerError: If the Dockerfile is not found.
     """
-    return DOCKERFILE_TEMPLATE
+    if not _DOCKERFILE_PATH.exists():
+        raise DockerError(f"Dockerfile not found at {_DOCKERFILE_PATH}")
+    return _DOCKERFILE_PATH
 
 
 def build_image(
@@ -90,55 +48,47 @@ def build_image(
     Raises:
         DockerError: If the Docker build fails.
     """
-    dockerfile_content = generate_dockerfile()
+    dockerfile_path = get_dockerfile_path()
 
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".Dockerfile", delete=False) as f:
-        f.write(dockerfile_content)
-        dockerfile_path = f.name
+    cmd = [
+        "docker",
+        "buildx",
+        "build",
+        "--progress=plain",  # Show build progress in plain text
+        "--platform",
+        platform,
+        "--build-arg",
+        f"CROSS_MOON_PROJECT_ID={project_id}",
+        "--build-arg",
+        f"CROSS_MOON_TASK_ID={task_id}",
+        "-f",
+        str(dockerfile_path),
+        "-t",
+        image_tag,
+        "--load",
+        str(workspace_root),
+    ]
 
-    try:
-        cmd = [
-            "docker",
-            "buildx",
-            "build",
-            "--progress=plain",  # Show build progress in plain text
-            "--platform",
-            platform,
-            "--build-arg",
-            f"CROSS_MOON_PROJECT_ID={project_id}",
-            "--build-arg",
-            f"CROSS_MOON_TASK_ID={task_id}",
-            "-f",
-            dockerfile_path,
-            "-t",
-            image_tag,
-            "--load",
-            str(workspace_root),
-        ]
+    # Stream output in real-time to stdout/stderr
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,  # Line buffered
+    )
 
-        # Stream output in real-time to stdout/stderr
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,  # Line buffered
-        )
+    # Stream output line by line
+    output_lines = []
+    if process.stdout:
+        for line in process.stdout:
+            print(line, end="", flush=True)
+            output_lines.append(line)
 
-        # Stream output line by line
-        output_lines = []
-        if process.stdout:
-            for line in process.stdout:
-                print(line, end="", flush=True)
-                output_lines.append(line)
+    returncode = process.wait()
 
-        returncode = process.wait()
-
-        if returncode != 0:
-            raise DockerError(f"Docker build failed with exit code {returncode}")
-
-    finally:
-        Path(dockerfile_path).unlink(missing_ok=True)
+    if returncode != 0:
+        raise DockerError(f"Docker build failed with exit code {returncode}")
 
 
 def extract_output_files(
