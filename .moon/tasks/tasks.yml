@@ -36,6 +36,11 @@ fileGroups:
     - /bin/.python3-*
     - /bin/hermit
 
+  uv_bin:
+    - /bin/uv
+    - /bin/.uv-*
+    - /bin/hermit
+
   hermit_bundle_bin:
     - /bin/hermit-bundle
     - /bin/hermit

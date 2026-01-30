@@ -15,21 +15,38 @@ tasks:
       - "@files(python_sources)"
       - "@files(python_tests)"
       - "@files(python_configs)"
+      - "@globs(python_bin)"
+      - "@globs(uv_bin)"
     options:
       cache: true
       mergeArgs: replace
 
-  # Simple validation task that creates an output file
-  validation:
-    command: bash -c 'mkdir -p dist && echo "hello from validation" > dist/validation.txt'
-    outputs:
-      - dist/validation.txt
-
-  # Cross-compile the validation task for arm64
-  validation_cross:
-    command: uv run cross --platform linux/arm64 bash -c 'mkdir -p dist && echo "hello from cross validation" > dist/validation.txt'
+  .integration:
+    command: uv run cross --platform $CROSS_OS/$CROSS_ARCH echo "$CROSS_ARCH" > dist/$CROSS_OS-$CROSS_ARCH.txt
     inputs:
       - "@files(python_sources)"
       - "@files(python_configs)"
+    options:
+      cache: true
+      runInCI: skip
+      outputStyle: stream
     outputs:
-      - dist/validation.txt
+      - dist/$CROSS_OS-$CROSS_ARCH.txt
+
+  integration_test_linux_amd64:
+    extends: .integration
+    env:
+      CROSS_OS: linux
+      CROSS_ARCH: amd64
+      PYTHONUNBUFFERED: "1"
+    options:
+      runInCI: true
+      outputStyle: stream
+
+  integration_test_linux_arm64:
+    extends: .integration
+    env:
+      CROSS_OS: linux
+      CROSS_ARCH: arm64
+    options:
+      runInCI: true
