@@ -3,10 +3,6 @@
 # Called by devcontainer.json postStartCommand
 # Executes the CODER_INIT_SCRIPT environment variable if set
 #
-# IMPORTANT: When using POD_MANIFEST_TEMPLATE with DevPod, CODER_INIT_SCRIPT
-# must use quoted strings with explicit \n escapes, NOT YAML literal blocks (|).
-# Example: value: "#!/bin/bash\necho hello\n..."
-# YAML literal blocks get truncated by DevPod.
 
 set -euo pipefail
 

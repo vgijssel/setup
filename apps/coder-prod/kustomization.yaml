@@ -5,10 +5,6 @@ resources:
   - namespace-flux-system.yaml
   - namespace-coder.yaml
   - namespace-coder-workspace.yaml
-  # DevPod RBAC resources (deprecated - kept for backward compatibility during migration)
-  - serviceaccount-devpod-builder.yaml
-  - role-devpod-builder.yaml
-  - rolebinding-devpod-builder.yaml
   # Devcontainer-builder RBAC resources
   - serviceaccount-devcontainer-builder.yaml
   - role-devcontainer-builder.yaml
