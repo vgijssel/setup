@@ -29,6 +29,7 @@ tasks:
     deps:
       - ~:hermit-bundle
       - coder-logstream-process:build
+      - docker:buildx_run
     inputs:
       - "@group(sources)"
       - "@group(scripts)"

@@ -7,6 +7,7 @@ tasks:
     command: devcontainer build --workspace-folder $SETUP_DIR --platform linux/amd64,linux/arm64 --push --image-name ghcr.io/vgijssel/setup/devcontainer:$MOON_TASK_HASH --cache-from type=registry,ref=ghcr.io/vgijssel/setup/devcontainer:cache --cache-to type=registry,ref=ghcr.io/vgijssel/setup/devcontainer:cache,mode=max && echo "ghcr.io/vgijssel/setup/devcontainer:$MOON_TASK_HASH" > $SETUP_DIR/.devcontainer/.docker-version
     deps:
       - devcontainers-cli:build
+      - docker:buildx_run
     inputs:
       - file: Dockerfile
       - file: devcontainer.json
@@ -43,14 +44,20 @@ tasks:
       retryCount: 3
 
   envbuilder-test:
-    command: ./envbuilder-test.sh
+    command: bats tests/envbuilder-test.bats
+    deps:
+      - docker:registry_run
     inputs:
       - file: Dockerfile
       - file: devcontainer.json
-      - file: envbuilder-test.sh
+      - file: tests/envbuilder-test.bats
       - file: /.envrc
       - glob: /bin/**/*
       - glob: /third_party/hermit/**/*
       - glob: /third_party/vendir/shell/**/*
       - glob: /libs/devenv/**/*
       - file: /.chezmoiroot
+    options:
+      cache: true
+      # This test can be flacky due to external network calls, so we allow retries
+      retryCount: 3
