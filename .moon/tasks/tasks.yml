@@ -20,3 +20,8 @@ fileGroups:
     - /bin/.chezmoi-*
     - /bin/hermit
     - /bin/chezmoi-wrapper
+
+  claude_bin:
+    - /bin/claude
+    - /bin/.claude-code-*
+    - /bin/hermit
