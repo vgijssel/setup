@@ -5,4 +5,18 @@ tags:
   - scope.lib
   - type.infrastructure
   - ansible
-tasks: {}
+tasks:
+  test:
+    command: bats
+    args:
+      - tests/test.bats
+    inputs:
+      - roles/**/*.yml
+      - roles/**/*.yaml
+      - roles/**/*.j2
+      - requirements.yml
+      - vars_plugins/**/*.py
+      - tests/test.bats
+    options:
+      cache: true
+      runInCI: true
