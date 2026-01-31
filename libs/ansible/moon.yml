@@ -25,7 +25,7 @@ tasks:
       - pyproject.toml
     options:
       cache: false
-      runInCI: false
+      runInCI: true
   lint:
     command: uv
     args:
