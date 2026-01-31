@@ -17,7 +17,6 @@ tasks:
   test:
     script: chezmoi-wrapper apply --force --verbose && goss validate
     deps:
-      - claude-code:build
       - vendir:build
     inputs:
       - glob: files/**/*
