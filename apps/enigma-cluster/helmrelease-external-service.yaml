@@ -37,6 +37,8 @@ spec:
           nginx.ingress.kubernetes.io/proxy-read-timeout: "604800"
           nginx.ingress.kubernetes.io/proxy-send-timeout: "604800"
           nginx.ingress.kubernetes.io/proxy-connect-timeout: "604800"
+          # Allow 1GB uploads for ISO images
+          nginx.ingress.kubernetes.io/proxy-body-size: 1g
       - hostname: pihole-v50.enigma.vgijssel.nl
         endpoint: 192.168.50.2
         port: 443
