@@ -25,5 +25,6 @@ tasks:
       - file: chezmoi.yaml
       - file: /.chezmoiroot
       - "@globs(chezmoi_bin)"
+      - "@globs(claude_bin)"
     options:
       cache: true
