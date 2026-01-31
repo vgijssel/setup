@@ -116,7 +116,6 @@ Each migrated project must have:
 │   ├── 1password-secrets/       # Existing lib
 │   ├── ansible/                 # Existing lib
 │   ├── bunq2ynab/               # Existing lib
-│   ├── cloudflare-tunnel/       # Existing lib
 │   ├── coder-devcontainer/      # Existing lib
 │   ├── dev-cluster/             # Existing lib
 │   ├── devenv/                  # Existing lib

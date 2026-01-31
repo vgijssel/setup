@@ -81,7 +81,7 @@ provides living documentation. Fast test suites enable rapid iteration and CI ef
 ### IV. Nx Monorepo Structure
 
 Project organization MUST follow Nx monorepo patterns:
-- **libs/**: Reusable libraries (e.g., ansible, cloudflare-tunnel, devenv, internal-dns)
+- **libs/**: Reusable libraries (e.g., ansible, devenv, internal-dns)
 - **apps/**: Focused applications (e.g., haos, escaperoom)
 - **stacks/**: Environment-specific deployments using apps with configuration
 - **third_party/**: External dependencies organized by type (hermit, python, javascript, shell, helm)
