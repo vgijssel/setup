@@ -16,28 +16,11 @@ fileGroups:
     - "!goss.yaml"
     - "!*.patch.yaml"
 
-  kubeconform_bin:
-    - /bin/kubeconform
-    - /bin/.kubeconform-*
-    - /bin/hermit
-
 tasks:
   kubeconform_lint:
-    script: |
-      #!/usr/bin/env bash
-      set -euo pipefail
-      
-      # Get the list of files from moon - do not quote for proper word splitting
-      files=(@files(kubernetes_manifests))
-      
-      # If there are no files, output an empty success result
-      if [ ${#files[@]} -eq 0 ]; then
-        echo '{"resources":[],"summary":{"valid":0,"invalid":0,"errors":0,"skipped":0}}'
-        exit 0
-      fi
-      
-      # Run kubeconform on the files - quote to handle filenames with spaces
-      kubeconform -summary -output json -ignore-missing-schemas "${files[@]}"
+    command: kubeconform -summary -output json
+    args:
+      - "@files(kubernetes_manifests)"
     inputs:
       - "@files(kubernetes_manifests)"
       - "@files(kubeconform_bin)"

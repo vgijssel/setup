@@ -25,3 +25,8 @@ fileGroups:
     - /bin/claude
     - /bin/.claude-code-*
     - /bin/hermit
+
+  kubeconform_bin:
+    - /bin/kubeconform
+    - /bin/.kubeconform-*
+    - /bin/hermit
