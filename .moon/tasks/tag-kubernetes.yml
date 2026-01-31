@@ -27,17 +27,17 @@ tasks:
       #!/usr/bin/env bash
       set -euo pipefail
       
-      # Get the list of files from moon
-      files="@files(kubernetes_manifests)"
+      # Get the list of files from moon - do not quote for proper word splitting
+      files=(@files(kubernetes_manifests))
       
       # If there are no files, output an empty success result
-      if [ -z "$files" ]; then
+      if [ ${#files[@]} -eq 0 ]; then
         echo '{"resources":[],"summary":{"valid":0,"invalid":0,"errors":0,"skipped":0}}'
         exit 0
       fi
       
-      # Run kubeconform on the files
-      kubeconform -summary -output json -ignore-missing-schemas $files
+      # Run kubeconform on the files - quote to handle filenames with spaces
+      kubeconform -summary -output json -ignore-missing-schemas "${files[@]}"
     inputs:
       - "@files(kubernetes_manifests)"
       - "@files(kubeconform_bin)"
