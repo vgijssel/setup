@@ -6,8 +6,4 @@ tags:
   - type.service
   - platform.kubernetes
   - kubernetes
-  - scope.app
-  - type.service
-  - platform.kubernetes
-  - kubernetes
 tasks: {}
