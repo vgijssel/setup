@@ -13,16 +13,7 @@
     common_skip_networking: true
     common_skip_hdmi: true
   tasks:
-    - name: Install Python for Ansible
-      ansible.builtin.raw: apt-get update && apt-get install -y python3
-      changed_when: false
-
-    - name: Gather facts after Python install
-      ansible.builtin.setup:
-
-    - name: Include common role with safe tags
+    - name: Include common role localisation tasks
       ansible.builtin.include_role:
         name: common
         tasks_from: localisation.yml
-      tags:
-        - localisation
