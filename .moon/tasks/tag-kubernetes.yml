@@ -1,0 +1,46 @@
+$schema: ../cache/schemas/tasks.json
+
+fileGroups:
+  kubernetes_manifests:
+    - "*.yaml"
+    - "*.yml"
+    - "!moon.yml"
+    - "!ansible_requirements.yml"
+    - "!provision.yml"
+    - "!kitchen.yml"
+    - "!*_lima.yml"
+    - "!Chart.yaml"
+    - "!values.yaml"
+    - "!devspace.yaml"
+    - "!Taskfile.yml"
+    - "!goss.yaml"
+    - "!*.patch.yaml"
+
+  kubeconform_bin:
+    - /bin/kubeconform
+    - /bin/.kubeconform-*
+    - /bin/hermit
+
+tasks:
+  kubeconform_lint:
+    script: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      
+      # Get the list of files from moon
+      files="@files(kubernetes_manifests)"
+      
+      # If there are no files, output an empty success result
+      if [ -z "$files" ]; then
+        echo '{"resources":[],"summary":{"valid":0,"invalid":0,"errors":0,"skipped":0}}'
+        exit 0
+      fi
+      
+      # Run kubeconform on the files
+      kubeconform -summary -output json -ignore-missing-schemas $files
+    inputs:
+      - "@files(kubernetes_manifests)"
+      - "@files(kubeconform_bin)"
+    options:
+      cache: true
+      runInCI: true

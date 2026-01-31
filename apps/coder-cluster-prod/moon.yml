@@ -1,0 +1,9 @@
+id: coder-cluster-prod
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.stack
+  - kubernetes
+  - production
+tasks: {}
