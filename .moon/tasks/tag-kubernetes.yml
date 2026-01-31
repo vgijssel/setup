@@ -20,12 +20,13 @@ fileGroups:
 
 tasks:
   kubeconform_lint:
-    command: kubeconform -summary -output json -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+    command: kubeconform -summary -output json -schema-location default -schema-location '$MOON_WORKSPACE_ROOT/third_party/vendir/schemas/flux/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
     args:
       - "@files(kubernetes_manifests)"
     inputs:
       - "@files(kubernetes_manifests)"
       - "@files(kubeconform_bin)"
+      - /third_party/vendir/schemas/flux/**/*.json
     options:
       cache: true
       runInCI: true

@@ -111,3 +111,15 @@ directories:
           url: https://github.com/fluxcd/flux2/releases/download/v2.4.0/install.yaml
         includePaths:
           - "**/*.yaml"
+  - path: schemas/flux
+    contents:
+      - path: .
+        git:
+          url: https://github.com/datreeio/CRDs-catalog
+          ref: main
+        includePaths:
+          - "source.toolkit.fluxcd.io/**/*.json"
+          - "helm.toolkit.fluxcd.io/**/*.json"
+          - "kustomize.toolkit.fluxcd.io/**/*.json"
+          - "notification.toolkit.fluxcd.io/**/*.json"
+          - "image.toolkit.fluxcd.io/**/*.json"
