@@ -14,8 +14,6 @@ dev = [
   "ansible==10.7.0",
   "molecule==24.12.0",
   "molecule-plugins[docker]==23.5.3",
-  "pytest==8.3.4",
-  "pytest-testinfra==10.1.1",
 ]
 
 [tool.hatch.build.targets.wheel]

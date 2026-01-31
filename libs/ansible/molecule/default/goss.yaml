@@ -1,0 +1,66 @@
+---
+# Goss validation for Ansible roles
+# Tests the results of the localisation.yml role
+
+file:
+  /etc/default/locale:
+    title: Locale configuration file exists
+    exists: true
+    filetype: file
+
+  /etc/locale.conf:
+    title: Locale conf file exists
+    exists: true
+    filetype: file
+
+  /etc/timezone:
+    title: Timezone file exists
+    exists: true
+    filetype: file
+    contains:
+      - Europe/Amsterdam
+
+  /etc/locale.gen:
+    title: Locale generation config exists
+    exists: true
+    filetype: file
+    contains:
+      - en_GB.UTF-8
+
+command:
+  locale_available:
+    title: en_GB locale is generated
+    exec: locale -a
+    exit-status: 0
+    stdout:
+      - /en_GB/
+    timeout: 10000
+
+  timezone_set:
+    title: Timezone is set to Europe/Amsterdam
+    exec: cat /etc/timezone
+    exit-status: 0
+    stdout:
+      - Europe/Amsterdam
+    timeout: 10000
+
+  python_installed:
+    title: Python3 is installed
+    exec: python3 --version
+    exit-status: 0
+    stdout:
+      - /Python 3/
+    timeout: 10000
+
+package:
+  python3:
+    title: Python3 package is installed
+    installed: true
+
+  locales:
+    title: Locales package is installed
+    installed: true
+
+  tzdata:
+    title: Timezone data package is installed
+    installed: true

@@ -1,0 +1,40 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  vars:
+    goss_version: "0.4.9"
+    goss_arch: "amd64"
+    goss_url: "https://github.com/goss-org/goss/releases/download/v{{ goss_version }}/goss-linux-{{ goss_arch }}"
+    goss_bin: /usr/local/bin/goss
+    goss_test_directory: /tmp/goss
+  tasks:
+    - name: Download goss binary
+      ansible.builtin.get_url:
+        url: "{{ goss_url }}"
+        dest: "{{ goss_bin }}"
+        mode: "0755"
+        force: false
+
+    - name: Create goss test directory
+      ansible.builtin.file:
+        path: "{{ goss_test_directory }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy goss tests to remote
+      ansible.builtin.copy:
+        src: goss.yaml
+        dest: "{{ goss_test_directory }}/goss.yaml"
+        mode: "0644"
+
+    - name: Run goss tests
+      ansible.builtin.command:
+        cmd: "{{ goss_bin }} --gossfile {{ goss_test_directory }}/goss.yaml validate --format documentation"
+      register: goss_result
+      changed_when: false
+      failed_when: goss_result.rc != 0
+
+    - name: Display goss output
+      ansible.builtin.debug:
+        var: goss_result.stdout_lines
