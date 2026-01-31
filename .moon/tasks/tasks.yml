@@ -21,11 +21,6 @@ fileGroups:
     - /bin/hermit
     - /bin/chezmoi-wrapper
 
-  code-server_bin:
-    - /bin/code-server
-    - /bin/.code-server-*
-    - /bin/hermit
-
   node_bin:
     - /bin/node
     - /bin/.node-*
@@ -39,4 +34,9 @@ fileGroups:
   uv_bin:
     - /bin/uv
     - /bin/.uv-*
+    - /bin/hermit
+
+  claude_bin:
+    - /bin/claude
+    - /bin/.claude-code-*
     - /bin/hermit
