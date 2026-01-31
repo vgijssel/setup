@@ -1,22 +1,42 @@
 id: ansible
-language: javascript
+language: python
 layer: library
 tags:
   - scope.lib
   - type.infrastructure
   - ansible
+  - python
 tasks:
   test:
-    command: bats
+    command: uv
     args:
-      - tests/test.bats
+      - run
+      - molecule
+      - test
     inputs:
       - roles/**/*.yml
       - roles/**/*.yaml
       - roles/**/*.j2
+      - roles/**/templates/**
+      - roles/**/files/**
       - requirements.yml
       - vars_plugins/**/*.py
-      - tests/test.bats
+      - molecule/**/*
+      - pyproject.toml
+    options:
+      cache: false
+      runInCI: false
+  lint:
+    command: uv
+    args:
+      - run
+      - molecule
+      - syntax
+    inputs:
+      - roles/**/*.yml
+      - roles/**/*.yaml
+      - molecule/**/*.yml
+      - requirements.yml
     options:
       cache: true
       runInCI: true

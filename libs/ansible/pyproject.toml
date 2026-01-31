@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "setup-ansible"
+version = "0.0.0"
+description = "Ansible roles for infrastructure automation"
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "ansible==10.7.0",
+  "molecule==24.12.0",
+  "molecule-plugins[docker]==23.5.3",
+  "pytest==8.3.4",
+  "pytest-testinfra==10.1.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["vars_plugins"]

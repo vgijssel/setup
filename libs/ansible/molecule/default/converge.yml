@@ -1,0 +1,28 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    # Common role variables
+    common_hostname: molecule-test
+    common_timezone: UTC
+    common_locale: en_US.UTF-8
+    common_ssh_port: 22
+    common_users: []
+    # Skip tasks that require specific hardware or network config
+    common_skip_networking: true
+    common_skip_hdmi: true
+  tasks:
+    - name: Install Python for Ansible
+      ansible.builtin.raw: apt-get update && apt-get install -y python3
+      changed_when: false
+
+    - name: Gather facts after Python install
+      ansible.builtin.setup:
+
+    - name: Include common role with safe tags
+      ansible.builtin.include_role:
+        name: common
+        tasks_from: localisation.yml
+      tags:
+        - localisation
