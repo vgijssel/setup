@@ -104,3 +104,10 @@ directories:
         includePaths:
           - packages/core/installer/images/talos/**
         newRootPath: packages/core/installer/images/talos
+  - path: config/flux-crds
+    contents:
+      - path: .
+        http:
+          url: https://github.com/fluxcd/flux2/releases/download/v2.4.0/install.yaml
+        includePaths:
+          - "**/*.yaml"
