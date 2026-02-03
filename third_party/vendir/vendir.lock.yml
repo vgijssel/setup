@@ -49,6 +49,12 @@ directories:
     path: .
   path: charts/coder
 - contents:
+  - helmChart:
+      appVersion: v0.0.13
+      version: v0.0.13
+    path: .
+  path: charts/coder-logstream-kube
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508
@@ -79,10 +85,4 @@ directories:
       - v0.41.2
     path: .
   path: config/cozystack-talos-profiles
-- contents:
-  - helmChart:
-      appVersion: v0.0.13
-      version: v0.0.13
-    path: .
-  path: charts/coder-logstream-kube
 kind: LockConfig
