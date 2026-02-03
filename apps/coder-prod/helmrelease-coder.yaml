@@ -55,7 +55,7 @@ spec:
                 resources: [configmaps, secrets]
                 verbs: [get, list, watch, create, update, patch, delete]
               # For builder jobs
-              - apiGroups: ["batch"]
+              - apiGroups: [batch]
                 resources: [jobs]
                 verbs: [create, delete, get, list, patch, update, watch]
       env:
