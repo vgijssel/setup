@@ -112,7 +112,7 @@ spec:
         - name: CODER_OIDC_SCOPES
           value: openid profile email offline_access
         - name: CODER_DISABLE_PASSWORD_AUTH
-          value: "true"
+          value: "false"
         # GitHub OAuth configuration
         - name: CODER_OAUTH2_GITHUB_ALLOW_SIGNUPS
           value: "false"
