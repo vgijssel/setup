@@ -165,15 +165,6 @@ data "coder_parameter" "git_branch" {
   mutable      = true
 }
 
-data "coder_parameter" "devcontainer_builder" {
-  name         = "devcontainer_builder"
-  display_name = "Devcontainer Builder Image"
-  type         = "string"
-  default      = "ghcr.io/coder/envbuilder:1.2.0"
-  description  = "Envbuilder image to use for building devcontainers"
-  mutable      = false
-}
-
 data "coder_parameter" "system_prompt" {
   name         = "system_prompt"
   display_name = "System Prompt"
@@ -326,7 +317,7 @@ locals {
   coder_url = data.kubernetes_config_map_v1.coder_workspace_config.data["coder_url"]
 
   # Envbuilder image
-  devcontainer_builder_image = data.coder_parameter.devcontainer_builder.value
+  devcontainer_builder_image = "ghcr.io/coder/envbuilder:1.2.0"
 
   # Extract credentials from 1Password
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
