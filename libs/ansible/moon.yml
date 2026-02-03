@@ -13,7 +13,8 @@ tasks:
         .venv/bin/pip install --upgrade pip
         .venv/bin/pip install -r requirements-dev.txt
       fi
-      for role in roles/*/; do
+      for role in roles/*/
+      do
         role_name=$(basename "$role")
         echo "Testing role: $role_name"
         cd "$role" && ../../.venv/bin/molecule test && cd ../..
