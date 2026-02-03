@@ -8,9 +8,6 @@
   "remoteUser": "coder",
   "overrideCommand": false,
   "workspaceFolder": "/workspaces/setup",
-  "postStartCommand": {
-    "coder_init_script": ".devcontainer/coder_init_script.sh"
-  },
   "customizations": {
     "vscode": {
       "extensions": [

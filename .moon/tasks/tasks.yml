@@ -40,7 +40,3 @@ fileGroups:
     - /bin/uv
     - /bin/.uv-*
     - /bin/hermit
-
-  hermit_bundle_bin:
-    - /bin/hermit-bundle
-    - /bin/hermit

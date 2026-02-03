@@ -49,6 +49,19 @@ provider "registry.terraform.io/coder/coder" {
   ]
 }
 
+provider "registry.terraform.io/coder/envbuilder" {
+  version     = "1.0.0"
+  constraints = "1.0.0"
+  hashes = [
+    "h1:EijMsTkZ+GM+0gSaTR2Rw9FO9vJE7i6w3U5/Z76zBsQ=",
+    "h1:zD+MeJeGkT0N4xcYl6QSyp4pzrDRTWb4XgVpABf7Nrw=",
+    "zh:638f85855a86dd9f783ac667d302a2fe072ff6570e866dabed8082d74a246c09",
+    "zh:8316dd29b5015d178cb6f8ecd4b10e4df766a82496d06883ba4c91ef410ce719",
+    "zh:890df766e9b839623b1f0437355032a3c006226a6c200cd911e15ee1a9014e9f",
+    "zh:d91bc816e66c01ef552b04413bd0d83f35a217eb578148da31ba54c0fe0aca31",
+  ]
+}
+
 provider "registry.terraform.io/hashicorp/kubernetes" {
   version     = "2.35.1"
   constraints = "2.35.1"

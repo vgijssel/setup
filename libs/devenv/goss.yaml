@@ -276,14 +276,6 @@ command:
     exit-status: 0
     timeout: 10000
 
-  claude_code_vscode_extension:
-    title: Claude Code extension installed for VSCode Server
-    exec: ls -d {{.Env.HOME}}/.vscode-server/extensions/anthropic.claude-code-* 2>/dev/null | head -1 | xargs -I {} basename {} || echo "not found"
-    exit-status: 0
-    stdout:
-      - /^anthropic\.claude-code-/
-    timeout: 10000
-
 user:
   coder:
     skip: {{ or (eq .Env.IS_LINUX_HOST "true") (eq .Env.IS_MACOS "true") }}
@@ -391,16 +383,6 @@ file:
     title: zimfw.zsh exists for zsh plugin management
     exists: true
     filetype: file
-
-  '{{.Env.HOME}}/.vscode-server/extensions/extensions.json':
-    title: VSCode Server extensions.json exists
-    exists: true
-    filetype: file
-
-  '{{.Env.HOME}}/.local/share/code-server/extensions':
-    title: code-server extensions directory exists
-    exists: true
-    filetype: directory
 
 process:
   dockerd:

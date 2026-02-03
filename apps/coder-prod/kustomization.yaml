@@ -5,10 +5,6 @@ resources:
   - namespace-flux-system.yaml
   - namespace-coder.yaml
   - namespace-coder-workspace.yaml
-  # Devcontainer-builder RBAC resources
-  - serviceaccount-devcontainer-builder.yaml
-  - role-devcontainer-builder.yaml
-  - rolebinding-devcontainer-builder.yaml
   # FluxCD source
   - gitrepository-setup.yaml
   - kustomization-root.yaml

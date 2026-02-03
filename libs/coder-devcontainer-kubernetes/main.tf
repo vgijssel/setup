@@ -18,7 +18,10 @@ terraform {
       source  = "hashicorp/random"
       version = "3.6.3"
     }
-    # Removed envbuilder provider - using devcontainer CLI instead for devcontainer builds
+    envbuilder = {
+      source  = "coder/envbuilder"
+      version = "1.0.0"
+    }
   }
 }
 
@@ -166,8 +169,8 @@ data "coder_parameter" "devcontainer_builder" {
   name         = "devcontainer_builder"
   display_name = "Devcontainer Builder Image"
   type         = "string"
-  default      = "ghcr.io/vgijssel/setup/devcontainer-builder:0.3.0"
-  description  = "Devcontainer builder image for creating devcontainer workspaces"
+  default      = "ghcr.io/coder/envbuilder:1.2.0"
+  description  = "Envbuilder image to use for building devcontainers"
   mutable      = false
 }
 
@@ -182,12 +185,11 @@ data "coder_parameter" "system_prompt" {
 }
 
 data "coder_parameter" "ai_prompt" {
-  type         = "string"
-  name         = "ai_prompt"
-  display_name = "AI Prompt"
-  default      = ""
-  description  = "Write a prompt for Claude Code"
-  mutable      = true
+  type        = "string"
+  name        = "AI Prompt"
+  default     = ""
+  description = "Write a prompt for Claude Code"
+  mutable     = true
 }
 
 # ====================
@@ -323,11 +325,8 @@ locals {
   # Agents inside the cluster use this to avoid DNS mismatch with external URL
   coder_url = data.kubernetes_config_map_v1.coder_workspace_config.data["coder_url"]
 
-  # Devcontainer builder image
+  # Envbuilder image
   devcontainer_builder_image = data.coder_parameter.devcontainer_builder.value
-
-  # Devcontainer cache image for build caching
-  devcontainer_cache_from = "ghcr.io/vgijssel/setup/devcontainer"
 
   # Extract credentials from 1Password
   claude_code_token = try(data.onepassword_item.claude_code.credential, "")
@@ -351,111 +350,34 @@ locals {
 }
 
 # ====================
-# Devcontainer Builder Deployment
+# Envbuilder Cache
 # ====================
 
-# Devcontainer workspace deployment - uses devcontainer-builder in privileged mode
-# to run Docker daemon internally and build devcontainer images
-resource "kubernetes_deployment_v1" "workspace" {
-  count = data.coder_workspace.me.start_count
+# Envbuilder cached image - detects and reuses cached devcontainer images from local registry
+resource "envbuilder_cached_image" "workspace" {
+  builder_image = local.devcontainer_builder_image
+  # Include branch in git_url - ENVBUILDER_GIT_URL cannot be overridden via extra_env
+  git_url                = "${local.repo_url}#${local.git_branch}"
+  cache_repo             = "${local.cache_repo}/coder-cache"
+  insecure               = true # Local registry doesn't use TLS
+  devcontainer_dir       = ".devcontainer"
+  workspace_folder       = "/workspaces/setup"
+  remote_repo_build_mode = false
 
-  metadata {
-    name      = "coder-${local.workspace_id}"
-    namespace = var.namespace
-    labels    = local.labels
-  }
+  # GitHub credentials for private repository access (required via external auth)
+  git_username = "oauth2"
+  git_password = local.github_token
 
-  spec {
-    replicas = 1
-
-    selector {
-      match_labels = {
-        "app.kubernetes.io/instance" = "coder-${local.workspace_id}"
-      }
-    }
-
-    template {
-      metadata {
-        labels = local.labels
-      }
-      spec {
-        service_account_name = "devcontainer-builder"
-
-        # Devcontainer builder container - runs Docker daemon internally in privileged mode
-        container {
-          name  = "devcontainer-builder"
-          image = local.devcontainer_builder_image
-
-          security_context {
-            privileged = true
-          }
-
-          # Environment variables for devcontainer builder
-          env {
-            name  = "CODER_AGENT_URL"
-            value = local.coder_url
-          }
-          env {
-            name  = "CODER_AGENT_TOKEN"
-            value = coder_agent.main.token
-          }
-          env {
-            name  = "DEVCONTAINER_REPOSITORY"
-            value = local.repo_url
-          }
-          env {
-            name  = "DEVCONTAINER_BRANCH"
-            value = local.git_branch
-          }
-          env {
-            name  = "CODER_INIT_SCRIPT"
-            value = coder_agent.main.init_script
-          }
-          env {
-            name  = "DEVCONTAINER_CACHE_FROM"
-            value = local.devcontainer_cache_from
-          }
-
-          volume_mount {
-            name       = "workspaces"
-            mount_path = "/workspaces"
-          }
-          volume_mount {
-            name       = "docker-graph"
-            mount_path = "/var/lib/docker"
-          }
-
-          resources {
-            requests = {
-              cpu    = "${data.coder_parameter.cpu.value}"
-              memory = "${data.coder_parameter.memory.value}Gi"
-            }
-            limits = {
-              cpu    = "${data.coder_parameter.cpu.value}"
-              memory = "${data.coder_parameter.memory.value}Gi"
-            }
-          }
-        }
-
-        volume {
-          name = "workspaces"
-          persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim_v1.workspaces.metadata[0].name
-          }
-        }
-        volume {
-          name = "docker-graph"
-          empty_dir {}
-        }
-      }
-    }
-  }
-
-  wait_for_rollout = false
-
-  timeouts {
-    create = "30m"
-    update = "30m"
+  # Extra environment variables passed to envbuilder
+  extra_env = {
+    # Coder agent configuration
+    "CODER_AGENT_TOKEN" = coder_agent.main.token
+    # Use internal Kubernetes DNS for agent-to-server communication
+    # Avoids DNS mismatch when external URL resolves to wrong IP inside the cluster
+    "CODER_AGENT_URL" = local.coder_url
+    # Envbuilder configuration
+    "ENVBUILDER_INIT_SCRIPT" = coder_agent.main.init_script
+    "ENVBUILDER_PUSH_IMAGE"  = "true"
   }
 }
 
@@ -485,18 +407,126 @@ resource "kubernetes_persistent_volume_claim_v1" "workspaces" {
   wait_until_bound = false
 }
 
-# NOTE: The workspace pod is created by the kubernetes_deployment_v1.workspace resource
-# The devcontainer-builder runs in privileged mode with Docker daemon internally
-# The Coder agent runs inside the devcontainer created by the builder
+resource "kubernetes_deployment_v1" "workspace" {
+  count            = data.coder_workspace.me.start_count
+  wait_for_rollout = true
+
+  timeouts {
+    create = "5m"
+    update = "5m"
+    delete = "3m"
+  }
+
+  metadata {
+    name      = "coder-${local.workspace_id}"
+    namespace = var.namespace
+    labels    = local.labels
+    annotations = {
+      "com.coder.user.email" = data.coder_workspace_owner.me.email
+    }
+  }
+  spec {
+    replicas = 1
+    strategy {
+      type = "Recreate"
+    }
+    selector {
+      match_labels = {
+        "com.coder.workspace.id" = local.workspace_id
+      }
+    }
+    template {
+      metadata {
+        labels = local.labels
+        annotations = {
+          "com.coder.user.email" = data.coder_workspace_owner.me.email
+        }
+      }
+      spec {
+        security_context {}
+        termination_grace_period_seconds = 30
+
+        container {
+          name = "dev"
+          # Replace registry URL with localhost NodePort for kubelet image pulls
+          # Envbuilder pushes to cluster DNS (coder-registry.coder.svc.cluster.local:5000)
+          # but kubelet needs localhost:31500 (host DNS can't resolve .svc.cluster.local)
+          image = replace(envbuilder_cached_image.workspace.image, local.cache_repo, local.registry_pull_url)
+
+          # Dynamic environment variables from envbuilder
+          dynamic "env" {
+            for_each = envbuilder_cached_image.workspace.env_map
+            content {
+              name  = env.key
+              value = env.value
+            }
+          }
+
+          # Disable devcontainer features at container level (must be set before agent starts)
+          # See: https://coder.com/docs/admin/integrations/devcontainers/integration
+          env {
+            name  = "CODER_AGENT_DEVCONTAINERS_ENABLE"
+            value = "false"
+          }
+          env {
+            name  = "CODER_AGENT_DEVCONTAINERS_PROJECT_DISCOVERY_ENABLE"
+            value = "false"
+          }
+          env {
+            name  = "CODER_AGENT_DEVCONTAINERS_DISCOVERY_AUTOSTART_ENABLE"
+            value = "false"
+          }
+
+          resources {
+            requests = {
+              cpu    = "250m"
+              memory = "512Mi"
+            }
+            limits = {
+              cpu    = "${data.coder_parameter.cpu.value}"
+              memory = "${data.coder_parameter.memory.value}Gi"
+            }
+          }
+          volume_mount {
+            name       = "workspaces"
+            mount_path = "/workspaces"
+          }
+        }
+        volume {
+          name = "workspaces"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim_v1.workspaces.metadata[0].name
+          }
+        }
+        # Pod anti-affinity to spread workspaces across nodes
+        affinity {
+          pod_anti_affinity {
+            preferred_during_scheduling_ignored_during_execution {
+              weight = 1
+              pod_affinity_term {
+                topology_key = "kubernetes.io/hostname"
+                label_selector {
+                  match_labels = {
+                    "app.kubernetes.io/name" = "coder-workspace"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
 
 # ====================
 # Coder Agent
 # ====================
 
 resource "coder_agent" "main" {
-  arch = data.coder_provisioner.me.arch
-  os   = "linux"
-  dir  = "/workspaces/setup"
+  arch           = data.coder_provisioner.me.arch
+  os             = "linux"
+  dir            = "/workspaces/setup"
 
   display_apps {
     vscode          = false
@@ -761,12 +791,16 @@ resource "coder_metadata" "workspace_info" {
   count       = data.coder_workspace.me.start_count
   resource_id = kubernetes_deployment_v1.workspace[0].id
   item {
-    key   = "builder"
-    value = "devcontainer"
+    key   = "image"
+    value = envbuilder_cached_image.workspace.image
   }
   item {
-    key   = "builder_image"
-    value = local.devcontainer_builder_image
+    key   = "cached"
+    value = envbuilder_cached_image.workspace.exists ? "yes" : "no (building)"
+  }
+  item {
+    key   = "cache_repo"
+    value = "${local.cache_repo}/coder-cache"
   }
   item {
     key   = "git_branch"
