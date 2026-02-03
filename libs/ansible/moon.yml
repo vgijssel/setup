@@ -19,7 +19,9 @@ tasks:
         cd "$role" && ../../.venv/bin/molecule test && cd ../..
       done
     inputs:
-      - roles/**/*
+      - roles/**/*.yml
+      - roles/**/*.yaml
+      - roles/**/*.py
       - requirements.yml
       - requirements-dev.txt
     outputs: []
@@ -32,7 +34,8 @@ tasks:
       fi
       cd "roles/$ROLE" && ../../.venv/bin/molecule test
     inputs:
-      - roles/$ROLE/**/*
+      - roles/**/*.yml
+      - roles/**/*.yaml
       - requirements.yml
       - requirements-dev.txt
     outputs: []
