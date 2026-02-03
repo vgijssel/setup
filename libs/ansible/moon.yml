@@ -7,19 +7,9 @@ tags:
   - ansible
 tasks:
   test:
-    command: |
-      if [ ! -d ".venv" ]; then
-        python3 -m venv .venv
-        .venv/bin/pip install --upgrade pip
-        .venv/bin/pip install -r requirements-dev.txt
-      fi
-      for role in roles/*/
-      do
-        role_name=$(basename "$role")
-        echo "Testing role: $role_name"
-        cd "$role" && ../../.venv/bin/molecule test && cd ../..
-      done
+    command: bash test-all-roles.sh
     inputs:
+      - test-all-roles.sh
       - roles/**/*.yml
       - roles/**/*.yaml
       - roles/**/*.py
