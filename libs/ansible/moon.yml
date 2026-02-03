@@ -27,6 +27,11 @@ tasks:
     outputs: []
   test-role:
     command: |
+      if [ -z "$ROLE" ]; then
+        echo "Error: ROLE environment variable must be set"
+        echo "Usage: ROLE=common moon run ansible:test-role"
+        exit 1
+      fi
       if [ ! -d ".venv" ]; then
         python3 -m venv .venv
         .venv/bin/pip install --upgrade pip
@@ -39,6 +44,7 @@ tasks:
       - requirements.yml
       - requirements-dev.txt
     outputs: []
+    local: true
     env:
       ROLE: ""
   lint:
