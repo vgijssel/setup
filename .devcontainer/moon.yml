@@ -13,7 +13,7 @@ tasks:
         --image-name ghcr.io/vgijssel/setup/devcontainer-dev:$MOON_TASK_HASH \
         --cache-from type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache \
         --cache-to type=registry,ref=ghcr.io/vgijssel/setup/devcontainer-dev:cache,mode=max &&
-         echo "ghcr.io/vgijssel/setup/devcontainer:$MOON_TASK_HASH" > $SETUP_DIR/.devcontainer/.docker-version
+         echo "ghcr.io/vgijssel/setup/devcontainer-dev:$MOON_TASK_HASH" > $SETUP_DIR/.devcontainer/.docker-version
     deps:
       - devcontainers-cli:build
       - docker:buildx_run
