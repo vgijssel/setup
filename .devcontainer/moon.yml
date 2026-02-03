@@ -8,6 +8,7 @@ tasks:
     deps:
       - devcontainers-cli:build
       - docker:buildx_run
+      - vendir:build
     inputs:
       - file: Dockerfile
       - file: devcontainer.json
