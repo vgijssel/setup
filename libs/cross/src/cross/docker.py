@@ -74,23 +74,10 @@ def build_image(
     env = os.environ.copy()
     env["DOCKER_BUILDKIT"] = "1"
 
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,  # Line buffered
-        env=env,
-    )
-
-    # Stream output line by line
-    output_lines = []
-    if process.stdout:
-        for line in process.stdout:
-            print(line, end="", flush=True)
-            output_lines.append(line)
-
-    returncode = process.wait()
+    # Don't capture output - let Docker write directly to inherited file descriptors
+    # This ensures output streams immediately without Python buffering
+    result = subprocess.run(cmd, env=env)
+    returncode = result.returncode
 
     if returncode != 0:
         raise DockerError(f"Docker build failed with exit code {returncode}")

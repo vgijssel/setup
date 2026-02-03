@@ -29,7 +29,6 @@ tasks:
     options:
       cache: true
       runInCI: skip
-      outputStyle: stream
     outputs:
       - dist/$CROSS_OS-$CROSS_ARCH.txt
 
@@ -41,7 +40,6 @@ tasks:
       PYTHONUNBUFFERED: "1"
     options:
       runInCI: true
-      outputStyle: stream
 
   integration_test_linux_arm64:
     extends: .integration
