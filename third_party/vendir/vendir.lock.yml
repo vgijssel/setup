@@ -20,12 +20,6 @@ directories:
   path: charts/metallb
 - contents:
   - helmChart:
-      appVersion: 2.0.2
-      version: 2.0.2
-    path: .
-  path: charts/crossplane
-- contents:
-  - helmChart:
       appVersion: v1.16.1
       version: 3.6.1
     path: .
