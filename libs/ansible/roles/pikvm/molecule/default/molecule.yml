@@ -1,0 +1,30 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ../../../../requirements.yml
+driver:
+  name: docker
+platforms:
+  - name: archlinux-pikvm
+    image: archlinux:latest
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    privileged: true
+    pre_build_image: true
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callbacks_enabled: profile_tasks
+  inventory:
+    host_vars:
+      archlinux-pikvm:
+        ansible_user: root
+verifier:
+  name: goss
+  directory: tests
+  env:
+    GOSS_FILE: goss.yaml

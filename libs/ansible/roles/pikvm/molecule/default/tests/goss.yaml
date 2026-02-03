@@ -1,0 +1,7 @@
+---
+# Goss tests for pikvm role
+
+file:
+  /etc/pacman.conf:
+    exists: true
+    filetype: file

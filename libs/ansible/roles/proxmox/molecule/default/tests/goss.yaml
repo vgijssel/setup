@@ -1,0 +1,9 @@
+---
+# Goss tests for proxmox role
+
+file:
+  /etc/apt/sources.list.d/pve-enterprise.list:
+    exists: false
+  /etc/apt/sources.list.d/pve-no-subscription.list:
+    exists: true
+    filetype: file

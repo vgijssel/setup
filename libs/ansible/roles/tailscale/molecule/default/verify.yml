@@ -1,0 +1,12 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Execute Goss tests
+      command: goss --gossfile {{ goss_file }} validate --format documentation
+      register: test_results
+      changed_when: false
+      failed_when: test_results.rc != 0
+      vars:
+        goss_file: "{{ lookup('env', 'MOLECULE_VERIFIER_TEST_DIRECTORY') }}/goss.yaml"

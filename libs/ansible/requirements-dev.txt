@@ -1,0 +1,28 @@
+# Development dependencies for Ansible role testing
+# Pin all versions to ensure reproducibility
+
+# Molecule testing framework
+molecule==6.0.3
+molecule-plugins==23.5.3
+
+# Docker driver for Molecule
+molecule-docker==2.1.0
+
+# Goss verifier for Molecule
+molecule-goss==2.0.0
+
+# Ansible core
+ansible-core==2.16.13
+
+# Docker SDK for Python
+docker==7.1.0
+
+# PyYAML for YAML parsing
+PyYAML==6.0.2
+
+# Jinja2 for templating
+Jinja2==3.1.5
+
+# Additional testing utilities
+pytest==8.3.4
+pytest-testinfra==10.1.1

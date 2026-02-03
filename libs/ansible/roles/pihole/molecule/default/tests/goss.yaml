@@ -1,0 +1,17 @@
+---
+# Goss tests for pihole role
+
+package:
+  docker.io:
+    installed: true
+
+service:
+  docker:
+    enabled: true
+    running: true
+
+command:
+  docker --version:
+    exit-status: 0
+    stdout:
+      - Docker version

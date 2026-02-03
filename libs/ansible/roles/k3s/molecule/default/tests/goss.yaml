@@ -1,0 +1,14 @@
+---
+# Goss tests for k3s role
+
+file:
+  /usr/local/bin/k3s:
+    exists: true
+    filetype: file
+    mode: "0755"
+
+command:
+  k3s --version:
+    exit-status: 0
+    stdout:
+      - k3s version

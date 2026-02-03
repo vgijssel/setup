@@ -1,0 +1,29 @@
+---
+# Goss tests for common role
+# Tests basic system configuration applied by the common role
+
+package:
+  sudo:
+    installed: true
+  curl:
+    installed: true
+  wget:
+    installed: true
+
+service:
+  ssh:
+    enabled: true
+    running: true
+
+port:
+  tcp:22:
+    listening: true
+    ip:
+      - 0.0.0.0
+
+file:
+  /etc/ssh/sshd_config:
+    exists: true
+    filetype: file
+    owner: root
+    group: root

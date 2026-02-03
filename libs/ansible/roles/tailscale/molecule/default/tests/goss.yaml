@@ -1,0 +1,12 @@
+---
+# Goss tests for tailscale role
+
+package:
+  tailscale:
+    installed: true
+
+command:
+  tailscale version:
+    exit-status: 0
+    stdout:
+      - tailscale

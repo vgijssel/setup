@@ -5,4 +5,42 @@ tags:
   - scope.lib
   - type.infrastructure
   - ansible
-tasks: {}
+tasks:
+  test:
+    command: |
+      if [ ! -d ".venv" ]; then
+        python3 -m venv .venv
+        .venv/bin/pip install --upgrade pip
+        .venv/bin/pip install -r requirements-dev.txt
+      fi
+      for role in roles/*/; do
+        role_name=$(basename "$role")
+        echo "Testing role: $role_name"
+        cd "$role" && ../../.venv/bin/molecule test && cd ../..
+      done
+    inputs:
+      - roles/**/*
+      - requirements.yml
+      - requirements-dev.txt
+    outputs: []
+  test-role:
+    command: |
+      if [ ! -d ".venv" ]; then
+        python3 -m venv .venv
+        .venv/bin/pip install --upgrade pip
+        .venv/bin/pip install -r requirements-dev.txt
+      fi
+      cd "roles/$ROLE" && ../../.venv/bin/molecule test
+    inputs:
+      - roles/$ROLE/**/*
+      - requirements.yml
+      - requirements-dev.txt
+    outputs: []
+    env:
+      ROLE: ""
+  lint:
+    command: trunk check --all
+    inputs:
+      - "**/*.yml"
+      - "**/*.yaml"
+    outputs: []

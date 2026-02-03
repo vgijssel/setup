@@ -1,0 +1,8 @@
+---
+# Goss tests for incus role
+
+command:
+  incus --version:
+    exit-status: 0
+    stdout:
+      - incus
