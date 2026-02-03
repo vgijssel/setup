@@ -44,6 +44,12 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
     /tmp/docker-in-docker-install.sh && \
     rm /tmp/docker-in-docker-install.sh
 
+# Configure Docker daemon for nested docker-in-docker compatibility:
+# - vfs storage driver: overlay2 fails in nested environments with "invalid argument" errors
+# - buildkit enabled: modern build features and better caching
+RUN mkdir -p /etc/docker && \
+    echo '{"storage-driver": "vfs", "features": {"buildkit": true}}' > /etc/docker/daemon.json
+
 # Entrypoint for docker-in-docker initialization
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 
@@ -80,6 +86,7 @@ COPY --chown=coder:coder third_party/hermit /workspaces/setup/third_party/hermit
 COPY --chown=coder:coder third_party/vendir/shell /workspaces/setup/third_party/vendir/shell
 COPY --chown=coder:coder libs/devenv /workspaces/setup/libs/devenv
 COPY --chown=coder:coder .chezmoiroot /workspaces/setup/.chezmoiroot
+COPY --chown=coder:coder .devcontainer/devcontainer.json /workspaces/setup/.devcontainer/devcontainer.json
 
 # Initialize and apply chezmoi configuration
 RUN bin/chezmoi-wrapper apply --verbose

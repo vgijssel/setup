@@ -11,7 +11,7 @@ tags:
   - macos
 tasks:
   apply:
-    command: chezmoi-wrapper apply --verbose
+    command: chezmoi-wrapper apply --force --verbose
     local: true
 
   test:

@@ -1,0 +1,18 @@
+apiVersion: v2
+appVersion: v0.0.13
+description: Stream Kubernetes Pod events to the Coder startup logs
+home: https://github.com/coder/coder-logstream-kube
+icon: https://helm.coder.com/coder_logo_black.png
+keywords:
+- coder
+- terraform
+kubeVersion: '>= 1.19.0-0'
+maintainers:
+- email: support@coder.com
+  name: Coder Technologies, Inc.
+  url: https://coder.com/contact
+name: coder-logstream-kube
+sources:
+- https://github.com/coder/coder-logstream-kube/tree/main
+type: application
+version: v0.0.13

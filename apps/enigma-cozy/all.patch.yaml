@@ -34,7 +34,7 @@ machine:
       - name: vfio_pci
       - name: vfio_iommu_type1
   install:
-    image: ghcr.io/cozystack/cozystack/talos:v1.11.3
+    image: ghcr.io/vgijssel/setup/talos:v1.11.6
   registries:
     mirrors:
       docker.io:

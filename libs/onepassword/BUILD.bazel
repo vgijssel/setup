@@ -1,4 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_task//task:defs.bzl", "cmd", "task")
 
 package(default_visibility = ["//visibility:public"])

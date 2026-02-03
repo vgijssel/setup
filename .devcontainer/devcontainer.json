@@ -4,13 +4,14 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
-  "remoteUser": "coder",
   "privileged": true,
+  "remoteUser": "coder",
   "overrideCommand": false,
+  "workspaceFolder": "/workspaces/setup",
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-vscode.vscode-json",
+        "anthropic.claude-code",
         "ms-azuretools.vscode-docker",
         "mkhl.direnv",
         "ms-python.python",
@@ -24,7 +25,8 @@
         "github.remotehub",
         "hashicorp.hcl",
         "hashicorp.terraform",
-        "Hamster.task-master-hamster"
+        "Hamster.task-master-hamster",
+        "jetmartin.bats"
       ],
       "settings": {
         "remote.portsAttributes": {

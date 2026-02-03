@@ -1,9 +1,24 @@
 id: docker
-language: javascript
+language: bash
 layer: library
 tags:
-  - scope.lib
-  - type.tool
-  - scope.lib
-  - type.tool
-tasks: {}
+  - docker
+  - buildx
+  - infrastructure
+
+tasks:
+  buildx_run:
+    command: scripts/buildx-run.sh
+    options:
+      cache: false
+      runInCI: true
+    inputs:
+      - file: scripts/buildx-run.sh
+
+  registry_run:
+    command: scripts/registry-run.sh
+    options:
+      cache: false
+      runInCI: true
+    inputs:
+      - file: scripts/registry-run.sh

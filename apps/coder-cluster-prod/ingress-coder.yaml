@@ -5,7 +5,11 @@ metadata:
   namespace: tenant-root
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    # WebSocket support - HTTP/1.1 required for connection upgrade
     nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    # Disable buffering for real-time WebSocket/streaming connections
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    # Extended timeouts to prevent WebSocket disconnections (default 60s)
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
@@ -25,7 +29,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: adfc788849eea4e4981f8e354b3491a3
+                name: a18c2be1873b84bcd8630e79298a07cf
                 port:
                   number: 80
     - host: "*.coder.enigma.vgijssel.nl"
@@ -35,6 +39,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: adfc788849eea4e4981f8e354b3491a3
+                name: a18c2be1873b84bcd8630e79298a07cf
                 port:
                   number: 80

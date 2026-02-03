@@ -37,14 +37,12 @@ tasks:
       - "!.terraform/**"
 
   workspace_test:
-    command: bats
-    args:
-      - tests/workspace-test.bats
+    command: bats tests/workspace-test.bats
     deps:
       - ~:test
     options:
       cache: true
       runInCI: false
     inputs:
-      - file: ./tests/goss.yaml
+      - file: ./tests/goss-workspace.yaml
       - file: ./tests/workspace-test.bats

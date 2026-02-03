@@ -4,6 +4,7 @@ resources:
   # Namespaces must be created first
   - namespace-flux-system.yaml
   - namespace-coder.yaml
+  - namespace-coder-workspace.yaml
   # FluxCD source
   - gitrepository-setup.yaml
   - kustomization-root.yaml
@@ -12,5 +13,6 @@ resources:
   - helmrelease-1password-secrets.yaml
   - helmrelease-registry.yaml
   - helmrelease-coder.yaml
+  - helmrelease-coder-logstream-kube.yaml
   # ConfigMaps deployed to coder namespace
   - configmap-workspace-config.yaml

@@ -14,6 +14,10 @@ data:
   ipv4-svc-cidr: 10.96.0.0/16
   oidc-enabled: "true"
   root-host: enigma.vgijssel.nl
+  values-keycloak: |
+    ingress:
+      annotations:
+        internal-networking/expose: "true"
   values-kubeovn: |
     kube-ovn:
       # MTU 1222 for KubeSpan compatibility
