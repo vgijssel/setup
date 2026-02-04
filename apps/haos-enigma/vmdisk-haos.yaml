@@ -1,0 +1,12 @@
+apiVersion: apps.cozystack.io/v1alpha1
+kind: VMDisk
+metadata:
+  name: haos
+  namespace: tenant-root
+spec:
+  optical: false
+  source:
+    http:
+      url: https://github.com/home-assistant/operating-system/releases/download/17.0/haos_ova-17.0.qcow2.xz
+  storage: 32Gi
+  storageClass: replicated

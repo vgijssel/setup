@@ -1,0 +1,16 @@
+apiVersion: apps.cozystack.io/v1alpha1
+kind: VMInstance
+metadata:
+  name: haos
+  namespace: tenant-root
+spec:
+  externalPorts:
+    - 22
+    - 8123
+  instanceType: u1.medium
+  running: true
+  disks:
+    - name: haos
+  external: true
+  instanceProfile: haos
+  externalMethod: WholeIP
