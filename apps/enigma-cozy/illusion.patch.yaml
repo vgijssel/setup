@@ -4,6 +4,8 @@ machine:
       wwid: naa.55cd2e414da16911
   nodeAnnotations:
     ovn.kubernetes.io/tunnel_interface: enp6s0.50
+  nodeLabels:
+    linstor.storage: enabled
   network:
     hostname: illusion
     nameservers:

@@ -1,0 +1,9 @@
+---
+apiVersion: piraeus.io/v1
+kind: LinstorCluster
+metadata:
+  name: linstorcluster
+  namespace: cozy-linstor
+spec:
+  nodeSelector:
+    linstor.storage: enabled
