@@ -15,4 +15,9 @@ resources:
   - helmrelease-tailscale-operator.yaml
   - namespace-ingress-nginx-gateway.yaml
   - helmrelease-ingress-nginx-gateway.yaml
-  - linstor-cluster-nodeselector.yaml
+patches:
+  - path: linstor-cluster-nodeselector.yaml
+    target:
+      kind: LinstorCluster
+      name: linstorcluster
+      namespace: cozy-linstor
