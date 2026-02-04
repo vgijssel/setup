@@ -12,5 +12,5 @@ spec:
   disks:
     - name: haos
   external: true
-  instanceProfile: haos
+  instanceProfile: ""
   externalMethod: WholeIP
