@@ -9,3 +9,5 @@ resources:
   # CozyStack VM resources
   - vmdisk-haos.yaml
   - vminstance-haos.yaml
+  # Kyverno policy for EFI boot
+  - kyverno-policy-haos-efi.yaml
