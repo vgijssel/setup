@@ -438,7 +438,11 @@ resource "kubernetes_deployment_v1" "workspace" {
         }
       }
       spec {
-        security_context {}
+        security_context {
+          # Add docker group (GID 995) as supplemental group for docker socket access
+          # Privileged mode alone doesn't load supplementary groups from /etc/group
+          supplemental_groups = [995]
+        }
         termination_grace_period_seconds = 30
 
         container {
