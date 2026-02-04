@@ -44,9 +44,6 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
     /tmp/docker-in-docker-install.sh && \
     rm /tmp/docker-in-docker-install.sh
 
-# Ensure coder user is in docker group (redundant with install script but explicit)
-RUN usermod -aG docker coder
-
 # Configure Docker daemon for nested docker-in-docker compatibility:
 # - vfs storage driver: overlay2 fails in nested environments with "invalid argument" errors
 # - buildkit enabled: modern build features and better caching
