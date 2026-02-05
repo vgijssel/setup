@@ -9,6 +9,7 @@ resources:
   - clusterpolicy-multus-memory.yaml
   - clusterpolicy-linstor-nodeselector.yaml
   - helmrelease-internal-networking.yaml
+  - helmrelease-underlay-networking.yaml
   - helmrelease-external-service.yaml
   - helmrelease-external-dns.yaml
   - helmrelease-external-dns-pihole.yaml

@@ -7,7 +7,7 @@ tags:
   - cluster.enigma
 tasks:
   bootstrap:
-    command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/haos-enigma/
+    command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/haos-prod/
     options:
       runInCI: false
   validate:

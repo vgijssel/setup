@@ -1,0 +1,25 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: underlay-networking
+  namespace: flux-system
+spec:
+  interval: 30m
+  driftDetection:
+    mode: enabled
+  chart:
+    spec:
+      chart: ./libs/underlay-networking
+      sourceRef:
+        kind: GitRepository
+        name: setup
+        namespace: flux-system
+      interval: 12h
+      reconcileStrategy: Revision
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3

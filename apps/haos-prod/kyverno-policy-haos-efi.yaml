@@ -3,12 +3,13 @@ kind: ClusterPolicy
 metadata:
   name: haos-vm-efi-boot
   annotations:
-    policies.kyverno.io/title: Inject EFI bootloader for HAOS VM
+    policies.kyverno.io/title: Inject EFI bootloader and HAOS preference for HAOS VM
     policies.kyverno.io/category: KubeVirt
     policies.kyverno.io/description: >-
-      Injects EFI bootloader configuration into the HAOS VirtualMachine
-      to ensure UEFI boot is always enabled. This is required because
-      the CozyStack VMInstance CRD doesn't expose firmware settings.
+      Replaces the instanceProfile preference with 'haos' VirtualMachineClusterPreference
+      and injects EFI bootloader with secure boot disabled. Required because Cozystack's
+      Helm chart schema doesn't support custom instanceProfiles - we use 'ubuntu' as a
+      placeholder in VMInstance and this policy replaces it with 'haos' at admission time.
 spec:
   rules:
     - name: inject-efi-bootloader

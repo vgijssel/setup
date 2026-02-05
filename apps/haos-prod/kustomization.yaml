@@ -4,11 +4,6 @@ resources:
   # FluxCD source
   - gitrepository-setup.yaml
   - kustomization-root.yaml
-  # KubeOVN underlay networking for admin LAN (192.168.1.0/24 with DHCP)
-  - provider-network-eno1.yaml
-  - vlan-eno1.yaml
-  - subnet-haos-lan.yaml
-  - nad-haos-lan.yaml
   # KubeVirt VM preferences
   - vmclusterpreference-haos.yaml
   # CozyStack VM resources
@@ -17,3 +12,4 @@ resources:
   # Kyverno policies
   - kyverno-policy-haos-efi.yaml
   - kyverno-policy-haos-lan-nic.yaml
+  - kyverno-policy-haos-live-migration.yaml

@@ -1,0 +1,20 @@
+apiVersion: apps.cozystack.io/v1alpha1
+kind: VMInstance
+metadata:
+  name: haos
+  namespace: tenant-root
+spec:
+  externalPorts:
+    - 22
+    - 8123
+  instanceType: u1.medium
+  running: true
+  disks:
+    - name: haos
+  external: true
+  # WORKAROUND: Using 'ubuntu' as placeholder because Cozystack's Helm chart schema
+  # doesn't support custom instanceProfiles. A Kyverno policy replaces this with
+  # 'haos' VirtualMachineClusterPreference which has UEFI enabled + secure boot disabled.
+  # TODO: Switch to instanceProfile: haos when Cozystack supports custom profiles.
+  instanceProfile: ubuntu
+  externalMethod: WholeIP

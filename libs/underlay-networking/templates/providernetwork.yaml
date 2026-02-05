@@ -1,0 +1,12 @@
+apiVersion: kubeovn.io/v1
+kind: ProviderNetwork
+metadata:
+  name: {{ .Values.providerNetwork.name }}
+  labels:
+    {{- include "underlay-networking.labels" . | nindent 4 }}
+spec:
+  defaultInterface: {{ .Values.providerNetwork.defaultInterface }}
+  {{- if .Values.providerNetwork.excludeNodes }}
+  excludeNodes:
+    {{- toYaml .Values.providerNetwork.excludeNodes | nindent 4 }}
+  {{- end }}
