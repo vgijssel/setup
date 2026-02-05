@@ -8,19 +8,19 @@ metadata:
   namespace: cozy-linstor
 data:
   configure-interfaces.sh: |
-    #!/usr/bin/env bash
+    #!/bin/sh
     # Configure LINSTOR node interfaces for point-to-point storage replication
     # Network topology:
     #   illusion <-> the-dome: 10.50.1.0/31
     #   illusion <-> the-toy-factory: 10.50.2.0/31
     #   the-dome <-> the-toy-factory: 10.50.3.0/31
-    set -euo pipefail
+    set -e
 
     # Function to create interface if it doesn't exist
     create_interface() {
-      local node=$1
-      local iface=$2
-      local ip=$3
+      node=$1
+      iface=$2
+      ip=$3
 
       if linstor node interface list "$node" 2>/dev/null | grep -q "$iface"; then
         echo "Interface $iface already exists on $node"
@@ -85,12 +85,12 @@ spec:
           # Use the same piraeus-server image as the linstor-controller
           image: quay.io/piraeusdatastore/piraeus-server:v1.27.1
           command:
-            - /bin/bash
+            - /bin/sh
             - /scripts/configure-interfaces.sh
           env:
             # Connect to the linstor-controller service
             - name: LS_CONTROLLERS
-              value: "linstor-controller.cozy-linstor.svc:3370"
+              value: "http://linstor-controller.cozy-linstor.svc:3370"
           volumeMounts:
             - name: scripts
               mountPath: /scripts
