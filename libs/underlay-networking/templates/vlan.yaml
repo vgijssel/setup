@@ -1,9 +1,9 @@
 apiVersion: kubeovn.io/v1
 kind: Vlan
 metadata:
-  name: {{ .Values.vlan.name }}
+  name: eno1-native
   labels:
     {{- include "underlay-networking.labels" . | nindent 4 }}
 spec:
-  id: {{ .Values.vlan.id }}
-  provider: {{ .Values.providerNetwork.name }}
+  id: 0
+  provider: eno1

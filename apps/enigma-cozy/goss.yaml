@@ -432,6 +432,22 @@ command:
       46.224.93.115: 8.8.8.8:53 healthy=true
     stderr: ""
     timeout: 60000
+  nodes_have_no_taints:
+    title: Validate no Kubernetes nodes have taints that could block DaemonSet scheduling
+    # Taints can prevent critical DaemonSets (prometheus-node-exporter, fluent-bit) from
+    # scheduling on nodes, causing gaps in metrics collection and logging. This regression
+    # test ensures no unexpected taints are applied to nodes. If a taint is needed, it should
+    # be explicitly documented and the relevant DaemonSets should have matching tolerations.
+    exec: |
+      kubectl get nodes -o json | jq -r '.items[] | "\(.metadata.name): \(.spec.taints // [])"' | sort
+    exit-status: 0
+    stdout: |
+      here-i-am: []
+      illusion: []
+      the-dome: []
+      the-toy-factory: []
+    stderr: ""
+    timeout: 10000
   controlplane_nodes_no_loadbalancer_exclusion_label:
     title: Validate control plane nodes do not have exclude-from-external-load-balancers label
     # With allowSchedulingOnControlPlanes: true, control plane nodes should participate

@@ -1,21 +1,20 @@
 apiVersion: kubeovn.io/v1
 kind: Subnet
 metadata:
-  name: {{ .Values.subnet.name }}
+  name: vm-lan
   labels:
     {{- include "underlay-networking.labels" . | nindent 4 }}
 spec:
-  protocol: {{ .Values.subnet.protocol }}
-  provider: {{ .Values.networkAttachmentDefinition.name }}.{{ .Values.networkAttachmentDefinition.namespace }}.ovn
-  vlan: {{ .Values.vlan.name }}
-  cidrBlock: {{ .Values.subnet.cidrBlock }}
-  gateway: {{ .Values.subnet.gateway }}
-  disableGatewayCheck: {{ .Values.subnet.disableGatewayCheck }}
-  natOutgoing: {{ .Values.subnet.natOutgoing }}
-  enableDHCP: {{ .Values.subnet.enableDHCP }}
-  dhcpV4Options: {{ .Values.subnet.dhcpV4Options | quote }}
-  {{- if .Values.subnet.excludeIps }}
+  protocol: IPv4
+  provider: vm-lan.tenant-root.ovn
+  vlan: eno1-native
+  cidrBlock: 192.168.1.0/24
+  gateway: 192.168.1.1
+  disableGatewayCheck: true
+  natOutgoing: false
+  enableDHCP: true
+  dhcpV4Options: ""
   excludeIps:
-    {{- toYaml .Values.subnet.excludeIps | nindent 4 }}
-  {{- end }}
-  u2oInterconnection: {{ .Values.subnet.u2oInterconnection }}
+    - 192.168.1.1..192.168.1.149
+    - 192.168.1.160..192.168.1.254
+  u2oInterconnection: false

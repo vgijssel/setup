@@ -4,12 +4,8 @@ resources:
   # FluxCD source
   - gitrepository-setup.yaml
   - kustomization-root.yaml
-  # KubeVirt VM preferences
-  - vmclusterpreference-haos.yaml
   # CozyStack VM resources
   - vmdisk-haos.yaml
   - vminstance-haos.yaml
   # Kyverno policies
-  - kyverno-policy-haos-efi.yaml
-  - kyverno-policy-haos-lan-nic.yaml
-  - kyverno-policy-haos-live-migration.yaml
+  - kyverno-policy-virtual-machine-patches.yaml

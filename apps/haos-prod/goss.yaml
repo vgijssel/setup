@@ -38,15 +38,6 @@ command:
     stderr: ""
     timeout: 10000
 
-  vmclusterpreference_haos_exists:
-    title: Validate VirtualMachineClusterPreference haos exists
-    exec: kubectl get virtualmachineclusterpreference haos -o name
-    exit-status: 0
-    stdout:
-      - virtualmachineclusterpreference.instancetype.kubevirt.io/haos
-    stderr: ""
-    timeout: 5000
-
   haos_service_loadbalancer_ip:
     title: Validate HAOS LoadBalancer service has external IP 192.168.50.101
     exec: kubectl get svc vm-instance-haos -n tenant-root -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
@@ -86,30 +77,30 @@ command:
     timeout: 5000
 
   # Phase 3: KubeOVN LAN Networking Tests (192.168.1.0/24 with DHCP)
-  subnet_haos_lan_ready:
-    title: Validate Subnet haos-lan exists and is validated
-    exec: kubectl get subnet haos-lan -o jsonpath='{.status.conditions[?(@.type=="Validated")].status}'
+  subnet_vm_lan_ready:
+    title: Validate Subnet vm-lan exists and is validated
+    exec: kubectl get subnet vm-lan -o jsonpath='{.status.conditions[?(@.type=="Validated")].status}'
     exit-status: 0
     stdout:
       - "True"
     stderr: ""
     timeout: 10000
 
-  subnet_haos_lan_dhcp_enabled:
-    title: Validate Subnet haos-lan has DHCP enabled
-    exec: kubectl get subnet haos-lan -o jsonpath='{.spec.enableDHCP}'
+  subnet_vm_lan_dhcp_enabled:
+    title: Validate Subnet vm-lan has DHCP enabled
+    exec: kubectl get subnet vm-lan -o jsonpath='{.spec.enableDHCP}'
     exit-status: 0
     stdout:
       - "true"
     stderr: ""
     timeout: 5000
 
-  nad_haos_lan_exists:
-    title: Validate NetworkAttachmentDefinition haos-lan exists in tenant-root
-    exec: kubectl get network-attachment-definition haos-lan -n tenant-root -o name
+  nad_vm_lan_exists:
+    title: Validate NetworkAttachmentDefinition vm-lan exists in tenant-root
+    exec: kubectl get network-attachment-definition vm-lan -n tenant-root -o name
     exit-status: 0
     stdout:
-      - networkattachmentdefinition.k8s.cni.cncf.io/haos-lan
+      - networkattachmentdefinition.k8s.cni.cncf.io/vm-lan
     stderr: ""
     timeout: 5000
 
@@ -122,9 +113,9 @@ command:
     stderr: ""
     timeout: 10000
 
-  kyverno_policy_haos_lan_nic_ready:
-    title: Validate Kyverno policy haos-vm-lan-nic is ready
-    exec: kubectl get clusterpolicy haos-vm-lan-nic -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+  kyverno_policy_haos_vm_patches_ready:
+    title: Validate Kyverno policy haos-vm-patches is ready
+    exec: kubectl get clusterpolicy haos-vm-patches -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
     exit-status: 0
     stdout:
       - "True"
@@ -150,6 +141,24 @@ command:
     timeout: 10000
 
   # Phase 4: Live Migration Tests
+  vmi_haos_lan_bridge_binding:
+    title: Validate HAOS VMI LAN interface uses bridge binding (required for KubeOVN live migration)
+    exec: kubectl get vmi vm-instance-haos -n tenant-root -o jsonpath='{.spec.domain.devices.interfaces[?(@.name=="lan")].bridge}'
+    exit-status: 0
+    stdout:
+      - "{}"
+    stderr: ""
+    timeout: 10000
+
+  vm_haos_bridge_migration_annotation:
+    title: Validate HAOS VM has bridge network live migration annotation
+    exec: kubectl get vm vm-instance-haos -n tenant-root -o jsonpath='{.spec.template.metadata.annotations.kubevirt\.io/allow-pod-bridge-network-live-migration}'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 5000
+
   vmi_haos_live_migratable:
     title: Validate HAOS VMI is live-migratable
     exec: kubectl get vmi vm-instance-haos -n tenant-root -o jsonpath='{.status.conditions[?(@.type=="LiveMigratable")].status}'
@@ -168,15 +177,6 @@ command:
     stderr: ""
     timeout: 5000
 
-  kyverno_policy_haos_live_migration_ready:
-    title: Validate Kyverno policy haos-vm-live-migration is ready
-    exec: kubectl get clusterpolicy haos-vm-live-migration -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
-    exit-status: 0
-    stdout:
-      - "True"
-    stderr: ""
-    timeout: 10000
-
 http:
   http://192.168.50.101:8123:
     title: Validate Home Assistant web interface is accessible via overlay
@@ -190,6 +190,12 @@ http:
     timeout: 30000
     allow-insecure: true
 
+  http://192.168.50.100:
+    title: Validate ingress controller is accessible via MetalLB (regression test)
+    status: 404
+    timeout: 10000
+    allow-insecure: true
+
 addr:
   tcp://192.168.50.101:8123:
     title: Validate Home Assistant port 8123 is reachable via overlay
@@ -198,6 +204,11 @@ addr:
 
   tcp://192.168.1.150:8123:
     title: Validate Home Assistant port 8123 is reachable via admin LAN
+    reachable: true
+    timeout: 5000
+
+  tcp://192.168.50.100:80:
+    title: Validate ingress controller port 80 is reachable via MetalLB (regression test)
     reachable: true
     timeout: 5000
 

@@ -1,8 +1,8 @@
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
-  name: {{ .Values.networkAttachmentDefinition.name }}
-  namespace: {{ .Values.networkAttachmentDefinition.namespace }}
+  name: vm-lan
+  namespace: tenant-root
   labels:
     {{- include "underlay-networking.labels" . | nindent 4 }}
 spec:
@@ -11,5 +11,5 @@ spec:
       "cniVersion": "0.3.1",
       "type": "kube-ovn",
       "server_socket": "/run/openvswitch/kube-ovn-daemon.sock",
-      "provider": "{{ .Values.networkAttachmentDefinition.name }}.{{ .Values.networkAttachmentDefinition.namespace }}.ovn"
+      "provider": "vm-lan.tenant-root.ovn"
     }
