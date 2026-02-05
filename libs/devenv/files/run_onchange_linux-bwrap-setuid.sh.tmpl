@@ -2,14 +2,14 @@
 set -euo pipefail
 
 # Make bwrap setuid for vault-shell in Kubernetes containers
-# Hash: {{ "bwrap-setuid-v1" | sha256sum }}
+# Hash: {{ "bwrap-setuid-v2" | sha256sum }}
 
 echo "🔧 Configuring bwrap for namespace isolation..."
 
 # Check if bwrap exists
 if ! command -v bwrap >/dev/null 2>&1; then
-    echo "⚠️  bwrap not found, skipping setuid configuration"
-    exit 0
+    echo "❌ bwrap not found - bwrap is required for vault-shell to work"
+    exit 1
 fi
 
 # Check if bwrap is already setuid
