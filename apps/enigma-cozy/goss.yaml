@@ -432,6 +432,17 @@ command:
       46.224.93.115: 8.8.8.8:53 healthy=true
     stderr: ""
     timeout: 60000
+  controlplane_nodes_no_loadbalancer_exclusion_label:
+    title: Validate control plane nodes do not have exclude-from-external-load-balancers label
+    # With allowSchedulingOnControlPlanes: true, control plane nodes should participate
+    # in load balancing. Talos adds this label by default since v1.8.0, but we remove it
+    # via strategic merge patch in all.patch.yaml to allow MetalLB to route traffic to them.
+    exec: kubectl get nodes -l node-role.kubernetes.io/control-plane,node.kubernetes.io/exclude-from-external-load-balancers --no-headers 2>&1
+    exit-status: 0
+    stdout:
+      - "No resources found"
+    stderr: ""
+    timeout: 10000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip
