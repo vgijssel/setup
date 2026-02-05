@@ -15,22 +15,24 @@ data:
     # These apply to new connections and can be overridden per-resource
     # Reference: https://cozystack.io/docs/storage/drbd-tuning/
 
-    # PeerDevice options for resync tuning
-    # c-max-rate: 2 GB/s (~80% of 25Gbps, NVMe becomes bottleneck at 2.4 GB/s)
-    linstor controller drbd-options --peer-device-options --c-max-rate 2048000 || echo "c-max-rate already set or not supported"
-    # c-min-rate: 680 MB/s (1/3 of c-max-rate per LINBIT recommendation)
-    linstor controller drbd-options --peer-device-options --c-min-rate 696320 || echo "c-min-rate already set or not supported"
-    # resync-rate: starting point for dynamic controller
-    linstor controller drbd-options --peer-device-options --resync-rate 696320 || echo "resync-rate already set or not supported"
-    # c-plan-ahead: 2 seconds lookahead for larger bursts
-    linstor controller drbd-options --peer-device-options --c-plan-ahead 20 || echo "c-plan-ahead already set or not supported"
-    # c-fill-target: ~20 MiB buffer fill target
-    linstor controller drbd-options --peer-device-options --c-fill-target 20480 || echo "c-fill-target already set or not supported"
+    # All options in single command
+    # - c-max-rate: 2 GB/s (~80% of 25Gbps, NVMe becomes bottleneck at 2.4 GB/s)
+    # - c-min-rate: 680 MB/s (1/3 of c-max-rate per LINBIT recommendation)
+    # - resync-rate: starting point for dynamic controller
+    # - c-plan-ahead: 2 seconds lookahead for larger bursts (in 1/10 seconds)
+    # - c-fill-target: ~20 MiB buffer fill target (in sectors)
+    # - max-buffers: number of buffers for 25Gbps
+    # - sndbuf-size/rcvbuf-size: 32MB buffers for high throughput
 
-    # Network buffer tuning for 25Gbps throughput
-    linstor controller drbd-options --net-options --max-buffers 65536 || echo "max-buffers already set or not supported"
-    linstor controller drbd-options --net-options --sndbuf-size 33554432 || echo "sndbuf-size already set or not supported"
-    linstor controller drbd-options --net-options --rcvbuf-size 33554432 || echo "rcvbuf-size already set or not supported"
+    linstor controller drbd-options \
+      --c-max-rate 2048000 \
+      --c-min-rate 696320 \
+      --resync-rate 696320 \
+      --c-plan-ahead 20 \
+      --c-fill-target 20480 \
+      --max-buffers 65536 \
+      --sndbuf-size 33554432 \
+      --rcvbuf-size 33554432
 
     echo "DRBD options configured. Verifying..."
     linstor controller drbd-options
@@ -44,7 +46,7 @@ metadata:
   namespace: cozy-linstor
   annotations:
     # Re-run job when script changes
-    checksum/script: "v1"
+    checksum/script: "v2"
 spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 3
