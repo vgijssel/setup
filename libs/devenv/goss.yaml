@@ -184,6 +184,7 @@ command:
 
   starship_prompt_integration:
     title: Starship prompt is properly integrated with zsh
+    skip: {{ and (ne .Env.IS_MACOS "true") (ne .Env.IS_LINUX_CONTAINER "true") }}
     # Passing -i to similate an interactive shell
     exec: zsh -ic 'env'
     exit-status: 0
