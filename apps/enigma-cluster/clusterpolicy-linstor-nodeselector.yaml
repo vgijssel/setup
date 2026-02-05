@@ -1,0 +1,28 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: mutate-linstor-nodeselector
+  annotations:
+    policies.kyverno.io/title: Add NodeSelector to LinstorCluster
+    policies.kyverno.io/description: >-
+      Mutates the LinstorCluster resource to add a nodeSelector that restricts
+      linstor satellite pods to only run on nodes labeled with linstor.storage=enabled.
+      This prevents linstor storage pods from scheduling on gateway nodes while still
+      allowing metrics collection pods to run on all nodes.
+spec:
+  rules:
+    - name: add-linstor-nodeselector
+      match:
+        any:
+          - resources:
+              kinds:
+                - LinstorCluster
+              names:
+                - linstorcluster
+              namespaces:
+                - cozy-linstor
+      mutate:
+        patchStrategicMerge:
+          spec:
+            nodeSelector:
+              linstor.storage: enabled

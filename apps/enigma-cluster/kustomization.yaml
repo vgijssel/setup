@@ -7,6 +7,7 @@ resources:
   - helmrelease-1password-secrets.yaml
   - helmrelease-kyverno.yaml
   - clusterpolicy-multus-memory.yaml
+  - clusterpolicy-linstor-nodeselector.yaml
   - helmrelease-internal-networking.yaml
   - helmrelease-external-service.yaml
   - helmrelease-external-dns.yaml
@@ -15,9 +16,3 @@ resources:
   - helmrelease-tailscale-operator.yaml
   - namespace-ingress-nginx-gateway.yaml
   - helmrelease-ingress-nginx-gateway.yaml
-patches:
-  - path: linstor-cluster-nodeselector.yaml
-    target:
-      kind: LinstorCluster
-      name: linstorcluster
-      namespace: cozy-linstor
