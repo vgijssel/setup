@@ -132,7 +132,7 @@ metadata:
     app: linstor-storage-network
   annotations:
     # Bump version to recreate job
-    config-version: "v2"
+    config-version: "v3"
 spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 5
@@ -145,14 +145,62 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: configure
-          image: quay.io/piraeusdatastore/piraeus-server:v1.27.1
-          command: ["/bin/sh", "/scripts/configure-storage-network.sh"]
-          env:
-            - name: LS_CONTROLLERS
-              value: "https://linstor-controller.cozy-linstor.svc:3371"
-          volumeMounts:
-            - name: scripts
-              mountPath: /scripts
+          image: bitnami/kubectl:1.31
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Running LINSTOR configuration via kubectl exec..."
+              kubectl exec -n cozy-linstor deployment/linstor-controller -- /bin/sh /dev/stdin << 'SCRIPT'
+              set -e
+              echo "========================================"
+              echo "LINSTOR Storage Network Configuration"
+              echo "========================================"
+
+              create_interface() {
+                node=$1; iface=$2; ip=$3
+                if linstor node interface list "$node" 2>/dev/null | grep -q "$iface"; then
+                  echo "  [OK] Interface $iface already exists on $node"
+                else
+                  echo "  [CREATE] Interface $iface on $node with IP $ip"
+                  linstor node interface create "$node" "$iface" "$ip"
+                fi
+              }
+
+              echo "=== Step 1: Node Interfaces ==="
+              create_interface illusion storage-dome 10.50.1.0
+              create_interface illusion storage-toyfactory 10.50.2.1
+              create_interface the-dome storage-illusion 10.50.1.1
+              create_interface the-dome storage-toyfactory 10.50.3.0
+              create_interface the-toy-factory storage-illusion 10.50.2.0
+              create_interface the-toy-factory storage-dome 10.50.3.1
+
+              create_path() {
+                node1=$1; node2=$2; path_name=$3; iface1=$4; iface2=$5
+                if linstor node-connection path list "$node1" "$node2" 2>/dev/null | grep -q "$path_name"; then
+                  echo "  [OK] Path $path_name exists between $node1 and $node2"
+                else
+                  echo "  [CREATE] Path $path_name: $node1 ($iface1) <-> $node2 ($iface2)"
+                  linstor node-connection path create "$node1" "$node2" "$path_name" "$iface1" "$iface2"
+                fi
+              }
+
+              echo "=== Step 2: Node-Connection Paths ==="
+              create_path illusion the-dome direct storage-dome storage-illusion
+              create_path illusion the-toy-factory direct storage-toyfactory storage-illusion
+              create_path the-dome the-toy-factory direct storage-toyfactory storage-dome
+
+              echo "=== Step 3: DRBD Options for 25Gbps ==="
+              linstor controller drbd-options \
+                --c-max-rate 2048000 --c-min-rate 696320 --resync-rate 696320 \
+                --c-plan-ahead 20 --c-fill-target 20480 \
+                --max-buffers 65536 --sndbuf-size 33554432 --rcvbuf-size 33554432 || echo "[WARN] Some options may not be supported"
+
+              echo "=== Verification ==="
+              linstor node interface list illusion
+              linstor node interface list the-dome
+              linstor node interface list the-toy-factory
+              echo "Done!"
+              SCRIPT
       volumes:
         - name: scripts
           configMap:
