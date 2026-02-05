@@ -1,0 +1,10 @@
+apiVersion: kubeovn.io/v1
+kind: ProviderNetwork
+metadata:
+  name: eno1
+  labels:
+    {{- include "underlay-networking.labels" . | nindent 4 }}
+spec:
+  defaultInterface: eno1
+  excludeNodes:
+    - here-i-am

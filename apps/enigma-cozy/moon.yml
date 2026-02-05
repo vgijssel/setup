@@ -34,6 +34,12 @@ tasks:
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o /secrets/enigma-cozy/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
+      # Remove exclude-from-external-load-balancers label from controlplane nodes
+      # This label is added by Talos defaults after patches are applied, so we must patch post-generation
+      # See: https://github.com/siderolabs/talos/issues/9325
+      for node in illusion the-dome the-toy-factory; do
+        talosctl machineconfig patch /secrets/enigma-cozy/dist/${node}.yaml --patch @controlplane-post.patch.yaml -o /secrets/enigma-cozy/dist/${node}.yaml
+      done
     options:
       runInCI: false
   apply-bootstrap:
@@ -60,6 +66,12 @@ tasks:
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o /secrets/enigma-cozy/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
+      # Remove exclude-from-external-load-balancers label from controlplane nodes
+      # This label is added by Talos defaults after patches are applied, so we must patch post-generation
+      # See: https://github.com/siderolabs/talos/issues/9325
+      for node in illusion the-dome the-toy-factory; do
+        talosctl machineconfig patch /secrets/enigma-cozy/dist/${node}.yaml --patch @controlplane-post.patch.yaml -o /secrets/enigma-cozy/dist/${node}.yaml
+      done
     options:
       runInCI: false
   apply:

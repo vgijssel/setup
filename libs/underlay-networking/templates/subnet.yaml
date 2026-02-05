@@ -1,0 +1,20 @@
+apiVersion: kubeovn.io/v1
+kind: Subnet
+metadata:
+  name: vm-lan
+  labels:
+    {{- include "underlay-networking.labels" . | nindent 4 }}
+spec:
+  protocol: IPv4
+  provider: vm-lan.tenant-root.ovn
+  vlan: eno1-native
+  cidrBlock: 192.168.1.0/24
+  gateway: 192.168.1.1
+  disableGatewayCheck: true
+  natOutgoing: false
+  enableDHCP: true
+  dhcpV4Options: ""
+  excludeIps:
+    - 192.168.1.1..192.168.1.149
+    - 192.168.1.160..192.168.1.254
+  u2oInterconnection: false

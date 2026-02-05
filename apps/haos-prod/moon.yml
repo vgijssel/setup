@@ -1,0 +1,16 @@
+language: javascript
+layer: application
+tags:
+  - type.application
+  - scope.home-automation
+  - platform.kubevirt
+  - cluster.enigma
+tasks:
+  bootstrap:
+    command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/haos-prod/
+    options:
+      runInCI: false
+  validate:
+    command: goss validate
+    options:
+      runInCI: false

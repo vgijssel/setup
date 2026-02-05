@@ -1,0 +1,85 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: haos-vm-patches
+  annotations:
+    policies.kyverno.io/title: HAOS Virtual Machine Configuration Patches
+    policies.kyverno.io/category: KubeVirt
+    policies.kyverno.io/description: >-
+      Consolidated Kyverno policy for HAOS VirtualMachine configuration.
+      Includes: (1) LAN network interface for direct Layer 2 connectivity
+      to the 192.168.1.0/24 admin LAN using KubeOVN underlay subnet with
+      bridge binding (virtio model default, optimal for live migration),
+      (2) EFI bootloader with secure boot disabled, and (3) live migration
+      support with bridge networking and KubeOVN IP/MAC preservation.
+      See docs/live-migration-underlay-best-practices.md for research details.
+spec:
+  rules:
+    - name: inject-lan-interface
+      match:
+        any:
+          - resources:
+              kinds:
+                - kubevirt.io/v1/VirtualMachine
+              names:
+                - vm-instance-haos
+              namespaces:
+                - tenant-root
+      preconditions:
+        all:
+          # Only apply if 'lan' network doesn't already exist
+          - key: lan
+            operator: AnyNotIn
+            value: "{{ request.object.spec.template.spec.networks[].name || `[]` }}"
+      mutate:
+        patchesJson6902: |-
+          - op: add
+            path: /spec/template/spec/domain/devices/interfaces/-
+            value:
+              name: lan
+              bridge: {}
+          - op: add
+            path: /spec/template/spec/networks/-
+            value:
+              name: lan
+              multus:
+                networkName: tenant-root/vm-lan
+    - name: inject-efi-bootloader
+      match:
+        any:
+          - resources:
+              kinds:
+                - kubevirt.io/v1/VirtualMachine
+              names:
+                - vm-instance-haos
+              namespaces:
+                - tenant-root
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                domain:
+                  firmware:
+                    bootloader:
+                      efi:
+                        secureBoot: false
+    - name: enable-live-migration
+      match:
+        any:
+          - resources:
+              kinds:
+                - kubevirt.io/v1/VirtualMachine
+              names:
+                - vm-instance-haos
+              namespaces:
+                - tenant-root
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              metadata:
+                annotations:
+                  kubevirt.io/allow-pod-bridge-network-live-migration: "true"
+              spec:
+                evictionStrategy: LiveMigrate
