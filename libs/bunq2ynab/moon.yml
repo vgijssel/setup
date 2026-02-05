@@ -11,13 +11,20 @@ tasks:
     command: bazel build //libs/bunq2ynab:bunq2ynab_binary
     options:
       cache: true
-    local: true
+      runInCI: false
+      interactive: true
   list-budget:
     command: bazel run //libs/bunq2ynab:list_budget
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   list-user:
     command: bazel run //libs/bunq2ynab:list_user
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   sync:
     command: bazel run //libs/bunq2ynab:sync
-    local: true
+    options:
+      runInCI: false
+      interactive: true

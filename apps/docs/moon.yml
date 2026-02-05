@@ -29,9 +29,13 @@ tasks:
     command: mkdocs serve -a localhost:8000
     env:
       CWD: .
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   publish:
     command: mkdocs gh-deploy --clean
     env:
       CWD: .
-    local: true
+    options:
+      runInCI: false
+      interactive: true

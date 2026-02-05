@@ -12,7 +12,9 @@ tags:
 tasks:
   apply:
     command: chezmoi-wrapper apply --force --verbose
-    local: true
+    options:
+      runInCI: false
+      interactive: true
 
   test:
     script: chezmoi-wrapper apply --force --verbose && goss validate
