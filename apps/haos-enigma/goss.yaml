@@ -1,0 +1,182 @@
+# Goss tests for HAOS (Home Assistant OS) deployment validation
+# Run with: goss validate or moon run haos-enigma:validate
+command:
+  # Phase 1: Core HAOS deployment tests
+  vmdisk_haos_ready:
+    title: Validate VMDisk haos exists and HelmRelease succeeded
+    exec: kubectl get vmdisk haos -n tenant-root -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+    exit-status: 0
+    stdout:
+      - "True"
+    stderr: ""
+    timeout: 10000
+
+  vminstance_haos_exists:
+    title: Validate VMInstance haos exists
+    exec: kubectl get vminstance haos -n tenant-root -o name
+    exit-status: 0
+    stdout:
+      - vminstance.apps.cozystack.io/haos
+    stderr: ""
+    timeout: 10000
+
+  kubevirt_vm_running:
+    title: Validate KubeVirt VirtualMachine is Running
+    exec: kubectl get vm vm-instance-haos -n tenant-root -o jsonpath='{.status.printableStatus}'
+    exit-status: 0
+    stdout:
+      - Running
+    stderr: ""
+    timeout: 10000
+
+  kubevirt_vmi_running:
+    title: Validate KubeVirt VirtualMachineInstance is Running with Ready=True
+    exec: kubectl get vmi vm-instance-haos -n tenant-root -o jsonpath='{.status.phase}'
+    exit-status: 0
+    stdout:
+      - Running
+    stderr: ""
+    timeout: 10000
+
+  vmclusterpreference_haos_exists:
+    title: Validate VirtualMachineClusterPreference haos exists
+    exec: kubectl get virtualmachineclusterpreference haos -o name
+    exit-status: 0
+    stdout:
+      - virtualmachineclusterpreference.instancetype.kubevirt.io/haos
+    stderr: ""
+    timeout: 5000
+
+  haos_service_loadbalancer_ip:
+    title: Validate HAOS LoadBalancer service has external IP 192.168.50.101
+    exec: kubectl get svc vm-instance-haos -n tenant-root -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+    exit-status: 0
+    stdout:
+      - "192.168.50.101"
+    stderr: ""
+    timeout: 10000
+
+  haos_service_ports:
+    title: Validate HAOS service exposes SSH (22) and Home Assistant (8123) ports
+    exec: kubectl get svc vm-instance-haos -n tenant-root -o jsonpath='{.spec.ports[*].port}'
+    exit-status: 0
+    stdout:
+      - /22/
+      - /8123/
+    stderr: ""
+    timeout: 5000
+
+  # Phase 2: KubeOVN Provider Network (shared infrastructure for LAN)
+  providernetwork_eno1_ready:
+    title: Validate ProviderNetwork eno1 exists and is ready
+    exec: kubectl get provider-network eno1 -o jsonpath='{.status.ready}'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 10000
+
+  vlan_eno1_native_exists:
+    title: Validate VLAN eno1-native exists
+    exec: kubectl get vlan eno1-native -o name
+    exit-status: 0
+    stdout:
+      - vlan.kubeovn.io/eno1-native
+    stderr: ""
+    timeout: 5000
+
+  # Phase 3: KubeOVN LAN Networking Tests (192.168.1.0/24 with DHCP)
+  subnet_haos_lan_ready:
+    title: Validate Subnet haos-lan exists and is validated
+    exec: kubectl get subnet haos-lan -o jsonpath='{.status.conditions[?(@.type=="Validated")].status}'
+    exit-status: 0
+    stdout:
+      - "True"
+    stderr: ""
+    timeout: 10000
+
+  subnet_haos_lan_dhcp_enabled:
+    title: Validate Subnet haos-lan has DHCP enabled
+    exec: kubectl get subnet haos-lan -o jsonpath='{.spec.enableDHCP}'
+    exit-status: 0
+    stdout:
+      - "true"
+    stderr: ""
+    timeout: 5000
+
+  nad_haos_lan_exists:
+    title: Validate NetworkAttachmentDefinition haos-lan exists in tenant-root
+    exec: kubectl get network-attachment-definition haos-lan -n tenant-root -o name
+    exit-status: 0
+    stdout:
+      - networkattachmentdefinition.k8s.cni.cncf.io/haos-lan
+    stderr: ""
+    timeout: 5000
+
+  vmi_haos_lan_interface:
+    title: Validate HAOS VMI has LAN network interface
+    exec: kubectl get vmi vm-instance-haos -n tenant-root -o jsonpath='{.spec.networks[?(@.name=="lan")].name}'
+    exit-status: 0
+    stdout:
+      - lan
+    stderr: ""
+    timeout: 10000
+
+  kyverno_policy_haos_lan_nic_ready:
+    title: Validate Kyverno policy haos-vm-lan-nic is ready
+    exec: kubectl get clusterpolicy haos-vm-lan-nic -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+    exit-status: 0
+    stdout:
+      - "True"
+    stderr: ""
+    timeout: 10000
+
+  vmi_haos_exactly_two_networks:
+    title: Validate HAOS VMI has exactly 2 network interfaces (default + lan)
+    exec: kubectl get vmi vm-instance-haos -n tenant-root -o jsonpath='{.spec.networks[*].name}' | tr ' ' '\n' | wc -l | tr -d ' '
+    exit-status: 0
+    stdout:
+      - "2"
+    stderr: ""
+    timeout: 10000
+
+  vmi_haos_network_names:
+    title: Validate HAOS VMI network names are 'default' and 'lan' only
+    exec: kubectl get vmi vm-instance-haos -n tenant-root -o jsonpath='{.spec.networks[*].name}' | tr ' ' '\n' | sort | tr '\n' ' ' | sed 's/ $//'
+    exit-status: 0
+    stdout:
+      - "default lan"
+    stderr: ""
+    timeout: 10000
+
+http:
+  http://192.168.50.101:8123:
+    title: Validate Home Assistant web interface is accessible via overlay
+    status: 200
+    timeout: 30000
+    allow-insecure: true
+
+  http://192.168.1.150:8123:
+    title: Validate Home Assistant web interface is accessible via admin LAN
+    status: 200
+    timeout: 30000
+    allow-insecure: true
+
+addr:
+  tcp://192.168.50.101:8123:
+    title: Validate Home Assistant port 8123 is reachable via overlay
+    reachable: true
+    timeout: 5000
+
+  tcp://192.168.1.150:8123:
+    title: Validate Home Assistant port 8123 is reachable via admin LAN
+    reachable: true
+    timeout: 5000
+
+  tcp://192.168.50.101:22:
+    title: Validate SSH port 22 is reachable on HAOS (requires SSH add-on enabled)
+    # SSH is not enabled by default in HAOS - requires installing SSH add-on
+    # Skip this test until SSH add-on is configured
+    skip: true
+    reachable: true
+    timeout: 5000

@@ -1,0 +1,12 @@
+# KubeOVN VLAN for untagged traffic on eno1 provider network
+# VLAN ID 0 means no VLAN tagging (native/untagged traffic)
+---
+apiVersion: kubeovn.io/v1
+kind: Vlan
+metadata:
+  name: eno1-native
+spec:
+  # VLAN ID 0 = untagged/native traffic
+  id: 0
+  # Reference to the ProviderNetwork
+  provider: eno1

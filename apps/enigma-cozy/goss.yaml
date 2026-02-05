@@ -476,6 +476,13 @@ addr:
     reachable: true
     timeout: 5000
 http:
+  http://192.168.50.100:
+    title: Validate MetalLB L2 advertisement is working (nginx ingress reachable via LoadBalancer IP)
+    # MetalLB assigns 192.168.50.100 to the nginx ingress controller service.
+    # This validates that MetalLB speakers are announcing the IP via L2/ARP
+    # and traffic is being routed to the ingress pods. Returns 404 from default backend.
+    status: 404
+    timeout: 10000
   https://dashboard.enigma.vgijssel.nl:
     title: Validate CozyStack dashboard is accessible
     status: 200

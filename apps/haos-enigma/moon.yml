@@ -10,3 +10,7 @@ tasks:
     command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/haos-enigma/
     options:
       runInCI: false
+  validate:
+    command: goss validate
+    options:
+      runInCI: false
