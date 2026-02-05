@@ -16,6 +16,8 @@ spec:
         namespace: flux-system
       interval: 12h
       reconcileStrategy: Revision
+  dependsOn:
+    - name: kyverno
   install:
     createNamespace: true
     remediation:

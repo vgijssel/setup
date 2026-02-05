@@ -52,7 +52,7 @@ command:
     exec: kubectl get svc vm-instance-haos -n tenant-root -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
     exit-status: 0
     stdout:
-      - "192.168.50.101"
+      - 192.168.50.101
     stderr: ""
     timeout: 10000
 
@@ -145,7 +145,7 @@ command:
     exec: kubectl get vmi vm-instance-haos -n tenant-root -o jsonpath='{.spec.networks[*].name}' | tr ' ' '\n' | sort | tr '\n' ' ' | sed 's/ $//'
     exit-status: 0
     stdout:
-      - "default lan"
+      - default lan
     stderr: ""
     timeout: 10000
 
@@ -164,7 +164,7 @@ command:
     exec: kubectl get vm vm-instance-haos -n tenant-root -o jsonpath='{.spec.template.spec.evictionStrategy}'
     exit-status: 0
     stdout:
-      - "LiveMigrate"
+      - LiveMigrate
     stderr: ""
     timeout: 5000
 

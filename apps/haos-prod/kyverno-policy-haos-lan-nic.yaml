@@ -25,7 +25,7 @@ spec:
       preconditions:
         all:
           # Only apply if 'lan' network doesn't already exist
-          - key: "lan"
+          - key: lan
             operator: AnyNotIn
             value: "{{ request.object.spec.template.spec.networks[].name || `[]` }}"
       mutate:

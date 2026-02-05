@@ -440,7 +440,7 @@ command:
     exec: kubectl get nodes -l node-role.kubernetes.io/control-plane,node.kubernetes.io/exclude-from-external-load-balancers --no-headers 2>&1
     exit-status: 0
     stdout:
-      - "No resources found"
+      - No resources found
     stderr: ""
     timeout: 10000
 addr:
