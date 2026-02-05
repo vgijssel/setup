@@ -43,5 +43,12 @@ export default {
         profile: "vgijssel.nl",
       },
     },
+    {
+      match: "*.enigma.vgijssel.nl/*",
+      browser: {
+        name: "Google Chrome",
+        profile: "vgijssel.nl",
+      },
+    },
   ],
 };
