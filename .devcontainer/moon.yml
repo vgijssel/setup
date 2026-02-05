@@ -46,7 +46,7 @@ tasks:
     inputs:
       - file: .docker-version
       - file: tests/test.bats
-      - file: tests/goss.yaml
+      - file: /libs/devenv/goss.yaml
     deps:
       - ~:build
     options:

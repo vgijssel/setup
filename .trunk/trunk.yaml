@@ -46,7 +46,6 @@ lint:
         - third_party/vendir/shell
         - .specify/**
         - libs/devenv/goss.yaml
-        - .devcontainer/tests/goss.yaml
         # VCR cassettes contain recorded HTTP interactions with secrets
         - libs/fleet-mcp/tests/cassettes/**
     # Ignore yamllint syntax errors for Helm chart templates
@@ -59,7 +58,6 @@ lint:
         - libs/underlay-networking/templates/**
         - libs/registry/templates/**
         - libs/devenv/goss.yaml
-        - .devcontainer/tests/goss.yaml
     # Ignore prettier syntax errors for Helm templates with complex syntax
     - linters: [prettier]
       paths:
