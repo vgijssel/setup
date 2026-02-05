@@ -776,6 +776,36 @@ module "vscode" {
   order    = 1
 }
 
+# code-server (VS Code in browser) with automatic extension installation
+module "code-server" {
+  count                    = data.coder_workspace.me.start_count
+  source                   = "registry.coder.com/modules/code-server/coder"
+  version                  = "1.1.0"
+  agent_id                 = coder_agent.main.id
+  folder                   = "/workspaces/setup"
+  order                    = 2
+  subdomain                = true
+  auto_install_extensions  = true
+  extensions = [
+    "anthropic.claude-code",
+    "ms-azuretools.vscode-docker",
+    "mkhl.direnv",
+    "ms-python.python",
+    "bee.git-temporal-vscode",
+    "github.copilot",
+    "github.copilot-chat",
+    "openai.chatgpt",
+    "vspacecode.vspacecode",
+    "alexanderbast.vscode-snazzy",
+    "tilt-dev.tiltfile",
+    "github.remotehub",
+    "hashicorp.hcl",
+    "hashicorp.terraform",
+    "Hamster.task-master-hamster",
+    "jetmartin.bats"
+  ]
+}
+
 # ====================
 # External Apps
 # ====================
