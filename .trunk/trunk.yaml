@@ -56,6 +56,7 @@ lint:
         - libs/1password-secrets/templates/**
         - libs/internal-networking/templates/**
         - libs/external-service/templates/**
+        - libs/underlay-networking/templates/**
         - libs/registry/templates/**
         - libs/devenv/goss.yaml
         - .devcontainer/tests/goss.yaml
@@ -67,6 +68,7 @@ lint:
         - libs/internal-networking/templates/**
         - libs/external-service/templates/**
         - libs/registry/templates/**
+        - libs/underlay-networking/templates/**
   enabled:
     - ansible-lint@26.1.1
     - actionlint@1.7.10
