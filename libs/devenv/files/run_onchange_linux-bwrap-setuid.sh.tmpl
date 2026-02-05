@@ -2,7 +2,13 @@
 set -euo pipefail
 
 # Make bwrap setuid for vault-shell in Kubernetes containers
-# Hash: {{ "bwrap-setuid-v2" | sha256sum }}
+# Hash: {{ "bwrap-setuid-v3" | sha256sum }}
+
+# Only run in Coder workspaces
+if [ "${CODER:-false}" != "true" ]; then
+    echo "ℹ️  Skipping bwrap configuration (not in Coder workspace)"
+    exit 0
+fi
 
 echo "🔧 Configuring bwrap for namespace isolation..."
 
