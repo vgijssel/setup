@@ -28,7 +28,7 @@ trap cleanup EXIT
 
 # Test 1: Check goss file exists
 echo "==> Test 1: Checking goss file exists..."
-if [ ! -f "${GOSS_FILE}" ]; then
+if [[ ! -f "${GOSS_FILE}" ]]; then
   echo "ERROR: Goss file not found at ${GOSS_FILE}"
   exit 1
 fi
@@ -43,7 +43,7 @@ fi
 echo "✓ Coder CLI is authenticated"
 
 # Test 3: Create workspace and validate
-if [ "${CI:-false}" = "true" ]; then
+if [[ "${CI:-false}" = "true" ]]; then
   echo "==> Test 3: Skipped (CI environment, runInCI: false)"
   echo "All tests passed (CI mode)"
   exit 0
