@@ -37,7 +37,7 @@ tasks:
       - "!.terraform/**"
 
   workspace_test:
-    command: bats tests/workspace-test.bats
+    command: bash tests/workspace-test.sh
     deps:
       - ~:test
     options:
@@ -45,4 +45,4 @@ tasks:
       runInCI: false
     inputs:
       - file: ./tests/goss.yaml
-      - file: ./tests/workspace-test.bats
+      - file: ./tests/workspace-test.sh
