@@ -3,6 +3,10 @@ kind: Kustomization
 resources:
   - gitrepository-setup.yaml
   - kustomization-root.yaml
+  - cozystack.yaml
+  - storageclasses.yaml
+  - metallb-ip-address-pool.yml
+  - metallb-l2-advertisement.yml
   - helmrelease-1password-operator.yaml
   - helmrelease-1password-secrets.yaml
   - helmrelease-kyverno.yaml
