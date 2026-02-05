@@ -1,0 +1,160 @@
+---
+# Combined LINSTOR storage network configuration job
+# Configures: node interfaces, node-connection paths, and DRBD options
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: linstor-storage-network-config
+  namespace: cozy-linstor
+data:
+  configure-storage-network.sh: |
+    #!/bin/sh
+    # Configure LINSTOR for point-to-point 25Gbps storage replication
+    # Network topology:
+    #   illusion <-> the-dome: 10.50.1.0/31
+    #   illusion <-> the-toy-factory: 10.50.2.0/31
+    #   the-dome <-> the-toy-factory: 10.50.3.0/31
+    set -e
+
+    echo "========================================"
+    echo "LINSTOR Storage Network Configuration"
+    echo "========================================"
+    echo ""
+
+    # ----------------------------------------
+    # Step 1: Configure Node Interfaces
+    # ----------------------------------------
+    echo "=== Step 1: Configuring Node Interfaces ==="
+
+    create_interface() {
+      node=$1
+      iface=$2
+      ip=$3
+
+      if linstor node interface list "$node" 2>/dev/null | grep -q "$iface"; then
+        echo "  [OK] Interface $iface already exists on $node"
+      else
+        echo "  [CREATE] Interface $iface on $node with IP $ip"
+        linstor node interface create "$node" "$iface" "$ip"
+      fi
+    }
+
+    echo ""
+    echo "Configuring illusion..."
+    create_interface illusion storage-dome 10.50.1.0
+    create_interface illusion storage-toyfactory 10.50.2.1
+
+    echo ""
+    echo "Configuring the-dome..."
+    create_interface the-dome storage-illusion 10.50.1.1
+    create_interface the-dome storage-toyfactory 10.50.3.0
+
+    echo ""
+    echo "Configuring the-toy-factory..."
+    create_interface the-toy-factory storage-illusion 10.50.2.0
+    create_interface the-toy-factory storage-dome 10.50.3.1
+
+    # ----------------------------------------
+    # Step 2: Configure Node-Connection Paths
+    # ----------------------------------------
+    echo ""
+    echo "=== Step 2: Configuring Node-Connection Paths ==="
+    echo "These paths route DRBD traffic through dedicated 25Gbps links."
+
+    create_path() {
+      node1=$1
+      node2=$2
+      path_name=$3
+      iface1=$4
+      iface2=$5
+
+      if linstor node-connection path list "$node1" "$node2" 2>/dev/null | grep -q "$path_name"; then
+        echo "  [OK] Path '$path_name' already exists between $node1 and $node2"
+      else
+        echo "  [CREATE] Path '$path_name' between $node1 ($iface1) and $node2 ($iface2)"
+        linstor node-connection path create "$node1" "$node2" "$path_name" "$iface1" "$iface2"
+      fi
+    }
+
+    echo ""
+    create_path illusion the-dome direct storage-dome storage-illusion
+    create_path illusion the-toy-factory direct storage-toyfactory storage-illusion
+    create_path the-dome the-toy-factory direct storage-toyfactory storage-dome
+
+    # ----------------------------------------
+    # Step 3: Configure DRBD Options for 25Gbps
+    # ----------------------------------------
+    echo ""
+    echo "=== Step 3: Configuring DRBD Options for 25Gbps ==="
+    echo "Setting controller-level DRBD options..."
+
+    linstor controller drbd-options \
+      --c-max-rate 2048000 \
+      --c-min-rate 696320 \
+      --resync-rate 696320 \
+      --c-plan-ahead 20 \
+      --c-fill-target 20480 \
+      --max-buffers 65536 \
+      --sndbuf-size 33554432 \
+      --rcvbuf-size 33554432 || echo "  [WARN] Some DRBD options may not be supported"
+
+    echo "  [OK] DRBD options configured"
+
+    # ----------------------------------------
+    # Verification
+    # ----------------------------------------
+    echo ""
+    echo "=== Verification ==="
+    echo ""
+    echo "Node Interfaces:"
+    for node in illusion the-dome the-toy-factory; do
+      echo "  --- $node ---"
+      linstor node interface list "$node" | grep -v "^+" | grep -v "NetInterface" || true
+    done
+
+    echo ""
+    echo "Node-Connection Paths:"
+    linstor node-connection path list illusion the-dome 2>/dev/null || true
+    linstor node-connection path list illusion the-toy-factory 2>/dev/null || true
+    linstor node-connection path list the-dome the-toy-factory 2>/dev/null || true
+
+    echo ""
+    echo "========================================"
+    echo "Storage Network Configuration Complete!"
+    echo "========================================"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: linstor-storage-network
+  namespace: cozy-linstor
+  labels:
+    app: linstor-storage-network
+  annotations:
+    # Bump version to recreate job
+    config-version: "v1"
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        app: linstor-storage-network
+    spec:
+      serviceAccountName: linstor-controller
+      restartPolicy: OnFailure
+      containers:
+        - name: configure
+          image: quay.io/piraeusdatastore/piraeus-server:v1.27.1
+          command: ["/bin/sh", "/scripts/configure-storage-network.sh"]
+          env:
+            - name: LS_CONTROLLERS
+              value: "http://linstor-controller.cozy-linstor.svc:3370"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: linstor-storage-network-config
+            defaultMode: 0755
