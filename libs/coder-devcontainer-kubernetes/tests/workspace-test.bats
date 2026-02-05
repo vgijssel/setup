@@ -59,7 +59,7 @@ teardown() {
     --parameter memory=4 \
     --parameter workspaces_volume_size=10 \
     --parameter "git_branch=${GIT_BRANCH}" \
-    --parameter "ai_prompt=Workspace test - no action needed"
+    --parameter "AI Prompt=Workspace test - no action needed"
 
   [ "$status" -eq 0 ]
 
