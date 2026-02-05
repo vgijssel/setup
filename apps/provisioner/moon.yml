@@ -15,19 +15,31 @@ tags:
 tasks:
   provision:
     command: ansible-playbook -i production provisioner.yml --diff
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   provision-local:
     command: ansible-playbook -i production.local provisioner.yml --diff
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   k8s-provision:
     command: ansible-playbook -i production provisioner-k8s.yml --diff
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   k8s-provision-local:
     command: ansible-playbook -i production.local provisioner-k8s.yml --diff
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   pikvm-provision:
     command: ansible-playbook -i production pikvm.yml --diff
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   pikvm-provision-local:
     command: ansible-playbook -i production.local pikvm.yml --diff
-    local: true
+    options:
+      runInCI: false
+      interactive: true

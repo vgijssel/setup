@@ -16,35 +16,42 @@ tasks:
       - ~:init
     env:
       CWD: apps/gateway-prod
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   destroy:
     command: set -a && source .env && set +a && tofu destroy -auto-approve
     deps:
       - ~:init
     env:
       CWD: apps/gateway-prod
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   init:
     command: set -a && source .env && set +a && tofu init -backend-config="bucket=$TF_VAR_s3_bucket"
     deps:
       - ~:secrets
     env:
       CWD: apps/gateway-prod
-    local: true
+    options:
+      runInCI: false
   output:
     command: set -a && source .env && set +a && tofu output
     deps:
       - ~:init
     env:
       CWD: apps/gateway-prod
-    local: true
+    options:
+      runInCI: false
   plan:
     command: set -a && source .env && set +a && tofu plan
     deps:
       - ~:init
     env:
       CWD: apps/gateway-prod
-    local: true
+    options:
+      runInCI: false
   secrets:
     command: op inject --force -i .env.tpl -o .env
     env:

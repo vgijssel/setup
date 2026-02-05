@@ -39,7 +39,8 @@ tasks:
     command: ./release.sh
     deps:
       - ~:build
-    local: true
+    options:
+      runInCI: false
   test:
     command: bats tests/test.bats
     inputs:

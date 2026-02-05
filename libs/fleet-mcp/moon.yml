@@ -17,10 +17,13 @@ tasks:
       - "@files(python_sources)"
       - "@files(python_configs)"
       - file: release.sh
-    local: true
+    options:
+      runInCI: false
   server:
     command: uv run --all-extras uvicorn fleet_mcp.__main__:app --host 127.0.0.1 --port 8000 --reload --timeout-graceful-shutdown 3
     env:
       FLEET_MCP_AUTH_ENABLED: "true"
       FLEET_MCP_TASKFILE: /workspaces/setup/libs/coder-devcontainer-kubernetes/Taskfile.yml
-    local: true
+    options:
+      runInCI: false
+      interactive: true

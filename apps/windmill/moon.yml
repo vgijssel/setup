@@ -11,7 +11,11 @@ tags:
 tasks:
   login:
     command: wmill workspace add setup https://windmill.tail2c33e2.ts.net
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   sync:
     command: wmill sync pull
-    local: true
+    options:
+      runInCI: false
+      interactive: true

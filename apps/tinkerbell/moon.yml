@@ -16,9 +16,13 @@ tasks:
       KUBECONFIG="$HOME/.kube/configs/tinkerbell-dev.yaml" kubectl config rename-context default tinkerbell-dev
       helmfile apply --wait
       kubie exec tinkerbell-dev tink kubectl apply -f hardware.yaml -f template.yaml -f ubuntu-download.yaml -f workflow.yaml
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   ipxe:
     command: |
       limactl delete -f ipxe-lima || true
       limactl start ./ipxe-lima.yaml
-    local: true
+    options:
+      runInCI: false
+      interactive: true
