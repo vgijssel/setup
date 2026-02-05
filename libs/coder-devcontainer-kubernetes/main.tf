@@ -367,7 +367,11 @@ resource "envbuilder_cached_image" "workspace" {
     # Avoids DNS mismatch when external URL resolves to wrong IP inside the cluster
     "CODER_AGENT_URL" = local.coder_url
     # Envbuilder configuration
-    "ENVBUILDER_INIT_SCRIPT" = coder_agent.main.init_script
+    # Chain docker-init.sh (starts Docker daemon) with coder agent init script
+    # docker-init.sh expects command args after it, which it will exec after starting Docker
+    "ENVBUILDER_INIT_SCRIPT" = <<-EOT
+      /usr/local/share/docker-init.sh sh -c '${replace(coder_agent.main.init_script, "'", "'\\\\''")}'
+    EOT
     "ENVBUILDER_PUSH_IMAGE"  = "true"
   }
 }
@@ -434,7 +438,11 @@ resource "kubernetes_deployment_v1" "workspace" {
         }
       }
       spec {
-        security_context {}
+        security_context {
+          # Add docker group (GID 995) as supplemental group for docker socket access
+          # Privileged mode alone doesn't load supplementary groups from /etc/group
+          supplemental_groups = [995]
+        }
         termination_grace_period_seconds = 30
 
         container {
@@ -443,6 +451,13 @@ resource "kubernetes_deployment_v1" "workspace" {
           # Envbuilder pushes to cluster DNS (coder-registry.coder.svc.cluster.local:5000)
           # but kubelet needs localhost:31500 (host DNS can't resolve .svc.cluster.local)
           image = replace(envbuilder_cached_image.workspace.image, local.cache_repo, local.registry_pull_url)
+
+          # Privileged mode required for:
+          # - Docker-in-Docker (nested containerization)
+          # - Bubblewrap mount namespace manipulation (vault-shell)
+          security_context {
+            privileged = true
+          }
 
           # Dynamic environment variables from envbuilder
           dynamic "env" {
