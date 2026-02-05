@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     locales \
     zsh \
     openssl \
+    bats \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure locale
