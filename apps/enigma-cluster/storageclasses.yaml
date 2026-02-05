@@ -29,22 +29,21 @@ parameters:
   property.linstor.csi.linbit.com/DrbdOptions/Resource/on-no-data-accessible: suspend-io
   property.linstor.csi.linbit.com/DrbdOptions/Resource/on-suspended-primary-outdated: force-secondary
   property.linstor.csi.linbit.com/DrbdOptions/Net/rr-conflict: retry-connect
-  # DRBD resync tuning for 25Gbps dedicated storage network with NVMe SSDs
+  # DRBD resync tuning for 2.5Gbps network with NVMe SSDs
   # Reference: https://cozystack.io/docs/storage/drbd-tuning/
-  # Note: 10x increase from previous 2.5Gbps values to match 25Gbps bandwidth
-  # c-max-rate: 2 GB/s (~80% of 25Gbps theoretical, NVMe becomes bottleneck at 2.4 GB/s)
-  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-max-rate: "2048000"
-  # c-min-rate: 680 MB/s (1/3 of c-max-rate per LINBIT recommendation)
-  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-min-rate: "696320"
+  # c-max-rate: 250 MB/s (~80% of 2.5Gbps, leaves headroom for app traffic)
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-max-rate: "256000"
+  # c-min-rate: 80 MB/s (1/3 of c-max-rate per LINBIT recommendation)
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-min-rate: "81920"
   # resync-rate: starting point for dynamic controller (1/3 of c-max-rate)
-  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/resync-rate: "696320"
-  # c-plan-ahead: lookahead window in 1/10 seconds (20 = 2 seconds for larger bursts)
-  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-plan-ahead: "20"
-  # c-fill-target: buffer fill target in KiB (scaled for 25G: ~20 MiB)
-  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-fill-target: "20480"
-  # Network buffer tuning for 25Gbps throughput
-  property.linstor.csi.linbit.com/DrbdOptions/Net/max-buffers: "65536"
-  property.linstor.csi.linbit.com/DrbdOptions/Net/sndbuf-size: "33554432"
-  property.linstor.csi.linbit.com/DrbdOptions/Net/rcvbuf-size: "33554432"
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/resync-rate: "81920"
+  # c-plan-ahead: lookahead window in 1/10 seconds (10 = 1 second)
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-plan-ahead: "10"
+  # c-fill-target: buffer fill target in KiB (scaled from 2048 for 10G)
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-fill-target: "1024"
+  # Network buffer tuning for improved throughput
+  property.linstor.csi.linbit.com/DrbdOptions/Net/max-buffers: "36864"
+  property.linstor.csi.linbit.com/DrbdOptions/Net/sndbuf-size: "10485760"
+  property.linstor.csi.linbit.com/DrbdOptions/Net/rcvbuf-size: "10485760"
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
