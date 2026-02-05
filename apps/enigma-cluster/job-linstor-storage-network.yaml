@@ -132,7 +132,7 @@ metadata:
     app: linstor-storage-network
   annotations:
     # Bump version to recreate job
-    config-version: "v1"
+    config-version: "v2"
 spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 5
@@ -149,7 +149,7 @@ spec:
           command: ["/bin/sh", "/scripts/configure-storage-network.sh"]
           env:
             - name: LS_CONTROLLERS
-              value: "http://linstor-controller.cozy-linstor.svc:3370"
+              value: "https://linstor-controller.cozy-linstor.svc:3371"
           volumeMounts:
             - name: scripts
               mountPath: /scripts
