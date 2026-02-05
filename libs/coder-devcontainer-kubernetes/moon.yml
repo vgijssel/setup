@@ -37,7 +37,7 @@ tasks:
       - "!.terraform/**"
 
   workspace_test:
-    command: bats tests/workspace-test.bats
+    command: bash tests/bats-wrapper.sh tests/workspace-test.bats
     deps:
       - ~:test
     options:
@@ -46,3 +46,4 @@ tasks:
     inputs:
       - file: ./tests/goss.yaml
       - file: ./tests/workspace-test.bats
+      - file: ./tests/bats-wrapper.sh
