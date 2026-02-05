@@ -1,0 +1,34 @@
+#!/bin/bash
+set -euo pipefail
+
+# Make bwrap setuid for vault-shell in Kubernetes containers
+# Hash: {{ "bwrap-setuid-v3" | sha256sum }}
+
+# Only run in Coder workspaces
+if [ "${CODER:-false}" != "true" ]; then
+    echo "ℹ️  Skipping bwrap configuration (not in Coder workspace)"
+    exit 0
+fi
+
+echo "🔧 Configuring bwrap for namespace isolation..."
+
+# Check if bwrap exists
+if ! command -v bwrap >/dev/null 2>&1; then
+    echo "❌ bwrap not found - bwrap is required for vault-shell to work"
+    exit 1
+fi
+
+# Check if bwrap is already setuid
+if [[ -u "$(command -v bwrap)" ]]; then
+    echo "✓ bwrap is already setuid"
+    exit 0
+fi
+
+# Make bwrap setuid
+# This is required for vault-shell to work in Coder workspaces running in Kubernetes
+# The container runs in a user namespace, and non-setuid bwrap cannot create nested
+# user namespaces. With setuid, bwrap can bypass this limitation.
+echo "Setting setuid bit on bwrap..."
+sudo chmod u+s "$(command -v bwrap)"
+
+echo "✓ bwrap configured successfully"
