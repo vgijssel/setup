@@ -1,4 +1,35 @@
 ---
+# RBAC for LINSTOR storage network configuration job
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: linstor-storage-network-config
+  namespace: cozy-linstor
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: linstor-storage-network-config
+  namespace: cozy-linstor
+subjects:
+  - kind: ServiceAccount
+    name: linstor-controller
+    namespace: cozy-linstor
+roleRef:
+  kind: Role
+  name: linstor-storage-network-config
+  apiGroup: rbac.authorization.k8s.io
+---
 # Combined LINSTOR storage network configuration job
 # Configures: node interfaces, node-connection paths, and DRBD options
 apiVersion: v1
@@ -132,7 +163,7 @@ metadata:
     app: linstor-storage-network
   annotations:
     # Bump version to recreate job
-    config-version: "v5"
+    config-version: "v6"
 spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 5
