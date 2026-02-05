@@ -124,7 +124,7 @@ command:
 
   vmi_haos_exactly_two_networks:
     title: Validate HAOS VMI has exactly 2 network interfaces (default + lan)
-    exec: kubectl get vmi vm-instance-haos -n tenant-root -o jsonpath='{.spec.networks[*].name}' | tr ' ' '\n' | wc -l | tr -d ' '
+    exec: kubectl get vmi vm-instance-haos -n tenant-root -o jsonpath='{.spec.networks}' | jq 'length'
     exit-status: 0
     stdout:
       - "2"
