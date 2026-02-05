@@ -1,2 +1,2 @@
 # Ignore goss.yaml files as they use Go template syntax incompatible with yamlfmt
-.devcontainer/tests/goss.yaml
+libs/devenv/goss.yaml
