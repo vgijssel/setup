@@ -132,7 +132,7 @@ metadata:
     app: linstor-storage-network
   annotations:
     # Bump version to recreate job
-    config-version: "v3"
+    config-version: "v4"
 spec:
   ttlSecondsAfterFinished: 3600
   backoffLimit: 5
@@ -145,7 +145,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: configure
-          image: bitnami/kubectl:1.31
+          image: bitnami/kubectl:1.30
           command: ["/bin/sh", "-c"]
           args:
             - |
