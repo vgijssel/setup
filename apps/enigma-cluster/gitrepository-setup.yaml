@@ -7,4 +7,4 @@ spec:
   interval: 5m
   url: https://github.com/vgijssel/setup
   ref:
-    branch: mg/feat/deploy-haos
+    branch: mg/feat/enable-linstor-network

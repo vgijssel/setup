@@ -21,3 +21,5 @@ resources:
   - helmrelease-tailscale-operator.yaml
   - namespace-ingress-nginx-gateway.yaml
   - helmrelease-ingress-nginx-gateway.yaml
+  - job-linstor-interfaces.yaml
+  - job-linstor-node-connections.yaml

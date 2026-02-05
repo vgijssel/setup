@@ -459,6 +459,107 @@ command:
       - No resources found
     stderr: ""
     timeout: 10000
+  storage_network_mtu_jumbo:
+    title: Validate storage interfaces have MTU 9000 (jumbo frames) for 25Gbps network
+    # The dedicated storage network uses MTU 9000 (jumbo frames) to reduce CPU overhead
+    # and maximize throughput on the 25Gbps point-to-point links between nodes.
+    # Both Mellanox interfaces (enp4s0f0np0, enp4s0f1np1) must have MTU 9000 configured.
+    exec: |
+      errors=0
+      for node_ip in 192.168.50.10 192.168.50.11 192.168.50.12; do
+        for iface in enp4s0f0np0 enp4s0f1np1; do
+          mtu=$(talosctl -n $node_ip -e $node_ip read /sys/class/net/$iface/mtu 2>/dev/null | tr -d '\n ')
+          if [ "$mtu" = "9000" ]; then
+            echo "$node_ip:$iface MTU=$mtu ✅"
+          else
+            echo "$node_ip:$iface MTU=$mtu ❌ (expected 9000)"
+            errors=$((errors+1))
+          fi
+        done
+      done
+      [ $errors -eq 0 ] && echo "All storage interfaces have MTU 9000" || exit 1
+    exit-status: 0
+    stdout:
+      - "All storage interfaces have MTU 9000"
+    stderr: ""
+    timeout: 60000
+  storage_network_addresses_configured:
+    title: Validate point-to-point storage network addresses are configured on all nodes
+    # The dedicated storage network uses /31 point-to-point subnets between nodes:
+    #   illusion <-> the-dome: 10.50.1.0/31
+    #   illusion <-> the-toy-factory: 10.50.2.0/31
+    #   the-dome <-> the-toy-factory: 10.50.3.0/31
+    exec: |
+      errors=0
+      # Check illusion: 10.50.1.0 and 10.50.2.1
+      talosctl get addresses -n 192.168.50.10 -e 192.168.50.10 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.1.0")' >/dev/null 2>&1 || { echo "illusion missing 10.50.1.0"; errors=$((errors+1)); }
+      talosctl get addresses -n 192.168.50.10 -e 192.168.50.10 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.2.1")' >/dev/null 2>&1 || { echo "illusion missing 10.50.2.1"; errors=$((errors+1)); }
+      # Check the-dome: 10.50.1.1 and 10.50.3.0
+      talosctl get addresses -n 192.168.50.11 -e 192.168.50.11 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.1.1")' >/dev/null 2>&1 || { echo "the-dome missing 10.50.1.1"; errors=$((errors+1)); }
+      talosctl get addresses -n 192.168.50.11 -e 192.168.50.11 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.3.0")' >/dev/null 2>&1 || { echo "the-dome missing 10.50.3.0"; errors=$((errors+1)); }
+      # Check the-toy-factory: 10.50.2.0 and 10.50.3.1
+      talosctl get addresses -n 192.168.50.12 -e 192.168.50.12 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.2.0")' >/dev/null 2>&1 || { echo "the-toy-factory missing 10.50.2.0"; errors=$((errors+1)); }
+      talosctl get addresses -n 192.168.50.12 -e 192.168.50.12 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.3.1")' >/dev/null 2>&1 || { echo "the-toy-factory missing 10.50.3.1"; errors=$((errors+1)); }
+      [ $errors -eq 0 ] && echo "All storage network addresses configured correctly" || exit 1
+    exit-status: 0
+    stdout:
+      - "All storage network addresses configured correctly"
+    stderr: ""
+    timeout: 60000
+  linstor_node_interfaces_storage:
+    title: Validate LINSTOR storage interfaces exist on all nodes
+    # LINSTOR must have dedicated storage interfaces configured for each point-to-point link.
+    # Each node should have 2 storage interfaces (storage-* named interfaces).
+    exec: |
+      errors=0
+      for node in illusion the-dome the-toy-factory; do
+        count=$(bin/linstor node interface list $node 2>/dev/null | grep -c "storage-" || echo 0)
+        if [ "$count" -ge 2 ]; then
+          echo "$node: $count storage interfaces ✅"
+        else
+          echo "$node: $count storage interfaces ❌ (expected 2)"
+          errors=$((errors+1))
+        fi
+      done
+      [ $errors -eq 0 ] && echo "All nodes have LINSTOR storage interfaces configured" || exit 1
+    exit-status: 0
+    stdout:
+      - "All nodes have LINSTOR storage interfaces configured"
+    stderr: ""
+    timeout: 60000
+  linstor_node_connection_paths:
+    title: Validate LINSTOR node-connection paths are configured for direct peer communication
+    # Node-connection paths route DRBD traffic through the dedicated 25Gbps interfaces
+    # instead of the default management network interface.
+    exec: |
+      errors=0
+      # Check illusion <-> the-dome path
+      if bin/linstor node-connection path list illusion the-dome 2>/dev/null | grep -q "direct"; then
+        echo "illusion <-> the-dome: direct path ✅"
+      else
+        echo "illusion <-> the-dome: direct path ❌"
+        errors=$((errors+1))
+      fi
+      # Check illusion <-> the-toy-factory path
+      if bin/linstor node-connection path list illusion the-toy-factory 2>/dev/null | grep -q "direct"; then
+        echo "illusion <-> the-toy-factory: direct path ✅"
+      else
+        echo "illusion <-> the-toy-factory: direct path ❌"
+        errors=$((errors+1))
+      fi
+      # Check the-dome <-> the-toy-factory path
+      if bin/linstor node-connection path list the-dome the-toy-factory 2>/dev/null | grep -q "direct"; then
+        echo "the-dome <-> the-toy-factory: direct path ✅"
+      else
+        echo "the-dome <-> the-toy-factory: direct path ❌"
+        errors=$((errors+1))
+      fi
+      [ $errors -eq 0 ] && echo "All node-connection paths configured" || exit 1
+    exit-status: 0
+    stdout:
+      - "All node-connection paths configured"
+    stderr: ""
+    timeout: 60000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip

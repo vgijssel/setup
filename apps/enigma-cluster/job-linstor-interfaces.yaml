@@ -1,0 +1,101 @@
+---
+# ConfigMap containing the LINSTOR interface configuration script
+# This script creates node interfaces for the dedicated storage network
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: linstor-interfaces-config
+  namespace: cozy-linstor
+data:
+  configure-interfaces.sh: |
+    #!/usr/bin/env bash
+    # Configure LINSTOR node interfaces for point-to-point storage replication
+    # Network topology:
+    #   illusion <-> the-dome: 10.50.1.0/31
+    #   illusion <-> the-toy-factory: 10.50.2.0/31
+    #   the-dome <-> the-toy-factory: 10.50.3.0/31
+    set -euo pipefail
+
+    # Function to create interface if it doesn't exist
+    create_interface() {
+      local node=$1
+      local iface=$2
+      local ip=$3
+
+      if linstor node interface list "$node" 2>/dev/null | grep -q "$iface"; then
+        echo "Interface $iface already exists on $node"
+      else
+        echo "Creating interface $iface on $node with IP $ip"
+        linstor node interface create "$node" "$iface" "$ip"
+      fi
+    }
+
+    echo "=== Configuring LINSTOR Node Interfaces ==="
+    echo ""
+
+    # illusion interfaces
+    echo "Configuring illusion..."
+    create_interface illusion storage-dome 10.50.1.0
+    create_interface illusion storage-toyfactory 10.50.2.1
+
+    # the-dome interfaces
+    echo "Configuring the-dome..."
+    create_interface the-dome storage-illusion 10.50.1.1
+    create_interface the-dome storage-toyfactory 10.50.3.0
+
+    # the-toy-factory interfaces
+    echo "Configuring the-toy-factory..."
+    create_interface the-toy-factory storage-illusion 10.50.2.0
+    create_interface the-toy-factory storage-dome 10.50.3.1
+
+    echo ""
+    echo "=== Interface Configuration Complete ==="
+    echo ""
+    echo "Verifying interfaces..."
+    for node in illusion the-dome the-toy-factory; do
+      echo "--- $node ---"
+      linstor node interface list "$node"
+    done
+
+---
+# Kubernetes Job to execute the LINSTOR interface configuration
+# This job runs the configuration script from the ConfigMap
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: linstor-configure-interfaces
+  namespace: cozy-linstor
+  labels:
+    app: linstor-configure-interfaces
+spec:
+  # Automatically clean up completed jobs after 1 hour
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: linstor-configure-interfaces
+    spec:
+      # Use the same service account as the linstor-controller
+      # This ensures proper RBAC permissions
+      serviceAccountName: linstor-controller
+      restartPolicy: OnFailure
+      containers:
+        - name: configure-interfaces
+          # Use the same piraeus-server image as the linstor-controller
+          image: quay.io/piraeusdatastore/piraeus-server:v1.27.1
+          command:
+            - /bin/bash
+            - /scripts/configure-interfaces.sh
+          env:
+            # Connect to the linstor-controller service
+            - name: LS_CONTROLLERS
+              value: "linstor-controller.cozy-linstor.svc:3370"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: linstor-interfaces-config
+            defaultMode: 0755

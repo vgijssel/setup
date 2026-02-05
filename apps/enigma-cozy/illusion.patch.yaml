@@ -38,9 +38,11 @@ machine:
       - interface: eno1
         dhcp: false
         ignore: true
-      - interface: enp4s0f0np0
-        dhcp: false
-        ignore: true
-      - interface: enp4s0f1np1
-        dhcp: false
-        ignore: true
+      - interface: enp4s0f0np0 # Link to the-dome
+        addresses:
+          - 10.50.1.0/31
+        mtu: 9000
+      - interface: enp4s0f1np1 # Link to the-toy-factory
+        addresses:
+          - 10.50.2.1/31
+        mtu: 9000

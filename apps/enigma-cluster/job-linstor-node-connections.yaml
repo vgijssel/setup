@@ -1,0 +1,133 @@
+---
+# ConfigMap containing the LINSTOR node-connection path configuration script
+# This script creates paths between nodes to route DRBD traffic through dedicated interfaces
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: linstor-node-connections-config
+  namespace: cozy-linstor
+data:
+  configure-node-connections.sh: |
+    #!/usr/bin/env bash
+    # Configure LINSTOR node-connection paths for direct peer communication
+    # This routes DRBD replication through the dedicated 25Gbps point-to-point links
+    #
+    # Network topology:
+    #   illusion <-> the-dome: 10.50.1.0/31 (storage-dome <-> storage-illusion)
+    #   illusion <-> the-toy-factory: 10.50.2.0/31 (storage-toyfactory <-> storage-illusion)
+    #   the-dome <-> the-toy-factory: 10.50.3.0/31 (storage-toyfactory <-> storage-dome)
+    set -euo pipefail
+
+    # Function to create node-connection path if it doesn't exist
+    create_path_if_missing() {
+      local node1=$1
+      local node2=$2
+      local path_name=$3
+      local iface1=$4
+      local iface2=$5
+
+      # Check if path already exists
+      if linstor node-connection path list "$node1" "$node2" 2>/dev/null | grep -q "$path_name"; then
+        echo "Path '$path_name' already exists between $node1 and $node2"
+      else
+        echo "Creating path '$path_name' between $node1 and $node2"
+        echo "  Interface on $node1: $iface1"
+        echo "  Interface on $node2: $iface2"
+        linstor node-connection path create "$node1" "$node2" "$path_name" "$iface1" "$iface2"
+      fi
+    }
+
+    echo "=== Configuring LINSTOR Node-Connection Paths ==="
+    echo ""
+    echo "These paths route DRBD replication traffic through the dedicated"
+    echo "25Gbps point-to-point links instead of the management network."
+    echo ""
+
+    # Configure all node-connection paths
+    # Note: The interface order matters - first interface is for node1, second for node2
+
+    echo "Configuring illusion <-> the-dome path..."
+    create_path_if_missing illusion the-dome direct storage-dome storage-illusion
+
+    echo ""
+    echo "Configuring illusion <-> the-toy-factory path..."
+    create_path_if_missing illusion the-toy-factory direct storage-toyfactory storage-illusion
+
+    echo ""
+    echo "Configuring the-dome <-> the-toy-factory path..."
+    create_path_if_missing the-dome the-toy-factory direct storage-toyfactory storage-dome
+
+    echo ""
+    echo "=== Node-Connection Path Configuration Complete ==="
+    echo ""
+    echo "Verifying paths..."
+    echo ""
+
+    echo "--- illusion <-> the-dome ---"
+    linstor node-connection path list illusion the-dome || echo "  (no paths)"
+
+    echo ""
+    echo "--- illusion <-> the-toy-factory ---"
+    linstor node-connection path list illusion the-toy-factory || echo "  (no paths)"
+
+    echo ""
+    echo "--- the-dome <-> the-toy-factory ---"
+    linstor node-connection path list the-dome the-toy-factory || echo "  (no paths)"
+
+    echo ""
+    echo "All node-connection paths configured successfully."
+
+---
+# Kubernetes Job to execute the LINSTOR node-connection path configuration
+# IMPORTANT: This job must run AFTER the linstor-configure-interfaces job completes
+# because node-connection paths require the interfaces to exist first
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: linstor-configure-node-connections
+  namespace: cozy-linstor
+  labels:
+    app: linstor-configure-node-connections
+spec:
+  # Automatically clean up completed jobs after 1 hour
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: linstor-configure-node-connections
+    spec:
+      # Use the same service account as the linstor-controller
+      serviceAccountName: linstor-controller
+      restartPolicy: OnFailure
+      # Init container to wait for the interfaces job to complete
+      initContainers:
+        - name: wait-for-interfaces
+          image: bitnami/kubectl:1.31.2
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for linstor-configure-interfaces job to complete..."
+              kubectl wait --for=condition=complete job/linstor-configure-interfaces \
+                -n cozy-linstor --timeout=300s 2>/dev/null || \
+              echo "Interfaces job not found or already completed, proceeding..."
+      containers:
+        - name: configure-paths
+          # Use the same piraeus-server image as the linstor-controller
+          image: quay.io/piraeusdatastore/piraeus-server:v1.27.1
+          command:
+            - /bin/bash
+            - /scripts/configure-node-connections.sh
+          env:
+            # Connect to the linstor-controller service
+            - name: LS_CONTROLLERS
+              value: "linstor-controller.cozy-linstor.svc:3370"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: linstor-node-connections-config
+            defaultMode: 0755
