@@ -5,7 +5,9 @@ tags:
 tasks:
   start:
     command: uv run vault-shell.py
-    local: true
+    options:
+      runInCI: false
+      interactive: true
 
   test:
     command: uv run test_vault_shell.py

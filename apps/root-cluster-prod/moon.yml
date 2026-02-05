@@ -15,4 +15,6 @@ tasks:
     env:
       CREDENTIALS_REF: op://root-cluster-prod/root-cluster-prod Credentials File/1password-credentials.json
       TOKEN_REF: op://root-cluster-prod/gfyeeek3sr5n4geqyj7ic2gkwi/credential
-    local: true
+    options:
+      runInCI: false
+      interactive: true

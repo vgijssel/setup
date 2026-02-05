@@ -41,17 +41,23 @@ tasks:
     deps:
       - ~:install
     # TODO: e2e_test is currently broken
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   preview:
     command: npm run preview
     deps:
       - ~:install
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   serve:
     command: npm run dev
     deps:
       - ~:install
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   test:
     command: npm test -- --run
     deps:

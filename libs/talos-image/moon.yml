@@ -64,6 +64,5 @@ tasks:
     inputs:
       - scripts/release.sh
       - "@globs(regctl_bin)"
-    local: true
     options:
       runInCI: false

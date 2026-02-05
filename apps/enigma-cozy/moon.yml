@@ -24,7 +24,9 @@ tasks:
       talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.42 -e 192.168.1.42 --reboot --graceful=false --wait=false
       talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.41 -e 192.168.1.41 --reboot --graceful=false --wait=false
       talosctl reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL -n 192.168.1.40 -e 192.168.1.40 --reboot --graceful=false --wait=false
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   generate-bootstrap:
     script: |
       mkdir -p /secrets/enigma-cozy/dist
@@ -32,7 +34,8 @@ tasks:
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o /secrets/enigma-cozy/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
-    local: true
+    options:
+      runInCI: false
   apply-bootstrap:
     script: |
       talosctl apply-config --insecure -n 192.168.1.42 -e 192.168.1.42 --file /secrets/enigma-cozy/dist/illusion.yaml
@@ -47,7 +50,9 @@ tasks:
       talosctl kubeconfig --force -n 192.168.50.50 kubeconfig.admin
     deps:
       - generate-bootstrap
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   generate:
     script: |
       mkdir -p /secrets/enigma-cozy/dist
@@ -55,7 +60,8 @@ tasks:
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-dome.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/the-dome.yaml enigma-cozy https://192.168.50.50:6443 --force
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @the-toy-factory.patch.yaml --output-types controlplane -o /secrets/enigma-cozy/dist/the-toy-factory.yaml enigma-cozy https://192.168.50.50:6443 --force
       talosctl gen config --with-secrets /secrets/enigma-cozy/secrets.yaml --config-patch @all.patch.yaml --config-patch @here-i-am.patch.yaml --output-types worker -o /secrets/enigma-cozy/dist/here-i-am.yaml enigma-cozy https://192.168.50.50:6443 --force
-    local: true
+    options:
+      runInCI: false
   apply:
     script: |
       talosctl apply-config -n 192.168.50.10 -e 192.168.50.10 --file /secrets/enigma-cozy/dist/illusion.yaml
@@ -64,19 +70,29 @@ tasks:
       talosctl apply-config -n 46.224.93.115 -e 46.224.93.115 --file /secrets/enigma-cozy/dist/here-i-am.yaml
     deps:
       - generate
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   reboot:
     command: talosctl reboot -n 192.168.50.10,192.168.50.11,192.168.50.12
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   upgrade-cozy:
     command: ./scripts/upgrade-cozy.sh
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   upgrade-talos:
     command: ./scripts/upgrade-talos.sh
-    local: true
+    options:
+      runInCI: false
+      interactive: true
   validate:
     command: goss validate
-    local: true
+    options:
+      runInCI: false
   snapshot-etcd:
     command: ./scripts/snapshot-etcd.sh
-    local: true
+    options:
+      runInCI: false
