@@ -1,6 +1,6 @@
 ---
-# Docker IPv6 Configuration for OTBR
-# Configures Docker daemon to support IPv6 networking
+# Docker Daemon Configuration Tasks
+# Configures Docker daemon settings including IPv6 support
 
 - name: Ensure Docker config directory exists
   ansible.builtin.file:
@@ -9,7 +9,7 @@
     mode: "0755"
   become: true
 
-- name: Deploy Docker daemon.json with IPv6 support
+- name: Deploy Docker daemon.json
   ansible.builtin.template:
     src: daemon.json.j2
     dest: /etc/docker/daemon.json
@@ -18,11 +18,3 @@
     mode: "0644"
   become: true
   notify: restart docker
-  register: docker_config
-
-- name: Restart Docker if config changed
-  ansible.builtin.systemd:
-    name: docker
-    state: restarted
-  become: true
-  when: docker_config.changed

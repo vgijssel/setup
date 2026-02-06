@@ -6,9 +6,7 @@
   ansible.builtin.import_tasks: sysctl.yml
   tags: sysctl
 
-- name: Configure Docker for IPv6
-  ansible.builtin.import_tasks: docker-ipv6.yml
-  tags: docker
+# Docker IPv6 configuration moved to shared docker role
 
 - name: Configure USB device udev rules
   ansible.builtin.import_tasks: udev.yml

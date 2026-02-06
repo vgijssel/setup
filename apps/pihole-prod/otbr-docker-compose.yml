@@ -1,17 +1,17 @@
 # OTBR (Open Thread Border Router) Docker Compose Configuration
-# Managed by Ansible - DO NOT EDIT MANUALLY
-# Deployed to {{ otbr_compose_dir }}/docker-compose.yml
+# Deployed to /opt/otbr/docker-compose.yml
+# Pinned image version for reproducibility - Renovatebot will detect and update
 
 services:
   otbr:
-    container_name: {{ otbr_container_name }}
-    image: {{ otbr_image }}
-    hostname: {{ otbr_container_name }}
+    container_name: otbr
+    image: openthread/otbr:jammy
+    hostname: otbr
     restart: unless-stopped
 
     # Fix hostname resolution for sudo commands inside container
     extra_hosts:
-      - "{{ otbr_container_name }}:127.0.0.1"
+      - otbr:127.0.0.1
 
     # Network mode: host required for Thread border routing
     # OTBR needs direct access to network interfaces for:
@@ -28,37 +28,32 @@ services:
 
     environment:
       # Timezone
-      TZ: {{ otbr_timezone }}
+      TZ: Europe/Amsterdam
 
       # Thread radio configuration
       # Radio URL format: spinel+hdlc+uart://DEVICE?uart-baudrate=BAUDRATE
-      RADIO_URL: "{{ otbr_radio_url }}"
+      RADIO_URL: spinel+hdlc+uart:///dev/ttyUSB0?uart-baudrate=460800
 
       # Backbone interface for Thread network
-      BACKBONE_IF: {{ otbr_backbone_interface }}
+      BACKBONE_IF: eth0
 
       # Thread network prefix (ULA - Unique Local Address)
-      THREAD_PREFIX: "{{ otbr_thread_prefix }}"
+      THREAD_PREFIX: fd00:db8:a0::/64
 
-{% if otbr_nat64_enabled %}
-      # NAT64 for IPv4-only devices
-      NAT64: "1"
-{% else %}
       # NAT64 disabled - using native IPv6
       NAT64: "0"
-{% endif %}
 
       # Web interface port
-      WEB_PORT: {{ otbr_web_port }}
+      WEB_PORT: 8080
 
     volumes:
       # Persistent data for Thread network credentials
-      - {{ otbr_data_dir }}:/var/lib/thread
+      - /opt/otbr/data:/var/lib/thread
 
     devices:
       # Thread radio USB device
       # Note: Pass the actual device, not the symlink - Docker doesn't follow symlinks
-      - {{ otbr_usb_device }}:{{ otbr_usb_device }}
+      - /dev/ttyUSB0:/dev/ttyUSB0
 
     cap_add:
       - NET_ADMIN

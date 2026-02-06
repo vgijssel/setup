@@ -11,10 +11,3 @@
     mode: "0644"
   become: true
   notify: reload sysctl
-  register: sysctl_config
-
-- name: Apply sysctl settings immediately
-  ansible.builtin.command:
-    cmd: sysctl --system
-  become: true
-  when: sysctl_config.changed

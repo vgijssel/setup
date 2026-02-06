@@ -22,22 +22,24 @@ Read the Thread datasets file:
 cat /config/.storage/thread.datasets
 ```
 
-This outputs JSON containing your Thread network credentials. Look for the `dataset` field with the TLV hex string, for example:
+This outputs JSON containing your Thread network credentials. Look for the `tlv` field inside the datasets array:
 
 ```json
 {
+  "version": 1,
+  "minor_version": 4,
+  "key": "thread.datasets",
   "data": {
     "datasets": [
       {
-        "dataset": "0e080000000000010000000300001235...",
-        ...
+        "tlv": "0e080000000000010000000300001235..."
       }
     ]
   }
 }
 ```
 
-Copy the hex string from the `dataset` field.
+Copy the hex string from the `tlv` field.
 
 ## Step 2: Import Credentials to Standalone OTBR
 

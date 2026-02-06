@@ -11,20 +11,3 @@
     mode: "0644"
   become: true
   notify: reload udev
-  register: udev_rules
-
-- name: Reload udev rules immediately
-  ansible.builtin.shell:
-    cmd: udevadm control --reload-rules && udevadm trigger
-  become: true
-  when: udev_rules.changed
-
-- name: Verify Thread radio device exists
-  ansible.builtin.stat:
-    path: "{{ otbr_usb_device }}"
-  register: thread_radio_device
-
-- name: Warn if Thread radio not detected
-  ansible.builtin.debug:
-    msg: "WARNING: Thread radio device {{ otbr_usb_device }} not found. OTBR will not function."
-  when: not thread_radio_device.stat.exists

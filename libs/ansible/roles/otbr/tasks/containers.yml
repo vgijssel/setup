@@ -17,21 +17,14 @@
   become: true
 
 - name: Deploy OTBR docker-compose.yml
-  ansible.builtin.template:
-    src: docker-compose.yml.j2
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/otbr-docker-compose.yml"
     dest: "{{ otbr_compose_dir }}/docker-compose.yml"
     owner: root
     group: root
     mode: "0644"
   become: true
   register: compose_config
-
-- name: Pull OTBR Docker image
-  ansible.builtin.command:
-    cmd: docker compose pull
-    chdir: "{{ otbr_compose_dir }}"
-  become: true
-  changed_when: false
 
 - name: Start OTBR containers
   ansible.builtin.command:

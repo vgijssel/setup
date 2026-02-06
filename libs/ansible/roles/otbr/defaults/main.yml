@@ -2,10 +2,6 @@
 # OTBR (Open Thread Border Router) role defaults
 # Configuration for Thread/Matter network infrastructure
 
-# OTBR Container Configuration
-# Pin to specific version for reproducibility - see https://github.com/openthread/ot-br-posix
-otbr_image: openthread/otbr:jammy
-
 # Container name
 otbr_container_name: otbr
 

@@ -1,6 +1,4 @@
 ---
-- import_tasks: docker.yml
-  tags: docker
-
+# Docker installation moved to shared docker role
 - import_tasks: containers.yml
   tags: containers

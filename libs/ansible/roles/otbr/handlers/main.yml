@@ -6,19 +6,7 @@
     cmd: sysctl --system
   become: true
 
-- name: restart docker
-  ansible.builtin.systemd:
-    name: docker
-    state: restarted
-  become: true
-
 - name: reload udev
   ansible.builtin.shell:
     cmd: udevadm control --reload-rules && udevadm trigger
-  become: true
-
-- name: restart otbr containers
-  ansible.builtin.shell:
-    cmd: docker compose down && docker compose up -d --remove-orphans
-    chdir: "{{ otbr_compose_dir }}"
   become: true
