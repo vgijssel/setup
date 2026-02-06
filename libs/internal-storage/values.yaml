@@ -8,6 +8,7 @@ nodeSelector:
 
 # Storage network configuration
 storageNetwork:
+  enabled: true
   configVersion: v8
 
   # Node definitions with their storage interfaces
@@ -85,10 +86,12 @@ job:
 # StorageClass configurations
 storageClasses:
   localSsd:
+    enabled: true
     name: local-ssd
     isDefault: true
     storagePool: ssd
   replicated:
+    enabled: true
     name: replicated
     storagePool: ssd
     autoPlace: "3"
