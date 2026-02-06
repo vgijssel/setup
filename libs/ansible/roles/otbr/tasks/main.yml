@@ -1,0 +1,19 @@
+---
+# OTBR Role Main Tasks
+# Deploys Open Thread Border Router for Thread/Matter network
+
+- name: Configure kernel settings for Thread/Matter
+  ansible.builtin.import_tasks: sysctl.yml
+  tags: sysctl
+
+- name: Configure Docker for IPv6
+  ansible.builtin.import_tasks: docker-ipv6.yml
+  tags: docker
+
+- name: Configure USB device udev rules
+  ansible.builtin.import_tasks: udev.yml
+  tags: udev
+
+- name: Deploy OTBR containers
+  ansible.builtin.import_tasks: containers.yml
+  tags: containers

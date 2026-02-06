@@ -8,6 +8,7 @@ tags:
   - type.infrastructure
   - ansible
   - pihole
+  - otbr
 tasks:
   install-requirements:
     command: ansible-galaxy collection install -r ../../libs/ansible/requirements.yml
@@ -23,3 +24,7 @@ tasks:
     options:
       runInCI: false
       interactive: true
+  validate:
+    command: goss -g goss.yaml validate --format documentation
+    options:
+      runInCI: false # Requires SSH access to pihole-prod host

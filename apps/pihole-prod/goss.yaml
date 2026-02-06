@@ -1,0 +1,167 @@
+# Goss tests for pihole-prod Thread/Matter networking and OTBR validation
+# Run with: goss validate or moon run pihole-prod:validate
+
+# Phase 1: Host Kernel Settings for Thread/Matter
+command:
+  ipv6_forwarding_enabled:
+    title: Validate IPv6 forwarding is enabled
+    exec: cat /proc/sys/net/ipv6/conf/all/forwarding
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 5000
+
+  ipv4_forwarding_enabled:
+    title: Validate IPv4 forwarding is enabled
+    exec: cat /proc/sys/net/ipv4/ip_forward
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 5000
+
+  # Note: mc_forwarding requires CONFIG_IPV6_MROUTE kernel support
+  # which may not be available on all systems. Skipping this test.
+  # ipv6_mc_forwarding_enabled:
+  #   title: Validate IPv6 multicast forwarding is enabled
+  #   exec: cat /proc/sys/net/ipv6/conf/all/mc_forwarding
+  #   exit-status: 0
+  #   stdout:
+  #     - "1"
+  #   timeout: 5000
+
+  ipv6_proxy_ndp_enabled:
+    title: Validate IPv6 proxy NDP is enabled
+    exec: cat /proc/sys/net/ipv6/conf/all/proxy_ndp
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 5000
+
+  ipv6_accept_ra_enabled:
+    title: Validate IPv6 accept_ra is set to 2 (accept with forwarding)
+    exec: cat /proc/sys/net/ipv6/conf/all/accept_ra
+    exit-status: 0
+    stdout:
+      - "2"
+    timeout: 5000
+
+  # Phase 3: Docker Service and OTBR Container
+  docker_ipv6_enabled:
+    title: Validate Docker has IPv6 enabled on docker0 bridge
+    exec: ip -6 addr show docker0 2>/dev/null | grep -c "inet6 fd00"
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 10000
+
+  otbr_container_running:
+    title: Validate OTBR container is running
+    exec: docker ps --filter "name=^otbr$" --filter "status=running" | grep -c otbr
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 10000
+
+  otbr_radio_url_configured:
+    title: Validate OTBR container has RADIO_URL environment variable
+    exec: docker exec otbr env | grep RADIO_URL
+    exit-status: 0
+    stdout:
+      - /RADIO_URL/
+    timeout: 10000
+
+  # Phase 5: Pi-hole Regression Tests
+  pihole_admin_running:
+    title: Validate pihole-admin container is running (regression)
+    exec: docker ps --filter "name=^pihole-admin$" --filter "status=running" | grep -c pihole-admin
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 10000
+
+  pihole_vlan50_running:
+    title: Validate pihole-vlan50 container is running (regression)
+    exec: docker ps --filter "name=^pihole-vlan50$" --filter "status=running" | grep -c pihole-vlan50
+    exit-status: 0
+    stdout:
+      - "1"
+    timeout: 10000
+
+# Phase 2: Configuration Files
+file:
+  /etc/sysctl.d/99-thread-matter.conf:
+    title: Validate Thread/Matter sysctl configuration file exists
+    exists: true
+    contains:
+      - net.ipv6.conf.all.forwarding=1
+      - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.mc_forwarding=1
+
+  /etc/docker/daemon.json:
+    title: Validate Docker daemon.json exists with IPv6 config
+    exists: true
+    contains:
+      - '"ipv6"'
+      - "true"
+
+  /etc/udev/rules.d/99-thread-radio.rules:
+    title: Validate Thread radio udev rules exist
+    exists: true
+    contains:
+      - thread-radio
+      - 10c4
+
+  /opt/otbr:
+    title: Validate OTBR base directory exists
+    exists: true
+    filetype: directory
+    mode: "0755"
+
+  /opt/otbr/data:
+    title: Validate OTBR data directory exists
+    exists: true
+    filetype: directory
+
+  /opt/otbr/docker-compose.yml:
+    title: Validate OTBR docker-compose.yml exists
+    exists: true
+    contains:
+      - otbr
+      - openthread
+
+# Service checks
+service:
+  docker:
+    title: Validate Docker service is running and enabled
+    enabled: true
+    running: true
+
+# Phase 4: Network Connectivity - OTBR Web Interface and REST API
+addr:
+  tcp://127.0.0.1:80:
+    title: Validate OTBR web interface is reachable on localhost (port 80)
+    reachable: true
+    timeout: 5000
+
+  tcp://127.0.0.1:8081:
+    title: Validate OTBR REST API is reachable on localhost (port 8081)
+    reachable: true
+    timeout: 5000
+
+  # Note: Pi-hole containers use macvlan networks which are not directly
+  # reachable from the host. Container health is validated via docker ps.
+  # External clients can reach these IPs on the LAN.
+
+# HTTP health checks for OTBR
+http:
+  http://127.0.0.1:80:
+    title: Validate OTBR web interface returns HTTP 200
+    status: 200
+    timeout: 10000
+    allow-insecure: true
+
+  http://127.0.0.1:8081/node/state:
+    title: Validate OTBR REST API responds
+    status: 200
+    timeout: 10000
+    allow-insecure: true
