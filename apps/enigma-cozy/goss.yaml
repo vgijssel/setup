@@ -181,18 +181,22 @@ command:
     # other two nodes in a full mesh topology. See tasks 60, 61 for configuration.
     exec: ./scripts/validate-linstor-storage-interfaces.sh
     exit-status: 0
-    stdout:
-      - "LINSTOR Storage Interfaces:"
-      - "illusion:"
-      - "  - storage-dome: 10.50.1.0 ✅"
-      - "  - storage-toyfactory: 10.50.2.1 ✅"
-      - "the-dome:"
-      - "  - storage-illusion: 10.50.1.1 ✅"
-      - "  - storage-toyfactory: 10.50.3.0 ✅"
-      - "the-toy-factory:"
-      - "  - storage-dome: 10.50.3.1 ✅"
-      - "  - storage-illusion: 10.50.2.0 ✅"
-      - All 6 storage interfaces configured correctly
+    stdout: |
+      LINSTOR Storage Interfaces:
+
+      illusion:
+        - storage-dome: 10.50.1.0 ✅
+        - storage-toyfactory: 10.50.2.1 ✅
+
+      the-dome:
+        - storage-illusion: 10.50.1.1 ✅
+        - storage-toyfactory: 10.50.3.0 ✅
+
+      the-toy-factory:
+        - storage-dome: 10.50.3.1 ✅
+        - storage-illusion: 10.50.2.0 ✅
+
+      All 6 storage interfaces configured correctly
     stderr: ""
     timeout: 60000
   ovn_northbound_db_healthy:
