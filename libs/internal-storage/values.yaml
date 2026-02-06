@@ -8,7 +8,6 @@ nodeSelector:
 
 # Storage network configuration
 storageNetwork:
-  enabled: true
   configVersion: v8
 
   # Node definitions with their storage interfaces
@@ -79,19 +78,17 @@ drbdOptions:
 
 # Job configuration
 job:
-  image: bitnami/kubectl:1.32.1
+  image: registry.k8s.io/kubectl:v1.32.1
   ttlSecondsAfterFinished: 3600
   backoffLimit: 5
 
 # StorageClass configurations
 storageClasses:
   localSsd:
-    enabled: true
     name: local-ssd
     isDefault: true
     storagePool: ssd
   replicated:
-    enabled: true
     name: replicated
     storagePool: ssd
     autoPlace: "3"
