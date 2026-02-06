@@ -16,7 +16,7 @@ output=""
 # We only need to check from one node since RAFT cluster state is shared
 for node_num in 10 11 12; do
   node_ip="192.168.50.${node_num}"
-  
+
   # Determine node name
   case ${node_num} in
     10) node_name="illusion" ;;
@@ -24,7 +24,7 @@ for node_num in 10 11 12; do
     12) node_name="the-toy-factory" ;;
     *) echo "Unknown node number: ${node_num}" >&2; exit 1 ;;
   esac
-  
+
   # Check if ovn-central pod exists and is running on this node
   pod=$(kubectl get pods -n cozy-kubeovn -l app=ovn-central -o json 2>/dev/null | \
         jq -r --arg ip "${node_ip}" '.items[] | select(.status.hostIP == $ip and .status.phase == "Running") | .metadata.name' | head -1)
@@ -43,13 +43,11 @@ for node_num in 10 11 12; do
   else
     # Parse cluster information
     cluster_id=$(echo "${nb_status}" | grep "Cluster ID:" | awk '{print $3, $4}')
-    leader_id=$(echo "${nb_status}" | grep "Leader:" | awk '{print $2}')
-    
+
     output="${output}OVN Northbound RAFT Cluster:\n"
     output="${output}Cluster ID: ${cluster_id}\n"
-    output="${output}Leader: ${leader_id}\n"
     output="${output}Members:\n"
-    
+
     # Extract server information and check IPs
     # Look for lines like: "    839a (839a at ssl:[192.168.50.12]:6643) last msg..."
     # Parse lines that contain " at ssl:[" (these are server entries)
@@ -78,13 +76,13 @@ for node_num in 10 11 12; do
       # Check if using br0 IP (10.50.50.x)
       if echo "${server_addr}" | grep -q "10\.50\.50\."; then
         errors="${errors}NB RAFT member ${server_id} uses br0 IP ${server_addr}; "
-        output="${output}  - ${server_id}: ${server_addr} ❌ (br0 IP)\n"
+        output="${output}  - ${server_addr} ❌ (br0 IP)\n"
       # Check if using management IP (192.168.50.x)
       elif echo "${server_addr}" | grep -q "192\.168\.50\."; then
-        output="${output}  - ${server_id}: ${server_addr} ✅\n"
+        output="${output}  - ${server_addr} ✅\n"
       else
         errors="${errors}NB RAFT member ${server_id} uses unexpected IP ${server_addr}; "
-        output="${output}  - ${server_id}: ${server_addr} ⚠️ (unexpected IP)\n"
+        output="${output}  - ${server_addr} ⚠️ (unexpected IP)\n"
       fi
     done
 
@@ -101,11 +99,9 @@ for node_num in 10 11 12; do
   else
     # Parse cluster information
     cluster_id=$(echo "${sb_status}" | grep "Cluster ID:" | awk '{print $3, $4}')
-    leader_id=$(echo "${sb_status}" | grep "Leader:" | awk '{print $2}')
 
     output="${output}OVN Southbound RAFT Cluster:\n"
     output="${output}Cluster ID: ${cluster_id}\n"
-    output="${output}Leader: ${leader_id}\n"
     output="${output}Members:\n"
 
     # Extract server information and check IPs
@@ -136,13 +132,13 @@ for node_num in 10 11 12; do
       # Check if using br0 IP (10.50.50.x)
       if echo "${server_addr}" | grep -q "10\.50\.50\."; then
         errors="${errors}SB RAFT member ${server_id} uses br0 IP ${server_addr}; "
-        output="${output}  - ${server_id}: ${server_addr} ❌ (br0 IP)\n"
+        output="${output}  - ${server_addr} ❌ (br0 IP)\n"
       # Check if using management IP (192.168.50.x)
       elif echo "${server_addr}" | grep -q "192\.168\.50\."; then
-        output="${output}  - ${server_id}: ${server_addr} ✅\n"
+        output="${output}  - ${server_addr} ✅\n"
       else
         errors="${errors}SB RAFT member ${server_id} uses unexpected IP ${server_addr}; "
-        output="${output}  - ${server_id}: ${server_addr} ⚠️ (unexpected IP)\n"
+        output="${output}  - ${server_addr} ⚠️ (unexpected IP)\n"
       fi
     done
   fi

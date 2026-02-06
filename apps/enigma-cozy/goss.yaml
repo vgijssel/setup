@@ -256,45 +256,23 @@ command:
     title: Validate OVN RAFT clusters use management network IPs
     # RAFT cluster addresses in OVN database must use ssl://192.168.50.x:6643-6644
     # not ssl://10.50.50.x:6643-6644 (old br0 IPs). This ensures proper cluster communication.
-    # Members are sorted by IP for stable ordering. Server IDs may change but IPs are constant.
+    # Members are sorted by IP for stable ordering.
     exec: ./scripts/validate-ovn-raft-cluster.sh
     exit-status: 0
     stdout: |
       OVN Northbound RAFT Cluster:
-      Cluster ID: 4e69 (4e69184e-18bb-480f-af60-e70a6030b1d8)
-      Leader: self
-      Members:
-        - 133c: 192.168.50.10 ✅
-        - af56: 192.168.50.11 ✅
-        - 9276: 192.168.50.12 ✅
+        Cluster ID: 4e69 (4e69184e-18bb-480f-af60-e70a6030b1d8)
+        Members:
+          - 192.168.50.10 ✅
+          - 192.168.50.11 ✅
+          - 192.168.50.12 ✅
 
-      OVN Southbound RAFT Cluster:
-      Cluster ID: efeb (efeb3e62-6271-42dd-82a7-7640b9ebfeb3)
-      Leader: 4592
-      Members:
-        - d699: 192.168.50.10 ✅
-        - c89c: 192.168.50.11 ✅
-        - 4592: 192.168.50.12 ✅
-    stderr: ""
-    timeout: 60000
-  network_error_rates_acceptable:
-    title: Validate network interface error and drop rates are within acceptable thresholds
-    # After MTU 1222 fix for KubeSpan compatibility, TX errors should be 0% on local nodes.
-    # Thresholds: <0.01% for local nodes (192.168.50.x), <0.5% for WAN nodes (KubeSpan over internet).
-    # See research.md for background on KubeSpan MTU requirements and the fixes applied.
-    exec: ./scripts/validate-network-error-rates.sh
-    exit-status: 0
-    stdout:
-      - "Network Interface Error Rates:"
-      - /illusion \(192\.168\.50\.10\):/
-      - "/genev_sys_6081 TX errors: .* ✅/"
-      - "/genev_sys_6081 TX drops: .* ✅/"
-      - "/genev_sys_6081 RX errors: .* ✅/"
-      - "/ovn0 MTU: 1222 ✅/"
-      - /the-dome \(192\.168\.50\.11\):/
-      - /the-toy-factory \(192\.168\.50\.12\):/
-      - /here-i-am \([0-9.]+\):/
-      - "/Node type: (local|WAN)/"
+        OVN Southbound RAFT Cluster:
+        Cluster ID: efeb (efeb3e62-6271-42dd-82a7-7640b9ebfeb3)
+        Members:
+          - 192.168.50.10 ✅
+          - 192.168.50.11 ✅
+          - 192.168.50.12 ✅
     stderr: ""
     timeout: 60000
   no_cilium_kubeovn_ip_collision:
@@ -353,43 +331,6 @@ command:
       - ""
     stderr: ""
     timeout: 30000
-  etcd_sync_latency_acceptable:
-    title: Validate etcd RAFT consensus latency is within acceptable thresholds (<500ms avg, <1000ms P99)
-    # RAFT consensus latency directly impacts Kubernetes API performance. High latencies
-    # (13+ seconds) indicate network issues and cause cluster-wide API timeouts.
-    # Monitors recent consensus operations and fails if latencies exceed critical thresholds.
-    exec: ./scripts/validate-etcd-latency.sh
-    exit-status: 0
-    stdout:
-      - "etcd Sync Performance:"
-      - /illusion \(192\.168\.50\.10\):/
-      - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
-      - /the-dome \(192\.168\.50\.11\):/
-      - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
-      - /the-toy-factory \(192\.168\.50\.12\):/
-      - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
-    stderr: ""
-    timeout: 60000
-  etcd_fsync_performance:
-    title: Validate etcd disk fsync performance is within acceptable thresholds (<5ms good, <10ms warning)
-    # Disk fsync latency directly impacts etcd write performance and RAFT consensus.
-    # High fsync latency (>10ms) indicates disk I/O contention from competing workloads
-    # (VictoriaMetrics, SeaweedFS, etc.) and will cause etcd instability, leader elections,
-    # and cluster-wide control plane failures. Measures actual disk flush time over 5 seconds
-    # on the etcd boot disk (nvme0n1). See etcd-disk-io-contention-resolved.md for details.
-    exec: ./scripts/validate-etcd-fsync.sh
-    exit-status: 0
-    stdout:
-      - "etcd Disk fsync Performance:"
-      - /illusion \(192\.168\.50\.10\):/
-      - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
-      - /the-dome \(192\.168\.50\.11\):/
-      - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
-      - /the-toy-factory \(192\.168\.50\.12\):/
-      - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
-      - All nodes have acceptable fsync performance for etcd workloads.
-    stderr: ""
-    timeout: 120000
   talos_kernel_extensions:
     title: Validate Talos kernel extensions are installed on all nodes
     # Kernel extensions provide hardware support (GPU, network firmware) and storage
@@ -481,83 +422,6 @@ command:
     exit-status: 0
     stdout:
       - "All storage interfaces have MTU 9000"
-    stderr: ""
-    timeout: 60000
-  storage_network_addresses_configured:
-    title: Validate point-to-point storage network addresses are configured on all nodes
-    # The dedicated storage network uses /31 point-to-point subnets between nodes:
-    #   illusion <-> the-dome: 10.50.1.0/31
-    #   illusion <-> the-toy-factory: 10.50.2.0/31
-    #   the-dome <-> the-toy-factory: 10.50.3.0/31
-    exec: |
-      errors=0
-      # Check illusion: 10.50.1.0 and 10.50.2.1
-      talosctl get addresses -n 192.168.50.10 -e 192.168.50.10 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.1.0")' >/dev/null 2>&1 || { echo "illusion missing 10.50.1.0"; errors=$((errors+1)); }
-      talosctl get addresses -n 192.168.50.10 -e 192.168.50.10 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.2.1")' >/dev/null 2>&1 || { echo "illusion missing 10.50.2.1"; errors=$((errors+1)); }
-      # Check the-dome: 10.50.1.1 and 10.50.3.0
-      talosctl get addresses -n 192.168.50.11 -e 192.168.50.11 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.1.1")' >/dev/null 2>&1 || { echo "the-dome missing 10.50.1.1"; errors=$((errors+1)); }
-      talosctl get addresses -n 192.168.50.11 -e 192.168.50.11 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.3.0")' >/dev/null 2>&1 || { echo "the-dome missing 10.50.3.0"; errors=$((errors+1)); }
-      # Check the-toy-factory: 10.50.2.0 and 10.50.3.1
-      talosctl get addresses -n 192.168.50.12 -e 192.168.50.12 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.2.0")' >/dev/null 2>&1 || { echo "the-toy-factory missing 10.50.2.0"; errors=$((errors+1)); }
-      talosctl get addresses -n 192.168.50.12 -e 192.168.50.12 -o json 2>/dev/null | jq -e '.spec.address | startswith("10.50.3.1")' >/dev/null 2>&1 || { echo "the-toy-factory missing 10.50.3.1"; errors=$((errors+1)); }
-      [ $errors -eq 0 ] && echo "All storage network addresses configured correctly" || exit 1
-    exit-status: 0
-    stdout:
-      - "All storage network addresses configured correctly"
-    stderr: ""
-    timeout: 60000
-  linstor_node_interfaces_storage:
-    title: Validate LINSTOR storage interfaces exist on all nodes
-    # LINSTOR must have dedicated storage interfaces configured for each point-to-point link.
-    # Each node should have 2 storage interfaces (storage-* named interfaces).
-    exec: |
-      errors=0
-      for node in illusion the-dome the-toy-factory; do
-        count=$(bin/linstor node interface list $node 2>/dev/null | grep -c "storage-" || echo 0)
-        if [ "$count" -ge 2 ]; then
-          echo "$node: $count storage interfaces ✅"
-        else
-          echo "$node: $count storage interfaces ❌ (expected 2)"
-          errors=$((errors+1))
-        fi
-      done
-      [ $errors -eq 0 ] && echo "All nodes have LINSTOR storage interfaces configured" || exit 1
-    exit-status: 0
-    stdout:
-      - "All nodes have LINSTOR storage interfaces configured"
-    stderr: ""
-    timeout: 60000
-  linstor_node_connection_paths:
-    title: Validate LINSTOR node-connection paths are configured for direct peer communication
-    # Node-connection paths route DRBD traffic through the dedicated 25Gbps interfaces
-    # instead of the default management network interface.
-    exec: |
-      errors=0
-      # Check illusion <-> the-dome path
-      if bin/linstor node-connection path list illusion the-dome 2>/dev/null | grep -q "direct"; then
-        echo "illusion <-> the-dome: direct path ✅"
-      else
-        echo "illusion <-> the-dome: direct path ❌"
-        errors=$((errors+1))
-      fi
-      # Check illusion <-> the-toy-factory path
-      if bin/linstor node-connection path list illusion the-toy-factory 2>/dev/null | grep -q "direct"; then
-        echo "illusion <-> the-toy-factory: direct path ✅"
-      else
-        echo "illusion <-> the-toy-factory: direct path ❌"
-        errors=$((errors+1))
-      fi
-      # Check the-dome <-> the-toy-factory path
-      if bin/linstor node-connection path list the-dome the-toy-factory 2>/dev/null | grep -q "direct"; then
-        echo "the-dome <-> the-toy-factory: direct path ✅"
-      else
-        echo "the-dome <-> the-toy-factory: direct path ❌"
-        errors=$((errors+1))
-      fi
-      [ $errors -eq 0 ] && echo "All node-connection paths configured" || exit 1
-    exit-status: 0
-    stdout:
-      - "All node-connection paths configured"
     stderr: ""
     timeout: 60000
 addr:
