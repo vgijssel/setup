@@ -4,9 +4,3 @@
 
 # User to add to docker group (for non-root Docker access)
 docker_user: maarten
-
-# Docker daemon IPv6 configuration
-docker_ipv6_enabled: true
-docker_fixed_cidr_v6: fd00:d0c:e000::/64
-docker_experimental: true
-docker_ip6tables: true

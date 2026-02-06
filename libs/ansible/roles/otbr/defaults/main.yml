@@ -10,31 +10,9 @@ otbr_base_dir: /opt/otbr
 otbr_compose_dir: "{{ otbr_base_dir }}"
 otbr_data_dir: "{{ otbr_base_dir }}/data"
 
-# Network Configuration
-otbr_ip: 192.168.1.17
-otbr_network_interface: eth0
-
-# Thread Network Configuration
-# Prefix for Thread network - fd00::/8 is reserved for ULA (Unique Local Address)
-otbr_thread_prefix: fd00:db8:a0::/64
-
 # USB Device Configuration
-# Nabu Casa Thread radio connected to /dev/ttyUSB0
-otbr_usb_device: /dev/ttyUSB0
+# Nabu Casa Thread radio symlink created by udev rules
 otbr_usb_symlink: /dev/thread-radio
-
-# Timezone (for container and logs)
-otbr_timezone: Europe/Amsterdam
-
-# Web Interface
-otbr_web_port: 8080
-
-# Thread Border Router Agent (OTBR-Agent) settings
-# Radio URL format: spinel+hdlc+uart://DEVICE?uart-baudrate=BAUDRATE
-otbr_radio_url: "spinel+hdlc+uart://{{ otbr_usb_device }}?uart-baudrate=460800"
 
 # Backbone interface for Thread network
 otbr_backbone_interface: eth0
-
-# NAT64 (disabled by default as we use native IPv6)
-otbr_nat64_enabled: false

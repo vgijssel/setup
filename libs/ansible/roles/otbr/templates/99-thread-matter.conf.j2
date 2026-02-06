@@ -23,7 +23,7 @@ net.ipv6.neigh.default.gc_thresh3=4096
 # Value 2 means accept RAs even when forwarding is on
 net.ipv6.conf.all.accept_ra=2
 net.ipv6.conf.default.accept_ra=2
-net.ipv6.conf.{{ otbr_network_interface }}.accept_ra=2
+net.ipv6.conf.{{ otbr_backbone_interface }}.accept_ra=2
 
 # Disable privacy extensions for stable IPv6 addresses
 # Thread devices need predictable addresses
