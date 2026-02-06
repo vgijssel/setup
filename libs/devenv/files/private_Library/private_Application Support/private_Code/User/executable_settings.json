@@ -96,5 +96,22 @@
   "editor.defaultFormatter": "trunk.io",
   "trunk.autoInit": false,
   "github.copilot.nextEditSuggestions.enabled": true,
-  "workbench.colorTheme": "Default Light Modern"
+  "workbench.colorTheme": "Default Light Modern",
+  "remote.SSH.defaultExtensions": [
+    "anthropic.claude-code",
+    "ms-azuretools.vscode-docker",
+    "mkhl.direnv",
+    "ms-python.python",
+    "github.copilot",
+    "github.copilot-chat",
+    "openai.chatgpt",
+    "vspacecode.vspacecode",
+    "alexanderbast.vscode-snazzy",
+    "tilt-dev.tiltfile",
+    "github.remotehub",
+    "hashicorp.hcl",
+    "hashicorp.terraform",
+    "Hamster.task-master-hamster",
+    "jetmartin.bats"
+  ]
 }

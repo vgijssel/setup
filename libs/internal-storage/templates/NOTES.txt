@@ -1,0 +1,22 @@
+LINSTOR Storage Configuration
+
+Components installed:
+{{- if .Values.storageNetwork.enabled }}
+- Storage network configuration Job (RBAC + Job)
+  Namespace: {{ .Values.linstorNamespace }}
+{{- end }}
+- ClusterPolicy for LINSTOR node selection
+- StorageClasses:
+{{- if .Values.storageClasses.localSsd.enabled }}
+  - {{ .Values.storageClasses.localSsd.name }} (default: {{ .Values.storageClasses.localSsd.isDefault }})
+{{- end }}
+{{- if .Values.storageClasses.replicated.enabled }}
+  - {{ .Values.storageClasses.replicated.name }}
+{{- end }}
+
+To verify the storage network configuration:
+  kubectl get jobs -n {{ .Values.linstorNamespace }}
+  kubectl logs -n {{ .Values.linstorNamespace }} -l app=linstor-storage-network
+
+To verify storage classes:
+  kubectl get storageclass

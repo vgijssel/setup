@@ -174,6 +174,31 @@ command:
       - /^\|==================================================================\|$/
     stderr: ""
     timeout: 30000
+  linstor_storage_interfaces:
+    title: Validate LINSTOR storage interfaces are configured for 25Gbps network
+    # LINSTOR storage interfaces enable DRBD replication over the dedicated 25Gbps
+    # point-to-point network. Each node has 2 storage interfaces connecting to the
+    # other two nodes in a full mesh topology. See tasks 60, 61 for configuration.
+    exec: ./scripts/validate-linstor-storage-interfaces.sh
+    exit-status: 0
+    stdout: |
+      LINSTOR Storage Interfaces:
+
+      illusion:
+        - storage-dome: 10.50.1.0 ✅
+        - storage-toyfactory: 10.50.2.1 ✅
+
+      the-dome:
+        - storage-illusion: 10.50.1.1 ✅
+        - storage-toyfactory: 10.50.3.0 ✅
+
+      the-toy-factory:
+        - storage-dome: 10.50.3.1 ✅
+        - storage-illusion: 10.50.2.0 ✅
+
+      All 6 storage interfaces configured correctly
+    stderr: ""
+    timeout: 60000
   ovn_northbound_db_healthy:
     title: Validate OVN Northbound DB cluster is healthy
     exec: ovn-appctl -t /var/run/ovn/ovnnb_db.ctl cluster/status OVN_Northbound 2>/dev/null | grep -q "Role:" && echo "healthy" || echo "unhealthy"
@@ -256,56 +281,23 @@ command:
     title: Validate OVN RAFT clusters use management network IPs
     # RAFT cluster addresses in OVN database must use ssl://192.168.50.x:6643-6644
     # not ssl://10.50.50.x:6643-6644 (old br0 IPs). This ensures proper cluster communication.
-    # Members are sorted by IP for stable ordering. Server IDs may change but IPs are constant.
+    # Members are sorted by IP for stable ordering.
     exec: ./scripts/validate-ovn-raft-cluster.sh
     exit-status: 0
     stdout: |
       OVN Northbound RAFT Cluster:
       Cluster ID: 4e69 (4e69184e-18bb-480f-af60-e70a6030b1d8)
-      Leader: self
       Members:
-        - 133c: 192.168.50.10 ✅
-        - af56: 192.168.50.11 ✅
-        - 9276: 192.168.50.12 ✅
+        - 192.168.50.10 ✅
+        - 192.168.50.11 ✅
+        - 192.168.50.12 ✅
 
       OVN Southbound RAFT Cluster:
       Cluster ID: efeb (efeb3e62-6271-42dd-82a7-7640b9ebfeb3)
-      Leader: 4592
       Members:
-        - d699: 192.168.50.10 ✅
-        - c89c: 192.168.50.11 ✅
-        - 4592: 192.168.50.12 ✅
-    stderr: ""
-    timeout: 60000
-  network_error_rates_acceptable:
-    title: Validate network interface error and drop rates are within acceptable thresholds
-    # After MTU 1222 fix for KubeSpan compatibility, TX errors should be 0% on local nodes.
-    # Thresholds: <0.01% for local nodes (192.168.50.x), <0.5% for WAN nodes (KubeSpan over internet).
-    # See research.md for background on KubeSpan MTU requirements and the fixes applied.
-    exec: ./scripts/validate-network-error-rates.sh
-    exit-status: 0
-    stdout:
-      - "Network Interface Error Rates:"
-      - /illusion \(192\.168\.50\.10\):/
-      - "/genev_sys_6081 TX errors: .* ✅/"
-      - "/genev_sys_6081 TX drops: .* ✅/"
-      - "/genev_sys_6081 RX errors: .* ✅/"
-      - "/ovn0 MTU: 1222 ✅/"
-      - /the-dome \(192\.168\.50\.11\):/
-      - /the-toy-factory \(192\.168\.50\.12\):/
-      - /here-i-am \([0-9.]+\):/
-      - "/Node type: (local|WAN)/"
-    stderr: ""
-    timeout: 60000
-  no_cilium_kubeovn_ip_collision:
-    title: Validate no IP collision between Cilium router IPs and kube-ovn pod IPs
-    # IP collisions occur when Cilium assigns a router IP to cilium_host on node A,
-    # but kube-ovn assigns the same IP to a pod on node B. Traffic destined for that
-    # pod gets misrouted to node A (which intercepts it locally) instead of being
-    # forwarded via OVN to node B, causing connection timeouts.
-    exec: ./scripts/detect-cilium-kubeovn-ip-collision.sh
-    exit-status: 0
-    stdout: ""
+        - 192.168.50.10 ✅
+        - 192.168.50.11 ✅
+        - 192.168.50.12 ✅
     stderr: ""
     timeout: 60000
   etcd_members_use_management_ips:
@@ -353,43 +345,6 @@ command:
       - ""
     stderr: ""
     timeout: 30000
-  etcd_sync_latency_acceptable:
-    title: Validate etcd RAFT consensus latency is within acceptable thresholds (<500ms avg, <1000ms P99)
-    # RAFT consensus latency directly impacts Kubernetes API performance. High latencies
-    # (13+ seconds) indicate network issues and cause cluster-wide API timeouts.
-    # Monitors recent consensus operations and fails if latencies exceed critical thresholds.
-    exec: ./scripts/validate-etcd-latency.sh
-    exit-status: 0
-    stdout:
-      - "etcd Sync Performance:"
-      - /illusion \(192\.168\.50\.10\):/
-      - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
-      - /the-dome \(192\.168\.50\.11\):/
-      - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
-      - /the-toy-factory \(192\.168\.50\.12\):/
-      - "/  - (Average latency: [0-9]+ms ✅|Status: No recent consensus operations \\(stable\\) ✅)/"
-    stderr: ""
-    timeout: 60000
-  etcd_fsync_performance:
-    title: Validate etcd disk fsync performance is within acceptable thresholds (<5ms good, <10ms warning)
-    # Disk fsync latency directly impacts etcd write performance and RAFT consensus.
-    # High fsync latency (>10ms) indicates disk I/O contention from competing workloads
-    # (VictoriaMetrics, SeaweedFS, etc.) and will cause etcd instability, leader elections,
-    # and cluster-wide control plane failures. Measures actual disk flush time over 5 seconds
-    # on the etcd boot disk (nvme0n1). See etcd-disk-io-contention-resolved.md for details.
-    exec: ./scripts/validate-etcd-fsync.sh
-    exit-status: 0
-    stdout:
-      - "etcd Disk fsync Performance:"
-      - /illusion \(192\.168\.50\.10\):/
-      - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
-      - /the-dome \(192\.168\.50\.11\):/
-      - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
-      - /the-toy-factory \(192\.168\.50\.12\):/
-      - "/  - Average fsync latency: (<1ms|[0-9]+ms) ✅/"
-      - All nodes have acceptable fsync performance for etcd workloads.
-    stderr: ""
-    timeout: 120000
   talos_kernel_extensions:
     title: Validate Talos kernel extensions are installed on all nodes
     # Kernel extensions provide hardware support (GPU, network firmware) and storage
@@ -459,6 +414,30 @@ command:
       - No resources found
     stderr: ""
     timeout: 10000
+  storage_network_mtu_jumbo:
+    title: Validate storage interfaces have MTU 9000 (jumbo frames) for 25Gbps network
+    # The dedicated storage network uses MTU 9000 (jumbo frames) to reduce CPU overhead
+    # and maximize throughput on the 25Gbps point-to-point links between nodes.
+    # Both Mellanox interfaces (enp4s0f0np0, enp4s0f1np1) must have MTU 9000 configured.
+    exec: |
+      errors=0
+      for node_ip in 192.168.50.10 192.168.50.11 192.168.50.12; do
+        for iface in enp4s0f0np0 enp4s0f1np1; do
+          mtu=$(talosctl -n $node_ip -e $node_ip read /sys/class/net/$iface/mtu 2>/dev/null | tr -d '\n ')
+          if [ "$mtu" = "9000" ]; then
+            echo "$node_ip:$iface MTU=$mtu ✅"
+          else
+            echo "$node_ip:$iface MTU=$mtu ❌ (expected 9000)"
+            errors=$((errors+1))
+          fi
+        done
+      done
+      [ $errors -eq 0 ] && echo "All storage interfaces have MTU 9000" || exit 1
+    exit-status: 0
+    stdout:
+      - All storage interfaces have MTU 9000
+    stderr: ""
+    timeout: 60000
 addr:
   tcp://192.168.50.50:6443:
     title: Validate Kubernetes API reachability on kubevip

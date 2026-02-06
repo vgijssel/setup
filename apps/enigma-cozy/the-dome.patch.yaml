@@ -38,9 +38,15 @@ machine:
       - interface: eno1
         dhcp: false
         ignore: true
-      - interface: enp4s0f0np0
-        dhcp: false
-        ignore: true
-      - interface: enp4s0f1np1
-        dhcp: false
-        ignore: true
+      # Storage network: Point-to-point 25Gbps links for DRBD/LINSTOR replication
+      # Triangle mesh topology with /31 subnets - see apps/docs/03_internal/coder-workspace-creation-performance.md
+      # LINSTOR interface: storage-illusion (10.50.1.1) -> illusion's storage-dome (10.50.1.0)
+      - interface: enp4s0f0np0 # Link to illusion
+        addresses:
+          - 10.50.1.1/31
+        mtu: 9000
+      # LINSTOR interface: storage-toyfactory (10.50.3.0) -> the-toy-factory's storage-dome (10.50.3.1)
+      - interface: enp4s0f1np1 # Link to the-toy-factory
+        addresses:
+          - 10.50.3.0/31
+        mtu: 9000

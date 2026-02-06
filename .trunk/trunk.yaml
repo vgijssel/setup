@@ -57,6 +57,7 @@ lint:
         - libs/external-service/templates/**
         - libs/underlay-networking/templates/**
         - libs/registry/templates/**
+        - libs/internal-storage/templates/**
         - libs/devenv/goss.yaml
     # Ignore prettier syntax errors for Helm templates with complex syntax
     - linters: [prettier]
@@ -67,6 +68,7 @@ lint:
         - libs/external-service/templates/**
         - libs/registry/templates/**
         - libs/underlay-networking/templates/**
+        - libs/internal-storage/templates/**
   enabled:
     - ansible-lint@26.1.1
     - actionlint@1.7.10
