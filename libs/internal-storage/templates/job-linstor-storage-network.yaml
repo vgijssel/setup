@@ -1,0 +1,100 @@
+---
+{{- if .Values.storageNetwork.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: linstor-storage-network
+  namespace: {{ .Values.linstorNamespace }}
+  labels:
+    {{- include "internal-storage.labels" . | nindent 4 }}
+    app: linstor-storage-network
+  annotations:
+    config-version: {{ .Values.storageNetwork.configVersion | quote }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        {{- include "internal-storage.selectorLabels" . | nindent 8 }}
+        app: linstor-storage-network
+    spec:
+      serviceAccountName: linstor-controller
+      restartPolicy: OnFailure
+      containers:
+        - name: configure
+          image: {{ .Values.job.image }}
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "========================================"
+              echo "LINSTOR Storage Network Configuration"
+              echo "========================================"
+
+              # Helper function to run linstor commands
+              linstor_exec() {
+                kubectl exec -n {{ .Values.linstorNamespace }} deployment/linstor-controller -- linstor "$@"
+              }
+
+              # Helper to check if interface exists
+              interface_exists() {
+                kubectl exec -n {{ .Values.linstorNamespace }} deployment/linstor-controller -- linstor node interface list "$1" 2>/dev/null | grep -q "$2"
+              }
+
+              # Helper to check if path exists
+              path_exists() {
+                kubectl exec -n {{ .Values.linstorNamespace }} deployment/linstor-controller -- linstor node-connection path list "$1" "$2" 2>/dev/null | grep -q "$3"
+              }
+
+              echo ""
+              echo "=== Step 1: Creating Node Interfaces ==="
+
+              {{- range $nodeName, $nodeConfig := .Values.storageNetwork.nodes }}
+
+              # {{ $nodeName }} interfaces
+              echo "Configuring {{ $nodeName }}..."
+              {{- range $nodeConfig.interfaces }}
+              if interface_exists {{ $nodeName }} {{ .name }}; then
+                echo "  [OK] {{ .name }} already exists"
+              else
+                echo "  [CREATE] {{ .name }} with IP {{ .ip }}"
+                linstor_exec node interface create {{ $nodeName }} {{ .name }} {{ .ip }}
+              fi
+              {{- end }}
+              {{- end }}
+
+              echo ""
+              echo "=== Step 2: Creating Node-Connection Paths ==="
+
+              {{- range .Values.storageNetwork.connections }}
+
+              # {{ .nodeA }} <-> {{ .nodeB }}
+              echo "Configuring {{ .nodeA }} <-> {{ .nodeB }}..."
+              if path_exists {{ .nodeA }} {{ .nodeB }} {{ .pathName }}; then
+                echo "  [OK] path '{{ .pathName }}' already exists"
+              else
+                echo "  [CREATE] path '{{ .pathName }}' via {{ .interfaceA }} <-> {{ .interfaceB }}"
+                linstor_exec node-connection path create {{ .nodeA }} {{ .nodeB }} {{ .pathName }} {{ .interfaceA }} {{ .interfaceB }}
+              fi
+              {{- end }}
+
+              echo ""
+              echo "=== Verification ==="
+              echo "Node Interfaces:"
+              {{- range $nodeName, $nodeConfig := .Values.storageNetwork.nodes }}
+              linstor_exec node interface list {{ $nodeName }}
+              {{- end }}
+
+              echo ""
+              echo "========================================"
+              echo "Storage Network Configuration Complete!"
+              echo "========================================"
+{{- end }}

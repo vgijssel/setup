@@ -1,0 +1,6 @@
+apiVersion: v2
+name: internal-storage
+description: A Helm chart for LINSTOR storage configuration including network setup, RBAC, and StorageClasses
+type: application
+version: 0.1.0
+appVersion: 1.0.0

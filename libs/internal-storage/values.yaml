@@ -1,0 +1,81 @@
+# Namespace where LINSTOR controller runs
+linstorNamespace: cozy-linstor
+
+# Node selector label for LINSTOR satellites
+nodeSelector:
+  key: linstor.storage
+  value: enabled
+
+# Storage network configuration
+storageNetwork:
+  enabled: true
+  configVersion: "v8"
+
+  # Node definitions with their storage interfaces
+  nodes:
+    illusion:
+      interfaces:
+        - name: storage-dome
+          ip: 10.50.1.0
+        - name: storage-toyfactory
+          ip: 10.50.2.1
+    the-dome:
+      interfaces:
+        - name: storage-illusion
+          ip: 10.50.1.1
+        - name: storage-toyfactory
+          ip: 10.50.3.0
+    the-toy-factory:
+      interfaces:
+        - name: storage-illusion
+          ip: 10.50.2.0
+        - name: storage-dome
+          ip: 10.50.3.1
+
+  # Node connection paths (point-to-point links)
+  connections:
+    - nodeA: illusion
+      nodeB: the-dome
+      pathName: direct
+      interfaceA: storage-dome
+      interfaceB: storage-illusion
+    - nodeA: illusion
+      nodeB: the-toy-factory
+      pathName: direct
+      interfaceA: storage-toyfactory
+      interfaceB: storage-illusion
+    - nodeA: the-dome
+      nodeB: the-toy-factory
+      pathName: direct
+      interfaceA: storage-toyfactory
+      interfaceB: storage-dome
+
+# DRBD options for 25Gbps point-to-point network
+drbdOptions:
+  cMaxRate: "2048000" # 2 GB/s (~80% of 25Gbps)
+  cMinRate: "696320" # ~680 MB/s (1/3 of c-max-rate)
+  resyncRate: "696320" # ~680 MB/s
+  cPlanAhead: "20" # 2 seconds lookahead
+  cFillTarget: "20480" # 20 MB buffer
+  maxBuffers: "65536"
+  sndbufSize: "33554432" # 32 MB
+  rcvbufSize: "33554432" # 32 MB
+
+# Job configuration
+job:
+  image: bitnami/kubectl:1.32.1
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 5
+
+# StorageClass configurations
+storageClasses:
+  localSsd:
+    enabled: true
+    name: local-ssd
+    isDefault: true
+    storagePool: ssd
+  replicated:
+    enabled: true
+    name: replicated
+    storagePool: ssd
+    autoPlace: "3"

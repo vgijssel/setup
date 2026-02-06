@@ -1,0 +1,17 @@
+{{- if .Values.storageNetwork.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: linstor-storage-network-config
+  namespace: {{ .Values.linstorNamespace }}
+  labels:
+    {{- include "internal-storage.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: linstor-controller
+    namespace: {{ .Values.linstorNamespace }}
+roleRef:
+  kind: Role
+  name: linstor-storage-network-config
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

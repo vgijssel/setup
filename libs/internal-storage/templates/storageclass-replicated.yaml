@@ -1,0 +1,39 @@
+{{- if .Values.storageClasses.replicated.enabled }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  # Somewhere "replicated" is hardcoded so we need to call this that
+  name: {{ .Values.storageClasses.replicated.name }}
+  labels:
+    {{- include "internal-storage.labels" . | nindent 4 }}
+provisioner: linstor.csi.linbit.com
+parameters:
+  linstor.csi.linbit.com/storagePool: {{ .Values.storageClasses.replicated.storagePool }}
+  linstor.csi.linbit.com/autoPlace: {{ .Values.storageClasses.replicated.autoPlace | quote }}
+  linstor.csi.linbit.com/layerList: drbd storage
+  linstor.csi.linbit.com/allowRemoteVolumeAccess: "true"
+  # Quorum and failover settings
+  property.linstor.csi.linbit.com/DrbdOptions/auto-quorum: suspend-io
+  property.linstor.csi.linbit.com/DrbdOptions/Resource/on-no-data-accessible: suspend-io
+  property.linstor.csi.linbit.com/DrbdOptions/Resource/on-suspended-primary-outdated: force-secondary
+  property.linstor.csi.linbit.com/DrbdOptions/Net/rr-conflict: retry-connect
+  # DRBD resync tuning for 25Gbps point-to-point network with NVMe SSDs
+  # Reference: https://cozystack.io/docs/storage/drbd-tuning/
+  # Note: StorageClass parameters are immutable - these apply to new PVCs only
+  # c-max-rate: 2000 MB/s (~80% of 25Gbps, leaves headroom for app traffic)
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-max-rate: {{ .Values.drbdOptions.cMaxRate | quote }}
+  # c-min-rate: ~680 MB/s (1/3 of c-max-rate per LINBIT recommendation)
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-min-rate: {{ .Values.drbdOptions.cMinRate | quote }}
+  # resync-rate: starting point for dynamic controller (1/3 of c-max-rate)
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/resync-rate: {{ .Values.drbdOptions.resyncRate | quote }}
+  # c-plan-ahead: lookahead window in 1/10 seconds (20 = 2 seconds)
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-plan-ahead: {{ .Values.drbdOptions.cPlanAhead | quote }}
+  # c-fill-target: buffer fill target in KiB (scaled up for 25Gbps)
+  property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-fill-target: {{ .Values.drbdOptions.cFillTarget | quote }}
+  # Network buffer tuning for high-throughput 25Gbps links
+  property.linstor.csi.linbit.com/DrbdOptions/Net/max-buffers: {{ .Values.drbdOptions.maxBuffers | quote }}
+  property.linstor.csi.linbit.com/DrbdOptions/Net/sndbuf-size: {{ .Values.drbdOptions.sndbufSize | quote }}
+  property.linstor.csi.linbit.com/DrbdOptions/Net/rcvbuf-size: {{ .Values.drbdOptions.rcvbufSize | quote }}
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+{{- end }}
