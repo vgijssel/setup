@@ -25,6 +25,7 @@
     mode: "0644"
   become: true
   register: compose_config
+  notify: restart otbr
 
 - name: Start OTBR containers
   ansible.builtin.command:
@@ -33,13 +34,3 @@
   become: true
   register: compose_up
   changed_when: "'Started' in compose_up.stderr or 'Creating' in compose_up.stderr or compose_config.changed"
-
-- name: Wait for OTBR container to be running
-  ansible.builtin.command:
-    cmd: docker inspect --format='{% raw %}{{.State.Status}}{% endraw %}' {{ otbr_container_name }}
-  register: otbr_status
-  until: otbr_status.stdout == 'running'
-  retries: 30
-  delay: 5
-  changed_when: false
-  become: true

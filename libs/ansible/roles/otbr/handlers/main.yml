@@ -1,12 +1,8 @@
 ---
 # OTBR Role Handlers
 
-- name: reload sysctl
+- name: restart otbr
   ansible.builtin.command:
-    cmd: sysctl --system
-  become: true
-
-- name: reload udev
-  ansible.builtin.shell:
-    cmd: udevadm control --reload-rules && udevadm trigger
+    cmd: docker compose restart
+    chdir: /opt/otbr
   become: true

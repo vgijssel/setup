@@ -10,9 +10,5 @@ otbr_base_dir: /opt/otbr
 otbr_compose_dir: "{{ otbr_base_dir }}"
 otbr_data_dir: "{{ otbr_base_dir }}/data"
 
-# USB Device Configuration
-# Nabu Casa Thread radio symlink created by udev rules
-otbr_usb_symlink: /dev/thread-radio
-
 # Backbone interface for Thread network
 otbr_backbone_interface: eth0

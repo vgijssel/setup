@@ -89,6 +89,11 @@ command:
 
 # Phase 2: Configuration Files
 file:
+  /dev/ttyUSB0:
+    title: Validate Thread radio USB device is available
+    exists: true
+    filetype: device
+
   /etc/sysctl.d/99-thread-matter.conf:
     title: Validate Thread/Matter sysctl configuration file exists
     exists: true
@@ -96,13 +101,6 @@ file:
       - net.ipv6.conf.all.forwarding=1
       - net.ipv4.ip_forward=1
       - net.ipv6.conf.all.mc_forwarding=1
-
-  /etc/docker/daemon.json:
-    title: Validate Docker daemon.json exists with IPv6 config
-    exists: true
-    contains:
-      - '"ipv6"'
-      - "true"
 
   /etc/udev/rules.d/99-thread-radio.rules:
     title: Validate Thread radio udev rules exist
