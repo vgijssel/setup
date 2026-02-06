@@ -9,7 +9,7 @@ nodeSelector:
 # Storage network configuration
 storageNetwork:
   enabled: true
-  configVersion: "v8"
+  configVersion: v8
 
   # Node definitions with their storage interfaces
   nodes:
@@ -63,7 +63,7 @@ drbdOptions:
 
 # Job configuration
 job:
-  image: bitnami/kubectl:1.32.1
+  image: bitnami/kubectl:latest
   ttlSecondsAfterFinished: 3600
   backoffLimit: 5
 
