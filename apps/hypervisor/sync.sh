@@ -14,12 +14,14 @@ scp "${REPO_ROOT}/apps/haos/cloud/kubevirt_cr.yml" "${HOST}:/home/maarten/kubevi
 
 # Files that need root access - copy to temp location first, then sudo move
 TEMP_DIR="/tmp/nixos-sync-$$"
+# shellcheck disable=SC2029 # Intentional client-side expansion of TEMP_DIR
 ssh "${HOST}" "mkdir -p ${TEMP_DIR}"
 
 scp "${REPO_ROOT}/apps/hypervisor/configuration.nix" "${HOST}:${TEMP_DIR}/configuration.nix"
 scp "${REPO_ROOT}/apps/hypervisor/hardware-configuration.nix" "${HOST}:${TEMP_DIR}/hardware-configuration.nix"
 
 echo "Moving NixOS config files to /etc/nixos/ (sudo required)..."
+# shellcheck disable=SC2029 # Intentional client-side expansion of TEMP_DIR
 ssh -t "${HOST}" "sudo mv ${TEMP_DIR}/configuration.nix /etc/nixos/configuration.nix && \
     sudo mv ${TEMP_DIR}/hardware-configuration.nix /etc/nixos/hardware-configuration.nix && \
     sudo chown root:root /etc/nixos/configuration.nix /etc/nixos/hardware-configuration.nix && \

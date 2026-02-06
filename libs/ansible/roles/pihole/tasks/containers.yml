@@ -50,7 +50,7 @@
 
 - name: Deploy docker-compose.yml
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/docker-compose.yml"
+    src: "{{ playbook_dir }}/pihole/docker-compose.yml"
     dest: /opt/pihole/docker-compose.yml
     mode: "0644"
   become: true

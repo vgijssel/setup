@@ -18,7 +18,7 @@
 
 - name: Deploy OTBR docker-compose.yml
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/otbr-docker-compose.yml"
+    src: "{{ playbook_dir }}/otbr/docker-compose.yml"
     dest: "{{ otbr_compose_dir }}/docker-compose.yml"
     owner: root
     group: root
