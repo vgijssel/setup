@@ -27,7 +27,8 @@ linstor_exec() {
 # Get all interfaces for a node (returns: interface_name:ip)
 get_interfaces() {
   local node="$1"
-  linstor_exec node interface list "${node}" | grep -E "^\| storage-" | awk -F'|' '{gsub(/ /,"",$2); gsub(/ /,"",$4); print $2":"$4}'
+  # Strip ANSI color codes and match lines containing storage- interfaces
+  linstor_exec node interface list "${node}" | sed 's/\x1b\[[0-9;]*m//g' | grep "storage-" | awk -F'|' '{gsub(/ /,"",$3); gsub(/ /,"",$4); print $3":"$4}'
 }
 
 # Track found interfaces
