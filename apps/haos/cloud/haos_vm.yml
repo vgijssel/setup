@@ -24,8 +24,6 @@ spec:
                 bus: virtio
               name: haosdisk
           hostDevices:
-            - deviceName: kubevirt.io/skyconnect
-              name: skyconnect
             - deviceName: kubevirt.io/internet-card
               name: internet
         features:
