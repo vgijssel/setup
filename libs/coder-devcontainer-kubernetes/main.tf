@@ -791,7 +791,6 @@ module "code-server" {
     "ms-azuretools.vscode-docker",
     "mkhl.direnv",
     "ms-python.python",
-    "bee.git-temporal-vscode",
     "github.copilot",
     "github.copilot-chat",
     "openai.chatgpt",
