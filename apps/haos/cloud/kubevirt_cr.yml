@@ -5,6 +5,10 @@ metadata:
   namespace: kubevirt
 spec:
   configuration:
+    developerConfiguration:
+      featureGates:
+        - DataVolumes
+        - HostDevices
     permittedHostDevices:
       pciHostDevices:
         - pciVendorSelector: 8086:107c
@@ -12,11 +16,5 @@ spec:
       usb:
         - resourceName: kubevirt.io/skyconnect
           selectors:
-            - vendor: 10c4
-              product: ea60
-    developerConfiguration:
-      featureGates:
-        # For using DataVolumes inside VirtualMachine definitions
-        - DataVolumes
-        # For USB passthrough from host to guest
-        - HostDevices
+            - product: ea60
+              vendor: 10c4

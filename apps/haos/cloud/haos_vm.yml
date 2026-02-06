@@ -1,55 +1,46 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: haos
   labels:
     kubevirt.io/vm: haos
+  name: haos
+  namespace: default
 spec:
-  running: true # TODO: should we have a restart policy?
+  running: true
   template:
     metadata:
       labels:
-        kubevirt.io/vm: haos
         kubevirt.io/os: haos
-        # kubevirt.io/size: small
-        # kubevirt.io/domain: testvm
+        kubevirt.io/vm: haos
     spec:
+      architecture: amd64
       domain:
         cpu:
           cores: 2
-        # machine:
-        #   # This value indicates QEMU machine type.
-        #   type: pc-q35-3.1
         devices:
-          disks:
-            - name: haosdisk
-              disk:
-                bus: virtio
-          # Networking is provided by external USB dongle
           autoattachPodInterface: false
-          # interfaces:
-          #   - name: bridge
-          #     bridge: {}
+          disks:
+            - disk:
+                bus: virtio
+              name: haosdisk
           hostDevices:
             - deviceName: kubevirt.io/skyconnect
               name: skyconnect
             - deviceName: kubevirt.io/internet-card
               name: internet
-        resources:
-          requests:
-            memory: 4096M
         features:
+          acpi: {}
           smm:
             enabled: false
         firmware:
-          # haos needs efi otherwise it won't boot
           bootloader:
             efi:
               secureBoot: false
-      # networks:
-      #   - name: bridge
-      #     multus:
-      #       networkName: bridge
+        machine:
+          type: q35
+        resources:
+          requests:
+            memory: 4096M
       volumes:
         - name: haosdisk
           persistentVolumeClaim:
