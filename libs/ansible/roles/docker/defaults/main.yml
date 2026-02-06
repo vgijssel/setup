@@ -1,0 +1,6 @@
+---
+# Docker role defaults
+# Configuration for Docker installation and daemon settings
+
+# User to add to docker group (for non-root Docker access)
+docker_user: maarten

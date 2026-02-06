@@ -1,12 +1,15 @@
 ---
 # Pi-hole Server Configuration Playbook
 #
-# This playbook configures an Ubuntu Server host as a Pi-hole DNS server.
+# This playbook configures an Ubuntu Server host as a Pi-hole DNS server
+# with OTBR (Open Thread Border Router) for Thread/Matter network support.
 #
 # Role execution order:
 # 1. common - System configuration (hostname, users, SSH hardening, networking)
 # 2. tailscale - Tailscale VPN client installation and registration
-# 3. pihole - Docker and Pi-hole container deployment
+# 3. docker - Docker installation and daemon configuration
+# 4. pihole - Pi-hole container deployment
+# 5. otbr - Open Thread Border Router for Thread/Matter networking
 #
 # Variables are automatically loaded from:
 # - group_vars/pihole.yml - Non-secret configuration
@@ -19,4 +22,6 @@
   roles:
     - role: common
     - role: tailscale
+    - role: docker
     - role: pihole
+    - role: otbr

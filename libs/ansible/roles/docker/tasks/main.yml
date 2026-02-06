@@ -1,0 +1,7 @@
+---
+# Docker role main tasks
+# Installs Docker
+
+- name: Install Docker
+  ansible.builtin.import_tasks: install.yml
+  tags: docker-install

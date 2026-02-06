@@ -1,3 +1,3 @@
 ---
 # Pi-hole role defaults
-# Note: Most configuration is now in apps/pihole-prod/docker-compose.yml
+# Note: Most configuration is now in apps/pihole-prod/pihole/docker-compose.yml

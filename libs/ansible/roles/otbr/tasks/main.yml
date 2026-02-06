@@ -1,0 +1,7 @@
+---
+# OTBR Role Main Tasks
+# Deploys Open Thread Border Router for Thread/Matter network
+
+- name: Deploy OTBR containers
+  ansible.builtin.import_tasks: containers.yml
+  tags: containers

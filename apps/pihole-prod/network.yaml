@@ -13,9 +13,14 @@ network:
       nameservers:
         addresses:
           - 192.168.1.1
+      # IPv6 configuration for Thread/Matter networking
+      accept-ra: true
+      ipv6-privacy: false
   vlans:
     eth0.50:
       id: 50
       link: eth0
       dhcp4: false
       dhcp6: false
+      # IPv6 configuration for VLAN 50
+      accept-ra: true

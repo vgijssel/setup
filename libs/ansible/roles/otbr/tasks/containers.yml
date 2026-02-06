@@ -1,0 +1,36 @@
+---
+# OTBR Container Deployment Tasks
+# Deploys Open Thread Border Router container using docker-compose
+
+- name: Create OTBR base directory
+  ansible.builtin.file:
+    path: "{{ otbr_base_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Create OTBR data directory
+  ansible.builtin.file:
+    path: "{{ otbr_data_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Deploy OTBR docker-compose.yml
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/otbr/docker-compose.yml"
+    dest: "{{ otbr_compose_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  register: compose_config
+  notify: restart otbr
+
+- name: Start OTBR containers
+  ansible.builtin.command:
+    cmd: docker compose up -d
+    chdir: "{{ otbr_compose_dir }}"
+  become: true
+  register: compose_up
+  changed_when: "'Started' in compose_up.stderr or 'Creating' in compose_up.stderr or compose_config.changed"

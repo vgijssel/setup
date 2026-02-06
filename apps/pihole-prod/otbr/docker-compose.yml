@@ -1,0 +1,62 @@
+# OTBR (Open Thread Border Router) Docker Compose Configuration
+# Deployed to /opt/otbr/docker-compose.yml
+# Pinned image version for reproducibility - Renovatebot will detect and update
+
+services:
+  otbr:
+    container_name: otbr
+    image: openthread/otbr:jammy
+    hostname: otbr
+    restart: unless-stopped
+
+    # Fix hostname resolution for sudo commands inside container
+    extra_hosts:
+      - otbr:127.0.0.1
+
+    # Network mode: host required for Thread border routing
+    # OTBR needs direct access to network interfaces for:
+    # - mDNS/DNS-SD service discovery
+    # - IPv6 neighbor discovery
+    # - Thread mesh networking
+    network_mode: host
+
+    # Privileged mode required for:
+    # - Network namespace management
+    # - iptables/ip6tables manipulation
+    # - Thread radio access
+    privileged: true
+
+    environment:
+      # Timezone
+      TZ: Europe/Amsterdam
+
+      # Thread radio configuration
+      # Radio URL format: spinel+hdlc+uart://DEVICE?uart-baudrate=BAUDRATE
+      RADIO_URL: spinel+hdlc+uart:///dev/ttyUSB0?uart-baudrate=460800
+
+      # Backbone interface for Thread network
+      BACKBONE_IF: eth0
+
+      # Thread network prefix (ULA - Unique Local Address)
+      THREAD_PREFIX: fd00:db8:a0::/64
+
+      # NAT64 disabled - using native IPv6
+      NAT64: "0"
+
+    volumes:
+      # Persistent data for Thread network credentials
+      - /opt/otbr/data:/var/lib/thread
+
+    devices:
+      # Thread radio USB device
+      # Note: Pass the actual device, not the symlink - Docker doesn't follow symlinks
+      - /dev/ttyUSB0:/dev/ttyUSB0
+
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+
+    # Disable seccomp for full Thread networking support
+    security_opt:
+      - seccomp:unconfined

@@ -1,0 +1,16 @@
+# Udev rules for Thread Radio
+# Managed by Ansible - DO NOT EDIT MANUALLY
+#
+# Creates a persistent symlink at {{ otbr_usb_symlink }} for the Thread radio
+# This ensures the device path is stable across reboots
+
+# Silicon Labs devices (SkyConnect, ZBDongle-E, Home Assistant Yellow)
+# Uses Silicon Labs CP210x USB to UART Bridge (10c4:ea60)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="thread-radio", MODE="0666"
+
+# CH340/CH341 serial adapters (some ZBDongle variants)
+# SONOFF ZBDongle-E (1a86:55d4)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", SYMLINK+="thread-radio", MODE="0666"
+
+# Nordic Semiconductor nRF52840 (1915:521f)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1915", ATTRS{idProduct}=="521f", SYMLINK+="thread-radio", MODE="0666"
