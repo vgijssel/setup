@@ -18,9 +18,10 @@ spec:
       reconcileStrategy: Revision
   dependsOn:
     - name: kyverno
-    # LINSTOR is managed by cozystack via the cozystack HelmRelease
+    # LINSTOR is managed by cozystack in cozy-linstor namespace
     # The linstor-controller deployment must exist before the Job can run
-    - name: cozystack
+    - name: linstor
+      namespace: cozy-linstor
   install:
     createNamespace: true
     remediation:
