@@ -79,7 +79,8 @@ drbdOptions:
 
 # Job configuration
 job:
-  image: registry.k8s.io/kubectl:v1.32.1
+  # alpine/k8s has both kubectl and shell; registry.k8s.io/kubectl is distroless
+  image: alpine/k8s:1.32.1
   ttlSecondsAfterFinished: 3600
   backoffLimit: 5
 
