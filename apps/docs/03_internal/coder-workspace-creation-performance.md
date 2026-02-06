@@ -74,16 +74,78 @@ property.linstor.csi.linbit.com/DrbdOptions/Net/rcvbuf-size: "10485760"
 | Total creation time | ~3 minutes | ~1 minute 40 seconds | **44% faster** |
 | Volume attach/format | ~120 seconds | ~60 seconds | **50% faster** |
 
-## Future Improvements
+## 25Gbps Storage Network Implementation (Completed)
 
-When 25Gbps DAC (Direct Attach Copper) networking is configured between nodes:
+The 25Gbps DAC (Direct Attach Copper) storage network has been implemented using a point-to-point mesh topology. This section documents the architecture and configuration.
 
-1. Update `c-max-rate` to ~2,000,000 KiB/s (2 GB/s)
-2. Scale `c-min-rate` and `resync-rate` proportionally
-3. Increase `c-fill-target` to ~20480 KiB
-4. Expected workspace creation time: **under 30 seconds**
+### Network Topology
 
-The NVMe SSDs (Micron 7400 Pro) can sustain ~2,400 MB/s write speeds, so 25Gbps networking would be the new bottleneck at ~3.1 GB/s theoretical max.
+The cluster uses three /31 subnets for direct point-to-point links between nodes, providing 50Gbps aggregate bandwidth per node (both ports active simultaneously):
+
+```
+                illusion
+               /        \
+    10.50.1.0/31      10.50.2.0/31
+             /            \
+      the-dome -------- the-toy-factory
+              10.50.3.0/31
+```
+
+| Link | Subnet | Node A | Node B |
+|------|--------|--------|--------|
+| illusion - the-dome | 10.50.1.0/31 | 10.50.1.0 (enp4s0f0np0) | 10.50.1.1 (enp4s0f0np0) |
+| illusion - the-toy-factory | 10.50.2.0/31 | 10.50.2.1 (enp4s0f1np1) | 10.50.2.0 (enp4s0f0np0) |
+| the-dome - the-toy-factory | 10.50.3.0/31 | 10.50.3.0 (enp4s0f1np1) | 10.50.3.1 (enp4s0f1np1) |
+
+All interfaces use MTU 9000 (jumbo frames) for optimal throughput.
+
+### LINSTOR Configuration
+
+LINSTOR is configured with per-node interfaces and node-connection paths to route DRBD replication over the dedicated storage network:
+
+**Node Interfaces:**
+- Each node has two storage interfaces named `storage-<peer>` pointing to its direct links
+- Example: `illusion` has `storage-dome` (10.50.1.0) and `storage-toyfactory` (10.50.2.1)
+
+**Node Connections:**
+- Explicit paths ensure DRBD traffic uses the correct interface for each peer
+- Path name `direct` indicates point-to-point connection
+
+This configuration is managed by the `internal-storage` Helm chart at `libs/internal-storage/`.
+
+### DRBD Parameters for 25Gbps
+
+The following parameters are configured in the `replicated` StorageClass, scaled from the CozyStack 10Gbps reference:
+
+| Parameter | 2.5Gbps Value | 25Gbps Value | Purpose |
+|-----------|---------------|--------------|---------|
+| c-max-rate | 256,000 KiB/s (250 MB/s) | 2,048,000 KiB/s (~2 GB/s) | Maximum sync rate |
+| c-min-rate | 81,920 KiB/s (80 MB/s) | 682,666 KiB/s (~680 MB/s) | Minimum guaranteed sync |
+| resync-rate | 81,920 KiB/s | 682,666 KiB/s | Starting point for dynamic controller |
+| c-plan-ahead | 10 (1 second) | 10 (1 second) | Lookahead window |
+| c-fill-target | 1,024 KiB | 5,120 KiB | Network buffer fill target |
+| max-buffers | 36,864 | 92,160 | Maximum network buffers |
+| sndbuf-size | 10 MiB | 10 MiB | TCP send buffer (LINSTOR max) |
+| rcvbuf-size | 10 MiB | 10 MiB | TCP receive buffer (LINSTOR max) |
+
+### Why Point-to-Point vs Bridge
+
+The bridge-with-STP approach was rejected because:
+- STP blocks one link to break the triangle loop, wasting 33% bandwidth
+- Linux bridge only supports classic STP with 30-50 second convergence times
+- Point-to-point provides deterministic routing and full bandwidth utilization
+
+For details, see `.taskmaster/docs/prd-linstor-network.md`.
+
+### Operational Notes
+
+**Link Failure Behavior:**
+If a direct link fails (e.g., illusion-dome), those nodes cannot communicate directly. DRBD marks the peer as offline and operates in degraded mode. The remaining two links continue functioning normally.
+
+**Configuration Files:**
+- Node patch files: `apps/enigma-cozy/*.patch.yaml`
+- Helm chart: `libs/internal-storage/`
+- HelmRelease: `apps/enigma-cluster/helmrelease-internal-storage.yaml`
 
 ## References
 

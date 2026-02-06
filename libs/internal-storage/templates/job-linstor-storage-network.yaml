@@ -24,7 +24,6 @@ spec:
         - name: configure
           image: {{ .Values.job.image }}
           securityContext:
-            runAsNonRoot: true
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
