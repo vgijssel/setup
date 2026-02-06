@@ -27,7 +27,7 @@ linstor_exec() {
 # Get all interfaces for a node (returns: interface_name:ip)
 get_interfaces() {
   local node="$1"
-  linstor_exec node interface list "$node" | grep -E "^\| storage-" | awk -F'|' '{gsub(/ /,"",$2); gsub(/ /,"",$4); print $2":"$4}'
+  linstor_exec node interface list "${node}" | grep -E "^\| storage-" | awk -F'|' '{gsub(/ /,"",$2); gsub(/ /,"",$4); print $2":"$4}'
 }
 
 # Track found interfaces
@@ -40,26 +40,27 @@ echo ""
 # Iterate through each node
 for node in illusion the-dome the-toy-factory; do
   echo "${node}:"
-  interfaces_output=$(get_interfaces "$node" || true)
+  # shellcheck disable=SC2310  # Intentionally allow function to fail gracefully
+  interfaces_output=$(get_interfaces "${node}") || interfaces_output=""
 
-  if [[ -z "$interfaces_output" ]]; then
+  if [[ -z "${interfaces_output}" ]]; then
     echo "  (no storage interfaces found)"
     continue
   fi
 
   while IFS= read -r line; do
-    if [[ -n "$line" ]]; then
-      iface_name=$(echo "$line" | cut -d: -f1)
-      iface_ip=$(echo "$line" | cut -d: -f2)
+    if [[ -n "${line}" ]]; then
+      iface_name=$(echo "${line}" | cut -d: -f1)
+      iface_ip=$(echo "${line}" | cut -d: -f2)
 
       # Only show storage interfaces (storage-dome, storage-illusion, storage-toyfactory)
-      if [[ "$iface_name" =~ ^storage- ]]; then
+      if [[ "${iface_name}" =~ ^storage- ]]; then
         key="${node}:${iface_name}"
-        found_interfaces["$key"]="$iface_ip"
+        found_interfaces["${key}"]="${iface_ip}"
 
         # Check if IP matches expected
-        expected_ip="${EXPECTED_INTERFACES[$key]:-}"
-        if [[ "$iface_ip" == "$expected_ip" ]]; then
+        expected_ip="${EXPECTED_INTERFACES[${key}]:-}"
+        if [[ "${iface_ip}" == "${expected_ip}" ]]; then
           echo "  - ${iface_name}: ${iface_ip} ✅"
         else
           echo "  - ${iface_name}: ${iface_ip} ❌ (expected ${expected_ip})"
@@ -67,31 +68,31 @@ for node in illusion the-dome the-toy-factory; do
         fi
       fi
     fi
-  done <<< "$interfaces_output"
+  done <<< "${interfaces_output}"
   echo ""
 done
 
 # Check for missing interfaces
 missing_count=0
 for key in "${!EXPECTED_INTERFACES[@]}"; do
-  if [[ -z "${found_interfaces[$key]:-}" ]]; then
-    node=$(echo "$key" | cut -d: -f1)
-    iface=$(echo "$key" | cut -d: -f2)
-    echo "MISSING: ${node} ${iface} (expected IP: ${EXPECTED_INTERFACES[$key]})"
+  if [[ -z "${found_interfaces[${key}]:-}" ]]; then
+    node=$(echo "${key}" | cut -d: -f1)
+    iface=$(echo "${key}" | cut -d: -f2)
+    echo "MISSING: ${node} ${iface} (expected IP: ${EXPECTED_INTERFACES[${key}]})"
     missing_count=$((missing_count + 1))
     errors=$((errors + 1))
   fi
 done
 
-if [[ $missing_count -gt 0 ]]; then
+if [[ ${missing_count} -gt 0 ]]; then
   echo ""
 fi
 
 # Summary
-if [[ $errors -eq 0 ]]; then
+if [[ ${errors} -eq 0 ]]; then
   echo "All 6 storage interfaces configured correctly"
   exit 0
 else
-  echo "Found $errors error(s) in storage interface configuration"
+  echo "Found ${errors} error(s) in storage interface configuration"
   exit 1
 fi

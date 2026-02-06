@@ -192,7 +192,7 @@ command:
       - "the-toy-factory:"
       - "  - storage-illusion: 10.50.2.0"
       - "  - storage-dome: 10.50.3.1"
-      - "All 6 storage interfaces configured correctly"
+      - All 6 storage interfaces configured correctly
     stderr: ""
     timeout: 60000
   ovn_northbound_db_healthy:
@@ -431,7 +431,7 @@ command:
       [ $errors -eq 0 ] && echo "All storage interfaces have MTU 9000" || exit 1
     exit-status: 0
     stdout:
-      - "All storage interfaces have MTU 9000"
+      - All storage interfaces have MTU 9000
     stderr: ""
     timeout: 60000
 addr:
