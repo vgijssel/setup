@@ -1,563 +1,454 @@
+<context>
 # Overview
-This is an interactive escape room application called "Verjaardag Hilde" - a birthday present that transforms the entire smart home into an immersive puzzle game. The application orchestrates a series of 8 interconnected puzzles that leverage existing Home Assistant automation to create a seamless physical-digital experience. Players progress through 10 screens, solving puzzles that require interaction with real smart home devices (doors, lights, temperature sensors, audio systems) while the app provides visual feedback and guidance.
+Verjaardag Hilde is an interactive escape room experience designed as a birthday present. The application runs on an iPad Air 11 in landscape mode and integrates with the existing Home Assistant (haos) smart home automation system. Players progress through 8 distinct puzzles that interact with real smart home devices (doors, lights, TVs, thermostats, etc.) throughout the house. Successfully completing all puzzles reveals an 8-digit code that unlocks a physical safe containing the birthday present.
 
-The escape room culminates in revealing an 8-digit code that unlocks a physical safe containing Hilde's birthday present. The system maintains all state in Home Assistant, making the frontend completely stateless and resilient to crashes or reloads.
+The application is stateless by design - all game state is managed by Home Assistant entities. This ensures the game can be paused, resumed, or recovered from crashes without losing progress. The frontend is purely a visualization layer that responds to Home Assistant state changes.
 
 # Core Features
 
 ## State Management via Home Assistant
-- All application and puzzle state stored in Home Assistant select entities
-- Global navigation controlled by `verjaardag_hilde_global_select` (values 1-10)
-- Per-puzzle progress tracked in dedicated select entities (e.g., `verjaardag_hilde_puzzle_1_select`)
-- Frontend subscribes to state changes and re-renders accordingly
-- Enables crash-resilient gameplay - players resume at exact same point after reload
+- **What it does**: All application and puzzle state is managed through Home Assistant select entities and input toggles
+- **Why it's important**: Enables stateless frontend, crash recovery, remote control via HA app, and easy debugging
+- **How it works**: A global select entity (`verjaardag_hilde_global_select`) tracks screen 1-10, each puzzle has its own select/toggle entities
 
-## Progressive Code Disclosure System
-- 8-digit vault code revealed incrementally across puzzles
-- Code: 83 92 49 80
-- Screen 3: All digits hidden
-- Screen 4: First digit revealed (8)
-- Screen 5: First two digits revealed (83)
-- Continues until Screen 10: All 8 digits revealed
-- Code unlocks physical safe containing birthday present
+## Two Puzzle Types
+- **What it does**: Supports "progress" puzzles (sequential steps) and "collection" puzzles (unordered completion)
+- **Why it's important**: Provides variety in gameplay and leverages different smart home interaction patterns
+- **How it works**: Progress puzzles use select entities with incremental values; collection puzzles use multiple input toggles
 
-## 10-Screen Game Flow
-1. **Screen 1**: Intro screen with start button
-2. **Screen 2**: Intro video with synchronized smart home actions
-3. **Screens 3-9**: Seven puzzle screens (8 total puzzles, puzzle 2 has 3 sub-questions)
-4. **Screen 10**: Outro video with full code reveal
+## Progressive Code Disclosure
+- **What it does**: Reveals one digit of the 8-digit safe code with each completed puzzle
+- **Why it's important**: Provides continuous feedback on overall progress and builds anticipation
+- **How it works**: Screens 3-10 show increasingly more digits of the code `83 92 49 80`
 
-## Integration with Smart Home Devices
-- Door sensors and controls
-- Light switches and bulbs
-- Apple TV app detection
-- Google Assistant voice commands
-- Temperature sensors and thermostats
-- Power usage monitoring
-- Multi-room audio system (Sonos)
-- All interactions trigger state changes in Home Assistant that drive puzzle progression
+## Real Smart Home Integration
+- **What it does**: Puzzles directly interact with physical smart home devices
+- **Why it's important**: Creates an immersive, tangible escape room experience in the player's actual environment
+- **How it works**: Uses ha-component-kit to monitor and trigger Home Assistant entities (doors, lights, TVs, thermostats, speakers)
+
+## Video Playback with Automation Triggers
+- **What it does**: Plays intro/outro videos with synchronized smart home actions at specific timestamps
+- **Why it's important**: Creates dramatic moments and sets the atmosphere for the experience
+- **How it works**: React Player with timed service calls to Home Assistant to control lights, TVs, and audio
 
 # User Experience
 
 ## User Personas
-- **Primary**: Hilde (birthday recipient) - experiencing the escape room as a birthday surprise
-- **Secondary**: Game facilitator (likely Maarten) - monitoring progress via Home Assistant app and providing hints if needed
-- **Tertiary**: Other household members - may assist or participate
+- **Primary**: Hilde (birthday recipient) - expects a fun, challenging, personalized experience
+- **Secondary**: Gift giver - needs easy setup, reliable operation, ability to monitor/control progress
 
 ## Key User Flows
 
-### Initial Game Launch
-1. Open web application
-2. See intro screen with "Start!" button
-3. Click button to trigger intro video
-4. Intro video plays with synchronized smart home effects:
-   - 2s: Lights turn on
-   - 4s: TVs turn on
-   - 6s: Radio plays on Woonkamer Sonos
-   - 8s: Everything turns off
-5. Auto-transition to first puzzle
+### Happy Path Flow
+1. Land on intro screen (Screen 1), press "Start!"
+2. Watch intro video with dramatic smart home effects (Screen 2)
+3. Progress through 8 puzzle screens (Screens 3-10), each revealing one more code digit
+4. Complete final puzzle, watch outro video with full 8-digit code revealed
+5. Use code to unlock physical safe containing present
 
-### Typical Puzzle Flow
-1. Puzzle screen displays with title and description
-2. Visual indicators show puzzle state (e.g., door icons, light bulbs, switches)
-3. Player interacts with physical smart home devices
-4. App updates in real-time as Home Assistant detects changes
-5. Success splash screen when puzzle complete
-6. Auto-transition to next screen after brief delay
+### Puzzle Interaction Flow
+1. Read puzzle title and description
+2. Interact with physical smart home devices based on instructions
+3. Watch checkmarks (✅) appear as puzzle progresses
+4. Complete puzzle, automatic transition to next screen
 
-### Code Discovery Flow
-1. Complete first puzzle (screen 3) - code still hidden
-2. Progress to screen 4 - first digit revealed
-3. Each subsequent screen reveals next digit
-4. All 8 digits visible on final screen
-5. Use code to unlock physical safe
-
-### Error Recovery Flow
-1. Browser crashes or tab closes
-2. Re-open application
-3. App reads current state from Home Assistant
-4. Immediately displays correct screen with correct puzzle state
-5. Player continues from exact point of interruption
+### Recovery Flow
+1. If app crashes or iPad restarts, relaunch app
+2. App reads current `verjaardag_hilde_global_select` value from HA
+3. Immediately displays correct screen with correct puzzle progress
 
 ## UI/UX Considerations
+- **Layout**: Designed for iPad Air 11 landscape (1640×1148 effective pixels)
+- **Visual Feedback**: Green checkmarks (✅) indicate progress on puzzle elements
+- **Responsive State**: UI updates immediately when HA entities change
+- **Accessibility**: Clear titles, descriptions, and visual progress indicators
+- **Error Handling**: Graceful fallbacks if HA connection lost
+</context>
 
-### Visual Design
-- Clean, minimal interface focused on puzzle clarity
-- Large, clear icons for puzzle elements (doors, lights, switches, temperature)
-- Prominent display of progressive code reveal
-- Success animations for puzzle completion
-- Mobile-responsive design (likely played on tablet or phone)
-
-### Accessibility
-- Clear text descriptions for each puzzle
-- Visual feedback for all state changes
-- No time pressure - puzzles can be completed at any pace
-- No complex interactions - simple taps/clicks only
-
-### Performance
-- Lightweight React application
-- Real-time WebSocket connection to Home Assistant
-- Instant UI updates on state changes
-- Video playback must be smooth and synchronized
-
+<PRD>
 # Technical Architecture
 
 ## System Components
 
 ### Frontend Application
-- **Framework**: React with Vite build system
-- **Home Assistant Integration**: ha-component-kit (https://github.com/shannonhochkins/ha-component-kit)
-- **Authentication**: HassConnect from ha-component-kit
-- **Video Playback**: react-player library
-- **Location**: apps/verjaardag-hilde (moonrepo project structure)
-- **Build**: Vite with moonrepo tasks
-- **Deployment**: Static hosting (details TBD)
+- **Framework**: React with TypeScript
+- **Build Tool**: Vite (following moonrepo best practices)
+- **Location**: `apps/verjaardag-hilde/`
+- **Key Libraries**:
+  - `@hakit/core` and `@hakit/components` - Home Assistant integration
+  - `react-player` - Video playback for intro/outro
+  - `react` and `react-dom` - UI framework
 
-### Backend/State Management
-- **Platform**: Home Assistant (haos)
-- **State Entities**: Home Assistant select entities
-- **Automation**: Home Assistant automations trigger state transitions
-- **Device Integration**: Existing smart home devices via Home Assistant
+### Home Assistant Integration
+- **Connection**: `<HassConnect>` component with WebSocket connection
+- **Authentication**: Token-based auth via environment variables
+  - `VITE_HA_URL`: `http://192.168.1.32:8123` (development)
+  - `VITE_HA_TOKEN`: Sourced from global `.env` file
+- **REST API**: Used for service calls and entity manipulation during testing
 
-### Smart Home Devices (Existing)
-- Door sensors and locks
-- Philips Hue or similar smart lights
-- Apple TV
-- Google Assistant/Home
-- Nest or similar thermostats
-- Power monitoring devices
-- Sonos audio system
+### Testing Infrastructure
+- **Unit Tests**: Test individual React components in isolation
+- **Integration Tests**: Test component interaction with mocked HA entities
+- **E2E Tests**: Playwright with MCP integration for full flow validation
+- **Manual Testing**: Use HA REST API via shell to change entity states
 
 ## Data Models
 
 ### Global State Entity
 ```yaml
-entity_id: select.verjaardag_hilde_global_select
-options:
-  - "1"  # Intro screen
-  - "2"  # Intro video
-  - "3"  # Puzzle 1 - Doors
-  - "4"  # Puzzle 2 - Apple TV
-  - "5"  # Puzzle 3 - Switches/Lights
-  - "6"  # Puzzle 4 - Voice
-  - "7"  # Puzzle 5 - Button sequence
-  - "8"  # Puzzle 6 - Power usage
-  - "9"  # Puzzle 7 - Temperature
-  - "10" # Puzzle 8 - Audio code
+entity_id: input_select.verjaardag_hilde_global_select
+options: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 initial: "1"
 ```
 
-### Puzzle State Entities (Example: Puzzle 1)
+### Progress Puzzle Entity (Puzzles 1, 2, 5, 8)
 ```yaml
-entity_id: select.verjaardag_hilde_puzzle_1_select
-options:
-  - "0"  # Start
-  - "1"  # 1 door changed
-  - "2"  # 2 doors changed
-  - "3"  # 3 doors changed
-  - "4"  # 4 doors changed
-  - "5"  # Complete
+entity_id: input_select.verjaardag_hilde_puzzle_{n}_select
+options: ["0", "1", "2", ..., "{max_steps}"]
 initial: "0"
 ```
 
-### Frontend State Model
-```typescript
-interface AppState {
-  currentScreen: number;        // 1-10, synced from global_select
-  puzzleStates: {
-    [puzzleId: number]: number; // Synced from puzzle_N_select
-  };
-  revealedDigits: number;       // Calculated from currentScreen
-}
+### Collection Puzzle Entities (Puzzles 3, 4, 6, 7)
+```yaml
+entity_id: input_boolean.verjaardag_hilde_puzzle_{n}_item_{m}
+initial: false
 ```
 
 ## APIs and Integrations
 
 ### Home Assistant WebSocket API
-- Subscribe to select entity state changes
-- Call services to update entity states
-- Control smart home devices (lights, media players, climate)
+- **Entity Subscription**: Real-time updates when entity states change
+- **Service Calls**: Trigger HA automations and services from frontend
+- **Authentication**: Long-lived access token
 
-### Required Home Assistant Services
-- `select.select_option` - Update screen/puzzle state
-- `light.turn_on/off` - Control lights
-- `media_player.*` - Control Apple TV, Sonos
-- `climate.set_temperature` - Set thermostats
-- `tts.speak` - Text-to-speech for audio puzzle
-- Custom automations for puzzle logic
+### Home Assistant REST API
+- **Purpose**: Testing and validation during development
+- **Usage**: Shell commands to change entity states and verify UI updates
+- **Example**: `curl -X POST http://192.168.1.32:8123/api/services/input_select/select_option ...`
 
 ## Infrastructure Requirements
 
-### Development
-- Node.js (version pinned in .nvmrc or moon.yml)
-- npm with pinned dependencies
-- moonrepo for build orchestration
-- Home Assistant test instance (optional)
+### Development Environment
+- Node.js with moonrepo (Moon)
+- Home Assistant instance at `192.168.1.32:8123`
+- iPad Air 11 for manual testing
+- Playwright with MCP for automated testing
 
-### Production
-- Static file hosting (Netlify, Vercel, or self-hosted)
-- HTTPS required for Home Assistant authentication
-- Network access to Home Assistant instance
-- Reliable WebSocket connection
+### Production Environment
+- Vite production build hosted on local network
+- Continuous WebSocket connection to Home Assistant
+- Served via Home Assistant ingress or separate web server
 
 # Development Roadmap
 
-## Phase 1: MVP - Core Application Shell
-**Goal**: Basic React app with Home Assistant connection and screen navigation
+## Phase 1: Foundation & Navigation (MVP)
+**Scope**: Basic application structure with screen navigation and HA connection
 
-### Tasks
-- Initialize moonrepo project in apps/verjaardag-hilde
-- Set up Vite + React with TypeScript
-- Configure ha-component-kit and HassConnect authentication
-- Create basic routing/screen management (10 screens)
-- Implement global state subscription to verjaardag_hilde_global_select
-- Create placeholder screens 1-10
-- Deploy to test environment and verify HA connection
+**Deliverables**:
+- Moon project setup in `apps/verjaardag-hilde/`
+- Vite configuration with TypeScript
+- Install and configure ha-component-kit
+- Implement `<HassConnect>` with token authentication
+- Create global state listener for `verjaardag_hilde_global_select`
+- Implement screen routing (1-10) based on global select value
+- Basic error handling for HA connection failures
+- Unit tests for core navigation logic
 
-## Phase 2: Intro/Outro Flow (Screens 1, 2, 10)
-**Goal**: Working start and end experience with video playback
+**Definition of Done**:
+- App connects to Home Assistant successfully
+- Can manually change `verjaardag_hilde_global_select` via HA and see screen change
+- All screens render placeholder content
+- Tests pass for navigation logic
 
-### Tasks
-- Implement Screen 1 (intro with Start button)
-- Integrate react-player for video playback
-- Implement Screen 2 with synchronized smart home actions:
-  - Timed service calls at 2s, 4s, 6s, 8s
-  - Auto-transition on video end
-- Implement Screen 10 (outro video + full code reveal)
-- Create video player component with service call triggers
-- Test video synchronization timing
+## Phase 2: Intro & Outro Screens (Screens 1, 2, 10)
+**Scope**: Implement video playback with timed automation triggers
 
-## Phase 3: Progressive Code Reveal System
-**Goal**: 8-digit code progressively revealed across screens 3-10
+**Deliverables**:
+- Screen 1: Title screen with "Start!" button that updates global select
+- Screen 2: Video player for `verjaardag_hilde_intro.mp4` with timed service calls:
+  - 2s: Turn on lights
+  - 4s: Turn on TVs
+  - 6s: Play radio on Woonkamer Sonos
+  - 8s: Turn off all lights, TVs, and Sonos
+  - End: Navigate to screen 3
+- Screen 10: Video player for `verjaardag_hilde_outro.mp4` with background music
+- Progressive code display component (shows 0-8 digits based on screen number)
+- Integration tests for video playback and service call timing
+- Playwright test for full intro → video → first puzzle flow
 
-### Tasks
-- Create CodeReveal component
-- Implement digit masking/revealing logic based on current screen
-- Style code display (large, readable, prominent)
-- Test code reveal progression
-- Verify code: 83 92 49 80 displays correctly
+**Definition of Done**:
+- Videos play correctly on iPad Air 11 landscape
+- Timed automations trigger at correct timestamps
+- Code display shows correct digits on each screen
+- Playwright test validates entire intro sequence
 
-## Phase 4: Puzzle Infrastructure
-**Goal**: Reusable puzzle components and state management
+## Phase 3: Progress Puzzle Pattern (Puzzle 1 - Doors)
+**Scope**: Implement first puzzle to establish progress puzzle pattern
 
-### Tasks
-- Create base Puzzle component with title/description
-- Implement puzzle state subscription pattern (puzzle_N_select entities)
-- Create success splash screen component
-- Build puzzle status indicator components (icons, progress bars, checkmarks)
-- Set up puzzle transition logic
-- Create testing utilities for puzzle state simulation
+**Deliverables**:
+- Screen 3 component with title, description, and 5 door entities
+- Subscribe to `verjaardag_hilde_puzzle_1_select` entity
+- Render door states from HA (open/closed with visual indicators)
+- Display checkmarks (✅) based on select value (0-5)
+- Create reusable `ProgressPuzzle` component for future puzzles
+- Unit tests for puzzle state rendering
+- Integration tests with mocked HA entities
+- Playwright test for full puzzle completion flow
 
-## Phase 5: Simple Puzzles (1, 4, 6, 7)
-**Goal**: Puzzles with straightforward device monitoring
+**Definition of Done**:
+- Doors open/close in UI when HA entities change
+- Checkmarks appear as puzzle progresses (select value increases)
+- Can complete puzzle by manipulating HA entities via REST API
+- All tests pass
+- Pattern documented for reuse
 
-### Puzzle 1: Door Control (Screen 3)
-- Display 5 door icons
-- Subscribe to door sensor state changes
-- Turn icons green on state change
-- Show success on 5 doors changed
+## Phase 4: Additional Progress Puzzles (Puzzles 2, 5, 8)
+**Scope**: Implement remaining progress-based puzzles
 
-### Puzzle 4: Voice Control (Screen 6)
-- Display 3 colored light bulbs (red, blue, green)
-- Subscribe to light color state
-- Show checkmarks when correct colors set
-- Success when all 3 complete
+**Deliverables**:
+- **Puzzle 2 (Screen 4 - Apple TV)**:
+  - 3 questions about Apple TV apps
+  - Subscribe to `verjaardag_hilde_puzzle_2_select`
+  - Checkmarks appear to left of answered questions
+- **Puzzle 5 (Screen 6 - Lamps)**:
+  - 5 non-interactive toggles
+  - Subscribe to `verjaardag_hilde_puzzle_5_select`
+  - Toggles turn on sequentially as select increments
+- **Puzzle 8 (Screen 9 - Audio)**:
+  - 5-digit code input form
+  - Frontend validation of code
+  - Service call to set puzzle entity to 1 when correct
+- Reuse `ProgressPuzzle` component where applicable
+- Unit and integration tests for each puzzle
+- Playwright tests for each puzzle flow
 
-### Puzzle 6: Power Usage (Screen 8)
-- Display power usage indicator/meter
-- Subscribe to power monitoring sensor
-- Animate meter based on power consumption
-- Success when threshold reached
+**Definition of Done**:
+- All progress puzzles render correctly
+- Entity subscriptions work for each puzzle
+- Checkmarks appear appropriately
+- Tests pass for all puzzles
 
-### Puzzle 7: Temperature Control (Screen 9)
-- Display 5 temperature targets: 7, 10, 15, 19, 20
-- Subscribe to thermostat states
-- Show checkmarks when correct temps set
-- Success when all 5 match
+## Phase 5: Collection Puzzle Pattern (Puzzle 3 - Buttons)
+**Scope**: Implement first collection puzzle to establish pattern
 
-## Phase 6: Interactive Puzzles (2, 8)
-**Goal**: Puzzles with user input in frontend
+**Deliverables**:
+- Screen 5 component with title, description
+- 5 switches with dropdown selects
+- Subscribe to 5 boolean entities: `verjaardag_hilde_puzzle_3_item_{1-5}`
+- Map switch-light combinations to boolean entities
+- Display checkmarks when correct combination matched
+- Create reusable `CollectionPuzzle` component
+- Unit tests for collection puzzle logic
+- Integration tests with mocked boolean entities
+- Playwright test for puzzle completion
 
-### Puzzle 2: Apple TV Control (Screen 4)
-- Display question sequence (1 of 3)
-- Subscribe to Apple TV app state
-- Progress through 3 questions
-- Show success after question 3
+**Definition of Done**:
+- Switches and selects render with correct options
+- Checkmarks appear when HA booleans flip to true
+- Can complete puzzle by setting all 5 booleans via REST API
+- Tests pass
+- Pattern documented for reuse
 
-### Puzzle 8: Audio Code Entry (Screen 10)
-- Create 5-digit code input form
-- Validate code locally
-- Call service to update puzzle state on correct code
-- Show success and transition
+## Phase 6: Additional Collection Puzzles (Puzzles 4, 6, 7)
+**Scope**: Implement remaining collection-based puzzles
 
-## Phase 7: Complex Puzzles (3, 5)
-**Goal**: Puzzles with matching/sequencing mechanics
+**Deliverables**:
+- **Puzzle 4 (Screen 5 - Voice)**:
+  - 3 colored lightbulbs (red, blue, green) - non-interactive
+  - Subscribe to 3 boolean entities
+  - Checkmarks below each bulb when boolean true
+- **Puzzle 6 (Screen 7 - Power Usage)**:
+  - Power usage indicator (progress bar or gauge)
+  - Subscribe to power usage sensor entity
+  - Checkmarks or full completion indicator when threshold reached
+- **Puzzle 7 (Screen 8 - Temperature)**:
+  - 5 temperature indicators with preset values: 7, 10, 15, 19, 20
+  - Subscribe to 5 boolean entities
+  - Checkmarks below sensors when correct temp set
+- Reuse `CollectionPuzzle` component where applicable
+- Unit and integration tests for each puzzle
+- Playwright tests for each puzzle flow
 
-### Puzzle 3: Switch/Light Matching (Screen 5)
-- Display 5 switches (left) and 5 light bulbs (right)
-- Room labels: Slaapkamer, Waskamer, Keuken, Tuin, Voorraadkast
-- Implement drag-and-drop or click-to-connect UI
-- Subscribe to light states
-- Validate correct mappings:
-  - Slaapkamer switch → Waskamer lamp
-  - Waskamer switch → Voorraadkast lamp
-  - Keuken switch → Slaapkamer lamp
-  - Tuin switch → Keuken lamp
-  - Voorraadkast switch → Tuin lamp
-- Show success when all correct
+**Definition of Done**:
+- All collection puzzles render correctly
+- Boolean entity subscriptions work for each puzzle element
+- Checkmarks appear when conditions met
+- Tests pass for all puzzles
 
-### Puzzle 5: Button Sequence (Screen 7)
-- Display 5 toggle switches
-- Subscribe to button press events
-- Light up toggles in sequence as correct buttons pressed
-- Success when sequence complete
+## Phase 7: Polish & Optimization
+**Scope**: UI improvements, performance tuning, edge case handling
 
-## Phase 8: Home Assistant Automations
-**Goal**: Backend logic for puzzle validation and state transitions
+**Deliverables**:
+- Responsive design validation on iPad Air 11 landscape
+- Loading states for HA connection
+- Reconnection logic if WebSocket drops
+- Error boundaries for crash recovery
+- Animations for checkmarks and transitions
+- Accessibility improvements (ARIA labels, keyboard nav)
+- Performance profiling and optimization
+- Full Playwright test suite covering all screens
+- Documentation for setup and deployment
 
-### Tasks
-- Create select entities for all puzzles (global + 8 puzzle states)
-- Write automations for each puzzle completion detection
-- Implement auto-transition logic (puzzle complete → next screen)
-- Create debug dashboard in HA for monitoring game state
-- Test full game flow end-to-end
-- Add reset automation for restarting game
+**Definition of Done**:
+- App performs smoothly on target device
+- Handles network interruptions gracefully
+- All edge cases covered by tests
+- Setup documentation complete
 
-## Phase 9: Polish and Testing
-**Goal**: Production-ready escape room experience
+## Phase 8: Home Assistant Backend Automations
+**Scope**: Create HA automations that drive puzzle progression (not part of React app)
 
-### Tasks
-- Optimize video file sizes and loading
-- Add loading states and error handling
-- Improve success animations
-- Test on target device (tablet/phone)
-- Full playthrough testing
-- Fix any timing or synchronization issues
-- Add analytics/logging for debugging
-- Create facilitator guide/documentation
+**Deliverables**:
+- Automations to detect puzzle completion and increment global select
+- Automations to track puzzle progress and update select/boolean entities
+- Example: When 5th door closes, set `puzzle_1_select` to "5", then increment `global_select` to "4"
+- Testing scripts to validate automations
 
-## Phase 10: Deployment and Handoff
-**Goal**: Deployed and ready for birthday event
-
-### Tasks
-- Deploy to production hosting
-- Configure Home Assistant production automations
-- Test from production URL on target device
-- Create troubleshooting guide
-- Prepare backup/recovery procedures
-- Final rehearsal run
-- Document any manual setup steps
+**Definition of Done**:
+- All puzzle completion automations functional
+- Screen transitions happen automatically
+- Can play full game end-to-end without manual intervention
 
 # Logical Dependency Chain
 
-## Foundation First (Phase 1-3)
-These must be completed before any puzzle work:
-1. **Phase 1**: Core app shell - Required for all subsequent work
-2. **Phase 2**: Video screens - Establishes intro/outro flow
-3. **Phase 3**: Code reveal - Needed on screens 3-10
+## Foundation Layer (Must be built first)
+1. **Moon Project Setup**: Project structure, dependencies, Vite config
+2. **HA Connection**: `<HassConnect>` component with authentication working
+3. **Global Navigation**: Listen to `verjaardag_hilde_global_select`, route to screens 1-10
+4. **Testing Infrastructure**: Playwright MCP setup, unit test framework
 
-## Parallel Puzzle Development (Phase 4-7)
-After foundation is complete, puzzle work can proceed in parallel:
-- **Phase 4**: Puzzle infrastructure must complete first (dependency for Phase 5-7)
-- **Phase 5, 6, 7**: Can be developed in parallel or any order
-- Recommended: Phase 5 first (simpler puzzles), then 6 and 7
+## Presentation Layer (Visible frontend, build early)
+5. **Screen 1 (Intro)**: Simple button to test navigation works end-to-end
+6. **Screen 2 (Video)**: Video playback with timed automation hooks
+7. **Progressive Code Display**: Component to show 0-8 digits based on screen
 
-## Integration and Finalization (Phase 8-10)
-Sequential completion required:
-1. **Phase 8**: All puzzles must be complete before HA automations can be fully tested
-2. **Phase 9**: Polish requires completed game
-3. **Phase 10**: Deployment is final step
+## Puzzle Framework (Establish patterns before scaling)
+8. **Progress Puzzle Pattern**: Build Puzzle 1 (Doors) as template
+9. **Collection Puzzle Pattern**: Build Puzzle 3 (Buttons) as template
 
-## Quick Wins Strategy
-For fastest time-to-visible-progress:
-1. Phase 1 → Phase 2 → Phase 3 → Phase 4 (foundation)
-2. Phase 5: Puzzle 1 (simplest puzzle, quick win)
-3. Phase 6: Puzzle 8 (frontend-only, demonstrates interactivity)
-4. Continue with remaining puzzles
-5. Phase 8-10 (integration and deployment)
+## Puzzle Implementations (Can be parallelized within each group)
+10. **Remaining Progress Puzzles**: Puzzles 2, 5, 8 reusing pattern
+11. **Remaining Collection Puzzles**: Puzzles 4, 6, 7 reusing pattern
 
-This approach delivers a playable "vertical slice" (intro → one puzzle → code reveal) as early as possible, enabling testing and iteration while remaining puzzles are developed.
+## Completion Layer
+12. **Screen 10 (Outro)**: Final video with full code display
+13. **Polish & Edge Cases**: Animations, error handling, performance
+
+## Backend Integration (Separate track, can overlap with phases 8-11)
+14. **HA Automations**: Backend logic to drive puzzle progression
+
+**Pacing Strategy**: Build one complete screen at a time, validate with all three test types (unit, integration, Playwright) before proceeding. This ensures each screen is solid before moving on and provides visible progress quickly.
 
 # Risks and Mitigations
 
 ## Technical Challenges
 
-### WebSocket Connection Stability
-**Risk**: Connection to Home Assistant drops during gameplay, breaking puzzle state updates
-**Mitigation**:
-- Implement automatic reconnection logic in ha-component-kit
-- Add connection status indicator in UI
-- Test over target network (WiFi stability)
-- Consider local network deployment to minimize latency
+### Risk: Home Assistant WebSocket Connection Instability
+- **Impact**: App becomes unresponsive if connection drops
+- **Mitigation**: Implement automatic reconnection with exponential backoff, show connection status indicator, test with network interruptions
 
-### Video Synchronization Timing
-**Risk**: Service calls to HA not precisely timed with video playback
-**Mitigation**:
-- Pre-buffer video before playback starts
-- Use video player time position events (not setTimeout)
-- Test on target device (not just development machine)
-- Add buffer time to tolerances if needed
+### Risk: Video Playback Timing Accuracy
+- **Impact**: Smart home effects not synchronized with video moments
+- **Mitigation**: Test timing extensively, use React Player's `onProgress` callback, add manual trigger fallbacks for critical effects
 
-### Smart Home Device Responsiveness
-**Risk**: Devices slow to respond, causing puzzle state lag or confusion
-**Mitigation**:
-- Test all device integrations before game day
-- Ensure Home Assistant instance has adequate resources
-- Consider adding visual "processing" indicators
-- Manual override capability via HA dashboard
+### Risk: State Synchronization Between HA and Frontend
+- **Impact**: UI shows stale state after entity changes
+- **Mitigation**: Use ha-component-kit's reactive subscriptions, implement optimistic UI updates, add "sync" button for manual refresh
+
+### Risk: Testing Complexity with Physical Devices
+- **Impact**: Hard to automate tests that require real door sensors, lights, etc.
+- **Mitigation**: Use HA REST API to mock entity states during testing, create test mode that bypasses device checks, document manual test procedures
 
 ## MVP Scope Definition
 
-### Potential Scope Creep
-**Risk**: Adding features like hints, scoring, timers, multiplayer
-**Mitigation**:
-- Stick to core requirements: 10 screens, 8 puzzles, code reveal
-- No additional features before full playthrough testing
-- Focus on reliability over features
-- Save enhancements for post-birthday updates
+### Risk: Scope Creep with 8 Unique Puzzles
+- **Impact**: Development takes too long, complexity increases
+- **Mitigation**: Build reusable components for puzzle types (ProgressPuzzle, CollectionPuzzle), strictly adhere to one-screen-at-a-time approach, defer polish features to Phase 7
 
-### Puzzle Complexity Balance
-**Risk**: Puzzles too easy (boring) or too hard (frustrating)
-**Mitigation**:
-- Playtesting with someone unfamiliar with setup
-- Provide hint system via Home Assistant app (manual)
-- Document puzzle solutions for facilitator
-- Adjustable difficulty via HA automation configuration
-
-### Device Availability
-**Risk**: Required smart home devices not available or compatible
-**Mitigation**:
-- Audit existing devices before finalizing puzzle designs
-- Design puzzles around confirmed available devices
-- Have backup puzzles that use different device types
-- Test device control from Home Assistant before development
+### Risk: iPad-Specific Layout Issues
+- **Impact**: UI doesn't work well on target device despite desktop testing
+- **Mitigation**: Test on actual iPad Air 11 early and often, use responsive design from start, configure browser dev tools with correct viewport size
 
 ## Resource Constraints
 
-### Development Time
-**Risk**: Insufficient time before birthday deadline
-**Mitigation**:
-- Follow phased approach - deliver MVP quickly
-- Deprioritize polish if needed (functionality > beauty)
-- Consider reducing number of puzzles (8 → 5 or 6)
-- Parallel development where possible
+### Risk: Dependency on Home Assistant for All State
+- **Impact**: Cannot develop or test without HA running
+- **Mitigation**: Create mock HA entity server for pure frontend development, use HA dev instance separate from production, document setup clearly
 
-### Testing Environment
-**Risk**: Can't fully test without disrupting household
-**Mitigation**:
-- Use Home Assistant "scripts" to simulate puzzle flows
-- Test individual puzzles in isolation during low-activity times
-- Full rehearsal scheduled in advance
-- Restore automations after testing
-
-### Home Assistant Expertise
-**Risk**: Complex automation logic required, unfamiliar with YAML/automations
-**Mitigation**:
-- Start with simple automations, iterate to complexity
-- Use Home Assistant UI automation builder where possible
-- Leverage existing automation templates
-- Have simpler fallback puzzles that require less automation logic
+### Risk: Single Player Experience
+- **Impact**: Cannot test multi-player edge cases like simultaneous entity changes
+- **Mitigation**: Out of scope - designed as single-player experience, HA automations ensure atomic state transitions
 
 # Appendix
 
-## Technical Specifications
-
-### Home Assistant Select Entities Required
-- `select.verjaardag_hilde_global_select` (10 options: "1" through "10")
-- `select.verjaardag_hilde_puzzle_1_select` (6 options: "0" through "5")
-- `select.verjaardag_hilde_puzzle_2_select` (4 options: "0" through "3")
-- `select.verjaardag_hilde_puzzle_3_select` (6 options: "0" through "5")
-- `select.verjaardag_hilde_puzzle_4_select` (4 options: "0" through "3")
-- `select.verjaardag_hilde_puzzle_5_select` (6 options: "0" through "5")
-- `select.verjaardag_hilde_puzzle_6_select` (TBD based on power threshold steps)
-- `select.verjaardag_hilde_puzzle_7_select` (6 options: "0" through "5")
-- `select.verjaardag_hilde_puzzle_8_select` (2 options: "0" (locked), "1" (unlocked))
-
-### Device Mappings for Puzzles
-
-#### Puzzle 1: Doors
-- 5 door sensors/locks to monitor
-- Any 5 doors in house (to be specified)
-
-#### Puzzle 3: Switch/Light Mapping
-- Slaapkamer (bedroom) switch → Waskamer (laundry) lamp
-- Waskamer switch → Voorraadkast (pantry) lamp
-- Keuken (kitchen) switch → Slaapkamer lamp
-- Tuin (garden) switch → Keuken lamp
-- Voorraadkast switch → Tuin lamp
-
-#### Puzzle 4: Voice Commands
-- Google Assistant integration
-- Light color control (red, blue, green)
-
-#### Puzzle 5: Button Sequence
-- 5 buttons/switches to press in correct order
-- Specific sequence to be determined
-
-#### Puzzle 7: Temperature Settings
-- 5 thermostats with targets: 7°C, 10°C, 15°C, 19°C, 20°C
-- Room assignments to be determined
-
-#### Puzzle 8: Audio Code
-- Multi-room audio playback (Sonos)
-- 5-digit code (to be determined)
-- Rooms to play audio clues (to be determined)
-
-### Video Files
-- `verjaardag_hilde_intro.mp4` (already present in repo)
-- `verjaardag_hilde_outro.mp4` (to be created)
-
-### Dependencies (Pinned Versions)
-```json
-{
-  "react": "18.3.1",
-  "react-dom": "18.3.1",
-  "react-player": "2.16.0",
-  "@hakit/core": "latest stable version",
-  "@hakit/components": "latest stable version",
-  "vite": "5.4.11",
-  "typescript": "5.6.3"
-}
-```
-
-### Build Configuration
-- Vite config for production optimization
-- Code splitting for video components
-- Asset optimization for video files
-- Environment variables for HA connection details
-
 ## Research Findings
 
-### ha-component-kit
-- Comprehensive React library for Home Assistant integration
-- Provides `<HassConnect>` wrapper for authentication
-- `useEntity()` hook for subscribing to entity state
-- `useService()` hook for calling HA services
-- Well-documented with examples
-- Active maintenance
+### ha-component-kit Documentation
+- Source: https://shannonhochkins.github.io/ha-component-kit/
+- Key findings:
+  - Provides React hooks for entity subscriptions
+  - Supports service calls via `useHass()` hook
+  - Built-in TypeScript types for HA entities
+  - Requires WebSocket connection via `<HassConnect>`
 
-### React Player
-- Supports MP4 playback
-- Provides `onProgress` callback for time-based triggers
-- Can auto-play and loop
-- Mobile-friendly
-- Lightweight and performant
+### React Player Documentation
+- Source: https://www.npmjs.com/package/react-player
+- Key findings:
+  - Supports `onProgress` callback with `playedSeconds` for timed triggers
+  - Works with local video files via `url` prop
+  - Configurable controls, autoplay, loop, volume
 
-### Moon Monorepo Structure
-- Apps belong in `apps/` directory
-- Use `moon.yml` for task definitions
-- Follow existing patterns in other apps
-- Leverage shared configurations
+### Moonrepo Best Practices
+- Source: Project CLAUDE.md
+- Key findings:
+  - Place app in `apps/verjaardag-hilde/`
+  - Define tasks in local `moon.yml`
+  - Pin all dependencies to exact versions
+  - Use `trunk fmt` and `trunk check` before commits
 
-## Open Questions (To Be Resolved)
+## Technical Specifications
 
-1. Specific door sensors to use for Puzzle 1
-2. Apple TV apps for Puzzle 2 (which 3 apps?)
-3. Button sequence for Puzzle 5
-4. Power usage threshold for Puzzle 6
-5. Specific rooms/thermostats for Puzzle 7
-6. Audio code and room assignments for Puzzle 8
-7. Video file for outro (needs creation)
-8. Home Assistant instance connection details (URL, authentication method)
-9. Deployment hosting platform
-10. Target device for playing game (iPad, Android tablet, phone?)
+### Entity Naming Convention
+- **Global state**: `input_select.verjaardag_hilde_global_select`
+- **Progress puzzles**: `input_select.verjaardag_hilde_puzzle_{n}_select` where n = 1,2,5,8
+- **Collection puzzles**: `input_boolean.verjaardag_hilde_puzzle_{n}_item_{m}` where n = 3,4,6,7 and m = item index
+
+### Screen to Puzzle Mapping
+| Screen | Type | Entity | Max Value / Item Count |
+|--------|------|--------|------------------------|
+| 1 | Intro | N/A | N/A |
+| 2 | Video | N/A | N/A |
+| 3 | Progress | puzzle_1_select | 5 (doors) |
+| 4 | Progress | puzzle_2_select | 3 (Apple TV apps) |
+| 5 | Collection | puzzle_3_item_{1-5} | 5 (switch-light combos) |
+| 6 | Progress | puzzle_5_select | 5 (lamp buttons) |
+| 7 | Collection | puzzle_6_item_{1-N} | Power threshold |
+| 8 | Collection | puzzle_7_item_{1-5} | 5 (temperatures) |
+| 9 | Progress | puzzle_8_select | 1 (code validation) |
+| 10 | Outro | N/A | N/A |
+
+### iPad Air 11 Specifications (Landscape)
+- Resolution: 2266 × 1488 pixels
+- Viewport (without chrome): ~1640 × 1148 effective pixels
+- Aspect ratio: ~16:10
+- Touch interface - design for tap targets ≥44px
+
+### Safe Code (Progressive Disclosure)
+- Full code: `83 92 49 80`
+- Screen 3: `__ __ __ __`
+- Screen 4: `83 __ __ __`
+- Screen 5: `83 92 __ __`
+- Screen 6: `83 92 49 __`
+- Screen 7-10: `83 92 49 80` (fully revealed after all puzzles)
+
+### Video Assets
+- `verjaardag_hilde_intro.mp4`: Intro video with timed automation triggers
+- `verjaardag_hilde_outro.mp4`: Outro video with background music
+- Location: `apps/verjaardag-hilde/public/videos/`
+
+### Development Environment Variables
+```bash
+VITE_HA_URL=http://192.168.1.32:8123
+VITE_HA_TOKEN=<token from global .env>
+```
+</PRD>
