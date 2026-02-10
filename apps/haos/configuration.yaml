@@ -43,6 +43,61 @@ input_boolean:
     name: Laundry Room Occupancy Toggle
     icon: mdi:toggle-switch
 
+  # Verjaardag Hilde - Puzzle 3 (Buttons/Switches)
+  verjaardag_hilde_puzzle_3_item_1:
+    name: Verjaardag Hilde - Puzzle 3 Item 1
+    icon: mdi:puzzle
+  verjaardag_hilde_puzzle_3_item_2:
+    name: Verjaardag Hilde - Puzzle 3 Item 2
+    icon: mdi:puzzle
+  verjaardag_hilde_puzzle_3_item_3:
+    name: Verjaardag Hilde - Puzzle 3 Item 3
+    icon: mdi:puzzle
+  verjaardag_hilde_puzzle_3_item_4:
+    name: Verjaardag Hilde - Puzzle 3 Item 4
+    icon: mdi:puzzle
+  verjaardag_hilde_puzzle_3_item_5:
+    name: Verjaardag Hilde - Puzzle 3 Item 5
+    icon: mdi:puzzle
+
+  # Verjaardag Hilde - Puzzle 4 (Voice/Lights)
+  verjaardag_hilde_puzzle_4_item_1:
+    name: Verjaardag Hilde - Puzzle 4 Red Light
+    icon: mdi:lightbulb
+  verjaardag_hilde_puzzle_4_item_2:
+    name: Verjaardag Hilde - Puzzle 4 Blue Light
+    icon: mdi:lightbulb
+  verjaardag_hilde_puzzle_4_item_3:
+    name: Verjaardag Hilde - Puzzle 4 Green Light
+    icon: mdi:lightbulb
+
+  # Verjaardag Hilde - Puzzle 6 (Power Usage)
+  verjaardag_hilde_puzzle_6_item_1:
+    name: Verjaardag Hilde - Puzzle 6 Power Threshold
+    icon: mdi:flash
+
+  # Verjaardag Hilde - Puzzle 7 (Temperature)
+  verjaardag_hilde_puzzle_7_item_1:
+    name: Verjaardag Hilde - Puzzle 7 Temp 7C
+    icon: mdi:thermometer
+  verjaardag_hilde_puzzle_7_item_2:
+    name: Verjaardag Hilde - Puzzle 7 Temp 10C
+    icon: mdi:thermometer
+  verjaardag_hilde_puzzle_7_item_3:
+    name: Verjaardag Hilde - Puzzle 7 Temp 15C
+    icon: mdi:thermometer
+  verjaardag_hilde_puzzle_7_item_4:
+    name: Verjaardag Hilde - Puzzle 7 Temp 19C
+    icon: mdi:thermometer
+  verjaardag_hilde_puzzle_7_item_5:
+    name: Verjaardag Hilde - Puzzle 7 Temp 20C
+    icon: mdi:thermometer
+
+  # Verjaardag Hilde - Reset Trigger
+  verjaardag_hilde_reset_trigger:
+    name: Verjaardag Hilde - Reset Game Trigger
+    icon: mdi:restart
+
 timer:
   living_room_room_occupancy_timer:
     name: Living Room Occupancy Timer
@@ -172,6 +227,69 @@ input_select:
       - leaving_confirm
     initial: absent
     icon: mdi:home-account
+
+  # Verjaardag Hilde - Global Screen Selector
+  verjaardag_hilde_global_select:
+    name: Verjaardag Hilde - Global Screen
+    options:
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+      - "5"
+      - "6"
+      - "7"
+      - "8"
+      - "9"
+      - "10"
+    initial: "1"
+    icon: mdi:monitor
+
+  # Verjaardag Hilde - Puzzle 1 (Doors) Progress
+  verjaardag_hilde_puzzle_1_select:
+    name: Verjaardag Hilde - Puzzle 1 Doors
+    options:
+      - "0"
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+      - "5"
+    initial: "0"
+    icon: mdi:door
+
+  # Verjaardag Hilde - Puzzle 2 (Apple TV) Progress
+  verjaardag_hilde_puzzle_2_select:
+    name: Verjaardag Hilde - Puzzle 2 Apple TV
+    options:
+      - "0"
+      - "1"
+      - "2"
+      - "3"
+    initial: "0"
+    icon: mdi:apple
+
+  # Verjaardag Hilde - Puzzle 5 (Lamps) Progress
+  verjaardag_hilde_puzzle_5_select:
+    name: Verjaardag Hilde - Puzzle 5 Lamps
+    options:
+      - "0"
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+      - "5"
+    initial: "0"
+    icon: mdi:lamp
+
+  # Verjaardag Hilde - Puzzle 8 (Audio Code) Progress
+  verjaardag_hilde_puzzle_8_select:
+    name: Verjaardag Hilde - Puzzle 8 Audio
+    options:
+      - "0"
+      - "1"
+    initial: "0"
+    icon: mdi:music
 
 template:
   - binary_sensor:
