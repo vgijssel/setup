@@ -121,11 +121,46 @@ export function useHaService() {
     }
   }, [callService]);
 
+  /**
+   * Call a generic Home Assistant service.
+   *
+   * @param service - Service in "domain.service" format (e.g., "input_boolean.turn_on")
+   * @param data - Service data including entity_id
+   */
+  const callServiceGeneric = useCallback(
+    async (
+      service: string,
+      data: { entity_id: string; [key: string]: unknown }
+    ) => {
+      const [domain, serviceName] = service.split(".");
+      if (!domain || !serviceName) {
+        console.error(`Invalid service format: ${service}`);
+        return;
+      }
+
+      try {
+        callService({
+          domain: domain as "inputBoolean",
+          service: serviceName as "turnOn",
+          target: {
+            entity_id: data.entity_id,
+          },
+          serviceData: data,
+        });
+      } catch (error) {
+        console.error(`Failed to call ${service}:`, error);
+        throw error;
+      }
+    },
+    [callService]
+  );
+
   return {
     setInputSelect,
     turnOnBoolean,
     turnOffBoolean,
     navigateToScreen,
     resetGame,
+    callService: callServiceGeneric,
   };
 }

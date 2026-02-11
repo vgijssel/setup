@@ -1,5 +1,4 @@
 import { useInputSelect } from "../hooks/useHaEntity";
-import { useHaService } from "../hooks/useHaService";
 import { ENTITIES } from "../constants/entities";
 import { SCREEN_INFO } from "../types/entities";
 import { ProgressCode } from "./ProgressCode";
@@ -11,12 +10,14 @@ import { ProgressCode } from "./ProgressCode";
  * This is the heart of the stateless architecture - the component subscribes
  * to the global select entity and re-renders whenever it changes, whether
  * from user interaction, HA automations, or manual state changes.
+ *
+ * Navigation is strictly read-only - all screen transitions are controlled
+ * by Home Assistant entity state changes (automations, scripts, or manual).
  */
 export function GameScreen() {
   const { value: screenValue, isLoading } = useInputSelect(
     ENTITIES.GLOBAL_SELECT
   );
-  const { navigateToScreen, resetGame } = useHaService();
 
   const currentScreen = parseInt(screenValue, 10) || 1;
   const screenInfo = SCREEN_INFO[currentScreen];
@@ -34,59 +35,15 @@ export function GameScreen() {
     );
   }
 
-  const handleStart = () => {
-    navigateToScreen(2);
-  };
-
-  const handlePrevious = () => {
-    if (currentScreen > 1) {
-      navigateToScreen(currentScreen - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentScreen < 10) {
-      navigateToScreen(currentScreen + 1);
-    }
-  };
-
-  const handleReset = () => {
-    if (confirm("Weet je zeker dat je het spel wilt resetten?")) {
-      resetGame();
-    }
-  };
-
   return (
     <div className="app">
       <div className="screen-container">
-        <h1>Verjaardag Hilde</h1>
-        <p>Scherm {currentScreen} van 10</p>
-
-        {/* Debug navigation - remove in production */}
-        {import.meta.env.DEV && (
-          <div className="debug-nav">
-            <button onClick={handlePrevious} disabled={currentScreen === 1}>
-              Vorige
-            </button>
-            <span>Scherm {currentScreen}</span>
-            <button onClick={handleNext} disabled={currentScreen === 10}>
-              Volgende
-            </button>
-            <button onClick={handleReset} className="reset-button">
-              Reset
-            </button>
-          </div>
-        )}
-
-        {/* Screen content */}
+        {/* Screen content - read-only display based on HA state */}
         <div className="screen-content">
           {currentScreen === 1 && (
             <div className="screen-1">
               <h2>{screenInfo.title}</h2>
               <p>{screenInfo.description}</p>
-              <button className="start-button" onClick={handleStart}>
-                Start!
-              </button>
             </div>
           )}
 
@@ -97,12 +54,6 @@ export function GameScreen() {
               <p className="placeholder">
                 Video player wordt hier getoond (Task 4)
               </p>
-              <button
-                className="continue-button"
-                onClick={() => navigateToScreen(3)}
-              >
-                Ga verder
-              </button>
             </div>
           )}
 

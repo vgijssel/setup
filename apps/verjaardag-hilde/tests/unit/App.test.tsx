@@ -17,6 +17,18 @@ vi.mock("@hakit/core", () => ({
 
 import App from "../../src/App";
 
+/**
+ * App component tests - Updated after Tasks 15-20
+ *
+ * Changes:
+ * - Task 15: Removed 'Verjaardag Hilde' h1 header from GameScreen
+ * - Task 16: Screen 1 is now a minimal landing page (tested in Screen1Intro tests)
+ * - Task 19: Removed 'Scherm X van 10' text
+ * - Task 20: Removed manual navigation controls
+ *
+ * The App component now renders GameScreen which is a read-only display.
+ * The title 'Verjaardag Hilde' only appears on Screen 1 (landing page).
+ */
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -25,23 +37,27 @@ describe("App", () => {
     vi.stubEnv("VITE_HA_TOKEN", "test_token");
   });
 
-  it("renders the title", () => {
+  it("renders the app container", () => {
     render(<App />);
-    expect(screen.getByText("Verjaardag Hilde")).toBeDefined();
+    // The app should render without errors
+    expect(screen.getByRole("heading", { level: 2 })).toBeDefined();
   });
 
   it("starts on screen 1 when global select is 1", () => {
     render(<App />);
-    expect(screen.getByText("Scherm 1 van 10")).toBeDefined();
+    // Screen 1 shows "Welkom!" as the title (from SCREEN_INFO)
+    expect(screen.getByText("Welkom!")).toBeDefined();
   });
 
-  it("shows the start button on screen 1", () => {
+  it("does not show progress indicator (removed in Task 19)", () => {
     render(<App />);
-    expect(screen.getByText("Start!")).toBeDefined();
+    // Should NOT have 'Scherm X van 10' text anymore
+    expect(screen.queryByText(/Scherm \d+ van 10/)).toBeNull();
   });
 
   it("shows welcome message on screen 1", () => {
     render(<App />);
-    expect(screen.getByText("Welkom!")).toBeDefined();
+    // Screen 1 shows description from SCREEN_INFO
+    expect(screen.getByText(/Druk op Start/)).toBeDefined();
   });
 });

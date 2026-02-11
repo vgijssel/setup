@@ -1,0 +1,93 @@
+/**
+ * Landing page styles for Screen 1 (Intro)
+ *
+ * Clean, centered layout with gradient background.
+ * Optimized for iPad Air 11" landscape (1640x1148).
+ */
+
+.landing-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 48px;
+  box-sizing: border-box;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
+
+.landing-content {
+  text-align: center;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.landing-title {
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.9) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.landing-screen .start-button {
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 12px;
+  padding: 1.25rem 3rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 52px;
+  min-width: 200px;
+  margin-top: 0;
+}
+
+.landing-screen .start-button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.landing-screen .start-button:active {
+  transform: translateY(-2px);
+}
+
+/* iPad Air 11" specific optimizations */
+@media screen and (min-width: 1600px) and (max-width: 1680px) and (min-height: 1100px) and (max-height: 1180px) {
+  .landing-title {
+    font-size: 5rem;
+  }
+
+  .landing-screen .start-button {
+    padding: 1.5rem 4rem;
+    font-size: 2rem;
+    min-width: 250px;
+  }
+}
+
+/* Touch-friendly styles */
+@media (pointer: coarse) {
+  .landing-screen .start-button {
+    min-height: 60px;
+    min-width: 220px;
+  }
+}

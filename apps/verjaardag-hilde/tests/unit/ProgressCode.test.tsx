@@ -2,58 +2,115 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ProgressCode } from "../../src/components/ProgressCode";
 
+/**
+ * ProgressCode tests - Updated for single digit reveal behavior
+ *
+ * The full code is "83924980" (8 individual digits).
+ * Each completed puzzle reveals exactly ONE digit:
+ * - Screen 3 (start): "__ __ __ __" (0 digits)
+ * - Screen 4 (after puzzle 1): "8_ __ __ __" (1 digit)
+ * - Screen 5 (after puzzle 2): "83 __ __ __" (2 digits)
+ * - Screen 6 (after puzzle 3): "83 9_ __ __" (3 digits)
+ * - Screen 7 (after puzzle 4): "83 92 __ __" (4 digits)
+ * - Screen 8 (after puzzle 5): "83 92 4_ __" (5 digits)
+ * - Screen 9 (after puzzle 6): "83 92 49 __" (6 digits)
+ * - Screen 10 (after puzzle 7): "83 92 49 80" (all 8 digits)
+ */
 describe("ProgressCode", () => {
   it("shows no digits on screen 3", () => {
     render(<ProgressCode screenNumber={3} />);
 
-    // All segments should be hidden
-    const hiddenSegments = screen.getAllByText("__");
-    expect(hiddenSegments.length).toBe(4);
+    // All 8 individual digits should be hidden (shown as '_')
+    const hiddenDigits = screen.getAllByText("_");
+    expect(hiddenDigits.length).toBe(8);
+
+    // Should show instruction text
+    expect(
+      screen.getByText("Los puzzels op om de code te onthullen")
+    ).toBeDefined();
   });
 
-  it("shows first segment on screen 4", () => {
+  it("shows first digit on screen 4", () => {
     render(<ProgressCode screenNumber={4} />);
 
-    expect(screen.getByText("83")).toBeDefined();
-    const hiddenSegments = screen.getAllByText("__");
-    expect(hiddenSegments.length).toBe(3);
+    // First digit '8' should be revealed
+    expect(screen.getByText("8")).toBeDefined();
+
+    // 7 digits should still be hidden
+    const hiddenDigits = screen.getAllByText("_");
+    expect(hiddenDigits.length).toBe(7);
+
+    // Should show digit count
+    expect(screen.getByText("1/8 cijfers onthuld")).toBeDefined();
   });
 
-  it("shows two segments on screen 5", () => {
+  it("shows two digits on screen 5", () => {
     render(<ProgressCode screenNumber={5} />);
 
-    expect(screen.getByText("83")).toBeDefined();
-    expect(screen.getByText("92")).toBeDefined();
-    const hiddenSegments = screen.getAllByText("__");
-    expect(hiddenSegments.length).toBe(2);
+    // First two digits '8' and '3' should be revealed
+    expect(screen.getByText("8")).toBeDefined();
+    expect(screen.getByText("3")).toBeDefined();
+
+    // 6 digits should still be hidden
+    const hiddenDigits = screen.getAllByText("_");
+    expect(hiddenDigits.length).toBe(6);
+
+    expect(screen.getByText("2/8 cijfers onthuld")).toBeDefined();
   });
 
-  it("shows three segments on screen 6", () => {
+  it("shows three digits on screen 6", () => {
     render(<ProgressCode screenNumber={6} />);
 
-    expect(screen.getByText("83")).toBeDefined();
-    expect(screen.getByText("92")).toBeDefined();
-    expect(screen.getByText("49")).toBeDefined();
-    const hiddenSegments = screen.getAllByText("__");
-    expect(hiddenSegments.length).toBe(1);
+    // First three digits '8', '3', '9' should be revealed
+    expect(screen.getByText("8")).toBeDefined();
+    expect(screen.getByText("3")).toBeDefined();
+    expect(screen.getByText("9")).toBeDefined();
+
+    // 5 digits should still be hidden
+    const hiddenDigits = screen.getAllByText("_");
+    expect(hiddenDigits.length).toBe(5);
+
+    expect(screen.getByText("3/8 cijfers onthuld")).toBeDefined();
   });
 
-  it("shows all segments on screen 7 and above", () => {
+  it("shows four digits on screen 7", () => {
     render(<ProgressCode screenNumber={7} />);
 
-    expect(screen.getByText("83")).toBeDefined();
-    expect(screen.getByText("92")).toBeDefined();
-    expect(screen.getByText("49")).toBeDefined();
-    expect(screen.getByText("80")).toBeDefined();
-    expect(screen.queryAllByText("__").length).toBe(0);
+    // First four digits '8', '3', '9', '2' should be revealed
+    expect(screen.getByText("8")).toBeDefined();
+    expect(screen.getByText("3")).toBeDefined();
+    // Note: '9' and '2' are individual characters, each appears once
+    expect(screen.getAllByText("9").length).toBe(1);
+    expect(screen.getByText("2")).toBeDefined();
+
+    // 4 digits should still be hidden
+    const hiddenDigits = screen.getAllByText("_");
+    expect(hiddenDigits.length).toBe(4);
+
+    expect(screen.getByText("4/8 cijfers onthuld")).toBeDefined();
   });
 
-  it("shows all segments on screen 10", () => {
+  it("shows all digits on screen 10", () => {
     render(<ProgressCode screenNumber={10} />);
 
-    expect(screen.getByText("83")).toBeDefined();
-    expect(screen.getByText("92")).toBeDefined();
-    expect(screen.getByText("49")).toBeDefined();
-    expect(screen.getByText("80")).toBeDefined();
+    // All digits should be revealed: 8, 3, 9, 2, 4, 9, 8, 0
+    // Check for presence of revealed digits
+    const codeDisplay = screen.getByText((_, element) => {
+      return element?.classList.contains("code-display") ?? false;
+    });
+    expect(codeDisplay).toBeDefined();
+
+    // No hidden digits
+    expect(screen.queryAllByText("_").length).toBe(0);
+
+    expect(screen.getByText("8/8 cijfers onthuld")).toBeDefined();
+  });
+
+  it("handles screen 1 and 2 gracefully", () => {
+    render(<ProgressCode screenNumber={1} />);
+
+    // Should show no digits revealed (negative puzzles completed = 0)
+    const hiddenDigits = screen.getAllByText("_");
+    expect(hiddenDigits.length).toBe(8);
   });
 });
