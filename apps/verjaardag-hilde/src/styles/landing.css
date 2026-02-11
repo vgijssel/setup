@@ -63,12 +63,23 @@
 }
 
 .landing-screen .start-button:hover {
-  transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 .landing-screen .start-button:active {
-  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.landing-screen .start-button:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.5),
+    0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.landing-screen .start-button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 4px;
 }
 
 /* iPad Air 11" specific optimizations */

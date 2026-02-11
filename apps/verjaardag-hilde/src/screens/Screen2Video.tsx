@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { useHaService } from "../hooks/useHaService";
 
@@ -14,6 +14,11 @@ import { useHaService } from "../hooks/useHaService";
  *
  * Note: The video file should be placed in public/videos/verjaardag_hilde_intro.mp4
  * Video is gitignored due to size constraints.
+ *
+ * 2026 best practices:
+ * - muted + playsInline for reliable autoplay across browsers
+ * - progressInterval={50} for precise timestamp detection
+ * - useCallback for performance optimization
  */
 
 /** Timestamp triggers in seconds with their HA service calls */
@@ -36,12 +41,19 @@ export function Screen2Video() {
   const { navigateToScreen, callService } = useHaService();
   const [hasEnded, setHasEnded] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   // Track which triggers have already fired to prevent duplicate calls
   const triggeredTimestamps = useRef<Set<number>>(new Set());
 
+  // Reset triggers on mount (useful for replays)
+  useEffect(() => {
+    triggeredTimestamps.current.clear();
+  }, []);
+
   const handleVideoEnd = useCallback(() => {
     setHasEnded(true);
+    setIsPlaying(false);
     // Auto-advance after video ends
     navigateToScreen(3);
   }, [navigateToScreen]);
@@ -65,22 +77,36 @@ export function Screen2Video() {
     [callService]
   );
 
+  const handleError = useCallback((error: unknown) => {
+    console.error("Video playback error:", error);
+  }, []);
+
   return (
-    <div className="screen screen-2-video">
-      <div className="video-container">
+    <div
+      className="screen screen-2-video"
+      role="main"
+      aria-label="Introductie video"
+    >
+      <div className="video-container" data-testid="video-container">
         <ReactPlayer
           url="/videos/verjaardag_hilde_intro.mp4"
-          playing={true}
+          playing={isPlaying}
+          muted={true}
           controls={false}
           width="100%"
           height="100%"
           onEnded={handleVideoEnd}
           onProgress={handleProgress}
+          onError={handleError}
           progressInterval={50}
+          data-testid="intro-video"
           config={{
             file: {
               attributes: {
                 playsInline: true,
+                preload: "auto",
+                "data-testid": "intro-video-element",
+                "data-playing": isPlaying ? "true" : "false",
               },
             },
           }}
