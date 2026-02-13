@@ -3,11 +3,13 @@ import { useMemo } from "react";
 /** The full 8-digit safe code */
 const FULL_CODE = "83924980";
 
-/** Total number of puzzles that reveal digits (screens 3-9 have puzzles) */
-const TOTAL_PUZZLES = 7;
+/** Total number of puzzles that reveal digits (screens 3-10 have puzzles 1-8) */
+const TOTAL_PUZZLES = 8;
 
 interface ProgressCodeProps {
   screenNumber: number;
+  /** When true, show one additional digit for the just-completed puzzle */
+  puzzleJustCompleted?: boolean;
 }
 
 /**
@@ -16,7 +18,7 @@ interface ProgressCodeProps {
  * The full code is "83924980" (8 individual digits).
  * Each completed puzzle reveals exactly ONE digit of the code.
  *
- * Puzzle completion mapping (8 digits, 7 puzzles):
+ * Puzzle completion mapping (8 digits, 8 puzzles):
  * - Screen 3 (start): "________" (0 digits, puzzle not yet complete)
  * - Screen 4 (after puzzle 1): "8_______" (1 digit)
  * - Screen 5 (after puzzle 2): "83______" (2 digits)
@@ -24,21 +26,26 @@ interface ProgressCodeProps {
  * - Screen 7 (after puzzle 4): "8392____" (4 digits)
  * - Screen 8 (after puzzle 5): "83924___" (5 digits)
  * - Screen 9 (after puzzle 6): "839249__" (6 digits)
- * - Screen 10 (after puzzle 7): "83924980" (all 8 digits)
- *
- * Note: 8 digits / 7 puzzles means puzzle 7 reveals 2 digits at once.
+ * - Screen 10 (after puzzle 7): "8392498_" (7 digits)
+ * - Screen 11 (after puzzle 8): "83924980" (all 8 digits)
  */
-export function ProgressCode({ screenNumber }: ProgressCodeProps) {
+export function ProgressCode({
+  screenNumber,
+  puzzleJustCompleted = false,
+}: ProgressCodeProps) {
   // Calculate how many digits to reveal based on completed puzzles
   // Screen 3 = 0 puzzles complete = 0 digits
   // Screen 4 = 1 puzzle complete = 1 digit
-  // Screen 10 = 7 puzzles complete = 8 digits
-  const puzzlesCompleted = Math.max(0, screenNumber - 3);
+  // Screen 11 = 8 puzzles complete = 8 digits
+  const basePuzzlesCompleted = Math.max(0, screenNumber - 3);
 
-  // Map puzzles to digits: 7 puzzles reveal 8 digits (last puzzle reveals 2)
+  // Add one more digit if current puzzle was just completed
+  const puzzlesCompleted = puzzleJustCompleted
+    ? Math.min(basePuzzlesCompleted + 1, TOTAL_PUZZLES)
+    : basePuzzlesCompleted;
+
+  // Map puzzles to digits: 8 puzzles reveal 8 digits (1:1 mapping)
   const digitsToReveal = useMemo(() => {
-    if (puzzlesCompleted >= TOTAL_PUZZLES) return FULL_CODE.length;
-    // Each puzzle reveals 1 digit, except puzzle 7 reveals 2
     return Math.min(puzzlesCompleted, FULL_CODE.length);
   }, [puzzlesCompleted]);
 
@@ -54,7 +61,7 @@ export function ProgressCode({ screenNumber }: ProgressCodeProps) {
 
   return (
     <div className="progress-code">
-      <span className="code-label">Code: </span>
+      <span className="code-label">Kluis code: </span>
       <span className="code-display">
         {displayCode.split("").map((char, index) => {
           // Skip spaces for styling
@@ -71,7 +78,7 @@ export function ProgressCode({ screenNumber }: ProgressCodeProps) {
       <span className="digits-count">
         {digitsToReveal > 0
           ? `${digitsToReveal}/${FULL_CODE.length} cijfers onthuld`
-          : "Los puzzels op om de code te onthullen"}
+          : "Diagnostiseer systemen om Klaassandra haar geheugen te helpen herstellen"}
       </span>
     </div>
   );

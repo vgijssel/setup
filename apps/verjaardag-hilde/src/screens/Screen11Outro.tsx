@@ -6,7 +6,7 @@ import { ProgressCode } from "../components/ProgressCode";
 import { CODE_SEGMENTS } from "../constants/entities";
 
 /**
- * Screen 10: Outro screen with final video and complete code.
+ * Screen 11: Outro screen with final video and complete code.
  *
  * This is the final screen of the escape room, celebrating completion.
  * Shows:
@@ -52,7 +52,7 @@ const staggerContainerVariants = {
   },
 };
 
-export function Screen10Outro() {
+export function Screen11Outro() {
   const { resetGame } = useHaService();
   const [showVideo, setShowVideo] = useState(false);
   const [videoEnded, setVideoEnded] = useState(false);
@@ -81,10 +81,10 @@ export function Screen10Outro() {
 
   return (
     <div
-      className="screen screen-10-outro"
+      className="screen screen-11-outro"
       role="main"
       aria-label="Outro scherm"
-      data-testid="screen-10-outro"
+      data-testid="screen-11-outro"
     >
       <div className="outro-content">
         <AnimatePresence mode="wait">
@@ -179,7 +179,7 @@ export function Screen10Outro() {
                     transition={{ duration: 0.5, delay: 0.3 }}
                     data-testid="video-ended-actions"
                   >
-                    <ProgressCode screenNumber={10} />
+                    <ProgressCode screenNumber={11} />
                     <p className="final-reminder">
                       De code voor de schatkist: <strong>{fullCode}</strong>
                     </p>

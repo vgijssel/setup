@@ -5,27 +5,19 @@ import { ENTITIES, CODE_SEGMENTS } from "../constants/entities";
 import { ProgressCode } from "../components/ProgressCode";
 
 /**
- * Screen 9: Puzzle 8 - The Audio Code
+ * Screen 10: Puzzle 8 - The Code
  *
- * Player hears an audio message and must enter the code mentioned.
+ * Player must enter the 8-digit code they have collected.
  * This is the final puzzle before the outro.
  */
-export function Screen9Puzzle8() {
+export function Screen10Puzzle8() {
   const { isComplete, isLoading } = useNumericSelect(ENTITIES.PUZZLE_8_SELECT);
   const { setInputSelect } = useHaService();
   const [inputCode, setInputCode] = useState("");
   const [error, setError] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
 
-  // The audio mentions this code
+  // The correct code
   const correctCode = CODE_SEGMENTS.join("");
-
-  const handlePlayAudio = () => {
-    setIsPlaying(true);
-    // In production, this would play an actual audio file
-    // For now, we just simulate it
-    setTimeout(() => setIsPlaying(false), 5000);
-  };
 
   const handleSubmit = () => {
     const cleanedInput = inputCode.replace(/\s/g, "");
@@ -34,7 +26,7 @@ export function Screen9Puzzle8() {
       // Mark puzzle as complete
       setInputSelect(ENTITIES.PUZZLE_8_SELECT, "1");
     } else {
-      setError("Dat is niet de juiste code. Luister nog eens goed!");
+      setError("Dat is niet de juiste code. Probeer opnieuw!");
       setInputCode("");
     }
   };
@@ -48,45 +40,30 @@ export function Screen9Puzzle8() {
   }
 
   return (
-    <div className="screen screen-9-puzzle-8">
+    <div className="screen screen-10-puzzle-8">
       <div className="audio-puzzle">
         <div className="puzzle-header">
-          <h2>Puzzel 8: De Audio Code</h2>
+          <h2>Puzzel 8: De Code</h2>
           <p className="puzzle-description">
-            Luister naar het audiofragment en voer de genoemde code in.
+            Voer de 8-cijferige code in die je eerder hebt gevonden.
           </p>
         </div>
 
         {!isComplete ? (
           <div className="audio-puzzle-content">
-            <div className="audio-player">
-              <button
-                className={`play-audio-button ${isPlaying ? "playing" : ""}`}
-                onClick={handlePlayAudio}
-                disabled={isPlaying}
-              >
-                {isPlaying ? "Bezig met afspelen..." : "Speel audio af"}
-              </button>
-              {isPlaying && (
-                <div className="audio-wave">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-              )}
-            </div>
-
             <div className="code-input-section">
               <label htmlFor="codeInput">Voer de code in:</label>
               <input
                 id="codeInput"
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={inputCode}
-                onChange={(e) => setInputCode(e.target.value)}
+                onChange={(e) =>
+                  setInputCode(e.target.value.replace(/[^0-9]/g, ""))
+                }
                 placeholder="Bijv. 83924980"
-                maxLength={12}
+                maxLength={8}
                 className="code-input"
               />
               {error && <p className="input-error">{error}</p>}
@@ -98,13 +75,6 @@ export function Screen9Puzzle8() {
                 Controleer code
               </button>
             </div>
-
-            <div className="puzzle-hint">
-              <p>
-                <strong>Hint:</strong> De code bestaat uit 8 cijfers die je
-                tijdens het audiofragment hoort.
-              </p>
-            </div>
           </div>
         ) : (
           <div className="puzzle-complete">
@@ -113,7 +83,7 @@ export function Screen9Puzzle8() {
           </div>
         )}
 
-        <ProgressCode screenNumber={9} />
+        <ProgressCode screenNumber={10} puzzleJustCompleted={isComplete} />
       </div>
     </div>
   );

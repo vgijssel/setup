@@ -157,6 +157,11 @@ p {
   opacity: 0.3;
 }
 
+.item-label.hidden-label {
+  font-style: italic;
+  color: #888;
+}
+
 /* Progress code display - to be used in Task 5 */
 .progress-code {
   font-family: "Courier New", monospace;
@@ -582,19 +587,6 @@ p {
   margin-bottom: 2rem;
 }
 
-.puzzle-hint {
-  padding: 1rem;
-  background: rgba(255, 193, 7, 0.1);
-  border: 1px solid rgba(255, 193, 7, 0.3);
-  border-radius: 8px;
-  margin-bottom: 2rem;
-}
-
-.puzzle-hint p {
-  margin: 0;
-  font-size: 0.875rem;
-}
-
 .puzzle-complete {
   text-align: center;
   padding: 2rem;
@@ -750,8 +742,8 @@ p {
   margin-top: 0.25rem;
 }
 
-/* Screen 10 - Outro */
-.screen-10-outro {
+/* Screen 11 - Outro */
+.screen-11-outro {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -892,85 +884,6 @@ p {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-}
-
-.audio-player {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-}
-
-.play-audio-button {
-  padding: 1rem 2rem;
-  font-size: 1.25rem;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-}
-
-.play-audio-button:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
-}
-
-.play-audio-button.playing {
-  background: #27ae60;
-  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
-}
-
-.audio-wave {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  height: 30px;
-}
-
-.audio-wave span {
-  width: 4px;
-  background: #48dbfb;
-  border-radius: 2px;
-  animation: wave 0.5s ease-in-out infinite;
-}
-
-.audio-wave span:nth-child(1) {
-  animation-delay: 0s;
-  height: 10px;
-}
-.audio-wave span:nth-child(2) {
-  animation-delay: 0.1s;
-  height: 20px;
-}
-.audio-wave span:nth-child(3) {
-  animation-delay: 0.2s;
-  height: 30px;
-}
-.audio-wave span:nth-child(4) {
-  animation-delay: 0.1s;
-  height: 20px;
-}
-.audio-wave span:nth-child(5) {
-  animation-delay: 0s;
-  height: 10px;
-}
-
-@keyframes wave {
-  0%,
-  100% {
-    transform: scaleY(1);
-  }
-  50% {
-    transform: scaleY(0.5);
-  }
 }
 
 .code-input-section {
@@ -1129,4 +1042,19 @@ p {
     text-align: center;
     padding: 2rem;
   }
+}
+
+.puzzle-warning {
+  background-color: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.puzzle-warning p {
+  margin: 0;
+  color: #856404;
+  font-size: 0.9rem;
 }

@@ -6,7 +6,7 @@
  */
 
 export const ENTITIES = {
-  /** Global screen selector (1-10) - controls which screen is displayed */
+  /** Global screen selector (1-11) - controls which screen is displayed */
   GLOBAL_SELECT: "input_select.verjaardag_hilde_global_select",
 
   /** Progress puzzles use select entities with incremental values */
@@ -16,36 +16,32 @@ export const ENTITIES = {
   PUZZLE_8_SELECT: "input_select.verjaardag_hilde_puzzle_8_select", // Audio (0-1)
 
   /** Collection puzzles use boolean entities for each item */
-  PUZZLE_3_ITEM_1: "input_boolean.verjaardag_hilde_puzzle_3_item_1",
-  PUZZLE_3_ITEM_2: "input_boolean.verjaardag_hilde_puzzle_3_item_2",
-  PUZZLE_3_ITEM_3: "input_boolean.verjaardag_hilde_puzzle_3_item_3",
-  PUZZLE_3_ITEM_4: "input_boolean.verjaardag_hilde_puzzle_3_item_4",
-  PUZZLE_3_ITEM_5: "input_boolean.verjaardag_hilde_puzzle_3_item_5",
-
   PUZZLE_3: {
-    ITEM_1: "input_boolean.verjaardag_hilde_puzzle_3_item_1",
-    ITEM_2: "input_boolean.verjaardag_hilde_puzzle_3_item_2",
-    ITEM_3: "input_boolean.verjaardag_hilde_puzzle_3_item_3",
-    ITEM_4: "input_boolean.verjaardag_hilde_puzzle_3_item_4",
-    ITEM_5: "input_boolean.verjaardag_hilde_puzzle_3_item_5",
+    KEUKEN: "input_boolean.verjaardag_hilde_puzzle_3_keuken_toggle",
+    SLAAPKAMER: "input_boolean.verjaardag_hilde_puzzle_3_slaapkamer_toggle",
+    TUIN: "input_boolean.verjaardag_hilde_puzzle_3_tuin_toggle",
+    VOORRAADKAST: "input_boolean.verjaardag_hilde_puzzle_3_voorraadkast_toggle",
+    WASKAMER: "input_boolean.verjaardag_hilde_puzzle_3_waskamer_toggle",
   },
 
   PUZZLE_4: {
-    RED: "input_boolean.verjaardag_hilde_puzzle_4_item_1",
-    BLUE: "input_boolean.verjaardag_hilde_puzzle_4_item_2",
-    GREEN: "input_boolean.verjaardag_hilde_puzzle_4_item_3",
+    RED: "input_boolean.verjaardag_hilde_puzzle_4_red_toggle",
+    BLUE: "input_boolean.verjaardag_hilde_puzzle_4_blue_toggle",
+    GREEN: "input_boolean.verjaardag_hilde_puzzle_4_green_toggle",
   },
 
   PUZZLE_6: {
-    POWER_THRESHOLD: "input_boolean.verjaardag_hilde_puzzle_6_item_1",
+    AUTO: "input_boolean.verjaardag_hilde_puzzle_6_auto_toggle",
+    DROGER: "input_boolean.verjaardag_hilde_puzzle_6_droger_toggle",
+    WASMACHINE: "input_boolean.verjaardag_hilde_puzzle_6_wasmachine_toggle",
   },
 
   PUZZLE_7: {
-    TEMP_7: "input_boolean.verjaardag_hilde_puzzle_7_item_1",
-    TEMP_10: "input_boolean.verjaardag_hilde_puzzle_7_item_2",
-    TEMP_15: "input_boolean.verjaardag_hilde_puzzle_7_item_3",
-    TEMP_19: "input_boolean.verjaardag_hilde_puzzle_7_item_4",
-    TEMP_20: "input_boolean.verjaardag_hilde_puzzle_7_item_5",
+    BABYKAMER: "input_boolean.verjaardag_hilde_puzzle_7_babykamer_toggle",
+    BADKAMER: "input_boolean.verjaardag_hilde_puzzle_7_badkamer_toggle",
+    KANTOOR: "input_boolean.verjaardag_hilde_puzzle_7_kantoor_toggle",
+    SLAAPKAMER: "input_boolean.verjaardag_hilde_puzzle_7_slaapkamer_toggle",
+    WOONKAMER: "input_boolean.verjaardag_hilde_puzzle_7_woonkamer_toggle",
   },
 } as const;
 
@@ -57,14 +53,15 @@ export const CODE_SEGMENTS = ["83", "92", "49", "80"];
 
 /**
  * Screen to puzzle mapping.
- * Screens 1-2 are intro, 3-9 are puzzles, 10 is outro.
+ * Screens 1-2 are intro, 3-10 are puzzles (1-8), 11 is outro.
  */
 export const SCREEN_PUZZLE_MAP = {
   3: { type: "progress", entity: ENTITIES.PUZZLE_1_SELECT, maxValue: 5 },
   4: { type: "progress", entity: ENTITIES.PUZZLE_2_SELECT, maxValue: 3 },
   5: { type: "collection", entities: Object.values(ENTITIES.PUZZLE_3) },
-  6: { type: "progress", entity: ENTITIES.PUZZLE_5_SELECT, maxValue: 5 },
-  7: { type: "collection", entities: Object.values(ENTITIES.PUZZLE_6) },
-  8: { type: "collection", entities: Object.values(ENTITIES.PUZZLE_7) },
-  9: { type: "progress", entity: ENTITIES.PUZZLE_8_SELECT, maxValue: 1 },
+  6: { type: "collection", entities: Object.values(ENTITIES.PUZZLE_4) },
+  7: { type: "progress", entity: ENTITIES.PUZZLE_5_SELECT, maxValue: 5 },
+  8: { type: "collection", entities: Object.values(ENTITIES.PUZZLE_6) },
+  9: { type: "collection", entities: Object.values(ENTITIES.PUZZLE_7) },
+  10: { type: "progress", entity: ENTITIES.PUZZLE_8_SELECT, maxValue: 1 },
 } as const;

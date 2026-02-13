@@ -12,4 +12,10 @@ export default defineConfig({
       exclude: ["node_modules/", "tests/"],
     },
   },
+  resolve: {
+    alias: {
+      // Handle CommonJS lodash imports in dependencies
+      lodash: "lodash-es",
+    },
+  },
 });

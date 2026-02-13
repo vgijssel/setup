@@ -87,11 +87,11 @@ export function useHaService() {
   /**
    * Navigate to a specific screen by setting the global select.
    *
-   * @param screenNumber - Screen number (1-10)
+   * @param screenNumber - Screen number (1-11)
    */
   const navigateToScreen = useCallback(
     (screenNumber: number) => {
-      if (screenNumber < 1 || screenNumber > 10) {
+      if (screenNumber < 1 || screenNumber > 11) {
         console.warn(`Invalid screen number: ${screenNumber}`);
         return Promise.resolve();
       }

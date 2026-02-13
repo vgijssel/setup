@@ -1,5 +1,6 @@
 import { useEntity } from "@hakit/core";
 import type { EntityName } from "@hakit/core";
+import { useState, useEffect } from "react";
 
 /**
  * Custom hook for reading input_select entity values.
@@ -37,18 +38,42 @@ export function useInputSelect(entityId: string) {
  * - Collection puzzle items (puzzle_3_item_1, puzzle_4_item_1, etc.)
  *
  * @param entityId - The full entity ID (e.g., "input_boolean.verjaardag_hilde_puzzle_3_item_1")
- * @returns Object with boolean value and loading state
+ * @returns Object with boolean value, loading state, and error state
  */
 export function useInputBoolean(entityId: string) {
   const entity = useEntity(entityId as EntityName, {
     returnNullIfNotFound: true,
   });
 
+  const [hasTimedOut, setHasTimedOut] = useState(false);
+
+  // Add timeout to prevent infinite loading state
+  // If entity is still null after 3 seconds, assume it doesn't exist
+  useEffect(() => {
+    if (entity === null && !hasTimedOut) {
+      const timeout = setTimeout(() => {
+        setHasTimedOut(true);
+      }, 3000); // 3 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+
+    // Reset timeout flag if entity becomes available
+    if (entity !== null && hasTimedOut) {
+      setHasTimedOut(false);
+    }
+  }, [entity, hasTimedOut]);
+
+  const isLoading = entity === null && !hasTimedOut;
+  const notFound = entity === null && hasTimedOut;
+
   return {
     /** True if the boolean is "on", false otherwise */
     value: entity?.state === "on",
-    /** True while entity is being loaded */
-    isLoading: entity === null,
+    /** True while entity is being loaded (up to 3 seconds) */
+    isLoading,
+    /** True if entity was not found after timeout */
+    notFound,
     /** The raw entity object for advanced use cases */
     entity,
   };
@@ -101,12 +126,13 @@ export function useCollectionProgress(entityIds: string[]) {
   const items = entityIds.map((id) => {
     // We can't call hooks conditionally, so we always call for all IDs
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { value, isLoading } = useInputBoolean(id);
-    return { id, completed: value, isLoading };
+    const { value, isLoading, notFound } = useInputBoolean(id);
+    return { id, completed: value, isLoading, notFound };
   });
 
   const completedCount = items.filter((item) => item.completed).length;
   const isLoading = items.some((item) => item.isLoading);
+  const hasNotFoundEntities = items.some((item) => item.notFound);
   const isComplete =
     completedCount === entityIds.length && entityIds.length > 0;
 
@@ -121,7 +147,9 @@ export function useCollectionProgress(entityIds: string[]) {
     progress: entityIds.length > 0 ? completedCount / entityIds.length : 0,
     /** True if all items are complete */
     isComplete,
-    /** True while any entity is loading */
+    /** True while any entity is loading (with 3s timeout) */
     isLoading,
+    /** True if any entities were not found after timeout */
+    hasNotFoundEntities,
   };
 }

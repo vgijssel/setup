@@ -76,13 +76,18 @@ describe("Screen3Puzzle1", () => {
     );
   });
 
-  it("displays all 5 door items", () => {
+  it("shows completed door names for revealed items with progressive disclosure", () => {
     render(<Screen3Puzzle1 />);
+    // With 2 complete, first 2 door names should be visible
     expect(screen.getByText("Voordeur")).toBeDefined();
     expect(screen.getByText("Achterdeur")).toBeDefined();
-    expect(screen.getByText("Garagedeur")).toBeDefined();
-    expect(screen.getByText("Slaapkamerdeur")).toBeDefined();
-    expect(screen.getByText("Badkamerdeur")).toBeDefined();
+  });
+
+  it("shows placeholder for hidden items with progressive disclosure", () => {
+    render(<Screen3Puzzle1 />);
+    // Remaining 3 should show placeholder "Deur ?"
+    const placeholders = screen.getAllByText("Deur ?");
+    expect(placeholders.length).toBe(3);
   });
 
   it("shows progress text for partial completion", () => {
@@ -102,15 +107,6 @@ describe("Screen3Puzzle1", () => {
     // 3 pending = 3 circles
     const pending = screen.getAllByText("○");
     expect(pending.length).toBe(3);
-  });
-
-  it("shows hint when puzzle is not complete", () => {
-    render(<Screen3Puzzle1 />);
-    expect(
-      screen.getByText(
-        /Loop door het huis en open elke deur\. De sensoren detecteren automatisch wanneer een deur opengaat\./
-      )
-    ).toBeDefined();
   });
 
   it("shows loading state when entity is loading", () => {
@@ -139,7 +135,7 @@ describe("Screen3Puzzle1", () => {
     expect(screen.getByText("Puzzel opgelost!")).toBeDefined();
   });
 
-  it("hides hint when puzzle is complete", () => {
+  it("shows all door names when puzzle is complete", () => {
     mockUseNumericSelect.mockReturnValue({
       value: 5,
       maxValue: 5,
@@ -149,12 +145,15 @@ describe("Screen3Puzzle1", () => {
     });
 
     render(<Screen3Puzzle1 />);
-    expect(
-      screen.queryByText(/Loop door het huis en open elke deur/)
-    ).toBeNull();
+    // All door names should be visible
+    expect(screen.getByText("Voordeur")).toBeDefined();
+    expect(screen.getByText("Achterdeur")).toBeDefined();
+    expect(screen.getByText("Garagedeur")).toBeDefined();
+    expect(screen.getByText("Slaapkamerdeur")).toBeDefined();
+    expect(screen.getByText("Badkamerdeur")).toBeDefined();
   });
 
-  it("shows 0 progress at start", () => {
+  it("shows 0 progress at start with all items hidden", () => {
     mockUseNumericSelect.mockReturnValue({
       value: 0,
       maxValue: 5,
@@ -165,14 +164,16 @@ describe("Screen3Puzzle1", () => {
 
     render(<Screen3Puzzle1 />);
     expect(screen.getByText("0 van 5 voltooid")).toBeDefined();
-    // All 5 should be pending
+    // All 5 should be pending and show placeholder
     const pending = screen.getAllByText("○");
     expect(pending.length).toBe(5);
+    const placeholders = screen.getAllByText("Deur ?");
+    expect(placeholders.length).toBe(5);
   });
 
   it("renders ProgressCode component", () => {
     render(<Screen3Puzzle1 />);
-    // ProgressCode shows "Code:" label
-    expect(screen.getByText("Code:")).toBeDefined();
+    // ProgressCode shows "Kluis code:" label
+    expect(screen.getByText("Kluis code:")).toBeDefined();
   });
 });

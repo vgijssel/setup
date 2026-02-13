@@ -14,8 +14,10 @@ interface ProgressPuzzleProps {
   description: string;
   /** Items to display as progress steps */
   items: string[];
-  /** Optional hint text */
-  hint?: string;
+  /** When true, item labels are hidden until completed (default: false) */
+  progressiveDisclosure?: boolean;
+  /** Placeholder text for hidden items (default: "???") */
+  hiddenPlaceholder?: string;
 }
 
 /**
@@ -39,7 +41,8 @@ export function ProgressPuzzle({
   title,
   description,
   items,
-  hint,
+  progressiveDisclosure = false,
+  hiddenPlaceholder = "???",
 }: ProgressPuzzleProps) {
   const { value, maxValue, progress, isComplete, isLoading } =
     useNumericSelect(entityId);
@@ -76,6 +79,8 @@ export function ProgressPuzzle({
       <div className="puzzle-items">
         {items.map((item, index) => {
           const isCompleted = index < value;
+          const displayLabel =
+            progressiveDisclosure && !isCompleted ? hiddenPlaceholder : item;
           return (
             <div
               key={index}
@@ -84,19 +89,15 @@ export function ProgressPuzzle({
               <span className={`checkmark ${isCompleted ? "done" : "pending"}`}>
                 {isCompleted ? "✓" : "○"}
               </span>
-              <span className="item-label">{item}</span>
+              <span
+                className={`item-label ${progressiveDisclosure && !isCompleted ? "hidden-label" : ""}`}
+              >
+                {displayLabel}
+              </span>
             </div>
           );
         })}
       </div>
-
-      {hint && !isComplete && (
-        <div className="puzzle-hint">
-          <p>
-            <strong>Hint:</strong> {hint}
-          </p>
-        </div>
-      )}
 
       {isComplete && (
         <div className="puzzle-complete">
@@ -105,7 +106,10 @@ export function ProgressPuzzle({
         </div>
       )}
 
-      <ProgressCode screenNumber={screenNumber} />
+      <ProgressCode
+        screenNumber={screenNumber}
+        puzzleJustCompleted={isComplete}
+      />
     </div>
   );
 }

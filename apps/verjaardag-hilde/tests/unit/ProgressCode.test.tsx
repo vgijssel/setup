@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { ProgressCode } from "../../src/components/ProgressCode";
 
 /**
- * ProgressCode tests - Updated for single digit reveal behavior
+ * ProgressCode tests - Updated for 8 puzzles across 11 screens
  *
  * The full code is "83924980" (8 individual digits).
  * Each completed puzzle reveals exactly ONE digit:
@@ -14,7 +14,8 @@ import { ProgressCode } from "../../src/components/ProgressCode";
  * - Screen 7 (after puzzle 4): "83 92 __ __" (4 digits)
  * - Screen 8 (after puzzle 5): "83 92 4_ __" (5 digits)
  * - Screen 9 (after puzzle 6): "83 92 49 __" (6 digits)
- * - Screen 10 (after puzzle 7): "83 92 49 80" (all 8 digits)
+ * - Screen 10 (after puzzle 7): "83 92 49 8_" (7 digits)
+ * - Screen 11 (after puzzle 8): "83 92 49 80" (all 8 digits)
  */
 describe("ProgressCode", () => {
   it("shows no digits on screen 3", () => {
@@ -24,9 +25,11 @@ describe("ProgressCode", () => {
     const hiddenDigits = screen.getAllByText("_");
     expect(hiddenDigits.length).toBe(8);
 
-    // Should show instruction text
+    // Should show the Klaassandra instruction text
     expect(
-      screen.getByText("Los puzzels op om de code te onthullen")
+      screen.getByText(
+        "Diagnostiseer systemen om Klaassandra haar geheugen te helpen herstellen"
+      )
     ).toBeDefined();
   });
 
@@ -90,8 +93,8 @@ describe("ProgressCode", () => {
     expect(screen.getByText("4/8 cijfers onthuld")).toBeDefined();
   });
 
-  it("shows all digits on screen 10", () => {
-    render(<ProgressCode screenNumber={10} />);
+  it("shows all digits on screen 11", () => {
+    render(<ProgressCode screenNumber={11} />);
 
     // All digits should be revealed: 8, 3, 9, 2, 4, 9, 8, 0
     // Check for presence of revealed digits

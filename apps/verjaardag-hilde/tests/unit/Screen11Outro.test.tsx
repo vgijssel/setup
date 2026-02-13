@@ -64,9 +64,9 @@ vi.mock("../../src/hooks/useHaService", () => ({
   }),
 }));
 
-import { Screen10Outro } from "../../src/screens/Screen10Outro";
+import { Screen11Outro } from "../../src/screens/Screen11Outro";
 
-describe("Screen10Outro", () => {
+describe("Screen11Outro", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock window.confirm
@@ -74,26 +74,26 @@ describe("Screen10Outro", () => {
   });
 
   it("renders the outro screen container", () => {
-    render(<Screen10Outro />);
-    expect(screen.getByTestId("screen-10-outro")).toBeDefined();
+    render(<Screen11Outro />);
+    expect(screen.getByTestId("screen-11-outro")).toBeDefined();
   });
 
   it("has correct accessibility attributes", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     const main = screen.getByRole("main");
     expect(main).toBeDefined();
     expect(main.getAttribute("aria-label")).toBe("Outro scherm");
   });
 
   it("initially shows congratulations screen, not video", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     expect(screen.getByTestId("congratulations-title")).toBeDefined();
     expect(screen.getByText("Gefeliciteerd!")).toBeDefined();
     expect(screen.queryByTestId("mock-react-player")).toBeNull();
   });
 
   it("shows the complete code on congratulations screen", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     const codeDisplay = screen.getByTestId("final-code");
     expect(codeDisplay).toBeDefined();
     // Code segments: 83, 92, 49, 80
@@ -104,7 +104,7 @@ describe("Screen10Outro", () => {
   });
 
   it("shows watch video button with correct aria-label", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     const button = screen.getByTestId("watch-video-button");
     expect(button).toBeDefined();
     expect(button.getAttribute("aria-label")).toBe(
@@ -113,7 +113,7 @@ describe("Screen10Outro", () => {
   });
 
   it("switches to video when watch video button is clicked", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     const button = screen.getByTestId("watch-video-button");
     fireEvent.click(button);
 
@@ -123,7 +123,7 @@ describe("Screen10Outro", () => {
   });
 
   it("configures ReactPlayer with correct video URL", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     const player = screen.getByTestId("mock-react-player");
@@ -133,7 +133,7 @@ describe("Screen10Outro", () => {
   });
 
   it("configures ReactPlayer with autoplay (playing=true)", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     const player = screen.getByTestId("mock-react-player");
@@ -141,7 +141,7 @@ describe("Screen10Outro", () => {
   });
 
   it("configures ReactPlayer with muted for browser autoplay compliance", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     const player = screen.getByTestId("mock-react-player");
@@ -149,7 +149,7 @@ describe("Screen10Outro", () => {
   });
 
   it("configures ReactPlayer with controls enabled", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     const player = screen.getByTestId("mock-react-player");
@@ -157,7 +157,7 @@ describe("Screen10Outro", () => {
   });
 
   it("configures ReactPlayer with preload=auto", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     const player = screen.getByTestId("mock-react-player");
@@ -165,7 +165,7 @@ describe("Screen10Outro", () => {
   });
 
   it("configures ReactPlayer with playsInline=true", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     const player = screen.getByTestId("mock-react-player");
@@ -173,7 +173,7 @@ describe("Screen10Outro", () => {
   });
 
   it("shows video ended actions after video ends", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     act(() => {
@@ -184,7 +184,7 @@ describe("Screen10Outro", () => {
   });
 
   it("shows final code reminder after video ends", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     act(() => {
@@ -196,7 +196,7 @@ describe("Screen10Outro", () => {
   });
 
   it("shows play again button after video ends", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     act(() => {
@@ -209,7 +209,7 @@ describe("Screen10Outro", () => {
   });
 
   it("calls resetGame when play again is confirmed", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     act(() => {
@@ -228,7 +228,7 @@ describe("Screen10Outro", () => {
   it("does not call resetGame when play again is cancelled", () => {
     vi.spyOn(window, "confirm").mockReturnValue(false);
 
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     act(() => {
@@ -243,14 +243,14 @@ describe("Screen10Outro", () => {
   });
 
   it("shows ProgressCode component after video ends", () => {
-    render(<Screen10Outro />);
+    render(<Screen11Outro />);
     fireEvent.click(screen.getByTestId("watch-video-button"));
 
     act(() => {
       mockOnEnded();
     });
 
-    // ProgressCode shows "Code:" label
-    expect(screen.getByText("Code:")).toBeDefined();
+    // ProgressCode shows "Kluis code:" label
+    expect(screen.getByText("Kluis code:")).toBeDefined();
   });
 });

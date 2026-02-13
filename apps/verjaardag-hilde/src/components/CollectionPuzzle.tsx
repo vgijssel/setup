@@ -21,8 +21,6 @@ interface CollectionPuzzleProps {
   description: string;
   /** Items to collect (each is an input_boolean entity) */
   items: CollectionItem[];
-  /** Optional hint text */
-  hint?: string;
 }
 
 /**
@@ -43,7 +41,6 @@ export function CollectionPuzzle({
   title,
   description,
   items,
-  hint,
 }: CollectionPuzzleProps) {
   const entityIds = items.map((item) => item.entityId);
   const {
@@ -53,24 +50,37 @@ export function CollectionPuzzle({
     progress,
     isComplete,
     isLoading,
+    hasNotFoundEntities,
   } = useCollectionProgress(entityIds);
 
   if (isLoading) {
     return (
-      <div className="puzzle-loading">
+      <div className="puzzle-loading" data-testid="puzzle-loading">
         <p>Puzzel laden...</p>
       </div>
     );
   }
 
+  // Show warning if entities were not found (but still render the puzzle)
+  const showEntityWarning = hasNotFoundEntities;
+
   return (
-    <div className="collection-puzzle">
+    <div className="collection-puzzle" data-testid="collection-puzzle">
       <div className="puzzle-header">
         <h2>
           Puzzel {puzzleNumber}: {title}
         </h2>
         <p className="puzzle-description">{description}</p>
       </div>
+
+      {showEntityWarning && (
+        <div className="puzzle-warning" data-testid="puzzle-warning">
+          <p>
+            ⚠️ Sommige Home Assistant entiteiten zijn niet gevonden. De puzzel
+            wordt getoond met standaardwaarden.
+          </p>
+        </div>
+      )}
 
       <div className="puzzle-progress-bar">
         <div className="progress-bar-container">
@@ -110,14 +120,6 @@ export function CollectionPuzzle({
         })}
       </div>
 
-      {hint && !isComplete && (
-        <div className="puzzle-hint">
-          <p>
-            <strong>Hint:</strong> {hint}
-          </p>
-        </div>
-      )}
-
       {isComplete && (
         <div className="puzzle-complete">
           <h3>Puzzel opgelost!</h3>
@@ -125,7 +127,10 @@ export function CollectionPuzzle({
         </div>
       )}
 
-      <ProgressCode screenNumber={screenNumber} />
+      <ProgressCode
+        screenNumber={screenNumber}
+        puzzleJustCompleted={isComplete}
+      />
     </div>
   );
 }

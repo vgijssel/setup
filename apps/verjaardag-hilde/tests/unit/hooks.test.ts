@@ -147,7 +147,7 @@ describe("useHaService", () => {
     const { result } = renderHook(() => useHaService());
 
     await result.current.navigateToScreen(0);
-    await result.current.navigateToScreen(11);
+    await result.current.navigateToScreen(12);
 
     expect(mockCallService).not.toHaveBeenCalled();
   });

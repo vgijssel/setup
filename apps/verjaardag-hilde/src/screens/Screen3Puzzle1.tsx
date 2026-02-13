@@ -64,7 +64,8 @@ export function Screen3Puzzle1() {
         title="De Deuren"
         description="Open 5 verschillende deuren in het huis om de eerste code te ontgrendelen."
         items={doorItems}
-        hint="Loop door het huis en open elke deur. De sensoren detecteren automatisch wanneer een deur opengaat."
+        progressiveDisclosure={true}
+        hiddenPlaceholder="Deur ?"
       />
     </motion.div>
   );

@@ -15,29 +15,29 @@ import { ENTITIES } from "../constants/entities";
 export function Screen5Puzzle3() {
   const switchItems = [
     {
-      entityId: ENTITIES.PUZZLE_3_ITEM_1,
-      label: "Schakelaar 1",
-      description: "Gevonden bij de voordeur",
-    },
-    {
-      entityId: ENTITIES.PUZZLE_3_ITEM_2,
-      label: "Schakelaar 2",
+      entityId: ENTITIES.PUZZLE_3.KEUKEN,
+      label: "Keuken schakelaar",
       description: "Gevonden in de keuken",
     },
     {
-      entityId: ENTITIES.PUZZLE_3_ITEM_3,
-      label: "Schakelaar 3",
-      description: "Gevonden in de woonkamer",
-    },
-    {
-      entityId: ENTITIES.PUZZLE_3_ITEM_4,
-      label: "Schakelaar 4",
-      description: "Gevonden op de gang",
-    },
-    {
-      entityId: ENTITIES.PUZZLE_3_ITEM_5,
-      label: "Schakelaar 5",
+      entityId: ENTITIES.PUZZLE_3.SLAAPKAMER,
+      label: "Slaapkamer schakelaar",
       description: "Gevonden in de slaapkamer",
+    },
+    {
+      entityId: ENTITIES.PUZZLE_3.TUIN,
+      label: "Tuin schakelaar",
+      description: "Gevonden in de tuin",
+    },
+    {
+      entityId: ENTITIES.PUZZLE_3.VOORRAADKAST,
+      label: "Voorraadkast schakelaar",
+      description: "Gevonden in de voorraadkast",
+    },
+    {
+      entityId: ENTITIES.PUZZLE_3.WASKAMER,
+      label: "Waskamer schakelaar",
+      description: "Gevonden in de waskamer",
     },
   ];
 
@@ -49,7 +49,6 @@ export function Screen5Puzzle3() {
         title="De Schakelaars"
         description="Vind en activeer 5 verborgen schakelaars in het huis."
         items={switchItems}
-        hint="Kijk goed rond bij deuren en lichtschakelaars. Sommige schakelaars zijn niet wat ze lijken!"
       />
     </div>
   );

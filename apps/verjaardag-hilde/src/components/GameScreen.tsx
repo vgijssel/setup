@@ -1,7 +1,16 @@
 import { useInputSelect } from "../hooks/useHaEntity";
 import { ENTITIES } from "../constants/entities";
-import { SCREEN_INFO } from "../types/entities";
-import { ProgressCode } from "./ProgressCode";
+import { Screen1Intro } from "../screens/Screen1Intro";
+import { Screen2Video } from "../screens/Screen2Video";
+import { Screen3Puzzle1 } from "../screens/Screen3Puzzle1";
+import { Screen4Puzzle2 } from "../screens/Screen4Puzzle2";
+import { Screen5Puzzle3 } from "../screens/Screen5Puzzle3";
+import { Screen6Puzzle4 } from "../screens/Screen6Puzzle4";
+import { Screen7Puzzle5 } from "../screens/Screen7Puzzle5";
+import { Screen8Puzzle6 } from "../screens/Screen8Puzzle6";
+import { Screen9Puzzle7 } from "../screens/Screen9Puzzle7";
+import { Screen10Puzzle8 } from "../screens/Screen10Puzzle8";
+import { Screen11Outro } from "../screens/Screen11Outro";
 
 /**
  * Main game screen component that reads the current screen from Home Assistant
@@ -20,7 +29,6 @@ export function GameScreen() {
   );
 
   const currentScreen = parseInt(screenValue, 10) || 1;
-  const screenInfo = SCREEN_INFO[currentScreen];
 
   if (isLoading) {
     return (
@@ -40,45 +48,17 @@ export function GameScreen() {
       <div className="screen-container">
         {/* Screen content - read-only display based on HA state */}
         <div className="screen-content">
-          {currentScreen === 1 && (
-            <div className="screen-1">
-              <h2>{screenInfo.title}</h2>
-              <p>{screenInfo.description}</p>
-            </div>
-          )}
-
-          {currentScreen === 2 && (
-            <div className="screen-2">
-              <h2>{screenInfo.title}</h2>
-              <p>{screenInfo.description}</p>
-              <p className="placeholder">
-                Video player wordt hier getoond (Task 4)
-              </p>
-            </div>
-          )}
-
-          {currentScreen >= 3 && currentScreen <= 9 && (
-            <div className={`screen-${currentScreen} puzzle-screen`}>
-              <h2>{screenInfo.title}</h2>
-              <p>{screenInfo.description}</p>
-              <ProgressCode screenNumber={currentScreen} />
-              <p className="placeholder">
-                Puzzel {screenInfo.puzzleNumber} ({screenInfo.puzzleType}) wordt
-                hier getoond
-              </p>
-            </div>
-          )}
-
-          {currentScreen === 10 && (
-            <div className="screen-10">
-              <h2>{screenInfo.title}</h2>
-              <p>{screenInfo.description}</p>
-              <ProgressCode screenNumber={currentScreen} />
-              <p className="placeholder">
-                Outro video wordt hier getoond (Task 9)
-              </p>
-            </div>
-          )}
+          {currentScreen === 1 && <Screen1Intro />}
+          {currentScreen === 2 && <Screen2Video />}
+          {currentScreen === 3 && <Screen3Puzzle1 />}
+          {currentScreen === 4 && <Screen4Puzzle2 />}
+          {currentScreen === 5 && <Screen5Puzzle3 />}
+          {currentScreen === 6 && <Screen6Puzzle4 />}
+          {currentScreen === 7 && <Screen7Puzzle5 />}
+          {currentScreen === 8 && <Screen8Puzzle6 />}
+          {currentScreen === 9 && <Screen9Puzzle7 />}
+          {currentScreen === 10 && <Screen10Puzzle8 />}
+          {currentScreen === 11 && <Screen11Outro />}
         </div>
       </div>
     </div>

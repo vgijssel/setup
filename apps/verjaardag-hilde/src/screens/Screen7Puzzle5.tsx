@@ -2,12 +2,12 @@ import { ProgressPuzzle } from "../components/ProgressPuzzle";
 import { ENTITIES } from "../constants/entities";
 
 /**
- * Screen 6: Puzzle 5 - The Lamps
+ * Screen 7: Puzzle 5 - The Lamps
  *
  * Player must toggle 5 smart lamps in the correct sequence.
  * Each lamp toggle is tracked by HA automations.
  */
-export function Screen6Puzzle5() {
+export function Screen7Puzzle5() {
   const lampItems = [
     "Woonkamer lamp",
     "Keuken lamp",
@@ -17,15 +17,14 @@ export function Screen6Puzzle5() {
   ];
 
   return (
-    <div className="screen screen-6-puzzle-5">
+    <div className="screen screen-7-puzzle-5">
       <ProgressPuzzle
         entityId={ENTITIES.PUZZLE_5_SELECT}
-        screenNumber={6}
+        screenNumber={7}
         puzzleNumber={5}
         title="De Lampen"
         description="Schakel 5 slimme lampen in de juiste volgorde in."
         items={lampItems}
-        hint="Begin bij de woonkamer en werk je weg naar boven."
       />
     </div>
   );

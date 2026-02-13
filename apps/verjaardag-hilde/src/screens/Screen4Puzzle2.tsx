@@ -23,7 +23,6 @@ export function Screen4Puzzle2() {
         title="De Apple TV Quiz"
         description="Beantwoord 3 vragen over onze Apple TV om de code te krijgen."
         items={questionItems}
-        hint="De antwoorden kun je vinden door de Apple TV te bekijken."
       />
     </div>
   );
