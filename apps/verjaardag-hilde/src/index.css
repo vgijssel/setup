@@ -988,3 +988,233 @@ p {
   color: #856404;
   font-size: 0.9rem;
 }
+
+/* Drag and Drop Puzzle styles (Screen 5 - Puzzle 3) */
+.dnd-puzzle {
+  width: 100%;
+  max-width: 900px;
+  padding: 2rem;
+}
+
+.dnd-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.switches-container,
+.bulbs-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.switches-container h3,
+.bulbs-container h3 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  opacity: 0.9;
+}
+
+.switches-grid,
+.bulbs-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.switch-draggable {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: rgba(74, 144, 217, 0.2);
+  border: 2px solid rgba(74, 144, 217, 0.4);
+  border-radius: 8px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+  touch-action: none;
+}
+
+.switch-draggable:hover {
+  background: rgba(74, 144, 217, 0.3);
+  border-color: rgba(74, 144, 217, 0.6);
+  transform: scale(1.02);
+}
+
+.switch-draggable:active,
+.switch-draggable.dragging {
+  cursor: grabbing;
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.switch-icon {
+  font-size: 1.5rem;
+}
+
+.switch-label {
+  font-weight: 500;
+}
+
+.bulb-droppable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  min-height: 100px;
+  transition: all 0.2s ease;
+}
+
+.bulb-droppable.drag-over {
+  background: rgba(72, 219, 251, 0.1);
+  border-color: rgba(72, 219, 251, 0.5);
+  border-style: solid;
+}
+
+.bulb-droppable.occupied {
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.bulb-droppable.correct {
+  background: rgba(46, 204, 113, 0.15);
+  border-color: rgba(46, 204, 113, 0.5);
+  animation: correctPulse 0.5s ease;
+}
+
+@keyframes correctPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.bulb-icon {
+  font-size: 2rem;
+}
+
+.bulb-label {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.drop-hint {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.placed-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(74, 144, 217, 0.2);
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+/* Gauge Puzzle styles (Screen 8 - Puzzle 6) */
+.gauge-puzzle {
+  width: 100%;
+  max-width: 700px;
+  padding: 2rem;
+}
+
+.gauge-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+  padding: 1rem;
+}
+
+.gauge-container svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.gauge-status {
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.status-solved {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #2ecc71;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.status-icon {
+  font-size: 2rem;
+}
+
+.status-hint p {
+  margin: 0.5rem 0;
+}
+
+.hint-text {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+/* Touch-friendly styles for dnd-kit on iPad */
+@media (pointer: coarse) {
+  .switch-draggable {
+    padding: 1.25rem 1.5rem;
+    min-height: 60px;
+  }
+
+  .bulb-droppable {
+    min-height: 120px;
+  }
+}
+
+/* iPad Air 11" specific dnd styles */
+@media screen and (min-width: 1600px) and (max-width: 1680px) {
+  .dnd-layout {
+    gap: 3rem;
+  }
+
+  .switch-draggable {
+    padding: 1.5rem 2rem;
+    font-size: 1.25rem;
+  }
+
+  .switch-icon {
+    font-size: 2rem;
+  }
+
+  .bulb-droppable {
+    min-height: 140px;
+    padding: 1.5rem;
+  }
+
+  .bulb-icon {
+    font-size: 2.5rem;
+  }
+
+  .gauge-container {
+    margin: 3rem 0;
+  }
+}

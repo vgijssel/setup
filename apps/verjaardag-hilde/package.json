@@ -13,6 +13,9 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@dnd-kit/core": "6.3.1",
+    "@dnd-kit/sortable": "9.0.0",
+    "@dnd-kit/utilities": "3.2.2",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.0",
     "@hakit/components": "3.2.0",
@@ -20,13 +23,14 @@
     "@iconify/react": "4.1.1",
     "deep-object-diff": "1.1.9",
     "framer-motion": "10.18.0",
+    "home-assistant-js-websocket": "9.4.0",
     "javascript-time-ago": "2.5.11",
     "lodash": "4.17.21",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-gauge-component": "2.0.26",
     "react-player": "2.16.0",
     "use-debounce": "9.0.4",
-    "home-assistant-js-websocket": "9.4.0",
     "zustand": "4.5.5"
   },
   "devDependencies": {

@@ -5,17 +5,17 @@ import { ProgressCode } from "../../src/components/ProgressCode";
 /**
  * ProgressCode tests - Updated for 8 puzzles across 11 screens
  *
- * The full code is "83924980" (8 individual digits).
+ * The full code is "83924980" (8 individual digits) plus 'A' suffix.
  * Each completed puzzle reveals exactly ONE digit:
- * - Screen 3 (start): "__ __ __ __" (0 digits)
- * - Screen 4 (after puzzle 1): "8_ __ __ __" (1 digit)
- * - Screen 5 (after puzzle 2): "83 __ __ __" (2 digits)
- * - Screen 6 (after puzzle 3): "83 9_ __ __" (3 digits)
- * - Screen 7 (after puzzle 4): "83 92 __ __" (4 digits)
- * - Screen 8 (after puzzle 5): "83 92 4_ __" (5 digits)
- * - Screen 9 (after puzzle 6): "83 92 49 __" (6 digits)
- * - Screen 10 (after puzzle 7): "83 92 49 8_" (7 digits)
- * - Screen 11 (after puzzle 8): "83 92 49 80" (all 8 digits)
+ * - Screen 3 (start): "__ __ __ __ A" (0 digits + A)
+ * - Screen 4 (after puzzle 1): "8_ __ __ __ A" (1 digit + A)
+ * - Screen 5 (after puzzle 2): "83 __ __ __ A" (2 digits + A)
+ * - Screen 6 (after puzzle 3): "83 9_ __ __ A" (3 digits + A)
+ * - Screen 7 (after puzzle 4): "83 92 __ __ A" (4 digits + A)
+ * - Screen 8 (after puzzle 5): "83 92 4_ __ A" (5 digits + A)
+ * - Screen 9 (after puzzle 6): "83 92 49 __ A" (6 digits + A)
+ * - Screen 10 (after puzzle 7): "83 92 49 8_ A" (7 digits + A)
+ * - Screen 11 (after puzzle 8): "83 92 49 80 A" (all 8 digits + A)
  */
 describe("ProgressCode", () => {
   it("shows no digits on screen 3", () => {
@@ -24,6 +24,9 @@ describe("ProgressCode", () => {
     // All 8 individual digits should be hidden (shown as '_')
     const hiddenDigits = screen.getAllByText("_");
     expect(hiddenDigits.length).toBe(8);
+
+    // Should show the 'A' suffix
+    expect(screen.getByText("A")).toBeDefined();
 
     // Should show the Klaassandra instruction text
     expect(
@@ -115,6 +118,9 @@ describe("ProgressCode", () => {
     // Should show no digits revealed (negative puzzles completed = 0)
     const hiddenDigits = screen.getAllByText("_");
     expect(hiddenDigits.length).toBe(8);
+
+    // Should still show the 'A' suffix
+    expect(screen.getByText("A")).toBeDefined();
   });
 
   it("has puzzle-complete class when puzzleJustCompleted is true", () => {

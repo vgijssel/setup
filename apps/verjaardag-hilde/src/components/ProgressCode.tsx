@@ -49,14 +49,16 @@ export function ProgressCode({
     return Math.min(puzzlesCompleted, FULL_CODE.length);
   }, [puzzlesCompleted]);
 
-  // Format the code with spaces every 2 digits for readability
+  // Format the code with spaces every 2 digits for readability, with 'A' suffix
   const displayCode = useMemo(() => {
     const revealed = FULL_CODE.slice(0, digitsToReveal);
     const hidden = "_".repeat(FULL_CODE.length - digitsToReveal);
     const fullDisplay = revealed + hidden;
 
-    // Split into groups of 2 for display: "83 92 49 80"
-    return fullDisplay.match(/.{1,2}/g)?.join(" ") || "__ __ __ __";
+    // Split into groups of 2 for display: "83 92 49 80" then add 'A' suffix
+    const codeWithSpaces =
+      fullDisplay.match(/.{1,2}/g)?.join(" ") || "__ __ __ __";
+    return codeWithSpaces + " A";
   }, [digitsToReveal]);
 
   // Apply puzzle-complete class for green fade animation when puzzle is just completed

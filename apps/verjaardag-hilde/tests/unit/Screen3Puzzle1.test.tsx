@@ -66,9 +66,7 @@ describe("Screen3Puzzle1", () => {
   it("renders ProgressPuzzle with correct description", () => {
     render(<Screen3Puzzle1 />);
     expect(
-      screen.getByText(
-        "Open 5 verschillende deuren in het huis om de eerste code te ontgrendelen."
-      )
+      screen.getByText("Open en/of sluit 5 verschillende deuren in het huis.")
     ).toBeDefined();
   });
 
