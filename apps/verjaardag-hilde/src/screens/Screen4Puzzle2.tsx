@@ -9,9 +9,9 @@ import { ENTITIES } from "../constants/entities";
  */
 export function Screen4Puzzle2() {
   const questionItems = [
-    "Slaapkamer - Start de app met Ludo",
-    "Woonkamer - Start de app met veel bloed en snijden",
-    "Slaapkamer - Start de app om lekker te lachen",
+    "Slaapkamer - Start het programma met Ludo",
+    "Woonkamer - Start het programma met veel bloed en snijden",
+    "Slaapkamer - Start het programma om lekker te lachen",
   ];
 
   return (
@@ -21,7 +21,7 @@ export function Screen4Puzzle2() {
         screenNumber={4}
         puzzleNumber={2}
         title="Apple TV Controle"
-        description="Start de juiste apps op de Apple TV in de aangegeven kamers."
+        description="Start de juiste programma's op de Apple TV in de aangegeven kamers."
         items={questionItems}
       />
     </div>
