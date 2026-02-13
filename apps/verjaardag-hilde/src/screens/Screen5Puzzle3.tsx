@@ -47,7 +47,7 @@ export function Screen5Puzzle3() {
         screenNumber={5}
         puzzleNumber={3}
         title="Schakelaars Controle"
-        description="Vind en activeer 5 verborgen schakelaars in het huis."
+        description="Match de juiste schakelaar met de juiste lamp."
         items={switchItems}
       />
     </div>

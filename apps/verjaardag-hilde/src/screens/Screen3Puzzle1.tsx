@@ -62,7 +62,7 @@ export function Screen3Puzzle1() {
         screenNumber={3}
         puzzleNumber={1}
         title="Deuren Controle"
-        description="Open 5 verschillende deuren in het huis om de eerste code te ontgrendelen."
+        description="Open en/of sluit 5 verschillende deuren in het huis."
         items={doorItems}
         progressiveDisclosure={true}
         hiddenPlaceholder="Deur ?"

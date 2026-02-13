@@ -32,7 +32,7 @@ export function Screen8Puzzle6() {
         screenNumber={8}
         puzzleNumber={6}
         title="Stroomverbruik Controle"
-        description="Zet de juiste apparaten aan om de code te ontgrendelen."
+        description="Zet de juiste apparaten aan voor het optimale stroomverbruik."
         items={powerItems}
       />
     </div>

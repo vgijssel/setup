@@ -12,17 +12,17 @@ export function Screen6Puzzle4() {
     {
       entityId: ENTITIES.PUZZLE_4.RED,
       label: "Rood",
-      description: "Activeer de rode indicator",
+      description: "Activeer rood",
     },
     {
       entityId: ENTITIES.PUZZLE_4.BLUE,
       label: "Blauw",
-      description: "Activeer de blauwe indicator",
+      description: "Activeer blauw",
     },
     {
       entityId: ENTITIES.PUZZLE_4.GREEN,
       label: "Groen",
-      description: "Activeer de groene indicator",
+      description: "Activeer groen",
     },
   ];
 
@@ -31,8 +31,8 @@ export function Screen6Puzzle4() {
       <CollectionPuzzle
         screenNumber={6}
         puzzleNumber={4}
-        title="Kleuren Controle"
-        description="Activeer de juiste kleuren om de code te ontgrendelen."
+        title="Spraak Controle"
+        description="Gebruik spraakopdrachten om de juiste kleuren te activeren."
         items={colorItems}
       />
     </div>
