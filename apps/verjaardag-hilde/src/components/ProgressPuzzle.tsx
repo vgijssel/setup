@@ -37,13 +37,14 @@ interface ProgressPuzzleProps {
 export function ProgressPuzzle({
   entityId,
   screenNumber,
-  puzzleNumber,
+  puzzleNumber: _puzzleNumber,
   title,
   description,
   items,
   progressiveDisclosure = false,
   hiddenPlaceholder = "???",
 }: ProgressPuzzleProps) {
+  // Note: _puzzleNumber is part of the interface for documentation but not used in rendering
   const { value, maxValue, progress, isComplete, isLoading } =
     useNumericSelect(entityId);
 
@@ -58,9 +59,7 @@ export function ProgressPuzzle({
   return (
     <div className="progress-puzzle">
       <div className="puzzle-header">
-        <h2>
-          Puzzel {puzzleNumber}: {title}
-        </h2>
+        <h2>{title}</h2>
         <p className="puzzle-description">{description}</p>
       </div>
 
@@ -98,13 +97,6 @@ export function ProgressPuzzle({
           );
         })}
       </div>
-
-      {isComplete && (
-        <div className="puzzle-complete">
-          <h3>Puzzel opgelost!</h3>
-          <p>Nieuwe code cijfers ontgrendeld!</p>
-        </div>
-      )}
 
       <ProgressCode
         screenNumber={screenNumber}

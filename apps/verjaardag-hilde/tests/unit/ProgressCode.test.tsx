@@ -43,8 +43,8 @@ describe("ProgressCode", () => {
     const hiddenDigits = screen.getAllByText("_");
     expect(hiddenDigits.length).toBe(7);
 
-    // Should show digit count
-    expect(screen.getByText("1/8 cijfers onthuld")).toBeDefined();
+    // Should show digit count with "hersteld" text
+    expect(screen.getByText("1/8 cijfers hersteld")).toBeDefined();
   });
 
   it("shows two digits on screen 5", () => {
@@ -58,7 +58,7 @@ describe("ProgressCode", () => {
     const hiddenDigits = screen.getAllByText("_");
     expect(hiddenDigits.length).toBe(6);
 
-    expect(screen.getByText("2/8 cijfers onthuld")).toBeDefined();
+    expect(screen.getByText("2/8 cijfers hersteld")).toBeDefined();
   });
 
   it("shows three digits on screen 6", () => {
@@ -73,7 +73,7 @@ describe("ProgressCode", () => {
     const hiddenDigits = screen.getAllByText("_");
     expect(hiddenDigits.length).toBe(5);
 
-    expect(screen.getByText("3/8 cijfers onthuld")).toBeDefined();
+    expect(screen.getByText("3/8 cijfers hersteld")).toBeDefined();
   });
 
   it("shows four digits on screen 7", () => {
@@ -90,7 +90,7 @@ describe("ProgressCode", () => {
     const hiddenDigits = screen.getAllByText("_");
     expect(hiddenDigits.length).toBe(4);
 
-    expect(screen.getByText("4/8 cijfers onthuld")).toBeDefined();
+    expect(screen.getByText("4/8 cijfers hersteld")).toBeDefined();
   });
 
   it("shows all digits on screen 11", () => {
@@ -106,7 +106,7 @@ describe("ProgressCode", () => {
     // No hidden digits
     expect(screen.queryAllByText("_").length).toBe(0);
 
-    expect(screen.getByText("8/8 cijfers onthuld")).toBeDefined();
+    expect(screen.getByText("8/8 cijfers hersteld")).toBeDefined();
   });
 
   it("handles screen 1 and 2 gracefully", () => {
@@ -115,5 +115,26 @@ describe("ProgressCode", () => {
     // Should show no digits revealed (negative puzzles completed = 0)
     const hiddenDigits = screen.getAllByText("_");
     expect(hiddenDigits.length).toBe(8);
+  });
+
+  it("has puzzle-complete class when puzzleJustCompleted is true", () => {
+    render(<ProgressCode screenNumber={5} puzzleJustCompleted={true} />);
+
+    const progressCode = screen.getByTestId("progress-code");
+    expect(progressCode.classList.contains("puzzle-complete")).toBe(true);
+  });
+
+  it("does not have puzzle-complete class when puzzleJustCompleted is false", () => {
+    render(<ProgressCode screenNumber={5} puzzleJustCompleted={false} />);
+
+    const progressCode = screen.getByTestId("progress-code");
+    expect(progressCode.classList.contains("puzzle-complete")).toBe(false);
+  });
+
+  it("does not have puzzle-complete class by default", () => {
+    render(<ProgressCode screenNumber={5} />);
+
+    const progressCode = screen.getByTestId("progress-code");
+    expect(progressCode.classList.contains("puzzle-complete")).toBe(false);
   });
 });

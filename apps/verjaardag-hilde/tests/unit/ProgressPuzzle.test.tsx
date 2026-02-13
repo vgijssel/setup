@@ -1,6 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
+// Mock framer-motion
+vi.mock("framer-motion", () => ({
+  motion: {
+    div: ({
+      children,
+      ...props
+    }: React.HTMLAttributes<HTMLDivElement> & { "data-testid"?: string }) => (
+      <div {...props}>{children}</div>
+    ),
+  },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
+
 // Mock @hakit/core
 const mockUseEntity = vi.fn();
 
@@ -47,13 +62,14 @@ describe("ProgressPuzzle", () => {
         entityId="input_select.test"
         screenNumber={3}
         puzzleNumber={1}
-        title="De Deuren"
+        title="Deuren Controle"
         description="Open 5 deuren"
         items={["Deur 1", "Deur 2", "Deur 3"]}
       />
     );
 
-    expect(screen.getByText("Puzzel 1: De Deuren")).toBeDefined();
+    // Title is now just the title without "Puzzel X:" prefix
+    expect(screen.getByText("Deuren Controle")).toBeDefined();
     expect(screen.getByText("Open 5 deuren")).toBeDefined();
   });
 
@@ -101,7 +117,7 @@ describe("ProgressPuzzle", () => {
     expect(pending.length).toBe(1);
   });
 
-  it("shows completion message when puzzle is complete", () => {
+  it("applies puzzle-complete class to ProgressCode when puzzle is complete", () => {
     mockUseEntity.mockReturnValue({
       state: "3",
       attributes: { options: ["0", "1", "2", "3"] },
@@ -118,7 +134,31 @@ describe("ProgressPuzzle", () => {
       />
     );
 
-    expect(screen.getByText("Puzzel opgelost!")).toBeDefined();
+    // ProgressCode should have puzzle-complete class for green fade animation
+    const progressCode = screen.getByTestId("progress-code");
+    expect(progressCode.classList.contains("puzzle-complete")).toBe(true);
+  });
+
+  it("does not apply puzzle-complete class when puzzle is not complete", () => {
+    mockUseEntity.mockReturnValue({
+      state: "1",
+      attributes: { options: ["0", "1", "2", "3"] },
+    });
+
+    render(
+      <ProgressPuzzle
+        entityId="input_select.test"
+        screenNumber={3}
+        puzzleNumber={1}
+        title="Test"
+        description="Test"
+        items={["Item 1", "Item 2", "Item 3"]}
+      />
+    );
+
+    // ProgressCode should NOT have puzzle-complete class
+    const progressCode = screen.getByTestId("progress-code");
+    expect(progressCode.classList.contains("puzzle-complete")).toBe(false);
   });
 
   it("shows placeholder for pending items with progressive disclosure", () => {

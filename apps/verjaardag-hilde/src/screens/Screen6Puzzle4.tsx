@@ -31,7 +31,7 @@ export function Screen6Puzzle4() {
       <CollectionPuzzle
         screenNumber={6}
         puzzleNumber={4}
-        title="De Kleuren"
+        title="Kleuren Controle"
         description="Activeer de juiste kleuren om de code te ontgrendelen."
         items={colorItems}
       />

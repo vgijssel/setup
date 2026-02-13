@@ -46,7 +46,7 @@ export function Screen5Puzzle3() {
       <CollectionPuzzle
         screenNumber={5}
         puzzleNumber={3}
-        title="De Schakelaars"
+        title="Schakelaars Controle"
         description="Vind en activeer 5 verborgen schakelaars in het huis."
         items={switchItems}
       />

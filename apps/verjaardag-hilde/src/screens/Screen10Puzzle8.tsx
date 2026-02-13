@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useNumericSelect } from "../hooks/useHaEntity";
 import { useHaService } from "../hooks/useHaService";
-import { ENTITIES, CODE_SEGMENTS } from "../constants/entities";
+import { ENTITIES } from "../constants/entities";
 import { ProgressCode } from "../components/ProgressCode";
+
+/** The 5-digit code that must be entered to complete puzzle 8 */
+const PUZZLE_8_CODE = "91872";
 
 /**
  * Screen 10: Puzzle 8 - The Code
  *
- * Player must enter the 8-digit code they have collected.
+ * Player must enter the 5-digit code they have heard.
  * This is the final puzzle before the outro.
  */
 export function Screen10Puzzle8() {
@@ -17,7 +20,7 @@ export function Screen10Puzzle8() {
   const [error, setError] = useState("");
 
   // The correct code
-  const correctCode = CODE_SEGMENTS.join("");
+  const correctCode = PUZZLE_8_CODE;
 
   const handleSubmit = () => {
     const cleanedInput = inputCode.replace(/\s/g, "");
@@ -43,9 +46,9 @@ export function Screen10Puzzle8() {
     <div className="screen screen-10-puzzle-8">
       <div className="audio-puzzle">
         <div className="puzzle-header">
-          <h2>Puzzel 8: De Code</h2>
+          <h2>Code Controle</h2>
           <p className="puzzle-description">
-            Voer de 8-cijferige code in die je eerder hebt gevonden.
+            Voer de 5-cijferige code in die je hebt gehoord.
           </p>
         </div>
 
@@ -62,15 +65,15 @@ export function Screen10Puzzle8() {
                 onChange={(e) =>
                   setInputCode(e.target.value.replace(/[^0-9]/g, ""))
                 }
-                placeholder="Bijv. 83924980"
-                maxLength={8}
+                placeholder=""
+                maxLength={5}
                 className="code-input"
               />
               {error && <p className="input-error">{error}</p>}
               <button
                 className="submit-code-button"
                 onClick={handleSubmit}
-                disabled={inputCode.length < 8}
+                disabled={inputCode.length < 5}
               >
                 Controleer code
               </button>

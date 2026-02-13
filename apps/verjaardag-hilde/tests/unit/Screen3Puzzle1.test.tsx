@@ -8,6 +8,9 @@ vi.mock("framer-motion", () => ({
       <div {...props}>{children}</div>
     ),
   },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 // Mock useHaEntity hook
@@ -52,12 +55,12 @@ describe("Screen3Puzzle1", () => {
     render(<Screen3Puzzle1 />);
     const main = screen.getByRole("main");
     expect(main).toBeDefined();
-    expect(main.getAttribute("aria-label")).toBe("Puzzel 1: De Deuren");
+    expect(main.getAttribute("aria-label")).toBe("Deuren Controle");
   });
 
   it("renders ProgressPuzzle with correct title", () => {
     render(<Screen3Puzzle1 />);
-    expect(screen.getByText("Puzzel 1: De Deuren")).toBeDefined();
+    expect(screen.getByText("Deuren Controle")).toBeDefined();
   });
 
   it("renders ProgressPuzzle with correct description", () => {
@@ -122,7 +125,7 @@ describe("Screen3Puzzle1", () => {
     expect(screen.getByText("Puzzel laden...")).toBeDefined();
   });
 
-  it("shows completion message when puzzle is complete", () => {
+  it("applies puzzle-complete class for green fade when puzzle is complete", () => {
     mockUseNumericSelect.mockReturnValue({
       value: 5,
       maxValue: 5,
@@ -132,7 +135,9 @@ describe("Screen3Puzzle1", () => {
     });
 
     render(<Screen3Puzzle1 />);
-    expect(screen.getByText("Puzzel opgelost!")).toBeDefined();
+    // ProgressCode should have puzzle-complete class for green fade animation
+    const progressCode = screen.getByTestId("progress-code");
+    expect(progressCode.classList.contains("puzzle-complete")).toBe(true);
   });
 
   it("shows all door names when puzzle is complete", () => {

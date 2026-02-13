@@ -29,8 +29,8 @@ test.describe("Screen 3 Puzzle 1 - The Doors", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Check for puzzle title
-    const puzzleTitle = page.getByText("Puzzel 1: De Deuren");
+    // Check for puzzle title - now uses "Controle" format without "Puzzel X:" prefix
+    const puzzleTitle = page.getByText("Deuren Controle");
     const hasPuzzleTitle = await puzzleTitle.isVisible().catch(() => false);
 
     if (hasPuzzleTitle) {
@@ -192,7 +192,7 @@ test.describe("Screen 3 Puzzle 1 - Accessibility", () => {
 
     if (hasScreen3) {
       const ariaLabel = await screen3.getAttribute("aria-label");
-      expect(ariaLabel).toBe("Puzzel 1: De Deuren");
+      expect(ariaLabel).toBe("Deuren Controle");
     }
   });
 });

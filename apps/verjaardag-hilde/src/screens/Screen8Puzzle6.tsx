@@ -31,7 +31,7 @@ export function Screen8Puzzle6() {
       <CollectionPuzzle
         screenNumber={8}
         puzzleNumber={6}
-        title="Het Stroomverbruik"
+        title="Stroomverbruik Controle"
         description="Zet de juiste apparaten aan om de code te ontgrendelen."
         items={powerItems}
       />

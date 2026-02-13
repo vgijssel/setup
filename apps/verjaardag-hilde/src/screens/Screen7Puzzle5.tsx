@@ -22,9 +22,11 @@ export function Screen7Puzzle5() {
         entityId={ENTITIES.PUZZLE_5_SELECT}
         screenNumber={7}
         puzzleNumber={5}
-        title="De Lampen"
-        description="Schakel 5 slimme lampen in de juiste volgorde in."
+        title="Lampen Controle"
+        description="Zet de lampen in de juiste volgorde aan"
         items={lampItems}
+        progressiveDisclosure={true}
+        hiddenPlaceholder="Lamp ?"
       />
     </div>
   );

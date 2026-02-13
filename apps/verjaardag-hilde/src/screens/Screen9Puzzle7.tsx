@@ -41,8 +41,8 @@ export function Screen9Puzzle7() {
       <CollectionPuzzle
         screenNumber={9}
         puzzleNumber={7}
-        title="De Kamers"
-        description="Activeer de juiste kamers om de code te ontgrendelen."
+        title="Temperatuur Controle"
+        description="Zet de juiste temperatuur in verschillende kamers: 7 - 10 - 15 - 19 - 20"
         items={roomItems}
       />
     </div>

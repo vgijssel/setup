@@ -59,8 +59,11 @@ export function ProgressCode({
     return fullDisplay.match(/.{1,2}/g)?.join(" ") || "__ __ __ __";
   }, [digitsToReveal]);
 
+  // Apply puzzle-complete class for green fade animation when puzzle is just completed
+  const className = `progress-code${puzzleJustCompleted ? " puzzle-complete" : ""}`;
+
   return (
-    <div className="progress-code">
+    <div className={className} data-testid="progress-code">
       <span className="code-label">Kluis code: </span>
       <span className="code-display">
         {displayCode.split("").map((char, index) => {
@@ -77,7 +80,7 @@ export function ProgressCode({
       </span>
       <span className="digits-count">
         {digitsToReveal > 0
-          ? `${digitsToReveal}/${FULL_CODE.length} cijfers onthuld`
+          ? `${digitsToReveal}/${FULL_CODE.length} cijfers hersteld`
           : "Diagnostiseer systemen om Klaassandra haar geheugen te helpen herstellen"}
       </span>
     </div>

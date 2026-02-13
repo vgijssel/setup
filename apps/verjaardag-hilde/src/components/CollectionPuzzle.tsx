@@ -37,11 +37,12 @@ interface CollectionPuzzleProps {
  */
 export function CollectionPuzzle({
   screenNumber,
-  puzzleNumber,
+  puzzleNumber: _puzzleNumber,
   title,
   description,
   items,
 }: CollectionPuzzleProps) {
+  // Note: _puzzleNumber is part of the interface for documentation but not used in rendering
   const entityIds = items.map((item) => item.entityId);
   const {
     items: itemResults,
@@ -67,9 +68,7 @@ export function CollectionPuzzle({
   return (
     <div className="collection-puzzle" data-testid="collection-puzzle">
       <div className="puzzle-header">
-        <h2>
-          Puzzel {puzzleNumber}: {title}
-        </h2>
+        <h2>{title}</h2>
         <p className="puzzle-description">{description}</p>
       </div>
 
@@ -119,13 +118,6 @@ export function CollectionPuzzle({
           );
         })}
       </div>
-
-      {isComplete && (
-        <div className="puzzle-complete">
-          <h3>Puzzel opgelost!</h3>
-          <p>Nieuwe code cijfers ontgrendeld!</p>
-        </div>
-      )}
 
       <ProgressCode
         screenNumber={screenNumber}

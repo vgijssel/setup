@@ -51,7 +51,7 @@ export function Screen3Puzzle1() {
     <motion.div
       className="screen screen-3-puzzle-1"
       role="main"
-      aria-label="Puzzel 1: De Deuren"
+      aria-label="Deuren Controle"
       data-testid="screen-3-puzzle-1"
       variants={containerVariants}
       initial="hidden"
@@ -61,7 +61,7 @@ export function Screen3Puzzle1() {
         entityId={ENTITIES.PUZZLE_1_SELECT}
         screenNumber={3}
         puzzleNumber={1}
-        title="De Deuren"
+        title="Deuren Controle"
         description="Open 5 verschillende deuren in het huis om de eerste code te ontgrendelen."
         items={doorItems}
         progressiveDisclosure={true}

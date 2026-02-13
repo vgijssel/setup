@@ -214,6 +214,23 @@ p {
   margin-top: 0.5rem;
 }
 
+/* Green fade animation for puzzle completion */
+@keyframes greenFadeIn {
+  0% {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: transparent;
+  }
+  100% {
+    background: rgba(46, 204, 113, 0.2);
+    border-color: rgba(46, 204, 113, 0.4);
+  }
+}
+
+.progress-code.puzzle-complete {
+  animation: greenFadeIn 1.5s ease-out forwards;
+  border: 1px solid rgba(46, 204, 113, 0.4);
+}
+
 /* Loading state */
 .loading {
   display: flex;
@@ -742,136 +759,44 @@ p {
   margin-top: 0.25rem;
 }
 
-/* Screen 11 - Outro */
+/* Screen 11 - Outro (video-only layout matching Screen 2) */
 .screen-11-outro {
+  width: 100%;
+  height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  gap: 2rem;
 }
 
-.outro-content {
-  max-width: 800px;
-  text-align: center;
-  padding: 2rem;
-}
-
-.outro-celebration {
-  margin-bottom: 2rem;
-}
-
-.outro-celebration h2 {
-  font-size: 3rem;
-  background: linear-gradient(90deg, #f1c40f, #e67e22);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 0.5rem;
-}
-
-.outro-subtitle {
-  font-size: 1.5rem;
-  opacity: 0.9;
-}
-
-.outro-code-reveal {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 2rem;
-  border-radius: 16px;
-  margin-bottom: 2rem;
-}
-
-.outro-code-reveal h3 {
-  margin-bottom: 1rem;
-  opacity: 0.8;
-}
-
-.final-code {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.code-segment {
-  font-family: "Courier New", monospace;
-  font-size: 3rem;
-  font-weight: bold;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  border-radius: 8px;
-  min-width: 80px;
-}
-
-.code-instruction {
-  font-size: 0.875rem;
-  opacity: 0.7;
-}
-
-.outro-message {
-  margin-bottom: 2rem;
-}
-
-.outro-message p {
-  line-height: 1.6;
-}
-
-.outro-actions {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.watch-video-button {
-  padding: 1rem 2rem;
-  font-size: 1.25rem;
-  background: linear-gradient(135deg, #9b59b6, #8e44ad);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
-}
-
-.watch-video-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.6);
-}
-
-.outro-video-container {
-  width: 100%;
-  max-width: 1000px;
-  aspect-ratio: 16 / 9;
+/* Reuse .video-container styles from Screen 2 */
+.screen-11-outro .video-container {
   position: relative;
+  width: 100%;
+  max-width: 1200px;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.video-ended-actions {
-  margin-top: 2rem;
-  text-align: center;
-}
-
-.final-reminder {
-  margin: 1rem 0;
-  font-size: 1.25rem;
-}
-
-.play-again-button {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  background: #4a90d9;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.play-again-button:hover {
-  background: #357abd;
-}
+/* Removed unused outro styles:
+ * - .outro-content
+ * - .outro-celebration
+ * - .outro-subtitle
+ * - .outro-code-reveal
+ * - .final-code
+ * - .code-segment
+ * - .code-instruction
+ * - .outro-message
+ * - .outro-actions
+ * - .watch-video-button
+ * - .outro-video-container
+ * - .video-ended-actions
+ * - .final-reminder
+ * - .play-again-button
+ */
 
 /* Audio Puzzle styles */
 .audio-puzzle {
@@ -975,6 +900,11 @@ p {
 
   .progress-code {
     font-size: 2.5rem;
+  }
+
+  /* iPad-specific green fade animation styles */
+  .progress-code.puzzle-complete {
+    animation: greenFadeIn 1.5s ease-out forwards;
   }
 
   .final-code .code-segment {
