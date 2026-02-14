@@ -43,6 +43,9 @@ const SWITCH_ENTITY_MAP: Record<string, string> = {
   Voorraadkast: ENTITIES.PUZZLE_3.VOORRAADKAST,
 };
 
+/** Special droppable ID for returning switches to the container */
+const SWITCH_RETURN_ZONE = "switch-return-zone";
+
 interface SwitchDraggableProps {
   id: string;
   isPlaced: boolean;
@@ -50,16 +53,17 @@ interface SwitchDraggableProps {
 
 function SwitchDraggable({ id, isPlaced }: SwitchDraggableProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id, disabled: isPlaced });
+    useDraggable({ id });
 
   const style = {
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0.5 : 1,
-    cursor: isPlaced ? "default" : "grab",
+    cursor: "grab",
   };
 
+  // Don't render if placed on a bulb
   if (isPlaced) {
-    return null; // Don't render if already placed
+    return null;
   }
 
   return (
@@ -77,19 +81,56 @@ function SwitchDraggable({ id, isPlaced }: SwitchDraggableProps) {
   );
 }
 
+interface PlacedSwitchDraggableProps {
+  id: string;
+}
+
+/** Draggable switch that has been placed on a bulb */
+function PlacedSwitchDraggable({ id }: PlacedSwitchDraggableProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({ id });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+    cursor: "grab",
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className="placed-switch draggable"
+      data-testid={`placed-switch-${id.toLowerCase()}`}
+    >
+      <span className="switch-icon">&#9728;</span>
+      <span>{id}</span>
+    </div>
+  );
+}
+
 interface BulbDroppableProps {
   id: string;
   placedSwitch: string | null;
   isCorrect: boolean;
+  isIncorrect: boolean;
 }
 
-function BulbDroppable({ id, placedSwitch, isCorrect }: BulbDroppableProps) {
+function BulbDroppable({
+  id,
+  placedSwitch,
+  isCorrect,
+  isIncorrect,
+}: BulbDroppableProps) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   const className = [
     "bulb-droppable",
     placedSwitch ? "occupied" : "",
     isCorrect ? "correct" : "",
+    isIncorrect ? "incorrect" : "",
     isOver && !placedSwitch ? "drag-over" : "",
   ]
     .filter(Boolean)
@@ -103,15 +144,25 @@ function BulbDroppable({ id, placedSwitch, isCorrect }: BulbDroppableProps) {
     >
       <span className="bulb-icon">{isCorrect ? "&#128161;" : "&#128167;"}</span>
       <span className="bulb-label">{id}</span>
-      {placedSwitch && (
-        <div className="placed-switch">
-          <span className="switch-icon">&#9728;</span>
-          <span>{placedSwitch}</span>
-        </div>
-      )}
+      {placedSwitch && <PlacedSwitchDraggable id={placedSwitch} />}
       {!placedSwitch && (
         <span className="drop-hint">Sleep schakelaar hier</span>
       )}
+    </div>
+  );
+}
+
+/** Droppable zone for returning switches to the container */
+function SwitchReturnZone() {
+  const { setNodeRef, isOver } = useDroppable({ id: SWITCH_RETURN_ZONE });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`switch-return-zone ${isOver ? "drag-over" : ""}`}
+      data-testid="switch-return-zone"
+    >
+      <span className="return-hint">Sleep hier om terug te plaatsen</span>
     </div>
   );
 }
@@ -121,6 +172,7 @@ function BulbDroppable({ id, placedSwitch, isCorrect }: BulbDroppableProps) {
  *
  * Player must drag each switch to the correct bulb.
  * The twist: each switch controls a different room's bulb than its name suggests.
+ * Switches can be moved back to the container or to a different bulb.
  */
 export function Screen5Puzzle3() {
   const { callService } = useHass();
@@ -171,20 +223,79 @@ export function Screen5Puzzle3() {
       if (!over) return;
 
       const switchName = active.id as string;
-      const bulbName = over.id as string;
+      const targetId = over.id as string;
 
-      // Check if this bulb already has a switch
-      if (placements[bulbName]) return;
+      // Find if this switch is currently placed on a bulb
+      const currentBulb = Object.entries(placements).find(
+        ([, s]) => s === switchName
+      )?.[0];
+      const wasCorrectlyPlaced = currentBulb
+        ? isPlacementCorrect(switchName, currentBulb)
+        : false;
 
-      // Check if this switch is already placed somewhere
-      if (Object.values(placements).includes(switchName)) return;
+      // Handle returning switch to container
+      if (targetId === SWITCH_RETURN_ZONE) {
+        if (currentBulb) {
+          // Remove from current placement
+          const newPlacements = { ...placements };
+          delete newPlacements[currentBulb];
+          setPlacements(newPlacements);
 
-      // Place the switch on the bulb
-      const newPlacements = { ...placements, [bulbName]: switchName };
+          // If it was correctly placed, turn off the entity
+          if (wasCorrectlyPlaced) {
+            const entityId = SWITCH_ENTITY_MAP[switchName];
+            if (entityId) {
+              callService({
+                domain: "input_boolean",
+                service: "turn_off",
+                target: { entity_id: entityId },
+              });
+            }
+          }
+        }
+        return;
+      }
+
+      // Handle dropping on a bulb
+      const isBulb = BULBS.includes(targetId);
+      if (!isBulb) return;
+
+      const targetBulb = targetId;
+
+      // Check if target bulb already has a different switch
+      if (placements[targetBulb] && placements[targetBulb] !== switchName) {
+        return; // Can't drop on occupied bulb
+      }
+
+      // If dropping on the same bulb, do nothing
+      if (currentBulb === targetBulb) return;
+
+      // Build new placements
+      const newPlacements = { ...placements };
+
+      // Remove from old position if it was placed
+      if (currentBulb) {
+        delete newPlacements[currentBulb];
+
+        // If it was correctly placed before, turn off the entity
+        if (wasCorrectlyPlaced) {
+          const entityId = SWITCH_ENTITY_MAP[switchName];
+          if (entityId) {
+            callService({
+              domain: "input_boolean",
+              service: "turn_off",
+              target: { entity_id: entityId },
+            });
+          }
+        }
+      }
+
+      // Place on new bulb
+      newPlacements[targetBulb] = switchName;
       setPlacements(newPlacements);
 
-      // If correct placement, toggle the HA entity
-      if (isPlacementCorrect(switchName, bulbName)) {
+      // If new placement is correct, turn on the entity
+      if (isPlacementCorrect(switchName, targetBulb)) {
         const entityId = SWITCH_ENTITY_MAP[switchName];
         if (entityId) {
           callService({
@@ -200,6 +311,7 @@ export function Screen5Puzzle3() {
 
   // Get which switches are still available (not placed)
   const placedSwitches = Object.values(placements);
+  const hasPlacedSwitches = placedSwitches.length > 0;
 
   return (
     <div className="screen screen-5-puzzle-3">
@@ -240,22 +352,24 @@ export function Screen5Puzzle3() {
                   />
                 ))}
               </div>
+              {hasPlacedSwitches && <SwitchReturnZone />}
             </div>
 
             <div className="bulbs-container">
-              <h3>Lampen</h3>
               <div className="bulbs-grid">
                 {BULBS.map((bulbName) => {
                   const placedSwitch = placements[bulbName] || null;
                   const isCorrect = placedSwitch
                     ? isPlacementCorrect(placedSwitch, bulbName)
                     : false;
+                  const isIncorrect = placedSwitch !== null && !isCorrect;
                   return (
                     <BulbDroppable
                       key={bulbName}
                       id={bulbName}
                       placedSwitch={placedSwitch}
                       isCorrect={isCorrect}
+                      isIncorrect={isIncorrect}
                     />
                   );
                 })}

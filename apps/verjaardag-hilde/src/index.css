@@ -7,23 +7,42 @@
 html,
 body {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
     Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: #ffffff;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 #root {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
 }
 
 .app {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,9 +50,8 @@ body {
 
 .screen-container {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   max-width: 1640px;
-  max-height: 1148px;
   padding: 40px;
   display: flex;
   flex-direction: column;
@@ -1091,6 +1109,32 @@ p {
   animation: correctPulse 0.5s ease;
 }
 
+.bulb-droppable.incorrect {
+  background: rgba(231, 76, 60, 0.15);
+  border-color: rgba(231, 76, 60, 0.5);
+  border-style: solid;
+  animation: incorrectShake 0.5s ease;
+}
+
+@keyframes incorrectShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+}
+
 @keyframes correctPulse {
   0% {
     transform: scale(1);
@@ -1126,6 +1170,44 @@ p {
   background: rgba(74, 144, 217, 0.2);
   border-radius: 6px;
   font-size: 0.875rem;
+}
+
+.placed-switch.draggable {
+  cursor: grab;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(74, 144, 217, 0.3);
+}
+
+.placed-switch.draggable:hover {
+  background: rgba(74, 144, 217, 0.3);
+  border-color: rgba(74, 144, 217, 0.5);
+  transform: scale(1.02);
+}
+
+.placed-switch.draggable:active {
+  cursor: grabbing;
+}
+
+/* Return zone for switches */
+.switch-return-zone {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.switch-return-zone.drag-over {
+  background: rgba(72, 219, 251, 0.1);
+  border-color: rgba(72, 219, 251, 0.5);
+  border-style: solid;
+}
+
+.return-hint {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  font-style: italic;
 }
 
 /* Gauge Puzzle styles (Screen 8 - Puzzle 6) */

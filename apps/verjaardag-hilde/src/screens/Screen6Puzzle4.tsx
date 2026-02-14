@@ -34,6 +34,7 @@ export function Screen6Puzzle4() {
         title="Spraak Controle"
         description="Gebruik spraakopdrachten om de juiste kleuren te activeren."
         items={colorItems}
+        showLabelsWhenPending={true}
       />
     </div>
   );

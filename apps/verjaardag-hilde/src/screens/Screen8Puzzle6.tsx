@@ -57,6 +57,7 @@ export function Screen8Puzzle6() {
 
         <div className="gauge-container" data-testid="gauge-container">
           <GaugeComponent
+            key={`gauge-${powerValue}`}
             id="power-gauge"
             type="semicircle"
             arc={{
@@ -66,7 +67,7 @@ export function Screen8Puzzle6() {
               subArcs: [
                 {
                   limit: 40,
-                  color: "#EA4228",
+                  color: "#FFFFFF",
                   showTick: true,
                   tooltip: {
                     text: "Te laag!",

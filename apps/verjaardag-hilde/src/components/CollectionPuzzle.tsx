@@ -21,6 +21,8 @@ interface CollectionPuzzleProps {
   description: string;
   /** Items to collect (each is an input_boolean entity) */
   items: CollectionItem[];
+  /** Whether to show labels even when items are not collected (default: false) */
+  showLabelsWhenPending?: boolean;
 }
 
 /**
@@ -41,6 +43,7 @@ export function CollectionPuzzle({
   title,
   description,
   items,
+  showLabelsWhenPending = false,
 }: CollectionPuzzleProps) {
   // Note: _puzzleNumber is part of the interface for documentation but not used in rendering
   const entityIds = items.map((item) => item.entityId);
@@ -108,7 +111,7 @@ export function CollectionPuzzle({
               </span>
               <div className="collection-item-content">
                 <span className="item-label">
-                  {isCollected ? item.label : "???"}
+                  {isCollected || showLabelsWhenPending ? item.label : "???"}
                 </span>
                 {item.description && isCollected && (
                   <span className="item-description">{item.description}</span>
