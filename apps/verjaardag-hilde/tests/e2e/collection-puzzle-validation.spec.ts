@@ -221,9 +221,9 @@ test.describe("Collection Puzzle Item Toggle", () => {
 
       await page.waitForTimeout(1000);
 
-      // Verify UI shows completion
-      const completeMessage = page.locator('text="Puzzel opgelost!"');
-      await expect(completeMessage).toBeVisible();
+      // Verify UI shows progress (ProgressCode component should be visible)
+      const progressCode = page.locator('text="Kluis code:"');
+      await expect(progressCode).toBeVisible();
 
       // Turn off
       await callHAService(request, "input_boolean", "turn_off", {

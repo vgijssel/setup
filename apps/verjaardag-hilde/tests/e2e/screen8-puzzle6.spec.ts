@@ -296,7 +296,7 @@ test.describe("Screen 8 Puzzle 6 - HAOS REST API Integration (Task 81)", () => {
     }
   });
 
-  test("puzzle shows solved state when select entity is 1", async ({
+  test("puzzle shows hint section regardless of solved state", async ({
     page,
     request,
   }) => {
@@ -314,13 +314,13 @@ test.describe("Screen 8 Puzzle 6 - HAOS REST API Integration (Task 81)", () => {
     await page.goto(DEV_SERVER_URL);
     await page.waitForTimeout(2000);
 
-    const solvedSection = page.getByTestId("puzzle-solved");
-    const isSolved = await solvedSection.isVisible().catch(() => false);
-
-    if (isSolved) {
-      await expect(solvedSection).toBeVisible();
-      await expect(page.locator("text=Puzzel opgelost!")).toBeVisible();
-    }
+    // Hint section should always be visible
+    const hintSection = page.getByTestId("puzzle-hint");
+    await expect(hintSection).toBeVisible();
+    await expect(page.locator("text=Huidige waarde:")).toBeVisible();
+    await expect(
+      page.locator("text=Doel: Breng het niveau tussen 40% en 60%")
+    ).toBeVisible();
   });
 
   test("gauge persists value after page reload", async ({ page, request }) => {

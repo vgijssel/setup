@@ -70,15 +70,13 @@ export function Screen8Puzzle6() {
         <div className="puzzle-header">
           <h2>Stroomverbruik Controle</h2>
           <p className="puzzle-description">
-            {isSolved
-              ? "Perfect! Het stroomverbruik is optimaal."
-              : "Pas het stroomverbruik aan tot het in de groene zone valt."}
+            Schakel apparaten aan of uit om het stroomverbruik aan te passen tot
+            het in de groene zone valt.
           </p>
         </div>
 
         <div className="gauge-container" data-testid="gauge-container">
           <GaugeComponent
-            key={`gauge-${powerValue}`}
             id="power-gauge"
             type="semicircle"
             arc={{
@@ -146,21 +144,14 @@ export function Screen8Puzzle6() {
         </div>
 
         <div className="gauge-status">
-          {isSolved ? (
-            <div className="status-solved" data-testid="puzzle-solved">
-              <span className="status-icon">&#10003;</span>
-              <span>Puzzel opgelost!</span>
-            </div>
-          ) : (
-            <div className="status-hint" data-testid="puzzle-hint">
-              <p>
-                Huidige waarde: <strong>{powerValue}%</strong>
-              </p>
-              <p className="hint-text">
-                Doel: Breng het niveau tussen 40% en 60%
-              </p>
-            </div>
-          )}
+          <div className="status-hint" data-testid="puzzle-hint">
+            <p>
+              Huidige waarde: <strong>{powerValue}%</strong>
+            </p>
+            <p className="hint-text">
+              Doel: Breng het niveau tussen 40% en 60%
+            </p>
+          </div>
         </div>
 
         <ProgressCode screenNumber={8} puzzleJustCompleted={isSolved} />

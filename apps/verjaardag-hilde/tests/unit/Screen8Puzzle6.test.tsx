@@ -55,12 +55,12 @@ describe("Screen8Puzzle6", () => {
     render(<Screen8Puzzle6 />);
     expect(
       screen.getByText(
-        "Pas het stroomverbruik aan tot het in de groene zone valt."
+        "Schakel apparaten aan of uit om het stroomverbruik aan te passen tot het in de groene zone valt."
       )
     ).toBeDefined();
   });
 
-  it("shows solved description when puzzle is complete", () => {
+  it("shows standard description regardless of puzzle state", () => {
     mockUseEntity.mockImplementation((entityId: string) => {
       if (entityId.includes("power_number")) {
         return { state: "50" };
@@ -70,7 +70,9 @@ describe("Screen8Puzzle6", () => {
 
     render(<Screen8Puzzle6 />);
     expect(
-      screen.getByText("Perfect! Het stroomverbruik is optimaal.")
+      screen.getByText(
+        "Schakel apparaten aan of uit om het stroomverbruik aan te passen tot het in de groene zone valt."
+      )
     ).toBeDefined();
   });
 
@@ -104,17 +106,21 @@ describe("Screen8Puzzle6", () => {
     ).toBeDefined();
   });
 
-  it("shows solved section when puzzle is complete", () => {
+  it("shows hint section regardless of puzzle state", () => {
     mockUseEntity.mockImplementation((entityId: string) => {
       if (entityId.includes("power_number")) {
         return { state: "50" };
       }
-      return { state: "1" };
+      return { state: "1" }; // Solved
     });
 
     render(<Screen8Puzzle6 />);
-    expect(screen.getByTestId("puzzle-solved")).toBeDefined();
-    expect(screen.getByText("Puzzel opgelost!")).toBeDefined();
+    expect(screen.getByTestId("puzzle-hint")).toBeDefined();
+    expect(screen.getByText(/Huidige waarde:/)).toBeDefined();
+    expect(screen.getByText("50%")).toBeDefined();
+    expect(
+      screen.getByText("Doel: Breng het niveau tussen 40% en 60%")
+    ).toBeDefined();
   });
 
   it("handles missing power entity state gracefully", () => {
@@ -213,7 +219,7 @@ describe("Screen8Puzzle6", () => {
     expect(screen.getByText("Kluis code:")).toBeDefined();
   });
 
-  it("gauge updates when entity value changes (uses key prop)", () => {
+  it("gauge updates when entity value changes", () => {
     // First render with value 30
     mockUseEntity.mockImplementation((entityId: string) => {
       if (entityId.includes("power_number")) {
