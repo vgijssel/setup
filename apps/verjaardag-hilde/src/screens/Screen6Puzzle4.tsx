@@ -12,17 +12,17 @@ export function Screen6Puzzle4() {
     {
       entityId: ENTITIES.PUZZLE_4.RED,
       label: "Rood",
-      description: "Activeer rood",
+      description: "Rood geactiveerd",
     },
     {
       entityId: ENTITIES.PUZZLE_4.BLUE,
       label: "Blauw",
-      description: "Activeer blauw",
+      description: "Blauw geactiveerd",
     },
     {
       entityId: ENTITIES.PUZZLE_4.GREEN,
-      label: "Groen",
-      description: "Activeer groen",
+      label: "Donkergroen",
+      description: "Donkergroen geactiveerd",
     },
   ];
 
