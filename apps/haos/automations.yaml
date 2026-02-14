@@ -1325,3 +1325,84 @@
         target:
           entity_id: input_select.verjaardag_hilde_global_select
   mode: single
+- id: '1771059422131'
+  alias: Verjaardag Hilde - Puzzle 6
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    to: '8'
+    id: global
+  - trigger: state
+    entity_id:
+    - binary_sensor.wasmachine_power
+    id: device_change
+  - trigger: state
+    entity_id:
+    - binary_sensor.droger_power
+    id: device_change
+  - trigger: state
+    entity_id:
+    - media_player.bedroom_tv
+    id: device_change
+  - trigger: state
+    entity_id:
+    - media_player.living_room_tv
+    id: device_change
+  - trigger: numeric_state
+    entity_id:
+    - input_number.verjaardag_hilde_puzzle_6_power_number
+    above: 39.99
+    below: 50.01
+    id: puzzle_complete
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: or
+        conditions:
+        - condition: trigger
+          id:
+          - global
+        - condition: and
+          conditions:
+          - condition: trigger
+            id:
+            - device_change
+          - condition: state
+            entity_id: input_select.verjaardag_hilde_global_select
+            state: '8'
+      sequence:
+      - action: input_number.set_value
+        metadata: {}
+        data:
+          value: >-
+            {% set washing_machine = 19 if is_state('binary_sensor.wasmachine_power', 'on') else 0 %}
+            {% set dryer = 32 if is_state('binary_sensor.droger_power', 'on') else 0 %}
+            {% set bedroom_tv = 5 if not is_state('media_player.bedroom_tv', 'off') else 0 %}
+            {% set living_room_tv = 14 if not is_state('media_player.living_room_tv', 'off') else 0 %}
+            {{ washing_machine + dryer + bedroom_tv + living_room_tv }}
+        target:
+          entity_id: input_number.verjaardag_hilde_puzzle_6_power_number
+    - conditions:
+      - condition: trigger
+        id:
+        - puzzle_complete
+      - condition: state
+        entity_id: input_select.verjaardag_hilde_global_select
+        state: '8'
+      sequence:
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: '9'
+        target:
+          entity_id: input_select.verjaardag_hilde_global_select
+  mode: queued
+  max: 10

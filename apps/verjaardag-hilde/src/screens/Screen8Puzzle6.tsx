@@ -93,7 +93,7 @@ export function Screen8Puzzle6() {
                   },
                 },
                 {
-                  limit: 60,
+                  limit: 50,
                   color: "#5BE12C",
                   showTick: true,
                   tooltip: {
@@ -149,7 +149,7 @@ export function Screen8Puzzle6() {
               Huidige waarde: <strong>{powerValue}%</strong>
             </p>
             <p className="hint-text">
-              Doel: Breng het niveau tussen 40% en 60%
+              Doel: Breng het niveau tussen 40% en 50%
             </p>
           </div>
         </div>
