@@ -393,8 +393,8 @@ export function Screen5Puzzle3() {
         <div className="puzzle-header">
           <h2>Schakelaars Controle</h2>
           <p className="puzzle-description">
-            Sleep elke schakelaar naar de juiste lamp. Let op: de schakelaars
-            bedienen niet de kamer waar ze naar vernoemd zijn!
+            Controleer in het huis welke schakelaar bij welke lamp hoort. Sleep
+            elke schakelaar naar de juiste lamp.
           </p>
         </div>
 

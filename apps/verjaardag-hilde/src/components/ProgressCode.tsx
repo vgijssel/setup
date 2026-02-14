@@ -83,7 +83,7 @@ export function ProgressCode({
       <span className="digits-count">
         {digitsToReveal > 0
           ? `${digitsToReveal}/${FULL_CODE.length} cijfers hersteld`
-          : "Diagnostiseer systemen om Klaassandra haar geheugen te helpen herstellen"}
+          : "Controleer systemen om Klaassandra haar geheugen te helpen herstellen"}
       </span>
     </div>
   );

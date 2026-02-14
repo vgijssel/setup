@@ -31,7 +31,7 @@ describe("ProgressCode", () => {
     // Should show the Klaassandra instruction text
     expect(
       screen.getByText(
-        "Diagnostiseer systemen om Klaassandra haar geheugen te helpen herstellen"
+        "Controleer systemen om Klaassandra haar geheugen te helpen herstellen"
       )
     ).toBeDefined();
   });
