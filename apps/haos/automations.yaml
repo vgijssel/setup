@@ -658,3 +658,47 @@
           - automation.landing_occupancy_lights
           - automation.bedroom_occupancy_lights
   mode: single
+- id: '1771059422125'
+  alias: Verjaardag Hilde - Puzzle 1
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    to: '3'
+    id: global
+  - trigger: state
+    entity_id:
+    - binary_sensor.baby_room_contact_door
+    id: slaapkamerdeur
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - global
+      sequence:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: '0'
+        target:
+          entity_id: input_select.verjaardag_hilde_puzzle_1_select
+    - conditions:
+      - condition: trigger
+        id:
+        - slaapkamerdeur
+      sequence:
+      - if:
+        - condition: state
+          entity_id: input_select.verjaardag_hilde_puzzle_1_select
+          state: '0'
+        then:
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: '1'
+          target:
+            entity_id: input_select.verjaardag_hilde_puzzle_1_select
+  mode: single
