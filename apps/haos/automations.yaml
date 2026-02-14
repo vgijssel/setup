@@ -669,8 +669,24 @@
     id: global
   - trigger: state
     entity_id:
-    - binary_sensor.baby_room_contact_door
+    - binary_sensor.bedroom_contact_door
     id: slaapkamerdeur
+  - trigger: state
+    entity_id:
+    - binary_sensor.baby_room_contact_door
+    id: babykamerdeur
+  - trigger: state
+    entity_id:
+    - binary_sensor.bathroom_contact_door
+    id: badkamerdeur
+  - trigger: state
+    entity_id:
+    - binary_sensor.hallway_contact_door
+    id: voordeur
+  - trigger: state
+    entity_id:
+    - binary_sensor.garden_contact_door
+    id: achterdeur
   conditions: []
   actions:
   - choose:
@@ -701,4 +717,158 @@
             option: '1'
           target:
             entity_id: input_select.verjaardag_hilde_puzzle_1_select
+    - conditions:
+      - condition: trigger
+        id:
+        - babykamerdeur
+      sequence:
+      - if:
+        - condition: state
+          entity_id: input_select.verjaardag_hilde_puzzle_1_select
+          state: '1'
+        then:
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: '2'
+          target:
+            entity_id: input_select.verjaardag_hilde_puzzle_1_select
+    - conditions:
+      - condition: trigger
+        id:
+        - badkamerdeur
+      sequence:
+      - if:
+        - condition: state
+          entity_id: input_select.verjaardag_hilde_puzzle_1_select
+          state: '2'
+        then:
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: '3'
+          target:
+            entity_id: input_select.verjaardag_hilde_puzzle_1_select
+    - conditions:
+      - condition: trigger
+        id:
+        - voordeur
+      sequence:
+      - if:
+        - condition: state
+          entity_id: input_select.verjaardag_hilde_puzzle_1_select
+          state: '3'
+        then:
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: '4'
+          target:
+            entity_id: input_select.verjaardag_hilde_puzzle_1_select
+    - conditions:
+      - condition: trigger
+        id:
+        - achterdeur
+      sequence:
+      - if:
+        - condition: state
+          entity_id: input_select.verjaardag_hilde_puzzle_1_select
+          state: '4'
+        then:
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: '5'
+          target:
+            entity_id: input_select.verjaardag_hilde_puzzle_1_select
+  mode: single
+- id: '1771059422126'
+  alias: Verjaardag Hilde - Puzzle 2
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    to: '4'
+    id: global
+  - trigger: state
+    entity_id:
+    - media_player.bedroom_tv
+    attribute: app_name
+    to: Videoland
+    id: bedroom_videoland
+  - trigger: state
+    entity_id:
+    - media_player.living_room_tv
+    attribute: app_name
+    to: HBO
+    id: livingroom_hbo
+  - trigger: state
+    entity_id:
+    - media_player.bedroom_tv
+    attribute: app_name
+    to: Prime
+    id: bedroom_prime
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - global
+      sequence:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: '0'
+        target:
+          entity_id: input_select.verjaardag_hilde_puzzle_2_select
+    - conditions:
+      - condition: trigger
+        id:
+        - bedroom_videoland
+      sequence:
+      - if:
+        - condition: state
+          entity_id: input_select.verjaardag_hilde_puzzle_2_select
+          state: '0'
+        then:
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: '1'
+          target:
+            entity_id: input_select.verjaardag_hilde_puzzle_2_select
+    - conditions:
+      - condition: trigger
+        id:
+        - livingroom_hbo
+      sequence:
+      - if:
+        - condition: state
+          entity_id: input_select.verjaardag_hilde_puzzle_2_select
+          state: '1'
+        then:
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: '2'
+          target:
+            entity_id: input_select.verjaardag_hilde_puzzle_2_select
+    - conditions:
+      - condition: trigger
+        id:
+        - bedroom_prime
+      sequence:
+      - if:
+        - condition: state
+          entity_id: input_select.verjaardag_hilde_puzzle_2_select
+          state: '2'
+        then:
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: '3'
+          target:
+            entity_id: input_select.verjaardag_hilde_puzzle_2_select
   mode: single
