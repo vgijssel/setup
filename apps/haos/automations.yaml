@@ -914,6 +914,160 @@
         target:
           entity_id: input_select.verjaardag_hilde_global_select
   mode: single
+- id: '1771059422129'
+  alias: Verjaardag Hilde - Puzzle 3
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    to: '5'
+    id: global
+  - trigger: state
+    entity_id:
+    - input_boolean.verjaardag_hilde_puzzle_3_keuken_toggle
+    - input_boolean.verjaardag_hilde_puzzle_3_slaapkamer_toggle
+    - input_boolean.verjaardag_hilde_puzzle_3_tuin_toggle
+    - input_boolean.verjaardag_hilde_puzzle_3_voorraadkast_toggle
+    - input_boolean.verjaardag_hilde_puzzle_3_waskamer_toggle
+    to: 'on'
+    id: toggle_change
+  - trigger: state
+    entity_id:
+    - binary_sensor.bedroom_shelly_input
+    id: bedroom_switch
+  - trigger: state
+    entity_id:
+    - binary_sensor.laundry_room_shelly_input
+    id: laundry_room_switch
+  - trigger: state
+    entity_id:
+    - binary_sensor.kitchen_shelly_input
+    id: kitchen_switch
+  - trigger: state
+    entity_id:
+    - binary_sensor.garden_shelly_input
+    id: garden_switch
+  - trigger: state
+    entity_id:
+    - binary_sensor.supply_closet_shelly_input
+    id: supply_closet_switch
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - global
+      sequence:
+      - action: input_boolean.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - input_boolean.verjaardag_hilde_puzzle_3_keuken_toggle
+          - input_boolean.verjaardag_hilde_puzzle_3_slaapkamer_toggle
+          - input_boolean.verjaardag_hilde_puzzle_3_tuin_toggle
+          - input_boolean.verjaardag_hilde_puzzle_3_voorraadkast_toggle
+          - input_boolean.verjaardag_hilde_puzzle_3_waskamer_toggle
+    - conditions:
+      - condition: trigger
+        id:
+        - toggle_change
+      - condition: state
+        entity_id: input_boolean.verjaardag_hilde_puzzle_3_keuken_toggle
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.verjaardag_hilde_puzzle_3_slaapkamer_toggle
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.verjaardag_hilde_puzzle_3_tuin_toggle
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.verjaardag_hilde_puzzle_3_voorraadkast_toggle
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.verjaardag_hilde_puzzle_3_waskamer_toggle
+        state: 'on'
+      sequence:
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: '6'
+        target:
+          entity_id: input_select.verjaardag_hilde_global_select
+    - conditions:
+      - condition: trigger
+        id:
+        - bedroom_switch
+      - condition: state
+        entity_id: input_select.verjaardag_hilde_global_select
+        state: '5'
+      sequence:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.laundry_room_shelly
+    - conditions:
+      - condition: trigger
+        id:
+        - laundry_room_switch
+      - condition: state
+        entity_id: input_select.verjaardag_hilde_global_select
+        state: '5'
+      sequence:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.supply_closet_shelly
+    - conditions:
+      - condition: trigger
+        id:
+        - kitchen_switch
+      - condition: state
+        entity_id: input_select.verjaardag_hilde_global_select
+        state: '5'
+      sequence:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.bedroom_light
+    - conditions:
+      - condition: trigger
+        id:
+        - garden_switch
+      - condition: state
+        entity_id: input_select.verjaardag_hilde_global_select
+        state: '5'
+      sequence:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.kitchen_lights
+    - conditions:
+      - condition: trigger
+        id:
+        - supply_closet_switch
+      - condition: state
+        entity_id: input_select.verjaardag_hilde_global_select
+        state: '5'
+      sequence:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.garden_shelly
+  mode: queued
+  max: 10
 - id: '1771059422127'
   alias: Verjaardag Hilde - Puzzle 4
   description: ''
