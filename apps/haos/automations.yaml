@@ -687,6 +687,11 @@
     entity_id:
     - binary_sensor.garden_contact_door
     id: achterdeur
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_puzzle_1_select
+    to: '5'
+    id: puzzle_complete
   conditions: []
   actions:
   - choose:
@@ -781,6 +786,22 @@
             option: '5'
           target:
             entity_id: input_select.verjaardag_hilde_puzzle_1_select
+    - conditions:
+      - condition: trigger
+        id:
+        - puzzle_complete
+      sequence:
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: '4'
+        target:
+          entity_id: input_select.verjaardag_hilde_global_select
   mode: single
 - id: '1771059422126'
   alias: Verjaardag Hilde - Puzzle 2
@@ -809,6 +830,11 @@
     attribute: app_name
     to: Prime
     id: bedroom_prime
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_puzzle_2_select
+    to: '3'
+    id: puzzle_complete
   conditions: []
   actions:
   - choose:
@@ -871,4 +897,20 @@
             option: '3'
           target:
             entity_id: input_select.verjaardag_hilde_puzzle_2_select
+    - conditions:
+      - condition: trigger
+        id:
+        - puzzle_complete
+      sequence:
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: '5'
+        target:
+          entity_id: input_select.verjaardag_hilde_global_select
   mode: single
