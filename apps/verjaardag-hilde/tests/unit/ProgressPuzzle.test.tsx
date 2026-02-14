@@ -175,11 +175,11 @@ describe("ProgressPuzzle", () => {
         title="Test"
         description="Test"
         items={[
+          "Slaapkamerdeur",
+          "Babykamerdeur",
+          "Badkamerdeur",
           "Voordeur",
           "Achterdeur",
-          "Garagedeur",
-          "Slaapkamerdeur",
-          "Badkamerdeur",
         ]}
         progressiveDisclosure={true}
         hiddenPlaceholder="Deur ?"
@@ -187,15 +187,15 @@ describe("ProgressPuzzle", () => {
     );
 
     // First 2 items should show actual names
-    expect(screen.getByText("Voordeur")).toBeDefined();
-    expect(screen.getByText("Achterdeur")).toBeDefined();
+    expect(screen.getByText("Slaapkamerdeur")).toBeDefined();
+    expect(screen.getByText("Babykamerdeur")).toBeDefined();
 
     // Remaining 3 should show placeholder
     const placeholders = screen.getAllByText("Deur ?");
     expect(placeholders.length).toBe(3);
 
     // Hidden names should NOT be visible
-    expect(screen.queryByText("Garagedeur")).toBeNull();
+    expect(screen.queryByText("Badkamerdeur")).toBeNull();
   });
 
   it("shows all labels when progressiveDisclosure is false (default)", () => {

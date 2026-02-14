@@ -57,11 +57,11 @@ test.describe("Screen 3 Puzzle 1 - The Doors", () => {
     await page.waitForLoadState("networkidle");
 
     const doorItems = [
+      "Slaapkamerdeur",
+      "Babykamerdeur",
+      "Badkamerdeur",
       "Voordeur",
       "Achterdeur",
-      "Garagedeur",
-      "Slaapkamerdeur",
-      "Badkamerdeur",
     ];
 
     for (const door of doorItems) {

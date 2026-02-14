@@ -142,7 +142,6 @@ function BulbDroppable({
       className={className}
       data-testid={`bulb-${id.toLowerCase()}`}
     >
-      <span className="bulb-icon">{isCorrect ? "&#128161;" : "&#128167;"}</span>
       <span className="bulb-label">{id}</span>
       {placedSwitch && <PlacedSwitchDraggable id={placedSwitch} />}
       {!placedSwitch && (
@@ -317,7 +316,7 @@ export function Screen5Puzzle3() {
     <div className="screen screen-5-puzzle-3">
       <div className="puzzle-container dnd-puzzle">
         <div className="puzzle-header">
-          <h2>Schakelaars Puzzel</h2>
+          <h2>Schakelaars Controle</h2>
           <p className="puzzle-description">
             Sleep elke schakelaar naar de juiste lamp. Let op: de schakelaars
             bedienen niet de kamer waar ze naar vernoemd zijn!

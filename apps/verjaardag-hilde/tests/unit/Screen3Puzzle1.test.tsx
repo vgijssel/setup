@@ -80,8 +80,8 @@ describe("Screen3Puzzle1", () => {
   it("shows completed door names for revealed items with progressive disclosure", () => {
     render(<Screen3Puzzle1 />);
     // With 2 complete, first 2 door names should be visible
-    expect(screen.getByText("Voordeur")).toBeDefined();
-    expect(screen.getByText("Achterdeur")).toBeDefined();
+    expect(screen.getByText("Slaapkamerdeur")).toBeDefined();
+    expect(screen.getByText("Babykamerdeur")).toBeDefined();
   });
 
   it("shows placeholder for hidden items with progressive disclosure", () => {
@@ -148,12 +148,12 @@ describe("Screen3Puzzle1", () => {
     });
 
     render(<Screen3Puzzle1 />);
-    // All door names should be visible
+    // All door names should be visible in new order
+    expect(screen.getByText("Slaapkamerdeur")).toBeDefined();
+    expect(screen.getByText("Babykamerdeur")).toBeDefined();
+    expect(screen.getByText("Badkamerdeur")).toBeDefined();
     expect(screen.getByText("Voordeur")).toBeDefined();
     expect(screen.getByText("Achterdeur")).toBeDefined();
-    expect(screen.getByText("Garagedeur")).toBeDefined();
-    expect(screen.getByText("Slaapkamerdeur")).toBeDefined();
-    expect(screen.getByText("Badkamerdeur")).toBeDefined();
   });
 
   it("shows 0 progress at start with all items hidden", () => {

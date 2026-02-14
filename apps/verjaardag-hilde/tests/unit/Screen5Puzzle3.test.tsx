@@ -44,7 +44,7 @@ describe("Screen5Puzzle3", () => {
 
   it("renders the screen container", () => {
     render(<Screen5Puzzle3 />);
-    expect(screen.getByText("Schakelaars Puzzel")).toBeDefined();
+    expect(screen.getByText("Schakelaars Controle")).toBeDefined();
   });
 
   it("renders puzzle description", () => {

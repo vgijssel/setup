@@ -12,12 +12,12 @@ import { ENTITIES } from "../constants/entities";
  * The screen subscribes to verjaardag_hilde_puzzle_1_select entity and
  * updates visual progress when the value changes from 0 to 1 to 5.
  *
- * Real sensors used:
+ * Real sensors used (in order):
+ * - binary_sensor.slaapkamer_contact (Bedroom door)
+ * - binary_sensor.babykamer_contact (Baby room door)
+ * - binary_sensor.badkamer_contact (Bathroom door)
  * - binary_sensor.voordeur_contact (Front door)
  * - binary_sensor.achterdeur_contact (Back door)
- * - binary_sensor.garage_contact (Garage door)
- * - binary_sensor.slaapkamer_contact (Bedroom door)
- * - binary_sensor.badkamer_contact (Bathroom door)
  *
  * PRD Design: Fullscreen responsive layout with puzzle-focused header,
  * centered ProgressPuzzle with door-themed animations.
@@ -38,11 +38,11 @@ const containerVariants = {
 export function Screen3Puzzle1() {
   const doorItems = useMemo(
     () => [
+      "Slaapkamerdeur",
+      "Babykamerdeur",
+      "Badkamerdeur",
       "Voordeur",
       "Achterdeur",
-      "Garagedeur",
-      "Slaapkamerdeur",
-      "Badkamerdeur",
     ],
     []
   );
