@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -13,7 +13,7 @@ import {
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { ProgressCode } from "../components/ProgressCode";
-import { useHass } from "@hakit/core";
+import { useHass, useEntity, EntityName } from "@hakit/core";
 import { ENTITIES } from "../constants/entities";
 
 /**
@@ -32,8 +32,9 @@ const SWITCH_TO_BULB_MAP: Record<string, string> = {
   Voorraadkast: "Tuin",
 };
 
-const SWITCHES = ["Slaapkamer", "Waskamer", "Keuken", "Tuin", "Voorraadkast"];
-const BULBS = ["Waskamer", "Voorraadkast", "Slaapkamer", "Keuken", "Tuin"];
+// Switches and bulbs in alphabetical order for consistent UI display
+const SWITCHES = ["Keuken", "Slaapkamer", "Tuin", "Voorraadkast", "Waskamer"];
+const BULBS = ["Keuken", "Slaapkamer", "Tuin", "Voorraadkast", "Waskamer"];
 
 const SWITCH_ENTITY_MAP: Record<string, string> = {
   Slaapkamer: ENTITIES.PUZZLE_3.SLAAPKAMER,
@@ -180,6 +181,74 @@ export function Screen5Puzzle3() {
   const [placements, setPlacements] = useState<Record<string, string>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  // Flag to prevent sync loop when user is dragging
+  const isUserDraggingRef = useRef(false);
+
+  // Subscribe to entity states for bidirectional sync
+  const keukenEntity = useEntity(ENTITIES.PUZZLE_3.KEUKEN as EntityName, {
+    returnNullIfNotFound: true,
+  });
+  const slaapkamerEntity = useEntity(
+    ENTITIES.PUZZLE_3.SLAAPKAMER as EntityName,
+    { returnNullIfNotFound: true }
+  );
+  const tuinEntity = useEntity(ENTITIES.PUZZLE_3.TUIN as EntityName, {
+    returnNullIfNotFound: true,
+  });
+  const voorraadkastEntity = useEntity(
+    ENTITIES.PUZZLE_3.VOORRAADKAST as EntityName,
+    { returnNullIfNotFound: true }
+  );
+  const waskamerEntity = useEntity(ENTITIES.PUZZLE_3.WASKAMER as EntityName, {
+    returnNullIfNotFound: true,
+  });
+
+  // Sync entity states to placements when entities change externally
+  useEffect(() => {
+    // Skip sync if user is actively dragging to prevent conflicts
+    if (isUserDraggingRef.current) return;
+
+    const entities = [
+      { entity: keukenEntity, switchName: "Keuken" },
+      { entity: slaapkamerEntity, switchName: "Slaapkamer" },
+      { entity: tuinEntity, switchName: "Tuin" },
+      { entity: voorraadkastEntity, switchName: "Voorraadkast" },
+      { entity: waskamerEntity, switchName: "Waskamer" },
+    ];
+
+    const newPlacements: Record<string, string> = {};
+
+    for (const { entity, switchName } of entities) {
+      if (entity?.state === "on") {
+        // Entity is on means switch is correctly placed
+        // Find the correct bulb for this switch using SWITCH_TO_BULB_MAP
+        const correctBulb = SWITCH_TO_BULB_MAP[switchName];
+        if (correctBulb) {
+          newPlacements[correctBulb] = switchName;
+        }
+      }
+    }
+
+    // Only update if placements have actually changed to avoid infinite loops
+    const newPlacementsKey = JSON.stringify(
+      Object.entries(newPlacements).sort()
+    );
+    const currentPlacementsKey = JSON.stringify(
+      Object.entries(placements).sort()
+    );
+
+    if (newPlacementsKey !== currentPlacementsKey) {
+      setPlacements(newPlacements);
+    }
+  }, [
+    keukenEntity?.state,
+    slaapkamerEntity?.state,
+    tuinEntity?.state,
+    voorraadkastEntity?.state,
+    waskamerEntity?.state,
+    placements,
+  ]);
+
   // Check if a placement is correct
   const isPlacementCorrect = (
     switchName: string,
@@ -211,6 +280,7 @@ export function Screen5Puzzle3() {
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    isUserDraggingRef.current = true;
     setActiveId(event.active.id as string);
   }, []);
 
@@ -218,6 +288,11 @@ export function Screen5Puzzle3() {
     (event: DragEndEvent) => {
       const { active, over } = event;
       setActiveId(null);
+
+      // Reset the dragging flag after a short delay to allow state updates
+      setTimeout(() => {
+        isUserDraggingRef.current = false;
+      }, 100);
 
       if (!over) return;
 

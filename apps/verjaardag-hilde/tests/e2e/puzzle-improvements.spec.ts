@@ -16,7 +16,7 @@ import { test, expect } from "@playwright/test";
  * Tests work with or without Home Assistant connection.
  */
 
-test.describe("Puzzle 3 - Switch Improvements (Tasks 68-70)", () => {
+test.describe("Puzzle 3 - Switch Improvements (Tasks 68-70, 79)", () => {
   test("renders all 5 switches in the switches container", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
@@ -38,6 +38,38 @@ test.describe("Puzzle 3 - Switch Improvements (Tasks 68-70)", () => {
     }
   });
 
+  test("renders switches in alphabetical order (Task 79)", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    const switches = page.locator(".switches-grid .switch-draggable");
+    const switchesVisible = await switches
+      .first()
+      .isVisible()
+      .catch(() => false);
+
+    if (switchesVisible) {
+      const switchCount = await switches.count();
+      const switchIds: string[] = [];
+
+      for (let i = 0; i < switchCount; i++) {
+        const testId = await switches.nth(i).getAttribute("data-testid");
+        if (testId) {
+          switchIds.push(testId.replace("switch-", ""));
+        }
+      }
+
+      // Should be in alphabetical order
+      expect(switchIds).toEqual([
+        "keuken",
+        "slaapkamer",
+        "tuin",
+        "voorraadkast",
+        "waskamer",
+      ]);
+    }
+  });
+
   test("renders all 5 bulbs in the bulbs container", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
@@ -54,6 +86,38 @@ test.describe("Puzzle 3 - Switch Improvements (Tasks 68-70)", () => {
       await expect(page.getByTestId("bulb-slaapkamer")).toBeVisible();
       await expect(page.getByTestId("bulb-keuken")).toBeVisible();
       await expect(page.getByTestId("bulb-tuin")).toBeVisible();
+    }
+  });
+
+  test("renders bulbs in alphabetical order (Task 79)", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    const bulbs = page.locator(".bulbs-grid .bulb-droppable");
+    const bulbsVisible = await bulbs
+      .first()
+      .isVisible()
+      .catch(() => false);
+
+    if (bulbsVisible) {
+      const bulbCount = await bulbs.count();
+      const bulbIds: string[] = [];
+
+      for (let i = 0; i < bulbCount; i++) {
+        const testId = await bulbs.nth(i).getAttribute("data-testid");
+        if (testId) {
+          bulbIds.push(testId.replace("bulb-", ""));
+        }
+      }
+
+      // Should be in alphabetical order
+      expect(bulbIds).toEqual([
+        "keuken",
+        "slaapkamer",
+        "tuin",
+        "voorraadkast",
+        "waskamer",
+      ]);
     }
   });
 
@@ -337,7 +401,7 @@ test.describe("Puzzle 4 - Color Labels (Task 72)", () => {
   });
 });
 
-test.describe("Puzzle 6 - Gauge Improvements (Tasks 73-74)", () => {
+test.describe("Puzzle 6 - Gauge Improvements (Tasks 73-74, 81)", () => {
   test("gauge container exists on puzzle screen", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
@@ -348,6 +412,27 @@ test.describe("Puzzle 6 - Gauge Improvements (Tasks 73-74)", () => {
 
     if (hasGauge) {
       await expect(gaugeContainer).toBeVisible();
+    }
+  });
+
+  test("gauge displays current power value (Task 81)", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    // Look for Screen 8 (Puzzle 6) elements
+    const gaugeContainer = page.getByTestId("gauge-container");
+    const hasGauge = await gaugeContainer.isVisible().catch(() => false);
+
+    if (hasGauge) {
+      // The gauge should display a percentage value
+      const percentageText = page.locator("text=/%/");
+      const hasPercentage = await percentageText.isVisible().catch(() => false);
+
+      // Either shows a percentage or hint text should be visible
+      const hintSection = page.getByTestId("puzzle-hint");
+      const hasHint = await hintSection.isVisible().catch(() => false);
+
+      expect(hasPercentage || hasHint).toBe(true);
     }
   });
 

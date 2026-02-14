@@ -3,10 +3,14 @@ import { render, screen } from "@testing-library/react";
 
 // Mock @hakit/core
 const mockCallService = vi.fn();
+const mockUseEntity = vi.fn();
 vi.mock("@hakit/core", () => ({
   useHass: () => ({
     callService: mockCallService,
   }),
+  useEntity: (entityId: string, options?: unknown) =>
+    mockUseEntity(entityId, options),
+  EntityName: {},
 }));
 
 // Mock @dnd-kit/core
@@ -40,6 +44,8 @@ import { Screen5Puzzle3 } from "../../src/screens/Screen5Puzzle3";
 describe("Screen5Puzzle3", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: all entities return "off" state
+    mockUseEntity.mockReturnValue({ state: "off" });
   });
 
   it("renders the screen container", () => {
@@ -63,6 +69,24 @@ describe("Screen5Puzzle3", () => {
     expect(screen.getByTestId("switch-voorraadkast")).toBeDefined();
   });
 
+  it("renders switches in alphabetical order", () => {
+    render(<Screen5Puzzle3 />);
+    const switchesContainer = screen.getByText("Schakelaars").closest("div");
+    const switchElements = switchesContainer?.querySelectorAll(
+      "[data-testid^='switch-']"
+    );
+    const switchIds = Array.from(switchElements || []).map((el) =>
+      el.getAttribute("data-testid")?.replace("switch-", "")
+    );
+    expect(switchIds).toEqual([
+      "keuken",
+      "slaapkamer",
+      "tuin",
+      "voorraadkast",
+      "waskamer",
+    ]);
+  });
+
   it("renders all 5 bulbs", () => {
     render(<Screen5Puzzle3 />);
     expect(screen.getByTestId("bulb-waskamer")).toBeDefined();
@@ -70,6 +94,21 @@ describe("Screen5Puzzle3", () => {
     expect(screen.getByTestId("bulb-slaapkamer")).toBeDefined();
     expect(screen.getByTestId("bulb-keuken")).toBeDefined();
     expect(screen.getByTestId("bulb-tuin")).toBeDefined();
+  });
+
+  it("renders bulbs in alphabetical order", () => {
+    render(<Screen5Puzzle3 />);
+    const bulbElements = screen.getAllByTestId(/^bulb-/);
+    const bulbIds = bulbElements.map((el) =>
+      el.getAttribute("data-testid")?.replace("bulb-", "")
+    );
+    expect(bulbIds).toEqual([
+      "keuken",
+      "slaapkamer",
+      "tuin",
+      "voorraadkast",
+      "waskamer",
+    ]);
   });
 
   it("shows initial progress as 0 of 5", () => {
@@ -113,6 +152,7 @@ describe("Screen5Puzzle3", () => {
 describe("Screen5Puzzle3 - BulbDroppable states", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseEntity.mockReturnValue({ state: "off" });
   });
 
   it("bulb has default styling without placed switch", () => {
@@ -122,5 +162,74 @@ describe("Screen5Puzzle3 - BulbDroppable states", () => {
     expect(bulb.classList.contains("correct")).toBe(false);
     expect(bulb.classList.contains("incorrect")).toBe(false);
     expect(bulb.classList.contains("occupied")).toBe(false);
+  });
+});
+
+describe("Screen5Puzzle3 - Entity State Sync (Task 80)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("syncs Slaapkamer switch to Waskamer bulb when entity is on", () => {
+    // Mock Slaapkamer entity as "on" (which should place the switch on Waskamer bulb)
+    mockUseEntity.mockImplementation((entityId: string) => {
+      if (entityId.includes("slaapkamer")) {
+        return { state: "on" };
+      }
+      return { state: "off" };
+    });
+
+    render(<Screen5Puzzle3 />);
+
+    // The Waskamer bulb should have the Slaapkamer switch placed
+    const waskamerBulb = screen.getByTestId("bulb-waskamer");
+    expect(waskamerBulb.classList.contains("occupied")).toBe(true);
+    expect(waskamerBulb.classList.contains("correct")).toBe(true);
+  });
+
+  it("syncs multiple switches when multiple entities are on", () => {
+    // Mock multiple entities as "on"
+    mockUseEntity.mockImplementation((entityId: string) => {
+      if (entityId.includes("slaapkamer") || entityId.includes("keuken")) {
+        return { state: "on" };
+      }
+      return { state: "off" };
+    });
+
+    render(<Screen5Puzzle3 />);
+
+    // Slaapkamer -> Waskamer, Keuken -> Slaapkamer
+    const waskamerBulb = screen.getByTestId("bulb-waskamer");
+    const slaapkamerBulb = screen.getByTestId("bulb-slaapkamer");
+
+    expect(waskamerBulb.classList.contains("occupied")).toBe(true);
+    expect(slaapkamerBulb.classList.contains("occupied")).toBe(true);
+  });
+
+  it("shows 5 correct when all entities are on", () => {
+    // Mock all entities as "on"
+    mockUseEntity.mockReturnValue({ state: "on" });
+
+    render(<Screen5Puzzle3 />);
+
+    // Should show "5 van 5 correct"
+    expect(screen.getByText("5 van 5 correct")).toBeDefined();
+  });
+
+  it("shows 0 correct when all entities are off", () => {
+    mockUseEntity.mockReturnValue({ state: "off" });
+
+    render(<Screen5Puzzle3 />);
+
+    expect(screen.getByText("0 van 5 correct")).toBeDefined();
+  });
+
+  it("handles null entity gracefully", () => {
+    mockUseEntity.mockReturnValue(null);
+
+    render(<Screen5Puzzle3 />);
+
+    // Should still render without errors
+    expect(screen.getByText("0 van 5 correct")).toBeDefined();
   });
 });

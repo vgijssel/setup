@@ -127,6 +127,16 @@ timer:
     name: Laundry Room Occupancy Timer
     icon: mdi:timer
 
+input_number:
+  verjaardag_hilde_puzzle_6_power_number:
+    name: Verjaardag Hilde - Puzzle 6 Power Level
+    min: 0
+    max: 100
+    step: 1
+    initial: 0
+    mode: slider
+    icon: mdi:flash
+
 input_select:
   living_room_room_occupancy_select:
     name: Living Room Occupancy State

@@ -145,6 +145,62 @@ describe("Screen8Puzzle6", () => {
     expect(gauge.getAttribute("data-value")).toBe("0");
   });
 
+  it("handles unavailable entity state gracefully", () => {
+    mockUseEntity.mockImplementation((entityId: string) => {
+      if (entityId.includes("power_number")) {
+        return { state: "unavailable" };
+      }
+      return { state: "0" };
+    });
+
+    render(<Screen8Puzzle6 />);
+    // Should default to 0 for unavailable state
+    const gauge = screen.getByTestId("gauge-component");
+    expect(gauge.getAttribute("data-value")).toBe("0");
+  });
+
+  it("handles unknown entity state gracefully", () => {
+    mockUseEntity.mockImplementation((entityId: string) => {
+      if (entityId.includes("power_number")) {
+        return { state: "unknown" };
+      }
+      return { state: "0" };
+    });
+
+    render(<Screen8Puzzle6 />);
+    // Should default to 0 for unknown state
+    const gauge = screen.getByTestId("gauge-component");
+    expect(gauge.getAttribute("data-value")).toBe("0");
+  });
+
+  it("clamps power value to 0-100 range", () => {
+    mockUseEntity.mockImplementation((entityId: string) => {
+      if (entityId.includes("power_number")) {
+        return { state: "150" }; // Over 100
+      }
+      return { state: "0" };
+    });
+
+    render(<Screen8Puzzle6 />);
+    // Should clamp to max 100
+    const gauge = screen.getByTestId("gauge-component");
+    expect(gauge.getAttribute("data-value")).toBe("100");
+  });
+
+  it("clamps negative power value to 0", () => {
+    mockUseEntity.mockImplementation((entityId: string) => {
+      if (entityId.includes("power_number")) {
+        return { state: "-10" };
+      }
+      return { state: "0" };
+    });
+
+    render(<Screen8Puzzle6 />);
+    // Should clamp to min 0
+    const gauge = screen.getByTestId("gauge-component");
+    expect(gauge.getAttribute("data-value")).toBe("0");
+  });
+
   it("renders ProgressCode component", () => {
     mockUseEntity.mockImplementation((entityId: string) => {
       if (entityId.includes("power_number")) {

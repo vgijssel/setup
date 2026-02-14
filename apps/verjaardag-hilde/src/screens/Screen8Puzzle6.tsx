@@ -1,9 +1,11 @@
+import { useMemo, useEffect, useState } from "react";
 import { useEntity } from "@hakit/core";
 import GaugeComponent from "react-gauge-component";
 import { ProgressCode } from "../components/ProgressCode";
 
 /** Entity for the power level number (0-100) */
-const POWER_NUMBER_ENTITY = "sensor.verjaardag_hilde_puzzle_6_power_number";
+const POWER_NUMBER_ENTITY =
+  "input_number.verjaardag_hilde_puzzle_6_power_number";
 
 /** Entity for the solved state (0 = unsolved, 1 = solved) */
 const SELECT_ENTITY = "input_select.verjaardag_hilde_puzzle_6_select";
@@ -24,10 +26,29 @@ export function Screen8Puzzle6() {
     returnNullIfNotFound: true,
   });
 
-  // Parse the power value (default to 0 if not available)
-  const powerValue = powerEntity?.state
-    ? parseFloat(powerEntity.state) || 0
-    : 0;
+  // Use local state to track power value and ensure re-renders on entity changes
+  const [localPowerValue, setLocalPowerValue] = useState(0);
+
+  // Parse the power value with robust handling for edge cases
+  const parsedPowerValue = useMemo(() => {
+    if (!powerEntity?.state) return 0;
+    if (
+      powerEntity.state === "unavailable" ||
+      powerEntity.state === "unknown"
+    ) {
+      return 0;
+    }
+    const parsed = parseFloat(powerEntity.state);
+    return isNaN(parsed) ? 0 : Math.max(0, Math.min(100, parsed));
+  }, [powerEntity?.state]);
+
+  // Update local state when entity changes to force re-render
+  useEffect(() => {
+    setLocalPowerValue(parsedPowerValue);
+  }, [parsedPowerValue]);
+
+  // Use the local state value for rendering
+  const powerValue = localPowerValue;
 
   // Check if puzzle is solved
   const isSolved = selectEntity?.state === "1";
