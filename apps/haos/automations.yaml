@@ -914,3 +914,83 @@
         target:
           entity_id: input_select.verjaardag_hilde_global_select
   mode: single
+- id: '1771059422127'
+  alias: Verjaardag Hilde - Puzzle 4
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    to: '6'
+    id: global
+  - trigger: state
+    entity_id:
+    - light.kitchen_1_light
+    - light.kitchen_2_light
+    - light.kitchen_3_light
+    - light.kitchen_4_light
+    - light.kitchen_5_light
+    - light.kitchen_6_light
+    - light.living_room_corner_light
+    - light.living_room_dining_table_light
+    - light.living_room_monkey_light
+    - light.living_room_tv_light
+    attribute: rgb_color
+    id: light_color_change
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - global
+      sequence:
+      - action: input_boolean.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - input_boolean.verjaardag_hilde_puzzle_4_red_toggle
+          - input_boolean.verjaardag_hilde_puzzle_4_blue_toggle
+          - input_boolean.verjaardag_hilde_puzzle_4_green_toggle
+    - conditions:
+      - condition: trigger
+        id:
+        - light_color_change
+      sequence:
+      - choose:
+        - conditions:
+          - condition: template
+            value_template: >-
+              {% set rgb = state_attr(trigger.entity_id, 'rgb_color') %}
+              {{ rgb is not none and rgb[0] > 200 and rgb[1] < 100 and rgb[2] < 100 }}
+          sequence:
+          - action: input_boolean.turn_on
+            metadata: {}
+            data: {}
+            target:
+              entity_id: input_boolean.verjaardag_hilde_puzzle_4_red_toggle
+        - conditions:
+          - condition: template
+            value_template: >-
+              {% set rgb = state_attr(trigger.entity_id, 'rgb_color') %}
+              {{ rgb is not none and rgb[2] > 200 and rgb[0] < 100 and rgb[1] < 100 }}
+          sequence:
+          - action: input_boolean.turn_on
+            metadata: {}
+            data: {}
+            target:
+              entity_id: input_boolean.verjaardag_hilde_puzzle_4_blue_toggle
+        - conditions:
+          - condition: template
+            value_template: >-
+              {% set rgb = state_attr(trigger.entity_id, 'rgb_color') %}
+              {{ rgb is not none and rgb[1] > 200 and rgb[0] < 100 and rgb[2] < 100 }}
+          sequence:
+          - action: input_boolean.turn_on
+            metadata: {}
+            data: {}
+            target:
+              entity_id: input_boolean.verjaardag_hilde_puzzle_4_green_toggle
+  mode: queued
+  max: 10
