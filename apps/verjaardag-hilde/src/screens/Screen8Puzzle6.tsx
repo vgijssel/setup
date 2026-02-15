@@ -70,8 +70,8 @@ export function Screen8Puzzle6() {
         <div className="puzzle-header">
           <h2>Stroomverbruik Controle</h2>
           <p className="puzzle-description">
-            Schakel apparaten aan of uit om het stroomverbruik aan te passen tot
-            het in de groene zone valt.
+            Schakel grote apparaten aan of uit om het stroomverbruik aan te
+            passen tot het in de groene zone valt.
           </p>
         </div>
 

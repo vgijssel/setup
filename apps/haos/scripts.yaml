@@ -55,52 +55,52 @@ verjaardag_hilde_lights_flash_loop:
               seconds: 0.2
 
           # Hallway lights
-          #          - service: light.turn_on
-          #            target:
-          #              entity_id: light.hallway_lights
-          #            data:
-          #              transition: 0.2
-          #          - delay:
-          #              seconds: 1.2
-          #          - service: light.turn_off
-          #            target:
-          #              entity_id: light.hallway_lights
-          #            data:
-          #              transition: 0.2
-          #          - delay:
-          #              seconds: 0.2
+          - service: light.turn_on
+            target:
+              entity_id: light.hallway_lights
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 1.2
+          - service: light.turn_off
+            target:
+              entity_id: light.hallway_lights
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 0.2
 
-          #          # Bedroom light
-          #          - service: light.turn_on
-          #            target:
-          #              entity_id: light.bedroom_light
-          #            data:
-          #              transition: 0.2
-          #          - delay:
-          #              seconds: 1.2
-          #          - service: light.turn_off
-          #            target:
-          #              entity_id: light.bedroom_light
-          #            data:
-          #              transition: 0.2
-          #          - delay:
-          #              seconds: 0.2
+          # Bedroom light
+          - service: light.turn_on
+            target:
+              entity_id: light.bedroom_light
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 1.2
+          - service: light.turn_off
+            target:
+              entity_id: light.bedroom_light
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 0.2
 
-          #          # Office light
-          #          - service: light.turn_on
-          #            target:
-          #              entity_id: light.office_light
-          #            data:
-          #              transition: 0.2
-          #          - delay:
-          #              seconds: 1.2
-          #          - service: light.turn_off
-          #            target:
-          #              entity_id: light.office_light
-          #            data:
-          #              transition: 0.2
-          #          - delay:
-          #              seconds: 0.2
+          # Office light
+          - service: light.turn_on
+            target:
+              entity_id: light.office_light
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 1.2
+          - service: light.turn_off
+            target:
+              entity_id: light.office_light
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 0.2
 
           # Wait 5 seconds before repeating the loop
           - delay:

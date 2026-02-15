@@ -1442,3 +1442,38 @@
         target:
           entity_id: script.verjaardag_hilde_lights_flash_loop
   mode: single
+- id: '1771059422133'
+  alias: Verjaardag Hilde - Puzzle 3 Lights Off
+  description: Turn off all lights and switches when entering Puzzle 3
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    to: '5'
+  conditions: []
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data:
+      transition: 0.2
+    target:
+      entity_id:
+      - light.living_room_lights
+      - light.kitchen_lights
+      - light.hallway_lights
+      - light.landing_lights
+      - light.bathroom_lights
+      - light.toilet_lights
+      - light.bedroom_light
+      - light.office_light
+      - light.baby_room_light
+  - action: switch.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+      - switch.driveway_shelly
+      - switch.laundry_room_shelly
+      - switch.supply_closet_shelly
+      - switch.garden_shelly
+  mode: single
