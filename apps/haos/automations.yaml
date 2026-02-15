@@ -1522,3 +1522,39 @@
         target:
           entity_id: input_select.verjaardag_hilde_global_select
   mode: single
+- id: '1771059422135'
+  alias: Verjaardag Hilde - TTS Loop Control
+  description: Start/stop TTS loop script when entering/exiting global state 10
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    to: '10'
+    id: start_tts
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    from: '10'
+    id: stop_tts
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - start_tts
+      sequence:
+      - action: script.verjaardag_hilde_tts_loop
+        metadata: {}
+        data: {}
+    - conditions:
+      - condition: trigger
+        id:
+        - stop_tts
+      sequence:
+      - action: script.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: script.verjaardag_hilde_tts_loop
+  mode: single
