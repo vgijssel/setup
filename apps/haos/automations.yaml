@@ -822,13 +822,13 @@
     entity_id:
     - media_player.living_room_tv
     attribute: app_name
-    to: HBO
+    to: HBO Max
     id: livingroom_hbo
   - trigger: state
     entity_id:
     - media_player.bedroom_tv
     attribute: app_name
-    to: Prime
+    to: Prime Video
     id: bedroom_prime
   - trigger: state
     entity_id:

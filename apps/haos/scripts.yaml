@@ -1,0 +1,60 @@
+verjaardag_hilde_lights_flash_loop:
+  alias: Verjaardag Hilde Lights Flash Loop
+  description: Flash living room, kitchen, and hallway lights while global select is set to 7
+  sequence:
+    - repeat:
+        while:
+          - condition: state
+            entity_id: input_select.verjaardag_hilde_global_select
+            state: "7"
+        sequence:
+          # Living room lights
+          - service: light.turn_off
+            target:
+              entity_id: light.living_room_lights
+            data:
+              transition: 0.2
+          - service: light.turn_on
+            target:
+              entity_id: light.living_room_lights
+            data:
+              transition: 0.2
+          - service: light.turn_off
+            target:
+              entity_id: light.living_room_lights
+            data:
+              transition: 0.2
+
+          # Kitchen lights
+          - service: light.turn_off
+            target:
+              entity_id: light.kitchen_lights
+            data:
+              transition: 0.2
+          - service: light.turn_on
+            target:
+              entity_id: light.kitchen_lights
+            data:
+              transition: 0.2
+          - service: light.turn_off
+            target:
+              entity_id: light.kitchen_lights
+            data:
+              transition: 0.2
+
+          # Hallway lights
+          - service: light.turn_off
+            target:
+              entity_id: light.hallway_lights
+            data:
+              transition: 0.2
+          - service: light.turn_on
+            target:
+              entity_id: light.hallway_lights
+            data:
+              transition: 0.2
+          - service: light.turn_off
+            target:
+              entity_id: light.hallway_lights
+            data:
+              transition: 0.2

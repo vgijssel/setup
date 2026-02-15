@@ -1,6 +1,10 @@
 platform: gpio
 on_state:
   then:
-    - switch.toggle: shelly_relay
+    - if:
+        condition:
+          binary_sensor.is_off: verjaardag_hilde_lights_override
+        then:
+          - switch.toggle: shelly_relay
 filters:
   - delayed_on_off: 50ms

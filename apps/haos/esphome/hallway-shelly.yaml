@@ -18,3 +18,4 @@ binary_sensor:
   - platform: homeassistant
     id: light_sensor
     entity_id: ${light_entity_id}
+  - <<: !include .verjaardag_hilde_lights_override.yaml

@@ -13,6 +13,7 @@ binary_sensor:
   - platform: homeassistant
     id: bathroom_all_lights
     entity_id: input_boolean.bathroom_all_lights
+  - <<: !include .verjaardag_hilde_lights_override.yaml
     # input1 is the right button and used for switching scenes
   - name: ${entity_id}_input_1
     pin: GPIO4
@@ -21,36 +22,40 @@ binary_sensor:
       then:
         - if:
             condition:
-              and:
-                - wifi.connected:
-                - api.connected:
-                - switch.is_on: shelly_relay
-            # toggle smart light if wifi and api are connected and relay is on
+              binary_sensor.is_off: verjaardag_hilde_lights_override
             then:
               - if:
                   condition:
-                    binary_sensor.is_on: bathroom_all_lights
+                    and:
+                      - wifi.connected:
+                      - api.connected:
+                      - switch.is_on: shelly_relay
+                  # toggle smart light if wifi and api are connected and relay is on
                   then:
-                    - homeassistant.service:
-                        service: input_boolean.turn_off
-                        data:
-                          entity_id: input_boolean.bathroom_all_lights
-                    - homeassistant.service:
-                        service: scene.turn_on
-                        data:
-                          entity_id: scene.bathroom_shower_lights
+                    - if:
+                        condition:
+                          binary_sensor.is_on: bathroom_all_lights
+                        then:
+                          - homeassistant.service:
+                              service: input_boolean.turn_off
+                              data:
+                                entity_id: input_boolean.bathroom_all_lights
+                          - homeassistant.service:
+                              service: scene.turn_on
+                              data:
+                                entity_id: scene.bathroom_shower_lights
+                        else:
+                          - homeassistant.service:
+                              service: input_boolean.turn_on
+                              data:
+                                entity_id: input_boolean.bathroom_all_lights
+                          - homeassistant.service:
+                              service: scene.turn_on
+                              data:
+                                entity_id: scene.bathroom_all_lights
+                  # else, toggle relay
                   else:
-                    - homeassistant.service:
-                        service: input_boolean.turn_on
-                        data:
-                          entity_id: input_boolean.bathroom_all_lights
-                    - homeassistant.service:
-                        service: scene.turn_on
-                        data:
-                          entity_id: scene.bathroom_all_lights
-            # else, toggle relay
-            else:
-              - switch.toggle: shelly_relay
+                    - switch.toggle: shelly_relay
     filters:
       - delayed_on_off: 50ms
     # input2 is the left button and used for on/off
@@ -61,37 +66,41 @@ binary_sensor:
       then:
         - if:
             condition:
-              and:
-                - wifi.connected:
-                - api.connected:
-                - switch.is_on: shelly_relay
-            # toggle smart light if wifi and api are connected and relay is on
+              binary_sensor.is_off: verjaardag_hilde_lights_override
             then:
               - if:
                   condition:
-                    binary_sensor.is_off: light_sensor
+                    and:
+                      - wifi.connected:
+                      - api.connected:
+                      - switch.is_on: shelly_relay
+                  # toggle smart light if wifi and api are connected and relay is on
                   then:
                     - if:
                         condition:
-                          binary_sensor.is_on: bathroom_all_lights
+                          binary_sensor.is_off: light_sensor
                         then:
-                          - homeassistant.service:
-                              service: scene.turn_on
-                              data:
-                                entity_id: scene.bathroom_all_lights
+                          - if:
+                              condition:
+                                binary_sensor.is_on: bathroom_all_lights
+                              then:
+                                - homeassistant.service:
+                                    service: scene.turn_on
+                                    data:
+                                      entity_id: scene.bathroom_all_lights
+                              else:
+                                - homeassistant.service:
+                                    service: scene.turn_on
+                                    data:
+                                      entity_id: scene.bathroom_shower_lights
                         else:
                           - homeassistant.service:
-                              service: scene.turn_on
+                              service: homeassistant.turn_off
                               data:
-                                entity_id: scene.bathroom_shower_lights
+                                entity_id: ${light_entity_id}
+                  # else, toggle relay
                   else:
-                    - homeassistant.service:
-                        service: homeassistant.turn_off
-                        data:
-                          entity_id: ${light_entity_id}
-            # else, toggle relay
-            else:
-              - switch.toggle: shelly_relay
+                    - switch.toggle: shelly_relay
     filters:
       - delayed_on_off: 50ms
   - platform: homeassistant

@@ -181,6 +181,8 @@ template:
       - name: living_room_tv_occupancy
         state: "{{ is_state('media_player.living_room_tv', 'playing') }}"
         device_class: occupancy
+      - name: verjaardag_hilde_lights_override
+        state: "{{ is_state('input_select.verjaardag_hilde_global_select', '5') }}"
 
 nissan_leaf:
   username: !secret nissan_leaf_username
