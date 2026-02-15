@@ -8,14 +8,21 @@ verjaardag_hilde_lights_flash_loop:
             entity_id: input_select.verjaardag_hilde_global_select
             state: "7"
         sequence:
-          # Living room lights
+          # Turn off all lights at the start
           - service: light.turn_off
             target:
-              entity_id: light.living_room_lights
+              entity_id:
+                - light.living_room_lights
+                - light.kitchen_lights
+                - light.hallway_lights
+                - light.bedroom_light
+                - light.office_light
             data:
               transition: 0.2
           - delay:
               seconds: 0.2
+
+          # Living room lights
           - service: light.turn_on
             target:
               entity_id: light.living_room_lights
@@ -32,13 +39,6 @@ verjaardag_hilde_lights_flash_loop:
               seconds: 0.2
 
           # Kitchen lights
-          - service: light.turn_off
-            target:
-              entity_id: light.kitchen_lights
-            data:
-              transition: 0.2
-          - delay:
-              seconds: 0.2
           - service: light.turn_on
             target:
               entity_id: light.kitchen_lights
@@ -55,27 +55,52 @@ verjaardag_hilde_lights_flash_loop:
               seconds: 0.2
 
           # Hallway lights
-          - service: light.turn_off
-            target:
-              entity_id: light.hallway_lights
-            data:
-              transition: 0.2
-          - delay:
-              seconds: 0.2
-          - service: light.turn_on
-            target:
-              entity_id: light.hallway_lights
-            data:
-              transition: 0.2
-          - delay:
-              seconds: 1.2
-          - service: light.turn_off
-            target:
-              entity_id: light.hallway_lights
-            data:
-              transition: 0.2
-          - delay:
-              seconds: 0.2
+          #          - service: light.turn_on
+          #            target:
+          #              entity_id: light.hallway_lights
+          #            data:
+          #              transition: 0.2
+          #          - delay:
+          #              seconds: 1.2
+          #          - service: light.turn_off
+          #            target:
+          #              entity_id: light.hallway_lights
+          #            data:
+          #              transition: 0.2
+          #          - delay:
+          #              seconds: 0.2
+
+          #          # Bedroom light
+          #          - service: light.turn_on
+          #            target:
+          #              entity_id: light.bedroom_light
+          #            data:
+          #              transition: 0.2
+          #          - delay:
+          #              seconds: 1.2
+          #          - service: light.turn_off
+          #            target:
+          #              entity_id: light.bedroom_light
+          #            data:
+          #              transition: 0.2
+          #          - delay:
+          #              seconds: 0.2
+
+          #          # Office light
+          #          - service: light.turn_on
+          #            target:
+          #              entity_id: light.office_light
+          #            data:
+          #              transition: 0.2
+          #          - delay:
+          #              seconds: 1.2
+          #          - service: light.turn_off
+          #            target:
+          #              entity_id: light.office_light
+          #            data:
+          #              transition: 0.2
+          #          - delay:
+          #              seconds: 0.2
 
           # Wait 5 seconds before repeating the loop
           - delay:

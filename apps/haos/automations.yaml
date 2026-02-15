@@ -1228,9 +1228,6 @@
           option: '0'
         target:
           entity_id: input_select.verjaardag_hilde_puzzle_5_select
-      - action: script.verjaardag_hilde_lights_flash_loop
-        metadata: {}
-        data: {}
     - conditions:
       - condition: trigger
         id:
@@ -1409,3 +1406,39 @@
           entity_id: input_select.verjaardag_hilde_global_select
   mode: queued
   max: 10
+- id: '1771059422132'
+  alias: Verjaardag Hilde - Flash Loop Control
+  description: Start/stop flash loop script when entering/exiting global state 7
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    to: '7'
+    id: start_flash
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    from: '7'
+    id: stop_flash
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - start_flash
+      sequence:
+      - action: script.verjaardag_hilde_lights_flash_loop
+        metadata: {}
+        data: {}
+    - conditions:
+      - condition: trigger
+        id:
+        - stop_flash
+      sequence:
+      - action: script.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: script.verjaardag_hilde_lights_flash_loop
+  mode: single
