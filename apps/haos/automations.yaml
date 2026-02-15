@@ -1401,7 +1401,7 @@
       - action: input_select.select_option
         metadata: {}
         data:
-          option: '9'
+          option: '10'
         target:
           entity_id: input_select.verjaardag_hilde_global_select
   mode: queued
@@ -1476,4 +1476,49 @@
       - switch.laundry_room_shelly
       - switch.supply_closet_shelly
       - switch.garden_shelly
+  mode: single
+- id: '1771059422134'
+  alias: Verjaardag Hilde - Puzzle 8
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_global_select
+    to: '10'
+    id: global
+  - trigger: state
+    entity_id:
+    - input_select.verjaardag_hilde_puzzle_8_select
+    to: '1'
+    id: puzzle_complete
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id:
+        - global
+      sequence:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: '0'
+        target:
+          entity_id: input_select.verjaardag_hilde_puzzle_8_select
+    - conditions:
+      - condition: trigger
+        id:
+        - puzzle_complete
+      sequence:
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: '11'
+        target:
+          entity_id: input_select.verjaardag_hilde_global_select
   mode: single
