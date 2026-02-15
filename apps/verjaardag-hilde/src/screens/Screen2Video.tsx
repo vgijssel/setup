@@ -21,21 +21,65 @@ import { useHaService } from "../hooks/useHaService";
  * - useCallback for performance optimization
  */
 
+/** Trigger configuration type */
+type TriggerCall = {
+  service: string;
+  target: string | string[];
+};
+
 /** Timestamp triggers in seconds with their HA service calls */
-const TIMESTAMP_TRIGGERS = {
-  120: {
-    service: "input_boolean.turn_on",
-    target: "input_boolean.verjaardag_hilde_video_trigger_1",
-  },
-  240: {
-    service: "input_boolean.turn_on",
-    target: "input_boolean.verjaardag_hilde_video_trigger_2",
-  },
-  360: {
-    service: "input_boolean.turn_on",
-    target: "input_boolean.verjaardag_hilde_video_trigger_3",
-  },
-} as const;
+const TIMESTAMP_TRIGGERS: Record<number, TriggerCall | TriggerCall[]> = {
+  20: [
+    {
+      service: "light.turn_off",
+      target: [
+        "light.living_room_lights",
+        "light.kitchen_lights",
+        "light.hallway_lights",
+        "light.landing_lights",
+        "light.bathroom_lights",
+        "light.toilet_lights",
+        "light.bedroom_light",
+        "light.office_light",
+        "light.baby_room_light",
+      ],
+    },
+    {
+      service: "switch.turn_off",
+      target: [
+        "switch.driveway_shelly",
+        "switch.laundry_room_shelly",
+        "switch.supply_closet_shelly",
+        "switch.garden_shelly",
+      ],
+    },
+  ],
+  28: [
+    {
+      service: "light.turn_on",
+      target: [
+        "light.living_room_lights",
+        "light.kitchen_lights",
+        "light.hallway_lights",
+        "light.landing_lights",
+        "light.bathroom_lights",
+        "light.toilet_lights",
+        "light.bedroom_light",
+        "light.office_light",
+        "light.baby_room_light",
+      ],
+    },
+    {
+      service: "switch.turn_on",
+      target: [
+        "switch.driveway_shelly",
+        "switch.laundry_room_shelly",
+        "switch.supply_closet_shelly",
+        "switch.garden_shelly",
+      ],
+    },
+  ],
+};
 
 export function Screen2Video() {
   const { navigateToScreen, callService } = useHaService();
@@ -69,16 +113,25 @@ export function Screen2Video() {
       setProgress(Math.round(state.played * 100));
 
       // Check for timestamp triggers with 0.5s tolerance window
-      Object.entries(TIMESTAMP_TRIGGERS).forEach(([timeStr, trigger]) => {
-        const targetTime = parseInt(timeStr, 10);
-        const timeDiff = Math.abs(state.playedSeconds - targetTime);
+      Object.entries(TIMESTAMP_TRIGGERS).forEach(
+        ([timeStr, triggerOrArray]) => {
+          const targetTime = parseInt(timeStr, 10);
+          const timeDiff = Math.abs(state.playedSeconds - targetTime);
 
-        // Only trigger if within tolerance and not already triggered
-        if (timeDiff < 0.5 && !triggeredTimestamps.current.has(targetTime)) {
-          triggeredTimestamps.current.add(targetTime);
-          callService(trigger.service, { entity_id: trigger.target });
+          // Only trigger if within tolerance and not already triggered
+          if (timeDiff < 0.5 && !triggeredTimestamps.current.has(targetTime)) {
+            triggeredTimestamps.current.add(targetTime);
+
+            // Support both single triggers and arrays of triggers
+            const triggers = Array.isArray(triggerOrArray)
+              ? triggerOrArray
+              : [triggerOrArray];
+            triggers.forEach((trigger) => {
+              callService(trigger.service, { entity_id: trigger.target });
+            });
+          }
         }
-      });
+      );
     },
     [callService]
   );
