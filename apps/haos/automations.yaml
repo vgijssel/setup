@@ -1228,6 +1228,9 @@
           option: '0'
         target:
           entity_id: input_select.verjaardag_hilde_puzzle_5_select
+      - action: script.verjaardag_hilde_lights_flash_loop
+        metadata: {}
+        data: {}
     - conditions:
       - condition: trigger
         id:
