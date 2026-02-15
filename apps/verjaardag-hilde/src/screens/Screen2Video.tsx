@@ -25,6 +25,7 @@ import { useHaService } from "../hooks/useHaService";
 type TriggerCall = {
   service: string;
   target: string | string[];
+  data?: Record<string, unknown>;
 };
 
 /** Timestamp triggers in seconds with their HA service calls */
@@ -43,6 +44,7 @@ const TIMESTAMP_TRIGGERS: Record<number, TriggerCall | TriggerCall[]> = {
         "light.office_light",
         "light.baby_room_light",
       ],
+      data: { transition: 0 },
     },
     {
       service: "switch.turn_off",
@@ -127,7 +129,10 @@ export function Screen2Video() {
               ? triggerOrArray
               : [triggerOrArray];
             triggers.forEach((trigger) => {
-              callService(trigger.service, { entity_id: trigger.target });
+              callService(trigger.service, {
+                entity_id: trigger.target,
+                ...trigger.data,
+              });
             });
           }
         }
