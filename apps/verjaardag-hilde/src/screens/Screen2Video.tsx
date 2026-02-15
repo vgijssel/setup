@@ -41,7 +41,8 @@ export function Screen2Video() {
   const { navigateToScreen, callService } = useHaService();
   const [hasEnded, setHasEnded] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Track which triggers have already fired to prevent duplicate calls
   const triggeredTimestamps = useRef<Set<number>>(new Set());
@@ -49,6 +50,11 @@ export function Screen2Video() {
   // Reset triggers on mount (useful for replays)
   useEffect(() => {
     triggeredTimestamps.current.clear();
+  }, []);
+
+  const handlePlayClick = useCallback(() => {
+    setHasStarted(true);
+    setIsPlaying(true);
   }, []);
 
   const handleVideoEnd = useCallback(() => {
@@ -91,7 +97,7 @@ export function Screen2Video() {
         <ReactPlayer
           url="/videos/verjaardag_hilde_intro.mp4"
           playing={isPlaying}
-          muted={true}
+          muted={false}
           controls={false}
           width="100%"
           height="100%"
@@ -111,6 +117,15 @@ export function Screen2Video() {
             },
           }}
         />
+
+        {/* Play button overlay - shown before video starts */}
+        {!hasStarted && (
+          <div className="video-play-overlay" onClick={handlePlayClick}>
+            <button className="video-play-button" aria-label="Start video">
+              ▶
+            </button>
+          </div>
+        )}
 
         {/* Minimal progress bar overlay - no controls */}
         <div className="video-overlay">
