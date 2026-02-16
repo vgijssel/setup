@@ -14,7 +14,7 @@ description = "Secure environments for developers and their agents"
 homepage = "https://coder.com"
 
 version "2.24.2" "2.23.4" "2.24.3" "2.25.1" "2.25.2" "2.26.0" "2.25.3" "2.26.1"
-        "2.27.1" "2.27.3" "2.27.4" "2.27.6" "2.29.1" "2.29.2" "2.29.4" "2.29.5" {
+        "2.27.1" "2.27.3" "2.27.4" "2.27.6" "2.29.1" "2.29.2" "2.29.4" "2.29.5" "2.29.6" {
   auto-version {
     github-release = "coder/coder"
   }
@@ -77,4 +77,16 @@ sha256sums = {
   "https://github.com/coder/coder/releases/download/v2.29.2/coder_2.29.2_darwin_arm64.zip": "fad5144d4f6534478b26c8e2a4e02c36beee83b3af653afe4de12cd19d596e0c",
   "https://github.com/coder/coder/releases/download/v2.29.2/coder_2.29.2_linux_amd64.tar.gz": "9c0aa2dd429367a9eacc340601c0ae6e65e50a8fbde1b8308ace9ad6a5a1b700",
   "https://github.com/coder/coder/releases/download/v2.29.2/coder_2.29.2_linux_arm64.tar.gz": "be820e01919e8236c1e0f18882342333ab681ab8b942c34af496c57810dc7350",
+  "https://github.com/coder/coder/releases/download/v2.29.4/coder_2.29.4_darwin_amd64.zip": "f4d14be5ba6d374321c36249997a944b283a1cb5a3db49b8bc6c1812881c56cd",
+  "https://github.com/coder/coder/releases/download/v2.29.4/coder_2.29.4_darwin_arm64.zip": "d9274b0abfb7f9fde0331fb50e6ba950dcc8993cddd19e175b525a5f211e5b6d",
+  "https://github.com/coder/coder/releases/download/v2.29.4/coder_2.29.4_linux_amd64.tar.gz": "4826cfc1cee2bf4385a21832f7b5dea327bbcd1bd4292a1a362f8880ef725e40",
+  "https://github.com/coder/coder/releases/download/v2.29.4/coder_2.29.4_linux_arm64.tar.gz": "b745e9952821e3157c74e4f65a53b9d835f5c9cd986284fd296ff351c0ad3d49",
+  "https://github.com/coder/coder/releases/download/v2.29.5/coder_2.29.5_darwin_arm64.zip": "b1e313415667cc38dec5c64e2470c63459803b922a2106ae812d24b943cedfea",
+  "https://github.com/coder/coder/releases/download/v2.29.5/coder_2.29.5_darwin_amd64.zip": "5ec6e40efda11af174048aabdc259c51867f6dbac14a856a090b73e501406c2b",
+  "https://github.com/coder/coder/releases/download/v2.29.5/coder_2.29.5_linux_amd64.tar.gz": "3547a796d2eedadf081cdded8208c9bf5f522d4ebf2b0d7897f4136406abd194",
+  "https://github.com/coder/coder/releases/download/v2.29.6/coder_2.29.6_linux_amd64.tar.gz": "03312fd626932975ef22c280705c7b906cee3446e5f7ed481577b2e285b90128",
+  "https://github.com/coder/coder/releases/download/v2.29.6/coder_2.29.6_linux_arm64.tar.gz": "a45cefbdcc79b253a4d1fd316c69010cbcc7b5c4c957980efe3ff8b6246b912f",
+  "https://github.com/coder/coder/releases/download/v2.29.6/coder_2.29.6_darwin_amd64.zip": "64a304d7fe88edbe143ddf33c21eb19bf95d4f419551b0cf7ea0ca82524e1749",
+  "https://github.com/coder/coder/releases/download/v2.29.6/coder_2.29.6_darwin_arm64.zip": "703860af167cd89f5a0cf141d996c8cf99f1d68fb717d1f3ba359db896ad4c1f",
+  "https://github.com/coder/coder/releases/download/v2.29.5/coder_2.29.5_linux_arm64.tar.gz": "0719eaf60fd014e45f28b544bc8ef508b19cf2b3045838f4ac90eed38215b510",
 }
