@@ -7,11 +7,12 @@
 #
 
 set -e
+shopt -s inherit_errexit
 
 HA_URL="${VITE_HA_URL:-http://192.168.1.32:8123}"
-HA_TOKEN="${VITE_HA_TOKEN:-$HA_TOKEN}"
+HA_TOKEN="${VITE_HA_TOKEN:-${HA_TOKEN}}"
 
-if [ -z "$HA_TOKEN" ]; then
+if [[ -z "${HA_TOKEN}" ]]; then
     echo "Error: HA_TOKEN or VITE_HA_TOKEN environment variable must be set"
     exit 1
 fi
@@ -25,16 +26,18 @@ NC='\033[0m' # No Color
 echo "========================================"
 echo "Verjaardag Hilde - HA Entity Test Script"
 echo "========================================"
-echo "HA URL: $HA_URL"
+echo "HA URL: ${HA_URL}"
 echo ""
 
 # Function to get entity state
 get_state() {
     local entity_id=$1
-    curl -s -X GET \
-        -H "Authorization: Bearer $HA_TOKEN" \
+    local response
+    response=$(curl -s -X GET \
+        -H "Authorization: Bearer ${HA_TOKEN}" \
         -H "Content-Type: application/json" \
-        "$HA_URL/api/states/$entity_id" | jq -r '.state // "NOT_FOUND"'
+        "${HA_URL}/api/states/${entity_id}")
+    echo "${response}" | jq -r '.state // "NOT_FOUND"'
 }
 
 # Function to set input_select option
@@ -42,10 +45,10 @@ set_select() {
     local entity_id=$1
     local option=$2
     curl -s -X POST \
-        -H "Authorization: Bearer $HA_TOKEN" \
+        -H "Authorization: Bearer ${HA_TOKEN}" \
         -H "Content-Type: application/json" \
-        -d "{\"entity_id\": \"$entity_id\", \"option\": \"$option\"}" \
-        "$HA_URL/api/services/input_select/select_option" > /dev/null
+        -d "{\"entity_id\": \"${entity_id}\", \"option\": \"${option}\"}" \
+        "${HA_URL}/api/services/input_select/select_option" > /dev/null
 }
 
 # Function to set input_boolean
@@ -53,26 +56,27 @@ set_boolean() {
     local entity_id=$1
     local action=$2  # turn_on or turn_off
     curl -s -X POST \
-        -H "Authorization: Bearer $HA_TOKEN" \
+        -H "Authorization: Bearer ${HA_TOKEN}" \
         -H "Content-Type: application/json" \
-        -d "{\"entity_id\": \"$entity_id\"}" \
-        "$HA_URL/api/services/input_boolean/$action" > /dev/null
+        -d "{\"entity_id\": \"${entity_id}\"}" \
+        "${HA_URL}/api/services/input_boolean/${action}" > /dev/null
 }
 
 # Test function
 test_entity() {
     local entity_id=$1
     local expected=$2
-    local actual=$(get_state "$entity_id")
+    local actual
+    actual=$(get_state "${entity_id}")
 
-    if [ "$actual" == "NOT_FOUND" ]; then
-        echo -e "${RED}FAIL${NC}: $entity_id - Entity not found"
+    if [[ "${actual}" == "NOT_FOUND" ]]; then
+        echo -e "${RED}FAIL${NC}: ${entity_id} - Entity not found"
         return 1
-    elif [ "$actual" == "$expected" ]; then
-        echo -e "${GREEN}PASS${NC}: $entity_id = $actual"
+    elif [[ "${actual}" == "${expected}" ]]; then
+        echo -e "${GREEN}PASS${NC}: ${entity_id} = ${actual}"
         return 0
     else
-        echo -e "${YELLOW}WARN${NC}: $entity_id = $actual (expected: $expected)"
+        echo -e "${YELLOW}WARN${NC}: ${entity_id} = ${actual} (expected: ${expected})"
         return 0
     fi
 }
@@ -94,12 +98,12 @@ echo "3. Testing Collection Puzzle Booleans..."
 echo "-----------------------------------------"
 # Puzzle 3
 for i in 1 2 3 4 5; do
-    test_entity "input_boolean.verjaardag_hilde_puzzle_3_item_$i" "off"
+    test_entity "input_boolean.verjaardag_hilde_puzzle_3_item_${i}" "off"
 done
 
 # Puzzle 4
 for i in 1 2 3; do
-    test_entity "input_boolean.verjaardag_hilde_puzzle_4_item_$i" "off"
+    test_entity "input_boolean.verjaardag_hilde_puzzle_4_item_${i}" "off"
 done
 
 # Puzzle 6
@@ -107,7 +111,7 @@ test_entity "input_boolean.verjaardag_hilde_puzzle_6_item_1" "off"
 
 # Puzzle 7
 for i in 1 2 3 4 5; do
-    test_entity "input_boolean.verjaardag_hilde_puzzle_7_item_$i" "off"
+    test_entity "input_boolean.verjaardag_hilde_puzzle_7_item_${i}" "off"
 done
 
 echo ""

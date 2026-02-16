@@ -181,7 +181,7 @@ verjaardag_hilde_tts_loop:
             data:
               cache: true
               media_player_entity_id: media_player.keuken_assistent
-              message: "PIEP"
+              message: PIEP
               language: nl
             target:
               entity_id: tts.google_en_com
