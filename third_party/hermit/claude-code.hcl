@@ -4,6 +4,11 @@ binaries = ["claude"]
 test = "claude --version"
 dont-extract = true
 
+env = {
+  "DISABLE_AUTOUPDATER": "1",
+  "DISABLE_INSTALLATION_CHECKS": "1",
+}
+
 platform "darwin" "amd64" {
   source = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/${version}/darwin-x64/claude"
 
