@@ -14,7 +14,7 @@ description = "Secure environments for developers and their agents"
 homepage = "https://coder.com"
 
 version "2.24.2" "2.23.4" "2.24.3" "2.25.1" "2.25.2" "2.26.0" "2.25.3" "2.26.1"
-        "2.27.1" "2.27.3" "2.27.4" "2.27.6" "2.29.1" "2.29.2" "2.29.4" "2.29.5" {
+        "2.27.1" "2.27.3" "2.27.4" "2.27.6" "2.29.1" "2.29.2" "2.29.4" "2.29.5" "2.29.6" {
   auto-version {
     github-release = "coder/coder"
   }
