@@ -10,6 +10,8 @@ tasks:
     inputs:
       - file: package.json
       - file: package-lock.json
+    options:
+      cache: false
   build:
     command: npm run build
     deps:

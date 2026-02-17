@@ -187,8 +187,14 @@ describe("Screen2Video", () => {
 
     // Should trigger both light and switch services (2 calls total at 20s)
     expect(mockCallService).toHaveBeenCalledTimes(2);
-    expect(mockCallService).toHaveBeenCalledWith("light.turn_off", expect.any(Object));
-    expect(mockCallService).toHaveBeenCalledWith("switch.turn_off", expect.any(Object));
+    expect(mockCallService).toHaveBeenCalledWith(
+      "light.turn_off",
+      expect.any(Object)
+    );
+    expect(mockCallService).toHaveBeenCalledWith(
+      "switch.turn_off",
+      expect.any(Object)
+    );
   });
 
   it("does not trigger service outside tolerance window", () => {
