@@ -307,7 +307,7 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 	Dec 29 19:36:40 pikvm kvmd[602]: self.__chip = gpiod.Chip(self.__device_path) Dec 29 19:36:40 pikvm kvmd[602]: PermissionError: [Errno 1] Operation not permitted
 	```
 
-2. Running `kvmd -m` showed me what gpio device what was spected
+2. Running `kvmd -m` showed me what gpio device what was expected
 
 	```yaml
 	kvmd:
