@@ -44,7 +44,7 @@ tasks:
       runInCI: false
       interactive: true
   test:
-    command: npm test -- --run
+    command: ./node_modules/.bin/vitest --run
     deps:
       - ~:install
     inputs:

@@ -55,7 +55,7 @@ describe("Screen8Puzzle6", () => {
     render(<Screen8Puzzle6 />);
     expect(
       screen.getByText(
-        "Schakel apparaten aan of uit om het stroomverbruik aan te passen tot het in de groene zone valt."
+        "Schakel grote apparaten aan of uit om het stroomverbruik aan te passen tot het in de groene zone valt."
       )
     ).toBeDefined();
   });
@@ -71,7 +71,7 @@ describe("Screen8Puzzle6", () => {
     render(<Screen8Puzzle6 />);
     expect(
       screen.getByText(
-        "Schakel apparaten aan of uit om het stroomverbruik aan te passen tot het in de groene zone valt."
+        "Schakel grote apparaten aan of uit om het stroomverbruik aan te passen tot het in de groene zone valt."
       )
     ).toBeDefined();
   });
@@ -102,7 +102,7 @@ describe("Screen8Puzzle6", () => {
     expect(screen.getByText(/Huidige waarde:/)).toBeDefined();
     expect(screen.getByText("30%")).toBeDefined();
     expect(
-      screen.getByText("Doel: Breng het niveau tussen 40% en 60%")
+      screen.getByText("Doel: Breng het niveau tussen 40% en 50%")
     ).toBeDefined();
   });
 
@@ -119,7 +119,7 @@ describe("Screen8Puzzle6", () => {
     expect(screen.getByText(/Huidige waarde:/)).toBeDefined();
     expect(screen.getByText("50%")).toBeDefined();
     expect(
-      screen.getByText("Doel: Breng het niveau tussen 40% en 60%")
+      screen.getByText("Doel: Breng het niveau tussen 40% en 50%")
     ).toBeDefined();
   });
 

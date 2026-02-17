@@ -124,13 +124,15 @@ export function useHaService() {
   /**
    * Call a generic Home Assistant service.
    *
+   * Supports both single entity and multiple entities for service calls.
+   *
    * @param service - Service in "domain.service" format (e.g., "input_boolean.turn_on")
-   * @param data - Service data including entity_id
+   * @param data - Service data including entity_id (can be string or string[] for multiple entities)
    */
   const callServiceGeneric = useCallback(
     async (
       service: string,
-      data: { entity_id: string; [key: string]: unknown }
+      data: { entity_id: string | string[]; [key: string]: unknown }
     ) => {
       const [domain, serviceName] = service.split(".");
       if (!domain || !serviceName) {

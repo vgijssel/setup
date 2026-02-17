@@ -73,16 +73,16 @@ describe("Screen2Video", () => {
     );
   });
 
-  it("configures ReactPlayer with autoplay (playing=true)", () => {
+  it("configures ReactPlayer with playing=false initially (requires play button click)", () => {
     render(<Screen2Video />);
     const player = screen.getByTestId("mock-react-player");
-    expect(player.getAttribute("data-playing")).toBe("true");
+    expect(player.getAttribute("data-playing")).toBe("false");
   });
 
-  it("configures ReactPlayer with muted for browser autoplay compliance", () => {
+  it("configures ReactPlayer with muted=false", () => {
     render(<Screen2Video />);
     const player = screen.getByTestId("mock-react-player");
-    expect(player.getAttribute("data-muted")).toBe("true");
+    expect(player.getAttribute("data-muted")).toBe("false");
   });
 
   it("configures ReactPlayer with preload=auto", () => {
@@ -97,62 +97,106 @@ describe("Screen2Video", () => {
     expect(player.getAttribute("data-playsinline")).toBe("true");
   });
 
-  it("triggers HA service at 120s timestamp (2 min)", () => {
+  it("triggers light.turn_off at 20s timestamp", () => {
     render(<Screen2Video />);
 
-    // Simulate progress at exactly 120 seconds
+    // Simulate progress at exactly 20 seconds
     act(() => {
-      mockOnProgress({ playedSeconds: 120, played: 0.2 });
+      mockOnProgress({ playedSeconds: 20, played: 0.02 });
     });
 
-    expect(mockCallService).toHaveBeenCalledWith("input_boolean.turn_on", {
-      entity_id: "input_boolean.verjaardag_hilde_video_trigger_1",
+    expect(mockCallService).toHaveBeenCalledWith("light.turn_off", {
+      entity_id: [
+        "light.living_room_lights",
+        "light.kitchen_lights",
+        "light.hallway_lights",
+        "light.landing_lights",
+        "light.bathroom_lights",
+        "light.toilet_lights",
+        "light.bedroom_light",
+        "light.office_light",
+        "light.baby_room_light",
+      ],
+      transition: 0,
     });
   });
 
-  it("triggers HA service at 240s timestamp (4 min)", () => {
+  it("triggers switch.turn_off at 20s timestamp", () => {
     render(<Screen2Video />);
 
     act(() => {
-      mockOnProgress({ playedSeconds: 240, played: 0.4 });
+      mockOnProgress({ playedSeconds: 20, played: 0.02 });
     });
 
-    expect(mockCallService).toHaveBeenCalledWith("input_boolean.turn_on", {
-      entity_id: "input_boolean.verjaardag_hilde_video_trigger_2",
+    expect(mockCallService).toHaveBeenCalledWith("switch.turn_off", {
+      entity_id: [
+        "switch.driveway_shelly",
+        "switch.laundry_room_shelly",
+        "switch.supply_closet_shelly",
+        "switch.garden_shelly",
+      ],
     });
   });
 
-  it("triggers HA service at 360s timestamp (6 min)", () => {
+  it("triggers light.turn_on at 28s timestamp", () => {
     render(<Screen2Video />);
 
     act(() => {
-      mockOnProgress({ playedSeconds: 360, played: 0.6 });
+      mockOnProgress({ playedSeconds: 28, played: 0.028 });
     });
 
-    expect(mockCallService).toHaveBeenCalledWith("input_boolean.turn_on", {
-      entity_id: "input_boolean.verjaardag_hilde_video_trigger_3",
+    expect(mockCallService).toHaveBeenCalledWith("light.turn_on", {
+      entity_id: [
+        "light.living_room_lights",
+        "light.kitchen_lights",
+        "light.hallway_lights",
+        "light.landing_lights",
+        "light.bathroom_lights",
+        "light.toilet_lights",
+        "light.bedroom_light",
+        "light.office_light",
+        "light.baby_room_light",
+      ],
+    });
+  });
+
+  it("triggers switch.turn_on at 28s timestamp", () => {
+    render(<Screen2Video />);
+
+    act(() => {
+      mockOnProgress({ playedSeconds: 28, played: 0.028 });
+    });
+
+    expect(mockCallService).toHaveBeenCalledWith("switch.turn_on", {
+      entity_id: [
+        "switch.driveway_shelly",
+        "switch.laundry_room_shelly",
+        "switch.supply_closet_shelly",
+        "switch.garden_shelly",
+      ],
     });
   });
 
   it("uses 0.5s tolerance for timestamp triggers", () => {
     render(<Screen2Video />);
 
-    // Test trigger at 119.6s (within 0.5s tolerance of 120)
+    // Test trigger at 19.6s (within 0.5s tolerance of 20)
     act(() => {
-      mockOnProgress({ playedSeconds: 119.6, played: 0.199 });
+      mockOnProgress({ playedSeconds: 19.6, played: 0.0196 });
     });
 
-    expect(mockCallService).toHaveBeenCalledWith("input_boolean.turn_on", {
-      entity_id: "input_boolean.verjaardag_hilde_video_trigger_1",
-    });
+    // Should trigger both light and switch services (2 calls total at 20s)
+    expect(mockCallService).toHaveBeenCalledTimes(2);
+    expect(mockCallService).toHaveBeenCalledWith("light.turn_off", expect.any(Object));
+    expect(mockCallService).toHaveBeenCalledWith("switch.turn_off", expect.any(Object));
   });
 
   it("does not trigger service outside tolerance window", () => {
     render(<Screen2Video />);
 
-    // Test at 119.4s (outside 0.5s tolerance)
+    // Test at 19.4s (outside 0.5s tolerance of 20s)
     act(() => {
-      mockOnProgress({ playedSeconds: 119.4, played: 0.199 });
+      mockOnProgress({ playedSeconds: 19.4, played: 0.0194 });
     });
 
     expect(mockCallService).not.toHaveBeenCalled();
@@ -161,18 +205,19 @@ describe("Screen2Video", () => {
   it("does not trigger same timestamp twice", () => {
     render(<Screen2Video />);
 
-    // First trigger
+    // First trigger at 20s
     act(() => {
-      mockOnProgress({ playedSeconds: 120, played: 0.2 });
+      mockOnProgress({ playedSeconds: 20, played: 0.02 });
     });
 
     // Second pass through same timestamp
     act(() => {
-      mockOnProgress({ playedSeconds: 120.3, played: 0.2 });
+      mockOnProgress({ playedSeconds: 20.3, played: 0.0203 });
     });
 
-    // Should only be called once
-    expect(mockCallService).toHaveBeenCalledTimes(1);
+    // Should only be called twice (once for light, once for switch at 20s)
+    // Not 4 times (which would indicate duplicate triggers)
+    expect(mockCallService).toHaveBeenCalledTimes(2);
   });
 
   it("navigates to screen 3 when video ends", () => {
