@@ -17,32 +17,7 @@ tasks:
       interactive: true
 
   test:
-    script: |
-      chezmoi-wrapper apply --force --verbose
-      # Set default environment variables if not already set
-      export SETUP_DIR="${SETUP_DIR:-$(git rev-parse --show-toplevel)}"
-      if [ "$(uname -s)" = "Darwin" ]; then
-        export IS_MACOS="${IS_MACOS:-true}"
-        export IS_LINUX="${IS_LINUX:-false}"
-        export IS_LINUX_HOST="${IS_LINUX_HOST:-false}"
-        export IS_LINUX_CONTAINER="${IS_LINUX_CONTAINER:-false}"
-      elif [ "$(uname -s)" = "Linux" ]; then
-        export IS_MACOS="${IS_MACOS:-false}"
-        export IS_LINUX="${IS_LINUX:-true}"
-        if [ -f /.dockerenv ] || [ -f /run/.containerenv ] || grep -qE '/docker/|/lxc/|/containerd/' /proc/1/cgroup 2>/dev/null; then
-          export IS_LINUX_HOST="${IS_LINUX_HOST:-false}"
-          export IS_LINUX_CONTAINER="${IS_LINUX_CONTAINER:-true}"
-        else
-          export IS_LINUX_HOST="${IS_LINUX_HOST:-true}"
-          export IS_LINUX_CONTAINER="${IS_LINUX_CONTAINER:-false}"
-        fi
-      else
-        export IS_MACOS="${IS_MACOS:-false}"
-        export IS_LINUX="${IS_LINUX:-false}"
-        export IS_LINUX_HOST="${IS_LINUX_HOST:-false}"
-        export IS_LINUX_CONTAINER="${IS_LINUX_CONTAINER:-false}"
-      fi
-      goss validate
+    script: chezmoi-wrapper apply --force --verbose && goss validate
     deps:
       - vendir:build
     inputs:

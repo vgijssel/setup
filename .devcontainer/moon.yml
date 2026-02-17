@@ -8,7 +8,6 @@ tasks:
       devcontainer \
         build \
         --workspace-folder $SETUP_DIR \
-        --config $SETUP_DIR/.devcontainer/devcontainer.json \
         --platform linux/amd64,linux/arm64 \
         --push \
         --image-name ghcr.io/vgijssel/setup/devcontainer-dev:$MOON_TASK_HASH \
