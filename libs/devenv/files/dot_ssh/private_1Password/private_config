@@ -1,0 +1,19 @@
+# Portable version of 1Password SSH key configuration
+# These public keys allow SSH to identify keys provided by the SSH agent
+
+# 1Password Item: SSH - GitHub - Authentication
+Match Host github.com-personal User git
+  IdentitiesOnly yes
+  IdentityFile ~/.ssh/1Password/SHA256_7ZkdaIGQOhCsuUApLJp44KjZfVAQqFj8Vsbon0qyDhg.pub
+
+# 1Password Item: SSH - Hackerone - Authentication
+Match Host github.com-emu User git
+  IdentitiesOnly yes
+  IdentityFile ~/.ssh/1Password/SHA256_ym5L1HXa9N+cyGJ0EBQ36uVNEJWMdyZPu1YOW_lJKg4.pub
+
+# 1Password Item: SSH - Hackerone - Authentication
+Match Host gitlab.inverselink.com User git
+  IdentitiesOnly yes
+  IdentityFile ~/.ssh/1Password/SHA256_ym5L1HXa9N+cyGJ0EBQ36uVNEJWMdyZPu1YOW_lJKg4.pub
+
+Match all
