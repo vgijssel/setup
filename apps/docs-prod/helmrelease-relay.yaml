@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: relay
-  namespace: flux-system
+  namespace: cozy-fluxcd
 spec:
   interval: 30m
   driftDetection:
@@ -13,7 +13,7 @@ spec:
       sourceRef:
         kind: GitRepository
         name: setup
-        namespace: flux-system
+        namespace: cozy-fluxcd
       interval: 12h
   targetNamespace: relay
   dependsOn:
@@ -46,11 +46,11 @@ spec:
       pullPolicy: Always
     resources:
       requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
         cpu: 500m
         memory: 1Gi
-      limits:
-        cpu: 1
-        memory: 2Gi
     port: 8080
     # Disable chart's built-in ingress - we use enigma-cluster ingress
     ingress:
