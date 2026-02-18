@@ -31,7 +31,7 @@ spec:
         patches:
           - target:
               kind: Service
-              name: relay-relay-server
+              name: relay-relay-relay-server
             patch: |
               - op: add
                 path: /spec/type
