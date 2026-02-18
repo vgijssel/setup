@@ -26,6 +26,7 @@ spec:
     remediation:
       retries: 3
   # Patch the service to use LoadBalancer type for KubeVirt CCM mirroring
+  # and fix selector mismatch (chart bug: service uses fullname, deployment uses name)
   postRenderers:
     - kustomize:
         patches:
@@ -36,6 +37,10 @@ spec:
               - op: add
                 path: /spec/type
                 value: LoadBalancer
+              - op: replace
+                path: /spec/selector
+                value:
+                  app.kubernetes.io/name: relay-server
   values:
     name: relay-server
     hostname: relay.enigma.vgijssel.nl
