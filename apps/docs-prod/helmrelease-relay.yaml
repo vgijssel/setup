@@ -1,0 +1,71 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: relay
+  namespace: flux-system
+spec:
+  interval: 30m
+  driftDetection:
+    mode: enabled
+  chart:
+    spec:
+      chart: third_party/vendir/charts/relay-server
+      sourceRef:
+        kind: GitRepository
+        name: setup
+        namespace: flux-system
+      interval: 12h
+  targetNamespace: relay
+  dependsOn:
+    - name: 1password-secrets
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  # Patch the service to use LoadBalancer type for KubeVirt CCM mirroring
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Service
+              name: relay-relay-server
+            patch: |
+              - op: add
+                path: /spec/type
+                value: LoadBalancer
+  values:
+    name: relay-server
+    hostname: relay.enigma.vgijssel.nl
+    replicaCount: 1
+    image:
+      repository: docker.system3.md/relay-server
+      tag: v0.9.2
+      pullPolicy: Always
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1
+        memory: 2Gi
+    port: 8080
+    # Disable chart's built-in ingress - we use enigma-cluster ingress
+    ingress:
+      certManager:
+        enabled: false
+    env:
+      relayServerUrl: "https://relay.enigma.vgijssel.nl"
+      relayServerStorage: "s3"
+      awsRegion: "us-east-1"
+      # Cozystack S3 endpoint - will be configured in the secret
+      awsEndpointUrlS3: ""
+      awsBucket: "s3-docs-infra-prod"
+    # Reference the 1Password-managed secret
+    secretReference:
+      name: relay-s3-credentials
+      keys:
+        awsAccessKeyId: AWS_ACCESS_KEY_ID
+        awsSecretAccessKey: AWS_SECRET_ACCESS_KEY

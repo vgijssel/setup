@@ -79,4 +79,10 @@ directories:
       - v0.41.2
     path: .
   path: config/cozystack-talos-profiles
+- contents:
+  - git:
+      commitTitle: add hint for tigris in values file
+      sha: d889cef2a6da84b1e44c766ca134e2ad5d7eeffa
+    path: .
+  path: charts/relay-server
 kind: LockConfig

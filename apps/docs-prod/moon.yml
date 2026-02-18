@@ -1,0 +1,21 @@
+language: javascript
+layer: application
+tags:
+  - stack
+  - kubernetes
+  - production
+tasks:
+  create-1password-secret:
+    script: $MOON_WORKSPACE_ROOT/libs/1password-operator-bootstrap/bootstrap.sh --credentials-ref "$CREDENTIALS_REF" --token-ref "$TOKEN_REF"
+    env:
+      CREDENTIALS_REF: op://setup-docs-prod/setup-docs-prod Credentials File/1password-credentials.json
+      TOKEN_REF: op://setup-docs-prod/r6ufzahoerausmijqrh6prg3ja/credential
+    options:
+      runInCI: false
+
+  bootstrap:
+    command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/docs-prod/
+    deps:
+      - create-1password-secret
+    options:
+      runInCI: false
