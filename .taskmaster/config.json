@@ -33,7 +33,7 @@
     "enableProxy": false,
     "anonymousTelemetry": true,
     "userId": "1234567890",
-    "defaultTag": "master"
+    "defaultTag": "main"
   },
   "claudeCode": {},
   "codexCli": {},

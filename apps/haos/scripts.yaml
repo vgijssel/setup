@@ -1,0 +1,189 @@
+verjaardag_hilde_lights_flash_loop:
+  alias: Verjaardag Hilde Lights Flash Loop
+  description: Flash living room, kitchen, and hallway lights while global select is set to 7
+  sequence:
+    - repeat:
+        while:
+          - condition: state
+            entity_id: input_select.verjaardag_hilde_global_select
+            state: "7"
+        sequence:
+          # Turn off all lights at the start
+          - service: light.turn_off
+            target:
+              entity_id:
+                - light.living_room_lights
+                - light.kitchen_lights
+                - light.hallway_lights
+                - light.bedroom_light
+                - light.office_light
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 0.2
+
+          # Living room lights
+          - service: light.turn_on
+            target:
+              entity_id: light.living_room_lights
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 1.2
+          - service: light.turn_off
+            target:
+              entity_id: light.living_room_lights
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 0.2
+
+          # Kitchen lights
+          - service: light.turn_on
+            target:
+              entity_id: light.kitchen_lights
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 1.2
+          - service: light.turn_off
+            target:
+              entity_id: light.kitchen_lights
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 0.2
+
+          # Hallway lights
+          - service: light.turn_on
+            target:
+              entity_id: light.hallway_lights
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 1.2
+          - service: light.turn_off
+            target:
+              entity_id: light.hallway_lights
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 0.2
+
+          # Bedroom light
+          - service: light.turn_on
+            target:
+              entity_id: light.bedroom_light
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 1.2
+          - service: light.turn_off
+            target:
+              entity_id: light.bedroom_light
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 0.2
+
+          # Office light
+          - service: light.turn_on
+            target:
+              entity_id: light.office_light
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 1.2
+          - service: light.turn_off
+            target:
+              entity_id: light.office_light
+            data:
+              transition: 0.2
+          - delay:
+              seconds: 0.2
+
+          # Wait 5 seconds before repeating the loop
+          - delay:
+              seconds: 5
+
+verjaardag_hilde_tts_loop:
+  alias: Verjaardag Hilde TTS Loop
+  description: Loop TTS digits for puzzle 8 while global select is set to 10
+  sequence:
+    - repeat:
+        while:
+          - condition: state
+            entity_id: input_select.verjaardag_hilde_global_select
+            state: "10"
+        sequence:
+          # Keuken assistent: 9
+          - action: tts.speak
+            data:
+              cache: true
+              media_player_entity_id: media_player.keuken_assistent
+              message: "9"
+              language: nl
+            target:
+              entity_id: tts.google_en_com
+          - delay:
+              seconds: 1
+
+          # Move: 1
+          - action: tts.speak
+            data:
+              cache: true
+              media_player_entity_id: media_player.sonos_move
+              message: "1"
+              language: nl
+            target:
+              entity_id: tts.google_en_com
+          - delay:
+              seconds: 1
+
+          # Woonkamer: 8
+          - action: tts.speak
+            data:
+              cache: true
+              media_player_entity_id: media_player.woonkamer
+              message: "8"
+              language: nl
+            target:
+              entity_id: tts.google_en_com
+          - delay:
+              seconds: 1
+
+          # Move: 7
+          - action: tts.speak
+            data:
+              cache: true
+              media_player_entity_id: media_player.sonos_move
+              message: "7"
+              language: nl
+            target:
+              entity_id: tts.google_en_com
+          - delay:
+              seconds: 1
+
+          # Woonkamer: 2
+          - action: tts.speak
+            data:
+              cache: true
+              media_player_entity_id: media_player.woonkamer
+              message: "2"
+              language: nl
+            target:
+              entity_id: tts.google_en_com
+          - delay:
+              seconds: 1
+
+          # Keuken assistent: PIEP
+          - action: tts.speak
+            data:
+              cache: true
+              media_player_entity_id: media_player.keuken_assistent
+              message: PIEP
+              language: nl
+            target:
+              entity_id: tts.google_en_com
+          - delay:
+              seconds: 2

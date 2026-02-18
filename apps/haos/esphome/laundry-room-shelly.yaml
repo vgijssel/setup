@@ -13,3 +13,4 @@ binary_sensor:
   - <<: !include .basic_light_binary_sensor.yaml
     name: ${entity_id}_input
     pin: GPIO4
+  - <<: !include .verjaardag_hilde_lights_override.yaml

@@ -1,0 +1,70 @@
+id: verjaardag-hilde
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.webapp
+tasks:
+  install:
+    command: npm install --legacy-peer-deps
+    inputs:
+      - file: package.json
+      - file: package-lock.json
+    options:
+      cache: false
+  build:
+    command: npm run build
+    deps:
+      - ~:install
+    inputs:
+      - glob: src/**/*
+        cache: true
+      - glob: public/**/*
+        cache: true
+      - file: index.html
+      - file: package.json
+      - glob: vite.config.*
+        cache: true
+      - glob: tsconfig*.json
+        cache: true
+    outputs:
+      - dist
+    options:
+      cache: true
+  serve:
+    command: npm run dev
+    deps:
+      - ~:install
+    options:
+      runInCI: false
+      interactive: true
+  preview:
+    command: npm run preview
+    deps:
+      - ~:install
+    options:
+      runInCI: false
+      interactive: true
+  test:
+    command: ./node_modules/.bin/vitest --run
+    deps:
+      - ~:install
+    inputs:
+      - glob: src/**/*
+        cache: true
+      - glob: tests/**/*
+        cache: true
+      - glob: vite.config.*
+        cache: true
+      - glob: vitest.config.*
+        cache: true
+      - glob: tsconfig*.json
+        cache: true
+    options:
+      cache: true
+  e2e:
+    command: npm run e2e
+    deps:
+      - ~:build
+    options:
+      runInCI: false

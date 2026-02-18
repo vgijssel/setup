@@ -8,23 +8,27 @@ tags:
   - scope.home-automation
   - platform.home-assistant
 tasks:
+  all:
+    deps:
+      - sync
+      - update
+      - validate
+    options:
+      runInCI: false
+      runDepsInParallel: false
+
   sync:
-    command: unison haos && {"command":"nx run haos:update","forwardAllArgs":false}
-    env:
-      CWD: apps/haos
+    command: unison haos
     options:
-      runInCI: false
       interactive: true
+      runInCI: false
+
   update:
-    command: '{"command":"curl -f -H \"Authorization: Bearer $HA_TOKEN\" -H \"Content-Type: application/json\" -X POST -d ''{}'' http://192.168.1.32:8123/api/services/homeassistant/reload_all && echo \"\"","forwardAllArgs":false} && nx run haos:validate'
-    env:
-      CWD: apps/haos
+    script: 'curl -f -H "Authorization: Bearer $HA_TOKEN" -H "Content-Type: application/json" -X POST -d ''{}'' http://192.168.1.32:8123/api/services/homeassistant/reload_all'
     options:
       runInCI: false
-      interactive: true
+
   validate:
     command: goss validate
-    env:
-      CWD: apps/haos
     options:
       runInCI: false

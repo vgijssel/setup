@@ -1,0 +1,27 @@
+# Video assets (too large for git)
+verjaardag_hilde_intro.mp4
+verjaardag_hilde_outro.mp4
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Test output
+playwright-report/
+test-results/
+coverage/
+
+# Environment
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
