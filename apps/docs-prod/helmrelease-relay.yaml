@@ -60,12 +60,13 @@ spec:
       relayServerUrl: "https://relay.enigma.vgijssel.nl"
       relayServerStorage: "s3"
       awsRegion: "us-east-1"
-      # Cozystack S3 endpoint - will be configured in the secret
-      awsEndpointUrlS3: ""
-      awsBucket: "s3-docs-infra-prod"
+      awsEndpointUrlS3: "https://s3.enigma.vgijssel.nl"
+      awsBucket: "bucket-7f79c3ba-4dd7-42f1-9844-1e17302da678"
+      awsS3UsePathStyle: "true"
     # Reference the 1Password-managed secret
+    # Note: 1Password item has keys: accessKey, secretKey, bucket, endpoint
     secretReference:
       name: relay-s3-credentials
       keys:
-        awsAccessKeyId: AWS_ACCESS_KEY_ID
-        awsSecretAccessKey: AWS_SECRET_ACCESS_KEY
+        awsAccessKeyId: accessKey
+        awsSecretAccessKey: secretKey
