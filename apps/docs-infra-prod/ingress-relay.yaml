@@ -26,9 +26,8 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # PLACEHOLDER: This service name will be updated after bootstrap
-                # when the KubeVirt CCM creates the mirrored LoadBalancer service
-                # in the enigma-cluster tenant-root namespace
-                name: PLACEHOLDER_RELAY_LB_SERVICE
+                # Mirrored LoadBalancer service created by KubeVirt CCM
+                # from virtual cluster cluster-docs-infra-prod
+                name: a859be7d9613a4208832d8d7c03e0293
                 port:
                   number: 8080
