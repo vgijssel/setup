@@ -10,4 +10,5 @@ resources:
   # HelmReleases (order matters for dependencies)
   - helmrelease-1password-operator.yaml
   - helmrelease-1password-secrets.yaml
-  - helmrelease-relay.yaml
+  - helmrelease-relay-personal.yaml
+  - helmrelease-relay-family.yaml

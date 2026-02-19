@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: relay
+  name: relay-family
   namespace: cozy-fluxcd
 spec:
   interval: 30m
@@ -32,7 +32,7 @@ spec:
         patches:
           - target:
               kind: Service
-              name: relay-relay-relay-server
+              name: relay-family-relay-server
             patch: |
               - op: add
                 path: /spec/type
@@ -41,9 +41,10 @@ spec:
                 path: /spec/selector
                 value:
                   app.kubernetes.io/name: relay-server
+                  app.kubernetes.io/instance: relay-family
   values:
     name: relay-server
-    hostname: relay.enigma.vgijssel.nl
+    hostname: family.relay.enigma.vgijssel.nl
     replicaCount: 1
     image:
       repository: docker.system3.md/relay-server
@@ -62,16 +63,16 @@ spec:
       certManager:
         enabled: false
     env:
-      relayServerUrl: "https://relay.enigma.vgijssel.nl"
-      relayServerStorage: "s3"
-      awsRegion: "us-east-1"
-      awsEndpointUrlS3: "https://s3.enigma.vgijssel.nl"
-      awsBucket: "bucket-7f79c3ba-4dd7-42f1-9844-1e17302da678"
+      relayServerUrl: https://family.relay.enigma.vgijssel.nl
+      relayServerStorage: s3
+      awsRegion: us-east-1
+      awsEndpointUrlS3: https://s3.enigma.vgijssel.nl
+      awsBucket: bucket-7f79c3ba-4dd7-42f1-9844-1e17302da678
       awsS3UsePathStyle: "true"
     # Reference the 1Password-managed secret
     # Note: 1Password item has keys: accessKey, secretKey, bucket, endpoint
     secretReference:
-      name: relay-s3-credentials
+      name: relay-family-s3-credentials
       keys:
         awsAccessKeyId: accessKey
         awsSecretAccessKey: secretKey

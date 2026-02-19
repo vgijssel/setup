@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - gitrepository-setup.yaml
   - kustomization-root.yaml
-  - ingress-relay.yaml
+  - ingress-relay-personal.yaml
+  - ingress-relay-family.yaml

@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: relay
+  name: relay-personal
   namespace: tenant-root
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -16,10 +16,10 @@ spec:
   ingressClassName: tenant-root
   tls:
     - hosts:
-        - relay.enigma.vgijssel.nl
-      secretName: relay-tls
+        - personal.relay.enigma.vgijssel.nl
+      secretName: relay-personal-tls
   rules:
-    - host: relay.enigma.vgijssel.nl
+    - host: personal.relay.enigma.vgijssel.nl
       http:
         paths:
           - path: /
@@ -28,6 +28,7 @@ spec:
               service:
                 # Mirrored LoadBalancer service created by KubeVirt CCM
                 # from virtual cluster cluster-docs-infra-prod
-                name: a859be7d9613a4208832d8d7c03e0293
+                # TODO: Update this service name after deployment to get the actual mirrored service name
+                name: PLACEHOLDER-PERSONAL-SERVICE
                 port:
                   number: 8080
