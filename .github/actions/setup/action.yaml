@@ -28,6 +28,13 @@ runs:
       with:
         cache: true
 
+    - name: Install hermit packages
+      shell: bash
+      run: |
+        # Install all packages from hermit manifests
+        # This ensures packages are available even if symlinks are missing
+        hermit install moon
+
     - name: Setup direnv
       uses: HatsuneMiku3939/direnv-action@v1
       with:
