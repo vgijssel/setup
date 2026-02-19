@@ -3,8 +3,6 @@ kind: Ingress
 metadata:
   name: relay-personal
   namespace: tenant-root
-  labels:
-    internal-networking: "true"
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     # WebSocket support - HTTP/1.1 required for connection upgrade
