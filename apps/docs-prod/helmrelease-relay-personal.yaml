@@ -48,9 +48,10 @@ spec:
                 path: /spec/template/metadata/labels/app.kubernetes.io~1name
                 value: relay-personal
           # Patch service to use LoadBalancer and correct selector
+          # Note: FluxCD prefixes release name with targetNamespace, so full name is relay-relay-personal-relay-server
           - target:
               kind: Service
-              name: relay-personal-relay-server
+              name: relay-relay-personal-relay-server
             patch: |
               - op: add
                 path: /spec/type

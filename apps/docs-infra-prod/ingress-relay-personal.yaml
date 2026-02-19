@@ -27,8 +27,7 @@ spec:
             backend:
               service:
                 # Mirrored LoadBalancer service created by KubeVirt CCM
-                # from virtual cluster cluster-docs-infra-prod
-                # TODO: Update this service name after deployment to get the actual mirrored service name
-                name: PLACEHOLDER-PERSONAL-SERVICE
+                # from virtual cluster cluster-docs-infra-prod (relay-relay-personal-relay-server)
+                name: a4fd63674b1304248bc3df9b370650b3
                 port:
                   number: 8080
