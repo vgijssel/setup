@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: relay-personal
+  namespace: tenant-root
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # WebSocket support - HTTP/1.1 required for connection upgrade
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    # Disable buffering for real-time WebSocket/streaming connections
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    # Extended timeouts to prevent WebSocket disconnections (default 60s)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: tenant-root
+  tls:
+    - hosts:
+        - personal.relay.enigma.vgijssel.nl
+      secretName: relay-personal-tls
+  rules:
+    - host: personal.relay.enigma.vgijssel.nl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # Mirrored LoadBalancer service created by KubeVirt CCM
+                # from virtual cluster cluster-docs-infra-prod (relay-relay-personal-relay-server)
+                name: a4fd63674b1304248bc3df9b370650b3
+                port:
+                  number: 8080

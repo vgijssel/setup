@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ include "{{ .Chart.Name }}.fullname" . }}"
+  labels: {{ include "{{ .Chart.Name }}.commonLabels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.ingress.certManager.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.certManager.clusterIssuer | default "letsencrypt" }}
+    {{- end }}
+spec:
+  {{ $hostname := .Values.hostname }}
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ $hostname }}
+      secretName: {{ .Values.name }}-tls-cert
+  rules:
+    - host: {{ $hostname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: "{{ .Release.Name }}"
+                port:
+                  number: {{ .Values.port | default 8080 }}

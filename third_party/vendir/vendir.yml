@@ -104,3 +104,12 @@ directories:
         includePaths:
           - packages/core/talos/images/talos/**
         newRootPath: packages/core/talos/images/talos
+  - path: charts/relay-server
+    contents:
+      - path: .
+        git:
+          url: https://github.com/No-Instructions/relay-server-template
+          ref: d889cef2a6da84b1e44c766ca134e2ad5d7eeffa
+        includePaths:
+          - guides/kubernetes/**
+        newRootPath: guides/kubernetes

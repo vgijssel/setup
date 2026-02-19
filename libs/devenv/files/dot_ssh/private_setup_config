@@ -11,11 +11,11 @@ Host github.com-personal
   IdentityFile ~/.ssh/1Password/SHA256_7ZkdaIGQOhCsuUApLJp44KjZfVAQqFj8Vsbon0qyDhg.pub
 
 # 1Password Item: SSH - Hackerone - Authentication
-Host github.com-emu 
+Host github.com-emu
   User git
   HostName github.com
   IdentitiesOnly yes
-  IdentityFile ~/.ssh/1Password/SHA256_UHPxZkjpLXkAjbYbmBDwKjB_yfX9aaesUsO8kMDUW2A.pub
+  IdentityFile ~/.ssh/1Password/SHA256_ym5L1HXa9N+cyGJ0EBQ36uVNEJWMdyZPu1YOW_lJKg4.pub
 
 # This key is used for SSH and available on coder workspaces
 Host *

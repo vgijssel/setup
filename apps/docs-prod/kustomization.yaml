@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # Namespaces must be created first (cozy-fluxcd already exists in cozystack)
+  - namespace-relay.yaml
+  # Note: 1password namespace is created by the HelmRelease install.createNamespace
+  # FluxCD source
+  - gitrepository-setup.yaml
+  - kustomization-root.yaml
+  # HelmReleases (order matters for dependencies)
+  - helmrelease-1password-operator.yaml
+  - helmrelease-1password-secrets.yaml
+  - helmrelease-relay-personal.yaml
+  - helmrelease-relay-family.yaml

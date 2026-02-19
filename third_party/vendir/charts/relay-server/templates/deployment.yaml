@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Chart.Name }}"
+  labels:
+    app.kubernetes.io/name: "{{ .Chart.Name }}"
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    app.kubernetes.io/managed-by: "{{ .Release.Service }}"
+    app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
+    app.kubernetes.io/component: "{{ .Chart.Name }}"
+    app.kubernetes.io/part-of: "{{ .Chart.Name }}"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "{{ .Chart.Name }}"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "{{ .Chart.Name }}"
+    spec:
+      imagePullSecrets:
+      {{- range .Values.image.pullSecrets }}
+        - name: {{ .name }}
+      {{- end }}
+      containers:
+        - name: "{{ .Chart.Name }}"
+          image: "{{ .Values.image.repository | default "docker.system3.md/relay-server" }}:{{ .Values.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - containerPort: 8080
+          resources: {{ toYaml .Values.resources | nindent 10 }}
+          env:
+            # Public URL for your service
+            - name: RELAY_SERVER_URL
+              value: "{{ .Values.env.relayServerUrl }}"
+            # S3 storage
+            - name: RELAY_SERVER_STORAGE
+              value: "{{ .Values.env.relayServerStorage }}"
+        {{- if .Values.env.awsRegion }}
+            - name: AWS_REGION
+              value: "{{ .Values.env.awsRegion }}"
+        {{- end }}
+        {{- if .Values.env.awsEndpointUrlS3 }}
+            - name: AWS_ENDPOINT_URL_S3
+              value: "{{ .Values.env.awsEndpointUrlS3 }}"
+        {{- end }}
+        {{- if .Values.env.awsS3UsePathStyle }}
+            - name: AWS_S3_USE_PATH_STYLE
+              value: "{{ .Values.env.awsS3UsePathStyle }}"
+        {{- end }}
+        {{- if .Values.env.awsBucket }}
+            - name: STORAGE_BUCKET
+              value: "{{ .Values.env.awsBucket }}"
+        {{- end }}
+            # Secret env vars from KeyVault
+        {{- if .Values.secretReference }}
+            # Secret env vars from Kubernetes Secret
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretReference.name | quote | default (default (printf "%s-s3-credentials" .Values.name)) }}
+                  key: {{ .Values.secretReference.keys.awsAccessKeyId | quote | default "AWS_ACCESS_KEY_ID" }}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretReference.name | quote | default (default (printf "%s-s3-credentials" .Values.name)) }}
+                  key: {{ .Values.secretReference.keys.awsSecretAccessKey | quote | default "AWS_SECRET_ACCESS_KEY" }}
+        {{- end }}
+        {{- if .Values.azure.keyVault.enabled }}
+            # Secret env vars from Kubernetes Secret
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.name }}-aws-access-key"
+                  key: {{ .Values.secretReference.keys.awsAccessKeyId | quote | default "AWS_ACCESS_KEY_ID" }}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.name }}-aws-secret-key"
+                  key: {{ .Values.secretReference.keys.awsSecretAccessKey | quote | default "AWS_SECRET_ACCESS_KEY" }}
+        {{- end }}

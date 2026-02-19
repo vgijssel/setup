@@ -63,7 +63,8 @@ spec:
               # Join all hostnames from ingress rules with commas for external-dns
               external-dns.alpha.kubernetes.io/hostname: "{{`{{`}} join(',', request.object.spec.rules[*].host) {{`}}`}}"
               # Tailscale hostname uses the first host (primary domain, not wildcard)
-              tailscale.com/hostname: "{{`{{`}} replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', '') {{`}}`}}"
+              # Replace dots with dashes after removing domain suffix (DNS label must not contain dots)
+              tailscale.com/hostname: "{{`{{`}} replace_all(replace_all(request.object.spec.rules[0].host, '{{ .Values.tailscaleIngress.domainSuffix }}', ''), '.', '-') {{`}}`}}"
           spec:
             type: LoadBalancer
             loadBalancerClass: tailscale

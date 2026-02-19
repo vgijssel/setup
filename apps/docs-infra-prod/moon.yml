@@ -1,0 +1,11 @@
+language: javascript
+layer: application
+tags:
+  - stack
+  - kubernetes
+  - production
+tasks:
+  bootstrap:
+    command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/docs-infra-prod/
+    options:
+      runInCI: false
