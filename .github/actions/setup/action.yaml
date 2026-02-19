@@ -33,7 +33,8 @@ runs:
       run: |
         # Install all packages from hermit manifests
         # This ensures packages are available even if symlinks are missing
-        hermit install moon
+        # Use -q flag to suppress interactive prompts
+        hermit install -q moon
 
     - name: Setup direnv
       uses: HatsuneMiku3939/direnv-action@v1
