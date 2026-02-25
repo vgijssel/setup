@@ -22,8 +22,7 @@ ulimits:
     hard: 1024
 
 livenessProbe:
-  httpGet:
-    path: /health
+  tcpSocket:
     port: http
   initialDelaySeconds: 30
   periodSeconds: 10
@@ -31,8 +30,7 @@ livenessProbe:
   failureThreshold: 3
 
 readinessProbe:
-  httpGet:
-    path: /ready
+  tcpSocket:
     port: http
   initialDelaySeconds: 5
   periodSeconds: 5
