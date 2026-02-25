@@ -9,7 +9,7 @@ spec:
     mode: enabled
   chart:
     spec:
-      chart: third_party/vendir/charts/relay-server
+      chart: libs/relay-server
       sourceRef:
         kind: GitRepository
         name: setup
@@ -25,49 +25,13 @@ spec:
   upgrade:
     remediation:
       retries: 3
-  # Patch the service to use LoadBalancer type for KubeVirt CCM mirroring
-  # and fix selector mismatch (chart bug: service uses fullname, deployment uses name)
-  postRenderers:
-    - kustomize:
-        patches:
-          # Rename deployment to avoid conflict with relay-family
-          - target:
-              kind: Deployment
-              name: relay-server
-            patch: |
-              - op: replace
-                path: /metadata/name
-                value: relay-personal
-              - op: replace
-                path: /metadata/labels/app.kubernetes.io~1name
-                value: relay-personal
-              - op: replace
-                path: /spec/selector/matchLabels/app.kubernetes.io~1name
-                value: relay-personal
-              - op: replace
-                path: /spec/template/metadata/labels/app.kubernetes.io~1name
-                value: relay-personal
-          # Patch service to use LoadBalancer and correct selector
-          # Note: FluxCD prefixes release name with targetNamespace, so full name is relay-relay-personal-relay-server
-          - target:
-              kind: Service
-              name: relay-relay-personal-relay-server
-            patch: |
-              - op: add
-                path: /spec/type
-                value: LoadBalancer
-              - op: replace
-                path: /spec/selector
-                value:
-                  app.kubernetes.io/name: relay-personal
   values:
-    name: relay-server
-    hostname: personal.relay.enigma.vgijssel.nl
+    name: relay-personal
     replicaCount: 1
     image:
       repository: docker.system3.md/relay-server
       tag: v0.9.2
-      pullPolicy: Always
+      pullPolicy: IfNotPresent
     resources:
       requests:
         cpu: 100m
@@ -75,11 +39,30 @@ spec:
       limits:
         cpu: 500m
         memory: 1Gi
-    port: 8080
-    # Disable chart's built-in ingress - we use enigma-cluster ingress
-    ingress:
-      certManager:
-        enabled: false
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 1024
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: http
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+    service:
+      type: LoadBalancer
+      port: 80
+      targetPort: 8080
     env:
       relayServerUrl: https://personal.relay.enigma.vgijssel.nl
       relayServerStorage: s3
