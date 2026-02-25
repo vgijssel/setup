@@ -37,16 +37,10 @@ ulimits:
     hard: 1024
 
 # Liveness probe - checks if server is responsive
-# Default: HTTP probe on /health endpoint
-# If the server doesn't expose /health, use TCP socket probe instead:
-#   livenessProbe:
-#     tcpSocket:
-#       port: http
-#     initialDelaySeconds: 30
-#     periodSeconds: 10
+# Default: TCP probe (relay server doesn't expose HTTP /health endpoint)
+# Note: relay-server is a WebSocket server, use TCP socket probe
 livenessProbe:
-  httpGet:
-    path: /health
+  tcpSocket:
     port: http
   initialDelaySeconds: 30
   periodSeconds: 10
@@ -54,16 +48,10 @@ livenessProbe:
   failureThreshold: 3
 
 # Readiness probe - checks if server is ready to accept traffic
-# Default: HTTP probe on /ready endpoint
-# If the server doesn't expose /ready, use TCP socket probe instead:
-#   readinessProbe:
-#     tcpSocket:
-#       port: http
-#     initialDelaySeconds: 5
-#     periodSeconds: 5
+# Default: TCP probe (relay server doesn't expose HTTP /ready endpoint)
+# Note: relay-server is a WebSocket server, use TCP socket probe
 readinessProbe:
-  httpGet:
-    path: /ready
+  tcpSocket:
     port: http
   initialDelaySeconds: 5
   periodSeconds: 5
