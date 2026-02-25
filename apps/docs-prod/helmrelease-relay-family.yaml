@@ -20,6 +20,7 @@ spec:
     - name: 1password-secrets
   install:
     createNamespace: true
+    replace: true
     remediation:
       retries: 3
   upgrade:
