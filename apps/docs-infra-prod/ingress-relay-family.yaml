@@ -28,6 +28,6 @@ spec:
               service:
                 # Mirrored LoadBalancer service created by KubeVirt CCM
                 # from virtual cluster cluster-docs-infra-prod (relay-relay-family-relay-server)
-                name: a3e21b14273c842d0b13ec7ceae1c38f
+                name: a9be0c9fe299f446390336952d66c942
                 port:
                   number: 8080
