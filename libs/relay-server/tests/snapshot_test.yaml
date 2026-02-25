@@ -44,12 +44,12 @@ service:
   annotations: {}
 
 env:
-  relayServerUrl: "https://relay.example.com"
+  relayServerUrl: https://relay.example.com
   relayServerStorage: s3
   awsRegion: us-east-1
   awsEndpointUrlS3: ""
-  awsS3UsePathStyle: "false"
-  awsBucket: "test-bucket"
+  awsS3UsePathStyle: false
+  awsBucket: test-bucket
 
 secretReference:
   name: relay-server-secret

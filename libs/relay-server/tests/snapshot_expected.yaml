@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/name: relay-server
     app.kubernetes.io/instance: relay-server
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/version: "0.9.2"
+    app.kubernetes.io/version: 0.9.2
 spec:
   type: LoadBalancer
   ports:
@@ -31,7 +31,7 @@ metadata:
     app.kubernetes.io/name: relay-server
     app.kubernetes.io/instance: relay-server
     app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/version: "0.9.2"
+    app.kubernetes.io/version: 0.9.2
 spec:
   replicas: 1
   selector:
@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
         - name: relay-server
-          image: "docker.system3.md/relay-server:v0.9.2"
+          image: docker.system3.md/relay-server:v0.9.2
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -76,24 +76,24 @@ spec:
           env:
             # Public URL for the relay service
             - name: RELAY_SERVER_URL
-              value: "https://relay.example.com"
+              value: https://relay.example.com
             # Storage backend configuration
             - name: RELAY_SERVER_STORAGE
-              value: "s3"
+              value: s3
             - name: AWS_REGION
-              value: "us-east-1"
+              value: us-east-1
             - name: AWS_S3_USE_PATH_STYLE
-              value: "false"
+              value: false
             - name: STORAGE_BUCKET
-              value: "test-bucket"
+              value: test-bucket
             # AWS credentials from Kubernetes Secret
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: "relay-server-secret"
-                  key: "AWS_ACCESS_KEY_ID"
+                  name: relay-server-secret
+                  key: AWS_ACCESS_KEY_ID
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: "relay-server-secret"
-                  key: "AWS_SECRET_ACCESS_KEY"
+                  name: relay-server-secret
+                  key: AWS_SECRET_ACCESS_KEY
