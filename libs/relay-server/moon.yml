@@ -1,0 +1,39 @@
+language: javascript
+layer: library
+tags:
+  - type.library
+  - scope.infrastructure
+  - kubernetes
+  - helm
+tasks:
+  lint:
+    command: helm
+    args:
+      - lint
+      - .
+    inputs:
+      - glob: "**/*"
+        cache: true
+    options:
+      cache: true
+
+  build:
+    command: helm
+    args:
+      - package
+      - .
+    inputs:
+      - glob: "**/*"
+        cache: true
+    options:
+      cache: true
+    outputs:
+      - "*.tgz"
+
+  test:
+    command: ./tests/snapshot_test.sh
+    inputs:
+      - glob: "**/*"
+        cache: true
+    options:
+      cache: true
