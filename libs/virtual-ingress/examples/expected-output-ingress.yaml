@@ -1,26 +1,22 @@
-# Expected generated Ingress after virtual-ingress policy processes source-ingress.yaml
-# The matchLabels have been resolved to the actual service name from mock-services.yaml
+# Expected Ingress after virtual-ingress policy mutation
+# The policy mutates the Ingress in-place (no separate -resolved Ingress is created)
+# The annotation label selector has been resolved to the actual service name from mock-services.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: coder-resolved
+  name: coder
   namespace: tenant-root
-  labels:
-    virtual-ingress.io/source-name: coder
-    virtual-ingress.io/source-namespace: tenant-root
-    app.kubernetes.io/managed-by: kyverno
-    kyverno.io/generated-by: generate-virtual-ingress
   annotations:
-    virtual-ingress/processed: "true"
-    virtual-ingress/source-ingress: coder
-    virtual-ingress/resolved-service: a18c2be1873b84bcd8630e79298a07cf
-  ownerReferences:
-    - apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      name: coder
-      # uid: <dynamically assigned>
-      blockOwnerDeletion: true
-      controller: true
+    # Original annotations preserved
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Original label selector annotation
+    myorg.io/backend-match-labels: "cluster.x-k8s.io/cluster-name=kubernetes-cluster-docs-infra-prod,cluster.x-k8s.io/tenant-service-name=relay-family"
+    # Added by policy: tracks the resolved service name (prevents re-processing)
+    myorg.io/resolved-service-name: a18c2be1873b84bcd8630e79298a07cf
 spec:
   ingressClassName: tenant-root
   tls:
@@ -35,7 +31,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # Resolved from matchLabels to actual service name
+                # Mutated by policy: resolved from annotation labels to actual service name
                 name: a18c2be1873b84bcd8630e79298a07cf
                 port:
                   number: 80

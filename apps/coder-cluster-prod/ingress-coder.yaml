@@ -12,6 +12,10 @@ metadata:
     # Extended timeouts to prevent WebSocket disconnections (default 60s)
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Dynamic service resolution via label selector
+    # The virtual-ingress Kyverno policy will resolve the actual service name
+    # from the mirrored Kubevirt CCM service that has this label
+    myorg.io/backend-match-labels: "cluster.x-k8s.io/tenant-service-name=coder"
 spec:
   ingressClassName: tenant-root
   tls:
@@ -29,7 +33,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: a18c2be1873b84bcd8630e79298a07cf
+                # Placeholder - will be replaced by virtual-ingress policy
+                # with the actual mirrored service name
+                name: placeholder
                 port:
                   number: 80
     - host: "*.coder.enigma.vgijssel.nl"
@@ -39,6 +45,8 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: a18c2be1873b84bcd8630e79298a07cf
+                # Placeholder - will be replaced by virtual-ingress policy
+                # with the actual mirrored service name
+                name: placeholder
                 port:
                   number: 80

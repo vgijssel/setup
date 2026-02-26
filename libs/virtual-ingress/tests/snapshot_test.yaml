@@ -5,13 +5,3 @@ serviceDiscovery:
   noMatchBehavior: error
   multipleMatchBehavior: error
   defaultNamespace: ""
-
-generatedIngress:
-  nameSuffix: -resolved
-  additionalLabels: {}
-  additionalAnnotations: {}
-
-policy:
-  generateExisting: true
-  backgroundScan: true
-  synchronize: true

@@ -51,23 +51,19 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/*
 Hash of the ClusterPolicy immutable fields.
 This hash is used to detect when the policy needs to be recreated.
-Only includes fields that are immutable in Kyverno generate rules:
-- match block, preconditions, rule name, generate apiVersion/kind/name/namespace
-Does NOT include: data block (mutable), synchronize (mutable), generateExisting (mutable)
+Only includes fields that are immutable in Kyverno mutate rules:
+- match block, preconditions, rule name, mutate patch operations
 */}}
 {{- define "virtual-ingress.policyHash" -}}
 {{- $immutableContent := dict
-    "ruleName" "resolve-service-from-labels"
+    "ruleName" "resolve-service-from-annotation"
     "match" (dict "any" (list (dict "resources" (dict "kinds" (list "Ingress")))))
     "preconditions" (dict "all" (list
-        (dict "key" "{{ request.object.spec.rules[0].http.paths[0].backend.service.matchLabels || '' | length(@) }}" "operator" "GreaterThan" "value" 0)
-        (dict "key" "{{ request.object.metadata.annotations.\"virtual-ingress/processed\" || '' }}" "operator" "NotEquals" "value" "true")
+        (dict "key" "{{ request.object.metadata.annotations.\"myorg.io/backend-match-labels\" || '' }}" "operator" "NotEquals" "value" "")
+        (dict "key" "{{ request.object.metadata.annotations.\"myorg.io/resolved-service-name\" || '' }}" "operator" "Equals" "value" "")
     ))
-    "generateApiVersion" "networking.k8s.io/v1"
-    "generateKind" "Ingress"
-    "generateName" "{{ request.object.metadata.name }}"
-    "generateNamespace" "{{ request.object.metadata.namespace }}"
-    "nameSuffix" .Values.generatedIngress.nameSuffix
+    "mutateType" "patchesJson6902"
+    "patchOps" (list "add:/metadata/annotations/myorg.io~1resolved-service-name" "replace:/spec/rules/0/http/paths/0/backend/service/name")
 -}}
 {{- $immutableContent | toJson | sha256sum | trunc 16 -}}
 {{- end }}
