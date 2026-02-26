@@ -10,6 +10,7 @@ runs:
         df -h
 
     - name: Free Disk Space for Docker
+      if: runner.os == 'Linux'
       uses: endersonmenezes/free-disk-space@v3
       with:
         remove_android: true
