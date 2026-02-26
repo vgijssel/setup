@@ -12,6 +12,9 @@ metadata:
     # Extended timeouts to prevent WebSocket disconnections (default 60s)
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Virtual ingress service resolution - labels for dynamic service lookup
+    virtual-ingress/cluster-name: "kubernetes-cluster-docs-infra-prod"
+    virtual-ingress/service-name: "relay-family"
 spec:
   ingressClassName: tenant-root
   tls:
@@ -26,10 +29,8 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # Dynamic service resolution using virtual-ingress Kyverno policy
-                # Resolves to mirrored service from kubernetes-cluster-docs-infra-prod/relay/relay-family
-                matchLabels:
-                  cluster.x-k8s.io/cluster-name: kubernetes-cluster-docs-infra-prod
-                  cluster.x-k8s.io/tenant-service-name: relay-family
+                # Placeholder service name - will be resolved by virtual-ingress policy
+                # Actual service determined by virtual-ingress/* annotations above
+                name: virtual-relay-family
                 port:
                   number: 8080
