@@ -34,8 +34,9 @@ runs:
         # Install all packages from hermit manifests
         # moon v2.0.0 removed darwin-amd64 support, which causes an interactive prompt
         # We need to answer 'y' to the prompt non-interactively
-        # Using printf with pipe is cross-platform compatible (works on both Linux and macOS)
-        printf 'y\n' | ./bin/hermit install moon
+        # Using here-string is simple and works on both Linux and macOS
+        # The || true prevents pipefail from failing the script
+        ./bin/hermit install moon <<< 'y' || true
 
         # Verify moon is available
         if ! command -v moon &> /dev/null; then
