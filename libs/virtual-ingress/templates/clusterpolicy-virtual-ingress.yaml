@@ -3,15 +3,15 @@ kind: ClusterPolicy
 metadata:
   name: generate-virtual-ingress
   annotations:
-    policies.kyverno.io/title: Resolve Virtual Ingress Service Labels
+    policies.kyverno.io/title: Resolve Virtual Ingress Service from Annotations
     policies.kyverno.io/category: Networking
     policies.kyverno.io/severity: medium
     policies.kyverno.io/subject: Ingress
     policies.kyverno.io/description: >-
-      Resolves Ingress resources that use matchLabels instead of direct service names.
-      When an Ingress backend specifies matchLabels, this policy queries the Kubernetes API
-      to find matching services and generates a resolved Ingress with the actual service name.
-      Supports configurable behavior for no-match and multiple-match scenarios.
+      Resolves Ingress resources that use virtual-ingress/* annotations for dynamic service lookup.
+      When an Ingress has virtual-ingress/cluster-name and virtual-ingress/service-name annotations,
+      this policy queries the Kubernetes API to find matching services and creates a Service resource
+      with a predictable name that points to the real mirrored service.
     # Hash of immutable fields - used by pre-upgrade hook to detect changes
     virtual-ingress/immutable-hash: {{ include "virtual-ingress.policyHash" . | quote }}
   labels:
@@ -20,190 +20,70 @@ spec:
   generateExisting: {{ .Values.policy.generateExisting }}
   background: {{ .Values.policy.backgroundScan }}
   rules:
-    {{- if eq .Values.serviceDiscovery.noMatchBehavior "error" }}
-    # Validation rule: reject if no service matches
-    - name: validate-service-exists
+    # Generate Service resource pointing to the real mirrored service
+    - name: generate-virtual-service
       match:
         any:
           - resources:
               kinds:
                 - Ingress
+      # Only process ingresses with virtual-ingress annotations
       preconditions:
         all:
-          - key: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.matchLabels || '' | length(@) }}"}}"
-            operator: GreaterThan
-            value: 0
-          - key: '{{"{{ request.object.metadata.annotations.\"virtual-ingress/processed\" || '''' }}"}}'
+          # Must have cluster-name annotation
+          - key: "{{"{{ request.object.metadata.annotations.\"virtual-ingress/cluster-name\" || '' }}"}}"
             operator: NotEquals
-            value: "true"
+            value: ""
+          # Must have service-name annotation
+          - key: "{{"{{ request.object.metadata.annotations.\"virtual-ingress/service-name\" || '' }}"}}"
+            operator: NotEquals
+            value: ""
+      # Query for the real service using labels
       context:
-        - name: matchLabels
-          variable:
-            jmesPath: "request.object.spec.rules[0].http.paths[0].backend.service.matchLabels"
         - name: serviceNamespace
           variable:
             jmesPath: "request.object.metadata.namespace"
         - name: clusterName
           variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/cluster-name" || `""`'
-        - name: tenantServiceName
+            jmesPath: 'request.object.metadata.annotations."virtual-ingress/cluster-name" || `""`'
+        - name: serviceName
           variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/tenant-service-name" || `""`'
+            jmesPath: 'request.object.metadata.annotations."virtual-ingress/service-name" || `""`'
+        # Query services with matching labels
         - name: matchingServices
           apiCall:
-            urlPath: "/api/v1/namespaces/{{"{{serviceNamespace}}"}}/services?labelSelector=cluster.x-k8s.io/cluster-name%3D{{"{{clusterName}}"}},cluster.x-k8s.io/tenant-service-name%3D{{"{{tenantServiceName}}"}}"
+            urlPath: "/api/v1/namespaces/{{"{{serviceNamespace}}"}}/services?labelSelector=cluster.x-k8s.io/cluster-name%3D{{"{{clusterName}}"}},cluster.x-k8s.io/tenant-service-name%3D{{"{{serviceName}}"}}"
             jmesPath: "items"
-        - name: matchCount
+        # Get the first (and should be only) matching service
+        - name: targetService
           variable:
-            jmesPath: "length(matchingServices)"
-      validate:
-        message: "No service found matching labels: cluster.x-k8s.io/cluster-name={{"{{clusterName}}"}}, cluster.x-k8s.io/tenant-service-name={{"{{tenantServiceName}}"}} in namespace {{"{{serviceNamespace}}"}}"
-        deny:
-          conditions:
-            all:
-              - key: "{{"{{ matchCount }}"}}"
-                operator: Equals
-                value: 0
-    {{- end }}
-    {{- if eq .Values.serviceDiscovery.multipleMatchBehavior "error" }}
-    # Validation rule: reject if multiple services match
-    - name: validate-single-service
-      match:
-        any:
-          - resources:
-              kinds:
-                - Ingress
-      preconditions:
-        all:
-          - key: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.matchLabels || '' | length(@) }}"}}"
-            operator: GreaterThan
-            value: 0
-          - key: '{{"{{ request.object.metadata.annotations.\"virtual-ingress/processed\" || '''' }}"}}'
-            operator: NotEquals
-            value: "true"
-      context:
-        - name: matchLabels
+            jmesPath: "matchingServices[0] || `null`"
+        - name: targetServiceName
           variable:
-            jmesPath: "request.object.spec.rules[0].http.paths[0].backend.service.matchLabels"
-        - name: serviceNamespace
+            jmesPath: "targetService.metadata.name || `""`"
+        - name: targetServicePort
           variable:
-            jmesPath: "request.object.metadata.namespace"
-        - name: clusterName
-          variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/cluster-name" || `""`'
-        - name: tenantServiceName
-          variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/tenant-service-name" || `""`'
-        - name: matchingServices
-          apiCall:
-            urlPath: "/api/v1/namespaces/{{"{{serviceNamespace}}"}}/services?labelSelector=cluster.x-k8s.io/cluster-name%3D{{"{{clusterName}}"}},cluster.x-k8s.io/tenant-service-name%3D{{"{{tenantServiceName}}"}}"
-            jmesPath: "items"
-        - name: matchCount
-          variable:
-            jmesPath: "length(matchingServices)"
-      validate:
-        message: "Multiple services found matching labels. Found {{"{{matchCount}}"}} services. Please ensure labels uniquely identify a single service."
-        deny:
-          conditions:
-            all:
-              - key: "{{"{{ matchCount }}"}}"
-                operator: GreaterThan
-                value: 1
-    {{- end }}
-    # Generate rule: resolve service from matchLabels and create resolved ingress
-    - name: resolve-service-from-labels
-      match:
-        any:
-          - resources:
-              kinds:
-                - Ingress
-      # Only process ingresses that have matchLabels in their backend
-      preconditions:
-        all:
-          # Must have matchLabels defined (check first path as example)
-          - key: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.matchLabels || '' | length(@) }}"}}"
-            operator: GreaterThan
-            value: 0
-          # Don't process already-resolved ingresses to avoid recursion
-          - key: '{{"{{ request.object.metadata.annotations.\"virtual-ingress/processed\" || '''' }}"}}'
-            operator: NotEquals
-            value: "true"
-      # Query services using the API
-      context:
-        # Extract the matchLabels from the ingress
-        - name: matchLabels
-          variable:
-            jmesPath: "request.object.spec.rules[0].http.paths[0].backend.service.matchLabels"
-        # Get namespace for service lookup
-        - name: serviceNamespace
-          variable:
-            jmesPath: "request.object.metadata.namespace"
-        # Build a label selector string for the API query
-        # Note: This works with common label patterns like cluster.x-k8s.io labels
-        - name: clusterName
-          variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/cluster-name" || `""`'
-        - name: tenantServiceName
-          variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/tenant-service-name" || `""`'
-        # Query services in the namespace with label selector
-        - name: matchingServices
-          apiCall:
-            urlPath: "/api/v1/namespaces/{{"{{serviceNamespace}}"}}/services?labelSelector=cluster.x-k8s.io/cluster-name%3D{{"{{clusterName}}"}},cluster.x-k8s.io/tenant-service-name%3D{{"{{tenantServiceName}}"}}"
-            jmesPath: "items"
-        # Get first matching service name (for single match or 'first' behavior)
-        - name: resolvedServiceName
-          variable:
-            jmesPath: "matchingServices[0].metadata.name || ''"
-        # Get port from source ingress
-        - name: servicePort
-          variable:
-            jmesPath: "request.object.spec.rules[0].http.paths[0].backend.service.port.number"
-      # Generate the resolved ingress
+            jmesPath: "targetService.spec.ports[0].port || `80`"
+      # Generate a Service that points to the target
       generate:
         synchronize: {{ .Values.policy.synchronize }}
-        apiVersion: networking.k8s.io/v1
-        kind: Ingress
-        name: "{{"{{ request.object.metadata.name }}"}}{{ .Values.generatedIngress.nameSuffix }}"
-        namespace: "{{"{{ request.object.metadata.namespace }}"}}"
+        apiVersion: v1
+        kind: Service
+        name: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.name }}"}}"
+        namespace: "{{"{{ serviceNamespace }}"}}"
         data:
           metadata:
             labels:
-              virtual-ingress.io/source-name: "{{"{{ request.object.metadata.name }}"}}"
-              virtual-ingress.io/source-namespace: "{{"{{ request.object.metadata.namespace }}"}}"
+              virtual-ingress.io/source-ingress: "{{"{{ request.object.metadata.name }}"}}"
+              virtual-ingress.io/cluster-name: "{{"{{ clusterName }}"}}"
+              virtual-ingress.io/service-name: "{{"{{ serviceName }}"}}"
               app.kubernetes.io/managed-by: kyverno
-              kyverno.io/generated-by: generate-virtual-ingress
-              {{- with .Values.generatedIngress.additionalLabels }}
-              {{- toYaml . | nindent 14 }}
-              {{- end }}
             annotations:
-              virtual-ingress/processed: "true"
-              virtual-ingress/source-ingress: "{{"{{ request.object.metadata.name }}"}}"
-              virtual-ingress/resolved-service: "{{"{{ resolvedServiceName }}"}}"
-              {{- with .Values.generatedIngress.additionalAnnotations }}
-              {{- toYaml . | nindent 14 }}
-              {{- end }}
-            ownerReferences:
-              - apiVersion: networking.k8s.io/v1
-                kind: Ingress
-                name: "{{"{{ request.object.metadata.name }}"}}"
-                uid: "{{"{{ request.object.metadata.uid }}"}}"
-                blockOwnerDeletion: true
-                controller: true
+              virtual-ingress/target-service: "{{"{{ targetServiceName }}"}}"
           spec:
-            # Copy ingressClassName from source
-            ingressClassName: "{{"{{ request.object.spec.ingressClassName }}"}}"
-            # Generate rules with resolved service name
-            rules:
-              - host: "{{"{{ request.object.spec.rules[0].host }}"}}"
-                http:
-                  paths:
-                    - path: "{{"{{ request.object.spec.rules[0].http.paths[0].path }}"}}"
-                      pathType: "{{"{{ request.object.spec.rules[0].http.paths[0].pathType }}"}}"
-                      backend:
-                        service:
-                          name: "{{"{{ resolvedServiceName }}"}}"
-                          port:
-                            number: "{{"{{ servicePort }}"}}"
-            # Copy TLS config if present
-            tls: "{{"{{ request.object.spec.tls }}"}}"
+            type: ExternalName
+            externalName: "{{"{{ targetServiceName }}"}}}.{{"{{ serviceNamespace }}"}}. svc.cluster.local"
+            ports:
+              - port: "{{"{{ request.object.spec.rules[0].http.paths[0].backend.service.port.number }}"}}"
+                targetPort: "{{"{{ targetServicePort }}"}}"
+                protocol: TCP

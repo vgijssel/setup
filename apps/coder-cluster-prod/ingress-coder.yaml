@@ -12,6 +12,9 @@ metadata:
     # Extended timeouts to prevent WebSocket disconnections (default 60s)
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Virtual ingress service resolution - labels for dynamic service lookup
+    virtual-ingress/cluster-name: "kubernetes-coder-cluster-prod"
+    virtual-ingress/service-name: "coder"
 spec:
   ingressClassName: tenant-root
   tls:
@@ -29,11 +32,9 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # Dynamic service resolution using virtual-ingress Kyverno policy
-                # Resolves to mirrored service from kubernetes-coder-cluster-prod/coder/coder
-                matchLabels:
-                  cluster.x-k8s.io/cluster-name: kubernetes-coder-cluster-prod
-                  cluster.x-k8s.io/tenant-service-name: coder
+                # Placeholder service name - will be resolved by virtual-ingress policy
+                # Actual service determined by virtual-ingress/* annotations above
+                name: virtual-coder
                 port:
                   number: 80
     - host: "*.coder.enigma.vgijssel.nl"
@@ -43,10 +44,8 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # Dynamic service resolution using virtual-ingress Kyverno policy
-                # Resolves to mirrored service from kubernetes-coder-cluster-prod/coder/coder
-                matchLabels:
-                  cluster.x-k8s.io/cluster-name: kubernetes-coder-cluster-prod
-                  cluster.x-k8s.io/tenant-service-name: coder
+                # Placeholder service name - will be resolved by virtual-ingress policy
+                # Actual service determined by virtual-ingress/* annotations above
+                name: virtual-coder
                 port:
                   number: 80
