@@ -7,7 +7,7 @@ dependencies = [
   # Pinned to 0.13.205: last version supporting Python 3.12
   # Uses homeassistant==2025.1.4 with ciso8601==2.3.2 (has linux aarch64 wheels)
   # Version 0.13.206+ requires Python 3.13+ via homeassistant 2025.2.0+
-  "pytest-homeassistant-custom-component==0.13.205",
+  "pytest-homeassistant-custom-component==0.13.316",
   "tzdata>=2024.0",
   "pytest>=8.0.0",
   "pytest-asyncio>=0.24.0",
