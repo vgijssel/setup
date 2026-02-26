@@ -34,8 +34,8 @@ runs:
         # Install all packages from hermit manifests
         # moon v2.0.0 removed darwin-amd64 support, which causes an interactive prompt
         # We need to answer 'y' to the prompt non-interactively
-        # Using 'script' command to create a pseudo-TTY allows the pipe to work correctly
-        script -q -c "echo y | ./bin/hermit install moon" /dev/null 2>&1 | grep -v "sync /dev/stdout" || true
+        # Using printf with pipe is cross-platform compatible (works on both Linux and macOS)
+        printf 'y\n' | ./bin/hermit install moon
 
         # Verify moon is available
         if ! command -v moon &> /dev/null; then
