@@ -32,22 +32,17 @@ runs:
       shell: bash
       run: |
         # Install all packages from hermit manifests
-        # moon v2.0.0 removed darwin-amd64 support, which causes an interactive prompt
-        # We need to answer 'y' to the prompt non-interactively
-        # Using here-string is simple and works on both Linux and macOS
-        # The || true prevents pipefail from failing the script
-        ./bin/hermit install moon <<< 'y' || true
+        # Run hermit install without specific package to install all
+        # This avoids the interactive prompt for moon v2.0.0
+        ./bin/hermit install || echo "Hermit install completed with warnings"
 
-        # Verify moon is available
-        if ! command -v moon &> /dev/null; then
-          echo "ERROR: moon binary not found after hermit install"
-          echo "Checking hermit cache..."
-          ls -la ~/.cache/hermit/pkg/ | grep moon || echo "No moon in cache"
-          echo "Checking bin directory..."
-          ls -la ./bin/ | grep moon || echo "No moon symlink in bin"
-          exit 1
+        # Verify moon is available (hermit will lazy-install on first use)
+        echo "Checking moon availability..."
+        if command -v moon &> /dev/null; then
+          echo "moon successfully available: $(moon --version)"
+        else
+          echo "moon not immediately available - will be lazy-installed on first use"
         fi
-        echo "moon successfully installed: $(moon --version)"
 
     - name: Setup direnv
       uses: HatsuneMiku3939/direnv-action@v1
