@@ -1,7 +1,7 @@
 $schema: ./cache/schemas/workspace.json
 hasher:
   walkStrategy: vcs
-unstable_remote:
+remote:
   host: grpc://127.0.0.1:9092
   cache:
     compression: zstd
@@ -18,4 +18,4 @@ projects:
     devcontainer: .devcontainer
 vcs:
   defaultBranch: main
-  manager: git
+  provider: git

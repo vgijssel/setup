@@ -2,81 +2,34 @@ description = "A build system and repo management tool for the web ecosystem, wr
 homepage = "https://moonrepo.dev"
 binaries = ["moon"]
 test = "moon --version"
-dont-extract = true
+strip = 1
 
 platform "darwin" "amd64" {
-  source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon-x86_64-apple-darwin"
-
-  on "unpack" {
-    rename {
-      from = "${root}/moon-x86_64-apple-darwin"
-      to = "${root}/moon"
-    }
-
-    chmod {
-      file = "${root}/moon"
-      mode = 493
-    }
-  }
+  # NOTE: Moon v2.0.0+ does not officially support darwin-amd64
+  # Using arm64 binary as fallback to prevent hermit interactive prompts
+  source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon_cli-aarch64-apple-darwin.tar.xz"
 }
 
 platform "darwin" "arm64" {
-  source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon-aarch64-apple-darwin"
-
-  on "unpack" {
-    rename {
-      from = "${root}/moon-aarch64-apple-darwin"
-      to = "${root}/moon"
-    }
-
-    chmod {
-      file = "${root}/moon"
-      mode = 493
-    }
-  }
+  source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon_cli-aarch64-apple-darwin.tar.xz"
 }
 
 platform "linux" "amd64" {
-  source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon-x86_64-unknown-linux-gnu"
-
-  on "unpack" {
-    rename {
-      from = "${root}/moon-x86_64-unknown-linux-gnu"
-      to = "${root}/moon"
-    }
-
-    chmod {
-      file = "${root}/moon"
-      mode = 493
-    }
-  }
+  source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon_cli-x86_64-unknown-linux-gnu.tar.xz"
 }
 
 platform "linux" "arm64" {
-  source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon-aarch64-unknown-linux-gnu"
-
-  on "unpack" {
-    rename {
-      from = "${root}/moon-aarch64-unknown-linux-gnu"
-      to = "${root}/moon"
-    }
-
-    chmod {
-      file = "${root}/moon"
-      mode = 493
-    }
-  }
+  source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon_cli-aarch64-unknown-linux-gnu.tar.xz"
 }
 
-version "1.41.8" {
+version "2.0.0" {
   auto-version {
     github-release = "moonrepo/moon"
   }
 }
 
 sha256sums = {
-  "https://github.com/moonrepo/moon/releases/download/v1.41.8/moon-x86_64-unknown-linux-gnu": "c729a3aefa5afdaf4a915cb4c816dca789f9c1f31574644135506ed90d9515aa",
-  "https://github.com/moonrepo/moon/releases/download/v1.41.8/moon-x86_64-apple-darwin": "58a414a08359e770137c94e166831f293e026f49666d9995bac968af5edef610",
-  "https://github.com/moonrepo/moon/releases/download/v1.41.8/moon-aarch64-apple-darwin": "3cf3e897f8fe900ce72b5187e5346d60e6659f0b9e234b3522045df4a7aa2c2c",
-  "https://github.com/moonrepo/moon/releases/download/v1.41.8/moon-aarch64-unknown-linux-gnu": "83e20e3cd787219e8d9fe00d70a7e4fdcfe389ca83914485e5593c330eefb427",
+  "https://github.com/moonrepo/moon/releases/download/v2.0.0/moon_cli-x86_64-unknown-linux-gnu.tar.xz": "1429955d39f307834b91de80a762c013f11c582dc33c94d063281fb460e47f16",
+  "https://github.com/moonrepo/moon/releases/download/v2.0.0/moon_cli-aarch64-apple-darwin.tar.xz": "f7bf54bf162198ab2347f392107ef8445598bb8368b4730fa15f5c13416c94f0",
+  "https://github.com/moonrepo/moon/releases/download/v2.0.0/moon_cli-aarch64-unknown-linux-gnu.tar.xz": "4aae990032e0454baf7365e17352aaf09e1e52d0fe50f78b91664d68a94f546e",
 }

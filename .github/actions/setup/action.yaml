@@ -28,6 +28,17 @@ runs:
       with:
         cache: true
 
+    - name: Install hermit packages
+      shell: bash
+      run: |
+        # Install hermit packages including moon
+        # Moon v2.0.0 manifest includes darwin-amd64 fallback to prevent interactive prompts
+        ./bin/hermit install
+
+        # Verify moon is installed
+        echo "Verifying moon installation..."
+        moon --version
+
     - name: Setup direnv
       uses: HatsuneMiku3939/direnv-action@v1
       with:
