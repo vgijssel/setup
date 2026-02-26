@@ -1,0 +1,41 @@
+# Expected generated Ingress after virtual-ingress policy processes source-ingress.yaml
+# The matchLabels have been resolved to the actual service name from mock-services.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: coder-resolved
+  namespace: tenant-root
+  labels:
+    virtual-ingress.io/source-name: coder
+    virtual-ingress.io/source-namespace: tenant-root
+    app.kubernetes.io/managed-by: kyverno
+    kyverno.io/generated-by: generate-virtual-ingress
+  annotations:
+    virtual-ingress/processed: "true"
+    virtual-ingress/source-ingress: coder
+    virtual-ingress/resolved-service: a18c2be1873b84bcd8630e79298a07cf
+  ownerReferences:
+    - apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      name: coder
+      # uid: <dynamically assigned>
+      blockOwnerDeletion: true
+      controller: true
+spec:
+  ingressClassName: tenant-root
+  tls:
+    - hosts:
+        - coder.enigma.vgijssel.nl
+      secretName: coder-tls
+  rules:
+    - host: coder.enigma.vgijssel.nl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # Resolved from matchLabels to actual service name
+                name: a18c2be1873b84bcd8630e79298a07cf
+                port:
+                  number: 80
