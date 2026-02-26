@@ -3,10 +3,24 @@ description: Composite action to setup environment with checkout, hermit, direnv
 runs:
   using: composite
   steps:
-    - name: Disk usage
+    - name: Disk usage before cleanup
       shell: bash
       run: |
-        echo "=== Disk usage ==="
+        echo "=== Disk usage before cleanup ==="
+        df -h
+
+    - name: Free Disk Space for Docker
+      uses: endersonmenezes/free-disk-space@v3
+      with:
+        remove_android: true
+        remove_dotnet: true
+        remove_haskell: true
+        rm_cmd: rmz # Faster cleanup
+
+    - name: Disk usage after cleanup
+      shell: bash
+      run: |
+        echo "=== Disk usage after cleanup ==="
         df -h
 
     - name: Init Hermit
