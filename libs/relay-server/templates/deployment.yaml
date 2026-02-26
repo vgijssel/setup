@@ -20,7 +20,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -39,36 +39,36 @@ spec:
           env:
             # Public URL for the relay service
             - name: RELAY_SERVER_URL
-              value: {{ .Values.env.relayServerUrl | quote }}
+              value: {{ .Values.env.relayServerUrl }}
             # Storage backend configuration
             - name: RELAY_SERVER_STORAGE
-              value: {{ .Values.env.relayServerStorage | quote }}
+              value: {{ .Values.env.relayServerStorage }}
             {{- if .Values.env.awsRegion }}
             - name: AWS_REGION
-              value: {{ .Values.env.awsRegion | quote }}
+              value: {{ .Values.env.awsRegion }}
             {{- end }}
             {{- if .Values.env.awsEndpointUrlS3 }}
             - name: AWS_ENDPOINT_URL_S3
-              value: {{ .Values.env.awsEndpointUrlS3 | quote }}
+              value: {{ .Values.env.awsEndpointUrlS3 }}
             {{- end }}
             {{- if .Values.env.awsS3UsePathStyle }}
             - name: AWS_S3_USE_PATH_STYLE
-              value: {{ .Values.env.awsS3UsePathStyle | quote }}
+              value: {{ .Values.env.awsS3UsePathStyle }}
             {{- end }}
             {{- if .Values.env.awsBucket }}
             - name: STORAGE_BUCKET
-              value: {{ .Values.env.awsBucket | quote }}
+              value: {{ .Values.env.awsBucket }}
             {{- end }}
             {{- if .Values.secretReference.name }}
             # AWS credentials from Kubernetes Secret
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secretReference.name | quote }}
-                  key: {{ .Values.secretReference.keys.awsAccessKeyId | quote }}
+                  name: {{ .Values.secretReference.name }}
+                  key: {{ .Values.secretReference.keys.awsAccessKeyId }}
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secretReference.name | quote }}
-                  key: {{ .Values.secretReference.keys.awsSecretAccessKey | quote }}
+                  name: {{ .Values.secretReference.name }}
+                  key: {{ .Values.secretReference.keys.awsSecretAccessKey }}
             {{- end }}
