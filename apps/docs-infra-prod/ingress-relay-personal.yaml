@@ -12,9 +12,6 @@ metadata:
     # Extended timeouts to prevent WebSocket disconnections (default 60s)
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    # Virtual ingress service resolution - labels for dynamic service lookup
-    virtual-ingress/cluster-name: "kubernetes-cluster-docs-infra-prod"
-    virtual-ingress/service-name: "relay-personal"
 spec:
   ingressClassName: tenant-root
   tls:
@@ -29,8 +26,8 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # Placeholder service name - will be resolved by virtual-ingress policy
-                # Actual service determined by virtual-ingress/* annotations above
-                name: virtual-relay-personal
+                # Mirrored LoadBalancer service created by KubeVirt CCM
+                # from virtual cluster cluster-docs-infra-prod (relay-relay-personal-relay-server)
+                name: a53fb8f396c7943d7aaa523646a59773
                 port:
                   number: 8080
