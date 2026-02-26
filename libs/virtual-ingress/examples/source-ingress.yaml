@@ -1,0 +1,38 @@
+# Example source Ingress using matchLabels for dynamic service resolution
+# This ingress uses label selectors instead of a direct service name.
+# The virtual-ingress Kyverno policy will resolve this to an actual service
+# based on the matchLabels.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: coder
+  namespace: tenant-root
+  annotations:
+    # Certificate management
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # WebSocket support for Coder
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: tenant-root
+  tls:
+    - hosts:
+        - coder.enigma.vgijssel.nl
+      secretName: coder-tls
+  rules:
+    - host: coder.enigma.vgijssel.nl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # Instead of a direct service name, we use matchLabels
+                # The virtual-ingress policy will resolve this to the actual service
+                matchLabels:
+                  cluster.x-k8s.io/cluster-name: kubernetes-cluster-docs-infra-prod
+                  cluster.x-k8s.io/tenant-service-name: relay-family
+                port:
+                  number: 80
