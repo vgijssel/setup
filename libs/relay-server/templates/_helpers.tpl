@@ -42,6 +42,6 @@ helm.sh/chart: {{ include "relay-server.chart" . }}
 {{ include "relay-server.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
 {{- end }}
 {{- end }}
