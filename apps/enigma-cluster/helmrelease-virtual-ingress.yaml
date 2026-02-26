@@ -9,7 +9,7 @@ spec:
     mode: enabled
   chart:
     spec:
-      chart: libs/charts/virtual-ingress
+      chart: libs/virtual-ingress
       sourceRef:
         kind: GitRepository
         name: setup
