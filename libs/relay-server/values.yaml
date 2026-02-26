@@ -33,8 +33,8 @@ resources:
 # - Or node-level sysctl configuration
 ulimits:
   nofile:
-    soft: 1024
-    hard: 1024
+    soft: 2048
+    hard: 2048
 
 # Liveness probe - checks if server is responsive
 # Default: TCP probe (relay server doesn't expose HTTP /health endpoint)
