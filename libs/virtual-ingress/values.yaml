@@ -1,13 +1,24 @@
 # Virtual Ingress Helm Chart Values
 # ----------------------------------
-# This chart creates Kyverno policies that resolve label-based service selectors
+# This chart creates Kyverno policies that resolve annotation-based service selectors
 # in Ingress resources. Instead of specifying a service name directly, you can
-# use matchLabels to dynamically resolve the service at runtime.
+# use the `myorg.io/backend-match-labels` annotation to dynamically resolve the
+# service at admission time.
 #
 # Example use case: Kubevirt CCM service mirroring where services are created
 # with dynamic names but consistent labels like:
 #   - cluster.x-k8s.io/cluster-name: kubernetes-cluster-docs-infra-prod
 #   - cluster.x-k8s.io/tenant-service-name: relay-family
+#
+# Usage:
+# Add the following annotation to your Ingress:
+#   myorg.io/backend-match-labels: "cluster.x-k8s.io/cluster-name=my-cluster,cluster.x-k8s.io/tenant-service-name=my-service"
+#
+# The policy will:
+# 1. Query the Kubernetes API for services matching those labels
+# 2. Validate exactly one service matches
+# 3. Mutate the Ingress in-place to use the resolved service name
+# 4. Add `myorg.io/resolved-service-name` annotation to track the resolution
 
 # Kyverno namespace configuration
 # The namespace where Kyverno controllers are running
@@ -16,52 +27,14 @@ kyvernoNamespace: kyverno
 # Service discovery configuration
 serviceDiscovery:
   # How to handle when no service matches the provided labels
-  # Options:
-  #   - error: Block ingress creation with a clear error message (default)
-  #   - warn: Create ingress with a warning annotation
-  #   - ignore: Skip silently without generating
+  # The policy will reject the Ingress with a clear error message
   noMatchBehavior: error
 
   # How to handle when multiple services match the provided labels
-  # Options:
-  #   - error: Block ingress creation with a message listing matching services (default)
-  #   - first: Proceed with the first matching service (alphabetically by name)
+  # The policy will reject the Ingress with a message listing the count
   multipleMatchBehavior: error
 
   # Default namespace for service discovery
   # If empty, uses the same namespace as the source ingress
   # If set, looks for services in this specific namespace
   defaultNamespace: ""
-
-# Generated ingress configuration
-generatedIngress:
-  # Suffix to append to generated ingress name
-  # The generated ingress will be named: <source-ingress-name><suffix>
-  nameSuffix: -resolved
-
-  # Additional labels to add to generated ingresses
-  # These are merged with labels copied from the source ingress
-  additionalLabels: {}
-    # example-label: example-value
-
-  # Additional annotations to add to generated ingresses
-  # These are merged with annotations copied from the source ingress
-  # WebSocket-specific annotations from the source are preserved automatically
-  additionalAnnotations: {}
-    # example-annotation: example-value
-
-# Policy configuration
-policy:
-  # Whether to process existing ingresses when policy is created
-  # If true, Kyverno will scan existing ingresses and generate resolved versions
-  generateExisting: true
-
-  # Enable background scanning
-  # When true, Kyverno will periodically re-evaluate ingresses to detect
-  # service changes (e.g., when a service is recreated with a new name)
-  backgroundScan: true
-
-  # Synchronize generated resources with source
-  # When true, changes to the source ingress are automatically propagated
-  # to the generated ingress, and deletion of source triggers cleanup
-  synchronize: true

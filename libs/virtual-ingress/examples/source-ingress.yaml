@@ -1,7 +1,12 @@
-# Example source Ingress using matchLabels for dynamic service resolution
-# This ingress uses label selectors instead of a direct service name.
-# The virtual-ingress Kyverno policy will resolve this to an actual service
-# based on the matchLabels.
+# Example Ingress using annotation-based dynamic service resolution
+# This ingress uses the myorg.io/backend-match-labels annotation to dynamically
+# resolve the backend service at admission time.
+#
+# The virtual-ingress Kyverno policy will:
+# 1. Read the label selector from the annotation
+# 2. Query services matching those labels
+# 3. Mutate the Ingress to use the resolved service name
+# 4. Add myorg.io/resolved-service-name annotation to track the resolution
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -15,6 +20,9 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-buffering: "off"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Dynamic service resolution via label selector
+    # The policy will find a service with these labels and replace the placeholder name
+    myorg.io/backend-match-labels: "cluster.x-k8s.io/cluster-name=kubernetes-cluster-docs-infra-prod,cluster.x-k8s.io/tenant-service-name=relay-family"
 spec:
   ingressClassName: tenant-root
   tls:
@@ -29,10 +37,8 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # Instead of a direct service name, we use matchLabels
-                # The virtual-ingress policy will resolve this to the actual service
-                matchLabels:
-                  cluster.x-k8s.io/cluster-name: kubernetes-cluster-docs-infra-prod
-                  cluster.x-k8s.io/tenant-service-name: relay-family
+                # Placeholder name - will be replaced by the resolved service name
+                # during admission by the virtual-ingress policy
+                name: placeholder
                 port:
                   number: 80
