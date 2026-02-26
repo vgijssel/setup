@@ -45,10 +45,10 @@ spec:
             jmesPath: "request.object.metadata.namespace"
         - name: clusterName
           variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/cluster-name" || ````'
+            jmesPath: 'matchLabels."cluster.x-k8s.io/cluster-name" || `""`'
         - name: tenantServiceName
           variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/tenant-service-name" || ````'
+            jmesPath: 'matchLabels."cluster.x-k8s.io/tenant-service-name" || `""`'
         - name: matchingServices
           apiCall:
             urlPath: "/api/v1/namespaces/{{"{{serviceNamespace}}"}}/services?labelSelector=cluster.x-k8s.io/cluster-name%3D{{"{{clusterName}}"}},cluster.x-k8s.io/tenant-service-name%3D{{"{{tenantServiceName}}"}}"
@@ -90,10 +90,10 @@ spec:
             jmesPath: "request.object.metadata.namespace"
         - name: clusterName
           variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/cluster-name" || ````'
+            jmesPath: 'matchLabels."cluster.x-k8s.io/cluster-name" || `""`'
         - name: tenantServiceName
           variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/tenant-service-name" || ````'
+            jmesPath: 'matchLabels."cluster.x-k8s.io/tenant-service-name" || `""`'
         - name: matchingServices
           apiCall:
             urlPath: "/api/v1/namespaces/{{"{{serviceNamespace}}"}}/services?labelSelector=cluster.x-k8s.io/cluster-name%3D{{"{{clusterName}}"}},cluster.x-k8s.io/tenant-service-name%3D{{"{{tenantServiceName}}"}}"
@@ -142,10 +142,10 @@ spec:
         # Note: This works with common label patterns like cluster.x-k8s.io labels
         - name: clusterName
           variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/cluster-name" || ````'
+            jmesPath: 'matchLabels."cluster.x-k8s.io/cluster-name" || `""`'
         - name: tenantServiceName
           variable:
-            jmesPath: 'matchLabels."cluster.x-k8s.io/tenant-service-name" || ````'
+            jmesPath: 'matchLabels."cluster.x-k8s.io/tenant-service-name" || `""`'
         # Query services in the namespace with label selector
         - name: matchingServices
           apiCall:
