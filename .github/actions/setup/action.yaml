@@ -31,18 +31,13 @@ runs:
     - name: Install hermit packages
       shell: bash
       run: |
-        # Install all packages from hermit manifests
-        # Run hermit install without specific package to install all
-        # This avoids the interactive prompt for moon v2.0.0
-        ./bin/hermit install || echo "Hermit install completed with warnings"
+        # Install hermit packages including moon
+        # Moon v2.0.0 manifest includes darwin-amd64 fallback to prevent interactive prompts
+        ./bin/hermit install
 
-        # Verify moon is available (hermit will lazy-install on first use)
-        echo "Checking moon availability..."
-        if command -v moon &> /dev/null; then
-          echo "moon successfully available: $(moon --version)"
-        else
-          echo "moon not immediately available - will be lazy-installed on first use"
-        fi
+        # Verify moon is installed
+        echo "Verifying moon installation..."
+        moon --version
 
     - name: Setup direnv
       uses: HatsuneMiku3939/direnv-action@v1

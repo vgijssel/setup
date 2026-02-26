@@ -4,6 +4,12 @@ binaries = ["moon"]
 test = "moon --version"
 strip = 1
 
+platform "darwin" "amd64" {
+  # NOTE: Moon v2.0.0+ does not officially support darwin-amd64
+  # Using arm64 binary as fallback to prevent hermit interactive prompts
+  source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon_cli-aarch64-apple-darwin.tar.xz"
+}
+
 platform "darwin" "arm64" {
   source = "https://github.com/moonrepo/moon/releases/download/v${version}/moon_cli-aarch64-apple-darwin.tar.xz"
 }
