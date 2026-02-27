@@ -1,0 +1,41 @@
+# Mock Service for testing virtual-ingress resolution
+# This service is labeled with the cluster.x-k8s.io labels that the
+# source-ingress.yaml matchLabels reference.
+# In production, these services are created by Kubevirt CCM with dynamic names.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: a18c2be1873b84bcd8630e79298a07cf
+  namespace: tenant-root
+  labels:
+    # These labels match the matchLabels in source-ingress.yaml
+    cluster.x-k8s.io/cluster-name: kubernetes-cluster-docs-infra-prod
+    cluster.x-k8s.io/tenant-service-name: relay-family
+    cluster.x-k8s.io/tenant-service-namespace: relay
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: relay-server
+---
+# Second service with different cluster name (should NOT match)
+apiVersion: v1
+kind: Service
+metadata:
+  name: different-cluster-service
+  namespace: tenant-root
+  labels:
+    cluster.x-k8s.io/cluster-name: kubernetes-cluster-different
+    cluster.x-k8s.io/tenant-service-name: relay-family
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: other-service

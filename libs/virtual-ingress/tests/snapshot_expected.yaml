@@ -1,0 +1,265 @@
+---
+# Source: virtual-ingress/templates/rbac.yaml
+# RBAC for Kyverno to perform service discovery and ingress mutation
+# Grants permissions to:
+# - Read services (for label-based service discovery via API calls)
+# - Update/patch ingresses (for in-place mutation of service names)
+#
+# Note: Since we use mutate rules (not generate), we only need update/patch
+# permissions for ingresses, not create/delete.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kyverno-virtual-ingress
+  labels:
+    helm.sh/chart: virtual-ingress-0.1.0
+    app.kubernetes.io/name: virtual-ingress
+    app.kubernetes.io/instance: virtual-ingress
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+rules:
+  # Service discovery - read services by labels
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+  # Ingress mutation - update ingresses in-place
+  # Note: create/delete removed since we mutate instead of generate
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+---
+# Source: virtual-ingress/templates/rbac.yaml
+# Bind the ClusterRole to Kyverno service accounts
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kyverno-virtual-ingress
+  labels:
+    helm.sh/chart: virtual-ingress-0.1.0
+    app.kubernetes.io/name: virtual-ingress
+    app.kubernetes.io/instance: virtual-ingress
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kyverno-virtual-ingress
+subjects:
+  # Admission controller handles mutate rules during admission
+  - kind: ServiceAccount
+    name: kyverno-admission-controller
+    namespace: kyverno
+---
+# Source: virtual-ingress/templates/clusterpolicy-virtual-ingress.yaml
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: virtual-ingress
+  annotations:
+    policies.kyverno.io/title: Resolve Virtual Ingress Service from Annotation Labels
+    policies.kyverno.io/category: Networking
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Ingress
+    policies.kyverno.io/description: >-
+      Resolves Ingress resources that use the myorg.io/backend-match-labels annotation for dynamic service lookup.
+      When an Ingress has the myorg.io/backend-match-labels annotation with a label selector string,
+      this policy queries the Kubernetes API to find matching services and mutates the Ingress
+      to use the resolved service name in-place for all rules and paths.
+    # Hash of immutable fields - used by pre-upgrade hook to detect changes
+    virtual-ingress/immutable-hash: "7a9e035cbbd54325"
+  labels:
+    helm.sh/chart: virtual-ingress-0.1.0
+    app.kubernetes.io/name: virtual-ingress
+    app.kubernetes.io/instance: virtual-ingress
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  # Only process during admission, not background scans (we mutate in-place)
+  background: false
+  # Fail admission if mutation cannot be applied
+  failurePolicy: Fail
+  rules:
+    # Validation rule: reject if no service matches the label selector
+    - name: validate-service-exists
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+      preconditions:
+        all:
+          # Must have the backend-match-labels annotation
+          - key: '{{ request.object.metadata.annotations."myorg.io/backend-match-labels" || '''' }}'
+            operator: NotEquals
+            value: ""
+          # Don't re-process already resolved ingresses
+          - key: '{{ request.object.metadata.annotations."myorg.io/resolved-service-name" || '''' }}'
+            operator: Equals
+            value: ""
+      context:
+        # Extract the label selector from the annotation
+        - name: labelSelector
+          variable:
+            jmesPath: 'request.object.metadata.annotations."myorg.io/backend-match-labels"'
+        # Get namespace for service lookup
+        - name: serviceNamespace
+          variable:
+            jmesPath: "request.object.metadata.namespace"
+        # Query services using the label selector from annotation
+        - name: matchingServices
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{serviceNamespace}}/services?labelSelector={{labelSelector}}"
+            jmesPath: "items"
+        - name: matchCount
+          variable:
+            jmesPath: "length(matchingServices)"
+      validate:
+        message: "No service found matching labels: {{labelSelector}} in namespace {{serviceNamespace}}."
+        deny:
+          conditions:
+            all:
+              - key: "{{ matchCount }}"
+                operator: Equals
+                value: 0
+
+    # Validation rule: reject if multiple services match
+    - name: validate-single-service
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+      preconditions:
+        all:
+          # Must have the backend-match-labels annotation
+          - key: '{{ request.object.metadata.annotations."myorg.io/backend-match-labels" || '''' }}'
+            operator: NotEquals
+            value: ""
+          # Don't re-process already resolved ingresses
+          - key: '{{ request.object.metadata.annotations."myorg.io/resolved-service-name" || '''' }}'
+            operator: Equals
+            value: ""
+      context:
+        # Extract the label selector from the annotation
+        - name: labelSelector
+          variable:
+            jmesPath: 'request.object.metadata.annotations."myorg.io/backend-match-labels"'
+        # Get namespace for service lookup
+        - name: serviceNamespace
+          variable:
+            jmesPath: "request.object.metadata.namespace"
+        # Query services using the label selector from annotation
+        - name: matchingServices
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{serviceNamespace}}/services?labelSelector={{labelSelector}}"
+            jmesPath: "items"
+        - name: matchCount
+          variable:
+            jmesPath: "length(matchingServices)"
+      validate:
+        message: "Multiple services found matching labels: {{labelSelector}}. Found {{matchCount}} services. Ensure labels uniquely identify a single service."
+        deny:
+          conditions:
+            all:
+              - key: "{{ matchCount }}"
+                operator: GreaterThan
+                value: 1
+
+    # Mutate rule: resolve service from annotation labels and update all backends
+    - name: resolve-service-from-annotation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+      # Only process ingresses that have the backend-match-labels annotation
+      preconditions:
+        all:
+          # Must have backend-match-labels annotation
+          - key: '{{ request.object.metadata.annotations."myorg.io/backend-match-labels" || '''' }}'
+            operator: NotEquals
+            value: ""
+          # Don't re-process already resolved ingresses
+          - key: '{{ request.object.metadata.annotations."myorg.io/resolved-service-name" || '''' }}'
+            operator: Equals
+            value: ""
+      # Query services using the API
+      context:
+        # Extract the label selector from the annotation
+        - name: labelSelector
+          variable:
+            jmesPath: 'request.object.metadata.annotations."myorg.io/backend-match-labels"'
+        # Get namespace for service lookup
+        - name: serviceNamespace
+          variable:
+            jmesPath: "request.object.metadata.namespace"
+        # Query services in the namespace with label selector
+        - name: matchingServices
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{serviceNamespace}}/services?labelSelector={{labelSelector}}"
+            jmesPath: "items"
+        # Get first matching service name
+        - name: resolvedServiceName
+          variable:
+            jmesPath: "matchingServices[0].metadata.name"
+      # Mutate all backends using foreach over rules and paths
+      mutate:
+        foreach:
+          # Iterate over all rules
+          - list: "request.object.spec.rules"
+            foreach:
+              # Iterate over all paths in each rule
+              - list: "element.http.paths"
+                patchesJson6902: |-
+                  - op: replace
+                    path: /spec/rules/{{elementIndex0}}/http/paths/{{elementIndex1}}/backend/service/name
+                    value: "{{ resolvedServiceName }}"
+
+    # Add resolved annotation after mutation
+    - name: add-resolved-annotation
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+      preconditions:
+        all:
+          # Must have backend-match-labels annotation
+          - key: '{{ request.object.metadata.annotations."myorg.io/backend-match-labels" || '''' }}'
+            operator: NotEquals
+            value: ""
+          # Don't re-process already resolved ingresses
+          - key: '{{ request.object.metadata.annotations."myorg.io/resolved-service-name" || '''' }}'
+            operator: Equals
+            value: ""
+      context:
+        - name: labelSelector
+          variable:
+            jmesPath: 'request.object.metadata.annotations."myorg.io/backend-match-labels"'
+        - name: serviceNamespace
+          variable:
+            jmesPath: "request.object.metadata.namespace"
+        - name: matchingServices
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{serviceNamespace}}/services?labelSelector={{labelSelector}}"
+            jmesPath: "items"
+        - name: resolvedServiceName
+          variable:
+            jmesPath: "matchingServices[0].metadata.name"
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            annotations:
+              myorg.io/resolved-service-name: "{{ resolvedServiceName }}"

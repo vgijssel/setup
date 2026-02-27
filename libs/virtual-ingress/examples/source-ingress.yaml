@@ -1,0 +1,44 @@
+# Example Ingress using annotation-based dynamic service resolution
+# This ingress uses the myorg.io/backend-match-labels annotation to dynamically
+# resolve the backend service at admission time.
+#
+# The virtual-ingress Kyverno policy will:
+# 1. Read the label selector from the annotation
+# 2. Query services matching those labels
+# 3. Mutate the Ingress to use the resolved service name
+# 4. Add myorg.io/resolved-service-name annotation to track the resolution
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: coder
+  namespace: tenant-root
+  annotations:
+    # Certificate management
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # WebSocket support for Coder
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Dynamic service resolution via label selector
+    # The policy will find a service with these labels and replace the placeholder name
+    myorg.io/backend-match-labels: "cluster.x-k8s.io/cluster-name=kubernetes-cluster-docs-infra-prod,cluster.x-k8s.io/tenant-service-name=relay-family"
+spec:
+  ingressClassName: tenant-root
+  tls:
+    - hosts:
+        - coder.enigma.vgijssel.nl
+      secretName: coder-tls
+  rules:
+    - host: coder.enigma.vgijssel.nl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # Placeholder name - will be replaced by the resolved service name
+                # during admission by the virtual-ingress policy
+                name: placeholder
+                port:
+                  number: 80

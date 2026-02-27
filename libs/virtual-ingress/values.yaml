@@ -1,0 +1,40 @@
+# Virtual Ingress Helm Chart Values
+# ----------------------------------
+# This chart creates Kyverno policies that resolve annotation-based service selectors
+# in Ingress resources. Instead of specifying a service name directly, you can
+# use the `myorg.io/backend-match-labels` annotation to dynamically resolve the
+# service at admission time.
+#
+# Example use case: Kubevirt CCM service mirroring where services are created
+# with dynamic names but consistent labels like:
+#   - cluster.x-k8s.io/cluster-name: kubernetes-cluster-docs-infra-prod
+#   - cluster.x-k8s.io/tenant-service-name: relay-family
+#
+# Usage:
+# Add the following annotation to your Ingress:
+#   myorg.io/backend-match-labels: "cluster.x-k8s.io/cluster-name=my-cluster,cluster.x-k8s.io/tenant-service-name=my-service"
+#
+# The policy will:
+# 1. Query the Kubernetes API for services matching those labels
+# 2. Validate exactly one service matches
+# 3. Mutate the Ingress in-place to use the resolved service name
+# 4. Add `myorg.io/resolved-service-name` annotation to track the resolution
+
+# Kyverno namespace configuration
+# The namespace where Kyverno controllers are running
+kyvernoNamespace: kyverno
+
+# Service discovery configuration
+serviceDiscovery:
+  # How to handle when no service matches the provided labels
+  # The policy will reject the Ingress with a clear error message
+  noMatchBehavior: error
+
+  # How to handle when multiple services match the provided labels
+  # The policy will reject the Ingress with a message listing the count
+  multipleMatchBehavior: error
+
+  # Default namespace for service discovery
+  # If empty, uses the same namespace as the source ingress
+  # If set, looks for services in this specific namespace
+  defaultNamespace: ""

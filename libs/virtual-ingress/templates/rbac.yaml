@@ -1,0 +1,57 @@
+---
+# RBAC for Kyverno to perform service discovery and ingress mutation
+# Grants permissions to:
+# - Read services (for label-based service discovery via API calls)
+# - Update/patch ingresses (for in-place mutation of service names)
+#
+# Note: Since we use mutate rules (not generate), we only need update/patch
+# permissions for ingresses, not create/delete.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kyverno-virtual-ingress
+  labels:
+    {{- include "virtual-ingress.labels" . | nindent 4 }}
+rules:
+  # Service discovery - read services by labels
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+  # Ingress mutation - update ingresses in-place
+  # Note: create/delete removed since we mutate instead of generate
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+---
+# Bind the ClusterRole to Kyverno service accounts
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kyverno-virtual-ingress
+  labels:
+    {{- include "virtual-ingress.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kyverno-virtual-ingress
+subjects:
+  # Admission controller handles mutate rules during admission
+  - kind: ServiceAccount
+    name: kyverno-admission-controller
+    namespace: {{ .Values.kyvernoNamespace }}
+  # Background controller handles mutate existing rules for service changes
+  - kind: ServiceAccount
+    name: kyverno-background-controller
+    namespace: {{ .Values.kyvernoNamespace }}

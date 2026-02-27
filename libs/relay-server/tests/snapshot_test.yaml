@@ -1,0 +1,58 @@
+# Test values for relay-server Helm chart snapshot testing
+name: relay-server
+replicaCount: 1
+
+image:
+  repository: docker.system3.md/relay-server
+  pullPolicy: IfNotPresent
+  tag: v0.9.2
+  pullSecrets: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+ulimits:
+  nofile:
+    soft: 1024
+    hard: 1024
+
+livenessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+  annotations: {}
+
+env:
+  relayServerUrl: https://relay.example.com
+  relayServerStorage: s3
+  awsRegion: us-east-1
+  awsEndpointUrlS3: ""
+  awsS3UsePathStyle: false
+  awsBucket: test-bucket
+
+secretReference:
+  name: relay-server-secret
+  keys:
+    awsAccessKeyId: AWS_ACCESS_KEY_ID
+    awsSecretAccessKey: AWS_SECRET_ACCESS_KEY

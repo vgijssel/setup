@@ -1,0 +1,120 @@
+{{- if .Release.IsUpgrade }}
+---
+# Pre-upgrade hook to delete ClusterPolicy ONLY when its immutable fields have changed.
+# This is necessary because Kyverno's admission webhook prevents in-place updates
+# to immutable fields in ClusterPolicy generate rules (spec.rules.match,
+# spec.rules.preconditions, spec.generate.apiVersion, etc.)
+#
+# The hook compares the hash annotation on existing policy with the new hash.
+# Only if they differ will the policy be deleted and recreated.
+#
+# This prevents unnecessary deletions which would cause:
+# - Deletion of all generated resources (resolved Ingresses)
+# - Downtime while waiting for regeneration
+#
+# Hook lifecycle:
+# 1. pre-upgrade: Runs after templates are rendered but before resources are applied
+# 2. before-hook-creation: Deletes any previous hook Job before creating new one
+# 3. hook-succeeded: Deletes the Job after successful completion
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "virtual-ingress.fullname" . }}-pre-upgrade-hook
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    {{- include "virtual-ingress.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "virtual-ingress.fullname" . }}-pre-upgrade-hook
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    {{- include "virtual-ingress.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["kyverno.io"]
+    resources: ["clusterpolicies"]
+    verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "virtual-ingress.fullname" . }}-pre-upgrade-hook
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    {{- include "virtual-ingress.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "virtual-ingress.fullname" . }}-pre-upgrade-hook
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "virtual-ingress.fullname" . }}-pre-upgrade-hook
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "virtual-ingress.fullname" . }}-pre-upgrade-hook
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    {{- include "virtual-ingress.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        {{- include "virtual-ingress.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: pre-upgrade-hook
+    spec:
+      serviceAccountName: {{ include "virtual-ingress.fullname" . }}-pre-upgrade-hook
+      restartPolicy: OnFailure
+      containers:
+        - name: delete-policies
+          image: docker.io/bitnami/kubectl:1.31
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Checking ClusterPolicy for immutable field changes..."
+
+              # Expected hash from the new Helm template
+              POLICY_NAME="generate-virtual-ingress"
+              NEW_HASH={{ include "virtual-ingress.policyHash" . | quote }}
+
+              # Get current hash from the existing policy (if it exists)
+              CURRENT_HASH=$(kubectl get clusterpolicy "$POLICY_NAME" -o jsonpath='{.metadata.annotations.virtual-ingress/immutable-hash}' 2>/dev/null || echo "")
+
+              if [ -z "$CURRENT_HASH" ]; then
+                echo "Policy $POLICY_NAME: No existing hash found (new policy or missing annotation)"
+                # Delete if exists but has no hash (legacy policy)
+                if kubectl get clusterpolicy "$POLICY_NAME" 2>/dev/null; then
+                  echo "Policy $POLICY_NAME: Deleting legacy policy without hash annotation"
+                  kubectl delete clusterpolicy "$POLICY_NAME" --wait=true --timeout=60s
+                fi
+              elif [ "$CURRENT_HASH" != "$NEW_HASH" ]; then
+                echo "Policy $POLICY_NAME: Hash changed from '$CURRENT_HASH' to '$NEW_HASH'"
+                echo "Policy $POLICY_NAME: Deleting to allow recreation with new immutable fields"
+                kubectl delete clusterpolicy "$POLICY_NAME" --wait=true --timeout=60s
+              else
+                echo "Policy $POLICY_NAME: Hash unchanged ($CURRENT_HASH), skipping deletion"
+              fi
+
+              echo "Pre-upgrade hook completed successfully"
+{{- end }}

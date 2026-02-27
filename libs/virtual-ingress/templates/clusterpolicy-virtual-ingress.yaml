@@ -1,0 +1,123 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: virtual-ingress
+  annotations:
+    policies.kyverno.io/title: Resolve Ingress Backend by Label Selector
+    policies.kyverno.io/category: Networking
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Ingress
+    policies.kyverno.io/description: >-
+      Resolves Ingress backends from a label selector annotation, both at
+      admission time and reactively when Services are created or deleted.
+    # Hash of immutable fields - used by pre-upgrade hook to detect changes
+    virtual-ingress/immutable-hash: {{ include "virtual-ingress.policyHash" . | quote }}
+  labels:
+    {{- include "virtual-ingress.labels" . | nindent 4 }}
+spec:
+  background: true
+  failurePolicy: Fail
+  rules:
+
+    # Rule 1: Validate - reject if no service matches
+    - name: validate-service-exists
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+              operations:
+                - CREATE
+                - UPDATE
+      preconditions:
+        all:
+          - key: '{{"{{"}} request.object.metadata.annotations."myorg.io/backend-match-labels" || '''' {{"}}"}}'
+            operator: NotEquals
+            value: ""
+      context:
+        - name: labelSelector
+          variable:
+            jmesPath: 'request.object.metadata.annotations."myorg.io/backend-match-labels"'
+        - name: serviceName
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{"{{"}} request.namespace {{"}}"}}/services?labelSelector={{"{{"}} labelSelector {{"}}"}}"
+            jmesPath: "items[0].metadata.name"
+            default: ""
+      validate:
+        message: 'No service found matching labels: {{"{{"}} labelSelector {{"}}"}} in namespace {{"{{"}} request.namespace {{"}}"}}.'
+        deny:
+          conditions:
+            all:
+              - key: "{{"{{"}} serviceName {{"}}"}}"
+                operator: Equals
+                value: ""
+
+    # Rule 2: Admission-time mutation — resolve when an Ingress is created/updated
+    - name: resolve-on-ingress-admission
+      match:
+        any:
+          - resources:
+              kinds:
+                - Ingress
+              operations:
+                - CREATE
+                - UPDATE
+      preconditions:
+        all:
+          - key: '{{"{{"}} request.object.metadata.annotations."myorg.io/backend-match-labels" || '''' {{"}}"}}'
+            operator: NotEquals
+            value: ""
+      context:
+        - name: labelSelector
+          variable:
+            jmesPath: 'request.object.metadata.annotations."myorg.io/backend-match-labels"'
+        - name: serviceName
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{"{{"}} request.namespace {{"}}"}}/services?labelSelector={{"{{"}} labelSelector {{"}}"}}"
+            jmesPath: "items[0].metadata.name"
+            default: ""
+      mutate:
+        patchesJson6902: |-
+          - op: replace
+            path: /spec/rules/0/http/paths/0/backend/service/name
+            value: "{{"{{"}} serviceName {{"}}"}}"
+          - op: add
+            path: /metadata/annotations/myorg.io~1resolved-service-name
+            value: "{{"{{"}} serviceName {{"}}"}}"
+
+    # Rule 3: Reactive — re-resolve when a Service is created or deleted
+    - name: update-ingress-on-service-change
+      match:
+        any:
+          - resources:
+              kinds:
+                - Service
+              operations:
+                - CREATE
+                - DELETE
+      context:
+        - name: labelSelector
+          variable:
+            jmesPath: 'target.metadata.annotations."myorg.io/backend-match-labels"'
+        - name: serviceName
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{"{{"}} request.namespace {{"}}"}}/services?labelSelector={{"{{"}} labelSelector {{"}}"}}"
+            jmesPath: "items[0].metadata.name"
+            default: ""
+      mutate:
+        targets:
+          - apiVersion: networking.k8s.io/v1
+            kind: Ingress
+            namespace: "{{"{{"}} request.namespace {{"}}"}}"
+            preconditions:
+              all:
+                - key: '{{"{{"}} target.metadata.annotations."myorg.io/backend-match-labels" || '''' {{"}}"}}'
+                  operator: NotEquals
+                  value: ""
+        patchesJson6902: |-
+          - op: replace
+            path: /spec/rules/0/http/paths/0/backend/service/name
+            value: "{{"{{"}} serviceName {{"}}"}}"
+          - op: add
+            path: /metadata/annotations/myorg.io~1resolved-service-name
+            value: "{{"{{"}} serviceName {{"}}"}}"
