@@ -51,3 +51,7 @@ subjects:
   - kind: ServiceAccount
     name: kyverno-admission-controller
     namespace: {{ .Values.kyvernoNamespace }}
+  # Background controller handles mutate existing rules for service changes
+  - kind: ServiceAccount
+    name: kyverno-background-controller
+    namespace: {{ .Values.kyvernoNamespace }}
