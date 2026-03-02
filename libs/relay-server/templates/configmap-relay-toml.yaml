@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "relay-server.fullname" . }}-config
+  labels:
+    {{- include "relay-server.labels" . | nindent 4 }}
+data:
+  relay.toml: |
+    # Minimal relay.toml - S3 storage configuration
+    # Other settings (server, logging) are configured via environment variables
+    # Auth keys use the defaults baked into the container image
+
+    [store]
+    type = "s3"
+    region = "{{ .Values.env.awsRegion }}"
+    {{- if .Values.env.awsEndpointUrlS3 }}
+    endpoint = "{{ .Values.env.awsEndpointUrlS3 }}"
+    {{- end }}
+    path_style = {{ .Values.env.awsS3UsePathStyle }}
+    prefix = "{{ include "relay-server.fullname" . }}"
