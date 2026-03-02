@@ -26,8 +26,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # Mirrored LoadBalancer service created by KubeVirt CCM
-                # from virtual cluster cluster-docs-infra-prod (relay-relay-personal-relay-server)
-                name: a4fd63674b1304248bc3df9b370650b3
+                # KubeVirt CCM mirrored service (cluster.x-k8s.io/tenant-service-name=relay-personal)
+                name: a3b02bf46cb9f48d7bf11e310e077773
                 port:
                   number: 8080

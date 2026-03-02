@@ -29,6 +29,7 @@ spec:
             pathType: Prefix
             backend:
               service:
+                # KubeVirt CCM mirrored service (cluster.x-k8s.io/tenant-service-name=coder)
                 name: a18c2be1873b84bcd8630e79298a07cf
                 port:
                   number: 80
@@ -39,6 +40,7 @@ spec:
             pathType: Prefix
             backend:
               service:
+                # KubeVirt CCM mirrored service (cluster.x-k8s.io/tenant-service-name=coder)
                 name: a18c2be1873b84bcd8630e79298a07cf
                 port:
                   number: 80
