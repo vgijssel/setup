@@ -70,11 +70,6 @@ logging:
   level: info
   format: pretty
 
-# S3 store configuration (used in relay.toml)
-store:
-  # S3 bucket name (required)
-  bucket: ""
-
 # Environment variables for relay server
 env:
   # Public URL for your service
@@ -83,8 +78,6 @@ env:
   awsRegion: us-east-1
   # Custom S3 endpoint (for non-AWS S3-compatible services)
   awsEndpointUrlS3: ""
-  # Use path-style URLs for S3
-  awsS3UsePathStyle: "false"
 
 # Secret reference for AWS credentials and bucket
 secretReference:

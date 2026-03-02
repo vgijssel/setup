@@ -11,8 +11,6 @@ spec:
       {{- include "relay-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap-relay-toml.yaml") . | sha256sum }}
       labels:
         {{- include "relay-server.selectorLabels" . | nindent 8 }}
     spec:
@@ -50,25 +48,26 @@ spec:
             - name: RELAY_SERVER_LOG_FORMAT
               value: "{{ .Values.logging.format }}"
             # S3 storage configuration
-            # Note: Using individual env vars instead of RELAY_SERVER_STORAGE=s3://...
-            # because the s3:// URL format hardcodes path_style=false
+            # STORAGE_BUCKET must be defined before RELAY_SERVER_STORAGE for substitution
             - name: STORAGE_PREFIX
               value: "{{ include "relay-server.fullname" . }}"
+            {{- if .Values.secretReference.name }}
+            - name: STORAGE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretReference.name }}
+                  key: {{ .Values.secretReference.keys.bucket }}
+            {{- end }}
+            - name: RELAY_SERVER_STORAGE
+              value: "s3://$(STORAGE_BUCKET)/$(STORAGE_PREFIX)"
             - name: AWS_REGION
               value: "{{ .Values.env.awsRegion }}"
             {{- if .Values.env.awsEndpointUrlS3 }}
             - name: AWS_ENDPOINT_URL_S3
               value: "{{ .Values.env.awsEndpointUrlS3 }}"
             {{- end }}
-            - name: AWS_S3_USE_PATH_STYLE
-              value: "{{ .Values.env.awsS3UsePathStyle }}"
             {{- if .Values.secretReference.name }}
-            # Bucket and credentials from secret
-            - name: STORAGE_BUCKET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secretReference.name }}
-                  key: {{ .Values.secretReference.keys.bucket }}
+            # Credentials from secret
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -80,12 +79,3 @@ spec:
                   name: {{ .Values.secretReference.name }}
                   key: {{ .Values.secretReference.keys.awsSecretAccessKey }}
             {{- end }}
-          volumeMounts:
-            - name: config
-              mountPath: /app/relay.toml
-              subPath: relay.toml
-              readOnly: true
-      volumes:
-        - name: config
-          configMap:
-            name: {{ include "relay-server.fullname" . }}-config

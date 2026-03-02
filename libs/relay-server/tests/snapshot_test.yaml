@@ -47,14 +47,10 @@ logging:
   level: info
   format: pretty
 
-store:
-  bucket: test-bucket
-
 env:
   relayServerUrl: https://relay.example.com
   awsRegion: us-east-1
   awsEndpointUrlS3: ""
-  awsS3UsePathStyle: "false"
 
 secretReference:
   name: relay-server-secret

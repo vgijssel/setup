@@ -44,13 +44,10 @@ spec:
     logging:
       level: debug
       format: pretty
-    store:
-      bucket: bucket-ea312e3e-9f61-4550-8a4a-f0d13222e4a9
     env:
       relayServerUrl: https://personal.relay.enigma.vgijssel.nl
       awsRegion: us-east-1
       awsEndpointUrlS3: https://s3.enigma.vgijssel.nl
-      awsS3UsePathStyle: "true"
     # Reference the 1Password-managed secret
     # Note: 1Password item has keys: accessKey, secretKey, bucket, endpoint
     secretReference:
