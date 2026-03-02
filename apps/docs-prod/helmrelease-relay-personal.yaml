@@ -42,7 +42,7 @@ spec:
         cpu: 500m
         memory: 1Gi
     logging:
-      level: info
+      level: debug
       format: pretty
     env:
       relayServerUrl: https://personal.relay.enigma.vgijssel.nl
