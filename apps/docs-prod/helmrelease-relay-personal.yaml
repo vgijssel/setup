@@ -51,7 +51,7 @@ spec:
       relayServerStorage: s3
       awsRegion: us-east-1
       awsEndpointUrlS3: https://s3.enigma.vgijssel.nl
-      awsBucket: bucket-7f79c3ba-4dd7-42f1-9844-1e17302da678
+      awsBucket: ""
       awsS3UsePathStyle: "true"
     # Reference the 1Password-managed secret
     # Note: 1Password item has keys: accessKey, secretKey, bucket, endpoint
@@ -60,3 +60,4 @@ spec:
       keys:
         awsAccessKeyId: accessKey
         awsSecretAccessKey: secretKey
+        bucket: bucket

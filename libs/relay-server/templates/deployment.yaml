@@ -50,6 +50,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secretReference.name }}
                   key: {{ .Values.secretReference.keys.awsSecretAccessKey }}
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretReference.name }}
+                  key: {{ .Values.secretReference.keys.bucket }}
           {{- end }}
           volumeMounts:
             - name: config

@@ -125,6 +125,11 @@ spec:
                 secretKeyRef:
                   name: relay-server-secret
                   key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: relay-server-secret
+                  key: bucket
           volumeMounts:
             - name: config
               mountPath: /app/relay.toml
