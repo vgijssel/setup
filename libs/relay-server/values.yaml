@@ -70,6 +70,10 @@ logging:
   level: info
   format: pretty
 
+# S3 store configuration (used in relay.toml)
+store:
+  bucket: ""
+
 # Environment variables for relay server
 env:
   # Public URL for your service

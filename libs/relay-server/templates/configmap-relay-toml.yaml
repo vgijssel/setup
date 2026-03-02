@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "relay-server.fullname" . }}-config
+  labels:
+    {{- include "relay-server.labels" . | nindent 4 }}
+data:
+  relay.toml: |
+    # S3 storage configuration with path_style=true
+    # Credentials provided via AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY env vars
+
+    [store]
+    type = "s3"
+    bucket = "{{ .Values.store.bucket }}"
+    region = "{{ .Values.env.awsRegion }}"
+    {{- if .Values.env.awsEndpointUrlS3 }}
+    endpoint = "{{ .Values.env.awsEndpointUrlS3 }}"
+    {{- end }}
+    path_style = true
+    prefix = "{{ include "relay-server.fullname" . }}"
