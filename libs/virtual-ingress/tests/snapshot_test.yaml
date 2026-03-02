@@ -1,7 +1,0 @@
-# Test values for snapshot testing
-kyvernoNamespace: kyverno
-
-serviceDiscovery:
-  noMatchBehavior: error
-  multipleMatchBehavior: error
-  defaultNamespace: ""
