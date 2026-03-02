@@ -1,22 +1,4 @@
 ---
-# Source: relay-server/templates/pvc.yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: relay-server-data
-  labels:
-    helm.sh/chart: relay-server-0.1.0
-    app.kubernetes.io/name: relay-server
-    app.kubernetes.io/instance: relay-server
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/version: 0.9.2
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
 # Source: relay-server/templates/configmap-relay-toml.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -55,6 +37,24 @@ data:
     [[auth]]
     key_id = "relay_2025_10_23"
     public_key = "fbm9JLHrwPpST5HAYORTQR/i1VbZ1kdp2ZEy0XpMbf0="
+---
+# Source: relay-server/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: relay-server-data
+  labels:
+    helm.sh/chart: relay-server-0.1.0
+    app.kubernetes.io/name: relay-server
+    app.kubernetes.io/instance: relay-server
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: 0.9.2
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
 ---
 # Source: relay-server/templates/service.yaml
 apiVersion: v1
@@ -98,7 +98,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 4cdd8b60d10e5f1f0acf72f64d41f3b9bc4ad3e5e03e00c4a9f8e4d26c68c8d2
+        checksum/config: eb447352df146bcb0dde6ad0e7db42d7bd04247cb30beeefc0e537f91fa70d13
       labels:
         app.kubernetes.io/name: relay-server
         app.kubernetes.io/instance: relay-server
