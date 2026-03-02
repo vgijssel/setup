@@ -15,6 +15,7 @@ spec:
         name: setup
         namespace: cozy-fluxcd
       interval: 12h
+      reconcileStrategy: Revision
   targetNamespace: relay
   dependsOn:
     - name: 1password-secrets
