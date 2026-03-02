@@ -48,7 +48,6 @@ spec:
             - name: RELAY_SERVER_LOG_FORMAT
               value: "{{ .Values.logging.format }}"
             # S3 storage configuration
-            # STORAGE_BUCKET must be defined before RELAY_SERVER_STORAGE for substitution
             - name: STORAGE_PREFIX
               value: "{{ include "relay-server.fullname" . }}"
             {{- if .Values.secretReference.name }}
@@ -66,6 +65,8 @@ spec:
             - name: AWS_ENDPOINT_URL_S3
               value: "{{ .Values.env.awsEndpointUrlS3 }}"
             {{- end }}
+            - name: AWS_S3_USE_PATH_STYLE
+              value: "true"
             {{- if .Values.secretReference.name }}
             # Credentials from secret
             - name: AWS_ACCESS_KEY_ID

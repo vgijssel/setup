@@ -50,7 +50,7 @@ logging:
 env:
   relayServerUrl: https://relay.example.com
   awsRegion: us-east-1
-  awsEndpointUrlS3: ""
+  awsEndpointUrlS3: "https://s3.example.com"
 
 secretReference:
   name: relay-server-secret

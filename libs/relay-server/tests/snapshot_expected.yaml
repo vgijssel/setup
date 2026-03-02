@@ -85,7 +85,6 @@ spec:
             - name: RELAY_SERVER_LOG_FORMAT
               value: "pretty"
             # S3 storage configuration
-            # STORAGE_BUCKET must be defined before RELAY_SERVER_STORAGE for substitution
             - name: STORAGE_PREFIX
               value: "relay-server"
             - name: STORAGE_BUCKET
@@ -97,6 +96,10 @@ spec:
               value: "s3://$(STORAGE_BUCKET)/$(STORAGE_PREFIX)"
             - name: AWS_REGION
               value: "us-east-1"
+            - name: AWS_ENDPOINT_URL_S3
+              value: "https://s3.example.com"
+            - name: AWS_S3_USE_PATH_STYLE
+              value: "true"
             # Credentials from secret
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
