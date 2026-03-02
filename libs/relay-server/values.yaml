@@ -65,25 +65,19 @@ service:
   targetPort: 8080
   annotations: {}
 
+# Logging configuration
+logging:
+  level: info
+  format: pretty
+
+# Persistence configuration for filesystem storage
+persistence:
+  enabled: true
+  size: 10Gi
+  accessMode: ReadWriteOnce
+  # storageClass: "" # Use default storage class if not specified
+
 # Environment variables for relay server
 env:
   # Public URL for your service
   relayServerUrl: ""
-  # Storage backend (s3)
-  relayServerStorage: s3
-  # AWS region
-  awsRegion: us-east-1
-  # Custom S3 endpoint (for non-AWS S3-compatible services)
-  awsEndpointUrlS3: ""
-  # Use path-style URLs for S3
-  awsS3UsePathStyle: "false"
-  # S3 bucket name
-  awsBucket: ""
-
-# Secret reference for AWS credentials
-# The chart expects a Kubernetes Secret with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
-secretReference:
-  name: ""
-  keys:
-    awsAccessKeyId: AWS_ACCESS_KEY_ID
-    awsSecretAccessKey: AWS_SECRET_ACCESS_KEY

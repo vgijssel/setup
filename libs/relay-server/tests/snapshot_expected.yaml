@@ -1,4 +1,61 @@
 ---
+# Source: relay-server/templates/configmap-relay-toml.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: relay-server-config
+  labels:
+    helm.sh/chart: relay-server-0.1.0
+    app.kubernetes.io/name: relay-server
+    app.kubernetes.io/instance: relay-server
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: 0.9.2
+data:
+  relay.toml: |
+    # Server configuration
+    [server]
+    host = "0.0.0.0"
+    port = 8080
+    url = "https://relay.example.com"
+
+    # Logging configuration
+    [logging]
+    level = "info"
+    format = "pretty"
+
+    # Filesystem storage configuration
+    # Data stored in /data volume (PVC)
+    [store]
+    type = "filesystem"
+    path = "/data"
+
+    # Relay.md public keys
+    [[auth]]
+    key_id = "relay_2025_10_22"
+    public_key = "/6OgBTHaRdWLogewMdyE+7AxnI0/HP3WGqRs/bYBlFg="
+
+    [[auth]]
+    key_id = "relay_2025_10_23"
+    public_key = "fbm9JLHrwPpST5HAYORTQR/i1VbZ1kdp2ZEy0XpMbf0="
+---
+# Source: relay-server/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: relay-server-data
+  labels:
+    helm.sh/chart: relay-server-0.1.0
+    app.kubernetes.io/name: relay-server
+    app.kubernetes.io/instance: relay-server
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: 0.9.2
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
 # Source: relay-server/templates/service.yaml
 apiVersion: v1
 kind: Service
@@ -40,6 +97,8 @@ spec:
       app.kubernetes.io/instance: relay-server
   template:
     metadata:
+      annotations:
+        checksum/config: eb447352df146bcb0dde6ad0e7db42d7bd04247cb30beeefc0e537f91fa70d13
       labels:
         app.kubernetes.io/name: relay-server
         app.kubernetes.io/instance: relay-server
@@ -73,25 +132,18 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
-          env:
-            # Public URL for the relay service
-            - name: RELAY_SERVER_URL
-              value: https://relay.example.com
-            # Storage backend configuration
-            - name: RELAY_SERVER_STORAGE
-              value: s3
-            - name: AWS_REGION
-              value: us-east-1
-            - name: STORAGE_BUCKET
-              value: test-bucket
-            # AWS credentials from Kubernetes Secret
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: relay-server-secret
-                  key: AWS_ACCESS_KEY_ID
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: relay-server-secret
-                  key: AWS_SECRET_ACCESS_KEY
+          # All configuration now in relay.toml
+          volumeMounts:
+            - name: config
+              mountPath: /app/relay.toml
+              subPath: relay.toml
+              readOnly: true
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: config
+          configMap:
+            name: relay-server-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: relay-server-data

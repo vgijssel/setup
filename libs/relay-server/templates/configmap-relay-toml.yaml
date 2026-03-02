@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "relay-server.fullname" . }}-config
+  labels:
+    {{- include "relay-server.labels" . | nindent 4 }}
+data:
+  relay.toml: |
+    # Server configuration
+    [server]
+    host = "0.0.0.0"
+    port = {{ .Values.service.targetPort }}
+    url = "{{ .Values.env.relayServerUrl }}"
+
+    # Logging configuration
+    [logging]
+    level = "{{ .Values.logging.level }}"
+    format = "{{ .Values.logging.format }}"
+
+    # Filesystem storage configuration
+    # Data stored in /data volume (PVC)
+    [store]
+    type = "filesystem"
+    path = "/data"
+
+    # Relay.md public keys
+    [[auth]]
+    key_id = "relay_2025_10_22"
+    public_key = "/6OgBTHaRdWLogewMdyE+7AxnI0/HP3WGqRs/bYBlFg="
+
+    [[auth]]
+    key_id = "relay_2025_10_23"
+    public_key = "fbm9JLHrwPpST5HAYORTQR/i1VbZ1kdp2ZEy0XpMbf0="
