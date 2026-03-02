@@ -12,6 +12,7 @@ data:
 
     [store]
     type = "s3"
+    bucket = "{{ .Values.store.bucket }}"
     region = "{{ .Values.env.awsRegion }}"
     {{- if .Values.env.awsEndpointUrlS3 }}
     endpoint = "{{ .Values.env.awsEndpointUrlS3 }}"

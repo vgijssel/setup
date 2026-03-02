@@ -18,6 +18,7 @@ data:
 
     [store]
     type = "s3"
+    bucket = "test-bucket"
     region = "us-east-1"
     path_style = false
     prefix = "relay-server"
@@ -64,7 +65,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: e52e762baa33796ed48ec12c9cf33d6d5c24b089b5ccff4a4e711b705cdd1d18
+        checksum/config: 238d1252a77d451b1227f484fdc3fa0f7d18a5d2720b55296969af7f5ee5f744
       labels:
         app.kubernetes.io/name: relay-server
         app.kubernetes.io/instance: relay-server

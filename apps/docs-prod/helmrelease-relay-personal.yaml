@@ -44,6 +44,8 @@ spec:
     logging:
       level: debug
       format: pretty
+    store:
+      bucket: bucket-ea312e3e-9f61-4550-8a4a-f0d13222e4a9
     env:
       relayServerUrl: https://personal.relay.enigma.vgijssel.nl
       awsRegion: us-east-1
