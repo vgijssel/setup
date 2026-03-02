@@ -44,11 +44,8 @@ spec:
     logging:
       level: debug
       format: pretty
-    store:
-      presignedUrlExpiration: 3600
     env:
       relayServerUrl: https://family.relay.enigma.vgijssel.nl
-      relayServerStorage: s3
       awsRegion: us-east-1
       awsEndpointUrlS3: https://s3.enigma.vgijssel.nl
       awsS3UsePathStyle: "true"

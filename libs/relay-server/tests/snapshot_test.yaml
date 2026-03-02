@@ -47,25 +47,15 @@ logging:
   level: info
   format: pretty
 
-store:
-  presignedUrlExpiration: 3600
-
 env:
   relayServerUrl: https://relay.example.com
-  relayServerStorage: s3
   awsRegion: us-east-1
   awsEndpointUrlS3: ""
-  awsS3UsePathStyle: false
+  awsS3UsePathStyle: "false"
 
 secretReference:
   name: relay-server-secret
   keys:
-    awsAccessKeyId: AWS_ACCESS_KEY_ID
-    awsSecretAccessKey: AWS_SECRET_ACCESS_KEY
+    awsAccessKeyId: accessKey
+    awsSecretAccessKey: secretKey
     bucket: bucket
-
-auth:
-  - keyId: relay_2025_10_22
-    publicKey: "/6OgBTHaRdWLogewMdyE+7AxnI0/HP3WGqRs/bYBlFg="
-  - keyId: relay_2025_10_23
-    publicKey: "fbm9JLHrwPpST5HAYORTQR/i1VbZ1kdp2ZEy0XpMbf0="

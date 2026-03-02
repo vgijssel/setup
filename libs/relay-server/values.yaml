@@ -65,21 +65,15 @@ service:
   targetPort: 8080
   annotations: {}
 
-# Logging configuration for relay.toml
+# Logging configuration
 logging:
   level: info
   format: pretty
 
-# Store configuration for relay.toml
-store:
-  presignedUrlExpiration: 3600
-
-# Environment variables for relay server (used in relay.toml generation)
+# Environment variables for relay server
 env:
   # Public URL for your service
   relayServerUrl: ""
-  # Storage backend (s3)
-  relayServerStorage: s3
   # AWS region
   awsRegion: us-east-1
   # Custom S3 endpoint (for non-AWS S3-compatible services)
@@ -87,19 +81,10 @@ env:
   # Use path-style URLs for S3
   awsS3UsePathStyle: "false"
 
-# Secret reference for AWS credentials
-# The chart expects a Kubernetes Secret with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+# Secret reference for AWS credentials and bucket
 secretReference:
   name: ""
   keys:
-    awsAccessKeyId: AWS_ACCESS_KEY_ID
-    awsSecretAccessKey: AWS_SECRET_ACCESS_KEY
+    awsAccessKeyId: accessKey
+    awsSecretAccessKey: secretKey
     bucket: bucket
-
-# Authentication keys for relay.md clients
-# Each entry requires keyId and publicKey
-auth:
-  - keyId: relay_2025_10_22
-    publicKey: "/6OgBTHaRdWLogewMdyE+7AxnI0/HP3WGqRs/bYBlFg="
-  - keyId: relay_2025_10_23
-    publicKey: "fbm9JLHrwPpST5HAYORTQR/i1VbZ1kdp2ZEy0XpMbf0="
