@@ -47,17 +47,10 @@ logging:
   level: info
   format: pretty
 
-store:
-  bucket: test-bucket
+persistence:
+  enabled: true
+  size: 10Gi
+  accessMode: ReadWriteOnce
 
 env:
   relayServerUrl: https://relay.example.com
-  awsRegion: us-east-1
-  awsEndpointUrlS3: "https://s3.example.com"
-
-secretReference:
-  name: relay-server-secret
-  keys:
-    awsAccessKeyId: accessKey
-    awsSecretAccessKey: secretKey
-    bucket: bucket

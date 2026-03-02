@@ -49,25 +49,21 @@ spec:
               value: "{{ .Values.logging.level }}"
             - name: RELAY_SERVER_LOG_FORMAT
               value: "{{ .Values.logging.format }}"
-            {{- if .Values.secretReference.name }}
-            # S3 credentials from secret
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secretReference.name }}
-                  key: {{ .Values.secretReference.keys.awsAccessKeyId }}
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secretReference.name }}
-                  key: {{ .Values.secretReference.keys.awsSecretAccessKey }}
-            {{- end }}
           volumeMounts:
             - name: config
               mountPath: /app/relay.toml
               subPath: relay.toml
               readOnly: true
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: /data
+            {{- end }}
       volumes:
         - name: config
           configMap:
             name: {{ include "relay-server.fullname" . }}-config
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "relay-server.fullname" . }}-data
+        {{- end }}

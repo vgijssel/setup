@@ -70,23 +70,14 @@ logging:
   level: info
   format: pretty
 
-# S3 store configuration (used in relay.toml)
-store:
-  bucket: ""
+# Persistence configuration for filesystem storage
+persistence:
+  enabled: true
+  size: 10Gi
+  accessMode: ReadWriteOnce
+  # storageClass: "" # Use default storage class if not specified
 
 # Environment variables for relay server
 env:
   # Public URL for your service
   relayServerUrl: ""
-  # AWS region
-  awsRegion: us-east-1
-  # Custom S3 endpoint (for non-AWS S3-compatible services)
-  awsEndpointUrlS3: ""
-
-# Secret reference for AWS credentials and bucket
-secretReference:
-  name: ""
-  keys:
-    awsAccessKeyId: accessKey
-    awsSecretAccessKey: secretKey
-    bucket: bucket

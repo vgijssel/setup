@@ -6,15 +6,23 @@ metadata:
     {{- include "relay-server.labels" . | nindent 4 }}
 data:
   relay.toml: |
-    # S3 storage configuration with path_style=true
-    # Credentials provided via AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY env vars
+    # Server configuration
+    [server]
+    host = "0.0.0.0"
+    port = {{ .Values.service.targetPort }}
+    url = "{{ .Values.env.relayServerUrl }}"
 
+    # Filesystem storage configuration
+    # Data stored in /data volume (PVC)
     [store]
-    type = "s3"
-    bucket = "{{ .Values.store.bucket }}"
-    region = "{{ .Values.env.awsRegion }}"
-    {{- if .Values.env.awsEndpointUrlS3 }}
-    endpoint = "{{ .Values.env.awsEndpointUrlS3 }}"
-    {{- end }}
-    path_style = true
-    prefix = "{{ include "relay-server.fullname" . }}"
+    type = "filesystem"
+    path = "/data"
+
+    # Relay.md public keys
+    [[auth]]
+    key_id = "relay_2025_10_22"
+    public_key = "/6OgBTHaRdWLogewMdyE+7AxnI0/HP3WGqRs/bYBlFg="
+
+    [[auth]]
+    key_id = "relay_2025_10_23"
+    public_key = "fbm9JLHrwPpST5HAYORTQR/i1VbZ1kdp2ZEy0XpMbf0="
