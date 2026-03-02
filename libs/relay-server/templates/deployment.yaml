@@ -48,6 +48,8 @@ spec:
             - name: RELAY_SERVER_LOG_FORMAT
               value: "{{ .Values.logging.format }}"
             # S3 storage configuration
+            - name: RELAY_SERVER_STORAGE
+              value: "s3"
             - name: AWS_REGION
               value: "{{ .Values.env.awsRegion }}"
             {{- if .Values.env.awsEndpointUrlS3 }}
