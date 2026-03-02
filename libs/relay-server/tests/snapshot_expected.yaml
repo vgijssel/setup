@@ -84,15 +84,20 @@ spec:
               value: "info"
             - name: RELAY_SERVER_LOG_FORMAT
               value: "pretty"
-            # S3 storage configuration
+            # S3 storage configuration (bucket/prefix defined first for substitution)
+            - name: STORAGE_PREFIX
+              value: "relay-server"
+            - name: STORAGE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: relay-server-secret
+                  key: bucket
             - name: RELAY_SERVER_STORAGE
-              value: "s3"
+              value: "s3://$(STORAGE_BUCKET)/$(STORAGE_PREFIX)"
             - name: AWS_REGION
               value: "us-east-1"
             - name: AWS_S3_USE_PATH_STYLE
               value: "false"
-            - name: STORAGE_PREFIX
-              value: "relay-server"
             # Credentials from secret
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
@@ -104,8 +109,3 @@ spec:
                 secretKeyRef:
                   name: relay-server-secret
                   key: secretKey
-            - name: STORAGE_BUCKET
-              valueFrom:
-                secretKeyRef:
-                  name: relay-server-secret
-                  key: bucket
