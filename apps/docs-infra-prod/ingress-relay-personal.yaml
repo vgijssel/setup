@@ -27,6 +27,6 @@ spec:
             backend:
               service:
                 # KubeVirt CCM mirrored service (cluster.x-k8s.io/tenant-service-name=relay-personal)
-                name: a3b02bf46cb9f48d7bf11e310e077773
+                name: a3b240b0807dd489a8623e2e018a4c85
                 port:
                   number: 8080
