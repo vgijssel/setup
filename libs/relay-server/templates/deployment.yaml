@@ -11,6 +11,8 @@ spec:
       {{- include "relay-server.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-relay-toml.yaml") . | sha256sum }}
       labels:
         {{- include "relay-server.selectorLabels" . | nindent 8 }}
     spec:
@@ -18,6 +20,34 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: config-init
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              sed -e "s|__ACCESS_KEY_ID__|$AWS_ACCESS_KEY_ID|g" \
+                  -e "s|__SECRET_ACCESS_KEY__|$AWS_SECRET_ACCESS_KEY|g" \
+                  /config-template/relay.toml.template > /app/relay.toml
+          env:
+            {{- if .Values.secretReference.name }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretReference.name }}
+                  key: {{ .Values.secretReference.keys.awsAccessKeyId }}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secretReference.name }}
+                  key: {{ .Values.secretReference.keys.awsSecretAccessKey }}
+            {{- end }}
+          volumeMounts:
+            - name: config-template
+              mountPath: /config-template
+            - name: config
+              mountPath: /app
       containers:
         - name: {{ .Chart.Name }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -36,39 +66,13 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          env:
-            # Public URL for the relay service
-            - name: RELAY_SERVER_URL
-              value: {{ .Values.env.relayServerUrl }}
-            # Storage backend configuration
-            - name: RELAY_SERVER_STORAGE
-              value: {{ .Values.env.relayServerStorage }}
-            {{- if .Values.env.awsRegion }}
-            - name: AWS_REGION
-              value: {{ .Values.env.awsRegion }}
-            {{- end }}
-            {{- if .Values.env.awsEndpointUrlS3 }}
-            - name: AWS_ENDPOINT_URL_S3
-              value: {{ .Values.env.awsEndpointUrlS3 }}
-            {{- end }}
-            {{- if .Values.env.awsS3UsePathStyle }}
-            - name: AWS_S3_USE_PATH_STYLE
-              value: {{ .Values.env.awsS3UsePathStyle | quote }}
-            {{- end }}
-            {{- if .Values.env.awsBucket }}
-            - name: STORAGE_BUCKET
-              value: {{ .Values.env.awsBucket }}
-            {{- end }}
-            {{- if .Values.secretReference.name }}
-            # AWS credentials from Kubernetes Secret
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secretReference.name }}
-                  key: {{ .Values.secretReference.keys.awsAccessKeyId }}
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.secretReference.name }}
-                  key: {{ .Values.secretReference.keys.awsSecretAccessKey }}
-            {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /app
+              readOnly: true
+      volumes:
+        - name: config-template
+          configMap:
+            name: {{ include "relay-server.fullname" . }}-config
+        - name: config
+          emptyDir: {}

@@ -65,7 +65,16 @@ service:
   targetPort: 8080
   annotations: {}
 
-# Environment variables for relay server
+# Logging configuration for relay.toml
+logging:
+  level: info
+  format: pretty
+
+# Store configuration for relay.toml
+store:
+  presignedUrlExpiration: 3600
+
+# Environment variables for relay server (used in relay.toml generation)
 env:
   # Public URL for your service
   relayServerUrl: ""
@@ -87,3 +96,11 @@ secretReference:
   keys:
     awsAccessKeyId: AWS_ACCESS_KEY_ID
     awsSecretAccessKey: AWS_SECRET_ACCESS_KEY
+
+# Authentication keys for relay.md clients
+# Each entry requires keyId and publicKey
+auth:
+  - keyId: relay_2025_10_22
+    publicKey: "/6OgBTHaRdWLogewMdyE+7AxnI0/HP3WGqRs/bYBlFg="
+  - keyId: relay_2025_10_23
+    publicKey: "fbm9JLHrwPpST5HAYORTQR/i1VbZ1kdp2ZEy0XpMbf0="
