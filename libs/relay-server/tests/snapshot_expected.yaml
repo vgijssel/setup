@@ -36,6 +36,11 @@ data:
     port = 8080
     url = "https://relay.example.com"
 
+    # Logging configuration
+    [logging]
+    level = "info"
+    format = "pretty"
+
     # Filesystem storage configuration
     # Data stored in /data volume (PVC)
     [store]
@@ -127,17 +132,7 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
-          env:
-            # Server configuration
-            - name: PORT
-              value: "8080"
-            - name: RELAY_SERVER_URL
-              value: "https://relay.example.com"
-            # Logging configuration
-            - name: RUST_LOG
-              value: "info"
-            - name: RELAY_SERVER_LOG_FORMAT
-              value: "pretty"
+          # All configuration now in relay.toml
           volumeMounts:
             - name: config
               mountPath: /app/relay.toml

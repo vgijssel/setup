@@ -12,6 +12,11 @@ data:
     port = {{ .Values.service.targetPort }}
     url = "{{ .Values.env.relayServerUrl }}"
 
+    # Logging configuration
+    [logging]
+    level = "{{ .Values.logging.level }}"
+    format = "{{ .Values.logging.format }}"
+
     # Filesystem storage configuration
     # Data stored in /data volume (PVC)
     [store]

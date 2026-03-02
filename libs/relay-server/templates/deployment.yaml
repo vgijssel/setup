@@ -38,17 +38,7 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          env:
-            # Server configuration
-            - name: PORT
-              value: "{{ .Values.service.targetPort }}"
-            - name: RELAY_SERVER_URL
-              value: "{{ .Values.env.relayServerUrl }}"
-            # Logging configuration
-            - name: RUST_LOG
-              value: "{{ .Values.logging.level }}"
-            - name: RELAY_SERVER_LOG_FORMAT
-              value: "{{ .Values.logging.format }}"
+          # All configuration now in relay.toml
           volumeMounts:
             - name: config
               mountPath: /app/relay.toml
