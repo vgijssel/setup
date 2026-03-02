@@ -18,7 +18,6 @@ data:
 
     [store]
     type = "{{ .Values.env.relayServerStorage }}"
-    bucket = "{{ .Values.env.awsBucket }}"
     region = "{{ .Values.env.awsRegion }}"
     {{- if .Values.env.awsEndpointUrlS3 }}
     endpoint = "{{ .Values.env.awsEndpointUrlS3 }}"

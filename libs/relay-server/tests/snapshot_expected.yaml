@@ -24,7 +24,6 @@ data:
 
     [store]
     type = "s3"
-    bucket = "test-bucket"
     region = "us-east-1"
     path_style = false
     presigned_url_expiration = 3600
@@ -80,7 +79,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 866c3451e291998da1b80e87038f230ccb228eaba306dd135077975adcdecfa5
+        checksum/config: 8504f08d09ee9a9dae1f783f4afe46de4313d8ab35a023164469cef685337e3f
       labels:
         app.kubernetes.io/name: relay-server
         app.kubernetes.io/instance: relay-server

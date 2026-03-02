@@ -86,8 +86,6 @@ env:
   awsEndpointUrlS3: ""
   # Use path-style URLs for S3
   awsS3UsePathStyle: "false"
-  # S3 bucket name
-  awsBucket: ""
 
 # Secret reference for AWS credentials
 # The chart expects a Kubernetes Secret with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY

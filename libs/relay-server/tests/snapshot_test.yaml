@@ -56,7 +56,6 @@ env:
   awsRegion: us-east-1
   awsEndpointUrlS3: ""
   awsS3UsePathStyle: false
-  awsBucket: test-bucket
 
 secretReference:
   name: relay-server-secret
