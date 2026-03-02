@@ -53,7 +53,7 @@ spec:
             {{- end }}
             {{- if .Values.env.awsS3UsePathStyle }}
             - name: AWS_S3_USE_PATH_STYLE
-              value: {{ .Values.env.awsS3UsePathStyle }}
+              value: {{ .Values.env.awsS3UsePathStyle | quote }}
             {{- end }}
             {{- if .Values.env.awsBucket }}
             - name: STORAGE_BUCKET
