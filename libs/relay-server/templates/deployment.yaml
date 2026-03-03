@@ -38,17 +38,6 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          env:
-            - name: BACKBLAZE_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.backblaze.secretName }}
-                  key: key_id
-            - name: BACKBLAZE_APPLICATION_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.backblaze.secretName }}
-                  key: application_key
           volumeMounts:
             - name: config
               mountPath: /app/relay.toml

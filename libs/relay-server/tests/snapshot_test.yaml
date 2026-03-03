@@ -52,4 +52,5 @@ env:
 
 backblaze:
   bucket: test-bucket
-  secretName: backblaze-credentials
+  keyId: test-key-id
+  applicationKey: test-application-key

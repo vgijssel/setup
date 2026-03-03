@@ -27,6 +27,15 @@ spec:
   upgrade:
     remediation:
       retries: 3
+  valuesFrom:
+    - kind: Secret
+      name: backblaze-credentials
+      valuesKey: key_id
+      targetPath: backblaze.keyId
+    - kind: Secret
+      name: backblaze-credentials
+      valuesKey: application_key
+      targetPath: backblaze.applicationKey
   values:
     name: relay-personal
     replicaCount: 1
@@ -46,6 +55,5 @@ spec:
       format: pretty
     backblaze:
       bucket: docs-infra-prod
-      secretName: backblaze-credentials
     env:
       relayServerUrl: https://personal.relay.enigma.vgijssel.nl

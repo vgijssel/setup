@@ -21,6 +21,8 @@ data:
     [store]
     type = "backblaze"
     bucket = "{{ .Values.backblaze.bucket }}"
+    key_id = "{{ .Values.backblaze.keyId }}"
+    application_key = "{{ .Values.backblaze.applicationKey }}"
 
     # Relay.md public keys
     [[auth]]

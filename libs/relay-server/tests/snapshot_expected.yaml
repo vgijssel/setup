@@ -27,6 +27,8 @@ data:
     [store]
     type = "backblaze"
     bucket = "test-bucket"
+    key_id = "test-key-id"
+    application_key = "test-application-key"
 
     # Relay.md public keys
     [[auth]]
@@ -79,7 +81,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 98d687d6c811456561d77a5e3e011373423fb2efdd2730758957282498108f01
+        checksum/config: 43a6bcf789daaa9deab1935f872589bf67599b05abf2b7fc20b05e707dcf538c
       labels:
         app.kubernetes.io/name: relay-server
         app.kubernetes.io/instance: relay-server
@@ -113,17 +115,6 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
-          env:
-            - name: BACKBLAZE_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: backblaze-credentials
-                  key: key_id
-            - name: BACKBLAZE_APPLICATION_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: backblaze-credentials
-                  key: application_key
           volumeMounts:
             - name: config
               mountPath: /app/relay.toml
