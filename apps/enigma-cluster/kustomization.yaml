@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - gitrepository-setup.yaml
   - kustomization-root.yaml
-  - cozystack.yaml
   - metallb-ip-address-pool.yml
   - metallb-l2-advertisement.yml
   - helmrelease-1password-operator.yaml
@@ -21,3 +20,6 @@ resources:
   - namespace-ingress-nginx-gateway.yaml
   - helmrelease-ingress-nginx-gateway.yaml
   - tenant-root.yaml
+  - package-cozystack-platform.yaml
+  - package-keycloak-override.yaml
+  - package-networking-override.yaml

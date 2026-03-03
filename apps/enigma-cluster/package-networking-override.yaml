@@ -1,0 +1,14 @@
+apiVersion: cozystack.io/v1alpha1
+kind: Package
+metadata:
+  name: cozystack.networking
+spec:
+  components:
+    kubeovn:
+      values:
+        kube-ovn:
+          # MTU 1222 for KubeSpan compatibility
+          # KubeSpan uses WireGuard encapsulation (~80 bytes) + GENEVE overlay (~100 bytes)
+          # 1500 - 80 (WireGuard) - 100 (GENEVE) - ~100 (safety margin) = 1222
+          # See: https://cozystack.io/docs/v1/install/how-to/kubespan/
+          mtu: 1222
