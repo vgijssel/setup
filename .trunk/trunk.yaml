@@ -59,6 +59,7 @@ lint:
         - libs/registry/templates/**
         - libs/internal-storage/templates/**
         - libs/relay-server/templates/**
+        - libs/relay-server/tests/snapshot_expected.yaml
         - libs/devenv/goss.yaml
     # Ignore prettier syntax errors for Helm templates with complex syntax
     - linters: [prettier]

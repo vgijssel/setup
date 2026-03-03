@@ -11,23 +11,30 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/version: 0.9.2
 data:
-  relay.toml: |
+  # https://github.com/No-Instructions/relay-server/blob/663b2b0fd36276569440bb82604682a53001aebe/crates/y-sweet-core/src/config.rs#L598
+  relay.toml.template: |
     # Server configuration
     [server]
     host = "0.0.0.0"
-    port = 8080
-    url = "https://relay.example.com"
+    port = ${RELAY_PORT}
+    url = "${RELAY_URL}"
 
     # Logging configuration
     [logging]
-    level = "info"
-    format = "pretty"
+    level = "${LOG_LEVEL}"
+    format = "${LOG_FORMAT}"
 
-    # Filesystem storage configuration
-    # Data stored in /data volume (PVC)
+    # Backblaze B2 storage configuration
     [store]
-    type = "filesystem"
-    path = "/data"
+    type = "s3"
+    bucket = "${BACKBLAZE_BUCKET}"
+    access_key_id = "${BACKBLAZE_KEY_ID}"
+    secret_access_key = "${BACKBLAZE_APPLICATION_KEY}"
+    endpoint = "${BACKBLAZE_ENDPOINT}"
+    region = "${BACKBLAZE_REGION}"
+    path_style = false
+    presigned_url_expiration = 3600
+    prefix = "${S3_PREFIX}"
 
     # Relay.md public keys
     [[auth]]
@@ -37,24 +44,6 @@ data:
     [[auth]]
     key_id = "relay_2025_10_23"
     public_key = "fbm9JLHrwPpST5HAYORTQR/i1VbZ1kdp2ZEy0XpMbf0="
----
-# Source: relay-server/templates/pvc.yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: relay-server-data
-  labels:
-    helm.sh/chart: relay-server-0.1.0
-    app.kubernetes.io/name: relay-server
-    app.kubernetes.io/instance: relay-server
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/version: 0.9.2
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
 ---
 # Source: relay-server/templates/service.yaml
 apiVersion: v1
@@ -98,11 +87,78 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: eb447352df146bcb0dde6ad0e7db42d7bd04247cb30beeefc0e537f91fa70d13
+        checksum/config: 58e383e42224a3dd8d05351a9d1419dfcc27b9e0d770c33eb2f70ec1e74e809a
       labels:
         app.kubernetes.io/name: relay-server
         app.kubernetes.io/instance: relay-server
     spec:
+      initContainers:
+        - name: render-config
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              echo "Rendering relay.toml configuration..."
+              sed -e "s|\${RELAY_PORT}|${RELAY_PORT}|g" \
+                  -e "s|\${RELAY_URL}|${RELAY_URL}|g" \
+                  -e "s|\${LOG_LEVEL}|${LOG_LEVEL}|g" \
+                  -e "s|\${LOG_FORMAT}|${LOG_FORMAT}|g" \
+                  -e "s|\${BACKBLAZE_BUCKET}|${BACKBLAZE_BUCKET}|g" \
+                  -e "s|\${BACKBLAZE_KEY_ID}|${BACKBLAZE_KEY_ID}|g" \
+                  -e "s|\${BACKBLAZE_APPLICATION_KEY}|${BACKBLAZE_APPLICATION_KEY}|g" \
+                  -e "s|\${BACKBLAZE_ENDPOINT}|${BACKBLAZE_ENDPOINT}|g" \
+                  -e "s|\${BACKBLAZE_REGION}|${BACKBLAZE_REGION}|g" \
+                  -e "s|\${S3_PREFIX}|${S3_PREFIX}|g" \
+                  /template/relay.toml.template > /config/relay.toml
+              echo "Configuration rendered successfully"
+              echo ""
+              cat /config/relay.toml
+          env:
+            - name: RELAY_PORT
+              value: "8080"
+            - name: RELAY_URL
+              value: "https://relay.example.com"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: LOG_FORMAT
+              value: "pretty"
+            - name: BACKBLAZE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: backblaze-credentials
+                  key: bucket
+            - name: BACKBLAZE_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: backblaze-credentials
+                  key: key_id
+            - name: BACKBLAZE_APPLICATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backblaze-credentials
+                  key: application_key
+            - name: BACKBLAZE_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: backblaze-credentials
+                  key: endpoint
+            - name: BACKBLAZE_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: backblaze-credentials
+                  key: region
+            - name: S3_PREFIX
+              value: "relay-server"
+          volumeMounts:
+            - name: config-template
+              mountPath: /template
+            - name: config
+              mountPath: /config
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
       containers:
         - name: relay-server
           image: docker.system3.md/relay-server:v0.9.2
@@ -132,18 +188,14 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
-          # All configuration now in relay.toml
           volumeMounts:
             - name: config
               mountPath: /app/relay.toml
               subPath: relay.toml
               readOnly: true
-            - name: data
-              mountPath: /data
       volumes:
-        - name: config
+        - name: config-template
           configMap:
             name: relay-server-config
-        - name: data
-          persistentVolumeClaim:
-            claimName: relay-server-data
+        - name: config
+          emptyDir: {}

@@ -20,6 +20,73 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: render-config
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              echo "Rendering relay.toml configuration..."
+              sed -e "s|\${RELAY_PORT}|${RELAY_PORT}|g" \
+                  -e "s|\${RELAY_URL}|${RELAY_URL}|g" \
+                  -e "s|\${LOG_LEVEL}|${LOG_LEVEL}|g" \
+                  -e "s|\${LOG_FORMAT}|${LOG_FORMAT}|g" \
+                  -e "s|\${BACKBLAZE_BUCKET}|${BACKBLAZE_BUCKET}|g" \
+                  -e "s|\${BACKBLAZE_KEY_ID}|${BACKBLAZE_KEY_ID}|g" \
+                  -e "s|\${BACKBLAZE_APPLICATION_KEY}|${BACKBLAZE_APPLICATION_KEY}|g" \
+                  -e "s|\${BACKBLAZE_ENDPOINT}|${BACKBLAZE_ENDPOINT}|g" \
+                  -e "s|\${BACKBLAZE_REGION}|${BACKBLAZE_REGION}|g" \
+                  -e "s|\${S3_PREFIX}|${S3_PREFIX}|g" \
+                  /template/relay.toml.template > /config/relay.toml
+              echo "Configuration rendered successfully"
+              echo ""
+              cat /config/relay.toml
+          env:
+            - name: RELAY_PORT
+              value: {{ .Values.service.targetPort | quote }}
+            - name: RELAY_URL
+              value: {{ .Values.env.relayServerUrl | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.logging.level | quote }}
+            - name: LOG_FORMAT
+              value: {{ .Values.logging.format | quote }}
+            - name: BACKBLAZE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backblaze.secretName }}
+                  key: bucket
+            - name: BACKBLAZE_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backblaze.secretName }}
+                  key: key_id
+            - name: BACKBLAZE_APPLICATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backblaze.secretName }}
+                  key: application_key
+            - name: BACKBLAZE_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backblaze.secretName }}
+                  key: endpoint
+            - name: BACKBLAZE_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backblaze.secretName }}
+                  key: region
+            - name: S3_PREFIX
+              value: {{ include "relay-server.fullname" . | quote }}
+          volumeMounts:
+            - name: config-template
+              mountPath: /template
+            - name: config
+              mountPath: /config
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
       containers:
         - name: {{ .Chart.Name }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -38,22 +105,14 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          # All configuration now in relay.toml
           volumeMounts:
             - name: config
               mountPath: /app/relay.toml
               subPath: relay.toml
               readOnly: true
-            {{- if .Values.persistence.enabled }}
-            - name: data
-              mountPath: /data
-            {{- end }}
       volumes:
-        - name: config
+        - name: config-template
           configMap:
             name: {{ include "relay-server.fullname" . }}-config
-        {{- if .Values.persistence.enabled }}
-        - name: data
-          persistentVolumeClaim:
-            claimName: {{ include "relay-server.fullname" . }}-data
-        {{- end }}
+        - name: config
+          emptyDir: {}
