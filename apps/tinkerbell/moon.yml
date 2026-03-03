@@ -10,7 +10,7 @@ tags:
   - platform.kubernetes
 tasks:
   dev:
-    command: |
+    script: |
       limactl delete -f tinkerbell-lima || true
       limactl start ./tinkerbell-lima.yaml
       KUBECONFIG="$HOME/.kube/configs/tinkerbell-dev.yaml" kubectl config rename-context default tinkerbell-dev
@@ -20,7 +20,7 @@ tasks:
       runInCI: false
       interactive: true
   ipxe:
-    command: |
+    script: |
       limactl delete -f ipxe-lima || true
       limactl start ./ipxe-lima.yaml
     options:
