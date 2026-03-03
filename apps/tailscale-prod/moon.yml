@@ -14,7 +14,6 @@ tasks:
       - "!.terraform/**"
     options:
       runInCI: false
-
   validate:
     command: tofu validate
     deps:
@@ -26,28 +25,24 @@ tasks:
     options:
       cache: true
       runInCI: false
-
   plan:
     command: tofu plan -var-file=/secrets/tailscale-prod/secrets.tfvars
     deps:
       - ~:init
     options:
       runInCI: false
-
   apply:
     command: tofu apply -auto-approve -var-file=/secrets/tailscale-prod/secrets.tfvars
     deps:
       - ~:init
     options:
       runInCI: false
-
   destroy:
     command: tofu destroy -auto-approve -var-file=/secrets/tailscale-prod/secrets.tfvars
     deps:
       - ~:init
     options:
       runInCI: false
-
   output:
     command: tofu output
     deps:

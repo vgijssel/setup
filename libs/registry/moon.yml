@@ -16,7 +16,6 @@ tasks:
         cache: true
     options:
       cache: true
-
   build:
     command: helm
     args:
@@ -29,7 +28,6 @@ tasks:
       cache: true
     outputs:
       - "*.tgz"
-
   test:
     command: ./tests/snapshot_test.sh
     inputs:

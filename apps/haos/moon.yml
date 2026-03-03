@@ -16,18 +16,15 @@ tasks:
     options:
       runInCI: false
       runDepsInParallel: false
-
   sync:
     command: unison haos
     options:
       interactive: true
       runInCI: false
-
   update:
     script: 'curl -f -H "Authorization: Bearer $HA_TOKEN" -H "Content-Type: application/json" -X POST -d ''{}'' http://192.168.1.32:8123/api/services/homeassistant/reload_all'
     options:
       runInCI: false
-
   validate:
     command: goss validate
     options:

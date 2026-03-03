@@ -12,11 +12,6 @@ tasks:
     inputs:
       - file: package.json
       - file: package-lock.json
-    # TODO: currently too large to cache with bazel-remote and Backblaze B2
-    #    outputs:
-    #      - node_modules
-    #    options:
-    #      cache: true
   build:
     command: npm run build
     deps:
@@ -40,7 +35,6 @@ tasks:
     command: npm run e2e
     deps:
       - ~:install
-    # TODO: e2e_test is currently broken
     options:
       runInCI: false
       interactive: true

@@ -15,7 +15,6 @@ tasks:
       mutex: pnpm-install
       outputStyle: buffer-only-failure
       cacheKey: v3
-
   exec:
     command: $workspaceRoot/.moon/scripts/pnpm-exec-in-cwd.sh
     deps:
@@ -23,3 +22,5 @@ tasks:
     options:
       cache: false
       outputStyle: stream
+inheritedBy:
+  tag: pnpm-tool

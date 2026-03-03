@@ -17,7 +17,6 @@ tasks:
       TOKEN_REF: op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential
     options:
       runInCI: false
-
   bootstrap:
     command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/coder-prod/
     deps:

@@ -8,11 +8,10 @@ dependsOn:
   - talos-image
 project:
   description: Cozystack configuration for Enigma cluster
-  metadata:
-    dependencies:
-      cozystack/cozystack:
-        version: v0.41.2
-        datasource: github-releases
+  dependencies:
+    cozystack/cozystack:
+      version: v0.41.2
+      datasource: github-releases
 tags:
   - scope.app
   - type.stack

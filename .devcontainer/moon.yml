@@ -51,9 +51,7 @@ tasks:
       - ~:build
     options:
       cache: true
-      # This test can be flacky due to external network calls, so we allow retries
       retryCount: 3
-
   envbuilder-test:
     command: bats tests/envbuilder-test.bats
     deps:
@@ -70,5 +68,4 @@ tasks:
       - file: /.chezmoiroot
     options:
       cache: true
-      # This test can be flacky due to external network calls, so we allow retries
       retryCount: 3
