@@ -79,7 +79,6 @@ env:
 backblaze:
   # B2 bucket name
   bucket: ""
-  # Backblaze key ID (use valuesFrom in HelmRelease to source from secret)
-  keyId: ""
-  # Backblaze application key (use valuesFrom in HelmRelease to source from secret)
-  applicationKey: ""
+  # Secret containing Backblaze credentials
+  # Required keys: key_id, application_key
+  secretName: ""
