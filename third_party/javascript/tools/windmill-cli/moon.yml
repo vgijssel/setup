@@ -5,5 +5,3 @@ tags:
   - pnpm-tool
 tasks:
   build:
-    options:
-      runInCI: false

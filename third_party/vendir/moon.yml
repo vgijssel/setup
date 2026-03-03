@@ -5,6 +5,10 @@ tags:
   - helm
   - infrastructure
 fileGroups:
+  vendir_bin:
+    - /bin/vendir
+    - /bin/.vendir-*
+    - /bin/hermit
   vendir_config:
     - vendir.yml
     - vendir.lock.yml

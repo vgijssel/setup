@@ -1,5 +1,10 @@
 language: bash
 layer: library
+fileGroups:
+  regctl_bin:
+    - /bin/regctl
+    - /bin/.regctl-*
+    - /bin/hermit
 project:
   description: Custom Talos Linux installer image with Realtek drivers for Cozystack
   dependencies:

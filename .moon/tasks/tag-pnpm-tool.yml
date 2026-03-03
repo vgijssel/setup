@@ -1,3 +1,8 @@
+fileGroups:
+  pnpm_bin:
+    - /bin/pnpm
+    - /bin/.pnpm-*
+    - /bin/hermit
 tasks:
   build:
     script: rm -rf ./dist && pnpm deploy --filter . --config.node-linker=hoisted --config.prefer-symlinked-executables=false ./dist >&2
