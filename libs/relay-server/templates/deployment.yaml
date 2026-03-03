@@ -37,6 +37,8 @@ spec:
                   -e "s|\${BACKBLAZE_APPLICATION_KEY}|${BACKBLAZE_APPLICATION_KEY}|g" \
                   /template/relay.toml.template > /config/relay.toml
               echo "Configuration rendered successfully"
+              echo ""
+              cat /config/relay.toml
           env:
             - name: RELAY_PORT
               value: {{ .Values.service.targetPort | quote }}
