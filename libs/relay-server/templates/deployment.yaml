@@ -37,6 +37,7 @@ spec:
                   -e "s|\${BACKBLAZE_APPLICATION_KEY}|${BACKBLAZE_APPLICATION_KEY}|g" \
                   -e "s|\${BACKBLAZE_ENDPOINT}|${BACKBLAZE_ENDPOINT}|g" \
                   -e "s|\${BACKBLAZE_REGION}|${BACKBLAZE_REGION}|g" \
+                  -e "s|\${S3_PREFIX}|${S3_PREFIX}|g" \
                   /template/relay.toml.template > /config/relay.toml
               echo "Configuration rendered successfully"
               echo ""
@@ -75,6 +76,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.backblaze.secretName }}
                   key: region
+            - name: S3_PREFIX
+              value: {{ include "relay-server.fullname" . | quote }}
           volumeMounts:
             - name: config-template
               mountPath: /template

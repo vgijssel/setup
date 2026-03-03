@@ -11,6 +11,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/version: 0.9.2
 data:
+  # https://github.com/No-Instructions/relay-server/blob/663b2b0fd36276569440bb82604682a53001aebe/crates/y-sweet-core/src/config.rs#L598
   relay.toml.template: |
     # Server configuration
     [server]
@@ -25,12 +26,15 @@ data:
 
     # Backblaze B2 storage configuration
     [store]
-    type = "backblaze"
+    type = "s3"
     bucket = "${BACKBLAZE_BUCKET}"
-    key_id = "${BACKBLAZE_KEY_ID}"
-    application_key = "${BACKBLAZE_APPLICATION_KEY}"
+    access_key_id = "${BACKBLAZE_KEY_ID}"
+    secret_access_key = "${BACKBLAZE_APPLICATION_KEY}"
     endpoint = "${BACKBLAZE_ENDPOINT}"
     region = "${BACKBLAZE_REGION}"
+    path_style = false
+    presigned_url_expiration = 3600
+    prefix = "${S3_PREFIX}"
 
     # Relay.md public keys
     [[auth]]
@@ -83,7 +87,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: c92376fe56ec34e0edebcb02285fad3d064e58840ad9d0a00ad59c9152e2bb40
+        checksum/config: 58e383e42224a3dd8d05351a9d1419dfcc27b9e0d770c33eb2f70ec1e74e809a
       labels:
         app.kubernetes.io/name: relay-server
         app.kubernetes.io/instance: relay-server
@@ -105,6 +109,7 @@ spec:
                   -e "s|\${BACKBLAZE_APPLICATION_KEY}|${BACKBLAZE_APPLICATION_KEY}|g" \
                   -e "s|\${BACKBLAZE_ENDPOINT}|${BACKBLAZE_ENDPOINT}|g" \
                   -e "s|\${BACKBLAZE_REGION}|${BACKBLAZE_REGION}|g" \
+                  -e "s|\${S3_PREFIX}|${S3_PREFIX}|g" \
                   /template/relay.toml.template > /config/relay.toml
               echo "Configuration rendered successfully"
               echo ""
@@ -143,6 +148,8 @@ spec:
                 secretKeyRef:
                   name: backblaze-credentials
                   key: region
+            - name: S3_PREFIX
+              value: "relay-server"
           volumeMounts:
             - name: config-template
               mountPath: /template

@@ -5,6 +5,7 @@ metadata:
   labels:
     {{- include "relay-server.labels" . | nindent 4 }}
 data:
+  # https://github.com/No-Instructions/relay-server/blob/663b2b0fd36276569440bb82604682a53001aebe/crates/y-sweet-core/src/config.rs#L598
   relay.toml.template: |
     # Server configuration
     [server]
@@ -19,12 +20,15 @@ data:
 
     # Backblaze B2 storage configuration
     [store]
-    type = "backblaze"
+    type = "s3"
     bucket = "${BACKBLAZE_BUCKET}"
-    key_id = "${BACKBLAZE_KEY_ID}"
-    application_key = "${BACKBLAZE_APPLICATION_KEY}"
+    access_key_id = "${BACKBLAZE_KEY_ID}"
+    secret_access_key = "${BACKBLAZE_APPLICATION_KEY}"
     endpoint = "${BACKBLAZE_ENDPOINT}"
     region = "${BACKBLAZE_REGION}"
+    path_style = false
+    presigned_url_expiration = 3600
+    prefix = "${S3_PREFIX}"
 
     # Relay.md public keys
     [[auth]]
