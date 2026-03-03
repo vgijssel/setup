@@ -77,8 +77,6 @@ env:
 
 # Backblaze B2 storage configuration
 backblaze:
-  # B2 bucket name
-  bucket: ""
   # Secret containing Backblaze credentials
-  # Required keys: key_id, application_key
+  # Required keys: bucket, key_id, application_key
   secretName: ""

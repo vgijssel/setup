@@ -113,7 +113,10 @@ spec:
             - name: LOG_FORMAT
               value: "pretty"
             - name: BACKBLAZE_BUCKET
-              value: "test-bucket"
+              valueFrom:
+                secretKeyRef:
+                  name: backblaze-credentials
+                  key: bucket
             - name: BACKBLAZE_KEY_ID
               valueFrom:
                 secretKeyRef:

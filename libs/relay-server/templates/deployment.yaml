@@ -47,7 +47,10 @@ spec:
             - name: LOG_FORMAT
               value: {{ .Values.logging.format | quote }}
             - name: BACKBLAZE_BUCKET
-              value: {{ .Values.backblaze.bucket | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backblaze.secretName }}
+                  key: bucket
             - name: BACKBLAZE_KEY_ID
               valueFrom:
                 secretKeyRef:

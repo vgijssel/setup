@@ -51,5 +51,4 @@ env:
   relayServerUrl: https://relay.example.com
 
 backblaze:
-  bucket: test-bucket
   secretName: backblaze-credentials

@@ -45,7 +45,6 @@ spec:
       level: info
       format: pretty
     backblaze:
-      bucket: docs-infra-prod
       secretName: backblaze-credentials
     env:
       relayServerUrl: https://personal.relay.enigma.vgijssel.nl
