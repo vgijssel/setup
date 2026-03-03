@@ -20,7 +20,6 @@ tasks:
     command: $workspaceRoot/.moon/scripts/pnpm-exec-in-cwd.sh
     deps:
       - ~:build
-    local: true
     options:
       cache: false
       outputStyle: stream
