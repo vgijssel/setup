@@ -118,11 +118,11 @@ spec:
             - name: RELAY_PORT
               value: "8080"
             - name: RELAY_URL
-              value: https://relay.example.com
+              value: "https://relay.example.com"
             - name: LOG_LEVEL
-              value: info
+              value: "info"
             - name: LOG_FORMAT
-              value: pretty
+              value: "pretty"
             - name: BACKBLAZE_BUCKET
               valueFrom:
                 secretKeyRef:
@@ -149,7 +149,7 @@ spec:
                   name: backblaze-credentials
                   key: region
             - name: S3_PREFIX
-              value: relay-server
+              value: "relay-server"
           volumeMounts:
             - name: config-template
               mountPath: /template
