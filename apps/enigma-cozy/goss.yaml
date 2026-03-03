@@ -110,6 +110,12 @@ command:
       - 2Gi
     stderr: ""
     timeout: 30000
+  cozystack_operator_running:
+    title: Validate CozyStack operator is running
+    exec: kubectl get pods -n cozy-system -l app=cozystack-operator --field-selector=status.phase=Running --no-headers | wc -l | xargs test 1 -le
+    exit-status: 0
+    stderr: ""
+    timeout: 10000
   cnpg_operator_running:
     title: Validate CloudNativePG operator is running
     exec: kubectl get pods -n cozy-postgres-operator -l app.kubernetes.io/name=cloudnative-pg --field-selector=status.phase=Running --no-headers | wc -l | xargs test 1 -le
