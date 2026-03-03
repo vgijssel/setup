@@ -14,14 +14,10 @@ tasks:
     command: terraform init -backend=false
     options:
       cache: false
-    # TODO: currently too large to cache with bazel-remote and Backblaze B2
-    #    outputs:
-    #      - .terraform
     inputs:
       - glob: ./**/*.tf
       - glob: ./**/*.hcl
       - "!.terraform/**"
-
   test:
     command: terraform validate
     deps:
@@ -35,7 +31,6 @@ tasks:
       - file: ./Taskfile.yml
       - file: ./version.txt
       - "!.terraform/**"
-
   workspace_test:
     command: bats tests/workspace-test.bats
     deps:

@@ -5,7 +5,6 @@ tags:
   - docker
   - buildx
   - infrastructure
-
 tasks:
   buildx_run:
     command: scripts/buildx-run.sh
@@ -14,7 +13,6 @@ tasks:
       runInCI: true
     inputs:
       - file: scripts/buildx-run.sh
-
   registry_run:
     command: scripts/registry-run.sh
     options:

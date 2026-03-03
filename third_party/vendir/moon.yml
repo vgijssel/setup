@@ -5,10 +5,13 @@ tags:
   - helm
   - infrastructure
 fileGroups:
+  vendir_bin:
+    - /bin/vendir
+    - /bin/.vendir-*
+    - /bin/hermit
   vendir_config:
     - vendir.yml
     - vendir.lock.yml
-  # Ensure in the globs to include both regular and hidden files
   vendir_outputs:
     - charts/**/*
     - charts/**/.*
@@ -30,9 +33,7 @@ tasks:
       - vendir.lock.yml
     options:
       cache: true
-
   test:
-    # Only verify the lock file - outputs are validated by caching mechanism
     command: git diff --exit-code vendir.lock.yml
     deps:
       - ~:build

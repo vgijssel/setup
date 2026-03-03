@@ -11,7 +11,7 @@ tags:
   - infrastructure
 tasks:
   apply:
-    command: set -a && source .env && set +a && tofu apply -auto-approve
+    script: set -a && source .env && set +a && tofu apply -auto-approve
     deps:
       - ~:init
     env:
@@ -20,7 +20,7 @@ tasks:
       runInCI: false
       interactive: true
   destroy:
-    command: set -a && source .env && set +a && tofu destroy -auto-approve
+    script: set -a && source .env && set +a && tofu destroy -auto-approve
     deps:
       - ~:init
     env:
@@ -29,7 +29,7 @@ tasks:
       runInCI: false
       interactive: true
   init:
-    command: set -a && source .env && set +a && tofu init -backend-config="bucket=$TF_VAR_s3_bucket"
+    script: set -a && source .env && set +a && tofu init -backend-config="bucket=$TF_VAR_s3_bucket"
     deps:
       - ~:secrets
     env:
@@ -37,7 +37,7 @@ tasks:
     options:
       runInCI: false
   output:
-    command: set -a && source .env && set +a && tofu output
+    script: set -a && source .env && set +a && tofu output
     deps:
       - ~:init
     env:
@@ -45,7 +45,7 @@ tasks:
     options:
       runInCI: false
   plan:
-    command: set -a && source .env && set +a && tofu plan
+    script: set -a && source .env && set +a && tofu plan
     deps:
       - ~:init
     env:

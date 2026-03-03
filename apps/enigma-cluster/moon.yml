@@ -17,10 +17,8 @@ tasks:
     env:
       CREDENTIALS_REF: op://setup-enigma-cluster/enigma-cluster Credentials File/1password-credentials.json
       TOKEN_REF: op://setup-enigma-cluster/gpbfafh2i2fa22lnkzud3gwdom/credential
-
     options:
       runInCI: false
-
   bootstrap:
     command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/enigma-cluster/
     deps:

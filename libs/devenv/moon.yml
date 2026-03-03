@@ -1,5 +1,15 @@
 language: javascript
 layer: library
+fileGroups:
+  chezmoi_bin:
+    - /bin/chezmoi
+    - /bin/.chezmoi-*
+    - /bin/hermit
+    - /bin/chezmoi-wrapper
+  claude_bin:
+    - /bin/claude
+    - /bin/.claude-code-*
+    - /bin/hermit
 tags:
   - devenv
   - chezmoi
@@ -15,7 +25,6 @@ tasks:
     options:
       runInCI: false
       interactive: true
-
   test:
     script: chezmoi-wrapper apply --force --verbose && goss validate
     deps:

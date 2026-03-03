@@ -4,39 +4,34 @@ fileGroups:
     - /bin/pnpm
     - /bin/.pnpm-*
     - /bin/hermit
-
   vendir_bin:
     - /bin/vendir
     - /bin/.vendir-*
     - /bin/hermit
-
   regctl_bin:
     - /bin/regctl
     - /bin/.regctl-*
     - /bin/hermit
-
   chezmoi_bin:
     - /bin/chezmoi
     - /bin/.chezmoi-*
     - /bin/hermit
     - /bin/chezmoi-wrapper
-
   node_bin:
     - /bin/node
     - /bin/.node-*
     - /bin/hermit
-
   python_bin:
     - /bin/python3
     - /bin/.python3-*
     - /bin/hermit
-
   uv_bin:
     - /bin/uv
     - /bin/.uv-*
     - /bin/hermit
-
   claude_bin:
     - /bin/claude
     - /bin/.claude-code-*
     - /bin/hermit
+inheritedBy:
+  language: tasks

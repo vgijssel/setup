@@ -1,5 +1,4 @@
 $schema: ../cache/schemas/tasks.json
-
 fileGroups:
   python_sources:
     - src/**/*.py
@@ -20,7 +19,6 @@ fileGroups:
   python_configs:
     - pyproject.toml
     - uv.lock
-
 tasks:
   build:
     command: uv build
@@ -31,7 +29,6 @@ tasks:
       - dist
     options:
       cache: true
-
   test:
     command: uv run --all-extras pytest
     inputs:
@@ -40,3 +37,5 @@ tasks:
       - "@files(python_configs)"
     options:
       cache: true
+inheritedBy:
+  tag: python

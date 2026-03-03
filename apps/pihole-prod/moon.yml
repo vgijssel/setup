@@ -27,4 +27,4 @@ tasks:
   validate:
     command: goss -g goss.yaml validate --format documentation
     options:
-      runInCI: false # Requires SSH access to pihole-prod host
+      runInCI: false

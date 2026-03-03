@@ -7,7 +7,7 @@ tags:
   - kind
 tasks:
   test:
-    command: dev-cluster create internal-dns-test && chainsaw test --test-dir tests --kube-context kind-internal-dns-test && dev-cluster delete internal-dns-test
+    script: dev-cluster create internal-dns-test && chainsaw test --test-dir tests --kube-context kind-internal-dns-test && dev-cluster delete internal-dns-test
     inputs:
       - glob: "**/*"
         cache: true

@@ -8,6 +8,5 @@ tasks:
     options:
       runInCI: false
       interactive: true
-
   test:
     command: uv run test_vault_shell.py

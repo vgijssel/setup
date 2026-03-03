@@ -1,16 +1,20 @@
 language: bash
 layer: library
+fileGroups:
+  regctl_bin:
+    - /bin/regctl
+    - /bin/.regctl-*
+    - /bin/hermit
 project:
   description: Custom Talos Linux installer image with Realtek drivers for Cozystack
-  metadata:
-    dependencies:
-      siderolabs/talos:
-        version: v1.11.6
-        datasource: github-releases
-      siderolabs/realtek-firmware:
-        version: "20251125"
-        datasource: docker
-        packageName: ghcr.io/siderolabs/realtek-firmware
+  dependencies:
+    siderolabs/talos:
+      version: v1.11.6
+      datasource: github-releases
+    siderolabs/realtek-firmware:
+      version: "20251125"
+      datasource: docker
+      packageName: ghcr.io/siderolabs/realtek-firmware
 tags:
   - docker
   - image
@@ -30,7 +34,6 @@ tasks:
       - dist/realtek-firmware.sha
     options:
       cache: true
-
   generate-profile:
     command: scripts/generate-custom-profile.sh
     deps:
@@ -44,7 +47,6 @@ tasks:
       - dist/installer.yaml
     options:
       cache: true
-
   build:
     command: scripts/build-installer.sh
     deps:
@@ -56,7 +58,6 @@ tasks:
       - dist/installer-amd64.tar
     options:
       cache: true
-
   release:
     command: scripts/release.sh
     deps:

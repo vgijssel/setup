@@ -1,3 +1,8 @@
+fileGroups:
+  pnpm_bin:
+    - /bin/pnpm
+    - /bin/.pnpm-*
+    - /bin/hermit
 tasks:
   build:
     script: rm -rf ./dist && pnpm deploy --filter . --config.node-linker=hoisted --config.prefer-symlinked-executables=false ./dist >&2
@@ -15,12 +20,12 @@ tasks:
       mutex: pnpm-install
       outputStyle: buffer-only-failure
       cacheKey: v3
-
   exec:
     command: $workspaceRoot/.moon/scripts/pnpm-exec-in-cwd.sh
     deps:
       - ~:build
-    local: true
     options:
       cache: false
       outputStyle: stream
+inheritedBy:
+  tag: pnpm-tool
