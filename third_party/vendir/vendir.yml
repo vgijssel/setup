@@ -100,7 +100,7 @@ directories:
       - path: .
         git:
           url: https://github.com/cozystack/cozystack
-          ref: v0.41.2
+          ref: v1.0.2
         includePaths:
           - packages/core/talos/images/talos/**
         newRootPath: packages/core/talos/images/talos
