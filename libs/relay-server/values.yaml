@@ -70,14 +70,15 @@ logging:
   level: info
   format: pretty
 
-# Persistence configuration for filesystem storage
-persistence:
-  enabled: true
-  size: 10Gi
-  accessMode: ReadWriteOnce
-  # storageClass: "" # Use default storage class if not specified
-
 # Environment variables for relay server
 env:
   # Public URL for your service
   relayServerUrl: ""
+
+# Backblaze B2 storage configuration
+backblaze:
+  # B2 bucket name
+  bucket: ""
+  # Secret containing Backblaze credentials
+  # Required keys: key_id, application_key
+  secretName: ""

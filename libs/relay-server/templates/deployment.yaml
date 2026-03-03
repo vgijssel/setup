@@ -38,22 +38,23 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          # All configuration now in relay.toml
+          env:
+            - name: BACKBLAZE_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backblaze.secretName }}
+                  key: key_id
+            - name: BACKBLAZE_APPLICATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backblaze.secretName }}
+                  key: application_key
           volumeMounts:
             - name: config
               mountPath: /app/relay.toml
               subPath: relay.toml
               readOnly: true
-            {{- if .Values.persistence.enabled }}
-            - name: data
-              mountPath: /data
-            {{- end }}
       volumes:
         - name: config
           configMap:
             name: {{ include "relay-server.fullname" . }}-config
-        {{- if .Values.persistence.enabled }}
-        - name: data
-          persistentVolumeClaim:
-            claimName: {{ include "relay-server.fullname" . }}-data
-        {{- end }}

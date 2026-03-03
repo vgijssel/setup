@@ -17,6 +17,8 @@ spec:
       interval: 12h
       reconcileStrategy: Revision
   targetNamespace: relay
+  dependsOn:
+    - name: 1password-secrets
   install:
     createNamespace: true
     replace: true
@@ -42,8 +44,8 @@ spec:
     logging:
       level: info
       format: pretty
-    persistence:
-      enabled: true
-      size: 20Gi
+    backblaze:
+      bucket: docs-infra-prod
+      secretName: backblaze-credentials
     env:
       relayServerUrl: https://personal.relay.enigma.vgijssel.nl

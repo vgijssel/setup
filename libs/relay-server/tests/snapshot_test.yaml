@@ -47,10 +47,9 @@ logging:
   level: info
   format: pretty
 
-persistence:
-  enabled: true
-  size: 10Gi
-  accessMode: ReadWriteOnce
-
 env:
   relayServerUrl: https://relay.example.com
+
+backblaze:
+  bucket: test-bucket
+  secretName: backblaze-credentials

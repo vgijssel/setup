@@ -17,11 +17,10 @@ data:
     level = "{{ .Values.logging.level }}"
     format = "{{ .Values.logging.format }}"
 
-    # Filesystem storage configuration
-    # Data stored in /data volume (PVC)
+    # Backblaze B2 storage configuration
     [store]
-    type = "filesystem"
-    path = "/data"
+    type = "backblaze"
+    bucket = "{{ .Values.backblaze.bucket }}"
 
     # Relay.md public keys
     [[auth]]
