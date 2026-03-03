@@ -28,9 +28,14 @@ spec:
             - -c
             - |
               echo "Rendering relay.toml configuration..."
-              envsubst '${RELAY_PORT} ${RELAY_URL} ${LOG_LEVEL} ${LOG_FORMAT} ${BACKBLAZE_BUCKET} ${BACKBLAZE_KEY_ID} ${BACKBLAZE_APPLICATION_KEY}' \
-                < /template/relay.toml.template \
-                > /config/relay.toml
+              sed -e "s|\${RELAY_PORT}|${RELAY_PORT}|g" \
+                  -e "s|\${RELAY_URL}|${RELAY_URL}|g" \
+                  -e "s|\${LOG_LEVEL}|${LOG_LEVEL}|g" \
+                  -e "s|\${LOG_FORMAT}|${LOG_FORMAT}|g" \
+                  -e "s|\${BACKBLAZE_BUCKET}|${BACKBLAZE_BUCKET}|g" \
+                  -e "s|\${BACKBLAZE_KEY_ID}|${BACKBLAZE_KEY_ID}|g" \
+                  -e "s|\${BACKBLAZE_APPLICATION_KEY}|${BACKBLAZE_APPLICATION_KEY}|g" \
+                  /template/relay.toml.template > /config/relay.toml
               echo "Configuration rendered successfully"
           env:
             - name: RELAY_PORT
