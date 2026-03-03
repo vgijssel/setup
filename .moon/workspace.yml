@@ -14,6 +14,7 @@ projects:
     - libs/*
     - third_party/*
     - third_party/javascript/tools/*
+    - "!third_party/hermit"
   sources:
     devcontainer: .devcontainer
 vcs:
