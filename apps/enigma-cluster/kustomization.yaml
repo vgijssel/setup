@@ -20,3 +20,4 @@ resources:
   - helmrelease-tailscale-operator.yaml
   - namespace-ingress-nginx-gateway.yaml
   - helmrelease-ingress-nginx-gateway.yaml
+  - tenant-root.yaml
