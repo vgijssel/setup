@@ -29,6 +29,8 @@ data:
     bucket = "${BACKBLAZE_BUCKET}"
     key_id = "${BACKBLAZE_KEY_ID}"
     application_key = "${BACKBLAZE_APPLICATION_KEY}"
+    endpoint = "${BACKBLAZE_ENDPOINT}"
+    region = "${BACKBLAZE_REGION}"
 
     # Relay.md public keys
     [[auth]]
@@ -81,7 +83,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: e9317b34571b49da29882f9c51ff29ea73fbf3c69eaed0b2957f22b6d7fb8c90
+        checksum/config: c92376fe56ec34e0edebcb02285fad3d064e58840ad9d0a00ad59c9152e2bb40
       labels:
         app.kubernetes.io/name: relay-server
         app.kubernetes.io/instance: relay-server
@@ -101,8 +103,12 @@ spec:
                   -e "s|\${BACKBLAZE_BUCKET}|${BACKBLAZE_BUCKET}|g" \
                   -e "s|\${BACKBLAZE_KEY_ID}|${BACKBLAZE_KEY_ID}|g" \
                   -e "s|\${BACKBLAZE_APPLICATION_KEY}|${BACKBLAZE_APPLICATION_KEY}|g" \
+                  -e "s|\${BACKBLAZE_ENDPOINT}|${BACKBLAZE_ENDPOINT}|g" \
+                  -e "s|\${BACKBLAZE_REGION}|${BACKBLAZE_REGION}|g" \
                   /template/relay.toml.template > /config/relay.toml
               echo "Configuration rendered successfully"
+              echo ""
+              cat /config/relay.toml
           env:
             - name: RELAY_PORT
               value: "8080"
@@ -127,6 +133,16 @@ spec:
                 secretKeyRef:
                   name: backblaze-credentials
                   key: application_key
+            - name: BACKBLAZE_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: backblaze-credentials
+                  key: endpoint
+            - name: BACKBLAZE_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: backblaze-credentials
+                  key: region
           volumeMounts:
             - name: config-template
               mountPath: /template

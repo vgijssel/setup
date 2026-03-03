@@ -23,6 +23,8 @@ data:
     bucket = "${BACKBLAZE_BUCKET}"
     key_id = "${BACKBLAZE_KEY_ID}"
     application_key = "${BACKBLAZE_APPLICATION_KEY}"
+    endpoint = "${BACKBLAZE_ENDPOINT}"
+    region = "${BACKBLAZE_REGION}"
 
     # Relay.md public keys
     [[auth]]
