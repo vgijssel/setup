@@ -1,0 +1,11 @@
+language: javascript
+layer: application
+tags:
+  - stack
+  - kubernetes
+  - infrastructure
+tasks:
+  bootstrap:
+    command: kubectl apply -k $MOON_WORKSPACE_ROOT/apps/secrets-infra/
+    options:
+      runInCI: false
