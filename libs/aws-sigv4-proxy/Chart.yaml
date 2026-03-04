@@ -1,0 +1,6 @@
+apiVersion: v2
+name: aws-sigv4-proxy
+description: Helm chart for AWS SigV4 signing proxy
+type: application
+version: 0.1.0
+appVersion: 1.11.0

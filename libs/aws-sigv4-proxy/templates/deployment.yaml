@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aws-sigv4-proxy.fullname" . }}
+  labels:
+    {{- include "aws-sigv4-proxy.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "aws-sigv4-proxy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "aws-sigv4-proxy.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --host=$(AWS_ENDPOINT)
+            - --region=$(AWS_REGION)
+            - --port=:{{ .Values.proxy.port }}
+            - --log-failed-requests
+            - --log-signing-process
+            - --name={{ .Values.proxy.serviceName }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.proxy.port }}
+              protocol: TCP
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.aws.secretName }}
+                  key: {{ .Values.aws.accessKeyIdKey }}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.aws.secretName }}
+                  key: {{ .Values.aws.secretAccessKeyKey }}
+            - name: AWS_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.aws.secretName }}
+                  key: {{ .Values.aws.regionKey }}
+            - name: AWS_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.aws.secretName }}
+                  key: {{ .Values.aws.endpointKey }}
+          {{- if .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

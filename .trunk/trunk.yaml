@@ -72,6 +72,7 @@ lint:
         - libs/underlay-networking/templates/**
         - libs/internal-storage/templates/**
         - libs/relay-server/templates/**
+        - libs/aws-sigv4-proxy/templates/**
   enabled:
     - ansible-lint@26.1.1
     - actionlint@1.7.10

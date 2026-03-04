@@ -1,0 +1,69 @@
+# AWS SigV4 Proxy configuration
+
+name: aws-sigv4-proxy
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: public.ecr.aws/aws-observability/aws-sigv4-proxy
+  pullPolicy: IfNotPresent
+  tag: "1.11"
+  pullSecrets: []
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# Liveness probe - checks if proxy is responsive
+# aws-sigv4-proxy doesn't have a health endpoint, use TCP socket
+livenessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Readiness probe - checks if proxy is ready to accept traffic
+# aws-sigv4-proxy doesn't have a health endpoint, use TCP socket
+readinessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations: {}
+
+# AWS SigV4 proxy configuration
+proxy:
+  # Optional: AWS service name (auto-detected from host if not specified)
+  serviceName: "s3"
+  # Port the proxy listens on
+  port: 8080
+
+# AWS credentials and config from existing secret
+# All values (credentials, region, endpoint) are read from the secret
+aws:
+  # Name of the secret containing AWS credentials, region, and endpoint
+  secretName: ""
+  # Key in secret for AWS_ACCESS_KEY_ID
+  accessKeyIdKey: "AWS_ACCESS_KEY_ID"
+  # Key in secret for AWS_SECRET_ACCESS_KEY
+  secretAccessKeyKey: "AWS_SECRET_ACCESS_KEY"
+  # Key in secret for AWS region (required)
+  regionKey: "region"
+  # Key in secret for endpoint URL (required, e.g., https://s3.us-west-004.backblazeb2.com)
+  endpointKey: "endpoint"
