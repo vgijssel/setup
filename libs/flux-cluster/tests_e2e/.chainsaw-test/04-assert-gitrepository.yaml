@@ -1,10 +1,12 @@
+# Assert GitRepository is created in flux-system namespace
+# Name format: setup-${fluxcluster-name}
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: setup
+  name: setup-test-cluster
   namespace: flux-system
 spec:
   interval: 5m
   url: https://github.com/vgijssel/setup
   ref:
-    branch: mg/chore/upgrade-cozystack
+    branch: main

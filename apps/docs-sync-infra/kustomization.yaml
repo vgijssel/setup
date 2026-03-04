@@ -2,6 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
-  - cluster-docs-sync.yaml
-  - gitrepository-setup.yaml
-  - kustomization-docs-sync.yaml
+  # FluxCluster replaces the individual resources below
+  - fluxcluster-docs-sync.yaml
+  # Legacy resources - kept for reference during migration
+  # - cluster-docs-sync.yaml
+  # - gitrepository-setup.yaml
+  # - kustomization-docs-sync.yaml

@@ -1,14 +1,15 @@
+# Assert Kustomization is created with correct path
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: secrets
+  name: test-cluster
   namespace: flux-system
 spec:
   interval: 30m
   sourceRef:
     kind: GitRepository
-    name: setup
-  path: ./apps/secrets
+    name: setup-test-cluster
+  path: ./apps/docs-sync
   prune: true
   wait: true
   timeout: 10m

@@ -1,14 +1,14 @@
-apiVersion: k3k.io/v1beta1
-kind: Cluster
+# FluxCluster with DNS forwarding configured
+apiVersion: kro.run/v1alpha1
+kind: FluxCluster
 metadata:
-  name: secrets
-  namespace: tenant-prod
+  name: test-cluster-dns
+  namespace: tenant-test
 spec:
   servers: 1
   agents: 0
   version: v1.34.4-k3s1
   mode: shared
-  # In shared mode, serviceCIDR must match host cluster to enable service routing
   serviceCIDR: 10.96.0.0/16
   clusterDNS: 10.96.0.10
   tlsSANs:
@@ -21,15 +21,23 @@ spec:
   sync:
     secrets:
       enabled: false
-    # Necessary for CoreDNS to function properly in the cluster
     configMaps:
       enabled: true
-    # Necessary for 1Password Connect to function properly in the cluster
     services:
       enabled: true
     persistentVolumeClaims:
       enabled: false
     ingresses:
-      enabled: false
+      enabled: true
     priorityClasses:
       enabled: false
+
+  flux:
+    branch: main
+    path: ./apps/docs-sync
+
+  # DNS forwarding configuration
+  dns:
+    hostIp: 10.96.0.10
+    services:
+      - test-service.tenant-test.svc.cluster.local

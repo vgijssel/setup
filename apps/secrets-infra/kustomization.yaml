@@ -2,9 +2,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
-  - cluster-secrets.yaml
-  - secretstore-k3k.yaml
-  - pushsecret-1password.yaml
-  - gitrepository-setup.yaml
-  - kustomization-secrets.yaml
+  - fluxcluster-secrets.yaml
   - service-aws-sigv4-proxy-alias.yaml

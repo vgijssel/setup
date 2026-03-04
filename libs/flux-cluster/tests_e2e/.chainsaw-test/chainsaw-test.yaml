@@ -5,69 +5,203 @@ metadata:
 spec:
   description: Core FluxCluster resource creation tests
   timeouts:
-    apply: 30s
+    apply: 2m
     assert: 5m
-    delete: 2m
+    delete: 5m
+    cleanup: 2m
+    exec: 5m
   steps:
-    # Step 1: Apply the FluxCluster ResourceGroup definition
+    # Step 1: Install kro controller
+    - name: install-kro
+      description: Install kro controller and wait for it to be ready
+      try:
+        - script:
+            timeout: 2m
+            content: |
+              set -e
+              # Install kro
+              kubectl create namespace kro-system 2>/dev/null || true
+              kubectl apply -f https://github.com/kubernetes-sigs/kro/releases/download/v0.8.5/kro-core-install-manifests.yaml
+              # Wait for kro to be ready
+              kubectl -n kro-system rollout status deployment/kro --timeout=60s
+
+    # Step 2: Install k3k CRDs (just the CRDs, not the full operator)
+    - name: install-k3k-crds
+      description: Install k3k Cluster CRD
+      try:
+        - script:
+            timeout: 1m
+            content: |
+              set -e
+              # Check if k3k CRD exists, if not install it
+              if ! kubectl get crd clusters.k3k.io >/dev/null 2>&1; then
+                echo "Installing k3k CRDs..."
+                kubectl apply -f https://raw.githubusercontent.com/rancher/k3k/main/charts/k3k/templates/crds/k3k.io_clusters.yaml
+              else
+                echo "k3k CRD already exists"
+              fi
+
+    # Step 3: Install external-secrets CRDs
+    - name: install-external-secrets-crds
+      description: Install external-secrets CRDs for SecretStore and PushSecret
+      try:
+        - script:
+            timeout: 1m
+            content: |
+              set -e
+              # Check if external-secrets CRDs exist
+              if ! kubectl get crd secretstores.external-secrets.io >/dev/null 2>&1; then
+                echo "Installing external-secrets CRDs..."
+                # Use server-side apply due to large CRD size exceeding annotation limits
+                kubectl apply --server-side -f https://raw.githubusercontent.com/external-secrets/external-secrets/main/deploy/crds/bundle.yaml
+              else
+                echo "external-secrets CRDs already exist"
+              fi
+
+    # Step 4: Create RBAC for kro to manage FluxCluster resources
+    - name: create-kro-rbac
+      description: Create ClusterRole and ClusterRoleBinding for kro
+      try:
+        - apply:
+            file: 00-kro-rbac.yaml
+
+    # Step 5: Apply the FluxCluster ResourceGroup definition
     - name: apply-resourcegroup
       description: Apply the FluxCluster ResourceGroup to the cluster
       try:
         - apply:
             file: ../../resourcegroup.yaml
+        - script:
+            timeout: 30s
+            content: |
+              # Wait for RGD to be ready
+              for i in $(seq 1 30); do
+                STATE=$(kubectl get resourcegraphdefinitions.kro.run fluxcluster -o jsonpath='{.status.state}' 2>/dev/null || echo "")
+                if [ "$STATE" = "Active" ]; then
+                  echo "ResourceGraphDefinition is Active"
+                  exit 0
+                fi
+                echo "Waiting for RGD to be ready (state: $STATE)..."
+                sleep 1
+              done
+              echo "ERROR: ResourceGraphDefinition not ready"
+              kubectl get resourcegraphdefinitions.kro.run fluxcluster -o yaml
+              exit 1
 
-    # Step 2: Create namespace for test
+    # Step 6: Create namespace for test
     - name: create-namespace
       description: Create tenant-test namespace
       try:
         - apply:
-            file: 00-namespace.yaml
+            file: 01-namespace.yaml
 
-    # Step 3: Create a FluxCluster instance
+    # Step 7: Create a FluxCluster instance
     - name: create-fluxcluster
       description: Create a test FluxCluster custom resource
       try:
         - apply:
-            file: 01-fluxcluster.yaml
+            file: 02-fluxcluster.yaml
+        - script:
+            timeout: 30s
+            content: |
+              # Wait for FluxCluster to be ready
+              for i in $(seq 1 30); do
+                STATE=$(kubectl get fluxclusters.kro.run test-cluster -n tenant-test -o jsonpath='{.status.state}' 2>/dev/null || echo "")
+                if [ "$STATE" = "ACTIVE" ]; then
+                  echo "FluxCluster is ACTIVE"
+                  exit 0
+                fi
+                echo "Waiting for FluxCluster to be ready (state: $STATE)..."
+                sleep 1
+              done
+              echo "ERROR: FluxCluster not ready"
+              kubectl get fluxclusters.kro.run test-cluster -n tenant-test -o yaml
+              exit 1
 
-    # Step 4: Verify k3k Cluster is created
+    # Step 8: Verify k3k Cluster is created
     - name: assert-k3k-cluster
       description: Verify k3k Cluster resource exists with correct spec
       try:
         - assert:
-            file: 02-assert-k3k-cluster.yaml
+            file: 03-assert-k3k-cluster.yaml
 
-    # Step 5: Verify GitRepository is created
+    # Step 9: Verify GitRepository is created
     - name: assert-gitrepository
       description: Verify GitRepository exists in flux-system namespace
       try:
         - assert:
-            file: 03-assert-gitrepository.yaml
+            file: 04-assert-gitrepository.yaml
 
-    # Step 6: Verify Kustomization is created
+    # Step 10: Verify Kustomization is created
     - name: assert-kustomization
       description: Verify Kustomization exists with correct path
       try:
         - assert:
-            file: 04-assert-kustomization.yaml
+            file: 05-assert-kustomization.yaml
 
-    # Step 7: Create FluxCluster with secret sync enabled
+    # Step 11: Create FluxCluster with secret sync enabled
     - name: create-fluxcluster-secrets
       description: Create a FluxCluster with hostSync.secrets enabled
       try:
         - apply:
-            file: 05-fluxcluster-secrets.yaml
+            file: 06-fluxcluster-secrets.yaml
+        - script:
+            timeout: 30s
+            content: |
+              # Wait for FluxCluster to be ready
+              for i in $(seq 1 30); do
+                STATE=$(kubectl get fluxclusters.kro.run test-cluster-secrets -n tenant-test -o jsonpath='{.status.state}' 2>/dev/null || echo "")
+                if [ "$STATE" = "ACTIVE" ]; then
+                  echo "FluxCluster test-cluster-secrets is ACTIVE"
+                  exit 0
+                fi
+                echo "Waiting for FluxCluster to be ready (state: $STATE)..."
+                sleep 1
+              done
+              echo "ERROR: FluxCluster not ready"
+              kubectl get fluxclusters.kro.run test-cluster-secrets -n tenant-test -o yaml
+              exit 1
 
-    # Step 8: Verify SecretStore is created
+    # Step 12: Verify SecretStore is created
     - name: assert-secretstore
       description: Verify SecretStore is created for host-to-tenant sync
       try:
         - assert:
-            file: 06-assert-secretstore.yaml
+            file: 07-assert-secretstore.yaml
 
-    # Step 9: Verify PushSecrets are created
+    # Step 13: Verify PushSecrets are created
     - name: assert-pushsecrets
       description: Verify PushSecrets are created for each selector
       try:
         - assert:
-            file: 07-assert-pushsecrets.yaml
+            file: 08-assert-pushsecrets.yaml
+
+    # Step 14: Test FluxCluster with DNS services
+    - name: create-fluxcluster-dns
+      description: Create a FluxCluster with dns.services configured
+      try:
+        - apply:
+            file: 09-fluxcluster-dns.yaml
+        - script:
+            timeout: 30s
+            content: |
+              # Wait for FluxCluster to be ready
+              for i in $(seq 1 30); do
+                STATE=$(kubectl get fluxclusters.kro.run test-cluster-dns -n tenant-test -o jsonpath='{.status.state}' 2>/dev/null || echo "")
+                if [ "$STATE" = "ACTIVE" ]; then
+                  echo "FluxCluster test-cluster-dns is ACTIVE"
+                  exit 0
+                fi
+                echo "Waiting for FluxCluster to be ready (state: $STATE)..."
+                sleep 1
+              done
+              echo "ERROR: FluxCluster not ready"
+              kubectl get fluxclusters.kro.run test-cluster-dns -n tenant-test -o yaml
+              exit 1
+
+    # Step 15: Verify CoreDNS addon Secret is created
+    - name: assert-coredns-addon
+      description: Verify CoreDNS addon Secret is created for DNS forwarding
+      try:
+        - assert:
+            file: 10-assert-coredns-addon.yaml

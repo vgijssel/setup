@@ -4,9 +4,10 @@ tags:
   - kubernetes
   - kro
   - flux
+  - kind
 tasks:
-  e2e_test:
-    script: chainsaw test --test-dir tests_e2e
+  test:
+    command: dev-cluster create flux-cluster-test --flux-path ./apps/flux-system && chainsaw test --test-dir tests_e2e --kube-context kind-flux-cluster-test && dev-cluster delete flux-cluster-test
     inputs:
       - resourcegroup.yaml
       - kustomization.yaml

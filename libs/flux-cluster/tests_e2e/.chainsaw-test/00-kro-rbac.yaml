@@ -1,0 +1,43 @@
+# RBAC for kro to manage FluxCluster resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kro:fluxcluster
+rules:
+  - apiGroups: ["kro.run"]
+    resources: ["fluxclusters", "fluxclusters/status"]
+    verbs: ["*"]
+  - apiGroups: ["k3k.io"]
+    resources: ["clusters", "clusters/status"]
+    verbs: ["*"]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["gitrepositories", "gitrepositories/status"]
+    verbs: ["*"]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: ["kustomizations", "kustomizations/status"]
+    verbs: ["*"]
+  - apiGroups: ["external-secrets.io"]
+    resources:
+      [
+        "secretstores",
+        "pushsecrets",
+        "secretstores/status",
+        "pushsecrets/status",
+      ]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["secrets", "namespaces"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kro:fluxcluster
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kro:fluxcluster
+subjects:
+  - kind: ServiceAccount
+    name: kro
+    namespace: kro-system
