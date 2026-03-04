@@ -49,6 +49,12 @@ directories:
     path: .
   path: charts/coder-logstream-kube
 - contents:
+  - helmChart:
+      appVersion: v2.0.1
+      version: 2.0.1
+    path: .
+  path: charts/external-secrets
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508

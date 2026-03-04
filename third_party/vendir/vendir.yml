@@ -65,6 +65,14 @@ directories:
           version: 0.0.13
           repository:
             url: https://helm.coder.com/logstream-kube
+  - path: charts/external-secrets
+    contents:
+      - path: .
+        helmChart:
+          name: external-secrets
+          version: 2.0.1
+          repository:
+            url: https://charts.external-secrets.io
   - path: shell/zimfw
     contents:
       - path: .
