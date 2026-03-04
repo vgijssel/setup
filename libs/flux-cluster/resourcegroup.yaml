@@ -47,7 +47,7 @@ spec:
         persistentVolumeClaims:
           enabled: boolean | default=false
         ingresses:
-          enabled: boolean | default=true
+          enabled: boolean | default=false
         priorityClasses:
           enabled: boolean | default=false
 

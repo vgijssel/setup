@@ -1,44 +1,24 @@
-# FluxCluster resource that replaces:
-# - cluster-docs-sync.yaml (k3k Cluster)
-# - gitrepository-setup.yaml (Flux GitRepository)
-# - kustomization-docs-sync.yaml (Flux Kustomization)
 apiVersion: kro.run/v1alpha1
 kind: FluxCluster
 metadata:
   name: docs-sync
   namespace: tenant-prod
 spec:
-  # k3k Cluster configuration (from cluster-docs-sync.yaml)
   servers: 1
   agents: 0
   version: v1.34.4-k3s1
-  mode: shared
-  # In shared mode, serviceCIDR must match host cluster to enable service routing
-  serviceCIDR: 10.96.0.0/16
-  clusterDNS: 10.96.0.10
   tlsSANs:
     - 172.18.0.2
-  expose:
-    nodePort: {}
-  persistence:
-    type: dynamic
-    storageRequestSize: 2G
   sync:
-    secrets:
-      enabled: false
     # Necessary for CoreDNS to function properly in the cluster
     configMaps:
       enabled: true
     # Necessary for service discovery between virtual clusters
     services:
       enabled: true
-    persistentVolumeClaims:
-      enabled: false
     # Enable ingress sync to expose relay servers via host ingress controller
     ingresses:
       enabled: true
-    priorityClasses:
-      enabled: false
 
   # Flux configuration (from gitrepository-setup.yaml and kustomization-docs-sync.yaml)
   flux:
