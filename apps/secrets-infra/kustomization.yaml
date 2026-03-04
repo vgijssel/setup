@@ -5,3 +5,5 @@ resources:
   - cluster-secrets.yaml
   - secretstore-k3k.yaml
   - pushsecret-1password.yaml
+  - gitrepository-setup.yaml
+  - kustomization-secrets.yaml
