@@ -6,10 +6,11 @@ set -euo pipefail
 
 CREDENTIALS_REF=""
 TOKEN_REF=""
+NAMESPACE="1password"
 
 usage() {
     cat <<EOF
-Usage: $(basename "$0") --credentials-ref <ref> --token-ref <ref>
+Usage: $(basename "$0") --credentials-ref <ref> --token-ref <ref> [--namespace <namespace>]
 
 Bootstrap 1Password Connect operator secrets in a Kubernetes cluster.
 
@@ -20,12 +21,14 @@ Required arguments:
                          Example: op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential
 
 Options:
+  -n, --namespace        Kubernetes namespace to create secrets in (default: 1password)
   -h, --help             Show this help message
 
 Example:
   $(basename "$0") \\
     --credentials-ref "op://setup-coder-prod/coder-prod Credentials File/1password-credentials.json" \\
-    --token-ref "op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential"
+    --token-ref "op://setup-coder-prod/kzsqg7xbgiz7jbvxksugadymne/credential" \\
+    --namespace tenant-prod
 EOF
 }
 
@@ -47,6 +50,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -t|--token-ref)
             TOKEN_REF="$2"
+            shift 2
+            ;;
+        -n|--namespace)
+            NAMESPACE="$2"
             shift 2
             ;;
         -h|--help)
@@ -73,19 +80,19 @@ command -v op >/dev/null 2>&1 || error "op (1Password CLI) is not installed"
 command -v kubectl >/dev/null 2>&1 || error "kubectl is not installed"
 
 # Create namespace
-log "Creating 1password namespace..."
-kubectl create namespace 1password 2>/dev/null || true
+log "Creating ${NAMESPACE} namespace..."
+kubectl create namespace "${NAMESPACE}" 2>/dev/null || true
 
 # Read and apply credentials secret
 log "Reading credentials from 1Password..."
 CREDS=$(op read "${CREDENTIALS_REF}" | base64)
 
 log "Deleting existing 1password-credentials secret (if any)..."
-kubectl delete secret 1password-credentials --namespace=1password --ignore-not-found
+kubectl delete secret 1password-credentials --namespace="${NAMESPACE}" --ignore-not-found
 
 log "Creating 1password-credentials secret..."
 kubectl create secret generic 1password-credentials \
-    --namespace=1password \
+    --namespace="${NAMESPACE}" \
     --from-literal=1password-credentials.json="${CREDS}"
 
 # Read and apply operator token secret
@@ -93,11 +100,11 @@ log "Reading operator token from 1Password..."
 TOKEN=$(op read "${TOKEN_REF}")
 
 log "Deleting existing 1password-operator-token secret (if any)..."
-kubectl delete secret 1password-operator-token --namespace=1password --ignore-not-found
+kubectl delete secret 1password-operator-token --namespace="${NAMESPACE}" --ignore-not-found
 
 log "Creating 1password-operator-token secret..."
 kubectl create secret generic 1password-operator-token \
-    --namespace=1password \
+    --namespace="${NAMESPACE}" \
     --from-literal=token="${TOKEN}"
 
-log "1Password operator secrets bootstrapped successfully!"
+log "1Password operator secrets bootstrapped successfully in namespace ${NAMESPACE}!"
