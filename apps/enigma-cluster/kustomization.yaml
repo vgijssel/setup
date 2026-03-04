@@ -21,6 +21,7 @@ resources:
   - namespace-ingress-nginx-gateway.yaml
   - helmrelease-ingress-nginx-gateway.yaml
   - tenant-root.yaml
+  - tenant-prod.yaml
   - package-cozystack-platform.yaml
   - package-keycloak-override.yaml
   - package-networking-override.yaml
