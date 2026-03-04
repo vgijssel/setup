@@ -3,6 +3,5 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - cluster-secrets.yaml
-  - job-extract-kubeconfig.yaml
   - secretstore-k3k.yaml
   - pushsecret-1password.yaml
