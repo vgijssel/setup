@@ -55,6 +55,9 @@ spec:
       flux:
         branch: string | required=true
         path: string | required=true
+        timeout: string | default="1m30s"
+        interval: string | default="30m"
+        retryInterval: string | default="30s"
 
       # DNS forwarding configuration
       dns:
@@ -89,7 +92,7 @@ spec:
           serviceCIDR: ${schema.spec.serviceCIDR}
           clusterDNS: ${schema.spec.clusterDNS}
           tlsSANs: ${schema.spec.tlsSANs}
-          expose: ${schema.spec.expose}
+          expose: "${has(schema.spec.expose) ? schema.spec.expose : {}}"
           persistence: ${schema.spec.persistence}
           sync: ${schema.spec.sync}
           # Task 8: k3k addons for DNS forwarding
@@ -106,7 +109,8 @@ spec:
           name: setup-${schema.metadata.name}
           namespace: ${schema.metadata.namespace}
         spec:
-          interval: 5m
+          interval: ${schema.spec.flux.interval}
+          timeout: ${schema.spec.flux.timeout}
           url: https://github.com/vgijssel/setup
           ref:
             branch: ${schema.spec.flux.branch}
@@ -121,14 +125,15 @@ spec:
           name: ${schema.metadata.name}
           namespace: ${schema.metadata.namespace}
         spec:
-          interval: 30m
+          interval: ${schema.spec.flux.interval}
+          retryInterval: ${schema.spec.flux.retryInterval}
+          timeout: ${schema.spec.flux.timeout}
           sourceRef:
             kind: GitRepository
             name: ${gitrepository.metadata.name}
           path: ${schema.spec.flux.path}
           prune: true
           wait: true
-          timeout: 10m
 
     # Task 9: SecretStore for host-to-tenant secret synchronization
     # Only created when hostSync.secrets.enabled is true
