@@ -22,8 +22,18 @@ spec:
       serviceCIDR: string | default="10.96.0.0/16"
       clusterDNS: string | default="10.96.0.10"
       tlsSANs: "[]string"
+      # Expose specifies options for exposing the API server
+      # Only one of nodePort, loadBalancer, or ingress should be set
       expose:
-        nodePort: "map[string]string"
+        nodePort:
+          serverPort: integer
+          etcdPort: integer
+        loadBalancer:
+          serverPort: integer
+          etcdPort: integer
+        ingress:
+          ingressClassName: string
+          annotations: "map[string]string"
       persistence:
         type: string | default="dynamic"
         storageRequestSize: string | default="2G"
@@ -90,7 +100,7 @@ spec:
         apiVersion: source.toolkit.fluxcd.io/v1
         kind: GitRepository
         metadata:
-          name: setup
+          name: setup-${schema.metadata.name}
           namespace: flux-system
         spec:
           interval: 5m
@@ -121,7 +131,7 @@ spec:
     # Only created when hostSync.secrets.enabled is true
     - id: secretstore
       includeWhen:
-        - ${schema.spec.hostSync.secrets.enabled == true}
+        - ${has(schema.spec.hostSync) && has(schema.spec.hostSync.secrets) && schema.spec.hostSync.secrets.enabled == true}
       template:
         apiVersion: external-secrets.io/v1
         kind: SecretStore
@@ -140,7 +150,7 @@ spec:
     # Creates one PushSecret per item in hostSync.secrets.selectors
     - id: pushsecret
       includeWhen:
-        - ${schema.spec.hostSync.secrets.enabled == true}
+        - ${has(schema.spec.hostSync) && has(schema.spec.hostSync.secrets) && schema.spec.hostSync.secrets.enabled == true}
       forEach:
         - secretName: ${schema.spec.hostSync.secrets.selectors}
       template:
@@ -169,7 +179,7 @@ spec:
     # The ConfigMap configures CoreDNS to forward DNS queries for each specified service to the host cluster
     - id: corednsAddon
       includeWhen:
-        - ${size(schema.spec.dns.services) > 0}
+        - ${has(schema.spec.dns) && has(schema.spec.dns.services) && size(schema.spec.dns.services) > 0}
       forEach:
         - dnsService: ${schema.spec.dns.services}
       template:
