@@ -7,3 +7,4 @@ resources:
   - pushsecret-1password.yaml
   - gitrepository-setup.yaml
   - kustomization-secrets.yaml
+  - service-aws-sigv4-proxy-alias.yaml
