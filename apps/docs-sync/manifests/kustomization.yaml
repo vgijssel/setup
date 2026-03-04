@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace-relay.yaml
   - namespace-secrets.yaml
+  - service-aws-sigv4-proxy.yaml
   - secret-backblaze.yaml
   - ingress-relay-family.yaml
   - ingress-relay-personal.yaml
