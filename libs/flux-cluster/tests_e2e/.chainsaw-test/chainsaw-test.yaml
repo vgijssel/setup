@@ -1,0 +1,73 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: flux-cluster-core
+spec:
+  description: Core FluxCluster resource creation tests
+  timeouts:
+    apply: 30s
+    assert: 5m
+    delete: 2m
+  steps:
+    # Step 1: Apply the FluxCluster ResourceGroup definition
+    - name: apply-resourcegroup
+      description: Apply the FluxCluster ResourceGroup to the cluster
+      try:
+        - apply:
+            file: ../../resourcegroup.yaml
+
+    # Step 2: Create namespace for test
+    - name: create-namespace
+      description: Create tenant-test namespace
+      try:
+        - apply:
+            file: 00-namespace.yaml
+
+    # Step 3: Create a FluxCluster instance
+    - name: create-fluxcluster
+      description: Create a test FluxCluster custom resource
+      try:
+        - apply:
+            file: 01-fluxcluster.yaml
+
+    # Step 4: Verify k3k Cluster is created
+    - name: assert-k3k-cluster
+      description: Verify k3k Cluster resource exists with correct spec
+      try:
+        - assert:
+            file: 02-assert-k3k-cluster.yaml
+
+    # Step 5: Verify GitRepository is created
+    - name: assert-gitrepository
+      description: Verify GitRepository exists in flux-system namespace
+      try:
+        - assert:
+            file: 03-assert-gitrepository.yaml
+
+    # Step 6: Verify Kustomization is created
+    - name: assert-kustomization
+      description: Verify Kustomization exists with correct path
+      try:
+        - assert:
+            file: 04-assert-kustomization.yaml
+
+    # Step 7: Create FluxCluster with secret sync enabled
+    - name: create-fluxcluster-secrets
+      description: Create a FluxCluster with hostSync.secrets enabled
+      try:
+        - apply:
+            file: 05-fluxcluster-secrets.yaml
+
+    # Step 8: Verify SecretStore is created
+    - name: assert-secretstore
+      description: Verify SecretStore is created for host-to-tenant sync
+      try:
+        - assert:
+            file: 06-assert-secretstore.yaml
+
+    # Step 9: Verify PushSecrets are created
+    - name: assert-pushsecrets
+      description: Verify PushSecrets are created for each selector
+      try:
+        - assert:
+            file: 07-assert-pushsecrets.yaml

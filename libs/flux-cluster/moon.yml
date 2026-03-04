@@ -1,0 +1,15 @@
+type: application
+language: yaml
+tags:
+  - kubernetes
+  - kro
+  - flux
+tasks:
+  e2e_test:
+    script: chainsaw test --test-dir tests_e2e
+    inputs:
+      - resourcegroup.yaml
+      - kustomization.yaml
+      - tests_e2e/**/*
+    options:
+      cache: true

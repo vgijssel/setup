@@ -1,0 +1,13 @@
+# Assert k3k Cluster resource is created with correct spec
+apiVersion: k3k.io/v1beta1
+kind: Cluster
+metadata:
+  name: test-cluster
+  namespace: tenant-test
+spec:
+  servers: 1
+  agents: 0
+  version: v1.34.4-k3s1
+  mode: shared
+  serviceCIDR: 10.96.0.0/16
+  clusterDNS: 10.96.0.10
