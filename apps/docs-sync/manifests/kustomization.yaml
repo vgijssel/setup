@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace-relay.yaml
   - namespace-secrets.yaml
+  - configmap-coredns-custom.yaml
   - secret-backblaze.yaml
   - ingress-relay-family.yaml
   - ingress-relay-personal.yaml
