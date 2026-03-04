@@ -21,7 +21,6 @@ spec:
       interval: 12h
       reconcileStrategy: Revision
   targetNamespace: relay
-  storageNamespace: relay
   install:
     createNamespace: true
     remediation:
