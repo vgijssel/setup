@@ -5,5 +5,4 @@ resources:
   - cluster-secrets.yaml
   - job-extract-kubeconfig.yaml
   - secretstore-k3k.yaml
-  - secret-test.yaml
-  - pushsecret-test.yaml
+  - pushsecret-1password.yaml
