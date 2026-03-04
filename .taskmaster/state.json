@@ -1,9 +1,10 @@
 {
-  "currentTag": "mg-feat-deploy-relay-server",
-  "lastSwitched": "2026-02-18T13:01:00.585Z",
+  "currentTag": "mg-chore-upgrade-cozystack",
+  "lastSwitched": "2026-03-04T00:00:00.000Z",
   "branchTagMapping": {
     "mg/fix/coder-subdomain-apps": "mg-fix-coder-subdomain-apps",
-    "mg/feat/deploy-relay-server": "mg-feat-deploy-relay-server"
+    "mg/feat/deploy-relay-server": "mg-feat-deploy-relay-server",
+    "mg/chore/upgrade-cozystack": "mg-chore-upgrade-cozystack"
   },
   "migrationNoticeShown": true
 }
