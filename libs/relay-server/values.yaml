@@ -80,3 +80,5 @@ backblaze:
   # Secret containing Backblaze credentials
   # Required keys: bucket, key_id, application_key, endpoint, region
   secretName: ""
+  # Use path-style addressing (required for proxies like aws-sigv4-proxy)
+  pathStyle: false

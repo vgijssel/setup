@@ -50,5 +50,6 @@ spec:
       format: pretty
     backblaze:
       secretName: backblaze-credentials
+      pathStyle: true
     env:
       relayServerUrl: https://personal.relay.docs-sync.vgijssel.nl
