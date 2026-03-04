@@ -12,6 +12,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: setup
+    namespace: flux-system
   path: ./apps/docs-sync/manifests
   prune: true
   wait: true
