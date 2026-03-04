@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: relay-personal
+  namespace: relay
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # WebSocket support - HTTP/1.1 required for connection upgrade
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    # Disable buffering for real-time WebSocket/streaming connections
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    # Extended timeouts to prevent WebSocket disconnections (default 60s)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Allow large file uploads (default 1m)
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - personal.relay.docs-sync.vgijssel.nl
+      secretName: relay-personal-tls
+  rules:
+    - host: personal.relay.docs-sync.vgijssel.nl
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: relay-personal
+                port:
+                  number: 80
