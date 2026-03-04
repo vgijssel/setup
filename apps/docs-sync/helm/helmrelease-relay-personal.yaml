@@ -51,5 +51,8 @@ spec:
     backblaze:
       secretName: backblaze-credentials
       pathStyle: true
+    signingProxy:
+      enabled: true
+      upstreamUrl: http://aws-sigv4-proxy-secrets.tenant-prod.svc.cluster.local
     env:
       relayServerUrl: https://personal.relay.docs-sync.vgijssel.nl

@@ -110,9 +110,40 @@ spec:
               mountPath: /app/relay.toml
               subPath: relay.toml
               readOnly: true
+        {{- if .Values.signingProxy.enabled }}
+        - name: signing-proxy
+          image: {{ .Values.signingProxy.image.repository }}:{{ .Values.signingProxy.image.tag }}
+          imagePullPolicy: {{ .Values.signingProxy.image.pullPolicy }}
+          ports:
+            - name: proxy
+              containerPort: {{ .Values.signingProxy.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: openresty-config
+              mountPath: /usr/local/openresty/nginx/conf/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+          resources:
+            {{- toYaml .Values.signingProxy.resources | nindent 12 }}
+          livenessProbe:
+            tcpSocket:
+              port: proxy
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: proxy
+            initialDelaySeconds: 2
+            periodSeconds: 5
+        {{- end }}
       volumes:
         - name: config-template
           configMap:
             name: {{ include "relay-server.fullname" . }}-config
         - name: config
           emptyDir: {}
+        {{- if .Values.signingProxy.enabled }}
+        - name: openresty-config
+          configMap:
+            name: {{ include "relay-server.fullname" . }}-openresty
+        {{- end }}
