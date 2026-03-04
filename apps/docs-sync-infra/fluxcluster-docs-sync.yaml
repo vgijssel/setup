@@ -20,6 +20,10 @@ spec:
     ingresses:
       enabled: true
 
+  dns:
+    services:
+      - aws-sigv4-proxy-secrets.tenant-prod.svc.cluster.local
+
   # Flux configuration (from gitrepository-setup.yaml and kustomization-docs-sync.yaml)
   flux:
     branch: mg/chore/upgrade-cozystack

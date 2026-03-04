@@ -1,9 +1,9 @@
-# Assert Kustomization is created with correct path
+# Assert Kustomization is created in the FluxCluster namespace
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: test-cluster
-  namespace: flux-system
+  namespace: tenant-test
 spec:
   interval: 30m
   sourceRef:

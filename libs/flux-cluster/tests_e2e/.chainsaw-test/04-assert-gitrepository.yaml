@@ -1,10 +1,10 @@
-# Assert GitRepository is created in flux-system namespace
+# Assert GitRepository is created in the FluxCluster namespace
 # Name format: setup-${fluxcluster-name}
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
   name: setup-test-cluster
-  namespace: flux-system
+  namespace: tenant-test
 spec:
   interval: 5m
   url: https://github.com/vgijssel/setup

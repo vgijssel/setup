@@ -205,3 +205,10 @@ spec:
       try:
         - assert:
             file: 10-assert-coredns-addon.yaml
+
+    # Step 16: Verify k3k Cluster has addon reference
+    - name: assert-k3k-cluster-dns-addon
+      description: Verify k3k Cluster references the CoreDNS addon Secret
+      try:
+        - assert:
+            file: 11-assert-k3k-cluster-dns.yaml
