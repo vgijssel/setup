@@ -1,0 +1,43 @@
+{{- if and .Values.metrics.service.create .Values.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "kro.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kro.labels" . | nindent 4 }}
+    {{- with .Values.metrics.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  jobLabel: {{ .Release.Name }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "kro.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: metrics
+      path: {{ .Values.metrics.serviceMonitor.telemetryPath }}
+      {{- with .Values.metrics.serviceMonitor.interval }}
+      interval: {{ . }}
+      {{- end }}
+      {{- with .Values.metrics.serviceMonitor.scrapeTimeout  }}
+      scrapeTimeout: {{ . }}
+      {{- end }}
+      {{- if .Values.metrics.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+      {{- toYaml .Values.metrics.serviceMonitor.metricRelabelings | nindent 8 }}
+      {{- end }}
+      {{- if .Values.metrics.serviceMonitor.relabelings }}
+      relabelings:
+      {{- toYaml .Values.metrics.serviceMonitor.relabelings | nindent 8 }}
+      {{- end }}
+  {{- if .Values.metrics.serviceMonitor.targetLabels }}
+  targetLabels:
+  {{- range .Values.metrics.serviceMonitor.targetLabels }}
+  - {{ . }}
+  {{- end }}
+  {{- end }}
+{{- end }}

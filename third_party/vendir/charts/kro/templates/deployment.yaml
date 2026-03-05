@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kro.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kro.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "kro.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.deployment.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "kro.labels" . | nindent 8 }}
+        {{- with .Values.deployment.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "kro.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.deployment.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.deployment.securityContext | nindent 12 }}
+          {{- if .Values.image.ko }}
+          image: "ko://github.com/kubernetes-sigs/kro/cmd/controller"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: metricsport
+              containerPort: {{ .Values.deployment.containerPort }}
+          resources:
+            {{- toYaml .Values.deployment.resources | nindent 12 }}
+          env:
+            - name: KRO_METRICS_BIND_ADDRESS
+              value: {{ .Values.config.metricsBindAddress | quote }}
+            - name: KRO_HEALTH_PROBE_BIND_ADDRESS
+              value: {{ .Values.config.healthProbeBindAddress | quote }}
+            - name: KRO_RESOURCE_GROUP_CONCURRENT_RECONCILES
+              value: {{ .Values.config.resourceGraphDefinitionConcurrentReconciles | quote }}
+            - name: KRO_DYNAMIC_CONTROLLER_CONCURRENT_RECONCILES
+              value: {{ .Values.config.dynamicControllerConcurrentReconciles | quote }}
+            - name: KRO_LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            - name: KRO_DYNAMIC_CONTROLLER_DEFAULT_RESYNC_PERIOD
+              value: {{ .Values.config.dynamicControllerDefaultResyncPeriod | quote }}
+            - name: KRO_DYNAMIC_CONTROLLER_DEFAULT_QUEUE_MAX_RETRIES
+              value: {{ .Values.config.dynamicControllerDefaultQueueMaxRetries | quote }}
+            - name: KRO_GRACEFUL_SHUTDOWN_TIMEOUT
+              value: {{ .Values.config.gracefulShutdownTimeout | quote }}
+            - name: KRO_CLIENT_QPS
+              value: {{ .Values.config.clientQps | quote }}
+            - name: KRO_CLIENT_BURST
+              value: {{ .Values.config.clientBurst | quote }}
+          args:
+            {{- if .Values.config.allowCRDDeletion }}
+            - --allow-crd-deletion
+            {{- end }}
+            - --metrics-bind-address
+            - "$(KRO_METRICS_BIND_ADDRESS)"
+            - --health-probe-bind-address
+            - "$(KRO_HEALTH_PROBE_BIND_ADDRESS)"
+            - --resource-graph-definition-concurrent-reconciles
+            - "$(KRO_RESOURCE_GROUP_CONCURRENT_RECONCILES)"
+            - --dynamic-controller-concurrent-reconciles
+            - "$(KRO_DYNAMIC_CONTROLLER_CONCURRENT_RECONCILES)"
+            - --zap-log-level
+            - "$(KRO_LOG_LEVEL)"
+            - --graceful-shutdown-timeout
+            - "$(KRO_GRACEFUL_SHUTDOWN_TIMEOUT)"
+            - --dynamic-controller-default-resync-period
+            - "$(KRO_DYNAMIC_CONTROLLER_DEFAULT_RESYNC_PERIOD)"
+            - --dynamic-controller-default-queue-max-retries
+            - "$(KRO_DYNAMIC_CONTROLLER_DEFAULT_QUEUE_MAX_RETRIES)"
+            - --client-qps
+            - "$(KRO_CLIENT_QPS)"
+            - --client-burst
+            - "$(KRO_CLIENT_BURST)"
+            {{- if .Values.config.enableLeaderElection }}
+            - --leader-elect
+            {{- if ne .Values.config.leaderElectionNamespace "" }}
+            - --leader-election-namespace
+            - {{ .Values.config.leaderElectionNamespace | quote }}
+            {{- end }}
+            {{- if .Values.config.enableControllerWarmup }}
+            - --enable-controller-warmup
+            {{- end }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8079
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8079
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      {{- with .Values.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

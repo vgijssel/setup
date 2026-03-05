@@ -1,0 +1,25 @@
+{{- if .Values.metrics.service.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kro.fullname" . }}-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kro.labels" . | nindent 4 }}
+    {{- with .Values.metrics.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.metrics.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    {{- include "kro.selectorLabels" . | nindent 4 }}
+  type: {{ .Values.metrics.service.type }}
+  ports:
+  - name: metrics
+    port: {{ .Values.metrics.service.port }}
+    targetPort: {{ .Values.deployment.containerPort }}
+    protocol: TCP
+{{- end }}
