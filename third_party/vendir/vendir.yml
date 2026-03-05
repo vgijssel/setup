@@ -54,7 +54,7 @@ directories:
       - path: .
         helmChart:
           name: coder
-          version: 2.29.2
+          version: 2.29.7
           repository:
             url: https://helm.coder.com/v2
   - path: charts/coder-logstream-kube
