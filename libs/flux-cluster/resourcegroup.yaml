@@ -115,6 +115,21 @@ spec:
           ref:
             branch: ${schema.spec.flux.branch}
 
+    # ConfigMap for Kustomize postBuild variable substitution
+    # Contains environment variables that downstream Kustomizations can reference
+    - id: configmap
+      template:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: ${schema.metadata.name}-vars
+          namespace: ${schema.metadata.namespace}
+        data:
+          FLUX_BRANCH: ${schema.spec.flux.branch}
+          FLUX_NAMESPACE: ${schema.metadata.namespace}
+          KUBECONFIG_SECRET_NAME: k3k-${schema.metadata.name}-kubeconfig
+          FLUX_GITREPOSITORY_NAME: ${gitrepository.metadata.name}
+
     # Task 5: Kustomization resource - deploys from specified path
     # kro automatically creates dependency on gitrepository through CEL reference
     - id: kustomization
@@ -134,6 +149,10 @@ spec:
           path: ${schema.spec.flux.path}
           prune: true
           wait: true
+          postBuild:
+            substituteFrom:
+              - kind: ConfigMap
+                name: ${configmap.metadata.name}
 
     # Task 9: SecretStore for host-to-tenant secret synchronization
     # Only created when hostSync.secrets.enabled is true
