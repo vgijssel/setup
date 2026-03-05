@@ -73,6 +73,12 @@ directories:
     path: .
   path: charts/flux-instance
 - contents:
+  - helmChart:
+      appVersion: v1.0.2
+      version: 1.0.2
+    path: .
+  path: charts/k3k
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508
