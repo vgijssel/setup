@@ -21,6 +21,9 @@ spec:
     # Enable ingress sync to expose relay servers via host ingress controller
     ingresses:
       enabled: true
+    # Sync secrets so pods on host cluster can access them (e.g., backblaze-credentials)
+    secrets:
+      enabled: true
 
   dns:
     services:
