@@ -58,6 +58,7 @@ spec:
         timeout: 'string | default="2m" description="Timeout for git and apply operations, default is 2m"'
         interval: 'string | default="30m" description="Sync interval, default is 30m"'
         retryInterval: 'string | default="30s" description="Retry interval on failure, default is 30s"'
+        namespace: 'string | default="" description="Namespace for Flux resources, defaults to FluxCluster namespace"'
 
       # DNS forwarding configuration
       dns:
@@ -100,14 +101,14 @@ spec:
           addons: '${has(schema.spec.dns) && has(schema.spec.dns.services) && size(schema.spec.dns.services) > 0 ? [{"secretNamespace": schema.metadata.namespace, "secretRef": schema.metadata.name + "-coredns-addon"}] : []}'
 
     # Task 4: GitRepository resource - points to setup repository
-    # Created in the same namespace as the FluxCluster
+    # Created in the flux namespace (defaults to FluxCluster namespace)
     - id: gitrepository
       template:
         apiVersion: source.toolkit.fluxcd.io/v1
         kind: GitRepository
         metadata:
           name: setup-${schema.metadata.name}
-          namespace: ${schema.metadata.namespace}
+          namespace: '${schema.spec.flux.namespace != "" ? schema.spec.flux.namespace : schema.metadata.namespace}'
         spec:
           interval: ${schema.spec.flux.interval}
           timeout: ${schema.spec.flux.timeout}
@@ -126,7 +127,7 @@ spec:
           namespace: ${schema.metadata.namespace}
         data:
           FLUX_BRANCH: ${schema.spec.flux.branch}
-          FLUX_NAMESPACE: ${schema.metadata.namespace}
+          FLUX_NAMESPACE: '${schema.spec.flux.namespace != "" ? schema.spec.flux.namespace : schema.metadata.namespace}'
           KUBECONFIG_SECRET_NAME: k3k-${schema.metadata.name}-kubeconfig
           FLUX_GITREPOSITORY_NAME: ${gitrepository.metadata.name}
 
@@ -138,7 +139,7 @@ spec:
         kind: Kustomization
         metadata:
           name: ${schema.metadata.name}
-          namespace: ${schema.metadata.namespace}
+          namespace: '${schema.spec.flux.namespace != "" ? schema.spec.flux.namespace : schema.metadata.namespace}'
         spec:
           interval: ${schema.spec.flux.interval}
           retryInterval: ${schema.spec.flux.retryInterval}
