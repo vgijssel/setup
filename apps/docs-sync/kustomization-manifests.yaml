@@ -2,16 +2,15 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: docs-sync-manifests
-  namespace: tenant-prod
+  namespace: ${FLUX_NAMESPACE}
 spec:
   kubeConfig:
     secretRef:
-      name: k3k-docs-sync-kubeconfig
+      name: ${KUBECONFIG_SECRET_NAME}
       key: kubeconfig.yaml
   sourceRef:
     kind: GitRepository
-    name: setup
-    namespace: flux-system
+    name: ${FLUX_GITREPOSITORY_NAME}
   path: ./apps/docs-sync/manifests
   prune: true
   wait: true
