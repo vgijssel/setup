@@ -50,7 +50,7 @@ service:
 # AWS SigV4 proxy configuration
 proxy:
   # Optional: AWS service name (auto-detected from host if not specified)
-  serviceName: "s3"
+  serviceName: s3
   # Port the proxy listens on
   port: 8080
 
@@ -60,10 +60,10 @@ aws:
   # Name of the secret containing AWS credentials, region, and endpoint
   secretName: ""
   # Key in secret for AWS_ACCESS_KEY_ID
-  accessKeyIdKey: "AWS_ACCESS_KEY_ID"
+  accessKeyIdKey: AWS_ACCESS_KEY_ID
   # Key in secret for AWS_SECRET_ACCESS_KEY
-  secretAccessKeyKey: "AWS_SECRET_ACCESS_KEY"
+  secretAccessKeyKey: AWS_SECRET_ACCESS_KEY
   # Key in secret for AWS region (required)
-  regionKey: "region"
+  regionKey: region
   # Key in secret for endpoint URL (required, e.g., https://s3.us-west-004.backblazeb2.com)
-  endpointKey: "endpoint"
+  endpointKey: endpoint

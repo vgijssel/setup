@@ -61,6 +61,9 @@ lint:
         - libs/relay-server/templates/**
         - libs/relay-server/tests/snapshot_expected.yaml
         - libs/devenv/goss.yaml
+        - libs/aws-sigv4-proxy/templates/**
+        # kro ResourceGraphDefinition uses CEL expressions requiring quoted strings
+        - libs/flux-cluster/resourcegroup.yaml
     # Ignore prettier syntax errors for Helm templates with complex syntax
     - linters: [prettier]
       paths:
