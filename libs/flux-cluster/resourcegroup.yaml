@@ -151,7 +151,6 @@ spec:
           prune: true
           wait: true
           postBuild:
-            strict: true
             substituteFrom:
               - kind: ConfigMap
                 name: ${configmap.metadata.name}
