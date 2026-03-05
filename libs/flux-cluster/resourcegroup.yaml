@@ -15,12 +15,12 @@ spec:
     kind: FluxCluster
     spec:
       # k3k ClusterSpec fields - see https://rancher.github.io/k3k-product-docs/k3k/1.0.2/en/references/crds.html
-      servers: integer | default=1
-      agents: integer | default=0
-      version: string | default="v1.34.4-k3s1"
-      mode: string | default="shared"
-      serviceCIDR: string | default="10.96.0.0/16"
-      clusterDNS: string | default="10.96.0.10"
+      servers: 'integer | default=1 description="Number of server nodes, default is 1"'
+      agents: 'integer | default=0 description="Number of agent nodes, default is 0"'
+      version: 'string | default="v1.34.4-k3s1" description="Kubernetes version, default is v1.34.4-k3s1"'
+      mode: 'string | default="shared" description="Cluster mode, default is shared"'
+      serviceCIDR: 'string | default="10.96.0.0/16" description="Service CIDR range, default is 10.96.0.0/16"'
+      clusterDNS: 'string | default="10.96.0.10" description="Cluster DNS IP, default is 10.96.0.10"'
       tlsSANs: "[]string"
       # Expose specifies options for exposing the API server
       # Only one of nodePort, loadBalancer, or ingress should be set
@@ -35,39 +35,39 @@ spec:
           ingressClassName: string
           annotations: "map[string]string"
       persistence:
-        type: string | default="dynamic"
-        storageRequestSize: string | default="2G"
+        type: 'string | default="dynamic" description="Persistence type, default is dynamic"'
+        storageRequestSize: 'string | default="2G" description="Storage request size, default is 2G"'
       sync:
         secrets:
-          enabled: boolean | default=false
+          enabled: 'boolean | default=false description="Sync secrets, default is false"'
         configMaps:
-          enabled: boolean | default=true
+          enabled: 'boolean | default=true description="Sync configmaps, default is true"'
         services:
-          enabled: boolean | default=true
+          enabled: 'boolean | default=true description="Sync services, default is true"'
         persistentVolumeClaims:
-          enabled: boolean | default=false
+          enabled: 'boolean | default=false description="Sync PVCs, default is false"'
         ingresses:
-          enabled: boolean | default=false
+          enabled: 'boolean | default=false description="Sync ingresses, default is false"'
         priorityClasses:
-          enabled: boolean | default=false
+          enabled: 'boolean | default=false description="Sync priority classes, default is false"'
 
       # FluxCluster-specific fields
       flux:
-        branch: string | required=true
-        path: string | required=true
-        timeout: string | default="2m"
-        interval: string | default="30m"
-        retryInterval: string | default="30s"
+        branch: 'string | required=true description="Git branch to sync from"'
+        path: 'string | required=true description="Path within the repository to sync"'
+        timeout: 'string | default="2m" description="Timeout for git and apply operations, default is 2m"'
+        interval: 'string | default="30m" description="Sync interval, default is 30m"'
+        retryInterval: 'string | default="30s" description="Retry interval on failure, default is 30s"'
 
       # DNS forwarding configuration
       dns:
-        hostIp: string | default="10.96.0.10"
+        hostIp: 'string | default="10.96.0.10" description="Host cluster DNS IP for forwarding, default is 10.96.0.10"'
         services: "[]string"
 
       # Host-to-tenant secret synchronization
       hostSync:
         secrets:
-          enabled: boolean | default=false
+          enabled: 'boolean | default=false description="Enable secret sync from host, default is false"'
           selectors: "[]string"
 
     # status fields will be added after resources are defined (Tasks 3-5)
