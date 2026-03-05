@@ -1,6 +1,7 @@
 #!/bin/bash
 
-brew bundle --file=/dev/stdin <<EOF
+# Use || true to handle cask checksum mismatches gracefully in CI
+brew bundle --file=/dev/stdin <<EOF || true
 {{ range .packages.darwin.taps -}}
 tap {{ . | quote }}
 {{ end -}}
