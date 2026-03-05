@@ -55,7 +55,7 @@ spec:
       flux:
         branch: 'string | required=true description="Git branch to sync from"'
         path: 'string | required=true description="Path within the repository to sync"'
-        timeout: 'string | default="2m" description="Timeout for git and apply operations, default is 2m"'
+        timeout: 'string | default="3m" description="Timeout for git and apply operations, default is 3m"'
         interval: 'string | default="30m" description="Sync interval, default is 30m"'
         retryInterval: 'string | default="30s" description="Retry interval on failure, default is 30s"'
         namespace: 'string | default="" description="Namespace for Flux resources, defaults to FluxCluster namespace"'
