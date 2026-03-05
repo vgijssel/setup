@@ -38,8 +38,8 @@ directories:
   path: charts/external-dns
 - contents:
   - helmChart:
-      appVersion: 2.29.2
-      version: 2.29.2
+      appVersion: 2.29.7
+      version: 2.29.7
     path: .
   path: charts/coder
 - contents:
