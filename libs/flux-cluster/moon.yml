@@ -14,3 +14,4 @@ tasks:
       - tests_e2e/**/*
     options:
       cache: true
+      runInCI: false
