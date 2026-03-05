@@ -1,0 +1,12 @@
+# Assert GitRepository is created in the FluxCluster namespace
+# Name format: setup-${fluxcluster-name}
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: setup-test-cluster
+  namespace: tenant-test
+spec:
+  interval: 30m
+  url: https://github.com/vgijssel/setup
+  ref:
+    branch: main

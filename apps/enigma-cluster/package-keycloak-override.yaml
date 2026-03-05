@@ -1,0 +1,14 @@
+apiVersion: cozystack.io/v1alpha1
+kind: Package
+metadata:
+  name: cozystack.keycloak
+  # This uses server-side apply with a custom field manager to coexist
+  # with the Helm-managed Package from cozystack-platform
+spec:
+  components:
+    keycloak:
+      values:
+        ingress:
+          annotations:
+            # Expose keycloak through the gateway for public access
+            internal-networking/expose: "true"

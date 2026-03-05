@@ -1,0 +1,36 @@
+apiVersion: cozystack.io/v1alpha1
+kind: Package
+metadata:
+  name: cozystack.cozystack-platform
+spec:
+  variant: isp-full
+  components:
+    platform:
+      values:
+        authentication:
+          oidc:
+            enabled: true
+            keycloakExtraRedirectUri: ""
+        branding: {}
+        bundles:
+          disabledPackages: []
+          enabledPackages: []
+        networking:
+          clusterDomain: cozy.local
+          joinCIDR: 100.64.0.0/16
+          podCIDR: 10.244.0.0/16
+          podGateway: 10.244.0.1
+          serviceCIDR: 10.96.0.0/16
+        publishing:
+          apiServerEndpoint: https://api.enigma.vgijssel.nl:443
+          certificates:
+            issuerName: letsencrypt-prod
+            solver: dns01
+          exposedServices:
+            - dashboard
+            - api
+          externalIPs: []
+          host: enigma.vgijssel.nl
+          ingressName: tenant-root
+        scheduling:
+          globalAppTopologySpreadConstraints: ""

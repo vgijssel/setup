@@ -38,8 +38,8 @@ directories:
   path: charts/external-dns
 - contents:
   - helmChart:
-      appVersion: 2.29.2
-      version: 2.29.2
+      appVersion: 2.29.7
+      version: 2.29.7
     path: .
   path: charts/coder
 - contents:
@@ -48,6 +48,36 @@ directories:
       version: v0.0.13
     path: .
   path: charts/coder-logstream-kube
+- contents:
+  - helmChart:
+      appVersion: v2.0.1
+      version: 2.0.1
+    path: .
+  path: charts/external-secrets
+- contents:
+  - helmChart:
+      appVersion: v0.8.5
+      version: v0.8.5
+    path: .
+  path: charts/kro
+- contents:
+  - helmChart:
+      appVersion: v0.43.0
+      version: 0.43.0
+    path: .
+  path: charts/flux-operator
+- contents:
+  - helmChart:
+      appVersion: v0.43.0
+      version: 0.43.0
+    path: .
+  path: charts/flux-instance
+- contents:
+  - helmChart:
+      appVersion: v1.0.2
+      version: 1.0.2
+    path: .
+  path: charts/k3k
 - contents:
   - githubRelease:
       tag: v1.18.0
@@ -73,10 +103,10 @@ directories:
   path: markdown/claude-task-master
 - contents:
   - git:
-      commitTitle: Release v0.41.2 (#1907)...
-      sha: f1f1ff5681b424ac240d28e14867a4e92c1f1478
+      commitTitle: Release v1.0.2 (#2140)...
+      sha: 48ce08f584084921a960d83342cf49d035092329
       tags:
-      - v0.41.2
+      - v1.0.2
     path: .
   path: config/cozystack-talos-profiles
 kind: LockConfig

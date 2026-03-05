@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aws-sigv4-proxy-secrets
+  namespace: tenant-prod
+spec:
+  selector:
+    app.kubernetes.io/name: aws-sigv4-proxy
+    k3k.io/clusterName: secrets
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP

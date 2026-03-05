@@ -1,0 +1,11 @@
+apiVersion: apps.cozystack.io/v1alpha1
+kind: Tenant
+metadata:
+  name: prod
+  namespace: tenant-root
+spec:
+  etcd: false
+  host: ""
+  ingress: true
+  monitoring: true
+  seaweedfs: true

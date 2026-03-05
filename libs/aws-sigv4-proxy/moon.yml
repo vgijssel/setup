@@ -1,0 +1,6 @@
+type: application
+language: yaml
+tags:
+  - helm
+  - kubernetes
+  - aws

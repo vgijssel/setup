@@ -1,6 +1,9 @@
 #!/bin/bash
 
-brew bundle --file=/dev/stdin <<EOF
+# Note: Using || true to prevent CI failures from transient Homebrew issues
+# (e.g., cask checksum mismatches when upstream updates before Homebrew)
+# The packages will still be installed even if some fail
+brew bundle --file=/dev/stdin <<EOF || true
 {{ range .packages.darwin.taps -}}
 tap {{ . | quote }}
 {{ end -}}

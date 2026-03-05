@@ -1,0 +1,61 @@
+{{- if .Values.signingProxy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "relay-server.fullname" . }}-openresty
+  labels:
+    {{- include "relay-server.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+    worker_processes 1;
+    error_log /dev/stderr info;
+
+    events {
+        worker_connections 1024;
+    }
+
+    http {
+        access_log /dev/stdout;
+
+        server {
+            listen {{ .Values.signingProxy.port }};
+
+            location / {
+                # Strip AWS signature query parameters using Lua
+                rewrite_by_lua_block {
+                    local args = ngx.req.get_uri_args()
+
+                    -- AWS signature query params to strip
+                    local aws_params = {
+                        "X-Amz-Algorithm",
+                        "X-Amz-Credential",
+                        "X-Amz-Date",
+                        "X-Amz-Expires",
+                        "X-Amz-Signature",
+                        "X-Amz-SignedHeaders",
+                        "X-Amz-Security-Token"
+                    }
+
+                    -- Remove AWS signature params
+                    for _, param in ipairs(aws_params) do
+                        args[param] = nil
+                    end
+
+                    -- Set cleaned query string
+                    ngx.req.set_uri_args(args)
+                }
+
+                # Forward to upstream aws-sigv4-proxy
+                proxy_pass {{ .Values.signingProxy.upstreamUrl }};
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+                # Timeouts for S3 operations
+                proxy_connect_timeout 30s;
+                proxy_send_timeout 60s;
+                proxy_read_timeout 60s;
+            }
+        }
+    }
+{{- end }}

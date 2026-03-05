@@ -1,0 +1,19 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: docs-sync-manifests
+  namespace: ${FLUX_NAMESPACE}
+spec:
+  kubeConfig:
+    secretRef:
+      name: ${KUBECONFIG_SECRET_NAME}
+      key: kubeconfig.yaml
+  sourceRef:
+    kind: GitRepository
+    name: ${FLUX_GITREPOSITORY_NAME}
+  path: ./apps/docs-sync/manifests
+  prune: true
+  wait: true
+  timeout: 1m30s
+  interval: 30m
+  retryInterval: 30s

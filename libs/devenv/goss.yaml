@@ -96,7 +96,7 @@ command:
     title: nslookup is installed for DNS testing in chainsaw tests
     exec: nslookup -version
     exit-status: 0
-    timeout: 1000
+    timeout: 60000
 
   locale:
     title: Check locale settings

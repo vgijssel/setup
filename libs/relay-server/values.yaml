@@ -80,3 +80,25 @@ backblaze:
   # Secret containing Backblaze credentials
   # Required keys: bucket, key_id, application_key, endpoint, region
   secretName: ""
+  # Use path-style addressing (required for proxies like aws-sigv4-proxy)
+  pathStyle: false
+
+# S3 signing proxy sidecar configuration
+# Strips AWS signature query params and forwards to a remote aws-sigv4-proxy
+signingProxy:
+  enabled: false
+  image:
+    repository: openresty/openresty
+    tag: 1.25.3.1-alpine
+    pullPolicy: IfNotPresent
+  # The upstream aws-sigv4-proxy URL to forward requests to
+  upstreamUrl: ""
+  # Local port the sidecar listens on (relay-server connects to this)
+  port: 8081
+  resources:
+    limits:
+      cpu: 100m
+      memory: 64Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi

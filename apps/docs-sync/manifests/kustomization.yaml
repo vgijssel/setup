@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace-relay.yaml
+  - namespace-secrets.yaml
+  - configmap-coredns-custom.yaml
+  - secret-backblaze.yaml
+  - ingress-relay-family.yaml
+  - ingress-relay-personal.yaml

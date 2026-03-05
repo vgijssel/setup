@@ -1,0 +1,12 @@
+# FluxCluster for testing token secret cleanup
+apiVersion: kro.run/v1alpha1
+kind: FluxCluster
+metadata:
+  name: test-cluster-cleanup
+  namespace: tenant-test
+spec:
+  servers: 1
+  agents: 0
+  flux:
+    branch: main
+    path: ./apps/test

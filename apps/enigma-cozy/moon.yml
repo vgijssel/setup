@@ -11,7 +11,7 @@ project:
   metadata:
     dependencies:
       cozystack/cozystack:
-        version: v0.41.2
+        version: v1.0.2
         datasource: github-releases
 tags:
   - scope.app

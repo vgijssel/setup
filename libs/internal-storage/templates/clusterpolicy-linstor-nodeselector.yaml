@@ -21,8 +21,6 @@ spec:
                 - LinstorCluster
               names:
                 - linstorcluster
-              namespaces:
-                - {{ .Values.linstorNamespace }}
       mutate:
         patchStrategicMerge:
           spec:

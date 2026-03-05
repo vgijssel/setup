@@ -12,3 +12,6 @@ spec:
   prune: true
   wait: true
   timeout: 10m
+  # Enable server-side apply with force to allow Package overrides
+  # to coexist with Helm-managed resources from cozystack-platform
+  force: true

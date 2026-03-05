@@ -54,7 +54,7 @@ directories:
       - path: .
         helmChart:
           name: coder
-          version: 2.29.2
+          version: 2.29.7
           repository:
             url: https://helm.coder.com/v2
   - path: charts/coder-logstream-kube
@@ -65,6 +65,46 @@ directories:
           version: 0.0.13
           repository:
             url: https://helm.coder.com/logstream-kube
+  - path: charts/external-secrets
+    contents:
+      - path: .
+        helmChart:
+          name: external-secrets
+          version: 2.0.1
+          repository:
+            url: https://charts.external-secrets.io
+  - path: charts/kro
+    contents:
+      - path: .
+        helmChart:
+          name: kro
+          version: 0.8.5
+          repository:
+            url: oci://registry.k8s.io/kro/charts
+  - path: charts/flux-operator
+    contents:
+      - path: .
+        helmChart:
+          name: flux-operator
+          version: 0.43.0
+          repository:
+            url: oci://ghcr.io/controlplaneio-fluxcd/charts
+  - path: charts/flux-instance
+    contents:
+      - path: .
+        helmChart:
+          name: flux-instance
+          version: 0.43.0
+          repository:
+            url: oci://ghcr.io/controlplaneio-fluxcd/charts
+  - path: charts/k3k
+    contents:
+      - path: .
+        helmChart:
+          name: k3k
+          version: 1.0.2
+          repository:
+            url: https://rancher.github.io/k3k
   - path: shell/zimfw
     contents:
       - path: .
@@ -100,7 +140,7 @@ directories:
       - path: .
         git:
           url: https://github.com/cozystack/cozystack
-          ref: v0.41.2
+          ref: v1.0.2
         includePaths:
           - packages/core/talos/images/talos/**
         newRootPath: packages/core/talos/images/talos
