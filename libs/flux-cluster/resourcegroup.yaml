@@ -92,7 +92,7 @@ spec:
           serviceCIDR: ${schema.spec.serviceCIDR}
           clusterDNS: ${schema.spec.clusterDNS}
           tlsSANs: ${schema.spec.tlsSANs}
-          expose: "${has(schema.spec.expose) ? schema.spec.expose : {}}"
+          expose: ${schema.spec.expose}
           persistence: ${schema.spec.persistence}
           sync: ${schema.spec.sync}
           # Task 8: k3k addons for DNS forwarding
