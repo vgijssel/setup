@@ -55,7 +55,7 @@ spec:
       flux:
         branch: string | required=true
         path: string | required=true
-        timeout: string | default="1m30s"
+        timeout: string | default="2m"
         interval: string | default="30m"
         retryInterval: string | default="30s"
 
