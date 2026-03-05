@@ -6,7 +6,7 @@ metadata:
   name: setup-test-cluster
   namespace: tenant-test
 spec:
-  interval: 5m
+  interval: 30m
   url: https://github.com/vgijssel/setup
   ref:
     branch: main

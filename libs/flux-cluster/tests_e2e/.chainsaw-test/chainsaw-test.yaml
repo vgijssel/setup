@@ -41,7 +41,29 @@ spec:
                 echo "k3k CRD already exists"
               fi
 
-    # Step 3: Install external-secrets CRDs
+    # Step 3: Install Flux CRDs
+    - name: install-flux-crds
+      description: Install Flux source and kustomize CRDs
+      try:
+        - script:
+            timeout: 1m
+            content: |
+              set -e
+              # Check if Flux CRDs exist
+              if ! kubectl get crd gitrepositories.source.toolkit.fluxcd.io >/dev/null 2>&1; then
+                echo "Installing Flux source CRDs..."
+                kubectl apply --server-side -f https://github.com/fluxcd/source-controller/releases/download/v1.4.1/source-controller.crds.yaml
+              else
+                echo "Flux source CRDs already exist"
+              fi
+              if ! kubectl get crd kustomizations.kustomize.toolkit.fluxcd.io >/dev/null 2>&1; then
+                echo "Installing Flux kustomize CRDs..."
+                kubectl apply --server-side -f https://github.com/fluxcd/kustomize-controller/releases/download/v1.4.0/kustomize-controller.crds.yaml
+              else
+                echo "Flux kustomize CRDs already exist"
+              fi
+
+    # Step 4: Install external-secrets CRDs
     - name: install-external-secrets-crds
       description: Install external-secrets CRDs for SecretStore and PushSecret
       try:
@@ -58,14 +80,14 @@ spec:
                 echo "external-secrets CRDs already exist"
               fi
 
-    # Step 4: Create RBAC for kro to manage FluxCluster resources
+    # Step 5: Create RBAC for kro to manage FluxCluster resources
     - name: create-kro-rbac
       description: Create ClusterRole and ClusterRoleBinding for kro
       try:
         - apply:
             file: 00-kro-rbac.yaml
 
-    # Step 5: Apply the FluxCluster ResourceGroup definition
+    # Step 6: Apply the FluxCluster ResourceGroup definition
     - name: apply-resourcegroup
       description: Apply the FluxCluster ResourceGroup to the cluster
       try:
@@ -88,14 +110,14 @@ spec:
               kubectl get resourcegraphdefinitions.kro.run fluxcluster -o yaml
               exit 1
 
-    # Step 6: Create namespace for test
+    # Step 7: Create namespace for test
     - name: create-namespace
       description: Create tenant-test namespace
       try:
         - apply:
             file: 01-namespace.yaml
 
-    # Step 7: Create a FluxCluster instance
+    # Step 8: Create a FluxCluster instance
     - name: create-fluxcluster
       description: Create a test FluxCluster custom resource
       try:
@@ -118,28 +140,28 @@ spec:
               kubectl get fluxclusters.kro.run test-cluster -n tenant-test -o yaml
               exit 1
 
-    # Step 8: Verify k3k Cluster is created
+    # Step 9: Verify k3k Cluster is created
     - name: assert-k3k-cluster
       description: Verify k3k Cluster resource exists with correct spec
       try:
         - assert:
             file: 03-assert-k3k-cluster.yaml
 
-    # Step 9: Verify GitRepository is created
+    # Step 10: Verify GitRepository is created
     - name: assert-gitrepository
       description: Verify GitRepository exists in flux-system namespace
       try:
         - assert:
             file: 04-assert-gitrepository.yaml
 
-    # Step 10: Verify Kustomization is created
+    # Step 11: Verify Kustomization is created
     - name: assert-kustomization
       description: Verify Kustomization exists with correct path
       try:
         - assert:
             file: 05-assert-kustomization.yaml
 
-    # Step 11: Create FluxCluster with secret sync enabled
+    # Step 12: Create FluxCluster with secret sync enabled
     - name: create-fluxcluster-secrets
       description: Create a FluxCluster with hostSync.secrets enabled
       try:
@@ -162,21 +184,21 @@ spec:
               kubectl get fluxclusters.kro.run test-cluster-secrets -n tenant-test -o yaml
               exit 1
 
-    # Step 12: Verify SecretStore is created
+    # Step 13: Verify SecretStore is created
     - name: assert-secretstore
       description: Verify SecretStore is created for host-to-tenant sync
       try:
         - assert:
             file: 07-assert-secretstore.yaml
 
-    # Step 13: Verify PushSecrets are created
+    # Step 14: Verify PushSecrets are created
     - name: assert-pushsecrets
       description: Verify PushSecrets are created for each selector
       try:
         - assert:
             file: 08-assert-pushsecrets.yaml
 
-    # Step 14: Test FluxCluster with DNS services
+    # Step 15: Test FluxCluster with DNS services
     - name: create-fluxcluster-dns
       description: Create a FluxCluster with dns.services configured
       try:
@@ -199,16 +221,121 @@ spec:
               kubectl get fluxclusters.kro.run test-cluster-dns -n tenant-test -o yaml
               exit 1
 
-    # Step 15: Verify CoreDNS addon Secret is created
+    # Step 16: Verify CoreDNS addon Secret is created
     - name: assert-coredns-addon
       description: Verify CoreDNS addon Secret is created for DNS forwarding
       try:
         - assert:
             file: 10-assert-coredns-addon.yaml
 
-    # Step 16: Verify k3k Cluster has addon reference
+    # Step 17: Verify k3k Cluster has addon reference
     - name: assert-k3k-cluster-dns-addon
       description: Verify k3k Cluster references the CoreDNS addon Secret
       try:
         - assert:
             file: 11-assert-k3k-cluster-dns.yaml
+
+    # ============================================================
+    # Token Secret Cleanup Regression Tests
+    # Tests that k3k token secrets are properly cleaned up when
+    # FluxCluster is deleted (fixes orphaned secret issue)
+    # ============================================================
+
+    # Step 18: Create FluxCluster for cleanup test
+    - name: create-fluxcluster-cleanup
+      description: Create a FluxCluster to test token secret cleanup
+      try:
+        - apply:
+            file: 12-fluxcluster-cleanup.yaml
+        - script:
+            timeout: 30s
+            content: |
+              # Wait for FluxCluster to be ready
+              for i in $(seq 1 30); do
+                STATE=$(kubectl get fluxclusters.kro.run test-cluster-cleanup -n tenant-test -o jsonpath='{.status.state}' 2>/dev/null || echo "")
+                if [ "$STATE" = "ACTIVE" ]; then
+                  echo "FluxCluster test-cluster-cleanup is ACTIVE"
+                  exit 0
+                fi
+                echo "Waiting for FluxCluster to be ready (state: $STATE)..."
+                sleep 1
+              done
+              echo "ERROR: FluxCluster not ready"
+              kubectl get fluxclusters.kro.run test-cluster-cleanup -n tenant-test -o yaml
+              exit 1
+
+    # Step 19: Verify token cleanup resources are created
+    - name: assert-cleanup-resources
+      description: Verify ServiceAccount, Role, RoleBinding, and CronJob are created
+      try:
+        - assert:
+            file: 14-assert-cleanup-resources.yaml
+
+    # Step 20: Create simulated k3k token secret (mimics what k3k-kubelet creates)
+    - name: create-simulated-k3k-secret
+      description: Create a simulated k3k token secret without owner reference
+      try:
+        - apply:
+            file: 13-simulated-k3k-secret.yaml
+        - script:
+            timeout: 10s
+            content: |
+              # Verify the secret was created without owner references
+              OWNER=$(kubectl get secret k3k-coredns-token-kube-system-test-cluster-cleanup-abc123 -n tenant-test -o jsonpath='{.metadata.ownerReferences}' 2>/dev/null || echo "")
+              if [ -z "$OWNER" ] || [ "$OWNER" = "null" ]; then
+                echo "Secret created without owner references (as expected)"
+                exit 0
+              else
+                echo "ERROR: Secret already has owner references: $OWNER"
+                exit 1
+              fi
+
+    # Step 21: Trigger the cleanup CronJob manually and wait for completion
+    - name: trigger-cleanup-job
+      description: Manually trigger the cleanup CronJob and wait for it to complete
+      try:
+        - script:
+            timeout: 60s
+            content: |
+              set -e
+              # Create a Job from the CronJob
+              kubectl create job --from=cronjob/test-cluster-cleanup-token-cleanup manual-cleanup-test -n tenant-test
+
+              # Wait for the job to complete
+              echo "Waiting for cleanup job to complete..."
+              kubectl wait --for=condition=complete job/manual-cleanup-test -n tenant-test --timeout=30s
+
+              echo "Cleanup job completed successfully"
+
+    # Step 22: Verify the secret now has owner reference
+    - name: assert-secret-has-owner
+      description: Verify the k3k token secret was patched with owner reference
+      try:
+        - assert:
+            file: 15-assert-secret-has-owner.yaml
+
+    # Step 23: Delete the FluxCluster and verify secret cleanup
+    - name: delete-fluxcluster-cleanup
+      description: Delete FluxCluster and verify k3k token secret is garbage collected
+      try:
+        - script:
+            timeout: 60s
+            content: |
+              set -e
+              echo "Deleting FluxCluster test-cluster-cleanup..."
+              kubectl delete fluxcluster test-cluster-cleanup -n tenant-test --wait=true
+
+              # Wait for the secret to be garbage collected
+              echo "Waiting for k3k token secret to be garbage collected..."
+              for i in $(seq 1 30); do
+                if ! kubectl get secret k3k-coredns-token-kube-system-test-cluster-cleanup-abc123 -n tenant-test 2>/dev/null; then
+                  echo "SUCCESS: k3k token secret was garbage collected"
+                  exit 0
+                fi
+                echo "Waiting for secret deletion... ($i/30)"
+                sleep 1
+              done
+
+              echo "ERROR: k3k token secret was not garbage collected"
+              kubectl get secret k3k-coredns-token-kube-system-test-cluster-cleanup-abc123 -n tenant-test -o yaml
+              exit 1

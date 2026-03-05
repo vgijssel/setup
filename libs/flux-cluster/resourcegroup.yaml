@@ -223,3 +223,101 @@ spec:
             data:
               custom.server: |
                 ${schema.spec.dns.services.map(s, s + ":53 {\n                errors\n                cache 30\n                forward . " + schema.spec.dns.hostIp + "\n            }").join("\n            ")}
+
+    # k3k Token Secret Ownership Reconciler
+    # k3k-kubelet creates token secrets (e.g., k3k-coredns-token-*) with label k3k.io/clusterName
+    # but without owner references to the Cluster. This causes secrets to be orphaned when the
+    # FluxCluster is deleted. This CronJob patches those secrets to add owner references,
+    # enabling Kubernetes garbage collection to clean them up automatically.
+    - id: tokenCleanupServiceAccount
+      template:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: ${schema.metadata.name}-token-cleanup
+          namespace: ${schema.metadata.namespace}
+
+    - id: tokenCleanupRole
+      template:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+          name: ${schema.metadata.name}-token-cleanup
+          namespace: ${schema.metadata.namespace}
+        rules:
+          - apiGroups: [""]
+            resources: ["secrets"]
+            verbs: ["get", "list", "patch"]
+          - apiGroups: ["k3k.io"]
+            resources: ["clusters"]
+            verbs: ["get"]
+
+    - id: tokenCleanupRoleBinding
+      template:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          name: ${schema.metadata.name}-token-cleanup
+          namespace: ${schema.metadata.namespace}
+        subjects:
+          - kind: ServiceAccount
+            name: ${tokenCleanupServiceAccount.metadata.name}
+            namespace: ${schema.metadata.namespace}
+        roleRef:
+          kind: Role
+          name: ${tokenCleanupRole.metadata.name}
+          apiGroup: rbac.authorization.k8s.io
+
+    - id: tokenCleanupCronJob
+      template:
+        apiVersion: batch/v1
+        kind: CronJob
+        metadata:
+          name: ${schema.metadata.name}-token-cleanup
+          namespace: ${schema.metadata.namespace}
+        spec:
+          schedule: "*/1 * * * *"
+          concurrencyPolicy: Forbid
+          successfulJobsHistoryLimit: 1
+          failedJobsHistoryLimit: 1
+          jobTemplate:
+            spec:
+              ttlSecondsAfterFinished: 60
+              template:
+                spec:
+                  serviceAccountName: ${tokenCleanupServiceAccount.metadata.name}
+                  restartPolicy: OnFailure
+                  containers:
+                    - name: cleanup
+                      image: bitnami/kubectl@sha256:fd0cffa1252d718a561fee455ea5ae88781acbf31e59171ce7160ff762aa2980
+                      command:
+                        - /bin/bash
+                        - -c
+                        - |
+                          set -e
+                          CLUSTER_NAME="${schema.metadata.name}"
+                          NAMESPACE="${schema.metadata.namespace}"
+
+                          # Get the Cluster UID for owner reference
+                          CLUSTER_UID=$(kubectl get cluster "$CLUSTER_NAME" -n "$NAMESPACE" -o jsonpath='{.metadata.uid}' 2>/dev/null || echo "")
+                          if [ -z "$CLUSTER_UID" ]; then
+                            echo "Cluster $CLUSTER_NAME not found, skipping"
+                            exit 0
+                          fi
+
+                          # Find all secrets with k3k.io/clusterName label matching this cluster
+                          SECRETS=$(kubectl get secrets -n "$NAMESPACE" -l "k3k.io/clusterName=$CLUSTER_NAME" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || echo "")
+
+                          for SECRET in $SECRETS; do
+                            # Check if secret already has owner reference to this cluster
+                            OWNER_UID=$(kubectl get secret "$SECRET" -n "$NAMESPACE" -o jsonpath='{.metadata.ownerReferences[?(@.kind=="Cluster")].uid}' 2>/dev/null || echo "")
+
+                            if [ "$OWNER_UID" != "$CLUSTER_UID" ]; then
+                              echo "Patching secret $SECRET to add owner reference to Cluster $CLUSTER_NAME"
+                              kubectl patch secret "$SECRET" -n "$NAMESPACE" --type=merge -p "{\"metadata\":{\"ownerReferences\":[{\"apiVersion\":\"k3k.io/v1beta1\",\"kind\":\"Cluster\",\"name\":\"$CLUSTER_NAME\",\"uid\":\"$CLUSTER_UID\",\"blockOwnerDeletion\":true}]}}"
+                            else
+                              echo "Secret $SECRET already has correct owner reference"
+                            fi
+                          done
+
+                          echo "Token cleanup complete"

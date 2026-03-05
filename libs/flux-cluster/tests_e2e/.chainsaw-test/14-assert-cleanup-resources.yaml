@@ -1,0 +1,34 @@
+# Assert token cleanup resources are created
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test-cluster-cleanup-token-cleanup
+  namespace: tenant-test
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: test-cluster-cleanup-token-cleanup
+  namespace: tenant-test
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: ["k3k.io"]
+    resources: ["clusters"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-cluster-cleanup-token-cleanup
+  namespace: tenant-test
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: test-cluster-cleanup-token-cleanup
+  namespace: tenant-test
+spec:
+  schedule: "*/1 * * * *"
+  concurrencyPolicy: Forbid
