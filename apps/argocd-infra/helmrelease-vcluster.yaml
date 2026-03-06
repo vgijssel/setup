@@ -24,6 +24,10 @@ spec:
     remediation:
       retries: 3
   values:
+    sync:
+      toHost:
+        ingresses:
+          enabled: true
     controlPlane:
       statefulSet:
         highAvailability:
