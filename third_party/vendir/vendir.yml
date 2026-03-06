@@ -105,6 +105,14 @@ directories:
           version: 1.0.2
           repository:
             url: https://rancher.github.io/k3k
+  - path: charts/vcluster
+    contents:
+      - path: .
+        helmChart:
+          name: vcluster
+          version: 0.32.1
+          repository:
+            url: https://charts.loft.sh
   - path: shell/zimfw
     contents:
       - path: .
@@ -144,3 +152,14 @@ directories:
         includePaths:
           - packages/core/talos/images/talos/**
         newRootPath: packages/core/talos/images/talos
+  - path: manifests/argocd
+    contents:
+      - path: .
+        git:
+          url: https://github.com/argoproj/argo-cd
+          ref: v3.3.2
+        includePaths:
+          - manifests/**
+        newRootPath: manifests
+        ignorePaths:
+          - ha/kustomization.yaml

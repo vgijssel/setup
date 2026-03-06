@@ -1,0 +1,7 @@
+language: javascript
+layer: application
+tags:
+  - scope.app
+  - type.stack
+  - kubernetes
+  - argocd

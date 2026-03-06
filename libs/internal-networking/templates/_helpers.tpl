@@ -68,7 +68,7 @@ Does NOT include: data block (mutable), synchronize (mutable), generateExisting 
     "generateApiVersion" "networking.k8s.io/v1"
     "generateKind" "Ingress"
     "generateName" "{{ request.object.metadata.name }}-gateway"
-    "generateNamespace" "{{ request.object.metadata.namespace }}"
+    "generateNamespace" "{{ request.object.spec.ingressClassName }}"
 -}}
 {{- $immutableContent | toJson | sha256sum | trunc 16 -}}
 {{- end }}
@@ -89,7 +89,7 @@ Hash of the tailscale ClusterPolicy immutable fields.
     "generateApiVersion" "v1"
     "generateKind" "Service"
     "generateName" "{{ request.object.metadata.name }}-tailscale"
-    "generateNamespace" .Values.tailscaleIngress.nginxNamespace
+    "generateNamespace" "{{ request.object.spec.ingressClassName }}"
 -}}
 {{- $immutableContent | toJson | sha256sum | trunc 16 -}}
 {{- end }}

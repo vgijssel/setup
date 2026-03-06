@@ -79,6 +79,12 @@ directories:
     path: .
   path: charts/k3k
 - contents:
+  - helmChart:
+      appVersion: 0.32.1
+      version: 0.32.1
+    path: .
+  path: charts/vcluster
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508
@@ -109,4 +115,12 @@ directories:
       - v1.0.2
     path: .
   path: config/cozystack-talos-profiles
+- contents:
+  - git:
+      commitTitle: Bump version to 3.3.2 on release-3.3 branch (#26550)...
+      sha: 8a3940d8db27928931f0a85ba7c636e54786bddc
+      tags:
+      - stable
+    path: .
+  path: manifests/argocd
 kind: LockConfig

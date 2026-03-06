@@ -50,8 +50,8 @@ spec:
         synchronize: true
         apiVersion: v1
         kind: Service
-        name: "{{"{{ request.object.metadata.name }}"}}-tailscale"
-        namespace: {{ .Values.tailscaleIngress.nginxNamespace | quote }}
+        name: "{{"{{ truncate(request.object.metadata.name, `60`) }}"}}-ts"
+        namespace: "{{"{{ request.object.spec.ingressClassName }}"}}"
         data:
           metadata:
             labels:
