@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: vcluster-argocd
-  namespace: flux-system
+  namespace: tenant-argocd
 spec:
   interval: 30m
   driftDetection:
