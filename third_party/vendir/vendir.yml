@@ -152,7 +152,7 @@ directories:
         includePaths:
           - packages/core/talos/images/talos/**
         newRootPath: packages/core/talos/images/talos
-  - path: manifests/argo-cd
+  - path: manifests/argocd
     contents:
       - path: .
         git:

@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/vgijssel/setup
     targetRevision: HEAD
-    path: apps/argo-cd
+    path: apps/argocd
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

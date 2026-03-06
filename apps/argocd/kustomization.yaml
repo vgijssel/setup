@@ -3,6 +3,6 @@ kind: Kustomization
 namespace: argocd
 resources:
   - namespace-argocd.yaml
-  - ../../third_party/vendir/manifests/argo-cd/ha
+  - ../../third_party/vendir/manifests/argocd/ha
   - ingress-argocd.yaml
   - application-argocd.yaml
