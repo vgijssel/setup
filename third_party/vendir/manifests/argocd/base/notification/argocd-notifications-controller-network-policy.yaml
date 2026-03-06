@@ -12,9 +12,9 @@ spec:
       app.kubernetes.io/name: argocd-notifications-controller
   ingress:
     - from:
-        - namespaceSelector: {}
+        - namespaceSelector: { }
       ports:
         - protocol: TCP
           port: 9001
   policyTypes:
-    - Ingress
+  - Ingress

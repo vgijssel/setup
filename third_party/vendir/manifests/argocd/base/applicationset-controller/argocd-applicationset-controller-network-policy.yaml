@@ -12,11 +12,11 @@ spec:
       app.kubernetes.io/name: argocd-applicationset-controller
   ingress:
     - from:
-        - namespaceSelector: {}
+        - namespaceSelector: { }
       ports:
         - protocol: TCP
           port: 7000
         - protocol: TCP
           port: 8080
   policyTypes:
-    - Ingress
+  - Ingress

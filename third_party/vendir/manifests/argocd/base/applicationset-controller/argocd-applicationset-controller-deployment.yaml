@@ -228,9 +228,9 @@ spec:
         - configMap:
             name: argocd-gpg-keys-cm
           name: gpg-keys
-        - emptyDir: {}
+        - emptyDir: { }
           name: gpg-keyring
-        - emptyDir: {}
+        - emptyDir: { }
           name: tmp
         - name: argocd-repo-server-tls
           secret:

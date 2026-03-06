@@ -21,6 +21,6 @@ spec:
         - protocol: TCP
           port: 8086
     - from:
-        - namespaceSelector: {}
+        - namespaceSelector: { }
       ports:
         - port: 8087

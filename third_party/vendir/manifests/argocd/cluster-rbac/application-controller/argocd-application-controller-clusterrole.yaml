@@ -7,13 +7,13 @@ metadata:
     app.kubernetes.io/component: application-controller
   name: argocd-application-controller
 rules:
-  - apiGroups:
-      - "*"
-    resources:
-      - "*"
-    verbs:
-      - "*"
-  - nonResourceURLs:
-      - "*"
-    verbs:
-      - "*"
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- nonResourceURLs:
+  - '*'
+  verbs:
+  - '*'

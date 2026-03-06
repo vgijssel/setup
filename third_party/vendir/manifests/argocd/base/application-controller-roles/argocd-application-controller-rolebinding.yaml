@@ -11,5 +11,5 @@ roleRef:
   kind: Role
   name: argocd-application-controller
 subjects:
-  - kind: ServiceAccount
-    name: argocd-application-controller
+- kind: ServiceAccount
+  name: argocd-application-controller

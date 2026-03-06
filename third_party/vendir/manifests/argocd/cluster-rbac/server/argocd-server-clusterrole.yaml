@@ -7,45 +7,45 @@ metadata:
     app.kubernetes.io/component: server
   name: argocd-server
 rules:
-  - apiGroups:
-      - "*"
-    resources:
-      - "*"
-    verbs:
-      - delete # supports deletion a live object in UI
-      - get # supports viewing live object manifest in UI
-      - patch # supports `argocd app patch`
-  - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - list # supports listing events in UI
-  - apiGroups:
-      - ""
-    resources:
-      - pods
-      - pods/log
-    verbs:
-      - get # supports viewing pod logs from UI
-  - apiGroups:
-      - "argoproj.io"
-    resources:
-      - "applications"
-      - "applicationsets"
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - batch
-    resources:
-      - jobs
-    verbs:
-      - create # supports triggering jobs from UI
-  - apiGroups:
-      - argoproj.io
-    resources:
-      - workflows
-    verbs:
-      - create # supports triggering workflows from UI
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - delete  # supports deletion a live object in UI
+  - get     # supports viewing live object manifest in UI
+  - patch   # supports `argocd app patch`
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - list    # supports listing events in UI
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get     # supports viewing pod logs from UI
+- apiGroups:
+  - "argoproj.io"
+  resources:
+  - "applications"
+  - "applicationsets"
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create   # supports triggering jobs from UI
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - create   # supports triggering workflows from UI

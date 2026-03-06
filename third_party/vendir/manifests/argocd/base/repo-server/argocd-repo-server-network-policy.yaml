@@ -30,6 +30,6 @@ spec:
         - protocol: TCP
           port: 8081
     - from:
-        - namespaceSelector: {}
+        - namespaceSelector: { }
       ports:
         - port: 8084

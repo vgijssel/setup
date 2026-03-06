@@ -11,5 +11,5 @@ roleRef:
   kind: Role
   name: argocd-server
 subjects:
-  - kind: ServiceAccount
-    name: argocd-server
+- kind: ServiceAccount
+  name: argocd-server

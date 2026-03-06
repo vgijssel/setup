@@ -2,7 +2,7 @@
   path: /spec/template/spec/initContainers/0
   value:
     name: secret-init
-    command: ["argocd", "admin", "redis-initial-password"]
+    command: [ 'argocd', 'admin', 'redis-initial-password' ]
     image: quay.io/argoproj/argocd:latest
     imagePullPolicy: IfNotPresent
     securityContext:

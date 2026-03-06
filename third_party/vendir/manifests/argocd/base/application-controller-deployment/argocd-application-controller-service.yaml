@@ -8,13 +8,13 @@ metadata:
   name: argocd-application-controller
 spec:
   ports:
-    - name: application-controller
-      protocol: TCP
-      port: 8082
-      targetPort: 8082
-    - name: metrics
-      protocol: TCP
-      port: 8084
-      targetPort: 8084
+  - name: application-controller
+    protocol: TCP
+    port: 8082
+    targetPort: 8082
+  - name: metrics
+    protocol: TCP
+    port: 8084
+    targetPort: 8084
   selector:
     app.kubernetes.io/name: argocd-application-controller

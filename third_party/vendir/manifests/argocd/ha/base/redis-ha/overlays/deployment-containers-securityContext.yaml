@@ -5,7 +5,7 @@
     allowPrivilegeEscalation: false
     capabilities:
       drop:
-        - ALL
+      - ALL
     seccompProfile:
       type: RuntimeDefault
 - op: add
@@ -15,6 +15,6 @@
     allowPrivilegeEscalation: false
     capabilities:
       drop:
-        - ALL
+      - ALL
     seccompProfile:
       type: RuntimeDefault

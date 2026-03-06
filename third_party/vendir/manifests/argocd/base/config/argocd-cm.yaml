@@ -25,8 +25,7 @@ data:
     jqPathExpressions:
       - '.metadata.annotations."notified.notifications.argoproj.io"'
   # Legacy annotations used on HPA autoscaling/v1
-  resource.customizations.ignoreResourceUpdates.autoscaling_HorizontalPodAutoscaler:
-    |
+  resource.customizations.ignoreResourceUpdates.autoscaling_HorizontalPodAutoscaler: |
     jqPathExpressions:
       - '.metadata.annotations."autoscaling.alpha.kubernetes.io/behavior"'
       - '.metadata.annotations."autoscaling.alpha.kubernetes.io/conditions"'
@@ -46,8 +45,7 @@ data:
       - '.metadata.annotations."deployment.kubernetes.io/max-replicas"'
       - '.metadata.annotations."rollout.argoproj.io/desired-replicas"'
   # Ignores update if EndpointSlice is not excluded globally
-  resource.customizations.ignoreResourceUpdates.discovery.k8s.io_EndpointSlice:
-    |
+  resource.customizations.ignoreResourceUpdates.discovery.k8s.io_EndpointSlice: |
     jsonPointers:
       - /metadata
       - /endpoints

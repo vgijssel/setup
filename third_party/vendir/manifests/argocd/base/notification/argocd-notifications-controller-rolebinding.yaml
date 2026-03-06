@@ -11,5 +11,5 @@ roleRef:
   kind: Role
   name: argocd-notifications-controller
 subjects:
-  - kind: ServiceAccount
-    name: argocd-notifications-controller
+- kind: ServiceAccount
+  name: argocd-notifications-controller

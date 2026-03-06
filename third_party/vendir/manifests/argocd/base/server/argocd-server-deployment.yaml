@@ -386,8 +386,8 @@ spec:
             optional: true
             name: argocd-cmd-params-cm
             items:
-              - key: server.profile.enabled
-                path: profiler.enabled
+            - key: server.profile.enabled
+              path: profiler.enabled
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

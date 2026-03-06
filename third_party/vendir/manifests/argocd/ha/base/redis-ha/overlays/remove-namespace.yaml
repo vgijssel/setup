@@ -1,1 +1,1 @@
-- { op: remove, path: /metadata/namespace }
+- {op: remove, path: /metadata/namespace}

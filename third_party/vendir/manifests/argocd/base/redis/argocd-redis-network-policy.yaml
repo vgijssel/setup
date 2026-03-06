@@ -11,18 +11,18 @@ spec:
     matchLabels:
       app.kubernetes.io/name: argocd-redis
   policyTypes:
-    - Ingress
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: argocd-server
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: argocd-repo-server
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: argocd-application-controller
-      ports:
-        - protocol: TCP
-          port: 6379
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: argocd-server
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: argocd-repo-server
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: argocd-application-controller
+    ports:
+    - protocol: TCP
+      port: 6379

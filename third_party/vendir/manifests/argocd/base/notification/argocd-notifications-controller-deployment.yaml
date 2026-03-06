@@ -26,12 +26,12 @@ spec:
             secretName: argocd-repo-server-tls
             optional: true
             items:
-              - key: tls.crt
-                path: tls.crt
-              - key: tls.key
-                path: tls.key
-              - key: ca.crt
-                path: ca.crt
+            - key: tls.crt
+              path: tls.crt
+            - key: tls.key
+              path: tls.key
+            - key: ca.crt
+              path: ca.crt
       containers:
         - args:
             - /usr/local/bin/argocd-notifications
@@ -87,7 +87,7 @@ spec:
           securityContext:
             capabilities:
               drop:
-                - ALL
+              - ALL
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
       serviceAccountName: argocd-notifications-controller
