@@ -1,7 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: vcluster-argocd
+  name: vc-argocd
   namespace: tenant-argocd
 spec:
   interval: 30m
@@ -16,7 +16,6 @@ spec:
         namespace: flux-system
       interval: 12h
   targetNamespace: tenant-argocd
-  releaseName: vc-argocd
   install:
     createNamespace: false
     remediation:
