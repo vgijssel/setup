@@ -161,3 +161,5 @@ directories:
         includePaths:
           - manifests/**
         newRootPath: manifests
+        ignorePaths:
+          - ha/kustomization.yaml
