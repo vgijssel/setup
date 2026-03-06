@@ -48,7 +48,7 @@ spec:
         apiVersion: networking.k8s.io/v1
         kind: Ingress
         name: "{{"{{ request.object.metadata.name }}"}}-gateway"
-        namespace: "{{"{{ request.object.spec.ingressClassName }}"}}"
+        namespace: "{{"{{ request.object.metadata.namespace }}"}}"
         data:
           metadata:
             labels:
