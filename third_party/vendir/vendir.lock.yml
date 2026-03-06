@@ -125,4 +125,10 @@ directories:
       - stable
     path: .
   path: manifests/argo-cd
+- contents:
+  - helmChart:
+      appVersion: 0.32.1
+      version: 0.32.1
+    path: .
+  path: charts/vcluster
 kind: LockConfig
