@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-infra
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/vgijssel/setup
+    targetRevision: HEAD
+    path: apps/argocd-infra
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

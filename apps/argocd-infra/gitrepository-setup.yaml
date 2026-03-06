@@ -2,7 +2,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
   name: setup-argocd
-  namespace: flux-system
+  namespace: tenant-argocd
 spec:
   interval: 5m
   url: https://github.com/vgijssel/setup

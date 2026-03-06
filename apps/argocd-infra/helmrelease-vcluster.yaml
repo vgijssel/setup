@@ -13,7 +13,7 @@ spec:
       sourceRef:
         kind: GitRepository
         name: setup-argocd
-        namespace: flux-system
+        namespace: tenant-argocd
       interval: 12h
   targetNamespace: tenant-argocd
   install:

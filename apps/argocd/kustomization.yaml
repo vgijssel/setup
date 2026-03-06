@@ -6,3 +6,4 @@ resources:
   - ../../third_party/vendir/manifests/argocd/ha
   - ingress-argocd.yaml
   - application-argocd.yaml
+  - application-argocd-infra.yaml
