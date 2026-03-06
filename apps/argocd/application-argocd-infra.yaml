@@ -10,7 +10,7 @@ spec:
     targetRevision: HEAD
     path: apps/argocd-infra
   destination:
-    server: https://kubernetes.default.svc
+    name: enigma
   syncPolicy:
     automated:
       prune: true

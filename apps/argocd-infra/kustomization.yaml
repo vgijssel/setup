@@ -4,3 +4,4 @@ resources:
   - tenant-argocd.yaml
   - gitrepository-setup.yaml
   - helmrelease-vcluster.yaml
+  - ciliumnetworkpolicy-allow-to-root-ingress.yaml
