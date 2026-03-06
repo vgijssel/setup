@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: vc-argocd
-  namespace: tenant-argocd
+  namespace: tenant-prod-argocd
 spec:
   interval: 30m
   driftDetection:
@@ -13,9 +13,9 @@ spec:
       sourceRef:
         kind: GitRepository
         name: setup-argocd
-        namespace: tenant-argocd
+        namespace: tenant-prod-argocd
       interval: 12h
-  targetNamespace: tenant-argocd
+  targetNamespace: tenant-prod-argocd
   install:
     createNamespace: false
     remediation:

@@ -2,7 +2,7 @@ apiVersion: apps.cozystack.io/v1alpha1
 kind: Tenant
 metadata:
   name: argocd
-  namespace: tenant-root
+  namespace: tenant-prod
 spec:
   etcd: false
   host: ""
