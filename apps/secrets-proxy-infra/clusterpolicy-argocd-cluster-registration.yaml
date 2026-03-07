@@ -63,5 +63,5 @@ spec:
               vcluster.io/source-secret: "{{ vclusterName }}"
           stringData:
             name: "{{ vclusterName }}"
-            server: "https://{{ serviceName }}.{{ sourceNamespace }}.svc.cluster.local:443"
+            server: "https://{{ serviceName }}.{{ sourceNamespace }}.svc.cozy.local:443"
             config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ caData }}", "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
