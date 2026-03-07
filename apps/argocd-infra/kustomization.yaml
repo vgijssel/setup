@@ -6,3 +6,4 @@ resources:
   - helmrelease-vcluster.yaml
   - ciliumnetworkpolicy-allow-to-root-ingress.yaml
   - ciliumnetworkpolicy-allow-to-secrets-proxy.yaml
+  - ciliumnetworkpolicy-allow-to-vcluster-dns.yaml
