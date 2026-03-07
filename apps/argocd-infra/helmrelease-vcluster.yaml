@@ -28,6 +28,12 @@ spec:
       advanced:
         # Enable DNS fallback to host cluster for resolving other vCluster services
         fallbackHostCluster: true
+      replicateServices:
+        fromHost:
+          # Replicate secrets-proxy service from host into vCluster for cross-vCluster connectivity
+          # This makes the service available at secrets-proxy.argocd.svc.cluster.local inside vCluster
+          - from: "tenant-prod-secretsproxy/secrets-proxy"
+            to: "argocd/secrets-proxy"
     sync:
       toHost:
         ingresses:

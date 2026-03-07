@@ -63,5 +63,7 @@ spec:
               vcluster.io/source-secret: "{{ vclusterName }}"
           stringData:
             name: "{{ vclusterName }}"
-            server: "https://{{ serviceName }}.{{ sourceNamespace }}.svc.cozy.local:443"
+            # Use the replicated service name inside ArgoCD vCluster
+            # Service is replicated from host to argocd namespace via replicateServices.fromHost
+            server: "https://{{ serviceName }}:443"
             config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ caData }}", "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
