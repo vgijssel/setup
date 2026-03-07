@@ -24,6 +24,16 @@ spec:
                 - vc-secrets-proxy
               namespaces:
                 - tenant-prod-secretsproxy
+      context:
+        - name: caData
+          variable:
+            jmesPath: 'request.object.data."certificate-authority"'
+        - name: certData
+          variable:
+            jmesPath: 'request.object.data."client-certificate"'
+        - name: keyData
+          variable:
+            jmesPath: 'request.object.data."client-key"'
       generate:
         synchronize: true
         apiVersion: v1
@@ -37,4 +47,4 @@ spec:
           stringData:
             name: secrets-proxy
             server: https://vc-secrets-proxy.tenant-prod-secretsproxy.svc.cluster.local:443
-            config: "{\"tlsClientConfig\": {\"insecure\": false, \"caData\": \"{{ request.object.data.\\u0022certificate-authority\\u0022 }}\", \"certData\": \"{{ request.object.data.\\u0022client-certificate\\u0022 }}\", \"keyData\": \"{{ request.object.data.\\u0022client-key\\u0022 }}\"}}"
+            config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ caData }}", "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
