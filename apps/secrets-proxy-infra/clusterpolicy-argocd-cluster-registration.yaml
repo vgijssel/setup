@@ -37,12 +37,12 @@ spec:
           stringData:
             name: secrets-proxy
             server: https://vc-secrets-proxy.tenant-prod-secretsproxy.svc.cluster.local:443
-            config: |
+            config: |-
               {
                 "tlsClientConfig": {
                   "insecure": false,
-                  "caData": "{{ request.object.data.\"certificate-authority\" }}",
-                  "certData": "{{ request.object.data.\"client-certificate\" }}",
-                  "keyData": "{{ request.object.data.\"client-key\" }}"
+                  "caData": "{{ index request.object.data "certificate-authority" }}",
+                  "certData": "{{ index request.object.data "client-certificate" }}",
+                  "keyData": "{{ index request.object.data "client-key" }}"
                 }
               }
