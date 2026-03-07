@@ -1,0 +1,14 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-from-argocd
+  namespace: tenant-prod-secretsproxy
+spec:
+  description: >-
+    Allow ingress from ArgoCD vCluster to secrets-proxy vCluster.
+    Required for ArgoCD to deploy applications to the secrets-proxy cluster.
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: tenant-prod-argocd

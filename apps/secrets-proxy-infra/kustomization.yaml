@@ -5,3 +5,4 @@ resources:
   - tenant-secretsproxy.yaml
   - clusterpolicy-argocd-cluster-registration.yaml
   - ciliumnetworkpolicy-allow-to-root-ingress.yaml
+  - ciliumnetworkpolicy-allow-from-argocd.yaml
