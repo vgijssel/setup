@@ -44,6 +44,11 @@ spec:
           variable:
             jmesPath: "request.object.metadata.namespace"
             default: ""
+        - name: serviceName
+          variable:
+            # Strip 'vc-' prefix from secret name to get the vCluster service name
+            jmesPath: "trim_prefix(request.object.metadata.name, 'vc-')"
+            default: ""
       generate:
         synchronize: true
         apiVersion: v1
@@ -58,5 +63,5 @@ spec:
               vcluster.io/source-secret: "{{ vclusterName }}"
           stringData:
             name: "{{ vclusterName }}"
-            server: "https://{{ vclusterName }}.{{ sourceNamespace }}.svc.cluster.local:443"
+            server: "https://{{ serviceName }}.{{ sourceNamespace }}.svc.cluster.local:443"
             config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ caData }}", "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'

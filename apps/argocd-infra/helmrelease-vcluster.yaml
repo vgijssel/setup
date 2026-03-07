@@ -24,6 +24,10 @@ spec:
     remediation:
       retries: 3
   values:
+    networking:
+      advanced:
+        # Enable DNS fallback to host cluster for resolving other vCluster services
+        fallbackHostCluster: true
     sync:
       toHost:
         ingresses:
