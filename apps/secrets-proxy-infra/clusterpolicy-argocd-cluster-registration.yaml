@@ -10,7 +10,7 @@ metadata:
     policies.kyverno.io/description: >-
       Automatically registers any vCluster as an ArgoCD destination by transforming
       the vCluster kubeconfig secret into an ArgoCD cluster secret. Matches secrets
-      starting with 'vc-' in any tenant-prod-* namespace. The generated secret is
+      starting with 'vc-' in any tenant-* namespace. The generated secret is
       placed in the argocd-clusters namespace and synced to ArgoCD vCluster via
       fromHost wildcard configuration.
 spec:
@@ -25,7 +25,7 @@ spec:
               names:
                 - "vc-*"
               namespaces:
-                - "tenant-prod-*"
+                - "tenant-*"
       context:
         - name: caData
           variable:
