@@ -279,6 +279,47 @@ After exploring multiple options (service replication, custom DNS, certificate c
 - Acceptable for internal cluster-to-cluster communication within a trusted network
 - For production, consider vCluster Pro features or manual certificate management
 
+### What Made It Work
+
+The successful cross-vCluster connectivity required **all** of these components working together:
+
+1. **Kyverno ClusterPolicy** - Automatically generates ArgoCD cluster secrets from vCluster kubeconfig secrets
+   - Watches for `vc-*` secrets in `tenant-*` namespaces
+   - Generates secrets in `argocd-clusters` namespace with proper format
+   - Uses full FQDN: `https://secrets-proxy.tenant-prod-secretsproxy.svc.cozy.local:443`
+   - Sets `insecure: true` to bypass server certificate validation
+   - Includes client certificate and key for authentication
+
+2. **vCluster Secret Sync** - Copies cluster secrets from host to vCluster
+   - Configuration: `"argocd-clusters/*": "argocd/*"`
+   - Syncs all secrets from `argocd-clusters` namespace on host into `argocd` namespace in vCluster
+   - ArgoCD inside vCluster can then discover these cluster secrets
+
+3. **Custom CoreDNS Forwarding** - Resolves `cozy.local` domain inside vCluster
+   - Added `cozy.local:1053` zone to CoreDNS configuration
+   - Forwards queries to host DNS (10.96.0.10)
+   - Allows vCluster workloads to resolve `secrets-proxy.tenant-prod-secretsproxy.svc.cozy.local`
+
+4. **CiliumNetworkPolicies** - Allow cross-tenant network traffic
+   - `allow-to-secrets-proxy`: Egress from ArgoCD namespace to secrets-proxy namespace
+   - `allow-from-argocd`: Ingress from ArgoCD to secrets-proxy namespace
+   - `allow-to-vcluster-dns`: Allow pods to reach vCluster's internal CoreDNS
+   - **Critical**: Used endpoint-only matching without port restrictions
+
+5. **Insecure TLS Configuration** - Bypass server certificate validation
+   - vCluster certificates only include short names in SANs
+   - Full FQDN `secrets-proxy.tenant-prod-secretsproxy.svc.cozy.local` not in certificate
+   - `insecure: true` skips server cert verification
+   - Client certificates still used for mutual TLS authentication
+
+6. **ArgoCD Application Controller Restart** - Pick up new cluster configuration
+   - ArgoCD caches cluster information
+   - Restarting the application controller forced it to reload cluster secrets
+   - **Critical step**: Without restart, ArgoCD continued using stale configuration
+
+**The Breakthrough:**
+After deleting the broken secrets-proxy vCluster and letting ArgoCD recreate it, combined with restarting the ArgoCD application controller, all components synchronized properly. The cluster secret was synced, DNS resolution worked, network policies allowed traffic, and TLS authentication succeeded despite the certificate validation being skipped.
+
 ### Verification
 
 ```bash
@@ -288,9 +329,17 @@ kubectl --context tenant-root get pods -n tenant-prod-secretsproxy
 # Verify cluster secrets are generated
 kubectl --context tenant-root get secrets -n argocd-clusters
 
+# Verify secrets synced to ArgoCD vCluster
+vcluster connect tenant-prod-argocd-vc-argocd -n tenant-prod-argocd -- \
+  kubectl -n argocd get secrets -l argocd.argoproj.io/secret-type=cluster
+
 # Verify network policies allow cross-tenant traffic
 kubectl --context tenant-root get ciliumnetworkpolicy -n tenant-prod-argocd
 kubectl --context tenant-root get ciliumnetworkpolicy -n tenant-prod-secretsproxy
+
+# Verify ArgoCD cluster connection
+vcluster connect tenant-prod-argocd-vc-argocd -n tenant-prod-argocd -- \
+  kubectl -n argocd exec argocd-application-controller-0 -- argocd admin cluster stats
 ```
 
 ## Completed Items
