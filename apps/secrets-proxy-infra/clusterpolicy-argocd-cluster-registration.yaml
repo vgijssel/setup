@@ -62,7 +62,8 @@ spec:
               vcluster.io/source-namespace: "{{ sourceNamespace }}"
               vcluster.io/source-secret: "{{ vclusterName }}"
           stringData:
-            name: "{{ vclusterName }}"
+            # Use serviceName (without vc- prefix) as the cluster name for cleaner references
+            name: "{{ serviceName }}"
             # Use the cozy.local DNS domain which ArgoCD vCluster's CoreDNS forwards to host DNS
             server: "https://{{ serviceName }}.{{ sourceNamespace }}.svc.cozy.local:443"
             # Use insecure:true because the vCluster certificate doesn't include cozy.local SANs
