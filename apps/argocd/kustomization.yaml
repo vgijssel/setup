@@ -8,3 +8,5 @@ resources:
   - application-argocd.yaml
   - application-argocd-infra.yaml
   - application-secrets-proxy-infra.yaml
+  - application-secrets-proxy-vcluster.yaml
+  - application-secrets-proxy.yaml
