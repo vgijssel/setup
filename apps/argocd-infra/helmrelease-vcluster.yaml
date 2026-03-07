@@ -28,6 +28,12 @@ spec:
       advanced:
         # Enable DNS fallback to host cluster for resolving other vCluster services
         fallbackHostCluster: true
+      # Replicate vCluster services from host cluster into the ArgoCD vCluster
+      # This allows ArgoCD to reach other vClusters' API servers
+      replicateServices:
+        fromHost:
+          - from: tenant-prod-secretsproxy/secrets-proxy
+            to: tenant-prod-secretsproxy/secrets-proxy
     sync:
       toHost:
         ingresses:
@@ -41,6 +47,8 @@ spec:
               # Note: vCluster doesn't support prefix patterns, only full namespace wildcards
               "argocd-clusters/*": "argocd/*"
     controlPlane:
+      coredns:
+        embedded: true
       statefulSet:
         highAvailability:
           replicas: 3
