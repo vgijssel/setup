@@ -30,13 +30,10 @@ spec:
           enabled: true
       fromHost:
         secrets:
+          enabled: true
           mappings:
-            - from:
-                namespace: tenant-prod-argocd
-                name: cluster-secrets-proxy
-              to:
-                namespace: argocd
-                name: cluster-secrets-proxy
+            byName:
+              "tenant-prod-argocd/cluster-secrets-proxy": "argocd/cluster-secrets-proxy"
     controlPlane:
       statefulSet:
         highAvailability:
