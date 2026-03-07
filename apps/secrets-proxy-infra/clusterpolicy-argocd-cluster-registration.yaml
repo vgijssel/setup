@@ -63,7 +63,8 @@ spec:
               vcluster.io/source-secret: "{{ vclusterName }}"
           stringData:
             name: "{{ vclusterName }}"
-            # Use the replicated service name inside ArgoCD vCluster
-            # Service is replicated from host to argocd namespace via replicateServices.fromHost
-            server: "https://{{ serviceName }}:443"
-            config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ caData }}", "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
+            # Use the cozy.local DNS domain which ArgoCD vCluster's CoreDNS forwards to host DNS
+            server: "https://{{ serviceName }}.{{ sourceNamespace }}.svc.cozy.local:443"
+            # Use insecure:true because the vCluster certificate doesn't include cozy.local SANs
+            # The client certs are still used for authentication
+            config: '{"tlsClientConfig": {"insecure": true, "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
