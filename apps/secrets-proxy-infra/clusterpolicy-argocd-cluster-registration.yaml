@@ -1,16 +1,18 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: register-secrets-proxy-vcluster-to-argocd
+  name: register-vcluster-to-argocd
   annotations:
-    policies.kyverno.io/title: Register secrets-proxy vCluster to ArgoCD
+    policies.kyverno.io/title: Register vClusters to ArgoCD
     policies.kyverno.io/category: ArgoCD
     policies.kyverno.io/severity: medium
     policies.kyverno.io/subject: Secret
     policies.kyverno.io/description: >-
-      Automatically registers the secrets-proxy vCluster as an ArgoCD destination
-      by transforming the vCluster kubeconfig secret into an ArgoCD cluster secret.
-      The generated secret is synced to ArgoCD vCluster via fromHost configuration.
+      Automatically registers any vCluster as an ArgoCD destination by transforming
+      the vCluster kubeconfig secret into an ArgoCD cluster secret. Matches secrets
+      starting with 'vc-' in any tenant-prod-* namespace. The generated secret is
+      placed in the argocd-clusters namespace and synced to ArgoCD vCluster via
+      fromHost wildcard configuration.
 spec:
   generateExisting: true
   rules:
@@ -21,9 +23,9 @@ spec:
               kinds:
                 - Secret
               names:
-                - vc-secrets-proxy
+                - "vc-*"
               namespaces:
-                - tenant-prod-secretsproxy
+                - "tenant-prod-*"
       context:
         - name: caData
           variable:
@@ -34,17 +36,27 @@ spec:
         - name: keyData
           variable:
             jmesPath: 'request.object.data."client-key"'
+        - name: vclusterName
+          variable:
+            jmesPath: "request.object.metadata.name"
+            default: ""
+        - name: sourceNamespace
+          variable:
+            jmesPath: "request.object.metadata.namespace"
+            default: ""
       generate:
         synchronize: true
         apiVersion: v1
         kind: Secret
-        name: cluster-secrets-proxy
-        namespace: tenant-prod-argocd
+        name: "{{ vclusterName }}"
+        namespace: argocd-clusters
         data:
           metadata:
             labels:
               argocd.argoproj.io/secret-type: cluster
+              vcluster.io/source-namespace: "{{ sourceNamespace }}"
+              vcluster.io/source-secret: "{{ vclusterName }}"
           stringData:
-            name: secrets-proxy
-            server: https://vc-secrets-proxy.tenant-prod-secretsproxy.svc.cluster.local:443
+            name: "{{ vclusterName }}"
+            server: "https://{{ vclusterName }}.{{ sourceNamespace }}.svc.cluster.local:443"
             config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ caData }}", "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'

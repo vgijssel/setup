@@ -33,7 +33,9 @@ spec:
           enabled: true
           mappings:
             byName:
-              "tenant-prod-argocd/cluster-secrets-proxy": "argocd/cluster-secrets-proxy"
+              # Sync all secrets from argocd-clusters namespace to argocd namespace
+              # Note: vCluster doesn't support prefix patterns, only full namespace wildcards
+              "argocd-clusters/*": "argocd/*"
     controlPlane:
       statefulSet:
         highAvailability:
