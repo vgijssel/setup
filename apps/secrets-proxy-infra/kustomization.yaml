@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - tenant-secrets-proxy.yaml
+  - application-vcluster.yaml
+  - clusterpolicy-argocd-cluster-registration.yaml
+  - ciliumnetworkpolicy-allow-to-root-ingress.yaml
+  - application-secrets-proxy-infra.yaml
+  - application-secrets-proxy.yaml

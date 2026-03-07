@@ -1,0 +1,63 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: secrets-proxy-vcluster
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/vgijssel/setup
+    targetRevision: mg/feat/deploy-secrets-proxy
+    path: third_party/vendir/charts/vcluster
+    helm:
+      releaseName: secrets-proxy
+      values: |
+        sync:
+          toHost:
+            ingresses:
+              enabled: true
+            services:
+              enabled: true
+            secrets:
+              enabled: true
+          fromHost:
+            secrets:
+              mappings:
+                - from:
+                    namespace: tenant-prod-secretsproxy
+                    name: 1password-credentials
+                  to:
+                    namespace: default
+                    name: 1password-credentials
+                - from:
+                    namespace: tenant-prod-secretsproxy
+                    name: 1password-operator-token
+                  to:
+                    namespace: default
+                    name: 1password-operator-token
+        controlPlane:
+          statefulSet:
+            highAvailability:
+              replicas: 3
+            pods:
+              labels:
+                policy.cozystack.io/allow-to-apiserver: "true"
+          backingStore:
+            etcd:
+              deploy:
+                enabled: true
+                statefulSet:
+                  highAvailability:
+                    replicas: 3
+                  pods:
+                    labels:
+                      policy.cozystack.io/allow-to-apiserver: "true"
+  destination:
+    name: enigma
+    namespace: tenant-prod-secretsproxy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

@@ -1,0 +1,48 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: register-secrets-proxy-vcluster-to-argocd
+  annotations:
+    policies.kyverno.io/title: Register secrets-proxy vCluster to ArgoCD
+    policies.kyverno.io/category: ArgoCD
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Secret
+    policies.kyverno.io/description: >-
+      Automatically registers the secrets-proxy vCluster as an ArgoCD destination
+      by transforming the vCluster kubeconfig secret into an ArgoCD cluster secret.
+      The generated secret is synced to ArgoCD vCluster via fromHost configuration.
+spec:
+  generateExisting: true
+  rules:
+    - name: generate-argocd-cluster-secret
+      match:
+        any:
+          - resources:
+              kinds:
+                - Secret
+              names:
+                - vc-secrets-proxy
+              namespaces:
+                - tenant-prod-secretsproxy
+      generate:
+        synchronize: true
+        apiVersion: v1
+        kind: Secret
+        name: cluster-secrets-proxy
+        namespace: tenant-prod-argocd
+        data:
+          metadata:
+            labels:
+              argocd.argoproj.io/secret-type: cluster
+          stringData:
+            name: secrets-proxy
+            server: https://vc-secrets-proxy.tenant-prod-secretsproxy.svc.cluster.local:443
+            config: |
+              {
+                "tlsClientConfig": {
+                  "insecure": false,
+                  "caData": "{{ request.object.data.\"certificate-authority\" }}",
+                  "certData": "{{ request.object.data.\"client-certificate\" }}",
+                  "keyData": "{{ request.object.data.\"client-key\" }}"
+                }
+              }

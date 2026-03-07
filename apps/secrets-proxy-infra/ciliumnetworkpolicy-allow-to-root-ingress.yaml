@@ -1,0 +1,16 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-to-root-ingress
+  namespace: tenant-prod-secretsproxy
+spec:
+  description: >-
+    Allow egress to tenant-root ingress for accessing api.enigma.vgijssel.nl.
+    Workaround for Cozystack bug where nested tenants (depth > 1) cannot reach
+    root tenant services. See https://github.com/cozystack/cozystack/issues/1970
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            cozystack.io/service: ingress
+            k8s:io.kubernetes.pod.namespace: tenant-root

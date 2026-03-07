@@ -28,6 +28,15 @@ spec:
       toHost:
         ingresses:
           enabled: true
+      fromHost:
+        secrets:
+          mappings:
+            - from:
+                namespace: tenant-prod-argocd
+                name: cluster-secrets-proxy
+              to:
+                namespace: argocd
+                name: cluster-secrets-proxy
     controlPlane:
       statefulSet:
         highAvailability:
