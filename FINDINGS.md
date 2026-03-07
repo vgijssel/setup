@@ -259,15 +259,47 @@ networking:
 
 **Note**: The `resolveDNS` feature requires vCluster Pro and won't help here since it only adds DNS rules, not service endpoints.
 
-## Remaining Issues
+## Solution Implementation
 
-1. **DNS resolution for cross-vCluster communication** - Short DNS names (`secrets-proxy.tenant-prod-secretsproxy`) don't resolve inside vCluster without service replication
+### Final Approach: Insecure TLS with Client Certificates
 
-2. **Secret sync timing** - The cluster secret in the ArgoCD vCluster may not immediately reflect changes to the source secret in `argocd-clusters`
+After exploring multiple options (service replication, custom DNS, certificate configuration), the pragmatic solution implemented is:
 
-3. **ArgoCD cache** - ArgoCD caches cluster information; may need to restart application controller after secret updates
+1. **Server URL**: Use full FQDN with `cozy.local` domain (`https://secrets-proxy.tenant-prod-secretsproxy.svc.cozy.local:443`)
+2. **DNS Resolution**: Custom CoreDNS forwarding for `cozy.local` zone to host DNS (10.96.0.10)
+3. **TLS Configuration**: Use `insecure: true` to skip server certificate verification while still using client certificates for authentication
 
-4. **Manual CoreDNS patching** - For existing vClusters, the CoreDNS ConfigMap needs to be manually patched as `overwriteManifests` only applies on creation
+**Rationale**:
+- vCluster certificates don't include `.svc.cozy.local` SANs and can't be easily modified after creation
+- The `insecure: true` flag only skips server cert verification; client certs are still used for mutual TLS authentication
+- This maintains authentication security while avoiding certificate validation issues
+
+**Trade-offs**:
+- Less secure than full TLS verification (susceptible to MITM attacks within the cluster network)
+- Acceptable for internal cluster-to-cluster communication within a trusted network
+- For production, consider vCluster Pro features or manual certificate management
+
+### Verification
+
+```bash
+# Verify vCluster is running
+kubectl --context tenant-root get pods -n tenant-prod-secretsproxy
+
+# Verify cluster secrets are generated
+kubectl --context tenant-root get secrets -n argocd-clusters
+
+# Verify network policies allow cross-tenant traffic
+kubectl --context tenant-root get ciliumnetworkpolicy -n tenant-prod-argocd
+kubectl --context tenant-root get ciliumnetworkpolicy -n tenant-prod-secretsproxy
+```
+
+## Remaining Items
+
+1. **Secret sync timing** - Monitor vCluster's fromHost secrets sync for delays
+
+2. **ArgoCD cluster connection testing** - Verify ArgoCD can successfully connect to secrets-proxy vCluster
+
+3. **Consider vCluster Pro** - For production deployments, evaluate vCluster Pro for proper certificate management and service replication
 
 ## Recommendations
 
