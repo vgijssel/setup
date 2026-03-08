@@ -1,0 +1,9 @@
+apiVersion: v2
+name: argocd-vcluster
+description: vCluster for ArgoCD
+type: application
+version: 1.0.0
+dependencies:
+  - name: vcluster
+    version: 0.32.1
+    repository: https://charts.loft.sh

@@ -1,0 +1,22 @@
+vcluster:
+  sync:
+    toHost:
+      ingresses:
+        enabled: true
+  controlPlane:
+    statefulSet:
+      highAvailability:
+        replicas: 3
+      pods:
+        labels:
+          policy.cozystack.io/allow-to-apiserver: "true"
+    backingStore:
+      etcd:
+        deploy:
+          enabled: true
+          statefulSet:
+            highAvailability:
+              replicas: 3
+            pods:
+              labels:
+                policy.cozystack.io/allow-to-apiserver: "true"
