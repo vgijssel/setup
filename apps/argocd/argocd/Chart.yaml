@@ -1,9 +1,0 @@
-apiVersion: v2
-name: argocd
-description: ArgoCD GitOps Controller
-type: application
-version: 1.0.0
-dependencies:
-  - name: argo-cd
-    version: 7.7.19
-    repository: https://argoproj.github.io/argo-helm
