@@ -1,0 +1,4 @@
+{
+  "cluster": "https://kubernetes.default.svc",
+  "namespace": "argocd"
+}

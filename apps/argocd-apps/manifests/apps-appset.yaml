@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - git:
+        repoURL: https://github.com/vgijssel/setup.git
+        revision: HEAD
+        files:
+          - path: apps/*/*/config.json
+  template:
+    metadata:
+      name: '{{index .path.segments 1}}-{{index .path.segments 2}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/vgijssel/setup.git
+        targetRevision: HEAD
+        path: '{{.path.path}}'
+        helm:
+          valueFiles:
+            - values.yaml
+      destination:
+        name: '{{.cluster}}'
+        namespace: '{{.namespace}}'
+      syncPolicy:
+        automated:
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

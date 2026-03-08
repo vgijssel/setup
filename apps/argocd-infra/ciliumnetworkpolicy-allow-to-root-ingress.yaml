@@ -7,7 +7,7 @@ spec:
   description: >-
     Allow egress to tenant-root ingress for accessing api.enigma.vgijssel.nl.
     Workaround for Cozystack bug where nested tenants (depth > 1) cannot reach
-    root tenant services. See https://github.com/cozystack/cozystack/issues/1970
+    root tenant services. See https://github.com/cozystack/cozystack/issues/2171
   endpointSelector: {}
   egress:
     - toEndpoints:
