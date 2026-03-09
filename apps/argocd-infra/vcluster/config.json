@@ -1,4 +1,5 @@
 {
   "cluster": "enigma",
-  "namespace": "tenant-prod-argocd"
+  "namespace": "tenant-prod-argocd",
+  "helm": "true"
 }

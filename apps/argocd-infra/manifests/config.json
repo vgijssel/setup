@@ -1,4 +1,5 @@
 {
   "cluster": "enigma",
-  "namespace": "tenant-prod"
+  "namespace": "tenant-prod",
+  "helm": "false"
 }
