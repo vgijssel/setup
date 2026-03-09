@@ -65,8 +65,7 @@ spec:
           stringData:
             # Use serviceName (without vc- prefix) as the cluster name for cleaner references
             name: "{{ serviceName }}"
-            # Use the cozy.local DNS domain which ArgoCD vCluster's CoreDNS forwards to host DNS
-            server: "https://{{ serviceName }}.{{ sourceNamespace }}.svc.cozy.local:443"
-            # Use insecure:true because the vCluster certificate doesn't include cozy.local SANs
-            # The client certs are still used for authentication
-            config: '{"tlsClientConfig": {"insecure": true, "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
+            # Use the ingress endpoint for vCluster API access
+            server: "https://api-{{ serviceName }}.enigma.vgijssel.nl:443"
+            # Client certificates for authentication
+            config: '{"tlsClientConfig": {"insecure": false, "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'

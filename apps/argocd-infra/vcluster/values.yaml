@@ -27,9 +27,11 @@ vcluster:
             pods:
               labels:
                 policy.cozystack.io/allow-to-apiserver: "true"
-    coredns:
-      embedded: true
-  # Enable fallback to host cluster DNS for accessing host services
-  networking:
-    advanced:
-      fallbackHostCluster: true
+    ingress:
+      enabled: true
+      host: api-argocd-infra-vcluster.enigma.vgijssel.nl
+      ingressClassName: tenant-prod
+      annotations:
+        nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+        nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
