@@ -1,0 +1,11 @@
+apiVersion: apps.cozystack.io/v1alpha1
+kind: Tenant
+metadata:
+  name: { { .Values.name } }
+  namespace: { { .Values.namespace } }
+spec:
+  etcd: { { .Values.spec.etcd } }
+  host: { { .Values.spec.host | quote } }
+  ingress: { { .Values.spec.ingress } }
+  monitoring: { { .Values.spec.monitoring } }
+  seaweedfs: { { .Values.spec.seaweedfs } }

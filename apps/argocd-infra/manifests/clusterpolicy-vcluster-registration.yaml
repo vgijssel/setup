@@ -1,0 +1,71 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: register-vcluster-to-argocd
+  annotations:
+    policies.kyverno.io/title: Register vClusters to ArgoCD
+    policies.kyverno.io/category: ArgoCD
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Secret
+    policies.kyverno.io/description: >-
+      Automatically registers any vCluster as an ArgoCD destination by transforming
+      the vCluster kubeconfig secret into an ArgoCD cluster secret. Matches secrets
+      starting with 'vc-' in any tenant-* namespace. The generated secret is
+      placed in the setup-argocd-cluster-secrets namespace and synced to ArgoCD vCluster via
+      fromHost wildcard configuration.
+spec:
+  generateExisting: true
+  rules:
+    - name: generate-argocd-cluster-secret
+      skipBackgroundRequests: true
+      match:
+        any:
+          - resources:
+              kinds:
+                - Secret
+              names:
+                - vc-*
+              namespaces:
+                - tenant-*
+      context:
+        - name: caData
+          variable:
+            jmesPath: request.object.data."certificate-authority"
+        - name: certData
+          variable:
+            jmesPath: request.object.data."client-certificate"
+        - name: keyData
+          variable:
+            jmesPath: request.object.data."client-key"
+        - name: vclusterName
+          variable:
+            jmesPath: request.object.metadata.name
+            default: ""
+        - name: sourceNamespace
+          variable:
+            jmesPath: request.object.metadata.namespace
+            default: ""
+        - name: serviceName
+          variable:
+            # Strip 'vc-' prefix from secret name to get the vCluster service name
+            jmesPath: trim_prefix(request.object.metadata.name, 'vc-')
+            default: ""
+      generate:
+        synchronize: true
+        apiVersion: v1
+        kind: Secret
+        name: "{{ vclusterName }}"
+        namespace: setup-argocd-cluster-secrets
+        data:
+          metadata:
+            labels:
+              argocd.argoproj.io/secret-type: cluster
+              vcluster.io/source-namespace: "{{ sourceNamespace }}"
+              vcluster.io/source-secret: "{{ vclusterName }}"
+          stringData:
+            # Use serviceName (without vc- prefix) as the cluster name for cleaner references
+            name: "{{ serviceName }}"
+            # Use the ingress endpoint for vCluster API access
+            server: "https://api-{{ serviceName }}.enigma.vgijssel.nl:443"
+            # Client certificates for authentication
+            config: '{"tlsClientConfig": {"insecure": false, "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'

@@ -6,3 +6,9 @@ tags:
   - kubernetes
   - argocd
   - vcluster
+
+tasks:
+  bootstrap:
+    command: bash $MOON_WORKSPACE_ROOT/apps/argocd-infra/scripts/bootstrap.sh
+    options:
+      runInCI: false

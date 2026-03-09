@@ -1,0 +1,34 @@
+vcluster:
+  sync:
+    toHost:
+      ingresses:
+        enabled: true
+    fromHost:
+      secrets:
+        enabled: true
+        mappings:
+          byName:
+            # Sync all secrets from setup-argocd-cluster-secrets namespace to argocd namespace
+            setup-argocd-cluster-secrets/*: argocd/*
+  controlPlane:
+    statefulSet:
+      highAvailability:
+        replicas: 3
+      pods:
+        labels:
+          policy.cozystack.io/allow-to-apiserver: "true"
+    backingStore:
+      etcd:
+        deploy:
+          enabled: true
+          statefulSet:
+            highAvailability:
+              replicas: 3
+            pods:
+              labels:
+                policy.cozystack.io/allow-to-apiserver: "true"
+    ingress:
+      enabled: true
+      host: api-argocd-infra-vcluster.enigma.vgijssel.nl
+      spec:
+        ingressClassName: tenant-prod

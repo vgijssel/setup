@@ -65,6 +65,10 @@ docs/.obsidian
 
 services/kube-ovn/charts
 
+# Helm chart dependencies
+apps/**/charts/
+libs/**/charts/
+
 **/textual.log
 **/textual_serve.log
 third_party/javascript/bin

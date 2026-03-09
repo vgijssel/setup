@@ -1,0 +1,6 @@
+dependencies:
+- name: vcluster
+  repository: file://../../../third_party/vendir/charts/vcluster
+  version: 0.32.1
+digest: sha256:db7c289910fa72b157fc6e7bbf7d10355b6e7d4ce1386350c382547662ad4b2d
+generated: "2026-03-08T16:59:05.709440706Z"

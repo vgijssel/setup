@@ -1,0 +1,9 @@
+tenant:
+  name: argocd
+  namespace: tenant-prod
+  spec:
+    etcd: false
+    host: ""
+    ingress: false
+    monitoring: false
+    seaweedfs: false
