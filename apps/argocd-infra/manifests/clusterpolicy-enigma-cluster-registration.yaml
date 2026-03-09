@@ -16,6 +16,7 @@ spec:
   generateExisting: true
   rules:
     - name: generate-argocd-cluster-secret
+      skipBackgroundRequests: true
       match:
         any:
           - resources:
