@@ -1,5 +1,5 @@
 {
-  "cluster": "https://kubernetes.default.svc",
+  "cluster": "in-cluster",
   "namespace": "argocd",
   "helm": "false"
 }
