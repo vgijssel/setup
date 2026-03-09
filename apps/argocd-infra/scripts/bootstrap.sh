@@ -7,7 +7,7 @@ cd "$(dirname "$0")/../../.."
 echo "Step 1: Installing ArgoCD Tenant (Helm chart)..."
 helm template argocd-tenant ./apps/argocd-infra/tenant \
   --namespace tenant-prod | \
-  kubectl apply -f - --server-side --force-conflicts
+  kubectl apply -f -
 
 echo "Step 2: Waiting for tenant to create namespace..."
 kubectl wait --for=jsonpath='{.status.phase}'=Active namespace/tenant-prod-argocd --timeout=5m
@@ -18,7 +18,7 @@ kubectl apply -k apps/argocd-infra/manifests --server-side --force-conflicts
 echo "Step 4: Installing ArgoCD vCluster with name 'argocd-infra-vcluster'..."
 helm template argocd-infra-vcluster ./apps/argocd-infra/vcluster \
   --namespace tenant-prod-argocd | \
-  kubectl apply -f - --server-side --force-conflicts
+  kubectl apply -f -
 
 echo "Step 5: Waiting for vCluster to be ready..."
 kubectl wait --for=condition=ready pod \
