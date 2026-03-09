@@ -29,7 +29,7 @@ spec:
       context:
         - name: token
           variable:
-            jmesPath: 'request.object.data.token'
+            jmesPath: "request.object.data.token"
         - name: caData
           variable:
             jmesPath: 'request.object.data."ca.crt"'
@@ -47,7 +47,7 @@ spec:
               cluster.enigma.vgijssel.nl/source-secret: argocd-token
           stringData:
             name: enigma
-            server: "https://kubernetes.default.svc.cluster.local:443"
+            server: "https://api.enigma.vgijssel.nl:443"
             config: |
               {
                 "bearerToken": "{{ base64_decode(token) }}",

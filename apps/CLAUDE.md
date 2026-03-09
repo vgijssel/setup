@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-This directory uses ArgoCD ApplicationSets to automatically discover and deploy applications. Each subdirectory can contain either **umbrella Helm charts** or **plain Kubernetes manifests**, and both are treated identically by the ApplicationSet generators.
+This directory uses ArgoCD ApplicationSets to automatically discover and deploy applications. Each subdirectory can contain either **umbrella Helm charts**, **Kustomize directories**, or **plain Kubernetes manifests**, and all are treated identically by the ApplicationSet generators. All application types use a `config.json` file for routing metadata.
 
 ## Directory Structure Convention
 
@@ -12,7 +12,7 @@ Every top-level directory under `apps/` is a **logical grouping** (e.g., `secret
 
 ### Application Types
 
-Each subdirectory is one of two types:
+Each subdirectory is one of three types, all containing a `config.json` file:
 
 #### 1. Umbrella Helm Chart
 Contains a `Chart.yaml` declaring an external chart as a dependency, plus values overrides.
@@ -22,13 +22,27 @@ apps/<grouping>/<app-name>/
 ├── Chart.yaml      # Declares dependency on external chart
 ├── Chart.lock      # MUST be committed (ArgoCD requires it)
 ├── values.yaml     # Production values
-└── values-pr.yaml  # PR environment overrides (optional)
+├── values-pr.yaml  # PR environment overrides (optional)
+└── config.json     # Routing metadata
 ```
 
 **ArgoCD auto-detection**: Presence of `Chart.yaml` → Helm source
 
-#### 2. Plain Kubernetes Manifests
-Contains raw YAML files. No `Chart.yaml` present.
+#### 2. Kustomize Directory
+Contains a `kustomization.yaml` file for declarative Kubernetes resource management.
+
+```
+apps/<grouping>/<app-name>/
+├── kustomization.yaml   # Kustomize resources and patches
+├── deployment.yaml
+├── service.yaml
+└── config.json          # Routing metadata
+```
+
+**ArgoCD auto-detection**: Presence of `kustomization.yaml` → Kustomize source
+
+#### 3. Plain Kubernetes Manifests
+Contains raw YAML files. No `Chart.yaml` or `kustomization.yaml` present.
 
 ```
 apps/<grouping>/manifests/
@@ -37,7 +51,7 @@ apps/<grouping>/manifests/
 └── config.json     # Routing metadata
 ```
 
-**ArgoCD auto-detection**: No `Chart.yaml` → Directory source
+**ArgoCD auto-detection**: No `Chart.yaml` or `kustomization.yaml` → Directory source
 **Convention**: These directories are named `manifests/` for clarity
 
 ## Application Discovery: config.json
@@ -117,7 +131,13 @@ apps/
 
 ## Bootstrap Chain
 
-ArgoCD itself runs inside a vCluster and is bootstrapped in phases:
+ArgoCD itself runs inside a vCluster and is bootstrapped in phases. The entire process can be automated using the Moon bootstrap target:
+
+```bash
+moon run apps/argocd-infra:bootstrap
+```
+
+This executes the following phases:
 
 ### Phase 1: Deploy ArgoCD Infrastructure (Parent Cluster)
 ```bash
@@ -139,6 +159,10 @@ vcluster disconnect
 Once ArgoCD is running, the ApplicationSets in `apps/argocd-apps/manifests/` automatically discover and deploy all other applications.
 
 **Critical Constraint**: The `argocd*` groupings do **not** contain `config.json` files because they are managed by the bootstrap chain, not by ApplicationSets.
+
+### vCluster Connectivity
+
+All exposed vClusters deployed by ArgoCD are reachable via Ingress from the ArgoCD instance itself. This allows ArgoCD to manage applications across multiple vClusters using standard HTTPS endpoints rather than requiring direct Kubernetes API access to each vCluster.
 
 ## ApplicationSet Generators
 
@@ -195,10 +219,11 @@ generators:
 ### Adding a New Application
 
 1. Choose the logical grouping (or create a new one)
-2. Create a subdirectory with either:
-   - `Chart.yaml` + `values.yaml` (umbrella Helm chart), OR
-   - `*.yaml` manifest files (plain manifests)
-3. Create `config.json` with target cluster and namespace
+2. Create a subdirectory with one of:
+   - `Chart.yaml` + `values.yaml` + `config.json` (umbrella Helm chart)
+   - `kustomization.yaml` + manifests + `config.json` (Kustomize directory)
+   - `*.yaml` manifest files + `config.json` (plain manifests)
+3. Ensure `config.json` specifies the target cluster and namespace
 4. Commit and push - ApplicationSet automatically creates the Application
 
 ### Modifying an Application
@@ -259,6 +284,31 @@ apps/secrets-proxy/onepassword-operator/
     }
 ```
 
+### Kustomize Directory Example
+```
+apps/secrets-proxy/external-secrets/
+├── kustomization.yaml
+│   apiVersion: kustomize.config.k8s.io/v1beta1
+│   kind: Kustomization
+│   resources:
+│     - deployment.yaml
+│     - service.yaml
+│   patches:
+│     - patch: |-
+│         - op: replace
+│           path: /spec/replicas
+│           value: 2
+│       target:
+│         kind: Deployment
+├── deployment.yaml
+├── service.yaml
+└── config.json
+    {
+      "cluster": "vcluster-secrets-proxy",
+      "namespace": "external-secrets"
+    }
+```
+
 ### Plain Manifests Example
 ```
 apps/argocd/manifests/
@@ -295,4 +345,4 @@ apps/argocd/manifests/
 
 ---
 
-**Summary**: This directory uses a simple, declarative pattern where ApplicationSets discover applications via `config.json` files and generate Application resources. The applications themselves (Helm charts or manifests) remain unaware of deployment details, enabling easy multi-environment and multi-cluster deployments.
+**Summary**: This directory uses a simple, declarative pattern where ApplicationSets discover applications via `config.json` files and generate Application resources. The applications themselves (umbrella Helm charts, Kustomize directories, or plain manifests) remain unaware of deployment details, enabling easy multi-environment and multi-cluster deployments. ArgoCD can be bootstrapped using `moon run apps/argocd-infra:bootstrap`, and all vClusters are accessible via Ingress for centralized management.

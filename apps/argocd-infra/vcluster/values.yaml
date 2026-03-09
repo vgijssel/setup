@@ -9,7 +9,7 @@ vcluster:
         mappings:
           byName:
             # Sync all secrets from setup-argocd-cluster-secrets namespace to argocd namespace
-            "setup-argocd-cluster-secrets/*": "argocd/*"
+            setup-argocd-cluster-secrets/*: argocd/*
   controlPlane:
     statefulSet:
       highAvailability:
@@ -30,8 +30,9 @@ vcluster:
     ingress:
       enabled: true
       host: api-argocd-infra-vcluster.enigma.vgijssel.nl
-      ingressClassName: tenant-prod
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: HTTPS
         nginx.ingress.kubernetes.io/ssl-passthrough: "true"
         nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      spec:
+        ingressClassName: tenant-prod
