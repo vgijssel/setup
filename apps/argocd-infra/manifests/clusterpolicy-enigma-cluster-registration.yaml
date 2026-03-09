@@ -14,7 +14,6 @@ metadata:
       vCluster via fromHost configuration.
 spec:
   generateExisting: true
-  skipBackgroundRequests: true
   rules:
     - name: generate-argocd-cluster-secret
       match:

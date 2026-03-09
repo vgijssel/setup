@@ -15,7 +15,6 @@ metadata:
       fromHost wildcard configuration.
 spec:
   generateExisting: true
-  skipBackgroundRequests: true
   rules:
     - name: generate-argocd-cluster-secret
       match:
