@@ -24,31 +24,31 @@ spec:
               kinds:
                 - Secret
               names:
-                - "vc-*"
+                - vc-*
               namespaces:
-                - "tenant-*"
+                - tenant-*
       context:
         - name: caData
           variable:
-            jmesPath: 'request.object.data."certificate-authority"'
+            jmesPath: request.object.data."certificate-authority"
         - name: certData
           variable:
-            jmesPath: 'request.object.data."client-certificate"'
+            jmesPath: request.object.data."client-certificate"
         - name: keyData
           variable:
-            jmesPath: 'request.object.data."client-key"'
+            jmesPath: request.object.data."client-key"
         - name: vclusterName
           variable:
-            jmesPath: "request.object.metadata.name"
+            jmesPath: request.object.metadata.name
             default: ""
         - name: sourceNamespace
           variable:
-            jmesPath: "request.object.metadata.namespace"
+            jmesPath: request.object.metadata.namespace
             default: ""
         - name: serviceName
           variable:
             # Strip 'vc-' prefix from secret name to get the vCluster service name
-            jmesPath: "trim_prefix(request.object.metadata.name, 'vc-')"
+            jmesPath: trim_prefix(request.object.metadata.name, 'vc-')
             default: ""
       generate:
         synchronize: true

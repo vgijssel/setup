@@ -19,16 +19,16 @@ spec:
           - path: apps/*/*/config.json
   template:
     metadata:
-      name: '{{index .path.segments 1}}-{{index .path.segments 2}}'
+      name: "{{index .path.segments 1}}-{{index .path.segments 2}}"
     spec:
       project: default
       source:
         repoURL: https://github.com/vgijssel/setup.git
         targetRevision: mg/chore/refactor-argocd-directory-structure
-        path: '{{.path.path}}'
+        path: "{{.path.path}}"
       destination:
-        name: '{{.cluster}}'
-        namespace: '{{.namespace}}'
+        name: "{{.cluster}}"
+        namespace: "{{.namespace}}"
       syncPolicy:
         automated:
           selfHeal: true

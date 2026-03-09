@@ -23,16 +23,16 @@ spec:
               kinds:
                 - Secret
               names:
-                - "argocd-token"
+                - argocd-token
               namespaces:
-                - "tenant-prod-argocd"
+                - tenant-prod-argocd
       context:
         - name: token
           variable:
-            jmesPath: "request.object.data.token"
+            jmesPath: request.object.data.token
         - name: caData
           variable:
-            jmesPath: 'request.object.data."ca.crt"'
+            jmesPath: request.object.data."ca.crt"
       generate:
         synchronize: true
         apiVersion: v1
@@ -47,7 +47,7 @@ spec:
               cluster.enigma.vgijssel.nl/source-secret: argocd-token
           stringData:
             name: enigma
-            server: "https://api.enigma.vgijssel.nl:443"
+            server: https://api.enigma.vgijssel.nl:443
             config: |
               {
                 "bearerToken": "{{ base64_decode(token) }}",

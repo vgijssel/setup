@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+set -o pipefail
 
 # Change to workspace root
 cd "$(dirname "$0")/../../.."
