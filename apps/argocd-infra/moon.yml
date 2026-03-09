@@ -13,7 +13,8 @@ tasks:
       set -e
 
       echo "Step 1: Installing ArgoCD Tenant (Helm chart)..."
-      helm template argocd-tenant ./apps/argocd-infra/tenant | \
+      helm template argocd-tenant ./apps/argocd-infra/tenant \
+        --namespace tenant-prod | \
         kubectl apply -f - --server-side --force-conflicts
 
       echo "Step 2: Waiting for tenant to create namespace..."
@@ -23,11 +24,9 @@ tasks:
       kubectl apply -k apps/argocd-infra/manifests --server-side --force-conflicts
 
       echo "Step 4: Installing ArgoCD vCluster with name 'argocd-infra-vcluster'..."
-      helm upgrade --install argocd-infra-vcluster ./apps/argocd-infra/vcluster \
-        --namespace tenant-prod-argocd \
-        --create-namespace \
-        --wait \
-        --timeout 10m
+      helm template argocd-infra-vcluster ./apps/argocd-infra/vcluster \
+        --namespace tenant-prod-argocd | \
+        kubectl apply -f - --server-side --force-conflicts
 
       echo "Step 5: Waiting for vCluster to be ready..."
       kubectl wait --for=condition=ready pod \
