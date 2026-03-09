@@ -47,7 +47,7 @@ spec:
               cluster.enigma.vgijssel.nl/source-secret: argocd-token
           stringData:
             name: enigma
-            server: "https://api.enigma.vgijssel.nl:443"
+            server: "https://kubernetes.default.svc.cluster.local:443"
             config: |
               {
                 "bearerToken": "{{ base64_decode(token) }}",

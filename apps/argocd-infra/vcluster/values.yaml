@@ -27,3 +27,9 @@ vcluster:
             pods:
               labels:
                 policy.cozystack.io/allow-to-apiserver: "true"
+    coredns:
+      embedded: true
+  # Enable fallback to host cluster DNS for accessing host services
+  networking:
+    advanced:
+      fallbackHostCluster: true
