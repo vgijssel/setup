@@ -6,3 +6,52 @@ tags:
   - kubernetes
   - argocd
   - vcluster
+
+tasks:
+  bootstrap:
+    command: |
+      set -e
+
+      echo "Step 1: Applying ArgoCD infrastructure manifests to enigma cluster..."
+      kubectl apply -k apps/argocd-infra/manifests --server-side --force-conflicts
+
+      echo "Step 1b: Waiting for tenant to create namespace..."
+      for i in {1..60}; do
+        if kubectl get namespace tenant-prod-argocd &>/dev/null; then
+          echo "Namespace created!"
+          break
+        fi
+        sleep 5
+      done
+
+      echo "Step 1c: Re-applying manifests after namespace creation..."
+      kubectl apply -k apps/argocd-infra/manifests --server-side --force-conflicts
+
+      echo "Step 2: Installing ArgoCD vCluster with name 'argocd-infra-vcluster'..."
+      helm upgrade --install argocd-infra-vcluster ./apps/argocd-infra/vcluster \
+        --namespace tenant-prod-argocd \
+        --create-namespace \
+        --wait \
+        --timeout 10m
+
+      echo "Step 3: Waiting for vCluster to be ready..."
+      kubectl wait --for=condition=ready pod \
+        -l app=vcluster,release=argocd-infra-vcluster \
+        -n tenant-prod-argocd \
+        --timeout=300s
+
+      echo "Step 4: Installing ArgoCD to vCluster with server-side apply..."
+      kubectl kustomize apps/argocd/manifests > /tmp/argocd-manifests.yaml
+      vcluster connect argocd-infra-vcluster -n tenant-prod-argocd -- \
+        kubectl apply -f /tmp/argocd-manifests.yaml --server-side --force-conflicts
+
+      echo "Step 5: Applying ArgoCD ApplicationSets..."
+      vcluster connect argocd-infra-vcluster -n tenant-prod-argocd -- \
+        kubectl apply -f apps/argocd-apps/manifests/apps-appset.yaml --server-side --force-conflicts
+
+      echo "Bootstrap complete! Checking application status..."
+      sleep 10
+      vcluster connect argocd-infra-vcluster -n tenant-prod-argocd -- \
+        kubectl get applications -n argocd
+    options:
+      runInCI: false
