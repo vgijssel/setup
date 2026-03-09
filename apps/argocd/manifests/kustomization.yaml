@@ -6,15 +6,3 @@ namespace: argocd
 resources:
   - ../../../third_party/vendir/manifests/argocd/ha
   - ingress.yaml
-
-patches:
-  - patch: |-
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: argocd-cmd-params-cm
-      data:
-        server.insecure: "true"
-    target:
-      kind: ConfigMap
-      name: argocd-cmd-params-cm
