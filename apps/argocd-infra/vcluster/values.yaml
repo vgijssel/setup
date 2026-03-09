@@ -3,6 +3,13 @@ vcluster:
     toHost:
       ingresses:
         enabled: true
+    fromHost:
+      secrets:
+        enabled: true
+        mappings:
+          byName:
+            # Sync all secrets from setup-argocd-cluster-secrets namespace to argocd namespace
+            "setup-argocd-cluster-secrets/*": "argocd/*"
   controlPlane:
     statefulSet:
       highAvailability:

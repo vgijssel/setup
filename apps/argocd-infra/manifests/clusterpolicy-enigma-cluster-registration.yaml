@@ -1,0 +1,57 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: register-enigma-cluster-to-argocd
+  annotations:
+    policies.kyverno.io/title: Register Enigma Cluster to ArgoCD
+    policies.kyverno.io/category: ArgoCD
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Secret
+    policies.kyverno.io/description: >-
+      Automatically registers the enigma cluster as an ArgoCD destination by transforming
+      the argocd-token service account secret into an ArgoCD cluster secret. The generated
+      secret is placed in the setup-argocd-cluster-secrets namespace and synced to ArgoCD
+      vCluster via fromHost configuration.
+spec:
+  generateExisting: true
+  rules:
+    - name: generate-argocd-cluster-secret
+      match:
+        any:
+          - resources:
+              kinds:
+                - Secret
+              names:
+                - "argocd-token"
+              namespaces:
+                - "tenant-prod-argocd"
+      context:
+        - name: token
+          variable:
+            jmesPath: 'request.object.data.token'
+        - name: caData
+          variable:
+            jmesPath: 'request.object.data."ca.crt"'
+      generate:
+        synchronize: true
+        apiVersion: v1
+        kind: Secret
+        name: cluster-enigma
+        namespace: setup-argocd-cluster-secrets
+        data:
+          metadata:
+            labels:
+              argocd.argoproj.io/secret-type: cluster
+              cluster.enigma.vgijssel.nl/source-namespace: tenant-prod-argocd
+              cluster.enigma.vgijssel.nl/source-secret: argocd-token
+          stringData:
+            name: enigma
+            server: "https://api.enigma.vgijssel.nl:443"
+            config: |
+              {
+                "bearerToken": "{{ base64_decode(token) }}",
+                "tlsClientConfig": {
+                  "insecure": false,
+                  "caData": "{{ caData }}"
+                }
+              }
