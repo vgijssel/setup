@@ -1,0 +1,24 @@
+# Default values for tenant chart
+
+# Name of the tenant
+name: argocd
+
+# Namespace where the tenant will be created
+namespace: tenant-prod
+
+# Tenant spec configuration
+spec:
+  # Enable etcd for the tenant
+  etcd: false
+
+  # Host configuration for the tenant
+  host: ""
+
+  # Enable ingress for the tenant
+  ingress: false
+
+  # Enable monitoring for the tenant
+  monitoring: false
+
+  # Enable seaweedfs for the tenant
+  seaweedfs: false

@@ -1,0 +1,6 @@
+dependencies:
+- name: tenant
+  repository: file://../../../libs/tenant
+  version: 0.1.0
+digest: sha256:dfa280ae5d17515ae707795b9908e30a9cecdf491395eda604c7b59240724870
+generated: "2026-03-09T14:29:25.273489047Z"

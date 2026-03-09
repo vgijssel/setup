@@ -1,0 +1,9 @@
+apiVersion: v2
+name: argocd-tenant
+description: Cozystack Tenant for ArgoCD
+type: application
+version: 1.0.0
+dependencies:
+  - name: tenant
+    version: 0.1.0
+    repository: file://../../../libs/tenant
