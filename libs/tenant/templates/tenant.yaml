@@ -1,7 +1,7 @@
 apiVersion: apps.cozystack.io/v1alpha1
 kind: Tenant
 metadata:
-  name: "{{ .Values.name }}"
+  name: "{{ .Values.name }}{{ if .Values.prNumber }}-pr-{{ .Values.prNumber }}{{ end }}"
   namespace: "{{ .Values.namespace }}"
   {{- with .Values.annotations }}
   annotations:

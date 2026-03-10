@@ -6,6 +6,9 @@ name: argocd
 # Namespace where the tenant will be created
 namespace: tenant-prod
 
+# PR number for PR environments (empty for production)
+prNumber: ""
+
 # Annotations to add to the tenant resource
 annotations: {}
 

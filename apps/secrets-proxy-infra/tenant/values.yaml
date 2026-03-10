@@ -1,6 +1,7 @@
 tenant:
   name: argocd
   namespace: tenant-prod
+  prNumber: ""
   spec:
     etcd: false
     host: ""

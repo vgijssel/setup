@@ -45,6 +45,8 @@ spec:
           parameters:
             - name: prNumber
               value: "{{.number}}"
+            - name: tenant.prNumber
+              value: "{{.number}}"
       destination:
         name: "{{.cluster}}"
         namespace: "{{.namespace}}-pr-{{.number}}"
