@@ -11,4 +11,4 @@ vcluster:
             highAvailability:
               replicas: 1
     ingress:
-      host: api-secrets-proxy-vcluster-pr-{{ .Values.prNumber }}.enigma.vgijssel.nl
+      enabled: false
