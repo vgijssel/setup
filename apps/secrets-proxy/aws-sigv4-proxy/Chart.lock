@@ -1,0 +1,6 @@
+dependencies:
+- name: aws-sigv4-proxy
+  repository: file://../../../libs/aws-sigv4-proxy
+  version: 0.1.0
+digest: sha256:5f0b64b7d79b78b2061118df0d58de4d8340c5443c6205c4091e6937e033c33d
+generated: "2026-03-10T07:43:52.214531088Z"

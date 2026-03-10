@@ -1,0 +1,6 @@
+dependencies:
+- name: connect
+  repository: file://../../../third_party/vendir/charts/1password-connect
+  version: 2.0.5
+digest: sha256:e7a3cb8564958a6ada2bbf0398960db84229cab550c865ebccc6315a6e4200b2
+generated: "2026-03-10T07:44:03.414768159Z"

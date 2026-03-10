@@ -1,0 +1,9 @@
+apiVersion: v2
+name: onepassword-operator
+description: 1Password Connect operator
+type: application
+version: 1.0.0
+dependencies:
+  - name: connect
+    version: 2.0.5
+    repository: file://../../../third_party/vendir/charts/1password-connect

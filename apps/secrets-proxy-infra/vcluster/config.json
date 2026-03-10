@@ -1,0 +1,4 @@
+{
+  "cluster": "enigma",
+  "namespace": "tenant-prod-secrets-proxy"
+}

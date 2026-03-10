@@ -1,0 +1,5 @@
+1password-secrets:
+  secrets:
+    - name: backblaze-s3-docs-infra-prod
+      namespace: secrets
+      itemPath: vaults/setup-secrets/items/backblaze-s3-docs-infra-prod

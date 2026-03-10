@@ -1,0 +1,4 @@
+{
+  "cluster": "vcluster-secrets-proxy",
+  "namespace": "default"
+}

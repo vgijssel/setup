@@ -1,0 +1,35 @@
+vcluster:
+  sync:
+    toHost:
+      ingresses:
+        enabled: true
+    fromHost:
+      secrets:
+        enabled: true
+        mappings:
+          byName:
+            # Sync 1Password secrets from tenant-prod namespace to default namespace in vcluster
+            tenant-prod/1password-credentials: default/1password-credentials
+            tenant-prod/1password-operator-token: default/1password-operator-token
+  controlPlane:
+    statefulSet:
+      highAvailability:
+        replicas: 3
+      pods:
+        labels:
+          policy.cozystack.io/allow-to-apiserver: "true"
+    backingStore:
+      etcd:
+        deploy:
+          enabled: true
+          statefulSet:
+            highAvailability:
+              replicas: 3
+            pods:
+              labels:
+                policy.cozystack.io/allow-to-apiserver: "true"
+    ingress:
+      enabled: true
+      host: api-secrets-proxy-vcluster.enigma.vgijssel.nl
+      spec:
+        ingressClassName: tenant-prod

@@ -1,0 +1,6 @@
+dependencies:
+- name: 1password-secrets
+  repository: file://../../../libs/1password-secrets
+  version: 0.1.0
+digest: sha256:e8a4a972bbfe76f2f161091dd7ef2f57b53912ec74cbc6ee378365a5e65ee46b
+generated: "2026-03-10T07:43:50.954127002Z"

@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: pr-apps-helm
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - matrix:
+        generators:
+          - pullRequest:
+              github:
+                owner: vgijssel
+                repo: setup
+                labels:
+                  - apps:secrets-proxy
+              requeueAfterSeconds: 60
+          - selector:
+              matchExpressions:
+                - key: helm
+                  operator: In
+                  values:
+                    - "true"
+            git:
+              repoURL: https://github.com/vgijssel/setup.git
+              revision: "{{.head_sha}}"
+              files:
+                - path: apps/secrets-proxy/*/config.json
+                - path: apps/secrets-proxy-infra/*/config.json
+  template:
+    metadata:
+      name: "pr-{{.number}}-{{index .path.segments 1}}-{{index .path.segments 2}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/vgijssel/setup.git
+        targetRevision: "{{.head_sha}}"
+        path: "{{.path.path}}"
+        helm:
+          valueFiles:
+            - values.yaml
+            - values-pr.yaml
+          parameters:
+            - name: prNumber
+              value: "{{.number}}"
+      destination:
+        name: "{{.cluster}}"
+        namespace: "{{.namespace}}-pr-{{.number}}"
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - CreateNamespace=true
+          - PruneLast=true
+      info:
+        - name: PR
+          value: "https://github.com/vgijssel/setup/pull/{{.number}}"
+        - name: Branch
+          value: "{{.branch}}"
