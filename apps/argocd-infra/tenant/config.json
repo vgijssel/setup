@@ -1,6 +1,5 @@
 {
   "cluster": "enigma",
   "namespace": "tenant-prod",
-  "helm": "true",
-  "protect": "true"
+  "helm": "true"
 }

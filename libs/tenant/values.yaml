@@ -6,6 +6,9 @@ name: argocd
 # Namespace where the tenant will be created
 namespace: tenant-prod
 
+# Annotations to add to the tenant resource
+annotations: {}
+
 # Tenant spec configuration
 spec:
   # Enable etcd for the tenant

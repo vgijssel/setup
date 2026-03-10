@@ -14,7 +14,10 @@ spec:
                 repo: setup
                 labels:
                   - apps:secrets-proxy
-              requeueAfterSeconds: 60
+                tokenRef:
+                  secretName: github-token
+                  key: token
+              requeueAfterSeconds: 1800
           - selector:
               matchExpressions:
                 - key: helm

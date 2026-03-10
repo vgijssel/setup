@@ -3,6 +3,10 @@ kind: Tenant
 metadata:
   name: "{{ .Values.name }}"
   namespace: "{{ .Values.namespace }}"
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   etcd: {{ .Values.spec.etcd }}
   host: {{ .Values.spec.host | quote }}

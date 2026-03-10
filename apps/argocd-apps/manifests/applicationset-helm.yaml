@@ -29,6 +29,7 @@ spec:
         helm:
           valueFiles:
             - values.yaml
+            - values-prod.yaml
       destination:
         name: "{{.cluster}}"
         namespace: "{{.namespace}}"
@@ -39,6 +40,3 @@ spec:
         syncOptions:
           - CreateNamespace=true
           - PruneLast=true
-        {{- if eq .protect "true" }}
-        preserveResourcesOnDeletion: true
-        {{- end }}

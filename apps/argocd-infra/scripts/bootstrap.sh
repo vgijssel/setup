@@ -7,6 +7,8 @@ cd "$(dirname "$0")/../../.."
 
 echo "Step 1: Installing ArgoCD Tenant (Helm chart)..."
 helm template argocd-tenant ./apps/argocd-infra/tenant \
+  -f ./apps/argocd-infra/tenant/values.yaml \
+  -f ./apps/argocd-infra/tenant/values-prod.yaml \
   --namespace tenant-prod | \
   kubectl apply -f -
 
@@ -18,6 +20,8 @@ kubectl apply -k apps/argocd-infra/manifests --server-side --force-conflicts
 
 echo "Step 4: Installing ArgoCD vCluster with name 'argocd-infra-vcluster'..."
 helm template argocd-infra-vcluster ./apps/argocd-infra/vcluster \
+  -f ./apps/argocd-infra/vcluster/values.yaml \
+  -f ./apps/argocd-infra/vcluster/values-prod.yaml \
   --namespace tenant-prod-argocd | \
   kubectl apply -f -
 

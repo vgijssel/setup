@@ -1,6 +1,5 @@
 {
   "cluster": "in-cluster",
   "namespace": "argocd",
-  "helm": "false",
-  "protect": "true"
+  "helm": "false"
 }

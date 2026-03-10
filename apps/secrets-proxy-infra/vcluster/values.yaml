@@ -14,7 +14,7 @@ vcluster:
   controlPlane:
     statefulSet:
       highAvailability:
-        replicas: 3
+        replicas: 1
       pods:
         labels:
           policy.cozystack.io/allow-to-apiserver: "true"
@@ -24,12 +24,9 @@ vcluster:
           enabled: true
           statefulSet:
             highAvailability:
-              replicas: 3
+              replicas: 1
             pods:
               labels:
                 policy.cozystack.io/allow-to-apiserver: "true"
     ingress:
-      enabled: true
-      host: api-secrets-proxy-vcluster.enigma.vgijssel.nl
-      spec:
-        ingressClassName: tenant-prod
+      enabled: false
