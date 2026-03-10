@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: tenant-prod
   rules:
-    - host: argocd-webhook.enigma.vgijssel.nl
+    - host: argocd-webhook-public.enigma.vgijssel.nl
       http:
         paths:
           - path: /api/webhook
@@ -21,5 +21,5 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - argocd-webhook.enigma.vgijssel.nl
+        - argocd-webhook-public.enigma.vgijssel.nl
       secretName: argocd-server-webhook-tls
