@@ -38,5 +38,7 @@ spec:
           selfHeal: true
           prune: true
         syncOptions:
+          {{- if ne .skipNamespaceCreation "true" }}
           - CreateNamespace=true
+          {{- end }}
           - PruneLast=true
