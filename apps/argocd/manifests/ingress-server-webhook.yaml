@@ -10,6 +10,9 @@ metadata:
     nginx.ingress.kubernetes.io/upstream-vhost: "argocd.enigma.vgijssel.nl"
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header Host argocd.enigma.vgijssel.nl;
+      proxy_set_header X-Forwarded-Host argocd.enigma.vgijssel.nl;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
 spec:
   ingressClassName: tenant-prod
   rules:
