@@ -13,6 +13,12 @@ helm template argocd-tenant ./apps/argocd-infra/tenant \
   kubectl apply -f -
 
 echo "Step 2: Waiting for tenant to create namespace..."
+# Wait for namespace to be created first
+until kubectl get namespace tenant-prod-argocd &> /dev/null; do
+  echo "  Waiting for namespace tenant-prod-argocd to be created..."
+  sleep 2
+done
+# Now wait for it to be Active
 kubectl wait --for=jsonpath='{.status.phase}'=Active namespace/tenant-prod-argocd --timeout=5m
 
 echo "Step 3: Applying ArgoCD infrastructure manifests to enigma cluster..."
@@ -26,8 +32,12 @@ helm template argocd-infra-vcluster ./apps/argocd-infra/vcluster \
   kubectl apply -f -
 
 echo "Step 5: Waiting for vCluster to be ready..."
-kubectl wait --for=condition=ready pod \
-  -l app=vcluster,release=argocd-infra-vcluster \
+kubectl rollout status deployment/argocd-infra-vcluster \
+  -n tenant-prod-argocd \
+  --timeout=300s
+
+echo "Step 5a: Waiting for vCluster etcd to be ready..."
+kubectl rollout status statefulset/argocd-infra-vcluster-etcd \
   -n tenant-prod-argocd \
   --timeout=300s
 
