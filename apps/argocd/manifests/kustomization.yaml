@@ -10,5 +10,5 @@ resources:
   - ingress-applicationset-webhook.yaml
   - ingress-server-webhook.yaml
 
-patches:
-  - path: patch-argocd-cmd-params-cm.yaml
+patchesStrategicMerge:
+  - patch-argocd-cmd-params-cm.yaml
