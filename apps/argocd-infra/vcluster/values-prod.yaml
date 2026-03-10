@@ -1,0 +1,21 @@
+vcluster:
+  controlPlane:
+    statefulSet:
+      highAvailability:
+        replicas: 3
+    backingStore:
+      etcd:
+        deploy:
+          statefulSet:
+            highAvailability:
+              replicas: 3
+    ingress:
+      enabled: true
+      host: api-argocd-infra-vcluster.enigma.vgijssel.nl
+      spec:
+        ingressClassName: tenant-prod
+    advanced:
+      # Add Delete=confirm and Prune=confirm annotations to all vCluster resources
+      globalMetadata:
+        annotations:
+          argocd.argoproj.io/sync-options: "Delete=confirm,Prune=confirm"

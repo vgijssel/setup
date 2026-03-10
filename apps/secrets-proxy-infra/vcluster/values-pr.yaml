@@ -1,0 +1,14 @@
+# PR environment overrides for secrets-proxy vcluster
+vcluster:
+  controlPlane:
+    statefulSet:
+      highAvailability:
+        replicas: 1
+    backingStore:
+      etcd:
+        deploy:
+          statefulSet:
+            highAvailability:
+              replicas: 1
+    ingress:
+      host: api-secrets-proxy-vcluster-pr-{{ .Values.prNumber }}.enigma.vgijssel.nl

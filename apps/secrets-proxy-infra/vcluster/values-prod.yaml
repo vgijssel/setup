@@ -1,0 +1,3 @@
+# Production overrides for secrets-proxy vcluster
+# Add production-specific configuration here
+{}
