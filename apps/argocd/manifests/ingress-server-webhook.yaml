@@ -6,15 +6,17 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-stage
     internal-networking/expose: "true"
-    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Ssl on;
 spec:
   ingressClassName: tenant-prod
   rules:
     - host: argocd-webhook-public.enigma.vgijssel.nl
       http:
         paths:
-          - path: /
+          - path: /api/webhook
             pathType: Prefix
             backend:
               service:
