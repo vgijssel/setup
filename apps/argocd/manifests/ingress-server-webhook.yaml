@@ -6,6 +6,8 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-stage
     internal-networking/expose: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
   ingressClassName: tenant-prod
   rules:
@@ -18,7 +20,7 @@ spec:
               service:
                 name: argocd-server
                 port:
-                  number: 80
+                  name: https
   tls:
     - hosts:
         - argocd-webhook-public.enigma.vgijssel.nl
