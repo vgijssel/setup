@@ -37,3 +37,6 @@ spec:
           - CreateNamespace=true
           - ServerSideApply=true
           - PruneLast=true
+        {{- if eq .protect "true" }}
+        preserveResourcesOnDeletion: true
+        {{- end }}

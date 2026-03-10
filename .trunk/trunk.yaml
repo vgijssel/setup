@@ -79,6 +79,7 @@ lint:
         - libs/relay-server/templates/**
         - libs/aws-sigv4-proxy/templates/**
         - libs/tenant/templates/**
+        - apps/argocd-apps/manifests/**
   enabled:
     - ansible-lint@26.1.1
     - actionlint@1.7.10
