@@ -63,6 +63,7 @@ lint:
         - libs/relay-server/tests/snapshot_expected.yaml
         - libs/devenv/goss.yaml
         - libs/aws-sigv4-proxy/templates/**
+        - libs/tenant/templates/**
         # kro ResourceGraphDefinition uses CEL expressions requiring quoted strings
         - libs/flux-cluster/resourcegroup.yaml
     # Ignore prettier syntax errors for Helm templates with complex syntax
@@ -77,6 +78,7 @@ lint:
         - libs/internal-storage/templates/**
         - libs/relay-server/templates/**
         - libs/aws-sigv4-proxy/templates/**
+        - libs/tenant/templates/**
   enabled:
     - ansible-lint@26.1.1
     - actionlint@1.7.10
