@@ -11,7 +11,7 @@ metadata:
       Automatically registers any vCluster as an ArgoCD destination by transforming
       the vCluster kubeconfig secret into an ArgoCD cluster secret. Matches secrets
       starting with 'vc-' in any tenant-* namespace. The generated secret is
-      placed in the setup-argocd-cluster-secrets namespace and synced to ArgoCD vCluster via
+      placed in the setup-argocd-secrets namespace and synced to ArgoCD vCluster via
       fromHost wildcard configuration.
 spec:
   generateExisting: true
@@ -55,7 +55,7 @@ spec:
         apiVersion: v1
         kind: Secret
         name: "{{ vclusterName }}"
-        namespace: setup-argocd-cluster-secrets
+        namespace: setup-argocd-secrets
         data:
           metadata:
             labels:

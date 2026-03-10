@@ -4,5 +4,5 @@ resources:
   - ciliumnetworkpolicy-allow-to-root-ingress.yaml
   - clusterpolicy-enigma-cluster-registration.yaml
   - clusterpolicy-vcluster-registration.yaml
-  - namespace-setup-argocd-cluster-secrets.yaml
+  - namespace-setup-argocd-secrets.yaml
   - serviceaccount-argocd.yaml
