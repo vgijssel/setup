@@ -48,7 +48,7 @@ spec:
             - name: tenant.prNumber
               value: "{{.number}}"
       destination:
-        name: "{{.cluster}}"
+        name: "pr-{{.number}}-{{.cluster}}"
         namespace: "{{.namespace}}-pr-{{.number}}"
       syncPolicy:
         automated:
