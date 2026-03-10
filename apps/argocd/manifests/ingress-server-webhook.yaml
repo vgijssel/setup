@@ -8,6 +8,8 @@ metadata:
     internal-networking/expose: "true"
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     nginx.ingress.kubernetes.io/upstream-vhost: "argocd.enigma.vgijssel.nl"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Host argocd.enigma.vgijssel.nl;
 spec:
   ingressClassName: tenant-prod
   rules:
