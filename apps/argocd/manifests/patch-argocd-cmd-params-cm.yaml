@@ -5,3 +5,5 @@ metadata:
 data:
   # Run server without TLS - SSL termination happens at ingress
   server.insecure: "true"
+  # Enable ApplicationSet webhook server on port 7000
+  applicationsetcontroller.webhook.parallelism.limit: "50"
