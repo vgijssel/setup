@@ -52,8 +52,8 @@ spec:
             default: ""
         - name: clusterName
           variable:
-            # Remove '-pr' dash for PR vclusters (e.g., vcluster-pr-941 → vclusterpr941)
-            jmesPath: replace_all(trim_prefix(request.object.metadata.name, 'vc-'), '-pr', 'pr')
+            # Remove '-pr-' dash pattern for PR vclusters (e.g., vcluster-pr-941 → vclusterpr941)
+            jmesPath: replace_all(trim_prefix(request.object.metadata.name, 'vc-'), '-pr-', 'pr')
             default: ""
       generate:
         synchronize: true
