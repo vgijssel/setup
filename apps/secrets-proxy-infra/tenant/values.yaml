@@ -1,6 +1,5 @@
 tenant:
   name: secretsproxy
-  namespace: tenant-prod
   spec:
     etcd: false
     host: ""
