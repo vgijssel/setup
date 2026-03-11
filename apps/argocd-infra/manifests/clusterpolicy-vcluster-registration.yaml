@@ -67,5 +67,6 @@ spec:
             name: "{{ serviceName }}"
             # Use the ingress endpoint for vCluster API access
             server: "https://api-{{ serviceName }}.enigma.vgijssel.nl:443"
-            # Client certificates for authentication
-            config: '{"tlsClientConfig": {"insecure": false, "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
+            # TLS client configuration for cluster authentication
+            # Reference: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters
+            config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ caData }}", "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
