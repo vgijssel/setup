@@ -4,7 +4,7 @@ metadata:
   name: argocd-http
   namespace: argocd
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-stage
+    cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/backend-protocol: HTTP
 spec:
   ingressClassName: tenant-prod

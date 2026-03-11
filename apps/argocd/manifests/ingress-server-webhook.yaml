@@ -4,7 +4,7 @@ metadata:
   name: argocd-server-webhook
   namespace: argocd
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-stage
+    cert-manager.io/cluster-issuer: letsencrypt-prod
     internal-networking/expose: "true"
     nginx.ingress.kubernetes.io/backend-protocol: HTTP
 spec:
