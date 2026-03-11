@@ -50,6 +50,11 @@ spec:
             # Strip 'vc-' prefix from secret name to get the vCluster service name
             jmesPath: trim_prefix(request.object.metadata.name, 'vc-')
             default: ""
+        - name: clusterName
+          variable:
+            # Remove '-pr' dash for PR vclusters (e.g., vcluster-pr-941 → vclusterpr941)
+            jmesPath: replace_all(trim_prefix(request.object.metadata.name, 'vc-'), '-pr', 'pr')
+            default: ""
       generate:
         synchronize: true
         apiVersion: v1
@@ -63,9 +68,9 @@ spec:
               vcluster.io/source-namespace: "{{ sourceNamespace }}"
               vcluster.io/source-secret: "{{ vclusterName }}"
           stringData:
-            # Use serviceName (without vc- prefix) as the cluster name for cleaner references
-            name: "{{ serviceName }}"
-            # Use the ingress endpoint for vCluster API access
+            # Use clusterName with PR dashes removed (e.g., vclusterpr941 instead of vcluster-pr-941)
+            name: "{{ clusterName }}"
+            # Use the ingress endpoint for vCluster API access (uses actual service name with dashes)
             server: "https://api-{{ serviceName }}.enigma.vgijssel.nl:443"
             # TLS client configuration for cluster authentication
             # Reference: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters
