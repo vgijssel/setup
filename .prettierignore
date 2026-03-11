@@ -6,3 +6,7 @@ pnpm-lock.yaml
 
 # Use Obsidian Linter for formatting markdown files
 *.md
+
+# Helm chart templates contain Go template directives that prettier can't parse
+**/templates/*.yaml
+**/templates/*.yml

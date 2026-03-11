@@ -10,8 +10,3 @@ vcluster:
           statefulSet:
             highAvailability:
               replicas: 3
-    ingress:
-      enabled: true
-      host: api-secrets-proxy-vcluster.enigma.vgijssel.nl
-      spec:
-        ingressClassName: tenant-prod
