@@ -32,7 +32,7 @@ spec:
                 - path: apps/secrets-proxy-infra/*/config.json
   template:
     metadata:
-      name: "pr-{{.number}}-{{index .path.segments 1}}-{{index .path.segments 2}}"
+      name: "{{index .path.segments 1}}-{{index .path.segments 2}}-pr-{{.number}}"
     spec:
       project: default
       source:
