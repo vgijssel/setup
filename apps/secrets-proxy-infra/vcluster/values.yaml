@@ -29,12 +29,7 @@ vcluster:
               labels:
                 policy.cozystack.io/allow-to-apiserver: "true"
     ingress:
-      enabled: false
+      enabled: true
       host: api-secrets-proxy-vcluster.enigma.vgijssel.nl
       spec:
         ingressClassName: tenant-prod
-
-# Enable our custom ingress template
-prNumber: ""
-customIngress:
-  enabled: true
