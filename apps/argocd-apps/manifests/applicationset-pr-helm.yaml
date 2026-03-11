@@ -33,6 +33,8 @@ spec:
   template:
     metadata:
       name: "{{index .path.segments 1}}-{{index .path.segments 2}}pr{{.number}}"
+      labels:
+        pr: "pr{{.number}}"
     spec:
       project: default
       source:
