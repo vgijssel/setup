@@ -48,7 +48,7 @@ spec:
             - name: tenant.prNumber
               value: "{{.number}}"
             - name: vcluster.controlPlane.ingress.host
-              value: "api-{{index .path.segments 1}}-{{index .path.segments 2}}.enigma.vgijssel.nl"
+              value: "api-{{index .path.segments 1}}-{{index .path.segments 2}}pr{{.number}}.enigma.vgijssel.nl"
       destination:
         name: '{{if eq .cluster "enigma"}}enigma{{else}}{{.cluster}}pr{{.number}}{{end}}'
         namespace: "{{.namespace}}pr{{.number}}"
