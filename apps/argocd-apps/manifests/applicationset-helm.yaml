@@ -38,7 +38,11 @@ spec:
           selfHeal: true
           prune: true
         syncOptions:
-          {{- if ne .skipNamespaceCreation "true" }}
-          - CreateNamespace=true
-          {{- end }}
           - PruneLast=true
+  templatePatch: |
+    {{- if ne .skipNamespaceCreation "true" }}
+    spec:
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+    {{- end }}

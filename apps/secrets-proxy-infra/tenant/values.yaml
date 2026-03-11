@@ -1,5 +1,5 @@
 tenant:
-  name: secrets-proxy
+  name: secretsproxy
   namespace: tenant-prod
   spec:
     etcd: false

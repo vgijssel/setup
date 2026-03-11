@@ -1,6 +1,6 @@
 {
   "helm": "true",
   "cluster": "enigma",
-  "namespace": "tenant-prod-secrets-proxy",
+  "namespace": "tenant-prod-secretsproxy",
   "skipNamespaceCreation": "true"
 }
