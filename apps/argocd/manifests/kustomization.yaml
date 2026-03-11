@@ -15,4 +15,9 @@ resources:
 
 patchesStrategicMerge:
   - patch-argocd-cmd-params-cm.yaml
-  - patch-argocd-cm.yaml
+
+patches:
+  - path: patch-argocd-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cm
