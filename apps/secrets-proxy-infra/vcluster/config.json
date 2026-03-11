@@ -1,6 +1,6 @@
 {
   "helm": "true",
   "cluster": "enigma",
-  "namespace": "tenant-prod-argocd",
+  "namespace": "tenant-prod-secrets-proxy",
   "skipNamespaceCreation": "true"
 }

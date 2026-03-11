@@ -1,7 +1,6 @@
 tenant:
-  name: argocd
+  name: secrets-proxy
   namespace: tenant-prod
-  prNumber: ""
   spec:
     etcd: false
     host: ""

@@ -1,4 +1,1 @@
-tenant:
-  # Add Delete=confirm and Prune=confirm annotations to Tenant resource
-  annotations:
-    argocd.argoproj.io/sync-options: "Delete=confirm,Prune=confirm"
+{}
