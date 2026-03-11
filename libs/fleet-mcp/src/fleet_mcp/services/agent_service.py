@@ -1,5 +1,6 @@
 """Agent service for business logic and orchestration."""
 
+import asyncio
 from typing import TYPE_CHECKING, Optional
 
 from ..models import Agent, AgentStatus
@@ -80,11 +81,23 @@ class AgentService:
             project_filter_lower = project_filter.lower()
             agents = [a for a in agents if a.project.lower() == project_filter_lower]
 
-        # Always collect metadata for all agents
-        for agent in agents:
-            metadata = await self.metadata_repo.collect_metadata(agent.workspace_id)
-            # Convert WorkspaceMetadata to dict for Agent model
-            agent.metadata = metadata.model_dump()
+        # Always collect metadata for all agents (in parallel for performance)
+        # Gather all metadata collection tasks in parallel
+        metadata_tasks = [
+            self.metadata_repo.collect_metadata(agent.workspace_id) for agent in agents
+        ]
+        metadata_results = await asyncio.gather(*metadata_tasks, return_exceptions=True)
+
+        # Assign metadata to corresponding agents
+        for agent, metadata_result in zip(agents, metadata_results):
+            if isinstance(metadata_result, Exception):
+                # If metadata collection failed, use empty metadata
+                # This preserves graceful degradation behavior
+                from ..models.metadata import WorkspaceMetadata
+
+                agent.metadata = WorkspaceMetadata(data={}).model_dump()
+            else:
+                agent.metadata = metadata_result.model_dump()
 
         return agents
 

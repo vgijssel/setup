@@ -67,11 +67,8 @@ class MetadataService:
                 logger.info("No metadata tasks found in Taskfile")
                 return WorkspaceMetadata(data={})
 
-            # Execute all metadata tasks
-            metadata_fields = {}
-            for task_name, task_def in metadata_tasks.items():
-                field = await self._execute_task(task_name, task_def)
-                metadata_fields[task_name] = field
+            # Execute all metadata tasks in a single invocation
+            metadata_fields = await self._execute_all_tasks(metadata_tasks)
 
             return WorkspaceMetadata(data=metadata_fields)
 
@@ -79,31 +76,40 @@ class MetadataService:
             logger.error(f"Error collecting metadata: {e}")
             return WorkspaceMetadata(data={})
 
-    async def _execute_task(self, task_name: str, task_def: dict) -> MetadataField:
-        """Execute a single metadata task.
+    async def _execute_all_tasks(
+        self, metadata_tasks: dict[str, dict]
+    ) -> dict[str, MetadataField]:
+        """Execute all metadata tasks in a single Task CLI invocation.
 
         Args:
-            task_name: Name of the task
-            task_def: Task definition from Taskfile
+            metadata_tasks: Dictionary of task names to task definitions
 
         Returns:
-            MetadataField with value or error
+            Dictionary of task names to MetadataField results
         """
-        # Extract schema from task definition
-        description = task_def.get("desc", "No description")
-        include_in_list = task_def["meta"]["include_in_list"]
-        schema = MetadataSchema(
-            description=description, include_in_list=include_in_list
-        )
+        if not metadata_tasks:
+            return {}
+
+        # Build schemas for all tasks
+        task_schemas = {}
+        for task_name, task_def in metadata_tasks.items():
+            description = task_def.get("desc", "No description")
+            include_in_list = task_def["meta"]["include_in_list"]
+            task_schemas[task_name] = MetadataSchema(
+                description=description, include_in_list=include_in_list
+            )
 
         try:
-            # Execute task using Task CLI
+            # Execute all tasks in a single invocation
             # Use the directory containing the Taskfile as the working directory
             taskfile_dir = self.taskfile_path.parent
+            task_names = list(metadata_tasks.keys())
+
             result = await asyncio.create_subprocess_exec(
                 "task",
-                task_name,
                 "--silent",
+                "--parallel",
+                *task_names,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=taskfile_dir,
@@ -111,32 +117,64 @@ class MetadataService:
 
             stdout, stderr = await asyncio.wait_for(result.communicate(), timeout=5.0)
 
-            if result.returncode == 0:
-                # Success: capture output as value
-                value = stdout.decode().strip()
-                return MetadataField(
-                    value=value if value else None, error=None, schema=schema
-                )
-            else:
-                # Task failed: capture error
-                error_msg = (
-                    stderr.decode().strip()
-                    or f"Task exited with code {result.returncode}"
-                )
-                return MetadataField(value=None, error=error_msg, schema=schema)
+            # Parse output - each task should output one line
+            output_lines = stdout.decode().strip().split("\n") if stdout else []
+
+            # Build result dictionary
+            metadata_fields = {}
+            for i, task_name in enumerate(task_names):
+                schema = task_schemas[task_name]
+
+                if result.returncode != 0:
+                    # If any task failed, capture error from stderr
+                    error_msg = (
+                        stderr.decode().strip()
+                        or f"Task exited with code {result.returncode}"
+                    )
+                    metadata_fields[task_name] = MetadataField(
+                        value=None, error=error_msg, schema=schema
+                    )
+                elif i < len(output_lines) and output_lines[i]:
+                    # Success: capture output value for this task
+                    metadata_fields[task_name] = MetadataField(
+                        value=output_lines[i], error=None, schema=schema
+                    )
+                else:
+                    # No output for this task
+                    metadata_fields[task_name] = MetadataField(
+                        value=None, error=None, schema=schema
+                    )
+
+            return metadata_fields
 
         except asyncio.TimeoutError:
-            logger.warning(f"Task '{task_name}' timed out after 5 seconds")
-            return MetadataField(
-                value=None, error="Task execution timeout (5s)", schema=schema
-            )
+            logger.warning("Task execution timed out after 5 seconds")
+            # Return all tasks with timeout error
+            return {
+                name: MetadataField(
+                    value=None,
+                    error="Task execution timeout (5s)",
+                    schema=task_schemas[name],
+                )
+                for name in metadata_tasks.keys()
+            }
 
         except FileNotFoundError:
             logger.error("Task CLI not found - is go-task/task installed?")
-            return MetadataField(
-                value=None, error="Task CLI not available", schema=schema
-            )
+            # Return all tasks with CLI not available error
+            return {
+                name: MetadataField(
+                    value=None,
+                    error="Task CLI not available",
+                    schema=task_schemas[name],
+                )
+                for name in metadata_tasks.keys()
+            }
 
         except Exception as e:
-            logger.error(f"Error executing task '{task_name}': {e}")
-            return MetadataField(value=None, error=str(e), schema=schema)
+            logger.error(f"Error executing tasks: {e}")
+            # Return all tasks with generic error
+            return {
+                name: MetadataField(value=None, error=str(e), schema=task_schemas[name])
+                for name in metadata_tasks.keys()
+            }
