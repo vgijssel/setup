@@ -1,0 +1,9 @@
+apiVersion: v2
+name: secrets-proxy-vcluster
+description: vCluster for Secrets Proxy
+type: application
+version: 1.0.0
+dependencies:
+  - name: vcluster
+    version: 0.32.1
+    repository: file://../../../third_party/vendir/charts/vcluster

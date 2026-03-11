@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  # Health check for Cozystack Tenant CRD
+  # This ensures ArgoCD properly reflects the Ready condition status in the UI
+  resource.customizations.health.apps.cozystack.io_Tenant: |
+    hs = {}
+    if obj.status ~= nil then
+      if obj.status.conditions ~= nil then
+        for i, condition in ipairs(obj.status.conditions) do
+          if condition.type == "Ready" then
+            if condition.status == "False" then
+              hs.status = "Degraded"
+              hs.message = condition.message or "Tenant is not ready"
+              return hs
+            elseif condition.status == "True" then
+              hs.status = "Healthy"
+              hs.message = condition.message or "Tenant is ready"
+              return hs
+            end
+          end
+        end
+      end
+    end
+    hs.status = "Progressing"
+    hs.message = "Waiting for Tenant to be ready"
+    return hs

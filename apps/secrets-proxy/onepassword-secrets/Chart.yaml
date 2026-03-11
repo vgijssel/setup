@@ -1,0 +1,9 @@
+apiVersion: v2
+name: onepassword-secrets
+description: 1Password secrets management
+type: application
+version: 1.0.0
+dependencies:
+  - name: 1password-secrets
+    version: 0.1.0
+    repository: file://../../../libs/1password-secrets

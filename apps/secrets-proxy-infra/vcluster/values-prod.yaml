@@ -1,0 +1,12 @@
+# Production overrides for secrets-proxy vcluster
+vcluster:
+  controlPlane:
+    statefulSet:
+      highAvailability:
+        replicas: 3
+    backingStore:
+      etcd:
+        deploy:
+          statefulSet:
+            highAvailability:
+              replicas: 3

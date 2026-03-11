@@ -11,7 +11,7 @@ metadata:
       Automatically registers any vCluster as an ArgoCD destination by transforming
       the vCluster kubeconfig secret into an ArgoCD cluster secret. Matches secrets
       starting with 'vc-' in any tenant-* namespace. The generated secret is
-      placed in the setup-argocd-cluster-secrets namespace and synced to ArgoCD vCluster via
+      placed in the setup-argocd-secrets namespace and synced to ArgoCD vCluster via
       fromHost wildcard configuration.
 spec:
   generateExisting: true
@@ -50,12 +50,17 @@ spec:
             # Strip 'vc-' prefix from secret name to get the vCluster service name
             jmesPath: trim_prefix(request.object.metadata.name, 'vc-')
             default: ""
+        - name: clusterName
+          variable:
+            # Remove '-pr-' dash pattern for PR vclusters (e.g., vcluster-pr-941 → vclusterpr941)
+            jmesPath: replace_all(trim_prefix(request.object.metadata.name, 'vc-'), '-pr-', 'pr')
+            default: ""
       generate:
         synchronize: true
         apiVersion: v1
         kind: Secret
         name: "{{ vclusterName }}"
-        namespace: setup-argocd-cluster-secrets
+        namespace: setup-argocd-secrets
         data:
           metadata:
             labels:
@@ -63,9 +68,10 @@ spec:
               vcluster.io/source-namespace: "{{ sourceNamespace }}"
               vcluster.io/source-secret: "{{ vclusterName }}"
           stringData:
-            # Use serviceName (without vc- prefix) as the cluster name for cleaner references
-            name: "{{ serviceName }}"
-            # Use the ingress endpoint for vCluster API access
+            # Use clusterName with PR dashes removed (e.g., vclusterpr941 instead of vcluster-pr-941)
+            name: "{{ clusterName }}"
+            # Use the ingress endpoint for vCluster API access (uses actual service name with dashes)
             server: "https://api-{{ serviceName }}.enigma.vgijssel.nl:443"
-            # Client certificates for authentication
-            config: '{"tlsClientConfig": {"insecure": false, "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
+            # TLS client configuration for cluster authentication
+            # Reference: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters
+            config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ caData }}", "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'

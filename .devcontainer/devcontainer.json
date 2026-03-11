@@ -25,7 +25,8 @@
         "hashicorp.hcl",
         "hashicorp.terraform",
         "Hamster.task-master-hamster",
-        "jetmartin.bats"
+        "jetmartin.bats",
+        "eamodio.gitlens"
       ],
       "settings": {
         "remote.portsAttributes": {

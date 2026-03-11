@@ -1,0 +1,9 @@
+apiVersion: v2
+name: aws-sigv4-proxy
+description: AWS SigV4 signing proxy
+type: application
+version: 1.0.0
+dependencies:
+  - name: aws-sigv4-proxy
+    version: 0.1.0
+    repository: file://../../../libs/aws-sigv4-proxy

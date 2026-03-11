@@ -10,7 +10,7 @@ metadata:
     policies.kyverno.io/description: >-
       Automatically registers the enigma cluster as an ArgoCD destination by transforming
       the argocd-token service account secret into an ArgoCD cluster secret. The generated
-      secret is placed in the setup-argocd-cluster-secrets namespace and synced to ArgoCD
+      secret is placed in the setup-argocd-secrets namespace and synced to ArgoCD
       vCluster via fromHost configuration.
 spec:
   generateExisting: true
@@ -38,7 +38,7 @@ spec:
         apiVersion: v1
         kind: Secret
         name: cluster-enigma
-        namespace: setup-argocd-cluster-secrets
+        namespace: setup-argocd-secrets
         data:
           metadata:
             labels:

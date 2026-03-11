@@ -1,0 +1,5 @@
+{
+  "helm": "true",
+  "cluster": "secrets-proxy-infra-vcluster",
+  "namespace": "default"
+}

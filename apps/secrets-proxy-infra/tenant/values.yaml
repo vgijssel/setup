@@ -1,5 +1,5 @@
 tenant:
-  name: argocd
+  name: secretsproxy
   spec:
     etcd: false
     host: ""

@@ -3,6 +3,21 @@ kind: Kustomization
 
 namespace: argocd
 
+commonAnnotations:
+  argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
+
 resources:
   - ../../../third_party/vendir/manifests/argocd/ha
-  - ingress.yaml
+  - ingress-http.yaml
+  - ingress-grpc.yaml
+  - ingress-applicationset-webhook.yaml
+  - ingress-server-webhook.yaml
+
+patchesStrategicMerge:
+  - patch-argocd-cmd-params-cm.yaml
+
+patches:
+  - path: patch-argocd-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cm

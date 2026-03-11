@@ -6,9 +6,10 @@ tags:
   - infrastructure
 tasks:
   create-1password-secret:
-    script: $MOON_WORKSPACE_ROOT/libs/1password-operator-bootstrap/bootstrap.sh --credentials-ref "$CREDENTIALS_REF" --token-ref "$TOKEN_REF" --namespace tenant-prod
+    script: $MOON_WORKSPACE_ROOT/libs/1password-operator-bootstrap/bootstrap.sh --credentials-ref "$CREDENTIALS_REF" --token-ref "$TOKEN_REF" --namespace "$NAMESPACE"
     env:
       CREDENTIALS_REF: op://setup-secrets/setup-secrets Credentials File/1password-credentials.json
       TOKEN_REF: op://setup-secrets/aj4q4vzcvwkcupkmaraoow4ole/credential
+      NAMESPACE: setup-secrets-proxy-secrets
     options:
       runInCI: false

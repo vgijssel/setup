@@ -14,7 +14,7 @@ spec:
               - "true"
       git:
         repoURL: https://github.com/vgijssel/setup.git
-        revision: mg/chore/refactor-argocd-directory-structure
+        revision: mg/feat/setup-pr-workflow
         files:
           - path: apps/*/*/config.json
   template:
@@ -24,16 +24,25 @@ spec:
       project: default
       source:
         repoURL: https://github.com/vgijssel/setup.git
-        targetRevision: mg/chore/refactor-argocd-directory-structure
+        targetRevision: mg/feat/setup-pr-workflow
         path: "{{.path.path}}"
         helm:
           valueFiles:
             - values.yaml
+            - values-prod.yaml
       destination:
         name: "{{.cluster}}"
         namespace: "{{.namespace}}"
       syncPolicy:
         automated:
           selfHeal: true
+          prune: true
+        syncOptions:
+          - PruneLast=true
+  templatePatch: |
+    {{- if ne .skipNamespaceCreation "true" }}
+    spec:
+      syncPolicy:
         syncOptions:
           - CreateNamespace=true
+    {{- end }}

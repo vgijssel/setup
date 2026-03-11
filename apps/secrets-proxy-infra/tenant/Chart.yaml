@@ -1,0 +1,9 @@
+apiVersion: v2
+name: secrets-proxy-tenant
+description: Cozystack Tenant for Secrets Proxy
+type: application
+version: 1.0.0
+dependencies:
+  - name: tenant
+    version: 0.1.0
+    repository: file://../../../libs/tenant

@@ -1,0 +1,5 @@
+aws-sigv4-proxy:
+  service:
+    type: ClusterIP
+  aws:
+    secretName: backblaze-s3-docs-infra-prod

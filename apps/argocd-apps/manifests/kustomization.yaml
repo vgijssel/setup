@@ -4,3 +4,5 @@ kind: Kustomization
 resources:
   - applicationset-helm.yaml
   - applicationset-manifests.yaml
+  - applicationset-pr-helm.yaml
+  - applicationset-pr-manifests.yaml

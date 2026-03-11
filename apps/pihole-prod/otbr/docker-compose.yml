@@ -5,7 +5,7 @@
 services:
   otbr:
     container_name: otbr
-    image: openthread/otbr:jammy
+    image: openthread/otbr:focal@sha256:b85b5f4fa77ee9ad8054d5819c75208566c09152448a06eab6278da060bbb97f
     hostname: otbr
     restart: unless-stopped
 
@@ -42,6 +42,14 @@ services:
 
       # NAT64 disabled - using native IPv6
       NAT64: "0"
+
+      # Web UI interface binding
+      # Force web UI to bind to all interfaces instead of just wpan0
+      # Options: specific interface (eth0) or bind to all (::)
+      OTBR_WEB_INTERFACE: eth0
+      # Alternative: bind to all interfaces for broader access
+      # OT_WEB_LISTEN_ADDR: "0.0.0.0"
+      # HTTP_HOST: "::"
 
     volumes:
       # Persistent data for Thread network credentials

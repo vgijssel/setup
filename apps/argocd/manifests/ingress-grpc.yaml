@@ -1,16 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: argocd
+  name: argocd-grpc
   namespace: argocd
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-stage
-    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/backend-protocol: GRPC
 spec:
   ingressClassName: tenant-prod
   rules:
-    - host: argocd.enigma.vgijssel.nl
+    - host: argocd-grpc.enigma.vgijssel.nl
       http:
         paths:
           - path: /
@@ -19,8 +18,8 @@ spec:
               service:
                 name: argocd-server
                 port:
-                  name: https
+                  number: 80
   tls:
     - hosts:
-        - argocd.enigma.vgijssel.nl
-      secretName: argocd-server-tls
+        - argocd-grpc.enigma.vgijssel.nl
+      secretName: argocd-grpc-tls
