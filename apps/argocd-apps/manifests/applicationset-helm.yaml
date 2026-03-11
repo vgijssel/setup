@@ -14,7 +14,7 @@ spec:
               - "true"
       git:
         repoURL: https://github.com/vgijssel/setup.git
-        revision: mg/feat/setup-pr-workflow
+        revision: main
         files:
           - path: apps/*/*/config.json
   template:
@@ -24,7 +24,7 @@ spec:
       project: default
       source:
         repoURL: https://github.com/vgijssel/setup.git
-        targetRevision: mg/feat/setup-pr-workflow
+        targetRevision: main
         path: "{{.path.path}}"
         helm:
           valueFiles:

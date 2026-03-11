@@ -35,6 +35,17 @@ spec:
       name: "{{index .path.segments 1}}-{{index .path.segments 2}}pr{{.number}}"
       labels:
         pr: "pr{{.number}}"
+      annotations:
+        # Sync waves control deletion order (reversed):
+        # Creation: -10 → -5 → 0 → 10 (lowest first)
+        # Deletion: 10 → 0 → -5 → -10 (highest first)
+        # This ensures apps inside vcluster are deleted before the vcluster itself
+        argocd.argoproj.io/sync-wave: >-
+          {{- if eq (index .path.segments 1) "secrets-proxy-infra" -}}
+            {{- if eq (index .path.segments 2) "tenant" -}}-10
+            {{- else if eq (index .path.segments 2) "vcluster" -}}-5
+            {{- else -}}0{{- end -}}
+          {{- else -}}10{{- end -}}
     spec:
       project: default
       source:
