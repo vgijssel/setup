@@ -30,6 +30,6 @@ vcluster:
                 policy.cozystack.io/allow-to-apiserver: "true"
     ingress:
       enabled: true
-      host: api-secrets-proxy-vcluster.enigma.vgijssel.nl
+      host: api-secrets-proxy-infra-vcluster.enigma.vgijssel.nl
       spec:
         ingressClassName: tenant-prod
