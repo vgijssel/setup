@@ -13,4 +13,4 @@ vcluster:
       # Add Delete=confirm and Prune=confirm annotations to all vCluster resources
       globalMetadata:
         annotations:
-          argocd.argoproj.io/sync-options: "Delete=confirm,Prune=confirm"
+          argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm

@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-stage
-    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    nginx.ingress.kubernetes.io/backend-protocol: GRPC
 spec:
   ingressClassName: tenant-prod
   rules:

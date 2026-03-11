@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: argocd
 
 commonAnnotations:
-  argocd.argoproj.io/sync-options: "Delete=confirm,Prune=confirm"
+  argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
 
 resources:
   - ../../../third_party/vendir/manifests/argocd/ha
