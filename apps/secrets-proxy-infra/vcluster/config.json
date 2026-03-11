@@ -2,5 +2,6 @@
   "helm": "true",
   "cluster": "enigma",
   "namespace": "tenant-prod-secretsproxy",
-  "skipNamespaceCreation": "true"
+  "skipNamespaceCreation": "true",
+  "updateNamespace": "true"
 }

@@ -49,20 +49,28 @@ spec:
               value: "{{.number}}"
             - name: tenant.prNumber
               value: "{{.number}}"
+            - name: tenant.namespace
+              value: '{{if eq .updateNamespace "true"}}{{.namespace}}-pr{{.number}}{{else}}{{.namespace}}{{end}}'
             - name: vcluster.controlPlane.ingress.host
               value: "api-{{index .path.segments 1}}-{{index .path.segments 2}}pr{{.number}}.enigma.vgijssel.nl"
       destination:
         name: '{{if eq .cluster "enigma"}}enigma{{else}}{{.cluster}}pr{{.number}}{{end}}'
-        namespace: "{{.namespace}}pr{{.number}}"
+        namespace: '{{if eq .updateNamespace "true"}}{{.namespace}}pr{{.number}}{{else}}{{.namespace}}{{end}}'
       syncPolicy:
         automated:
           selfHeal: true
           prune: true
         syncOptions:
-          - CreateNamespace=true
           - PruneLast=true
       info:
         - name: PR
           value: "https://github.com/vgijssel/setup/pull/{{.number}}"
         - name: Branch
           value: "{{.branch}}"
+  templatePatch: |
+    {{- if ne .skipNamespaceCreation "true" }}
+    spec:
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+    {{- end }}

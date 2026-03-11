@@ -3,9 +3,6 @@
 # Name of the tenant
 name: argocd
 
-# Namespace where the tenant will be created
-namespace: tenant-prod
-
 # PR number for PR environments (empty for production)
 prNumber: ""
 
