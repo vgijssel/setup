@@ -48,7 +48,7 @@ spec:
             - name: tenant.prNumber
               value: "{{.number}}"
       destination:
-        name: "{{.cluster}}pr{{.number}}"
+        name: '{{if eq .cluster "enigma"}}enigma{{else}}{{.cluster}}pr{{.number}}{{end}}'
         namespace: "{{.namespace}}pr{{.number}}"
       syncPolicy:
         automated:
