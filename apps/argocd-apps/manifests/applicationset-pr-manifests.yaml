@@ -5,6 +5,35 @@ metadata:
   namespace: argocd
 spec:
   goTemplate: true
+
+  # Progressive Sync strategy with reverse deletion order
+  # Applications are deleted in REVERSE order of steps
+  strategy:
+    type: RollingSync
+    deletionOrder: Reverse
+    rollingSync:
+      steps:
+        # Step 1: Tenant namespace - created FIRST, deleted LAST
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - tenant
+
+        # Step 2: vCluster - created SECOND, deleted SECOND-TO-LAST
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - vcluster
+
+        # Step 3: Apps inside vCluster - created LAST, deleted FIRST
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - app
+
   generators:
     - matrix:
         generators:
@@ -35,17 +64,13 @@ spec:
       name: "{{index .path.segments 1}}-{{index .path.segments 2}}pr{{.number}}"
       labels:
         pr: "pr{{.number}}"
-      annotations:
-        # Sync waves control deletion order (reversed):
-        # Creation: -10 → -5 → 0 → 10 (lowest first)
-        # Deletion: 10 → 0 → -5 → -10 (highest first)
-        # This ensures apps inside vcluster are deleted before the vcluster itself
-        argocd.argoproj.io/sync-wave: >-
+        # app-type label for Progressive Sync step matching
+        app-type: >-
           {{- if eq (index .path.segments 1) "secrets-proxy-infra" -}}
-            {{- if eq (index .path.segments 2) "tenant" -}}-10
-            {{- else if eq (index .path.segments 2) "vcluster" -}}-5
-            {{- else -}}0{{- end -}}
-          {{- else -}}10{{- end -}}
+            {{- if eq (index .path.segments 2) "tenant" -}}tenant
+            {{- else if eq (index .path.segments 2) "vcluster" -}}vcluster
+            {{- else -}}infra{{- end -}}
+          {{- else -}}app{{- end -}}
     spec:
       project: default
       source:
