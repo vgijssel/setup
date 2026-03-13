@@ -1,10 +1,10 @@
 # ArgoCD ApplicationSet configuration for S3 docs proxy
-appType: app
+appType: apps
 appName: s3-docs-infra-prod-proxy-b2
 platform: secrets-proxy
 namespace: secrets
 cluster: secrets-proxy-infra-vcluster
-skipNamespaceCreation: false
+createNamespace: true
 prUpdateNamespace: false
 # For PR environments, use the PR-specific vCluster
-prCluster: secrets-proxy-infra-vclusterpr%s
+prCluster: "secrets-proxy-infra-vcluster%s"
