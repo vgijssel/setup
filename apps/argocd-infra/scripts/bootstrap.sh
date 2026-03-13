@@ -24,6 +24,7 @@ kubectl wait --for=jsonpath='{.status.phase}'=Active namespace/tenant-prod-argoc
 echo "Step 3: Applying ArgoCD infrastructure manifests to enigma cluster..."
 helm template argocd-infra-manifests ./apps/argocd-infra/manifests \
   -f ./apps/argocd-infra/manifests/values.yaml \
+  -f ./apps/argocd-infra/manifests/values-prod.yaml \
   --namespace tenant-prod-argocd | \
   kubectl apply -f -
 
@@ -61,9 +62,9 @@ helm template argocd-ingress ./apps/argocd/ingress \
   vcluster connect argocd-infra-vcluster -n tenant-prod-argocd -- \
     kubectl apply -f -
 
-echo "Step 7: Applying ArgoCD ApplicationSets..."
-vcluster connect argocd-infra-vcluster -n tenant-prod-argocd -- \
-  kubectl apply -k apps/argocd-apps/manifests --server-side --force-conflicts
+# echo "Step 7: Applying ArgoCD ApplicationSets..."
+# vcluster connect argocd-infra-vcluster -n tenant-prod-argocd -- \
+#   kubectl apply -k apps/argocd-apps/manifests --server-side --force-conflicts
 
 echo "Bootstrap complete! Checking application status..."
 sleep 10
