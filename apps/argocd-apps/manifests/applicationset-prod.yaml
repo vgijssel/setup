@@ -46,6 +46,7 @@ spec:
       labels:
         app-type: "{{.appType}}"
         platform: "{{.platform}}"
+        env: prod
     spec:
       project: default
       source:

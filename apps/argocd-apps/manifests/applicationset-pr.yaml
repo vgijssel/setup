@@ -35,6 +35,26 @@ spec:
                 - apps
 
   generators:
+    # Generator for apps:argocd label
+    - matrix:
+        generators:
+          - pullRequest:
+              github:
+                owner: vgijssel
+                repo: setup
+                labels:
+                  - apps:argocd
+                tokenRef:
+                  secretName: github-token
+                  key: token
+              requeueAfterSeconds: 1800
+          - git:
+              repoURL: https://github.com/vgijssel/setup.git
+              revision: "{{.head_sha}}"
+              files:
+                - path: apps/argocd/*/config.yaml
+                - path: apps/argocd-infra/*/config.yaml
+    # Generator for apps:secrets-proxy label
     - matrix:
         generators:
           - pullRequest:
@@ -60,6 +80,7 @@ spec:
         pr: "pr{{.number}}"
         app-type: "{{.appType}}"
         platform: "{{.platform}}"
+        env: pr
     spec:
       project: default
       source:
