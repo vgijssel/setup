@@ -1,7 +1,9 @@
+{{- $spec := include "argocd-cluster-registration.enigmaPolicySpec" . -}}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: register-enigma-cluster-to-argocd-{{ .Release.Namespace }}
+  # Content-based naming: when spec changes, name changes, old policy is pruned
+  name: register-enigma-cluster-to-argocd-{{ .Release.Namespace }}-{{ $spec | sha256sum | trunc 8 }}
   annotations:
     policies.kyverno.io/title: Register Enigma Cluster to ArgoCD
     policies.kyverno.io/category: ArgoCD
@@ -13,46 +15,4 @@ metadata:
       secret is placed in the {{ .Values.secretsNamespace }} namespace and synced to ArgoCD
       vCluster via fromHost configuration.
 spec:
-  generateExisting: true
-  rules:
-    - name: generate-argocd-cluster-secret
-      skipBackgroundRequests: true
-      match:
-        any:
-          - resources:
-              kinds:
-                - Secret
-              names:
-                - argocd-token
-              namespaces:
-                - {{ .Release.Namespace }}
-      context:
-        - name: token
-          variable:
-            jmesPath: request.object.data.token
-        - name: caData
-          variable:
-            jmesPath: request.object.data."ca.crt"
-      generate:
-        synchronize: true
-        apiVersion: v1
-        kind: Secret
-        name: cluster-enigma
-        namespace: {{ .Values.secretsNamespace }}
-        data:
-          metadata:
-            labels:
-              argocd.argoproj.io/secret-type: cluster
-              cluster.enigma.vgijssel.nl/source-namespace: {{ .Release.Namespace }}
-              cluster.enigma.vgijssel.nl/source-secret: argocd-token
-          stringData:
-            name: enigma
-            server: https://api.enigma.vgijssel.nl:443
-            config: |
-              {
-                "bearerToken": "{{ `{{ base64_decode(token) }}` }}",
-                "tlsClientConfig": {
-                  "insecure": false,
-                  "caData": "{{ `{{ caData }}` }}"
-                }
-              }
+{{ $spec | indent 2 }}

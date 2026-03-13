@@ -1,7 +1,9 @@
+{{- $spec := include "argocd-cluster-registration.vclusterPolicySpec" . -}}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: register-vcluster-to-argocd-{{ .Release.Namespace }}
+  # Content-based naming: when spec changes, name changes, old policy is pruned
+  name: register-vcluster-to-argocd-{{ .Release.Namespace }}-{{ $spec | sha256sum | trunc 8 }}
   annotations:
     policies.kyverno.io/title: Register vClusters to ArgoCD
     policies.kyverno.io/category: ArgoCD
@@ -10,94 +12,9 @@ metadata:
     policies.kyverno.io/description: >-
       Automatically registers any vCluster as an ArgoCD destination by transforming
       the vCluster config and kubeconfig secrets into an ArgoCD cluster secret. Matches
-      secrets starting with 'vc-config-' in the {{ .Release.Namespace }} namespace. The generated secret
+      secrets starting with 'vc-config-' in any tenant-* namespace. The generated secret
       is placed in the {{ .Values.secretsNamespace }} namespace and synced to ArgoCD vCluster via
       fromHost wildcard configuration. The ingress host is extracted from config.yaml
       and credentials from the corresponding vc-* secret.
 spec:
-  generateExisting: true
-  rules:
-    - name: generate-argocd-cluster-secret
-      skipBackgroundRequests: false
-      match:
-        any:
-          - resources:
-              kinds:
-                - Secret
-              names:
-                - vc-config-*
-              namespaces:
-                - tenant-*
-      context:
-        # Extract release name from the config secret's release label
-        - name: releaseName
-          variable:
-            jmesPath: request.object.metadata.labels.release
-            default: ""
-        - name: sourceNamespace
-          variable:
-            jmesPath: request.object.metadata.namespace
-            default: ""
-        # Derive the kubeconfig secret name by stripping 'config-' from the config secret name
-        # Example: vc-config-secrets-proxy-vcluster-pr942 → vc-secrets-proxy-vcluster-pr942
-        - name: kubeconfigSecretName
-          variable:
-            jmesPath: replace_all(request.object.metadata.name, 'vc-config-', 'vc-')
-            default: ""
-        # Fetch the corresponding kubeconfig secret to get certificate data
-        - name: kubeconfigSecret
-          apiCall:
-            method: GET
-            urlPath: "/api/v1/namespaces/{{ `{{ sourceNamespace }}` }}/secrets/{{ `{{ kubeconfigSecretName }}` }}"
-            jmesPath: "data"
-        # Extract certificate data from the kubeconfig secret
-        - name: caData
-          variable:
-            jmesPath: kubeconfigSecret."certificate-authority"
-            default: ""
-        - name: certData
-          variable:
-            jmesPath: kubeconfigSecret."client-certificate"
-            default: ""
-        - name: keyData
-          variable:
-            jmesPath: kubeconfigSecret."client-key"
-            default: ""
-        # Parse the config.yaml and extract the ingress host
-        # The host is at: controlPlane.ingress.host in the YAML structure
-        - name: vclusterConfig
-          variable:
-            jmesPath: parse_yaml(base64_decode(request.object.data."config.yaml"))
-            default: {}
-        # Extract the ingress host from the parsed config
-        - name: ingressHost
-          variable:
-            jmesPath: vclusterConfig.controlPlane.ingress.host || ''
-            default: ""
-        # Generate cluster name for ArgoCD (format: vc-{release})
-        - name: clusterSecretName
-          variable:
-            jmesPath: "join('-', ['vc', releaseName])"
-            default: ""
-      generate:
-        synchronize: true
-        apiVersion: v1
-        kind: Secret
-        name: "{{ `{{ clusterSecretName }}` }}"
-        namespace: {{ .Values.secretsNamespace }}
-        data:
-          metadata:
-            labels:
-              argocd.argoproj.io/secret-type: cluster
-              vcluster.io/source-namespace: "{{ `{{ sourceNamespace }}` }}"
-              vcluster.io/config-secret: "{{ `{{ request.object.metadata.name }}` }}"
-              vcluster.io/kubeconfig-secret: "{{ `{{ kubeconfigSecretName }}` }}"
-              vcluster.io/release: "{{ `{{ releaseName }}` }}"
-          stringData:
-            # Use the release name as the cluster name in ArgoCD
-            name: "{{ `{{ releaseName }}` }}"
-            # Use the ingress host from config.yaml for the API server URL
-            server: "https://{{ `{{ ingressHost }}` }}"
-            # TLS client configuration for cluster authentication
-            # Reference: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters
-            config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ `{{ caData }}` }}", "certData": "{{ `{{ certData }}` }}", "keyData": "{{ `{{ keyData }}` }}"}}'
+{{ $spec | indent 2 }}
