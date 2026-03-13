@@ -3,8 +3,7 @@ appType: apps
 appName: onepassword-operator
 platform: secrets-proxy
 namespace: default
+
 cluster: secrets-proxy-infra-vcluster
 createNamespace: true
 prUpdateNamespace: false
-# For PR environments, use the PR-specific vCluster
-prCluster: "secrets-proxy-infra-vcluster%s"
