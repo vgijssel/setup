@@ -47,30 +47,18 @@ spec:
                   secretName: github-token
                   key: token
               requeueAfterSeconds: 1800
-          - selector:
-              matchExpressions:
-                - key: helm
-                  operator: In
-                  values:
-                    - "true"
-            git:
+          - git:
               repoURL: https://github.com/vgijssel/setup.git
               revision: "{{.head_sha}}"
               files:
-                - path: apps/secrets-proxy/*/config.json
-                - path: apps/secrets-proxy-infra/*/config.json
+                - path: apps/secrets-proxy/*/config.yaml
+                - path: apps/secrets-proxy-infra/*/config.yaml
   template:
     metadata:
-      name: "{{index .path.segments 1}}-{{index .path.segments 2}}pr{{.number}}"
+      name: "{{.platform}}-{{.appName}}pr{{.number}}"
       labels:
         pr: "pr{{.number}}"
-        # app-type label for Progressive Sync step matching
-        app-type: >-
-          {{- if eq (index .path.segments 1) "secrets-proxy-infra" -}}
-            {{- if eq (index .path.segments 2) "tenant" -}}tenant
-            {{- else if eq (index .path.segments 2) "vcluster" -}}vcluster
-            {{- else -}}infra{{- end -}}
-          {{- else -}}app{{- end -}}
+        app-type: "{{.appType}}"
     spec:
       project: default
       source:
@@ -85,11 +73,10 @@ spec:
               value: "{{.number}}"
             - name: tenant.prNumber
               value: "{{.number}}"
-            - name: vcluster.controlPlane.ingress.host
-              value: "api-{{index .path.segments 1}}-{{index .path.segments 2}}pr{{.number}}.enigma.vgijssel.nl"
       destination:
-        name: '{{if eq .cluster "enigma"}}enigma{{else}}{{.cluster}}pr{{.number}}{{end}}'
-        namespace: '{{if eq .updateNamespace "true"}}{{.namespace}}pr{{.number}}{{else}}{{.namespace}}{{end}}'
+        # Use prCluster if set (with printf), otherwise use cluster directly
+        name: '{{if .prCluster}}{{ printf .prCluster .number }}{{else}}{{.cluster}}{{end}}'
+        namespace: '{{if eq .prUpdateNamespace true}}{{.namespace}}pr{{.number}}{{else}}{{.namespace}}{{end}}'
       syncPolicy:
         automated:
           selfHeal: true
@@ -102,9 +89,19 @@ spec:
         - name: Branch
           value: "{{.branch}}"
   templatePatch: |
-    {{- if ne .skipNamespaceCreation "true" }}
+    {{- if not .skipNamespaceCreation }}
     spec:
       syncPolicy:
         syncOptions:
           - CreateNamespace=true
+    {{- end }}
+    {{- if .prOverrides }}
+    spec:
+      source:
+        helm:
+          parameters:
+            {{- range $key, $formatString := .prOverrides }}
+            - name: {{ $key }}
+              value: '{{ printf $formatString $.number }}'
+            {{- end }}
     {{- end }}
