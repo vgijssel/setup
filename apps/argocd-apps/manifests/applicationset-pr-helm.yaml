@@ -75,8 +75,8 @@ spec:
             - name: tenant.prNumber
               value: "{{.number}}"
       destination:
-        # Append pr{number} to cluster name if prUpdateCluster is true
-        name: '{{if eq .prUpdateCluster true}}{{.cluster}}pr{{.number}}{{else}}{{.cluster}}{{end}}'
+        # Append -pr{number} to cluster name if prUpdateCluster is true
+        name: '{{if eq .prUpdateCluster true}}{{.cluster}}-pr{{.number}}{{else}}{{.cluster}}{{end}}'
         namespace: '{{if eq .prUpdateNamespace true}}{{.namespace}}pr{{.number}}{{else}}{{.namespace}}{{end}}'
       syncPolicy:
         automated:
