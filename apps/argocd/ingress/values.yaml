@@ -9,7 +9,7 @@ ingress-http:
 
   backend:
     service:
-      name: argocd-server
+      name: argocd-argocd-server
       port:
         number: 80
 
@@ -32,7 +32,7 @@ ingress-grpc:
 
   backend:
     service:
-      name: argocd-server
+      name: argocd-argocd-server
       port:
         number: 80
 
@@ -55,7 +55,7 @@ ingress-webhook:
 
   backend:
     service:
-      name: argocd-server
+      name: argocd-argocd-server
       port:
         number: 80
 
@@ -79,7 +79,7 @@ ingress-applicationset-webhook:
 
   backend:
     service:
-      name: argocd-applicationset-controller
+      name: argocd-argocd-applicationset-controller
       port:
         number: 7000
 
