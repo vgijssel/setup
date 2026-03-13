@@ -4,8 +4,7 @@ tasks:
   generate:
     command: helm-platform generate
     inputs:
-      - "**/Chart.yaml"
-      - "**/kustomization.yaml"
+      - "**/*"
     outputs:
       - "**/config.yaml"
     options:
@@ -14,8 +13,6 @@ tasks:
   validate:
     command: helm-platform validate
     inputs:
-      - "**/config.yaml"
-      - "**/Chart.yaml"
-      - "**/kustomization.yaml"
+      - "**/*"
     options:
       cache: true

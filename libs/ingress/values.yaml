@@ -1,0 +1,34 @@
+# Default values for ingress library chart
+# These values are designed to be overridden by parent charts
+
+# Ingress metadata
+name: ""
+namespace: default
+
+# Ingress class
+ingressClassName: ""
+
+# Host configuration
+host: ""
+path: /
+pathType: Prefix
+
+# Backend service
+backend:
+  service:
+    name: ""
+    port:
+      number: 80
+
+# TLS configuration
+tls:
+  enabled: false
+  secretName: ""
+  # Additional hosts for the TLS certificate
+  hosts: []
+
+# Annotations
+annotations: {}
+
+# Labels
+labels: {}

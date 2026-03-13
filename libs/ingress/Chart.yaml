@@ -1,0 +1,5 @@
+apiVersion: v2
+name: ingress
+description: Reusable Helm chart for creating Kubernetes Ingress resources
+type: application
+version: 1.0.0
