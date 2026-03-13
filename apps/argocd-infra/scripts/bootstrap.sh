@@ -70,3 +70,14 @@ echo "Bootstrap complete! Checking application status..."
 sleep 10
 vcluster connect argocd-vcluster -n tenant-prod-argocd -- \
   kubectl get applications -n argocd
+
+echo ""
+echo "=========================================="
+echo "ArgoCD Admin Credentials"
+echo "=========================================="
+echo "URL:      https://argocd.enigma.vgijssel.nl"
+echo "Username: admin"
+ARGOCD_PASSWORD=$(vcluster connect argocd-vcluster -n tenant-prod-argocd -- \
+  kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' 2>/dev/null | tail -1 | base64 -d)
+echo "Password: ${ARGOCD_PASSWORD}"
+echo "=========================================="
