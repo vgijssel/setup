@@ -1,0 +1,2 @@
+# ArgoCD umbrella chart values
+# Environment-specific values are in values-prod.yaml, values-pr.yaml, etc.

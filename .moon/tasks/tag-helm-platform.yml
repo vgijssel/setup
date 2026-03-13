@@ -1,0 +1,21 @@
+$schema: ../cache/schemas/tasks.json
+
+tasks:
+  generate:
+    command: helm-platform generate
+    inputs:
+      - "**/Chart.yaml"
+      - "**/kustomization.yaml"
+    outputs:
+      - "**/config.yaml"
+    options:
+      cache: true
+
+  validate:
+    command: helm-platform validate
+    inputs:
+      - "**/config.yaml"
+      - "**/Chart.yaml"
+      - "**/kustomization.yaml"
+    options:
+      cache: true

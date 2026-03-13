@@ -1,3 +1,4 @@
+# ArgoCD ApplicationSet configuration for Tenant
 appType: tenant
 appName: tenant
 platform: secrets-proxy

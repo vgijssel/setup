@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "helm-platform"
+version = "0.0.1"
+description = "Generate and validate config.yaml files for ArgoCD ApplicationSet configuration"
+requires-python = ">=3.10"
+dependencies = ["click>=8.0.0", "ruamel.yaml>=0.18.0"]
+
+[project.scripts]
+helm-platform = "helm_platform.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/helm_platform"]
+
+[dependency-groups]
+dev = ["pytest>=8.0.0"]
