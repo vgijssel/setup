@@ -1,15 +1,15 @@
 dependencies:
-- name: ingress-http
-  repository: file://./charts/ingress-http
+- name: ingress
+  repository: file://../../../libs/ingress
   version: 1.0.0
-- name: ingress-grpc
-  repository: file://./charts/ingress-grpc
+- name: ingress
+  repository: file://../../../libs/ingress
   version: 1.0.0
-- name: ingress-webhook
-  repository: file://./charts/ingress-webhook
+- name: ingress
+  repository: file://../../../libs/ingress
   version: 1.0.0
-- name: ingress-applicationset-webhook
-  repository: file://./charts/ingress-applicationset-webhook
+- name: ingress
+  repository: file://../../../libs/ingress
   version: 1.0.0
-digest: sha256:aaa236b5214bb0b2382298b4d1fc2e76b237bc3a04e697ceb907c5ab90a05e13
-generated: "2026-03-13T14:01:37.599346302Z"
+digest: sha256:6febd1cbb85e83d0754d1d27d3841335bb9afe7f236f98f87fd1a02e5600de4a
+generated: "2026-03-13T15:08:11.834698632Z"
