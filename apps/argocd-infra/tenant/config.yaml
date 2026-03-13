@@ -9,4 +9,5 @@ createNamespace: false
 prUpdateNamespace: false
 prUpdateCluster: false
 
-prOverrides: {}
+prOverrides:
+  "tenant.name": "argocd%s"
