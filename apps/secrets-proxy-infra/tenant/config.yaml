@@ -1,10 +1,11 @@
-# ArgoCD ApplicationSet configuration for tenant namespace
 appType: tenant
 appName: tenant
-platform: secrets-proxy-infra
+platform: secrets-proxy
 namespace: tenant-prod
+
 cluster: enigma
 createNamespace: false
 prUpdateNamespace: false
+
 prOverrides:
   "tenant.name": "secretsproxy%s"
