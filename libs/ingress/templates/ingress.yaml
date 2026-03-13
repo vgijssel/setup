@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.name | required "name is required" }}
+  namespace: {{ .Values.namespace }}
+  {{- with .Values.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingressClassName }}
+  ingressClassName: {{ .Values.ingressClassName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.host | required "host is required" }}
+      http:
+        paths:
+          - path: {{ .Values.path }}
+            pathType: {{ .Values.pathType }}
+            backend:
+              service:
+                name: {{ .Values.backend.service.name | required "backend.service.name is required" }}
+                port:
+                  number: {{ .Values.backend.service.port.number }}
+  {{- if .Values.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.host }}
+        {{- range .Values.tls.hosts }}
+        - {{ . }}
+        {{- end }}
+      secretName: {{ .Values.tls.secretName | required "tls.secretName is required when tls.enabled is true" }}
+  {{- end }}

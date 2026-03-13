@@ -1,0 +1,19 @@
+apiVersion: v2
+name: argocd-ingress
+description: Umbrella chart for all ArgoCD ingress resources
+version: 1.0.0
+appVersion: "1.0"
+
+dependencies:
+  - name: ingress-http
+    version: "1.0.0"
+    repository: "file://./charts/ingress-http"
+  - name: ingress-grpc
+    version: "1.0.0"
+    repository: "file://./charts/ingress-grpc"
+  - name: ingress-webhook
+    version: "1.0.0"
+    repository: "file://./charts/ingress-webhook"
+  - name: ingress-applicationset-webhook
+    version: "1.0.0"
+    repository: "file://./charts/ingress-applicationset-webhook"

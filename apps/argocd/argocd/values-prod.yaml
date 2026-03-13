@@ -70,6 +70,18 @@ argo-cd:
       - name: ARGOCD_API_SERVER_REPLICAS
         value: "2"
 
+    # Ingress disabled - managed by apps/argocd/ingress umbrella chart
+    ingress:
+      enabled: false
+
+    ingressGrpc:
+      enabled: false
+
   # Configure repo server for HA with 2 replicas
   repoServer:
     replicas: 2
+
+  # ApplicationSet webhook ingress disabled - managed by apps/argocd/ingress umbrella chart
+  applicationSet:
+    ingress:
+      enabled: false

@@ -1,0 +1,2 @@
+# Umbrella chart values for ArgoCD ingresses
+# Environment-specific values are in values-prod.yaml
