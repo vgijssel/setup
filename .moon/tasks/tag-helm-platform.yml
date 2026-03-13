@@ -5,9 +5,6 @@ tasks:
     command: helm-platform generate
     inputs:
       - "**/*"
-      - "**/config.yaml"
-    outputs:
-      - "**/config.yaml"
     options:
       cache: true
 
