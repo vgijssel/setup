@@ -50,9 +50,9 @@ spec:
             server: https://api.enigma.vgijssel.nl:443
             config: |
               {
-                "bearerToken": "{{ base64_decode(token) }}",
+                "bearerToken": "{{ `{{ base64_decode(token) }}` }}",
                 "tlsClientConfig": {
                   "insecure": false,
-                  "caData": "{{ caData }}"
+                  "caData": "{{ `{{ caData }}` }}"
                 }
               }
