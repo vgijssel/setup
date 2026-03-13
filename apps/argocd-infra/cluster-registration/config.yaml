@@ -1,6 +1,6 @@
-# ArgoCD ApplicationSet configuration for Argocd-cluster-registration
+# ArgoCD ApplicationSet configuration for Cluster-registration
 appType: infra
-appName: argocd-cluster-registration
+appName: cluster-registration
 platform: argocd
 namespace: tenant-prod-argocd
 
