@@ -29,10 +29,10 @@ helm template argocd-manifests ./apps/argocd-infra/manifests \
   kubectl apply -f -
 
 echo "Step 3a: Installing ArgoCD cluster registration (Kyverno policies)..."
-helm dependency update ./apps/argocd-infra/argocd-cluster-registration
-helm template argocd-cluster-registration ./apps/argocd-infra/argocd-cluster-registration \
-  -f ./apps/argocd-infra/argocd-cluster-registration/values.yaml \
-  -f ./apps/argocd-infra/argocd-cluster-registration/values-prod.yaml \
+helm dependency update ./apps/argocd-infra/cluster-registration
+helm template argocd-cluster-registration ./apps/argocd-infra/cluster-registration \
+  -f ./apps/argocd-infra/cluster-registration/values.yaml \
+  -f ./apps/argocd-infra/cluster-registration/values-prod.yaml \
   --namespace tenant-prod-argocd | \
   kubectl apply -f -
 
