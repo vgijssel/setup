@@ -13,26 +13,19 @@ spec:
     deletionOrder: Reverse
     rollingSync:
       steps:
-        # Step 1: Tenant namespace - created FIRST, deleted LAST
+        # Step 1: Infrastructure apps - created FIRST, deleted LAST
         - matchExpressions:
             - key: app-type
               operator: In
               values:
-                - tenant
+                - infra
 
-        # Step 2: vCluster - created SECOND, deleted SECOND-TO-LAST
+        # Step 2: Apps inside vCluster - created LAST, deleted FIRST
         - matchExpressions:
             - key: app-type
               operator: In
               values:
-                - vcluster
-
-        # Step 3: Apps inside vCluster - created LAST, deleted FIRST
-        - matchExpressions:
-            - key: app-type
-              operator: In
-              values:
-                - app
+                - apps
 
   generators:
     - matrix:
@@ -55,7 +48,7 @@ spec:
                 - path: apps/secrets-proxy-infra/*/config.yaml
   template:
     metadata:
-      name: "{{.platform}}-{{.appName}}pr{{.number}}"
+      name: "{{.platform}}-{{.appName}}-pr{{.number}}"
       labels:
         pr: "pr{{.number}}"
         app-type: "{{.appType}}"
@@ -74,8 +67,8 @@ spec:
             - name: tenant.prNumber
               value: "{{.number}}"
       destination:
-        # Use prCluster if set (with printf), otherwise use cluster directly
-        name: '{{if .prCluster}}{{ printf .prCluster .number }}{{else}}{{.cluster}}{{end}}'
+        # Use prCluster if set (with printf using full pr suffix), otherwise use cluster directly
+        name: '{{if .prCluster}}{{ printf .prCluster (printf "pr%s" .number) }}{{else}}{{.cluster}}{{end}}'
         namespace: '{{if eq .prUpdateNamespace true}}{{.namespace}}pr{{.number}}{{else}}{{.namespace}}{{end}}'
       syncPolicy:
         automated:
@@ -89,7 +82,7 @@ spec:
         - name: Branch
           value: "{{.branch}}"
   templatePatch: |
-    {{- if not .skipNamespaceCreation }}
+    {{- if .createNamespace }}
     spec:
       syncPolicy:
         syncOptions:
@@ -102,6 +95,6 @@ spec:
           parameters:
             {{- range $key, $formatString := .prOverrides }}
             - name: {{ $key }}
-              value: '{{ printf $formatString $.number }}'
+              value: '{{ printf $formatString (printf "pr%s" $.number) }}'
             {{- end }}
     {{- end }}

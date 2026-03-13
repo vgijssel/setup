@@ -1,11 +1,11 @@
 # ArgoCD ApplicationSet configuration for vCluster
-appType: vcluster
+appType: infra
 appName: vcluster
 platform: secrets-proxy-infra
 namespace: tenant-prod-secretsproxy
 cluster: enigma
-skipNamespaceCreation: true
+createNamespace: false
 prUpdateNamespace: true
 prOverrides:
-  "tenant.name": "secretsproxypr%s"
-  "vcluster.controlPlane.ingress.host": "api-secrets-proxy-infra-vclusterpr%s.enigma.vgijssel.nl"
+  "tenant.name": "secretsproxy%s"
+  "vcluster.controlPlane.ingress.host": "api-secrets-proxy-infra-vcluster%s.enigma.vgijssel.nl"
