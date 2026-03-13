@@ -63,9 +63,7 @@ helm template argocd-ingress ./apps/argocd/ingress \
 
 echo "Step 7: Applying ArgoCD ApplicationSets..."
 vcluster connect argocd-infra-vcluster -n tenant-prod-argocd -- \
-  kubectl apply -f apps/argocd-apps/manifests/applicationset-helm.yaml \
-    -f apps/argocd-apps/manifests/applicationset-manifests.yaml \
-    -f apps/argocd-apps/manifests/applicationset-pr-helm.yaml
+  kubectl apply -k apps/argocd-apps/manifests --server-side --force-conflicts
 
 echo "Bootstrap complete! Checking application status..."
 sleep 10

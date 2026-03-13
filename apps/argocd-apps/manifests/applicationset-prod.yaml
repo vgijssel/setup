@@ -1,0 +1,74 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: prod-apps-helm
+  namespace: argocd
+spec:
+  goTemplate: true
+
+  # Progressive Sync strategy with reverse deletion order
+  # Applications are deleted in REVERSE order of steps
+  strategy:
+    type: RollingSync
+    deletionOrder: Reverse
+    rollingSync:
+      steps:
+        # Step 1: Tenant namespace - created FIRST, deleted LAST
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - tenant
+
+        # Step 2: Infrastructure (vCluster) - created SECOND, deleted SECOND
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - infra
+
+        # Step 3: Apps inside vCluster - created LAST, deleted FIRST
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - apps
+
+  generators:
+    - git:
+        repoURL: https://github.com/vgijssel/setup.git
+        revision: main
+        files:
+          - path: apps/secrets-proxy/*/config.yaml
+          - path: apps/secrets-proxy-infra/*/config.yaml
+  template:
+    metadata:
+      name: "{{.platform}}-{{.appName}}"
+      labels:
+        app-type: "{{.appType}}"
+        platform: "{{.platform}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/vgijssel/setup.git
+        targetRevision: main
+        path: "{{.path.path}}"
+        helm:
+          valueFiles:
+            - values.yaml
+      destination:
+        name: "{{.cluster}}"
+        namespace: "{{.namespace}}"
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - PruneLast=true
+  templatePatch: |
+    {{- if .createNamespace }}
+    spec:
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+    {{- end }}
