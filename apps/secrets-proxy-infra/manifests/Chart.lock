@@ -1,0 +1,6 @@
+dependencies:
+- name: namespace
+  repository: file://../../../libs/namespace
+  version: 0.1.0
+digest: sha256:3743cc8baf52b6245b180376b0695a6d4b0eb5b575b7b68c50f1f2bf48795220
+generated: "2026-03-13T14:46:53.804417981Z"
