@@ -5,6 +5,6 @@
     "package.json"
   ],
   "dependencies": {
-    "svgo": "4.0.0"
+    "svgo": "4.0.1"
   }
 }
