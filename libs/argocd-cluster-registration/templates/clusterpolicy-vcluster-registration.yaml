@@ -27,7 +27,7 @@ spec:
               names:
                 - vc-config-*
               namespaces:
-                - {{ .Release.Namespace }}
+                - tenant-*
       context:
         # Extract release name from the config secret's release label
         - name: releaseName
