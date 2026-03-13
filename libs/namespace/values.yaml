@@ -1,0 +1,11 @@
+# Default values for namespace chart
+# This is a YAML-formatted file declaring default values
+
+# The name of the namespace to create
+name: ""
+
+# Labels to apply to the namespace
+labels: {}
+
+# Annotations to apply to the namespace
+annotations: {}

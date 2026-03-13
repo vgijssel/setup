@@ -160,14 +160,3 @@ directories:
         includePaths:
           - packages/core/talos/images/talos/**
         newRootPath: packages/core/talos/images/talos
-  - path: manifests/argocd
-    contents:
-      - path: .
-        git:
-          url: https://github.com/argoproj/argo-cd
-          ref: v3.3.2
-        includePaths:
-          - manifests/**
-        newRootPath: manifests
-        ignorePaths:
-          - ha/kustomization.yaml
