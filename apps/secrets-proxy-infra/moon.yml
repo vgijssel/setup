@@ -13,4 +13,5 @@ tasks:
       TOKEN_REF: op://setup-secrets/aj4q4vzcvwkcupkmaraoow4ole/credential
       NAMESPACE: setup-secrets-proxy-secrets
     options:
+      cache: false
       runInCI: false
