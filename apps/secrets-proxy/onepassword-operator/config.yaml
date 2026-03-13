@@ -1,0 +1,10 @@
+# ArgoCD ApplicationSet configuration for 1Password operator
+appType: app
+appName: onepassword-operator
+platform: secrets-proxy
+namespace: default
+cluster: secrets-proxy-infra-vcluster
+skipNamespaceCreation: false
+prUpdateNamespace: false
+# For PR environments, use the PR-specific vCluster
+prCluster: secrets-proxy-infra-vclusterpr%s
