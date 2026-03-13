@@ -1,7 +1,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: register-vcluster-to-argocd
+  name: register-vcluster-to-argocd-{{ .Release.Namespace }}
   annotations:
     policies.kyverno.io/title: Register vClusters to ArgoCD
     policies.kyverno.io/category: ArgoCD
@@ -10,8 +10,8 @@ metadata:
     policies.kyverno.io/description: >-
       Automatically registers any vCluster as an ArgoCD destination by transforming
       the vCluster config and kubeconfig secrets into an ArgoCD cluster secret. Matches
-      secrets starting with 'vc-config-' in any tenant-* namespace. The generated secret
-      is placed in the setup-argocd-secrets namespace and synced to ArgoCD vCluster via
+      secrets starting with 'vc-config-' in the {{ .Release.Namespace }} namespace. The generated secret
+      is placed in the {{ .Values.secretsNamespace }} namespace and synced to ArgoCD vCluster via
       fromHost wildcard configuration. The ingress host is extracted from config.yaml
       and credentials from the corresponding vc-* secret.
 spec:
@@ -27,7 +27,7 @@ spec:
               names:
                 - vc-config-*
               namespaces:
-                - tenant-*
+                - {{ .Release.Namespace }}
       context:
         # Extract release name from the config secret's release label
         - name: releaseName
@@ -84,7 +84,7 @@ spec:
         apiVersion: v1
         kind: Secret
         name: "{{ `{{ clusterSecretName }}` }}"
-        namespace: setup-argocd-secrets
+        namespace: {{ .Values.secretsNamespace }}
         data:
           metadata:
             labels:

@@ -1,0 +1,9 @@
+# Values for argocd-cluster-registration umbrella chart
+argocd-cluster-registration:
+  secretsNamespace: setup-argocd-secrets
+
+# Namespace subchart configuration - creates the secrets namespace
+namespace:
+  name: setup-argocd-secrets
+  labels: {}
+  annotations: {}

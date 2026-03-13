@@ -1,0 +1,2 @@
+# Default values for argocd-cluster-registration
+secretsNamespace: setup-argocd-secrets

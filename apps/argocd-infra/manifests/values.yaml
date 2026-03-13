@@ -1,7 +1,2 @@
 # Values for argocd-infra-manifests chart
-
-# Namespace subchart configuration
-namespace:
-  name: setup-argocd-secrets
-  labels: {}
-  annotations: {}
+# This chart contains only namespace-scoped resources (CiliumNetworkPolicy)
