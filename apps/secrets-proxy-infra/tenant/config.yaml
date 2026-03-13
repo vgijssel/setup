@@ -6,6 +6,7 @@ namespace: tenant-prod
 cluster: enigma
 createNamespace: false
 prUpdateNamespace: false
+prUpdateCluster: false
 
 prOverrides:
   "tenant.name": "secretsproxy%s"

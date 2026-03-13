@@ -7,3 +7,4 @@ namespace: default
 cluster: secrets-proxy-infra-vcluster
 createNamespace: true
 prUpdateNamespace: false
+prUpdateCluster: true
