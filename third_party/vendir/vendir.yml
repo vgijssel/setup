@@ -113,6 +113,14 @@ directories:
           version: 0.32.1
           repository:
             url: https://charts.loft.sh
+  - path: charts/argo-cd
+    contents:
+      - path: .
+        helmChart:
+          name: argo-cd
+          version: 9.4.10
+          repository:
+            url: https://argoproj.github.io/argo-helm
   - path: shell/zimfw
     contents:
       - path: .
