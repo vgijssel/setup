@@ -39,8 +39,7 @@ spec:
         repoURL: https://github.com/vgijssel/setup.git
         revision: main
         files:
-          - path: apps/secrets-proxy/*/config.yaml
-          - path: apps/secrets-proxy-infra/*/config.yaml
+          - path: apps/*/*/config.yaml
   template:
     metadata:
       name: "{{.platform}}-{{.appName}}"
@@ -56,6 +55,7 @@ spec:
         helm:
           valueFiles:
             - values.yaml
+            - values-prod.yaml
       destination:
         name: "{{.cluster}}"
         namespace: "{{.namespace}}"
