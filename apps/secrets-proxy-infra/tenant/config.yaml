@@ -7,4 +7,4 @@ cluster: enigma
 skipNamespaceCreation: true
 prUpdateNamespace: false
 prOverrides:
-  "tenant.name": "secretsproxy%s"
+  "tenant.name": "secretsproxypr%s"
