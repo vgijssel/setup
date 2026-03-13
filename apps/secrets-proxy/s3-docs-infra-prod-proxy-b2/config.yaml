@@ -3,7 +3,7 @@ appType: apps
 appName: s3-docs-infra-prod-proxy-b2
 platform: secrets-proxy
 namespace: secrets
-cluster: secrets-proxy-infra-vcluster
+cluster: secrets-proxy-vcluster
 createNamespace: true
 prUpdateNamespace: false
 prUpdateCluster: true
