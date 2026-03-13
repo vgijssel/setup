@@ -2,6 +2,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-to-root-ingress
+  namespace: {{ .Release.Namespace }}
 spec:
   description: >-
     Allow egress to tenant-root ingress for accessing api.enigma.vgijssel.nl.

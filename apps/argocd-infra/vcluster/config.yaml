@@ -9,4 +9,5 @@ createNamespace: false
 prUpdateNamespace: true
 prUpdateCluster: false
 
-prOverrides: {}
+prOverrides:
+  "vcluster.controlPlane.ingress.host": "api-argocd-vcluster-%s.enigma.vgijssel.nl"
