@@ -1,0 +1,75 @@
+# ArgoCD High Availability Configuration
+# This umbrella chart configures ArgoCD in HA mode
+
+argo-cd:
+  global:
+    # Set pod anti-affinity to hard to ensure pods are scheduled on different nodes
+    affinity:
+      podAntiAffinity: hard
+
+    # Add ArgoCD sync options to all deployments
+    # Requires confirmation before deleting or pruning resources
+    deploymentAnnotations:
+      argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
+
+    # Add ArgoCD sync options to all statefulsets
+    statefulsetAnnotations:
+      argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
+
+  # Configuration for argocd-cm ConfigMap
+  configs:
+    cm:
+      # Health check for Cozystack Tenant CRD
+      # This ensures ArgoCD properly reflects the Ready condition status in the UI
+      resource.customizations.health.apps.cozystack.io_Tenant: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.conditions ~= nil then
+            for i, condition in ipairs(obj.status.conditions) do
+              if condition.type == "Ready" then
+                if condition.status == "False" then
+                  hs.status = "Degraded"
+                  hs.message = condition.message or "Tenant is not ready"
+                  return hs
+                elseif condition.status == "True" then
+                  hs.status = "Healthy"
+                  hs.message = condition.message or "Tenant is ready"
+                  return hs
+                end
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Tenant to be ready"
+        return hs
+
+    # Configuration for argocd-cmd-params-cm ConfigMap
+    params:
+      # Run server without TLS - SSL termination happens at ingress
+      server.insecure: "true"
+      # Enable ApplicationSet webhook server on port 7000 with parallelism limit
+      applicationsetcontroller.webhook.parallelism.limit: "50"
+
+  # Enable Redis HA instead of single Redis instance
+  redis-ha:
+    enabled: true
+    # Add ArgoCD sync options to Redis HA StatefulSet
+    redis:
+      annotations:
+        argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
+    # Add ArgoCD sync options to Redis HA HAProxy Deployment
+    haproxy:
+      deploymentAnnotations:
+        argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
+
+  # Configure server for HA with 2 replicas
+  server:
+    replicas: 2
+    env:
+      - name: ARGOCD_API_SERVER_REPLICAS
+        value: "2"
+
+  # Configure repo server for HA with 2 replicas
+  repoServer:
+    replicas: 2

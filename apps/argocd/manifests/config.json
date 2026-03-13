@@ -1,5 +1,0 @@
-{
-  "cluster": "in-cluster",
-  "namespace": "argocd",
-  "helm": "false"
-}
