@@ -22,26 +22,26 @@ done
 kubectl wait --for=jsonpath='{.status.phase}'=Active namespace/tenant-prod-argocd --timeout=5m
 
 echo "Step 3: Applying ArgoCD infrastructure manifests to enigma cluster..."
-helm template argocd-infra-manifests ./apps/argocd-infra/manifests \
+helm template argocd-manifests ./apps/argocd-infra/manifests \
   -f ./apps/argocd-infra/manifests/values.yaml \
   -f ./apps/argocd-infra/manifests/values-prod.yaml \
   --namespace tenant-prod-argocd | \
   kubectl apply -f -
 
-echo "Step 4: Installing ArgoCD vCluster with name 'argocd-infra-vcluster'..."
-helm template argocd-infra-vcluster ./apps/argocd-infra/vcluster \
+echo "Step 4: Installing ArgoCD vCluster with name 'argocd-vcluster'..."
+helm template argocd-vcluster ./apps/argocd-infra/vcluster \
   -f ./apps/argocd-infra/vcluster/values.yaml \
   -f ./apps/argocd-infra/vcluster/values-prod.yaml \
   --namespace tenant-prod-argocd | \
   kubectl apply -f -
 
 echo "Step 5: Waiting for vCluster to be ready..."
-kubectl rollout status deployment/argocd-infra-vcluster \
+kubectl rollout status deployment/argocd-vcluster \
   -n tenant-prod-argocd \
   --timeout=300s
 
 echo "Step 5a: Waiting for vCluster etcd to be ready..."
-kubectl rollout status statefulset/argocd-infra-vcluster-etcd \
+kubectl rollout status statefulset/argocd-vcluster-etcd \
   -n tenant-prod-argocd \
   --timeout=300s
 
@@ -51,7 +51,7 @@ helm template argocd ./apps/argocd/argocd \
   -f ./apps/argocd/argocd/values.yaml \
   -f ./apps/argocd/argocd/values-prod.yaml \
   --namespace argocd --create-namespace | \
-  vcluster connect argocd-infra-vcluster -n tenant-prod-argocd -- \
+  vcluster connect argocd-vcluster -n tenant-prod-argocd -- \
     kubectl apply -f - --server-side --force-conflicts
 
 echo "Step 6b: Installing ArgoCD Ingress..."
