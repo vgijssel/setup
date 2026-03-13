@@ -13,14 +13,21 @@ spec:
     deletionOrder: Reverse
     rollingSync:
       steps:
-        # Step 1: Infrastructure apps - created FIRST, deleted LAST
+        # Step 1: Tenant namespace - created FIRST, deleted LAST
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - tenant
+
+        # Step 2: Infrastructure (vCluster) - created SECOND, deleted SECOND
         - matchExpressions:
             - key: app-type
               operator: In
               values:
                 - infra
 
-        # Step 2: Apps inside vCluster - created LAST, deleted FIRST
+        # Step 3: Apps inside vCluster - created LAST, deleted FIRST
         - matchExpressions:
             - key: app-type
               operator: In

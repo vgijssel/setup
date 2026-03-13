@@ -1,5 +1,5 @@
 # ArgoCD ApplicationSet configuration for tenant namespace
-appType: infra
+appType: tenant
 appName: tenant
 platform: secrets-proxy-infra
 namespace: tenant-prod
