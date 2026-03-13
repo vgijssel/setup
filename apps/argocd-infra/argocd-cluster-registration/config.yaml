@@ -11,4 +11,3 @@ prUpdateCluster: false
 
 prOverrides:
   argocd-cluster-registration.secretsNamespace: "setup-argocd-secrets%s"
-  namespace.name: "setup-argocd-secrets%s"
