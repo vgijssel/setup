@@ -1,0 +1,11 @@
+appType: apps
+appName: ingress
+platform: argocd
+namespace: argocd
+
+cluster: argocd-vcluster
+createNamespace: true
+prUpdateNamespace: false
+prUpdateCluster: true
+
+prOverrides: {}
