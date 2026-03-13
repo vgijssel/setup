@@ -6,6 +6,7 @@ tags:
   - kubernetes
   - argocd
   - vcluster
+  - helm-platform
 
 tasks:
   bootstrap:

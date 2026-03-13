@@ -1,0 +1,12 @@
+# ArgoCD ApplicationSet configuration for vCluster
+appType: infra
+appName: vcluster
+platform: argocd
+namespace: tenant-prod-argocd
+
+cluster: enigma
+createNamespace: false
+prUpdateNamespace: true
+prUpdateCluster: false
+
+prOverrides: {}

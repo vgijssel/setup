@@ -1,6 +1,6 @@
-# ArgoCD ApplicationSet configuration for Manifests
+# ArgoCD ApplicationSet configuration for Namespace
 appType: infra
-appName: manifests
+appName: namespace
 platform: secrets-proxy
 namespace: tenant-prod-secretsproxy
 

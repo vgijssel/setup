@@ -1,6 +1,6 @@
 apiVersion: v2
-name: secrets-proxy-infra-manifests
-description: Static Kubernetes manifests for Secrets Proxy infrastructure
+name: secrets-proxy-infra-namespace
+description: Namespace configuration for Secrets Proxy infrastructure
 type: application
 version: 1.0.0
 appVersion: "1.0.0"
