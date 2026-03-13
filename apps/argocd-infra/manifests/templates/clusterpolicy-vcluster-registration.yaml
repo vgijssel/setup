@@ -48,7 +48,7 @@ spec:
         - name: kubeconfigSecret
           apiCall:
             method: GET
-            urlPath: "/api/v1/namespaces/{{ sourceNamespace }}/secrets/{{ kubeconfigSecretName }}"
+            urlPath: "/api/v1/namespaces/{{ `{{ sourceNamespace }}` }}/secrets/{{ `{{ kubeconfigSecretName }}` }}"
             jmesPath: "data"
         # Extract certificate data from the kubeconfig secret
         - name: caData
@@ -83,21 +83,21 @@ spec:
         synchronize: true
         apiVersion: v1
         kind: Secret
-        name: "{{ clusterSecretName }}"
+        name: "{{ `{{ clusterSecretName }}` }}"
         namespace: setup-argocd-secrets
         data:
           metadata:
             labels:
               argocd.argoproj.io/secret-type: cluster
-              vcluster.io/source-namespace: "{{ sourceNamespace }}"
-              vcluster.io/config-secret: "{{ request.object.metadata.name }}"
-              vcluster.io/kubeconfig-secret: "{{ kubeconfigSecretName }}"
-              vcluster.io/release: "{{ releaseName }}"
+              vcluster.io/source-namespace: "{{ `{{ sourceNamespace }}` }}"
+              vcluster.io/config-secret: "{{ `{{ request.object.metadata.name }}` }}"
+              vcluster.io/kubeconfig-secret: "{{ `{{ kubeconfigSecretName }}` }}"
+              vcluster.io/release: "{{ `{{ releaseName }}` }}"
           stringData:
             # Use the release name as the cluster name in ArgoCD
-            name: "{{ releaseName }}"
+            name: "{{ `{{ releaseName }}` }}"
             # Use the ingress host from config.yaml for the API server URL
-            server: "https://{{ ingressHost }}"
+            server: "https://{{ `{{ ingressHost }}` }}"
             # TLS client configuration for cluster authentication
             # Reference: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters
-            config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ caData }}", "certData": "{{ certData }}", "keyData": "{{ keyData }}"}}'
+            config: '{"tlsClientConfig": {"insecure": false, "caData": "{{ `{{ caData }}` }}", "certData": "{{ `{{ certData }}` }}", "keyData": "{{ `{{ keyData }}` }}"}}'
