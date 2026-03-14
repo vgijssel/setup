@@ -7,5 +7,6 @@ cluster: secrets-proxy-vcluster
 createNamespace: true
 prUpdateNamespace: false
 prUpdateCluster: true
+serverSideApply: false
 
 prOverrides: {}

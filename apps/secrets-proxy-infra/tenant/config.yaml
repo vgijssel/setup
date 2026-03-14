@@ -8,6 +8,7 @@ cluster: enigma
 createNamespace: false
 prUpdateNamespace: false
 prUpdateCluster: false
+serverSideApply: false
 
 prOverrides:
   "tenant.name": "secretsproxy%s"

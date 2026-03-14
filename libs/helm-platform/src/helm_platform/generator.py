@@ -64,6 +64,11 @@ class ConfigContext:
         """Determine if PR should update cluster."""
         return self.app_type == "apps"
 
+    @property
+    def server_side_apply(self) -> bool:
+        """Determine if server-side apply should be used (default: false)."""
+        return False
+
 
 def create_yaml_instance() -> YAML:
     """Create a configured YAML instance for round-trip processing."""
@@ -123,6 +128,12 @@ def generate_config(
     config["createNamespace"] = ctx.create_namespace
     config["prUpdateNamespace"] = ctx.pr_update_namespace
     config["prUpdateCluster"] = ctx.pr_update_cluster
+
+    # Preserve existing serverSideApply if present, otherwise use default (false)
+    if existing and "serverSideApply" in existing:
+        config["serverSideApply"] = existing["serverSideApply"]
+    else:
+        config["serverSideApply"] = ctx.server_side_apply
 
     # Add blank line before prOverrides
     config.yaml_set_comment_before_after_key("prOverrides", before="\n")

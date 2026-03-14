@@ -7,6 +7,7 @@ cluster: argocd-vcluster
 createNamespace: true
 prUpdateNamespace: false
 prUpdateCluster: true
+serverSideApply: false
 
 prOverrides:
   "ingress-http.host": "argocd-%s.enigma.vgijssel.nl"
