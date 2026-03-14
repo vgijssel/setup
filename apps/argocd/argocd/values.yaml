@@ -33,6 +33,9 @@ argo-cd:
       server.insecure: "true"
       # Enable ApplicationSet webhook server on port 7000 with parallelism limit
       applicationsetcontroller.webhook.parallelism.limit: "50"
+      # Enable Progressive Syncs for RollingSync strategy in ApplicationSets
+      # This allows controlling the order in which applications are synced
+      applicationsetcontroller.enable.progressive.syncs: "true"
 
   # Server configuration
   server:
