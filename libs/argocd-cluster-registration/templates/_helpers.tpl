@@ -1,4 +1,19 @@
 {{/*
+Truncate a name to 63 characters (Kubernetes max) while preserving uniqueness.
+If the name exceeds 63 chars, truncate and append a hash suffix.
+*/}}
+{{- define "argocd-cluster-registration.truncName" -}}
+{{- $name := . -}}
+{{- if gt (len $name) 63 -}}
+{{- $hash := $name | sha256sum | trunc 8 -}}
+{{- $truncated := $name | trunc 54 | trimSuffix "-" -}}
+{{- printf "%s-%s" $truncated $hash -}}
+{{- else -}}
+{{- $name -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Helper template for vcluster registration policy spec.
 Used both for the actual spec and to generate a content-based hash for the name.
 When this content changes, the policy name changes, causing ArgoCD to prune the old and create new.
