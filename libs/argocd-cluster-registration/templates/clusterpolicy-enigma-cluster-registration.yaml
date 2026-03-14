@@ -1,9 +1,10 @@
 {{- $spec := include "argocd-cluster-registration.enigmaPolicySpec" . -}}
+{{- $rawName := printf "reg-enigma-%s-%s" .Release.Namespace ($spec | sha256sum | trunc 8) -}}
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   # Content-based naming: when spec changes, name changes, old policy is pruned
-  name: register-enigma-cluster-to-argocd-{{ .Release.Namespace }}-{{ $spec | sha256sum | trunc 8 }}
+  name: {{ include "argocd-cluster-registration.truncName" $rawName }}
   annotations:
     policies.kyverno.io/title: Register Enigma Cluster to ArgoCD
     policies.kyverno.io/category: ArgoCD
