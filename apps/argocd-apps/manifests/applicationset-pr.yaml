@@ -117,6 +117,12 @@ spec:
         syncOptions:
           - CreateNamespace=true
     {{- end }}
+    {{- if .serverSideApply }}
+    spec:
+      syncPolicy:
+        syncOptions:
+          - ServerSideApply=true
+    {{- end }}
     {{- if .prOverrides }}
     spec:
       source:

@@ -8,5 +8,6 @@ cluster: enigma
 createNamespace: false
 prUpdateNamespace: true
 prUpdateCluster: false
+serverSideApply: false
 
 prOverrides: {}

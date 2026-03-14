@@ -7,5 +7,6 @@ cluster: argocd-vcluster
 createNamespace: true
 prUpdateNamespace: false
 prUpdateCluster: true
+serverSideApply: true
 
 prOverrides: {}
