@@ -90,6 +90,8 @@ spec:
         helm:
           valueFiles:
             - values.yaml
+            - values-pr.yaml
+          ignoreMissingValueFiles: true
           parameters:
             - name: prNumber
               value: "{{.number}}"

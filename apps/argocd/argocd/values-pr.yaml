@@ -1,0 +1,21 @@
+# PR environment overrides for ArgoCD
+# Simplify deployment for preview environments
+
+argo-cd:
+  # Disable Redis HA for PRs - use simple Redis instead
+  redis-ha:
+    enabled: false
+
+  # Use single-replica deployments for PRs
+  server:
+    replicas: 1
+    env:
+      - name: ARGOCD_API_SERVER_REPLICAS
+        value: "1"
+
+  repoServer:
+    replicas: 1
+
+  # Use simple Redis for PRs
+  redis:
+    enabled: true
