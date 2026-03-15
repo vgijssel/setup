@@ -49,10 +49,10 @@ rules:
               # Exclude config secrets - they don't have certificates
               - vc-config-*
     context:
-      # Extract release name from the kubeconfig secret's release label
+      # Extract release name from the kubeconfig secret's vcluster-name label
       - name: releaseName
         variable:
-          jmesPath: request.object.metadata.labels.release
+          jmesPath: request.object.metadata.labels."vcluster-name"
           default: ""
       - name: sourceNamespace
         variable:
