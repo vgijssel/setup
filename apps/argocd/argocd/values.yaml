@@ -50,3 +50,13 @@ argo-cd:
   applicationSet:
     ingress:
       enabled: false
+
+  # Repo server configuration
+  # Increase liveness probe timeout to prevent restarts in resource-constrained environments
+  repoServer:
+    livenessProbe:
+      # Increase timeout from default 1s to 5s
+      # The full health check can be slow under load
+      timeoutSeconds: 5
+      # Increase failure threshold to be more tolerant
+      failureThreshold: 5
