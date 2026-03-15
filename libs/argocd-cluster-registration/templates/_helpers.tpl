@@ -17,6 +17,14 @@ If the name exceeds 63 chars, truncate and append a hash suffix.
 Helper template for vcluster registration policy spec.
 Used both for the actual spec and to generate a content-based hash for the name.
 When this content changes, the policy name changes, causing ArgoCD to prune the old and create new.
+
+IMPORTANT: This policy matches on the kubeconfig secret (vc-*) NOT the config secret (vc-config-*).
+This is because vCluster creates secrets in this order:
+1. vc-config-* (config secret with ingress host) - created first
+2. vc-* (kubeconfig secret with certificates) - created ~47 seconds later
+
+If we trigger on vc-config-*, the kubeconfig secret doesn't exist yet and we get empty certificates.
+By triggering on vc-* (kubeconfig), we ensure certificates are available, then fetch the config secret.
 */}}
 {{- define "argocd-cluster-registration.vclusterPolicySpec" -}}
 generateExisting: true
@@ -29,11 +37,19 @@ rules:
             kinds:
               - Secret
             names:
-              - vc-config-*
+              # Match kubeconfig secrets (vc-*) which have the certificates
+              # These are created AFTER the config secrets, so certificates are guaranteed to exist
+              - vc-*
             namespaces:
               - tenant-*
+    exclude:
+      any:
+        - resources:
+            names:
+              # Exclude config secrets - they don't have certificates
+              - vc-config-*
     context:
-      # Extract release name from the config secret's release label
+      # Extract release name from the kubeconfig secret's release label
       - name: releaseName
         variable:
           jmesPath: request.object.metadata.labels.release
@@ -42,36 +58,36 @@ rules:
         variable:
           jmesPath: request.object.metadata.namespace
           default: ""
-      # Derive the kubeconfig secret name by stripping 'config-' from the config secret name
-      # Example: vc-config-secrets-proxy-vcluster-pr942 → vc-secrets-proxy-vcluster-pr942
-      - name: kubeconfigSecretName
+      # Derive the config secret name by adding 'config-' after 'vc-'
+      # Example: vc-secrets-proxy-vcluster-pr942 → vc-config-secrets-proxy-vcluster-pr942
+      - name: configSecretName
         variable:
-          jmesPath: replace_all(request.object.metadata.name, 'vc-config-', 'vc-')
+          jmesPath: replace_all(request.object.metadata.name, 'vc-', 'vc-config-')
           default: ""
-      # Fetch the corresponding kubeconfig secret to get certificate data
-      - name: kubeconfigSecret
-        apiCall:
-          method: GET
-          urlPath: "/api/v1/namespaces/{{ `{{ sourceNamespace }}` }}/secrets/{{ `{{ kubeconfigSecretName }}` }}"
-          jmesPath: "data"
-      # Extract certificate data from the kubeconfig secret
+      # Extract certificate data directly from the matched kubeconfig secret
       - name: caData
         variable:
-          jmesPath: kubeconfigSecret."certificate-authority"
+          jmesPath: request.object.data."certificate-authority"
           default: ""
       - name: certData
         variable:
-          jmesPath: kubeconfigSecret."client-certificate"
+          jmesPath: request.object.data."client-certificate"
           default: ""
       - name: keyData
         variable:
-          jmesPath: kubeconfigSecret."client-key"
+          jmesPath: request.object.data."client-key"
           default: ""
+      # Fetch the corresponding config secret to get ingress host
+      - name: configSecret
+        apiCall:
+          method: GET
+          urlPath: "/api/v1/namespaces/{{ `{{ sourceNamespace }}` }}/secrets/{{ `{{ configSecretName }}` }}"
+          jmesPath: "data"
       # Parse the config.yaml and extract the ingress host
       # The host is at: controlPlane.ingress.host in the YAML structure
       - name: vclusterConfig
         variable:
-          jmesPath: parse_yaml(base64_decode(request.object.data."config.yaml"))
+          jmesPath: parse_yaml(base64_decode(configSecret."config.yaml"))
           default: {}
       # Extract the ingress host from the parsed config
       - name: ingressHost
@@ -94,8 +110,8 @@ rules:
           labels:
             argocd.argoproj.io/secret-type: cluster
             vcluster.io/source-namespace: "{{ `{{ sourceNamespace }}` }}"
-            vcluster.io/config-secret: "{{ `{{ request.object.metadata.name }}` }}"
-            vcluster.io/kubeconfig-secret: "{{ `{{ kubeconfigSecretName }}` }}"
+            vcluster.io/config-secret: "{{ `{{ configSecretName }}` }}"
+            vcluster.io/kubeconfig-secret: "{{ `{{ request.object.metadata.name }}` }}"
             vcluster.io/release: "{{ `{{ releaseName }}` }}"
         stringData:
           # Use the release name as the cluster name in ArgoCD
