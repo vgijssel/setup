@@ -1,0 +1,6 @@
+language: javascript
+layer: application
+tags:
+  - stack
+  - kubernetes
+  - helm-platform

@@ -3,9 +3,6 @@
 # Name of the tenant
 name: argocd
 
-# PR number for PR environments (empty for production)
-prNumber: ""
-
 # Annotations to add to the tenant resource
 annotations: {}
 

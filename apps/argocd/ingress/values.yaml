@@ -1,0 +1,93 @@
+# Values for ingress-http (main UI/API)
+ingress-http:
+  name: argocd-http
+  namespace: argocd
+  ingressClassName: tenant-prod
+  host: argocd.enigma.vgijssel.nl
+  path: /
+  pathType: Prefix
+
+  backend:
+    service:
+      name: argocd-argocd-server
+      port:
+        number: 80
+
+  tls:
+    enabled: true
+    secretName: argocd-http-tls
+
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-stage
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+
+# Values for ingress-grpc (CLI access)
+ingress-grpc:
+  name: argocd-grpc
+  namespace: argocd
+  ingressClassName: tenant-prod
+  host: argocd-grpc.enigma.vgijssel.nl
+  path: /
+  pathType: Prefix
+
+  backend:
+    service:
+      name: argocd-argocd-server
+      port:
+        number: 80
+
+  tls:
+    enabled: true
+    secretName: argocd-grpc-tls
+
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-stage
+    nginx.ingress.kubernetes.io/backend-protocol: GRPC
+
+# Values for ingress-webhook (server webhook)
+ingress-webhook:
+  name: argocd-server-webhook
+  namespace: argocd
+  ingressClassName: tenant-prod
+  host: argocd-webhook-public.enigma.vgijssel.nl
+  path: /api/webhook
+  pathType: Prefix
+
+  backend:
+    service:
+      name: argocd-argocd-server
+      port:
+        number: 80
+
+  tls:
+    enabled: true
+    secretName: argocd-server-webhook-tls
+
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-stage
+    internal-networking/expose: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+
+# Values for ingress-applicationset-webhook (Git Generator webhook)
+ingress-applicationset-webhook:
+  name: argocd-applicationset-webhook
+  namespace: argocd
+  ingressClassName: tenant-prod
+  host: argocd-applicationset-webhook-public.enigma.vgijssel.nl
+  path: /api/webhook
+  pathType: Prefix
+
+  backend:
+    service:
+      name: argocd-argocd-applicationset-controller
+      port:
+        number: 7000
+
+  tls:
+    enabled: true
+    secretName: argocd-applicationset-webhook-tls
+
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-stage
+    internal-networking/expose: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP

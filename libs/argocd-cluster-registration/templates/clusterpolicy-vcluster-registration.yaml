@@ -1,0 +1,21 @@
+{{- $spec := include "argocd-cluster-registration.vclusterPolicySpec" . -}}
+{{- $rawName := printf "reg-vc-%s-%s" .Release.Namespace ($spec | sha256sum | trunc 8) -}}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  # Content-based naming: when spec changes, name changes, old policy is pruned
+  name: {{ include "argocd-cluster-registration.truncName" $rawName }}
+  annotations:
+    policies.kyverno.io/title: Register vClusters to ArgoCD
+    policies.kyverno.io/category: ArgoCD
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Secret
+    policies.kyverno.io/description: >-
+      Automatically registers any vCluster as an ArgoCD destination by transforming
+      the vCluster config and kubeconfig secrets into an ArgoCD cluster secret. Matches
+      secrets starting with 'vc-config-' in any tenant-* namespace. The generated secret
+      is placed in the {{ .Values.secretsNamespace }} namespace and synced to ArgoCD vCluster via
+      fromHost wildcard configuration. The ingress host is extracted from config.yaml
+      and credentials from the corresponding vc-* secret.
+spec:
+{{ $spec | indent 2 }}

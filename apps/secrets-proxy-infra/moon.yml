@@ -4,6 +4,7 @@ tags:
   - stack
   - kubernetes
   - infrastructure
+  - helm-platform
 tasks:
   create-1password-secret:
     script: $MOON_WORKSPACE_ROOT/libs/1password-operator-bootstrap/bootstrap.sh --credentials-ref "$CREDENTIALS_REF" --token-ref "$TOKEN_REF" --namespace "$NAMESPACE"
@@ -12,4 +13,5 @@ tasks:
       TOKEN_REF: op://setup-secrets/aj4q4vzcvwkcupkmaraoow4ole/credential
       NAMESPACE: setup-secrets-proxy-secrets
     options:
+      cache: false
       runInCI: false

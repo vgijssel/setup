@@ -1,0 +1,13 @@
+# ArgoCD ApplicationSet configuration for Manifests
+appType: infra
+appName: manifests
+platform: argocd
+namespace: tenant-prod-argocd
+
+cluster: enigma
+createNamespace: false
+prUpdateNamespace: true
+prUpdateCluster: false
+serverSideApply: false
+
+prOverrides: {}

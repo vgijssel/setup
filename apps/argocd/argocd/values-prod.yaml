@@ -1,0 +1,37 @@
+argo-cd:
+  global:
+    # Set pod anti-affinity to hard to ensure pods are scheduled on different nodes
+    affinity:
+      podAntiAffinity: hard
+
+    # Add ArgoCD sync options to all deployments
+    # Requires confirmation before deleting or pruning resources
+    deploymentAnnotations:
+      argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
+
+    # Add ArgoCD sync options to all statefulsets
+    statefulsetAnnotations:
+      argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
+
+  # Enable Redis HA instead of single Redis instance
+  redis-ha:
+    enabled: true
+    # Add ArgoCD sync options to Redis HA StatefulSet
+    redis:
+      annotations:
+        argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
+    # Add ArgoCD sync options to Redis HA HAProxy Deployment
+    haproxy:
+      deploymentAnnotations:
+        argocd.argoproj.io/sync-options: Delete=confirm,Prune=confirm
+
+  # Configure server for HA with 2 replicas
+  server:
+    replicas: 2
+    env:
+      - name: ARGOCD_API_SERVER_REPLICAS
+        value: "2"
+
+  # Configure repo server for HA with 2 replicas
+  repoServer:
+    replicas: 2

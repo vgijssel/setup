@@ -1,0 +1,3 @@
+# Values for argocd-cluster-registration umbrella chart
+argocd-cluster-registration:
+  secretsNamespace: setup-argocd-secrets

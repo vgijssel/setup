@@ -29,6 +29,6 @@ vcluster:
                 policy.cozystack.io/allow-to-apiserver: "true"
     ingress:
       enabled: true
-      host: api-argocd-infra-vcluster.enigma.vgijssel.nl
+      host: api-argocd-vcluster.enigma.vgijssel.nl
       spec:
         ingressClassName: tenant-prod

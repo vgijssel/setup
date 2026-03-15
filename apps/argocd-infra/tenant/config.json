@@ -1,6 +1,0 @@
-{
-  "cluster": "enigma",
-  "namespace": "tenant-prod",
-  "helm": "true",
-  "skipNamespaceCreation": "true"
-}

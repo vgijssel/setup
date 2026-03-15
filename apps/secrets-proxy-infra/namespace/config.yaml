@@ -1,0 +1,13 @@
+# ArgoCD ApplicationSet configuration for Namespace
+appType: infra
+appName: namespace
+platform: secrets-proxy
+namespace: tenant-prod-secretsproxy
+
+cluster: enigma
+createNamespace: false
+prUpdateNamespace: true
+prUpdateCluster: false
+serverSideApply: false
+
+prOverrides: {}

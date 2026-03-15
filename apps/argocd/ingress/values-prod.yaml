@@ -1,0 +1,18 @@
+ingress-http:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+ingress-webhook:
+  ingress:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+
+ingress-grpc:
+  ingress:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+
+ingress-applicationset-webhook:
+  ingress:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod

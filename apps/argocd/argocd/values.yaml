@@ -1,0 +1,62 @@
+argo-cd:
+  # Configuration for argocd-cm ConfigMap
+  configs:
+    cm:
+      # Health check for Cozystack Tenant CRD
+      # This ensures ArgoCD properly reflects the Ready condition status in the UI
+      resource.customizations.health.apps.cozystack.io_Tenant: |
+        hs = {}
+        if obj.status ~= nil then
+          if obj.status.conditions ~= nil then
+            for i, condition in ipairs(obj.status.conditions) do
+              if condition.type == "Ready" then
+                if condition.status == "False" then
+                  hs.status = "Degraded"
+                  hs.message = condition.message or "Tenant is not ready"
+                  return hs
+                elseif condition.status == "True" then
+                  hs.status = "Healthy"
+                  hs.message = condition.message or "Tenant is ready"
+                  return hs
+                end
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Tenant to be ready"
+        return hs
+
+    # Configuration for argocd-cmd-params-cm ConfigMap
+    params:
+      # Run server without TLS - SSL termination happens at ingress
+      server.insecure: "true"
+      # Enable ApplicationSet webhook server on port 7000 with parallelism limit
+      applicationsetcontroller.webhook.parallelism.limit: "50"
+      # Enable Progressive Syncs for RollingSync strategy in ApplicationSets
+      # This allows controlling the order in which applications are synced
+      applicationsetcontroller.enable.progressive.syncs: "true"
+
+  # Server configuration
+  server:
+    # Ingress disabled - managed by apps/argocd/ingress umbrella chart
+    ingress:
+      enabled: false
+
+    ingressGrpc:
+      enabled: false
+
+  # ApplicationSet webhook ingress disabled - managed by apps/argocd/ingress umbrella chart
+  applicationSet:
+    ingress:
+      enabled: false
+
+  # Repo server configuration
+  # Increase liveness probe timeout to prevent restarts in resource-constrained environments
+  repoServer:
+    livenessProbe:
+      # Increase timeout from default 1s to 5s
+      # The full health check can be slow under load
+      timeoutSeconds: 5
+      # Increase failure threshold to be more tolerant
+      failureThreshold: 5

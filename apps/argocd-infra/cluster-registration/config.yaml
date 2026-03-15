@@ -1,0 +1,14 @@
+# ArgoCD ApplicationSet configuration for Cluster-registration
+appType: infra
+appName: cluster-registration
+platform: argocd
+namespace: tenant-prod-argocd
+
+cluster: enigma
+createNamespace: false
+prUpdateNamespace: true
+prUpdateCluster: false
+serverSideApply: false
+
+prOverrides:
+  argocd-cluster-registration.secretsNamespace: "setup-argocd-secrets%s"
