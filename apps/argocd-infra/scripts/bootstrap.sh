@@ -55,7 +55,8 @@ kubectl rollout status statefulset/argocd-vcluster-etcd \
 
 echo "Step 6: Installing ArgoCD to vCluster..."
 echo "Step 6a: Installing ArgoCD Helm chart..."
-helm template argocd ./apps/argocd/argocd \
+# Release name must match ApplicationSet naming: {{.platform}}-{{.appName}} = argocd-argocd
+helm template argocd-argocd ./apps/argocd/argocd \
   -f ./apps/argocd/argocd/values.yaml \
   -f ./apps/argocd/argocd/values-prod.yaml \
   --namespace argocd --create-namespace | \
