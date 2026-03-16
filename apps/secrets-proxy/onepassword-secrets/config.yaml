@@ -1,0 +1,12 @@
+appType: apps
+appName: onepassword-secrets
+platform: secrets-proxy
+namespace: default
+
+cluster: secrets-proxy-vcluster
+createNamespace: true
+prUpdateNamespace: false
+prUpdateCluster: true
+serverSideApply: false
+
+prOverrides: {}

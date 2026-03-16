@@ -1,0 +1,15 @@
+# yamllint disable-file
+{{- if .Values.name }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.name }}
+  {{- with .Values.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

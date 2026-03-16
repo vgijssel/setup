@@ -1,0 +1,135 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: pr-apps-helm
+  namespace: argocd
+spec:
+  goTemplate: true
+
+  # Progressive Sync strategy with reverse deletion order
+  # Applications are deleted in REVERSE order of steps
+  strategy:
+    type: RollingSync
+    deletionOrder: Reverse
+    rollingSync:
+      steps:
+        # Step 1: Tenant namespace - created FIRST, deleted LAST
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - tenant
+
+        # Step 2: Infrastructure (vCluster) - created SECOND, deleted SECOND
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - infra
+
+        # Step 3: Apps inside vCluster - created LAST, deleted FIRST
+        - matchExpressions:
+            - key: app-type
+              operator: In
+              values:
+                - apps
+
+  generators:
+    # Generator for apps:argocd label
+    - matrix:
+        generators:
+          - pullRequest:
+              github:
+                owner: vgijssel
+                repo: setup
+                labels:
+                  - apps:argocd
+                tokenRef:
+                  secretName: github-token
+                  key: token
+              requeueAfterSeconds: 1800
+          - git:
+              repoURL: https://github.com/vgijssel/setup.git
+              revision: "{{.head_sha}}"
+              files:
+                - path: apps/argocd/*/config.yaml
+                - path: apps/argocd-infra/*/config.yaml
+    # Generator for apps:secrets-proxy label
+    - matrix:
+        generators:
+          - pullRequest:
+              github:
+                owner: vgijssel
+                repo: setup
+                labels:
+                  - apps:secrets-proxy
+                tokenRef:
+                  secretName: github-token
+                  key: token
+              requeueAfterSeconds: 1800
+          - git:
+              repoURL: https://github.com/vgijssel/setup.git
+              revision: "{{.head_sha}}"
+              files:
+                - path: apps/secrets-proxy/*/config.yaml
+                - path: apps/secrets-proxy-infra/*/config.yaml
+  template:
+    metadata:
+      name: "{{.platform}}-{{.appName}}-pr{{.number}}"
+      labels:
+        pr: "pr{{.number}}"
+        app-type: "{{.appType}}"
+        platform: "{{.platform}}"
+        env: pr
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/vgijssel/setup.git
+        targetRevision: "{{.head_sha}}"
+        path: "{{.path.path}}"
+        helm:
+          valueFiles:
+            - values.yaml
+          parameters:
+            - name: prNumber
+              value: "{{.number}}"
+            - name: tenant.prNumber
+              value: "{{.number}}"
+      destination:
+        # Append -pr{number} to cluster name if prUpdateCluster is true
+        name: '{{if eq .prUpdateCluster true}}{{.cluster}}-pr{{.number}}{{else}}{{.cluster}}{{end}}'
+        namespace: '{{if eq .prUpdateNamespace true}}{{.namespace}}pr{{.number}}{{else}}{{.namespace}}{{end}}'
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - PruneLast=true
+      info:
+        - name: PR
+          value: "https://github.com/vgijssel/setup/pull/{{.number}}"
+        - name: Branch
+          value: "{{.branch}}"
+  templatePatch: |
+    {{- if .createNamespace }}
+    spec:
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+    {{- end }}
+    {{- if .serverSideApply }}
+    spec:
+      syncPolicy:
+        syncOptions:
+          - ServerSideApply=true
+    {{- end }}
+    {{- if .prOverrides }}
+    spec:
+      source:
+        helm:
+          parameters:
+            {{- range $key, $formatString := .prOverrides }}
+            - name: {{ $key }}
+              value: '{{ printf $formatString (printf "pr%s" $.number) }}'
+            {{- end }}
+    {{- end }}

@@ -1,0 +1,14 @@
+# ArgoCD ApplicationSet configuration for Tenant
+appType: tenant
+appName: tenant
+platform: argocd
+namespace: tenant-prod
+
+cluster: enigma
+createNamespace: false
+prUpdateNamespace: false
+prUpdateCluster: false
+serverSideApply: false
+
+prOverrides:
+  tenant.name: argocd%s

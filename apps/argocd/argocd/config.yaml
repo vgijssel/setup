@@ -1,0 +1,12 @@
+appType: apps
+appName: argocd
+platform: argocd
+namespace: argocd
+
+cluster: argocd-vcluster
+createNamespace: true
+prUpdateNamespace: false
+prUpdateCluster: true
+serverSideApply: true
+
+prOverrides: {}

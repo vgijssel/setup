@@ -1,0 +1,7 @@
+# Values for secrets-proxy-infra-manifests chart
+
+# Namespace subchart configuration
+namespace:
+  name: setup-secrets-proxy-secrets
+  labels: {}
+  annotations: {}

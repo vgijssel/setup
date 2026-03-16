@@ -1,0 +1,2 @@
+# Values for argocd-infra-manifests chart
+# This chart contains only namespace-scoped resources (CiliumNetworkPolicy)

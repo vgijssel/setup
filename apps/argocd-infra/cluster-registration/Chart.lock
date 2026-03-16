@@ -1,0 +1,6 @@
+dependencies:
+- name: argocd-cluster-registration
+  repository: file://../../../libs/argocd-cluster-registration
+  version: 0.1.0
+digest: sha256:028d6cd297e7032c25b50a513bf826d9445f9ccbd4bffa317fe1cbdf208b97d4
+generated: "2026-03-13T20:36:46.197962088Z"

@@ -1,0 +1,16 @@
+$schema: ../cache/schemas/tasks.json
+
+tasks:
+  generate:
+    command: helm-platform generate
+    inputs:
+      - "**/*"
+    options:
+      cache: true
+
+  validate:
+    command: helm-platform validate
+    inputs:
+      - "**/*"
+    options:
+      cache: true

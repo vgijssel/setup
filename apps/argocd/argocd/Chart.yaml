@@ -1,0 +1,10 @@
+apiVersion: v2
+name: argocd
+description: ArgoCD umbrella chart with high availability configuration
+version: 1.0.0
+appVersion: v3.3.3
+
+dependencies:
+  - name: argo-cd
+    version: 9.4.10
+    repository: file://../../../third_party/vendir/charts/argo-cd

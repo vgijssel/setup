@@ -1,0 +1,15 @@
+dependencies:
+- name: ingress
+  repository: file://../../../libs/ingress
+  version: 1.0.0
+- name: ingress
+  repository: file://../../../libs/ingress
+  version: 1.0.0
+- name: ingress
+  repository: file://../../../libs/ingress
+  version: 1.0.0
+- name: ingress
+  repository: file://../../../libs/ingress
+  version: 1.0.0
+digest: sha256:6febd1cbb85e83d0754d1d27d3841335bb9afe7f236f98f87fd1a02e5600de4a
+generated: "2026-03-13T15:08:11.834698632Z"

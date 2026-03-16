@@ -1,0 +1,6 @@
+dependencies:
+- name: argo-cd
+  repository: file://../../../third_party/vendir/charts/argo-cd
+  version: 9.4.10
+digest: sha256:7c26cffaa8eb335f218a8e18cf840eba012b32b38135359bcf667f41261c0dac
+generated: "2026-03-13T11:59:27.044472352Z"
