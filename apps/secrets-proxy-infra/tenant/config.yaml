@@ -11,4 +11,4 @@ prUpdateCluster: false
 serverSideApply: false
 
 prOverrides:
-  "tenant.name": "secretsproxy%s"
+  tenant.name: secretsproxy%s

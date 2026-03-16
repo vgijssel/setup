@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-import pytest
 from helm_platform.generator import (
     ConfigContext,
     config_to_string,
@@ -12,7 +11,6 @@ from helm_platform.generator import (
     process_directory,
     write_config,
 )
-from ruamel.yaml.comments import CommentedMap
 
 
 class TestConfigContext:

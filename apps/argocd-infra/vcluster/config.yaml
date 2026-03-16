@@ -11,4 +11,4 @@ prUpdateCluster: false
 serverSideApply: false
 
 prOverrides:
-  "vcluster.controlPlane.ingress.host": "api-argocd-vcluster-%s.enigma.vgijssel.nl"
+  vcluster.controlPlane.ingress.host: api-argocd-vcluster-%s.enigma.vgijssel.nl

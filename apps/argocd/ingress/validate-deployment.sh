@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ARGOCD_CHART_DIR="$(dirname "$SCRIPT_DIR")/argocd"
+ARGOCD_CHART_DIR="$(dirname "${SCRIPT_DIR}")/argocd"
 
 echo "=== ArgoCD Ingress Migration - Deployment Validation ==="
 echo
@@ -34,38 +34,38 @@ echo
 
 # Validate main ArgoCD chart generates 0 ingresses
 echo "Validating main ArgoCD chart (should generate 0 ingresses)..."
-ARGOCD_INGRESS_COUNT=$(helm template argocd "$ARGOCD_CHART_DIR" \
+ARGOCD_INGRESS_COUNT=$(helm template argocd "${ARGOCD_CHART_DIR}" \
   --namespace argocd \
-  --values "$ARGOCD_CHART_DIR/values-prod.yaml" 2>/dev/null | \
+  --values "${ARGOCD_CHART_DIR}/values-prod.yaml" 2>/dev/null | \
   grep -c "kind: Ingress" || true)
 
-if [ "$ARGOCD_INGRESS_COUNT" -eq 0 ]; then
+if [[ "${ARGOCD_INGRESS_COUNT}" -eq 0 ]]; then
     echo -e "${GREEN}✓ Main ArgoCD chart generates 0 ingresses${NC}"
 else
-    echo -e "${RED}✗ Main ArgoCD chart generates $ARGOCD_INGRESS_COUNT ingresses (expected 0)${NC}"
+    echo -e "${RED}✗ Main ArgoCD chart generates ${ARGOCD_INGRESS_COUNT} ingresses (expected 0)${NC}"
     exit 1
 fi
 
 # Validate ingress umbrella chart generates 4 ingresses
 echo "Validating ingress umbrella chart (should generate 4 ingresses)..."
-UMBRELLA_INGRESS_COUNT=$(helm template argocd-ingress "$SCRIPT_DIR" \
+UMBRELLA_INGRESS_COUNT=$(helm template argocd-ingress "${SCRIPT_DIR}" \
   --namespace argocd \
-  --values "$SCRIPT_DIR/values-prod.yaml" 2>/dev/null | \
+  --values "${SCRIPT_DIR}/values-prod.yaml" 2>/dev/null | \
   grep -c "kind: Ingress" || true)
 
-if [ "$UMBRELLA_INGRESS_COUNT" -eq 4 ]; then
+if [[ "${UMBRELLA_INGRESS_COUNT}" -eq 4 ]]; then
     echo -e "${GREEN}✓ Ingress umbrella chart generates 4 ingresses${NC}"
 else
-    echo -e "${RED}✗ Ingress umbrella chart generates $UMBRELLA_INGRESS_COUNT ingresses (expected 4)${NC}"
+    echo -e "${RED}✗ Ingress umbrella chart generates ${UMBRELLA_INGRESS_COUNT} ingresses (expected 4)${NC}"
     exit 1
 fi
 
 # List the ingresses
 echo
 echo "Generated ingresses:"
-helm template argocd-ingress "$SCRIPT_DIR" \
+helm template argocd-ingress "${SCRIPT_DIR}" \
   --namespace argocd \
-  --values "$SCRIPT_DIR/values-prod.yaml" 2>/dev/null | \
+  --values "${SCRIPT_DIR}/values-prod.yaml" 2>/dev/null | \
   grep -E "^  name: " | \
   sed 's/^/  - /' || echo "  (Could not extract ingress names)"
 
@@ -75,15 +75,15 @@ echo
 echo "Ready to deploy! Use the following commands:"
 echo
 echo -e "${YELLOW}# Step 1: Update main ArgoCD chart (ingresses now disabled)${NC}"
-echo "helm upgrade --install argocd $ARGOCD_CHART_DIR \\"
+echo "helm upgrade --install argocd ${ARGOCD_CHART_DIR} \\"
 echo "  --namespace argocd \\"
 echo "  --create-namespace \\"
-echo "  --values $ARGOCD_CHART_DIR/values-prod.yaml"
+echo "  --values ${ARGOCD_CHART_DIR}/values-prod.yaml"
 echo
 echo -e "${YELLOW}# Step 2: Deploy all ingresses via umbrella chart${NC}"
-echo "helm upgrade --install argocd-ingress $SCRIPT_DIR \\"
+echo "helm upgrade --install argocd-ingress ${SCRIPT_DIR} \\"
 echo "  --namespace argocd \\"
-echo "  --values $SCRIPT_DIR/values-prod.yaml"
+echo "  --values ${SCRIPT_DIR}/values-prod.yaml"
 echo
 echo -e "${YELLOW}# Step 3: Verify ingresses are created${NC}"
 echo "kubectl get ingress -n argocd"
@@ -95,4 +95,4 @@ echo "curl -k https://argocd-webhook-public.enigma.vgijssel.nl/api/webhook"
 echo "curl -k https://argocd-applicationset-webhook-public.enigma.vgijssel.nl/api/webhook"
 echo
 echo -e "${YELLOW}# Step 5: After successful validation, remove old manifests${NC}"
-echo "rm -rf $(dirname "$SCRIPT_DIR")/manifests/ingress-*.yaml"
+echo "rm -rf $(dirname "${SCRIPT_DIR}")/manifests/ingress-*.yaml"

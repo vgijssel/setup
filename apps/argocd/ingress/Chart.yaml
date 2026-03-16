@@ -2,22 +2,22 @@ apiVersion: v2
 name: argocd-ingress
 description: Umbrella chart for all ArgoCD ingress resources
 version: 1.0.0
-appVersion: "1.0"
+appVersion: 1.0
 
 dependencies:
   - name: ingress
-    version: "1.0.0"
-    repository: "file://../../../libs/ingress"
+    version: 1.0.0
+    repository: file://../../../libs/ingress
     alias: ingress-http
   - name: ingress
-    version: "1.0.0"
-    repository: "file://../../../libs/ingress"
+    version: 1.0.0
+    repository: file://../../../libs/ingress
     alias: ingress-grpc
   - name: ingress
-    version: "1.0.0"
-    repository: "file://../../../libs/ingress"
+    version: 1.0.0
+    repository: file://../../../libs/ingress
     alias: ingress-webhook
   - name: ingress
-    version: "1.0.0"
-    repository: "file://../../../libs/ingress"
+    version: 1.0.0
+    repository: file://../../../libs/ingress
     alias: ingress-applicationset-webhook

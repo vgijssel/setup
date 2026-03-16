@@ -11,4 +11,4 @@ prUpdateCluster: false
 serverSideApply: false
 
 prOverrides:
-  "tenant.name": "argocd%s"
+  tenant.name: argocd%s

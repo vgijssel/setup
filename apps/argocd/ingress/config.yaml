@@ -10,7 +10,7 @@ prUpdateCluster: true
 serverSideApply: false
 
 prOverrides:
-  "ingress-http.host": "argocd-%s.enigma.vgijssel.nl"
-  "ingress-grpc.host": "argocd-grpc-%s.enigma.vgijssel.nl"
-  "ingress-webhook.host": "argocd-webhook-public-%s.enigma.vgijssel.nl"
-  "ingress-applicationset-webhook.host": "argocd-applicationset-webhook-public-%s.enigma.vgijssel.nl"
+  ingress-http.host: argocd-%s.enigma.vgijssel.nl
+  ingress-grpc.host: argocd-grpc-%s.enigma.vgijssel.nl
+  ingress-webhook.host: argocd-webhook-public-%s.enigma.vgijssel.nl
+  ingress-applicationset-webhook.host: argocd-applicationset-webhook-public-%s.enigma.vgijssel.nl
