@@ -37,6 +37,13 @@ export default {
       },
     },
     {
+      match: "https://tailscale.com/*",
+      browser: {
+        name: "Google Chrome",
+        profile: "vgijssel.nl",
+      },
+    },
+    {
       match: "https://claude.ai/*",
       browser: {
         name: "Google Chrome",
