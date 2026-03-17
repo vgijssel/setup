@@ -208,7 +208,6 @@ light:
   - platform: group
     name: living_room_lights
     entities:
-      - light.living_room_corner_light
       - light.living_room_dining_table_light
       - light.living_room_monkey_light
       - light.living_room_tv_light
@@ -248,6 +247,11 @@ light:
     entities:
       - light.toilet_1_light
       - light.toilet_2_light
+  - platform: group
+    name: office_lights
+    entities:
+      - light.office_corner_light
+      - light.office_light
 
 group:
   baby_room_lights:
@@ -260,7 +264,7 @@ homekit:
   - mode: bridge
     filter:
       include_entities:
-        - light.living_room_corner_light
+        - light.office_corner_light
         - light.living_room_dining_table_light
         - light.living_room_monkey_light
         - light.living_room_tv_light
@@ -301,8 +305,6 @@ homekit:
         - automation.laundry_room_occupancy_lights
 
     entity_config:
-      light.living_room_corner_light:
-        name: Woonkamer Hoek
       light.living_room_dining_table_light:
         name: Woonkamer Eetkamertafel
       light.living_room_monkey_light:
@@ -331,6 +333,8 @@ homekit:
         name: Waskamer Lamp
       light.office_light:
         name: Kantoor Lamp
+      light.office_corner_light:
+        name: Kantoor Hoek Lamp
       switch.supply_closet_shelly:
         name: Voorraadkast Lamp
       light.toilet_lights:
@@ -435,6 +439,7 @@ adaptive_lighting:
   - name: office
     lights:
       - light.office_light
+      - light.office_corner_light
   - name: kitchen
     lights:
       - light.kitchen_lights
@@ -443,7 +448,6 @@ adaptive_lighting:
     min_brightness: 35
   - name: living_room
     lights:
-      - light.living_room_corner_light
       - light.living_room_dining_table_light
       - light.living_room_monkey_light
       - light.living_room_tv_light
@@ -455,18 +459,12 @@ cloud:
   google_actions:
     filter:
       include_entities:
-        - light.living_room_corner_light
         - light.living_room_dining_table_light
         - light.living_room_monkey_light
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.kitchen_lights
     entity_config:
-      light.living_room_corner_light:
-        name: Hoek
-        aliases:
-          - Corner
-        room: Woonkamer
       light.living_room_dining_table_light:
         name: Eetkamertafel
         aliases:
