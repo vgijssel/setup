@@ -46,6 +46,8 @@ substitutions:
   touchpanel_power_pin: GPIO5
 
 esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
   on_boot:
     priority: -100
     then:
