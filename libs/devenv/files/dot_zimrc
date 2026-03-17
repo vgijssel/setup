@@ -26,7 +26,8 @@ zmodule joke/zim-starship
 zmodule direnv
 
 # Introduces "z" alias which tracks your most used directories and allows you to quickly navigate to them.
-zmodule kiesman99/zim-zoxide
+# Pinned before 2026-01-19 change (PR #5) that switched from --cmd z to --cmd cd
+zmodule kiesman99/zim-zoxide --use git --on-pull 'git checkout 274fc5e09ecc851cd398d894b16c4b1b5e1a9a01'
 
 # Introduces graphical history search and fuzzy finder for Zsh.
 zmodule fzf

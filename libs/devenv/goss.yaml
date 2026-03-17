@@ -182,6 +182,16 @@ command:
     exit-status: 0
     timeout: 60000
 
+  zoxide_z_alias:
+    title: "'z' alias is available in interactive zsh for zoxide navigation"
+    meta:
+      url: https://github.com/kiesman99/zim-zoxide
+    exec: zsh -ic 'type z'
+    exit-status: 0
+    stdout:
+      - /z is/
+    timeout: 60000
+
   starship_prompt_integration:
     title: Starship prompt is properly integrated with zsh
     skip: {{ and (ne .Env.IS_MACOS "true") (ne .Env.IS_LINUX_CONTAINER "true") }}
