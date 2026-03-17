@@ -254,8 +254,7 @@ group:
     name: baby_room_lights
     entities:
       - light.baby_room_light
-      - switch.baby_room_moon_light_moko
-      - switch.office_server_moko
+      - switch.baby_room_ball_light_2
 
 homekit:
   - mode: bridge
@@ -267,7 +266,7 @@ homekit:
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.baby_room_light
-        - switch.baby_room_moon_light_moko
+        - switch.baby_room_ball_light_2
         - light.bathroom_lights
         - light.bedroom_light
         - switch.driveway_shelly
@@ -279,7 +278,6 @@ homekit:
         - switch.supply_closet_shelly
         - light.toilet_lights
         - switch.garden_shelly
-        - switch.office_server_moko
         - binary_sensor.landing_smoke_alarm_status
         - binary_sensor.landing_carbon_alarm_status
         - binary_sensor.hallway_smoke_alarm_status
@@ -315,9 +313,8 @@ homekit:
         name: Woonkamer Thermostaat
       light.baby_room_light:
         name: Babykamer Lamp
-      switch.baby_room_moon_light_moko:
-        name: Babykamer Maan Lamp
-        type: outlet
+      switch.baby_room_ball_light_2:
+        name: Babykamer Ballen Lamp
       light.bathroom_lights:
         name: Badkamer Lampen
       light.bedroom_light:
@@ -340,9 +337,6 @@ homekit:
         name: Wc Lampen
       switch.garden_shelly:
         name: Tuin Lamp
-      switch.office_server_moko:
-        name: Ballenlamp
-        type: outlet
       binary_sensor.landing_smoke_alarm_status:
         name: Overloop Rookmelder
       binary_sensor.landing_carbon_alarm_status:
