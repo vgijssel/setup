@@ -372,7 +372,7 @@
     input:
       occupancy_toggle: input_boolean.office_room_occupancy_toggle
       lights:
-      - light.office_light
+      - light.office_lights
 - id: '1755250048428'
   alias: Bedroom - Occupancy Lights
   description: ''

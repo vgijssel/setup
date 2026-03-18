@@ -436,10 +436,7 @@ adaptive_lighting:
   - name: bedroom
     lights:
       - light.bedroom_light
-  - name: office
-    lights:
-      - light.office_light
-      - light.office_corner_light
+
   - name: kitchen
     lights:
       - light.kitchen_lights
