@@ -9,4 +9,4 @@ substitutions:
 
 packages:
   base: !include .base.yaml
-  smarthomeyourself.tx-ultimate: github://SmartHome-yourself/sonoff-tx-ultimate-for-esphome/tx_ultimate.yaml@main
+  tx_ultimate: !include .sonoff-tx-ultimate.yaml

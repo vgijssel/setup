@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# .zimrc hash: {{ include "dot_zimrc" | sha256sum }}
+# .zshrc hash: {{ include "dot_zshrc.tmpl" | sha256sum }}
+# .zshenv hash: {{ include "dot_zshenv" | sha256sum }}
+
+zsh -ic 'exit 0'

@@ -12,14 +12,15 @@ tags:
 tasks:
   apply:
     command: chezmoi-wrapper apply --force --verbose
-    options:
-      runInCI: false
-      interactive: true
-
-  test:
-    script: chezmoi-wrapper apply --force --verbose && goss validate
     deps:
       - vendir:build
+    options:
+      cache: false
+
+  test:
+    script: goss validate
+    deps:
+      - devenv:apply
     inputs:
       - glob: files/**/*
         cache: true

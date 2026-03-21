@@ -37,7 +37,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/vgijssel/setup.git
-        revision: mg/feat/refine-argocd-pr-workflow
+        revision: main
         files:
           - path: apps/*/*/config.yaml
   template:
@@ -51,7 +51,7 @@ spec:
       project: default
       source:
         repoURL: https://github.com/vgijssel/setup.git
-        targetRevision: mg/feat/refine-argocd-pr-workflow
+        targetRevision: main
         path: "{{.path.path}}"
         helm:
           valueFiles:

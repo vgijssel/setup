@@ -372,7 +372,7 @@
     input:
       occupancy_toggle: input_boolean.office_room_occupancy_toggle
       lights:
-      - light.office_light
+      - light.office_lights
 - id: '1755250048428'
   alias: Bedroom - Occupancy Lights
   description: ''
@@ -419,8 +419,7 @@
       lights:
       - light.baby_room_light
       switches:
-      - switch.baby_room_moon_light_moko
-      - switch.office_server_moko
+      - switch.baby_room_ball_light_2
 - id: '1755251175899'
   alias: Landing - Room Occupancy
   description: ''
@@ -1122,9 +1121,9 @@
       - choose:
         - conditions:
           - condition: template
-            value_template: >-
-              {% set rgb = state_attr(trigger.entity_id, 'rgb_color') %}
-              {{ rgb is not none and rgb[0] > 200 and rgb[1] < 100 and rgb[2] < 100 }}
+            value_template: '{% set rgb = state_attr(trigger.entity_id, ''rgb_color'')
+              %} {{ rgb is not none and rgb[0] > 200 and rgb[1] < 100 and rgb[2] <
+              100 }}'
           sequence:
           - action: input_boolean.turn_on
             metadata: {}
@@ -1133,9 +1132,9 @@
               entity_id: input_boolean.verjaardag_hilde_puzzle_4_red_toggle
         - conditions:
           - condition: template
-            value_template: >-
-              {% set rgb = state_attr(trigger.entity_id, 'rgb_color') %}
-              {{ rgb is not none and rgb[2] > 200 and rgb[0] < 100 and rgb[1] < 100 }}
+            value_template: '{% set rgb = state_attr(trigger.entity_id, ''rgb_color'')
+              %} {{ rgb is not none and rgb[2] > 200 and rgb[0] < 100 and rgb[1] <
+              100 }}'
           sequence:
           - action: input_boolean.turn_on
             metadata: {}
@@ -1144,9 +1143,9 @@
               entity_id: input_boolean.verjaardag_hilde_puzzle_4_blue_toggle
         - conditions:
           - condition: template
-            value_template: >-
-              {% set rgb = state_attr(trigger.entity_id, 'rgb_color') %}
-              {{ rgb is not none and rgb[1] > 200 and rgb[0] < 100 and rgb[2] < 100 }}
+            value_template: '{% set rgb = state_attr(trigger.entity_id, ''rgb_color'')
+              %} {{ rgb is not none and rgb[1] > 200 and rgb[0] < 100 and rgb[2] <
+              100 }}'
           sequence:
           - action: input_boolean.turn_on
             metadata: {}
@@ -1377,12 +1376,12 @@
       - action: input_number.set_value
         metadata: {}
         data:
-          value: >-
-            {% set washing_machine = 19 if is_state('binary_sensor.wasmachine_power', 'on') else 0 %}
-            {% set dryer = 32 if is_state('binary_sensor.droger_power', 'on') else 0 %}
-            {% set bedroom_tv = 5 if not is_state('media_player.bedroom_tv', 'off') else 0 %}
-            {% set living_room_tv = 14 if not is_state('media_player.living_room_tv', 'off') else 0 %}
-            {{ washing_machine + dryer + bedroom_tv + living_room_tv }}
+          value: '{% set washing_machine = 19 if is_state(''binary_sensor.wasmachine_power'',
+            ''on'') else 0 %} {% set dryer = 32 if is_state(''binary_sensor.droger_power'',
+            ''on'') else 0 %} {% set bedroom_tv = 5 if not is_state(''media_player.bedroom_tv'',
+            ''off'') else 0 %} {% set living_room_tv = 14 if not is_state(''media_player.living_room_tv'',
+            ''off'') else 0 %} {{ washing_machine + dryer + bedroom_tv + living_room_tv
+            }}'
         target:
           entity_id: input_number.verjaardag_hilde_puzzle_6_power_number
     - conditions:

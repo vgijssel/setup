@@ -27,7 +27,6 @@ packages:
       - 1password
       - discord
       - slack
-      - obsidian
       - gimp
       - chatgpt
       - claude
@@ -35,8 +34,8 @@ packages:
       - finicky
       - obs
       - coder/coder/coder-desktop
-      - motion
       - resilio-sync
+      - anytype
       # TODO: Re-add telegram once Homebrew cask checksum is updated
       # See: https://github.com/Homebrew/homebrew-cask/issues for updates
       # - telegram

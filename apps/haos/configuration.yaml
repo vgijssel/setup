@@ -208,7 +208,6 @@ light:
   - platform: group
     name: living_room_lights
     entities:
-      - light.living_room_corner_light
       - light.living_room_dining_table_light
       - light.living_room_monkey_light
       - light.living_room_tv_light
@@ -248,26 +247,30 @@ light:
     entities:
       - light.toilet_1_light
       - light.toilet_2_light
+  - platform: group
+    name: office_lights
+    entities:
+      - light.office_corner_light
+      - light.office_light
 
 group:
   baby_room_lights:
     name: baby_room_lights
     entities:
       - light.baby_room_light
-      - switch.baby_room_moon_light_moko
-      - switch.office_server_moko
+      - switch.baby_room_ball_light_2
 
 homekit:
   - mode: bridge
     filter:
       include_entities:
-        - light.living_room_corner_light
+        - light.office_corner_light
         - light.living_room_dining_table_light
         - light.living_room_monkey_light
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.baby_room_light
-        - switch.baby_room_moon_light_moko
+        - switch.baby_room_ball_light_2
         - light.bathroom_lights
         - light.bedroom_light
         - switch.driveway_shelly
@@ -279,7 +282,6 @@ homekit:
         - switch.supply_closet_shelly
         - light.toilet_lights
         - switch.garden_shelly
-        - switch.office_server_moko
         - binary_sensor.landing_smoke_alarm_status
         - binary_sensor.landing_carbon_alarm_status
         - binary_sensor.hallway_smoke_alarm_status
@@ -303,8 +305,6 @@ homekit:
         - automation.laundry_room_occupancy_lights
 
     entity_config:
-      light.living_room_corner_light:
-        name: Woonkamer Hoek
       light.living_room_dining_table_light:
         name: Woonkamer Eetkamertafel
       light.living_room_monkey_light:
@@ -315,9 +315,8 @@ homekit:
         name: Woonkamer Thermostaat
       light.baby_room_light:
         name: Babykamer Lamp
-      switch.baby_room_moon_light_moko:
-        name: Babykamer Maan Lamp
-        type: outlet
+      switch.baby_room_ball_light_2:
+        name: Babykamer Ballen Lamp
       light.bathroom_lights:
         name: Badkamer Lampen
       light.bedroom_light:
@@ -334,15 +333,14 @@ homekit:
         name: Waskamer Lamp
       light.office_light:
         name: Kantoor Lamp
+      light.office_corner_light:
+        name: Kantoor Hoek Lamp
       switch.supply_closet_shelly:
         name: Voorraadkast Lamp
       light.toilet_lights:
         name: Wc Lampen
       switch.garden_shelly:
         name: Tuin Lamp
-      switch.office_server_moko:
-        name: Ballenlamp
-        type: outlet
       binary_sensor.landing_smoke_alarm_status:
         name: Overloop Rookmelder
       binary_sensor.landing_carbon_alarm_status:
@@ -438,9 +436,7 @@ adaptive_lighting:
   - name: bedroom
     lights:
       - light.bedroom_light
-  - name: office
-    lights:
-      - light.office_light
+
   - name: kitchen
     lights:
       - light.kitchen_lights
@@ -449,7 +445,6 @@ adaptive_lighting:
     min_brightness: 35
   - name: living_room
     lights:
-      - light.living_room_corner_light
       - light.living_room_dining_table_light
       - light.living_room_monkey_light
       - light.living_room_tv_light
@@ -461,18 +456,12 @@ cloud:
   google_actions:
     filter:
       include_entities:
-        - light.living_room_corner_light
         - light.living_room_dining_table_light
         - light.living_room_monkey_light
         - light.living_room_tv_light
         - climate.living_room_heat
         - light.kitchen_lights
     entity_config:
-      light.living_room_corner_light:
-        name: Hoek
-        aliases:
-          - Corner
-        room: Woonkamer
       light.living_room_dining_table_light:
         name: Eetkamertafel
         aliases:
