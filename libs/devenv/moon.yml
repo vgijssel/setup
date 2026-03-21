@@ -13,12 +13,12 @@ tasks:
   apply:
     command: chezmoi-wrapper apply --force --verbose
     options:
-      runInCI: false
-      interactive: true
+      cache: false
 
   test:
-    script: chezmoi-wrapper apply --force --verbose && goss validate
+    script: goss validate
     deps:
+      - devenv:apply
       - vendir:build
     inputs:
       - glob: files/**/*
