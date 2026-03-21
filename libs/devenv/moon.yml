@@ -20,7 +20,7 @@ tasks:
   test:
     script: goss validate
     deps:
-      - vendir:build
+      - devenv:apply
     inputs:
       - glob: files/**/*
         cache: true
