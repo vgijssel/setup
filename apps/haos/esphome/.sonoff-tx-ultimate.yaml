@@ -21,8 +21,8 @@ substitutions:
   nightlight_brightness: "0.2"
   nightlight_color: "{80,70,0}"
 
-  latitude: "50.123456°"
-  longitude: "5.654321°"
+  latitude: 50.123456°
+  longitude: 5.654321°
 
   # GPIO pins
   relay_1_pin: GPIO18
@@ -99,7 +99,7 @@ globals:
 
 binary_sensor:
   - platform: template
-    name: "Touchfield 1"
+    name: Touchfield 1
     id: touchfield_1
     on_press:
       - if:
@@ -114,7 +114,7 @@ binary_sensor:
                 data:
                   device_id: ${name}
                   button: "1"
-                  action: "press"
+                  action: press
           # API disconnected: toggle relay directly as fallback
           else:
             - switch.toggle: relay_1
@@ -124,7 +124,7 @@ binary_sensor:
           state: OFF
 
   - platform: template
-    name: "Touchfield 2"
+    name: Touchfield 2
     id: touchfield_2
     on_press:
       - if:
@@ -138,7 +138,7 @@ binary_sensor:
                 data:
                   device_id: ${name}
                   button: "2"
-                  action: "press"
+                  action: press
           else:
             - switch.toggle: relay_2
       - delay: ${button_on_time}
@@ -147,7 +147,7 @@ binary_sensor:
           state: OFF
 
   - platform: template
-    name: "Touchfield 3"
+    name: Touchfield 3
     id: touchfield_3
     on_press:
       - if:
@@ -161,7 +161,7 @@ binary_sensor:
                 data:
                   device_id: ${name}
                   button: "3"
-                  action: "press"
+                  action: press
           else:
             - switch.toggle: relay_3
       - delay: ${button_on_time}
@@ -170,7 +170,7 @@ binary_sensor:
           state: OFF
 
   - platform: template
-    name: "Swipe left"
+    name: Swipe left
     id: swipe_left
     on_press:
       - if:
@@ -183,14 +183,14 @@ binary_sensor:
                 event: esphome.tx_ultimate_touch
                 data:
                   device_id: ${name}
-                  action: "swipe_left"
+                  action: swipe_left
       - delay: ${button_on_time}
       - binary_sensor.template.publish:
           id: swipe_left
           state: OFF
 
   - platform: template
-    name: "Swipe_right"
+    name: Swipe_right
     id: swipe_right
     on_press:
       - if:
@@ -203,14 +203,14 @@ binary_sensor:
                 event: esphome.tx_ultimate_touch
                 data:
                   device_id: ${name}
-                  action: "swipe_right"
+                  action: swipe_right
       - delay: ${button_on_time}
       - binary_sensor.template.publish:
           id: swipe_right
           state: OFF
 
   - platform: template
-    name: "Multi Touch"
+    name: Multi Touch
     id: multi_touch
     on_press:
       - if:
@@ -223,14 +223,14 @@ binary_sensor:
                 event: esphome.tx_ultimate_touch
                 data:
                   device_id: ${name}
-                  action: "multi_touch"
+                  action: multi_touch
       - delay: ${button_on_time}
       - binary_sensor.template.publish:
           id: multi_touch
           state: OFF
 
   - platform: template
-    name: "Long Press"
+    name: Long Press
     id: long_press
     on_press:
       - if:
@@ -243,7 +243,7 @@ binary_sensor:
                 event: esphome.tx_ultimate_touch
                 data:
                   device_id: ${name}
-                  action: "long_press"
+                  action: long_press
       - delay: ${button_on_time}
       - binary_sensor.template.publish:
           id: long_press
@@ -298,12 +298,12 @@ switch:
   - platform: gpio
     id: pa_power
     pin: ${pa_power_pin}
-    name: "PA Power"
+    name: PA Power
     internal: true
     restore_mode: ALWAYS_ON
 
   - platform: gpio
-    name: "touch panel power"
+    name: touch panel power
     pin:
       number: ${touchpanel_power_pin}
       inverted: true
@@ -312,7 +312,7 @@ switch:
     restore_mode: RESTORE_DEFAULT_ON
 
   - platform: template
-    name: "Nightlight"
+    name: Nightlight
     id: nightlight_switch
     internal: true
     optimistic: true
@@ -325,7 +325,7 @@ switch:
         - script.execute: refresh_led_default
 
   - platform: template
-    name: "Nightlight Active"
+    name: Nightlight Active
     id: nightlight_active
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
@@ -342,16 +342,16 @@ light:
     variant: WS2811
     pin: ${led_pin}
     num_leds: 28
-    name: "NeoPixel Light"
+    name: NeoPixel Light
     id: leds
     default_transition_length: 0s
     effects:
       - addressable_rainbow:
-          name: "Rainbow"
+          name: Rainbow
           speed: 30
           width: 8
       - pulse:
-          name: "Pulse"
+          name: Pulse
           transition_length: 1.4s
           update_interval: 1s
 
@@ -360,21 +360,21 @@ light:
         - script.execute: refresh_led_default
 
   - platform: partition
-    name: "LEDs Button right"
+    name: LEDs Button right
     id: leds_button_right
     segments:
       - id: leds
         from: 7
         to: 7
   - platform: partition
-    name: "LEDs Button middle"
+    name: LEDs Button middle
     id: leds_button_middle
     segments:
       - id: leds
         from: 9
         to: 9
   - platform: partition
-    name: "LEDs Button left"
+    name: LEDs Button left
     id: leds_button_left
     segments:
       - id: leds
@@ -382,7 +382,7 @@ light:
         to: 11
 
   - platform: partition
-    name: "LEDs Nightlight"
+    name: LEDs Nightlight
     id: leds_nightlight
     segments:
       - id: leds
@@ -405,7 +405,7 @@ light:
         to: 6
 
   - platform: partition
-    name: "LEDs Top"
+    name: LEDs Top
     id: leds_top
     segments:
       - id: leds
@@ -413,9 +413,9 @@ light:
         to: 26
     effects:
       - addressable_scan:
-          name: "Scan"
+          name: Scan
       - addressable_rainbow:
-          name: "Rainbow"
+          name: Rainbow
           speed: 10
           width: 20
 
@@ -455,7 +455,7 @@ tx_ultimate_touch:
   on_release:
     - script.execute:
         id: handle_release
-        pos: !lambda "return touch.x;"
+        pos: !lambda return touch.x;
 
     - switch.turn_on: vibra
 
@@ -567,7 +567,7 @@ script:
 
       - if:
           condition:
-            lambda: "return id(nightlight_switch).state || id(nightlight_active).state;"
+            lambda: return id(nightlight_switch).state || id(nightlight_active).state;
           then:
             - script.execute: led_on_nightlight
           else:
@@ -579,9 +579,9 @@ script:
       - light.turn_on:
           id: leds_button_left
           brightness: ${button_brightness}
-          red: !lambda "return id(button_color)[0]/100.0;"
-          green: !lambda "return id(button_color)[1]/100.0;"
-          blue: !lambda "return id(button_color)[2]/100.0;"
+          red: !lambda return id(button_color)[0]/100.0;
+          green: !lambda return id(button_color)[1]/100.0;
+          blue: !lambda return id(button_color)[2]/100.0;
 
   - id: led_on_button_middle
     mode: restart
@@ -589,9 +589,9 @@ script:
       - light.turn_on:
           id: leds_button_middle
           brightness: ${button_brightness}
-          red: !lambda "return id(button_color)[0]/100.0;"
-          green: !lambda "return id(button_color)[1]/100.0;"
-          blue: !lambda "return id(button_color)[2]/100.0;"
+          red: !lambda return id(button_color)[0]/100.0;
+          green: !lambda return id(button_color)[1]/100.0;
+          blue: !lambda return id(button_color)[2]/100.0;
 
   - id: led_on_button_right
     mode: restart
@@ -599,23 +599,23 @@ script:
       - light.turn_on:
           id: leds_button_right
           brightness: ${button_brightness}
-          red: !lambda "return id(button_color)[0]/100.0;"
-          green: !lambda "return id(button_color)[1]/100.0;"
-          blue: !lambda "return id(button_color)[2]/100.0;"
+          red: !lambda return id(button_color)[0]/100.0;
+          green: !lambda return id(button_color)[1]/100.0;
+          blue: !lambda return id(button_color)[2]/100.0;
 
   - id: led_off_button_left
     mode: restart
     then:
       - if:
           condition:
-            lambda: "return id(nightlight_switch).state || id(nightlight_active).state;"
+            lambda: return id(nightlight_switch).state || id(nightlight_active).state;
           then:
             - light.turn_on:
                 id: leds_button_left
                 brightness: ${nightlight_brightness}
-                red: !lambda "return id(nightlight_color)[0]/100.0;"
-                green: !lambda "return id(nightlight_color)[1]/100.0;"
-                blue: !lambda "return id(nightlight_color)[2]/100.0;"
+                red: !lambda return id(nightlight_color)[0]/100.0;
+                green: !lambda return id(nightlight_color)[1]/100.0;
+                blue: !lambda return id(nightlight_color)[2]/100.0;
           else:
             - light.turn_off:
                 id: leds_button_left
@@ -625,14 +625,14 @@ script:
     then:
       - if:
           condition:
-            lambda: "return id(nightlight_switch).state || id(nightlight_active).state;"
+            lambda: return id(nightlight_switch).state || id(nightlight_active).state;
           then:
             - light.turn_on:
                 id: leds_button_middle
                 brightness: ${nightlight_brightness}
-                red: !lambda "return id(nightlight_color)[0]/100.0;"
-                green: !lambda "return id(nightlight_color)[1]/100.0;"
-                blue: !lambda "return id(nightlight_color)[2]/100.0;"
+                red: !lambda return id(nightlight_color)[0]/100.0;
+                green: !lambda return id(nightlight_color)[1]/100.0;
+                blue: !lambda return id(nightlight_color)[2]/100.0;
           else:
             - light.turn_off:
                 id: leds_button_middle
@@ -642,14 +642,14 @@ script:
     then:
       - if:
           condition:
-            lambda: "return id(nightlight_switch).state || id(nightlight_active).state;"
+            lambda: return id(nightlight_switch).state || id(nightlight_active).state;
           then:
             - light.turn_on:
                 id: leds_button_right
                 brightness: ${nightlight_brightness}
-                red: !lambda "return id(nightlight_color)[0]/100.0;"
-                green: !lambda "return id(nightlight_color)[1]/100.0;"
-                blue: !lambda "return id(nightlight_color)[2]/100.0;"
+                red: !lambda return id(nightlight_color)[0]/100.0;
+                green: !lambda return id(nightlight_color)[1]/100.0;
+                blue: !lambda return id(nightlight_color)[2]/100.0;
           else:
             - light.turn_off:
                 id: leds_button_right
@@ -660,9 +660,9 @@ script:
       - light.turn_on:
           id: leds_nightlight
           brightness: ${nightlight_brightness}
-          red: !lambda "return id(nightlight_color)[0]/100.0;"
-          green: !lambda "return id(nightlight_color)[1]/100.0;"
-          blue: !lambda "return id(nightlight_color)[2]/100.0;"
+          red: !lambda return id(nightlight_color)[0]/100.0;
+          green: !lambda return id(nightlight_color)[1]/100.0;
+          blue: !lambda return id(nightlight_color)[2]/100.0;
 
   - id: handle_release
     mode: restart
@@ -683,7 +683,7 @@ script:
           then:
             - if:
                 condition:
-                  lambda: "return pos <= 5;"
+                  lambda: return pos <= 5;
                 then:
                   - binary_sensor.template.publish:
                       id: touchfield_1
@@ -700,7 +700,7 @@ script:
           then:
             - if:
                 condition:
-                  lambda: "return pos <= 3;"
+                  lambda: return pos <= 3;
                 then:
                   - binary_sensor.template.publish:
                       id: touchfield_1
@@ -709,7 +709,7 @@ script:
                 else:
                   - if:
                       condition:
-                        lambda: "return pos <= 7;"
+                        lambda: return pos <= 7;
                       then:
                         - binary_sensor.template.publish:
                             id: touchfield_2

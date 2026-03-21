@@ -1,6 +1,6 @@
 substitutions:
-  name: "baby-room-ultimate"
-  friendly_name: "Baby Room Ultimate"
+  name: baby-room-ultimate
+  friendly_name: Baby Room Ultimate
   relay_count: "1"
 
   device_name: baby-room-ultimate
