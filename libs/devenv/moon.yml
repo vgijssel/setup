@@ -12,13 +12,14 @@ tags:
 tasks:
   apply:
     command: chezmoi-wrapper apply --force --verbose
+    deps:
+      - vendir:build
     options:
       cache: false
 
   test:
     script: goss validate
     deps:
-      - devenv:apply
       - vendir:build
     inputs:
       - glob: files/**/*
