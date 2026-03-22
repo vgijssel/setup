@@ -1,3 +1,60 @@
+- id: baby_room_sleep_toggle_long_press
+  alias: Baby Room - Sleep Toggle via Long Press
+  description: Toggle baby room sleep mode on long press of TX Ultimate
+  triggers:
+  - trigger: event
+    event_type: esphome.tx_ultimate_easy
+    event_data:
+      device_name: baby_room_ultimate
+      type: button
+      action: long_press
+  actions:
+  - action: input_boolean.toggle
+    target:
+      entity_id: input_boolean.baby_room_sleep_toggle
+  mode: single
+- id: baby_room_sleep_toggle_on
+  alias: Baby Room - Sleep Light On
+  description: Set baby room light to red when sleep toggle is turned on
+  triggers:
+  - trigger: state
+    entity_id: input_boolean.baby_room_sleep_toggle
+    to: 'on'
+  actions:
+  - action: light.turn_on
+    target:
+      entity_id: light.baby_room_ultimate_lights_all
+    data:
+      color_name: red
+      brightness: 255
+  mode: single
+- id: baby_room_sleep_toggle_off
+  alias: Baby Room - Sleep Light Off
+  description: Turn off baby room light when sleep toggle is turned off
+  triggers:
+  - trigger: state
+    entity_id: input_boolean.baby_room_sleep_toggle
+    to: 'off'
+  actions:
+  - action: light.turn_off
+    target:
+      entity_id: light.baby_room_ultimate_lights_all
+  mode: single
+- id: baby_room_toggle_lights
+  alias: Baby Room - Toggle Lights
+  description: Toggle baby room lights on TX Ultimate short press
+  triggers:
+  - trigger: event
+    event_type: esphome.tx_ultimate_easy
+    event_data:
+      device_name: baby_room_ultimate
+      type: button
+      action: click
+  actions:
+  - action: homeassistant.toggle
+    target:
+      entity_id: group.baby_room_lights
+  mode: single
 - id: '1754753646691'
   alias: Supply Closet - Turn On Lights
   description: ''

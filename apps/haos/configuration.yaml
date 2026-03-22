@@ -42,6 +42,9 @@ input_boolean:
   laundry_room_room_occupancy_toggle:
     name: Laundry Room Occupancy Toggle
     icon: mdi:toggle-switch
+  baby_room_sleep_toggle:
+    name: Baby Room Sleep Toggle
+    icon: mdi:sleep
 
 timer:
   living_room_room_occupancy_timer:
