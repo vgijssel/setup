@@ -1,7 +1,8 @@
 substitutions:
   name: baby-room-ultimate
   friendly_name: Baby Room Ultimate
-  relay_count: "1"
+  device_format: EU
+  gang_count: 1
 
   device_name: baby-room-ultimate
   entity_id: baby_room_ultimate
@@ -9,4 +10,10 @@ substitutions:
 
 packages:
   base: !include .base.yaml
-  tx_ultimate: !include .sonoff-tx-ultimate.yaml
+  remote_package:
+    url: https://github.com/edwardtfn/TX-Ultimate-Easy
+    ref: v2026.3.2
+    refresh: 300min
+    files:
+      - ESPHome/TX-Ultimate-Easy-ESPHome_core.yaml
+      - ESPHome/TX-Ultimate-Easy-ESPHome_standard.yaml
