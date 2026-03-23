@@ -1,6 +1,6 @@
-- id: baby_room_sleep_toggle_long_press
-  alias: Baby Room - Sleep Toggle via Long Press
-  description: Toggle baby room sleep mode on long press of TX Ultimate
+- id: baby_room_sleep_mode
+  alias: Baby Room - Sleep Mode
+  description: Manage baby room sleep mode via long press toggle and timed light changes
   triggers:
   - trigger: event
     event_type: esphome.tx_ultimate_easy
@@ -8,37 +8,107 @@
       device_name: baby_room_ultimate
       type: button
       action: long_press
-  actions:
-  - action: input_boolean.toggle
-    target:
-      entity_id: input_boolean.baby_room_sleep_toggle
-  mode: single
-- id: baby_room_sleep_toggle_on
-  alias: Baby Room - Sleep Light On
-  description: Set baby room light to red when sleep toggle is turned on
-  triggers:
+    id: long_press
   - trigger: state
     entity_id: input_boolean.baby_room_sleep_toggle
     to: 'on'
-  actions:
-  - action: light.turn_on
-    target:
-      entity_id: light.baby_room_ultimate_lights_all
-    data:
-      color_name: red
-      brightness: 255
-  mode: single
-- id: baby_room_sleep_toggle_off
-  alias: Baby Room - Sleep Light Off
-  description: Turn off baby room light when sleep toggle is turned off
-  triggers:
+    id: sleep_on
   - trigger: state
     entity_id: input_boolean.baby_room_sleep_toggle
     to: 'off'
+    id: sleep_off
+  - trigger: time
+    at: '05:30:00'
+    id: update_light
+  - trigger: time
+    at: '06:30:00'
+    id: update_light
+  - trigger: time
+    at: '07:30:00'
+    id: wake_up
+  - trigger: homeassistant
+    event: start
+    id: update_light
+  - trigger: event
+    event_type: automation_reloaded
+    id: update_light
+  - trigger: state
+    entity_id: light.baby_room_ultimate_lights_all
+    to: 'on'
+    id: update_light
   actions:
-  - action: light.turn_off
-    target:
-      entity_id: light.baby_room_ultimate_lights_all
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: long_press
+      sequence:
+      - action: input_boolean.toggle
+        target:
+          entity_id: input_boolean.baby_room_sleep_toggle
+    - conditions:
+      - condition: trigger
+        id: sleep_on
+      sequence:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.baby_room_sleep
+      - action: automation.turn_off
+        target:
+          entity_id: automation.baby_room_occupancy_lights
+      - action: light.turn_on
+        target:
+          entity_id: light.baby_room_ultimate_lights_all
+        data:
+          brightness: 255
+    - conditions:
+      - condition: trigger
+        id: sleep_off
+      sequence:
+      - action: scene.turn_on
+        target:
+          entity_id: scene.baby_room_awake
+      - action: light.turn_off
+        target:
+          entity_id: light.baby_room_ultimate_lights_all
+      - action: automation.turn_on
+        target:
+          entity_id: automation.baby_room_occupancy_lights
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.baby_room_room_occupancy_select
+        data:
+          option: leaving
+    - conditions:
+      - condition: trigger
+        id: wake_up
+      - condition: state
+        entity_id: input_boolean.baby_room_sleep_toggle
+        state: 'on'
+      sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.baby_room_sleep_toggle
+    - conditions:
+      - condition: trigger
+        id: update_light
+      - condition: state
+        entity_id: input_boolean.baby_room_sleep_toggle
+        state: 'on'
+      sequence:
+      - action: light.turn_on
+        target:
+          entity_id: light.baby_room_ultimate_lights_all
+        data:
+          rgb_color: >
+            {% set t = now().hour * 60 + now().minute %}
+            {% if t >= 390 %}
+              [0, 255, 0]
+            {% elif t >= 330 %}
+              [255, 255, 0]
+            {% else %}
+              [255, 0, 0]
+            {% endif %}
+          brightness: 255
   mode: single
 - id: baby_room_toggle_lights
   alias: Baby Room - Toggle Lights
