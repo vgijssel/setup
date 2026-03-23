@@ -766,9 +766,14 @@
         data: {}
         target:
           entity_id:
-          - automation.baby_room_occupancy_lights
+          - automation.living_room_occupancy_lights
+          - automation.hallway_occupancy_lights
           - automation.landing_occupancy_lights
           - automation.bedroom_occupancy_lights
+          - automation.office_occupancy_lights
+          - automation.bathroom_occupancy_lights
+          - automation.toilet_occupancy_lights
+          - automation.laundry_room_occupancy_lights
     - conditions:
       - condition: trigger
         id:
@@ -780,9 +785,7 @@
           stop_actions: true
         target:
           entity_id:
-          - automation.baby_room_occupancy_lights
-          - automation.landing_occupancy_lights
-          - automation.bedroom_occupancy_lights
+          - automation.office_occupancy_lights
   mode: single
 - id: '1771059422125'
   alias: Verjaardag Hilde - Puzzle 1

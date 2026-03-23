@@ -50,7 +50,9 @@ trigger:
     entity_id: !input contact_sensor
     from:
     id: contact_open
-    to: "on"
+    to:
+      - "on"
+      - unavailable
   - trigger: template
     value_template: >
       {{ state_attr(variable_sensor, 'door_open_activity') == true }}
@@ -82,13 +84,19 @@ trigger:
     from:
     to: "off"
     id: motion
+  - trigger: homeassistant
+    event: start
+    id: recalculate
+  - trigger: event
+    event_type: automation_reloaded
+    id: recalculate
 
 condition: []
 
 action:
   - variables:
       motion_state: "{{ states(motion_sensor) }}"
-      door_state: "{{ states(contact_sensor) }}"
+      door_state: "{{ 'on' if states(contact_sensor) in ['unavailable', 'on'] else 'off' }}"
       door_open_activity: "{{ state_attr(variable_sensor, 'door_open_activity') }}"
       door_close_activity: "{{ state_attr(variable_sensor, 'door_close_activity') }}"
       state: "{{ states(variable_sensor) }}"
