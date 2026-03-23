@@ -52,7 +52,7 @@ trigger:
     id: contact_open
     to:
       - "on"
-      - "unavailable"
+      - unavailable
   - trigger: template
     value_template: >
       {{ state_attr(variable_sensor, 'door_open_activity') == true }}
