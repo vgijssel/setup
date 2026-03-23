@@ -297,6 +297,7 @@ homekit:
         - input_boolean.bathroom_room_occupancy_toggle
         - input_boolean.toilet_room_occupancy_toggle
         - input_boolean.laundry_room_room_occupancy_toggle
+        - input_boolean.baby_room_sleep_toggle
         - automation.living_room_occupancy_lights
         - automation.hallway_occupancy_lights
         - automation.landing_occupancy_lights
@@ -368,6 +369,8 @@ homekit:
         name: Wc Aanwezigheid
       input_boolean.laundry_room_room_occupancy_toggle:
         name: Waskamer Aanwezigheid
+      input_boolean.baby_room_sleep_toggle:
+        name: Babykamer Slaapstand
       automation.living_room_occupancy_lights:
         name: Woonkamer Automagisch
       automation.hallway_occupancy_lights:
