@@ -101,9 +101,9 @@
         data:
           rgb_color: >
             {% set t = now().hour * 60 + now().minute %}
-            {% if t >= 390 %}
+            {% if t >= 390 and t < 450 %}
               [0, 255, 0]
-            {% elif t >= 330 %}
+            {% elif t >= 330 and t < 390 %}
               [255, 255, 0]
             {% else %}
               [255, 0, 0]
