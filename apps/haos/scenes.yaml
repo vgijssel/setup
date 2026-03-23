@@ -7,6 +7,16 @@
     light.bathroom_4_light: "off"
     light.bathroom_5_light: "off"
     light.bathroom_6_light: "off"
+- name: baby_room_sleep
+  icon: mdi:sleep
+  entities:
+    light.baby_room_light: "off"
+    switch.baby_room_ball_light_2: "on"
+- name: baby_room_awake
+  icon: mdi:weather-sunny
+  entities:
+    light.baby_room_light: "on"
+    switch.baby_room_ball_light_2: "on"
 - name: bathroom_all_lights
   icon: mdi:shower-head
   entities:
