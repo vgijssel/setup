@@ -44,6 +44,13 @@ export default {
       },
     },
     {
+      match: "https://tailscale.com/*",
+      browser: {
+        name: "Google Chrome",
+        profile: "vgijssel.nl",
+      },
+    },
+    {
       match: "*.enigma.vgijssel.nl/*",
       browser: {
         name: "Google Chrome",
