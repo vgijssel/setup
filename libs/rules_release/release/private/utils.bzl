@@ -28,7 +28,7 @@ def label_to_string(label):
     if label.workspace_name == "":
         workspace_name = ""
     else:
-        # TODO: Wonder if there is a better way to get the workspace name of a locally overriden external repository
+        # TODO: Wonder if there is a better way to get the workspace name of a locally overridden external repository
         workspace_name = "@" + label.workspace_name.removesuffix("~override")
 
     return workspace_name + "//" + label.package + ":" + label.name
