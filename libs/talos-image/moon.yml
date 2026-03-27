@@ -5,7 +5,7 @@ project:
   metadata:
     dependencies:
       siderolabs/talos:
-        version: v1.12.1
+        version: v1.12.6
         datasource: github-releases
       siderolabs/realtek-firmware:
         version: "20251125"
