@@ -65,7 +65,7 @@ bazel_dep(
 # Optionally you can pin a different node version:
 bazel_dep(
     name = "rules_nodejs",
-    version = "5.8.2",
+    version = "5.8.5",
 )
 
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
