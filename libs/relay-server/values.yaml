@@ -11,7 +11,7 @@ replicaCount: 1
 image:
   repository: docker.system3.md/relay-server
   pullPolicy: IfNotPresent
-  tag: v0.9.2
+  tag: v0.9.6
   pullSecrets: []
 
 # Resource limits and requests
