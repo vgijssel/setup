@@ -258,6 +258,31 @@ async def restart_agent(
     return result.model_dump()
 
 
+@mcp.tool()
+async def update_agent(
+    agent_name: Annotated[
+        str,
+        Field(min_length=1, max_length=32, description="Name of the agent to update"),
+    ],
+    template_version_id: Annotated[
+        str | None,
+        Field(
+            None,
+            description="Template version UUID to update to. If not provided, uses the active version of the agent's template.",
+        ),
+    ] = None,
+) -> dict:
+    """Update an agent's workspace to a new template version."""
+    from .tools.update_agent import update_agent as update_agent_impl
+
+    result = await update_agent_impl(
+        get_agent_service(),
+        agent_name=agent_name,
+        template_version_id=template_version_id,
+    )
+    return result.model_dump()
+
+
 # ========================================================================
 # User Story 3: Task Assignment and Cancellation Tools
 # ========================================================================
