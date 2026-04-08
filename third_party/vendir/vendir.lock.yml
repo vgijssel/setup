@@ -86,8 +86,8 @@ directories:
   path: charts/vcluster
 - contents:
   - helmChart:
-      appVersion: v3.3.3
-      version: 9.4.10
+      appVersion: v3.3.6
+      version: 9.5.0
     path: .
   path: charts/argo-cd
 - contents:
