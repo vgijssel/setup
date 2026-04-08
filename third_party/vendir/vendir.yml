@@ -118,7 +118,7 @@ directories:
       - path: .
         helmChart:
           name: argo-cd
-          version: 9.4.10
+          version: 9.5.0
           repository:
             url: https://argoproj.github.io/argo-helm
   - path: shell/zimfw
