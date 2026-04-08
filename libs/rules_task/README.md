@@ -333,7 +333,7 @@ Instead of using the `stamp_stable` and `stamp_volatile` flags, you can use the 
 echo "VOLATILE_SOME_VAR BAR"
 ```
 
-And running `cat` on the the version file
+And running `cat` on the version file
 
 ```bazel
 task(
