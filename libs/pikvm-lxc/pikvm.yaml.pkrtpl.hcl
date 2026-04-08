@@ -83,7 +83,7 @@ actions:
       #!/bin/sh
       set -eux
 
-      # Don't need persistant storage service: https://docs.pikvm.org/pst/
+      # Don't need persistent storage service: https://docs.pikvm.org/pst/
       systemctl mask kvmd-pst
 
       # Don't need kvmd-fan service
