@@ -11,7 +11,7 @@ module(
 non_module_dependencies = use_extension("//release:extensions.bzl", "non_module_dependencies")
 
 # ------------------------------------ platforms ------------------------------------ #
-bazel_dep(name = "platforms", version = "0.0.8")
+bazel_dep(name = "platforms", version = "0.0.11")
 
 # ------------------------------------ bazel_skylib ------------------------------------ #
 bazel_dep(
