@@ -5,7 +5,7 @@
 services:
   otbr:
     container_name: otbr
-    image: openthread/otbr:focal@sha256:b85b5f4fa77ee9ad8054d5819c75208566c09152448a06eab6278da060bbb97f
+    image: openthread/otbr:focal@sha256:b494e2910587ed54cf9e35dc8b48698b764b43954274ef72bf877b6c28f5564b
     hostname: otbr
     restart: unless-stopped
 
