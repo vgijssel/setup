@@ -1,0 +1,20 @@
+# Base values (shared by prod and PR envs).
+# PR envs apply ONLY values.yaml, so anything PR-unsafe (e.g. claiming a
+# specific MetalLB IP on the VLAN) belongs in values-prod.yaml.
+k8s-gateway:
+  # Delegated zone — k8s_gateway answers A/AAAA records for ingress/service
+  # hostnames that fall under this domain.
+  domain: enigma.vgijssel.nl
+
+  # Watch both Ingress and Service resources so that LoadBalancer-exposed
+  # services (e.g. Tailscale, internal apps) are also resolvable.
+  watchedResources:
+    - Ingress
+    - Service
+
+  # ClusterIP keeps PR deployments from claiming a MetalLB address on the
+  # VLAN. values-prod.yaml promotes this to LoadBalancer for the prod env.
+  service:
+    type: ClusterIP
+
+  replicaCount: 1

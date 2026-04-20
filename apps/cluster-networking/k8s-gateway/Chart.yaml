@@ -1,0 +1,9 @@
+apiVersion: v2
+name: k8s-gateway
+description: In-cluster authoritative DNS for Ingress/Service records on the enigma root cluster
+type: application
+version: 1.0.0
+dependencies:
+  - name: k8s-gateway
+    version: 3.7.1
+    repository: file://../../../third_party/vendir/charts/k8s-gateway

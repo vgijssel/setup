@@ -1,0 +1,14 @@
+appType: apps
+appName: k8s-gateway
+platform: cluster-networking
+namespace: k8s-gateway
+
+cluster: enigma
+createNamespace: true
+# PR apps are isolated by namespace suffix (k8s-gatewaypr<N>) so they cannot
+# collide with the production release in the `k8s-gateway` namespace.
+prUpdateNamespace: true
+prUpdateCluster: false
+serverSideApply: false
+
+prOverrides: {}

@@ -121,4 +121,10 @@ directories:
       - v1.0.2
     path: .
   path: config/cozystack-talos-profiles
+- contents:
+  - helmChart:
+      appVersion: 1.8.0
+      version: 3.7.1
+    path: .
+  path: charts/k8s-gateway
 kind: LockConfig

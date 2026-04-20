@@ -1,26 +1,26 @@
 ## 1. Vendor the k8s-gateway Helm chart
 
-- [ ] 1.1 Identify the current stable `k8s-gateway` Helm chart version and repository URL from https://github.com/k8s-gateway/k8s_gateway
-- [ ] 1.2 Add a `charts/k8s-gateway` entry to `third_party/vendir/vendir.yml` with an **exact** `version:` pin (no `~>` or `^`) and the correct `repository.url`
-- [ ] 1.3 Run `vendir sync` and commit `third_party/vendir/charts/k8s-gateway/` and the updated `third_party/vendir/vendir.lock.yml`
-- [ ] 1.4 Verify the chart renders locally: `helm template third_party/vendir/charts/k8s-gateway` produces valid manifests
+- [x] 1.1 Identify the current stable `k8s-gateway` Helm chart version and repository URL from https://github.com/k8s-gateway/k8s_gateway
+- [x] 1.2 Add a `charts/k8s-gateway` entry to `third_party/vendir/vendir.yml` with an **exact** `version:` pin (no `~>` or `^`) and the correct `repository.url`
+- [x] 1.3 Run `vendir sync` and commit `third_party/vendir/charts/k8s-gateway/` and the updated `third_party/vendir/vendir.lock.yml`
+- [x] 1.4 Verify the chart renders locally: `helm template third_party/vendir/charts/k8s-gateway` produces valid manifests
 
 ## 2. Create the `apps/cluster-networking/` grouping
 
-- [ ] 2.1 Create directory `apps/cluster-networking/k8s-gateway/`
-- [ ] 2.2 Add `apps/cluster-networking/k8s-gateway/Chart.yaml` as an umbrella chart that depends on the vendored chart via `file://../../../third_party/vendir/charts/k8s-gateway` (mirror `apps/secrets-proxy/onepassword-operator/Chart.yaml`)
-- [ ] 2.3 Run `helm dependency update apps/cluster-networking/k8s-gateway` and commit the resulting `Chart.lock`
-- [ ] 2.4 Add `apps/cluster-networking/k8s-gateway/values.yaml` with base configuration (watched resource kinds, DNS zone, log level)
-- [ ] 2.5 Add `apps/cluster-networking/k8s-gateway/values-prod.yaml` with production overrides (Service `type: LoadBalancer`, MetalLB IP annotation, resource requests/limits)
-- [ ] 2.6 Add `apps/cluster-networking/k8s-gateway/config.yaml` with `appType: apps`, `appName: k8s-gateway`, `platform: cluster-networking`, `cluster: enigma`, the target `namespace:`, and `createNamespace: true`
-- [ ] 2.7 Add `apps/cluster-networking/moon.yml` registering the project (match the style of existing `apps/*/moon.yml` files)
+- [x] 2.1 Create directory `apps/cluster-networking/k8s-gateway/`
+- [x] 2.2 Add `apps/cluster-networking/k8s-gateway/Chart.yaml` as an umbrella chart that depends on the vendored chart via `file://../../../third_party/vendir/charts/k8s-gateway` (mirror `apps/secrets-proxy/onepassword-operator/Chart.yaml`)
+- [x] 2.3 Run `helm dependency update apps/cluster-networking/k8s-gateway` and commit the resulting `Chart.lock`
+- [x] 2.4 Add `apps/cluster-networking/k8s-gateway/values.yaml` with base configuration (watched resource kinds, DNS zone, log level)
+- [x] 2.5 Add `apps/cluster-networking/k8s-gateway/values-prod.yaml` with production overrides (Service `type: LoadBalancer`, MetalLB IP annotation, resource requests/limits)
+- [x] 2.6 Add `apps/cluster-networking/k8s-gateway/config.yaml` with `appType: apps`, `appName: k8s-gateway`, `platform: cluster-networking`, `cluster: enigma`, the target `namespace:`, and `createNamespace: true`
+- [x] 2.7 Add `apps/cluster-networking/moon.yml` registering the project (match the style of existing `apps/*/moon.yml` files)
 
 ## 3. Resolve open configuration questions before merging
 
-- [ ] 3.1 Decide the target namespace (e.g., `k8s-gateway` vs `dns`) and reflect it in `config.yaml` + `values*.yaml`
-- [ ] 3.2 Decide whether to reuse `192.168.50.2` or claim a new internal MetalLB IP; record the choice in `values-prod.yaml` via a MetalLB loadBalancerIP / `metallb.io/loadBalancerIPs` annotation
-- [ ] 3.3 Confirm that the existing internal-VLAN MetalLB pool (`apps/enigma-cluster/metallb-ip-address-pool.yml`) includes the chosen IP; update the pool if not
-- [ ] 3.4 Enumerate the resource kinds `k8s_gateway` must watch (Ingress is required; also Service/HTTPRoute if internal clients rely on them) and enable them in `values.yaml`
+- [x] 3.1 Decide the target namespace (e.g., `k8s-gateway` vs `dns`) and reflect it in `config.yaml` + `values*.yaml` — chose `k8s-gateway`
+- [x] 3.2 Decide whether to reuse `192.168.50.2` or claim a new internal MetalLB IP; record the choice in `values-prod.yaml` via a MetalLB loadBalancerIP / `metallb.io/loadBalancerIPs` annotation — picked `192.168.50.102` (free IP in the `cozystack` pool; leaves `.2` alone so Pi-hole keeps working during cutover)
+- [x] 3.3 Confirm that the existing internal-VLAN MetalLB pool (`apps/enigma-cluster/metallb-ip-address-pool.yml`) includes the chosen IP; update the pool if not — pool is `192.168.50.100-150`, `.102` is in range and unused
+- [x] 3.4 Enumerate the resource kinds `k8s_gateway` must watch (Ingress is required; also Service/HTTPRoute if internal clients rely on them) and enable them in `values.yaml` — enabled `Ingress` and `Service`
 
 ## 4. Smoke-test before cutover
 

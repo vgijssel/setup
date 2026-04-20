@@ -73,6 +73,24 @@ spec:
               files:
                 - path: apps/secrets-proxy/*/config.yaml
                 - path: apps/secrets-proxy-infra/*/config.yaml
+    # Generator for apps:cluster-networking label
+    - matrix:
+        generators:
+          - pullRequest:
+              github:
+                owner: vgijssel
+                repo: setup
+                labels:
+                  - apps:cluster-networking
+                tokenRef:
+                  secretName: github-token
+                  key: token
+              requeueAfterSeconds: 1800
+          - git:
+              repoURL: https://github.com/vgijssel/setup.git
+              revision: "{{.head_sha}}"
+              files:
+                - path: apps/cluster-networking/*/config.yaml
   template:
     metadata:
       name: "{{.platform}}-{{.appName}}-pr{{.number}}"
