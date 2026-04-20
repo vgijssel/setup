@@ -18,13 +18,13 @@
     to: 'off'
     id: sleep_off
   - trigger: time
-    at: '05:30:00'
+    at: 05:30:00
     id: update_light
   - trigger: time
-    at: '06:30:00'
+    at: 06:30:00
     id: update_light
   - trigger: time
-    at: '07:30:00'
+    at: 07:30:00
     id: wake_up
   - trigger: homeassistant
     event: start
@@ -99,15 +99,9 @@
         target:
           entity_id: light.baby_room_ultimate_lights_all
         data:
-          rgb_color: >
-            {% set t = now().hour * 60 + now().minute %}
-            {% if t >= 390 and t < 450 %}
-              [0, 255, 0]
-            {% elif t >= 330 and t < 390 %}
-              [255, 255, 0]
-            {% else %}
-              [255, 0, 0]
-            {% endif %}
+          rgb_color: "{% set t = now().hour * 60 + now().minute %} {% if t >= 390
+            and t < 450 %}\n  [0, 255, 0]\n{% elif t >= 330 and t < 390 %}\n  [255,
+            255, 0]\n{% else %}\n  [255, 0, 0]\n{% endif %}\n"
           brightness: 255
   mode: single
 - id: baby_room_toggle_lights
@@ -1686,4 +1680,30 @@
         data: {}
         target:
           entity_id: script.verjaardag_hilde_tts_loop
+  mode: single
+- id: door_chime_living_room
+  alias: Driveway - Door Chime
+  description: Play a chime on the living room Google Assistent when the driveway
+    doorbell rings
+  triggers:
+  - trigger: state
+    entity_id:
+    - event.driveway_doorbell_doorbell
+  conditions: []
+  actions:
+  - action: media_player.volume_set
+    target:
+      entity_id:
+      - media_player.keuken_assistent
+    data:
+      volume_level: 0.85
+  - action: media_player.play_media
+    target:
+      entity_id:
+      - media_player.keuken_assistent
+    data:
+      media:
+        media_content_id: media-source://media_source/local/sounds_sounds_ring_button_Chime.mp3
+        media_content_type: music
+        metadata: {}
   mode: single

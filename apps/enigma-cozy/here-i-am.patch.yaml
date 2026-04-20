@@ -13,8 +13,8 @@ machine:
     # This remote node connects to the cluster via KubeSpan (WireGuard over internet).
     # If the tunnel disconnects, it needs DNS to resolve discovery.talos.dev to re-establish.
     nameservers:
-      - 1.1.1.1 # Cloudflare DNS (public, always reachable)
-      - 8.8.8.8 # Google DNS (public, fallback)
+      - 1.1.1.1
+      - 1.0.0.1
     interfaces:
       - interface: eth0
         dhcp: true

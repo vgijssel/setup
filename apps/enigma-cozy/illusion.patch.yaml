@@ -9,7 +9,8 @@ machine:
   network:
     hostname: illusion
     nameservers:
-      - 192.168.50.2
+      - 1.1.1.1
+      - 1.0.0.1
     extraHostEntries:
       - ip: 192.168.50.10
         aliases:
