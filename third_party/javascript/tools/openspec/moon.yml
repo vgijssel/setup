@@ -1,0 +1,11 @@
+layer: library
+tags:
+  - javascript
+  - npm
+  - pnpm-tool
+
+tasks:
+  build:
+    options:
+      # TODO: currently too large to cache with bazel-remote and Backblaze B2
+      runInCI: false
