@@ -3,6 +3,11 @@
 # Keycloak OIDC redirects) so the Service stays ClusterIP. The ClusterIP is
 # pinned so kube-dns can forward `enigma.vgijssel.nl` to a stable target.
 k8s-gateway:
+  # Cozystack tenant namespaces gate egress to the kube-apiserver via a
+  # CiliumNetworkPolicy that selects on this label. Without it the
+  # controller can't watch Ingress/Service resources.
+  customLabels:
+    policy.cozystack.io/allow-to-apiserver: "true"
   service:
     type: ClusterIP
     clusterIP: 10.96.53.53
