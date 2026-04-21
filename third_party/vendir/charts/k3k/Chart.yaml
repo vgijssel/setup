@@ -1,6 +1,0 @@
-apiVersion: v2
-appVersion: v1.0.2
-description: A Helm chart for K3K
-name: k3k
-type: application
-version: 1.0.2

@@ -1,7 +1,0 @@
-# Assert CoreDNS addon Secret is created for DNS forwarding
-apiVersion: v1
-kind: Secret
-metadata:
-  name: test-cluster-dns-coredns-addon
-  namespace: tenant-test
-type: Opaque
