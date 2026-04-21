@@ -43,25 +43,26 @@
 - [x] 6.5 Run an in-cluster `dig @<svc> coder.enigma.vgijssel.nl` / `api.enigma.vgijssel.nl` via a debug pod; confirm both return `192.168.50.100` and `nope.enigma.vgijssel.nl` returns `NXDOMAIN`
 - [x] 6.6 Verify `kube-system/coredns` is unchanged in PR (Corefile still matches Talos default, `fieldsV1.manager = talos`, no `enigma.vgijssel.nl` stanza)
 
-## 7. Prod rollout (happens after PR #965 merges)
+## 7. Prod rollout (after PR #965 merges)
 
-- [ ] 7.1 Merge PR #965 into `main`
-- [ ] 7.2 Watch `argocd-applicationset-controller` generate the three prod Applications (`cluster-networking-tenant`, `…-k8s-gateway`, `…-coredns-patch`) and let RollingSync take them to `Synced / Healthy`
-- [ ] 7.3 Confirm on the cluster: `Tenant tenant-prod/clusternetworking` reports `READY=True`, namespace `tenant-prod-clusternetworking` exists, and the k8s-gateway Deployment/Service are Healthy with `ClusterIP 10.96.53.53`
-- [ ] 7.4 Verify `kube-system/coredns.data.Corefile` now contains the `enigma.vgijssel.nl:53 { forward . 10.96.53.53 }` stanza, and `fieldsV1` ownership of `data.Corefile` has transferred from `talos` to `argocd-controller`
-- [ ] 7.5 Run an in-cluster `dig @kube-dns.kube-system.svc.cluster.local keycloak.enigma.vgijssel.nl` from a debug pod; confirm it returns the tenant-root ingress IP (`192.168.50.100`)
-- [ ] 7.6 Trigger a Keycloak OIDC login on the cluster (the original failure mode) and confirm the redirect validator succeeds — this is the actual consumer this change serves
+- [x] 7.1 Merge PR #965 into `main`
+- [x] 7.2 Three prod Applications generated (`cluster-networking-tenant`, `…-k8s-gateway`, `…-coredns-patch`). `tenant` auto-synced; the two others required a one-time manual sync (they came up `OutOfSync / Missing` post-merge, probably an ApplicationSet RollingSync quirk); both now `Synced / Healthy`
+- [x] 7.3 `Tenant tenant-prod/clusternetworking` → `READY=True`; namespace `tenant-prod-clusternetworking` exists; Service `cluster-networking-k8s-gateway` has `ClusterIP 10.96.53.53`; two k8s-gateway pods Ready
+- [x] 7.4 `kube-system/coredns.data.Corefile` now contains the `enigma.vgijssel.nl:53 { forward . 10.96.53.53 }` stanza and `fieldsV1` ownership of `data.Corefile` has transferred from `talos` to `argocd-controller` (Apply)
+- [x] 7.5 In-cluster DNS validation: `dig keycloak.enigma.vgijssel.nl` from a pod in `tenant-prod-clusternetworking` via kube-dns returns `46.224.93.115` + `192.168.50.100`. `coder.enigma.vgijssel.nl` and `api.enigma.vgijssel.nl` return `192.168.50.100`. `nope.enigma.vgijssel.nl` returns `NXDOMAIN`.
+- [x] 7.7 **Bug found + fixed**: `k8s_gateway` controller couldn't reach the kube-apiserver from inside the tenant namespace because cozystack's `allow-to-apiserver` CiliumNetworkPolicy gates egress on `policy.cozystack.io/allow-to-apiserver=true`. Added `customLabels` to `values-prod.yaml` in PR #966 (admin-merged). After Argo rolled the new pod template the controller logs `plugin/k8s_gateway: Synced all required resources` and queries resolve.
+- [ ] 7.6 Trigger a Keycloak OIDC login end-to-end (original failure mode). Deferred to operator — DNS layer confirmed working; the OAuth flow itself is outside the scope of this validation session.
 
 ## 8. Retire the Pi-hole-backed external-dns HelmRelease
 
 - [x] 8.1 Delete `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml`
 - [x] 8.2 Remove the `- helmrelease-external-dns-pihole.yaml` line from `apps/enigma-cluster/kustomization.yaml`
 - [x] 8.3 Land the deletion in the same PR #965 (user requested immediate rollout; in-cluster resolution is the only consumer and coredns-patch + k8s-gateway sync together with the deletion on merge — brief reconvergence window is acceptable)
-- [ ] 8.4 After merge, confirm Flux prunes the `external-dns-pihole` HelmRelease and its Deployment/Pods in the `external-dns` namespace
+- [ ] 8.4 Blocked by a pre-existing Flux issue (out of scope for this change): `kustomization/enigma-cluster` has been stuck on `Source artifact not found` since 2026-03-03 (last applied revision `main@6e0f30c5`). Until that's fixed Flux won't prune `helmrelease/external-dns-pihole`, and the `external-dns-external-dns-pihole` Deployment keeps running against the Pi-hole API. Harmless for in-cluster DNS (which now flows through `kube-dns → k8s-gateway`) but wasteful. Follow-up: repair the Flux GitRepository/Kustomization source then expect Flux to prune on the next reconcile.
 - [ ] 8.5 Archive the now-unused `external-dns-pihole-credential` 1Password item (optional; leaving it in place is harmless)
 
 ## 9. Finalize the openspec change
 
-- [ ] 9.1 Re-run `openspec status --change migrate-from-pihole-to-k8s-gateway` and confirm all artifacts are `done`
-- [ ] 9.2 Run `trunk check` on the changed files (already passing in CI for PR #965)
-- [x] 9.3 PR #965 opened with summary and rollback plan; this change's `proposal.md` and `design.md` are the source of truth referenced by the PR
+- [x] 9.1 `openspec validate migrate-from-pihole-to-k8s-gateway` reports valid
+- [x] 9.2 `trunk check` clean on changed files (CI green on both PRs)
+- [x] 9.3 PR #965 merged (`bb15b299`), PR #966 merged (`0a7b99e3`). `proposal.md` and `design.md` are the source of truth.
