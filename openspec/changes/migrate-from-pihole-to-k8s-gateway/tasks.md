@@ -54,10 +54,10 @@
 
 ## 8. Retire the Pi-hole-backed external-dns HelmRelease
 
-- [ ] 8.1 Delete `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml`
-- [ ] 8.2 Remove the `- helmrelease-external-dns-pihole.yaml` line from `apps/enigma-cluster/kustomization.yaml`
-- [ ] 8.3 Commit as a follow-up PR so the deletion lands *after* §7 validates prod DNS is healthy. This keeps the rollback (re-add the HelmRelease file) simple
-- [ ] 8.4 Confirm Flux prunes the `external-dns-pihole` HelmRelease and its Deployment/Pods in the `external-dns` namespace
+- [x] 8.1 Delete `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml`
+- [x] 8.2 Remove the `- helmrelease-external-dns-pihole.yaml` line from `apps/enigma-cluster/kustomization.yaml`
+- [x] 8.3 Land the deletion in the same PR #965 (user requested immediate rollout; in-cluster resolution is the only consumer and coredns-patch + k8s-gateway sync together with the deletion on merge — brief reconvergence window is acceptable)
+- [ ] 8.4 After merge, confirm Flux prunes the `external-dns-pihole` HelmRelease and its Deployment/Pods in the `external-dns` namespace
 - [ ] 8.5 Archive the now-unused `external-dns-pihole-credential` 1Password item (optional; leaving it in place is harmless)
 
 ## 9. Finalize the openspec change
