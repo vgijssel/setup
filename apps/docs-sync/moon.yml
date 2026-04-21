@@ -1,6 +1,0 @@
-type: application
-language: yaml
-tags:
-  - kubernetes
-  - flux
-  - relay-server

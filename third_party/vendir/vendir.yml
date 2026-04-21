@@ -81,22 +81,6 @@ directories:
           version: 0.8.5
           repository:
             url: oci://registry.k8s.io/kro/charts
-  - path: charts/flux-operator
-    contents:
-      - path: .
-        helmChart:
-          name: flux-operator
-          version: 0.43.0
-          repository:
-            url: oci://ghcr.io/controlplaneio-fluxcd/charts
-  - path: charts/flux-instance
-    contents:
-      - path: .
-        helmChart:
-          name: flux-instance
-          version: 0.43.0
-          repository:
-            url: oci://ghcr.io/controlplaneio-fluxcd/charts
   - path: charts/k3k
     contents:
       - path: .

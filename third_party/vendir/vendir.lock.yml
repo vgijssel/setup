@@ -62,18 +62,6 @@ directories:
   path: charts/kro
 - contents:
   - helmChart:
-      appVersion: v0.43.0
-      version: 0.43.0
-    path: .
-  path: charts/flux-operator
-- contents:
-  - helmChart:
-      appVersion: v0.43.0
-      version: 0.43.0
-    path: .
-  path: charts/flux-instance
-- contents:
-  - helmChart:
       appVersion: v1.0.2
       version: 1.0.2
     path: .
