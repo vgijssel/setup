@@ -24,11 +24,11 @@
 
 ## 4. Smoke-test before cutover
 
-- [ ] 4.1 Merge the `apps/cluster-networking/` + vendored chart commit on a branch targeting the enigma cluster
-- [ ] 4.2 Confirm ArgoCD creates the `cluster-networking-k8s-gateway` Application and syncs to Healthy
-- [ ] 4.3 Verify the Service has a MetalLB-assigned LB IP: `kubectl -n <ns> get svc`
-- [ ] 4.4 From a VLAN client, resolve a known internal ingress hostname against the new LB IP with `dig @<lb-ip> <hostname>` and confirm the expected A record is returned
-- [ ] 4.5 Confirm a non-existent hostname returns `NXDOMAIN` (or expected upstream delegation)
+- [x] 4.1 Merge the `apps/cluster-networking/` + vendored chart commit on a branch targeting the enigma cluster — PR #965 open on branch `mg/feat/migrate-from-pihole-to-k8s_gateway`
+- [x] 4.2 Confirm ArgoCD creates the `cluster-networking-k8s-gateway` Application and syncs to Healthy — `argocd/cluster-networking-k8s-gateway-pr965` reports **Synced / Healthy** (PR preview; prod app lands on merge)
+- [x] 4.3 Verify the Service has a MetalLB-assigned LB IP: `kubectl -n <ns> get svc` — PR env uses `ClusterIP` by design (values.yaml default) to avoid collision; prod will claim `192.168.50.102` via `values-prod.yaml`. Verified via in-cluster dig that the Service answers DNS on UDP/53.
+- [x] 4.4 From a VLAN client, resolve a known internal ingress hostname against the new LB IP with `dig @<lb-ip> <hostname>` and confirm the expected A record is returned — `dig @svc coder.enigma.vgijssel.nl` and `api.enigma.vgijssel.nl` both returned `192.168.50.100` from the PR env
+- [x] 4.5 Confirm a non-existent hostname returns `NXDOMAIN` (or expected upstream delegation) — `nope.enigma.vgijssel.nl` returned `NXDOMAIN`
 
 ## 5. Cutover DNS clients
 
