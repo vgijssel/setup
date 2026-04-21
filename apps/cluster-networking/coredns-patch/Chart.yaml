@@ -1,0 +1,9 @@
+apiVersion: v2
+name: coredns-patch
+description: >-
+  SSA-overlays the kube-system/coredns ConfigMap to add an authoritative zone
+  stanza that forwards enigma.vgijssel.nl to the in-cluster k8s_gateway
+  service. Talos's bootstrap ManifestApplyController is Create-only, so taking
+  server-side-apply ownership of data.Corefile is stable.
+type: application
+version: 1.0.0

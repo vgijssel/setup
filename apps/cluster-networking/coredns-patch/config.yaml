@@ -1,0 +1,15 @@
+appType: apps
+appName: coredns-patch
+platform: cluster-networking
+namespace: cluster-networking
+
+cluster: enigma
+createNamespace: true
+# PR env lands in cluster-networkingpr<N> and writes a harmless preview
+# ConfigMap there — it never touches kube-system/coredns.
+prUpdateNamespace: true
+prUpdateCluster: false
+# Required: prod SSA-overlays a field that Talos's bootstrap manager owns.
+serverSideApply: true
+
+prOverrides: {}

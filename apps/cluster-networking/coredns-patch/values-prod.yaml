@@ -1,0 +1,4 @@
+# No prod-specific overrides — the template targets kube-system/coredns
+# automatically when prNumber is empty. The forwarder zone + target are in
+# values.yaml.
+{}

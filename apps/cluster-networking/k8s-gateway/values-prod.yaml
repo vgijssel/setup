@@ -1,10 +1,11 @@
-# Production overrides: expose DNS on the VLAN via MetalLB.
-# The requested IP must live inside an IPAddressPool on the enigma cluster
-# (see apps/enigma-cluster/metallb-ip-address-pool.yml).
+# Production overrides.
+# k8s_gateway is consumed only by in-cluster workloads right now (notably
+# Keycloak OIDC redirects) so the Service stays ClusterIP. The ClusterIP is
+# pinned so kube-dns can forward `enigma.vgijssel.nl` to a stable target.
 k8s-gateway:
   service:
-    type: LoadBalancer
-    loadBalancerIP: 192.168.50.102
+    type: ClusterIP
+    clusterIP: 10.96.53.53
   replicaCount: 2
   resources:
     requests:

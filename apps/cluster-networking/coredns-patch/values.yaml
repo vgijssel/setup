@@ -1,0 +1,13 @@
+# The zone that k8s_gateway is authoritative for.
+zone: enigma.vgijssel.nl
+
+# ClusterIP of the k8s-gateway Service in apps/cluster-networking/k8s-gateway/
+# values-prod.yaml. Keep these two in sync; changing one without the other
+# silently breaks DNS forwarding from kube-dns.
+gatewayClusterIP: 10.96.53.53
+
+# Populated by the PR ApplicationSet (parameters: prNumber={{.number}}).
+# Empty in prod. When non-empty, the template renders a harmless preview
+# ConfigMap in the Argo destination namespace instead of patching the real
+# kube-system/coredns.
+prNumber: ""

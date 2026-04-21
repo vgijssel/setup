@@ -1,0 +1,55 @@
+{{- $isPR := ne (toString .Values.prNumber) "" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  {{- if $isPR }}
+  # PR env: harmless sibling in the Argo destination namespace. Nothing mounts
+  # this CM, so CoreDNS on the cluster is unaffected.
+  name: coredns-pr{{ .Values.prNumber }}-preview
+  namespace: {{ .Release.Namespace }}
+  {{- else }}
+  # Prod: take SSA ownership of kube-system/coredns data.Corefile. Talos's
+  # ManifestApplyController is Create-only (see v1.12.6
+  # internal/app/machined/pkg/controllers/k8s/manifest_apply.go — it skips
+  # existing resources) so our overlay is stable across reconciles.
+  name: coredns
+  namespace: kube-system
+  {{- end }}
+data:
+  # NOTE: this Corefile mirrors the Talos v1.12 default so we don't regress
+  # any baseline behavior when we take over ownership. If Talos upgrades the
+  # default, diff and update here. The only addition is the final zone block.
+  Corefile: |
+    .:53 {
+        errors
+        health {
+            lameduck 5s
+        }
+        ready
+        log . {
+            class error
+        }
+        prometheus :9153
+
+        kubernetes cozy.local in-addr.arpa ip6.arpa {
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+            ttl 30
+        }
+        forward . /etc/resolv.conf {
+           max_concurrent 1000
+        }
+        cache 30 {
+           disable success cozy.local
+           disable denial cozy.local
+        }
+        loop
+        reload
+        loadbalance
+    }
+
+    {{ .Values.zone }}:53 {
+        errors
+        cache 30
+        forward . {{ .Values.gatewayClusterIP }}
+    }
