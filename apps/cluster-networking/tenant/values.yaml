@@ -1,0 +1,8 @@
+tenant:
+  name: clusternetworking
+  spec:
+    etcd: false
+    host: ""
+    ingress: false
+    monitoring: false
+    seaweedfs: false
