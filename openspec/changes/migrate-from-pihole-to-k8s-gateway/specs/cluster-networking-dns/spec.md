@@ -1,80 +1,103 @@
 ## ADDED Requirements
 
-### Requirement: In-cluster authoritative DNS for internal hostnames
+### Requirement: In-cluster authoritative DNS for `*.enigma.vgijssel.nl`
 
-The system SHALL run `k8s_gateway` on the root enigma Kubernetes cluster to answer DNS queries for internal hostnames that are exposed as Kubernetes Ingress (and other configured) resources, replacing the external Pi-hole appliance as the internal DNS resolver.
+The system SHALL run `k8s_gateway` on the root enigma cluster as an authoritative resolver for `enigma.vgijssel.nl`, serving records derived from in-cluster `Ingress` and `LoadBalancer Service` resources, so Kubernetes workloads (e.g. Keycloak OIDC validators) can resolve those names without depending on an external appliance.
 
-#### Scenario: Resolving an ingress hostname from the VLAN
+#### Scenario: Pod resolves an ingress hostname
 
-- **WHEN** a client on the `192.168.50.0/24` VLAN queries the internal DNS service IP for a hostname that exists as an Ingress resource on the enigma cluster
-- **THEN** `k8s_gateway` SHALL return the LoadBalancer/ingress address configured for that Ingress
+- **WHEN** a pod on the enigma cluster looks up a hostname such as `keycloak.enigma.vgijssel.nl` that is backed by an Ingress resource
+- **THEN** the response SHALL contain the Ingress's `status.loadBalancer.ingress` IP (e.g. `192.168.50.100`)
 
-#### Scenario: Resolving a hostname that does not exist
+#### Scenario: Non-existent hostname returns NXDOMAIN
 
-- **WHEN** a client queries the internal DNS service IP for a hostname that is not backed by any watched Kubernetes resource
-- **THEN** `k8s_gateway` SHALL return `NXDOMAIN` (or delegate upstream if configured) rather than silently hanging
+- **WHEN** a pod looks up a hostname under `enigma.vgijssel.nl` that no watched Kubernetes resource exposes
+- **THEN** `k8s_gateway` SHALL return `NXDOMAIN` rather than timing out or returning an unrelated answer
 
-### Requirement: Declarative ArgoCD delivery following the `apps/<grouping>/<app>/` pattern
+### Requirement: `kube-dns` forwards the zone to `k8s_gateway` via a stable ClusterIP
 
-The `k8s_gateway` deployment SHALL be defined as an umbrella Helm chart under `apps/cluster-networking/k8s-gateway/` with a `config.yaml` that is auto-discovered by the production ApplicationSet (`apps/argocd-apps/manifests/applicationset-prod.yaml`) and SHALL target the root enigma cluster, not a vCluster.
+The cluster's `kube-system/coredns` Corefile SHALL contain a zone block for `enigma.vgijssel.nl` that forwards queries to the `k8s_gateway` ClusterIP. The `k8s_gateway` Service SHALL be of type `ClusterIP` with a pinned address (`10.96.53.53`) so the Corefile target is stable across reconciles.
 
-#### Scenario: ApplicationSet discovery
+#### Scenario: kube-dns picks up the new zone
 
-- **WHEN** `applicationset-prod` scans `apps/*/*/config.yaml`
-- **THEN** it SHALL find `apps/cluster-networking/k8s-gateway/config.yaml` and generate an ArgoCD `Application` with `cluster: enigma` and the configured namespace
+- **WHEN** `kubectl -n kube-system get cm coredns -o jsonpath='{.data.Corefile}'` is inspected after the change has been applied
+- **THEN** it SHALL contain a stanza of the form `enigma.vgijssel.nl:53 { ... forward . 10.96.53.53 ... }`
 
-#### Scenario: Umbrella chart references vendored dependency
+#### Scenario: k8s_gateway holds its pinned ClusterIP
 
-- **WHEN** ArgoCD renders the `k8s-gateway` umbrella chart
-- **THEN** its `Chart.yaml` SHALL reference the vendored chart via a `file://` path under `third_party/vendir/charts/k8s-gateway`, and `Chart.lock` SHALL be committed so ArgoCD can resolve the dependency without network access
+- **WHEN** `kubectl -n tenant-prod-clusternetworking get svc` is inspected
+- **THEN** the `k8s-gateway` Service SHALL have `type: ClusterIP` and `spec.clusterIP: 10.96.53.53`
 
-### Requirement: Upstream chart vendored via `vendir` with pinned version
+### Requirement: `coredns-patch` applies the Corefile overlay via server-side apply
 
-The upstream `k8s-gateway` Helm chart SHALL be vendored into `third_party/vendir/charts/k8s-gateway/` through an entry in `third_party/vendir/vendir.yml`, with an exact `version:` pin (no `~>` / `^` ranges).
+The Corefile change SHALL be delivered by a dedicated Helm chart at `apps/cluster-networking/coredns-patch/` whose Argo Application syncs with `ServerSideApply=true`, so ownership of `kube-system/coredns.data.Corefile` transfers from Talos's one-time bootstrap apply to `argocd-controller`.
 
-#### Scenario: Syncing vendored chart
+#### Scenario: Argo owns the Corefile field
+
+- **WHEN** `kubectl get --raw /api/v1/namespaces/kube-system/configmaps/coredns | jq '.metadata.managedFields'` is inspected after the prod sync
+- **THEN** the field `data.Corefile` SHALL be owned by `argocd-controller` (not `talos`)
+
+#### Scenario: PR envs do not modify the real Corefile
+
+- **WHEN** the `coredns-patch` PR Application (`cluster-networking-coredns-patch-pr<N>`) syncs
+- **THEN** `kube-system/coredns` SHALL remain unchanged, and a harmless `coredns-pr<N>-preview` ConfigMap SHALL exist in the PR namespace for inspection
+
+### Requirement: Namespace ownership via a cozystack Tenant
+
+`apps/cluster-networking/tenant/` SHALL define a cozystack `Tenant` CR named `clusternetworking` under `tenant-prod`, which creates and owns the `tenant-prod-clusternetworking` namespace. The `k8s-gateway` and `coredns-patch` Applications SHALL deploy into that namespace with `createNamespace: false`.
+
+#### Scenario: Tenant creates the namespace
+
+- **WHEN** the `cluster-networking-tenant` Application syncs
+- **THEN** a `Tenant clusternetworking` SHALL exist under `tenant-prod` with `READY=True`, and namespace `tenant-prod-clusternetworking` SHALL exist on the cluster
+
+#### Scenario: Apps do not self-manage namespaces
+
+- **WHEN** the `k8s-gateway` or `coredns-patch` Application is inspected
+- **THEN** its `config.yaml` SHALL set `createNamespace: false` and target `tenant-prod-clusternetworking`
+
+### Requirement: Upstream chart vendored with an exact version pin
+
+The upstream `k8s-gateway` Helm chart SHALL be vendored into `third_party/vendir/charts/k8s-gateway/` through an entry in `third_party/vendir/vendir.yml`, with an exact `version:` (no `~>`/`^`). The umbrella chart in `apps/cluster-networking/k8s-gateway/` SHALL reference it via `file://../../../third_party/vendir/charts/k8s-gateway` with a committed `Chart.lock`.
+
+#### Scenario: Vendor sync
 
 - **WHEN** `vendir sync` runs against `third_party/vendir/vendir.yml`
-- **THEN** it SHALL fetch the pinned `k8s-gateway` chart version, write it to `third_party/vendir/charts/k8s-gateway/`, and update `third_party/vendir/vendir.lock.yml`
+- **THEN** `third_party/vendir/charts/k8s-gateway/` SHALL be present and `third_party/vendir/vendir.lock.yml` SHALL record the same version as `vendir.yml`
 
-#### Scenario: Version pinning enforcement
+### Requirement: Retire the Pi-hole-backed `external-dns` integration
 
-- **WHEN** the `vendir.yml` entry for `k8s-gateway` is inspected
-- **THEN** the `version:` field SHALL be an exact semver (e.g., `2.4.0`) matching the repo's dependency-pinning policy
+The Flux `HelmRelease` at `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml` SHALL be removed, along with its entry in `apps/enigma-cluster/kustomization.yaml`, since no consumer remains (VLAN clients never depended on the synced records; in-cluster workloads now resolve via `kube-dns → k8s_gateway`). The Cloudflare-backed `external-dns` HelmRelease SHALL remain unchanged. The Pi-hole appliance SHALL NOT be decommissioned as part of this change, and no DHCP/router changes SHALL be required.
 
-### Requirement: DNS service reachable on the internal VLAN via MetalLB
+#### Scenario: Pi-hole HelmRelease gone
 
-`k8s_gateway` SHALL expose its DNS endpoint on UDP/TCP port 53 through a Kubernetes `Service` of `type: LoadBalancer` backed by MetalLB, with a stable IP address on the `192.168.50.0/24` internal VLAN.
-
-#### Scenario: MetalLB assigns the requested IP
-
-- **WHEN** the `k8s-gateway` Service is reconciled by ArgoCD
-- **THEN** MetalLB SHALL allocate the configured IP from the internal address pool and make UDP/TCP port 53 reachable from VLAN clients
-
-#### Scenario: DNS endpoint survives pod restart
-
-- **WHEN** a `k8s-gateway` pod is deleted and rescheduled
-- **THEN** the Service LoadBalancer IP SHALL remain unchanged and queries SHALL resume without client reconfiguration
-
-### Requirement: Retire the Pi-hole-backed `external-dns`
-
-The Flux `HelmRelease` at `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml` SHALL be removed, along with its entry in `apps/enigma-cluster/kustomization.yaml`, once `k8s_gateway` is serving internal DNS. The Cloudflare-backed `external-dns` HelmRelease SHALL remain unchanged.
-
-#### Scenario: Pi-hole HelmRelease removed
-
-- **WHEN** `kubectl get helmrelease -n flux-system` is run after the change is applied
-- **THEN** no `external-dns-pihole` HelmRelease SHALL exist, and Flux SHALL have pruned its `external-dns` deployment in the `external-dns` namespace that was backed by `provider: pihole`
+- **WHEN** `kubectl get helmrelease -n flux-system` is run after the change has been applied
+- **THEN** no `external-dns-pihole` HelmRelease SHALL exist, and Flux SHALL have pruned the matching `external-dns` Deployment in the `external-dns` namespace
 
 #### Scenario: Cloudflare external-dns untouched
 
+- **WHEN** the change has been applied
+- **THEN** `apps/enigma-cluster/helmrelease-external-dns.yaml` (Cloudflare provider, `internal-networking=true` label filter) SHALL remain unchanged and continue to function
+
+#### Scenario: No VLAN/DHCP changes required
+
 - **WHEN** the change is applied
-- **THEN** `apps/enigma-cluster/helmrelease-external-dns.yaml` (Cloudflare provider, `internal-networking=true` label filter) SHALL remain unchanged and functional
+- **THEN** no MetalLB IP, router DHCP setting, Talos nameserver, or `/etc/resolv.conf` on any node SHALL need to change
 
-### Requirement: No vCluster introduced for the DNS capability
+### Requirement: ApplicationSet `templatePatch` merges sync options correctly
 
-The `cluster-networking` grouping SHALL NOT create a companion `cluster-networking-infra/` grouping, a vCluster, or a nested tenant/namespace orchestration chart. `k8s-gateway` runs directly on the root enigma cluster.
+Both `applicationset-prod.yaml` and `applicationset-pr.yaml` SHALL emit `spec.syncPolicy.syncOptions` as a single block that includes `PruneLast=true` plus conditional `CreateNamespace=true` and `ServerSideApply=true`, so no sync option is lost when multiple flags are true.
 
-#### Scenario: Repo layout inspection
+#### Scenario: All three options on a single Application
 
-- **WHEN** `apps/cluster-networking*` is listed
-- **THEN** only `apps/cluster-networking/` SHALL exist, containing `k8s-gateway/` and a `moon.yml`, with no `apps/cluster-networking-infra/` directory
+- **WHEN** an Application has `createNamespace: true`, `serverSideApply: true` in its `config.yaml`
+- **THEN** the generated Application SHALL have `spec.syncPolicy.syncOptions` equal to `[PruneLast=true, CreateNamespace=true, ServerSideApply=true]`
+
+### Requirement: `helm-platform` generator preserves non-vCluster config fields
+
+`libs/helm-platform/src/helm_platform/generator.py` SHALL preserve `cluster`, `createNamespace`, `prUpdateNamespace`, and `prUpdateCluster` from an existing `config.yaml` when present, in addition to the already-preserved `namespace`, `serverSideApply`, and `prOverrides`.
+
+#### Scenario: Root-cluster app keeps its cluster value
+
+- **WHEN** `config.yaml` exists with `cluster: enigma` for a grouping that would otherwise default to `<platform>-vcluster`
+- **THEN** the regenerated config SHALL keep `cluster: enigma`

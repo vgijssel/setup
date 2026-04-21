@@ -1,91 +1,97 @@
 ## Context
 
-Internal DNS for the `192.168.50.0/24` VLAN is currently answered by a standalone Pi-hole appliance at `192.168.50.2`. The enigma Kubernetes cluster feeds records to it via a dedicated `external-dns` HelmRelease (`apps/enigma-cluster/helmrelease-external-dns-pihole.yaml`) configured with `provider: pihole`, `--pihole-api-version=6`, and a 1Password-sourced credential. A second `external-dns` (Cloudflare provider) continues to handle public DNS.
+The only consumer of the Pi-hole-backed `external-dns` HelmRelease turned out to be Kubernetes workloads that needed to resolve `*.enigma.vgijssel.nl` (most visibly Keycloak, which validates OIDC redirect URIs by resolving the configured issuer hostname). VLAN clients never relied on those records. The Pi-hole integration (`apps/enigma-cluster/helmrelease-external-dns-pihole.yaml`) was disproportionate for that need: it requires a standalone appliance at `192.168.50.2`, a 1Password-sourced credential, `--pihole-tls-skip-verify`, and a separate `external-dns` deployment configured with `provider: pihole`.
 
-The repo layout (see `apps/CLAUDE.md`) uses ArgoCD ApplicationSets that discover apps via `apps/*/*/config.yaml`. Umbrella Helm charts reference vendored dependencies in `third_party/vendir/charts/<name>` via `file://` paths. `apps/secrets-proxy/` and `apps/secrets-proxy-infra/` illustrate the split between app and infra groupings for a vCluster-hosted capability. Here there is no vCluster: `k8s_gateway` must run directly on the root enigma cluster because it has to serve DNS via a MetalLB `LoadBalancer` IP reachable from the VLAN, and it relies on watching cluster-scoped Ingress/Service resources on that cluster.
+With `k8s_gateway` the same queries can be answered directly from in-cluster API objects (Ingress, Service type LoadBalancer, etc.), and `kube-dns` can forward the zone to it via a single CoreDNS stanza. No record syncing, no appliance.
 
-Stakeholders: whoever manages DNS on the home network (clients on the VLAN point to `192.168.50.2`), Flux/ArgoCD (deploys the chart), MetalLB (assigns the LB IP), and operators removing the Pi-hole appliance.
+Repo layout context (see `apps/CLAUDE.md`): ArgoCD ApplicationSets discover apps via `apps/*/*/config.yaml`. Umbrella Helm charts reference vendored dependencies under `third_party/vendir/charts/<name>` via `file://` paths. Namespaces are created by cozystack `Tenant` CRs (see `apps/secrets-proxy-infra/tenant`) rather than by individual apps.
+
+Talos owns `kube-system/coredns` at bootstrap (`managedFields.manager = talos`). However, reading `internal/app/machined/pkg/controllers/k8s/manifest_apply.go@v1.12.6` confirms the controller is Create-only on existing resources — so a server-side-apply overlay owned by ArgoCD is stable across reconciles.
+
+Stakeholders: Keycloak OIDC flows (primary consumer), any future workload that references `*.enigma.vgijssel.nl` from inside the cluster, Flux (which currently reconciles the soon-to-be-deleted Pi-hole HelmRelease), ArgoCD (new owner of the DNS stack).
 
 ## Goals / Non-Goals
 
 **Goals:**
-- Serve authoritative DNS for Ingress-exposed hostnames on the internal VLAN from inside the enigma cluster via `k8s_gateway`.
-- Deliver the chart declaratively through the existing ArgoCD `applicationset-prod` pipeline with `cluster: enigma` (root cluster), using the umbrella-chart + vendored-chart pattern already established by `apps/secrets-proxy/*`.
-- Retire the Pi-hole-specific `external-dns` HelmRelease and the Pi-hole appliance as the internal resolver.
-- Keep infrastructure reproducible: the upstream chart is pinned and vendored via `vendir`.
+- Kubernetes workloads can resolve `*.enigma.vgijssel.nl` from inside the cluster, with answers derived from live Ingress/Service resources.
+- Deliver the full DNS stack declaratively through ArgoCD (tenant → k8s-gateway → coredns-patch), following the existing `apps/secrets-proxy-infra/tenant` + `apps/secrets-proxy/*` pattern.
+- Retire the Flux-managed Pi-hole `external-dns` HelmRelease and its 1Password credential.
+- Keep the change narrow: no VLAN DNS behavior change, no DHCP/router changes, no MetalLB reservation.
 
 **Non-Goals:**
-- Changing the Cloudflare-backed `external-dns` HelmRelease (`helmrelease-external-dns.yaml`). Public DNS keeps working as-is.
-- Re-homing the Pi-hole as a DHCP server or ad-blocker. Those roles, if still wanted, are handled elsewhere and out of scope.
-- Introducing a vCluster for DNS. This app is explicitly root-cluster only.
-- Modifying the MetalLB address pool definitions beyond reserving one IP for DNS.
-- Building a new openspec grouping `apps/cluster-networking-infra/`; the simpler proposal is a single `apps/cluster-networking/` with just `k8s-gateway` inside it.
+- Touching the Cloudflare-backed `external-dns` (`helmrelease-external-dns.yaml`). Public DNS is out of scope.
+- Exposing `k8s_gateway` on the VLAN (no MetalLB LoadBalancer, no UDP/53 on `192.168.50.x`).
+- Decommissioning the Pi-hole appliance. It stays up; only the record-syncing integration goes away.
+- Reconfiguring Talos node DNS, `/etc/resolv.conf`, or machine-config patches. Pods use `kube-dns`, which now has the forwarder.
+- Introducing a vCluster for DNS. Runs on the root enigma cluster.
 
 ## Decisions
 
-### D1: Deploy `k8s_gateway` via ArgoCD, not Flux HelmRelease
-**Decision**: Package as an umbrella Helm chart under `apps/cluster-networking/k8s-gateway/` with a `config.yaml` discovered by `apps/argocd-apps/manifests/applicationset-prod.yaml`.
+### D1: Deliver everything via ArgoCD, following the secrets-proxy-infra + secrets-proxy split
+**Decision**: A single `apps/cluster-networking/` grouping holds three charts — `tenant/`, `k8s-gateway/`, `coredns-patch/`. ArgoCD's `applicationset-prod` discovers them; the `applicationset-pr` matrix generator `apps:cluster-networking` handles PR previews. Rolling-sync ordering (`tenant → infra → apps`) ensures the Tenant exists before the apps below it try to consume the namespace.
 
-**Why**: The user asked for the secrets-proxy pattern. That pattern is ArgoCD-driven. Keeping it consistent avoids mixing Flux HelmReleases (used today for cluster bootstrap infra in `apps/enigma-cluster/`) with ArgoCD for app-level DNS — the retired Pi-hole HelmRelease was Flux; its replacement moves up the stack into the ArgoCD-managed layer.
-
-**Alternatives considered**:
-- Add a `helmrelease-k8s-gateway.yaml` in `apps/enigma-cluster/`. Simpler but inconsistent with the requested pattern and with how application workloads are deployed in this repo.
-
-### D2: Single `apps/cluster-networking/` grouping, no `-infra` sibling
-**Decision**: Create only `apps/cluster-networking/k8s-gateway/`. Do not create `apps/cluster-networking-infra/`.
-
-**Why**: `-infra` siblings exist in `apps/secrets-proxy-infra/` to host a vCluster + tenant + namespace for a nested environment. `k8s_gateway` runs in the root cluster and owns one namespace only; there is no vCluster to bootstrap and no tenant/namespace orchestration that requires a separate grouping.
-
-### D3: Target root cluster `cluster: enigma` (not a vCluster)
-**Decision**: `config.yaml` sets `cluster: enigma`, `createNamespace: true`, `namespace: <k8s-gateway-ns>`.
-
-**Why**: `k8s_gateway` must watch cluster-scoped resources (Ingress, Service) on the enigma cluster and requires a MetalLB LoadBalancer on the `192.168.50.0/24` VLAN — both are root-cluster concerns. The `applicationset-prod.yaml` template uses `destination.name: "{{.cluster}}"`, so `enigma` must be registered as an ArgoCD destination; it already is (other apps use it).
-
-### D4: Vendor the upstream chart through `third_party/vendir/vendir.yml`
-**Decision**: Add a `charts/k8s-gateway` entry to `vendir.yml` pointing at the official k8s-gateway Helm repository, and reference it from the umbrella chart via `file://../../../third_party/vendir/charts/k8s-gateway`.
-
-**Why**: Every other Helm chart in the repo is vendored for reproducibility and to avoid runtime network pulls from ArgoCD. Using `vendir` keeps the update workflow identical (`vendir sync` → commit). Chart version must be pinned (per `CLAUDE.md` dependency-pinning rules) and updated by Renovate.
+**Why**: Mirrors the pattern the repo already uses for secrets-proxy. Keeping tenant + apps in one grouping (instead of a `-infra` sibling) is fine because there's no vCluster here to justify the split.
 
 **Alternatives considered**:
-- ArgoCD pulling the chart directly from the upstream Helm repo at sync time. Rejected: breaks the repo's vendoring convention and introduces a network dependency during sync.
+- Reuse Flux to ship these resources alongside `helmrelease-external-dns-pihole.yaml`. Rejected — inconsistent with the rest of the app-layer stack and harder to PR-preview.
 
-### D5: DNS service exposure via MetalLB LoadBalancer
-**Decision**: Configure the `k8s-gateway` Service as `type: LoadBalancer` with an annotation requesting a specific IP from the existing MetalLB pool (defined in `apps/enigma-cluster/metallb-ip-address-pool.yml`). Target UDP/TCP 53.
+### D2: `k8s-gateway` stays ClusterIP on a pinned IP (`10.96.53.53`)
+**Decision**: `values-prod.yaml` sets `service.type: ClusterIP, clusterIP: 10.96.53.53`. No `LoadBalancer`, no MetalLB annotation.
 
-**Why**: Clients on the VLAN need a stable, routable DNS endpoint. Reusing MetalLB (already in the cluster) avoids new infra. Pinning the IP (preferably `192.168.50.2` once Pi-hole is decommissioned, else a new address in the internal pool) minimizes client reconfiguration.
+**Why**: The only consumer is `kube-dns`. Pinning the ClusterIP means the CoreDNS `forward` stanza has a stable target (avoids the bootstrap fragility of a DNS-name target that kube-dns itself would have to resolve). PR envs default to a dynamic ClusterIP, so they can't collide with prod.
 
 **Alternatives considered**:
-- `NodePort`: requires clients to know a node IP + nonstandard port — unfriendly for DHCP-pushed DNS settings.
-- `hostNetwork`: pins DNS to a specific node and defeats HA; rejected.
+- `LoadBalancer` with a MetalLB reservation. Rejected — we'd take ownership of a VLAN IP for no current consumer, complicating the Pi-hole overlap story.
+- Reference the k8s-gateway Service by DNS name in the forwarder. Rejected — CoreDNS → kube-dns → CoreDNS introduces a self-referential bootstrap risk.
 
-### D6: Cutover sequence: add → verify → remove
-**Decision**: Land the `k8s-gateway` chart first, verify resolution works against the new service IP, then remove `helmrelease-external-dns-pihole.yaml` in a follow-up step (same PR, sequenced in `tasks.md`). Router DNS repointing is an out-of-band step but documented.
+### D3: `coredns-patch` is a single-manifest Helm chart that SSA-overlays `kube-system/coredns`
+**Decision**: `apps/cluster-networking/coredns-patch/templates/coredns-configmap.yaml` renders the full Corefile (Talos default + an `enigma.vgijssel.nl:53 { forward . 10.96.53.53 }` stanza) and Argo applies it with `ServerSideApply=true`. PR envs render `coredns-pr<N>-preview` in the PR namespace instead, so the real cluster DNS is untouched until merge.
 
-**Why**: Keeps DNS working throughout. Removing the Pi-hole HelmRelease before clients are pointed away would break internal name resolution.
+**Why**: Talos's `cluster.coreDNS` struct in v1.12.6 only exposes `disabled` and `image` — no Corefile customization. Disabling Talos's bootstrap CoreDNS and shipping our own chart is heavier (full bundle, brief DNS outage on rebuild). SSA overlay on the existing ConfigMap is stable because Talos's ManifestApplyController at `v1.12.6/internal/app/machined/pkg/controllers/k8s/manifest_apply.go` is Create-only on existing resources.
+
+**Alternatives considered**:
+- Ship `coredns-custom` ConfigMap + Deployment patch (DigitalOcean-style). Rejected — three moving parts for a one-line forwarder.
+- Replace the Corefile wholesale via Talos `inlineManifests`. Rejected — doesn't apply retroactively to a bootstrapped cluster, plus we'd own the full Corefile.
+
+### D4: Namespaces come from a cozystack Tenant, not the apps
+**Decision**: `apps/cluster-networking/tenant/` creates `Tenant clusternetworking` → `tenant-prod-clusternetworking` namespace. k8s-gateway and coredns-patch set `createNamespace: false` and target that namespace. PR envs override `tenant.name` to `clusternetworkingpr<N>` → `tenant-prod-clusternetworkingpr<N>` namespace.
+
+**Why**: Matches `apps/secrets-proxy-infra/tenant`. Keeps namespace provisioning in a single owner and avoids two ArgoCD Apps fighting over the same Namespace resource.
+
+### D5: Vendor `k8s-gateway` via vendir (pinned to `3.7.1`)
+**Decision**: `third_party/vendir/vendir.yml` entry at `https://k8s-gateway.github.io/k8s_gateway/`, version `3.7.1`, referenced from the umbrella chart via `file://../../../third_party/vendir/charts/k8s-gateway`.
+
+**Why**: Matches every other Helm chart in the repo; gives reproducible builds and lets Renovate bump versions.
+
+### D6: Fix the ApplicationSet `templatePatch` syncOptions bug
+**Decision**: Both `applicationset-prod.yaml` and `applicationset-pr.yaml` emit a single `spec.syncPolicy.syncOptions` block that includes `PruneLast=true` plus conditional `CreateNamespace=true` and `ServerSideApply=true`.
+
+**Why**: The original templatePatch emitted two separate `syncOptions` arrays. ApplicationSet's merge semantics replace arrays wholesale, so the later block (`ServerSideApply=true`) silently dropped `CreateNamespace=true` and `PruneLast=true`. This caused sync failures the first time we enabled both flags. The fix is generic — benefits every existing app that uses both options.
+
+### D7: Teach the `helm-platform` generator to preserve non-convention fields
+**Decision**: `libs/helm-platform/src/helm_platform/generator.py` now preserves `cluster`, `createNamespace`, `prUpdateNamespace`, `prUpdateCluster` from existing `config.yaml` (joining `namespace`, `serverSideApply`, `prOverrides`, which already rode that path).
+
+**Why**: The generator's convention (`cluster: <platform>-vcluster`, `prUpdateCluster: true`, `prUpdateNamespace: false`) is right for groupings that deploy to a vCluster. `cluster-networking` deploys to the root enigma cluster — the convention is wrong here. Preservation keeps the generator as a *template* rather than an *enforcer*, with no change to how vCluster groupings behave.
+
+### D8: Delete the Pi-hole HelmRelease directly, no DHCP cutover
+**Decision**: Remove `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml` and the matching line in `kustomization.yaml`. Archive the `external-dns-pihole-credential` 1Password item. Leave the Pi-hole appliance in place; don't touch DHCP or router settings.
+
+**Why**: Reread of the status quo (confirmed by the user) showed that no VLAN client depends on the synced records — only in-cluster workloads did, and they now get answers from `kube-dns → k8s_gateway`. So the HelmRelease has no remaining consumer; we can delete it immediately.
 
 ## Risks / Trade-offs
 
-- [IP-address collision] → Pi-hole currently holds `192.168.50.2`. Plan: decommission Pi-hole before MetalLB claims that IP, or assign `k8s-gateway` a new address and repoint clients first.
-- [Chart misconfiguration causes empty responses] → Deploy first with `kubectl port-forward` / internal ClusterIP smoke test (`dig @<clusterIP> <known-ingress-host>`) before exposing via MetalLB and flipping clients.
-- [Ingress watch scope] → `k8s_gateway` by default watches Ingress only. If any internal records were served via Services/HTTPRoutes on Pi-hole, enable the corresponding resource kinds in `values.yaml`; otherwise some lookups will silently fail.
-- [Loss of ad-blocking if Pi-hole was doing more than DNS] → `k8s_gateway` is not an ad-blocker. If that feature was relied on, it is dropped by this change (explicit non-goal; call it out in the PR description).
-- [ArgoCD can't reach the Helm chart path] → `Chart.lock` must be committed and the `file://` relative path must resolve from the umbrella-chart directory (same pattern as `apps/secrets-proxy/onepassword-operator/Chart.yaml`).
-- [Cluster destination `enigma` not registered] → verify with `argocd cluster list` before sync; other apps already target it, so this is low risk but worth confirming.
+- [Baseline Corefile drift from Talos] → `coredns-patch` bakes in the Talos v1.12 default Corefile. On Talos upgrade, diff the default against our rendered Corefile and update. Low frequency, easy to catch in CI if needed.
+- [Chart misconfiguration returns empty responses] → Covered by the PR ApplicationSet: every PR renders k8s-gateway and the coredns-patch preview in an isolated namespace; an in-cluster `dig` from a debug pod validates before merge.
+- [Ingress watch scope] → `k8s_gateway` watches `Ingress` and `Service` (set in `values.yaml`). Resources beyond those (HTTPRoute, DNSEndpoint) would silently not resolve. Enable additional `watchedResources` when needed.
+- [Talos retakes ownership of the Corefile on upgrade] → ManifestApplyController is Create-only; confirmed by reading the source. An `upgrade-talos` run won't overwrite it. If a future Talos version changes this behavior, the PR env would show drift on the next sync.
+- [ArgoCD can't reach the Helm chart path] → `Chart.lock` files are committed for both umbrella charts; the `file://` path resolves relative to the umbrella dir. Verified via `helm template`.
 
 ## Migration Plan
 
-1. Vendor the chart: add `third_party/vendir/vendir.yml` entry, run `vendir sync`, commit `third_party/vendir/charts/k8s-gateway/` and `vendir.lock.yml`.
-2. Create `apps/cluster-networking/k8s-gateway/` umbrella chart (`Chart.yaml`, `Chart.lock`, `values.yaml`, `values-prod.yaml`, `config.yaml`) and `apps/cluster-networking/moon.yml`.
-3. Merge; let ArgoCD create the Application. Verify pod health, Service LB IP assignment, and resolution (`dig @<new-ip>` for a known ingress hostname).
-4. Repoint router/DHCP upstream DNS from `192.168.50.2` (Pi-hole) to the `k8s_gateway` LB IP. Flush DNS caches on critical clients.
-5. Remove `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml` and its entry in `apps/enigma-cluster/kustomization.yaml`. Confirm Flux prunes the HelmRelease cleanly.
-6. Decommission the Pi-hole appliance and archive/remove the `external-dns-pihole-credential` 1Password reference.
+1. Merge PR #965 to `main`. ArgoCD's `prod-apps-helm` ApplicationSet generates three new Applications (`cluster-networking-tenant`, `cluster-networking-k8s-gateway`, `cluster-networking-coredns-patch`) and syncs them in rolling order (tenant → apps).
+2. Verify `kube-system/coredns` Corefile now contains the `enigma.vgijssel.nl:53` stanza and that `fieldsV1` ownership of `data.Corefile` has shifted to `argocd-controller`.
+3. Validate end-to-end: a pod on the enigma cluster resolves `keycloak.enigma.vgijssel.nl` and gets the tenant-root ingress IP (`192.168.50.100`). Re-trigger a Keycloak OIDC flow to confirm the redirect validator succeeds.
+4. Delete `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml` and its entry in `apps/enigma-cluster/kustomization.yaml`. Confirm Flux prunes the old `external-dns-pihole` Deployment + its Secret.
+5. Archive the `external-dns-pihole-credential` 1Password item (optional; leaving it in place is also fine).
 
-**Rollback**: Re-point DHCP back at `192.168.50.2` and re-add the Pi-hole HelmRelease (revert the deletion commit). Pi-hole stays reachable until step 6.
-
-## Open Questions
-
-- Which IP on the `192.168.50.0/24` MetalLB pool should `k8s-gateway` claim — reuse `192.168.50.2` after Pi-hole is decommissioned, or take a new IP and leave `.2` free?
-- Exact target namespace name (e.g., `k8s-gateway`, `cluster-networking`, or `dns`)?
-- Does the existing internal DNS usage rely on any record kinds beyond Ingress (e.g., Service A records) that must be enabled in `values.yaml`?
-- Upstream chart version to pin (must be resolved against the k8s-gateway Helm repo at implementation time).
+**Rollback**: re-add the HelmRelease + kustomization entry from the revert commit. The Pi-hole appliance kept running throughout, so `external-dns` would resume syncing records within a reconcile interval. Separately, remove the coredns-patch Application in ArgoCD to take the in-cluster forwarder out of the picture.

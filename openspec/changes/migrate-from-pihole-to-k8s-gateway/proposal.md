@@ -1,35 +1,42 @@
 ## Why
 
-The cluster currently resolves internal DNS names by syncing ingresses from the enigma cluster into a standalone Pi-hole instance at `192.168.50.2` via `external-dns` with the Pi-hole provider. This Pi-hole lives outside the Kubernetes cluster, is manually maintained, depends on Pi-hole's API, and adds operational overhead (credential rotation, TLS skip-verify, HelmRelease `external-dns-pihole`). Replacing it with [`k8s_gateway`](https://github.com/k8s-gateway/k8s_gateway) running inside the enigma cluster lets Kubernetes answer DNS queries directly from its own API resources (Ingresses, Services, HTTPRoutes), eliminates the external appliance, and removes the need for a second `external-dns` instance.
+The standalone Pi-hole appliance at `192.168.50.2` is fed ingress records by an `external-dns` HelmRelease (`apps/enigma-cluster/helmrelease-external-dns-pihole.yaml`) so that **Kubernetes workloads** (notably Keycloak during OIDC redirect validation) can resolve `*.enigma.vgijssel.nl` names. VLAN clients don't rely on those records. Running a standalone appliance + a Pi-hole-specific `external-dns` + a 1Password-sourced credential + `--pihole-tls-skip-verify` just to feed a handful of in-cluster DNS lookups is disproportionate. Replacing it with [`k8s_gateway`](https://github.com/k8s-gateway/k8s_gateway) (in-cluster), wired into `kube-dns` via a zone forwarder, means Kubernetes answers those queries directly from its own API objects — no external appliance, no record-syncing dance, no credential to rotate.
 
 ## What Changes
 
-- Add a new `apps/cluster-networking/` grouping that deploys `k8s-gateway` as an umbrella Helm chart via ArgoCD to the root enigma cluster (not inside a vCluster) following the `apps/secrets-proxy` + `apps/secrets-proxy-infra` pattern.
-- Vendorize the upstream `k8s-gateway` Helm chart into `third_party/vendir/charts/k8s-gateway` via `vendir.yml` alongside existing charts (e.g., `external-dns`, `ingress-nginx`).
-- Configure `k8s-gateway` to watch Ingress resources (and any other required resource kinds) in the enigma cluster and answer DNS queries from a MetalLB-exposed ClusterIP/LoadBalancer so it can replace the Pi-hole DNS endpoint at `192.168.50.2`.
-- **BREAKING** Remove `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml` and its entry in `apps/enigma-cluster/kustomization.yaml`; retire the Pi-hole provider, its 1Password credential reference (`external-dns-pihole-credential`), and the `--pihole-*` args.
-- Update DNS clients on the `192.168.50.0/24` VLAN to point at the new `k8s-gateway` service IP instead of `192.168.50.2` (out-of-band network change, documented in tasks).
+- Add a new `apps/cluster-networking/` grouping with three charts:
+  - `tenant/` — a cozystack `Tenant` CR named `clusternetworking` that creates the `tenant-prod-clusternetworking` namespace (no self-managed namespaces).
+  - `k8s-gateway/` — the upstream `k8s-gateway` chart, as `ClusterIP` only, on a pinned `10.96.53.53`. It answers `*.enigma.vgijssel.nl` from in-cluster Ingress/Service resources.
+  - `coredns-patch/` — a tiny inline chart that SSA-overlays `kube-system/coredns`'s `data.Corefile` to add a zone stanza forwarding `enigma.vgijssel.nl` to `10.96.53.53`. PR envs render a harmless sibling ConfigMap instead.
+- Vendor the upstream `k8s-gateway` Helm chart into `third_party/vendir/charts/k8s-gateway` via `vendir`.
+- Teach `libs/helm-platform`'s generator to preserve `cluster`, `createNamespace`, `prUpdateNamespace`, `prUpdateCluster` from existing `config.yaml` (the `cluster-networking` grouping deploys to the root enigma cluster, not a per-platform vCluster).
+- Fix the `applicationset-prod.yaml` / `applicationset-pr.yaml` `templatePatch` bug that dropped sync options when multiple flags were true (each block replaced the `syncOptions` array wholesale).
+- **BREAKING (internal only):** remove `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml` and its entry in `kustomization.yaml`; the Pi-hole provider and its 1Password credential become unused. Pi-hole VLAN clients are unaffected (they never depended on the synced records). **No DHCP / router changes needed.**
 
 ## Capabilities
 
 ### New Capabilities
-- `cluster-networking-dns`: In-cluster authoritative DNS resolver (`k8s_gateway`) that serves records derived from Kubernetes Ingress/Service resources on the enigma root cluster, replacing the external Pi-hole appliance for internal network name resolution.
+- `cluster-networking-dns`: Intra-cluster authoritative DNS for `*.enigma.vgijssel.nl` served by `k8s_gateway` on the enigma root cluster, wired into `kube-dns` via a CoreDNS zone forwarder, enabling Kubernetes workloads (notably Keycloak OIDC) to resolve ingress hostnames without an external appliance.
 
 ### Modified Capabilities
-<!-- No existing openspec specs to modify; Pi-hole was never captured in a spec, so its removal is handled via the proposal/impact + tasks.md rather than a delta spec. -->
+<!-- No existing openspec specs to modify; Pi-hole was never captured in a spec, so its removal is handled via impact + tasks.md rather than a delta spec. -->
 
 ## Impact
 
 - **New code**:
-  - `apps/cluster-networking/k8s-gateway/` (umbrella Helm chart: `Chart.yaml`, `Chart.lock`, `values.yaml`, `values-prod.yaml`, `config.yaml`).
-  - `apps/cluster-networking/moon.yml` (project registration).
+  - `apps/cluster-networking/tenant/` (tenant chart: `Chart.yaml`, `Chart.lock`, `values.yaml`, `values-prod.yaml`, `config.yaml`).
+  - `apps/cluster-networking/k8s-gateway/` (umbrella chart over vendored `k8s-gateway`).
+  - `apps/cluster-networking/coredns-patch/` (single-manifest chart that SSA-overlays `kube-system/coredns`).
+  - `apps/cluster-networking/moon.yml`.
   - `third_party/vendir/vendir.yml` entry + `third_party/vendir/charts/k8s-gateway/` vendored chart.
+- **Modified code**:
+  - `libs/helm-platform/src/helm_platform/generator.py` + tests (preserve cluster/prUpdate* fields).
+  - `apps/argocd-apps/manifests/applicationset-prod.yaml` + `applicationset-pr.yaml` (merge sync-options correctly; add `apps:cluster-networking` PR generator).
+  - `.trunk/trunk.yaml` (ignore yamllint for the new template).
 - **Removed code**:
   - `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml`.
   - `helmrelease-external-dns-pihole.yaml` entry in `apps/enigma-cluster/kustomization.yaml`.
-- **ArgoCD / ApplicationSet**: Auto-discovered via `apps/cluster-networking/k8s-gateway/config.yaml` by `applicationset-prod.yaml` (scans `apps/*/*/config.yaml`). Targets the root enigma cluster (`cluster: enigma`), not a vCluster.
-- **Networking / Infra**:
-  - MetalLB IP reservation required for the `k8s-gateway` DNS service on the `192.168.50.0/24` VLAN (likely reusing `192.168.50.2` or a new address from the internal pool).
-  - DHCP / router upstream DNS config must be repointed to the new address.
-- **Dependencies / secrets**: `external-dns-pihole-credential` (1Password-backed) becomes unused; the remaining Cloudflare-backed `external-dns` HelmRelease is unaffected.
-- **Operations**: One fewer external appliance to patch; reconciliation fully declarative through ArgoCD.
+- **ArgoCD / ApplicationSet**: discovery via `apps/cluster-networking/*/config.yaml` (prod ApplicationSet, plus PR generator gated on the `apps:cluster-networking` label). Destination: root enigma cluster, `tenant-prod-clusternetworking` namespace (created by the Tenant).
+- **Networking / Infra**: **no MetalLB changes, no DHCP changes.** The `k8s-gateway` Service stays ClusterIP (`10.96.53.53`, pinned) — only kube-dns talks to it.
+- **Dependencies / secrets**: `external-dns-pihole-credential` (1Password) becomes unused and can be retired. The Cloudflare-backed `external-dns` HelmRelease is unchanged. Pi-hole appliance stays up for whatever VLAN role it still serves.
+- **Operations**: one fewer HelmRelease, one fewer 1Password credential, fully declarative.
