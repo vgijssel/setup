@@ -64,6 +64,7 @@ lint:
         - libs/devenv/goss.yaml
         - libs/aws-sigv4-proxy/templates/**
         - libs/tenant/templates/**
+        - apps/cluster-networking/coredns-patch/templates/**
         # kro ResourceGraphDefinition uses CEL expressions requiring quoted strings
         - libs/flux-cluster/resourcegroup.yaml
     # Ignore prettier syntax errors for Helm templates with complex syntax

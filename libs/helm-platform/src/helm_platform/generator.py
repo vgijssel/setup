@@ -124,10 +124,28 @@ def generate_config(
     # Add blank line before cluster section
     config.yaml_set_comment_before_after_key("cluster", before="\n")
 
-    config["cluster"] = ctx.cluster
-    config["createNamespace"] = ctx.create_namespace
-    config["prUpdateNamespace"] = ctx.pr_update_namespace
-    config["prUpdateCluster"] = ctx.pr_update_cluster
+    # Preserve existing cluster/createNamespace/prUpdate* if present. These are
+    # conventions, not invariants — some platforms (e.g. cluster-networking)
+    # deploy to the root cluster rather than a platform vCluster.
+    if existing and "cluster" in existing:
+        config["cluster"] = existing["cluster"]
+    else:
+        config["cluster"] = ctx.cluster
+
+    if existing and "createNamespace" in existing:
+        config["createNamespace"] = existing["createNamespace"]
+    else:
+        config["createNamespace"] = ctx.create_namespace
+
+    if existing and "prUpdateNamespace" in existing:
+        config["prUpdateNamespace"] = existing["prUpdateNamespace"]
+    else:
+        config["prUpdateNamespace"] = ctx.pr_update_namespace
+
+    if existing and "prUpdateCluster" in existing:
+        config["prUpdateCluster"] = existing["prUpdateCluster"]
+    else:
+        config["prUpdateCluster"] = ctx.pr_update_cluster
 
     # Preserve existing serverSideApply if present, otherwise use default (false)
     if existing and "serverSideApply" in existing:

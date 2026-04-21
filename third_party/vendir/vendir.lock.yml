@@ -91,6 +91,12 @@ directories:
     path: .
   path: charts/argo-cd
 - contents:
+  - helmChart:
+      appVersion: 1.8.0
+      version: 3.7.1
+    path: .
+  path: charts/k8s-gateway
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508
@@ -121,10 +127,4 @@ directories:
       - v1.0.2
     path: .
   path: config/cozystack-talos-profiles
-- contents:
-  - helmChart:
-      appVersion: 1.8.0
-      version: 3.7.1
-    path: .
-  path: charts/k8s-gateway
 kind: LockConfig
