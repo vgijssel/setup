@@ -1,0 +1,163 @@
+image:
+  registry: ghcr.io
+  repository: k8s-gateway/k8s_gateway
+  tag: 1.7.0
+  pullPolicy: IfNotPresent
+
+# Reference to one or more secrets to be used when pulling images.
+# For more information, see [Pull an Image from a Private Registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+#
+# For example:
+#  imagePullSecrets:
+#    - name: "image-pull-secret"
+imagePullSecrets: []
+
+# Delegated domain
+domain: ""
+
+# Optional scheme for DNS server (e.g., "tls://", "https://", "grpc://")
+# Used to enable DoT (DNS over TLS), DoH (DNS over HTTPS), or gRPC protocols
+# Leave empty for standard DNS
+# See: https://coredns.io/plugins/tls/
+scheme: ""
+
+# Labels to apply to all resources
+customLabels: {}
+
+# Annotations to apply to pods
+podAnnotations: {}
+
+# TTL for non-apex responses (in seconds)
+ttl: 300
+
+# Resources (CPU, memory etc)
+resources: {}
+
+# Limit what kind of resources to watch, e.g. watchedResources: ["Ingress"]
+watchedResources: ["Ingress", "Service"]
+
+filters:
+  ingressClasses: []
+  gatewayClasses: []
+  serviceLabelSelectors: []
+
+# Service name of a secondary DNS server (should be `serviceName.namespace`)
+secondary: ""
+
+# Enabled fallthrough for k8s_gateway
+fallthrough:
+  enabled: false
+  zones: []
+
+# Override the default `serviceName.namespace` domain apex
+apex: ""
+
+# Optional configuration option for DNS01 challenge that will redirect all acme
+# challenge requests to external cloud domain (e.g. managed by cert-manager)
+# See: https://cert-manager.io/docs/configuration/acme/dns01/
+dnsChallenge:
+  enabled: false
+  domain: dns01.clouddns.com
+
+# Optional plugins that will be enabled in the zone, e.g. "forward . /etc/resolve.conf"
+extraZonePlugins:
+  - name: log
+  - name: errors
+  # Serves a /health endpoint on :8080, required for livenessProbe
+  - name: health
+    configBlock: |-
+      lameduck 5s
+  # Serves a /ready endpoint on :8181, required for readinessProbe
+  - name: ready
+  # Serves a /metrics endpoint on :9153, required for serviceMonitor
+  - name: prometheus
+    parameters: 0.0.0.0:9153
+  - name: forward
+    parameters: . /etc/resolv.conf
+  - name: loop
+  - name: reload
+  - name: loadbalance
+  # Example TLS configuration (requires scheme: "tls://" and TLS certificates)
+  # - name: tls
+  #   parameters: /etc/coredns/tls/tls.crt /etc/coredns/tls/tls.key
+  #   configBlock: |-
+  #     client_auth {
+  #       type request
+  #     }
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+service:
+  type: LoadBalancer
+  port: 53
+  annotations: {}
+  labels: {}
+  # nodePort: 30053
+  # loadBalancerIP: 192.168.1.2
+  # loadBalancerClass:
+  # clusterIP: 10.43.0.53
+  # externalTrafficPolicy: Local
+  # externalIPs:
+  #  - 192.168.1.3
+  # One of SingleStack, PreferDualStack, or RequireDualStack.
+  # ipFamilyPolicy: SingleStack
+  # List of IP families (e.g. IPv4 and/or IPv6).
+  # ref: https://kubernetes.io/docs/concepts/services-networking/dual-stack/#services
+  # ipFamilies:
+  #   - IPv4
+  #   - IPv6
+  useTcp: false
+
+nodeSelector: {}
+
+tolerations: []
+
+topologySpreadConstraints: []
+
+affinity: {}
+
+replicaCount: 1
+
+# Optional PriorityClass that will be used in the Deployment, e.g. priorityClassName: "system-cluster-critical"
+priorityClassName: ""
+
+debug:
+  enabled: false
+
+secure: true
+
+podSecurityContext: {}
+
+securityContext: {}
+
+# file plugin
+zoneFiles: []
+#    - filename: example.db
+#      # Optional
+#      domains: example.com
+#      fallthrough:
+#       enabled: true
+#       zones:
+#         - test.example.com
+#      reload: 1m
+#      contents: |
+#        example.com.   IN SOA sns.dns.icann.com. noc.dns.icann.com. 2015082541 7200 3600 1209600 3600
+#        example.com.   IN NS  b.iana-servers.net.
+#        example.com.   IN NS  a.iana-servers.net.
+#        example.com.   IN A   192.168.99.102
+#        *.example.com. IN A   192.168.99.102
+
+extraVolumes: []
+# extraVolumes:
+#   - name: tsig-secret
+#     secret:
+#       secretName: tsig-secret
+extraVolumeMounts: []
+# extraVolumeMounts:
+#   - name: tsig-volume
+#     mountPath: /etc/tsig
+#     subPath: tsig.key
+#     readOnly: true

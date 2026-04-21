@@ -1,0 +1,16 @@
+# Production overrides.
+# k8s_gateway is consumed only by in-cluster workloads right now (notably
+# Keycloak OIDC redirects) so the Service stays ClusterIP. The ClusterIP is
+# pinned so kube-dns can forward `enigma.vgijssel.nl` to a stable target.
+k8s-gateway:
+  service:
+    type: ClusterIP
+    clusterIP: 10.96.53.53
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi

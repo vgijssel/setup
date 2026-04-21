@@ -73,6 +73,24 @@ spec:
               files:
                 - path: apps/secrets-proxy/*/config.yaml
                 - path: apps/secrets-proxy-infra/*/config.yaml
+    # Generator for apps:cluster-networking label
+    - matrix:
+        generators:
+          - pullRequest:
+              github:
+                owner: vgijssel
+                repo: setup
+                labels:
+                  - apps:cluster-networking
+                tokenRef:
+                  secretName: github-token
+                  key: token
+              requeueAfterSeconds: 1800
+          - git:
+              repoURL: https://github.com/vgijssel/setup.git
+              revision: "{{.head_sha}}"
+              files:
+                - path: apps/cluster-networking/*/config.yaml
   template:
     metadata:
       name: "{{.platform}}-{{.appName}}-pr{{.number}}"
@@ -110,19 +128,20 @@ spec:
           value: "https://github.com/vgijssel/setup/pull/{{.number}}"
         - name: Branch
           value: "{{.branch}}"
+  # templatePatch replaces arrays wholesale, so emit syncOptions in one block —
+  # otherwise a second spec.syncPolicy.syncOptions patch overwrites the first
+  # (e.g. ServerSideApply=true would drop CreateNamespace=true and PruneLast=true).
   templatePatch: |
-    {{- if .createNamespace }}
     spec:
       syncPolicy:
         syncOptions:
+          - PruneLast=true
+          {{- if .createNamespace }}
           - CreateNamespace=true
-    {{- end }}
-    {{- if .serverSideApply }}
-    spec:
-      syncPolicy:
-        syncOptions:
+          {{- end }}
+          {{- if .serverSideApply }}
           - ServerSideApply=true
-    {{- end }}
+          {{- end }}
     {{- if .prOverrides }}
     spec:
       source:

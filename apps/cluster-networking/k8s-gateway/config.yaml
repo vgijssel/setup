@@ -1,0 +1,12 @@
+appType: apps
+appName: k8s-gateway
+platform: cluster-networking
+namespace: tenant-prod-clusternetworking
+
+cluster: enigma
+createNamespace: false
+prUpdateNamespace: true
+prUpdateCluster: false
+serverSideApply: false
+
+prOverrides: {}

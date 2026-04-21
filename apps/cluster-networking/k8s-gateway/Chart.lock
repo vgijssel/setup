@@ -1,0 +1,6 @@
+dependencies:
+- name: k8s-gateway
+  repository: file://../../../third_party/vendir/charts/k8s-gateway
+  version: 3.7.1
+digest: sha256:ada13ec3457e1d7069ff93d657259fb3d82c320f61b8073c72852495f9503da3
+generated: "2026-04-20T20:02:02.373744253Z"

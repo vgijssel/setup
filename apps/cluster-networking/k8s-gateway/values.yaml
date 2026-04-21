@@ -1,0 +1,21 @@
+# Base values (shared by prod and PR envs).
+# PR envs apply ONLY values.yaml; anything env-specific (pinned ClusterIP,
+# replica count, resources) belongs in values-prod.yaml.
+k8s-gateway:
+  # Delegated zone — k8s_gateway answers A/AAAA records for ingress/service
+  # hostnames that fall under this domain.
+  domain: enigma.vgijssel.nl
+
+  # Watch both Ingress and Service resources so that LoadBalancer-exposed
+  # services (e.g. Tailscale, internal apps) are also resolvable.
+  watchedResources:
+    - Ingress
+    - Service
+
+  # ClusterIP only — this instance is consumed by kube-dns via a zone
+  # forwarder, not by VLAN clients. PR envs get a dynamic ClusterIP so they
+  # don't collide with the pinned prod address in values-prod.yaml.
+  service:
+    type: ClusterIP
+
+  replicaCount: 1

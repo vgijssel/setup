@@ -1,0 +1,9 @@
+apiVersion: v2
+name: cluster-networking-tenant
+description: Cozystack Tenant for cluster-networking apps (k8s_gateway + coredns-patch)
+type: application
+version: 1.0.0
+dependencies:
+  - name: tenant
+    version: 0.1.0
+    repository: file://../../../libs/tenant

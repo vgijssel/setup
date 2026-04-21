@@ -1,0 +1,12 @@
+appType: apps
+appName: coredns-patch
+platform: cluster-networking
+namespace: tenant-prod-clusternetworking
+
+cluster: enigma
+createNamespace: false
+prUpdateNamespace: true
+prUpdateCluster: false
+serverSideApply: true
+
+prOverrides: {}

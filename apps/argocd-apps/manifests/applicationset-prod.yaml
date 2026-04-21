@@ -66,16 +66,17 @@ spec:
           prune: true
         syncOptions:
           - PruneLast=true
+  # templatePatch replaces arrays wholesale, so emit syncOptions in one block —
+  # otherwise a second spec.syncPolicy.syncOptions patch overwrites the first
+  # (e.g. ServerSideApply=true would drop CreateNamespace=true and PruneLast=true).
   templatePatch: |
-    {{- if .createNamespace }}
     spec:
       syncPolicy:
         syncOptions:
+          - PruneLast=true
+          {{- if .createNamespace }}
           - CreateNamespace=true
-    {{- end }}
-    {{- if .serverSideApply }}
-    spec:
-      syncPolicy:
-        syncOptions:
+          {{- end }}
+          {{- if .serverSideApply }}
           - ServerSideApply=true
-    {{- end }}
+          {{- end }}

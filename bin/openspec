@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+LOCAL_SETUP_DIR="$(realpath "$(dirname "$(realpath "$0")")/.." || true)"
+EXEC_BIN="${LOCAL_SETUP_DIR}"/bin/exec
+
+exec "${EXEC_BIN}" moon run --interactive --quiet --log error openspec:exec -- openspec "$@"

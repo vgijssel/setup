@@ -185,6 +185,39 @@ class TestGenerateConfig:
 
         assert config["prOverrides"] == existing_overrides
 
+    def test_preserve_existing_cluster(self) -> None:
+        """Platforms like cluster-networking target the root cluster instead of
+        a <platform>-vcluster; the existing value must win over the convention."""
+        ctx = ConfigContext(app_name="k8s-gateway", parent_dir="cluster-networking")
+        existing = {"cluster": "enigma", "prOverrides": {}}
+        config = generate_config(ctx, existing)
+
+        assert config["cluster"] == "enigma"
+
+    def test_preserve_existing_pr_update_namespace(self) -> None:
+        """Existing prUpdateNamespace should be preserved."""
+        ctx = ConfigContext(app_name="k8s-gateway", parent_dir="cluster-networking")
+        existing = {"prUpdateNamespace": True, "prOverrides": {}}
+        config = generate_config(ctx, existing)
+
+        assert config["prUpdateNamespace"] is True
+
+    def test_preserve_existing_pr_update_cluster(self) -> None:
+        """Existing prUpdateCluster should be preserved."""
+        ctx = ConfigContext(app_name="k8s-gateway", parent_dir="cluster-networking")
+        existing = {"prUpdateCluster": False, "prOverrides": {}}
+        config = generate_config(ctx, existing)
+
+        assert config["prUpdateCluster"] is False
+
+    def test_preserve_existing_create_namespace(self) -> None:
+        """Existing createNamespace should be preserved."""
+        ctx = ConfigContext(app_name="k8s-gateway", parent_dir="cluster-networking")
+        existing = {"createNamespace": False, "prOverrides": {}}
+        config = generate_config(ctx, existing)
+
+        assert config["createNamespace"] is False
+
     def test_infra_has_header_comment(self) -> None:
         """Infra type should have header comment."""
         ctx = ConfigContext(app_name="vcluster", parent_dir="secrets-proxy-infra")
