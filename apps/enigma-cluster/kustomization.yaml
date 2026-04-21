@@ -9,7 +9,6 @@ resources:
   - helmrelease-1password-secrets.yaml
   - helmrelease-kyverno.yaml
   - helmrelease-external-secrets.yaml
-  - helmrelease-k3k.yaml
   - helmrelease-kro.yaml
   - clusterpolicy-multus-memory.yaml
   - helmrelease-internal-networking.yaml

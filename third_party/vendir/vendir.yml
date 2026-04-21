@@ -81,14 +81,6 @@ directories:
           version: 0.8.5
           repository:
             url: oci://registry.k8s.io/kro/charts
-  - path: charts/k3k
-    contents:
-      - path: .
-        helmChart:
-          name: k3k
-          version: 1.0.2
-          repository:
-            url: https://rancher.github.io/k3k
   - path: charts/vcluster
     contents:
       - path: .
