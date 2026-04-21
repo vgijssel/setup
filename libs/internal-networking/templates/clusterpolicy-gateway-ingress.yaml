@@ -54,6 +54,11 @@ spec:
             labels:
               # Add internal-networking label for external-dns to track
               internal-networking: "true"
+              # k8s_gateway (apps/cluster-networking/k8s-gateway) honors this
+              # label and skips the resource. Without it, the generated
+              # gateway ingress (public IP 46.224.93.115) would also land in
+              # in-cluster DNS answers for the same hostname.
+              k8s-gateway.dns/ignore: "true"
               app.kubernetes.io/managed-by: kyverno
               kyverno.io/generated-by: generate-gateway-ingress
             annotations:
