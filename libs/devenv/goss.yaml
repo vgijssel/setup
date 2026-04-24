@@ -132,6 +132,29 @@ command:
     stderr: ""
     timeout: 60000
 
+  no_orphan_hermit_pkg_symlinks:
+    title: Every bin/*.pkg symlink has a resolvable hermit manifest
+    meta:
+      url: https://github.com/cashapp/hermit/blob/master/manifest/loader.go
+      note: |
+        A .pkg symlink whose manifest is missing makes hermit's Loader.Load()
+        fall through to sources.Sync(force=true) on every exec, which triggers
+        a git pull on every hermit-managed binary invocation (~2s penalty on
+        every starship prompt render).
+    exec: |
+      bash -c '
+        set -u
+        installed=$(find "{{.Env.SETUP_DIR}}/bin" -maxdepth 1 -name ".*.pkg" -type l -exec basename {} \; | sed -E "s/^\.//; s/\.pkg$//" | sort -u)
+        known=$("{{.Env.SETUP_DIR}}/bin/hermit" list --short 2>/dev/null | sort -u)
+        orphans=$(comm -23 <(echo "$installed") <(echo "$known"))
+        if [ -n "$orphans" ]; then
+          printf "orphaned .pkg symlinks (no matching manifest):\n%s\n" "$orphans" >&2
+          exit 1
+        fi
+      '
+    exit-status: 0
+    timeout: 120000
+
   starship_version:
     title: Starship prompt is installed via Hermit
     exec: starship --version |  awk 'NR==1 {print $2}' | tr -d '\n'
