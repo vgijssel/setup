@@ -12,6 +12,7 @@ packages:
       - wget
       - fontconfig
     casks:
+      - beeper
       - google-chrome
       - orbstack
       - iterm2
@@ -33,7 +34,6 @@ packages:
       - github
       - finicky
       - obs
-      - coder/coder/coder-desktop
       - resilio-sync
       - anytype
       # TODO: Re-add telegram once Homebrew cask checksum is updated
