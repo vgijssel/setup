@@ -17,6 +17,11 @@ Host github.com-emu
   IdentitiesOnly yes
   IdentityFile ~/.ssh/1Password/SHA256_ym5L1HXa9N+cyGJ0EBQ36uVNEJWMdyZPu1YOW_lJKg4.pub
 
+Host gitlab.inverselink.com
+  ConnectTimeout 10
+  HostName git.pdx1.inverselink.com
+  PreferredAuthentications publickey
+
 # This key is used for SSH and available on coder workspaces
 Host *
     AddKeysToAgent yes
