@@ -94,7 +94,7 @@ directories:
       - path: .
         helmChart:
           name: argo-cd
-          version: 9.5.0
+          version: 9.5.14
           repository:
             url: https://argoproj.github.io/argo-helm
   - path: charts/k8s-gateway
