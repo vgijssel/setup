@@ -2,34 +2,27 @@ binaries = ["msb"]
 test = "msb --version"
 
 platform "darwin" "arm64" {
-  source = "https://github.com/superradcompany/microsandbox/releases/download/v${version}/msb-darwin-aarch64"
-
-  on "unpack" {
-    rename {
-      from = "${root}/msb-darwin-aarch64"
-      to = "${root}/msb"
-    }
-  }
+  source = "https://github.com/superradcompany/microsandbox/releases/download/v${version}/microsandbox-darwin-aarch64.tar.gz"
 }
 
 platform "linux" "arm64" {
-  source = "https://github.com/superradcompany/microsandbox/releases/download/v${version}/msb-linux-aarch64"
+  source = "https://github.com/superradcompany/microsandbox/releases/download/v${version}/microsandbox-linux-aarch64.tar.gz"
 
   on "unpack" {
-    rename {
-      from = "${root}/msb-linux-aarch64"
-      to = "${root}/msb"
+    symlink {
+      from = "${root}/libkrunfw.so.5.2.1"
+      to = "${root}/libkrunfw.so.5"
     }
   }
 }
 
 platform "linux" "amd64" {
-  source = "https://github.com/superradcompany/microsandbox/releases/download/v${version}/msb-linux-x86_64"
+  source = "https://github.com/superradcompany/microsandbox/releases/download/v${version}/microsandbox-linux-x86_64.tar.gz"
 
   on "unpack" {
-    rename {
-      from = "${root}/msb-linux-x86_64"
-      to = "${root}/msb"
+    symlink {
+      from = "${root}/libkrunfw.so.5.2.1"
+      to = "${root}/libkrunfw.so.5"
     }
   }
 }
@@ -44,7 +37,7 @@ version "0.4.6" {
 }
 
 sha256sums = {
-  "https://github.com/superradcompany/microsandbox/releases/download/v0.4.6/msb-linux-x86_64": "7c7c107785d71fb43bab26b049a75caf1b4c8c8b98388abe5d08888b95f6e45e",
-  "https://github.com/superradcompany/microsandbox/releases/download/v0.4.6/msb-darwin-aarch64": "ffca49cd5cc691cab8743d57134ce083e2f48c0f06186d9fd94bf59a57128f9f",
-  "https://github.com/superradcompany/microsandbox/releases/download/v0.4.6/msb-linux-aarch64": "97528cbf9a4f32498c038ea7adf4e30d1d1e14fb0e94be2e8007f34327169bb9",
+  "https://github.com/superradcompany/microsandbox/releases/download/v0.4.6/microsandbox-linux-x86_64.tar.gz": "8026fccb290904d27c634bf5f6185d38fbbe515c941281e46767d0f7726f6da7",
+  "https://github.com/superradcompany/microsandbox/releases/download/v0.4.6/microsandbox-darwin-aarch64.tar.gz": "4667c5b14f777fbf6ae2c5b0d7a1642c6d736cc6e9b9f581bfe37bfe025dd1de",
+  "https://github.com/superradcompany/microsandbox/releases/download/v0.4.6/microsandbox-linux-aarch64.tar.gz": "e4b147a827d295b18954f3094248da34b49d7fef277a0b9a8449695241cd46d3",
 }
