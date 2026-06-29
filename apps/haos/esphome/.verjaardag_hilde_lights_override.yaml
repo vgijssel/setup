@@ -1,3 +1,0 @@
-platform: homeassistant
-id: verjaardag_hilde_lights_override
-entity_id: binary_sensor.verjaardag_hilde_lights_override

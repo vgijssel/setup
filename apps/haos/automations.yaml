@@ -267,7 +267,7 @@
     path: setup/door_presence.yaml
     input:
       contact_sensor: binary_sensor.toilet_contact_door
-      motion_sensor: binary_sensor.toilet_motion
+      motion_sensor: binary_sensor.toilet_motion_occupancy
       variable_sensor: binary_sensor.toilet_door_presence
 - id: '1754924013174'
   alias: Baby Room - Door Presence
@@ -343,14 +343,14 @@
       - binary_sensor.landing_motion_occupancy
       occupancy_sensors:
       - binary_sensor.hallway_occupancy_presence
-      - binary_sensor.toilet_motion
+      - binary_sensor.toilet_motion_occupancy
       occupancy_state_selector: input_select.hallway_room_occupancy_select
       occupancy_timer: timer.hallway_room_occupancy_timer
       occupancy_toggle: input_boolean.hallway_room_occupancy_toggle
       entering_timer_duration:
         hours: 0
-        minutes: 2
-        seconds: 0
+        minutes: 0
+        seconds: 10
       entering_confirm_timer_duration:
         hours: 0
         minutes: 0
@@ -737,7 +737,7 @@
     - sun
     id: morning
   - trigger: time
-    at: '20:00:00'
+    at: '19:00:00'
     weekday:
     - mon
     - tue
@@ -764,7 +764,6 @@
           - automation.hallway_occupancy_lights
           - automation.landing_occupancy_lights
           - automation.bedroom_occupancy_lights
-          - automation.office_occupancy_lights
           - automation.bathroom_occupancy_lights
           - automation.toilet_occupancy_lights
           - automation.laundry_room_occupancy_lights
@@ -780,6 +779,20 @@
         target:
           entity_id:
           - automation.office_occupancy_lights
+          - automation.landing_occupancy_lights
+      - if:
+        - condition: state
+          entity_id: light.landing_lights
+          state:
+          - 'on'
+        then:
+        - action: light.turn_on
+          metadata: {}
+          target:
+            entity_id: light.landing_lights
+          data:
+            transition: 1
+            brightness_pct: 10
   mode: single
 - id: '1771059422125'
   alias: Verjaardag Hilde - Puzzle 1
