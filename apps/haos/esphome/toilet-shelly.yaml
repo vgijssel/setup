@@ -1,7 +1,6 @@
 substitutions:
   device_name: toilet-shelly
   entity_id: toilet_shelly
-  static_ip: 192.168.1.72
 
 packages:
   device_base: !include .shelly-1l.yaml
