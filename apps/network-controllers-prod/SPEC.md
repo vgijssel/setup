@@ -82,7 +82,7 @@ that all existing TP-Link/Omada and Ubiquiti/UniFi network gear keeps working.
 Match the existing `apps/*-prod` Moon + OpenTofu + 1Password workflow.
 
 ```bash
-# Secrets: render .env from 1Password (op inject -i .env.tpl -o .env)
+# Secrets: render secrets/.env from 1Password (op inject -i .env.tpl -o secrets/.env)
 moon run network-controllers-prod:secrets
 
 # OpenTofu lifecycle (each sources .env, uses tofu)
@@ -113,7 +113,10 @@ Conventions reused from `apps/gateway-prod`:
 ```
 apps/network-controllers-prod/
 ├── SPEC.md                 # this file
+├── .envrc                  # sources root .envrc + dotenv_if_exists secrets/.env
 ├── moon.yml                # secrets/init/plan/apply/destroy/output tasks
+├── secrets/                # rendered secrets (git-ignored, deny-listed in .claude)
+│   └── .env                # op inject output; NOT committed
 ├── .env.tpl                # 1Password template (vault `enigma-prod`):
 │                           #   HCLOUD_TOKEN, AWS_* S3 creds, TF_VAR_s3_bucket
 │                           #   CLOUDFLARE_API_TOKEN + TF_VAR_cloudflare_{api_token,account_id}

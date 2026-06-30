@@ -54,6 +54,9 @@ moon ci <base> <head>         # Run affected tasks in CI mode
 - **NEVER** create files unless absolutely necessary for the goal
 - **NEVER** proactively create documentation files (*.md) or README files
 - Only create documentation when explicitly requested
+- **NEVER** read, write, or edit files under any `secrets/` directory (e.g.
+  `apps/*/secrets/`). These hold rendered secrets (`op inject` output) and are
+  git-ignored. Use the `.env.tpl` template and the `secrets` Moon task instead.
 
 ## Technology Stack
 

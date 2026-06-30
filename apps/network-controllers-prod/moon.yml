@@ -1,0 +1,18 @@
+language: javascript
+layer: application
+tags:
+  - app
+  - terraform
+  - hetzner
+  - infrastructure
+tasks:
+  secrets:
+    command: op inject --force -i .env.tpl -o secrets/.env
+    env:
+      CWD: apps/network-controllers-prod
+    inputs:
+      - file: .env.tpl
+    outputs:
+      - secrets/.env
+    options:
+      runInCI: false

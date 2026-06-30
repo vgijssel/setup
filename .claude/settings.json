@@ -10,5 +10,12 @@
         "path": ".claude/local_marketplace"
       }
     }
+  },
+  "permissions": {
+    "deny": [
+      "Read(./apps/network-controllers-prod/secrets/**)",
+      "Edit(./apps/network-controllers-prod/secrets/**)",
+      "Write(./apps/network-controllers-prod/secrets/**)"
+    ]
   }
 }
