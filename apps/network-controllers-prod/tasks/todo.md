@@ -6,7 +6,7 @@ off top-to-bottom. Each task's acceptance criteria + verification live in `plan.
 ## Phase 1 — Foundation (no live infra)
 - [ ] **T0** Upload Flatcar snapshot to Hetzner (`hcloud-upload-image`), record ID → `var.flatcar_snapshot_id`
 - [x] **T1** OpenTofu skeleton + Moon tasks: `versions.tf`, `providers.tf`, `backend.tf`, `variables.tf`, extend `moon.yml` (`init/plan/apply/destroy/output`, source `secrets/.env`)
-- [ ] **T2** Core resources + outputs: `main.tf` (ssh key, firewall [device ports only], volume+attachment, server[ct_config; `user_data` change recreates VM — **no `ignore_changes`**]), `outputs.tf`
+- [x] **T2** Core resources + outputs: `main.tf` (ssh key, firewall [device ports only], volume+attachment, server[ct_config; `user_data` change recreates VM — **no `ignore_changes`**]), `outputs.tf`
 
 ### ⛳ Checkpoint: Foundation
 - [ ] `init` + `validate` + `plan` green; `tofu fmt -check` clean; nothing applied

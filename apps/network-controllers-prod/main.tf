@@ -1,0 +1,125 @@
+locals {
+  omada_fqdn        = "omada.${var.base_domain}"
+  unifi_fqdn        = "unifi.${var.base_domain}"
+  omada_public_fqdn = "omada-public.${var.base_domain}"
+  unifi_public_fqdn = "unifi-public.${var.base_domain}"
+
+  # Hetzner exposes an attached Volume at this stable device path (by Volume ID).
+  volume_device = "/dev/disk/by-id/scsi-0HC_Volume_${hcloud_volume.data.id}"
+}
+
+# SSH key for the Flatcar 'core' user.
+resource "hcloud_ssh_key" "this" {
+  name       = "${var.server_name}-key"
+  public_key = var.ssh_public_key
+}
+
+# Firewall: ONLY device provisioning/adoption ports are public. SSH, admin UIs,
+# and Netdata are reachable only over Tailscale (no public 22/80/443).
+resource "hcloud_firewall" "this" {
+  name = "${var.server_name}-firewall"
+
+  # --- Omada device provisioning ---
+  rule {
+    direction  = "in"
+    protocol   = "tcp"
+    port       = "29810-29817"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+  rule {
+    direction  = "in"
+    protocol   = "udp"
+    port       = "29810-29817"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+  rule {
+    direction  = "in"
+    protocol   = "udp"
+    port       = "27001"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+  rule {
+    direction  = "in"
+    protocol   = "tcp"
+    port       = "8088"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+
+  # --- UniFi device provisioning ---
+  rule {
+    direction  = "in"
+    protocol   = "tcp"
+    port       = "8080"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+  rule {
+    direction  = "in"
+    protocol   = "udp"
+    port       = "3478"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+  rule {
+    direction  = "in"
+    protocol   = "udp"
+    port       = "10001"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+  rule {
+    direction  = "in"
+    protocol   = "udp"
+    port       = "10003"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+}
+
+# Persistent data Volume. NOT formatted by Hetzner (no `format` arg) — Ignition
+# formats it non-destructively (wipe_filesystem=false) so a VM recreate reuses
+# the existing filesystem and controller data survives.
+resource "hcloud_volume" "data" {
+  name     = "${var.server_name}-data"
+  size     = var.volume_size
+  location = "nbg1"
+
+  labels = {
+    environment = "production"
+    role        = "network-controllers"
+    managed_by  = "opentofu"
+  }
+}
+
+# Flatcar VM. `user_data` is the compiled Ignition; there is intentionally NO
+# `ignore_changes`, so a Butane/Ignition change recreates the server. Data lives
+# on the retained Volume, so a recreate is the routine config-change path.
+resource "hcloud_server" "this" {
+  name         = var.server_name
+  server_type  = var.server_type
+  datacenter   = var.datacenter
+  image        = var.flatcar_snapshot_id
+  ssh_keys     = [hcloud_ssh_key.this.id]
+  firewall_ids = [hcloud_firewall.this.id]
+  user_data    = data.ct_config.ignition.rendered
+
+  labels = {
+    environment = "production"
+    role        = "network-controllers"
+    managed_by  = "opentofu"
+  }
+}
+
+# Attach the Volume. The attachment is recreated with the server, but the Volume
+# itself persists (it is a separate resource).
+resource "hcloud_volume_attachment" "data" {
+  volume_id = hcloud_volume.data.id
+  server_id = hcloud_server.this.id
+  automount = false # Ignition's var-lib-data.mount unit handles mounting.
+}
+
+# Stub Ignition config so `plan` resolves before the Butane is authored (T3).
+# Replaced by templatefile("ignition/butane.yaml", ...) in T3.
+data "ct_config" "ignition" {
+  strict  = true
+  content = <<-EOT
+    variant: flatcar
+    version: 1.0.0
+  EOT
+}
