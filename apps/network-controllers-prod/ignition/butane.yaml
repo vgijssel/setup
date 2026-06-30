@@ -61,3 +61,31 @@ systemd:
         ExecStop=/usr/bin/docker stop tailscale
         [Install]
         WantedBy=multi-user.target
+
+    # Omada controller. Host networking is required for device discovery/adoption.
+    # Data + logs live on the persistent Volume.
+    - name: omada-controller.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Omada Controller (containerized)
+        After=network-online.target docker.service var-lib-data.mount
+        Wants=network-online.target
+        Requires=docker.service
+        RequiresMountsFor=/var/lib/data
+        [Service]
+        Restart=always
+        RestartSec=10
+        TimeoutStartSec=0
+        ExecStartPre=-/usr/bin/docker rm -f omada-controller
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/omada/data /var/lib/data/omada/logs
+        ExecStartPre=/usr/bin/docker pull ${omada_image}
+        ExecStart=/usr/bin/docker run --rm --name omada-controller \
+          --network=host \
+          -e TZ=Europe/Amsterdam \
+          -v /var/lib/data/omada/data:/opt/tplink/EAPController/data \
+          -v /var/lib/data/omada/logs:/opt/tplink/EAPController/logs \
+          ${omada_image}
+        ExecStop=/usr/bin/docker stop omada-controller
+        [Install]
+        WantedBy=multi-user.target

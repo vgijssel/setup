@@ -125,5 +125,6 @@ data "ct_config" "ignition" {
     tailscale_authkey  = var.tailscale_authkey
     tailscale_hostname = var.server_name
     tailscale_image    = var.tailscale_image
+    omada_image        = var.omada_image
   })
 }
