@@ -65,6 +65,24 @@ storage:
               }
             }
           }
+    # Netdata installer + Netdata Cloud claim (run once by the oneshot below).
+    # 0700 — contains the claim token. Idempotent: skips if already installed.
+    - path: /opt/bin/netdata-install.sh
+      mode: 0700
+      contents:
+        inline: |
+          #!/usr/bin/bash
+          set -euo pipefail
+          if [ -d /opt/netdata ]; then
+            echo "netdata already installed; skipping"
+            exit 0
+          fi
+          tmp="$(mktemp)"
+          curl -fsSL https://my-netdata.io/kickstart.sh -o "$tmp"
+          sh "$tmp" --non-interactive --stable-channel --static-only --disable-telemetry \
+            --claim-token "${netdata_claim_token}" \
+            --claim-rooms "${netdata_claim_rooms}" \
+            --claim-url "${netdata_claim_url}"
     # Launcher: wait for tailscale0, bind Caddy to that 100.x IP (Tailscale-only).
     - path: /opt/bin/caddy-run.sh
       mode: 0755
@@ -202,5 +220,24 @@ systemd:
         ExecStartPre=/usr/bin/docker pull ${caddy_image}
         ExecStart=/opt/bin/caddy-run.sh
         ExecStop=/usr/bin/docker stop caddy
+        [Install]
+        WantedBy=multi-user.target
+
+    # Netdata: install via the official kickstart (stable channel) and claim into
+    # Netdata Cloud. Dashboard (:19999) is reachable over Tailscale only — the
+    # Hetzner firewall does not expose 19999 publicly.
+    - name: netdata-install.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install and claim Netdata into Netdata Cloud (oneshot)
+        After=network-online.target
+        Wants=network-online.target
+        ConditionPathExists=!/opt/netdata
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        TimeoutStartSec=0
+        ExecStart=/opt/bin/netdata-install.sh
         [Install]
         WantedBy=multi-user.target

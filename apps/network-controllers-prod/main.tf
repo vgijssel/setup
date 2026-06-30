@@ -132,5 +132,8 @@ data "ct_config" "ignition" {
     cloudflare_zone_name = var.cloudflare_zone_name
     omada_fqdn           = local.omada_fqdn
     unifi_fqdn           = local.unifi_fqdn
+    netdata_claim_url    = var.netdata_claim_url
+    netdata_claim_token  = var.netdata_claim_token
+    netdata_claim_rooms  = var.netdata_claim_rooms
   })
 }
