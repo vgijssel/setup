@@ -89,3 +89,37 @@ systemd:
         ExecStop=/usr/bin/docker stop omada-controller
         [Install]
         WantedBy=multi-user.target
+
+    # UniFi OS Server. KNOWN RISK (SPEC §1): the image runs systemd inside the
+    # container, so it needs --privileged, host cgroup namespace, the cgroup fs,
+    # and tmpfs for /run. x86-64 only. Host networking for device discovery.
+    # Data lives on the persistent Volume at /data.
+    - name: unifi-os-server.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=UniFi OS Server (containerized, privileged/systemd-in-container)
+        After=network-online.target docker.service var-lib-data.mount
+        Wants=network-online.target
+        Requires=docker.service
+        RequiresMountsFor=/var/lib/data
+        [Service]
+        Restart=always
+        RestartSec=10
+        TimeoutStartSec=0
+        ExecStartPre=-/usr/bin/docker rm -f unifi-os-server
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/unifi
+        ExecStartPre=/usr/bin/docker pull ${unifi_image}
+        ExecStart=/usr/bin/docker run --rm --name unifi-os-server \
+          --privileged \
+          --cgroupns=host \
+          --network=host \
+          --stop-signal=SIGRTMIN+3 \
+          -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
+          --tmpfs /run \
+          --tmpfs /run/lock \
+          -v /var/lib/data/unifi:/data \
+          ${unifi_image}
+        ExecStop=/usr/bin/docker stop unifi-os-server
+        [Install]
+        WantedBy=multi-user.target

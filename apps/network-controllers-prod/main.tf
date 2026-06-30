@@ -126,5 +126,6 @@ data "ct_config" "ignition" {
     tailscale_hostname = var.server_name
     tailscale_image    = var.tailscale_image
     omada_image        = var.omada_image
+    unifi_image        = var.unifi_image
   })
 }
