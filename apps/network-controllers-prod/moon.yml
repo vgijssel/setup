@@ -7,7 +7,7 @@ tags:
   - infrastructure
 tasks:
   secrets:
-    command: op inject --force -i .env.tpl -o secrets/.env
+    command: op inject --account my.1password.com --force -i .env.tpl -o secrets/.env
     env:
       CWD: apps/network-controllers-prod
     inputs:
