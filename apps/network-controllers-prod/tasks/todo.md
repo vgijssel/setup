@@ -17,7 +17,7 @@ off top-to-bottom. Each task's acceptance criteria + verification live in `plan.
 - [x] **T5** `unifi-os-server.service` (inline) — `lemker/unifi-os-server:1.3.0`, privileged + cgroupns=host + systemd-in-container, volume bind mount (exact data path/flags validated live at T9)
 - [x] **T6** `caddy.service` + Caddyfile (inline storage.files) — Caddy w/ Cloudflare DNS module, DNS-01 LE for private names, bind to Tailscale IP (`caddy-run.sh` resolves `tailscale0`), CF token in 0600 env file
 - [x] **T7** `netdata-install.service` (inline oneshot) — kickstart (`--stable-channel --static-only`) + claim into Netdata Cloud, dashboard Tailscale-only (firewall-enforced)
-- [ ] **T8** `dns.tf` — public records → public IP; private records → `var.tailscale_ip` (count-guarded); all `proxied = false`
+- [x] **T8** `dns.tf` — public records → public IP; private records → `var.tailscale_ip` (count-guarded); all `proxied = false`
 
 ### ⛳ Checkpoint: Full static validation + HUMAN REVIEW (gate before spending money)
 - [ ] `tofu validate`/`fmt -check` clean; rendered Butane `butane --strict` ok; `ct_config` compiles
