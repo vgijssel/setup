@@ -12,7 +12,7 @@ off top-to-bottom. Each task's acceptance criteria + verification live in `plan.
 - [ ] `init` + `validate` + `plan` green; `tofu fmt -check` clean; nothing applied
 
 ## Phase 2 — Machine config authoring (no live infra)
-- [ ] **T3** Base Butane: `var-lib-data.mount` (**non-destructive** format — `wipe_filesystem: false` + label, survives recreate), `files/tailscale.service` (**reusable** authkey + stable hostname), wire `data "ct_config"` via `templatefile()`
+- [x] **T3** Base Butane: `var-lib-data.mount` (**non-destructive** format — `wipe_filesystem: false` + label, survives recreate), `tailscale.service` inline (**reusable** authkey + stable hostname, Tailscale SSH), wire `data "ct_config"` via `templatefile()` (units inlined in `butane.yaml` so secrets inject without writing rendered files)
 - [ ] **T4** `files/omada-controller.service` — `mbentley/omada-controller:6.2.10.17`, host net, volume bind mounts
 - [ ] **T5** `files/unifi-os-server.service` — `lemker/unifi-os-server:1.3.0`, privileged + systemd-in-container, volume bind mount
 - [ ] **T6** `files/caddy.service` + `files/Caddyfile` — Caddy w/ Cloudflare DNS module, DNS-01 LE for private names, bind `tailscale0`

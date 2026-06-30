@@ -114,12 +114,16 @@ resource "hcloud_volume_attachment" "data" {
   automount = false # Ignition's var-lib-data.mount unit handles mounting.
 }
 
-# Stub Ignition config so `plan` resolves before the Butane is authored (T3).
-# Replaced by templatefile("ignition/butane.yaml", ...) in T3.
+# Compile the Butane config to Ignition. Secrets and dynamic values are injected
+# via templatefile() so nothing rendered is written to disk or committed.
 data "ct_config" "ignition" {
-  strict  = true
-  content = <<-EOT
-    variant: flatcar
-    version: 1.0.0
-  EOT
+  strict = true
+  content = templatefile("${path.module}/ignition/butane.yaml", {
+    ssh_public_key     = var.ssh_public_key
+    volume_device      = local.volume_device
+    volume_label       = "ncdata"
+    tailscale_authkey  = var.tailscale_authkey
+    tailscale_hostname = var.server_name
+    tailscale_image    = var.tailscale_image
+  })
 }

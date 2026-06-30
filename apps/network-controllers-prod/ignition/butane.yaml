@@ -1,0 +1,63 @@
+# Butane config for network-controllers-prod (Flatcar).
+#
+# This file is a Terraform templatefile() template: dollar-brace placeholders are
+# substituted in main.tf before the poseidon/ct provider compiles it to Ignition.
+# Only single-line scalars are templated (image tags, secrets, device paths,
+# hostnames) so substitution never disturbs YAML indentation. Systemd unit bodies
+# are authored inline here rather than in files/ so that secrets can be injected
+# without ever writing a rendered file to disk. See ignition/README.md.
+variant: flatcar
+version: 1.0.0
+
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - "${ssh_public_key}"
+
+storage:
+  filesystems:
+    # Persistent Hetzner data Volume. wipe_filesystem=false makes the format
+    # NON-destructive: on first boot it creates ext4+label on an empty volume,
+    # and on a VM recreate it reuses the existing filesystem (no data loss).
+    - device: ${volume_device}
+      format: ext4
+      label: ${volume_label}
+      wipe_filesystem: false
+      path: /var/lib/data
+      with_mount_unit: true
+
+systemd:
+  units:
+    # Tailscale node (containerized). Reusable authkey + stable hostname so a VM
+    # recreate re-joins as the same tailnet device. Tailscale SSH enabled.
+    - name: tailscale.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Tailscale node (containerized)
+        After=network-online.target docker.service var-lib-data.mount
+        Wants=network-online.target
+        Requires=docker.service
+        RequiresMountsFor=/var/lib/data
+        [Service]
+        Restart=always
+        RestartSec=5
+        TimeoutStartSec=0
+        ExecStartPre=-/usr/bin/docker rm -f tailscale
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/tailscale
+        ExecStartPre=/usr/bin/docker pull ${tailscale_image}
+        ExecStart=/usr/bin/docker run --rm --name tailscale \
+          --network=host \
+          --cap-add=NET_ADMIN --cap-add=NET_RAW \
+          --device=/dev/net/tun \
+          -v /var/lib/data/tailscale:/var/lib/tailscale \
+          -e TS_AUTHKEY=${tailscale_authkey} \
+          -e TS_HOSTNAME=${tailscale_hostname} \
+          -e TS_STATE_DIR=/var/lib/tailscale \
+          -e TS_USERSPACE=false \
+          -e TS_EXTRA_ARGS=--ssh \
+          ${tailscale_image}
+        ExecStop=/usr/bin/docker stop tailscale
+        [Install]
+        WantedBy=multi-user.target
