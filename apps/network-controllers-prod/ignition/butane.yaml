@@ -26,6 +26,64 @@ storage:
       wipe_filesystem: false
       path: /var/lib/data
       with_mount_unit: true
+  files:
+    # Cloudflare API token for Caddy DNS-01. 0600; never committed (injected via
+    # templatefile, lands only in Ignition/state per the accepted secrets model).
+    - path: /etc/caddy/cloudflare.env
+      mode: 0600
+      contents:
+        inline: |
+          CLOUDFLARE_API_TOKEN=${cloudflare_api_token}
+    # Caddy config: TLS via Cloudflare DNS-01 for the two private admin names,
+    # bound to the Tailscale interface only, reverse-proxying the controllers.
+    - path: /etc/caddy/Caddyfile
+      mode: 0644
+      contents:
+        inline: |
+          {
+            email admin@${cloudflare_zone_name}
+          }
+          ${omada_fqdn} {
+            bind {env.TS_IP}
+            tls {
+              dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+            }
+            reverse_proxy https://localhost:8043 {
+              transport http {
+                tls_insecure_skip_verify
+              }
+            }
+          }
+          ${unifi_fqdn} {
+            bind {env.TS_IP}
+            tls {
+              dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+            }
+            reverse_proxy https://localhost:11443 {
+              transport http {
+                tls_insecure_skip_verify
+              }
+            }
+          }
+    # Launcher: wait for tailscale0, bind Caddy to that 100.x IP (Tailscale-only).
+    - path: /opt/bin/caddy-run.sh
+      mode: 0755
+      contents:
+        inline: |
+          #!/usr/bin/bash
+          set -euo pipefail
+          for _ in $(seq 1 60); do
+            if ip -4 -o addr show tailscale0 >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          TS_IP="$(ip -4 -o addr show tailscale0 | awk '{print $4}' | cut -d/ -f1)"
+          exec /usr/bin/docker run --rm --name caddy \
+            --network=host \
+            --env-file /etc/caddy/cloudflare.env \
+            -e TS_IP="$TS_IP" \
+            -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+            -v /var/lib/data/caddy:/data \
+            ${caddy_image}
 
 systemd:
   units:
@@ -121,5 +179,28 @@ systemd:
           -v /var/lib/data/unifi:/data \
           ${unifi_image}
         ExecStop=/usr/bin/docker stop unifi-os-server
+        [Install]
+        WantedBy=multi-user.target
+
+    # Caddy reverse proxy. Terminates TLS for the two private admin names using
+    # Let's Encrypt via Cloudflare DNS-01, bound to the Tailscale interface only.
+    - name: caddy.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Caddy reverse proxy (TLS over Tailscale, ACME DNS-01)
+        After=network-online.target docker.service tailscale.service var-lib-data.mount
+        Wants=network-online.target
+        Requires=docker.service tailscale.service
+        RequiresMountsFor=/var/lib/data
+        [Service]
+        Restart=always
+        RestartSec=10
+        TimeoutStartSec=0
+        ExecStartPre=-/usr/bin/docker rm -f caddy
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/caddy
+        ExecStartPre=/usr/bin/docker pull ${caddy_image}
+        ExecStart=/opt/bin/caddy-run.sh
+        ExecStop=/usr/bin/docker stop caddy
         [Install]
         WantedBy=multi-user.target

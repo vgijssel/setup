@@ -119,13 +119,18 @@ resource "hcloud_volume_attachment" "data" {
 data "ct_config" "ignition" {
   strict = true
   content = templatefile("${path.module}/ignition/butane.yaml", {
-    ssh_public_key     = var.ssh_public_key
-    volume_device      = local.volume_device
-    volume_label       = "ncdata"
-    tailscale_authkey  = var.tailscale_authkey
-    tailscale_hostname = var.server_name
-    tailscale_image    = var.tailscale_image
-    omada_image        = var.omada_image
-    unifi_image        = var.unifi_image
+    ssh_public_key       = var.ssh_public_key
+    volume_device        = local.volume_device
+    volume_label         = "ncdata"
+    tailscale_authkey    = var.tailscale_authkey
+    tailscale_hostname   = var.server_name
+    tailscale_image      = var.tailscale_image
+    omada_image          = var.omada_image
+    unifi_image          = var.unifi_image
+    caddy_image          = var.caddy_image
+    cloudflare_api_token = var.cloudflare_api_token
+    cloudflare_zone_name = var.cloudflare_zone_name
+    omada_fqdn           = local.omada_fqdn
+    unifi_fqdn           = local.unifi_fqdn
   })
 }

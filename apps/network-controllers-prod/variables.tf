@@ -122,7 +122,7 @@ variable "unifi_image" {
 variable "caddy_image" {
   description = "Pinned Caddy image that includes the Cloudflare DNS provider module (for ACME DNS-01)."
   type        = string
-  default     = "ghcr.io/caddybuilds/caddy-cloudflare:2.9.1"
+  default     = "caddybuilds/caddy-cloudflare:2.9.1"
 }
 
 variable "tailscale_image" {
