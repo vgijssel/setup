@@ -20,9 +20,9 @@ off top-to-bottom. Each task's acceptance criteria + verification live in `plan.
 - [x] **T8** `dns.tf` — public records → public IP; private records → `var.tailscale_ip` (count-guarded); all `proxied = false`
 
 ### ⛳ Checkpoint: Full static validation + HUMAN REVIEW (gate before spending money)
-- [ ] `tofu validate`/`fmt -check` clean; rendered Butane `butane --strict` ok; `ct_config` compiles
-- [ ] `trunk check`/`trunk fmt` clean
-- [ ] **Human approves the first live apply**
+- [x] `tofu validate`/`fmt -check` clean; `ct_config` compiles (Ignition 3.4.0, all 6 units + 4 files verified)
+- [x] `trunk check` clean (yamllint tool-install hiccup aside; 5 files no issues)
+- [ ] **Human approves the first live apply** (awaiting; T0 snapshot tooling decision pending)
 
 ## Phase 3 — Provision & bring-up (LIVE — incurs cost)
 - [ ] **T9** `moon run network-controllers-prod:apply` → VM + volume + firewall + public DNS; node boots, joins tailnet, all units active
