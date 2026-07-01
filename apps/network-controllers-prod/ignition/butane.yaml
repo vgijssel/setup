@@ -6,6 +6,8 @@
 # hostnames) so substitution never disturbs YAML indentation. Systemd unit bodies
 # are authored inline here rather than in files/ so that secrets can be injected
 # without ever writing a rendered file to disk. See ignition/README.md.
+# Butane file modes (0600/0644/0755) are octal integers, hence the directive:
+# yamllint disable rule:octal-values
 variant: flatcar
 version: 1.0.0
 

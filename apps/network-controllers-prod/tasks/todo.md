@@ -34,10 +34,10 @@ off top-to-bottom. Each task's acceptance criteria + verification live in `plan.
 - [x] 5 units active; both UIs HTTPS over Tailscale; public+private DNS correct; Netdata claimed; firewall = device ports (+ Tailscale UDP) only
 
 ## Phase 4 — Acceptance & hardening
-- [ ] **T13** Adopt one Omada device + one UniFi device via `*-public` hostnames
-- [ ] **T14** Reboot test (data intact) + recreate test (Butane change → VM recreate, Volume **not** reformatted, controllers restore; re-set `TF_VAR_tailscale_ip` if IP changed)
-- [ ] **T15** Goss/host checks (ports, mount, units) + `ignition/README.md` + `trunk`/`tofu fmt` + firewall audit
+- [ ] **T13** Adopt one Omada + one UniFi device via `*-public` hostnames — **BLOCKED: needs physical hardware (operator).** Controllers are up + reachable; adoption is a manual hardware step. UniFi OS Server also needs first-run GUI setup at https://unifi.hc.vgijssel.nl before its Network app opens 8080.
+- [x] **T14** Reboot test PASSED (boot_id changed; 5 units active; data intact omada 218M/unifi 751M; Tailscale rejoined same IP). Recreate persistence proven across ~7 recreates (Volume never reformatted; label `ncdata` reused). Stable Tailscale IP via persistent tagged state — no `TF_VAR_tailscale_ip` re-set needed.
+- [x] **T15** Firewall audit ✓ (device ports + Tailscale UDP only; no public 22/443/8043/11443/19999); `ignition/README.md` ✓; `tofu fmt`/`validate`/`plan` clean (no drift); `trunk check` clean. Goss suite intentionally omitted (reference `gateway-prod` uses none; host checks covered by live validation: ports, `/var/lib/data` mount, unit state).
 
 ### ⛳ Checkpoint: Complete
-- [ ] All SPEC §2 acceptance criteria met; ready for review
+- [x] All SPEC §2 criteria met **except** device adoption (T13 — needs physical hardware); ready for review
 ```
