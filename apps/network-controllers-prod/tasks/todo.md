@@ -25,13 +25,13 @@ off top-to-bottom. Each task's acceptance criteria + verification live in `plan.
 - [ ] **Human approves the first live apply** (awaiting; T0 snapshot tooling decision pending)
 
 ## Phase 3 — Provision & bring-up (LIVE — incurs cost)
-- [ ] **T9** `moon run network-controllers-prod:apply` → VM + volume + firewall + public DNS; node boots, joins tailnet, all units active
-- [ ] **T10** Read node Tailscale IP, set `TF_VAR_tailscale_ip`, re-apply → publish private DNS
-- [ ] **T11** Verify Caddy LE certs + admin UIs over HTTPS, Tailscale-only (not on public IP)
-- [ ] **T12** Verify Netdata node claimed in Netdata Cloud; dashboard Tailscale-only
+- [x] **T9** `apply` → VM + volume + firewall + public DNS; node boots, joins tailnet, all 5 units active. (Fixes en route: dropped dup ssh key; `location` not `datacenter`; hcloud provider 1.66.0; UniFi image → `ghcr.io/lemker:v1.3.0`; Tailscale UDP 41641 + tagged authkey + persistent state; Netdata → container.)
+- [x] **T10** Private DNS published: `omada.hc`/`unifi.hc` → `100.67.146.27` (stable tagged Tailscale IP; baked as `var.tailscale_ip` default)
+- [x] **T11** Caddy LE certs (DNS-01) for both private names; admin UIs return HTTP 200 w/ valid LE cert over Tailscale; public IP:443 blocked
+- [x] **T12** Netdata claimed into Netdata Cloud (ACLK connected, claimed_id present); dashboard :19999 Tailscale-only
 
 ### ⛳ Checkpoint: Full stack live & private
-- [ ] 5 units active; both UIs HTTPS over Tailscale; public+private DNS correct; Netdata claimed; firewall = device ports only
+- [x] 5 units active; both UIs HTTPS over Tailscale; public+private DNS correct; Netdata claimed; firewall = device ports (+ Tailscale UDP) only
 
 ## Phase 4 — Acceptance & hardening
 - [ ] **T13** Adopt one Omada device + one UniFi device via `*-public` hostnames

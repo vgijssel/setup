@@ -80,9 +80,9 @@ variable "tailscale_tag" {
 }
 
 variable "tailscale_ip" {
-  description = "The node's Tailscale 100.x IPv4. Empty on first apply; set TF_VAR_tailscale_ip after the node joins the tailnet to publish the private admin DNS records."
+  description = "The node's Tailscale 100.x IPv4 (stable via persistent tagged state). Drives the private admin DNS records. Re-check with `tailscale ip -4` if the identity is ever reset."
   type        = string
-  default     = ""
+  default     = "100.67.146.27"
 }
 
 # --- Netdata Cloud -----------------------------------------------------------
