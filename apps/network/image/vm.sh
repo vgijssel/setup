@@ -194,6 +194,7 @@ cmd_verify() {
 	ssh_vm 'sudo sh -c "echo ts-persisted > /var/lib/data/tailscale/marker.txt; sync"'    # T2 Tailscale
 	ssh_vm 'sudo sh -c "echo nd-persisted > /var/lib/data/netdata/marker.txt; sync"'      # T3 Netdata
 	ssh_vm 'sudo sh -c "echo cd-persisted > /var/lib/data/caddy/marker.txt; sync"'        # T4 Caddy
+	ssh_vm 'sudo sh -c "echo om-persisted > /var/lib/data/omada/marker.txt; sync"'        # T5 Omada
 	echo "   boot_id(before)=${boot1}"
 
 	echo ">> [2] assert services active (pre-reboot)"
@@ -206,7 +207,7 @@ cmd_verify() {
 	wait_for_ssh
 
 	echo ">> [4] assert persistence + services (post-reboot)"
-	local boot2 persisted ephemeral ts_marker nd_marker cd_marker
+	local boot2 persisted ephemeral ts_marker nd_marker cd_marker om_marker
 	boot2="$(ssh_vm cat /proc/sys/kernel/random/boot_id)"
 	# Read with sudo: some service state dirs are 0700 root (e.g. tailscaled's statedir).
 	persisted="$(ssh_vm 'sudo cat /var/lib/data/marker.txt 2>/dev/null || echo MISSING')"
@@ -214,12 +215,14 @@ cmd_verify() {
 	ts_marker="$(ssh_vm 'sudo cat /var/lib/data/tailscale/marker.txt 2>/dev/null || echo MISSING')"
 	nd_marker="$(ssh_vm 'sudo cat /var/lib/data/netdata/marker.txt 2>/dev/null || echo MISSING')"
 	cd_marker="$(ssh_vm 'sudo cat /var/lib/data/caddy/marker.txt 2>/dev/null || echo MISSING')"
+	om_marker="$(ssh_vm 'sudo cat /var/lib/data/omada/marker.txt 2>/dev/null || echo MISSING')"
 	echo "   boot_id(after) =${boot2}"
 	echo "   /var/lib/data/marker.txt           = ${persisted}   (expect: persisted)"
 	echo "   /run/ephemeral.txt                 = ${ephemeral}   (expect: GONE)"
 	echo "   /var/lib/data/tailscale/marker.txt = ${ts_marker}   (expect: ts-persisted)"
 	echo "   /var/lib/data/netdata/marker.txt   = ${nd_marker}   (expect: nd-persisted)"
 	echo "   /var/lib/data/caddy/marker.txt     = ${cd_marker}   (expect: cd-persisted)"
+	echo "   /var/lib/data/omada/marker.txt     = ${om_marker}   (expect: om-persisted)"
 
 	[[ "${boot1}" != "${boot2}" ]] || {
 		echo "!! boot_id unchanged — VM did not actually reboot" >&2
@@ -239,6 +242,10 @@ cmd_verify() {
 	}
 	[[ "${cd_marker}" = "cd-persisted" ]] || {
 		echo "!! caddy data dir did NOT persist across reboot" >&2
+		exit 1
+	}
+	[[ "${om_marker}" = "om-persisted" ]] || {
+		echo "!! omada data dir did NOT persist across reboot" >&2
 		exit 1
 	}
 	assert_services
@@ -306,6 +313,35 @@ assert_services() {
 		exit 1
 	}
 	echo "   [ok] caddy has cloudflare module; Caddyfile validates; data dir on volume"
+
+	# T5 Omada: wait for the HTTPS admin UI on :8043 (Java + embedded mongod boot is slow),
+	# then assert its data dir is bind-mounted onto the volume. On arm64 this is a dev-only
+	# signal — the .deb is Java/arch-independent, but the amd64 emulated boot (T7) is the
+	# authoritative gate. The whole wait runs in one SSH session to avoid reconnect churn.
+	echo "   waiting for Omada admin UI on :8043 (Java+mongod boot is slow) ..."
+	local up="" code
+	for _ in $(seq 1 60); do # ~5 min, short per-iteration SSH probes (avoids long-session drops)
+		# shellcheck disable=SC2016 # intentional: curl must run on the VM
+		code="$(ssh_vm 'curl -k -s -o /dev/null -w "%{http_code}" https://127.0.0.1:8043 2>/dev/null || echo 000')"
+		case "${code}" in
+		200 | 301 | 302)
+			up=1
+			break
+			;;
+		*) ;;
+		esac
+		sleep 5
+	done
+	[[ -n "${up}" ]] || {
+		echo "!! Omada admin UI did not answer on :8043 (last code=${code:-none})" >&2
+		exit 1
+	}
+	# shellcheck disable=SC2310,SC2016 # intentional: boolean probe; $(...) must run on the VM
+	ssh_vm 'test -d /var/lib/data/omada/data && [ "$(stat -c %d /var/lib/data/omada/data)" = "$(stat -c %d /var/lib/data)" ]' || {
+		echo "!! /var/lib/data/omada/data is not on the data volume" >&2
+		exit 1
+	}
+	echo "   [ok] omada UI answers on :8043; data dir on /var/lib/data (volume)"
 }
 
 case "${ACTION}" in

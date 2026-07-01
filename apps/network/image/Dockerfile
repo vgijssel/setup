@@ -78,15 +78,50 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     systemctl enable netdata.service; \
     rm -rf /var/lib/apt/lists/*
 
+# --- T5: Omada Controller (official TP-Link .deb, native) -------------------------
+# The .deb is Architecture: all (pure Java) — no force-arch needed on arm64; only its
+# native deps are arch-specific: OpenJDK 17, jsvc, and MongoDB. Omada launches its OWN
+# mongod with dbpath under /opt/tplink/EAPController/data/db, so persisting `data`
+# captures the DB (no system /var/lib/mongodb). All pinned per CLAUDE.md; the .deb is
+# fetched from TP-Link's date-stamped URL and sha256-verified.
+#
+# The postinst normally runs `tpeap start`, which BLOCKS in a poll loop (up to ~40 min)
+# waiting for the controller — fatal in a build. Preseeding omadac/init-cluster-mode=true
+# (vendor semantics: "do not start after install") makes the postinst skip that start; the
+# controller still boots normally at runtime via the tpeap sysv unit. update-rc.d in the
+# postinst enables tpeap, which systemd's sysv-generator turns into tpeap.service.
+ARG MONGODB_VERSION=8.0.26
+ARG OMADA_VERSION=6.2.10.17
+ARG OMADA_DEB_URL=https://static.tp-link.com/upload/software/2026/202604/20260429/Omada_Network_Application_v6.2.10.17_linux_x64_20260428102045.deb
+ARG OMADA_DEB_SHA256=4a8d3542ef28eaca22e62cc857a7b08a8ef4269d890d6a013dc948d03cdc4f33
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/cache/omada-dl,sharing=locked \
+    set -eux; \
+    apt-get update; \
+    # MongoDB 8.0 official apt repo (server only — Omada runs its own mongod).
+    curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc \
+      | gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg; \
+    echo "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" \
+      > /etc/apt/sources.list.d/mongodb-org-8.0.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+      openjdk-17-jre-headless jsvc curl adduser "mongodb-org-server=${MONGODB_VERSION}"; \
+    # Fetch + verify the official Omada .deb (cached across builds).
+    curl -fsSL "${OMADA_DEB_URL}" -o /var/cache/omada-dl/omada.deb; \
+    echo "${OMADA_DEB_SHA256}  /var/cache/omada-dl/omada.deb" | sha256sum -c -; \
+    echo 'omadac omadac/init-cluster-mode boolean true' | debconf-set-selections; \
+    DEBIAN_FRONTEND=noninteractive dpkg -i /var/cache/omada-dl/omada.deb; \
+    rm -rf /var/lib/apt/lists/*
+
 # --- T4: Caddy binary (built above with the Cloudflare DNS module) ----------------
 COPY --from=caddy-builder /out/caddy /usr/bin/caddy
 
 # --- Persistent bind-mount target dirs --------------------------------------------
 # Fixed-path services whose data dir is bind-mounted onto the Volume by
 # network-mount-data.sh MUST have that path exist in this read-only image (Kairos cannot
-# create new root paths at runtime). Nothing here for T2 — Tailscale uses --statedir on
-# the Volume (see the tailscaled drop-in), not a bind. T5 appends the Omada dirs:
-#   RUN mkdir -p /opt/tplink/EAPController/data /opt/tplink/EAPController/logs
+# create new root paths at runtime). Tailscale/Netdata/Caddy use data-dir flags (no bind).
+# The Omada data/logs dirs already exist here — the .deb's postinst created them under
+# /opt/tplink/EAPController — so network-mount-data.sh binds them onto the Volume at boot.
 
 # --- Baked files: systemd units, drop-ins, helper scripts -------------------------
 # files/ mirrors the root filesystem, so this lands each file at its final path
@@ -98,5 +133,5 @@ RUN chmod 0755 /usr/bin/network-mount-data.sh /usr/bin/network-tailscale-up.sh \
     systemctl enable tailscale-up.service caddy.service
 
 # --- Service install steps (added in later tasks) ---------------------------------
-# Later slices append, in this order:
-#   T5 Omada (.deb + JDK/JSVC/mongod)   T6 UniFi OS Server (official Podman installer)
+# Later slices append:
+#   T6 UniFi OS Server (official Podman installer)

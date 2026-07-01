@@ -40,9 +40,13 @@ if id netdata >/dev/null 2>&1; then
 	chown netdata:netdata /var/lib/data/netdata /var/lib/data/netdata-cache
 fi
 
-# (2) fixed-path services: bind their path onto the Volume (added in T5 — Omada
-#     /opt/tplink/EAPController/{data,logs}). Format per entry: "<src-on-volume> <dst>".
+# (2) fixed-path services: bind their path onto the Volume. Format "<src-on-volume> <dst>".
+#     T5 Omada: data (holds the embedded mongod's data/db) + logs. Owned by the omada user
+#     so the controller can write; this Kairos build persists /opt onto the OS disk by
+#     default, but SPEC §10 wants it on the Volume, so bind-mounting here takes precedence.
 BIND_MOUNTS=(
+	"/var/lib/data/omada/data /opt/tplink/EAPController/data"
+	"/var/lib/data/omada/logs /opt/tplink/EAPController/logs"
 )
 for entry in "${BIND_MOUNTS[@]}"; do
 	# shellcheck disable=SC2086 # intentional word split: entry is "<src> <dst>"
@@ -51,3 +55,15 @@ for entry in "${BIND_MOUNTS[@]}"; do
 	mkdir -p "${src}" "${dst}"
 	mountpoint -q "${dst}" || mount --bind "${src}" "${dst}"
 done
+
+# Omada runs as the `omada` user (created by the .deb). Its Volume-backed data/logs must be
+# owned by it, and so must the baked properties/ (it rewrites omada.properties on start) and
+# work/ dirs — which come up root-owned at runtime because Kairos presents /opt with the
+# .deb's dpkg ownership, not the postinst's runtime chown. Re-assert every boot.
+if id omada >/dev/null 2>&1; then
+	# The embedded mongod is launched with dbpath data/db and will NOT create it; on a fresh
+	# Volume the bind-mounted data dir is empty, so create data/db up front.
+	mkdir -p /var/lib/data/omada/data/db
+	chown omada:omada /var/lib/data/omada/data /var/lib/data/omada/data/db /var/lib/data/omada/logs
+	chown -R omada:omada /opt/tplink/EAPController/properties /opt/tplink/EAPController/work
+fi

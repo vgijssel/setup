@@ -47,7 +47,12 @@ invoked from cloud-config's `boot` stage. `os.qcow2` overlay is auto-rebuilt whe
 - [x] Tailscale + Netdata + Caddy all baked/pinned; Tailscale+Netdata active, Caddy validated (active-with-bind is live-only); each service's state survives reboot-in-VM on `/var/lib/data`; `trunk check` clean.
 
 ## Phase 2 — Controllers (the hard parts)
-- [ ] **T5** Omada (official TP-Link `.deb`, pinned): install JDK/JSVC + `mongod` (newest supported by pinned Omada); embedded mongod uses `data/db`; persist `/opt/tplink/EAPController/{data,logs}`; unit active, UI :8043 (arm64 = dev-only force-arch, **not authoritative**)
+- [x] **T5** Omada (official TP-Link `.deb` **6.2.10.17**, sha256-pinned; deps **openjdk-17-jre-headless**, **jsvc**, **mongodb-org-server 8.0.26** from the official mongo repo): the `.deb` is `Architecture: all` (pure Java) so **no force-arch needed on arm64** — it installs and runs natively. Embedded mongod uses dbpath `data/db`; `/opt/tplink/EAPController/{data,logs}` bind-mounted onto the **Volume** (data/db pre-created + chowned at boot). Uses the vendor `tpeap` sysv unit (systemd sysv-generator) + ordering drop-in. `vm-verify` **PASS** (arm64): Omada UI answers **HTTP 200 on :8043** pre+post reboot, mongod db on the volume, `om-persisted` marker survives. Real-Omada authority is the amd64 gate (T7). `trunk check` clean.
+
+**T5 findings (feed T6/T7):**
+- Postinst runs a **blocking** `tpeap start` (polls up to ~40 min). Preseed `omadac/init-cluster-mode=true` (vendor: "don't start after install") to skip it; the controller still boots at runtime via `tpeap.service`.
+- **Kairos presents `/opt` with the `.deb`'s dpkg (root) ownership at runtime**, not the postinst's chown — so `network-mount-data.sh` re-chowns `properties/` + `work/` (recursive) and `data`/`logs`/`data/db` to `omada` every boot, else the controller can't write `omada.properties` and mongod can't open its dbpath.
+- mongod does **not** create its dbpath — `data/db` must be pre-created on the (empty) Volume at boot.
 - [ ] **T6** UniFi OS Server (official Podman installer, baked): `podman`+`slirp4netns`, bake `uosserver` user, relocate `graphroot`→`/var/lib/data/containers` via storage.conf, run installer at build (fallback: first-boot stage w/ user still baked); persist graphroot (+ uosserver home if needed); `podman ps` + GUI :11443; survives reboot-in-VM
 
 ### ⛳ Checkpoint: Persistence discovery complete & validated (arm64)
