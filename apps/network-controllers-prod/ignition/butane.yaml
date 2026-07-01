@@ -105,34 +105,32 @@ storage:
 
 systemd:
   units:
-    # Tailscale node (containerized). Reusable authkey + stable hostname so a VM
-    # recreate re-joins as the same tailnet device. Tailscale SSH enabled.
+    # Tailscale node (containerized). State is EPHEMERAL (container-local, not on
+    # the volume): every boot re-authenticates fresh with the reusable authkey
+    # under the stable hostname. This avoids persisted state getting stuck in an
+    # unauthorized identity across recreates.
     - name: tailscale.service
       enabled: true
       contents: |
         [Unit]
         Description=Tailscale node (containerized)
-        After=network-online.target docker.service var-lib-data.mount
+        After=network-online.target docker.service
         Wants=network-online.target
         Requires=docker.service
-        RequiresMountsFor=/var/lib/data
         [Service]
         Restart=always
         RestartSec=5
         TimeoutStartSec=0
         ExecStartPre=-/usr/bin/docker rm -f tailscale
-        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/tailscale
         ExecStartPre=/usr/bin/docker pull ${tailscale_image}
         ExecStart=/usr/bin/docker run --rm --name tailscale \
           --network=host \
           --cap-add=NET_ADMIN --cap-add=NET_RAW \
           --device=/dev/net/tun \
-          -v /var/lib/data/tailscale:/var/lib/tailscale \
           -e TS_AUTHKEY=${tailscale_authkey} \
           -e TS_HOSTNAME=${tailscale_hostname} \
           -e TS_STATE_DIR=/var/lib/tailscale \
           -e TS_USERSPACE=false \
-          -e TS_EXTRA_ARGS=--advertise-tags=${tailscale_tag} \
           -e TS_TAILSCALED_EXTRA_ARGS=--port=41641 \
           ${tailscale_image}
         ExecStop=/usr/bin/docker stop tailscale
