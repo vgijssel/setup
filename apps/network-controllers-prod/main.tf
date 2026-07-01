@@ -88,7 +88,7 @@ resource "hcloud_firewall" "this" {
 resource "hcloud_volume" "data" {
   name     = "${var.server_name}-data"
   size     = var.volume_size
-  location = "nbg1"
+  location = var.location
 
   labels = {
     environment = "production"
@@ -103,7 +103,7 @@ resource "hcloud_volume" "data" {
 resource "hcloud_server" "this" {
   name         = var.server_name
   server_type  = var.server_type
-  datacenter   = var.datacenter
+  location     = var.location
   image        = var.flatcar_snapshot_id
   firewall_ids = [hcloud_firewall.this.id]
   user_data    = data.ct_config.ignition.rendered
@@ -133,6 +133,7 @@ data "ct_config" "ignition" {
     volume_label         = "ncdata"
     tailscale_authkey    = var.tailscale_authkey
     tailscale_hostname   = var.server_name
+    tailscale_tag        = var.tailscale_tag
     tailscale_image      = var.tailscale_image
     omada_image          = var.omada_image
     unifi_image          = var.unifi_image

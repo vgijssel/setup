@@ -132,7 +132,7 @@ systemd:
           -e TS_HOSTNAME=${tailscale_hostname} \
           -e TS_STATE_DIR=/var/lib/tailscale \
           -e TS_USERSPACE=false \
-          -e TS_EXTRA_ARGS=--ssh \
+          -e TS_EXTRA_ARGS=--advertise-tags=${tailscale_tag} \
           -e TS_TAILSCALED_EXTRA_ARGS=--port=41641 \
           ${tailscale_image}
         ExecStop=/usr/bin/docker stop tailscale

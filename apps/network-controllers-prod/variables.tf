@@ -12,10 +12,10 @@ variable "server_type" {
   default     = "cx23"
 }
 
-variable "datacenter" {
-  description = "Hetzner Cloud datacenter."
+variable "location" {
+  description = "Hetzner Cloud location (Hetzner deprecated the per-datacenter field on 2025-12-16; use location)."
   type        = string
-  default     = "nbg1-dc3"
+  default     = "nbg1"
 }
 
 variable "ssh_public_key" {
@@ -71,6 +71,12 @@ variable "tailscale_authkey" {
   description = "Reusable Tailscale auth key for this node (from 1Password). Reusable so a VM recreate re-joins under the stable hostname."
   type        = string
   sensitive   = true
+}
+
+variable "tailscale_tag" {
+  description = "Tailscale ACL tag advertised by this node (must be in the tailnet's tagOwners, owned by an admin). The tailnet ACL grants access to this tag."
+  type        = string
+  default     = "tag:network-controllers"
 }
 
 variable "tailscale_ip" {
