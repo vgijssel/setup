@@ -136,3 +136,9 @@ variable "tailscale_image" {
   type        = string
   default     = "ghcr.io/tailscale/tailscale:v1.80.3"
 }
+
+variable "netdata_image" {
+  description = "Pinned Netdata image. Run as a container (the static kickstart install fails on immutable Flatcar); claims into Netdata Cloud via env vars."
+  type        = string
+  default     = "netdata/netdata:v2.10.3"
+}

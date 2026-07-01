@@ -143,6 +143,7 @@ data "ct_config" "ignition" {
     omada_fqdn           = local.omada_fqdn
     unifi_fqdn           = local.unifi_fqdn
     unifi_public_fqdn    = local.unifi_public_fqdn
+    netdata_image        = var.netdata_image
     netdata_claim_url    = var.netdata_claim_url
     netdata_claim_token  = var.netdata_claim_token
     netdata_claim_rooms  = var.netdata_claim_rooms
