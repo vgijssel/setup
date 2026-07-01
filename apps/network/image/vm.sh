@@ -107,16 +107,14 @@ stages:
           systemctl is-active fail2ban >/dev/null 2>&1 || exit 0
           fail2ban-client set sshd addignoreip 10.0.2.0/24 || true
           fail2ban-client unban --all || true
-    # LOCAL TEST: stand in for the Hetzner Volume at /var/lib/data. Non-destructive —
-    # only formats the second disk (/dev/vdb) if it has no filesystem, then mounts it
-    # every boot. Mirrors prod (the Volume is block-mounted at /var/lib/data).
-    - name: "Mount local data disk (Volume stand-in) at /var/lib/data"
+    # LOCAL TEST: stand in for the Hetzner Volume via the second disk /dev/vdb. Runs the
+    # SAME baked script prod runs (with the prod device), so the reboot-persistence test
+    # exercises the real bind-mount set at zero cost. Non-destructive (only formats a
+    # fresh disk). No Tailscale authkey is seeded, so tailscaled comes up but the
+    # tailscale-up oneshot is skipped — no external join (local, no-secret run).
+    - name: "Mount data volume (stand-in) + service bind mounts"
       commands:
-        - |
-          DEV=/dev/vdb
-          mkdir -p /var/lib/data
-          blkid "\$DEV" >/dev/null 2>&1 || mkfs.ext4 -L ncdata "\$DEV"
-          mountpoint -q /var/lib/data || mount "\$DEV" /var/lib/data
+        - /usr/bin/network-mount-data.sh /dev/vdb
 YAML
 	printf 'instance-id: network-local\nlocal-hostname: network\n' >"${seeddir}/meta-data"
 	rm -f "${SEED}"
@@ -126,6 +124,12 @@ YAML
 	# LARGER than the image (like a Hetzner cx disk) so the first-boot auto-reset can
 	# add the COS_STATE (~10 GB) + COS_PERSISTENT partitions. Without headroom the
 	# reset can't run and the VM drops to a recovery login.
+	# A rebuild overwrites the base .raw in place, which would corrupt an overlay still
+	# backed by the old image — so drop a stale overlay (older than the raw) and re-base.
+	if [[ -f "${OVERLAY}" && "${raw}" -nt "${OVERLAY}" ]]; then
+		echo ">> base image rebuilt since last boot — recreating OS overlay from fresh raw"
+		rm -f "${OVERLAY}"
+	fi
 	[[ -f "${OVERLAY}" ]] || qemu-img create -f qcow2 -F raw -b "${raw}" "${OVERLAY}" 40G >/dev/null
 	# Second disk = the /var/lib/data Volume stand-in (persists on host across runs).
 	[[ -f "${DATA}" ]] || qemu-img create -f qcow2 "${DATA}" 8G >/dev/null
@@ -186,22 +190,30 @@ cmd_verify() {
 	# gone). NB: this Kairos/Ubuntu build persists /opt by default, so /opt is NOT a
 	# valid ephemeral control — Phase 2 maps the full persistence set.
 	ssh_vm 'sudo sh -c "echo persisted > /var/lib/data/marker.txt; echo ephemeral > /run/ephemeral.txt; sync"'
+	# Per-service state markers (each service keeps its state on the volume).
+	ssh_vm 'sudo sh -c "echo ts-persisted > /var/lib/data/tailscale/marker.txt; sync"' # T2 Tailscale
 	echo "   boot_id(before)=${boot1}"
 
-	echo ">> [2] reboot-in-VM"
+	echo ">> [2] assert services active (pre-reboot)"
+	assert_services
+
+	echo ">> [3] reboot-in-VM"
 	# shellcheck disable=SC2310 # intentional: reboot drops the SSH connection, so || true
 	ssh_vm 'sudo reboot' || true
 	sleep 15
 	wait_for_ssh
 
-	echo ">> [3] assert persistence"
-	local boot2 persisted ephemeral
+	echo ">> [4] assert persistence + services (post-reboot)"
+	local boot2 persisted ephemeral ts_marker
 	boot2="$(ssh_vm cat /proc/sys/kernel/random/boot_id)"
-	persisted="$(ssh_vm 'cat /var/lib/data/marker.txt 2>/dev/null || echo MISSING')"
-	ephemeral="$(ssh_vm 'cat /run/ephemeral.txt 2>/dev/null || echo GONE')"
+	# Read with sudo: some service state dirs are 0700 root (e.g. tailscaled's statedir).
+	persisted="$(ssh_vm 'sudo cat /var/lib/data/marker.txt 2>/dev/null || echo MISSING')"
+	ephemeral="$(ssh_vm 'sudo cat /run/ephemeral.txt 2>/dev/null || echo GONE')"
+	ts_marker="$(ssh_vm 'sudo cat /var/lib/data/tailscale/marker.txt 2>/dev/null || echo MISSING')"
 	echo "   boot_id(after) =${boot2}"
-	echo "   /var/lib/data/marker.txt = ${persisted}   (expect: persisted)"
-	echo "   /run/ephemeral.txt       = ${ephemeral}   (expect: GONE)"
+	echo "   /var/lib/data/marker.txt           = ${persisted}   (expect: persisted)"
+	echo "   /run/ephemeral.txt                 = ${ephemeral}   (expect: GONE)"
+	echo "   /var/lib/data/tailscale/marker.txt = ${ts_marker}   (expect: ts-persisted)"
 
 	[[ "${boot1}" != "${boot2}" ]] || {
 		echo "!! boot_id unchanged — VM did not actually reboot" >&2
@@ -211,7 +223,37 @@ cmd_verify() {
 		echo "!! /var/lib/data did NOT persist" >&2
 		exit 1
 	}
-	echo ">> PASS: /var/lib/data survived reboot; overlay is ephemeral."
+	[[ "${ts_marker}" = "ts-persisted" ]] || {
+		echo "!! /var/lib/tailscale state did NOT persist across reboot" >&2
+		exit 1
+	}
+	assert_services
+	echo ">> PASS: services active; service state survived reboot; overlay is ephemeral."
+}
+
+# Assert every baked service is active and its state dir is bound onto the data volume.
+# Grows one block per service as Phase 1/2 tasks land.
+assert_services() {
+	# T2 Tailscale: daemon active + its state dir lives on the data volume (via --statedir,
+	# not the OS-disk COS_PERSISTENT bind Kairos applies to /var/lib/tailscale). No tailnet
+	# join is checked — the local run seeds no authkey; the real join is verified live.
+	# shellcheck disable=SC2310 # intentional: ssh_vm in || is a boolean probe here
+	ssh_vm 'systemctl is-active --quiet tailscaled' || {
+		echo "!! tailscaled is not active" >&2
+		exit 1
+	}
+	# shellcheck disable=SC2310 # intentional: boolean probe
+	ssh_vm 'systemctl show -p ExecStart tailscaled | grep -q -- "--statedir=/var/lib/data/tailscale"' || {
+		echo "!! tailscaled is not configured with --statedir on the data volume" >&2
+		exit 1
+	}
+	# The statedir must physically sit on the volume device, not the /var overlay.
+	# shellcheck disable=SC2310,SC2016 # intentional: boolean probe; $(...) must run on the VM
+	ssh_vm 'test -d /var/lib/data/tailscale && [ "$(stat -c %d /var/lib/data/tailscale)" = "$(stat -c %d /var/lib/data)" ]' || {
+		echo "!! /var/lib/data/tailscale is not on the data volume" >&2
+		exit 1
+	}
+	echo "   [ok] tailscaled active; state dir on /var/lib/data (volume)"
 }
 
 case "${ACTION}" in

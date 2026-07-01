@@ -1,0 +1,18 @@
+# Oneshot that joins the tailnet after tailscaled is up. Skipped when no authkey file is
+# present (ConditionPathExists) — so a local no-secret boot brings tailscaled up but never
+# attempts an external join. The authkey.env is written by cloud-config from 1Password.
+[Unit]
+Description=Join the Tailscale tailnet (oneshot)
+Requires=tailscaled.service
+After=tailscaled.service network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/tailscale/authkey.env
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/tailscale/authkey.env
+ExecStart=/usr/bin/network-tailscale-up.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -1,27 +1,21 @@
 # Kairos baked configuration for `network` (immutable OS layer).
 #
-# SKELETON (T0): not yet wired into the Dockerfile. In later tasks this is COPYed into
-# the image (under /system/oem/) so Kairos' yip stages apply it on every boot. It holds
-# only NON-secret, image-baked config:
-#   - the persistent bind_mounts set (the core of the immutability model — every service
-#     write-path routed onto the Volume at /var/lib/data; each path MUST also be created
-#     in the Dockerfile, since Kairos cannot create new root paths at runtime)
-#   - baked users / groups (e.g. the uosserver account for UniFi OS Server)
+# Holds only NON-secret, image-baked config. Baked users/groups land here in T6 (the
+# uosserver account for UniFi OS Server); once it has real content it is COPYed into the
+# image under /system/oem/ so Kairos' yip stages apply it on every boot.
 #
-# Boot-time SECRETS (Tailscale authkey, Cloudflare token, Netdata claim) live instead in
+# PERSISTENCE MECHANISM (deviates from Kairos native `bind_mounts:`): the persistent
+# write-path set is NOT declared here. Kairos' own `bind_mounts:` persist onto the OS
+# disk (COS_PERSISTENT), but SPEC §10 requires service data on the SEPARATE data Volume
+# (so a full server recreate keeps it). So the canonical bind-mount set lives in
+# files/usr/bin/network-mount-data.sh (BIND_PATHS), which mounts the Volume at
+# /var/lib/data and bind-mounts each service dir onto it; every path is also `mkdir -p`'d
+# in the Dockerfile. That script is invoked from cloud-config's boot stage.
+#
+# Boot-time SECRETS (Tailscale authkey, Cloudflare token, Netdata claim) live in
 # cloud-config/config.yaml, rendered by OpenTofu templatefile() and passed as user_data.
 
 #cloud-config
-
-# Persistent bind mounts — populated per service in later tasks (T2-T6). Example shape:
-# install:
-#   bind_mounts:
-#     - /var/lib/tailscale
-#     - /var/lib/netdata
-#     - /var/cache/netdata
-#     - /opt/tplink/EAPController/data
-#     - /opt/tplink/EAPController/logs
-#     - /var/lib/data/containers   # Podman graphroot (UniFi OS Server)
 
 # Baked users — populated in T6 (uosserver). Example shape:
 # stages:

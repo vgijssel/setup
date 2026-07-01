@@ -20,4 +20,24 @@ users:
     ssh_authorized_keys:
       - "${ssh_public_key}"
 
-# Boot-time stages (secrets, service starts) are appended in later tasks.
+stages:
+  boot:
+    # Mount the persistent data Volume at /var/lib/data and bind every service state dir
+    # onto it (runs every boot — /var is an ephemeral overlay on this immutable OS).
+    - name: Mount data volume + service bind mounts
+      commands:
+        - /usr/bin/network-mount-data.sh ${data_device}
+    # T2 Tailscale: reusable TAGGED authkey from 1Password (single-line scalars only, so
+    # nothing disturbs YAML indentation). tailscale-up.service (oneshot) consumes this
+    # after tailscaled is up; the file gates the join (no file → no external join).
+    - name: Tailscale authkey (from 1Password via user_data)
+      files:
+        - path: /etc/tailscale/authkey.env
+          permissions: "0600"
+          owner: root:root
+          content: |
+            TS_AUTHKEY=${tailscale_authkey}
+            TS_HOSTNAME=${tailscale_hostname}
+            TS_TAG=${tailscale_tag}
+
+# Further boot-time service wiring (Netdata claim, Caddy CF token) is appended in T3/T4.

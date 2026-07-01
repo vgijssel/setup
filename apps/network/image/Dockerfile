@@ -29,9 +29,41 @@ ARG VERSION=0.1.0
 RUN --mount=type=bind,from=kairos-init,src=/kairos-init,dst=/kairos-init \
     /kairos-init --version "${VERSION}"
 
+# --- T2: Tailscale (native apt, pinned) -------------------------------------------
+# Official Tailscale apt repo for Ubuntu 24.04 (noble). Pinned to the exact version the
+# old app ran (v1.80.3) per repo CLAUDE.md — no floating tags. tailscaled is enabled so
+# it comes up on boot; the actual tailnet join is a separate oneshot (tailscale-up.service)
+# that consumes the authkey delivered via cloud-config.
+ARG TAILSCALE_VERSION=1.80.3
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends ca-certificates curl gnupg; \
+    curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg \
+      -o /usr/share/keyrings/tailscale-archive-keyring.gpg; \
+    echo "deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/ubuntu noble main" \
+      > /etc/apt/sources.list.d/tailscale.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends "tailscale=${TAILSCALE_VERSION}"; \
+    systemctl enable tailscaled.service; \
+    rm -rf /var/lib/apt/lists/*
+
+# --- Persistent bind-mount target dirs --------------------------------------------
+# Fixed-path services whose data dir is bind-mounted onto the Volume by
+# network-mount-data.sh MUST have that path exist in this read-only image (Kairos cannot
+# create new root paths at runtime). Nothing here for T2 — Tailscale uses --statedir on
+# the Volume (see the tailscaled drop-in), not a bind. T5 appends the Omada dirs:
+#   RUN mkdir -p /opt/tplink/EAPController/data /opt/tplink/EAPController/logs
+
+# --- Baked files: systemd units, drop-ins, helper scripts -------------------------
+# files/ mirrors the root filesystem, so this lands each file at its final path
+# (/usr/bin/*, /etc/systemd/system/*). Executable bits are set explicitly (build context
+# modes are not portable across hosts).
+COPY files/ /
+RUN chmod 0755 /usr/bin/network-mount-data.sh /usr/bin/network-tailscale-up.sh; \
+    systemctl enable tailscale-up.service
+
 # --- Service install steps (added in later tasks) ---------------------------------
 # Later slices append, in this order:
-#   T2 Tailscale (native apt)   T3 Netdata (native apt)   T4 Caddy (xcaddy+cloudflare)
+#   T3 Netdata (native apt)   T4 Caddy (xcaddy+cloudflare)
 #   T5 Omada (.deb + JDK/JSVC/mongod)   T6 UniFi OS Server (official Podman installer)
-# plus a single grouped `mkdir -p` of every persistent bind-mount target dir, and a
-# COPY of files/ (systemd units + configs) and the baked /system/oem cloud-config.
