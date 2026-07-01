@@ -14,7 +14,7 @@ off top-to-bottom. Each task's acceptance criteria + verification live in `plan.
 ## Phase 2 — Machine config authoring (no live infra)
 - [x] **T3** Base Butane: `var-lib-data.mount` (**non-destructive** format — `wipe_filesystem: false` + label, survives recreate), `tailscale.service` inline (**reusable** authkey + stable hostname, Tailscale SSH), wire `data "ct_config"` via `templatefile()` (units inlined in `butane.yaml` so secrets inject without writing rendered files)
 - [x] **T4** `omada-controller.service` (inline) — `mbentley/omada-controller:6.2.10.17`, host net, volume bind mounts
-- [x] **T5** `unifi-os-server.service` (inline) — `lemker/unifi-os-server:1.3.0`, privileged + cgroupns=host + systemd-in-container, volume bind mount (exact data path/flags validated live at T9)
+- [x] **T5** `unifi-os-server.service` (inline) — `ghcr.io/lemker/unifi-os-server:v1.3.0` (SPEC image was Docker Hub `lemker/..:1.3.0` which 404s; corrected to GHCR `v1.3.0`), cgroupns=host + NET_ADMIN/NET_RAW + tmpfs + 7 data volumes, bridge net + port maps (GUI 11443)
 - [x] **T6** `caddy.service` + Caddyfile (inline storage.files) — Caddy w/ Cloudflare DNS module, DNS-01 LE for private names, bind to Tailscale IP (`caddy-run.sh` resolves `tailscale0`), CF token in 0600 env file
 - [x] **T7** `netdata-install.service` (inline oneshot) — kickstart (`--stable-channel --static-only`) + claim into Netdata Cloud, dashboard Tailscale-only (firewall-enforced)
 - [x] **T8** `dns.tf` — public records → public IP; private records → `var.tailscale_ip` (count-guarded); all `proxied = false`

@@ -114,9 +114,9 @@ variable "omada_image" {
 }
 
 variable "unifi_image" {
-  description = "Pinned UniFi OS Server image (x86-64)."
+  description = "Pinned UniFi OS Server image (ghcr.io/lemker, x86-64). Runs systemd-in-container: needs cgroupns=host + tmpfs + NET_ADMIN/NET_RAW (not full privileged)."
   type        = string
-  default     = "lemker/unifi-os-server:1.3.0"
+  default     = "ghcr.io/lemker/unifi-os-server:v1.3.0"
 }
 
 variable "caddy_image" {

@@ -45,6 +45,16 @@ resource "hcloud_firewall" "this" {
     source_ips = ["0.0.0.0/0", "::/0"]
   }
 
+  # Tailscale: pinned UDP port for a direct (non-DERP) tunnel path. Without this
+  # the node's only path is DERP relay, which does not carry TCP to host services
+  # (admin UIs unreachable over the tailnet).
+  rule {
+    direction  = "in"
+    protocol   = "udp"
+    port       = "41641"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+
   # --- UniFi device provisioning ---
   rule {
     direction  = "in"
@@ -131,6 +141,7 @@ data "ct_config" "ignition" {
     cloudflare_zone_name = var.cloudflare_zone_name
     omada_fqdn           = local.omada_fqdn
     unifi_fqdn           = local.unifi_fqdn
+    unifi_public_fqdn    = local.unifi_public_fqdn
     netdata_claim_url    = var.netdata_claim_url
     netdata_claim_token  = var.netdata_claim_token
     netdata_claim_rooms  = var.netdata_claim_rooms

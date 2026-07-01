@@ -133,6 +133,7 @@ systemd:
           -e TS_STATE_DIR=/var/lib/tailscale \
           -e TS_USERSPACE=false \
           -e TS_EXTRA_ARGS=--ssh \
+          -e TS_TAILSCALED_EXTRA_ARGS=--port=41641 \
           ${tailscale_image}
         ExecStop=/usr/bin/docker stop tailscale
         [Install]
@@ -166,35 +167,59 @@ systemd:
         [Install]
         WantedBy=multi-user.target
 
-    # UniFi OS Server. KNOWN RISK (SPEC §1): the image runs systemd inside the
-    # container, so it needs --privileged, host cgroup namespace, the cgroup fs,
-    # and tmpfs for /run. x86-64 only. Host networking for device discovery.
-    # Data lives on the persistent Volume at /data.
+    # UniFi OS Server (ghcr.io/lemker). Runs systemd-in-container, so it needs
+    # cgroupns=host + the cgroup fs + tmpfs mounts (not full privileged; only
+    # NET_ADMIN/NET_RAW). x86-64 only. Bridge networking with explicit port maps
+    # (its GUI binds :443 internally -> host 11443, so host networking would clash
+    # with Caddy's :443). Device inform/adoption ports are published; the GUI
+    # (11443) is not firewall-exposed (Caddy proxies it over Tailscale). All state
+    # lives on the persistent Volume under /var/lib/data/unifi.
     - name: unifi-os-server.service
       enabled: true
       contents: |
         [Unit]
-        Description=UniFi OS Server (containerized, privileged/systemd-in-container)
+        Description=UniFi OS Server (containerized, systemd-in-container)
         After=network-online.target docker.service var-lib-data.mount
         Wants=network-online.target
         Requires=docker.service
         RequiresMountsFor=/var/lib/data
         [Service]
         Restart=always
-        RestartSec=10
+        RestartSec=15
         TimeoutStartSec=0
         ExecStartPre=-/usr/bin/docker rm -f unifi-os-server
-        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/unifi
+        ExecStartPre=/usr/bin/mkdir -p \
+          /var/lib/data/unifi/persistent \
+          /var/lib/data/unifi/var-log \
+          /var/lib/data/unifi/data \
+          /var/lib/data/unifi/srv \
+          /var/lib/data/unifi/var-lib-unifi \
+          /var/lib/data/unifi/var-lib-mongodb \
+          /var/lib/data/unifi/etc-rabbitmq-ssl
         ExecStartPre=/usr/bin/docker pull ${unifi_image}
         ExecStart=/usr/bin/docker run --rm --name unifi-os-server \
-          --privileged \
           --cgroupns=host \
-          --network=host \
+          --cap-add=NET_ADMIN --cap-add=NET_RAW \
+          --add-host=host.docker.internal:host-gateway \
           --stop-signal=SIGRTMIN+3 \
-          -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
-          --tmpfs /run \
+          --tmpfs /run:exec \
           --tmpfs /run/lock \
-          -v /var/lib/data/unifi:/data \
+          --tmpfs /tmp:exec \
+          --tmpfs /var/lib/journal \
+          --tmpfs /var/opt/unifi/tmp:size=64m \
+          -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
+          -v /var/lib/data/unifi/persistent:/persistent \
+          -v /var/lib/data/unifi/var-log:/var/log \
+          -v /var/lib/data/unifi/data:/data \
+          -v /var/lib/data/unifi/srv:/srv \
+          -v /var/lib/data/unifi/var-lib-unifi:/var/lib/unifi \
+          -v /var/lib/data/unifi/var-lib-mongodb:/var/lib/mongodb \
+          -v /var/lib/data/unifi/etc-rabbitmq-ssl:/etc/rabbitmq/ssl \
+          -e UOS_SYSTEM_IP=${unifi_public_fqdn} \
+          -p 11443:443 \
+          -p 8080:8080 \
+          -p 3478:3478/udp \
+          -p 10003:10003/udp \
           ${unifi_image}
         ExecStop=/usr/bin/docker stop unifi-os-server
         [Install]
