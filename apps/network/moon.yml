@@ -1,0 +1,33 @@
+language: javascript
+layer: application
+tags:
+  - app
+  - terraform
+  - hetzner
+  - infrastructure
+  - kairos
+tasks:
+  # --- Image build & local validation (no cloud cost) ---
+  build-image:
+    # Usage: moon run apps/network:build-image            (arm64 fast loop, default)
+    #        moon run apps/network:build-image -- amd64    (amd64 promotion gate)
+    command: bash image/build.sh
+    options:
+      runInCI: false
+      cache: false
+  # Local QEMU boot + persistence rig (arm64 HVF fast loop; `-- amd64` for the TCG gate).
+  vm-up:
+    command: bash image/vm.sh up
+    options:
+      runInCI: false
+      cache: false
+  vm-verify:
+    command: bash image/vm.sh verify
+    options:
+      runInCI: false
+      cache: false
+  vm-down:
+    command: bash image/vm.sh down
+    options:
+      runInCI: false
+      cache: false

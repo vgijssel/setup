@@ -1,0 +1,10 @@
+# Local Kairos build artifacts (raw/iso, multi-GB — never committed).
+image/build/
+
+# Rendered secrets (op inject output) — added in T8; never committed.
+secrets/.env
+
+# OpenTofu local state/plugins (added in Phase 4).
+.terraform/
+*.tfstate
+*.tfstate.*
