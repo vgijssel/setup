@@ -52,5 +52,15 @@ stages:
             url = ${netdata_claim_url}
             token = ${netdata_claim_token}
             rooms = ${netdata_claim_rooms}
-
-# Further boot-time service wiring (Caddy CF token) is appended in T4.
+    # T4 Caddy: non-secret config (admin FQDNs, ACME contact) + the zone-scoped Cloudflare
+    # API token used for the DNS-01 challenge. network-caddy-run.sh adds TS_IP at start.
+    - name: Caddy config + Cloudflare token (from 1Password via user_data)
+      files:
+        - path: /etc/caddy/caddy.env
+          permissions: "0640"
+          owner: root:root
+          content: |
+            CADDY_EMAIL=admin@${base_domain}
+            CADDY_OMADA_FQDN=${omada_fqdn}
+            CADDY_UNIFI_FQDN=${unifi_fqdn}
+            CLOUDFLARE_API_TOKEN=${cloudflare_api_token}

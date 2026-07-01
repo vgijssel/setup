@@ -30,8 +30,10 @@ mountpoint -q /var/lib/data || mount "${DEV}" /var/lib/data
 mkdir -p \
 	/var/lib/data/tailscale \
 	/var/lib/data/netdata \
-	/var/lib/data/netdata-cache
-# ^ T2 Tailscale node state (--statedir); T3 Netdata lib+registry / cache (netdata.conf).
+	/var/lib/data/netdata-cache \
+	/var/lib/data/caddy
+# ^ T2 Tailscale node state (--statedir); T3 Netdata lib+registry / cache (netdata.conf);
+#   T4 Caddy ACME/cert state (XDG_DATA_HOME; runs as root, no chown needed).
 # Netdata drops privileges to the netdata user, so its dirs must be owned by it. (Only
 # chown when the user exists — it's baked at image build.)
 if id netdata >/dev/null 2>&1; then

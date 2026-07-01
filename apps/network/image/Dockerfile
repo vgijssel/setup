@@ -16,6 +16,17 @@
 # into the build (not copied) per the official Kairos Factory guidance.
 FROM quay.io/kairos/kairos-init:v0.15.0 AS kairos-init
 
+# --- T4: Caddy build (xcaddy + Cloudflare DNS module) ------------------------------
+# Build Caddy from source with the caddy-dns/cloudflare provider baked in (needed for
+# ACME DNS-01). Uses the official multi-arch caddy builder image; buildx propagates the
+# target platform, so Go produces a native binary for TARGETARCH. All pinned per CLAUDE.md.
+FROM caddy:2.11.4-builder AS caddy-builder
+ARG CADDY_VERSION=2.11.4
+ARG CADDY_CLOUDFLARE_VERSION=v0.2.4
+RUN xcaddy build "v${CADDY_VERSION}" \
+    --with "github.com/caddy-dns/cloudflare@${CADDY_CLOUDFLARE_VERSION}" \
+    --output /out/caddy
+
 # Pinned Ubuntu 24.04 base (by digest).
 FROM ubuntu:24.04@sha256:786a8b558f7be160c6c8c4a54f9a57274f3b4fb1491cf65146521ae77ff1dc54
 
@@ -67,6 +78,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     systemctl enable netdata.service; \
     rm -rf /var/lib/apt/lists/*
 
+# --- T4: Caddy binary (built above with the Cloudflare DNS module) ----------------
+COPY --from=caddy-builder /out/caddy /usr/bin/caddy
+
 # --- Persistent bind-mount target dirs --------------------------------------------
 # Fixed-path services whose data dir is bind-mounted onto the Volume by
 # network-mount-data.sh MUST have that path exist in this read-only image (Kairos cannot
@@ -79,10 +93,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # (/usr/bin/*, /etc/systemd/system/*). Executable bits are set explicitly (build context
 # modes are not portable across hosts).
 COPY files/ /
-RUN chmod 0755 /usr/bin/network-mount-data.sh /usr/bin/network-tailscale-up.sh; \
-    systemctl enable tailscale-up.service
+RUN chmod 0755 /usr/bin/network-mount-data.sh /usr/bin/network-tailscale-up.sh \
+      /usr/bin/network-caddy-run.sh; \
+    systemctl enable tailscale-up.service caddy.service
 
 # --- Service install steps (added in later tasks) ---------------------------------
 # Later slices append, in this order:
-#   T3 Netdata (native apt)   T4 Caddy (xcaddy+cloudflare)
 #   T5 Omada (.deb + JDK/JSVC/mongod)   T6 UniFi OS Server (official Podman installer)

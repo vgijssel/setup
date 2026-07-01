@@ -193,6 +193,7 @@ cmd_verify() {
 	# Per-service state markers (each service keeps its state on the volume).
 	ssh_vm 'sudo sh -c "echo ts-persisted > /var/lib/data/tailscale/marker.txt; sync"'    # T2 Tailscale
 	ssh_vm 'sudo sh -c "echo nd-persisted > /var/lib/data/netdata/marker.txt; sync"'      # T3 Netdata
+	ssh_vm 'sudo sh -c "echo cd-persisted > /var/lib/data/caddy/marker.txt; sync"'        # T4 Caddy
 	echo "   boot_id(before)=${boot1}"
 
 	echo ">> [2] assert services active (pre-reboot)"
@@ -205,18 +206,20 @@ cmd_verify() {
 	wait_for_ssh
 
 	echo ">> [4] assert persistence + services (post-reboot)"
-	local boot2 persisted ephemeral ts_marker nd_marker
+	local boot2 persisted ephemeral ts_marker nd_marker cd_marker
 	boot2="$(ssh_vm cat /proc/sys/kernel/random/boot_id)"
 	# Read with sudo: some service state dirs are 0700 root (e.g. tailscaled's statedir).
 	persisted="$(ssh_vm 'sudo cat /var/lib/data/marker.txt 2>/dev/null || echo MISSING')"
 	ephemeral="$(ssh_vm 'sudo cat /run/ephemeral.txt 2>/dev/null || echo GONE')"
 	ts_marker="$(ssh_vm 'sudo cat /var/lib/data/tailscale/marker.txt 2>/dev/null || echo MISSING')"
 	nd_marker="$(ssh_vm 'sudo cat /var/lib/data/netdata/marker.txt 2>/dev/null || echo MISSING')"
+	cd_marker="$(ssh_vm 'sudo cat /var/lib/data/caddy/marker.txt 2>/dev/null || echo MISSING')"
 	echo "   boot_id(after) =${boot2}"
 	echo "   /var/lib/data/marker.txt           = ${persisted}   (expect: persisted)"
 	echo "   /run/ephemeral.txt                 = ${ephemeral}   (expect: GONE)"
 	echo "   /var/lib/data/tailscale/marker.txt = ${ts_marker}   (expect: ts-persisted)"
 	echo "   /var/lib/data/netdata/marker.txt   = ${nd_marker}   (expect: nd-persisted)"
+	echo "   /var/lib/data/caddy/marker.txt     = ${cd_marker}   (expect: cd-persisted)"
 
 	[[ "${boot1}" != "${boot2}" ]] || {
 		echo "!! boot_id unchanged — VM did not actually reboot" >&2
@@ -232,6 +235,10 @@ cmd_verify() {
 	}
 	[[ "${nd_marker}" = "nd-persisted" ]] || {
 		echo "!! netdata state did NOT persist across reboot" >&2
+		exit 1
+	}
+	[[ "${cd_marker}" = "cd-persisted" ]] || {
+		echo "!! caddy data dir did NOT persist across reboot" >&2
 		exit 1
 	}
 	assert_services
@@ -275,6 +282,30 @@ assert_services() {
 		exit 1
 	}
 	echo "   [ok] netdata active; lib dir on /var/lib/data (volume)"
+
+	# T4 Caddy: the binary must carry the Cloudflare DNS module, the baked Caddyfile must
+	# validate (proves the `dns cloudflare` directive resolves = module present), and its
+	# data dir must be on the volume. NOT asserted active: with no tailnet join there's no
+	# tailscale0 to bind, so caddy stays down locally — the live bind + LE issuance is T13.
+	# shellcheck disable=SC2310 # intentional: boolean probe
+	ssh_vm 'caddy list-modules 2>/dev/null | grep -q "^dns.providers.cloudflare"' || {
+		echo "!! caddy binary is missing the cloudflare DNS module" >&2
+		exit 1
+	}
+	# Validate the baked Caddyfile with dummy env (placeholders resolve at adapt time). The
+	# cloudflare provider format-checks the token at provision (no network call), so use a
+	# format-valid 40-char dummy — this fully exercises the DNS-01 issuer wiring offline.
+	# shellcheck disable=SC2310 # intentional: boolean probe
+	ssh_vm 'CADDY_EMAIL=a@b.c CADDY_OMADA_FQDN=omada.test CADDY_UNIFI_FQDN=unifi.test CLOUDFLARE_API_TOKEN=0123456789abcdef0123456789abcdef01234567 TS_IP=127.0.0.1 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1' || {
+		echo "!! baked Caddyfile failed to validate" >&2
+		exit 1
+	}
+	# shellcheck disable=SC2310,SC2016 # intentional: boolean probe; $(...) must run on the VM
+	ssh_vm 'test -d /var/lib/data/caddy && [ "$(stat -c %d /var/lib/data/caddy)" = "$(stat -c %d /var/lib/data)" ]' || {
+		echo "!! /var/lib/data/caddy is not on the data volume" >&2
+		exit 1
+	}
+	echo "   [ok] caddy has cloudflare module; Caddyfile validates; data dir on volume"
 }
 
 case "${ACTION}" in

@@ -1,0 +1,33 @@
+# Caddy reverse proxy for the two admin UIs — Tailscale-only, TLS via Let's Encrypt using
+# the Cloudflare DNS-01 challenge (the private names resolve to a Tailscale IP, so HTTP-01
+# can't validate). Everything variable comes from the environment so the image stays
+# generic: FQDNs/email/token are written by cloud-config into /etc/caddy/caddy.env, and
+# TS_IP is resolved from the tailscale0 interface by network-caddy-run.sh at start. Certs
+# and ACME state land under $XDG_DATA_HOME (=/var/lib/data/caddy, the Volume).
+{
+	email {env.CADDY_EMAIL}
+}
+
+{env.CADDY_OMADA_FQDN} {
+	bind {env.TS_IP}
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+	reverse_proxy https://127.0.0.1:8043 {
+		transport http {
+			tls_insecure_skip_verify
+		}
+	}
+}
+
+{env.CADDY_UNIFI_FQDN} {
+	bind {env.TS_IP}
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+	reverse_proxy https://127.0.0.1:11443 {
+		transport http {
+			tls_insecure_skip_verify
+		}
+	}
+}
