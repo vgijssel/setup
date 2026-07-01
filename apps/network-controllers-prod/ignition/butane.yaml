@@ -105,28 +105,32 @@ storage:
 
 systemd:
   units:
-    # Tailscale node (containerized). State is EPHEMERAL (container-local, not on
-    # the volume): every boot re-authenticates fresh with the reusable authkey
-    # under the stable hostname. This avoids persisted state getting stuck in an
-    # unauthorized identity across recreates.
+    # Tailscale node (containerized). State persists on the Volume at a versioned
+    # path (ts-state-v2) for a STABLE tagged identity + IP across recreates. The
+    # authkey is a reusable TAGGED key (tag:network-controllers), so the node is
+    # tagged on join and the tailnet ACL grants access to that tag. The versioned
+    # path avoids the earlier poisoned state under /var/lib/data/tailscale.
     - name: tailscale.service
       enabled: true
       contents: |
         [Unit]
         Description=Tailscale node (containerized)
-        After=network-online.target docker.service
+        After=network-online.target docker.service var-lib-data.mount
         Wants=network-online.target
         Requires=docker.service
+        RequiresMountsFor=/var/lib/data
         [Service]
         Restart=always
         RestartSec=5
         TimeoutStartSec=0
         ExecStartPre=-/usr/bin/docker rm -f tailscale
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/ts-state-v2
         ExecStartPre=/usr/bin/docker pull ${tailscale_image}
         ExecStart=/usr/bin/docker run --rm --name tailscale \
           --network=host \
           --cap-add=NET_ADMIN --cap-add=NET_RAW \
           --device=/dev/net/tun \
+          -v /var/lib/data/ts-state-v2:/var/lib/tailscale \
           -e TS_AUTHKEY=${tailscale_authkey} \
           -e TS_HOSTNAME=${tailscale_hostname} \
           -e TS_STATE_DIR=/var/lib/tailscale \
