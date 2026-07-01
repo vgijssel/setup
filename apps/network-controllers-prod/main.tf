@@ -8,11 +8,11 @@ locals {
   volume_device = "/dev/disk/by-id/scsi-0HC_Volume_${hcloud_volume.data.id}"
 }
 
-# SSH key for the Flatcar 'core' user.
-resource "hcloud_ssh_key" "this" {
-  name       = "${var.server_name}-key"
-  public_key = var.ssh_public_key
-}
+# NOTE: SSH access is provisioned via Ignition (the `core` user's
+# ssh_authorized_keys in ignition/butane.yaml) and Tailscale SSH. Flatcar/Ignition
+# images do not consume Hetzner's ssh_keys metadata, and Hetzner rejects a second
+# key with an already-registered public key (uniqueness_error), so there is no
+# hcloud_ssh_key resource here.
 
 # Firewall: ONLY device provisioning/adoption ports are public. SSH, admin UIs,
 # and Netdata are reachable only over Tailscale (no public 22/80/443).
@@ -95,7 +95,6 @@ resource "hcloud_server" "this" {
   server_type  = var.server_type
   datacenter   = var.datacenter
   image        = var.flatcar_snapshot_id
-  ssh_keys     = [hcloud_ssh_key.this.id]
   firewall_ids = [hcloud_firewall.this.id]
   user_data    = data.ct_config.ignition.rendered
 
