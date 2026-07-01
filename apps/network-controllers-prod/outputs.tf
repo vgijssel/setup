@@ -18,9 +18,9 @@ output "ipv6_address" {
   value       = hcloud_server.this.ipv6_address
 }
 
-output "datacenter" {
-  description = "Server datacenter."
-  value       = hcloud_server.this.datacenter
+output "location" {
+  description = "Server location."
+  value       = hcloud_server.this.location
 }
 
 output "volume_id" {
