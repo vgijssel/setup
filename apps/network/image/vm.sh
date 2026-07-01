@@ -191,7 +191,8 @@ cmd_verify() {
 	# valid ephemeral control — Phase 2 maps the full persistence set.
 	ssh_vm 'sudo sh -c "echo persisted > /var/lib/data/marker.txt; echo ephemeral > /run/ephemeral.txt; sync"'
 	# Per-service state markers (each service keeps its state on the volume).
-	ssh_vm 'sudo sh -c "echo ts-persisted > /var/lib/data/tailscale/marker.txt; sync"' # T2 Tailscale
+	ssh_vm 'sudo sh -c "echo ts-persisted > /var/lib/data/tailscale/marker.txt; sync"'    # T2 Tailscale
+	ssh_vm 'sudo sh -c "echo nd-persisted > /var/lib/data/netdata/marker.txt; sync"'      # T3 Netdata
 	echo "   boot_id(before)=${boot1}"
 
 	echo ">> [2] assert services active (pre-reboot)"
@@ -204,16 +205,18 @@ cmd_verify() {
 	wait_for_ssh
 
 	echo ">> [4] assert persistence + services (post-reboot)"
-	local boot2 persisted ephemeral ts_marker
+	local boot2 persisted ephemeral ts_marker nd_marker
 	boot2="$(ssh_vm cat /proc/sys/kernel/random/boot_id)"
 	# Read with sudo: some service state dirs are 0700 root (e.g. tailscaled's statedir).
 	persisted="$(ssh_vm 'sudo cat /var/lib/data/marker.txt 2>/dev/null || echo MISSING')"
 	ephemeral="$(ssh_vm 'sudo cat /run/ephemeral.txt 2>/dev/null || echo GONE')"
 	ts_marker="$(ssh_vm 'sudo cat /var/lib/data/tailscale/marker.txt 2>/dev/null || echo MISSING')"
+	nd_marker="$(ssh_vm 'sudo cat /var/lib/data/netdata/marker.txt 2>/dev/null || echo MISSING')"
 	echo "   boot_id(after) =${boot2}"
 	echo "   /var/lib/data/marker.txt           = ${persisted}   (expect: persisted)"
 	echo "   /run/ephemeral.txt                 = ${ephemeral}   (expect: GONE)"
 	echo "   /var/lib/data/tailscale/marker.txt = ${ts_marker}   (expect: ts-persisted)"
+	echo "   /var/lib/data/netdata/marker.txt   = ${nd_marker}   (expect: nd-persisted)"
 
 	[[ "${boot1}" != "${boot2}" ]] || {
 		echo "!! boot_id unchanged — VM did not actually reboot" >&2
@@ -224,7 +227,11 @@ cmd_verify() {
 		exit 1
 	}
 	[[ "${ts_marker}" = "ts-persisted" ]] || {
-		echo "!! /var/lib/tailscale state did NOT persist across reboot" >&2
+		echo "!! tailscale state did NOT persist across reboot" >&2
+		exit 1
+	}
+	[[ "${nd_marker}" = "nd-persisted" ]] || {
+		echo "!! netdata state did NOT persist across reboot" >&2
 		exit 1
 	}
 	assert_services
@@ -254,6 +261,20 @@ assert_services() {
 		exit 1
 	}
 	echo "   [ok] tailscaled active; state dir on /var/lib/data (volume)"
+
+	# T3 Netdata: daemon active + lib dir on the volume (netdata.conf directories). Not
+	# claimed locally (no secret); the Cloud claim is verified in the live phase.
+	# shellcheck disable=SC2310 # intentional: boolean probe
+	ssh_vm 'systemctl is-active --quiet netdata' || {
+		echo "!! netdata is not active" >&2
+		exit 1
+	}
+	# shellcheck disable=SC2310,SC2016 # intentional: boolean probe; $(...) must run on the VM
+	ssh_vm 'test -d /var/lib/data/netdata && [ "$(stat -c %d /var/lib/data/netdata)" = "$(stat -c %d /var/lib/data)" ]' || {
+		echo "!! /var/lib/data/netdata is not on the data volume" >&2
+		exit 1
+	}
+	echo "   [ok] netdata active; lib dir on /var/lib/data (volume)"
 }
 
 case "${ACTION}" in

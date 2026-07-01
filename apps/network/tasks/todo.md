@@ -40,7 +40,7 @@ the Volume only for fixed-path services (Omada `/opt/tplink/EAPController/{data,
 Mechanism lives in `files/usr/bin/network-mount-data.sh` (+ per-service systemd drop-ins),
 invoked from cloud-config's `boot` stage. `os.qcow2` overlay is auto-rebuilt when the base
 `.raw` changes (stale-overlay guard in `vm.sh`).
-- [ ] **T3** Netdata (native apt, pinned): `netdata.service`, claim into Netdata Cloud via cloud-config; persist `/var/lib/netdata` + `/var/cache/netdata`; not public-bound; survives reboot-in-VM
+- [x] **T3** Netdata (native apt, **2.10.3** pinned, stable flat repo, signed-by keyring): `netdata.service` enabled. Persistent dirs relocated onto the **Volume** via `/etc/netdata/netdata.conf` `[directories]` (`lib=/var/lib/data/netdata`, `cache=/var/lib/data/netdata-cache`, `registry` under lib) + `chown netdata` in `network-mount-data.sh` (Netdata dirs are NOT in the Kairos default persist set). Netdata Cloud claim wired in prod cloud-config (`/etc/netdata/claim.conf`) — **deferred to live** (no secret locally, runs unclaimed). `vm-verify` **PASS** (arm64): netdata active pre+post reboot, lib on volume, `nd-persisted` marker survives. Dashboard `:19999` left default-bound; Tailscale-only enforced by the firewall (T9/T18). `trunk check` clean.
 - [ ] **T4** Caddy (xcaddy + `caddy-dns/cloudflare` baked at build, pinned): `caddy.service` + Caddyfile, bind `tailscale0` only, proxy `omada.hc`→:8043 / `unifi.hc`→:11443; persist Caddy data dir; `caddy validate` (full DNS-01 live at T13)
 
 ### ⛳ Checkpoint: Native services (arm64)

@@ -48,6 +48,25 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     systemctl enable tailscaled.service; \
     rm -rf /var/lib/apt/lists/*
 
+# --- T3: Netdata (native apt, pinned) ---------------------------------------------
+# Official Netdata stable apt repo (flat: ".../ubuntu/ noble/"), keyed via signed-by.
+# Pinned to 2.10.3 per repo CLAUDE.md. netdata is enabled to come up on boot; the Netdata
+# Cloud claim (secret) is delivered later via cloud-config, so a local boot runs unclaimed.
+# --no-install-recommends keeps the optional plugin recommends out; the mandatory plugin
+# Depends still come in.
+ARG NETDATA_VERSION=2.10.3
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    set -eux; \
+    apt-get update; \
+    curl -fsSL https://repo.netdata.cloud/netdatabot.gpg.key \
+      | gpg --dearmor -o /usr/share/keyrings/netdata-archive-keyring.gpg; \
+    echo "deb [signed-by=/usr/share/keyrings/netdata-archive-keyring.gpg] https://repo.netdata.cloud/repos/stable/ubuntu/ noble/" \
+      > /etc/apt/sources.list.d/netdata.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends "netdata=${NETDATA_VERSION}"; \
+    systemctl enable netdata.service; \
+    rm -rf /var/lib/apt/lists/*
+
 # --- Persistent bind-mount target dirs --------------------------------------------
 # Fixed-path services whose data dir is bind-mounted onto the Volume by
 # network-mount-data.sh MUST have that path exist in this read-only image (Kairos cannot

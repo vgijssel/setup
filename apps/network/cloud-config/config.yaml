@@ -39,5 +39,18 @@ stages:
             TS_AUTHKEY=${tailscale_authkey}
             TS_HOSTNAME=${tailscale_hostname}
             TS_TAG=${tailscale_tag}
+    # T3 Netdata: claim into Netdata Cloud. netdata reads claim.conf on start and connects
+    # via ACLK; the claim state lives under lib (relocated onto the Volume), so it survives
+    # reboot/recreate. Secrets are single-line scalars from 1Password.
+    - name: Netdata Cloud claim (from 1Password via user_data)
+      files:
+        - path: /etc/netdata/claim.conf
+          permissions: "0640"
+          owner: netdata:netdata
+          content: |
+            [global]
+            url = ${netdata_claim_url}
+            token = ${netdata_claim_token}
+            rooms = ${netdata_claim_rooms}
 
-# Further boot-time service wiring (Netdata claim, Caddy CF token) is appended in T3/T4.
+# Further boot-time service wiring (Caddy CF token) is appended in T4.
