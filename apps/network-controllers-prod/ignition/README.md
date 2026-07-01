@@ -40,22 +40,28 @@ Using [`hcloud-upload-image`](https://github.com/apricote/hcloud-upload-image)
 ```bash
 set -a && source ../secrets/.env && set +a   # HCLOUD_TOKEN
 
-# Pin the Flatcar stable release; the raw image is gzip-compressed.
-FLATCAR_VERSION=<pinned-stable-version>
+# Pin the Flatcar stable release; the Hetzner image is bz2-compressed.
+# Install the uploader pinned:
+#   GOBIN=$PWD/.tools go install github.com/apricote/hcloud-upload-image@v1.5.0
+FLATCAR_VERSION=4593.2.3
 URL="https://stable.release.flatcar-linux.net/amd64-usr/${FLATCAR_VERSION}/flatcar_production_hetzner_image.bin.bz2"
 
-hcloud-upload-image upload \
+.tools/hcloud-upload-image upload \
   --architecture x86 \
   --image-url "$URL" \
   --compression bz2 \
-  --description "flatcar-stable-${FLATCAR_VERSION}"
+  --location nbg1 \
+  --description "flatcar-stable-${FLATCAR_VERSION}" \
+  --labels os=flatcar,channel=stable,version=${FLATCAR_VERSION}
 
 # Record the resulting snapshot ID:
 hcloud image list --type snapshot
 ```
 
-Set the snapshot ID as the default for `var.flatcar_snapshot_id` in
-`../variables.tf` (or pass `TF_VAR_flatcar_snapshot_id`).
+The current snapshot is id **403540555** (Flatcar stable 4593.2.3), set as the
+default for `var.flatcar_snapshot_id` in `../variables.tf` (override with
+`TF_VAR_flatcar_snapshot_id`). The uploader spins up a short-lived temporary
+server (small one-off cost) and deletes it automatically.
 
 ## Recreate / config-change procedure
 

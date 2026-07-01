@@ -35,9 +35,9 @@ variable "volume_size" {
 # --- Flatcar image -----------------------------------------------------------
 
 variable "flatcar_snapshot_id" {
-  description = "Hetzner snapshot ID of the uploaded Flatcar image (see ignition/README.md, Task 0). Empty until the one-time upload has run."
+  description = "Hetzner snapshot ID of the uploaded Flatcar image (see ignition/README.md, Task 0). Uploaded via hcloud-upload-image (Flatcar stable 4593.2.3, amd64)."
   type        = string
-  default     = ""
+  default     = "403540555"
 }
 
 # --- DNS / Cloudflare --------------------------------------------------------

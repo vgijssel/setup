@@ -4,7 +4,7 @@ Task list for the [implementation plan](./plan.md). Order is dependency-driven; 
 off top-to-bottom. Each task's acceptance criteria + verification live in `plan.md`.
 
 ## Phase 1 — Foundation (no live infra)
-- [ ] **T0** Upload Flatcar snapshot to Hetzner (`hcloud-upload-image`), record ID → `var.flatcar_snapshot_id`
+- [x] **T0** Upload Flatcar snapshot to Hetzner (`hcloud-upload-image` v1.5.0, Flatcar stable 4593.2.3) → snapshot id `403540555` set as `var.flatcar_snapshot_id` default
 - [x] **T1** OpenTofu skeleton + Moon tasks: `versions.tf`, `providers.tf`, `backend.tf`, `variables.tf`, extend `moon.yml` (`init/plan/apply/destroy/output`, source `secrets/.env`)
 - [x] **T2** Core resources + outputs: `main.tf` (ssh key, firewall [device ports only], volume+attachment, server[ct_config; `user_data` change recreates VM — **no `ignore_changes`**]), `outputs.tf`
 
