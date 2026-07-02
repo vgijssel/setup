@@ -154,10 +154,14 @@ RUN --security=insecure \
     PATH="/build-shim:${PATH}" XDG_RUNTIME_DIR=/run/user/999 \
       /var/cache/uos-dl/uos-installer --non-interactive \
       || echo "!! build-time UOS installer exited non-zero (start/linger steps are shimmed; expected)"; \
-    # Bake the loaded UOS image as a plain OCI-archive tar: AuroraBoot can't pack the rootless
-    # graphroot (subuid-owned overlay dirs → permission denied on image→disk dump). First boot
-    # loads this tar onto the Volume. Then delete the graphroot so the image packs cleanly and
-    # doesn't bloat the read-only OS layers.
+    # Bake the loaded UOS image as a plain OCI-archive tar: AuroraBoot's dump-source step
+    # extracts the whole OCI image into a rootfs USER-NAMESPACED (it can't set the
+    # security.capability xattr, and lacks DAC_OVERRIDE), so it faithfully recreates the rootless
+    # graphroot's 0700 overlay layer dirs (owned by uosserver / remapped subuids) and then can't
+    # descend back in to create their children → "mkdir .../overlay/<id>/diff/tmp: permission
+    # denied" and the pack aborts. A flat tar is a single regular file with no such dirs to
+    # descend, so it packs regardless of namespace. First boot loads this tar onto the Volume;
+    # we then delete the graphroot (the image belongs on the Volume, not bloating the RO layers).
     uos_img="$(su uosserver -c 'XDG_RUNTIME_DIR=/run/user/999 podman images --format "{{.Repository}}:{{.Tag}}"' | grep uosserver | head -1)"; \
     test -n "${uos_img}"; \
     # Bake the tar under /usr/share (on the read-only COS_ACTIVE rootfs, always visible at
