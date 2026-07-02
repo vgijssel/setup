@@ -113,6 +113,35 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     DEBIAN_FRONTEND=noninteractive dpkg -i /var/cache/omada-dl/omada.deb; \
     rm -rf /var/lib/apt/lists/*
 
+# --- T6: UniFi OS Server (official Podman installer, first-boot) -------------------
+# UOS ships no .deb / no public image: the ~830 MB installer binary bundles the UOS OCI
+# image and runs it as a ROOTLESS Podman container under the `uosserver` user (nested
+# systemd). Ubiquiti requires Podman >= 4.3.1 + slirp4netns >= 1.2 (Ubuntu 24.04's 4.9.3
+# qualifies). Build-time baking is impractical (needs live logind/systemd, and Ubiquiti
+# says don't clone installed instances), so we bake the PREREQS + stage the installer and
+# run it on FIRST BOOT (network-uos-install.sh). The uosserver user + subuid/subgid are
+# baked here so they survive Kairos' ephemeral /etc. NB: no /etc/containers/storage.conf is
+# baked — a partial one breaks podman ("runroot must be set"); rootless podman auto-selects
+# the overlay driver with fuse-overlayfs on the ext4 Volume, and the graphroot follows the
+# uosserver HOME (/var/lib/uosserver, bind-mounted onto the Volume).
+ARG UOS_VERSION=5.1.19
+ARG UOS_INSTALLER_URL=https://fw-download.ubnt.com/data/unifi-os-server/e027-linux-arm64-5.1.19-ebdd998e-306a-4880-af41-2bdc50e91e70.19-arm64
+ARG UOS_INSTALLER_SHA256=4e18c1f143cea3b364619406c35cf9d2123732bcdc500e41196e41196faefacf
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/cache/uos-dl,sharing=locked \
+    set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+      podman slirp4netns uidmap fuse-overlayfs iptables curl wget ca-certificates; \
+    # Bake the uosserver user + rootless subuid/subgid ranges (must survive ephemeral /etc).
+    useradd --system --create-home --home-dir /var/lib/uosserver --shell /usr/sbin/nologin uosserver; \
+    usermod --add-subuids 100000-165535 --add-subgids 100000-165535 uosserver; \
+    # Stage the official installer binary (pinned URL + sha256; per-release/expiring URL).
+    curl -fsSL "${UOS_INSTALLER_URL}" -o /var/cache/uos-dl/uos-installer; \
+    echo "${UOS_INSTALLER_SHA256}  /var/cache/uos-dl/uos-installer" | sha256sum -c -; \
+    install -m 0755 /var/cache/uos-dl/uos-installer /usr/lib/uos-installer; \
+    rm -rf /var/lib/apt/lists/*
+
 # --- T4: Caddy binary (built above with the Cloudflare DNS module) ----------------
 COPY --from=caddy-builder /out/caddy /usr/bin/caddy
 
@@ -129,9 +158,5 @@ COPY --from=caddy-builder /out/caddy /usr/bin/caddy
 # modes are not portable across hosts).
 COPY files/ /
 RUN chmod 0755 /usr/bin/network-mount-data.sh /usr/bin/network-tailscale-up.sh \
-      /usr/bin/network-caddy-run.sh; \
-    systemctl enable tailscale-up.service caddy.service
-
-# --- Service install steps (added in later tasks) ---------------------------------
-# Later slices append:
-#   T6 UniFi OS Server (official Podman installer)
+      /usr/bin/network-caddy-run.sh /usr/bin/network-uos-install.sh; \
+    systemctl enable tailscale-up.service caddy.service uosserver-install.service

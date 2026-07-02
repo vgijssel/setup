@@ -131,8 +131,9 @@ YAML
 		rm -f "${OVERLAY}"
 	fi
 	[[ -f "${OVERLAY}" ]] || qemu-img create -f qcow2 -F raw -b "${raw}" "${OVERLAY}" 40G >/dev/null
-	# Second disk = the /var/lib/data Volume stand-in (persists on host across runs).
-	[[ -f "${DATA}" ]] || qemu-img create -f qcow2 "${DATA}" 8G >/dev/null
+	# Second disk = the /var/lib/data Volume stand-in (persists on host across runs). Sized
+	# for the UOS container image + Omada's mongod DB (qcow2 is sparse, so this is a cap).
+	[[ -f "${DATA}" ]] || qemu-img create -f qcow2 "${DATA}" 20G >/dev/null
 
 	# UEFI pflash images must be 64 MiB for the arm64 `virt` machine — pad copies.
 	# Always regenerate the writable vars store: a change in the QEMU device set can
