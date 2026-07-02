@@ -346,6 +346,47 @@ assert_services() {
 		exit 1
 	}
 	echo "   [ok] omada UI answers on :8043; data dir on /var/lib/data (volume)"
+
+	# T6 UniFi OS Server: the rootless Podman container (loaded onto the Volume by
+	# uosserver-load.service, started by the vendor uosserver.service) must be running and
+	# its admin GUI must answer HTTPS on :11443. UOS boots a full nested stack (mongod +
+	# the UniFi core), so give it a long window. arm64 is a dev-only signal; amd64 (T7) is
+	# authoritative. Then assert the graphroot lives on the data Volume, not the /var overlay.
+	echo "   waiting for UniFi OS Server GUI on :11443 (nested container boot is slow) ..."
+	local uos_up="" uos_code
+	for _ in $(seq 1 120); do # ~10 min: first boot loads an 854 MB image, then boots UOS
+		# shellcheck disable=SC2016 # intentional: curl must run on the VM
+		uos_code="$(ssh_vm 'curl -k -s -o /dev/null -w "%{http_code}" https://127.0.0.1:11443 2>/dev/null || echo 000')"
+		case "${uos_code}" in
+		200 | 301 | 302 | 307)
+			uos_up=1
+			break
+			;;
+		*) ;;
+		esac
+		sleep 5
+	done
+	[[ -n "${uos_up}" ]] || {
+		echo "!! UniFi OS Server GUI did not answer on :11443 (last code=${uos_code:-none})" >&2
+		# shellcheck disable=SC2310 # intentional: best-effort diagnostic dump, ignore failure
+		ssh_vm 'sudo systemctl status uosserver-load.service uosserver.service --no-pager -l 2>&1 | tail -40' || true
+		exit 1
+	}
+	# The rootless container must be up (query podman as uosserver via its lingering session).
+	# shellcheck disable=SC2310,SC2016 # intentional: boolean probe; command runs on the VM
+	ssh_vm 'sudo -u uosserver env XDG_RUNTIME_DIR=/run/user/999 podman ps --format "{{.Names}}" 2>/dev/null | grep -q uosserver' || {
+		echo "!! uosserver container is not running under rootless podman" >&2
+		exit 1
+	}
+	# Run via sudo: /home/uosserver is 0750 uosserver, so the kairos ssh user can't traverse it.
+	# The stat $(...) must be expanded by the ROOT shell, so single-quote the `sh -c` body
+	# (else the outer login shell runs stat as kairos → permission denied → false mismatch).
+	# shellcheck disable=SC2310,SC2016 # intentional: boolean probe; $(...) must run as root on the VM
+	ssh_vm 'sudo sh -c '\''test -d /home/uosserver/.local && [ "$(stat -c %d /home/uosserver/.local)" = "$(stat -c %d /var/lib/data)" ]'\''' || {
+		echo "!! /home/uosserver/.local (UOS graphroot) is not on the data volume" >&2
+		exit 1
+	}
+	echo "   [ok] UniFi OS Server GUI answers on :11443; container running; graphroot on volume"
 }
 
 case "${ACTION}" in

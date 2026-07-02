@@ -5,7 +5,7 @@ Description=Load UniFi OS Server image onto the data volume (first boot)
 After=cos-setup-boot.service network-online.target user-runtime-dir@999.service
 Wants=network-online.target
 Before=uosserver.service
-RequiresMountsFor=/var/lib/uosserver/.local
+RequiresMountsFor=/home/uosserver/.local
 
 [Service]
 Type=oneshot

@@ -113,17 +113,23 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     DEBIAN_FRONTEND=noninteractive dpkg -i /var/cache/omada-dl/omada.deb; \
     rm -rf /var/lib/apt/lists/*
 
-# --- T6: UniFi OS Server (official Podman installer, first-boot) -------------------
+# --- T6: UniFi OS Server (official Podman installer, baked at build) ---------------
 # UOS ships no .deb / no public image: the ~830 MB installer binary bundles the UOS OCI
 # image and runs it as a ROOTLESS Podman container under the `uosserver` user (nested
 # systemd). Ubiquiti requires Podman >= 4.3.1 + slirp4netns >= 1.2 (Ubuntu 24.04's 4.9.3
-# qualifies). Build-time baking is impractical (needs live logind/systemd, and Ubiquiti
-# says don't clone installed instances), so we bake the PREREQS + stage the installer and
-# run it on FIRST BOOT (network-uos-install.sh). The uosserver user + subuid/subgid are
-# baked here so they survive Kairos' ephemeral /etc. NB: no /etc/containers/storage.conf is
-# baked — a partial one breaks podman ("runroot must be set"); rootless podman auto-selects
-# the overlay driver with fuse-overlayfs on the ext4 Volume, and the graphroot follows the
-# uosserver HOME (/var/lib/uosserver, bind-mounted onto the Volume).
+# qualifies); `dbus-user-session` is ALSO required — the container runs `--systemd=always`
+# with a healthcheck, so rootless podman needs a per-user session bus (via the lingering
+# `user@999` systemd instance) for the systemd cgroup manager + the healthcheck transient
+# timer. Without it podman falls back to cgroupfs and the container exits 255 ("no systemd
+# user session available" / "Failed to start transient timer unit"). We run the installer
+# HERE at build time (rootless Podman under
+# `--security=insecure`, systemctl/loginctl shimmed to no-ops): /usr is writable so the CLI
+# symlinks resolve, and the generated uosserver.service + vendor config bake into the image
+# /etc and /home (both survive Kairos' ephemeral reset because they are image content). The
+# loaded OCI image is re-exported as a plain oci-archive tar and loaded onto the Volume on
+# first boot (network-uos-load.sh); the build-time rootless graphroot is deleted (AuroraBoot
+# can't pack its 0700 subuid-owned overlay dirs). HOME = /home/uosserver is mandatory — the
+# launcher hardcodes that path for podman's storage/config (see the useradd note below).
 ARG UOS_VERSION=5.1.19
 ARG UOS_INSTALLER_URL=https://fw-download.ubnt.com/data/unifi-os-server/e027-linux-arm64-5.1.19-ebdd998e-306a-4880-af41-2bdc50e91e70.19-arm64
 ARG UOS_INSTALLER_SHA256=4e18c1f143cea3b364619406c35cf9d2123732bcdc500e41196e41196faefacf
@@ -133,11 +139,17 @@ RUN --security=insecure \
     set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-      podman slirp4netns passt uidmap fuse-overlayfs iptables curl wget ca-certificates; \
+      podman slirp4netns passt uidmap fuse-overlayfs iptables curl wget ca-certificates \
+      dbus-user-session; \
     # Bake the uosserver user + rootless subuid/subgid ranges (must survive ephemeral /etc).
     # A real shell is required: the installer + service run rootless Podman as this user via
     # `su`, which rejects a nologin shell ("This account is currently not available").
-    useradd --system --create-home --home-dir /var/lib/uosserver --shell /bin/bash uosserver; \
+    # HOME MUST be /home/uosserver: the vendor `uosserver-service` launcher hardcodes
+    # /home/uosserver for the podman env it exports (CONTAINERS_CONF, XDG_DATA_HOME=.local/share,
+    # XDG_CONFIG_HOME=.config) even though it reads its own config from $HOME/WorkingDirectory.
+    # Any other home splits podman's storage/config from where the installer wrote everything,
+    # and the container never starts.
+    useradd --system --create-home --home-dir /home/uosserver --shell /bin/bash uosserver; \
     usermod --add-subuids 100000-165535 --add-subgids 100000-165535 uosserver; \
     # Fetch + verify the official installer (pinned URL + sha256). It stays in the build
     # cache mount — it is NOT installed into the image, so the 834 MB binary never ships.
@@ -169,7 +181,16 @@ RUN --security=insecure \
     install -d -o uosserver -g uosserver /usr/share/uosserver; \
     su uosserver -c "XDG_RUNTIME_DIR=/run/user/999 podman save --format oci-archive -o /usr/share/uosserver/image.tar '${uos_img}'"; \
     echo "${uos_img}" > /usr/share/uosserver/image.ref; \
-    rm -rf /var/lib/uosserver/.local /var/lib/uosserver/.config /var/lib/uosserver/.cache; \
+    # Drop the rootless graphroot (.local/share/containers) — its 0700 subuid-owned overlay
+    # dirs can't be packed by AuroraBoot, and the image belongs on the Volume anyway (loaded
+    # first-boot by network-uos-load.sh). The installer already created + tried to start the
+    # container, leaving a LIVE overlay mount under the graphroot, so a plain `rm` fails with
+    # "Directory not empty" — tear podman down first (rm -f the container, then `system reset`
+    # unmounts + wipes the store; the image is safe in the saved tar). KEEP .config: it holds
+    # the vendor's containers.conf/storage.conf the launcher points podman at via CONTAINERS_CONF.
+    su uosserver -c "XDG_RUNTIME_DIR=/run/user/999 podman rm -f -a" || true; \
+    su uosserver -c "XDG_RUNTIME_DIR=/run/user/999 podman system reset -f" || true; \
+    rm -rf /home/uosserver/.local /home/uosserver/.cache; \
     rm -rf /build-shim /var/lib/apt/lists/*
 
 # --- T4: Caddy binary (built above with the Cloudflare DNS module) ----------------
