@@ -70,3 +70,19 @@ if id omada >/dev/null 2>&1; then
 	chown -R omada:omada /opt/tplink/EAPController/properties /opt/tplink/EAPController/work
 fi
 
+# T6 UniFi OS Server: put the rootless Podman graphroot (which holds the loaded image, the
+# container, and the named-volume DATA — DB/config) on the Volume. UOS is installed at image
+# build, so only its .local tree (graphroot lives under it) needs to persist; bind it onto the
+# Volume so state survives reboot AND a server recreate (SPEC §10). /var/lib/uosserver itself
+# is on the ephemeral /var overlay, so create the mountpoint each boot before binding.
+if id uosserver >/dev/null 2>&1; then
+	mkdir -p /var/lib/data/uosserver /var/lib/uosserver/.local
+	# The baked home comes up root-owned (0750) at runtime — like Omada's /opt — so uosserver
+	# can't even traverse it (rootless podman: ".config permission denied"). Re-assert ownership
+	# of the home + its writable dirs/files every boot (NOT recursively into .local, which is the
+	# Volume-backed graphroot and can be large).
+	chown uosserver:uosserver /var/lib/uosserver /var/lib/uosserver/.local /var/lib/uosserver/logs /var/lib/data/uosserver
+	chown uosserver:uosserver /var/lib/uosserver/*.json /var/lib/uosserver/*.conf 2>/dev/null || true
+	mountpoint -q /var/lib/uosserver/.local || mount --bind /var/lib/data/uosserver /var/lib/uosserver/.local
+fi
+

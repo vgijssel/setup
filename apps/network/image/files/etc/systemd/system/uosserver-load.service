@@ -1,0 +1,17 @@
+# First-boot: load the baked UOS image into the uosserver rootless graphroot (on the Volume)
+# and enable lingering, before the (build-time-baked) uosserver.service starts the container.
+[Unit]
+Description=Load UniFi OS Server image onto the data volume (first boot)
+After=cos-setup-boot.service network-online.target user-runtime-dir@999.service
+Wants=network-online.target
+Before=uosserver.service
+RequiresMountsFor=/var/lib/uosserver/.local
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStartSec=900
+ExecStart=/usr/bin/network-uos-load.sh
+
+[Install]
+WantedBy=multi-user.target

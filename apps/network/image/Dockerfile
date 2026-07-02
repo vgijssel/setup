@@ -160,9 +160,11 @@ RUN --security=insecure \
     # doesn't bloat the read-only OS layers.
     uos_img="$(su uosserver -c 'XDG_RUNTIME_DIR=/run/user/999 podman images --format "{{.Repository}}:{{.Tag}}"' | grep uosserver | head -1)"; \
     test -n "${uos_img}"; \
-    install -d -o uosserver -g uosserver /usr/local/share/uosserver; \
-    su uosserver -c "XDG_RUNTIME_DIR=/run/user/999 podman save --format oci-archive -o /usr/local/share/uosserver/image.tar '${uos_img}'"; \
-    echo "${uos_img}" > /usr/local/share/uosserver/image.ref; \
+    # Bake the tar under /usr/share (on the read-only COS_ACTIVE rootfs, always visible at
+    # runtime) — NOT /usr/local, which the empty COS_PERSISTENT overlay shadows on first boot.
+    install -d -o uosserver -g uosserver /usr/share/uosserver; \
+    su uosserver -c "XDG_RUNTIME_DIR=/run/user/999 podman save --format oci-archive -o /usr/share/uosserver/image.tar '${uos_img}'"; \
+    echo "${uos_img}" > /usr/share/uosserver/image.ref; \
     rm -rf /var/lib/uosserver/.local /var/lib/uosserver/.config /var/lib/uosserver/.cache; \
     rm -rf /build-shim /var/lib/apt/lists/*
 
@@ -182,5 +184,11 @@ COPY --from=caddy-builder /out/caddy /usr/bin/caddy
 # modes are not portable across hosts).
 COPY files/ /
 RUN chmod 0755 /usr/bin/network-mount-data.sh /usr/bin/network-tailscale-up.sh \
-      /usr/bin/network-caddy-run.sh; \
-    systemctl enable tailscale-up.service caddy.service
+      /usr/bin/network-caddy-run.sh /usr/bin/network-uos-load.sh; \
+    systemctl enable tailscale-up.service caddy.service \
+      uosserver-load.service uosserver.service; \
+    # Pin the UOS version: disable the auto-updater. Its unit was created in /etc by the
+    # build-time install, so remove it first (mask can't symlink over an existing file), then
+    # mask so uosserver.service's soft Wants= never pulls it in.
+    rm -f /etc/systemd/system/uosserver-updater.service; \
+    systemctl mask uosserver-updater.service
