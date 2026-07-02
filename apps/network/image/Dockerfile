@@ -127,20 +127,44 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 ARG UOS_VERSION=5.1.19
 ARG UOS_INSTALLER_URL=https://fw-download.ubnt.com/data/unifi-os-server/e027-linux-arm64-5.1.19-ebdd998e-306a-4880-af41-2bdc50e91e70.19-arm64
 ARG UOS_INSTALLER_SHA256=4e18c1f143cea3b364619406c35cf9d2123732bcdc500e41196e41196faefacf
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+RUN --security=insecure \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/uos-dl,sharing=locked \
     set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-      podman slirp4netns uidmap fuse-overlayfs iptables curl wget ca-certificates; \
+      podman slirp4netns passt uidmap fuse-overlayfs iptables curl wget ca-certificates; \
     # Bake the uosserver user + rootless subuid/subgid ranges (must survive ephemeral /etc).
-    useradd --system --create-home --home-dir /var/lib/uosserver --shell /usr/sbin/nologin uosserver; \
+    # A real shell is required: the installer + service run rootless Podman as this user via
+    # `su`, which rejects a nologin shell ("This account is currently not available").
+    useradd --system --create-home --home-dir /var/lib/uosserver --shell /bin/bash uosserver; \
     usermod --add-subuids 100000-165535 --add-subgids 100000-165535 uosserver; \
-    # Stage the official installer binary (pinned URL + sha256; per-release/expiring URL).
+    # Fetch + verify the official installer (pinned URL + sha256). It stays in the build
+    # cache mount — it is NOT installed into the image, so the 834 MB binary never ships.
     curl -fsSL "${UOS_INSTALLER_URL}" -o /var/cache/uos-dl/uos-installer; \
     echo "${UOS_INSTALLER_SHA256}  /var/cache/uos-dl/uos-installer" | sha256sum -c -; \
-    install -m 0755 /var/cache/uos-dl/uos-installer /usr/lib/uos-installer; \
-    rm -rf /var/lib/apt/lists/*
+    chmod 0755 /var/cache/uos-dl/uos-installer; \
+    # Build-time install (rootless Podman works via --security=insecure). Shim systemctl/
+    # loginctl so the installer's service start + enable-linger no-op (no init in a build
+    # layer); it still creates the /usr/bin symlink (writable at build), bakes uosserver.service
+    # into /etc (survives ephemeral /etc), and loads the UOS OCI image into uosserver's storage.
+    mkdir -p /build-shim; \
+    for c in systemctl loginctl; do printf '#!/bin/sh\nexit 0\n' >"/build-shim/${c}"; chmod 0755 "/build-shim/${c}"; done; \
+    install -d -o uosserver -g uosserver /run/user/999; \
+    PATH="/build-shim:${PATH}" XDG_RUNTIME_DIR=/run/user/999 \
+      /var/cache/uos-dl/uos-installer --non-interactive \
+      || echo "!! build-time UOS installer exited non-zero (start/linger steps are shimmed; expected)"; \
+    # Bake the loaded UOS image as a plain OCI-archive tar: AuroraBoot can't pack the rootless
+    # graphroot (subuid-owned overlay dirs → permission denied on image→disk dump). First boot
+    # loads this tar onto the Volume. Then delete the graphroot so the image packs cleanly and
+    # doesn't bloat the read-only OS layers.
+    uos_img="$(su uosserver -c 'XDG_RUNTIME_DIR=/run/user/999 podman images --format "{{.Repository}}:{{.Tag}}"' | grep uosserver | head -1)"; \
+    test -n "${uos_img}"; \
+    install -d -o uosserver -g uosserver /usr/local/share/uosserver; \
+    su uosserver -c "XDG_RUNTIME_DIR=/run/user/999 podman save --format oci-archive -o /usr/local/share/uosserver/image.tar '${uos_img}'"; \
+    echo "${uos_img}" > /usr/local/share/uosserver/image.ref; \
+    rm -rf /var/lib/uosserver/.local /var/lib/uosserver/.config /var/lib/uosserver/.cache; \
+    rm -rf /build-shim /var/lib/apt/lists/*
 
 # --- T4: Caddy binary (built above with the Cloudflare DNS module) ----------------
 COPY --from=caddy-builder /out/caddy /usr/bin/caddy
@@ -158,5 +182,5 @@ COPY --from=caddy-builder /out/caddy /usr/bin/caddy
 # modes are not portable across hosts).
 COPY files/ /
 RUN chmod 0755 /usr/bin/network-mount-data.sh /usr/bin/network-tailscale-up.sh \
-      /usr/bin/network-caddy-run.sh /usr/bin/network-uos-install.sh; \
-    systemctl enable tailscale-up.service caddy.service uosserver-install.service
+      /usr/bin/network-caddy-run.sh; \
+    systemctl enable tailscale-up.service caddy.service

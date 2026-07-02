@@ -47,8 +47,8 @@ fi
 BIND_MOUNTS=(
 	"/var/lib/data/omada/data /opt/tplink/EAPController/data"
 	"/var/lib/data/omada/logs /opt/tplink/EAPController/logs"
-	"/var/lib/data/uosserver /var/lib/uosserver" # T6 UniFi OS Server (rootless graphroot + state)
-	"/var/lib/data/vartmp /var/tmp"              # T6 UOS installer needs >=2 GB temp space
+	# T6 UniFi OS Server volume placement is added back once the build-time graphroot layout
+	# is confirmed (UOS is installed at build now, not first-boot).
 )
 for entry in "${BIND_MOUNTS[@]}"; do
 	# shellcheck disable=SC2086 # intentional word split: entry is "<src> <dst>"
@@ -70,11 +70,3 @@ if id omada >/dev/null 2>&1; then
 	chown -R omada:omada /opt/tplink/EAPController/properties /opt/tplink/EAPController/work
 fi
 
-# T6 UniFi OS Server: its Volume-backed home (rootless Podman graphroot + named volumes +
-# logs + containers.conf) must be owned by the uosserver user (baked at image build).
-if id uosserver >/dev/null 2>&1; then
-	chown uosserver:uosserver /var/lib/data/uosserver
-fi
-# /var/tmp is bound onto the Volume (above) for the UOS installer's temp space — restore its
-# world-writable sticky perms so it behaves like a normal system temp dir.
-chmod 1777 /var/lib/data/vartmp

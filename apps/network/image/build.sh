@@ -29,8 +29,19 @@ IMAGE_TAG="network-kairos:local-${ARCH}"
 OUT_DIR="${SCRIPT_DIR}/build/${ARCH}"
 mkdir -p "${OUT_DIR}"
 
+# The UniFi OS Server install (T6) runs at build time and needs rootless Podman + user
+# namespaces, which the default buildx sandbox blocks. Use a docker-container BuildKit
+# builder granted the security.insecure entitlement and build with `RUN --security=insecure`.
+BUILDER="netbuilder"
+if ! docker buildx inspect "${BUILDER}" >/dev/null 2>&1; then
+	echo ">> creating BuildKit builder '${BUILDER}' (security.insecure entitlement)"
+	docker buildx create --name "${BUILDER}" --driver docker-container \
+		--buildkitd-flags '--allow-insecure-entitlement security.insecure' >/dev/null
+fi
+
 echo ">> [1/3] Building Kairos OCI image ${IMAGE_TAG} (linux/${ARCH})"
-docker buildx build \
+docker buildx --builder "${BUILDER}" build \
+	--allow security.insecure \
 	--platform "linux/${ARCH}" \
 	--build-arg "VERSION=${VERSION}" \
 	--load \

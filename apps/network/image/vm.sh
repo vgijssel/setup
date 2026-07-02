@@ -130,7 +130,10 @@ YAML
 		echo ">> base image rebuilt since last boot — recreating OS overlay from fresh raw"
 		rm -f "${OVERLAY}"
 	fi
-	[[ -f "${OVERLAY}" ]] || qemu-img create -f qcow2 -F raw -b "${raw}" "${OVERLAY}" 40G >/dev/null
+	# 80G OS disk (mirrors the prod cx32 boot disk). Kairos' COS_STATE is a fixed ~22.8G, so
+	# the "grow" COS_PERSISTENT partition takes the rest (~49G) — enough for /home that the
+	# UniFi OS Server installer's 15G pre-flight demands. (40G left persistent at only ~9.5G.)
+	[[ -f "${OVERLAY}" ]] || qemu-img create -f qcow2 -F raw -b "${raw}" "${OVERLAY}" 80G >/dev/null
 	# Second disk = the /var/lib/data Volume stand-in (persists on host across runs). Sized
 	# for the UOS container image + Omada's mongod DB (qcow2 is sparse, so this is a cap).
 	[[ -f "${DATA}" ]] || qemu-img create -f qcow2 "${DATA}" 20G >/dev/null
