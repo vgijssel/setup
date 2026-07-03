@@ -81,14 +81,14 @@ invoked from cloud-config's `boot` stage. `os.qcow2` overlay is auto-rebuilt whe
   reboot-in-VM persistence on arm64. No emulated amd64 gate. `upload` (T11) publishes the arm64 raw.
 
 ## Phase 4 — OpenTofu infra + promote to Hetzner (LIVE — incurs cost)
-- [ ] **T8** Tofu skeleton + Moon lifecycle: `versions.tf` (hcloud 1.66.0, cloudflare 4.52.0; no poseidon/ct), `providers.tf`, `backend.tf` (`key = "network"`), `variables.tf` (+ pins + snapshot id; `server_type = "cax21"`), `.env.tpl`/`.envrc`/`.gitignore`/`secrets/.gitignore`, `moon.yml` `secrets/init/plan/apply/destroy/output`. **No-secrets static gate this run:** `tofu init -backend=false` + `validate` + `fmt -check` green (real `secrets`/`init`/`plan` deferred to live)
-- [ ] **T9** Core resources + outputs: `main.tf` (firewall device-ports+TS UDP only, volume 10GB non-destructive @ `/var/lib/data`, **`cax`** server from arm64 Kairos snapshot + cloud-config `user_data`), `outputs.tf`; `validate` green (live `plan` deferred)
-- [ ] **T10** `dns.tf`: public → public IP; private → `var.tailscale_ip` (count-guarded); all `proxied = false`; `validate` green
-- [ ] **T11** `upload` task: compress **arm64** raw + `hcloud-upload-image --architecture arm` (pinned) → snapshot id set as `var.image_snapshot_id` default (task wired; live upload deferred)
+- [x] **T8** Tofu skeleton + Moon lifecycle: `versions.tf` (hcloud 1.66.0, cloudflare 4.52.0; **no** poseidon/ct — Kairos cloud-config, not Ignition), `providers.tf`, `backend.tf` (`key = "network"`), `variables.tf` (`server_type = "cax21"` arm64, `image_snapshot_id` default `""`, cloudflare/tailscale/netdata/s3 tunables), `.env.tpl`, `.envrc`, `.gitignore` (+`.tools/`), `moon.yml` `secrets/init/plan/apply/destroy/output` (secrets task `mkdir -p secrets` — nothing authored under `secrets/`). **Static gate green:** `tofu init -backend=false` + `validate` + `fmt -check`; `.terraform.lock.hcl` committed.
+- [x] **T9** Core resources + outputs: `main.tf` (firewall Omada+UniFi device ports + TS UDP 41641 only, no public 22/80/443; volume 10GB non-destructive @ `/var/lib/data`; **`cax`** server from arm64 snapshot + cloud-config `user_data` via `templatefile()`; attachment `automount=false`), `outputs.tf`. `validate`+`fmt` green. **Fixed a latent bug:** literal `${...}` in a `cloud-config/config.yaml` comment was parsed as an interpolation → escaped `$${...}` (prod template was never rendered before — local VM uses `vm.sh`'s inline seed).
+- [x] **T10** `dns.tf`: `omada-public`/`unifi-public.hc` → public IPv4; `omada`/`unifi.hc` → `var.tailscale_ip` (count-guarded, skipped while empty); all `proxied = false`. `validate` green.
+- [x] **T11** `upload` task: `image/upload.sh` zstd-compresses the **arm64** raw + `hcloud-upload-image v1.5.0 --architecture arm` → snapshot id (record into `var.image_snapshot_id`). Task wired + syntax-checked; **live upload deferred** (temp server = cost + needs `HCLOUD_TOKEN`).
 
-### ⛳ Checkpoint: Full static validation + HUMAN REVIEW (gate before spending money)
-- [ ] amd64 gate passed + snapshot uploaded; `tofu validate`/`fmt -check`/`plan` green; `trunk check` clean; no community images; all pinned
-- [ ] **Human approves the first live apply**
+### ⛳ Checkpoint: Full static validation + HUMAN REVIEW (gate before spending money) — REACHED
+- [x] Authoritative gate met on arm64 (T6); snapshot upload wired (T11, deferred). `tofu validate` + `fmt -check` green; `trunk check` clean; no community images (all official vendor artifacts baked); all versions pinned.
+- [ ] **Human approves the first live apply** ← the autonomous run stops here (T12+ = live Hetzner, cost + secrets).
 
 - [ ] **T12** First live apply (nbg1): VM + Volume + firewall + public DNS; node boots Kairos, mounts Volume, joins tailnet; Omada (`.deb`) + UOS (Podman) + Caddy/tailscaled/netdata (native units) active
 - [ ] **T13** Private DNS + Caddy LE + admin UIs: set `TF_VAR_tailscale_ip` + re-apply; both UIs valid LE certs (DNS-01) over Tailscale only; public IP:443 blocked
