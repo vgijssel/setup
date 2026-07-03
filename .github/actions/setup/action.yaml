@@ -31,7 +31,7 @@ runs:
     - name: Setup direnv
       uses: HatsuneMiku3939/direnv-action@v1
       with:
-        direnvVersion: 2.35.0
+        direnvVersion: 2.37.1
 
     - name: Create empty .env
       shell: bash
