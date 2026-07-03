@@ -44,7 +44,25 @@ jobs:
           # Full history so moon can resolve the project graph consistently.
           fetch-depth: 0
 
-      - uses: ./.github/actions/setup
+      # Self-contained setup instead of ./.github/actions/setup: that shared composite
+      # pulls in HatsuneMiku3939/direnv-action@v1, which is currently broken repo-wide
+      # ("direnv release asset direnv.linux-amd64 does not include a digest"). This deploy
+      # only needs hermit (moon/tofu/op/hcloud) + docker buildx + free disk — not direnv.
+      - name: Free disk space for the image build
+        uses: endersonmenezes/free-disk-space@v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: rmz
+
+      - name: Init Hermit
+        uses: cashapp/activate-hermit@v1
+        with:
+          cache: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build amd64 image + upload snapshot to Hetzner
         # moon resolves deps: build (image/build.sh amd64) + secrets (op inject via the
