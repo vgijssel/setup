@@ -1,7 +1,7 @@
 # Kairos cloud-config for `network` — passed at boot as user_data.
 #
-# SKELETON (T0): minimal admin access only (user + SSH key). This file is an OpenTofu
-# templatefile() template: ${...} placeholders are single-line scalars substituted
+# This file is an OpenTofu templatefile() template: $${...} placeholders are single-line
+# scalars substituted (the doubled $$ escapes the literal in this comment)
 # before boot, so secrets (Tailscale authkey, Cloudflare token, Netdata claim) land only
 # in user_data / private TF state — never on disk or in git. Locally (QEMU), the same
 # file is rendered with test values and delivered via a NoCloud datasource (see the
