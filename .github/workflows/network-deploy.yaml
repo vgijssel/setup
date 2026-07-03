@@ -1,38 +1,43 @@
 name: Network Deploy
-# Manual, money-spending: builds the amd64 Kairos image on a NATIVE x86 runner (so the
-# UniFi OS Server rootless-Podman bake runs without QEMU emulation — the blocker that had
-# forced an arm64 pivot), uploads it to Hetzner as a labelled snapshot, then `tofu apply`
-# provisions the cx33 server + volume + firewall + DNS. Trigger from the Actions tab or
-# `gh workflow run network-deploy.yaml -f confirm=deploy`.
+# Builds the amd64 Kairos image on a NATIVE x86 runner (so the UniFi OS Server
+# rootless-Podman bake runs without QEMU emulation — the blocker that had forced an arm64
+# pivot) and uploads it to Hetzner as a labelled snapshot. It does NOT run tofu —
+# provisioning the server is a separate manual step. Trigger from the Actions tab, via
+# `gh workflow run network-deploy.yaml -f confirm=deploy`, or by adding the
+# `network-deploy` label to a PR.
 on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: Type deploy to confirm - builds the amd64 image and applies to Hetzner, incurs cloud cost
+        description: Type deploy to confirm - builds the amd64 image and uploads it to Hetzner as a snapshot
         required: true
         default: ""
+  # PR-level trigger for validation before this lands on main (workflow_dispatch only
+  # works once the file is on the default branch). Gated on the `network-deploy` LABEL,
+  # types:[labeled] only — so it fires solely when the label is (re-)added, never on
+  # ordinary PR pushes. This is a money-spending deploy; the label is the deliberate opt-in.
+  pull_request:
+    types: [labeled]
 
 permissions:
   contents: read
 
 concurrency:
-  group: network-deploy
+  group: network-deploy-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Build (amd64) + upload snapshot + tofu apply
+    name: Build (amd64) + upload snapshot to Hetzner
+    # Only on explicit intent: the confirm input (dispatch) or the network-deploy label (PR).
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'deploy') ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'network-deploy')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
       contents: read
     steps:
-      - name: Guard confirmation
-        if: ${{ github.event.inputs.confirm != 'deploy' }}
-        run: |
-          echo "::error::Refusing to run: type 'deploy' in the confirm input to proceed."
-          exit 1
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -41,9 +46,9 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Build amd64 image, upload snapshot, tofu apply
+      - name: Build amd64 image + upload snapshot to Hetzner
         # moon resolves deps: build (image/build.sh amd64) + secrets (op inject via the
-        # service-account token), then the deploy command uploads + applies.
+        # service-account token), then the deploy command uploads the snapshot.
         run: moon run network:deploy
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}

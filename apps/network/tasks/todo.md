@@ -88,7 +88,9 @@ invoked from cloud-config's `boot` stage. `os.qcow2` overlay is auto-rebuilt whe
 > **native x86 GitHub Actions runner** (no emulation). New pipeline: Moon `build` (amd64) +
 > `deploy` (build → `hcloud-upload-image --architecture x86` → `tofu apply`), driven by
 > `.github/workflows/network-deploy.yaml` (`workflow_dispatch`). `hcloud_server.image` is now
-> discovered by label via `data.hcloud_image` (no hand-copied snapshot id). Local arm64 `vm-*`
+> discovered by label via `data.hcloud_image` (no hand-copied snapshot id). Scope note: the
+> `deploy` task + workflow **only build + upload the snapshot** — `tofu apply` stays the separate
+> `apply` task. Local arm64 `vm-*`
 > loop stays as a dev proxy. Static gate re-green: `tofu validate` + `fmt` + `trunk check` clean.
 
 ## Phase 4 — OpenTofu infra + promote to Hetzner (LIVE — incurs cost)

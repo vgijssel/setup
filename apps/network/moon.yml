@@ -114,19 +114,15 @@ tasks:
     options:
       runInCI: false
 
-  # --- Full live deploy (manual, incurs cloud cost) ---------------------------------
-  # `moon run network:deploy` = build the amd64 image -> upload it to Hetzner as a
-  # labelled snapshot (role=network,arch=amd64) -> tofu apply. The `hcloud_server` image
-  # is discovered from the newest matching snapshot (data.hcloud_image, see main.tf), so
-  # build/upload and apply decouple with no hand-copied snapshot id. Runs from GitHub
-  # Actions (workflow_dispatch) on a native x86 runner, or locally. Sources secrets/.env
-  # for HCLOUD/AWS/CF/TS/Netdata creds + TF_VAR_*.
+  # --- Build + publish image to Hetzner (manual) ------------------------------------
+  # `moon run network:deploy` = build the amd64 Kairos image -> upload it to Hetzner as a
+  # labelled snapshot (role=network,arch=amd64) via hcloud-upload-image. That is ALL it
+  # does — it does NOT run tofu. Provisioning the server is a separate step (the `apply`
+  # task), where hcloud_server.image auto-discovers the newest matching snapshot
+  # (data.hcloud_image, see main.tf). Runs from GitHub Actions on a native x86 runner (so
+  # the UOS bake needs no emulation) or locally. Sources secrets/.env for HCLOUD_TOKEN.
   deploy:
-    command: >-
-      set -a && source secrets/.env && set +a &&
-      bash image/upload.sh amd64 &&
-      tofu init -reconfigure -backend-config="bucket=$TF_VAR_s3_bucket" &&
-      tofu apply -auto-approve
+    command: set -a && source secrets/.env && set +a && bash image/upload.sh amd64
     deps:
       - ~:build
       - ~:secrets
