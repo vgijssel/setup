@@ -76,3 +76,7 @@ docker run --rm \
 
 echo ">> Artifacts:"
 ls -lh "${OUT_DIR}"
+
+# Promote (T11): upload the RAW to Hetzner as a bootable snapshot, then wire its id:
+#   moon run network:upload            # -> hcloud-upload-image --architecture arm (arm64)
+#   set the printed snapshot id into var.image_snapshot_id (see image/upload.sh).

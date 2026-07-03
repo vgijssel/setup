@@ -32,6 +32,19 @@ tasks:
       runInCI: false
       cache: false
 
+  # Upload the built arm64 RAW to Hetzner as a snapshot (LIVE: creates+deletes a temp
+  # server, small one-off cost). Sources secrets/.env for HCLOUD_TOKEN. Record the printed
+  # snapshot id into var.image_snapshot_id. `-- amd64` only for a future native-amd64 host.
+  upload:
+    command: set -a && source secrets/.env && set +a && bash image/upload.sh
+    deps:
+      - ~:secrets
+    env:
+      CWD: apps/network
+    options:
+      runInCI: false
+      cache: false
+
   # --- Secrets + OpenTofu lifecycle (live; incurs cloud cost from `apply`) ---
   # Mirrors apps/network-controllers-prod: each tofu task sources secrets/.env (rendered
   # from 1Password) so HCLOUD/AWS/CF/TS/Netdata creds + TF_VAR_* reach tofu. The S3 bucket
