@@ -1,10 +1,13 @@
 # Local Kairos build artifacts (raw/iso, multi-GB — never committed).
 image/build/
 
-# Rendered secrets (op inject output) — added in T8; never committed.
+# Rendered secrets (op inject output) — never committed.
 secrets/.env
 
-# OpenTofu local state/plugins (added in Phase 4).
+# OpenTofu local state/plugins.
 .terraform/
 *.tfstate
 *.tfstate.*
+
+# Vendored CLI tools (e.g. hcloud-upload-image), fetched by the upload task (T11).
+.tools/
