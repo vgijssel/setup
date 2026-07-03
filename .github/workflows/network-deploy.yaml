@@ -1,0 +1,50 @@
+name: Network Deploy
+# Manual, money-spending: builds the amd64 Kairos image on a NATIVE x86 runner (so the
+# UniFi OS Server rootless-Podman bake runs without QEMU emulation — the blocker that had
+# forced an arm64 pivot), uploads it to Hetzner as a labelled snapshot, then `tofu apply`
+# provisions the cx33 server + volume + firewall + DNS. Trigger from the Actions tab or
+# `gh workflow run network-deploy.yaml -f confirm=deploy`.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type deploy to confirm - builds the amd64 image and applies to Hetzner, incurs cloud cost
+        required: true
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: network-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build (amd64) + upload snapshot + tofu apply
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Guard confirmation
+        if: ${{ github.event.inputs.confirm != 'deploy' }}
+        run: |
+          echo "::error::Refusing to run: type 'deploy' in the confirm input to proceed."
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so moon can resolve the project graph consistently.
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      - name: Build amd64 image, upload snapshot, tofu apply
+        # moon resolves deps: build (image/build.sh amd64) + secrets (op inject via the
+        # service-account token), then the deploy command uploads + applies.
+        run: moon run network:deploy
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          VENDIR_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}

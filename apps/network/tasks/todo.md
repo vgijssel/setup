@@ -80,6 +80,17 @@ invoked from cloud-config's `boot` stage. `os.qcow2` overlay is auto-rebuilt whe
 - [x] arm64 image = prod artifact; T6 already proved all 5 services (incl. real Omada) active +
   reboot-in-VM persistence on arm64. No emulated amd64 gate. `upload` (T11) publishes the arm64 raw.
 
+> **Update 2026-07-03 (revised) — amd64 via GitHub Actions (re-reverts the T7 arm64 pivot).**
+> Hetzner arm64/`cax` capacity was **exhausted across all EU locations** (nbg1/fsn1/hel1, every
+> cax size) at deploy time, blocking both the snapshot upload and the prod server. Root-causing
+> T7: the UOS rootless-Podman bake only broke under **QEMU-emulated** amd64 on the Apple-Silicon
+> host — not on amd64 itself. So prod moves to **amd64/`cx33`**, with the image built on a
+> **native x86 GitHub Actions runner** (no emulation). New pipeline: Moon `build` (amd64) +
+> `deploy` (build → `hcloud-upload-image --architecture x86` → `tofu apply`), driven by
+> `.github/workflows/network-deploy.yaml` (`workflow_dispatch`). `hcloud_server.image` is now
+> discovered by label via `data.hcloud_image` (no hand-copied snapshot id). Local arm64 `vm-*`
+> loop stays as a dev proxy. Static gate re-green: `tofu validate` + `fmt` + `trunk check` clean.
+
 ## Phase 4 — OpenTofu infra + promote to Hetzner (LIVE — incurs cost)
 - [x] **T8** Tofu skeleton + Moon lifecycle: `versions.tf` (hcloud 1.66.0, cloudflare 4.52.0; **no** poseidon/ct — Kairos cloud-config, not Ignition), `providers.tf`, `backend.tf` (`key = "network"`), `variables.tf` (`server_type = "cax21"` arm64, `image_snapshot_id` default `""`, cloudflare/tailscale/netdata/s3 tunables), `.env.tpl`, `.envrc`, `.gitignore` (+`.tools/`), `moon.yml` `secrets/init/plan/apply/destroy/output` (secrets task `mkdir -p secrets` — nothing authored under `secrets/`). **Static gate green:** `tofu init -backend=false` + `validate` + `fmt -check`; `.terraform.lock.hcl` committed.
 - [x] **T9** Core resources + outputs: `main.tf` (firewall Omada+UniFi device ports + TS UDP 41641 only, no public 22/80/443; volume 10GB non-destructive @ `/var/lib/data`; **`cax`** server from arm64 snapshot + cloud-config `user_data` via `templatefile()`; attachment `automount=false`), `outputs.tf`. `validate`+`fmt` green. **Fixed a latent bug:** literal `${...}` in a `cloud-config/config.yaml` comment was parsed as an interpolation → escaped `$${...}` (prod template was never rendered before — local VM uses `vm.sh`'s inline seed).
@@ -90,7 +101,7 @@ invoked from cloud-config's `boot` stage. `os.qcow2` overlay is auto-rebuilt whe
 - [x] Authoritative gate met on arm64 (T6); snapshot upload wired (T11, deferred). `tofu validate` + `fmt -check` green; `trunk check` clean; no community images (all official vendor artifacts baked); all versions pinned.
 - [ ] **Human approves the first live apply** ← the autonomous run stops here (T12+ = live Hetzner, cost + secrets).
 
-- [ ] **T12** First live apply (nbg1): VM + Volume + firewall + public DNS; node boots Kairos, mounts Volume, joins tailnet; Omada (`.deb`) + UOS (Podman) + Caddy/tailscaled/netdata (native units) active
+- [ ] **T12** First live apply — now via **`moon run network:deploy`** (GitHub Actions, native amd64): build amd64 image → upload snapshot → `tofu apply` provisions `cx33` VM + Volume + firewall + public DNS (nbg1); node boots Kairos, mounts Volume, joins tailnet; Omada (`.deb`) + UOS (Podman) + Caddy/tailscaled/netdata (native units) active. **First real test of the native-amd64 UOS bake.**
 - [ ] **T13** Private DNS + Caddy LE + admin UIs: set `TF_VAR_tailscale_ip` + re-apply; both UIs valid LE certs (DNS-01) over Tailscale only; public IP:443 blocked
 - [ ] **T14** Verify Netdata Cloud: node claimed (ACLK connected), metrics flowing, `:19999` Tailscale-only
 

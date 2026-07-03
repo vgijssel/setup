@@ -7,13 +7,13 @@ variable "server_name" {
 }
 
 variable "server_type" {
-  description = "Hetzner Cloud server type. MUST be arm64 (cax) — the Kairos image ships linux/arm64 (decision 2026-07-03; see SPEC §1). cax21 = 4 vCPU / 8 GB, headroom for Omada + UniFi OS Server + Netdata."
+  description = "Hetzner Cloud server type. amd64/x86 (cx line) — the shipped Kairos image is linux/amd64, built natively in GitHub Actions (decision 2026-07-03; see SPEC §1). cx33 = 4 vCPU / 8 GB / 80 GB Intel shared, headroom for Omada + UniFi OS Server + Netdata."
   type        = string
-  default     = "cax21"
+  default     = "cx33"
 }
 
 variable "location" {
-  description = "Hetzner Cloud location. Must offer cax (Ampere) servers — nbg1/fsn1/hel1 do. (Hetzner deprecated the per-datacenter field on 2025-12-16; use location.)"
+  description = "Hetzner Cloud location. nbg1/fsn1/hel1 all offer the cx (x86) line. (Hetzner deprecated the per-datacenter field on 2025-12-16; use location.)"
   type        = string
   default     = "nbg1"
 }
@@ -35,7 +35,7 @@ variable "volume_size" {
 # --- Kairos image ------------------------------------------------------------
 
 variable "image_snapshot_id" {
-  description = "Hetzner snapshot ID of the uploaded Kairos arm64 image (set by `moon run network:upload`, hcloud-upload-image --architecture arm). Empty until the first upload."
+  description = "OPTIONAL manual override for the Hetzner snapshot ID. Leave empty (default) to auto-discover the newest amd64 snapshot labelled role=network,arch=amd64 (uploaded by `moon run network:deploy` / hcloud-upload-image --architecture x86); see data.hcloud_image.network in main.tf."
   type        = string
   default     = ""
 }

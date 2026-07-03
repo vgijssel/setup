@@ -48,16 +48,68 @@ if [[ ! -f "${ZST}" || "${RAW}" -nt "${ZST}" ]]; then
 	zstd -f -q "${RAW}" -o "${ZST}"
 fi
 
-# Reuse the uploader vendored by network-controllers-prod; else this app's .tools;
-# else install it pinned via Go. Never runs unpinned.
-UPLOADER="${APP_DIR}/../network-controllers-prod/.tools/hcloud-upload-image"
-if [[ ! -x "${UPLOADER}" ]]; then
-	UPLOADER="${APP_DIR}/.tools/hcloud-upload-image"
-	if [[ ! -x "${UPLOADER}" ]]; then
-		echo ">> installing hcloud-upload-image ${HCLOUD_UPLOAD_IMAGE_VERSION} -> ${APP_DIR}/.tools"
-		GOBIN="${APP_DIR}/.tools" go install \
-			"github.com/apricote/hcloud-upload-image@${HCLOUD_UPLOAD_IMAGE_VERSION}"
+# Resolve the pinned hcloud-upload-image binary. Prefer an existing RUNNABLE copy (the
+# one vendored by network-controllers-prod, or this app's .tools); otherwise download
+# the pinned release tarball for THIS platform and verify its sha256. No `go` toolchain
+# required, so it behaves the same locally (Darwin/arm64) and in CI (Linux/x86_64 GitHub
+# Actions runner). Never runs an unpinned or unverified binary (repo CLAUDE.md).
+UPLOADER=""
+for cand in \
+	"${APP_DIR}/../network-controllers-prod/.tools/hcloud-upload-image" \
+	"${APP_DIR}/.tools/hcloud-upload-image"; do
+	# -x + a real exec (--help) so a wrong-platform vendored binary is rejected, not run.
+	if [[ -x "${cand}" ]] && "${cand}" --help >/dev/null 2>&1; then
+		UPLOADER="${cand}"
+		break
 	fi
+done
+
+if [[ -z "${UPLOADER}" ]]; then
+	os_uname="$(uname -s)"
+	case "${os_uname}" in
+	Linux) rel_os="Linux" ;;
+	Darwin) rel_os="Darwin" ;;
+	*)
+		echo "!! unsupported OS ${os_uname}" >&2
+		exit 1
+		;;
+	esac
+	arch_uname="$(uname -m)"
+	case "${arch_uname}" in
+	x86_64 | amd64) rel_arch="x86_64" ;;
+	aarch64 | arm64) rel_arch="arm64" ;;
+	*)
+		echo "!! unsupported arch ${arch_uname}" >&2
+		exit 1
+		;;
+	esac
+	asset="hcloud-upload-image_${rel_os}_${rel_arch}.tar.gz"
+	base="https://github.com/apricote/hcloud-upload-image/releases/download/${HCLOUD_UPLOAD_IMAGE_VERSION}"
+	tmp="$(mktemp -d)"
+	echo ">> downloading hcloud-upload-image ${HCLOUD_UPLOAD_IMAGE_VERSION} (${asset})"
+	curl -fsSL "${base}/${asset}" -o "${tmp}/${asset}"
+	curl -fsSL "${base}/hcloud-upload-image_${HCLOUD_UPLOAD_IMAGE_VERSION#v}_checksums.txt" -o "${tmp}/checksums.txt"
+	# checksums.txt lines are "<sha256>  <filename>" — match the asset with a single awk
+	# (no grep|awk pipe, so no masked exit status).
+	want="$(awk -v a="${asset}" '$2 == a {print $1}' "${tmp}/checksums.txt")"
+	[[ -n "${want}" ]] || {
+		echo "!! ${asset} not found in checksums.txt" >&2
+		exit 1
+	}
+	if command -v sha256sum >/dev/null 2>&1; then
+		sumline="$(sha256sum "${tmp}/${asset}")"
+	else
+		sumline="$(shasum -a 256 "${tmp}/${asset}")"
+	fi
+	got="${sumline%% *}"
+	[[ "${want}" == "${got}" ]] || {
+		echo "!! sha256 mismatch for ${asset} (want ${want}, got ${got})" >&2
+		exit 1
+	}
+	mkdir -p "${APP_DIR}/.tools"
+	tar -xzf "${tmp}/${asset}" -C "${APP_DIR}/.tools" hcloud-upload-image
+	rm -rf "${tmp}"
+	UPLOADER="${APP_DIR}/.tools/hcloud-upload-image"
 fi
 
 echo ">> uploading ${ARCH} (${HC_ARCH}) image to Hetzner (${LOCATION}); a temp server is created + deleted"

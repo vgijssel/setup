@@ -9,9 +9,18 @@ tags:
 tasks:
   # --- Image build & local validation (no cloud cost) ---
   build-image:
-    # Usage: moon run apps/network:build-image            (arm64 fast loop, default)
-    #        moon run apps/network:build-image -- amd64    (amd64 promotion gate)
+    # Usage: moon run network:build-image            (arm64 fast loop, default)
+    #        moon run network:build-image -- amd64    (amd64 prod artifact)
     command: bash image/build.sh
+    options:
+      runInCI: false
+      cache: false
+  # `build`: the shipped PROD artifact = amd64. Built natively on a GitHub Actions x86
+  # runner (workflow: .github/workflows/network-deploy.yaml), so the UniFi OS Server
+  # rootless-Podman bake runs WITHOUT QEMU emulation — the exact failure that forced the
+  # earlier arm64 pivot (T7). Local dev keeps the arm64 fast loop via build-image/vm-*.
+  build:
+    command: bash image/build.sh amd64
     options:
       runInCI: false
       cache: false
@@ -50,7 +59,9 @@ tasks:
   # from 1Password) so HCLOUD/AWS/CF/TS/Netdata creds + TF_VAR_* reach tofu. The S3 bucket
   # is injected at init via -backend-config. `secrets/` is git-ignored and never committed.
   secrets:
-    command: mkdir -p secrets && op inject --account my.1password.com --force -i .env.tpl -o secrets/.env
+    # CI (GitHub Actions) authenticates via OP_SERVICE_ACCOUNT_TOKEN; locally there are
+    # multiple 1Password accounts so disambiguate with --account. Same rendered output.
+    command: mkdir -p secrets && if [ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]; then op inject --force -i .env.tpl -o secrets/.env; else op inject --account my.1password.com --force -i .env.tpl -o secrets/.env; fi
     env:
       CWD: apps/network
     inputs:
@@ -102,3 +113,25 @@ tasks:
       CWD: apps/network
     options:
       runInCI: false
+
+  # --- Full live deploy (manual, incurs cloud cost) ---------------------------------
+  # `moon run network:deploy` = build the amd64 image -> upload it to Hetzner as a
+  # labelled snapshot (role=network,arch=amd64) -> tofu apply. The `hcloud_server` image
+  # is discovered from the newest matching snapshot (data.hcloud_image, see main.tf), so
+  # build/upload and apply decouple with no hand-copied snapshot id. Runs from GitHub
+  # Actions (workflow_dispatch) on a native x86 runner, or locally. Sources secrets/.env
+  # for HCLOUD/AWS/CF/TS/Netdata creds + TF_VAR_*.
+  deploy:
+    command: >-
+      set -a && source secrets/.env && set +a &&
+      bash image/upload.sh amd64 &&
+      tofu init -reconfigure -backend-config="bucket=$TF_VAR_s3_bucket" &&
+      tofu apply -auto-approve
+    deps:
+      - ~:build
+      - ~:secrets
+    env:
+      CWD: apps/network
+    options:
+      runInCI: false
+      cache: false

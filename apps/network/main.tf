@@ -7,6 +7,22 @@ locals {
   # Hetzner exposes an attached Volume at this stable device path (by Volume ID).
   # Passed to network-mount-data.sh via cloud-config as ${data_device}.
   volume_device = "/dev/disk/by-id/scsi-0HC_Volume_${hcloud_volume.data.id}"
+
+  # Boot image: an explicit override wins; otherwise the newest snapshot the deploy
+  # pipeline uploaded (discovered by label below).
+  image_id = var.image_snapshot_id != "" ? var.image_snapshot_id : data.hcloud_image.network.id
+}
+
+# The bootable image is discovered by label rather than pinned by id: `moon run
+# network:deploy` builds the amd64 raw and uploads it as a snapshot labelled
+# role=network,arch=amd64 (see image/upload.sh), and this data source selects the most
+# recent one — so build/upload and apply fully decouple with no hand-copied id.
+# NOTE: reads at plan/apply time and errors if no matching snapshot exists yet, so the
+# first `apply` must be preceded by an upload (the deploy task does exactly that).
+data "hcloud_image" "network" {
+  with_selector     = "role=network,arch=amd64"
+  with_architecture = "x86"
+  most_recent       = true
 }
 
 # NOTE: SSH access is provisioned via the Kairos cloud-config (the `kairos` admin
@@ -97,14 +113,15 @@ resource "hcloud_volume" "data" {
   }
 }
 
-# Kairos VM (arm64, cax type). `user_data` is the rendered cloud-config; there is
-# intentionally NO `ignore_changes`, so a cloud-config change recreates the server.
-# Data lives on the retained Volume, so a recreate is the routine config-change path.
+# Kairos VM (amd64, cx type). `user_data` is the rendered cloud-config; there is
+# intentionally NO `ignore_changes`, so a cloud-config OR image change recreates the
+# server. Data lives on the retained Volume, so a recreate is the routine rollout path
+# (a fresh `deploy` uploads a newer snapshot -> new image id -> replace, data preserved).
 resource "hcloud_server" "this" {
   name         = var.server_name
   server_type  = var.server_type
   location     = var.location
-  image        = var.image_snapshot_id
+  image        = local.image_id
   firewall_ids = [hcloud_firewall.this.id]
   user_data    = local.cloud_config
 
