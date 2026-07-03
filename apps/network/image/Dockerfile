@@ -131,8 +131,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # can't pack its 0700 subuid-owned overlay dirs). HOME = /home/uosserver is mandatory — the
 # launcher hardcodes that path for podman's storage/config (see the useradd note below).
 ARG UOS_VERSION=5.1.19
-ARG UOS_INSTALLER_URL=https://fw-download.ubnt.com/data/unifi-os-server/e027-linux-arm64-5.1.19-ebdd998e-306a-4880-af41-2bdc50e91e70.19-arm64
-ARG UOS_INSTALLER_SHA256=4e18c1f143cea3b364619406c35cf9d2123732bcdc500e41196e41196faefacf
+# UOS ships a distinct installer binary per arch. Select by buildx's auto-populated
+# TARGETARCH so the amd64 promotion gate (T7) installs the REAL x64 binary while the
+# arm64 fast loop keeps its arm64 one. Both pinned (URL + sha256) per repo CLAUDE.md.
+ARG UOS_INSTALLER_URL_ARM64=https://fw-download.ubnt.com/data/unifi-os-server/e027-linux-arm64-5.1.19-ebdd998e-306a-4880-af41-2bdc50e91e70.19-arm64
+ARG UOS_INSTALLER_SHA256_ARM64=4e18c1f143cea3b364619406c35cf9d2123732bcdc500e41196e41196faefacf
+ARG UOS_INSTALLER_URL_AMD64=https://fw-download.ubnt.com/data/unifi-os-server/b828-linux-x64-5.1.19-e38d0b0e-b462-403d-9861-f57f25772106.19-x64
+ARG UOS_INSTALLER_SHA256_AMD64=014cc7da5c403ea4117f6d7fb4f3860036ad94f5bf58f5fcd029bec652416e66
+ARG TARGETARCH
 RUN --security=insecure \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/uos-dl,sharing=locked \
@@ -141,6 +147,12 @@ RUN --security=insecure \
     apt-get install -y --no-install-recommends \
       podman slirp4netns passt uidmap fuse-overlayfs iptables curl wget ca-certificates \
       dbus-user-session; \
+    # Pick the per-arch installer (buildx sets TARGETARCH from --platform).
+    case "${TARGETARCH}" in \
+      arm64) uos_url="${UOS_INSTALLER_URL_ARM64}"; uos_sha="${UOS_INSTALLER_SHA256_ARM64}" ;; \
+      amd64) uos_url="${UOS_INSTALLER_URL_AMD64}"; uos_sha="${UOS_INSTALLER_SHA256_AMD64}" ;; \
+      *) echo "unsupported TARGETARCH=${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
     # Bake the uosserver user + rootless subuid/subgid ranges (must survive ephemeral /etc).
     # A real shell is required: the installer + service run rootless Podman as this user via
     # `su`, which rejects a nologin shell ("This account is currently not available").
@@ -153,8 +165,8 @@ RUN --security=insecure \
     usermod --add-subuids 100000-165535 --add-subgids 100000-165535 uosserver; \
     # Fetch + verify the official installer (pinned URL + sha256). It stays in the build
     # cache mount — it is NOT installed into the image, so the 834 MB binary never ships.
-    curl -fsSL "${UOS_INSTALLER_URL}" -o /var/cache/uos-dl/uos-installer; \
-    echo "${UOS_INSTALLER_SHA256}  /var/cache/uos-dl/uos-installer" | sha256sum -c -; \
+    curl -fsSL "${uos_url}" -o /var/cache/uos-dl/uos-installer; \
+    echo "${uos_sha}  /var/cache/uos-dl/uos-installer" | sha256sum -c -; \
     chmod 0755 /var/cache/uos-dl/uos-installer; \
     # Build-time install (rootless Podman works via --security=insecure). Shim systemctl/
     # loginctl so the installer's service start + enable-linger no-op (no init in a build

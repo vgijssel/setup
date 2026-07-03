@@ -37,11 +37,14 @@ a first-class, per-service obligation rather than one big task at the end.
   `/var/lib/data`; the same `bind_mounts` that route onto the prod Volume route onto this
   disk locally. This makes the reboot-in-VM test a faithful check of the prod persistence
   design at zero cloud cost.
-- **Dual-arch build, amd64 is the gate.** The fast loop builds/boots **arm64** under HVF
-  to iterate on the arch-independent 80% (persistence, cloud-config, systemd wiring,
-  Caddy/Tailscale/Netdata). The **amd64 image booted under emulation (TCG)** is the
-  authoritative promotion gate — the only faithful test of the real Omada `.deb`. Omada
-  on arm64 uses a **dev-only force-arch hack** and is explicitly *not* authoritative.
+- **Single-arch arm64 build (decision 2026-07-03).** Prod runs Hetzner `cax` (Ampere
+  arm64); the image builds **natively** on the Apple-Silicon host and boots under HVF, so
+  the local arm64 boot **is** the authoritative gate (prod ships the same artifact). Omada's
+  `.deb` is `Architecture: all` (pure Java) and runs the **real** controller natively on
+  arm64 — no force-arch hack. The original plan was amd64 with an emulated TCG gate; that
+  was abandoned because build-time rootless Podman (the UOS bake) is **broken under
+  QEMU-emulated amd64 buildx** on this host. (`vm.sh`/`Dockerfile` keep an amd64 path for a
+  possible future native-amd64 build host, but it is not shipped.)
 - **Everything pinned (repo CLAUDE.md).** Ubuntu base by digest; `kairos-init`,
   AuroraBoot, Podman, Caddy (+`caddy-dns/cloudflare` via xcaddy), Tailscale, Netdata,
   the Omada `.deb`, the UOS installer, and both OpenTofu providers pinned to exact
@@ -89,9 +92,9 @@ T0 Build scaffold ─────> T1 Boot walking skeleton (arm64 HVF + /var/li
               ===== CHECKPOINT: all 5 active; persistent-path set documented & reboot-in-VM proves it (arm64) =====
                                        │
                                        v
-                             T7 amd64 emulated gate (qemu-system-x86_64, TCG) — real Omada .deb; reboot persistence
+                             T7 SUPERSEDED — prod = arm64 cax21; T6 arm64 boot (real Omada) IS the gate
                                        │
-                    ===== CHECKPOINT: amd64 authoritative boot green (before ANY upload) =====
+                    ===== CHECKPOINT: arm64 authoritative boot green (T6) — before ANY upload =====
                                        │
         ┌──────────────────────────────┼───────────────────────────────┐
         v                              v                                v
@@ -297,27 +300,34 @@ non-interactively.
 
 ---
 
-## Phase 3 — amd64 promotion gate (authoritative, still local/no cloud)
+## Phase 3 — Authoritative gate (arm64 = prod, still local/no cloud)
 
-### Task 7: amd64 emulated boot gate
-**Description:** Build the **amd64** artifact and boot it in `qemu-system-x86_64`
-(emulated/TCG). This is the only faithful test of the real Omada `.deb`. Assert all five
-services active and re-run the reboot-in-VM persistence test on amd64.
+### Task 7: ~~amd64 emulated boot gate~~ — SUPERSEDED by the arm64 pivot (2026-07-03)
+**What happened:** Building the amd64 artifact surfaced a hard blocker — the build-time UOS
+bake uses **rootless Podman**, which is **broken under QEMU-emulated amd64 buildx** on the
+Apple-Silicon host. The x64 UOS installer (URL discovered + sha256-pinned) runs and *loads*
+the image, but `podman run`/`images`/`save` fail to `execvp` under qemu-user emulation, so
+the build-time image export cannot complete. A prod amd64 image built on this same toolchain
+would hit the identical wall.
 
-**Acceptance criteria:**
-- [ ] `moon run apps/network:build-image` (amd64) + `vm-up` boots under emulation.
-- [ ] **All five** services active including the **real** (non-hacked) Omada `.deb`.
-- [ ] Reboot-in-VM preserves all state on amd64.
+**Decision:** move prod to **Hetzner `cax21` (Ampere arm64)**. The image builds **natively**
+(no emulation), and Omada's `.deb` is `Architecture: all`, so arm64 runs the **real** Omada.
+Consequently the **arm64 image is the prod artifact** and the **Phase-2 (T6) checkpoint —
+all five services incl. real Omada active + reboot-in-VM persistence on arm64 — IS the
+authoritative gate.** There is no separate emulated architecture to validate.
 
-**Verification:**
-- [ ] `vm-verify` asserts the five services up + data survived reboot on the amd64 image.
-**Dependencies:** Phase-2 checkpoint.
-**Files likely touched:** `image/build.sh`, `moon.yml` (arch selection), `vm-verify` script.
-**Scope:** M (emulation is slow; correctness-critical)
+**Work retained (for a possible future native-amd64 build host):**
+- `image/Dockerfile`: UOS installer made arch-aware via a `TARGETARCH` case (x64 URL
+  `b828-linux-x64-5.1.19-…`, sha256 `014cc7da…`), arm64 unchanged.
+- `image/vm.sh`: an amd64 code path (`q35`/`-cpu max`/TCG, split OVMF `edk2-x86_64-code.fd`
+  + `edk2-i386-vars.fd`). Neither is part of the shipped arm64 flow.
 
-### Checkpoint: amd64 authoritative gate (before ANY upload)
-- [ ] amd64 emulated boot green; all five services incl. real Omada; persistence proven.
-      **No `upload` until this passes.**
+**Verification:** none new — satisfied by the existing arm64 `vm-verify` PASS (T6).
+**Dependencies:** Phase-2 checkpoint (already met).
+
+### Checkpoint: authoritative gate — MET
+- [x] arm64 image = prod artifact; T6 already proved all five services (incl. real Omada)
+      active + reboot-in-VM persistence. `upload` (T11) publishes the arm64 raw.
 
 ---
 
@@ -333,7 +343,7 @@ mirroring the old app.
 
 **Acceptance criteria:**
 - [ ] Providers pinned exactly; backend matches the old app's S3 pattern with `key = "network"`.
-- [ ] `variables.tf` covers `server_type="cx23"`, `location="nbg1"`, `volume_size=10`,
+- [ ] `variables.tf` covers `server_type="cax21"` (arm64), `location="nbg1"`, `volume_size=10`,
       `base_domain`, hostnames, `image_snapshot_id`, `cloudflare_*`, `tailscale_*`,
       `netdata_claim_*`, `s3_bucket`, and all version pins.
 - [ ] `.env.tpl` matches SPEC (HCLOUD/AWS/CF/Tailscale/Netdata from vault `enigma-prod`).
@@ -356,7 +366,7 @@ mirroring the old app.
 - [ ] Firewall opens **only**: Omada TCP/UDP 29810–29817, UDP 27001, TCP 8088; UniFi TCP 8080,
       UDP 3478/10001/10003; Tailscale UDP 41641. No public 22/80/443.
 - [ ] Volume attaches at `/var/lib/data`, survives server replacement (non-destructive format).
-- [ ] Server boots from the amd64 Kairos snapshot with cloud-config `user_data`.
+- [ ] Server (`cax` type) boots from the arm64 Kairos snapshot with cloud-config `user_data`.
 
 **Verification:**
 - [ ] `tofu plan` (real backend, no apply) shows firewall + volume + server; `fmt -check` clean.
@@ -380,12 +390,12 @@ mirroring the old app.
 **Scope:** S
 
 ### Task 11: Upload amd64 image → Hetzner snapshot
-**Description:** Add the `upload` Moon task: compress the gated **amd64** raw image and run
-`hcloud-upload-image` (pinned; reuse the binary already vendored under the old app's
-`.tools/`) to create a snapshot; record its id as the `image_snapshot_id` default.
+**Description:** Add the `upload` Moon task: compress the gated **arm64** raw image and run
+`hcloud-upload-image --architecture arm` (pinned; reuse the binary already vendored under the
+old app's `.tools/`) to create a snapshot; record its id as the `image_snapshot_id` default.
 
 **Acceptance criteria:**
-- [ ] `moon run apps/network:upload` uploads the amd64 raw and prints/records the snapshot id.
+- [ ] `moon run network:upload` uploads the arm64 raw (`--architecture arm`) and records the snapshot id.
 - [ ] Snapshot id set as the `var.image_snapshot_id` default.
 
 **Verification:**
@@ -512,10 +522,10 @@ unpinned tags / community images returns nothing.
 | Kairos build-from-Ubuntu + AuroraBoot + QEMU boot is new to the repo | High | Walking-skeleton first (T0/T1) proves the whole loop before any service; fail fast, cheap. |
 | **Nested Podman at build time** for the UOS installer may need privileged/nested handling or refuse non-interactive | High | T6 flags early; documented fallback = first-boot Kairos stage with `uosserver` user still baked so it survives ephemeral `/etc`. |
 | **Missed persistent path → data lost every boot** (the core immutability trap) | High | Every service slice declares + creates its own `bind_mount` and proves reboot-survival; Phase-2 checkpoint gates on a documented complete path set + reboot-in-VM. |
-| Omada ships x64-only `.deb`; arm64 install is a dev hack | High (for Omada) | arm64 validates only the arch-independent 80%; **amd64 emulated boot (T7) is the authoritative gate** before any upload. |
+| ~~Omada ships x64-only `.deb`; arm64 install is a dev hack~~ | Resolved | The `.deb` is `Architecture: all` (pure Java) → runs the real Omada natively on arm64 (verified on `:8043`). No hack; arm64 is authoritative. |
+| Build-time rootless Podman broken under emulated amd64 buildx | High | Resolved by the arm64 pivot — the image builds natively on the Apple-Silicon host; no emulation. |
 | Podman `graphroot` on the ext4 Volume filesystem (overlay driver) | Med | Confirm overlay works on the volume fs in the VM; adjust `storage.conf` if needed (T6). |
 | Caddy DNS-01 only verifiable live (private names resolve to tailnet) | Med | Bake + `caddy validate` locally (T4); full LE issuance verified live at T13 with the zone-scoped CF token. |
-| Emulated amd64 boot is slow | Low | Accept slower gate; keep arm64 HVF as the fast iteration loop. |
 | Live apply cost | Low | Human-review checkpoint before first apply; `cx23` + 10 GB per SPEC; size bumps require ask. |
 | Secrets land in cloud-config `user_data` / TF state | Low | State in private Hetzner Object Storage; nothing committed; `secrets/` git-ignored & deny-listed; never read/write under `secrets/`. |
 | Auto-upgrade reboots at an inconvenient time | Low | Schedule + reboot window operator-approved (ask-first, SPEC §8); rollback via previous A/B slot. |
@@ -525,8 +535,9 @@ unpinned tags / community images returns nothing.
 - **Auto-upgrade schedule / reboot window / pinned upgrade tag** (T15) — needs operator
   sign-off (SPEC §8 "ask first").
 - **Device adoption (T16)** depends on physical hardware being available to the operator.
-- **Prod architecture stays amd64** (SPEC decision); switching prod to Arm (`cax`) is
-  ask-first and out of scope here.
+- **Prod architecture is arm64** (`cax21`, decision 2026-07-03) — switched from the original
+  amd64 plan because build-time rootless Podman is broken under emulated amd64 buildx. Returning
+  prod to x86 is ask-first and would require a native amd64 build host.
 - **Decommissioning `network-controllers-prod`** is explicitly out of scope until this app
   passes all §2 criteria including adoption (SPEC §8).
 

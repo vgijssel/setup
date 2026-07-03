@@ -37,15 +37,25 @@ KEY="${RUN_DIR}/id_ed25519"
 PIDFILE="${RUN_DIR}/qemu.pid"
 CONSOLE="${RUN_DIR}/console.log"
 
-# amd64 uses TCG emulation; arm64 uses HVF on Apple Silicon.
+# arm64 uses HVF on Apple Silicon (fast loop); amd64 uses TCG emulation (the slow but
+# authoritative promotion gate). The two arches also differ in machine/CPU/firmware:
+#   - arm64 `virt` wants -cpu host (HVF passthrough) + 64 MiB-padded pflash (both code+vars).
+#   - amd64 `q35` under TCG must use -cpu max (no hypervisor to pass `host` through) and the
+#     split OVMF images (edk2-x86_64-code.fd + edk2-i386-vars.fd) used AS-IS (no padding).
 if [[ "${ARCH}" = "arm64" ]]; then
 	QEMU=qemu-system-aarch64
 	ACCEL="hvf"
+	MACHINE="virt"
+	CPU="host"
 	HOST_FW="/opt/homebrew/share/qemu/edk2-aarch64-code.fd"
+	HOST_VARS_FW=""
 else
 	QEMU=qemu-system-x86_64
 	ACCEL="tcg"
+	MACHINE="q35"
+	CPU="max"
 	HOST_FW="/opt/homebrew/share/qemu/edk2-x86_64-code.fd"
+	HOST_VARS_FW="/opt/homebrew/share/qemu/edk2-i386-vars.fd"
 fi
 
 ssh_vm() { ssh "${SSH_OPTS[@]}" -i "${KEY}" "kairos@127.0.0.1" "$@"; }
@@ -138,14 +148,21 @@ YAML
 	# for the UOS container image + Omada's mongod DB (qcow2 is sparse, so this is a cap).
 	[[ -f "${DATA}" ]] || qemu-img create -f qcow2 "${DATA}" 20G >/dev/null
 
-	# UEFI pflash images must be 64 MiB for the arm64 `virt` machine — pad copies.
 	# Always regenerate the writable vars store: a change in the QEMU device set can
 	# otherwise leave a stale BootOrder that drops the VM into the UEFI shell. With a
-	# clean store the firmware boots via the ESP fallback (\EFI\BOOT\BOOTAA64.EFI).
-	dd if=/dev/zero of="${VARS_FW}" bs=1m count=64 2>/dev/null
-	if [[ ! -f "${CODE_FW}" ]]; then
-		dd if=/dev/zero of="${CODE_FW}" bs=1m count=64 2>/dev/null
-		dd if="${HOST_FW}" of="${CODE_FW}" conv=notrunc 2>/dev/null
+	# clean store the firmware boots via the ESP fallback (\EFI\BOOT\BOOT{AA64,X64}.EFI).
+	if [[ "${ARCH}" = "arm64" ]]; then
+		# arm64 `virt`: both pflash images must be exactly 64 MiB — pad copies.
+		dd if=/dev/zero of="${VARS_FW}" bs=1m count=64 2>/dev/null
+		if [[ ! -f "${CODE_FW}" ]]; then
+			dd if=/dev/zero of="${CODE_FW}" bs=1m count=64 2>/dev/null
+			dd if="${HOST_FW}" of="${CODE_FW}" conv=notrunc 2>/dev/null
+		fi
+	else
+		# amd64 `q35`: use the split OVMF images at their natural size (no padding); the
+		# vars template is copied writable, the code image read-only.
+		cp "${HOST_VARS_FW}" "${VARS_FW}"
+		[[ -f "${CODE_FW}" ]] || cp "${HOST_FW}" "${CODE_FW}"
 	fi
 
 	local runpid=""
@@ -158,7 +175,7 @@ YAML
 	echo ">> booting ${ARCH} VM (accel=${ACCEL}) from $(basename "${raw}")"
 	: >"${CONSOLE}"
 	"${QEMU}" \
-		-machine "virt,accel=${ACCEL}" -cpu host -smp 2 -m 4096 \
+		-machine "${MACHINE},accel=${ACCEL}" -cpu "${CPU}" -smp 2 -m 4096 \
 		-drive "if=pflash,format=raw,readonly=on,file=${CODE_FW}" \
 		-drive "if=pflash,format=raw,file=${VARS_FW}" \
 		-drive "if=virtio,format=qcow2,file=${OVERLAY}" \

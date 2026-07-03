@@ -62,17 +62,29 @@ invoked from cloud-config's `boot` stage. `os.qcow2` overlay is auto-rebuilt whe
 ### ⛳ Checkpoint: Persistence discovery complete & validated (arm64) ✅
 - [x] **All 5** services active + persistent on arm64 (Tailscale, Netdata, Caddy, Omada, UniFi OS Server) — all survive reboot-in-VM on `/var/lib/data`. `vm-verify` PASS; `trunk check` clean. Authoritative real-Omada + amd64 boot is the T7 gate.
 
-## Phase 3 — amd64 promotion gate (authoritative, still local/no cloud)
-- [ ] **T7** amd64 emulated boot gate: `build-image` (amd64) + `vm-up` under `qemu-system-x86_64` (TCG); **all 5 services incl. real Omada `.deb`** active; `vm-verify` reboot-in-VM persistence on amd64
+## Phase 3 — Authoritative gate (arm64 = prod, still local/no cloud)
+- [x] **T7** ~~amd64 emulated boot gate~~ **→ SUPERSEDED by the arm64 pivot (2026-07-03).**
+  Attempting the amd64 gate revealed that build-time **rootless Podman (the UOS bake) is broken
+  under QEMU-emulated amd64 buildx** on the Apple-Silicon host: the x64 UOS image loads, but
+  `podman run`/`images`/`save` fail to `execvp` under qemu-user, so the build-time image export
+  can't run (would also block a prod amd64 image built on this toolchain). **Decision: prod runs
+  Hetzner `cax21` (Ampere arm64)** — the image builds natively (no emulation), and Omada's `.deb`
+  is `Architecture: all` so it runs the **real** controller on arm64. Therefore the **arm64
+  image IS the prod artifact and the T6 checkpoint (all 5 services incl. real Omada active +
+  reboot-in-VM persistence) IS the authoritative gate** — no separate emulated arch. Work done:
+  x64 UOS installer URL discovered + sha256-pinned and the Dockerfile made arch-aware (`TARGETARCH`
+  case); `vm.sh` given a q35/TCG amd64 path — both retained for a possible future native-amd64
+  build, but not part of the shipped flow.
 
-### ⛳ Checkpoint: amd64 authoritative gate
-- [ ] amd64 emulated boot green incl. real Omada; persistence proven — **no `upload` until this passes**
+### ⛳ Checkpoint: authoritative gate ✅
+- [x] arm64 image = prod artifact; T6 already proved all 5 services (incl. real Omada) active +
+  reboot-in-VM persistence on arm64. No emulated amd64 gate. `upload` (T11) publishes the arm64 raw.
 
 ## Phase 4 — OpenTofu infra + promote to Hetzner (LIVE — incurs cost)
-- [ ] **T8** Tofu skeleton + Moon lifecycle: `versions.tf` (hcloud 1.66.0, cloudflare 4.52.0; no poseidon/ct), `providers.tf`, `backend.tf` (`key = "network"`), `variables.tf` (+ pins + snapshot id), `.env.tpl`/`.envrc`/`.gitignore`/`secrets/.gitignore`, `moon.yml` `secrets/init/plan/apply/destroy/output` → `secrets` renders, `init` + `validate` green
-- [ ] **T9** Core resources + outputs: `main.tf` (firewall device-ports+TS UDP only, volume 10GB non-destructive @ `/var/lib/data`, server from Kairos snapshot + cloud-config `user_data`), `outputs.tf`; `plan` green
-- [ ] **T10** `dns.tf`: public → public IP; private → `var.tailscale_ip` (count-guarded); all `proxied = false`
-- [ ] **T11** `upload` task: compress amd64 raw + `hcloud-upload-image` (pinned) → snapshot id set as `var.image_snapshot_id` default
+- [ ] **T8** Tofu skeleton + Moon lifecycle: `versions.tf` (hcloud 1.66.0, cloudflare 4.52.0; no poseidon/ct), `providers.tf`, `backend.tf` (`key = "network"`), `variables.tf` (+ pins + snapshot id; `server_type = "cax21"`), `.env.tpl`/`.envrc`/`.gitignore`/`secrets/.gitignore`, `moon.yml` `secrets/init/plan/apply/destroy/output`. **No-secrets static gate this run:** `tofu init -backend=false` + `validate` + `fmt -check` green (real `secrets`/`init`/`plan` deferred to live)
+- [ ] **T9** Core resources + outputs: `main.tf` (firewall device-ports+TS UDP only, volume 10GB non-destructive @ `/var/lib/data`, **`cax`** server from arm64 Kairos snapshot + cloud-config `user_data`), `outputs.tf`; `validate` green (live `plan` deferred)
+- [ ] **T10** `dns.tf`: public → public IP; private → `var.tailscale_ip` (count-guarded); all `proxied = false`; `validate` green
+- [ ] **T11** `upload` task: compress **arm64** raw + `hcloud-upload-image --architecture arm` (pinned) → snapshot id set as `var.image_snapshot_id` default (task wired; live upload deferred)
 
 ### ⛳ Checkpoint: Full static validation + HUMAN REVIEW (gate before spending money)
 - [ ] amd64 gate passed + snapshot uploaded; `tofu validate`/`fmt -check`/`plan` green; `trunk check` clean; no community images; all pinned

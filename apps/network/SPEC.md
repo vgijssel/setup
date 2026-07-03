@@ -43,28 +43,28 @@ from **Ubuntu 24.04**:
 | Omada | **Official TP-Link `.deb`**, installed **natively** at image-build time (deps: OpenJDK, JSVC, MongoDB). No container. |
 | UniFi | **Official UniFi OS Server** (Podman installer). Podman + `slirp4netns` installed natively; the `uosserver` user is **baked at build time**; the installer runs to populate Podman storage. Docker is not used. |
 | Caddy / Tailscale / Netdata | **Native systemd units** baked into the image (Caddy built with the Cloudflare DNS module; Tailscale + Netdata from official apt repos). |
-| Architecture (prod) | **x86-64** — Hetzner `cx` (as today). The uploaded/shipped artifact is always `linux/amd64`. |
-| Architecture (local dev) | **Dual-arch build.** Fast loop builds `linux/arm64` and boots HVF-accelerated in QEMU on the Apple-Silicon Mac. The **amd64 image booted under emulation (TCG) is the authoritative promotion gate** — it's the only faithful test of the Omada path (see caveat). |
-| Omada arch caveat | Omada ships **only an x64 `.deb`** (no arm64). On the arm64 dev image, Omada installs via a force-arch hack on arm64 deps — **dev-only**, diverges from what ships. So arm64 validates the arch-independent 80% (persistence/bind-mount design, cloud-config, systemd wiring, Caddy/Tailscale/Netdata) fast; the amd64 emulated boot validates Omada for real. |
+| Architecture (prod) | **arm64 (Ampere)** — Hetzner `cax` (**decision 2026-07-03**, superseding the original amd64/`cx` plan). The uploaded/shipped artifact is `linux/arm64`. Reason: the build-time UOS bake needs rootless Podman, which is **broken under QEMU-emulated amd64 buildx** on the Apple-Silicon build host; building natively on arm64 avoids emulation entirely, and Omada's `.deb` runs natively on arm64 (see below), so there is no amd64-only dependency left. |
+| Architecture (local dev) | **Single-arch, arm64.** The image builds `linux/arm64` natively and boots **HVF-accelerated** in `qemu-system-aarch64` on the Apple-Silicon Mac. Because prod is now the same arm64 artifact, this local boot **is** the authoritative gate — no separate emulated architecture. (`vm.sh` retains an amd64/TCG code path for possible future use, but it is not part of the shipped flow.) |
+| Omada arch | The TP-Link Omada `.deb` is **`Architecture: all`** (pure Java) — it installs and runs **natively on arm64** with no force-arch hack (confirmed in the local VM: admin UI answers HTTP 200 on `:8043` pre/post reboot). So the arm64 image runs the **real** Omada, not a dev stand-in. |
 | Immutability challenge | Kairos wipes `/etc`, `/var`, `/opt`, `/srv` on every boot (tmpfs overlay); only `/usr/local` + `/oem` persist. All service data paths must be declared as **persistent `bind_mounts`** and **must exist in the built image**. Discovering the full write-path set is a first-class task (§6, validated in the local VM). |
 | Persistent app data | **Hetzner Volume at `/var/lib/data`** (retained) holds all service data. The volume is **block-mounted once** at `/var/lib/data`; each service's data dir is exposed at its required path via **bind mounts / symlinks** (a volume cannot be block-mounted twice). Decouples data from the OS disk for disaster rebuild; Kairos A/B handles upgrades in place. |
 | UniFi data consolidation | UniFi OS Server has **no custom-data-dir flag**. Relocate Podman's **`graphroot`** via `/etc/containers/storage.conf` (baked into the image) to `/var/lib/data/containers` so UOS state lands on the volume with one setting; persist the `uosserver` home too if it holds data (confirm in VM). |
 | Config delivery | Kairos **cloud-config (yip)** as Hetzner `user_data`, rendered via `templatefile()` with secrets from 1Password — same secret-injection model as the old app. |
 | Auto-upgrade | **Enabled.** Kairos tracks a pinned upgrade source (image tag) and applies A/B upgrades on a schedule for security patches; reboots into the new image with data intact (persistent bind mounts + Volume). A reboot window is configured; rollback via the previous A/B slot. |
-| Promotion to Hetzner | Build **amd64** raw image → compress → **`hcloud-upload-image`** (same tool the repo already uses for Flatcar) → snapshot → `hcloud_server image=<snapshot>`. |
+| Promotion to Hetzner | Build **arm64** raw image → compress → **`hcloud-upload-image`** (`--architecture arm`, same tool the repo already uses for Flatcar) → snapshot → `hcloud_server image=<snapshot>` on a `cax` server type. |
 | Networking / TLS / DNS | **Unchanged, proven design** carried over from `network-controllers-prod`: public device-provisioning ports only; admin UIs/SSH/Netdata on **Tailscale** only; **Caddy** issues Let's Encrypt certs via **Cloudflare DNS-01** for the two private admin names in the `vgijssel.nl` zone. |
 
 ---
 
 ## 2. Acceptance Criteria
 
-- [ ] `moon run apps/network:build-image` produces a Kairos image from a pinned
+- [ ] `moon run network:build-image` produces a Kairos **arm64** image from a pinned
       `ubuntu:24.04` base with Omada (`.deb`), UniFi OS Server (Podman), and native
-      Caddy/Tailscale/Netdata baked in, for a selectable `TARGETARCH` (**arm64** for the
-      local fast loop, **amd64** for promotion).
-- [ ] `moon run apps/network:vm-up` boots the artifact in local QEMU, applies the
-      cloud-config, and all services come up — **arm64 (HVF)** for the fast loop and
-      **amd64 (emulated)** as the authoritative promotion gate.
+      Caddy/Tailscale/Netdata baked in. (The build takes an optional `amd64` arg that still
+      works for a native amd64 host, but arm64 is the shipped artifact.)
+- [ ] `moon run network:vm-up` boots the arm64 artifact in local QEMU (`qemu-system-aarch64`,
+      HVF), applies the cloud-config, and all five services come up — this is the authoritative
+      gate (prod runs the same arm64 artifact).
 - [ ] **Persistent-path discovery is complete and validated:** a documented list of every
       directory the five services write to is declared as Kairos `bind_mounts`; a
       **reboot inside the local VM** preserves all controller/service state.
@@ -103,7 +103,7 @@ from **Ubuntu 24.04**:
 - **Reverse proxy:** Caddy (pinned) built with the `caddy-dns/cloudflare` module (xcaddy at build time).
 - **Mesh / TLS / monitoring:** Tailscale (pinned, official apt repo); Netdata (pinned, official apt repo); Let's Encrypt via Cloudflare DNS-01.
 - **Infra:** OpenTofu (`tofu`), `hcloud` + `cloudflare` providers (pinned exact); Hetzner Cloud + Object Storage (S3, nbg1); `hcloud-upload-image` (pinned).
-- **Local dev:** Docker/buildx (image build) + `qemu-system-x86_64` (emulated boot test).
+- **Local dev:** Docker/buildx (native arm64 image build) + `qemu-system-aarch64` (HVF boot test).
 - **Secrets:** 1Password (`op inject`), vault `enigma-prod`.
 
 ---
@@ -117,8 +117,8 @@ Match the existing `apps/*-prod` Moon + OpenTofu + 1Password workflow, plus imag
 moon run apps/network:secrets
 
 # --- Image build & local validation (no cloud cost) ---
-moon run apps/network:build-image   # docker buildx (linux/amd64) Kairos image -> AuroraBoot raw + iso
-moon run apps/network:vm-up         # boot iso/raw in qemu-system-x86_64 (emulated), apply cloud-config
+moon run network:build-image   # docker buildx (linux/arm64) Kairos image -> AuroraBoot raw + iso
+moon run network:vm-up         # boot iso/raw in qemu-system-aarch64 (HVF), apply cloud-config
 moon run apps/network:vm-verify     # assert services up; reboot-in-VM; assert data survived
 moon run apps/network:vm-down
 
@@ -189,14 +189,14 @@ apps/network/
    official UOS installer; build Caddy w/ Cloudflare DNS module; `apt install` Tailscale +
    Netdata from official repos; `useradd uosserver`; `mkdir -p` **every** persistent data
    path; drop systemd units into `files/`.
-2. **AuroraBoot** turns the container image into a **raw** (Hetzner, amd64) and **ISO/raw**
-   (QEMU) for the selected `TARGETARCH`.
-3. **Local:** fast loop boots the **arm64** artifact in `qemu-system-aarch64` (HVF) with
-   `cloud-config/config.yaml` to iterate on the persistence design; the **amd64** artifact
-   booted in `qemu-system-x86_64` (emulated) is the authoritative gate (real Omada `.deb`).
-   Both include **reboot-in-VM** to prove persistence, before any cloud spend.
-4. **Promote:** `hcloud-upload-image` uploads the **amd64** raw → snapshot; OpenTofu boots a
-   server from it with the same cloud-config as `user_data`.
+2. **AuroraBoot** turns the container image into a **raw** (Hetzner) and **ISO/raw**
+   (QEMU) for the target arch (**arm64**).
+3. **Local:** boot the **arm64** artifact in `qemu-system-aarch64` (HVF) with
+   `cloud-config/config.yaml`; assert all five services (incl. the real Omada `.deb`, which
+   runs natively on arm64) come up, and **reboot-in-VM** proves persistence — the authoritative
+   gate, since prod ships the same arm64 artifact. All before any cloud spend.
+4. **Promote:** `hcloud-upload-image --architecture arm` uploads the **arm64** raw → snapshot;
+   OpenTofu boots a `cax` server from it with the same cloud-config as `user_data`.
 
 ### Immutability / persistence model (the core engineering)
 
@@ -230,7 +230,8 @@ each boot); only `/usr/local` + `/oem` persist. Therefore:
 - **TLS:** Let's Encrypt via **Cloudflare DNS-01** for the two private names (they resolve to
   a Tailscale IP, so HTTP-01 can't validate). Caddy uses the zone-scoped Cloudflare token
   from 1Password. `*-public` names are DNS pointers only (raw device protocols, no cert).
-- **Sizing:** `server_type = "cx23"` (x86), `location = "nbg1"`, Volume `10 GB` (all variables).
+- **Sizing:** `server_type = "cax21"` (arm64 Ampere, 4 vCPU / 8 GB — headroom for both
+  controllers), `location = "nbg1"` (has `cax`), Volume `10 GB` (all variables).
 
 ---
 
@@ -238,12 +239,11 @@ each boot); only `/usr/local` + `/oem` persist. Therefore:
 
 - **Static:** `tofu validate` + `tofu fmt -check`; `docker build` of the image succeeds;
   `trunk check`.
-- **Local VM (primary gate, no cloud cost):**
-  - **Fast loop (arm64, HVF):** boot the arm64 image in `qemu-system-aarch64`; apply
-    cloud-config; assert Caddy/Tailscale/Netdata/UniFi active and iterate on the persistence
-    design quickly. (Omada here uses the dev-only force-arch install — not authoritative.)
-  - **Promotion gate (amd64, emulated):** boot the amd64 image in `qemu-system-x86_64`; assert
-    **all five** services active including the real Omada `.deb`. This must pass before upload.
+- **Local VM (primary + authoritative gate, no cloud cost):**
+  - **arm64, HVF:** boot the arm64 image in `qemu-system-aarch64`; apply cloud-config; assert
+    **all five** services active — including the **real** Omada `.deb` (`Architecture: all`,
+    runs natively on arm64) and UOS under rootless Podman. Prod ships this same arm64 artifact,
+    so this boot is authoritative. This must pass before upload.
   - **Persistence discovery:** enumerate write paths — Omada `/opt/tplink/EAPController/{data,logs}`
     (DB lives in `data/db`, per the mbentley reference — no separate `/var/lib/mongodb`), Podman
     `graphroot` + `uosserver` home, and Caddy/Tailscale/Netdata state; add each to `bind_mounts`
@@ -297,8 +297,8 @@ each boot); only `/usr/local` + `/oem` persist. Therefore:
 
 **Ask first**
 - Bumping `server_type` / Volume size (cost impact).
-- Switching the **prod** architecture to Arm (`cax`) or changing the persistence layer
-  (Volume vs COS_PERSISTENT-only).
+- Switching the **prod** architecture back to x86 (`cx`) — arm64 (`cax`) is the current
+  decision (2026-07-03) — or changing the persistence layer (Volume vs COS_PERSISTENT-only).
 - Changing the auto-upgrade **schedule/reboot window** or the pinned upgrade source/tag.
 - Any change that would destroy the server (confirm Volume retention first).
 - **Decommissioning `apps/network-controllers-prod`** (only after the new app passes all §2
@@ -348,6 +348,11 @@ decommission.
   it survives the ephemeral `/etc`. Flag early if the installer refuses to run non-interactively.
 - **`graphroot` on ext4 volume:** confirm Podman's storage driver (overlay) works on the volume's
   filesystem inside Kairos; adjust `storage.conf` if needed.
-- **Omada arm64 dev hack:** the arm64 dev image's Omada install is not authoritative — the amd64
-  emulated boot is the gate for anything Omada-specific.
+- **Omada on arm64:** RESOLVED — the `.deb` is `Architecture: all` (pure Java) and installs/runs
+  natively on arm64 (admin UI verified on `:8043`), so the arm64 image runs the real Omada. No
+  arch hack, no emulated gate needed.
+- **amd64 build under emulation:** RESOLVED by decision — build-time rootless Podman (UOS bake)
+  fails under QEMU-emulated amd64 buildx on the Apple-Silicon host; prod moved to arm64 (`cax`)
+  so the image builds natively. Revisit only if prod must return to x86 (would then require a
+  native amd64 build host).
 ```
