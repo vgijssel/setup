@@ -29,7 +29,11 @@ runs:
         cache: true
 
     - name: Setup direnv
-      uses: HatsuneMiku3939/direnv-action@v1
+      # Pinned to v1.3.7's commit SHA. The floating @v1 tag was moved ahead of
+      # the v1.4.0 release to a commit that verifies release-asset digests via an
+      # unauthenticated GitHub API call, which rate-limits (HTTP 403) on shared
+      # runners. v1.3.7 downloads direnv directly without that call.
+      uses: HatsuneMiku3939/direnv-action@5fe57fa0cfa35641b8dcbb724b39b613f32080d7 # v1.3.7
       with:
         direnvVersion: 2.37.1
 
