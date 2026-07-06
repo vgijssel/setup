@@ -22,6 +22,7 @@ $terraform\
 $memory_usage\
 $aws\
 $direnv\
+$mise\
 $env_var\
 $custom\
 $sudo\
@@ -38,6 +39,9 @@ $shell\
 $character"""
 
 [direnv]
+disabled = false
+
+[mise]
 disabled = false
 
 [env_var.VAULT_SHELL_NAME]

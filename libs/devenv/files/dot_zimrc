@@ -22,6 +22,9 @@ zmodule git-info
 # Starship prompt for Zim
 zmodule joke/zim-starship
 
+# Sets up mise (tool version manager). Added early so other plugins can detect mise-installed tools.
+zmodule joke/zim-mise
+
 # Loads .envrc files using direnv
 zmodule direnv
 

@@ -6,7 +6,6 @@ substitutions:
 
   device_name: baby-room-ultimate
   entity_id: baby_room_ultimate
-  static_ip: 192.168.1.86
 
 packages:
   base: !include .base.yaml

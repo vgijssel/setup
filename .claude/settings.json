@@ -1,6 +1,7 @@
 {
   "enabledPlugins": {
-    "taskmaster@local": true
+    "taskmaster@local": true,
+    "agent-skills@addy-agent-skills": true
   },
   "extraKnownMarketplaces": {
     "local": {
