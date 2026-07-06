@@ -1,0 +1,274 @@
+# Butane config for network-controllers-prod (Flatcar).
+#
+# This file is a Terraform templatefile() template: dollar-brace placeholders are
+# substituted in main.tf before the poseidon/ct provider compiles it to Ignition.
+# Only single-line scalars are templated (image tags, secrets, device paths,
+# hostnames) so substitution never disturbs YAML indentation. Systemd unit bodies
+# are authored inline here rather than in files/ so that secrets can be injected
+# without ever writing a rendered file to disk. See ignition/README.md.
+# Butane file modes (0600/0644/0755) are octal integers, hence the directive:
+# yamllint disable rule:octal-values
+variant: flatcar
+version: 1.0.0
+
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - "${ssh_public_key}"
+
+storage:
+  filesystems:
+    # Persistent Hetzner data Volume. wipe_filesystem=false makes the format
+    # NON-destructive: on first boot it creates ext4+label on an empty volume,
+    # and on a VM recreate it reuses the existing filesystem (no data loss).
+    - device: ${volume_device}
+      format: ext4
+      label: ${volume_label}
+      wipe_filesystem: false
+      path: /var/lib/data
+      with_mount_unit: true
+  files:
+    # Cloudflare API token for Caddy DNS-01. 0600; never committed (injected via
+    # templatefile, lands only in Ignition/state per the accepted secrets model).
+    - path: /etc/caddy/cloudflare.env
+      mode: 0600
+      contents:
+        inline: |
+          CLOUDFLARE_API_TOKEN=${cloudflare_api_token}
+    # Caddy config: TLS via Cloudflare DNS-01 for the two private admin names,
+    # bound to the Tailscale interface only, reverse-proxying the controllers.
+    - path: /etc/caddy/Caddyfile
+      mode: 0644
+      contents:
+        inline: |
+          {
+            email admin@${cloudflare_zone_name}
+          }
+          ${omada_fqdn} {
+            bind {env.TS_IP}
+            tls {
+              dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+            }
+            reverse_proxy https://localhost:8043 {
+              transport http {
+                tls_insecure_skip_verify
+              }
+            }
+          }
+          ${unifi_fqdn} {
+            bind {env.TS_IP}
+            tls {
+              dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+            }
+            reverse_proxy https://localhost:11443 {
+              transport http {
+                tls_insecure_skip_verify
+              }
+            }
+          }
+    # Launcher: wait for tailscale0, bind Caddy to that 100.x IP (Tailscale-only).
+    - path: /opt/bin/caddy-run.sh
+      mode: 0755
+      contents:
+        inline: |
+          #!/usr/bin/bash
+          set -euo pipefail
+          for _ in $(seq 1 60); do
+            if ip -4 -o addr show tailscale0 >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          TS_IP="$(ip -4 -o addr show tailscale0 | awk '{print $4}' | cut -d/ -f1)"
+          exec /usr/bin/docker run --rm --name caddy \
+            --network=host \
+            --env-file /etc/caddy/cloudflare.env \
+            -e TS_IP="$TS_IP" \
+            -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+            -v /var/lib/data/caddy:/data \
+            ${caddy_image}
+
+systemd:
+  units:
+    # Tailscale node (containerized). State persists on the Volume at a versioned
+    # path (ts-state-v2) for a STABLE tagged identity + IP across recreates. The
+    # authkey is a reusable TAGGED key (tag:network-controllers), so the node is
+    # tagged on join and the tailnet ACL grants access to that tag. The versioned
+    # path avoids the earlier poisoned state under /var/lib/data/tailscale.
+    - name: tailscale.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Tailscale node (containerized)
+        After=network-online.target docker.service var-lib-data.mount
+        Wants=network-online.target
+        Requires=docker.service
+        RequiresMountsFor=/var/lib/data
+        [Service]
+        Restart=always
+        RestartSec=5
+        TimeoutStartSec=0
+        ExecStartPre=-/usr/bin/docker rm -f tailscale
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/ts-state-v2
+        ExecStartPre=/usr/bin/docker pull ${tailscale_image}
+        ExecStart=/usr/bin/docker run --rm --name tailscale \
+          --network=host \
+          --cap-add=NET_ADMIN --cap-add=NET_RAW \
+          --device=/dev/net/tun \
+          -v /var/lib/data/ts-state-v2:/var/lib/tailscale \
+          -e TS_AUTHKEY=${tailscale_authkey} \
+          -e TS_HOSTNAME=${tailscale_hostname} \
+          -e TS_STATE_DIR=/var/lib/tailscale \
+          -e TS_USERSPACE=false \
+          -e TS_TAILSCALED_EXTRA_ARGS=--port=41641 \
+          ${tailscale_image}
+        ExecStop=/usr/bin/docker stop tailscale
+        [Install]
+        WantedBy=multi-user.target
+
+    # Omada controller. Host networking is required for device discovery/adoption.
+    # Data + logs live on the persistent Volume.
+    - name: omada-controller.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Omada Controller (containerized)
+        After=network-online.target docker.service var-lib-data.mount
+        Wants=network-online.target
+        Requires=docker.service
+        RequiresMountsFor=/var/lib/data
+        [Service]
+        Restart=always
+        RestartSec=10
+        TimeoutStartSec=0
+        ExecStartPre=-/usr/bin/docker rm -f omada-controller
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/omada/data /var/lib/data/omada/logs
+        ExecStartPre=/usr/bin/docker pull ${omada_image}
+        ExecStart=/usr/bin/docker run --rm --name omada-controller \
+          --network=host \
+          -e TZ=Europe/Amsterdam \
+          -v /var/lib/data/omada/data:/opt/tplink/EAPController/data \
+          -v /var/lib/data/omada/logs:/opt/tplink/EAPController/logs \
+          ${omada_image}
+        ExecStop=/usr/bin/docker stop omada-controller
+        [Install]
+        WantedBy=multi-user.target
+
+    # UniFi OS Server (ghcr.io/lemker). Runs systemd-in-container, so it needs
+    # cgroupns=host + the cgroup fs + tmpfs mounts (not full privileged; only
+    # NET_ADMIN/NET_RAW). x86-64 only. Bridge networking with explicit port maps
+    # (its GUI binds :443 internally -> host 11443, so host networking would clash
+    # with Caddy's :443). Device inform/adoption ports are published; the GUI
+    # (11443) is not firewall-exposed (Caddy proxies it over Tailscale). All state
+    # lives on the persistent Volume under /var/lib/data/unifi.
+    - name: unifi-os-server.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=UniFi OS Server (containerized, systemd-in-container)
+        After=network-online.target docker.service var-lib-data.mount
+        Wants=network-online.target
+        Requires=docker.service
+        RequiresMountsFor=/var/lib/data
+        [Service]
+        Restart=always
+        RestartSec=15
+        TimeoutStartSec=0
+        ExecStartPre=-/usr/bin/docker rm -f unifi-os-server
+        ExecStartPre=/usr/bin/mkdir -p \
+          /var/lib/data/unifi/persistent \
+          /var/lib/data/unifi/var-log \
+          /var/lib/data/unifi/data \
+          /var/lib/data/unifi/srv \
+          /var/lib/data/unifi/var-lib-unifi \
+          /var/lib/data/unifi/var-lib-mongodb \
+          /var/lib/data/unifi/etc-rabbitmq-ssl
+        ExecStartPre=/usr/bin/docker pull ${unifi_image}
+        ExecStart=/usr/bin/docker run --rm --name unifi-os-server \
+          --cgroupns=host \
+          --cap-add=NET_ADMIN --cap-add=NET_RAW \
+          --add-host=host.docker.internal:host-gateway \
+          --stop-signal=SIGRTMIN+3 \
+          --tmpfs /run:exec \
+          --tmpfs /run/lock \
+          --tmpfs /tmp:exec \
+          --tmpfs /var/lib/journal \
+          --tmpfs /var/opt/unifi/tmp:size=64m \
+          -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
+          -v /var/lib/data/unifi/persistent:/persistent \
+          -v /var/lib/data/unifi/var-log:/var/log \
+          -v /var/lib/data/unifi/data:/data \
+          -v /var/lib/data/unifi/srv:/srv \
+          -v /var/lib/data/unifi/var-lib-unifi:/var/lib/unifi \
+          -v /var/lib/data/unifi/var-lib-mongodb:/var/lib/mongodb \
+          -v /var/lib/data/unifi/etc-rabbitmq-ssl:/etc/rabbitmq/ssl \
+          -e UOS_SYSTEM_IP=${unifi_public_fqdn} \
+          -p 11443:443 \
+          -p 8080:8080 \
+          -p 3478:3478/udp \
+          -p 10003:10003/udp \
+          ${unifi_image}
+        ExecStop=/usr/bin/docker stop unifi-os-server
+        [Install]
+        WantedBy=multi-user.target
+
+    # Caddy reverse proxy. Terminates TLS for the two private admin names using
+    # Let's Encrypt via Cloudflare DNS-01, bound to the Tailscale interface only.
+    - name: caddy.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Caddy reverse proxy (TLS over Tailscale, ACME DNS-01)
+        After=network-online.target docker.service tailscale.service var-lib-data.mount
+        Wants=network-online.target
+        Requires=docker.service tailscale.service
+        RequiresMountsFor=/var/lib/data
+        [Service]
+        Restart=always
+        RestartSec=10
+        TimeoutStartSec=0
+        ExecStartPre=-/usr/bin/docker rm -f caddy
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/caddy
+        ExecStartPre=/usr/bin/docker pull ${caddy_image}
+        ExecStart=/opt/bin/caddy-run.sh
+        ExecStop=/usr/bin/docker stop caddy
+        [Install]
+        WantedBy=multi-user.target
+
+    # Netdata (containerized) + Netdata Cloud claim via env. Host networking +
+    # host mounts for full host metrics. Dashboard (:19999) is Tailscale-only —
+    # the Hetzner firewall does not expose 19999 publicly.
+    - name: netdata.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Netdata (containerized, claimed into Netdata Cloud)
+        After=network-online.target docker.service var-lib-data.mount
+        Wants=network-online.target
+        Requires=docker.service
+        RequiresMountsFor=/var/lib/data
+        [Service]
+        Restart=always
+        RestartSec=10
+        TimeoutStartSec=0
+        ExecStartPre=-/usr/bin/docker rm -f netdata
+        ExecStartPre=/usr/bin/mkdir -p /var/lib/data/netdata/config /var/lib/data/netdata/lib /var/lib/data/netdata/cache
+        ExecStartPre=/usr/bin/docker pull ${netdata_image}
+        ExecStart=/usr/bin/docker run --rm --name netdata \
+          --network=host \
+          --cap-add=SYS_PTRACE --cap-add=SYS_ADMIN \
+          --security-opt apparmor=unconfined \
+          -v /var/lib/data/netdata/config:/etc/netdata \
+          -v /var/lib/data/netdata/lib:/var/lib/netdata \
+          -v /var/lib/data/netdata/cache:/var/cache/netdata \
+          -v /:/host/root:ro,rslave \
+          -v /etc/os-release:/host/etc/os-release:ro \
+          -v /proc:/host/proc:ro \
+          -v /sys:/host/sys:ro \
+          -v /var/run/docker.sock:/var/run/docker.sock:ro \
+          -e NETDATA_CLAIM_URL=${netdata_claim_url} \
+          -e NETDATA_CLAIM_TOKEN=${netdata_claim_token} \
+          -e NETDATA_CLAIM_ROOMS=${netdata_claim_rooms} \
+          ${netdata_image}
+        ExecStop=/usr/bin/docker stop netdata
+        [Install]
+        WantedBy=multi-user.target
