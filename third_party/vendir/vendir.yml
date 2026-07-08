@@ -105,6 +105,22 @@ directories:
           version: 3.7.1
           repository:
             url: https://k8s-gateway.github.io/k8s_gateway/
+  - path: charts/cert-manager
+    contents:
+      - path: .
+        helmChart:
+          name: cert-manager
+          version: v1.20.3
+          repository:
+            url: https://charts.jetstack.io
+  - path: charts/netdata
+    contents:
+      - path: .
+        helmChart:
+          name: netdata
+          version: 3.7.168
+          repository:
+            url: https://netdata.github.io/helmchart
   - path: shell/zimfw
     contents:
       - path: .

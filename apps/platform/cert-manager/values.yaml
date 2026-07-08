@@ -1,0 +1,9 @@
+# cert-manager. CRDs are installed with the chart so the ClusterIssuer below
+# can reconcile.
+cert-manager:
+  crds:
+    enabled: true
+
+# ACME account email for the Let's Encrypt ClusterIssuer.
+acme:
+  email: maarten@vgijssel.nl

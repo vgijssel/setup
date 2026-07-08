@@ -1,0 +1,10 @@
+# Netdata runs unclaimed until the Netdata Cloud claim token is seeded into
+# OpenBao (kv/netdata#claim_token) and synced by the ExternalSecret below.
+# Claiming is wired up once the secret exists; the agents run either way.
+netdata:
+  parent:
+    claiming:
+      enabled: false
+  child:
+    claiming:
+      enabled: false

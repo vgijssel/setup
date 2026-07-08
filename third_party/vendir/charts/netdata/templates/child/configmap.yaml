@@ -1,0 +1,46 @@
+{{- $configmapChild := include "netdata.child.configs.configmap" . }}
+{{- if and .Values.child.enabled $configmapChild}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: netdata-conf-child
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "netdata.name" . }}
+    chart: {{ template "netdata.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  {{ $configmapChild | indent 2 }}
+{{- end }}
+
+{{- if and .Values.child.enabled .Values.sd.child.enabled .Values.sd.child.configmap.from }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.sd.child.configmap.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "netdata.name" . }}
+    chart: {{ template "netdata.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  {{ .Values.sd.child.configmap.key }}: |
+    {{- with .Values.sd.child.configmap.from }}
+      {{- if and (.value) (kindIs "string" .value) }}
+        {{- .value | nindent 4 }}
+      {{- else if .value }}
+        {{- toYaml .value | nindent 4 }}
+      {{- else }}
+        {{- if .file }}
+          {{- $.Files.Get .file | nindent 4 }}
+        {{- else }}
+          {{- $configFile := ternary "sdconfig/child.yml" "sdconfig/k8s.yml" (eq (include "netdata.verLess22" $) "true") }}
+          {{- $.Files.Get $configFile | nindent 4 }}
+        {{- end }}
+      {{- end}}
+    {{- end}}
+{{- end }}

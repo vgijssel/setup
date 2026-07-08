@@ -79,6 +79,18 @@ directories:
     path: .
   path: charts/k8s-gateway
 - contents:
+  - helmChart:
+      appVersion: v1.20.3
+      version: v1.20.3
+    path: .
+  path: charts/cert-manager
+- contents:
+  - helmChart:
+      appVersion: v2.10.3
+      version: 3.7.168
+    path: .
+  path: charts/netdata
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508

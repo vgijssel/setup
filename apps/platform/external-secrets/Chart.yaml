@@ -1,0 +1,9 @@
+apiVersion: v2
+name: external-secrets
+description: external-secrets operator with a ClusterSecretStore backed by OpenBao
+version: 1.0.0
+appVersion: v2.0.1
+dependencies:
+  - name: external-secrets
+    version: 2.0.1
+    repository: file://../../../third_party/vendir/charts/external-secrets

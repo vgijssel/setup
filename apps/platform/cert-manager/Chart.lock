@@ -1,0 +1,6 @@
+dependencies:
+- name: cert-manager
+  repository: file://../../../third_party/vendir/charts/cert-manager
+  version: v1.20.3
+digest: sha256:d89b30ca83d0b78cfe8df0fce59eddb100b8bc5806e02e5e49f658b166440316
+generated: "2026-07-08T08:08:19.799518+02:00"

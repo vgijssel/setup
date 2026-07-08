@@ -17,7 +17,7 @@ Create `apps/bootstrap/` with `k3d.yaml` (native snapshotter per CLAUDE.md), `sc
 - **Verify:** `moon run bootstrap:up && kubectl get nodes` shows a Ready node; `moon run
   bootstrap:down` then `kubectl config get-contexts` shows it gone.
 
-### [ ] T2 — `apps/platform` (full, environment-agnostic)
+### [x] T2 — `apps/platform` (full, environment-agnostic)
 Create `apps/platform/` as an environment-agnostic Helm grouping, deployed **in full** to the local
 k3d cluster (and later reconciled unchanged on the gateway by Fleet): external-secrets, Tailscale
 operator, cert-manager + a Cloudflare DNS-01 `ClusterIssuer`, an external-secrets

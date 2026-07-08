@@ -1,0 +1,5 @@
+# The operator reads its OAuth client from a precreated Secret named
+# `operator-oauth` (populated by the ExternalSecret below), so the chart's
+# `oauth` block is intentionally left unset. The operator stays not-Ready until
+# that secret is populated from OpenBao.
+tailscale-operator: {}
