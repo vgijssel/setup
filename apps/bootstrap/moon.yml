@@ -1,0 +1,34 @@
+language: bash
+layer: application
+project:
+  description: Local k3d bootstrap cluster harness (macbook) for the homelab gateway migration
+tags:
+  - app
+  - k3d
+  - kubernetes
+  - bootstrap
+tasks:
+  up:
+    command: scripts/up.sh
+    inputs:
+      - scripts/up.sh
+      - k3d.yaml
+    options:
+      runInCI: false
+      interactive: true
+  down:
+    command: scripts/down.sh
+    inputs:
+      - scripts/down.sh
+    options:
+      runInCI: false
+      interactive: true
+  test:
+    command: bats tests/bootstrap.bats
+    inputs:
+      - scripts/**/*
+      - k3d.yaml
+      - tests/**/*
+    options:
+      runInCI: false
+      cache: false

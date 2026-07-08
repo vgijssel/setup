@@ -8,7 +8,7 @@ Do `trunk fmt && trunk check` before committing every task.
 
 ## Phase 0 — Local bootstrap (macbook k3d)
 
-### [ ] T1 — `apps/bootstrap` k3d harness skeleton
+### [x] T1 — `apps/bootstrap` k3d harness skeleton
 Create `apps/bootstrap/` with `k3d.yaml` (native snapshotter per CLAUDE.md), `scripts/up.sh`
 (create cluster only, idempotent), `scripts/down.sh`, and `moon.yml` (`up`, `down` tasks,
 `runInCI: false`).
