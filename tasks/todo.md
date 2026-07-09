@@ -68,21 +68,19 @@ creds succeeds. This de-risks the `apps/gateway` backend before T10.
   https://terraform-state.vgijssel.nl s3 ls s3://<bucket>` returns the object list. Record findings
   in this file under the task.
 
-### [ ] T5 — `bootstrap:up` / `init-openbao` / `seed` orchestration
-Fill in `apps/bootstrap/scripts/`: `up.sh` deploys `apps/platform` (full) + `apps/auth` +
-`apps/secret` onto k3d; `init-openbao.sh` runs `bao operator init`, stores unseal keys + root token in **1Password
-only**, unseals, then configures the **OIDC auth method → Authentik** (RSA signing key / no
-encryption key; `bound_audiences` = real client ID; `oidc_discovery_url` trailing slash matches
-Authentik's `iss`; `allowed_redirect_uris` include `http://localhost:8250/oidc/callback` + the UI
-callback). `seed.sh` seeds real secret values via `bao kv put` (Hetzner, Cloudflare, S3 creds,
-Tailscale authkey, Netdata claim, Fleet git deploy key, Omada/UniFi cfg). Wire moon tasks
-`bootstrap:up`, `bootstrap:init-openbao`, `bootstrap:seed`.
-- **Acceptance:** one `bootstrap:up` brings up all three apps; `init-openbao` leaves OpenBao
-  unsealed with keys in 1Password and OIDC configured; `seed` populates `kv`. **No secret written
-  to local disk** at any step.
-- **Verify:** `bao status` shows unsealed/initialized; 1Password item holds the keys; `bao auth
-  list` shows `oidc/`; `bao kv get kv/hetzner` returns the token; `git status` + a disk scan show no
-  secret files created.
+### [~] T5 — bootstrap orchestration + `init-openbao`
+Orchestration is via **Tilt** (not scripts): `bootstrap:start` creates k3d + `tilt up` (background)
+deploying `apps/platform` + `apps/secret`; `bootstrap:stop` tears down + deletes the cluster.
+`apps/secret:init` (`scripts/init-openbao.sh`) runs `bao operator init`, stores unseal keys + root
+token in **1Password only** (`op`, in-memory — no disk), unseals, then configures the **kubernetes
+auth method** (role `external-secrets` bound to the ESO ServiceAccount) + a `kv` v2 engine, and
+prints the secrets to seed. **Seeding is done by the operator via the OpenBao UI** (user decision) —
+no `seed` task. `bao` CLI pinned via Hermit (`third_party/hermit/openbao.hcl`, v2.5.5).
+- **Deferred to later tasks:** OIDC-auth-method → Authentik config (needs `apps/auth`/T3); the
+  `apps/auth` deploy in the bootstrap flow.
+- **Verified on local k3d:** `secret:init` runs init→1Password→unseal→reconnect→kv+k8s-auth config
+  end-to-end; the `ClusterSecretStore` reports **Ready=True / Valid**; the ESO ServiceAccount
+  authenticates via the kubernetes auth method and receives a scoped token. No secret on local disk.
 
 ### [ ] T6 — Gating spike: `bao login -method=oidc` end-to-end over the tailnet
 Exercise the full OIDC login path with **both** OpenBao and Authentik reachable *only* via Tailscale
