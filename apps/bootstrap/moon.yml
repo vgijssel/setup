@@ -8,21 +8,20 @@ tags:
   - kubernetes
   - bootstrap
 tasks:
+  # Cluster lifecycle manages external (Docker) state, not file outputs, so it
+  # must never be cached — always run the idempotent script.
   up:
     command: scripts/up.sh
-    inputs:
-      - scripts/up.sh
-      - k3d.yaml
     options:
       runInCI: false
       interactive: true
+      cache: false
   down:
     command: scripts/down.sh
-    inputs:
-      - scripts/down.sh
     options:
       runInCI: false
       interactive: true
+      cache: false
   test:
     command: bats tests/bootstrap.bats
     inputs:
@@ -31,4 +30,20 @@ tasks:
       - tests/**/*
     options:
       runInCI: false
+      cache: false
+  # Start the app: create the k3d cluster and run Tilt in the background to
+  # deploy all workloads (apps/platform + apps/secret).
+  start:
+    command: scripts/start.sh
+    options:
+      runInCI: false
+      interactive: true
+      cache: false
+  # Stop the app: stop the Tilt watcher, tear down its workloads, delete the
+  # k3d cluster.
+  stop:
+    command: scripts/stop.sh
+    options:
+      runInCI: false
+      interactive: true
       cache: false

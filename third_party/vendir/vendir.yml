@@ -121,6 +121,14 @@ directories:
           version: 3.7.168
           repository:
             url: https://netdata.github.io/helmchart
+  - path: charts/openbao
+    contents:
+      - path: .
+        helmChart:
+          name: openbao
+          version: 0.28.4
+          repository:
+            url: https://openbao.github.io/openbao-helm
   - path: shell/zimfw
     contents:
       - path: .

@@ -1,0 +1,90 @@
+# Tiltfile — orchestrates the local homelab bootstrap cluster (macbook k3d).
+#
+# Brings up the platform (external-secrets, cert-manager, Tailscale operator,
+# Netdata) and the secret store (OpenBao + aws-sigv4-proxy) in dependency order.
+# Operators come up first; the custom resources that depend on their CRDs and
+# admission webhooks (ClusterSecretStore, ClusterIssuer, ExternalSecrets) are a
+# separate layer gated on the operators being ready.
+#
+# Run against the local k3d cluster only.
+
+load('ext://helm_resource', 'helm_resource')
+
+allow_k8s_contexts('k3d-bootstrap')
+
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+def path(rel):
+    return os.path.join(repo_root, rel)
+
+# --- Namespaces -------------------------------------------------------------
+# Pre-created so the ExternalSecrets can be applied without depending on
+# operators that stay not-Ready until OpenBao is seeded.
+namespaces = ['external-secrets', 'cert-manager', 'tailscale', 'netdata', 'secret']
+k8s_yaml(blob('\n---\n'.join([
+    'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: ' + ns
+    for ns in namespaces
+])))
+k8s_resource(
+    new_name='namespaces',
+    objects=[ns + ':namespace' for ns in namespaces],
+    labels=['setup'],
+)
+
+# --- Helm umbrella charts ---------------------------------------------------
+umbrellas = [
+    ('external-secrets', 'apps/platform/external-secrets', 'external-secrets', 'platform'),
+    ('cert-manager', 'apps/platform/cert-manager', 'cert-manager', 'platform'),
+    ('tailscale', 'apps/platform/tailscale', 'tailscale', 'platform'),
+    ('netdata', 'apps/platform/netdata', 'netdata', 'platform'),
+    ('openbao', 'apps/secret/openbao', 'secret', 'secret'),
+    ('sigv4-proxy', 'apps/secret/sigv4-proxy', 'secret', 'secret'),
+]
+
+for name, chart_path, namespace, group in umbrellas:
+    # Build the file:// vendored dependency into charts/ before helm runs.
+    local('helm dependency build ' + path(chart_path), quiet=True)
+    helm_resource(
+        name=name,
+        chart=path(chart_path),
+        namespace=namespace,
+        resource_deps=['namespaces'],
+        labels=[group],
+    )
+
+# --- Custom resources (gated on the operators being ready) ------------------
+# ExternalSecrets and the ClusterSecretStore need the external-secrets CRDs +
+# webhook; the ClusterIssuer needs cert-manager's. These stay NotReady until
+# OpenBao is deployed and seeded.
+platform_config = [
+    'apps/platform/config/clustersecretstore-openbao.yaml',
+    'apps/platform/config/clusterissuer-letsencrypt-prod.yaml',
+    'apps/platform/config/externalsecret-cloudflare-api-token.yaml',
+    'apps/platform/config/externalsecret-operator-oauth.yaml',
+    'apps/platform/config/externalsecret-netdata-claim.yaml',
+]
+secret_config = [
+    'apps/secret/config/externalsecret-terraform-state-s3.yaml',
+]
+k8s_yaml([path(f) for f in platform_config + secret_config])
+
+k8s_resource(
+    new_name='platform-config',
+    objects=[
+        'openbao:clustersecretstore',
+        'letsencrypt-prod:clusterissuer',
+        'cloudflare-api-token:externalsecret:cert-manager',
+        'operator-oauth:externalsecret:tailscale',
+        'netdata-claim:externalsecret:netdata',
+    ],
+    resource_deps=['external-secrets', 'cert-manager'],
+    labels=['config'],
+)
+k8s_resource(
+    new_name='secret-config',
+    objects=[
+        'terraform-state-s3:externalsecret:secret',
+    ],
+    resource_deps=['external-secrets'],
+    labels=['config'],
+)

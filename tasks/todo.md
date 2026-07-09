@@ -41,7 +41,12 @@ Tailscale Service `svc:auth` (tailnet-only, no public exposure) and a cert-manag
 - **Verify:** `curl -sSf https://auth.vgijssel.nl/if/flow/...` from a tailnet host returns 200 with
   a valid `vgijssel.nl` cert; the same request from a non-tailnet host fails.
 
-### [ ] T4 — `apps/secret` (OpenBao raft + `apps/aws-sigv4-proxy`) + `svc:secrets`/`svc:terraform-state`
+### [~] T4 — `apps/secret` (OpenBao raft + `apps/aws-sigv4-proxy`) + `svc:secrets`/`svc:terraform-state`
+> Progress: OpenBao (single-node raft) + aws-sigv4-proxy charts built, `secret:lint` passes, both
+> deployed to local k3d via Tilt. OpenBao runs sealed/uninitialised (expected pre-T5); sigv4-proxy
+> waits on the `terraform-state-s3` ESO secret. **Deferred:** the `svc:secrets`/`svc:terraform-state`
+> Tailscale Services + cert-manager Certs — they need the Tailscale operator (blocked on its OAuth
+> secret from OpenBao) and are on the external-access path, not the in-cluster ESO path.
 Create `apps/secret/`: OpenBao single-node raft (PVC-backed) with a Tailscale Service
 `svc:secrets` + cert for `secrets.vgijssel.nl`; and the reused `libs/aws-sigv4-proxy` deployed with
 a Tailscale Service `svc:terraform-state` + cert for `terraform-state.vgijssel.nl`, its S3 creds fed
