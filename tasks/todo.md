@@ -72,7 +72,8 @@ creds succeeds. This de-risks the `apps/gateway` backend before T10.
 Orchestration is via **Tilt** (not scripts): `bootstrap:start` creates k3d + `tilt up` (background)
 deploying `apps/platform` + `apps/secret`; `bootstrap:stop` tears down + deletes the cluster.
 `apps/secret:init` (`scripts/init-openbao.sh`) runs `bao operator init`, stores unseal keys + root
-token in **1Password only** (`op`, in-memory — no disk), unseals, then configures the **kubernetes
+token in **1Password only** (`op`, in-memory — no disk; account `my.1password.com`, vault
+`enigma-prod`), unseals, then configures the **kubernetes
 auth method** (role `external-secrets` bound to the ESO ServiceAccount) + a `kv` v2 engine, and
 prints the secrets to seed. **Seeding is done by the operator via the OpenBao UI** (user decision) —
 no `seed` task. `bao` CLI pinned via Hermit (`third_party/hermit/openbao.hcl`, v2.5.5).

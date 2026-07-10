@@ -21,7 +21,8 @@ CONTEXT="${KUBE_CONTEXT:-k3d-bootstrap}"
 NAMESPACE="${OPENBAO_NAMESPACE:-secret}"
 POD="${OPENBAO_POD:-openbao-0}"
 LOCAL_PORT="${LOCAL_PORT:-8200}"
-OP_VAULT="${OP_VAULT:-Homelab}"
+OP_ACCOUNT="${OP_ACCOUNT:-my.1password.com}"
+OP_VAULT="${OP_VAULT:-enigma-prod}"
 OP_ITEM="${OP_ITEM:-OpenBao unseal (homelab gateway)}"
 KEY_SHARES="${KEY_SHARES:-5}"
 KEY_THRESHOLD="${KEY_THRESHOLD:-3}"
@@ -58,8 +59,14 @@ start_pf() {
   exit 1
 }
 
-echo "==> Checking 1Password CLI session"
-op whoami >/dev/null || { echo "ERROR: 'op' is not signed in (run: eval \$(op signin))" >&2; exit 1; }
+echo "==> Checking access to the ${OP_ACCOUNT} 1Password account"
+# `op account get` succeeds with 1Password app/biometric integration (unlike
+# `op whoami`, which reports "not signed in" unless a CLI `op signin` session
+# is active).
+if ! op account get --account "${OP_ACCOUNT}" >/dev/null 2>&1; then
+  echo "ERROR: cannot access the ${OP_ACCOUNT} 1Password account (sign in / unlock 1Password, or run: eval \$(op signin --account ${OP_ACCOUNT}))" >&2
+  exit 1
+fi
 
 echo "==> Waiting for ${POD} to be Running in namespace ${NAMESPACE}"
 kubectl --context "${CONTEXT}" -n "${NAMESPACE}" wait \
@@ -75,7 +82,7 @@ initialized="$(jq -r '.initialized // false' <<<"${status}")"
 
 if [[ "${initialized}" == "true" ]]; then
   echo "==> OpenBao already initialised; reading keys from 1Password (${OP_VAULT}/${OP_ITEM})"
-  op_json="$(op item get "${OP_ITEM}" --vault "${OP_VAULT}" --format json)"
+  op_json="$(op item get "${OP_ITEM}" --account "${OP_ACCOUNT}" --vault "${OP_VAULT}" --format json)"
   init_json="$(jq '{root_token: (.fields[] | select(.label=="root_token") | .value),
                     unseal_keys_b64: [.fields[] | select(.label|startswith("unseal_key_")) | .value]}' <<<"${op_json}")"
 else
@@ -93,6 +100,7 @@ else
   done <<<"${keys}"
 
   op item create \
+    --account "${OP_ACCOUNT}" \
     --category "Secure Note" \
     --vault "${OP_VAULT}" \
     --title "${OP_ITEM}" \
