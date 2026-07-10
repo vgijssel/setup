@@ -127,4 +127,10 @@ directories:
       - v1.0.2
     path: .
   path: config/cozystack-talos-profiles
+- contents:
+  - helmChart:
+      appVersion: v0.8.49
+      version: v0.8.49
+    path: .
+  path: charts/vault-config-operator
 kind: LockConfig

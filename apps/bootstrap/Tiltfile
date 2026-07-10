@@ -20,7 +20,7 @@ def path(rel):
 # --- Namespaces -------------------------------------------------------------
 # Pre-created so the ExternalSecrets can be applied without depending on
 # operators that stay not-Ready until OpenBao is seeded.
-namespaces = ['external-secrets', 'cert-manager', 'tailscale', 'netdata', 'secret']
+namespaces = ['external-secrets', 'cert-manager', 'vault-config-operator', 'tailscale', 'netdata', 'secret']
 k8s_yaml(blob('\n---\n'.join([
     'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: ' + ns
     for ns in namespaces
@@ -35,11 +35,18 @@ k8s_resource(
 umbrellas = [
     ('external-secrets', 'apps/platform/external-secrets', 'external-secrets', 'platform'),
     ('cert-manager', 'apps/platform/cert-manager', 'cert-manager', 'platform'),
+    ('vault-config-operator', 'apps/platform/vault-config-operator', 'vault-config-operator', 'platform'),
     ('tailscale', 'apps/platform/tailscale', 'tailscale', 'platform'),
     ('netdata', 'apps/platform/netdata', 'netdata', 'platform'),
     ('openbao', 'apps/secret/openbao', 'secret', 'secret'),
     ('sigv4-proxy', 'apps/secret/sigv4-proxy', 'secret', 'secret'),
 ]
+
+# vault-config-operator's webhook serving cert is issued by cert-manager
+# (enableCertManager: true), so it must wait for cert-manager's CRDs + webhook.
+extra_deps = {
+    'vault-config-operator': ['cert-manager'],
+}
 
 for name, chart_path, namespace, group in umbrellas:
     # Build the file:// vendored dependency into charts/ before helm runs.
@@ -48,7 +55,7 @@ for name, chart_path, namespace, group in umbrellas:
         name=name,
         chart=path(chart_path),
         namespace=namespace,
-        resource_deps=['namespaces'],
+        resource_deps=['namespaces'] + extra_deps.get(name, []),
         labels=[group],
     )
 
