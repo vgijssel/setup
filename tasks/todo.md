@@ -86,7 +86,7 @@ no `seed` task. `bao` CLI pinned via Hermit (`third_party/hermit/openbao.hcl`, v
   script shrinks to the minimal seam (see below).
 
 ### [x] T5a — Declarative OpenBao config via vault-config-operator (minimise the init script)
-> **Implemented (offline-verified via `platform:lint` + `secret:lint`; live bootstrap pending).**
+> **Implemented and live-validated on local k3d (2026-07-10).**
 > - Vendored `redhat-cop/vault-config-operator` v0.8.49 (`third_party/vendir`) + added the
 >   `apps/platform/vault-config-operator` umbrella (`enableMonitoring: false`, `enableCertManager:
 >   true`, `VAULT_ADDR=http://openbao.secret.svc:8200`); wired into `platform:lint` and the Tiltfile
@@ -98,13 +98,24 @@ no `seed` task. `bao` CLI pinned via Hermit (`third_party/hermit/openbao.hcl`, v
 > - `init-openbao.sh` shrunk to the minimal seam: kubernetes auth enable + config + the operator's
 >   own policy/role (kept byte-for-byte in sync with the two vault-config-operator CRs so the
 >   operator adopts them). The kv engine + external-secrets policy/role are gone from the script.
-> - **Deviation:** the kubernetes-auth **config** (`kubernetes_host`) stays in the seam rather than a
->   `KubernetesAuthEngineConfig` CR — the spike never exercised that CR and its Vault path resolves as
->   `auth/{path}/config/{name}` (suspect for the singleton `.../config` endpoint). The seam writes it
->   correctly; safe to leave until validated live.
-> - **To validate on live k3d bootstrap:** operator adopts the seam foothold + reconciles kv/policies/
->   roles; `ClusterSecretStore` goes Ready; ESO syncs. Also confirm the kv mount lands as **v2** (CR
->   uses `type: kv` + `options.version: "2"`; adjust to `type: kv-v2` if it comes up v1).
+> - **Live-validated:** after `secret:init`, the operator adopted the foothold and reconciled all six
+>   CRs (`LastReconcileCycleSucceded`); `ClusterSecretStore` → Ready=True/Valid; kv mounted as **v2**
+>   (`type: kv` + `options.version: "2"` — the caveat is resolved, no `kv-v2` change needed); and a
+>   test `ExternalSecret` synced a seeded `kv` value into a k8s Secret (`SecretSynced`).
+> - **Fix from validation (commit cfecada4):** the operator manages ACL policies via the legacy
+>   `sys/policy` endpoint, not `sys/policies/acl`; the admin policy now grants both (seam + CR in
+>   sync). Also raised the Tiltfile `k8s_upsert_timeout_secs` to 180 — cert-manager's startupapicheck
+>   hook exceeds Tilt's 30s default on a cold cluster and stalls everything gated on it.
+> - **Deviation (kept):** the kubernetes-auth **config** (`kubernetes_host`) stays in the seam, not a
+>   `KubernetesAuthEngineConfig` CR — that CR's Vault path resolves as `auth/{path}/config/{name}`
+>   (suspect for the singleton `.../config` endpoint). The seam writes it correctly; the live run
+>   confirmed auth works without the CR.
+> - **Note (operator restart nuance):** editing the operator's *own* admin policy after it has logged
+>   in needs an operator pod restart to pick up new caps. On a clean bootstrap the seam plants the
+>   final policy up-front, so no restart is needed.
+> - **Follow-up (not T5a):** `init-openbao.sh` keys off a fixed 1Password item *title*; a duplicate
+>   title in `enigma-prod` breaks the read (`op item get` ambiguity) and the script misreports it as
+>   "keys lost". Consider pinning by item ID / de-duplicating.
 Move OpenBao's kv/policy/auth-role configuration out of `init-openbao.sh` into **Kubernetes
 manifests** reconciled by **redhat-cop/vault-config-operator**. Bootstrap is **eventually
 consistent**: Tilt/Fleet lay down the operator + all CRs immediately; they error-and-retry while
