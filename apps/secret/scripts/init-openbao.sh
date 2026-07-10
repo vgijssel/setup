@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # Initialise + unseal OpenBao and store the unseal keys + root token in 1Password
-# (and nowhere else), then wire up the Kubernetes auth method + kv engine that
-# external-secrets depends on. Finally, print the secrets you must add yourself
-# via the OpenBao UI.
+# (and nowhere else), then plant the minimal vault-config-operator login foothold
+# (kubernetes auth method + config + the operator's own policy/role). Everything
+# else -- the kv engine and the external-secrets policy/role -- is reconciled
+# declaratively by vault-config-operator from apps/secret/config. Finally, print
+# the secrets you must add yourself via the OpenBao UI.
 #
 # Idempotent:
-#   - fresh OpenBao          -> init, store keys in 1Password, unseal, configure
-#   - initialised but sealed -> read keys back from 1Password, unseal, configure
-#   - initialised + unsealed -> (re)apply auth/kv configuration only
+#   - fresh OpenBao          -> init, store keys in 1Password, unseal, plant seam
+#   - initialised but sealed -> read keys back from 1Password, unseal, plant seam
+#   - initialised + unsealed -> (re)apply the operator foothold only
 #
 # Secrets never touch local disk: init output stays in shell variables and is
 # piped straight into `op`. The local `bao` CLI talks to OpenBao over a
@@ -167,25 +169,21 @@ echo "==> Reconnecting after the leader election"
 start_pf "after unseal"
 echo "==> OpenBao is unsealed"
 
-# --- Configure kubernetes auth + kv engine (root token) --------------------
+# --- Plant the vault-config-operator login foothold (root token) -----------
+# This is the ONLY OpenBao configuration the script performs. Everything else --
+# the kv engine, the external-secrets policy/role, and a re-declaration of this
+# very foothold -- is reconciled declaratively by vault-config-operator from the
+# CRs in apps/secret/config. The seam plants just enough for the operator to log
+# in and adopt the rest; it is also the recovery path if the operator is ever
+# locked out.
+#
+# The policy and role below MUST stay byte-for-byte in sync with
+#   apps/secret/config/policy-vault-config-operator.yaml
+#   apps/secret/config/kubernetesauthenginerole-vault-config-operator.yaml
+# so the operator adopts them as no-op overwrites (a matching body cannot
+# self-lock the operator out of its own login path).
 export BAO_TOKEN
 BAO_TOKEN="$(jq -r '.root_token' <<<"${init_json}")"
-
-echo "==> Enabling kv v2 engine at kv/"
-mounts="$(bao secrets list -format=json)"
-if ! jq -e '."kv/"' >/dev/null 2>&1 <<<"${mounts}"; then
-  bao secrets enable -path=kv kv-v2 >/dev/null
-fi
-
-echo "==> Writing external-secrets read policy"
-bao policy write external-secrets - >/dev/null <<'HCL'
-path "kv/data/*" {
-  capabilities = ["read"]
-}
-path "kv/metadata/*" {
-  capabilities = ["read", "list"]
-}
-HCL
 
 echo "==> Enabling kubernetes auth method"
 auths="$(bao auth list -format=json)"
@@ -194,25 +192,57 @@ if ! jq -e '."kubernetes/"' >/dev/null 2>&1 <<<"${auths}"; then
 fi
 
 # OpenBao runs in-cluster and (authDelegator) can review tokens with its own
-# ServiceAccount, so kubernetes_host is all that is required.
+# ServiceAccount, so kubernetes_host is all that is required. This config write
+# stays in the seam (not a CR) because it is a one-time bootstrap value.
 echo "==> Configuring kubernetes auth"
 bao write auth/kubernetes/config \
   kubernetes_host="https://kubernetes.default.svc:443" >/dev/null
 
-echo "==> Binding the external-secrets ServiceAccount to the external-secrets role"
-bao write auth/kubernetes/role/external-secrets \
-  bound_service_account_names=external-secrets \
-  bound_service_account_namespaces=external-secrets \
-  policies=external-secrets \
-  ttl=1h >/dev/null
+echo "==> Writing the vault-config-operator admin policy"
+bao policy write vault-config-operator - >/dev/null <<'HCL'
+# secret engine mounts (kv)
+path "sys/mounts" {
+  capabilities = ["read", "list"]
+}
+path "sys/mounts/*" {
+  capabilities = ["create", "read", "update", "delete"]
+}
+# auth method mounts (kubernetes)
+path "sys/auth" {
+  capabilities = ["read", "list"]
+}
+path "sys/auth/*" {
+  capabilities = ["create", "read", "update", "delete", "sudo"]
+}
+# ACL policies (external-secrets, and this policy itself)
+path "sys/policies/acl" {
+  capabilities = ["list"]
+}
+path "sys/policies/acl/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+# kubernetes auth method config + roles
+path "auth/kubernetes/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+HCL
+
+echo "==> Binding the vault-config-operator ServiceAccount to its login role"
+bao write auth/kubernetes/role/vault-config-operator \
+  bound_service_account_names=controller-manager \
+  bound_service_account_namespaces=vault-config-operator \
+  policies=vault-config-operator >/dev/null
 
 # --- Tell the operator what to seed via the OpenBao UI ----------------------
 cat <<'SECRETS'
 
-==> OpenBao is initialised, unsealed and configured.
+==> OpenBao is initialised, unsealed, and the vault-config-operator foothold is
+    planted. vault-config-operator now reconciles the kv engine and the
+    external-secrets policy/role from apps/secret/config (give it a moment).
 
-    Now add these secrets yourself via the OpenBao UI (kv v2 engine "kv"),
-    each as a separate secret at the given path with the listed keys:
+    Once the "kv" engine appears, add these secrets yourself via the OpenBao UI
+    (kv v2 engine "kv"), each as a separate secret at the given path with the
+    listed keys:
 
       kv/cloudflare   token
       kv/tailscale    oauth_client_id, oauth_client_secret
