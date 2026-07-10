@@ -85,7 +85,26 @@ no `seed` task. `bao` CLI pinned via Hermit (`third_party/hermit/openbao.hcl`, v
 - **Superseded by T5a:** the imperative kv+policy+role config moves to declarative CRs; the init
   script shrinks to the minimal seam (see below).
 
-### [ ] T5a — Declarative OpenBao config via vault-config-operator (minimise the init script)
+### [x] T5a — Declarative OpenBao config via vault-config-operator (minimise the init script)
+> **Implemented (offline-verified via `platform:lint` + `secret:lint`; live bootstrap pending).**
+> - Vendored `redhat-cop/vault-config-operator` v0.8.49 (`third_party/vendir`) + added the
+>   `apps/platform/vault-config-operator` umbrella (`enableMonitoring: false`, `enableCertManager:
+>   true`, `VAULT_ADDR=http://openbao.secret.svc:8200`); wired into `platform:lint` and the Tiltfile
+>   (gated on cert-manager for its webhook cert).
+> - `apps/secret/config/` CRs (all in the `vault-config-operator` namespace, auth as the operator's
+>   `controller-manager` SA): `AuthEngineMount` + `Policy` + `KubernetesAuthEngineRole`
+>   (vault-config-operator, mirror/adopt the seam) and `SecretEngineMount` kv + `Policy` +
+>   `KubernetesAuthEngineRole` (external-secrets). Wired into the Tiltfile `vault-config` group.
+> - `init-openbao.sh` shrunk to the minimal seam: kubernetes auth enable + config + the operator's
+>   own policy/role (kept byte-for-byte in sync with the two vault-config-operator CRs so the
+>   operator adopts them). The kv engine + external-secrets policy/role are gone from the script.
+> - **Deviation:** the kubernetes-auth **config** (`kubernetes_host`) stays in the seam rather than a
+>   `KubernetesAuthEngineConfig` CR — the spike never exercised that CR and its Vault path resolves as
+>   `auth/{path}/config/{name}` (suspect for the singleton `.../config` endpoint). The seam writes it
+>   correctly; safe to leave until validated live.
+> - **To validate on live k3d bootstrap:** operator adopts the seam foothold + reconciles kv/policies/
+>   roles; `ClusterSecretStore` goes Ready; ESO syncs. Also confirm the kv mount lands as **v2** (CR
+>   uses `type: kv` + `options.version: "2"`; adjust to `type: kv-v2` if it comes up v1).
 Move OpenBao's kv/policy/auth-role configuration out of `init-openbao.sh` into **Kubernetes
 manifests** reconciled by **redhat-cop/vault-config-operator**. Bootstrap is **eventually
 consistent**: Tilt/Fleet lay down the operator + all CRs immediately; they error-and-retry while
