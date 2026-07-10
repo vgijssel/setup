@@ -108,24 +108,42 @@ OpenBao is sealed/unconfigured and converge once the seam below runs — a broke
   - CRDs have finalizers the operator clears; on teardown, delete CRs before removing the operator or
     the namespace hangs Terminating.
 
-**Minimal imperative seam (all that stays in `init-openbao.sh`)** — everything else is declarative:
+**Adoption spike findings (validated on local k3d, 2026-07-10 — throwaway dev-mode OpenBao, torn down):**
+The operator **adopts pre-existing OpenBao config** — so the imperative seam and the declarative CRs
+can describe the *same* objects (seam plants the foothold once; CRs adopt + own it thereafter):
+- `AuthEngineMount` over an already-enabled `kubernetes/` auth mount → `LastReconcileCycleSucceded`,
+  **no "path already in use" error**, accessor unchanged (true adopt, not recreate).
+- `SecretEngineMount` over an already-enabled kv engine → adopted, no error.
+- `Policy` + `KubernetesAuthEngineRole` are idempotent writes → cleanly overwrite/adopt existing
+  objects, **including the operator's own login role** — no self-lockout when CR content matches.
+- Mount path = `{spec.path}/{name}` (name defaults to `metadata.name`). Empty `path:""` + `name: X`
+  → single-segment `X/`. So to manage `kubernetes/`, use `path: "", metadata.name: kubernetes`.
+- Self-lockout is possible only if a foothold CR is *wrong* or *deleted*; recoverable by re-running
+  the one-off seam (which we keep anyway).
+
+**Design: dual imperative + declarative (the seam is a one-off foothold; manifests are the source of truth).**
+
+Minimal imperative seam — stays in `init-openbao.sh`, run once (also the recovery path):
 1. `bao operator init` → store unseal keys + root token in 1Password (`enigma-prod`) — irreducible.
 2. `bao operator unseal` — irreducible (recurs on restart).
-3. Bootstrap the operator's own login (the one thing that can't be declarative, since the operator
-   authenticates *through* it): `bao auth enable kubernetes` + `auth/kubernetes/config`
-   (`kubernetes_host`) + a scoped `vault-config-operator` policy (`sys/mounts*`, `sys/policies/acl*`,
-   `auth/kubernetes/*`) + `auth/kubernetes/role/vault-config-operator` bound to the operator SA.
+3. Plant the operator's login foothold (identical to the CRs below, so the operator adopts it):
+   `bao auth enable kubernetes` + `auth/kubernetes/config` (`kubernetes_host`) + scoped
+   `vault-config-operator` policy (`sys/mounts*`, `sys/policies/acl*`, `auth/kubernetes/*`) +
+   `auth/kubernetes/role/vault-config-operator` bound to the operator SA.
 
-**Declarative (Kubernetes manifests, reconciled — no script):**
+Declarative (Kubernetes manifests, reconciled — the source of truth the operator converges OpenBao to):
 - `apps/platform/vault-config-operator/` umbrella chart (vendir the chart; `enableCertManager: true`;
   `VAULT_ADDR=http://openbao.secret.svc:8200`); add to Tiltfile + `platform:lint`.
-- `apps/secret/config/` CRs (replace the imperative `kv`/policy/role steps):
+- `apps/secret/config/` CRs — **mirror the seam** (adopted on first reconcile) **plus** the app config:
+  - `AuthEngineMount` `kubernetes` + `KubernetesAuthEngineConfig` (mirror the foothold auth method/config)
+  - `Policy` + `KubernetesAuthEngineRole` `vault-config-operator` (mirror the operator's own policy/role)
   - `SecretEngineMount` → kv v2 at `kv/`
   - `Policy` `external-secrets` (read `kv/data/*`, `kv/metadata/*`)
   - `KubernetesAuthEngineRole` `external-secrets` (bind the ESO SA `external-secrets/external-secrets`)
 - Existing ESO `ClusterSecretStore` + `ExternalSecrets` converge once the above exist + OpenBao unsealed.
-- **Acceptance:** after `secret:init`, the operator reconciles kv+policy+role, `ClusterSecretStore`
-  goes Ready, ESO syncs — with the init script no longer touching kv/policy/ESO-role.
+- **Acceptance:** after the one-off `secret:init` seam, the operator adopts the foothold and reconciles
+  kv+policies+roles from the CRs; `ClusterSecretStore` goes Ready; ESO syncs. Editing a CR updates
+  OpenBao; the script is never needed again (except OpenBao re-init / lockout recovery).
 - **Open choice:** operator's admin policy scope (scoped paths vs broad); operator lives in
   `apps/platform`, its config CRs in `apps/secret/config`.
 
