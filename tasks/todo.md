@@ -82,6 +82,52 @@ no `seed` task. `bao` CLI pinned via Hermit (`third_party/hermit/openbao.hcl`, v
 - **Verified on local k3d:** `secret:init` runs init→1Password→unseal→reconnect→kv+k8s-auth config
   end-to-end; the `ClusterSecretStore` reports **Ready=True / Valid**; the ESO ServiceAccount
   authenticates via the kubernetes auth method and receives a scoped token. No secret on local disk.
+- **Superseded by T5a:** the imperative kv+policy+role config moves to declarative CRs; the init
+  script shrinks to the minimal seam (see below).
+
+### [ ] T5a — Declarative OpenBao config via vault-config-operator (minimise the init script)
+Move OpenBao's kv/policy/auth-role configuration out of `init-openbao.sh` into **Kubernetes
+manifests** reconciled by **redhat-cop/vault-config-operator**. Bootstrap is **eventually
+consistent**: Tilt/Fleet lay down the operator + all CRs immediately; they error-and-retry while
+OpenBao is sealed/unconfigured and converge once the seam below runs — a broken boot state is fine.
+
+**Spike findings (validated on local k3d, 2026-07-10 — throwaway dev-mode OpenBao, torn down):**
+- vault-config-operator **works against OpenBao 2.5.5** — kv-v2 mount, `Policy`, and
+  `KubernetesAuthEngineRole` all reconciled (`LastReconcileCycleSucceded`) and were written to
+  OpenBao. No version-gate rejection, no API incompatibility.
+- Chart: helm repo `https://redhat-cop.github.io/vault-config-operator`, chart+app `v0.8.49`,
+  image `quay.io/redhat-cop/vault-config-operator:v0.8.49`. Values: `enableMonitoring: false`,
+  `env[0]=VAULT_ADDR=http://openbao.secret.svc:8200`.
+- **Requires cert-manager**: set `enableCertManager: true` (chart self-creates a `selfsigned-issuer`
+  Issuer + webhook Certificate). With it false the manager pod hangs on a missing `webhook-server-cert`.
+  cert-manager already ships in `apps/platform`.
+- All CRDs are `redhatcop.redhat.io/v1alpha1`. Gotchas the docs miss:
+  - `spec.authentication.serviceAccount` is a `LocalObjectReference` (`{name: ...}`), **not** a string.
+  - `SecretEngineMount` mounts at **`<spec.path>/<metadata.name>`** — to land a clean `kv/` mount, set
+    `spec.path: ""` + `metadata.name: kv` (verify) rather than `path: kv, name: kv` (→ `kv/kv/`).
+  - CRDs have finalizers the operator clears; on teardown, delete CRs before removing the operator or
+    the namespace hangs Terminating.
+
+**Minimal imperative seam (all that stays in `init-openbao.sh`)** — everything else is declarative:
+1. `bao operator init` → store unseal keys + root token in 1Password (`enigma-prod`) — irreducible.
+2. `bao operator unseal` — irreducible (recurs on restart).
+3. Bootstrap the operator's own login (the one thing that can't be declarative, since the operator
+   authenticates *through* it): `bao auth enable kubernetes` + `auth/kubernetes/config`
+   (`kubernetes_host`) + a scoped `vault-config-operator` policy (`sys/mounts*`, `sys/policies/acl*`,
+   `auth/kubernetes/*`) + `auth/kubernetes/role/vault-config-operator` bound to the operator SA.
+
+**Declarative (Kubernetes manifests, reconciled — no script):**
+- `apps/platform/vault-config-operator/` umbrella chart (vendir the chart; `enableCertManager: true`;
+  `VAULT_ADDR=http://openbao.secret.svc:8200`); add to Tiltfile + `platform:lint`.
+- `apps/secret/config/` CRs (replace the imperative `kv`/policy/role steps):
+  - `SecretEngineMount` → kv v2 at `kv/`
+  - `Policy` `external-secrets` (read `kv/data/*`, `kv/metadata/*`)
+  - `KubernetesAuthEngineRole` `external-secrets` (bind the ESO SA `external-secrets/external-secrets`)
+- Existing ESO `ClusterSecretStore` + `ExternalSecrets` converge once the above exist + OpenBao unsealed.
+- **Acceptance:** after `secret:init`, the operator reconciles kv+policy+role, `ClusterSecretStore`
+  goes Ready, ESO syncs — with the init script no longer touching kv/policy/ESO-role.
+- **Open choice:** operator's admin policy scope (scoped paths vs broad); operator lives in
+  `apps/platform`, its config CRs in `apps/secret/config`.
 
 ### [ ] T6 — Gating spike: `bao login -method=oidc` end-to-end over the tailnet
 Exercise the full OIDC login path with **both** OpenBao and Authentik reachable *only* via Tailscale
