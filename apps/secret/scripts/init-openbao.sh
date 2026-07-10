@@ -81,15 +81,40 @@ status="$(raw_status)"
 initialized="$(jq -r '.initialized // false' <<<"${status}")"
 
 if [[ "${initialized}" == "true" ]]; then
-  echo "==> OpenBao already initialised; reading keys from 1Password (${OP_VAULT}/${OP_ITEM})"
-  op_json="$(op item get "${OP_ITEM}" --account "${OP_ACCOUNT}" --vault "${OP_VAULT}" --format json)"
+  echo "==> OpenBao already initialised; reading keys from 1Password (${OP_ACCOUNT}:${OP_VAULT}/${OP_ITEM})"
+  op_json="$(op item get "${OP_ITEM}" --account "${OP_ACCOUNT}" --vault "${OP_VAULT}" --format json 2>/dev/null || true)"
+  if [[ -z "${op_json}" ]]; then
+    echo "ERROR: OpenBao is initialised but its unseal keys are not in ${OP_VAULT} (${OP_ITEM})." >&2
+    echo "       The keys appear lost, so OpenBao cannot be unsealed and must be re-initialised by" >&2
+    echo "       wiping its data (this destroys any secrets stored in it):" >&2
+    echo "         kubectl -n ${NAMESPACE} delete statefulset openbao --cascade=foreground" >&2
+    echo "         kubectl -n ${NAMESPACE} delete pvc -l app.kubernetes.io/name=openbao" >&2
+    echo "       then recreate OpenBao (moon run bootstrap:start) and re-run this task." >&2
+    exit 1
+  fi
   init_json="$(jq '{root_token: (.fields[] | select(.label=="root_token") | .value),
                     unseal_keys_b64: [.fields[] | select(.label|startswith("unseal_key_")) | .value]}' <<<"${op_json}")"
 else
+  # Pre-flight: confirm we can WRITE to the vault BEFORE initialising OpenBao.
+  # 1Password writes need an interactive authorization; failing here (rather than
+  # after `bao operator init`) keeps OpenBao pristine so this task stays re-runnable
+  # instead of leaving it initialised with its keys unrecoverable.
+  echo "==> Verifying write access to ${OP_ACCOUNT}:${OP_VAULT} (approve the 1Password prompt if asked)"
+  probe_id="$(op item create --account "${OP_ACCOUNT}" --category "Secure Note" \
+    --vault "${OP_VAULT}" --title "openbao-init-write-check" 'probe[text]=ok' \
+    --format json 2>/dev/null | jq -r '.id // empty')"
+  if [[ -z "${probe_id}" ]]; then
+    echo "ERROR: cannot create items in ${OP_VAULT} on ${OP_ACCOUNT}." >&2
+    echo "       Enable 'Integrate with 1Password CLI' in the 1Password app (Settings > Developer)" >&2
+    echo "       and approve the authorization prompt, then re-run. OpenBao was left untouched." >&2
+    exit 1
+  fi
+  op item delete "${probe_id}" --account "${OP_ACCOUNT}" --vault "${OP_VAULT}" >/dev/null 2>&1 || true
+
   echo "==> Initialising OpenBao (${KEY_SHARES} shares, threshold ${KEY_THRESHOLD})"
   init_json="$(bao operator init -key-shares="${KEY_SHARES}" -key-threshold="${KEY_THRESHOLD}" -format=json)"
 
-  echo "==> Storing unseal keys + root token in 1Password (${OP_VAULT}/${OP_ITEM})"
+  echo "==> Storing unseal keys + root token in 1Password (${OP_ACCOUNT}:${OP_VAULT}/${OP_ITEM})"
   op_fields=("root_token[password]=$(jq -r '.root_token' <<<"${init_json}")")
   idx=1
   keys="$(jq -r '.unseal_keys_b64[]' <<<"${init_json}")"
@@ -99,12 +124,19 @@ else
     idx=$((idx + 1))
   done <<<"${keys}"
 
-  op item create \
+  # Safety net: if the store fails despite the pre-flight check, print the keys so
+  # they are not lost (OpenBao is already initialised at this point).
+  if ! op item create \
     --account "${OP_ACCOUNT}" \
     --category "Secure Note" \
     --vault "${OP_VAULT}" \
     --title "${OP_ITEM}" \
-    "${op_fields[@]}" >/dev/null
+    "${op_fields[@]}" >/dev/null 2>&1; then
+    echo "ERROR: OpenBao is initialised but storing the keys in 1Password failed." >&2
+    echo "!!! SAVE THESE NOW into 1Password (${OP_VAULT}/${OP_ITEM}) or OpenBao is unrecoverable:" >&2
+    jq -r '"  root_token: \(.root_token)", (.unseal_keys_b64 | to_entries[] | "  unseal_key_\(.key + 1): \(.value)")' <<<"${init_json}" >&2
+    exit 1
+  fi
 fi
 
 # --- Unseal ----------------------------------------------------------------
