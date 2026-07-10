@@ -12,6 +12,13 @@ load('ext://helm_resource', 'helm_resource')
 
 allow_k8s_contexts('k3d-bootstrap')
 
+# cert-manager's install blocks on its startupapicheck hook (waits for the
+# webhook to serve), which routinely exceeds Tilt's 30s default apply timeout on
+# a cold cluster. When cert-manager's apply "times out" its resource goes to
+# error and everything gated on it (vault-config-operator, platform-config)
+# stalls even though the pods are healthy. Give applies room to finish.
+update_settings(k8s_upsert_timeout_secs=180)
+
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 def path(rel):
