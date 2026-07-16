@@ -44,8 +44,8 @@ directories:
   path: charts/coder
 - contents:
   - helmChart:
-      appVersion: v0.0.13
-      version: v0.0.13
+      appVersion: v0.0.15
+      version: v0.0.15
     path: .
   path: charts/coder-logstream-kube
 - contents:
