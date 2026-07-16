@@ -2,6 +2,9 @@
 - apiGroups: [""]
   resources: ["pods", "events"]
   verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
 - apiGroups: ["apps"]
   resources: ["replicasets", "events"]
   verbs: ["get", "watch", "list"]
@@ -96,6 +99,10 @@ spec:
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      podSecurityContext:
       {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:

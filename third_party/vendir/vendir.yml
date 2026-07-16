@@ -62,7 +62,7 @@ directories:
       - path: .
         helmChart:
           name: coder-logstream-kube
-          version: 0.0.13
+          version: v0.0.15
           repository:
             url: https://helm.coder.com/logstream-kube
   - path: charts/external-secrets
