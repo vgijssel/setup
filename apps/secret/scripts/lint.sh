@@ -18,3 +18,15 @@ done
 
 echo "==> Linting config"
 kubeconform -strict -ignore-missing-schemas -summary "${PROJECT_DIR}"/config/*.yaml
+
+# Fleet bundle render check: every dir with a fleet.yaml must render to a valid
+# Bundle via `fleet apply -o -` (the same rendering a Rancher GitRepo performs).
+# fleet resolves chart file:// dependencies relative to CWD, so cd into the
+# project and pass relative paths (absolute paths render nothing).
+echo "==> Rendering Fleet bundles (fleet apply -o -)"
+cd "${PROJECT_DIR}"
+while IFS= read -r dir; do
+  [[ -n "${dir}" ]] || continue
+  echo "  - ${dir}"
+  fleet apply -o - "$(basename "${dir}")" "${dir}" >/dev/null
+done < <(find . -name fleet.yaml -not -path '*/charts/*' -exec dirname {} \; | sort)

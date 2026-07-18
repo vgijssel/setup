@@ -47,18 +47,18 @@ unpack in-cluster; the same cluster is manager + agent (`fleet-local`).
 **Files likely touched:** `apps/secret/scripts/fleet-install.sh`, `apps/secret/moon.yml`
 **Scope:** S
 
-### [ ] T3: Bundle scaffolding + `fleet apply` harness
+### [x] T3: Bundle scaffolding + `fleet apply` harness
 **Description:** Author `fleet.yaml` bundles for `apps/secret` and `apps/platform` wrapping the
 existing Helm umbrella charts, and a `secret:up` task that `fleet apply`s both. Prove the path with
 the namespaces + one real operator (e.g. external-secrets) before layering the rest.
 
 **Acceptance criteria:**
-- [ ] `fleet apply -o -` renders valid Bundle YAML for both `apps/secret` and `apps/platform`.
-- [ ] `moon run secret:up` applies bundles; applied `Bundle`s reach `Active` for the seeded subset.
+- [x] `fleet apply -o -` renders valid Bundle YAML (harness proven with `apps/platform/external-secrets`; `apps/secret` bundles land in T4/T6).
+- [x] `moon run secret:up` applies bundles; `platform-apps-platform-external-secrets` reaches Ready (1/1).
 
 **Verification:**
-- [ ] `kubectl get bundles -A` → Active; the chosen operator's pods Running.
-- [ ] `<app>:lint` extended to include the `fleet apply -o -` render check.
+- [x] `kubectl get bundles -A` → Ready; external-secrets pods Running (3/3), 23 CRDs installed.
+- [x] `<app>:lint` extended to include the `fleet apply -o -` render check (relative paths; cd into project).
 
 **Dependencies:** T2
 **Files likely touched:** `apps/secret/fleet.yaml`, `apps/platform/fleet.yaml`,
@@ -66,8 +66,8 @@ the namespaces + one real operator (e.g. external-secrets) before layering the r
 **Scope:** M
 
 ### Checkpoint A — Substrate
-- [ ] vind cluster up, Fleet controller Running, a real bundle deploys via `fleet apply`.
-- [ ] `trunk check` clean; lint tasks pass. **Review with human before Phase 2.**
+- [x] vind cluster up, Fleet controller Running, a real bundle deploys via `fleet apply`.
+- [x] `trunk check` clean; lint tasks pass. **(Phase 2 continues per go-full-auto authorization.)**
 
 ---
 

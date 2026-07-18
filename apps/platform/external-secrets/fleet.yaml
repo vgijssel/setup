@@ -1,0 +1,7 @@
+# Portable Fleet bundle for the external-secrets operator. Fleet detects the
+# umbrella Chart.yaml in this directory and deploys it (its values.yaml is the
+# chart's own values, applied automatically). Same file, both worlds: `fleet
+# apply` now and a Rancher GitRepo pointed at this path later.
+defaultNamespace: external-secrets
+helm:
+  releaseName: external-secrets
