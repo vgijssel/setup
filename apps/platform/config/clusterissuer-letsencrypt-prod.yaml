@@ -9,7 +9,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: maarten@vgijssel.nl
+    email: vassal_preview_4s@icloud.com
     privateKeySecretRef:
       name: letsencrypt-prod-account-key
     solvers:

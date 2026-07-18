@@ -11,9 +11,9 @@ Run `trunk fmt && trunk check` before committing every task. All CLIs are hermit
 Turned from review comments on <https://github.com/vgijssel/setup/pull/983>. Ordered by dependency;
 each one is a single commit. `[ ]` = pending, `[~]` = in progress, `[x]` = done.
 
-### [ ] PR-A: ClusterIssuer uses a private iCloud email
+### [x] PR-A: ClusterIssuer uses a private iCloud email
 Comment: prefer not to expose the public `maarten@vgijssel.nl` in the Let's Encrypt ACME account.
-- [ ] `apps/platform/config/clusterissuer-letsencrypt-prod.yaml` `spec.acme.email` → `vassal_preview_4s@icloud.com`.
+- [x] `apps/platform/config/clusterissuer-letsencrypt-prod.yaml` `spec.acme.email` → `vassal_preview_4s@icloud.com`.
 
 ### [ ] PR-B: Remove k3d, kubeconform, tilt from Hermit
 Comment: these tools are no longer used (k3d bootstrap retired; kubeconform only used by the
