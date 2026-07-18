@@ -73,19 +73,19 @@ the namespaces + one real operator (e.g. external-secrets) before layering the r
 
 ## Phase 2 — OpenBao core (auto-unseal + config)
 
-### [ ] T4: Static auto-unseal + seal-key seeding  ⚠️ top technical risk
+### [x] T4: Static auto-unseal + seal-key seeding  ⚠️ top technical risk
 **Description:** Add the `seal "static"` stanza to the OpenBao chart config and a `seed-seal` script
 that seeds the 32-byte key as a K8s Secret from 1Password (generating + storing it on first run),
 mounted into the pod before it starts. OpenBao must boot unsealed with no manual step.
 
 **Acceptance criteria:**
-- [ ] `moon run secret:seed-seal` idempotently creates the seal-key Secret in `secret` ns from 1Password.
-- [ ] OpenBao pod boots and `bao status` shows `sealed=false` with zero manual unseal.
-- [ ] Seal key never touches local disk or git.
+- [x] `moon run secret:seed-seal` idempotently creates the seal-key Secret in `secret` ns from 1Password (re-run reads back, no dup item).
+- [x] OpenBao pod boots with the static seal loaded (`Static KMS Key ID: secret-2026-07`); `sealed=false` (zero manual unseal) confirmed post-init in T5.
+- [x] Seal key never touches local disk or git (only 1Password + K8s Secret; ConfigMap holds `env://SEAL_KEY`).
 
 **Verification:**
-- [ ] `helm template` renders the `seal "static"` block; `bao status` → `sealed=false`.
-- [ ] Re-running `seed-seal` is a no-op.
+- [x] `helm template` renders the `seal "static"` block (secret:lint); `bao status` → `sealed=false` verified in T5.
+- [x] Re-running `seed-seal` is a no-op (reads key back from 1Password).
 
 **Dependencies:** T3
 **Files likely touched:** `apps/secret/openbao/values.yaml`, `apps/secret/scripts/seed-seal.sh`,
