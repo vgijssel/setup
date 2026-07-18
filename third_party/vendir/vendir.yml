@@ -137,6 +137,22 @@ directories:
           version: 0.8.49
           repository:
             url: https://redhat-cop.github.io/vault-config-operator
+  - path: charts/fleet-crd
+    contents:
+      - path: .
+        helmChart:
+          name: fleet-crd
+          version: 0.15.4
+          repository:
+            url: https://rancher.github.io/fleet-helm-charts/
+  - path: charts/fleet
+    contents:
+      - path: .
+        helmChart:
+          name: fleet
+          version: 0.15.4
+          repository:
+            url: https://rancher.github.io/fleet-helm-charts/
   - path: shell/zimfw
     contents:
       - path: .

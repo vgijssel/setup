@@ -97,6 +97,24 @@ directories:
     path: .
   path: charts/openbao
 - contents:
+  - helmChart:
+      appVersion: v0.8.49
+      version: v0.8.49
+    path: .
+  path: charts/vault-config-operator
+- contents:
+  - helmChart:
+      appVersion: 0.15.4
+      version: 0.15.4
+    path: .
+  path: charts/fleet-crd
+- contents:
+  - helmChart:
+      appVersion: 0.15.4
+      version: 0.15.4
+    path: .
+  path: charts/fleet
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508
@@ -127,10 +145,4 @@ directories:
       - v1.0.2
     path: .
   path: config/cozystack-talos-profiles
-- contents:
-  - helmChart:
-      appVersion: v0.8.49
-      version: v0.8.49
-    path: .
-  path: charts/vault-config-operator
 kind: LockConfig

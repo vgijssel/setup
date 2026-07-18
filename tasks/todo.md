@@ -30,18 +30,18 @@ so LoadBalancer Services do get an EXTERNAL-IP.
 **Files likely touched:** `apps/secret/scripts/cluster.sh`, `apps/secret/moon.yml`
 **Scope:** S
 
-### [ ] T2: Fleet controller (single-cluster) install
+### [x] T2: Fleet controller (single-cluster) install
 **Description:** Install `fleet-crd` + `fleet` Helm charts into `cattle-fleet-system` so Bundles
 unpack in-cluster; the same cluster is manager + agent (`fleet-local`).
 
 **Acceptance criteria:**
-- [ ] `moon run secret:fleet-install` brings the fleet-controller to Running (pinned chart versions).
-- [ ] The `fleet-local` cluster is registered and the `Bundle` CRD exists.
+- [x] `moon run secret:fleet-install` brings the fleet-controller to Running (pinned chart versions).
+- [x] The `fleet-local` cluster is registered and the `Bundle` CRD exists.
 
 **Verification:**
-- [ ] `kubectl -n cattle-fleet-system get pods` → Running; `kubectl get clusters.fleet.cattle.io -A`
-      shows `local`.
-- [ ] `fleet --version` = pinned 0.15.4 (hermit).
+- [x] `kubectl -n cattle-fleet-system get pods` → Running; `kubectl get clusters.fleet.cattle.io -A`
+      shows `local` (BUNDLES-READY 1/1).
+- [x] `fleet --version` = pinned 0.15.4 (hermit).
 
 **Dependencies:** T1
 **Files likely touched:** `apps/secret/scripts/fleet-install.sh`, `apps/secret/moon.yml`
