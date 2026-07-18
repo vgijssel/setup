@@ -24,9 +24,9 @@ lint scripts being removed; tilt gone with apps/bootstrap).
 Comment: drop the sigv4-proxy umbrella chart from the secret app.
 - [x] `apps/secret/sigv4-proxy/` deleted; moon.yml description + lint COMPONENTS no longer reference it.
 
-### [ ] PR-D: Delete apps/platform lint script + target
+### [x] PR-D: Delete apps/platform lint script + target
 Comment: better reproducible k8s/Helm linting comes in a follow-up PR.
-- [ ] `apps/platform/scripts/lint.sh` and the `platform:lint` task removed; `moon query projects` clean.
+- [x] `apps/platform/scripts/lint.sh` and the `platform:lint` task removed; `moon query projects` clean.
 
 ### [ ] PR-E: Restructure apps/platform into src/ + scripts/
 Comment: move component source dirs under `src/` (e.g. `src/cert-manager/`), keep `scripts/` + `moon.yml`.

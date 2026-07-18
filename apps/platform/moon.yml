@@ -7,15 +7,6 @@ tags:
   - kubernetes
   - helm
   - platform
-tasks:
-  lint:
-    command: scripts/lint.sh
-    inputs:
-      - scripts/lint.sh
-      - "*/Chart.yaml"
-      - "*/Chart.lock"
-      - "*/values.yaml"
-      - "*/fleet.yaml"
-      - config/**/*
-    options:
-      runInCI: false
+# Linting is intentionally omitted here — reproducible Kubernetes/Helm linting
+# lands in a follow-up PR. The Fleet bundles are the deployable units.
+tasks: {}
