@@ -1,6 +1,0 @@
-dependencies:
-- name: tailscale-operator
-  repository: file://../../../third_party/vendir/charts/tailscale-operator
-  version: 1.90.9
-digest: sha256:49b496f2a7fb4f5335b06f4f290a01aa86af3ae3dbbc73ca8a096503cf97ab1b
-generated: "2026-07-08T08:08:20.513938+02:00"

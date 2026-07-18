@@ -6,4 +6,4 @@ appVersion: 0.19.0
 dependencies:
   - name: external-dns
     version: 1.19.0
-    repository: file://../../../third_party/vendir/charts/external-dns
+    repository: file://../../../../third_party/vendir/charts/external-dns

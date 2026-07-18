@@ -1,6 +1,0 @@
-dependencies:
-- name: external-secrets
-  repository: file://../../../third_party/vendir/charts/external-secrets
-  version: 2.0.1
-digest: sha256:2618290a6a34e29de792787c49aac3f1dd2b85eb3177dc5acd1b2230658221b8
-generated: "2026-07-08T08:08:18.908381+02:00"

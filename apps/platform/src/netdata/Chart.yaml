@@ -6,4 +6,4 @@ appVersion: v2.10.3
 dependencies:
   - name: netdata
     version: 3.7.168
-    repository: file://../../../third_party/vendir/charts/netdata
+    repository: file://../../../../third_party/vendir/charts/netdata

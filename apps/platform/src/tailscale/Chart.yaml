@@ -6,4 +6,4 @@ appVersion: v1.90.9
 dependencies:
   - name: tailscale-operator
     version: 1.90.9
-    repository: file://../../../third_party/vendir/charts/tailscale-operator
+    repository: file://../../../../third_party/vendir/charts/tailscale-operator

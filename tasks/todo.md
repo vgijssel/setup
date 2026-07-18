@@ -28,10 +28,10 @@ Comment: drop the sigv4-proxy umbrella chart from the secret app.
 Comment: better reproducible k8s/Helm linting comes in a follow-up PR.
 - [x] `apps/platform/scripts/lint.sh` and the `platform:lint` task removed; `moon query projects` clean.
 
-### [ ] PR-E: Restructure apps/platform into src/ + scripts/
+### [x] PR-E: Restructure apps/platform into src/ + scripts/
 Comment: move component source dirs under `src/` (e.g. `src/cert-manager/`), keep `scripts/` + `moon.yml`.
-- [ ] Component + config dirs moved to `apps/platform/src/*`; `file://../../../` chart paths bumped to
-      `../../../../` in Chart.yaml/Chart.lock; `moon query projects` clean.
+- [x] Component + config dirs moved to `apps/platform/src/*`; `file://../../../` chart paths bumped to
+      `../../../../` in Chart.yaml/Chart.lock (digests regenerated); helm dep build + template verified.
 
 ### [ ] PR-F: Restructure apps/secret into src/ + scripts/
 Comment: move component source dirs under `src/` (e.g. `src/openbao/`), keep `scripts/` + `moon.yml`.

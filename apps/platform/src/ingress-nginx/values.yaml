@@ -6,7 +6,7 @@
 # LE cert is what clients see (no Tailscale .ts.net cert in the way).
 #
 # tailscale.com/proxy-group binds this Service to the `secret-ingress` ProxyGroup
-# (apps/platform/tailscale/templates/proxygroup.yaml) instead of a single
+# (apps/platform/src/tailscale/templates/proxygroup.yaml) instead of a single
 # dedicated proxy, so the operator advertises it through a STABLE Tailscale
 # Service (VIP). external-dns (source=service) reads the VIP from the Service's
 # loadBalancer status and the hostname annotation, and publishes secret.vgijssel.nl

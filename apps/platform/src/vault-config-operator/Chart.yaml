@@ -6,4 +6,4 @@ appVersion: v0.8.49
 dependencies:
   - name: vault-config-operator
     version: v0.8.49
-    repository: file://../../../third_party/vendir/charts/vault-config-operator
+    repository: file://../../../../third_party/vendir/charts/vault-config-operator
