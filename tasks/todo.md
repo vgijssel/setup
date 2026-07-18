@@ -20,9 +20,9 @@ Comment: these tools are no longer used (k3d bootstrap retired; kubeconform only
 lint scripts being removed; tilt gone with apps/bootstrap).
 - [x] `hermit uninstall k3d kubeconform tilt`; `bin/{k3d,kubeconform,tilt}` and `bin/.*.pkg` symlinks gone.
 
-### [ ] PR-C: Remove apps/secret/sigv4-proxy
+### [x] PR-C: Remove apps/secret/sigv4-proxy
 Comment: drop the sigv4-proxy umbrella chart from the secret app.
-- [ ] `apps/secret/sigv4-proxy/` deleted; no remaining references in `apps/secret`.
+- [x] `apps/secret/sigv4-proxy/` deleted; moon.yml description + lint COMPONENTS no longer reference it.
 
 ### [ ] PR-D: Delete apps/platform lint script + target
 Comment: better reproducible k8s/Helm linting comes in a follow-up PR.
