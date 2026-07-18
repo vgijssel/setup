@@ -1,0 +1,6 @@
+# Created ahead of the Tailscale operator (T9) so ESO can place the
+# operator-oauth secret here first, breaking the bootstrap cycle.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tailscale

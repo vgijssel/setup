@@ -1,0 +1,16 @@
+# Portable Fleet bundle for the external-secrets wiring: the ClusterSecretStore
+# that points ESO at OpenBao (kubernetes auth) plus the ExternalSecrets that sync
+# cloudflare / tailscale / netdata secrets out of OpenBao into the consuming
+# namespaces, and the ClusterIssuer (LE prod, Cloudflare DNS-01).
+#
+# The tailscale/ and netdata/ namespaces are created here so ESO can place the
+# operator-oauth / netdata-claim secrets *before* those operators deploy (T9/T10)
+# — this is the deliberate break in the bootstrap cycle: secrets are ready and
+# waiting when the consuming charts come up, rather than the charts blocking on
+# a secret that blocks on the chart.
+#
+# Depends on the external-secrets CRDs (external-secrets chart) and on OpenBao
+# being initialised + the `external-secrets` policy/role reconciled by
+# vault-config-operator (secret:init + apps/secret/config); until then the store
+# stays NotReady and ESO error-and-retries, which is expected.
+defaultNamespace: external-secrets

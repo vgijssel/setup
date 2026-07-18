@@ -136,18 +136,25 @@ sigv4/terraform-state ExternalSecret (out of scope).
 
 ## Phase 3 — Consumers & exposure
 
-### [ ] T7: External Secrets store + seed real values
+### [x] T7: External Secrets store + seed real values
 **Description:** Bring the `ClusterSecretStore` (exists) up via the platform bundle and add a
 `secret:seed` task/instructions to load `kv/cloudflare`, `kv/tailscale`, `kv/netdata` into OpenBao;
 the cloudflare/tailscale/netdata `ExternalSecret`s (exist) then sync to K8s Secrets. Drop the s3/hetzner kv.
 
 **Acceptance criteria:**
-- [ ] `ClusterSecretStore openbao` reports Ready (authenticates via kubernetes auth).
-- [ ] ExternalSecrets for cloudflare / tailscale / netdata report `SecretSynced`.
+- [x] `ClusterSecretStore openbao` reports Ready (Valid / Ready=True; authenticates via kubernetes auth).
+- [x] ExternalSecrets for cloudflare / tailscale / netdata report `SecretSynced`.
 
 **Verification:**
-- [ ] `kubectl get clustersecretstore,externalsecret -A` → Ready / SecretSynced.
-- [ ] Target K8s Secrets (`cloudflare-api-token`, `operator-oauth`, `netdata-claim`) exist.
+- [x] `kubectl get clustersecretstore,externalsecret -A` → Ready / SecretSynced (all three).
+- [x] Target K8s Secrets (`cloudflare-api-token`, `operator-oauth`, `netdata-claim`) exist.
+
+**Note:** Added `apps/platform/config/fleet.yaml` to bundle the ClusterSecretStore + 3 ExternalSecrets
++ ClusterIssuer. Pre-created the `tailscale`/`netdata` namespaces in the config bundle so ESO places
+`operator-oauth`/`netdata-claim` *before* those operators deploy (T9/T10) — the deliberate break in the
+bootstrap cycle. No s3/hetzner ExternalSecret existed to drop (already clean). Seeding was done manually
+via the existing `bootstrap.sh` UI flow (values live in OpenBao only); no 1Password-sourced `seed.sh`
+was written since the real values are not stored in 1Password.
 
 **Dependencies:** T6
 **Files likely touched:** `apps/platform/config/*` (keep 3 ExternalSecrets), `apps/secret/scripts/seed.sh`,

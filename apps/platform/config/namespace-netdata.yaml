@@ -1,0 +1,6 @@
+# Created ahead of the Netdata chart (T10) so ESO can place the netdata-claim
+# secret here first, breaking the bootstrap cycle.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: netdata
