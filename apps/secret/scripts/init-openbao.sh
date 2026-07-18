@@ -3,7 +3,7 @@
 # nowhere else), then plant the minimal vault-config-operator login foothold
 # (kubernetes auth method + config + the operator's own policy/role). Everything
 # else -- the kv engine and the external-secrets policy/role -- is reconciled
-# declaratively by vault-config-operator from apps/secret/config.
+# declaratively by vault-config-operator from apps/secret/src/config.
 #
 # OpenBao uses static auto-unseal (see openbao/values.yaml), so there is NO manual
 # unseal step: `bao operator init` yields RECOVERY keys (not unseal keys), and the
@@ -164,12 +164,12 @@ echo "==> OpenBao is unsealed (sealed=$(jq -r '.sealed' <<<"$(raw_status)"))"
 # This is the ONLY OpenBao configuration the script performs. Everything else --
 # the kv engine, the external-secrets policy/role, and a re-declaration of this
 # very foothold -- is reconciled declaratively by vault-config-operator from the
-# CRs in apps/secret/config. The seam plants just enough for the operator to log
+# CRs in apps/secret/src/config. The seam plants just enough for the operator to log
 # in and adopt the rest; it is also the recovery path if the operator is locked out.
 #
 # The policy and role below MUST stay byte-for-byte in sync with
-#   apps/secret/config/policy-vault-config-operator.yaml
-#   apps/secret/config/kubernetesauthenginerole-vault-config-operator.yaml
+#   apps/secret/src/config/policy-vault-config-operator.yaml
+#   apps/secret/src/config/kubernetesauthenginerole-vault-config-operator.yaml
 # so the operator adopts them as no-op overwrites (a matching body cannot
 # self-lock the operator out of its own login path).
 export BAO_TOKEN="${root_token}"
@@ -231,5 +231,5 @@ bao write auth/kubernetes/role/vault-config-operator \
 
 echo "==> Done. OpenBao is initialised, auto-unsealed, and the vault-config-operator"
 echo "    foothold is planted. vault-config-operator now reconciles the kv engine and"
-echo "    the external-secrets policy/role from apps/secret/config. Seed the real kv"
+echo "    the external-secrets policy/role from apps/secret/src/config. Seed the real kv"
 echo "    values (cloudflare / tailscale / netdata) with: moon run secret:seed"

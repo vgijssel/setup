@@ -2,7 +2,7 @@
 # LoadBalancer with loadBalancerClass=tailscale, so the Tailscale operator fronts
 # it on the tailnet — the ONLY way in is via the tailnet. TLS terminates here on
 # the cert-manager LE cert carried by the OpenBao Ingress
-# (apps/secret/config/ingress-openbao.yaml); the tailnet path stays L3/TCP so that
+# (apps/secret/src/config/ingress-openbao.yaml); the tailnet path stays L3/TCP so that
 # LE cert is what clients see (no Tailscale .ts.net cert in the way).
 #
 # tailscale.com/proxy-group binds this Service to the `secret-ingress` ProxyGroup

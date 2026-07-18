@@ -1,5 +1,5 @@
 # vault-config-operator reconciles OpenBao (kv engine, policies, Kubernetes auth
-# roles) from the CRs in apps/secret/config. It points at the in-cluster OpenBao
+# roles) from the CRs in apps/secret/src/config. It points at the in-cluster OpenBao
 # ClusterIP service; the same address ESO's ClusterSecretStore uses.
 #
 # The operator adopts whatever the init-openbao.sh seam plants (see T5a), so it

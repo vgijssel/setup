@@ -33,9 +33,10 @@ Comment: move component source dirs under `src/` (e.g. `src/cert-manager/`), kee
 - [x] Component + config dirs moved to `apps/platform/src/*`; `file://../../../` chart paths bumped to
       `../../../../` in Chart.yaml/Chart.lock (digests regenerated); helm dep build + template verified.
 
-### [ ] PR-F: Restructure apps/secret into src/ + scripts/
+### [x] PR-F: Restructure apps/secret into src/ + scripts/
 Comment: move component source dirs under `src/` (e.g. `src/openbao/`), keep `scripts/` + `moon.yml`.
-- [ ] `openbao/` + `config/` moved to `apps/secret/src/*`; `file://../../../` chart path bumped; refs updated.
+- [x] `openbao/` + `config/` moved to `apps/secret/src/*`; openbao chart path bumped + digest regenerated;
+      `apps/secret/config` doc/comment refs updated to `apps/secret/src/config`.
 
 ### [ ] PR-G: Simplify apps/secret targets + scripts
 Comment: collapse to four targets over `src/` bundles, install Fleet inside apply, drop the rest.
