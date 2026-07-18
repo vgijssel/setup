@@ -8,19 +8,23 @@ Run `trunk fmt && trunk check` before committing every task. All CLIs are hermit
 
 ## Phase 1 — Substrate (vind + Fleet)
 
-### [ ] T1: vind cluster lifecycle
+### [x] T1: vind cluster lifecycle
 **Description:** Add Moon tasks + scripts to create/delete the standalone `secret` cluster on vind
 (`vcluster` docker driver), replacing the k3d bootstrap. Cluster comes up empty, kubeconfig/context
 set automatically.
 
 **Acceptance criteria:**
-- [ ] `moon run secret:cluster-up` creates a Ready single-node `secret` vind cluster (idempotent).
-- [ ] `moon run secret:cluster-down` deletes it; context handling is clean.
-- [ ] A `LoadBalancer` Service gets an EXTERNAL-IP (vind built-in LB works).
+- [x] `moon run secret:cluster-up` creates a Ready single-node `secret` vind cluster (idempotent).
+- [x] `moon run secret:cluster-down` deletes it; context handling is clean.
+- [x] A `LoadBalancer` Service gets an EXTERNAL-IP (vind built-in LB works — VIP 192.168.97.254).
 
 **Verification:**
-- [ ] `kubectl get nodes` → Ready; `kubectl config current-context` points at the secret cluster.
-- [ ] `vcluster --version` = pinned 0.32.1 (hermit).
+- [x] `kubectl get nodes` → Ready; `kubectl config current-context` = `vcluster-docker_secret`.
+- [x] `vcluster --version` = pinned 0.32.1 (hermit).
+
+**Note:** vind standalone (0.32.1) is a full kubeadm-style k8s (v1.35.0, flannel CNI),
+not k3s — but it ships its own LoadBalancer (docker container `vcluster.lb.*`, VIP mode),
+so LoadBalancer Services do get an EXTERNAL-IP.
 
 **Dependencies:** None
 **Files likely touched:** `apps/secret/scripts/cluster.sh`, `apps/secret/moon.yml`
