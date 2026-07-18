@@ -45,7 +45,9 @@ fi
 # --- Get-or-create the seal key in 1Password -------------------------------
 if op item get "${OP_ITEM}" --vault "${OP_VAULT}" >/dev/null 2>&1; then
   echo "==> Seal key already in 1Password (${OP_VAULT}/${OP_ITEM}); reading it back"
-  seal_key="$(op read "op://${OP_VAULT}/${OP_ITEM}/${OP_FIELD}")"
+  # Use `op item get --fields` rather than an op:// reference: the item title can
+  # contain characters (spaces, '+', parens) that are invalid in a secret reference.
+  seal_key="$(op item get "${OP_ITEM}" --vault "${OP_VAULT}" --reveal --fields "label=${OP_FIELD}")"
 else
   echo "==> Generating a new 32-byte static seal key and storing it in 1Password (${OP_VAULT}/${OP_ITEM})"
   seal_key="$(openssl rand -base64 32)"

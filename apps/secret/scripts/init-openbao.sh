@@ -114,6 +114,17 @@ else
   init_json="$(bao operator init \
     -recovery-shares="${RECOVERY_SHARES}" -recovery-threshold="${RECOVERY_THRESHOLD}" -format=json)"
 
+  # A fresh OpenBao (e.g. after secret:stop + secret:start) invalidates any item
+  # left by a previous cluster — the old root token/recovery keys no longer match.
+  # Delete every item with this title (by id, to also clear accidental duplicates)
+  # before storing the new one, so read-back stays unambiguous.
+  echo "==> Removing any stale ${OP_ITEM} item(s) from a previous cluster"
+  while IFS= read -r stale_id; do
+    [[ -n "${stale_id}" ]] || continue
+    op item delete "${stale_id}" --vault "${OP_VAULT}" >/dev/null 2>&1 || true
+  done < <(op item list --vault "${OP_VAULT}" --format json 2>/dev/null |
+    jq -r --arg t "${OP_ITEM}" '.[] | select(.title == $t) | .id')
+
   echo "==> Storing recovery keys + root token in 1Password (${OP_VAULT}/${OP_ITEM})"
   op_fields=("root_token[password]=$(jq -r '.root_token' <<<"${init_json}")")
   idx=1
