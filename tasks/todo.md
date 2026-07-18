@@ -38,13 +38,14 @@ Comment: move component source dirs under `src/` (e.g. `src/openbao/`), keep `sc
 - [x] `openbao/` + `config/` moved to `apps/secret/src/*`; openbao chart path bumped + digest regenerated;
       `apps/secret/config` doc/comment refs updated to `apps/secret/src/config`.
 
-### [ ] PR-G: Simplify apps/secret targets + scripts
+### [x] PR-G: Simplify apps/secret targets + scripts
 Comment: collapse to four targets over `src/` bundles, install Fleet inside apply, drop the rest.
-- [ ] `secret:start` → `start.sh` spins up the vind cluster only.
-- [ ] `secret:apply` → `apply.sh` installs the Fleet chart, then `fleet apply`s a static bundle list under `src/`.
-- [ ] `secret:stop` → `stop.sh` deletes the vind cluster.
-- [ ] `secret:bootstrap` → `bootstrap.sh` seeds the seal key and initialises OpenBao.
-- [ ] All other scripts removed (cluster.sh, fleet-install.sh, up.sh, seed-seal.sh, init-openbao.sh, lint.sh) — folded in.
+- [x] `secret:start` → `start.sh` spins up the vind cluster only.
+- [x] `secret:apply` → `apply.sh` installs the Fleet chart, then `fleet apply`s a static bundle list under `src/`.
+- [x] `secret:stop` → `stop.sh` deletes the vind cluster.
+- [x] `secret:bootstrap` → `bootstrap.sh` seeds the seal key and initialises OpenBao.
+- [x] All other scripts removed (cluster.sh, fleet-install.sh, up.sh, seed-seal.sh, init-openbao.sh, lint.sh) — folded in.
+- [x] Stale `secret:init`/`seed-seal`/`up` and `init-openbao.sh`/`seed-seal.sh` references updated across manifests + SPEC.md.
 
 ---
 

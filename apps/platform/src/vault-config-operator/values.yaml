@@ -2,7 +2,7 @@
 # roles) from the CRs in apps/secret/src/config. It points at the in-cluster OpenBao
 # ClusterIP service; the same address ESO's ClusterSecretStore uses.
 #
-# The operator adopts whatever the init-openbao.sh seam plants (see T5a), so it
+# The operator adopts whatever the bootstrap.sh seam plants (see T5a), so it
 # errors-and-retries while OpenBao is sealed/unconfigured and converges once the
 # seam runs — a broken boot state is expected and fine.
 vault-config-operator:

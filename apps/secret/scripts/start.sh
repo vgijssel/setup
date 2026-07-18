@@ -1,22 +1,57 @@
 #!/usr/bin/env bash
-# Start the secret cluster: create the vind cluster, install the single-cluster
-# Fleet controller, and apply the Fleet bundles. Idempotent end to end — safe to
-# re-run; each step is a no-op when already satisfied.
+# Start the secret cluster: create (or reconnect to) the standalone "secret"
+# cluster on vind (vcluster docker driver) — a single-node kubeadm-style cluster
+# that is throwaway bootstrap substrate. The durable artifacts are the Fleet
+# bundles under src/, so the same manifests work unchanged once Rancher manages
+# this cluster later.
 #
-# OpenBao is deployed here but boots into CreateContainerConfigError until the
-# static seal key is seeded; run `moon run secret:bootstrap` next to seed the key,
-# initialise OpenBao, and open the UI.
+# The cluster comes up empty. Next:
+#   moon run secret:apply      # install Fleet + apply the bundles
+#   moon run secret:bootstrap  # seed the seal key + initialise OpenBao
+#
+# Idempotent: creates the cluster, or just reconnects if it already exists.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLUSTER_NAME="${SECRET_CLUSTER_NAME:-secret}"
 
-echo "==> [1/3] Creating the vind cluster"
-"${SCRIPT_DIR}/cluster.sh" up
+require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required but not found" >&2; exit 1; }; }
+require vcluster
+require kubectl
+require jq
 
-echo "==> [2/3] Installing the Fleet controller"
-"${SCRIPT_DIR}/fleet-install.sh"
+# `vcluster list --output json` reports docker-driver clusters with capitalised
+# keys (.Name / .Status), so match on .Name. Selecting the docker driver first
+# keeps the listing scoped to vind clusters.
+cluster_exists() {
+  vcluster use driver docker >/dev/null 2>&1 || true
+  vcluster list --output json 2>/dev/null |
+    jq -e --arg n "${CLUSTER_NAME}" 'any(.[]; .Name == $n)' >/dev/null 2>&1
+}
 
-echo "==> [3/3] Applying the Fleet bundles"
-"${SCRIPT_DIR}/up.sh"
+# vind uses the docker driver: a standalone vcluster running in its own Docker
+# container rather than nested inside a host cluster. Selecting the driver is a
+# global, idempotent CLI setting.
+echo "==> Selecting the docker driver (vind)"
+vcluster use driver docker >/dev/null 2>&1 || true
 
-echo "==> secret cluster started. Next: moon run secret:bootstrap"
+if cluster_exists; then
+  echo "==> vcluster '${CLUSTER_NAME}' already exists; connecting"
+  vcluster connect "${CLUSTER_NAME}"
+else
+  echo "==> Creating vind cluster '${CLUSTER_NAME}' (docker driver)"
+  vcluster create "${CLUSTER_NAME}" --driver docker --connect
+fi
+
+# The node object registers a few seconds after connect, so poll for it before
+# `kubectl wait` (which errors with "no matching resources" against an empty set).
+echo "==> Waiting for the node to register"
+for _ in $(seq 1 60); do
+  [[ -n "$(kubectl get nodes -o name 2>/dev/null)" ]] && break
+  sleep 2
+done
+
+echo "==> Waiting for the node to become Ready"
+kubectl wait --for=condition=Ready nodes --all --timeout=180s
+
+echo "==> Cluster ready; kubectl context: $(kubectl config current-context)"
+echo "==> Next: moon run secret:apply"

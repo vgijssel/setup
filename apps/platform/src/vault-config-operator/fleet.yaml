@@ -1,7 +1,7 @@
 # Portable Fleet bundle for vault-config-operator. Fleet detects the umbrella
 # Chart.yaml here and deploys it with values.yaml (VAULT_ADDR ->
 # openbao.secret.svc, webhook cert via cert-manager). The operator logs into
-# OpenBao with the kubernetes-auth foothold planted by secret:init and reconciles
+# OpenBao with the kubernetes-auth foothold planted by secret:bootstrap and reconciles
 # the kv engine + policies/roles from the CRs in apps/secret/src/config.
 defaultNamespace: vault-config-operator
 helm:

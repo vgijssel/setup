@@ -56,15 +56,14 @@ but a Bundle only unpacks if the **Fleet controller** is running in-cluster. So:
 ### Bootstrap sequence
 
 ```
-1. vcluster create secret              # empty vind cluster (docker driver), kubeconfig auto-set
-2. seed-seal                           # 1Password -> 32-byte static seal key -> K8s Secret (ns: secret)
-3. fleet-install                       # helm install fleet-crd + fleet (cattle-fleet-system)
-4. fleet apply apps/platform apps/secret   # push bundles; controller reconciles
-5. OpenBao boots AUTO-UNSEALED via the static seal key (no manual unseal)
-6. secret:init                         # bao operator init -> root token + recovery keys -> 1Password
-7. vault-config-operator reconciles    # kv engine + external-secrets policy/role + k8s auth roles
-8. secret:seed                         # operator seeds real kv values into OpenBao (root token)
-9. ESO syncs cloudflare/tailscale/netdata secrets -> cert-manager issues cert,
+1. secret:start        # empty vind cluster (docker driver), kubeconfig auto-set
+2. secret:apply        # helm install fleet-crd + fleet, then fleet apply apps/{secret,platform}/src bundles
+3. secret:bootstrap    # 1Password -> 32-byte static seal key -> K8s Secret (ns: secret), restart OpenBao pod
+4. OpenBao boots AUTO-UNSEALED via the static seal key (no manual unseal)
+5. secret:bootstrap    # (cont.) bao operator init -> root token + recovery keys -> 1Password; plant operator foothold
+6. vault-config-operator reconciles    # kv engine + external-secrets policy/role + k8s auth roles
+7. add kv values via the OpenBao UI    # cloudflare/tailscale/netdata (root token)
+8. ESO syncs cloudflare/tailscale/netdata secrets -> cert-manager issues cert,
    tailscale publishes the Service, external-dns writes secret.vgijssel.nl -> Tailscale IP
 ```
 
@@ -93,21 +92,13 @@ All CLIs are **hermit-managed and pinned** (`bin/` + `third_party/hermit/*.hcl`)
 ## Commands
 
 ```bash
-# Cluster lifecycle
-vcluster use driver docker                # one-time: use Docker as the vind driver
-vcluster create secret                    # empty vind cluster; kubeconfig auto-configured
-vcluster delete secret
-
 # Provision (Moon tasks; interactive/1Password ones are runInCI:false)
-moon run secret:seed-seal                 # 1Password -> static seal-key Secret (+ namespace); idempotent
-moon run secret:fleet-install             # helm install fleet-crd + fleet (cattle-fleet-system)
-moon run secret:up                        # fleet apply apps/platform + apps/secret bundles
-moon run secret:init                      # bao operator init -> root token + recovery keys -> 1Password; idempotent
-moon run secret:seed                      # seed real kv values into OpenBao (root token)
-moon run secret:down                      # fleet cleanup / vcluster delete
+moon run secret:start                     # create (or reconnect to) the empty vind cluster; idempotent
+moon run secret:apply                     # helm install fleet-crd + fleet, then fleet apply every src/ bundle; idempotent
+moon run secret:bootstrap                 # seed static seal key + bao operator init -> 1Password; idempotent
+moon run secret:stop                      # delete the vind cluster
 
 # Validation
-moon run <app>:lint                       # kubeconform + helm template + `fleet apply -o -` render check
 moon check --all
 trunk fmt && trunk check
 ```
@@ -214,14 +205,13 @@ helm:
 
 ## Success Criteria (testable)
 
-- [ ] `vcluster create secret` + `secret:fleet-install` + `secret:up` bring up all 7 services with
-      no manual `kubectl`.
+- [ ] `secret:start` + `secret:apply` bring up all 7 services with no manual `kubectl`.
 - [ ] OpenBao boots **auto-unsealed** (static seal) — `bao status` shows `sealed=false`, zero
       manual unseal steps.
-- [ ] `secret:init` stores the **root token + recovery keys in 1Password**; no secret persists on
+- [ ] `secret:bootstrap` stores the **root token + recovery keys in 1Password**; no secret persists on
       local disk.
 - [ ] vault-config-operator reconciles the `kv` engine + external-secrets policy/role + kubernetes
-      auth roles from `apps/secret/config`.
+      auth roles from `apps/secret/src/config`.
 - [ ] external-secrets syncs cloudflare / tailscale / netdata secrets from OpenBao.
 - [ ] `https://secret.vgijssel.nl` resolves to the **Tailscale IP** (external-dns → Cloudflare),
       serves a **valid Let's Encrypt cert** (cert-manager DNS-01), and is reachable **only on the
