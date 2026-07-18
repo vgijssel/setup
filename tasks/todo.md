@@ -6,6 +6,47 @@ Run `trunk fmt && trunk check` before committing every task. All CLIs are hermit
 
 ---
 
+## PR #983 review follow-ups
+
+Turned from review comments on <https://github.com/vgijssel/setup/pull/983>. Ordered by dependency;
+each one is a single commit. `[ ]` = pending, `[~]` = in progress, `[x]` = done.
+
+### [ ] PR-A: ClusterIssuer uses a private iCloud email
+Comment: prefer not to expose the public `maarten@vgijssel.nl` in the Let's Encrypt ACME account.
+- [ ] `apps/platform/config/clusterissuer-letsencrypt-prod.yaml` `spec.acme.email` → `vassal_preview_4s@icloud.com`.
+
+### [ ] PR-B: Remove k3d, kubeconform, tilt from Hermit
+Comment: these tools are no longer used (k3d bootstrap retired; kubeconform only used by the
+lint scripts being removed; tilt gone with apps/bootstrap).
+- [ ] `hermit uninstall k3d kubeconform tilt`; `bin/{k3d,kubeconform,tilt}` and `bin/.*.pkg` symlinks gone.
+
+### [ ] PR-C: Remove apps/secret/sigv4-proxy
+Comment: drop the sigv4-proxy umbrella chart from the secret app.
+- [ ] `apps/secret/sigv4-proxy/` deleted; no remaining references in `apps/secret`.
+
+### [ ] PR-D: Delete apps/platform lint script + target
+Comment: better reproducible k8s/Helm linting comes in a follow-up PR.
+- [ ] `apps/platform/scripts/lint.sh` and the `platform:lint` task removed; `moon query projects` clean.
+
+### [ ] PR-E: Restructure apps/platform into src/ + scripts/
+Comment: move component source dirs under `src/` (e.g. `src/cert-manager/`), keep `scripts/` + `moon.yml`.
+- [ ] Component + config dirs moved to `apps/platform/src/*`; `file://../../../` chart paths bumped to
+      `../../../../` in Chart.yaml/Chart.lock; `moon query projects` clean.
+
+### [ ] PR-F: Restructure apps/secret into src/ + scripts/
+Comment: move component source dirs under `src/` (e.g. `src/openbao/`), keep `scripts/` + `moon.yml`.
+- [ ] `openbao/` + `config/` moved to `apps/secret/src/*`; `file://../../../` chart path bumped; refs updated.
+
+### [ ] PR-G: Simplify apps/secret targets + scripts
+Comment: collapse to four targets over `src/` bundles, install Fleet inside apply, drop the rest.
+- [ ] `secret:start` → `start.sh` spins up the vind cluster only.
+- [ ] `secret:apply` → `apply.sh` installs the Fleet chart, then `fleet apply`s a static bundle list under `src/`.
+- [ ] `secret:stop` → `stop.sh` deletes the vind cluster.
+- [ ] `secret:bootstrap` → `bootstrap.sh` seeds the seal key and initialises OpenBao.
+- [ ] All other scripts removed (cluster.sh, fleet-install.sh, up.sh, seed-seal.sh, init-openbao.sh, lint.sh) — folded in.
+
+---
+
 ## Phase 1 — Substrate (vind + Fleet)
 
 ### [x] T1: vind cluster lifecycle
