@@ -1,0 +1,20 @@
+# A ProxyGroup gives the tailnet exposure a STABLE identity. Instead of the
+# operator spinning up a single dedicated proxy device (whose tailnet IP changes
+# whenever the device is recreated), the operator runs a fixed set of proxy
+# replicas and fronts them with a Tailscale Service (a VIP). Services annotated
+# with `tailscale.com/proxy-group: secret-ingress` are advertised through this
+# VIP, so the address stays put even as the underlying proxy Pods churn.
+#
+# type: ingress    -> cluster ingress (expose in-cluster Services to the tailnet)
+# replicas: 2      -> survives a proxy Pod restart with no VIP downtime. On the
+#                     single-node secret cluster both replicas co-locate; the win
+#                     here is restart resilience, not multi-node HA.
+#
+# The CRD is installed by the tailscale-operator subchart (installCRDs: true).
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyGroup
+metadata:
+  name: secret-ingress
+spec:
+  type: ingress
+  replicas: 2
