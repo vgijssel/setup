@@ -1,0 +1,8 @@
+# Portable Fleet bundle for the Tailscale operator. Fleet detects the umbrella
+# Chart.yaml here and deploys it with values.yaml. The operator reads its OAuth
+# client from the precreated `operator-oauth` Secret (synced from OpenBao by
+# ../config); until that exists the operator stays not-Ready, which is expected
+# during bootstrap.
+defaultNamespace: tailscale
+helm:
+  releaseName: tailscale-operator

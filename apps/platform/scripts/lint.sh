@@ -7,7 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
-COMPONENTS=(external-secrets cert-manager vault-config-operator tailscale netdata external-dns)
+COMPONENTS=(external-secrets cert-manager vault-config-operator tailscale netdata external-dns ingress-nginx)
 
 for component in "${COMPONENTS[@]}"; do
   echo "==> Linting ${component}"

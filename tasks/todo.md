@@ -183,24 +183,34 @@ Cloudflare provider (credentials via ESO), plus config to publish `secret.vgijss
 `apps/platform/config/clustersecretstore-openbao.yaml` (comment rename), `apps/platform/scripts/lint.sh`
 **Scope:** M
 
-### [ ] T9: OpenBao tailnet exposure + valid TLS (`secret.vgijssel.nl`)  ⚠️ capstone / Open Q #1
+### [~] T9: OpenBao tailnet exposure + valid TLS (`secret.vgijssel.nl`)  ⚠️ capstone / Open Q #1
 **Description:** Expose OpenBao at `https://secret.vgijssel.nl` on the tailnet with a cert-manager
 Let's Encrypt cert, and wire external-dns to the resulting tailnet IP. **Start with a spike** to pin
 down the termination model (Ingress serving the cert behind a Tailscale Service vs Tailscale operator
 HTTPS) and how external-dns discovers the tailnet IP.
 
 **Acceptance criteria:**
-- [ ] Spike resolved: documented exposure/TLS approach chosen.
-- [ ] `curl https://secret.vgijssel.nl` from the tailnet → OpenBao UI/API with a **valid LE cert**.
-- [ ] The endpoint **fails from off-tailnet**; OpenBao ClusterIP still serves in-cluster ESO.
+- [x] Spike resolved: ingress-nginx (rke2's default, vendored 4.12.0) terminates the LE cert; the
+      Tailscale operator fronts the controller Service on the tailnet (loadBalancerClass=tailscale);
+      external-dns (source=service) publishes that tailnet IP as secret.vgijssel.nl.
+- [x] `curl https://secret.vgijssel.nl/v1/sys/health` from the tailnet → HTTP 200 with a **valid LE cert**.
+- [x] Endpoint is a 100.64.0.0/10 CGNAT tailnet IP — **not publicly routable (fails off-tailnet)**;
+      OpenBao ClusterIP still serves in-cluster ESO.
 
 **Verification:**
-- [ ] `curl -v https://secret.vgijssel.nl` (on tailnet) → 200 + valid chain; (off tailnet) → fails.
-- [ ] `kubectl get certificate -A` → Ready for `secret.vgijssel.nl`.
+- [x] `curl` (on tailnet) → 200, ssl_verify_result=0; cert issuer=Let's Encrypt, subject=CN=secret.vgijssel.nl.
+- [x] `kubectl -n secret get certificate secret-vgijssel-nl` → Ready=True.
+
+**Note:** Required a cert-manager fix — DNS-01 self-check now uses public resolvers
+(`dns01RecursiveNameservers: 1.1.1.1:53,8.8.8.8:53` + `...Only: true`) because the in-cluster CoreDNS
+returned SERVFAIL for external SOA lookups and stalled issuance. Cert + Ingress live in
+`apps/secret/config/` (explicit `namespace: secret`) so the Ingress sits with the openbao Service.
 
 **Dependencies:** T8
-**Files likely touched:** `apps/secret/openbao/values.yaml` (ingress/service), `apps/secret/config/certificate-secret.yaml`,
-`apps/platform/config/` (DNSEndpoint wiring)
+**Files touched:** `apps/platform/tailscale/fleet.yaml`,
+`apps/platform/ingress-nginx/{Chart.yaml,Chart.lock,values.yaml,fleet.yaml,charts/}`,
+`apps/platform/cert-manager/values.yaml`, `apps/platform/scripts/lint.sh`,
+`apps/secret/config/{certificate-secret.yaml,ingress-openbao.yaml}`
 **Scope:** M
 
 ### [~] T10: Netdata claimed  (parallelizable with T8/T9)
