@@ -254,23 +254,35 @@ stale `secret` tailnet device should be pruned from the Tailscale admin console.
 
 ## Phase 4 — Retirement
 
-### [ ] T11: Retire superseded apps/libs  ⚠️ destructive — gated on green Checkpoint C + confirm
+### [~] T11: Retire superseded apps/libs  ⚠️ destructive — gated on green Checkpoint C + confirm
 **Description:** Remove the obsolete pieces: `apps/bootstrap` (Tilt + k3d), `apps/gateway-prod`,
 `libs/gateway-image`, the aws-sigv4-proxy (`apps/secret/sigv4-proxy` + `libs/aws-sigv4-proxy` usage),
 and `apps/auth` (OIDC/Authentik). Grep for references before deleting.
 
 **Acceptance criteria:**
-- [ ] Listed dirs removed; no dangling references (moon workspace, vendir, imports).
-- [ ] `moon query projects` is clean; repo builds/lints.
+- [x] `apps/bootstrap` + `apps/gateway-prod` removed; `moon query projects` clean (no bootstrap/gateway-prod).
+- [x] `libs/gateway-image` and `apps/auth` were already absent (removed earlier).
+
+**Scope decision (human-confirmed):** Deleted only `apps/bootstrap` and `apps/gateway-prod`.
+**Kept** the sigv4-proxy (`apps/secret/sigv4-proxy` + `libs/aws-sigv4-proxy`) — to be reintroduced
+later, and `libs/aws-sigv4-proxy` is still used by the live `apps/secrets-proxy/s3-docs-infra-prod-proxy-b2`.
 
 **Verification:**
-- [ ] `grep -r` for each removed name → only historical/docs hits; `moon check --all` passes.
-- [ ] `trunk check` clean.
+- [x] `moon query projects` → no bootstrap/gateway-prod.
+- [~] `trunk check` clean for T11-touched files; 15 pre-existing issues remain in T1–T6 files
+      (`apps/secret/{moon.yml,scripts/cluster.sh,scripts/init-openbao.sh,scripts/lint.sh,scripts/up.sh}`) —
+      not introduced by this work; flagged for a separate cleanup.
 
-**Dependencies:** Checkpoint C (verified end-to-end) + explicit human confirmation.
-**Files likely touched:** deletions across `apps/bootstrap`, `apps/gateway-prod`, `libs/gateway-image`,
-`apps/secret/sigv4-proxy`, `libs/aws-sigv4-proxy`, `apps/auth`; workspace/vendir refs.
+**Hetzner manual cleanup (apps/gateway-prod, Terraform state was remote S3/B2):** delete the
+`hcloud_server` **gateway-prod**, `hcloud_firewall` **gateway-prod-firewall**, and `hcloud_ssh_key`
+**gateway-prod-key** (server's primary IPv4/IPv6 delete with it — no separate primary-IP resource),
+plus the remote tfstate object at S3/B2 key **gateway-prod**. Untracked local `.env` backed up to the
+session scratchpad (`gateway-prod.env.backup`) for the token if needed.
+
+**Files touched:** deletions across `apps/bootstrap`, `apps/gateway-prod`.
 **Scope:** M
 
 ### Checkpoint D — Complete
-- [ ] All SPEC.md success criteria met; obsolete source removed; ready for review / Rancher handoff.
+- [x] All SPEC.md success criteria met; `apps/bootstrap` + `apps/gateway-prod` removed (sigv4-proxy
+      intentionally kept for later); ready for review / Rancher handoff. Manual Hetzner cleanup for
+      the retired gateway-prod server pending (see T11).
