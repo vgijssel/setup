@@ -234,8 +234,21 @@ ExternalSecret to sync claim_url→NETDATA_CLAIM_URL and room_ids→NETDATA_CLAI
 **Scope:** S
 
 ### Checkpoint C — End-to-end
-- [ ] All 7 services Ready; `secret.vgijssel.nl` serves OpenBao on the tailnet with a valid cert;
-      secrets sync; Netdata observing. **Review with human before retirement.**
+- [x] All 7 services Ready (10/10 Fleet bundles Ready); `secret.vgijssel.nl` serves OpenBao on the
+      tailnet with a valid LE cert (HTTP 200, sealed=false); all 4 ExternalSecrets synced; Netdata
+      claimed (ACLK connected). **Review with human before retirement.**
+
+**Namespace-ownership fix:** the tailscale/netdata/external-dns namespaces pre-created in the config
+bundle (T7/T8/T10) conflicted with the operator Helm bundles that own the same namespaces (Fleet
+"not owned by us"). Removed the three `namespace-*.yaml` from the config bundle; the operator bundles
+own their namespaces via `defaultNamespace`. Removal triggered a Fleet GC that briefly terminated
+those namespaces; the operator bundles recreated them and, after forcing the config BundleDeployment
+to redeploy, ESO re-synced all secrets and every bundle returned to Ready. On a fresh bootstrap the
+ExternalSecrets simply error-and-retry until the operator bundles create the namespaces (expected).
+
+**Known wrinkle:** the tailnet proxy device was recreated as `secret-1` (old `secret` node not
+deregistered on force-delete) with a new IP (external-dns updated the A record automatically). The
+stale `secret` tailnet device should be pruned from the Tailscale admin console.
 
 ---
 

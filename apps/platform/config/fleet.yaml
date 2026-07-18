@@ -3,11 +3,11 @@
 # cloudflare / tailscale / netdata secrets out of OpenBao into the consuming
 # namespaces, and the ClusterIssuer (LE prod, Cloudflare DNS-01).
 #
-# The tailscale/ and netdata/ namespaces are created here so ESO can place the
-# operator-oauth / netdata-claim secrets *before* those operators deploy (T9/T10)
-# — this is the deliberate break in the bootstrap cycle: secrets are ready and
-# waiting when the consuming charts come up, rather than the charts blocking on
-# a secret that blocks on the chart.
+# The consuming namespaces (tailscale/netdata/external-dns) are owned by their
+# operator Helm bundles (Fleet defaultNamespace), not created here — declaring
+# them in both bundles causes a Fleet ownership conflict. On a fresh bootstrap the
+# ExternalSecrets targeting those namespaces error-and-retry until the operator
+# bundle creates the namespace, which Fleet reconciles continuously (expected).
 #
 # Depends on the external-secrets CRDs (external-secrets chart) and on OpenBao
 # being initialised + the `external-secrets` policy/role reconciled by
