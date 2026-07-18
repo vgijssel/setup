@@ -17,7 +17,15 @@ for component in "${COMPONENTS[@]}"; do
 done
 
 echo "==> Linting config"
-kubeconform -strict -ignore-missing-schemas -summary "${PROJECT_DIR}"/config/*.yaml
+# Validate the config CRs, but skip fleet.yaml (a Fleet bundle spec, not a k8s
+# manifest — it has no `kind`).
+config_manifests=()
+while IFS= read -r f; do config_manifests+=("$f"); done < <(
+  find "${PROJECT_DIR}/config" -maxdepth 1 -name '*.yaml' ! -name 'fleet.yaml' | sort
+)
+if [[ ${#config_manifests[@]} -gt 0 ]]; then
+  kubeconform -strict -ignore-missing-schemas -summary "${config_manifests[@]}"
+fi
 
 # Fleet bundle render check: every dir with a fleet.yaml must render to a valid
 # Bundle via `fleet apply -o -` (the same rendering a Rancher GitRepo performs).

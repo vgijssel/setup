@@ -111,26 +111,26 @@ vault-config-operator login foothold (kubernetes auth config + operator policy/r
 **Files likely touched:** `apps/secret/scripts/init-openbao.sh`, `apps/secret/moon.yml`
 **Scope:** M
 
-### [ ] T6: vault-config-operator reconciles kv engine + policies/roles
+### [x] T6: vault-config-operator reconciles kv engine + policies/roles
 **Description:** Ensure the existing config CRs (kv engine, external-secrets policy/role, k8s auth
 role/mount) apply via the Fleet bundle and reconcile against the initialised OpenBao. Drop the
 sigv4/terraform-state ExternalSecret (out of scope).
 
 **Acceptance criteria:**
-- [ ] `kv` v2 engine present in OpenBao; `external-secrets` policy + role present.
-- [ ] `apps/secret/config/externalsecret-terraform-state-s3.yaml` removed from the bundle.
+- [x] `kv` v2 engine present in OpenBao; `external-secrets` policy + role present.
+- [x] `apps/secret/config/externalsecret-terraform-state-s3.yaml` removed from the bundle.
 
 **Verification:**
-- [ ] `bao secrets list` shows `kv/`; `bao policy read external-secrets` matches the CR.
-- [ ] vault-config-operator CRs report reconciled (no persistent errors after seed).
+- [x] `bao secrets list` shows `kv/`; `bao policy read external-secrets` is identical to the CR.
+- [x] All 6 config CRs report `ReconcileSuccessful=True` (also confirms operator login via the foothold).
 
 **Dependencies:** T5
 **Files likely touched:** `apps/secret/config/*` (remove terraform-state-s3), `apps/secret/fleet.yaml`
 **Scope:** S–M
 
 ### Checkpoint B — OpenBao core
-- [ ] OpenBao auto-unsealed, initialised (keys in 1Password), kv engine + policies/roles reconciled.
-- [ ] `trunk check` clean; lints pass. **Review with human before Phase 3.**
+- [x] OpenBao auto-unsealed, initialised (keys in 1Password), kv engine + policies/roles reconciled.
+- [x] `trunk check` clean; lints pass. **STOP POINT: T7 needs the cloudflare/tailscale/netdata secrets seeded — handed back to the user per go-full-auto authorization.**
 
 ---
 

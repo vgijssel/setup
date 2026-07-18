@@ -15,6 +15,7 @@ tasks:
       - "*/Chart.yaml"
       - "*/Chart.lock"
       - "*/values.yaml"
+      - "*/fleet.yaml"
       - config/**/*
     options:
       runInCI: false
