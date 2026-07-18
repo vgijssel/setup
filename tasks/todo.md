@@ -161,25 +161,26 @@ was written since the real values are not stored in 1Password.
 `apps/secret/moon.yml`
 **Scope:** M
 
-### [ ] T8: external-dns + Cloudflare, hostname → `secret.vgijssel.nl`
+### [~] T8: external-dns + Cloudflare, hostname → `secret.vgijssel.nl`
 **Description:** Add an `external-dns` umbrella wrapper (chart 1.19.0 already vendored) with the
 Cloudflare provider (credentials via ESO), plus config to publish `secret.vgijssel.nl`. Rename all
 `secrets.vgijssel.nl` → `secret.vgijssel.nl` across manifests.
 
 **Acceptance criteria:**
-- [ ] external-dns Running and authenticated to Cloudflare (token via ESO).
-- [ ] A Cloudflare record for `secret.vgijssel.nl` is created/managed by external-dns.
-- [ ] No `secrets.vgijssel.nl` references remain.
+- [x] external-dns Running and authenticated to Cloudflare (token via ESO; zone list OK, no auth error).
+- [~] A Cloudflare record for `secret.vgijssel.nl` is created/managed by external-dns — deferred to T9:
+      external-dns is deployed + configured (`policy: sync`, `source: service`, `domainFilters: [vgijssel.nl]`,
+      `txtOwnerId: secret-cluster`) but has no annotated Service to publish until T9 creates the tailnet Service.
+- [x] No `secrets.vgijssel.nl` references remain.
 
 **Verification:**
-- [ ] `kubectl -n external-dns logs` shows a successful Cloudflare sync; `dig secret.vgijssel.nl`
-      returns the expected (tailnet) IP.
-- [ ] `grep -r secrets.vgijssel.nl apps/` → empty.
+- [x] `kubectl -n external-dns logs` → authenticated ("All records are already up to date"); `dig` verified in T9.
+- [x] `grep -r secrets.vgijssel.nl apps/` → empty.
 
 **Dependencies:** T7
-**Files likely touched:** `apps/platform/external-dns/{Chart.yaml,values.yaml}`,
-`apps/platform/config/externalsecret-external-dns.yaml`, `apps/platform/config/` (DNSEndpoint/annotation),
-`apps/platform/scripts/lint.sh`, `apps/platform/fleet.yaml`
+**Files touched:** `apps/platform/external-dns/{Chart.yaml,Chart.lock,values.yaml,fleet.yaml,charts/}`,
+`apps/platform/config/{externalsecret-external-dns.yaml,namespace-external-dns.yaml}`,
+`apps/platform/config/clustersecretstore-openbao.yaml` (comment rename), `apps/platform/scripts/lint.sh`
 **Scope:** M
 
 ### [ ] T9: OpenBao tailnet exposure + valid TLS (`secret.vgijssel.nl`)  ⚠️ capstone / Open Q #1

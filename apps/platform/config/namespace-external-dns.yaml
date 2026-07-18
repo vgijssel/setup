@@ -1,0 +1,6 @@
+# Created ahead of the external-dns chart so ESO can place the
+# external-dns-cloudflare-api-token secret here first, breaking the bootstrap cycle.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: external-dns

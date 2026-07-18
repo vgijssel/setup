@@ -7,7 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "${SCRIPT_DIR}")"
-COMPONENTS=(external-secrets cert-manager vault-config-operator tailscale netdata)
+COMPONENTS=(external-secrets cert-manager vault-config-operator tailscale netdata external-dns)
 
 for component in "${COMPONENTS[@]}"; do
   echo "==> Linting ${component}"
@@ -21,7 +21,8 @@ echo "==> Linting config"
 # Validate the config CRs, but skip fleet.yaml (a Fleet bundle spec, not a k8s
 # manifest — it has no `kind`).
 config_manifests=()
-while IFS= read -r f; do config_manifests+=("$f"); done < <(
+# shellcheck disable=SC2312  # find|sort feeds the loop; its exit status is irrelevant here
+while IFS= read -r f; do config_manifests+=("${f}"); done < <(
   find "${PROJECT_DIR}/config" -maxdepth 1 -name '*.yaml' ! -name 'fleet.yaml' | sort
 )
 if [[ ${#config_manifests[@]} -gt 0 ]]; then
@@ -34,6 +35,7 @@ fi
 # project and pass relative paths (absolute paths render nothing).
 echo "==> Rendering Fleet bundles (fleet apply -o -)"
 cd "${PROJECT_DIR}"
+# shellcheck disable=SC2312  # find|sort feeds the loop; its exit status is irrelevant here
 while IFS= read -r dir; do
   [[ -n "${dir}" ]] || continue
   echo "  - ${dir}"

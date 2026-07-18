@@ -1,0 +1,25 @@
+# external-dns, Cloudflare provider. Publishes the tailnet IP of the OpenBao
+# Tailscale Service (created in T9, annotated with the hostname) as an A record
+# for secret.vgijssel.nl. Reads only Services (source=service) so it never touches
+# unrelated Ingresses; `policy: sync` lets it create AND remove the record it owns.
+#
+# The Cloudflare API token comes from the `external-dns-cloudflare-api-token`
+# Secret, synced from OpenBao (kv/cloudflare#token) by the ExternalSecret in
+# ../config. domainFilters + a txtOwnerId scope external-dns to the vgijssel.nl
+# zone and tag its TXT ownership records to this cluster.
+external-dns:
+  provider:
+    name: cloudflare
+  sources:
+    - service
+  policy: sync
+  registry: txt
+  txtOwnerId: secret-cluster
+  domainFilters:
+    - vgijssel.nl
+  env:
+    - name: CF_API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: external-dns-cloudflare-api-token
+          key: api-token
