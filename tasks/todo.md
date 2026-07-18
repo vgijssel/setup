@@ -15,10 +15,10 @@ each one is a single commit. `[ ]` = pending, `[~]` = in progress, `[x]` = done.
 Comment: prefer not to expose the public `maarten@vgijssel.nl` in the Let's Encrypt ACME account.
 - [x] `apps/platform/config/clusterissuer-letsencrypt-prod.yaml` `spec.acme.email` → `vassal_preview_4s@icloud.com`.
 
-### [ ] PR-B: Remove k3d, kubeconform, tilt from Hermit
+### [x] PR-B: Remove k3d, kubeconform, tilt from Hermit
 Comment: these tools are no longer used (k3d bootstrap retired; kubeconform only used by the
 lint scripts being removed; tilt gone with apps/bootstrap).
-- [ ] `hermit uninstall k3d kubeconform tilt`; `bin/{k3d,kubeconform,tilt}` and `bin/.*.pkg` symlinks gone.
+- [x] `hermit uninstall k3d kubeconform tilt`; `bin/{k3d,kubeconform,tilt}` and `bin/.*.pkg` symlinks gone.
 
 ### [ ] PR-C: Remove apps/secret/sigv4-proxy
 Comment: drop the sigv4-proxy umbrella chart from the secret app.
