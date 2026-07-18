@@ -1,0 +1,7 @@
+# Portable Fleet bundle for Netdata. Fleet detects the umbrella Chart.yaml here
+# and deploys it with values.yaml. Claiming needs the netdata-claim Secret (synced
+# from OpenBao by ../config); until it exists the agents run unclaimed, which is
+# the expected bootstrap state.
+defaultNamespace: netdata
+helm:
+  releaseName: netdata

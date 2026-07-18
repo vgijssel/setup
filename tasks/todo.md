@@ -203,18 +203,24 @@ HTTPS) and how external-dns discovers the tailnet IP.
 `apps/platform/config/` (DNSEndpoint wiring)
 **Scope:** M
 
-### [ ] T10: Netdata claimed  (parallelizable with T8/T9)
+### [~] T10: Netdata claimed  (parallelizable with T8/T9)
 **Description:** Bring up Netdata (chart + `netdata-claim` ExternalSecret both exist) and confirm the
 cluster claims into Netdata Cloud.
 
 **Acceptance criteria:**
-- [ ] Netdata pods Running; the cluster/node appears in Netdata Cloud.
+- [x] Netdata pods Running; the cluster/node appears in Netdata Cloud.
 
 **Verification:**
-- [ ] `kubectl -n netdata get pods` → Running; node visible in the Netdata Cloud space.
+- [x] `kubectl -n netdata get pods` → Running (parent, child, k8s-state); parent log shows
+      `ACLK CONNECTED` and a `claimed_id` file is present (agent registered with Netdata Cloud).
+
+**Note:** Added `apps/platform/netdata/fleet.yaml` and wired claiming via `envFrom` on the
+netdata-claim Secret (parent/child/k8sState) — token never in git. Extended the netdata-claim
+ExternalSecret to sync claim_url→NETDATA_CLAIM_URL and room_ids→NETDATA_CLAIM_ROOMS as well.
 
 **Dependencies:** T7
-**Files likely touched:** `apps/platform/netdata/*` (exists), `apps/platform/config/externalsecret-netdata-claim.yaml` (exists)
+**Files touched:** `apps/platform/netdata/{values.yaml,fleet.yaml}`,
+`apps/platform/config/externalsecret-netdata-claim.yaml`
 **Scope:** S
 
 ### Checkpoint C — End-to-end
