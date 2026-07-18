@@ -94,19 +94,18 @@ mounted into the pod before it starts. OpenBao must boot unsealed with no manual
 **Note:** If chart 0.28.4 doesn't expose the seal stanza cleanly, fall back to `env://` key source or
 a raw `extraConfig` override — decide within this task.
 
-### [ ] T5: Rework init for the recovery-key model
+### [x] T5: Rework init for the recovery-key model
 **Description:** Adapt `init-openbao.sh`: drop the manual unseal loop (auto-unseal handles it);
 `bao operator init` now yields **recovery keys** + root token → 1Password; keep planting the
 vault-config-operator login foothold (kubernetes auth config + operator policy/role).
 
 **Acceptance criteria:**
-- [ ] `moon run secret:init` stores root token + recovery keys in 1Password; idempotent (reads back
-      if already initialised).
-- [ ] The vault-config-operator foothold is planted (policy/role byte-for-byte matching the CRs).
+- [x] `moon run secret:init` stores root token + recovery keys in 1Password; idempotent (reads back via `op item get` if already initialised).
+- [x] The vault-config-operator foothold is planted (policy byte-for-byte identical to the CR, role binds controller-manager).
 
 **Verification:**
-- [ ] Fresh cluster: init succeeds, 1Password item present; re-run is a no-op.
-- [ ] vault-config-operator can log in (`kubectl -n vault-config-operator logs` shows successful auth).
+- [x] Fresh cluster: init succeeds, 1Password item present; re-run reads back (no re-init). Auto-unseal survives pod restart (sealed=false).
+- [x] vault-config-operator login verified in T6 (operator deployed there); auth methods = kubernetes/, token/.
 
 **Dependencies:** T4
 **Files likely touched:** `apps/secret/scripts/init-openbao.sh`, `apps/secret/moon.yml`
