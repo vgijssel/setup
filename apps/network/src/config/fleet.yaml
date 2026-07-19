@@ -1,0 +1,17 @@
+# Portable Fleet bundle for the network cluster's per-cluster ESO wiring:
+#   - clustersecretstore-openbao.yaml : the REMOTE, JWT-auth ClusterSecretStore
+#     named `openbao` (the shared ExternalSecrets in apps/platform/src/config reference
+#     it by name and deploy to both clusters).
+#   - service-openbao-egress.yaml     : the Tailscale operator egress to
+#     secret.vgijssel.nl (SPEC R8).
+#   - certificate-omada.yaml          : the Let's Encrypt cert mounted into Omada (T14).
+#
+# The ExternalSecrets themselves are NOT here — they live in the shared platform-config
+# bundle. The consuming namespace external-secrets is owned by the external-secrets
+# operator bundle (Fleet defaultNamespace), not created here, to avoid an ownership
+# conflict; the egress Service sets its namespace explicitly.
+#
+# Depends on the external-secrets + cert-manager CRDs; until OpenBao grants network
+# access (T8) and the egress is approved (ACL-A), the store stays NotReady and ESO
+# error-and-retries, which is expected.
+defaultNamespace: external-secrets

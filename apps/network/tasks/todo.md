@@ -33,8 +33,8 @@ resolved.
 - [x] **T8** OpenBao `jwt-network` backend + `network-read` policy + `network-eso` role (apps/secret) *(deps: T9 for apply; additive to live secret cluster)* — code + `tofu validate` PASS. Gated on `network_enabled` (issuer+keys present) so the module still applies on secret before network exists. terranetes policy broadened for `auth/jwt-network/*`. **Live apply deferred to T16** (module `?ref=` flip after merge) — applying now would make terranetes, reconciling the old ref against shared state, destroy the grant. ⚠️ also gated by ACL-A for end-to-end.
 - [x] **T9** `network:bootstrap` — seed `operator-oauth`; extract OIDC issuer + JWKS *(deps: T6)*
   - Live: read secret-cluster root token from 1Password, read kv/tailscale from remote OpenBao (https://secret.vgijssel.nl over tailnet), seeded `operator-oauth` in network's tailscale ns (operator now progressing past ContainerCreating). Captured issuer `https://kubernetes.default.svc.cluster.local` + 1 JWKS key → PEM via stdlib DER encoder → git-ignored `network-jwt.auto.tfvars.json`. Idempotent.
-- [ ] **T10** Tailscale egress to `secret.vgijssel.nl` + `network` ClusterSecretStore (JWT) + ExternalSecrets *(deps: T7, T8, T9, ACL-A)*
-- [ ] **✅ Checkpoint B** — all `network` ExternalSecrets `SecretSynced` via JWT → self-verify, then continue
+- [x] **T10** Tailscale egress to `secret.vgijssel.nl` + `network` ClusterSecretStore (JWT) + ExternalSecrets *(deps: T7, T8, T9, ACL-A)* — CODE complete + deployed (`network-config` bundle: JWT ClusterSecretStore `openbao` + tailnet-fqdn egress Service). Shared ExternalSecrets come from platform-config. Live store = `InvalidProviderConfig` (unable to create client) pending **ACL-A** + T8 live apply.
+- [ ] **⚠️ BLOCKED Checkpoint B** — ExternalSecrets can't sync until ACL-A (tailnet grant network-operator→svc:secret) is applied AND T8 grant is live (needs branch merge + module ref flip). Both require access I lack (Tailscale API token / merge). See final report.
 
 ## Phase 4 — Data + application
 - [ ] **T11** `network-mongodb` bundle (PVC + creds ESO + `mongodb-uri`) *(deps: T1, T10)*
