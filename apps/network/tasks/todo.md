@@ -18,8 +18,10 @@ resolved.
   - tailscale + external-dns: `secret` target (no override → base values.yaml → byte-identical) + `network` target (hostname `network-operator` / txtOwnerId `network-cluster`).
   - ingress-nginx + tailscale-proxygroup (secret-ingress): gated secret-only. network gets its own `network-ingress` ProxyGroup bundle (raw CR name can't be Helm-templated without breaking secret byte-identical).
   - Re-applied live: all 4 bundles 1/1 Ready, **no pod restarts** (helm no-op) → secret unchanged.
-- [ ] **T5** Split platform `config`: shared Issuer+ExternalSecrets vs per-cluster ClusterSecretStore *(deps: T4)*
-- [ ] **✅ Checkpoint A** — `secret` manifests diff-clean, cluster green, label present → self-verify, then continue
+- [x] **T5** Split platform `config`: shared Issuer+ExternalSecrets vs per-cluster ClusterSecretStore *(deps: T4)*
+  - Moved k8s-auth ClusterSecretStore from platform-config → apps/secret/src/config (spec byte-identical). platform-config keeps ClusterIssuer + 4 ExternalSecrets, deployed to both clusters via default target.
+  - Live: store `Valid`, all 4 ExternalSecrets `SecretSynced=True`.
+- [x] **✅ Checkpoint A** — all 12 bundles N/N Ready, CSS Valid, ESO synced, label=secret, no pod restarts → secret byte-identical, PASSED.
 
 ## Phase 2 — Network scaffold
 - [ ] **T6** `apps/network/moon.yml` + `start.sh` + `stop.sh` (vind `network`) *(deps: none)*
