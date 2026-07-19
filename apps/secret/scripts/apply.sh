@@ -59,7 +59,6 @@ fleet apply -n "${FLEET_NS}" secret-openbao apps/secret/src/openbao
 fleet apply -n "${FLEET_NS}" platform-external-secrets apps/platform/src/external-secrets
 fleet apply -n "${FLEET_NS}" platform-cert-manager apps/platform/src/cert-manager
 fleet apply -n "${FLEET_NS}" platform-terranetes apps/platform/src/terranetes
-fleet apply -n "${FLEET_NS}" platform-vault-config-operator apps/platform/src/vault-config-operator
 fleet apply -n "${FLEET_NS}" platform-tailscale apps/platform/src/tailscale
 fleet apply -n "${FLEET_NS}" platform-ingress-nginx apps/platform/src/ingress-nginx
 fleet apply -n "${FLEET_NS}" platform-external-dns apps/platform/src/external-dns

@@ -1,6 +1,0 @@
-dependencies:
-- name: vault-config-operator
-  repository: file://../../../../third_party/vendir/charts/vault-config-operator
-  version: v0.8.49
-digest: sha256:2f1cf983a138f931accb68d83d03c40540a7d8391a0fb0db0b5856a5ed357c4b
-generated: "2026-07-18T23:04:49.428641+02:00"

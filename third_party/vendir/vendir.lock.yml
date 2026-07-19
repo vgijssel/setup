@@ -98,12 +98,6 @@ directories:
   path: charts/openbao
 - contents:
   - helmChart:
-      appVersion: v0.8.49
-      version: v0.8.49
-    path: .
-  path: charts/vault-config-operator
-- contents:
-  - helmChart:
       appVersion: v0.5.7
       version: v0.8.6
     path: .

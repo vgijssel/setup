@@ -1,9 +1,0 @@
-apiVersion: v2
-name: vault-config-operator
-description: redhat-cop/vault-config-operator — reconciles OpenBao config from Kubernetes CRs
-version: 1.0.0
-appVersion: v0.8.49
-dependencies:
-  - name: vault-config-operator
-    version: v0.8.49
-    repository: file://../../../../third_party/vendir/charts/vault-config-operator

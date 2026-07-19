@@ -1,7 +1,7 @@
 # Portable Fleet bundle for cert-manager. Fleet detects the umbrella Chart.yaml
 # here and deploys it with values.yaml (CRDs enabled). The controller runs without
 # any secret; only the Cloudflare DNS-01 ClusterIssuer (../config) needs the
-# cloudflare token, seeded later. Also issues the vault-config-operator webhook cert.
+# cloudflare token, seeded later.
 defaultNamespace: cert-manager
 helm:
   releaseName: cert-manager

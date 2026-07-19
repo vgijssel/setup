@@ -129,14 +129,6 @@ directories:
           version: 0.28.4
           repository:
             url: https://openbao.github.io/openbao-helm
-  - path: charts/vault-config-operator
-    contents:
-      - path: .
-        helmChart:
-          name: vault-config-operator
-          version: 0.8.49
-          repository:
-            url: https://redhat-cop.github.io/vault-config-operator
   - path: charts/terranetes-controller
     contents:
       - path: .
