@@ -100,6 +100,10 @@ resource "vault_policy" "terranetes" {
     path "auth/kubernetes/*" {
       capabilities = ["create", "read", "update", "delete", "list"]
     }
+    # network cluster JWT auth method config + role (network-eso)
+    path "auth/jwt-network/*" {
+      capabilities = ["create", "read", "update", "delete", "list"]
+    }
   EOT
 }
 
@@ -109,4 +113,56 @@ resource "vault_kubernetes_auth_backend_role" "terranetes" {
   bound_service_account_names      = ["terranetes-executor"]
   bound_service_account_namespaces = ["terranetes-system"]
   token_policies                   = ["terranetes"]
+}
+
+# ── network cluster: remote JWT auth (a REMOTE consumer of this OpenBao) ──────
+# The network cluster runs no OpenBao of its own; its external-secrets reads kv/*
+# from THIS OpenBao over the tailnet (secret.vgijssel.nl) using JWT auth. OpenBao
+# can't reach the network API to fetch its JWKS live, so it validates network
+# SA-token signatures against STATIC public keys (jwt_validation_pubkeys) captured by
+# `network:bootstrap`. All three resources are gated on the issuer + keys being
+# present, so this module still applies cleanly on the secret cluster before the
+# network cluster is bootstrapped (SPEC: JWT auth, static JWKS).
+locals {
+  network_enabled = var.network_oidc_issuer != "" && length(var.network_jwks_pubkeys) > 0
+}
+
+resource "vault_jwt_auth_backend" "network" {
+  count                  = local.network_enabled ? 1 : 0
+  path                   = "jwt-network"
+  type                   = "jwt"
+  description            = "JWT auth for the network cluster's external-secrets (static JWKS)"
+  bound_issuer           = var.network_oidc_issuer
+  jwt_validation_pubkeys = var.network_jwks_pubkeys
+}
+
+# Read-only over kv, mirroring external-secrets. Least privilege: the network cluster
+# gets NOTHING beyond read on kv/* (SPEC Boundaries → Always / Never).
+resource "vault_policy" "network_read" {
+  count  = local.network_enabled ? 1 : 0
+  name   = "network-read"
+  policy = <<-EOT
+    path "kv/data/*" {
+      capabilities = ["read"]
+    }
+    path "kv/metadata/*" {
+      capabilities = ["read", "list"]
+    }
+  EOT
+}
+
+# The login role bound to the network cluster's external-secrets ServiceAccount.
+# ESO mints a projected SA token with audience "openbao" and posts it to jwt-network;
+# OpenBao checks the signature (static JWKS), issuer, audience, and subject, then
+# issues a token carrying network-read.
+resource "vault_jwt_auth_backend_role" "network_eso" {
+  count           = local.network_enabled ? 1 : 0
+  backend         = vault_jwt_auth_backend.network[0].path
+  role_name       = "network-eso"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_subject   = "system:serviceaccount:external-secrets:external-secrets"
+  user_claim      = "sub"
+  token_policies  = ["network-read"]
+  token_ttl       = 3600
 }
