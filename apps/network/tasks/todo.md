@@ -24,7 +24,7 @@ resolved.
 - [x] **✅ Checkpoint A** — all 12 bundles N/N Ready, CSS Valid, ESO synced, label=secret, no pod restarts → secret byte-identical, PASSED.
 
 ## Phase 2 — Network scaffold
-- [ ] **T6** `apps/network/moon.yml` + `start.sh` + `stop.sh` (vind `network`) *(deps: none)*
+- [x] **T6** `apps/network/moon.yml` + `start.sh` + `stop.sh` (vind `network`) *(deps: none)* — live: `network:start` creates the vind cluster (context `vcluster-docker_network`, node Ready), idempotent reconnect verified; moon.yml declares start/bootstrap/apply/stop (no configure — network is a secret consumer).
 - [ ] **T7** `network:apply` — Fleet install + label `local`=network + bundle wiring *(deps: T4, T6)*
 
 ## Phase 3 — Secrets path (JWT + tailnet egress)
