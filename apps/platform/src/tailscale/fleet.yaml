@@ -1,0 +1,15 @@
+# Portable Fleet bundle for the Tailscale operator. Fleet detects the umbrella
+# Chart.yaml here and deploys it with values.yaml. The operator reads its OAuth
+# client from the precreated `operator-oauth` Secret (synced from OpenBao by
+# ../config); until that exists the operator stays not-Ready, which is expected
+# during bootstrap.
+#
+# The `secret-ingress` ProxyGroup lives in the separate tailscale-proxygroup bundle,
+# which dependsOn this bundle (via the label below) so the operator's CRDs are
+# established before the ProxyGroup CR applies — otherwise a fresh-cluster install
+# deadlocks (the CR's CRD isn't registered yet in the same Helm release).
+labels:
+  fleet.vgijssel.nl/bundle: tailscale-operator
+defaultNamespace: tailscale
+helm:
+  releaseName: tailscale-operator

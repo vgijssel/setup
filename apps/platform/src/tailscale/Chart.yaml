@@ -1,0 +1,9 @@
+apiVersion: v2
+name: tailscale
+description: Tailscale Kubernetes operator (advertises tailnet Services)
+version: 1.0.0
+appVersion: v1.90.9
+dependencies:
+  - name: tailscale-operator
+    version: 1.90.9
+    repository: file://../../../../third_party/vendir/charts/tailscale-operator

@@ -1,0 +1,4 @@
+# external-secrets operator. CRDs are installed with the chart so the
+# ClusterSecretStore / ExternalSecret resources below can reconcile.
+external-secrets:
+  installCRDs: true

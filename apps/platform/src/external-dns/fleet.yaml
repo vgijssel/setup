@@ -1,0 +1,7 @@
+# Portable Fleet bundle for external-dns. Fleet detects the umbrella Chart.yaml
+# here and deploys it with values.yaml. Needs the external-dns-cloudflare-api-token
+# Secret (synced from OpenBao by ../config); until that exists external-dns
+# crash-loops on the missing token, which is expected during bootstrap.
+defaultNamespace: external-dns
+helm:
+  releaseName: external-dns

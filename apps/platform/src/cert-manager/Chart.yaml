@@ -1,0 +1,9 @@
+apiVersion: v2
+name: cert-manager
+description: cert-manager with a Let's Encrypt ClusterIssuer using Cloudflare DNS-01
+version: 1.0.0
+appVersion: v1.20.3
+dependencies:
+  - name: cert-manager
+    version: v1.20.3
+    repository: file://../../../../third_party/vendir/charts/cert-manager

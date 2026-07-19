@@ -1,0 +1,186 @@
+{{- if .Values.parent.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "netdata.name" . }}-parent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "netdata.name" . }}
+    chart: {{ template "netdata.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    role: parent
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy: {{- toYaml .Values.deploymentStrategy | nindent 4 }}
+  selector:
+    matchLabels:
+      app: {{ template "netdata.name" . }}
+      release: {{ .Release.Name }}
+      role: parent
+  template:
+    metadata:
+      labels:
+        app: {{ template "netdata.name" . }}
+        release: {{ .Release.Name }}
+        role: parent
+{{- with .Values.parent.podLabels }}
+{{ toYaml . | trim | indent 8 }}
+{{- end }}
+      annotations:
+        checksum/config: {{ print (include (print $.Template.BasePath "/parent/configmap.yaml") .) (include (print $.Template.BasePath "/parent/secrets.yaml") .) | sha256sum }}
+{{- with .Values.parent.podAnnotations }}
+{{ toYaml . | trim | indent 8 }}
+{{- end }}
+    spec:
+      securityContext:
+        fsGroup: {{ .Values.parent.securityContext.fsGroup }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      {{- if .Values.parent.priorityClassName }}
+      priorityClassName: "{{ .Values.parent.priorityClassName }}"
+      {{- end }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      initContainers:
+      {{- if .Values.sysctlInitContainer.enabled }}
+        - name: init-sysctl
+          image: "{{ .Values.initContainersImage.repository }}:{{ .Values.initContainersImage.tag }}"
+          imagePullPolicy: {{ .Values.initContainersImage.pullPolicy }}
+          command:
+{{ toYaml .Values.sysctlInitContainer.command | indent 12 }}
+          securityContext:
+            runAsNonRoot: false
+            privileged: true
+            runAsUser: 0
+          resources:
+{{ toYaml .Values.sysctlInitContainer.resources | indent 12 }}
+      {{- end }}
+{{ toYaml .Values.parent.extraInitContainers | indent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- if .Values.parent.claiming.enabled }}
+            - name: NETDATA_CLAIM_URL
+              value: "{{ .Values.parent.claiming.url }}"
+            {{- if .Values.parent.claiming.token }}
+            - name: NETDATA_CLAIM_TOKEN
+              value: "{{ .Values.parent.claiming.token }}"
+            {{- end }}
+            {{- if .Values.parent.claiming.rooms }}
+            - name: NETDATA_CLAIM_ROOMS
+              value: "{{ .Values.parent.claiming.rooms }}"
+            {{- end }}
+            {{- end }}
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NETDATA_LISTENER_PORT
+              value: '{{ .Values.parent.port }}'
+            {{- range $key, $value := .Values.parent.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- with .Values.parent.envFrom }}
+          envFrom:
+{{ toYaml . | indent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.parent.port }}
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+              - /usr/sbin/netdatacli
+              - ping
+            initialDelaySeconds: {{ .Values.parent.livenessProbe.initialDelaySeconds }}
+            failureThreshold: {{ .Values.parent.livenessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.parent.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.parent.livenessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.parent.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            exec:
+              command:
+              - /usr/sbin/netdatacli
+              - ping
+            initialDelaySeconds: {{ .Values.parent.readinessProbe.initialDelaySeconds }}
+            failureThreshold: {{ .Values.parent.readinessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.parent.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.parent.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.parent.readinessProbe.timeoutSeconds }}
+          securityContext:
+            runAsUser: {{ .Values.parent.securityContext.runAsUser }}
+            runAsGroup: {{ .Values.parent.securityContext.runAsGroup }}
+          volumeMounts:
+            - name: os-release
+              mountPath: /host/etc/os-release
+            {{- range $name, $config := .Values.parent.configs }}
+            {{- if $config.enabled }}
+            - name: {{ ternary "configmap" "configsecret" (ne $config.storedType "secret") }}
+              mountPath: {{ $config.path }}
+              subPath: {{ $name }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.parent.database.persistence }}
+            - name: database
+              mountPath: /var/cache/netdata
+            {{- end }}
+            {{- if .Values.parent.alarms.persistence }}
+            - name: alarms
+              mountPath: /var/lib/netdata
+            {{- end }}
+            {{- if .Values.parent.extraVolumeMounts -}}
+{{ toYaml .Values.parent.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+          resources:
+{{ toYaml .Values.parent.resources | indent 12 }}
+    {{- with .Values.parent.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.parent.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.parent.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.parent.terminationGracePeriodSeconds }}
+      volumes:
+        - name: os-release
+          hostPath:
+            path: /etc/os-release
+        - name: configmap
+          configMap:
+            name: netdata-conf-parent
+            optional: true
+        - name: configsecret
+          secret:
+            secretName: netdata-conf-parent
+            optional: true
+        {{- if .Values.parent.database.persistence }}
+        - name: database
+          persistentVolumeClaim:
+            claimName: {{ template "netdata.name" . }}-parent-database
+        {{- end }}
+        {{- if .Values.parent.alarms.persistence }}
+        - name: alarms
+          persistentVolumeClaim:
+            claimName: {{ template "netdata.name" . }}-parent-alarms
+        {{- end }}
+        {{- if .Values.parent.extraVolumes }}
+{{ toYaml .Values.parent.extraVolumes | indent 8}}
+        {{- end }}
+      dnsPolicy: {{ .Values.parent.dnsPolicy }}
+{{- end }}

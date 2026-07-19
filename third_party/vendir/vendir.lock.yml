@@ -79,6 +79,42 @@ directories:
     path: .
   path: charts/k8s-gateway
 - contents:
+  - helmChart:
+      appVersion: v1.20.3
+      version: v1.20.3
+    path: .
+  path: charts/cert-manager
+- contents:
+  - helmChart:
+      appVersion: v2.10.3
+      version: 3.7.168
+    path: .
+  path: charts/netdata
+- contents:
+  - helmChart:
+      appVersion: v2.5.5
+      version: 0.28.4
+    path: .
+  path: charts/openbao
+- contents:
+  - helmChart:
+      appVersion: v0.5.7
+      version: v0.8.6
+    path: .
+  path: charts/terranetes-controller
+- contents:
+  - helmChart:
+      appVersion: 0.15.4
+      version: 0.15.4
+    path: .
+  path: charts/fleet-crd
+- contents:
+  - helmChart:
+      appVersion: 0.15.4
+      version: 0.15.4
+    path: .
+  path: charts/fleet
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508

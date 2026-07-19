@@ -1,0 +1,12 @@
+language: bash
+layer: application
+project:
+  description: Environment-agnostic Kubernetes platform (external-secrets, cert-manager, Tailscale operator, Netdata)
+tags:
+  - app
+  - kubernetes
+  - helm
+  - platform
+# Linting is intentionally omitted here — reproducible Kubernetes/Helm linting
+# lands in a follow-up PR. The Fleet bundles are the deployable units.
+tasks: {}

@@ -1,0 +1,42 @@
+{{- if include "netdata.restarter.enabled" . }}
+---
+{{- $argsList := list }}
+{{- $args := printf "deployment/%s-parent" (include "netdata.name" .) }}
+{{- $argsList = append $argsList (ternary $args "" .Values.parent.enabled) }}
+{{- $args = printf "daemonset/%s-child" (include "netdata.name" .) }}
+{{- $argsList = append $argsList (ternary $args "" .Values.child.enabled) }}
+{{- $args = printf "deployment/%s-k8s-state" (include "netdata.name" .) }}
+{{- $argsList = append $argsList (ternary $args "" .Values.k8sState.enabled) }}
+{{- $args = printf "deployment/%s-otel" (include "netdata.name" .) }}
+{{- $argsList = append $argsList (ternary $args "" .Values.netdataOpentelemetry.enabled) }}
+{{- $argsList = compact $argsList }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ template "netdata.name" . }}-restarter
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: "{{ .Values.restarter.schedule }}"
+  concurrencyPolicy: {{ .Values.restarter.concurrencyPolicy }}
+  startingDeadlineSeconds: {{ .Values.restarter.startingDeadlineSeconds }}
+  successfulJobsHistoryLimit: {{ .Values.restarter.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.restarter.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ .Values.serviceAccount.name }}-restarter
+          restartPolicy: {{ .Values.restarter.restartPolicy }}
+          {{- if .Values.imagePullSecrets }}
+          imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 12 }}
+          {{- end }}
+          containers:
+            - name: netdata-restarter
+              image: {{ .Values.restarter.image.repository }}:{{ ternary (printf "v%s.%s.0" .Capabilities.KubeVersion.Major .Capabilities.KubeVersion.Minor) .Values.restarter.image.tag (eq (.Values.restarter.image.tag | toString) ".auto") }} 
+              imagePullPolicy: {{ .Values.restarter.image.pullPolicy }}
+              resources:
+{{ toYaml .Values.restarter.resources | indent 16 }}
+              args:
+{{ toYaml (concat (list "rollout" "restart") $argsList) | indent 16 }}
+{{- end }}

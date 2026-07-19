@@ -1,0 +1,6 @@
+dependencies:
+- name: ingress-nginx
+  repository: file://../../../../third_party/vendir/charts/ingress-nginx
+  version: 4.12.0
+digest: sha256:d978daea44644897c3559005545af8da8cb9f264ecd2befda56dc4ccc9910f45
+generated: "2026-07-18T23:04:46.645533+02:00"

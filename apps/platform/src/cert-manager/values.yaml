@@ -1,0 +1,10 @@
+# cert-manager. CRDs are installed with the chart so the ClusterIssuer in
+# ../config can reconcile.
+cert-manager:
+  crds:
+    enabled: true
+  # DNS-01 self-check: verify _acme-challenge TXT propagation against public
+  # resolvers instead of the in-cluster CoreDNS, which returns SERVFAIL for
+  # external SOA lookups and otherwise stalls issuance forever.
+  dns01RecursiveNameservers: 1.1.1.1:53,8.8.8.8:53
+  dns01RecursiveNameserversOnly: true

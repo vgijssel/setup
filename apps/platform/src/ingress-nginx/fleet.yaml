@@ -1,0 +1,7 @@
+# Portable Fleet bundle for ingress-nginx. Fleet detects the umbrella Chart.yaml
+# here and deploys it with values.yaml. Its external Service stays <pending> until
+# the Tailscale operator assigns a tailnet IP (loadBalancerClass=tailscale), which
+# is expected until the operator is up and authenticated.
+defaultNamespace: ingress-nginx
+helm:
+  releaseName: ingress-nginx

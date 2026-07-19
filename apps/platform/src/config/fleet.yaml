@@ -1,0 +1,16 @@
+# Portable Fleet bundle for the external-secrets wiring: the ClusterSecretStore
+# that points ESO at OpenBao (kubernetes auth) plus the ExternalSecrets that sync
+# cloudflare / tailscale / netdata secrets out of OpenBao into the consuming
+# namespaces, and the ClusterIssuer (LE prod, Cloudflare DNS-01).
+#
+# The consuming namespaces (tailscale/netdata/external-dns) are owned by their
+# operator Helm bundles (Fleet defaultNamespace), not created here — declaring
+# them in both bundles causes a Fleet ownership conflict. On a fresh bootstrap the
+# ExternalSecrets targeting those namespaces error-and-retry until the operator
+# bundle creates the namespace, which Fleet reconciles continuously (expected).
+#
+# Depends on the external-secrets CRDs (external-secrets chart) and on OpenBao
+# being initialised + the `external-secrets` policy/role applied by secret:configure
+# and reconciled by terranetes (apps/secret/src/config); until then the store stays
+# NotReady and ESO error-and-retries, which is expected.
+defaultNamespace: external-secrets

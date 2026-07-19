@@ -1,0 +1,10 @@
+# The operator reads its OAuth client from a precreated Secret named
+# `operator-oauth` (populated by the ExternalSecret below), so the chart's
+# `oauth` block is intentionally left unset. The operator stays not-Ready until
+# that secret is populated from OpenBao.
+tailscale-operator:
+  operatorConfig:
+    # Device name the operator registers under in the tailnet. Named for the
+    # cluster it manages ("secret") rather than the chart default
+    # "tailscale-operator", so it is obvious which cluster this operator serves.
+    hostname: secret-operator

@@ -1,0 +1,25 @@
+# Netdata claims into Netdata Cloud via the NETDATA_CLAIM_* env vars read from the
+# `netdata-claim` Secret (synced from OpenBao kv/netdata by the ExternalSecret in
+# ../config). The chart's inline `claiming.token` is left empty on purpose — the
+# token never lands in git; it arrives through envFrom. The parent aggregates and
+# claims; the child DaemonSet and k8sState pods also load the token so the whole
+# cluster reports in.
+netdata:
+  parent:
+    claiming:
+      enabled: false
+    envFrom:
+      - secretRef:
+          name: netdata-claim
+  child:
+    claiming:
+      enabled: false
+    envFrom:
+      - secretRef:
+          name: netdata-claim
+  k8sState:
+    claiming:
+      enabled: false
+    envFrom:
+      - secretRef:
+          name: netdata-claim
