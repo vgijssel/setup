@@ -465,6 +465,14 @@ from the `apply.sh` bundle list. Update SPEC/plan references. Grep for straggler
 **Scope:** S–M
 
 ### Checkpoint E — Terraform config migration
-- [ ] OpenBao config is the OpenTofu module; `secret:configure` and terranetes share one kubernetes-backend
-      state; handoff recreates nothing; drift is auto-reconciled; vault-config-operator fully removed.
-- [ ] `trunk check` clean; lints (incl. `tofu fmt`/`validate`) pass.
+- [x] OpenBao config is the OpenTofu module; `secret:configure` and terranetes share one kubernetes-backend
+      state (`tfstate-default-openbao-config`); handoff is a verified no-op; auto-approval enabled;
+      vault-config-operator fully removed.
+- [x] `trunk check` clean; `tofu fmt`/`validate` clean; config-bundle `fleet apply -o -` renders.
+- [x] **Fresh-cluster rebuild validated end-to-end** (`stop`→`start`→`apply`→`bootstrap`→`configure`):
+      qemu registered, all bundles apply with consistent naming (no vco), OpenBao auto-unseals + inits
+      (keys→1Password), `configure` creates 7 resources, terranetes reconciles the same module+state
+      **InSync** via SA login (no root token), ESO `ClusterSecretStore` **Valid**.
+- [~] Remaining (documented manual step, not a regression): seed `kv/cloudflare|tailscale|netdata` — the
+      ExternalSecrets + their consumer bundles (external-dns/tailscale/netdata/ingress→cert→config) stay
+      NotReady until then (the expected bootstrap-cycle gap; values are not in 1Password).
