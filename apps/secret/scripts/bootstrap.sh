@@ -3,21 +3,20 @@
 # secret:start + secret:apply):
 #   1. seed the static auto-unseal key (1Password -> openbao-seal Secret) so
 #      OpenBao boots unsealed with no manual step
-#   2. initialise OpenBao (recovery keys + root token -> 1Password), wait for
-#      auto-unseal, and plant the vault-config-operator login foothold
-#      (kubernetes auth method + config + the operator's own policy/role)
+#   2. initialise OpenBao (recovery keys + root token -> 1Password) and wait for
+#      auto-unseal
 #
 # OpenBao uses static auto-unseal (see src/openbao/values.yaml): `bao operator
 # init` yields RECOVERY keys (not unseal keys) and the node auto-unseals from the
-# static seal key on every boot. Everything else — the kv engine and the
-# external-secrets policy/role — is reconciled declaratively by
-# vault-config-operator from apps/secret/src/config.
+# static seal key on every boot. All OpenBao configuration — the kv engine, the
+# kubernetes auth backend, the external-secrets policy/role, and the terranetes
+# policy + login role — is applied afterwards by `secret:configure` (OpenTofu, root
+# token) and reconciled continuously by terranetes-controller. This script plants
+# nothing in OpenBao beyond initialising it.
 #
 # Idempotent:
-#   - first run       -> generate the seal key, init, store keys in 1Password,
-#                        plant the foothold
+#   - first run       -> generate the seal key, init, store keys in 1Password
 #   - later runs      -> read the seal key + root token back, (re)apply the Secret
-#                        and the operator foothold only
 #
 # Secrets never touch local disk or git: they live only in 1Password + K8s
 # Secrets, passed between them in shell variables. Uses a 1Password service
@@ -218,75 +217,12 @@ init_openbao() {
   start_pf "after unseal"
   echo "==> OpenBao is unsealed (sealed=$(jq -r '.sealed' <<<"$(raw_status)"))"
 
-  # --- Plant the vault-config-operator login foothold (root token) ---------
-  # This is the ONLY OpenBao configuration this script performs. Everything else --
-  # the kv engine, the external-secrets policy/role, and a re-declaration of this
-  # very foothold -- is reconciled declaratively by vault-config-operator from the
-  # CRs in apps/secret/src/config. The seam plants just enough for the operator to
-  # log in and adopt the rest; it is also the recovery path if the operator is
-  # locked out.
-  #
-  # The policy and role below MUST stay byte-for-byte in sync with
-  #   apps/secret/src/config/policy-vault-config-operator.yaml
-  #   apps/secret/src/config/kubernetesauthenginerole-vault-config-operator.yaml
-  # so the operator adopts them as no-op overwrites (a matching body cannot
-  # self-lock the operator out of its own login path).
-  export BAO_TOKEN="${root_token}"
-
-  echo "==> Enabling kubernetes auth method"
-  if ! jq -e '."kubernetes/"' >/dev/null 2>&1 <<<"$(bao auth list -format=json)"; then
-    bao auth enable kubernetes >/dev/null
-  fi
-
-  # OpenBao runs in-cluster and (authDelegator) can review tokens with its own
-  # ServiceAccount, so kubernetes_host is all that is required. This config write
-  # stays in the seam (not a CR) because it is a one-time bootstrap value.
-  echo "==> Configuring kubernetes auth"
-  bao write auth/kubernetes/config \
-    kubernetes_host="https://kubernetes.default.svc:443" >/dev/null
-
-  echo "==> Writing the vault-config-operator admin policy"
-  bao policy write vault-config-operator - >/dev/null <<'HCL'
-# secret engine mounts (kv)
-path "sys/mounts" {
-  capabilities = ["read", "list"]
-}
-path "sys/mounts/*" {
-  capabilities = ["create", "read", "update", "delete"]
-}
-# auth method mounts (kubernetes)
-path "sys/auth" {
-  capabilities = ["read", "list"]
-}
-path "sys/auth/*" {
-  capabilities = ["create", "read", "update", "delete", "sudo"]
-}
-# ACL policies (external-secrets, and this policy itself). vault-config-operator
-# reads/writes policies via the legacy sys/policy endpoint; grant it plus the
-# modern sys/policies/acl alias.
-path "sys/policy" {
-  capabilities = ["read", "list"]
-}
-path "sys/policy/*" {
-  capabilities = ["create", "read", "update", "delete", "list"]
-}
-path "sys/policies/acl" {
-  capabilities = ["list"]
-}
-path "sys/policies/acl/*" {
-  capabilities = ["create", "read", "update", "delete", "list"]
-}
-# kubernetes auth method config + roles
-path "auth/kubernetes/*" {
-  capabilities = ["create", "read", "update", "delete", "list"]
-}
-HCL
-
-  echo "==> Binding the vault-config-operator ServiceAccount to its login role"
-  bao write auth/kubernetes/role/vault-config-operator \
-    bound_service_account_names=controller-manager \
-    bound_service_account_namespaces=vault-config-operator \
-    policies=vault-config-operator >/dev/null
+  # No OpenBao configuration is planted here anymore. The kv engine, the kubernetes
+  # auth backend + config, the external-secrets policy/role, and the terranetes
+  # policy + login role are all declared by the OpenTofu module
+  # (apps/secret/src/openbao-config) and applied by secret:configure with this root
+  # token — then reconciled continuously by terranetes-controller via its own
+  # ServiceAccount login. No root token is persisted to a K8s Secret.
 }
 
 # ── Run ─────────────────────────────────────────────────────────────────────
@@ -298,9 +234,12 @@ init_openbao
 
 cat <<EOF
 
-==> Done. OpenBao is initialised, auto-unsealed, and the vault-config-operator
-    foothold is planted. vault-config-operator now reconciles the kv engine and
-    the external-secrets policy/role from apps/secret/src/config.
+==> Done. OpenBao is initialised and auto-unsealed. Next:
+
+      moon run secret:configure   # OpenTofu (root token) seeds the kv engine,
+                                  # kubernetes auth, and the external-secrets +
+                                  # terranetes policies/roles into shared state;
+                                  # terranetes-controller then reconciles it.
 
     Add the remaining kv values via the OpenBao UI/API — port-forward, then open
     http://127.0.0.1:${LOCAL_PORT}/ui with the root token from 1Password
