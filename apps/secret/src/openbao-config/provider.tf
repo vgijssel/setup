@@ -15,6 +15,11 @@
 provider "vault" {
   address = var.bao_address
 
+  # The vault provider creates a short-lived CHILD token after auth by default; the
+  # terranetes login token isn't granted auth/token/create, so that 403s. The token from
+  # auth_login (and the local root token) is already suitable, so use it directly.
+  skip_child_token = true
+
   dynamic "auth_login" {
     for_each = var.auth_method == "kubernetes" ? [1] : []
     content {
