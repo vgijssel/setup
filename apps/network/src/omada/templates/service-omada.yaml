@@ -16,8 +16,11 @@ kind: Service
 metadata:
   name: omada
   namespace: {{ .Release.Namespace }}
+  # hostname -> the Tailscale Service (VIP) name svc:omada-network, which the tailnet
+  # ACL autoApprovers/grants reference. The public A record (external-dns below) is
+  # separate and points at this VIP's tailnet IP.
   annotations:
-    tailscale.com/hostname: omada
+    tailscale.com/hostname: omada-network
     tailscale.com/proxy-group: network-ingress
     external-dns.alpha.kubernetes.io/hostname: omada.network.vgijssel.nl
 spec:
