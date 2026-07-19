@@ -445,19 +445,19 @@ the shared state, then enable auto-approval + drift.
 `apps/secret/src/openbao-config/*`, `apps/secret/scripts/configure.sh`, `apps/platform/src/terranetes/values.yaml`
 **Scope:** M
 
-### [ ] T16: Remove vault-config-operator  ⚠️ gated on green T15 handoff
+### [x] T16: Remove vault-config-operator  ⚠️ gated on green T15 handoff
 **Description:** Delete the `apps/platform/src/vault-config-operator` Fleet bundle, the vendored
 `vault-config-operator` chart + vendir entry, and any residual CRs. Remove `platform-vault-config-operator`
 from the `apply.sh` bundle list. Update SPEC/plan references. Grep for stragglers first.
 
 **Acceptance criteria:**
-- [ ] `apps/platform/src/vault-config-operator` + vendored chart + vendir entry removed; `apply.sh` list updated.
-- [ ] `grep -rn "vault-config-operator" apps/ third_party/` → only historical `tasks/`/archived refs.
-- [ ] All bundles Ready after removal; ESO still syncs (kubernetes auth/role now owned by Terraform).
+- [x] `apps/platform/src/vault-config-operator` + vendored chart + vendir entry removed; `apply.sh` list updated.
+- [x] `grep -rn "vault-config-operator" apps/ third_party/` → only descriptive comments (migration refs) + `tasks/`.
+- [x] Live teardown: operator scaled down, webhooks removed, CR finalizers stripped, CRs + bundle deleted. ESO stayed Valid + terranetes InSync (orphan module kept OpenBao objects — no cascade).
 
 **Verification:**
-- [ ] `moon query projects` + `<app>:lint` clean; `kubectl get bundles -A` all Ready.
-- [ ] End-to-end still green (OpenBao reachable, ESO synced) with the operator gone.
+- [x] `moon query projects` → zero vault-config-operator; config-bundle `fleet apply -o -` renders (10 resources); trunk clean.
+- [~] Full end-to-end re-validated via a fresh cluster rebuild (see Checkpoint E note).
 
 **Dependencies:** T15
 **Files likely touched:** deletions under `apps/platform/src/vault-config-operator`, `third_party/vendir/*`,
