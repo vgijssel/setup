@@ -104,6 +104,12 @@ directories:
   path: charts/vault-config-operator
 - contents:
   - helmChart:
+      appVersion: v0.5.7
+      version: v0.8.6
+    path: .
+  path: charts/terranetes-controller
+- contents:
+  - helmChart:
       appVersion: 0.15.4
       version: 0.15.4
     path: .

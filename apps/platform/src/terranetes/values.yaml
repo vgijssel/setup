@@ -1,0 +1,34 @@
+# terranetes-controller runs OpenTofu in-cluster to reconcile OpenBao config
+# (kv engine, kubernetes auth, external-secrets + terranetes policy/role) from the
+# module at apps/secret/src/openbao-config, with automatic drift reconciliation.
+#
+# It replaces vault-config-operator. The controller and the local `secret:configure`
+# `tofu apply` share ONE kubernetes-backend tfstate Secret; the deterministic backend
+# template below is what makes both resolve to `tfstate-default-openbao-config` (ns
+# secret). See SPEC.md → "Configuration management".
+terranetes-controller:
+  controller:
+    # Pin the OpenTofu runtime explicitly (chart already defaults to OpenTofu, but
+    # per repo policy every image is pinned). binaryPath selects `tofu` over
+    # `terraform` inside that image.
+    binaryPath: /usr/local/bin/tofu
+    images:
+      terraform: ghcr.io/opentofu/opentofu:1.8.5
+    # Deterministic kubernetes state backend. The controller renders this golang
+    # template per Configuration: `.name`/`.namespace` are the Configuration's. For
+    # the `openbao-config` Configuration in ns `secret` this yields state Secret
+    # `tfstate-default-openbao-config` — the SAME Secret the local `secret:configure`
+    # run writes via its git-ignored zz_backend.tf, so neither run recreates the other's
+    # resources. Overrides the controller default non-deterministic `tfstate-<uuid>`.
+    backend:
+      name: terranetes-backend
+      template: |
+        terraform {
+          backend "kubernetes" {
+            secret_suffix     = "{{ .name }}"
+            namespace         = "{{ .namespace }}"
+            in_cluster_config = true
+          }
+        }
+  # Netdata handles observability; the homelab runs no Prometheus operator CRDs.
+  # (No ServiceMonitor knob is enabled by default in this chart.)

@@ -137,6 +137,14 @@ directories:
           version: 0.8.49
           repository:
             url: https://redhat-cop.github.io/vault-config-operator
+  - path: charts/terranetes-controller
+    contents:
+      - path: .
+        helmChart:
+          name: terranetes-controller
+          version: v0.8.6
+          repository:
+            url: https://terranetes-controller.appvia.io
   - path: charts/fleet-crd
     contents:
       - path: .

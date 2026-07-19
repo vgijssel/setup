@@ -53,5 +53,20 @@ done
 echo "==> Waiting for the node to become Ready"
 kubectl wait --for=condition=Ready nodes --all --timeout=180s
 
+# terranetes-controller (and its terranetes-executor jobs) ship amd64-only images
+# — appvia publishes no arm64/multi-arch variant. On an arm64 host (Apple Silicon)
+# the vind node is arm64, so those pods CrashLoop with "exec format error" unless
+# the Docker host has qemu/binfmt registered to emulate amd64. Register it here so
+# `fleet apply` yields a running controller non-interactively. Idempotent and a
+# no-op on amd64 hosts. All other operator images are multi-arch and unaffected.
+HOST_ARCH="$(uname -m)"
+if [[ "${HOST_ARCH}" = "arm64" ]] || [[ "${HOST_ARCH}" = "aarch64" ]]; then
+  if command -v docker >/dev/null 2>&1; then
+    echo "==> arm64 host: registering qemu/binfmt so amd64 images (terranetes) run"
+    docker run --privileged --rm tonistiigi/binfmt:qemu-v9.2.2 --install amd64 >/dev/null 2>&1 ||
+      echo "WARN: qemu/binfmt registration failed; terranetes-controller may CrashLoop on arm64"
+  fi
+fi
+
 echo "==> Cluster ready; kubectl context: $(kubectl config current-context)"
 echo "==> Next: moon run secret:apply"

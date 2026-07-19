@@ -1,0 +1,9 @@
+# Portable Fleet bundle for terranetes-controller. Fleet detects the umbrella
+# Chart.yaml here and deploys it with values.yaml into terranetes-system. The
+# controller runs OpenTofu (binaryPath /usr/local/bin/tofu) to reconcile the
+# OpenBao config module (apps/secret/src/openbao-config) referenced by the
+# terranetes Configuration in apps/secret/src/config, sharing one kubernetes-backend
+# tfstate with the local `secret:configure` apply. Replaces vault-config-operator.
+defaultNamespace: terranetes-system
+helm:
+  releaseName: terranetes-controller

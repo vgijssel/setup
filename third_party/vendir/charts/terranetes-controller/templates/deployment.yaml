@@ -1,0 +1,129 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "terranetes-controller.fullname" . }}
+  labels:
+    {{- include "terranetes-controller.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "terranetes-controller.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "{{ .Values.controller.metricsPort }}"
+        prometheus.io/scheme: "http"
+        prometheus.io/scrape: "true"
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "terranetes-controller.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: terranetes-controller
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.controller.webhooks.enabled }}
+      volumes:
+        - name: ca
+          secret:
+            secretName: {{ .Values.controller.webhooks.caSecret }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.controller.images.controller }}"
+          imagePullPolicy: {{ .Values.controller.imagePullPolicy }}
+          env:
+            - name: KUBE_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          args:
+            - --apiserver-port={{ .Values.controller.port }}
+            {{- if .Values.controller.costs.secret }}
+            - --cost-secret={{ .Values.controller.costs.secret }}
+            {{- end }}
+            {{- if .Values.controller.backend.name }}
+            - --backend-template={{ .Values.controller.backend.name }}
+            {{- end }}
+            {{- if .Values.controller.binaryPath }} 
+            - --binary-path={{ .Values.controller.binaryPath }}
+            {{- end }}
+            - --configurations-threshold={{ .Values.controller.configuration_rate_threshold }}
+            - --drift-controller-interval={{ .Values.controller.driftControllerInterval }}
+            - --drift-interval={{ .Values.controller.driftInterval }}
+            - --drift-threshold={{ .Values.controller.driftThreshold }}
+            - --enable-context-injection={{ .Values.controller.enableContextInjection }}
+            - --enable-namespace-protection={{ .Values.controller.enableNamespaceProtection }}
+            - --enable-revision-update-protection={{ .Values.controller.enableRevisionUpdateProtection }}
+            - --enable-terraform-versions={{ .Values.controller.enableTerraformVersions }}
+            - --enable-watchers={{ .Values.controller.enableWatchers }}
+            - --enable-webhook-prefix={{ .Values.controller.webhooks.prefix }}
+            - --enable-webhooks-registration={{ .Values.controller.enableControllerWebhookRegistration }}
+            - --enable-webhooks={{ .Values.controller.webhooks.enabled }}
+            - --executor-image={{ .Values.controller.images.executor }}
+            {{- range .Values.controller.executorSecrets }}
+            - --executor-secret={{ . }}
+            {{- end }}
+            - --infracost-image={{ .Values.controller.images.infracost }}
+            - --metrics-port={{ .Values.controller.metricsPort }}
+            - --policy-image={{ .Values.controller.images.policy }}
+            - --preload-image={{ .Values.controller.images.preload }}
+            - --terraform-image={{ .Values.controller.images.terraform }}
+            {{- if .Values.controller.templates.job }}
+            - --job-template={{ .Values.controller.templates.job }}
+            {{- end }}
+            {{- range $key, $value := .Values.controller.jobLabels }}
+            - --job-label={{ $key }}={{ $value }}
+            {{- end }}
+            {{- if .Values.controller.webhooks.enabled }}
+            - --tls-ca={{ .Values.controller.webhooks.tlsAuthority }}
+            - --tls-dir={{ .Values.controller.webhooks.tlsDir }}
+            - --tls-cert={{ .Values.controller.webhooks.tlsCert }}
+            - --tls-key={{ .Values.controller.webhooks.tlsKey }}
+            - --webhooks-port={{ .Values.controller.webhooks.port }}
+            {{- end }}
+            - --register-crds={{ .Values.controller.registerCRDs }}
+            {{- range $key, $value := .Values.controller.extraArgs }}
+            - --{{ $key }}={{ $value }}
+            {{- end }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.controller.metricsPort }}
+            - name: apiserver
+              containerPort: {{ .Values.controller.port }}
+            - name: webhook
+              containerPort: {{ .Values.controller.webhooks.port }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.controller.webhooks.enabled }}
+          volumeMounts:
+            - name: ca
+              readOnly: true
+              mountPath: /certs
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

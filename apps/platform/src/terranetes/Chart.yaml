@@ -1,0 +1,9 @@
+apiVersion: v2
+name: terranetes-controller
+description: appvia/terranetes-controller — runs OpenTofu to reconcile OpenBao config with drift reconciliation
+version: 1.0.0
+appVersion: v0.5.7
+dependencies:
+  - name: terranetes-controller
+    version: v0.8.6
+    repository: file://../../../../third_party/vendir/charts/terranetes-controller

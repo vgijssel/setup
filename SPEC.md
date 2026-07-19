@@ -87,7 +87,7 @@ All CLIs are **hermit-managed and pinned** (`bin/` + `third_party/hermit/*.hcl`)
 | GitOps | Rancher **Fleet** — **`fleet` CLI 0.15.4** (hermit, `third_party/hermit/fleet.hcl`) + `fleet-crd`/`fleet` Helm charts (pin) |
 | OpenBao | chart `openbao-0.28.4` (single-node raft, `seal "static"`) |
 | OpenBao config IaC | **OpenTofu** (`tofu`, hermit-pinned) + `hashicorp/vault` provider (OpenBao-API-compatible); no OpenBao-native provider exists |
-| terranetes-controller | chart `terranetes-controller-v0.8.6` (appVersion `v0.5.7`), repo `https://terranetes-controller.appvia.io` — OpenTofu runner + drift reconciliation |
+| terranetes-controller | chart `terranetes-controller-v0.8.6` (appVersion `v0.5.7`), repo `https://terranetes-controller.appvia.io` — OpenTofu runner + drift reconciliation. **amd64-only images** (no arm64 variant): on an arm64 host `secret:start` registers qemu/binfmt so the controller + executor jobs run emulated. |
 | External Secrets | chart `external-secrets-2.0.1` |
 | Tailscale operator | chart `tailscale-operator-1.90.9` |
 | external-dns | chart TBD — **pin on add** (Cloudflare provider) |

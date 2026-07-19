@@ -1,0 +1,15 @@
+{{- if .Values.controller.webhooks.ca }}
+{{- include "webhook.generateCerts" . }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.controller.webhooks.caSecret }}
+  labels:
+    {{- include "terranetes-controller.labels" . | nindent 4 }}
+type: Opaque
+data:
+  ca.pem: {{ .Values.controller.webhooks.caBundle }}
+  tls.pem: {{ .Values.controller.webhooks.cert }}
+  tls-key.pem: {{ .Values.controller.webhooks.key }}
+{{- end }}

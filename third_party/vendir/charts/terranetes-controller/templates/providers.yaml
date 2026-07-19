@@ -1,0 +1,54 @@
+{{ $namespace := .Release.Namespace }}
+{{- range $index, $provider := .Values.providers }}
+{{- $cloud := $provider.provider | required (printf ".Values.providers[%d].provider is required." $index) -}}
+{{- $name := $provider.name | required (printf ".Values.providers[%d].name is required." $index) -}}
+{{- $source := $provider.source | required (printf ".Values.providers[%d].source is required." $index) -}}
+{{- $preload := default $provider.preload "" }}
+{{- $configuration := default $provider.configuration "" }}
+---
+apiVersion: terraform.appvia.io/v1alpha1
+kind: Provider
+metadata:
+  name: {{ $name }}
+  annotations:
+    {{- range $key, $value := $provider.annotations }}
+    {{ $key }}: "{{ $value }}"
+    {{- end }}
+  labels:
+    {{- range $key, $value := $provider.labels }}
+    {{ $key }}: "{{ $value }}"
+    {{- end }}
+spec:
+  {{- if $provider.summary }}
+  summary: {{ $provider.summary }}
+  {{- end }}
+  source: {{ $source }}
+  provider: {{ $cloud }}
+  {{- if $preload }}
+  preload:
+    {{ $preload | toYaml | nindent 4  }}
+  {{- end }}
+  {{- if $configuration }}
+  configuration:
+    {{- $configuration | toYaml | nindent 4  }}
+  {{- end }}
+  {{- if $provider.job }}
+  job:
+    annotations:
+    {{- range $k, $v := $provider.job.annotations }}
+      {{ $k }}: "{{ $v }}"
+    {{- end }}
+    {{- range $k, $v := $provider.job.labels }}
+    labels:
+      {{ $k }}: "{{ $v }}"
+    {{- end }}
+  {{- end }}
+  {{- if eq $provider.source "secret" }}
+  secretRef:
+    namespace: {{ $namespace }}
+    name: {{ $provider.secret }}
+  {{- end }}
+  {{- if eq $provider.source "injected" }}
+  serviceAccount: {{ $provider.serviceAccount }}
+  {{- end }}
+{{ end }}
