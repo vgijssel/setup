@@ -19,22 +19,16 @@ require vcluster
 require kubectl
 require jq
 
-# `vcluster list --output json` reports docker-driver clusters with capitalised
-# keys (.Name / .Status), so match on .Name. Selecting the docker driver first
-# keeps the listing scoped to vind clusters.
-cluster_exists() {
-  vcluster use driver docker >/dev/null 2>&1 || true
-  vcluster list --output json 2>/dev/null |
-    jq -e --arg n "${CLUSTER_NAME}" 'any(.[]; .Name == $n)' >/dev/null 2>&1
-}
-
 # vind uses the docker driver: a standalone vcluster running in its own Docker
 # container rather than nested inside a host cluster. Selecting the driver is a
-# global, idempotent CLI setting.
+# global, idempotent CLI setting, and scopes the subsequent listing to vind.
 echo "==> Selecting the docker driver (vind)"
 vcluster use driver docker >/dev/null 2>&1 || true
 
-if cluster_exists; then
+# `vcluster list --output json` reports docker-driver clusters with capitalised
+# keys (.Name / .Status), so match on .Name.
+if vcluster list --output json 2>/dev/null |
+  jq -e --arg n "${CLUSTER_NAME}" 'any(.[]; .Name == $n)' >/dev/null 2>&1; then
   echo "==> vcluster '${CLUSTER_NAME}' already exists; connecting"
   vcluster connect "${CLUSTER_NAME}"
 else
@@ -46,7 +40,7 @@ fi
 # `kubectl wait` (which errors with "no matching resources" against an empty set).
 echo "==> Waiting for the node to register"
 for _ in $(seq 1 60); do
-  [[ -n "$(kubectl get nodes -o name 2>/dev/null)" ]] && break
+  if kubectl get nodes -o name 2>/dev/null | grep -q .; then break; fi
   sleep 2
 done
 
@@ -68,5 +62,6 @@ if [[ "${HOST_ARCH}" = "arm64" ]] || [[ "${HOST_ARCH}" = "aarch64" ]]; then
   fi
 fi
 
-echo "==> Cluster ready; kubectl context: $(kubectl config current-context)"
+CURRENT_CONTEXT="$(kubectl config current-context)"
+echo "==> Cluster ready; kubectl context: ${CURRENT_CONTEXT}"
 echo "==> Next: moon run secret:apply"

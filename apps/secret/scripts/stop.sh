@@ -13,16 +13,14 @@ require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required b
 require vcluster
 require jq
 
-# `vcluster list --output json` reports docker-driver clusters with capitalised
-# keys (.Name / .Status), so match on .Name. Selecting the docker driver first
-# keeps the listing scoped to vind clusters.
-cluster_exists() {
-  vcluster use driver docker >/dev/null 2>&1 || true
-  vcluster list --output json 2>/dev/null |
-    jq -e --arg n "${CLUSTER_NAME}" 'any(.[]; .Name == $n)' >/dev/null 2>&1
-}
+# Selecting the docker driver first scopes the listing to vind clusters; it is a
+# global, idempotent CLI setting.
+vcluster use driver docker >/dev/null 2>&1 || true
 
-if cluster_exists; then
+# `vcluster list --output json` reports docker-driver clusters with capitalised
+# keys (.Name / .Status), so match on .Name.
+if vcluster list --output json 2>/dev/null |
+  jq -e --arg n "${CLUSTER_NAME}" 'any(.[]; .Name == $n)' >/dev/null 2>&1; then
   echo "==> Deleting vind cluster '${CLUSTER_NAME}'"
   vcluster delete "${CLUSTER_NAME}"
 else

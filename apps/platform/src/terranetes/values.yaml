@@ -5,7 +5,7 @@
 # It replaces vault-config-operator. The controller and the local `secret:configure`
 # `tofu apply` share ONE kubernetes-backend tfstate Secret; the deterministic backend
 # template below is what makes both resolve to `tfstate-default-openbao-config` (ns
-# secret). See SPEC.md → "Configuration management".
+# secret).
 terranetes-controller:
   controller:
     # Pin the OpenTofu runtime explicitly (chart already defaults to OpenTofu, but

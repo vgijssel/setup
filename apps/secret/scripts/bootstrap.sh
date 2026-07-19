@@ -140,7 +140,9 @@ init_openbao() {
   status="$(raw_status)"
 
   # --- Init (only when brand new) ------------------------------------------
-  if [[ "$(jq -r '.initialized // false' <<<"${status}")" == "true" ]]; then
+  local initialized
+  initialized="$(jq -r '.initialized // false' <<<"${status}" || true)"
+  if [[ "${initialized}" == "true" ]]; then
     echo "==> OpenBao already initialised; reading root token from 1Password (${OP_VAULT}/${ROOT_OP_ITEM})"
     root_token="$(op item get "${ROOT_OP_ITEM}" --vault "${OP_VAULT}" --reveal --fields label=root_token 2>/dev/null || true)"
     if [[ -z "${root_token}" ]]; then
@@ -175,21 +177,25 @@ init_openbao() {
     # Delete every item with this title (by id, to also clear accidental duplicates)
     # before storing the new one, so read-back stays unambiguous.
     echo "==> Removing any stale ${ROOT_OP_ITEM} item(s) from a previous cluster"
+    local stale_ids
+    stale_ids="$(op item list --vault "${OP_VAULT}" --format json 2>/dev/null |
+      jq -r --arg t "${ROOT_OP_ITEM}" '.[] | select(.title == $t) | .id' || true)"
     while IFS= read -r stale_id; do
       [[ -n "${stale_id}" ]] || continue
       op item delete "${stale_id}" --vault "${OP_VAULT}" >/dev/null 2>&1 || true
-    done < <(op item list --vault "${OP_VAULT}" --format json 2>/dev/null |
-      jq -r --arg t "${ROOT_OP_ITEM}" '.[] | select(.title == $t) | .id')
+    done <<<"${stale_ids}"
 
     echo "==> Storing recovery keys + root token in 1Password (${OP_VAULT}/${ROOT_OP_ITEM})"
     local op_fields idx
     op_fields=("root_token[password]=$(jq -r '.root_token' <<<"${init_json}")")
     idx=1
+    local recovery_keys
+    recovery_keys="$(jq -r '.recovery_keys_b64[]' <<<"${init_json}")"
     while IFS= read -r key; do
       [[ -n "${key}" ]] || continue
       op_fields+=("recovery_key_${idx}[password]=${key}")
       idx=$((idx + 1))
-    done < <(jq -r '.recovery_keys_b64[]' <<<"${init_json}")
+    done <<<"${recovery_keys}"
 
     # Safety net: if the store fails despite the pre-flight, print the keys so they
     # are not lost (OpenBao is already initialised at this point).
@@ -215,7 +221,10 @@ init_openbao() {
 
   echo "==> Reconnecting after the leader election"
   start_pf "after unseal"
-  echo "==> OpenBao is unsealed (sealed=$(jq -r '.sealed' <<<"$(raw_status)"))"
+  local status_json sealed
+  status_json="$(raw_status)"
+  sealed="$(jq -r '.sealed' <<<"${status_json}" || true)"
+  echo "==> OpenBao is unsealed (sealed=${sealed})"
 
   # No OpenBao configuration is planted here anymore. The kv engine, the kubernetes
   # auth backend + config, the external-secrets policy/role, and the terranetes
