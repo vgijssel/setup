@@ -5,3 +5,13 @@
 defaultNamespace: ingress-nginx
 helm:
   releaseName: ingress-nginx
+# secret-ONLY. The network cluster exposes Omada directly through its own Tailscale
+# LoadBalancer Service and runs no ingress-nginx (SPEC Q3). A single secret target
+# gates this bundle: on `network` (label cluster.vgijssel.nl/name=network) nothing
+# matches, so Fleet produces no BundleDeployment there. `secret` inherits the base
+# values.yaml unchanged (byte-for-byte identical rendering).
+targetCustomizations:
+  - name: secret
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: secret

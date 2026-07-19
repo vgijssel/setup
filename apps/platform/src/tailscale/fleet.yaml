@@ -13,3 +13,24 @@ labels:
 defaultNamespace: tailscale
 helm:
   releaseName: tailscale-operator
+# Multi-cluster: this one bundle serves both the `secret` and `network` clusters,
+# selected on the cluster.vgijssel.nl/name label their apply.sh sets. Declaring
+# targetCustomizations replaces Fleet's implicit "deploy everywhere" target, so a
+# cluster only gets a BundleDeployment if it matches a selector here. The operator
+# registers under a per-cluster device hostname; `secret` inherits the base
+# values.yaml (secret-operator) unchanged — keeping its rendered output byte-for-byte
+# identical — while `network` overrides just the hostname.
+targetCustomizations:
+  - name: secret
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: secret
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
+    helm:
+      values:
+        tailscale-operator:
+          operatorConfig:
+            hostname: network-operator
