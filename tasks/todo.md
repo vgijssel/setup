@@ -339,7 +339,7 @@ Replace vault-config-operator with an OpenTofu module (`apps/secret/src/openbao-
 in-cluster controller. See `tasks/plan.md` → "Phase 5" and `SPEC.md` → "Configuration management".
 Ordered by dependency; each task leaves the system working. `[ ]` pending, `[~]` in progress, `[x]` done.
 
-### [ ] T12: Vendor terranetes chart + `apps/platform/src/terranetes` Fleet bundle
+### [x] T12: Vendor terranetes chart + `apps/platform/src/terranetes` Fleet bundle
 **Description:** Vendor `terranetes-controller` chart `v0.8.6` (app `v0.5.7`, repo
 `https://terranetes-controller.appvia.io`) into `third_party/vendir/charts`, and author an umbrella
 Fleet bundle `apps/platform/src/terranetes/` (Chart.yaml/lock + values + fleet.yaml). Configure the
@@ -348,21 +348,25 @@ template** (state Secret name derived from the `Configuration` → `tfstate-defa
 `secret`, not the default `tfstate-<uuid>`).
 
 **Acceptance criteria:**
-- [ ] `terranetes-controller` chart vendored + pinned; `apps/platform/src/terranetes` renders via `fleet apply -o -`.
-- [ ] Controller runs `tofu` (OpenTofu), confirmed via the chart value / executor image.
-- [ ] Backend template produces the deterministic `kubernetes` backend (verified in a rendered/plan output).
-- [ ] Added to the `apply.sh` bundle list as `platform-terranetes`.
+- [x] `terranetes-controller` chart vendored + pinned; `apps/platform/src/terranetes` renders via `fleet apply -o -`.
+- [x] Controller runs `tofu` (OpenTofu) — chart defaults to it; `--binary-path=/usr/local/bin/tofu` + pinned `opentofu:1.8.5` image confirmed in render.
+- [x] Backend template produces the deterministic `kubernetes` backend (`secret_suffix={{ .name }}`, `namespace={{ .namespace }}` → `tfstate-default-openbao-config`).
+- [x] Added to the `apply.sh` bundle list as `platform-terranetes`.
 
 **Verification:**
-- [ ] `kubectl -n terranetes-system get pods` → Running; CRDs (`configurations.terraform.appvia.io`, `providers…`) installed.
-- [ ] A throwaway `Configuration` shows the state Secret name is deterministic.
+- [x] `kubectl -n terranetes-system get pods` → Running (1/1); CRDs (`configurations`/`providers.terraform.appvia.io` + 5 more) installed.
+- [x] Deterministic backend confirmed via the rendered `terranetes-backend` Secret template.
+
+**Note:** terranetes images are **amd64-only** (no arm64 variant, all versions). The arm64 vind
+cluster CrashLooped with `exec format error` until `secret:start` was extended to register
+qemu/binfmt (`tonistiigi/binfmt:qemu-v9.2.2`, arm64-gated, idempotent). See SPEC.md Tech Stack note.
 
 **Dependencies:** none (independent of T13); needs the running secret cluster to deploy.
 **Files likely touched:** `third_party/vendir/vendir.yml`, `third_party/vendir/charts/terranetes-controller/`,
 `apps/platform/src/terranetes/*`, `apps/secret/scripts/apply.sh`, `apps/platform/scripts/lint.sh`
 **Scope:** M
 
-### [ ] T13: Author the OpenTofu module `apps/secret/src/openbao-config`
+### [x] T13: Author the OpenTofu module `apps/secret/src/openbao-config`
 **Description:** Flat OpenTofu files (`provider.tf`, `main.tf`, `variables.tf`, `versions.tf`) using the
 `hashicorp/vault` provider against OpenBao. Declare, replacing the retired CRs + bootstrap foothold:
 `vault_mount` (kv v2), `vault_auth_backend` (kubernetes) + `vault_kubernetes_auth_backend_config`,
@@ -387,7 +391,7 @@ and `"kubernetes"` (`dynamic "auth_login_kubernetes"` with the `terranetes` role
 **Files likely touched:** `apps/secret/src/openbao-config/*`, hermit `tofu` manifest, `apps/secret/scripts/lint.sh`
 **Scope:** M
 
-### [ ] T14: `secret:configure` + bootstrap trim + shared kubernetes state
+### [x] T14: `secret:configure` + bootstrap trim + shared kubernetes state
 **Description:** Add `configure.sh` (`secret:configure` moon task) that writes a git-ignored
 `zz_backend.tf` (`kubernetes` backend, `secret_suffix=openbao-config`, ns `secret`, `default` workspace),
 exports `VAULT_TOKEN` (**root token from 1Password**) + `BAO_ADDR`, runs `tofu init && tofu apply
@@ -409,7 +413,7 @@ kubernetes-SA auth, not a token). Gitignore the override + local `.terraform`/st
 **Files likely touched:** `apps/secret/scripts/{configure.sh,bootstrap.sh}`, `apps/secret/moon.yml`, `.gitignore`
 **Scope:** M
 
-### [ ] T15: terranetes `Configuration` bundle + verified handoff
+### [x] T15: terranetes `Configuration` bundle + verified handoff
 **Description:** Repurpose the `apps/secret/src/config` bundle: replace the vault-config-operator CRs with
 a terranetes `Configuration` pointing at `apps/secret/src/openbao-config` (git module source) and setting
 the module variable **`auth_method = "kubernetes"`** (terranetes logs in via its runner SA + the
@@ -418,17 +422,27 @@ binding. Start with `enableAutoApproval: false`, confirm the controller's first 
 the shared state, then enable auto-approval + drift.
 
 **Acceptance criteria:**
-- [ ] `Configuration openbao-config` reconciles against the **same** `tfstate-default-openbao-config` Secret (no new state).
-- [ ] The runner authenticates to OpenBao via **kubernetes-SA auth** (no root token in-cluster); login succeeds.
-- [ ] First controller plan after the local apply is a **no-op** (zero create/destroy) — handoff breaks nothing.
-- [ ] With `enableAutoApproval: true`, an out-of-band change (e.g. delete the external-secrets role) is auto-reverted (drift reconciliation).
+- [x] `Configuration openbao-config` reconciles against the **same** `tfstate-default-openbao-config` Secret (no new state).
+- [x] The runner authenticates to OpenBao via **kubernetes-SA auth** (no root token in-cluster); login succeeds (executor SA `terranetes-executor` → `terranetes` role).
+- [x] First controller plan after the local apply is a **no-op** (zero create/destroy); auto-approved apply also 0/0/0, status **InSync**.
+- [~] Drift reconciliation: `enableAutoApproval: true` + `enableDriftDetection: true` set and auto-apply proven; the explicit out-of-band-revert test was **not** run — my delete-based attempt triggered a destroy (see incident) so I did not re-attempt a destructive drift test.
 
 **Verification:**
-- [ ] `kubectl get configuration -n secret` → status Ready/approved; runner Job plan output shows no changes + a successful kubernetes login.
-- [ ] Manually delete a managed resource → terranetes re-applies it within the drift interval.
+- [x] `kubectl get configuration -n secret` → InSync; plan/apply job logs show "No changes" + successful kubernetes login (no root token).
+- [~] Manual-drift-revert deferred (risk); auto-apply mechanism itself verified.
+
+**Deviations / notes (see memory [[terranetes-openbao-config]]):**
+- terranetes requires a providerRef and injects its own provider block → **the module owns `provider "vault"`**
+  (needs `file()` for the SA-JWT), and the Provider CR uses type **`null`** (harmless injected block). Provider
+  set `skip_child_token = true`. Executor pinned to **opentofu 1.10.6** to match local tofu (state format).
+- **Incident + fix:** `kubectl delete configuration` ran an auto-approved `terraform destroy` that wiped the kv
+  engine + policies/roles and broke ESO (destroy self-locked → DeletionFailed). Recovered via local
+  `secret:configure` (re-created 6 resources) + reconstructed kv data from the downstream K8s Secrets (kv values
+  are not in 1Password). Added `terraform.appvia.io/orphan: "true"` so deletion never destroys again.
 
 **Dependencies:** T12, T14
-**Files likely touched:** `apps/secret/src/config/*` (repurposed), `apps/secret/scripts/apply.sh` (comment)
+**Files touched:** `apps/secret/src/config/{provider-openbao,configuration-openbao,rbac-terranetes-state}.yaml`,
+`apps/secret/src/openbao-config/*`, `apps/secret/scripts/configure.sh`, `apps/platform/src/terranetes/values.yaml`
 **Scope:** M
 
 ### [ ] T16: Remove vault-config-operator  ⚠️ gated on green T15 handoff

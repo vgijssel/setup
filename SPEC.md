@@ -157,7 +157,13 @@ The same module runs in **two contexts against one shared state**:
    `secret:bootstrap`.
 2. **In-cluster reconciliation** — `terranetes-controller` runs the *same* module (git source
    `apps/secret/src/openbao-config`) via a `Configuration` CR, re-applying continuously with
-   automatic **drift reconciliation** (`spec.enableAutoApproval: true`).
+   automatic **drift reconciliation** (`spec.enableAutoApproval: true`). The `Configuration` carries
+   `terraform.appvia.io/orphan: "true"` — **deleting a terranetes `Configuration` otherwise runs an
+   (auto-approved) `terraform destroy` that wipes the kv engine + policies/roles from OpenBao and
+   breaks ESO**; orphan makes deletion stop management without destroying (and keeps the Rancher handoff
+   safe). Because terranetes requires a `providerRef` and injects its own provider block, the module owns
+   the real `provider "vault"` (it `file()`-reads the runner SA JWT for kubernetes auth) and the Provider
+   CR uses a throwaway `null` type so terranetes injects only a harmless `provider "null" {}`.
 
 **Shared state — the design constraint ("don't break anything").** Both contexts must read/write the
 **same tfstate** so the local apply and the controller never fight or recreate resources:
