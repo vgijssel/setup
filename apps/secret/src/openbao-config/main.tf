@@ -134,6 +134,12 @@ resource "vault_jwt_auth_backend" "network" {
   description            = "JWT auth for the network cluster's external-secrets (static JWKS)"
   bound_issuer           = var.network_oidc_issuer
   jwt_validation_pubkeys = var.network_jwks_pubkeys
+
+  # Enabling the backend uses sys/auth/* (already granted), but configuring it writes
+  # auth/jwt-network/config — a path this very apply is adding to the terranetes policy.
+  # Force that policy broadening to land first so the in-cluster terranetes runner (whose
+  # token re-reads the policy live) isn't 403'd on its own first apply.
+  depends_on = [vault_policy.terranetes]
 }
 
 # Read-only over kv, mirroring external-secrets. Least privilege: the network cluster
@@ -165,4 +171,8 @@ resource "vault_jwt_auth_backend_role" "network_eso" {
   user_claim      = "sub"
   token_policies  = ["network-read"]
   token_ttl       = 3600
+
+  # Writing auth/jwt-network/role/network-eso needs the broadened terranetes policy;
+  # depend on it (and implicitly on the backend) so ordering is correct on first apply.
+  depends_on = [vault_policy.terranetes]
 }
