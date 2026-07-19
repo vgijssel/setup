@@ -30,7 +30,7 @@ when Rancher takes over.
 |---|---|
 | **OpenBao** | Serve secrets to services in other clusters. Single-node raft, static auto-unseal. |
 | **External Secrets Operator** | Sync OpenBao → in-cluster K8s Secrets for tailscale / external-dns / netdata. |
-| **vault-config-operator** | Declarative OpenBao config (kv engine, policies, kubernetes auth roles) from manifests. |
+| **terranetes-controller** | Runs **OpenTofu** to reconcile OpenBao config (kv engine, policies, kubernetes auth roles) from the Terraform module in `apps/secret/src/openbao-config`, with automatic **drift reconciliation**. Replaces vault-config-operator. |
 | **Tailscale operator** | Cluster access + publish the OpenBao Service on the tailnet. |
 | **external-dns** | Publish the OpenBao Tailscale Service IP into Cloudflare (`secret.vgijssel.nl`). |
 | **cert-manager** | Issue the `secret.vgijssel.nl` certificate (Cloudflare DNS-01, Let's Encrypt prod). |
@@ -60,10 +60,14 @@ but a Bundle only unpacks if the **Fleet controller** is running in-cluster. So:
 2. secret:apply        # helm install fleet-crd + fleet, then fleet apply apps/{secret,platform}/src bundles
 3. secret:bootstrap    # 1Password -> 32-byte static seal key -> K8s Secret (ns: secret), restart OpenBao pod
 4. OpenBao boots AUTO-UNSEALED via the static seal key (no manual unseal)
-5. secret:bootstrap    # (cont.) bao operator init -> root token + recovery keys -> 1Password; plant operator foothold
-6. vault-config-operator reconciles    # kv engine + external-secrets policy/role + k8s auth roles
-7. add kv values via the OpenBao UI    # cloudflare/tailscale/netdata (root token)
-8. ESO syncs cloudflare/tailscale/netdata secrets -> cert-manager issues cert,
+5. secret:bootstrap    # (cont.) bao operator init -> root token + recovery keys -> 1Password
+6. secret:configure    # local `tofu apply` (root token from 1Password) on apps/secret/src/openbao-config against a
+                       #   kubernetes-backend tfstate Secret: seeds kv engine + kubernetes auth + external-secrets
+                       #   policy/role + the terranetes policy & kubernetes auth role
+7. terranetes reconciles   # logs in via its SA (kubernetes auth role from step 6), re-applies the SAME module +
+                       #   SAME state continuously (drift reconciliation) — no root token in-cluster
+8. add kv values via the OpenBao UI    # cloudflare/tailscale/netdata (root token)
+9. ESO syncs cloudflare/tailscale/netdata secrets -> cert-manager issues cert,
    tailscale publishes the Service, external-dns writes secret.vgijssel.nl -> Tailscale IP
 ```
 
@@ -82,8 +86,9 @@ All CLIs are **hermit-managed and pinned** (`bin/` + `third_party/hermit/*.hcl`)
 | Cluster | `vind` = **`vcluster` 0.32.1** (hermit), docker driver; k3s image pinned |
 | GitOps | Rancher **Fleet** — **`fleet` CLI 0.15.4** (hermit, `third_party/hermit/fleet.hcl`) + `fleet-crd`/`fleet` Helm charts (pin) |
 | OpenBao | chart `openbao-0.28.4` (single-node raft, `seal "static"`) |
+| OpenBao config IaC | **OpenTofu** (`tofu`, hermit-pinned) + `hashicorp/vault` provider (OpenBao-API-compatible); no OpenBao-native provider exists |
+| terranetes-controller | chart `terranetes-controller-v0.8.6` (appVersion `v0.5.7`), repo `https://terranetes-controller.appvia.io` — OpenTofu runner + drift reconciliation |
 | External Secrets | chart `external-secrets-2.0.1` |
-| vault-config-operator | chart `vault-config-operator-v0.8.49` |
 | Tailscale operator | chart `tailscale-operator-1.90.9` |
 | external-dns | chart TBD — **pin on add** (Cloudflare provider) |
 | cert-manager | chart `cert-manager-v1.20.3` |
@@ -109,28 +114,80 @@ Keep the **platform (shared operators) + secret (OpenBao)** split — least chur
 cleanly onto the future Rancher `GitRepo` paths. Everything under `apps/` per repo policy.
 
 ```
-apps/secret/                  → OpenBao bundle + declarative OpenBao config
-  fleet.yaml                    Fleet bundle: openbao Helm chart + values
-  openbao/                      Helm values, static-seal stanza, Service + tailnet exposure
-  config/                       vault-config-operator CRs: kv engine, policies, k8s auth roles
-  scripts/{seed-seal,init,seed}.sh
-  moon.yml                      + cluster lifecycle tasks (vind create/delete, fleet-install, up/down)
+apps/secret/                  → OpenBao + its Terraform config
+  src/openbao/                  Fleet bundle: openbao Helm chart (static-seal stanza, Service + tailnet exposure)
+  src/openbao-config/           OpenTofu module (flat .tf): provider "vault" + kv mount, kubernetes auth,
+                                external-secrets policy/role. Git SOURCE for terranetes — NOT a Fleet bundle,
+                                NOT in the `fleet apply` list, and NO `backend {}` block (see Configuration mgmt).
+  src/config/                   Fleet bundle: the terranetes `Configuration` (+ `Provider`, root-token ref)
+                                pointing at src/openbao-config (repurposed from the old vault-config-operator CRs)
+  scripts/{start,apply,bootstrap,configure,stop}.sh
+  moon.yml                      cluster lifecycle + apply + bootstrap + configure tasks
 
-apps/platform/                → the six operators, each a Fleet bundle
-  fleet.yaml (+ per-chart dirs) cert-manager/ external-secrets/ vault-config-operator/
-                                tailscale/ external-dns/ netdata/
-  config/                       ClusterIssuer, ClusterSecretStore->OpenBao, ExternalSecrets,
-                                external-dns DNSEndpoint / annotations
+apps/platform/                → shared operators, each a Fleet bundle under src/
+  src/{cert-manager,external-secrets,tailscale,external-dns,netdata,ingress-nginx}/
+  src/terranetes/               Fleet bundle: terranetes-controller Helm chart + values (OpenTofu runner;
+                                deterministic kubernetes state-backend template — see Configuration mgmt)
+  src/config/                   ClusterIssuer, ClusterSecretStore->OpenBao, ExternalSecrets
   moon.yml
 ```
 
 Both projects are authored as **portable `fleet.yaml` bundles** (Helm charts wrapped by
-`fleet.yaml`) so a Rancher `GitRepo` can later target these exact paths.
+`fleet.yaml`) so a Rancher `GitRepo` can later target these exact paths. The OpenTofu module
+(`src/openbao-config`) is the one exception — it is git source consumed by terranetes, not a bundle.
 
 ### Retire (out of scope — remove as tasks)
 
 `apps/bootstrap` (Tilt + k3d), `apps/gateway-prod`, `libs/gateway-image`, the **aws-sigv4-proxy**
 (`apps/secret/sigv4-proxy` + `libs/aws-sigv4-proxy` usage here), and **Authentik/OIDC** (`apps/auth`).
+
+### Configuration management (Terraform via terranetes)
+
+OpenBao configuration is **Terraform/OpenTofu**, not vault-config-operator CRs. One flat OpenTofu
+module at `apps/secret/src/openbao-config` (`hashicorp/vault` provider — OpenBao is API-compatible;
+there is no OpenBao-native provider) declares the kv v2 mount, the `kubernetes` auth backend + config,
+the `external-secrets` policy/role, and a **`terranetes` policy + kubernetes auth role** for the
+controller's own login — everything the retired vault-config-operator CRs and the `bootstrap.sh`
+foothold used to do.
+
+The same module runs in **two contexts against one shared state**:
+
+1. **Local bootstrap** — `moon run secret:configure` runs `tofu apply` from the operator host
+   (root token from 1Password, `BAO_ADDR` via port-forward). This is Phase-1 config, run once after
+   `secret:bootstrap`.
+2. **In-cluster reconciliation** — `terranetes-controller` runs the *same* module (git source
+   `apps/secret/src/openbao-config`) via a `Configuration` CR, re-applying continuously with
+   automatic **drift reconciliation** (`spec.enableAutoApproval: true`).
+
+**Shared state — the design constraint ("don't break anything").** Both contexts must read/write the
+**same tfstate** so the local apply and the controller never fight or recreate resources:
+
+- The module has **no `backend {}` block** (terranetes injects one; a committed backend would collide).
+- State lives in a **`kubernetes` backend** — a Secret in namespace `secret` with a **deterministic**
+  name. Terranetes is configured with a **backend template** (Helm `backend.name` / `--backend-template`)
+  that derives the state Secret from the `Configuration` name (e.g. `secret_suffix = "openbao-config"`),
+  overriding its default non-deterministic `tfstate-<uuid>`.
+- `secret:configure` writes a **runtime, git-ignored backend override** (`zz_backend.tf`) with the
+  *identical* `kubernetes` backend stanza (same suffix, namespace, `default` workspace), inits, applies,
+  then removes it. So the local run and the controller resolve to the **one** Secret
+  `tfstate-default-openbao-config`.
+- Handoff is idempotent: the local apply seeds the state; when terranetes later reconciles the same
+  module against that state it sees **no drift** and recreates nothing.
+
+**Auth — two modes, one module.** The `provider "vault"` block picks its credential by an
+`auth_method` variable so the *same* module authenticates differently per runner:
+
+- **Local bootstrap (`secret:configure`)** → `auth_method = "token"`: the provider reads the **root
+  token** from `VAULT_TOKEN` (sourced from 1Password). No token is persisted to a Secret or to git.
+- **In-cluster (terranetes)** → `auth_method = "kubernetes"`: the provider does an
+  `auth_login_kubernetes` against OpenBao's `kubernetes` auth backend using the **runner pod's
+  ServiceAccount JWT** and the `terranetes` role — no root token in the cluster at all.
+
+The bootstrap ordering makes this work: the **first local `tofu apply` (root token) creates the
+`terranetes` kubernetes auth role + policy**, so by the time terranetes reconciles, its SA login path
+already exists. Because terranetes then manages the very role it logs in with, that role/policy must
+stay self-consistent (a broad-enough policy that always re-grants itself); the local root-token apply
+is the recovery path if the controller ever locks itself out — mirroring the old operator-foothold rule.
 
 ### Exposure & persistence
 
@@ -145,8 +202,9 @@ Both projects are authored as **portable `fleet.yaml` bundles** (Helm charts wra
 ## Code Style
 
 Match existing infra apps: Kubernetes `<kind>-<name>.yaml` naming; pin every Helm chart and image
-version; keep manifests declarative and reconciled (config via vault-config-operator CRs, never
-imperative `bao write` beyond the init foothold).
+version; keep manifests declarative and reconciled. OpenBao config is the **Terraform module**
+(`apps/secret/src/openbao-config`, `hashicorp/vault` provider) reconciled by terranetes-controller —
+**never** imperative `bao write` beyond the init seam that seeds the root token.
 
 ```hcl
 # OpenBao server config — static auto-unseal. The 32-byte key is mounted from a
@@ -186,6 +244,9 @@ helm:
 
 **Always**
 - Author every service as a **portable `fleet.yaml` bundle** (reusable by Rancher's Fleet later).
+  The OpenTofu module (`src/openbao-config`) is the one exception — git source for terranetes, not a bundle.
+- Manage OpenBao config only through the **Terraform module** (terranetes-reconciled). The local
+  `tofu apply` and the in-cluster controller **must share the one `kubernetes`-backend tfstate**.
 - Treat OpenBao as the source of truth; only the **static seal key + root token + recovery keys**
   live in 1Password. Never write any other secret to local disk or git.
 - Pin all versions (charts, images, k3s, Fleet). `trunk fmt` / `trunk check` before commit.
@@ -199,6 +260,8 @@ helm:
 
 **Never**
 - Commit secrets, the seal key, recovery keys, root token, or kubeconfigs.
+- Commit Terraform state (`tfstate`) or the runtime backend override — state lives only in the
+  `kubernetes`-backend Secret; add a `backend {}` block to the committed module (terranetes injects it).
 - Expose OpenBao (or the OpenBao UI/API) to the **public internet** — tailnet only.
 - Use unpinned/`latest` images or `npx` / `uvx`.
 - Reintroduce OIDC/Authentik, the sigv4-proxy, or the Hetzner gateway cluster without approval.
@@ -210,8 +273,10 @@ helm:
       manual unseal steps.
 - [ ] `secret:bootstrap` stores the **root token + recovery keys in 1Password**; no secret persists on
       local disk.
-- [ ] vault-config-operator reconciles the `kv` engine + external-secrets policy/role + kubernetes
-      auth roles from `apps/secret/src/config`.
+- [ ] The OpenTofu module `apps/secret/src/openbao-config` provisions the `kv` engine +
+      external-secrets policy/role + kubernetes auth roles; `secret:configure` (`tofu apply`) and
+      terranetes-controller **share one `kubernetes`-backend tfstate** and the handoff recreates nothing.
+- [ ] vault-config-operator (Helm bundle + vendored chart + its CRs) is removed.
 - [ ] external-secrets syncs cloudflare / tailscale / netdata secrets from OpenBao.
 - [ ] `https://secret.vgijssel.nl` resolves to the **Tailscale IP** (external-dns → Cloudflare),
       serves a **valid Let's Encrypt cert** (cert-manager DNS-01), and is reachable **only on the
@@ -233,3 +298,11 @@ helm:
    vs a thin dedicated bootstrap project (given `apps/bootstrap` is being retired).
 4. **Persistence across recreate** — whether raft data + recovery-key reuse should survive
    `vcluster delete`, or re-init each time is acceptable for this stepping-stone.
+5. **terranetes runner ServiceAccount** — the `terranetes` kubernetes auth role must bind the exact SA
+   (name + namespace) that terranetes' runner pods execute as. Confirm that SA in the `v0.8.6` chart /
+   `Configuration` spec so `bound_service_account_names`/`…_namespaces` match. *(Resolved: local apply
+   uses the root token; terranetes uses this kubernetes-SA auth role — not a root token.)*
+6. **OpenTofu binary selection in terranetes** — confirm the exact chart knob that makes the controller
+   run `tofu` (not Terraform); verify in `terranetes-controller` `v0.8.6` values.
+7. **terranetes placement** — operator in `apps/platform/src/terranetes` (mirrors the other operators)
+   vs `apps/secret` (co-located with the only thing it configures). Plan assumes platform.

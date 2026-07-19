@@ -329,3 +329,128 @@ session scratchpad (`gateway-prod.env.backup`) for the token if needed.
 - [x] All SPEC.md success criteria met; `apps/bootstrap` + `apps/gateway-prod` removed (sigv4-proxy
       intentionally kept for later); ready for review / Rancher handoff. Manual Hetzner cleanup for
       the retired gateway-prod server pending (see T11).
+
+---
+
+## Phase 5 — Migrate OpenBao config to Terraform (terranetes)
+
+Replace vault-config-operator with an OpenTofu module (`apps/secret/src/openbao-config`) reconciled by
+`terranetes-controller`, sharing one `kubernetes`-backend tfstate between the local `tofu apply` and the
+in-cluster controller. See `tasks/plan.md` → "Phase 5" and `SPEC.md` → "Configuration management".
+Ordered by dependency; each task leaves the system working. `[ ]` pending, `[~]` in progress, `[x]` done.
+
+### [ ] T12: Vendor terranetes chart + `apps/platform/src/terranetes` Fleet bundle
+**Description:** Vendor `terranetes-controller` chart `v0.8.6` (app `v0.5.7`, repo
+`https://terranetes-controller.appvia.io`) into `third_party/vendir/charts`, and author an umbrella
+Fleet bundle `apps/platform/src/terranetes/` (Chart.yaml/lock + values + fleet.yaml). Configure the
+controller to (a) run the **OpenTofu** binary and (b) use a **deterministic kubernetes state-backend
+template** (state Secret name derived from the `Configuration` → `tfstate-default-openbao-config` in ns
+`secret`, not the default `tfstate-<uuid>`).
+
+**Acceptance criteria:**
+- [ ] `terranetes-controller` chart vendored + pinned; `apps/platform/src/terranetes` renders via `fleet apply -o -`.
+- [ ] Controller runs `tofu` (OpenTofu), confirmed via the chart value / executor image.
+- [ ] Backend template produces the deterministic `kubernetes` backend (verified in a rendered/plan output).
+- [ ] Added to the `apply.sh` bundle list as `platform-terranetes`.
+
+**Verification:**
+- [ ] `kubectl -n terranetes-system get pods` → Running; CRDs (`configurations.terraform.appvia.io`, `providers…`) installed.
+- [ ] A throwaway `Configuration` shows the state Secret name is deterministic.
+
+**Dependencies:** none (independent of T13); needs the running secret cluster to deploy.
+**Files likely touched:** `third_party/vendir/vendir.yml`, `third_party/vendir/charts/terranetes-controller/`,
+`apps/platform/src/terranetes/*`, `apps/secret/scripts/apply.sh`, `apps/platform/scripts/lint.sh`
+**Scope:** M
+
+### [ ] T13: Author the OpenTofu module `apps/secret/src/openbao-config`
+**Description:** Flat OpenTofu files (`provider.tf`, `main.tf`, `variables.tf`, `versions.tf`) using the
+`hashicorp/vault` provider against OpenBao. Declare, replacing the retired CRs + bootstrap foothold:
+`vault_mount` (kv v2), `vault_auth_backend` (kubernetes) + `vault_kubernetes_auth_backend_config`,
+`vault_policy` (external-secrets), `vault_kubernetes_auth_backend_role` (external-secrets), **plus the
+controller's own login: `vault_policy` (terranetes) + `vault_kubernetes_auth_backend_role` (terranetes)
+bound to the terranetes runner SA.** **No `backend {}` block.** The `provider "vault"` block supports
+**two auth modes** via an `auth_method` variable: `"token"` (reads root token from `VAULT_TOKEN` — local)
+and `"kubernetes"` (`dynamic "auth_login_kubernetes"` with the `terranetes` role — in-cluster). Inputs:
+`bao_address`, `auth_method`, `k8s_auth_role`. Keep policy bodies byte-identical to the old CRs so ESO keeps working.
+
+**Acceptance criteria:**
+- [ ] `tofu init` + `tofu validate` clean; `tofu fmt` clean; module has no backend block.
+- [ ] Resource set matches the six current config CRs **plus** the terranetes policy + kubernetes auth role.
+- [ ] `auth_method="token"` uses `VAULT_TOKEN`; `auth_method="kubernetes"` does `auth_login_kubernetes` (no token).
+- [ ] Provider + `tofu` versions pinned (hermit for `tofu`; `required_providers` pin for `hashicorp/vault`).
+
+**Verification:**
+- [ ] `tofu plan` (against the live OpenBao, local state) shows a create plan matching the current config.
+- [ ] `<app>:lint` extended to `tofu fmt -check` + `tofu validate` for the module.
+
+**Dependencies:** none (authoring); plan/apply needs an initialised OpenBao.
+**Files likely touched:** `apps/secret/src/openbao-config/*`, hermit `tofu` manifest, `apps/secret/scripts/lint.sh`
+**Scope:** M
+
+### [ ] T14: `secret:configure` + bootstrap trim + shared kubernetes state
+**Description:** Add `configure.sh` (`secret:configure` moon task) that writes a git-ignored
+`zz_backend.tf` (`kubernetes` backend, `secret_suffix=openbao-config`, ns `secret`, `default` workspace),
+exports `VAULT_TOKEN` (**root token from 1Password**) + `BAO_ADDR`, runs `tofu init && tofu apply
+-var auth_method=token`, then removes the override. Trim `bootstrap.sh`: drop the vault-config-operator
+foothold (kubernetes auth + operator policy/role) — **no root-token Secret is created** (terranetes uses
+kubernetes-SA auth, not a token). Gitignore the override + local `.terraform`/state.
+
+**Acceptance criteria:**
+- [ ] `moon run secret:configure` applies the module; tfstate lands in Secret `tfstate-default-openbao-config` (ns `secret`).
+- [ ] The apply creates the **`terranetes` policy + kubernetes auth role** (so terranetes can log in afterwards).
+- [ ] `bootstrap.sh` no longer runs `bao policy write`/`bao write auth/...` and does **not** persist the root token to a Secret.
+- [ ] `zz_backend.tf`, `*.tfstate`, `.terraform/` are git-ignored; nothing secret hits git.
+
+**Verification:**
+- [ ] Fresh bootstrap → configure: OpenBao has kv + kubernetes auth + external-secrets policy/role + terranetes role; ESO `ClusterSecretStore` stays Ready.
+- [ ] `kubectl -n secret get secret tfstate-default-openbao-config` exists; re-running `secret:configure` is a no-op plan.
+
+**Dependencies:** T13
+**Files likely touched:** `apps/secret/scripts/{configure.sh,bootstrap.sh}`, `apps/secret/moon.yml`, `.gitignore`
+**Scope:** M
+
+### [ ] T15: terranetes `Configuration` bundle + verified handoff
+**Description:** Repurpose the `apps/secret/src/config` bundle: replace the vault-config-operator CRs with
+a terranetes `Configuration` pointing at `apps/secret/src/openbao-config` (git module source) and setting
+the module variable **`auth_method = "kubernetes"`** (terranetes logs in via its runner SA + the
+`terranetes` role from T14 — **no** root token / `valueFrom`). Confirm the runner SA matches the auth-role
+binding. Start with `enableAutoApproval: false`, confirm the controller's first plan is a **no-op** against
+the shared state, then enable auto-approval + drift.
+
+**Acceptance criteria:**
+- [ ] `Configuration openbao-config` reconciles against the **same** `tfstate-default-openbao-config` Secret (no new state).
+- [ ] The runner authenticates to OpenBao via **kubernetes-SA auth** (no root token in-cluster); login succeeds.
+- [ ] First controller plan after the local apply is a **no-op** (zero create/destroy) — handoff breaks nothing.
+- [ ] With `enableAutoApproval: true`, an out-of-band change (e.g. delete the external-secrets role) is auto-reverted (drift reconciliation).
+
+**Verification:**
+- [ ] `kubectl get configuration -n secret` → status Ready/approved; runner Job plan output shows no changes + a successful kubernetes login.
+- [ ] Manually delete a managed resource → terranetes re-applies it within the drift interval.
+
+**Dependencies:** T12, T14
+**Files likely touched:** `apps/secret/src/config/*` (repurposed), `apps/secret/scripts/apply.sh` (comment)
+**Scope:** M
+
+### [ ] T16: Remove vault-config-operator  ⚠️ gated on green T15 handoff
+**Description:** Delete the `apps/platform/src/vault-config-operator` Fleet bundle, the vendored
+`vault-config-operator` chart + vendir entry, and any residual CRs. Remove `platform-vault-config-operator`
+from the `apply.sh` bundle list. Update SPEC/plan references. Grep for stragglers first.
+
+**Acceptance criteria:**
+- [ ] `apps/platform/src/vault-config-operator` + vendored chart + vendir entry removed; `apply.sh` list updated.
+- [ ] `grep -rn "vault-config-operator" apps/ third_party/` → only historical `tasks/`/archived refs.
+- [ ] All bundles Ready after removal; ESO still syncs (kubernetes auth/role now owned by Terraform).
+
+**Verification:**
+- [ ] `moon query projects` + `<app>:lint` clean; `kubectl get bundles -A` all Ready.
+- [ ] End-to-end still green (OpenBao reachable, ESO synced) with the operator gone.
+
+**Dependencies:** T15
+**Files likely touched:** deletions under `apps/platform/src/vault-config-operator`, `third_party/vendir/*`,
+`apps/secret/scripts/apply.sh`
+**Scope:** S–M
+
+### Checkpoint E — Terraform config migration
+- [ ] OpenBao config is the OpenTofu module; `secret:configure` and terranetes share one kubernetes-backend
+      state; handoff recreates nothing; drift is auto-reconciled; vault-config-operator fully removed.
+- [ ] `trunk check` clean; lints (incl. `tofu fmt`/`validate`) pass.
