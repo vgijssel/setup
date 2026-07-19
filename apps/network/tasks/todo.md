@@ -25,7 +25,8 @@ resolved.
 
 ## Phase 2 — Network scaffold
 - [x] **T6** `apps/network/moon.yml` + `start.sh` + `stop.sh` (vind `network`) *(deps: none)* — live: `network:start` creates the vind cluster (context `vcluster-docker_network`, node Ready), idempotent reconnect verified; moon.yml declares start/bootstrap/apply/stop (no configure — network is a secret consumer).
-- [ ] **T7** `network:apply` — Fleet install + label `local`=network + bundle wiring *(deps: T4, T6)*
+- [x] **T7** `network:apply` — Fleet install + label `local`=network + bundle wiring *(deps: T4, T6)*
+  - Live: Fleet installed, local labeled `network`; shared platform bundles applied (cert-manager + external-secrets Ready; tailscale/external-dns/netdata/config NotReady awaiting secrets = expected pre-bootstrap). **ingress-nginx and secret-ingress correctly absent** (Fleet target gating). terranetes/openbao omitted (network is a consumer). Network-owned bundles guarded (`apply_if_present`) until built in T10–T14.
 
 ## Phase 3 — Secrets path (JWT + tailnet egress)
 - [ ] **ACL-A** *(out-of-band)* tailnet grant: `network-operator` → `svc:secret` (apply via managed ACL policy)
