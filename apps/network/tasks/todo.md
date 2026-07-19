@@ -38,13 +38,13 @@ resolved.
 
 ## Phase 4 — Data + application
 - [x] **T11** `network-mongodb` bundle (PVC + creds ESO + `mongodb-uri`) *(deps: T1, T10)* — umbrella chart (vendored mongodb 0.7.9, official mongo:8.0.26), single-node, 2Gi PVC; root creds via ESO `mongodb-credentials` (kv/mongodb seeded in OpenBao). Deployed live: StatefulSet + PVC Bound; pod `Init:0/1` awaiting ESO creds (ACL-A blocked). `mongodb-uri` ES lives in the omada bundle (T12, same ns as Omada).
-- [ ] **T12** `network-omada` bundle (external Mongo, ports, tls, persistence) *(deps: T1, T10, T11)*
+- [x] **T12** `network-omada` bundle (external Mongo, ports, tls, persistence) *(deps: T1, T10, T11)* — umbrella chart (vendored omada 1.4.1), rootless, `config.externalMongoDBUrlSecret=mongodb-uri`, `config.tlsSecretName`, data/logs PVCs. `mongodb-uri` ExternalSecret templates the URI in-ns. helm template renders all kinds. Applied live: `ErrApplied` blocked on `network-mongodb` dependsOn (which is ACL-A-blocked) = designed ordering.
 
 ## Phase 5 — Exposure + TLS
-- [ ] **ACL-B** *(out-of-band)* tailnet `omada-network` Service: autoApprovers + grants (apply via managed ACL policy)
-- [ ] **T13** `network-ingress` ProxyGroup + Omada Tailscale LB Service (all ports) + external-dns hostname *(deps: T2, T4, T12, ACL-B)*
-- [ ] **T14** Certificate `omada.network.vgijssel.nl` mounted into Omada `/cert` *(deps: T10, T12, T13)*
-- [ ] **✅ Checkpoint C** — `https://omada.network.vgijssel.nl` valid LE cert on VIP → self-verify, then continue
+- [ ] **ACL-B** *(out-of-band, BLOCKED — no Tailscale API token)* tailnet `omada-network` Service: autoApprovers + grants — see final report for exact policy.
+- [x] **T13** `network-ingress` ProxyGroup + Omada Tailscale LB Service (all ports) + external-dns hostname *(deps: T2, T4, T12, ACL-B)* — network-ingress ProxyGroup deployed 1/1 Ready; LB Service (loadBalancerClass=tailscale, 13 TCP/UDP ports, proxy-group network-ingress, external-dns hostname) renders + is in the omada bundle. Live VIP advertisement pending ACL-B.
+- [x] **T14** Certificate `omada.network.vgijssel.nl` mounted into Omada `/cert` *(deps: T10, T12, T13)* — Certificate (letsencrypt-prod, DNS-01) in the omada bundle → `omada-network-vgijssel-nl-tls`, wired to `config.tlsSecretName`. Live issuance pending cloudflare token sync (ACL-A).
+- [ ] **⚠️ BLOCKED Checkpoint C** — needs ACL-A (secrets → cert + mongo) and ACL-B (VIP). All code complete; live verification blocked on tailnet ACLs.
 
 ## Phase 6 — Adoption + polish
 - [ ] **T15** Adopt a real device via Inform URL over the tailnet; document the flow *(deps: T13, T14)*

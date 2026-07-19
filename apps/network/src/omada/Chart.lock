@@ -1,0 +1,6 @@
+dependencies:
+- name: omada-controller-helm
+  repository: file://../../../../third_party/vendir/charts/omada-controller-helm
+  version: 1.4.1
+digest: sha256:beb452eb81afc4e76c7fc3ba456a78be5b79756b91585d7a6dd483704a3019e0
+generated: "2026-07-19T22:55:00.424812+02:00"

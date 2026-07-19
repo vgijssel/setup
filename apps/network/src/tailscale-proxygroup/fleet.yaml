@@ -1,0 +1,11 @@
+# Raw-manifest Fleet bundle carrying the network-ingress ProxyGroup (a cluster-scoped
+# tailscale.com CR). dependsOn the tailscale-operator bundle (label selector, portable
+# across the standalone Fleet -> Rancher GitRepo move) so Fleet only deploys it once
+# the operator's CRDs are established — otherwise a fresh-cluster install deadlocks.
+#
+# Applied only on the network cluster (network:apply lists it); the secret cluster runs
+# its own secret-ingress ProxyGroup instead.
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: tailscale-operator

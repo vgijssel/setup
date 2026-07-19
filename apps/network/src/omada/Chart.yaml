@@ -1,0 +1,9 @@
+apiVersion: v2
+name: omada
+description: TP-Link Omada SDN controller on the tailnet (network cluster)
+version: 1.0.0
+appVersion: 6.2.14.11
+dependencies:
+  - name: omada-controller-helm
+    version: 1.4.1
+    repository: file://../../../../third_party/vendir/charts/omada-controller-helm
