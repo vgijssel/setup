@@ -473,6 +473,14 @@ from the `apply.sh` bundle list. Update SPEC/plan references. Grep for straggler
       qemu registered, all bundles apply with consistent naming (no vco), OpenBao auto-unseals + inits
       (keys→1Password), `configure` creates 7 resources, terranetes reconciles the same module+state
       **InSync** via SA login (no root token), ESO `ClusterSecretStore` **Valid**.
-- [~] Remaining (documented manual step, not a regression): seed `kv/cloudflare|tailscale|netdata` — the
-      ExternalSecrets + their consumer bundles (external-dns/tailscale/netdata/ingress→cert→config) stay
-      NotReady until then (the expected bootstrap-cycle gap; values are not in 1Password).
+- [x] After manual kv seed: **full fresh-cluster bring-up validated GREEN** — 12/12 Fleet bundles Ready,
+      terranetes InSync (SA auth, no root token), all 4 ExternalSecrets synced, LE cert issued,
+      `https://secret.vgijssel.nl` HTTP 200 sealed=false on the tailnet.
+
+**Two bring-up fixes surfaced by the fresh rebuild (outside Phase 5, committed):**
+- cloudflare ExternalSecrets read `kv/cloudflare#credential` (was `#token`) to match the seeded item.
+- `secret-ingress` ProxyGroup split into its own `apps/platform/src/tailscale-proxygroup` bundle that
+  `dependsOn` the operator (the operator ships the ProxyGroup CRD as a template → co-locating the CR
+  deadlocked a fresh Helm install). See memory [[secret-cluster-exposure]].
+- One-off: a DNS-01 challenge created before the cloudflare secret existed needed
+  `kubectl -n secret delete order,challenge --all` to retry with the token (no code change).
