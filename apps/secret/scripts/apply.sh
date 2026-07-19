@@ -50,6 +50,16 @@ for _ in $(seq 1 60); do
   sleep 2
 done
 
+# Label the standalone Fleet `local` cluster with cluster.vgijssel.nl/name=secret.
+# This is the key the multi-cluster platform bundles (apps/platform/src/*) select on
+# via fleet.yaml targetCustomizations: bundles gate membership and pick per-cluster
+# values off this label. The network cluster's apply.sh sets the same label to
+# `network`. Idempotent (--overwrite). Must be set BEFORE `fleet apply` below, or
+# the label-selected bundles would match no cluster and not deploy.
+echo "==> Labeling the local Fleet cluster: cluster.vgijssel.nl/name=secret"
+kubectl -n "${FLEET_NS}" label clusters.fleet.cattle.io local \
+  cluster.vgijssel.nl/name=secret --overwrite >/dev/null
+
 # ── Apply the bundles (fleet resolves chart file:// deps relative to CWD) ────
 cd "${REPO_ROOT}"
 

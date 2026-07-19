@@ -13,7 +13,7 @@ resolved.
 - [ ] **T2** UDP-over-Tailscale-LB spike; record go/no-go + fallback *(deps: none)*
 
 ## Phase 1 — Platform multi-cluster refactor (keep `secret` identical)
-- [ ] **T3** Add `cluster.vgijssel.nl/name` label; `secret:apply` labels `local`=secret *(deps: none)*
+- [x] **T3** Add `cluster.vgijssel.nl/name` label; `secret:apply` labels `local`=secret *(deps: none)* — live `local` cluster now labeled `secret`; `fleet apply` maps fleet.yaml `targetCustomizations` into `spec.targets` (replacing the default clusterGroup target), which is the gating+parameterization mechanism used by T4.
 - [ ] **T4** Parameterize platform bundles (tailscale/external-dns/proxygroup) + gate ingress-nginx to secret-only *(deps: T3)*
 - [ ] **T5** Split platform `config`: shared Issuer+ExternalSecrets vs per-cluster ClusterSecretStore *(deps: T4)*
 - [ ] **✅ Checkpoint A** — `secret` manifests diff-clean, cluster green, label present → self-verify, then continue
