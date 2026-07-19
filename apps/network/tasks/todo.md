@@ -31,7 +31,8 @@ resolved.
 ## Phase 3 — Secrets path (JWT + tailnet egress)
 - [ ] **ACL-A** *(out-of-band)* tailnet grant: `network-operator` → `svc:secret` (apply via managed ACL policy)
 - [ ] **T8** OpenBao `jwt-network` backend + `network-read` policy + `network-eso` role (apps/secret) *(deps: T9 for apply; additive to live secret cluster)*
-- [ ] **T9** `network:bootstrap` — seed `operator-oauth`; extract OIDC issuer + JWKS *(deps: T6)*
+- [x] **T9** `network:bootstrap` — seed `operator-oauth`; extract OIDC issuer + JWKS *(deps: T6)*
+  - Live: read secret-cluster root token from 1Password, read kv/tailscale from remote OpenBao (https://secret.vgijssel.nl over tailnet), seeded `operator-oauth` in network's tailscale ns (operator now progressing past ContainerCreating). Captured issuer `https://kubernetes.default.svc.cluster.local` + 1 JWKS key → PEM via stdlib DER encoder → git-ignored `network-jwt.auto.tfvars.json`. Idempotent.
 - [ ] **T10** Tailscale egress to `secret.vgijssel.nl` + `network` ClusterSecretStore (JWT) + ExternalSecrets *(deps: T7, T8, T9, ACL-A)*
 - [ ] **✅ Checkpoint B** — all `network` ExternalSecrets `SecretSynced` via JWT → self-verify, then continue
 
