@@ -1,15 +1,8 @@
-# Neither a `backend {}` block nor a `provider "vault"` block is committed here —
-# each of the two runners injects BOTH, so they never collide:
-#   - in-cluster (terranetes): backend from the controller's backend template
-#     (apps/platform/src/terranetes/values.yaml); provider from the terranetes
-#     Provider CR's `configuration` (address + kubernetes auth_login) — terranetes
-#     requires a providerRef and always renders provider.tf.json, so a committed
-#     provider block would be a duplicate.
-#   - local (secret:configure): an identical git-ignored zz_backend.tf, plus a
-#     zz_provider.tf (`provider "vault" {}`) that reads VAULT_ADDR/VAULT_TOKEN (root
-#     token) from the environment.
-# State lives in the deterministic Secret tfstate-default-openbao-config (ns secret)
-# both resolve to. See SPEC.md → "Configuration management".
+# No `backend {}` block on purpose. State lives in a kubernetes-backend Secret with a
+# deterministic name (tfstate-default-openbao-config, ns secret) resolved two ways that
+# MUST agree: the terranetes backend template in-cluster, and an identical git-ignored
+# zz_backend.tf that secret:configure writes locally. A committed backend would collide
+# with the terranetes-injected one. See SPEC.md → "Configuration management".
 terraform {
   required_version = ">= 1.10.0"
 
@@ -19,6 +12,14 @@ terraform {
     vault = {
       source  = "hashicorp/vault"
       version = "5.10.1"
+    }
+    # terranetes requires a providerRef and always injects a provider block from that
+    # Provider CR. To avoid duplicating the vault provider this module owns, the CR uses
+    # a `null` type, injecting a harmless (unused) provider "null" {}. Declared here so
+    # the injected block is a recognised, pinned requirement.
+    null = {
+      source  = "hashicorp/null"
+      version = "3.3.0"
     }
   }
 }
