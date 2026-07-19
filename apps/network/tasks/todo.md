@@ -47,10 +47,45 @@ resolved.
 - [ ] **⚠️ BLOCKED Checkpoint C** — needs ACL-A (secrets → cert + mongo) and ACL-B (VIP). All code complete; live verification blocked on tailnet ACLs.
 
 ## Phase 6 — Adoption + polish
-- [ ] **T15** Adopt a real device via Inform URL over the tailnet; document the flow *(deps: T13, T14)*
-- [ ] **T16** Idempotence + `stop`→`start`→re-grant cycle; flip module `?ref=`; finalize ACL notes *(deps: T15)*
+- [ ] **T15** Adopt a real device via Inform URL over the tailnet *(deps: T13, T14)* — **BLOCKED: needs a physical Omada device + a working VIP (ACL-B).** For the user.
+- [~] **T16** Idempotence + `stop`→`start`→re-grant cycle; flip module `?ref=`; finalize ACL notes *(deps: T15)* — partial: start/apply/bootstrap verified idempotent; no secrets in git (`git grep` clean, tfvars untracked); secret cluster verified still fully green. **Module `?ref=` flip deferred — requires this branch to be merged first** (then T8 grant goes live via secret:configure).
 
 ---
+
+## ⚠️ Remaining blockers (need operator action — access I lack)
+
+These gate the *live end-to-end* (Checkpoints B & C, T15). All code is written,
+committed, validated, and deployed as far as it goes; both clusters are healthy.
+
+1. **Merge this branch + flip the module `?ref=` (unblocks T8 grant → Checkpoint B).**
+   - Merge `feat/network-cluster-omada`.
+   - Edit `apps/secret/src/config/configuration-openbao.yaml` `spec.module` `?ref=` to
+     the merged ref, and add the network vars to `spec.variables` (from the
+     git-ignored `network-jwt.auto.tfvars.json`) so terranetes reconciles the new
+     module instead of destroying the grant.
+   - `moon run network:bootstrap` (regenerates issuer/JWKS) then `moon run secret:configure`
+     (auto-loads the tfvars, creates the jwt-network backend/policy/role). Verify:
+     `bao read auth/jwt-network/role/network-eso` shows `network-read`.
+
+2. **ACL-A — tailnet grant so the network cluster can reach OpenBao** (no Tailscale API
+   token available to me). Grant the `tag:k8s-operator`/`network-operator` egress to
+   `svc:secret` (secret.vgijssel.nl) in the tailnet policy. The operator + ProxyGroup
+   already registered, so the tailnet is partly open; the `openbao` egress Service in
+   `external-secrets` still shows `placeholder` — verify the `tailnet-fqdn` egress form
+   against the operator version (may need a ClusterIP egress or a Connector), then curl
+   `https://secret.vgijssel.nl/v1/sys/health` from a network pod to confirm SNI+reach.
+
+3. **ACL-B — tailnet `omada-network` Service** (autoApprovers.services + grants) so the
+   Omada VIP is advertised and `omada.network.vgijssel.nl` resolves to it.
+
+4. **T2 UDP spike** — verify `nc -vzu <vip> 29810` once the VIP is up; TCP-only + Inform
+   URL is the accepted fallback (R1/R2).
+
+5. **T15** — adopt a real Omada device via its Inform URL over the tailnet.
+
+Note: kubectl context is currently `vcluster-docker_network`
+(`vcluster connect secret` / `kubectl config use-context vcluster-docker_secret`
+to switch back). `kv/mongodb` was seeded in OpenBao during T11.
 
 ### Definition of Done (every task)
 - Versions pinned; charts vendored; `Chart.lock` committed.
