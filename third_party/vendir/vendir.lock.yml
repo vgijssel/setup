@@ -104,6 +104,18 @@ directories:
   path: charts/terranetes-controller
 - contents:
   - helmChart:
+      appVersion: 6.2.14.11
+      version: 1.4.1
+    path: .
+  path: charts/omada-controller-helm
+- contents:
+  - helmChart:
+      appVersion: 8.0.26
+      version: 0.7.9
+    path: .
+  path: charts/mongodb
+- contents:
+  - helmChart:
       appVersion: 0.15.4
       version: 0.15.4
     path: .

@@ -7,7 +7,9 @@ Checkpoints are self-verification gates — verify, log, and continue; only stop
 resolved.
 
 ## Phase 0 — De-risk
-- [ ] **T1** Vendor Omada (OCI 1.4.1) + pinned MongoDB charts via vendir — `vendir:build`/`test` green *(deps: none)*
+- [x] **T1** Vendor Omada (OCI 1.4.1) + pinned MongoDB charts via vendir — `vendir:build`/`test` green *(deps: none)*
+  - Omada `omada-controller-helm` 1.4.1 (OCI docker.io/mbentley, appVersion 6.2.14.11).
+  - MongoDB `groundhog2k/mongodb` 0.7.9 (appVersion 8.0.26) — wraps the official multi-arch `mongo` image (arm64-native, freely pullable; avoids Bitnami 2025 gating per R6).
 - [ ] **T2** UDP-over-Tailscale-LB spike; record go/no-go + fallback *(deps: none)*
 
 ## Phase 1 — Platform multi-cluster refactor (keep `secret` identical)
