@@ -37,7 +37,7 @@ resolved.
 - [ ] **⚠️ BLOCKED Checkpoint B** — ExternalSecrets can't sync until ACL-A (tailnet grant network-operator→svc:secret) is applied AND T8 grant is live (needs branch merge + module ref flip). Both require access I lack (Tailscale API token / merge). See final report.
 
 ## Phase 4 — Data + application
-- [ ] **T11** `network-mongodb` bundle (PVC + creds ESO + `mongodb-uri`) *(deps: T1, T10)*
+- [x] **T11** `network-mongodb` bundle (PVC + creds ESO + `mongodb-uri`) *(deps: T1, T10)* — umbrella chart (vendored mongodb 0.7.9, official mongo:8.0.26), single-node, 2Gi PVC; root creds via ESO `mongodb-credentials` (kv/mongodb seeded in OpenBao). Deployed live: StatefulSet + PVC Bound; pod `Init:0/1` awaiting ESO creds (ACL-A blocked). `mongodb-uri` ES lives in the omada bundle (T12, same ns as Omada).
 - [ ] **T12** `network-omada` bundle (external Mongo, ports, tls, persistence) *(deps: T1, T10, T11)*
 
 ## Phase 5 — Exposure + TLS

@@ -1,0 +1,13 @@
+# Portable Fleet bundle: single-node MongoDB for the Omada controller. Fleet detects
+# the umbrella Chart.yaml here and deploys it with values.yaml. The omada bundle
+# dependsOn this bundle (label below) so Mongo is up before Omada tries to connect.
+#
+# Owns the `mongodb` namespace (defaultNamespace). The mongodb-credentials
+# ExternalSecret stays NotReady until the network ClusterSecretStore can reach OpenBao
+# (ACL-A + T8); MongoDB won't finish first-boot init without those root creds, which
+# is expected during bootstrap.
+labels:
+  fleet.vgijssel.nl/bundle: network-mongodb
+defaultNamespace: mongodb
+helm:
+  releaseName: mongodb

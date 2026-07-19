@@ -1,0 +1,25 @@
+# Single-node MongoDB for the Omada controller. The vendored chart wraps the OFFICIAL
+# multi-arch `mongo` image (arm64-native, freely pullable — SPEC R6). Omada 1.4.1 runs
+# rootless against EXTERNAL MongoDB; this is that instance.
+#
+# Root credentials (MONGO_INITDB_ROOT_USERNAME/PASSWORD) are injected from the
+# ESO-synced `mongodb-credentials` Secret (from OpenBao kv/mongodb). Omada connects
+# with the same user via the `mongodb-uri` Secret built in the omada bundle, at
+# mongodb.mongodb.svc.cluster.local:27017 (authSource=admin).
+mongodb:
+  # Pin the image tag explicitly (chart appVersion default = 8.0.26).
+  image:
+    tag: "8.0.26"
+
+  # Root user from OpenBao via ESO (envFrom secretRef). Leaving settings.rootUsername/
+  # rootPassword unset means the chart creates no competing secureconfig Secret.
+  extraEnvSecrets:
+    - mongodb-credentials
+
+  service:
+    type: ClusterIP
+    port: 27017
+
+  # Durable data on a dynamically-provisioned PVC (single node).
+  storage:
+    requestedSize: 2Gi
