@@ -1,11 +1,15 @@
-# No `backend {}` block on purpose. State lives in a kubernetes-backend Secret
-# with a deterministic name (tfstate-default-openbao-config, ns secret) resolved
-# two ways that MUST agree:
-#   - in-cluster: terranetes-controller injects the backend from its backend
-#     template (apps/platform/src/terranetes/values.yaml).
-#   - local:      secret:configure writes an identical git-ignored zz_backend.tf.
-# A committed backend here would collide with the terranetes-injected one, so it
-# is deliberately omitted. See SPEC.md → "Configuration management".
+# Neither a `backend {}` block nor a `provider "vault"` block is committed here —
+# each of the two runners injects BOTH, so they never collide:
+#   - in-cluster (terranetes): backend from the controller's backend template
+#     (apps/platform/src/terranetes/values.yaml); provider from the terranetes
+#     Provider CR's `configuration` (address + kubernetes auth_login) — terranetes
+#     requires a providerRef and always renders provider.tf.json, so a committed
+#     provider block would be a duplicate.
+#   - local (secret:configure): an identical git-ignored zz_backend.tf, plus a
+#     zz_provider.tf (`provider "vault" {}`) that reads VAULT_ADDR/VAULT_TOKEN (root
+#     token) from the environment.
+# State lives in the deterministic Secret tfstate-default-openbao-config (ns secret)
+# both resolve to. See SPEC.md → "Configuration management".
 terraform {
   required_version = ">= 1.10.0"
 

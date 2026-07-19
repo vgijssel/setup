@@ -62,8 +62,8 @@ fi
 pf_pid=""
 cleanup() {
   [[ -n "${pf_pid}" ]] && kill "${pf_pid}" 2>/dev/null
-  # Always remove the runtime backend override so it never lands in git.
-  rm -f "${MODULE_DIR}/zz_backend.tf"
+  # Always remove the runtime overrides so they never land in git.
+  rm -f "${MODULE_DIR}/zz_backend.tf" "${MODULE_DIR}/zz_provider.tf"
 }
 trap cleanup EXIT
 
@@ -80,11 +80,15 @@ if ! jq -e '.initialized == true' >/dev/null 2>&1 <<<"${bao_status:-}"; then
   exit 1
 fi
 
-# ── Write the runtime kubernetes-backend override ────────────────────────────
-# Identical to the backend the terranetes backend template renders for the
+# ── Write the runtime backend + provider overrides ───────────────────────────
+# The committed module carries neither a backend nor a provider block — each runner
+# injects its own (see versions.tf). Locally we write both, git-ignored, and remove
+# them after apply.
+#
+# Backend: identical to what the terranetes backend template renders for the
 # `openbao-config` Configuration in ns `secret`, so both resolve to the ONE Secret
 # tfstate-default-openbao-config. in_cluster_config=false: use the local kubeconfig.
-echo "==> Writing runtime backend override (git-ignored)"
+echo "==> Writing runtime backend + provider overrides (git-ignored)"
 cat >"${MODULE_DIR}/zz_backend.tf" <<'HCL'
 terraform {
   backend "kubernetes" {
@@ -95,9 +99,14 @@ terraform {
 }
 HCL
 
+# Provider: root-token auth. The empty block reads VAULT_ADDR + VAULT_TOKEN from the
+# environment (exported below), so no token is ever written to a file.
+cat >"${MODULE_DIR}/zz_provider.tf" <<'HCL'
+provider "vault" {}
+HCL
+
 export VAULT_ADDR="${BAO_ADDR}"
 export VAULT_TOKEN="${ROOT_TOKEN}"
-TF_ARGS=(-var "auth_method=token" -var "bao_address=${BAO_ADDR}")
 
 # The kubernetes backend (in_cluster_config=false) does not auto-discover the
 # kubeconfig; point it at the operator's config + context via its env vars. This
@@ -119,14 +128,14 @@ echo "==> tofu init (kubernetes backend -> tfstate-default-openbao-config, ns ${
 adopt() { # adopt <tofu-address> <import-id>
   if ! (cd "${MODULE_DIR}" && tofu state list 2>/dev/null | grep -qx "$1"); then
     echo "==> Adopting existing $1 ($2) into state (if present)"
-    (cd "${MODULE_DIR}" && tofu import -input=false "${TF_ARGS[@]}" "$1" "$2" >/dev/null 2>&1) || true
+    (cd "${MODULE_DIR}" && tofu import -input=false "$1" "$2" >/dev/null 2>&1) || true
   fi
 }
 adopt vault_mount.kv kv
 adopt vault_auth_backend.kubernetes kubernetes
 
 echo "==> tofu apply"
-(cd "${MODULE_DIR}" && tofu apply -input=false -auto-approve "${TF_ARGS[@]}")
+(cd "${MODULE_DIR}" && tofu apply -input=false -auto-approve)
 
 echo "==> Done. OpenBao config applied to the shared state Secret ${NAMESPACE}/tfstate-default-openbao-config."
 echo "    terranetes-controller now reconciles the same module + state via its ServiceAccount login."
