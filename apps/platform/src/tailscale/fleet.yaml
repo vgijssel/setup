@@ -36,9 +36,9 @@ targetCustomizations:
           # tagOwners). hostname stays secret-operator (base values.yaml).
           operatorConfig:
             defaultTags:
-              - "tag:secret-operator"
+              - tag:secret-operator
           proxyConfig:
-            defaultTags: "tag:secret-k8s"
+            defaultTags: tag:secret-k8s
   - name: network
     clusterSelector:
       matchLabels:
@@ -52,9 +52,9 @@ targetCustomizations:
             # operator's client (kv/network-tailscale-operator) owns
             # tag:network-operator, which owns tag:network-k8s.
             defaultTags:
-              - "tag:network-operator"
+              - tag:network-operator
           proxyConfig:
-            defaultTags: "tag:network-k8s"
+            defaultTags: tag:network-k8s
           # NOTE: the operator's built-in kube-apiserver ProxyConfig (previously mode:
           # noauth, T17) was removed in T19. OpenBao no longer fetches this cluster's JWKS
           # via the operator's .ts.net proxy — it uses the dedicated apiserver-proxy bundle
