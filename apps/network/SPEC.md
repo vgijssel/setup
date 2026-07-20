@@ -40,7 +40,7 @@ plus the Omada devices themselves adopting the controller over the tailnet.
 
 | Area | Decision |
 |------|----------|
-| **OpenBao auth (network → remote OpenBao)** | **JWT auth**, bound to the network cluster's OIDC issuer + JWKS. No static credential on disk. |
+| **OpenBao auth (network → remote OpenBao)** | **JWT auth**, bound to the network cluster's OIDC issuer; keys fetched **live** via `jwks_url` (the `network-operator` noauth API-server proxy on the tailnet), not a static copy on `secret`. No static credential on disk. |
 | **Platform charts** | **Refactor `apps/platform` to be multi-cluster** — one shared bundle set, parameterized per cluster via Fleet `targetCustomizations` keyed on a cluster label. Both `secret` and `network` consume it. |
 | **Omada exposure** | **Single Tailscale `LoadBalancer` Service** exposing all documented Omada ports (incl. 8043 HTTPS). `omada.network.vgijssel.nl` → the Service VIP. TLS cert issued by cert-manager and **mounted into the Omada container** (`/cert`), *not* terminated by ingress-nginx. |
 | **Bootstrap credential** | `bootstrap.sh` authenticates to OpenBao with the **`secret`-cluster root token** read from the `enigma-prod` 1Password vault (same source `secret:configure` uses). |
@@ -202,12 +202,14 @@ apps/secret/src/openbao-config/main.tf   # ADD:
   - vault_jwt_auth_backend_role "network-eso"  (bound_audiences=["openbao"], user_claim="sub",
                                                 bound_subject/claims = the network ESO service account,
                                                 token_policies=["network-read"])
-apps/secret/src/openbao-config/variables.tf  # ADD: network_oidc_issuer, network_jwks (or jwks_url)
+apps/secret/src/openbao-config/variables.tf  # network_oidc_issuer, network_jwks_url (+ network_jwks_ca_pem)
 ```
 
-Applied by re-running `secret:configure` (and reconciled in-cluster by terranetes). The network JWKS/issuer
-values are produced by `network:bootstrap` and passed in as tofu vars — **never committed** (JWKS is public
-key material and safe, but treat the wiring as config, not source).
+Reconciled in-cluster by terranetes from `configuration-openbao.yaml` (the source of truth); `secret:configure`
+reads the same `network_oidc_issuer` + `network_jwks_url` from that file so the local root-token apply agrees.
+`network_jwks_url` points at the tailnet-reachable `network-operator` JWKS endpoint and is **stable** across
+network recreation — set it once (safe to commit; it's just a URL to public key material). OpenBao fetches the
+keys live, so nothing is re-extracted after a `network:stop`+`start`.
 
 ---
 
@@ -357,9 +359,12 @@ terranetes Configuration, wiping OpenBao storage, revoking the seal) — see Nev
   mounted cert. Since we expose the Service directly (no nginx), clients hit 8043 with the LE cert — fine.
   The cert's CN/SAN must be `omada.network.vgijssel.nl` and match what clients request via the VIP.
 - **R4 — Platform refactor regressing `secret`.** *Mitigation:* rendered-manifest diff gate (Testing #1).
-- **R5 — JWT issuer stability across cluster recreation.** vind SA-token issuer/JWKS may change if the
-  cluster is destroyed/recreated, breaking the OpenBao binding. *Mitigation:* `bootstrap.sh` re-extracts and
-  re-supplies JWKS; `secret:configure` re-applies; document the re-grant step after a `network:stop`+`start`.
+- **R5 — JWT issuer stability across cluster recreation.** vind SA-token JWKS change if the cluster is
+  destroyed/recreated, but OpenBao fetches them **live** from `network_jwks_url` (the stable `network-operator`
+  MagicDNS endpoint), so no re-extraction/re-grant is needed. The `bound_issuer`
+  (`https://kubernetes.default.svc.cluster.local`) is also stable. *Residual risk:* the live design inverts the
+  trust direction — `secret` must reach `network` at auth time (mitigated by ACL-C scoping + noauth authz that
+  exposes only the two OIDC discovery endpoints anonymously).
 - **R6 — MongoDB availability.** External MongoDB chosen; the exact chart must be pinned and its image must
   be pullable (Bitnami relicensed/moved much of its catalog in 2025). *Mitigation:* pick a maintained,
   pinned MongoDB chart at implementation time; verify the image pulls before wiring Omada to it.

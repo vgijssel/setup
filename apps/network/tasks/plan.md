@@ -24,10 +24,14 @@ highest-risk unknowns (OCI chart vendoring, UDP-over-Tailscale) are spiked first
 
 ## Architecture Decisions (recap + new)
 
-- **JWT auth, static JWKS.** OpenBao (on `secret`) can't necessarily reach the `network` API, so its
-  `jwt-network` backend validates `network` SA tokens against **static JWKS** (`jwt_validation_pubkeys`)
-  extracted by `network:bootstrap`, not a live `jwks_url`. Bound issuer + audience `openbao` + bound subject
-  = the `network` ESO service account.
+- **JWT auth, live JWKS.** OpenBao (on `secret`) validates `network` SA tokens against the network
+  cluster's JWKS fetched **live** from `network_jwks_url` — the `network-operator` noauth API-server proxy
+  on the tailnet (`https://network-operator.<tailnet>.ts.net/openid/v1/jwks`), reached via a reverse egress
+  (ACL-C). `jwks_url` is decoupled from `bound_issuer`, so tokens keep `iss
+  https://kubernetes.default.svc.cluster.local` while keys come from the tailnet URL. Bound issuer + audience
+  `openbao` + bound subject = the `network` ESO service account. **Trade-off:** this inverts the trust
+  direction — `secret` now depends on reaching `network` at auth time — but the operator hostname is stable,
+  so keys are never re-extracted into `secret` on a vind recreate (supersedes the original static-JWKS design).
 - **Platform refactor = Fleet targeting.** `targets`+`clusterSelector` gate bundle membership per cluster
   (ingress-nginx → `secret` only); `targetCustomizations` parameterize per-cluster values. Keyed on label
   `cluster.vgijssel.nl/name` set on the Fleet `local` Cluster by each `apply.sh`.

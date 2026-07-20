@@ -38,6 +38,7 @@ require kubectl
 require jq
 require op
 require tofu
+require yq
 
 # Load the 1Password service-account token from .env if not already set.
 if [[ -z "${OP_SERVICE_ACCOUNT_TOKEN:-}" && -f "${REPO_ROOT}/.env" ]]; then
@@ -101,6 +102,19 @@ HCL
 export VAULT_ADDR="${BAO_ADDR}"
 export VAULT_TOKEN="${ROOT_TOKEN}"
 TF_ARGS=(-var "auth_method=token" -var "bao_address=${BAO_ADDR}")
+
+# Keep this local root-token apply consistent with the in-cluster terranetes reconcile:
+# read the network JWT grant inputs from the committed Configuration (the reconciler's
+# source of truth) and pass them through, so both apply the SAME jwt-network backend and
+# neither drifts. Empty/absent -> the network backend stays disabled (count 0), which is
+# the correct state before network_jwks_url is wired up.
+CONFIG_YAML="${SCRIPT_DIR}/../src/config/configuration-openbao.yaml"
+if [[ -f "${CONFIG_YAML}" ]]; then
+  net_issuer="$(yq '.spec.variables.network_oidc_issuer' "${CONFIG_YAML}" 2>/dev/null || true)"
+  net_jwks_url="$(yq '.spec.variables.network_jwks_url' "${CONFIG_YAML}" 2>/dev/null || true)"
+  [[ -n "${net_issuer}" && "${net_issuer}" != "null" ]] && TF_ARGS+=(-var "network_oidc_issuer=${net_issuer}")
+  [[ -n "${net_jwks_url}" && "${net_jwks_url}" != "null" ]] && TF_ARGS+=(-var "network_jwks_url=${net_jwks_url}")
+fi
 
 # The kubernetes backend (in_cluster_config=false) does not auto-discover the
 # kubeconfig; point it at the operator's config + context via its env vars. This
