@@ -147,24 +147,16 @@ resource "tailscale_acl" "this" {
                 "dst": ["svc:secret"],
                 "ip":  ["tcp:443"],
             },
-            // ACL-C: the SECRET cluster's egress proxy (tag:k8s) reaches the network
-            // operator device (tag:k8s-operator) on 443, where the noauth API-server
-            // proxy serves /openid/v1/jwks. This is the reverse of ACL-A and is what lets
-            // secret's OpenBao fetch this cluster's JWKS live (jwt-network jwks_url). The
-            // apiserver's own authz still applies: anonymous callers can read only the two
-            // OIDC discovery endpoints (clusterrolebinding-oidc-discovery.yaml).
-            // NOTE: superseded by ACL-D in T19 (JWKS moves to svc:api-network); removed then.
-            {
-                "src": ["tag:k8s"],
-                "dst": ["tag:k8s-operator"],
-                "ip":  ["tcp:443"],
-            },
-            // ACL-D (T18): the "api-network" Service VIP — the reverse proxy exposing this
-            // cluster's kube-apiserver at api.network.vgijssel.nl (valid LE cert on 443).
+            // ACL-D (T18/T19): the "api-network" Service VIP — the reverse proxy exposing
+            // this cluster's kube-apiserver at api.network.vgijssel.nl (valid LE cert on 443).
             //  - group:admin reach it for kubectl over the tailnet.
             //  - tag:k8s (the SECRET cluster's in-cluster egress) reaches it so OpenBao can
-            //    fetch this cluster's JWKS over a plain public HTTPS URL — this is what lets
-            //    T19 retire the MagicDNS egress + CoreDNS rewrite (replacing ACL-C above).
+            //    fetch this cluster's JWKS over a plain public HTTPS URL (jwt-network
+            //    jwks_url). The apiserver's own authz still applies: anonymous callers can
+            //    read only the two OIDC discovery endpoints (clusterrolebinding-oidc-discovery.yaml).
+            // This is the SOLE JWKS path: T19 retired the old ACL-C (tag:k8s ->
+            // tag:k8s-operator:443, the operator's noauth API-server proxy) along with the
+            // MagicDNS egress + CoreDNS rewrite.
             {
                 "src": ["group:admin"],
                 "dst": ["svc:api-network"],

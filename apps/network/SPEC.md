@@ -40,7 +40,7 @@ plus the Omada devices themselves adopting the controller over the tailnet.
 
 | Area | Decision |
 |------|----------|
-| **OpenBao auth (network → remote OpenBao)** | **JWT auth**, bound to the network cluster's OIDC issuer; keys fetched **live** via `jwks_url` (the `network-operator` noauth API-server proxy on the tailnet), not a static copy on `secret`. No static credential on disk. |
+| **OpenBao auth (network → remote OpenBao)** | **JWT auth**, bound to the network cluster's OIDC issuer; keys fetched **live** via `jwks_url` (the `api.network.vgijssel.nl` apiserver-proxy reverse proxy on the tailnet, valid public LE cert), not a static copy on `secret`. No static credential on disk. |
 | **Platform charts** | **Refactor `apps/platform` to be multi-cluster** — one shared bundle set, parameterized per cluster via Fleet `targetCustomizations` keyed on a cluster label. Both `secret` and `network` consume it. |
 | **Omada exposure** | **Single Tailscale `LoadBalancer` Service** exposing all documented Omada ports (incl. 8043 HTTPS). `omada.network.vgijssel.nl` → the Service VIP. TLS cert issued by cert-manager and **mounted into the Omada container** (`/cert`), *not* terminated by ingress-nginx. |
 | **Bootstrap credential** | `bootstrap.sh` authenticates to OpenBao with the **`secret`-cluster root token** read from the `enigma-prod` 1Password vault (same source `secret:configure` uses). |
@@ -207,9 +207,10 @@ apps/secret/src/openbao-config/variables.tf  # network_oidc_issuer, network_jwks
 
 Reconciled in-cluster by terranetes from `configuration-openbao.yaml` (the source of truth); `secret:configure`
 reads the same `network_oidc_issuer` + `network_jwks_url` from that file so the local root-token apply agrees.
-`network_jwks_url` points at the tailnet-reachable `network-operator` JWKS endpoint and is **stable** across
-network recreation — set it once (safe to commit; it's just a URL to public key material). OpenBao fetches the
-keys live, so nothing is re-extracted after a `network:stop`+`start`.
+`network_jwks_url` points at the tailnet-reachable `api.network.vgijssel.nl` JWKS endpoint (the apiserver-proxy
+reverse proxy, valid public LE cert) and is **stable** across network recreation — set it once (safe to commit;
+it's just a URL to public key material). OpenBao fetches the keys live, so nothing is re-extracted after a
+`network:stop`+`start`.
 
 ---
 
@@ -360,8 +361,8 @@ terranetes Configuration, wiping OpenBao storage, revoking the seal) — see Nev
   The cert's CN/SAN must be `omada.network.vgijssel.nl` and match what clients request via the VIP.
 - **R4 — Platform refactor regressing `secret`.** *Mitigation:* rendered-manifest diff gate (Testing #1).
 - **R5 — JWT issuer stability across cluster recreation.** vind SA-token JWKS change if the cluster is
-  destroyed/recreated, but OpenBao fetches them **live** from `network_jwks_url` (the stable `network-operator`
-  MagicDNS endpoint), so no re-extraction/re-grant is needed. The `bound_issuer`
+  destroyed/recreated, but OpenBao fetches them **live** from `network_jwks_url` (the stable
+  `api.network.vgijssel.nl` apiserver-proxy endpoint), so no re-extraction/re-grant is needed. The `bound_issuer`
   (`https://kubernetes.default.svc.cluster.local`) is also stable. *Residual risk:* the live design inverts the
   trust direction — `secret` must reach `network` at auth time (mitigated by ACL-C scoping + noauth authz that
   exposes only the two OIDC discovery endpoints anonymously).

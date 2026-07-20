@@ -119,9 +119,10 @@ resource "vault_kubernetes_auth_backend_role" "terranetes" {
 # The network cluster runs no OpenBao of its own; its external-secrets reads kv/*
 # from THIS OpenBao over the tailnet (secret.vgijssel.nl) using JWT auth. OpenBao
 # validates network SA-token signatures against the network cluster's JWKS, fetched
-# LIVE from network_jwks_url (the network-operator noauth API-server proxy on the
-# tailnet) — no static key copy, so a vind recreate no longer requires re-extracting
-# keys into this module. jwks_url is decoupled from bound_issuer: the `iss` claim stays
+# LIVE from network_jwks_url (the network cluster's kube-apiserver reverse proxy on the
+# tailnet, api.network.vgijssel.nl, valid public LE cert) — no static key copy, so a
+# vind recreate no longer requires re-extracting keys into this module. jwks_url is
+# decoupled from bound_issuer: the `iss` claim stays
 # https://kubernetes.default.svc.cluster.local (unchanged), while the keys are fetched
 # from the tailnet URL. All resources are gated on the issuer + url being present, so
 # this module still applies cleanly on the secret cluster before the network cluster is
@@ -163,7 +164,7 @@ resource "vault_policy" "network_read" {
 
 # The login role bound to the network cluster's external-secrets ServiceAccount.
 # ESO mints a projected SA token with audience "openbao" and posts it to jwt-network;
-# OpenBao checks the signature (live JWKS from network_jwks_url), issuer, audience, and
+# OpenBao checks the signature (live JWKS from network_jwks_url over the tailnet), issuer, audience, and
 # subject, then issues a token carrying network-read.
 resource "vault_jwt_auth_backend_role" "network_eso" {
   count           = local.network_enabled ? 1 : 0

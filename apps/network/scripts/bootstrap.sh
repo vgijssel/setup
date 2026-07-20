@@ -12,8 +12,8 @@
 #
 # Note: this no longer extracts the cluster's JWKS. OpenBao (on secret) now fetches
 # the network cluster's JWKS LIVE over the tailnet (jwt-network backend, jwks_url =
-# the network-operator noauth API-server proxy), so there is nothing to re-extract
-# when the vind cluster is recreated — the network-operator device hostname is stable.
+# the apiserver-proxy reverse proxy at api.network.vgijssel.nl), so there is nothing to
+# re-extract when the vind cluster is recreated — the api-network VIP + DNS are stable.
 # Confirm network_jwks_url is set once in apps/secret/src/config/configuration-openbao.yaml
 # (see the final message below).
 #
@@ -110,14 +110,14 @@ cat <<EOF
     OpenBao fetches this cluster's JWKS LIVE over the tailnet — nothing to extract.
     One-time wiring on the SECRET side (stable across network recreation):
 
-      1. Confirm the network operator's MagicDNS name is up:
-           tailscale status | grep network-operator
+      1. Confirm the api-network reverse proxy is up on the tailnet:
+           curl -sf https://api.network.vgijssel.nl/openid/v1/jwks
       2. Set network_jwks_url in apps/secret/src/config/configuration-openbao.yaml:
-           network_jwks_url: https://network-operator.<tailnet>.ts.net/openid/v1/jwks
-         (<tailnet> is this tailnet's ts.net name; must match the tailnet-fqdn in
+           network_jwks_url: https://api.network.vgijssel.nl/openid/v1/jwks
+         (must match the tailnet-fqdn in
           apps/secret/src/config/service-network-jwks-egress.yaml)
-      3. Ensure the tailnet ACL is applied (ACL-C grants tag:k8s -> tag:k8s-operator:443)
-         and the operator runs the noauth API-server proxy (apiServerProxyConfig).
+      3. Ensure the tailnet ACL is applied (ACL-D grants tag:k8s -> svc:api-network:443)
+         and the apiserver-proxy bundle is deployed (apps/network/src/apiserver-proxy).
 
     terranetes then reconciles the jwt-network backend against the live jwks_url; the
     network cluster's ESO + terranetes log in and read kv/*. No re-run needed after a

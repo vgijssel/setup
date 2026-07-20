@@ -19,7 +19,7 @@ helm:
 # cluster only gets a BundleDeployment if it matches a selector here. The operator
 # registers under a per-cluster device hostname; `secret` inherits the base
 # values.yaml (secret-operator) unchanged — keeping its rendered output byte-for-byte
-# identical — while `network` overrides the hostname and enables the API-server proxy.
+# identical — while `network` overrides only the hostname.
 targetCustomizations:
   - name: secret
     clusterSelector:
@@ -34,14 +34,7 @@ targetCustomizations:
         tailscale-operator:
           operatorConfig:
             hostname: network-operator
-          # Expose the kube-apiserver on the tailnet (device network-operator) so the
-          # secret cluster's OpenBao can fetch this cluster's JWKS live at
-          # https://network-operator.<tailnet>.ts.net/openid/v1/jwks (jwt-network
-          # backend). "noauth" makes the proxy FORWARD without impersonation — the
-          # apiserver's own authz still applies, so credential-less access is limited to
-          # whatever RBAC grants system:anonymous. Only the discovery endpoints are made
-          # anonymously readable (clusterrolebinding-oidc-discovery.yaml), and the ACL
-          # (ACL-C) restricts who can reach the device at all. No impersonation RBAC is
-          # rendered for "noauth" (only for mode="true").
-          apiServerProxyConfig:
-            mode: noauth
+          # NOTE: the operator's built-in kube-apiserver ProxyConfig (previously mode:
+          # noauth, T17) was removed in T19. OpenBao no longer fetches this cluster's JWKS
+          # via the operator's .ts.net proxy — it uses the dedicated apiserver-proxy bundle
+          # (api.network.vgijssel.nl, valid public LE cert). See apps/network/src/apiserver-proxy.

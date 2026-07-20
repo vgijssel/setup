@@ -27,9 +27,10 @@ variable "k8s_auth_role" {
 
 # ── network cluster JWT grant (consumer of this OpenBao) ─────────────────────
 # OpenBao fetches the network cluster's public signing keys LIVE from its OIDC JWKS
-# endpoint over the tailnet (network-operator's noauth API-server proxy), rather than
-# caching a static copy. The network-operator device hostname is stable across vind
-# recreation, so this URL is set once and committed — no per-recreate key extraction.
+# endpoint over the tailnet (the network cluster's kube-apiserver reverse proxy at
+# api.network.vgijssel.nl, valid public LE cert), rather than caching a static copy.
+# The api-network Service VIP + DNS name are stable across vind recreation, so this URL
+# is set once and committed — no per-recreate key extraction.
 # Both default empty so this module still applies on the secret cluster BEFORE the
 # network cluster exists (empty issuer/url -> the jwt-network resources count to 0).
 
@@ -40,13 +41,13 @@ variable "network_oidc_issuer" {
 }
 
 variable "network_jwks_url" {
-  description = "Tailnet-reachable JWKS URL of the network cluster (e.g. https://network-operator.<tailnet>.ts.net/openid/v1/jwks, served by the operator's noauth API-server proxy). OpenBao fetches network SA-token signing keys from here live. Empty disables the jwt-network backend."
+  description = "Tailnet-reachable JWKS URL of the network cluster (https://api.network.vgijssel.nl/openid/v1/jwks, served by the cluster's kube-apiserver reverse proxy behind a valid public LE cert). OpenBao fetches network SA-token signing keys from here live. Empty disables the jwt-network backend."
   type        = string
   default     = ""
 }
 
 variable "network_jwks_ca_pem" {
-  description = "Optional PEM CA bundle OpenBao trusts when fetching network_jwks_url. Leave empty when the endpoint presents a publicly-trusted cert (Tailscale ts.net MagicDNS certs are Let's Encrypt-backed)."
+  description = "Optional PEM CA bundle OpenBao trusts when fetching network_jwks_url. Leave empty when the endpoint presents a publicly-trusted cert (api.network.vgijssel.nl serves a Let's Encrypt cert)."
   type        = string
   default     = ""
 }
