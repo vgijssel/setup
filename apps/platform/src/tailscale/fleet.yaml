@@ -25,6 +25,20 @@ targetCustomizations:
     clusterSelector:
       matchLabels:
         cluster.vgijssel.nl/name: secret
+    helm:
+      values:
+        tailscale-operator:
+          # T24: this cluster's operator + proxies register under their OWN tags
+          # (was the shared tag:k8s-operator / tag:k8s), so cross-cluster ACLs are
+          # directional and each cluster's OAuth client is an independent root of
+          # trust. The operator's client (kv/secret-tailscale-operator) owns
+          # tag:secret-operator, which owns tag:secret-k8s (see tailscale-config
+          # tagOwners). hostname stays secret-operator (base values.yaml).
+          operatorConfig:
+            defaultTags:
+              - "tag:secret-operator"
+          proxyConfig:
+            defaultTags: "tag:secret-k8s"
   - name: network
     clusterSelector:
       matchLabels:
@@ -34,6 +48,13 @@ targetCustomizations:
         tailscale-operator:
           operatorConfig:
             hostname: network-operator
+            # T24: per-cluster tags (was shared tag:k8s-operator / tag:k8s). The
+            # operator's client (kv/network-tailscale-operator) owns
+            # tag:network-operator, which owns tag:network-k8s.
+            defaultTags:
+              - "tag:network-operator"
+          proxyConfig:
+            defaultTags: "tag:network-k8s"
           # NOTE: the operator's built-in kube-apiserver ProxyConfig (previously mode:
           # noauth, T17) was removed in T19. OpenBao no longer fetches this cluster's JWKS
           # via the operator's .ts.net proxy — it uses the dedicated apiserver-proxy bundle
