@@ -179,19 +179,22 @@ resource "vault_jwt_auth_backend_role" "network_eso" {
 
 # Login role for the network cluster's terranetes runner (executor SA). It reconciles
 # apps/network/src/tailscale-config, whose module reads the tailscale OAuth client from
-# kv/tailscale-acl — so it needs the same read-only network-read policy. Bound to the
-# executor's subject; audience is left unbound because the runner presents its default
-# ServiceAccount token (whose aud is the cluster API), not an audience-scoped projected
-# token like ESO — signature (static JWKS) + issuer + subject still authenticate it.
+# kv/network-tailscale-config — so it needs the same read-only network-read policy. Bound
+# to the executor's subject. The runner presents its DEFAULT ServiceAccount token (not an
+# audience-scoped projected token like ESO), whose `aud` is the cluster's default API
+# audience. OpenBao rejects a JWT carrying an `aud` claim unless the role binds audiences,
+# so bind it: in this cluster the default API audience equals the OIDC issuer
+# (https://kubernetes.default.svc.cluster.local), so reuse network_oidc_issuer.
 resource "vault_jwt_auth_backend_role" "network_terranetes" {
-  count          = local.network_enabled ? 1 : 0
-  backend        = vault_jwt_auth_backend.network[0].path
-  role_name      = "network-terranetes"
-  role_type      = "jwt"
-  bound_subject  = "system:serviceaccount:terranetes-system:terranetes-executor"
-  user_claim     = "sub"
-  token_policies = ["network-read"]
-  token_ttl      = 3600
+  count           = local.network_enabled ? 1 : 0
+  backend         = vault_jwt_auth_backend.network[0].path
+  role_name       = "network-terranetes"
+  role_type       = "jwt"
+  bound_audiences = [var.network_oidc_issuer]
+  bound_subject   = "system:serviceaccount:terranetes-system:terranetes-executor"
+  user_claim      = "sub"
+  token_policies  = ["network-read"]
+  token_ttl       = 3600
 
   depends_on = [vault_policy.terranetes]
 }
