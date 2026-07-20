@@ -19,19 +19,16 @@ resource "tailscale_acl" "this" {
     {
         "autoApprovers": {
             "services": {
-                // secret cluster's operator proxies (tag:k8s, via the secret-ingress
-                // ProxyGroup) may advertise the "secret" Service VIP without manual approval
-                "svc:secret": ["tag:k8s"],
-                // network cluster's operator proxies (tag:k8s, via the network-ingress
-                // ProxyGroup) may advertise the Omada "omada-network" Service VIP (ACL-B)
-                "svc:omada-network": ["tag:k8s"],
-                // ...and the "api-network" Service VIP: the reverse proxy exposing this
-                // cluster's kube-apiserver at api.network.vgijssel.nl (ACL-D / T18).
-                "svc:api-network": ["tag:k8s"],
-                // ...and the "api-secret" Service VIP: the reverse proxy exposing the
-                // SECRET cluster's kube-apiserver at api.secret.vgijssel.nl (ACL-E / T20).
-                // Advertised by the secret-ingress ProxyGroup (also tag:k8s).
-                "svc:api-secret": ["tag:k8s"],
+                // T24 migration (additive): each Service VIP is auto-approved for BOTH the
+                // legacy shared tag:k8s AND the per-cluster proxy tag, so advertisement never
+                // drops while proxies re-register from tag:k8s -> tag:<cluster>-k8s. The
+                // tag:k8s entries are removed once both clusters are green on the new tags.
+                //   svc:secret / svc:api-secret  <- advertised by the SECRET ingress proxies
+                //   svc:omada-network / svc:api-network <- by the NETWORK ingress proxies
+                "svc:secret": ["tag:k8s", "tag:secret-k8s"],
+                "svc:omada-network": ["tag:k8s", "tag:network-k8s"],
+                "svc:api-network": ["tag:k8s", "tag:network-k8s"],
+                "svc:api-secret": ["tag:k8s", "tag:secret-k8s"],
             },
         },
 
@@ -105,11 +102,17 @@ resource "tailscale_acl" "this" {
                 "src":    ["group:admin"],
                 "dst":    ["tag:provisioner-k8s:6443"],
             },
-            // Allow admins to reach k8s services on port 443
+            // Allow admins to reach k8s services on port 443/80. T24 migration
+            // (additive): includes the legacy tag:k8s and both per-cluster proxy tags so
+            // admin reachability survives the re-tag; tag:k8s is dropped once both green.
             {
                 "action": "accept",
                 "src":    ["group:admin"],
-                "dst":    ["tag:k8s:443", "tag:k8s:80"],
+                "dst": [
+                    "tag:k8s:443", "tag:k8s:80",
+                    "tag:secret-k8s:443", "tag:secret-k8s:80",
+                    "tag:network-k8s:443", "tag:network-k8s:80",
+                ],
             },
             // All users can use exit nodes
             {
@@ -156,10 +159,13 @@ resource "tailscale_acl" "this" {
                 "dst": ["svc:secret"],
                 "ip":  ["tcp:443", "tcp:80"],
             },
-            // ACL-A: the network cluster's in-cluster egress proxy (tag:k8s) reaches the
-            // secret cluster's OpenBao VIP so external-secrets + terranetes can read kv/*.
+            // ACL-A: the network cluster's in-cluster egress proxy reaches the secret
+            // cluster's OpenBao VIP so external-secrets + terranetes can read kv/*. T24
+            // makes this DIRECTIONAL (network -> secret): src is tag:network-k8s, no longer
+            // any tag:k8s. tag:k8s is kept ADDITIVELY only until both clusters finish
+            // re-tagging, then dropped so secret's OWN proxies can't match this grant.
             {
-                "src": ["tag:k8s"],
+                "src": ["tag:k8s", "tag:network-k8s"],
                 "dst": ["svc:secret"],
                 "ip":  ["tcp:443"],
             },
@@ -178,8 +184,11 @@ resource "tailscale_acl" "this" {
                 "dst": ["svc:api-network"],
                 "ip":  ["tcp:443"],
             },
+            // T24 makes this DIRECTIONAL (secret -> network): src is tag:secret-k8s (the
+            // secret cluster's egress fetching this cluster's JWKS). tag:k8s kept
+            // ADDITIVELY only until both clusters finish re-tagging, then dropped.
             {
-                "src": ["tag:k8s"],
+                "src": ["tag:k8s", "tag:secret-k8s"],
                 "dst": ["svc:api-network"],
                 "ip":  ["tcp:443"],
             },
