@@ -4,6 +4,8 @@
 #     it by name and deploy to both clusters).
 #   - service-openbao-egress.yaml     : the Tailscale operator egress to
 #     secret.vgijssel.nl (SPEC R8).
+#   - clusterrolebinding-oidc-discovery.yaml : makes /openid/v1/jwks anonymously
+#     readable so secret's OpenBao can fetch this cluster's JWKS live over the tailnet.
 #   - certificate-omada.yaml          : the Let's Encrypt cert mounted into Omada (T14).
 #
 # The ExternalSecrets themselves are NOT here — they live in the shared platform-config
