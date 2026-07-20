@@ -46,6 +46,18 @@ resource "tailscale_acl" "this" {
             "tag:pihole-prod":         [],
             "tag:network-controllers": [],
             "tag:k8s":                 ["tag:k8s-operator"],
+            // Phase 8 / T22 (additive): per-cluster operator+proxy tag pairs so
+            // cross-cluster ACLs can express DIRECTION ("secret -> network") and each
+            // cluster's OAuth client is an independent root of trust. Added here first
+            // so T23 can create OAuth clients against real, owned tags; the operators
+            // don't re-register under them until T24 flips defaultTags. The shared
+            // tag:k8s / tag:k8s-operator stay until T24 retires them (additive-first:
+            // no proxy is ever left carrying a tag no grant covers).
+            //   tag:<c>-operator mints tag:<c>-k8s == the operator->proxy relationship.
+            "tag:secret-operator":     [],
+            "tag:secret-k8s":          ["tag:secret-operator"],
+            "tag:network-operator":    [],
+            "tag:network-k8s":         ["tag:network-operator"],
         },
 
         "acls": [
