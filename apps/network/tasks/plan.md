@@ -454,3 +454,135 @@ Re-apply both clusters (no-op); confirm both green; confirm no leftover CoreDNS/
 ACLs + endpoints in SPEC; `git grep` clean of secrets.
 
 **Dependency graph:** T18 → T19 (endpoint must serve JWKS before OpenBao repoints); T18 (pattern) → T20; T19,T20 → T21.
+
+---
+
+## Extension — Phase 8: Per-cluster Tailscale identity (OAuth clients + tag taxonomy) (T22–T25)
+
+Added 2026-07-20 (operator request, from a tag-taxonomy investigation). Give each cluster its **own**
+Tailscale identity so cross-cluster ACLs can express *direction* ("secret → network", not "any k8s node →
+any k8s node"), and so a compromise/rotation of one cluster's credentials can't affect the other.
+
+### Research findings (the "why" — context for the tasks)
+
+**Tailscale tags are ACL identities, not labels.** A tagged device has no user owner — it *is* the tag. Every
+`src`/`dst` in a grant is a user, a `group:`, or a `tag:`. So a tag is the only way a machine-to-machine flow
+can be named in an ACL. **If two devices share a tag, the ACL system cannot tell them apart.** Hostnames
+(`secret-operator` / `network-operator`) are cosmetic and are *not* usable in ACLs.
+
+**Three linked concepts:**
+- **`tagOwners`** defines who may *assign* a tag. `"tag:k8s": ["tag:k8s-operator"]` means a device tagged
+  `k8s-operator` may mint devices tagged `k8s` — i.e. the operator→proxy relationship.
+- **OAuth clients are scoped to tags.** A client is created in the admin console with a tag set; it can only
+  ever register devices whose tags it (transitively via `tagOwners`) owns. The client's tag is the root of
+  trust for everything that operator creates.
+- **Services (`svc:`) do not replace tags.** A Service is a stable *destination* VIP plus a hosting-approval
+  hook (`autoApprovers.services`). You can write `dst: ["svc:secret"]`, but you can **never** write
+  `src: ["svc:..."]` — the source of every grant is still a tag — and *which nodes may advertise* a service
+  is itself defined by tags. So services clean up the destination half only; identity is still tags.
+
+**Current state (the problem).** Both clusters share **one** operator OAuth client
+(`kv/tailscale` → `oauth_client_id`/`oauth_client_secret`, synced by `externalsecret-operator-oauth.yaml` in
+`platform-config` to *both* clusters). Both operators self-register as `tag:k8s-operator` (chart default
+`operatorConfig.defaultTags`); both clusters' proxies get `tag:k8s` (chart default `proxyConfig.defaultTags`
+— we don't override either). Consequences:
+- The surviving cross-cluster grants are coarse and can't express direction:
+  - **ACL-A** `{ src: [tag:k8s], dst: [svc:secret], tcp:443 }` — matches network's *and* secret's own proxies.
+  - **ACL-D** `{ src: [tag:k8s], dst: [svc:api-network], tcp:443 }` (+ a `group:admin` grant) — same.
+  - (ACL-C was already removed in T19; ACL-B is `group:admin → svc:omada-network`, unaffected.)
+- One shared credential = shared blast radius; rotating/revoking it hits both clusters; a compromised
+  secret-cluster operator could mint devices tagged as network's.
+
+**Target taxonomy.**
+```json
+"tagOwners": {
+    "tag:secret-operator":  [],
+    "tag:secret-k8s":       ["tag:secret-operator"],
+    "tag:network-operator": [],
+    "tag:network-k8s":      ["tag:network-operator"],
+    // existing non-k8s tags (spacetail, provisioner*, pikvm, pihole-prod, network-controllers) unchanged
+}
+```
+Per-cluster Helm overrides: secret → `operatorConfig.defaultTags:[tag:secret-operator]` +
+`proxyConfig.defaultTags:tag:secret-k8s`; network → `tag:network-operator` / `tag:network-k8s`.
+
+Grants + autoApprovers then become directional:
+```json
+// ACL-A: only network reaches secret's OpenBao VIP
+{ "src": ["tag:network-k8s"], "dst": ["svc:secret"],      "ip": ["tcp:443"] }
+// ACL-D: only secret's egress reaches network's kube-apiserver VIP (JWKS); admin unchanged
+{ "src": ["tag:secret-k8s"],  "dst": ["svc:api-network"], "ip": ["tcp:443"] }
+// autoApprovers.services
+"svc:secret":        ["tag:secret-k8s"],   // advertised by secret's ingress proxies
+"svc:omada-network": ["tag:network-k8s"],  // advertised by network's ingress proxies
+"svc:api-network":   ["tag:network-k8s"],
+"svc:api-secret":    ["tag:secret-k8s"],   // once T20 lands
+```
+(`svc:api-secret`/T20 may still be pending; codify its autoApprover when that VIP exists.)
+
+**Migration must be ordered** (additive-first so no proxy is ever left with a tag no grant covers):
+`T22` add new `tagOwners` (additive, safe) → `T23` create the two OAuth clients + wire per-cluster
+ExternalSecrets → `T24` flip `defaultTags` per cluster (operators/proxies re-register under new tags), *then*
+narrow grants + autoApprovers, *then* remove the old `tag:k8s` / `tag:k8s-operator` → `T25` idempotence +
+cleanup. **HIGH-RISK (live secrets + live tailnet reachability) — verify ESO sync and VIP reachability at each
+step.** Scope note: per-cluster operator+proxy tags are the sweet spot; do **not** split ingress-vs-egress
+proxy tags (per-Service `tailscale.com/tags`) — no ACL needs that distinction today.
+
+#### T22: Add per-cluster tag taxonomy to the ACL (additive `tagOwners`)  *(deps: none — additive, safe)*
+Add `tag:secret-operator`, `tag:secret-k8s`, `tag:network-operator`, `tag:network-k8s` to `tagOwners` in
+`apps/network/src/tailscale-config/main.tf` **without removing** `tag:k8s` / `tag:k8s-operator` yet. No grants
+change. This lets the OAuth clients in T23 be created against real, owned tags before anything flips.
+- **Acceptance:** `tofu validate` clean; `trunk check` clean; new tags present, old tags intact.
+- **Verification:** `secret:configure`/terranetes reconciles the ACL (`Apply complete!`); both clusters stay
+  green (no device re-tagging yet — additive only). `bao`/console shows the new tags owned as specified.
+- **Files:** `apps/network/src/tailscale-config/main.tf`.
+- **Scope:** S
+
+#### T23: Two operator OAuth clients + per-cluster ExternalSecret wiring  *(deps: T22)*
+Create **two** Tailscale OAuth clients in the admin console (scopes: `auth_keys`+`devices`): one tagged
+`tag:secret-operator`, one tagged `tag:network-operator`. Seed them into OpenBao under separate paths
+(`kv/tailscale-secret`, `kv/tailscale-network`; root token from `enigma-prod`). Split the shared
+`operator-oauth` ExternalSecret into per-cluster ones — mirroring the T5 ClusterSecretStore split: move the
+secret cluster's to `apps/secret/src/config/` (remoteRef `kv/tailscale-secret`) and the network cluster's to
+`apps/network/src/config/` (remoteRef `kv/tailscale-network`); drop the shared one from `platform-config`.
+Do **not** flip `defaultTags` yet — the clients still own `tag:k8s`/`tag:k8s-operator` via T22 coexistence, so
+operators keep working on the old tags until T24. (Distinct from `kv/network-tailscale-config`, the
+`all:write` client the terranetes tailscale provider uses to manage the ACL — leave that alone.)
+- **Acceptance:** two `operator-oauth` Secrets (one per cluster) `SecretSynced` from their new kv paths;
+  operators still Ready; `platform-config` no longer ships a shared `operator-oauth` ExternalSecret.
+- **Verification:** `kubectl -n tailscale get secret operator-oauth` on each cluster matches its kv path;
+  `kubectl get externalsecret -A` all `SecretSynced`; secret cluster manifest diff limited to the intended
+  ExternalSecret relocation; `git grep` clean of client secrets.
+- **Files:** `apps/secret/src/config/externalsecret-operator-oauth.yaml` (new),
+  `apps/network/src/config/externalsecret-operator-oauth.yaml` (new),
+  `apps/platform/src/config/externalsecret-operator-oauth.yaml` (removed) + `fleet.yaml`. OpenBao kv seeding.
+- **Scope:** M
+
+#### T24: Flip `defaultTags` per cluster; narrow grants + autoApprovers; retire old tags  *(deps: T23)*
+In `apps/platform/src/tailscale/fleet.yaml` `targetCustomizations`, set per-cluster
+`operatorConfig.defaultTags` + `proxyConfig.defaultTags` (`secret-operator`/`secret-k8s`;
+`network-operator`/`network-k8s`). Roll the operators so they (and their ProxyGroups) re-register under the
+new tags — **watch for the T18 auto-approve gotcha: proxies advertising a service before its autoApprover
+covers their new tag won't be approved; add the new autoApprover mappings in the same ACL change and
+`rollout restart` the ingress ProxyGroups if a VIP stops advertising.** Then rewrite ACL-A → `src:
+tag:network-k8s`, ACL-D → `src: tag:secret-k8s`, and repoint `autoApprovers.services` to the per-cluster tags.
+Only after both clusters are green on the new tags, **remove `tag:k8s` + `tag:k8s-operator`** from `tagOwners`.
+- **Acceptance:** both operators/proxies carry the new per-cluster tags; ACL-A/ACL-D and all autoApprovers
+  reference per-cluster tags; `tag:k8s`/`tag:k8s-operator` gone; no grant references a nonexistent tag.
+- **Verification:** all network ExternalSecrets re-sync `SecretSynced` (ACL-A path intact via `network-k8s`);
+  OpenBao JWKS fetch still works (`api-network` reachable via `secret-k8s`); `curl
+  https://omada.network.vgijssel.nl:8043/` 200 + `api.network.vgijssel.nl/openid/v1/jwks` 200 from a tailnet
+  host; secret cluster green. `tofu validate` + `trunk check` clean.
+- **Files:** `apps/platform/src/tailscale/fleet.yaml`, `apps/network/src/tailscale-config/main.tf`.
+- **Scope:** M
+
+#### T25: Idempotence + cleanup + SPEC/ACL notes  *(deps: T24)*
+Re-apply both clusters (no-op); confirm both green; `git grep` clean of secrets and of `tag:k8s`/`tag:k8s-operator`
+in the operator config; record the per-cluster identity model + the OAuth-client↔tag mapping in `SPEC.md`.
+- **Acceptance:** re-runs are no-ops; both clusters green; SPEC documents the taxonomy.
+- **Verification:** full re-apply green; `git grep 'tag:k8s\b'` shows only intentional historical notes.
+- **Dependencies:** T24
+- **Scope:** S
+
+**Dependency graph:** T22 (additive tags) → T23 (OAuth clients, still old tags) → T24 (flip + narrow +
+retire old tags) → T25 (cleanup/notes).
