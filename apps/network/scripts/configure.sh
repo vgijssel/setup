@@ -15,7 +15,7 @@
 # dependency is a reachable OpenBao holding that credential. That client MUST have the
 # `policy_file` (write) OAuth scope — the operator's device-auth client usually does NOT, so
 # seed a dedicated one:
-#     bao kv put kv/tailscale-acl oauth_client_id=... oauth_client_secret=...
+#     bao kv put kv/network-tailscale-config oauth_client_id=... oauth_client_secret=...
 #
 # WARNING: the tailscale_acl resource makes Terraform the source of truth for the ENTIRE
 # tailnet policy (overwrite_existing_content=true). Review apps/network/src/tailscale-config/
@@ -34,7 +34,7 @@ OP_VAULT="${OP_VAULT:-enigma-prod}"
 ROOT_OP_ITEM="${ROOT_OP_ITEM:-OpenBao root + recovery (secret cluster)}"
 REMOTE_BAO_ADDR="${REMOTE_BAO_ADDR:-https://secret.vgijssel.nl}"
 TS_ACL_KV_MOUNT="${TS_ACL_KV_MOUNT:-kv}"
-TS_ACL_KV_PATH="${TS_ACL_KV_PATH:-tailscale-acl}"
+TS_ACL_KV_PATH="${TS_ACL_KV_PATH:-network-tailscale-config}"
 
 require() { command -v "$1" >/dev/null 2>&1 || {
   echo "ERROR: '$1' is required but not found" >&2

@@ -47,7 +47,7 @@ variable "tailscale_kv_path" {
     network:configure docs). Reads keys oauth_client_id + oauth_client_secret.
   EOT
   type        = string
-  default     = "tailscale-acl"
+  default     = "network-tailscale-config"
 }
 
 variable "tailscale_oauth_scopes" {
