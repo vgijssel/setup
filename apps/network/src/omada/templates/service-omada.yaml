@@ -26,8 +26,12 @@ metadata:
 spec:
   type: LoadBalancer
   loadBalancerClass: tailscale
+  # Must match the subchart's pod selector labels exactly. The chart's name label is
+  # `omada-controller` (its templates hardcode that via the omada-controller.name helper),
+  # NOT the dependency/directory name omada-controller-helm — a mismatch leaves this
+  # Service with zero endpoints, so the Tailscale operator has no backends to advertise.
   selector:
-    app.kubernetes.io/name: omada-controller-helm
+    app.kubernetes.io/name: omada-controller
     app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
     # management/portal HTTP (redirects to HTTPS)
