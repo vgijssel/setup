@@ -118,22 +118,26 @@ resource "vault_kubernetes_auth_backend_role" "terranetes" {
 # ── network cluster: remote JWT auth (a REMOTE consumer of this OpenBao) ──────
 # The network cluster runs no OpenBao of its own; its external-secrets reads kv/*
 # from THIS OpenBao over the tailnet (secret.vgijssel.nl) using JWT auth. OpenBao
-# can't reach the network API to fetch its JWKS live, so it validates network
-# SA-token signatures against STATIC public keys (jwt_validation_pubkeys) captured by
-# `network:bootstrap`. All three resources are gated on the issuer + keys being
-# present, so this module still applies cleanly on the secret cluster before the
-# network cluster is bootstrapped (SPEC: JWT auth, static JWKS).
+# validates network SA-token signatures against the network cluster's JWKS, fetched
+# LIVE from network_jwks_url (the network-operator noauth API-server proxy on the
+# tailnet) — no static key copy, so a vind recreate no longer requires re-extracting
+# keys into this module. jwks_url is decoupled from bound_issuer: the `iss` claim stays
+# https://kubernetes.default.svc.cluster.local (unchanged), while the keys are fetched
+# from the tailnet URL. All resources are gated on the issuer + url being present, so
+# this module still applies cleanly on the secret cluster before the network cluster is
+# bootstrapped (SPEC: JWT auth, live JWKS).
 locals {
-  network_enabled = var.network_oidc_issuer != "" && length(var.network_jwks_pubkeys) > 0
+  network_enabled = var.network_oidc_issuer != "" && var.network_jwks_url != ""
 }
 
 resource "vault_jwt_auth_backend" "network" {
-  count                  = local.network_enabled ? 1 : 0
-  path                   = "jwt-network"
-  type                   = "jwt"
-  description            = "JWT auth for the network cluster's external-secrets (static JWKS)"
-  bound_issuer           = var.network_oidc_issuer
-  jwt_validation_pubkeys = var.network_jwks_pubkeys
+  count        = local.network_enabled ? 1 : 0
+  path         = "jwt-network"
+  type         = "jwt"
+  description  = "JWT auth for the network cluster's external-secrets (live JWKS over the tailnet)"
+  bound_issuer = var.network_oidc_issuer
+  jwks_url     = var.network_jwks_url
+  jwks_ca_pem  = var.network_jwks_ca_pem
 
   # Enabling the backend uses sys/auth/* (already granted), but configuring it writes
   # auth/jwt-network/config — a path this very apply is adding to the terranetes policy.
@@ -159,8 +163,8 @@ resource "vault_policy" "network_read" {
 
 # The login role bound to the network cluster's external-secrets ServiceAccount.
 # ESO mints a projected SA token with audience "openbao" and posts it to jwt-network;
-# OpenBao checks the signature (static JWKS), issuer, audience, and subject, then
-# issues a token carrying network-read.
+# OpenBao checks the signature (live JWKS from network_jwks_url), issuer, audience, and
+# subject, then issues a token carrying network-read.
 resource "vault_jwt_auth_backend_role" "network_eso" {
   count           = local.network_enabled ? 1 : 0
   backend         = vault_jwt_auth_backend.network[0].path

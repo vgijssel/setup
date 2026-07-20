@@ -26,10 +26,12 @@ variable "k8s_auth_role" {
 }
 
 # ── network cluster JWT grant (consumer of this OpenBao) ─────────────────────
-# Produced by `network:bootstrap` (git-ignored *.auto.tfvars.json) and, on the ref
-# flip, mirrored into the terranetes Configuration variables so both runners agree.
+# OpenBao fetches the network cluster's public signing keys LIVE from its OIDC JWKS
+# endpoint over the tailnet (network-operator's noauth API-server proxy), rather than
+# caching a static copy. The network-operator device hostname is stable across vind
+# recreation, so this URL is set once and committed — no per-recreate key extraction.
 # Both default empty so this module still applies on the secret cluster BEFORE the
-# network cluster exists (empty issuer/keys -> the jwt-network resources count to 0).
+# network cluster exists (empty issuer/url -> the jwt-network resources count to 0).
 
 variable "network_oidc_issuer" {
   description = "OIDC issuer (iss claim) of the network cluster's projected ServiceAccount tokens. Empty disables the jwt-network backend."
@@ -37,8 +39,14 @@ variable "network_oidc_issuer" {
   default     = ""
 }
 
-variable "network_jwks_pubkeys" {
-  description = "PEM-encoded public keys from the network cluster's JWKS. OpenBao can't reach the network API, so it validates network SA-token signatures against these static keys. Empty disables the jwt-network backend."
-  type        = list(string)
-  default     = []
+variable "network_jwks_url" {
+  description = "Tailnet-reachable JWKS URL of the network cluster (e.g. https://network-operator.<tailnet>.ts.net/openid/v1/jwks, served by the operator's noauth API-server proxy). OpenBao fetches network SA-token signing keys from here live. Empty disables the jwt-network backend."
+  type        = string
+  default     = ""
+}
+
+variable "network_jwks_ca_pem" {
+  description = "Optional PEM CA bundle OpenBao trusts when fetching network_jwks_url. Leave empty when the endpoint presents a publicly-trusted cert (Tailscale ts.net MagicDNS certs are Let's Encrypt-backed)."
+  type        = string
+  default     = ""
 }
