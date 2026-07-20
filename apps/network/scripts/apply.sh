@@ -13,9 +13,9 @@
 #    network-operator, external-dns txtOwnerId network-cluster).
 #
 # 3. `fleet apply` the SHARED platform bundles this cluster consumes plus network's
-#    OWN bundles. network runs no OpenBao, so it omits the secret-only bundles
-#    (openbao, terranetes, ingress-nginx, the secret-ingress ProxyGroup); those are
-#    simply not listed here.
+#    OWN bundles. network runs no OpenBao, so it omits the OpenBao/ingress-nginx/
+#    secret-ingress bundles. It DOES run terranetes, though — to reconcile
+#    apps/network/src/tailscale-config (the tailnet policy) against the remote OpenBao.
 #
 # Idempotent: helm upgrade --install for the charts; fleet apply upserts Bundles.
 set -euo pipefail
@@ -83,6 +83,7 @@ fleet apply -n "${FLEET_NS}" platform-cert-manager apps/platform/src/cert-manage
 fleet apply -n "${FLEET_NS}" platform-tailscale apps/platform/src/tailscale
 fleet apply -n "${FLEET_NS}" platform-external-dns apps/platform/src/external-dns
 fleet apply -n "${FLEET_NS}" platform-netdata apps/platform/src/netdata
+fleet apply -n "${FLEET_NS}" platform-terranetes apps/platform/src/terranetes
 fleet apply -n "${FLEET_NS}" platform-config apps/platform/src/config
 
 echo "==> Applying network bundles"
@@ -94,4 +95,4 @@ apply_if_present network-omada apps/network/src/omada
 echo "==> Applied. Bundles:"
 kubectl -n "${FLEET_NS}" get bundles 2>/dev/null || true
 
-echo "==> Next: moon run network:bootstrap"
+echo "==> Next: moon run network:bootstrap, then network:configure"

@@ -176,3 +176,22 @@ resource "vault_jwt_auth_backend_role" "network_eso" {
   # depend on it (and implicitly on the backend) so ordering is correct on first apply.
   depends_on = [vault_policy.terranetes]
 }
+
+# Login role for the network cluster's terranetes runner (executor SA). It reconciles
+# apps/network/src/tailscale-config, whose module reads the tailscale OAuth client from
+# kv/tailscale-acl — so it needs the same read-only network-read policy. Bound to the
+# executor's subject; audience is left unbound because the runner presents its default
+# ServiceAccount token (whose aud is the cluster API), not an audience-scoped projected
+# token like ESO — signature (static JWKS) + issuer + subject still authenticate it.
+resource "vault_jwt_auth_backend_role" "network_terranetes" {
+  count          = local.network_enabled ? 1 : 0
+  backend        = vault_jwt_auth_backend.network[0].path
+  role_name      = "network-terranetes"
+  role_type      = "jwt"
+  bound_subject  = "system:serviceaccount:terranetes-system:terranetes-executor"
+  user_claim     = "sub"
+  token_policies = ["network-read"]
+  token_ttl      = 3600
+
+  depends_on = [vault_policy.terranetes]
+}

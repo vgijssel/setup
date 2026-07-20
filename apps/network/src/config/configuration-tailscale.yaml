@@ -1,0 +1,36 @@
+# terranetes Configuration: reconciles the OpenTofu module apps/network/src/tailscale-config
+# in-cluster, continuously, against the SAME kubernetes-backend state the local
+# network:configure first apply seeds. Named `tailscale-config` in ns `terranetes-system`
+# so the backend template ({{ .name }}/{{ .namespace }}) resolves to the one Secret
+# tfstate-default-tailscale-config — no second state, no fighting.
+#
+# The module's tailscale provider is configured from the OAuth client read out of the
+# remote OpenBao; the vault provider logs in with the runner's ServiceAccount via the
+# `network-terranetes` jwt-network role (auth_method=jwt, no root token in the cluster).
+# The FIRST apply (network:configure, root token, from the operator machine) must run
+# out-of-band: it establishes the tailnet ACL (esp. the tag:k8s -> svc:secret grant) that
+# lets this in-cluster runner reach OpenBao at all. Chicken-and-egg, exactly like
+# apps/secret/src/openbao-config + secret:configure.
+apiVersion: terraform.appvia.io/v1alpha1
+kind: Configuration
+metadata:
+  name: tailscale-config
+  namespace: terranetes-system
+  annotations:
+    # CRITICAL: deleting a terranetes Configuration normally runs `terraform destroy`
+    # (auto-approved here), which for tailscale_acl would reset/replace the ENTIRE tailnet
+    # policy and could lock everyone out. This orphan annotation makes terranetes SKIP the
+    # destroy and simply stop managing the policy — so deletion (accidental, Fleet GC, or a
+    # Rancher handoff) leaves the tailnet policy intact. network:configure is the recovery
+    # path if the shared state is ever lost.
+    terraform.appvia.io/orphan: "true"
+spec:
+  module: https://github.com/vgijssel/setup.git//apps/network/src/tailscale-config?ref=feat/network-cluster-omada
+  providerRef:
+    name: tailscale
+  enableAutoApproval: true
+  enableDriftDetection: true
+  variables:
+    auth_method: jwt
+    bao_address: https://secret.vgijssel.nl
+    jwt_role: network-terranetes

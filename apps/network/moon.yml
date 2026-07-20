@@ -39,6 +39,16 @@ tasks:
       runInCI: false
       interactive: true
       cache: false
+  # 4. First out-of-band apply of the tailscale-config OpenTofu module (root token +
+  #    tailscale OAuth from OpenBao) — sets the tailnet ACL that lets the in-cluster
+  #    runner reach OpenBao, breaking the chicken-and-egg. terranetes reconciles it
+  #    thereafter. Analog of secret:configure. Idempotent.
+  configure:
+    command: scripts/configure.sh
+    options:
+      runInCI: false
+      interactive: true
+      cache: false
   # Delete the vind vcluster (tailnet / 1Password / remote-OpenBao state persists).
   stop:
     command: scripts/stop.sh
