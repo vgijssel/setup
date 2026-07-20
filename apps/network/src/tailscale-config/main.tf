@@ -144,6 +144,17 @@ resource "tailscale_acl" "this" {
                 "dst": ["svc:secret"],
                 "ip":  ["tcp:443"],
             },
+            // ACL-C: the SECRET cluster's egress proxy (tag:k8s) reaches the network
+            // operator device (tag:k8s-operator) on 443, where the noauth API-server
+            // proxy serves /openid/v1/jwks. This is the reverse of ACL-A and is what lets
+            // secret's OpenBao fetch this cluster's JWKS live (jwt-network jwks_url). The
+            // apiserver's own authz still applies: anonymous callers can read only the two
+            // OIDC discovery endpoints (clusterrolebinding-oidc-discovery.yaml).
+            {
+                "src": ["tag:k8s"],
+                "dst": ["tag:k8s-operator"],
+                "ip":  ["tcp:443"],
+            },
             // ACL-B: admins reach the Omada controller on the omada-network VIP over the
             // tailnet. Explicit Omada port set (controller 6.x) rather than tcp:*/udp:*:
             //   8088  management/portal HTTP (redirects to HTTPS)
