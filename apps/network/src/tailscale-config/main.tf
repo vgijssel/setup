@@ -144,12 +144,33 @@ resource "tailscale_acl" "this" {
                 "dst": ["svc:secret"],
                 "ip":  ["tcp:443"],
             },
-            // ACL-B: admins reach the Omada controller (UI + device adoption ports) on the
-            // omada-network VIP over the tailnet.
+            // ACL-B: admins reach the Omada controller on the omada-network VIP over the
+            // tailnet. Explicit Omada port set (controller 6.x) rather than tcp:*/udp:*:
+            //   8088  management/portal HTTP (redirects to HTTPS)
+            //   8043  management UI HTTPS (the omada.network.vgijssel.nl endpoint)
+            //   8843  portal HTTPS
+            //   29811 device manager v1     29812 device adopt v1     29813 device upgrade v1
+            //   29814 device manager v2     29815 device transfer v2  29816 rtty
+            //   29817 device monitor (Omada 6)
+            //   27001 app discovery (UDP)   29810 device discovery (UDP)  19810 device mgmt (UDP)
             {
                 "src": ["group:admin"],
                 "dst": ["svc:omada-network"],
-                "ip":  ["tcp:*", "udp:*"],
+                "ip": [
+                    "tcp:8088",
+                    "tcp:8043",
+                    "tcp:8843",
+                    "tcp:29811",
+                    "tcp:29812",
+                    "tcp:29813",
+                    "tcp:29814",
+                    "tcp:29815",
+                    "tcp:29816",
+                    "tcp:29817",
+                    "udp:27001",
+                    "udp:29810",
+                    "udp:19810",
+                ],
             },
         ],
     }
