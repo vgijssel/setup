@@ -89,6 +89,7 @@ fleet apply -n "${FLEET_NS}" platform-config apps/platform/src/config
 echo "==> Applying network bundles"
 apply_if_present network-config apps/network/src/config
 apply_if_present network-ingress apps/network/src/tailscale-proxygroup
+apply_if_present network-apiserver-proxy apps/network/src/apiserver-proxy
 apply_if_present network-mongodb apps/network/src/mongodb
 apply_if_present network-omada apps/network/src/omada
 

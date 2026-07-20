@@ -53,6 +53,16 @@ resolved.
 - [ ] **T15** Adopt a real device via Inform URL over the tailnet *(deps: T13, T14)* — **FOR THE USER: needs a physical Omada device.** Controller + adoption ports are live; set the device Inform URL to `omada.network.vgijssel.nl` (TCP 29814/29812) and confirm it shows Connected.
 - [~] **T16** Idempotence + `stop`→`start`→re-grant cycle; flip module `?ref=`; finalize ACL notes *(deps: T15)* — start/apply/bootstrap/configure verified idempotent (secret:configure re-apply = 0/2 changes, tailscale-config apply = "No changes"); no secrets in git (`git grep` clean, tfvars untracked); secret cluster verified still fully green (12/12 bundles Ready). **Module `?ref=` flip still deferred — requires this branch to be merged to main first**, then flip `?ref=` on both Configurations (openbao-config on secret, tailscale-config on network) off `feat/network-cluster-omada`.
 
+## Phase 7 — kube-apiserver on the tailnet + JWKS simplification (extension, 2026-07-20)
+Expose each cluster's Kubernetes API on the tailnet under `api.<cluster>.vgijssel.nl` with a valid LE cert
+(reverse proxy + Tailscale LB Service VIP), then drop the OpenBao→network MagicDNS workarounds. Decisions:
+LE-cert reverse proxy (not the operator-native `.ts.net` kube-apiserver ProxyGroup); services `api-secret`
+/ `api-network`; both clusters; ACL-gated. See `plan.md` → Extension Phase 7.
+- [x] **T18** Network kube-apiserver reverse proxy + `api-network` VIP (`api.network.vgijssel.nl`, LE cert) + ACLs *(deps: none)* — new `apps/network/src/apiserver-proxy` bundle (pinned nginx-unprivileged reverse proxy → `https://kubernetes.default.svc`, LE cert, Tailscale LB Service `api-network` on network-ingress, external-dns hostname); registered in `network:apply`; ACL-D added to `tailscale-config` (`svc:api-network` autoApprover + `group:admin`/`tag:k8s` grants). **Live-verified on the network cluster (in-cluster, bypassing the VIP):** cert Ready (`CN=api.network.vgijssel.nl`, LE `verify ok`, no `*.ts.net`); `/openid/v1/jwks` returns the JWKS anonymously; `/version`+`/livez` proxied OK; pod 1/1 Running (arm64 digest pull). **PUSH-GATED:** the VIP EXTERNAL-IP stays `<pending>` and the `api.network.vgijssel.nl` A record isn't published until the ACL commit is pushed so terranetes reconciles `svc:api-network` durably (a local `network:configure` would be reverted by terranetes drift). Then a tailnet-host `curl https://api.network.vgijssel.nl/openid/v1/jwks` completes the check.
+- [ ] **T19** Repoint OpenBao `network_jwks_url` → `https://api.network.vgijssel.nl/openid/v1/jwks`; delete `configmap-coredns-custom.yaml`; clean egress; drop ACL-C + operator `apiServerProxyConfig` *(deps: T18)* — **HIGH-RISK (live OpenBao auth)**
+- [ ] **T20** Secret kube-apiserver reverse proxy + `api-secret` VIP (`api.secret.vgijssel.nl`, LE cert) + ACLs *(deps: T18 pattern)*
+- [ ] **T21** Idempotence + cleanup + SPEC/ACL notes *(deps: T19, T20)*
+
 ---
 
 ## ✅ Status: build complete — both clusters green end-to-end

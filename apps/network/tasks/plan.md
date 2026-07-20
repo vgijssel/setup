@@ -392,3 +392,65 @@ available, and log exactly what changed.
 - **Tailnet egress to `secret.vgijssel.nl`:** default to the tailscale operator `tailscale.com/tailnet-fqdn`
   egress Service (simplest, preserves SNI). Fall back to a subnet-router/Connector only if the fqdn egress
   can't preserve the LE cert SNI. Decide in T10 by curl-verifying a valid cert from a pod.
+
+---
+
+## Extension — Phase 7: kube-apiserver on the tailnet + JWKS simplification (T18–T21)
+
+Added 2026-07-20 (operator request). Expose each cluster's **Kubernetes API** on the tailnet under a proper
+domain with a valid Let's Encrypt cert, then simplify the OpenBao→network JWKS path so it no longer depends
+on Tailscale MagicDNS (dropping the CoreDNS-rewrite + `.ts.net`-SNI workarounds added in T17).
+
+**Decisions (from clarifying questions, locked):**
+- **Exposure model = LE cert + in-cluster reverse proxy + Tailscale LoadBalancer Service VIP** (NOT the
+  operator-native `kube-apiserver` ProxyGroup, whose endpoint is `.ts.net`-only and can't carry a custom-domain
+  cert). A small pinned nginx reverse proxy terminates TLS with the cert-manager LE cert for
+  `api.<cluster>.vgijssel.nl` and proxies to `https://kubernetes.default.svc`; a Tailscale `LoadBalancer`
+  Service (on the existing per-cluster ingress ProxyGroup) gives it a stable VIP; external-dns publishes the
+  A record. Mirrors the Omada exposure pattern exactly (L3/TCP VIP + app-terminated LE cert).
+- **Service/domain names:** secret → `svc:api-secret` → `https://api.secret.vgijssel.nl`; network →
+  `svc:api-network` → `https://api.network.vgijssel.nl`.
+- **Scope:** both clusters. `api-network` is consumed by OpenBao's JWKS fetch; `api-secret` is
+  operator-convenience (kubectl over the tailnet), no current programmatic consumer.
+- **Access control:** tailnet ACLs only (`group:admin` grant to each `svc:api-*`; `tag:k8s` grant to
+  `svc:api-network` for secret's egress). The API itself stays behind the kube-apiserver's own authn/authz;
+  anonymous access remains limited to the two OIDC discovery URLs (existing
+  `clusterrolebinding-oidc-discovery.yaml`).
+
+#### T18: Network kube-apiserver reverse proxy + `api-network` VIP  *(deps: none — additive; base for T19)*
+New bundle `apps/network/src/apiserver-proxy/` (raw manifests): nginx ConfigMap (TLS-terminate + reverse
+proxy to `https://kubernetes.default.svc`, verifying the SA `ca.crt`, passing the client `Authorization`
+through), a pinned rootless nginx Deployment, a `LoadBalancer`/`loadBalancerClass: tailscale` Service
+(`tailscale.com/hostname: api-network`, `proxy-group: network-ingress`, external-dns
+`api.network.vgijssel.nl`), and a cert-manager `Certificate` for `api.network.vgijssel.nl`. Register in
+`network:apply`. Add tailnet ACLs in `apps/network/src/tailscale-config`: `autoApprovers.services["svc:api-network"]`
++ `group:admin`→`svc:api-network:443` + `tag:k8s`→`svc:api-network:443` (the last lets secret's egress reach it in T19).
+- **Acceptance:** manifests render + `trunk check` clean; live: VIP advertised, `api.network.vgijssel.nl`
+  A record published, `curl https://api.network.vgijssel.nl/openid/v1/jwks` from a tailnet host returns the
+  JWKS over a valid LE cert (no `*.ts.net`); `curl .../version` reachable.
+
+#### T19: Repoint OpenBao JWKS at `api.network.vgijssel.nl`; drop the MagicDNS workarounds  *(deps: T18)*
+Once T18 is live: set `network_jwks_url = https://api.network.vgijssel.nl/openid/v1/jwks`
+(`configuration-openbao.yaml` + module comments); rewrite `service-network-jwks-egress.yaml` to
+`tailnet-fqdn: api.network.vgijssel.nl` (now a public name with a valid cert → clean egress, symmetric with
+`service-openbao-egress.yaml`); **DELETE `configmap-coredns-custom.yaml`** (no SNI rewrite needed); remove
+**ACL-C** (`tag:k8s`→`tag:k8s-operator:443`, now unused) and the network operator's
+`apiServerProxyConfig.mode: noauth` (no longer the JWKS path). Keep `clusterrolebinding-oidc-discovery.yaml`
+(the reverse proxy forwards anonymous discovery reads). Apply via `secret:configure`; verify `jwt-network`
+picks up the new URL and all network ExternalSecrets re-sync. **HIGH-RISK (live OpenBao auth) — verify before/after.**
+- **Acceptance:** `bao read auth/jwt-network/config` shows the new `jwks_url`; forced ESO refresh →
+  all network ExternalSecrets `SecretSynced`; secret cluster green; `configmap-coredns-custom.yaml` gone;
+  `git grep` for `network-operator.tail2c33e2.ts.net` clean.
+
+#### T20: Secret kube-apiserver reverse proxy + `api-secret` VIP  *(deps: T18 pattern; independent of T19)*
+Same reverse-proxy pattern on the secret cluster (`apps/secret/src/apiserver-proxy/`), fronted by the
+existing `secret-ingress` ProxyGroup, cert for `api.secret.vgijssel.nl`, external-dns A record. ACLs:
+`autoApprovers.services["svc:api-secret"]` + `group:admin`→`svc:api-secret:443`. Register in `secret:apply`.
+- **Acceptance:** `curl https://api.secret.vgijssel.nl/version` from a tailnet host over a valid LE cert;
+  secret cluster stays green.
+
+#### T21: Idempotence + cleanup + notes  *(deps: T19, T20)*
+Re-apply both clusters (no-op); confirm both green; confirm no leftover CoreDNS/egress hacks; note the new
+ACLs + endpoints in SPEC; `git grep` clean of secrets.
+
+**Dependency graph:** T18 → T19 (endpoint must serve JWKS before OpenBao repoints); T18 (pattern) → T20; T19,T20 → T21.

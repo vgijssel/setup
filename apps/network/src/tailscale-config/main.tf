@@ -25,6 +25,9 @@ resource "tailscale_acl" "this" {
                 // network cluster's operator proxies (tag:k8s, via the network-ingress
                 // ProxyGroup) may advertise the Omada "omada-network" Service VIP (ACL-B)
                 "svc:omada-network": ["tag:k8s"],
+                // ...and the "api-network" Service VIP: the reverse proxy exposing this
+                // cluster's kube-apiserver at api.network.vgijssel.nl (ACL-D / T18).
+                "svc:api-network": ["tag:k8s"],
             },
         },
 
@@ -150,9 +153,26 @@ resource "tailscale_acl" "this" {
             // secret's OpenBao fetch this cluster's JWKS live (jwt-network jwks_url). The
             // apiserver's own authz still applies: anonymous callers can read only the two
             // OIDC discovery endpoints (clusterrolebinding-oidc-discovery.yaml).
+            // NOTE: superseded by ACL-D in T19 (JWKS moves to svc:api-network); removed then.
             {
                 "src": ["tag:k8s"],
                 "dst": ["tag:k8s-operator"],
+                "ip":  ["tcp:443"],
+            },
+            // ACL-D (T18): the "api-network" Service VIP — the reverse proxy exposing this
+            // cluster's kube-apiserver at api.network.vgijssel.nl (valid LE cert on 443).
+            //  - group:admin reach it for kubectl over the tailnet.
+            //  - tag:k8s (the SECRET cluster's in-cluster egress) reaches it so OpenBao can
+            //    fetch this cluster's JWKS over a plain public HTTPS URL — this is what lets
+            //    T19 retire the MagicDNS egress + CoreDNS rewrite (replacing ACL-C above).
+            {
+                "src": ["group:admin"],
+                "dst": ["svc:api-network"],
+                "ip":  ["tcp:443"],
+            },
+            {
+                "src": ["tag:k8s"],
+                "dst": ["svc:api-network"],
                 "ip":  ["tcp:443"],
             },
             // ACL-B: admins reach the Omada controller on the omada-network VIP over the
