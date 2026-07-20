@@ -66,6 +66,7 @@ cd "${REPO_ROOT}"
 echo "==> Applying Fleet bundles"
 fleet apply -n "${FLEET_NS}" secret-config apps/secret/src/config
 fleet apply -n "${FLEET_NS}" secret-openbao apps/secret/src/openbao
+fleet apply -n "${FLEET_NS}" secret-apiserver-proxy apps/secret/src/apiserver-proxy
 fleet apply -n "${FLEET_NS}" platform-external-secrets apps/platform/src/external-secrets
 fleet apply -n "${FLEET_NS}" platform-cert-manager apps/platform/src/cert-manager
 fleet apply -n "${FLEET_NS}" platform-terranetes apps/platform/src/terranetes

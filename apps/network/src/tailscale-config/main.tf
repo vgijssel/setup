@@ -28,6 +28,10 @@ resource "tailscale_acl" "this" {
                 // ...and the "api-network" Service VIP: the reverse proxy exposing this
                 // cluster's kube-apiserver at api.network.vgijssel.nl (ACL-D / T18).
                 "svc:api-network": ["tag:k8s"],
+                // ...and the "api-secret" Service VIP: the reverse proxy exposing the
+                // SECRET cluster's kube-apiserver at api.secret.vgijssel.nl (ACL-E / T20).
+                // Advertised by the secret-ingress ProxyGroup (also tag:k8s).
+                "svc:api-secret": ["tag:k8s"],
             },
         },
 
@@ -165,6 +169,16 @@ resource "tailscale_acl" "this" {
             {
                 "src": ["tag:k8s"],
                 "dst": ["svc:api-network"],
+                "ip":  ["tcp:443"],
+            },
+            // ACL-E (T20): the "api-secret" Service VIP — the reverse proxy exposing the
+            // SECRET cluster's kube-apiserver at api.secret.vgijssel.nl (valid LE cert on
+            // 443). Operator convenience only (kubectl over the tailnet): group:admin may
+            // reach it. Unlike api-network there is NO tag:k8s grant — nothing fetches a
+            // JWKS from the secret cluster. The apiserver's own authn/authz still applies.
+            {
+                "src": ["group:admin"],
+                "dst": ["svc:api-secret"],
                 "ip":  ["tcp:443"],
             },
             // ACL-B: admins reach the Omada controller on the omada-network VIP over the
