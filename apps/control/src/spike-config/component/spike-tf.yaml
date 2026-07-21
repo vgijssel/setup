@@ -1,0 +1,31 @@
+apiVersion: core.oam.dev/v1beta1
+kind: ComponentDefinition
+metadata:
+  annotations:
+    definition.oam.dev/description: spike terraform component
+  labels:
+    type: terraform
+  name: spike-tf
+  namespace: vela-system
+spec:
+  schematic:
+    terraform:
+      configuration: |
+        variable "greeting" {
+          type    = string
+          default = "hello"
+        }
+
+        output "message" {
+          value = "${var.greeting}-world"
+        }
+        terraform {
+          required_version = ">= 1.0"
+        }
+      providerRef:
+        name: vault
+        namespace: default
+  workload:
+    definition:
+      apiVersion: terraform.core.oam.dev/v1beta2
+      kind: Configuration

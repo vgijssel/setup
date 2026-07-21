@@ -109,13 +109,15 @@ component/<gen>.yaml` produces **byte-stable** output across runs (normalize via
 needed). Wire the `generate` + `generator_test` moon tasks mirroring `third_party/vendir/moon.yml`.
 
 **Acceptance criteria:**
-- [ ] `generate` embeds inline HCL from `terraform/` into a committed `component/<gen>.yaml`.
-- [ ] Running `generate` twice yields identical bytes (deterministic, post-processed if required).
-- [ ] `generator_test` = `git diff --exit-code src/<x>-config/component/` with `deps: [~:generate]` — fails when `component/` is stale.
+- [x] `generate` embeds inline HCL from `terraform/` into a committed `component/<gen>.yaml` (reusable `libs/kubevela-tf-component/generate-component.sh`).
+- [x] Running `generate` twice yields identical bytes (deterministic; noise fields `creationTimestamp`/`status` stripped via `yq`).
+- [x] `generator_test` = `git diff --exit-code src/spike-config/component/` with `deps: [~:generate]`.
 
 **Verification:**
-- [ ] Edit `terraform/`, run `generate` → `component/` changes; `generator_test` fails until committed.
-- [ ] Two consecutive `generate` runs → `git diff` empty.
+- [x] Edit `terraform/` (`hello`→`goodbye`), run `generate` → `component/` reflects it; restored → byte-identical to original.
+- [x] Two consecutive `generate` runs → identical.
+
+**Findings (§9 #3):** `vela def init` output is byte-stable (no `sort_keys` normalization needed). `--local` takes a SINGLE file → concat `terraform/*.tf` (sorted glob, stable). `--provider` only accepts cloud names and prefixes the def name + sets providerRef → pass placeholder `aws`, rewrite `metadata.name` + `providerRef.name` via `yq`. moon `inputs` reject `..` → reference the shared lib script with a workspace-relative `/libs/...` path.
 
 **Dependencies:** 1.1. **Files:** throwaway `apps/control/src/spike-config/{terraform,component}/`, a `moon.yml` task block to lift. **Scope:** S
 

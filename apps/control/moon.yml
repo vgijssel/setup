@@ -25,3 +25,33 @@ tasks:
       runInCI: false
       interactive: true
       cache: false
+
+  # SPIKE (Task 1.5): prove the generate / generator_test pair for the inline-HCL
+  # Terraform ComponentDefinition workflow (SPEC §6). Mirrors third_party/vendir's
+  # build/test shape. Lifted verbatim into apps/secret + apps/network (P2.3/P3.3).
+  #
+  # generate: embed src/spike-config/terraform/*.tf into a committed component/ file.
+  generate:
+    command: >-
+      ../../libs/kubevela-tf-component/generate-component.sh
+      src/spike-config/terraform
+      src/spike-config/component/spike-tf.yaml
+      spike-tf vault "spike terraform component"
+    inputs:
+      - src/spike-config/terraform/**/*
+      - /libs/kubevela-tf-component/generate-component.sh
+    outputs:
+      - src/spike-config/component/spike-tf.yaml
+    options:
+      cache: true
+  # generator_test: fail when component/ is stale relative to terraform/.
+  generator_test:
+    command: git diff --exit-code src/spike-config/component/
+    deps:
+      - ~:generate
+    inputs:
+      - src/spike-config/terraform/**/*
+      - src/spike-config/component/**/*
+      - /libs/kubevela-tf-component/generate-component.sh
+    options:
+      cache: true
