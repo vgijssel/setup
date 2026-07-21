@@ -100,6 +100,9 @@ HCL
 # The module's provider block reads the root token from VAULT_TOKEN with auth_method=token.
 export VAULT_ADDR="${BAO_ADDR}"
 export VAULT_TOKEN="${ROOT_TOKEN}"
+# The network JWT grant inputs (network_oidc_issuer/network_jwks_url) are fixed constants
+# baked into the module defaults, so this local apply and the in-cluster terranetes
+# reconcile create the SAME jwt-network backend without passing them explicitly.
 TF_ARGS=(-var "auth_method=token" -var "bao_address=${BAO_ADDR}")
 
 # The kubernetes backend (in_cluster_config=false) does not auto-discover the

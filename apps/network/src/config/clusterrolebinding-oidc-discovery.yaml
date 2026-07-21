@@ -1,0 +1,27 @@
+# Make the OIDC discovery endpoints anonymously readable so the secret cluster's
+# OpenBao can fetch this cluster's JWKS over the tailnet WITHOUT credentials — OpenBao's
+# jwks_url fetch is unauthenticated. The apiserver-proxy reverse proxy
+# (api.network.vgijssel.nl, T18) forwards the anonymous request straight through, so the
+# apiserver sees system:anonymous and this binding is what authorizes the read.
+#
+# system:service-account-issuer-discovery is a built-in ClusterRole that grants GET on
+# EXACTLY two non-resource URLs — /openid/v1/jwks and /.well-known/openid-configuration
+# (public key material) — and nothing else. Binding it to the system:unauthenticated
+# group lets anonymous callers read only those two endpoints; every other API path stays
+# denied for system:anonymous. Reachability is further gated by the tailnet ACL (ACL-D),
+# which only permits the secret cluster's egress proxy to reach svc:api-network:443.
+#
+# Paired with the apiserver-proxy bundle (apps/network/src/apiserver-proxy) and the
+# jwt-network backend's jwks_url (apps/secret/src/openbao-config).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: oidc-discovery-unauthenticated
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:service-account-issuer-discovery
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: system:unauthenticated

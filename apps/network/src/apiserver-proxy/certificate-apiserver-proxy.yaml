@@ -1,0 +1,22 @@
+# Let's Encrypt cert for api.network.vgijssel.nl, issued over Cloudflare DNS-01 by the
+# shared letsencrypt-prod ClusterIssuer (apps/platform/src/config). cert-manager writes
+# the chain into api-network-vgijssel-nl-tls, which the reverse proxy
+# (deployment-apiserver-proxy.yaml) mounts at /tls and serves on 8443 — so tailnet
+# clients hitting the svc:api-network VIP get a valid public cert (no *.ts.net in the
+# path), exactly like the Omada endpoint. This is the cert that lets OpenBao fetch the
+# JWKS over a plain HTTPS URL in T19 (retiring the CoreDNS/SNI workarounds).
+#
+# Stays NotReady until the cloudflare-api-token Secret is synced from OpenBao
+# (platform-config ExternalSecret).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: api-network-vgijssel-nl
+  namespace: apiserver-proxy
+spec:
+  secretName: api-network-vgijssel-nl-tls
+  dnsNames:
+    - api.network.vgijssel.nl
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer

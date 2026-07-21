@@ -1,0 +1,101 @@
+# Tailnet exposure for the Omada controller: a single Tailscale LoadBalancer Service
+# fronted by the network-ingress ProxyGroup (a stable VIP), advertising the full
+# documented Omada TCP/UDP port set. external-dns publishes the VIP as the A record for
+# omada.network.vgijssel.nl (SPEC Q2/Q3). The chart's own Service is ClusterIP; this is
+# the one that reaches the tailnet.
+#
+# Omada requires port == targetPort for every port, so each entry targets the same
+# number on the pod. UDP is exposed too (same-subnet discovery); cross-tailnet adoption
+# relies on the Inform URL over the TCP management/adopt ports (SPEC R1/R2). The
+# selector matches the omada-controller-helm subchart's pod labels.
+#
+# Requires ACL-B: the tailnet policy must allow the omada-network Service
+# (autoApprovers.services + grants) or the VIP is not advertised.
+apiVersion: v1
+kind: Service
+metadata:
+  name: omada
+  namespace: {{ .Release.Namespace }}
+  # hostname -> the Tailscale Service (VIP) name svc:omada-network, which the tailnet
+  # ACL autoApprovers/grants reference. The public A record (external-dns below) is
+  # separate and points at this VIP's tailnet IP.
+  annotations:
+    tailscale.com/hostname: omada-network
+    tailscale.com/proxy-group: network-ingress
+    external-dns.alpha.kubernetes.io/hostname: omada.network.vgijssel.nl
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  # Must match the subchart's pod selector labels exactly. The chart's name label is
+  # `omada-controller` (its templates hardcode that via the omada-controller.name helper),
+  # NOT the dependency/directory name omada-controller-helm — a mismatch leaves this
+  # Service with zero endpoints, so the Tailscale operator has no backends to advertise.
+  selector:
+    app.kubernetes.io/name: omada-controller
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    # management/portal HTTP (redirects to HTTPS)
+    - name: manage-http
+      port: 8088
+      targetPort: 8088
+      protocol: TCP
+    # management UI HTTPS — the omada.network.vgijssel.nl endpoint
+    - name: manage-https
+      port: 8043
+      targetPort: 8043
+      protocol: TCP
+    # portal HTTPS
+    - name: portal-https
+      port: 8843
+      targetPort: 8843
+      protocol: TCP
+    # device manager v1
+    - name: manager-v1
+      port: 29811
+      targetPort: 29811
+      protocol: TCP
+    # device adopt v1
+    - name: adopt-v1
+      port: 29812
+      targetPort: 29812
+      protocol: TCP
+    # device upgrade v1
+    - name: upgrade-v1
+      port: 29813
+      targetPort: 29813
+      protocol: TCP
+    # device manager v2
+    - name: manager-v2
+      port: 29814
+      targetPort: 29814
+      protocol: TCP
+    # device transfer v2
+    - name: transfer-v2
+      port: 29815
+      targetPort: 29815
+      protocol: TCP
+    # rtty (remote terminal)
+    - name: rtty
+      port: 29816
+      targetPort: 29816
+      protocol: TCP
+    # device monitor (Omada 6)
+    - name: device-monitor
+      port: 29817
+      targetPort: 29817
+      protocol: TCP
+    # app discovery (L2 only)
+    - name: app-discovery
+      port: 27001
+      targetPort: 27001
+      protocol: UDP
+    # device discovery (L2 only)
+    - name: udp-discovery
+      port: 29810
+      targetPort: 29810
+      protocol: UDP
+    # device management UDP (L2 only)
+    - name: udp-management
+      port: 19810
+      targetPort: 19810
+      protocol: UDP

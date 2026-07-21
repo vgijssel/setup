@@ -137,6 +137,28 @@ directories:
           version: v0.8.6
           repository:
             url: https://terranetes-controller.appvia.io
+  # TP-Link Omada SDN controller (network cluster). OCI chart from Docker Hub;
+  # appVersion 6.2.14.11. Runs rootless against an EXTERNAL MongoDB (see below).
+  - path: charts/omada-controller-helm
+    contents:
+      - path: .
+        helmChart:
+          name: omada-controller-helm
+          version: 1.4.1
+          repository:
+            url: oci://registry-1.docker.io/mbentley
+  # External MongoDB for the Omada controller. groundhog2k's chart wraps the
+  # OFFICIAL multi-arch `mongo` image (arm64-native, freely pullable) rather than
+  # the Bitnami image that was relicensed/gated in 2025 (SPEC R6). appVersion
+  # 8.0.26 (MongoDB 8.0 LTS), which the Omada 6.2 external-MongoDB path supports.
+  - path: charts/mongodb
+    contents:
+      - path: .
+        helmChart:
+          name: mongodb
+          version: 0.7.9
+          repository:
+            url: https://groundhog2k.github.io/helm-charts/
   - path: charts/fleet-crd
     contents:
       - path: .
