@@ -1,0 +1,28 @@
+# First-class KubeVela/terraform-controller Provider for OpenBao (Vault-API).
+# Replaces the old terranetes dummy-null-provider trick (SPEC §3.3).
+#
+# provider: custom → the controller reads spec.credentials.secretRef and treats the
+# referenced secret KEY as a YAML map of ENV VAR -> value, injecting those as
+# environment variables into the Terraform executor before `terraform init`
+# (controllers/provider/custom.go: CustomCredentials = map[string]string).
+#
+# The `vault` Terraform provider authenticates from VAULT_ADDR + VAULT_TOKEN at
+# init. In the child-local steady state (P2.3) the token is replaced by in-cluster
+# Kubernetes auth co-located with OpenBao; the bootstrap Workflow supplies a
+# short-lived token here and deletes it afterwards (SPEC §4).
+#
+# The referenced Secret is NOT committed — see secret-provider-credentials.example.yaml.
+# It is created at bootstrap from OpenBao/1Password.
+apiVersion: terraform.core.oam.dev/v1beta1
+kind: Provider
+metadata:
+  name: vault
+  namespace: default
+spec:
+  provider: custom
+  credentials:
+    source: Secret
+    secretRef:
+      name: vault-provider-credentials
+      namespace: default
+      key: credentials

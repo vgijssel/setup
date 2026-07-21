@@ -127,13 +127,17 @@ non-cloud provider (`vault`: `VAULT_ADDR`+`VAULT_TOKEN`/k8s-auth; `tailscale`: O
 generated `cloudProperties` shape. Confirm a `Configuration` referencing `providerRef` initializes.
 
 **Acceptance criteria:**
-- [ ] A `Provider` CR + Secret exist for `vault` and `tailscale` (Secret values from OpenBao/1Password, never git).
-- [ ] A trivial `Configuration` with `providerRef: vault` reaches `terraform init` with creds injected.
-- [ ] Decision recorded: provider-scaffold addon vs hand-authored (spec §3.3).
+- [x] A `Provider` CR + Secret exist for `vault` and `tailscale` (`apps/control/src/providers/`; secret is a `.example` TEMPLATE — real values from OpenBao/1Password, never git).
+- [x] A trivial `Configuration` with `providerRef: vault` reaches `terraform init` with creds injected (reached `Available`; `VAULT_ADDR`/`VAULT_TOKEN` present in executor env; OpenTofu init succeeded).
+- [x] Decision recorded below.
 
 **Verification:**
-- [ ] `kubectl get provider.terraform.core.oam.dev` shows both Ready.
-- [ ] Trivial Configuration logs show provider env vars present at init.
+- [x] `kubectl get provider.terraform.core.oam.dev` shows both `ready`.
+- [x] Executor env contains the custom-credential env vars; init log: "All OpenTofu commands should now work".
+
+**Findings (§9 #2 + executor):**
+- **Hand-authored `Provider` wins** — no provider-scaffold addon needed. Use `spec.provider: custom` + `credentials.source: Secret` + `secretRef{name,key,namespace}`. The secret KEY holds a **YAML map of ENV_VAR → value** (`controllers/provider/custom.go`), injected into the executor before init. So `vault` = `{VAULT_ADDR, VAULT_TOKEN}`, `tailscale` = `{TAILSCALE_OAUTH_CLIENT_ID, TAILSCALE_OAUTH_CLIENT_SECRET}`.
+- **Executor image (was P2.3, resolved here):** upstream `oamdev/docker-terraform:1.1.5` is amd64-only ("no match for platform") AND Terraform 1.1.5 (too old). Built a small multi-arch **OpenTofu executor** (`apps/control/images/tofu-executor`, tofu 1.10.6 symlinked as `terraform`); `control:start` always builds+imports it and `--set terraformImage`. The controller execs `terraform init` / `terraform apply -lock=false -auto-approve` in WD `/data` — OpenTofu handles both.
 
 **Dependencies:** 1.3. **Files:** `apps/control/src/providers/{provider-vault.yaml,provider-tailscale.yaml}` (+ Secret templates). **Scope:** M
 

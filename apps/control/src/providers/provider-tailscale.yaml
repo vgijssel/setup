@@ -1,0 +1,23 @@
+# First-class KubeVela/terraform-controller Provider for Tailscale (SPEC §3.3).
+#
+# provider: custom → the controller injects the referenced secret key (a YAML map
+# of ENV VAR -> value) as environment variables into the Terraform executor.
+#
+# The `tailscale` Terraform provider authenticates from an OAuth client
+# (TAILSCALE_OAUTH_CLIENT_ID + TAILSCALE_OAUTH_CLIENT_SECRET) or TAILSCALE_API_KEY,
+# sourced out of OpenBao (kv/network-tailscale-config) / 1Password.
+#
+# The referenced Secret is NOT committed — see secret-provider-credentials.example.yaml.
+apiVersion: terraform.core.oam.dev/v1beta1
+kind: Provider
+metadata:
+  name: tailscale
+  namespace: default
+spec:
+  provider: custom
+  credentials:
+    source: Secret
+    secretRef:
+      name: tailscale-provider-credentials
+      namespace: default
+      key: credentials

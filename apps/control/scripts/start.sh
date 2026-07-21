@@ -64,31 +64,47 @@ done
 echo "==> Waiting for the node to become Ready"
 kubectl wait --for=condition=Ready nodes --all --timeout=180s
 
-# ARCH: vela-core, cluster-gateway and kube-webhook-certgen are genuine multi-arch
-# images. terraform-controller is NOT — upstream's Dockerfile hardcodes
-# GOARCH=amd64, so every arch in its "multi-arch" manifest is an amd64 binary. On
-# an arm64 host that image dies with "exec format error", and it cannot be
-# qemu-emulated either (Go+qemu `lfstack.push` fatal error). So on arm64 we build
-# a genuine arm64 image from the pinned source (apps/control/images/…) and import
-# it into the vind node's containerd; the helm install below then points at it.
-# On amd64 (incl. real prod) the upstream image (values default, pinned by digest)
-# is used directly and this block is skipped. Idempotent.
-TFCTRL_HELM_ARGS=()
+# ── Build + import the terraform-controller images the upstream can't provide ──
+# Two upstream images are unusable and are replaced with locally-built ones that
+# are imported straight into the vind node's containerd (no registry needed):
+#
+#  1. terraform-controller itself — upstream's Dockerfile hardcodes GOARCH=amd64,
+#     so its "multi-arch" arm64 image is really amd64: on arm64 it dies with
+#     "exec format error" and can't be qemu-emulated (Go+qemu `lfstack.push`
+#     fatal). Rebuilt from pinned source for the host arch. On amd64 the upstream
+#     image (values default, pinned by digest) would also work, so this rebuild is
+#     arm64-only.
+#  2. the Terraform EXECUTOR — upstream's oamdev/docker-terraform:1.1.5 is amd64
+#     only AND Terraform 1.1.5 (far too old for this repo's modules). Replaced on
+#     every arch with a small OpenTofu executor (tofu symlinked as `terraform`),
+#     matching the repo's pinned tofu 1.10.6.
+#
+# Idempotent (docker layer cache + ctr import upsert).
+build_and_import() {
+  local image="$1" dir="$2"
+  echo "==> Building ${image} (host arch) and importing into ${NODE_CONTAINER}"
+  docker build --build-arg "TARGETARCH=${GOARCH}" -t "${image}" -f "${dir}/Dockerfile" "${dir}"
+  docker save "${image}" | docker exec -i "${NODE_CONTAINER}" ctr -n k8s.io images import -
+}
+
+NODE_CONTAINER="vcluster.cp.${CLUSTER_NAME}"
 HOST_ARCH="$(uname -m)"
-if [[ "${HOST_ARCH}" = "arm64" ]] || [[ "${HOST_ARCH}" = "aarch64" ]]; then
+case "${HOST_ARCH}" in
+  arm64 | aarch64) GOARCH="arm64" ;;
+  x86_64 | amd64) GOARCH="amd64" ;;
+  *) GOARCH="${HOST_ARCH}" ;;
+esac
+
+# Executor: always replace the upstream default (unusable on every arch).
+TFCTRL_EXECUTOR_IMAGE="tofu-executor:1.10.6"
+build_and_import "${TFCTRL_EXECUTOR_IMAGE}" "${SCRIPT_DIR}/../images/tofu-executor"
+TFCTRL_HELM_ARGS=(--set "terraformImage=${TFCTRL_EXECUTOR_IMAGE}")
+
+# Controller: rebuild only on arm64 (amd64 uses the upstream image pinned by digest).
+if [[ "${GOARCH}" = "arm64" ]]; then
   TFCTRL_LOCAL_IMAGE="terraform-controller:v0.8.0-arm64"
-  NODE_CONTAINER="vcluster.cp.${CLUSTER_NAME}"
-  echo "==> arm64 host: building native terraform-controller image (${TFCTRL_LOCAL_IMAGE})"
-  docker build --platform linux/arm64 --build-arg TARGETARCH=arm64 \
-    -t "${TFCTRL_LOCAL_IMAGE}" \
-    -f "${SCRIPT_DIR}/../images/terraform-controller/Dockerfile" \
-    "${SCRIPT_DIR}/../images/terraform-controller"
-  echo "==> Importing ${TFCTRL_LOCAL_IMAGE} into the vind node (${NODE_CONTAINER}) containerd"
-  docker save "${TFCTRL_LOCAL_IMAGE}" |
-    docker exec -i "${NODE_CONTAINER}" ctr -n k8s.io images import -
-  # Point the chart at the imported local image; IfNotPresent so the node never
-  # tries to pull this local-only tag from a registry.
-  TFCTRL_HELM_ARGS=(
+  build_and_import "${TFCTRL_LOCAL_IMAGE}" "${SCRIPT_DIR}/../images/terraform-controller"
+  TFCTRL_HELM_ARGS+=(
     --set image.repository=terraform-controller
     --set image.tag=v0.8.0-arm64
     --set image.pullPolicy=IfNotPresent

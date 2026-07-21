@@ -27,6 +27,13 @@ image:
 gitImage: alpine/git:2.54.0
 busyboxImage: busybox:1.37.0
 
+# terraformImage is the EXECUTOR that runs `terraform init/apply`. The chart
+# default (oamdev/docker-terraform:1.1.5) is amd64-only AND Terraform 1.1.5 — far
+# too old for this repo's OpenTofu modules. control:start always overrides this
+# via --set with a locally-built OpenTofu executor (apps/control/images/tofu-executor,
+# tofu 1.10.6 symlinked as `terraform`); this default is only a readable placeholder.
+terraformImage: tofu-executor:1.10.6
+
 # Terraform state lives in a kubernetes-backend Secret in this namespace (per
 # child once Configurations are dispatched); the controller runs in vela-system.
 backend:
