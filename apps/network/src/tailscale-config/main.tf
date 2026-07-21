@@ -3,15 +3,21 @@
 # manual edits in the admin console will be reverted on the next reconcile.
 # overwrite_existing_content=true lets the first apply take over the hand-managed policy.
 #
-# Network-cluster additions vs the previous hand-managed policy:
-#   - autoApprovers.services["svc:omada-network"] = ["tag:k8s"]
-#       lets the network-ingress ProxyGroup advertise the Omada VIP (ACL-B).
-#   - grant tag:k8s -> svc:secret tcp:443
-#       lets the network cluster's in-cluster egress reach OpenBao (ACL-A). This is the
-#       grant that resolves the chicken-and-egg: it must exist before terranetes here can
-#       read OpenBao, so the FIRST apply is done out-of-band by network:configure.
-#   - grant group:admin -> svc:omada-network (Omada TCP/UDP ports)
-#       lets admins reach the Omada UI + adoption ports over the tailnet (ACL-B).
+# Per-cluster tag taxonomy (Phase 8): each cluster's operator + proxies carry their OWN
+# tags (tag:secret-operator/tag:secret-k8s, tag:network-operator/tag:network-k8s) so
+# cross-cluster grants express direction and each OAuth client is an independent root of
+# trust. The key policy elements:
+#   - autoApprovers.services: each Service VIP is approved for the per-cluster proxy tag
+#       that advertises it (svc:secret/svc:api-secret <- tag:secret-k8s; svc:omada-network/
+#       svc:api-network <- tag:network-k8s).
+#   - ACL-A grant tag:network-k8s -> svc:secret tcp:443: lets the NETWORK cluster reach
+#       OpenBao (external-secrets + terranetes read kv/*). Chicken-and-egg: this must exist
+#       before terranetes here can read OpenBao, so the FIRST apply is out-of-band via
+#       network:configure.
+#   - ACL-D grant tag:secret-k8s -> svc:api-network tcp:443: lets the SECRET cluster's
+#       OpenBao fetch this cluster's JWKS.
+#   - ACL-B grant group:admin -> svc:omada-network (Omada TCP/UDP ports): admins reach the
+#       Omada UI + adoption ports over the tailnet.
 resource "tailscale_acl" "this" {
   overwrite_existing_content = true
 
@@ -19,16 +25,15 @@ resource "tailscale_acl" "this" {
     {
         "autoApprovers": {
             "services": {
-                // T24 migration (additive): each Service VIP is auto-approved for BOTH the
-                // legacy shared tag:k8s AND the per-cluster proxy tag, so advertisement never
-                // drops while proxies re-register from tag:k8s -> tag:<cluster>-k8s. The
-                // tag:k8s entries are removed once both clusters are green on the new tags.
-                //   svc:secret / svc:api-secret  <- advertised by the SECRET ingress proxies
-                //   svc:omada-network / svc:api-network <- by the NETWORK ingress proxies
-                "svc:secret": ["tag:k8s", "tag:secret-k8s"],
-                "svc:omada-network": ["tag:k8s", "tag:network-k8s"],
-                "svc:api-network": ["tag:k8s", "tag:network-k8s"],
-                "svc:api-secret": ["tag:k8s", "tag:secret-k8s"],
+                // Each Service VIP is auto-approved for the per-cluster proxy tag that
+                // advertises it (T24 complete; the legacy shared tag:k8s was retired once
+                // both clusters re-registered onto their own tags).
+                //   svc:secret / svc:api-secret  <- advertised by the SECRET ingress proxies (tag:secret-k8s)
+                //   svc:omada-network / svc:api-network <- by the NETWORK ingress proxies (tag:network-k8s)
+                "svc:secret": ["tag:secret-k8s"],
+                "svc:omada-network": ["tag:network-k8s"],
+                "svc:api-network": ["tag:network-k8s"],
+                "svc:api-secret": ["tag:secret-k8s"],
             },
         },
 
@@ -39,18 +44,13 @@ resource "tailscale_acl" "this" {
             "tag:provisioner":         [],
             "tag:provisioner-k8s":     [],
             "tag:pikvm":               [],
-            "tag:k8s-operator":        [],
             "tag:pihole-prod":         [],
             "tag:network-controllers": [],
-            "tag:k8s":                 ["tag:k8s-operator"],
-            // Phase 8 / T22 (additive): per-cluster operator+proxy tag pairs so
-            // cross-cluster ACLs can express DIRECTION ("secret -> network") and each
-            // cluster's OAuth client is an independent root of trust. Added here first
-            // so T23 can create OAuth clients against real, owned tags; the operators
-            // don't re-register under them until T24 flips defaultTags. The shared
-            // tag:k8s / tag:k8s-operator stay until T24 retires them (additive-first:
-            // no proxy is ever left carrying a tag no grant covers).
-            //   tag:<c>-operator mints tag:<c>-k8s == the operator->proxy relationship.
+            // Phase 8 (T22-T24): per-cluster operator+proxy tag pairs so cross-cluster
+            // ACLs express DIRECTION ("secret -> network") and each cluster's OAuth client
+            // is an independent root of trust. tag:<c>-operator mints tag:<c>-k8s == the
+            // operator->proxy relationship. The legacy shared tag:k8s / tag:k8s-operator
+            // were retired in T24 after both clusters re-registered onto these tags.
             "tag:secret-operator":     [],
             "tag:secret-k8s":          ["tag:secret-operator"],
             "tag:network-operator":    [],
@@ -102,14 +102,12 @@ resource "tailscale_acl" "this" {
                 "src":    ["group:admin"],
                 "dst":    ["tag:provisioner-k8s:6443"],
             },
-            // Allow admins to reach k8s services on port 443/80. T24 migration
-            // (additive): includes the legacy tag:k8s and both per-cluster proxy tags so
-            // admin reachability survives the re-tag; tag:k8s is dropped once both green.
+            // Allow admins to reach k8s services on port 443/80 (per-cluster proxy tags;
+            // legacy tag:k8s retired in T24).
             {
                 "action": "accept",
                 "src":    ["group:admin"],
                 "dst": [
-                    "tag:k8s:443", "tag:k8s:80",
                     "tag:secret-k8s:443", "tag:secret-k8s:80",
                     "tag:network-k8s:443", "tag:network-k8s:80",
                 ],
@@ -159,13 +157,12 @@ resource "tailscale_acl" "this" {
                 "dst": ["svc:secret"],
                 "ip":  ["tcp:443", "tcp:80"],
             },
-            // ACL-A: the network cluster's in-cluster egress proxy reaches the secret
-            // cluster's OpenBao VIP so external-secrets + terranetes can read kv/*. T24
-            // makes this DIRECTIONAL (network -> secret): src is tag:network-k8s, no longer
-            // any tag:k8s. tag:k8s is kept ADDITIVELY only until both clusters finish
-            // re-tagging, then dropped so secret's OWN proxies can't match this grant.
+            // ACL-A: the network cluster's proxies reach the secret cluster's OpenBao VIP
+            // so external-secrets + terranetes can read kv/*. DIRECTIONAL (network ->
+            // secret): src is tag:network-k8s only — secret's OWN proxies (tag:secret-k8s)
+            // cannot match this grant (T24 retired the shared tag:k8s).
             {
-                "src": ["tag:k8s", "tag:network-k8s"],
+                "src": ["tag:network-k8s"],
                 "dst": ["svc:secret"],
                 "ip":  ["tcp:443"],
             },
@@ -184,11 +181,11 @@ resource "tailscale_acl" "this" {
                 "dst": ["svc:api-network"],
                 "ip":  ["tcp:443"],
             },
-            // T24 makes this DIRECTIONAL (secret -> network): src is tag:secret-k8s (the
-            // secret cluster's egress fetching this cluster's JWKS). tag:k8s kept
-            // ADDITIVELY only until both clusters finish re-tagging, then dropped.
+            // DIRECTIONAL (secret -> network): src is tag:secret-k8s only (the secret
+            // cluster's pods fetching this cluster's JWKS for OpenBao). T24 retired the
+            // shared tag:k8s.
             {
-                "src": ["tag:k8s", "tag:secret-k8s"],
+                "src": ["tag:secret-k8s"],
                 "dst": ["svc:api-network"],
                 "ip":  ["tcp:443"],
             },
