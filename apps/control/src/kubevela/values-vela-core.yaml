@@ -1,0 +1,16 @@
+# vela-core override values for the control (base) cluster root install.
+#
+# The vendored vela-core chart (git source @ v1.11.0) defaults image.tag to
+# `latest` with pullPolicy Always — CLAUDE.md forbids unpinned images. Pin the
+# controller image to the tag matching the chart/CLI version and pull only when
+# absent. cluster-gateway and kube-webhook-certgen are already pinned upstream
+# (v1.9.0-alpha.2 / v2.4.1) and are multi-arch, so they are left as-is.
+image:
+  repository: oamdev/vela-core
+  tag: v1.11.0
+  pullPolicy: IfNotPresent
+
+# multicluster + cluster-gateway are enabled by the chart defaults and are the
+# in-cluster control path to the child vclusters (SPEC §3.1). Keep them on.
+multicluster:
+  enabled: true

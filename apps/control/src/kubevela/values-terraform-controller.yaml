@@ -1,0 +1,33 @@
+# terraform-controller override values for the control (base) cluster root install.
+#
+# The vendored chart (git source @ v0.8.0) defaults every image to `:latest`
+# (pullPolicy Always) — CLAUDE.md forbids unpinned images. Pin them all:
+#   - the controller image to the release, BY DIGEST, forcing amd64 (see below)
+#   - the git/busybox helper images to exact tags
+#
+# ARCH: oamdev/terraform-controller publishes a multi-arch manifest, but its
+# "arm64" variant is MISLABELED — upstream's Dockerfile hardcodes GOARCH=amd64,
+# so every arch (v0.8.0, v0.7.12, …) is really an x86-64 `/manager` binary. This
+# value is the genuine amd64 image, pinned BY DIGEST (the `name:tag@digest` ref
+# keeps the readable v0.8.0 tag while pinning amd64), and is the default used on
+# amd64 hosts and real prod. On an arm64 dev host it can neither run nor be
+# qemu-emulated (Go+qemu lfstack bug), so control:start overrides this with a
+# locally-built native arm64 image (see apps/control/images/terraform-controller).
+#
+# terraformImage (the executor that actually runs `terraform`) is left at the
+# chart default `oamdev/docker-terraform:1.1.5` for the install only. It is
+# amd64-only and pins Terraform 1.1.5, so it is NOT suitable for the OpenTofu
+# modules this repo uses; the executor image is overridden per-Configuration
+# where Terraform is actually applied (P2.3/P3.3 — a multi-arch OpenTofu image).
+image:
+  repository: oamdev/terraform-controller
+  tag: v0.8.0@sha256:ac6b781412fdd443f9672fa6144b713f2999a5aea6c9f1a3500bb5d9a6a147e2
+  pullPolicy: IfNotPresent
+
+gitImage: alpine/git:2.54.0
+busyboxImage: busybox:1.37.0
+
+# Terraform state lives in a kubernetes-backend Secret in this namespace (per
+# child once Configurations are dispatched); the controller runs in vela-system.
+backend:
+  namespace: vela-system

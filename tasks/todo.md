@@ -66,14 +66,16 @@ create the base cluster (dev: vind) and helm-install `vela-core` + `terraform-co
 `moon.yml` with `start`/`stop` and (later) `up`. Root KubeVela manages `local`.
 
 **Acceptance criteria:**
-- [ ] `apps/control/scripts/start.sh` creates the base vind cluster and helm-installs both charts from the vendored `file://` paths.
-- [ ] `apps/control/moon.yml` defines `start` and `stop` (interactive, not cached, not CI) mirroring existing app moon.yml shape.
-- [ ] KubeVela pods (`vela-core`, `cluster-gateway`) Ready in root; `terraform-controller` installed.
-- [ ] No secrets embedded; charts referenced by pinned `file://` path.
+- [x] `apps/control/scripts/start.sh` creates the base vind cluster and helm-installs both charts from the vendored paths.
+- [x] `apps/control/moon.yml` defines `start` and `stop` (interactive, not cached, not CI) mirroring existing app moon.yml shape.
+- [x] KubeVela pods (`vela-core`, `cluster-gateway`) Ready in root; `terraform-controller` installed.
+- [x] No secrets embedded; charts referenced by pinned vendored path.
 
 **Verification:**
-- [ ] `moon run control:start` → `kubectl -n vela-system get pods` all Ready.
-- [ ] `vela cluster list` shows `local`.
+- [x] `moon run control:start` → `kubectl -n vela-system get pods` all Ready (3/3).
+- [x] `vela cluster list` shows `local`.
+
+**Findings (arch):** terraform-controller upstream Dockerfile hardcodes `GOARCH=amd64`, so its "multi-arch" arm64 image is really amd64 → `exec format error`, and it cannot be qemu-emulated (Go+qemu `lfstack.push` fatal). Fix: `control:start` builds a genuine arm64 image from pinned source (`apps/control/images/terraform-controller/Dockerfile`) and imports it into the vind node on arm64; amd64/prod uses the upstream image pinned by digest. `--force-conflicts` on the vela-core helm upgrade makes re-runs idempotent (kube-webhook-certgen post-upgrade hook conflicts with helm SSA otherwise).
 
 **Dependencies:** 1.1, 1.2. **Files:** `apps/control/scripts/start.sh`, `apps/control/scripts/stop.sh`, `apps/control/moon.yml`, `apps/control/src/kubevela/{Chart.yaml,values.yaml}`. **Scope:** M
 

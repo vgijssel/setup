@@ -1,0 +1,27 @@
+language: bash
+layer: application
+project:
+  description: KubeVela control-plane base cluster (root vela-core + terraform-controller); provisions the secret + network child vclusters
+tags:
+  - app
+  - kubernetes
+  - kubevela
+  - control
+# The base cluster is the ONE imperative bootstrap step (SPEC §3.4). Each task
+# manages external cluster / Docker state (not file outputs), so none are cached.
+tasks:
+  # 1. Create (or reconnect to) the base vind cluster and helm-install KubeVela
+  #    (vela-core + terraform-controller) into its root. Idempotent.
+  start:
+    command: scripts/start.sh
+    options:
+      runInCI: false
+      interactive: true
+      cache: false
+  # Delete the base vind cluster (child vclusters go with it).
+  stop:
+    command: scripts/stop.sh
+    options:
+      runInCI: false
+      interactive: true
+      cache: false
