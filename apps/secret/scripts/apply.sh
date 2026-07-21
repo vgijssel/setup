@@ -67,11 +67,14 @@ echo "==> Applying Fleet bundles"
 fleet apply -n "${FLEET_NS}" secret-config apps/secret/src/config
 fleet apply -n "${FLEET_NS}" secret-openbao apps/secret/src/openbao
 fleet apply -n "${FLEET_NS}" secret-apiserver-proxy apps/secret/src/apiserver-proxy
+# secret-only: the `secret-ingress` ProxyGroup. dependsOn the tailscale-operator
+# bundle (label selector) so Fleet orders it after platform-tailscale regardless
+# of apply order here.
+fleet apply -n "${FLEET_NS}" secret-tailscale-proxygroup apps/secret/src/tailscale-proxygroup
 fleet apply -n "${FLEET_NS}" platform-external-secrets apps/platform/src/external-secrets
 fleet apply -n "${FLEET_NS}" platform-cert-manager apps/platform/src/cert-manager
 fleet apply -n "${FLEET_NS}" platform-terranetes apps/platform/src/terranetes
 fleet apply -n "${FLEET_NS}" platform-tailscale apps/platform/src/tailscale
-fleet apply -n "${FLEET_NS}" platform-tailscale-proxygroup apps/platform/src/tailscale-proxygroup
 fleet apply -n "${FLEET_NS}" platform-ingress-nginx apps/platform/src/ingress-nginx
 fleet apply -n "${FLEET_NS}" platform-external-dns apps/platform/src/external-dns
 fleet apply -n "${FLEET_NS}" platform-netdata apps/platform/src/netdata

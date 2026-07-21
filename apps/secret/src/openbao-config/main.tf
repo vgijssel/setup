@@ -124,15 +124,9 @@ resource "vault_kubernetes_auth_backend_role" "terranetes" {
 # vind recreate no longer requires re-extracting keys into this module. jwks_url is
 # decoupled from bound_issuer: the `iss` claim stays
 # https://kubernetes.default.svc.cluster.local (unchanged), while the keys are fetched
-# from the tailnet URL. All resources are gated on the issuer + url being present, so
-# this module still applies cleanly on the secret cluster before the network cluster is
-# bootstrapped (SPEC: JWT auth, live JWKS).
-locals {
-  network_enabled = var.network_oidc_issuer != "" && var.network_jwks_url != ""
-}
-
+# from the tailnet URL. The network cluster is always part of this setup, so these
+# resources are unconditional (SPEC: JWT auth, live JWKS).
 resource "vault_jwt_auth_backend" "network" {
-  count        = local.network_enabled ? 1 : 0
   path         = "jwt-network"
   type         = "jwt"
   description  = "JWT auth for the network cluster's external-secrets (live JWKS over the tailnet)"
@@ -150,7 +144,6 @@ resource "vault_jwt_auth_backend" "network" {
 # Read-only over kv, mirroring external-secrets. Least privilege: the network cluster
 # gets NOTHING beyond read on kv/* (SPEC Boundaries → Always / Never).
 resource "vault_policy" "network_read" {
-  count  = local.network_enabled ? 1 : 0
   name   = "network-read"
   policy = <<-EOT
     path "kv/data/*" {
@@ -167,8 +160,7 @@ resource "vault_policy" "network_read" {
 # OpenBao checks the signature (live JWKS from network_jwks_url over the tailnet), issuer, audience, and
 # subject, then issues a token carrying network-read.
 resource "vault_jwt_auth_backend_role" "network_eso" {
-  count           = local.network_enabled ? 1 : 0
-  backend         = vault_jwt_auth_backend.network[0].path
+  backend         = vault_jwt_auth_backend.network.path
   role_name       = "network-eso"
   role_type       = "jwt"
   bound_audiences = ["openbao"]
@@ -191,8 +183,7 @@ resource "vault_jwt_auth_backend_role" "network_eso" {
 # so bind it: in this cluster the default API audience equals the OIDC issuer
 # (https://kubernetes.default.svc.cluster.local), so reuse network_oidc_issuer.
 resource "vault_jwt_auth_backend_role" "network_terranetes" {
-  count           = local.network_enabled ? 1 : 0
-  backend         = vault_jwt_auth_backend.network[0].path
+  backend         = vault_jwt_auth_backend.network.path
   role_name       = "network-terranetes"
   role_type       = "jwt"
   bound_audiences = [var.network_oidc_issuer]

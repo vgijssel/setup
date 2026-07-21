@@ -26,24 +26,24 @@ variable "k8s_auth_role" {
 }
 
 # ── network cluster JWT grant (consumer of this OpenBao) ─────────────────────
-# OpenBao fetches the network cluster's public signing keys LIVE from its OIDC JWKS
-# endpoint over the tailnet (the network cluster's kube-apiserver reverse proxy at
-# api.network.vgijssel.nl, valid public LE cert), rather than caching a static copy.
-# The api-network Service VIP + DNS name are stable across vind recreation, so this URL
-# is set once and committed — no per-recreate key extraction.
-# Both default empty so this module still applies on the secret cluster BEFORE the
-# network cluster exists (empty issuer/url -> the jwt-network resources count to 0).
+# The network cluster is always part of this setup, so the jwt-network backend is
+# always created. OpenBao fetches the network cluster's public signing keys LIVE from
+# its OIDC JWKS endpoint over the tailnet (the network cluster's kube-apiserver reverse
+# proxy at api.network.vgijssel.nl, valid public LE cert), rather than caching a static
+# copy. The api-network Service VIP + DNS name are stable across vind recreation, so
+# these defaults are set once and committed — no per-recreate key extraction. Both the
+# local secret:configure apply and the in-cluster terranetes reconcile use these values.
 
 variable "network_oidc_issuer" {
-  description = "OIDC issuer (iss claim) of the network cluster's projected ServiceAccount tokens. Empty disables the jwt-network backend."
+  description = "OIDC issuer (iss claim) of the network cluster's projected ServiceAccount tokens."
   type        = string
-  default     = ""
+  default     = "https://kubernetes.default.svc.cluster.local"
 }
 
 variable "network_jwks_url" {
-  description = "Tailnet-reachable JWKS URL of the network cluster (https://api.network.vgijssel.nl/openid/v1/jwks, served by the cluster's kube-apiserver reverse proxy behind a valid public LE cert). OpenBao fetches network SA-token signing keys from here live. Empty disables the jwt-network backend."
+  description = "Tailnet-reachable JWKS URL of the network cluster (served by the cluster's kube-apiserver reverse proxy behind a valid public LE cert). OpenBao fetches network SA-token signing keys from here live."
   type        = string
-  default     = ""
+  default     = "https://api.network.vgijssel.nl/openid/v1/jwks"
 }
 
 variable "network_jwks_ca_pem" {

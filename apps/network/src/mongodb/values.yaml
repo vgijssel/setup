@@ -13,7 +13,7 @@ mongodb:
   # and refuses to start. 8.0.4 predates the guard, starts cleanly, and is still
   # MongoDB 8.0 (Omada 6.2 external-Mongo compatible). Bump once SERVER-121912 is fixed.
   image:
-    tag: "8.0.4"
+    tag: 8.0.4
 
   # Root user from OpenBao via ESO (envFrom secretRef). Leaving settings.rootUsername/
   # rootPassword unset means the chart creates no competing secureconfig Secret.
