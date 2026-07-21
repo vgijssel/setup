@@ -40,7 +40,7 @@ export default {
       match: "https://claude.ai/*",
       browser: {
         name: "Google Chrome",
-        profile: "vgijssel.nl",
+        profile: "HackerOne.com",
       },
     },
     {
