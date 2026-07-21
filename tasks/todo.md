@@ -85,14 +85,21 @@ a KubeVela helm Component, then `vela cluster join` it using the in-cluster kube
 DNS) — **no tailnet, no LE cert**. Document the kubeconfig endpoint, credential type, and minimal RBAC.
 
 **Acceptance criteria:**
-- [ ] A child vcluster is created via a KubeVela `Application` (vcluster helm Component, chart 0.32.1 already vendored).
-- [ ] The child is joined (`vela cluster join`) over in-cluster Service DNS; appears in `vela cluster list`.
-- [ ] A trivial Application dispatched via `topology → <child>` lands in the child.
-- [ ] Findings written into `tasks/plan.md` open-questions or an ADR (join endpoint, creds, RBAC).
+- [x] A child vcluster is created via a KubeVela `Application` (built-in `helmchart` component — deploys Helm charts natively WITHOUT FluxCD; vcluster 0.32.1).
+- [x] The child is joined (`vela cluster join`) over in-cluster Service DNS; appears in `vela cluster list`.
+- [x] A trivial Application dispatched via `topology → <child>` lands in the child.
+- [x] Findings recorded below.
 
 **Verification:**
-- [ ] `vela cluster list` shows the child as healthy.
-- [ ] `kubectl --context <child> get ns` reflects the topology-dispatched Application.
+- [x] `vela cluster list` shows `spike-child` ACCEPTED (X509Certificate, endpoint `https://spike-child.spike-vc:443`).
+- [x] `vela status spike-topo` Healthy with component on `Cluster: spike-child`; ConfigMap absent from base cluster.
+
+**Findings (§9 #4, #7):**
+- **Component:** use built-in `helmchart` (no FluxCD). vcluster addon is unnecessary. Pin `chart.version: 0.32.1`, `repoURL: https://charts.loft.sh`. (NOTE: this fetches from the loft repo at reconcile, not the vendored copy — pinned by version; revisit if offline/air-gapped delivery is needed.)
+- **Nested vcluster-in-vind works** out of the box (StatefulSet + ClusterIP svc on 443); syncer comes up healthy.
+- **Join endpoint:** kubeconfig lives in Secret `vc-<name>` (key `config`), server `https://localhost:8443`. Rewrite to `https://<name>.<ns>:443` — the vcluster serving cert SANs cover `<name>` and `<name>.<ns>` but NOT `<name>.<ns>.svc`, and `<name>.<ns>` resolves from any pod via the `svc.cluster.local` search path. No tailnet, no LE cert, no `--insecure`.
+- **Creds/RBAC:** the X509 client cert embedded in `vc-<name>` (cluster-admin in the child) is what cluster-gateway uses; nothing extra to provision.
+- **Automation gap:** the join (extract secret → rewrite server → `vela cluster join`) is an imperative step *after* the vcluster is Ready. For P2.1/P3.1 it must run as a scripted/`control:up` step or a KubeVela workflow Job step (SPEC §9 #7 — the "no dedicated vcluster addon" workflow shape).
 
 **Dependencies:** 1.3. **Files:** throwaway `apps/control/src/children/application-spike.yaml`. **Scope:** M
 

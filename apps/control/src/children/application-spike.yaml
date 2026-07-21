@@ -1,0 +1,29 @@
+# SPIKE (Task 1.4) — prove the control path end to end:
+#   1. KubeVela creates a nested child vcluster inside the base (helmchart component,
+#      no FluxCD), pinned vcluster 0.32.1.
+#   2. The child is joined to the root over the in-cluster Service DNS endpoint
+#      (vela cluster join) — no tailnet, no LE cert.
+#   3. A trivial workload dispatched via `topology -> spike-child` lands in the child.
+#
+# This file is a throwaway probe; the real per-child Applications (P2.1/P3.1) are
+# derived from what this proves. Apply with `vela up -f`.
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: spike-vcluster
+  namespace: vela-system
+spec:
+  components:
+    - name: spike-child
+      type: helmchart
+      properties:
+        chart:
+          source: vcluster
+          repoURL: https://charts.loft.sh
+          version: 0.32.1
+        release:
+          name: spike-child
+          namespace: spike-vc
+        options:
+          wait: true
+          timeout: 5m
