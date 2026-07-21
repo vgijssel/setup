@@ -18,6 +18,14 @@ tasks:
       runInCI: false
       interactive: true
       cache: false
+  # Apply the KubeVela child-provisioning Applications and join each child
+  # vcluster to the root. Idempotent. Run after start.
+  up:
+    command: scripts/up.sh
+    options:
+      runInCI: false
+      interactive: true
+      cache: false
   # Delete the base vind cluster (child vclusters go with it).
   stop:
     command: scripts/stop.sh
