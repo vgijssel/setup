@@ -1,0 +1,77 @@
+{{- if .Values.admissionWebhooks.enabled -}}
+{{- /* Preserve existing caBundle on upgrade to avoid breaking admission if hooks fail. */}}
+{{- $mName := printf "%s-admission" (include "kubevela.fullname" .) -}}
+{{- $existing := (lookup "admissionregistration.k8s.io/v1" "MutatingWebhookConfiguration" "" $mName) -}}
+{{- $vals := dict "apps" "" "comps" "" -}}
+{{- if $existing -}}
+{{- range $existing.webhooks -}}
+{{- if eq .name "mutating.core.oam.dev.v1beta1.applications" -}}{{- $_ := set $vals "apps" .clientConfig.caBundle -}}{{- end -}}
+{{- if eq .name "mutating.core.oam-dev.v1beta1.componentdefinitions" -}}{{- $_ := set $vals "comps" .clientConfig.caBundle -}}{{- end -}}
+{{- end -}}
+{{- end -}}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ template "kubevela.fullname" . }}-admission
+  namespace: {{ .Release.Namespace }}
+  {{- if .Values.admissionWebhooks.certManager.enabled }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ printf "%s/%s-root-cert" .Release.Namespace (include "kubevela.fullname" .) | quote }}
+  {{- end }}
+webhooks:
+  - clientConfig:
+      caBundle: {{ default "Cg==" (get $vals "apps") }}
+      service:
+        name: {{ template "kubevela.name" . }}-webhook
+        namespace: {{ .Release.Namespace }}
+        path: /mutating-core-oam-dev-v1beta1-applications
+    {{- if .Values.admissionWebhooks.patch.enabled }}
+    failurePolicy: Ignore
+    {{- else }}
+    failurePolicy: Fail
+    {{- end }}
+    name: mutating.core.oam.dev.v1beta1.applications
+    admissionReviewVersions:
+      - v1beta1
+      - v1
+    sideEffects: None
+    rules:
+      - apiGroups:
+          - core.oam.dev
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - applications
+    timeoutSeconds: {{ .Values.admissionWebhookTimeout }}
+  - clientConfig:
+      caBundle: {{ default "Cg==" (get $vals "comps") }}
+      service:
+        name: {{ template "kubevela.name" . }}-webhook
+        namespace: {{ .Release.Namespace }}
+        path: /mutating-core-oam-dev-v1beta1-componentdefinitions
+    {{- if .Values.admissionWebhooks.patch.enabled  }}
+    failurePolicy: Ignore
+    {{- else }}
+    failurePolicy: Fail
+    {{- end }}
+    name: mutating.core.oam-dev.v1beta1.componentdefinitions
+    sideEffects: None
+    admissionReviewVersions:
+      - v1beta1
+      - v1
+    rules:
+      - apiGroups:
+          - core.oam.dev
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - componentdefinitions
+    timeoutSeconds: {{ .Values.admissionWebhookTimeout }}
+
+{{- end -}}

@@ -129,6 +129,33 @@ directories:
           version: 0.28.4
           repository:
             url: https://openbao.github.io/openbao-helm
+  # KubeVela core (vela-core) — control-plane runtime: vela-core controller +
+  # cluster-gateway. Vendored from the git chart SOURCE at the release tag rather
+  # than the helm repo: charts.kubevela.net serves an EXPIRED TLS cert (CDN), and
+  # the git source at a pinned tag is reproducible over valid GitHub TLS. The chart
+  # is self-contained (crds/ + templates/, no subchart dependencies). Chart.yaml
+  # carries a placeholder version 0.1.0; the git tag v1.11.0 is the real pin and
+  # matches the pinned `vela` CLI.
+  - path: charts/vela-core
+    contents:
+      - path: .
+        git:
+          url: https://github.com/kubevela/kubevela
+          ref: v1.11.0
+        includePaths:
+          - charts/vela-core/**
+        newRootPath: charts/vela-core
+  # KubeVela terraform-controller — reconciles terraform.core.oam.dev Configurations.
+  # Same rationale: vendored from the git chart source at the release tag (v0.8.0).
+  - path: charts/terraform-controller
+    contents:
+      - path: .
+        git:
+          url: https://github.com/kubevela/terraform-controller
+          ref: v0.8.0
+        includePaths:
+          - chart/**
+        newRootPath: chart
   - path: charts/terranetes-controller
     contents:
       - path: .

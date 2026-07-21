@@ -97,6 +97,24 @@ directories:
     path: .
   path: charts/openbao
 - contents:
+  - git:
+      commitTitle: 'Docs: Cluster Infrastructure Abstraction — Declarative Lifecycle,
+        Composition, and Fleet Rollouts (#7087)...'
+      sha: a1860544f0556828e165ef68701b2926730671a7
+      tags:
+      - v1.11.0
+    path: .
+  path: charts/vela-core
+- contents:
+  - git:
+      commitTitle: Refactor constructing containers and support checkout certain git
+        refs (#382)
+      sha: 966471af19a07ffe94159e231899a0983a71c188
+      tags:
+      - v0.8.0
+    path: .
+  path: charts/terraform-controller
+- contents:
   - helmChart:
       appVersion: v0.5.7
       version: v0.8.6

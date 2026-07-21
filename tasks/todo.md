@@ -34,13 +34,13 @@ scratch on the new model. Nothing is migrated in place. Verify all durable data 
 `fleet.hcl`. Confirm `yq` is already pinned (it is — `bin/yq`).
 
 **Acceptance criteria:**
-- [ ] `third_party/hermit/vela.hcl` pins one exact `vela` version with `sha256sums` for all needed os/arch.
-- [ ] `bin/vela` wrapper resolves; `vela version` prints the pinned version.
-- [ ] No unpinned fetch (`npx`/`uvx`/`latest`).
+- [x] `third_party/hermit/vela.hcl` pins one exact `vela` version with `sha256sums` for all needed os/arch. (v1.11.0)
+- [x] `bin/vela` wrapper resolves; `vela version` prints the pinned version.
+- [x] No unpinned fetch (`npx`/`uvx`/`latest`).
 
 **Verification:**
-- [ ] `./bin/vela version` succeeds and matches the pinned version.
-- [ ] `git status` shows `bin/vela` + `third_party/hermit/vela.hcl` only.
+- [x] `./bin/vela version` succeeds and matches the pinned version.
+- [x] `git status` shows `bin/vela` + `third_party/hermit/vela.hcl` only.
 
 **Dependencies:** None. **Files:** `third_party/hermit/vela.hcl`, `bin/vela`. **Scope:** S
 
@@ -50,13 +50,13 @@ scratch on the new model. Nothing is migrated in place. Verify all durable data 
 commit `vendir.lock.yml`.
 
 **Acceptance criteria:**
-- [ ] Both charts pinned to exact versions in `vendir.yml`; present under `third_party/vendir/charts/`.
-- [ ] `vendir.lock.yml` updated and committed.
-- [ ] `moon run vendir:test` passes (lock file git-clean).
+- [x] Both charts pinned to exact versions in `vendir.yml`; present under `third_party/vendir/charts/`. (vela-core @ git v1.11.0, terraform-controller @ git v0.8.0 — helm repo charts.kubevela.net has an EXPIRED TLS cert, so vendored from git chart source at pinned tag over valid GitHub TLS.)
+- [x] `vendir.lock.yml` updated and committed.
+- [x] `moon run vendir:test` passes (lock file git-clean).
 
 **Verification:**
-- [ ] `moon run vendir:build && moon run vendir:test` green.
-- [ ] `ls third_party/vendir/charts/{vela-core,terraform-controller}` exist.
+- [x] `moon run vendir:build && moon run vendir:test` green.
+- [x] `ls third_party/vendir/charts/{vela-core,terraform-controller}` exist.
 
 **Dependencies:** None. **Files:** `third_party/vendir/vendir.yml`, `vendir.lock.yml`, `charts/**`. **Scope:** S
 

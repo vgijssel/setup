@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: terraform-controller
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: terraform-controller
+  template:
+    metadata:
+      labels:
+        app: terraform-controller
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/part-of: kubevela
+        app.kubernetes.io/managed-by: helm
+    spec:
+      containers:
+        - name: terraform-controller
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- if .Values.controllerNamespace }}
+            - --controller-namespace={{ .Values.controllerNamespace }}
+            {{- end }}
+            - --feature-gates=AllowDeleteProvisioningResource={{ .Values.featureGates.AllowDeleteProvisioningResource }}
+          env:
+            - name: CONTROLLER_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: TERRAFORM_IMAGE
+              value: {{ .Values.terraformImage}}
+            - name: TERRAFORM_BACKEND_NAMESPACE
+              value: {{ .Values.backend.namespace }}
+            - name: BUSYBOX_IMAGE
+              value: {{ .Values.busyboxImage}}
+            - name: GIT_IMAGE
+              value: {{ .Values.gitImage}}
+            - name: GITHUB_BLOCKED
+              value: {{ .Values.githubBlocked }}
+            {{ if .Values.jobBackoffLimit }}
+            - name: JOB_BACKOFF_LIMIT
+              value: {{ .Values.jobBackoffLimit }}
+            {{ end }}
+            {{ if .Values.jobNodeSelector }}
+            - name: JOB_NODE_SELECTOR
+              value: {{ .Values.jobNodeSelector }}
+            {{ end }}
+            {{ if .Values.resources.limits.cpu }}
+            - name: RESOURCES_LIMITS_CPU
+              value: {{ .Values.resources.limits.cpu }}
+            {{ end }}
+            {{ if .Values.resources.limits.memory }}
+            - name: RESOURCES_LIMITS_MEMORY
+              value: {{ .Values.resources.limits.memory }}
+            {{ end }}
+            {{ if .Values.resources.requests.cpu }}
+            - name: RESOURCES_REQUESTS_CPU
+              value: {{ .Values.resources.requests.cpu }}
+            {{ end }}
+            {{ if .Values.resources.requests.memory }}
+            - name: RESOURCES_REQUESTS_MEMORY
+              value: {{ .Values.resources.requests.memory }}
+            {{ end }}
+      serviceAccountName: tf-controller-service-account
