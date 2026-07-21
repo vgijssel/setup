@@ -14,13 +14,13 @@ Legend — Scope: **S** = 1–2 files · **M** = 3–5 files · **L** = 5+ (brea
 scratch on the new model. Nothing is migrated in place. Verify all durable data is re-seedable before deleting.
 
 **Acceptance criteria:**
-- [ ] Durable data confirmed re-seedable: OpenBao seal/recovery/root in 1Password (enigma-prod), Tailscale OAuth + tailnet policy regeneratable by the new bring-up.
-- [ ] `secret:stop` and `network:stop` run cleanly; both vind clusters absent.
-- [ ] No terranetes `Configuration` was deleted in place (destroy risk) — teardown was cluster-level only.
+- [x] Durable data confirmed re-seedable: OpenBao seal/recovery/root in 1Password (enigma-prod), Tailscale OAuth + tailnet policy regeneratable by the new bring-up.
+- [x] `secret:stop` and `network:stop` run cleanly; both vind clusters absent.
+- [x] No terranetes `Configuration` was deleted in place (destroy risk) — teardown was cluster-level only.
 
 **Verification:**
-- [ ] `vcluster list` shows neither `secret` nor `network`.
-- [ ] 1Password items present: "OpenBao static seal (secret cluster)", "OpenBao root + recovery (secret cluster)".
+- [x] `vcluster list` shows neither `secret` nor `network`.
+- [x] 1Password items present: "OpenBao static seal (secret cluster)", "OpenBao root + recovery (secret cluster)".
 
 **Dependencies:** None
 **Files likely touched:** none (operational). **Scope:** S
