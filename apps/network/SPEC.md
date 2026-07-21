@@ -392,6 +392,32 @@ No open questions remain blocking implementation.
 
 ---
 
+## Addendum — Tailnet identity & egress (Phase 8, 2026-07-21)
+
+**Per-cluster Tailscale identity.** Each cluster has its own operator OAuth client and tag pair, so
+cross-cluster ACLs express *direction* and a credential compromise is bounded to one cluster:
+
+| Cluster | OAuth client (OpenBao kv) | operator tag | proxy tag |
+|---------|---------------------------|--------------|-----------|
+| secret  | `kv/secret-tailscale-operator`  | `tag:secret-operator`  | `tag:secret-k8s`  |
+| network | `kv/network-tailscale-operator` | `tag:network-operator` | `tag:network-k8s` |
+
+`tag:<c>-operator` owns `tag:<c>-k8s` (operator→proxy). The old shared `tag:k8s`/`tag:k8s-operator` were
+retired. Directional cross-cluster grants: `tag:network-k8s → svc:secret` (network reads OpenBao),
+`tag:secret-k8s → svc:api-network` (secret's OpenBao fetches the network JWKS). Per-cluster `defaultTags`
+are set in `apps/platform/src/tailscale/fleet.yaml` `targetCustomizations`; the whole tailnet ACL is in
+`apps/network/src/tailscale-config`. (Distinct from `kv/network-tailscale-config`, the `policy_file` client
+the terranetes tailscale provider uses to manage the ACL.)
+
+**Egress = direct to the `vgijssel.nl` VIPs, no per-service proxy, no MagicDNS.** In-cluster clients reach a
+tailnet-exposed service (`secret.vgijssel.nl`, `api.network.vgijssel.nl`, …) by its public external-dns A
+record → the stable Tailscale Service VIP, routed over the cluster's tailnet connectivity (the vind host's
+tailscale). The tailscale operator's `tailnet-fqdn` egress only accepts a MagicDNS (`*.ts.net`) name or a
+tailnet IP — never a custom public name — so the old per-service egress `ExternalName` Services were no-ops
+(placeholder never replaced) and were removed. For a future non-tailnet-host cluster, the portable fallback
+is a ProxyGroup egress (`spec.type: egress`) targeting the VIP by `tailnet-target-ip`, with CoreDNS mapping
+the `vgijssel.nl` name → the egress ClusterIP to preserve SNI for the LE cert.
+
 ## Out of Scope
 
 - Production Rancher/GitRepo Fleet management (bundles stay portable for a future move, as on `secret`).
