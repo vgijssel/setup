@@ -58,7 +58,11 @@ spec:
           }
         release: { name: cert-manager, namespace: cert-manager }
         values:
-          crds: { enabled: true }
+          # CRDs installed out-of-band by libs/cert-manager-crds (control:up):
+          # KubeVela's dispatch path strips the CRD status subresource, so
+          # cert-manager can't persist Issuer/Certificate status and no cert ever
+          # issues. Same class of fix as ESO + tailscale CRDs (installCRDs: false).
+          crds: { enabled: false }
           dns01RecursiveNameservers: 1.1.1.1:53,8.8.8.8:53
           dns01RecursiveNameserversOnly: true
 

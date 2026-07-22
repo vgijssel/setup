@@ -21,6 +21,7 @@ CHILDREN_DIR="${SCRIPT_DIR}/../src/children"
 JOIN="${REPO_ROOT}/libs/vcluster-join/join.sh"
 ESO_CRDS="${REPO_ROOT}/libs/eso-crds/install.sh"
 TS_CRDS="${REPO_ROOT}/libs/tailscale-crds/install.sh"
+CM_CRDS="${REPO_ROOT}/libs/cert-manager-crds/install.sh"
 TF_CTRL_CHILD="${REPO_ROOT}/libs/tf-controller-child/install.sh"
 OPENBAO_BRINGUP="${REPO_ROOT}/libs/openbao-bringup/run.sh"
 NETWORK_BRINGUP="${REPO_ROOT}/libs/network-bringup/run.sh"
@@ -41,6 +42,7 @@ vela up -f "${CHILDREN_DIR}/application-secret.yaml"
 # status subresource, which wedges the operator; see each install.sh for why).
 "${ESO_CRDS}" secret
 "${TS_CRDS}" secret
+"${CM_CRDS}" secret
 
 echo "==> Dispatching the secret child's platform (cert-manager, ESO, tailscale, OpenBao)"
 vela up -f "${CHILDREN_DIR}/application-secret-platform.yaml"
@@ -68,6 +70,7 @@ vela up -f "${CHILDREN_DIR}/application-network.yaml"
 # tailscale status subresource KubeVela would otherwise strip).
 "${ESO_CRDS}" network
 "${TS_CRDS}" network
+"${CM_CRDS}" network
 
 echo "==> Dispatching the network child's base platform (cert-manager, ESO, tailscale)"
 vela up -f "${CHILDREN_DIR}/application-network-platform.yaml"
