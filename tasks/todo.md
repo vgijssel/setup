@@ -191,14 +191,20 @@ no longer a Fleet bundle). ClusterSecretStore uses in-cluster k8s auth against t
 uses plain in-cluster Kubernetes auth (§3.2). Add moon `generate`/`generator_test`/`validate` targets.
 
 **Acceptance criteria:**
-- [ ] `terraform/{main,provider,variables,versions}.tf` present; `provider.tf` uses in-cluster k8s auth only (no token/JWT dual-mode).
-- [ ] `component/<gen>.yaml` generated + committed; `config/application.yaml` refs `vault` Provider + `topology: secret`.
-- [ ] `moon run secret:generate`, `secret:generator_test`, `secret:validate` (`tofu validate`) all defined and pass.
-- [ ] `vela dry-run -d component/ -f config/application.yaml` renders a `Configuration` cleanly.
+- [x] `terraform/{main,provider,variables,versions}.tf` present; `provider.tf` uses in-cluster k8s auth only (no token/JWT dual-mode).
+- [x] `component/<gen>.yaml` generated + committed; `config/application.yaml` refs `vault` Provider + `topology: secret`.
+- [x] `moon run secret:generate`, `secret:generator_test`, `secret:validate` (`tofu validate`) all defined and pass.
+- [x] `vela dry-run -d component/ -f config/application.yaml` renders a `Configuration` cleanly.
 
 **Verification:**
-- [ ] `moon run secret:generator_test` green after commit; fails on stale edit.
-- [ ] `vela dry-run` output contains the expected `terraform.core.oam.dev` `Configuration`.
+- [x] `moon run secret:generator_test` green after commit; fails on stale edit (verified both directions).
+- [x] `vela dry-run --offline` output contains the expected `terraform.core.oam.dev/v1beta2` `Configuration` (providerRef vault, writeConnectionSecretToRef, topology→secret).
+
+**Findings:**
+- **`provider.tf` auth (§3.2):** the `hashicorp/vault` v5.10.1 provider has **no** dedicated kubernetes block (only generic `auth_login` + cloud-specific blocks), so k8s auth is the generic `auth_login{ method=kubernetes }`. The jwt is `try(file("…/serviceaccount/token"), "")` — `tofu validate` eagerly evaluates the provider block off-cluster where the token file is absent, and `try(…,"")` keeps validate green (the provider is never configured at validate).
+- **`null` provider dropped:** KubeVela's terraform-controller `custom` Provider injects ENV VARS only (no provider block), unlike terranetes which injected one — so the old throwaway-`null` trick is gone; the module owns its single `vault` provider block.
+- **Network cross-cluster JWT resources removed** from the module: they depended on the `api.network.vgijssel.nl` kube-API proxy + live-JWKS (being deleted, SPEC §3). Network's read access to this OpenBao is re-established over the tailnet in Task 3.1.
+- **Executor login role** renamed terranetes→`openbao-config`, bound to `tf-executor`/`secret` (vars). **Bootstrap ordering deferred to Task 2.4** (temp root token seeds the k8s auth backend + this role before first reconcile). **Also for 2.4:** the child needs its own terraform-controller (with the OpenTofu executor image) to reconcile a topology-dispatched Configuration — not yet in the secret platform (P2.2).
 
 **Dependencies:** 2.1, 1.5, 1.6. **Files:** `apps/secret/src/openbao-config/{terraform,component,config}/*`, `apps/secret/moon.yml`. **Scope:** M
 
