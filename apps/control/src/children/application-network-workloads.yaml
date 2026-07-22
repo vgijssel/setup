@@ -11,7 +11,8 @@
 #
 # Secrets are read from the SECRET child's OpenBao over the tailnet through the
 # `openbao` ClusterSecretStore created by application-network-platform.yaml
-# (Task 3.1f). kv/mongodb (username/password/uri) and kv/cloudflare must be seeded.
+# (Task 3.1f). kv/mongodb is self-provisioned here (ESO Password generator +
+# PushSecret, generate-once); kv/cloudflare must already be seeded (LE cert).
 apiVersion: core.oam.dev/v1beta1
 kind: Application
 metadata:
@@ -31,12 +32,96 @@ spec:
         objects:
           [{ apiVersion: v1, kind: Namespace, metadata: { name: omada } }]
 
-    # ── MongoDB root credentials from OpenBao (kv/mongodb) ────────────────────
-    # Env-var key names the official `mongo` image consumes; the chart injects this
-    # Secret via extraEnvSecrets (envFrom). NotReady until kv/mongodb is seeded.
-    - name: externalsecret-mongodb-credentials
+    # ── MongoDB credentials: self-provisioned into OpenBao (generate-once) ─────
+    # The network child owns MongoDB but has no local secret store, so it GENERATES
+    # the DB root credentials itself and STORES them in the secret child's OpenBao as
+    # the durable source of truth (kv/mongodb), then reads them back below. Three ESO
+    # objects:
+    #   1. a Password generator (alphanumeric — symbols: 0 — so the URI needs no
+    #      percent-encoding);
+    #   2. an ExternalSecret that runs the generator ONCE (refreshInterval: 0) and
+    #      templates the full payload (username, password, mongodb URI) into a local
+    #      Secret `mongodb-generated`;
+    #   3. a PushSecret that writes that payload to kv/mongodb with
+    #      updatePolicy: IfNotExists — so the FIRST value wins and survives ESO
+    #      re-reconciles / MongoDB restarts (a changed root password would lock the DB
+    #      out). Write is authorized by the scoped network-mongodb-write OpenBao policy.
+    # On a rebuild with a fresh OpenBao (dev) kv/mongodb is absent → seeded here; with a
+    # pre-existing OpenBao the existing value is kept and the readback stays consistent.
+    - name: mongodb-password-generator
       type: k8s-objects
       dependsOn: [ns-mongodb]
+      properties:
+        objects:
+          - apiVersion: generators.external-secrets.io/v1alpha1
+            kind: Password
+            metadata: { name: mongodb-password, namespace: mongodb }
+            spec:
+              length: 32
+              digits: 8
+              symbols: 0
+              noUpper: false
+              allowRepeat: true
+    - name: externalsecret-mongodb-generated
+      type: k8s-objects
+      dependsOn: [mongodb-password-generator]
+      properties:
+        objects:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata: { name: mongodb-generated, namespace: mongodb }
+            spec:
+              # Generate exactly once — never regenerate the root password.
+              refreshInterval: "0"
+              target:
+                name: mongodb-generated
+                creationPolicy: Owner
+                template:
+                  engineVersion: v2
+                  data:
+                    username: root
+                    password: "{{ .password }}"
+                    uri: mongodb://root:{{ .password }}@mongodb.mongodb.svc.cluster.local:27017/omada?authSource=admin
+              dataFrom:
+                - sourceRef:
+                    generatorRef:
+                      apiVersion: generators.external-secrets.io/v1alpha1
+                      kind: Password
+                      name: mongodb-password
+    - name: pushsecret-mongodb
+      type: k8s-objects
+      dependsOn: [externalsecret-mongodb-generated]
+      properties:
+        objects:
+          - apiVersion: external-secrets.io/v1alpha1
+            kind: PushSecret
+            metadata: { name: mongodb, namespace: mongodb }
+            spec:
+              refreshInterval: 1h
+              # Store-if-absent: the first generated value becomes the durable truth.
+              updatePolicy: IfNotExists
+              secretStoreRefs:
+                - { name: openbao, kind: ClusterSecretStore }
+              selector:
+                secret: { name: mongodb-generated }
+              data:
+                - match:
+                    secretKey: username
+                    remoteRef: { remoteKey: mongodb, property: username }
+                - match:
+                    secretKey: password
+                    remoteRef: { remoteKey: mongodb, property: password }
+                - match:
+                    secretKey: uri
+                    remoteRef: { remoteKey: mongodb, property: uri }
+
+    # ── MongoDB root credentials read back from OpenBao (kv/mongodb) ───────────
+    # Env-var key names the official `mongo` image consumes; the chart injects this
+    # Secret via extraEnvSecrets (envFrom). Reads from kv/mongodb (seeded above) so
+    # MongoDB always uses the durable stored password, not a fresh generation.
+    - name: externalsecret-mongodb-credentials
+      type: k8s-objects
+      dependsOn: [pushsecret-mongodb]
       properties:
         objects:
           - apiVersion: external-secrets.io/v1
@@ -106,7 +191,7 @@ spec:
     # URI template); kept in sync with username/password by seeding.
     - name: externalsecret-mongodb-uri
       type: k8s-objects
-      dependsOn: [ns-omada]
+      dependsOn: [ns-omada, pushsecret-mongodb]
       properties:
         objects:
           - apiVersion: external-secrets.io/v1
