@@ -1,14 +1,5 @@
 {
   "enabledPlugins": {
-    "taskmaster@local": true,
     "agent-skills@addy-agent-skills": true
-  },
-  "extraKnownMarketplaces": {
-    "local": {
-      "source": {
-        "source": "directory",
-        "path": ".claude/local_marketplace"
-      }
-    }
   }
 }

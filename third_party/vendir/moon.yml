@@ -14,8 +14,6 @@ fileGroups:
     - charts/**/.*
     - shell/**/*
     - shell/**/.*
-    - markdown/**/*
-    - markdown/**/.*
 tasks:
   build:
     command: vendir sync
@@ -26,7 +24,6 @@ tasks:
     outputs:
       - charts
       - shell
-      - markdown
       - vendir.lock.yml
     options:
       cache: true
