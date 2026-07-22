@@ -77,4 +77,11 @@ vela up -f "${CHILDREN_DIR}/application-network-platform.yaml"
 echo "==> Seeding network operator-oauth (breaks the tailscale chicken-and-egg)"
 "${NETWORK_BRINGUP}" network
 
+# Network workloads (MongoDB + Omada) — dispatched after the platform + ESO store
+# so their ExternalSecrets can resolve against the secret child's OpenBao. MongoDB
+# stays in CreateContainerConfigError and Omada waits until kv/mongodb is seeded
+# (username/password/uri), mirroring how the platform ExternalSecrets wait on kv.
+echo "==> Dispatching the network child's workloads (MongoDB + Omada)"
+vela up -f "${CHILDREN_DIR}/application-network-workloads.yaml"
+
 echo "==> control:up complete."

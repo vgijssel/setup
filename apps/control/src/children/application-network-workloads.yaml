@@ -1,0 +1,274 @@
+# P3.2 — the `network` child's WORKLOADS, dispatched from the root into the child
+# via `topology -> network`. Converts the old Fleet bundles
+# (apps/network/src/{mongodb,omada,tailscale-proxygroup}) to KubeVela Components.
+#
+# Two workloads in one Application so KubeVela `dependsOn` can order them: Omada
+# `dependsOn` MongoDB (Omada runs rootless against EXTERNAL MongoDB and must not
+# start before the database is up). Same conventions as the network platform:
+# each helm chart is paired with a k8s-objects Namespace it dependsOn (helm's own
+# createNamespace does not apply across topology dispatch); ESO/cert-manager/
+# tailscale CRDs already exist in the child (platform + libs/*-crds).
+#
+# Secrets are read from the SECRET child's OpenBao over the tailnet through the
+# `openbao` ClusterSecretStore created by application-network-platform.yaml
+# (Task 3.1f). kv/mongodb (username/password/uri) and kv/cloudflare must be seeded.
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: network-workloads
+  namespace: vela-system
+spec:
+  components:
+    # ── namespaces (created in the child before the charts land) ──────────────
+    - name: ns-mongodb
+      type: k8s-objects
+      properties:
+        objects:
+          [{ apiVersion: v1, kind: Namespace, metadata: { name: mongodb } }]
+    - name: ns-omada
+      type: k8s-objects
+      properties:
+        objects:
+          [{ apiVersion: v1, kind: Namespace, metadata: { name: omada } }]
+
+    # ── MongoDB root credentials from OpenBao (kv/mongodb) ────────────────────
+    # Env-var key names the official `mongo` image consumes; the chart injects this
+    # Secret via extraEnvSecrets (envFrom). NotReady until kv/mongodb is seeded.
+    - name: externalsecret-mongodb-credentials
+      type: k8s-objects
+      dependsOn: [ns-mongodb]
+      properties:
+        objects:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata: { name: mongodb-credentials, namespace: mongodb }
+            spec:
+              refreshInterval: 1h
+              secretStoreRef: { name: openbao, kind: ClusterSecretStore }
+              target: { name: mongodb-credentials, creationPolicy: Owner }
+              data:
+                - {
+                    secretKey: MONGO_INITDB_ROOT_USERNAME,
+                    remoteRef: { key: mongodb, property: username },
+                  }
+                - {
+                    secretKey: MONGO_INITDB_ROOT_PASSWORD,
+                    remoteRef: { key: mongodb, property: password },
+                  }
+
+    # ── MongoDB (single node, official multi-arch `mongo` image via groundhog2k) ─
+    # Pin image tag 8.0.4 (NOT the chart default 8.0.26): late 8.0.x ships MongoDB's
+    # SERVER-121912 kernel guard, which misreads OrbStack's kernel version (reported
+    # 7.0.x on the vind node) as incompatible and refuses to start. 8.0.4 predates
+    # the guard and is still MongoDB 8.0 (Omada 6.2 external-Mongo compatible).
+    - name: mongodb
+      type: helmchart
+      dependsOn: [ns-mongodb, externalsecret-mongodb-credentials]
+      properties:
+        chart:
+          {
+            source: mongodb,
+            repoURL: https://groundhog2k.github.io/helm-charts/,
+            version: 0.7.9,
+          }
+        release: { name: mongodb, namespace: mongodb }
+        values:
+          image: { tag: 8.0.4 }
+          # Root user from OpenBao via ESO (envFrom secretRef). Leaving
+          # settings.rootUsername/rootPassword unset means the chart creates no
+          # competing secureconfig Secret.
+          extraEnvSecrets:
+            - mongodb-credentials
+          service: { type: ClusterIP, port: 27017 }
+          storage: { requestedSize: 2Gi }
+
+    # ── network-ingress ProxyGroup: stable tailnet Service VIP for Omada ───────
+    # The Omada LoadBalancer Service (service-omada below) is annotated
+    # `tailscale.com/proxy-group: network-ingress` so its VIP survives proxy-pod
+    # churn — which keeps the omada.network.vgijssel.nl A record stable. The
+    # network analogue of the secret cluster's secret-ingress ProxyGroup. Its CRD
+    # ships with the tailscale-operator (installed by the platform + libs/tailscale-crds).
+    - name: proxygroup-network-ingress
+      type: k8s-objects
+      properties:
+        objects:
+          - apiVersion: tailscale.com/v1alpha1
+            kind: ProxyGroup
+            metadata: { name: network-ingress }
+            spec:
+              type: ingress
+              replicas: 2
+
+    # ── Omada MongoDB connection URI from OpenBao (kv/mongodb#uri) ─────────────
+    # Omada only reads Secrets in its own namespace. The full URI (user, password,
+    # mongo Service DNS, authSource=admin, database omada) is stored in OpenBao
+    # rather than templated here (ESO v2 does not expose fetched user/pass to the
+    # URI template); kept in sync with username/password by seeding.
+    - name: externalsecret-mongodb-uri
+      type: k8s-objects
+      dependsOn: [ns-omada]
+      properties:
+        objects:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata: { name: mongodb-uri, namespace: omada }
+            spec:
+              refreshInterval: 1h
+              secretStoreRef: { name: openbao, kind: ClusterSecretStore }
+              target: { name: mongodb-uri, creationPolicy: Owner }
+              data:
+                - { secretKey: uri, remoteRef: { key: mongodb, property: uri } }
+
+    # ── Let's Encrypt cert for omada.network.vgijssel.nl (Cloudflare DNS-01) ───
+    # cert-manager writes the chain into omada-network-vgijssel-nl-tls in the omada
+    # namespace, which the controller mounts at /cert (config.tlsSecretName) and
+    # serves on 8043 — so tailnet clients hitting the VIP get a valid public cert,
+    # no *.ts.net in the path. Uses the letsencrypt-prod ClusterIssuer from the
+    # platform (needs cloudflare-api-token, synced there in Task 3.1f).
+    - name: certificate-omada
+      type: k8s-objects
+      dependsOn: [ns-omada]
+      properties:
+        objects:
+          - apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: omada-network-vgijssel-nl
+              namespace: omada
+            spec:
+              secretName: omada-network-vgijssel-nl-tls
+              dnsNames: [omada.network.vgijssel.nl]
+              issuerRef: { name: letsencrypt-prod, kind: ClusterIssuer }
+
+    # ── Omada controller (rootless, external MongoDB, LE cert on 8043) ─────────
+    # dependsOn mongodb so the database is up first. externalMongoDBUrlSecret and
+    # tlsSecretName point at the ESO/cert-manager Secrets above; the chart's own
+    # Service is ClusterIP (tailnet exposure is service-omada below).
+    - name: omada
+      type: helmchart
+      dependsOn:
+        [ns-omada, mongodb, externalsecret-mongodb-uri, certificate-omada]
+      properties:
+        chart:
+          {
+            source: oci://registry-1.docker.io/mbentley/omada-controller-helm,
+            version: 1.4.1,
+          }
+        release: { name: omada, namespace: omada }
+        values:
+          config:
+            rootless: true
+            tlsSecretName: omada-network-vgijssel-nl-tls
+            externalMongoDBUrlSecret: { name: mongodb-uri, key: uri }
+            timezone: Europe/Amsterdam
+          service: { type: ClusterIP }
+          persistence:
+            data: { enabled: true, size: 2Gi }
+            logs: { enabled: true, size: 1Gi }
+
+    # ── Omada tailnet exposure: Tailscale LoadBalancer Service (svc:omada-network) ─
+    # A single LoadBalancer Service fronted by the network-ingress ProxyGroup (stable
+    # VIP), advertising the full Omada TCP/UDP port set. external-dns publishes the
+    # VIP as the A record for omada.network.vgijssel.nl. Omada requires port ==
+    # targetPort for every port. Selector matches the omada-controller subchart's pod
+    # labels (name label is `omada-controller`, NOT the chart/dir name). Requires the
+    # hand-managed tailnet ACL to allow svc:omada-network (autoApprovers + grants).
+    - name: service-omada
+      type: k8s-objects
+      dependsOn: [omada, proxygroup-network-ingress]
+      properties:
+        objects:
+          - apiVersion: v1
+            kind: Service
+            metadata:
+              name: omada
+              namespace: omada
+              annotations:
+                tailscale.com/hostname: omada-network
+                tailscale.com/proxy-group: network-ingress
+                external-dns.alpha.kubernetes.io/hostname: omada.network.vgijssel.nl
+            spec:
+              type: LoadBalancer
+              loadBalancerClass: tailscale
+              selector:
+                app.kubernetes.io/name: omada-controller
+                app.kubernetes.io/instance: omada
+              ports:
+                - {
+                    name: manage-http,
+                    port: 8088,
+                    targetPort: 8088,
+                    protocol: TCP,
+                  }
+                - {
+                    name: manage-https,
+                    port: 8043,
+                    targetPort: 8043,
+                    protocol: TCP,
+                  }
+                - {
+                    name: portal-https,
+                    port: 8843,
+                    targetPort: 8843,
+                    protocol: TCP,
+                  }
+                - {
+                    name: manager-v1,
+                    port: 29811,
+                    targetPort: 29811,
+                    protocol: TCP,
+                  }
+                - {
+                    name: adopt-v1,
+                    port: 29812,
+                    targetPort: 29812,
+                    protocol: TCP,
+                  }
+                - {
+                    name: upgrade-v1,
+                    port: 29813,
+                    targetPort: 29813,
+                    protocol: TCP,
+                  }
+                - {
+                    name: manager-v2,
+                    port: 29814,
+                    targetPort: 29814,
+                    protocol: TCP,
+                  }
+                - {
+                    name: transfer-v2,
+                    port: 29815,
+                    targetPort: 29815,
+                    protocol: TCP,
+                  }
+                - { name: rtty, port: 29816, targetPort: 29816, protocol: TCP }
+                - {
+                    name: device-monitor,
+                    port: 29817,
+                    targetPort: 29817,
+                    protocol: TCP,
+                  }
+                - {
+                    name: app-discovery,
+                    port: 27001,
+                    targetPort: 27001,
+                    protocol: UDP,
+                  }
+                - {
+                    name: udp-discovery,
+                    port: 29810,
+                    targetPort: 29810,
+                    protocol: UDP,
+                  }
+                - {
+                    name: udp-management,
+                    port: 19810,
+                    targetPort: 19810,
+                    protocol: UDP,
+                  }
+  policies:
+    - name: to-network
+      type: topology
+      properties:
+        clusters: [network]
