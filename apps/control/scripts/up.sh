@@ -23,6 +23,7 @@ ESO_CRDS="${REPO_ROOT}/libs/eso-crds/install.sh"
 TS_CRDS="${REPO_ROOT}/libs/tailscale-crds/install.sh"
 TF_CTRL_CHILD="${REPO_ROOT}/libs/tf-controller-child/install.sh"
 OPENBAO_BRINGUP="${REPO_ROOT}/libs/openbao-bringup/run.sh"
+NETWORK_BRINGUP="${REPO_ROOT}/libs/network-bringup/run.sh"
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required but not found" >&2; exit 1; }; }
 require vela
@@ -70,5 +71,10 @@ vela up -f "${CHILDREN_DIR}/application-network.yaml"
 
 echo "==> Dispatching the network child's base platform (cert-manager, ESO, tailscale)"
 vela up -f "${CHILDREN_DIR}/application-network-platform.yaml"
+
+# Break the Tailscale chicken-and-egg: seed operator-oauth out-of-band from the
+# secret child's OpenBao (over the tailnet) so the network operator can register.
+echo "==> Seeding network operator-oauth (breaks the tailscale chicken-and-egg)"
+"${NETWORK_BRINGUP}" network
 
 echo "==> control:up complete."

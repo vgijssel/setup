@@ -264,11 +264,12 @@ takes over — mirrors the old `network:bootstrap` + `libs/openbao-bringup`. See
       secret child; `.ts.net` cert). ACL already covers it (verified live — no edit needed). Verified:
       `curl https://secret.tail2c33e2.ts.net/v1/sys/health` returns `initialized:true,sealed:false`.
       Gotcha fixed: KubeVela strips tailscale CRD status subresource → `libs/tailscale-crds` SSA + installCRDs=false.
-- [ ] **3.1b** — `application-network.yaml`: create + join `network` vcluster + base platform (namespaces,
-      cert-manager, ESO w/ CRDs via `libs/eso-crds`, tailscale-operator=network-operator). Verify
-      `vela cluster list` shows `network` ACCEPTED; cert-manager + ESO Running (tailscale-operator waits for OAuth).
-- [ ] **3.1c** — `libs/network-bringup`: seed `operator-oauth` out-of-band (break the cycle). Verify the network
-      tailscale-operator registers (`network-operator` device on the tailnet).
+- [x] **3.1b** — `application-network.yaml` + `application-network-platform.yaml`: create + join `network` vcluster
+      + base platform (namespaces, cert-manager, ESO, tailscale-operator=network-operator, LE-prod issuer). Verified:
+      `network` ACCEPTED; cert-manager 3/3 + ESO 3/3 Running; operator blocked on operator-oauth (expected).
+- [x] **3.1c** — `libs/network-bringup/run.sh`: seed `operator-oauth` out-of-band (read kv/network-tailscale-operator
+      from secret OpenBao over the tailnet, write to network child). Verified: `network-operator` device online on
+      the tailnet, operator pod Running (`AuthLoop: state is Running`).
 - [ ] **3.1d** — Expose network kube-API OIDC discovery on the tailnet as service `api-network` + OIDC-discovery
       ClusterRoleBinding. ACL: `autoApprovers.services[svc:api-network]` + secret→`api-network` grant. Verify
       `curl https://api-network.tail2c33e2.ts.net/openid/v1/jwks` returns network's JWKS from the tailnet.
