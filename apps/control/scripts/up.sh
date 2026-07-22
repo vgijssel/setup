@@ -21,6 +21,7 @@ CHILDREN_DIR="${SCRIPT_DIR}/../src/children"
 JOIN="${REPO_ROOT}/libs/vcluster-join/join.sh"
 ESO_CRDS="${REPO_ROOT}/libs/eso-crds/install.sh"
 TF_CTRL_CHILD="${REPO_ROOT}/libs/tf-controller-child/install.sh"
+OPENBAO_BRINGUP="${REPO_ROOT}/libs/openbao-bringup/run.sh"
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required but not found" >&2; exit 1; }; }
 require vela
@@ -45,5 +46,10 @@ vela up -f "${CHILDREN_DIR}/application-secret-platform.yaml"
 # Workflow (secret:configure equivalent) dispatches the Configuration afterwards.
 echo "==> Installing terraform-controller into the secret child"
 "${TF_CTRL_CHILD}" secret
+
+# One-off OpenBao bring-up (seal + init + keys->1Password + temp token -> apply
+# openbao-config once -> delete token). Idempotent; leaves ESO green in the child.
+echo "==> Bringing up OpenBao in the secret child"
+"${OPENBAO_BRINGUP}" secret
 
 echo "==> control:up complete."

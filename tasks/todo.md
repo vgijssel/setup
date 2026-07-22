@@ -216,23 +216,29 @@ the `openbao-config` Application once (in-cluster) → **delete the temp-token S
 remains.
 
 **Acceptance criteria:**
-- [ ] Workflow performs all five ordered steps; steps can run Job/apply/read/delete and gate on readiness.
-- [ ] After completion, no root/temp `VAULT_TOKEN` Secret remains in-cluster.
-- [ ] Re-running the Workflow is idempotent (init skipped if already initialized; module is idempotent).
-- [ ] OpenBao KV, kubernetes auth, ESO policy/role created (matches old module output).
+- [x] All five ordered steps run (seed seal → init → temp token → apply openbao-config once → delete token). The imperative init is a Job INSIDE the child (bringup.sh); the ordering is a `libs/openbao-bringup/run.sh` orchestrator invoked by `control:up` (see Findings for why not a WorkflowRun).
+- [x] After completion, no root/temp `VAULT_TOKEN` Secret remains in-cluster (verified: `vault-provider-credentials` NotFound after run).
+- [x] Re-running is idempotent (init skipped when already initialised — read root token from 1Password; module adopts singletons; run.sh get-or-creates everything). Verified by a clean second run.
+- [x] OpenBao kv + kubernetes auth + external-secrets policy/role created (verified live: `bao secrets/auth/policy list` show kv/, kubernetes/, external-secrets + openbao-config).
 
 **Verification:**
-- [ ] `vela workflow … status` shows all steps succeeded.
-- [ ] `kubectl --context secret -n secret get secret` shows no temp-token Secret.
-- [ ] `bao policy list` (via port-forward) includes `external-secrets`.
+- [x] Bring-up Job reaches `Complete`; openbao-config Configuration reaches `Available` (executor pod `Completed`).
+- [x] `vault-provider-credentials` Secret absent after the run.
+- [x] `bao policy list` includes `external-secrets` (+ `openbao-config`); k8s auth roles `external-secrets` + `openbao-config` present.
 
-**Dependencies:** 2.2, 2.3. **Files:** `apps/control/src/workflows/workflow-openbao-bringup.yaml`. **Scope:** M
+**Findings:**
+- **Not a KubeVela WorkflowRun.** vela-core 1.11.0's topology `deploy` step does NOT dispatch a `terraform.core.oam.dev` Configuration component into a child — it renders but never applies (same quirk class as the T2.1 helmchart-component one; confirmed with both an auto-generated and an explicit `deploy` step → tree shows `not-deployed`). So the Configuration is applied straight over the cluster-gateway proxy. The ordering therefore lives in `libs/openbao-bringup/run.sh` (a thin orchestrator like `vcluster-join`/`eso-crds`/`tf-controller-child`), invoked by `control:up`; the imperative OpenBao init runs in a Job *inside* the child (`bringup.sh`) per §4. A pure `WorkflowRun` is deferred (would need custom CUE `op.#ConditionalWait` gating + a fix/workaround for the topology-deploy dispatch).
+- **Child needs its own terraform-controller** (added in the P2.4 tf-controller-child slice) — the Configuration reconciles child-local, executor talks to `openbao.secret.svc`.
+- **In-cluster `op`**: a pinned `openbao-bootstrap` image (bao+op+kubectl+jq) runs the Job; `OP_SERVICE_ACCOUNT_TOKEN` is delivered from `.env` as the `op-credentials` Secret by `run.sh` (never committed).
+- **Two live gotchas fixed** (both were silent hangs): (1) OpenBao readiness = init+unseal, so wait for the *pod Running + API reachable* before init, never `condition=Ready` (deadlock); only restart the pod when its container is *waiting* (missing seal key), never when Running (restarting mid-boot corrupts raft → "cluster already has state"). (2) `jq '.sealed // true'` returns `true` when sealed is actually `false` (`//` treats `false` as empty) — read `.sealed` without a default. (3) Address OpenBao by its headless pod DNS (`openbao-0.openbao-internal`), not the `openbao` active Service, which flaps during single-node leader-election settle.
+
+**Dependencies:** 2.2, 2.3. **Files:** `libs/openbao-bringup/{run.sh,bringup.sh}`, `apps/control/images/openbao-bootstrap/Dockerfile`, `apps/control/scripts/{start.sh,up.sh}`, `libs/tf-controller-child/install.sh`, `apps/secret/src/openbao-config/terraform/{provider,variables}.tf`. **Scope:** L (was M).
 
 ---
 
 ## Checkpoint: Secret (after Phase 2) — GATE
-- [ ] Fresh base → KubeVela root → `secret` vcluster created + joined → OpenBao Workflow completes → **ESO green against the child's OpenBao** (a test ExternalSecret syncs).
-- [ ] Temp token deleted; no secrets in git.
+- [x] Fresh base → KubeVela root → `secret` vcluster created + joined → OpenBao bring-up completes → **ESO green against the child's OpenBao** (verified: test ExternalSecret synced `bar` from `kv/test`; ClusterSecretStore `openbao` Ready=True).
+- [x] Temp token deleted; no secrets in git (op token only in `.env` → in-cluster Secret; keys only in 1Password).
 
 ---
 
