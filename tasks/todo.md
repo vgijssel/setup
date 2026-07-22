@@ -244,18 +244,42 @@ remains.
 
 ## Phase 3 — Network child (vertical slice)
 
-### Task 3.1: Application — create + join `network` vcluster + platform
+### Task 3.1: Application — create + join `network` vcluster + platform + cross-cluster ESO
 **Description:** `apps/control/src/children/application-network.yaml` creates the `network` vcluster, joins it,
 and dispatches its platform (cert-manager, ESO with remote/JWT store to secret's OpenBao over tailnet,
 tailscale-operator). Mirror Task 2.1/2.2 for network.
 
-**Acceptance criteria:**
-- [ ] `network` vcluster created + joined; platform Components render via `topology → network`.
-- [ ] ESO `openbao` store reaches secret's OpenBao over the tailnet via the **OpenBao service's Tailscale
-      MagicDNS name directly** (no `apiserver-proxy`, no `api.<cluster>` VIP) and syncs.
+**Resolved auth model (user, 2026-07-22 — refines SPEC §3 RD-3):** JWT auth, no static keys. network ESO
+reaches secret's OpenBao at the Tailscale service `secret.tail2c33e2.ts.net`; secret's OpenBao fetches
+network's JWKS at the Tailscale service `api-network.tail2c33e2.ts.net` (replaces the deleted
+`api.network.vgijssel.nl` nginx+LE proxy — same JWKS-fetch mechanism, now over a Tailscale service).
+Both directions run over the tailnet; both need hand-managed ACL `autoApprovers.services` + `grants`.
+The OAuth chicken-and-egg (network tailscale-operator needs OAuth from secret OpenBao, which needs
+`api-network` up, which needs the operator) is broken by a bring-up orchestrator that seeds `operator-oauth`
+out-of-band (root token from 1Password → read from secret OpenBao over tailnet → create Secret), then ESO
+takes over — mirrors the old `network:bootstrap` + `libs/openbao-bringup`. See memory `network-secret-tailnet-auth`.
+
+**Sub-slices (each RED→GREEN→commit):**
+- [ ] **3.1a** — Expose secret OpenBao on the tailnet as Tailscale service `secret` (KubeVela component into the
+      secret child; `.ts.net` cert). ACL: `autoApprovers.services[svc:secret]` + client grant. Verify
+      `curl https://secret.tail2c33e2.ts.net/v1/sys/health` from the tailnet returns `initialized/sealed=false`.
+- [ ] **3.1b** — `application-network.yaml`: create + join `network` vcluster + base platform (namespaces,
+      cert-manager, ESO w/ CRDs via `libs/eso-crds`, tailscale-operator=network-operator). Verify
+      `vela cluster list` shows `network` ACCEPTED; cert-manager + ESO Running (tailscale-operator waits for OAuth).
+- [ ] **3.1c** — `libs/network-bringup`: seed `operator-oauth` out-of-band (break the cycle). Verify the network
+      tailscale-operator registers (`network-operator` device on the tailnet).
+- [ ] **3.1d** — Expose network kube-API OIDC discovery on the tailnet as service `api-network` + OIDC-discovery
+      ClusterRoleBinding. ACL: `autoApprovers.services[svc:api-network]` + secret→`api-network` grant. Verify
+      `curl https://api-network.tail2c33e2.ts.net/openid/v1/jwks` returns network's JWKS from the tailnet.
+- [ ] **3.1e** — Re-add `jwt-network` backend + `network-read` policy/role to `openbao-config` terraform
+      (jwks_url → `https://api-network.tail2c33e2.ts.net/openid/v1/jwks`); regenerate `component/`; `generator_test`
+      green; Configuration reconciles child-local.
+- [ ] **3.1f** — network ClusterSecretStore (`openbao`, JWT auth → `secret.tail2c33e2.ts.net`) + test ExternalSecret.
+      ACL: network→`svc:secret` grant. **GATE:** test ExternalSecret in `network` syncs from secret's OpenBao.
 
 **Verification:** `vela cluster list` shows `network`; a test ExternalSecret in `network` syncs.
-**Dependencies:** 2.4 (secret OpenBao up + exposed). **Files:** `apps/control/src/children/application-network.yaml`, network platform Components. **Scope:** M
+**Dependencies:** 2.4 (secret OpenBao up). **Files:** `apps/control/src/children/application-network*.yaml`,
+`libs/network-bringup/*`, `apps/secret/src/openbao-config/terraform/*`, network platform Components. **Scope:** L (5 slices).
 
 ### Task 3.2: MongoDB + Omada as KubeVela Components
 **Description:** Convert `apps/network/src/{mongodb,omada}` Fleet bundles to KubeVela Components dispatched into
