@@ -172,12 +172,17 @@ cert-manager, external-secrets, tailscale-operator, and OpenBao (`apps/secret/sr
 no longer a Fleet bundle). ClusterSecretStore uses in-cluster k8s auth against the child's own OpenBao.
 
 **Acceptance criteria:**
-- [ ] cert-manager, ESO, tailscale-operator, OpenBao all render into `secret` via `topology → secret`.
-- [ ] OpenBao StatefulSet comes up (unsealed after Task 2.4); ClusterSecretStore `openbao` points in-cluster.
-- [ ] Seal key seeded (moved from `bootstrap.sh` into the Workflow of Task 2.4 or a pre-step).
+- [x] cert-manager, ESO, tailscale-operator, OpenBao all render into `secret` via `topology → secret` (`secret-platform` Application, 12 components, deploy step succeeded / Healthy). cert-manager 3/3 + external-secrets 3/3 Running.
+- [x] OpenBao StatefulSet comes up (scheduled; stays `CreateContainerConfigError` until unsealed in Task 2.4); ClusterSecretStore `openbao` points in-cluster (`http://openbao.secret.svc:8200`, in-cluster k8s auth).
+- [~] Seal key seeded — deferred to Task 2.4 (the OpenBao bring-up Workflow owns the `openbao-seal` Secret); until then OpenBao correctly waits in `CreateContainerConfigError` and the tailscale operator waits for its ESO-sourced OAuth Secret.
 
-**Verification:** `vela status … --tree --detail`; `kubectl --context secret -n secret get pods`.
-**Dependencies:** 2.1, 1.2. **Files:** `apps/secret/src/openbao/*` (Component conversion), `apps/control/src/children/application-secret.yaml` (topology components), platform Component defs. **Scope:** M
+**Verification:** `vela status secret-platform` Healthy; child pods via cluster-gateway proxy (`kubectl --server <root>/apis/cluster.core.oam.dev/v1alpha1/clustergateways/secret/proxy get pods -A`) — the `secret` context isn't on the host (nested vcluster; reachable only over the in-cluster control path).
+
+**Findings:**
+- **ESO CRDs can't traverse KubeVela.** `clustersecretstores`/`secretstores.external-secrets.io` are ~590 KiB each; KubeVela's apply path stamps a `last-applied-configuration` annotation (a serialized copy of the object), overflowing the 256 KiB `metadata.annotations` limit ("Too long"), which fails the deploy step's (unconditional) dryrun. vela-core v1.11.0 has **no** apply-by-update / SSA mode (the `ApplyResourceByUpdate` gate the docs mention is unrecognised → controller crashloops; `preDispatchDryRun=false` doesn't help — the `deploy` step dryruns regardless). Stripping `description`s only gets the CRD to 439 KiB — still over. **Fix:** ESO component runs `installCRDs: false`; `libs/eso-crds/install.sh` server-side-applies the pinned (2.0.1) ESO CRDs into the child via the **cluster-gateway proxy** (`.../clustergateways/secret/proxy`, reusing the root kubeconfig — SSA adds no last-applied annotation). `control:up` runs it after the join, before the platform dispatch.
+- **OpenBao single-node dev fixes** (chart values): `server.affinity: ""` (default hard hostname podAntiAffinity can't be met on the 1-node vind cluster) and `injector.enabled: false` (we use ESO, not the sidecar injector).
+- **cluster-gateway proxy** reaches a joined child from the host with the root context's creds/CA (same API host) — used for both the ESO CRD SSA and out-of-band inspection.
+**Dependencies:** 2.1, 1.2. **Files:** `apps/control/src/children/application-secret-platform.yaml`, `libs/eso-crds/install.sh`, `apps/control/scripts/up.sh`. **Scope:** M
 
 ### Task 2.3: `openbao-config` as terraform/ + component/ + config/ (vault Provider, child-local)
 **Description:** Restructure `apps/secret/src/openbao-config` into the `-config` convention: keep HCL in
