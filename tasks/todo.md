@@ -260,9 +260,10 @@ out-of-band (root token from 1Password → read from secret OpenBao over tailnet
 takes over — mirrors the old `network:bootstrap` + `libs/openbao-bringup`. See memory `network-secret-tailnet-auth`.
 
 **Sub-slices (each RED→GREEN→commit):**
-- [ ] **3.1a** — Expose secret OpenBao on the tailnet as Tailscale service `secret` (KubeVela component into the
-      secret child; `.ts.net` cert). ACL: `autoApprovers.services[svc:secret]` + client grant. Verify
-      `curl https://secret.tail2c33e2.ts.net/v1/sys/health` from the tailnet returns `initialized/sealed=false`.
+- [x] **3.1a** — Expose secret OpenBao on the tailnet as Tailscale service `secret` (KubeVela component into the
+      secret child; `.ts.net` cert). ACL already covers it (verified live — no edit needed). Verified:
+      `curl https://secret.tail2c33e2.ts.net/v1/sys/health` returns `initialized:true,sealed:false`.
+      Gotcha fixed: KubeVela strips tailscale CRD status subresource → `libs/tailscale-crds` SSA + installCRDs=false.
 - [ ] **3.1b** — `application-network.yaml`: create + join `network` vcluster + base platform (namespaces,
       cert-manager, ESO w/ CRDs via `libs/eso-crds`, tailscale-operator=network-operator). Verify
       `vela cluster list` shows `network` ACCEPTED; cert-manager + ESO Running (tailscale-operator waits for OAuth).

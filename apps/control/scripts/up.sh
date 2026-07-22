@@ -56,4 +56,19 @@ echo "==> Installing terraform-controller into the secret child"
 echo "==> Bringing up OpenBao in the secret child"
 "${OPENBAO_BRINGUP}" secret
 
+# ── network child ─────────────────────────────────────────────────────────────
+# network reads the SECRET child's OpenBao over the tailnet (no local store), so it
+# is brought up AFTER secret's OpenBao is green.
+echo "==> Applying child-network Application (creates the 'network' vcluster)"
+vela up -f "${CHILDREN_DIR}/application-network.yaml"
+"${JOIN}" network network
+
+# Same out-of-band CRD installs as the secret child (ESO + tailscale, with the
+# tailscale status subresource KubeVela would otherwise strip).
+"${ESO_CRDS}" network
+"${TS_CRDS}" network
+
+echo "==> Dispatching the network child's base platform (cert-manager, ESO, tailscale)"
+vela up -f "${CHILDREN_DIR}/application-network-platform.yaml"
+
 echo "==> control:up complete."

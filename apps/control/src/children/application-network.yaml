@@ -1,0 +1,32 @@
+# P3.1b — the `network` child vcluster, created BY KubeVela in the base cluster.
+#
+# Identical shape to the `secret` child (application-secret.yaml, proven Task 2.1):
+# a nested vcluster via the built-in `helmchart` component (no FluxCD), pinned
+# vcluster 0.32.1, reachable in-cluster at `https://network.network:443` (matches the
+# vcluster serving-cert SAN `<name>.<ns>`). control:up joins it via libs/vcluster-join
+# right after the vcluster is Ready.
+#
+# The child's platform (cert-manager, ESO, tailscale) and workloads (MongoDB, Omada)
+# are dispatched by SEPARATE Applications via `topology -> network` once joined
+# (application-network-platform.yaml, then P3.2), keeping "create the child" and
+# "fill the child" as independent slices.
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: child-network
+  namespace: vela-system
+spec:
+  components:
+    - name: network
+      type: helmchart
+      properties:
+        chart:
+          source: vcluster
+          repoURL: https://charts.loft.sh
+          version: 0.32.1
+        release:
+          name: network
+          namespace: network
+        # No options.wait: same rationale as the secret child — waiting inside the
+        # helm reconcile races the Application status writer and wedges it at
+        # "rendering". control:up's join helper does the readiness wait instead.

@@ -1,0 +1,132 @@
+# P3.1b — the `network` child's BASE platform, dispatched from the root into the
+# child via `topology -> network`. Mirrors the secret child's platform
+# (application-secret-platform.yaml) MINUS OpenBao: network has no local secret
+# store — it reads the SECRET child's OpenBao over the tailnet (JWT auth). That
+# cross-cluster ClusterSecretStore + its ExternalSecrets are added in Task 3.1f,
+# after the JWKS-over-tailnet path (api-network + jwt-network backend) exists.
+#
+# Same patterns as secret-platform: each helm chart is paired with a k8s-objects
+# Namespace it dependsOn (helm's own createNamespace does not apply across topology
+# dispatch); CRDs for ESO + tailscale are installed out-of-band by control:up
+# (libs/eso-crds, libs/tailscale-crds) so both charts run installCRDs=false.
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: network-platform
+  namespace: vela-system
+spec:
+  components:
+    # ── namespaces (created in the child before the charts land) ──────────────
+    - name: ns-cert-manager
+      type: k8s-objects
+      properties:
+        objects:
+          [
+            {
+              apiVersion: v1,
+              kind: Namespace,
+              metadata: { name: cert-manager },
+            },
+          ]
+    - name: ns-external-secrets
+      type: k8s-objects
+      properties:
+        objects:
+          [
+            {
+              apiVersion: v1,
+              kind: Namespace,
+              metadata: { name: external-secrets },
+            },
+          ]
+    - name: ns-tailscale
+      type: k8s-objects
+      properties:
+        objects:
+          [{ apiVersion: v1, kind: Namespace, metadata: { name: tailscale } }]
+
+    # ── cert-manager (CRDs + DNS-01 self-check against public resolvers) ───────
+    - name: cert-manager
+      type: helmchart
+      dependsOn: [ns-cert-manager]
+      properties:
+        chart:
+          {
+            source: cert-manager,
+            repoURL: https://charts.jetstack.io,
+            version: v1.20.3,
+          }
+        release: { name: cert-manager, namespace: cert-manager }
+        values:
+          crds: { enabled: true }
+          dns01RecursiveNameservers: 1.1.1.1:53,8.8.8.8:53
+          dns01RecursiveNameserversOnly: true
+
+    # ── external-secrets operator (CRDs installed out-of-band; see secret-platform) ─
+    - name: external-secrets
+      type: helmchart
+      dependsOn: [ns-external-secrets]
+      properties:
+        chart:
+          {
+            source: external-secrets,
+            repoURL: https://charts.external-secrets.io,
+            version: 2.0.1,
+          }
+        release: { name: external-secrets, namespace: external-secrets }
+        values:
+          installCRDs: false
+
+    # ── tailscale operator (network cluster identity) ─────────────────────────
+    # Distinct per-cluster tags from secret (tag:network-operator/tag:network-k8s) so
+    # cross-cluster ACL grants express direction (network -> secret reads, secret ->
+    # network JWKS). CRDs out-of-band (installCRDs: false). The operator reads its
+    # OAuth from the `operator-oauth` Secret; on network that Secret is seeded
+    # out-of-band by libs/network-bringup (Task 3.1c) to break the chicken-and-egg
+    # (ESO cannot sync it until the operator's tailnet path exists), then ESO takes
+    # it over (Task 3.1f). Stays not-Ready until that Secret exists.
+    - name: tailscale-operator
+      type: helmchart
+      dependsOn: [ns-tailscale]
+      properties:
+        chart:
+          {
+            source: tailscale-operator,
+            repoURL: https://pkgs.tailscale.com/helmcharts,
+            version: 1.90.9,
+          }
+        release: { name: tailscale-operator, namespace: tailscale }
+        values:
+          installCRDs: false
+          operatorConfig:
+            hostname: network-operator
+            defaultTags: [tag:network-operator]
+          proxyConfig:
+            defaultTags: tag:network-k8s
+
+    # ── cert-manager LE-prod ClusterIssuer (Cloudflare DNS-01) ────────────────
+    # Used by the Omada cert (Task 3.2). The cloudflare-api-token ExternalSecret it
+    # relies on is added with the cross-cluster store in Task 3.1f.
+    - name: clusterissuer-letsencrypt-prod
+      type: k8s-objects
+      dependsOn: [cert-manager]
+      properties:
+        objects:
+          - apiVersion: cert-manager.io/v1
+            kind: ClusterIssuer
+            metadata: { name: letsencrypt-prod }
+            spec:
+              acme:
+                server: https://acme-v02.api.letsencrypt.org/directory
+                email: vassal_preview_4s@icloud.com
+                privateKeySecretRef: { name: letsencrypt-prod-account-key }
+                solvers:
+                  - dns01:
+                      cloudflare:
+                        apiTokenSecretRef:
+                          { name: cloudflare-api-token, key: api-token }
+  policies:
+    - name: to-network
+      type: topology
+      properties:
+        clusters: [network]
