@@ -21,6 +21,9 @@
 # Runs on the dev host (which is on the tailnet and has op/bao/kubectl/jq), like the
 # other libs/ orchestrators; control:up invokes it after the network platform is
 # dispatched. Idempotent: re-reads and re-applies the Secret.
+# The `kc` wrapper is used inside `|| true` cleanups where we handle the exit
+# ourselves, so shellcheck's set-e-disabled notes (SC2310/SC2312) do not apply.
+# shellcheck disable=SC2310,SC2312
 set -euo pipefail
 
 CLUSTER="${1:-network}"
@@ -78,3 +81,36 @@ kc -n "${TS_NAMESPACE}" create secret generic operator-oauth \
   --dry-run=client -o yaml | kc apply -f - >/dev/null
 
 echo "==> [${CLUSTER}] operator-oauth seeded; the tailscale operator (network-operator) can now register."
+
+# ── clear any stale svc:api-network so the fresh operator can claim it ──────────
+# The api-network VIP (Task 3.1d) is a `kube-apiserver` Tailscale Service, which the
+# operator requires EXCLUSIVE ownership of. A prior cluster generation that was torn
+# down WITHOUT releasing its VIPs leaves svc:api-network owned by now-dead operators,
+# and the new operator refuses to hijack it ("already owned by other operator(s)").
+# (Ingress VIPs like svc:secret/svc:omada-network don't hit this — that reconciler
+# APPENDS owners.) The operator-oauth client we just read has `services` scope, so use
+# it to delete a stale svc:api-network here; the operator then recreates + solely owns
+# it. Idempotent + safe: this VIP belongs to exactly this cluster, which we are
+# bringing up, so delete-then-recreate is a no-op on a clean run.
+API="https://api.tailscale.com/api/v2/tailnet/-"
+ts_token="$(curl -s -d "client_id=${client_id}" -d "client_secret=${client_secret}" \
+  "https://api.tailscale.com/api/v2/oauth/token" | jq -r '.access_token // empty')"
+if [[ -n "${ts_token}" ]]; then
+  # Newest network-operator device (lexical max lastSeen == chronological) is the live one.
+  live_op="$(curl -s -H "Authorization: Bearer ${ts_token}" "${API}/devices" \
+    | jq -r '[.devices[] | select(.hostname=="network-operator")] | max_by(.lastSeen).nodeId // empty')"
+  owners="$(curl -s -H "Authorization: Bearer ${ts_token}" "${API}/vip-services" \
+    | jq -r '(.vipServices // [])[] | select(.name=="svc:api-network")
+             | (.annotations["tailscale.com/owner-references"] // "{}" | fromjson.ownerRefs // [] | map(.operatorID) | sort | join(","))' 2>/dev/null || true)"
+  # Delete if the VIP exists and is NOT owned solely by the live operator.
+  if [[ -n "${owners}" && "${owners}" != "${live_op}" ]]; then
+    echo "==> [${CLUSTER}] stale svc:api-network owners [${owners}] != live operator [${live_op:-none}] — deleting so the operator reclaims it"
+    curl -s -o /dev/null -w "    tailscale API DELETE svc:api-network -> HTTP %{http_code}\n" \
+      -X DELETE -H "Authorization: Bearer ${ts_token}" "${API}/vip-services/svc%3Aapi-network"
+    # Nudge the operator to reconcile immediately (else it sits on a long backoff).
+    kc -n "${TS_NAMESPACE}" rollout restart deploy/operator >/dev/null 2>&1 || true
+  fi
+else
+  echo "WARNING: could not obtain a tailscale API token to check svc:api-network ownership; if the network"
+  echo "         kube-apiserver ProxyGroup stays KubeAPIServerProxyInvalid, delete the stale svc:api-network." >&2
+fi

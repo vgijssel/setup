@@ -125,6 +125,50 @@ spec:
                       cloudflare:
                         apiTokenSecretRef:
                           { name: cloudflare-api-token, key: api-token }
+    # ── network kube-API OIDC exposure on the tailnet (Task 3.1d) ─────────────
+    # secret's OpenBao validates network JWTs by fetching THIS cluster's JWKS. The
+    # old api.network.vgijssel.nl nginx+LE proxy is gone (SPEC §3); instead expose
+    # the kube-apiserver as the Tailscale Service `svc:api-network` via a
+    # `kube-apiserver` ProxyGroup in `noauth` mode. noauth means requests arrive as
+    # system:anonymous, so OpenBao's unauthenticated JWKS GET is authorized ONLY for
+    # the two OIDC discovery endpoints by the ClusterRoleBinding below; every other
+    # API path stays denied for anonymous. The proxies carry tag:network-k8s
+    # (proxyConfig.defaultTags), which the tailnet ACL auto-approves for svc:api-network
+    # and grants tag:secret-k8s -> svc:api-network:443 (verified live).
+    - name: proxygroup-api-network
+      type: k8s-objects
+      dependsOn: [tailscale-operator]
+      properties:
+        objects:
+          - apiVersion: tailscale.com/v1alpha1
+            kind: ProxyGroup
+            metadata: { name: api-network }
+            spec:
+              type: kube-apiserver
+              replicas: 2
+              kubeAPIServer:
+                mode: noauth
+                hostname: api-network
+    # Make the OIDC discovery endpoints anonymously readable so secret's OpenBao can
+    # fetch this cluster's JWKS without credentials. system:service-account-issuer-discovery
+    # grants GET on EXACTLY /openid/v1/jwks + /.well-known/openid-configuration and
+    # nothing else; binding it to system:unauthenticated authorizes the anonymous
+    # (noauth-proxied) read while leaving every other path denied.
+    - name: clusterrolebinding-oidc-discovery
+      type: k8s-objects
+      properties:
+        objects:
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata: { name: oidc-discovery-unauthenticated }
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: system:service-account-issuer-discovery
+            subjects:
+              - apiGroup: rbac.authorization.k8s.io
+                kind: Group
+                name: system:unauthenticated
   policies:
     - name: to-network
       type: topology

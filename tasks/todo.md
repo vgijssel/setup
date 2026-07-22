@@ -270,9 +270,12 @@ takes over — mirrors the old `network:bootstrap` + `libs/openbao-bringup`. See
 - [x] **3.1c** — `libs/network-bringup/run.sh`: seed `operator-oauth` out-of-band (read kv/network-tailscale-operator
       from secret OpenBao over the tailnet, write to network child). Verified: `network-operator` device online on
       the tailnet, operator pod Running (`AuthLoop: state is Running`).
-- [ ] **3.1d** — Expose network kube-API OIDC discovery on the tailnet as service `api-network` + OIDC-discovery
-      ClusterRoleBinding. ACL: `autoApprovers.services[svc:api-network]` + secret→`api-network` grant. Verify
-      `curl https://api-network.tail2c33e2.ts.net/openid/v1/jwks` returns network's JWKS from the tailnet.
+- [x] **3.1d** — Expose network kube-API OIDC discovery on the tailnet as service `api-network` + OIDC-discovery
+      ClusterRoleBinding. `kube-apiserver` ProxyGroup (mode noauth, hostname api-network) + OIDC ClusterRoleBinding
+      in `application-network-platform.yaml`. Stale-VIP self-heal baked into `libs/network-bringup` (the operator
+      OAuth client has `services` scope → delete a stale svc:api-network owned by dead operators, restart operator).
+      Verified: `curl https://api-network.tail2c33e2.ts.net/openid/v1/jwks` returns network's JWKS; idempotent
+      re-run leaves the healthy VIP intact.
 - [ ] **3.1e** — Re-add `jwt-network` backend + `network-read` policy/role to `openbao-config` terraform
       (jwks_url → `https://api-network.tail2c33e2.ts.net/openid/v1/jwks`); regenerate `component/`; `generator_test`
       green; Configuration reconciles child-local.
