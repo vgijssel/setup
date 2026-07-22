@@ -276,9 +276,10 @@ takes over — mirrors the old `network:bootstrap` + `libs/openbao-bringup`. See
       OAuth client has `services` scope → delete a stale svc:api-network owned by dead operators, restart operator).
       Verified: `curl https://api-network.tail2c33e2.ts.net/openid/v1/jwks` returns network's JWKS; idempotent
       re-run leaves the healthy VIP intact.
-- [ ] **3.1e** — Re-add `jwt-network` backend + `network-read` policy/role to `openbao-config` terraform
-      (jwks_url → `https://api-network.tail2c33e2.ts.net/openid/v1/jwks`); regenerate `component/`; `generator_test`
-      green; Configuration reconciles child-local.
+- [x] **3.1e** — Re-added `jwt-network` backend + `network-read` policy + `network-eso` JWT role to `openbao-config`
+      terraform (jwks_url → api-network tailnet URL; executor policy granted auth/jwt-network/*); regenerated
+      `component/`. Verified live: `bao auth list` shows jwt-network/, policy network-read present, role network-eso
+      (aud openbao, bound to network ESO SA, network-read). Configuration reconciled Available; `tofu validate` green.
 - [ ] **3.1f** — network ClusterSecretStore (`openbao`, JWT auth → `secret.tail2c33e2.ts.net`) + test ExternalSecret.
       ACL: network→`svc:secret` grant. **GATE:** test ExternalSecret in `network` syncs from secret's OpenBao.
 

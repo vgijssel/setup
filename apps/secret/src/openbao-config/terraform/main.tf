@@ -101,6 +101,10 @@ resource "vault_policy" "openbao_config" {
     path "auth/kubernetes/*" {
       capabilities = ["create", "read", "update", "delete", "list"]
     }
+    # jwt auth method config + roles for the network cluster (jwt-network backend)
+    path "auth/jwt-network/*" {
+      capabilities = ["create", "read", "update", "delete", "list"]
+    }
   EOT
 }
 
@@ -110,4 +114,58 @@ resource "vault_kubernetes_auth_backend_role" "openbao_config" {
   bound_service_account_names      = [var.executor_service_account]
   bound_service_account_namespaces = [var.executor_namespace]
   token_policies                   = ["openbao-config"]
+}
+
+# ── network cluster: remote JWT auth (a REMOTE consumer of this OpenBao) ──────
+# The network child runs no OpenBao of its own; its external-secrets reads kv/*
+# from THIS OpenBao over the tailnet (secret.tail2c33e2.ts.net) using JWT auth.
+# OpenBao validates network SA-token signatures against the network cluster's JWKS,
+# fetched LIVE from network_jwks_url — the network kube-apiserver's OIDC discovery
+# exposed on the tailnet as svc:api-network (Task 3.1d, public .ts.net cert) — so no
+# static key copy, and a vind recreate needs no key re-extraction. jwks_url is
+# decoupled from bound_issuer: the `iss` claim stays the in-cluster issuer, while the
+# keys are fetched over the tailnet. The network cluster is always part of this setup,
+# so these resources are unconditional (SPEC §3: JWT auth, live JWKS).
+resource "vault_jwt_auth_backend" "network" {
+  path         = "jwt-network"
+  type         = "jwt"
+  description  = "JWT auth for the network cluster's external-secrets (live JWKS over the tailnet)"
+  bound_issuer = var.network_oidc_issuer
+  jwks_url     = var.network_jwks_url
+
+  # Configuring the backend writes auth/jwt-network/config — a path this very apply is
+  # adding to the openbao-config executor policy. Force that policy broadening to land
+  # first so the in-cluster executor (whose token re-reads the policy live) isn't 403'd.
+  depends_on = [vault_policy.openbao_config]
+}
+
+# Read-only over kv, mirroring external-secrets. Least privilege: the network cluster
+# gets NOTHING beyond read on kv/* (SPEC Boundaries).
+resource "vault_policy" "network_read" {
+  name   = "network-read"
+  policy = <<-EOT
+    path "kv/data/*" {
+      capabilities = ["read"]
+    }
+    path "kv/metadata/*" {
+      capabilities = ["read", "list"]
+    }
+  EOT
+}
+
+# The login role bound to the network cluster's external-secrets ServiceAccount. ESO
+# mints a projected SA token with audience "openbao" and posts it to jwt-network;
+# OpenBao checks the signature (live JWKS over the tailnet), issuer, audience, and
+# subject, then issues a token carrying network-read.
+resource "vault_jwt_auth_backend_role" "network_eso" {
+  backend         = vault_jwt_auth_backend.network.path
+  role_name       = "network-eso"
+  role_type       = "jwt"
+  bound_audiences = ["openbao"]
+  bound_subject   = "system:serviceaccount:external-secrets:external-secrets"
+  user_claim      = "sub"
+  token_policies  = ["network-read"]
+  token_ttl       = 3600
+
+  depends_on = [vault_policy.openbao_config]
 }

@@ -36,3 +36,22 @@ variable "executor_namespace" {
   type        = string
   default     = "vela-system"
 }
+
+# ── network cluster: remote JWT auth inputs (Task 3.1) ────────────────────────
+variable "network_oidc_issuer" {
+  description = "The network cluster's OIDC issuer — the `iss` claim on its ServiceAccount tokens, and the bound_issuer for the jwt-network backend. In-cluster and stable across vind recreation."
+  type        = string
+  default     = "https://kubernetes.default.svc.cluster.local"
+}
+
+variable "network_jwks_url" {
+  description = <<-EOT
+    URL OpenBao fetches the network cluster's JWKS from to validate its JWTs. The
+    network kube-apiserver's OIDC discovery is exposed on the tailnet as the
+    `svc:api-network` Tailscale Service (Task 3.1d) with a public .ts.net cert, so
+    this is a plain public HTTPS name (no custom CA). Decoupled from bound_issuer:
+    the `iss` claim stays the in-cluster issuer; only the key-fetch is over the tailnet.
+  EOT
+  type        = string
+  default     = "https://api-network.tail2c33e2.ts.net/openid/v1/jwks"
+}
