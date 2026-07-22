@@ -20,6 +20,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 CHILDREN_DIR="${SCRIPT_DIR}/../src/children"
 JOIN="${REPO_ROOT}/libs/vcluster-join/join.sh"
 ESO_CRDS="${REPO_ROOT}/libs/eso-crds/install.sh"
+TS_CRDS="${REPO_ROOT}/libs/tailscale-crds/install.sh"
 TF_CTRL_CHILD="${REPO_ROOT}/libs/tf-controller-child/install.sh"
 OPENBAO_BRINGUP="${REPO_ROOT}/libs/openbao-bringup/run.sh"
 
@@ -33,9 +34,12 @@ echo "==> Applying child-secret Application (creates the 'secret' vcluster)"
 vela up -f "${CHILDREN_DIR}/application-secret.yaml"
 "${JOIN}" secret secret
 
-# ESO CRDs must exist in the child before its platform Application dispatches the
-# ClusterSecretStore / ExternalSecret CRs (else those kinds are unregistered).
+# ESO + tailscale CRDs must exist in the child before its platform Application
+# dispatches the ClusterSecretStore / ExternalSecret / ProxyGroup / Ingress CRs
+# (else those kinds are unregistered, or — for tailscale — dispatched without a
+# status subresource, which wedges the operator; see each install.sh for why).
 "${ESO_CRDS}" secret
+"${TS_CRDS}" secret
 
 echo "==> Dispatching the secret child's platform (cert-manager, ESO, tailscale, OpenBao)"
 vela up -f "${CHILDREN_DIR}/application-secret-platform.yaml"
