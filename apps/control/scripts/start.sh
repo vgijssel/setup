@@ -100,6 +100,12 @@ TFCTRL_EXECUTOR_IMAGE="tofu-executor:1.10.6"
 build_and_import "${TFCTRL_EXECUTOR_IMAGE}" "${SCRIPT_DIR}/../images/tofu-executor"
 TFCTRL_HELM_ARGS=(--set "terraformImage=${TFCTRL_EXECUTOR_IMAGE}")
 
+# OpenBao bring-up image (Task 2.4 Workflow): bundles bao + op + kubectl + jq so
+# the one-off OpenBao init/seal/store-to-1Password/mint-token Job can run inside the
+# secret child. No public image bundles these; build + import it node-local so the
+# child's bring-up Job (pullPolicy IfNotPresent) resolves it.
+build_and_import "openbao-bootstrap:2.5.5" "${SCRIPT_DIR}/../images/openbao-bootstrap"
+
 # Controller: rebuild only on arm64 (amd64 uses the upstream image pinned by digest).
 if [[ "${GOARCH}" = "arm64" ]]; then
   TFCTRL_LOCAL_IMAGE="terraform-controller:v0.8.0-arm64"
