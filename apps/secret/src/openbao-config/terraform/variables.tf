@@ -32,7 +32,7 @@ variable "executor_service_account" {
 }
 
 variable "executor_namespace" {
-  description = "Namespace the terraform-controller executor pod runs in (the Configuration's namespace in the secret child)."
+  description = "Namespace the terraform-controller executor pod runs in — the child's vela-system, co-located with the child terraform-controller and its kubernetes-backend state Secret."
   type        = string
-  default     = "secret"
+  default     = "vela-system"
 }

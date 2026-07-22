@@ -20,10 +20,12 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 CHILDREN_DIR="${SCRIPT_DIR}/../src/children"
 JOIN="${REPO_ROOT}/libs/vcluster-join/join.sh"
 ESO_CRDS="${REPO_ROOT}/libs/eso-crds/install.sh"
+TF_CTRL_CHILD="${REPO_ROOT}/libs/tf-controller-child/install.sh"
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required but not found" >&2; exit 1; }; }
 require vela
 require kubectl
+require helm
 
 # ── secret child ────────────────────────────────────────────────────────────
 echo "==> Applying child-secret Application (creates the 'secret' vcluster)"
@@ -36,5 +38,12 @@ vela up -f "${CHILDREN_DIR}/application-secret.yaml"
 
 echo "==> Dispatching the secret child's platform (cert-manager, ESO, tailscale, OpenBao)"
 vela up -f "${CHILDREN_DIR}/application-secret-platform.yaml"
+
+# openbao-config runs child-local (SPEC §3.2), so the secret child needs its own
+# terraform-controller (+ tofu executor) to reconcile the topology-dispatched
+# Configuration. Installed over the same cluster-gateway path; the OpenBao bring-up
+# Workflow (secret:configure equivalent) dispatches the Configuration afterwards.
+echo "==> Installing terraform-controller into the secret child"
+"${TF_CTRL_CHILD}" secret
 
 echo "==> control:up complete."
