@@ -164,6 +164,19 @@ spec:
           # competing secureconfig Secret.
           extraEnvSecrets:
             - mongodb-credentials
+          # Bind USERDB_USER/PASSWORD (empty) so the chart's optional
+          # 01-init-userdb.sh init hook is a no-op. The official mongo entrypoint
+          # SOURCES that hook under `set -u`; with these vars unset its
+          # `[ ! -z "$USERDB_USER" ]` guard aborts with "unbound variable" AFTER the
+          # entrypoint has already created the root user but BEFORE the init mongod
+          # checkpoints — the container exits 1, restarts onto a half-written data
+          # dir, and never re-runs init, so root silently never exists and every
+          # client (Omada) gets AuthenticationFailed. Empty values make the guard
+          # false → the hook logs "Missing parameters" and exits 0. We use root
+          # directly (no separate app user), so no real userDatabase is needed.
+          env:
+            - { name: USERDB_USER, value: "" }
+            - { name: USERDB_PASSWORD, value: "" }
           service: { type: ClusterIP, port: 27017 }
           storage: { requestedSize: 2Gi }
 
