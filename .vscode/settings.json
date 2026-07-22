@@ -7,7 +7,6 @@
     "**/*.code-search": true,
     "third_party/vendir/charts/**": true,
     "third_party/vendir/shell/**": true,
-    "third_party/vendir/markdown/**": true,
     "third_party/vendir/manifests/**": true
   }
 }
